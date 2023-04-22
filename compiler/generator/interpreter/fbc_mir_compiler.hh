@@ -24,7 +24,6 @@
 
 #include <string>
 #include <map>
-#include <stdio.h>
 
 #include "interpreter_bytecode.hh"
 #include "fbc_executor.hh"
@@ -40,15 +39,23 @@ extern "C" {
 }
 #endif
 
-#define typedReal(op1, op2) ((sizeof(REAL) == sizeof(float)) ? op1 : op2)
-
 // FBC MIR compiler
 template <class REAL>
 class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
-    typedef void (*compiledFun)(MIR_val_t int_heap, MIR_val_t real_heap, MIR_val_t inputs, MIR_val_t outputs);
-
-   protected:
+  private:
+    
+    inline MIR_insn_code_t typedReal(MIR_insn_code_t float_op, MIR_insn_code_t double_op)
+    {
+        return ((sizeof(REAL) == sizeof(float)) ? float_op : double_op);
+    }
+    
+    typedef void (*compiledFun)(MIR_val_t int_heap,
+                                MIR_val_t real_heap,
+                                MIR_val_t inputs,
+                                MIR_val_t outputs,
+                                MIR_val_t sound_table);
+    
     compiledFun fCompiledFun;
     
     std::map<std::string, int> fIDCounters;
@@ -60,14 +67,18 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
     MIR_item_t fCompute;
 
     MIR_reg_t fMIRStack[512];
-  
     int fMIRStackIndex;
-    int fAddrStackIndex;
 
     MIR_reg_t fMIRIntHeap;
     MIR_reg_t fMIRRealHeap;
     MIR_reg_t fMIRInputs;
     MIR_reg_t fMIROutputs;
+    MIR_reg_t fMIRSoundTable;
+    
+    // Global variable for all soundfiles
+    Soundfile** fSoundArrayTable;
+    // Associate the soundfile name with its index in fSoundArrayTable
+    std::map<std::string, int> fSoundTableID;
     
     char* getFreshID(const std::string& prefix)
     {
@@ -96,8 +107,6 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
     {
         return MIR_new_func_reg(fContext, fCompute->u.func, type, getFreshID(name));
     }
-  
-    std::string getMathName(const std::string& name) { return (sizeof(REAL) == sizeof(float)) ? (name + "f") : name; }
 
     void pushValue(MIR_reg_t val) { fMIRStack[fMIRStackIndex++] = val; }
     MIR_reg_t popValue() { return fMIRStack[--fMIRStackIndex]; }
@@ -122,9 +131,8 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         pushBinop(op, getInt64Ty(), "comp_real");
     }
     
-    void pushUnaryCall(const std::string& name_aux, MIR_type_t type, bool rename)
+    void pushUnaryCall(const std::string& name, MIR_type_t type)
     {
-        std::string name = (rename) ? getMathName(name_aux) : name_aux;
         std::string name_proto = name + "_proto";
         
         // Generate call
@@ -149,19 +157,18 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         pushValue(call_res);
     }
   
-    void pushUnaryIntCall(const std::string& name, bool rename = true)
+    void pushUnaryIntCall(const std::string& name)
     {
-        return pushUnaryCall(name, getInt64Ty(), rename);
+        return pushUnaryCall(name, getInt64Ty());
     }
     
-    void pushUnaryRealCall(const std::string& name, bool rename = true)
+    void pushUnaryRealCall(const std::string& name)
     {
-        return pushUnaryCall(name, getRealTy(), rename);
+        return pushUnaryCall(name, getRealTy());
     }
 
-    void pushBinaryCall(const std::string& name_aux, MIR_type_t type, bool rename)
+    void pushBinaryCall(const std::string& name, MIR_type_t type)
     {
-        std::string name = (rename) ? getMathName(name_aux) : name_aux;
         std::string name_proto = name + "_proto";
         
         // Generate call
@@ -189,14 +196,14 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         pushValue(call_res);
     }
 
-    void pushBinaryIntCall(const std::string& name, bool rename = true)
+    void pushBinaryIntCall(const std::string& name)
     {
-        pushBinaryCall(name, getInt64Ty(), rename);
+        pushBinaryCall(name, getInt64Ty());
     }
 
-    void pushBinaryRealCall(const std::string& name, bool rename = true)
+    void pushBinaryRealCall(const std::string& name)
     {
-        pushBinaryCall(name, getRealTy(), rename);
+        pushBinaryCall(name, getRealTy());
     }
 
     MIR_reg_t createIndexReg(int index)
@@ -345,6 +352,87 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                                                                         sizeof(REAL)),
                                                          MIR_new_reg_op(fContext, popValue())));
     }
+    
+    void pushLoadSoundFieldInt(const std::string& sf_name)
+    {
+        faustassert(this->fSoundTable.find(sf_name) != this->fSoundTable.end());
+    
+        // Load SoundFile: pointer is handled as an Int64
+        MIR_reg_t sf_reg = createIndexReg(fSoundTableID[sf_name]);
+        MIR_reg_t sf_ptr = createVar(getInt64Ty(), "sf_ptr");
+        MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
+                                                         MIR_new_reg_op(fContext, sf_ptr),
+                                                         MIR_new_mem_op(fContext,
+                                                                        getInt64Ty(), 0,
+                                                                        fMIRSoundTable, sf_reg,
+                                                                        sizeof(int64_t))));
+        // Load SoundFile field: pointer is handled as an Int64
+        MIR_reg_t field_index = popValue();
+        MIR_reg_t field_ptr = createVar(getInt64Ty(), "field_ptr");
+        MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
+                                                         MIR_new_reg_op(fContext, field_ptr),
+                                                         MIR_new_mem_op(fContext,
+                                                                        getInt64Ty(), 0,
+                                                                        sf_ptr, field_index,
+                                                                        sizeof(int64_t))));
+    
+    
+        // Load SoundFile part in the field: result is an Int32
+        MIR_reg_t part = popValue();
+        MIR_reg_t part_val = createVar(getInt64Ty(), "part_val");
+        MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
+                                                         MIR_new_reg_op(fContext, part_val),
+                                                         MIR_new_mem_op(fContext,
+                                                                        getInt64Ty(), 0,
+                                                                        field_ptr, part,
+                                                                        sizeof(int))));
+        pushValue(part_val);
+    }
+    
+    void pushLoadSoundFieldReal(const std::string& sf_name)
+    {
+        faustassert(this->fSoundTable.find(sf_name) != this->fSoundTable.end());
+    
+        // Load SoundFile: pointer is handled as an Int64
+        MIR_reg_t sf_reg = createIndexReg(fSoundTableID[sf_name]);
+        MIR_reg_t sf_ptr = createVar(getInt64Ty(), "sf_ptr");
+        MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
+                                                         MIR_new_reg_op(fContext, sf_ptr),
+                                                         MIR_new_mem_op(fContext,
+                                                                        getInt64Ty(), 0,
+                                                                        fMIRSoundTable, sf_reg,
+                                                                        sizeof(int64_t))));
+       // Load SoundFile buffer: pointer is handled as an Int64
+        MIR_reg_t buffer_field = popValue();
+        MIR_reg_t buffer_ptr = createVar(getInt64Ty(), "buffer_ptr");
+        MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
+                                                         MIR_new_reg_op(fContext, buffer_ptr),
+                                                         MIR_new_mem_op(fContext,
+                                                                        getInt64Ty(), 0,
+                                                                        sf_ptr, buffer_field,
+                                                                        sizeof(int64_t))));
+        
+        // Load SoundFile channel from the buffer: pointer is handled as an Int64
+        MIR_reg_t chan = popValue();
+        MIR_reg_t chan_ptr = createVar(getInt64Ty(), "chan_ptr");
+        MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
+                                                         MIR_new_reg_op(fContext, chan_ptr),
+                                                         MIR_new_mem_op(fContext,
+                                                                        getInt64Ty(), 0,
+                                                                        buffer_ptr, chan,
+                                                                        sizeof(int64_t))));
+     
+        // Load SoundFile sample from the channel
+        MIR_reg_t offset = popValue();
+        MIR_reg_t sample = createVar(getRealTy(), "sample");
+        MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, typedReal(MIR_FMOV, MIR_DMOV),
+                                                         MIR_new_reg_op(fContext, sample),
+                                                         MIR_new_mem_op(fContext,
+                                                                        getRealTy(), 0,
+                                                                        chan_ptr, offset,
+                                                                        sizeof(REAL))));
+        pushValue(sample);
+    }
    
     // Select that only computes one branch: a local variable is create and written in 'then' and 'else' blocks, and loaded in the 'merge' block
     void createSelectBlock(InstructionIT it, MIR_reg_t typed_res, MIR_insn_code_t mov_code)
@@ -390,70 +478,39 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
     }
     
     // Integer version
-    static int mir_abs(int val) { return abs(val); }
+    static int mir_abs(int val) { return std::abs(val); }
     
     static int mir_min_i(int val1, int val2) { return std::min(val1, val2); }
     static int mir_max_i(int val1, int val2) { return std::max(val1, val2); }
     
-    // Float versions
-    static float mir_fabsf(float val) { return fabsf(val); }
-    static float mir_acosf(float val) { return acosf(val); }
-    static float mir_acoshf(float val) { return acoshf(val); }
-    static float mir_asinf(float val) { return asinf(val); }
-    static float mir_asinhf(float val) { return asinhf(val); }
-    static float mir_atanf(float val) { return atanf(val); }
-    static float mir_atanhf(float val) { return atanhf(val); }
-    static float mir_ceilf(float val) { return ceilf(val); }
-    static float mir_cosf(float val) { return cosf(val); }
-    static float mir_coshf(float val) { return coshf(val); }
-    static float mir_expf(float val) { return expf(val); }
-    static float mir_floorf(float val) { return floorf(val); }
-    static float mir_logf(float val) { return logf(val); }
-    static float mir_log10f(float val) { return log10f(val); }
-    static float mir_rintf(float val) { return rintf(val); }
-    static float mir_roundf(float val) { return roundf(val); }
-    static float mir_sinf(float val) { return sinf(val); }
-    static float mir_sinhf(float val) { return sinhf(val); }
-    static float mir_sqrtf(float val) { return sqrtf(val); }
-    static float mir_tanf(float val) { return tanf(val); }
-    static float mir_tanhf(float val) { return tanhf(val); }
-    static float mir_atan2f(float val1, float val2) { return atan2f(val1, val2); }
-    static float mir_fmodf(float val1, float val2) { return fmodf(val1, val2); }
-    static float mir_powf(float val1, float val2) { return powf(val1, val2); }
-    static float mir_remainderf(float val1, float val2) { return remainderf(val1, val2); }
+    static REAL mir_fabs(REAL val) { return std::fabs(val); }
+    static REAL mir_acos(REAL val) { return std::acos(val); }
+    static REAL mir_acosh(REAL val) { return std::acosh(val); }
+    static REAL mir_asin(REAL val) { return std::asin(val); }
+    static REAL mir_asinh(REAL val) { return std::asinh(val); }
+    static REAL mir_atan(REAL val) { return std::atan(val); }
+    static REAL mir_atanh(REAL val) { return std::atanh(val); }
+    static REAL mir_ceil(REAL val) { return std::ceil(val); }
+    static REAL mir_cos(REAL val) { return std::cos(val); }
+    static REAL mir_cosh(REAL val) { return std::cosh(val); }
+    static REAL mir_exp(REAL val) { return std::exp(val); }
+    static REAL mir_floor(REAL val) { return std::floor(val); }
+    static REAL mir_log(REAL val) { return std::log(val); }
+    static REAL mir_log10(REAL val) { return std::log10(val); }
+    static REAL mir_rint(REAL val) { return std::rint(val); }
+    static REAL mir_round(REAL val) { return std::round(val); }
+    static REAL mir_sin(REAL val) { return std::sin(val); }
+    static REAL mir_sinh(REAL val) { return std::sinh(val); }
+    static REAL mir_sqrt(REAL val) { return std::sqrt(val); }
+    static REAL mir_tan(REAL val) { return std::tan(val); }
+    static REAL mir_tanh(REAL val) { return std::tanh(val); }
+    static REAL mir_atan2(REAL val1, REAL val2) { return std::atan2(val1, val2); }
+    static REAL mir_fmod(REAL val1, REAL val2) { return std::fmod(val1, val2); }
+    static REAL mir_pow(REAL val1, REAL val2) { return std::pow(val1, val2); }
+    static REAL mir_remainder(REAL val1, REAL val2) { return std::remainder(val1, val2); }
     
-    static float mir_minf(float val1, float val2) { return std::min(val1, val2); }
-    static float mir_maxf(float val1, float val2) { return std::max(val1, val2); }
-    
-    // Double version
-    static double mir_fabs(double val) { return fabs(val); }
-    static double mir_acos(double val) { return acos(val); }
-    static double mir_acosh(double val) { return acosh(val); }
-    static double mir_asin(double val) { return asin(val); }
-    static double mir_asinh(double val) { return asinh(val); }
-    static double mir_atan(double val) { return atan(val); }
-    static double mir_atanh(double val) { return atanh(val); }
-    static double mir_ceil(double val) { return ceil(val); }
-    static double mir_cos(double val) { return cos(val); }
-    static double mir_cosh(double val) { return cosh(val); }
-    static double mir_exp(double val) { return exp(val); }
-    static double mir_floor(double val) { return floor(val); }
-    static double mir_log(double val) { return log(val); }
-    static double mir_log10(double val) { return log10(val); }
-    static double mir_rint(double val) { return rint(val); }
-    static double mir_round(double val) { return round(val); }
-    static double mir_sin(double val) { return sin(val); }
-    static double mir_sinh(double val) { return sinh(val); }
-    static double mir_sqrt(double val) { return sqrt(val); }
-    static double mir_tan(double val) { return tan(val); }
-    static double mir_tanh(double val) { return tanh(val); }
-    static double mir_atan2(double val1, double val2) { return atan2(val1, val2); }
-    static double mir_fmod(double val1, double val2) { return fmod(val1, val2); }
-    static double mir_pow(double val1, double val2) { return pow(val1, val2); }
-    static double mir_remainder(double val1, double val2) { return remainder(val1, val2); }
-    
-    static double mir_min(double val1, double val2) { return std::min(val1, val2); }
-    static double mir_max(double val1, double val2) { return std::max(val1, val2); }
+    static REAL mir_min(REAL val1, REAL val2) { return std::min(val1, val2); }
+    static REAL mir_max(REAL val1, REAL val2) { return std::max(val1, val2); }
     
     static void* importResolver(const char* name)
     {
@@ -498,6 +555,16 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                 }
 
                 // Memory load/store
+                case FBCInstruction::kLoadSoundFieldInt:
+                    pushLoadSoundFieldInt((*it)->fName);
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kLoadSoundFieldReal:
+                    pushLoadSoundFieldReal((*it)->fName);
+                    it++;
+                    break;
+
                 case FBCInstruction::kLoadReal:
                     pushLoadRealArray((*it)->fOffset1);
                     it++;
@@ -530,17 +597,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     it++;
                     break;
                 }
-                    
-                case FBCInstruction::kLoadSoundFieldInt:
-                    throw faustexception("ERROR : kLoadSoundFieldInt not yet supported in FBCMIRCompiler\n");
-                    it++;
-                    break;
-                    
-                case FBCInstruction::kLoadSoundFieldReal:
-                    throw faustexception("ERROR : kLoadSoundFieldReal not yet supported in FBCMIRCompiler\n");
-                    it++;
-                    break;
-
+             
                 case FBCInstruction::kStoreIndexedReal: {
                     pushStoreRealArrayImp(createAddOffsetReg((*it)->fOffset1));
                     it++;
@@ -774,7 +831,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
                     // Extended unary math
                 case FBCInstruction::kAbs:
-                    pushUnaryIntCall("mir_abs", false);
+                    pushUnaryIntCall("mir_abs");
                     it++;
                     break;
 
@@ -918,7 +975,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     break;
 
                 case FBCInstruction::kMax: {
-                    pushBinaryIntCall("mir_max_i", false);
+                    pushBinaryIntCall("mir_max_i");
                     it++;
                     break;
                 }
@@ -930,7 +987,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                 }
 
                 case FBCInstruction::kMin: {
-                    pushBinaryIntCall("mir_min_i", false);
+                    pushBinaryIntCall("mir_min_i");
                     it++;
                     break;
                 }
@@ -1003,93 +1060,77 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
     FBCMIRCompiler(FBCBlockInstruction<REAL>* fbc_block, soundTable& sound_table)
     :FBCExecuteFun<REAL>(fbc_block, sound_table)
     {
-        // Integer version
+        // Math functions
         gMathLib["mir_abs"] = (void*)mir_abs;
         
         gMathLib["mir_min_i"] = (void*)mir_min_i;
         gMathLib["mir_max_i"] = (void*)mir_max_i;
         
-        if (sizeof(REAL) == sizeof(float)) {
-            // Float versions
-            gMathLib["mir_fabsf"] = (void*)mir_fabsf;
-            gMathLib["mir_acosf"] = (void*)mir_acosf;
-            gMathLib["mir_acoshf"] = (void*)mir_acoshf;
-            gMathLib["mir_asinf"] = (void*)mir_asinf;
-            gMathLib["mir_asinhf"] = (void*)mir_asinhf;
-            gMathLib["mir_atanf"] = (void*)mir_atanf;
-            gMathLib["mir_atanhf"] = (void*)mir_atanhf;
-            gMathLib["mir_ceilf"] = (void*)mir_ceilf;
-            gMathLib["mir_cosf"] = (void*)mir_cosf;
-            gMathLib["mir_coshf"] = (void*)mir_coshf;
-            gMathLib["mir_expf"] = (void*)mir_expf;
-            gMathLib["mir_floorf"] = (void*)mir_floorf;
-            gMathLib["mir_logf"] = (void*)mir_logf;
-            gMathLib["mir_log10f"] = (void*)mir_log10f;
-            gMathLib["mir_rintf"] = (void*)mir_rintf;
-            gMathLib["mir_roundf"] = (void*)mir_roundf;
-            gMathLib["mir_sinf"] = (void*)mir_sinf;
-            gMathLib["mir_sinhf"] = (void*)mir_sinhf;
-            gMathLib["mir_sqrtf"] = (void*)mir_sqrtf;
-            gMathLib["mir_tanf"] = (void*)mir_tanf;
-            gMathLib["mir_tanhf"] = (void*)mir_tanhf;
-            gMathLib["mir_atan2f"] = (void*)mir_atan2f;
-            gMathLib["mir_fmodf"] = (void*)mir_fmodf;
-            gMathLib["mir_powf"] = (void*)mir_powf;
-            gMathLib["mir_remainderf"] = (void*)mir_remainderf;
-            
-            gMathLib["mir_minf"] = (void*)mir_minf;
-            gMathLib["mir_maxf"] = (void*)mir_maxf;
-        } else if (sizeof(REAL) == sizeof(double)) {
-            // Double versions
-            gMathLib["mir_fabs"] = (void*)mir_fabs;
-            gMathLib["mir_acos"] = (void*)mir_acos;
-            gMathLib["mir_acosh"] = (void*)mir_acosh;
-            gMathLib["mir_asin"] = (void*)mir_asin;
-            gMathLib["mir_asinh"] = (void*)mir_asinh;
-            gMathLib["mir_atan"] = (void*)mir_atan;
-            gMathLib["mir_atanh"] = (void*)mir_atanh;
-            gMathLib["mir_ceil"] = (void*)mir_ceil;
-            gMathLib["mir_cos"] = (void*)mir_cos;
-            gMathLib["mir_cosh"] = (void*)mir_cosh;
-            gMathLib["mir_exp"] = (void*)mir_exp;
-            gMathLib["mir_floor"] = (void*)mir_floor;
-            gMathLib["mir_log"] = (void*)mir_log;
-            gMathLib["mir_log10"] = (void*)mir_log10;
-            gMathLib["mir_rint"] = (void*)mir_rint;
-            gMathLib["mir_round"] = (void*)mir_round;
-            gMathLib["mir_sin"] = (void*)mir_sin;
-            gMathLib["mir_sinh"] = (void*)mir_sinh;
-            gMathLib["mir_sqrt"] = (void*)mir_sqrt;
-            gMathLib["mir_tan"] = (void*)mir_tan;
-            gMathLib["mir_tanh"] = (void*)mir_tanh;
-            gMathLib["mir_atan2"] = (void*)mir_atan2;
-            gMathLib["mir_fmod"] = (void*)mir_fmod;
-            gMathLib["mir_pow"] = (void*)mir_pow;
-            gMathLib["mir_remainder"] = (void*)mir_remainder;
-            
-            gMathLib["mir_min"] = (void*)mir_min;
-            gMathLib["mir_max"] = (void*)mir_max;
-        } 
+        gMathLib["mir_fabs"] = (void*)mir_fabs;
+        gMathLib["mir_acos"] = (void*)mir_acos;
+        gMathLib["mir_acosh"] = (void*)mir_acosh;
+        gMathLib["mir_asin"] = (void*)mir_asin;
+        gMathLib["mir_asinh"] = (void*)mir_asinh;
+        gMathLib["mir_atan"] = (void*)mir_atan;
+        gMathLib["mir_atanh"] = (void*)mir_atanh;
+        gMathLib["mir_ceil"] = (void*)mir_ceil;
+        gMathLib["mir_cos"] = (void*)mir_cos;
+        gMathLib["mir_cosh"] = (void*)mir_cosh;
+        gMathLib["mir_exp"] = (void*)mir_exp;
+        gMathLib["mir_floor"] = (void*)mir_floor;
+        gMathLib["mir_log"] = (void*)mir_log;
+        gMathLib["mir_log10"] = (void*)mir_log10;
+        gMathLib["mir_rint"] = (void*)mir_rint;
+        gMathLib["mir_round"] = (void*)mir_round;
+        gMathLib["mir_sin"] = (void*)mir_sin;
+        gMathLib["mir_sinh"] = (void*)mir_sinh;
+        gMathLib["mir_sqrt"] = (void*)mir_sqrt;
+        gMathLib["mir_tan"] = (void*)mir_tan;
+        gMathLib["mir_tanh"] = (void*)mir_tanh;
+        gMathLib["mir_atan2"] = (void*)mir_atan2;
+        gMathLib["mir_fmod"] = (void*)mir_fmod;
+        gMathLib["mir_pow"] = (void*)mir_pow;
+        gMathLib["mir_remainder"] = (void*)mir_remainder;
+        
+        gMathLib["mir_min"] = (void*)mir_min;
+        gMathLib["mir_max"] = (void*)mir_max;
         
         fMIRStackIndex = 0;
-        fAddrStackIndex = 0;
+    
+        // Prepare global soundfile table
+        if (this->fSoundTable.size() > 0) {
+            fSoundArrayTable = new Soundfile*[this->fSoundTable.size()];
+            int i = 0;
+            for (const auto& it : this->fSoundTable) {
+                // Keep each Soundfile*
+                fSoundArrayTable[i] = it.second;
+                // Keep the soundfile index in fSoundTableID
+                fSoundTableID[it.first] = i;
+                i++;
+            }
+        } else {
+            fSoundArrayTable = nullptr;
+        }
 
         fContext = MIR_init();
         MIR_module_t module = MIR_new_module(fContext, "Faust");
         
         // Create 'compute' function
-        fCompute = MIR_new_func(fContext, "compute", 0,
-                                NULL, 4,
+        fCompute = MIR_new_func(fContext,
+                                "compute", 0,
+                                NULL, 5,
                                 MIR_T_P, "int_heap",
                                 MIR_T_P, "real_heap",
                                 MIR_T_P, "inputs",
-                                MIR_T_P, "outputs");
+                                MIR_T_P, "outputs",
+                                MIR_T_P, "sound_table");
         
         // Get the 4 function parameters
         fMIRIntHeap = MIR_reg(fContext, "int_heap", fCompute->u.func);
         fMIRRealHeap = MIR_reg(fContext, "real_heap", fCompute->u.func);
         fMIRInputs = MIR_reg(fContext, "inputs", fCompute->u.func);
         fMIROutputs = MIR_reg(fContext, "outputs", fCompute->u.func);
+        fMIRSoundTable = MIR_reg(fContext, "sound_table", fCompute->u.func);
         
         // Compile compute body
         MIR_label_t entry_block = MIR_new_label(fContext);
@@ -1112,7 +1153,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         MIR_gen_init(fContext, 1);
     
         // Optimize the code (default = 2)
-        MIR_gen_set_optimize_level(fContext, 0, 2);
+        MIR_gen_set_optimize_level(fContext, 0, 3);
     
         fCompiledFun = (compiledFun)MIR_gen(fContext, 0, fCompute);
         MIR_gen_finish(fContext);
@@ -1123,22 +1164,26 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
     virtual ~FBCMIRCompiler()
     {
+        delete [] fSoundArrayTable;
         MIR_finish(fContext);
     }
 
-    void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
+    void execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
     {
+        // Compiled mode
         fCompiledFun((MIR_val_t){.a = (void*)int_heap},
                      (MIR_val_t){.a = (void*)real_heap},
                      (MIR_val_t){.a = (void*)inputs},
-                     (MIR_val_t){.a = (void*)outputs});
+                     (MIR_val_t){.a = (void*)outputs},
+                     (MIR_val_t){.a = (void*)fSoundArrayTable});
         /*
         // Interpreter mode
-        MIR_interp(fContext, fCompute, NULL, 4,
+        MIR_interp(fContext, fCompute, NULL, 5,
                    (MIR_val_t){.a = (void*)int_heap},
                    (MIR_val_t){.a = (void*)real_heap},
                    (MIR_val_t){.a = (void*)inputs},
-                   (MIR_val_t){.a = (void*)outputs});
+                   (MIR_val_t){.a = (void*)outputs},
+                   (MIR_val_t){.a = (void*)fSoundArrayTable});
         */
     }
     

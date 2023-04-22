@@ -31,7 +31,7 @@
  * makeCableSchema.
  */
 class cableSchema : public schema {
-    vector<point> fPoint;
+    std::vector<point> fPoint;
 
    public:
     friend schema* makeCableSchema(unsigned int n);

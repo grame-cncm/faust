@@ -43,8 +43,6 @@ architecture section is not modified.
 // Mono or polyphonic audio DSP engine
 //**************************************************************
 
-using namespace std;
-
 class FaustPolyEngine {
         
     protected:
@@ -54,8 +52,8 @@ class FaustPolyEngine {
     
         APIUI fAPIUI;             // the UI description
 
-        string fJSONUI;
-        string fJSONMeta;
+        std::string fJSONUI;
+        std::string fJSONMeta;
         bool fRunning;
         audio* fDriver;
     
@@ -110,7 +108,7 @@ class FaustPolyEngine {
             // Retrieving DSP object name
             struct MyMeta : public Meta
             {
-                string fName;
+                std::string fName;
                 void declare(const char* key, const char* value)
                 {
                     if (strcmp(key, "name") == 0) fName = value;

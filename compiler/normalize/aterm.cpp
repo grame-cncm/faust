@@ -123,13 +123,11 @@ static void addTermsWithSign(bool p1, Tree v1, bool p2, Tree v2, bool& p3, Tree&
 
 Tree aterm::normalizedTree() const
 {
-    // store positive and negative tems by order and sign
+    // store positive and negative terms by order and sign
     // positive terms are stored in P[]
     // negative terms are inverted (made positive) and stored in N[]
     Tree P[4], N[4];
-    bool hasPositiveTerm = false;
-    bool hasNegativeTerm = false;
-
+ 
     // prepare
     for (int order = 0; order < 4; order++) P[order] = N[order] = tree(0);
 
@@ -140,12 +138,10 @@ Tree aterm::normalizedTree() const
             Tree t          = m.normalizedTree(false, true);
             int  order      = getSigOrder(t);
             N[order]        = simplifyingAdd(N[order], t);
-            hasNegativeTerm = true;
         } else {
             Tree t          = m.normalizedTree();
             int  order      = getSigOrder(t);
             P[order]        = simplifyingAdd(P[order], t);
-            hasPositiveTerm = true;
         }
     }
 

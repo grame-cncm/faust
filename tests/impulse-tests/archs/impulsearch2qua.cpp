@@ -6,6 +6,7 @@
 #include "faust/gui/CGlue.h"
 #include "faust/dsp/one-sample-dsp.h"
 #include "controlTools.h"
+#include "fixed-point.h"
 
 //----------------------------------------------------------------------------
 //FAUST generated code
@@ -114,23 +115,24 @@ class Cdsp : public one_sample_dsp_real1<REAL> {
     
 };
 
-// Global external memory
-int iControl[FAUST_INT_CONTROLS];
-double fControl[FAUST_REAL_CONTROLS];
-int iZone[FAUST_INT_ZONE];
-double fZone[FAUST_FLOAT_ZONE];
-
-int main(int argc, char* argv[])
+template <typename REAL>
+int main_aux(int argc, char* argv[])
 {
     int linenum = 0;
     int nbsamples = 60000;
     
+    // Global external memory
+    int iControl[FAUST_INT_CONTROLS];
+    REAL fControl[FAUST_REAL_CONTROLS];
+    int iZone[FAUST_INT_ZONE];
+    REAL fZone[FAUST_FLOAT_ZONE];
+    
     // print general informations
-    printHeader(new Cdsp<double>(iControl, fControl, iZone, fZone), nbsamples);
+    printHeader(new Cdsp<REAL>(iControl, fControl, iZone, fZone), nbsamples);
     
     // linenum is incremented in runDSP and runPolyDSP
-    runDSP(new Cdsp<double>(iControl, fControl, iZone, fZone), argv[0], linenum, nbsamples/4);
-    runDSP(new Cdsp<double>(iControl, fControl, iZone, fZone), argv[0], linenum, nbsamples/4, false, true);
+    runDSP(new Cdsp<REAL>(iControl, fControl, iZone, fZone), argv[0], linenum, nbsamples/4);
+    runDSP(new Cdsp<REAL>(iControl, fControl, iZone, fZone), argv[0], linenum, nbsamples/4, false, true);
     
     // DSP clone actually uses the same iControl, fControl, iZone, fZone, so deactivated for now
     //runPolyDSP(new Cdsp<double>(), linenum, nbsamples/4, 4);
@@ -139,4 +141,8 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-
+int main(int argc, char* argv[])
+{
+    //return main_aux<fixpoint_t>(argc, argv);
+    return main_aux<double>(argc, argv);
+}

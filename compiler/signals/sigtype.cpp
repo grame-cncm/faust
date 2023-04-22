@@ -32,7 +32,7 @@
 using namespace std;
 
 // Uncomment to activate type inferrence tracing
-//#define TRACE(x) x
+// #define TRACE(x) x
 
 #define TRACE(x) \
     {            \
@@ -57,7 +57,7 @@ bool SimpleType::isMaximal() const  ///< true when type is maximal (and therefor
 
 //------------------------------------------------------------------------------------
 //
-//		Overloading << printing operator
+//        Overloading << printing operator
 //
 //------------------------------------------------------------------------------------
 
@@ -83,7 +83,7 @@ ostream& operator<<(ostream& dst, const TupletType& t)
 
 //------------------------------------------------------------------------------------
 //
-//		Print method definition
+//        Print method definition
 //
 //------------------------------------------------------------------------------------
 
@@ -143,8 +143,8 @@ bool TupletType::isMaximal() const
 
 //------------------------------------------------------------------------------------
 //
-//		Types constructions
-// 		t := p, table(t), t|t, t*t
+//        Types constructions
+//        t := p, table(t), t|t, t*t
 //
 //------------------------------------------------------------------------------------
 
@@ -164,7 +164,7 @@ Type operator|(const Type& t1, const Type& t2)
 
     } else if ((nt1 = isTupletType(t1)) && (nt2 = isTupletType(t2))) {
         vector<Type> v;
-        int          n = (int)min(nt1->arity(), nt2->arity());
+        int          n = (int)std::min(nt1->arity(), nt2->arity());
         for (int i = 0; i < n; i++) {
             v.push_back((*nt1)[i] | (*nt2)[i]);
         }
@@ -189,10 +189,10 @@ bool operator==(const Type& t1, const Type& t2)
     if ((st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2)))
         return (st1->nature() == st2->nature()) && (st1->variability() == st2->variability()) &&
                (st1->computability() == st2->computability()) && (st1->vectorability() == st2->vectorability()) &&
-               (st1->boolean() == st2->boolean()) && (st1->getInterval().lo == st2->getInterval().lo) &&
-               (st1->getInterval().hi == st2->getInterval().hi) &&
-               (st1->getInterval().valid == st2->getInterval().valid) && st1->getRes().valid == st2->getRes().valid &&
-               st1->getRes().index == st2->getRes().index;
+               (st1->boolean() == st2->boolean()) && (st1->getInterval().lo() == st2->getInterval().lo()) &&
+               (st1->getInterval().hi() == st2->getInterval().hi()) &&
+               (st1->getInterval().isValid() == st2->getInterval().isValid()) &&
+               st1->getRes().valid == st2->getRes().valid && st1->getRes().index == st2->getRes().index;
     if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) return tt1->content() == tt2->content();
     if ((nt1 = isTupletType(t1)) && (nt2 = isTupletType(t2))) {
         int a1 = nt1->arity();
@@ -254,6 +254,7 @@ TupletType* isTupletType(AudioType* t)
 
 //--------------------------------------------------
 // Type checking
+//--------------------------------------------------
 
 Type checkInt(Type t)
 {
@@ -308,13 +309,12 @@ Type checkWRTbl(Type tbl, Type wr)
 /**
     \brief Check is a type is appropriate for a delay.
     @return an exception if not appropriate, mxd (max delay) if appropriate
-
  */
 int checkDelayInterval(Type t)
 {
     interval i = t->getInterval();
-    if (i.valid && i.lo >= 0 && i.hi < INT_MAX) {
-        return int(i.hi + 0.5);
+    if (i.isValid() && i.lo() >= 0 && i.hi() < INT_MAX) {
+        return int(i.hi() + 0.5);
     } else {
         stringstream error;
         error << "ERROR : invalid delay parameter range: " << i << ". The range must be between 0 and INT_MAX" << endl;
@@ -377,9 +377,9 @@ static Tree codeSimpleType(SimpleType* st)
     elems.push_back(tree(st->vectorability()));
     elems.push_back(tree(st->boolean()));
 
-    elems.push_back(tree(st->getInterval().valid));
-    elems.push_back(tree(st->getInterval().lo));
-    elems.push_back(tree(st->getInterval().hi));
+    elems.push_back(tree(st->getInterval().isValid()));
+    elems.push_back(tree(st->getInterval().lo()));
+    elems.push_back(tree(st->getInterval().hi()));
 
     elems.push_back(tree(st->getRes().valid));
     elems.push_back(tree(st->getRes().index));
@@ -388,7 +388,7 @@ static Tree codeSimpleType(SimpleType* st)
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i)
 {
-    return makeSimpleType(n, v, c, vec, b, i, gGlobal->RES);
+    return makeSimpleType(n, v, c, vec, b, i, res(i.lsb()));
 }
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i, const res& lsb)
@@ -420,9 +420,9 @@ static Tree codeTableType(TableType* tt)
     elems.push_back(tree(tt->vectorability()));
     elems.push_back(tree(tt->boolean()));
 
-    elems.push_back(tree(tt->getInterval().valid));
-    elems.push_back(tree(tt->getInterval().lo));
-    elems.push_back(tree(tt->getInterval().hi));
+    elems.push_back(tree(tt->getInterval().isValid()));
+    elems.push_back(tree(tt->getInterval().lo()));
+    elems.push_back(tree(tt->getInterval().hi()));
 
     elems.push_back(tree(tt->getRes().valid));
     elems.push_back(tree(tt->getRes().index));

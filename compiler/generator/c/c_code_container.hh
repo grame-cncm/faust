@@ -71,6 +71,83 @@ class CCodeContainer : public virtual CodeContainer {
             generateComputeAux(n);
         }
     }
+    
+    void generateAllocateFun(int n)
+    {
+        if (fAllocateInstructions->fCode.size() > 0) {
+            tab(n, *fOut);
+            *fOut << "void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
+            tab(n + 1, *fOut);
+            generateAllocate(fCodeProducer);
+            back(1, *fOut);
+            *fOut << "}";
+        }
+    }
+    
+    void generateDestroyFun(int n)
+    {
+        if (fDestroyInstructions->fCode.size() > 0) {
+            tab(n, *fOut);
+            *fOut << "void destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
+            tab(n + 1, *fOut);
+            generateDestroy(fCodeProducer);
+            back(1, *fOut);
+            *fOut << "}";
+            tab(n, *fOut);
+        }
+    }
+    
+    void generateHeader1(int n)
+    {
+        tab(n, *fOut);
+        *fOut << "#ifdef __cplusplus" << std::endl;
+        *fOut << "extern \"C\" {" << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(n, *fOut);
+        
+        *fOut << "#if defined(_WIN32)" << std::endl;
+        *fOut << "#define RESTRICT __restrict" << std::endl;
+        *fOut << "#else" << std::endl;
+        *fOut << "#define RESTRICT __restrict__" << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(n, *fOut);
+    }
+    
+    void generateHeader2(int n)
+    {
+        tab(n, *fOut);
+        *fOut << "#ifndef FAUSTCLASS " << std::endl;
+        *fOut << "#define FAUSTCLASS " << fKlassName << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(n, *fOut);
+        
+        *fOut << "#ifdef __APPLE__ " << std::endl;
+        *fOut << "#define exp10f __exp10f" << std::endl;
+        *fOut << "#define exp10 __exp10" << std::endl;
+        *fOut << "#endif" << std::endl;
+        
+        if (gGlobal->gLightMode) {
+            tab(n, *fOut);
+            *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
+            *fOut << "#define min(a,b) ((a < b) ? a : b)\n";
+            tab(n, *fOut);
+        }
+    }
+    
+    void printMathHeader()
+    {
+        // For mathematical functions
+        if (gGlobal->gFastMathLib != "") {
+            includeFastMath();
+        } else {
+            addIncludeFile("<math.h>");
+        }
+        
+        // For malloc/free
+        addIncludeFile("<stdlib.h>");
+        // For int64_t type
+        addIncludeFile("<stdint.h>");
+    }
 
    public:
     CCodeContainer()
@@ -81,18 +158,7 @@ class CCodeContainer : public virtual CodeContainer {
         fKlassName = name;
         fOut = out;
 
-        // For mathematical functions
-        if (gGlobal->gFastMath) {
-            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                                                        : ("\"" + gGlobal->gFastMathLib + "\""));
-        } else {
-            addIncludeFile("<math.h>");
-        }
-
-        // For malloc/free
-        addIncludeFile("<stdlib.h>");
-        // For int64_t type
-        addIncludeFile("<stdint.h>");
+        printMathHeader();
         
         fCodeProducer = new CInstVisitor(out, name);
     }
@@ -123,7 +189,7 @@ class CCodeContainer : public virtual CodeContainer {
     }
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
-    static CodeContainer* createScalarContainer(const std::string& name, int numInputs, int numOutputs, ostream* dst, int sub_container_type);
+    static CodeContainer* createScalarContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst, int sub_container_type);
 
     static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs,
                                           std::ostream* dst = new std::stringstream());
@@ -168,18 +234,7 @@ class CScalarOneSampleCodeContainer1 : public CScalarCodeContainer {
         fKlassName = name;
         fOut = out;
         
-        // For mathematical functions
-        if (gGlobal->gFastMath) {
-            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                           : ("\"" + gGlobal->gFastMathLib + "\""));
-        } else {
-            addIncludeFile("<math.h>");
-        }
-        
-        // For malloc/free
-        addIncludeFile("<stdlib.h>");
-        // For int64_t type
-        addIncludeFile("<stdint.h>");
+        printMathHeader();
         
         fSubContainerType = sub_container_type;
         fCodeProducer = new CInstVisitor(out, name);
@@ -211,18 +266,7 @@ class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
             fKlassName = name;
             fOut = out;
             
-            // For mathematical functions
-            if (gGlobal->gFastMath) {
-                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                               : ("\"" + gGlobal->gFastMathLib + "\""));
-            } else {
-                addIncludeFile("<math.h>");
-            }
-            
-            // For malloc/free
-            addIncludeFile("<stdlib.h>");
-            // For int64_t type
-            addIncludeFile("<stdint.h>");
+            printMathHeader();
             
             fSubContainerType = sub_container_type;
             fCodeProducer = new CInstVisitor1(out, name);
@@ -252,21 +296,9 @@ class CScalarOneSampleCodeContainer3 : public CScalarOneSampleCodeContainer2 {
             fKlassName = name;
             fOut = out;
             
-            // For mathematical functions
-            if (gGlobal->gFastMath) {
-                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                               : ("\"" + gGlobal->gFastMathLib + "\""));
-            } else {
-                addIncludeFile("<math.h>");
-            }
-            
-            // For malloc/free
-            addIncludeFile("<stdlib.h>");
-            // For int64_t type
-            addIncludeFile("<stdint.h>");
+            printMathHeader();
             
             fSubContainerType = sub_container_type;
-        
             // Setup in produceClass
             fCodeProducer = nullptr;
         }

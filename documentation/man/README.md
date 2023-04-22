@@ -1,9 +1,9 @@
-% man(1) Version 2.54.9 (09-December-2022) | Faust man page
+% man(1) Version 2.59.2 (18-April-2023) | Faust man page
 
 NAME
 ====
 
-Faust - DSP to C/C++, CSharp, DLang, Interpreter, Java, LLVM IR, Rust, SOUL, and WebAssembly (wast/wasm)
+Faust - DSP to C/C++, CMajor, CSharp, DLang, Interpreter, Java, LLVM IR, Rust and WebAssembly (wast/wasm)
 
 SYNOPSIS
 ========
@@ -74,7 +74,10 @@ Code generation options:
 
   **-nvi**        **--no-virtual**                when compiled with the C++ backend, does not add the 'virtual' keyword.
 
-  **-fp**         **--full-parentheses**          always add parentheses around binops 
+  **-fp**         **--full-parentheses**          always add parentheses around binops.
+
+  **-cir**        **--check-integer-range**       check float to integer range conversion.
+
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
   **-os**         **--one-sample**                generate one sample computation (same as -os0).
@@ -89,7 +92,7 @@ Code generation options:
 
   **-cm**         **--compute-mix**               mix in outputs buffers.
 
-  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code (0/1: 1 by default).
+  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code [0/1: 1 by default].
 
   **-cn** \<name>  **--class-name** \<name>         specify the name of the dsp class to be used instead of mydsp.
 
@@ -107,6 +110,8 @@ Code generation options:
 
   **-rui**        **--range-ui**                  whether to generate code to constraint vslider/hslider/nentry values in [min..max] range.
 
+  **-fui**        **--freeze-ui**                 whether to freeze vslider/hslider/nentry to a given value (init value by default).
+
   **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compiling a dsp file.
 
   **-scal**       **--scalar**                    generate non-vectorized code (default).
@@ -117,7 +122,7 @@ Code generation options:
 
   **-vs** \<n>     **--vec-size** \<n>              size of the vector (default 32 samples).
 
-  **-lv** \<n>     **--loop-variant** \<n>          [0:fastest (default), 1:simple].
+  **-lv** \<n>     **--loop-variant** \<n>          [0:fastest, fixed vector size and a remaining loop (default), 1:simple, variable vector size].
 
   **-omp**        **--openmp**                    generate OpenMP pragmas, activates --vectorize option.
 
@@ -135,7 +140,7 @@ Code generation options:
 
   **-fun**        **--fun-tasks**                 separate tasks code as separated functions (in -vec, -sch, or -omp mode).
 
-  **-fm** \<file>  **--fast-math** \<file>          use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'.
+  **-fm** \<file>  **--fast-math** \<file>          use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def', assume functions are defined in the architecture file when file is 'arch'.
 
   **-mapp**       **--math-approximation**        simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
 
@@ -150,6 +155,8 @@ Code generation options:
   **-vhdl**-msb \<n>  **--vhdl-msb** \<n>           MSB number of bits.
 
   **-vhdl**-lsb \<n>  **--vhdl-lsb** \<n>           LSB number of bits.
+
+  **-fpga**-mem \<n>  **--fpga-mem** \<n>           FPGA block ram max size, used in -os2/-os3 mode.
 
   **-wi** \<n>     **--widening-iterations** \<n>   number of iterations before widening in signal bounding.
 
@@ -176,6 +183,8 @@ Block diagram options:
   **-sn**        **--simple-names**               use simple names (without arguments) during block-diagram generation.
 
   **-blur**      **--shadow-blur**                add a shadow blur to SVG boxes.
+
+  **-sc**        **--scaled-svg**                 automatic scalable SVG.
 
 
 Math doc options:
@@ -246,6 +255,6 @@ Please report bugs to: **<https://github.com/grame-cncm/faust/issues>**
 AUTHOR
 ======
 
-Copyright (C) 2002-2022, GRAME - Centre National de Creation Musicale.
+Copyright (C) 2002-2023, GRAME - Centre National de Creation Musicale.
 All rights reserved.
 

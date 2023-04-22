@@ -53,7 +53,7 @@ class Compiler : public virtual Garbageable {
     JSONUI       fJSON;
 
    public:
-    Compiler(const string& name, const string& super, int numInputs, int numOutputs, bool vec);
+    Compiler(const std::string& name, const std::string& super, int numInputs, int numOutputs, bool vec);
     Compiler(Klass* k);
 
     virtual ~Compiler();
@@ -70,24 +70,24 @@ class Compiler : public virtual Garbageable {
     virtual Tree prepare(Tree L0)  = 0;
     virtual Tree prepare2(Tree L0) = 0;
 
-    // gestion des includes et librairies
-    void addIncludeFile(const string& str) { fClass->addIncludeFile(str); }
-    void addLibrary(const string& str) { fClass->addLibrary(str); }
+    // management of includes and libraries
+    void addIncludeFile(const std::string& str) { fClass->addIncludeFile(str); }
+    void addLibrary(const std::string& str) { fClass->addLibrary(str); }
 
-    // gestion de la description arborescente de l'IU
+    // management of the tree-like description of the UI
     void addUIWidget(Tree path, Tree widget);
     void generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
     void generateMetaData();
     void generateUserInterfaceTree(Tree t, bool root = false);
     void generateUserInterfaceElements(Tree elements);
     Tree prepareUserInterfaceTree(Tree t);
-    void generateMacroInterfaceTree(const string& pathname, Tree t);
-    void generateMacroInterfaceElements(const string& pathname, Tree elements);
-    void generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig);
+    void generateMacroInterfaceTree(const std::string& pathname, Tree t);
+    void generateMacroInterfaceElements(const std::string& pathname, Tree elements);
+    void generateWidgetMacro(const std::string& pathname, Tree fulllabel, Tree varname, Tree sig);
 };
 
 #define generateEquivRecGroup generateRecGroup
 
-void compileSignals(const string& name, const string& super, int numInputs, int numOutputs, Tree lsig);
+void compileSignals(const std::string& name, const std::string& super, int numInputs, int numOutputs, Tree lsig);
 
 #endif

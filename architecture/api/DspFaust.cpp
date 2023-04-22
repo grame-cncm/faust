@@ -139,11 +139,11 @@
 #include "faust/gui/JuceOSCUI.h"
 #else
 #include "faust/gui/OSCUI.h"
-#endif
 static void osc_compute_callback(void* arg)
 {
     static_cast<OSCUI*>(arg)->endBundle();
 }
+#endif
 #endif
 
 #if DYNAMIC_DSP
@@ -151,6 +151,8 @@ static void osc_compute_callback(void* arg)
 #endif
 
 #include "DspFaust.h"
+
+using namespace std;
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -326,7 +328,7 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     
 #if SOUNDFILE
 #if JUCE_DRIVER
-    auto file = File::getSpecialLocation(File::currentExecutableFile)
+    auto file = juce::File::getSpecialLocation(juce::File::currentExecutableFile)
         .getParentDirectory().getParentDirectory().getChildFile("Resources");
     fSoundInterface = new SoundUI(file.getFullPathName().toStdString(), -1, nullptr, is_double);
 #else

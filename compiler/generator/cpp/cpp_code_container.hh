@@ -49,7 +49,101 @@ class CPPCodeContainer : public virtual CodeContainer {
     
     std::string genVirtual();
     std::string genFinal();
-  
+    
+    inline bool isPtr(const std::string& type)
+    {
+        return (type == "kFloat_ptr" || type == "kDouble_ptr" || type == "kQuad_ptr" || type == "kInt32_ptr" || type == "kObj_ptr");
+    }
+    
+    void generateHeader(int n)
+    {
+        tab(n, *fOut);
+        *fOut << "#ifndef FAUSTCLASS " << std::endl;
+        *fOut << "#define FAUSTCLASS " << fKlassName << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(n, *fOut);
+        
+        *fOut << "#ifdef __APPLE__ " << std::endl;
+        *fOut << "#define exp10f __exp10f" << std::endl;
+        *fOut << "#define exp10 __exp10" << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(n, *fOut);
+        
+        *fOut << "#if defined(_WIN32)" << std::endl;
+        *fOut << "#define RESTRICT __restrict" << std::endl;
+        *fOut << "#else" << std::endl;
+        *fOut << "#define RESTRICT __restrict__" << std::endl;
+        *fOut << "#endif" << std::endl;
+    }
+    
+    void generateAllocateFun(int n)
+    {
+        if (fAllocateInstructions->fCode.size() > 0) {
+            tab(n + 1, *fOut);
+            *fOut << "void allocate() {";
+            tab(n + 2, *fOut);
+            fCodeProducer->Tab(n + 2);
+            generateAllocate(fCodeProducer);
+            back(1, *fOut);
+            *fOut << "}";
+            tab(n + 1, *fOut);
+        }
+    }
+    
+    void printMathHeader()
+    {
+        // For mathematical functions
+        if (gGlobal->gFastMathLib != "") {
+            includeFastMath();
+        } else {
+            addIncludeFile("<cmath>");
+            addIncludeFile("<algorithm>");
+            // For int64_t type
+            addIncludeFile("<cstdint>");
+        }
+    }
+    
+    void generateDestroyFun(int n)
+    {
+        if (fDestroyInstructions->fCode.size() > 0) {
+            tab(n + 1, *fOut);
+            *fOut << "void destroy() {";
+            tab(n + 2, *fOut);
+            fCodeProducer->Tab(n + 2);
+            generateDestroy(fCodeProducer);
+            back(1, *fOut);
+            *fOut << "}";
+            tab(n + 1, *fOut);
+        }
+    }
+    
+    void generateConstructor(const std::string& fun_proto, int n)
+    {
+        if (fAllocateInstructions->fCode.size() > 0) {
+            tab(n + 1, *fOut);
+            *fOut << fun_proto << " {";
+            tab(n + 2, *fOut);
+            *fOut << "allocate();";
+            tab(n + 1, *fOut);
+            *fOut << "}" << std::endl;
+        } else {
+            tab(n + 1, *fOut);
+            *fOut << fun_proto << " {}" << std::endl;
+        }
+    }
+    
+    void generateDestructor(int n)
+    {
+        if (fDestroyInstructions->fCode.size() > 0) {
+            tab(n + 1, *fOut);
+            *fOut << "virtual ~" << fKlassName << "() {";
+            tab(n + 2, *fOut);
+            *fOut << "destroy();";
+            tab(n + 1, *fOut);
+            *fOut << "}" << std::endl;
+        }
+    }
+   
    public:
     CPPCodeContainer()
     {}
@@ -59,16 +153,7 @@ class CPPCodeContainer : public virtual CodeContainer {
         fKlassName = name;
         fOut = out;
 
-        // For mathematical functions
-        if (gGlobal->gFastMath) {
-            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                                                            : ("\"" + gGlobal->gFastMathLib + "\""));
-        } else {
-            addIncludeFile("<cmath>");
-            addIncludeFile("<algorithm>");
-            // For int64_t type
-            addIncludeFile("<cstdint>");
-        }
+        printMathHeader();
     
         fCodeProducer = new CPPInstVisitor(out);
     }
@@ -103,10 +188,10 @@ class CPPCodeContainer : public virtual CodeContainer {
     }
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
-    static CodeContainer* createScalarContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, ostream* dst, int sub_container_type);
+    static CodeContainer* createScalarContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* dst, int sub_container_type);
     
     static CodeContainer* createContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs,
-                                          ostream* dst = new std::stringstream());
+                                          std::ostream* dst = new std::stringstream());
 };
 
 /**
@@ -141,16 +226,7 @@ class CPPScalarOneSampleCodeContainer1 : public CPPScalarCodeContainer {
         fKlassName = name;
         fOut = out;
         
-        // For mathematical functions
-        if (gGlobal->gFastMath) {
-            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                           : ("\"" + gGlobal->gFastMathLib + "\""));
-        } else {
-            addIncludeFile("<cmath>");
-            addIncludeFile("<algorithm>");
-            // For int64_t type
-            addIncludeFile("<cstdint>");
-        }
+        printMathHeader();
         
         fCodeProducer = new CPPInstVisitor(out);
     }
@@ -177,16 +253,7 @@ class CPPScalarOneSampleCodeContainer2 : public CPPScalarCodeContainer {
             fKlassName = name;
             fOut = out;
             
-            // For mathematical functions
-            if (gGlobal->gFastMath) {
-                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                               : ("\"" + gGlobal->gFastMathLib + "\""));
-            } else {
-                addIncludeFile("<cmath>");
-                addIncludeFile("<algorithm>");
-                // For int64_t type
-                addIncludeFile("<cstdint>");
-            }
+            printMathHeader();
         
             fCodeProducer = new CPPInstVisitor1(out);
         }
@@ -204,23 +271,13 @@ class CPPScalarOneSampleCodeContainer3 : public CPPScalarOneSampleCodeContainer2
     protected:
         virtual void produceClass();
     public:
-        CPPScalarOneSampleCodeContainer3(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out,
-                                         int sub_container_type)
+        CPPScalarOneSampleCodeContainer3(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
         {
             initialize(numInputs, numOutputs);
             fKlassName = name;
             fOut = out;
             
-            // For mathematical functions
-            if (gGlobal->gFastMath) {
-                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                               : ("\"" + gGlobal->gFastMathLib + "\""));
-            } else {
-                addIncludeFile("<cmath>");
-                addIncludeFile("<algorithm>");
-                // For int64_t type
-                addIncludeFile("<cstdint>");
-            }
+            printMathHeader();
         
             // Setup in produceClass
             fCodeProducer = nullptr;

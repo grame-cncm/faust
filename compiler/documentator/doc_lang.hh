@@ -28,8 +28,6 @@
 #include <sstream>
 #include <string>
 
-using namespace std;
-
-void loadTranslationFile(const string& lang);
+void loadTranslationFile(const std::string& lang);
 
 #endif

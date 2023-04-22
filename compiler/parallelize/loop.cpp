@@ -198,7 +198,7 @@ void Loop::println(int n, ostream& fout)
         emptyflag = false;
         fout << l << " ";
     }  ///< Loops that must be computed before this one
-    if (emptyflag) fout << "WARNING EMPTY";
+    if (emptyflag) fout << "WARNING empty";
 
     tab(n, fout);
     fout << "// Forward loops : ";

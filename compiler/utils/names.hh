@@ -26,8 +26,6 @@
 
 #include "tlib.hh"
 
-using namespace std;
-
 /**
  * \file names.hh
  *
@@ -44,11 +42,11 @@ using namespace std;
 LIBFAUST_API bool getDefNameProperty(Tree t, Tree& id);
 
 void setDefNameProperty(Tree t, Tree id);
-void setDefNameProperty(Tree t, const string& name);
+void setDefNameProperty(Tree t, const std::string& name);
 
-void setSigListNickName(Tree lsig, const string& nickname);
+void setSigListNickName(Tree lsig, const std::string& nickname);
 
-void setSigNickname(Tree t, const string& id);
+void setSigNickname(Tree t, const std::string& id);
 bool getSigNickname(Tree t, Tree& id);
 
 /**

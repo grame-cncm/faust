@@ -30,8 +30,6 @@
 #include "cpp_code_container.hh"
 #include "dag_instructions_compiler.hh"
 
-using namespace std;
-
 struct LLVMResult;
 
 class ClangCodeContainer : public virtual CodeContainer {
@@ -39,7 +37,7 @@ class ClangCodeContainer : public virtual CodeContainer {
     InstructionsCompiler* fCompiler;
     CodeContainer*        fContainer;
     std::ofstream*        fOut;
-    string                fTmpFile;
+    std::string           fTmpFile;
 
     const char* getTempName()
     {
@@ -55,20 +53,20 @@ class ClangCodeContainer : public virtual CodeContainer {
     }
 
    public:
-    ClangCodeContainer(const string& name, int numInputs, int numOutputs);
+    ClangCodeContainer(const std::string& name, int numInputs, int numOutputs);
     virtual ~ClangCodeContainer();
 
-    virtual LLVMResult* produceModule(Tree signals, const string& filename);
+    virtual LLVMResult* produceModule(Tree signals, const std::string& filename);
 
     virtual void produceInternal() { fContainer->produceInternal(); }
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type)
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type)
     {
         faustassert(false);
         return nullptr;
     }  // Not used
 
-    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
+    static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs);
 };
 
 #endif

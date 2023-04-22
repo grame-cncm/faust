@@ -46,6 +46,8 @@
 #include "tlib.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 static int infereSigOrder(Tree sig);
 
 /**
@@ -80,9 +82,10 @@ int getSigOrder(Tree sig)
  */
 static int infereSigOrder(Tree sig)
 {
-    int    i;
-    double r;
-    Tree   sel, s1, s2, s3, s4, ff, id, ls, l, x, y, z, var, body, type, name, file, sf;
+    int     i;
+    int64_t i64;
+    double  r;
+    Tree   sel, s1, s2, s3, s4, ff, ls, l, x, y, z, var, body, type, name, file, sf;
 
     xtended* xt = (xtended*)getUserData(sig);
     // primitive elements
@@ -95,6 +98,9 @@ static int infereSigOrder(Tree sig)
     }
 
     else if (isSigInt(sig, &i))
+        return 0;
+    
+    else if (isSigInt64(sig, &i64))
         return 0;
 
     else if (isSigReal(sig, &r))
@@ -119,9 +125,12 @@ static int infereSigOrder(Tree sig)
         return 3;
 
     else if (isSigBinOp(sig, &i, s1, s2))
-        return max(O(s1), O(s2));
+        return std::max(O(s1), O(s2));
 
     else if (isSigIntCast(sig, s1))
+        return O(s1);
+    
+    else if (isSigBitCast(sig, s1))
         return O(s1);
 
     else if (isSigFloatCast(sig, s1))
@@ -131,7 +140,7 @@ static int infereSigOrder(Tree sig)
         return 3;
 
     else if (isSigFFun(sig, ff, ls))
-        return max(1, O(ls));
+        return std::max(1, O(ls));
 
     else if (isSigFConst(sig, type, name, file))
         return 1;
@@ -167,7 +176,7 @@ static int infereSigOrder(Tree sig)
         return std::max(O(s1), O(s2));  // O(s1);
 
     else if (isSigSoundfile(sig, l)) {
-        cerr << "ERROR : inferring signal order : isSigSoundfile\n";  // not supposed to happen
+        cerr << "ASSERT : inferring signal order : isSigSoundfile\n";  // not supposed to happen
         faustassert(false);
         return -1;
 
@@ -184,22 +193,19 @@ static int infereSigOrder(Tree sig)
         return std::max(1, O(s1));  // at least a constant
 
     else if (isRec(sig, var, body)) {
-        cerr << "ERROR : inferring signal order : isRec\n";  // not supposed to happen
+        cerr << "ASSERT : inferring signal order : isRec\n";  // not supposed to happen
         faustassert(false);
         return -1;
 
     } else if (isRef(sig, var)) {
-        cerr << "ERROR : inferring signal order : isRef\n";  // not supposed to happen.
+        cerr << "ASSERT : inferring signal order : isRef\n";  // not supposed to happen.
         faustassert(false);
         return -1;
         
     } else if (isProj(sig, &i, s1))
         return 3;
 
-    else if (isSigTable(sig, id, s1, s2))
-        return 3;
-
-    else if (isSigWRTbl(sig, id, s1, s2, s3))
+    else if (isSigWRTbl(sig, s1, s2, s3, s4))
         return 3;
 
     else if (isSigRDTbl(sig, s1, s2))
@@ -230,7 +236,7 @@ static int infereSigOrder(Tree sig)
     }
 
     // Unrecognized signal here
-    cerr << "ERROR : inferring signal order : unrecognized signal\n";
+    cerr << "ASSERT : inferring signal order : unrecognized signal\n";
     faustassert(false);
     return -1;
 }

@@ -35,14 +35,12 @@
 #include "instructions.hh"
 #include "type_manager.hh"
 
-using namespace std;
-
 class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
    private:
     int               fTab;
     std::ostream*     fOut;
     bool              fFinishLine;
-    map<string, bool> fFunctionSymbolTable;
+    std::map<std::string, bool> fFunctionSymbolTable;
 
     void Tab(int n) { fTab = n; }
 
@@ -61,7 +59,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual ~FIRInstVisitor() {}
 
-    virtual string generateType(Typed* type)
+    virtual std::string generateType(Typed* type)
     {
         BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(type);
         NamedTyped*  named_typed  = dynamic_cast<NamedTyped*>(type);
@@ -115,7 +113,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    virtual string generateType(Typed* type, const string& name)
+    virtual std::string generateType(Typed* type, const std::string& name)
     {
         BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(type);
         NamedTyped*  named_typed  = dynamic_cast<NamedTyped*>(type);
@@ -177,7 +175,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 name = "OpenVerticalBox(";
@@ -212,7 +210,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "AddHorizontalSlider(";
@@ -231,7 +229,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "AddHorizontalBargraph(";
@@ -319,9 +317,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
         // If function is actually a method (that is "xx::name"), then keep "xx::name" in gSymbolGlobalsTable but print
         // "name"
-        string fun_name = inst->fName;
+        std::string fun_name = inst->fName;
         size_t pos;
-        if ((pos = inst->fName.find("::")) != string::npos) {
+        if ((pos = inst->fName.find("::")) != std::string::npos) {
             fun_name = inst->fName.substr(pos + 2);  // After the "::"
         }
 
@@ -506,7 +504,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(FunCallInst* inst)
     {
-        string fun_name = (inst->fMethod) ? "MethodFunCallInst(" : "FunCallInst(";
+        std::string fun_name = (inst->fMethod) ? "MethodFunCallInst(" : "FunCallInst(";
         *fOut << fun_name;
 
         *fOut << "\"" << inst->fName << "\"";

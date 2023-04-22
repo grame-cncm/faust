@@ -23,6 +23,8 @@
 #include "floats.hh"
 #include "code_container.hh"
 
+using namespace std;
+
 ValueInst* xtended::generateFun(CodeContainer* container,
                                 const string& fun_name,
                                 const Values& args,

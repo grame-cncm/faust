@@ -4,9 +4,9 @@ set(HAVE_FLAG_SEARCH_PATHS_FIRST 0)
 
 project (faustemcc)
 
-set ( CMAKE_OSX_DEPLOYMENT_TARGET	"")
-set ( CMAKE_OSX_SYSROOT 		"")
-set ( CMAKE_CXX_COMPILER 	"emcc")
+set ( CMAKE_OSX_DEPLOYMENT_TARGET "")
+set ( CMAKE_OSX_SYSROOT "")
+set ( CMAKE_CXX_COMPILER "emcc")
 set ( CMAKE_CXX_LINK_FLAGS "")
 
 if (UNIVERSAL)
@@ -23,13 +23,13 @@ set (WASM_LINK_FLAGS "--bind -O3 --memory-init-file 0 -s LINKABLE=0 -s WASM=1 -s
 ####################################
 # Add the different targets
 add_executable(wasmlib EXCLUDE_FROM_ALL ${SRC} ${HH})
-target_include_directories (wasmlib PRIVATE ${SRCDIR}/generator/wasm ${FAUST_INC})
-target_compile_definitions (wasmlib PRIVATE -DEMCC -DFAUST_LIB -DWASM_BUILD ${FAUST_DEFINITIONS})
+target_include_directories (wasmlib PRIVATE ${FAUST_INC})
+target_compile_definitions (wasmlib PRIVATE -DEMCC -DFAUST_LIB ${FAUST_DEFINITIONS})
 set_target_properties (wasmlib PROPERTIES
 		OUTPUT_NAME libfaust-wasm
 		LINK_FLAGS ${WASM_LINK_FLAGS}
 		COMPILE_FLAGS -O3 
 		RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}
-		SUFFIX ".js" )
+		SUFFIX ".js")
 
-scan_backends (wasmlib  WASM)
+scan_backends (wasmlib WASM)

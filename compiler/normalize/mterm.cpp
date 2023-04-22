@@ -429,7 +429,8 @@ static void combineMulLeft(Tree& R, Tree A)
     } else if (A) {
         R = A;
     } else {
-        throw faustexception("ERROR : combineMulLeft\n");
+        cerr << "ERROR : combineMulLeft\n";
+        faustassert(false);
     }
 }
 
@@ -443,7 +444,8 @@ static void combineDivLeft(Tree& R, Tree A)
     } else if (A) {
         R = sigDiv(tree(1.0f), A);
     } else {
-        throw faustexception("ERROR : combineDivLeft\n");
+        cerr << "ERROR : combineDivLeft\n";
+        faustassert(false);
     }
 }
 

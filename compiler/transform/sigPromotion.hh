@@ -26,26 +26,47 @@
 #include <map>
 #include <string>
 #include <sstream>
+
 #include "sigIdentity.hh"
 #include "signalVisitor.hh"
 #include "sigtyperules.hh"
+#include "ppsig.hh"
+
+/*
+ Print the type of a signal.
+ To be used on a type annotated signal.
+ */
+class SignalTypePrinter final : public SignalVisitor {
+    
+    private:
+        std::vector<std::string> fPrinted;
+        void visit(Tree sig) override;
+        
+    public:
+        SignalTypePrinter(Tree L);
+
+};
 
 /*
  Check a signal:
  - for correct extended typing
  - for correct SigBinOp args typing
  - for proper SigIntCast and SigFloatCast use
- 
+ - for correct range in sliders (min < max and default in [min...max] range)
+ - for use on control/enable (not available in -vec mode)
+ - for proper simplication of sigLowest/sigHigest
+
  To be used on a type annotated signal.
 */
- 
-class SignalTreeChecker final : public SignalVisitor {
+class SignalChecker final : public SignalVisitor {
     
-    protected:
+    private:
         void visit(Tree sig) override;
-
+    
+        void isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux);
+  
     public:
-        SignalTreeChecker(Tree L)
+        SignalChecker(Tree L)
         {
             // Check that the root tree is properly type annotated
             getCertifiedSigType(L);
@@ -53,13 +74,11 @@ class SignalTreeChecker final : public SignalVisitor {
         }
 };
 
-
 //-------------------------SignalPromotion------------------------------
 // Adds explicit int or float cast when needed. This is needed prior
 // to any optimisations to avoid to scramble int and float expressions.
 // To be used on a type annotated signal.
 //----------------------------------------------------------------------
-
 class SignalPromotion final : public SignalIdentity {
     
     private:
@@ -85,9 +104,9 @@ class SignalPromotion final : public SignalIdentity {
 
 };
 
-//-------------------------SignalBool2IntPromotion----------------------
-// Cast bool binary operations (comparison operations) to int
-//----------------------------------------------------------------------
+//--------------------SignalBool2IntPromotion------------------
+// Cast bool binary operations (comparison operations) to int.
+//-------------------------------------------------------------
 class SignalBool2IntPromotion final : public SignalIdentity {
     
     private:
@@ -102,18 +121,51 @@ class SignalBool2IntPromotion final : public SignalIdentity {
 
 };
 
-//-------------------------SignalTablePromotion-------------------------
-// Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1])
-//----------------------------------------------------------------------
+//--------------------SignalFXPromotion------------------
+// Special math function casting mode in -fx generation.
+//-------------------------------------------------------------
+class SignalFXPromotion final : public SignalIdentity {
+    
+    private:
+        Tree transformation(Tree sig);
+        
+    public:
+        SignalFXPromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+    
+};
+
+//-------------SignalIntCastPromotion---------------
+// Float to integer conversion, checking the range.
+//--------------------------------------------------
+class SignalIntCastPromotion final : public SignalIdentity {
+    
+    private:
+        Tree transformation(Tree sig);
+        
+    public:
+        SignalIntCastPromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+    
+};
+
+//-------------------------SignalTablePromotion----------------------
+// Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]).
+//-------------------------------------------------------------------
 class SignalTablePromotion final : public SignalIdentity {
     
     private:
         Tree transformation(Tree sig);
     
         // Safe version of rtable/rwtable access
-        Tree safeSigRDTbl(Tree sig, Tree tb, Tree size, Tree idx);
-        Tree safeSigWRTbl(Tree sig, Tree id, Tree tb, Tree size, Tree idx, Tree ws);
-        Tree getSize(Tree sig);
+        Tree safeSigRDTbl(Tree sig, Tree tbl, Tree size, Tree ri);
+        Tree safeSigWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws);
     
     public:
         SignalTablePromotion()
@@ -124,9 +176,9 @@ class SignalTablePromotion final : public SignalIdentity {
     
 };
 
-//-------------------------SignalUIPromotion-------------------------
-// Generate safe access to range UI items (sliders and nentry)
-//----------------------------------------------------------------------
+//-------------------------SignalUIPromotion--------------------
+// Generate safe access to range UI items (sliders and nentry).
+//--------------------------------------------------------------
 class SignalUIPromotion final : public SignalIdentity {
     
     private:
@@ -141,10 +193,50 @@ class SignalUIPromotion final : public SignalIdentity {
     
 };
 
-// Public API
-Tree sigPromote(Tree sig, bool trace = false);
-Tree sigBool2IntPromote(Tree sig);
-Tree signalTablePromote(Tree sig);
-Tree signalUIPromote(Tree sig);
+//-------------------------SignalUIFreezePromotion---------------------------
+// Freeze range UI items (sliders and nentry) to their init value. Everything
+// that depends of sliders and nentry will be computed at compile time.
+//---------------------------------------------------------------------------
+class SignalUIFreezePromotion final : public SignalIdentity {
+    
+    private:
+        Tree transformation(Tree sig);
+        
+    public:
+        SignalUIFreezePromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+    
+};
 
+//-------------SignalFTZPromotion---------------
+// The wrapping code allows to flush to zero denormalized number.
+// This option should be used only when it is not available on the CPU.
+//--------------------------------------------------
+class SignalFTZPromotion final : public SignalIdentity {
+    
+    private:
+    
+        Tree selfRec(Tree t);
+          
+    public:
+        SignalFTZPromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+    
+};
+
+// Public API
+Tree signalPromote(Tree sig, bool trace = false);
+Tree signalBool2IntPromote(Tree sig);
+Tree signalFXPromote(Tree sig);
+Tree signalTablePromote(Tree sig);
+Tree signalIntCastPromote(Tree sig);
+Tree signalUIPromote(Tree sig);
+Tree signalUIFreezePromote(Tree sig);
+Tree signalFTZPromotion(Tree sig);
 #endif

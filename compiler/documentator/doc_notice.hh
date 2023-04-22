@@ -22,21 +22,16 @@
 #ifndef _DOCNOTICE_
 #define _DOCNOTICE_
 
-#include <fstream>
-#include <iostream>
 #include <map>
-#include <sstream>
 #include <string>
-
-using namespace std;
 
 /**
  * gDocNoticeFlagMap is public to let others
  * turn to "true" flags that one want to print.
  */
-extern map<string, bool> gDocNoticeFlagMap;
+extern std::map<std::string, bool> gDocNoticeFlagMap;
 
 void initDocNotice();
-void printDocNotice(const string& faustversion, ostream& docout);
+void printDocNotice(const std::string& faustversion, std::ostream& docout);
 
 #endif

@@ -22,13 +22,11 @@
 #ifndef _OPENCL_INSTRUCTIONS_H
 #define _OPENCL_INSTRUCTIONS_H
 
-using namespace std;
-
 #include "text_instructions.hh"
 
 class OpenCLInstVisitor : public TextInstVisitor {
    private:
-    map<string, int> fGlobalTable;
+    std::map<std::string, int> fGlobalTable;
 
    public:
     using TextInstVisitor::visit;
@@ -53,7 +51,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case 0:
                 name = "interface->openVerticalBox";
@@ -96,7 +94,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "interface->addHorizontalSlider";
@@ -118,7 +116,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "interface->addHorizontalBargraph";

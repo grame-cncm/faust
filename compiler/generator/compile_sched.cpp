@@ -21,7 +21,8 @@
 
 #include "compile_sched.hh"
 #include "floats.hh"
-#include "ppsig.hh"
+
+using namespace std;
 
 void SchedulerCompiler::compileMultiSignal(Tree L)
 {

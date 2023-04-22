@@ -56,8 +56,8 @@ class CMDUI : public UI
 {
     private:
     
-        std::atomic<bool> fRun;
         std::thread* fThread;
+        std::atomic<bool> fRun;
     
         struct param {
             FAUSTFLOAT* fZone; FAUSTFLOAT fMin; FAUSTFLOAT fMax;

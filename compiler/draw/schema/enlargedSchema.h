@@ -30,8 +30,8 @@
 
 class enlargedSchema : public schema {
     schema*       fSchema;
-    vector<point> fInputPoint;
-    vector<point> fOutputPoint;
+    std::vector<point> fInputPoint;
+    std::vector<point> fOutputPoint;
 
    public:
     enlargedSchema(schema* s, double width);

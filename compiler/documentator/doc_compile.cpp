@@ -42,7 +42,6 @@
 #include "names.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
-#include "privatise.hh"
 #include "recursivness.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
@@ -50,6 +49,8 @@
 #include "simplify.hh"
 #include "tlib.hh"
 #include "xtended.hh"
+
+using namespace std;
 
 extern bool getSigListNickName(Tree t, Tree& id);
 
@@ -278,12 +279,12 @@ string DocCompiler::generateCode(Tree sig, int priority)
     }
 
     else {
-        cerr << "ERROR : unrecognized signal : " << *sig << endl;
+        cerr << "ASSERT : unrecognized signal : " << *sig << endl;
         faustassert(false);
     }
     faustassert(false);
     // Never reached
-    return "ERROR : in generate code";
+    return "ASSERT : in generate code";
 }
 
 /**
@@ -314,8 +315,8 @@ void DocCompiler::printGCCall(Tree sig, const string& calledFunction)
 string DocCompiler::generateNumber(Tree sig, const string& exp)
 {
     string      ctype, vname;
-    Occurences* o = fOccMarkup.retrieve(sig);
-
+    Occurrences* o = fOccMarkup.retrieve(sig);
+ 
     // check for number occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
@@ -333,8 +334,8 @@ string DocCompiler::generateNumber(Tree sig, const string& exp)
 string DocCompiler::generateFConst(Tree sig, const string& file, const string& exp)
 {
     string      ctype, vname;
-    Occurences* o = fOccMarkup.retrieve(sig);
-
+    Occurrences* o = fOccMarkup.retrieve(sig);
+   
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
         gGlobal->gDocNoticeFlagMap["recursigs"] = true;
@@ -357,8 +358,8 @@ string DocCompiler::generateFConst(Tree sig, const string& file, const string& e
 string DocCompiler::generateFVar(Tree sig, const string& file, const string& exp)
 {
     string      ctype, vname;
-    Occurences* o = fOccMarkup.retrieve(sig);
-
+    Occurrences* o = fOccMarkup.retrieve(sig);
+  
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
         gGlobal->gDocNoticeFlagMap["recursigs"] = true;
@@ -564,8 +565,8 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
     string vname, ctype, code, vectorname;
 
     int         sharing = getSharingCount(sig);
-    Occurences* o       = fOccMarkup.retrieve(sig);
-
+    Occurrences* o = fOccMarkup.retrieve(sig);
+   
     // check reentrance
     if (getCompiledExpression(sig, code)) {
         // cerr << "!! generateCacheCode called a true getCompiledExpression" << endl;
@@ -966,8 +967,8 @@ string DocCompiler::generatePrefix(Tree sig, Tree x, Tree e, int priority)
     string vecname;
 
     if (!getVectorNameProperty(e, vecname)) {
-        cerr << "No vector name for : " << ppsig(e) << endl;
-        faustassert(0);
+        cerr << "ASSERT : no vector name for : " << ppsig(e, MAX_ERROR_SIZE) << endl;
+        faustassert(false);
     }
 
     string ltqPrefixDef;
@@ -1101,8 +1102,8 @@ string DocCompiler::generateDelay(Tree sig, Tree exp, Tree delay, int priority)
     CS(exp, 0);  // ensure exp is compiled to have a vector name
 
     if (!getVectorNameProperty(exp, vecname)) {
-        cerr << "No vector name for : " << ppsig(exp) << endl;
-        faustassert(0);
+        cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
+        faustassert(false);
     }
 
     if (isSigInt(delay, &d) && (d == 0)) {

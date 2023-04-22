@@ -38,8 +38,10 @@ all:
 	$(MAKE) -f Make.lang outdir=fir lang=fir ext=fir FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=julia lang=julia ext=julia FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=llvm lang=llvm ext=llvm FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=dlang lang=dlang ext=dlang FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=cmajor lang=cmajor ext=cmajor FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=interp lang=interp ext=interp FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=jax lang=jax ext=jax FAUSTOPTIONS=""
 	$(MAKE) gcc1
 	$(MAKE) gcc2
 	
@@ -89,6 +91,9 @@ jtrace:
 cmajor:
 	$(MAKE) -f Make.lang cmajor 
 
+doc:
+	$(MAKE) -f Make.lang doc 
+
 me:
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -me -a ./min.cpp"
 
@@ -121,10 +126,12 @@ help:
 	@echo " 'jtrace'     : compiles using Julia minimal-control architecture"
 	@echo " 'cmajor'     : compiles Cmajor examples"
 	@echo " 'me'         : compiles using the C++ backend with -me option"
+	@echo " 'doc'        : test the -mdoc, -svg options"
+
 	@echo " 'clean'      : to remove the folder named using faust version"
 	@echo "Using a specific version of Faust libraries:"
 	@echo " 'make FAUSTLIBS=/path/to/libraries'"
- 	
+
 gcc1: $(cppobj)
 
 gcc2: $(cobj)
@@ -135,10 +142,10 @@ clean:
 #########################################################################
 # rules for c/c++ compilation
 %.o: %.cpp
-	$(eval tmp1 := $(patsubst $(version)/cpp/%, $(SAMPLESROOT)/%, $(<D)))	
-	$(eval tmp := $(patsubst $(version)/ocpp/%, $(REGRESSION)/%, $(tmp1)))	
+	$(eval tmp1 := $(patsubst $(version)/cpp/%, $(SAMPLESROOT)/%, $(<D)))
+	$(eval tmp := $(patsubst $(version)/ocpp/%, $(REGRESSION)/%, $(tmp1)))
 	$(CXX) -c $(CPP_OPTIONS) -I$(tmp) $< -o $@ 
 
 %.o: %.c
-	$(eval tmp := $(patsubst $(version)/c/%, $(SAMPLESROOT)/%, $(<D)))	
+	$(eval tmp := $(patsubst $(version)/c/%, $(SAMPLESROOT)/%, $(<D)))
 	$(GCC) -c $(C_OPTIONS) -I$(tmp) $< -o $@ 

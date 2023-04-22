@@ -82,6 +82,12 @@ FAUST=$ROOT/architecture/faust/export.h
 echo " updating $FAUST"
 sed "s/FAUSTVERSION[ 	]\".*\"/FAUSTVERSION \"$VERSION\"/" $FAUST > TMP$$
 mv -f TMP$$ $FAUST
+sed "s/FAUSTMAJORVERSION[ 	].*/FAUSTMAJORVERSION $MAJOR/" $FAUST > TMP$$
+mv -f TMP$$ $FAUST
+sed "s/FAUSTMINORVERSION[ 	].*/FAUSTMINORVERSION $MINOR/" $FAUST > TMP$$
+mv -f TMP$$ $FAUST
+sed "s/FAUSTPATCHVERSION[ 	].*/FAUSTPATCHVERSION $PATCH/" $FAUST > TMP$$
+mv -f TMP$$ $FAUST
 
 FAUSTRC=$ROOT/windows/faust.rc
 echo " updating $FAUSTRC"

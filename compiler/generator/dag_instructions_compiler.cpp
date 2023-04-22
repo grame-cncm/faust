@@ -25,7 +25,10 @@
 #include "ppsig.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
+#include "sharing.hh"
 #include "fir_to_fir.hh"
+
+using namespace std;
 
 DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container) : InstructionsCompiler(container)
 {
@@ -123,14 +126,6 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
     // Apply FIR to FIR transformations
     fContainer->processFIR();
-    
-    // Check FIR code
-    if (global::isDebug("FIR_CHECKER")) {
-        startTiming("FIR checker");
-        FIRChecker fir_checker;
-        fContainer->flattenFIR()->accept(&fir_checker);
-        endTiming("FIR checker");
-    }
   
     endTiming("compileMultiSignal");
 }
@@ -280,9 +275,9 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 {
     string         vname;
     Typed::VarType ctype;
-    int            sharing = getSharingCount(sig);
+    int            sharing = getSharingCount(sig, fSharingKey);
     ::Type         t       = getCertifiedSigType(sig);
-    old_Occurences* o      = fOccMarkup->retrieve(sig);
+    Occurrences*   o       = fOccMarkup->retrieve(sig);
     int            d       = o->getMaxDelay();
 
     if (t->variability() < kSamp) {
@@ -294,19 +289,19 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
             // it is a non-sample expressions but used delayed
             // we need a delay line
             getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-            Address::AccessType var_access;
+            Address::AccessType access;
 
             if ((sharing > 1) && !verySimple(sig)) {
                 // first cache this expression because it
                 // it is shared and complex
                 ValueInst* cachedexp = generateVariableStore(sig, exp);
-                generateDelayLine(cachedexp, ctype, vname, d, var_access, nullptr);
+                generateDelayLine(cachedexp, ctype, vname, d, access, nullptr);
                 setVectorNameProperty(sig, vname);
                 return cachedexp;
             } else {
                 // no need to cache this expression because
                 // it is either not shared or very simple
-                generateDelayLine(exp, ctype, vname, d, var_access, nullptr);
+                generateDelayLine(exp, ctype, vname, d, access, nullptr);
                 setVectorNameProperty(sig, vname);
                 return exp;
             }
@@ -316,8 +311,8 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
         if (d > 0) {
             // used delayed : we need a delay line
             getTypedNames(getCertifiedSigType(sig), "Yec", ctype, vname);
-            Address::AccessType var_access;
-            generateDelayLine(exp, ctype, vname, d, var_access, nullptr);
+            Address::AccessType access;
+            generateDelayLine(exp, ctype, vname, d, access, nullptr);
             setVectorNameProperty(sig, vname);
 
             if (verySimple(sig)) {
@@ -325,7 +320,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
             } else {
                 if (d < gGlobal->gMaxCopyDelay) {
                     // return subst("$0[i]", vname);
-                    return InstBuilder::genLoadArrayVar(vname, var_access, getCurrentLoopIndex());
+                    return InstBuilder::genLoadArrayVar(vname, access, getCurrentLoopIndex());
                 } else {
                     // we use a ring buffer
                     string vname_idx = vname + "_idx";
@@ -345,11 +340,11 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
                 // shared and not simple : we need a vector
                 // cerr << "Zec : " << ppsig(sig) << endl;
                 getTypedNames(getCertifiedSigType(sig), "Zec", ctype, vname);
-                Address::AccessType var_access;
-                generateDelayLine(exp, ctype, vname, d, var_access, nullptr);
+                Address::AccessType access;
+                generateDelayLine(exp, ctype, vname, d, access, nullptr);
                 setVectorNameProperty(sig, vname);
                 // return subst("$0[i]", vname);
-                return InstBuilder::genLoadArrayVar(vname, var_access, getCurrentLoopIndex());
+                return InstBuilder::genLoadArrayVar(vname, access, getCurrentLoopIndex());
             } else {
                 // not shared or simple : no cache needed
                 return exp;
@@ -367,9 +362,9 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
  */
 bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
 {
-    old_Occurences* o = fOccMarkup->retrieve(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
     ::Type      t = getCertifiedSigType(sig);
-    int         c = getSharingCount(sig);
+    int         c = getSharingCount(sig, fSharingKey);
     bool        b;
 
     int  i;
@@ -401,9 +396,9 @@ ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* e
         string         vname;
         Typed::VarType ctype;
         getTypedNames(t, "Vector", ctype, vname);
-        Address::AccessType var_access;
-        generateVectorLoop(ctype, vname, exp, var_access);
-        return InstBuilder::genLoadArrayVar(vname, var_access, getCurrentLoopIndex());
+        Address::AccessType access;
+        generateVectorLoop(ctype, vname, exp, access);
+        return InstBuilder::genLoadArrayVar(vname, access, getCurrentLoopIndex());
     } else {
         return InstructionsCompiler::generateVariableStore(sig, exp);
     }
@@ -439,7 +434,7 @@ ValueInst* DAGInstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay
             // cerr << "it is a pure zero delay : " << code << endl;
             return code;
         } else {
-            cerr << "ERROR : no vector name for : " << ppsig(exp) << endl;
+            cerr << "ASSERT : no vector name for : " << ppsig(exp) << endl;
             faustassert(false);
         }
     }
@@ -498,30 +493,30 @@ ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, T
     // we need a delay line
 
     setVectorNameProperty(sig, vname);
-    Address::AccessType var_access;
-    generateDelayLine(exp, ctype, vname, mxd, var_access, nullptr);
+    Address::AccessType access;
+    generateDelayLine(exp, ctype, vname, mxd, access, nullptr);
 
     if (verySimple(sig)) {
         return exp;
     } else {
-        return InstBuilder::genLoadArrayVar(vname, var_access, getCurrentLoopIndex());
+        return InstBuilder::genLoadArrayVar(vname, access, getCurrentLoopIndex());
     }
 }
 
 ValueInst* DAGInstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname,
-                                                      int mxd, Address::AccessType& var_access, ValueInst* unused)
+                                                      int mxd, Address::AccessType& access, ValueInst* unused)
 {
     if (mxd == 0) {
-        generateVectorLoop(ctype, vname, exp, var_access);
+        generateVectorLoop(ctype, vname, exp, access);
     } else {
-        generateDlineLoop(ctype, vname, mxd, exp, var_access);
+        generateDlineLoop(ctype, vname, mxd, exp, access);
     }
 
     return exp;
 }
 
 void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const string& vname, ValueInst* exp,
-                                                 Address::AccessType& var_access)
+                                                 Address::AccessType& access)
 {
     // "$0 $1[$2];"
     DeclareVarInst* table_inst = InstBuilder::genDecStackVar(
@@ -533,11 +528,11 @@ void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const str
     pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, getCurrentLoopIndex(), exp));
 
     // Set desired variable access
-    var_access = Address::kStack;
+    access = Address::kStack;
 }
 
 void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const string& vname, int delay, ValueInst* exp,
-                                                Address::AccessType& var_access)
+                                                Address::AccessType& access)
 {
     BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
 
@@ -575,7 +570,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         pushPostComputeDSPMethod(generateCopyBackArray(pmem, buf, delay));
 
         // Set desired variable access
-        var_access = Address::kStack;
+        access = Address::kStack;
 
     } else {
         // Implementation of a ring-buffer delayline, the size should be large enough and aligned on a power of two
@@ -610,7 +605,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genLoadLoopVar("vsize")));
 
         // Set desired variable access
-        var_access = Address::kStruct;
+        access = Address::kStruct;
     }
 }
 

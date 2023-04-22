@@ -290,70 +290,83 @@ void cmajorpatch_dsp::init(int sample_rate)
 void cmajorpatch_dsp::buildUserInterface(UI* ui_interface)
 {
     ui_interface->openVerticalBox("CMajor");
-    ui_interface->openVerticalBox("Inputs");
+    if (fFactory->fHandleInputControls.size() > 0) {
+        ui_interface->openVerticalBox("Inputs");
+    }
     int i = 0;
     // Inputs
     for (const auto& it : fEndpointInputs) {
         std::string name = it.endpointID.toString();
         uint32_t index = fFactory->fEngine.getEndpointHandle(name.c_str());
         if (choc::text::startsWith(name, "eventfCheckbox")) {
-            ui_interface->addCheckButton(name.c_str(), &fZoneMap[i]);
+            std::string label = it.annotation["name"].toString();
+            ui_interface->addCheckButton(label.c_str(), &fZoneMap[i]);
             fZoneMap[i] = 0;
             fInputsFunMap[&fZoneMap[i]] = [=](FAUSTFLOAT value) { fPerformer.addInputEvent(fFactory->fHandleInputControls[name], 0, value); };
             i++;
         } else if (choc::text::startsWith(name, "eventfButton")) {
-            ui_interface->addButton(name.c_str(), &fZoneMap[i]);
+            std::string label = it.annotation["name"].toString();
+            ui_interface->addButton(label.c_str(), &fZoneMap[i]);
             fZoneMap[i] = 0;
             fInputsFunMap[&fZoneMap[i]] = [=](FAUSTFLOAT value) { fPerformer.addInputEvent(fFactory->fHandleInputControls[name], 0, value); };
             i++;
         } else if (choc::text::startsWith(name, "eventfHslider")) {
+            std::string label = it.annotation["name"].toString();
             FAUSTFLOAT min_v = it.annotation["min"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT max_v = it.annotation["max"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT init = it.annotation["init"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT step = it.annotation["step"].getWithDefault<FAUSTFLOAT>(0);
-            ui_interface->addHorizontalSlider(name.c_str(), &fZoneMap[i], init, min_v, max_v, step);
+            ui_interface->addHorizontalSlider(label.c_str(), &fZoneMap[i], init, min_v, max_v, step);
             fZoneMap[i] = init;
             fInputsFunMap[&fZoneMap[i]] = [=](FAUSTFLOAT value) { fPerformer.addInputEvent(fFactory->fHandleInputControls[name], 0, value); };
             i++;
         } else if (choc::text::startsWith(name, "eventfVslider")) {
+            std::string label = it.annotation["name"].toString();
             FAUSTFLOAT min_v = it.annotation["min"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT max_v = it.annotation["max"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT init = it.annotation["init"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT step = it.annotation["step"].getWithDefault<FAUSTFLOAT>(0);
-            ui_interface->addVerticalSlider(name.c_str(), &fZoneMap[i], init, min_v, max_v, step);
+            ui_interface->addVerticalSlider(label.c_str(), &fZoneMap[i], init, min_v, max_v, step);
             fZoneMap[i] = init;
             fInputsFunMap[&fZoneMap[i]] = [=](FAUSTFLOAT value) { fPerformer.addInputEvent(fFactory->fHandleInputControls[name], 0, value); };
             i++;
         } else if (choc::text::startsWith(name, "eventfEntry")) {
+            std::string label = it.annotation["name"].toString();
             FAUSTFLOAT min_v = it.annotation["min"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT max_v = it.annotation["max"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT init = it.annotation["init"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT step = it.annotation["step"].getWithDefault<FAUSTFLOAT>(0);
-            ui_interface->addNumEntry(name.c_str(), &fZoneMap[i], init, min_v, max_v, step);
+            ui_interface->addNumEntry(label.c_str(), &fZoneMap[i], init, min_v, max_v, step);
             fZoneMap[i] = init;
             fInputsFunMap[&fZoneMap[i]] = [=](FAUSTFLOAT value) { fPerformer.addInputEvent(fFactory->fHandleInputControls[name], 0, value); };
             i++;
         }
     }
-    ui_interface->closeBox();
+    if (fFactory->fHandleInputControls.size() > 0) {
+        ui_interface->closeBox();
+    }
     // Outputs
-    ui_interface->openVerticalBox("Outputs");
+    if (fFactory->fHandleOutputControls.size() > 0) {
+        ui_interface->openVerticalBox("Outputs");
+    }
     for (const auto& it : fEndpointOutputs) {
         std::string name = it.endpointID.toString();
         uint32_t index = fFactory->fEngine.getEndpointHandle(name.c_str());
         if (choc::text::startsWith(name, "eventfHbargraph")) {
+            std::string label = it.annotation["name"].toString();
             FAUSTFLOAT min_v = it.annotation["min"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT max_v = it.annotation["max"].getWithDefault<FAUSTFLOAT>(0);
-            ui_interface->addHorizontalBargraph(name.c_str(), &fZoneMap[i], min_v, max_v);
+            ui_interface->addHorizontalBargraph(label.c_str(), &fZoneMap[i], min_v, max_v);
             fZoneMap[i] = 0;
             fOutputsFunMap[&fZoneMap[i]] = [=]() {
                 FAUSTFLOAT value; fPerformer.copyOutputValue(fFactory->fHandleOutputControls[name], &value); return value;
             };
             i++;
         } else if (choc::text::startsWith(name, "eventfVbargraph")) {
+            std::string label = it.annotation["name"].toString();
             FAUSTFLOAT min_v = it.annotation["min"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT max_v = it.annotation["max"].getWithDefault<FAUSTFLOAT>(0);
-            ui_interface->addVerticalBargraph(name.c_str(), &fZoneMap[i], min_v, max_v);
+            ui_interface->addVerticalBargraph(label.c_str(), &fZoneMap[i], min_v, max_v);
             fZoneMap[i] = 0;
             fOutputsFunMap[&fZoneMap[i]] = [=]() {
                 FAUSTFLOAT value; fPerformer.copyOutputValue(fFactory->fHandleOutputControls[name], &value); return value;
@@ -361,7 +374,9 @@ void cmajorpatch_dsp::buildUserInterface(UI* ui_interface)
             i++;
         }
     }
-    ui_interface->closeBox();
+    if (fFactory->fHandleOutputControls.size() > 0) {
+        ui_interface->closeBox();
+    }
     ui_interface->closeBox();
 }
 

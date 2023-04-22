@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to plotters                 #
-#               (c) Grame, 2019-2021                                #
+#               (c) Grame, 2019-2022                                #
 #                                                                   #
 #####################################################################
 
@@ -14,6 +14,8 @@
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/csvplot.cpp
+ARCHLIB+=" -lpthread"
+
 FAUSTFLOAT=float
 SOUNDFILELIBS=""
 
@@ -84,7 +86,7 @@ for f in $FILES; do
 
     # compile c++ to binary
     (
-        $CXX $CXXFLAGS "$f.cpp" $PROCARCH $LLVM_LIBS $SOUNDFILELIBS $OMP -DFAUSTFLOAT=$FAUSTFLOAT -o "${f%.dsp}"
+        $CXX $CXXFLAGS "$f.cpp" $PROCARCH $LLVM_LIBS $ARCHLIB $SOUNDFILELIBS $OMP -DFAUSTFLOAT=$FAUSTFLOAT -o "${f%.dsp}"
     ) > /dev/null || exit
     rm "$f.cpp"
 

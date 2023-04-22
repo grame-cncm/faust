@@ -28,6 +28,8 @@
 #include "tlib.hh"
 #include "faust/export.h"
 
+using namespace std;
+
 // Declaration of implementation
 static Tree calcDeBruijn2Sym(Tree t);
 static Tree substitute(Tree t, int n, Tree id);
@@ -229,7 +231,7 @@ static Tree calcDeBruijn2Sym(Tree t)
         return t;
 
     } else if (isRef(t, i)) {
-        cerr << "ERROR : one Bruijn reference found !\n";
+        cerr << "ASSERT : one Bruijn reference found\n";
         faustassert(false);
         return t;
 

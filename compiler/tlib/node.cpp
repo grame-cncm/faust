@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include "math.h"
 
+using namespace std;
+
 ostream& Node::print(ostream& fout) const  ///< print a node on a stream
 {
     switch (fType) {

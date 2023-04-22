@@ -94,21 +94,23 @@ struct LIBFAUST_API dsp_factory_base {
  *  Print the box.
  *
  * @param box - the box to be printed
- * @param shared - whether the identical sub boxes are printed as indentifier
+ * @param shared - whether the identical sub boxes are printed as identifiers
+ * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
  *
  * @return the printed box as a string
  */
-LIBFAUST_API std::string printBox(Box box, bool shared);
+LIBFAUST_API std::string printBox(Box box, bool shared, int max_size);
 
 /**
  *  Print the signal.
  *
  * @param sig - the signal to be printed
- * @param shared - whether the identical sub signals are printed as indentifier
+ * @param shared - whether the identical sub signals are printed as identifiers
+ * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
  *
  * @return the printed signal as a string
  */
-LIBFAUST_API std::string printSignal(Signal sig, bool shared);
+LIBFAUST_API std::string printSignal(Signal sig, bool shared, int max_size);
 
 #endif
 
@@ -434,6 +436,25 @@ LIBFAUST_API Signal sigSelf();
 LIBFAUST_API Signal sigRecursion(Signal s);
 
 /**
+ * Create a recursive signal inside the sigRecursionN expression.
+ *
+ * @param id - the recursive signal index (starting from 0, up to the number of outputs signals in the recursive block)
+ *
+ * @return the recursive signal.
+ */
+LIBFAUST_API Signal sigSelfN(int id);
+
+/**
+ * Create a recursive block of signals. Use sigSelfN() to refer to the
+ * recursive signal inside the sigRecursionN expression.
+ *
+ * @param rf - the list of signals to recurse on.
+ *
+ * @return the list of signals with recursions.
+ */
+LIBFAUST_API tvec sigRecursionN(const tvec& rf);
+
+/**
  * Create a button signal.
  *
  * @param label - the label definition (see [2])
@@ -589,7 +610,6 @@ LIBFAUST_API bool isSigDelay(Signal t, Signal& t0, Signal& t1);
 LIBFAUST_API bool isSigPrefix(Signal t, Signal& t0, Signal& t1);
 LIBFAUST_API bool isSigRDTbl(Signal s, Signal& t, Signal& i);
 LIBFAUST_API bool isSigWRTbl(Signal u, Signal& id, Signal& t, Signal& i, Signal& s);
-LIBFAUST_API bool isSigTable(Signal t, Signal& id, Signal& n, Signal& sig);
 LIBFAUST_API bool isSigGen(Signal t, Signal& x);
 LIBFAUST_API bool isSigDocConstantTbl(Signal t, Signal& n, Signal& sig);
 LIBFAUST_API bool isSigDocWriteTbl(Signal t, Signal& n, Signal& sig, Signal& widx, Signal& wsig);

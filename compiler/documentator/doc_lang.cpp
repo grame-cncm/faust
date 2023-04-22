@@ -38,11 +38,13 @@
 #include "lateq.hh"
 #include "files.hh"
 
-static void     importDocStrings(const string& filename);
-static void     getKey(const string& s, string& key, size_t& pt1);
-static void     getText(const string& s, size_t pt1, string& text);
-static void     storePair(const string& key, const string& text);
-static void     printStringMapContent(map<string, string>& map, const string& name);
+using namespace std;
+
+static void importDocStrings(const string& filename);
+static void getKey(const string& s, string& key, size_t& pt1);
+static void getText(const string& s, size_t pt1, string& text);
+static void storePair(const string& key, const string& text);
+static void printStringMapContent(map<string, string>& map, const string& name);
 static unique_ptr<ifstream> openArchFile(const string& filename);
 
 /*****************************************************************************

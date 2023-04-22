@@ -67,6 +67,8 @@ struct dsp_factory_base {
     virtual std::vector<std::string> getWarningMessages() = 0;
   
     virtual dsp* createDSPInstance(dsp_factory* factory) = 0;
+    
+    virtual void classInit(int sample_rate) = 0;
 
     virtual void                setMemoryManager(dsp_memory_manager* manager) = 0;
     virtual dsp_memory_manager* getMemoryManager()                            = 0;
@@ -129,6 +131,11 @@ class dsp_factory_imp : public dsp_factory_base {
     {
         faustassert(false);
         return nullptr;
+    }
+    
+    virtual void classInit(int sample_rate)
+    {
+        faustassert(false);
     }
 
     virtual void                setMemoryManager(dsp_memory_manager* manager) { fManager = manager; }

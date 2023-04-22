@@ -39,9 +39,12 @@ class FBCExecutor {
     public:
     
         virtual ~FBCExecutor() {}
-        
-        virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UIInterface* glue) {};
-        virtual void ExecuteBlock(FBCBlockInstruction<REAL>* block, bool compile = false) {};
+      
+        virtual void executeBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UIInterface* glue) {};
+        virtual void executeBlock(FBCBlockInstruction<REAL>* block) {};
+    
+        // Possibly compile (when using LLVM or MIR)
+        virtual void compileBlock(FBCBlockInstruction<REAL>* block) {}
 
         virtual void setIntValue(int offset, int value) {}
         virtual int  getIntValue(int offset) { return -1; }
@@ -83,7 +86,7 @@ class FBCExecuteFun {
          * @param inputs - the audio inputs
          * @param outputs - the audio outputs
          */
-        virtual void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs) {}
+        virtual void execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs) {}
     
 };
 

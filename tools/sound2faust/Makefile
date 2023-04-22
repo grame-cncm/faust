@@ -12,7 +12,7 @@ LIBS = -lwsock32
 EXE = .exe
 endif
 
-all : static
+all : sound2faust sound2file
 
 sound2faust : sound2faust.cpp
 	$(CXX) -O3 $(LDFLAGS) sound2faust.cpp -I../../architecture $(shell pkg-config --cflags --static --libs sndfile) -o sound2faust $(LIBS)

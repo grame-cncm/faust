@@ -230,14 +230,10 @@ LIBFAUST_API string expandDSPFromFile(const string& filename, int argc, const ch
 Same DSP code and same normalized compilation options will generate the same SHA key.
 */
 LIBFAUST_API string expandDSPFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
-                                    string& sha_key, string& error_msg)
+                                        string& sha_key, string& error_msg)
 {
     LOCK_API
-    if (dsp_content == "") {
-        // Already expanded version ?
-        error_msg = "ERROR : unable to read file";
-        return "";
-    } else if (startWith(dsp_content, COMPILATION_OPTIONS)) {
+    if (startWith(dsp_content, COMPILATION_OPTIONS)) {
         if (extractCompilationOptions(dsp_content) == reorganizeCompilationOptions(argc, argv)) {
             // Same compilation options as the ones kept in the expanded version
             sha_key = generateSHA1(dsp_content);
@@ -272,30 +268,24 @@ LIBFAUST_API bool generateAuxFilesFromFile(const string& filename, int argc, con
 }
 
 LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
-                                       string& error_msg)
+                                            string& error_msg)
 {
     LOCK_API
-    if (dsp_content == "") {
-        // Already expanded version ?
-        error_msg = "ERROR : unable to read file";
-        return false;
-    } else {
-        int         argc1 = 0;
-        const char* argv1[64];
-        argv1[argc1++] = "faust";
-        // Filter arguments
-        for (int i = 0; i < argc; i++) {
-            if (!(strcmp(argv[i], "-vec") == 0 || strcmp(argv[i], "-sch") == 0)) {
-                argv1[argc1++] = argv[i];
-            }
-        }
-        argv1[argc1] = nullptr;  // NULL terminated argv
-
-        dsp_factory_base* factory = createFactory(name_app, dsp_content, argc1, argv1, error_msg, false);
-        // Factory is no more needed
-        delete factory;
-        return (factory != nullptr);
+    int argc1 = 0;
+    const char* argv1[64];
+    argv1[argc1++] = "faust";
+    // Filter arguments
+    for (int i = 0; i < argc; i++) {
+    if (!(strcmp(argv[i], "-vec") == 0 || strcmp(argv[i], "-sch") == 0)) {
+        argv1[argc1++] = argv[i];
     }
+    }
+    argv1[argc1] = nullptr;  // NULL terminated argv
+
+    dsp_factory_base* factory = createFactory(name_app, dsp_content, argc1, argv1, error_msg, false);
+    // Factory is no more needed
+    delete factory;
+    return (factory != nullptr);
 }
 
 // External C libfaust API

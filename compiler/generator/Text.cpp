@@ -22,18 +22,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
+#include <climits>
 #include <iomanip>
 #include <iostream>
 #include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 #include "Text.hh"
 #include "compatibility.hh"
 #include "floats.hh"
 #include "global.hh"
+
+using namespace std;
 
 static string substitution(const string& model, const vector<string>& args)
 {
@@ -147,16 +150,12 @@ string T(char* c)
 
 string T(int n)
 {
-    char c[64];
-    snprintf(c, 63, "%d", n);
-    return string(c);
+    return std::to_string(n);
 }
 
-string T(long n)
+string T(int64_t n)
 {
-    char c[64];
-    snprintf(c, 63, "%ld", n);
-    return string(c);
+    return std::to_string(n);
 }
 
 /**
@@ -182,7 +181,7 @@ static string ensureFloat(const string& c)
  */
 static string encodeJuliaFloat(const string& c, bool& need_suffix)
 {
-    bool isInt = true;
+    bool   isInt = true;
     string res;
     for (size_t i = 0; i < c.size(); i++) {
         if ((c[i] == '.') || (c[i] == 'e')) {
@@ -201,8 +200,8 @@ static string encodeJuliaFloat(const string& c, bool& need_suffix)
 static string addSuffix(const string& num)
 {
     if (gGlobal->gOutputLang == "julia") {
-        bool need_suffix = true;
-        string res = encodeJuliaFloat(num, need_suffix);
+        bool   need_suffix = true;
+        string res         = encodeJuliaFloat(num, need_suffix);
         return (need_suffix) ? (res + inumix()) : res;
     } else {
         return ensureFloat(num) + inumix();
@@ -217,44 +216,65 @@ string TAux(float n)
 {
     char c[512];
     int  p = 1;
-    
-    do { snprintf(c, 512, "%.*g", p++, n); } while (strtof(c, 0) != n);
-    
+
+    do {
+        snprintf(c, 512, "%.*g", p++, n);
+    } while (strtof(c, 0) != n);
+
     ensureFloat(c);
     return string(c);
 }
 
-string T(float n) { return addSuffix(TAux(n)); }
+string T(float n)
+{
+    return addSuffix(TAux(n));
+}
 
 /**
-* Convert a double-precision float into a string.
-* Adjusts the precision p to the needs.
-*/
+ * Convert a double-precision float into a string.
+ * Adjusts the precision p to the needs.
+ */
 string TAux(double n)
 {
     char  c[512];
     char* endp;
     int   p = 1;
-    
+
     if (gGlobal->gFloatSize == 1) {
         float v = (float)n;
-        do { snprintf(c, 512, "%.*g", p++, v); endp = nullptr; } while (strtof(c, &endp) != v);
+        do {
+            snprintf(c, 512, "%.*g", p++, v);
+            endp = nullptr;
+        } while (strtof(c, &endp) != v);
     } else if (gGlobal->gFloatSize == 2) {
-        do { snprintf(c, 512, "%.*g", p++, n); endp = nullptr; } while (strtod(c, &endp) != n);
+        do {
+            snprintf(c, 512, "%.*g", p++, n);
+            endp = nullptr;
+        } while (strtod(c, &endp) != n);
     } else if (gGlobal->gFloatSize == 3) {
         long double q = (long double)n;
-        do { snprintf(c, 512, "%.*Lg", p++, q); endp = nullptr; } while (strtold(c, &endp) != q);
+        do {
+            snprintf(c, 512, "%.*Lg", p++, q);
+            endp = nullptr;
+        } while (strtold(c, &endp) != q);
     } else if (gGlobal->gFloatSize == 4) {
-        do { snprintf(c, 512, "%.*g", p++, n); endp = nullptr; } while (strtod(c, &endp) != n);
+        do {
+            snprintf(c, 512, "%.*g", p++, n);
+            endp = nullptr;
+        } while (strtod(c, &endp) != n);
     } else {
+        cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
         faustassert(false);
     }
-    
+
     ensureFloat(c);
     return string(c);
 }
 
-string T(double n) { return addSuffix(TAux(n)); }
+string T(double n)
+{
+    return addSuffix(TAux(n));
+}
 
 /**
  * remove quotes from a string
@@ -286,7 +306,7 @@ void tab(int n, ostream& fout)
 void back(int n, ostream& fout)
 {
     long pos = fout.tellp();
-    fout.seekp(pos-n);
+    fout.seekp(pos - n);
 }
 
 /**
@@ -354,8 +374,8 @@ string replaceChar(string str, char src, char dst)
 
 string replaceCharList(const string& str, const vector<char>& ch1, char ch2)
 {
-    auto beg = ch1.begin();
-    auto end = ch1.end();
+    auto   beg = ch1.begin();
+    auto   end = ch1.end();
     string res = str;
     for (size_t i = 0; i < str.length(); ++i) {
         if (std::find(beg, end, str[i]) != end) res[i] = ch2;
@@ -366,9 +386,22 @@ string replaceCharList(const string& str, const vector<char>& ch1, char ch2)
 vector<string> tokenizeString(const string& str, char sep)
 {
     vector<string> res;
-    istringstream is(str);
-    string token;
+    istringstream  is(str);
+    string         token;
     while (getline(is, token, sep)) res.push_back(token);
     return res;
 }
-    
+
+int pow2limit(int x, int def)
+{
+    if (x > INT_MAX / 2) {
+        throw faustexception("ERROR : too big delay value '" + std::to_string(x) +
+                             "' which cannot be implemented with a power-of-two delay line\n");
+    }
+
+    int n = def;
+    while (n < x) {
+        n = 2 * n;
+    }
+    return n;
+}

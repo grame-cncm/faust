@@ -27,11 +27,9 @@
 #include "text_instructions.hh"
 #include "Text.hh"
 
-using namespace std;
-
-inline string makeNameSingular(const string& name)
+inline std::string makeNameSingular(const std::string& name)
 {
-    string result = name;
+    std::string result = name;
     result = std::regex_replace(result, std::regex("inputs"), "input");
     result = std::regex_replace(result, std::regex("outputs"), "output");
     return result;
@@ -52,7 +50,7 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
         if (inst->fAddress->getAccess() & Address::kStruct) *fOut << ",";
     }
 
-    // Generate zero intialisation code for simple int/real scalar and arrays types
+    // Generate zero initialisation code for simple int/real scalar and arrays types
     static void ZeroInitializer(std::ostream* fOut, Typed* typed)
     {
         Typed::VarType type       = typed->getType();
@@ -80,14 +78,24 @@ class RustInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static map<string, bool> gFunctionSymbolTable;
-    map<string, string>      fMathLibTable;
-    map<int, string>         fWrappingOpTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
+    std::map<std::string, std::string> fMathLibTable;
+    // Integer wrapping operators
+    std::map<int, std::string>         fWrappingOpTable;
+    
+    // Function returning 'bool', to be casted to 'int'
+    inline bool isBoolFun(const std::string& name)
+    {
+        return (name == "F32::is_nan")
+        || (name == "F64::is_nan")
+        || (name == "F32::is_infinite")
+        || (name == "F64::is_infinite");
+    }
 
    public:
     using TextInstVisitor::visit;
 
-    RustInstVisitor(std::ostream* out, const string& structname, int tab = 0)
+    RustInstVisitor(std::ostream* out, const std::string& structname, int tab = 0)
         : TextInstVisitor(out, ".", new RustStringTypeManager(xfloat(), "&"), tab)
     {
         fTypeManager->fTypeDirectTable[Typed::kObj]     = "";
@@ -302,7 +310,7 @@ class RustInstVisitor : public TextInstVisitor {
     {
         *fOut << ") -> " << fTypeManager->generateType(inst->fType->fResult);
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ";" << endl;  // Pure prototype
+            *fOut << ";" << std::endl;  // Pure prototype
         } else {
             // Function body
             *fOut << " {";
@@ -475,16 +483,7 @@ class RustInstVisitor : public TextInstVisitor {
             generateFunCall(inst, inst->fName);
         }
     }
-    
-    // Function returning 'bool', to be casted to 'int'
-    bool isBoolFun(const string& name)
-    {
-        return (name == "F32::is_nan")
-            || (name == "F64::is_nan")
-            || (name == "F32::is_infinite")
-            || (name == "F64::is_infinite");
-    }
-
+  
     virtual void generateFunCall(FunCallInst* inst, const std::string& fun_name)
     {
         if (inst->fMethod) {
@@ -674,31 +673,23 @@ class RustInstVisitor : public TextInstVisitor {
 /**
  * Helper visitor that allows to build a parameter lookup table.
  */
-class UserInterfaceParameterMapping : public InstVisitor {
+class UserInterfaceParameterMapping : public DispatchVisitor {
    private:
-    map<string, int>      fParameterLookup;
-    int                   fParameterIndex;
+    std::map<std::string, int> fParameterLookup;
+    int fParameterIndex;
 
    public:
-    using InstVisitor::visit;
+    using DispatchVisitor::visit;
 
     UserInterfaceParameterMapping()
-        : InstVisitor(), fParameterLookup{}, fParameterIndex{0}
+        : DispatchVisitor(), fParameterLookup{}, fParameterIndex{0}
     {}
 
     virtual ~UserInterfaceParameterMapping() {}
 
-    map<string, int> getParameterLookup() {
-        return fParameterLookup;
-    }
-
-    virtual void visit(BlockInst* inst)
+    std::map<std::string, int> getParameterLookup()
     {
-        // BlockInst visitor is unimplemented in base class, so we need a trivial implementation
-        // to actually visit the user interface statements in the BlockInst.
-        for (const auto& it : inst->fCode) {
-            it->accept(this);
-        }
+        return fParameterLookup;
     }
 
     virtual void visit(AddMetaDeclareInst* inst)
@@ -739,12 +730,12 @@ class UserInterfaceParameterMapping : public InstVisitor {
  */
 class RustUIInstVisitor : public TextInstVisitor {
    private:
-    map<string, int>      fParameterLookup;
+    std::map<std::string, int> fParameterLookup;
 
-    int getParameterIndex(string name) {
+    int getParameterIndex(const std::string& name) {
         auto parameterIndex = fParameterLookup.find(name);
         if (parameterIndex == fParameterLookup.end()) {
-            throw runtime_error("Parameter '" + name + "' is unknown");
+            throw std::runtime_error("Parameter '" + name + "' is unknown");
         } else {
             return parameterIndex->second;
         }
@@ -753,7 +744,7 @@ class RustUIInstVisitor : public TextInstVisitor {
    public:
     using TextInstVisitor::visit;
 
-    RustUIInstVisitor(std::ostream* out, const string& structname, map<string, int> parameterLookup, int tab = 0)
+    RustUIInstVisitor(std::ostream* out, const std::string& structname, std::map<std::string, int> parameterLookup, int tab = 0)
         : TextInstVisitor(out, ".", new RustStringTypeManager(xfloat(), "&"), tab),
           fParameterLookup{parameterLookup}
     {}
@@ -776,7 +767,7 @@ class RustUIInstVisitor : public TextInstVisitor {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 name = "ui_interface.open_vertical_box(";
@@ -810,7 +801,7 @@ class RustUIInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "ui_interface.add_horizontal_slider";
@@ -830,7 +821,7 @@ class RustUIInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "ui_interface.add_horizontal_bargraph";

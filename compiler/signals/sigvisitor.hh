@@ -23,6 +23,7 @@
 #define __SIGVISITOR__
 
 #include "signals.hh"
+#include "global.hh"
 
 struct sigvisitor {
     // predefined visit scheme
@@ -36,6 +37,7 @@ struct sigvisitor {
     //---------------abstract methods---------------
     // numbers
     virtual void visitInt(Tree sig, int i)     = 0;
+    virtual void visitInt64(Tree sig, int i)   = 0;
     virtual void visitReal(Tree sig, double r) = 0;
 
     // audio inputs-outputs
@@ -43,13 +45,14 @@ struct sigvisitor {
     virtual void visitOutput(Tree sig, int i, Tree s) = 0;
 
     // fixed size delays
-    virtual void visitDelay1(Tree sig, Tree s)             = 0;
-    virtual void visitPrefix(Tree sig, Tree s1, Tree s2)   = 0;
-    virtual void visitDelay(Tree sig, Tree s1, Tree s2) = 0;
+    virtual void visitDelay1(Tree sig, Tree s)           = 0;
+    virtual void visitPrefix(Tree sig, Tree s1, Tree s2) = 0;
+    virtual void visitDelay(Tree sig, Tree s1, Tree s2)  = 0;
 
     // numerical operations
     virtual void visitBinOp(Tree sig, int opcode, Tree s1, Tree s2)     = 0;
     virtual void visitIntCast(Tree sig, Tree s)                         = 0;
+    virtual void visitBitCast(Tree sig, Tree s)                         = 0;
     virtual void visitFloatCast(Tree sig, Tree s)                       = 0;
     virtual void visitFFun(Tree sig, Tree ff, Tree ls)                  = 0;
     virtual void visitFConst(Tree sig, Tree type, Tree name, Tree file) = 0;
@@ -83,7 +86,7 @@ struct sigvisitor {
     virtual void visitDocAccessTbl(Tree sig, Tree s1, Tree s2)                  = 0;
 
     // Selectors
-    virtual void visitSelect2(Tree sig, Tree sel, Tree s1, Tree s2)          = 0;
+    virtual void visitSelect2(Tree sig, Tree sel, Tree s1, Tree s2) = 0;
 
     // Tuples
     virtual void visitTuple(Tree sig, int mod, Tree ls)        = 0;
@@ -117,6 +120,7 @@ struct fullvisitor : sigvisitor {
 
     // numerical operations
     virtual void visitIntCast(Tree sig, Tree s) { visit(s); }
+    virtual void visitBitCast(Tree sig, Tree s) { visit(s); }
     virtual void visitFloatCast(Tree sig, Tree s) { visit(s); }
     virtual void visitBinOp(Tree sig, int op, Tree s1, Tree s2)
     {
@@ -152,11 +156,15 @@ struct fullvisitor : sigvisitor {
         visit(s1);
         visit(s2);
     }
-    virtual void visitWRTbl(Tree sig, Tree id, Tree s1, Tree s2, Tree s3)
+    virtual void visitWRTbl(Tree sig, Tree id, Tree s1, Tree s2, Tree s3, Tree s4)
     {
         visit(s1);
         visit(s2);
-        visit(s3);
+        if (s3 != gGlobal->nil) {
+            // rwtable
+            visit(s3);
+            visit(s4);
+        }
     }
     virtual void visitRDTbl(Tree sig, Tree s1, Tree s2)
     {

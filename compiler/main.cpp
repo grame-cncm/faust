@@ -46,10 +46,14 @@ int main(int argc, const char* argv[])
     dsp_factory_base* factory = createFactory("FaustDSP", "", argc, argv, error_msg, true);
     // Possibly print warnings
     if (factory) {
-        vector<string> warning_messages = factory->getWarningMessages();
-        if (gAllWarning && warning_messages.size() > 0) {
+        vector<string> warnings = factory->getWarningMessages();
+        if (gAllWarning && warnings.size() > 0) {
+            set<string> warnings_set;
+            for (const auto& it : warnings) {
+                warnings_set.insert(it);
+            }
             cerr << endl << "===== Warnings ======" << endl;
-            for (const auto& it : warning_messages) {
+            for (const auto& it : warnings_set) {
                 cerr << it << endl;
             }
             cerr << "=====================" << endl;

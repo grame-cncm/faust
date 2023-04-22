@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include "faust/dsp/llvm-dsp-c.h"
+#include "faust/dsp/libfaust-c.h"
 #include "faust/gui/PrintCUI.h"
 
 static bool isopt(char* argv[], const char* name)
@@ -60,7 +61,9 @@ int main(int argc, const char** argv)
         "\n"
         "process = inst, inst;\n";
     
-    printf("getDSPMachineTarget %s\n", getCDSPMachineTarget());
+    char* target = getCDSPMachineTarget();
+    printf("getDSPMachineTarget %s\n", target);
+    freeCMemory(target);
     
     llvm_dsp_factory* factory = createCDSPFactoryFromString("score", code, argc1, argv1, "", error_msg, -1);
     if (!factory) {

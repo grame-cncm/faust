@@ -39,16 +39,17 @@ class MinPrim : public xtended {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
-        return castInterval(args[0] | args[1], min(i, j));
+        // Use 'min' on intervals here...
+        return castInterval(args[0] | args[1], gAlgebra.Min(i, j));
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
-        return max(args[0], args[1]);
+        return std::max(args[0], args[1]);
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         double f, g;
         int    i, j;
@@ -57,18 +58,18 @@ class MinPrim : public xtended {
 
         if (isDouble(args[0]->node(), &f)) {
             if (isDouble(args[1]->node(), &g)) {
-                return tree(min(f, g));
+                return tree(std::min(f, g));
             } else if (isInt(args[1]->node(), &j)) {
-                return tree(min(f, double(j)));
+                return tree(std::min(f, double(j)));
             } else {
                 return tree(symbol(), args[0], args[1]);
             }
 
         } else if (isInt(args[0]->node(), &i)) {
             if (isDouble(args[1]->node(), &g)) {
-                return tree(min(double(i), g));
+                return tree(std::min(double(i), g));
             } else if (isInt(args[1]->node(), &j)) {
-                return tree(min(i, j));
+                return tree(std::min(i, j));
             } else {
                 return tree(symbol(), args[0], args[1]);
             }
@@ -82,30 +83,31 @@ class MinPrim : public xtended {
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-    
+
         /*
-         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval [O..inf] !
+         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval
+         [O..inf] !
          */
-    
+
         /*
             // Min of disjoint intervals returns one of them
             interval i1 = types[0]->getInterval();
             interval i2 = types[1]->getInterval();
-            
-            if (i1.valid && i2.valid) {
-                if (i1.hi <= i2.lo) {
+
+            if (i1.isValid() && i2.isValid()) {
+                if (i1.hi() <= i2.lo()) {
                     return *args.begin();
-                } else if (i2.hi <= i1.lo) {
+                } else if (i2.hi() <= i1.lo()) {
                     return *(std::next(args.begin(), 1));
                 }
             }
          */
-    
-        string fun_name = (result->nature() == kInt) ? "min_i" : subst("min_$0", isuffix());
+
+        std::string fun_name = (result->nature() == kInt) ? "min_i" : subst("min_$0", isuffix());
         return generateFun(container, fun_name, args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -150,7 +152,7 @@ class MinPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

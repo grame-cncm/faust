@@ -117,7 +117,9 @@ for p in $FILES; do
             else
                 $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o "${f%.dsp}$EXT" $CXX_SOURCE || exit
             fi
-            codesign --sign - --deep --force "${f%.dsp}$EXT"
+            if which codesign > /dev/null; then
+                codesign --sign - --deep --force "${f%.dsp}$EXT"
+            fi
         else
             $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT $CXX_SOURCE || exit
         fi

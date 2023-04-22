@@ -45,6 +45,8 @@
 #include "prim2.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 static bool infereBoxType(Tree box, int* inum, int* onum);
 
 /**
@@ -116,19 +118,21 @@ static string inputs(int n)
  * \return the error message as a string
  */
 
-static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string opcode, const string opname,
-                                      const string msg)
+static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string& opcode, const string& opname,
+                                    const string& msg)
 {
     stringstream error;
     string       aStr("A"), bStr("B");
     Tree         aID, bID;
+    
     if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
-    error << "ERROR in " << opname << " " << aStr << opcode << bStr << endl
+      
+    error << "ERROR : " << opname << " " << aStr << opcode << bStr << endl
           << "The number of outputs [" << o << "] of " << aStr << msg << "the number of inputs [" << i << "] of "
           << bStr << endl << endl
-          << "Here  " << aStr << " = " << boxpp(a) << ";" << endl << "has " << outputs(o) << endl << endl
-          << "while " << bStr << " = " << boxpp(b) << ";" << endl << "has " << inputs(i) << endl;
+          << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl << "has " << outputs(o) << endl << endl
+          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(i) << endl;
     return error.str();
 }
 
@@ -145,21 +149,22 @@ static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string
 
 static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, int y)
 {
-    stringstream msg;
+    stringstream error;
     string       aStr("A"), bStr("B");
     Tree         aID, bID;
 
     if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
     
-    msg << "ERROR in recursive composition " << aStr << '~' << bStr << endl;
+    error << "ERROR : recursive composition " << aStr << '~' << bStr << endl;
     if (v < x)
-        msg << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x << "] of " << bStr << ". ";
+        error << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x << "] of " << bStr << ". ";
     if (u < y)
-        msg << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y << "] of " << bStr << ". ";
+        error << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y << "] of " << bStr << ". " << endl << endl;
 
-    msg << endl << endl << "Here  " << aStr << " = " << boxpp(a) << "; has " << inputs(u) << " and " << outputs(v) << "," << endl << "while " << bStr << " = " << boxpp(b) << "; has " << inputs(x) << " and " << outputs(y) << "." << endl;
-    return msg.str();
+    error << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(u) << " and " << outputs(v) << endl << endl
+          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(x) << " and " << outputs(y) << endl;
+    return error.str();
 }
 
 /**
@@ -333,7 +338,7 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
         if ((x > v) || (y > u)) {
             throw faustexception(computeTypeRecErrorMessage(a, b, u, v, x, y));
         }
-        *inum = max(0, u - y);
+        *inum = std::max(0, u - y);
         *onum = v;
 
     } else if (isBoxEnvironment(t)) {

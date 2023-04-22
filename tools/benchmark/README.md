@@ -140,13 +140,14 @@ The `-input` option allows to test effects by sending them an *impulse* then a *
 
 Mode 4 up to 7 also check LOAD/STORE errors, mode 7 is typically used by the Faust compiler developers to check the generated code. Mode 4 and 7 produce FBC (Faust Byte Code) trace as a `DumpCode-foo.txt` file, and the program memory layout as `DumpMem-fooXXX.txt` file.
 
-`interp-tracer [-trace <1-7>] [-control] [-output] [additional Faust options (-ftz xx)] foo.dsp`
+`interp-tracer [-trace <1-7>] [-control] [-output] [-timeout <num>] [additional Faust options (-ftz xx)] foo.dsp`
 
 Here are the available options:
 
  - `-control to activate min/max control check then setting all controllers (inside their range) in a random way`
  - `-input to test effects with various test signals (impulse, noise)`
  - `-output to print output frames`
+ - ` timeout <num> to stop the application after a given timeout in seconds (default = 10s)`
  - `-trace 1 to collect FP_SUBNORMAL only` 
  - `-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN`
  - `-trace 3 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and CAST_INT_OVERFLOW`
@@ -183,7 +184,7 @@ Here are the available options:
 
 Use `export CXX=/path/to/compiler` before running faustbench to change the C++ compiler, and `export CXXFLAGS=options` to change the C++ compiler options. Additional Faust compiler options can be given.
 
-Using `-single` and additional Faust options (like `-vec -vs 8...`) allows to run a single test with specific options.
+Additional Faust options (like `-mcd 2...`) can be added on the list of all already tested options, to possibly discover a better setup not covered by the standard exploration.
 
 ## faustbench-llvm
 
@@ -208,7 +209,7 @@ Here are the available options:
 - `-ds <factor> to downsample the DSP by a factor (can be 2, 3, 4, 8, 16, 32)`
 - `-filter <filter> for upsampling or downsampling [0..4], 0 means no filtering`
 
-Using `-single` and additional Faust options (like `-vec -vs 8...`) allows to run a single test with specific options.
+Additional Faust options (like `-dlt 0...`) can be added on the list of all already tested options, to possibly discover a better setup not covered by the standard exploration.
 
 ## faustbench-wasm
 

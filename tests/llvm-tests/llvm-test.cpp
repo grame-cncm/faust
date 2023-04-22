@@ -37,7 +37,9 @@
 using namespace std;
 
 // To do CPU native compilation
+#ifndef JIT_TARGET
 #define JIT_TARGET ""
+#endif
 
 // To do cross-compilation for a given target
 //#define JIT_TARGET "x86_64-apple-darwin20.6.0:westmere"
@@ -164,6 +166,36 @@ static void Test(const char* dspFileAux)
         deleteDSPFactory(factory);
     }
     
+    cout << "=============================\n";
+    cout << "Test createDSPFactoryFromString with classInit\n";
+    {
+        llvm_dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, NULL, JIT_TARGET, error_msg, -1);
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+    
+        // Static tables initialisation
+        factory->classInit(44100);
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "Cannot create instance "<< endl;
+            exit(EXIT_FAILURE);
+        }
+     
+        // Use "manager" mode to test 'classInit'
+        dummyaudio audio(44100, 512, 1 , 512 , true);
+        if (!audio.init("FaustDSP", DSP)) {
+            exit(EXIT_FAILURE);
+        }
+        
+        audio.start();
+        audio.stop();
+        
+        delete DSP;
+        deleteDSPFactory(factory);
+    }
     
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromString with getWarningMessages\n";
@@ -259,7 +291,7 @@ static void Test(const char* dspFileAux)
         if (!generateAuxFilesFromFile(dspFile, argc2, argv2, error_msg)) {
             cout << "ERROR in generateAuxFilesFromFile : " << error_msg;
         } else {
-            string filename =  string(dspFile);
+            string filename = string(dspFile);
             string pathname = tempDir + filename.substr(0, filename.size() - 4) + "-svg";
             ifstream reader(pathname.c_str());
             if (!reader.is_open()) {

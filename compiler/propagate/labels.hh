@@ -26,6 +26,7 @@
 #include "signals.hh"
 #include "tlib.hh"
 
+// Normalize a path
 Tree normalizePath(Tree path);
 
 #endif

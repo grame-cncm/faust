@@ -238,7 +238,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     void setClassName(const std::string& class_name) { fClassName = class_name; }
 
     llvm_dsp* createDSPInstance(dsp_factory* factory);
-
+    
     void metadata(Meta* m);
 
     void metadata(MetaGlue* glue);
@@ -278,6 +278,8 @@ class LIBFAUST_API llvm_dsp_factory : public dsp_factory, public faust_smartable
     std::string getTarget() { return fFactory->getTarget(); }
 
     llvm_dsp* createDSPInstance();
+    
+    void classInit(int sample_rate) { fFactory->fClassInit(sample_rate); }
 
     void                setMemoryManager(dsp_memory_manager* manager) { fFactory->setMemoryManager(manager); }
     dsp_memory_manager* getMemoryManager() { return fFactory->getMemoryManager(); }
@@ -347,6 +349,8 @@ LIBFAUST_API std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, con
 LIBFAUST_API bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path,
                                                const std::string& target);
 
+LIBFAUST_API void registerForeignFunction(const std::string& name);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -374,6 +378,8 @@ LIBFAUST_API const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* facto
 LIBFAUST_API const char** getCWarningMessages(llvm_dsp_factory* factory);
 
 LIBFAUST_API char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory);
+    
+LIBFAUST_API void classCInit(llvm_dsp_factory* factory, int sample_rate);
 
 LIBFAUST_API void deleteAllCDSPFactories();
 
@@ -426,6 +432,8 @@ LIBFAUST_API llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 LIBFAUST_API void deleteCDSPInstance(llvm_dsp* dsp);
 
 LIBFAUST_API void generateCSHA1(const char* data, char* key);
+    
+LIBFAUST_API void registerCForeignFunction(const char* name);
 
 #ifdef __cplusplus
 }

@@ -30,11 +30,10 @@
 ***********************************************************************/
 #include <string>
 #include <vector>
-using namespace std;
 
-string docT(char* c);
-string docT(int n);
-string docT(long n);
-string docT(double n);
+std::string docT(char* c);
+std::string docT(int n);
+std::string docT(long n);
+std::string docT(double n);
 
 #endif

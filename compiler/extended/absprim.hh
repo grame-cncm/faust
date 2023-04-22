@@ -39,27 +39,27 @@ class AbsPrim : public xtended {
     {
         faustassert(args.size() == arity());
         Type t = args[0];
-        return castInterval(t, abs(t->getInterval()));
-        return t;
+        interval i = t->getInterval();
+        return castInterval(t, gAlgebra.Abs(i));
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return args[0];
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         double f;
         int    i;
         faustassert(args.size() == arity());
-    
+
         // abs(abs(sig)) ==> abs(sig)
         xtended* xt = (xtended*)getUserData(args[0]);
         if (xt == gGlobal->gAbsPrim) {
             return args[0];
-            
+
         } else if (isDouble(args[0]->node(), &f)) {
             return tree(fabs(f));
 
@@ -75,13 +75,14 @@ class AbsPrim : public xtended {
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-  
+
         /*
-         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval [O..inf] !
+         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval
+         [O..inf] !
          */
-    
+
         /*
-            if (i.valid && i.lo >= 0) {
+            if (i.isValid() && i.lo() >= 0) {
                 return *args.begin();
             } else {
                 // Only compute abs when arg is < 0
@@ -97,12 +98,12 @@ class AbsPrim : public xtended {
                 }
             }
         */
-    
-        string fun_name = (result->nature() == kInt) ? "abs" : subst("fabs$0", isuffix());
+
+        std::string fun_name = (result->nature() == kInt) ? "abs" : subst("fabs$0", isuffix());
         return generateFun(container, fun_name, args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -115,7 +116,7 @@ class AbsPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

@@ -25,6 +25,9 @@
 
 #include "signal2vhdlVisitor.hh"
 #include "sigtyperules.hh"
+#include "binop.hh"
+
+using namespace std;
 
 //-------------------------Signal2VHDLVisitor-------------------------------
 // An identity transformation on signals. Can be used to test
@@ -92,10 +95,10 @@ void Signal2VHDLVisitor::sigToVHDL(Tree L, ostream& fout)
 
 void Signal2VHDLVisitor::visit(Tree sig)
 {
-    int    i;
+    int    i, op;
     double r;
     vector<Tree> subsig;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree   size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
 
     xtended* p = (xtended*) getUserData(sig);
     int nature = getCertifiedSigType(sig)->nature();
@@ -174,53 +177,55 @@ void Signal2VHDLVisitor::visit(Tree sig)
         self(x);
         self(y);
         return;
-    } else if (isSigBinOp(sig, &i, x, y)) {
-        switch (i) {
-            case 0:
-                bin_op("ADD" + suffixe, binopname[i], sig, x, y);
+    } else if (isSigBinOp(sig, &op, x, y)) {
+        switch (op) {
+            case kAdd:
+                bin_op("ADD" + suffixe, binopname[op], sig, x, y);
                 break;
-            case 1:
-                bin_op("SUB" + suffixe, binopname[i], sig, x, y);
+            case kSub:
+                bin_op("SUB" + suffixe, binopname[op], sig, x, y);
                 break;
-            case 2:
-                bin_op("MUL" + suffixe, binopname[i], sig, x, y);
+            case kMul:
+                bin_op("MUL" + suffixe, binopname[op], sig, x, y);
                 break;
-            case 3:
-                bin_op("DIV" + suffixe, binopname[i], sig, x, y);
+            case kDiv:
+                bin_op("DIV" + suffixe, binopname[op], sig, x, y);
                 break;
-            case 4:
+            case kRem:
                 bin_op("MODULO" + suffixe, "mod", sig, x, y);
                 break;
-            case 8:
+            case kGT:
                 cmp_op("GT" + suffixe, ">", sig, x, y);
                 break;
-            case 9:
+            case kLT:
                 cmp_op("LT" + suffixe, "<", sig, x, y);
                 break;
-            case 10:
+            case kGE:
                 cmp_op("GE" + suffixe, ">=", sig, x, y);
                 break;
-            case 11:
+            case kLE:
                 cmp_op("LE" + suffixe, "<=", sig, x, y);
                 break;
-            case 12:
+            case kEQ:
                 cmp_op("EQUAL" + suffixe, "=", sig, x, y);
                 break;
-            case 13:
+            case kNE:
                 cmp_op("DIFF" + suffixe, "/=", sig, x, y);
                 break;
-            case 14:
+            case kAND:
                 bin_op("ANDL" + suffixe, "and", sig, x, y);
                 break;
-            case 15:
+            case kOR:
                 bin_op("ORL" + suffixe, "or", sig, x, y);
                 break;
-            case 16:
+            case kXOR:
                 bin_op("XORL" + suffixe, "xor", sig, x, y);
                 break;
             default:
                 // operator is doesn't match any case constant (+, -, *, /, ...)
-                cout << "Error! The operator is not correct";
+                stringstream error;
+                error << "ERROR : the operator " << BinOp::getString(op) << " is not supported\n";
+                throw faustexception(error.str());
                 break;
         }
         self(x);
@@ -237,18 +242,18 @@ void Signal2VHDLVisitor::visit(Tree sig)
     }
 
     // Tables
-    else if (isSigTable(sig, id, x, y)) {
-        self(x);
-        self(y);
+    if (isSigWRTbl(sig, size, gen, wi, ws)) {
+        self(size);
+        self(gen);
+        if (wi != gGlobal->nil) {
+            // rwtable
+            self(wi);
+            self(ws);
+        }
         return;
-    } else if (isSigWRTbl(sig, id, x, y, z)) {
-        self(x);
-        self(y);
-        self(z);
-        return;
-    } else if (isSigRDTbl(sig, x, y)) {
-        self(x);
-        self(y);
+    } else if (isSigRDTbl(sig, tbl, ri)) {
+        self(tbl);
+        self(ri);
         return;
     }
 
@@ -364,7 +369,7 @@ void Signal2VHDLVisitor::visit(Tree sig)
         // now nil can appear in table write instructions
         return;
     } else {
-        cerr << __FILE__ << ":" << __LINE__ << " ERROR : unrecognized signal : " << *sig << endl;
+        cerr << __FILE__ << ":" << __LINE__ << " ASSERT : unrecognized signal : " << *sig << endl;
         faustassert(false);
     }
 }
@@ -1120,7 +1125,7 @@ void Signal2VHDLVisitor::cast(const string& name, Tree sig, Tree x)
 }
 
 // Public API
-void sigVHDLFile(old_OccMarkup* markup, Tree L, bool trace)
+void sigVHDLFile(OccMarkup* markup, Tree L, bool trace)
 {
     Signal2VHDLVisitor V(markup);
     ofstream file("faust.vhd");

@@ -175,7 +175,9 @@ void TemplateCodeContainer::produceClass()
 }
 
 void TemplateCodeContainer::produceMetadata(int tabs)
-{}
+{
+    // TODO
+}
 
 // Scalar
 TemplateScalarCodeContainer::TemplateScalarCodeContainer(const string& name,

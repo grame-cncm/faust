@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.54.9)
+set (VERSION 2.59.2)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -22,12 +22,12 @@ set (SRCDIR ${ROOT}/compiler)
 set (BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set (LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/${LIBSDIR})
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 #######################################
 # Output options
 option ( DEPLOYMENT_TARGET 	"[MacOS]"	off )
-option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures [MacOS]"	off )
+option ( UNIVERSAL 	"Compiles and combines x86_64 and arm64 architectures [MacOS]" off )
 option ( IOS     	"Compiles for iOS"	off )
 option ( USE_LLVM_CONFIG    "Force use off llvm-config"	on )
 option ( INCLUDE_EXECUTABLE	"Include runtime executable"	on )
@@ -105,7 +105,7 @@ endif()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_VERSION="${LLVM_PACKAGE_VERSION}")
 
 	if("${LLVM_PACKAGE_VERSION}" VERSION_GREATER_EQUAL 10)
-        set (CMAKE_CXX_STANDARD 14)
+        set (CMAKE_CXX_STANDARD 17)
 	endif()
 endif()
 
@@ -154,7 +154,8 @@ if (MSVC)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVisualStudio)
 else()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLIBDIR="${LIBSDIR}")
-	set(CMAKE_CXX_FLAGS_DEBUG   "-g  -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
+	#set(CMAKE_CXX_FLAGS_DEBUG "-g -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")
 endif()
 
@@ -214,6 +215,7 @@ if (INCLUDE_DYNAMIC)
 	add_library(dynamiclib SHARED ${SRC} ${HH})
 	target_compile_definitions (dynamiclib PRIVATE ${FAUST_DEFINITIONS})
 	target_include_directories (dynamiclib PRIVATE ${FAUST_INC} ${LLVM_INC})
+	# set (FAUST_LIBS /usr/local/lib/libmir.a ${FAUST_LIBS})
 	target_link_libraries (dynamiclib PRIVATE ${FAUST_LIBS})
 	if (WIN32 OR MSYS)
 		enable_language(RC)
@@ -240,7 +242,7 @@ if (INCLUDE_DYNAMIC)
 #	set (INSTALL_TARGETS ${INSTALL_TARGETS} dynamiclib)
 endif()
 
-#self contained library
+# self contained library
 if (SELF_CONTAINED_LIBRARY)
 	add_definitions( -DFAUST_SELF_CONTAINED_LIB )
 endif()
@@ -319,7 +321,6 @@ install (
     OPTIONAL
 )
 endif()
-
 
 
 ####################################

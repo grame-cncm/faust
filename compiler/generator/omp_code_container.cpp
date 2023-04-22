@@ -110,7 +110,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     Values min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
-    ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
+    ValueInst*      init3     = InstBuilder::genFunCallInst("min_i", min_fun_args);
     DeclareVarInst* count_dec = InstBuilder::genDecStackVar("vsize", InstBuilder::genInt32Typed(), init3);
     loop_code->pushBackInst(count_dec);
 

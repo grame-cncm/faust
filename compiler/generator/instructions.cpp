@@ -27,6 +27,8 @@
 #include "sigtype.hh"
 #include "fir_to_fir.hh"
 
+using namespace std;
+
 // Used when inlining functions
 std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 

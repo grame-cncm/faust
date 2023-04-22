@@ -23,8 +23,6 @@
 #ifndef _CSHARP_INSTRUCTIONS_H
 #define _CSHARP_INSTRUCTIONS_H
 
-using namespace std;
-
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
 
@@ -34,8 +32,8 @@ class CSharpInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static map<string, bool>   gFunctionSymbolTable;
-    static map<string, string> gMathLibTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
+    static std::map<std::string, std::string> gMathLibTable;
 
    public:
     using TextInstVisitor::visit;
@@ -142,7 +140,7 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual ~CSharpInstVisitor() {}
 
-    string createVarAccess(string varname)
+    std::string createVarAccess(std::string varname)
     {
         if (strcmp(ifloat(), "float") == 0) {
             return "new FaustVariableAccessor {\n"
@@ -201,8 +199,7 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
-
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "UIDefinition.AddElement(new FaustUIWriteableFloatElement(EFaustUIElementType.HorizontalSlider, ";
@@ -222,8 +219,7 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
-
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "UIDefinition.AddElement(new FaustUIFloatElement(EFaustUIElementType.HorizontalBargraph, ";
@@ -245,7 +241,7 @@ class CSharpInstVisitor : public TextInstVisitor {
 
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_typed && array_typed->fSize > 1) {
-            string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
+            std::string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
             if (inst->fValue) {
                 *fOut << type << "[] " << inst->fAddress->getName() << " = ";
                 inst->fValue->accept(this);
@@ -292,7 +288,7 @@ class CSharpInstVisitor : public TextInstVisitor {
 
         // Prototype arguments
         if (inst->fType->fAttribute & FunTyped::kInline) {
-            *fOut << "[MethodImpl(MethodImplOptions.AggressiveInlining)]" << endl;
+            *fOut << "[MethodImpl(MethodImplOptions.AggressiveInlining)]" << std::endl;
         }
 
         if (!(inst->fType->fAttribute & FunTyped::kLocal)) {
@@ -312,7 +308,7 @@ class CSharpInstVisitor : public TextInstVisitor {
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ");" << endl;  // Pure prototype
+            *fOut << ");" << std::endl;  // Pure prototype
         } else {
             // Function body
             *fOut << ")";
@@ -324,7 +320,7 @@ class CSharpInstVisitor : public TextInstVisitor {
             fTab--;
             back(1, *fOut);
             *fOut << "}";
-            *fOut << endl;
+            *fOut << std::endl;
             tab(fTab, *fOut);
         }
     }
@@ -435,7 +431,7 @@ class CSharpInstVisitor : public TextInstVisitor {
             }
         }
 
-        string type = fTypeManager->generateType(inst->fType);
+        std::string type = fTypeManager->generateType(inst->fType);
         *fOut << "(" << type << ")"
               << "(";
         inst->fInst->accept(this);
@@ -446,7 +442,7 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual void visit(FunCallInst* inst)
     {
-        string fun_name =
+        std::string fun_name =
             (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;
         generateFunCall(inst, fun_name);
     }

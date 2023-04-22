@@ -45,7 +45,7 @@ using namespace std;
  *
  * @return the current runtime sample rate.
  */
-inline Box getSampleRate()
+inline Box SR()
 {
     return boxMin(boxReal(192000.0), boxMax(boxReal(1.0), boxFConst(SType::kSInt, "fSamplingFreq", "<math.h>")));
 }
@@ -57,7 +57,7 @@ inline Box getSampleRate()
  *
  * @return the current runtime buffer size.
  */
-inline Box getBufferSize()
+inline Box BS()
 {
     return boxFVar(SType::kSInt, "count", "<math.h>");
 }
@@ -243,7 +243,7 @@ static void test11()
 {
     COMPILER
     (
-        Box box = boxPar(getSampleRate(), getBufferSize());
+        Box box = boxPar(SR(), BS());
      
         compile("test11", box);
     )
@@ -320,7 +320,7 @@ static Box decimalpart()
 
 static Box phasor(Box f)
 {
-    return boxSeq(boxDiv(f, getSampleRate()), boxRec(boxSplit(boxAdd(), decimalpart()), boxWire()));
+    return boxSeq(boxDiv(f, SR()), boxRec(boxSplit(boxAdd(), decimalpart()), boxWire()));
 }
 
 static void test16()
@@ -507,11 +507,15 @@ static void test23(int argc, const char* argv[])
     
         // Print the box
         cout << "Print the box\n";
-        cout << printBox(box, false);
+        cout << printBox(box, false, INT_MAX);
+    
+        // Print the box in short form
+        cout << "Print the box in short form\n";
+        cout << printBox(box, false, 128);
     
         // Print the box in shared mode
         cout << "Print the box with shared identifiers\n";
-        cout << printBox(box, true);
+        cout << printBox(box, true, INT_MAX);
         
         // Compile the 'box' to 'signals'
         tvec signals = boxesToSignals(box, error_msg);
@@ -519,12 +523,16 @@ static void test23(int argc, const char* argv[])
         // Print the signals
         cout << "Print the signals\n";
         for (size_t i = 0; i < signals.size(); i++) {
-            cout << printSignal(signals[i], false) << endl;
+            cout << printSignal(signals[i], false, INT_MAX) << endl;
+        }
+        cout << "Print the signals in short form\n";
+        for (size_t i = 0; i < signals.size(); i++) {
+            cout << printSignal(signals[i], false, 128) << endl;
         }
         // Print the signals in shared mode
         cout << "Print the signals in shared mode\n";
         for (size_t i = 0; i < signals.size(); i++) {
-            cout << printSignal(signals[i], true) << endl;
+            cout << printSignal(signals[i], true, INT_MAX) << endl;
         }
         
         // Then compile the 'signals' to a DSP factory
@@ -650,6 +658,11 @@ static void test25()
       
             // Create the oscillator
             Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, nullptr, &inputs, &outputs, error_msg);
+            if (!osc) {
+                cerr << error_msg;
+                destroyLibContext();
+                return;
+            }
         
             // Compile it
             string source = createSourceFromBoxes("FaustDSP", osc, it, 0, nullptr, error_msg);
@@ -675,7 +688,11 @@ static void test26()
         
         // Create the filter without parameter
         Box filter = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", 0, nullptr, &inputs, &outputs, error_msg);
-        
+        if (!filter) {
+            cerr << error_msg;
+            destroyLibContext();
+            return;
+        }
         // Create the filter parameters and connect
         Box cutoff = boxHSlider("cutoff", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
         Box cutoffAndInput = boxPar(cutoff, boxWire());

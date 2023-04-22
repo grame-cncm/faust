@@ -142,7 +142,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.86"
+#define EXTERNAL_VERSION    "0.87"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -200,7 +200,8 @@ void faust_allocate(t_faust* x, int nvoices)
 {
     // Delete old
     delete x->m_dsp;
-    x->m_dspUI->clear();
+    delete x->m_dspUI;
+    x->m_dspUI = new mspUI();
     
     if (nvoices > 0) {
     #ifdef POST
@@ -441,7 +442,8 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     delete tmp_dsp;
     
     x->m_savedUI = new SaveLabelUI();
-    x->m_dspUI = new mspUI();
+    // allocation is done in faust_allocate
+    x->m_dspUI = NULL;
     x->m_dsp = NULL;
     x->m_json = NULL;
     x->m_mute = false;
@@ -618,20 +620,20 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
     if (msg == ASSIST_INLET) {
         if (a == 0) {
             if (x->m_dsp->getNumInputs() == 0) {
-                sprintf(dst, "(messages)");
+                snprintf(dst, 512, "(messages)");
             } else {
-                sprintf(dst, "(messages/signal) : Audio Input %ld", (a+1));
+                snprintf(dst, 512, "(messages/signal) : Audio Input %ld", (a+1));
             }
         } else if (a < x->m_dsp->getNumInputs()) {
-            sprintf(dst, "(signal) : Audio Input %ld", (a+1));
+            snprintf(dst, 512, "(signal) : Audio Input %ld", (a+1));
         }
     } else if (msg == ASSIST_OUTLET) {
         if (a < x->m_dsp->getNumOutputs()) {
-            sprintf(dst, "(signal) : Audio Output %ld", (a+1));
+            snprintf(dst, 512, "(signal) : Audio Output %ld", (a+1));
         } else if (a == x->m_dsp->getNumOutputs()) {
-            sprintf(dst, "(list) : [path, cur|init, min, max]*");
+            snprintf(dst, 512, "(list) : [path, cur|init, min, max]*");
         } else {
-            sprintf(dst, "(int) : raw MIDI bytes*");
+            snprintf(dst, 512, "(int) : raw MIDI bytes*");
         }
     }
 }
@@ -764,7 +766,7 @@ void ext_main(void* r)
     faust_class = c;
 #ifdef POST
     post((char*)"Faust DSP object v%s (sample = %s bits code = %s)", EXTERNAL_VERSION, ((sizeof(FAUSTFLOAT) == 4) ? "32" : "64"), getCodeSize());
-    post((char*)"Copyright (c) 2012-2022 Grame");
+    post((char*)"Copyright (c) 2012-2023 Grame");
 #endif
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);

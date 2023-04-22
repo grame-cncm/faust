@@ -17,12 +17,11 @@ which will generate a `.zip` package containing:
 
 Here are the available options:
 
-- `-lib to generate a package containing an object compatible with any ESP32 project`
-- `-gramophone to generate files for GRAME Gramophone`
-- `-multi' to generate for GRAME Gramophone in multi DSP mode`
-- `-midi to activate MIDI control`
-- `-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices`
-
+- `-lib`: to generate a package containing an object compatible with any ESP32 project
+- `-gramophone`: to generate files for GRAME Gramophone
+- `-multi`: to generate for GRAME Gramophone in multi DSP mode
+- `-midi`: to activate MIDI control
+- `-nvoices <num>`: to produce a polyphonic self-contained DSP with <num> voices
 
 The `architecture/esp32/drivers` folder contains the documentation of each object related to specific audio codecs.
 

@@ -1,0 +1,10 @@
+{
+    "CmajorVersion": 1,
+    "ID": "grame.cmajor.cmajordsp",
+    "version": "1.0",
+    "name": "cmajordsp",
+    "description": "Cmajor example",
+    "manufacturer": "GRAME",
+    "website": "https://faust.grame.fr",
+    "source": "cmajordsp.cmajor"
+}

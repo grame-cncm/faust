@@ -31,8 +31,8 @@
 class recSchema : public schema {
     schema*       fSchema1;
     schema*       fSchema2;
-    vector<point> fInputPoint;
-    vector<point> fOutputPoint;
+    std::vector<point> fInputPoint;
+    std::vector<point> fOutputPoint;
 
    public:
     friend schema* makeRecSchema(schema* s1, schema* s2);

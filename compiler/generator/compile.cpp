@@ -37,13 +37,13 @@ Compile a list of FAUST signals into a C++ class.
 
 #include "compile.hh"
 #include "floats.hh"
-#include "ppsig.hh"
-#include "privatise.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 #include "simplify.hh"
 #include "timing.hh"
+
+using namespace std;
 
 /*****************************************************************************
 ******************************************************************************
@@ -174,7 +174,7 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
         const int orient = tree2int(left(label));
         // Empty labels will be renamed with a 0xABCD (address) kind of name that is ignored and not displayed by UI
         // architectures
-        const char* str = tree2str(right(label));
+        const char* str   = tree2str(right(label));
         const char* model = nullptr;
 
         // extract metadata from group label str resulting in a simplifiedLabel
@@ -212,7 +212,7 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
                 fJSON.openTabBox(group.c_str());
                 break;
             default:
-                cerr << "ERROR : user interface generation 1\n";
+                cerr << "ASSERT : user interface generation 1\n";
                 faustassert(false);
                 break;
         }
@@ -225,7 +225,7 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetCode(label, varname, sig);
     } else {
-        cerr << "ERROR : user interface generation 2\n";
+        cerr << "ASSERT : user interface generation 2\n";
         faustassert(false);
     }
 }
@@ -338,7 +338,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
         fJSON.addSoundfile(checkNullLabel(varname, label).c_str(),
                            ((url == "") ? prepareURL(label).c_str() : url.c_str()), NULL);
     } else {
-        cerr << "ERROR : generating widget code 3\n";
+        cerr << "ASSERT : generating widget code 3\n";
         faustassert(false);
     }
 }
@@ -355,14 +355,13 @@ void Compiler::generateMacroInterfaceTree(const string& pathname, Tree t)
 
     if (isUiFolder(t, label, elements)) {
         string pathname2 = pathname;
-        // string str = unquote(tree2str(right(label)));
         string str = tree2str(right(label));
         if (str.length() > 0) pathname2 += str + "/";
         generateMacroInterfaceElements(pathname2, elements);
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetMacro(pathname, label, varname, sig);
     } else {
-        cerr << "ERROR : user interface macro generation 2\n";
+        cerr << "ASSERT : user interface macro generation 2\n";
         faustassert(false);
     }
 }
@@ -421,7 +420,7 @@ void Compiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree 
         fClass->addUIMacro(subst("FAUST_ADDSOUNDFILE(\"$0\", $1);", pathlabel, tree2str(varname)));
 
     } else {
-        cerr << "ERROR in generating widget macro\n";
+        cerr << "ASSERT in generating widget macro\n";
         faustassert(false);
     }
 }

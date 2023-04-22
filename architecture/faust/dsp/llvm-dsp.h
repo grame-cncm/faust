@@ -64,28 +64,74 @@ class LIBFAUST_API llvm_dsp : public dsp {
     
     public:
         
+        /* Return instance number of audio inputs */
         int getNumInputs();
        
+        /* Return instance number of audio outputs */
         int getNumOutputs();
         
+        /**
+         * Trigger the ui_interface parameter with instance specific calls
+         * to 'openTabBox', 'addButton', 'addVerticalSlider'... in order to build the UI.
+         *
+         * @param ui_interface - the user interface builder
+         */
         void buildUserInterface(UI* ui_interface);
        
+        /* Return the sample rate currently used by the instance */
         int getSampleRate();
         
+        /**
+         * Global init, calls the following methods:
+         * - static class 'classInit': static tables initialization
+         * - 'instanceInit': constants and instance state initialization
+         *
+         * @param sample_rate - the sampling rate in Hz
+         */
         void init(int sample_rate);
        
+        /**
+         * Init instance state
+         *
+         * @param sample_rate - the sampling rate in Hz
+         */
         void instanceInit(int sample_rate);
     
+        /**
+         * Init instance constant state
+         *
+         * @param sample_rate - the sampling rate in Hz
+         */
         void instanceConstants(int sample_rate);
     
+        /* Init default control parameters values */
         void instanceResetUserInterface();
         
+        /* Init instance state (like delay lines...) but keep the control parameter values */
         void instanceClear();
         
+        /**
+         * Return a clone of the instance.
+         *
+         * @return a copy of the instance on success, otherwise a null pointer.
+         */
         llvm_dsp* clone();
         
+        /**
+         * Trigger the Meta* parameter with instance specific calls to 'declare' (key, value) metadata.
+         *
+         * @param m - the Meta* meta user
+         */
         void metadata(Meta* m);
         
+        /**
+         * DSP instance computation, to be called with successive in/out audio buffers.
+         *
+         * @param count - the number of frames to compute
+         * @param inputs - the input audio buffers as an array of non-interleaved FAUSTFLOAT samples (eiher float, double or quad)
+         * @param outputs - the output audio buffers as an array of non-interleaved FAUSTFLOAT samples (eiher float, double or quad)
+         *
+         */
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
     
 };
@@ -131,6 +177,9 @@ class LIBFAUST_API llvm_dsp_factory : public dsp_factory {
         
         /* Create a new DSP instance, to be deleted with C++ 'delete' */
         llvm_dsp* createDSPInstance();
+    
+        /* Static tables initialization */
+        void classInit(int sample_rate);
         
         /* Set a custom memory manager to be used when creating instances */
         void setMemoryManager(dsp_memory_manager* manager);

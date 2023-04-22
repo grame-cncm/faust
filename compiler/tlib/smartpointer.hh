@@ -44,11 +44,11 @@ class P {
 
     ~P() {}
 
-       operator T*() const { return p; }
+    operator T*() const { return p; }
     T& operator*() const
     {
         if (p == nullptr) {
-            cerr << "ERROR : null dereference in P<?>::operator*() const \n";
+            std::cerr << "ASSERT : null dereference in P<?>::operator*() const \n";
             faustassert(false);
         }
         return *p;
@@ -56,7 +56,7 @@ class P {
     T* operator->() const
     {
         if (p == nullptr) {
-            cerr << "ERROR : null dereference in P<?>::operator->() const \n";
+            std::cerr << "ASSERT : null dereference in P<?>::operator->() const \n";
             faustassert(false);
         }
         return p;
