@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "tetMesh.h"
+#include <Eigen/SparseCore>
 
 namespace m2f {
 
@@ -46,6 +47,23 @@ std::string mesh2faust(
     int nExPos,
     bool showFreqs = false,
     bool debugMode = false
+);
+
+std::string mesh2faust(
+    const Eigen::SparseMatrix<double> &M, // Mass matrix
+    const Eigen::SparseMatrix<double> &K, // Stiffness matrix
+    int numVertices,
+    int vertexDim,
+    std::string objectName,
+    bool freqControl,
+    float modesMinFreq,
+    float modesMaxFreq,
+    int targetNModes,
+    int femNModes,
+    std::vector<int> exPos,
+    int nExPos,
+    bool showFreqs,
+    bool debugMode
 );
 
 } // namespace mesh2faust
