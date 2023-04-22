@@ -1,15 +1,17 @@
 #include "mesh2faust.h"
 
+// Vega
 #include "StVKElementABCDLoader.h"
 #include "StVKStiffnessMatrix.h"
 #include "generateMassMatrix.h"
 #include "tetMesher.h"
-#include <sstream>
-#include <Eigen/Core>
-#include <Eigen/SparseCore>
+
+// Spectra
 #include <Spectra/SymGEigsShiftSolver.h>
 #include <Spectra/MatOp/SymShiftInvert.h>
 #include <Spectra/MatOp/SparseSymMatProd.h>
+
+#include <sstream>
 
 using namespace std;
 
@@ -38,8 +40,19 @@ string m2f::mesh2faust(
     SparseMatrix *stiffnessMatrix;
     StVKStiffnessMatrix *stiffnessMatrixClass = new StVKStiffnessMatrix(internalForces);
     stiffnessMatrixClass->GetStiffnessMatrixTopology(&stiffnessMatrix);
-    double *zero = (double *)calloc(3 * volumetricMesh->getNumVertices(), sizeof(double));
+
+    uint vertexDim = 3;
+    int numVertices = volumetricMesh->getNumVertices();
+    double *zero = (double *)calloc(numVertices * vertexDim, sizeof(double));
     stiffnessMatrixClass->ComputeStiffnessMatrix(zero, stiffnessMatrix);
+
+    free(zero);
+    delete stiffnessMatrixClass;
+    stiffnessMatrixClass = nullptr;
+    delete internalForces;
+    internalForces = nullptr;
+    delete precomputedIntegrals;
+    precomputedIntegrals = nullptr;
 
     // Copy Vega sparse matrices to Eigen matrices.
     vector<Eigen::Triplet<double>> K_triplets, M_triplets;
@@ -54,35 +67,55 @@ string m2f::mesh2faust(
         }
     }
 
-    /////////////////////////////////////
-    // EIGEN ANALYSIS
-    /////////////////////////////////////
+    int n = stiffnessMatrix->Getn();
+    Eigen::SparseMatrix<double> K(n, n), M(n, n);
+    K.setFromTriplets(K_triplets.begin(), K_triplets.end());
+    M.setFromTriplets(M_triplets.begin(), M_triplets.end());
 
+    delete massMatrix;
+    massMatrix = nullptr;
+    delete stiffnessMatrix;
+    stiffnessMatrix = nullptr;
+
+    return mesh2faust(M, K, numVertices, vertexDim, objectName, freqControl, modesMinFreq, modesMaxFreq, targetNModes, femNModes, exPos, nExPos, showFreqs, debugMode);
+}
+
+string m2f::mesh2faust(
+    const Eigen::SparseMatrix<double> &M,
+    const Eigen::SparseMatrix<double> &K,
+    int numVertices,
+    int vertexDim,
+    string objectName,
+    bool freqControl,
+    float modesMinFreq,
+    float modesMaxFreq,
+    int targetNModes,
+    int femNModes,
+    vector<int> exPos,
+    int nExPos,
+    bool showFreqs,
+    bool debugMode
+) {
     if (debugMode) {
         cout << "\nStarting the eigen solver\n";
         cout << femNModes << " modes will be computed for the FEM analysis\n\n";
     }
 
-    int n = stiffnessMatrix->Getn();
-    double sigma = -1.0;
-
-    Eigen::SparseMatrix<double> K(n, n), M(n, n);
-    K.setFromTriplets(K_triplets.begin(), K_triplets.end());
-    M.setFromTriplets(M_triplets.begin(), M_triplets.end());
-
     using OpType = Spectra::SymShiftInvert<double, Eigen::Sparse, Eigen::Sparse>;
     using BOpType = Spectra::SparseSymMatProd<double>;
+
     OpType op(K, M);
     BOpType Bop(M);
-    int convergence_ratio = max(2*femNModes+1, 20);
+    int convergenceRatio = max(2*femNModes+1, 20);
+    double sigma = -1.0;
     Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert>
-        eigs(op, Bop, femNModes, convergence_ratio, sigma);
+        eigs(op, Bop, femNModes, convergenceRatio, sigma);
     eigs.init();
     eigs.compute(Spectra::SortRule::LargestMagn);
 
-    string dsp = ""; // Faust DSP code to return. Populated below.
+    string dsp = ""; // Faust DSP code to return. Populated below if successful.
 
-    if (eigs.info() == Spectra::CompInfo::Successful) { // if analysis was successful...
+    if (eigs.info() == Spectra::CompInfo::Successful) {
         Eigen::VectorXd eigenValues = eigs.eigenvalues();
         Eigen::MatrixXd eigenVectors = eigs.eigenvectors();
 
@@ -91,7 +124,8 @@ string m2f::mesh2faust(
         /////////////////////////////////////
  
         if (debugMode) cout << "Computing modes frequencies\n\n";
-        float modesFreqs[femNModes]; // modes freqs
+
+        float modesFreqs[femNModes];
         int lowestModeIndex = 0;
         int highestModeIndex = 0;
         for (int i = 0; i < femNModes; i++) {
@@ -102,7 +136,7 @@ string m2f::mesh2faust(
             }
             if (modesFreqs[i] < modesMaxFreq &&
                 (highestModeIndex - lowestModeIndex) < targetNModes &&
-                highestModeIndex < volumetricMesh->getNumVertices()) {
+                highestModeIndex < numVertices) {
                 highestModeIndex++;
             }
         }
@@ -129,14 +163,15 @@ string m2f::mesh2faust(
                 << "Hz and " << modesMaxFreq << "Hz\n\n";
         }
         if (exPos.size() > 0) {
-            // If exPos specified, then retrieve number of ex positions.if (exPos.size() > 0) {
+            // If exPos list specified, retrieve number of ex positions.
             nExPos = exPos.size();
         } else if (nExPos == -1) {
-            // If nExPos not specified, then max number of exPos.
-            nExPos = volumetricMesh->getNumVertices();
+            // If nExPos and exPos not specified, use max number of excitation positions.
+            nExPos = numVertices;
         }
-        nExPos = std::min(nExPos, volumetricMesh->getNumVertices());
-        int exPosStep = volumetricMesh->getNumVertices() / nExPos; // to skip excitation positions
+        nExPos = std::min(nExPos, numVertices); // Limit nExPos to number of vertices.
+
+        int exPosStep = numVertices / nExPos; // Number of vertices to skip between each exPos.
 
         /////////////////////////////////////
         // GENERATE FAUST DSP
@@ -185,12 +220,14 @@ string m2f::mesh2faust(
                 // If exPos was defined, then retrieve data. Otherwise, choose linear ex pos.
                 int evIndex = j + lowestModeIndex;
                 evIndex = femNModes - 1 - evIndex; // Eigenvectors are ordered largest-first.
-                int evValueIndex = 3 * (i < exPos.size() ? exPos[i] : (i * exPosStep));
-                // Eigen is column-major by default.
-                unnormalizedGains[j] = sqrt(pow(eigenVectors(evValueIndex, evIndex), 2) +
-                                            pow(eigenVectors(evValueIndex + 1, evIndex), 2) +
-                                            pow(eigenVectors(evValueIndex + 2, evIndex), 2));
-                if (unnormalizedGains[j]  > maxGain) maxGain = unnormalizedGains[j];
+                int evValueIndex = vertexDim * (i < exPos.size() ? exPos[i] : (i * exPosStep));
+                float unnormalizedGain = 0;
+                for (int k = 0; k < vertexDim; k++) {
+                    // Eigen is column-major by default.
+                    unnormalizedGain += pow(eigenVectors(evValueIndex + k, evIndex), 2);
+                }
+                unnormalizedGains[j] = sqrt(unnormalizedGain);
+                if (unnormalizedGains[j] > maxGain) maxGain = unnormalizedGains[j];
             }
             for (int j = 0; j < targetNModes; j++) {
                 dspStream << unnormalizedGains[j] / maxGain;
@@ -213,19 +250,6 @@ string m2f::mesh2faust(
 
         dsp = dspStream.str();
     }
-
-    // cleaning
-    free(zero);
-    delete stiffnessMatrixClass;
-    stiffnessMatrixClass = nullptr;
-    delete stiffnessMatrix;
-    stiffnessMatrix = nullptr;
-    delete internalForces;
-    internalForces = nullptr;
-    delete precomputedIntegrals;
-    precomputedIntegrals = nullptr;
-    delete massMatrix;
-    massMatrix = nullptr;
 
     return dsp;
 }
@@ -250,13 +274,14 @@ string m2f::mesh2faust(
     if (debugMode) cout << "Loading the mesh file\n";
     ObjMesh *objMesh = new ObjMesh(modelFileName);
  
-    // Generate 3D volumetric mesh from 2D mesh.
+    // Generate 3D volumetric mesh from obj mesh.
     if (debugMode) {
         cout << "\nGenerating a 3D mesh with the following properties\n";
         cout << "Young's modulus: " << materialProperties.youngModulus << "\n";
         cout << "Poisson's ratio: " << materialProperties.poissonRatio << "\n";
         cout << "Density: " << materialProperties.density << "\n";
     }
+
     // TODO: no way to prevent printing here (yet)
     TetMesh *volumetricMesh = TetMesher().compute(objMesh);
     // Set mesh material properties.
