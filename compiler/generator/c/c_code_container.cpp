@@ -416,8 +416,8 @@ void CScalarOneSampleCodeContainer1::produceClass()
     tab(n, *fOut);
     
     tab(n, *fOut);
-    *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum << endl;
-    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
+    *fOut << "#define FAUST_INT_CONTROLS " << fIntControl->fCurIndex << endl;
+    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControl->fCurIndex << endl;
     tab(n, *fOut);
     
     *fOut << "#ifndef TESTBENCH";
@@ -566,12 +566,12 @@ void CScalarOneSampleCodeContainer1::produceClass()
     
     tab(n, *fOut);
     *fOut << "int getNumIntControls" << fKlassName << "(" << fKlassName << "* dsp) { return "
-    << fInt32ControlNum << "; }";
+    << fIntControl->fCurIndex << "; }";
     tab(n, *fOut);
     
     tab(n, *fOut);
     *fOut << "int getNumRealControls" << fKlassName << "(" << fKlassName << "* dsp) { return "
-    << fRealControlNum << "; }";
+    << fRealControl->fCurIndex << "; }";
     
     // Compute
     generateCompute(n);
@@ -774,11 +774,11 @@ void CScalarOneSampleCodeContainer2::produceClass()
     
     tab(n, *fOut);
     *fOut << "int getNumIntControls" << fKlassName << "(" << fKlassName << "* dsp) { return "
-    << fInt32ControlNum << "; }";
+    << fIntControl->fCurIndex << "; }";
     tab(n, *fOut);
     
     *fOut << "int getNumRealControls" << fKlassName << "(" << fKlassName << "* dsp) { return "
-    << fRealControlNum << "; }";
+    << fRealControl->fCurIndex << "; }";
     tab(n, *fOut);
     
     tab(n, *fOut);
@@ -791,8 +791,8 @@ void CScalarOneSampleCodeContainer2::produceClass()
     generateCompute(n);
     
     tab(n, *fOut);
-    *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum << endl;
-    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
+    *fOut << "#define FAUST_INT_CONTROLS " << fIntControl->fCurIndex << endl;
+    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControl->fCurIndex << endl;
     
     tab(n, *fOut);
     *fOut << "#define FAUST_INT_ZONE " << int_zone_size << endl;
@@ -1029,11 +1029,11 @@ void CScalarOneSampleCodeContainer3::produceClass()
     
     tab(n, *fOut);
     *fOut << "int getNumIntControls" << fKlassName << "(" << fKlassName << "* dsp) { return "
-    << fInt32ControlNum << "; }";
+    << fIntControl->fCurIndex << "; }";
     tab(n, *fOut);
     
     *fOut << "int getNumRealControls" << fKlassName << "(" << fKlassName << "* dsp) { return "
-    << fRealControlNum << "; }";
+    << fRealControl->fCurIndex << "; }";
     tab(n, *fOut);
     
     tab(n, *fOut);
@@ -1048,8 +1048,8 @@ void CScalarOneSampleCodeContainer3::produceClass()
     generateCompute(n);
     
     tab(n, *fOut);
-    *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum << endl;
-    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
+    *fOut << "#define FAUST_INT_CONTROLS " << fIntControl->fCurIndex << endl;
+    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControl->fCurIndex << endl;
     
     tab(n, *fOut);
     // copy_from_mem.fIntIndex and copy_from_mem.fRealIndex contains the size used for tables, DLs and iConst/fConst variables
@@ -1319,11 +1319,11 @@ void CScalarOneSampleCodeContainer4::produceClass()
     
     tab(n, *fOut);
     *fOut << "int getNumIntControls" << fKlassName << "(" << fKlassName << "* dsp) { return "
-    << fInt32ControlNum << "; }";
+    << fIntControl->fCurIndex << "; }";
     tab(n, *fOut);
     
     *fOut << "int getNumRealControls" << fKlassName << "(" << fKlassName << "* dsp) { return "
-    << fRealControlNum << "; }";
+    << fRealControl->fCurIndex << "; }";
     tab(n, *fOut);
     
     tab(n, *fOut);
@@ -1336,8 +1336,8 @@ void CScalarOneSampleCodeContainer4::produceClass()
     generateCompute(n);
     
     tab(n, *fOut);
-    *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum << endl;
-    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
+    *fOut << "#define FAUST_INT_CONTROLS " << fIntControl->fCurIndex << endl;
+    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControl->fCurIndex << endl;
     
     tab(n, *fOut);
     // int_zone_size and real_zone_size contains the size used for tables, DLs and iConst/fConst variables

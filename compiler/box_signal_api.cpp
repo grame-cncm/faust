@@ -623,37 +623,25 @@ LIBFAUST_API bool CisSigPrefix(Tree t, Tree* t0_aux, Tree* t1_aux)
         return false;
     }
 }
-LIBFAUST_API bool CisSigRDTbl(Tree s, Tree* t_aux, Tree* i_aux)
+LIBFAUST_API bool CisSigRDTbl(Tree t, Tree* tbl_aux, Tree* ri_aux)
 {
-    Tree t, i;
-    if (isSigRDTbl(s, t, i)) {
-        *t_aux = t;
-        *i_aux = i;
+    Tree tbl, ri;
+    if (isSigRDTbl(t, tbl, ri)) {
+        *tbl_aux = tbl;
+        *ri_aux = ri;
         return true;
     } else {
         return false;
     }
 }
-LIBFAUST_API bool CisSigWRTbl(Tree u, Tree* id_aux, Tree* t_aux, Tree* i_aux, Tree* s_aux)
+LIBFAUST_API bool CisSigWRTbl(Tree t, Tree* size_aux, Tree* gen_aux, Tree* wi_aux, Tree* ws_aux)
 {
-    Tree id, t, i, s;
-    if (isSigWRTbl(u, id, t, i, s)) {
-        *id_aux = id;
-        *t_aux  = t;
-        *i_aux  = i;
-        *s_aux  = s;
-        return true;
-    } else {
-        return false;
-    }
-}
-LIBFAUST_API bool CisSigTable(Tree t, Tree* id_aux, Tree* n_aux, Tree* sig_aux)
-{
-    Tree id, n, sig;
-    if (isSigTable(t, id, n, sig)) {
-        *id_aux  = id;
-        *n_aux   = n;
-        *sig_aux = sig;
+    Tree size, gen, wi, ws;
+    if (isSigWRTbl(t, size, gen, wi, ws)) {
+        *size_aux = size;
+        *gen_aux = gen;
+        *wi_aux = wi;
+        *ws_aux = ws;
         return true;
     } else {
         return false;

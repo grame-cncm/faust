@@ -179,7 +179,7 @@ static string sigLabel(Tree sig)
 {
     int    i;
     double r;
-    Tree   x, y, z, c, type, name, file, ff, largs, id, le, sel, var, label;
+    Tree   size, gen, wi, ws, tbl, ri, x, y, z, c, type, name, file, ff, largs, le, sel, var, label;
 
     xtended* p = (xtended*)getUserData(sig);
 
@@ -216,11 +216,9 @@ static string sigLabel(Tree sig)
         fout << *name;
     }
 
-    else if (isSigTable(sig, id, x, y)) {
-        fout << "table:" << id;
-    } else if (isSigWRTbl(sig, id, x, y, z)) {
-        fout << "write:" << id;
-    } else if (isSigRDTbl(sig, x, y)) {
+    else if (isSigWRTbl(sig, size, gen, wi, ws)) {
+        fout << "write:" << sig;
+    } else if (isSigRDTbl(sig, tbl, ri)) {
         fout << "read";
     }
 

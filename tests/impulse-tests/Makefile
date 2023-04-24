@@ -205,6 +205,7 @@ ocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
 	$(MAKE) -f Make.gcc outdir=ocpp/double/mcd0     lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mcd 0"
 	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/lv0  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
+	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/lv1  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
 
 vecocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/lv1  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
@@ -369,7 +370,7 @@ cmajor:
 # D backend
 dlang:
 	$(MAKE) -f Make.dlang outdir=dlang/double     FAUSTOPTIONS="-I dsp -double"
-	$(MAKE) -f Make.dlang outdir=dlang/double/lp FAUSTOPTIONS="-I dsp -double -fp"
+	$(MAKE) -f Make.dlang outdir=dlang/double/lp  FAUSTOPTIONS="-I dsp -double -fp"
 	$(MAKE) -f Make.dlang outdir=dlang/double/vec FAUSTOPTIONS="-I dsp -double -vec"
 
 #########################################################################

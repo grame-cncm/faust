@@ -233,12 +233,12 @@ void CmajorCodeContainer::produceClass()
     }
  
     // For control computation
-    if (fInt32ControlNum > 0) {
-        *fOut << "int32[" << fInt32ControlNum << "] iControl;";
+    if (fIntControl->fCurIndex > 0) {
+        *fOut << "int32[" << fIntControl->fCurIndex << "] iControl;";
         tab(n + 1, *fOut);
     }
-    if (fRealControlNum > 0) {
-        *fOut << fCodeProducer.getTypeManager()->fTypeDirectTable[itfloat()] << "[" << fRealControlNum << "] fControl;";
+    if (fRealControl->fCurIndex > 0) {
+        *fOut << fCodeProducer.getTypeManager()->fTypeDirectTable[itfloat()] << "[" << fRealControl->fCurIndex << "] fControl;";
     }
 
     // Global declarations

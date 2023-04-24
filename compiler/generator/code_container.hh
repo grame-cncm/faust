@@ -48,7 +48,7 @@
 
 class TextInstVisitor;
 
-// Look for the name of a given subcontainer
+// Look for the name of a given subcontainer.
 struct SearchSubcontainer : public DispatchVisitor {
     
     std::string fClassName;
@@ -61,6 +61,36 @@ struct SearchSubcontainer : public DispatchVisitor {
     {
         fFound |= (fClassName == typed->getName());
     }
+};
+
+/*
+ * Helper class for iControl/fControl management in -os mode:
+ *
+ * - 'store' is used to store a value at the current index
+ * - 'load' is used to load the value at the current index, then increment the index for the next store
+ * - fCurIndex is the array size when allocation is finished
+ */
+struct ArrayVar : public virtual Garbageable {
+    
+    const std::string fName;
+    Address::AccessType fAccess;
+    int fCurIndex = 0;
+    
+    // The array name and access type
+    ArrayVar(const std::string& name, Address::AccessType access)
+    :fName(name), fAccess(access)
+    {}
+    
+    StatementInst* store(ValueInst* exp)
+    {
+        return InstBuilder::genStoreArrayVar(fName, fAccess, FIRIndex(fCurIndex), exp);
+    }
+    
+    ValueInst* load()
+    {
+        return InstBuilder::genLoadArrayVar(fName, fAccess, FIRIndex(fCurIndex++));
+    }
+    
 };
 
 // DSP or field name, type, size, size-in-bytes, reads, writes
@@ -127,6 +157,7 @@ class CodeContainer : public virtual Garbageable {
 
     property<CodeLoop*> fLoopProperty;  ///< loops used to compute some signals
 
+    // UI handling
     std::list<std::string> fUICode;
     std::list<std::string> fUIMacro;
     std::list<std::string> fUIMacroActives;
@@ -203,6 +234,24 @@ class CodeContainer : public virtual Garbageable {
     }
 
     BlockInst* inlineSubcontainersFunCalls(BlockInst* block);
+    
+    Names genMethod(const std::string& obj, bool ismethod)
+    {
+        Names args;
+        if (!ismethod) {
+            args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
+        }
+        return args;
+    }
+    
+    Values genObjArg(const std::string& obj, bool ismethod)
+    {
+        Values args;
+        if (!ismethod) {
+            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+        }
+        return args;
+    }
     
    public:
     CodeContainer();
@@ -658,6 +707,9 @@ class CodeContainer : public virtual Garbageable {
     void addUIMacroActives(const std::string& str) { fUIMacroActives.push_back(str); }
     void addUIMacroPassives(const std::string& str) { fUIMacroPassives.push_back(str); }
     void addUICode(const std::string& str) { fUICode.push_back(str); }
+    
+    void incUIActiveCount() { fNumActives++; }
+    void incUIPassiveCount() { fNumPassives++; }
 
     virtual CodeContainer* createScalarContainer(const std::string& name, int sub_container_type) = 0;
 
@@ -669,10 +721,7 @@ class CodeContainer : public virtual Garbageable {
     virtual void produceClass() {}
 
     virtual void dump(std::ostream* dst) {}
-
-    void incUIActiveCount() { fNumActives++; }
-    void incUIPassiveCount() { fNumPassives++; }
-
+ 
     virtual dsp_factory_base* produceFactory()
     {
         faustassert(false);
@@ -680,9 +729,10 @@ class CodeContainer : public virtual Garbageable {
     }
     
     void generateJSONFile();
+    
+    ArrayVar* fIntControl;  // array of 'int32' intermediate control values
+    ArrayVar* fRealControl; // array of 'real' intermediate control values
 
-    int fInt32ControlNum;  // number of 'int32' intermediate control values
-    int fRealControlNum;   // number of 'real' intermediate control values
 };
 
 inline bool isElement(const std::set<CodeLoop*>& S, CodeLoop* l)

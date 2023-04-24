@@ -41,9 +41,9 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     virtual ValueInst* generateWaveform(Tree sig);
 
     void generateVectorLoop(Typed::VarType ctype, const std::string& vecname, ValueInst* exp,
-                            Address::AccessType& var_access);
+                            Address::AccessType& access);
     void generateDlineLoop(Typed::VarType ctype, const std::string& vecname, int delay, ValueInst* exp,
-                           Address::AccessType& var_access);
+                           Address::AccessType& access);
 
     virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
     virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
@@ -52,7 +52,7 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     virtual ValueInst* generateDelay(Tree sig, Tree arg, Tree size);
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd);
     virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd,
-                                         Address::AccessType& var_access, ValueInst* ccs);
+                                         Address::AccessType& access, ValueInst* ccs);
 
     StatementInst* generateCopyBackArray(const std::string& vname_to, const std::string& vname_from, int size);
 

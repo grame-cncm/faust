@@ -342,21 +342,19 @@ Tree docTableConvertion(Tree sig)
 
 static Tree docTableConverter(Tree sig)
 {
-    Tree tbl, tbl2, id, id2, size, igen, isig, ridx, widx, wsig;
+    Tree gen, wi, ws, tbl, ri, size, isig;
 
-    if (isSigRDTbl(sig, tbl, ridx)) {
+    if (isSigRDTbl(sig, tbl, ri)) {
         // we are in a table to convert
-        if (isSigTable(tbl, id, size, igen)) {
-            // it's a read only table
-            faustassert(isSigGen(igen, isig));
-            return sigDocAccessTbl(sigDocConstantTbl(size, isig), ridx);
+        if (isSigWRTbl(tbl, size, gen)) {
+            // rdtable
+            faustassert(isSigGen(gen, isig));
+            return sigDocAccessTbl(sigDocConstantTbl(size, isig), ri);
         } else {
-            // it's a read write table
-            faustassert(isSigWRTbl(tbl, id, tbl2, widx, wsig));
-            faustassert(isSigTable(tbl2, id2, size, igen));
-            faustassert(isSigGen(igen, isig));
-
-            return sigDocAccessTbl(sigDocWriteTbl(size, isig, widx, wsig), ridx);
+            // rwtable
+            faustassert(isSigWRTbl(tbl, size, gen, wi, ws));
+            faustassert(isSigGen(gen, isig));
+            return sigDocAccessTbl(sigDocWriteTbl(size, isig, wi, ws), ri);
         }
 
     } else {

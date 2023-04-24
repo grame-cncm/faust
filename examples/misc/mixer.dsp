@@ -1,8 +1,8 @@
-declare name 		"mixer";
-declare version 	"1.0";
-declare author 		"Grame";
-declare license 	"BSD";
-declare copyright 	"(c)GRAME 2006-2020";
+declare name      "mixer";
+declare version   "1.0";
+declare author    "Grame";
+declare license   "BSD";
+declare copyright "(c)GRAME 2006-2020";
 
 import("stdfaust.lib");
 
@@ -16,7 +16,7 @@ mute = *(1 - checkbox("mute"));
       
 vumeter(i, x) = attach(x, envelop(x) : vbargraph("chan %i[2][unit:dB]", -70, +5))
 with {
-	envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
+    envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
 };
 
 voice(v) = vgroup("Ch %v",  mute : hgroup("[2]", vol : vumeter(v)) : pan);

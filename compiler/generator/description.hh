@@ -41,13 +41,15 @@ void extractMetadata(const std::string& fulllabel, std::string& label, std::map<
 LIBFAUST_API std::string extractName(Tree full_label);
 
 class Description : public virtual Garbageable {
+    
+  private:
     std::string fName;
     std::string fAuthor;
     std::string fCopyright;
     std::string fLicense;
     std::string fVersion;
     std::map<std::string, std::set<std::string>> fMetadata;
-
+    
     std::string fClassName;
     int         fInputs;
     int         fOutputs;
@@ -58,6 +60,20 @@ class Description : public virtual Garbageable {
     std::list<std::string> fPassiveLines;
     std::list<std::string> fLayoutLines;
     std::list<int>         fLayoutTabs;
+    
+    void addGroup(int level, Tree t);
+    int  addWidget(Tree label, Tree varname, Tree sig);
+    
+    void tab(int n, std::ostream& fout);
+    void addActiveLine(const std::string& l) { fActiveLines.push_back(l); }
+    void addPassiveLine(const std::string& l) { fPassiveLines.push_back(l); }
+    void addActiveMetadata(Tree label);
+    void addPassiveMetadata(Tree label);
+    void addLayoutLine(int n, const std::string& l)
+    {
+        fLayoutTabs.push_back(n);
+        fLayoutLines.push_back(l);
+    }
 
    public:
     Description()
@@ -118,21 +134,8 @@ class Description : public virtual Garbageable {
 
     void ui(Tree t);
     void print(int n, std::ostream& fout);
-
-   private:
-    void addGroup(int level, Tree t);
-    int  addWidget(Tree label, Tree varname, Tree sig);
-
-    void tab(int n, std::ostream& fout);
-    void addActiveLine(const std::string& l) { fActiveLines.push_back(l); }
-    void addPassiveLine(const std::string& l) { fPassiveLines.push_back(l); }
-    void addActiveMetadata(Tree label);
-    void addPassiveMetadata(Tree label);
-    void addLayoutLine(int n, const std::string& l)
-    {
-        fLayoutTabs.push_back(n);
-        fLayoutLines.push_back(l);
-    }
+    void printXML(int ins, int outs);
+    
 };
 
 #endif

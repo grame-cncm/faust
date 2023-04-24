@@ -38,7 +38,7 @@ void sigvisitor::visit(Tree sig)
     int     i;
     int64_t i64;
     double  r;
-    Tree   sel, s1, s2, s3, s4, ff, id, ls, l, var, body, type, name, file, cur, min, max, step;
+    Tree   sel, s1, s2, s3, s4, ff, ls, l, var, body, type, name, file, cur, min, max, step;
 
     faustassert(sig);
 
@@ -132,11 +132,8 @@ void sigvisitor::visit(Tree sig)
 
     //----------------------------
 
-    else if (isSigTable(sig, id, s1, s2))
-        visitTable(sig, id, s1, s2);
-
-    else if (isSigWRTbl(sig, id, s1, s2, s3))
-        visitWRTbl(sig, id, s1, s2, s3);
+    if (isSigWRTbl(sig, s1, s2, s3, s4))
+        visitWRTbl(sig, s1, s2, s3, s4);
 
     else if (isSigRDTbl(sig, s1, s2))
         visitRDTbl(sig, s1, s2);

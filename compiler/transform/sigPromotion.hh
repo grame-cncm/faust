@@ -164,9 +164,8 @@ class SignalTablePromotion final : public SignalIdentity {
         Tree transformation(Tree sig);
     
         // Safe version of rtable/rwtable access
-        Tree safeSigRDTbl(Tree sig, Tree tb, Tree size, Tree idx);
-        Tree safeSigWRTbl(Tree sig, Tree id, Tree tb, Tree size, Tree idx, Tree ws);
-        Tree getSize(Tree sig);
+        Tree safeSigRDTbl(Tree sig, Tree tbl, Tree size, Tree ri);
+        Tree safeSigWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws);
     
     public:
         SignalTablePromotion()

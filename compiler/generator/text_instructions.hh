@@ -232,7 +232,7 @@ class TextInstVisitor : public InstVisitor {
      * @brief test if a right expression needs parentheses.
      *
      * @param inst the top binary instruction
-     * @param arg the left expression
+     * @param arg the right expression
      * @return true if parentheses are needed, false otherwise
      */
     virtual bool rightArgNeedsParentheses(BinopInst* inst, ValueInst* arg)

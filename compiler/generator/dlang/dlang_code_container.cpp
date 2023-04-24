@@ -481,8 +481,8 @@ void DLangScalarOneSampleCodeContainer::produceClass()
 
     *fOut << "enum FAUST_INPUTS = " << fNumInputs << ";" << endl;
     *fOut << "enum FAUST_OUTPUTS = " << fNumOutputs << ";" << endl;
-    *fOut << "enum FAUST_INT_CONTROLS = " << fInt32ControlNum << ";" << endl;
-    *fOut << "enum FAUST_REAL_CONTROLS = " << fRealControlNum << ";" << endl;
+    *fOut << "enum FAUST_INT_CONTROLS = " << fIntControl->fCurIndex << ";" << endl;
+    *fOut << "enum FAUST_REAL_CONTROLS = " << fRealControl->fCurIndex << ";" << endl;
     fSuperKlassName = "one_sample_dsp";
 
     tab(n, *fOut);
@@ -622,9 +622,9 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     *fOut << "}" << endl;
 
     tab(n + 1, *fOut);
-    *fOut << "int getNumIntControls() nothrow @nogc { return " << fInt32ControlNum << "; }";
+    *fOut << "int getNumIntControls() nothrow @nogc { return " << fIntControl->fCurIndex << "; }";
     tab(n + 1, *fOut);
-    *fOut << "int getNumRealControls() nothrow @nogc { return " << fRealControlNum << "; }";
+    *fOut << "int getNumRealControls() nothrow @nogc { return " << fRealControl->fCurIndex << "; }";
 
     // Compute
     generateCompute(n);

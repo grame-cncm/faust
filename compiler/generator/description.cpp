@@ -157,7 +157,6 @@ string extractName(Tree full_label)
 {
     string                   name;
     map<string, set<string>> metadata;
-
     extractMetadata(tree2str(full_label), name, metadata);
     return name;
 }
@@ -461,4 +460,34 @@ void Description::addPassiveMetadata(Tree label)
     lines = xmlOfMetadata(metadata, 1);
 
     for (const auto& it : lines) fPassiveLines.push_back(it);
+}
+
+void Description::printXML(int ins, int outs)
+{
+    ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
+    
+    for (const auto& it1 : gGlobal->gMetaDataSet) {
+        const string key = tree2str(it1.first);
+        for (const auto& it2 : it1.second) {
+            const string value = tree2str(it2);
+            if (key == "name") {
+                name(value);
+            } else if (key == "author") {
+                author(value);
+            } else if (key == "copyright") {
+                copyright(value);
+            } else if (key == "license") {
+                license(value);
+            } else if (key == "version") {
+                version(value);
+            } else {
+                declare(key, value);
+            }
+        }
+    }
+    
+    className(gGlobal->gClassName);
+    inputs(ins);
+    outputs(outs);
+    print(0, xout);
 }

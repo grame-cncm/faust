@@ -22,6 +22,8 @@
 #include <property.hh>
 #include <signals.hh>
 #include <sstream>
+
+#include "global.hh"
 #include "exception.hh"
 
 using namespace std;
@@ -41,7 +43,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     int     i;
     int64_t i64;
     double  r;
-    Tree    c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree    size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
 
     if (getUserData(sig)) {
         for (int i1 = 0; i1 < sig->arity(); i1++) {
@@ -97,18 +99,21 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         return 0;
     }
 
-    else if (isSigTable(sig, id, x, y)) {
-        vsigs.push_back(x);
-        vsigs.push_back(y);
-        return 2;
-    } else if (isSigWRTbl(sig, id, x, y, z)) {
-        vsigs.push_back(x);
-        vsigs.push_back(y);
-        vsigs.push_back(z);
-        return 3;
-    } else if (isSigRDTbl(sig, x, y)) {
-        vsigs.push_back(x);
-        vsigs.push_back(y);
+    else if (isSigWRTbl(sig, size, gen, wi, ws)) {
+        vsigs.push_back(size);
+        vsigs.push_back(gen);
+        if (wi == gGlobal->nil) {
+            // rdtable
+            return 2;
+        } else {
+            // rwtable
+            vsigs.push_back(wi);
+            vsigs.push_back(ws);
+            return 4;
+        }
+    } else if (isSigRDTbl(sig, tbl, ri)) {
+        vsigs.push_back(tbl);
+        vsigs.push_back(ri);
         return 2;
     }
 

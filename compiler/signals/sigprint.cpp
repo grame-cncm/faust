@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 
+#include "global.hh"
 #include "signals.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -70,7 +71,7 @@ void printSignal(Tree sig, FILE* out, int prec)
 {
     int    i;
     double r;
-    Tree   x, y, z, u, le, id;
+    Tree   size, gen, wi, ws, tbl, ri, x, y, z, u, le;
 
     if (isSigInt(sig, &i)) {
         fprintf(out, "%d", i);
@@ -143,23 +144,24 @@ void printSignal(Tree sig, FILE* out, int prec)
         printSignal(le, out, prec);
     }
 
-    else if (isSigTable(sig, id, x, y)) {
+    else if (isSigWRTbl(sig, size, gen, wi, ws)) {
         fputs("table(", out);
-        printSignal(x, out, 0);
+        printSignal(size, out, 0);
         fputc(',', out);
-        printSignal(y, out, 0);
+        printSignal(gen, out, 0);
         fputc(')', out);
-    } else if (isSigWRTbl(sig, id, x, y, z)) {
-        printSignal(x, out, 0);
-        fputc('[', out);
-        printSignal(y, out, 0);
-        fputs("] := (", out);
-        printSignal(z, out, 0);
+        if (wi != gGlobal->nil) {
+            // rwtable
+            fputc('[', out);
+            printSignal(wi, out, 0);
+            fputs("] := (", out);
+            printSignal(ws, out, 0);
+        }
         fputc(')', out);
-    } else if (isSigRDTbl(sig, x, y)) {
-        printSignal(x, out, 0);
+    } else if (isSigRDTbl(sig, tbl, ri)) {
+        printSignal(tbl, out, 0);
         fputc('[', out);
-        printSignal(y, out, 0);
+        printSignal(ri, out, 0);
         fputc(']', out);
     }
 

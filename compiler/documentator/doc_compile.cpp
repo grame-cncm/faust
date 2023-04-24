@@ -42,7 +42,6 @@
 #include "names.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
-#include "privatise.hh"
 #include "recursivness.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"

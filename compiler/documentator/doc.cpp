@@ -71,7 +71,6 @@
 #include "names.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
-#include "privatise.hh"
 #include "propagate.hh"
 #include "recursivness.hh"
 #include "sigprint.hh"

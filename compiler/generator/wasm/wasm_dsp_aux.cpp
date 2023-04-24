@@ -385,7 +385,7 @@ LIBFAUST_API void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, co
 {
 }
 
-LIBFAUST_API wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory), fDSP(-1)
+LIBFAUST_API wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
 {
 }
 

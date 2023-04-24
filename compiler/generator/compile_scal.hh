@@ -103,8 +103,8 @@ class ScalarCompiler : public Compiler {
 
     std::string generateTable(Tree sig, Tree tsize, Tree content);
     std::string generateStaticTable(Tree sig, Tree tsize, Tree content);
-    std::string generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data);
-    std::string generateRDTbl(Tree sig, Tree tbl, Tree idx);
+    std::string generateWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws);
+    std::string generateRDTbl(Tree sig, Tree tbl, Tree ri);
     std::string generateSigGen(Tree sig, Tree content);
     std::string generateStaticSigGen(Tree sig, Tree content);
 
