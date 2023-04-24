@@ -15,26 +15,14 @@
 
 using namespace std;
 
-string m2f::mesh2faust(
-    TetMesh *volumetricMesh,
-    string objectName,
-    bool freqControl,
-    float modesMinFreq,
-    float modesMaxFreq,
-    int targetNModes,
-    int femNModes,
-    vector<int> exPos,
-    int nExPos,
-    bool showFreqs,
-    bool debugMode
-) {
+string m2f::mesh2faust(TetMesh *volumetricMesh, CommonArguments args) {
     // Compute mass matrix.
-    if (debugMode) cout << "Creating and computing mass matrix\n";
+    if (args.debugMode) cout << "Creating and computing mass matrix\n";
     SparseMatrix *massMatrix;
     GenerateMassMatrix::computeMassMatrix(volumetricMesh, &massMatrix, true);
 
     // computing stiffness matrix
-    if (debugMode) cout << "Creating and computing stiffness matrix\n";
+    if (args.debugMode) cout << "Creating and computing stiffness matrix\n";
     StVKElementABCD *precomputedIntegrals = StVKElementABCDLoader::load(volumetricMesh);
     StVKInternalForces *internalForces = new StVKInternalForces(volumetricMesh, precomputedIntegrals);
     SparseMatrix *stiffnessMatrix;
@@ -77,7 +65,7 @@ string m2f::mesh2faust(
     delete stiffnessMatrix;
     stiffnessMatrix = nullptr;
 
-    return mesh2faust(M, K, numVertices, vertexDim, objectName, freqControl, modesMinFreq, modesMaxFreq, targetNModes, femNModes, exPos, nExPos, showFreqs, debugMode);
+    return mesh2faust(M, K, numVertices, vertexDim, args);
 }
 
 string m2f::mesh2faust(
@@ -85,20 +73,11 @@ string m2f::mesh2faust(
     const Eigen::SparseMatrix<double> &K,
     int numVertices,
     int vertexDim,
-    string objectName,
-    bool freqControl,
-    float modesMinFreq,
-    float modesMaxFreq,
-    int targetNModes,
-    int femNModes,
-    vector<int> exPos,
-    int nExPos,
-    bool showFreqs,
-    bool debugMode
+    CommonArguments args
 ) {
-    if (debugMode) {
+    if (args.debugMode) {
         cout << "\nStarting the eigen solver\n";
-        cout << femNModes << " modes will be computed for the FEM analysis\n\n";
+        cout << args.femNModes << " modes will be computed for the FEM analysis\n\n";
     }
 
     using OpType = Spectra::SymShiftInvert<double, Eigen::Sparse, Eigen::Sparse>;
@@ -106,10 +85,10 @@ string m2f::mesh2faust(
 
     OpType op(K, M);
     BOpType Bop(M);
-    int convergenceRatio = max(2*femNModes+1, 20);
+    int convergenceRatio = max(2*args.femNModes+1, 20);
     double sigma = -1.0;
     Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert>
-        eigs(op, Bop, femNModes, convergenceRatio, sigma);
+        eigs(op, Bop, args.femNModes, convergenceRatio, sigma);
     eigs.init();
     eigs.compute(Spectra::SortRule::LargestMagn);
 
@@ -123,19 +102,19 @@ string m2f::mesh2faust(
         // COMPUTE MODE FREQS
         /////////////////////////////////////
  
-        if (debugMode) cout << "Computing modes frequencies\n\n";
+        if (args.debugMode) cout << "Computing modes frequencies\n\n";
 
-        float modesFreqs[femNModes];
+        float modesFreqs[args.femNModes];
         int lowestModeIndex = 0;
         int highestModeIndex = 0;
-        for (int i = 0; i < femNModes; i++) {
-            double eigenValue = eigenValues[femNModes - 1 - i]; // Eigenvalues are ordered largest-first.
+        for (int i = 0; i < args.femNModes; i++) {
+            double eigenValue = eigenValues[args.femNModes - 1 - i]; // Eigenvalues are ordered largest-first.
             modesFreqs[i] = eigenValue <= 0 ? 0.0 : sqrt((float)eigenValue) / (2 * M_PI);
-            if (modesFreqs[i] < modesMinFreq) {
+            if (modesFreqs[i] < args.modesMinFreq) {
                 lowestModeIndex++;
             }
-            if (modesFreqs[i] < modesMaxFreq &&
-                (highestModeIndex - lowestModeIndex) < targetNModes &&
+            if (modesFreqs[i] < args.modesMaxFreq &&
+                (highestModeIndex - lowestModeIndex) < args.targetNModes &&
                 highestModeIndex < numVertices) {
                 highestModeIndex++;
             }
@@ -143,12 +122,12 @@ string m2f::mesh2faust(
  
         // Adjust number of target modes to modes range.
         int modesRange = highestModeIndex - lowestModeIndex;
-        if (modesRange < targetNModes) targetNModes = modesRange;
+        if (modesRange < args.targetNModes) args.targetNModes = modesRange;
  
         // Diplay mode frequencies.
-        if (showFreqs) {
-            cout << "Mode frequencies between " << modesMinFreq << "Hz and " << modesMaxFreq << "Hz:\n";
-            for (int i = 0; i < targetNModes; i++) {
+        if (args.showFreqs) {
+            cout << "Mode frequencies between " << args.modesMinFreq << "Hz and " << args.modesMaxFreq << "Hz:\n";
+            for (int i = 0; i < args.targetNModes; i++) {
                 cout << modesFreqs[i + lowestModeIndex] << "\n";
             }
             cout << "\n";
@@ -158,20 +137,20 @@ string m2f::mesh2faust(
         // COMPUTE GAINS
         /////////////////////////////////////
  
-        if (debugMode) {
-            cout << "Computing modes gains for modes between " << modesMinFreq
-                << "Hz and " << modesMaxFreq << "Hz\n\n";
+        if (args.debugMode) {
+            cout << "Computing modes gains for modes between " << args.modesMinFreq
+                << "Hz and " << args.modesMaxFreq << "Hz\n\n";
         }
-        if (exPos.size() > 0) {
+        if (args.exPos.size() > 0) {
             // If exPos list specified, retrieve number of ex positions.
-            nExPos = exPos.size();
-        } else if (nExPos == -1) {
+            args.nExPos = args.exPos.size();
+        } else if (args.nExPos == -1) {
             // If nExPos and exPos not specified, use max number of excitation positions.
-            nExPos = numVertices;
+            args.nExPos = numVertices;
         }
-        nExPos = std::min(nExPos, numVertices); // Limit nExPos to number of vertices.
+        args.nExPos = std::min(args.nExPos, numVertices); // Limit nExPos to number of vertices.
 
-        int exPosStep = numVertices / nExPos; // Number of vertices to skip between each exPos.
+        int exPosStep = numVertices / args.nExPos; // Number of vertices to skip between each exPos.
 
         /////////////////////////////////////
         // GENERATE FAUST DSP
@@ -181,46 +160,46 @@ string m2f::mesh2faust(
 
         stringstream dspStream;
         dspStream << "import(\"stdfaust.lib\");\n\n";
-        if (freqControl) {
-            dspStream << objectName
+        if (args.freqControl) {
+            dspStream << args.modelName
                 << "(freq,exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
                 "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
                 "modesGains(int(exPos),i))) :> /(nModes)\n";
         } else {
-            dspStream << objectName
+            dspStream << args.modelName
                 << "(exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
                 "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
                 "modesGains(int(exPos),i))) :> /(nModes)\n";
         }
         dspStream << "with{\n";
-        dspStream << "nModes = " << targetNModes << ";\n";
-        if (nExPos > 1) dspStream << "nExPos = " << nExPos << ";\n";
+        dspStream << "nModes = " << args.targetNModes << ";\n";
+        if (args.nExPos > 1) dspStream << "nExPos = " << args.nExPos << ";\n";
 
-        if (freqControl) {
+        if (args.freqControl) {
             dspStream << "modesFreqRatios(n) = ba.take(n+1,(";
-            for (int i = 0; i < targetNModes; i++) {
+            for (int i = 0; i < args.targetNModes; i++) {
                 dspStream << modesFreqs[lowestModeIndex + i] / modesFreqs[lowestModeIndex];
-                if (i < (targetNModes - 1)) dspStream << ",";
+                if (i < (args.targetNModes - 1)) dspStream << ",";
             }
             dspStream << "));\n";
             dspStream << "modesFreqs(i) = freq*modesFreqRatios(i);\n";
         } else {
             dspStream << "modesFreqs(n) = ba.take(n+1,(";
-            for (int i = 0; i < targetNModes; i++) {
+            for (int i = 0; i < args.targetNModes; i++) {
                 dspStream << modesFreqs[lowestModeIndex + i];
-                if (i < (targetNModes - 1)) dspStream << ",";
+                if (i < (args.targetNModes - 1)) dspStream << ",";
             }
             dspStream << "));\n";
         }
         dspStream << "modesGains(p,n) = waveform{";
-        float unnormalizedGains[targetNModes]; // Used to store gains for each exitation position.
-        for (int i = 0; i < nExPos; i++) { // i = excitation position
+        float unnormalizedGains[args.targetNModes]; // Used to store gains for each exitation position.
+        for (int i = 0; i < args.nExPos; i++) { // i = excitation position
             float maxGain = 0; // for normalization
-            for (int j = 0; j < targetNModes; j++) { // j = current mode
+            for (int j = 0; j < args.targetNModes; j++) { // j = current mode
                 // If exPos was defined, then retrieve data. Otherwise, choose linear ex pos.
                 int evIndex = j + lowestModeIndex;
-                evIndex = femNModes - 1 - evIndex; // Eigenvectors are ordered largest-first.
-                int evValueIndex = vertexDim * (i < exPos.size() ? exPos[i] : (i * exPosStep));
+                evIndex = args.femNModes - 1 - evIndex; // Eigenvectors are ordered largest-first.
+                int evValueIndex = vertexDim * (i < args.exPos.size() ? args.exPos[i] : (i * exPosStep));
                 float unnormalizedGain = 0;
                 for (int k = 0; k < vertexDim; k++) {
                     // Eigen is column-major by default.
@@ -229,13 +208,13 @@ string m2f::mesh2faust(
                 unnormalizedGains[j] = sqrt(unnormalizedGain);
                 if (unnormalizedGains[j] > maxGain) maxGain = unnormalizedGains[j];
             }
-            for (int j = 0; j < targetNModes; j++) {
+            for (int j = 0; j < args.targetNModes; j++) {
                 dspStream << unnormalizedGains[j] / maxGain;
-                if (j < (targetNModes - 1)) dspStream << ",";
+                if (j < (args.targetNModes - 1)) dspStream << ",";
             }
-            if (i < (nExPos - 1)) dspStream << ",";
+            if (i < (args.nExPos - 1)) dspStream << ",";
         }
-        if (freqControl) {
+        if (args.freqControl) {
             dspStream << "},int(p*nModes+n) : rdtable : select2(modesFreqs(n)<(ma.SR/2-1),0);\n"
                 << "modesT60s(i) = t60*pow(1-(modesFreqRatios(i)/"
                 << modesFreqs[highestModeIndex] / modesFreqs[lowestModeIndex]
@@ -254,28 +233,18 @@ string m2f::mesh2faust(
     return dsp;
 }
 
-string m2f::mesh2faust(
-    const char *modelFileName,
-    string objectName,
-    m2f::MaterialProperties materialProperties,
-    bool freqControl,
-    float modesMinFreq, float modesMaxFreq,
-    int targetNModes, int femNModes,
-    vector<int> exPos,
-    int nExPos,
-    bool showFreqs, bool debugMode
-)
+string m2f::mesh2faust(const char *objectFileName, MaterialProperties materialProperties, CommonArguments args)
 {
     /////////////////////////////////////
     // RETRIEVE MODEL
     /////////////////////////////////////
 
     // Load mesh file.
-    if (debugMode) cout << "Loading the mesh file\n";
-    ObjMesh *objMesh = new ObjMesh(modelFileName);
+    if (args.debugMode) cout << "Loading the mesh file\n";
+    ObjMesh *objMesh = new ObjMesh(objectFileName);
  
     // Generate 3D volumetric mesh from obj mesh.
-    if (debugMode) {
+    if (args.debugMode) {
         cout << "\nGenerating a 3D mesh with the following properties\n";
         cout << "Young's modulus: " << materialProperties.youngModulus << "\n";
         cout << "Poisson's ratio: " << materialProperties.poissonRatio << "\n";
@@ -287,8 +256,7 @@ string m2f::mesh2faust(
     // Set mesh material properties.
     volumetricMesh->setSingleMaterial(materialProperties.youngModulus, materialProperties.poissonRatio, materialProperties.density);
 
-    string dsp = mesh2faust(volumetricMesh, objectName, freqControl, modesMinFreq, modesMaxFreq,
-        targetNModes, femNModes, exPos, nExPos, showFreqs, debugMode);
+    string dsp = mesh2faust(volumetricMesh, args);
 
     delete volumetricMesh;
     volumetricMesh = nullptr;

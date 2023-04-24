@@ -44,8 +44,8 @@ void printHelp()
 
 int main(int argc, char **argv)
 {
-    const char *modelFileName = "";
-    std::string objectName = "modalModel";
+    const char *objectFileName = "";
+    std::string modelName = "modalModel";
     m2f::MaterialProperties materialProperties{};
     bool freqControl = false;
     float modesMinFreq = 20, modesMaxFreq = 10000;
@@ -62,8 +62,8 @@ int main(int argc, char **argv)
         while (currentArg <= (argc - 1)) {
             if (strcmp(argv[currentArg], "--infile") == 0) {
                 currentArg++;
-                modelFileName = argv[currentArg];
-                if (strcmp(modelFileName, "") == 0) {
+                objectFileName = argv[currentArg];
+                if (strcmp(objectFileName, "") == 0) {
                     cout << "No .obj file provided!\n";
                     return 0;
                 }
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
                     cout << "--name: expecting an argument\n";
                     return 0;
                 }
-                objectName = argv[currentArg];
+                modelName = argv[currentArg];
             } else if (strcmp(argv[currentArg], "--minmode") == 0) {
                 currentArg++;
                 if (currentArg > (argc - 1)) {
@@ -178,21 +178,23 @@ int main(int argc, char **argv)
     }
 
     string dsp = m2f::mesh2faust(
-        modelFileName,
-        objectName,
-        materialProperties,
-        freqControl,
-        modesMinFreq,
-        modesMaxFreq,
-        targetNModes,
-        femNModes,
-        exPos,
-        nExPos,
-        showFreqs,
-        debugMode
+        objectFileName,
+        {
+            modelName,
+            materialProperties,
+            freqControl,
+            modesMinFreq,
+            modesMaxFreq,
+            targetNModes,
+            femNModes,
+            exPos,
+            nExPos,
+            showFreqs,
+            debugMode
+        }
     );
 
-    string faustFileName = objectName + ".lib";
+    string faustFileName = modelName + ".lib";
     ofstream faustFile(faustFileName.c_str());
     faustFile << dsp;
     faustFile.close();
