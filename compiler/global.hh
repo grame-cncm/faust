@@ -219,6 +219,8 @@ struct global {
     bool gLstDependenciesSwitch;  // mdoc listing management
     bool gLstMdocTagsSwitch;      // mdoc listing management
     bool gLstDistributedSwitch;   // mdoc listing management
+    
+    bool gAutoDifferentiate;
 
     // Automatic documentation
     std::string         gDocLang;

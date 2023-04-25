@@ -220,7 +220,6 @@ class SignalUIFreezePromotion final : public SignalIdentity {
 class SignalFTZPromotion final : public SignalIdentity {
     
     private:
-    
         Tree selfRec(Tree t);
           
     public:
@@ -232,6 +231,31 @@ class SignalFTZPromotion final : public SignalIdentity {
     
 };
 
+//-------------SignalAutoDifferentiate---------------
+// Auto Differentiate a signal for a given variable
+//--------------------------------------------------
+class SignalAutoDifferentiate final : public SignalIdentity {
+
+    private:
+        Tree fVar;
+    
+        Tree sigZero(int type) { return (type == kInt) ? sigInt(0) : sigReal(0.0); }
+        Tree sigOne(int type) { return (type == kInt) ? sigInt(1) : sigReal(1.0); }
+        Tree diff(Tree x, int ty)
+        {
+            return (x == fVar) ? sigOne(ty) : sigZero(ty);
+        }
+        Tree transformation(Tree sig);
+        
+    public:
+        // The variable the differentiation is done with
+        SignalAutoDifferentiate(Tree var):fVar(var)
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+};
+
 // Public API
 Tree signalPromote(Tree sig, bool trace = false);
 Tree signalBool2IntPromote(Tree sig);
@@ -241,4 +265,5 @@ Tree signalIntCastPromote(Tree sig);
 Tree signalUIPromote(Tree sig);
 Tree signalUIFreezePromote(Tree sig);
 Tree signalFTZPromotion(Tree sig);
+Tree signalAutoDifferentiate(Tree sig);
 #endif

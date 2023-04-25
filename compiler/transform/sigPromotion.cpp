@@ -30,6 +30,7 @@
 #include "sigtyperules.hh"
 #include "xtended.hh"
 #include "floats.hh"
+#include "description.hh"
 
 using namespace std;
 
@@ -652,6 +653,62 @@ Tree SignalFTZPromotion::selfRec(Tree l)
     return l;
 }
 
+Tree SignalAutoDifferentiate::transformation(Tree sig)
+{
+    int  op;
+    int  i;
+    int64_t i64;
+    double r;
+    Tree sel, x, y, label, init, min, max, step;
+    
+    // Extended
+    xtended* p = (xtended*)getUserData(sig);
+    if (p) {
+        // chain rule for one arg function: f(g(x))' = f'(g(x)) * g'(x)
+        return sigMul(p->diff(sig->branches()), self(sig->branch(0)));
+    }
+    
+    else if (isSigInt(sig, &i)) {
+        return sigInt(0);
+    } else if (isSigInt64(sig, &i64)) {
+        return sigInt(0);
+    } else if (isSigReal(sig, &r)) {
+        return sigReal(0.0);
+    }
+     
+    // Binary operations
+    // kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
+    else if (isSigBinOp(sig, &op, x, y)) {
+        
+        switch(op) {
+            case kMul:
+                // (f + g)' = f' + g'
+                return sigAdd(sigMul(self(x), y), sigMul(x, self(y)));
+            case kDiv:
+                // (f * g)' = f' * g + f * g'
+                return sigDiv(sigSub(sigMul(self(x), y), sigMul(x, self(y))),
+                              sigMul(y, y));
+            default:
+                // TO FINISH
+                return sigBinOp(op, self(x), self(y));
+        }
+        
+    } else if (isSigButton(sig, label)
+               || isSigCheckbox(sig, label)
+               || isSigVSlider(sig, label, init, min, max, step)
+               || isSigHSlider(sig, label, init, min, max, step)
+               || isSigNumEntry(sig, label, init, min, max, step)) {
+        
+        return diff(sig, getCertifiedSigType(sig)->nature());
+    }
+    
+    else {
+        // Other cases => identity transformation
+        return SignalIdentity::transformation(sig);
+    }
+    
+}
+
 // Public API
 Tree signalPromote(Tree sig, bool trace)
 {
@@ -724,4 +781,70 @@ Tree signalFTZPromotion(Tree sig)
     
     SignalFTZPromotion SP;
     return SP.mapself(sig);
+}
+
+Tree signalAutoDifferentiate(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+    
+    // Collect input differentiable variables
+    struct DiffVarCollector : public SignalVisitor {
+        
+        siglist inputs;
+        
+        DiffVarCollector(Tree L)
+        {
+            while (!isNil(L)) {
+                self(hd(L));
+                L = tl(L);
+            }
+        }
+        
+        void visit(Tree sig)
+        {
+            Tree label, init, min, max, step;
+        
+            if (isSigButton(sig, label)
+                || isSigCheckbox(sig, label)
+                || isSigVSlider(sig, label, init, min, max, step)
+                || isSigHSlider(sig, label, init, min, max, step)
+                || isSigNumEntry(sig, label, init, min, max, step)) {
+                
+                string simplifiedLabel;
+                map<string, set<string> > metadata;
+                extractMetadata(tree2str(hd(label)), simplifiedLabel, metadata);
+                
+                // Look for [diff:1] or [diff:on]
+                for (const auto& i : metadata) {
+                    if (i.first == "diff") {
+                        const set<string>& values = i.second;
+                        for (const auto& j : values) {
+                            if (j == "1" || j == "on") {
+                                inputs.push_back(sig);
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else {
+                SignalVisitor::visit(sig);
+            }
+        }
+    };
+    
+    // Collect input differentiable variables
+    DiffVarCollector collector(sig);
+   
+    // Compute differentiated tree for each variable and collect the result
+    if (collector.inputs.size() > 0) {
+        siglist outputs;
+        for (const auto& var : collector.inputs) {
+            SignalAutoDifferentiate SP(var);
+            outputs.push_back(SP.mapself(sig));
+        }
+        return hd(listConvert(outputs));
+    } else {
+        return sig;
+    }
 }

@@ -82,6 +82,12 @@ static Tree simplifyToNormalFormAux(Tree LS)
         endTiming("L1 typeAnnotation");
     }
     
+    // Auto diffferentiation
+    if (gGlobal->gAutoDifferentiate) {
+        L1 = signalAutoDifferentiate(L1);
+        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
+    }
+    
     // Needed before 'simplify' (see sigPromotion.hh)
     startTiming("Cast and Promotion");
     Tree L2 = signalPromote(L1);

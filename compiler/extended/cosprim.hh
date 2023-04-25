@@ -90,4 +90,11 @@ class CosPrim : public xtended {
 
         return subst("\\cos\\left($0\\right)", args[0]);
     }
+    
+    virtual Tree diff(const std::vector<Tree>& args)
+    {
+        // cos(x)' = -sin(x)
+        return sigMul(sigReal(-1.0), sigSin(args[0]));
+    }
+    
 };
