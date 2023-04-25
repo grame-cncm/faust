@@ -75,9 +75,12 @@ string m2f::mesh2faust(
     int vertexDim,
     CommonArguments args
 ) {
+    int femNModes = std::min(args.femNModes, numVertices * vertexDim - 1);
+    int targetNModes = std::min(args.targetNModes, femNModes);
+
     if (args.debugMode) {
         cout << "\nStarting the eigen solver\n";
-        cout << args.femNModes << " modes will be computed for the FEM analysis\n\n";
+        cout << femNModes << " modes will be computed for the FEM analysis\n\n";
     }
 
     using OpType = Spectra::SymShiftInvert<double, Eigen::Sparse, Eigen::Sparse>;
@@ -85,10 +88,10 @@ string m2f::mesh2faust(
 
     OpType op(K, M);
     BOpType Bop(M);
-    int convergenceRatio = max(2*args.femNModes+1, 20);
+    int convergenceRatio = min(max(2*femNModes+1, 20), numVertices * vertexDim);
     double sigma = -1.0;
     Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert>
-        eigs(op, Bop, args.femNModes, convergenceRatio, sigma);
+        eigs(op, Bop, femNModes, convergenceRatio, sigma);
     eigs.init();
     eigs.compute(Spectra::SortRule::LargestMagn);
 
@@ -104,17 +107,17 @@ string m2f::mesh2faust(
  
         if (args.debugMode) cout << "Computing modes frequencies\n\n";
 
-        float modesFreqs[args.femNModes];
+        float modesFreqs[femNModes];
         int lowestModeIndex = 0;
         int highestModeIndex = 0;
-        for (int i = 0; i < args.femNModes; i++) {
-            double eigenValue = eigenValues[args.femNModes - 1 - i]; // Eigenvalues are ordered largest-first.
+        for (int i = 0; i < femNModes; i++) {
+            double eigenValue = eigenValues[femNModes - 1 - i]; // Eigenvalues are ordered largest-first.
             modesFreqs[i] = eigenValue <= 0 ? 0.0 : sqrt((float)eigenValue) / (2 * M_PI);
             if (modesFreqs[i] < args.modesMinFreq) {
                 lowestModeIndex++;
             }
             if (modesFreqs[i] < args.modesMaxFreq &&
-                (highestModeIndex - lowestModeIndex) < args.targetNModes &&
+                (highestModeIndex - lowestModeIndex) < targetNModes &&
                 highestModeIndex < numVertices) {
                 highestModeIndex++;
             }
@@ -122,12 +125,12 @@ string m2f::mesh2faust(
  
         // Adjust number of target modes to modes range.
         int modesRange = highestModeIndex - lowestModeIndex;
-        if (modesRange < args.targetNModes) args.targetNModes = modesRange;
+        if (modesRange < targetNModes) targetNModes = modesRange;
  
         // Diplay mode frequencies.
         if (args.showFreqs) {
             cout << "Mode frequencies between " << args.modesMinFreq << "Hz and " << args.modesMaxFreq << "Hz:\n";
-            for (int i = 0; i < args.targetNModes; i++) {
+            for (int i = 0; i < targetNModes; i++) {
                 cout << modesFreqs[i + lowestModeIndex] << "\n";
             }
             cout << "\n";
@@ -172,33 +175,33 @@ string m2f::mesh2faust(
                 "modesGains(int(exPos),i))) :> /(nModes)\n";
         }
         dspStream << "with{\n";
-        dspStream << "nModes = " << args.targetNModes << ";\n";
+        dspStream << "nModes = " << targetNModes << ";\n";
         if (args.nExPos > 1) dspStream << "nExPos = " << args.nExPos << ";\n";
 
         if (args.freqControl) {
             dspStream << "modesFreqRatios(n) = ba.take(n+1,(";
-            for (int i = 0; i < args.targetNModes; i++) {
+            for (int i = 0; i < targetNModes; i++) {
                 dspStream << modesFreqs[lowestModeIndex + i] / modesFreqs[lowestModeIndex];
-                if (i < (args.targetNModes - 1)) dspStream << ",";
+                if (i < (targetNModes - 1)) dspStream << ",";
             }
             dspStream << "));\n";
             dspStream << "modesFreqs(i) = freq*modesFreqRatios(i);\n";
         } else {
             dspStream << "modesFreqs(n) = ba.take(n+1,(";
-            for (int i = 0; i < args.targetNModes; i++) {
+            for (int i = 0; i < targetNModes; i++) {
                 dspStream << modesFreqs[lowestModeIndex + i];
-                if (i < (args.targetNModes - 1)) dspStream << ",";
+                if (i < (targetNModes - 1)) dspStream << ",";
             }
             dspStream << "));\n";
         }
         dspStream << "modesGains(p,n) = waveform{";
-        float unnormalizedGains[args.targetNModes]; // Used to store gains for each exitation position.
+        float unnormalizedGains[targetNModes]; // Used to store gains for each exitation position.
         for (int i = 0; i < args.nExPos; i++) { // i = excitation position
             float maxGain = 0; // for normalization
-            for (int j = 0; j < args.targetNModes; j++) { // j = current mode
+            for (int j = 0; j < targetNModes; j++) { // j = current mode
                 // If exPos was defined, then retrieve data. Otherwise, choose linear ex pos.
                 int evIndex = j + lowestModeIndex;
-                evIndex = args.femNModes - 1 - evIndex; // Eigenvectors are ordered largest-first.
+                evIndex = femNModes - 1 - evIndex; // Eigenvectors are ordered largest-first.
                 int evValueIndex = vertexDim * (i < args.exPos.size() ? args.exPos[i] : (i * exPosStep));
                 float unnormalizedGain = 0;
                 for (int k = 0; k < vertexDim; k++) {
@@ -208,9 +211,9 @@ string m2f::mesh2faust(
                 unnormalizedGains[j] = sqrt(unnormalizedGain);
                 if (unnormalizedGains[j] > maxGain) maxGain = unnormalizedGains[j];
             }
-            for (int j = 0; j < args.targetNModes; j++) {
+            for (int j = 0; j < targetNModes; j++) {
                 dspStream << unnormalizedGains[j] / maxGain;
-                if (j < (args.targetNModes - 1)) dspStream << ",";
+                if (j < (targetNModes - 1)) dspStream << ",";
             }
             if (i < (args.nExPos - 1)) dspStream << ",";
         }
