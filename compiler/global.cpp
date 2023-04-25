@@ -481,6 +481,8 @@ void global::reset()
     gLstDependenciesSwitch = true;  // mdoc listing management.
     gLstMdocTagsSwitch     = true;  // mdoc listing management.
     gLstDistributedSwitch  = true;  // mdoc listing management.
+    
+    gAutoDifferentiate = false;
 
     gLatexDocSwitch = true;  // Only LaTeX outformat is handled for the moment.
 
@@ -1448,6 +1450,10 @@ bool global::processCmdline(int argc, const char* argv[])
             
         } else if (isCmd(argv[i], "-me", "--math-exceptions")) {
             gMathExceptions = true;
+            i += 1;
+    
+        } else if (isCmd(argv[i], "-diff", "--auto-differentiate")) {
+            gAutoDifferentiate = true;
             i += 1;
             
         } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine") ||

@@ -92,4 +92,11 @@ class SinPrim : public xtended {
 
         return subst("\\sin\\left($0\\right)", args[0]);
     }
+    
+    virtual Tree diff(const std::vector<Tree>& args)
+    {
+        // sin(x)' = cos(x)
+        return sigCos(args[0]);
+    }
+    
 };

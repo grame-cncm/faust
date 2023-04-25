@@ -75,6 +75,11 @@ class xtended : public virtual Garbageable {
     virtual Tree   computeSigOutput(const std::vector<Tree>& args)                                        = 0;
     virtual bool   needCache()                                                                           = 0;
 
+    virtual Tree diff(const std::vector<Tree>& args)
+    {
+        return nullptr;
+    }
+    
     virtual bool isSpecialInfix()
     {
         return false;

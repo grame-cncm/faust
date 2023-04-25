@@ -92,4 +92,10 @@ class SqrtPrim : public xtended {
 
         return subst("\\sqrt{$0}", args[0]);
     }
+    
+    virtual Tree diff(const std::vector<Tree>& args)
+    {
+        // (x^1/2)' =  1/2 * x^-1/2
+        return sigMul(sigReal(0.5), sigPow(args[0], sigReal(-0.5)));
+    }
 };
