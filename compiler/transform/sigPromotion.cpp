@@ -52,9 +52,9 @@ SignalTypePrinter::SignalTypePrinter(Tree L)
 
 void SignalTypePrinter::visit(Tree sig)
 {
-    stringstream type;
-    type << "Type = " << getCertifiedSigType(sig) << endl;
-    fPrinted.push_back(type.str());
+    stringstream res;
+    res << "Sig = " << ppsig(sig, MAX_ERROR_SIZE) << ", "<< getCertifiedSigType(sig) << endl;
+    fPrinted.push_back(res.str());
     
     // Default case and recursion
     SignalVisitor::visit(sig);
