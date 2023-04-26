@@ -118,10 +118,10 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         }
     }
 
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
-    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+    generateUserInterfaceTree(fUITree.prepareUserInterfaceTree(), true);
+    generateMacroInterfaceTree("", fUITree.prepareUserInterfaceTree());
     if (fDescription) {
-        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+        fDescription->ui(fUITree.prepareUserInterfaceTree());
     }
 
     // Apply FIR to FIR transformations

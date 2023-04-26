@@ -93,28 +93,6 @@ Compiler::~Compiler()
                             user interface elements
 *****************************************************************************/
 
-/**
- * Add a widget with a certain path to the user interface tree
- */
-void Compiler::addUIWidget(Tree path, Tree widget)
-{
-    fUIRoot = putSubFolder(fUIRoot, path, widget);
-}
-
-/**
- * Remove fake root folder if not needed (that is if the UI
- * is completely enclosed in one folder)
- */
-Tree Compiler::prepareUserInterfaceTree(Tree t)
-{
-    Tree root, elems;
-    if (isUiFolder(t, root, elems) && isList(elems) && isNil(tl(elems))) {
-        Tree folder = right(hd(elems));
-        return (isUiFolder(folder)) ? folder : t;
-    }
-    return t;
-}
-
 //================================= some string processing utilities =================================
 
 /**

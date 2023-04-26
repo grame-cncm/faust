@@ -250,3 +250,25 @@ string checkNullLabel(Tree t, const string& label, bool bargraph)
 {
     return (label == "") ? (bargraph ? ptrToHex(t) : string("0x00")) : label;
 }
+
+/**
+ * Add a widget with a certain path to the user interface tree
+ */
+void UITree::addUIWidget(Tree path, Tree widget)
+{
+    fUIRoot = putSubFolder(fUIRoot, path, widget);
+}
+
+/**
+ * Remove fake root folder if not needed (that is if the UI
+ * is completely enclosed in one folder)
+ */
+Tree UITree::prepareUserInterfaceTree()
+{
+    Tree root, elems;
+    if (isUiFolder(fUIRoot, root, elems) && isList(elems) && isNil(tl(elems))) {
+        Tree folder = right(hd(elems));
+        return (isUiFolder(folder)) ? folder : fUIRoot;
+    }
+    return fUIRoot;
+}
