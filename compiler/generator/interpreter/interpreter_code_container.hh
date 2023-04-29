@@ -98,7 +98,7 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         std::string varname = gGlobal->getFreshID("fSoundfile");
         std::string SFcache = varname + "ca";
 
-        addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+        fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
         pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
         return InstBuilder::genLoadStructVar(varname);
     }

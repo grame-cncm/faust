@@ -112,12 +112,6 @@ static Tree simplification(Tree sig)
         else if (opnum == kSub && isZero(n1))
             return sigBinOp(kMul, sigInt(-1), t2);
         
-        else if ((opnum == kAND || opnum == kOR) && t1 == t2)
-            return t1;
-        
-        else if (opnum == kXOR && t1 == t2)
-            return sigInt(0);
-    
         else if (op->isLeftNeutral(n1))
             return t2;
 
@@ -129,9 +123,14 @@ static Tree simplification(Tree sig)
 
         else if (op->isRightAbsorbing(n2))
             return t2;
-
-        else
-            return normalizeAddTerm(sig);
+        
+        else if (t1 == t2) {
+            if ((opnum == kAND) || (opnum == kOR)) return t1;
+            if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) return sigInt(1);
+            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) || (opnum == kXOR)) return sigInt(0);
+        }
+        
+        return normalizeAddTerm(sig);
 
     } else if (isSigDelay1(sig, t1)) {
         return normalizeDelay1Term(t1);
