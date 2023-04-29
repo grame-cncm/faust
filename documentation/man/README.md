@@ -1,4 +1,4 @@
-% man(1) Version 2.59.2 (18-April-2023) | Faust man page
+% man(1) Version 2.59.3 (29-April-2023) | Faust man page
 
 NAME
 ====
@@ -30,8 +30,6 @@ Input options:
   **-I** \<dir>  **--import-dir** \<dir>            add the directory \<dir> to the libraries search path.
 
   **-L** \<file> **--library** \<file>              link with the LLVM module \<file>.
-
-  **-t** \<sec>  **--timeout** \<sec>               abort compilation after \<sec> seconds (default 120).
 
 
 Output options:
@@ -152,9 +150,9 @@ Code generation options:
 
   **-vhdl**-type 0|1 **--vhdl-type** 0|1          sample format 0 = sfixed (default), 1 = float.
 
-  **-vhdl**-msb \<n>  **--vhdl-msb** \<n>           MSB number of bits.
+  **-vhdl**-msb \<n>  **--vhdl-msb** \<n>           Most Significant Bit (MSB) position.
 
-  **-vhdl**-lsb \<n>  **--vhdl-lsb** \<n>           LSB number of bits.
+  **-vhdl**-lsb \<n>  **--vhdl-lsb** \<n>           Less Significant Bit (LSB) position.
 
   **-fpga**-mem \<n>  **--fpga-mem** \<n>           FPGA block ram max size, used in -os2/-os3 mode.
 
@@ -217,6 +215,8 @@ Debug options:
   **-sts**        **--strict-select**             generate strict code for 'selectX' even for stateless branches (both are computed).
 
   **-wall**       **--warning-all**               print all warnings.
+
+  **-t** \<sec>    **--timeout** \<sec>             abort compilation after \<sec> seconds (default 120).
 
 
 Information options:

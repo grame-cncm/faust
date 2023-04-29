@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "man" "1" "" "Version 2.59.2 (18-April-2023)" "Faust man page"
+.TH "man" "1" "" "Version 2.59.3 (29-April-2023)" "Faust man page"
 .hy
 .SH NAME
 .PP
@@ -45,9 +45,6 @@ directory <dir> to the architecture search path.
 .PP
 \f[B]-L\f[R] <file> \f[B]\[en]library\f[R] <file> link with the LLVM
 module <file>.
-.PP
-\f[B]-t\f[R] <sec> \f[B]\[en]timeout\f[R] <sec> abort compilation after
-<sec> seconds (default 120).
 .SS Output options:
 .PP
 \f[B]-o\f[R] <file> the output file.
@@ -219,9 +216,11 @@ code in a namespace <name>.
 \f[B]-vhdl\f[R]-type 0|1 \f[B]\[en]vhdl-type\f[R] 0|1 sample format 0 =
 sfixed (default), 1 = float.
 .PP
-\f[B]-vhdl\f[R]-msb <n> \f[B]\[en]vhdl-msb\f[R] <n> MSB number of bits.
+\f[B]-vhdl\f[R]-msb <n> \f[B]\[en]vhdl-msb\f[R] <n> Most Significant Bit
+(MSB) position.
 .PP
-\f[B]-vhdl\f[R]-lsb <n> \f[B]\[en]vhdl-lsb\f[R] <n> LSB number of bits.
+\f[B]-vhdl\f[R]-lsb <n> \f[B]\[en]vhdl-lsb\f[R] <n> Less Significant Bit
+(LSB) position.
 .PP
 \f[B]-fpga\f[R]-mem <n> \f[B]\[en]fpga-mem\f[R] <n> FPGA block ram max
 size, used in -os2/-os3 mode.
@@ -297,6 +296,9 @@ domain.
 `selectX' even for stateless branches (both are computed).
 .PP
 \f[B]-wall\f[R] \f[B]\[en]warning-all\f[R] print all warnings.
+.PP
+\f[B]-t\f[R] <sec> \f[B]\[en]timeout\f[R] <sec> abort compilation after
+<sec> seconds (default 120).
 .SS Information options:
 .PP
 \f[B]-h\f[R] \f[B]\[en]help\f[R] print this help message.
