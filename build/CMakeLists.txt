@@ -56,6 +56,7 @@ file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh  ${SRCDIR}/generator/fir/*.hh)
 set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/draw
 	${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended
+	${SRCDIR}/FaustAlgebra
 	${SRCDIR}/generator
 	${SRCDIR}/generator/dlang
 	${SRCDIR}/generator/csharp

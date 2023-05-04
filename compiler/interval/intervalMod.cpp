@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +25,7 @@ namespace itv {
 // modulo function on intervals
 // (see https://stackoverflow.com/questions/31057473/calculating-the-modulo-of-two-intervals)
 
-interval interval_algebra::Mod(const interval& x, double m) const
+interval interval_algebra::Mod(const interval& x, double m)
 {
     if (x.isEmpty() || (m == 0)) {
         return {};
@@ -49,7 +49,7 @@ interval interval_algebra::Mod(const interval& x, double m) const
     return {0, nextafter(fabs(m), 0.0)};
 }
 
-interval interval_algebra::Mod(const interval& x, const interval& y) const
+interval interval_algebra::Mod(const interval& x, const interval& y)
 {
     if (x.isEmpty() || y.isEmpty()) {
         return {};
@@ -93,7 +93,7 @@ interval interval_algebra::Mod(const interval& x, const interval& y) const
     return {0, y.hi() - 1};
 }
 
-void interval_algebra::testMod() const
+void interval_algebra::testMod()
 {
     check("test algebra Mod", Mod(interval(-100, 100), 1.0), interval(nextafter(-1.0, 0.0), nextafter(1.0, 0.0)));
     check("test algebra Mod", Mod(interval(0, 100), 2), interval(0, nextafter(2.0, 0)));
