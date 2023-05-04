@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,22 +24,24 @@
 namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Tanh
-// interval Tanh(const interval& x) const;
-// void testTanh() const;
+// interval Tanh(const interval& x);
+// void testTanh();
 
-interval interval_algebra::Tanh(const interval& x) const
+interval interval_algebra::Tanh(const interval& x)
 {
-    if (x.isEmpty()) return {};
+    if (x.isEmpty()) {
+        return {};
+    }
 
     // value at which the lowest slope is attained: bound of the interval with the highest absolute value
-    double v = maxValAbs(x);
-    int sign = signMaxValAbs(x); 
+    double v    = maxValAbs(x);
+    int    sign = signMaxValAbs(x);
 
-    int precision = exactPrecisionUnary(tanh, v, sign*pow(2,x.lsb()));
+    int precision = exactPrecisionUnary(tanh, v, sign * pow(2, x.lsb()));
     return {tanh(x.lo()), tanh(x.hi()), precision};
 }
 
-void interval_algebra::testTanh() const
+void interval_algebra::testTanh()
 {
     // analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10), tanh, &interval_algebra::Tanh);
     analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, 0), tanh, &interval_algebra::Tanh);

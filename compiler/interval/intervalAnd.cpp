@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,8 +24,8 @@
 namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval And
-// interval And(const interval& x, const interval& y) const;
-// void testAnd() const;
+// interval And(const interval& x, const interval& y);
+// void testAnd();
 
 //----------------------booleans&bits--------------------------------------
 inline int bitmask(double x)
@@ -88,19 +88,25 @@ interval bmAnd(const interval& x, int mask)
     int w  = hi - lo;
     int p  = mask + 1;
 
-    if (w >= p) return interval{0, double(mask)};
+    if (w >= p) {
+        return interval{0, double(mask)};
+    }
 
     // shit x to be positive
     lo = lo % p;
-    if (lo < 0) lo += p;
+    if (lo < 0) {
+        lo += p;
+    }
     hi = lo + w;
 
-    if (hi < p) return interval{double(lo), double(hi)};
+    if (hi < p) {
+        return interval{double(lo), double(hi)};
+    }
 
     return interval{0, double(mask)};
 }
 /*
-interval interval_algebra::And(const interval& x, const interval& y) const
+interval interval_algebra::And(const interval& x, const interval& y)
 {
     if (x.isEmpty() || y.isEmpty()) return {};
     if (x.isconst()) {
@@ -121,9 +127,11 @@ interval interval_algebra::And(const interval& x, const interval& y) const
 */
 
 // BRUTE FORCE
-interval interval_algebra::And(const interval& x, const interval& y) const
+interval interval_algebra::And(const interval& x, const interval& y)
 {
-    if (x.isEmpty() || y.isEmpty()) return {};
+    if (x.isEmpty() || y.isEmpty()) {
+        return {};
+    }
     int x0 = saturatedIntCast(x.lo());
     int x1 = saturatedIntCast(x.hi());
     int y0 = saturatedIntCast(y.lo());
@@ -131,37 +139,35 @@ interval interval_algebra::And(const interval& x, const interval& y) const
 
     SInterval z = bitwiseSignedAnd({x0, x1}, {y0, y1});
 
-    int precision = std::max(x.lsb(), y.lsb()); // output precision cannot be finer than that of the input intervals
+    int precision = std::max(x.lsb(), y.lsb());  // output precision cannot be finer than that of the input intervals
 
-    // however, if one of the intervals is reduced to one element, the mask can make it so 
+    // however, if one of the intervals is reduced to one element, the mask can make it so
     int precisionx = 0;
 
-    if (x0 == x1)
-    {
-        int v = x0; // only element of interval x
-        while ((v & 1) == 0 and v != 0) // while we encounter zeroes at the lower end of v
+    if (x0 == x1) {
+        int v = x0;                      // only element of interval x
+        while ((v & 1) == 0 and v != 0)  // while we encounter zeroes at the lower end of v
         {
-            v = v/2;
+            v = v / 2;
             precisionx++;
         }
     }
 
     int precisiony = 0;
 
-    if (y0 == y1)
-    {
-        int v = y0; // only element of interval y
-        while ((v & 1) == 0 and v != 0) // while we encounter zeroes at the lower end of v
+    if (y0 == y1) {
+        int v = y0;                      // only element of interval y
+        while ((v & 1) == 0 and v != 0)  // while we encounter zeroes at the lower end of v
         {
-            v = v/2;
+            v = v / 2;
             precisiony++;
         }
     }
 
-    return {double(z.lo), double(z.hi), std::max(precision, std::max(precisionx, precisiony))}; 
+    return {double(z.lo), double(z.hi), std::max(precision, std::max(precisionx, precisiony))};
 }
 
-void interval_algebra::testAnd() const
+void interval_algebra::testAnd()
 {
     analyzeBinaryMethod(10, 2000, "And", interval(0, 257, 0), singleton(12), myAnd, &interval_algebra::And);
     analyzeBinaryMethod(10, 2000, "And", interval(-1000, -800, 0), singleton(12), myAnd, &interval_algebra::And);
@@ -169,7 +175,7 @@ void interval_algebra::testAnd() const
     analyzeBinaryMethod(10, 2000, "And", interval(-128, 128, 0), singleton(127), myAnd, &interval_algebra::And);
     analyzeBinaryMethod(10, 2000, "And", interval(0, 1000, 0), interval(63, 127), myAnd, &interval_algebra::And);
     analyzeBinaryMethod(10, 2000, "And", interval(-1000, 1000, 0), interval(63, 127), myAnd, &interval_algebra::And);
-    analyzeBinaryMethod(10, 2000, "And", interval(10,20, 0), singleton(0), myAnd, &interval_algebra::And);
+    analyzeBinaryMethod(10, 2000, "And", interval(10, 20, 0), singleton(0), myAnd, &interval_algebra::And);
     analyzeBinaryMethod(10, 2000, "And", singleton(0), interval(15, 25, 0), myAnd, &interval_algebra::And);
     analyzeBinaryMethod(10, 2000, "And", singleton(0), singleton(0), myAnd, &interval_algebra::And);
 }
