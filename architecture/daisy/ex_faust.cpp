@@ -38,13 +38,19 @@
 #include "daisy_patch.h"
 #elif defined POD
 #include "daisy_pod.h"
+#elif defined PATCHSM
+#include "daisy_patch_sm.h"
 #else
 #include "daisy_seed.h"
 #endif
 
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
+#if defined PATCHSM
+#include "faust/gui/DaisyPatchInitControlUI.h"
+#else
 #include "faust/gui/DaisyControlUI.h"
+#endif
 #include "faust/dsp/dsp.h"
 
 #ifdef MIDICTRL
@@ -83,11 +89,17 @@ using namespace std;
 static daisy::DaisyPatch hw;
 #elif defined POD
 static daisy::DaisyPod hw; 
+#elif defined PATCHSM
+static daisy::patch_sm::DaisyPatchSM hw; 
 #else
 static daisy::DaisySeed hw;
 #endif
 
+#if defined PATCHSM
+static DaisyPatchInitControlUI* control_UI = nullptr;
+#else
 static DaisyControlUI* control_UI = nullptr;
+#endif
 static dsp* DSP = nullptr;
 
 #ifdef MIDICTRL
@@ -129,6 +141,10 @@ int main(void)
     // setup controllers
 #if (defined PATCH) || (defined POD)
     control_UI = new DaisyControlUI(&hw.seed, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
+    DSP->buildUserInterface(control_UI);
+    hw.StartAdc();
+#elif defined (PATCHSM)
+    control_UI = new DaisyPatchInitControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
     DSP->buildUserInterface(control_UI);
     hw.StartAdc();
 #else
