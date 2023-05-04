@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,23 +24,24 @@
 namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Lsh
-// interval Lsh(const interval& x, const interval& y) const;
-// void testLsh() const;
+// interval Lsh(const interval& x, const interval& y);
+// void testLsh();
 
 static double lsh(double x, double y)
 {
-    return x*pow(2, y);
+    return x * pow(2, y);
 }
 
-interval interval_algebra::Lsh(const interval& x, const interval& y) const
+interval interval_algebra::Lsh(const interval& x, const interval& y)
 {
     interval j{pow(2, y.lo()), pow(2, y.hi())};
     interval z = Mul(x, j);
 
-    return {z.lo(), z.hi(), x.lsb() + (int)y.lo()}; // lshifts shave some precision off the numbers, at least y.lo() bits
+    return {z.lo(), z.hi(),
+            x.lsb() + (int)y.lo()};  // lshifts shave some precision off the numbers, at least y.lo() bits
 }
 
-void interval_algebra::testLsh() const
+void interval_algebra::testLsh()
 {
     /* check("test algebra Lsh", Lsh(interval(0, 1), interval(4)), interval(0, 16));
     check("test algebra Lsh", Lsh(interval(0.5, 1), interval(-1, 4)), interval(0.25, 16));

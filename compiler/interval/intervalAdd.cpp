@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,14 +30,18 @@ static double add(double x, double y)
     return x + y;
 }
 
-interval interval_algebra::Add(const interval& x, const interval& y) const
+interval interval_algebra::Add(const interval& x, const interval& y)
 {
-    if (x.isEmpty() || y.isEmpty()) return {};
+    if (x.isEmpty() || y.isEmpty()) {
+        return {};
+    }
 
-    return {x.lo() + y.lo(), x.hi() + y.hi(), std::min(x.lsb(), y.lsb())}; // the result of an addition needs to be as precise as the most precise of the operands
+    return {x.lo() + y.lo(), x.hi() + y.hi(),
+            std::min(x.lsb(),
+                     y.lsb())};  // the result of an addition needs to be as precise as the most precise of the operands
 }
 
-void interval_algebra::testAdd() const
+void interval_algebra::testAdd()
 {
     // check("test algebra Add", Add(interval(0, 100), interval(10, 500)), interval(10, 600));
     analyzeBinaryMethod(10, 2000, "add", interval(0, 10, 0), interval(0, 10, 0), add, &interval_algebra::Add);

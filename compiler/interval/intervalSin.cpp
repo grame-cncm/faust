@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,15 +24,15 @@
 namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Sin
-// interval Sin(const interval& x) const;
-// void testSin() const;
+// interval Sin(const interval& x);
+// void testSin();
 
 static double sinPi(double x)
 {
     return sin(x * M_PI);
 }
 
-interval interval_algebra::Sin(const interval& x) const
+interval interval_algebra::Sin(const interval& x)
 {
     int precision = exactPrecisionUnary(sinPi, 0.5, pow(2, x.lsb()));
 
@@ -82,7 +82,7 @@ interval interval_algebra::Sin(const interval& x) const
     return {lo, hi, precision};
 }
 
-void interval_algebra::testSin() const
+void interval_algebra::testSin()
 {
     // analyzeUnaryMethod(5, 20000, "sin", interval(-1, 1, -3), sinPi, &interval_algebra::Sin);
     analyzeUnaryMethod(10, 40000, "sin", interval(0, 2, -3), sinPi, &interval_algebra::Sin);

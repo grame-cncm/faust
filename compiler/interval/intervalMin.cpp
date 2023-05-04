@@ -23,17 +23,17 @@
 namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Min
-// interval Min(const interval& x) const;
-// void testMin() const;
+// interval Min(const interval& x);
+// void testMin();
 
-interval interval_algebra::Min(const interval& x, const interval& y) const
+interval interval_algebra::Min(const interval& x, const interval& y)
 {
     if (x.isEmpty() || y.isEmpty()) return {};
 
     return {std::min(x.lo(), y.lo()), std::min(x.hi(), y.hi()), std::min(x.lsb(), y.lsb())}; // resulting interval should be as precise as the most precise of the operands
 }
 
-void interval_algebra::testMin() const
+void interval_algebra::testMin()
 {
     check("test algebra Min", Min(interval(0, 5), interval(-3, 10)), interval(-3, 5));
     check("test algebra Min", Min(interval(0, 5), interval(-3, -3)), interval(-3, -3));
