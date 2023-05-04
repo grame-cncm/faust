@@ -31,9 +31,10 @@
 
 typedef ap_fixed<32,8,AP_RND_CONV,AP_SAT> fixpoint_t;
 
-// m: MSB, l: LSB (negative coding)
-#define sfx_t(m,l) ap_fixed<(m-l+1),m+1,AP_RND_CONV,AP_SAT>
-#define ufx_t(m,l) ap_ufixed<(m-l),m,AP_RND_CONV,AP_SAT>
+// m: position of the most significant bit of the value, without taking the sign bit into account
+// l: LSB with negative coding
+#define sfx_t(m,l) ap_fixed<((m+1)-l+1),(m+1),AP_RND_CONV,AP_SAT>
+#define ufx_t(m,l) ap_ufixed<((m+1)-l),(m+1),AP_RND_CONV,AP_SAT>
 
 /*
 // fx version
