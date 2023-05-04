@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,17 +23,19 @@
 namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Mem
-// interval Mem(const interval& x) const;
-// void testMem() const;
+// interval Mem(const interval& x);
+// void testMem();
 
-interval interval_algebra::Mem(const interval& x) const
+interval interval_algebra::Mem(const interval& x)
 {
-    if (x.isEmpty()) return {};
+    if (x.isEmpty()) {
+        return {};
+    }
     interval z = reunion(x, interval{0});
     return {z.lo(), z.hi(), x.lsb()};
 }
 
-void interval_algebra::testMem() const
+void interval_algebra::testMem()
 {
     check("test algebra Mem", Mem(interval(5)), interval(0, 5));
     check("test algebra Mem", Mem(interval(-1, 1)), interval(-1, 1));

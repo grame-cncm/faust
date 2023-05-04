@@ -104,18 +104,24 @@ class interval {
     double hi() const { return fHi; }
     double size() const { return fHi - fLo; }
     int    lsb() const { return fLSB; }
+
+    // position of the most significant bit of the value, without taking the sign bit into account
     int    msb() const
     {
-        double range = std::max(1.0, std::max(std::abs(fLo), std::abs(fHi)));
+        // amplitude of the interval
+        // can be < 1.0, in which case the msb will be negative and indicate the number of implicit leading zeroes
+        double range = std::max(std::abs(fLo), std::abs(fHi));
+
         // The sign bit will be added later on
-        return int(std::ceil(std::log2(range)));
+        return int(std::floor(std::log2(range)));
     }
+
     std::string to_string() const
     {
         if (isEmpty()) {
             return "[]";
         } else {
-            return std::to_string('[') + std::to_string(fLo) + ',' + std::to_string(fHi) + ']';
+            return '[' + std::to_string(fLo) + ',' + std::to_string(fHi) + ']';
         }
     }
 };

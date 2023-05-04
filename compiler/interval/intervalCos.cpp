@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,18 +24,18 @@
 namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Cos
-// interval Cos(const interval& x) const;
-// void testCos() const;
+// interval Cos(const interval& x);
+// void testCos();
 
 static double cosPi(double x)
 {
     return cos(x * M_PI);
 }
 
-interval interval_algebra::Cos(const interval& x) const
+interval interval_algebra::Cos(const interval& x)
 {
     int precision = exactPrecisionUnary(cosPi, 0, pow(2, x.lsb()));
- 
+
     if (x.isEmpty()) {
         return {};
     }
@@ -81,7 +81,7 @@ interval interval_algebra::Cos(const interval& x) const
     return {lo, hi, precision};
 }
 
-void interval_algebra::testCos() const
+void interval_algebra::testCos()
 {
     analyzeUnaryMethod(10, 40000, "cos", interval(1, 2, -3), cosPi, &interval_algebra::Cos);
     analyzeUnaryMethod(10, 40000, "cos", interval(1, 2, -5), cosPi, &interval_algebra::Cos);

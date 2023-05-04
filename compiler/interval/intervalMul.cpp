@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,18 +34,21 @@ static double specialmult(double a, double b)
     return ((a == 0.0) || (b == 0.0)) ? 0.0 : a * b;
 }
 
-interval interval_algebra::Mul(const interval& x, const interval& y) const
+interval interval_algebra::Mul(const interval& x, const interval& y)
 {
-    if (x.isEmpty() || y.isEmpty()) return {};
+    if (x.isEmpty() || y.isEmpty()) {
+        return {};
+    }
 
     double a = specialmult(x.lo(), y.lo());
     double b = specialmult(x.lo(), y.hi());
     double c = specialmult(x.hi(), y.lo());
     double d = specialmult(x.hi(), y.hi());
-    return {min4(a, b, c, d), max4(a, b, c, d), x.lsb() + y.lsb()}; // the worst case, we need all the precision digits from both the operands
+    return {min4(a, b, c, d), max4(a, b, c, d),
+            x.lsb() + y.lsb()};  // the worst case, we need all the precision digits from both the operands
 }
 
-void interval_algebra::testMul() const
+void interval_algebra::testMul()
 {
     /* check("test algebra Mul", Mul(interval(-1, 1), interval(0, 1)), interval(-1, 1));
     check("test algebra Mul", Mul(interval(-2, 3), interval(-50, 10)), interval(-150, 100));
@@ -57,8 +60,11 @@ void interval_algebra::testMul() const
     analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -10), interval(0, 10, 0), specialmult, &interval_algebra::Mul);
     analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -15), interval(0, 10, 0), specialmult, &interval_algebra::Mul);
     analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, 0), interval(0, 10, -10), specialmult, &interval_algebra::Mul);
-    analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -5), interval(0, 10, -10), specialmult, &interval_algebra::Mul);
-    analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -10), interval(0, 10, -10), specialmult, &interval_algebra::Mul);
-    analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -15), interval(0, 10, -10), specialmult, &interval_algebra::Mul);
+    analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -5), interval(0, 10, -10), specialmult,
+                        &interval_algebra::Mul);
+    analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -10), interval(0, 10, -10), specialmult,
+                        &interval_algebra::Mul);
+    analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -15), interval(0, 10, -10), specialmult,
+                        &interval_algebra::Mul);
 }
 }  // namespace itv

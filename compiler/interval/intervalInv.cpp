@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,21 +26,22 @@ namespace itv {
 
 static double inv(double x)
 {
-    if (x==0)
+    if (x == 0) {
         return HUGE_VAL;
-    return 1/x;
+    }
+    return 1 / x;
 }
 
-interval interval_algebra::Inv(const interval& x) const
+interval interval_algebra::Inv(const interval& x)
 {
     if (x.isEmpty()) {
         return {};
     }
 
-    int sign = signMaxValAbs(x);
-    double v = maxValAbs(x); // precision is computed at the bound with the highest absolute value
+    int    sign = signMaxValAbs(x);
+    double v    = maxValAbs(x);  // precision is computed at the bound with the highest absolute value
 
-    int precision = exactPrecisionUnary(inv, v, sign*pow(2, x.lsb()));
+    int precision = exactPrecisionUnary(inv, v, sign * pow(2, x.lsb()));
 
     if ((x.hi() < 0) || (x.lo() >= 0)) {
         return {1.0 / x.hi(), 1.0 / x.lo(), precision};
@@ -49,12 +50,12 @@ interval interval_algebra::Inv(const interval& x) const
         return {-HUGE_VAL, 1.0 / x.lo(), precision};
     }
     if (x.lo() == 0 && x.hi() > 0) {
-        return {1/x.hi(), HUGE_VAL, precision};
+        return {1 / x.hi(), HUGE_VAL, precision};
     }
     return {-HUGE_VAL, HUGE_VAL, precision};
 }
 
-void interval_algebra::testInv() const
+void interval_algebra::testInv()
 {
     /* check("test algebra Inv", Inv(interval(-16, -4)), interval(-1. / 4., -1. / 16.));
     check("test algebra Inv", Inv(interval(4, 16)), interval(1.0 / 16, 0.25));
