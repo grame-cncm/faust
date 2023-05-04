@@ -240,7 +240,7 @@ LIBFAUST_API int tree2int(Tree t)
     } else if (isDouble(t->node(), &x)) {
         i = int(x);
     } else {
-        ERROR("ERROR : the parameter must a constant numerical expression : ", t);
+        ERROR("ERROR : the parameter must be an integer constant numerical expression : ", t);
     }
     return i;
 }
@@ -256,7 +256,7 @@ double tree2float(Tree t)
     } else if (isDouble(t->node(), &x)) {
         // nothing to do
     } else {
-        ERROR("ERROR : the parameter must a constant numerical expression : ", t);
+        ERROR("ERROR : the parameter must be a real constant numerical expression : ", t);
     }
     return x;
 }
