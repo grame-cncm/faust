@@ -107,7 +107,7 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in, daisy::AudioHandle
 int main(void)
 {
     // initialize seed hardware and daisysp modules
-#if (!defined PATCH) || (!defined POD)
+#if (!defined PATCH) && (!defined POD)
     hw.Configure();
 #endif
     hw.Init();
