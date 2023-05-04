@@ -35,6 +35,7 @@ echoHelp ()
     option
     option -patch "to compile for 4 ins/outs Patch (knob[1,2,3,4])"
     option -pod "to compile for 2 ins/outs Pod (knob[1,3])"
+    option -patchsm "to compile for the Pod.init eurorack module"
     options -midi
     option "-nvoices <num>"
     option "-sr <num>"
@@ -73,6 +74,8 @@ do
         PATCH=true
     elif [ $p = "-pod" ]; then
         POD=true
+    elif [ $p = "-patchsm" ]; then
+        PATCHSM=true
     # -sr
     elif [ $p = "-sr" ]; then
         shift
@@ -119,6 +122,10 @@ for p in $FILE; do
     # for POD support
     if [ $POD == true ]; then
         echo "#define POD" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+    # for PODSM support
+    if [ $PATCHSM == true ]; then
+        echo "#define PATCHSM" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
 
     # for MIDI
