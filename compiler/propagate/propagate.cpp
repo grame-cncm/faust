@@ -345,12 +345,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxPrim3(box, &p3)) {
         faustassert(lsig.size() == 3);
-        if (p3 == sigReadOnlyTable) {
-            // The size parameter is simplified to a constant
-            return makeList(p3(simplify(lsig[0]), lsig[1], lsig[2]));
-        } else {
-            return makeList(p3(lsig[0], lsig[1], lsig[2]));
-        }
+        return makeList(p3(lsig[0], lsig[1], lsig[2]));
     }
 
     else if (isBoxPrim4(box, &p4)) {
@@ -359,13 +354,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     }
 
     else if (isBoxPrim5(box, &p5)) {
-        faustassert(lsig.size() == 5);
-        if (p5 == sigWriteReadTable) {
-            // The size parameter is simplified to a constant
-            return makeList(p5(simplify(lsig[0]), lsig[1], lsig[2], lsig[3], lsig[4]));
-        } else {
-            return makeList(p5(lsig[0], lsig[1], lsig[2], lsig[3], lsig[4]));
-        }
+        return makeList(p5(lsig[0], lsig[1], lsig[2], lsig[3], lsig[4]));
     }
 
     else if (isBoxFFun(box, ff)) {

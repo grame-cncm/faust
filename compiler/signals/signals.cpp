@@ -38,7 +38,7 @@ LIBFAUST_API Tree sigWriteReadTable(Tree size, Tree init, Tree widx, Tree wsig, 
 {
     /*
      rwtable are parsed as boxPrim5, so do not have a special treatment in eval/propagate. So we do here:
-     - the size argument is supposed to be known at compile time, it will be simplified to a constant in 'realPropagate'
+     - the size argument is supposed to be known at compile time, it will be simplified in 'simplify'
      - rwtable is using a fully filled sigWRTbl signal
      */
     return sigRDTbl(sigWRTbl(size, sigGen(init), widx, wsig), ridx);
@@ -48,7 +48,7 @@ LIBFAUST_API Tree sigReadOnlyTable(Tree size, Tree init, Tree ridx)
 {
     /*
      rtable are parsed as boxPrim3, so do not have a special treatment in eval/propagate. So we do here:
-     - the size argument is supposed to be known at compile time, it will be simplified to a constant in 'realPropagate'
+     - the size argument is supposed to be known at compile time, it will be simplified in 'simplify'
      - rdtable is using a 'degenerated' sigWRTbl signal with NIL 'wi' and 'ws' parameters
      */
     return sigRDTbl(sigWRTbl(size, sigGen(init)), ridx);

@@ -46,18 +46,6 @@ static Tree simplifyToNormalFormAux(Tree LS)
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");
     
-    if (gGlobal->gCheckTable) {
-        // Check and generate safe access to rdtable/rwtable
-        startTiming("Safe access to rdtable/rwtable");
-        L1 = signalTablePromote(L1);
-        endTiming("Safe access to rdtable/rwtable");
-        
-        // Annotate L1 with type information
-        startTiming("L1 typeAnnotation");
-        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
-        endTiming("L1 typeAnnotation");
-    }
-    
     if (gGlobal->gRangeUI) {
         // Generate safe values for range UI items (sliders and nentry)
         startTiming("Safe values for range UI items");
@@ -116,6 +104,19 @@ static Tree simplifyToNormalFormAux(Tree LS)
     startTiming("L4 typeAnnotation");
     typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
     endTiming("L4 typeAnnotation");
+    
+    // Must be done after simplifation so that 'size' signal is properly simplified to a constant
+    if (gGlobal->gCheckTable) {
+        // Check and generate safe access to rdtable/rwtable
+        startTiming("Safe access to rdtable/rwtable");
+        L4 = signalTablePromote(L4);
+        endTiming("Safe access to rdtable/rwtable");
+        
+        // Annotate L4 with type information
+        startTiming("L4 typeAnnotation");
+        typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
+        endTiming("L4 typeAnnotation");
+    }
      
     if (gGlobal->gCheckIntRange) {
         // Check and generate safe float to integer range conversion
