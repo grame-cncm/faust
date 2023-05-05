@@ -46,7 +46,7 @@ static bool endWith(const string& str, const string& suffix)
     return (i != string::npos) && (i == (str.length() - suffix.length()));
 }
 
-static void measureDSP(const string& filename, dsp* DSP)
+static double measureDSP(const string& filename, dsp* DSP)
 {
     // Buffer_size and duration in sec of measure, no trace and activated control 
     measure_dsp mes(DSP, buffer_size, 5., false, is_control);
@@ -54,9 +54,10 @@ static void measureDSP(const string& filename, dsp* DSP)
     pair<double, double> res =  mes.getStats();
     cout << filename << " : " << res.first << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at 44100 Hz)" << endl;
     FAUSTBENCH_LOG<double>(res.first);
+    return res.first;
 }
 
-static void testFaust(const string& filename, int argc1, const char* argv1[])
+static double testFaust(const string& filename, int argc1, const char* argv1[])
 {
     // Faust compilation and test
     string error_msg;
@@ -69,15 +70,16 @@ static void testFaust(const string& filename, int argc1, const char* argv1[])
         cerr << "ERROR : file '" << filename << "' cannot be opened with " << error_msg << "\n";
         exit(-1);
     }
-    measureDSP(filename, factory->createDSPInstance());
+    double res = measureDSP(filename, factory->createDSPInstance());
 #ifdef INTERP
     deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
 #else
     deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
 #endif
+    return res;
 }
 
-static void testCmajorPatch(const string& filename, int argc1, const char* argv1[])
+static double testCmajorFile(const string& filename, int argc1, const char* argv1[])
 {
     // Cmajor compilation and test
     string error_msg;
@@ -87,11 +89,12 @@ static void testCmajorPatch(const string& filename, int argc1, const char* argv1
         exit(-1);
     }
     
-    measureDSP(filename, factory->createDSPInstance());
+    double res = measureDSP(filename, factory->createDSPInstance());
     delete factory;
+    return res;
 }
 
-static void testCmajor(const string& filename, int argc1, const char* argv1[])
+static double testCmajor(const string& filename, int argc1, const char* argv1[])
 {
     // Faust => Cmajor compilation
     faust_cmajor_parser parser;
@@ -102,13 +105,13 @@ static void testCmajor(const string& filename, int argc1, const char* argv1[])
     
     // Generate "cmajorpatch" file
     parser.createCmajorPatch(FAUST_FILE);
-    testCmajorPatch(FAUST_FILE, argc1, argv1);
+    return testCmajorFile(FAUST_FILE, argc1, argv1);
 }
 
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "cmajor-faust-tester [-bs <frames>] [-control] [Faust options : any option (e.g. -vec -vs 8...)] foo.dsp|foo.cmajorpatch" << endl;
+        cout << "cmajor-faust-tester [-bs <frames>] [-control] [Faust options : any option (e.g. -vec -vs 8...)] foo.dsp|foo.cmajor" << endl;
         cout << "Use '-bs <frames>' to set the maximum buffer-size in frames\n";
         cout << "Use '-control' to update all controllers with random values at each cycle\n";
         exit(-1);
@@ -132,10 +135,11 @@ int main(int argc, char* argv[])
     }
     
     if (endWith(filename, "cmajor")) {
-        testCmajorPatch(filename, argc1, argv1);
+        testCmajorFile(filename, argc1, argv1);
     } else {
-        testFaust(filename, argc1, argv1);
-        testCmajor(filename, argc1, argv1);
+        double r1 = testFaust(filename, argc1, argv1);
+        double r2 = testCmajor(filename, argc1, argv1);
+        cout << "Ratio : " << r1/r2 << endl;
     }
     
     return 0;
