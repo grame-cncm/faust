@@ -354,7 +354,6 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     }
 
     else if (isBoxPrim5(box, &p5)) {
-        faustassert(lsig.size() == 5);
         return makeList(p5(lsig[0], lsig[1], lsig[2], lsig[3], lsig[4]));
     }
 

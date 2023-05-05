@@ -51,6 +51,7 @@ class Compiler : public virtual Garbageable {
     Tree         fUIRoot;
     Description* fDescription;
     JSONUI       fJSON;
+    UITree       fUITree;
 
    public:
     Compiler(const std::string& name, const std::string& super, int numInputs, int numOutputs, bool vec);
@@ -75,12 +76,10 @@ class Compiler : public virtual Garbageable {
     void addLibrary(const std::string& str) { fClass->addLibrary(str); }
 
     // management of the tree-like description of the UI
-    void addUIWidget(Tree path, Tree widget);
     void generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
     void generateMetaData();
     void generateUserInterfaceTree(Tree t, bool root = false);
     void generateUserInterfaceElements(Tree elements);
-    Tree prepareUserInterfaceTree(Tree t);
     void generateMacroInterfaceTree(const std::string& pathname, Tree t);
     void generateMacroInterfaceElements(const std::string& pathname, Tree elements);
     void generateWidgetMacro(const std::string& pathname, Tree fulllabel, Tree varname, Tree sig);

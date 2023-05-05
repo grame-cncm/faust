@@ -72,7 +72,6 @@ InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
     : fContainer(container),
       fSharingKey(nullptr),
       fOccMarkup(nullptr),
-      fUIRoot(uiFolder(cons(tree(0), tree("")))),
       fDescription(nullptr)
 {}
 
@@ -579,7 +578,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         pushPostComputeDSPMethod(InstBuilder::genRetInst(InstBuilder::genLoadStackVar(return_string)));
     }
 
-    Tree ui = InstructionsCompiler::prepareUserInterfaceTree(fUIRoot);
+    Tree ui = fUITree.prepareUserInterfaceTree();
     generateUserInterfaceTree(ui, true);
     generateMacroInterfaceTree("", ui);
     if (fDescription) {
@@ -603,7 +602,7 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
 
     pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name, getCurrentLoopIndex(), CS(sig)));
 
-    Tree ui = InstructionsCompiler::prepareUserInterfaceTree(fUIRoot);
+    Tree ui = fUITree.prepareUserInterfaceTree();
     generateUserInterfaceTree(ui);
     generateMacroInterfaceTree("", ui);
     if (fDescription) {
@@ -1127,7 +1126,7 @@ ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const st
     pushDeclare(InstBuilder::genDecStructVar(varname, type));
     pushResetUIInstructions(
         InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, 0)));
-    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // Cast to internal float
     return generateCacheCode(sig, genCastedInput(InstBuilder::genLoadStructVar(varname)));
@@ -1152,7 +1151,7 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
     pushDeclare(InstBuilder::genDecStructVar(varname, type));
     pushResetUIInstructions(
         InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, tree2float(cur))));
-    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // Cast to internal float
     return generateCacheCode(sig, genCastedInput(InstBuilder::genLoadStructVar(varname)));
@@ -1177,7 +1176,7 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
 {
     string varname = gGlobal->getFreshID(name);
     pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genFloatMacroTyped()));
-    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     ::Type t = getCertifiedSigType(sig);
 
@@ -1221,7 +1220,7 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
     string varname = gGlobal->getFreshID("fSoundfile");
     string SFcache = varname + "ca";
 
-    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
 
@@ -2238,28 +2237,6 @@ ValueInst* InstructionsCompiler::generateWaveform(Tree sig)
 }
 
 //================================= BUILD USER INTERFACE METHOD =================================
-
-/**
- * Add a widget with a certain path to the user interface tree
- */
-void InstructionsCompiler::addUIWidget(Tree path, Tree widget)
-{
-    fUIRoot = putSubFolder(fUIRoot, path, widget);
-}
-
-/**
- * Remove fake root folder if not needed (that is if the UI
- * is completely enclosed in one folder)
- */
-Tree InstructionsCompiler::prepareUserInterfaceTree(Tree t)
-{
-    Tree root, elems;
-    if (isUiFolder(t, root, elems) && isList(elems) && isNil(tl(elems))) {
-        Tree folder = right(hd(elems));
-        return (isUiFolder(folder)) ? folder : t;
-    }
-    return t;
-}
 
 /**
  * Generate buildUserInterface corresponding to user interface element t

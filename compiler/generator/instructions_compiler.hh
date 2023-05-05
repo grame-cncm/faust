@@ -60,7 +60,7 @@ class InstructionsCompiler : public virtual Garbageable {
     // Several 'IOTA' variables may be needed when subcontainers are inlined in the main module
     std::string fCurrentIOTA;
 
-    Tree         fUIRoot;
+    UITree       fUITree;
     Description* fDescription;
     
     /*
@@ -212,8 +212,6 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateControl(Tree sig, Tree x, Tree y);
 
     // UI hierachy description
-    void addUIWidget(Tree path, Tree widget);
-    Tree prepareUserInterfaceTree(Tree t);
     void generateUserInterfaceTree(Tree t, bool root = false);
     void generateUserInterfaceElements(Tree elements);
     void generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
