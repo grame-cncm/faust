@@ -146,7 +146,6 @@ int main(void)
 #elif defined (PATCHSM)
     control_UI = new DaisyPatchInitControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
     DSP->buildUserInterface(control_UI);
-    hw.StartAdc();
 #else
     //initialize UI for seed
     control_UI = new DaisyControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
