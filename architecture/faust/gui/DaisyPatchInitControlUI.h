@@ -66,15 +66,23 @@ class DaisyPatchInitControlUI : public GenericUI
            
             std::unique_ptr<ValueConverter> fConverter;
             daisy::AnalogControl* fControl;
+
+            FAUSTFLOAT fStep;
+            bool fQuantizeToStep;
             
-            AnalogKnob(daisy::AnalogControl* control, FAUSTFLOAT* zone, std::unique_ptr<ValueConverter>& converter, int rate)
-            : UpdatableZone(zone), fConverter(std::move(converter)), fControl(control)
+            AnalogKnob(daisy::AnalogControl* control, FAUSTFLOAT* zone, std::unique_ptr<ValueConverter>& converter, int rate, FAUSTFLOAT step, bool quantize)
+            : UpdatableZone(zone), fConverter(std::move(converter)), fControl(control), fStep(step), fQuantizeToStep(quantize)
             {
             }
             
             void update()
             {
-                *fZone = fConverter->ui2faust(fControl->Process());
+                FAUSTFLOAT newValue = fConverter->ui2faust(fControl->Process());
+                if (fQuantizeToStep) {
+                    *fZone = round(newValue / fStep) * fStep;
+                } else {
+                    *fZone = newValue;
+                }
             }
         };
     
@@ -82,6 +90,7 @@ class DaisyPatchInitControlUI : public GenericUI
         daisy::patch_sm::DaisyPatchSM* fHw;
     
         std::string fKey, fValue, fScale;
+        bool fQuantize = false;
         int fRate, fBoxLevel;
     
         struct KnobContext
@@ -91,20 +100,24 @@ class DaisyPatchInitControlUI : public GenericUI
             FAUSTFLOAT fMin;
             FAUSTFLOAT fMax;
             std::string fScale;
+            FAUSTFLOAT fStep;
+            bool fQuantizeToStep;
             KnobContext(int kid,
                         FAUSTFLOAT* zone,
                         FAUSTFLOAT min,
                         FAUSTFLOAT max,
-                        const std::string& scale)
-            :fKnobId(kid), fZone(zone), fMin(min), fMax(max), fScale(scale)
+                        const std::string& scale,
+                        FAUSTFLOAT step,
+                        bool quantize)
+            :fKnobId(kid), fZone(zone), fMin(min), fMax(max), fScale(scale), fStep(step), fQuantizeToStep(quantize)
             {}
         };
         std::vector<KnobContext> fKnobs;
     
-        void InitKnob(int knob_pin, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, const std::string& scale)
+        void InitKnob(int knob_pin, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, const std::string& scale, FAUSTFLOAT step, bool quantize)
         {
             // context is kept, to be used in InitKnobs()
-            fKnobs.push_back(KnobContext(knob_pin, zone, min, max, scale));
+            fKnobs.push_back(KnobContext(knob_pin, zone, min, max, scale, step, quantize));
         }
     
         void InitKnobs()
@@ -121,7 +134,9 @@ class DaisyPatchInitControlUI : public GenericUI
                 std::unique_ptr<AnalogKnob> knob = std::make_unique<AnalogKnob>(&fHw->controls[fKnobs[i].fKnobId],
                                                   fKnobs[i].fZone,
                                                   converter,
-                                                  fRate);
+                                                  fRate,
+                                                  fKnobs[i].fStep,
+                                                  fKnobs[i].fQuantizeToStep);
                 fItems.push_back(std::move(knob));
             }
         }
@@ -178,13 +193,13 @@ class DaisyPatchInitControlUI : public GenericUI
         {
             if (fKey == "knob") {
                 if (fValue == "1") {
-                    InitKnob(daisy::patch_sm::CV_1, zone, min, max, fScale);
+                    InitKnob(daisy::patch_sm::CV_1, zone, min, max, fScale, step, fQuantize);
                 } else if (fValue == "2") {
-                    InitKnob(daisy::patch_sm::CV_2, zone, min, max, fScale);
+                    InitKnob(daisy::patch_sm::CV_2, zone, min, max, fScale, step, fQuantize);
                 } else if (fValue == "3") {
-                    InitKnob(daisy::patch_sm::CV_3, zone, min, max, fScale);
+                    InitKnob(daisy::patch_sm::CV_3, zone, min, max, fScale, step, fQuantize);
                 } else if (fValue == "4") {
-                    InitKnob(daisy::patch_sm::CV_4, zone, min, max, fScale);
+                    InitKnob(daisy::patch_sm::CV_4, zone, min, max, fScale, step, fQuantize);
                 }
             }
             fValue = fKey = fScale = "";
@@ -199,6 +214,8 @@ class DaisyPatchInitControlUI : public GenericUI
                 fValue = val;
             } else if (std::string(key) == "scale") {
                 fScale = val;
+            } else if(std::string(key) == "quantize") {
+                fQuantize = true;
             }
         }
     
