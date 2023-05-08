@@ -114,13 +114,13 @@ jobs:
         include:
           - name: arm64
             os: macos-11
-            llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos/llvm-15.0.7-macos10.15-arm64.zip
+            llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-macos10.15-arm64.zip
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
             HOST: aarch64-apple-darwin
           - name: x64
             os: macos-11
-            llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos10.15-x86_64/llvm-15.0.7-macos10.15-x86_64.zip
+            llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-macos10.15-x86_64.zip
             ARCHS: "-arch x86_64"
             CMAKE_OSX_ARCHITECTURES: x86_64
             HOST: x86_64-apple-darwin
@@ -278,7 +278,7 @@ jobs:
         include:
           - name: win64
             os: windows-2022
-            llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-win11-x86_64/llvm-15.0.7-win11-x86_64.zip
+            llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-win11-x86_64.zip
             libsndfile-url: https://github.com/libsndfile/libsndfile/releases/download/1.2.0/libsndfile-1.2.0-win64.zip
 
     steps:
