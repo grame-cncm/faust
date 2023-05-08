@@ -498,7 +498,7 @@ Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size_aux, Tree 
                   << size << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
             gWarningMessages.push_back(error.str());
         }
-        return sigRDTbl(self(tbl), sigMax(sigInt(0), sigMin(self(ri), sigSub(size_aux, sigInt(1)))));
+        return sigRDTbl(self(tbl), sigMax(sigInt(0), sigMin(self(ri), sigInt(size-1))));
     } else {
         // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
@@ -521,7 +521,7 @@ Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree size_aux, Tree gen, Tree 
                   << size << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
             gWarningMessages.push_back(error.str());
         }
-        return sigWRTbl(self(size_aux), self(gen), sigMax(sigInt(0), sigMin(self(wi), sigSub(size_aux, sigInt(1)))), self(ws));
+        return sigWRTbl(self(size_aux), self(gen), sigMax(sigInt(0), sigMin(self(wi), sigInt(size-1))), self(ws));
     } else {
         // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
