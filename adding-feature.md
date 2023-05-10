@@ -1,87 +1,85 @@
-# Sur l'ajout de fonctionnalités dans les langages
+# On adding features to languages
 
-## Avant toute chose
+## First of all
 
-Ajouter une fonctionnalité à un très haut coût de développement, principalement dû au fait que cette nouvelle fonctionnalité induit une cassure dans les versions : il y aura le code d'après qui ne sera plus compilable par le langage d'avant (ce qui peut être encore pire si votre fonctionnalité n'assure pas la rétrocompatibilité : la cassure s'opère dans les deux sens). À ce sujet, il peut être utile d'écrire un script de compatibilité. Aussi, la première question à se poser au moment d'ajouter une fonctionnalité est :
+Adding a feature has a very high development cost, mainly due to the fact that this new feature induces a break in the versions: there will be the next code that will not be compilable by the previous language (which can be even worse if your feature doesn't ensure backward compatibility: the break occurs in both directions). In this respect, it may be useful to write a compatibility script. Also, the first question to ask yourself when adding a feature is:
 
-La fonctionnalité que vous êtes sur le point d'ajouter est-elle vraiment nécessaire ? Autrement dit : est-elle utile uniquement dans un nombre négligeable de cas ? Est-elle compréhensible seulement par les quelques gourous qui ont écrit le langage ? Peut-elle être émulée simplement directement dans le langage (ou dans le compilateur) ? Va-t-elle être difficilement maintenable ?
+- is the feature you are about to add really necessary? In other words: Is it useful only in a negligible number of cases? Is it understandable only by the few gurus who wrote the language? Can it simply be emulated directly in the language (or in the compiler)? Will it be difficult to maintain?
+- isn't the code base too unstable to afford a new potential source of bugs? If you hesitated to answer no to any of these questions, you should close this file and reconsider adding a feature.
 
-La base de code n'est-elle pas trop instable pour se permettre d'ajouter une nouvelle source de bugs potentielle ? Si vous avez hésité à répondre non à une de ces questions, vous devriez fermer ce fichier et reconsidérer l'ajout d'une fonctionnalité.
+With that said, let's get down to business.
 
-Ceci étant dit, passons aux choses sérieuses.
+## Practical example
 
-## Exemple pratique
+The problem considered here is the addition of a signal interval annotation system in the Faust language, allowing to indicate and test compiler-calculated major/minorities. This language (like all DSLs) is certainly not a very good example for the general case, however, some techniques should be quite similar.
 
-Le problème considéré ici est l'ajout d'un système d'annotations d'intervalles de signaux dans le langage Faust, permettant d'indiquer et de tester des majorants/minorants calculés par le compilateur. Ce langage (comme tous les DSL) n'est certes pas un très bon exemple pour le cas général, cependant, certaines techniques devraient être assez similaires.
+We propose to add two pairs of primitives to Faust:
 
-On se propose d'ajouter deux paires de primitives à Faust :
+ * `highest(s)` and `lowest(s)`, single-input signals returning respectively the major and minor of the signal `s` computed by the compiler. From the point of view of the Faust type lattice, they are constants, computable at compile time (of course), floating point (so not boolean), parallelizable (I think), and this, whatever the input signal.
 
- * `highest(s)` et `lowest(s)`, signaux à une entrée retournant respectivement le majorant et le minorant du signal `s` calculé par le compilateur. D'un point de vue du treillis des types Faust, il s'agit de constantes, calculable à la compilation (bien sûr), flottantes (donc pas booléennes), parallélisables (je crois), et ce, quelque soit le signal en entrée.
+ * `assertbounds(lo, hi, sig)`, with `lo` and `hi` two constants known at compile time, which will have two behaviors: in normal mode, it creates a signal whose value is that of `sig` but whose interval is `[lo, hi]`, in debug mode, it checks during execution that this interval is indeed checked.
 
- * `assertbounds(lo, hi, sig)`, avec `lo` et `hi` deux constantes connues à la compilation, qui aura deux comportements : en mode normal, elle crée un signal dont la valeur est celle de `sig` mais dont l'intervalle est `[lo, hi]`, en mode debug, elle vérifie pendant l'exécution que cet intervalle est bien vérifié.
-
-N.B. Il faudra sans doute ajouter deux autres primitives concernant la
-résolution des signaux.
+N.B. Two other primitives concerning the resolution of signals should probably be added.
 
 ## Lexer/Parser
 
-La première étape est d'étendre l'ensemble des programmes Faust valides pour qu'ils contiennent (de préférence exactement) les chaînes de caractère représentant ces primitives, en modifiant la syntaxe (lexing) et la sémantique (parsing) de Faust. En effet, si l'on demande à Faust de compiler le programme suivant :
+The first step is to extend the set of valid Faust programs so that they contain (preferably exactly) the strings representing these primitives, by modifying the syntax (lexing) and semantics (parsing) of Faust. Indeed, if we ask Faust to compile the following program:
 
     process = assertbounds(-1, 1);
 
-on obtient l'erreur suivante : 
+we get the following error: 
 
     1 : ERROR : undefined symbol : assertbounds
 
-Pour ce faire, il nous faut modifier les fichiers décrivant le lexer et le parser, ici écrits en Flex/Bison (pour plus de détails, voir le Dragon Book)
+To do this, we have to modify the files describing the lexer and the parser, here written in Flex/Bison (for more details, see the Dragon Book)
 
-Dans Faust, ces fichiers se trouvent dans `compiler/parser`.
+In Faust, these files are located in `compiler/parser`.
 
 ### Lexing
 
-En Bison, la déclaration des tokens se fait dans le parser, ici `faustparser.y`, déclarons donc 4 nouveaux tokens:
+In Bison, the declaration of tokens is done in the parser, here `faustparser.y`, so let's declare 4 new tokens:
 
      %token ASSERTBOUNDS
      %token LOWEST
      %token HIGHEST
 
-Il faut ensuite que ces Tokens soient associés à des chaînes de caractères Faust, pour cela, modifions le lexer. Le fichier contenant le lexer se trouve dans `faustlexer.l`. Il suffit d'ajouter (entre les deux `%%`) :
+Then we need to associate these tokens with Faust strings, so let's modify the lexer. The file containing the lexer is in `faustlexer.l`. Just add (between the two `%%`) :
 
     "assertbounds" return ASSERTBOUNDS;
     "lowest" return LOWEST;
     "highest" return HIGHEST;
 
-Recompilons le parser et le compilateur (`make parser` et `make` à la racine). En compilant l'exemple :
+Let's recompile the parser and the compiler (`make parser` and `make` at the root). Compiling the example :
 
     process = assertbounds(-1, 1);
 
-on obtient à présent : 
+we now get: 
 
     1 : ERROR : syntax error
-
+    
 ### Parsing
 
-Puisque nous allons ajouter une primitive, celle-ci va logiquement être issue du non-terminal `primitive`. Puisqu'il s'agit de primitives, nos tokens seront d'ailleurs terminaux.
+Since we are going to add a primitive, it will logically come from the non-terminal `primitive`. Since we are dealing with primitives, our tokens will be terminal.
 
-Attention : on parle ici de l'implantation d'une nouvelle primitive, pas d'une `xtended`.
+Warning: we are talking about the implementation of a new primitive, not an `xtended` one.
 
-Dans la plupart des compilateurs, pour une primitive d'arité `n`, il est d'usage de demander au parser de construire un objet symbolisant la primitive en appelant le constructeur `C++` de la primitive avec pour arguments le résultat du parsing des arguments de la primitive. Cependant, comme le langage Faust décrit une algèbre de blocs, les arguments ne sont pas toujours explicitement passés à la primitive, ils peuvent être routés. D'où un petit _wrapper_ autour du constructeur de la primitive, dépendant de l'airté de celle-ci.
+In most compilers, for a primitive of arity `n`, it is usual to ask the parser to build an object symbolizing the primitive by calling the `C++` constructor of the primitive with the result of parsing the arguments of the primitive. However, since the Faust language describes a block algebra, the arguments are not always explicitly passed to the primitive, they can be routed. Hence a small _wrapper_ around the constructor of the primitive, depending on the airty of the primitive.
 
-Comme ils ont une arité de 1 et 3, il faut définir deux nouvelles boîtes
+As they have an arity of 1 and 3, two new boxes must be defined: 
 
-	| ASSERTBOUNDS			{ $$ = boxPrim3(sigAssertBounds);}
-	| LOWEST						{ $$ = boxPrim1(sigLowest);}
-	| HIGHEST						{ $$ = boxPrim1(sigHighest);}
+	| ASSERTBOUNDS { $$ = boxPrim3(sigAssertBounds);}
+	| LOWEST { $$ = boxPrim1(sigLowest);}
+	| HIGHEST { $$ = boxPrim1(sigHighest);}
 
-le parsing est terminé.
+the parsing is finished.
 
-## Constructeurs de signaux
+## Signal constructors
 
-Les constructeurs Faust sont extrêmement classiques d'un point de vue compilation : chaque signal est un arbre avec dans sa racine un symbole unique à l'opération du signal (par exemple un symbole ADD pour une addition) et comme enfants ses arguments. (boilerplate code incoming)
+Faust constructors are extremely classical from a computational point of view: each signal is a tree with in its root a symbol unique to the operation of the signal (e.g. an ADD symbol for an addition) and as children its arguments (boilerplate incoming code).
 
-Ils sont définis dans `signals.cpp` avec leurs destructeurs (dans le sens programmation fonctionnel du terme, et pas gestion mémoire).
+They are defined in `signals.cpp` with their destructors (in the functional programming sense of the term, not memory management).
 
-Il nous faut cependant d'abord définir les symboles des signaux. Pour des raisons d'optimisation, ils sont définis une fois pour toute dans `global.hh` et `global.cpp` (un objet unique mutable appelé `gGlobal` qui émule les variables globales à l'ensemble du code) :
+But first we have to define the symbols of the signals. For optimization reasons, they are defined once and for all in `global.hh` and `global.cpp` (a single mutable object called `gGlobal` which emulates the global variables to the whole code):
 
 `global.hh`
 
@@ -94,12 +92,12 @@ Sym SIGLOWEST;
 `global.cpp`
 
 ```c++
-SIGASSERTBOUNDS    = symbol("sigAssertBounds");
-SIGHIGHEST         = symbol("sigHighest");
-SIGLOWEST          = symbol("sigLowest");
+SIGASSERTBOUNDS = symbol("sigAssertBounds");
+SIGHIGHEST = symbol("sigHighest");
+SIGLOWEST = symbol("sigLowest");
 ```
 
-Nous pouvons à présent définir le constructeur du signal `assertbounds` ainsi que son destructeur :
+We can now define the constructor of the signal `assertbounds` as well as its destructor :
 
 `signals.hh`
 
@@ -127,45 +125,44 @@ bool isSigAssertBounds(Tree t, Tree& s1, Tree& s2, Tree& s3)
 }
 ```
 
-Et maintenant ça compile, malheureusement. En effet, si le compilateur est désormais capable de créer un objet pour les primitives, il n'a toujours aucune idée de comment le compiler. Et en effet, si on compile l'exemple : 
+And now it compiles, unfortunately. Indeed, if the compiler is now able to create an object for the primitives, it still has no idea how to compile it. And indeed, if we compile the example: 
 
-	process = assertbounds;
+	`process = assertbounds;`
 
-On obtient
+We get:
 
-    ERROR : getSubSignals unrecognized signal : sigAssertBounds[-1,1,SigInput[0]]
-
-
+    ERROR: getSubSignals unrecognized signal: sigAssertBounds[-1,1,SigInput[0]]
+    
 ## Compilation
 
-Les signaux étant construits, nous pouvons entrer dans la compilation proprement dite.  Modifions donc la fonction `getSubSignals`. Cette fonction se trouve dans le fichier `subsignals.cpp` (on pourra par exemple utiliser la documentation auto-générée avec Doxygen `make doc` à la racine, ou encore les fonctionnalités de recherche de définitions dans des éditeurs modernes comme Emacs), elle extrait juste les signaux des sous-arbres de l'arbre signal (n'oublions pas qu'un signal est stocké sous forme d'arbre). Nos boîtes ont toutes deux signaux, on pourra s'inspirer du cas `sigPrefix`.
+Now that the signals are built, we can start compiling. Let's modify the `getSubSignals` function. This function is in the `subsignals.cpp` file (we can for example use the auto-generated documentation with Doxygen `make doc` at the root, or the definition search features in modern editors like Emacs), it just extracts the signals from the subtrees of the signal tree (let's not forget that a signal is stored as a tree). Our boxes all have two signals, so we can use the `sigPrefix` case as an example.
 
-Après compilation et exécution du code, on obtient la nouvelle erreur plus intéressante : 
+After compiling and executing the code, we get the new and more interesting error: 
 
-	ERROR inferring signal type : unrecognized signal
+	ERROR inferring signal type: unrecognized signal
 
-Il faut donc modifier le système d'inférence de types présent dans le fichier `signals/sigtyperules.cpp`. La définition formelle des types Faust peut se trouver en commentaire de l'en-tête du fichier `sigtype.hh`.
+So we have to modify the type inference system present in the `signals/sigtyperules.cpp` file. The formal definition of Faust types can be found as a comment in the header of the `sigtype.hh` file.
 
-Commençons par `assertbounds`, le principe de cette fonction étant d'ajouter des bornes à un signal, il suffit d'utiliser la méthode `promoteInterval`
+Let's start with `assertbounds`, the principle of this function being to add bounds to a signal, just use the `promoteInterval` method
 
-autres fichiers à changer pour le backend -ocpp
+other files to change for the backend -ocpp
 
-+ `signals/sigToGraph.cpp`, pour les graphes de signaux
+- `signals/sigToGraph.cpp`, for signal graphs
 
-+ `signals/sigIdentity.cpp`
+- `signals/sigIdentity.cpp`, for signal graphs
 
-+ `boxes/ppbox.cpp`, pour les diagrammes
+- `boxes/ppbox.cpp`, for diagrams
 
-+ `generator/compile_scal.cpp`, ce fichier est celui qui contient la compilation proprement dite
+- `generator/compile_scal.cpp`, this file is the one that contains the actual compilation
 
-+ `sigprint.cpp`, si a besoin d'un dessin spécial
+- `sigprint.cpp`, if you need a special drawing
 
-Réfléchir à des tests par rapport au : 
+Think about tests against the: 
 
-1. code généré
+- generated code
 
-2. intervalles
+- intervals
 
-Que se passe-t-il avec des constantes non décimale dans la version de F2D ?
+What happens with non-decimal constants in the F2D version?
 
-Que se passe-t-il si l'intervalle donne une version exacte en double mais qu'il y a un dépassement en float (ex gênant des délais) ?
+What happens if the interval gives an exact version in double but there is an overflow in float (e.g. annoying delays)?
