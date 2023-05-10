@@ -103,9 +103,15 @@ macro (llvm_config)
 	string ( REPLACE "C:\\Program Files\\LLVM\\lib\\" "" LLVM_LIBS ${LLVM_LIBS_TMP2})
 	execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
 	string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
+	# on ubuntu, expecting to find "-lz -lpthread -ledit -lcurses -lm"
+	# on macos, expecting to find "-lm -lcurses -lxml2"
 	
     string ( APPEND LLVM_LIBS " ${LLVM_SYS_LIBS}")
     string ( REPLACE " " ";" LLVM_LIBS ${LLVM_LIBS} )
+
+    # fix for when LLVM is built but not "installed"
+    set(LLVM_INCLUDE_DIRS ${LLVM_INCLUDE_DIRS} ${LLVM_INCLUDE_DIRS}/../build/include)
+
 endmacro()
 
 ####################################
@@ -116,7 +122,33 @@ macro (llvm_cmake)
 		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 		message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 		# Find the libraries that correspond to the LLVM components that we wish to use
-		llvm_map_components_to_libnames(LLVM_LIBS all)
+		if(MSVC)
+		# Normally we'd just want to do the following:
+		# execute_process(COMMAND ${LLVM_DIR}/../../../Release/bin/llvm-config.exe --libs all
+		#                 OUTPUT_VARIABLE LLVM_LIBS)
+		# But this results in LLVM_LIBS having a list of full paths to .lib files.
+		# With MSVC, link.exe wasn't working with full paths, so instead
+		# what we want is a list of basenames of .lib files.
+		FILE(GLOB LLVM_LIBS ${LLVM_DIR}/../../../Release/lib/*.lib)
+		list(FILTER LLVM_LIBS EXCLUDE REGEX ".*LLVM-C\.lib")
+		else()
+		execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --libs all
+		                OUTPUT_VARIABLE LLVM_LIBS)
+		endif()
+		
+		string(STRIP "${LLVM_LIBS}" LLVM_LIBS)
+
+		if(NOT MSVC)
+		# Expecting to find -lz -lpthread -ledit -lcurses -lm
+		execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --system-libs
+                OUTPUT_VARIABLE LLVM_SYSLIBS)
+		string(STRIP "${LLVM_SYSLIBS}" LLVM_SYSLIBS)
+		message(STATUS "LLVM_SYSLIBS: ${LLVM_SYSLIBS}")
+		set(LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYSLIBS})
+		endif()
+
+		message(STATUS "LLVM_LIBS: ${LLVM_LIBS}")
+		
 #		list(REMOVE_ITEM LLVM_LIBS LTO)
 	else()
 		llvm_config()

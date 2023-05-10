@@ -2,8 +2,8 @@
 SETLOCAL EnableDelayedExpansion
 
 SET OUTLIB=lib\libfaustwithllvm.lib
-FOR /F "delims=" %%i IN ('llvm-config --libdir') DO SET LLVMDIR=%%i
-FOR /F "delims=" %%i IN ('llvm-config --libnames  --link-static') DO SET libnames=%%i
+FOR /F "delims=" %%i IN ('%LLVM_CONFIG% --libdir') DO SET LLVMDIR=%%i
+FOR /F "delims=" %%i IN ('%LLVM_CONFIG% --libnames --link-static') DO SET libnames=%%i
 
 set in=%libnames: =" "!LLVMDIR!\%
 set inputlibs=lib/libfaust.lib "!LLVMDIR!\!in!"

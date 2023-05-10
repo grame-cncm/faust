@@ -31,11 +31,11 @@ THE SOFTWARE.
 #ifndef MAXMSP_CPP_6_H
 #define MAXMSP_CPP_6_H
 
-#include "ext.h"
-#include "ext_obex.h"
-#include "ext_common.h"
-#include "commonsyms.h"
-#include "z_dsp.h"
+#include <ext.h>
+#include <ext_obex.h>
+#include <ext_common.h>
+#include <commonsyms.h>
+#include <z_dsp.h>
 
 #include <new>
 #include <iostream>

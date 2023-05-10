@@ -33,10 +33,14 @@
 extern itv::interval_algebra gAlgebra;
 
 #ifdef _WIN32
+
+#if _MSC_VER < 1930
 inline double log2(double e)
 {
     return log(e) / log(double(2));
 }
+#endif
+
 #endif
 
 inline double min4(double a, double b, double c, double d)

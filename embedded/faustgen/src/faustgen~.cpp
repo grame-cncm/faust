@@ -30,10 +30,10 @@
 #endif
 
 #include "faustgen~.h"
-#include "faust/dsp/libfaust.h"
+#include <faust/dsp/libfaust.h>
 
 #define LLVM_DSP
-#include "faust/dsp/poly-dsp.h"
+#include <faust/dsp/poly-dsp.h>
 
 using namespace std;
 
