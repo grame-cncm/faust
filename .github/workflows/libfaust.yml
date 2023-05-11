@@ -48,9 +48,9 @@ jobs:
       with:
         submodules: true
 
-    - name: Install ncurses
+    - name: Install ncurses and zip
       run: |
-        yum install -y ncurses ncurses-devel ncurses-libs ncurses-static
+        yum install -y ncurses ncurses-devel ncurses-libs ncurses-static zip
 
     - name: Restore LLVM
       id: cache-llvm-restore
@@ -99,12 +99,14 @@ jobs:
         newest=$(ls -1 libfaust.so.* | tail -n1)
         mv "$newest" libfaust.so
         strip --strip-unneeded libfaust.so
+        cd ..
+        zip libfaust-${{ matrix.name }}.zip lib
         
     - name: Upload libfaust artifact
       uses: actions/upload-artifact@v3
       with:
         name: libfaust-${{ matrix.name }}.zip
-        path: build/lib
+        path: build/libfaust-${{ matrix.name }}.zip
         if-no-files-found: error
 
   build-macos:
@@ -319,6 +321,12 @@ jobs:
         cd build
         call MakeRelease.bat
 
+    - name: Make distribution
+      shell: cmd
+      run: |
+        cd embedded/faustgen/package
+        7z a -tzip faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.zip faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}
+
     - name: Upload Faust installer
       uses: actions/upload-artifact@v3
       with:
@@ -330,7 +338,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.zip
-        path: embedded/faustgen/package/faustgen-${{env.FAUSTGEN_VERSION}}-win64
+        path: embedded/faustgen/package/faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.zip
         if-no-files-found: error
 
   create-release:
