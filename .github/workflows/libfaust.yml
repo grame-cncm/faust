@@ -334,7 +334,7 @@ jobs:
         if-no-files-found: error
 
   create-release:
-    if: ${ inputs.create_release }} 
+    if: ${{ inputs.create_release }} 
     needs: [build-ubuntu, build-macos, build-windows]
     runs-on: ubuntu-latest
     name: "Create Release on GitHub"
