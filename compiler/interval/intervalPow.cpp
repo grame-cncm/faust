@@ -45,11 +45,11 @@ static interval ipow(const interval& x, int y)
         int    p1   = y * (int)log2(abs(v));
         int    p2   = 0;
 
-        double epsilon = pow(2, x.lsb());
-        double delta   = abs(pow(1 + sign * epsilon / v, y) - 1);
-        if (delta == 0) {  // in case of epsilon << x
+        double u = pow(2, x.lsb()); // ulp
+        double delta   = abs(pow(1 + sign * u / v, y) - 1);
+        if (delta == 0) {  // in case of u << x
             p2 = floor((double)log2(y) + x.lsb() -
-                       (double)log2(abs(v)));  // (1 + eps/v)^y - 1 ≃ y*eps/v if eps/v very small
+                       (double)log2(abs(v)));  // (1 + u/v)^y - 1 ≃ y*u/v if u/v very small
         } else {
             p2 = floor((double)log2(delta));
         }
