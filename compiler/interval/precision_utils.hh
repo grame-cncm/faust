@@ -12,8 +12,8 @@
  * */
 double truncate(double x, int lsb)
 {
-    double epsilon = pow(2, lsb);
-    double res = epsilon*(double)floor(x/epsilon);
+    double u = pow(2, lsb); // ulp
+    double res = u*(double)floor(x/u);
     return res;
 }
 
@@ -39,11 +39,11 @@ int lsb_number(double x)
  * 
  * @param f the function to analyse
  * @param x the point at which the tightest precision is needed
- * @param epsilon the signed gap between the two consecutive numbers at which to compute the precision
+ * @param u the signed gap between the two consecutive numbers at which to compute the precision (ie the ulp)
 */
-int exactPrecisionUnary(ufun f, long double x, long double epsilon)
+int exactPrecisionUnary(ufun f, long double x, long double u)
 {
-    int res = floor((double)log2(std::abs(f(x + epsilon) - f(x))));
+    int res = floor((double)log2(std::abs(f(x + u) - f(x))));
     return res;
 }
 
@@ -53,13 +53,13 @@ int exactPrecisionUnary(ufun f, long double x, long double epsilon)
  * @param f the function to analyse
  * @param finv a function such that f o finv = Id locally
  * @param x the input point at which the tightest precision is needed
- * @param epsilon the signed gap between the two consecutive numbers at which to compute the precision
+ * @param u the signed gap between the two consecutive numbers at which to compute the precision (ie the ulp)
 */
-int exactPrecisionUnaryBackwards(ufun f, ufun finv, double x, double epsilon)
+int exactPrecisionUnaryBackwards(ufun f, ufun finv, double x, double u)
 {
     int res = ceil(
             (double)log2(
-                std::abs(finv(f(x) + epsilon) - x)
+                std::abs(finv(f(x) + u) - x)
             )
         );
     return res;
