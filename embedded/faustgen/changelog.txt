@@ -7,9 +7,9 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2023
 
 ----------------------------------------------------
-Version 1.64 - 26/03/2023
+Version 1.64 - 14/05/2023
 
-- distribution with Faust 2.58.13
+- distribution with Faust 2.59.6
 
 ----------------------------------------------------
 Version 1.63 - 17/12/2022
