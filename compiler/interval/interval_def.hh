@@ -28,6 +28,8 @@
 #include <algorithm>
 #include <string>
 
+#include "global.hh"
+
 // ***************************************************************************
 //
 //     An Interval is a (possibly empty) set of numbers approximated by two
@@ -111,6 +113,8 @@ class interval {
         // amplitude of the interval
         // can be < 1.0, in which case the msb will be negative and indicate the number of implicit leading zeroes
         double range = std::max(std::abs(fLo), std::abs(fHi));
+
+        if (isinf(range)) return gGlobal->gVHDLFloatMSB; 
 
         // The sign bit will be added later on
         return int(std::floor(std::log2(range)));
