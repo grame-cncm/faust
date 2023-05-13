@@ -100,7 +100,7 @@ jobs:
         mv "$newest" libfaust.so
         strip --strip-unneeded libfaust.so
         cd ..
-        zip libfaust-${{ matrix.name }}.zip lib
+        zip -r libfaust-${{ matrix.name }}.zip lib
         
     - name: Upload libfaust artifact
       uses: actions/upload-artifact@v3
