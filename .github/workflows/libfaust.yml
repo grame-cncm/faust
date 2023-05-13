@@ -48,9 +48,22 @@ jobs:
       with:
         submodules: true
 
-    - name: Install ncurses and zip
+    - name: Install zip
       run: |
-        yum install -y ncurses ncurses-devel ncurses-libs ncurses-static zip
+        yum install -y zip
+
+    - name: Checkout ncurses
+      uses: actions/checkout@v2
+      with:
+        repository: mirror/ncurses
+        path: ncurses
+
+    - name: ncurses install
+      run: |
+        cd ncurses
+        ./configure --prefix=/usr/local/ncurses/6_4 --with-shared --with-pkg-config-libdir=/usr/local/ncurses/6_4/lib/pkgconfig --enable-pc-files
+        make
+        make install
 
     - name: Restore LLVM
       id: cache-llvm-restore
@@ -71,7 +84,7 @@ jobs:
       if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
       run: |
         cd llvm-project/llvm
-        cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" ${{matrix.cmake-options}} ${{matrix.llvm-options}}
+        cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" -DCMAKE_PREFIX_PATH="/usr/local/ncurses/6_4/lib/pkgconfig" ${{matrix.cmake-options}} ${{matrix.llvm-options}}
         cmake --build build --config Release
         cmake --build build --target install
 
