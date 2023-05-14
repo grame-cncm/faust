@@ -179,7 +179,7 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "#[cfg_attr(feature = \"default-boxed\", derive(default_boxed::DefaultBoxed))]";
     tab(n, *fOut);
-    *fOut << "#[repr(C)]";
+    *fOut << "#[cfg_attr(feature = \"reprc\", repr(C)]";
     tab(n, *fOut);
     *fOut << "pub struct " << fKlassName << " {";
     tab(n + 1, *fOut);
