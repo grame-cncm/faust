@@ -1,32 +1,58 @@
-echo off
+@echo off
 
 SET VERSION=2.59.5
 SET FAUSTGENVERSION=1.64
 
 SET MYPATH=%cd%
-set "MYPATH=%MYPATH:\=/%"
+SET "MYPATH=%MYPATH:\=/%"
 SET BUILD=%MYPATH%/build
 SET FAUSTLIVE=../../faustlive
+SET LLVM_CONFIG_A="%MYPATH%/../llvm/bin/llvm-config.exe"
+SET LLVM_CONFIG_B="%MYPATH%/../../llvm/bin/llvm-config.exe"
+SET MAXSDK_A="%MYPATH%/../max-sdk-base/c74support"
+SET MAXSDK_B="%MYPATH%/../../max-sdk-base/c74support"
+SET LIBSNDFILE_A="%MYPATH%/../libsndfile"
+SET LIBSNDFILE_B="%MYPATH%/../../libsndfile"
+SET VS_REDIST=%VCToolsRedistDir%vc_redist.x64.exe
+SET "VS_REDIST=%VS_REDIST:\=/%"
 
-set LLVM_CONFIG="%MYPATH%/../llvm/bin/llvm-config.exe"
-set MAXSDK="%MYPATH%/../max-sdk/source/max-sdk-base/c74support"
-set LIBSNDFILE="%MYPATH%/../libsndfile"
-set VS_REDIST=%VCToolsRedistDir%vc_redist.x64.exe
-set "VS_REDIST=%VS_REDIST:\=/%"
-
-if not exist "%LLVM_CONFIG%" (
-    echo "llvm-config.exe was not found at location: %LLVM_CONFIG%"
-    EXIT /B 1
+IF EXIST %LLVM_CONFIG_A% (
+    SET LLVM_CONFIG=%LLVM_CONFIG_A%
+    echo llvm-config.exe found at %LLVM_CONFIG%
+) ELSE (
+    IF EXIST %LLVM_CONFIG_B% (
+        SET LLVM_CONFIG=%LLVM_CONFIG_B%
+        echo llvm-config.exe found at %LLVM_CONFIG%
+    ) ELSE (
+        echo llvm-config.exe not found at %LLVM_CONFIG_A% or %LLVM_CONFIG_B%
+        EXIT /B
+    )
 )
 
-if not exist "%MAXSDK%" (
-    echo "The Max SDK was not found at location: %MAXSDK%"
-    EXIT /B 1
+IF EXIST %MAXSDK_A% (
+    SET MAXSDK=%MAXSDK_A%
+    echo max-sdk-base found at %MAXSDK%
+) ELSE (
+    IF EXIST %MAXSDK_B% (
+        SET MAXSDK=%MAXSDK_B%
+        echo max-sdk-base found at %MAXSDK%
+    ) ELSE (
+        echo max-sdk-base not found at %MAXSDK_A% or %MAXSDK_B%
+        EXIT /B
+    )
 )
 
-if not exist "%LIBSNDFILE%" (
-    echo "libsndfile was not found at location: %LIBSNDFILE%"
-    EXIT /B 1
+IF EXIST %LIBSNDFILE_A% (
+    SET LIBSNDFILE=%LIBSNDFILE_A%
+    echo libsndfile install found at %LIBSNDFILE%
+) ELSE (
+    IF EXIST %LIBSNDFILE_B% (
+        SET LIBSNDFILE=%LIBSNDFILE_B%
+        echo libsndfile install found at %LIBSNDFILE%
+    ) ELSE (
+        echo libsndfile install not found at %LIBSNDFILE_A% or %LIBSNDFILE_B%
+        EXIT /B
+    )
 )
 
 if not exist "%VS_REDIST%" (
@@ -64,7 +90,7 @@ cd ../package
 cd ../../../build
 
 echo "####################### Creating release folder #######################"
-set DEST=Release-%VERSION%
+SET DEST=Release-%VERSION%
 IF EXIST %DEST% ( 
     echo Warning ! %DEST% exist and may be non empty
     GOTO NEXT

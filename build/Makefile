@@ -17,7 +17,7 @@ USE_LLVM_CONFIG ?= ON
 
 BUILD_HTTP_STATIC ?= OFF
 USE_STATIC_SNDFILE ?= 0
-MAXSDK ?= $(shell echo $(PWD)/../max-sdk/source/max-sdk-base/c74support)
+MAXSDK ?= $(shell echo $(PWD)/../max-sdk-base/c74support)
 
 # start to determine the current platform
 system := $(shell uname -s)

@@ -227,9 +227,8 @@ jobs:
     - name: Clone MAX SDK
       uses: actions/checkout@v3
       with:
-        repository: Cycling74/max-sdk
-        path: max-sdk
-        submodules: true
+        repository: Cycling74/max-sdk-base
+        path: max-sdk-base
 
     # - name: Clone faustlive
     #   uses: actions/checkout@v3
@@ -321,17 +320,17 @@ jobs:
         7z x libsndfile.zip -y
         mv libsndfile-1.2.0-win64 libsndfile
 
-    - name: Download libmicrohttpd
-      run: |
-        curl -L https://ftpmirror.gnu.org/libmicrohttpd/libmicrohttpd-latest-w32-bin.zip -o libmicrohttpd.zip
-        7z x libmicrohttpd.zip -y
+    # todo: remove windows/libmicrohttpd from repo and use dynamically downloaded version
+    # - name: Download libmicrohttpd
+    #   run: |
+    #     curl -L https://ftpmirror.gnu.org/libmicrohttpd/libmicrohttpd-latest-w32-bin.zip -o libmicrohttpd.zip
+    #     7z x libmicrohttpd.zip -y
 
     - name: Clone Max SDK
       uses: actions/checkout@v3
       with:
-        repository: Cycling74/max-sdk
-        path: max-sdk
-        submodules: true
+        repository: Cycling74/max-sdk-base
+        path: max-sdk-base
 
     - name: Build libfaust
       shell: cmd
