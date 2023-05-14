@@ -19,6 +19,10 @@ on:
         type: boolean
         description: Create a draft release
         default: true
+      use_llvm_cache:
+        type: boolean
+        description: Use a cache of LLVM if it exists
+        default: true
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -48,11 +52,25 @@ jobs:
       with:
         submodules: true
 
-    - name: Install ncurses and zip
+    - name: Install zip
       run: |
-        yum install -y ncurses ncurses-devel ncurses-libs ncurses-static zip
+        yum install -y zip
+
+    - name: Checkout ncurses
+      uses: actions/checkout@v2
+      with:
+        repository: mirror/ncurses
+        path: ncurses
+
+    - name: ncurses install
+      run: |
+        cd ncurses
+        ./configure --prefix=/usr/local/ncurses/6_4 --with-shared --with-pkg-config-libdir=/usr/local/ncurses/6_4/lib/pkgconfig --enable-pc-files
+        make
+        make install
 
     - name: Restore LLVM
+      if: ${{ inputs.use_llvm_cache }}
       id: cache-llvm-restore
       uses: actions/cache/restore@v3
       with:
@@ -60,7 +78,7 @@ jobs:
         key: cache-llvm-${{env.LLVM_PACKAGE_VERSION}}-${{ matrix.name }}
 
     - name: Clone LLVM
-      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      if: ${{ !inputs.use_llvm_cache || steps.cache-llvm-restore.outputs.cache-hit != 'true'}}
       uses: actions/checkout@v3
       with:
         repository: llvm/llvm-project
@@ -68,10 +86,10 @@ jobs:
         ref: ${{ env.LLVM_COMMIT }}
 
     - name: Build LLVM
-      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      if: ${{ !inputs.use_llvm_cache || steps.cache-llvm-restore.outputs.cache-hit != 'true'}}
       run: |
         cd llvm-project/llvm
-        cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" ${{matrix.cmake-options}} ${{matrix.llvm-options}}
+        cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" -DCMAKE_PREFIX_PATH="/usr/local/ncurses/6_4/lib/pkgconfig" ${{matrix.cmake-options}} ${{matrix.llvm-options}}
         cmake --build build --config Release
         cmake --build build --target install
 
