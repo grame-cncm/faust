@@ -7,6 +7,9 @@
 #include "interval_def.hh"
 #include "utils.hh"
 
+bool const taylor_lsb = true; // flag that tells us to always compute the LSB using a Taylor expansion of the function 
+                              // instead of going for the exact computation
+
 void check(const std::string& testname, const itv::interval& exp);
 
 void check(const std::string& testname, const itv::interval& exp, const itv::interval& res);
