@@ -30,7 +30,7 @@ static const interval AcosDomain(-1, 1, 0);  // this interval needs 0 digits of 
 
 interval interval_algebra::Acos(const interval& x)
 {
-    interval i = intersection(AcosDomain, x);
+    interval i = intersection(AcosDomain, x); // TODO: warn about interval violations
     if (i.isEmpty()) {
         return i;
     }
@@ -46,15 +46,26 @@ interval interval_algebra::Acos(const interval& x)
 
     int precision = exactPrecisionUnary(acos, v, sign * pow(2, i.lsb()));
 
+    if (precision == INT_MIN or taylor_lsb)
+        precision = floor(x.lsb() - (double)log2(1 - v*v)/2);
+
     return {acos(i.hi()), acos(i.lo()), precision};
 }
 
 void interval_algebra::testAcos()
 {
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, 0), acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -1), acos, &interval_algebra::Acos);
     analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -5), acos, &interval_algebra::Acos);
     analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -10), acos, &interval_algebra::Acos);
     analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -15), acos, &interval_algebra::Acos);
     analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -20), acos, &interval_algebra::Acos);
+
+    // very fine input precision
+    /* analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -100), acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, -0.85, -100), acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(0.85, 1, -100), acos, &interval_algebra::Acos);
+
+    // out of bounds input interval
+    analyzeUnaryMethod(10, 1000, "acos", interval(-2, 2, -20), acos, &interval_algebra::Acos);*/
 }
 }  // namespace itv

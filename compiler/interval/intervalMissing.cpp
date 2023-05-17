@@ -23,18 +23,15 @@ interval interval_algebra::Output(const interval& c, const interval& y)
 {
     return interval(0);
 }
-    
-/*
-interval interval_algebra::Button(const interval& name)
+/*interval interval_algebra::Button(const interval& name)
 {
     return interval(0);
 }
 interval interval_algebra::Checkbox(const interval& name)
 {
     return interval(0);
-}
-*/
-    
+}*/
+
 interval interval_algebra::HBargraph(const interval& name, const interval& lo, const interval& hi)
 {
     return interval(0);
@@ -100,9 +97,8 @@ interval interval_algebra::Waveform(const std::vector<interval>& w)
 {
     return interval(0);
 }
-    
-/*
-interval interval_algebra::VSlider(const interval& name, const interval& init, const interval& lo, const interval& hi,
+
+/* interval interval_algebra::VSlider(const interval& name, const interval& init, const interval& lo, const interval& hi,
                                    const interval& step)
 {
     return interval(0);
@@ -116,9 +112,9 @@ interval interval_algebra::NumEntry(const interval& name, const interval& init, 
                                     const interval& step)
 {
     return interval(0);
-}
+}*/
 
-interval interval_algebra::IntNum(int x)
+/* interval interval_algebra::IntNum(int x)
 {
     return interval(0);
 }
@@ -133,9 +129,8 @@ interval interval_algebra::FloatNum(double x)
 interval interval_algebra::Label(const std::string& x)
 {
     return interval(0);
-}
-*/
-    
+}*/
+
 // Foreign functions
 interval interval_algebra::ForeignFunction(const std::vector<interval>& ff)
 {

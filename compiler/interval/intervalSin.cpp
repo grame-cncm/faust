@@ -35,6 +35,7 @@ static double sinPi(double x)
 interval interval_algebra::Sin(const interval& x)
 {
     int precision = exactPrecisionUnary(sinPi, 0.5, pow(2, x.lsb()));
+    if (precision == INT_MIN) precision = 2*x.lsb() - 1; // if x.lsb() is so small that the automatic computation doesn't work
 
     if (x.size() >= 2) {
         return {-1, 1, precision};
@@ -78,6 +79,10 @@ interval interval_algebra::Sin(const interval& x)
     }
 
     precision = exactPrecisionUnary(sinPi, v, pow(2, x.lsb()));
+    if (precision == INT_MIN)
+    {
+        if (v != 0.5) precision = (int)floor(log2(M_PI*cos(M_PI*v))) + x.lsb();
+    }
 
     return {lo, hi, precision};
 }
