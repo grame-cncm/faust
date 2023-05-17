@@ -60,10 +60,10 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     
     virtual void visit(NamedAddress* named)
     {
-        // kStaticStruct are actually merged in the main DSP
-         if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
-         }
-         *fOut << named->fName;
+        if (named->getAccess() & Address::kStruct) {
+            *fOut << "this.";
+        }
+        *fOut << named->fName;
     }
     
     static void ZeroInitializer(std::ostream* fOut, Typed* typed)
@@ -106,7 +106,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
 
 struct JSFXMidiInstr
 {
-    JSFXMidiInstr(std::string type_, std::string vname_, int nbr_, int channel_ = -1)
+    JSFXMidiInstr(const std::string& type_, const std::string& vname_, int nbr_, int channel_ = -1)
     : type_name(type_)
     , variable_name(vname_)
     , nbr(nbr_)
@@ -464,9 +464,12 @@ class JSFXInstVisitor : public TextInstVisitor {
                 prefix = "checkbox_";
             }
             *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=0<0,1,1>" << prefix << gGlobal->getFreshID(inst->fLabel);
-            EndLine();
+            EndLine(' ');
         }
         skip_slider = false;
+        if (slider_count == 64) {
+            throw(faustexception("ERROR : JSFX format does not support more than 64 controllers\n"));
+        }
     }
 
     virtual void visit(AddSliderInst* inst)
@@ -489,6 +492,9 @@ class JSFXInstVisitor : public TextInstVisitor {
             EndLine(' ');
         }
         skip_slider = false;
+        if (slider_count == 64) {
+            throw(faustexception("ERROR : JSFX format does not support more than 64 controllers\n"));
+        }
     }
 
     virtual void visit(AddBargraphInst* inst)
@@ -497,22 +503,26 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        throw(faustexception("ERROR : Soundfile is not available in JSFX.\n"));
+        throw(faustexception("ERROR : Soundfile is not available in JSFX\n"));
     }
     
-    virtual void visit(Int32NumInst* inst) {
+    virtual void visit(Int32NumInst* inst)
+    {
         *fOut << "int32(" << inst->fNum << ")";
     }
     
-    virtual void visit(Int64NumInst* inst) {
+    virtual void visit(Int64NumInst* inst)
+    {
         *fOut << "int32(" << inst->fNum << ")";
     }
 
-    virtual void visit(FloatNumInst* inst) {
+    virtual void visit(FloatNumInst* inst)
+    {
         *fOut << fixed << inst->fNum;
     }
 
-    virtual void visit(DoubleNumInst* inst) {
+    virtual void visit(DoubleNumInst* inst)
+    {
         *fOut << fixed << inst->fNum;
     }
     
@@ -598,12 +608,16 @@ class JSFXInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         //*fOut << inst->getName();
-        std::string n = inst->fAddress->getName();
-        if(n.find("output") != n.npos || n.find("input") != n.npos) 
+        std::string name = inst->fAddress->getName();
+        if (name.find("output") != name.npos || name.find("input") != name.npos)
             return;
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
              *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
         } else {
+            bool is_block = startWith(name, "iSlow") || startWith(name, "fSlow");
+            if (inst->fAddress->getAccess() & Address::kStack && is_block) {
+                *fOut << "this.";
+            }
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
                 *fOut << " = ";
@@ -668,20 +682,21 @@ class JSFXInstVisitor : public TextInstVisitor {
             EndLine();
             tab(fTab, *fOut);
         }
-
     }
 
     virtual void visit(NamedAddress* named)
     {
-        // kStaticStruct are actually merged in the main DSP
-        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+        bool is_block = startWith(named->fName, "iSlow") || startWith(named->fName, "fSlow");
+        if ((named->getAccess() & Address::kStruct && !isControl(named->fName))
+            || (named->getAccess() & Address::kStack && is_block)) {
+            *fOut << "this.";
         }
         std::string name = named->fName;
-        if(name.find("output") != name.npos) {
+        if (name.find("output") != name.npos) {
             name.replace(0, 6, "spl");
-        } else if(name.find("input") != name.npos) {
+        } else if (name.find("input") != name.npos) {
             name.replace(0, 5, "spl");
-        } else if(name.find("sample_rate") != name.npos) {
+        } else if (name.find("sample_rate") != name.npos) {
             name.replace(0, name.size(), "srate");
         }
         *fOut << name;
@@ -728,7 +743,6 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(BitcastInst* inst)
     {
-
     }
     
     virtual void visitCond(ValueInst* cond)
