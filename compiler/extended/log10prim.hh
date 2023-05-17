@@ -38,15 +38,10 @@ class Log10Prim : public xtended {
         faustassert(args.size() == arity());
         Type t = args[0];
         interval i = t->getInterval();
-        if (i.isValid()) {
-            // log10(0) gives -INF but is still in the function domain
-            if (i.lo() >= 0) {
-                return castInterval(floatCast(args[0]), interval(log10(i.lo()), log10(i.hi())));
-            } else if (gGlobal->gMathExceptions) {
-                std::stringstream error;
-                error << "WARNING : potential out of domain in log10(" << i << ")" << std::endl;
-                gWarningMessages.push_back(error.str());
-            }
+        if (i.isValid() && i.lo() < 0 && gGlobal->gMathExceptions) {
+            std::stringstream error;
+            error << "WARNING : potential out of domain in log10(" << i << ")" << std::endl;
+            gWarningMessages.push_back(error.str());
         }
         return castInterval(floatCast(t), gAlgebra.Log10(i));
     }
