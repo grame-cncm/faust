@@ -56,7 +56,7 @@ LIBFAUST_API bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {
     LOCK_API
     return (factory) ? gInterpreterFactoryTable.deleteDSPFactory(factory) : false;
- }
+}
 
 LIBFAUST_API vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory)
 {

@@ -45,4 +45,17 @@ Tree putSubFolder(Tree folder, Tree path, Tree item);
 std::string ptrToHex(Tree ptr);
 std::string checkNullLabel(Tree t, const std::string& label, bool bargraph = false);
 
+// Used in compilers for UI constructions
+struct UITree {
+
+    Tree fUIRoot;
+    
+    UITree():fUIRoot(uiFolder(cons(tree(0), tree(""))))
+    {}
+    
+    void addUIWidget(Tree path, Tree widget);
+    Tree prepareUserInterfaceTree();
+    
+};
+
 #endif

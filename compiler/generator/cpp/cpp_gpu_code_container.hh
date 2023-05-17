@@ -64,7 +64,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
         virtual void visit(AddSliderInst* inst)
         {
-            string name;
+            std::string name;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
                     name = "interface->addHorizontalSlider";
@@ -86,7 +86,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
         virtual void visit(AddBargraphInst* inst)
         {
-            string name;
+            std::string name;
             switch (inst->fType) {
                 case AddBargraphInst::kHorizontal:
                     name = "interface->addHorizontalBargraph";
@@ -135,7 +135,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
     struct KernelInstVisitor : public CPPInstVisitor {
         using CPPInstVisitor::visit;
 
-        map<string, string> fFunctionTable;
+        std::map<std::string, std::string> fFunctionTable;
         KernelInstVisitor(std::ostream* out, int tab) : CPPInstVisitor(out, tab) {}
 
         virtual void visit(LoadVarInst* inst)
@@ -264,7 +264,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
     std::ostream*      fGPUOut;
 
    public:
-    CPPGPUCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+    CPPGPUCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out)
         : CPPCodeContainer(name, super, numInputs, numOutputs, out)
     {
         fNumInputs  = numInputs;
@@ -278,7 +278,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
    protected:
     struct OpenCLKernelInstVisitor : public KernelInstVisitor {
         // Code will be generated as a string
-        virtual void tab1(int n, ostream& fout)
+        virtual void tab1(int n, std::ostream& fout)
         {
             fout << "  \\n\"  \\\n";
             fout << "\"";
@@ -313,7 +313,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
     // To be used when generating GPU kernel string
     struct ControlOpenCLInstVisitor : public ControlInstVisitor {
         // Code will be generated as a string
-        virtual void tab1(int n, ostream& fout)
+        virtual void tab1(int n, std::ostream& fout)
         {
             fout << "  \\n\"  \\\n";
             fout << "\"";
@@ -326,7 +326,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
     // To be used when generating GPU kernel string
     struct DSPOpenCLInstVisitor : public DSPInstVisitor {
         // Code will be generated as a string
-        virtual void tab1(int n, ostream& fout)
+        virtual void tab1(int n, std::ostream& fout)
         {
             fout << "  \\n\"  \\\n";
             fout << "\"";
@@ -341,7 +341,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         using KernelInstVisitor::visit;
 
         // Code will be generated as a string
-        virtual void tab1(int n, ostream& fout)
+        virtual void tab1(int n, std::ostream& fout)
         {
             fout << "  \\n\"  \\\n";
             fout << "\"";
@@ -386,7 +386,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
     };
 
    public:
-    CPPOpenCLCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+    CPPOpenCLCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out)
         : CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
     {
         fGPUOut             = new std::ostringstream();
@@ -403,7 +403,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
 
 class CPPOpenCLVectorCodeContainer : public CPPOpenCLCodeContainer {
    public:
-    CPPOpenCLVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
+    CPPOpenCLVectorCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs,
                                  std::ostream* out)
         : CPPOpenCLCodeContainer(name, super, numInputs, numOutputs, out)
     {
@@ -448,10 +448,10 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
     };
 
    public:
-    CPPCUDACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+    CPPCUDACodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out)
         : CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
     {
-        string filename     = gGlobal->gOutputFile + ".cu";
+        std::string filename     = gGlobal->gOutputFile + ".cu";
         fGPUOut             = new std::ofstream(filename.c_str());
         fKernelCodeProducer = new CUDAKernelInstVisitor(fGPUOut, 0);
         fNumInputs          = numInputs;
@@ -471,7 +471,7 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 class CPPCUDAVectorCodeContainer : public CPPCUDACodeContainer {
    protected:
    public:
-    CPPCUDAVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
+    CPPCUDAVectorCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs,
                                std::ostream* out)
         : CPPCUDACodeContainer(name, super, numInputs, numOutputs, out)
     {

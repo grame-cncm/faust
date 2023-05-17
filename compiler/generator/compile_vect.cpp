@@ -25,7 +25,10 @@
 
 #include "compile_vect.hh"
 #include "floats.hh"
+#include "sharing.hh"
 #include "ppsig.hh"
+
+using namespace std;
 
 void VectorCompiler::compileMultiSignal(Tree L)
 {
@@ -51,10 +54,10 @@ void VectorCompiler::compileMultiSignal(Tree L)
     }
 
     generateMetaData();
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
-    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+    generateUserInterfaceTree(fUITree.prepareUserInterfaceTree(), true);
+    generateMacroInterfaceTree("", fUITree.prepareUserInterfaceTree());
     if (fDescription) {
-        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+        fDescription->ui(fUITree.prepareUserInterfaceTree());
     }
 
     if (gGlobal->gPrintJSONSwitch) {
@@ -212,11 +215,11 @@ string VectorCompiler::generateLoopCode(Tree sig)
  */
 string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
 {
-    string          vname, ctype;
-    int             sharing = getSharingCount(sig);
-    Type            t       = getCertifiedSigType(sig);
-    old_Occurences* o       = fOccMarkup->retrieve(sig);
-    int             d       = o->getMaxDelay();
+    string        vname, ctype;
+    int           sharing = getSharingCount(sig, fSharingKey);
+    Type          t       = getCertifiedSigType(sig);
+    Occurrences*  o       = fOccMarkup->retrieve(sig);
+    int           d       = o->getMaxDelay();
 
     if (t->variability() < kSamp) {
         if (d == 0) {
@@ -297,10 +300,10 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
  */
 bool VectorCompiler::needSeparateLoop(Tree sig)
 {
-    old_Occurences* o = fOccMarkup->retrieve(sig);
-    Type            t = getCertifiedSigType(sig);
-    int             c = getSharingCount(sig);
-    bool            b;
+    Occurrences* o = fOccMarkup->retrieve(sig);
+    Type         t = getCertifiedSigType(sig);
+    int          c = getSharingCount(sig, fSharingKey);
+    bool         b;
 
     int  i;
     Tree x, y;

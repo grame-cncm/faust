@@ -32,6 +32,8 @@
 #include "enrobage.hh"
 #include "global.hh"
 
+using namespace std;
+
 static void initDocNoticeKeySet();
 static void initDocNoticeFlagMap();
 

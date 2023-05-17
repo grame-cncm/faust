@@ -1,0 +1,6 @@
+for f in $@
+do
+  echo "Processing $f file..."
+  faust -norm2  $f > ${f%.dsp}.type
+  diff ${f%.dsp}.type ../reference/${f%.dsp}.type ; echo Done
+done

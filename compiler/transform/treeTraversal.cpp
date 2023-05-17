@@ -22,8 +22,10 @@
 #include <cstdlib>
 
 #include "Text.hh"
-#include "ppsig.hh"
 #include "treeTraversal.hh"
+#include "list.hh"
+
+using namespace std;
 
 //------------------------------------------------------------------------------
 // TreeTraversal: Bottom up traversal

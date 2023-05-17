@@ -30,10 +30,6 @@ using namespace std;
  - sub-containers are compiled as 'struct' with associated functions
  - classInit is a Processor method for now (waiting for the Cmajor external model to be ready)
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
- - 'boolean' type:
-    - are casted to 'int' (for indexes...) and kept for tests (in SelectInst...).
-    - 'int' results are casted to 'bool' for tests (in SelectInst...).
-    - see the CmajorInstVisitor fIntAsBool variable.
  - the 'fillXXX' function needs to generate the actual size of the table argument type. This is done using the
  TableSizeVisitor class.
  - bargraphs use 'output event' type and are outputting values at 50 Hz. The code is conditionally generated.
@@ -52,8 +48,14 @@ CodeContainer* CmajorCodeContainer::createScalarContainer(const string& name, in
 
 CodeContainer* CmajorCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
+    if (isdigit(name[0])) {
+        stringstream error;
+        error << "ERROR : processor '" << name << "' cannot start with a digit\n";
+        throw faustexception(error.str());
+    }
+    
     CodeContainer* container;
-
+    
     if (gGlobal->gOpenMPSwitch) {
         throw faustexception("ERROR : OpenMP not supported for Cmajor\n");
     } else if (gGlobal->gSchedulerSwitch) {
@@ -231,12 +233,12 @@ void CmajorCodeContainer::produceClass()
     }
  
     // For control computation
-    if (fInt32ControlNum > 0) {
-        *fOut << "int32[" << fInt32ControlNum << "] iControl;";
+    if (fIntControl->fCurIndex > 0) {
+        *fOut << "int32[" << fIntControl->fCurIndex << "] iControl;";
         tab(n + 1, *fOut);
     }
-    if (fRealControlNum > 0) {
-        *fOut << fCodeProducer.getTypeManager()->fTypeDirectTable[itfloat()] << "[" << fRealControlNum << "] fControl;";
+    if (fRealControl->fCurIndex > 0) {
+        *fOut << fCodeProducer.getTypeManager()->fTypeDirectTable[itfloat()] << "[" << fRealControl->fCurIndex << "] fControl;";
     }
 
     // Global declarations

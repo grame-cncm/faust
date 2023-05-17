@@ -1,21 +1,21 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.
+ FAUST compiler
+ Copyright (C) 2003-2022 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
 
@@ -35,7 +35,6 @@
 #include "floats.hh"
 #include "floorprim.hh"
 #include "fmodprim.hh"
-#include "ftzprim.hh"
 #include "global.hh"
 #include "instructions.hh"
 #include "log10prim.hh"
@@ -50,6 +49,10 @@
 #include "sqrtprim.hh"
 #include "tanprim.hh"
 #include "tree.hh"
+#include "occur.hh"
+#include "enrobage.hh"
+#include "exepath.hh"
+#include "timing.hh"
 
 #ifdef WIN32
 #pragma warning(disable : 4996)
@@ -61,6 +64,11 @@
 
 #ifdef CPP_BUILD
 #include "cpp_code_container.hh"
+#include "cpp_gpu_code_container.hh"
+#endif
+
+#ifdef CSHARP_BUILD
+#include "csharp_code_container.hh"
 #endif
 
 #ifdef FIR_BUILD
@@ -77,10 +85,6 @@
 
 #ifdef JAVA_BUILD
 #include "java_code_container.hh"
-#endif
-
-#ifdef CSHARP_BUILD
-#include "csharp_code_container.hh"
 #endif
 
 #ifdef RUST_BUILD
@@ -107,29 +111,27 @@
 #include "template_code_container.hh"
 #endif
 
-// Parser
-extern FILE*       yyin;
-extern const char* yyfilename;
+using namespace std;
+
+// Globals for flex/bison parser
+extern FILE*       FAUSTin;
+extern const char* FAUSTfilename;
 
 // Garbageable globals
 list<Garbageable*> global::gObjectTable;
 bool               global::gHeapCleanup = false;
 
-/*
-faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation error).
-So we use a lower value here.
-*/
-
 global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
     CTree::init();
     Symbol::init();
-    // Part of the state that needs to be initialized between consecutive calls to Box/Signal API.
+
+    // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();
 
     EVALPROPERTY   = symbol("EvalProperty");
     PMPROPERTYNODE = symbol("PMPROPERTY");
-    
+
     // Fastmath mapping float version
     gFastMathLibTable["fabsf"]      = "fast_fabsf";
     gFastMathLibTable["acosf"]      = "fast_acosf";
@@ -177,6 +179,54 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFastMathLibTable["sin"]       = "fast_sin";
     gFastMathLibTable["sqrt"]      = "fast_sqrt";
     gFastMathLibTable["tan"]       = "fast_tan";
+    
+    // Fastmath mapping quad version
+    gFastMathLibTable["fabsl"]      = "fast_fabs";
+    gFastMathLibTable["acosl"]      = "fast_acos";
+    gFastMathLibTable["asinl"]      = "fast_asin";
+    gFastMathLibTable["atanl"]      = "fast_atan";
+    gFastMathLibTable["atan2l"]     = "fast_atan2";
+    gFastMathLibTable["ceill"]      = "fast_ceil";
+    gFastMathLibTable["cosl"]       = "fast_cos";
+    gFastMathLibTable["expl"]       = "fast_exp";
+    gFastMathLibTable["exp2l"]      = "fast_exp2";
+    gFastMathLibTable["exp10l"]     = "fast_exp10";
+    gFastMathLibTable["floorl"]     = "fast_floor";
+    gFastMathLibTable["fmodl"]      = "fast_fmod";
+    gFastMathLibTable["logl"]       = "fast_log";
+    gFastMathLibTable["log2l"]      = "fast_log2";
+    gFastMathLibTable["log10l"]     = "fast_log10";
+    gFastMathLibTable["powl"]       = "fast_pow";
+    gFastMathLibTable["remainderl"] = "fast_remainder";
+    gFastMathLibTable["rintl"]      = "fast_rint";
+    gFastMathLibTable["roundl"]     = "fast_round";
+    gFastMathLibTable["sinl"]       = "fast_sin";
+    gFastMathLibTable["sqrtl"]      = "fast_sqrt";
+    gFastMathLibTable["tanl"]       = "fast_tan";
+    
+    // Fastmath mapping fx version
+    gFastMathLibTable["fabsfx"]      = "fast_fabs";
+    gFastMathLibTable["acosfx"]      = "fast_acos";
+    gFastMathLibTable["asinfx"]      = "fast_asin";
+    gFastMathLibTable["atanfx"]      = "fast_atan";
+    gFastMathLibTable["atan2fx"]     = "fast_atan2";
+    gFastMathLibTable["ceilfx"]      = "fast_ceil";
+    gFastMathLibTable["cosfx"]       = "fast_cos";
+    gFastMathLibTable["expfx"]       = "fast_exp";
+    gFastMathLibTable["exp2fx"]      = "fast_exp2";
+    gFastMathLibTable["exp10fx"]     = "fast_exp10";
+    gFastMathLibTable["floorfx"]     = "fast_floor";
+    gFastMathLibTable["fmodfx"]      = "fast_fmod";
+    gFastMathLibTable["logfx"]       = "fast_log";
+    gFastMathLibTable["log2fx"]      = "fast_log2";
+    gFastMathLibTable["log10fx"]     = "fast_log10";
+    gFastMathLibTable["powfx"]       = "fast_pow";
+    gFastMathLibTable["remainderfx"] = "fast_remainder";
+    gFastMathLibTable["rintfx"]      = "fast_rint";
+    gFastMathLibTable["roundfx"]     = "fast_round";
+    gFastMathLibTable["sinfx"]       = "fast_sin";
+    gFastMathLibTable["sqrtfx"]      = "fast_sqrt";
+    gFastMathLibTable["tanfx"]       = "fast_tan";
 
     gAbsPrim       = new AbsPrim();
     gAcosPrim      = new AcosPrim();
@@ -199,8 +249,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gAtanPrim      = new AtanPrim();
     gAtan2Prim     = new Atan2Prim();
     gAsinPrim      = new AsinPrim();
-    gFtzPrim       = new FtzPrim();
-
+  
     BOXIDENT         = symbol("BoxIdent");
     BOXCUT           = symbol("BoxCut");
     BOXWAVEFORM      = symbol("BoxWaveform");
@@ -276,7 +325,6 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGPREFIX          = symbol("SigPrefix");
     SIGRDTBL           = symbol("SigRDTbl");
     SIGWRTBL           = symbol("SigWRTbl");
-    SIGTABLE           = symbol("SigTable");
     SIGGEN             = symbol("SigGen");
     SIGDOCONSTANTTBL   = symbol("SigDocConstantTbl");
     SIGDOCWRITETBL     = symbol("SigDocWriteTbl");
@@ -291,6 +339,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGFVAR            = symbol("SigFVar");
     SIGPROJ            = symbol("SigProj");
     SIGINTCAST         = symbol("SigIntCast");
+    SIGBITCAST         = symbol("SigBitCast");
     SIGFLOATCAST       = symbol("SigFloatCast");
     SIGBUTTON          = symbol("SigButton");
     SIGCHECKBOX        = symbol("SigCheckbox");
@@ -340,12 +389,15 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gMachineMaxStackSize = MAX_MACHINE_STACK_SIZE;
 }
 
+// Part of the state that needs to be initialized between consecutive calls to Box/Signal API
 void global::reset()
 {
+    gAllWarning = false;
+    gWarningMessages.clear();
+
     gResult          = nullptr;
-    gResult2         = nullptr;
     gExpandedDefList = nullptr;
-    
+
     gDetailsSwitch    = false;
     gDrawSignals      = false;
     gDrawRouteFrame   = false;
@@ -358,12 +410,12 @@ void global::reset()
     gSimpleNames      = false;
     gSimplifyDiagrams = false;
     gMaxCopyDelay     = 16;
-    
+
     gVectorSwitch      = false;
     gDeepFirstSwitch   = false;
     gVecSize           = 32;
     gVectorLoopVariant = 0;
-    
+
     gOpenMPSwitch    = false;
     gOpenMPLoop      = false;
     gSchedulerSwitch = false;
@@ -371,35 +423,36 @@ void global::reset()
     gCUDASwitch      = false;
     gGroupTaskSwitch = false;
     gFunTaskSwitch   = false;
-    
+
     gUIMacroSwitch = false;
     gDumpNorm      = -1;
     gFTZMode       = 0;
     gRangeUI       = false;
-    
-    gFloatSize = 1;
-    
+    gFreezeUI      = false;
+
+    gFloatSize = 1;  // -single by default
+
     gPrintFileListSwitch = false;
     gInlineArchSwitch    = false;
-    
+
     gDSPStruct  = false;
     gLightMode  = false;
     gClang      = false;
     gNoVirtual  = false;
-    gCheckTable = "";
-    
+    gCheckTable = true;
+
     gMathExceptions = false;
-    
+
     gClassName      = "mydsp";
     gSuperClassName = "dsp";
     gProcessName    = "process";
-    
+
     gDSPFactory = nullptr;
-    
+
     gInputString = "";
     gInputFiles.clear();
     gMetaDataSet.clear();
-    
+
     // Backend configuration : default values
     gAllowForeignFunction = true;
     gAllowForeignConstant = true;
@@ -407,63 +460,65 @@ void global::reset()
     gComputeIOTA          = false;
     gFAUSTFLOAT2Internal  = false;
     gInPlace              = false;
+    gStrictSelect         = false;
     gHasExp10             = false;
     gLoopVarInBytes       = false;
+    gUseMemmove           = false;
     gWaveformInDSP        = false;
     gUseDefaultSound      = true;
     gHasTeeLocal          = false;
-    gFastMath             = false;
     gMathApprox           = false;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = -1;
     gOneSampleControl     = false;
     gComputeMix           = false;
-    gFastMathLib          = "default";
-    gNameSpace            = "";
+    gBool2Int             = false;
+    gFastMathLib          = "";
+    gNamespace            = "";
     gFullParentheses      = false;
-    
+    gCheckIntRange        = false;
+
     gNarrowingLimit = 0;
     gWideningLimit  = 0;
-    
-    gLstDependenciesSwitch = true;  ///< mdoc listing management.
-    gLstMdocTagsSwitch     = true;  ///< mdoc listing management.
-    gLstDistributedSwitch  = true;  ///< mdoc listing management.
-    
+
+    gLstDependenciesSwitch = true;  // mdoc listing management.
+    gLstMdocTagsSwitch     = true;  // mdoc listing management.
+    gLstDistributedSwitch  = true;  // mdoc listing management.
+
     gLatexDocSwitch = true;  // Only LaTeX outformat is handled for the moment.
-    
-    gErrorCount = 0;
+
     gFileNum = 0;
-    
+
     gBoxCounter    = 0;
     gSignalCounter = 0;
-    
+
     gCountInferences = 0;
     gCountMaximal    = 0;
-    
+
     gDummyInput = 10000;
-    
+
     gBoxSlotNumber = 0;
     gMemoryManager = false;
-    
+
     gLocalCausalityCheck = false;
     gCausality           = false;
-    
+
     gOccurrences = nullptr;
     gFoldingFlag = false;
     gDevSuffix   = nullptr;
-    
-    gOutputLang  = "";
-    
+
+    gOutputLang = "";
+
 #ifdef WASM_BUILD
     gWASMVisitor = nullptr;  // Will be (possibly) allocated in WebAssembly backend
     gWASTVisitor = nullptr;  // Will be (possibly) allocated in WebAssembly backend
 #endif
-    
-#ifdef INTERP_BUILD
+
+#if defined(INTERP_BUILD) || defined(INTERP_COMP_BUILD)
     gInterpreterVisitor = nullptr;  // Will be (possibly) allocated in Interp backend
 #endif
-    
+
 #ifdef JULIA_BUILD
     gJuliaVisitor = nullptr;  // Will be (possibly) allocated in Julia backend
 #endif
@@ -475,13 +530,13 @@ void global::reset()
 #ifdef CMAJOR_BUILD
     gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in Cmajor backend
 #endif
-    
+
 #ifdef JAX_BUILD
-    gJAXVisitor = nullptr;    // Will be (possibly) allocated in JAX backend
+    gJAXVisitor = nullptr;  // Will be (possibly) allocated in JAX backend
 #endif
 
 #ifdef TEMPLATE_BUILD
-    gTemplateVisitor = nullptr;    // Will be (possibly) allocated in Template backend
+    gTemplateVisitor = nullptr;  // Will be (possibly) allocated in Template backend
 #endif
 
     gHelpSwitch       = false;
@@ -499,18 +554,18 @@ void global::reset()
     gVHDLFloatType    = 0;  // sfixed
     gVHDLFloatMSB     = 8;
     gVHDLFloatLSB     = -23;
-    gElementarySwitch = false;
+    gFPGAMemory       = 10000;
     gPrintXMLSwitch   = false;
     gPrintJSONSwitch  = false;
     gPrintDocSwitch   = false;
     gArchFile         = "";
     gExportDSP        = false;
-    
+
     gTimeout = 120;  // Time out to abort compiler (in seconds)
-    
-    // Globals to transfer results in thread based evaluation
+
+    gErrorCount   = 0;
     gErrorMessage = "";
-    
+
     // By default use "cpp" output
     gOutputLang = (getenv("FAUST_DEFAULT_BACKEND")) ? string(getenv("FAUST_DEFAULT_BACKEND")) : "cpp";
 }
@@ -531,34 +586,17 @@ void global::init()
     // True by default but only usable with -lang ocpp backend
     gEnableFlag = true;
 
-    TINT  = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-    TREAL = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval());
-
-    TKONST = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-    TBLOCK = makeSimpleType(kInt, kBlock, kComp, kVect, kNum, interval());
-    TSAMP  = makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval());
-
-    TCOMP = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-    TINIT = makeSimpleType(kInt, kKonst, kInit, kVect, kNum, interval());
-    TEXEC = makeSimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
-
-    // More predefined types
-    TINPUT   = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
-    TGUI     = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
-    TGUI01   = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval(0, 1));
-    INT_TGUI = makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval());
-
+    // Essential predefined types
+    TINPUT = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
+    TGUI   = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
+   
     TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0, 0));
     // !!! TRECMAX Maximal only in the last component of the type lattice
     TRECMAX = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(-HUGE_VAL, HUGE_VAL));
 
-    // empty Predefined bit depth
-    RES = res();
-
     // Predefined symbols CONS and NIL
     CONS = symbol("cons");
     NIL  = symbol("nil");
-
     // Predefined nil tree
     nil = tree(NIL);
 
@@ -584,10 +622,10 @@ void global::init()
     LETRECBODY       = boxIdent("RECURSIVEBODY");
 
     PROPAGATEPROPERTY = symbol("PropagateProperty");
-
-    // yyfilename is defined in errormsg.cpp but must be redefined at each compilation.
-    yyfilename = "";
-    yyin       = nullptr;
+ 
+    // FAUSTfilename is defined in errormsg.cpp but must be redefined at each compilation.
+    FAUSTfilename = "";
+    FAUSTin       = nullptr;
 
     gLatexheaderfilename = "latexheader.tex";
     gDocTextsDefaultFile = "mathdoctexts-default.txt";
@@ -617,8 +655,7 @@ void global::init()
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 
-    // Foreign math functions supported by the Interp, SOUL, wasm/wast backends
-
+    // Foreign math functions supported by the Interp, Cmajor, wasm/wast backends
     gMathForeignFunctions["acoshf"] = true;
     gMathForeignFunctions["acosh"]  = true;
     gMathForeignFunctions["acoshl"] = true;
@@ -666,7 +703,7 @@ void global::init()
 
 string global::printFloat()
 {
-    switch (gGlobal->gFloatSize) {
+    switch (gFloatSize) {
         case 1:
             return "-single ";
         case 2:
@@ -697,12 +734,29 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gInlineArchSwitch) dst << "-i ";
     if (gInPlace) dst << "-inpl ";
-    if (gOneSample >= 0) dst << "-os" << gOneSample << " ";
+    if (gStrictSelect) dst << "-sts ";
+    if (gOneSample >= 0) {
+        dst << "-os" << gOneSample << " ";
+        dst << "-fpga-mem " << gFPGAMemory << " ";
+    }
     if (gLightMode) dst << "-light ";
     if (gMemoryManager) dst << "-mem ";
     if (gComputeMix) dst << "-cm ";
     if (gRangeUI) dst << "-rui ";
+    if (gNoVirtual) dst << "-nvi ";
+    if (gFullParentheses) dst << "-fp ";
+    if (gCheckIntRange) dst << "-cir ";
+    dst << "-ct " << gCheckTable << " ";
     if (gMathApprox) dst << "-mapp ";
+    if (gMathExceptions) dst << "-me ";
+    if (gFastMathLib != "") dst << "-fm " << gFastMathLib << " ";
+    if (gVHDLSwitch) {
+        dst << "-vhdl ";
+        if (gVHDLTrace) dst << "-vhdl-trace ";
+        dst << "-vhdl-type " << gVHDLFloatType << " ";
+        dst << "-vhdl-msb " << gVHDLFloatMSB << " ";
+        dst << "-vhdl-lsb " << gVHDLFloatLSB << " ";
+    }
     if (gClassName != "mydsp") dst << "-cn " << gClassName << " ";
     if (gSuperClassName != "dsp") dst << "-scn " << gSuperClassName << " ";
     if (gProcessName != "process") dst << "-pn " << gProcessName << " ";
@@ -711,9 +765,10 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gHasExp10) dst << "-exp10 ";
     if (gSchedulerSwitch) dst << "-sch ";
     if (gOpenMPSwitch) dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
-    dst << "-mcd " << gGlobal->gMaxCopyDelay << " ";
-    if (gGlobal->gUIMacroSwitch) dst << "-uim ";
-    dst << printFloat() << "-ftz " << gFTZMode << " ";
+    dst << "-mcd " << gMaxCopyDelay << " ";
+    if (gUIMacroSwitch) dst << "-uim ";
+    dst << printFloat();
+    dst << "-ftz " << gFTZMode << " ";
     if (gVectorSwitch) {
         dst << "-vec "
             << "-lv " << gVectorLoopVariant << " "
@@ -723,7 +778,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
 
     // Add 'compile_options' metadata
     string res = dst.str();
-    gGlobal->gMetaDataSet[tree("compile_options")].insert(tree("\"" + res.substr(0, res.size() - 1) + "\""));
+    gMetaDataSet[tree("compile_options")].insert(tree("\"" + res.substr(0, res.size() - 1) + "\""));
 }
 
 string global::printCompilationOptions1()
@@ -797,8 +852,8 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
 {
 #ifdef LLVM_BUILD
     // LLVM backend can use 'standard' foreign linked functions
-    static vector<std::string> inc_list = {"<math.h>", "<cmath>", "<stdlib.h>"};
-    bool                       is_inc   = find(begin(inc_list), end(inc_list), inc_file) != inc_list.end();
+    static vector<string> inc_list = {"<math.h>", "<cmath>", "<stdlib.h>"};
+    bool                  is_inc   = find(begin(inc_list), end(inc_list), inc_file) != inc_list.end();
     // or custom added ones
     bool is_ff       = llvm_dsp_factory_aux::gForeignFunctions.count(name) > 0;
     bool is_linkable = (gOutputLang == "llvm") && (is_inc || is_ff);
@@ -938,9 +993,1164 @@ bool global::isDebug(const string& debug_val)
     return debug_var == debug_val;
 }
 
+/****************************************************************
+ Command line tools and arguments
+ *****************************************************************/
+
+// Timing can be used outside of the scope of 'gGlobal'
+extern bool gTimingSwitch;
+
+static bool isCmd(const char* cmd, const char* kw1)
+{
+    return (strcmp(cmd, kw1) == 0);
+}
+
+static bool isCmd(const char* cmd, const char* kw1, const char* kw2)
+{
+    return (strcmp(cmd, kw1) == 0) || (strcmp(cmd, kw2) == 0);
+}
+
+bool global::processCmdline(int argc, const char* argv[])
+{
+    int          i   = 1;
+    int          err = 0;
+    stringstream parse_error;
+    bool         float_size = false;
+    
+    /*
+        for (int i = 0; i < argc; i++) {
+        cerr << "processCmdline i = " << i << " cmd = " << argv[i] << "\n";
+     }
+    */
+    
+    while (i < argc) {
+        if (isCmd(argv[i], "-h", "--help")) {
+            gHelpSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-lang", "--language") && (i + 1 < argc)) {
+            gOutputLang = argv[i + 1];
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-v", "--version")) {
+            gVersionSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-libdir", "--libdir")) {
+            gLibDirSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-includedir", "--includedir")) {
+            gIncludeDirSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-archdir", "--archdir")) {
+            gArchDirSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-dspdir", "--dspdir")) {
+            gDspDirSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-pathslist", "--pathslist")) {
+            gPathListSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-d", "--details")) {
+            gDetailsSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-a", "--architecture") && (i + 1 < argc)) {
+            gArchFile = argv[i + 1];
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-inj", "--inject") && (i + 1 < argc)) {
+            gInjectFlag = true;
+            gInjectFile = argv[i + 1];
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-o") && (i + 1 < argc)) {
+            gOutputFile = argv[i + 1];
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-wi", "--widening-iterations") && (i + 1 < argc)) {
+            gWideningLimit = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-ni", "--narrowing-iterations") && (i + 1 < argc)) {
+            gNarrowingLimit = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-ps", "--postscript")) {
+            gDrawPSSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-xml", "--xml")) {
+            gPrintXMLSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-json", "--json")) {
+            gPrintJSONSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-tg", "--task-graph")) {
+            gGraphSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-sg", "--signal-graph")) {
+            gDrawSignals = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-drf", "--draw-route-frame")) {
+            gDrawRouteFrame = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-blur", "--shadow-blur")) {
+            gShadowBlur = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-sc", "--scaled-svg")) {
+            gScaledSVG = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-svg", "--svg")) {
+            gDrawSVGSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-vhdl", "--vhdl")) {
+            gVHDLSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-vhdl-trace", "--vhdl-trace")) {
+            gVHDLTrace = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-vhdl-type", "--vhdl-type") && (i + 1 < argc)) {
+            gVHDLFloatType = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-vhdl-msb", "--vhdl-msb") && (i + 1 < argc)) {
+            gVHDLFloatMSB = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-vhdl-lsb", "--vhdl-lsb") && (i + 1 < argc)) {
+            gVHDLFloatLSB = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-fpga-mem", "-fpga-mem") && (i + 1 < argc)) {
+            gFPGAMemory = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
+            gFoldThreshold = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-fc", "--fold-complexity") && (i + 1 < argc)) {
+            gFoldComplexity = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-mns", "--max-name-size") && (i + 1 < argc)) {
+            gMaxNameSize = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-sn", "--simple-names")) {
+            gSimpleNames = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i + 1 < argc)) {
+            gMaxCopyDelay = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-dlt", "-delay-line-threshold") && (i + 1 < argc)) {
+            gMaskDelayLineThreshold = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-mem", "--memory-manager")) {
+            gMemoryManager = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-sd", "--simplify-diagrams")) {
+            gSimplifyDiagrams = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-vec", "--vectorize")) {
+            gVectorSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-scal", "--scalar")) {
+            gVectorSwitch = false;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-dfs", "--deepFirstScheduling")) {
+            gDeepFirstSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-vs", "--vec-size") && (i + 1 < argc)) {
+            gVecSize = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-lv", "--loop-variant") && (i + 1 < argc)) {
+            gVectorLoopVariant = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-omp", "--openmp")) {
+            gOpenMPSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-pl", "--par-loop")) {
+            gOpenMPLoop = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-sch", "--scheduler")) {
+            gSchedulerSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-ocl", "--openCL")) {
+            gOpenCLSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-cuda", "--CUDA")) {
+            gCUDASwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-g", "--groupTasks")) {
+            gGroupTaskSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-fun", "--funTasks")) {
+            gFunTaskSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-uim", "--user-interface-macros")) {
+            gUIMacroSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-t", "--timeout") && (i + 1 < argc)) {
+            gTimeout = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-time", "--compilation-time")) {
+            gTimingSwitch = true;
+            i += 1;
+            
+        // 'real' options
+        } else if (isCmd(argv[i], "-single", "--single-precision-floats")) {
+            if (float_size && gFloatSize != 1) {
+                throw faustexception("ERROR : cannot using -single, -double, -quad or -fx at the same time\n");
+            } else {
+                float_size = true;
+            }
+            gFloatSize = 1;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-double", "--double-precision-floats")) {
+            if (float_size && gFloatSize != 2) {
+                throw faustexception("ERROR : cannot using -single, -double, -quad or -fx at the same time\n");
+            } else {
+                float_size = true;
+            }
+            gFloatSize = 2;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-quad", "--quad-precision-floats")) {
+            if (float_size && gFloatSize != 3) {
+                throw faustexception("ERROR : cannot using -single, -double, -quad or -fx at the same time\n");
+            } else {
+                float_size = true;
+            }
+            gFloatSize = 3;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-fx", "--fixed-point")) {
+            if (float_size && gFloatSize != 4) {
+                throw faustexception("ERROR : cannot using -single, -double, -quad or -fx at the same time\n");
+            } else {
+                float_size = true;
+            }
+            gFloatSize = 4;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-mdoc", "--mathdoc")) {
+            gPrintDocSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-mdlang", "--mathdoc-lang") && (i + 1 < argc)) {
+            gDocLang = argv[i + 1];
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-stripmdoc", "--strip-mdoc-tags")) {
+            gStripDocSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-flist", "--file-list")) {
+            gPrintFileListSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-norm", "--normalized-form")) {
+            gDumpNorm = 0;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-norm1", "--normalized-form1")) {
+            gDumpNorm = 1;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-norm2", "--normalized-form2")) {
+            gDumpNorm = 2;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-cn", "--class-name") && (i + 1 < argc)) {
+            vector<char> rep    = {'@', ' ', '(', ')', '/', '\\', '.'};
+            gClassName = replaceCharList(argv[i + 1], rep, '_');
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-scn", "--super-class-name") && (i + 1 < argc)) {
+            gSuperClassName = argv[i + 1];
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-pn", "--process-name") && (i + 1 < argc)) {
+            gProcessName = argv[i + 1];
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
+            gInlineArchSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-e", "--export-dsp")) {
+            gExportDSP = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-exp10", "--generate-exp10")) {
+            gHasExp10 = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-os", "--one-sample") || isCmd(argv[i], "-os0", "--one-sample0")) {
+            gOneSample = 0;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-os1", "--one-sample1")) {
+            gOneSample = 1;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-os2", "--one-sample2")) {
+            gOneSample = 2;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-os3", "--one-sample3")) {
+            gOneSample = 3;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-cm", "--compute-mix")) {
+            gComputeMix = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
+            gFTZMode = std::atoi(argv[i + 1]);
+            if ((gFTZMode > 2) || (gFTZMode < 0)) {
+                stringstream error;
+                error << "ERROR : invalid -ftz option: " << gFTZMode << endl;
+                throw faustexception(error.str());
+            }
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-rui", "--range-ui")) {
+            gRangeUI = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-fui", "--freeze-ui")) {
+            gFreezeUI = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-fm", "--fast-math")) {
+            gFastMathLib = argv[i + 1];
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-mapp", "--math-approximation")) {
+            gMathApprox = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-ns", "--namespace")) {
+            gNamespace = argv[i + 1];
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-fp", "--full-parentheses")) {
+            gFullParentheses = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-cir", "--check-integer-range")) {
+            gCheckIntRange = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-I", "--import-dir") && (i + 1 < argc)) {
+            if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
+                // We want to search user given directories *before* the standard ones, so insert at the beginning
+                gImportDirList.insert(gImportDirList.begin(), argv[i + 1]);
+            } else {
+                char  temp[PATH_MAX + 1];
+                char* path = realpath(argv[i + 1], temp);
+                if (path) {
+                    // We want to search user given directories *before* the standard ones, so insert at the beginning
+                    gImportDirList.insert(gImportDirList.begin(), path);
+                }
+            }
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-A", "--architecture-dir") && (i + 1 < argc)) {
+            if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
+                gArchitectureDirList.push_back(argv[i + 1]);
+            } else {
+                char  temp[PATH_MAX + 1];
+                char* path = realpath(argv[i + 1], temp);
+                if (path) {
+                    gArchitectureDirList.push_back(path);
+                }
+            }
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-L", "--library") && (i + 1 < argc)) {
+            gLibraryList.push_back(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-O", "--output-dir") && (i + 1 < argc)) {
+            char  temp[PATH_MAX + 1];
+            char* path = realpath(argv[i + 1], temp);
+            if (path == 0) {
+                stringstream error;
+                error << "ERROR : invalid directory path " << argv[i + 1] << endl;
+                throw faustexception(error.str());
+            } else {
+                gOutputDir = path;
+            }
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-inpl", "--in-place")) {
+            gInPlace = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-sts", "--strict-select")) {
+            gStrictSelect = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-es", "--enable-semantics")) {
+            gEnableFlag = (std::atoi(argv[i + 1]) == 1);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-lcc", "--local-causality-check")) {
+            gLocalCausalityCheck = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-light", "--light-mode")) {
+            gLightMode = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-clang", "--clang")) {
+            gClang = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-nvi", "--no-virtual")) {
+            gNoVirtual = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-ct", "--check-table")) {
+            gCheckTable = (std::atoi(argv[i + 1]) == 1);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-wall", "--warning-all")) {
+            gAllWarning = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-me", "--math-exceptions")) {
+            gMathExceptions = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine") ||
+                   isCmd(argv[i], "-poly", "--polyphonic-mode") || isCmd(argv[i], "-voices", "--polyphonic-voices") ||
+                   isCmd(argv[i], "-group", "--polyphonic-group")) {
+                // Ignore arg
+            i += 2;
+            
+        } else if (argv[i][0] != '-') {
+            const char* url = argv[i];
+            if (checkURL(url)) {
+                gInputFiles.push_back(url);
+            }
+            i++;
+            
+        } else {
+            if (err == 0) {
+                parse_error << "unrecognized option(s) : \"" << argv[i] << "\"";
+            } else {
+                parse_error << ",\"" << argv[i] << "\"";
+            }
+            i++;
+            err++;
+        }
+    }
+    
+    // Adjust related options
+    if (gOpenMPSwitch || gSchedulerSwitch) gVectorSwitch = true;
+    
+    // ========================
+    // Check options coherency
+    // ========================
+    
+    if (gInPlace && gVectorSwitch) {
+        throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n");
+    }
+    
+#if 0
+    if (gOutputLang == "ocpp" && gVectorSwitch) {
+        throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
+    }
+#endif
+    if (gOneSample >= 0 && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "dlang" &&
+        !startWith(gOutputLang, "cmajor") && gOutputLang != "fir") {
+        throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'cmajor' backends\n");
+    }
+    
+    if (gOneSample >= 0 && gVectorSwitch) {
+        throw faustexception("ERROR : '-os' option cannot only be used in scalar mode\n");
+    }
+    
+    if (gVectorLoopVariant < 0 || gVectorLoopVariant > 1) {
+        stringstream error;
+        error << "ERROR : invalid loop variant [-lv = " << gVectorLoopVariant << "] should be 0 or 1" << endl;
+        throw faustexception(error.str());
+    }
+    
+    if (gVecSize < 4) {
+        stringstream error;
+        error << "ERROR : invalid vector size [-vs = " << gVecSize << "] should be at least 4" << endl;
+        throw faustexception(error.str());
+    }
+    
+    if (gFunTaskSwitch) {
+        if (!(gOutputLang == "c" || gOutputLang == "cpp" || gOutputLang == "llvm" ||
+              gOutputLang == "fir")) {
+            throw faustexception("ERROR : -fun can only be used with 'c', 'cpp', 'llvm' or 'fir' backends\n");
+        }
+    }
+    
+    if (gFastMathLib != "") {
+        if (!(gOutputLang == "c" || gOutputLang == "cpp" || gOutputLang == "llvm" ||
+              startWith(gOutputLang, "wast") || startWith(gOutputLang, "wasm"))) {
+            throw faustexception("ERROR : -fm can only be used with 'c', 'cpp', 'llvm' or 'wast/wast' backends\n");
+        }
+    }
+    
+    if (gNamespace != "" && gOutputLang != "cpp" && gOutputLang != "dlang") {
+        throw faustexception("ERROR : -ns can only be used with the 'cpp' or 'dlang' backend\n");
+    }
+    
+    if (gMaskDelayLineThreshold < INT_MAX && (gVectorSwitch || (gOutputLang == "ocpp"))) {
+        throw faustexception(
+                             "ERROR : '-dlt < INT_MAX' option can only be used in scalar mode and not with the 'ocpp' backend\n");
+    }
+    
+    // gComputeMix check
+    if (gComputeMix && gOutputLang == "ocpp") {
+        throw faustexception("ERROR : -cm cannot be used with the 'ocpp' backend\n");
+    }
+    
+    if (gComputeMix && gOutputLang == "interp") {
+        throw faustexception("ERROR : -cm cannot be used with the 'interp' backend\n");
+    }
+    
+    if (gComputeMix && gOutputLang == "cmajor") {
+        throw faustexception("ERROR : -cm cannot be used with the 'cmajor' backend\n");
+    }
+    
+    if (gFloatSize == 4
+        && gOutputLang != "cpp"
+        && gOutputLang != "ocpp"
+        && gOutputLang != "c"
+        && gOutputLang != "fir") {
+        throw faustexception("ERROR : -fx can only be used with 'c', 'cpp', 'ocpp' or 'fir' backends\n");
+    }
+    
+    if (gFTZMode == 2
+        && gOutputLang != "cpp"
+        && gOutputLang != "ocpp"
+        && gOutputLang != "c"
+        && gOutputLang != "llvm"
+        && startWith(gOutputLang, "wast")
+        && startWith(gOutputLang,  "wasm")) {
+        throw faustexception("ERROR : -ftz 2 can only be used with 'c', 'cpp', 'ocpp', 'llvm' or wast/wasm backends\n");
+    }
+    
+    if (gClang && gOutputLang != "cpp" && gOutputLang != "ocpp" &&
+        gOutputLang != "c") {
+        throw faustexception("ERROR : -clang can only be used with 'c', 'cpp' or 'ocpp' backends\n");
+    }
+    
+    if (gNoVirtual && gOutputLang != "cpp" && gOutputLang != "ocpp" &&
+        gOutputLang != "c") {
+        throw faustexception("ERROR : -nvi can only be used with 'c', 'cpp' or 'ocpp' backends\n");
+    }
+    
+    if (gMemoryManager && gOutputLang != "cpp" && gOutputLang != "ocpp") {
+        throw faustexception("ERROR : -mem can only be used with 'cpp' or 'ocpp' backends\n");
+    }
+    
+    if (gArchFile != "" &&
+        ((gOutputLang == "wast") || (gOutputLang == "wasm") || (gOutputLang == "interp") ||
+         (gOutputLang == "llvm") || (gOutputLang == "fir"))) {
+        throw faustexception("ERROR : -a can only be used with 'c', 'cpp', 'ocpp', 'rust' and 'cmajor' backends\n");
+    }
+    
+    if (gClassName == "") {
+        throw faustexception("ERROR : -cn used with empty string \n");
+    }
+    
+    if (err != 0) {
+        stringstream error;
+        error << "WARNING : " << parse_error.str() << endl;
+        gErrorMessage = error.str();
+    }
+    
+    return (err == 0);
+}
+
+/**
+ * transform a filename "faust/example/noise.dsp" into
+ * the corresponding fx name "noise"
+ */
+static string fxName(const string& filename)
+{
+    // determine position right after the last '/' or 0
+    size_t p1 = 0;
+    for (size_t i = 0; i < filename.size(); i++) {
+        if (filename[i] == '/') {
+            p1 = i + 1;
+        }
+    }
+    
+    // determine position of the last '.'
+    size_t p2 = filename.size();
+    for (size_t i = p1; i < filename.size(); i++) {
+        if (filename[i] == '.') {
+            p2 = i;
+        }
+    }
+    
+    return filename.substr(p1, p2 - p1);
+}
+
+void global::initDocumentNames()
+{
+    if (gInputFiles.empty()) {
+        gMasterDocument  = "Unknown";
+        gMasterDirectory = ".";
+        gMasterName      = "faustfx";
+        gDocName         = "faustdoc";
+    } else {
+        gMasterDocument  = *gInputFiles.begin();
+        gMasterDirectory = fileDirname(gMasterDocument);
+        gMasterName      = fxName(gMasterDocument);
+        gDocName         = fxName(gMasterDocument);
+    }
+    
+    // Add gMasterDirectory in gImportDirList and gArchitectureDirList
+    gImportDirList.push_back(gMasterDirectory);
+    gArchitectureDirList.push_back(gMasterDirectory);
+}
+
+void global::initDirectories(int argc, const char* argv[])
+{
+#if !defined(FAUST_SELF_CONTAINED_LIB)
+    char s[1024];
+    getFaustPathname(s, 1024);
+    
+    gFaustExeDir              = exepath::get(argv[0]);
+    gFaustRootDir             = exepath::dirup(gFaustExeDir);
+    gFaustDirectory           = fileDirname(s);
+    gFaustSuperDirectory      = fileDirname(gFaustDirectory);
+    gFaustSuperSuperDirectory = fileDirname(gFaustSuperDirectory);
+    
+    //-------------------------------------------------------------------------------------
+    // init gImportDirList : a list of path where to search .lib files
+    //-------------------------------------------------------------------------------------
+    if (char* envpath = getenv("FAUST_LIB_PATH")) {
+        gImportDirList.push_back(envpath);
+    }
+#ifdef INSTALL_PREFIX
+    gImportDirList.push_back(INSTALL_PREFIX "/share/faust");
+#endif
+    
+    gImportDirList.push_back(exepath::dirup(gFaustExeDir) + "/share/faust");
+    gImportDirList.push_back("/usr/local/share/faust");
+    gImportDirList.push_back("/usr/share/faust");
+    
+    //-------------------------------------------------------------------------------------
+    // init gArchitectureDirList : a list of path where to search architectures files
+    //-------------------------------------------------------------------------------------
+    if (char* envpath = getenv("FAUST_ARCH_PATH")) {
+        gArchitectureDirList.push_back(envpath);
+    }
+    gArchitectureDirList.push_back(gFaustDirectory + "/architecture");
+    gArchitectureDirList.push_back(gFaustSuperDirectory + "/architecture");
+    gArchitectureDirList.push_back(gFaustSuperSuperDirectory + "/architecture");
+#ifdef INSTALL_PREFIX
+    gArchitectureDirList.push_back(INSTALL_PREFIX "/share/faust");
+    gArchitectureDirList.push_back(INSTALL_PREFIX "/include");
+#endif
+    gArchitectureDirList.push_back(exepath::dirup(gFaustExeDir) + "/share/faust");
+    gArchitectureDirList.push_back(exepath::dirup(gFaustExeDir) + "/include");
+    gArchitectureDirList.push_back("/usr/local/share/faust");
+    gArchitectureDirList.push_back("/usr/share/faust");
+    gArchitectureDirList.push_back("/usr/local/include");
+    gArchitectureDirList.push_back("/usr/include");
+    
+    // for debugging purposes
+    //    cerr << "gArchitectureDirList:\n";
+    //    for (const auto& d : gArchitectureDirList) {
+    //        cerr << "\t" << d << "\n";
+    //    }
+    //    cerr << endl;
+#endif
+}
+
+void global::printDeclareHeader(ostream& dst)
+{
+    for (const auto& i : gMetaDataSet) {
+        if (i.first != tree("author")) {
+            dst << "declare ";
+            stringstream key;
+            key << *(i.first);
+            vector<char> rep{'.', ':', '/'};
+            dst << replaceCharList(key.str(), rep, '_');
+            dst << " " << **(i.second.begin()) << ";" << endl;
+        } else {
+            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); ++j) {
+                if (j == i.second.begin()) {
+                    dst << "declare " << *(i.first) << " " << **j << ";" << endl;
+                } else {
+                    dst << "declare contributor " << **j << ";" << endl;
+                }
+            }
+        }
+    }
+}
+
+void global::parseSourceFiles()
+{
+    startTiming("parser");
+    list<string>::iterator s;
+    Tree result = nil;
+    gReader.init();
+    
+    if (!gInjectFlag && gInputFiles.begin() == gInputFiles.end()) {
+        throw faustexception("ERROR : no files specified; for help type \"faust --help\"\n");
+    }
+    for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
+        if (s == gInputFiles.begin()) {
+            gMasterDocument = *s;
+        }
+        result = cons(importFile(tree(s->c_str())), result);
+    }
+    
+    gExpandedDefList = gReader.expandList(result);
+    endTiming("parser");
+}
+
+/****************************************************************
+ Faust directories information
+ *****************************************************************/
+#ifdef WIN32
+#define kPSEP '\\'
+#else
+#define kPSEP '/'
+#endif
+
+#ifndef LIBDIR
+#define LIBDIR "lib"
+#endif
+
+static void enumBackends(ostream& out)
+{
+    const char* dspto = "   DSP to ";
+#ifdef C_BUILD
+    out << dspto << "C" << endl;
+#endif
+    
+#ifdef CPP_BUILD
+    out << dspto << "C++" << endl;
+#endif
+    
+#ifdef CMAJOR_BUILD
+    out << dspto << "Cmajor" << endl;
+#endif
+    
+#ifdef CSHARP_BUILD
+    out << dspto << "CSharp" << endl;
+#endif
+    
+#ifdef DLANG_BUILD
+    out << dspto << "DLang" << endl;
+#endif
+    
+#ifdef FIR_BUILD
+    out << dspto << "FIR" << endl;
+#endif
+    
+#if defined(INTERP_BUILD) || defined(INTERP_COMP_BUILD)
+    out << dspto << "Interpreter" << endl;
+#endif
+    
+#ifdef JAVA_BUILD
+    out << dspto << "Java" << endl;
+#endif
+    
+#ifdef JAX_BUILD
+    out << dspto << "JAX" << endl;
+#endif
+    
+#ifdef JULIA_BUILD
+    out << dspto << "Julia" << endl;
+#endif
+    
+#ifdef JSFX_BUILD
+    out << dspto << "JSFX" << endl;
+#endif
+    
+#ifdef LLVM_BUILD
+    out << dspto << "LLVM IR" << endl;
+#endif
+    
+#ifdef OCPP_BUILD
+    out << dspto << "old C++" << endl;
+#endif
+    
+#ifdef RUST_BUILD
+    out << dspto << "Rust" << endl;
+#endif
+    
+#ifdef TEMPLATE_BUILD
+    out << dspto << "Template" << endl;
+#endif
+    
+#ifdef WASM_BUILD
+    out << dspto << "WebAssembly (wast/wasm)" << endl;
+#endif
+}
+
+/****************************************************************
+ Help and Version information
+ *****************************************************************/
+
+static void printVersion()
+{
+    cout << "FAUST Version " << FAUSTVERSION << "\n";
+    cout << "Embedded backends: \n";
+    enumBackends(cout);
+#ifdef LLVM_BUILD
+    cout << "Build with LLVM version " << LLVM_VERSION << "\n";
+#endif
+    cout << "Copyright (C) 2002-2023, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
+}
+
+static void printHelp()
+{
+    const char* tab  = "  ";
+    const char* line = "\n---------------------------------------\n";
+    
+    cout << "FAUST compiler version " << FAUSTVERSION << "\n";
+    cout << "usage : faust [options] file1 [file2 ...]." << endl;
+    cout << "        where options represent zero or more compiler options \n\tand fileN represents a Faust source "
+    "file (.dsp extension)."
+    << endl;
+    
+    cout << endl << "Input options:" << line;
+    cout << tab << "-a <file>                               wrapper architecture file." << endl;
+    cout << tab << "-i        --inline-architecture-files   inline architecture files." << endl;
+    cout << tab << "-A <dir>  --architecture-dir <dir>      add the directory <dir> to the architecture search path."
+         << endl;
+    cout << tab << "-I <dir>  --import-dir <dir>            add the directory <dir> to the libraries search path."
+         << endl;
+    cout << tab << "-L <file> --library <file>              link with the LLVM module <file>." << endl;
+    
+    cout << endl << "Output options:" << line;
+    cout << tab << "-o <file>                               the output file." << endl;
+    cout << tab << "-e        --export-dsp                  export expanded DSP (with all included libraries)." << endl;
+    cout << tab << "-uim      --user-interface-macros       add user interface macro definitions to the output code."
+         << endl;
+    cout << tab << "-xml                                    generate an XML description file." << endl;
+    cout << tab << "-json                                   generate a JSON description file." << endl;
+    cout << tab
+         << "-O <dir>  --output-dir <dir>            specify the relative directory of the generated output code and "
+         "of additional generated files (SVG, XML...)."
+         << endl;
+        
+    cout << endl << "Code generation options:" << line;
+    cout << tab << "-lang <lang> --language                 select output language," << endl;
+    cout << tab
+         << "                                        'lang' should be c, cpp (default), cmajor, csharp, dlang, fir, interp, java, jax, julia, llvm, "
+         "ocpp, rust or wast/wasm."
+         << endl;
+    cout << tab
+         << "-single     --single-precision-floats   use single precision floats for internal computations (default)."
+         << endl;
+    cout << tab << "-double     --double-precision-floats   use double precision floats for internal computations."
+         << endl;
+    cout << tab << "-quad       --quad-precision-floats     use quad precision floats for internal computations."
+         << endl;
+    cout << tab << "-fx         --fixed-point               use fixed-point for internal computations." << endl;
+    cout << tab
+         << "-es 1|0     --enable-semantics 1|0      use enable semantics when 1 (default), and simple multiplication "
+         "otherwise."
+         << endl;
+    cout << tab << "-lcc        --local-causality-check     check causality also at local level." << endl;
+    cout << tab << "-light      --light-mode                do not generate the entire DSP API." << endl;
+    cout << tab
+         << "-clang      --clang                     when compiled with clang/clang++, adds specific #pragma for "
+         "auto-vectorization."
+         << endl;
+    cout << tab
+         << "-nvi        --no-virtual                when compiled with the C++ backend, does not add the 'virtual' "
+         "keyword."
+         << endl;
+    cout << tab << "-fp         --full-parentheses          always add parentheses around binops." << endl;
+    cout << tab << "-cir        --check-integer-range       check float to integer range conversion." << endl;
+    cout << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
+    cout << tab << "-os         --one-sample                generate one sample computation (same as -os0)." << endl;
+    cout << tab << "-os0        --one-sample0               generate one sample computation (0 = separated control)."
+         << endl;
+    cout << tab
+         << "-os1        --one-sample1               generate one sample computation (1 = separated control and DSP "
+         "struct)."
+         << endl;
+    cout << tab
+         << "-os2        --one-sample2               generate one sample computation (2 = separated control and DSP "
+    "struct. Separation in short and long delay lines)."
+         << endl;
+    cout << tab
+         << "-os3        --one-sample3               generate one sample computation (3 = like 2 but with external "
+         "memory pointers kept in the DSP struct)."
+         << endl;
+    
+    cout << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
+    cout << tab << "-ct         --check-table               check rtable/rwtable index range and generate safe access code [0/1: 1 by default]." << endl;
+    cout << tab
+         << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
+         << endl;
+    cout << tab
+         << "-scn <name> --super-class-name <name>   specify the name of the super class to be used instead of dsp."
+         << endl;
+    cout << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process."
+         << endl;
+    cout << tab
+         << "-mcd <n>    --max-copy-delay <n>        threshold between copy and ring buffer implementation (default 16 "
+         "samples)."
+         << endl;
+    cout << tab
+         << "-dlt <n>    --delay-line-threshold <n>  threshold between 'mask' and 'select' ring buffer implementation "
+         "(default INT_MAX "
+         "samples)."
+         << endl;
+    cout << tab
+         << "-mem        --memory-manager            allocate static in global state using a custom memory manager."
+         << endl;
+    cout << tab
+         << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no (default), 1:fabs based, "
+         "2:mask based (fastest)]."
+         << endl;
+    cout << tab
+         << "-rui        --range-ui                  whether to generate code to constraint vslider/hslider/nentry values "
+    "in [min..max] range."
+        << endl;
+    cout << tab
+         << "-fui        --freeze-ui                 whether to freeze vslider/hslider/nentry to a given value (init value by default)."
+         << endl;
+    cout << tab
+         << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compiling "
+         "a dsp file."
+         << endl;
+    cout << tab << "-scal       --scalar                    generate non-vectorized code (default)." << endl;
+    cout << tab
+         << "-inpl       --in-place                  generates code working when input and output buffers are the same "
+         "(scalar mode only)."
+         << endl;
+    cout << tab << "-vec        --vectorize                 generate easier to vectorize code." << endl;
+    cout << tab << "-vs <n>     --vec-size <n>              size of the vector (default 32 samples)." << endl;
+    cout << tab << "-lv <n>     --loop-variant <n>          [0:fastest, fixed vector size and a remaining loop (default), 1:simple, variable vector size]."    << endl;
+    cout << tab << "-omp        --openmp                    generate OpenMP pragmas, activates --vectorize option."
+         << endl;
+    cout << tab << "-pl         --par-loop                  generate parallel loops in --openmp mode." << endl;
+    cout << tab
+         << "-sch        --scheduler                 generate tasks and use a Work Stealing scheduler, activates "
+         "--vectorize option."
+         << endl;
+    cout << tab << "-ocl        --opencl                    generate tasks with OpenCL (experimental)." << endl;
+    cout << tab << "-cuda       --cuda                      generate tasks with CUDA (experimental)." << endl;
+    cout << tab << "-dfs        --deep-first-scheduling     schedule vector loops in deep first order." << endl;
+    cout << tab
+         << "-g          --group-tasks               group single-threaded sequential tasks together when -omp or -sch "
+         "is used."
+         << endl;
+    cout << tab
+         << "-fun        --fun-tasks                 separate tasks code as separated functions (in -vec, -sch, or "
+         "-omp mode)."
+         << endl;
+    cout << tab
+         << "-fm <file>  --fast-math <file>          use optimized versions of mathematical functions implemented in "
+         "<file>, use 'faust/dsp/fastmath.cpp' when file is 'def', assume functions are defined in the architecture file when file is 'arch'."
+         << endl;
+    cout << tab
+         << "-mapp       --math-approximation        simpler/faster versions of 'floor/ceil/fmod/remainder' functions."
+         << endl;
+    cout << tab << "-ns <name>  --namespace <name>          generate C++ or D code in a namespace <name>." << endl;
+    
+    cout << tab << "-vhdl          --vhdl                   output vhdl file." << endl;
+    cout << tab << "-vhdl-trace    --vhdl-trace             activate trace." << endl;
+    cout << tab << "-vhdl-type 0|1 --vhdl-type 0|1          sample format 0 = sfixed (default), 1 = float." << endl;
+    cout << tab << "-vhdl-msb <n>  --vhdl-msb <n>           Most Significant Bit (MSB) position." << endl;
+    cout << tab << "-vhdl-lsb <n>  --vhdl-lsb <n>           Less Significant Bit (LSB) position." << endl;
+    cout << tab << "-fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, used in -os2/-os3 mode." << endl;
+    
+    cout << tab << "-wi <n>     --widening-iterations <n>   number of iterations before widening in signal bounding."
+         << endl;
+    
+    cout << tab
+         << "-ni <n>     --narrowing-iterations <n>  number of iterations before stopping narrowing in signal bounding."
+         << endl;
+    
+    cout << endl << "Block diagram options:" << line;
+    cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
+    cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
+    cout << tab << "-sd        --simplify-diagrams          try to further simplify diagrams before drawing." << endl;
+    cout << tab << "-drf       --draw-route-frame           draw route frames instead of simple cables." << endl;
+    cout << tab
+         << "-f <n>     --fold <n>                   threshold to activate folding mode during block-diagram "
+         "generation (default 25 elements)."
+         << endl;
+    cout << tab
+         << "-fc <n>    --fold-complexity <n>        complexity threshold to fold an expression in folding mode "
+         "(default 2)."
+         << endl;
+    cout << tab
+         << "-mns <n>   --max-name-size <n>          threshold during block-diagram generation (default 40 char)."
+         << endl;
+    cout << tab
+         << "-sn        --simple-names               use simple names (without arguments) during block-diagram "
+         "generation."
+         << endl;
+    cout << tab << "-blur      --shadow-blur                add a shadow blur to SVG boxes." << endl;
+    cout << tab << "-sc        --scaled-svg                 automatic scalable SVG." << endl;
+    
+    cout << endl << "Math doc options:" << line;
+    cout << tab
+         << "-mdoc       --mathdoc                   print math documentation of the Faust program in LaTeX format in "
+         "a -mdoc folder."
+         << endl;
+    cout << tab << "-mdlang <l> --mathdoc-lang <l>          if translation file exists (<l> = en, fr, ...)." << endl;
+    cout << tab << "-stripmdoc  --strip-mdoc-tags           strip mdoc tags when printing Faust -mdoc listings."
+         << endl;
+    
+    cout << endl << "Debug options:" << line;
+    cout << tab << "-d          --details                   print compilation details." << endl;
+    cout << tab << "-time       --compilation-time          display compilation phases timing information." << endl;
+    cout << tab << "-flist      --file-list                 print file list (including libraries) used to eval process."
+         << endl;
+    cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
+    cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
+    cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
+    cout << tab
+         << "-me         --math-exceptions           check / for 0 as denominator and remainder, fmod, sqrt, log10, "
+         "log, acos, asin functions domain."
+         << endl;
+    cout << tab << "-sts        --strict-select             generate strict code for 'selectX' even for stateless branches (both are computed)." << endl;
+    cout << tab << "-wall       --warning-all               print all warnings." << endl;
+    cout << tab << "-t <sec>    --timeout <sec>             abort compilation after <sec> seconds (default 120)."
+         << endl;
+    
+    cout << endl << "Information options:" << line;
+    cout << tab << "-h          --help                      print this help message." << endl;
+    cout << tab << "-v          --version                   print version information and embedded backends list."
+         << endl;
+    cout << tab << "-libdir     --libdir                    print directory containing the Faust libraries." << endl;
+    cout << tab << "-includedir --includedir                print directory containing the Faust headers." << endl;
+    cout << tab << "-archdir    --archdir                   print directory containing the Faust architectures."
+         << endl;
+    cout << tab << "-dspdir     --dspdir                    print directory containing the Faust dsp libraries."
+         << endl;
+    cout << tab << "-pathslist  --pathslist                 print the architectures and dsp library paths." << endl;
+    
+    cout << endl << "Example:" << line;
+    cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp" << endl;
+}
+
+void global::printLibDir()
+{
+    cout << gFaustRootDir << kPSEP << LIBDIR << endl;
+}
+void global::printIncludeDir()
+{
+    cout << gFaustRootDir << kPSEP << "include" << endl;
+}
+void global::printArchDir()
+{
+    cout << gFaustRootDir << kPSEP << "share" << kPSEP << "faust" << endl;
+}
+void global::printDspDir()
+{
+    cout << gFaustRootDir << kPSEP << "share" << kPSEP << "faust" << endl;
+}
+void global::printPaths()
+{
+    cout << "FAUST dsp library paths:" << endl;
+    for (const auto& path : gImportDirList) cout << path << endl;
+    cout << "\nFAUST architectures paths:" << endl;
+    for (const auto& path : gArchitectureDirList) cout << path << endl;
+    cout << endl;
+}
+
+void global::printDirectories()
+{
+    if (gHelpSwitch) {
+        printHelp();
+        throw faustexception();
+    }
+    if (gVersionSwitch) {
+        printVersion();
+        throw faustexception();
+    }
+    if (gLibDirSwitch) {
+        printLibDir();
+        throw faustexception();
+    }
+    if (gIncludeDirSwitch) {
+        printIncludeDir();
+        throw faustexception();
+    }
+    if (gArchDirSwitch) {
+        printArchDir();
+        throw faustexception();
+    }
+    if (gDspDirSwitch) {
+        printDspDir();
+        throw faustexception();
+    }
+    if (gPathListSwitch) {
+        printPaths();
+        throw faustexception();
+    }
+}
+
+// For box/sig generation
+void global::clear()
+{
+    gBoxCounter = 0;
+    gBoxTable.clear();
+    gBoxTrace.clear();
+    
+    gSignalCounter = 0;
+    gSignalTable.clear();
+    gSignalTrace.clear();
+}
+
+// Memory management
 void Garbageable::cleanup()
 {
-    std::list<Garbageable*>::iterator it;
+    list<Garbageable*>::iterator it;
 
     // Here removing the deleted pointer from the list is pointless
     // and takes time, thus we don't do it.
@@ -957,17 +2167,6 @@ void Garbageable::cleanup()
     // Reset to default state
     global::gObjectTable.clear();
     global::gHeapCleanup = false;
-}
-
-void global::clear()
-{
-    gBoxCounter = 0;
-    gBoxTable.clear();
-    gBoxTrace.clear();
-
-    gSignalCounter = 0;
-    gSignalTable.clear();
-    gSignalTrace.clear();
 }
 
 void* Garbageable::operator new(size_t size)
@@ -1004,4 +2203,27 @@ void Garbageable::operator delete[](void* ptr)
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
     }
     free(ptr);
+}
+
+// Threaded calls API
+void callFun(threaded_fun fun, void* arg)
+{
+#if defined(EMCC)
+    // No thread support in JavaScript
+    fun(arg);
+#elif defined(_WIN32)
+    DWORD  id;
+    HANDLE thread = CreateThread(NULL, MAX_STACK_SIZE, LPTHREAD_START_ROUTINE(fun), arg, 0, &id);
+    faustassert(thread != NULL);
+    WaitForSingleObject(thread, INFINITE);
+#else
+    pthread_t      thread;
+    pthread_attr_t attr;
+    faustassert(pthread_attr_init(&attr) == 0);
+    faustassert(pthread_attr_setstacksize(&attr, MAX_STACK_SIZE) == 0);
+    faustassert(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) == 0);
+    faustassert(pthread_create(&thread, &attr, fun, arg) == 0);
+    faustassert(pthread_join(thread, nullptr) == 0);
+    faustassert(pthread_attr_destroy(&attr) == 0);
+#endif
 }

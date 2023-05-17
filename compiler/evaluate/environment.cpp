@@ -27,6 +27,8 @@
 #include "names.hh"
 #include "ppbox.hh"
 
+using namespace std;
+
 //----------------------- New environment management --------------------------
 //
 // The environment is made of layers. Each layer contains a set of definitions

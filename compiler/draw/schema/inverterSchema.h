@@ -9,12 +9,12 @@
  */
 class inverterSchema : public blockSchema {
    public:
-    friend schema* makeInverterSchema(const string& color);
+    friend schema* makeInverterSchema(const std::string& color);
 
     virtual void draw(device& dev);
 
    private:
-    inverterSchema(const string& color);
+    inverterSchema(const std::string& color);
 };
 
 #endif  // INVERTERSCHEMA_H

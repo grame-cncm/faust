@@ -84,7 +84,9 @@ class cmajorpatch_dsp : public dsp {
         cmajorpatch_dsp(cmajor_dsp_factory* factory, std::string& error_msg);
     
         virtual ~cmajorpatch_dsp()
-        {}
+        {
+            delete [] fZoneMap;
+        }
     
         void setMidiHandler(midi_handler* handler) { fMIDIHander = handler; }
         midi_handler* getMidiHandler() { return fMIDIHander; }
@@ -159,15 +161,11 @@ class cmajor_dsp_factory : public dsp_factory {
     
         cmajor_dsp_factory(const std::string& dsp_content, std::string& error_msg)
         {
-            //std::string filename = "/usr/local/lib/" + std::string(cmaj::Library::getDLLName());
-            std::string filename = "/usr/local/lib/libCmajPerformer.dylib";
-        
+            std::string filename = "/usr/local/lib/" + std::string(cmaj::Library::getDLLName());
             if (!cmaj::Library::initialise(filename)) {
                 error_msg = "ERROR : cannot load CMajor library\n";
                 throw std::bad_alloc();
             }
-        
-            std::cout << "dsp_content " << dsp_content << std::endl;
         
             fEngine = cmaj::Engine::create();
             cmaj::DiagnosticMessageList messages;
@@ -187,12 +185,14 @@ class cmajor_dsp_factory : public dsp_factory {
                 throw std::bad_alloc();
             }
 
-            std::cout << "Input endpoints:" << std::endl
+            /*
+             std::cout << "Input endpoints:" << std::endl
                 << fEngine.getInputEndpoints().getDescription() << std::endl
                 << std::endl
                 << "Output endpoints:" << std::endl
                 << fEngine.getOutputEndpoints().getDescription() << std::endl
                 << std::endl;
+             */
         
             cmaj::EndpointDetailsList endpoint_inputs = fEngine.getInputEndpoints();
             cmaj::EndpointDetailsList endpoint_outputs = fEngine.getOutputEndpoints();
@@ -204,13 +204,14 @@ class cmajor_dsp_factory : public dsp_factory {
                     || choc::text::startsWith(name, "eventfButton")
                     || choc::text::startsWith(name, "eventfHslider")
                     || choc::text::startsWith(name, "eventfVslider")
-                    || choc::text::startsWith(name, "eventfVbargraph")) {
+                    || choc::text::startsWith(name, "eventfEntry")) {
                     fHandleInputControls[name] = fEngine.getEndpointHandle(it.endpointID);
                 }
             }
             for (const auto& it : endpoint_outputs) {
                 std::string name = it.endpointID.toString();
-                if (choc::text::startsWith(name, "eventfHbargraph") || choc::text::startsWith(name, "eventfVbargraph")) {
+                if (choc::text::startsWith(name, "eventfHbargraph")
+                    || choc::text::startsWith(name, "eventfVbargraph")) {
                     fHandleOutputControls[name] = fEngine.getEndpointHandle(it.endpointID);
                 }
             }
@@ -244,6 +245,7 @@ class cmajor_dsp_factory : public dsp_factory {
         virtual std::string getCompileOptions() { return ""; }
         virtual std::vector<std::string> getLibraryList() { return {}; }
         virtual std::vector<std::string> getIncludePathnames() { return {}; }
+        virtual std::vector<std::string> getWarningMessages() { return {}; }
     
         virtual cmajorpatch_dsp* createDSPInstance()
         {
@@ -288,70 +290,83 @@ void cmajorpatch_dsp::init(int sample_rate)
 void cmajorpatch_dsp::buildUserInterface(UI* ui_interface)
 {
     ui_interface->openVerticalBox("CMajor");
-    ui_interface->openVerticalBox("Inputs");
+    if (fFactory->fHandleInputControls.size() > 0) {
+        ui_interface->openVerticalBox("Inputs");
+    }
     int i = 0;
     // Inputs
     for (const auto& it : fEndpointInputs) {
         std::string name = it.endpointID.toString();
         uint32_t index = fFactory->fEngine.getEndpointHandle(name.c_str());
         if (choc::text::startsWith(name, "eventfCheckbox")) {
-            ui_interface->addCheckButton(name.c_str(), &fZoneMap[i]);
+            std::string label = it.annotation["name"].toString();
+            ui_interface->addCheckButton(label.c_str(), &fZoneMap[i]);
             fZoneMap[i] = 0;
             fInputsFunMap[&fZoneMap[i]] = [=](FAUSTFLOAT value) { fPerformer.addInputEvent(fFactory->fHandleInputControls[name], 0, value); };
             i++;
         } else if (choc::text::startsWith(name, "eventfButton")) {
-            ui_interface->addButton(name.c_str(), &fZoneMap[i]);
+            std::string label = it.annotation["name"].toString();
+            ui_interface->addButton(label.c_str(), &fZoneMap[i]);
             fZoneMap[i] = 0;
             fInputsFunMap[&fZoneMap[i]] = [=](FAUSTFLOAT value) { fPerformer.addInputEvent(fFactory->fHandleInputControls[name], 0, value); };
             i++;
         } else if (choc::text::startsWith(name, "eventfHslider")) {
+            std::string label = it.annotation["name"].toString();
             FAUSTFLOAT min_v = it.annotation["min"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT max_v = it.annotation["max"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT init = it.annotation["init"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT step = it.annotation["step"].getWithDefault<FAUSTFLOAT>(0);
-            ui_interface->addHorizontalSlider(name.c_str(), &fZoneMap[i], init, min_v, max_v, step);
+            ui_interface->addHorizontalSlider(label.c_str(), &fZoneMap[i], init, min_v, max_v, step);
             fZoneMap[i] = init;
             fInputsFunMap[&fZoneMap[i]] = [=](FAUSTFLOAT value) { fPerformer.addInputEvent(fFactory->fHandleInputControls[name], 0, value); };
             i++;
         } else if (choc::text::startsWith(name, "eventfVslider")) {
+            std::string label = it.annotation["name"].toString();
             FAUSTFLOAT min_v = it.annotation["min"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT max_v = it.annotation["max"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT init = it.annotation["init"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT step = it.annotation["step"].getWithDefault<FAUSTFLOAT>(0);
-            ui_interface->addVerticalSlider(name.c_str(), &fZoneMap[i], init, min_v, max_v, step);
+            ui_interface->addVerticalSlider(label.c_str(), &fZoneMap[i], init, min_v, max_v, step);
             fZoneMap[i] = init;
             fInputsFunMap[&fZoneMap[i]] = [=](FAUSTFLOAT value) { fPerformer.addInputEvent(fFactory->fHandleInputControls[name], 0, value); };
             i++;
         } else if (choc::text::startsWith(name, "eventfEntry")) {
+            std::string label = it.annotation["name"].toString();
             FAUSTFLOAT min_v = it.annotation["min"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT max_v = it.annotation["max"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT init = it.annotation["init"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT step = it.annotation["step"].getWithDefault<FAUSTFLOAT>(0);
-            ui_interface->addNumEntry(name.c_str(), &fZoneMap[i], init, min_v, max_v, step);
+            ui_interface->addNumEntry(label.c_str(), &fZoneMap[i], init, min_v, max_v, step);
             fZoneMap[i] = init;
             fInputsFunMap[&fZoneMap[i]] = [=](FAUSTFLOAT value) { fPerformer.addInputEvent(fFactory->fHandleInputControls[name], 0, value); };
             i++;
         }
     }
-    ui_interface->closeBox();
+    if (fFactory->fHandleInputControls.size() > 0) {
+        ui_interface->closeBox();
+    }
     // Outputs
-    ui_interface->openVerticalBox("Outputs");
+    if (fFactory->fHandleOutputControls.size() > 0) {
+        ui_interface->openVerticalBox("Outputs");
+    }
     for (const auto& it : fEndpointOutputs) {
         std::string name = it.endpointID.toString();
         uint32_t index = fFactory->fEngine.getEndpointHandle(name.c_str());
         if (choc::text::startsWith(name, "eventfHbargraph")) {
+            std::string label = it.annotation["name"].toString();
             FAUSTFLOAT min_v = it.annotation["min"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT max_v = it.annotation["max"].getWithDefault<FAUSTFLOAT>(0);
-            ui_interface->addHorizontalBargraph(name.c_str(), &fZoneMap[i], min_v, max_v);
+            ui_interface->addHorizontalBargraph(label.c_str(), &fZoneMap[i], min_v, max_v);
             fZoneMap[i] = 0;
             fOutputsFunMap[&fZoneMap[i]] = [=]() {
                 FAUSTFLOAT value; fPerformer.copyOutputValue(fFactory->fHandleOutputControls[name], &value); return value;
             };
             i++;
         } else if (choc::text::startsWith(name, "eventfVbargraph")) {
+            std::string label = it.annotation["name"].toString();
             FAUSTFLOAT min_v = it.annotation["min"].getWithDefault<FAUSTFLOAT>(0);
             FAUSTFLOAT max_v = it.annotation["max"].getWithDefault<FAUSTFLOAT>(0);
-            ui_interface->addVerticalBargraph(name.c_str(), &fZoneMap[i], min_v, max_v);
+            ui_interface->addVerticalBargraph(label.c_str(), &fZoneMap[i], min_v, max_v);
             fZoneMap[i] = 0;
             fOutputsFunMap[&fZoneMap[i]] = [=]() {
                 FAUSTFLOAT value; fPerformer.copyOutputValue(fFactory->fHandleOutputControls[name], &value); return value;
@@ -359,7 +374,9 @@ void cmajorpatch_dsp::buildUserInterface(UI* ui_interface)
             i++;
         }
     }
-    ui_interface->closeBox();
+    if (fFactory->fHandleOutputControls.size() > 0) {
+        ui_interface->closeBox();
+    }
     ui_interface->closeBox();
 }
 
@@ -384,7 +401,7 @@ void cmajorpatch_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outpu
     }
     
     // Update output controls
-    //updateOutputControls();
+    // updateOutputControls();
     
     /*
      // MIDI input handling
@@ -436,6 +453,7 @@ cmajor_dsp_factory* createCmajorDSPFactoryFromString(const std::string& name_app
     try {
         return new cmajor_dsp_factory(dsp_content, error_msg);
     } catch (...) {
+        if (error_msg == "") error_msg = "ERROR : createCmajorDSPFactoryFromString\n";
         return nullptr;
     }
 }

@@ -15,19 +15,23 @@ faust Reverb
 
 processor Gain
 {
-    input stream float volume [[ name: "Gain", min: 0, max: 1, init: 0.1, step: 0.01 ]]; 
+    input event float volume [[ name: "Gain", min: 0, max: 1, init: 0.1, step: 0.01 ]]; 
 
     input stream float input0;
     input stream float input1;
 
     output stream float output0;
     output stream float output1;
+  
+    event volume (float val) { vol = val; }
+
+    float vol;
 
     void main() 
     {
         loop {
-            output0 <- input0 * volume;
-            output1 <- input1 * volume;
+            output0 <- input0 * vol;
+            output1 <- input1 * vol;
             advance();
         }
     }
@@ -43,7 +47,7 @@ graph Sequence [[main]]
     output stream float audioOut1;
 
     connection 
-    {
+    {   
         Osc.output0 -> Reverb.input0;
         Osc.output1 -> Reverb.input1;
 
@@ -51,6 +55,6 @@ graph Sequence [[main]]
         Reverb.output1 -> Gain.input1;
 
         Gain.output0 -> audioOut0;
-        Gain.output1 -> audioOut1;
+        Gain.output1 -> audioOut1;   
     }
 }

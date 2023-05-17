@@ -32,8 +32,6 @@
 #include "interpreter_bytecode.hh"
 #include "Text.hh"
 
-using namespace std;
-
 static void tab(int n, ostream& fout)
 {
     fout << '\n';
@@ -95,9 +93,9 @@ struct CPPBlockList : public std::vector<CPPBlock> {
 
     void addBlock() { push_back(CPPBlock(fCurrent++)); }
 
-    void addInst(const string& code) { at(fCurrent - 1).push_back(code); }
+    void addInst(const std::string& code) { at(fCurrent - 1).push_back(code); }
 
-    void addPreviousInst(const string& code) { at(fCurrent - 2).push_back(code); }
+    void addPreviousInst(const std::string& code) { at(fCurrent - 2).push_back(code); }
 
     std::string getIndex() { return at(fCurrent - 1).fNum; }
 };
@@ -106,7 +104,7 @@ struct CPPBlockList : public std::vector<CPPBlock> {
 template <class T>
 class FBCCPPCompiler {
    protected:
-    string        fCPPStack[512];
+    std::string   fCPPStack[512];
     InstructionIT fAddressStack[64];
 
     int fCPPStackIndex;
@@ -800,7 +798,7 @@ class FBCCPPCompiler {
 
     void AddBlock() { fBlockList.addBlock(); }
 
-    void AddInst(const string& inst) { fBlockList.addInst(inst); }
+    void AddInst(const std::string& inst) { fBlockList.addInst(inst); }
 
     static std::string getRealTy() { return (sizeof(T) == sizeof(double)) ? "double" : "float"; }
 };
@@ -896,7 +894,7 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
         {
             FBCCPPCompiler<T> compiler;
             compiler.AddBlock();
-            compiler.AddInst("fIntHeap[" + to_string(this->fFactory->fSROffset) + "] = sample_rate;");
+            compiler.AddInst("fIntHeap[" + std::to_string(this->fFactory->fSROffset) + "] = sample_rate;");
             compiler.CompileBlock(this->fFactory->fInitBlock, tabs + 1, out);
         }
 
@@ -940,7 +938,7 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
             FBCCPPCompiler<T> compiler;
             compiler.AddBlock();
             compiler.AddInst("if (count == 0) return; // Beware: compiled loop don't work with an index of 0");
-            compiler.AddInst("fIntHeap[" + to_string(this->fFactory->fCountOffset) + "] = count;");
+            compiler.AddInst("fIntHeap[" + std::to_string(this->fFactory->fCountOffset) + "] = count;");
             if (control_block) {
                 control_block->write(&std::cout);
                 compiler.CompileBlock(control_block, tabs + 1, out, false);

@@ -31,7 +31,7 @@
 
 /*
  * FBC template compiler, where REAL will be either 'float' or 'double'
- * depending of the compiler choosen option: -single or -double
+ * depending of the compiler option: -single or -double
  */
 template <class REAL>
 class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
@@ -425,7 +425,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
      * @param inputs - the audio inputs
      * @param outputs - the audio outputs
      */
-    void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
+    void execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
     {}
     
 };

@@ -31,9 +31,7 @@
 #include "text_instructions.hh"
 #include "faust/gui/PathBuilder.h"
 
-using namespace std;
-
-static vector<char> gReplace = {' ', '(', ')', '\\', '.', '-'};
+static std::vector<char> gReplace = {' ', '(', ')', '\\', '.', '-'};
 
 struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
     std::stringstream     fOut;
@@ -41,7 +39,7 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
     int                   fTab;
     bool                  fHasBargraph;  // Whether the DSP code has some Bargraphs
     
-    std::vector<std::pair <std::string, std::string> > fMetaAux;
+    std::vector<std::pair <std::string, std::string>> fMetaAux;
 
     using DispatchVisitor::visit;
 
@@ -89,7 +87,7 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
             addMeta();
             fOut << " ]];";
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
-            string cmajor_meta = getCmajorMetadata();
+            std::string cmajor_meta = getCmajorMetadata();
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
             << " [[ name: " << quote(inst->fLabel)
@@ -131,7 +129,7 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
             addMeta();
             fOut << " ]];";
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
-            string cmajor_meta = getCmajorMetadata();
+            std::string cmajor_meta = getCmajorMetadata();
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
             << " [[ name: " << quote(inst->fLabel)
@@ -172,7 +170,7 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
             addMeta();
             fOut << " ]];";
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
-            string cmajor_meta = getCmajorMetadata();
+            std::string cmajor_meta = getCmajorMetadata();
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
             << " [[ name: " << quote(inst->fLabel)
@@ -221,18 +219,15 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
 class CmajorInstVisitor : public TextInstVisitor {
    private:
     // Polymorphic math functions
-    map<string, string> gPolyMathLibTable;
-
-    // Whether to consider an 'int' as a 'boolean' later on in code generation
-    bool fIntAsBool;
-    
+    std::map<std::string, std::string> gPolyMathLibTable;
+ 
     std::vector<std::pair <std::string, std::string> > fMetaAux;
     
-    inline string checkFloat(float val)
+    inline std::string checkFloat(float val)
     {
         return (std::isinf(val)) ? "inf" : T(val);
     }
-    inline string checkDouble(double val)
+    inline std::string checkDouble(double val)
     {
         return (std::isinf(val)) ? "inf" : T(val);
     }
@@ -335,8 +330,6 @@ class CmajorInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["isinf"]  = "isinf";
         // Manually implemented
         gPolyMathLibTable["copysignf"]  = "copysign";
-
-        fIntAsBool = false;
     }
 
     virtual ~CmajorInstVisitor() {}
@@ -362,17 +355,17 @@ class CmajorInstVisitor : public TextInstVisitor {
         EndLine(' ');
         if (gGlobal->gOutputLang == "cmajor-poly") {
             *fOut << "event event_" << replaceCharList(inst->fLabel, gReplace, '_') << " ("
-                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
-                  << " = val; fUpdated = true; }";
+                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
-            string cmajor_meta = getCmajorMetadata();
+            std::string cmajor_meta = getCmajorMetadata();
             *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
                   << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << inst->fZone << " = val; fUpdated = true; }";
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
             fMetaAux.clear();
         } else {
             *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << inst->fZone << " = val; fUpdated = true; }";
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
         }
         EndLine(' ');
     }
@@ -385,17 +378,17 @@ class CmajorInstVisitor : public TextInstVisitor {
         EndLine(' ');
         if (gGlobal->gOutputLang == "cmajor-poly") {
             *fOut << "event event_" << replaceCharList(inst->fLabel, gReplace, '_') << " ("
-                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
-                  << " = val; fUpdated = true; }";
+                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
-            string cmajor_meta = getCmajorMetadata();
+            std::string cmajor_meta = getCmajorMetadata();
             *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
                   << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << inst->fZone << " = val; fUpdated = true; }";
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
             fMetaAux.clear();
         } else {
             *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << inst->fZone << " = val; fUpdated = true; }";
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
         }
         EndLine(' ');
     }
@@ -415,7 +408,7 @@ class CmajorInstVisitor : public TextInstVisitor {
     
     virtual void visit(DeclareVarInst* inst)
     {
-        string name = inst->fAddress->getName();
+        std::string name = inst->fAddress->getName();
 
         // special case for input/output considered as 'streams'
         if (startWith(name, "input")) {
@@ -463,16 +456,15 @@ class CmajorInstVisitor : public TextInstVisitor {
 
     virtual void visit(StoreVarInst* inst)
     {
+        std::string name = inst->fAddress->getName();
         // special case for 'output' considered as a 'stream'
-        if (startWith(inst->fAddress->getName(), "output")) {
+        if (startWith(name, "output")) {
             inst->fAddress->accept(this);
             *fOut << " <- ";
             inst->fValue->accept(this);
             EndLine();
             // special case for 'bargraph' considered as an 'output event'
-        } else if (startWith(inst->fAddress->getName(), "fHbargraph") ||
-                   startWith(inst->fAddress->getName(), "fVbargraph")) {
-            
+        } else if (startWith(name, "fHbargraph") || startWith(name, "fVbargraph")) {
             // value is stored in the bargraph variable
             {
                 inst->fAddress->accept(this);
@@ -480,7 +472,6 @@ class CmajorInstVisitor : public TextInstVisitor {
                 inst->fValue->accept(this);
                 EndLine();
             }
-            
             // and the bargraph variable is sent using the 'output' event handler
             {
                 *fOut << "if (fControlSlice == 0) { ";
@@ -491,7 +482,6 @@ class CmajorInstVisitor : public TextInstVisitor {
                 *fOut << "; }";
                 tab(fTab, *fOut);
             }
-            
         } else {
             inst->fAddress->accept(this);
             *fOut << " = ";
@@ -538,7 +528,7 @@ class CmajorInstVisitor : public TextInstVisitor {
 
     virtual void visit(::CastInst* inst)
     {
-        string type = fTypeManager->generateType(inst->fType);
+        std::string type = fTypeManager->generateType(inst->fType);
         *fOut << type << " (";
         inst->fInst->accept(this);
         *fOut << ")";
@@ -546,27 +536,17 @@ class CmajorInstVisitor : public TextInstVisitor {
 
     virtual void visit(BitcastInst* inst) { faustassert(false); }
 
-    virtual void visit(Select2Inst* inst)
+    virtual void visitCond(ValueInst* cond)
     {
         *fOut << "(bool (";
-        fIntAsBool = true;
-        inst->fCond->accept(this);
-        fIntAsBool = false;
-        *fOut << ") ? ";
-        inst->fThen->accept(this);
-        *fOut << " : ";
-        inst->fElse->accept(this);
-        *fOut << ")";
+        cond->accept(this);
+        *fOut << "))";
     }
-    
+        
     virtual void visit(IfInst* inst)
     {
         *fOut << "if ";
-        *fOut << "(bool (";
-        fIntAsBool = true;
         visitCond(inst->fCond);
-        fIntAsBool = false;
-        *fOut << "))";
         *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
@@ -587,70 +567,9 @@ class CmajorInstVisitor : public TextInstVisitor {
         tab(fTab, *fOut);
     }
 
-    virtual void visit(BinopInst* inst)
-    {
-        bool cond1 = leftArgNeedsParentheses(inst, inst->fInst1);
-        bool cond2 = rightArgNeedsParentheses(inst, inst->fInst2);
-    
-        bool int_as_bool = fIntAsBool;
-        if (isBoolOpcode(inst->fOpcode) && !int_as_bool) {
-            *fOut << "int (";
-        }
-
-        // Hack to make it work again with 'cmajor' version 0.0.6
-        if (isLogicalOpcode(inst->fOpcode)) {
-            Typed::VarType type = TypingVisitor::getType(inst->fInst1);
-            if (isInt64Type(type)) {
-                *fOut << "int64 (";
-            } else if (isInt32Type(type) || isBoolType(type)) {
-                *fOut << "int32 (";
-            } else {
-                faustassert(false);
-            }
-        }
-
-        if (cond1) *fOut << "(";
-        inst->fInst1->accept(this);
-        if (cond1) *fOut << ")";
-
-        // Hack to make it work again with 'cmajor' version 0.0.6
-        if (isLogicalOpcode(inst->fOpcode)) {
-            *fOut << ")";
-        }
-
-        *fOut << " ";
-        *fOut << gBinOpTable[inst->fOpcode]->fName;
-        *fOut << " ";
-
-        // Hack to make it work again with 'cmajor' version 0.0.6
-        if (isLogicalOpcode(inst->fOpcode)) {
-            Typed::VarType type = TypingVisitor::getType(inst->fInst2);
-            if (isInt64Type(type)) {
-                *fOut << "int64 (";
-            } else if (isInt32Type(type) || isBoolType(type)) {
-                *fOut << "int32 (";
-            } else {
-                faustassert(false);
-            }
-        }
-
-        if (cond2) *fOut << "(";
-        inst->fInst2->accept(this);
-        if (cond2) *fOut << ")";
-
-        // Hack to make it work again with 'cmajor' version 0.0.6
-        if (isLogicalOpcode(inst->fOpcode)) {
-            *fOut << ")";
-        }
-
-        if (isBoolOpcode(inst->fOpcode) && !int_as_bool) {
-            *fOut << ")";
-        }
-    }
-
     virtual void visit(FunCallInst* inst)
     {
-        string name;
+        std::string name;
         if (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) {
             name = gPolyMathLibTable[inst->fName];
         } else {
@@ -675,9 +594,7 @@ class CmajorInstVisitor : public TextInstVisitor {
         inst->fInit->accept(this);
         *fOut << "; ";
 
-        fIntAsBool = true;
         inst->fEnd->accept(this);
-        fIntAsBool = false;
         *fOut << "; ";
 
         inst->fIncrement->accept(this);

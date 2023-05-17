@@ -309,7 +309,7 @@ class MetaDataUI {
                 if (strcmp(key, "tooltip") == 0) {
                     // only group tooltip are currently implemented
                     fGroupTooltip = formatTooltip(30, value);
-                } else if (strcmp(key, "hidden") == 0) {
+                } else if ((strcmp(key, "hidden") == 0) && (strcmp(value, "1") == 0)) {
                     fHiddenSet.insert(zone);
                 }
             } else {
@@ -322,7 +322,7 @@ class MetaDataUI {
                 else if (strcmp(key, "unit") == 0) {
                     fUnit[zone] = value;
                 }
-                else if (strcmp(key, "hidden") == 0) {
+                else if ((strcmp(key, "hidden") == 0) && (strcmp(value, "1") == 0)) {
                     fHiddenSet.insert(zone);
                 }
                 else if (strcmp(key, "scale") == 0) {

@@ -36,7 +36,7 @@ class Signal2Elementary : public SignalVisitor {
    public:
     Signal2Elementary() {}
     
-    void sig2Elementary(Tree L, ofstream& fout);
+    void sig2Elementary(Tree L, std::ofstream& fout);
 
    protected:
     void visit(Tree);

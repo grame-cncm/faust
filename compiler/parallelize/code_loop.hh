@@ -56,8 +56,8 @@
 
 class CodeLoop;
 
-typedef set<CodeLoop*> lclset;
-typedef vector<lclset> lclgraph;
+typedef std::set<CodeLoop*> lclset;
+typedef std::vector<lclset> lclgraph;
 
 class CodeLoop : public virtual Garbageable {
     friend class CodeContainer;
@@ -74,20 +74,19 @@ class CodeLoop : public virtual Garbageable {
     BlockInst* fComputeInst;
     BlockInst* fPostInst;
 
-    string fLoopIndex;
+    std::string fLoopIndex;
 
     int             fUseCount;    ///< how many loops depend on this one
-    list<CodeLoop*> fExtraLoops;  ///< extra loops that where in sequences
+    std::list<CodeLoop*> fExtraLoops;  ///< extra loops that where in sequences
 
-    set<Tree>      fRecDependencies;           ///< Loops having recursive dependencies must be merged
-    set<CodeLoop*> fBackwardLoopDependencies;  ///< Loops that must be computed before this one
-    set<CodeLoop*> fForwardLoopDependencies;   ///< Loops that will be computed after this one
+    std::set<Tree>      fRecDependencies;           ///< Loops having recursive dependencies must be merged
+    std::set<CodeLoop*> fBackwardLoopDependencies;  ///< Loops that must be computed before this one
+    std::set<CodeLoop*> fForwardLoopDependencies;   ///< Loops that will be computed after this one
 
     void pushBlock(BlockInst* block, BlockInst* loop)
     {
-        list<StatementInst*>::const_iterator it;
-        for (it = block->fCode.begin(); it != block->fCode.end(); it++) {
-            loop->pushBackInst((*it));
+        for (const auto& it : block->fCode) {
+            loop->pushBackInst(it);
         }
     }
 
@@ -99,11 +98,11 @@ class CodeLoop : public virtual Garbageable {
     // Graph sorting
     static void setOrder(CodeLoop* l, int order, lclgraph& V);
     static void setLevel(int order, const lclset& T1, lclset& T2, lclgraph& V);
-    static void resetOrder(CodeLoop* l, set<CodeLoop*>& visited);
+    static void resetOrder(CodeLoop* l, std::set<CodeLoop*>& visited);
 
    public:
     ///< create a recursive loop
-    CodeLoop(Tree recsymbol, CodeLoop* encl, const string& index_name, int size = 0)
+    CodeLoop(Tree recsymbol, CodeLoop* encl, const std::string& index_name, int size = 0)
         : fIsRecursive(true),
           fRecSymbolSet(singleton(recsymbol)),
           fEnclosingLoop(encl),
@@ -119,7 +118,7 @@ class CodeLoop : public virtual Garbageable {
     }
 
     ///< create a non recursive loop
-    CodeLoop(CodeLoop* encl, const string& index_name, int size = 0)
+    CodeLoop(CodeLoop* encl, const std::string& index_name, int size = 0)
         : fIsRecursive(false),
           fRecSymbolSet(gGlobal->nil),
           fEnclosingLoop(encl),
@@ -154,16 +153,16 @@ class CodeLoop : public virtual Garbageable {
 
     int getIndex() { return fIndex; }
 
-    set<CodeLoop*>& getForwardLoopDependencies() { return fForwardLoopDependencies; }
-    set<CodeLoop*>& getBackwardLoopDependencies() { return fBackwardLoopDependencies; }
+    std::set<CodeLoop*>& getForwardLoopDependencies() { return fForwardLoopDependencies; }
+    std::set<CodeLoop*>& getBackwardLoopDependencies() { return fBackwardLoopDependencies; }
 
     ValueInst* getLoopIndex() { return InstBuilder::genLoadLoopVar(fLoopIndex); }
 
-    ForLoopInst* generateScalarLoop(const string& counter, bool loop_var_in_bytes = false);
+    ForLoopInst* generateScalarLoop(const std::string& counter, bool loop_var_in_bytes = false);
 
     // For Rust backend
-    SimpleForLoopInst* generateSimpleScalarLoop(const string& counter);
-    IteratorForLoopInst* generateSimpleScalarLoop(const std::vector<string>& iterators);
+    SimpleForLoopInst* generateSimpleScalarLoop(const std::string& counter);
+    IteratorForLoopInst* generateSimpleScalarLoop(const std::vector<std::string>& iterators);
 
     BlockInst* generateOneSample();
 
@@ -172,8 +171,8 @@ class CodeLoop : public virtual Garbageable {
     void transform(DispatchVisitor* visitor)
     {
         // Transform extra loops
-        for (list<CodeLoop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
-            (*s)->transform(visitor);
+        for (const auto& s : fExtraLoops) {
+            s->transform(visitor);
         }
         fPreInst->accept(visitor);
         fComputeInst->accept(visitor);
@@ -185,7 +184,7 @@ class CodeLoop : public virtual Garbageable {
 
     static void sortGraph(CodeLoop* root, lclgraph& V);
     static void computeUseCount(CodeLoop* l);
-    static void groupSeqLoops(CodeLoop* l, set<CodeLoop*>& visited);
+    static void groupSeqLoops(CodeLoop* l, std::set<CodeLoop*>& visited);
 };
 
 #endif

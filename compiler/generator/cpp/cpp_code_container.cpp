@@ -33,13 +33,18 @@ using namespace std;
 
 /*
  C++ backend and module description:
-    - in -os mode:
+ 
+    1) in -os mode:
         - subcontainers are merged in the main class
         - CPPScalarOneSampleCodeContainer1 (used in -os0) separates the DSP control state in iControl/fControl (possibly to be allocated elsewhere)
         - CPPScalarOneSampleCodeContainer2 (used in -os1) separates the DSP control state in iControl/fControl and the DSP state in iZone/fZone (possibly to be allocated elsewhere)
         - CPPScalarOneSampleCodeContainer3 (used in -os2) separates the DSP control state in iControl/fControl and the DSP state in iZone/fZone (possibly to be allocated elsewhere). Short delay lines remain in DSP struct, long delay lines are moved in iZone/fZone.
         Additional functions 'instanceConstantsFromMem' and 'instanceConstantsToMem' to copy iConst/fConst variables from/to memory are generated.
-        - CPPScalarOneSampleCodeContainer4 (used in -os3) is similar to CPPScalarOneSampleCodeContainer3, but iControl/fControl and iZone/fZone pointers stay in the DSP class. The -mem option uses the memory manager to allocate/destroy the iControl/fControl and iZone/fZone pointers 
+        - CPPScalarOneSampleCodeContainer4 (used in -os3) is similar to CPPScalarOneSampleCodeContainer3, but iControl/fControl and iZone/fZone pointers stay in the DSP class. The -mem option uses the memory manager to allocate/destroy the iControl/fControl and iZone/fZone pointers
+ 
+    2) in -fx mode:
+        - then/else branches of 'select2' are explicitly casted to 'float', otherwise AP_fixed compilation may trigger "ambigous type" errors
+        - all math operators are named "FOOfx" and are supposed to be implemented in the architecture file (doing the proper cast on arguments and return value when needed)
  */
 
 map<string, bool> CPPInstVisitor::gFunctionSymbolTable;
@@ -292,28 +297,12 @@ void CPPCodeContainer::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+        *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
  
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
+    generateHeader(n);
 
     // Generate gub containers
     generateSubContainers();
@@ -352,27 +341,8 @@ void CPPCodeContainer::produceClass()
         generateDeclarations(fCodeProducer);
     }
 
-    if (fAllocateInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void allocate() {";
-        tab(n + 2, *fOut);
-        fCodeProducer->Tab(n + 2);
-        generateAllocate(fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}";
-        tab(n + 1, *fOut);
-    }
-
-    if (fDestroyInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void destroy() {";
-        tab(n + 2, *fOut);
-        fCodeProducer->Tab(n + 2);
-        generateDestroy(fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}";
-        tab(n + 1, *fOut);
-    }
+    generateAllocateFun(n);
+    generateDestroyFun(n);
 
     tab(n, *fOut);
     *fOut << " public:";
@@ -381,31 +351,18 @@ void CPPCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "static dsp_memory_manager* fManager;";
     }
-
-    if (fAllocateInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << fKlassName << "() {";
-        tab(n + 2, *fOut);
-        *fOut << "allocate();";
-        tab(n + 1, *fOut);
-        *fOut << "}" << endl;
-    }
-
-    if (fDestroyInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "virtual ~" << fKlassName << "() {";
-        tab(n + 2, *fOut);
-        *fOut << "destroy();";
-        tab(n + 1, *fOut);
-        *fOut << "}" << endl;
-    }
+    
+    // Default constructor
+    string fun_proto1 = fKlassName + "()";
+    generateConstructor(fun_proto1, n);
+   
+    generateDestructor(n);
  
     // Print metadata declaration
-    tab(n + 1, *fOut);
     produceMetadata(n + 1);
 
-    tab(n + 1, *fOut);
     // No class name for main class
+    tab(n + 1, *fOut);
     if (gGlobal->gNoVirtual) {
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kStaticConstExpr, fCodeProducer, "getStaticNumInputs", "getStaticNumOutputs");
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kDefault, fCodeProducer);
@@ -565,16 +522,26 @@ void CPPCodeContainer::produceClass()
         *fOut << "static void memoryInfo() {";
         tab(n + 2, *fOut);
         
-        *fOut << "fManager->begin(" << fMemoryLayout.size() << ");";
+        // Count arrays
+        int ptr_count = 0;
+        for (const auto& it : fMemoryLayout) {
+            if (isPtr(get<1>(it))) {
+                ptr_count++;
+            }
+        }
+        
+        *fOut << "fManager->begin(" << ptr_count << ");";
         tab(n + 2, *fOut);
         
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
-            // DSP or field name, type, size, sizeBytes, reads, wri
-            tuple<string, int, int, int, int, int> item = fMemoryLayout[i];
-            *fOut << "// " << get<0>(item);
-            tab(n + 2, *fOut);
-            *fOut << "fManager->info(" << get<3>(item) << ", " << get<4>(item) << ", " << get<5>(item) << ");";
-            tab(n + 2, *fOut);
+            // DSP or field name, type, size, size-in-bytes, reads, write
+            MemoryLayoutItem item = fMemoryLayout[i];
+            if (isPtr(get<1>(item))) {
+                *fOut << "// " << get<0>(item);
+                tab(n + 2, *fOut);
+                *fOut << "fManager->info(" << get<3>(item) << ", " << get<4>(item) << ", " << get<5>(item) << ");";
+                tab(n + 2, *fOut);
+            }
         }
         
         *fOut << "fManager->end();";
@@ -589,9 +556,9 @@ void CPPCodeContainer::produceClass()
         tab(n + 2, *fOut);
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
             // DSP or field name, type, size, sizeBytes, reads, wri
-            tuple<string, int, int, int, int, int> item = fMemoryLayout[i];
+            MemoryLayoutItem item = fMemoryLayout[i];
             if (get<2>(item) > 1) {
-                if (Typed::VarType(get<1>(item)) == Typed::kInt32) {
+                if (get<1>(item) == "kInt32_ptr") {
                     *fOut << get<0>(item) << " = static_cast<int*>(fManager->allocate(" << get<3>(item) << "));";
                 } else {
                     *fOut << get<0>(item) << " = static_cast<" << ifloat() << "*>(fManager->allocate(" << get<3>(item) << "));";
@@ -609,7 +576,7 @@ void CPPCodeContainer::produceClass()
         tab(n + 2, *fOut);
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
             // DSP or field name, type, size, sizeBytes, reads, wri
-            tuple<string, int, int, int, int, int> item = fMemoryLayout[i];
+            MemoryLayoutItem item = fMemoryLayout[i];
             if (get<2>(item) > 1) {
                 *fOut << "fManager->destroy(" << get<0>(item) << ");";
                 tab(n + 2, *fOut);
@@ -660,9 +627,9 @@ void CPPCodeContainer::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+        *fOut << "} // namespace " << gGlobal->gNamespace << endl;
     }
 }
 
@@ -675,9 +642,9 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+        *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
  
     // Sub containers are merged in the main class
@@ -688,31 +655,15 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
+    generateHeader(n);
     
     tab(n, *fOut);
-    *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum  << endl;
-    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum;
+    *fOut << "#define FAUST_INT_CONTROLS " << fIntControl->fCurIndex  << endl;
+    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControl->fCurIndex;
     tab(n, *fOut);
     
     tab(n, *fOut);
-    fSuperKlassName = "one_sample_dsp";
+    fSuperKlassName = "one_sample_dsp<" + string(ifloat()) + ">";
     *fOut << "class " << fKlassName << genFinal() << " : public " << fSuperKlassName << " {";
     tab(n + 1, *fOut);
     
@@ -730,27 +681,8 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     tab(n + 1, *fOut);
     generateDeclarations(fCodeProducer);
     
-    if (fAllocateInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void allocate() {";
-        tab(n + 2, *fOut);
-        fCodeProducer->Tab(n + 2);
-        generateAllocate(fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}";
-        tab(n + 1, *fOut);
-    }
-    
-    if (fDestroyInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void destroy() {";
-        tab(n + 2, *fOut);
-        fCodeProducer->Tab(n + 2);
-        generateDestroy(fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}";
-        tab(n + 1, *fOut);
-    }
+    generateAllocateFun(n);
+    generateDestroyFun(n);
     
     tab(n, *fOut);
     *fOut << " public:";
@@ -760,37 +692,22 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
         *fOut << "static dsp_memory_manager* fManager;";
     }
     
-    if (fAllocateInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << fKlassName << "() {";
-        tab(n + 2, *fOut);
-        *fOut << "allocate();";
-        tab(n + 1, *fOut);
-        *fOut << "}" << endl;
-    }
-    
-    if (fDestroyInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "virtual ~" << fKlassName << "() {";
-        tab(n + 2, *fOut);
-        *fOut << "destroy();";
-        tab(n + 1, *fOut);
-        *fOut << "}" << endl;
-    }
+    // Default constructor
+    string fun_proto1 = fKlassName + "()";
+    generateConstructor(fun_proto1, n);
     
     // Constructor
-    tab(n + 1, *fOut);
-    *fOut << fKlassName << "() {}";
-    tab(n + 1, *fOut);
-    *fOut << fKlassName << "(int* icontrol, " << ifloat() <<"* fcontrol)";
-    *fOut << ":one_sample_dsp(icontrol, fcontrol) {}";
+    stringstream fun_proto2;
+    fun_proto2 << fKlassName << "(int* icontrol, " << ifloat() << "* fcontrol):one_sample_dsp(icontrol, fcontrol)";
+    generateConstructor(fun_proto2.str(), n);
     
+    generateDestructor(n);
+   
     // Print metadata declaration
-    tab(n + 1, *fOut);
     produceMetadata(n + 1);
     
-    tab(n + 1, *fOut);
     // No class name for main class
+    tab(n + 1, *fOut);
     if (gGlobal->gNoVirtual) {
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kStaticConstExpr, fCodeProducer, "getStaticNumInputs", "getStaticNumOutputs");
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kDefault, fCodeProducer);
@@ -831,7 +748,8 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     *fOut << genVirtual() << "void instanceConstants(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
-    generateInit(fCodeProducer);
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
     back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
@@ -915,9 +833,9 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     *fOut << "}" << endl;
     
     tab(n + 1, *fOut);
-    *fOut << genVirtual() << "int getNumIntControls() { return " << fInt32ControlNum << "; }";
+    *fOut << genVirtual() << "int getNumIntControls() { return " << fIntControl->fCurIndex << "; }";
     tab(n + 1, *fOut);
-    *fOut << genVirtual() << "int getNumRealControls() { return " << fRealControlNum << "; }";
+    *fOut << genVirtual() << "int getNumRealControls() { return " << fRealControl->fCurIndex << "; }";
     
     // Compute
     generateCompute(n);
@@ -934,9 +852,9 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+        *fOut << "} // namespace " << gGlobal->gNamespace << endl;
     }
 }
 
@@ -949,9 +867,9 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+        *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
     
     // Sub containers are merged in the main class
@@ -962,23 +880,7 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
+    generateHeader(n);
     
     tab(n, *fOut);
     fSuperKlassName = "one_sample_dsp_real<" + string(ifloat()) + ">";
@@ -1003,27 +905,8 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     int int_zone_size = static_cast<CPPInstVisitor1*>(fCodeProducer)->getIntZoneSize();
     int real_zone_size = static_cast<CPPInstVisitor1*>(fCodeProducer)->getRealZoneSize();
     
-    if (fAllocateInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void allocate() {";
-        tab(n + 2, *fOut);
-        fCodeProducer->Tab(n + 2);
-        generateAllocate(fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}";
-        tab(n + 1, *fOut);
-    }
-    
-    if (fDestroyInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void destroy() {";
-        tab(n + 2, *fOut);
-        fCodeProducer->Tab(n + 2);
-        generateDestroy(fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}";
-        tab(n + 1, *fOut);
-    }
+    generateAllocateFun(n);
+    generateDestroyFun(n);
     
     tab(n, *fOut);
     *fOut << " public:";
@@ -1033,37 +916,23 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
         *fOut << "static dsp_memory_manager* fManager;";
     }
     
-    if (fAllocateInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << fKlassName << "() {";
-        tab(n + 2, *fOut);
-        *fOut << "allocate();";
-        tab(n + 1, *fOut);
-        *fOut << "}" << endl;
-    }
-    
-    if (fDestroyInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "virtual ~" << fKlassName << "() {";
-        tab(n + 2, *fOut);
-        *fOut << "destroy();";
-        tab(n + 1, *fOut);
-        *fOut << "}" << endl;
-    }
+    // Default constructor
+    string fun_proto1 = fKlassName + "()";
+    generateConstructor(fun_proto1, n);
     
     // Constructor
-    tab(n + 1, *fOut);
-    *fOut << fKlassName << "() {}";
-    tab(n + 1, *fOut);
-    *fOut << fKlassName << "(int* icontrol, " <<  ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone)";
-    *fOut << ":one_sample_dsp_real(icontrol, fcontrol, izone, fzone) {}";
+    stringstream fun_proto2;
+    fun_proto2 << fKlassName << "(int* icontrol, " << ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone)";
+    fun_proto2 << ":one_sample_dsp_real(icontrol, fcontrol, izone, fzone)";
+    generateConstructor(fun_proto2.str(), n);
     
+    generateDestructor(n);
+     
     // Print metadata declaration
-    tab(n + 1, *fOut);
     produceMetadata(n + 1);
     
-    tab(n + 1, *fOut);
     // No class name for main class
+    tab(n + 1, *fOut);
     if (gGlobal->gNoVirtual) {
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kStaticConstExpr, fCodeProducer, "getStaticNumInputs", "getStaticNumOutputs");
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kDefault, fCodeProducer);
@@ -1104,7 +973,8 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     *fOut << genVirtual() << "void instanceConstants(int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
-    generateInit(fCodeProducer);
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
     back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
@@ -1188,10 +1058,10 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     *fOut << "}" << endl;
     
     tab(n + 1, *fOut);
-    *fOut << genVirtual() << "int getNumIntControls() { return " << fInt32ControlNum << "; }";
+    *fOut << genVirtual() << "int getNumIntControls() { return " << fIntControl->fCurIndex << "; }";
     tab(n + 1, *fOut);
     
-    *fOut << genVirtual() << "int getNumRealControls() { return " << fRealControlNum << "; }";
+    *fOut << genVirtual() << "int getNumRealControls() { return " << fRealControl->fCurIndex << "; }";
     tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
@@ -1207,8 +1077,8 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     *fOut << "};" << endl;
     
     tab(n, *fOut);
-    *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum << endl;
-    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
+    *fOut << "#define FAUST_INT_CONTROLS " << fIntControl->fCurIndex << endl;
+    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControl->fCurIndex << endl;
     
     tab(n, *fOut);
     *fOut << "#define FAUST_INT_ZONE " << int_zone_size << endl;
@@ -1224,9 +1094,9 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+        *fOut << "} // namespace " << gGlobal->gNamespace << endl;
     }
 }
 
@@ -1235,10 +1105,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
 {
     VariableSizeCounter heap_counter(Address::kStruct);
     generateDeclarations(&heap_counter);
-    
-    char* max_size_str = getenv("FAUST_MAX_SIZE");
-    int max_size = (max_size_str) ? atoi(max_size_str) : 10000;
-    fCodeProducer = new CPPInstVisitor2(fOut, std::max(0, heap_counter.fSizeBytes - max_size));
+    fCodeProducer = new CPPInstVisitor2(fOut, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory));
     
     int n = 0;
     
@@ -1246,9 +1113,9 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+        *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
     
     // Sub containers are merged in the main class
@@ -1259,23 +1126,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
+    generateHeader(n);
     
     tab(n, *fOut);
     fSuperKlassName = "one_sample_dsp_real<" + string(ifloat()) + ">";
@@ -1300,27 +1151,8 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     int int_zone_size = static_cast<CPPInstVisitor1*>(fCodeProducer)->getIntZoneSize();
     int real_zone_size = static_cast<CPPInstVisitor1*>(fCodeProducer)->getRealZoneSize();
     
-    if (fAllocateInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void allocate() {";
-        tab(n + 2, *fOut);
-        fCodeProducer->Tab(n + 2);
-        generateAllocate(fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}";
-        tab(n + 1, *fOut);
-    }
-    
-    if (fDestroyInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void destroy() {";
-        tab(n + 2, *fOut);
-        fCodeProducer->Tab(n + 2);
-        generateDestroy(fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}";
-        tab(n + 1, *fOut);
-    }
+    generateAllocateFun(n);
+    generateDestroyFun(n);
     
     tab(n, *fOut);
     *fOut << " public:";
@@ -1330,37 +1162,22 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
         *fOut << "static dsp_memory_manager* fManager;";
     }
     
-    if (fAllocateInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << fKlassName << "() {";
-        tab(n + 2, *fOut);
-        *fOut << "allocate();";
-        tab(n + 1, *fOut);
-        *fOut << "}" << endl;
-    }
+    // Default constructor
+    string fun_proto1 = fKlassName + "()";
+    generateConstructor(fun_proto1, n);
     
-    if (fDestroyInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "virtual ~" << fKlassName << "() {";
-        tab(n + 2, *fOut);
-        *fOut << "destroy();";
-        tab(n + 1, *fOut);
-        *fOut << "}" << endl;
-    }
+    stringstream fun_proto2;
+    fun_proto2 << fKlassName << "(int* icontrol, " << ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone)";
+    fun_proto2 << ":one_sample_dsp_real(icontrol, fcontrol, izone, fzone)";
+    generateConstructor(fun_proto2.str(), n);
     
-    // Constructor
-    tab(n + 1, *fOut);
-    *fOut << fKlassName << "() {}";
-    tab(n + 1, *fOut);
-    *fOut << fKlassName << "(int* icontrol, " << ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone)";
-    *fOut << ":one_sample_dsp_real(icontrol, fcontrol, izone, fzone) {}";
+    generateDestructor(n);
     
     // Print metadata declaration
-    tab(n + 1, *fOut);
     produceMetadata(n + 1);
     
-    tab(n + 1, *fOut);
     // No class name for main class
+    tab(n + 1, *fOut);
     if (gGlobal->gNoVirtual) {
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kStaticConstExpr, fCodeProducer, "getStaticNumInputs", "getStaticNumOutputs");
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kDefault, fCodeProducer);
@@ -1512,10 +1329,10 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     *fOut << "}" << endl;
     
     tab(n + 1, *fOut);
-    *fOut << genVirtual() << "int getNumIntControls() { return " << fInt32ControlNum << "; }";
+    *fOut << genVirtual() << "int getNumIntControls() { return " << fIntControl->fCurIndex << "; }";
     tab(n + 1, *fOut);
     
-    *fOut << genVirtual() << "int getNumRealControls() { return " << fRealControlNum << "; }";
+    *fOut << genVirtual() << "int getNumRealControls() { return " << fRealControl->fCurIndex << "; }";
     tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
@@ -1531,8 +1348,8 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     *fOut << "};" << endl;
     
     tab(n, *fOut);
-    *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum << endl;
-    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
+    *fOut << "#define FAUST_INT_CONTROLS " << fIntControl->fCurIndex << endl;
+    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControl->fCurIndex << endl;
     
     tab(n, *fOut);
     // copy_from_mem.fIntIndex and copy_from_mem.fRealIndex contains the size used for tables, DLs and iConst/fConst variables
@@ -1549,9 +1366,9 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+        *fOut << "} // namespace " << gGlobal->gNamespace << endl;
     }
 }
 
@@ -1560,10 +1377,7 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
 {
     VariableSizeCounter heap_counter(Address::kStruct);
     generateDeclarations(&heap_counter);
-    
-    char* max_size_str = getenv("FAUST_MAX_SIZE");
-    int max_size = (max_size_str) ? atoi(max_size_str) : 10000;
-    fCodeProducer = new CPPInstVisitor3(fOut, std::max(0, heap_counter.fSizeBytes - max_size));
+    fCodeProducer = new CPPInstVisitor3(fOut, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory));
     
     int n = 0;
     
@@ -1571,9 +1385,9 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+        *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
     
     // Sub containers are merged in the main class
@@ -1584,23 +1398,7 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
+    generateHeader(n);
     
     tab(n, *fOut);
     fSuperKlassName = "one_sample_dsp_real1<" + string(ifloat()) + ">";
@@ -1631,27 +1429,8 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     int int_zone_size = static_cast<CPPInstVisitor1*>(fCodeProducer)->getIntZoneSize();
     int real_zone_size = static_cast<CPPInstVisitor1*>(fCodeProducer)->getRealZoneSize();
     
-    if (fAllocateInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void allocate() {";
-        tab(n + 2, *fOut);
-        fCodeProducer->Tab(n + 2);
-        generateAllocate(fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}";
-        tab(n + 1, *fOut);
-    }
-    
-    if (fDestroyInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void destroy() {";
-        tab(n + 2, *fOut);
-        fCodeProducer->Tab(n + 2);
-        generateDestroy(fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}";
-        tab(n + 1, *fOut);
-    }
+    generateAllocateFun(n);
+    generateDestroyFun(n);
     
     tab(n, *fOut);
     *fOut << " public:";
@@ -1661,30 +1440,11 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
         *fOut << "static dsp_memory_manager* fManager;";
     }
     
-    if (fAllocateInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << fKlassName << "() {";
-        tab(n + 2, *fOut);
-        *fOut << "allocate();";
-        tab(n + 1, *fOut);
-        *fOut << "}" << endl;
-    }
-    
-    if (fDestroyInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "virtual ~" << fKlassName << "() {";
-        tab(n + 2, *fOut);
-        *fOut << "destroy();";
-        tab(n + 1, *fOut);
-        *fOut << "}" << endl;
-    }
-    
     // Print metadata declaration
-    tab(n + 1, *fOut);
     produceMetadata(n + 1);
     
-    tab(n + 1, *fOut);
     // No class name for main class
+    tab(n + 1, *fOut);
     if (gGlobal->gNoVirtual) {
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kStaticConstExpr, fCodeProducer, "getStaticNumInputs", "getStaticNumOutputs");
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kDefault, fCodeProducer);
@@ -1854,10 +1614,10 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     *fOut << "}" << endl;
     
     tab(n + 1, *fOut);
-    *fOut << genVirtual() << "int getNumIntControls() { return " << fInt32ControlNum << "; }";
+    *fOut << genVirtual() << "int getNumIntControls() { return " << fIntControl->fCurIndex << "; }";
     tab(n + 1, *fOut);
     
-    *fOut << genVirtual() << "int getNumRealControls() { return " << fRealControlNum << "; }";
+    *fOut << genVirtual() << "int getNumRealControls() { return " << fRealControl->fCurIndex << "; }";
     tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
@@ -1875,9 +1635,9 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
         // Constructor
         *fOut << fKlassName << "() {";
         tab(n + 2, *fOut);
-        *fOut << "iControl = static_cast<int*>(fManager->allocate(" << fInt32ControlNum * sizeof(int) << "));";
+        *fOut << "iControl = static_cast<int*>(fManager->allocate(" << fIntControl->fCurIndex * sizeof(int) << "));";
         tab(n + 2, *fOut);
-        *fOut << "fControl = static_cast<" << ifloat() << "*>(fManager->allocate(" << fRealControlNum * gGlobal->audioSampleSize() << "));";
+        *fOut << "fControl = static_cast<" << ifloat() << "*>(fManager->allocate(" << fRealControl->fCurIndex * gGlobal->audioSampleSize() << "));";
         tab(n + 2, *fOut);
         *fOut << "iZone = static_cast<int*>(fManager->allocate(" << int_zone_size * sizeof(int) << "));";
         tab(n + 2, *fOut);
@@ -1911,21 +1671,24 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
         *fOut << "fZone = fzone;";
         tab(n + 1, *fOut);
         *fOut << "}";
+        // Default constructor
+        tab(n + 1, *fOut);
+        stringstream fun_proto1;
+        fun_proto1 << fKlassName << "():iControl(nullptr), fControl(nullptr), iZone(nullptr), fZone(nullptr)";
+        generateConstructor(fun_proto1.str(), n);
         // Constructor
-        tab(n + 1, *fOut);
-        tab(n + 1, *fOut);
-        *fOut << fKlassName << "():iControl(nullptr), fControl(nullptr), iZone(nullptr), fZone(nullptr) {}";
-        tab(n + 1, *fOut);
-        *fOut << fKlassName << "(int* icontrol, " << ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone)";
-        *fOut << ":iControl(icontrol), fControl(fcontrol), iZone(izone), fZone(fzone) {}";
+        stringstream fun_proto2;
+        fun_proto2 << fKlassName << "(int* icontrol, " << ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone)";
+        fun_proto2 << ":iControl(icontrol), fControl(fcontrol), iZone(izone), fZone(fzone)";
+        generateConstructor(fun_proto2.str(), n);
     }
     
     tab(n, *fOut);
     *fOut << "};" << endl;
     
     tab(n, *fOut);
-    *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum << endl;
-    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
+    *fOut << "#define FAUST_INT_CONTROLS " << fIntControl->fCurIndex << endl;
+    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControl->fCurIndex << endl;
     
     tab(n, *fOut);
     // int_zone_size and real_zone_size contains the size used for tables, DLs and iConst/fConst variables
@@ -1942,9 +1705,9 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+        *fOut << "} // namespace " << gGlobal->gNamespace << endl;
     }
 }
 
@@ -1985,9 +1748,9 @@ void CPPScalarOneSampleCodeContainer1::generateCompute(int n)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     if (gGlobal->gInPlace) {
-        *fOut << genVirtual() << subst("void compute($0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", ifloat());
+        *fOut << genVirtual() << subst("void compute($0* inputs, $0* outputs, int* RESTRICT iControl, $1* RESTRICT fControl) {", xfloat(), ifloat());
     } else {
-        *fOut << genVirtual() << subst("void compute($0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", ifloat());
+        *fOut << genVirtual() << subst("void compute($0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $1* RESTRICT fControl) {", xfloat(), ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
@@ -2013,9 +1776,9 @@ void CPPScalarOneSampleCodeContainer2::generateCompute(int n)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     if (gGlobal->gInPlace) {
-        *fOut << genVirtual() << subst("void compute($0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", ifloat());
+        *fOut << genVirtual() << subst("void compute($0* inputs, $0* outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", xfloat(), ifloat());
     } else {
-        *fOut << genVirtual() << subst("void compute($0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", ifloat());
+        *fOut << genVirtual() << subst("void compute($0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", xfloat(), ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);

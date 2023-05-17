@@ -26,12 +26,13 @@
 #include "sigtype.hh"
 
 /** \file sigtyperules.hh
- * API to the typing system of signals
  *
- * Two functions are provided :
+ * API to the typing system of signals.
  *
- * \li void typeAnnotation(Tree term)       : annotates a signal term and its subterms with type information
- * \li Type getCertifiedSigType(Tree term)  : return the type of a previously annotated signal term
+ * Two functions are provided:
+ *
+ * \li void typeAnnotation(Tree term)      : annotates a signal term and its subterms with type information
+ * \li Type getCertifiedSigType(Tree term) : returns the type of a previously annotated signal term
  *
  * TypeAnnotation must be called first to annotate a signal or a list of signals, before being able to
  * call getCertifiedType on any subterms. GetCertifiedType will produce an error if a term was not
@@ -47,7 +48,7 @@
 void typeAnnotation(Tree sig, bool causality);
 
 /**
- *	Return the type of a previously annotated signal term
+ *	Return the type of a previously annotated signal term.
  */
 ::Type getCertifiedSigType(Tree term);
 

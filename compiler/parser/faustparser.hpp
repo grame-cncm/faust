@@ -318,11 +318,11 @@
 typedef union YYSTYPE
 #line 96 "faustparser.y"
 {
-	CTree* 	exp;
-	char* str;
-	string* cppstr;
-	bool b;
-	int numvariant;
+    CTree*     exp;
+    char* str;
+    std::string* cppstr;
+    bool b;
+    int numvariant;
 }
 /* Line 1529 of yacc.c.  */
 #line 329 "faustparser.hpp"
@@ -332,5 +332,5 @@ typedef union YYSTYPE
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
 
-extern YYSTYPE yylval;
+extern YYSTYPE FAUSTlval;
 

@@ -22,8 +22,6 @@
 #ifndef _JAVA_INSTRUCTIONS_H
 #define _JAVA_INSTRUCTIONS_H
 
-using namespace std;
-
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
 
@@ -33,8 +31,8 @@ class JAVAInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static map<string, bool>   gFunctionSymbolTable;
-    static map<string, string> gMathLibTable;
+    static std::map<std::string, bool>   gFunctionSymbolTable;
+    static std::map<std::string, std::string> gMathLibTable;
 
     TypingVisitor fTypingVisitor;
 
@@ -110,7 +108,7 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual ~JAVAInstVisitor() {}
 
-    string createVarAccess(string varname)
+    std::string createVarAccess(const std::string& varname)
     {
         if (strcmp(ifloat(), "float") == 0) {
             return "new FaustVarAccess() {\n"
@@ -150,7 +148,7 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 name = "ui_interface.openVerticalBox(";
@@ -174,7 +172,7 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddButtonInst* inst)
     {
-        string name;
+        std::string name;
         if (inst->fType == AddButtonInst::kDefaultButton) {
             name = "ui_interface.addButton(";
         } else {
@@ -186,7 +184,7 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "ui_interface.addHorizontalSlider(";
@@ -206,7 +204,7 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "ui_interface.addHorizontalBargraph(";
@@ -230,7 +228,7 @@ class JAVAInstVisitor : public TextInstVisitor {
 
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_typed && array_typed->fSize > 1) {
-            string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
+            std::string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
             if (inst->fValue) {
                 *fOut << type << " " << inst->fAddress->getName() << "[] = ";
                 inst->fValue->accept(this);
@@ -460,7 +458,7 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(FunCallInst* inst)
     {
-        string fun_name =
+        std::string fun_name =
             (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;
         generateFunCall(inst, fun_name);
     }

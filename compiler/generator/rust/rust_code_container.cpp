@@ -173,6 +173,11 @@ void RustCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
+    tab(n, *fOut);
+    *fOut << "#[cfg_attr(feature = \"default-boxed\", derive(default_boxed::DefaultBoxed))]";
+    tab(n, *fOut);
+    *fOut << "#[repr(C)]";
+    tab(n, *fOut);
     *fOut << "pub struct " << fKlassName << " {";
     tab(n + 1, *fOut);
 

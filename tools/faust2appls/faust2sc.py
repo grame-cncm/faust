@@ -124,15 +124,14 @@ def faustoptflags():
 
 # Return the header paths if they exists.
 def get_header_paths(headerpath):
-    folders = [
-        path.join(headerpath, "include", "plugin_interface"),
-        path.join(headerpath, "include", "server"),
-        path.join(headerpath, "include",  "common")
-    ]
+    subfolders = [[], ["include"],["include", "SuperCollider"]]
+    headerfolders = ["plugin_interface", "server", "common"]
+    for sf in subfolders:
+      folders = [path.join(headerpath, *sf, hf) for hf in headerfolders];
+      if all(path.exists(f) for f in folders):
+          print("Found SuperCollider headers: %s" % path.join(headerpath, *sf))
+          return folders
 
-    if all(path.exists(folder) for folder in folders):
-        print("Found SuperCollider headers: %s" % headerpath)
-        return folders
 
 # Try and find SuperCollider headers on system
 def find_headers(headerpath):
@@ -549,7 +548,10 @@ if __name__ == "__main__":
     tmp_folder = tempfile.TemporaryDirectory(prefix="faust.")
 
     # Generate supercollider class and help file
-    noprefix = args.noprefix or 1
+    if args.noprefix is None:
+        noprefix = 1
+    else:
+        noprefix = args.noprefix
     scresult = faust2sc(args.inputfile, tmp_folder.name, noprefix, args.architecture, faustflags)
 
     compile_supernova = args.supernova

@@ -23,39 +23,37 @@
 #define _SigType_
 
 #include <iostream>
-#include <string>
 #include <vector>
 #include "garbageable.hh"
-#include "interval.hh"
 #include "smartpointer.hh"
 #include "tree.hh"
+#include "interval.hh"
 
 /*********************************************************************
  *
- *						Type System for FAUST
+ *                        Type System for FAUST
  *
- *	<type> 			::= <simpletype> ||  table(<type>)
- *			 		 	||  <type>|<type>  || <type>*<type>
- *	<simpletype>	::= <nature><variability><computability><vectorability>||<boolean>
- *	<nature>		::= TINT || TREAL
- *	<variability>	::= TKONST || TBLOCK || TSAMP
- *	<computability>	::= TCOMP  || TINIT  || TEXEC
- *	<vectorability> ::= KVECT  || KSCAL  || KTRUESCAL
- *	<boolean>       ::= KNUM   || KBOOL
+ *    <type>          ::= <simpletype> || table(<type>) || <type>|<type> || <type>*<type>
+ *    <simpletype>    ::= <nature><variability><computability><vectorability>||<boolean>
+ *    <nature>        ::= TINT || TREAL
+ *    <variability>   ::= TKONST || TBLOCK || TSAMP
+ *    <computability> ::= TCOMP  || TINIT  || TEXEC
+ *    <vectorability> ::= KVECT  || KSCAL  || KTRUESCAL
+ *    <boolean>       ::= KNUM   || KBOOL
  *
  **********************************************************************/
 
 //--------------------------------------------------
 // simple types quality
 
-enum { kInt = 0, kReal = 1, kAny = 2 };  ///< nature : integer or floating point values
-enum {
+enum Nature { kInt = 0, kReal = 1, kAny = 2 };  ///< nature : integer or floating point values
+enum Boolean {
     kNum  = 0,
     kBool = 1
 };  ///< boolean : when a signal stands for a boolean value ( while being of c-type int or float )
-enum { kKonst = 0, kBlock = 1, kSamp = 3 };  ///< variability : how fast values change
-enum { kComp = 0, kInit = 1, kExec = 3 };    ///< computability : when values are available
-enum {
+enum Variability { kKonst = 0, kBlock = 1, kSamp = 3 };  ///< variability : how fast values change
+enum Computability { kComp = 0, kInit = 1, kExec = 3 };  ///< computability : when values are available
+enum Vectorability {
     kVect     = 0,
     kScal     = 1,
     kTrueScal = 3 /*, kIndex = 4*/
@@ -72,12 +70,10 @@ enum {
 
 ----------------------------------------------------------------------*/
 
-using namespace std;
-
 class AudioType;
 
 typedef P<AudioType> Type;
-typedef const vector<Type>& ConstTypes;
+typedef const std::vector<Type>& ConstTypes;
 
 /**
  * The Root class for all audio data types.
@@ -88,20 +84,20 @@ typedef const vector<Type>& ConstTypes;
 
 class AudioType : public virtual Garbageable {
    protected:
-    int      fNature;         ///< the kind of data represented
-    int      fVariability;    ///< how fast values change
-    int      fComputability;  ///< when are values available
-    int      fVectorability;  ///< when a signal can be vectorized
-    int      fBoolean;        ///< when a signal stands for a boolean value
-    interval fInterval;       ///< Minimal and maximal values the signal can take
-    res      fRes;            ///< Resolution (fixed-point)
-    Tree     fCode;           ///< Tree representation (for memoization purposes)
+    int           fNature;         ///< The kind of data represented
+    int           fVariability;    ///< How fast values change
+    int           fComputability;  ///< When are values available
+    int           fVectorability;  ///< When a signal can be vectorized
+    int           fBoolean;        ///< When a signal stands for a boolean value
+    itv::interval fInterval;       ///< Minimal and maximal values the signal can take
+    res           fRes;            ///< Resolution (fixed-point)
+    Tree          fCode;           ///< Tree representation (for memoization purposes)
 
    public:
-    AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval(), res r = res());
+    AudioType(int n, int v, int c, int vec = kVect, int b = kNum, itv::interval i = interval(), res r = res());
     virtual ~AudioType() {}  ///< not really useful here, but make compiler happier
 
-    int nature() const { return fNature; }  ///< returns the kind of values (integre or floating point)
+    int nature() const { return fNature; }  ///< returns the kind of values (integer or floating point)
     int variability() const
     {
         return fVariability;
@@ -113,11 +109,11 @@ class AudioType : public virtual Garbageable {
     int vectorability() const { return fVectorability; }  ///< returns when a signal can be vectorized
     int boolean() const { return fBoolean; }              ///< returns when a signal stands for a boolean value
 
-    interval getInterval() const { return fInterval; }  ///< returns the interval (min dn max values) of a signal
-    res      getRes() const { return fRes; }            ///< return the resolution of the signal (fixed)
+    interval getInterval() const { return fInterval; }  ///< returns the interval (min and max values) of a signal
+    res      getRes() const { return fRes; }            ///< returns the resolution of the signal (fixed)
 
-    void setCode(Tree code) { fCode = code; }  ///< returns the interval (min dn max values) of a signal
-    Tree getCode() { return fCode; }           ///< returns the interval (min dn max values) of a signal
+    void setCode(Tree code) { fCode = code; }  ///< sets the memoized code of a signal
+    Tree getCode() { return fCode; }           ///< returns the memoized code of a signal
 
     virtual AudioType* promoteNature(int n)               = 0;  ///< promote the nature of a type
     virtual AudioType* promoteVariability(int n)          = 0;  ///< promote the variability of a type
@@ -126,7 +122,7 @@ class AudioType : public virtual Garbageable {
     virtual AudioType* promoteBoolean(int n)              = 0;  ///< promote the booleanity of a type
     virtual AudioType* promoteInterval(const interval& i) = 0;  ///< promote the interval of a type
 
-    virtual ostream& print(ostream& dst) const = 0;  ///< print nicely a type
+    virtual std::ostream& print(std::ostream& dst) const = 0;  ///< print nicely a type
     ///< true when type is maximal (and therefore can't change depending of hypothesis)
     virtual bool isMaximal() const = 0;
 
@@ -135,7 +131,7 @@ class AudioType : public virtual Garbageable {
 };
 
 // printing
-inline ostream& operator<<(ostream& s, const AudioType& n)
+inline std::ostream& operator<<(std::ostream& s, const AudioType& n)
 {
     return n.print(s);
 }
@@ -198,19 +194,11 @@ inline interval mergeinterval(ConstTypes v)
     if (v.size() == 0) {
         return interval();
     } else {
-        double lo = 0, hi = 0;
-        for (unsigned int i = 0; i < v.size(); i++) {
-            interval r = v[i]->getInterval();
-            if (!r.valid) return r;
-            if (i == 0) {
-                lo = r.lo;
-                hi = r.hi;
-            } else {
-                lo = min(lo, r.lo);
-                hi = max(hi, r.hi);
-            }
+        interval r = v[0]->getInterval();
+        for (unsigned int i = 1; i < v.size(); i++) {
+            r = itv::reunion(r, v[i]->getInterval());
         }
-        return interval(lo, hi);
+        return r;
     }
 }
 
@@ -238,7 +226,7 @@ class SimpleType : public AudioType {
         // cerr << "new simple type " << i << " -> " << *this << endl;
     }  ///< constructs a SimpleType from a nature a variability and a computability
 
-    virtual ostream& print(ostream& dst) const;  ///< print a SimpleType
+    virtual std::ostream& print(std::ostream& dst) const;  ///< print a SimpleType
 
     virtual AudioType* promoteNature(int n)
     {
@@ -273,6 +261,11 @@ class SimpleType : public AudioType {
 };
 
 inline Type intCast(Type t)
+{
+    return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(),
+                          cast2int(t->getInterval()));
+}
+inline Type bitCast(Type t)
 {
     return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(),
                           t->getInterval());
@@ -327,17 +320,17 @@ class TableType : public AudioType {
     {
     }  ///< construct a TableType with a content of a type t
 #if 0
-	TableType(const Type& t, int v, int c) :
-		  AudioType(t->nature(), t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
-		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting variability and computability
+    TableType(const Type& t, int v, int c) :
+          AudioType(t->nature(), t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
+          fContent(t) {}        ///< construct a TableType with a content of a type t, promoting variability and computability
 
-	TableType(const Type& t, int n, int v, int c) :
-		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
-		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability and computability
+    TableType(const Type& t, int n, int v, int c) :
+          AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
+          fContent(t) {}        ///< construct a TableType with a content of a type t, promoting nature, variability and computability
 
-	TableType(const Type& t, int n, int v, int c, int vec, int b) :
-		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()|b),
-		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability, computability, vectorability and booleanity
+    TableType(const Type& t, int n, int v, int c, int vec, int b) :
+          AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()|b),
+          fContent(t) {}        ///< construct a TableType with a content of a type t, promoting nature, variability, computability,            vectorability and booleanity
 #endif
 
     TableType(const Type& t, int n, int v, int c, int vec, int b, const interval& i)
@@ -353,7 +346,7 @@ class TableType : public AudioType {
        ///< vectorability
 
     Type             content() const { return fContent; }  ///< return the type of data store in the table
-    virtual ostream& print(ostream& dst) const;            ///< print a TableType
+    virtual std::ostream& print(std::ostream& dst) const;            ///< print a TableType
 
     virtual AudioType* promoteNature(int n)
     {
@@ -391,7 +384,7 @@ class TableType : public AudioType {
  */
 class TupletType : public AudioType {
    protected:
-    vector<Type> fComponents;
+    std::vector<Type> fComponents;
 
    public:
     TupletType() : AudioType(0, 0, 0) {}
@@ -410,9 +403,10 @@ class TupletType : public AudioType {
     {
     }
 
-    int              arity() const { return (int)fComponents.size(); }
-    Type             operator[](unsigned int i) const { return fComponents[i]; }
-    virtual ostream& print(ostream& dst) const;
+    int arity() const { return (int)fComponents.size(); }
+    Type operator[](unsigned int i) const { return fComponents[i]; }
+    
+    virtual std::ostream& print(std::ostream& dst) const;
 
     virtual AudioType* promoteNature(int n)
     {
@@ -449,29 +443,9 @@ class TupletType : public AudioType {
 
 //-------------------------------------------------
 //-------------------------------------------------
-// 				operations on types
+//                 operations on types
 //-------------------------------------------------
 //-------------------------------------------------
-
-//--------------------------------------------------
-// list of predefined types
-
-extern Type TINT;
-extern Type TREAL;
-
-extern Type TKONST;
-extern Type TBLOCK;
-extern Type TSAMP;
-
-extern Type TCOMP;
-extern Type TINIT;
-extern Type TEXEC;
-
-extern Type TINPUT;
-extern Type TGUI;
-extern Type TGUI01;
-extern Type INT_TGUI;
-extern Type TREC;
 
 //--------------------------------------------------
 // types creation
@@ -513,10 +487,10 @@ TupletType* isTupletType(AudioType* t);
 //--------------------------------------------------
 // types impressions
 
-ostream& operator<<(ostream& dst, const SimpleType& t);
-ostream& operator<<(ostream& dst, const Type& t);
-ostream& operator<<(ostream& dst, const TableType& t);
-ostream& operator<<(ostream& dst, const TupletType& t);
+std::ostream& operator<<(std::ostream& dst, const SimpleType& t);
+std::ostream& operator<<(std::ostream& dst, const Type& t);
+std::ostream& operator<<(std::ostream& dst, const TableType& t);
+std::ostream& operator<<(std::ostream& dst, const TupletType& t);
 
 //--------------------------------------------------
 // type verification

@@ -1,9 +1,9 @@
-% man(1) Version 2.52.6 (22-October-2022) | Faust man page
+% man(1) Version 2.59.6 (14-May-2023) | Faust man page
 
 NAME
 ====
 
-Faust - DSP to C/C++, CSharp, DLang, Interpreter, Java, LLVM IR, Rust, SOUL, and WebAssembly (wast/wasm)
+Faust - DSP to C/C++, CMajor, CSharp, DLang, Interpreter, Java, LLVM IR, Rust and WebAssembly (wast/wasm)
 
 SYNOPSIS
 ========
@@ -30,8 +30,6 @@ Input options:
   **-I** \<dir>  **--import-dir** \<dir>            add the directory \<dir> to the libraries search path.
 
   **-L** \<file> **--library** \<file>              link with the LLVM module \<file>.
-
-  **-t** \<sec>  **--timeout** \<sec>               abort compilation after \<sec> seconds (default 120).
 
 
 Output options:
@@ -74,7 +72,10 @@ Code generation options:
 
   **-nvi**        **--no-virtual**                when compiled with the C++ backend, does not add the 'virtual' keyword.
 
-  **-fp**         **--full-parentheses**          always add parentheses around binops 
+  **-fp**         **--full-parentheses**          always add parentheses around binops.
+
+  **-cir**        **--check-integer-range**       check float to integer range conversion.
+
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
   **-os**         **--one-sample**                generate one sample computation (same as -os0).
@@ -88,6 +89,8 @@ Code generation options:
   **-os3**        **--one-sample3**               generate one sample computation (3 = like 2 but with external memory pointers kept in the DSP struct).
 
   **-cm**         **--compute-mix**               mix in outputs buffers.
+
+  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code [0/1: 1 by default].
 
   **-cn** \<name>  **--class-name** \<name>         specify the name of the dsp class to be used instead of mydsp.
 
@@ -103,11 +106,13 @@ Code generation options:
 
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
 
-  **-rui**        **--range-ui**                  whether to generate code to limit vslider/hslider/nentry values in [min..max] range.
+  **-rui**        **--range-ui**                  whether to generate code to constraint vslider/hslider/nentry values in [min..max] range.
+
+  **-fui**        **--freeze-ui**                 whether to freeze vslider/hslider/nentry to a given value (init value by default).
 
   **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compiling a dsp file.
 
-  **-scal**       **--scalar**                    generate non-vectorized code.
+  **-scal**       **--scalar**                    generate non-vectorized code (default).
 
   **-inpl**       **--in-place**                  generates code working when input and output buffers are the same (scalar mode only).
 
@@ -115,7 +120,7 @@ Code generation options:
 
   **-vs** \<n>     **--vec-size** \<n>              size of the vector (default 32 samples).
 
-  **-lv** \<n>     **--loop-variant** \<n>          [0:fastest (default), 1:simple].
+  **-lv** \<n>     **--loop-variant** \<n>          [0:fastest, fixed vector size and a remaining loop (default), 1:simple, variable vector size].
 
   **-omp**        **--openmp**                    generate OpenMP pragmas, activates --vectorize option.
 
@@ -133,7 +138,7 @@ Code generation options:
 
   **-fun**        **--fun-tasks**                 separate tasks code as separated functions (in -vec, -sch, or -omp mode).
 
-  **-fm** \<file>  **--fast-math** \<file>          use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'.
+  **-fm** \<file>  **--fast-math** \<file>          use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def', assume functions are defined in the architecture file when file is 'arch'.
 
   **-mapp**       **--math-approximation**        simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
 
@@ -145,9 +150,11 @@ Code generation options:
 
   **-vhdl**-type 0|1 **--vhdl-type** 0|1          sample format 0 = sfixed (default), 1 = float.
 
-  **-vhdl**-msb \<n>  **--vhdl-msb** \<n>           MSB number of bits.
+  **-vhdl**-msb \<n>  **--vhdl-msb** \<n>           Most Significant Bit (MSB) position.
 
-  **-vhdl**-lsb \<n>  **--vhdl-lsb** \<n>           LSB number of bits.
+  **-vhdl**-lsb \<n>  **--vhdl-lsb** \<n>           Less Significant Bit (LSB) position.
+
+  **-fpga**-mem \<n>  **--fpga-mem** \<n>           FPGA block ram max size, used in -os2/-os3 mode.
 
   **-wi** \<n>     **--widening-iterations** \<n>   number of iterations before widening in signal bounding.
 
@@ -175,6 +182,8 @@ Block diagram options:
 
   **-blur**      **--shadow-blur**                add a shadow blur to SVG boxes.
 
+  **-sc**        **--scaled-svg**                 automatic scalable SVG.
+
 
 Math doc options:
 ---------------------------------------
@@ -201,11 +210,13 @@ Debug options:
 
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
 
-  **-ct**         **--check-table**               check table index range and exit at first failure.
-
-  **-cat**        **--check-all-table**           check all table index range.
-
   **-me**         **--math-exceptions**           check / for 0 as denominator and remainder, fmod, sqrt, log10, log, acos, asin functions domain.
+
+  **-sts**        **--strict-select**             generate strict code for 'selectX' even for stateless branches (both are computed).
+
+  **-wall**       **--warning-all**               print all warnings.
+
+  **-t** \<sec>    **--timeout** \<sec>             abort compilation after \<sec> seconds (default 120).
 
 
 Information options:
@@ -244,6 +255,6 @@ Please report bugs to: **<https://github.com/grame-cncm/faust/issues>**
 AUTHOR
 ======
 
-Copyright (C) 2002-2022, GRAME - Centre National de Creation Musicale.
+Copyright (C) 2002-2023, GRAME - Centre National de Creation Musicale.
 All rights reserved.
 

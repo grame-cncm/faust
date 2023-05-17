@@ -26,6 +26,8 @@
 #include "signals.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 /********************************************************************
 SignalConstantPropagation::transformation(Tree sig) :
 
@@ -91,8 +93,12 @@ Tree SignalConstantPropagation::transformation(Tree sig)
             return v1;
         else if (op->isRightAbsorbing(n2))
             return v2;
-        else
-            return sigBinOp(opnum, v1, v2);
+        else if (t1 == t2) {
+            if ((opnum == kAND) || (opnum == kOR)) return t1;
+            if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) return sigInt(1);
+            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) || (opnum == kXOR)) return sigInt(0);
+        }
+        return sigBinOp(opnum, v1, v2);
 
     } else if (isSigSelect2(sig, t1, t2, t3)) {
         Tree v1 = self(t1);
@@ -119,7 +125,7 @@ Tree SignalConstantPropagation::transformation(Tree sig)
                 return sigProj(i, r);
             }
         } else {
-            cerr << "ERROR : SignalConstantPropagation::transformation : " << *sig << endl;
+            cerr << "ASSERT : SignalConstantPropagation::transformation : " << *sig << endl;
             faustassert(false);
             return gGlobal->nil;  // Fake return to silence warnings
         }

@@ -29,8 +29,7 @@
 #include "binop.hh"
 #include "exception.hh"
 #include "tlib.hh"
-
-using namespace std;
+#include "global.hh"
 
 #if defined(WIN32) && !defined(__GNUC__)
 #pragma warning(disable : 4800)
@@ -48,9 +47,11 @@ typedef std::vector<Tree> siglist;
 
 // Constant signals : for all t, x(t)=n
 LIBFAUST_API Tree sigInt(int n);
+Tree sigInt64(int64_t n);
 LIBFAUST_API Tree sigReal(double n);
 
 LIBFAUST_API bool isSigInt(Tree t, int* i);
+bool isSigInt64(Tree t, int64_t* i);
 LIBFAUST_API bool isSigReal(Tree t, double* r);
 
 // Waveforms
@@ -75,25 +76,30 @@ LIBFAUST_API bool isSigDelay(Tree t, Tree& t0, Tree& t1);
 Tree sigPrefix(Tree t0, Tree t1);
 LIBFAUST_API bool isSigPrefix(Tree t, Tree& t0, Tree& t1);
 
-// Int and Double casting
+// Int, Bitcast and Double casting
 LIBFAUST_API Tree sigIntCast(Tree t);
+Tree sigBitCast(Tree t);
 LIBFAUST_API Tree sigFloatCast(Tree t);
 
 bool isSigIntCast(Tree t);
+bool isSigBitCast(Tree t);
 bool isSigFloatCast(Tree t);
 
 LIBFAUST_API bool isSigIntCast(Tree t, Tree& x);
+bool isSigBitCast(Tree t, Tree& x);
 LIBFAUST_API bool isSigFloatCast(Tree t, Tree& x);
 
 // Tables
-Tree sigRDTbl(Tree tb, Tree ri);
-Tree sigWRTbl(Tree id, Tree tb, Tree wi, Tree ws);
-Tree sigTable(Tree id, Tree n, Tree sig);
+Tree sigRDTbl(Tree tbl, Tree ri);
+// for rwtable and rdtable (with wi and ws = gGlobal->nil)
+Tree sigWRTbl(Tree size, Tree gen, Tree wi = gGlobal->nil, Tree ws = gGlobal->nil);
 Tree sigGen(Tree content);
 
-LIBFAUST_API bool isSigRDTbl(Tree s, Tree& tb, Tree& ri);
-LIBFAUST_API bool isSigWRTbl(Tree u, Tree& id, Tree& tb, Tree& wi, Tree& ws);
-LIBFAUST_API bool isSigTable(Tree t, Tree& id, Tree& n, Tree& sig);
+LIBFAUST_API bool isSigRDTbl(Tree s, Tree& tbl, Tree& ri);
+// for rwtable
+LIBFAUST_API bool isSigWRTbl(Tree u, Tree& size, Tree& gen, Tree& wi, Tree& ws);
+// for rdtable
+LIBFAUST_API bool isSigWRTbl(Tree u, Tree& size, Tree& gen);
 LIBFAUST_API bool isSigGen(Tree t, Tree& content);
 bool isSigGen(Tree t);
 
@@ -300,7 +306,7 @@ Tree sigControl(Tree x, Tree y);
 LIBFAUST_API bool isSigControl(Tree s, Tree& x, Tree& y);
 
 /*****************************************************************************
-                             Sounfiles (also UI elements)
+                             Soundfiles (also UI elements)
 *****************************************************************************/
 /*
 A boxSounfile(label,c) has 2 inputs and c+3 outputs:
@@ -320,7 +326,7 @@ LIBFAUST_API bool isSigSoundfileRate(Tree s, Tree& sf, Tree& part);
 LIBFAUST_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part, Tree& ridx);
 
 /*****************************************************************************
-                             matrix extension
+                             Matrix extension
 *****************************************************************************/
 
 // A tuple of signals is basically a list of signals.
@@ -337,13 +343,6 @@ LIBFAUST_API bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
 Tree sigCartesianProd(Tree s1, Tree s2);
 
 /*****************************************************************************
-                             FTZ wrapping
-    Add FTZ wrapping to a signal
-*****************************************************************************/
-
-Tree sigFTZ(Tree s);
-
-/*****************************************************************************
                              Access to sub signals of a signal
 *****************************************************************************/
 
@@ -357,7 +356,11 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen = true);
  */
 bool verySimple(Tree exp);
 
-bool sigList2vecInt(Tree ls, vector<int>& v);
+/**
+ * Convert a list of signals (representing numbers) into a vector of ints
+ * the result is true if the conversion was possible.
+ */
+bool sigList2vecInt(Tree ls, std::vector<int>& v);
 
 /**
  * Convert an stl vector of signals into a tree list of signals

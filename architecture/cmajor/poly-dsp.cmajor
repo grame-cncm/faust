@@ -39,15 +39,15 @@
 <<includeclass>>
 
 /*
-	Connect the wrapper with the real processor. 
-	This indirection is done since the "expose control event" model is not yet in place.
-	So we have some 'ad-hoc' code for now that may change in the future
+    Connect the wrapper with the real processor. 
+    This indirection is done since the "expose control event" model is not yet in place.
+    So we have some 'ad-hoc' code for now that may change in the future
 */
 graph dsp_voice
 {
-	input event (std::notes::NoteOn,
-   				 std::notes::NoteOff,
-				 std::notes::PitchBend) eventIn;
+    input event (std::notes::NoteOn,
+                std::notes::NoteOff,
+                std::notes::PitchBend) eventIn;
     
     output stream float audioOut0;
     output stream float audioOut1;
@@ -66,7 +66,7 @@ graph dsp_voice
     
     event eventIn (std::notes::PitchBend e)
     {
-    	// TODO
+        // TODO
     }
 
     connection

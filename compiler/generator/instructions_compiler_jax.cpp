@@ -20,9 +20,10 @@
  ************************************************************************/
 
 #include "instructions_compiler_jax.hh"
-#include "ensure.hh"
 #include "ppsig.hh"
 #include "sigtyperules.hh"
+
+using namespace std;
 
 StatementInst* InstructionsCompilerJAX::generateShiftArray(const string& vname, int delay)
 {
@@ -33,7 +34,7 @@ StatementInst* InstructionsCompilerJAX::generateShiftArray(const string& vname, 
 }
 
 ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname,
-                                                      int mxd, Address::AccessType& var_access, ValueInst* ccs)
+                                                      int mxd, Address::AccessType& access, ValueInst* ccs)
 {
     if (mxd == 0) {
         // Generate scalar use
@@ -132,7 +133,7 @@ ValueInst* InstructionsCompilerJAX::generateSoundfile(Tree sig, Tree path)
     string varname = gGlobal->getFreshID("fSoundfile");
     string SFcache = varname + "ca";
 
-    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
 

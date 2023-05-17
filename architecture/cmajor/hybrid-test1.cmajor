@@ -13,30 +13,44 @@ processor ClassicRingtone
 {
     output stream float out;
 
-    void main()
+    // This simple struct holds a note + duration for our melody
+    struct Note
     {
-        int[] pitches    = (76, 74, 66, 68, 73, 71, 62, 64, 71, 69, 61, 64, 69);
-        int[] durations  = ( 1,  1,  2,  2,  1,  1,  2,  2,  1,  1,  2,  2,  4);
+        int pitch, length;
 
-        let samplesPerQuarterNote = int (processor.frequency / 7);
-        float sinewavePhase;
+        void play() const
+        {
+            let numFrames = this.length * framesPerQuarterNote;
+            let frequency  = std::notes::noteToFrequency (this.pitch);
+            let phaseDelta = float (frequency * processor.period * twoPi);
 
-        loop {
-            for (int noteIndex = 0; noteIndex < pitches.size; ++noteIndex)
+            loop (numFrames)
             {
-                let noteFrequency  = std::notes::noteToFrequency (pitches.at (noteIndex));
-                let noteLength     = samplesPerQuarterNote * durations.at (noteIndex);
-                let phaseIncrement = float (noteFrequency * twoPi * processor.period);
-
-                loop (noteLength)  // play our next note...
-                {
-                    out <- 0.9f * sin (sinewavePhase);
-                    sinewavePhase = addModulo2Pi (sinewavePhase, phaseIncrement);
-                    advance();
-                }
+                out <- volume * sin (phase);
+                phase = addModulo2Pi (phase, phaseDelta);
+                advance();
             }
         }
     }
+
+    // This is our processor's entry-point function, which is invoked
+    // by the system
+    void main()
+    {
+        let melody = Note[] ( (79, 1),  (77, 1),  (69, 2),  (71, 2),
+                              (76, 1),  (74, 1),  (65, 2),  (67, 2),
+                              (74, 1),  (72, 1),  (64, 2),  (67, 2),
+                              (72, 4) );
+
+        for (wrap<melody.size> i)
+            melody[i].play();
+    }
+
+    // We'll define a couple of constants here to set the volume and tempo
+    let volume = 0.15f;
+    let framesPerQuarterNote = int (processor.frequency / 7);
+
+    float phase;
 }
 
 faust stereoEcho

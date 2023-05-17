@@ -1,3 +1,4 @@
+// Size = 9
 ID_0 = nentry("[1]pan[style:knob]",0.0f,-9e+01f,9e+01f,1.0f);
 ID_1 = (ID_0+-9e+01f);
 ID_2 = 0.0055555557f*ID_1;

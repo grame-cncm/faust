@@ -30,8 +30,6 @@
 #include "was_instructions.hh"
 #include "wasm_binary.hh"
 
-using namespace std;
-
 //
 // We mostly stream into a buffer as we create the binary format, however,
 // sometimes we need to backtrack and write to a location behind us - wasm
@@ -221,9 +219,9 @@ class BufferWithRandomAccess : public std::vector<uint8_t> {
         return ret;
     }
 
-    string toString()
+    std::string toString()
     {
-        stringstream str;
+        std::stringstream str;
         for (const auto& c : *this) str << c;
         return str.str();
     }
@@ -285,25 +283,26 @@ struct LocalVariableCounter : public DispatchVisitor {
 
     int fFunArgIndex;
 
-    map<string, LocalVarDesc> fLocalVarTable;
+    std::map<std::string, LocalVarDesc> fLocalVarTable;
 
     LocalVariableCounter() : fIn32Type(0), fF32Type(0), fF64Type(0), fFunArgIndex(0) {}
 
     virtual void visit(DeclareVarInst* inst)
     {
-        string         name = inst->fAddress->getName();
+        std::string    name = inst->fAddress->getName();
         Typed::VarType type = inst->fType->getType();
+        Address::AccessType access = inst->fAddress->getAccess();
 
         faustassert(fLocalVarTable.find(name) == fLocalVarTable.end());
 
         // stack/loop variables accessed by [var_num, type] pairs
-        if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
+        if (access & Address::kStack || access & Address::kLoop) {
             if (isIntOrPtrType(type)) {
-                fLocalVarTable[name] = LocalVarDesc(fIn32Type++, type, inst->fAddress->getAccess());
+                fLocalVarTable[name] = LocalVarDesc(fIn32Type++, type, access);
             } else if (type == Typed::kFloat) {
-                fLocalVarTable[name] = LocalVarDesc(fF32Type++, type, inst->fAddress->getAccess());
+                fLocalVarTable[name] = LocalVarDesc(fF32Type++, type, access);
             } else if (type == Typed::kDouble) {
-                fLocalVarTable[name] = LocalVarDesc(fF64Type++, type, inst->fAddress->getAccess());
+                fLocalVarTable[name] = LocalVarDesc(fF64Type++, type, access);
             } else {
                 faustassert(false);
             }
@@ -362,8 +361,8 @@ struct LocalVariableCounter : public DispatchVisitor {
 
 // Counter of functions with their types and global variable offset
 struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
-    std::map<string, FunTyped*>             fFunTypes;    // function name, function type
-    std::map<string, pair<string, string> > fFunImports;  // function name, [module, base]
+    std::map<std::string, FunTyped*>             fFunTypes;    // function name, function type
+    std::map<std::string, std::pair<std::string, std::string>> fFunImports;  // function name, [module, base]
 
     using DispatchVisitor::visit;
 
@@ -459,7 +458,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
                         || (inst->fAddress->getAccess() & Address::kStaticStruct);
         
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string name = inst->fAddress->getName();
+        std::string name = inst->fAddress->getName();
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
@@ -523,7 +522,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     }
 
     // Get the function index : imported functions are first followed by all module internally defined ones
-    int32_t getFunctionIndex(const string& name)
+    int32_t getFunctionIndex(const std::string& name)
     {
         // If imported function
         if (fFunImports.find(name) != fFunImports.end()) {
@@ -547,13 +546,13 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             }
         }
 
-        std::cerr << "getFunctionIndex " << name << std::endl;
+        std::cerr << "ASSERT : getFunctionIndex " << name << std::endl;
         faustassert(false);
         return -1;
     }
 
     // Get the function type index
-    int32_t getFunctionTypeIndex(const string& name)
+    int32_t getFunctionTypeIndex(const std::string& name)
     {
         int i = 0;
         for (const auto& type : fFunTypes) {
@@ -562,7 +561,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             }
             i++;
         }
-        std::cerr << "getFunctionTypeIndex " << name << std::endl;
+        std::cerr << "ASSERT : getFunctionTypeIndex " << name << std::endl;
         faustassert(false);
         return -1;
     }
@@ -618,7 +617,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     }
 
     // Generate internal function export
-    void generateExport(BufferWithRandomAccess* out, const string& name)
+    void generateExport(BufferWithRandomAccess* out, const std::string& name)
     {
         *out << name;
         *out << U32LEB(int32_t(ExternalKind::Function));
@@ -645,7 +644,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
 class WASMInstVisitor : public DispatchVisitor, public WASInst {
    private:
-    map<string, LocalVarDesc> fLocalVarTable;
+    std::map<std::string, LocalVarDesc> fLocalVarTable;
     BufferWithRandomAccess*   fOut;
     FunAndTypeCounter         fFunAndTypeCounter;
 
@@ -664,7 +663,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual ~WASMInstVisitor() {}
 
-    void setLocalVarTable(const map<string, LocalVarDesc>& table) { fLocalVarTable = table; }
+    void setLocalVarTable(const std::map<std::string, LocalVarDesc>& table) { fLocalVarTable = table; }
 
     FunAndTypeCounter* getFunAndTypeCounter() { return &fFunAndTypeCounter; }
 
@@ -787,7 +786,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         fOut->writeAt(size_pos, U32LEB(uint32_t(size)));
     }
 
-    void generateJSON(const string& json)
+    void generateJSON(const std::string& json)
     {
         // One data segment only
         int     data_segment_num = 1;
@@ -817,9 +816,9 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(DeclareVarInst* inst)
     {
         Address::AccessType access      = inst->fAddress->getAccess();
-        bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
+        bool                is_struct  = (access & Address::kStruct) || (access & Address::kStaticStruct);
         ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string              name        = inst->fAddress->getName();
+        std::string        name        = inst->fAddress->getName();
     
         // fSampleRate may appear several time (in subcontainers and in main DSP)
         if (name != "fSampleRate") {
@@ -889,13 +888,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(LoadVarInst* inst)
     {
-        Typed::VarType type = TypingVisitor::getType(inst);
+        Typed::VarType type        = TypingVisitor::getType(inst);
         Address::AccessType access = inst->fAddress->getAccess();
-        string                name = inst->fAddress->getName();
+        std::string          name = inst->fAddress->getName();
         IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-
+    
         if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
-            
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 // Generate 0
@@ -926,7 +924,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(TeeVarInst* inst)
     {
-        string name = inst->fAddress->getName();
+        std::string name = inst->fAddress->getName();
 
         faustassert(fLocalVarTable.find(name) != fLocalVarTable.end());
         LocalVarDesc local = fLocalVarTable[name];
@@ -944,11 +942,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(StoreVarInst* inst)
     {
-        Typed::VarType type = TypingVisitor::getType(inst->fValue);
-        string         name = inst->fAddress->getName();
+        Typed::VarType type        = TypingVisitor::getType(inst->fValue);
+        Address::AccessType access = inst->fAddress->getAccess();
+        std::string name           = inst->fAddress->getName();
+        IndexedAddress* indexed    = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
-        if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
-            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 // Generate 0
@@ -1256,7 +1255,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     }
 
     // Special case for min/max
-    void generateMinMax(const Values& args, const string& name)
+    void generateMinMax(const Values& args, const std::string& name)
     {
         Values::iterator it;
         ValueInst* arg1 = *(args.begin());

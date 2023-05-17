@@ -34,16 +34,7 @@
 #include "instructions.hh"
 #include "type_manager.hh"
 
-// To check all control fields in the DSP structure
-inline bool isControl(const string& name)
-{
-    return startWith(name, "fButton") || startWith(name, "fCheckbox") || startWith(name, "fVslider") ||
-           startWith(name, "fHslider") || startWith(name, "fEntry") || startWith(name, "fVbargraph") ||
-           startWith(name, "fHbargraph") || name == "iControl" || name == "fControl" || name == "iZone" ||
-           name == "fZone" || name == "fSampleRate";
-}
-
-// Base class to textual visitor: C, C++, CSharp, Dlang, JAX, Julia, SOUL, Rust, wast
+// Base class to textual visitor: C, C++, Cmajor, CSharp, Dlang, JAX, Julia, Rust, wast
 
 class TextInstVisitor : public InstVisitor {
    protected:
@@ -204,7 +195,7 @@ class TextInstVisitor : public InstVisitor {
      * @return true if parentheses are needed to silence warnings
      * @return false otherwise
      */
-    bool special(const string& name)
+    bool special(const std::string& name)
     {
         return (name == "==") || (name == "!=") || (name == "<") || (name == ">") || (name == "<=") || (name == ">=") ||
                (name == ">>") || (name == "<<") || (name == "&") || (name == "|");
@@ -241,7 +232,7 @@ class TextInstVisitor : public InstVisitor {
      * @brief test if a right expression needs parentheses.
      *
      * @param inst the top binary instruction
-     * @param arg the left expression
+     * @param arg the right expression
      * @return true if parentheses are needed, false otherwise
      */
     virtual bool rightArgNeedsParentheses(BinopInst* inst, ValueInst* arg)
@@ -320,7 +311,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ");" << endl;  // Pure prototype
+            *fOut << ");" << std::endl;  // Pure prototype
         } else {
             // Function body
             *fOut << ") {";
@@ -366,9 +357,9 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(IfInst* inst)
     {
-        *fOut << "if (";
+        *fOut << "if ";
         visitCond(inst->fCond);
-        *fOut << ") {";
+        *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
         inst->fThen->accept(this);
@@ -413,9 +404,9 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(WhileLoopInst* inst)
     {
-        *fOut << "while (";
+        *fOut << "while ";
         visitCond(inst->fCond);
-        *fOut << ") {";
+        *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);
@@ -451,12 +442,12 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(::SwitchInst* inst)
     {
-        *fOut << "switch (";
-        inst->fCond->accept(this);
-        *fOut << ") {";
+        *fOut << "switch ";
+        visitCond(inst->fCond);
+        *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
-        list<pair<int, BlockInst*> >::const_iterator it;
+        std::list<std::pair<int, BlockInst*> >::const_iterator it;
         for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
             if ((*it).first == -1) {  // -1 used to code "default" case
                 *fOut << "default: {";

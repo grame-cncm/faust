@@ -30,7 +30,7 @@
 #include <iostream>
 using namespace std;
 
-const char* yyfilename = "????";
+const char* FAUSTfilename = "????";
 
 void faustassertaux(bool cond, const string& file, int line)
 {
@@ -61,10 +61,10 @@ void lexerror(const char* msg)
     throw faustexception(fullmsg);
 }
 
-void yyerror(const char* msg)
+void FAUSTerror(const char* msg)
 {
     stringstream error;
-    error << yyfilename << " : " << yylineno << " : ERROR : " << msg << endl;
+    error << FAUSTfilename << " : " << FAUSTlineno << " : ERROR : " << msg << endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }
@@ -89,14 +89,14 @@ void evalwarning(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
     error << filename << " : " << linenum << " : WARNING : " << msg << " : " << boxpp(exp) << endl;
-    gGlobal->gErrorMsg = error.str();
+    gGlobal->gErrorMessage = error.str();
 }
 
 void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
     error << filename << " : " << linenum << " : REMARK : " << msg << " : " << boxpp(exp) << endl;
-    gGlobal->gErrorMsg = error.str();
+    gGlobal->gErrorMessage = error.str();
 }
 
 void setDefProp(Tree sym, const char* filename, int lineno)

@@ -151,6 +151,41 @@ struct malloc_memory_manager : public dsp_memory_manager {
     
 };
 
+struct malloc_memory_manager_check : public dsp_memory_manager {
+    
+    int fZoneCount = 0;
+    int fMaxSize = 0;
+    
+    virtual void begin(size_t count)
+    {
+        fZoneCount = count;
+    }
+    
+    virtual void info(size_t size, size_t reads, size_t writes)
+    {
+        if (--fZoneCount < 0) {
+            throw std::runtime_error("malloc_memory_manager_check::info : " + std::to_string(size));
+        }
+        fMaxSize += size;
+    }
+    
+    virtual void end() {}
+    
+    virtual void* allocate(size_t size)
+    {
+        if (--fMaxSize < 0) {
+            throw std::runtime_error("malloc_memory_manager_check::allocate : " + std::to_string(size));
+        }
+        return calloc(1, size);
+    }
+    
+    virtual void destroy(void* ptr)
+    {
+        free(ptr);
+    }
+    
+};
+
 static void printHeader(dsp* DSP, int nbsamples)
 {
     // Print general informations
@@ -171,15 +206,20 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
 
+
+//---------------------------------------------------------------------
+// Soundfile: has to be global to be share across multiple instances
+//----------------------------------------------------------------------
+static TestMemoryReader* memory_reader = new TestMemoryReader();
+static SoundUI* sound_ui = new SoundUI("", -1, memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
+
 // To be used in static context
 static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4)
 {
     mydsp_poly* DSP = new mydsp_poly(dsp, num_voices, true, false);
-    
-    // Soundfile
-    TestMemoryReader* memory_reader = new TestMemoryReader();
-    SoundUI sound_ui("", -1, memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
-    DSP->buildUserInterface(&sound_ui);
+
+    // Soundfile setting
+    DSP->buildUserInterface(sound_ui);
   
     // Get control and then 'initRandom'
     CheckControlUI controlui;
@@ -266,14 +306,13 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     string filename = file;
     filename = filename.substr(0, filename.find ('.'));
     snprintf(rcfilename, 255, "%src", filename.c_str());
+    dsp* oldDSP = DSP;
     
     FUI finterface;
     DSP->buildUserInterface(&finterface);
     
-    // Soundfile
-    TestMemoryReader* memory_reader = new TestMemoryReader();
-    SoundUI sound_ui("", -1, memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
-    DSP->buildUserInterface(&sound_ui);
+    // Soundfile setting
+    DSP->buildUserInterface(sound_ui);
     
     // Get control and then 'initRandom'
     CheckControlUI controlui;
@@ -318,7 +357,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     
     // Init UIs on cloned DSP
     DSP->buildUserInterface(&finterface);
-    DSP->buildUserInterface(&sound_ui);
+    DSP->buildUserInterface(sound_ui);
     DSP->buildUserInterface(&midi_ui);
     
     int nins = DSP->getNumInputs();
@@ -358,7 +397,6 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
                 finterface.setButtons(false);
             }
             int nFrames = min(kFrames, nbsamples);
-            
             if (random) {
                 int randval = rand();
                 int n1 = randval % nFrames;
@@ -387,6 +425,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     
     delete ichan;
     if (ochan != ichan) delete ochan;
+    delete oldDSP;
     delete DSP;
 }
 

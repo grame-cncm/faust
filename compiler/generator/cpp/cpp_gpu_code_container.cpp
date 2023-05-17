@@ -22,6 +22,8 @@
 #include "cpp_gpu_code_container.hh"
 #include "fir_to_fir.hh"
 
+using namespace std;
+
 static void tab1(int n, ostream& fout)
 {
     fout << "  \\n\"  \\\n";

@@ -29,8 +29,6 @@
 
 #include "exception.hh"
 
-using namespace std;
-
 // Type punning needs to be done through this function to avoid undefined
 // behavior: unions and reinterpret_cast aren't valid approaches.
 template <class Destination, class Source>

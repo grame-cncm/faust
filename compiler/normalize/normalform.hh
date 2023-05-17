@@ -28,6 +28,6 @@ LIBFAUST_API Tree simplifyToNormalForm(Tree sig);
 
 LIBFAUST_API tvec simplifyToNormalForm2(tvec sig);
 
-LIBFAUST_API void printSignal(Tree sig, ostream& out, bool shared);
+LIBFAUST_API void printSignal(Tree sig, std::ostream& out, bool shared);
 
 #endif

@@ -24,22 +24,55 @@
 
 #include <libgen.h>
 #include <iostream>
+#include <ostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <algorithm>
 #include <unistd.h>
+#include <assert.h>
 
 #include "faust/audio/dummy-audio.h"
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/dsp-bench.h"
+#include "faust/dsp/dsp-combiner.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/MapUI.h"
-#include "faust/gui/GTKUI.h"
 #include "faust/misc.h"
 
 using namespace std;
+
+static void printList(const vector<string>& list)
+{
+    for (int i = 0; i < list.size(); i++) {
+        cout << "item: " << list[i] << "\n";
+    }
+}
+
+static void testProgram(const string& code, dsp* DSP)
+{
+    string error_msg;
+    dsp_factory* factory = createInterpreterDSPFactoryFromString("FaustDSP", code, 0, nullptr, error_msg);
+    assert(factory);
+    dsp* tester = factory->createDSPInstance();
+    assert(tester);
+    dsp* combined = createDSPSplitter(tester, DSP, error_msg);
+    if (combined) {
+        cout << "----[" << code << "]----" << endl;
+        dummyaudio_real<float> audio(44100, 16, INT_MAX, -1, false, true);
+        if (!audio.init("dummy", combined)) {
+            exit(EXIT_FAILURE);
+        }
+        for (int step = 0; step < 1000; step++) {
+            audio.render();
+        }
+        delete combined;
+        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
+    } else {
+        cerr << error_msg;
+    }
+}
 
 //----------------------------------------------------------------------------
 // DSP control UI
@@ -47,60 +80,76 @@ using namespace std;
 
 struct CheckControlUI : public MapUI {
     
+    bool fReset = true;
+    string fName;
     struct ZoneDesc {
         
+        string fLabel;
         FAUSTFLOAT fInit;
         FAUSTFLOAT fMin;
         FAUSTFLOAT fMax;
         FAUSTFLOAT fStep;
         
-        ZoneDesc(FAUSTFLOAT init,
+        ZoneDesc(const string& label,
+                 FAUSTFLOAT init,
                  FAUSTFLOAT min,
                  FAUSTFLOAT max,
                  FAUSTFLOAT step)
-        :fInit(init), fMin(min), fMax(max), fStep(step)
+        :fLabel(label), fInit(init), fMin(min), fMax(max), fStep(step)
         {}
     };
+    
+    CheckControlUI(const string& name = ""):fName(name)
+    {}
     
     vector<pair<FAUSTFLOAT*, ZoneDesc> > fControlZone;
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
     {
         MapUI::addButton(label, zone);
-        addItem(zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1), FAUSTFLOAT(0));
+        addItem(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1), FAUSTFLOAT(0));
     }
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
     {
         MapUI::addCheckButton(label, zone);
-        addItem(zone, FAUSTFLOAT(1), FAUSTFLOAT(1), FAUSTFLOAT(1), FAUSTFLOAT(0));
+        addItem(label, zone, FAUSTFLOAT(1), FAUSTFLOAT(1), FAUSTFLOAT(1), FAUSTFLOAT(0));
     }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         MapUI::addVerticalSlider(label, zone, init, min, max, step);
-        addItem(zone, init, min, max, step);
+        addItem(label, zone, init, min, max, step);
     }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         MapUI::addHorizontalSlider(label, zone, init, min, max, step);
-        addItem(zone, init, min, max, step);
+        addItem(label, zone, init, min, max, step);
     }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         MapUI::addNumEntry(label, zone, init, min, max, step);
-        addItem(zone, init, min, max, step);
+        addItem(label, zone, init, min, max, step);
     }
     
-    void addItem(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    void addItem(const string& label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         // Reset to init
-        *zone = init;
-        fControlZone.push_back(make_pair(zone, ZoneDesc(init, min, max, step)));
+        if (fReset) *zone = init;
+        addZoneLabel(label, zone);
+        fControlZone.push_back(make_pair(zone, ZoneDesc(label, init, min, max, step)));
+    }
+    
+    void display()
+    {
+        cout << "--------- Control state ---------"  << endl;
+        ofstream out(fName + "rc");
+        for (const auto& it : fPathZoneMap) {
+            out << (std::to_string(*it.second) + " " + it.first + " \n");
+            cout << ("Control : " + it.first + " = " + std::to_string(*it.second) + "\n");
+        }
+        out.close();
     }
     
 };
-
-list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, char* argv[])
 {
@@ -111,17 +160,17 @@ int main(int argc, char* argv[])
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
     
     int trace_mode = lopt(argv, "-trace", 0);
+    bool is_input = isopt(argv, "-input");
     bool is_output = isopt(argv, "-output");
     bool is_control = isopt(argv, "-control");
-    bool is_noui = isopt(argv, "-noui");
     int time_out = lopt(argv, "-timeout", 10);
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 7) {
-        cout << "interp-tracer [-trace <1-7>] [-control] [-output] [-noui] [-timeout <num>] [additional Faust options (-ftz xx)] foo.dsp" << endl;
+        cout << "interp-tracer [-trace <1-7>] [-control] [-output] [-noui] [-timeout <num>] [additional Faust ftestPrograms (-ftz xx)] foo.dsp" << endl;
         cout << "-control to activate min/max control check then setting all controllers (inside their range) in a random way\n";
+        cout << "-input to test effects with various test signals (impulse, noise) \n";
         cout << "-output to display output samples\n";
-        cout << "-noui to start the application without UI\n";
-        cout << "-timeout <num> when used in -noui mode, to stop the application after a given timeout in seconds (default = 10s)\n";
+        cout << "-timeout <num> to stop the application after a given timeout in seconds (default = 10s)\n";
         cout << "-trace 1 to collect FP_SUBNORMAL only\n";
         cout << "-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN\n";
         cout << "-trace 3 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and CAST_INT_OVERFLOW\n";
@@ -142,6 +191,7 @@ int main(int argc, char* argv[])
     for (int i = 1; i < argc-1; i++) {
         if (string(argv[i]) == "-control"
             || string(argv[i]) == "-noui"
+            || string(argv[i]) == "-input"
             || string(argv[i]) == "-output") {
             continue;
         } else if (string(argv[i]) == "-trace" || string(argv[i]) == "-timeout") {
@@ -153,7 +203,7 @@ int main(int argc, char* argv[])
     }
     cout << endl;
     argv1[argc1] = nullptr;  // NULL terminated argv
-    
+  
     cout << "Using interpreter backend" << endl;
     if (trace_mode > 0) {
         char mode[8]; sprintf(mode, "%d", trace_mode);
@@ -167,7 +217,6 @@ int main(int argc, char* argv[])
     
     dsp_factory* factory = nullptr;
     dsp* DSP = nullptr;
-    GUI* interface = nullptr;
     RandomControlUI random;
     
     try {
@@ -201,11 +250,6 @@ int main(int argc, char* argv[])
         }
         if (!audio->init(filename, DSP)) {
             exit(EXIT_FAILURE);
-        }
-        
-        if (!is_noui) {
-            interface = new GTKUI(filename, &argc, &argv);
-            DSP->buildUserInterface(interface);
         }
         
         if (is_control) {
@@ -314,16 +358,24 @@ int main(int argc, char* argv[])
             
             goto end;
             
+        } else if (is_input) {
+            
+            // Test with impulse and noise
+            cout << "------------------------------" << endl;
+            cout << "-------- Test impulse --------" << endl;
+            testProgram("process = 1-1';", DSP->clone());
+            cout << "------------------------------" << endl;
+            cout << "-------- Test noise ----------" << endl;
+            testProgram("import(\"stdfaust.lib\"); process = no.noise;", DSP->clone());
+            
+            goto end;
+            
         } else {
             audio->start();
         }
         
-        if (!is_noui) {
-            interface->run();
-        } else {
-            cout << "Use Ctrl-c to Quit" << endl;
-            usleep(time_out * 1e6);
-        }
+        cout << "Use Ctrl-c to Quit" << endl;
+        usleep(time_out * 1e6);
         
         audio->stop();
         delete audio;
@@ -331,13 +383,17 @@ int main(int argc, char* argv[])
     } catch (...) {
         cout << endl;
         random.display();
+        string fn = string(filename);
+        CheckControlUI ctl(fn.substr(0, fn.length()-4));
+        ctl.fReset = false;
+        DSP->buildUserInterface(&ctl);
+        ctl.display();
     }
     
 end:
     
     delete DSP;
-    delete interface;
-    
+    printList(factory->getWarningMessages());
     deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
     return 0;
 }

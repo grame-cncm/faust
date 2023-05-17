@@ -25,6 +25,8 @@
  *
  **/
 
+#include <algorithm>
+
 #include "names.hh"
 #include "Text.hh"
 #include "doc_Text.hh"
@@ -32,6 +34,8 @@
 #include "global.hh"
 #include "ppsig.hh"
 #include "property.hh"
+
+using namespace std;
 
 // History
 // 2009/09/08 : get/setDefNameProperty
@@ -53,7 +57,7 @@ void setDefNameProperty(Tree t, const string& name)
 {
     // cerr << "setDefNameProperty : " << name << " FOR " << t << "#" << boxpp(t) << endl;
     int n = (int)name.size();
-    int m = (gGlobal->gMaxNameSize > 1023) ? 1023 : gGlobal->gMaxNameSize;
+    int m = std::min<int>(1023, gGlobal->gMaxNameSize);
 
     if (n > m) {
         // the name is too long we reduce it to 2/3 of maxsize

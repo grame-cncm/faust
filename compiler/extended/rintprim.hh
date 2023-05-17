@@ -38,20 +38,20 @@ class RintPrim : public xtended {
     {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
-        if (i.valid) {
-            return castInterval(floatCast(args[0]), interval(rint(i.lo), rint(i.hi)));
+        if (i.isValid()) {
+            return castInterval(floatCast(args[0]), gAlgebra.Rint(i));
         } else {
             return floatCast(args[0]);
         }
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return args[0];
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         num n;
         faustassert(args.size() == arity());
@@ -70,7 +70,7 @@ class RintPrim : public xtended {
         return generateFun(container, subst("rint$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -78,7 +78,7 @@ class RintPrim : public xtended {
         return subst("rint$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

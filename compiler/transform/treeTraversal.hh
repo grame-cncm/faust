@@ -59,7 +59,7 @@ class TreeTraversal : public Garbageable {
     void trace(bool b, const std::string& m)
     {
         fTrace = b;
-        fMessage   = m;
+        fMessage = m;
     }
     
     int getVisitCount(Tree sig)
@@ -70,7 +70,7 @@ class TreeTraversal : public Garbageable {
     
 };
 
-inline ostream& operator<<(ostream& out, const TreeTraversal& pp)
+inline std::ostream& operator<<(std::ostream& out, const TreeTraversal& pp)
 {
     for (const auto& it : pp.fVisited) {
         out << "key: " << it.first << " count: " << it.second << std::endl;

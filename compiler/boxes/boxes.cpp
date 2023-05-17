@@ -45,6 +45,8 @@
 #include "prim2.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 /*****************************************************************************
                                     Identifiers
 *****************************************************************************/
@@ -346,7 +348,7 @@ Tree buildBoxAppl(Tree fun, Tree revarglist)
 Tree buildBoxAppl(Tree fun, Tree revarglist)
 {
     if (isNil(revarglist)) {
-        cerr << "ERROR : buildBoxAppl called with null revarglist\n";
+        cerr << "ASSERT : buildBoxAppl called with null revarglist\n";
         faustassert(false);
     }
     return boxAppl(fun, revarglist);
@@ -1072,7 +1074,7 @@ static Tree preparePattern(Tree box)
     // None of the previous tests succeded, then it is not a valid box
     else {
         stringstream error;
-        error << "ERROR in preparePattern() : " << *box << " is not a valid box" << endl;
+        error << "ERROR : preparePattern() : " << *box << " is not a valid box" << endl;
         throw faustexception(error.str());
     }
 

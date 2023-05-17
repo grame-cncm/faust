@@ -41,7 +41,7 @@ struct JuceReader : public SoundfileReader {
     
     bool checkFile(const std::string& path_name) override
     {
-        juce::File file(path_name);
+        juce::File file = juce::File::getCurrentWorkingDirectory().getChildFile(path_name);
         if (file.existsAsFile()) {
             return true;
         } else {
@@ -52,14 +52,14 @@ struct JuceReader : public SoundfileReader {
     
     void getParamsFile(const std::string& path_name, int& channels, int& length) override
     {
-        std::unique_ptr<juce::AudioFormatReader> formatReader (fFormatManager.createReaderFor (juce::File (path_name)));
+        std::unique_ptr<juce::AudioFormatReader> formatReader (fFormatManager.createReaderFor (juce::File::getCurrentWorkingDirectory().getChildFile(path_name)));
         channels = int(formatReader->numChannels);
         length = int(formatReader->lengthInSamples);
     }
     
     void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) override
     {
-        std::unique_ptr<juce::AudioFormatReader> formatReader (fFormatManager.createReaderFor (juce::File (path_name)));
+        std::unique_ptr<juce::AudioFormatReader> formatReader (fFormatManager.createReaderFor (juce::File::getCurrentWorkingDirectory().getChildFile(path_name)));
         
         soundfile->fLength[part] = int(formatReader->lengthInSamples);
         soundfile->fSR[part] = int(formatReader->sampleRate);

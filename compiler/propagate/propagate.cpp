@@ -139,7 +139,8 @@ static siglist listLift(const siglist& l)
 }
 
 /**
- * Store the propagation result as a property of the arguments tuplet
+ * Store the propagation result as a property of the arguments tuplet.
+ *
  * @param args propagation arguments
  * @param value propagation result
  */
@@ -149,7 +150,8 @@ static void setPropagateProperty(Tree args, const siglist& lsig)
 }
 
 /**
- * Retreive the propagation result as a property of the arguments tuplet
+ * Retreive the propagation result as a property of the arguments tuplet.
+ *
  * @param args propagation arguments
  * @param lsig the propagation result if any
  * @return true if a propagation result was stored
@@ -167,50 +169,17 @@ static bool getPropagateProperty(Tree args, siglist& lsig)
 
 /**
  * Propagate a list of signals into a block diagram.
+ *
  * @param slotenv environment associating slots and signals
  * @param path user interface group path
  * @param box the block diagram
  * @param lsig the list of input signals to propagate
  * @return the resulting list of output signals
  */
-
 static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig);
 
-/**
- * Propagate a list of signals into a block diagram. Do memoization.
- * @param slotenv environment associating slots and signals
- * @param path user interface group path
- * @param box the block diagram
- * @param lsig the list of input signals to propagate
- * @return the resulting list of output signals
- */
-
-siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
-{
-    Tree    args = tree(gGlobal->PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig));
-    siglist result;
-    if (!getPropagateProperty(args, result)) {
-        result = realPropagate(slotenv, path, box, lsig);
-        setPropagateProperty(args, result);
-    }
-    // cerr << "propagate in " << boxpp(box) << endl;
-    // for (int i=0; i<lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
-    // cerr << endl;
-    return result;
-}
-
-// Apply sigFTZ() to all signals of a vector
-static siglist wrapWithFTZ(const siglist& l1)
-{
-    siglist l2;
-    for (const auto& x : l1) {
-        l2.push_back(sigFTZ(x));
-    }
-    return l2;
-}
-
 // Collect the leaf numbers of tree l into vector v.
-// return true if l is a number or a parallel tree of numbers
+// return true if l is a number or a parallel tree of numbers.
 static bool isIntTree(Tree l, vector<int>& v)
 {
     int    n;
@@ -238,13 +207,13 @@ static bool isIntTree(Tree l, vector<int>& v)
 
 /**
  * Propagate a list of signals into a block diagram. Actual function.
+ *
  * @param slotenv environment associating slots and signals
  * @param path user interface group path
  * @param box the block diagram
  * @param lsig the list of input signals to propagate
  * @return the resulting list of output signals
  */
-
 static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
     int    i;
@@ -385,7 +354,6 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     }
 
     else if (isBoxPrim5(box, &p5)) {
-        faustassert(lsig.size() == 5);
         return makeList(p5(lsig[0], lsig[1], lsig[2], lsig[3], lsig[4]));
     }
 
@@ -409,35 +377,17 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxVSlider(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        Tree slider = sigVSlider(normalizePath(cons(label, path)), cur, min, max, step);
-        // Possibly limit the value in [min..max]
-        if (gGlobal->gRangeUI) {
-            return makeList(sigMax(min, sigMin(max, slider)));
-        } else {
-            return makeList(slider);
-        }
+        return makeList(sigVSlider(normalizePath(cons(label, path)), cur, min, max, step));
     }
 
     else if (isBoxHSlider(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        Tree slider = sigHSlider(normalizePath(cons(label, path)), cur, min, max, step);
-        // Possibly limit the value in [min..max]
-        if (gGlobal->gRangeUI) {
-            return makeList(sigMax(min, sigMin(max, slider)));
-        } else {
-            return makeList(slider);
-        }
+        return makeList(sigHSlider(normalizePath(cons(label, path)), cur, min, max, step));
     }
 
     else if (isBoxNumEntry(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        Tree nentry = sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step);
-        // Possibly limit the value in [min..max]
-        if (gGlobal->gRangeUI) {
-            return makeList(sigMax(min, sigMin(max, nentry)));
-        } else {
-            return makeList(nentry);
-        }
+        return makeList(sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step));
     }
 
     else if (isBoxVBargraph(box, label, min, max)) {
@@ -532,24 +482,23 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     }
 
     else if (isBoxRec(box, t1, t2)) {
-        // Bug Corrected
         int in1, out1, in2, out2;
         getBoxType(t1, &in1, &out1);
         getBoxType(t2, &in2, &out2);
 
-        Tree slotenv2 = lift(slotenv);  // the environment must also be lifted
+        // The environment must also be lifted
+        Tree slotenv2 = lift(slotenv);
 
         siglist l0 = makeMemSigProjList(ref(1), in2);
         siglist l1 = propagate(slotenv2, path, t2, l0);
         siglist l2 = propagate(slotenv2, path, t1, listConcat(l1, listLift(lsig)));
-        siglist l3 = (gGlobal->gFTZMode > 0) ? wrapWithFTZ(l2) : l2;
-        Tree    g  = rec(listConvert(l3));
+        Tree    g  = rec(listConvert(l2));
 
-        // compute output list of recursive signals
+        // Compute output list of recursive signals
         siglist ol(out1);  // output list
         int     p = 0;     // projection number
 
-        for (const auto& exp : l3) {
+        for (const auto& exp : l2) {
             if (exp->aperture() > 0) {
                 // it is a regular recursive expression branch
                 ol[p] = sigDelay0(sigProj(p, g));
@@ -573,7 +522,6 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         int         ins, outs;
         vector<int> route;
         siglist     outsigs;
-        // cerr << "TRACE propagate into a route " << boxpp(box) << endl;
         // ins, outs, route are casted to int in realeval
         if (isBoxInt(t1, &ins) && isBoxInt(t2, &outs) && isIntTree(t3, route)) {
             // initialize output signals
@@ -602,15 +550,40 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
             throw faustexception(error.str());
         }
     }
-    cerr << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box)
+    cerr << "ASSERT : file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box)
          << endl;
     faustassert(false);
 
     return siglist();
 }
 
+//------------------
 // Public Interface
 //------------------
+
+/**
+ * Propagate a list of signals into a block diagram. Do memoization.
+ *
+ * @param slotenv environment associating slots and signals
+ * @param path user interface group path
+ * @param box the block diagram
+ * @param lsig the list of input signals to propagate
+ * @return the resulting list of output signals
+ */
+
+siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
+{
+    Tree    args = tree(gGlobal->PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig));
+    siglist result;
+    if (!getPropagateProperty(args, result)) {
+        result = realPropagate(slotenv, path, box, lsig);
+        setPropagateProperty(args, result);
+    }
+        // cerr << "propagate in " << boxpp(box) << endl;
+        // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
+        // cerr << endl;
+    return result;
+}
 
 //! build a list of n inputs
 siglist makeSigInputList(int n)
@@ -621,6 +594,7 @@ siglist makeSigInputList(int n)
 }
 /**
  * Top level propagate a list of signals into a block diagram. Do memoization.
+ *
  * @param path user interface group path
  * @param box the block diagram
  * @param lsig the list of input signals to propagate

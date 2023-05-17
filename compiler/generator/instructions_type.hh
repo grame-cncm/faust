@@ -136,11 +136,13 @@ struct Typed : public Printable {
                 return kBool_vec_ptr;
             case kVoid:
                 return kVoid_ptr;
+            case kObj:
+                return kObj_ptr;
             case kSound:
                 return kSound_ptr;
             default:
                 // Not supposed to happen
-                std::cerr << "getPtrFromType " << type << std::endl;
+                std::cerr << "ASSERT : getPtrFromType " << type << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -164,7 +166,7 @@ struct Typed : public Printable {
                 return kBool_vec;
             default:
                 // Not supposed to happen
-                std::cerr << "getVecFromType " << type << std::endl;
+                std::cerr << "ASSERT : getVecFromType " << type << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -212,11 +214,13 @@ struct Typed : public Printable {
                 return kBool_vec;
             case kVoid_ptr:
                 return kVoid;
+            case kObj_ptr:
+                return kObj;
             case kSound_ptr:
                 return kSound;
             default:
                 // Not supposed to happen
-                std::cerr << "getTypeFromPtr " << Typed::gTypeString[type] << std::endl;
+                std::cerr << "ASSERT : getTypeFromPtr " << Typed::gTypeString[type] << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -240,7 +244,7 @@ struct Typed : public Printable {
                 return kBool;
             default:
                 // Not supposed to happen
-                std::cerr << "getTypeFromVec " << Typed::gTypeString[type] << std::endl;
+                std::cerr << "ASSERT : getTypeFromVec " << Typed::gTypeString[type] << std::endl;
                 faustassert(false);
                 return kNoType;
         }

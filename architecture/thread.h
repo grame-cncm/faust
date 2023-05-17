@@ -36,7 +36,6 @@
 #include <unistd.h>
 #include <math.h>
 
-using namespace std;
 
 #ifdef __cplusplus
 extern "C"

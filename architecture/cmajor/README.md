@@ -12,6 +12,7 @@ Here are the available options:
 - `-effect auto to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI`
 - `-juce to create a JUCE project`
 - `-dsp to create a 'dsp' compatible subclass`
+- `-test to test the resulting patch with 'cmaj render'`
 - `-play to start the 'cmaj' runtime with the generated Cmajor patch`
 
 So for instance:
@@ -67,7 +68,7 @@ The **cmajor-faust-editor** tool loads an hybrid Faust/Cmajor code file and comp
 So for instance to setup a Faust/Cmajor hybrid file edition session:
 
 - `cmajor-faust-editor hybrid-test2.cmajor` to start editing an hybrid Faust/Cmajor code
-- `cmajor play hybrid.cmajorpatch` to play the Cmajor dynamically generated `hybrid.cmajorpatch`
+- `cmaj play hybrid.cmajorpatch` to play the Cmajor dynamically generated `hybrid.cmajorpatch`
 
 ## Hybrid Faust/Cmajor Syntax
 

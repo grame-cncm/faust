@@ -1048,7 +1048,7 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<REAL> {
             
         } else if (inst1->fOpcode == FBCInstruction::kRealValue && inst2->fOpcode == FBCInstruction::kLoadReal &&
                    FBCInstruction::isMath(inst3->fOpcode)) {
-            // Uses neutral and absorbent elements (0 for + et - and 1 for * et /)
+            // Uses neutral and absorbent elements (0 for [+ -] and 1 for [* /])
             res = rewriteBinaryRealMath2(inst1, inst2, inst3);
             if (res) {
                 end = cur + 3;
@@ -1060,7 +1060,7 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<REAL> {
             
         } else if (inst1->fOpcode == FBCInstruction::kLoadReal && inst2->fOpcode == FBCInstruction::kRealValue &&
                    FBCInstruction::isMath(inst3->fOpcode)) {
-            // Uses neutral and absorbent elements (0 for + - and 1 for * /)
+            // Uses neutral and absorbent elements (0 for [+ -] and 1 for [* /])
             res = rewriteBinaryRealMath3(inst1, inst2, inst3);
             if (res) {
                 end = cur + 3;
@@ -1078,7 +1078,7 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<REAL> {
             
         } else if (inst1->fOpcode == FBCInstruction::kInt32Value && inst2->fOpcode == FBCInstruction::kLoadInt &&
                    FBCInstruction::isMath(inst3->fOpcode)) {
-            // Uses neutral and absorbent elements (0 for + - and 1 for * /)
+            // Uses neutral and absorbent elements (0 for [+ -] and 1 for [* /])
             res = rewriteBinaryIntMath2(inst1, inst2, inst3);
             if (res) {
                 end = cur + 3;
@@ -1090,7 +1090,7 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<REAL> {
             
         } else if (inst1->fOpcode == FBCInstruction::kLoadInt && inst2->fOpcode == FBCInstruction::kInt32Value &&
                    FBCInstruction::isMath(inst3->fOpcode)) {
-            // Uses neutral and absorbent elements (0 for + - and 1 for * /)
+            // Uses neutral and absorbent elements (0 for [+ -] and 1 for [* /])
             res = rewriteBinaryIntMath3(inst1, inst2, inst3);
             if (res) {
                 end = cur + 3;

@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.52.6)
+set (VERSION 2.59.6)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -22,12 +22,11 @@ set (SRCDIR ${ROOT}/compiler)
 set (BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set (LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/${LIBSDIR})
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 #######################################
 # Output options
-option ( DEPLOYMENT_TARGET 	"[MacOS]"	off )
-option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures [MacOS]"	off )
+option ( UNIVERSAL 	"Compiles and combines x86_64 and arm64 architectures [MacOS]" off )
 option ( IOS     	"Compiles for iOS"	off )
 option ( USE_LLVM_CONFIG    "Force use off llvm-config"	on )
 option ( INCLUDE_EXECUTABLE	"Include runtime executable"	on )
@@ -40,10 +39,6 @@ option ( INCLUDE_EMCC    	"Include emcc targets"	on )
 option ( INCLUDE_WASM_GLUE  "Include wasm glue targets"	on )
 option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 option ( SELF_CONTAINED_LIBRARY	"Don't search system architecture files." off)
-
-if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
-	set ( DEPLOYMENT_TARGET_VERSION  10.12)
-endif()
 
 #######################################
 # Check output options
@@ -80,19 +75,41 @@ set (FAUST_INC ${SRCDIR}
 # LLVM
 include (misc/llvm.cmake)
 if (INCLUDE_LLVM )
+
+	if ((NOT DEFINED LLVM_LIBS AND NOT MSVC)
+		OR NOT DEFINED LLVM_LIB_DIR
+		OR NOT DEFINED LLVM_INCLUDE_DIRS
+		OR (DEFINED LLVM_INCLUDE_DIRS AND LLVM_INCLUDE_DIRS MATCHES "^$")
+		OR NOT DEFINED LLVM_PACKAGE_VERSION
+		OR (NOT DEFINED LLVM_DEFINITIONS AND NOT MSVC))
+
 	if(USE_LLVM_CONFIG)
 		llvm_config()
 	else()
 		llvm_cmake()
 	endif()
 
+	endif()
+
 	string (REGEX REPLACE "([0-9]+)\\.[0-9]+.*" "\\1" LLVM_MAJOR_VERSION ${LLVM_PACKAGE_VERSION})
 	string (REGEX REPLACE "[0-9]+\\.([0-9]+).*" "\\1" LLVM_MINOR_VERSION ${LLVM_PACKAGE_VERSION})
-        if(LLVM_MAJOR_VERSION GREATER 9)
-          set(LLVM_VERSION "LLVM_${LLVM_MAJOR_VERSION}0")
-        else()
-          set(LLVM_VERSION "LLVM_${LLVM_MAJOR_VERSION}${LLVM_MINOR_VERSION}")
-        endif()
+  if(LLVM_MAJOR_VERSION GREATER 9)
+    set(LLVM_VERSION "LLVM_${LLVM_MAJOR_VERSION}0")
+  else()
+    set(LLVM_VERSION "LLVM_${LLVM_MAJOR_VERSION}${LLVM_MINOR_VERSION}")
+  endif()
+
+	# note that LLVM_LIB_DIR is not a definition that comes with find_package(LLVM)
+	if (NOT DEFINED LLVM_LIB_DIR)
+	set(LLVM_LIB_DIR "${LLVM_INCLUDE_DIRS}/../lib")
+	message(STATUS "LLVM_LIB_DIR set to: ${LLVM_LIB_DIR}")
+	endif()
+
+	message(STATUS "LLVM_VERSION: ${LLVM_VERSION}")
+	message(STATUS "LLVM_LIBS: ${LLVM_LIBS}")
+	message(STATUS "LLVM_LIB_DIR: ${LLVM_LIB_DIR}")
+	message(STATUS "LLVM_INCLUDE_DIRS: ${LLVM_INCLUDE_DIRS}")
+	message(STATUS "LLVM_DEFINITIONS: ${LLVM_DEFINITIONS}")
 
 	# the declarations below are redundant but necessary to cope with different cmake behaviors on different platforms
 	set (TMP ${SRCDIR}/generator/llvm)
@@ -100,12 +117,13 @@ if (NOT MSVC)
 	set_property(SOURCE ${TMP}/llvm_dsp_aux.cpp ${TMP}/llvm_dynamic_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
 	set_property(SOURCE ${TMP}/llvm_dsp_aux.cpp ${TMP}/llvm_dynamic_dsp_aux.cpp APPEND_STRING PROPERTY CMAKE_CXX_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
 endif()
+
 	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 	
-	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_VERSION="${LLVM_PACKAGE_VERSION}")
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_VERSION="${LLVM_PACKAGE_VERSION}" -DLLVM_BUILD_UNIVERSAL)
 
 	if("${LLVM_PACKAGE_VERSION}" VERSION_GREATER_EQUAL 10)
-        set (CMAKE_CXX_STANDARD 14)
+        set (CMAKE_CXX_STANDARD 17)
 	endif()
 endif()
 
@@ -121,10 +139,6 @@ if(APPLE)
 		set (CMAKE_OSX_SYSROOT "iphoneos")
 		set (CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0)
 	else()
-		if (DEPLOYMENT_TARGET)
-			set (CMAKE_OSX_DEPLOYMENT_TARGET ${DEPLOYMENT_TARGET_VERSION})
-			message (STATUS "Deployment target is ${DEPLOYMENT_TARGET_VERSION}")
-		endif()
 		set (MACSDK /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
 		if (EXISTS ${MACSDK})
 			set (CMAKE_OSX_SYSROOT ${MACSDK})
@@ -136,6 +150,7 @@ if(APPLE)
 			set (CMAKE_OSX_ARCHITECTURES x86_64 arm64)
 			set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_BUILD_UNIVERSAL)
 		endif()
+		link_directories(/opt/local/lib)
 	endif()
 elseif(WIN32 OR MSYS)
 	if (NOT MSVC)
@@ -153,7 +168,8 @@ if (MSVC)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVisualStudio)
 else()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLIBDIR="${LIBSDIR}")
-	set(CMAKE_CXX_FLAGS_DEBUG   "-g  -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
+	#set(CMAKE_CXX_FLAGS_DEBUG "-g -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")
 endif()
 
@@ -164,7 +180,10 @@ endif()
 if (INCLUDE_EXECUTABLE)
 	add_executable(faust ${SRC} ${HH})
 	target_compile_definitions (faust PRIVATE ${FAUST_DEFINITIONS})
-	target_include_directories (faust PRIVATE ${FAUST_INC} ${LLVM_INC})
+	if(INCLUDE_LLVM)
+		target_link_directories(faust PRIVATE "${LLVM_LIB_DIR}")
+	endif()
+	target_include_directories (faust PRIVATE ${FAUST_INC} ${LLVM_INCLUDE_DIRS})
 	target_link_libraries (faust PRIVATE ${FAUST_LIBS})
 	scan_backends (faust COMPILER)
 	set_target_properties(faust PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
@@ -176,7 +195,10 @@ endif()
 if (INCLUDE_STATIC)
 	add_library(staticlib STATIC ${SRC} ${HH})
 	target_compile_definitions (staticlib PRIVATE ${FAUST_DEFINITIONS})
-	target_include_directories (staticlib PRIVATE ${FAUST_INC} ${LLVM_INC})
+	if(INCLUDE_LLVM)
+		target_link_directories(staticlib PRIVATE "${LLVM_LIB_DIR}")
+	endif()
+	target_include_directories (staticlib PRIVATE ${FAUST_INC} ${LLVM_INCLUDE_DIRS})
 	target_link_libraries (staticlib PRIVATE ${FAUST_LIBS})
 	set_target_properties(staticlib PROPERTIES 
 		ARCHIVE_OUTPUT_DIRECTORY ${LIBDIR}
@@ -198,7 +220,7 @@ if (INCLUDE_STATIC)
 		if (WIN32)
 			set (MAKELIBCMD Make.llvm.static.bat) 
 		else()
-			set (MAKELIBCMD make -f Make.llvm.static || true) 
+			set (MAKELIBCMD make -f Make.llvm.static) 
 		endif()
 		add_custom_command(TARGET staticlib POST_BUILD
                    COMMAND ${MAKELIBCMD}
@@ -212,7 +234,11 @@ endif()
 if (INCLUDE_DYNAMIC)
 	add_library(dynamiclib SHARED ${SRC} ${HH})
 	target_compile_definitions (dynamiclib PRIVATE ${FAUST_DEFINITIONS})
-	target_include_directories (dynamiclib PRIVATE ${FAUST_INC} ${LLVM_INC})
+	if(INCLUDE_LLVM)
+		target_link_directories(dynamiclib PRIVATE "${LLVM_LIB_DIR}")
+	endif()
+	target_include_directories (dynamiclib PRIVATE ${FAUST_INC} ${LLVM_INCLUDE_DIRS})
+	# set (FAUST_LIBS /usr/local/lib/libmir.a ${FAUST_LIBS})
 	target_link_libraries (dynamiclib PRIVATE ${FAUST_LIBS})
 	if (WIN32 OR MSYS)
 		enable_language(RC)
@@ -239,7 +265,7 @@ if (INCLUDE_DYNAMIC)
 #	set (INSTALL_TARGETS ${INSTALL_TARGETS} dynamiclib)
 endif()
 
-#self contained library
+# self contained library
 if (SELF_CONTAINED_LIBRARY)
 	add_definitions( -DFAUST_SELF_CONTAINED_LIB )
 endif()
@@ -318,7 +344,6 @@ install (
     OPTIONAL
 )
 endif()
-
 
 
 ####################################

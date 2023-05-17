@@ -291,7 +291,7 @@ m_currentDeltas()
     if (m_dsp->getNumInputs() == 0) {
         suspend(); //  Synths start out quiet
     }
-} // end of Faust constructor
+}
 
 //----------------------------------------------------------------------------
 Faust::~Faust()
@@ -310,7 +310,7 @@ Faust::~Faust()
     
     delete m_dspUI;
     delete m_dsp;
-} // end of Faust destructor
+}
 
 //-----------------------------------------------------------------------------
 void Faust::setProgram(VstInt32 program)
@@ -330,7 +330,7 @@ void Faust::setProgram(VstInt32 program)
 #endif
     
     curProgram = program; // curProgram defined in audioeffect.h
-} // end of setProgram
+}
 
 //----------------------------------------------------------------------------
 void Faust::setProgramName(const char* name)
@@ -356,7 +356,7 @@ void Faust::getParameterLabel(VstInt32 index, char *label)
     
     TRACE( fprintf(stderr, "Called getParameterLabel for parameter %d, returning %s\n",
                    index, label) );
-} // end of getParameterLabel
+}
 
 //----------------------------------------------------------------------------
 void Faust::getParameterDisplay(VstInt32 index, char *text)
@@ -376,10 +376,9 @@ void Faust::getParameterName(VstInt32 index, char *label)
     } else {
         vst_strncpy(label, "IndexOutOfRange", kVstMaxParamStrLen);
     }
-} // end of getParamterName
+}
 
-//--------------------
-
+//----------------------------------------------------------------------------
 bool Faust::getParameterProperties(VstInt32 index, VstParameterProperties* properties)
 {
     if (index < 0 || index >= m_dspUI->GetNumParams()) {
@@ -407,7 +406,7 @@ bool Faust::getParameterProperties(VstInt32 index, VstParameterProperties* prope
     }
     
     return true;
-} // end of getParameterProperties
+}
 
 //----------------------------------------------------------------------------
 void Faust::setParameter(VstInt32 index, float value)
@@ -425,7 +424,7 @@ void Faust::setParameter(VstInt32 index, float value)
                        index, i, value) );
         m_voices[i]->SetValue(index, value);
     }
-} // end of setParameter
+}
 
 //----------------------------------------------------------------------------
 float Faust::getParameter(VstInt32 index)
@@ -477,13 +476,16 @@ bool Faust::getProgramNameIndexed(VstInt32 category, VstInt32 index,
     return false;
 }
 
+//-----------------------------------------------------------------------------
 const char* Faust::getMetadata(const char* key, const char* defaultString)
 {
     Meta meta;
-    mydsp tmp_dsp;
-    tmp_dsp.metadata(&meta);
-    return meta.get(key, defaultString);
-} // end of getMetadata
+    mydsp* tmp = new mydsp;
+    tmp->metadata(&meta);
+    const char* res = meta.get(key, defaultString);
+    delete tmp;
+    return res;
+}
 
 //-----------------------------------------------------------------------------
 bool Faust::getEffectName(char* name)
@@ -532,7 +534,7 @@ VstInt32 Faust::canDo(const char* text)
     }
     
     return -1;	// explicitly can't do; 0 => don't know
-} // end of canDo
+}
 
 //----------------------------------------------------------------------------
 VstInt32 Faust::getNumMidiInputChannels()
@@ -629,13 +631,15 @@ void Faust::processReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, VstInt32
         // We're a synth . . .
         synthProcessReplacing(inputs, outputs, sampleFrames);
     }
-} // end of processReplacing
+}
 
+//----------------------------------------------------------------------------
 inline float midiToFreq(int note)
 {
     return 440.0f*powf(2.0f,(((float)note)-69.0f)/12.0f);
 }
 
+//----------------------------------------------------------------------------
 void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
                                   VstInt32 sampleFrames)
 {
@@ -745,8 +749,9 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
         compute(inputs, outputs, sampleFrames);
     }
     
-} // end of synthProcessReplacing
+}
 
+//----------------------------------------------------------------------------
 void Faust::compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
                       VstInt32 sampleFrames)
 {
@@ -811,7 +816,7 @@ void Faust::compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
             outputs[i][frame] /= (FAUSTFLOAT)sqrt(MAX_POLYPHONY);
         }
     }
-} // end of compute
+}
 
 //-----------------------------------------------------------------------------
 VstInt32 Faust::processEvents(VstEvents* ev)
@@ -893,15 +898,15 @@ VstInt32 Faust::processEvents(VstEvents* ev)
 }
 
 //----------------------------------------------------------------------------
-
 void Faust::bendPitch(float bend)
 {
     TRACE( fprintf(stderr, "Bending pitch by %f\n", bend) );
     for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
         m_voices[i]->setPitchBend(bend);
     }
-} // end of Faust::bendPitch
+}
 
+//----------------------------------------------------------------------------
 void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
 {
 #ifdef DEBUG
@@ -910,7 +915,7 @@ void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
     m_currentNotes.push_back(note);
     m_currentVelocities.push_back(velocity);
     m_currentDeltas.push_back(delta);
-} // end of noteOn
+}
 
 //-----------------------------------------------------------------------------
 void Faust::noteOff(VstInt32 note, VstInt32 delta)
@@ -936,7 +941,7 @@ void Faust::allNotesOff(void)
             m_releasedVoices.push_back(voice);
         }
     }
-} // end of Faust::allNotesOff
+}
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

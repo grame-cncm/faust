@@ -36,15 +36,13 @@
 #include "simplify.hh"
 #include "tlib.hh"
 
-using namespace std;
-
 /**
  * Implements a additive term, a set of mterms added together
  * m1 + m2 + m3 + ...
  */
 
 class aterm : public virtual Garbageable {
-    map<Tree, mterm> fSig2MTerms;  ///< mapping between signatures and corresponding mterms
+    std::map<Tree, mterm> fSig2MTerms;  ///< mapping between signatures and corresponding mterms
 
    public:
     aterm();        ///< create an empty aterm (equivalent to 0)
@@ -58,12 +56,12 @@ class aterm : public virtual Garbageable {
     const aterm& operator-=(const mterm& m);  ///< add in place an mterm
     Tree         normalizedTree() const;      ///< return the corresponding normalized expression tree
 
-    ostream& print(ostream& dst) const;  ///< print a aterm m1 + m2 + m3 +...
+    std::ostream& print(std::ostream& dst) const;  ///< print a aterm m1 + m2 + m3 +...
     mterm    greatestDivisor() const;    ///< return the greatest divisor of any two mterms
     aterm    factorize(const mterm& d);  ///< reorganize the aterm by factorizing d
 };
 
-inline ostream& operator<<(ostream& s, const aterm& a)
+inline std::ostream& operator<<(std::ostream& s, const aterm& a)
 {
     return a.print(s);
 }

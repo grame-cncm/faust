@@ -15,7 +15,7 @@ SRC="0"
 ARCHFILE=$FAUSTARCH/cpal.rs
 
 echoHelp() 
-s{
+{
     usage faust2cpalrust "[options] [Faust options] <file.dsp>"
     require CPAL
     echo "Compiles Faust programs to CPAL and Rust binary"
@@ -74,9 +74,19 @@ for p in $FILES; do
     faust -a $ARCHFILE -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
 
     # add dependencies
-    echo "anyhow = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
-    echo "cpal = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
-    echo "libm = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
+    cat <<EOT >> "$SRCDIR/$dspName/Cargo.toml"
+anyhow = "*"
+cpal = "*"
+libm = "*"
+
+[dependencies.default-boxed]
+version = "0.2.0"
+optional = true
+
+[features]
+default = ["default-boxed"]
+default-boxed = ["dep:default-boxed"]
+EOT
 
     # build the project
     if [ $SRC = "0" ]; then

@@ -21,7 +21,8 @@
 
 #include "compile_sched.hh"
 #include "floats.hh"
-#include "ppsig.hh"
+
+using namespace std;
 
 void SchedulerCompiler::compileMultiSignal(Tree L)
 {
@@ -49,10 +50,10 @@ void SchedulerCompiler::compileMultiSignal(Tree L)
     // Build tasks list
     fClass->buildTasksList();
 
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
-    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+    generateUserInterfaceTree(fUITree.prepareUserInterfaceTree(), true);
+    generateMacroInterfaceTree("", fUITree.prepareUserInterfaceTree());
     if (fDescription) {
-        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+        fDescription->ui(fUITree.prepareUserInterfaceTree());
     }
 }
 

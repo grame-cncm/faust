@@ -36,37 +36,40 @@ class Log10Prim : public xtended {
     virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
-        interval i = args[0]->getInterval();
-        if (i.valid) {
+        Type t = args[0];
+        interval i = t->getInterval();
+        if (i.isValid()) {
             // log10(0) gives -INF but is still in the function domain
-            if (i.lo >= 0) {
-                return castInterval(floatCast(args[0]), interval(log10(i.lo), log10(i.hi)));
+            if (i.lo() >= 0) {
+                return castInterval(floatCast(args[0]), interval(log10(i.lo()), log10(i.hi())));
             } else if (gGlobal->gMathExceptions) {
-                cerr << "WARNING : potential out of domain in log10(" << i << ")" << endl;
+                std::stringstream error;
+                error << "WARNING : potential out of domain in log10(" << i << ")" << std::endl;
+                gWarningMessages.push_back(error.str());
             }
         }
-        return floatCast(args[0]);
+        return castInterval(floatCast(t), gAlgebra.Log10(i));
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return args[0];
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         num n;
         faustassert(args.size() == arity());
-    
+
         // log10(exp10(sig)) ==> sig
         xtended* xt = (xtended*)getUserData(args[0]);
         if (xt == gGlobal->gExp10Prim) {
             return args[0]->branch(0);
         } else if (isNum(args[0], n)) {
             if (double(n) < 0) {
-                stringstream error;
-                error << "ERROR : out of domain log10(" << ppsig(args[0]) << ")" << endl;
+                std::stringstream error;
+                error << "ERROR : out of domain in log10(" << ppsig(args[0], MAX_ERROR_SIZE) << ")" << std::endl;
                 throw faustexception(error.str());
             } else {
                 return tree(log10(double(n)));
@@ -84,7 +87,7 @@ class Log10Prim : public xtended {
         return generateFun(container, subst("log10$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -92,7 +95,7 @@ class Log10Prim : public xtended {
         return subst("log10$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

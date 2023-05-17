@@ -41,10 +41,11 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "klass.hh"
-#include "ppsig.hh"
 #include "recursivness.hh"
 #include "signals.hh"
 #include "uitree.hh"
+
+using namespace std;
 
 static int gTaskCount = 0;
 

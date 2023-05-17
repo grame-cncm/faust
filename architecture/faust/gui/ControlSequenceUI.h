@@ -51,7 +51,7 @@ class ControlSequenceUI : public MapUI {
     protected:
     
         std::vector<TSMessage> fSequence;
-        uint64_t               fDateSample;
+        uint64_t               fCurSample;
         int                    fEvent;
     
         void processMessage(const TSMessage& message)
@@ -61,32 +61,32 @@ class ControlSequenceUI : public MapUI {
     
     public:
     
-        ControlSequenceUI(const std::vector<TSMessage>& sequence):fSequence(sequence), fDateSample(0), fEvent(0) {}
+        ControlSequenceUI(const std::vector<TSMessage>& sequence):fSequence(sequence), fCurSample(0), fEvent(0) {}
         virtual ~ControlSequenceUI() {}
        
-        void process(uint64_t begin, uint64_t end)
+        void process(uint64_t start_sample, uint64_t end_sample)
         {
             if (fSequence.size() == 0) return;
             
             // Restart from begining if needed
-            if (begin < fDateSample) {
-                fDateSample = 0;
+            if (start_sample < fCurSample) {
+                fCurSample = 0;
                 fEvent = 0;
             }
             
             // Move until start of range
-            while (fEvent < fSequence.size() && fSequence[fEvent].fDateSample < begin) {
+            while (fEvent < fSequence.size() && fSequence[fEvent].fDateSample < start_sample) {
                 fEvent++;
             }
             
-            // Process all messages in [begin, end] range
-            while (fEvent < fSequence.size() && fSequence[fEvent].fDateSample <= end) {
+            // Process all messages in [start_sample, end_sample] range
+            while (fEvent < fSequence.size() && fSequence[fEvent].fDateSample <= end_sample) {
                 processMessage(fSequence[fEvent]);
                 fEvent++;
             }
             
             // Keep last date
-            fDateSample = fSequence[fEvent].fDateSample;
+            fCurSample = fSequence[fEvent].fDateSample;
         }
     
         void display()
@@ -96,13 +96,13 @@ class ControlSequenceUI : public MapUI {
             }
         }
     
-        void getRange(uint64_t& begin, uint64_t& end)
+        void getRange(uint64_t& start_sample, uint64_t& end_sample)
         {
             if (fSequence.size() > 0) {
-                begin = fSequence[0].fDateSample;
-                end = fSequence[fSequence.size()-1].fDateSample;
+                start_sample = fSequence[0].fDateSample;
+                end_sample = fSequence[fSequence.size()-1].fDateSample;
             } else {
-                begin = end = 0;
+                start_sample = end_sample = 0;
             }
         }
         
@@ -117,6 +117,10 @@ class ControlSequenceUI : public MapUI {
  e45377ab.1f47f993 /karplus/params/freq f 286.850006
  e45377ab.29c88616 /karplus/params/freq f 296.350006
  e45377ab.34370cdc /karplus/params/freq f 305.850006
+ 
+ where a e451f81c.2be22e5d date is a timestamp in sec.frac format coded in hexadecimal.
+ 
+ To be used with ControlSequenceUI class.
  */
 
 struct OSCSequenceReader {
@@ -138,10 +142,18 @@ struct OSCSequenceReader {
         return uint64_t(sample_rate * (double(sec_t) + (double(frac_t)/std::pow(2,32))));
     }
     
-    static std::vector<TSMessage> read(const std::string& pathname, int sample_rate)
+    /**
+     * Read the file containing timestamped messages.
+     *
+     * @param filename - the filename path
+     * @param sample_rate - the sampling rate, needed to convert dates in seconds into dates in frames
+     *
+     * @return a vector of timestamped messages [path, value]
+     */
+    static std::vector<TSMessage> read(const std::string& filename, int sample_rate)
     {
         std::vector<TSMessage> res;
-        std::ifstream in_file(pathname);
+        std::ifstream in_file(filename);
         bool first_date = true;
         uint64_t first_date_sample;
         

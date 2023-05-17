@@ -36,6 +36,7 @@
 
 import dplug.core.vec;
 import dplug.client;
+import core.stdc.stdlib : strtol;
 
 alias FAUSTFLOAT = float;
 
@@ -101,34 +102,53 @@ nothrow:
         _faustParams = makeVec!FaustParam();
     }
 
+    override void declare(FAUSTFLOAT* id, string key, string value)
+    {
+        if (value == "")
+        {
+            nextParamId = cast(int)strtol(key.ptr, null, 0);
+        }
+        else if (key == "unit")
+        {
+            nextParamUnit = value;
+        }
+    }
+
     override void addButton(string label, FAUSTFLOAT* val)
     {
-        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
+        _faustParams.pushBack(FaustParam(label, nextParamUnit, val, 0, 0, 0, 0, true, nextParamId));
+        resetNextParamMeta();
     }
     
     override void addCheckButton(string label, FAUSTFLOAT* val)
     {
-        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
+        _faustParams.pushBack(FaustParam(label, nextParamUnit, val, 0, 0, 0, 0, true, nextParamId));
+        resetNextParamMeta();
     }
     
     override void addVerticalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+        _faustParams.pushBack(FaustParam(label, nextParamUnit, val, init, min, max, step, false, nextParamId));
+        resetNextParamMeta();
     }
 
     override void addHorizontalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+        _faustParams.pushBack(FaustParam(label, nextParamUnit, val, init, min, max, step, false, nextParamId));
+        resetNextParamMeta();
     }
 
     override void addNumEntry(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+        _faustParams.pushBack(FaustParam(label, nextParamUnit, val, init, min, max, step, false, nextParamId));
+        resetNextParamMeta();
     }
 
     FaustParam[] readParams()
     {
-        return _faustParams.releaseData();
+        /* return _faustParams.releaseData(); */
+        /* Vec!FaustParam _sortedList = makeVec!FaustParam(); */
+        return sortParams(_faustParams.releaseData());
     }
 
     FaustParam readParam(int index)
@@ -142,25 +162,59 @@ nothrow:
     }
 
 private:
-	Vec!FaustParam _faustParams;
+    Vec!FaustParam _faustParams;
+    int nextParamId = -1;
+    string nextParamUnit = "";
+
+    void resetNextParamMeta()
+    {
+        nextParamId = -1;
+        nextParamUnit = "";
+    }
+
+    // simple bubble sort
+    FaustParam[] sortParams(FaustParam[] params)
+    {
+        bool success = true;
+        do
+        {
+            success = true;
+            for(int i = 0; i < params.length - 1; ++i)
+            {
+                auto left = params[i];
+                auto right = params[i + 1];
+                if (right.ParamId < left.ParamId)
+                {
+                    params[i] = right;
+                    params[i + 1] = left;
+                    success = false;
+                }
+            }
+        }
+        while(!success);
+        return params;
+    }
 }
 
 struct FaustParam
 {
-	string label;
-	FAUSTFLOAT* val;
-	FAUSTFLOAT initial;
-	FAUSTFLOAT min;
-	FAUSTFLOAT max;
-	FAUSTFLOAT step;
+    string label;
+    string unit;
+    FAUSTFLOAT* val;
+    FAUSTFLOAT initial;
+    FAUSTFLOAT min;
+    FAUSTFLOAT max;
+    FAUSTFLOAT step;
     bool isButton = false;
+    int ParamId;
 }
 
 version(unittest){}
+version(faustoverride){}
 else
 mixin(pluginEntryPoints!FaustClient);
 
-final class FaustClient : dplug.client.Client
+class FaustClient : dplug.client.Client
 {
 public:
 nothrow:
@@ -200,13 +254,16 @@ nothrow:
         int faustParamIndexStart = 0;
         foreach(param; _faustParams)
         {
-            if(param.isButton)
+            if (param.isButton)
             {
                 params ~= mallocNew!BoolParameter(faustParamIndexStart++, param.label, cast(bool)(*param.val));
             }
+            else if (param.step == 1.0f) {
+                params ~= mallocNew!IntegerParameter(faustParamIndexStart++, param.label, param.unit, cast(int)param.min, cast(int)param.max, cast(int)param.initial);
+            }
             else
             {
-                params ~= mallocNew!LinearFloatParameter(faustParamIndexStart++, param.label, param.label, param.min, param.max, param.initial);
+                params ~= mallocNew!LinearFloatParameter(faustParamIndexStart++, param.label, param.unit, param.min, param.max, param.initial);
             }
         }
 
@@ -216,10 +273,10 @@ nothrow:
     override LegalIO[] buildLegalIO()
     {
         auto io = makeVec!LegalIO();
-		if(_dsp is null)
-		{
-			_dsp = mallocNew!(FAUSTCLASS)();
-		}
+        if (_dsp is null)
+        {
+            _dsp = mallocNew!(FAUSTCLASS)();
+        }
         io ~= LegalIO(_dsp.getNumInputs(), _dsp.getNumOutputs());
         return io.releaseData();
     }
@@ -249,17 +306,30 @@ nothrow:
         assert(maxFrames <= 512); // guaranteed by audio buffer splitting
     }
 
-    // TODO: use parameter listeners to update the faust param values rather
-    // than force updating them on every process call
     void updateFaustParams()
     {
         foreach(param; params())
         {
             foreach(faustParam; _faustParams)
             {
-                if(param.label() == faustParam.label)
+                if (param.label() == faustParam.label)
                 {
-                    *(faustParam.val) = (cast(FloatParameter)param).value();
+                    if (cast(FloatParameter)param)
+                    {
+                        *(faustParam.val) = (cast(FloatParameter)param).valueAtomic();
+                    }
+                    else if (cast(IntegerParameter)param)
+                    {
+                        *(faustParam.val) = cast(FAUSTFLOAT)((cast(IntegerParameter)param).valueAtomic());
+                    }
+                    else if (cast(BoolParameter)param)
+                    {
+                        *(faustParam.val) = cast(FAUSTFLOAT)((cast(BoolParameter)param).valueAtomic());
+                    }
+                    else
+                    {
+                        assert(false, "Parameter type not implemented");
+                    }
                 }
             }
         }

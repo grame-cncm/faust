@@ -249,7 +249,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     // Declarations
     virtual void visit(DeclareVarInst* inst)
     {
-        string name = inst->fAddress->getName();
+        std::string name = inst->fAddress->getName();
         
         // HACK : completely adhoc code for input/output using kLoadInput and kStoreOutput instructions
         if ((startWith(name, "input") || startWith(name, "output"))) {
@@ -326,6 +326,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInput, 0, 0, std::atoi(num.c_str()), 0));
             } else {
                 DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
+                // For soundfile
                 if (struct_type) {
                     std::vector<ValueInst*> indices = indexed->getIndices();
                     // Field_index is last in the indices vector
@@ -353,6 +354,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         if (!startWith(address->getName(), "output")) {
             faustassert(fFieldTable.find(address->getName()) != fFieldTable.end());
         }
+    
         // Waveform array store...
         ArrayTyped* array_typed;
         if (type && (array_typed = dynamic_cast<ArrayTyped*>(type))) {
@@ -555,7 +557,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     virtual void visit(FunCallInst* inst)
     {
         // Compile args in reverse order
-        list<ValueInst*>::reverse_iterator it;
+        std::list<ValueInst*>::reverse_iterator it;
         for (it = inst->fArgs.rbegin(); it != inst->fArgs.rend(); it++) {
             (*it)->accept(this);
         }

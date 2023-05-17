@@ -38,6 +38,8 @@
 #include "simplify.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 #undef TRACE
 
 // declarations
@@ -49,7 +51,7 @@ static Tree traced_simplification(Tree sig)
 {
     faustassert(sig);
 #ifdef TRACE
-    cerr << ++gGlobal->TABBER << "Start simplification of : " << ppsig(sig) << endl;
+    cerr << ++gGlobal->TABBER << "Start simplification of : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
     /*
     fprintf(stderr, "\nStart simplification of : ");
     printSignal(sig, stderr);
@@ -59,7 +61,7 @@ static Tree traced_simplification(Tree sig)
     Tree r = simplification(sig);
     faustassert(r != 0);
 #ifdef TRACE
-    cerr << --gGlobal->TABBER << "Simplification of : " << ppsig(sig) << " Returns : " << ppsig(r) << endl;
+    cerr << --gGlobal->TABBER << "Simplification of : " << ppsig(sig, MAX_ERROR_SIZE) << " Returns : " << ppsig(r, MAX_ERROR_SIZE) << endl;
     /*
     fprintf(stderr, "Simplification of : ");
     printSignal(sig, stderr);
@@ -101,29 +103,34 @@ static Tree simplification(Tree sig)
 
     } else if (isSigBinOp(sig, &opnum, t1, t2)) {
         BinOp* op = gBinOpTable[opnum];
-        Node n1 = t1->node();
-        Node n2 = t2->node();
+        Node   n1 = t1->node();
+        Node   n2 = t2->node();
 
         if (isNum(n1) && isNum(n2))
             return tree(op->compute(n1, n2));
 
         else if (opnum == kSub && isZero(n1))
             return sigBinOp(kMul, sigInt(-1), t2);
-       
+        
         else if (op->isLeftNeutral(n1))
             return t2;
-        
-        else if (op->isLeftAbsorbing(n1)) 
+
+        else if (op->isLeftAbsorbing(n1))
             return t1;
-     
+
         else if (op->isRightNeutral(n2))
             return t1;
-        
+
         else if (op->isRightAbsorbing(n2))
             return t2;
-      
-        else
-            return normalizeAddTerm(sig);
+        
+        else if (t1 == t2) {
+            if ((opnum == kAND) || (opnum == kOR)) return t1;
+            if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) return sigInt(1);
+            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) || (opnum == kXOR)) return sigInt(0);
+        }
+        
+        return normalizeAddTerm(sig);
 
     } else if (isSigDelay1(sig, t1)) {
         return normalizeDelay1Term(t1);
@@ -138,7 +145,10 @@ static Tree simplification(Tree sig)
 
         if (isInt(n1, &i)) return t1;
         if (isDouble(n1, &x)) return tree(int(x));
-   
+
+        return sig;
+        
+    } else if (isSigBitCast(sig, t1)) {
         return sig;
 
     } else if (isSigFloatCast(sig, t1)) {
@@ -148,7 +158,7 @@ static Tree simplification(Tree sig)
 
         if (isInt(n1, &i)) return tree(double(i));
         if (isDouble(n1, &x)) return t1;
-    
+
         return sig;
 
     } else if (isSigSelect2(sig, t1, t2, t3)) {
@@ -187,15 +197,15 @@ static Tree simplification(Tree sig)
 
         else
             return sig;
-	
-    } else if (isSigLowest(sig, t1)){
+
+    } else if (isSigLowest(sig, t1)) {
         Type ty = getCertifiedSigType(t1);
-        return sigReal(ty->getInterval().lo);
-        
-    } else if (isSigHighest(sig, t1)){
+        return sigReal(ty->getInterval().lo());
+
+    } else if (isSigHighest(sig, t1)) {
         Type ty = getCertifiedSigType(t1);
-        return sigReal(ty->getInterval().hi);
-        
+        return sigReal(ty->getInterval().hi());
+
     } else {
         return sig;
     }
@@ -331,21 +341,19 @@ Tree docTableConvertion(Tree sig)
 
 static Tree docTableConverter(Tree sig)
 {
-    Tree tbl, tbl2, id, id2, size, igen, isig, ridx, widx, wsig;
+    Tree gen, wi, ws, tbl, ri, size, isig;
 
-    if (isSigRDTbl(sig, tbl, ridx)) {
+    if (isSigRDTbl(sig, tbl, ri)) {
         // we are in a table to convert
-        if (isSigTable(tbl, id, size, igen)) {
-            // it's a read only table
-            faustassert(isSigGen(igen, isig));
-            return sigDocAccessTbl(sigDocConstantTbl(size, isig), ridx);
+        if (isSigWRTbl(tbl, size, gen)) {
+            // rdtable
+            faustassert(isSigGen(gen, isig));
+            return sigDocAccessTbl(sigDocConstantTbl(size, isig), ri);
         } else {
-            // it's a read write table
-            faustassert(isSigWRTbl(tbl, id, tbl2, widx, wsig));
-            faustassert(isSigTable(tbl2, id2, size, igen));
-            faustassert(isSigGen(igen, isig));
-
-            return sigDocAccessTbl(sigDocWriteTbl(size, isig, widx, wsig), ridx);
+            // rwtable
+            faustassert(isSigWRTbl(tbl, size, gen, wi, ws));
+            faustassert(isSigGen(gen, isig));
+            return sigDocAccessTbl(sigDocWriteTbl(size, isig, wi, ws), ri);
         }
 
     } else {

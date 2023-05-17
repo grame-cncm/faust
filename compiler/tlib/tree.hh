@@ -82,8 +82,8 @@
 class CTree;
 typedef CTree* Tree;
 
-typedef map<Tree, Tree> plist;
-typedef vector<Tree>    tvec;
+typedef std::map<Tree, Tree> plist;
+typedef std::vector<Tree>    tvec;
 
 /**
  * A CTree = (Node x [CTree]) is the association of a content Node and a list of subtrees
@@ -148,7 +148,7 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     void        setAperture(int a) { fAperture = a; }   ///< modify the aperture of a tree
 
     // Print a tree and the hash table (for debugging purposes)
-    ostream&    print(ostream& fout) const;  ///< print recursively the content of a tree on a stream
+    std::ostream&    print(std::ostream& fout) const;  ///< print recursively the content of a tree on a stream
     static void control();                   ///< print the hash table content (for debug purpose)
 
     static void init();
@@ -170,7 +170,7 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     void clearProperty(Tree key) { fProperties.erase(key); }
     void clearProperties() { fProperties = plist(); }
 
-    void exportProperties(vector<Tree>& keys, vector<Tree>& values);
+    void exportProperties(std::vector<Tree>& keys, std::vector<Tree>& values);
 
     Tree getProperty(Tree key)
     {
@@ -227,7 +227,7 @@ LIBFAUST_API int tree2int(Tree t); ///< if t has a node of type int, return it o
 double      tree2float(Tree t);   ///< if t has a node of type float, return it otherwise error
 double      tree2double(Tree t);  ///< if t has a node of type float, return it otherwise error
 LIBFAUST_API const char* tree2str(Tree t);     ///< if t has a node of type symbol, return its name otherwise error
-string      tree2quotedstr(Tree t);
+std::string tree2quotedstr(Tree t);
 void*       tree2ptr(Tree t);     ///< if t has a node of type ptr, return it otherwise error
 LIBFAUST_API void* getUserData(Tree t);  ///< if t has a node of type symbol, return the associated user data
 
@@ -240,7 +240,7 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e);
 
 // printing
-inline ostream& operator<<(ostream& s, const CTree& t)
+inline std::ostream& operator<<(std::ostream& s, const CTree& t)
 {
     return t.print(s);
 }
@@ -302,7 +302,7 @@ class Tabber {
         return *this;
     }
 
-    ostream& print(ostream& fout)
+    std::ostream& print(std::ostream& fout)
     {
         for (int i = 0; i < fIndent; i++) fout << '\t';
         fIndent += fPostInc;
@@ -312,7 +312,7 @@ class Tabber {
 };
 
 // printing
-inline ostream& operator<<(ostream& s, Tabber& t)
+inline std::ostream& operator<<(std::ostream& s, Tabber& t)
 {
     return t.print(s);
 }

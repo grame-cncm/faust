@@ -39,13 +39,16 @@
  - in internal memory mode, a memory segment is allocated, otherwise it is given by the external JS runtime
  - DSP fields start at offset 0, then followed by audio buffers
  - the JSON string is written at offset 0, to be copied and converted in a string
- by the runtime (JS or something else) before using the DSP itsef.
-
+   by the runtime (JS or something else) before using the DSP itsef.
 */
 
+// Minimum = 64 kB
 inline int wasm_pow2limit(int x)
 {
-    int n = wasmBlockSize;  // Minimum = 64 kB
+    if (x > INT_MAX / 2) {
+        throw faustexception("ERROR : too big value '" + std::to_string(x) + "' for wasm memory\n");
+    }
+    int n = wasmBlockSize;
     while (n < x) {
         n = 2 * n;
     }
@@ -71,7 +74,7 @@ struct WASInst {
 
         MathFunDesc() {}
 
-        MathFunDesc(Gen mode, const string& name, WasmOp op, Typed::VarType type_in, Typed::VarType type_out, int args)
+        MathFunDesc(Gen mode, const std::string& name, WasmOp op, Typed::VarType type_in, Typed::VarType type_out, int args)
             : fMode(mode),
             fName(name),
             fWasmOp(op),
@@ -80,7 +83,7 @@ struct WASInst {
             fArgs(args)
         {}
 
-        MathFunDesc(Gen mode, const string& name, Typed::VarType type_in, Typed::VarType type_out, int args)
+        MathFunDesc(Gen mode, const std::string& name, Typed::VarType type_in, Typed::VarType type_out, int args)
             : fMode(mode),
             fName(name),
             fWasmOp(WasmOp::Dummy),
@@ -90,19 +93,19 @@ struct WASInst {
         {}
 
         Gen            fMode;
-        string         fName;
+        std::string    fName;
         WasmOp         fWasmOp;
         Typed::VarType fTypeIn;
         Typed::VarType fTypeOut;
         int            fArgs;
     };
 
-    map<string, bool>        fFunctionSymbolTable;  // Already generated functions
-    map<string, MathFunDesc> fMathLibTable;         // Table : field_name, math description
-    map<string, MemoryDesc>  fFieldTable;           // Table : field_name, { offset, size, type }
+    std::map<std::string, bool>        fFunctionSymbolTable;  // Already generated functions
+    std::map<std::string, MathFunDesc> fMathLibTable;         // Table : field_name, math description
+    std::map<std::string, MemoryDesc>  fFieldTable;           // Table : field_name, { offset, size, type }
 
     // To generate tee_local the first time the variable access is compiled, then local.get will be used
-    map<string, bool> fTeeMap;
+    std::map<std::string, bool> fTeeMap;
 
     int  fStructOffset;  // Keep the offset in bytes of the structure
     int  fSubContainerType;
@@ -198,19 +201,19 @@ struct WASInst {
     // The DSP size in bytes
     int getStructSize() { return fStructOffset; }
 
-    map<string, MemoryDesc>& getFieldTable() { return fFieldTable; }
+    std::map<std::string, MemoryDesc>& getFieldTable() { return fFieldTable; }
 
     // Check if address is constant, so that to be used as an 'offset' in load/store
     int getConstantOffset(Address* address)
     {
         static char* wasm_opt      = getenv("FAUST_WASM");
-        static bool  no_offset_opt = wasm_opt && (string(wasm_opt) == "no-offset");
+        static bool  no_offset_opt = wasm_opt && (std::string(wasm_opt) == "no-offset");
 
         if (!fFastMemory || no_offset_opt) {
             return 0;
         }
         
-        string name = address->getName();
+        std::string name = address->getName();
         NamedAddress*   named   = dynamic_cast<NamedAddress*>(address);
         IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
         

@@ -211,9 +211,11 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
             fComputeBlockInstructions->accept(&struct_visitor);
             
             for (const auto& it : struct_visitor.getFieldTable()) {
-                *dst << "Field = " << it.first << " size = " << it.second.fSize;
-                *dst << " r_count = " << it.second.fRAccessCount;
-                *dst << " w_count = " << it.second.fWAccessCount;
+                *dst << "Field = " << it.first ;
+                *dst << " size = " << it.second.fSize;
+                *dst << " size_bytes = " << it.second.fSizeBytes;
+                *dst << " read = " << it.second.fRAccessCount;
+                *dst << " write = " << it.second.fWAccessCount;
                 *dst << " ratio = " << float(it.second.fRAccessCount + it.second.fWAccessCount) / float(it.second.fSize) << endl;
             }
         }
@@ -225,11 +227,13 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
             
             ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
             loop->accept(&struct_visitor);
-            
+                
             for (const auto& it : struct_visitor.getFieldTable()) {
-                *dst << "Field = " << it.first << " size = " << it.second.fSize;
-                *dst << " r_count = " << it.second.fRAccessCount;
-                *dst << " w_count = " << it.second.fWAccessCount;
+                *dst << "Field = " << it.first ;
+                *dst << " size = " << it.second.fSize;
+                *dst << " size_bytes = " << it.second.fSizeBytes;
+                *dst << " read = " << it.second.fRAccessCount;
+                *dst << " write = " << it.second.fWAccessCount;
                 *dst << " ratio = " << float(it.second.fRAccessCount + it.second.fWAccessCount) / float(it.second.fSize) << endl;
             }
         }

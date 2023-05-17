@@ -46,15 +46,19 @@ class PowPrim : public xtended {
     {
         faustassert(args.size() == arity());
 
-        interval i = args[0]->getInterval();
-        interval j = args[1]->getInterval();
-        return castInterval(args[0] | args[1], pow(i, j));
+        Type t = args[0];
+        Type u = args[1];
+
+        interval i = t->getInterval();
+        interval j = u->getInterval();
+        
+        return castInterval(t | u, gAlgebra.Pow(i, j)); // maybe we should distinguish between real and integer exponents
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
-        return max(args[0], args[1]);
+        return std::max(args[0], args[1]);
     }
     
     // Fast integer based power, for positive exponent
@@ -75,7 +79,7 @@ class PowPrim : public xtended {
         }
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         num n, m;
         faustassert(args.size() == arity());
@@ -107,7 +111,7 @@ class PowPrim : public xtended {
         return tree(symbol(), args[0], args[1]);
     }
     
-    // Check that power argument is an integer or possibly represents an integer, up to 32
+    // Check that power argument is an integer or possibly represents an integer, up to 8
     bool isIntPowArg(::Type ty, ValueInst* val, int& pow_arg)
     {
         if (ty->nature() == kInt) {
@@ -149,12 +153,12 @@ class PowPrim : public xtended {
             && (gGlobal->gNeedManualPow)) {
             
             Typed::VarType t0 = convert2FIRType(types[0]->nature());
-            vector<Typed::VarType> atypes = { t0, Typed::kInt32};
+            std::vector<Typed::VarType> atypes = { t0, Typed::kInt32 };
             Typed::VarType rtype = convert2FIRType(result->nature());
             
             // Expand the pow depending of the exposant argument
             BlockInst* block = InstBuilder::genBlockInst();
-            string faust_power_name = container->getFaustPowerName() + to_string(pow_arg) + ((rtype == Typed::kInt32) ? "_i" : "_f");
+            std::string faust_power_name = container->getFaustPowerName() + std::to_string(pow_arg) + ((rtype == Typed::kInt32) ? "_i" : "_f");
 
             Names named_args;
             named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(t0)));
@@ -180,11 +184,11 @@ class PowPrim : public xtended {
         } else {
             
             // Both arguments forced to itfloat()
-            vector<Typed::VarType> atypes = {itfloat(), itfloat()};
+            std::vector<Typed::VarType> atypes = { itfloat(), itfloat() };
             
             Values cargs;
             ValuesIt it2 = args.begin();
-            vector<::Type>::const_iterator it1;
+            std::vector<::Type>::const_iterator it1;
             
             for (it1 = types.begin(); it1 != types.end(); it1++, it2++) {
                 cargs.push_back(promote2real((*it1)->nature(), (*it2)));
@@ -194,7 +198,7 @@ class PowPrim : public xtended {
         }
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -208,7 +212,7 @@ class PowPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

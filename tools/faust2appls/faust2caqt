@@ -145,8 +145,8 @@ if [[ $(uname) == Darwin ]]; then
     if [ $SYS_VERSION -ge 13 ]
     then
         SPEC="-spec macx-clang"
-        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"
-        CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15"
+        CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.15"
     else
         SPEC="-spec macx-g++"
         CLANGOPT=""
@@ -204,13 +204,14 @@ EndOfCode
 
     # add preset management
     if [ $PRESETDIR = "auto" ]; then
-        echo "#define PRESETDIR \"/var/tmp/\"" > "$TMP/preset.cpp"
+        PRESETFILE=`mktemp -t preset.XXXXXXXXXX.cpp` || exit 1
+        echo "#define PRESETDIR \"/var/tmp/\"" > "$PRESETFILE"
     else
-        echo "#define PRESETDIR \"$PRESETDIR\"" > "$TMP/preset.cpp"
+        PRESETFILE=`mktemp -t preset.XXXXXXXXXX.cpp` || exit 1
+        echo "#define PRESETDIR \"$PRESETDIR\"" > "$PRESETFILE"
     fi
-
-    cat "$TMP/preset.cpp" "$TMP/${f%.dsp}_tmp.cpp" > "$TMP/${f%.dsp}.cpp"
-    rm "$TMP/preset.cpp" "$TMP/${f%.dsp}_tmp.cpp"
+    cat "$PRESETFILE" "${f%.dsp}_tmp.cpp" > "${f%.dsp}.cpp"
+    rm "$PRESETFILE" "${f%.dsp}_tmp.cpp"
 
     # compile c++ to binary
     (
@@ -268,7 +269,9 @@ EndOfCode
     rm $p.json
 
     cp -a "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
-    codesign --sign - --deep --force "$SRCDIR/${f%.dsp}$EXT"
+    if [[ $(uname) == Darwin ]];  then
+        codesign --sign - --deep --force "$SRCDIR/${f%.dsp}$EXT"
+    fi
     RMTMP=true
     if $DEBUG;
     then

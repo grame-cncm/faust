@@ -98,6 +98,15 @@ const char* prim5name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *, CTree *)
     return "prim5???";
 }
 
+// Limit the box description string to max_size characters
+string mBox(Tree b, int max_size)
+{
+    stringstream error;
+    error << boxpp(b);
+    string str = error.str();
+    return (int(str.size()) > max_size) ? (str.substr(0, max_size) + " ...") : str;
+}
+
 static void streambinop(ostream &fout, Tree t1, const char *op, Tree t2, int curPriority, int upPriority)
 {
     if (upPriority > curPriority) fout << '(';

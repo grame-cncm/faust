@@ -36,7 +36,7 @@ class loopDetector : public virtual Garbageable {
    private:
     const int    fBuffersize;
     const int    fCheckperiod;
-    vector<Tree> fBuffer;
+    std::vector<Tree> fBuffer;
     int          fPhase;
 
    public:

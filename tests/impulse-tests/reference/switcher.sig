@@ -1,3 +1,4 @@
+// Size = 8
 ID_0 = hslider("source 0 <-> source 1",0.0f,0.0f,1.0f,1.0f);
 ID_1 = ID_0*IN[2];
 ID_2 = (1.0f-ID_0);

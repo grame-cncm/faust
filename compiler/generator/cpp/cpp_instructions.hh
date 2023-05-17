@@ -22,8 +22,6 @@
 #ifndef _CPP_INSTRUCTIONS_H
 #define _CPP_INSTRUCTIONS_H
 
-using namespace std;
-
 #include "struct_manager.hh"
 #include "text_instructions.hh"
 #include "type_manager.hh"
@@ -38,12 +36,12 @@ class CPPInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated at most once in the module.
      */
-    static map<string, bool> gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
 
     // Polymorphic math functions
-    map<string, string> gPolyMathLibTable;
+    std::map<std::string, std::string> fPolyMathLibTable;
 
-    string cast2FAUSTFLOAT(const string& str) { return "FAUSTFLOAT(" + str + ")"; }
+    std::string cast2FAUSTFLOAT(const std::string& str) { return "FAUSTFLOAT(" + str + ")"; }
 
    public:
     using TextInstVisitor::visit;
@@ -122,92 +120,141 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinl"]       = true;
         gFunctionSymbolTable["sqrtl"]      = true;
         gFunctionSymbolTable["tanl"]       = true;
+    
+        // Fx version
+        gFunctionSymbolTable["fabsfx"]      = true;
+        gFunctionSymbolTable["acosfx"]      = true;
+        gFunctionSymbolTable["asinfx"]      = true;
+        gFunctionSymbolTable["atanfx"]      = true;
+        gFunctionSymbolTable["atan2fx"]     = true;
+        gFunctionSymbolTable["ceilfx"]      = true;
+        gFunctionSymbolTable["cosfx"]       = true;
+        gFunctionSymbolTable["expfx"]       = true;
+        gFunctionSymbolTable["exp10fx"]     = true;
+        gFunctionSymbolTable["floorfx"]     = true;
+        gFunctionSymbolTable["fmodfx"]      = true;
+        gFunctionSymbolTable["logfx"]       = true;
+        gFunctionSymbolTable["log10fx"]     = true;
+        gFunctionSymbolTable["powfx"]       = true;
+        gFunctionSymbolTable["remainderfx"] = true;
+        gFunctionSymbolTable["rintfx"]      = true;
+        gFunctionSymbolTable["roundfx"]     = true;
+        gFunctionSymbolTable["sinfx"]       = true;
+        gFunctionSymbolTable["sqrtfx"]      = true;
+        gFunctionSymbolTable["tanfx"]       = true;
 
         // Polymath mapping int version
-        gPolyMathLibTable["abs"]   = "std::abs";
-        gPolyMathLibTable["max_i"] = "std::max<int>";
-        gPolyMathLibTable["min_i"] = "std::min<int>";
+        fPolyMathLibTable["abs"]   = "std::abs";
+        fPolyMathLibTable["max_i"] = "std::max<int>";
+        fPolyMathLibTable["min_i"] = "std::min<int>";
 
         // Polymath mapping float version
-        gPolyMathLibTable["max_f"] = "std::max<float>";
-        gPolyMathLibTable["min_f"] = "std::min<float>";
+        fPolyMathLibTable["max_f"] = "std::max<float>";
+        fPolyMathLibTable["min_f"] = "std::min<float>";
 
-        gPolyMathLibTable["fabsf"]      = "std::fabs";
-        gPolyMathLibTable["acosf"]      = "std::acos";
-        gPolyMathLibTable["asinf"]      = "std::asin";
-        gPolyMathLibTable["atanf"]      = "std::atan";
-        gPolyMathLibTable["atan2f"]     = "std::atan2";
-        gPolyMathLibTable["ceilf"]      = "std::ceil";
-        gPolyMathLibTable["cosf"]       = "std::cos";
-        gPolyMathLibTable["expf"]       = "std::exp";
-        gPolyMathLibTable["exp2f"]      = "std::exp2";
-        gPolyMathLibTable["exp10f"]     = "exp10f";
-        gPolyMathLibTable["floorf"]     = "std::floor";
-        gPolyMathLibTable["fmodf"]      = "std::fmod";
-        gPolyMathLibTable["logf"]       = "std::log";
-        gPolyMathLibTable["log2f"]      = "std::log2";
-        gPolyMathLibTable["log10f"]     = "std::log10";
-        gPolyMathLibTable["powf"]       = "std::pow";
-        gPolyMathLibTable["remainderf"] = "std::remainder";
-        gPolyMathLibTable["rintf"]      = "std::rint";
-        gPolyMathLibTable["roundf"]     = "std::round";
-        gPolyMathLibTable["sinf"]       = "std::sin";
-        gPolyMathLibTable["sqrtf"]      = "std::sqrt";
-        gPolyMathLibTable["tanf"]       = "std::tan";
+        fPolyMathLibTable["fabsf"]      = "std::fabs";
+        fPolyMathLibTable["acosf"]      = "std::acos";
+        fPolyMathLibTable["asinf"]      = "std::asin";
+        fPolyMathLibTable["atanf"]      = "std::atan";
+        fPolyMathLibTable["atan2f"]     = "std::atan2";
+        fPolyMathLibTable["ceilf"]      = "std::ceil";
+        fPolyMathLibTable["cosf"]       = "std::cos";
+        fPolyMathLibTable["expf"]       = "std::exp";
+        fPolyMathLibTable["exp2f"]      = "std::exp2";
+        fPolyMathLibTable["exp10f"]     = "exp10f";
+        fPolyMathLibTable["floorf"]     = "std::floor";
+        fPolyMathLibTable["fmodf"]      = "std::fmod";
+        fPolyMathLibTable["logf"]       = "std::log";
+        fPolyMathLibTable["log2f"]      = "std::log2";
+        fPolyMathLibTable["log10f"]     = "std::log10";
+        fPolyMathLibTable["powf"]       = "std::pow";
+        fPolyMathLibTable["remainderf"] = "std::remainder";
+        fPolyMathLibTable["rintf"]      = "std::rint";
+        fPolyMathLibTable["roundf"]     = "std::round";
+        fPolyMathLibTable["sinf"]       = "std::sin";
+        fPolyMathLibTable["sqrtf"]      = "std::sqrt";
+        fPolyMathLibTable["tanf"]       = "std::tan";
 
         // Polymath mapping double version
-        gPolyMathLibTable["max_"] = "std::max<double>";
-        gPolyMathLibTable["min_"] = "std::min<double>";
+        fPolyMathLibTable["max_"] = "std::max<double>";
+        fPolyMathLibTable["min_"] = "std::min<double>";
 
-        gPolyMathLibTable["fabs"]      = "std::fabs";
-        gPolyMathLibTable["acos"]      = "std::acos";
-        gPolyMathLibTable["asin"]      = "std::asin";
-        gPolyMathLibTable["atan"]      = "std::atan";
-        gPolyMathLibTable["atan2"]     = "std::atan2";
-        gPolyMathLibTable["ceil"]      = "std::ceil";
-        gPolyMathLibTable["cos"]       = "std::cos";
-        gPolyMathLibTable["exp"]       = "std::exp";
-        gPolyMathLibTable["exp2"]      = "std::exp2";
-        gPolyMathLibTable["exp10"]     = "exp10";
-        gPolyMathLibTable["floor"]     = "std::floor";
-        gPolyMathLibTable["fmod"]      = "std::fmod";
-        gPolyMathLibTable["log"]       = "std::log";
-        gPolyMathLibTable["log2"]      = "std::log2";
-        gPolyMathLibTable["log10"]     = "std::log10";
-        gPolyMathLibTable["pow"]       = "std::pow";
-        gPolyMathLibTable["remainder"] = "std::remainder";
-        gPolyMathLibTable["rint"]      = "std::rint";
-        gPolyMathLibTable["round"]     = "std::round";
-        gPolyMathLibTable["sin"]       = "std::sin";
-        gPolyMathLibTable["sqrt"]      = "std::sqrt";
-        gPolyMathLibTable["tan"]       = "std::tan";
+        fPolyMathLibTable["fabs"]      = "std::fabs";
+        fPolyMathLibTable["acos"]      = "std::acos";
+        fPolyMathLibTable["asin"]      = "std::asin";
+        fPolyMathLibTable["atan"]      = "std::atan";
+        fPolyMathLibTable["atan2"]     = "std::atan2";
+        fPolyMathLibTable["ceil"]      = "std::ceil";
+        fPolyMathLibTable["cos"]       = "std::cos";
+        fPolyMathLibTable["exp"]       = "std::exp";
+        fPolyMathLibTable["exp2"]      = "std::exp2";
+        fPolyMathLibTable["exp10"]     = "exp10";
+        fPolyMathLibTable["floor"]     = "std::floor";
+        fPolyMathLibTable["fmod"]      = "std::fmod";
+        fPolyMathLibTable["log"]       = "std::log";
+        fPolyMathLibTable["log2"]      = "std::log2";
+        fPolyMathLibTable["log10"]     = "std::log10";
+        fPolyMathLibTable["pow"]       = "std::pow";
+        fPolyMathLibTable["remainder"] = "std::remainder";
+        fPolyMathLibTable["rint"]      = "std::rint";
+        fPolyMathLibTable["round"]     = "std::round";
+        fPolyMathLibTable["sin"]       = "std::sin";
+        fPolyMathLibTable["sqrt"]      = "std::sqrt";
+        fPolyMathLibTable["tan"]       = "std::tan";
 
         // Polymath mapping quad version
-        gPolyMathLibTable["max_l"] = "std::max<quad>";
-        gPolyMathLibTable["min_l"] = "std::min<quad>";
+        fPolyMathLibTable["max_l"] = "std::max<quad>";
+        fPolyMathLibTable["min_l"] = "std::min<quad>";
 
-        gPolyMathLibTable["fabsl"]      = "std::fabs";
-        gPolyMathLibTable["acosl"]      = "std::acos";
-        gPolyMathLibTable["asinl"]      = "std::asin";
-        gPolyMathLibTable["atanl"]      = "std::atan";
-        gPolyMathLibTable["atan2l"]     = "std::atan2";
-        gPolyMathLibTable["ceill"]      = "std::ceil";
-        gPolyMathLibTable["cosl"]       = "std::cos";
-        gPolyMathLibTable["expl"]       = "std::exp";
-        gPolyMathLibTable["exp2l"]      = "std::exp2";
-        gPolyMathLibTable["exp10l"]     = "exp10";
-        gPolyMathLibTable["floorl"]     = "std::floor";
-        gPolyMathLibTable["fmodl"]      = "std::fmod";
-        gPolyMathLibTable["logl"]       = "std::log";
-        gPolyMathLibTable["log2l"]      = "std::log2";
-        gPolyMathLibTable["log10l"]     = "std::log10";
-        gPolyMathLibTable["powl"]       = "std::pow";
-        gPolyMathLibTable["remainderl"] = "std::remainder";
-        gPolyMathLibTable["rintl"]      = "std::rint";
-        gPolyMathLibTable["roundl"]     = "std::round";
-        gPolyMathLibTable["sinl"]       = "std::sin";
-        gPolyMathLibTable["sqrtl"]      = "std::sqrt";
-        gPolyMathLibTable["tanl"]       = "std::tan";
+        fPolyMathLibTable["fabsl"]      = "std::fabs";
+        fPolyMathLibTable["acosl"]      = "std::acos";
+        fPolyMathLibTable["asinl"]      = "std::asin";
+        fPolyMathLibTable["atanl"]      = "std::atan";
+        fPolyMathLibTable["atan2l"]     = "std::atan2";
+        fPolyMathLibTable["ceill"]      = "std::ceil";
+        fPolyMathLibTable["cosl"]       = "std::cos";
+        fPolyMathLibTable["expl"]       = "std::exp";
+        fPolyMathLibTable["exp2l"]      = "std::exp2";
+        fPolyMathLibTable["exp10l"]     = "exp10";
+        fPolyMathLibTable["floorl"]     = "std::floor";
+        fPolyMathLibTable["fmodl"]      = "std::fmod";
+        fPolyMathLibTable["logl"]       = "std::log";
+        fPolyMathLibTable["log2l"]      = "std::log2";
+        fPolyMathLibTable["log10l"]     = "std::log10";
+        fPolyMathLibTable["powl"]       = "std::pow";
+        fPolyMathLibTable["remainderl"] = "std::remainder";
+        fPolyMathLibTable["rintl"]      = "std::rint";
+        fPolyMathLibTable["roundl"]     = "std::round";
+        fPolyMathLibTable["sinl"]       = "std::sin";
+        fPolyMathLibTable["sqrtl"]      = "std::sqrt";
+        fPolyMathLibTable["tanl"]       = "std::tan";
+    
+        // Polymath mapping fx version
+        fPolyMathLibTable["max_fx"] = "std::max<fixpoint_t>";
+        fPolyMathLibTable["min_fx"] = "std::min<fixpoint_t>";
+        
+        fPolyMathLibTable["fabsfx"]      = "fabsfx";
+        fPolyMathLibTable["acosfx"]      = "acosfx";
+        fPolyMathLibTable["asinfx"]      = "asinfx";
+        fPolyMathLibTable["atanfx"]      = "atanfx";
+        fPolyMathLibTable["atan2fx"]     = "atan2fx";
+        fPolyMathLibTable["ceilfx"]      = "ceilfx";
+        fPolyMathLibTable["cosfx"]       = "cosfx";
+        fPolyMathLibTable["expfx"]       = "expfx";
+        fPolyMathLibTable["exp2fx"]      = "exp2fx";
+        fPolyMathLibTable["exp10fx"]     = "exp10fx";
+        fPolyMathLibTable["floorfx"]     = "floorfx";
+        fPolyMathLibTable["fmodfx"]      = "fmodfx";
+        fPolyMathLibTable["logfx"]       = "logfx";
+        fPolyMathLibTable["log2fx"]      = "log2fx";
+        fPolyMathLibTable["log10fx"]     = "log10fx";
+        fPolyMathLibTable["powfx"]       = "powfx";
+        fPolyMathLibTable["remainderfx"] = "remainderfx";
+        fPolyMathLibTable["rintfx"]      = "rintfx";
+        fPolyMathLibTable["roundfx"]     = "roundfx";
+        fPolyMathLibTable["sinfx"]       = "sinfx";
+        fPolyMathLibTable["sqrtfx"]      = "sqrtfx";
+        fPolyMathLibTable["tanfx"]       = "tanfx";
     }
 
     virtual ~CPPInstVisitor() {}
@@ -227,7 +274,7 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 name = "ui_interface->openVerticalBox(";
@@ -261,7 +308,7 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "ui_interface->addHorizontalSlider";
@@ -282,7 +329,7 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "ui_interface->addHorizontalBargraph";
@@ -369,6 +416,7 @@ class CPPInstVisitor : public TextInstVisitor {
         size_t size = inst->fType->fArgsTypes.size(), i = 0;
         for (const auto& it : inst->fType->fArgsTypes) {
             // Pointers are set with 'noalias' for non paired arguments, which are garantied to be unique
+            // TODO: better associate a proper kNoalias atribute at FIR creation time
             if (isPtrType(it->getType()) && !inst->fType->isPairedFunArg(it->fName)) {
                 *fOut << fTypeManager->generateType(it, NamedTyped::kNoalias);
             } else {
@@ -419,7 +467,7 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(::CastInst* inst)
     {
-        string type = fTypeManager->generateType(inst->fType);
+        std::string type = fTypeManager->generateType(inst->fType);
         if (endWith(type, "*")) {
             *fOut << "static_cast<" << type << ">(";
             inst->fInst->accept(this);
@@ -462,11 +510,11 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(FunCallInst* inst)
     {
-        string name = gGlobal->getMathFunction(inst->fName);
-        name        = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
+        std::string name = gGlobal->getMathFunction(inst->fName);
+        name = (fPolyMathLibTable.find(name) != fPolyMathLibTable.end()) ? fPolyMathLibTable[name] : name;
         generateFunCall(inst, name);
     }
-
+    
     virtual void visit(ForLoopInst* inst)
     {
         // Don't generate empty loops...
@@ -497,13 +545,13 @@ class CPPInstVisitor1 : public CPPInstVisitor {
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
-        throw faustexception("ERROR : AddSoundfileInst not supported for -osX mode\n");
+        throw faustexception("ERROR : AddSoundfileInst not supported for -os1 mode\n");
     }
 
     virtual void visit(DeclareVarInst* inst)
     {
         Address::AccessType access = inst->fAddress->getAccess();
-        string              name   = inst->fAddress->getName();
+        std::string         name   = inst->fAddress->getName();
         if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !isControl(name)) {
             fStructVisitor.visit(inst);
         } else {
@@ -514,7 +562,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
     virtual void visit(NamedAddress* named)
     {
         Typed::VarType type;
-        string         name = named->getName();
+        std::string   name = named->getName();
 
         if (fStructVisitor.hasField(name, type)) {
             if (type == Typed::kInt32) {
@@ -532,7 +580,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
     virtual void visit(IndexedAddress* indexed)
     {
         Typed::VarType type;
-        string         name = indexed->getName();
+        std::string name = indexed->getName();
 
         if (fStructVisitor.hasField(name, type)) {
             if (type == Typed::kInt32) {
@@ -553,8 +601,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
 };
 
 /**
- Implement C++ FIR visitor: Used for -os2 mode, accessing iZone/fZone as function args (TODO : does not work with
- 'soundfile').
+ Implement C++ FIR visitor: Used for -os2 mode, accessing iZone/fZone as function args.
  */
 
 class CPPInstVisitor2 : public CPPInstVisitor {
@@ -571,7 +618,7 @@ class CPPInstVisitor2 : public CPPInstVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         Address::AccessType access = inst->fAddress->getAccess();
-        string              name   = inst->fAddress->getName();
+        std::string         name   = inst->fAddress->getName();
         if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !isControl(name)) {
             fStructVisitor.visit(inst);
             // Local fields have to be generated
@@ -586,7 +633,7 @@ class CPPInstVisitor2 : public CPPInstVisitor {
     virtual void visit(IndexedAddress* indexed)
     {
         Typed::VarType type;
-        string         name = indexed->getName();
+        std::string name = indexed->getName();
 
         if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
             if (type == Typed::kInt32) {
@@ -607,8 +654,7 @@ class CPPInstVisitor2 : public CPPInstVisitor {
 };
 
 /**
- Implement C++ FIR visitor: used for -os3 mode, accessing iZone/fZone in DSP struct (TODO : does not work with
- 'soundfile').
+ Implement C++ FIR visitor: used for -os3 mode, accessing iZone/fZone in DSP struct.
  */
 
 class CPPInstVisitor3 : public CPPInstVisitor2 {
@@ -618,7 +664,7 @@ class CPPInstVisitor3 : public CPPInstVisitor2 {
     virtual void visit(IndexedAddress* indexed)
     {
         Typed::VarType type;
-        string         name = indexed->getName();
+        std::string name = indexed->getName();
 
         if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
             if (type == Typed::kInt32) {

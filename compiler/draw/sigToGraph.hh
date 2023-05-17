@@ -27,12 +27,10 @@
 #include <string>
 #include "signals.hh"
 
-using namespace std;
-
 /**
  * Draw a list of signals L as a directed graph using
  * graphviz's dot language
  */
-void sigToGraph(Tree sig, ostream& fout);
+void sigToGraph(Tree sig, std::ostream& fout);
 
 #endif  // SIGTOGRAPH_HH

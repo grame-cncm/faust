@@ -33,12 +33,12 @@
 class decorateSchema : public schema {
     schema*       fSchema;
     double        fMargin;
-    string        fText;
-    vector<point> fInputPoint;
-    vector<point> fOutputPoint;
+    std::string   fText;
+    std::vector<point> fInputPoint;
+    std::vector<point> fOutputPoint;
 
    public:
-    friend schema* makeDecorateSchema(schema* s1, double margin, const string& text);
+    friend schema* makeDecorateSchema(schema* s1, double margin, const std::string& text);
 
     virtual void  place(double ox, double oy, int orientation);
     virtual void  draw(device& dev);
@@ -47,7 +47,7 @@ class decorateSchema : public schema {
     virtual void  collectTraits(collector& c);
 
    private:
-    decorateSchema(schema* s1, double margin, const string& text);
+    decorateSchema(schema* s1, double margin, const std::string& text);
 };
 
 #endif

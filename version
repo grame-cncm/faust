@@ -58,6 +58,11 @@ else
 	exit 1
 fi
 
+LIBFAUSTACTION=$ROOT/.github/workflows/libfaust.yml
+echo " updating $LIBFAUSTACTION"
+sed "s/FAUST_VERSION*: *..*/FAUST_VERSION: $VERSION/" $LIBFAUSTACTION > TMP$$
+mv -f TMP$$ $LIBFAUSTACTION
+
 MAKEF=$ROOT/Makefile
 echo " updating $MAKEF"
 sed "s/^version *:= *..*/version := $VERSION/" $MAKEF > TMP$$
@@ -81,6 +86,12 @@ mv TMP$$ $MAKERELEASE
 FAUST=$ROOT/architecture/faust/export.h
 echo " updating $FAUST"
 sed "s/FAUSTVERSION[ 	]\".*\"/FAUSTVERSION \"$VERSION\"/" $FAUST > TMP$$
+mv -f TMP$$ $FAUST
+sed "s/FAUSTMAJORVERSION[ 	].*/FAUSTMAJORVERSION $MAJOR/" $FAUST > TMP$$
+mv -f TMP$$ $FAUST
+sed "s/FAUSTMINORVERSION[ 	].*/FAUSTMINORVERSION $MINOR/" $FAUST > TMP$$
+mv -f TMP$$ $FAUST
+sed "s/FAUSTPATCHVERSION[ 	].*/FAUSTPATCHVERSION $PATCH/" $FAUST > TMP$$
 mv -f TMP$$ $FAUST
 
 FAUSTRC=$ROOT/windows/faust.rc

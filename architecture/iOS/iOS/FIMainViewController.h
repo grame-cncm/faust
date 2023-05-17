@@ -30,7 +30,6 @@
 #import "FIResponder.h"
 #import "FIScrollView.h"
 
-using namespace std;
 class uiCocoaItem;
 class uiBox;
 
@@ -58,7 +57,7 @@ class uiBox;
     
     IBOutlet UILabel*                   _widgetPreferencesTitleLabel;
     uiCocoaItem*                        _selectedWidget;                // Contains label of the widget
-    list <uiCocoaItem*>                 _assignatedWidgets;
+    std::list<uiCocoaItem*>             _assignatedWidgets;
     CMMotionManager*                    _motionManager;
     NSTimer*                            _motionTimer;
     

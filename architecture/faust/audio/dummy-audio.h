@@ -210,12 +210,12 @@ class dummyaudio_real : public dummyaudio_base {
             fDSP->compute(fBufferSize, reinterpret_cast<FAUSTFLOAT**>(fInChannel), reinterpret_cast<FAUSTFLOAT**>(fOutChannel));
             if (fNumInputs > 0) {
                 for (int frame = 0; frame < fSample; frame++) {
-                    std::cout << std::fixed << std::setprecision(6) << "sample in " << fInChannel[0][frame] << std::endl;
+                    std::cout << std::fixed << std::setprecision(10) << "sample in " << fInChannel[0][frame] << std::endl;
                 }
             }
             if (fNumOutputs > 0) {
                 for (int frame = 0; frame < fSample; frame++) {
-                    std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][frame] << std::endl;
+                    std::cout << std::fixed << std::setprecision(10) << "sample out " << fOutChannel[0][frame] << std::endl;
                 }
             }
         }

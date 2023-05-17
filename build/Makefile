@@ -2,6 +2,23 @@
 # FAUST compiler makefile
 #
 
+ARCHS ?= 
+LLVM ?= 
+
+LLVM_PACKAGE_VERSION ?= 
+LLVM_DIR ?= 
+LLVM_LIB_DIR ?= 
+LLVM_INCLUDE_DIRS ?= 
+LLVM_LIBS ?= 
+LLVM_DEFINITIONS ?= 
+LLVM_LD_FLAGS ?= 
+INCLUDE_LLVM ?= OFF
+USE_LLVM_CONFIG ?= ON
+
+BUILD_HTTP_STATIC ?= OFF
+USE_STATIC_SNDFILE ?= 0
+MAXSDK ?= $(shell echo $(PWD)/../max-sdk-base/c74support)
+
 # start to determine the current platform
 system := $(shell uname -s)
 # normalizes MINGW versions
@@ -11,7 +28,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.52.6
+VERSION := 2.59.6
 
 #===============================================================
 # current generator and backends
@@ -52,8 +69,8 @@ endif
 CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release $(WORKLETOPT)
 BUILDOPT ?= --config Release
 
-# CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug $(WORKLETOPT)
-# BUILDOPT ?= --config Debug
+#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug $(WORKLETOPT)
+#BUILDOPT ?= --config Debug
 
 #===============================================================
 # options
@@ -84,10 +101,10 @@ full:
 
 clean:
 	$(CMAKE) --build $(FAUSTDIR) --target clean
+	rm -f lib/libfaustwithllvm.a
 
 distclean:
 	rm -rf $(FAUSTDIR)
-
 
 #===============================================================
 help:
@@ -186,14 +203,14 @@ package:
 	$(MAKE) $(NATIVEPACK)
 
 winpack:
-	cd $(FAUSTDIR) && $(CMAKE) -DUSE_LLVM_CONFIG=off -DPACK=on -C ../bakckends/most.cmake -C ../targets/most.cmake ..
+	cd $(FAUSTDIR) && $(CMAKE) -DUSE_LLVM_CONFIG=off -DPACK=on -C ../backends/most.cmake -C ../targets/most.cmake ..
 	$(MAKE)
 	cd $(FAUSTDIR) && cpack -G NSIS64
 	mv $(FAUSTDIR)/Faust-*.exe .
 
 macpack: package/README.html
 	-[ -d $(PACK) ] && rm -rf $(PACK)
-	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake  CMAKEOPT="-DDEPLOYMENT_TARGET=on"
+	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake
 	$(MAKE) install PREFIX=../$(PACK)/Faust-$(VERSION)
 	$(MAKE) mactools FAUSTDIR=../../build/$(PACK)/Faust-$(VERSION)
 	cp package/INSTALL.html $(PACK)
@@ -201,10 +218,10 @@ macpack: package/README.html
 	hdiutil create Faust-$(VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
 
 mactools:
-	$(MAKE) -C ../tools/benchmark FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm interp-tracer"
-	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm interp-tracer"
-	$(MAKE) -C ../tools/sound2faust FAUST=$(FAUSTDIR)/bin/faust TARGETS="sound2faust sound2file"
-	$(MAKE) -C ../tools/sound2faust install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="sound2faust sound2file"
+	$(MAKE) -C ../tools/benchmark FAUSTDIR=$(FAUSTDIR) TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE)
+	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUSTDIR=$(FAUSTDIR) TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE)
+	$(MAKE) -C ../tools/sound2faust TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE)
+	$(MAKE) -C ../tools/sound2faust install PREFIX=$(FAUSTDIR) TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE)
 
 linuxpack:
 	@echo Linux packaging not implemented. 
@@ -213,7 +230,9 @@ package/README.html: ../README.md
 	echo "<!DOCTYPE html><html><xmp>" > package/README.html
 	cat ../README.md >> package/README.html
 	echo "</xmp>" >> package/README.html
-	echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> package/README.html
+	echo "<script type=\"text/javascript\">" >> package/README.html
+	cat package/strapdown.min.js >> package/README.html
+	echo "</script>" >> package/README.html
 	echo "</html>" >> package/README.html
 
 
@@ -221,12 +240,11 @@ package/README.html: ../README.md
 # release
 #===============================================================
 FAUSTLIVE ?=../../faustlive
-release: FAUSTGEN=../embedded/faustgen
+FAUSTGEN ?=../embedded/faustgen
 release: APATH=$(shell pwd)
 release:
-	git pull --rebase
 	@echo "################## Building faust package ###################"
-	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake CMAKEOPT="-DDEPLOYMENT_TARGET=on"
+	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake
 	$(MAKE) all
 	$(MAKE) package
 	@[ -d Release-$(VERSION) ] || mkdir Release-$(VERSION)
@@ -237,14 +255,14 @@ release:
 	$(MAKE) -C .. dist
 	mv ../faust-$(VERSION).tar.gz Release-$(VERSION)
 	$(MAKE) faustgen
-	$(MAKE) faustlive
+# 	$(MAKE) faustlive  # todo:
 
 faustgen:
 	@echo "################## Building faustgen package ###################"
 	$(MAKE) -C $(FAUSTGEN) clean
-	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(VERSION)/bin/faust
+	$(MAKE) -C $(FAUSTGEN) FAUST_PATH_IS_ABSOLUTE=1 FAUST=$(HOME)/Faust-$(VERSION)/bin/faust USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE) MAXSDK="$(MAXSDK)"
 	$(MAKE) -C $(FAUSTGEN) package
-	cp $(FAUSTGEN)/package/*.dmg Release-$(VERSION) 
+	cp $(FAUSTGEN)/package/*.dmg Release-$(VERSION)
 
 faustlive: APATH=$(shell pwd)
 faustlive:
@@ -302,7 +320,7 @@ silent: $(FAUSTDIR)
 	cd $(FAUSTDIR) && $(CMAKE) -DCMAKE_VERBOSE_MAKEFILE=OFF ..
 
 cmake: $(FAUSTDIR)
-	cd $(FAUSTDIR) && $(CMAKE) -C ../backends/$(BACKENDS) -C ../targets/$(TARGETS) $(CMAKEOPT) -DLIBSDIR=$(LIBSDIR) -G '$(GENERATOR)' ..
+	cd $(FAUSTDIR) && $(CMAKE) -C ../backends/$(BACKENDS) -C ../targets/$(TARGETS) $(CMAKEOPT) -DINCLUDE_LLVM=$(INCLUDE_LLVM) -DUSE_LLVM_CONFIG=$(USE_LLVM_CONFIG) -DLLVM_PACKAGE_VERSION=$(LLVM_PACKAGE_VERSION) -DLLVM_LIBS="$(LLVM_LIBS)" -DLLVM_LIB_DIR="$(LLVM_LIB_DIR)" -DLLVM_INCLUDE_DIRS="$(LLVM_INCLUDE_DIRS)" -DLLVM_DEFINITIONS="$(LLVM_DEFINITIONS)" -DLLVM_LD_FLAGS="$(LLVM_LD_FLAGS)" $(DEPLOYMENT) -DLIBSDIR=$(LIBSDIR) -DBUILD_HTTP_STATIC=$(BUILD_HTTP_STATIC) -G '$(GENERATOR)' ..
 	@echo BACKENDS=$(BACKENDS) > $(BCACHE)
 	@echo TARGETS=$(TARGETS) > $(TCACHE)
 	@echo LIBSDIR=$(LIBSDIR) > $(LCACHE)
@@ -331,8 +349,8 @@ checkemcc:
 installLog := $(FAUSTDIR)/install_manifest.txt
 install:
 	if test -d ../.git; then git submodule update --init; fi
-	cd $(FAUSTDIR) && $(CMAKE) .. -DCMAKE_INSTALL_PREFIX=$(PREFIX)
-	$(CMAKE)  --build $(FAUSTDIR) --target install
+	cd $(FAUSTDIR) && $(CMAKE) .. -DCMAKE_INSTALL_PREFIX=$(PREFIX) $(CMAKEOPT)
+	$(CMAKE) --build $(FAUSTDIR) --target install
 
 uninstall: $(installLog)
 	$(shell cat $(installLog) | xargs rm -f)

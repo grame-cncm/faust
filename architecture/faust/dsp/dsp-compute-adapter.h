@@ -73,7 +73,7 @@ class dsp_compute_mix : public decorator_dsp {
  
  faust -inpl foo.dsp -o foo.cpp
  
- dsp_compute_mix* dsp = new dsp_compute_mix(new mydsp());
+ dsp_compute_inpl* dsp = new dsp_compute_inpl(new mydsp());
  
  // Use 'dsp' as usual and use the added dsp->computeRemplacing(...) method
  
@@ -95,7 +95,7 @@ class dsp_compute_inpl : public decorator_dsp {
 
 /*
  To be used to decorate a DSP compiled with the --compute-mix and --in-place options.
- - the 'buffers' parameters contains input samples to be added in place' with computed output samples using 'computeAdding'
+ - the 'buffers' parameters contains input samples to be added in place with computed output samples using 'computeAdding'
  
  Usage:
  
@@ -133,7 +133,7 @@ class dsp_compute_inpl_mix : public decorator_dsp {
                     }
                     
                     if (fInputs > 0 && cm && inpl) {
-                        std::cout << "WARNING : using -cm and -impl options with an effect !\n";
+                        std::cout << "WARNING : using -cm and -inpl options with an effect !\n";
                     }
                 }
             }

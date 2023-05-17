@@ -74,8 +74,18 @@ for p in $FILES; do
     faust -a $ARCHFILE -lang rust $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
 
     # add dependencies
-    echo "portaudio = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
-    echo "libm = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
+    cat <<EOT >> "$SRCDIR/$dspName/Cargo.toml"
+portaudio = "*"
+libm = "*"
+
+[dependencies.default-boxed]
+version = "0.2.0"
+optional = true
+
+[features]
+default = ["default-boxed"]
+default-boxed = ["dep:default-boxed"]
+EOT
 
     # build the project
     if [ $SRC = "0" ]; then

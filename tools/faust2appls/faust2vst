@@ -128,7 +128,7 @@ for p in $FILES; do
         g++ -arch x86_64 $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -bundle $PROCARCH -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.x86_64" "${f%.dsp}.cpp" $SOURCES
         lipo -create "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.x86_64" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}"
     else
-         g++ -fPIC -shared $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -o "${f%.dsp}.so" "${f%.dsp}.cpp" $SOURCES
+        g++ -fPIC -shared $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -o "${f%.dsp}.so" "${f%.dsp}.cpp" $SOURCES
     fi
 
     createInfoPList "${f%.dsp}" "${f%.dsp}$EXT/Contents/Info.plist"

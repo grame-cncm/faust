@@ -108,6 +108,8 @@ This file contains several extensions to the tree library :
 #include "global.hh"
 #include "property.hh"
 
+using namespace std;
+
 Tree cons(Tree a, Tree b)
 {
     return tree(gGlobal->CONS, a, b);
@@ -457,7 +459,7 @@ bool getProperty(Tree t, Tree key, Tree& val)
 
 void remProperty(Tree t, Tree key)
 {
-    cerr << "ERROR : remProperty not implemented\n";
+    cerr << "ASSERT : remProperty not implemented\n";
     faustassert(false);
 }
 #endif

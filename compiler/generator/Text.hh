@@ -32,83 +32,82 @@
 #include <vector>
 #include <cmath>
 
-using namespace std;
+std::string subst(const std::string& m, const std::string& a0);
+std::string subst(const std::string& m, const std::vector<std::string>& vargs);
+std::string subst(const std::string& m, const std::string& a0, const std::string& a1);
+std::string subst(const std::string& m, const std::string& a0, const std::string& a1, const std::string& a2);
+std::string subst(const std::string& model, const std::string& a0, const std::string& a1, const std::string& a2, const std::string& a3);
+std::string subst(const std::string& model, const std::string& a0, const std::string& a1, const std::string& a2, const std::string& a3,
+             const std::string& a4);
+std::string subst(const std::string& model, const std::string& a0, const std::string& a1, const std::string& a2, const std::string& a3,
+             const std::string& a4, const std::string& a5);
+std::string subst(const std::string& model, const std::string& a0, const std::string& a1, const std::string& a2, const std::string& a3,
+             const std::string& a4, const std::string& a5, const std::string& a6);
 
-string subst(const string& m, const string& a0);
-string subst(const string& m, const vector<string>& vargs);
-string subst(const string& m, const string& a0, const string& a1);
-string subst(const string& m, const string& a0, const string& a1, const string& a2);
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3);
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4);
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4, const string& a5);
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4, const string& a5, const string& a6);
+std::string T(char* c);
+std::string T(int n);
+std::string T(long n);
+std::string TAux(float n);
+std::string T(float n);
+std::string TAux(double n);
+std::string T(double n);
+std::string T(int64_t n);
 
-string T(char* c);
-string T(int n);
-string T(long n);
-string TAux(float n);
-string T(float n);
-string TAux(double n);
-string T(double n);
+// Add and remove quotes of a std::string
+std::string unquote(const std::string& s);
+std::string quote(const std::string& s);
 
-// Add and remove quotes of a string
-string unquote(const string& s);
-string quote(const string& s);
+void tab(int n, std::ostream& fout);
+void back(int n, std::ostream& fout);
+void printlines(int n, std::list<std::string>& lines, std::ostream& fout, const std::string& sep = "");
+std::string rmWhiteSpaces(const std::string& s);
 
-void tab(int n, ostream& fout);
-void back(int n, ostream& fout);
-void printlines(int n, list<string>& lines, ostream& fout, const string& sep = "");
-string rmWhiteSpaces(const string& s);
-
-inline string checkFloat(float val)
+inline std::string checkFloat(float val)
 {
     return (std::isinf(val)) ? "INFINITY" : T(val);
 }
-inline string checkDouble(double val)
+inline std::string checkDouble(double val)
 {
     return (std::isinf(val)) ? "INFINITY" : T(val);
 }
-string checkReal(double val);
+std::string checkReal(double val);
 
-string indent(string const& str, int tabs);
-string replaceChar(string str, char ch1, char ch2);
-string replaceCharList(const string& str, const vector<char>& ch1, char ch2);
+std::string indent(std::string const& str, int tabs);
+std::string replaceChar(std::string str, char ch1, char ch2);
+std::string replaceCharList(const std::string& str, const std::vector<char>& ch1, char ch2);
 
-inline bool checkMin(const string& str)
+inline bool checkMin(const std::string& str)
 {
-    return ((str == "min") || (str == "min_i") || (str == "min_f") || (str == "min_") || (str == "min_l"));
+    return ((str == "min") || (str == "min_i") || (str == "min_f") || (str == "min_") || (str == "min_l") || (str == "min_fx"));
 }
 
-inline bool checkMax(const string& str)
+inline bool checkMax(const std::string& str)
 {
-    return ((str == "max") || (str == "max_i") || (str == "max_f") || (str == "max_") || (str == "max_l"));
+    return ((str == "max") || (str == "max_i") || (str == "max_f") || (str == "max_") || (str == "max_l") || (str == "max_fx"));
 }
 
-inline bool checkMinMax(const string& str)
+inline bool checkMinMax(const std::string& str)
 {
     return checkMin(str) || checkMax(str);
 }
 
-inline bool startWith(const string& str, const string& prefix)
+inline bool startWith(const std::string& str, const std::string& prefix)
 {
     return (str.substr(0, prefix.size()) == prefix);
 }
 
-inline bool endWith(const string& str, const string& suffix)
+inline bool endWith(const std::string& str, const std::string& suffix)
 {
     size_t i = str.rfind(suffix);
-    return (i != string::npos) && (i == (str.length() - suffix.length()));
+    return (i != std::string::npos) && (i == (str.length() - suffix.length()));
 }
 
-inline string startWithRes(const string& str, const string& prefix)
+inline std::string startWithRes(const std::string& str, const std::string& prefix)
 {
     return (str.substr(0, prefix.size()) == prefix) ? str.substr(prefix.size()) : "";
 }
 
-inline bool startWithRes(const string& str, const string& prefix, string& res)
+inline bool startWithRes(const std::string& str, const std::string& prefix, std::string& res)
 {
     if (str.substr(0, prefix.size()) == prefix) {
         res = str.substr(prefix.size());
@@ -118,9 +117,9 @@ inline bool startWithRes(const string& str, const string& prefix, string& res)
     }
 }
 
-inline string removeChar(const string& str, char c)
+inline std::string removeChar(const std::string& str, char c)
 {
-    string res;
+    std::string res;
     res.reserve(str.size());  // optional, avoids buffer reallocations in the loop
     for (size_t i = 0; i < str.size(); ++i) {
         if (str[i] != c) res += str[i];
@@ -128,10 +127,10 @@ inline string removeChar(const string& str, char c)
     return res;
 }
 
-inline bool replaceExtension(const string& str, const string& term, string& res)
+inline bool replaceExtension(const std::string& str, const std::string& term, std::string& res)
 {
     size_t pos = str.rfind('.');
-    if (pos != string::npos) {
+    if (pos != std::string::npos) {
         res = str.substr(0, pos) + term;
         return true;
     } else {
@@ -140,9 +139,9 @@ inline bool replaceExtension(const string& str, const string& term, string& res)
     }
 }
 
-inline string pathToContent(const string& path)
+inline std::string pathToContent(const std::string& path)
 {
-    ifstream file(path.c_str(), ifstream::binary);
+    std::ifstream file(path.c_str(), std::ifstream::binary);
 
     file.seekg(0, file.end);
     int size = int(file.tellg());
@@ -154,7 +153,7 @@ inline string pathToContent(const string& path)
 
     // Terminate the string
     buffer[size]  = 0;
-    string result = buffer;
+    std::string result = buffer;
     file.close();
     delete[] buffer;
     return result;
@@ -162,10 +161,10 @@ inline string pathToContent(const string& path)
 
 // For soundfile : remove spaces between filenames and possibly
 // put a unique file in a {...} list
-inline string prepareURL(const string& url)
+inline std::string prepareURL(const std::string& url)
 {
     bool in_str = false;
-    stringstream dst;
+    std::stringstream dst;
     for (size_t i = 0; i < url.size(); i++) {
         switch (url[i]) {
             case '\n':
@@ -185,15 +184,15 @@ inline string prepareURL(const string& url)
                 break;
         }
     }
-    string res = dst.str();
+    std::string res = dst.str();
 
     // If unique file, create a list with it
     return (res[0] != '{') ? "{'" + res + "'}" : res;
 }
 
-inline string flatten(const string& src)
+inline std::string flatten(const std::string& src)
 {
-    string dst;
+    std::string dst;
     for (size_t i = 0; i < src.size(); i++) {
         switch (src[i]) {
             case '\n':
@@ -213,10 +212,10 @@ inline string flatten(const string& src)
     return dst;
 }
 
-// To be used for WASM or CMaj
-inline string flattenJSON(const string& src)
+// To be used for WASM or CMajor
+inline std::string flattenJSON(const std::string& src)
 {
-    string dst;
+    std::string dst;
     for (size_t i = 0; i < src.size(); i++) {
         switch (src[i]) {
             case '"':
@@ -237,9 +236,9 @@ inline string flattenJSON(const string& src)
 }
 
 // To be used for JavaScript
-inline string flattenJSON1(const string& src)
+inline std::string flattenJSON1(const std::string& src)
 {
-    string dst;
+    std::string dst;
     for (size_t i = 0; i < src.size(); i++) {
         switch (src[i]) {
             case '\\':
@@ -259,13 +258,45 @@ inline string flattenJSON1(const string& src)
 // To filter compilation arguments in 'createDSPFactoryFromString' and 'createInterpreterDSPFactoryFromString'
 inline bool testArg(const char* arg)
 {
-    vector<const char*> filter_argv = { "-tg", "-sg", "-ps", "-svg", "-mdoc", "-mdlang", "-stripdoc", "-sd", "-xml", "-json" };
+    std::vector<const char*> filter_argv = { "-tg", "-sg", "-ps", "-svg", "-mdoc", "-mdlang", "-stripdoc", "-sd", "-xml", "-json" };
     for (size_t i = 0; i < filter_argv.size(); i++) {
         if (strcmp(filter_argv[i], arg) == 0) return true;
     }
     return false;
 }
 
-vector<string> tokenizeString(const string& str, char sep);
+std::vector<std::string> tokenizeString(const std::string& str, char sep);
+
+/**
+ * Compute the minimal power of 2 greater than x
+ */
+int pow2limit(int x, int def = 2);
+
+inline bool ispowerof2(int x)
+{
+    /* First x in the below expression is for the case when x is 0 */
+    return x && (!(x&(x-1)));
+}
+
+// To check all control fields in the DSP structure
+inline bool isControl(const std::string& name)
+{
+    return startWith(name, "fButton") || startWith(name, "fCheckbox")
+        || startWith(name, "fVslider") || startWith(name, "fHslider") || startWith(name, "fEntry")
+        || startWith(name, "fVbargraph") || startWith(name, "fHbargraph")
+        || name == "iControl" || name == "fControl"
+        || name == "iZone" || name == "fZone"
+        || name == "fSampleRate";
+}
+
+inline bool isConst(const std::string& name)
+{
+    return startWith(name, "fConst") || startWith(name, "iConst");
+}
+
+inline bool isTable(const std::string& name)
+{
+    return startWith(name, "itbl") || startWith(name, "ftbl");
+}
 
 #endif

@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <float.h>
+#include <cstdint>
 
 #include "instructions.hh"
 
@@ -35,6 +36,7 @@
 const char* isuffix();
 const char* inumix();
 double      inummin();
+int64_t     inummax();
 
 int            ifloatsize();
 const char*    ifloat();

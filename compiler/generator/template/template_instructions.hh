@@ -27,8 +27,6 @@
 #include "text_instructions.hh"
 #include "struct_manager.hh"
 
-using namespace std;
-
 // Visitor used to initialize array fields into the DSP structure
 struct TemplateInitFieldsVisitor : public DispatchVisitor {
     std::ostream* fOut;
@@ -116,12 +114,25 @@ struct TemplateInitFieldsVisitor : public DispatchVisitor {
          */
     }
     
+    virtual void visit(FixedPointArrayNumInst* inst)
+    {
+        // TO CHECK
+        /*
+         char sep = '[';
+         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+             *fOut << sep << checkDouble(inst->fNumTable[i]);
+             sep = ',';
+         }
+         *fOut << ']';
+         */
+    }
+    
 };
 
 /*
     A subclass of TextInstVisitor that implements a lot of generic behaviors.
-    Some methods mays have to be redefined in this class, anf the exposed list
-    of them is given as an example, to be adapted in the real case.
+    Some methods mays have to be redefined in this class, and the exposed list
+    of them is given as an example, to be adapted in the real use case.
 */
 
 class TemplateInstVisitor : public TextInstVisitor {
@@ -131,12 +142,12 @@ class TemplateInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static map<string, bool> gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
     
    public:
     using TextInstVisitor::visit;
 
-    TemplateInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
+    TemplateInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0)
         : TextInstVisitor(out, ".", new TemplateStringTypeManager(xfloat(), "*", struct_name), tab)
     {}
 
@@ -163,17 +174,31 @@ class TemplateInstVisitor : public TextInstVisitor {
     virtual void visit(AddSoundfileInst* inst)
     {}
     
-    virtual void visit(Int32NumInst* inst) {}
-    
-    virtual void visit(Int64NumInst* inst) {}
+    virtual void visit(Int32NumInst* inst)
+    {}
     
     virtual void visit(Int32ArrayNumInst* inst)
+    {}
+    
+    virtual void visit(Int64NumInst* inst)
+    {}
+    
+    virtual void visit(FloatNumInst* inst)
     {}
     
     virtual void visit(FloatArrayNumInst* inst)
     {}
     
+    virtual void visit(DoubleNumInst* inst)
+    {}
+    
     virtual void visit(DoubleArrayNumInst* inst)
+    {}
+    
+    virtual void visit(FixedPointNumInst* inst)
+    {}
+    
+    virtual void visit(FixedPointArrayNumInst* inst)
     {}
     
     virtual void visit(BinopInst* inst)

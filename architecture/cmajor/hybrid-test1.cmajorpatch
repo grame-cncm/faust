@@ -1,0 +1,12 @@
+{
+    "CmajorVersion": 1,
+    "ID": "grame.cmajor.hybrid-test1",
+    "version": "1.0",
+    "name": "hybrid-test1",
+    "description": "Cmajor example",
+    "category": "synth",
+    "manufacturer": "GRAME",
+    "website": "https://faust.grame.fr",
+    "isInstrument": false,
+    "source": "hybrid-test1.cmajor"
+}

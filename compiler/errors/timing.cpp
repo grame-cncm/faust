@@ -31,6 +31,8 @@
 #include "global.hh"
 #include "timing.hh"
 
+using namespace std;
+
 // Timing can be used outside of the scope of 'gGlobal'
 bool     gTimingSwitch;
 int      gTimingIndex;

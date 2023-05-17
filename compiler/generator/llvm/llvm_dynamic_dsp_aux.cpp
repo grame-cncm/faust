@@ -48,14 +48,19 @@
 #include <llvm/MC/SubtargetFeature.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/FormattedStream.h>
+#if LLVM_VERSION_MAJOR >= 16
+#include <llvm/TargetParser/Host.h>
+#else
 #include <llvm/Support/Host.h>
+#endif
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/TargetSelect.h>
-#include <llvm/Support/Host.h>
 #include <llvm/Transforms/IPO.h>
+#if LLVM_VERSION_MAJOR < 17
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#endif
 #include <llvm/Transforms/IPO/AlwaysInliner.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Analysis/TargetLibraryInfo.h>
@@ -212,7 +217,9 @@ static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& F
         if (OptLevel > 2) {
             Threshold = 275;
         }
+    #if LLVM_VERSION_MAJOR < 17
         Builder.Inliner = createFunctionInliningPass(Threshold);
+    #endif
     } else {
         Builder.Inliner = createAlwaysInlinerLegacyPass();
     }
@@ -256,13 +263,15 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     initializeCodeGen(Registry);
     initializeCore(Registry);
     initializeScalarOpts(Registry);
+#if LLVM_VERSION_MAJOR < 16
     initializeObjCARCOpts(Registry);
+    initializeInstrumentation(Registry);
+#endif
     initializeVectorization(Registry);
     initializeIPO(Registry);
     initializeAnalysis(Registry);
     initializeTransformUtils(Registry);
     initializeInstCombine(Registry);
-    initializeInstrumentation(Registry);
     initializeTarget(Registry);
 
     EngineBuilder builder((unique_ptr<Module>(fModule)));
@@ -423,7 +432,11 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
     StringRef CPU = sys::getHostCPUName();
     string Features;
     TargetOptions opt;
+#if LLVM_VERSION_MAJOR >= 16
+    auto RM = optional<Reloc::Model>();
+#else
     auto RM = Optional<Reloc::Model>();
+#endif
     auto TheTargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
     fModule->setDataLayout(TheTargetMachine->createDataLayout());
 
@@ -472,7 +485,6 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFile(const string&
 }
         
 // IR <==> string
-
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target, string& error_msg,
                                                  int opt_level)
 {
@@ -521,7 +533,6 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
 }
 
 // Helper functions
-
 ModulePTR loadSingleModule(const string filename, LLVMContext* context)
 {
     SMDiagnostic err;
@@ -574,7 +585,6 @@ Module* linkAllModules(LLVMContext* context, Module* dst, string& error)
 }
         
 // Public C++ API
-
 LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
                                                   const string& target, string& error_msg, int opt_level)
 {
@@ -775,7 +785,6 @@ LIBFAUST_API bool writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const strin
 }
 
 // Public C interface : lock management is done by called C++ API
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -37,21 +37,19 @@ class LIBFAUST_API wasm_dynamic_dsp_factory : public wasm_dsp_factory {
     virtual ~wasm_dynamic_dsp_factory() {}
 
     static wasm_dsp_factory* createWasmDSPFactoryFromString2(const std::string& name_app,
-                                                             const std::string& dsp_content,
-                                                             const std::vector<std::string>& argv,
-                                                             bool internal_memory);
+                                                        const std::string& dsp_content,
+                                                        const std::vector<std::string>& argv,
+                                                        bool internal_memory);
     
     static std::string generateWasmFromString2(const std::string& name_app,
-                                                const std::string& dsp_content,
-                                                const std::vector<std::string>& argv,
-                                                bool internal_memory);
+                                            const std::string& dsp_content,
+                                            const std::vector<std::string>& argv,
+                                            bool internal_memory);
 };
 
-LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[],
-                                                      std::string& error_msg, bool internal_memory);
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg, bool internal_memory);
 
-LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content,
-                                                        int argc, const char* argv[], std::string& error_msg,
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg,
                                                         bool internal_memory);
 
 LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name_app, tvec signals,
@@ -69,8 +67,7 @@ extern "C" {
 LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc, const char* argv[],
                                                         char* error_msg, bool internal_memory);
 
-LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc,
-                                                          const char* argv[], char* error_msg, bool internal_memory);
+LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg, bool internal_memory);
 
 LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromSignals2(const char* name_app, tvec signals,
                                                            int argc, const char* argv[],
@@ -109,8 +106,7 @@ typedef struct {
  * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by
  * the caller), otherwise a null pointer.
  */
-LIBFAUST_API WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg,
-                                                 bool internal_memory);
+LIBFAUST_API WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg, bool internal_memory);
 
 /**
  * Create a Faust DSP WebAssembly module and additional helper functions from a DSP source code as a string.

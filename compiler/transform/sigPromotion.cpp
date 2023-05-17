@@ -19,20 +19,66 @@
  ************************************************************************
  ************************************************************************/
 
-#include "sigPromotion.hh"
 #include <stdlib.h>
 #include <cstdlib>
+#include <sstream>
 
-#include "signals.hh"
-#include "prim2.hh"
+#include "sigPromotion.hh"
 #include "global.hh"
-#include "xtended.hh"
+#include "prim2.hh"
+#include "signals.hh"
 #include "sigtyperules.hh"
+#include "xtended.hh"
+#include "floats.hh"
 
-void SignalTreeChecker::visit(Tree sig)
+using namespace std;
+
+SignalTypePrinter::SignalTypePrinter(Tree L)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(L);
+    visitRoot(L);
+    /*
+     HACK: since the signal tree shape is still not deterministic,
+     we sort the list to be sure it stays the same.
+     To be removed if the tree shape becomes deterministic.
+     */
+    std::sort(fPrinted.begin(), fPrinted.end());
+    std::cout << "Size = " << fPrinted.size() << std::endl;
+    for (const auto& it : fPrinted) {
+        std::cout << it;
+    }
+}
+
+void SignalTypePrinter::visit(Tree sig)
+{
+    stringstream type;
+    type << "Type = " << getCertifiedSigType(sig) << endl;
+    fPrinted.push_back(type.str());
+    
+    // Default case and recursion
+    SignalVisitor::visit(sig);
+}
+
+void SignalChecker::isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux)
+{
+    std::stringstream error;
+    double init = tree2float(init_aux);
+    double min = tree2float(min_aux);
+    double max = tree2float(max_aux);
+    if (min > max) {
+        error << "ERROR : min = " << min << " should be less than max = " << max << " in '" << ppsig(sig) << "'\n";
+        throw faustexception(error.str());
+    } else if (init < min || init > max) {
+        error << "ERROR : init = " << init << " outside of [" << min << " " << max << "] range in '" << ppsig(sig) << "'\n";
+        throw faustexception(error.str());
+    }
+}
+
+void SignalChecker::visit(Tree sig)
 {
     int  opnum;
-    Tree id, x, y, sel, sf, ff, args, chan, part, idx, tb, ws, label, min, max, t0;
+    Tree size, gen, wi, ri, x, y, sel, sf, ff, largs, chan, part, tb, ws, label, init, min, max, step, t0;
 
     // Extended
     xtended* p = (xtended*)getUserData(sig);
@@ -44,119 +90,139 @@ void SignalTreeChecker::visit(Tree sig)
         Type tx = p->infereSigType(vt);
         for (Tree b : sig->branches()) {
             if (tx->nature() != getCertifiedSigType(b)->nature()) {
-                cerr << "ERROR : xtended wih args of incorrect types : " << *sig << endl;
+                cerr << "ASSERT : xtended with args of incorrect types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
                 faustassert(false);
             }
         }
-        
-    // Binary operations
+
+        // Binary operations
     } else if (isSigBinOp(sig, &opnum, x, y)) {
         Type tx = getCertifiedSigType(x);
         Type ty = getCertifiedSigType(y);
         if (tx->nature() != ty->nature()) {
-            cerr << "ERROR : isSigBinOp of args with different types : " << *sig << endl;
+            cerr << "ASSERT : isSigBinOp of args with different types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
-        
-    // Foreign functions
-    } else if (isSigFFun(sig, ff, args)) {
+
+        // Foreign functions
+    } else if (isSigFFun(sig, ff, largs)) {
         int len = ffarity(ff) - 1;
         for (int i = 0; i < ffarity(ff); i++) {
             int type = ffargtype(ff, len - i);
-            if (getCertifiedSigType(nth(args, i))->nature() != type && type != kAny) {
-                cerr << "ERROR : isSigFFun of args with incoherent types : " << *sig << endl;
+            if (getCertifiedSigType(nth(largs, i))->nature() != type && type != kAny) {
+                cerr << "ASSERT : isSigFFun of args with incoherent types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
                 faustassert(false);
             }
         }
         if (ffrestype(ff) != getCertifiedSigType(sig)->nature()) {
-            cerr << "ERROR : isSigFFun of res with incoherent type : " << *sig << endl;
+            cerr << "ASSERT : isSigFFun of res with incoherent type : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            faustassert(false);
+        }
+
+        // Select2 (and Select3 expressed with Select2)
+    } else if (isSigSelect2(sig, sel, x, y)) {
+        if (getCertifiedSigType(sel)->nature() != kInt) {
+            cerr << "ASSERT : isSigSelect2 with wrong typed selector : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            faustassert(false);
+        }
+
+        // Delay
+    } else if (isSigDelay(sig, x, y)) {
+        if (getCertifiedSigType(y)->nature() != kInt) {
+            cerr << "ASSERT : isSigDelay with a wrong typed delay : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            faustassert(false);
+        }
+
+        // Int, Bit and Float Cast
+    } else if (isSigIntCast(sig, x)) {
+        if (getCertifiedSigType(x)->nature() == kInt) {
+            cerr << "ASSERT : isSigIntCast of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
         
-    // Select2 (and Select3 expressed with Select2)
-    } else if (isSigSelect2(sig, sel, x, y)) {
-        if (getCertifiedSigType(sel)->nature() != kInt) {
-            cerr << "ERROR : isSigSelect2 with wrong typed selector : " << *sig << endl;
-            faustassert(false);
-        }
-
-    // Delay
-    } else if (isSigDelay(sig, x, y)) {
-        if (getCertifiedSigType(y)->nature() != kInt) {
-            cerr << "ERROR : isSigDelay with a wrong typed delay : " << *sig << endl;
-            faustassert(false);
-        }
-
-    // Int and Float Cast
-    } else if (isSigIntCast(sig, x)) {
+    } else if (isSigBitCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kInt) {
-            cerr << "ERROR : isSigIntCast of a kInt signal : " << *sig << endl;
+            cerr << "ASSERT : isSigBitCast of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
     } else if (isSigFloatCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kReal) {
-            cerr << "ERROR : isSigFloatCast of a kReal signal : " << *sig << endl;
+            cerr << "ASSERT : isSigFloatCast of a kReal signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
-        
-    // Tables
-    } else if (isSigRDTbl(sig, tb, idx)) {
-        if (getCertifiedSigType(idx)->nature() != kInt) {
-            cerr << "ERROR : isSigRDTbl with a wrong typed rdx : " << *sig << endl;
+
+        // Tables
+    } else if (isSigRDTbl(sig, tb, ri)) {
+        if (getCertifiedSigType(ri)->nature() != kInt) {
+            cerr << "ASSERT : isSigRDTbl with a wrong typed rdx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
-        
-    } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
-        if (getCertifiedSigType(idx)->nature() != kInt) {
-            cerr << "ERROR : isSigWRTbl with a wrong typed wdx : " << *sig << endl;
+
+    } else if (isSigWRTbl(sig, size, gen, wi, ws)) {
+        if ((wi != gGlobal->nil) && getCertifiedSigType(wi)->nature() != kInt) {
+            cerr << "ASSERT : isSigWRTbl with a wrong typed wdx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
-        if (getCertifiedSigType(tb)->nature() != getCertifiedSigType(ws)->nature()) {
-            cerr << "ERROR : isSigWRTbl with non matching tb and ws types : " << *sig << endl;
+        if ((wi != gGlobal->nil) && getCertifiedSigType(gen)->nature() != getCertifiedSigType(ws)->nature()) {
+            cerr << "ASSERT : isSigWRTbl with non matching gen and ws types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
- 
-    // Soundfiles
+
+        // Soundfiles
     } else if (isSigSoundfileLength(sig, sf, part)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
-            cerr << "ERROR : isSigSoundfileLength with a wrong typed part : " << *sig << endl;
+            cerr << "ASSERT : isSigSoundfileLength with a wrong typed part : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
     } else if (isSigSoundfileRate(sig, sf, part)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
-            cerr << "ERROR : isSigSoundfileRate with a wrong typed part : " << *sig << endl;
+            cerr << "ASSERT : isSigSoundfileRate with a wrong typed part : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
-    } else if (isSigSoundfileBuffer(sig, sf, chan, part, idx)) {
+    } else if (isSigSoundfileBuffer(sig, sf, chan, part, ri)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
-            cerr << "ERROR : isSigSoundfileBuffer with a wrong typed part : " << *sig << endl;
+            cerr << "ASSERT : isSigSoundfileBuffer with a wrong typed part : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
-        if (getCertifiedSigType(idx)->nature() != kInt) {
-            cerr << "ERROR : isSigSoundfileBuffer with a wrong typed ridx : " << *sig << endl;
+        if (getCertifiedSigType(ri)->nature() != kInt) {
+            cerr << "ASSERT : isSigSoundfileBuffer with a wrong typed ri : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
         
-    // Bargraph
+        // Sliders and nentry
+    } else if (isSigVSlider(sig, label, init, min, max, step)
+               || isSigHSlider(sig, label, init, min, max, step)
+               || isSigNumEntry(sig, label, init, min, max, step)) {
+        isRange(sig, init, min, max);
+
+        // Bargraph
     } else if (isSigHBargraph(sig, label, min, max, t0)) {
         if (getCertifiedSigType(t0)->nature() == kInt) {
-            cerr << "ERROR : isSigHBargraph of a kInt signal : " << *sig << endl;
+            cerr << "ASSERT : isSigHBargraph of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            faustassert(false);
+        }
+
+    } else if (isSigVBargraph(sig, label, min, max, t0)) {
+        if (getCertifiedSigType(t0)->nature() == kInt) {
+            cerr << "ASSERT : isSigVBargraph of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
         
-    } else if (isSigVBargraph(sig, label, min, max, t0)) {
-        if (getCertifiedSigType(t0)->nature() == kInt) {
-            cerr << "ERROR : isSigVBargraph of a kInt signal : " << *sig << endl;
-            faustassert(false);
-        }
- 
-    } else {
-        // Default case
-        SignalVisitor::visit(sig);
+        // signal bounds
+    } else if (isSigLowest(sig, x) || isSigHighest(sig, x)) {
+        cerr << "ASSERT : annotations should have been deleted in Simplification process" << endl;
+        faustassert(false);
+        
+        // enable/control
+    } else if (isSigControl(sig, x, y) && gGlobal->gVectorSwitch) {
+        throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
     }
+
+    // Default case and recursion
+    SignalVisitor::visit(sig);
 }
 
 //-------------------------SignalPromotion-------------------------------
@@ -168,7 +234,7 @@ void SignalTreeChecker::visit(Tree sig)
 Tree SignalPromotion::transformation(Tree sig)
 {
     int  op;
-    Tree id, sel, x, y, ff, largs, sf, chan, part, tb, idx, ws, min, max, label, t0;
+    Tree size, gen, wi, ri, sel, x, y, ff, largs, sf, chan, part, tb, ws, min, max, label, t0;
 
     // Extended
     xtended* p = (xtended*)getUserData(sig);
@@ -178,7 +244,6 @@ Tree SignalPromotion::transformation(Tree sig)
             vt.push_back(getCertifiedSigType(b));
         }
         Type tr = p->infereSigType(vt);
-
         vector<Tree> new_branches;
         for (Tree b : sig->branches()) {
             new_branches.push_back(smartCast(tr, getCertifiedSigType(b), self(b)));
@@ -226,11 +291,13 @@ Tree SignalPromotion::transformation(Tree sig)
                 }
 
             case kDiv: {
-                // Done here instead of 'simplify' to be sure the signals are correctly typed.
+                // done here instead of 'simplify' to be sure the signals are correctly typed
                 interval i1 = tx->getInterval();
                 interval j1 = ty->getInterval();
-                if (i1.valid & j1.valid && gGlobal->gMathExceptions && j1.haszero()) {
-                    cerr << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")" << endl;
+                if (i1.isValid() && j1.isValid() && gGlobal->gMathExceptions && j1.hasZero()) {
+                    stringstream error;
+                    error << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")";
+                    gWarningMessages.push_back(error.str());
                 }
                 // the result of a division is always a float
                 return sigBinOp(op, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
@@ -242,7 +309,7 @@ Tree SignalPromotion::transformation(Tree sig)
             case kLsh:
             case kARsh:
             case kLRsh:
-                // These operations require integers
+                // these operations require integers
                 return sigBinOp(op, smartIntCast(tx, self(x)), smartIntCast(ty, self(y)));
 
             default:
@@ -277,24 +344,32 @@ Tree SignalPromotion::transformation(Tree sig)
         }
     }
 
-    // Int and Float Cast
+    // Int, Bit and Float Cast
     else if (isSigIntCast(sig, x)) {
         return smartIntCast(getCertifiedSigType(x), self(x));
+    } else if (isSigBitCast(sig, x)) {
+        return sigBitCast(self(x));
     } else if (isSigFloatCast(sig, x)) {
         return smartFloatCast(getCertifiedSigType(x), self(x));
     }
 
     // Tables
-    else if (isSigRDTbl(sig, tb, idx)) {
-        Type tx = getCertifiedSigType(idx);
-        return sigRDTbl(self(tb), smartIntCast(tx, self(idx)));
+    else if (isSigRDTbl(sig, tb, ri)) {
+        Type tx = getCertifiedSigType(ri);
+        return sigRDTbl(self(tb), smartIntCast(tx, self(ri)));
     }
 
-    else if (isSigWRTbl(sig, id, tb, idx, ws)) {
-        Type tx = getCertifiedSigType(idx);
-        Type t1 = getCertifiedSigType(tb);
-        Type t2 = getCertifiedSigType(ws);
-        return sigWRTbl(id, self(tb), smartIntCast(tx, self(idx)), smartCast(t1, t2, self(ws)));
+    else if (isSigWRTbl(sig, size, gen, wi, ws)) {
+        if (wi == gGlobal->nil) {
+            // rdtable
+            return sigWRTbl(self(size), self(gen));
+        } else {
+            // rwtable
+            Type tx = getCertifiedSigType(wi);
+            Type t1 = getCertifiedSigType(gen);
+            Type t2 = getCertifiedSigType(ws);
+            return sigWRTbl(self(size), self(gen), smartIntCast(tx, self(wi)), smartCast(t1, t2, self(ws)));
+        }
     }
 
     // Soundfiles
@@ -302,24 +377,27 @@ Tree SignalPromotion::transformation(Tree sig)
         return sigSoundfileLength(self(sf), smartIntCast(getCertifiedSigType(part), self(part)));
     } else if (isSigSoundfileRate(sig, sf, part)) {
         return sigSoundfileRate(self(sf), smartIntCast(getCertifiedSigType(part), self(part)));
-    } else if (isSigSoundfileBuffer(sig, sf, chan, part, idx)) {
+    } else if (isSigSoundfileBuffer(sig, sf, chan, part, ri)) {
         return sigSoundfileBuffer(self(sf), self(chan), smartIntCast(getCertifiedSigType(part), self(part)),
-                                  smartIntCast(getCertifiedSigType(idx), self(idx)));
+                                  smartIntCast(getCertifiedSigType(ri), self(ri)));
     }
-    
+
+    // All UI items with range (vslider, hslider, nentry) are treated
+    // as float 'constant numerical expressions'. See realeval in eval.cpp
+
     // Bargraph
     else if (isSigHBargraph(sig, label, min, max, t0)) {
         Type tx0 = getCertifiedSigType(t0);
         return sigHBargraph(label, self(min), self(max), smartFloatCast(tx0, self(t0)));
     }
-    
+
     else if (isSigVBargraph(sig, label, min, max, t0)) {
         Type tx0 = getCertifiedSigType(t0);
         return sigVBargraph(label, self(min), self(max), smartFloatCast(tx0, self(t0)));
     }
-    
-    // Other cases => identity transformation
+   
     else {
+        // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
     }
 }
@@ -376,13 +454,244 @@ Tree SignalPromotion::smartFloatCast(Type t, Tree sig)
     return (t->nature() == kInt) ? sigFloatCast(sig) : sig;
 }
 
+Tree SignalBool2IntPromotion::transformation(Tree sig)
+{
+    int  op;
+    Tree x, y;
+    
+    if (isSigBinOp(sig, &op, x, y)) {
+        if (isBoolOpcode(op)) {
+            return sigIntCast(sigBinOp(op, self(x), self(y)));
+        } else {
+            return SignalIdentity::transformation(sig);
+        }
+    } else {
+        // Other cases => identity transformation
+        return SignalIdentity::transformation(sig);
+    }
+}
+
+Tree SignalFXPromotion::transformation(Tree sig)
+{
+    Tree sel, x, y;
+    if (isSigSelect2(sig, sel, x, y)) {
+        return sigSelect2(self(sel), sigFloatCast(self(x)), sigFloatCast(self(y)));
+    } else {
+        // Other cases => identity transformation
+        return SignalIdentity::transformation(sig);
+   }
+}
+
+Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size_aux, Tree ri)
+{
+    int size = tree2int(size_aux);
+    if (size <= 0) {
+        stringstream error;
+        error << "ERROR : RDTbl size = " << size << " should be > 0 \n";
+        throw faustexception(error.str());
+    }
+    interval ri_i = getCertifiedSigType(ri)->getInterval();
+    if (ri_i.lo() < 0 || ri_i.hi() >= size) {
+        if (gAllWarning) {
+            stringstream error;
+            error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi() << "] is outside of table size ("
+                  << size << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
+            gWarningMessages.push_back(error.str());
+        }
+        return sigRDTbl(self(tbl), sigMax(sigInt(0), sigMin(self(ri), sigInt(size-1))));
+    } else {
+        // Other cases => identity transformation
+        return SignalIdentity::transformation(sig);
+    }
+}
+
+Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree size_aux, Tree gen, Tree wi, Tree ws)
+{
+    int size = tree2int(size_aux);
+    if (size <= 0) {
+        stringstream error;
+        error << "ERROR : WRTbl size = " << size << " should be > 0 \n";
+        throw faustexception(error.str());
+    }
+    interval wi_i = getCertifiedSigType(wi)->getInterval();
+    if (wi_i.lo() < 0 || wi_i.hi() >= size) {
+        if (gAllWarning) {
+            stringstream error;
+            error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi() << "] is outside of table size ("
+                  << size << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
+            gWarningMessages.push_back(error.str());
+        }
+        return sigWRTbl(self(size_aux), self(gen), sigMax(sigInt(0), sigMin(self(wi), sigInt(size-1))), self(ws));
+    } else {
+        // Other cases => identity transformation
+        return SignalIdentity::transformation(sig);
+    }
+}
+
+Tree SignalTablePromotion::transformation(Tree sig)
+{
+    Tree tbl, size, gen, wi, ws, ri;
+
+    if (isSigRDTbl(sig, tbl, ri)) {
+        isSigWRTbl(tbl, size, gen, wi, ws);
+        if (wi == gGlobal->nil) {
+            // rdtable
+            return safeSigRDTbl(sig, tbl, size, ri);
+        } else {
+            // rwtable
+            return safeSigRDTbl(sig, safeSigWRTbl(tbl, size, gen, wi, ws), size, ri);
+        }
+    } else {
+        // Other cases => identity transformation
+        return SignalIdentity::transformation(sig);
+    }
+}
+
+Tree SignalIntCastPromotion::transformation(Tree sig)
+{
+    Tree x;
+    if (isSigIntCast(sig, x)) {
+        interval x_i = getCertifiedSigType(x)->getInterval();
+        if (x_i.lo() <= INT32_MIN || x_i.hi() >= INT32_MAX) {
+            if (gAllWarning) {
+                stringstream error;
+                error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi()
+                      << "] is outside of integer range in " << ppsig(sig, MAX_ERROR_SIZE);
+                gWarningMessages.push_back(error.str());
+            }
+            return sigIntCast(sigMin(sigReal(INT32_MAX), sigMax(x, sigReal(INT32_MIN))));
+        }
+    }
+    
+    // Other cases => identity transformation
+    return SignalIdentity::transformation(sig);
+}
+
+Tree SignalUIPromotion::transformation(Tree sig)
+{
+    Tree label, init, min, max, step;
+    
+    if (isSigVSlider(sig, label, init, min, max, step)
+        || isSigHSlider(sig, label, init, min, max, step)
+        || isSigNumEntry(sig, label, init, min, max, step)) {
+        return sigMax(min, sigMin(max, sig));
+    } else {
+        // Other cases => identity transformation
+        return SignalIdentity::transformation(sig);
+    }
+}
+
+Tree SignalUIFreezePromotion::transformation(Tree sig)
+{
+    Tree label, init, min, max, step;
+
+    if (isSigVSlider(sig, label, init, min, max, step)
+        || isSigHSlider(sig, label, init, min, max, step)
+        || isSigNumEntry(sig, label, init, min, max, step)) {
+        /*
+         Freeze with the init value.
+         TODO:
+            - possibly use a [freeze:1] metadata) to only freeze choosen UI controls
+            - or even a JSON file with 'freeze' metadata to externally change the setup
+         */
+        return init;
+    } else {
+        // Other cases => identity transformation
+        return SignalIdentity::transformation(sig);
+    }
+}
+
+Tree SignalFTZPromotion::selfRec(Tree l)
+{
+    // Recursion here
+    l = self(l);
+    
+    // Add FTZ on real signals only
+    if (getCertifiedSigType(l)->nature() == kReal) {
+        if (gGlobal->gFTZMode == 1) {
+            return sigSelect2(sigGT(sigAbs(l), sigReal(inummin())), sigReal(0.0), l);
+        } else if (gGlobal->gFTZMode == 2) {
+            if (gGlobal->gFloatSize == 1) {
+                return sigSelect2(sigAND(sigBitCast(l), sigInt(inummax())), sigReal(0.0), l);
+            } else if (gGlobal->gFloatSize == 2) {
+                return sigSelect2(sigAND(sigBitCast(l), sigInt64(inummax())), sigReal(0.0), l);
+            }
+        }
+    }
+    
+    return l;
+}
+
 // Public API
-Tree sigPromote(Tree sig, bool trace)
+Tree signalPromote(Tree sig, bool trace)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
 
     SignalPromotion SP;
     if (trace) SP.trace(true, "Cast");
+    return SP.mapself(sig);
+}
+
+Tree signalBool2IntPromote(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+
+    SignalBool2IntPromotion SP;
+    return SP.mapself(sig);
+}
+
+Tree signalFXPromote(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+    
+    SignalFXPromotion SP;
+    return SP.mapself(sig);
+}
+
+Tree signalTablePromote(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+
+    SignalTablePromotion SP;
+    return SP.mapself(sig);
+}
+
+Tree signalIntCastPromote(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+    
+    SignalIntCastPromotion SP;
+    return SP.mapself(sig);
+}
+
+Tree signalUIPromote(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+
+    SignalUIPromotion SP;
+    return SP.mapself(sig);
+}
+
+Tree signalUIFreezePromote(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+    
+    SignalUIFreezePromotion SP;
+    return SP.mapself(sig);
+}
+
+Tree signalFTZPromotion(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+    
+    SignalFTZPromotion SP;
     return SP.mapself(sig);
 }

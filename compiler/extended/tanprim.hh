@@ -40,21 +40,22 @@ class TanPrim : public xtended {
     virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == 1);
-        interval     srcInterval = args[0]->getInterval();
-        const double halfpi      = M_PI / 2;
-        interval     resultInterval;
-
-        // the check can be improved to ensure that no infinity is in the range
-        if (srcInterval.valid) {
-            if ((-halfpi < srcInterval.lo) && (srcInterval.hi < halfpi))
-                resultInterval = interval(tan(srcInterval.lo), tan(srcInterval.hi));
+        interval     i = args[0]->getInterval();
+        interval     r = gAlgebra.Tan(i);
+        // The check can be improved to ensure that no infinity is in the range
+        /*
+         if (i.isValid()) {
+            if ((-halfpi < i.lo()) && (i.hi() < halfpi)) {
+                r = interval(tan(i.lo()), tan(i.hi()));
+            }
         }
-        return castInterval(floatCast(args[0]), resultInterval);
+        */
+        return castInterval(floatCast(args[0]), r);
     }
 
-    virtual int infereSigOrder(const vector<int>& args) { return args[0]; }
+    virtual int infereSigOrder(const std::vector<int>& args) { return args[0]; }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         num n;
         if (isNum(args[0], n)) {
@@ -72,7 +73,7 @@ class TanPrim : public xtended {
         return generateFun(container, subst("tan$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -80,7 +81,7 @@ class TanPrim : public xtended {
         return subst("tan$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

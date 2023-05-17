@@ -36,17 +36,23 @@ class Atan2Prim : public xtended {
     virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == 2);
-        return floatCast(args[0] | args[1]);
+        Type t = args[0];
+        Type u = args[1];
+        interval i = t->getInterval();
+        interval j = u->getInterval();
+        return castInterval(floatCast(t | u), gAlgebra.Atan2(i, j));
     }
 
-    virtual int infereSigOrder(const vector<int>& args) { return max(args[0], args[1]); }
+    virtual int infereSigOrder(const std::vector<int>& args) { return std::max(args[0], args[1]); }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         faustassert(args.size() == 2);
         num n, m;
         if (isNum(args[0], n) && isNum(args[1], m)) {
             return tree(atan2(double(n), double(m)));
+        } else if (args[0] == args[1]) {
+            return tree(M_PI/4.0);
         } else {
             return tree(symbol(), args[0], args[1]);
         }
@@ -60,7 +66,7 @@ class Atan2Prim : public xtended {
         return generateFun(container, subst("atan2$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -68,7 +74,7 @@ class Atan2Prim : public xtended {
         return subst("atan2$2($0,$1)", args[0], args[1], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
