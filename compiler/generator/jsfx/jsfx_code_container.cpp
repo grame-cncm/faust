@@ -348,6 +348,7 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     
     tab(n, *fOut);
     *fOut << "@block";
+    tab(n, *fOut);
     gGlobal->gJSFXVisitor->generateMIDIInstructions();
     tab(n, *fOut);
     
