@@ -46,8 +46,8 @@ else
 	SNDFILE_LIBS ?= `pkg-config --cflags --libs sndfile`
 endif
 
-COMPILEOPT  := -std=c++11 -O3 -Wall
-COMPILEOPT1 := -O3 -Wall
+COMPILEOPT  := -std=c++11 -O3 -Wall -no-pie
+COMPILEOPT1 := -O3 -Wall -no-pie
 COMMLIBS	:= $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lpthread $(shell pkg-config --libs libmicrohttpd)
 MACOSLIBS	:= -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation
 
