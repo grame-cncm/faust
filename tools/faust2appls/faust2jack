@@ -155,8 +155,9 @@ EndOfCode
         PRESETFILE=`mktemp -t preset.XXXXXXXXXX.cpp` || exit 1
         echo "#define PRESETDIR \"$PRESETDIR\"" > "$PRESETFILE"
     fi
-    cat "$PRESETFILE" "$TMP/${f%.dsp}_tmp.cpp" > "$TMP/${f%.dsp}.cpp"
-    rm "$PRESETFILE" "$TMP/${f%.dsp}_tmp.cpp"
+    cat "$PRESETFILE" "${f%.dsp}_tmp.cpp" > "${f%.dsp}.cpp"
+    rm "$PRESETFILE" "${f%.dsp}_tmp.cpp"
+    
     # compile c++ to binary
     (
         $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $LLVM_LIBS $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
