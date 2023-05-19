@@ -63,7 +63,7 @@ class PresetUI : public DecoratorUI {
         FAUSTFLOAT fReset;
         FUI fFileUI;
         LoaderUI fLoaderUI;
-        const std::string fRootFolder;
+        const std::string fRootPath;
     
         static void load(FAUSTFLOAT val, void* arg)
         {
@@ -101,7 +101,7 @@ class PresetUI : public DecoratorUI {
     
     public:
     
-        PresetUI(UI* ui, const std::string& root_folfer):
+        PresetUI(UI* ui, const std::string& path):
             DecoratorUI(ui),
             fGroupCount(0),
             fPreset(FAUSTFLOAT(0)),
@@ -109,7 +109,7 @@ class PresetUI : public DecoratorUI {
             fLoad(FAUSTFLOAT(0)),
             fReset(FAUSTFLOAT(0)),
             fLoaderUI(this),
-            fRootFolder(root_folfer)
+            fRootPath(path)
         {}
     
         virtual ~PresetUI()
@@ -117,22 +117,22 @@ class PresetUI : public DecoratorUI {
     
         void saveDefault()
         {
-            fFileUI.saveState((fRootFolder + "_default").c_str());
+            fFileUI.saveState((fRootPath + "_default").c_str());
         }
         
         void loadDefault()
         {
-            fFileUI.recallState((fRootFolder + "_default").c_str());
+            fFileUI.recallState((fRootPath + "_default").c_str());
         }
     
         void saveState()
         {
-            fFileUI.saveState((fRootFolder + "_preset" + std::to_string(fPreset)).c_str());
+            fFileUI.saveState((fRootPath + "_preset" + std::to_string(fPreset)).c_str());
         }
     
         void loadState()
         {
-            fFileUI.recallState((fRootFolder + "_preset" + std::to_string(fPreset)).c_str());
+            fFileUI.recallState((fRootPath + "_preset" + std::to_string(fPreset)).c_str());
         }
     
         // -- widget's layouts
