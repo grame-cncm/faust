@@ -36,6 +36,14 @@
 #include <iostream>
 #include <list>
 
+#if __cplusplus < 201703L // If the version of C++ is less than 17
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
@@ -104,6 +112,39 @@ ztimedmap GUI::gTimedZoneMap;
  
  *******************************************************************************
  *******************************************************************************/
+const char* append_slash_if_missing(const char* path) {
+    size_t len = strlen(path);
+    if (path[len - 1] != '/') {
+        static char buf[PATH_MAX];
+        snprintf(buf, sizeof(buf), "%s/", path);
+        return buf;
+    }
+    return path;
+}
+
+const char* get_preset_dir() {
+    const char* preset_dir = nullptr;
+
+#ifdef PRESETDIR
+    if (strcmp(PRESETDIR, "auto") == 0) {
+        preset_dir = append_slash_if_missing(getenv("XDG_CONFIG_HOME"));
+    } else {
+        preset_dir = append_slash_if_missing(PRESETDIR);
+    }
+#endif
+
+    if (!preset_dir) {
+        preset_dir = append_slash_if_missing(getenv("HOME"));
+        if (preset_dir) {
+            static char buf[PATH_MAX];
+            snprintf(buf, sizeof(buf), "%s/.config/", preset_dir);
+            preset_dir = buf;
+        } else {
+            preset_dir = "/var/tmp/";
+        }
+    }
+    return preset_dir;
+}
 
 int main(int argc, char* argv[])
 {
@@ -182,13 +223,30 @@ int main(int argc, char* argv[])
     FUI finterface;
     
 #ifdef PRESETUI
-    PresetUI pinterface(interface, string(PRESETDIR) + string(name) + ((nvoices > 0) ? "_poly" : ""));
+    std::cout << "PRESETDIR: " << string(PRESETDIR) << std::endl;
+    const char* preset_dir = get_preset_dir();
+    fs::path preset_path(preset_dir);
+    preset_path /= name; // Append the `name` to `preset_path`
+
+    // Check if the directory already exists
+    if (!fs::exists(preset_path)) {
+        // Create the directory if it doesn't exist
+        try {
+            fs::create_directories(preset_path);
+            std::cout << "Preset directory created: " << preset_path << std::endl;
+        } catch(const std::experimental::filesystem::v1::__cxx11::filesystem_error& e) {
+            std::cerr << "Error creating preset directory: " << e.what() << std::endl;
+        }
+    } else {
+        std::cout << "Preset directory already exists: " << preset_path << std::endl;
+    }
+    PresetUI pinterface(interface, string(preset_dir) + string(name) + "/" + ((nvoices > 0) ? "poly_" : ""));
     DSP->buildUserInterface(&pinterface);
 #else
     DSP->buildUserInterface(interface);
     DSP->buildUserInterface(&finterface);
 #endif
-    
+
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
