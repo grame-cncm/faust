@@ -180,15 +180,37 @@ int main(int argc, char* argv[])
     
     QTGUI* interface = new QTGUI();
     FUI finterface;
-    
+
 #ifdef PRESETUI
-    PresetUI pinterface(interface, string(PRESETDIR) + string(name) + ((nvoices > 0) ? "_poly" : ""));
+    std::string basePath = "";
+    PresetUI presetUI(interface, basePath);
+    std::string fullPath(presetUI.get_preset_dir());
+    fullPath += name;
+    const char* preset_dir = fullPath.c_str();
+    std::cout << "Final preset dir:" << preset_dir << std::endl;
+    presetUI.try_create_directory(preset_dir);
+    PresetUI pinterface(interface, string(preset_dir) + "/" + ((nvoices > 0) ? "poly_" : ""));
     DSP->buildUserInterface(&pinterface);
 #else
     DSP->buildUserInterface(interface);
     DSP->buildUserInterface(&finterface);
 #endif
-    
+
+    // #ifdef PRESETUI
+    // std::string basePath = "";
+    // PresetUI presetUI(interface, basePath);
+    // std::string fullPath(presetUI.get_preset_dir());
+    // fullPath += name;
+    // const char* preset_dir = fullPath.c_str();
+    // std::cout << "Final preset dir:" << preset_dir << std::endl;
+    // presetUI.try_create_directory(preset_dir);
+    // PresetUI pinterface(interface, string(preset_dir) + "/" + ((nvoices > 0) ? "poly_" : ""));
+    // DSP->buildUserInterface(&pinterface);
+    // #else
+    // DSP->buildUserInterface(interface);
+    // DSP->buildUserInterface(&finterface);
+    // #endif
+
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
