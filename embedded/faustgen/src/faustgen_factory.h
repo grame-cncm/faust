@@ -37,6 +37,9 @@
 #include <mutex>
 #include <map>
 
+// FAUSTFLOAT is mandatory defined as double 
+#define FAUSTFLOAT double
+
 #include <faust/dsp/llvm-dsp.h>
 #include <faust/gui/SoundUI.h>
 

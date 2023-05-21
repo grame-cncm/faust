@@ -25,9 +25,8 @@
 #ifndef faustgen__h
 #define faustgen__h
 
-#ifndef FAUSTFLOAT
+// FAUSTFLOAT is mandatory defined as double
 #define FAUSTFLOAT double
-#endif
 #define MSP64 1
 
 /* link with */
