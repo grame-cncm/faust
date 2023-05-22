@@ -182,34 +182,15 @@ int main(int argc, char* argv[])
     FUI finterface;
 
 #ifdef PRESETUI
-    std::string basePath = "";
-    PresetUI presetUI(interface, basePath);
-    std::string fullPath(presetUI.get_preset_dir());
-    fullPath += name;
-    const char* preset_dir = fullPath.c_str();
-    std::cout << "Final preset dir:" << preset_dir << std::endl;
-    presetUI.try_create_directory(preset_dir);
-    PresetUI pinterface(interface, string(preset_dir) + "/" + ((nvoices > 0) ? "poly_" : ""));
+    string preset_dir = PresetUI::getPresetDir();
+    cout << "Final preset_dir: " << preset_dir << endl;
+    PresetUI::tryCreateDirectory(preset_dir);
+    PresetUI pinterface(interface, preset_dir + "/" + ((nvoices > 0) ? "poly_" : ""));
     DSP->buildUserInterface(&pinterface);
 #else
     DSP->buildUserInterface(interface);
     DSP->buildUserInterface(&finterface);
 #endif
-
-    // #ifdef PRESETUI
-    // std::string basePath = "";
-    // PresetUI presetUI(interface, basePath);
-    // std::string fullPath(presetUI.get_preset_dir());
-    // fullPath += name;
-    // const char* preset_dir = fullPath.c_str();
-    // std::cout << "Final preset dir:" << preset_dir << std::endl;
-    // presetUI.try_create_directory(preset_dir);
-    // PresetUI pinterface(interface, string(preset_dir) + "/" + ((nvoices > 0) ? "poly_" : ""));
-    // DSP->buildUserInterface(&pinterface);
-    // #else
-    // DSP->buildUserInterface(interface);
-    // DSP->buildUserInterface(&finterface);
-    // #endif
 
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);

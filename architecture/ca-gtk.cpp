@@ -195,7 +195,10 @@ int main(int argc, char* argv[])
     FUI finterface;
     
 #ifdef PRESETUI
-    PresetUI pinterface(interface, string(PRESETDIR) + string(name) + ((nvoices > 0) ? "_poly" : ""));
+    string preset_dir = PresetUI::getPresetDir();
+    cout << "Final preset_dir: " << preset_dir << endl;
+    PresetUI::tryCreateDirectory(preset_dir);
+    PresetUI pinterface(interface, preset_dir + "/" + ((nvoices > 0) ? "poly_" : ""));
     DSP->buildUserInterface(&pinterface);
 #else
     DSP->buildUserInterface(interface);

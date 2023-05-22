@@ -54,42 +54,8 @@ namespace fs = std::filesystem;
 
 class PresetUI : public DecoratorUI {
     
-    private:
-    const char* append_slash_if_missing(const char* path) {
-        size_t len = strlen(path);
-        if (path[len - 1] != '/') {
-            static char buf[PATH_MAX];
-            snprintf(buf, sizeof(buf), "%s/", path);
-            return buf;
-        }
-        return path;
-    }
-
-    bool try_create_subdirectory(const char* base_dir, const char* sub_dir, char* out_dir, size_t out_dir_size) {
-        if (base_dir && (strlen(base_dir) > 0) && sub_dir && (strlen(sub_dir) > 0)) {
-            snprintf(out_dir, out_dir_size, "%s%s/", base_dir, sub_dir);
-            if (try_create_directory(out_dir)) {
-                std::cout << "Using " << base_dir << "/" << sub_dir << ": " << out_dir << std::endl;
-                return true;
-            } else {
-                std::cout << "Cannot use " << base_dir << "/" << sub_dir << std::endl;
-            }
-        }
-        return false;
-    }
-
-    bool try_create_dir_from_env(const char* env_var_name, const char** out_dir) {
-        const char* dir = getenv(env_var_name);
-        if (try_create_directory(dir)) {
-            std::cout << "Using " << env_var_name << ": " << dir << "." << std::endl;
-            *out_dir = append_slash_if_missing(dir);
-            return true;
-        } else {
-            std::cout << "Cannot use " << env_var_name <<  "." << std::endl;
-            return false;
-        }
-    }
-
+  private:
+    
     struct LoaderUI : public GUI
     {
         LoaderUI(PresetUI* presetui)
@@ -109,6 +75,38 @@ class PresetUI : public DecoratorUI {
     FUI fFileUI;
     LoaderUI fLoaderUI;
     const std::string fRootPath;
+
+    static std::string appendSlashIfMissing(const std::string& path)
+    {
+        return (path[path.size() - 1] != '/') ? (path + "/") : path;
+    }
+  
+    static bool tryCreateSubdirectory(const std::string& base_dir, const std::string& sub_dir, std::string& out_dir)
+    {
+        if ((base_dir.size() > 0) && (sub_dir.size() > 0)) {
+            out_dir = base_dir + sub_dir;
+            if (tryCreateDirectory(out_dir)) {
+                std::cout << "Using " << base_dir << "/" << sub_dir << ": " << out_dir << std::endl;
+                return true;
+            } else {
+                std::cout << "Cannot use " << base_dir << "/" << sub_dir << std::endl;
+            }
+        }
+        return false;
+    }
+    
+    static bool tryCreateDirFromEnv(const std::string& env_var_name, std::string& out_dir)
+    {
+        const char* dir = getenv(env_var_name.c_str());
+        if (dir && tryCreateDirectory(dir)) {
+            std::cout << "Using " << env_var_name << ": " << dir << "." << std::endl;
+            out_dir = appendSlashIfMissing(dir);
+            return true;
+        } else {
+            std::cout << "Cannot use " << env_var_name <<  "." << std::endl;
+            return false;
+        }
+    }
 
     static void load(FAUSTFLOAT val, void* arg)
     {
@@ -144,87 +142,7 @@ class PresetUI : public DecoratorUI {
         }
     }
     
-    public:
-
-    bool try_create_directory(const char* dir_option) {
-        if (dir_option && (strlen(dir_option) > 0)) {
-            // std::cout << "Trying to create: " << dir_option << std::endl;
-            fs::path path_option(dir_option);
-            if (!fs::exists(path_option)) {
-                try {
-                    fs::create_directories(path_option);
-                    std::cout << "Directory created: " << path_option << std::endl;
-                    return true;
-                } catch(const fs::filesystem_error& e) {
-                    std::cerr << "Error creating directory: " << e.what() << std::endl;
-                }
-            } else {
-                // std::cout << "Directory already exists: " << path_option << std::endl;
-                return true;
-            }
-        }
-        return false;
-    }
-/*
-  get_preset_dir attempts to determine a suitable preset directory using the following logic:
-
-  1) If PRESETDIR is "auto", it tries to create a directory using the XDG_DOCUMENTS_DIR environment variable.
-  2) If PRESETDIR is a valid existing directory, it returns the path with a trailing slash.
-  3) If PRESETDIR is an environment variable, it tries to create a directory using its value.
-  4) If HOME is set, it tries to create a directory at HOME/Documents or HOME/PRESETDIR.
-  5) If all else fails, it falls back to /var/tmp/.
-*/
-
-    const char* get_preset_dir() {
-        const char* preset_dir = nullptr;
-
-        std::cout << "Attempting to find or create a suitable directory for preset files." << std::endl;
-        // if the user passes -preset auto
-        if (std::string(PRESETDIR) == "auto") {
-            std::cout << "Attempting to create directory using XDG_DOCUMENTS_DIR environment variable." << std::endl;
-            if (try_create_dir_from_env("XDG_DOCUMENTS_DIR", &preset_dir)) {
-                return preset_dir;
-            }
-        }
-
-        // interpret what the user gave us as a path
-        fs::path preset_path(PRESETDIR);
-        // see if that path exists and is a directory
-        if (fs::exists(preset_path) && fs::is_directory(preset_path)) {
-            std::cout << "Directory " << PRESETDIR << " exists and is a valid directory." << std::endl;
-            // we are done
-            return append_slash_if_missing(PRESETDIR);
-        }
-        // PRESETDIR doesn't exists or is not a directory
-        std::cout << "Directory " << PRESETDIR << " doesn't exist or is not a valid directory." << std::endl;
-
-        // interpret PRESETDIR as an environment variable
-        std::cout << "Attempting to create directory using PRESETDIR environment variable." << std::endl;
-        if (try_create_dir_from_env(PRESETDIR, &preset_dir)) {
-            return preset_dir;
-        }
-
-        std::cout << "No usable XDG_DOCUMENTS_DIR, " << PRESETDIR << " is not a valid directory nor a usable environment variable." << std::endl;
-
-        preset_dir = append_slash_if_missing(getenv("HOME"));
-        // Declare buffers for storing the paths
-        static char buf[PATH_MAX];
-        static char home_preset_dir_buf[PATH_MAX];
-        // Try HOME/Documents
-        if (try_create_subdirectory(preset_dir, "Documents", buf, sizeof(buf))) {
-            return buf;
-        }
-
-        // Try HOME/PRESETDIR
-        if (try_create_subdirectory(preset_dir, PRESETDIR, home_preset_dir_buf, sizeof(home_preset_dir_buf))) {
-            return home_preset_dir_buf;
-        }
-
-        // Fallback to /var/tmp/
-        std::cout << "No suitable directory found, falling back to /var/tmp/" << std::endl;
-        preset_dir = "/var/tmp/";
-        return preset_dir;
-    }
+  public:
 
     PresetUI(UI* ui, const std::string& path):
         DecoratorUI(ui),
@@ -237,109 +155,190 @@ class PresetUI : public DecoratorUI {
         fRootPath(path)
         {}
     
-        virtual ~PresetUI()
-        {}
+    virtual ~PresetUI()
+    {}
+
+    void saveDefault()
+    {
+        fFileUI.saveState((fRootPath + "default").c_str());
+    }
     
-        void saveDefault()
-        {
-            fFileUI.saveState((fRootPath + "default").c_str());
+    void loadDefault()
+    {
+        fFileUI.recallState((fRootPath + "default").c_str());
+    }
+
+    void saveState()
+    {
+        fFileUI.saveState((fRootPath + "preset" + std::to_string(fPreset)).c_str());
+    }
+
+    void loadState()
+    {
+        fFileUI.recallState((fRootPath + "preset" + std::to_string(fPreset)).c_str());
+    }
+
+    // -- widget's layouts
+    virtual void openTabBox(const char* label)
+    {
+        checkOpenFirstBox(label);
+        fUI->openTabBox(label);
+        fFileUI.openTabBox(label);
+    }
+    virtual void openHorizontalBox(const char* label)
+    {
+        checkOpenFirstBox(label);
+        fUI->openHorizontalBox(label);
+        fFileUI.openHorizontalBox(label);
+    }
+    virtual void openVerticalBox(const char* label)
+    {
+        checkOpenFirstBox(label);
+        fUI->openVerticalBox(label);
+        fFileUI.openVerticalBox(label);
+    }
+    virtual void closeBox()
+    {
+        fUI->closeBox();
+        if (--fGroupCount == 0) {
+            // End of top-level group
+            saveDefault();
         }
-        
-        void loadDefault()
-        {
-            fFileUI.recallState((fRootPath + "default").c_str());
-        }
+    }
+
+    // -- active widgets
+    virtual void addButton(const char* label, FAUSTFLOAT* zone)
+    {
+        fUI->addButton(label, zone);
+        fFileUI.addButton(label, zone);
+    }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+    {
+        fUI->addCheckButton(label, zone);
+        fFileUI.addCheckButton(label, zone);
+    }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fUI->addVerticalSlider(label, zone, init, min, max, step);
+        fFileUI.addVerticalSlider(label, zone, init, min, max, step);
+    }
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fUI->addHorizontalSlider(label, zone, init, min, max, step);
+        fFileUI.addHorizontalSlider(label, zone, init, min, max, step);
+    }
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fUI->addNumEntry(label, zone, init, min, max, step);
+        fFileUI.addNumEntry(label, zone, init, min, max, step);
+    }
     
-        void saveState()
-        {
-            fFileUI.saveState((fRootPath + "preset" + std::to_string(fPreset)).c_str());
-        }
+    // -- passive widgets
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {
+        fUI->addHorizontalBargraph(label, zone, min, max);
+        fFileUI.addHorizontalBargraph(label, zone, min, max);
+    }
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {
+        fUI->addVerticalBargraph(label, zone, min, max);
+        fFileUI.addVerticalBargraph(label, zone, min, max);
+    }
     
-        void loadState()
-        {
-            fFileUI.recallState((fRootPath + "preset" + std::to_string(fPreset)).c_str());
-        }
+    // -- soundfiles
+    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
+    {
+        fUI->addSoundfile(label, filename, sf_zone);
+        fFileUI.addSoundfile(label, filename, sf_zone);
+    }
     
-        // -- widget's layouts
-        virtual void openTabBox(const char* label)
-        {
-            checkOpenFirstBox(label);
-            fUI->openTabBox(label);
-            fFileUI.openTabBox(label);
-        }
-        virtual void openHorizontalBox(const char* label)
-        {
-            checkOpenFirstBox(label);
-            fUI->openHorizontalBox(label);
-            fFileUI.openHorizontalBox(label);
-        }
-        virtual void openVerticalBox(const char* label)
-        {
-            checkOpenFirstBox(label);
-            fUI->openVerticalBox(label);
-            fFileUI.openVerticalBox(label);
-        }
-        virtual void closeBox()
-        {
-            fUI->closeBox();
-            if (--fGroupCount == 0) {
-                // End of top-level group
-                saveDefault();
+    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+    {
+        fUI->declare(zone, key, val);
+        fFileUI.declare(zone, key, val);
+    }
+  
+    static bool tryCreateDirectory(const std::string& dir_option)
+    {
+        if (dir_option.size() > 0) {
+            fs::path path_option(dir_option);
+            if (!fs::exists(path_option)) {
+                try {
+                    fs::create_directories(path_option);
+                    std::cout << "Directory created: " << path_option << std::endl;
+                    return true;
+                } catch(const fs::filesystem_error& e) {
+                    std::cerr << "Error creating directory: " << e.what() << std::endl;
+                }
+            } else {
+                return true;
             }
         }
+        return false;
+    }
     
-        // -- active widgets
-        virtual void addButton(const char* label, FAUSTFLOAT* zone)
-        {
-            fUI->addButton(label, zone);
-            fFileUI.addButton(label, zone);
-        }
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
-        {
-            fUI->addCheckButton(label, zone);
-            fFileUI.addCheckButton(label, zone);
-        }
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        {
-            fUI->addVerticalSlider(label, zone, init, min, max, step);
-            fFileUI.addVerticalSlider(label, zone, init, min, max, step);
-        }
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        {
-            fUI->addHorizontalSlider(label, zone, init, min, max, step);
-            fFileUI.addHorizontalSlider(label, zone, init, min, max, step);
-        }
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        {
-            fUI->addNumEntry(label, zone, init, min, max, step);
-            fFileUI.addNumEntry(label, zone, init, min, max, step);
+    /*
+     getPresetDir attempts to determine a suitable preset directory using the following logic:
+     
+     1) If PRESETDIR is "auto", it tries to create a directory using the XDG_DOCUMENTS_DIR environment variable.
+     2) If PRESETDIR is a valid existing directory, it returns the path with a trailing slash.
+     3) If PRESETDIR is an environment variable, it tries to create a directory using its value.
+     4) If HOME is set, it tries to create a directory at HOME/Documents or HOME/PRESETDIR.
+     5) If all else fails, it falls back to /var/tmp/.
+     */
+    
+    static std::string getPresetDir()
+    {
+        std::string preset_dir;
+        
+        std::cout << "Attempting to find or create a suitable directory for preset files." << std::endl;
+        // If the user passes -preset auto
+        if (std::string(PRESETDIR) == "auto") {
+            std::cout << "Attempting to create directory using XDG_DOCUMENTS_DIR environment variable." << std::endl;
+            if (tryCreateDirFromEnv("XDG_DOCUMENTS_DIR", preset_dir)) {
+                return preset_dir;
+            }
         }
         
-        // -- passive widgets
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        {
-            fUI->addHorizontalBargraph(label, zone, min, max);
-            fFileUI.addHorizontalBargraph(label, zone, min, max);
-        }
-        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        {
-            fUI->addVerticalBargraph(label, zone, min, max);
-            fFileUI.addVerticalBargraph(label, zone, min, max);
+        // Interpret what the user gave us as a path
+        fs::path preset_path(PRESETDIR);
+        // See if that path exists and is a directory
+        if (fs::exists(preset_path) && fs::is_directory(preset_path)) {
+            std::cout << "Directory " << PRESETDIR << " exists and is a valid directory." << std::endl;
+            // We are done
+            return appendSlashIfMissing(PRESETDIR);
         }
         
-        // -- soundfiles
-        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
-        {
-            fUI->addSoundfile(label, filename, sf_zone);
-            fFileUI.addSoundfile(label, filename, sf_zone);
+        // PRESETDIR doesn't exists or is not a directory
+        std::cout << "Directory " << PRESETDIR << " doesn't exist or is not a valid directory." << std::endl;
+        
+        // Interpret PRESETDIR as an environment variable
+        std::cout << "Attempting to create directory using PRESETDIR environment variable." << std::endl;
+        if (tryCreateDirFromEnv(PRESETDIR, preset_dir)) {
+            return preset_dir;
         }
         
-        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
-        {
-            fUI->declare(zone, key, val);
-            fFileUI.declare(zone, key, val);
+        std::cout << "No usable XDG_DOCUMENTS_DIR, " << PRESETDIR << " is not a valid directory nor a usable environment variable.\n";
+        preset_dir = appendSlashIfMissing(getenv("HOME"));
+    
+        // Try HOME/Documents
+        std::string home_preset_dir1;
+        if (tryCreateSubdirectory(preset_dir, "Documents", home_preset_dir1)) {
+            return home_preset_dir1;
         }
-
+        
+        // Try HOME/PRESETDIR
+        std::string home_preset_dir2;
+        if (tryCreateSubdirectory(preset_dir, PRESETDIR, home_preset_dir2)) {
+            return home_preset_dir2;
+        }
+        
+        // Fallback to /var/tmp/
+        std::cout << "No suitable directory found, falling back to /var/tmp/" << std::endl;
+        preset_dir = "/var/tmp/";
+        return preset_dir;
+    }
+    
 };
 
 #endif
