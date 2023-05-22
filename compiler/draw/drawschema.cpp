@@ -412,7 +412,7 @@ static schema* generateInsideSchema(Tree t)
         return makeBlockSchema(0, 1, s.str(), numcolor, "");
     } else if (isBoxReal(t, &r)) {
         stringstream s;
-        s << r;
+        s << boxpp(t);
         return makeBlockSchema(0, 1, s.str(), numcolor, "");
     } else if (isBoxWaveform(t)) {
         return makeBlockSchema(0, 2, "waveform{...}", normalcolor, "");
