@@ -501,6 +501,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                     }
                     JSON << "],";
                 }
+                if (fDSPSize != -1) { tab(fTab, JSON); JSON << "\"size\": " << fDSPSize << ","; }
                 if (fMemoryLayout.size() > 0) {
                     tab(fTab, JSON);
                     JSON << "\"memory_layout\": [";
@@ -567,7 +568,6 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                     tab(fTab, JSON);
                     JSON << "}],";
                 }
-                if (fDSPSize != -1) { tab(fTab, JSON); JSON << "\"size\": " << fDSPSize << ","; }
                 if (fSHAKey != "") { tab(fTab, JSON); JSON << "\"sha_key\": \"" << fSHAKey << "\","; }
                 if (fExpandedCode != "") { tab(fTab, JSON); JSON << "\"code\": \"" << fExpandedCode << "\","; }
                 tab(fTab, JSON); JSON << "\"inputs\": " << fInputs << ",";
