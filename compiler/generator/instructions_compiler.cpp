@@ -1972,7 +1972,7 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
 {
     if (gGlobal->gUseMemmove) {
         
-        /*
+    /*
         // Generate prototype
         Names fun_args;
         fun_args.push_back(InstBuilder::genNamedTyped("dst", Typed::kVoid_ptr));
@@ -1981,13 +1981,13 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
         
         FunTyped* fun_type = InstBuilder::genFunTyped(fun_args, InstBuilder::genBasicTyped(Typed::kVoid_ptr), FunTyped::kDefault);
         pushGlobalDeclare(InstBuilder::genDeclareFunInst("memmove", fun_type));
-        */
+    */
         
         // Return funcall
         Values args;
         args.push_back(InstBuilder::genLoadArrayStructVarAddress(vname, InstBuilder::genInt32NumInst(0)));
         args.push_back(InstBuilder::genLoadArrayStructVarAddress(vname, InstBuilder::genInt32NumInst(1)));
-        args.push_back(InstBuilder::genInt32NumInst(delay*4));
+        args.push_back(InstBuilder::genInt32NumInst(delay * ifloatsize()));
         return InstBuilder::genDropInst(InstBuilder::genFunCallInst("memmove", args));
         
     } else {

@@ -98,11 +98,22 @@ class dsp_optimizer_real {
     
         void init()
         {
-            // Scalar mode
+            // Scalar mode with -mcd 0
             std::vector <std::string> t0;
             t0.push_back("-scal");
+            t0.push_back("-mcd");
+            t0.push_back("0");
             fOptionsTable.push_back(t0);
             
+            // Scalar mode with different -mcd
+            for (int size = 2; size <= fBufferSize; size *= 2) {
+                std::vector <std::string> t1;
+                t1.push_back("-scal");
+                t1.push_back("-mcd");
+                t1.push_back(std::to_string(size));
+                fOptionsTable.push_back(t1);
+            }
+        
             // Scalar mode with exp10
             std::vector <std::string> t0_exp10;
             t0_exp10.push_back("-scal");
@@ -395,19 +406,21 @@ class dsp_optimizer_real {
             if (fTrace) fprintf(stdout, "Discover best parameters option\n");
             std::tuple<double, double, double, TOption> best1 = findOptimizedParametersAux(fOptionsTable);
             
-            if (fTrace) fprintf(stdout, "Refined with -mcd\n");
             TOptionTable options_table;
-        
             // Start from 0
             TOption best2 = std::get<3>(best1);
-            best2.push_back("-mcd");
-            best2.push_back("0");
-            options_table.push_back(best2);
-            for (int size = 2; size <= 256; size *= 2) {
-                TOption best2 = std::get<3>(best1);
+       
+            if (best2[0] != "-scal") { // -scal already have tests for -mcd
+                if (fTrace) fprintf(stdout, "Refined with -mcd\n");
                 best2.push_back("-mcd");
-                best2.push_back(std::to_string(size));
+                best2.push_back("0");
                 options_table.push_back(best2);
+                for (int size = 2; size <= 256; size *= 2) {
+                    TOption best2 = std::get<3>(best1);
+                    best2.push_back("-mcd");
+                    best2.push_back(std::to_string(size));
+                    options_table.push_back(best2);
+                }
             }
             
             if (fNeedExp10) {
@@ -416,8 +429,13 @@ class dsp_optimizer_real {
                 t0_exp10.push_back("-exp10");
                 options_table.push_back(t0_exp10);
             }
-            
-            std::tuple<double, double, double, TOption> best3 = findOptimizedParametersAux(options_table);
+        
+            std::tuple<double, double, double, TOption> best3;
+            if (options_table.size() > 0) {
+                best3 = findOptimizedParametersAux(options_table);
+            } else {
+                best3 = best1;
+            }
            
             if (std::get<3>(best3)[0] == "-vec") {
                 if (fTrace) fprintf(stdout, "Check with -g or -dfs\n");
