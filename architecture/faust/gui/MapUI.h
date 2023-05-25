@@ -149,15 +149,25 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         void setParamValue(const std::string& str, FAUSTFLOAT value)
         {
-            if (fPathZoneMap.find(str) != fPathZoneMap.end()) {
-                *fPathZoneMap[str] = value;
-            } else if (fShortnameZoneMap.find(str) != fShortnameZoneMap.end()) {
-                *fShortnameZoneMap[str] = value;
-            } else if (fLabelZoneMap.find(str) != fLabelZoneMap.end()) {
-                *fLabelZoneMap[str] = value;
-            } else {
-                fprintf(stderr, "ERROR : setParamValue '%s' not found\n", str.c_str());
+            auto fPathZoneMapIter = fPathZoneMap.find(str);
+            if (fPathZoneMapIter != fPathZoneMap.end()) {
+                *fPathZoneMapIter->second = value;
+                return;
             }
+            
+            auto fShortnameZoneMapIter = fShortnameZoneMap.find(str);
+            if (fShortnameZoneMapIter != fShortnameZoneMap.end()) {
+                *fShortnameZoneMapIter->second = value;
+                return;
+            }
+            
+            auto fLabelZoneMapIter = fLabelZoneMap.find(str);
+            if (fLabelZoneMapIter != fLabelZoneMap.end()) {
+                *fLabelZoneMapIter->second = value;
+                return;
+            }
+            
+            fprintf(stderr, "ERROR : setParamValue '%s' not found\n", str.c_str());
         }
         
         /**
@@ -169,16 +179,23 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         FAUSTFLOAT getParamValue(const std::string& str)
         {
-            if (fPathZoneMap.find(str) != fPathZoneMap.end()) {
-                return *fPathZoneMap[str];
-            } else if (fShortnameZoneMap.find(str) != fShortnameZoneMap.end()) {
-                return *fShortnameZoneMap[str];
-            } else if (fLabelZoneMap.find(str) != fLabelZoneMap.end()) {
-                return *fLabelZoneMap[str];
-            } else {
-                fprintf(stderr, "ERROR : getParamValue '%s' not found\n", str.c_str());
-                return 0;
+            const auto fPathZoneMapIter = fPathZoneMap.find(str);
+            if (fPathZoneMapIter != fPathZoneMap.end()) {
+                return *fPathZoneMapIter->second;
             }
+            
+            const auto fShortnameZoneMapIter = fShortnameZoneMap.find(str);
+            if (fShortnameZoneMapIter != fShortnameZoneMap.end()) {
+                return *fShortnameZoneMapIter->second;
+            }
+            
+            const auto fLabelZoneMapIter = fLabelZoneMap.find(str);
+            if (fLabelZoneMapIter != fLabelZoneMap.end()) {
+                return *fLabelZoneMapIter->second;
+            }
+            
+            fprintf(stderr, "ERROR : getParamValue '%s' not found\n", str.c_str());
+            return 0;
         }
     
         // map access 
@@ -304,13 +321,21 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         FAUSTFLOAT* getParamZone(const std::string& str)
         {
-            if (fPathZoneMap.find(str) != fPathZoneMap.end()) {
-                return fPathZoneMap[str];
-            } else if (fShortnameZoneMap.find(str) != fShortnameZoneMap.end()) {
-                return fShortnameZoneMap[str];
-            } else if (fLabelZoneMap.find(str) != fLabelZoneMap.end()) {
-                return fLabelZoneMap[str];
+            const auto fPathZoneMapIter = fPathZoneMap.find(str);
+            if (fPathZoneMapIter != fPathZoneMap.end()) {
+                return fPathZoneMapIter->second;
             }
+            
+            const auto fShortnameZoneMapIter = fShortnameZoneMap.find(str);
+            if (fShortnameZoneMapIter != fShortnameZoneMap.end()) {
+                return fShortnameZoneMapIter->second;
+            }
+            
+            const auto fLabelZoneMapIter = fLabelZoneMap.find(str);
+            if (fLabelZoneMapIter != fLabelZoneMap.end()) {
+                return fLabelZoneMapIter->second;
+            }
+
             return nullptr;
         }
     
