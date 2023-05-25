@@ -149,19 +149,19 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         void setParamValue(const std::string& str, FAUSTFLOAT value)
         {
-            auto fPathZoneMapIter = fPathZoneMap.find(str);
+            const auto fPathZoneMapIter = fPathZoneMap.find(str);
             if (fPathZoneMapIter != fPathZoneMap.end()) {
                 *fPathZoneMapIter->second = value;
                 return;
             }
             
-            auto fShortnameZoneMapIter = fShortnameZoneMap.find(str);
+            const auto fShortnameZoneMapIter = fShortnameZoneMap.find(str);
             if (fShortnameZoneMapIter != fShortnameZoneMap.end()) {
                 *fShortnameZoneMapIter->second = value;
                 return;
             }
             
-            auto fLabelZoneMapIter = fLabelZoneMap.find(str);
+            const auto fLabelZoneMapIter = fLabelZoneMap.find(str);
             if (fLabelZoneMapIter != fLabelZoneMap.end()) {
                 *fLabelZoneMapIter->second = value;
                 return;
