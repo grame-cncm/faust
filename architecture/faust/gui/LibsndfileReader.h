@@ -35,6 +35,16 @@
 
 #include "faust/gui/Soundfile.h"
 
+#if __has_include(<filesystem>) && __cplusplus >= 201703L
+    #define HAS_FILESYSTEM
+    #include <filesystem>
+    namespace fs = std::filesystem;
+#elif __has_include(<experimental/filesystem>) && __cplusplus >= 201103L
+    #define HAS_FILESYSTEM
+    #include <experimental/filesystem>
+    namespace fs = std::experimental::filesystem;
+#endif
+
 struct VFLibsndfile {
     
     #define SIGNED_SIZEOF(x) ((int)sizeof(x))
@@ -143,6 +153,11 @@ struct LibsndfileReader : public SoundfileReader {
     // Check file
     bool checkFile(const std::string& path_name) override
     {
+        #ifdef HAS_FILESYSTEM
+        if (!fs::exists(path_name)) {
+            return false;
+        }
+        #endif
         SF_INFO snd_info;
         snd_info.format = 0;
         SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
