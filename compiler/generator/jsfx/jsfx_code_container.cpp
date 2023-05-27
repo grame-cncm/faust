@@ -19,6 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+#include<regex>
+#include<string>
+
 #include "jsfx_code_container.hh"
 #include "Text.hh"
 #include "exception.hh"
@@ -184,7 +187,17 @@ void JSFXCodeContainer::produceClass()
         
             "function ftoi32(x) ( \n"
             " x <= -1 ? ((min(max(-2147483648, x), -1)|0) + 4294967296;) : (min(max(0, x), 4294967295)|0;); \n"
-            ");";
+            ");"
+            
+            "function limit(x, min, max) (\n"
+            "   (x < min) ? min : (x > max) ? max : x; \n"
+            ");\n"
+            
+            "function midi_scale(x, min, max, step) (\n"
+            "   limit(min + (step * x), min, max); \n"
+            ");\n"
+            
+            ;
 
     *fOut << "/*\n"
           << " * Mathematical functions \n"
@@ -194,21 +207,12 @@ void JSFXCodeContainer::produceClass()
           << "function log2(x) (log(x) / log(2)); \n"
           << "function round(N) (0|(N+sign(N)*0.5)); \n"
           << "function rint(x) (round(int32(x))); \n"
-          // Not working for floats (to fix)
           << "function mod(a,b) (\n"
           << " a%b;\n"
           << ");\n"
           << "function remainder(x,y) (\n"
           << " x - (round(x/y)*y);\n"
           << ");\n"
-          /*
-          << "function truncate(x) ( \n"
-          << " (x < 0) ? ceil(x) : floor(x); \n"
-          << "); \n"
-          << "function fmod(x,y) ( \n"
-          << " x - truncate(x/y)*y; \n"
-          << "); \n"
-          */
           << "function fmod(x,y) ( \n"
           << " y = abs(y); \n"
           << " res = remainder(abs(x), y); \n"
@@ -281,6 +285,31 @@ void JSFXCodeContainer::produceClass()
     tab(n, *fOut);
 }
 
+int extractIntegerWords(string str)
+{
+    stringstream ss;
+ 
+    /* Storing the whole string into string stream */
+    ss << str;
+ 
+    /* Running loop till the end of the stream */
+    string temp;
+    int found;
+    while (!ss.eof()) {
+ 
+        /* extracting word by word from stream */
+        ss >> temp;
+ 
+        /* Checking the given word is integer or not */
+        if (stringstream(temp) >> found)
+            return found;
+ 
+        /* To save from space at the end of string */
+        temp = "";
+    }
+    return -1;
+}
+
 void JSFXCodeContainer::produceMetadata(int tabs)
 {
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
@@ -294,7 +323,15 @@ void JSFXCodeContainer::produceMetadata(int tabs)
                 if(s.find("[midi:on]") != s.npos)
                 {
                     midi = true;
-                } else if(s.find("[nvoices:")) {
+                }
+                if(s.find("[nvoices:")) {
+                    std::regex r("\\[nvoices:([0-9]+)\\]");
+                    for(std::sregex_iterator i = std::sregex_iterator(s.begin(), s.end(), r); i != std::sregex_iterator(); ++i)
+                    {
+                        poly = true;
+                        std::smatch m = *i;
+                        nvoices = std::stoi(m[1].str());
+                    }
                     
                 }
                 *fOut << "desc: " << *(i.first) << " " << **j << "\n";

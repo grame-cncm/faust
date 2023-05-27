@@ -7,5 +7,9 @@ Currently has available features :
 
 # TODO
 
-* MIDI -> add nvoices support (with voice blocking)
+* MIDI -> add nvoices support (with voice stealing)
 * MIDI -> currently, slider values are computing in @block section if midi is on. It would be nice to move only the "fSlow" variables corresponding to MIDI to the block section.
+* Grain3.dsp not passing
+* Indent
+* Architecture file 
+* Bargraph for MIDI output 

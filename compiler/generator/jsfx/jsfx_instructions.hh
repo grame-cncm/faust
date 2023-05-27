@@ -119,6 +119,24 @@ struct JSFXMidiInstr
     int channel = -1;
 };
 
+struct JSFXMidiScale
+{
+    double init, min, max, step;
+
+    double limit(double val) {
+        if(val > max) return max;
+        if(val < min) return min;
+        return val;
+    }
+    
+    double scale(int val)
+    {
+        // val is an int between 0 and 127 
+        double incr = step * int(val);
+        return limit(min + incr);
+    }
+};
+
 /*
     A subclass of TextInstVisitor that implements a lot of generic behaviors.
     Some methods mays have to be redefined in this class, anf the exposed list
@@ -140,6 +158,7 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     bool skip_slider = false;
     std::unordered_map<std::string, std::string> _midi_instructions;
+    std::unordered_map<std::string, JSFXMidiScale> _midi_scales;
 
    public:
     using TextInstVisitor::visit;
@@ -325,7 +344,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sqrt"]      = "sqrt";
         gPolyMathLibTable["tan"]       = "tan";
     
-        // Hyperbolic
+        // Hyperbolic - Not available in JSFX yet 
         /*
         gPolyMathLibTable["acosh"]     = "acosh";
         gPolyMathLibTable["asinh"]     = "asinh";
@@ -412,33 +431,37 @@ class JSFXInstVisitor : public TextInstVisitor {
             if(ccs.size() > 0) {
                 *fOut << "(status == CC) ? ( \n";
                 for(auto & cc : ccs) {
+                    JSFXMidiScale scale = _midi_scales[cc.variable_name];
                     *fOut << "(msg2 == 0x" << std::hex << cc.nbr;
                     if(cc.channel >= 0) {
                         *fOut << " && channel == 0x" << std::hex << cc.channel;
                     }
-                    *fOut << ") ? (" << cc.variable_name << " = 0xF0&msg3); \n";
+                    //*fOut << ") ? (" << cc.variable_name << " = 0xF0&msg3); \n";
+                    *fOut << ") ? (" << cc.variable_name << " = midi_scale(msg3, " << scale.min << ", " << scale.max << ", " << scale.step <<  ")); \n";
                 }
                 *fOut << "); \n";
             }
             if(keyons.size() > 0) {
                 *fOut << "(status == NOTE_ON) ? ( \n";
                 for(auto & k : keyons) {
+                    JSFXMidiScale scale = _midi_scales[k.variable_name];
                     *fOut << "(msg2 == 0x" << std::hex << k.nbr;
                     if(k.channel >= 0) {
                         *fOut << " && channel == 0x" << std::hex << k.channel;
                     }
-                    *fOut << ") ? (" << k.variable_name << " = 0xF0&msg3); \n";
+                    *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3, " << scale.min << ", " << scale.max << ", " << scale.step <<  ")); \n";
                 }
                 *fOut << "); \n";
             }
             if(keyoffs.size() > 0) {
                 *fOut << "(status == NOTE_OFF) ? ( \n";
                 for(auto & k : keyoffs) {
+                    JSFXMidiScale scale = _midi_scales[k.variable_name];
                     *fOut << "(msg2 == 0x" << std::hex << k.nbr;
                     if(k.channel >= 0) {
                         *fOut << " && channel == 0x" << std::hex << k.channel;
                     }
-                    *fOut << ") ? (" << k.variable_name << " = 0xF0&msg3); \n";
+                    *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3," << scale.min << ", " << scale.max << ", " << scale.step  <<  " )); \n";
                 }
                 *fOut << "); \n";
             }
@@ -465,6 +488,8 @@ class JSFXInstVisitor : public TextInstVisitor {
             }
             *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=0<0,1,1>" << prefix << gGlobal->getFreshID(inst->fLabel);
             EndLine(' ');
+        } else {
+            _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1};
         }
         skip_slider = false;
         if (slider_count == 64) {
@@ -490,6 +515,8 @@ class JSFXInstVisitor : public TextInstVisitor {
             *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=" << inst->fInit
                   << "<" << inst->fMin << "," << inst->fMax << "," << inst->fStep << prefix << gGlobal->getFreshID(inst->fLabel);
             EndLine(' ');
+        } else {
+            _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax, inst->fStep};
         }
         skip_slider = false;
         if (slider_count == 64) {
