@@ -99,6 +99,10 @@
 #include "julia_code_container.hh"
 #endif
 
+#ifdef JSFX_BUILD
+#include "jsfx_code_container.hh"
+#endif
+
 #ifdef JAX_BUILD
 #include "jax_code_container.hh"
 #endif
@@ -519,6 +523,10 @@ void global::reset()
     gJuliaVisitor = nullptr;  // Will be (possibly) allocated in Julia backend
 #endif
 
+#ifdef JSFX_BUILD
+    gJSFXVisitor = nullptr;  // Will be (possibly) allocated in JSFX backend
+#endif
+
 #ifdef CMAJOR_BUILD
     gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in Cmajor backend
 #endif
@@ -855,7 +863,8 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
     bool internal_math_ff =
         ((gOutputLang == "llvm") || startWith(gOutputLang, "wast") || startWith(gOutputLang, "wasm") ||
          (gOutputLang == "interp") || startWith(gOutputLang, "cmajor") || (gOutputLang == "dlang") ||
-         (gOutputLang == "csharp") || (gOutputLang == "rust") || (gOutputLang == "julia") || (gOutputLang == "jax"));
+         (gOutputLang == "csharp") || (gOutputLang == "rust") || (gOutputLang == "julia") || (gOutputLang == "jsfx") ||
+         (gOutputLang == "jax"));
 
     return (internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) || is_linkable;
 }
@@ -911,6 +920,9 @@ global::~global()
 #endif
 #ifdef JULIA_BUILD
     JuliaInstVisitor::cleanup();
+#endif
+#ifdef JSFX_BUILD
+    JSFXInstVisitor::cleanup();
 #endif
 #ifdef JAX_BUILD
     JAXInstVisitor::cleanup();
@@ -1794,6 +1806,10 @@ static void enumBackends(ostream& out)
     
 #ifdef JULIA_BUILD
     out << dspto << "Julia" << endl;
+#endif
+    
+#ifdef JSFX_BUILD
+    out << dspto << "JSFX" << endl;
 #endif
     
 #ifdef LLVM_BUILD

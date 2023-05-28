@@ -62,6 +62,7 @@ class WASTInstVisitor;
 class WASMInstVisitor;
 class JAXInstVisitor;
 class JuliaInstVisitor;
+class JSFXInstVisitor;
 class TemplateInstVisitor;
 struct TableSizeVisitor;
 struct DeclareStructTypeInst;
@@ -532,6 +533,11 @@ struct global {
 #ifdef JULIA_BUILD
     // One single global visitor Julia backend, so that sub-containers and the global container use the same heap
     JuliaInstVisitor* gJuliaVisitor;
+#endif
+
+#ifdef JSFX_BUILD
+    // One single global visitor JSFX backend, so that sub-containers and the global container use the same heap
+    JSFXInstVisitor* gJSFXVisitor;
 #endif
 
 #ifdef CMAJOR_BUILD

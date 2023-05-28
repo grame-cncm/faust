@@ -101,6 +101,10 @@
 #include "julia_code_container.hh"
 #endif
 
+#ifdef JSFX_BUILD
+#include "jsfx_code_container.hh"
+#endif
+
 #ifdef LLVM_BUILD
 #include "clang_code_container.hh"
 #include "llvm_code_container.hh"
@@ -461,6 +465,30 @@ static void compileJulia(Tree signals, int numInputs, int numOutputs, ostream* o
     new_comp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang julia not supported since Julia backend is not built\n");
+#endif
+}
+
+static void compileJSFX(Tree signals, int numInputs, int numOutputs, ostream* out)
+{
+#ifdef JSFX_BUILD
+    // Backend configuration
+    gGlobal->gAllowForeignFunction = true;
+    gGlobal->gNeedManualPow        = false;
+    gGlobal->gFAUSTFLOAT2Internal  = true;
+    // JSFX actually uses the in "inplace" model
+    gGlobal->gInPlace              = true;
+    container = JSFXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    
+    if (gGlobal->gVectorSwitch) {
+        new_comp = new DAGInstructionsCompiler(container);
+    } else {
+        new_comp = new InstructionsCompiler(container);
+    }
+    
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
+    new_comp->compileMultiSignal(signals);
+#else
+    throw faustexception("ERROR : -lang temp not supported since JSFX backend is not built\n");
 #endif
 }
 
@@ -887,6 +915,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileTemplate(signals, numInputs, numOutputs, dst.get());
     } else if (gGlobal->gOutputLang == "julia") {
         compileJulia(signals, numInputs, numOutputs, dst.get());
+    } else if (gGlobal->gOutputLang == "jsfx") {
+        compileJSFX(signals, numInputs, numOutputs, dst.get());
     } else if (gGlobal->gOutputLang == "csharp") {
         compileCSharp(signals, numInputs, numOutputs, dst.get());
     } else if (startWith(gGlobal->gOutputLang, "cmajor")) {

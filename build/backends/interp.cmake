@@ -18,6 +18,7 @@ set ( INTERP_COMP_BACKEND STATIC DYNAMIC CACHE STRING "Include Interpreter/Cmmpi
 set ( JAVA_BACKEND   OFF    CACHE STRING  "Include JAVA backend" FORCE )
 set ( JAX_BACKEND    OFF    CACHE STRING  "Include JAX backend"  FORCE )
 set ( JULIA_BACKEND  OFF    CACHE STRING  "Include Julia backend" FORCE )
+set ( JSFX_BACKEND  OFF    CACHE STRING  "Include JSFX backend" FORCE )
 set ( LLVM_BACKEND   OFF    CACHE STRING  "Include LLVM backend" FORCE )
 set ( OLDCPP_BACKEND OFF    CACHE STRING  "Include old CPP backend" FORCE )
 set ( RUST_BACKEND   OFF    CACHE STRING  "Include Rust backend" FORCE )

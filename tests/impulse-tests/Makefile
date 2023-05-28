@@ -79,6 +79,7 @@ help:
 	@echo " 'dlang'  : check double output with D backend and various options"
 	@echo " 'jax'    : check double output with JAX backend and various options"
 	@echo " 'julia'  : check double output with Julia backend and various options"
+	@echo " 'jsfx'   : check double output with JSFX backend and various options"
 	@echo " 'me'     : check double outputs with the cpp backend in scalar with activated math exceptions"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
@@ -382,6 +383,11 @@ jax:
 # Julia backend
 julia:
 	$(MAKE) -f Make.julia outdir=julia/double FAUSTOPTIONS="-I dsp -double"
+
+#########################################################################
+# JSFX backend
+jsfx:
+	$(MAKE) -f Make.jsfx outdir=jsfx/double   FAUSTOPTIONS="-I dsp -double"
 
 #########################################################################
 # output directories
