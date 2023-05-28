@@ -59,7 +59,7 @@ CodeContainer* JSFXCodeContainer::createScalarContainer(const string& name, int 
 
 /*
     The given template implements -scalar (= default) and -vec mode.
-    For  options like -omp, -sch, the corresponding JSFXOpenMPCodeContainer
+    For options like -omp, -sch, the corresponding JSFXOpenMPCodeContainer
     and JSFXWorkStealingCodeContainer classes would have to be implemented
     and activated.
 */
@@ -195,9 +195,7 @@ void JSFXCodeContainer::produceClass()
             
             "function midi_scale(x, min, max, step) (\n"
             "   limit(min + (step * x), min, max); \n"
-            ");\n"
-            
-            ;
+            ");\n";
 
     *fOut << "/*\n"
           << " * Mathematical functions \n"
@@ -285,7 +283,8 @@ void JSFXCodeContainer::produceClass()
     tab(n, *fOut);
 }
 
-int extractIntegerWords(string str)
+// SL : still needed ?
+static int extractIntegerWords(const string& str)
 {
     stringstream ss;
  
@@ -320,14 +319,12 @@ void JSFXCodeContainer::produceMetadata(int tabs)
                 ss<<**j;
                 std::string s;
                 ss >> s;
-                if(s.find("[midi:on]") != s.npos)
-                {
+                if (s.find("[midi:on]") != s.npos) {
                     midi = true;
                 }
-                if(s.find("[nvoices:")) {
+                if (s.find("[nvoices:")) {
                     std::regex r("\\[nvoices:([0-9]+)\\]");
-                    for(std::sregex_iterator i = std::sregex_iterator(s.begin(), s.end(), r); i != std::sregex_iterator(); ++i)
-                    {
+                    for (std::sregex_iterator i = std::sregex_iterator(s.begin(), s.end(), r); i != std::sregex_iterator(); ++i) {
                         poly = true;
                         std::smatch m = *i;
                         nvoices = std::stoi(m[1].str());

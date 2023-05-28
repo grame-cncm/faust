@@ -37,14 +37,12 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     // The name of the currently generated array
     string        fCurArray;
 
-    
     JSFXInitFieldsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
     
     virtual void visit(DeclareVarInst* inst)
     {
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_type) {
-            //tab(fTab, *fOut);
             if (inst->fValue) {
                 fCurArray = inst->fAddress->getName();
                 *fOut << fCurArray << " = MEMORY.alloc_memory(" << array_type->fSize << ");\n";
@@ -68,14 +66,9 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     
     static void ZeroInitializer(std::ostream* fOut, Typed* typed)
     {
-        // TO CHECK
-         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
-         faustassert(array_type);
-         if (isIntPtrType(typed->getType())) {
-            *fOut << "MEMORY.alloc_memory(" << array_type->fSize << ")";
-         } else {
-            *fOut << "MEMORY.alloc_memory(" << array_type->fSize << ")";
-         }
+        ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
+        faustassert(array_type);
+        *fOut << "MEMORY.alloc_memory(" << array_type->fSize << ")";
     }
     
     // Needed for waveforms
@@ -104,8 +97,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     }
 };
 
-struct JSFXMidiInstr
-{
+struct JSFXMidiInstr {
     JSFXMidiInstr(const std::string& type_, const std::string& vname_, int nbr_, int channel_ = -1)
     : type_name(type_)
     , variable_name(vname_)
@@ -119,11 +111,11 @@ struct JSFXMidiInstr
     int channel = -1;
 };
 
-struct JSFXMidiScale
-{
+struct JSFXMidiScale {
     double init, min, max, step;
 
-    double limit(double val) {
+    double limit(double val)
+    {
         if(val > max) return max;
         if(val < min) return min;
         return val;
@@ -362,7 +354,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     virtual ~JSFXInstVisitor() {}
 
     // Extract midi parameters (number, channel) from Metadata
-    JSFXMidiInstr parseMIDIInstruction(std::string fzone, std::string value)
+    JSFXMidiInstr parseMIDIInstruction(const std::string& fzone, const std::string& value)
     {
         stringstream ss;
     
@@ -382,9 +374,8 @@ class JSFXInstVisitor : public TextInstVisitor {
             ss >> temp;
     
             /* Checking the given word is integer or not */
-            if (stringstream(temp) >> found)
-            {
-                if(nfound == 0)  {
+            if (stringstream(temp) >> found) {
+                if (nfound == 0) {
                     res.first = found;
                     nfound++;
                 }
@@ -401,7 +392,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     virtual void visit(AddMetaDeclareInst* inst)
     {
         // Deactivated for now
-        if(inst->fKey == "midi") {
+        if (inst->fKey == "midi") {
             _midi_instructions[inst->fZone] = inst->fValue;
             skip_slider = true;
         }
@@ -410,9 +401,9 @@ class JSFXInstVisitor : public TextInstVisitor {
     // To implement (in @block)
     void generateMIDIInstructions()
     {
-        if(_midi_instructions.size() > 0) {
+        if (_midi_instructions.size() > 0) {
             std::vector<JSFXMidiInstr> keyons, keyoffs, ccs;
-            for(auto & midi_str : _midi_instructions) {
+            for (auto & midi_str : _midi_instructions) {
                 JSFXMidiInstr it = parseMIDIInstruction(midi_str.first, midi_str.second);
                 if(it.type_name == std::string("key")) {
                     keyons.push_back(it);
@@ -426,14 +417,13 @@ class JSFXInstVisitor : public TextInstVisitor {
                 }
             }
             *fOut << "while (midirecv(mpos, msg1, msg2, msg3)) ( \n";
-            *fOut  << "status = msg1&0xF0; \n"
-              << "channel = msg1&0x0F; \n";
+            *fOut << "status = msg1&0xF0; \n" << "channel = msg1&0x0F; \n";
             if(ccs.size() > 0) {
                 *fOut << "(status == CC) ? ( \n";
-                for(auto & cc : ccs) {
+                for (auto & cc : ccs) {
                     JSFXMidiScale scale = _midi_scales[cc.variable_name];
                     *fOut << "(msg2 == 0x" << std::hex << cc.nbr;
-                    if(cc.channel >= 0) {
+                    if (cc.channel >= 0) {
                         *fOut << " && channel == 0x" << std::hex << cc.channel;
                     }
                     //*fOut << ") ? (" << cc.variable_name << " = 0xF0&msg3); \n";
@@ -441,21 +431,21 @@ class JSFXInstVisitor : public TextInstVisitor {
                 }
                 *fOut << "); \n";
             }
-            if(keyons.size() > 0) {
+            if (keyons.size() > 0) {
                 *fOut << "(status == NOTE_ON) ? ( \n";
-                for(auto & k : keyons) {
+                for (auto & k : keyons) {
                     JSFXMidiScale scale = _midi_scales[k.variable_name];
                     *fOut << "(msg2 == 0x" << std::hex << k.nbr;
-                    if(k.channel >= 0) {
+                    if (k.channel >= 0) {
                         *fOut << " && channel == 0x" << std::hex << k.channel;
                     }
                     *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3, " << scale.min << ", " << scale.max << ", " << scale.step <<  ")); \n";
                 }
                 *fOut << "); \n";
             }
-            if(keyoffs.size() > 0) {
+            if (keyoffs.size() > 0) {
                 *fOut << "(status == NOTE_OFF) ? ( \n";
-                for(auto & k : keyoffs) {
+                for (auto & k : keyoffs) {
                     JSFXMidiScale scale = _midi_scales[k.variable_name];
                     *fOut << "(msg2 == 0x" << std::hex << k.nbr;
                     if(k.channel >= 0) {
@@ -656,7 +646,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     
     virtual void visit(DropInst* inst)
     {
-            if (inst->fResult) {
+        if (inst->fResult) {
             inst->fResult->accept(this);
             EndLine(' ');
         }
@@ -829,7 +819,6 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         inst->fCode->accept(this);
     }
-
 
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };

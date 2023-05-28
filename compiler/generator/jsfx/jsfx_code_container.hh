@@ -37,7 +37,6 @@ class JSFXCodeContainer : public virtual CodeContainer {
     static JSFXInstVisitor* gJSFXVisitor;
     std::ostream* fOut;
 
-
    // Is midi metadata on ? 
     bool midi = false; 
 
@@ -63,7 +62,6 @@ class JSFXCodeContainer : public virtual CodeContainer {
     
     virtual void generateCompute(int tab) = 0;
 
-    
     virtual dsp_factory_base* produceFactory();
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
