@@ -199,13 +199,13 @@ EndOfCode
     # add preset management
     if [ $PRESETDIR = "auto" ]; then
         PRESETFILE=`mktemp -t preset.XXXXXXXXXX.cpp` || exit 1
-        echo "#define PRESETDIR \"/var/tmp/\"" > "$PRESETFILE"
+        echo "#define PRESETDIR \"auto\"" > "$PRESETFILE"
     else
         PRESETFILE=`mktemp -t preset.XXXXXXXXXX.cpp` || exit 1
         echo "#define PRESETDIR \"$PRESETDIR\"" > "$PRESETFILE"
     fi
-    cat "$PRESETFILE" "${f%.dsp}_tmp.cpp" > "${f%.dsp}.cpp"
-    rm "$PRESETFILE" "${f%.dsp}_tmp.cpp"
+    cat "$PRESETFILE" "$TMP/${f%.dsp}_tmp.cpp" > "$TMP/${f%.dsp}.cpp"
+    rm "$PRESETFILE" "$TMP/${f%.dsp}_tmp.cpp"
 
     # compile c++ to binary
     (

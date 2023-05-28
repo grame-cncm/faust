@@ -132,7 +132,7 @@ EndOfCode
     # add preset management
     if [ $PRESETDIR = "auto" ]; then
         PRESETFILE=`mktemp -t preset.XXXXXXXXXX.cpp` || exit 1
-        echo "#define PRESETDIR \"/var/tmp/\"" > "$PRESETFILE"
+        echo "#define PRESETDIR \"auto\"" > "$PRESETFILE"
     else
         PRESETFILE=`mktemp -t preset.XXXXXXXXXX.cpp` || exit 1
         echo "#define PRESETDIR \"$PRESETDIR\"" > "$PRESETFILE"

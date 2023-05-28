@@ -32,7 +32,8 @@ if [ "$system" = "Darwin" ]; then
     : ${TESTS_HTTPD:=faust2cagtk faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole}
     : ${TESTS_OSC:=faust2cagtk faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole faust2max6 faust2msp faust2android}
     : ${TESTS_OSCHTTPD:=faust2cagtk faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole}
-    : ${TESTS_PRESET:=faust2cagtk faust2caqt faust2jack faust2jaqt}
+    : ${TESTS_PRESET_AUTO=faust2cagtk faust2caqt faust2jack faust2jaqt}
+    : ${TESTS_PRESET_DIR:=faust2cagtk faust2caqt faust2jack faust2jaqt}
 elif [ "$system" = "Linux" ]; then
     : ${TESTS:=faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer faust2jack faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2w64vst faust2netjackconsole faust2netjackqt faust2jackconsole}
     : ${TESTS_MIDI:=faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole}
@@ -111,7 +112,8 @@ if [ "x${TESTS}" != "x" ]; then
     TESTS_HTTPD=$(listexclude ${TESTS_HTTPD} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
     TESTS_OSC=$(listexclude ${TESTS_OSC} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
     TESTS_OSCHTTPD=$(listexclude ${TESTS_OSCHTTPD} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
-    TESTS_PRESET=$(listexclude ${TESTS_PRESET} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_PRESET_AUTO=$(listexclude ${TESTS_PRESET_AUTO} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_PRESET_DIR=$(listexclude ${TESTS_PRESET_DIR} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
 
     echo "Test:" ${TESTS:---}
     echo "Test '-midi':" ${TESTS_MIDI:---}
@@ -123,7 +125,8 @@ if [ "x${TESTS}" != "x" ]; then
     echo "Test '-httpd':" ${TESTS_HTTPD:---}
     echo "Test '-osc':" ${TESTS_OSC:---}
     echo "Test '-osc -httpd':" ${TESTS_OSCHTTPD:---}
-    echo "Test '-preset auto':" ${TESTS_PRESET:---}
+    echo "Test '-preset auto':" ${TESTS_PRESET_AUTO:---}
+    echo "Test '-preset preset_dir':" ${TESTS_PRESET_DIR:---}
     echo "eXcluded test:" ${TESTS_EXCLUDED}
 
     if notinlist faust2dummy "${TESTS_EXCLUDED}"; then
@@ -182,8 +185,12 @@ if [ "x${TESTS}" != "x" ]; then
         runtest LOG "${scriptname}" -osc -httpd good.dsp
     done
 
-    for scriptname in $TESTS_PRESET; do
+    for scriptname in $TESTS_PRESET_AUTO; do
         runtest LOG "${scriptname}" -preset auto good.dsp
+    done
+    
+    for scriptname in $TESTS_PRESET_DIR; do
+        runtest LOG "${scriptname}" -preset preset_dir good.dsp
     done
 
     if notinlist faust2api "${TESTS_EXCLUDED}"; then

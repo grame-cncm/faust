@@ -35,6 +35,7 @@
 #include "instructions_complexity.hh"
 #include "property.hh"
 #include "sigtype.hh"
+#include "struct_manager.hh"
 #include "tlib.hh"
 
 #ifdef WIN32
@@ -414,12 +415,16 @@ class CodeContainer : public virtual Garbageable {
         InstComplexityVisitor complexity;
         loop->accept(&complexity);
     
+        // Get the DSP size
+        StructInstVisitor struct_visitor;
+        fDeclarationInstructions->accept(&struct_visitor);
+    
         // "name", "filename" found in medata
         visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "",
                       FAUSTVERSION, gGlobal->printCompilationOptions1(),
                       gGlobal->gReader.listLibraryFiles(),
                       gGlobal->gImportDirList,
-                      -1, PathTableType(),
+                      struct_visitor.getStructSize(), PathTableType(),
                       fMemoryLayout, complexity.getInstComplexity());
         generateUserInterface(visitor);
         generateMetaData(visitor);

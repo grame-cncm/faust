@@ -180,15 +180,18 @@ int main(int argc, char* argv[])
     
     QTGUI* interface = new QTGUI();
     FUI finterface;
-    
+
 #ifdef PRESETUI
-    PresetUI pinterface(interface, string(PRESETDIR) + string(name) + ((nvoices > 0) ? "_poly" : ""));
+    string preset_dir = PresetUI::getPresetDir();
+    cout << "Final preset_dir: " << preset_dir << endl;
+    PresetUI::tryCreateDirectory(preset_dir);
+    PresetUI pinterface(interface, preset_dir + "/" + ((nvoices > 0) ? "poly_" : ""));
     DSP->buildUserInterface(&pinterface);
 #else
     DSP->buildUserInterface(interface);
     DSP->buildUserInterface(&finterface);
 #endif
-    
+
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
