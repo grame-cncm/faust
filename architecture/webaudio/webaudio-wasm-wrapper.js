@@ -3334,7 +3334,7 @@ var mydspPolyProcessorString = `
             {
                 for (var i = 0; i < this.fPitchwheelLabel.length; i++) {
                     var pw = this.fPitchwheelLabel[i];
-                    this.setParamValue(path, mydspPolyProcessor.remap(wheel, 0, 16383, pw.min, pw.max));
+                    this.setParamValue(pw.path, mydspPolyProcessor.remap(wheel, 0, 16383, pw.min, pw.max));
                     if (this.output_handler) {
                         this.output_handler(pw.path, this.getParamValue(pw.path));
                     }
