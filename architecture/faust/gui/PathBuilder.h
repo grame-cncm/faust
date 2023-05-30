@@ -134,8 +134,8 @@ class FAUST_API PathBuilder {
             int pnum = 0;
             
             for (const auto& s : fFullPaths) {
-                // Using sprintf since Teensy does not have the std::to_string function
-                sprintf(num_buffer, "%d", pnum++);
+                // Using snprintf since Teensy does not have the std::to_string function
+                snprintf(num_buffer, 16, "%d", pnum++);
                 std::string u = "/P" + std::string(num_buffer) + str2ID(remove0x00(s));
                 uniquePaths.push_back(u);
                 unique2full[u] = s;  // remember the full path associated to a unique path

@@ -205,9 +205,7 @@ void JSFXCodeContainer::produceClass()
           << "function log2(x) (log(x) / log(2)); \n"
           << "function round(N) (0|(N+sign(N)*0.5)); \n"
           << "function rint(x) (round(int32(x))); \n"
-          << "function mod(a,b) (\n"
-          << " a%b;\n"
-          << ");\n"
+          << "function mod(a,b) (a%b); \n"
           << "function remainder(x,y) (\n"
           << " x - (round(x/y)*y);\n"
           << ");\n"
@@ -216,14 +214,14 @@ void JSFXCodeContainer::produceClass()
           << " res = remainder(abs(x), y); \n"
           << " (res < 0) ? res += y; \n" 
           << " (x < 0) ? -res : res; \n" 
-          << "); \n";
+          << ");\n";
     
         *fOut << "/* \n"
           << " * MIDI Constants \n"
           << " */ \n"
           << "CC = 0xB0; \n"
           << "NOTE_ON = 0x90; \n"
-          << "NOTE_OFF = 0x80; \n" ;
+          << "NOTE_OFF = 0x80; \n";
 
     tab(n, *fOut);
     
