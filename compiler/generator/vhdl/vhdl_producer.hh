@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #pragma once
 
 #include "vhdl_code_container.hh"

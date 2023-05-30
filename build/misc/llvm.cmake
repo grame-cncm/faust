@@ -90,6 +90,10 @@ function (scan_backends TARGET FLAG)
 	if (${POS} GREATER -1)
 		backend (VHDL vhdl ${TARGET})
 	endif()
+	string (FIND "${VHDL_BACKEND}" ${FLAG} POS)
+	if (${POS} GREATER -1)
+		backend (VHDL vhdl ${TARGET})
+	endif()
 endfunction()
 
 ####################################
