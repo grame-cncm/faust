@@ -125,6 +125,11 @@
 #include "wast_code_container.hh"
 #endif
 
+#ifdef VHDL_BUILD
+#include "vhdl/vhdl_producer.hh"
+#include "vhdl/vhdl_code_container.hh"
+#endif
+
 using namespace std;
 
 /****************************************************************
@@ -653,6 +658,16 @@ static void compileDlang(Tree signals, int numInputs, int numOutputs, ostream* o
 #endif
 }
 
+static void compileVhdl(Tree signals, int numInputs, int numOutputs, ostream* out)
+{
+#ifdef VHDL_BUILD
+    Signal2VhdlVisitor vhdl_container = Signal2VhdlVisitor(signals, "FAUST", numInputs, numOutputs, out);
+    std::cout << "Compiled VHDL" << std::endl;
+#else
+    throw faustexception("ERROR : -lang vhdl not supported since VHDL backend is not built\n");
+#endif
+}
+
 static void generateCodeAux1(unique_ptr<ostream>& dst)
 {
     if (gGlobal->gArchFile != "") {
@@ -897,6 +912,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileWASM(signals, numInputs, numOutputs, dst.get(), outpath);
     } else if (startWith(gGlobal->gOutputLang, "dlang")) {
         compileDlang(signals, numInputs, numOutputs, dst.get());
+    } else if (startWith(gGlobal->gOutputLang, "vhdl")) {
+        compileVhdl(signals, numInputs, numOutputs, dst.get());
     } else {
         stringstream error;
         error << "ERROR : cannot find backend for "
@@ -916,9 +933,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         generateCodeAux2(dst);
     }
 #endif
+    /*
     else {
         faustassert(false);
     }
+     */
 
     endTiming("generateCode");
 }

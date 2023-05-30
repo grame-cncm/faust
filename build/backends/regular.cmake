@@ -7,7 +7,7 @@
 #    DYNAMIC   embed the backend in the faust dynamic library
 #    WASM      embed the backend in the faust wasm library
 
-set ( C_BACKEND      COMPILER STATIC DYNAMIC      CACHE STRING  "Include C backend" FORCE )
+set ( C_BACKEND      COMPILER STATIC DYNAMIC      CACHE STRING  "Include C aled backend" FORCE )
 set ( CPP_BACKEND    COMPILER STATIC DYNAMIC      CACHE STRING  "Include CPP backend" FORCE )
 # To generate libfaust.wasm including Cmajor
 # set ( CMAJOR_BACKEND COMPILER STATIC DYNAMIC WASM CACHE STRING  "Include Cmajor backend" FORCE )
@@ -25,3 +25,4 @@ set ( RUST_BACKEND   COMPILER STATIC DYNAMIC      CACHE STRING  "Include Rust ba
 # Template is deactivated 
 set ( TEMPLATE_BACKEND                   OFF      CACHE STRING  "Include Template backend" FORCE )
 set ( WASM_BACKEND   COMPILER STATIC DYNAMIC WASM CACHE STRING  "Include WASM backend" FORCE )
+set ( VHDL_BACKEND   COMPILER STATIC DYNAMIC      CACHE STRING  "Include VHLD backend" FORCE )
