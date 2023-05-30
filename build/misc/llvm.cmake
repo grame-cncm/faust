@@ -86,6 +86,10 @@ function (scan_backends TARGET FLAG)
         target_compile_definitions (${TARGET} PRIVATE -D${LLVM_VERSION})
         target_include_directories (${TARGET} PRIVATE ${LLVM_INCLUDE_DIRS})
     endif()
+	string (FIND "${VHDL_BACKEND}" ${FLAG} POS)
+	if (${POS} GREATER -1)
+		backend (VHDL vhdl ${TARGET})
+	endif()
 endfunction()
 
 ####################################

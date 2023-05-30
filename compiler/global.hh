@@ -137,11 +137,6 @@ struct global {
     bool gGraphSwitch;           // -tg option
     bool gDrawPSSwitch;          // -ps option
     bool gDrawSVGSwitch;         // -svg option
-    bool gVHDLSwitch;            // -vhdl option
-    bool gVHDLTrace;             // -vhdl-trace option
-    int  gVHDLFloatType;         // -vhdl-type 0: sfixed(msb downto lsb) or 1: float(msb downto lsb)
-    int  gVHDLFloatMSB;          // -vhdl-msb option
-    int  gVHDLFloatLSB;          // -vhdl-lsb option
     int  gFPGAMemory;            // -fpga-mem option: FPGA block ram max size
     bool gPrintXMLSwitch;        // -xml option
     bool gPrintJSONSwitch;       // -json option
@@ -209,6 +204,8 @@ struct global {
     bool   gComputeMix;            // -cm option, mix in outputs buffers
     bool   gBool2Int;              // Cast bool binary operations (comparison operations) to int
     std::string gNamespace;        // Wrapping namespace used with the C++ backend
+    bool gVHDLTrace;               // -vhdl-trace option
+    bool gVHDLFloatEncoding;       // -vhdl-float, floating point encoding for real numbers
 
     int gWideningLimit;   // Max number of iterations before interval widening
     int gNarrowingLimit;  // Max number of iterations to compute interval widener

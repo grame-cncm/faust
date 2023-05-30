@@ -551,27 +551,24 @@ void global::reset()
     gCodeboxVisitor = nullptr;  // Will be (possibly) allocated in Codebox backend
 #endif
 
-    gHelpSwitch       = false;
-    gVersionSwitch    = false;
-    gLibDirSwitch     = false;
-    gIncludeDirSwitch = false;
-    gArchDirSwitch    = false;
-    gDspDirSwitch     = false;
-    gPathListSwitch   = false;
-    gGraphSwitch      = false;
-    gDrawPSSwitch     = false;
-    gDrawSVGSwitch    = false;
-    gVHDLSwitch       = false;
-    gVHDLTrace        = false;
-    gVHDLFloatType    = 0;  // sfixed
-    gVHDLFloatMSB     = 8;
-    gVHDLFloatLSB     = -23;
-    gFPGAMemory       = 10000;
-    gPrintXMLSwitch   = false;
-    gPrintJSONSwitch  = false;
-    gPrintDocSwitch   = false;
-    gArchFile         = "";
-    gExportDSP        = false;
+    gHelpSwitch        = false;
+    gVersionSwitch     = false;
+    gLibDirSwitch      = false;
+    gIncludeDirSwitch  = false;
+    gArchDirSwitch     = false;
+    gDspDirSwitch      = false;
+    gPathListSwitch    = false;
+    gGraphSwitch       = false;
+    gDrawPSSwitch      = false;
+    gDrawSVGSwitch     = false;
+    gVHDLTrace         = false;
+    gVHDLFloatEncoding = false;
+    gFPGAMemory        = 10000;
+    gPrintXMLSwitch    = false;
+    gPrintJSONSwitch   = false;
+    gPrintDocSwitch    = false;
+    gArchFile          = "";
+    gExportDSP         = false;
 
     gTimeout = 120;  // Time out to abort compiler (in seconds)
 
@@ -766,13 +763,8 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gMathApprox) dst << "-mapp ";
     if (gMathExceptions) dst << "-me ";
     if (gFastMathLib != "") dst << "-fm " << gFastMathLib << " ";
-    if (gVHDLSwitch) {
-        dst << "-vhdl ";
-        if (gVHDLTrace) dst << "-vhdl-trace ";
-        dst << "-vhdl-type " << gVHDLFloatType << " ";
-        dst << "-vhdl-msb " << gVHDLFloatMSB << " ";
-        dst << "-vhdl-lsb " << gVHDLFloatLSB << " ";
-    }
+    if (gVHDLTrace) dst << "-vhdl-trace";
+    if (gVHDLFloatEncoding) dst << "-vhdl-float";
     if (gClassName != "mydsp") dst << "-cn " << gClassName << " ";
     if (gSuperClassName != "dsp") dst << "-scn " << gSuperClassName << " ";
     if (gProcessName != "process") dst << "-pn " << gProcessName << " ";
@@ -1143,27 +1135,15 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-svg", "--svg")) {
             gDrawSVGSwitch = true;
             i += 1;
-            
-        } else if (isCmd(argv[i], "-vhdl", "--vhdl")) {
-            gVHDLSwitch = true;
-            i += 1;
-            
+
         } else if (isCmd(argv[i], "-vhdl-trace", "--vhdl-trace")) {
             gVHDLTrace = true;
             i += 1;
             
-        } else if (isCmd(argv[i], "-vhdl-type", "--vhdl-type") && (i + 1 < argc)) {
-            gVHDLFloatType = std::atoi(argv[i + 1]);
-            i += 2;
-            
-        } else if (isCmd(argv[i], "-vhdl-msb", "--vhdl-msb") && (i + 1 < argc)) {
-            gVHDLFloatMSB = std::atoi(argv[i + 1]);
-            i += 2;
-            
-        } else if (isCmd(argv[i], "-vhdl-lsb", "--vhdl-lsb") && (i + 1 < argc)) {
-            gVHDLFloatLSB = std::atoi(argv[i + 1]);
-            i += 2;
-            
+        } else if (isCmd(argv[i], "-vhdl-float", "--vhdl-float") && (i + 1 < argc)) {
+            gVHDLFloatEncoding = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-fpga-mem", "-fpga-mem") && (i + 1 < argc)) {
             gFPGAMemory = std::atoi(argv[i + 1]);
             i += 2;
