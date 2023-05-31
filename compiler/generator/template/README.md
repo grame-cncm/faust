@@ -59,14 +59,6 @@ In the header part of the file:
 #endif
 ```
 
-In the `enumBackends` function:
-
-```c++
-#ifdef TEMPLATE_BUILD
-    out << dspto << "Template" << endl;
-#endif
-```
-
 With the following kind of code to create the backend:
 
 ```c++
@@ -99,6 +91,14 @@ To be added in `generateCode` function with a new `temp` flag to be used in the 
 else if (gGlobal->gOutputLang == "temp") {
     compileTemplate(signals, numInputs, numOutputs, dst.get());
 }
+```
+
+In the `enumBackends` function in the `global.cpp` file:
+
+```c++
+#ifdef TEMPLATE_BUILD
+    out << dspto << "Template" << endl;
+#endif
 ```
 
 The `-lang` option in the `printHelp` documentation function has to be manually adapted.
