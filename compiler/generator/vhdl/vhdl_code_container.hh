@@ -93,6 +93,22 @@ class Signal2VhdlVisitor : public SignalVisitor {
     std::vector<VhdlValue> fOutputs;
     std::ostream* fOutput;
 
+    /** Useful for generating readable code */
+    // TODO: Allow this to be disabled?
+    int fIndentLevel = 0;
+
+    /** Returns a string representing the current indentation level */
+    std::ostream& output() {
+        *fOutput << std::string(fIndentLevel, '\t');
+        return *fOutput;
+    }
+    void startBlock() {
+        fIndentLevel++;
+    }
+    void endBlock() {
+        if (fIndentLevel > 0) fIndentLevel--;
+    }
+
     /** Checks whether reals should encoded using fixed or floating point arithmetic */
     bool usingFloatEncoding() { return gGlobal->gVHDLFloatEncoding; }
 
@@ -106,7 +122,7 @@ class Signal2VhdlVisitor : public SignalVisitor {
      */
     void genDependencies()
     {
-        *fOutput
+        output()
             << "library ieee;" << std::endl
             << "use ieee.std_logic_1164.all;" << std::endl
             << "use ieee.numeric_std.all;" << std::endl
@@ -116,9 +132,9 @@ class Signal2VhdlVisitor : public SignalVisitor {
 
         // Include the right package for real numbers encoding
         if (usingFloatEncoding()) {
-            *fOutput << "use work.float_pkg.all;" << std::endl;
+            output() << "use work.float_pkg.all;" << std::endl;
         } else {
-            *fOutput << "use work.fixed_pkg.all;" << std::endl;
+            output() << "use work.fixed_pkg.all;" << std::endl;
         }
     }
 
@@ -130,66 +146,83 @@ class Signal2VhdlVisitor : public SignalVisitor {
     // Entities
     void startEntity(const std::string& name)
     {
-        *fOutput << "entity " << name << " is" << std::endl;
+        output() << "entity " << name << " is" << std::endl;
+        startBlock();
     }
     void endEntity(const std::string& name)
     {
-        *fOutput << "end " << name << ";" << std::endl;
+        endBlock();
+        output() << "end " << name << ";" << std::endl;
     }
 
     // Architecture
     void startArchitecture(const std::string& name, const std::string& target) {
-        *fOutput << "architecture " << name << " of " << target << " is" << std::endl;
+        output() << "architecture " << name << " of " << target << " is" << std::endl;
+        startBlock();
     }
     void endArchitecture(const std::string& name) {
-        *fOutput << "end architecture " << name << ";" << std::endl;
+        endBlock();
+        output() << "end architecture " << name << ";" << std::endl;
     }
 
     // Processes
     // TODO: Add support for variables and constant declarations
     void startProcess(std::initializer_list<std::string> args) {
-        *fOutput << "begin process(";
+        output() << "begin process(";
         for (auto arg_name = args.begin(); arg_name != args.end() - 1; ++arg_name) {
-            *fOutput << *arg_name << ", ";
+            output() << *arg_name << ", ";
         }
-        *fOutput << *(args.end() - 1) << ")" << std::endl << "begin" << std::endl;
+        output() << *(args.end() - 1) << ")" << std::endl << "begin" << std::endl;
+        startBlock();
     }
     void endProcess() {
-        *fOutput << "end process;" << std::endl;
+        endBlock();
+        output() << "end process;" << std::endl;
     }
     void genFaustProcess(Tree signal) {
         // First part is the reset input
-        *fOutput << "if (ap_rst_n = '0') then" << std::endl;
+        output() << "if (ap_rst_n = '0') then" << std::endl;
+        startBlock();
         for (auto output_port : fOutputs) {
-            *fOutput << output_port.resetStatement() << std::endl;
+            output() << output_port.resetStatement() << std::endl;
         }
+        endBlock();
 
         // Main faust process
-        *fOutput << "elsif (ap_clk'event and ap_clk = '1') then" << std::endl;
-        *fOutput << "if (ap_start = '1') then" << std::endl;
+        output() << "elsif (ap_clk'event and ap_clk = '1') then" << std::endl;
+        startBlock();
+        output() << "if (ap_start = '1') then" << std::endl;
+        startBlock();
         visitRoot(signal);
-        *fOutput << "out_left_V_ap_vld <= '1';" << std::endl;
-        *fOutput << "out_right_V_ap_vld <= '1';" << std::endl;
-        *fOutput << "ap_done <= '1';" << std::endl;
-        *fOutput << "else" << std::endl;
-        *fOutput << "out_left_V_ap_vld <= '0';" << std::endl;
-        *fOutput << "out_right_V_ap_vld <= '0';" << std::endl;
-        *fOutput << "ap_done <= '0';" << std::endl;
-        *fOutput << "end if;" << std::endl;
-        *fOutput << "end if;" << std::endl;
+        output() << "out_left_V_ap_vld <= '1';" << std::endl;
+        output() << "out_right_V_ap_vld <= '1';" << std::endl;
+        output() << "ap_done <= '1';" << std::endl;
+        endBlock();
+        output() << "else" << std::endl;
+        startBlock();
+        output() << "out_left_V_ap_vld <= '0';" << std::endl;
+        output() << "out_right_V_ap_vld <= '0';" << std::endl;
+        output() << "ap_done <= '0';" << std::endl;
+        endBlock();
+        output() << "end if;" << std::endl;
+        endBlock();
+        output() << "end if;" << std::endl;
     }
 
     // Ports
     void genPortsBlock(std::initializer_list<VhdlPort> ports)
     {
-        *fOutput << "port (" << std::endl;
+        output() << "port (" << std::endl;
+        startBlock();
         for (auto port = ports.begin(); port != ports.end() - 1; ++port) {
             registerPort(port);
-            *fOutput << port->name << ": " << port->mode << ' ' << port->type << ';' << std::endl;
+            output() << port->name << ": " << port->mode << ' ' << port->type << ';' << std::endl;
         }
         auto final_port = ports.end() - 1;
         registerPort(final_port);
-        *fOutput << final_port->name << ": " << final_port->mode << ' ' << final_port->type << std::endl << ");" << std::endl;
+        output() << final_port->name << ": " << final_port->mode << ' ' << final_port->type << std::endl;
+        endBlock();
+        std::cout << ");" << std::endl;
     }
     void registerPort(const VhdlPort* port)
     {
@@ -226,14 +259,14 @@ class Signal2VhdlVisitor : public SignalVisitor {
         genSignal("sig" + std::to_string(fSignalsCount++), type);
     }
     void genSignal(const std::string& name, VhdlType type) {
-        *fOutput << "signal " << name << ": " << type << ";" << std::endl;
+        output() << "signal " << name << ": " << type << ";" << std::endl;
     }
     void genSignal(const std::string& name, VhdlType type, int default_value) {
-        *fOutput << "signal " << name << ": " << type << " := " << default_value << ";" << std::endl;
+        output() << "signal " << name << ": " << type << " := " << default_value << ";" << std::endl;
     }
 
     void genConstant(const std::string& name, VhdlType type, int value) {
-        *fOutput << "constant " << name << ": " << type << " := " << value << ';' << std::endl;
+        output() << "constant " << name << ": " << type << " := " << value << ';' << std::endl;
     }
 
     void genVariable() {} // TODO: Very similar to signal in declaration
@@ -243,16 +276,16 @@ class Signal2VhdlVisitor : public SignalVisitor {
      */
      /*
      void genRange(int sig_nature) {
-         *fOutput << "(" << getTypeMSB(sig_nature) << " downto " << getTypeLSB(sig_nature) << ")";
+         output() << "(" << getTypeMSB(sig_nature) << " downto " << getTypeLSB(sig_nature) << ")";
      }
      void genTypeSuffix(int sig_nature) {
-         *fOutput << '_';
+         output() << '_';
          if (sig_nature == kReal && usingFloatEncoding()) {
-             *fOutput << "float";
+             output() << "float";
          } else if (sig_nature == kReal) {
-             *fOutput << "sfixed";
+             output() << "sfixed";
          } else {
-             *fOutput << "int";
+             output() << "int";
          }
      }
       */
@@ -288,7 +321,7 @@ class Signal2VhdlVisitor : public SignalVisitor {
         // Input/Output
         // TODO: Affect signal to the given input/output
         else if (isSigInput(signal, &integer_value)) {
-            *fOutput << nextUnassignedOutput() << " <= " << fInputs[integer_value].name << ";" << std::endl;
+            output() << nextUnassignedOutput() << " <= " << fInputs[integer_value].name << ";" << std::endl;
         } else if (isSigOutput(signal, &integer_value, x)) {
             // NOTE: Previous implementer says this is never reached
         }
@@ -307,7 +340,7 @@ class Signal2VhdlVisitor : public SignalVisitor {
             const std::string BINARY_OPERATORS_TABLE[] = {"+", "-",  "*",  "/", "MOD", "SLL", "SRA", "SRL", ">",
                                                      "<", ">=", "<=", "=", "/=",  "AND", "OR",  "XOR"};
             self(x);
-            *fOutput << " " << BINARY_OPERATORS_TABLE[op_kind] << " ";
+            output() << " " << BINARY_OPERATORS_TABLE[op_kind] << " ";
             self(y);
         }
 
