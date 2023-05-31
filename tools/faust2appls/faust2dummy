@@ -30,7 +30,7 @@ MIDIDEFS=""
 if [[ $(uname) == Darwin ]]; then
     ARCHLIB="`pkg-config --cflags --static --libs sndfile` -framework CoreServices -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit"
 else
-    ARCHLIB="`pkg-config --cflags --libs alsa sndfile` -lpthread"
+    ARCHLIB="`pkg-config --cflags --libs alsa sndfile` -pthread"
 fi
 
 echoHelp()

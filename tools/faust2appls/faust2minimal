@@ -17,7 +17,7 @@
 . usage.sh
 
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
-LIBADD+=" -lpthread"
+LIBADD+=" -pthread"
 
 # The architecture file name
 ARCHFILE=$FAUSTARCH/minimal.cpp

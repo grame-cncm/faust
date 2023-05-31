@@ -29,7 +29,7 @@ LOG="/dev/null"
 OSC_CFLAGS=""
 OSC_LIBFLAGS=""
 JACK_LIBRARIES_FLAGS="\`pkg-config --cflags --libs jack sndfile\`"
-ALSA_LIBRARIES_FLAGS="\`pkg-config --cflags --libs alsa\` -lpthread"
+ALSA_LIBRARIES_FLAGS="\`pkg-config --cflags --libs alsa\` -pthread"
 COREAUDIO_LIBRARIES_FLAGS="\`pkg-config --cflags --static --libs sndfile\` -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
 # TODO: missing rtaudio, portaudio, etc.
 
@@ -81,7 +81,7 @@ do
     elif [ "$p" = "-osc" ]; then
         OSC="-osc"
         OSC_CFLAGS="-DOSCCTR"
-        OSC_LIBFLAGS="-lOSCFaust -lpthread"
+        OSC_LIBFLAGS="-lOSCFaust -pthread"
     elif [ "$p" = "-debug" ]; then
         LOG="/dev/stdout"
     elif [ "$p" = "-source" ]; then
