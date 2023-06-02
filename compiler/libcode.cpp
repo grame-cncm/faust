@@ -127,7 +127,6 @@
 
 #ifdef VHDL_BUILD
 #include "vhdl/vhdl_producer.hh"
-#include "vhdl/vhdl_code_container.hh"
 #endif
 
 using namespace std;
@@ -661,7 +660,16 @@ static void compileDlang(Tree signals, int numInputs, int numOutputs, ostream* o
 static void compileVhdl(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef VHDL_BUILD
-    Signal2VhdlVisitor vhdl_container = Signal2VhdlVisitor(signals, "FAUST", numInputs, numOutputs, out);
+    // TODO: Find a better way to simply use prepare(signals)
+    container                     = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    if (gGlobal->gVectorSwitch) {
+        new_comp = new DAGInstructionsCompiler(container);
+    } else {
+        new_comp = new InstructionsCompiler1(container);
+    }
+    signals = new_comp->prepare(signals);
+
+    VhdlProducer vhdl_prod = VhdlProducer(signals, "FAUST", numInputs, numOutputs, *out);
     std::cout << "Compiled VHDL" << std::endl;
 #else
     throw faustexception("ERROR : -lang vhdl not supported since VHDL backend is not built\n");
