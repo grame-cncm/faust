@@ -8,7 +8,7 @@ Polyphonic synthesiser can be created using JUCE Synthesiser model or Faust own 
 
  - `JuceGUI.h`: contains the main JuceGUI class (and additional helpers classes) to display Faust UI components (buttons, sliders, bargraphs...) using JUCE widgets. The following `[style:knob]`, `[style:led]`, `[style:numerical]`, `[style:radio]`, `[style:menu]`, `[scale:log]`, `[scale:exp]`, `[tooltip:xx]`, `[hidden:0|1]` metadata are supported.
  - `JuceOSCUI.h`: allows to link Faust UI components (buttons, sliders, bargraphs...) to the JUCE OSC messaging system, allowing to control them in both directions
- - `JuceParameterUI.h`: allows to link Faust UI components (buttons, sliders, bargraphs...) with the JUCE AudioParameterFloat/AudioParameterFloat classes
+ - `JuceParameterUI.h`: allows to link Faust UI components (buttons, sliders, bargraphs...) with the JUCE AudioParameterFloat/AudioParameterBool classes
  - `JuceStateUI.h`: allows to save/restore Faust UI components (buttons, sliders, bargraphs...) values using the JUCE state management system (MemoryInputStream/MemoryOutputStream classes)
 
 Some additional files are needed for soundfile and MIDI support:

@@ -540,7 +540,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                     tab(fTab + 1, JSON);
                     JSON << "\"binop\": [{ ";
                     JSON << "\"total\": " << fIComp.fBinop;
-                    int size1 = fIComp.fBinopSymbolTable.size();
+                    int size1 = (int)fIComp.fBinopSymbolTable.size();
                     if (size1 > 0) {
                         JSON << ", ";
                         for (const auto& it : fIComp.fBinopSymbolTable) {
