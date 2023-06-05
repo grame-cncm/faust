@@ -8,6 +8,8 @@
 //-------------------------VhdlProducer---------------------------
 // Transforms a signal into semantically equivalent VHDL code
 //----------------------------------------------------------------------
+typedef std::vector<int> Retiming;
+const int SAMPLE_RATE = 24000;
 
 class VhdlProducer : public SignalVisitor {
    private:
@@ -19,6 +21,7 @@ class VhdlProducer : public SignalVisitor {
 
         Vertex(const Tree& signal)
             : node(signal->node()), node_hash(signal->hashkey()), propagation_delay(1) {};
+
         Vertex(const Tree& signal, bool is_input): node(signal->node()), node_hash(signal->hashkey()), propagation_delay(1) {
             int i;
             Tree group;
@@ -55,7 +58,7 @@ class VhdlProducer : public SignalVisitor {
     {
         // Step 1: Convert the input signal to a weighted circuit graph
         visitRoot(_signal);
-
+        std::cout << "transformation to graph: " << std::endl;
         for (int i = 0; i < _vertices.size(); ++i) {
             std::cout << i << ": " << _vertices[i].node << " (" << _vertices[i].node_hash << ')' << std::endl;
 
@@ -63,11 +66,18 @@ class VhdlProducer : public SignalVisitor {
                 std::cout << "\t" << e.target << ", " << e.register_count << " registers" << std::endl;
             }
         }
-        std::cout << "done" << std::endl;
+        std::cout <<  std::endl << "=============================" << std::endl << std::endl;
 
         // Step 2: Optimize the graph
-        std::cout << "minimal feasible clock period " << minFeasibleClockPeriod() << std::endl;
         optimize();
+        std::cout << "after optimization: " << std::endl;
+        for (int i = 0; i < _vertices.size(); ++i) {
+            std::cout << i << ": " << _vertices[i].node << " (" << _vertices[i].node_hash << ')' << std::endl;
+
+            for (auto e : _edges[i]) {
+                std::cout << "\t" << e.target << ", " << e.register_count << " registers" << std::endl;
+            }
+        }
 
         // Step 3: Generate VHDL code structure from the resulting graph
         generate();
@@ -91,13 +101,21 @@ class VhdlProducer : public SignalVisitor {
     void retime();
 
     /** Computes the minimal feasible clock period of the current circuit */
-    int minFeasibleClockPeriod();
+    std::vector<int> minFeasibleClockPeriod();
 
     /** Computes the W and D matrices, with
      * W[i][j] = minimum weight (i.e registers count) from i to j -> critical path
      * D[i][j] = maximum propagation delay along the critical path from i to j
      */
      void computeWeightDelayInformation();
+
+     /** Given a clock period c, returns a retiming of the circuit with clock period
+      * less than c if it exists
+      */
+     std::optional<Retiming> findRetiming(int target_clock_period);
+
+     /** Applies a given retiming to the circuit, assuming said retiming is legal */
+     void applyRetiming(const Retiming& retiming);
 
     /** HELPER FUNCTIONS */
     std::optional<int> searchNode(const size_t hash) const {

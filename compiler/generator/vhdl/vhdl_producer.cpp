@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <functional>
 
+// Retiming values for each vertex
+typedef std::vector<int> Retiming;
 
 void VhdlProducer::visit(Tree signal)
 {
@@ -15,8 +17,6 @@ void VhdlProducer::visit(Tree signal)
         return;
     }
 
-    signal->setVisited();
-
     int     i;
     int64_t i64;
     double  r;
@@ -28,8 +28,8 @@ void VhdlProducer::visit(Tree signal)
         // need to create two edges at once
         _visit_stack.push(-vertex_id);
         _virtual_io_stack.push(vertex_id + 1);
-        _vertices.push_back(Vertex(signal, true));
         _vertices.push_back(Vertex(signal, false));
+        _vertices.push_back(Vertex(signal, true));
         _edges.push_back({});
         _edges.push_back({});
         self(x);
@@ -176,20 +176,26 @@ void VhdlProducer::visit(Tree signal)
     _visit_stack.pop();
     if (!_visit_stack.empty()) {
         auto last_visited = _visit_stack.top();
-        _edges[vertex_id].push_back(Edge(abs(last_visited), 0, _vertices[vertex_id].propagation_delay));
+        int register_count = _vertices[abs(last_visited)].node.getSym() == gGlobal->SIGOUTPUT ? SAMPLE_RATE : 0;
+        _edges[vertex_id].push_back(Edge(abs(last_visited), register_count, _vertices[vertex_id].propagation_delay));
         // Recursive virtual nodes
         if (last_visited < 0) {
             _visit_stack.pop();
             _edges[vertex_id].push_back(Edge(_visit_stack.top(), 0, _vertices[vertex_id].propagation_delay));
             _visit_stack.push(last_visited);
         }
+    } else {
+        // We're at a root node, which means it is an output
+        int output_id = _vertices.size();
+        _vertices.push_back(Vertex(signal, false));
+        _edges[vertex_id].push_back(Edge(output_id, SAMPLE_RATE, _vertices[vertex_id].propagation_delay));
     }
 }
 
 
 void VhdlProducer::optimize()
 {
-
+    retime();
 }
 
 void VhdlProducer::generate()
@@ -200,6 +206,32 @@ void VhdlProducer::generate()
 /**
  * RETIMING
  */
+
+void VhdlProducer::retime()
+{
+    // TODO: First compute W and D matrices to determine max_d
+    int max_d = 20;
+
+    // Use binary search to find a legal retiming of minimal clock period
+    int l = 0, r = max_d, m;
+    Retiming best_retiming = std::vector<int>(_vertices.size(), 0);
+    while (l <= r) {
+        m = l + (r - l) / 2;
+
+        // If a retiming of clock period <= m is possible, we keep searching in the lower
+        // half if any lower value of m is also feasible
+        // Otherwise, we search for the other half
+        auto retiming = findRetiming(m);
+        if (retiming.has_value()) {
+            best_retiming = retiming.value();
+            r = m - 1;
+        } else {
+            l = m + 1;
+        }
+    }
+
+    applyRetiming(best_retiming);
+}
 
 std::vector<int> topologicalOrdering(int vertices, const std::vector<std::vector<int>>& edges) {
     std::vector<int> stack;
@@ -227,7 +259,7 @@ std::vector<int> topologicalOrdering(int vertices, const std::vector<std::vector
     return stack;
 }
 
-int VhdlProducer::minFeasibleClockPeriod() {
+std::vector<int> VhdlProducer::minFeasibleClockPeriod() {
     // We first remove edges with weight > 0
     std::vector<std::vector<int>> zero_edges;
     for (auto vertex_edges : _edges) {
@@ -273,10 +305,54 @@ int VhdlProducer::minFeasibleClockPeriod() {
         }
     }
 
-    return max_propagation_delay;
+    return propagation_delay;
 }
 
 void VhdlProducer::computeWeightDelayInformation()
 {
+    // This is done through the use of the Floyd-Warshall algorithm
+    // for all-pairs shortest path
 
+}
+
+std::optional<Retiming> VhdlProducer::findRetiming(int target_clock_period)
+{
+    // Set current retime to 0 for all nodes
+    Retiming retiming = std::vector<int>(_vertices.size(), 0);
+    auto saved_edges = _edges;
+
+    // Repeat |V| - 1 times
+    for (int i = 0; i < _vertices.size(); ++i) {
+        applyRetiming(retiming);
+        auto propagation_delays = minFeasibleClockPeriod();
+        for (int j = 0; j < _vertices.size(); ++j) {
+            if (propagation_delays[j] > target_clock_period) {
+                retiming[j] += 1;
+            }
+        }
+    }
+
+    // Finally, check the minimal clock period of G_r for the final retiming
+    // If said clock period is greater than `target_clock_period`, no legal retiming
+    // can satisfy the target clock period
+    applyRetiming(retiming);
+    auto propagation_delays = minFeasibleClockPeriod();
+    _edges = saved_edges;
+
+    int max_propagation_delay = *std::max_element(std::begin(propagation_delays), std::end(propagation_delays));
+    if (max_propagation_delay > target_clock_period) {
+        return std::nullopt;
+    } else {
+        return std::make_optional(retiming);
+    }
+}
+
+void VhdlProducer::applyRetiming(const Retiming& retiming)
+{
+    // TODO: clean this up
+    for (int i = 0; i < _vertices.size(); ++i) {
+        for (int j = 0; j < _edges[i].size(); ++j) {
+            _edges[i][j].register_count += retiming[_edges[i][j].target] - retiming[i];
+        }
+    }
 }
