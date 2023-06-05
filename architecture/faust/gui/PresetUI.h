@@ -30,14 +30,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <climits>
-
-#if __cplusplus < 201703L // If the version of C++ is less than 17
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
-#else
-#include <filesystem>
-namespace fs = std::filesystem;
-#endif
+#include <sys/stat.h>
 
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/FUI.h"
@@ -257,18 +250,17 @@ class PresetUI : public DecoratorUI {
         fUI->declare(zone, key, val);
         fFileUI.declare(zone, key, val);
     }
-  
-    static bool tryCreateDirectory(const std::string& dir_option)
+      
+    static bool tryCreateDirectory(const std::string& out_dir)
     {
-        if (dir_option.size() > 0) {
-            fs::path path_option(dir_option);
-            if (!fs::exists(path_option)) {
-                try {
-                    fs::create_directories(path_option);
-                    std::cout << "Directory created: " << path_option << std::endl;
+        if (out_dir.size() > 0) {
+            struct stat stat_buffer;
+            if (stat(out_dir.c_str(), &stat_buffer) != 0) {
+                if (mkdir(out_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0) {
+                    std::cout << "Directory created: " << out_dir << std::endl;
                     return true;
-                } catch(const fs::filesystem_error& e) {
-                    std::cerr << "Error creating directory: " << e.what() << std::endl;
+                } else {
+                    std::cerr << "Error creating directory: " << strerror(errno) << std::endl;
                 }
             } else {
                 return true;
@@ -301,9 +293,9 @@ class PresetUI : public DecoratorUI {
         }
         
         // Interpret what the user gave us as a path
-        fs::path preset_path(PRESETDIR);
+        struct stat stat_buffer;
         // See if that path exists and is a directory
-        if (fs::exists(preset_path) && fs::is_directory(preset_path)) {
+        if (stat(PRESETDIR, &stat_buffer) == 0 && S_ISDIR(stat_buffer.st_mode)) {
             std::cout << "Directory " << PRESETDIR << " exists and is a valid directory." << std::endl;
             // We are done
             return appendSlashIfMissing(PRESETDIR);
