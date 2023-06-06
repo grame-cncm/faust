@@ -490,7 +490,14 @@ Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size_aux, Tree 
         error << "ERROR : RDTbl size = " << size << " should be > 0 \n";
         throw faustexception(error.str());
     }
-    interval ri_i = getCertifiedSigType(ri)->getInterval();
+    Type ty = getSigType(ri);
+    interval ri_i;
+    // The tree may not be properly typed because of a inner safeSigRDTbl/safeSigWRTbl call
+    if (ty) {
+        ri_i = ty->getInterval();
+    } else {
+        ri_i = interval(INT32_MIN, INT32_MAX);
+    }
     if (ri_i.lo() < 0 || ri_i.hi() >= size) {
         if (gAllWarning) {
             stringstream error;
@@ -513,7 +520,14 @@ Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree size_aux, Tree gen, Tree 
         error << "ERROR : WRTbl size = " << size << " should be > 0 \n";
         throw faustexception(error.str());
     }
-    interval wi_i = getCertifiedSigType(wi)->getInterval();
+    Type ty = getSigType(wi);
+    interval wi_i;
+    // The tree may not be properly typed because of a inner safeSigRDTbl/safeSigWRTbl call
+    if (ty) {
+        wi_i = ty->getInterval();
+    } else {
+        wi_i = interval(INT32_MIN, INT32_MAX);
+    }
     if (wi_i.lo() < 0 || wi_i.hi() >= size) {
         if (gAllWarning) {
             stringstream error;

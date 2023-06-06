@@ -50,8 +50,7 @@ using namespace std;
 // prototypes
 //--------------------------------------------------------------------------
 
-void               setSigType(Tree sig, Type t);
-static Type        getSigType(Tree sig);
+static void        setSigType(Tree sig, Type t);
 static TupletType* initialRecType(Tree t);
 static TupletType* maximalRecType(Tree t);
 
@@ -373,7 +372,7 @@ static void annotationStatistics()
  * @param sig the signal we want to type
  * @param t the type of the signal
  */
-void setSigType(Tree sig, Type t)
+static void setSigType(Tree sig, Type t)
 {
     TRACE(cerr << gGlobal->TABBER << "SET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE) << " TO TYPE " << *t << endl;)
     sig->setType(t);
@@ -383,7 +382,7 @@ void setSigType(Tree sig, Type t)
  * Retrieve the type annotation of sig
  * @param sig the signal we want to know the type
  */
-static Type getSigType(Tree sig)
+Type getSigType(Tree sig)
 {
     AudioType* ty = (AudioType*)sig->getType();
     if (ty == nullptr) {
