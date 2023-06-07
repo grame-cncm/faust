@@ -14,6 +14,8 @@ const int SAMPLE_RATE = 24000;
 class VhdlProducer : public SignalVisitor {
    private:
     struct Vertex {
+        static int input_counter;
+        static int output_counter;
         Node node;
         size_t node_hash;
 
@@ -25,9 +27,10 @@ class VhdlProducer : public SignalVisitor {
         Vertex(const Tree& signal, bool is_input): node(signal->node()), node_hash(signal->hashkey()), propagation_delay(1) {
             int i;
             Tree group;
-            if (isProj(signal, &i, group)) {
-                node = is_input ? sigInput(i)->node() : sigOutput(i, signal)->node();
+            if (!isProj(signal, &i, group)) {
+                i = is_input ? input_counter++ : output_counter++;
             }
+            node = is_input ? sigInput(i)->node() : sigOutput(i, signal)->node();
         }
     };
 
@@ -93,6 +96,14 @@ class VhdlProducer : public SignalVisitor {
 
     /** Generates the VHDL code corresponding to the graph representation */
     void generate();
+
+    /**
+     * CODE GENERATION
+     */
+    void declare_dependencies();
+    void generate_entities();
+    void instantiate_components();
+    void map_ports();
 
     /**
      * RETIMING
