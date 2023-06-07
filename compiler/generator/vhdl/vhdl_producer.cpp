@@ -2,6 +2,9 @@
 #include <algorithm>
 #include <functional>
 
+int VhdlProducer::Vertex::input_counter = 0;
+int VhdlProducer::Vertex::output_counter = 0;
+
 // Retiming values for each vertex
 typedef std::vector<int> Retiming;
 
@@ -172,7 +175,6 @@ void VhdlProducer::visit(Tree signal)
         //cerr << __FILE__ << ":" << __LINE__ << " ASSERT : unrecognized signal : " << *sig << endl;
     }
 
-
     _visit_stack.pop();
     if (!_visit_stack.empty()) {
         auto last_visited = _visit_stack.top();
@@ -188,6 +190,7 @@ void VhdlProducer::visit(Tree signal)
         // We're at a root node, which means it is an output
         int output_id = _vertices.size();
         _vertices.push_back(Vertex(signal, false));
+        _edges.push_back({});
         _edges[vertex_id].push_back(Edge(output_id, SAMPLE_RATE, _vertices[vertex_id].propagation_delay));
     }
 }
@@ -200,7 +203,32 @@ void VhdlProducer::optimize()
 
 void VhdlProducer::generate()
 {
-    // TODO
+    declare_dependencies();
+    generate_entities();
+    instantiate_components();
+    map_ports();
+
+    // Output to file
+}
+
+/**
+ * CODE GENERATION
+ */
+void VhdlProducer::declare_dependencies()
+{
+
+}
+void VhdlProducer::generate_entities()
+{
+
+}
+void VhdlProducer::instantiate_components()
+{
+
+}
+void VhdlProducer::map_ports()
+{
+
 }
 
 /**
