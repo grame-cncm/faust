@@ -50,7 +50,10 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
             } else {
                 inst->fAddress->accept(this);
                 *fOut << " = ";
-                ZeroInitializer(fOut, inst->fType);
+                if(inst->fAddress->isStruct()) 
+                    ZeroInitializer(fOut, inst->fType, inst->fAddress->getName());    
+                else        
+                    MemoryAllocInitializer(fOut, inst->fType);
                 *fOut << ";\n";
             }
         }
@@ -59,16 +62,26 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     virtual void visit(NamedAddress* named)
     {
         if (named->getAccess() & Address::kStruct) {
-            *fOut << "this.";
+            *fOut << "obj[dsp.";
         }
         *fOut << named->fName;
+        if (named->getAccess() & Address::kStruct) {
+        *fOut << "]";
+        }
     }
     
-    static void ZeroInitializer(std::ostream* fOut, Typed* typed)
+    static void MemoryAllocInitializer(std::ostream* fOut, Typed* typed) 
     {
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
         faustassert(array_type);
         *fOut << "MEMORY.alloc_memory(" << array_type->fSize << ")";
+
+    }
+    static void ZeroInitializer(std::ostream* fOut, Typed* typed, std::string name)
+    {
+        ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
+        faustassert(array_type);
+        *fOut << "memset( obj[dsp." << name << "], 0, " << array_type->fSize << ")";
     }
     
     // Needed for waveforms
@@ -82,6 +95,17 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     
     virtual void visit(FloatArrayNumInst* inst)
     {
+        /*
+        if(fCurArray.find("dsp.") != fCurArray.npos)
+        {
+            for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+                *fOut << fCurArray << "+" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
+            }
+            
+            *fOut <<  "\n";
+            return;
+        }
+        */
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << fCurArray << "[" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
         }
@@ -90,6 +114,16 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     
     virtual void visit(DoubleArrayNumInst* inst)
     {
+        /*
+        if(fCurArray.find("dsp.") != fCurArray.npos)
+        {
+            for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+                *fOut << fCurArray << "+" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
+            }
+
+            *fOut <<  "\n";
+            return;
+        }*/
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << fCurArray << "[" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
         }
@@ -111,9 +145,18 @@ struct JSFXMidiInstr {
     int channel = -1;
 };
 
+
+enum class JSFXMIDIScaleType {
+    key=0,
+    freq=1,
+    gain=2,
+    veloc=3,
+    gate=4
+};
+
 struct JSFXMidiScale {
     double init, min, max, step;
-
+    JSFXMIDIScaleType type;
     double limit(double val)
     {
         if(val > max) return max;
@@ -127,6 +170,13 @@ struct JSFXMidiScale {
         double incr = step * int(val);
         return limit(min + incr);
     }
+
+    static JSFXMidiScale MIDI7bScale(int ini, JSFXMIDIScaleType t) {
+        JSFXMidiScale s = {double(ini), 0, 127, 1, t};
+        double i = s.limit(s.init);
+        s.init = i;
+        return s;
+    }
 };
 
 /*
@@ -137,6 +187,7 @@ struct JSFXMidiScale {
 class JSFXInstVisitor : public TextInstVisitor {
    private:
     
+    
     /*
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
@@ -144,6 +195,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     static map<string, bool> gFunctionSymbolTable;
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable; 
+    
     
     // Global count for sliders
     size_t slider_count = 0;
@@ -153,6 +205,8 @@ class JSFXInstVisitor : public TextInstVisitor {
     std::unordered_map<std::string, JSFXMidiScale> _midi_scales;
 
    public:
+    bool poly = false;
+    int nvoices = 1;
     using TextInstVisitor::visit;
 
     JSFXInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
@@ -401,7 +455,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     // To implement (in @block)
     void generateMIDIInstructions()
     {
-        if (_midi_instructions.size() > 0) {
+        if (_midi_instructions.size() > 0 || poly) {
             std::vector<JSFXMidiInstr> keyons, keyoffs, ccs;
             for (auto & midi_str : _midi_instructions) {
                 JSFXMidiInstr it = parseMIDIInstruction(midi_str.first, midi_str.second);
@@ -410,17 +464,19 @@ class JSFXInstVisitor : public TextInstVisitor {
                     keyoffs.push_back(it);
                 } else if(it.type_name == std::string("keyon")) {
                     keyons.push_back(it);
-                } else if(it.type_name == std::string("keyoff")) {
+                } else if(it.type_name == std::string("keyoff") && !poly) {
                     keyoffs.push_back(it);
-                } else if(it.type_name == std::string("ctrl")) {
+                } else if(it.type_name == std::string("ctrl") && !poly) {
                     ccs.push_back(it);
                 }
             }
+            *fOut << "midi_event = 0; \n";
             *fOut << "while (midirecv(mpos, msg1, msg2, msg3)) ( \n";
             *fOut << "status = msg1&0xF0; \n" << "channel = msg1&0x0F; \n";
             if(ccs.size() > 0) {
                 *fOut << "(status == CC) ? ( \n";
                 for (auto & cc : ccs) {
+                    *fOut << "midi_event += 1; \n";
                     JSFXMidiScale scale = _midi_scales[cc.variable_name];
                     *fOut << "(msg2 == 0x" << std::hex << cc.nbr;
                     if (cc.channel >= 0) {
@@ -433,6 +489,7 @@ class JSFXInstVisitor : public TextInstVisitor {
             }
             if (keyons.size() > 0) {
                 *fOut << "(status == NOTE_ON) ? ( \n";
+                    *fOut << "midi_event += 1; \n";
                 for (auto & k : keyons) {
                     JSFXMidiScale scale = _midi_scales[k.variable_name];
                     *fOut << "(msg2 == 0x" << std::hex << k.nbr;
@@ -445,6 +502,7 @@ class JSFXInstVisitor : public TextInstVisitor {
             }
             if (keyoffs.size() > 0) {
                 *fOut << "(status == NOTE_OFF) ? ( \n";
+                    *fOut << "midi_event += 1; \n";
                 for (auto & k : keyoffs) {
                     JSFXMidiScale scale = _midi_scales[k.variable_name];
                     *fOut << "(msg2 == 0x" << std::hex << k.nbr;
@@ -454,6 +512,53 @@ class JSFXInstVisitor : public TextInstVisitor {
                     *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3," << scale.min << ", " << scale.max << ", " << scale.step  <<  " )); \n";
                 }
                 *fOut << "); \n";
+            }
+            if(poly) {
+                *fOut << "(status == NOTE_ON) ? ( \n"
+                << "midi_event += 1; \n"
+                << "voice_idx = 0; \n"
+                    << "while(voice_idx < nvoices) ( \n"
+                        << "obj = get_dsp(voice_idx); \n"
+                        << "(obj[dsp.gate] == 0) ?(\n";
+                            *fOut << "obj[dsp.key_id] = msg2;\n";
+                            *fOut << "obj[dsp.gate] = 1;\n";
+                            for(auto & it : _midi_scales) {
+                                *fOut << "obj[dsp." << it.first << "] = ";
+                                switch(it.second.type) {
+                                    case JSFXMIDIScaleType::freq:
+                                        *fOut << "limit(mtof(msg2), " << it.second.min << ", " << it.second.max  << ");\n";
+                                    case JSFXMIDIScaleType::key:
+                                        *fOut << "msg2;\n" ;
+                                    case JSFXMIDIScaleType::gain:
+                                        *fOut << "midi_scale(msg3, " << it.second.min << ", " << it.second.max << ", " << it.second.step << ");\n";
+                                    case JSFXMIDIScaleType::veloc:
+                                        *fOut << "msg3;\n";
+                                    case JSFXMIDIScaleType::gate:
+                                        *fOut << "1;\n";
+                                }
+                            }
+                            *fOut << "voice_idx = nvoices; \n"
+                        << "); \n"
+                        << "voice_idx += 1; \n"
+                    << "); // end of while \n"
+                << "); // NOTE ON condition off \n"
+                << "(status == NOTE_OFF) ? (\n"
+                << "midi_event += 1; \n"
+                << "voice_idx = 0; \n"
+                    << "while(voice_idx < nvoices) (\n"
+                        << "obj = get_dsp(voice_idx); \n"
+                        << "(obj[dsp.key_id] == msg2 && obj[dsp.gate] > 0) ? (\n"
+                        << "obj[dsp.gate] = 0; \n";
+                        for(auto & it : _midi_scales) {
+                            if(it.second.type == JSFXMIDIScaleType::gate) {
+                                *fOut << "obj[dsp." << it.first << "] = 0;\n";
+                            }
+                        }
+                        *fOut << "voice_idx = nvoices; \n"
+                        << "); \n"
+                        << "voice_idx += 1; \n"
+                    << "); // end of while \n"
+                << "); // end of condition \n";
             }
             *fOut << "); \n";
         }
@@ -467,9 +572,26 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
     }
     
+    static bool strfind(std::string &str, std::string substr)
+    {
+        if(str.find(substr) != str.npos)
+            return true;
+        return false;
+    }
+
     virtual void visit(AddButtonInst* inst)
     {
         if (!skip_slider) {
+             
+            if(poly) {
+                std::string name = gGlobal->getFreshID(inst->fLabel);
+                if(strfind(name, "gate")) {
+                    _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1, JSFXMIDIScaleType::gate};
+                    return;
+                }
+            }
+            //if(gGlobal->getFreshID(inst->fLabel) )
+
             string prefix;
             if (inst->fType == AddButtonInst::kDefaultButton) {
                 prefix = "button_";
@@ -490,6 +612,21 @@ class JSFXInstVisitor : public TextInstVisitor {
     virtual void visit(AddSliderInst* inst)
     {
         if (!skip_slider) {
+            if(poly) {
+                std::string name = gGlobal->getFreshID(inst->fLabel);
+                if(strfind(name, "gain")) {
+                    _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax, inst->fStep, JSFXMIDIScaleType::gain};
+                    return;
+                } else if(strfind(name, "vel") || strfind(name, "veloc")) {
+                    _midi_scales[inst->fZone] = JSFXMidiScale::MIDI7bScale(inst->fInit, JSFXMIDIScaleType::veloc);
+                }
+                else if(strfind(name, "freq")) {
+                    _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax, inst->fStep, JSFXMIDIScaleType::freq};
+                    return;
+                } else if(strfind(name, "key")) {
+                    _midi_scales[inst->fZone] = JSFXMidiScale::MIDI7bScale(inst->fInit, JSFXMIDIScaleType::key);
+                }
+            }
             string prefix;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
@@ -626,16 +763,19 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         //*fOut << inst->getName();
         std::string name = inst->fAddress->getName();
-        if (name.find("output") != name.npos || name.find("input") != name.npos)
+        if ( name.find("output") != name.npos || name.find("input") != name.npos)
             return;
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
              *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
         } else {
             bool is_block = startWith(name, "iSlow") || startWith(name, "fSlow");
             if (inst->fAddress->getAccess() & Address::kStack && is_block) {
-                *fOut << "this.";
+                *fOut << "obj[dsp.";
             }
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+            if (inst->fAddress->getAccess() & Address::kStack && is_block) {
+                *fOut << "]";
+            }
             if (inst->fValue) {
                 *fOut << " = ";
                 inst->fValue->accept(this);
@@ -700,23 +840,53 @@ class JSFXInstVisitor : public TextInstVisitor {
             tab(fTab, *fOut);
         }
     }
+    
+    static int get_num_output(std::string &s)
+    {
+        std::regex r("output([0-9]+)");
+        for (std::sregex_iterator i = std::sregex_iterator(s.begin(), s.end(), r); i != std::sregex_iterator(); ++i) { 
+            std::smatch m = *i;
+            return std::stoi(m[1]);
+        }
+        return -1;
+    }
 
     virtual void visit(NamedAddress* named)
-    {
-        bool is_block = startWith(named->fName, "iSlow") || startWith(named->fName, "fSlow");
+    { 
+        //if(isControl(named->fName)) 
+        
+        
+        bool is_block = startWith(named->fName, "iSlow") || startWith(named->fName, "fSlow"); 
+        
         if ((named->getAccess() & Address::kStruct && !isControl(named->fName))
             || (named->getAccess() & Address::kStack && is_block)) {
-            *fOut << "this.";
-        }
+            *fOut << "obj[dsp.";
+        } 
+        
         std::string name = named->fName;
         if (name.find("output") != name.npos) {
-            name.replace(0, 6, "spl");
+            int n_out = get_num_output(name);
+            std::string new_name = "obj[dsp.output" + std::to_string(n_out) + "]";
+            name = new_name;
         } else if (name.find("input") != name.npos) {
             name.replace(0, 5, "spl");
         } else if (name.find("sample_rate") != name.npos) {
             name.replace(0, name.size(), "srate");
-        }
+        } else if(poly && isControl(named->fName)) {
+            name = "obj[dsp." + name + "]";
+        } 
+
         *fOut << name;
+        if(isTable(named->fName)) {
+            *fOut << "[";
+        }
+        //if(named->getAccess() & Address::kStruct && (isControl(named->fName) || is_block))
+        
+        if ((named->getAccess() & Address::kStruct && !isControl(named->fName) && !is_block && ( (name.find("Rec") == name.npos) && name.find("Vec") == name.npos) )
+            || (named->getAccess() & Address::kStack && is_block) ) {
+            *fOut << "]";
+        }
+        
     }
     
     /*
@@ -724,6 +894,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     */
     virtual void visit(IndexedAddress* indexed)
     {
+        
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
@@ -734,11 +905,13 @@ class JSFXInstVisitor : public TextInstVisitor {
             if( (name.find("output") != name.npos) || (name.find("input") != name.npos) ) {
                 return;
             }
-            *fOut << "[";
             Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->getIndex());
+            if(!isTable(indexed->getName()))
+                *fOut << " + ";
             if (field_index) {
                 *fOut << (field_index->fNum) << "]";
             } else {
+                //*fOut << " + " ;
                 indexed->getIndex()->accept(this);
                 *fOut << "]";
             }

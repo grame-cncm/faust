@@ -42,7 +42,7 @@ class JSFXCodeContainer : public virtual CodeContainer {
 
     // Is nvoices set  (not implemented yet)
     bool poly = false;
-    int nvoices = 0;
+    int nvoices = 1;
 
     virtual void produceClass();
     

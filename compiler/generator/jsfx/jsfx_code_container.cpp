@@ -152,11 +152,10 @@ void JSFXCodeContainer::produceClass()
 
     *fOut << "MEMORY.init_memory();\n\n";
 
-    *fOut <<"function zeros(amount) (\n"
-          << " start = MEMORY.alloc_memory(amount);\n"
+    *fOut <<"function zeros(address, amount) (\n"
           << " i = 0;\n"
-          << " loop(amount, start[i] = 0; i+=1;);\n"
-          << " start;\n"
+          << " loop(amount, address[i] = 0; i+=1;);\n"
+          << " address;\n"
           << ");\n";
 
     // Int32 operations
@@ -194,7 +193,11 @@ void JSFXCodeContainer::produceClass()
             ");\n"
             
             "function midi_scale(x, min, max, step) (\n"
-            "   limit(min + (step * x), min, max); \n"
+            "   diff = (max - min);\n"
+            "   min + (diff * (x / 127));\n"
+            ");\n"
+            "function mtof(mid) (\n"
+            "   440 * exp(0.0577622645 * (mid - 69));\n"
             ");\n";
 
     *fOut << "/*\n"
@@ -222,89 +225,86 @@ void JSFXCodeContainer::produceClass()
           << "CC = 0xB0; \n"
           << "NOTE_ON = 0x90; \n"
           << "NOTE_OFF = 0x80; \n";
-
+        
     tab(n, *fOut);
     
     mergeSubContainers();
 
     // Print header
-    //produceInfoFunctions(n, "", "", false, FunTyped::kDefault, gGlobal->gJSFXVisitor);
     *fOut << "num_inputs = " << fNumInputs << ";\n"
-          << "num_outputs = " << fNumOutputs << ";\n";
-    // generateGetSampleRate("srate", "", false, false)->accept(gGlobal->gJSFXVisitor);
+          << "num_outputs = " << fNumOutputs << ";\n\n";
     // Possibly missing mathematical functions
     // Possibly merge sub containers (with an empty 'produceInternal' method)
 
-    tab(n, *fOut);
-    *fOut << "function init() (";
-    // TODO
-    // gGlobal->gJSFXVisitor->Tab(n + 1);
-    // Functions
-    // Only generate globals functions
-    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
-        if (dynamic_cast<DeclareFunInst*>(it)) {
-            it->accept(gGlobal->gJSFXVisitor);
-        }
-    }
-    tab(n, *fOut);
-    
-    // Fields - not needed here since declarations are dynamic in JSFX
-    /*
-    generateDeclarations(gGlobal->gJSFXVisitor);
-    // Generate global variables definition
-    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
-        if (dynamic_cast<DeclareVarInst*>(it)) {
-            it->accept(gGlobal->gJSFXVisitor);
-        }
-    }
-    */
-    //*fOut << "fSampleRate = srate;\n";
+    *fOut << "nvoices = " << nvoices << ";\n\n";
+    *fOut << "voice_idx = 0; \n";
     JSFXInitFieldsVisitor initializer(fOut, n + 2);
-    generateDeclarations(&initializer);
-    // Generate global variables initialisation
     for (const auto& it : fGlobalDeclarationInstructions->fCode) {
         if (dynamic_cast<DeclareVarInst*>(it)) {
             it->accept(&initializer);
         } 
     }
+    int total_size = 0;
+    *fOut << "// DSP struct memory layout \n";
+    *fOut << "dsp.memory = MEMORY.alloc_memory(0); \n // check current memory index \n";
+    std::string class_decl;
+    StructInstVisitor struct_visitor;
+    fDeclarationInstructions->accept(&struct_visitor);
+    for(const auto& it : fDeclarationInstructions->fCode) {
+        auto desc = struct_visitor.getMemoryDesc(it->getName());
+        class_decl += "dsp." + it->getName() +  " = " +  std::to_string(total_size) + ";\n";
+        total_size += desc.fSize;
+    }
+    
+    for(const auto& it : fComputeBlockInstructions->fCode) {
+        std::string name = it->getName();
+        if(name.find("output") != name.npos || name.find("input") != name.npos)
+            continue;
+        class_decl += "dsp." + it->getName() + " = " + std::to_string(total_size) + ";\n";
+        total_size++;
+    }
+    
+    *fOut << "// Two identifiers to know which noteoff goes to which voice \n";
+    class_decl += "dsp.key_id = " + std::to_string(total_size) + ";\n";
+    total_size++;
+    class_decl += "dsp.gate = " + std::to_string(total_size) + ";\n";
+    total_size++;
+    
+    *fOut << "dsp.size = " << std::to_string(total_size + fNumOutputs) << ";\n";
+    *fOut << class_decl << "\n";
+    for(size_t i = 0; i < fNumOutputs; i++) {
+        *fOut << "dsp.output" << i << " = " << ++total_size - 1 << "; \n";
+    }
+    tab(n, *fOut);
+    *fOut << "function get_dsp(index) (\n"
+    "  dsp.memory + dsp.size * index \n"
+    ");\n";
+
+    *fOut << "function create_instances() (\n"
+    << "voice_idx = 0; \n"
+    << "while(voice_idx < nvoices) (\n"
+    << "obj = MEMORY.alloc_memory(dsp.size); \n"; 
+    generateDeclarations(&initializer);
+    *fOut << "voice_idx += 1; \n" << ");\n);\n\n";
+    
+    
+    *fOut << "function init_instances() (\n"
+    << "voice_idx = 0; \n"
+    << "while(voice_idx < nvoices) ( \n"
+    << "obj = get_dsp(voice_idx); \n";
     generateClear(gGlobal->gJSFXVisitor);
 
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJSFXVisitor);
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJSFXVisitor);
 
-    *fOut << ");";
-    tab(n, *fOut);
-    *fOut << "dsp.init();";
-    tab(n, *fOut);
+    *fOut << "voice_idx += 1; \n"
+    << "); \n);\n";
     
+    *fOut << "create_instances(); \n"
+    << "init_instances(); \n\n";
+
     generateCompute(n);
     tab(n, *fOut);
-}
-
-// SL : still needed ?
-static int extractIntegerWords(const string& str)
-{
-    stringstream ss;
- 
-    /* Storing the whole string into string stream */
-    ss << str;
- 
-    /* Running loop till the end of the stream */
-    string temp;
-    int found;
-    while (!ss.eof()) {
- 
-        /* extracting word by word from stream */
-        ss >> temp;
- 
-        /* Checking the given word is integer or not */
-        if (stringstream(temp) >> found)
-            return found;
- 
-        /* To save from space at the end of string */
-        temp = "";
-    }
-    return -1;
 }
 
 void JSFXCodeContainer::produceMetadata(int tabs)
@@ -324,9 +324,15 @@ void JSFXCodeContainer::produceMetadata(int tabs)
                     std::regex r("\\[nvoices:([0-9]+)\\]");
                     for (std::sregex_iterator i = std::sregex_iterator(s.begin(), s.end(), r); i != std::sregex_iterator(); ++i) {
                         poly = true;
+                        midi = true;
                         std::smatch m = *i;
                         nvoices = std::stoi(m[1].str());
+                        if(nvoices < 1) 
+                            throw(faustexception("nvoices must be >= to 1"));
                     }
+                    gGlobal->gJSFXVisitor->poly = poly;
+                    gGlobal->gJSFXVisitor->nvoices = nvoices;
+                    
                     
                 }
                 *fOut << "desc: " << *(i.first) << " " << **j << "\n";
@@ -366,15 +372,25 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     // Empty functions are not allowed, so generate a dummy line
     *fOut << "dummy = 0;";
     tab(n, *fOut);
+    *fOut << "voice_idx = 0;\n"
+    << "while(voice_idx < nvoices) (\n"
+    << "obj = get_dsp(voice_idx);\n";
     generateComputeBlock(gGlobal->gJSFXVisitor);
+    *fOut << "voice_idx += 1;\n"
+    << ");\n";
     *fOut << ");";
     tab(n, *fOut);
     
     tab(n, *fOut);
-    *fOut << "function compute() (";
+    *fOut << "function compute() (\n";
     tab(n, *fOut);
+    *fOut << "voice_idx = 0;\n"
+    << "while(voice_idx < nvoices) (\n"
+    << "obj = get_dsp(voice_idx);\n";
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
     loop->accept(gGlobal->gJSFXVisitor);
+    *fOut << "voice_idx += 1;\n"
+    << ");\n";
     *fOut << ");";
     tab(n, *fOut);
     
@@ -384,15 +400,32 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     gGlobal->gJSFXVisitor->generateMIDIInstructions();
     tab(n, *fOut);
     
+    
+    // * TO DO >  Detect in midi Loop if something happened (notein, cc or anything to refresh control smoothly and only when events are fired)
+    // Not implemented in midirecv yet
+    *fOut << "(midi_event > 0) ? (control());\n";
+    
     tab(n, *fOut);
-    if (!midi) *fOut << "@slider";
+    *fOut << "@slider";
     tab(n, *fOut);
-    *fOut << "dsp.control();";
+    *fOut << "control();";
     tab(n, *fOut);
     
     tab(n, *fOut);
     *fOut << "@sample";
     tab(n, *fOut);
-    *fOut << "dsp.compute();";
+    *fOut << "compute();";
+    for(size_t i = 0; i < fNumOutputs; ++i)
+    {
+        tab(n, *fOut);
+        *fOut << "spl" << i << " = ";
+        for(size_t v = 0; v < nvoices; ++v) 
+        {
+            *fOut << "get_dsp(" << v << ")[dsp.output" << i << "]";
+            if(v < (nvoices - 1))
+                *fOut << " + ";
+        }
+        *fOut << ";";
+    }
     tab(n, *fOut);
 }
