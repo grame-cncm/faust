@@ -244,6 +244,34 @@ void JSFXCodeContainer::produceClass()
             it->accept(&initializer);
         } 
     }
+    
+    if(poly && gGlobal->gJSFXVisitor->mode == JSFXMIDIVoiceMode::voice_steal)
+    {
+        *fOut << "voices_arr = MEMORY.alloc_memory(" << nvoices << ");\n";
+        for(size_t i = 0; i < nvoices; ++i) {
+            *fOut << "voices_arr[" << i << "] = " << i << ";\n";
+        }
+        *fOut << "function sort_voices(n) (\n"
+        "   cnt = nvoices-1;\n"
+        "   while(cnt > 0) (\n"
+        "       voices_arr[cnt] = voices_arr[cnt - 1];\n"
+        "       cnt -= 1;\n"
+        "   );\n"
+        "   voices_arr[0] = n;\n"
+        ");\n"
+        "function get_oldest_voice() (\n"
+        "   voices_arr[nvoices-1];\n"
+        ");\n";
+    }
+
+    tab(n, *fOut);
+    //*fOut << "addresses = MEMORY.alloc_memory(nvoices);\n";
+    *fOut << "function get_dsp(index) (\n"
+    //"   addresses[index];\n"
+    "  dsp.memory + dsp.size * index \n"
+    ");\n";
+
+
     int total_size = 0;
     *fOut << "// DSP struct memory layout \n";
     *fOut << "dsp.memory = MEMORY.alloc_memory(0); \n // check current memory index \n";
@@ -264,26 +292,26 @@ void JSFXCodeContainer::produceClass()
         total_size++;
     }
     
-    *fOut << "// Two identifiers to know which noteoff goes to which voice \n";
-    class_decl += "dsp.key_id = " + std::to_string(total_size) + ";\n";
-    total_size++;
-    class_decl += "dsp.gate = " + std::to_string(total_size) + ";\n";
-    total_size++;
+    if(poly) {
+        *fOut << "// Two identifiers to know which noteoff goes to which voice \n";
+        class_decl += "dsp.key_id = " + std::to_string(total_size) + ";\n";
+        total_size++;
+        class_decl += "dsp.gate = " + std::to_string(total_size) + ";\n";
+        total_size++;
+    }
     
     *fOut << "dsp.size = " << std::to_string(total_size + fNumOutputs) << ";\n";
-    *fOut << class_decl << "\n";
+    *fOut << class_decl;
     for(size_t i = 0; i < fNumOutputs; i++) {
         *fOut << "dsp.output" << i << " = " << ++total_size - 1 << "; \n";
     }
-    tab(n, *fOut);
-    *fOut << "function get_dsp(index) (\n"
-    "  dsp.memory + dsp.size * index \n"
-    ");\n";
-
+    
+    *fOut << "\n";
     *fOut << "function create_instances() (\n"
     << "voice_idx = 0; \n"
     << "while(voice_idx < nvoices) (\n"
-    << "obj = MEMORY.alloc_memory(dsp.size); \n"; 
+    << "obj = MEMORY.alloc_memory(dsp.size); \n"
+    << "addresses[voice_idx] = obj;\n";
     generateDeclarations(&initializer);
     *fOut << "voice_idx += 1; \n" << ");\n);\n\n";
     
@@ -401,9 +429,11 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     
     
-    // * TO DO >  Detect in midi Loop if something happened (notein, cc or anything to refresh control smoothly and only when events are fired)
-    // Not implemented in midirecv yet
-    *fOut << "(midi_event > 0) ? (control());\n";
+    if(midi || poly) {
+        // * TO DO >  Detect in midi Loop if something happened (notein, cc or anything to refresh control smoothly and only when events are fired)
+        // Not implemented in midirecv yet
+        *fOut << "(midi_event > 0) ? (control());\n";
+    }
     
     tab(n, *fOut);
     *fOut << "@slider";

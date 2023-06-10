@@ -145,18 +145,25 @@ struct JSFXMidiInstr {
     int channel = -1;
 };
 
+enum class JSFXMIDIVoiceMode {
+    voice_block = 0,
+    voice_steal = 1,
+    
+
+};
 
 enum class JSFXMIDIScaleType {
     key=0,
     freq=1,
     gain=2,
     veloc=3,
-    gate=4
+    gate=4,
+    none=5
 };
 
 struct JSFXMidiScale {
     double init, min, max, step;
-    JSFXMIDIScaleType type;
+    JSFXMIDIScaleType type = JSFXMIDIScaleType::none;
     double limit(double val)
     {
         if(val > max) return max;
@@ -185,9 +192,7 @@ struct JSFXMidiScale {
     of them is given as an example, to be adapted in the real case.
 */
 class JSFXInstVisitor : public TextInstVisitor {
-   private:
-    
-    
+   private: 
     /*
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
@@ -196,7 +201,6 @@ class JSFXInstVisitor : public TextInstVisitor {
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable; 
     
-    
     // Global count for sliders
     size_t slider_count = 0;
 
@@ -204,7 +208,8 @@ class JSFXInstVisitor : public TextInstVisitor {
     std::unordered_map<std::string, std::string> _midi_instructions;
     std::unordered_map<std::string, JSFXMidiScale> _midi_scales;
 
-   public:
+    public:
+    JSFXMIDIVoiceMode mode = JSFXMIDIVoiceMode::voice_steal;
     bool poly = false;
     int nvoices = 1;
     using TextInstVisitor::visit;
@@ -451,11 +456,100 @@ class JSFXInstVisitor : public TextInstVisitor {
             skip_slider = true;
         }
     }
-
-    // To implement (in @block)
-    void generateMIDIInstructions()
+    
+    void _midi_poly_assign()
     {
-        if (_midi_instructions.size() > 0 || poly) {
+        for(auto & it : _midi_scales) {
+            *fOut << "obj[dsp." << it.first << "] = ";
+            switch(it.second.type) {
+                case JSFXMIDIScaleType::freq:
+                    *fOut << "limit(mtof(msg2), " << it.second.min << ", " << it.second.max  << ");\n";
+                    break;
+                case JSFXMIDIScaleType::key:
+                    *fOut << "msg2;\n" ;
+                    break;
+                case JSFXMIDIScaleType::gain:
+                    *fOut << "midi_scale(msg3, " << it.second.min << ", " << it.second.max << ", " << it.second.step << ");\n";
+                    break;
+                case JSFXMIDIScaleType::veloc:
+                    *fOut << "msg3;\n";
+                    break;
+                case JSFXMIDIScaleType::gate:
+                    *fOut << "1;\n";
+                    break;
+                case JSFXMIDIScaleType::none:
+                    continue;
+            }
+        }
+    }
+
+    void _voices_stealing_impl()
+    {
+        *fOut << "(status == NOTE_ON) ? ( \n"
+            "midi_event += 1;\n"
+            "voice_idx = get_oldest_voice();\n"
+            "sort_voices(voice_idx);\n"
+            "obj = get_dsp(v_idx);\n";
+            *fOut << "obj[dsp.key_id] = msg2;\n";
+            *fOut << "obj[dsp.gate] = 1;\n";
+            _midi_poly_assign();
+        *fOut << "); // NOTE ON condition off \n"
+        << "(status == NOTE_OFF) ? (\n"
+            << "midi_event += 1;\n"
+            << "voice_idx = 0;\n"
+            << "while(voice_idx < nvoices) (\n"
+                << "obj = get_dsp(voice_idx); \n"
+                << "(obj[dsp.key_id] == msg2 && obj[dsp.gate] > 0) ? (\n"
+                << "obj[dsp.gate] = 0; \n";
+                for(auto & it : _midi_scales) {
+                    if(it.second.type == JSFXMIDIScaleType::gate) {
+                        *fOut << "obj[dsp." << it.first << "] = 0;\n";
+                    }
+                }
+                *fOut << "voice_idx = nvoices; \n"
+                << "); \n"
+                << "voice_idx += 1; \n"
+            << "); // end of while \n"
+        << "); // end of condition \n";
+    }
+
+    void _voice_blocking_impl() 
+    {
+        *fOut << "(status == NOTE_ON) ? ( \n"
+        << "midi_event += 1; \n"
+        << "voice_idx = 0; \n"
+            << "while(voice_idx < nvoices) ( \n"
+                << "obj = get_dsp(voice_idx); \n"
+                << "(obj[dsp.gate] == 0) ?(\n";
+                    *fOut << "obj[dsp.key_id] = msg2;\n";
+                    *fOut << "obj[dsp.gate] = 1;\n";
+                    _midi_poly_assign();
+                    *fOut << "voice_idx = nvoices; \n"
+                << "); \n"
+                << "voice_idx += 1; \n"
+            << "); // end of while \n"
+        << "); // NOTE ON condition off \n"
+        << "(status == NOTE_OFF) ? (\n"
+        << "midi_event += 1; \n"
+        << "voice_idx = 0; \n"
+            << "while(voice_idx < nvoices) (\n"
+                << "obj = get_dsp(voice_idx); \n"
+                << "(obj[dsp.key_id] == msg2 && obj[dsp.gate] > 0) ? (\n"
+                << "obj[dsp.gate] = 0; \n";
+                for(auto & it : _midi_scales) {
+                    if(it.second.type == JSFXMIDIScaleType::gate) {
+                        *fOut << "obj[dsp." << it.first << "] = 0;\n";
+                    }
+                }
+                *fOut << "voice_idx = nvoices; \n"
+                << "); \n"
+                << "voice_idx += 1; \n"
+            << "); // end of while \n"
+        << "); // end of condition \n";
+    }
+    
+    void _midi_mono_instructions()
+    {
             std::vector<JSFXMidiInstr> keyons, keyoffs, ccs;
             for (auto & midi_str : _midi_instructions) {
                 JSFXMidiInstr it = parseMIDIInstruction(midi_str.first, midi_str.second);
@@ -470,9 +564,6 @@ class JSFXInstVisitor : public TextInstVisitor {
                     ccs.push_back(it);
                 }
             }
-            *fOut << "midi_event = 0; \n";
-            *fOut << "while (midirecv(mpos, msg1, msg2, msg3)) ( \n";
-            *fOut << "status = msg1&0xF0; \n" << "channel = msg1&0x0F; \n";
             if(ccs.size() > 0) {
                 *fOut << "(status == CC) ? ( \n";
                 for (auto & cc : ccs) {
@@ -513,55 +604,39 @@ class JSFXInstVisitor : public TextInstVisitor {
                 }
                 *fOut << "); \n";
             }
-            if(poly) {
-                *fOut << "(status == NOTE_ON) ? ( \n"
-                << "midi_event += 1; \n"
-                << "voice_idx = 0; \n"
-                    << "while(voice_idx < nvoices) ( \n"
-                        << "obj = get_dsp(voice_idx); \n"
-                        << "(obj[dsp.gate] == 0) ?(\n";
-                            *fOut << "obj[dsp.key_id] = msg2;\n";
-                            *fOut << "obj[dsp.gate] = 1;\n";
-                            for(auto & it : _midi_scales) {
-                                *fOut << "obj[dsp." << it.first << "] = ";
-                                switch(it.second.type) {
-                                    case JSFXMIDIScaleType::freq:
-                                        *fOut << "limit(mtof(msg2), " << it.second.min << ", " << it.second.max  << ");\n";
-                                    case JSFXMIDIScaleType::key:
-                                        *fOut << "msg2;\n" ;
-                                    case JSFXMIDIScaleType::gain:
-                                        *fOut << "midi_scale(msg3, " << it.second.min << ", " << it.second.max << ", " << it.second.step << ");\n";
-                                    case JSFXMIDIScaleType::veloc:
-                                        *fOut << "msg3;\n";
-                                    case JSFXMIDIScaleType::gate:
-                                        *fOut << "1;\n";
-                                }
-                            }
-                            *fOut << "voice_idx = nvoices; \n"
-                        << "); \n"
-                        << "voice_idx += 1; \n"
-                    << "); // end of while \n"
-                << "); // NOTE ON condition off \n"
-                << "(status == NOTE_OFF) ? (\n"
-                << "midi_event += 1; \n"
-                << "voice_idx = 0; \n"
-                    << "while(voice_idx < nvoices) (\n"
-                        << "obj = get_dsp(voice_idx); \n"
-                        << "(obj[dsp.key_id] == msg2 && obj[dsp.gate] > 0) ? (\n"
-                        << "obj[dsp.gate] = 0; \n";
-                        for(auto & it : _midi_scales) {
-                            if(it.second.type == JSFXMIDIScaleType::gate) {
-                                *fOut << "obj[dsp." << it.first << "] = 0;\n";
-                            }
-                        }
-                        *fOut << "voice_idx = nvoices; \n"
-                        << "); \n"
-                        << "voice_idx += 1; \n"
-                    << "); // end of while \n"
-                << "); // end of condition \n";
-            }
-            *fOut << "); \n";
+    }
+
+    // To implement (in @block)
+    void generateMIDIInstructions()
+    {
+        if(_midi_instructions.size() > 0 || poly)
+        {
+            *fOut << "midi_event = 0; \n";
+            *fOut << "while (midirecv(mpos, msg1, msg2, msg3)) ( \n";
+            *fOut << "status = msg1&0xF0; \n" << "channel = msg1&0x0F; \n";
         }
+        if (_midi_instructions.size() > 0) {
+            // MIDI from controls metadata
+            _midi_mono_instructions();
+        }
+        if(poly) { // Polyphonic MIDI 
+            switch(mode) {
+                case JSFXMIDIVoiceMode::voice_block:
+                {
+                    _voice_blocking_impl();
+                    break;
+                }
+                case JSFXMIDIVoiceMode::voice_steal:
+                {
+                    _voices_stealing_impl();
+                    break;
+                }
+                default: 
+                    break;
+            }
+        }
+        if(_midi_instructions.size() > 0 || poly)
+            *fOut << "); \n";
     }
 
     virtual void visit(OpenboxInst* inst)
@@ -878,6 +953,7 @@ class JSFXInstVisitor : public TextInstVisitor {
 
         *fOut << name;
         if(isTable(named->fName)) {
+            std::cout << "is Table : " << named->fName << std::endl;
             *fOut << "[";
         }
         //if(named->getAccess() & Address::kStruct && (isControl(named->fName) || is_block))
@@ -907,7 +983,19 @@ class JSFXInstVisitor : public TextInstVisitor {
             }
             Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->getIndex());
             if(!isTable(indexed->getName()))
+            {
+                if(indexed->isStruct()) {
+                    *fOut << " + ";
+                }
+                else {
+                    *fOut << "[";
+                }
+                std::cout << "indexed is  NOT Table : " << indexed->getName() <<" isstruct "  << indexed->isStruct() <<  std::endl;    
+            }
+            else {
+                std::cout << "indexed is Table : " << indexed->getName() << std::endl;    
                 *fOut << " + ";
+            }
             if (field_index) {
                 *fOut << (field_index->fNum) << "]";
             } else {

@@ -9,12 +9,10 @@ Currently has available features :
 # TODO
 
 * MIDI Poly > Modes for voices steeling, voice blocking (...)
-* Grain3.dsp not passing
+* 7 tests not passing
 * Indent
 * Architecture file 
 * Bargraph for MIDI output 
 
-** NOw -> To debug, prototype by fixing JSFX directly 
-    * Fix MIDI and slider scaling with FAUST MIDI laws
-    * Liste de tri des voix (devant la plus récemment allouée, derrière la plus ancienne)
-    * Comment on trouve la voix correspondante à éteindre ? 
+*   Now 
+    * Fix MIDI and slider scaling with FAUST MIDI laws (steps)
