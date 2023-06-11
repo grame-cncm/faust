@@ -122,6 +122,7 @@ struct global {
     bool gDrawRouteFrame;        // -drf option
     bool gShadowBlur;            // -blur option, note: svg2pdf doesn't like the blur filter
     bool gScaledSVG;             // -sc option, to draw scaled SVG files
+    std::string gStyleFile;
     bool gStripDocSwitch;        // -stripmdoc option, Strip <mdoc> content from doc listings
     int  gFoldThreshold;         // -f option, global complexity threshold before activating folding
     int  gFoldComplexity;        // -fc option, individual complexity threshold before folding
@@ -506,7 +507,7 @@ struct global {
     bool              gFoldingFlag;     // true with complex block-diagrams
     std::stack<Tree>  gPendingExp;      // Expressions that need to be drawn
     std::set<Tree>    gDrawnExp;        // Expressions drawn or scheduled so far
-    const char*        gDevSuffix;       // .svg or .ps used to choose output device
+    const char*       gDevSuffix;       // .svg or .ps used to choose output device
     std::string       gSchemaFileName;  // name of schema file beeing generated
     Tree              gInverter[6];
     std::map<Tree, std::string> gBackLink;  // link to enclosing file for sub schema
@@ -640,11 +641,14 @@ struct global {
     void printDeclareHeader(std::ostream& dst);
     void parseSourceFiles();
     
-    void printLibDir();
-    void printIncludeDir();
-    void printArchDir();
-    void printDspDir();
-    void printPaths();
+    static std::string printVersion();
+    static std::string printHelp();
+    
+    std::string printLibDir();
+    std::string printIncludeDir();
+    std::string printArchDir();
+    std::string printDspDir();
+    std::string printPaths();
     
     void printDirectories();
 };
