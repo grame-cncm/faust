@@ -346,67 +346,8 @@ void WASMCodeContainer::produceClass()
 
     // Finally produce output stream
     fBinaryOut.writeTo(*fOut);
-
-    // Helper code
-    int n = 0;
-
-    // Generate JSON and getSize
-    tab(n, fHelper);
-    fHelper << "/*\n"
-            << "Code generated with Faust version " << FAUSTVERSION << endl;
-    fHelper << "Compilation options: ";
-    gGlobal->printCompilationOptions(fHelper);
-    fHelper << "\n*/\n";
-
-    // Generate JSON
-    tab(n, fHelper);
-    string json2 = flattenJSON1(json);
-    fHelper << "function getJSON" << fKlassName << "() {";
-    tab(n + 1, fHelper);
-    fHelper << "return '";
-    fHelper << json2;
-    fHelper << "';";
-    printlines(n + 1, fUICode, fHelper);
-    tab(n, fHelper);
-    fHelper << "}\n";
-
-    if (gGlobal->gOutputLang == "wasm-ib" || gGlobal->gOutputLang == "wasm-eb") {
-        /*
-        // Write binary as an array
-        fHelper << showbase         // show the 0x prefix
-                << internal         // fill between the prefix and the number
-                << setfill('0');    // fill with 0s
-        {
-            fHelper << "function getBinaryCode" << fKlassName << "() {";
-                tab(n+1, fHelper);
-                fHelper << "return new Uint8Array([";
-                char sep = ' ';
-                for (int i = 0; i < fBinaryOut.size(); i++) {
-                    fHelper << sep << hex << int(fBinaryOut[i]);
-                    sep = ',';
-                }
-                fHelper << "]).buffer; }\n";
-            tab(n, fHelper);
-        }
-
-        {
-            fHelper << "function getBinaryCodeString" << fKlassName << "() {";
-                tab(n+1, fHelper);
-                fHelper << "return \"new Uint8Array([";
-                char sep = ' ';
-                for (int i = 0; i < fBinaryOut.size(); i++) {
-                    fHelper << sep << hex << int(fBinaryOut[i]);
-                    sep = ',';
-                }
-                fHelper << "]).buffer\"; }\n";
-            tab(n, fHelper);
-        }
-        */
-
-        fHelper << "function getBase64Code" << fKlassName << "() {";
-        fHelper << " return \"" << base64_encode(fBinaryOut.toString()) << "\"; }\n";
-        tab(n, fHelper);
-    }
+    // Helper code: remove problematic characters for the JS side
+    fHelper << flattenJSON1(json);
 }
 
 // Auxiliary function for shared code in generateCompute

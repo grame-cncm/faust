@@ -329,11 +329,15 @@ cmake: $(FAUSTDIR)
 #===============================================================
 # building faust with emscripten
 #===============================================================
+WASMFS := wasm-filesystem
+WASMLIBDIR := share/faust
 wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
-	mkdir -p wasm-libraries && cp ../libraries/*.lib ../libraries/old/*.lib wasm-libraries
-	$(CMAKE) --build $(FAUSTDIR) --target wasmlib $(BUILDOPT)
-	rm -rf wasm-libraries
+	mkdir -p $(WASMFS)/$(WASMLIBDIR) && cp ../libraries/*.lib ../libraries/old/*.lib $(WASMFS)/$(WASMLIBDIR)
+	mkdir -p $(WASMFS)/rsrc && cp ../architecture/webaudio/mixer32.wasm $(WASMFS)/rsrc && cp ../architecture/webaudio/mixer64.wasm $(WASMFS)/rsrc
+	cmake --build $(FAUSTDIR) --target wasmlib $(BUILDOPT) -- $(JOBS)
+	cp $(FAUSTDIR)/emcc/libfaust-wasm.* lib
+	rm -rf $(WASMFS)
 
 wasmglue: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
