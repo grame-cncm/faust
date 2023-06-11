@@ -123,6 +123,7 @@ struct global {
     bool gDrawRouteFrame;       // -drf option
     bool gShadowBlur;           // -blur option, note: svg2pdf doesn't like the blur filter
     bool gScaledSVG;            // -sc option, to draw scaled SVG files
+    std::string gStyleFile;
     bool gStripDocSwitch;       // -stripmdoc option, Strip <mdoc> content from doc listings
     int  gFoldThreshold;        // -f option, global complexity threshold before activating folding
     int  gFoldComplexity;       // -fc option, individual complexity threshold before folding
@@ -652,13 +653,16 @@ struct global {
     void initDirectories(int argc, const char* argv[]);
     void printDeclareHeader(std::ostream& dst);
     void parseSourceFiles();
-
-    void printLibDir();
-    void printIncludeDir();
-    void printArchDir();
-    void printDspDir();
-    void printPaths();
-
+    
+    static std::string printVersion();
+    static std::string printHelp();
+    
+    std::string printLibDir();
+    std::string printIncludeDir();
+    std::string printArchDir();
+    std::string printDspDir();
+    std::string printPaths();
+    
     void printDirectories();
 };
 

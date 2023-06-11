@@ -20,21 +20,32 @@ endif()
 
 ####################################
 # emscripten support
-set (WASM_EXPORTED "\"['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_deleteAllWasmCDSPFactories', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException', '_generateCAuxFilesFromString']\"")
-set (WASM_EXTRA_EXPORTED "\"['cwrap', 'UTF8ToString', 'stringToUTF8', 'FS', 'lengthBytesUTF8']\"")
-set (LIBSNDFILE "${ROOT}/build/wasmglue/libsndfile.a ${ROOT}/build/wasmglue/libogg.a ${ROOT}/build/wasmglue/libvorbis.a ${ROOT}/build/wasmglue/libvorbisenc.a ${ROOT}/build/wasmglue/libFLAC.a")
-set (WASM_LINK_FLAGS "--bind -O3 --memory-init-file 0 -s LINKABLE=0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 --preload-file ../../wasm-libraries@libraries -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=${WASM_EXPORTED} -s EXTRA_EXPORTED_RUNTIME_METHODS=${WASM_EXTRA_EXPORTED}")
+
+file (GLOB BINDINGS ${ROOT}/compiler/generator/wasm/bindings/*.cpp)
+set (SRC ${SRC} ${BINDINGS})
+
+set (WASM_EXTRA_EXPORTED "\"['UTF8ToString', 'stringToUTF8', 'FS']\"")
+file (GLOB LIBSNDFILE ${WASMGLUE}/*.a)
+
+set (WASM_LINK_FLAGS "--no-heap-copy --bind -O3 --memory-init-file 0 -s LINKABLE=0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 --preload-file ../../wasm-filesystem@usr -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=${WASM_EXTRA_EXPORTED} ${LIBSNDFILE}")
 
 ####################################
 # Add the different targets
+
 add_executable(wasmlib EXCLUDE_FROM_ALL ${SRC} ${HH})
 target_include_directories (wasmlib PRIVATE ${FAUST_INC})
 target_compile_definitions (wasmlib PRIVATE -DEMCC -DFAUST_LIB ${FAUST_DEFINITIONS})
+
+# TO SUBSTITUTE ?
+#target_link_libraries (wasmlib ${LIBSNDFILE})
+#target_include_directories (wasmlib PRIVATE ${SRCDIR}/generator/wasm ${FAUST_INC})
+#target_compile_definitions (wasmlib PRIVATE -DEMCC -DFAUST_LIB -DWASM_BUILD ${FAUST_DEFINITIONS})
+
 set_target_properties (wasmlib PROPERTIES
 		OUTPUT_NAME libfaust-wasm
 		LINK_FLAGS ${WASM_LINK_FLAGS}
 		COMPILE_FLAGS -O3 
-		RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}
+#		RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}   generation in a non default place prevents the data file to be found
 		SUFFIX ".js")
 
 scan_backends (wasmlib WASM)

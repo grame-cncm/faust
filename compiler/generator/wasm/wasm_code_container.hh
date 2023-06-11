@@ -28,6 +28,7 @@
 #include "vec_code_container.hh"
 #include "wasm_instructions.hh"
 #include "json_instructions.hh"
+#include "rn_base64.h"
 
 class WASMCodeContainer : public virtual CodeContainer {
    protected:
@@ -53,7 +54,7 @@ class WASMCodeContainer : public virtual CodeContainer {
         generateUserInterface(&json_visitor1);
 
         PathTableType path_index_table;
-        std::map<std::string, MemoryDesc>&      fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
+        std::map<std::string, MemoryDesc>& fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
         for (const auto& it : json_visitor1.fPathTable) {
             // Get field index
             MemoryDesc tmp              = fieldTable1[it.first];
@@ -61,8 +62,9 @@ class WASMCodeContainer : public virtual CodeContainer {
         }
 
         // "name", "filename" found in metadata
+        std::string dsp_code = (gGlobal->gInputString.size() > 0) ? gGlobal->gInputString : pathToContent(gGlobal->gMasterDocument);
         JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs,
-                                            -1, "", "", FAUSTVERSION, gGlobal->printCompilationOptions1(),
+                                            -1, "", base64_encode(dsp_code), FAUSTVERSION, gGlobal->printCompilationOptions1(),
                                             gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
                                             gGlobal->gWASMVisitor->getStructSize(), path_index_table, MemoryLayoutType());
         generateUserInterface(&json_visitor2);
