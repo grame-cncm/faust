@@ -27,6 +27,8 @@
 
 var faust = faust || {};
 
+var fs = require('fs');
+
 // Standard Faust DSP
 faust.mydsp = function (context, instance, buffer_size, sample_rate) {
 
@@ -37,7 +39,8 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
     var dspOutChannnels = [];
 
     // Keep JSON parsed object
-    var json_object = JSON.parse(getJSONmydsp());
+    var json_file_text = fs.readFileSync('DSP.json', 'utf8');
+    var json_object = JSON.parse(json_file_text);
 
     var numIn = parseInt(json_object.inputs);
     var numOut = parseInt(json_object.outputs);
@@ -329,8 +332,6 @@ var setButtons = function (dsp, value) {
         dsp.setParamValue(buttons[i], value);
     }
 }
-
-var fs = require('fs');
 
 var buffer_size = 64;
 var sample_rate = 44100;

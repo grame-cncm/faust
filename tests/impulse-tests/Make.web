@@ -41,7 +41,7 @@ help:
 	@echo
 	@echo "Options:"
 	@echo " 'outdir' 	   : define the output directory (default to 'wasm')"
-	@echo " 'FAUSTOPTIONS' : define additional Faust options (empty by default)"
+	@echo " 'FAUSTOPTIONS' : define additional faust options (empty by default)"
 
 #########################################################################
 # web backends
@@ -67,20 +67,20 @@ ir/$(wasmdir)/%.ir: ir/$(wasmdir)/%.js reference/%.ir
 	$(COMPARE) $@ reference/$(notdir $@) -1 -part || (rm -f $@; false)
 	
 ir/$(wasmdir)/%.js : ir/$(wasmdir)/%.wasm
-	cat $(basename $<).js $(wasmarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
+	cat $(wasmarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
 	mv $@.tmp $@
 	
 ir/$(wasmdir)/%.wasm : dsp/%.dsp
-	$(FAUST) -double -lang wasm -i $(FAUSTOPTIONS) $< -o $@
-
+	$(FAUST) -double -lang wasm -I dsp -i $(FAUSTOPTIONS) $< -o $@
+	
 # Specific rule to test 'control' primitive, using a 'fake' test...
 ir/$(wasmdir)/control.wasm : dsp/control.dsp
-	$(FAUST) -double -lang wasm  -i $(FAUSTOPTIONS) dsp/simulated_control.dsp -o $@
+	$(FAUST) -double -lang wasm -I dsp -i $(FAUSTOPTIONS) dsp/simulated_control.dsp -o $@
 
 # Specific rule to test 'enable/control' primitives that currently only work in scalar mode
 ir/$(wasmdir)/osc_enable.wasm : dsp/osc_enable.dsp
 	@echo "Can only be tested in scalar mode"
-	$(FAUST) -double -lang wasm -i $< -o $@
+	$(FAUST) -double -lang wasm -I dsp -i $< -o $@
 
 #########################################################################
 # rules for wast
@@ -89,7 +89,7 @@ ir/$(wastdir)/%.ir: ir/$(wastdir)/%.js reference/%.ir
 	$(COMPARE) $@ reference/$(notdir $@) -1 -part || (rm -f $@; false)
 
 ir/$(wastdir)/%.js : ir/$(wastdir)/%.wast
-	cat $(basename $<).js $(wastarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
+	cat $(wastarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
 	mv $@.tmp $@
 
 ir/$(wastdir)/%.wast : dsp/%.dsp

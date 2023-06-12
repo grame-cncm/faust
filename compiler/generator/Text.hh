@@ -248,10 +248,8 @@ inline std::string flattenJSON1(const std::string& src)
     for (size_t i = 0; i < src.size(); i++) {
         switch (src[i]) {
             case '\\':
-                dst += "\\";
-                break;
             case '\'':
-                dst += "\\'";
+                dst += "-";
                 break;
             default:
                 dst += src[i];
