@@ -51,6 +51,10 @@ using namespace std;
  (gLoopVarInBytes)
  - offset of inputs/outputs are constant, so can be directly generated
 
+ Code generation, the flags can be:
+ - 'wasm-i' (internal memory for monophonic DSP)
+ - 'wasm-e' (external memory for polyphonic DSP)
+ - or 'wasm' which is equivalent to 'wasm-i'
 */
 
 dsp_factory_base* WASMCodeContainer::produceFactory()

@@ -253,10 +253,10 @@ static void createHelperFile(const string& outpath)
     if (gGlobal->gOutputFile == "binary") {
         // Nothing
     } else if (gGlobal->gOutputFile != "") {
-        string outpath_js;
-        bool res = replaceExtension(outpath, ".js", outpath_js);
+        string outpath_json;
+        bool res = replaceExtension(outpath, ".json", outpath_json);
         if (res) {
-            gHelpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
+            gHelpers = unique_ptr<ostream>(new ofstream(outpath_json.c_str()));
         } else {
             cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
         }
@@ -740,8 +740,7 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
 
     gContainer =
         WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out,
-                                           ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i") ||
-                                            (gGlobal->gOutputLang == "wasm-ib")));
+                                           ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i")));
     createHelperFile(outpath);
 
     if (gGlobal->gVectorSwitch) {
