@@ -335,7 +335,7 @@ wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
 	mkdir -p $(WASMFS)/$(WASMLIBDIR) && cp ../libraries/*.lib ../libraries/old/*.lib $(WASMFS)/$(WASMLIBDIR)
 	mkdir -p $(WASMFS)/rsrc && cp ../architecture/webaudio/mixer32.wasm $(WASMFS)/rsrc && cp ../architecture/webaudio/mixer64.wasm $(WASMFS)/rsrc
-	cmake --build $(FAUSTDIR) --target wasmlib $(BUILDOPT) -- $(JOBS)
+	$(CMAKE) --build $(FAUSTDIR) --target wasmlib $(BUILDOPT) -- $(JOBS)
 	cp $(FAUSTDIR)/emcc/libfaust-wasm.* lib
 	rm -rf $(WASMFS)
 
