@@ -7,11 +7,11 @@ project (faustemcc)
 set ( CMAKE_OSX_DEPLOYMENT_TARGET "")
 set ( CMAKE_OSX_SYSROOT "")
 set ( CMAKE_CXX_COMPILER "emcc")
+set (CMAKE_CXX_LINK_FLAGS "")
 
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
 	message (WARNING "Compiling on M1")
   	set (CMAKE_OSX_ARCHITECTURES " ")
-  	set (CMAKE_CXX_LINK_FLAGS "")
 endif()
 
 if (UNIVERSAL)
