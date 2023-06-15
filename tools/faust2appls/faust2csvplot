@@ -21,7 +21,7 @@ SOUNDFILELIBS=""
 
 echoHelp() {
     usage faust2csvplot "[options] [Faust options] <file.dsp>"
-    echo "Compiles Faust programs to plotters, the following 4 options are given at runtime:"
+    echo "Compiles Faust programs to plotters, additional control parameters depend of the DSP, the following 5 options are given at runtime:"
     options -dyn
     option "-s <n>" "start at the sample number <n> (default is 0)"
     option "-n <n>" "render <n> samples (default is 16)"
