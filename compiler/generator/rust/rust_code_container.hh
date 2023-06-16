@@ -83,6 +83,7 @@ class RustVectorCodeContainer : public VectorCodeContainer, public RustCodeConta
     virtual ~RustVectorCodeContainer() {}
 
     void generateCompute(int n);
+    BlockInst* generateDAGLoopVariant0(const std::string& counter) override;
 };
 
 class RustOpenMPCodeContainer : public OpenMPCodeContainer, public RustCodeContainer {
