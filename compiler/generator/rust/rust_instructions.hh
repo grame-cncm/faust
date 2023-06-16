@@ -188,10 +188,10 @@ class RustInstVisitor : public TextInstVisitor {
     {
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
             *fOut << "static mut ";
-        }
-
-        if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
+        } else if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
             *fOut << "let mut ";
+        } else if (inst->getAccess() & Address::kConst) {
+            *fOut << "const ";
         }
 
         // If type is kNoType, only generate the name, otherwise a typed expression
@@ -581,8 +581,6 @@ class RustInstVisitor : public TextInstVisitor {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
 
-        std::cerr << "init:      ";
-        dump2FIR(inst->fInit, std::cerr, false);
         auto        init = dynamic_cast<DeclareVarInst*>(inst->fInit);
         std::string name;
         ValueInst*  value;
@@ -595,19 +593,13 @@ class RustInstVisitor : public TextInstVisitor {
             value     = init->fValue;
         }
 
-        std::cerr << "increment: ";
-        dump2FIR(inst->fIncrement, std::cerr, false);
         auto increment      = dynamic_cast<BinopInst*>(dynamic_cast<StoreVarInst*>(inst->fIncrement)->fValue)->fInst2;
         bool increment_by_1 = false;
         if (auto num = dynamic_cast<Int32NumInst*>(increment)) {
             increment_by_1 = num->fNum == 1;
         }
 
-        std::cerr << "end:       ";
-        dump2FIR(inst->fEnd, std::cerr, false);
         auto end = dynamic_cast<BinopInst*>(inst->fEnd);
-
-        std::cerr << "visiting ForLoopInst" << std::endl;
 
         *fOut << "for " << name << " in ";
         if (!increment_by_1) *fOut << "(";
@@ -633,23 +625,6 @@ class RustInstVisitor : public TextInstVisitor {
         back(1, *fOut);
         *fOut << "}";
         tab(--fTab, *fOut);
-
-        std::cerr << "visited ForLoopInst" << std::endl;
-
-        /*
-        inst->fInit->accept(this);
-        *fOut << "loop {";
-        fTab++;
-        tab(fTab, *fOut);
-        inst->fCode->accept(this);
-        inst->fIncrement->accept(this);
-        *fOut << "if ";
-        inst->fEnd->accept(this);
-        *fOut << " { continue; } else { break; }";
-        fTab--;
-        tab(fTab, *fOut);
-        *fOut << "}";
-        tab(fTab, *fOut);*/
     }
 
     virtual void visit(SimpleForLoopInst* inst)
@@ -706,6 +681,46 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << ", " << makeNameSingular(inst->fIterators[i]->getName()) << ")";
         }
         *fOut << " in zipped_iterators {";
+        fTab++;
+        tab(fTab, *fOut);
+        inst->fCode->accept(this);
+        fTab--;
+        back(1, *fOut);
+        *fOut << "}";
+        tab(fTab, *fOut);
+    }
+
+    virtual void visit(ChunkIteratorForLoopInst* inst)
+    {
+        // Don't generate empty loops...
+        if (inst->fCode->size() == 0) return;
+
+        *fOut << "for ";
+        for (std::size_t i = 0; i < inst->fIteratorsIn.size() + inst->fIteratorsOut.size() - 1; ++i) {
+            *fOut << "(";
+        }
+        *fOut << makeNameSingular(inst->fIteratorsIn[0]->getName()) << 0 << ", ";
+        for (std::size_t i = 1; i < inst->fIteratorsIn.size(); ++i) {
+            *fOut << makeNameSingular(inst->fIteratorsIn[i]->getName()) << i << "), ";
+        }
+        *fOut << makeNameSingular(inst->fIteratorsOut[0]->getName()) << 0 << ")";
+        for (std::size_t i = 1; i < inst->fIteratorsOut.size(); ++i) {
+            *fOut << ", " << makeNameSingular(inst->fIteratorsOut[i]->getName()) << i << ")";
+        }
+        *fOut << " in ";
+        inst->fIteratorsIn[0]->accept(this);
+        *fOut << ".chunks(vsize as usize)";
+        for (std::size_t i = 1; i < inst->fIteratorsIn.size(); ++i) {
+            *fOut << ".zip(";
+            inst->fIteratorsIn[i]->accept(this);
+            *fOut << ".chunks(vsize as usize))";
+        }
+        for (auto& i : inst->fIteratorsOut) {
+            *fOut << ".zip(";
+            i->accept(this);
+            *fOut << ".chunks_mut(vsize as usize))";
+        }
+        *fOut << "{";
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);

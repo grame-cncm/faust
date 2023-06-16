@@ -122,6 +122,7 @@
 
 #ifdef RUST_BUILD
 #include "rust_code_container.hh"
+#include "dag_instructions_compiler_rust.hh"
 #endif
 
 #ifdef TEMPLATE_BUILD
@@ -197,9 +198,9 @@ static bool openOutfile()
      MANDATORY: use ostringstream which is indeed a subclass of ostream
      (otherwise subtle dynamic_cast related crash can occur...)
      *******************************************************************/
-    
+
     bool res = false;
-    
+
     if (gGlobal->gOutputFile == "string") {
         gDst = unique_ptr<ostream>(new ostringstream());
     } else if (gGlobal->gOutputFile == "binary") {
@@ -216,7 +217,7 @@ static bool openOutfile()
         } else {
             gDst = std::move(fdst);
         }
-        
+
     } else {
         gDst = unique_ptr<ostream>(new ostringstream());
         res = true;
@@ -504,7 +505,8 @@ static void compileRust(Tree signals, int numInputs, int numOutputs, ostream* ou
     gContainer                    = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
 
     if (gGlobal->gVectorSwitch) {
-        gNewComp = new DAGInstructionsCompiler(gContainer);
+        // gNewComp = new DAGInstructionsCompiler(gContainer);
+        gNewComp = new DAGInstructionsCompilerRust(gContainer);
     } else {
         gNewComp = new InstructionsCompiler1(gContainer);
     }
@@ -817,7 +819,7 @@ static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>&
         if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp") {
             *dst.get() << "} // namespace " << gGlobal->gNamespace << endl;
         }
-       
+
     } else {
         gContainer->printHeader();
         gContainer->printFloatDef();
@@ -1185,12 +1187,12 @@ static void* createFactoryAux1(void* arg)
         gGlobal->printDirectories();
 
         faust_alarm(gGlobal->gTimeout);
-        
+
         // Open output file
         bool is_cout = openOutfile();
         // Open enrobage file
         openEnrobagefile();
-       
+
         /****************************************************************
          1.5 - Check and open some input files
         *****************************************************************/
@@ -1304,10 +1306,10 @@ static void* createFactoryAux2(void* arg)
         gGlobal->processCmdline(argc, argv);
 
         gGlobal->initDocumentNames();
-        
+
         // Open output file
         openOutfile();
-     
+
         /*************************************************************************
          5 - preparation of the signal tree and translate output signals
          **************************************************************************/

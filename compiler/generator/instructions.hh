@@ -130,6 +130,7 @@ struct SwitchInst;
 struct ForLoopInst;
 struct SimpleForLoopInst;
 struct IteratorForLoopInst;
+struct ChunkIteratorForLoopInst;
 struct WhileLoopInst;
 
 // Block of statements
@@ -314,6 +315,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(ForLoopInst* inst) {}
     virtual void visit(SimpleForLoopInst* inst) {}
     virtual void visit(IteratorForLoopInst* inst) {}
+    virtual void visit(ChunkIteratorForLoopInst* inst) {}
     virtual void visit(WhileLoopInst* inst) {}
 
     // Block
@@ -390,6 +392,7 @@ struct CloneVisitor : public virtual Garbageable {
     virtual StatementInst* visit(ForLoopInst* inst)       = 0;
     virtual StatementInst* visit(SimpleForLoopInst* inst) = 0;
     virtual StatementInst* visit(IteratorForLoopInst* inst) = 0;
+    virtual StatementInst* visit(ChunkIteratorForLoopInst* inst) = 0;
     virtual StatementInst* visit(WhileLoopInst* inst)     = 0;
 
     // Block
@@ -1438,6 +1441,29 @@ struct IteratorForLoopInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+// For Rust
+struct ChunkIteratorForLoopInst : public StatementInst {
+    LoadVarInst* chunk;
+    std::vector<Address*> fIteratorsIn;
+    std::vector<Address*> fIteratorsOut;
+    BlockInst*                 fCode;
+
+    ChunkIteratorForLoopInst(LoadVarInst* chunk, const std::vector<Address*>& iteratorsIn, const std::vector<Address*>& iteratorsOut, BlockInst* code)
+        : chunk(chunk), fIteratorsIn(iteratorsIn), fIteratorsOut(iteratorsOut), fCode(code)
+    {
+    }
+
+    virtual ~ChunkIteratorForLoopInst() {}
+
+    void pushFrontInst(StatementInst* inst) { faustassert(inst); fCode->pushFrontInst(inst); }
+
+    void pushBackInst(StatementInst* inst) { faustassert(inst); fCode->pushBackInst(inst); }
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct WhileLoopInst : public StatementInst {
     ValueInst* fCond;
     BlockInst* fCode;
@@ -1642,6 +1668,18 @@ class BasicCloneVisitor : public CloneVisitor {
             iterators.push_back(static_cast<NamedAddress*>(it->clone(this)));
         }
         return new IteratorForLoopInst(iterators, inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
+    }
+
+    virtual StatementInst* visit(ChunkIteratorForLoopInst* inst)
+    {
+        std::vector<Address*> iteratorsIn;
+        for (const auto& it : inst->fIteratorsIn) {
+            iteratorsIn.push_back(static_cast<Address*>(it->clone(this)));
+        }std::vector<Address*> iteratorsOut;
+        for (const auto& it : inst->fIteratorsOut) {
+            iteratorsOut.push_back(static_cast<Address*>(it->clone(this)));
+        }
+        return new ChunkIteratorForLoopInst(dynamic_cast<LoadVarInst*>(inst->chunk->clone(this)), iteratorsIn, iteratorsOut, dynamic_cast<BlockInst*>(inst->fCode->clone(this)));
     }
 
     virtual StatementInst* visit(WhileLoopInst* inst)
@@ -2223,6 +2261,11 @@ struct InstBuilder {
                                                        BlockInst* code = new BlockInst())
     {
         return new IteratorForLoopInst(iterators, reverse, code);
+    }
+
+    static ChunkIteratorForLoopInst* genChunkIteratorForLoopInst(LoadVarInst* chunk, const std::vector<Address*>& iteratorsIn, const std::vector<Address*>& iteratorsOut, BlockInst* code)
+    {
+        return new ChunkIteratorForLoopInst(chunk, iteratorsIn, iteratorsOut, code);
     }
 
     static WhileLoopInst* genWhileLoopInst(ValueInst* cond, BlockInst* code) { return new WhileLoopInst(cond, code); }

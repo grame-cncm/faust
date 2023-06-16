@@ -30,9 +30,11 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
 
     virtual void compileMultiSignal(Tree sig);
 
-   private:
+   protected:
     // reimplemented code generation methods
     virtual ValueInst* CS(Tree sig);
+
+   private:
     virtual ValueInst* generateCode(Tree sig);
     virtual void       generateCodeRecursions(Tree sig);
     virtual ValueInst* generateCodeNonRec(Tree sig);
