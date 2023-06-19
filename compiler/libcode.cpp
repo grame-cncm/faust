@@ -877,7 +877,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             error << "ERROR : file '" << outpath << "' cannot be opened\n";
             throw faustexception(error.str());
         } else {
-            dst = move(fdst);
+            dst = std::move(fdst);
         }
 
     } else {
