@@ -7,3 +7,8 @@ edition = "2018"
 
 libm = "*"
 num-traits = "*"
+default-boxed = "0.2"
+
+[features]
+default = ["default-boxed"]
+default-boxed = []

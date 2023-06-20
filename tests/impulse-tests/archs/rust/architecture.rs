@@ -223,7 +223,8 @@ fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, outp
 }
 
 fn new_dsp() -> Box<Dsp64> {
-    Box::new(mydsp::new())
+    use default_boxed::DefaultBoxed;
+    mydsp::default_boxed()
 }
 
 fn main() {
