@@ -418,14 +418,15 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(BinopInst* inst)
     {
+        auto type1 = TypingVisitor::getType(inst->fInst1);
+
         // Special case for 'logical right-shift'
-        if (strcmp(gBinOpTable[inst->fOpcode]->fName, ">>>") == 0) {
-            Typed::VarType type = TypingVisitor::getType(inst->fInst1);
+        if (inst->fOpcode == kLRsh) {
             *fOut << "(((";
             inst->fInst1->accept(this);
-            if (isInt64Type(type)) {
+            if (isInt64Type(type1)) {
                 *fOut << " as u64)";
-            } else if (isInt32Type(type)) {
+            } else if (isInt32Type(type1)) {
                 *fOut << " as u32)";
             } else {
                 faustassert(false);
@@ -433,32 +434,25 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << " >> ";
             inst->fInst2->accept(this);
             *fOut << ")";
-            if (isInt64Type(type)) {
+            if (isInt64Type(type1)) {
                 *fOut << " as i64)";
-            } else if (isInt32Type(type)) {
+            } else if (isInt32Type(type1)) {
                 *fOut << " as i32)";
             } else {
                 faustassert(false);
             }
         } else if (isBoolOpcode(inst->fOpcode)) {
-            TextInstVisitor::visit(inst);
-
             // Force cast to Int32
-            /*
-            *fOut << "((";
+            *fOut << "(";
             TextInstVisitor::visit(inst);
             *fOut << ") as " << fTypeManager->generateType(InstBuilder::genInt32Typed());
-            *fOut << ")";*/
-
-        } else if (isIntType(TypingVisitor::getType(inst->fInst1)) &&
-                   fWrappingOpTable.find(inst->fOpcode) != fWrappingOpTable.end()) {
+        } else if (isIntType(type1) && fWrappingOpTable.find(inst->fOpcode) != fWrappingOpTable.end()) {
             // Special case for integer add, sub and mul:
             // Overflowing is an error by default in Rust, but should wrap in Faust
             // Use their wrapping equivalent instead
-            Typed::VarType type = TypingVisitor::getType(inst->fInst1);
-            if (isInt32Type(type)) {
+            if (isInt32Type(type1)) {
                 *fOut << "i32::";
-            } else if (isInt64Type(type)) {
+            } else if (isInt64Type(type1)) {
                 *fOut << "i64::";
             } else {
                 faustassert(false);
@@ -476,15 +470,19 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(::CastInst* inst)
     {
-        *fOut << "(";
+        bool needParentheses = dynamic_cast<CastInst*>(inst->fInst) == nullptr;
+        if (needParentheses) *fOut << "(";
         inst->fInst->accept(this);
+        if (needParentheses) *fOut << ")";
 
         // Cannot cast a boolean to a float directly, we must transition by an int
         auto binop = dynamic_cast<BinopInst*>(inst->fInst);
         if (binop && isBoolOpcode(binop->fOpcode) && inst->fType->getType() == Typed::kFloat) {
-            *fOut << ") as u32 as " << fTypeManager->generateType(inst->fType);
+            *fOut << " as u32 as " << fTypeManager->generateType(inst->fType);
+        } else if (binop && isBoolOpcode(binop->fOpcode) && inst->fType->getType() == Typed::kDouble) {
+            *fOut << " as u64 as " << fTypeManager->generateType(inst->fType);
         } else {
-            *fOut << ") as " << fTypeManager->generateType(inst->fType);
+            *fOut << " as " << fTypeManager->generateType(inst->fType);
         }
     }
 
@@ -493,7 +491,7 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(FunCallInst* inst)
     {
         if (inst->fName == "fmodf" || inst->fName == "fmod") {
-            BinopInst(kRem, inst->fArgs.front(), inst->fArgs.back()).accept(this);
+            InstBuilder::genRem(inst->fArgs.front(), inst->fArgs.back())->accept(this);
         } else if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             generateFunCall(inst, fMathLibTable[inst->fName]);
         } else {
@@ -539,41 +537,34 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(Select2Inst* inst)
     {
-        *fOut << "if (";
+        *fOut << "if ";
         inst->fCond->accept(this);
-        // Force 'cond' to bool type
-        *fOut << " as i32 != 0) { ";
+        *fOut << " != 0 {";
         inst->fThen->accept(this);
-        *fOut << " } else { ";
+        *fOut << "} else {";
         inst->fElse->accept(this);
-        *fOut << " }";
+        *fOut << "}";
     }
 
     virtual void visit(IfInst* inst)
     {
-        if (auto binop = dynamic_cast<BinopInst*>(inst->fCond)) {
-            faustassert(isBoolOpcode(binop->fOpcode));
-
-            *fOut << "if ";
-            inst->fCond->accept(this);
-            *fOut << " {";
+        *fOut << "if ";
+        inst->fCond->accept(this);
+        *fOut << " != 0 {";
+        tab(++fTab, *fOut);
+        inst->fThen->accept(this);
+        back(1, *fOut);
+        if (!inst->fElse->fCode.empty()) {
+            *fOut << "} else {";
             tab(++fTab, *fOut);
-            inst->fThen->accept(this);
+            inst->fElse->accept(this);
+            fTab -= 1;
             back(1, *fOut);
-            if (!inst->fElse->fCode.empty()) {
-                *fOut << "} else {";
-                tab(++fTab, *fOut);
-                inst->fElse->accept(this);
-                fTab -= 1;
-                back(1, *fOut);
-                *fOut << "}";
-            } else {
-                *fOut << "}";
-            }
-            tab(fTab, *fOut);
+            *fOut << "}";
         } else {
-            throw faustexception("IfInst condition is not a BinopInst");
+            *fOut << "}";
         }
+        tab(fTab, *fOut);
     }
 
     virtual void visit(ForLoopInst* inst)

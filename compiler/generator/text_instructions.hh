@@ -29,9 +29,9 @@
 #include <sstream>
 #include <string>
 
-#include "Text.hh"
 #include "fir_to_fir.hh"
 #include "instructions.hh"
+#include "Text.hh"
 #include "type_manager.hh"
 
 // Base class to textual visitor: C, C++, Cmajor, Codebox, CSharp, Dlang, JAX, Julia, Rust, wast
@@ -210,6 +210,12 @@ class TextInstVisitor : public InstVisitor {
      */
     virtual bool leftArgNeedsParentheses(BinopInst* inst, ValueInst* arg)
     {
+        // Without parentheses, '<' after a cast is interpreted as a generic argument
+        if ((inst->fOpcode == kLT || inst->fOpcode == kLsh) && dynamic_cast<CastInst*>(arg) &&
+            gGlobal->gOutputLang == "rust") {
+            return true;
+        }
+
         BinopInst* a = dynamic_cast<BinopInst*>(arg);
         if (a) {
             if (gGlobal->gFullParentheses || special(gBinOpTable[inst->fOpcode]->fName)) {
