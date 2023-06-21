@@ -1075,13 +1075,13 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
             int loop_num = 0;
             for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
                 BlockInst* switch_case_block = InstBuilder::genBlockInst();
-                generateDAGLoopAux(*p, switch_case_block, count_dec, loop_num);
+                generateDAGLoopAux(*p, switch_case_block, count_dec->load(), loop_num);
                 switch_block->addCase(loop_num, switch_case_block);
                 loop_num++;
             }
         } else {
             BlockInst* single_case_block = InstBuilder::genBlockInst();
-            generateDAGLoopAux(*dag[l].begin(), single_case_block, count_dec, 0);
+            generateDAGLoopAux(*dag[l].begin(), single_case_block, count_dec->load(), 0);
             switch_block->addCase(0, single_case_block);
         }
 
@@ -2016,13 +2016,13 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
             int loop_num = 0;
             for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
                 BlockInst* switch_case_block = InstBuilder::genBlockInst();
-                generateDAGLoopAux(*p, switch_case_block, count_dec, loop_num);
+                generateDAGLoopAux(*p, switch_case_block, count_dec->load(), loop_num);
                 switch_block->addCase(loop_num, switch_case_block);
                 loop_num++;
             }
         } else {
             BlockInst* single_case_block = InstBuilder::genBlockInst();
-            generateDAGLoopAux(*dag[l].begin(), single_case_block, count_dec, 0);
+            generateDAGLoopAux(*dag[l].begin(), single_case_block, count_dec->load(), 0);
             switch_block->addCase(0, single_case_block);
         }
 

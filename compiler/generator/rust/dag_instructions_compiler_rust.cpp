@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include "dag_instructions_compiler_rust.hh"
+#include "fir_to_fir.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
 
@@ -33,6 +34,12 @@ void DAGInstructionsCompilerRust::compileMultiSignal(Tree L)
     gGlobal->initTypeSizeMap();
 
     L = prepare(L);  // Optimize, share and annotate expression
+
+    Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr);
+    pushComputeBlockMethod(
+        InstBuilder::genDeclareBufferIterators("input", "inputs", fContainer->inputs(), type, false, true));
+    pushComputeBlockMethod(
+        InstBuilder::genDeclareBufferIterators("output", "outputs", fContainer->outputs(), type, true, true));
 
     for (int index = 0; isList(L); L = tl(L), index++) {
         Tree   sig  = hd(L);
@@ -132,4 +139,15 @@ StatementInst* DAGInstructionsCompilerRust::generateCopyArray(const string& vnam
 
     loop->pushFrontInst(InstBuilder::genStoreArrayStackVar(vname_to, loadVarInst, load_value));
     return loop;
+}
+
+ValueInst* DAGInstructionsCompilerRust::generateInput(Tree sig, int idx)
+{
+    //    return DAGInstructionsCompiler::generateInput(sig, idx);
+
+    string name = subst("input$0", T(idx));
+    //    gGlobal->gVarTypeTable[name] = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
+    ValueInst* res = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
+    // Possibly cast to internal float
+    return genCastedInput(res);
 }

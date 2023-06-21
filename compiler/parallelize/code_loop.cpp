@@ -100,7 +100,7 @@ BlockInst* CodeLoop::generateOneSample()
     return static_cast<BlockInst*>(block->clone(&cloner));
 }
 
-void CodeLoop::generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bool omp)
+void CodeLoop::generateDAGScalarLoop(BlockInst* block, LoadVarInst* count, bool omp)
 {
     // Generate code for extra loops
     for (list<CodeLoop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
@@ -120,7 +120,7 @@ void CodeLoop::generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bo
     if (fComputeInst->fCode.size() > 0) {
         DeclareVarInst* loop_decl =
             InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
-        ValueInst*    loop_end       = InstBuilder::genLessThan(loop_decl->load(), count->load());
+        ValueInst*    loop_end       = InstBuilder::genLessThan(loop_decl->load(), count);
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
         block->pushBackInst(InstBuilder::genLabelInst("/* Compute code */"));

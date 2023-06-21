@@ -82,7 +82,7 @@ class RustVectorCodeContainer : public VectorCodeContainer, public RustCodeConta
     RustVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
     virtual ~RustVectorCodeContainer() {}
 
-    void generateCompute(int n);
+    void       generateCompute(int n);
     BlockInst* generateDAGLoopVariant0(const std::string& counter) override;
 };
 
