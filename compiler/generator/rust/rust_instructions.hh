@@ -253,9 +253,15 @@ class RustInstVisitor : public TextInstVisitor {
             tab(fTab, *fOut);
             *fOut << "let " << name << i << " = " << name << i << "[..count as usize]";
             if (inst->fMutable) {
-                *fOut << ".iter_mut();";
+                if (inst->fChunk)
+                    *fOut << ".chunks_mut(vsize as usize);";
+                else
+                    *fOut << ".iter_mut();";
             } else {
-                *fOut << ".iter();";
+                if (inst->fChunk)
+                    *fOut << ".chunks(vsize as usize);";
+                else
+                    *fOut << ".iter();";
             }
         }
 
@@ -672,46 +678,6 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << ", " << makeNameSingular(inst->fIterators[i]->getName()) << ")";
         }
         *fOut << " in zipped_iterators {";
-        fTab++;
-        tab(fTab, *fOut);
-        inst->fCode->accept(this);
-        fTab--;
-        back(1, *fOut);
-        *fOut << "}";
-        tab(fTab, *fOut);
-    }
-
-    virtual void visit(ChunkIteratorForLoopInst* inst)
-    {
-        // Don't generate empty loops...
-        if (inst->fCode->size() == 0) return;
-
-        *fOut << "for ";
-        for (std::size_t i = 0; i < inst->fIteratorsIn.size() + inst->fIteratorsOut.size() - 1; ++i) {
-            *fOut << "(";
-        }
-        *fOut << makeNameSingular(inst->fIteratorsIn[0]->getName()) << 0 << ", ";
-        for (std::size_t i = 1; i < inst->fIteratorsIn.size(); ++i) {
-            *fOut << makeNameSingular(inst->fIteratorsIn[i]->getName()) << i << "), ";
-        }
-        *fOut << makeNameSingular(inst->fIteratorsOut[0]->getName()) << 0 << ")";
-        for (std::size_t i = 1; i < inst->fIteratorsOut.size(); ++i) {
-            *fOut << ", " << makeNameSingular(inst->fIteratorsOut[i]->getName()) << i << ")";
-        }
-        *fOut << " in ";
-        inst->fIteratorsIn[0]->accept(this);
-        *fOut << ".chunks(vsize as usize)";
-        for (std::size_t i = 1; i < inst->fIteratorsIn.size(); ++i) {
-            *fOut << ".zip(";
-            inst->fIteratorsIn[i]->accept(this);
-            *fOut << ".chunks(vsize as usize))";
-        }
-        for (auto& i : inst->fIteratorsOut) {
-            *fOut << ".zip(";
-            i->accept(this);
-            *fOut << ".chunks_mut(vsize as usize))";
-        }
-        *fOut << "{";
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);

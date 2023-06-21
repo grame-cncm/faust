@@ -359,6 +359,8 @@ interp1:
 rust:
 	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double"
 	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double -fp"
+	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double -vec -vs 4"
+	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double -vec -vs 32"
 
 #########################################################################
 # Cmajor backend

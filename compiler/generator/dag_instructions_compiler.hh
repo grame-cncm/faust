@@ -33,6 +33,7 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
    protected:
     // reimplemented code generation methods
     virtual ValueInst* CS(Tree sig);
+    virtual ValueInst* generateInput(Tree sig, int idx);
 
    private:
     virtual ValueInst* generateCode(Tree sig);
@@ -49,7 +50,6 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
 
     virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
     virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
-    virtual ValueInst* generateInput(Tree sig, int idx);
 
     virtual ValueInst* generateDelay(Tree sig, Tree arg, Tree size);
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd);

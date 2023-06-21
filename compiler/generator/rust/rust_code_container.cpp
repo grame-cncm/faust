@@ -507,7 +507,6 @@ void RustVectorCodeContainer::generateCompute(int n)
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
-    //    dump2FIR(fComputeBlockInstructions);
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
 
@@ -520,43 +519,33 @@ void RustVectorCodeContainer::generateCompute(int n)
 
 BlockInst* RustVectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 {
-//    std::cout << "generateDAGLoopVariant0" << std::endl;
-
     // Define result block
     BlockInst* block_res = InstBuilder::genBlockInst();
 
-    DeclareVarInst* vsize = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("vsize", Address::kConst),
-                                                           InstBuilder::genBasicTyped(Typed::kInt32),
-                                                           InstBuilder::genInt32NumInst(gGlobal->gVecSize));
-    block_res->pushFrontInst(vsize);
-    // Declare the "index" variable outside the loop
+    // declare vsize on top of the function
+    auto vsize_decl = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("vsize", Address::kConst),
+                                                     InstBuilder::genBasicTyped(Typed::kInt32),
+                                                     InstBuilder::genInt32NumInst(gGlobal->gVecSize));
+    fComputeBlockInstructions->pushFrontInst(vsize_decl);
+    auto vsize = vsize_decl->load();
+
     block_res->pushBackInst(InstBuilder::genLabelInst("/* Main loop */"));
-
     BlockInst* loop_code = InstBuilder::genBlockInst();
-
-    // Generate local input/output access
-    //    generateLocalInputs(loop_code, index);
-    //    generateLocalOutputs(loop_code, index);
 
     // Generates the loop DAG
     generateDAGLoop(loop_code, vsize);
 
-    auto inputs  = InstBuilder::genNamedAddress("inputs", Address::kStack);
-    auto outputs = InstBuilder::genNamedAddress("outputs", Address::kStack);
-
-    std::vector<Address*> iteratorsIn;
-    iteratorsIn.reserve(fNumInputs);
+    std::vector<NamedAddress*> iterators;
+    iterators.reserve(fNumInputs + fNumOutputs);
     for (int i = 0; i < fNumInputs; ++i) {
-        iteratorsIn.push_back(InstBuilder::genIndexedAddress(inputs, InstBuilder::genInt32NumInst(i)));
+        iterators.push_back(InstBuilder::genNamedAddress("inputs" + std::to_string(i), Address::kStack));
     }
-    std::vector<Address*> iteratorsOut;
-    iteratorsOut.reserve(fNumOutputs);
     for (int i = 0; i < fNumOutputs; ++i) {
-        iteratorsOut.push_back(InstBuilder::genIndexedAddress(outputs, InstBuilder::genInt32NumInst(i)));
+        iterators.push_back(InstBuilder::genNamedAddress("outputs" + std::to_string(i), Address::kStack));
     }
 
     // Generates the DAG enclosing loop
-    StatementInst* loop = InstBuilder::genChunkIteratorForLoopInst(vsize->load(), iteratorsIn, iteratorsOut, loop_code);
+    StatementInst* loop = InstBuilder::genIteratorForLoopInst(iterators, false, loop_code);
 
     // Put loop in block_res
     block_res->pushBackInst(loop);

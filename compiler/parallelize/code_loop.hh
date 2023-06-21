@@ -166,7 +166,7 @@ class CodeLoop : public virtual Garbageable {
 
     BlockInst* generateOneSample();
 
-    void generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bool omp);
+    void generateDAGScalarLoop(BlockInst* block, LoadVarInst* count, bool omp);
 
     void transform(DispatchVisitor* visitor)
     {
