@@ -16,3 +16,7 @@ Currently has available features :
 
 *   Now 
     * Fix MIDI and slider scaling with FAUST MIDI laws (steps)
+
+* Current fix : 
+    - move fTemp2 etc inside class definition
+    - find a way to process post compute > probably before the control() > this way we can achieve the proper operation order

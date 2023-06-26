@@ -279,18 +279,25 @@ void JSFXCodeContainer::produceClass()
     StructInstVisitor struct_visitor;
     fDeclarationInstructions->accept(&struct_visitor);
     for(const auto& it : fDeclarationInstructions->fCode) {
+        std::cout << "decl >> " << it->getName() << std::endl;
         auto desc = struct_visitor.getMemoryDesc(it->getName());
         class_decl += "dsp." + it->getName() +  " = " +  std::to_string(total_size) + ";\n";
         total_size += desc.fSize;
     }
     
     for(const auto& it : fComputeBlockInstructions->fCode) {
+        std::cout << "compute block >> " << it->getName() << std::endl;
         std::string name = it->getName();
         if(name.find("output") != name.npos || name.find("input") != name.npos)
             continue;
         class_decl += "dsp." + it->getName() + " = " + std::to_string(total_size) + ";\n";
         total_size++;
     }
+    
+    for(const auto& it : fPostComputeBlockInstructions->fCode) {
+        std::cout << "post compute block >> " << it->getName() << std::endl;
+    }
+    
     
     if(poly) {
         *fOut << "// Two identifiers to know which noteoff goes to which voice \n";
@@ -310,8 +317,8 @@ void JSFXCodeContainer::produceClass()
     *fOut << "function create_instances() (\n"
     << "voice_idx = 0; \n"
     << "while(voice_idx < nvoices) (\n"
-    << "obj = MEMORY.alloc_memory(dsp.size); \n"
-    << "addresses[voice_idx] = obj;\n";
+    << "obj = MEMORY.alloc_memory(dsp.size); \n";
+    //<< "addresses[voice_idx] = obj;\n";
     generateDeclarations(&initializer);
     *fOut << "voice_idx += 1; \n" << ");\n);\n\n";
     
@@ -333,6 +340,10 @@ void JSFXCodeContainer::produceClass()
 
     generateCompute(n);
     tab(n, *fOut);
+    
+    
+    *fOut << "@postCompute\n";
+    generatePostComputeBlock(gGlobal->gJSFXVisitor);
 }
 
 void JSFXCodeContainer::produceMetadata(int tabs)

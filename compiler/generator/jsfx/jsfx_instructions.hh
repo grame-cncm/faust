@@ -933,6 +933,9 @@ class JSFXInstVisitor : public TextInstVisitor {
         
         bool is_block = startWith(named->fName, "iSlow") || startWith(named->fName, "fSlow"); 
         
+        std::cout << "named address >> "  << named->fName << " access :  " << named->getAccess() << " control :   " << isControl(named->fName) << 
+        " - struct : " << named->isStruct() << " " <<  named->isVolatile() << " struct type : "  << std::endl;
+        std::cout  << " >> conds : " << (named->getAccess() & Address::kStruct && !isControl(named->fName)) << " --- " << (named->getAccess() & Address::kStack && is_block) << std::endl;
         if ((named->getAccess() & Address::kStruct && !isControl(named->fName))
             || (named->getAccess() & Address::kStack && is_block)) {
             *fOut << "obj[dsp.";
@@ -953,7 +956,7 @@ class JSFXInstVisitor : public TextInstVisitor {
 
         *fOut << name;
         if(isTable(named->fName)) {
-            std::cout << "is Table : " << named->fName << std::endl;
+            std::cout << "is Table : " << named->fName <<  " is struct : " <<   named->isStruct() <<std::endl;
             *fOut << "[";
         }
         //if(named->getAccess() & Address::kStruct && (isControl(named->fName) || is_block))
@@ -970,7 +973,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     */
     virtual void visit(IndexedAddress* indexed)
     {
-        
+        std::cout << "*** indexed address "  << indexed->getName() << std::endl;
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
@@ -993,8 +996,9 @@ class JSFXInstVisitor : public TextInstVisitor {
                 std::cout << "indexed is  NOT Table : " << indexed->getName() <<" isstruct "  << indexed->isStruct() <<  std::endl;    
             }
             else {
+                if(indexed->isStruct())
+                    *fOut << " + ";
                 std::cout << "indexed is Table : " << indexed->getName() << std::endl;    
-                *fOut << " + ";
             }
             if (field_index) {
                 *fOut << (field_index->fNum) << "]";
