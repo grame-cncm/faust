@@ -297,6 +297,11 @@ void JSFXCodeContainer::produceClass()
     for(const auto& it : fPostComputeBlockInstructions->fCode) {
         std::cout << "post compute block >> " << it->getName() << std::endl;
     }
+    for(const auto& it : fPostComputeBlockInstructions->fCode) {
+        std::cout << "post compute block >> " << it->getName() << std::endl;
+    }
+
+
     
     
     if(poly) {
@@ -342,8 +347,8 @@ void JSFXCodeContainer::produceClass()
     tab(n, *fOut);
     
     
-    *fOut << "@postCompute\n";
-    generatePostComputeBlock(gGlobal->gJSFXVisitor);
+    //*fOut << "@postCompute\n";
+    //generatePostComputeBlock(gGlobal->gJSFXVisitor);
 }
 
 void JSFXCodeContainer::produceMetadata(int tabs)
@@ -420,18 +425,10 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     *fOut << ");";
     tab(n, *fOut);
     
-    tab(n, *fOut);
-    *fOut << "function compute() (\n";
-    tab(n, *fOut);
-    *fOut << "voice_idx = 0;\n"
-    << "while(voice_idx < nvoices) (\n"
-    << "obj = get_dsp(voice_idx);\n";
-    SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
-    loop->accept(gGlobal->gJSFXVisitor);
-    *fOut << "voice_idx += 1;\n"
-    << ");\n";
-    *fOut << ");";
-    tab(n, *fOut);
+    //tab(n, *fOut);
+    //*fOut << "function compute() (\n";
+    //tab(n, *fOut);
+    //tab(n, *fOut);
     
     tab(n, *fOut);
     *fOut << "@block";
@@ -455,7 +452,14 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     *fOut << "@sample";
     tab(n, *fOut);
-    *fOut << "compute();";
+    *fOut << "voice_idx = 0;\n"
+    << "while(voice_idx < nvoices) (\n"
+    << "obj = get_dsp(voice_idx);\n";
+    SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
+    loop->accept(gGlobal->gJSFXVisitor);
+    *fOut << "voice_idx += 1;\n"
+    << ");\n";
+    //*fOut << "compute();";
     for(size_t i = 0; i < fNumOutputs; ++i)
     {
         tab(n, *fOut);
