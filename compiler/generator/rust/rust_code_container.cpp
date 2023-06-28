@@ -532,8 +532,10 @@ BlockInst* RustVectorCodeContainer::generateDAGLoopVariant0(const string& counte
     block_res->pushBackInst(InstBuilder::genLabelInst("/* Main loop */"));
     BlockInst* loop_code = InstBuilder::genBlockInst();
 
+    // TODO(rust) use usize where needed instead of casting everywhere
     // Generates the loop DAG
-    generateDAGLoop(loop_code, vsize);
+    generateDAGLoop(loop_code,
+                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("output0.len() as i32", Address::kStack)));
 
     std::vector<NamedAddress*> iterators;
     iterators.reserve(fNumInputs + fNumOutputs);
