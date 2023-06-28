@@ -48,12 +48,15 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
                 *fOut << fCurArray << " = MEMORY.alloc_memory(" << array_type->fSize << ");\n";
                 inst->fValue->accept(this);
             } else {
-                inst->fAddress->accept(this);
-                *fOut << " = ";
                 if(inst->fAddress->isStruct()) 
+                {
                     ZeroInitializer(fOut, inst->fType, inst->fAddress->getName());    
-                else        
+                }
+                else {        
+                    inst->fAddress->accept(this);
+                    *fOut << " = ";
                     MemoryAllocInitializer(fOut, inst->fType);
+                }
                 *fOut << ";\n";
             }
         }
@@ -81,7 +84,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     {
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
         faustassert(array_type);
-        *fOut << "memset( obj[dsp." << name << "], 0, " << array_type->fSize << ")";
+        *fOut << "memset( obj + dsp." << name << ", 0, " << array_type->fSize << ")";
     }
     
     // Needed for waveforms
@@ -489,7 +492,7 @@ class JSFXInstVisitor : public TextInstVisitor {
             "midi_event += 1;\n"
             "voice_idx = get_oldest_voice();\n"
             "sort_voices(voice_idx);\n"
-            "obj = get_dsp(v_idx);\n";
+            "obj = get_dsp(voice_idx);\n";
             *fOut << "obj[dsp.key_id] = msg2;\n";
             *fOut << "obj[dsp.gate] = 1;\n";
             _midi_poly_assign();
@@ -933,9 +936,6 @@ class JSFXInstVisitor : public TextInstVisitor {
         
         bool is_block = startWith(named->fName, "iSlow") || startWith(named->fName, "fSlow"); 
         
-        std::cout << "named address >> "  << named->fName << " access :  " << named->getAccess() << " control :   " << isControl(named->fName) << 
-        " - struct : " << named->isStruct() << " " <<  named->isVolatile() << " struct type : "  << std::endl;
-        std::cout  << " >> conds : " << (named->getAccess() & Address::kStruct && !isControl(named->fName)) << " --- " << (named->getAccess() & Address::kStack && is_block) << std::endl;
         if ((named->getAccess() & Address::kStruct && !isControl(named->fName))
             || (named->getAccess() & Address::kStack && is_block)) {
             *fOut << "obj[dsp.";
@@ -955,15 +955,14 @@ class JSFXInstVisitor : public TextInstVisitor {
         } 
 
         *fOut << name;
-        if(isTable(named->fName)) {
-            std::cout << "is Table : " << named->fName <<  " is struct : " <<   named->isStruct() <<std::endl;
+        if(isTable(named->fName) && !named->isStruct()) {
             *fOut << "[";
         }
-        //if(named->getAccess() & Address::kStruct && (isControl(named->fName) || is_block))
         
         if ((named->getAccess() & Address::kStruct && !isControl(named->fName) && !is_block && ( (name.find("Rec") == name.npos) && name.find("Vec") == name.npos) )
             || (named->getAccess() & Address::kStack && is_block) ) {
-            *fOut << "]";
+            if(!isTable(named->getName()))
+                *fOut << "]";
         }
         
     }
@@ -973,7 +972,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     */
     virtual void visit(IndexedAddress* indexed)
     {
-        std::cout << "*** indexed address "  << indexed->getName() << std::endl;
+        //std::cout << "*** indexed address "  << indexed->getName() << std::endl;
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
@@ -993,17 +992,14 @@ class JSFXInstVisitor : public TextInstVisitor {
                 else {
                     *fOut << "[";
                 }
-                std::cout << "indexed is  NOT Table : " << indexed->getName() <<" isstruct "  << indexed->isStruct() <<  std::endl;    
             }
             else {
                 if(indexed->isStruct())
                     *fOut << " + ";
-                std::cout << "indexed is Table : " << indexed->getName() << std::endl;    
             }
             if (field_index) {
                 *fOut << (field_index->fNum) << "]";
             } else {
-                //*fOut << " + " ;
                 indexed->getIndex()->accept(this);
                 *fOut << "]";
             }

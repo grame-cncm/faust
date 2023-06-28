@@ -248,7 +248,7 @@ void JSFXCodeContainer::produceClass()
     if(poly && gGlobal->gJSFXVisitor->mode == JSFXMIDIVoiceMode::voice_steal)
     {
         *fOut << "voices_arr = MEMORY.alloc_memory(" << nvoices << ");\n";
-        for(size_t i = 0; i < nvoices; ++i) {
+        for(int i = 0; i < nvoices; ++i) {
             *fOut << "voices_arr[" << i << "] = " << i << ";\n";
         }
         *fOut << "function sort_voices(n) (\n"
@@ -279,29 +279,20 @@ void JSFXCodeContainer::produceClass()
     StructInstVisitor struct_visitor;
     fDeclarationInstructions->accept(&struct_visitor);
     for(const auto& it : fDeclarationInstructions->fCode) {
-        std::cout << "decl >> " << it->getName() << std::endl;
+        //std::cout << "decl >> " << it->getName() << std::endl;
         auto desc = struct_visitor.getMemoryDesc(it->getName());
         class_decl += "dsp." + it->getName() +  " = " +  std::to_string(total_size) + ";\n";
         total_size += desc.fSize;
     }
     
     for(const auto& it : fComputeBlockInstructions->fCode) {
-        std::cout << "compute block >> " << it->getName() << std::endl;
+        //std::cout << "compute block >> " << it->getName() << std::endl;
         std::string name = it->getName();
         if(name.find("output") != name.npos || name.find("input") != name.npos)
             continue;
         class_decl += "dsp." + it->getName() + " = " + std::to_string(total_size) + ";\n";
         total_size++;
     }
-    
-    for(const auto& it : fPostComputeBlockInstructions->fCode) {
-        std::cout << "post compute block >> " << it->getName() << std::endl;
-    }
-    for(const auto& it : fPostComputeBlockInstructions->fCode) {
-        std::cout << "post compute block >> " << it->getName() << std::endl;
-    }
-
-
     
     
     if(poly) {
@@ -314,7 +305,7 @@ void JSFXCodeContainer::produceClass()
     
     *fOut << "dsp.size = " << std::to_string(total_size + fNumOutputs) << ";\n";
     *fOut << class_decl;
-    for(size_t i = 0; i < fNumOutputs; i++) {
+    for(int i = 0; i < fNumOutputs; i++) {
         *fOut << "dsp.output" << i << " = " << ++total_size - 1 << "; \n";
     }
     
@@ -460,11 +451,11 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     *fOut << "voice_idx += 1;\n"
     << ");\n";
     //*fOut << "compute();";
-    for(size_t i = 0; i < fNumOutputs; ++i)
+    for(int i = 0; i < fNumOutputs; ++i)
     {
         tab(n, *fOut);
         *fOut << "spl" << i << " = ";
-        for(size_t v = 0; v < nvoices; ++v) 
+        for(int v = 0; v < nvoices; ++v) 
         {
             *fOut << "get_dsp(" << v << ")[dsp.output" << i << "]";
             if(v < (nvoices - 1))
