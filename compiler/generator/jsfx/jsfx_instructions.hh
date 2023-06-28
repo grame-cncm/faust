@@ -43,9 +43,10 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     {
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_type) {
+            tab(fTab, *fOut);
             if (inst->fValue) {
                 fCurArray = inst->fAddress->getName();
-                *fOut << fCurArray << " = MEMORY.alloc_memory(" << array_type->fSize << ");\n";
+                *fOut << fCurArray << " = MEMORY.alloc_memory(" << array_type->fSize << ");";
                 inst->fValue->accept(this);
             } else {
                 if(inst->fAddress->isStruct()) 
@@ -57,7 +58,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
                     *fOut << " = ";
                     MemoryAllocInitializer(fOut, inst->fType);
                 }
-                *fOut << ";\n";
+                *fOut << ";";
             }
         }
     }
@@ -93,40 +94,19 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << fCurArray << "[" << i << "] = int32(" << inst->fNumTable[i] << ");\n";
         }
-        *fOut << "\n";
+        //*fOut << "\n";
     }
     
     virtual void visit(FloatArrayNumInst* inst)
     {
-        /*
-        if(fCurArray.find("dsp.") != fCurArray.npos)
-        {
-            for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-                *fOut << fCurArray << "+" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
-            }
-            
-            *fOut <<  "\n";
-            return;
-        }
-        */
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << fCurArray << "[" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
         }
-        *fOut << "\n";
+        //*fOut << "\n";
     }
     
     virtual void visit(DoubleArrayNumInst* inst)
     {
-        /*
-        if(fCurArray.find("dsp.") != fCurArray.npos)
-        {
-            for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-                *fOut << fCurArray << "+" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
-            }
-
-            *fOut <<  "\n";
-            return;
-        }*/
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << fCurArray << "[" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
         }
@@ -463,22 +443,23 @@ class JSFXInstVisitor : public TextInstVisitor {
     void _midi_poly_assign()
     {
         for(auto & it : _midi_scales) {
+            tab(fTab+2, *fOut);
             *fOut << "obj[dsp." << it.first << "] = ";
             switch(it.second.type) {
                 case JSFXMIDIScaleType::freq:
-                    *fOut << "limit(mtof(msg2), " << it.second.min << ", " << it.second.max  << ");\n";
+                    *fOut << "limit(mtof(msg2), " << it.second.min << ", " << it.second.max  << ");";
                     break;
                 case JSFXMIDIScaleType::key:
-                    *fOut << "msg2;\n" ;
+                    *fOut << "msg2;" ;
                     break;
                 case JSFXMIDIScaleType::gain:
-                    *fOut << "midi_scale(msg3, " << it.second.min << ", " << it.second.max << ", " << it.second.step << ");\n";
+                    *fOut << "midi_scale(msg3, " << it.second.min << ", " << it.second.max << ", " << it.second.step << ");";
                     break;
                 case JSFXMIDIScaleType::veloc:
-                    *fOut << "msg3;\n";
+                    *fOut << "msg3;";
                     break;
                 case JSFXMIDIScaleType::gate:
-                    *fOut << "1;\n";
+                    *fOut << "1;";
                     break;
                 case JSFXMIDIScaleType::none:
                     continue;
@@ -488,67 +469,115 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     void _voices_stealing_impl()
     {
-        *fOut << "(status == NOTE_ON) ? ( \n"
-            "midi_event += 1;\n"
-            "voice_idx = get_oldest_voice();\n"
-            "sort_voices(voice_idx);\n"
-            "obj = get_dsp(voice_idx);\n";
-            *fOut << "obj[dsp.key_id] = msg2;\n";
-            *fOut << "obj[dsp.gate] = 1;\n";
+        tab(fTab+1, *fOut);
+        *fOut << "(status == NOTE_ON) ? ( ";
+            tab(fTab+2, *fOut);
+            *fOut << "midi_event += 1;";
+            tab(fTab+2, *fOut);
+            *fOut << "voice_idx = get_oldest_voice();";
+            tab(fTab+2, *fOut);
+            *fOut << "sort_voices(voice_idx);";
+            tab(fTab+2, *fOut);
+            *fOut << "obj = get_dsp(voice_idx);";
+            tab(fTab+2, *fOut);
+            *fOut << "obj[dsp.key_id] = msg2;";
+            tab(fTab+2, *fOut);
+            *fOut << "obj[dsp.gate] = 1;";
             _midi_poly_assign();
-        *fOut << "); // NOTE ON condition off \n"
-        << "(status == NOTE_OFF) ? (\n"
-            << "midi_event += 1;\n"
-            << "voice_idx = 0;\n"
-            << "while(voice_idx < nvoices) (\n"
-                << "obj = get_dsp(voice_idx); \n"
-                << "(obj[dsp.key_id] == msg2 && obj[dsp.gate] > 0) ? (\n"
-                << "obj[dsp.gate] = 0; \n";
+        tab(fTab+1, *fOut);
+        *fOut << "); // NOTE ON condition off ";
+        tab(fTab+1, *fOut);
+        *fOut << "(status == NOTE_OFF) ? (";
+            tab(fTab+2, *fOut);
+            *fOut << "midi_event += 1;";
+            tab(fTab+2, *fOut);
+            *fOut << "voice_idx = 0;";
+            tab(fTab+2, *fOut);
+            *fOut << "while(voice_idx < nvoices) (";
+                tab(fTab+3, *fOut);
+                *fOut << "obj = get_dsp(voice_idx); ";
+                tab(fTab+3, *fOut);
+                *fOut << "(obj[dsp.key_id] == msg2 && obj[dsp.gate] > 0) ? (";
+                tab(fTab+4, *fOut);
+                *fOut << "obj[dsp.gate] = 0; ";
                 for(auto & it : _midi_scales) {
                     if(it.second.type == JSFXMIDIScaleType::gate) {
-                        *fOut << "obj[dsp." << it.first << "] = 0;\n";
+                        tab(fTab+4, *fOut);
+                        *fOut << "obj[dsp." << it.first << "] = 0;";
                     }
                 }
-                *fOut << "voice_idx = nvoices; \n"
-                << "); \n"
-                << "voice_idx += 1; \n"
-            << "); // end of while \n"
-        << "); // end of condition \n";
+                tab(fTab+4, *fOut);
+                *fOut << "voice_idx = nvoices;";
+                tab(fTab+3, *fOut);
+                *fOut << ");";
+                tab(fTab+3, *fOut);
+                *fOut << "voice_idx += 1; ";
+                tab(fTab+2, *fOut);
+            *fOut << "); // end of while ";
+            tab(fTab+1, *fOut);
+        *fOut << "); // end of condition ";
     }
 
     void _voice_blocking_impl() 
     {
-        *fOut << "(status == NOTE_ON) ? ( \n"
-        << "midi_event += 1; \n"
-        << "voice_idx = 0; \n"
-            << "while(voice_idx < nvoices) ( \n"
-                << "obj = get_dsp(voice_idx); \n"
-                << "(obj[dsp.gate] == 0) ?(\n";
-                    *fOut << "obj[dsp.key_id] = msg2;\n";
-                    *fOut << "obj[dsp.gate] = 1;\n";
+        tab(fTab+1, *fOut);
+        *fOut << "(status == NOTE_ON) ? (";
+        tab(fTab+2, *fOut);
+        *fOut << "midi_event += 1; ";
+        tab(fTab+2, *fOut);
+        *fOut << "voice_idx = 0; ";
+            tab(fTab+2, *fOut);
+            *fOut << "while(voice_idx < nvoices) ( ";
+                tab(fTab+3, *fOut);
+                *fOut << "obj = get_dsp(voice_idx); ";
+                tab(fTab+3, *fOut);
+                *fOut << "(obj[dsp.gate] == 0) ?(";
+                    *fOut << "obj[dsp.key_id] = msg2;";
+                    tab(fTab+4, *fOut);
+                    *fOut << "obj[dsp.gate] = 1;";
+                    tab(fTab+4, *fOut);
                     _midi_poly_assign();
-                    *fOut << "voice_idx = nvoices; \n"
-                << "); \n"
-                << "voice_idx += 1; \n"
-            << "); // end of while \n"
-        << "); // NOTE ON condition off \n"
-        << "(status == NOTE_OFF) ? (\n"
-        << "midi_event += 1; \n"
-        << "voice_idx = 0; \n"
-            << "while(voice_idx < nvoices) (\n"
-                << "obj = get_dsp(voice_idx); \n"
-                << "(obj[dsp.key_id] == msg2 && obj[dsp.gate] > 0) ? (\n"
-                << "obj[dsp.gate] = 0; \n";
+                    tab(fTab+4, *fOut);
+                    *fOut << "voice_idx = nvoices; ";
+                tab(fTab+3, *fOut);
+                *fOut << "); ";
+                tab(fTab+3, *fOut);
+                *fOut << "voice_idx += 1; ";
+            tab(fTab+2, *fOut);
+            *fOut << "); // end of while ";
+        tab(fTab+1, *fOut);
+        *fOut << "); // NOTE ON condition off ";
+        tab(fTab+1, *fOut);
+        *fOut << "(status == NOTE_OFF) ? (";
+        tab(fTab+2, *fOut);
+        *fOut << "midi_event += 1; ";
+        tab(fTab+2, *fOut);
+        *fOut<< "voice_idx = 0; ";
+            tab(fTab+2, *fOut);
+            *fOut << "while(voice_idx < nvoices) (";
+                tab(fTab+3, *fOut);
+                *fOut << "obj = get_dsp(voice_idx); ";
+                tab(fTab+3, *fOut);
+                *fOut << "(obj[dsp.key_id] == msg2 && obj[dsp.gate] > 0) ? (";
+                tab(fTab+4, *fOut);
+                *fOut << "obj[dsp.gate] = 0; ";
+                tab(fTab+4, *fOut);
                 for(auto & it : _midi_scales) {
                     if(it.second.type == JSFXMIDIScaleType::gate) {
-                        *fOut << "obj[dsp." << it.first << "] = 0;\n";
+                        tab(fTab+4, *fOut);
+                        *fOut << "obj[dsp." << it.first << "] = 0;";
                     }
                 }
-                *fOut << "voice_idx = nvoices; \n"
-                << "); \n"
-                << "voice_idx += 1; \n"
-            << "); // end of while \n"
-        << "); // end of condition \n";
+                tab(fTab+4, *fOut);
+                *fOut << "voice_idx = nvoices; ";
+                tab(fTab+3, *fOut);
+                *fOut << "); ";
+                tab(fTab+2, *fOut);
+                *fOut << "voice_idx += 1; ";
+                tab(fTab+2, *fOut);
+            *fOut << "); // end of while ";
+            tab(fTab+1, *fOut);
+        *fOut << "); // end of condition ";
     }
     
     void _midi_mono_instructions()
@@ -568,55 +597,72 @@ class JSFXInstVisitor : public TextInstVisitor {
                 }
             }
             if(ccs.size() > 0) {
-                *fOut << "(status == CC) ? ( \n";
+                tab(fTab + 1, *fOut);
+                *fOut << "(status == CC) ? (";
                 for (auto & cc : ccs) {
-                    *fOut << "midi_event += 1; \n";
+                    tab(fTab + 2, *fOut);
+                    *fOut << "midi_event += 1;";
                     JSFXMidiScale scale = _midi_scales[cc.variable_name];
+                    tab(fTab + 2, *fOut);
                     *fOut << "(msg2 == 0x" << std::hex << cc.nbr;
                     if (cc.channel >= 0) {
                         *fOut << " && channel == 0x" << std::hex << cc.channel;
                     }
                     //*fOut << ") ? (" << cc.variable_name << " = 0xF0&msg3); \n";
-                    *fOut << ") ? (" << cc.variable_name << " = midi_scale(msg3, " << scale.min << ", " << scale.max << ", " << scale.step <<  ")); \n";
+                    *fOut << ") ? (" << cc.variable_name << " = midi_scale(msg3, " << scale.min << ", " << scale.max << ", " << scale.step <<  "));";
                 }
-                *fOut << "); \n";
+                tab(fTab + 1, *fOut);
+                *fOut << ");";
             }
             if (keyons.size() > 0) {
-                *fOut << "(status == NOTE_ON) ? ( \n";
-                    *fOut << "midi_event += 1; \n";
+                tab(fTab + 1, *fOut);
+                *fOut << "(status == NOTE_ON) ? ( ";
+                    *fOut << "midi_event += 1; ";
                 for (auto & k : keyons) {
                     JSFXMidiScale scale = _midi_scales[k.variable_name];
+                    tab(fTab + 2, *fOut);
+                    *fOut << "midi_event += 1; ";
+                    tab(fTab + 2, *fOut);
                     *fOut << "(msg2 == 0x" << std::hex << k.nbr;
                     if (k.channel >= 0) {
                         *fOut << " && channel == 0x" << std::hex << k.channel;
                     }
-                    *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3, " << scale.min << ", " << scale.max << ", " << scale.step <<  ")); \n";
+                    *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3, " << scale.min << ", " << scale.max << ", " << scale.step <<  "));";
                 }
-                *fOut << "); \n";
+                tab(fTab + 1, *fOut);
+                *fOut << "); ";
             }
             if (keyoffs.size() > 0) {
-                *fOut << "(status == NOTE_OFF) ? ( \n";
-                    *fOut << "midi_event += 1; \n";
+                tab(fTab + 1, *fOut);
+                *fOut << "(status == NOTE_OFF) ? (";
+                    *fOut << "midi_event += 1; ";
                 for (auto & k : keyoffs) {
                     JSFXMidiScale scale = _midi_scales[k.variable_name];
+                    tab(fTab + 2, *fOut);
+                    *fOut << "midi_event += 1;";
+                    tab(fTab + 2, *fOut);
                     *fOut << "(msg2 == 0x" << std::hex << k.nbr;
                     if(k.channel >= 0) {
                         *fOut << " && channel == 0x" << std::hex << k.channel;
                     }
-                    *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3," << scale.min << ", " << scale.max << ", " << scale.step  <<  " )); \n";
+                    *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3," << scale.min << ", " << scale.max << ", " << scale.step  <<  " )); ";
                 }
-                *fOut << "); \n";
+                tab(fTab + 1, *fOut);
+                *fOut << "); ";
             }
     }
 
-    // To implement (in @block)
     void generateMIDIInstructions()
     {
         if(_midi_instructions.size() > 0 || poly)
         {
-            *fOut << "midi_event = 0; \n";
-            *fOut << "while (midirecv(mpos, msg1, msg2, msg3)) ( \n";
-            *fOut << "status = msg1&0xF0; \n" << "channel = msg1&0x0F; \n";
+            *fOut << "midi_event = 0; ";
+            tab(fTab, *fOut);
+            *fOut << "while (midirecv(mpos, msg1, msg2, msg3)) (";
+            tab(fTab+1, *fOut);
+            *fOut << "status = msg1&0xF0;";
+            tab(fTab+1, *fOut);
+            *fOut << "channel = msg1&0x0F; ";
         }
         if (_midi_instructions.size() > 0) {
             // MIDI from controls metadata
@@ -639,7 +685,10 @@ class JSFXInstVisitor : public TextInstVisitor {
             }
         }
         if(_midi_instructions.size() > 0 || poly)
-            *fOut << "); \n";
+        {
+            tab(fTab, *fOut);
+            *fOut << ");";
+        }
     }
 
     virtual void visit(OpenboxInst* inst)
@@ -738,14 +787,34 @@ class JSFXInstVisitor : public TextInstVisitor {
         throw(faustexception("ERROR : Soundfile is not available in JSFX\n"));
     }
     
+    std::string inlineInt32(float fnum)
+    {
+        std::string inlined = "(" + std::to_string(fnum) + ">= 2147483648 ? " + std::to_string(fnum) +  " - 4294967296 : " + std::to_string(fnum) + ")";
+        return inlined;
+    }
+    std::string inlineInt32(std::string fnum)
+    {
+        std::string inlined = "(" + fnum + ">= 2147483648 ? " + fnum +  " - 4294967296 : " + fnum + ")";
+        return inlined;
+    }
+    
+    std::string inlineAdd32(std::string val, float fnum)
+    {
+        std::string inlined = "((" + val + " += " + std::to_string(fnum) + ") >= 4294967296 ? " + val + " - 4294967296 : " + val + ")";
+        return inlined; 
+//            " (x += y) >= 4294967296 ? x - 4294967296 : x; \n
+    }
+
     virtual void visit(Int32NumInst* inst)
     {
-        *fOut << "int32(" << inst->fNum << ")";
+        *fOut << inlineInt32(inst->fNum);
+        //*fOut << "int32(" << inst->fNum << ")";
     }
     
     virtual void visit(Int64NumInst* inst)
     {
-        *fOut << "int32(" << inst->fNum << ")";
+        *fOut << inlineInt32(inst->fNum);
+        //*fOut << "int32(" << inst->fNum << ")";
     }
 
     virtual void visit(FloatNumInst* inst)
@@ -762,7 +831,8 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << "int32(" << inst->fNumTable[i] << ")";
+            //*fOut << sep << "int32(" << inst->fNumTable[i] << ")";
+            *fOut << sep << inlineInt32(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';
@@ -1060,19 +1130,21 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         if (inst->fCode->size() == 0) return;
 
+        tab(fTab, *fOut);
         inst->fInit->accept(this);
+        tab(fTab, *fOut);
         *fOut << "while";
         inst->fEnd->accept(this);
-        *fOut << "\n(";
+        tab(fTab, *fOut);
+        *fOut << "(";
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         inst->fIncrement->accept(this);
         fTab--;
         back(1, *fOut);
-        *fOut << ")";
-        EndLine();
         tab(fTab, *fOut);
+        *fOut << ");";
     }
 
     // @sample DSP Loop

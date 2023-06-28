@@ -109,7 +109,7 @@ void JSFXCodeContainer::produceClass()
     // Needed ?
     produceMetadata(n);
     
-    // buildUserInterface
+    // buildUserInterface > Sliders buttons and checkboxes only are available on JSFX
     generateUserInterface(gGlobal->gJSFXVisitor);
 
     // inputs/outputs
@@ -128,13 +128,12 @@ void JSFXCodeContainer::produceClass()
     }
     tab(n, *fOut);
    
-    // classInit
+    // Generate utility functions 
     *fOut << "@init" << endl;
     
     *fOut << "\n"
              << "// GLOBAL Functions \n"
              << "\n";
-    // Globals functions 
     *fOut << "/*\n"
              << " * Initialise memory allocator \n"
              << " */\n"
@@ -158,7 +157,7 @@ void JSFXCodeContainer::produceClass()
           << " address;\n"
           << ");\n";
 
-    // Int32 operations
+    // Int32 casting functions (JSFX only works with double precision floats)
     *fOut << "function int32(x) ( \n"
             " x >= 2147483648 ? x - 4294967296 : x; \n"
             "); \n"
@@ -188,6 +187,8 @@ void JSFXCodeContainer::produceClass()
             " x <= -1 ? ((min(max(-2147483648, x), -1)|0) + 4294967296;) : (min(max(0, x), 4294967295)|0;); \n"
             ");"
             
+
+            // Other utility functions 
             "function limit(x, min, max) (\n"
             "   (x < min) ? min : (x > max) ? max : x; \n"
             ");\n"
@@ -199,7 +200,8 @@ void JSFXCodeContainer::produceClass()
             "function mtof(mid) (\n"
             "   440 * exp(0.0577622645 * (mid - 69));\n"
             ");\n";
-
+    
+    // Maths missing functions (required by Faust, but not in JSFX natively)
     *fOut << "/*\n"
           << " * Mathematical functions \n"
           << " */\n"
@@ -230,12 +232,9 @@ void JSFXCodeContainer::produceClass()
     
     mergeSubContainers();
 
-    // Print header
+    // Setting in/outs and global variables 
     *fOut << "num_inputs = " << fNumInputs << ";\n"
           << "num_outputs = " << fNumOutputs << ";\n\n";
-    // Possibly missing mathematical functions
-    // Possibly merge sub containers (with an empty 'produceInternal' method)
-
     *fOut << "nvoices = " << nvoices << ";\n\n";
     *fOut << "voice_idx = 0; \n";
     JSFXInitFieldsVisitor initializer(fOut, n + 2);
@@ -244,7 +243,8 @@ void JSFXCodeContainer::produceClass()
             it->accept(&initializer);
         } 
     }
-    
+
+    // If polyphonic & voice stealing : generate the voice stealing array 
     if(poly && gGlobal->gJSFXVisitor->mode == JSFXMIDIVoiceMode::voice_steal)
     {
         *fOut << "voices_arr = MEMORY.alloc_memory(" << nvoices << ");\n";
@@ -264,14 +264,17 @@ void JSFXCodeContainer::produceClass()
         ");\n";
     }
 
+    // This function is used to retrieve a voice 
     tab(n, *fOut);
-    //*fOut << "addresses = MEMORY.alloc_memory(nvoices);\n";
     *fOut << "function get_dsp(index) (\n"
-    //"   addresses[index];\n"
     "  dsp.memory + dsp.size * index \n"
     ");\n";
 
-
+    // Generate class layout : in JSFX, classes do not exist natively. 
+    // Instead, we use indexes that represent the position of members in memory, relatively to object address. 
+    // dsp.memory represents the position of first object
+    // dsp.size is the total size of object (1 = 64 bits)
+    // Other dsp.fields are members position in object 
     int total_size = 0;
     *fOut << "// DSP struct memory layout \n";
     *fOut << "dsp.memory = MEMORY.alloc_memory(0); \n // check current memory index \n";
@@ -279,22 +282,20 @@ void JSFXCodeContainer::produceClass()
     StructInstVisitor struct_visitor;
     fDeclarationInstructions->accept(&struct_visitor);
     for(const auto& it : fDeclarationInstructions->fCode) {
-        //std::cout << "decl >> " << it->getName() << std::endl;
         auto desc = struct_visitor.getMemoryDesc(it->getName());
         class_decl += "dsp." + it->getName() +  " = " +  std::to_string(total_size) + ";\n";
         total_size += desc.fSize;
     }
-    
     for(const auto& it : fComputeBlockInstructions->fCode) {
-        //std::cout << "compute block >> " << it->getName() << std::endl;
         std::string name = it->getName();
         if(name.find("output") != name.npos || name.find("input") != name.npos)
             continue;
         class_decl += "dsp." + it->getName() + " = " + std::to_string(total_size) + ";\n";
         total_size++;
     }
-    
-    
+     
+    // These special fields dsp.key_id and dsp.gate are added in polyphonic context. 
+    // They are used to know whether a noteoff can close a playing note (if same key and gate == 1 )
     if(poly) {
         *fOut << "// Two identifiers to know which noteoff goes to which voice \n";
         class_decl += "dsp.key_id = " + std::to_string(total_size) + ";\n";
@@ -309,42 +310,55 @@ void JSFXCodeContainer::produceClass()
         *fOut << "dsp.output" << i << " = " << ++total_size - 1 << "; \n";
     }
     
+    // create_instances is used to allocate memory for instances and initialize members to zero 
     *fOut << "\n";
-    *fOut << "function create_instances() (\n"
-    << "voice_idx = 0; \n"
-    << "while(voice_idx < nvoices) (\n"
-    << "obj = MEMORY.alloc_memory(dsp.size); \n";
+    *fOut << "function create_instances() (";
+    tab(n+1, *fOut);
+    *fOut << "voice_idx = 0;";
+    tab(n+1, *fOut);
+    *fOut << "while(voice_idx < nvoices) (";
+    tab(n+2, *fOut);
+    *fOut << "obj = MEMORY.alloc_memory(dsp.size);";
     //<< "addresses[voice_idx] = obj;\n";
     generateDeclarations(&initializer);
-    *fOut << "voice_idx += 1; \n" << ");\n);\n\n";
+    tab(n+2, *fOut);
+    *fOut << "voice_idx += 1; \n\t);\n);\n\n";
     
     
-    *fOut << "function init_instances() (\n"
-    << "voice_idx = 0; \n"
-    << "while(voice_idx < nvoices) ( \n"
-    << "obj = get_dsp(voice_idx); \n";
+    // init_instances is used to initialize members to their init (or constant) values
+    // Both create_instances and init_instances are placed in the @init section
+    // In JSFX, @init is called at first load of plugin, and every time a new context is required by host (Reaper)
+    *fOut << "function init_instances() (";
+    tab(n+1, *fOut);
+    *fOut << "voice_idx = 0; ";
+    tab(n+1, *fOut);
+    *fOut << "while(voice_idx < nvoices) ( ";
+    tab(n+2, *fOut);
+    *fOut << "obj = dsp.memory + dsp.size * voice_idx; \n";
+    //<< "obj = get_dsp(voice_idx); \n";
+    gGlobal->gJSFXVisitor->Tab(n+2); 
     generateClear(gGlobal->gJSFXVisitor);
 
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJSFXVisitor);
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJSFXVisitor);
 
-    *fOut << "voice_idx += 1; \n"
-    << "); \n);\n";
+    *fOut << "voice_idx += 1; \n";
+    tab(n+1, *fOut);
+    *fOut << "); \n);\n";
     
     *fOut << "create_instances(); \n"
     << "init_instances(); \n\n";
 
     generateCompute(n);
     tab(n, *fOut);
-    
-    
-    //*fOut << "@postCompute\n";
-    //generatePostComputeBlock(gGlobal->gJSFXVisitor);
 }
 
 void JSFXCodeContainer::produceMetadata(int tabs)
 {
-    // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
+    // Here, we retrieve two kind of metadata : 
+    //  * Description fields are parsed to be translated in JSFX description fields
+    //  * MIDI metadata like ["midi:on"] is used to activate MIDI, while ["nvoices:N"] indicates the polyphonic number of voices
+    // Note that ["nvoices:1"] is useful to create a monophonic instrument that can respond to midi key numbers
     for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first == tree("options")) {
             for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
@@ -401,56 +415,70 @@ JSFXScalarCodeContainer::JSFXScalarCodeContainer(const string& name,
 // Given as an example of what a real backend would have to implement.
 void JSFXScalarCodeContainer::generateCompute(int n)
 {
+    // The control function is called from @slider section (every time a slider is moved) 
+    // as well as @block if MIDI is on (each time a MIDI event happens)
     tab(n, *fOut);
     *fOut << "function control() (";
-    tab(n, *fOut);
+    gGlobal->gJSFXVisitor->Tab(n+1);
     // Empty functions are not allowed, so generate a dummy line
-    *fOut << "dummy = 0;";
-    tab(n, *fOut);
-    *fOut << "voice_idx = 0;\n"
-    << "while(voice_idx < nvoices) (\n"
-    << "obj = get_dsp(voice_idx);\n";
+    tab(n+1, *fOut);
+    *fOut << "voice_idx = 0;";
+    tab(n+1, *fOut);
+    *fOut << "while(voice_idx < nvoices) (";
+    gGlobal->gJSFXVisitor->Tab(n+2);
+    tab(n+2, *fOut);
+    *fOut << "obj = dsp.memory + dsp.size * voice_idx;";
+    //<< "obj = get_dsp(voice_idx);\n";
     generateComputeBlock(gGlobal->gJSFXVisitor);
-    *fOut << "voice_idx += 1;\n"
-    << ");\n";
+    //tab(n+2, *fOut);
+    *fOut << "voice_idx += 1;";
+    tab(n+1, *fOut);
+    *fOut << ");";
+    tab(n, *fOut);
     *fOut << ");";
     tab(n, *fOut);
     
-    //tab(n, *fOut);
-    //*fOut << "function compute() (\n";
-    //tab(n, *fOut);
-    //tab(n, *fOut);
-    
+    // @block section is only used for MIDI events (inputs)
     tab(n, *fOut);
     *fOut << "@block";
     tab(n, *fOut);
+    gGlobal->gJSFXVisitor->Tab(n);
     gGlobal->gJSFXVisitor->generateMIDIInstructions();
     tab(n, *fOut);
     
     
+    // We want to filter if an event occurs to avoid compute control if not needed
     if(midi || poly) {
-        // * TO DO >  Detect in midi Loop if something happened (notein, cc or anything to refresh control smoothly and only when events are fired)
-        // Not implemented in midirecv yet
         *fOut << "(midi_event > 0) ? (control());\n";
     }
-    
+
+    // @slider section is called when a control (slider, button, checkbutton) has changed its value
+    // It is also called at startup  
     tab(n, *fOut);
     *fOut << "@slider";
     tab(n, *fOut);
     *fOut << "control();";
     tab(n, *fOut);
     
+    // @sample section is the audio loop. 
+    // Note that the @sample code represents 1 sample computation (it is internally called several times per vector to match vector size)
+    // It will process all internal computations for each voice and push the output results in the object output variables 
     tab(n, *fOut);
     *fOut << "@sample";
     tab(n, *fOut);
-    *fOut << "voice_idx = 0;\n"
-    << "while(voice_idx < nvoices) (\n"
-    << "obj = get_dsp(voice_idx);\n";
+    *fOut << "voice_idx = 0;";
+    tab(n, *fOut);
+    *fOut << "while(voice_idx < nvoices) (";
+    gGlobal->gJSFXVisitor->Tab(n+1);
+    tab(n+1, *fOut);
+    *fOut << "obj = dsp.memory + dsp.size * voice_idx; ";
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
     loop->accept(gGlobal->gJSFXVisitor);
-    *fOut << "voice_idx += 1;\n"
-    << ");\n";
-    //*fOut << "compute();";
+    //tab(n+1, *fOut);
+    *fOut << "voice_idx += 1;";
+    tab(n, *fOut);   
+    *fOut << ");";
+    // Then, output members are summed in spl0, spl1 (...) which are the actual JSFX outputs
     for(int i = 0; i < fNumOutputs; ++i)
     {
         tab(n, *fOut);
