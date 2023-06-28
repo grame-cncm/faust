@@ -52,7 +52,7 @@ Code generation options:
 ---------------------------------------
 
   **-lang** \<lang> **--language**                 select output language,
-                                          'lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, ocpp, rust or wast/wasm.
+                                          'lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, ocpp, rust, vhdl or wast/wasm.
 
   **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 
@@ -148,15 +148,9 @@ Code generation options:
 
   **-ns** \<name>  **--namespace** \<name>          generate C++ or D code in a namespace \<name>.
 
-  **-vhdl**          **--vhdl**                   output vhdl file.
+  **-vhdl-trace**    **--vhdl-trace**             activate VHDL compilation trace.
 
-  **-vhdl**-trace    **--vhdl-trace**             activate trace.
-
-  **-vhdl**-type 0|1 **--vhdl-type** 0|1          sample format 0 = sfixed (default), 1 = float.
-
-  **-vhdl**-msb \<n>  **--vhdl-msb** \<n>           Most Significant Bit (MSB) position.
-
-  **-vhdl**-lsb \<n>  **--vhdl-lsb** \<n>           Less Significant Bit (LSB) position.
+  **-vhdl-float** **--vhdl-float**          uses floating point as the sample format.
 
   **-fpga**-mem \<n>  **--fpga-mem** \<n>           FPGA block ram max size, used in -os2/-os3 mode.
 
