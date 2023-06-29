@@ -70,7 +70,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
         }
         *fOut << named->fName;
         if (named->getAccess() & Address::kStruct) {
-        *fOut << "]";
+            *fOut << "]";
         }
     }
     
@@ -94,7 +94,6 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << fCurArray << "[" << i << "] = int32(" << inst->fNumTable[i] << ");\n";
         }
-        //*fOut << "\n";
     }
     
     virtual void visit(FloatArrayNumInst* inst)
@@ -102,7 +101,6 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << fCurArray << "[" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
         }
-        //*fOut << "\n";
     }
     
     virtual void visit(DoubleArrayNumInst* inst)
@@ -110,7 +108,6 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << fCurArray << "[" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
         }
-        *fOut << "\n";
     }
 };
 
@@ -131,17 +128,15 @@ struct JSFXMidiInstr {
 enum class JSFXMIDIVoiceMode {
     voice_block = 0,
     voice_steal = 1,
-    
-
 };
 
 enum class JSFXMIDIScaleType {
-    key=0,
-    freq=1,
-    gain=2,
-    veloc=3,
-    gate=4,
-    none=5
+    key = 0,
+    freq = 1,
+    gain = 2,
+    veloc = 3,
+    gate = 4,
+    none = 5
 };
 
 struct JSFXMidiScale {
@@ -200,7 +195,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     JSFXInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
         : TextInstVisitor(out, ".", new JSFXStringTypeManager(xfloat(), "*", struct_name), tab)
     {
-            // Mark all math.h functions as generated...
+        // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
     
         gFunctionSymbolTable["max_i"] = true;
@@ -421,7 +416,6 @@ class JSFXInstVisitor : public TextInstVisitor {
                     res.first = found;
                     nfound++;
                 }
-                
                 else res.second = found;
             }
     
@@ -609,7 +603,7 @@ class JSFXInstVisitor : public TextInstVisitor {
                         *fOut << " && channel == 0x" << std::hex << cc.channel;
                     }
                     //*fOut << ") ? (" << cc.variable_name << " = 0xF0&msg3); \n";
-                    *fOut << ") ? (" << cc.variable_name << " = midi_scale(msg3, " << scale.min << ", " << scale.max << ", " << scale.step <<  "));";
+                    *fOut << ") ? (" << cc.variable_name << " = midi_scale(msg3, " << scale.min << ", " << scale.max << ", " << scale.step << "));";
                 }
                 tab(fTab + 1, *fOut);
                 *fOut << ");";
@@ -625,7 +619,7 @@ class JSFXInstVisitor : public TextInstVisitor {
                     if (k.channel >= 0) {
                         *fOut << " && channel == 0x" << std::hex << k.channel;
                     }
-                    *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3, " << scale.min << ", " << scale.max << ", " << scale.step <<  "));";
+                    *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3, " << scale.min << ", " << scale.max << ", " << scale.step << "));";
                 }
                 tab(fTab + 1, *fOut);
                 *fOut << "); ";
@@ -641,7 +635,7 @@ class JSFXInstVisitor : public TextInstVisitor {
                     if(k.channel >= 0) {
                         *fOut << " && channel == 0x" << std::hex << k.channel;
                     }
-                    *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3," << scale.min << ", " << scale.max << ", " << scale.step  <<  " )); ";
+                    *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3," << scale.min << ", " << scale.max << ", " << scale.step  << " )); ";
                 }
                 tab(fTab + 1, *fOut);
                 *fOut << "); ";
@@ -713,8 +707,6 @@ class JSFXInstVisitor : public TextInstVisitor {
                     return;
                 }
             }
-            //if(gGlobal->getFreshID(inst->fLabel) )
-
             string prefix;
             if (inst->fType == AddButtonInst::kDefaultButton) {
                 prefix = "button_";
@@ -889,7 +881,6 @@ class JSFXInstVisitor : public TextInstVisitor {
    
     virtual void visit(DeclareVarInst* inst)
     {
-        //*fOut << inst->getName();
         std::string name = inst->fAddress->getName();
         if ( name.find("output") != name.npos || name.find("input") != name.npos)
             return;
@@ -981,10 +972,7 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(NamedAddress* named)
     { 
-        //if(isControl(named->fName)) 
-        
-        
-        bool is_block = startWith(named->fName, "iSlow") || startWith(named->fName, "fSlow"); 
+        bool is_block = startWith(named->fName, "iSlow") || startWith(named->fName, "fSlow");
         
         if ((named->getAccess() & Address::kStruct && !isControl(named->fName))
             || (named->getAccess() & Address::kStack && is_block)) {
@@ -1009,12 +997,14 @@ class JSFXInstVisitor : public TextInstVisitor {
             *fOut << "[";
         }
         
-        if ((named->getAccess() & Address::kStruct && !isControl(named->fName) && !is_block && ( (name.find("Rec") == name.npos) && name.find("Vec") == name.npos) )
+        if ((named->getAccess() & Address::kStruct && !isControl(named->fName)
+             && !is_block
+             && ((name.find("Rec") == name.npos) && name.find("Vec") == name.npos))
             || (named->getAccess() & Address::kStack && is_block) ) {
-            if(!isTable(named->getName()))
+            if(!isTable(named->getName())) {
                 *fOut << "]";
+            }
         }
-        
     }
     
     /*
@@ -1022,7 +1012,6 @@ class JSFXInstVisitor : public TextInstVisitor {
     */
     virtual void visit(IndexedAddress* indexed)
     {
-        //std::cout << "*** indexed address "  << indexed->getName() << std::endl;
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
@@ -1038,14 +1027,13 @@ class JSFXInstVisitor : public TextInstVisitor {
             {
                 if(indexed->isStruct()) {
                     *fOut << " + ";
-                }
-                else {
+                } else {
                     *fOut << "[";
                 }
-            }
-            else {
-                if(indexed->isStruct())
+            } else {
+                if(indexed->isStruct()) {
                     *fOut << " + ";
+                }
             }
             if (field_index) {
                 *fOut << (field_index->fNum) << "]";

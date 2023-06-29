@@ -57,12 +57,6 @@ CodeContainer* JSFXCodeContainer::createScalarContainer(const string& name, int 
     return new JSFXScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
 }
 
-/*
-    The given template implements -scalar (= default) and -vec mode.
-    For options like -omp, -sch, the corresponding JSFXOpenMPCodeContainer
-    and JSFXWorkStealingCodeContainer classes would have to be implemented
-    and activated.
-*/
 CodeContainer* JSFXCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
     gGlobal->gDSPStruct = true;
@@ -188,7 +182,6 @@ void JSFXCodeContainer::produceClass()
             " x <= -1 ? ((min(max(-2147483648, x), -1)|0) + 4294967296;) : (min(max(0, x), 4294967295)|0;); \n"
             ");"
             
-
             // Other utility functions 
             "function limit(x, min, max) (\n"
             "   (x < min) ? min : (x > max) ? max : x; \n"
@@ -322,11 +315,9 @@ void JSFXCodeContainer::produceClass()
     tab(n+2, *fOut);
     *fOut << "obj = MEMORY.alloc_memory(dsp.size);";
     initializer.fTab+=2;
-    //<< "addresses[voice_idx] = obj;\n";
     generateDeclarations(&initializer);
     tab(n+2, *fOut);
     *fOut << "voice_idx += 1; \n\t);\n);\n\n";
-    
     
     // init_instances is used to initialize members to their init (or constant) values
     // Both create_instances and init_instances are placed in the @init section
@@ -339,8 +330,7 @@ void JSFXCodeContainer::produceClass()
     tab(n+2, *fOut);
     *fOut << "obj = dsp.memory + dsp.size * voice_idx;";
     tab(n+2, *fOut);
-    //<< "obj = get_dsp(voice_idx); \n";
-    gGlobal->gJSFXVisitor->Tab(n+2); 
+    gGlobal->gJSFXVisitor->Tab(n+2);
     generateClear(gGlobal->gJSFXVisitor);
 
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJSFXVisitor);
@@ -367,7 +357,7 @@ void JSFXCodeContainer::produceMetadata(int tabs)
         if (i.first == tree("options")) {
             for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
                 std::stringstream ss;
-                ss<<**j;
+                ss << **j;
                 std::string s;
                 ss >> s;
                 if (s.find("[midi:on]") != s.npos) {
@@ -433,9 +423,7 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     tab(n+2, *fOut);
     *fOut << "obj = dsp.memory + dsp.size * voice_idx;";
     tab(n+2, *fOut);
-    //<< "obj = get_dsp(voice_idx);\n";
     generateComputeBlock(gGlobal->gJSFXVisitor);
-    //tab(n+2, *fOut);
     *fOut << "voice_idx += 1;";
     tab(n+1, *fOut);
     *fOut << ");";
@@ -450,7 +438,6 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     gGlobal->gJSFXVisitor->Tab(n);
     gGlobal->gJSFXVisitor->generateMIDIInstructions();
     tab(n, *fOut);
-    
     
     // We want to filter if an event occurs to avoid compute control if not needed
     if(midi || poly) {
@@ -480,7 +467,6 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     tab(n+1, *fOut);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
     loop->accept(gGlobal->gJSFXVisitor);
-    //tab(n+1, *fOut);
     *fOut << "voice_idx += 1;";
     tab(n, *fOut);   
     *fOut << ");";
