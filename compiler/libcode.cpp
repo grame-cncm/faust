@@ -746,6 +746,8 @@ static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>&
             DLangCodeContainer::printDRecipeComment(*dst.get(), gContainer->getClassName());
             DLangCodeContainer::printDModuleStmt(*dst.get(), gContainer->getClassName());
         }
+#else
+    }
 #endif
 
         gContainer->printHeader();
