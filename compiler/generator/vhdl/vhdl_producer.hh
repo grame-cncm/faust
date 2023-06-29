@@ -161,14 +161,6 @@ class VhdlProducer : public SignalVisitor {
     void normalize();
 
     /**
-     * CODE GENERATION
-     */
-    void declare_dependencies();
-    void generate_entities();
-    void instantiate_components();
-    void map_ports();
-
-    /**
      * RETIMING
      */
     /** Computes the maximal propagation delay to access each vertex */

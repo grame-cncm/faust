@@ -1012,7 +1012,6 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     else if (!startWith(gGlobal->gOutputLang, "vhdl")) {
         faustassert(false);
     }
-     */
 
     endTiming("generateCode");
 }
