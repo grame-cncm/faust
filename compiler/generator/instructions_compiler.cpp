@@ -1913,9 +1913,8 @@ ValueInst* InstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
         }
     } else {
 
-        int N = pow2limit(mxd + 1);
-        if (N <= gGlobal->gMaskDelayLineThreshold) {
-            
+        if (mxd < gGlobal->gMaskDelayLineThreshold) {
+            int N = pow2limit(mxd + 1);
             ensureIotaCode();
             
             FIRIndex value2 = (FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) - CS(delay)) & FIRIndex(N - 1);
@@ -2064,9 +2063,8 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
 
     } else {
 
-        int N = pow2limit(mxd + 1);
-        if (N <= gGlobal->gMaskDelayLineThreshold) {
-
+        if (mxd < gGlobal->gMaskDelayLineThreshold) {
+            int N = pow2limit(mxd + 1);
             ensureIotaCode();
 
             // Generates table init

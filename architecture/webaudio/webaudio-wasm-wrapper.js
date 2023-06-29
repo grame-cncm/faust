@@ -209,7 +209,10 @@ Utf8.decode = function (strUtf) {
 
 'use strict';
 
-var faust_module = FaustModule(); // Emscripten generated module
+// var faust_module = FaustModule(); // Emscripten generated module
+
+// To be compiled with emcc 2.0.34 
+var faust_module = Module; // Emscripten generated module
 
 faust_module.lengthBytesUTF8 = function (str) {
     var len = 0;

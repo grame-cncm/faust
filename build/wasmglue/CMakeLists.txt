@@ -9,7 +9,12 @@ option (WORKLET "Compile wasm glue library for worklet" off)
 set (CMAKE_OSX_DEPLOYMENT_TARGET "")
 set (CMAKE_OSX_SYSROOT 	"")
 set (CMAKE_CXX_COMPILER "emcc")
-set ( CMAKE_CXX_LINK_FLAGS "")
+set (CMAKE_CXX_LINK_FLAGS "")
+
+if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
+	message (WARNING "Compiling on M1")
+  	set (CMAKE_OSX_ARCHITECTURES " ")
+endif()
 
 if (UNIVERSAL)
 message (WARNING "WASM do not support universal mode. Switch back to native mode before compiling")

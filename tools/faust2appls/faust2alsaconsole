@@ -96,7 +96,7 @@ for f in $FILES; do
 
     # compile c++ to binary
     (
-        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS -lpthread -o "${f%.dsp}"
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS -pthread -o "${f%.dsp}"
     ) > /dev/null || exit
     rm "$f.cpp"
 

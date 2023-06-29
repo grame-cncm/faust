@@ -135,18 +135,19 @@ using namespace std;
  Global context
  *****************************************************************/
 
-static unique_ptr<ifstream> injcode;
-static unique_ptr<ifstream> enrobage;
-static unique_ptr<ostream>  helpers;
+static unique_ptr<ifstream> gEnrobage;
+static unique_ptr<ostream>  gHelpers;
+static unique_ptr<ostream>  gDst;
+static string gOutpath;
 
 // Old CPP compiler
 #ifdef OCPP_BUILD
-static Compiler* old_comp = nullptr;
+static Compiler* gOldComp = nullptr;
 #endif
 
 // FIR container
-static InstructionsCompiler* new_comp  = nullptr;
-static CodeContainer*        container = nullptr;
+static InstructionsCompiler* gNewComp   = nullptr;
+static CodeContainer*        gContainer = nullptr;
 
 // Shared context
 global* gGlobal = nullptr;
@@ -161,22 +162,76 @@ static void includeFile(const string& file, ostream& dst)
     }
 }
 
-static void injectCode(unique_ptr<ifstream>& enrobage1, ostream& dst)
+static void injectCode(unique_ptr<ifstream>& enrobage, unique_ptr<ostream>& dst, bool is_cout)
 {
     // Check if this is a code injection
     if (gGlobal->gInjectFlag) {
+        unique_ptr<ifstream> injcode;
         if (gGlobal->gArchFile == "") {
             stringstream error;
             error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
             throw faustexception(error.str());
+        } else if (!(injcode = openArchStream(gGlobal->gInjectFile.c_str()))) {
+            stringstream error;
+            error << "ERROR : can't inject \"" << gGlobal->gInjectFile << "\" external code file, file not found\n";
+            throw faustexception(error.str());
         } else {
-            streamCopyUntil(*enrobage1.get(), dst, "<<includeIntrinsic>>");
-            container->printMacros(dst, 0);
-            streamCopyUntil(*enrobage1.get(), dst, "<<includeclass>>");
-            streamCopyUntilEnd(*injcode.get(), dst);
-            streamCopyUntilEnd(*enrobage1.get(), dst);
+            streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeIntrinsic>>");
+            gContainer->printMacros(*dst.get(), 0);
+            streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeclass>>");
+            streamCopyUntilEnd(*injcode.get(), *dst.get());
+            streamCopyUntilEnd(*enrobage.get(), *dst.get());
+            if (is_cout) cout << dynamic_cast<ostringstream*>(dst.get())->str();
         }
         throw faustexception("");
+    }
+}
+
+static bool openOutfile()
+{
+    /*******************************************************************
+     MANDATORY: use ostringstream which is indeed a subclass of ostream
+     (otherwise subtle dynamic_cast related crash can occur...)
+     *******************************************************************/
+    
+    bool res = false;
+    
+    if (gGlobal->gOutputFile == "string") {
+        gDst = unique_ptr<ostream>(new ostringstream());
+    } else if (gGlobal->gOutputFile == "binary") {
+        gDst = unique_ptr<ostream>(new ostringstream(ostringstream::out | ostringstream::binary));
+    } else if (gGlobal->gOutputFile != "") {
+        gOutpath = (gGlobal->gOutputDir != "")
+            ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile)
+            : gGlobal->gOutputFile;
+        unique_ptr<ofstream> fdst = unique_ptr<ofstream>(new ofstream(gOutpath.c_str()));
+        if (!fdst->is_open()) {
+            stringstream error;
+            error << "ERROR : file '" << gOutpath << "' cannot be opened\n";
+            throw faustexception(error.str());
+        } else {
+            gDst = std::move(fdst);
+        }
+        
+    } else {
+        gDst = unique_ptr<ostream>(new ostringstream());
+        res = true;
+    }
+    return res;
+}
+
+static bool openEnrobagefile()
+{
+    // Check for architecture file
+    if (gGlobal->gArchFile != "") {
+        if (!(gEnrobage = openArchStream(gGlobal->gArchFile.c_str()))) {
+            stringstream error;
+            error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
+            throw faustexception(error.str());
+        }
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -187,14 +242,14 @@ static void createHelperFile(const string& outpath)
         // Nothing
     } else if (gGlobal->gOutputFile != "") {
         string outpath_js;
-        bool   res = replaceExtension(outpath, ".js", outpath_js);
+        bool res = replaceExtension(outpath, ".js", outpath_js);
         if (res) {
-            helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
+            gHelpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
         } else {
             cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
         }
     } else {
-        helpers = unique_ptr<ostream>(new ostringstream());
+        gHelpers = unique_ptr<ostream>(new ostringstream());
     }
 }
 
@@ -258,15 +313,15 @@ static void compileCLLVM(Tree signals, int numInputs, int numOutputs)
     // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
 
-    container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+    gContainer = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
     // To trigger 'sig.dot' generation
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
-    new_comp->prepare(signals);
+    gNewComp->prepare(signals);
 #else
     throw faustexception("ERROR : -lang cllcm not supported since LLVM backend is not built\n");
 #endif
@@ -275,7 +330,7 @@ static void compileCLLVM(Tree signals, int numInputs, int numOutputs)
 static void compileLLVM(Tree signals, int numInputs, int numOutputs, bool generate)
 {
 #ifdef LLVM_BUILD
-    container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+    gContainer = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
     // libc functions will be found by the LLVM linker, but not user defined ones...
     gGlobal->gAllowForeignFunction = false; 
@@ -284,18 +339,18 @@ static void compileLLVM(Tree signals, int numInputs, int numOutputs, bool genera
     gGlobal->gUseDefaultSound     = false;
 
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
 
     if (generate) {
-        new_comp->compileMultiSignal(signals);
+        gNewComp->compileMultiSignal(signals);
     } else {
         // To trigger 'sig.dot' generation
-        new_comp->prepare(signals);
+        gNewComp->prepare(signals);
     }
 #else
     throw faustexception("ERROR : -lang llvm not supported since LLVM backend is not built\n");
@@ -306,9 +361,9 @@ static void compileInterp(Tree signals, int numInputs, int numOutputs)
 {
 #if defined(INTERP_BUILD) || defined(INTERP_COMP_BUILD)
     if (gGlobal->gFloatSize == 1) {
-        container = InterpreterCodeContainer<float>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+        gContainer = InterpreterCodeContainer<float>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
     } else if (gGlobal->gFloatSize == 2) {
-        container = InterpreterCodeContainer<double>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+        gContainer = InterpreterCodeContainer<double>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
     } else {
         throw faustexception("ERROR : quad format not supported in Interp\n");
     }
@@ -324,13 +379,13 @@ static void compileInterp(Tree signals, int numInputs, int numOutputs)
     gGlobal->gUseDefaultSound     = false;
 
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InterpreterInstructionsCompiler(container);
+        gNewComp = new InterpreterInstructionsCompiler(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang interp not supported since Interpreter backend is not built\n");
 #endif
@@ -339,15 +394,15 @@ static void compileInterp(Tree signals, int numInputs, int numOutputs)
 static void compileFIR(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef FIR_BUILD
-    container = FIRCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out, true);
+    gContainer = FIRCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out, true);
 
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
 
-    new_comp->compileMultiSignal(signals);
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang fir not supported since FIR backend is not built\n");
 #endif
@@ -356,16 +411,16 @@ static void compileFIR(Tree signals, int numInputs, int numOutputs, ostream* out
 static void compileC(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef C_BUILD
-    container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    gContainer = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang c not supported since C backend is not built\n");
 #endif
@@ -374,18 +429,18 @@ static void compileC(Tree signals, int numInputs, int numOutputs, ostream* out)
 static void compileCPP(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef CPP_BUILD
-    container = CPPCodeContainer::createContainer(gGlobal->gClassName,
+    gContainer = CPPCodeContainer::createContainer(gGlobal->gClassName,
                                                   gGlobal->gSuperClassName,
                                                   numInputs, numOutputs, out);
     
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang cpp not supported since CPP backend is not built\n");
 #endif
@@ -395,15 +450,15 @@ static void compileOCPP(Tree signals, int numInputs, int numOutputs)
 {
 #ifdef OCPP_BUILD
     if (gGlobal->gSchedulerSwitch) {
-        old_comp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
+        gOldComp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
     } else if (gGlobal->gVectorSwitch) {
-        old_comp = new VectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
+        gOldComp = new VectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
     } else {
-        old_comp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
+        gOldComp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) old_comp->setDescription(new Description());
-    old_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gOldComp->setDescription(new Description());
+    gOldComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang ocpp not supported since old CPP backend is not built\n");
 #endif
@@ -414,16 +469,16 @@ static void compileRust(Tree signals, int numInputs, int numOutputs, ostream* ou
 #ifdef RUST_BUILD
     // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
-    container                     = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    gContainer                    = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
 
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler1(container);
+        gNewComp = new InstructionsCompiler1(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang rust not supported since Rust backend is not built\n");
 #endif
@@ -433,17 +488,17 @@ static void compileJava(Tree signals, int numInputs, int numOutputs, ostream* ou
 {
 #ifdef JAVA_BUILD
     gGlobal->gAllowForeignFunction = false;  // No foreign functions
-    container =
+    gContainer =
         JAVACodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs, out);
 
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
 #endif
@@ -453,16 +508,16 @@ static void compileJulia(Tree signals, int numInputs, int numOutputs, ostream* o
 {
 #ifdef JULIA_BUILD
     gGlobal->gAllowForeignFunction = false;  // No foreign functions
-    container = JuliaCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    gContainer = JuliaCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
 
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler1(container);
+        gNewComp = new InstructionsCompiler1(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang julia not supported since Julia backend is not built\n");
 #endif
@@ -477,16 +532,16 @@ static void compileJSFX(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gFAUSTFLOAT2Internal  = true;
     // JSFX actually uses the in "inplace" model
     gGlobal->gInPlace              = true;
-    container = JSFXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    gContainer = JSFXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
     
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang temp not supported since JSFX backend is not built\n");
 #endif
@@ -498,16 +553,16 @@ static void compileJAX(Tree signals, int numInputs, int numOutputs, ostream* out
     gGlobal->gAllowForeignFunction = true;  // foreign functions are supported (we use jax.random.PRNG for example)
     gGlobal->gNeedManualPow        = false; // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gFAUSTFLOAT2Internal  = true;
-    container = JAXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    gContainer = JAXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompilerJAX(container);
+        gNewComp = new InstructionsCompilerJAX(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang jax not supported since JAX backend is not built\n");
 #endif
@@ -520,16 +575,16 @@ static void compileTemplate(Tree signals, int numInputs, int numOutputs, ostream
     gGlobal->gAllowForeignFunction = true;
     gGlobal->gNeedManualPow        = false; // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gFAUSTFLOAT2Internal  = true;
-    container = TemplateCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    gContainer = TemplateCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
     
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang temp not supported since Template backend is not built\n");
 #endif
@@ -539,17 +594,17 @@ static void compileCSharp(Tree signals, int numInputs, int numOutputs, ostream* 
 {
 #ifdef CSHARP_BUILD
     gGlobal->gAllowForeignFunction = false;  // No foreign functions
-    container =
+    gContainer =
         CSharpCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs, out);
 
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang csharp not supported since CSharp backend is not built\n");
 #endif
@@ -569,15 +624,15 @@ static void compileCmajor(Tree signals, int numInputs, int numOutputs, ostream* 
     // "one sample control" model by default;
     gGlobal->gOneSampleControl = true;
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an integer
-    container = CmajorCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    gContainer = CmajorCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang cmajor not supported since Cmajor backend is not built\n");
 #endif
@@ -604,19 +659,19 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, ostream* ou
     // This speedup (freeverb for instance) ==> to be done at signal level
     // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
 
-    container =
+    gContainer =
         WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out,
                                            ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
     createHelperFile(outpath);
 
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang wast not supported since WAST backend is not built\n");
 #endif
@@ -643,20 +698,20 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
     // This speedup (freeverb for instance) ==> to be done at signal level
     // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
 
-    container =
+    gContainer =
         WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out,
                                            ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i") ||
                                             (gGlobal->gOutputLang == "wasm-ib")));
     createHelperFile(outpath);
 
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang wasm not supported since WASM backend is not built\n");
 #endif
@@ -665,90 +720,80 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
 static void compileDlang(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef DLANG_BUILD
-    container =
+    gContainer =
         DLangCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs, out);
 
     if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
+        gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
-        new_comp = new InstructionsCompiler(container);
+        gNewComp = new InstructionsCompiler(gContainer);
     }
 
-    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-    new_comp->compileMultiSignal(signals);
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang dlang not supported since D backend is not built\n");
 #endif
 }
 
-static void generateCodeAux1(unique_ptr<ostream>& dst)
+static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>& enrobage, unique_ptr<ostream>& dst)
 {
-    if (gGlobal->gArchFile != "") {
-        if ((enrobage = openArchStream(gGlobal->gArchFile.c_str()))) {
-            if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp")
-                *dst.get() << "namespace " << gGlobal->gNamespace << " {" << endl;
+    if (openEnrobagefile()) {
+        if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp") {
+            *dst.get() << "namespace " << gGlobal->gNamespace << " {" << endl;
 #ifdef DLANG_BUILD
-            else if (gGlobal->gOutputLang == "dlang") {
-                DLangCodeContainer::printDRecipeComment(*dst.get(), container->getClassName());
-                DLangCodeContainer::printDModuleStmt(*dst.get(), container->getClassName());
-            }
+        } else if (gGlobal->gOutputLang == "dlang") {
+            DLangCodeContainer::printDRecipeComment(*dst.get(), gContainer->getClassName());
+            DLangCodeContainer::printDModuleStmt(*dst.get(), gContainer->getClassName());
+        }
 #endif
 
-            // Possibly inject code
-            injectCode(enrobage, *dst.get());
+        gContainer->printHeader();
 
-            container->printHeader();
+        streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeIntrinsic>>");
+        streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeclass>>");
 
-            streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeIntrinsic>>");
-            streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeclass>>");
-
-            if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {
-                includeFile("thread.h", *dst.get());
-            }
-
-            container->printFloatDef();
-            container->produceClass();
-
-            streamCopyUntilEnd(*enrobage.get(), *dst.get());
-
-            if (gGlobal->gSchedulerSwitch) {
-                includeFile("scheduler.cpp", *dst.get());
-            }
-
-            container->printFooter();
-
-            // Generate factory
-            gGlobal->gDSPFactory = container->produceFactory();
-
-            if (gGlobal->gOutputFile == "string") {
-                gGlobal->gDSPFactory->write(dst.get(), false, false);
-            } else if (gGlobal->gOutputFile == "binary") {
-                gGlobal->gDSPFactory->write(dst.get(), true, false);
-            } else if (gGlobal->gOutputFile != "") {
-                // Binary mode for LLVM backend if output different of 'cout'
-                gGlobal->gDSPFactory->write(dst.get(), true, false);
-            } else {
-                gGlobal->gDSPFactory->write(&cout, false, false);
-            }
-
-            if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp") {
-                *dst.get() << "} // namespace " << gGlobal->gNamespace << endl;
-            }
-
-        } else {
-            stringstream error;
-            error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
-            throw faustexception(error.str());
+        if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {
+            includeFile("thread.h", *dst.get());
         }
 
-    } else {
-        container->printHeader();
-        container->printFloatDef();
-        container->produceClass();
-        container->printFooter();
+        gContainer->printFloatDef();
+        gContainer->produceClass();
+
+        streamCopyUntilEnd(*enrobage.get(), *dst.get());
+
+        if (gGlobal->gSchedulerSwitch) {
+            includeFile("scheduler.cpp", *dst.get());
+        }
+
+        gContainer->printFooter();
 
         // Generate factory
-        gGlobal->gDSPFactory = container->produceFactory();
+        gGlobal->gDSPFactory = gContainer->produceFactory();
+
+        if (gGlobal->gOutputFile == "string") {
+            gGlobal->gDSPFactory->write(dst.get(), false, false);
+        } else if (gGlobal->gOutputFile == "binary") {
+            gGlobal->gDSPFactory->write(dst.get(), true, false);
+        } else if (gGlobal->gOutputFile != "") {
+            // Binary mode for LLVM backend if output different of 'cout'
+            gGlobal->gDSPFactory->write(dst.get(), true, false);
+        } else {
+            gGlobal->gDSPFactory->write(&cout, false, false);
+        }
+
+        if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp") {
+            *dst.get() << "} // namespace " << gGlobal->gNamespace << endl;
+        }
+       
+    } else {
+        gContainer->printHeader();
+        gContainer->printFloatDef();
+        gContainer->produceClass();
+        gContainer->printFooter();
+
+        // Generate factory
+        gGlobal->gDSPFactory = gContainer->produceFactory();
 
         if (gGlobal->gOutputFile == "string") {
             gGlobal->gDSPFactory->write(dst.get(), false, false);
@@ -797,24 +842,12 @@ static void printHeader(ostream& dst)
     dst << "//----------------------------------------------------------" << endl << endl;
 }
 
-static void generateCodeAux2(unique_ptr<ostream>& dst)
+static void generateCodeAux2(unique_ptr<ifstream>& enrobage, unique_ptr<ostream>& dst)
 {
-    // Check for architecture file
-    if (gGlobal->gArchFile != "") {
-        if ((enrobage = openArchStream(gGlobal->gArchFile.c_str())) == nullptr) {
-            stringstream error;
-            error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
-            throw faustexception(error.str());
-        }
-    }
-
-    // Possibly inject code
-    injectCode(enrobage, *dst.get());
-
     printHeader(*dst);
-    old_comp->getClass()->printLibrary(*dst.get());
-    old_comp->getClass()->printIncludeFile(*dst.get());
-    old_comp->getClass()->printAdditionalCode(*dst.get());
+    gOldComp->getClass()->printLibrary(*dst.get());
+    gOldComp->getClass()->printIncludeFile(*dst.get());
+    gOldComp->getClass()->printAdditionalCode(*dst.get());
 
     if (gGlobal->gArchFile != "") {
         streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeIntrinsic>>");
@@ -830,12 +863,12 @@ static void generateCodeAux2(unique_ptr<ostream>& dst)
 
         streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeclass>>");
         printfloatdef(*dst.get());
-        old_comp->getClass()->println(0, *dst.get());
+        gOldComp->getClass()->println(0, *dst.get());
         streamCopyUntilEnd(*enrobage.get(), *dst.get());
 
     } else {
         printfloatdef(*dst.get());
-        old_comp->getClass()->println(0, *dst.get());
+        gOldComp->getClass()->println(0, *dst.get());
     }
 
     /****************************************************************
@@ -844,7 +877,7 @@ static void generateCodeAux2(unique_ptr<ostream>& dst)
 
     if (gGlobal->gGraphSwitch) {
         ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
-        old_comp->getClass()->printGraphDotFormat(dotfile);
+        gOldComp->getClass()->printGraphDotFormat(dotfile);
     }
 
     if (gGlobal->gOutputFile == "") {
@@ -856,39 +889,10 @@ static void generateCodeAux2(unique_ptr<ostream>& dst)
 
 static void generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
 {
-    /*******************************************************************
-     MANDATORY: use ostringstream which is indeed a subclass of ostream
-     (otherwise subtle dynamic_cast related crash can occur...)
-    *******************************************************************/
-
-    unique_ptr<ostream> dst;
-    string              outpath;
-
-    if (gGlobal->gOutputFile == "string") {
-        dst = unique_ptr<ostream>(new ostringstream());
-    } else if (gGlobal->gOutputFile == "binary") {
-        dst = unique_ptr<ostream>(new ostringstream(ostringstream::out | ostringstream::binary));
-    } else if (gGlobal->gOutputFile != "") {
-        outpath =
-            (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-
-        unique_ptr<ofstream> fdst = unique_ptr<ofstream>(new ofstream(outpath.c_str()));
-        if (!fdst->is_open()) {
-            stringstream error;
-            error << "ERROR : file '" << outpath << "' cannot be opened\n";
-            throw faustexception(error.str());
-        } else {
-            dst = move(fdst);
-        }
-
-    } else {
-        dst = unique_ptr<ostream>(new ostringstream());
-    }
-
     startTiming("generateCode");
 
     /****************************************************************
-     * create container
+     * create gContainer
      ****************************************************************/
 
     if (gGlobal->gOutputLang == "cllvm") {
@@ -898,35 +902,35 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     } else if (gGlobal->gOutputLang == "interp") {
         compileInterp(signals, numInputs, numOutputs);
     } else if (gGlobal->gOutputLang == "fir") {
-        compileFIR(signals, numInputs, numOutputs, dst.get());
+        compileFIR(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "c") {
-        compileC(signals, numInputs, numOutputs, dst.get());
+        compileC(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "cpp") {
-        compileCPP(signals, numInputs, numOutputs, dst.get());
+        compileCPP(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "ocpp") {
         compileOCPP(signals, numInputs, numOutputs);
     } else if (gGlobal->gOutputLang == "rust") {
-        compileRust(signals, numInputs, numOutputs, dst.get());
+        compileRust(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "java") {
-        compileJava(signals, numInputs, numOutputs, dst.get());
+        compileJava(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "jax") {
-        compileJAX(signals, numInputs, numOutputs, dst.get());
+        compileJAX(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "temp") {
-        compileTemplate(signals, numInputs, numOutputs, dst.get());
+        compileTemplate(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "julia") {
-        compileJulia(signals, numInputs, numOutputs, dst.get());
+        compileJulia(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "jsfx") {
-        compileJSFX(signals, numInputs, numOutputs, dst.get());
+        compileJSFX(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "csharp") {
-        compileCSharp(signals, numInputs, numOutputs, dst.get());
+        compileCSharp(signals, numInputs, numOutputs, gDst.get());
     } else if (startWith(gGlobal->gOutputLang, "cmajor")) {
-        compileCmajor(signals, numInputs, numOutputs, dst.get());
+        compileCmajor(signals, numInputs, numOutputs, gDst.get());
     } else if (startWith(gGlobal->gOutputLang, "wast")) {
-        compileWAST(signals, numInputs, numOutputs, dst.get(), outpath);
+        compileWAST(signals, numInputs, numOutputs, gDst.get(), gOutpath);
     } else if (startWith(gGlobal->gOutputLang, "wasm")) {
-        compileWASM(signals, numInputs, numOutputs, dst.get(), outpath);
+        compileWASM(signals, numInputs, numOutputs, gDst.get(), gOutpath);
     } else if (startWith(gGlobal->gOutputLang, "dlang")) {
-        compileDlang(signals, numInputs, numOutputs, dst.get());
+        compileDlang(signals, numInputs, numOutputs, gDst.get());
     } else {
         stringstream error;
         error << "ERROR : cannot find backend for "
@@ -938,12 +942,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
      * generate output file
      ****************************************************************/
 
-    if (new_comp) {
-        generateCodeAux1(dst);
+    if (gNewComp) {
+        generateCodeAux1(gHelpers, gEnrobage, gDst);
     }
 #ifdef OCPP_BUILD
-    else if (old_comp) {
-        generateCodeAux2(dst);
+    else if (gOldComp) {
+        generateCodeAux2(gEnrobage, gDst);
     }
 #endif
     else {
@@ -960,14 +964,14 @@ static void generateOutputFiles()
     *****************************************************************/
 
     if (gGlobal->gPrintXMLSwitch) {
-        if (new_comp) {
-            faustassert(new_comp->getDescription());
-            new_comp->getDescription()->printXML(container->inputs(), container->outputs());
+        if (gNewComp) {
+            faustassert(gNewComp->getDescription());
+            gNewComp->getDescription()->printXML(gContainer->inputs(), gContainer->outputs());
         }
 #ifdef OCPP_BUILD
-        else if (old_comp) {
-            faustassert(old_comp->getDescription());
-            old_comp->getDescription()->printXML(old_comp->getClass()->inputs(), old_comp->getClass()->outputs());
+        else if (gOldComp) {
+            faustassert(gOldComp->getDescription());
+            gOldComp->getDescription()->printXML(gOldComp->getClass()->inputs(), gOldComp->getClass()->outputs());
         }
 #endif
         else {
@@ -989,12 +993,12 @@ static void generateOutputFiles()
 
     if (gGlobal->gGraphSwitch) {
         ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
-        if (new_comp) {
-            container->printGraphDotFormat(dotfile);
+        if (gNewComp) {
+            gContainer->printGraphDotFormat(dotfile);
         }
 #ifdef OCPP_BUILD
-        else if (old_comp) {
-            old_comp->getClass()->printGraphDotFormat(dotfile);
+        else if (gOldComp) {
+            gOldComp->getClass()->printGraphDotFormat(dotfile);
         }
 #endif
         else {
@@ -1085,7 +1089,6 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
     int argc1 = 0;
     const char* argv1[64];
     argv1[argc1++] = "faust";
-    
     // Copy arguments
     for (int i = 0; i < argc; i++) {
         argv1[argc1++] = argv[i];
@@ -1150,19 +1153,17 @@ static void* createFactoryAux1(void* arg)
         gGlobal->printDirectories();
 
         faust_alarm(gGlobal->gTimeout);
-
+        
+        // Open output file
+        bool is_cout = openOutfile();
+        // Open enrobage file
+        openEnrobagefile();
+       
         /****************************************************************
          1.5 - Check and open some input files
         *****************************************************************/
         // Check for injected code (before checking for architectures)
-        if (gGlobal->gInjectFlag) {
-            injcode = openArchStream(gGlobal->gInjectFile.c_str());
-            if (!injcode) {
-                stringstream error;
-                error << "ERROR : can't inject \"" << gGlobal->gInjectFile << "\" external code file, file not found\n";
-                throw faustexception(error.str());
-            }
-        }
+        injectCode(gEnrobage, gDst, is_cout);
 
         /****************************************************************
          2 - parse source files
@@ -1190,9 +1191,7 @@ static void* createFactoryAux1(void* arg)
          3.1 - possibly expand the DSP and return
          *****************************************************************/
         if (gGlobal->gExportDSP) {
-            string outpath =
-                (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-            ofstream out(outpath.c_str());
+            ofstream out(gOutpath.c_str());
             expandDSPInternalAux(processTree, argc, argv, out);
             return nullptr;
         }
@@ -1278,7 +1277,10 @@ static void* createFactoryAux2(void* arg)
 
         gGlobal->initDocumentNames();
         initFaustFloat();
-
+        
+        // Open output file
+        openOutfile();
+     
         /*************************************************************************
          5 - preparation of the signal tree and translate output signals
          **************************************************************************/

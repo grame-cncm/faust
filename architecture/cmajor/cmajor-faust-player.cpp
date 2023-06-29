@@ -32,7 +32,7 @@
 #include "faust/misc.h"
 #include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
-#include <cmajor/helpers/cmaj_PatchUtilities.h>
+#include <cmajor/helpers/cmaj_PatchHelpers.h>
 
 using namespace std;
 

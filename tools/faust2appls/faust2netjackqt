@@ -23,9 +23,9 @@ EFFECT=""
 # Check Darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    ARCHLIB="-L/usr/local/lib -ljacknet -ljack -lpthread -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices"
+    ARCHLIB="-L/usr/local/lib -ljacknet -ljack -pthread -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices"
 else
-    ARCHLIB+="-L/usr/local/lib -ljacknet -ljack -lpthread"
+    ARCHLIB+="-L/usr/local/lib -ljacknet -ljack -pthread"
 fi
 
 echoHelp()

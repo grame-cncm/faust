@@ -102,7 +102,7 @@ do
         shift
         PRESETDIR=$1
     elif [ $p = "-ocv" ]; then
-        OCVDEFS="-DOCVCTRL -lpthread"
+        OCVDEFS="-DOCVCTRL -pthread"
         OCVLIBS="opencv"
     elif [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"

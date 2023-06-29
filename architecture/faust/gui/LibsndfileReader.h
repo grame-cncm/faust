@@ -32,9 +32,12 @@
 #include <string.h>
 #include <assert.h>
 #include <iostream>
+#include <fstream>
 
 #include "faust/gui/Soundfile.h"
 
+/*
+// Deactivated for now, since the macOS remote cross-compiler fails with this code.
 #if __has_include(<filesystem>) && __cplusplus >= 201703L
     #define HAS_FILESYSTEM
     #include <filesystem>
@@ -44,6 +47,7 @@
     #include <experimental/filesystem>
     namespace fs = std::experimental::filesystem;
 #endif
+*/
 
 struct VFLibsndfile {
     
@@ -153,11 +157,22 @@ struct LibsndfileReader : public SoundfileReader {
     // Check file
     bool checkFile(const std::string& path_name) override
     {
-        #ifdef HAS_FILESYSTEM
-        if (!fs::exists(path_name)) {
+        /*
+         // Better since it supports Unicode characters.
+         #ifdef HAS_FILESYSTEM
+         if (!fs::exists(path_name)) {
+            std::cerr << "FILE NOT FOUND\n";
+            return false;
+         }
+         #endif
+         */
+        
+        std::ofstream ofs;
+        ofs.open(path_name, std::ios_base::in);
+        if (!ofs.is_open()) {
             return false;
         }
-        #endif
+    
         SF_INFO snd_info;
         snd_info.format = 0;
         SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);

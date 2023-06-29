@@ -1,17 +1,38 @@
 
 /*
-Code generated with Faust version 2.32.15
-Compilation options: -lang wasm-ib -es 1 -single -ftz 2
+Code generated with Faust version 2.60.2
+Compilation options: -lang wasm-ib -ct 1 -cn noise -es 1 -mcd 16 -single -ftz 2 
 */
 
 function getJSONnoise() {
-	return '{"name": "noise","filename": "noise.dsp","version": "2.32.15","compile_options": "-lang wasm-ib -es 1 -single -ftz 2","library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/noises.lib"],"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust",".","/Documents/faust-github-faust2/architecture/webaudio"],"size": 16,"inputs": 0,"outputs": 1,"meta": [ { "compile_options": "-lang wasm-ib -es 1 -single -ftz 2" },{ "filename": "noise.dsp" },{ "name": "noise" },{ "noises.lib/name": "Faust Noise Generator Library" },{ "noises.lib/version": "0.0" }],"ui": [ {"type": "vgroup","label": "noise","items": [ {"type": "hslider","label": "Volume","address": "/noise/Volume","index": 0,"init": 0.5,"min": 0,"max": 1,"step": 0.01}]}]}';
+	return '{"name": "noise","filename": "noise.dsp","version": "2.60.2","compile_options": "-lang wasm-ib -ct 1 -cn noise -es 1 -mcd 16 -single -ftz 2","library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/noises.lib"],"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust",".","/Documents/faust-github-faust2/architecture/webaudio"],"size": 16,"inputs": 0,"outputs": 1,"meta": [ { "compile_options": "-lang wasm-ib -ct 1 -cn noise -es 1 -mcd 16 -single -ftz 2" },{ "filename": "noise.dsp" },{ "name": "noise" },{ "noises.lib/name": "Faust Noise Generator Library" },{ "noises.lib/version": "0.4" }],"ui": [ {"type": "vgroup","label": "noise","items": [ {"type": "hslider","label": "Volume","shortname": "Volume","address": "/noise/Volume","index": 0,"init": 0.5,"min": 0,"max": 1,"step": 0.01}]}]}';
 }
-function getBase64Codenoise() { return "AGFzbQEAAAABy4CAgAAOYAJ/fwBgBH9/f38AYAF/AX9gAX8Bf2ACf38BfWABfwF/YAJ/fwBgAX8AYAJ/fwBgAn9/AGABfwBgAn9/AX9gAn9/AX9gA39/fQACgYCAgAAAA4+AgIAADgABAgMEBQYHCAkKCwwNBYyAgIAAAQGBgICAAOmHgIAAB7qBgIAADAdjb21wdXRlAAEMZ2V0TnVtSW5wdXRzAAINZ2V0TnVtT3V0cHV0cwADDWdldFBhcmFtVmFsdWUABA1nZXRTYW1wbGVSYXRlAAUEaW5pdAAGDWluc3RhbmNlQ2xlYXIABxFpbnN0YW5jZUNvbnN0YW50cwAIDGluc3RhbmNlSW5pdAAJGmluc3RhbmNlUmVzZXRVc2VySW50ZXJmYWNlAAoNc2V0UGFyYW1WYWx1ZQANBm1lbW9yeQIACvSCgIAADoKAgIAAAAv9gICAAAICfwF9QQAhBEMAAAAAIQZBACEFIANBAGooAgAhBEMAAAAwQQAqAgCUIQZBACEFA0ACQEEAQe2cmY4EQQAoAghsQbngAGo2AgQgBCAFaiAGQQAoAgSylDgCAEEAQQAoAgQ2AgggBUEEaiEFIAVBBCABbEgEQAwCDAELCwsLhYCAgAAAQQAPC4WAgIAAAEEBDwuLgICAAAAgACABaioCAA8LiICAgAAAQQAoAgwPC46AgIAAACAAIAEQACAAIAEQCQuygICAAAEBf0EAIQFBACEBA0ACQEEEIAFBAnRqQQA2AgAgAUEBaiEBIAFBAkgEQAwCDAELCwsLiYCAgAAAQQAgATYCDAuQgICAAAAgACABEAggABAKIAAQBwuMgICAAABBAEMAAAA/OAIAC5CAgIAAACAAIAFIBH8gAQUgAAsPC5CAgIAAACAAIAFIBH8gAAUgAQsPC4yAgIAAACAAIAFqIAI4AgALC5KGgIAAAQBBAAuLBnsibmFtZSI6ICJub2lzZSIsImZpbGVuYW1lIjogIm5vaXNlLmRzcCIsInZlcnNpb24iOiAiMi4zMi4xNSIsImNvbXBpbGVfb3B0aW9ucyI6ICItbGFuZyB3YXNtLWliIC1lcyAxIC1zaW5nbGUgLWZ0eiAyIiwibGlicmFyeV9saXN0IjogWyIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0L3N0ZGZhdXN0LmxpYiIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3Qvbm9pc2VzLmxpYiJdLCJpbmNsdWRlX3BhdGhuYW1lcyI6IFsiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdCIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3QiLCIvdXNyL3NoYXJlL2ZhdXN0IiwiLiIsIi9Eb2N1bWVudHMvZmF1c3QtZ2l0aHViLWZhdXN0Mi9hcmNoaXRlY3R1cmUvd2ViYXVkaW8iXSwic2l6ZSI6IDE2LCJpbnB1dHMiOiAwLCJvdXRwdXRzIjogMSwibWV0YSI6IFsgeyAiY29tcGlsZV9vcHRpb25zIjogIi1sYW5nIHdhc20taWIgLWVzIDEgLXNpbmdsZSAtZnR6IDIiIH0seyAiZmlsZW5hbWUiOiAibm9pc2UuZHNwIiB9LHsgIm5hbWUiOiAibm9pc2UiIH0seyAibm9pc2VzLmxpYi9uYW1lIjogIkZhdXN0IE5vaXNlIEdlbmVyYXRvciBMaWJyYXJ5IiB9LHsgIm5vaXNlcy5saWIvdmVyc2lvbiI6ICIwLjAiIH1dLCJ1aSI6IFsgeyJ0eXBlIjogInZncm91cCIsImxhYmVsIjogIm5vaXNlIiwiaXRlbXMiOiBbIHsidHlwZSI6ICJoc2xpZGVyIiwibGFiZWwiOiAiVm9sdW1lIiwiYWRkcmVzcyI6ICIvbm9pc2UvVm9sdW1lIiwiaW5kZXgiOiAwLCJpbml0IjogMC41LCJtaW4iOiAwLCJtYXgiOiAxLCJzdGVwIjogMC4wMX1dfV19"; }
+function getBase64Codenoise() { return "AGFzbQEAAAABy4CAgAAOYAJ/fwBgBH9/f38AYAF/AX9gAX8Bf2ACf38BfWABfwF/YAJ/fwBgAX8AYAJ/fwBgAn9/AGABfwBgAn9/AX9gAn9/AX9gA39/fQACgYCAgAAAA4+AgIAADgABAgMEBQYHCAkKCwwNBYyAgIAAAQGBgICAAOmHgIAAB7qBgIAADAdjb21wdXRlAAEMZ2V0TnVtSW5wdXRzAAINZ2V0TnVtT3V0cHV0cwADDWdldFBhcmFtVmFsdWUABA1nZXRTYW1wbGVSYXRlAAUEaW5pdAAGDWluc3RhbmNlQ2xlYXIABxFpbnN0YW5jZUNvbnN0YW50cwAIDGluc3RhbmNlSW5pdAAJGmluc3RhbmNlUmVzZXRVc2VySW50ZXJmYWNlAAoNc2V0UGFyYW1WYWx1ZQANBm1lbW9yeQIACvSCgIAADoKAgIAAAAv9gICAAAICfwF9QQAhBEMAAAAAIQZBACEFIANBAGooAgAhBEMAAAAwQQAqAgCUIQZBACEFA0ACQEEAQe2cmY4EQQAoAghsQbngAGo2AgQgBCAFaiAGQQAoAgSylDgCAEEAQQAoAgQ2AgggBUEEaiEFIAVBBCABbEgEQAwCDAELCwsLhYCAgAAAQQAPC4WAgIAAAEEBDwuLgICAAAAgACABaioCAA8LiICAgAAAQQAoAgwPC46AgIAAACAAIAEQACAAIAEQCQuygICAAAEBf0EAIQFBACEBA0ACQEEEIAFBAnRqQQA2AgAgAUEBaiEBIAFBAkgEQAwCDAELCwsLiYCAgAAAQQAgATYCDAuQgICAAAAgACABEAggABAKIAAQBwuMgICAAABBAEMAAAA/OAIAC5CAgIAAACAAIAFIBH8gAQUgAAsPC5CAgIAAACAAIAFIBH8gAAUgAQsPC4yAgIAAACAAIAFqIAI4AgALC9eGgIAAAQBBAAvQBnsibmFtZSI6ICJub2lzZSIsImZpbGVuYW1lIjogIm5vaXNlLmRzcCIsInZlcnNpb24iOiAiMi42MC4yIiwiY29tcGlsZV9vcHRpb25zIjogIi1sYW5nIHdhc20taWIgLWN0IDEgLWNuIG5vaXNlIC1lcyAxIC1tY2QgMTYgLXNpbmdsZSAtZnR6IDIiLCJsaWJyYXJ5X2xpc3QiOiBbIi91c3IvbG9jYWwvc2hhcmUvZmF1c3Qvc3RkZmF1c3QubGliIiwiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdC9ub2lzZXMubGliIl0sImluY2x1ZGVfcGF0aG5hbWVzIjogWyIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0IiwiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdCIsIi91c3Ivc2hhcmUvZmF1c3QiLCIuIiwiL0RvY3VtZW50cy9mYXVzdC1naXRodWItZmF1c3QyL2FyY2hpdGVjdHVyZS93ZWJhdWRpbyJdLCJzaXplIjogMTYsImlucHV0cyI6IDAsIm91dHB1dHMiOiAxLCJtZXRhIjogWyB7ICJjb21waWxlX29wdGlvbnMiOiAiLWxhbmcgd2FzbS1pYiAtY3QgMSAtY24gbm9pc2UgLWVzIDEgLW1jZCAxNiAtc2luZ2xlIC1mdHogMiIgfSx7ICJmaWxlbmFtZSI6ICJub2lzZS5kc3AiIH0seyAibmFtZSI6ICJub2lzZSIgfSx7ICJub2lzZXMubGliL25hbWUiOiAiRmF1c3QgTm9pc2UgR2VuZXJhdG9yIExpYnJhcnkiIH0seyAibm9pc2VzLmxpYi92ZXJzaW9uIjogIjAuNCIgfV0sInVpIjogWyB7InR5cGUiOiAidmdyb3VwIiwibGFiZWwiOiAibm9pc2UiLCJpdGVtcyI6IFsgeyJ0eXBlIjogImhzbGlkZXIiLCJsYWJlbCI6ICJWb2x1bWUiLCJzaG9ydG5hbWUiOiAiVm9sdW1lIiwiYWRkcmVzcyI6ICIvbm9pc2UvVm9sdW1lIiwiaW5kZXgiOiAwLCJpbml0IjogMC41LCJtaW4iOiAwLCJtYXgiOiAxLCJzdGVwIjogMC4wMX1dfV19"; }
 
-/*
- faust2wasm: GRAME 2017-2019
-*/
+/************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
+ ************************************************************************
+ ************************************************************************/
 
 'use strict';
 
@@ -412,6 +433,9 @@ class noise {
                     _coshf: Math.cosh,
                     _sinhf: Math.sinh,
                     _tanhf: Math.tanh,
+                    _isnanf: Number.isNaN,
+                    _isinff: function (x) { return !isFinite(x); },
+                    _copysignf: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
 
                     // Double version
                     _acos: Math.acos,
@@ -439,6 +463,9 @@ class noise {
                     _cosh: Math.cosh,
                     _sinh: Math.sinh,
                     _tanh: Math.tanh,
+                    _isnan: Number.isNaN,
+                    _isinf: function (x) { return !isFinite(x); },
+                    _copysign: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
 
                     table: new WebAssembly.Table({ initial: 0, element: "anyfunc" })
                 }
