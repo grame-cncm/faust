@@ -778,7 +778,7 @@ static void compileVhdl(Tree signals, int numInputs, int numOutputs, ostream* ou
 {
 #ifdef VHDL_BUILD
     // TODO: Find a better way to simply use prepare(signals)
-    container                     = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    container                     = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, new std::stringstream());
     if (gGlobal->gVectorSwitch) {
         new_comp = new DAGInstructionsCompiler(container);
     } else {
