@@ -777,17 +777,8 @@ static void compileDlang(Tree signals, int numInputs, int numOutputs, ostream* o
 static void compileVhdl(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef VHDL_BUILD
-    // TODO: Find a better way to simply use prepare(signals)
-    container                     = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, new std::stringstream());
-    if (gGlobal->gVectorSwitch) {
-        new_comp = new DAGInstructionsCompiler(container);
-    } else {
-        new_comp = new InstructionsCompiler1(container);
-    }
-    signals = new_comp->prepare(signals);
-
+    signals = simplifyToNormalForm(signals);
     VhdlProducer vhdl_prod = VhdlProducer(signals, "FAUST", numInputs, numOutputs, *out);
-    std::cout << "Compiled VHDL" << std::endl;
 #else
     throw faustexception("ERROR : -lang vhdl not supported since VHDL backend is not built\n");
 #endif
