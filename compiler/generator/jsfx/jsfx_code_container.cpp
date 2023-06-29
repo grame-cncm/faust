@@ -97,6 +97,7 @@ void JSFXCodeContainer::produceInternal()
 */
 void JSFXCodeContainer::produceClass()
 {
+    // Necessary to set precision and use << fixed << num to write literal float numbers since JSFX doesn't allow 0.5f or exponent 9.58738e-05 
     fOut->precision(numeric_limits<double>::digits10 + 1);
     int n = 0;
 
@@ -235,9 +236,10 @@ void JSFXCodeContainer::produceClass()
     // Setting in/outs and global variables 
     *fOut << "num_inputs = " << fNumInputs << ";\n"
           << "num_outputs = " << fNumOutputs << ";\n\n";
-    *fOut << "nvoices = " << nvoices << ";\n\n";
+    *fOut << "nvoices = " << nvoices << ";\n";
     *fOut << "voice_idx = 0; \n";
-    JSFXInitFieldsVisitor initializer(fOut, n + 2);
+    gGlobal->gJSFXVisitor->Tab(n);
+    JSFXInitFieldsVisitor initializer(fOut, n );
     for (const auto& it : fGlobalDeclarationInstructions->fCode) {
         if (dynamic_cast<DeclareVarInst*>(it)) {
             it->accept(&initializer);
@@ -277,7 +279,7 @@ void JSFXCodeContainer::produceClass()
     // Other dsp.fields are members position in object 
     int total_size = 0;
     *fOut << "// DSP struct memory layout \n";
-    *fOut << "dsp.memory = MEMORY.alloc_memory(0); \n // check current memory index \n";
+    *fOut << "dsp.memory = MEMORY.alloc_memory(0);\n";
     std::string class_decl;
     StructInstVisitor struct_visitor;
     fDeclarationInstructions->accept(&struct_visitor);
@@ -319,6 +321,7 @@ void JSFXCodeContainer::produceClass()
     *fOut << "while(voice_idx < nvoices) (";
     tab(n+2, *fOut);
     *fOut << "obj = MEMORY.alloc_memory(dsp.size);";
+    initializer.fTab+=2;
     //<< "addresses[voice_idx] = obj;\n";
     generateDeclarations(&initializer);
     tab(n+2, *fOut);

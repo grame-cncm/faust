@@ -599,9 +599,9 @@ class JSFXInstVisitor : public TextInstVisitor {
             if(ccs.size() > 0) {
                 tab(fTab + 1, *fOut);
                 *fOut << "(status == CC) ? (";
-                for (auto & cc : ccs) {
                     tab(fTab + 2, *fOut);
                     *fOut << "midi_event += 1;";
+                for (auto & cc : ccs) {
                     JSFXMidiScale scale = _midi_scales[cc.variable_name];
                     tab(fTab + 2, *fOut);
                     *fOut << "(msg2 == 0x" << std::hex << cc.nbr;
@@ -621,8 +621,6 @@ class JSFXInstVisitor : public TextInstVisitor {
                 for (auto & k : keyons) {
                     JSFXMidiScale scale = _midi_scales[k.variable_name];
                     tab(fTab + 2, *fOut);
-                    *fOut << "midi_event += 1; ";
-                    tab(fTab + 2, *fOut);
                     *fOut << "(msg2 == 0x" << std::hex << k.nbr;
                     if (k.channel >= 0) {
                         *fOut << " && channel == 0x" << std::hex << k.channel;
@@ -638,8 +636,6 @@ class JSFXInstVisitor : public TextInstVisitor {
                     *fOut << "midi_event += 1; ";
                 for (auto & k : keyoffs) {
                     JSFXMidiScale scale = _midi_scales[k.variable_name];
-                    tab(fTab + 2, *fOut);
-                    *fOut << "midi_event += 1;";
                     tab(fTab + 2, *fOut);
                     *fOut << "(msg2 == 0x" << std::hex << k.nbr;
                     if(k.channel >= 0) {
@@ -787,14 +783,19 @@ class JSFXInstVisitor : public TextInstVisitor {
         throw(faustexception("ERROR : Soundfile is not available in JSFX\n"));
     }
 
+    std::string inlineInt32(double fnum)
+     {
+         return std::to_string((fnum > 2147483648.) ? (fnum - 4294967296.) : fnum);
+     }
+
     virtual void visit(Int32NumInst* inst)
     {
-        *fOut << "int32(" << inst->fNum << ")";
+        *fOut << inlineInt32(inst->fNum);
     }
     
     virtual void visit(Int64NumInst* inst)
     {
-        *fOut << "int32(" << inst->fNum << ")";
+        *fOut << inlineInt32(inst->fNum);
     }
 
     virtual void visit(FloatNumInst* inst)
