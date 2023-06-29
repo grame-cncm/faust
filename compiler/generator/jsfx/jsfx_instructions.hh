@@ -786,35 +786,15 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         throw(faustexception("ERROR : Soundfile is not available in JSFX\n"));
     }
-    
-    std::string inlineInt32(float fnum)
-    {
-        std::string inlined = "(" + std::to_string(fnum) + ">= 2147483648 ? " + std::to_string(fnum) +  " - 4294967296 : " + std::to_string(fnum) + ")";
-        return inlined;
-    }
-    std::string inlineInt32(std::string fnum)
-    {
-        std::string inlined = "(" + fnum + ">= 2147483648 ? " + fnum +  " - 4294967296 : " + fnum + ")";
-        return inlined;
-    }
-    
-    std::string inlineAdd32(std::string val, float fnum)
-    {
-        std::string inlined = "((" + val + " += " + std::to_string(fnum) + ") >= 4294967296 ? " + val + " - 4294967296 : " + val + ")";
-        return inlined; 
-//            " (x += y) >= 4294967296 ? x - 4294967296 : x; \n
-    }
 
     virtual void visit(Int32NumInst* inst)
     {
-        *fOut << inlineInt32(inst->fNum);
-        //*fOut << "int32(" << inst->fNum << ")";
+        *fOut << "int32(" << inst->fNum << ")";
     }
     
     virtual void visit(Int64NumInst* inst)
     {
-        *fOut << inlineInt32(inst->fNum);
-        //*fOut << "int32(" << inst->fNum << ")";
+        *fOut << "int32(" << inst->fNum << ")";
     }
 
     virtual void visit(FloatNumInst* inst)
@@ -831,8 +811,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            //*fOut << sep << "int32(" << inst->fNumTable[i] << ")";
-            *fOut << sep << inlineInt32(inst->fNumTable[i]);
+            *fOut << sep << "int32(" << inst->fNumTable[i] << ")";
             sep = ',';
         }
         *fOut << ']';

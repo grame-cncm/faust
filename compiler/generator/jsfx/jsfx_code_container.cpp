@@ -334,7 +334,8 @@ void JSFXCodeContainer::produceClass()
     tab(n+1, *fOut);
     *fOut << "while(voice_idx < nvoices) ( ";
     tab(n+2, *fOut);
-    *fOut << "obj = dsp.memory + dsp.size * voice_idx; \n";
+    *fOut << "obj = dsp.memory + dsp.size * voice_idx;";
+    tab(n+2, *fOut);
     //<< "obj = get_dsp(voice_idx); \n";
     gGlobal->gJSFXVisitor->Tab(n+2); 
     generateClear(gGlobal->gJSFXVisitor);
@@ -428,6 +429,7 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     gGlobal->gJSFXVisitor->Tab(n+2);
     tab(n+2, *fOut);
     *fOut << "obj = dsp.memory + dsp.size * voice_idx;";
+    tab(n+2, *fOut);
     //<< "obj = get_dsp(voice_idx);\n";
     generateComputeBlock(gGlobal->gJSFXVisitor);
     //tab(n+2, *fOut);
@@ -472,6 +474,7 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     gGlobal->gJSFXVisitor->Tab(n+1);
     tab(n+1, *fOut);
     *fOut << "obj = dsp.memory + dsp.size * voice_idx; ";
+    tab(n+1, *fOut);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
     loop->accept(gGlobal->gJSFXVisitor);
     //tab(n+1, *fOut);
