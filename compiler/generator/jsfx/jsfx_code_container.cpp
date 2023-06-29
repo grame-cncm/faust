@@ -39,7 +39,7 @@ dsp_factory_base* JSFXCodeContainer::produceFactory()
         ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
 }
 
-JSFXCodeContainer::JSFXCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
+JSFXCodeContainer::JSFXCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
@@ -271,9 +271,10 @@ void JSFXCodeContainer::produceClass()
     // dsp.size is the total size of object (1 = 64 bits)
     // Other dsp.fields are members position in object 
     int total_size = 0;
+    tab(n, *fOut);
     *fOut << "// DSP struct memory layout \n";
     *fOut << "dsp.memory = MEMORY.alloc_memory(0);\n";
-    std::string class_decl;
+    string class_decl;
     StructInstVisitor struct_visitor;
     fDeclarationInstructions->accept(&struct_visitor);
     for(const auto& it : fDeclarationInstructions->fCode) {
@@ -282,7 +283,7 @@ void JSFXCodeContainer::produceClass()
         total_size += desc.fSize;
     }
     for(const auto& it : fComputeBlockInstructions->fCode) {
-        std::string name = it->getName();
+        string name = it->getName();
         if(name.find("output") != name.npos || name.find("input") != name.npos)
             continue;
         class_decl += "dsp." + it->getName() + " = " + std::to_string(total_size) + ";\n";
@@ -341,7 +342,7 @@ void JSFXCodeContainer::produceClass()
     *fOut << "); \n);\n";
     
     *fOut << "create_instances(); \n"
-    << "init_instances(); \n\n";
+    << "init_instances(); \n";
 
     generateCompute(n);
     tab(n, *fOut);
@@ -356,16 +357,16 @@ void JSFXCodeContainer::produceMetadata(int tabs)
     for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first == tree("options")) {
             for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
-                std::stringstream ss;
+                stringstream ss;
                 ss << **j;
-                std::string s;
+                string s;
                 ss >> s;
                 if (s.find("[midi:on]") != s.npos) {
                     midi = true;
                 }
                 if (s.find("[nvoices:")) {
-                    std::regex r("\\[nvoices:([0-9]+)\\]");
-                    for (std::sregex_iterator i = std::sregex_iterator(s.begin(), s.end(), r); i != std::sregex_iterator(); ++i) {
+                    regex r("\\[nvoices:([0-9]+)\\]");
+                    for (sregex_iterator i = sregex_iterator(s.begin(), s.end(), r); i != sregex_iterator(); ++i) {
                         poly = true;
                         midi = true;
                         std::smatch m = *i;
@@ -399,7 +400,7 @@ void JSFXCodeContainer::produceMetadata(int tabs)
 // Scalar
 JSFXScalarCodeContainer::JSFXScalarCodeContainer(const string& name,
                                                 int numInputs, int numOutputs,
-                                                std::ostream* out,
+                                                ostream* out,
                                                 int sub_container_type)
     : JSFXCodeContainer(name, numInputs, numOutputs, out)
 {
