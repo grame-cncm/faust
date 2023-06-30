@@ -69,6 +69,12 @@
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 
+#if LLVM_VERSION_MAJOR >= 17
+#include <llvm/Analysis/LoopAnalysisManager.h>
+#include <llvm/Analysis/CGSCCPassManager.h>
+#include <llvm/Passes/PassBuilder.h>
+#endif
+
 // Disappears in LLVM 15
 #if LLVM_VERSION_MAJOR >= 14
 #include <llvm/MC/TargetRegistry.h>
@@ -193,6 +199,7 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToIRFile(const string& ir_code
     return true;
 }
 
+#if LLVM_VERSION_MAJOR < 17
 /// AddOptimizationPasses - This routine adds optimization passes
 /// based on selected optimization level, OptLevel. This routine
 /// duplicates llvm-gcc behaviour.
@@ -235,6 +242,7 @@ static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& F
     Builder.populateFunctionPassManager(FPM);
     Builder.populateModulePassManager(MPM);
 }
+#endif
 
 bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 {
@@ -257,30 +265,10 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     // For ObjectCache to work...
     LLVMLinkInMCJIT();
 
-    // Initialize passes
-    PassRegistry& Registry = *PassRegistry::getPassRegistry();
-
-    initializeCodeGen(Registry);
-    initializeCore(Registry);
-    initializeScalarOpts(Registry);
-#if LLVM_VERSION_MAJOR < 16
-    initializeObjCARCOpts(Registry);
-    initializeInstrumentation(Registry);
-#endif
-    initializeVectorization(Registry);
-    initializeIPO(Registry);
-    initializeAnalysis(Registry);
-    initializeTransformUtils(Registry);
-    initializeInstCombine(Registry);
-    initializeTarget(Registry);
-
     EngineBuilder builder((unique_ptr<Module>(fModule)));
 
     builder.setOptLevel(CodeGenOpt::Aggressive);
     builder.setEngineKind(EngineKind::JIT);
-#if LLVM_VERSION_MAJOR == 5
-    builder.setCodeModel(CodeModel::JITDefault);
-#endif
 
     string buider_error;
     builder.setErrorStr(&buider_error);
@@ -332,6 +320,46 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     int optlevel = getOptlevel();
 
     if ((optlevel == -1) || (fOptLevel > optlevel)) {
+        
+#if LLVM_VERSION_MAJOR >= 17
+        // See: https://llvm.org/docs/NewPassManager.html
+        
+        // Create the analysis managers.
+        LoopAnalysisManager LAM;
+        FunctionAnalysisManager FAM;
+        CGSCCAnalysisManager CGAM;
+        ModuleAnalysisManager MAM;
+        
+        // Create the new pass manager builder.
+        // Take a look at the PassBuilder constructor parameters for more
+        // customization, e.g. specifying a TargetMachine or various debugging
+        // options.
+        PassBuilder PB;
+        
+        // Register all the basic analyses with the managers.
+        PB.registerModuleAnalyses(MAM);
+        PB.registerCGSCCAnalyses(CGAM);
+        PB.registerFunctionAnalyses(FAM);
+        PB.registerLoopAnalyses(LAM);
+        PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
+        
+        // Create the pass manager.
+        OptimizationLevel opt_table[] = {OptimizationLevel::O0, OptimizationLevel::O1, OptimizationLevel::O2, OptimizationLevel::O3};
+        fOptLevel = std::max(fOptLevel, 3);
+        ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(opt_table[fOptLevel]);
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
+            dumpLLVM(fModule);
+        }
+        
+        // Optimize the IR
+        MPM.run(*fModule, MAM);
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
+            dumpLLVM(fModule);
+        }
+#else
+        
         PASS_MANAGER          pm;
         FUNCTION_PASS_MANAGER fpm(fModule);
 
@@ -349,9 +377,6 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         }
 
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-    #if LLVM_VERSION_MAJOR == 5
-            TargetRegistry::printRegisteredTargetsForVersion();
-    #endif
             dumpLLVM(fModule);
         }
 
@@ -372,6 +397,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
             dumpLLVM(fModule);
         }
+#endif
     }
 
     fObjectCache = new FaustObjectCache();
