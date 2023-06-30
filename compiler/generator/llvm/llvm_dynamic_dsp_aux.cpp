@@ -359,7 +359,6 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             dumpLLVM(fModule);
         }
 #else
-        
         PASS_MANAGER          pm;
         FUNCTION_PASS_MANAGER fpm(fModule);
 
