@@ -995,7 +995,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         
         if ((named->getAccess() & Address::kStruct && !isControl(named->fName)
             && !is_block
-            && (strfind(name, "Rec") && strfind(name, "Vec")))
+            && (!strfind(name, "Rec") && !strfind(name, "Vec")))
             || (named->getAccess() & Address::kStack && is_block)) {
             if (!isTable(named->getName())) {
                 *fOut << "]";
