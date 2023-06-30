@@ -240,10 +240,10 @@ void JSFXCodeContainer::produceClass()
     }
 
     // If polyphonic & voice stealing : generate the voice stealing array 
-    if(poly && gGlobal->gJSFXVisitor->mode == JSFXMIDIVoiceMode::voice_steal)
+    if (poly && gGlobal->gJSFXVisitor->mode == JSFXMIDIVoiceMode::voice_steal)
     {
         *fOut << "voices_arr = MEMORY.alloc_memory(" << nvoices << ");\n";
-        for(int i = 0; i < nvoices; ++i) {
+        for (int i = 0; i < nvoices; ++i) {
             *fOut << "voices_arr[" << i << "] = " << i << ";\n";
         }
         *fOut << "function sort_voices(n) (\n"
@@ -277,14 +277,14 @@ void JSFXCodeContainer::produceClass()
     string class_decl;
     StructInstVisitor struct_visitor;
     fDeclarationInstructions->accept(&struct_visitor);
-    for(const auto& it : fDeclarationInstructions->fCode) {
+    for (const auto& it : fDeclarationInstructions->fCode) {
         auto desc = struct_visitor.getMemoryDesc(it->getName());
         class_decl += "dsp." + it->getName() +  " = " +  std::to_string(total_size) + ";\n";
         total_size += desc.fSize;
     }
-    for(const auto& it : fComputeBlockInstructions->fCode) {
+    for (const auto& it : fComputeBlockInstructions->fCode) {
         string name = it->getName();
-        if(name.find("output") != name.npos || name.find("input") != name.npos)
+        if (strfind(name, "output") || strfind(name, "input"))
             continue;
         class_decl += "dsp." + it->getName() + " = " + std::to_string(total_size) + ";\n";
         total_size++;
@@ -292,7 +292,7 @@ void JSFXCodeContainer::produceClass()
      
     // These special fields dsp.key_id and dsp.gate are added in polyphonic context. 
     // They are used to know whether a noteoff can close a playing note (if same key and gate == 1 )
-    if(poly) {
+    if (poly) {
         *fOut << "// Two identifiers to know which noteoff goes to which voice \n";
         class_decl += "dsp.key_id = " + std::to_string(total_size) + ";\n";
         total_size++;
@@ -302,7 +302,7 @@ void JSFXCodeContainer::produceClass()
     
     *fOut << "dsp.size = " << std::to_string(total_size + fNumOutputs) << ";\n";
     *fOut << class_decl;
-    for(int i = 0; i < fNumOutputs; i++) {
+    for (int i = 0; i < fNumOutputs; i++) {
         *fOut << "dsp.output" << i << " = " << ++total_size - 1 << "; \n";
     }
     
@@ -361,7 +361,7 @@ void JSFXCodeContainer::produceMetadata(int tabs)
                 ss << **j;
                 string s;
                 ss >> s;
-                if (s.find("[midi:on]") != s.npos) {
+                if (strfind(s, "[midi:on]")) {
                     midi = true;
                 }
                 if (s.find("[nvoices:")) {
@@ -371,13 +371,12 @@ void JSFXCodeContainer::produceMetadata(int tabs)
                         midi = true;
                         std::smatch m = *i;
                         nvoices = std::stoi(m[1].str());
-                        if(nvoices < 1) 
-                            throw(faustexception("nvoices must be >= to 1"));
+                        if (nvoices < 1) {
+                            throw(faustexception("ERROR : nvoices must be >= to 1"));
+                        }
                     }
                     gGlobal->gJSFXVisitor->poly = poly;
                     gGlobal->gJSFXVisitor->nvoices = nvoices;
-                    
-                    
                 }
                 *fOut << "desc: " << *(i.first) << " " << **j << "\n";
             }
@@ -441,7 +440,7 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     
     // We want to filter if an event occurs to avoid compute control if not needed
-    if(midi || poly) {
+    if (midi || poly) {
         *fOut << "(midi_event > 0) ? (control());\n";
     }
 
@@ -472,15 +471,16 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);   
     *fOut << ");";
     // Then, output members are summed in spl0, spl1 (...) which are the actual JSFX outputs
-    for(int i = 0; i < fNumOutputs; ++i)
+    for (int i = 0; i < fNumOutputs; ++i)
     {
         tab(n, *fOut);
         *fOut << "spl" << i << " = ";
-        for(int v = 0; v < nvoices; ++v) 
+        for (int v = 0; v < nvoices; ++v)
         {
             *fOut << "get_dsp(" << v << ")[dsp.output" << i << "]";
-            if(v < (nvoices - 1))
+            if (v < (nvoices - 1)) {
                 *fOut << " + ";
+            }
         }
         *fOut << ";";
     }

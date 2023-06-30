@@ -33,6 +33,11 @@ inline std::string inlineInt32(double fnum)
     return std::to_string(int((fnum > 2147483648.) ? (fnum - 4294967296.) : fnum));
 }
 
+inline bool strfind(const std::string& str, const std::string& substr)
+{
+    return (str.find(substr) != str.npos);
+}
+
 // Visitor used to initialize array fields into the DSP structure
 struct JSFXInitFieldsVisitor : public DispatchVisitor {
     std::ostream* fOut;
@@ -500,7 +505,7 @@ class JSFXInstVisitor : public TextInstVisitor {
                 *fOut << "(obj[dsp.key_id] == msg2 && obj[dsp.gate] > 0) ? (";
                 tab(fTab+4, *fOut);
                 *fOut << "obj[dsp.gate] = 0; ";
-                for(auto & it : _midi_scales) {
+                for (const auto& it : _midi_scales) {
                     if (it.second.type == JSFXMIDIScaleType::gate) {
                         tab(fTab+4, *fOut);
                         *fOut << "obj[dsp." << it.first << "] = 0;";
@@ -562,7 +567,7 @@ class JSFXInstVisitor : public TextInstVisitor {
                 tab(fTab+4, *fOut);
                 *fOut << "obj[dsp.gate] = 0; ";
                 tab(fTab+4, *fOut);
-                for(auto & it : _midi_scales) {
+                for (const auto& it : _midi_scales) {
                     if (it.second.type == JSFXMIDIScaleType::gate) {
                         tab(fTab+4, *fOut);
                         *fOut << "obj[dsp." << it.first << "] = 0;";
@@ -694,11 +699,6 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
     }
     
-    static bool strfind(const std::string& str, const std::string& substr)
-    {
-        return (str.find(substr) != str.npos);
-    }
-
     virtual void visit(AddButtonInst* inst)
     {
         if (!skip_slider) {
