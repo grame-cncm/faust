@@ -116,10 +116,10 @@ void JSFXCodeContainer::produceClass()
         throw(faustexception("ERROR : JSFX format does not support more than 64 outputs\n"));
     }
     for (int i = 0; i < fNumInputs; i++) {
-        *fOut << "in_pin:input" << std::to_string(i)<< "\n";
+        *fOut << "in_pin:input" << std::to_string(i) << "\n";
     }
     for (int i = 0; i < fNumOutputs; i++) {
-        *fOut << "out_pin:output" << std::to_string(i)<< "\n";
+        *fOut << "out_pin:output" << std::to_string(i) << "\n";
     }
     tab(n, *fOut);
    
@@ -335,14 +335,18 @@ void JSFXCodeContainer::produceClass()
     generateClear(gGlobal->gJSFXVisitor);
 
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJSFXVisitor);
+    tab(n+2, *fOut);
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJSFXVisitor);
 
-    *fOut << "voice_idx += 1; \n";
+    *fOut << "voice_idx += 1;";
     tab(n+1, *fOut);
     *fOut << "); \n);\n";
     
-    *fOut << "create_instances(); \n"
-    << "init_instances(); \n";
+    tab(n, *fOut);
+    *fOut << "create_instances();";
+    tab(n, *fOut);
+    *fOut << "init_instances();";
+    tab(n, *fOut);
 
     generateCompute(n);
     tab(n, *fOut);
@@ -432,12 +436,14 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     
     // @block section is only used for MIDI events (inputs)
-    tab(n, *fOut);
-    *fOut << "@block";
-    tab(n, *fOut);
-    gGlobal->gJSFXVisitor->Tab(n);
-    gGlobal->gJSFXVisitor->generateMIDIInstructions();
-    tab(n, *fOut);
+    if (gGlobal->gJSFXVisitor->hasMIDIInstructions()) {
+        tab(n, *fOut);
+        *fOut << "@block";
+        tab(n, *fOut);
+        gGlobal->gJSFXVisitor->Tab(n);
+        gGlobal->gJSFXVisitor->generateMIDIInstructions();
+        tab(n, *fOut);
+    }
     
     // We want to filter if an event occurs to avoid compute control if not needed
     if (midi || poly) {
@@ -463,7 +469,7 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     *fOut << "while(voice_idx < nvoices) (";
     gGlobal->gJSFXVisitor->Tab(n+1);
     tab(n+1, *fOut);
-    *fOut << "obj = dsp.memory + dsp.size * voice_idx; ";
+    *fOut << "obj = dsp.memory + dsp.size * voice_idx;";
     tab(n+1, *fOut);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
     loop->accept(gGlobal->gJSFXVisitor);

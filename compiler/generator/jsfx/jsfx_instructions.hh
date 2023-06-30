@@ -621,6 +621,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         if (keyons.size() > 0) {
             tab(fTab + 1, *fOut);
             *fOut << "(status == NOTE_ON) ? ( ";
+                tab(fTab+2, *fOut);
                 *fOut << "midi_event += 1; ";
             for (const auto& k : keyons) {
                 JSFXMidiScale scale = _midi_scales[k.variable_name];
@@ -637,6 +638,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         if (keyoffs.size() > 0) {
             tab(fTab + 1, *fOut);
             *fOut << "(status == NOTE_OFF) ? (";
+                tab(fTab+2, *fOut);
                 *fOut << "midi_event += 1; ";
             for (const auto& k : keyoffs) {
                 JSFXMidiScale scale = _midi_scales[k.variable_name];
@@ -651,6 +653,8 @@ class JSFXInstVisitor : public TextInstVisitor {
             *fOut << "); ";
         }
     }
+    
+    bool hasMIDIInstructions() { return _midi_instructions.size() > 0; }
 
     void generateMIDIInstructions()
     {
