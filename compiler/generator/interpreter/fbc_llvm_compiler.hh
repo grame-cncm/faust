@@ -1035,7 +1035,6 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
         LLVMPassManagerBuilderPopulateFunctionPassManager(pass_buider, function_passes);
 
         LLVMAddSLPVectorizePass(function_passes);
-        LLVMAddSLPVectorizePass(function_passes);
 
         LLVMPassManagerRef module_passes = LLVMCreatePassManager();
         LLVMPassManagerBuilderPopulateModulePassManager(pass_buider, module_passes);

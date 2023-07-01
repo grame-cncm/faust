@@ -37,8 +37,11 @@
 #include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/TargetSelect.h>
+#if LLVM_VERSION_MAJOR >= 17
+#include <llvm/TargetParser/Host.h>
+#else
 #include <llvm/Support/Host.h>
-
+#endif
 #include "faust/gui/JSONUIDecoder.h"
 #include "libfaust.h"
 #include "llvm_dsp_aux.hh"

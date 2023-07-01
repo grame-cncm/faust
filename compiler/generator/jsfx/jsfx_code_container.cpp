@@ -39,7 +39,7 @@ dsp_factory_base* JSFXCodeContainer::produceFactory()
         ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
 }
 
-JSFXCodeContainer::JSFXCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
+JSFXCodeContainer::JSFXCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
@@ -57,12 +57,6 @@ CodeContainer* JSFXCodeContainer::createScalarContainer(const string& name, int 
     return new JSFXScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
 }
 
-/*
-    The given template implements -scalar (= default) and -vec mode.
-    For options like -omp, -sch, the corresponding JSFXOpenMPCodeContainer
-    and JSFXWorkStealingCodeContainer classes would have to be implemented
-    and activated.
-*/
 CodeContainer* JSFXCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
     gGlobal->gDSPStruct = true;
@@ -188,7 +182,6 @@ void JSFXCodeContainer::produceClass()
             " x <= -1 ? ((min(max(-2147483648, x), -1)|0) + 4294967296;) : (min(max(0, x), 4294967295)|0;); \n"
             ");"
             
-
             // Other utility functions 
             "function limit(x, min, max) (\n"
             "   (x < min) ? min : (x > max) ? max : x; \n"
@@ -247,10 +240,10 @@ void JSFXCodeContainer::produceClass()
     }
 
     // If polyphonic & voice stealing : generate the voice stealing array 
-    if(poly && gGlobal->gJSFXVisitor->mode == JSFXMIDIVoiceMode::voice_steal)
+    if (poly && gGlobal->gJSFXVisitor->mode == JSFXMIDIVoiceMode::voice_steal)
     {
         *fOut << "voices_arr = MEMORY.alloc_memory(" << nvoices << ");\n";
-        for(int i = 0; i < nvoices; ++i) {
+        for (int i = 0; i < nvoices; ++i) {
             *fOut << "voices_arr[" << i << "] = " << i << ";\n";
         }
         *fOut << "function sort_voices(n) (\n"
@@ -278,19 +271,20 @@ void JSFXCodeContainer::produceClass()
     // dsp.size is the total size of object (1 = 64 bits)
     // Other dsp.fields are members position in object 
     int total_size = 0;
+    tab(n, *fOut);
     *fOut << "// DSP struct memory layout \n";
     *fOut << "dsp.memory = MEMORY.alloc_memory(0);\n";
-    std::string class_decl;
+    string class_decl;
     StructInstVisitor struct_visitor;
     fDeclarationInstructions->accept(&struct_visitor);
-    for(const auto& it : fDeclarationInstructions->fCode) {
+    for (const auto& it : fDeclarationInstructions->fCode) {
         auto desc = struct_visitor.getMemoryDesc(it->getName());
         class_decl += "dsp." + it->getName() +  " = " +  std::to_string(total_size) + ";\n";
         total_size += desc.fSize;
     }
-    for(const auto& it : fComputeBlockInstructions->fCode) {
-        std::string name = it->getName();
-        if(name.find("output") != name.npos || name.find("input") != name.npos)
+    for (const auto& it : fComputeBlockInstructions->fCode) {
+        string name = it->getName();
+        if (strfind(name, "output") || strfind(name, "input"))
             continue;
         class_decl += "dsp." + it->getName() + " = " + std::to_string(total_size) + ";\n";
         total_size++;
@@ -298,7 +292,7 @@ void JSFXCodeContainer::produceClass()
      
     // These special fields dsp.key_id and dsp.gate are added in polyphonic context. 
     // They are used to know whether a noteoff can close a playing note (if same key and gate == 1 )
-    if(poly) {
+    if (poly) {
         *fOut << "// Two identifiers to know which noteoff goes to which voice \n";
         class_decl += "dsp.key_id = " + std::to_string(total_size) + ";\n";
         total_size++;
@@ -308,7 +302,7 @@ void JSFXCodeContainer::produceClass()
     
     *fOut << "dsp.size = " << std::to_string(total_size + fNumOutputs) << ";\n";
     *fOut << class_decl;
-    for(int i = 0; i < fNumOutputs; i++) {
+    for (int i = 0; i < fNumOutputs; i++) {
         *fOut << "dsp.output" << i << " = " << ++total_size - 1 << "; \n";
     }
     
@@ -322,11 +316,9 @@ void JSFXCodeContainer::produceClass()
     tab(n+2, *fOut);
     *fOut << "obj = MEMORY.alloc_memory(dsp.size);";
     initializer.fTab+=2;
-    //<< "addresses[voice_idx] = obj;\n";
     generateDeclarations(&initializer);
     tab(n+2, *fOut);
     *fOut << "voice_idx += 1; \n\t);\n);\n\n";
-    
     
     // init_instances is used to initialize members to their init (or constant) values
     // Both create_instances and init_instances are placed in the @init section
@@ -339,8 +331,7 @@ void JSFXCodeContainer::produceClass()
     tab(n+2, *fOut);
     *fOut << "obj = dsp.memory + dsp.size * voice_idx;";
     tab(n+2, *fOut);
-    //<< "obj = get_dsp(voice_idx); \n";
-    gGlobal->gJSFXVisitor->Tab(n+2); 
+    gGlobal->gJSFXVisitor->Tab(n+2);
     generateClear(gGlobal->gJSFXVisitor);
 
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJSFXVisitor);
@@ -351,7 +342,7 @@ void JSFXCodeContainer::produceClass()
     *fOut << "); \n);\n";
     
     *fOut << "create_instances(); \n"
-    << "init_instances(); \n\n";
+    << "init_instances(); \n";
 
     generateCompute(n);
     tab(n, *fOut);
@@ -366,27 +357,26 @@ void JSFXCodeContainer::produceMetadata(int tabs)
     for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first == tree("options")) {
             for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
-                std::stringstream ss;
-                ss<<**j;
-                std::string s;
+                stringstream ss;
+                ss << **j;
+                string s;
                 ss >> s;
-                if (s.find("[midi:on]") != s.npos) {
+                if (strfind(s, "[midi:on]")) {
                     midi = true;
                 }
                 if (s.find("[nvoices:")) {
-                    std::regex r("\\[nvoices:([0-9]+)\\]");
-                    for (std::sregex_iterator i = std::sregex_iterator(s.begin(), s.end(), r); i != std::sregex_iterator(); ++i) {
+                    regex r("\\[nvoices:([0-9]+)\\]");
+                    for (sregex_iterator i = sregex_iterator(s.begin(), s.end(), r); i != sregex_iterator(); ++i) {
                         poly = true;
                         midi = true;
                         std::smatch m = *i;
                         nvoices = std::stoi(m[1].str());
-                        if(nvoices < 1) 
-                            throw(faustexception("nvoices must be >= to 1"));
+                        if (nvoices < 1) {
+                            throw(faustexception("ERROR : nvoices must be >= to 1"));
+                        }
                     }
                     gGlobal->gJSFXVisitor->poly = poly;
                     gGlobal->gJSFXVisitor->nvoices = nvoices;
-                    
-                    
                 }
                 *fOut << "desc: " << *(i.first) << " " << **j << "\n";
             }
@@ -409,7 +399,7 @@ void JSFXCodeContainer::produceMetadata(int tabs)
 // Scalar
 JSFXScalarCodeContainer::JSFXScalarCodeContainer(const string& name,
                                                 int numInputs, int numOutputs,
-                                                std::ostream* out,
+                                                ostream* out,
                                                 int sub_container_type)
     : JSFXCodeContainer(name, numInputs, numOutputs, out)
 {
@@ -433,9 +423,7 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     tab(n+2, *fOut);
     *fOut << "obj = dsp.memory + dsp.size * voice_idx;";
     tab(n+2, *fOut);
-    //<< "obj = get_dsp(voice_idx);\n";
     generateComputeBlock(gGlobal->gJSFXVisitor);
-    //tab(n+2, *fOut);
     *fOut << "voice_idx += 1;";
     tab(n+1, *fOut);
     *fOut << ");";
@@ -451,9 +439,8 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     gGlobal->gJSFXVisitor->generateMIDIInstructions();
     tab(n, *fOut);
     
-    
     // We want to filter if an event occurs to avoid compute control if not needed
-    if(midi || poly) {
+    if (midi || poly) {
         *fOut << "(midi_event > 0) ? (control());\n";
     }
 
@@ -480,20 +467,20 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     tab(n+1, *fOut);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
     loop->accept(gGlobal->gJSFXVisitor);
-    //tab(n+1, *fOut);
     *fOut << "voice_idx += 1;";
     tab(n, *fOut);   
     *fOut << ");";
     // Then, output members are summed in spl0, spl1 (...) which are the actual JSFX outputs
-    for(int i = 0; i < fNumOutputs; ++i)
+    for (int i = 0; i < fNumOutputs; ++i)
     {
         tab(n, *fOut);
         *fOut << "spl" << i << " = ";
-        for(int v = 0; v < nvoices; ++v) 
+        for (int v = 0; v < nvoices; ++v)
         {
             *fOut << "get_dsp(" << v << ")[dsp.output" << i << "]";
-            if(v < (nvoices - 1))
+            if (v < (nvoices - 1)) {
                 *fOut << " + ";
+            }
         }
         *fOut << ";";
     }
