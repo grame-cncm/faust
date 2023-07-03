@@ -34,7 +34,6 @@ class DAGInstructionsCompilerRust : public DAGInstructionsCompiler {
     StatementInst* generateInitArray(const std::string& vname, Typed::VarType ctype, int delay) override;
     StatementInst* generateShiftArray(const std::string& vname, int delay) override;
     StatementInst* generateCopyArray(const std::string& vname_to, const std::string& vname_from, int size) override;
-    ValueInst* generateInput(Tree sig, int idx) override;
 };
 
 #endif  // FAUST_DAG_INSTRUCTIONS_COMPILER_RUST_H
