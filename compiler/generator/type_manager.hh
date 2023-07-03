@@ -483,12 +483,12 @@ class JSFXStringTypeManager : public StringTypeManager {
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
   
         if (basic_typed) {
-            return ""; //fTypeDirectTable[basic_typed->fType];
+            return "";
         } else if (named_typed) {
             std::string ty_str = generateType(named_typed->fType);
-            return ""; //named_typed->fName + ((ty_str != "") ? ("::" + ty_str) : "");
+            return "";
         } else if (array_typed) {
-            return "";// fTypeDirectTable[array_typed->getType()];
+            return "";
         } else {
             faustassert(false);
             return "";
@@ -502,18 +502,18 @@ class JSFXStringTypeManager : public StringTypeManager {
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
 
         if (basic_typed) {
-            return name;// + "::" + fTypeDirectTable[basic_typed->fType];
+            return name;
         } else if (named_typed) {
-            //string ty_str = named_typed->fName + generateType(named_typed->fType);
-            return name;// + ((ty_str != "") ? ("::" + ty_str) : "");
+            return name;
         } else if (array_typed) {
-            return name; //
+            return name;
         } else {
             faustassert(false);
             return "";
         }
     }
 };
+
 // StringTypeManager for JAX backend
 
 class JAXStringTypeManager : public StringTypeManager {
@@ -596,15 +596,10 @@ class JAXStringTypeManager : public StringTypeManager {
 
         if (basic_typed) {
             return name;
-            //return name + "::" + fTypeDirectTable[basic_typed->fType];
         } else if (named_typed) {
             std::string ty_str = named_typed->fName + generateType(named_typed->fType);
-            //return name + ((ty_str != "") ? ("::" + ty_str) : "");
             return name;
         } else if (array_typed) {
-            // return (array_typed->fSize == 0)
-            //         ? name + "::" + fPtrRef + generateType(array_typed->fType)
-            //         : name + "::Vector{" + generateType(array_typed->fType) + "}";
             return name;
         } else {
             faustassert(false);
