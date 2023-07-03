@@ -315,12 +315,15 @@ static void compileCLLVM(Tree signals, int numInputs, int numOutputs)
 
     gContainer = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
-    // To trigger 'sig.dot' generation
     if (gGlobal->gVectorSwitch) {
         gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
         gNewComp = new InstructionsCompiler(gContainer);
     }
+    
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    
+    // To trigger 'sig.dot' generation
     gNewComp->prepare(signals);
 #else
     throw faustexception("ERROR : -lang cllcm not supported since LLVM backend is not built\n");
@@ -739,15 +742,13 @@ static void compileDlang(Tree signals, int numInputs, int numOutputs, ostream* o
 static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>& enrobage, unique_ptr<ostream>& dst)
 {
     if (openEnrobagefile()) {
-        if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp") {
+        if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp")
             *dst.get() << "namespace " << gGlobal->gNamespace << " {" << endl;
 #ifdef DLANG_BUILD
-        } else if (gGlobal->gOutputLang == "dlang") {
+        else if (gGlobal->gOutputLang == "dlang") {
             DLangCodeContainer::printDRecipeComment(*dst.get(), gContainer->getClassName());
             DLangCodeContainer::printDModuleStmt(*dst.get(), gContainer->getClassName());
         }
-#else
-    }
 #endif
 
         gContainer->printHeader();
