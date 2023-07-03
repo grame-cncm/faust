@@ -83,6 +83,7 @@ IteratorForLoopInst* CodeLoop::generateSimpleScalarLoop(const std::vector<string
     return static_cast<IteratorForLoopInst*>(loop->clone(&cloner));
 }
 
+// Generate the scalar sample code
 BlockInst* CodeLoop::generateOneSample()
 {
     BlockInst* block = InstBuilder::genBlockInst();

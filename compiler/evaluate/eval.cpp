@@ -870,7 +870,6 @@ static string evalLabel(const char* src, Tree visited, Tree localValEnv)
  * @param id the formal parameter of the iteration
  * @param num the number of iterations
  * @param body the body expression of the iteration
- * @param globalDefEnv the global environment
  * @param visited list of visited definition to detect recursive definitions
  * @param localValEnv the local environment
  * @return a block diagram in normal form
@@ -931,7 +930,6 @@ static Tree neutralExpSeq(Tree id, Tree body, Tree visited, Tree localValEnv)
  * @param id the formal parameter of the iteration
  * @param num the number of iterations
  * @param body the body expression of the iteration
- * @param globalDefEnv the global environment
  * @param visited list of visited definition to detect recursive definitions
  * @param localValEnv the local environment
  * @return a block diagram in normal form
@@ -958,7 +956,6 @@ static Tree iterateSeq(Tree id, int num, Tree body, Tree visited, Tree localValE
  * @param id the formal parameter of the iteration
  * @param num the number of iterations
  * @param body the body expression of the iteration
- * @param globalDefEnv the global environment
  * @param visited list of visited definition to detect recursive definitions
  * @param localValEnv the local environment
  * @return a block diagram in normal form
@@ -984,7 +981,6 @@ static Tree iterateSum(Tree id, int num, Tree body, Tree visited, Tree localValE
  * @param id the formal parameter of the iteration
  * @param num the number of iterations
  * @param body the body expression of the iteration
- * @param globalDefEnv the global environment
  * @param visited list of visited definition to detect recursive definitions
  * @param localValEnv the local environment
  * @return a block diagram in normal form

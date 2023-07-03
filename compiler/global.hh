@@ -383,6 +383,7 @@ struct global {
     Sym DOCLST;
     Sym DOCMTD;
     Sym DOCTXT;
+    // Used in environment layering
     Sym BARRIER;
 
     property<bool>* gPureRoutingProperty;

@@ -25,7 +25,8 @@
 #include "signals.hh"
 
 /**
- * Annotate a signal with recursivness. Should be used before
+ * Annotate a signal with recursivness information, the amount of
+ * recursive dependencies of a signal. Should be used before
  * calling getRecursivness.
  * @param sig signal to annotate
  */
