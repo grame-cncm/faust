@@ -140,14 +140,3 @@ StatementInst* DAGInstructionsCompilerRust::generateCopyArray(const string& vnam
     loop->pushFrontInst(InstBuilder::genStoreArrayStackVar(vname_to, loadVarInst, load_value));
     return loop;
 }
-
-ValueInst* DAGInstructionsCompilerRust::generateInput(Tree sig, int idx)
-{
-    //    return DAGInstructionsCompiler::generateInput(sig, idx);
-
-    string name = subst("input$0", T(idx));
-    //    gGlobal->gVarTypeTable[name] = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
-    ValueInst* res = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
-    // Possibly cast to internal float
-    return genCastedInput(res);
-}
