@@ -37,7 +37,7 @@ using namespace std;
 /*
  LLVM module description:
 
- - 'clone' method is implemented in the 'llvm_dsp' wrapping code
+ - several init and 'clone' methods are implemented in the 'llvm_dsp' wrapping code
  - starting with LLVM 15, the LLVMInstVisitor::fVarTypes keeps association of address and types
 
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
@@ -188,7 +188,7 @@ void LLVMCodeContainer::produceInternal()
     // Generate DSP structure
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dec_type);
 
-    /// Memory methods
+    // Memory methods
     generateCalloc()->accept(fCodeProducer);
     generateFree()->accept(fCodeProducer);
 
@@ -290,7 +290,7 @@ void LLVMScalarCodeContainer::generateCompute()
 BlockInst* LLVMScalarCodeContainer::generateComputeAux()
 {
     BlockInst* block = InstBuilder::genBlockInst();
-    // Control
+    // Generates control
     block->pushBackInst(fComputeBlockInstructions);
     // Generates the DSP loop
     block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
@@ -320,7 +320,7 @@ void LLVMVectorCodeContainer::generateCompute()
 BlockInst* LLVMVectorCodeContainer::generateComputeAux()
 {
     BlockInst* block = InstBuilder::genBlockInst();
-    // Control
+    // Generates control
     block->pushBackInst(fComputeBlockInstructions);
     // Generates the DSP loop
     block->pushBackInst(fDAGBlock);
@@ -428,7 +428,7 @@ void LLVMWorkStealingCodeContainer::generateCompute()
 BlockInst* LLVMWorkStealingCodeContainer::generateComputeAux()
 {
     BlockInst* block = InstBuilder::genBlockInst();
-    // Control
+    // Generates control
     block->pushBackInst(fComputeBlockInstructions);
     return block;
 }

@@ -33,9 +33,10 @@ using namespace std;
 /*
 Interpreter backend description:
 
+ - FIR code is transpiled in Faust Byte Code (FBC), to be executed in an interpreter or an hybrid interpreter/compiler
  - a single global visitor for main and subcontainers
  - 'fSampleRate' and 'count' variable manually added in the IntHeap to be setup in 'instanceInit' and 'compute'
- - DSP struct and stack variables are actually allocated in the Int32 and Real heaps
+ - DSP struct and stack variables are actually allocated in the Int32 and REAL heaps
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
  - subcontainers code is 'inlined': fields declarations (using the global visitor) and code 'classInit', and 'instanceInit' of the main container
  - 'clone' method is implemented in the 'interpreter_dsp' wrapping code

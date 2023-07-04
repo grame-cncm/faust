@@ -101,7 +101,6 @@ void JSFXCodeContainer::produceClass()
     
     *fOut << "desc: Effect " << fKlassName << "\n";
 
-    // Needed ?
     produceMetadata(n);
     
     // buildUserInterface > Sliders buttons and checkboxes only are available on JSFX

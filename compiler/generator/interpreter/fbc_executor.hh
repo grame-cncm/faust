@@ -26,6 +26,8 @@
 #include "interpreter_bytecode.hh"
 #include "dsp_aux.hh"
 
+typedef std::map<std::string, Soundfile*> soundTable;
+
 /*
  * The base class for Interpreter and mixed Interpreter/Compiler.
  */

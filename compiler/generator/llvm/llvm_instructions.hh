@@ -959,7 +959,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         visitIf(inst);
     }
     
-    
     // Select that computes both branches
     void visitSelect(Select2Inst* inst)
     {

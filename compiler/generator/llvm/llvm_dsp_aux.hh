@@ -69,7 +69,11 @@ class Module;
 
 class llvm_dsp_factory;
 
-// Public C++ interface
+/*
+    Public C++ interface.
+    Some the methods are directly generated in the LLVM module, some are built "externally"
+    using the informations available in the JSON and the use of JSONUIDecoderBase* fDecoder.
+*/
 
 class LIBFAUST_API llvm_dsp : public dsp {
    private:
@@ -114,6 +118,7 @@ class LIBFAUST_API llvm_dsp : public dsp {
     virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 };
 
+// Used with machine code loaded from a file.
 class FaustObjectCache : public llvm::ObjectCache {
    private:
     std::string fMachineCode;
@@ -145,15 +150,24 @@ typedef void (* deleteDspFun) (dsp_imp* dsp);
 typedef void (* allocateDspFun) (dsp_imp* dsp);
 typedef const char* (* getJSONFun) ();
 
+/*
+    Base class for LLVM DSP:
+    - handle JIT compilation
+ */
 class llvm_dsp_factory_aux : public dsp_factory_imp {
     friend class llvm_dsp;
     friend class llvm_dsp_factory;
 
    protected:
+    
+    // LLVM machinery
     llvm::ExecutionEngine*  fJIT;
-    FaustObjectCache*       fObjectCache;
     llvm::Module*           fModule;
     llvm::LLVMContext*      fContext;
+    
+    // Used with machine code loaded from a file
+    FaustObjectCache*       fObjectCache;
+    // To be used with DSP access information available in JSON
     JSONUIDecoderBase*      fDecoder;
 
     int         fOptLevel;
@@ -161,6 +175,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     std::string fClassName;
     std::string fTypeName;
 
+    // Method pointers generated in the LLVM module
     allocateDspFun   fAllocate;
     destroyDspFun    fDestroy;
     initFun          fInstanceConstants;
@@ -210,17 +225,17 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
 
     virtual bool writeDSPFactoryToBitcodeFile(const std::string& bit_code_path) { return false; }
 
-    // IR
+    // Textual IR
     virtual std::string writeDSPFactoryToIR() { return ""; }
 
     virtual bool writeDSPFactoryToIRFile(const std::string& ir_code_path) { return false; }
 
-    // Machine
+    // Machine code
     virtual std::string writeDSPFactoryToMachine(const std::string& target);
 
     virtual bool writeDSPFactoryToMachineFile(const std::string& machine_code_path, const std::string& target);
 
-    // Object
+    // Object code
     virtual bool writeDSPFactoryToObjectcodeFile(const std::string& object_code_path, const std::string& target)
     {
         return false;
@@ -243,9 +258,10 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
 
     void metadata(MetaGlue* glue);
 
+    // Factory instance management
     static int gInstance;
-
     static dsp_factory_table<SDsp_factory> gLLVMFactoryTable;
+    
     // Set of custom foreign functions
     static std::set<std::string>           gForeignFunctions;
 };
@@ -336,11 +352,11 @@ LIBFAUST_API std::vector<std::string> getAllDSPFactories();
 
 LIBFAUST_API void deleteAllDSPFactories();
 
-// machine <==> string
+// machine code <==> string
 LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target,
                                                          std::string& error_msg);
 
-// machine <==> file
+// machine code <==> file
 LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target,
                                                              std::string& error_msg);
 

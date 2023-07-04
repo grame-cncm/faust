@@ -387,6 +387,4 @@ struct Soundfile {
     
 } POST_PACKED_STRUCTURE;
 
-typedef std::map<std::string, Soundfile*> soundTable;
-
 #endif

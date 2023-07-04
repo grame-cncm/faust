@@ -46,9 +46,10 @@ static std::map<FBCInstruction::Opcode, FBCInstruction::Opcode> gFIRExtendedMath
 static std::map<FBCInstruction::Opcode, FBCInstruction::Opcode> gFIRExtendedMath2Value;
 static std::map<FBCInstruction::Opcode, FBCInstruction::Opcode> gFIRExtendedMath2ValueInvert;
 
-//=======================
-// Optimization
-//=======================
+//=========================================================================
+// FBC Optimization:
+// - rewrite sequence of instructions as a more complex/faster instruction
+//=========================================================================
 
 template <class REAL>
 struct FBCInstructionOptimizer;

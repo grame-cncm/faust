@@ -91,9 +91,9 @@ extern "C" LIBFAUST_API void printPtr(void* val)
 
 // Factories instances management
 int llvm_dsp_factory_aux::gInstance = 0;
-
 dsp_factory_table<SDsp_factory> llvm_dsp_factory_aux::gLLVMFactoryTable;
 
+// Set of externally defined functions, to be linked with the LLVM module
 set<string> llvm_dsp_factory_aux::gForeignFunctions;
 
 uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function)
@@ -253,6 +253,7 @@ bool llvm_dsp_factory_aux::initJITAux()
     fJIT->runStaticConstructorsDestructors(false);
     fJIT->DisableLazyCompilation(true);
 
+    // Access methos generated in the LLVM module
     fAllocate          = (allocateDspFun)loadOptimize("allocate" + fClassName);
     fDestroy           = (destroyDspFun)loadOptimize("destroy" + fClassName);
     fInstanceConstants = (instanceConstantsFun)loadOptimize("instanceConstants" + fClassName);
@@ -561,7 +562,7 @@ LIBFAUST_API void deleteAllDSPFactories()
     llvm_dsp_factory_aux::gLLVMFactoryTable.deleteAllDSPFactories();
 }
 
-// machine <==> string
+// machine code <==> string
 LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, string& error_msg)
 {
     LOCK_API
@@ -569,7 +570,7 @@ LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_c
         MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target, error_msg);
 }
 
-// machine <==> file
+// machine code <==> file
 LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target,
                                                         string& error_msg)
 {
@@ -623,6 +624,7 @@ LIBFAUST_API void llvm_dsp::operator delete(void* ptr)
     }
 }
 
+// Register an externally defined function
 LIBFAUST_API void registerForeignFunction(const string& name)
 {
     LOCK_API
