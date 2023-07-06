@@ -734,6 +734,7 @@ string global::printFloat()
 
 void global::printCompilationOptions(stringstream& dst, bool backend)
 {
+    if (gAutoDifferentiate) dst << "-diff ";
     if (gArchFile != "") dst << "-a " << gArchFile << " ";
     if (backend) {
 #ifdef LLVM_BUILD

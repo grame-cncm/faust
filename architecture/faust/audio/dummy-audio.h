@@ -231,6 +231,8 @@ class dummyaudio_real : public dummyaudio_base {
         
         virtual int getNumInputs() { return fNumInputs; }
         virtual int getNumOutputs() { return fNumOutputs; }
+
+        REAL** getOutput() { return fOutChannel; }
     
 };
 
