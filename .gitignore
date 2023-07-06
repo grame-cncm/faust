@@ -2,6 +2,7 @@ dox/*
 build/xcode/*
 build/bin/*
 build/lib/*
+build/cmake-build-*
 *~
 compile.sh
 *.aux
@@ -38,3 +39,5 @@ tests/impulse-tests/ir
 .eslintrc.json
 *-mdoc
 *-svg
+### Intellij IDEs
+.idea/
