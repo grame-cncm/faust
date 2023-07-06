@@ -679,8 +679,8 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     // Binary operations
     // kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
     else if (isSigBinOp(sig, &op, x, y)) {
-        
-        switch(op) {
+
+        switch (op) {
             case kMul:
                 // ((f * g)' = f' * g + f * g'
                 return sigAdd(sigMul(self(x), y), sigMul(x, self(y)));
@@ -692,16 +692,17 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
                 // TO FINISH
                 return sigBinOp(op, self(x), self(y));
         }
-        
+
     } else if (isSigButton(sig, label)
                || isSigCheckbox(sig, label)
                || isSigVSlider(sig, label, init, min, max, step)
                || isSigHSlider(sig, label, init, min, max, step)
-               || isSigNumEntry(sig, label, init, min, max, step)) {
-        
+               || isSigNumEntry(sig, label, init, min, max, step)
+               || isSigInput(sig, &i)) {
+
         return diff(sig, getCertifiedSigType(sig)->nature());
     }
-    
+
     else {
         // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
