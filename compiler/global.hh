@@ -177,6 +177,7 @@ struct global {
     bool gClang;                 // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
     bool gFullParentheses;       // -fp option, generate less parenthesis in some textual backends: C/C++, Cmajor, Dlang, Rust
     bool gCheckIntRange;         // -cir option, check float to integer range conversion
+    bool gReprC;                 // (Rust) Force dsp struct layout to follow C ABI
 
     std::string gClassName;      // -cn option, name of the generated dsp class, by default 'mydsp'
     std::string gProcessName;    // -pn option, name of the entry point of the Faust program, by default 'process'
