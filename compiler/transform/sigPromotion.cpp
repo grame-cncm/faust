@@ -685,6 +685,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
                 // (f * g)' = f' * g + f * g'
                 return sigAdd(sigMul(self(x), y), sigMul(x, self(y)));
             case kDiv:
+                // (f / g)' = (f' * g - f * g') / (g * g)
                 return sigDiv(sigSub(sigMul(self(x), y), sigMul(x, self(y))),
                               sigMul(y, y));
             default:
