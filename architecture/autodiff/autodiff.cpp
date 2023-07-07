@@ -3,129 +3,89 @@
 #include <iostream>
 #include <cmath>
 #include "autodiff.h"
-#include "faust/gui/MapUI.h"
-#include "faust/audio/dummy-audio.h"
-#include "faust/dsp/one-sample-dsp.h"
+#include "faust/misc.h"
 #include "faust/dsp/llvm-dsp.h"
 
-<<includeIntrinsic>>
-<<includeclass>>
-
 int main(int argc, char *argv[]) {
-    mydsp differentiableDSP;
+    // TODO: usage
+    auto input{lopts(argv, "--input", "$(faust --archdir)/examples/autodiff/noise.dsp")};
+    auto gt{lopts(argv, "--gt", "$(faust --archdir)/examples/autodiff/fixed_gain.dsp")};
+    auto diff{lopts(argv, "--diff", "$(faust --archdir)/examples/autodiff/gain.dsp")};
 
-    autodiff autodiff;
-    auto autodiffDSP{autodiff.init(&differentiableDSP)};
-
-    std::cout << "DSP size: " << sizeof(*autodiffDSP) << " bytes\n";
-    std::cout << "Inputs: " << autodiffDSP->getNumInputs() << " Outputs: " << autodiffDSP->getNumOutputs() << "\n";
-
-    auto ui{new MapUI};
-    autodiffDSP->buildUserInterface(ui);
-
-    // Allocate the audio driver
-    dummyaudio audio(48000, 1);
-    audio.init("Test", static_cast<dsp *>(autodiffDSP));
-
-//    auto autodiffedParamAddress{ui->getParamAddress(0)};
-    auto numParams{ui->getParamsCount()};
-    std::cout << "Num params: " << numParams << "\n";
-    auto paramAddress{numParams > 0 ? ui->getParamAddress(0) : std::string{""}};
-    auto paramValue{ui->getParamValue(paramAddress)};
-//    std::cout << autodiffedParamAddress << " value: " << gain << "\n";
-    std::cout << "Param " << paramAddress << ", value: " << paramValue << "\n";
-
-    // Sensitivity
-    auto epsilon{1e-7f};
-    // Learning rate/stepsize
-    auto alpha{.1f};
-    auto loss{0.f}, gradient{0.f};
-    auto numIter{1000};
-
-    for (auto i{0}; i < numIter; ++i) {
-        audio.render();
-        auto out{audio.getOutput()};
-
-        for (int frame = 0; frame < audio.getBufferSize(); frame++) {
-            auto groundTruth{out[0][frame]},
-                    current{out[1][frame]},
-                    differentiated{out[2][frame]};
-
-            std::cout << std::fixed << std::setprecision(10) << i <<
-                      "\tTruth: " << groundTruth <<
-                      "\tGuess: " << current;
-
-            // Calculate loss
-            loss = powf(current - groundTruth, 2);
-
-            std::cout << "\tLoss: " << loss;
-
-            if (loss > epsilon) {
-                // Update gradient
-                gradient = 2 * differentiated * (current - groundTruth);
-                std::cout << "\t Grad: " << gradient;
-
-                // Update parameter value.
-                paramValue -= alpha * gradient;
-                std::cout << "\tSetting param: " << paramValue;
-                ui->setParamValue(paramAddress, paramValue);
-            }
-
-            std::cout << "\n";
-        }
-    }
+    mldsp mldsp{input, gt, diff};
+    mldsp.initialise();
+    mldsp.doGradientDescent();
 }
 
-dsp *autodiff::init(dsp *differentiatedDSP) {
-    auto noiseGenerator{createDSPInstanceFromString(
-            "Noise Generator",
-            "import(\"stdfaust.lib\");"
-            "process = no.noise;"
-//            "process = 1;"
-    )};
+mldsp::mldsp(std::string inputDSPPath,
+             std::string groundTruthDSPPath,
+             std::string differentiableDSPPath,
+             FAUSTFLOAT learningRate,
+             FAUSTFLOAT sensitivity,
+             int numIterations) :
+        fAlpha(learningRate),
+        fEpsilon(sensitivity),
+        fNumIterations(numIterations),
+        fInputDSPPath(inputDSPPath),
+        fGroundTruthDSPPath(groundTruthDSPPath),
+        fDifferentiableDSPPath(differentiableDSPPath) {}
 
-    auto fixedDSP{createDSPInstanceFromString(
-            "Fixed Gain",
-            "import(\"stdfaust.lib\");"
-            "process = _*.75;"
-    )};
+mldsp::~mldsp() {}
 
-    // TODO: replace this with something derived from the input .dsp file.
-    auto adjustableDSP{createDSPInstanceFromString(
-            "Adjustable Gain",
-            "import(\"stdfaust.lib\");"
-            "gain = hslider(\"gain\", .5, 0, 1, .001);"
-            "process = _*gain;"
-    )};
+void mldsp::initialise() {
+    auto input{createDSPInstanceFromPath(fInputDSPPath)};
+    auto fixedDSP{createDSPInstanceFromPath(fGroundTruthDSPPath)};
+    auto adjustableDSP{createDSPInstanceFromPath(fDifferentiableDSPPath)};
+    const char *argv[] = {"-diff"};
+    auto differentiatedDSP{createDSPInstanceFromPath(fDifferentiableDSPPath, 1, argv)};
 
-//    parallelizer = new dsp_parallelizer(
-//            // Set up the ground truth DSP: s_o(\hat{p})
-//            new dsp_sequencer(noiseGenerator, fixedDSP),
-//            // Set up a pair of DSPs...
-//            new dsp_parallelizer(
-//                    // The adjustable version: s_o(p),
-//                    new dsp_sequencer(noiseGenerator, adjustableDSP),
-//                    // and the autodiffed version: \nabla s_o(p),
-//                    new dsp_sequencer(noiseGenerator, differentiatedDSP)
-//            )
-//    );
-
-    parallelizer = new dsp_parallelizer(
+    fDSP = std::make_unique<dsp_parallelizer>(
             // Set up the ground truth DSP: s_o(\hat{p})
-            new dsp_sequencer(noiseGenerator->clone(), fixedDSP),
-            // Set up a pair of DSPs...
+            new dsp_sequencer(input->clone(), fixedDSP),
             new dsp_parallelizer(
-                    // The adjustable version: s_o(p),
-                    new dsp_sequencer(noiseGenerator->clone(), adjustableDSP),
-                    // and the autodiffed version: \nabla s_o(p),
-                    new dsp_sequencer(noiseGenerator->clone(), differentiatedDSP)
+                    // The adjustable DSP: s_o(p),
+                    new dsp_sequencer(input->clone(), adjustableDSP),
+                    // The autodiffed DSP: \nabla s_o(p),
+                    new dsp_sequencer(input->clone(), differentiatedDSP)
             )
     );
 
-    return parallelizer;
+    fUI = std::make_unique<MapUI>();
+    fDSP->buildUserInterface(fUI.get());
+
+    // Allocate the audio driver
+    fAudio = std::make_unique<dummyaudio>(48000, 1);
+    fAudio->init("Dummy audio", fDSP.get());
+
+    // TODO: check that the learnable parameter exists.
+    fLearnableParamAddress = fUI->getParamAddress(0);
+    fLearnableParamValue = fUI->getParamValue(fLearnableParamAddress);
+    std::cout << "Learnable parameter: " << fLearnableParamAddress << ", value: " << fLearnableParamValue << "\n";
 }
 
-dsp *autodiff::createDSPInstanceFromString(
+void mldsp::doGradientDescent() {
+    for (auto i{1}; i <= fNumIterations; ++i) {
+        fAudio->render();
+        auto out{fAudio->getOutput()};
+
+        for (int frame = 0; frame < fAudio->getBufferSize(); frame++) {
+            computeLoss(out, frame);
+
+            if (fLoss > fEpsilon) {
+                computeGradient(out, frame);
+
+                // Update parameter value.
+                fLearnableParamValue -= fAlpha * fGradient;
+                fUI->setParamValue(fLearnableParamAddress, fLearnableParamValue);
+            }
+
+            printState(i, out, frame);
+        }
+
+    }
+}
+
+dsp *mldsp::createDSPInstanceFromString(
         const std::string &appName,
         const std::string &dspContent
 ) {
@@ -137,3 +97,44 @@ dsp *autodiff::createDSPInstanceFromString(
     assert(factory);
     return factory->createDSPInstance();
 }
+
+dsp *mldsp::createDSPInstanceFromPath(const std::string &path,
+                                      int argc, const char *argv[]) {
+    std::string errorMessage;
+    auto factory{createDSPFactoryFromFile(path, argc, argv, "", errorMessage)};
+    if (!factory) {
+        std::cout << errorMessage;
+    }
+    assert(factory);
+    return factory->createDSPInstance();
+}
+
+void mldsp::computeLoss(FAUSTFLOAT **output, int frame) {
+    fLoss = powf(output[LEARNABLE_CHANNEL][frame] - output[TRUTH_CHANNEL][frame], 2);
+}
+
+void mldsp::computeGradient(FAUSTFLOAT **output, int frame) {
+    fGradient = 2 * output[DIFFERENTIATED_CHANNEL][frame] *
+                (output[LEARNABLE_CHANNEL][frame] - output[TRUTH_CHANNEL][frame]);
+}
+
+void mldsp::printState(int iteration, FAUSTFLOAT **output, int frame) {
+    std::cout << std::fixed << std::setprecision(10) <<
+              std::setw(5) << iteration <<
+              std::setw(LABEL_WIDTH) << "Truth: " <<
+              std::setw(NUMBER_WIDTH) << output[TRUTH_CHANNEL][frame] <<
+              std::setw(LABEL_WIDTH) << "Learnt: " <<
+              std::setw(NUMBER_WIDTH) << output[LEARNABLE_CHANNEL][frame] <<
+              std::setw(LABEL_WIDTH) << "Loss: " <<
+              std::setw(NUMBER_WIDTH) << fLoss;
+
+    if (fLoss > fEpsilon) {
+        std::cout << std::setw(LABEL_WIDTH) << "Grad: " <<
+                  std::setw(NUMBER_WIDTH) << fGradient <<
+                  std::setw(LABEL_WIDTH) << "Set param: " <<
+                  std::setw(NUMBER_WIDTH) << fLearnableParamValue;
+    }
+
+    std::cout << "\n";
+}
+/***************************** END autodiff.cpp *******************************/
