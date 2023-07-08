@@ -7,10 +7,14 @@
 #include "faust/dsp/llvm-dsp.h"
 
 int main(int argc, char *argv[]) {
-    // TODO: usage
-    auto input{lopts(argv, "--input", "$(faust --archdir)/examples/autodiff/noise.dsp")};
-    auto gt{lopts(argv, "--gt", "$(faust --archdir)/examples/autodiff/fixed_gain.dsp")};
-    auto diff{lopts(argv, "--diff", "$(faust --archdir)/examples/autodiff/gain.dsp")};
+    if (!isopt(argv, "--input") || !isopt(argv, "--gt") || !isopt(argv, "--diff")) {
+        std::cout << "Please provide input, ground truth, and differentiable Faust files.\n";
+        std::cout << argv[0] << " --input <file> --gt <file> --diff <file>\n";
+        exit(1);
+    }
+    auto input{lopts(argv, "--input", "")};
+    auto gt{lopts(argv, "--gt", "")};
+    auto diff{lopts(argv, "--diff", "")};
 
     mldsp mldsp{input, gt, diff};
     mldsp.initialise();
@@ -23,9 +27,9 @@ mldsp::mldsp(std::string inputDSPPath,
              FAUSTFLOAT learningRate,
              FAUSTFLOAT sensitivity,
              int numIterations) :
-        fAlpha(learningRate),
-        fEpsilon(sensitivity),
-        fNumIterations(numIterations),
+        kAlpha(learningRate),
+        kEpsilon(sensitivity),
+        kNumIterations(numIterations),
         fInputDSPPath(inputDSPPath),
         fGroundTruthDSPPath(groundTruthDSPPath),
         fDifferentiableDSPPath(differentiableDSPPath) {}
@@ -33,7 +37,7 @@ mldsp::mldsp(std::string inputDSPPath,
 mldsp::~mldsp() {}
 
 void mldsp::initialise() {
-    auto input{createDSPInstanceFromPath(fInputDSPPath)};
+    auto inputDSP{createDSPInstanceFromPath(fInputDSPPath)};
     auto fixedDSP{createDSPInstanceFromPath(fGroundTruthDSPPath)};
     auto adjustableDSP{createDSPInstanceFromPath(fDifferentiableDSPPath)};
     const char *argv[] = {"-diff"};
@@ -41,12 +45,12 @@ void mldsp::initialise() {
 
     fDSP = std::make_unique<dsp_parallelizer>(
             // Set up the ground truth DSP: s_o(\hat{p})
-            new dsp_sequencer(input->clone(), fixedDSP),
+            new dsp_sequencer(inputDSP->clone(), fixedDSP),
             new dsp_parallelizer(
                     // The adjustable DSP: s_o(p),
-                    new dsp_sequencer(input->clone(), adjustableDSP),
+                    new dsp_sequencer(inputDSP->clone(), adjustableDSP),
                     // The autodiffed DSP: \nabla s_o(p),
-                    new dsp_sequencer(input->clone(), differentiatedDSP)
+                    new dsp_sequencer(inputDSP->clone(), differentiatedDSP)
             )
     );
 
@@ -64,24 +68,23 @@ void mldsp::initialise() {
 }
 
 void mldsp::doGradientDescent() {
-    for (auto i{1}; i <= fNumIterations; ++i) {
+    for (auto i{1}; i <= kNumIterations; ++i) {
         fAudio->render();
         auto out{fAudio->getOutput()};
 
         for (int frame = 0; frame < fAudio->getBufferSize(); frame++) {
             computeLoss(out, frame);
 
-            if (fLoss > fEpsilon) {
+            if (fLoss > kEpsilon) {
                 computeGradient(out, frame);
 
                 // Update parameter value.
-                fLearnableParamValue -= fAlpha * fGradient;
+                fLearnableParamValue -= kAlpha * fGradient;
                 fUI->setParamValue(fLearnableParamAddress, fLearnableParamValue);
             }
 
-            printState(i, out, frame);
+            reportState(i, out, frame);
         }
-
     }
 }
 
@@ -110,25 +113,25 @@ dsp *mldsp::createDSPInstanceFromPath(const std::string &path,
 }
 
 void mldsp::computeLoss(FAUSTFLOAT **output, int frame) {
-    fLoss = powf(output[LEARNABLE_CHANNEL][frame] - output[TRUTH_CHANNEL][frame], 2);
+    fLoss = powf(output[Channels::LEARNABLE][frame] - output[Channels::GROUND_TRUTH][frame], 2);
 }
 
 void mldsp::computeGradient(FAUSTFLOAT **output, int frame) {
-    fGradient = 2 * output[DIFFERENTIATED_CHANNEL][frame] *
-                (output[LEARNABLE_CHANNEL][frame] - output[TRUTH_CHANNEL][frame]);
+    fGradient = 2 * output[Channels::DIFFERENTIATED][frame] *
+                (output[Channels::LEARNABLE][frame] - output[Channels::GROUND_TRUTH][frame]);
 }
 
-void mldsp::printState(int iteration, FAUSTFLOAT **output, int frame) {
+void mldsp::reportState(int iteration, FAUSTFLOAT **output, int frame) {
     std::cout << std::fixed << std::setprecision(10) <<
               std::setw(5) << iteration <<
-              std::setw(LABEL_WIDTH) << "Truth: " <<
-              std::setw(NUMBER_WIDTH) << output[TRUTH_CHANNEL][frame] <<
-              std::setw(LABEL_WIDTH) << "Learnt: " <<
-              std::setw(NUMBER_WIDTH) << output[LEARNABLE_CHANNEL][frame] <<
+              std::setw(LABEL_WIDTH) << "Sig GT: " <<
+              std::setw(NUMBER_WIDTH) << output[Channels::GROUND_TRUTH][frame] <<
+              std::setw(LABEL_WIDTH) << "Sig Learn: " <<
+              std::setw(NUMBER_WIDTH) << output[Channels::LEARNABLE][frame] <<
               std::setw(LABEL_WIDTH) << "Loss: " <<
               std::setw(NUMBER_WIDTH) << fLoss;
 
-    if (fLoss > fEpsilon) {
+    if (fLoss > kEpsilon) {
         std::cout << std::setw(LABEL_WIDTH) << "Grad: " <<
                   std::setw(NUMBER_WIDTH) << fGradient <<
                   std::setw(LABEL_WIDTH) << "Set param: " <<

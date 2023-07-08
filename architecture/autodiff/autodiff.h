@@ -28,10 +28,15 @@ public:
     void doGradientDescent();
 
 private:
-    static constexpr int TRUTH_CHANNEL{0}, LEARNABLE_CHANNEL{1}, DIFFERENTIATED_CHANNEL{2};
-    static constexpr int NUMBER_WIDTH{13}, LABEL_WIDTH{13};
-    const FAUSTFLOAT fAlpha, fEpsilon;
-    const int fNumIterations;
+    enum Channels {
+        GROUND_TRUTH = 0,
+        LEARNABLE = 1,
+        DIFFERENTIATED = 2
+    };
+
+    static constexpr int NUMBER_WIDTH{15}, LABEL_WIDTH{13};
+    const FAUSTFLOAT kAlpha, kEpsilon;
+    const int kNumIterations;
 
     dsp *createDSPInstanceFromString(const std::string &appName,
                                      const std::string &dspContent);
@@ -55,11 +60,11 @@ private:
      *
      * @param output Audio signals representing ground truth, learnable and
      *               differentiated dsp output.
-     * @param frame The output frame with which to compute the loss.
+     * @param frame The output frame with which to compute the gradient.
      */
     void computeGradient(FAUSTFLOAT **output, int frame);
 
-    void printState(int iteration, FAUSTFLOAT **output, int frame);
+    void reportState(int iteration, FAUSTFLOAT **output, int frame);
 
     std::string fInputDSPPath, fGroundTruthDSPPath, fDifferentiableDSPPath;
     std::unique_ptr<dsp> fDSP;
