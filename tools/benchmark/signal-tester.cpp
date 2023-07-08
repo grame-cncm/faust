@@ -740,6 +740,49 @@ static void test24(int argc, char* argv[])
     }
 }
 
+// Compile a complete DSP program to a box expression, then to a source string
+// in several target languages
+static void test25()
+{
+    cout << "test25\n";
+    vector<const char*> lang = { "c", "cpp", "cmajor", "csharp", "dlang", "interp", "jax", "julia", "rust", "wast" };
+    // Context has to be created/destroyed each time
+    for (const auto& it : lang) {
+        createLibContext();
+        {
+            int inputs = 0;
+            int outputs = 0;
+            string error_msg;
+        
+            // Create the oscillator
+            Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, nullptr, &inputs, &outputs, error_msg);
+            if (!osc) {
+                cerr << error_msg;
+                destroyLibContext();
+                return;
+            }
+        
+            // Convert to signals
+            tvec signals = boxesToSignals(osc, error_msg);
+            if (signals.size() == 0) {
+                cerr << error_msg;
+                destroyLibContext();
+                return;
+            }
+        
+            // Compile it to the target language
+            string source = createSourceFromBoxes("FaustDSP", osc, it, 0, nullptr, error_msg);
+            if (source != "") {
+                cout << source;
+            } else {
+                cerr << error_msg;
+            }
+        }
+        destroyLibContext();
+    }
+}
+
+
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
@@ -771,6 +814,9 @@ int main(int argc, char* argv[])
     test19();
     test20();
     test21();
+    
+    // Test 'DSPToBoxes' API (1)
+    test25();
     
     // Test with audio, GUI and LLVM backend
     test22(argc, argv);

@@ -26,6 +26,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "faust/dsp/libfaust-box-c.h"
 #include "faust/dsp/libfaust-signal-c.h"
 #include "faust/dsp/llvm-dsp-c.h"
 #include "faust/gui/PrintCUI.h"
@@ -232,11 +233,90 @@ static void test3()
     destroyLibContext();
 }
 
+// Compile a complete DSP program to a box expression, then to a source string
+static void test4()
+{
+    printf("test4\n");
+    const char* lang[] = { "c", "cpp", "cmajor", "csharp", "dlang", "interp", "jax", "julia", "rust", "wast" };
+    // Context has to be created/destroyed each time
+    for (int i = 0; i < 10; i++) {
+        createLibContext();
+        {
+            int inputs = 0;
+            int outputs = 0;
+            char error_msg[4096];
+            
+            // Create the oscillator
+            Box osc = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, NULL, &inputs, &outputs, error_msg);
+            if (!osc) {
+                printf("%s", error_msg);
+                destroyLibContext();
+                return;
+            }
+        
+            // Compile it to the target language
+            char* source = CcreateSourceFromBoxes("FaustDSP", osc, lang[i], 0, NULL, error_msg);
+            if (source) {
+                printf("%s\n", source);
+                freeCMemory(source);
+            } else {
+                printf("%s\n", error_msg);
+            }
+        }
+        destroyLibContext();
+    }
+}
+
+// Compile a complete DSP program to a box expression, then a list of signals, then to a source string
+// in several target languages
+static void test5()
+{
+    printf("test5\n");
+    const char* lang[] = { "c", "cpp", "cmajor", "csharp", "dlang", "interp", "jax", "julia", "rust", "wast" };
+    // Context has to be created/destroyed each time
+    for (int i = 0; i < 10; i++) {
+        createLibContext();
+        {
+            int inputs = 0;
+            int outputs = 0;
+            char error_msg[4096];
+            
+            // Create the oscillator
+            Box osc = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, NULL, &inputs, &outputs, error_msg);
+            if (!osc) {
+                printf("%s", error_msg);
+                destroyLibContext();
+                return;
+            }
+            
+            // Compile to signals
+            Signal* signals = CboxesToSignals(osc, error_msg);
+            if (!signals) {
+                printf("%s", error_msg);
+                destroyLibContext();
+                return;
+            }
+            
+            // Compile it to the target language
+            char* source = CcreateSourceFromSignals("FaustDSP", signals, lang[i], 0, NULL, error_msg);
+            if (source) {
+                printf("%s\n", source);
+                freeCMemory(source);
+            } else {
+                printf("%s\n", error_msg);
+            }
+        }
+        destroyLibContext();
+    }
+}
+
 int main(int argc, char* argv[])
 {
     test1();
     test2();
     test3();
+    test4();
+    test5();
     
     return 0;
 }

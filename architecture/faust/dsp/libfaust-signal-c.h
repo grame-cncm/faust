@@ -555,6 +555,27 @@ extern "C"
      * @return the null terminated array of signals in normal form (to be deleted by the caller using freeCMemory).
      */
     LIBFAUST_API Signal* CsimplifyToNormalForm2(Signal* siglist);
+    
+    /**
+     * Create source code in a target language from a null terminated array of output signals.
+     *
+     * @param name_app - the name of the Faust program
+     * @param osigs - the null terminated array of output signals (that will internally be converted in normal form,
+     * see simplifyToNormalForm)
+     * @param lang - the target source code's language which can be one of "c",
+     * "cpp", "cmajor", "csharp", "dlang", "fir", "java", "julia", "ocpp", "rust" or "wast"
+     * (depending of which of the corresponding backends are compiled in libfaust)
+     * @param argc - the number of parameters in argv array
+     * @param argv - the array of parameters
+     * @param error_msg - the error string to be filled
+     *
+     * @return a string of source code on success (to be deleted by the caller using freeCMemory) or a nullptr and setting error_msg on error.
+     */
+    LIBFAUST_API char* CcreateSourceFromSignals(const char* name_app, Signal* osigs,
+                                                const char* lang,
+                                                int argc, const char* argv[],
+                                                char* error_msg);
+
 
     /*
      [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions

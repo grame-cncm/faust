@@ -114,9 +114,9 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fComputeDSPBlock(compute_dsp)
     {
     // Hack to display the LLVM or MIR used compiler
-#if MIR_BUILD
+#if INTERP_MIR_BUILD
     fCompileOptions = replace_first(compile_options, "interp", "interp-mir");
-#elif LLVM_BUILD
+#elif INTERP_LLVM_BUILD
     fCompileOptions = replace_first(compile_options, "interp", "interp-llvm");
 #else
     fCompileOptions = compile_options;

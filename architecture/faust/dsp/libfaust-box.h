@@ -687,61 +687,6 @@ LIBFAUST_API Box boxAttach();
 LIBFAUST_API Box boxAttach(Box b1, Box b2);
 
 LIBFAUST_API Box boxPrim2(prim2 foo);
-/**
- * Compile a DSP source code as a string in a flattened box
- *
- * @param name_app - the name of the Faust program
- * @param dsp_content - the Faust program as a string
- * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
- * @param inputs - the place to return the number of inputs of the resulting box
- * @param outputs - the place to return the number of outputs of the resulting box
- * @param error_msg - the error string to be filled
- *
- * @return a flattened box on success, otherwise a null pointer.
- */
-LIBFAUST_API Box DSPToBoxes(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], int* inputs, int* outputs, std::string& error_msg);
-
-/**
- * Return the number of inputs and outputs of a box
- *
- * @param box - the box we want to know the number of inputs and outputs
- * @param inputs - the place to return the number of inputs
- * @param outputs - the place to return the number of outputs
- *
- * @return true if type is defined, false if undefined.
- */
-LIBFAUST_API bool getBoxType(Box box, int* inputs, int* outputs);
-
-/**
- * Compile a box expression in a list of signals in normal form
- * (see simplifyToNormalForm in libfaust-signal.h)
- *
- * @param box - the box expression
- * @param error_msg - the error string to be filled
- *
- * @return a list of signals in normal form on success, otherwise an empty list.
- */
-LIBFAUST_API tvec boxesToSignals(Box box, std::string& error_msg);
-
-/**
- * Create source code in a target language from a box expression.
- *
- * @param name_app - the name of the Faust program
- * @param box - the box expression
- * @param lang - the target source code's language which can be one of "c",
- * "cpp", "cmajor", "csharp", "dlang", "fir", "interp", "java", "julia", "ocpp", "rust" or "wast"
- * (depending of which of the corresponding backends are compiled in libfaust)
- * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
- * @param error_msg - the error string to be filled
- *
- * @return a string of source code on success, setting error_msg on error.
- */
-LIBFAUST_API std::string createSourceFromBoxes(const std::string& name_app, Box box,
-                                               const std::string& lang,
-                                               int argc, const char* argv[],
-                                               std::string& error_msg);
 
 /**
  * Test each box and fill additional boxe specific parameters.
@@ -826,6 +771,64 @@ LIBFAUST_API bool isBoxVSlider(Box b, Box& lbl, Box& cur, Box& min, Box& max, Bo
 LIBFAUST_API bool isBoxWaveform(Box b);
 LIBFAUST_API bool isBoxWire(Box t);
 LIBFAUST_API bool isBoxWithLocalDef(Box t, Box& body, Box& ldef);
+
+/**
+ * Compile a DSP source code as a string in a flattened box
+ *
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param inputs - the place to return the number of inputs of the resulting box
+ * @param outputs - the place to return the number of outputs of the resulting box
+ * @param error_msg - the error string to be filled
+ *
+ * @return a flattened box on success, otherwise a null pointer.
+ */
+LIBFAUST_API Box DSPToBoxes(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], int* inputs, int* outputs, std::string& error_msg);
+
+/**
+ * Return the number of inputs and outputs of a box
+ *
+ * @param box - the box we want to know the number of inputs and outputs
+ * @param inputs - the place to return the number of inputs
+ * @param outputs - the place to return the number of outputs
+ *
+ * @return true if type is defined, false if undefined.
+ */
+LIBFAUST_API bool getBoxType(Box box, int* inputs, int* outputs);
+
+/**
+ * Compile a box expression in a list of signals in normal form
+ * (see simplifyToNormalForm in libfaust-signal.h)
+ *
+ * @param box - the box expression
+ * @param error_msg - the error string to be filled
+ *
+ * @return a list of signals in normal form on success, otherwise an empty list.
+ */
+LIBFAUST_API tvec boxesToSignals(Box box, std::string& error_msg);
+
+/**
+ * Create source code in a target language from a box expression.
+ *
+ * @param name_app - the name of the Faust program
+ * @param box - the box expression
+ * @param lang - the target source code's language which can be one of "c",
+ * "cpp", "cmajor", "csharp", "dlang", "fir", "interp", "java", "julia", "ocpp", "rust" or "wast"
+ * (depending of which of the corresponding backends are compiled in libfaust)
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param error_msg - the error string to be filled
+ *
+ * @return a string of source code on success, setting error_msg on error.
+ */
+LIBFAUST_API std::string createSourceFromBoxes(const std::string& name_app, Box box,
+                                               const std::string& lang,
+                                               int argc, const char* argv[],
+                                               std::string& error_msg);
+
+
 
 /*
  [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions
