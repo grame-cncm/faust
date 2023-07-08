@@ -1052,8 +1052,7 @@ static void* expandDSPInternal(void* arg)
             gGlobal->gInputFiles.push_back(name_app);
         }
         gGlobal->initDocumentNames();
-        initFaustFloat();
-
+      
         gGlobal->parseSourceFiles();
 
         /****************************************************************
@@ -1114,8 +1113,7 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
         gGlobal->gInputFiles.push_back(name_app);
     }
     gGlobal->initDocumentNames();
-    initFaustFloat();
-
+  
     try {
         gGlobal->parseSourceFiles();
         error_msg = "";
@@ -1176,8 +1174,7 @@ static void* createFactoryAux1(void* arg)
             gGlobal->gInputFiles.push_back(name_app);
         }
         gGlobal->initDocumentNames();
-        initFaustFloat();
-
+     
         gGlobal->parseSourceFiles();
 
         /****************************************************************
@@ -1279,7 +1276,6 @@ static void* createFactoryAux2(void* arg)
         gGlobal->processCmdline(argc, argv);
 
         gGlobal->initDocumentNames();
-        initFaustFloat();
         
         // Open output file
         openOutfile();

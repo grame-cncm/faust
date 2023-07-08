@@ -91,7 +91,7 @@ struct LIBFAUST_API dsp_factory_base {
 };
 
 /**
- *  Print the box.
+ * Print the box.
  *
  * @param box - the box to be printed
  * @param shared - whether the identical sub boxes are printed as identifiers
@@ -102,7 +102,7 @@ struct LIBFAUST_API dsp_factory_base {
 LIBFAUST_API std::string printBox(Box box, bool shared, int max_size);
 
 /**
- *  Print the signal.
+ * Print the signal.
  *
  * @param sig - the signal to be printed
  * @param shared - whether the identical sub signals are printed as identifiers

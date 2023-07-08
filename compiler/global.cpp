@@ -125,7 +125,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 {
     CTree::init();
     Symbol::init();
-
+ 
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();
 
@@ -573,6 +573,9 @@ void global::reset()
 // Done after contructor since part of the following allocations need the "global" object to be fully built
 void global::init()
 {
+    // Default init
+    initFaustFloat();
+    
     gPureRoutingProperty   = new property<bool>();
     gSymbolicBoxProperty   = new property<Tree>();
     gSimplifiedBoxProperty = new property<Tree>();
@@ -1606,6 +1609,9 @@ bool global::processCmdline(int argc, const char* argv[])
         error << "WARNING : " << parse_error.str() << endl;
         gErrorMessage = error.str();
     }
+    
+    // When -lang has been set
+    initFaustFloat();
     
     return (err == 0);
 }
