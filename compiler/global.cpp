@@ -1139,8 +1139,8 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-vhdl-trace", "--vhdl-trace")) {
             gVHDLTrace = true;
             i += 1;
-            
-        } else if (isCmd(argv[i], "-vhdl-float", "--vhdl-float") && (i + 1 < argc)) {
+
+        } else if (isCmd(argv[i], "-vhdl-float", "--vhdl-float")) {
             gVHDLFloatEncoding = true;
             i += 1;
 

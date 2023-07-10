@@ -148,7 +148,7 @@ Code generation options:
 
   **-ns** \<name>  **--namespace** \<name>          generate C++ or D code in a namespace \<name>.
 
-  **-vhdl-trace**    **--vhdl-trace**             activate VHDL compilation trace.
+  **-vhdl-trace**    **--vhdl-trace**             activate VHDL compilation trace, outputs the graph in the `vhdl_graph.dot` file.
 
   **-vhdl-float** **--vhdl-float**          uses floating point as the sample format.
 
