@@ -78,7 +78,7 @@ class VhdlProducer : public SignalVisitor {
 
    public:
     VhdlProducer(Tree signal, const std::string& name, int numInputs, int numOutputs, std::ostream& out)
-    : _signal(signal), _code_container()
+    : _signal(signal), _code_container(out)
     {
         // Step 1: Convert the input signal to a weighted circuit graph
         visitRoot(_signal);

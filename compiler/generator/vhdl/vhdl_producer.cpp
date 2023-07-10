@@ -230,7 +230,8 @@ void VhdlProducer::generate()
  */
 void VhdlProducer::declare_dependencies()
 {
-    *_code_container.dependencies()
+    /*
+    _code_container.dependencies()
         << "library ieee;" << std::endl
         << "use ieee.std_logic_1164.all;" << std::endl
         << "use ieee.numeric_std.all;" << std::endl
@@ -244,6 +245,7 @@ void VhdlProducer::declare_dependencies()
     } else {
         *_code_container.dependencies() << "use work.fixed_pkg.all;" << std::endl;
     }
+     */
 }
 void VhdlProducer::generate_entities()
 {
@@ -266,7 +268,7 @@ void VhdlProducer::map_ports()
             //  rst => ap_rst_n,
             //  <target_name_id_in> => <source_name_id_out>,
             //  ...
-            _code_container.connect(vertex, _vertices[edge.target], edge.register_count);
+            // _code_container.connect(vertex, _vertices[edge.target], edge.register_count);
         }
     }
 }
