@@ -464,3 +464,16 @@ void VhdlProducer::applyRetiming(const Retiming& retiming)
         }
     }
 }
+
+void VhdlProducer::exportGraph(std::ostream& out) const
+{
+    out << "digraph {" << std::endl;
+    for (size_t i = 0; i < _vertices.size(); ++i) {
+        out << "\"" << std::hex << _vertices[i].node_hash << "_" << std::dec << i << "\" [label=<" << _vertices[i].node << "<BR /><FONT POINT-SIZE=\"10\">hash: 0x" << std::hex << _vertices[i].node_hash << std::dec << ", pipeline stages: " << _vertices[i].pipeline_stages << "</FONT>>, weight=\"" << _vertices[i].pipeline_stages << "\"];" << std::endl;
+        for (auto edge : _edges[i]) {
+            out << "\"" << std::hex << _vertices[i].node_hash << "_"  << std::dec << i << "\" -> \"" << std::hex << _vertices[edge.target].node_hash << std::dec << "_" << edge.target << "\" [label=\"" << edge.register_count << "\",weight=\"" << edge.register_count << "\"];" << std::endl;
+        }
+    }
+
+    out << "}" << std::endl;
+}

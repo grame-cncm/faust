@@ -3,6 +3,7 @@
 #include "vhdl_code_container.hh"
 #include "signalVisitor.hh"
 #include "global.hh"
+#include <fstream>
 #include <optional>
 
 //-------------------------VhdlProducer---------------------------
@@ -82,7 +83,7 @@ class VhdlProducer : public SignalVisitor {
         // Step 1: Convert the input signal to a weighted circuit graph
         visitRoot(_signal);
         std::cout << "transformation to graph: " << std::endl;
-        for (int i = 0; i < _vertices.size(); ++i) {
+        for (size_t i = 0; i < _vertices.size(); ++i) {
             std::cout << i << ": " << _vertices[i].node << " (0x" << std::hex << _vertices[i].node_hash << std::dec << ')' << std::endl;
 
             for (auto e : _edges[i]) {
@@ -94,7 +95,7 @@ class VhdlProducer : public SignalVisitor {
         // Step 2: Optimize the graph
         optimize();
         std::cout << "after optimization: " << std::endl;
-        for (int i = 0; i < _vertices.size(); ++i) {
+        for (size_t i = 0; i < _vertices.size(); ++i) {
             std::cout << i << ": " << _vertices[i].node << " (0x" << std::hex << _vertices[i].node_hash << std::dec << ')' << std::endl;
 
             for (auto e : _edges[i]) {
@@ -102,11 +103,19 @@ class VhdlProducer : public SignalVisitor {
             }
         }
 
+        // Step 2.5: Export the graph using the DOT language (optional)
+        if (gGlobal->gVHDLTrace) {
+            std::ofstream dot_output;
+            dot_output.open("vhdl_graph.dot");
+            exportGraph(dot_output);
+            dot_output.close();
+        }
+
         // TODO Step 3: Generate VHDL code structure from the resulting graph
         // generate();
 
         // Step 4: Output the generated VHDL to a file
-        out << _code_container;
+        //out << _code_container;
     }
 
    protected:
@@ -171,7 +180,7 @@ class VhdlProducer : public SignalVisitor {
 
     /** HELPER FUNCTIONS */
     std::optional<int> searchNode(const size_t hash) const {
-        for (int v = 0; v < _vertices.size(); ++v) {
+        for (size_t v = 0; v < _vertices.size(); ++v) {
             if (_vertices[v].node_hash == hash) {
                 return std::optional<int>(v);
             }
@@ -182,7 +191,7 @@ class VhdlProducer : public SignalVisitor {
 
     std::vector<int> incomingEdges(int vertex_id, const std::vector<std::vector<int>>& edges) const {
         std::vector<int> incoming;
-        for (int v = 0; v < edges.size(); ++v) {
+        for (size_t v = 0; v < edges.size(); ++v) {
             for (auto edge : edges[v]) {
                 if (edge == vertex_id) {
                     incoming.push_back(v);
@@ -194,7 +203,7 @@ class VhdlProducer : public SignalVisitor {
 
     std::vector<std::vector<Edge>> transposedGraph() const {
         std::vector<std::vector<Edge>> transposed = std::vector(_edges.size(), std::vector<Edge>());
-        for (int v = 0; v < _edges.size(); ++v) {
+        for (size_t v = 0; v < _edges.size(); ++v) {
             for (auto edge : _edges[v]) {
                 transposed[edge.target].push_back(Edge(v, edge.register_count, edge.critical_path_delay));
             }
@@ -204,6 +213,9 @@ class VhdlProducer : public SignalVisitor {
 
     /** Checks whether reals should encoded using fixed or floating point arithmetic */
     bool usingFloatEncoding() const { return gGlobal->gVHDLFloatEncoding; }
+
+    /** Exports the graph as a DOT language file */
+    void exportGraph(std::ostream& out) const;
 
     void self(Tree t)
     {
