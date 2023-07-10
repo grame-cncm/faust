@@ -77,7 +77,7 @@ class VhdlProducer : public SignalVisitor {
 
    public:
     VhdlProducer(Tree signal, const std::string& name, int numInputs, int numOutputs, std::ostream& out)
-    : _signal(signal), _code_container()
+    : _signal(signal), _code_container(out)
     {
         // Step 1: Convert the input signal to a weighted circuit graph
         visitRoot(_signal);
@@ -105,8 +105,8 @@ class VhdlProducer : public SignalVisitor {
         // TODO Step 3: Generate VHDL code structure from the resulting graph
         // generate();
 
-        // Step 4: Output the generated VHDL to a file
-        out << _code_container;
+        // TODO Step 4: Output the generated VHDL to a file
+        // out << _code_container;
     }
 
    protected:
