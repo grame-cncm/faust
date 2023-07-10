@@ -230,7 +230,8 @@ void VhdlProducer::generate()
  */
 void VhdlProducer::declare_dependencies()
 {
-    *_code_container.dependencies()
+    /*
+    _code_container.dependencies()
         << "library ieee;" << std::endl
         << "use ieee.std_logic_1164.all;" << std::endl
         << "use ieee.numeric_std.all;" << std::endl
@@ -244,6 +245,7 @@ void VhdlProducer::declare_dependencies()
     } else {
         *_code_container.dependencies() << "use work.fixed_pkg.all;" << std::endl;
     }
+     */
 }
 void VhdlProducer::generate_entities()
 {
@@ -266,7 +268,7 @@ void VhdlProducer::map_ports()
             //  rst => ap_rst_n,
             //  <target_name_id_in> => <source_name_id_out>,
             //  ...
-            _code_container.connect(vertex, _vertices[edge.target], edge.register_count);
+            // _code_container.connect(vertex, _vertices[edge.target], edge.register_count);
         }
     }
 }
@@ -297,13 +299,13 @@ void VhdlProducer::normalize()
         return max_incoming_weight[vertex].value();
     };
 
-    for (int i = 0; i < _vertices.size(); ++i) {
+    for (size_t i = 0; i < _vertices.size(); ++i) {
         incoming_weight(i);
     }
 
     // Afterwards, for each vertex `u` such that there is an edge `u -> v`, we add `w - l(u)` registers
     // to `u -> v` to compensate for the lag.
-    for (int u = 0; u < _vertices.size(); ++u) {
+    for (size_t u = 0; u < _vertices.size(); ++u) {
         int pipeline_stages = _vertices[u].pipeline_stages;
         for (auto edge : _edges[u]) {
             edge.register_count += max_incoming_weight[edge.target].value() - pipeline_stages;
@@ -343,7 +345,7 @@ void VhdlProducer::retime()
     applyRetiming(best_retiming);
 }
 
-std::vector<int> topologicalOrdering(int vertices, const std::vector<std::vector<int>>& edges) {
+std::vector<int> topologicalOrdering(size_t vertices, const std::vector<std::vector<int>>& edges) {
     std::vector<int> stack;
 
     std::vector<bool> visited = std::vector<bool>(vertices, false);
@@ -360,7 +362,7 @@ std::vector<int> topologicalOrdering(int vertices, const std::vector<std::vector
       stack.push_back(vertex);
     };
 
-    for (int vertex = 0; vertex < vertices; ++vertex) {
+    for (size_t vertex = 0; vertex < vertices; ++vertex) {
         if (!visited[vertex]) {
             topologicalSort(vertex);
         }
@@ -431,10 +433,10 @@ std::optional<Retiming> VhdlProducer::findRetiming(int target_clock_period)
     auto saved_edges = _edges;
 
     // Repeat |V| - 1 times
-    for (int i = 0; i < _vertices.size(); ++i) {
+    for (size_t i = 0; i < _vertices.size(); ++i) {
         applyRetiming(retiming);
         auto propagation_delays = minFeasibleClockPeriod();
-        for (int j = 0; j < _vertices.size(); ++j) {
+        for (size_t j = 0; j < _vertices.size(); ++j) {
             if (propagation_delays[j] > target_clock_period) {
                 retiming[j] += 1;
             }
@@ -458,8 +460,8 @@ std::optional<Retiming> VhdlProducer::findRetiming(int target_clock_period)
 
 void VhdlProducer::applyRetiming(const Retiming& retiming)
 {
-    for (int i = 0; i < _vertices.size(); ++i) {
-        for (int j = 0; j < _edges[i].size(); ++j) {
+    for (size_t i = 0; i < _vertices.size(); ++i) {
+        for (size_t j = 0; j < _edges[i].size(); ++j) {
             _edges[i][j].register_count += retiming[_edges[i][j].target] - retiming[i];
         }
     }

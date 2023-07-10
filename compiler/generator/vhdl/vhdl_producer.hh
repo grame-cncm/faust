@@ -115,7 +115,7 @@ class VhdlProducer : public SignalVisitor {
         // generate();
 
         // Step 4: Output the generated VHDL to a file
-        //out << _code_container;
+        out << _code_container;
     }
 
    protected:
