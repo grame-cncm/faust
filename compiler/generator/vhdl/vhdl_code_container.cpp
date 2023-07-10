@@ -652,8 +652,8 @@ void VhdlCodeContainer::generateBinaryOperator(size_t hash, int kind, VhdlType t
     _signal_identifier.insert({hash, signal_identifier});
 }
 
-std::ostream& operator<<(std::ostream& out, const PortMode& port_mode) {
-    switch (port_mode) {
+std::ostream& operator<<(std::ostream& out, const PortMode& port) {
+    switch (port) {
         case PortMode::Input: out << "in"; break;
         case PortMode::Output: out << "out"; break;
         case PortMode::InOut: out << "inout"; break;
