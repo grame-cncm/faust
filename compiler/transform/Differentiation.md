@@ -8,7 +8,7 @@
 
 - a Signal => Signal transformation pass named `SignalAutoDifferentiate` is implemented in `sigPromotion.hh` and `sigPromotion.cpp` files. For now only a subset of signals are actually handled: Integer and Real constants, `sin/cos/sqrt` unary functions, binary operators with special rules for `kMul`and `kDiv`.
 
-- the `signalAutoDifferentiate` function uses a helper `DiffVarCollector` to collect the input variable for a given signal. The `SignalAutoDifferentiate` class is used to compute the derivated signal, then compiled as usual, so code appears in the dsp `init/compute` method (this is the simplest way for now to see what happens). TODO: this obviously will have to be changed !
+- the `signalAutoDifferentiate` function uses a helper `DiffVarCollector` to collect the input variable for a given signal. The `SignalAutoDifferentiate` class is used to compute the derivated signal, which is added in a list of output signals, then compiled as usual, so code appears in the dsp `init/compute` method (this is the simplest way for now to see what happens). TODO: this obviously will have to be changed !
 
 - the `signalAutoDifferentiate` pass is activated using the `-diff` compiler options.   
 

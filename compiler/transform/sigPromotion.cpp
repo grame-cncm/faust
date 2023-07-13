@@ -837,14 +837,14 @@ Tree signalAutoDifferentiate(Tree sig)
     // Collect input differentiable variables
     DiffVarCollector collector(sig);
    
-    // Compute differentiated tree for each variable and collect the result
+    // Compute differentiated tree for each variable and collect the result in a list of outputs
     if (collector.inputs.size() > 0) {
         siglist outputs;
         for (const auto& var : collector.inputs) {
             SignalAutoDifferentiate SP(var);
-            outputs.push_back(SP.mapself(sig));
+            outputs.push_back(hd(SP.mapself(sig)));
         }
-        return hd(listConvert(outputs));
+        return listConvert(outputs);
     } else {
         return sig;
     }
