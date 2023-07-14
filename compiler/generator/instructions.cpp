@@ -36,6 +36,12 @@ vector<string> NamedTyped::AttributeMap = {" ", " RESTRICT "};
 
 BasicTyped* InstBuilder::genItFloatTyped() { return genBasicTyped(itfloat()); }
 
+bool Typed::isBasicTyped() { return dynamic_cast<BasicTyped*>(this); }
+bool Typed::isNamedTyped() { return dynamic_cast<NamedTyped*>(this); }
+bool Typed::isArrayTyped() { return dynamic_cast<ArrayTyped*>(this); }
+bool Typed::isStructTyped() { return dynamic_cast<StructTyped*>(this); }
+bool Typed::isVectorTyped() { return dynamic_cast<VectorTyped*>(this); }
+
 DeclareStructTypeInst* isStructType(const string& name)
 {
     if (gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end()) {

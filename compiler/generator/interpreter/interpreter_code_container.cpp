@@ -87,7 +87,7 @@ InterpreterCodeContainer<REAL>::InterpreterCodeContainer(const string& name, int
     initialize(numInputs, numOutputs);
     fKlassName = name;
 
-    // Allocate one static visitor
+    // Allocate one static visitor to be shared by main module and sub containers
     if (!gGlobal->gInterpreterVisitor) {
         gGlobal->gInterpreterVisitor = new InterpreterInstVisitor<REAL>();
     }

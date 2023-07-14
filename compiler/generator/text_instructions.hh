@@ -34,7 +34,7 @@
 #include "instructions.hh"
 #include "type_manager.hh"
 
-// Base class to textual visitor: C, C++, Cmajor, CSharp, Dlang, JAX, Julia, Rust, wast
+// Base class to textual visitor: C, C++, Cmajor, Codebox, CSharp, Dlang, JAX, Julia, Rust, wast
 
 class TextInstVisitor : public InstVisitor {
    protected:

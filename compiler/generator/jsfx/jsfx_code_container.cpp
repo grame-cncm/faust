@@ -46,7 +46,7 @@ JSFXCodeContainer::JSFXCodeContainer(const string& name, int numInputs, int numO
     fKlassName = name;
     fOut = out;
     
-    // Allocate one static visitor
+    // Allocate one static visitor to be shared by main module and sub containers
     if (!gGlobal->gJSFXVisitor) {
         gGlobal->gJSFXVisitor = new JSFXInstVisitor(out, name);
     }

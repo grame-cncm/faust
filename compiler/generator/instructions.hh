@@ -490,6 +490,7 @@ struct BasicTyped : public Typed {
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+  
 };
 
 struct NamedTyped : public Typed {
@@ -663,6 +664,7 @@ struct Address : public Printable {
     bool isStack() { return getAccess() & kStack; }
     bool isLoop() { return getAccess() & kLoop; }
     bool isStruct() { return getAccess() & kStruct; }
+    bool isStaticStruct() { return getAccess() & kStaticStruct; }
     bool isFunArgs() { return getAccess() & kFunArgs; }
     bool isVolatile() { return getAccess() & kVolatile; }
 

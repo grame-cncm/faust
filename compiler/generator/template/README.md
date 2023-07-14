@@ -103,6 +103,10 @@ In the `enumBackends` function in the `global.cpp` file:
 
 The `-lang` option in the `printHelp` documentation function has to be manually adapted.
 
+A global `TemplateInstVisitor gTemplateVisitor` object may have to be added in the `Global` class if it has to be shared by the main module and sub containers. 
+
+An adapted subclass of `StringTypeManager` defined in `type_manager.h` may have to be defined. 
+
 ## Textual backend
 
 A textual backend will generate code in a C++ stream. It typically uses a subclass of `TextInstVisitor` to define its specific FIR traversing methods.

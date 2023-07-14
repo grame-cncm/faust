@@ -64,6 +64,7 @@ class JAXInstVisitor;
 class JuliaInstVisitor;
 class JSFXInstVisitor;
 class TemplateInstVisitor;
+class CodeboxInstVisitor;
 struct TableSizeVisitor;
 struct DeclareStructTypeInst;
 
@@ -551,6 +552,10 @@ struct global {
 
 #ifdef TEMPLATE_BUILD
     TemplateInstVisitor* gTemplateVisitor;
+#endif
+    
+#ifdef CODEBOX_BUILD
+    CodeboxInstVisitor* gCodeboxVisitor;
 #endif
 
     // Info on the compiler

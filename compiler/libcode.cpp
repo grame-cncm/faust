@@ -64,6 +64,10 @@
 #include "c_code_container.hh"
 #endif
 
+#ifdef CODEBOX_BUILD
+#include "codebox_code_container.hh"
+#endif
+
 #ifdef CPP_BUILD
 #include "cpp_code_container.hh"
 #include "cpp_gpu_code_container.hh"
@@ -426,6 +430,31 @@ static void compileC(Tree signals, int numInputs, int numOutputs, ostream* out)
     gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang c not supported since C backend is not built\n");
+#endif
+}
+
+static void compileCodebox(Tree signals, int numInputs, int numOutputs, ostream* out)
+{
+#ifdef CODEBOX_BUILD
+    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    gGlobal->gAllowForeignConstant = false;  // No foreign constant
+    gGlobal->gAllowForeignVar      = false;  // No foreign variable
+
+    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    gGlobal->gFAUSTFLOAT2Internal = true;
+    
+    // "one sample" model by default;
+    gGlobal->gOneSampleControl = true;
+    gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an
+
+    gContainer = CodeboxCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    
+    gNewComp = new InstructionsCompiler(gContainer);
+    
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
+#else
+    throw faustexception("ERROR : -lang codebox not supported since Codebox backend is not built\n");
 #endif
 }
 
@@ -908,6 +937,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileFIR(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "c") {
         compileC(signals, numInputs, numOutputs, gDst.get());
+    } else if (gGlobal->gOutputLang == "codebox") {
+        compileCodebox(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "cpp") {
         compileCPP(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "ocpp") {
@@ -1239,10 +1270,7 @@ static void* createFactoryAux2(void* arg)
         MaxInputsCounter(Tree L)
         {
             // L is in normal form
-            while (!isNil(L)) {
-                self(hd(L));
-                L = tl(L);
-            }
+            visitRoot(L);
         }
             
         void visit(Tree sig)

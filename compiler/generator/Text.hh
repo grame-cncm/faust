@@ -278,12 +278,18 @@ inline bool ispowerof2(int x)
     return x && (!(x&(x-1)));
 }
 
-// To check all control fields in the DSP structure
-inline bool isControl(const std::string& name)
+    // To check all UI control fields in the DSP structure
+inline bool isUIControl(const std::string& name)
 {
     return startWith(name, "fButton") || startWith(name, "fCheckbox")
         || startWith(name, "fVslider") || startWith(name, "fHslider") || startWith(name, "fEntry")
-        || startWith(name, "fVbargraph") || startWith(name, "fHbargraph")
+        || startWith(name, "fVbargraph") || startWith(name, "fHbargraph");
+}
+
+// To check all control fields in the DSP structure
+inline bool isControl(const std::string& name)
+{
+    return isUIControl(name)
         || name == "iControl" || name == "fControl"
         || name == "iZone" || name == "fZone"
         || name == "fSampleRate";

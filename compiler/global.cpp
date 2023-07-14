@@ -62,6 +62,10 @@
 #include "c_code_container.hh"
 #endif
 
+#ifdef CODEBOX_BUILD
+#include "codebox_code_container.hh"
+#endif
+
 #ifdef CPP_BUILD
 #include "cpp_code_container.hh"
 #include "cpp_gpu_code_container.hh"
@@ -537,6 +541,10 @@ void global::reset()
 
 #ifdef TEMPLATE_BUILD
     gTemplateVisitor = nullptr;  // Will be (possibly) allocated in Template backend
+#endif
+
+#ifdef CODEBOX_BUILD
+    gCodeboxVisitor = nullptr;  // Will be (possibly) allocated in Codebox backend
 #endif
 
     gHelpSwitch       = false;
@@ -1786,6 +1794,10 @@ static void enumBackends(ostream& out)
     out << dspto << "Cmajor" << endl;
 #endif
     
+#ifdef CODEBOX_BUILD
+    out << dspto << "Codebox" << endl;
+#endif
+    
 #ifdef CSHARP_BUILD
     out << dspto << "CSharp" << endl;
 #endif
@@ -1889,7 +1901,7 @@ static void printHelp()
     cout << endl << "Code generation options:" << line;
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
-         << "                                        'lang' should be c, cpp (default), cmajor, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, "
+         << "                                        'lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, "
          "ocpp, rust or wast/wasm."
          << endl;
     cout << tab
