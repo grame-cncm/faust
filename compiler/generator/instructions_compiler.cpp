@@ -446,6 +446,14 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     
     startTiming("compileMultiSignal");
     
+    // -diff option may add additional outputs
+    if (gGlobal->gAutoDifferentiate) {
+        int index;
+        Tree sig = L;
+        for (index = 0; isList(sig); sig = tl(sig), index++) {}
+        fContainer->setOutputs(index + 1);
+    }
+    
     // Has to be done *after* gMachinePtrSize is set by the actual backend
     gGlobal->initTypeSizeMap();
 
