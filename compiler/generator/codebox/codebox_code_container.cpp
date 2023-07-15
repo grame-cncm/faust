@@ -37,9 +37,9 @@ using namespace std;
  Codebox backend description:
 
  - variable identifiers cannot end by a number, so add a "_cb" suffix.
- - all init code is done in dspsetup, call when audio start or SR changes
- - gOneSampleControl mode is used, `control` is generated as well as ùpdate`
- which call `control` only when needed (that is when as least one parameter changes)
+ - all init code is done in 'dspsetup', call when audio start or SR changes
+ - gOneSampleControl mode is used, 'control' is generated as well as 'update'
+ which call 'control' only when needed (that is when as least one parameter changes)
  - 'compute' returns the list of outputs
  */
 
@@ -218,6 +218,31 @@ void CodeboxCodeContainer::produceClass()
     
     // Compute
     generateCompute(n);
+    
+    // Update parameters
+    *fOut << "// Update parameters";
+    tab(n, *fOut);
+    *fOut << "update(";
+    labels.print();
+    *fOut << ");";
+    tab(n, *fOut);
+    
+    // Compute one frame
+    *fOut << "// Compute one frame";
+    tab(n, *fOut);
+    *fOut << "outputs = compute(";
+    for (int in = 0; in < fNumInputs; in++) {
+        *fOut << "in" << std::to_string(in+1);
+        if (in < fNumInputs - 1) *fOut << ",";
+    }
+    *fOut << ");";
+    tab(n, *fOut);
+    *fOut << "// Write the outputs";
+    tab(n, *fOut);
+    for (int out = 0; out < fNumOutputs; out++) {
+        *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "];";
+        tab(n, *fOut);
+    }
 }
 
 // Scalar
@@ -266,32 +291,5 @@ void CodeboxScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     *fOut << "}";
     tab(n, *fOut);
-    
-    // Update parameters
-    *fOut << "// Update parameters";
-    tab(n, *fOut);
-    *fOut << "update(";
-    CodeboxLabelsVisitor labels(fOut);
-    generateUserInterface(&labels);
-    labels.print();
-    *fOut << ");";
-    tab(n, *fOut);
-    
-    // Compute one frame
-    *fOut << "// Compute one frame";
-    tab(n, *fOut);
-    *fOut << "outputs = compute(";
-    for (int in = 0; in < fNumInputs; in++) {
-        *fOut << "in" << std::to_string(in+1);
-        if (in < fNumInputs - 1) *fOut << ",";
-    }
-    *fOut << ");";
-    tab(n, *fOut);
-    *fOut << "// Write the outputs";
-    tab(n, *fOut);
-    for (int out = 0; out < fNumOutputs; out++) {
-        *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "];";
-        tab(n, *fOut);
-    }
 }
 
