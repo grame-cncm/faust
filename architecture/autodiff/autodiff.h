@@ -8,6 +8,7 @@
 #endif
 
 #include <memory>
+#include <fstream>
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/dsp-combiner.h"
 #include "faust/audio/dummy-audio.h"
@@ -19,7 +20,7 @@ public:
           std::string differentiableDSPPath,
           FAUSTFLOAT learningRate = 0.1f,
           FAUSTFLOAT sensitivity = 1e-7f,
-          int numIterations = 250);
+          int numIterations = 150);
 
     ~mldsp();
 
@@ -28,13 +29,23 @@ public:
     void doGradientDescent();
 
 private:
-    enum Channels {
+    struct Parameter {
+        FAUSTFLOAT value;
+        FAUSTFLOAT gradient;
+    };
+
+    enum LossFunction {
+        L1_NORM,
+        L2_NORM
+    };
+
+    enum OutputChannel {
         GROUND_TRUTH = 0,
         LEARNABLE = 1,
         DIFFERENTIATED = 2
     };
 
-    static constexpr int NUMBER_WIDTH{15}, LABEL_WIDTH{13};
+    static constexpr int NUMBER_WIDTH{15}, LABEL_WIDTH{13}, PARAM_WIDTH{70};
     const FAUSTFLOAT kAlpha, kEpsilon;
     const int kNumIterations;
 
@@ -69,9 +80,11 @@ private:
     std::string fInputDSPPath, fGroundTruthDSPPath, fDifferentiableDSPPath;
     std::unique_ptr<dsp> fDSP;
     std::unique_ptr<MapUI> fUI;
-    std::string fLearnableParamAddress;
-    FAUSTFLOAT fLoss{0.f}, fGradient{0.f}, fLearnableParamValue;
+    std::map<std::string, Parameter> fLearnableParams;
+    LossFunction fLossFunction{L2_NORM};
+    FAUSTFLOAT fLoss{0.f};
     std::unique_ptr<dummyaudio> fAudio;
+    std::ofstream fFile;
 };
 
 

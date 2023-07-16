@@ -223,4 +223,15 @@ class PowPrim : public xtended {
     // power is now used as an infix binary operator, we return true to
     // indicate that we want ^(n) to be equivalent to _^n
     virtual bool isSpecialInfix() { return true; }
+
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        // (x^p)' = (x^p)(plog(x))' = x^{p-1}(p + xlog(x)(p)')
+        auto d{sigMul(
+                sigPow(args[0], sigSub(args[1], sigReal(1.0))),
+                sigAdd(args[1], sigMul(args[0], sigMul(sigLog(args[0]), args[2])))
+        )};
+
+        return d;
+    }
 };
