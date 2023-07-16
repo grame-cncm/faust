@@ -183,108 +183,108 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
     Tree a, b, ff, l, s, c, ins, outs, lroutes;
     // Tree abstr, genv, vis, lenv;
 
-    xtended* p = (xtended*)getUserData(t);
+    xtended* p = (xtended*)getUserData(box);
 
     if (p) {
         *inum = p->arity();
         *onum = 1;
-    } else if (isBoxInt(t)) {
+    } else if (isBoxInt(box)) {
         *inum = 0;
         *onum = 1;
-    } else if (isBoxReal(t)) {
+    } else if (isBoxReal(box)) {
         *inum = 0;
         *onum = 1;
     }
 
-    else if (isBoxWaveform(t)) {
+    else if (isBoxWaveform(box)) {
         *inum = 0;
         *onum = 2;
     }
 
-    else if (isBoxWire(t)) {
+    else if (isBoxWire(box)) {
         *inum = 1;
         *onum = 1;
-    } else if (isBoxCut(t)) {
+    } else if (isBoxCut(box)) {
         *inum = 1;
         *onum = 0;
     }
 
-    else if (isBoxSlot(t)) {
+    else if (isBoxSlot(box)) {
         *inum = 0;
         *onum = 1;
-    } else if (isBoxSymbolic(t, s, b)) {
+    } else if (isBoxSymbolic(box, s, b)) {
         if (!getBoxType(b, inum, onum)) return false;
         *inum += 1;
     }
 
-    else if (isBoxPatternVar(t, a)) {
+    else if (isBoxPatternVar(box, a)) {
         return false;
     }
 
-    else if (isBoxPrim0(t)) {
+    else if (isBoxPrim0(box)) {
         *inum = 0;
         *onum = 1;
-    } else if (isBoxPrim1(t)) {
+    } else if (isBoxPrim1(box)) {
         *inum = 1;
         *onum = 1;
-    } else if (isBoxPrim2(t)) {
+    } else if (isBoxPrim2(box)) {
         *inum = 2;
         *onum = 1;
-    } else if (isBoxPrim3(t)) {
+    } else if (isBoxPrim3(box)) {
         *inum = 3;
         *onum = 1;
-    } else if (isBoxPrim4(t)) {
+    } else if (isBoxPrim4(box)) {
         *inum = 4;
         *onum = 1;
-    } else if (isBoxPrim5(t)) {
+    } else if (isBoxPrim5(box)) {
         *inum = 5;
         *onum = 1;
     }
 
-    else if (isBoxFFun(t, ff)) {
+    else if (isBoxFFun(box, ff)) {
         *inum = ffarity(ff);
         *onum = 1;
-    } else if (isBoxFConst(t)) {
+    } else if (isBoxFConst(box)) {
         *inum = 0;
         *onum = 1;
-    } else if (isBoxFVar(t)) {
+    } else if (isBoxFVar(box)) {
         *inum = 0;
         *onum = 1;
     }
 
-    else if (isBoxButton(t)) {
+    else if (isBoxButton(box)) {
         *inum = 0;
         *onum = 1;
-    } else if (isBoxCheckbox(t)) {
+    } else if (isBoxCheckbox(box)) {
         *inum = 0;
         *onum = 1;
-    } else if (isBoxVSlider(t)) {
+    } else if (isBoxVSlider(box)) {
         *inum = 0;
         *onum = 1;
-    } else if (isBoxHSlider(t)) {
+    } else if (isBoxHSlider(box)) {
         *inum = 0;
         *onum = 1;
-    } else if (isBoxNumEntry(t)) {
+    } else if (isBoxNumEntry(box)) {
         *inum = 0;
         *onum = 1;
-    } else if (isBoxVGroup(t, l, a)) {
+    } else if (isBoxVGroup(box, l, a)) {
         return getBoxType(a, inum, onum);
-    } else if (isBoxHGroup(t, l, a)) {
+    } else if (isBoxHGroup(box, l, a)) {
         return getBoxType(a, inum, onum);
-    } else if (isBoxTGroup(t, l, a)) {
+    } else if (isBoxTGroup(box, l, a)) {
         return getBoxType(a, inum, onum);
     }
 
-    else if (isBoxVBargraph(t)) {
+    else if (isBoxVBargraph(box)) {
         *inum = 1;
         *onum = 1;
-    } else if (isBoxHBargraph(t)) {
+    } else if (isBoxHBargraph(box)) {
         *inum = 1;
         *onum = 1;
-    } else if (isBoxSoundfile(t, l, c)) {
+    } else if (isBoxSoundfile(box, l, c)) {
         *inum = 2;
         *onum = 2 + tree2int(c);
-    } else if (isBoxSeq(t, a, b)) {
+    } else if (isBoxSeq(box, a, b)) {
         int u, v, x, y;
         if (!getBoxType(a, &u, &v)) return false;
         if (!getBoxType(b, &x, &y)) return false;
@@ -297,7 +297,7 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
             *onum = y;
         }
 
-    } else if (isBoxPar(t, a, b)) {
+    } else if (isBoxPar(box, a, b)) {
         int u, v, x, y;
         if (!getBoxType(a, &u, &v)) return false;
         if (!getBoxType(b, &x, &y)) return false;
@@ -305,7 +305,7 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
         *inum = u + x;
         *onum = v + y;
 
-    } else if (isBoxSplit(t, a, b)) {
+    } else if (isBoxSplit(box, a, b)) {
         int u, v, x, y;
         if (!getBoxType(a, &u, &v)) return false;
         if (!getBoxType(b, &x, &y)) return false;
@@ -318,7 +318,7 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
         *inum = u;
         *onum = y;
 
-    } else if (isBoxMerge(t, a, b)) {
+    } else if (isBoxMerge(box, a, b)) {
         int u, v, x, y;
         if (!getBoxType(a, &u, &v)) return false;
         if (!getBoxType(b, &x, &y)) return false;
@@ -331,7 +331,7 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
         *inum = u;
         *onum = y;
 
-    } else if (isBoxRec(t, a, b)) {
+    } else if (isBoxRec(box, a, b)) {
         int u, v, x, y;
         if (!getBoxType(a, &u, &v)) return false;
         if (!getBoxType(b, &x, &y)) return false;
@@ -341,19 +341,19 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
         *inum = std::max(0, u - y);
         *onum = v;
 
-    } else if (isBoxEnvironment(t)) {
+    } else if (isBoxEnvironment(box)) {
         *inum = 0;
         *onum = 0;
 
-    } else if (isBoxMetadata(t, a, b)) {
+    } else if (isBoxMetadata(box, a, b)) {
         return getBoxType(a, inum, onum);
 
-    } else if (isBoxRoute(t, ins, outs, lroutes)) {
+    } else if (isBoxRoute(box, ins, outs, lroutes)) {
         return isBoxInt(ins, inum) && isBoxInt(outs, onum);
 
     } else {
         stringstream error;
-        error << "boxType() internal error : unrecognized box expression " << boxpp(t) << endl;
+        error << "boxType() internal error : unrecognized box expression " << boxpp(box) << endl;
         throw faustexception(error.str());
     }
     return true;
