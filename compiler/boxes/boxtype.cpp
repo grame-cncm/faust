@@ -47,7 +47,7 @@
 
 using namespace std;
 
-static bool inferBoxType(Tree t, int* inum, int* onum);
+static bool inferBoxType(Tree box, int* inum, int* onum);
 
 /**
  * Return the type (number of inputs and outputs) of a box or false if undefined
@@ -178,7 +178,7 @@ static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, in
  * \return true if the box expression has a type
  */
 
-static bool inferBoxType(Tree t, int* inum, int* onum)
+static bool inferBoxType(Tree box, int* inum, int* onum)
 {
     Tree a, b, ff, l, s, c, ins, outs, lroutes;
     // Tree abstr, genv, vis, lenv;
