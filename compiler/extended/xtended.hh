@@ -70,8 +70,8 @@ class xtended : public virtual Garbageable {
     virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) = 0;
 
     virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, const std::vector< ::Type>& types) = 0;
-    virtual int    infereSigOrder(const std::vector<int>& args)                                           = 0;
-    virtual ::Type infereSigType(ConstTypes args)                                                        = 0;
+    virtual int    inferSigOrder(const std::vector<int>& args)                                           = 0;
+    virtual ::Type inferSigType(ConstTypes args)                                                        = 0;
     virtual Tree   computeSigOutput(const std::vector<Tree>& args)                                        = 0;
     virtual bool   needCache()                                                                           = 0;
 

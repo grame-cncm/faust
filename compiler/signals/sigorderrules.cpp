@@ -48,7 +48,7 @@
 
 using namespace std;
 
-static int infereSigOrder(Tree sig);
+static int inferSigOrder(Tree sig);
 
 /**
  * Retrieve the order annotation (between 0 and 3) of a signal.
@@ -66,7 +66,7 @@ int getSigOrder(Tree sig)
     if (getProperty(sig, gGlobal->ORDERPROP, tt)) {
         return tree2int(tt);
     } else {
-        int order = infereSigOrder(sig);
+        int order = inferSigOrder(sig);
         setProperty(sig, gGlobal->ORDERPROP, tree(order));
         return order;
     }
@@ -76,11 +76,11 @@ int getSigOrder(Tree sig)
 #define O getSigOrder
 
 /**
- * Infere the order of a term according to its components
+ * Infer the order of a term according to its components
  * @param sig the signal to analyze
  * @return the order of sig
  */
-static int infereSigOrder(Tree sig)
+static int inferSigOrder(Tree sig)
 {
     int     i;
     int64_t i64;
@@ -94,7 +94,7 @@ static int infereSigOrder(Tree sig)
         for (int i1 = 0; i1 < sig->arity(); i1++) {
             args.push_back(O(sig->branch(i1)));
         }
-        return xt->infereSigOrder(args);
+        return xt->inferSigOrder(args);
     }
 
     else if (isSigInt(sig, &i))

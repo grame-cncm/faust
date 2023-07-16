@@ -47,7 +47,7 @@
 
 using namespace std;
 
-static bool infereBoxType(Tree box, int* inum, int* onum);
+static bool inferBoxType(Tree t, int* inum, int* onum);
 
 /**
  * Return the type (number of inputs and outputs) of a box or false if undefined
@@ -70,7 +70,7 @@ LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum)
         }
 
     } else {
-        if (infereBoxType(box, inum, onum)) {
+        if (inferBoxType(box, inum, onum)) {
             setProperty(box, gGlobal->BOXTYPEPROP, cons(tree(*inum), tree(*onum)));
             return true;
         } else {
@@ -168,7 +168,7 @@ static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, in
 }
 
 /**
- * Infere the type (number of inputs and outputs) of a box.
+ * Infer the type (number of inputs and outputs) of a box.
  * The box expression is assumed to be in 'propagation normal form'
  * that is to have been evaluated and residual abstractions to have been
  * converted to symbolic boxes (using a2sb()).
@@ -178,7 +178,7 @@ static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, in
  * \return true if the box expression has a type
  */
 
-static bool infereBoxType(Tree t, int* inum, int* onum)
+static bool inferBoxType(Tree t, int* inum, int* onum)
 {
     Tree a, b, ff, l, s, c, ins, outs, lroutes;
     // Tree abstr, genv, vis, lenv;
