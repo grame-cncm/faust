@@ -34,7 +34,7 @@ class RintPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(ConstTypes args)
+    virtual ::Type inferSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
@@ -45,7 +45,7 @@ class RintPrim : public xtended {
         }
     }
 
-    virtual int infereSigOrder(const std::vector<int>& args)
+    virtual int inferSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return args[0];

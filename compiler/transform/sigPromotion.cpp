@@ -94,7 +94,7 @@ void SignalChecker::visit(Tree sig)
         for (Tree b : sig->branches()) {
             vt.push_back(getCertifiedSigType(b));
         }
-        Type tx = p->infereSigType(vt);
+        Type tx = p->inferSigType(vt);
         for (Tree b : sig->branches()) {
             if (tx->nature() != getCertifiedSigType(b)->nature()) {
                 cerr << "ASSERT : xtended with args of incorrect types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
@@ -250,7 +250,7 @@ Tree SignalPromotion::transformation(Tree sig)
         for (Tree b : sig->branches()) {
             vt.push_back(getCertifiedSigType(b));
         }
-        Type tr = p->infereSigType(vt);
+        Type tr = p->inferSigType(vt);
         vector<Tree> new_branches;
         for (Tree b : sig->branches()) {
             new_branches.push_back(smartCast(tr, getCertifiedSigType(b), self(b)));

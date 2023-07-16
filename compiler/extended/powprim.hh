@@ -42,7 +42,7 @@ class PowPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual Type infereSigType(ConstTypes args)
+    virtual Type inferSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
 
@@ -55,7 +55,7 @@ class PowPrim : public xtended {
         return castInterval(t | u, gAlgebra.Pow(i, j)); // maybe we should distinguish between real and integer exponents
     }
 
-    virtual int infereSigOrder(const std::vector<int>& args)
+    virtual int inferSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return std::max(args[0], args[1]);
@@ -156,7 +156,7 @@ class PowPrim : public xtended {
             std::vector<Typed::VarType> atypes = { t0, Typed::kInt32 };
             Typed::VarType rtype = convert2FIRType(result->nature());
             
-            // Expand the pow depending of the exposant argument
+            // Expand the pow depending on the exponent argument
             BlockInst* block = InstBuilder::genBlockInst();
             std::string faust_power_name = container->getFaustPowerName() + std::to_string(pow_arg) + ((rtype == Typed::kInt32) ? "_i" : "_f");
 

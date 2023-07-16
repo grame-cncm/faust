@@ -33,7 +33,7 @@ class Atan2Prim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(ConstTypes args)
+    virtual ::Type inferSigType(ConstTypes args)
     {
         faustassert(args.size() == 2);
         Type t = args[0];
@@ -43,7 +43,7 @@ class Atan2Prim : public xtended {
         return castInterval(floatCast(t | u), gAlgebra.Atan2(i, j));
     }
 
-    virtual int infereSigOrder(const std::vector<int>& args) { return std::max(args[0], args[1]); }
+    virtual int inferSigOrder(const std::vector<int>& args) { return std::max(args[0], args[1]); }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {

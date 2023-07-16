@@ -42,7 +42,7 @@ using namespace std;
  Signal typing system is built not doing any assumption about the signal tree,
  like being already 'typed' using kInt/kReal types and with sigInt/sigFloat
  operations at the right places.
- The typeAnnotation/infereSigType functions thus analyze each node and possibly
+ The typeAnnotation/inferSigType functions thus analyze each node and possibly
  use floatCast, intCast, boolCast when appropriate.
  */
 
@@ -55,20 +55,20 @@ static TupletType* maximalRecType(Tree t);
 
 static Type T(Tree term, Tree env);
 
-static Type infereSigType(Tree term, Tree env);
-static Type infereFFType(Tree ff, Tree ls, Tree env);
-static Type infereFConstType(Tree type);
-static Type infereFVarType(Tree type);
-static Type infereRecType(Tree var, Tree body, Tree env);
-static Type infereTableType(Tree size, Tree gen, Tree env);
-static Type infereReadTableType(Type tbl, Type ri);
-static Type infereWriteTableType(Type tbl, Type wi, Type ws);
-static Type infereProjType(Type t, int i, int vec);
-static Type infereXType(Tree sig, Tree env);
-static Type infereDocConstantTblType(Type size, Type init);
-static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
-static Type infereDocAccessTblType(Type tbl, Type ridx);
-static Type infereWaveformType(Tree lv, Tree env);
+static Type inferSigType(Tree sig, Tree env);
+static Type inferFFType(Tree ff, Tree ls, Tree env);
+static Type inferFConstType(Tree type);
+static Type inferFVarType(Tree type);
+static Type inferRecType(Tree var, Tree body, Tree env);
+static Type inferTableType(Tree size, Tree gen, Tree env);
+static Type inferReadTableType(Type tbl, Type ri);
+static Type inferWriteTableType(Type tbl, Type wi, Type ws);
+static Type inferProjType(Type t, int i, int vec);
+static Type inferXType(Tree sig, Tree env);
+static Type inferDocConstantTblType(Type size, Type init);
+static Type inferDocWriteTblType(Type size, Type init, Type widx, Type wsig);
+static Type inferDocAccessTblType(Type tbl, Type ridx);
+static Type inferWaveformType(Tree lv, Tree env);
 
 /**
  * Convert a constant signal into a double using its bounds (not very safe).
@@ -402,12 +402,12 @@ Type getSigType(Tree sig)
 
 /**************************************************************************
 
-                        Infered Type property
+                        Inferred Type property
 
 ***************************************************************************/
 
 /**
- * Shortcut to getOrInferType, retrieve or infere the type of a term according to its surrounding type environment
+ * Shortcut to getOrInferType, retrieve or infer the type of a term according to its surrounding type environment
  * @param sig the signal to analyze
  * @param env the type environment
  * @return the type of sig according to environment env
@@ -423,7 +423,7 @@ static Type T(Tree term, Tree ignoreenv)
         return ty;
 
     } else {
-        Type ty = infereSigType(term, ignoreenv);
+        Type ty = inferSigType(term, ignoreenv);
         setSigType(term, ty);
         term->setVisited();
         TRACE(cerr << --gGlobal->TABBER << "EXIT 2 T() " << ppsig(term, MAX_ERROR_SIZE) << " AS TYPE " << *ty << endl);
@@ -443,12 +443,12 @@ static void checkPartInterval(Tree s, Type t)
 }
 
 /**
- * Infere the type of a term according to its surrounding type environment
+ * Infer the type of a term according to its surrounding type environment
  * @param sig the signal to analyse
  * @param env the type environment
  * @return the type of sig according to environment env
  */
-static Type infereSigType(Tree sig, Tree env)
+static Type inferSigType(Tree sig, Tree env)
 {
     int     i;
     int64_t i64;
@@ -459,7 +459,7 @@ static Type infereSigType(Tree sig, Tree env)
     gGlobal->gCountInferences++;
 
     if (getUserData(sig))
-        return infereXType(sig, env);
+        return inferXType(sig, env);
 
     else if (isSigInt(sig, &i)) {
         Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.IntNum(i));
@@ -477,7 +477,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigWaveform(sig)) {
-        return infereWaveformType(sig, env);
+        return inferWaveformType(sig, env);
     }
 
     else if (isSigInput(sig, &i)) {
@@ -552,13 +552,13 @@ static Type infereSigType(Tree sig, Tree env)
         return floatCast(T(s1, env));
 
     else if (isSigFFun(sig, ff, ls))
-        return infereFFType(ff, ls, env);
+        return inferFFType(ff, ls, env);
 
     else if (isSigFConst(sig, type, name, file))
-        return infereFConstType(type);
+        return inferFConstType(type);
 
     else if (isSigFVar(sig, type, name, file))
-        return infereFVarType(type);
+        return inferFVarType(type);
 
     else if (isSigButton(sig)) { 
         return castInterval(gGlobal->TGUI, 
@@ -666,33 +666,33 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isRec(sig, var, body))
-        return infereRecType(sig, body, env);
+        return inferRecType(sig, body, env);
 
     else if (isProj(sig, &i, s1))
-        return infereProjType(T(s1, env), i, kScal);
+        return inferProjType(T(s1, env), i, kScal);
 
     else if (isSigWRTbl(sig, s1, s2, s3, s4)) {
         if (s3 == gGlobal->nil) {
             // rdtable
-            return infereTableType(s1, s2, env);
+            return inferTableType(s1, s2, env);
         } else {
             // rwtable
-            return infereWriteTableType(infereTableType(s1, s2, env), T(s3, env), T(s4, env));
+            return inferWriteTableType(inferTableType(s1, s2, env), T(s3, env), T(s4, env));
         }
     }
     
     else if (isSigRDTbl(sig, s1, s2))
-        return infereReadTableType(T(s1, env), T(s2, env));
+        return inferReadTableType(T(s1, env), T(s2, env));
 
     else if (isSigGen(sig, s1))
         return T(s1, gGlobal->NULLTYPEENV);
 
     else if (isSigDocConstantTbl(sig, x, y))
-        return infereDocConstantTblType(T(x, env), T(y, env));
+        return inferDocConstantTblType(T(x, env), T(y, env));
     else if (isSigDocWriteTbl(sig, x, y, z, u))
-        return infereDocWriteTblType(T(x, env), T(y, env), T(z, env), T(u, env));
+        return inferDocWriteTblType(T(x, env), T(y, env), T(z, env), T(u, env));
     else if (isSigDocAccessTbl(sig, x, y))
-        return infereDocAccessTblType(T(x, env), T(y, env));
+        return inferDocAccessTblType(T(x, env), T(y, env));
 
     else if (isSigSelect2(sig, sel, s1, s2)) {
         SimpleType *st1, *st2, *stsel;
@@ -751,9 +751,9 @@ static Type infereSigType(Tree sig, Tree env)
 }
 
 /**
- *	Infere the type of a projection (selection) of a tuplet element
+ *	Infer the type of a projection (selection) of a tuplet element
  */
-static Type infereProjType(Type t, int i, int vec)
+static Type inferProjType(Type t, int i, int vec)
 {
     TupletType* tt = isTupletType(t);
     if (tt == nullptr) {
@@ -771,18 +771,18 @@ static Type infereProjType(Type t, int i, int vec)
 }
 
 /**
- *    Infere the type of a table
+ *    Infer the type of a table
  */
-static Type infereTableType(Tree size, Tree gen, Tree env)
+static Type inferTableType(Tree size, Tree gen, Tree env)
 {
     checkInt(checkInit(T(size, env)));
     return makeTableType(checkInit(T(gen, env)));
 }
 
 /**
- *    Infere the type of the result of writing into a table
+ *    Infer the type of the result of writing into a table
  */
-static Type infereWriteTableType(Type tbl, Type wi, Type ws)
+static Type inferWriteTableType(Type tbl, Type wi, Type ws)
 {
     TableType* tt = isTableType(tbl);
     if (tt == nullptr) {
@@ -796,8 +796,8 @@ static Type infereWriteTableType(Type tbl, Type wi, Type ws)
         error << "ERROR : inferring write table type, wrong write index type : " << wi << endl;
         throw faustexception(error.str());
     }
-    TRACE(cerr << gGlobal->TABBER << "infering write table type : wi type = " << wi << endl);
-    TRACE(cerr << gGlobal->TABBER << "infering write table type : wd type = " << ws << endl);
+    TRACE(cerr << gGlobal->TABBER << "inferring write table type : wi type = " << wi << endl);
+    TRACE(cerr << gGlobal->TABBER << "inferring write table type : wd type = " << ws << endl);
 
     int      n   = ws->nature();
     int      b   = ws->boolean();
@@ -818,9 +818,9 @@ static Type infereWriteTableType(Type tbl, Type wi, Type ws)
 }
 
 /**
- *	Infere the type of the result of reading a table
+ *	Infer the type of the result of reading a table
  */
-static Type infereReadTableType(Type tbl, Type ri)
+static Type inferReadTableType(Type tbl, Type ri)
 {
     TableType* tt = isTableType(tbl);
     if (tt == nullptr) {
@@ -843,13 +843,13 @@ static Type infereReadTableType(Type tbl, Type ri)
     return temp;
 }
 
-static Type infereDocConstantTblType(Type size, Type init)
+static Type inferDocConstantTblType(Type size, Type init)
 {
     checkKonst(checkInt(checkInit(size)));
     return init;
 }
 
-static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig)
+static Type inferDocWriteTblType(Type size, Type init, Type widx, Type wsig)
 {
     checkKonst(checkInt(checkInit(size)));
     Type temp = init->promoteVariability(kSamp)         // difficult to tell, therefore kSamp to be safe
@@ -860,7 +860,7 @@ static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig)
     return temp;
 }
 
-static Type infereDocAccessTblType(Type tbl, Type ridx)
+static Type inferDocAccessTblType(Type tbl, Type ridx)
 {
     Type temp = tbl->promoteVariability(ridx->variability())
                     ->promoteComputability(ridx->computability())
@@ -890,19 +890,19 @@ static TupletType* maximalRecType(Tree t)
 }
 
 /**
- * Infere the type of a recursive block by trying solutions of
+ * Infer the type of a recursive block by trying solutions of
  * increasing generality
  */
-static Type infereRecType(Tree sig, Tree body, Tree env)
+static Type inferRecType(Tree var, Tree body, Tree env)
 {
     faustassert(false);  // we should not come here
     return nullptr;
 }
 
 /**
- *	Infere the type of a foreign function call
+ *	Infer the type of a foreign function call
  */
-static Type infereFFType(Tree ff, Tree ls, Tree env)
+static Type inferFFType(Tree ff, Tree ls, Tree env)
 {
     // An external primitive can't be computed earlier than at initialization.
     // Its variability depends on the variability of its arguments unless it has no arguments,
@@ -926,9 +926,9 @@ static Type infereFFType(Tree ff, Tree ls, Tree env)
 }
 
 /**
- *  Infere the type of a foreign constant
+ *  Infer the type of a foreign constant
  */
-static Type infereFConstType(Tree type)
+static Type inferFConstType(Tree type)
 {
     // An external constant cannot be calculated at the earliest possible time the initialization.
     // It is constant, in which case it is considered a rand() i.e. the result varies at each call.
@@ -936,9 +936,9 @@ static Type infereFConstType(Tree type)
 }
 
 /**
- *  Infere the type of a foreign variable
+ *  Infer the type of a foreign variable
  */
-static Type infereFVarType(Tree type)
+static Type inferFVarType(Tree type)
 {
     // An external variable cannot be calculated as soon as it is executed.
     // It varies by blocks like the user interface elements.
@@ -946,7 +946,7 @@ static Type infereFVarType(Tree type)
 }
 
 /**
- *  Infere the type of a waveform:
+ *  Infer the type of a waveform:
  *  - the nature is int if all values are int, otherwise it is float
  *  - the variability is by samples
  *  - the waveform is known at compile time
@@ -954,7 +954,7 @@ static Type infereFVarType(Tree type)
  *  - knum ???
  *  - the resulting interval is the reunion of all values intervals
  */
-static Type infereWaveformType(Tree wfsig, Tree env)
+static Type inferWaveformType(Tree wfsig, Tree env)
 {
     // start with the first item interval
     Tree   v     = wfsig->branch(0);
@@ -977,13 +977,13 @@ static Type infereWaveformType(Tree wfsig, Tree env)
 }
 
 /**
- *	Infere the type of an extended (primitive) block
+ *	Infer the type of an extended (primitive) block
  */
-static Type infereXType(Tree sig, Tree env)
+static Type inferXType(Tree sig, Tree env)
 {
     xtended*     p = (xtended*)getUserData(sig);
     vector<Type> vt;
 
     for (int i = 0; i < sig->arity(); i++) vt.push_back(T(sig->branch(i), env));
-    return p->infereSigType(vt);
+    return p->inferSigType(vt);
 }

@@ -33,7 +33,7 @@ class FmodPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(ConstTypes args)
+    virtual ::Type inferSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
 
@@ -48,7 +48,7 @@ class FmodPrim : public xtended {
         return castInterval(floatCast(args[0] | args[1]), gAlgebra.Mod(i, j));
     }
 
-    virtual int infereSigOrder(const std::vector<int>& args)
+    virtual int inferSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return std::max(args[0], args[1]);

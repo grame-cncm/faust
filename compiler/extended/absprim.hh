@@ -35,7 +35,7 @@ class AbsPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(ConstTypes args)
+    virtual ::Type inferSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
         Type t = args[0];
@@ -43,7 +43,7 @@ class AbsPrim : public xtended {
         return castInterval(t, gAlgebra.Abs(i));
     }
 
-    virtual int infereSigOrder(const std::vector<int>& args)
+    virtual int inferSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return args[0];
@@ -108,7 +108,7 @@ class AbsPrim : public xtended {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        Type t = infereSigType(types);
+        Type t = inferSigType(types);
         if (t->nature() == kReal) {
             return subst("fabs$1($0)", args[0], isuffix());
         } else {
@@ -121,7 +121,7 @@ class AbsPrim : public xtended {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        ::Type t = infereSigType(types);
+        ::Type t = inferSigType(types);
         return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
     }
 };
