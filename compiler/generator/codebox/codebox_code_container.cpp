@@ -115,7 +115,12 @@ void CodeboxCodeContainer::produceClass()
     // Params
     *fOut << "// Params";
     tab(n, *fOut);
-    generateUserInterface(gGlobal->gCodeboxVisitor);
+    
+    CodeboxParamsVisitor shortnames1(fOut);
+    // First pass to build shortnames
+    generateUserInterface(&shortnames1);
+    // Second pass to generate
+    generateUserInterface(&shortnames1);
     
     // Possibly merge sub containers (with an empty 'produceInternal' method)
     mergeSubContainers();
@@ -204,12 +209,19 @@ void CodeboxCodeContainer::produceClass()
     *fOut << "// Update parameters";
     tab(n, *fOut);
     *fOut << "function update(";
-    CodeboxLabelsVisitor labels(fOut);
-    generateUserInterface(&labels);
-    labels.print();
+    CodeboxLabelsVisitor shortnames2(fOut);
+    // First pass to build shortnames
+    generateUserInterface(&shortnames2);
+    // Second pass to build the list of shortnames
+    generateUserInterface(&shortnames2);
+    // Then generate the list
+    shortnames2.print();
     *fOut << ") {";
     tab(n+1, *fOut);
     CodeboxUpdateParamsVisitor params(fOut, n+1);
+    // First pass to build shortnames
+    generateUserInterface(&params);
+    // Second pass to print the update lines
     generateUserInterface(&params);
     *fOut << "if (fUpdated) { fUpdated = false; control(); }";
     tab(n, *fOut);
@@ -223,7 +235,7 @@ void CodeboxCodeContainer::produceClass()
     *fOut << "// Update parameters";
     tab(n, *fOut);
     *fOut << "update(";
-    labels.print();
+    shortnames2.print();
     *fOut << ");";
     tab(n, *fOut);
     

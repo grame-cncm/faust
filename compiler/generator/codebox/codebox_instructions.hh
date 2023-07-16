@@ -26,58 +26,71 @@
 
 #include "text_instructions.hh"
 #include "struct_manager.hh"
+#include "json_instructions.hh"
 
 // Variable identifier cannot end by a number, so add a suffix
 inline std::string codeboxVarName(const std::string& name) { return name + "_cb"; }
 
-inline std::string codeboxLabel(const std::string& label)
-{
-    static std::vector<char> gReplace = {' ', '(', ')', '\\', '.', ' ', '-'};
-    return replaceCharList(label, gReplace, 'Y');
-}
-
 // Visitor used to fill the 'update' function and associate control labels with their field names
-struct CodeboxUpdateParamsVisitor : public DispatchVisitor {
+// (using 2 passes, one to build shortname, the scond to use them)
+struct CodeboxUpdateParamsVisitor : public ShortnameInstVisitor {
     std::ostream* fOut;
     int           fTab;
     
     CodeboxUpdateParamsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
     
-     void print(const std::string& label, const std::string& zone)
+     void print(const std::string& shortname, const std::string& zone)
     {
-        *fOut << "fUpdated = int(fUpdated) | (" << codeboxLabel(label) << " != "
-              << codeboxVarName(zone) << "); " << codeboxVarName(zone) << " = " << codeboxLabel(label) << ";";
+        *fOut << "fUpdated = int(fUpdated) | (" << shortname << " != "
+              << codeboxVarName(zone) << "); " << codeboxVarName(zone) << " = " << shortname << ";";
         tab(fTab, *fOut);
     }
     
-    void visit(AddButtonInst* inst)
+    void visit(AddButtonInst* inst) override
     {
-        print(inst->fLabel, inst->fZone);
+        if (hasShortname()) {
+            print(buildShortname(inst->fLabel), inst->fZone);
+        } else {
+            ShortnameInstVisitor::visit(inst);
+        }
     }
     
-    void visit(AddSliderInst* inst)
+    void visit(AddSliderInst* inst) override
     {
-        print(inst->fLabel, inst->fZone);
+        if (hasShortname()) {
+            print(buildShortname(inst->fLabel), inst->fZone);
+        } else {
+            ShortnameInstVisitor::visit(inst);
+        }
     }
     
 };
 
-// Visitor used to create 'update' function prototype by printing the list of labels, used as parameters
-struct CodeboxLabelsVisitor : public DispatchVisitor {
+// Visitor used to create 'update' function prototype by printing the list of shortnames, used as parameters
+// (using 2 passes, one to build shortname, the scond to use them)
+struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
 
     std::vector<std::string> fUILabels;
     std::ostream* fOut;
     
     CodeboxLabelsVisitor(std::ostream* out) : fOut(out) {}
      
-    void visit(AddButtonInst* inst)
+    void visit(AddButtonInst* inst) override
     {
-        fUILabels.push_back(codeboxLabel(inst->fLabel));
+        if (hasShortname()) {
+            fUILabels.push_back(buildShortname(inst->fLabel));
+        } else {
+            ShortnameInstVisitor::visit(inst);
+        }
     }
     
-    void visit(AddSliderInst* inst)
+    void visit(AddSliderInst* inst) override
     {
-        fUILabels.push_back(codeboxLabel(inst->fLabel));
+        if (hasShortname()) {
+            fUILabels.push_back(buildShortname(inst->fLabel));
+        } else {
+            ShortnameInstVisitor::visit(inst);
+        }
     }
     
     void print()
@@ -99,7 +112,7 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
     
     CodeboxInitArraysVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
     
-    virtual void visit(DeclareVarInst* inst)
+    virtual void visit(DeclareVarInst* inst) override
     {
         // Keep the array name
         if (inst->fType->isArrayTyped() && inst->fValue) {
@@ -109,7 +122,7 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
     }
       
     // Needed for waveforms
-    virtual void visit(Int32ArrayNumInst* inst)
+    virtual void visit(Int32ArrayNumInst* inst) override
     {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << fCurArray << "[" << i << "] = " << inst->fNumTable[i] << ";";
@@ -117,7 +130,7 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
         }
     }
     
-    virtual void visit(FloatArrayNumInst* inst)
+    virtual void visit(FloatArrayNumInst* inst) override
     {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << fCurArray << "[" << i << "] = " << std::fixed << inst->fNumTable[i] << ";";
@@ -125,7 +138,7 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
         }
     }
     
-    virtual void visit(DoubleArrayNumInst* inst)
+    virtual void visit(DoubleArrayNumInst* inst) override
     {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << fCurArray << "[" << i << "] = " << std::fixed << inst->fNumTable[i] << ";";
@@ -133,6 +146,38 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
         }
     }
     
+};
+
+// Visitor used to generate @params with shortnames (using 2 passes, one to build shortname, the scond to use them)
+struct CodeboxParamsVisitor : public ShortnameInstVisitor {
+
+    std::ostream* fOut;
+    int           fTab;
+   
+    CodeboxParamsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
+
+    virtual void visit(AddButtonInst* inst) override
+    {
+        if (hasShortname()) {
+            *fOut << "@param({min: 0., max: 1., step: 1}) " << buildShortname(inst->fLabel) << " = 0.";
+            tab(fTab, *fOut);
+        } else {
+            ShortnameInstVisitor::visit(inst);
+        }
+    }
+
+    virtual void visit(AddSliderInst* inst) override
+    {
+        if (hasShortname()) {
+            *fOut << "@param({min: " << checkReal(inst->fMin) << ", max: "
+            << checkReal(inst->fMax) << ", step: " << checkReal(inst->fStep) << "}) "
+            << buildShortname(inst->fLabel) << " = " << checkReal(inst->fInit);
+            tab(fTab, *fOut);
+        } else {
+            ShortnameInstVisitor::visit(inst);
+        }
+    }
+
 };
 
 class CodeboxInstVisitor : public TextInstVisitor {
@@ -143,6 +188,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
      so that each function prototype is generated as most once in the module.
      */
     static std::map<std::string, bool> gFunctionSymbolTable;
+    
     // Polymorphic math functions
     std::map<std::string, std::string> gPolyMathLibTable;
     
@@ -345,19 +391,6 @@ class CodeboxInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddMetaDeclareInst* inst)
     {}
-
-    virtual void visit(AddButtonInst* inst)
-    {
-        *fOut << "@param({min: 0., max: 1.}) " << codeboxLabel(inst->fLabel) << " = 0.";
-        EndLine();
-    }
-
-    virtual void visit(AddSliderInst* inst)
-    {
-        *fOut << "@param({min: " << checkReal(inst->fMin) << ", max: "
-              << checkReal(inst->fMax) << "}) " << codeboxLabel(inst->fLabel) << " = " << checkReal(inst->fInit);
-        EndLine();
-    }
 
     virtual void visit(AddBargraphInst* inst)
     {
