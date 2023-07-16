@@ -30,7 +30,7 @@
 #include "sigtyperules.hh"
 #include "xtended.hh"
 #include "floats.hh"
-#include "description.hh"
+#include "ppsig.hh"
 
 using namespace std;
 
@@ -660,37 +660,72 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     int64_t i64;
     double r;
     Tree sel, x, y, label, init, min, max, step;
+    Tree d;
     
-    // Extended
+    // Math primitives
     xtended* p = (xtended*)getUserData(sig);
     if (p) {
-        // chain rule for one arg function: f(g(x))' = f'(g(x)) * g'(x)
-        return sigMul(p->diff(sig->branches()), self(sig->branch(0)));
+        if (gGlobal->gDetailsSwitch) std::cout << "math primitive: " << ppsig(sig) << "\n\n";
+        
+        if (p == gGlobal->gPowPrim) {
+            // derivative of pow requires base, exponent, and differentiated exponent.
+            auto branches{sig->branches()};
+            branches.push_back(self(sig->branch(1)));
+            d = p->diff(branches);
+        } else {
+            // chain rule for unary function: f(g(x))' = f'(g(x)) * g'(x)
+            d = sigMul(p->diff(sig->branches()), self(sig->branch(0)));
+        }
     }
-    
+
     else if (isSigInt(sig, &i)) {
-        return sigInt(0);
+        if (gGlobal->gDetailsSwitch) std::cout << "Int: " << ppsig(sig) << "\n\n";
+        d = sigInt(0);
     } else if (isSigInt64(sig, &i64)) {
-        return sigInt(0);
+        if (gGlobal->gDetailsSwitch) std::cout << "Int64: " << ppsig(sig) << "\n\n";
+        d = sigInt(0);
     } else if (isSigReal(sig, &r)) {
-        return sigReal(0.0);
+        if (gGlobal->gDetailsSwitch) std::cout << "Real: " << ppsig(sig) << "\n\n";
+        d = sigReal(0.0);
     }
-     
+
     // Binary operations
     // kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
     else if (isSigBinOp(sig, &op, x, y)) {
+        if (gGlobal->gDetailsSwitch)
+            std::cout << "x: " << ppsig(x) << "\n" << "y: " << ppsig(y) << "\n" << "op: ";
 
         switch (op) {
+            case kAdd:
+                if (gGlobal->gDetailsSwitch) std::cout << "ADD\n\n";
+                // (f + g)' = f' + g'
+                d = sigAdd(self(x), self(y));
+                break;
+            case kSub:
+                if (gGlobal->gDetailsSwitch) std::cout << "SUB\n\n";
+                // (f - g)' = f' - g'
+                d = sigSub(self(x), self(y));
+                break;
             case kMul:
-                // ((f * g)' = f' * g + f * g'
-                return sigAdd(sigMul(self(x), y), sigMul(x, self(y)));
+                if (gGlobal->gDetailsSwitch) std::cout << "MUL\n\n";
+                // (f * g)' = f' * g + f * g'
+                d = sigAdd(sigMul(self(x), y), sigMul(x, self(y)));
+                break;
             case kDiv:
+                if (gGlobal->gDetailsSwitch) std::cout << "DIV\n\n";
                 // (f / g)' = (f' * g - f * g') / (g * g)
-                return sigDiv(sigSub(sigMul(self(x), y), sigMul(x, self(y))),
+                d = sigDiv(sigSub(sigMul(self(x), y), sigMul(x, self(y))),
                               sigMul(y, y));
+                break;
+//            case kRem:
+//                std::cout << "REM\n\n";
+//
+//                break;
             default:
+                if (gGlobal->gDetailsSwitch) std::cout << "Unhandled sigBinOp: " << op;
                 // TO FINISH
-                return sigBinOp(op, self(x), self(y));
+                d = sigBinOp(op, self(x), self(y));
+                break;
         }
 
     } else if (isSigButton(sig, label)
@@ -699,15 +734,19 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
                || isSigHSlider(sig, label, init, min, max, step)
                || isSigNumEntry(sig, label, init, min, max, step)
                || isSigInput(sig, &i)) {
-
-        return diff(sig, getCertifiedSigType(sig)->nature());
+        if (gGlobal->gDetailsSwitch) std::cout << "UI/Input: " << ppsig(sig) << "\n\n";
+        d = diff(sig, getCertifiedSigType(sig)->nature());
     }
 
     else {
+        if (gGlobal->gDetailsSwitch) std::cout << "Unhandled case: " << ppsig(sig) << "\n\n";
         // Other cases => identity transformation
-        return SignalIdentity::transformation(sig);
+        d = SignalIdentity::transformation(sig);
     }
-    
+
+    if (gGlobal->gDetailsSwitch) std::cout << "DERIVATIVE: " << ppsig(d) << "\n\n";
+
+    return d;
 }
 
 // Public API
@@ -838,11 +877,13 @@ Tree signalAutoDifferentiate(Tree sig)
     DiffVarCollector collector(sig);
    
     // Compute differentiated tree for each variable and collect the result in a list of outputs
-    if (collector.inputs.size() > 0) {
+    if (!collector.inputs.empty()) {
         siglist outputs;
         for (const auto& var : collector.inputs) {
             SignalAutoDifferentiate SP(var);
-            outputs.push_back(hd(SP.mapself(sig)));
+            // Insert at beginning so order of differentiated outputs matches order of
+            // differentiable parameters.
+            outputs.insert(outputs.begin(), hd(SP.mapself(sig)));
         }
         return listConvert(outputs);
     } else {

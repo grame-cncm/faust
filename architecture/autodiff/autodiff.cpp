@@ -34,7 +34,9 @@ mldsp::mldsp(std::string inputDSPPath,
         fGroundTruthDSPPath(groundTruthDSPPath),
         fDifferentiableDSPPath(differentiableDSPPath) {}
 
-mldsp::~mldsp() {}
+mldsp::~mldsp() {
+    fFile.close();
+}
 
 void mldsp::initialise() {
     auto inputDSP{createDSPInstanceFromPath(fInputDSPPath)};
@@ -49,7 +51,8 @@ void mldsp::initialise() {
             new dsp_parallelizer(
                     // The adjustable DSP: s_o(p),
                     new dsp_sequencer(inputDSP->clone(), adjustableDSP),
-                    // The autodiffed DSP: \nabla s_o(p),
+                    // The autodiffed DSP: \nabla s_o(p).
+                    // This will have one output channel per differentiable parameter.
                     new dsp_sequencer(inputDSP->clone(), differentiatedDSP)
             )
     );
@@ -61,10 +64,18 @@ void mldsp::initialise() {
     fAudio = std::make_unique<dummyaudio>(48000, 1);
     fAudio->init("Dummy audio", fDSP.get());
 
-    // TODO: check that the learnable parameter exists.
-    fLearnableParamAddress = fUI->getParamAddress(0);
-    fLearnableParamValue = fUI->getParamValue(fLearnableParamAddress);
-    std::cout << "Learnable parameter: " << fLearnableParamAddress << ", value: " << fLearnableParamValue << "\n";
+    // TODO: check that parameter has diff metadata.
+    for (auto p{0}; p < fUI->getParamsCount(); ++p) {
+        auto address{fUI->getParamAddress(p)};
+        fLearnableParams.insert(std::make_pair(address, Parameter{fUI->getParamValue(address), 0.f}));
+    }
+    fFile.open("loss.csv");
+    fFile << "iteration,loss";
+    for (auto &lp: fLearnableParams) {
+        std::cout << "Learnable parameter: " << lp.first << ", value: " << lp.second.value << "\n";
+        fFile << ",gradient,param";
+    }
+    fFile << "\n";
 }
 
 void mldsp::doGradientDescent() {
@@ -78,9 +89,11 @@ void mldsp::doGradientDescent() {
             if (fLoss > kEpsilon) {
                 computeGradient(out, frame);
 
-                // Update parameter value.
-                fLearnableParamValue -= kAlpha * fGradient;
-                fUI->setParamValue(fLearnableParamAddress, fLearnableParamValue);
+                // Update parameter values.
+                for (auto &p: fLearnableParams) {
+                    p.second.value -= kAlpha * p.second.gradient;
+                    fUI->setParamValue(p.first, p.second.value);
+                }
             }
 
             reportState(i, out, frame);
@@ -104,40 +117,74 @@ dsp *mldsp::createDSPInstanceFromString(
 dsp *mldsp::createDSPInstanceFromPath(const std::string &path,
                                       int argc, const char *argv[]) {
     std::string errorMessage;
+    std::cout << "Creating DSP from file " << path << "\n";
     auto factory{createDSPFactoryFromFile(path, argc, argv, "", errorMessage)};
+    std::cout << "factory: " << factory << "\n";
     if (!factory) {
-        std::cout << errorMessage;
+        std::cout << "Error: " << errorMessage;
     }
     assert(factory);
     return factory->createDSPInstance();
 }
 
 void mldsp::computeLoss(FAUSTFLOAT **output, int frame) {
-    fLoss = powf(output[Channels::LEARNABLE][frame] - output[Channels::GROUND_TRUTH][frame], 2);
+    switch (fLossFunction) {
+        case L1_NORM:
+            fLoss = fabsf(output[OutputChannel::LEARNABLE][frame] - output[OutputChannel::GROUND_TRUTH][frame]);
+            break;
+        case L2_NORM:
+            fLoss = powf(output[OutputChannel::LEARNABLE][frame] - output[OutputChannel::GROUND_TRUTH][frame], 2);
+            break;
+        default:
+            break;
+    }
 }
 
 void mldsp::computeGradient(FAUSTFLOAT **output, int frame) {
-    fGradient = 2 * output[Channels::DIFFERENTIATED][frame] *
-                (output[Channels::LEARNABLE][frame] - output[Channels::GROUND_TRUTH][frame]);
+    // Set up an index to target the appropriate output channel to use for gradient descent for a
+    // given differentiable parameter.
+    auto k{0};
+    for (auto &p: fLearnableParams) {
+        p.second.gradient = 2 * output[OutputChannel::DIFFERENTIATED + k][frame] *
+                            (output[OutputChannel::LEARNABLE][frame] - output[OutputChannel::GROUND_TRUTH][frame]);
+        ++k;
+    }
 }
 
 void mldsp::reportState(int iteration, FAUSTFLOAT **output, int frame) {
     std::cout << std::fixed << std::setprecision(10) <<
               std::setw(5) << iteration <<
               std::setw(LABEL_WIDTH) << "Sig GT: " <<
-              std::setw(NUMBER_WIDTH) << output[Channels::GROUND_TRUTH][frame] <<
+              std::setw(NUMBER_WIDTH) << output[OutputChannel::GROUND_TRUTH][frame] <<
               std::setw(LABEL_WIDTH) << "Sig Learn: " <<
-              std::setw(NUMBER_WIDTH) << output[Channels::LEARNABLE][frame] <<
+              std::setw(NUMBER_WIDTH) << output[OutputChannel::LEARNABLE][frame] <<
               std::setw(LABEL_WIDTH) << "Loss: " <<
               std::setw(NUMBER_WIDTH) << fLoss;
 
+    fFile << iteration << "," << fLoss;
+
     if (fLoss > kEpsilon) {
-        std::cout << std::setw(LABEL_WIDTH) << "Grad: " <<
-                  std::setw(NUMBER_WIDTH) << fGradient <<
-                  std::setw(LABEL_WIDTH) << "Set param: " <<
-                  std::setw(NUMBER_WIDTH) << fLearnableParamValue;
+        auto k{0};
+        for (auto &p: fLearnableParams) {
+            std::cout << "\n" << std::setw(PARAM_WIDTH) << p.first <<
+                      std::setw(LABEL_WIDTH) << "ds/dp: " <<
+                      std::setw(NUMBER_WIDTH) << output[OutputChannel::DIFFERENTIATED + k][frame] <<
+                      std::setw(LABEL_WIDTH) << "Grad: " <<
+                      std::setw(NUMBER_WIDTH) << p.second.gradient <<
+                      std::setw(LABEL_WIDTH) << "Value: " <<
+                      std::setw(NUMBER_WIDTH) << p.second.value;
+
+            fFile << "," << p.second.gradient << "," << p.second.value;
+
+            ++k;
+        }
+    } else {
+        for (auto &p: fLearnableParams) {
+            fFile << ",,";
+        }
     }
 
     std::cout << "\n";
+    fFile << "\n";
 }
 /***************************** END autodiff.cpp *******************************/
