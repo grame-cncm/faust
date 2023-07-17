@@ -86,4 +86,10 @@ class ExpPrim : public xtended {
 
         return subst("e^{$0}", args[0]);
     }
+    
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        // (e^x)' = e^x
+        return sigExp(args[0]);
+    }
 };

@@ -76,4 +76,11 @@ class AtanPrim : public xtended {
 
         return subst("\\arctan\\left($0\\right)", args[0]);
     }
+    
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        // (atan(x))' = 1 / (x^2 + 1)
+        // Division should behave well, assuming x is always real.
+        return sigDiv(sigReal(1.0), sigAdd(sigPow(args[0], sigReal(2.0)), sigReal(1.0)));
+    }
 };

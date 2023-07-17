@@ -226,12 +226,15 @@ class PowPrim : public xtended {
 
     Tree diff(const std::vector<Tree> &args) override
     {
-        // (x^p)' = (x^p)(plog(x))' = x^{p-1}(p + xlog(x)(p)')
-        auto d{sigMul(
+        // Let f = f(x), g = g(x):
+        // (f^g)' = (f^g)(g*ln(f))' = f^{g-1}*g*f' + f^g*g'*ln(f)
+        //                          = f^{g-1}(g*f' + ln(f)*f*g'))
+        return sigMul(
                 sigPow(args[0], sigSub(args[1], sigReal(1.0))),
-                sigAdd(args[1], sigMul(args[0], sigMul(sigLog(args[0]), args[2])))
-        )};
-
-        return d;
+                sigAdd(
+                        sigMul(args[1], args[2]),
+                        sigMul(sigLog(args[0]), sigMul(args[0], args[3]))
+                )
+        );
     }
 };

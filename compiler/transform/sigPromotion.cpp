@@ -668,8 +668,9 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
         if (gGlobal->gDetailsSwitch) std::cout << "math primitive: " << ppsig(sig) << "\n\n";
         
         if (p == gGlobal->gPowPrim) {
-            // derivative of pow requires base, exponent, and differentiated exponent.
+            // derivative of pow requires base, exponent, and differentiated base and exponent.
             auto branches{sig->branches()};
+            branches.push_back(self(sig->branch(0)));
             branches.push_back(self(sig->branch(1)));
             d = p->diff(branches);
         } else {
