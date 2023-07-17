@@ -383,10 +383,10 @@ static void compileInterp(Tree signals, int numInputs, int numOutputs)
     // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
     gGlobal->gNeedManualPow       = false;  // Standard pow function will be used in pow(x,y) when y in an integer
-    gGlobal->gRemoveVarAddress    = true;   // To be used in -vec mode
     gGlobal->gUseDefaultSound     = false;
 
     if (gGlobal->gVectorSwitch) {
+        gGlobal->gRemoveVarAddress = true;
         gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
         gNewComp = new InterpreterInstructionsCompiler(gContainer);
@@ -505,7 +505,8 @@ static void compileRust(Tree signals, int numInputs, int numOutputs, ostream* ou
     gContainer                    = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
 
     if (gGlobal->gVectorSwitch) {
-        // gNewComp = new DAGInstructionsCompiler(gContainer);
+        // Required to not alias mutable buffers
+        gGlobal->gRemoveVarAddress = true;
         gNewComp = new DAGInstructionsCompilerRust(gContainer);
     } else {
         gNewComp = new InstructionsCompiler1(gContainer);
@@ -686,8 +687,7 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an integer
-    gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-                                         // gGlobal->gHasTeeLocal = true;     // combined store/load
+    // gGlobal->gHasTeeLocal = true;       // combined store/load
     gGlobal->gUseDefaultSound = false;
 
     // This speedup (freeverb for instance) ==> to be done at signal level
@@ -725,8 +725,7 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an integer
-    gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-                                         // gGlobal->gHasTeeLocal = true;     // combined store/load
+    // gGlobal->gHasTeeLocal = true;        // combined store/load
     gGlobal->gUseDefaultSound = false;
 
     // This speedup (freeverb for instance) ==> to be done at signal level
@@ -739,6 +738,7 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
     createHelperFile(outpath);
 
     if (gGlobal->gVectorSwitch) {
+        gGlobal->gRemoveVarAddress = true;
         gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
         gNewComp = new InstructionsCompiler(gContainer);

@@ -358,8 +358,11 @@ interp1:
 # Rust backend
 rust:
 	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double"
+	rm -rf ir/rust
 	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double -fp"
+	rm -rf ir/rust
 	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double -vec -vs 4"
+	rm -rf ir/rust
 	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double -vec -vs 32"
 
 #########################################################################

@@ -487,8 +487,6 @@ void RustScalarCodeContainer::generateCompute(int n)
 RustVectorCodeContainer::RustVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
     : VectorCodeContainer(numInputs, numOutputs), RustCodeContainer(name, numInputs, numOutputs, out)
 {
-    // Required to not alias mutable buffers
-    gGlobal->gRemoveVarAddress = true;
 }
 
 void RustVectorCodeContainer::generateCompute(int n)
@@ -529,8 +527,7 @@ BlockInst* RustVectorCodeContainer::generateDAGLoopVariant0(const string& counte
                                                      InstBuilder::genBasicTyped(Typed::kInt32),
                                                      InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     fComputeBlockInstructions->pushFrontInst(vsize_decl);
-    auto vsize = vsize_decl->load();
-
+   
     block_res->pushBackInst(InstBuilder::genLabelInst("/* Main loop */"));
     BlockInst* loop_code = InstBuilder::genBlockInst();
 

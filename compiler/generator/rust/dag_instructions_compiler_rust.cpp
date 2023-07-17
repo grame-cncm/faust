@@ -84,27 +84,10 @@ StatementInst* DAGInstructionsCompilerRust::generateInitArray(const string& vnam
     args.push_back(InstBuilder::genLoadStructVar(vname));
     args.push_back(init);
     return InstBuilder::genVoidFunCallInst("fill", args, true);
-
-    //    ValueInst*  init  = InstBuilder::genTypedZero(ctype);
-    //    BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
-    //    string      index = gGlobal->getFreshID("l");
-    //
-    //    // Generates table declaration
-    //    pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genArrayTyped(typed, delay)));
-    //
-    //    ValueInst* upperBound = InstBuilder::genInt32NumInst(delay);
-    //    // Generates init table loop
-    //    SimpleForLoopInst* loop = InstBuilder::genSimpleForLoopInst(index, upperBound);
-    //
-    //    LoadVarInst* loadVarInst = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop));
-    //    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, loadVarInst, init));
-    //    return loop;
 }
 
 StatementInst* DAGInstructionsCompilerRust::generateShiftArray(const string& vname, int delay)
 {
-    std::cout << "generateShiftArray " << vname << " " << delay << std::endl;
-
     string index = gGlobal->getFreshID("j");
 
     ValueInst* upperBound = InstBuilder::genInt32NumInst(delay);
@@ -122,14 +105,6 @@ StatementInst* DAGInstructionsCompilerRust::generateShiftArray(const string& vna
 StatementInst* DAGInstructionsCompilerRust::generateCopyArray(const string& vname_to, const string& vname_from,
                                                               int size)
 {
-    //    std::cout << "generateCopyArray " << vname_to << " " << vname_from << " " << size << std::endl;
-    //    Values args;
-    //    args.push_back(InstBuilder::genLoadStackVar(vname_to));
-    //    args.push_back(
-    //        InstBuilder::genLoadVarAddressInst(InstBuilder::genNamedAddress(vname_from,
-    //        Address::AccessType::kStruct)));
-    //    return InstBuilder::genVoidFunCallInst("copy_from_slice", args, true);
-
     string index = gGlobal->getFreshID("j");
 
     ValueInst*         upperBound  = InstBuilder::genInt32NumInst(size);

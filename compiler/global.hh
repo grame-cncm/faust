@@ -202,7 +202,7 @@ struct global {
     std::string gFastMathLib;      // -fm faster version of some mathematical functions (pow/exp/log), the fastmath code mapping file
     bool   gMathApprox;            // -mapp option, simpler/faster versions of 'floor/fmod/remainder' functions
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
-    bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
+    bool   gRemoveVarAddress;      // If use of variable addresses (like &foo or &foo[n]) have to be removed
     int    gOneSample;             // -osX options, generate one sample computation
     bool   gOneSampleControl;      // -osX options, generate one sample computation control structure in DSP module
     bool   gComputeMix;            // -cm option, mix in outputs buffers
@@ -651,7 +651,7 @@ struct global {
 extern global* gGlobal;
 
 #define FAUST_LIB_PATH "FAUST_LIB_PATH"
-#define MAX_MACHINE_STACK_SIZE 65536
+#define MAX_MACHINE_STACK_SIZE 65536 * 16
 #define MAX_SOUNDFILE_PARTS 256
 
 #define MAX_ERROR_SIZE 192
