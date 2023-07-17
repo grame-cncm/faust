@@ -65,7 +65,6 @@ struct VisitInfo {
 };
 
 class VhdlProducer : public SignalVisitor {
-    Tree _signal;
     std::vector<Vertex> _vertices;
     std::vector<std::vector<Edge>> _edges;
     std::stack<VisitInfo> _visit_stack;
@@ -78,28 +77,44 @@ class VhdlProducer : public SignalVisitor {
 
    public:
     VhdlProducer(Tree signal, const std::string& name, int numInputs, int numOutputs, std::ostream& out)
-    : _signal(signal), _code_container(out)
+    : _code_container()
     {
         // Step 1: Convert the input signal to a weighted circuit graph
-        visitRoot(_signal);
-        std::cout << "transformation to graph: " << std::endl;
-        for (size_t i = 0; i < _vertices.size(); ++i) {
-            std::cout << i << ": " << _vertices[i].node << " (0x" << std::hex << _vertices[i].node_hash << std::dec << ')' << std::endl;
+        visitRoot(signal);
 
-            for (auto e : _edges[i]) {
-                std::cout << "\t" << e.target << ", " << e.register_count << " registers" << std::endl;
+        // Step 1.5: Parse the components file to get pipeline stages information (optional)
+        if (gGlobal->gVHDLComponentsFile != "") {
+            std::ifstream components_file(gGlobal->gVHDLComponentsFile);
+            if (!components_file) {
+                std::cerr << "Failed to read file: " << gGlobal->gVHDLComponentsFile << std::endl;
+                faustassert(false);
             }
+            parseCustomComponents(components_file);
+            normalize();
         }
-        std::cout <<  std::endl << "=============================" << std::endl << std::endl;
+
+        if (gGlobal->gVHDLTrace) {
+            std::cout << "transformation to graph: " << std::endl;
+            for (size_t i = 0; i < _vertices.size(); ++i) {
+                std::cout << i << ": " << _vertices[i].node << " (0x" << std::hex << _vertices[i].node_hash << std::dec << ')' << std::endl;
+
+                for (auto e : _edges[i]) {
+                    std::cout << "\t" << e.target << ", " << e.register_count << " registers" << std::endl;
+                }
+            }
+            std::cout <<  std::endl << "=============================" << std::endl << std::endl;
+        }
 
         // Step 2: Optimize the graph
         optimize();
-        std::cout << "after optimization: " << std::endl;
-        for (size_t i = 0; i < _vertices.size(); ++i) {
-            std::cout << i << ": " << _vertices[i].node << " (0x" << std::hex << _vertices[i].node_hash << std::dec << ')' << std::endl;
+        if (gGlobal->gVHDLTrace) {
+            std::cout << "after optimization: " << std::endl;
+            for (size_t i = 0; i < _vertices.size(); ++i) {
+                std::cout << i << ": " << _vertices[i].node << " (0x" << std::hex << _vertices[i].node_hash << std::dec << ')' << std::endl;
 
-            for (auto e : _edges[i]) {
-                std::cout << "\t" << e.target << ", " << e.register_count << " registers" << std::endl;
+                for (auto e : _edges[i]) {
+                    std::cout << "\t" << e.target << ", " << e.register_count << " registers" << std::endl;
+                }
             }
         }
 
@@ -217,14 +232,36 @@ class VhdlProducer : public SignalVisitor {
     /** Exports the graph as a DOT language file */
     void exportGraph(std::ostream& out) const;
 
-    void self(Tree t)
+    /** Parses a user-defined config file for operators
+     * Such files are structured as follows:
+     * <id> <implementation file> <pipeline stages>
+     *  12    flopoco_fpadd.vhdl         4
+     *
+     * To find the id of a component/vertex, you can first run a pass using the --vhdl-trace option
+     * and find the id on the resulting vhdl_graph.dot file.
+     */
+    void parseCustomComponents(std::istream& input);
+
+    /** Overrides the TreeTraversal::self method to handle recursion */
+    virtual void self(Tree t)
     {
         if (fTrace) traceEnter(t);
         fIndent++;
         if (!fVisited.count(t)) {
             fVisited[t] = 0;
+            visit(t);
+        } else {
+            int vertex_id = _vertices.size();
+            auto existing_id = searchNode(t->hashkey());
+            // If the signal was already seen before and our subtree goes to a recursive output,
+            // we add the corresponding recursive input to this node.
+            if (existing_id.has_value() && !_virtual_io_stack.empty()) {
+                vertex_id = _visit_stack.top().vertex_index;
+                int virtual_input_id = _virtual_io_stack.top();
+                _edges[virtual_input_id].push_back(Edge(vertex_id, 0, 0));
+            }
         }
-        visit(t);
+
         // Keep visit counter
         fVisited[t]++;
         fIndent--;

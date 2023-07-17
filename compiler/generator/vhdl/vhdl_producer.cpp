@@ -11,20 +11,9 @@ typedef std::vector<int> Retiming;
 void VhdlProducer::visit(Tree signal)
 {
     int vertex_id = _vertices.size();
-    auto existing_id = searchNode(signal->hashkey());
-    // If the signal was already seen before and our subtree goes to a recursive output,
-    // we add the corresponding recursive input to this node.
-    if (existing_id.has_value() && !_virtual_io_stack.empty()) {
-        vertex_id = _visit_stack.top().vertex_index;
-        int virtual_input_id = _virtual_io_stack.top();
-        _edges[virtual_input_id].push_back(Edge(vertex_id, 0, 0));
-        return;
-    }
-
+    // TODO: those variables are technically unnecessary except for calling isProj and isRec
     int     i;
-    int64_t i64;
-    double  r;
-    Tree    size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
+    Tree    x, var, le;
 
     // Handle recursive signals
     if (isProj(signal, &i, x)) {
@@ -46,173 +35,44 @@ void VhdlProducer::visit(Tree signal)
 
         _virtual_io_stack.pop();
         _visit_stack.pop();
-        return;
     } else if (isRec(signal, var, le)) {
-        // Recursive symbols are bypassed in the final graph, so we return early.
+        // Recursive symbols are bypassed in the final graph.
         mapself(le);
-        return;
-    }
-
-    // Initialize a new vertex
-    _visit_stack.push(VisitInfo(vertex_id));
-    _vertices.push_back(Vertex(signal));
-    _edges.push_back({});
-
-    // Then visit its children.
-    if (getUserData(signal)) {
-        for (Tree b : signal->branches()) {
-            self(b);
-        }
-    } else if (isSigInt(signal, &i)) {
-    } else if (isSigInt64(signal, &i64)) {
-    } else if (isSigReal(signal, &r)) {
-    } else if (isSigWaveform(signal)) {
-    } else if (isSigInput(signal, &i)) {
-    } else if (isSigOutput(signal, &i, x)) {
-        self(x);
-    } else if (isSigDelay1(signal, x)) {
-        self(x);
-    } else if (isSigDelay(signal, x, y)) {
-        self(x);
-        self(y);
-    } else if (isSigPrefix(signal, x, y)) {
-        self(x);
-        self(y);
-    } else if (isSigBinOp(signal, &i, x, y)) {
-        self(x);
-        self(y);
-    }
-
-    // Foreign functions
-    else if (isSigFFun(signal, ff, largs)) {
-        mapself(largs);
-    } else if (isSigFConst(signal, type, name, file)) {
-    } else if (isSigFVar(signal, type, name, file)) {
-    }
-
-    // Tables
-    else if (isSigWRTbl(signal, size, gen, wi, ws)) {
-        self(size);
-        self(gen);
-        if (wi != gGlobal->nil) {
-            // rwtable
-            self(wi);
-            self(ws);
-        }
-    } else if (isSigRDTbl(signal, tbl, ri)) {
-        self(tbl);
-        self(ri);
-    }
-
-    // Doc
-    // TODO: ignore those
-    else if (isSigDocConstantTbl(signal, x, y)) {
-        self(x);
-        self(y);
-    } else if (isSigDocWriteTbl(signal, x, y, u, v)) {
-        self(x);
-        self(y);
-        self(u);
-        self(v);
-    } else if (isSigDocAccessTbl(signal, x, y)) {
-        self(x);
-        self(y);
-    }
-
-    // Select2 (and Select3 expressed with Select2)
-    else if (isSigSelect2(signal, sel, x, y)) {
-        self(sel);
-        self(x);
-        self(y);
-    }
-
-    // Table sigGen
-    else if (isSigGen(signal, x)) {
-        if (fVisitGen) {
-            self(x);
-        } else {
-        }
-    }
-
-    // Int, Bit and Float Cast
-    else if (isSigIntCast(signal, x)) {
-        self(x);
-    } else if (isSigBitCast(signal, x)) {
-        self(x);
-    } else if (isSigFloatCast(signal, x)) {
-        self(x);
-    }
-
-    // UI
-    // TODO: Later
-    else if (isSigButton(signal, label)) {
-    } else if (isSigCheckbox(signal, label)) {
-    } else if (isSigVSlider(signal, label, c, x, y, z)) {
-        self(c), self(x), self(y), self(z);
-    } else if (isSigHSlider(signal, label, c, x, y, z)) {
-        self(c), self(x), self(y), self(z);
-    } else if (isSigNumEntry(signal, label, c, x, y, z)) {
-        self(c), self(x), self(y), self(z);
-    } else if (isSigVBargraph(signal, label, x, y, z)) {
-        self(x), self(y), self(z);
-    } else if (isSigHBargraph(signal, label, x, y, z)) {
-        self(x), self(y), self(z);
-    }
-
-    // Soundfile length, rate, buffer
-    // TODO: might want to ignore ?
-    else if (isSigSoundfile(signal, label)) {
-    } else if (isSigSoundfileLength(signal, sf, x)) {
-        self(sf), self(x);
-    } else if (isSigSoundfileRate(signal, sf, x)) {
-        self(sf), self(x);
-    } else if (isSigSoundfileBuffer(signal, sf, x, y, z)) {
-        self(sf), self(x), self(y), self(z);
-    }
-
-    // Attach, Enable, Control
-    // TODO: Later
-    else if (isSigAttach(signal, x, y)) {
-        self(x), self(y);
-    } else if (isSigEnable(signal, x, y)) {
-        self(x), self(y);
-    } else if (isSigControl(signal, x, y)) {
-        self(x), self(y);
-    }
-
-    else if (isNil(signal)) {
-        // now nil can appear in table write instructions
     } else {
-        std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : unrecognized signal : " << *signal << std::endl;
-    }
-
-    // Finally, we create edges from the children to the current vertex.
-    _visit_stack.pop();
-    if (!_visit_stack.empty()) {
-        VisitInfo last_visited = _visit_stack.top();
-        int register_count = _vertices[last_visited.vertex_index].node.getSym() == gGlobal->SIGOUTPUT ? SAMPLE_RATE : 0;
-        _edges[vertex_id].push_back(Edge(last_visited.vertex_index, register_count, _vertices[vertex_id].propagation_delay));
-
-        if (last_visited.is_recursive) {
-            _visit_stack.pop();
-            _edges[vertex_id].push_back(Edge(_visit_stack.top().vertex_index, 0, _vertices[vertex_id].propagation_delay));
-            _visit_stack.push(last_visited);
-        }
-    } else {
-        // We're at a root node, which means it is an output. To make retiming possible,
-        // we need to create an explicit output node with `SAMPLE_RATE` registers.
-        int output_id = _vertices.size();
-        _vertices.push_back(Vertex(signal, false));
+        // Initialize a new vertex
+        _visit_stack.push(VisitInfo(vertex_id));
+        _vertices.push_back(Vertex(signal));
         _edges.push_back({});
-        _edges[vertex_id].push_back(Edge(output_id, SAMPLE_RATE, _vertices[vertex_id].propagation_delay));
+
+        // Then visit its children.
+        SignalVisitor::visit(signal);
+
+        // Finally, we create edges from the children to the current vertex.
+        _visit_stack.pop();
+        if (!_visit_stack.empty()) {
+            VisitInfo last_visited = _visit_stack.top();
+            int register_count = _vertices[last_visited.vertex_index].node.getSym() == gGlobal->SIGOUTPUT ? SAMPLE_RATE : 0;
+            _edges[vertex_id].push_back(Edge(last_visited.vertex_index, register_count, _vertices[vertex_id].propagation_delay));
+
+            if (last_visited.is_recursive) {
+                _visit_stack.pop();
+                _edges[vertex_id].push_back(Edge(_visit_stack.top().vertex_index, 0, _vertices[vertex_id].propagation_delay));
+                _visit_stack.push(last_visited);
+            }
+        } else {
+            // We're at a root node, which means it is an output. To make retiming possible,
+            // we need to create an explicit output node with `SAMPLE_RATE` registers.
+            int output_id = _vertices.size();
+            _vertices.push_back(Vertex(signal, false));
+            _edges.push_back({});
+            _edges[vertex_id].push_back(Edge(output_id, SAMPLE_RATE, _vertices[vertex_id].propagation_delay));
+        }
     }
 }
 
 
 void VhdlProducer::optimize()
 {
-    // Normalization needs to be done before retiming to really be efficient
-    normalize();
     retime();
 }
 
@@ -289,10 +149,12 @@ void VhdlProducer::normalize()
             return max_incoming_weight[vertex].value();
         }
 
+        max_incoming_weight[vertex] = std::make_optional(0);
+
         for (auto edge : transposed_graph[vertex]) {
             int w = incoming_weight(edge.target);
-            if (!max_incoming_weight[vertex].has_value() || w > max_incoming_weight[vertex].value()) {
-                max_incoming_weight[vertex] = std::make_optional(w);
+            if (w > max_incoming_weight[vertex].value()) {
+                max_incoming_weight[vertex].value() = w;
             }
         }
         max_incoming_weight[vertex] = std::make_optional(_vertices[vertex].pipeline_stages + max_incoming_weight[vertex].value_or(0));
@@ -305,10 +167,10 @@ void VhdlProducer::normalize()
 
     // Afterwards, for each vertex `u` such that there is an edge `u -> v`, we add `w - l(u)` registers
     // to `u -> v` to compensate for the lag.
-    for (int u = 0; u < _vertices.size(); ++u) {
-        int pipeline_stages = _vertices[u].pipeline_stages;
-        for (auto edge : _edges[u]) {
-            edge.register_count += max_incoming_weight[edge.target].value() - pipeline_stages;
+    for (size_t u = 0; u < _vertices.size(); ++u) {
+        for (Edge& edge : _edges[u]) {
+            int max_pipeline_stages = max_incoming_weight[edge.target].value() - _vertices[edge.target].pipeline_stages;
+            edge.register_count += max_pipeline_stages - _vertices[u].pipeline_stages;
         }
     }
 }
@@ -428,7 +290,7 @@ void VhdlProducer::computeWeightDelayInformation()
 
 std::optional<Retiming> VhdlProducer::findRetiming(int target_clock_period)
 {
-    // Set current retime to 0 for all nodes
+    // Set current retiming to 0 for all nodes
     Retiming retiming = std::vector<int>(_vertices.size(), 0);
     auto saved_edges = _edges;
 
@@ -471,11 +333,26 @@ void VhdlProducer::exportGraph(std::ostream& out) const
 {
     out << "digraph {" << std::endl;
     for (size_t i = 0; i < _vertices.size(); ++i) {
-        out << "\"" << std::hex << _vertices[i].node_hash << "_" << std::dec << i << "\" [label=<" << _vertices[i].node << "<BR /><FONT POINT-SIZE=\"10\">hash: 0x" << std::hex << _vertices[i].node_hash << std::dec << ", pipeline stages: " << _vertices[i].pipeline_stages << "</FONT>>, weight=\"" << _vertices[i].pipeline_stages << "\"];" << std::endl;
+        out << "\"" << std::hex << _vertices[i].node_hash << "_" << std::dec << i << "\" [label=<" << _vertices[i].node << "<BR /><FONT POINT-SIZE=\"10\">id: " << i << ", pipeline stages: " << _vertices[i].pipeline_stages << "</FONT>>, weight=\"" << _vertices[i].pipeline_stages << "\"];" << std::endl;
         for (auto edge : _edges[i]) {
             out << "\"" << std::hex << _vertices[i].node_hash << "_"  << std::dec << i << "\" -> \"" << std::hex << _vertices[edge.target].node_hash << std::dec << "_" << edge.target << "\" [label=\"" << edge.register_count << "\",weight=\"" << edge.register_count << "\"];" << std::endl;
         }
     }
 
     out << "}" << std::endl;
+}
+
+void VhdlProducer::parseCustomComponents(std::istream& input)
+{
+    std::string id_str;
+    std::string implementation_file;
+    std::string pipeline_stages_str;
+
+    while (!input.eof()) {
+        std::getline(input, id_str, ' ');
+        std::getline(input, implementation_file, ' ');
+        std::getline(input, pipeline_stages_str, ';');
+
+        _vertices[std::stoi(id_str)].pipeline_stages = std::stoi(pipeline_stages_str);
+    }
 }

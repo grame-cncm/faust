@@ -206,6 +206,7 @@ struct global {
     std::string gNamespace;        // Wrapping namespace used with the C++ backend
     bool gVHDLTrace;               // -vhdl-trace option
     bool gVHDLFloatEncoding;       // -vhdl-float, floating point encoding for real numbers
+    std::string gVHDLComponentsFile; // -vhdl-operators, a config file to replace specific operators
 
     int gWideningLimit;   // Max number of iterations before interval widening
     int gNarrowingLimit;  // Max number of iterations to compute interval widener

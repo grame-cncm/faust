@@ -152,6 +152,8 @@ Code generation options:
 
   **-vhdl-float** **--vhdl-float**          uses floating point as the sample format.
 
+  **-vhdl-operators** \<file> **--vhdl-operators** \<file> optional configuration file that allows to replace some components with user-defined alternatives.
+
   **-fpga**-mem \<n>  **--fpga-mem** \<n>           FPGA block ram max size, used in -os2/-os3 mode.
 
   **-wi** \<n>     **--widening-iterations** \<n>   number of iterations before widening in signal bounding.

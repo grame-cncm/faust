@@ -1144,6 +1144,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gVHDLFloatEncoding = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-vhdl-components", "--vhdl-components") && (i + 1 < argc)) {
+            gVHDLComponentsFile = std::string(argv[i + 1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-fpga-mem", "-fpga-mem") && (i + 1 < argc)) {
             gFPGAMemory = std::atoi(argv[i + 1]);
             i += 2;
@@ -2030,7 +2034,7 @@ static void printHelp()
     
     cout << tab << "-vhdl          --vhdl                   output vhdl file." << endl;
     cout << tab << "-vhdl-trace    --vhdl-trace             activate trace." << endl;
-    cout << tab << "-vhdl-type 0|1 --vhdl-type 0|1          sample format 0 = sfixed (default), 1 = float." << endl;
+    cout << tab << "-vhdl-float --vhdl-float          sample format 0 = sfixed (default), 1 = float." << endl;
     cout << tab << "-vhdl-msb <n>  --vhdl-msb <n>           Most Significant Bit (MSB) position." << endl;
     cout << tab << "-vhdl-lsb <n>  --vhdl-lsb <n>           Less Significant Bit (LSB) position." << endl;
     cout << tab << "-fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, used in -os2/-os3 mode." << endl;
