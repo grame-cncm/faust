@@ -20,7 +20,7 @@ public:
           std::string differentiableDSPPath,
           FAUSTFLOAT learningRate = 0.1f,
           FAUSTFLOAT sensitivity = 1e-7f,
-          int numIterations = 150);
+          int numIterations = 250);
 
     ~mldsp();
 

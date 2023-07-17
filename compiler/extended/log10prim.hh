@@ -102,4 +102,11 @@ class Log10Prim : public xtended {
 
         return subst("\\log_{10}\\left( $0 \\right)", args[0]);
     }
+    
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        // (log_10(x))' = 1/(x * ln(10))
+        // TODO: handle division by zero
+        return sigDiv(sigReal(1.0), sigMul(args[0], sigLog(sigReal(10.0))));
+    }
 };

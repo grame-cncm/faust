@@ -103,4 +103,11 @@ class LogPrim : public xtended {
 
         return subst("\\ln\\left( $0 \\right)", args[0]);
     }
+    
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        // (ln(x))' = 1/x
+        // TODO: handle division by zero
+        return sigDiv(sigReal(1.0), args[0]);
+    }
 };
