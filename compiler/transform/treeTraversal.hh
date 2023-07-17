@@ -52,7 +52,19 @@ class TreeTraversal : public Garbageable {
     
     std::map<Tree, int> fVisited;      // visiting counter
     
-    void self(Tree t);
+    virtual void self(Tree t) {
+        if (fTrace) traceEnter(t);
+        fIndent++;
+        // First visit
+        if (!fVisited.count(t)) {
+            fVisited[t] = 0;
+            visit(t);
+        }
+        // Keep visit counter
+        fVisited[t]++;
+        fIndent--;
+        if (fTrace) traceExit(t);
+    };
     void mapself(Tree lt);
 
     void trace(bool b) { fTrace = b; }
