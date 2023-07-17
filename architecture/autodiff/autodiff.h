@@ -45,7 +45,7 @@ private:
         DIFFERENTIATED = 2
     };
 
-    static constexpr int NUMBER_WIDTH{15}, LABEL_WIDTH{13}, PARAM_WIDTH{70};
+    static constexpr int NUMBER_WIDTH{15}, LABEL_WIDTH{13}, PARAM_WIDTH{11};
     const FAUSTFLOAT kAlpha, kEpsilon;
     const int kNumIterations;
 

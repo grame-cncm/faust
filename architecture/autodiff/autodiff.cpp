@@ -6,7 +6,8 @@
 #include "faust/misc.h"
 #include "faust/dsp/llvm-dsp.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     if (!isopt(argv, "--input") || !isopt(argv, "--gt") || !isopt(argv, "--diff")) {
         std::cout << "Please provide input, ground truth, and differentiable Faust files.\n";
         std::cout << argv[0] << " --input <file> --gt <file> --diff <file>\n";
@@ -15,7 +16,7 @@ int main(int argc, char *argv[]) {
     auto input{lopts(argv, "--input", "")};
     auto gt{lopts(argv, "--gt", "")};
     auto diff{lopts(argv, "--diff", "")};
-
+    
     mldsp mldsp{input, gt, diff};
     mldsp.initialise();
     mldsp.doGradientDescent();
@@ -32,19 +33,22 @@ mldsp::mldsp(std::string inputDSPPath,
         kNumIterations(numIterations),
         fInputDSPPath(inputDSPPath),
         fGroundTruthDSPPath(groundTruthDSPPath),
-        fDifferentiableDSPPath(differentiableDSPPath) {}
+        fDifferentiableDSPPath(differentiableDSPPath)
+{}
 
-mldsp::~mldsp() {
+mldsp::~mldsp()
+{
     fFile.close();
 }
 
-void mldsp::initialise() {
+void mldsp::initialise()
+{
     auto inputDSP{createDSPInstanceFromPath(fInputDSPPath)};
     auto fixedDSP{createDSPInstanceFromPath(fGroundTruthDSPPath)};
     auto adjustableDSP{createDSPInstanceFromPath(fDifferentiableDSPPath)};
     const char *argv[] = {"-diff"};
     auto differentiatedDSP{createDSPInstanceFromPath(fDifferentiableDSPPath, 1, argv)};
-
+    
     fDSP = std::make_unique<dsp_parallelizer>(
             // Set up the ground truth DSP: s_o(\hat{p})
             new dsp_sequencer(inputDSP->clone(), fixedDSP),
@@ -56,14 +60,14 @@ void mldsp::initialise() {
                     new dsp_sequencer(inputDSP->clone(), differentiatedDSP)
             )
     );
-
+    
     fUI = std::make_unique<MapUI>();
     fDSP->buildUserInterface(fUI.get());
-
+    
     // Allocate the audio driver
     fAudio = std::make_unique<dummyaudio>(48000, 1);
     fAudio->init("Dummy audio", fDSP.get());
-
+    
     // TODO: check that parameter has diff metadata.
     for (auto p{0}; p < fUI->getParamsCount(); ++p) {
         auto address{fUI->getParamAddress(p)};
@@ -71,31 +75,32 @@ void mldsp::initialise() {
     }
     fFile.open("loss.csv");
     fFile << "iteration,loss";
-    for (auto &lp: fLearnableParams) {
-        std::cout << "Learnable parameter: " << lp.first << ", value: " << lp.second.value << "\n";
+    for (auto &p: fLearnableParams) {
+        std::cout << "Learnable parameter: " << p.first << ", value: " << p.second.value << "\n";
         fFile << ",gradient,param";
     }
     fFile << "\n";
 }
 
-void mldsp::doGradientDescent() {
+void mldsp::doGradientDescent()
+{
     for (auto i{1}; i <= kNumIterations; ++i) {
         fAudio->render();
         auto out{fAudio->getOutput()};
-
+        
         for (int frame = 0; frame < fAudio->getBufferSize(); frame++) {
             computeLoss(out, frame);
-
+            
             if (fLoss > kEpsilon) {
                 computeGradient(out, frame);
-
+                
                 // Update parameter values.
                 for (auto &p: fLearnableParams) {
                     p.second.value -= kAlpha * p.second.gradient;
                     fUI->setParamValue(p.first, p.second.value);
                 }
             }
-
+            
             reportState(i, out, frame);
         }
     }
@@ -104,7 +109,8 @@ void mldsp::doGradientDescent() {
 dsp *mldsp::createDSPInstanceFromString(
         const std::string &appName,
         const std::string &dspContent
-) {
+)
+{
     std::string errorMessage;
     auto factory{createDSPFactoryFromString(appName, dspContent, 0, nullptr, "", errorMessage)};
     if (!factory) {
@@ -115,7 +121,8 @@ dsp *mldsp::createDSPInstanceFromString(
 }
 
 dsp *mldsp::createDSPInstanceFromPath(const std::string &path,
-                                      int argc, const char *argv[]) {
+                                      int argc, const char *argv[])
+{
     std::string errorMessage;
     std::cout << "Creating DSP from file " << path << "\n";
     auto factory{createDSPFactoryFromFile(path, argc, argv, "", errorMessage)};
@@ -127,7 +134,8 @@ dsp *mldsp::createDSPInstanceFromPath(const std::string &path,
     return factory->createDSPInstance();
 }
 
-void mldsp::computeLoss(FAUSTFLOAT **output, int frame) {
+void mldsp::computeLoss(FAUSTFLOAT **output, int frame)
+{
     switch (fLossFunction) {
         case L1_NORM:
             fLoss = fabsf(output[OutputChannel::LEARNABLE][frame] - output[OutputChannel::GROUND_TRUTH][frame]);
@@ -140,7 +148,8 @@ void mldsp::computeLoss(FAUSTFLOAT **output, int frame) {
     }
 }
 
-void mldsp::computeGradient(FAUSTFLOAT **output, int frame) {
+void mldsp::computeGradient(FAUSTFLOAT **output, int frame)
+{
     // Set up an index to target the appropriate output channel to use for gradient descent for a
     // given differentiable parameter.
     auto k{0};
@@ -151,7 +160,8 @@ void mldsp::computeGradient(FAUSTFLOAT **output, int frame) {
     }
 }
 
-void mldsp::reportState(int iteration, FAUSTFLOAT **output, int frame) {
+void mldsp::reportState(int iteration, FAUSTFLOAT **output, int frame)
+{
     std::cout << std::fixed << std::setprecision(10) <<
               std::setw(5) << iteration <<
               std::setw(LABEL_WIDTH) << "Sig GT: " <<
@@ -160,22 +170,23 @@ void mldsp::reportState(int iteration, FAUSTFLOAT **output, int frame) {
               std::setw(NUMBER_WIDTH) << output[OutputChannel::LEARNABLE][frame] <<
               std::setw(LABEL_WIDTH) << "Loss: " <<
               std::setw(NUMBER_WIDTH) << fLoss;
-
+    
     fFile << iteration << "," << fLoss;
-
+    
     if (fLoss > kEpsilon) {
         auto k{0};
         for (auto &p: fLearnableParams) {
-            std::cout << "\n" << std::setw(PARAM_WIDTH) << p.first <<
+            std::cout << "\n" << std::setw(5) << "." <<
+                      std::setw(PARAM_WIDTH) << fUI->getParamShortname(k) << ":" <<
                       std::setw(LABEL_WIDTH) << "ds/dp: " <<
                       std::setw(NUMBER_WIDTH) << output[OutputChannel::DIFFERENTIATED + k][frame] <<
                       std::setw(LABEL_WIDTH) << "Grad: " <<
                       std::setw(NUMBER_WIDTH) << p.second.gradient <<
                       std::setw(LABEL_WIDTH) << "Value: " <<
                       std::setw(NUMBER_WIDTH) << p.second.value;
-
+            
             fFile << "," << p.second.gradient << "," << p.second.value;
-
+            
             ++k;
         }
     } else {
@@ -183,7 +194,7 @@ void mldsp::reportState(int iteration, FAUSTFLOAT **output, int frame) {
             fFile << ",,";
         }
     }
-
+    
     std::cout << "\n";
     fFile << "\n";
 }

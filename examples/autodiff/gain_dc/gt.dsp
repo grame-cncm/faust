@@ -1,5 +1,3 @@
-import("stdfaust.lib");
-
 gain = .75;
 dc = -.15;
 
