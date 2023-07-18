@@ -482,7 +482,7 @@ void global::reset()
     gNamespace            = "";
     gFullParentheses      = false;
     gCheckIntRange        = false;
-    gReprC                = false;
+    gReprC                = true;
 
     gNarrowingLimit = 0;
     gWideningLimit  = 0;
@@ -1391,8 +1391,8 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-cir", "--check-integer-range")) {
             gCheckIntRange = true;
             i += 1;
-        } else if (isCmd(argv[i], "-cabi", "-reprc")) {
-            gReprC = true;
+        } else if (isCmd(argv[i], "-noreprc", "--no-reprc")) {
+            gReprC = false;
             i += 1;
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i + 1 < argc)) {
             if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
@@ -2019,7 +2019,7 @@ static void printHelp()
          << "-mapp       --math-approximation        simpler/faster versions of 'floor/ceil/fmod/remainder' functions."
          << endl;
     cout << tab
-         << "-cabi       -reprc                      (Rust) Force dsp struct layout to follow C ABI."
+         << "-noreprc    --no-reprc                  (Rust only) Don't force dsp struct layout to follow C ABI."
          << endl;
     cout << tab << "-ns <name>  --namespace <name>          generate C++ or D code in a namespace <name>." << endl;
     
