@@ -36,11 +36,11 @@ using namespace std;
 /*
  Codebox backend description:
 
- - variable identifiers cannot end by a number, so add a "_cb" suffix.
- - all init code is done in 'dspsetup', call when audio start or SR changes
+ - variable identifiers cannot end by a number, so add a "_cb" suffix
+ - all init code is done in 'dspsetup', call when audio start or in case of SR change
  - gOneSampleControl mode is used, 'control' is generated as well as 'update'
  which call 'control' only when needed (that is when as least one parameter changes)
- - 'compute' returns the list of outputs
+ - 'compute' returns the list of audio outputs
  */
 
 map<string, bool> CodeboxInstVisitor::gFunctionSymbolTable;
@@ -110,8 +110,20 @@ void CodeboxCodeContainer::produceClass()
     *fOut << stream.str();
     tab(n, *fOut);
     
-    // Functions
-       
+    // Additional functions'
+    *fOut << "// Additional functions";
+    tab(n, *fOut);
+    // Emulates the missing rint : https://en.wikipedia.org/wiki/Rounding#Round_half_to_even
+    *fOut << "function faust_rint(x) {\n";
+    *fOut << "\t let i : Int = trunc(x);";
+    *fOut << "\t let f  : number = x - i; \n";
+    *fOut << "\t let odd : Int = abs(i % 2) >= 1; \n";
+    *fOut << "\t let even : Int = odd == 0; \n";
+    *fOut << "\t let a : number = (x > 0) * (((f > 0.5) * even) + ((f >= 0.5) * odd)); \n";
+    *fOut << "\t let b : number = (x < 0) * (((f < -0.5) * even) + ((f <= -0.5) * odd)); \n";
+    *fOut << "\t return i + (a - b); \n";
+    *fOut<< "} \n";
+    
     // Params
     *fOut << "// Params";
     tab(n, *fOut);

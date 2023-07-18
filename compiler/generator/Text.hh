@@ -278,7 +278,7 @@ inline bool ispowerof2(int x)
     return x && (!(x&(x-1)));
 }
 
-    // To check all UI control fields in the DSP structure
+// To check all UI control fields in the DSP structure
 inline bool isUIControl(const std::string& name)
 {
     return startWith(name, "fButton") || startWith(name, "fCheckbox")

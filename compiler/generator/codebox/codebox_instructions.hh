@@ -159,7 +159,7 @@ struct CodeboxParamsVisitor : public ShortnameInstVisitor {
     virtual void visit(AddButtonInst* inst) override
     {
         if (hasShortname()) {
-            *fOut << "@param({min: 0., max: 1., step: 1}) " << buildShortname(inst->fLabel) << " = 0.";
+            *fOut << "@param({min: 0., max: 1., step: 1}) " << buildShortname(inst->fLabel) << " = 0.;";
             tab(fTab, *fOut);
         } else {
             ShortnameInstVisitor::visit(inst);
@@ -171,7 +171,7 @@ struct CodeboxParamsVisitor : public ShortnameInstVisitor {
         if (hasShortname()) {
             *fOut << "@param({min: " << checkReal(inst->fMin) << ", max: "
             << checkReal(inst->fMax) << ", step: " << checkReal(inst->fStep) << "}) "
-            << buildShortname(inst->fLabel) << " = " << checkReal(inst->fInit);
+            << buildShortname(inst->fLabel) << " = " << checkReal(inst->fInit) << ";";
             tab(fTab, *fOut);
         } else {
             ShortnameInstVisitor::visit(inst);
@@ -323,13 +323,15 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["exp2f"]      = "exp2";
         gPolyMathLibTable["exp10f"]     = "exp10";
         gPolyMathLibTable["floorf"]     = "floor";
-        gPolyMathLibTable["fmodf"]      = "fmod";
+        // fmodf is not there
+        gPolyMathLibTable["fmodf"]      = "safemod";
         gPolyMathLibTable["logf"]       = "log";
         gPolyMathLibTable["log2f"]      = "log2";
         gPolyMathLibTable["log10f"]     = "log10";
         gPolyMathLibTable["powf"]       = "pow";
         gPolyMathLibTable["remainderf"] = "remainder";
-        gPolyMathLibTable["rintf"]      = "rint";
+        // Emulate the missing 'rint'
+        gPolyMathLibTable["rintf"]      = "faust_rint";
         gPolyMathLibTable["roundf"]     = "round";
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sqrtf"]      = "sqrt";
@@ -362,13 +364,15 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["exp2"]      = "exp2";
         gPolyMathLibTable["exp10"]     = "exp10";
         gPolyMathLibTable["floor"]     = "floor";
-        gPolyMathLibTable["fmod"]      = "fmod";
+        // fmod is not there
+        gPolyMathLibTable["fmod"]      = "safemod";
         gPolyMathLibTable["log"]       = "log";
         gPolyMathLibTable["log2"]      = "log2";
         gPolyMathLibTable["log10"]     = "log10";
         gPolyMathLibTable["pow"]       = "pow";
         gPolyMathLibTable["remainder"] = "remainder";
-        gPolyMathLibTable["rint"]      = "rint";
+        // Emulate the missing 'rint'
+        gPolyMathLibTable["rint"]      = "faust_rint";
         gPolyMathLibTable["round"]     = "round";
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sqrt"]      = "sqrt";
@@ -467,7 +471,9 @@ class CodeboxInstVisitor : public TextInstVisitor {
     virtual void visit(::CastInst* inst)
     {
         if (isIntType(inst->fType->getType())) {
-            *fOut << "int(";
+            // int(X) is incorrectly using floor in the generated code
+            // *fOut << "int(";
+            *fOut << "trunc(";
             inst->fInst->accept(this);
             *fOut << ")";
         } else {

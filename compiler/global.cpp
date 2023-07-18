@@ -667,7 +667,7 @@ void global::init()
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 
-    // Foreign math functions supported by the Interp, Cmajor, wasm/wast backends
+    // Foreign math functions supported by the Interp, Cmajor, codebox, wasm/wast backends
     gMathForeignFunctions["acoshf"] = true;
     gMathForeignFunctions["acosh"]  = true;
     gMathForeignFunctions["acoshl"] = true;
@@ -873,10 +873,18 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
     bool is_linkable = false;
 #endif
     bool internal_math_ff =
-        ((gOutputLang == "llvm") || startWith(gOutputLang, "wast") || startWith(gOutputLang, "wasm") ||
-         (gOutputLang == "interp") || startWith(gOutputLang, "cmajor") || (gOutputLang == "dlang") ||
-         (gOutputLang == "csharp") || (gOutputLang == "rust") || (gOutputLang == "julia") || (gOutputLang == "jsfx") ||
-         (gOutputLang == "jax"));
+        ((gOutputLang == "llvm")
+         || startWith(gOutputLang, "wast")
+         || startWith(gOutputLang, "wasm")
+         || (gOutputLang == "interp")
+         || startWith(gOutputLang, "cmajor")
+         || startWith(gOutputLang, "codebox")
+         || (gOutputLang == "dlang")
+         || (gOutputLang == "csharp")
+         || (gOutputLang == "rust")
+         || (gOutputLang == "julia")
+         || (gOutputLang == "jsfx")
+         || (gOutputLang == "jax"));
 
     return (internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) || is_linkable;
 }
