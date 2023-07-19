@@ -55,6 +55,7 @@
 #define DIV_BY_ZERO_REAL    -2
 #define DIV_BY_ZERO_INT     -3
 #define CAST_INT_OVERFLOW   -4
+#define NEGATIVE_BITSHIFT   -5
 #define DUMMY_REAL          0.12233344445555
 #define DUMMY_INT           1223334444
 
@@ -191,6 +192,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 std::cout << "DIV_BY_ZERO_REAL: " << fRealStats[DIV_BY_ZERO_REAL] << std::endl;
                 std::cout << "DIV_BY_ZERO_INT: " << fRealStats[DIV_BY_ZERO_INT] << std::endl;
                 std::cout << "CAST_INT_OVERFLOW: " << fRealStats[CAST_INT_OVERFLOW] << std::endl;
+                std::cout << "NEGATIVE_BITSHIFT: " << fRealStats[NEGATIVE_BITSHIFT] << std::endl;
             }
             std::cout << "-------------------------------" << std::endl;
         }
@@ -210,6 +212,24 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter 'Overflow' warning trace end --------\n\n";
         }
+    }
+    
+    inline int warningBitshift(InstructionIT it, int val)
+    {
+        if (val < 0) {
+            
+            if (TRACE >= 3) {
+                fRealStats[NEGATIVE_BITSHIFT]++;
+            }
+            
+            if (TRACE >= 4) {
+                std::cout << "-------- Interpreter 'Bitshift' warning trace start --------" << std::endl;
+                traceInstruction(it);
+                fTraceContext.write(&std::cout);
+                std::cout << "-------- Interpreter 'Bitshift' warning trace end --------\n\n";
+            }
+        }
+        return val;
     }
     
     inline REAL checkCastIntOverflow(InstructionIT it, REAL val)
@@ -1095,14 +1115,22 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 case FBCInstruction::kLshInt: {
                     int v1 = popInt();
                     int v2 = popInt();
-                    pushInt(v1 << v2);
+                    if (TRACE > 0) {
+                        pushInt(v1 << warningBitshift(it, v2));
+                    } else {
+                        pushInt(v1 << v2);
+                    }
                     dispatchNextScal();
                 }
                 
                 case FBCInstruction::kARshInt: {
                     int v1 = popInt();
                     int v2 = popInt();
-                    pushInt(v1 >> v2);
+                    if (TRACE > 0) {
+                        pushInt(v1 >> warningBitshift(it, v2));
+                    } else {
+                        pushInt(v1 >> v2);
+                    }
                     dispatchNextScal();
                 }
                 
@@ -1110,7 +1138,11 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     // TODO
                     int v1 = popInt();
                     int v2 = popInt();
-                    pushInt(v1 >> v2);
+                    if (TRACE > 0) {
+                        pushInt(v1 >> warningBitshift(it, v2));
+                    } else {
+                        pushInt(v1 >> v2);
+                    }
                     dispatchNextScal();
                 }
                     
@@ -1278,18 +1310,29 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     
                 // Shift operation
                 case FBCInstruction::kLshIntHeap: {
-                    pushInt(fIntHeap[(*it)->fOffset1] << fIntHeap[(*it)->fOffset2]);
+                    if (TRACE > 0) {
+                        pushInt(fIntHeap[(*it)->fOffset1] << warningBitshift(it, fIntHeap[(*it)->fOffset2]));
+                    } else {
+                        pushInt(fIntHeap[(*it)->fOffset1] << fIntHeap[(*it)->fOffset2]);
+                    }
                     dispatchNextScal();
                 }
                     
                 case FBCInstruction::kARshIntHeap: {
-                    pushInt(fIntHeap[(*it)->fOffset1] >> fIntHeap[(*it)->fOffset2]);
+                    if (TRACE > 0) {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, fIntHeap[(*it)->fOffset2]));
+                    } else {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> fIntHeap[(*it)->fOffset2]);
+                    }
                     dispatchNextScal();
                 }
                     
                 case FBCInstruction::kLRshIntHeap: {
-                    // TODO
-                    pushInt(fIntHeap[(*it)->fOffset1] >> fIntHeap[(*it)->fOffset2]);
+                    if (TRACE > 0) {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, fIntHeap[(*it)->fOffset2]));
+                    } else {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> fIntHeap[(*it)->fOffset2]);
+                    }
                     dispatchNextScal();
                 }
                     
@@ -1438,20 +1481,31 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 // Shift operation
                 case FBCInstruction::kLshIntStack: {
                     int v1 = popInt();
-                    pushInt(fIntHeap[(*it)->fOffset1] << v1);
+                    if (TRACE > 0) {
+                        pushInt(fIntHeap[(*it)->fOffset1] << warningBitshift(it, v1));
+                    } else {
+                        pushInt(fIntHeap[(*it)->fOffset1] << v1);
+                    }
                     dispatchNextScal();
                 }
                     
                 case FBCInstruction::kARshIntStack: {
                     int v1 = popInt();
-                    pushInt(fIntHeap[(*it)->fOffset1] >> v1);
+                    if (TRACE > 0) {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, v1));
+                    } else {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> v1);
+                    }
                     dispatchNextScal();
                 }
                     
                 case FBCInstruction::kLRshIntStack: {
-                    // TODO
                     int v1 = popInt();
-                    pushInt(fIntHeap[(*it)->fOffset1] >> v1);
+                    if (TRACE > 0) {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, v1));
+                    } else {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> v1);
+                    }
                     dispatchNextScal();
                 }
                     
@@ -1615,20 +1669,31 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 // Shift operation
                 case FBCInstruction::kLshIntStackValue: {
                     int v1 = popInt();
-                    pushInt((*it)->fIntValue << v1);
+                    if (TRACE > 0) {
+                        pushInt((*it)->fIntValue << warningBitshift(it, v1));
+                    } else {
+                        pushInt((*it)->fIntValue << v1);
+                    }
                     dispatchNextScal();
                 }
                     
                 case FBCInstruction::kARshIntStackValue: {
                     int v1 = popInt();
-                    pushInt((*it)->fIntValue >> v1);
+                    if (TRACE > 0) {
+                        pushInt((*it)->fIntValue >> warningBitshift(it, v1));
+                    } else {
+                        pushInt((*it)->fIntValue >> v1);
+                    }
                     dispatchNextScal();
                 }
                     
                 case FBCInstruction::kLRshIntStackValue: {
-                    // TODO
                     int v1 = popInt();
-                    pushInt((*it)->fIntValue >> v1);
+                    if (TRACE > 0) {
+                        pushInt((*it)->fIntValue >> warningBitshift(it, v1));
+                    } else {
+                        pushInt((*it)->fIntValue >> v1);
+                    }
                     dispatchNextScal();
                 }
                     
@@ -1781,18 +1846,29 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     
                 // Shift operation
                 case FBCInstruction::kLshIntValue: {
-                    pushInt((*it)->fIntValue << fIntHeap[(*it)->fOffset1]);
+                    if (TRACE > 0) {
+                        pushInt((*it)->fIntValue << warningBitshift(it, fIntHeap[(*it)->fOffset1]));
+                    } else {
+                        pushInt((*it)->fIntValue << fIntHeap[(*it)->fOffset1]);
+                    }
                     dispatchNextScal();
                 }
                     
                 case FBCInstruction::kARshIntValue: {
-                    pushInt((*it)->fIntValue >> fIntHeap[(*it)->fOffset1]);
+                    if (TRACE > 0) {
+                        pushInt((*it)->fIntValue >> warningBitshift(it, fIntHeap[(*it)->fOffset1]));
+                    } else {
+                        pushInt((*it)->fIntValue >> fIntHeap[(*it)->fOffset1]);
+                    }
                     dispatchNextScal();
                 }
                     
                 case FBCInstruction::kLRshIntValue: {
-                    // TODO
-                    pushInt((*it)->fIntValue >> fIntHeap[(*it)->fOffset1]);
+                    if (TRACE > 0) {
+                        pushInt((*it)->fIntValue >> warningBitshift(it, fIntHeap[(*it)->fOffset1]));
+                    } else {
+                        pushInt((*it)->fIntValue >> fIntHeap[(*it)->fOffset1]);
+                    }
                     dispatchNextScal();
                 }
                     
@@ -1911,18 +1987,29 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     
                 // Shift operation
                 case FBCInstruction::kLshIntValueInvert: {
-                    pushInt(fIntHeap[(*it)->fOffset1] << (*it)->fIntValue);
+                    if (TRACE > 0) {
+                        pushInt(fIntHeap[(*it)->fOffset1] << warningBitshift(it, (*it)->fIntValue));
+                    } else {
+                        pushInt(fIntHeap[(*it)->fOffset1] << (*it)->fIntValue);
+                    }
                     dispatchNextScal();
                 }
                     
                 case FBCInstruction::kARshIntValueInvert: {
-                    pushInt(fIntHeap[(*it)->fOffset1] >> (*it)->fIntValue);
+                    if (TRACE > 0) {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, (*it)->fIntValue));
+                    } else {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> (*it)->fIntValue);
+                    }
                     dispatchNextScal();
                 }
                     
                 case FBCInstruction::kLRshIntValueInvert: {
-                    // TODO
-                    pushInt(fIntHeap[(*it)->fOffset1] >> (*it)->fIntValue);
+                    if (TRACE > 0) {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, (*it)->fIntValue));
+                    } else {
+                        pushInt(fIntHeap[(*it)->fOffset1] >> (*it)->fIntValue);
+                    }
                     dispatchNextScal();
                 }
                     
@@ -3135,14 +3222,22 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     do_kLshInt: {
         int v1 = popInt();
         int v2 = popInt();
-        pushInt(v1 << v2);
+        if (TRACE > 0) {
+            pushInt(v1 << warningBitshift(it, v2));
+        } else {
+            pushInt(v1 << v2);
+        }
         dispatchNextScal();
     }
 
     do_kARshInt: {
         int v1 = popInt();
         int v2 = popInt();
-        pushInt(v1 >> v2);
+        if (TRACE > 0) {
+            pushInt(v1 >> warningBitshift(it, v2));
+        } else {
+            pushInt(v1 >> v2);
+        }
         dispatchNextScal();
     }
     
@@ -3150,7 +3245,11 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         // TODO
         int v1 = popInt();
         int v2 = popInt();
-        pushInt(v1 >> v2);
+        if (TRACE > 0) {
+            pushInt(v1 >> warningBitshift(it, v2));
+        } else {
+            pushInt(v1 >> v2);
+        }
         dispatchNextScal();
     }
 
@@ -3318,18 +3417,29 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     // Shift operation
     do_kLshIntHeap: {
-        pushInt(fIntHeap[(*it)->fOffset1] << fIntHeap[(*it)->fOffset2]);
+        if (TRACE > 0) {
+            pushInt(fIntHeap[(*it)->fOffset1] << warningBitshift(it, fIntHeap[(*it)->fOffset2]));
+        } else {
+            pushInt(fIntHeap[(*it)->fOffset1] << fIntHeap[(*it)->fOffset2]);
+        }
         dispatchNextScal();
     }
 
     do_kARshIntHeap: {
-        pushInt(fIntHeap[(*it)->fOffset1] >> fIntHeap[(*it)->fOffset2]);
+        if (TRACE > 0) {
+            pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, fIntHeap[(*it)->fOffset2]));
+        } else {
+            pushInt(fIntHeap[(*it)->fOffset1] >> fIntHeap[(*it)->fOffset2]);
+        }
         dispatchNextScal();
     }
         
     do_kLRshIntHeap: {
-        // TODO
-        pushInt(fIntHeap[(*it)->fOffset1] >> fIntHeap[(*it)->fOffset2]);
+        if (TRACE > 0) {
+            pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, fIntHeap[(*it)->fOffset2]));
+        } else {
+            pushInt(fIntHeap[(*it)->fOffset1] >> fIntHeap[(*it)->fOffset2]);
+        }
         dispatchNextScal();
     }
 
@@ -3478,20 +3588,32 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     // Shift operation
     do_kLshIntStack: {
         int v1 = popInt();
-        pushInt(fIntHeap[(*it)->fOffset1] << v1);
+        if (TRACE > 0) {
+            pushInt(fIntHeap[(*it)->fOffset1] << warningBitshift(it, v1));
+        } else {
+            pushInt(fIntHeap[(*it)->fOffset1] << v1);
+        }
         dispatchNextScal();
     }
 
     do_kARshIntStack: {
         int v1 = popInt();
-        pushInt(fIntHeap[(*it)->fOffset1] >> v1);
+        if (TRACE > 0) {
+            pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, v1));
+        } else {
+            pushInt(fIntHeap[(*it)->fOffset1] >> v1);
+        }
         dispatchNextScal();
     }
         
     do_kLRshIntStack: {
         // TODO
         int v1 = popInt();
-        pushInt(fIntHeap[(*it)->fOffset1] >> v1);
+        if (TRACE > 0) {
+            pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, v1));
+        } else {
+            pushInt(fIntHeap[(*it)->fOffset1] >> v1);
+        }
         dispatchNextScal();
     }
 
@@ -3655,20 +3777,31 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     // Shift operation
     do_kLshIntStackValue: {
         int v1 = popInt();
-        pushInt((*it)->fIntValue << v1);
+        if (TRACE > 0) {
+            pushInt((*it)->fIntValue << warningBitshift(it, v1));
+        } else {
+            pushInt((*it)->fIntValue << v1);
+        }
         dispatchNextScal();
     }
 
     do_kARshIntStackValue: {
         int v1 = popInt();
-        pushInt((*it)->fIntValue >> v1);
+        if (TRACE > 0) {
+            pushInt((*it)->fIntValue >> warningBitshift(it, v1));
+        } else {
+            pushInt((*it)->fIntValue >> v1);
+        }
         dispatchNextScal();
     }
         
     do_kLRshIntStackValue: {
-        // TODO
         int v1 = popInt();
-        pushInt((*it)->fIntValue >> v1);
+        if (TRACE > 0) {
+            pushInt((*it)->fIntValue >> warningBitshift(it, v1));
+        } else {
+            pushInt((*it)->fIntValue >> v1);
+        }
         dispatchNextScal();
     }
 
@@ -3821,18 +3954,29 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     // Shift operation
     do_kLshIntValue: {
-        pushInt((*it)->fIntValue << fIntHeap[(*it)->fOffset1]);
+        if (TRACE > 0) {
+            pushInt((*it)->fIntValue << warningBitshift(it, fIntHeap[(*it)->fOffset1]));
+        } else {
+            pushInt((*it)->fIntValue << fIntHeap[(*it)->fOffset1]);
+        }
         dispatchNextScal();
     }
 
     do_kARshIntValue: {
-        pushInt((*it)->fIntValue >> fIntHeap[(*it)->fOffset1]);
+        if (TRACE > 0) {
+            pushInt((*it)->fIntValue >> warningBitshift(it, fIntHeap[(*it)->fOffset1]));
+        } else {
+            pushInt((*it)->fIntValue >> fIntHeap[(*it)->fOffset1]);
+        }
         dispatchNextScal();
     }
         
     do_kLRshIntValue: {
-        // TODO
-        pushInt((*it)->fIntValue >> fIntHeap[(*it)->fOffset1]);
+        if (TRACE > 0) {
+            pushInt((*it)->fIntValue >> warningBitshift(it, fIntHeap[(*it)->fOffset1]));
+        } else {
+            pushInt((*it)->fIntValue >> fIntHeap[(*it)->fOffset1]);
+        }
         dispatchNextScal();
     }
 
@@ -3951,18 +4095,29 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     // Shift operation
     do_kLshIntValueInvert: {
-        pushInt(fIntHeap[(*it)->fOffset1] << (*it)->fIntValue);
+        if (TRACE > 0) {
+            pushInt(fIntHeap[(*it)->fOffset1] << warningBitshift(it, (*it)->fIntValue));
+        } else {
+            pushInt(fIntHeap[(*it)->fOffset1] << (*it)->fIntValue);
+        }
         dispatchNextScal();
     }
 
     do_kARshIntValueInvert: {
-        pushInt(fIntHeap[(*it)->fOffset1] >> (*it)->fIntValue);
+        if (TRACE > 0) {
+            pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, (*it)->fIntValue));
+        } else {
+            pushInt(fIntHeap[(*it)->fOffset1] >> (*it)->fIntValue);
+        }
         dispatchNextScal();
     }
         
     do_kLRshIntValueInvert: {
-        // TODO
-        pushInt(fIntHeap[(*it)->fOffset1] >> (*it)->fIntValue);
+        if (TRACE > 0) {
+            pushInt(fIntHeap[(*it)->fOffset1] >> warningBitshift(it, (*it)->fIntValue));
+        } else {
+            pushInt(fIntHeap[(*it)->fOffset1] >> (*it)->fIntValue);
+        }
         dispatchNextScal();
     }
 
@@ -4680,6 +4835,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         fRealStats[FP_NAN]            = 0;
         fRealStats[FP_SUBNORMAL]      = 0;
         fRealStats[CAST_INT_OVERFLOW] = 0;
+        fRealStats[NEGATIVE_BITSHIFT] = 0;
     }
 
     virtual ~FBCInterpreter()

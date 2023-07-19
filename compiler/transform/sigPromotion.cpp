@@ -296,7 +296,7 @@ Tree SignalPromotion::transformation(Tree sig)
                 interval j1 = ty->getInterval();
                 if (i1.isValid() && j1.isValid() && gGlobal->gMathExceptions && j1.hasZero()) {
                     stringstream error;
-                    error << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")";
+                    error << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")" << endl;
                     gWarningMessages.push_back(error.str());
                 }
                 // the result of a division is always a float
@@ -306,11 +306,21 @@ Tree SignalPromotion::transformation(Tree sig)
             case kAND:
             case kOR:
             case kXOR:
-            case kLsh:
-            case kARsh:
-            case kLRsh:
                 // these operations require integers
                 return sigBinOp(op, smartIntCast(tx, self(x)), smartIntCast(ty, self(y)));
+            case kLsh:
+            case kARsh:
+            case kLRsh: {
+                interval i1 = ty->getInterval();
+                // check bitwise arguments
+                if (i1.isValid() && gGlobal->gMathExceptions && i1.lo() < 0) {
+                    stringstream error;
+                    error << "WARNING : bit shift operation with negative argument (" << i1 << ") in " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+                    gWarningMessages.push_back(error.str());
+                }
+                // these operations require integers
+                return sigBinOp(op, smartIntCast(tx, self(x)), smartIntCast(ty, self(y)));
+            }
 
             default:
                 return sigBinOp(op, self(x), self(y));
@@ -502,7 +512,7 @@ Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size_aux, Tree 
         if (gAllWarning) {
             stringstream error;
             error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi() << "] is outside of table size ("
-                  << size << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
+                  << size << ") in " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             gWarningMessages.push_back(error.str());
         }
         return sigRDTbl(self(tbl), sigMax(sigInt(0), sigMin(self(ri), sigInt(size-1))));
@@ -532,7 +542,7 @@ Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree size_aux, Tree gen, Tree 
         if (gAllWarning) {
             stringstream error;
             error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi() << "] is outside of table size ("
-                  << size << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
+                  << size << ") in " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             gWarningMessages.push_back(error.str());
         }
         return sigWRTbl(self(size_aux), self(gen), sigMax(sigInt(0), sigMin(self(wi), sigInt(size-1))), self(ws));
@@ -570,7 +580,7 @@ Tree SignalIntCastPromotion::transformation(Tree sig)
             if (gAllWarning) {
                 stringstream error;
                 error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi()
-                      << "] is outside of integer range in " << ppsig(sig, MAX_ERROR_SIZE);
+                      << "] is outside of integer range in " << ppsig(sig, MAX_ERROR_SIZE) << endl;
                 gWarningMessages.push_back(error.str());
             }
             return sigIntCast(sigMin(sigReal(INT32_MAX), sigMax(x, sigReal(INT32_MIN))));

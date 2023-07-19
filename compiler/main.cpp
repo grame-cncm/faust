@@ -54,7 +54,7 @@ int main(int argc, const char* argv[])
             }
             cerr << endl << "===== Warnings ======" << endl;
             for (const auto& it : warnings_set) {
-                cerr << it << endl;
+                cerr << it;
             }
             cerr << "=====================" << endl;
         }
