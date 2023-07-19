@@ -29,7 +29,6 @@
 /**
  * makeSigInputList : create a list of input signals
  */
-
 siglist makeSigInputList(int n);
 
 /**
@@ -37,9 +36,8 @@ siglist makeSigInputList(int n);
  *
  * Propagate a list of signals into a block-diagram. For example to
  * compute the list of outputs of a block-diagram with n inputs, do:
- * Tree lsig = boxPropagateSig(box, makeSigInputList(n));
+ * Tree lsig = boxPropagateSig(path, box, makeSigInputList(n));
  */
-
 Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig);
 
 /**

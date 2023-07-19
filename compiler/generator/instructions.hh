@@ -490,6 +490,7 @@ struct BasicTyped : public Typed {
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+  
 };
 
 struct NamedTyped : public Typed {
@@ -663,6 +664,7 @@ struct Address : public Printable {
     bool isStack() { return getAccess() & kStack; }
     bool isLoop() { return getAccess() & kLoop; }
     bool isStruct() { return getAccess() & kStruct; }
+    bool isStaticStruct() { return getAccess() & kStaticStruct; }
     bool isFunArgs() { return getAccess() & kFunArgs; }
     bool isVolatile() { return getAccess() & kVolatile; }
 
@@ -934,8 +936,9 @@ struct DeclareBufferIterators : public StatementInst {
     int         fChannels;
     Typed*      fType;
     bool        fMutable;
+    bool fChunk;
 
-    DeclareBufferIterators(const std::string& name1, const std::string& name2, int channels, Typed* type, bool mut);
+    DeclareBufferIterators(const std::string& name1, const std::string& name2, int channels, Typed* type, bool mut, bool chunk);
     
     virtual ~DeclareBufferIterators() {}
 
@@ -1484,7 +1487,7 @@ class BasicCloneVisitor : public CloneVisitor {
     }
     virtual StatementInst* visit(DeclareBufferIterators* inst)
     {
-        return new DeclareBufferIterators(inst->fBufferName1, inst->fBufferName2, inst->fChannels, inst->fType, inst->fMutable);
+        return new DeclareBufferIterators(inst->fBufferName1, inst->fBufferName2, inst->fChannels, inst->fType, inst->fMutable, inst->fChunk);
     }
 
     // Memory
@@ -2079,9 +2082,9 @@ struct InstBuilder {
         return new DeclareStructTypeInst(type);
     }
 
-    static DeclareBufferIterators* genDeclareBufferIterators(const std::string& name1, const std::string& name2, int channels, Typed* type, bool mut)
+    static DeclareBufferIterators* genDeclareBufferIterators(const std::string& name1, const std::string& name2, int channels, Typed* type, bool mut, bool chunk = false)
     {
-        return new DeclareBufferIterators(name1, name2, channels, type, mut);
+        return new DeclareBufferIterators(name1, name2, channels, type, mut, chunk);
     }
 
     // Memory

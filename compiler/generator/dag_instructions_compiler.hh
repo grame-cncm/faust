@@ -30,9 +30,11 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
 
     virtual void compileMultiSignal(Tree sig);
 
-   private:
+   protected:
     // reimplemented code generation methods
     virtual ValueInst* CS(Tree sig);
+
+   private:
     virtual ValueInst* generateCode(Tree sig);
     virtual void       generateCodeRecursions(Tree sig);
     virtual ValueInst* generateCodeNonRec(Tree sig);
@@ -50,7 +52,8 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     virtual ValueInst* generateInput(Tree sig, int idx);
 
     virtual ValueInst* generateDelay(Tree sig, Tree arg, Tree size);
-    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd);
+    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const std::string& vname,
+                                        int mxd);
     virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd,
                                          Address::AccessType& access, ValueInst* ccs);
 

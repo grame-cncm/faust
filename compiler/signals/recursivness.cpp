@@ -35,8 +35,8 @@ using namespace std;
 
 /**
  * @file recursivness.cpp
- * Annotate a signal expression with recursivness information. Recursiveness
- * indicates the amount of recursive dependencies of a signal. A closed signal
+ * Annotate a signal expression with recursivness information, the amount of
+ * recursive dependencies of a signal. A closed signal
  * has a recursivness of 0 because is has no recursive dependencies. This means
  * that the successive samples of this signal can be computed in parallel.
  * In a signal of type \x.(...F(x)...), F(x) has a recursivness of 1. In a
@@ -168,7 +168,6 @@ static Tree symlistVisit(Tree sig, set<Tree>& visited)
  * @param sig the signal to analyze
  * @return the set of symbols
  */
-
 Tree symlist(Tree sig)
 {
     Tree S;

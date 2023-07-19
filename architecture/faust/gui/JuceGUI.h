@@ -1592,8 +1592,10 @@ public:
      * \brief   Constructor.
      * \details Initalize the juce::TabbedComponent tabs to be at top, and the uiTabBox size at 0
      */
-    uiTabBox():uiBase(),juce::TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
-    {}
+    uiTabBox(juce::String label):uiBase(),juce::TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
+    {
+        setName(label);
+    }
     
     /**
      * Initialize all his child ratios (1 uiBox per tabs), the LookAndFeel
@@ -1942,7 +1944,7 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
         /** Initialize the uiTabBox component to be visible. */
         virtual void openTabBox(const char* label) override
         {
-            openBox(new uiTabBox());
+            openBox(new uiTabBox(juce::String(label)));
         }
         
         /** Add a new vertical box to the user interface. */

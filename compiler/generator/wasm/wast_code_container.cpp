@@ -65,7 +65,7 @@ WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numO
     fKlassName      = name;
     fInternalMemory = internal_memory;
 
-    // Allocate one static visitor to be shared by main and sub containers
+    // Allocate one static visitor to be shared by main module and sub containers
     if (!gGlobal->gWASTVisitor) {
         gGlobal->gWASTVisitor = new WASTInstVisitor(&fOutAux, fInternalMemory);
     }

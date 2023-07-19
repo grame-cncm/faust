@@ -1010,16 +1010,37 @@ LIBFAUST_API Tree CsimplifyToNormalForm(Tree s)
     return simplifyToNormalForm(s);
 }
 
-LIBFAUST_API Tree* CsimplifyToNormalForm2(Tree* s)
+LIBFAUST_API Tree* CsimplifyToNormalForm2(Tree* siglist)
 {
     tvec inputs;
     int  in = 0;
-    while (s[in]) {
-        inputs.push_back(s[in]);
+    while (siglist[in]) {
+        inputs.push_back(siglist[in]);
         in++;
     }
     tvec outputs = simplifyToNormalForm2(inputs);
     return list2array(outputs);
+}
+    
+LIBFAUST_API char* CcreateSourceFromSignals(const char* name_app, Signal* osigs,
+                                        const char* lang,
+                                        int argc, const char* argv[],
+                                        char* error_msg)
+{
+    string error_msg_aux;
+    tvec inputs;
+    int  in = 0;
+    while (osigs[in]) {
+        inputs.push_back(osigs[in]);
+        in++;
+    }
+    string source = createSourceFromSignals(name_app, inputs, lang, argc, argv, error_msg_aux);
+    if (source.size() > 0) {
+        return strdup(source.c_str());
+    } else {
+        strncpy(error_msg, error_msg_aux.c_str(), 4096);
+        return nullptr;
+    }
 }
     
 #ifdef __cplusplus

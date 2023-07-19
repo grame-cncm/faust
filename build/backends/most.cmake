@@ -8,6 +8,7 @@
 #    WASM      embed the backend in the faust wasm library
 
 set ( C_BACKEND      COMPILER STATIC DYNAMIC        CACHE STRING  "Include C backend"         FORCE )
+set ( CODEBOX_BACKEND    COMPILER STATIC DYNAMIC        CACHE STRING  "Include Codebox backend"       FORCE )
 set ( CPP_BACKEND    COMPILER STATIC DYNAMIC        CACHE STRING  "Include CPP backend"       FORCE )
 set ( CMAJOR_BACKEND COMPILER STATIC DYNAMIC        CACHE STRING  "Include Cmajor backend"    FORCE )
 set ( CSHARP_BACKEND COMPILER STATIC DYNAMIC        CACHE STRING  "Include CSharp backend"    FORCE )

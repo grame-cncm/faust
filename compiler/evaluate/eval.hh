@@ -34,12 +34,12 @@
 #include "boxes.hh"
 
 /**
- * Eval the definition of 'process'.
+ * Eval "process" from a list of definitions.
  *
- * Eval the definition of 'process' in the environment passed as argument
- * @param eqlist the global environment (a list of definitions)
- * @return the 'process' block diagram in normal form
- **/
+ * Strict evaluation of a block diagram expression by applying beta reduction.
+ * @param eqlist a list of Faust definitions forming the global environment
+ * @return the process block diagram in normal form
+ */
 Tree evalprocess(Tree eqlist);
 
 /* Eval a documentation expression. */

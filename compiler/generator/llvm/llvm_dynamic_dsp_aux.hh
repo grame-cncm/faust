@@ -24,6 +24,9 @@
 
 #include "llvm_dsp_aux.hh"
 
+/*
+    Dynamic LLVM DSP compilation.
+ */
 class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
    private:
     bool writeDSPFactoryToObjectcodeFileAux(const std::string& object_code_path);
@@ -49,7 +52,7 @@ class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
 
     bool writeDSPFactoryToBitcodeFile(const std::string& bit_code_path);
 
-    // IR
+    // Textual IR
     virtual std::string writeDSPFactoryToIR();
 
     virtual bool writeDSPFactoryToIRFile(const std::string& ir_code_path);

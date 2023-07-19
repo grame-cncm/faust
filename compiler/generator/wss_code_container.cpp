@@ -323,7 +323,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
         for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++, loop_num++) {
             // Generates a "case" block for each task
             BlockInst* case_block = InstBuilder::genBlockInst();
-            generateDAGLoopAux(*p, case_block, count_dec, loop_num);
+            generateDAGLoopAux(*p, case_block, count_dec->load(), loop_num);
 
             // Add output tasks activation code
 
@@ -408,7 +408,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 
     if (level.size() == 1) {
         BlockInst* case_block = InstBuilder::genBlockInst();
-        generateDAGLoopAux(*level.begin(), case_block, count_dec, loop_num);
+        generateDAGLoopAux(*level.begin(), case_block, count_dec->load(), loop_num);
         case_block->pushBackInst(
             InstBuilder::genStoreStackVar("tasknum", InstBuilder::genInt32NumInst(LAST_TASK_INDEX)));
         // Add the "case" block
@@ -416,7 +416,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     } else {
         for (lclset::const_iterator p = level.begin(); p != level.end(); p++, loop_num++) {
             BlockInst* case_block = InstBuilder::genBlockInst();
-            generateDAGLoopAux(*p, case_block, count_dec, loop_num);
+            generateDAGLoopAux(*p, case_block, count_dec->load(), loop_num);
 
             Values fun_args;
             fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));

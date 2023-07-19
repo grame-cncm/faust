@@ -44,7 +44,7 @@ TemplateCodeContainer::TemplateCodeContainer(const std::string& name, int numInp
     fKlassName = name;
     fOut = out;
     
-    // Allocate one static visitor
+    // Allocate one static visitor to be shared by main module and sub containers
     if (!gGlobal->gTemplateVisitor) {
         gGlobal->gTemplateVisitor = new TemplateInstVisitor(out, name);
     }

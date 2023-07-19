@@ -644,6 +644,7 @@ static void test24(int argc, const char* argv[])
 }
 
 // Compile a complete DSP program to a box expression, then to a source string
+// in several target languages
 static void test25()
 {
     cout << "test25\n";
@@ -664,7 +665,7 @@ static void test25()
                 return;
             }
         
-            // Compile it
+            // Compile it to the target language
             string source = createSourceFromBoxes("FaustDSP", osc, it, 0, nullptr, error_msg);
             if (source != "") {
                 cout << source;
@@ -739,10 +740,11 @@ int main(int argc, const char* argv[])
     test18();
     test19();
     test20();
-    // Test 'DSPToBoxes' API
+    
+    // Test 'DSPToBoxes' API (1)
     test25();
     
-    // Test 'DSPToBoxes' API
+    // Test 'DSPToBoxes' API (2)
     test26();
     
     // Test with audio, GUI and LLVM backend

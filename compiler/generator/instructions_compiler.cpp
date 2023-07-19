@@ -434,10 +434,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         InputCompiler(Tree L, InstructionsCompiler* comp)
         {
             fComp = comp;
-            while (!isNil(L)) {
-                self(hd(L));
-                L = tl(L);
-            }
+            visitRoot(L);
         }
         
         void visit(Tree sig)

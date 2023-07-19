@@ -20,11 +20,10 @@
  ************************************************************************/
 
 #include "rust_code_container.hh"
-#include "Text.hh"
 #include "exception.hh"
-#include "fir_function_builder.hh"
 #include "floats.hh"
 #include "global.hh"
+#include "Text.hh"
 
 using namespace std;
 
@@ -46,13 +45,18 @@ map<string, bool> RustInstVisitor::gFunctionSymbolTable;
 dsp_factory_base* RustCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
+        fKlassName, "", "", ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        "");
 }
 
 CodeContainer* RustCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new RustScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
+}
+
+CodeContainer* RustCodeContainer::createVectorContainer(const string& name, int sub_container_type)
+{
+    return new RustVectorCodeContainer(name, 0, 1, fOut);
 }
 
 CodeContainer* RustCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
@@ -75,8 +79,7 @@ CodeContainer* RustCodeContainer::createContainer(const string& name, int numInp
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for Rust\n");
     } else if (gGlobal->gVectorSwitch) {
-        // container = new RustVectorCodeContainer(name, numInputs, numOutputs, dst);
-        throw faustexception("ERROR : Vector not supported for Rust\n");
+        container = new RustVectorCodeContainer(name, numInputs, numOutputs, dst);
     } else {
         container = new RustScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
     }
@@ -175,8 +178,10 @@ void RustCodeContainer::produceClass()
 
     tab(n, *fOut);
     *fOut << "#[cfg_attr(feature = \"default-boxed\", derive(default_boxed::DefaultBoxed))]";
-    tab(n, *fOut);
-    *fOut << "#[repr(C)]";
+    if (gGlobal->gReprC) {
+        tab(n, *fOut);
+        *fOut << "#[repr(C)]";
+    }
     tab(n, *fOut);
     *fOut << "pub struct " << fKlassName << " {";
     tab(n + 1, *fOut);
@@ -214,7 +219,7 @@ void RustCodeContainer::produceClass()
         *fOut << "static void destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
         tab(n + 2, *fOut);
         fDestroyInstructions->accept(&fCodeProducer);
-         back(1, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(n + 1, *fOut);
     }
@@ -354,7 +359,7 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "}" << endl;
     tab(n, *fOut);
-    
+
     // Generate user interface macros if needed
     printMacros(*fOut, n);
 }
@@ -390,7 +395,8 @@ void RustCodeContainer::produceMetadata(int n)
     *fOut << "}" << endl;
 }
 
-void RustCodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, FunTyped::FunAttribute funtype, TextInstVisitor* producer)
+void RustCodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod,
+                                             FunTyped::FunAttribute funtype, TextInstVisitor* producer)
 {
     producer->Tab(tabs);
     generateGetInputs(subst("get_num_inputs$0", classname), obj, false, funtype)->accept(&fCodeProducer);
@@ -405,9 +411,9 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     *fOut << "fn get_param(&self, param: ParamIndex) -> Option<Self::T> {";
     tab(tabs + 1, *fOut);
     *fOut << "match param.0 {";
-    for (const auto &paramPair : parameterLookup) {
+    for (const auto& paramPair : parameterLookup) {
         const auto fieldName = paramPair.first;
-        const auto index = paramPair.second;
+        const auto index     = paramPair.second;
         tab(tabs + 2, *fOut);
         *fOut << index << " => Some(self." << fieldName << "),";
     }
@@ -424,9 +430,9 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     *fOut << "fn set_param(&mut self, param: ParamIndex, value: Self::T) {";
     tab(tabs + 1, *fOut);
     *fOut << "match param.0 {";
-    for (const auto &paramPair : parameterLookup) {
+    for (const auto& paramPair : parameterLookup) {
         const auto fieldName = paramPair.first;
-        const auto index = paramPair.second;
+        const auto index     = paramPair.second;
         tab(tabs + 2, *fOut);
         *fOut << index << " => { self." << fieldName << " = value }";
     }
@@ -469,7 +475,7 @@ void RustScalarCodeContainer::generateCompute(int n)
     }
     IteratorForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(iterators);
     loop->accept(&fCodeProducer);
-    
+
     // Currently for soundfile management
     generatePostComputeBlock(&fCodeProducer);
 
@@ -492,6 +498,10 @@ void RustVectorCodeContainer::generateCompute(int n)
 
     // Compute declaration
     tab(n, *fOut);
+    *fOut << "#[allow(non_snake_case)]";
+    tab(n, *fOut);
+    *fOut << "#[allow(unused_mut)]";
+    tab(n, *fOut);
     *fOut << "fn compute("
           << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {", fFullCount);
     tab(n + 1, *fOut);
@@ -505,6 +515,42 @@ void RustVectorCodeContainer::generateCompute(int n)
 
     back(1, *fOut);
     *fOut << "}" << endl;
+}
+
+BlockInst* RustVectorCodeContainer::generateDAGLoopVariant0(const string& counter)
+{
+    // Define result block
+    BlockInst* block_res = InstBuilder::genBlockInst();
+
+    // declare vsize on top of the function
+    auto vsize_decl = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("vsize", Address::kConst),
+                                                     InstBuilder::genBasicTyped(Typed::kInt32),
+                                                     InstBuilder::genInt32NumInst(gGlobal->gVecSize));
+    fComputeBlockInstructions->pushFrontInst(vsize_decl);
+   
+    block_res->pushBackInst(InstBuilder::genLabelInst("/* Main loop */"));
+    BlockInst* loop_code = InstBuilder::genBlockInst();
+
+    // TODO(rust) use usize where needed instead of casting everywhere
+    // Generates the loop DAG
+    generateDAGLoop(loop_code,
+                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("output0.len() as i32", Address::kStack)));
+
+    std::vector<NamedAddress*> iterators;
+    iterators.reserve(fNumInputs + fNumOutputs);
+    for (int i = 0; i < fNumInputs; ++i) {
+        iterators.push_back(InstBuilder::genNamedAddress("inputs" + std::to_string(i), Address::kStack));
+    }
+    for (int i = 0; i < fNumOutputs; ++i) {
+        iterators.push_back(InstBuilder::genNamedAddress("outputs" + std::to_string(i), Address::kStack));
+    }
+
+    // Generates the DAG enclosing loop
+    StatementInst* loop = InstBuilder::genIteratorForLoopInst(iterators, false, loop_code);
+
+    // Put loop in block_res
+    block_res->pushBackInst(loop);
+    return block_res;
 }
 
 // OpenMP

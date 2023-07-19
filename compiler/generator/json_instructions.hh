@@ -178,4 +178,39 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
     void setOutputs(int output) { this->fOutputs = output; }
 };
 
+/*
+ FIR visitor used with PathBuilder to prepare the path <==> shotnames map
+ */
+
+struct ShortnameInstVisitor : public DispatchVisitor, public PathBuilder {
+
+    virtual void visit(OpenboxInst* inst) override
+    {
+        pushLabel(inst->fName);
+    }
+    
+    virtual void visit(CloseboxInst* inst) override
+    {
+        if (popLabel()) {
+            // Shortnames can be computed when all fullnames are known
+            computeShortNames();
+        }
+    }
+    
+    virtual void visit(AddButtonInst* inst) override
+    {
+        addFullPath(inst->fLabel);
+    }
+    
+    virtual void visit(AddSliderInst* inst) override
+    {
+        addFullPath(inst->fLabel);
+    }
+    
+    virtual void visit(AddBargraphInst* inst) override
+    {
+        addFullPath(inst->fLabel);
+    }
+};
+
 #endif

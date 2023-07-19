@@ -62,6 +62,10 @@
 #include "c_code_container.hh"
 #endif
 
+#ifdef CODEBOX_BUILD
+#include "codebox_code_container.hh"
+#endif
+
 #ifdef CPP_BUILD
 #include "cpp_code_container.hh"
 #include "cpp_gpu_code_container.hh"
@@ -125,7 +129,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 {
     CTree::init();
     Symbol::init();
-
+ 
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();
 
@@ -478,6 +482,7 @@ void global::reset()
     gNamespace            = "";
     gFullParentheses      = false;
     gCheckIntRange        = false;
+    gReprC                = true;
 
     gNarrowingLimit = 0;
     gWideningLimit  = 0;
@@ -539,6 +544,10 @@ void global::reset()
     gTemplateVisitor = nullptr;  // Will be (possibly) allocated in Template backend
 #endif
 
+#ifdef CODEBOX_BUILD
+    gCodeboxVisitor = nullptr;  // Will be (possibly) allocated in Codebox backend
+#endif
+
     gHelpSwitch       = false;
     gVersionSwitch    = false;
     gLibDirSwitch     = false;
@@ -573,6 +582,9 @@ void global::reset()
 // Done after contructor since part of the following allocations need the "global" object to be fully built
 void global::init()
 {
+    // Default init
+    initFaustFloat();
+    
     gPureRoutingProperty   = new property<bool>();
     gSymbolicBoxProperty   = new property<Tree>();
     gSimplifiedBoxProperty = new property<Tree>();
@@ -1379,7 +1391,9 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-cir", "--check-integer-range")) {
             gCheckIntRange = true;
             i += 1;
-            
+        } else if (isCmd(argv[i], "-noreprc", "--no-reprc")) {
+            gReprC = false;
+            i += 1;
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i + 1 < argc)) {
             if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
                 // We want to search user given directories *before* the standard ones, so insert at the beginning
@@ -1607,6 +1621,9 @@ bool global::processCmdline(int argc, const char* argv[])
         gErrorMessage = error.str();
     }
     
+    // When -lang has been set
+    initFaustFloat();
+    
     return (err == 0);
 }
 
@@ -1780,6 +1797,10 @@ static void enumBackends(ostream& out)
     out << dspto << "Cmajor" << endl;
 #endif
     
+#ifdef CODEBOX_BUILD
+    out << dspto << "Codebox" << endl;
+#endif
+    
 #ifdef CSHARP_BUILD
     out << dspto << "CSharp" << endl;
 #endif
@@ -1883,7 +1904,7 @@ static void printHelp()
     cout << endl << "Code generation options:" << line;
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
-         << "                                        'lang' should be c, cpp (default), cmajor, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, "
+         << "                                        'lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, "
          "ocpp, rust or wast/wasm."
          << endl;
     cout << tab
@@ -1996,6 +2017,9 @@ static void printHelp()
          << endl;
     cout << tab
          << "-mapp       --math-approximation        simpler/faster versions of 'floor/ceil/fmod/remainder' functions."
+         << endl;
+    cout << tab
+         << "-noreprc    --no-reprc                  (Rust only) Don't force dsp struct layout to follow C ABI."
          << endl;
     cout << tab << "-ns <name>  --namespace <name>          generate C++ or D code in a namespace <name>." << endl;
     

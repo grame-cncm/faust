@@ -99,7 +99,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
     */
 
     // Generates the loop DAG
-    generateDAGLoop(loop_code, size_dec);
+    generateDAGLoop(loop_code, size_dec->load());
 
     // Generates the DAG enclosing loop
     StoreVarInst* loop_init = index_dec->store(InstBuilder::genInt32NumInst(0));
@@ -138,7 +138,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
     */
 
     // Generates the loop DAG
-    generateDAGLoop(then_block, size_dec1);
+    generateDAGLoop(then_block, size_dec1->load());
 
     block_res->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
     return block_res;
@@ -160,9 +160,9 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     generateLocalOutputs(loop_code, index);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst*       init1 = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst*       init2 = InstBuilder::genSub(init1, loop_dec->load());
-    Values min_fun_args;
+    ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
+    ValueInst* init2 = InstBuilder::genSub(init1, loop_dec->load());
+    Values     min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst*      init3    = InstBuilder::genFunCallInst("min_i", min_fun_args);
@@ -177,7 +177,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     */
 
     // Generates the loop DAG
-    generateDAGLoop(loop_code, size_dec);
+    generateDAGLoop(loop_code, size_dec->load());
 
     ValueInst*     loop_end       = InstBuilder::genLessThan(loop_dec->load(), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst*  loop_increment = loop_dec->store(InstBuilder::genAdd(loop_dec->load(), gGlobal->gVecSize));
@@ -193,7 +193,7 @@ void VectorCodeContainer::processFIR(void)
     // Default FIR to FIR transformations
     CodeContainer::processFIR();
 
-    // If stack variables take to much room, move them in struct
+    // If stack variables take too much room, move them in struct
     // dump2FIR(fComputeBlockInstructions);
     VariableSizeCounter counter(Address::kStack);
     generateComputeBlock(&counter);
@@ -211,7 +211,7 @@ void VectorCodeContainer::processFIR(void)
         // Transform stack array variables in struct variables
         moveStack2Struct();
     } else {
-        // Sort arrays to be at the begining
+        // Sort arrays to be at the beginning
         // fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
     }
 

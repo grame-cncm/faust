@@ -64,6 +64,7 @@ class JAXInstVisitor;
 class JuliaInstVisitor;
 class JSFXInstVisitor;
 class TemplateInstVisitor;
+class CodeboxInstVisitor;
 struct TableSizeVisitor;
 struct DeclareStructTypeInst;
 
@@ -176,6 +177,7 @@ struct global {
     bool gClang;                 // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
     bool gFullParentheses;       // -fp option, generate less parenthesis in some textual backends: C/C++, Cmajor, Dlang, Rust
     bool gCheckIntRange;         // -cir option, check float to integer range conversion
+    bool gReprC;                 // (Rust) Force dsp struct layout to follow C ABI
 
     std::string gClassName;      // -cn option, name of the generated dsp class, by default 'mydsp'
     std::string gProcessName;    // -pn option, name of the entry point of the Faust program, by default 'process'
@@ -200,7 +202,7 @@ struct global {
     std::string gFastMathLib;      // -fm faster version of some mathematical functions (pow/exp/log), the fastmath code mapping file
     bool   gMathApprox;            // -mapp option, simpler/faster versions of 'floor/fmod/remainder' functions
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
-    bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
+    bool   gRemoveVarAddress;      // If use of variable addresses (like &foo or &foo[n]) have to be removed
     int    gOneSample;             // -osX options, generate one sample computation
     bool   gOneSampleControl;      // -osX options, generate one sample computation control structure in DSP module
     bool   gComputeMix;            // -cm option, mix in outputs buffers
@@ -383,6 +385,7 @@ struct global {
     Sym DOCLST;
     Sym DOCMTD;
     Sym DOCTXT;
+    // Used in environment layering
     Sym BARRIER;
 
     property<bool>* gPureRoutingProperty;
@@ -551,6 +554,10 @@ struct global {
 #ifdef TEMPLATE_BUILD
     TemplateInstVisitor* gTemplateVisitor;
 #endif
+    
+#ifdef CODEBOX_BUILD
+    CodeboxInstVisitor* gCodeboxVisitor;
+#endif
 
     // Info on the compiler
     bool gHelpSwitch;
@@ -644,7 +651,7 @@ struct global {
 extern global* gGlobal;
 
 #define FAUST_LIB_PATH "FAUST_LIB_PATH"
-#define MAX_MACHINE_STACK_SIZE 65536
+#define MAX_MACHINE_STACK_SIZE 65536 * 16
 #define MAX_SOUNDFILE_PARTS 256
 
 #define MAX_ERROR_SIZE 192

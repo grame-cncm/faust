@@ -614,7 +614,7 @@ if __name__ == "__main__":
 
 ##FAUST2SC
 
-    cmd = "faust2supercollider -json -noprefix"+args.inputdsp
+    cmd = "faust2supercollider -json -noprefix "+args.inputdsp
 
     os.system(cmd)
     time.sleep(2.5)

@@ -198,6 +198,7 @@ class FAUST_API PathBuilder {
         // Return true for the last level of groups
         bool popLabel() { fControlsLevel.pop_back(); return fControlsLevel.size() == 0; }
     
+        // Return a complete path built from a label
         std::string buildPath(const std::string& label)
         {
             std::string res = "/";
@@ -207,6 +208,14 @@ class FAUST_API PathBuilder {
             res += label;
             return replaceCharList(res, {' ', '#', '*', ',', '?', '[', ']', '{', '}', '(', ')'}, '_');
         }
+    
+        // Assuming shortnames have been built, return the shortname from a label
+        std::string buildShortname(const std::string& label)
+        {
+            return (hasShortname()) ? fFull2Short[buildPath(label)] : "";
+        }
+    
+        bool hasShortname() { return fFull2Short.size() > 0; }
     
 };
 

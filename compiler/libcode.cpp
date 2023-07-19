@@ -64,6 +64,10 @@
 #include "c_code_container.hh"
 #endif
 
+#ifdef CODEBOX_BUILD
+#include "codebox_code_container.hh"
+#endif
+
 #ifdef CPP_BUILD
 #include "cpp_code_container.hh"
 #include "cpp_gpu_code_container.hh"
@@ -118,6 +122,7 @@
 
 #ifdef RUST_BUILD
 #include "rust_code_container.hh"
+#include "dag_instructions_compiler_rust.hh"
 #endif
 
 #ifdef TEMPLATE_BUILD
@@ -193,9 +198,9 @@ static bool openOutfile()
      MANDATORY: use ostringstream which is indeed a subclass of ostream
      (otherwise subtle dynamic_cast related crash can occur...)
      *******************************************************************/
-    
+
     bool res = false;
-    
+
     if (gGlobal->gOutputFile == "string") {
         gDst = unique_ptr<ostream>(new ostringstream());
     } else if (gGlobal->gOutputFile == "binary") {
@@ -212,7 +217,7 @@ static bool openOutfile()
         } else {
             gDst = std::move(fdst);
         }
-        
+
     } else {
         gDst = unique_ptr<ostream>(new ostringstream());
         res = true;
@@ -315,12 +320,15 @@ static void compileCLLVM(Tree signals, int numInputs, int numOutputs)
 
     gContainer = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
-    // To trigger 'sig.dot' generation
     if (gGlobal->gVectorSwitch) {
         gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
         gNewComp = new InstructionsCompiler(gContainer);
     }
+    
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    
+    // To trigger 'sig.dot' generation
     gNewComp->prepare(signals);
 #else
     throw faustexception("ERROR : -lang cllcm not supported since LLVM backend is not built\n");
@@ -375,10 +383,10 @@ static void compileInterp(Tree signals, int numInputs, int numOutputs)
     // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
     gGlobal->gNeedManualPow       = false;  // Standard pow function will be used in pow(x,y) when y in an integer
-    gGlobal->gRemoveVarAddress    = true;   // To be used in -vec mode
     gGlobal->gUseDefaultSound     = false;
 
     if (gGlobal->gVectorSwitch) {
+        gGlobal->gRemoveVarAddress = true;
         gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
         gNewComp = new InterpreterInstructionsCompiler(gContainer);
@@ -423,6 +431,31 @@ static void compileC(Tree signals, int numInputs, int numOutputs, ostream* out)
     gNewComp->compileMultiSignal(signals);
 #else
     throw faustexception("ERROR : -lang c not supported since C backend is not built\n");
+#endif
+}
+
+static void compileCodebox(Tree signals, int numInputs, int numOutputs, ostream* out)
+{
+#ifdef CODEBOX_BUILD
+    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    gGlobal->gAllowForeignConstant = false;  // No foreign constant
+    gGlobal->gAllowForeignVar      = false;  // No foreign variable
+
+    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    gGlobal->gFAUSTFLOAT2Internal = true;
+    
+    // "one sample" model by default;
+    gGlobal->gOneSampleControl = true;
+    gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an
+
+    gContainer = CodeboxCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    
+    gNewComp = new InstructionsCompiler(gContainer);
+    
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
+    gNewComp->compileMultiSignal(signals);
+#else
+    throw faustexception("ERROR : -lang codebox not supported since Codebox backend is not built\n");
 #endif
 }
 
@@ -472,7 +505,9 @@ static void compileRust(Tree signals, int numInputs, int numOutputs, ostream* ou
     gContainer                    = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
 
     if (gGlobal->gVectorSwitch) {
-        gNewComp = new DAGInstructionsCompiler(gContainer);
+        // Required to not alias mutable buffers
+        gGlobal->gRemoveVarAddress = true;
+        gNewComp = new DAGInstructionsCompilerRust(gContainer);
     } else {
         gNewComp = new InstructionsCompiler1(gContainer);
     }
@@ -652,8 +687,7 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an integer
-    gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-                                         // gGlobal->gHasTeeLocal = true;     // combined store/load
+    // gGlobal->gHasTeeLocal = true;       // combined store/load
     gGlobal->gUseDefaultSound = false;
 
     // This speedup (freeverb for instance) ==> to be done at signal level
@@ -691,8 +725,7 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an integer
-    gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-                                         // gGlobal->gHasTeeLocal = true;     // combined store/load
+    // gGlobal->gHasTeeLocal = true;        // combined store/load
     gGlobal->gUseDefaultSound = false;
 
     // This speedup (freeverb for instance) ==> to be done at signal level
@@ -705,6 +738,7 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
     createHelperFile(outpath);
 
     if (gGlobal->gVectorSwitch) {
+        gGlobal->gRemoveVarAddress = true;
         gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
         gNewComp = new InstructionsCompiler(gContainer);
@@ -739,15 +773,13 @@ static void compileDlang(Tree signals, int numInputs, int numOutputs, ostream* o
 static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>& enrobage, unique_ptr<ostream>& dst)
 {
     if (openEnrobagefile()) {
-        if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp") {
+        if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp")
             *dst.get() << "namespace " << gGlobal->gNamespace << " {" << endl;
 #ifdef DLANG_BUILD
-        } else if (gGlobal->gOutputLang == "dlang") {
+        else if (gGlobal->gOutputLang == "dlang") {
             DLangCodeContainer::printDRecipeComment(*dst.get(), gContainer->getClassName());
             DLangCodeContainer::printDModuleStmt(*dst.get(), gContainer->getClassName());
         }
-#else
-    }
 #endif
 
         gContainer->printHeader();
@@ -787,7 +819,7 @@ static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>&
         if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp") {
             *dst.get() << "} // namespace " << gGlobal->gNamespace << endl;
         }
-       
+
     } else {
         gContainer->printHeader();
         gContainer->printFloatDef();
@@ -907,6 +939,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileFIR(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "c") {
         compileC(signals, numInputs, numOutputs, gDst.get());
+    } else if (gGlobal->gOutputLang == "codebox") {
+        compileCodebox(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "cpp") {
         compileCPP(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "ocpp") {
@@ -1051,8 +1085,7 @@ static void* expandDSPInternal(void* arg)
             gGlobal->gInputFiles.push_back(name_app);
         }
         gGlobal->initDocumentNames();
-        initFaustFloat();
-
+      
         gGlobal->parseSourceFiles();
 
         /****************************************************************
@@ -1113,8 +1146,7 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
         gGlobal->gInputFiles.push_back(name_app);
     }
     gGlobal->initDocumentNames();
-    initFaustFloat();
-
+  
     try {
         gGlobal->parseSourceFiles();
         error_msg = "";
@@ -1155,12 +1187,12 @@ static void* createFactoryAux1(void* arg)
         gGlobal->printDirectories();
 
         faust_alarm(gGlobal->gTimeout);
-        
+
         // Open output file
         bool is_cout = openOutfile();
         // Open enrobage file
         openEnrobagefile();
-       
+
         /****************************************************************
          1.5 - Check and open some input files
         *****************************************************************/
@@ -1175,8 +1207,7 @@ static void* createFactoryAux1(void* arg)
             gGlobal->gInputFiles.push_back(name_app);
         }
         gGlobal->initDocumentNames();
-        initFaustFloat();
-
+     
         gGlobal->parseSourceFiles();
 
         /****************************************************************
@@ -1241,10 +1272,7 @@ static void* createFactoryAux2(void* arg)
         MaxInputsCounter(Tree L)
         {
             // L is in normal form
-            while (!isNil(L)) {
-                self(hd(L));
-                L = tl(L);
-            }
+            visitRoot(L);
         }
             
         void visit(Tree sig)
@@ -1278,11 +1306,10 @@ static void* createFactoryAux2(void* arg)
         gGlobal->processCmdline(argc, argv);
 
         gGlobal->initDocumentNames();
-        initFaustFloat();
-        
+
         // Open output file
         openOutfile();
-     
+
         /*************************************************************************
          5 - preparation of the signal tree and translate output signals
          **************************************************************************/

@@ -72,7 +72,7 @@ JAXCodeContainer::JAXCodeContainer(const std::string& name, int numInputs, int n
     fKlassName = name;
     fOut = out;
     
-    // Allocate one static visitor
+    // Allocate one static visitor to be shared by main module and sub containers
     if (!gGlobal->gJAXVisitor) {
         gGlobal->gJAXVisitor = new JAXInstVisitor(out, name);
     }

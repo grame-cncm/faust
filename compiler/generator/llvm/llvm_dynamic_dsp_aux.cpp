@@ -662,21 +662,20 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const string& name_app
                                                                             argc1, argv1,
                                                                             error_msg,
                                                                             true));
-                if (factory_aux) {
+                if (factory_aux && factory_aux->initJIT(error_msg)) {
                     factory_aux->setTarget(target);
                     factory_aux->setOptlevel(opt_level);
                     factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
                     factory_aux->setName(name_app);
-                    if (factory_aux->initJIT(error_msg)) {
-                        llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
-                        llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
-                        factory->setSHAKey(sha_key);
-                        factory->setDSPCode(expanded_dsp_content);
-                        return factory;
-                    }
+                    llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
+                    llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
+                    factory->setSHAKey(sha_key);
+                    factory->setDSPCode(expanded_dsp_content);
+                    return factory;
+                } else {
+                    delete factory_aux;
+                    return nullptr;
                 }
-                delete factory_aux;
-                return nullptr;
             } catch (faustexception& e) {
                 error_msg = e.what();
                 return nullptr;

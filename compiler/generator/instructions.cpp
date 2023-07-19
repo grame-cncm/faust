@@ -36,6 +36,12 @@ vector<string> NamedTyped::AttributeMap = {" ", " RESTRICT "};
 
 BasicTyped* InstBuilder::genItFloatTyped() { return genBasicTyped(itfloat()); }
 
+bool Typed::isBasicTyped() { return dynamic_cast<BasicTyped*>(this); }
+bool Typed::isNamedTyped() { return dynamic_cast<NamedTyped*>(this); }
+bool Typed::isArrayTyped() { return dynamic_cast<ArrayTyped*>(this); }
+bool Typed::isStructTyped() { return dynamic_cast<StructTyped*>(this); }
+bool Typed::isVectorTyped() { return dynamic_cast<VectorTyped*>(this); }
+
 DeclareStructTypeInst* isStructType(const string& name)
 {
     if (gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end()) {
@@ -164,19 +170,17 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
 }
 
 // A list of channels variables also kept in the global name <===> type table (use in Rust and Julia backends)
-DeclareBufferIterators::DeclareBufferIterators(const std::string& name1,
-                                            const std::string& name2,
-                                            int channels,
-                                            Typed* type,
-                                            bool mut)
-    : fBufferName1(name1), fBufferName2(name2), fChannels(channels), fType(type), fMutable(mut)
+DeclareBufferIterators::DeclareBufferIterators(const std::string& name1, const std::string& name2, int channels,
+                                               Typed* type, bool mut, bool chunk)
+    : fBufferName1(name1), fBufferName2(name2), fChannels(channels), fType(type), fMutable(mut), fChunk(chunk)
 {
     for (int i = 0; i < channels; i++) {
         string chan_name = name1 + std::to_string(i);
-        if (gGlobal->gVarTypeTable.find(chan_name) == gGlobal->gVarTypeTable.end()) {
+        auto   contains  = gGlobal->gVarTypeTable.find(chan_name);
+        if (contains == gGlobal->gVarTypeTable.end()) {
             gGlobal->gVarTypeTable[chan_name] = type;
         } else {
-            faustassert(false);
+            faustassert(contains->second == type);
         }
     }
 }

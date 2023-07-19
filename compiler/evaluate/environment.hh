@@ -55,10 +55,10 @@ Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv);
 
 /**
  * Create a new environment by copying an existing one and replacing some definitions
- * @param xenv existing environment we will copy
+ * @param anEnv existing environment we will copy
  * @param ldefs list of pairs (symbol id x definition) that will replace old definitions
  * @param visited set of visited symbols (used for recursive definition detection)
- * @param lenv the current environment to evaluate the definitions
+ * @param curEnv the current environment to evaluate the definitions
  * @return the new environment
  */
 Tree copyEnvReplaceDefs(Tree anEnv, Tree ldefs, Tree visited, Tree curEnv);
@@ -70,7 +70,7 @@ Tree copyEnvReplaceDefs(Tree anEnv, Tree ldefs, Tree visited, Tree curEnv);
  * @param lenv the environment to test
  * @return true is barrier reached
  */
-bool isEnvBarrier(Tree t);
+bool isEnvBarrier(Tree lenv);
 
 /**
  * Push a new environment barrier on top of an existing environment so
