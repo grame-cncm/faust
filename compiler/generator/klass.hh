@@ -38,27 +38,26 @@
 #include <set>
 #include <string>
 
+#include "graphSorting.hh"
+#include "loop.hh"
 #include "property.hh"
 #include "sigtype.hh"
 #include "tlib.hh"
 #include "uitree.hh"
-#include "graphSorting.hh"
-#include "loop.hh"
 
-class Klass
-{
+class Klass {
    protected:
     // we make it global because several classes may need
     // power def but we want the code to be generated only once
     static bool fNeedPowerDef;
 
-    Klass* fParentKlass;  ///< Klass in which this Klass is embedded, void if toplevel Klass
+    Klass*      fParentKlass;  ///< Klass in which this Klass is embedded, void if toplevel Klass
     std::string fKlassName;
     std::string fSuperKlassName;
-    int    fNumInputs;
-    int    fNumOutputs;
-    int    fNumActives;   ///< number of active controls in the UI (sliders, buttons, etc.)
-    int    fNumPassives;  ///< number of passive widgets in the UI (bargraphs, etc.)
+    int         fNumInputs;
+    int         fNumOutputs;
+    int         fNumActives;   ///< number of active controls in the UI (sliders, buttons, etc.)
+    int         fNumPassives;  ///< number of passive widgets in the UI (bargraphs, etc.)
 
     std::set<std::string> fIncludeFileSet;
     std::set<std::string> fLibrarySet;
@@ -90,6 +89,7 @@ class Klass
     std::list<std::string> fZone2bCode;  ///< single once per block
     std::list<std::string> fZone2cCode;  ///< single once per block
     std::list<std::string> fZone3Code;   ///< private every sub block
+    std::list<std::string> fZone3Post;   ///< after every sub block
     std::list<std::string> fZone4Code;   ///< code after all loops
 
     Loop*           fTopLoop;       ///< active loops currently open
@@ -118,8 +118,8 @@ class Klass
         // std::cerr << this << " setParentKlass(" << parent << ")" << std::endl;
         fParentKlass = parent;
     }
-    Klass* getParentKlass() { return fParentKlass; }
-    Klass* getTopParentKlass() { return (fParentKlass != 0) ? fParentKlass->getTopParentKlass() : this; }
+    Klass*      getParentKlass() { return fParentKlass; }
+    Klass*      getTopParentKlass() { return (fParentKlass != 0) ? fParentKlass->getTopParentKlass() : this; }
     std::string getFullClassName()
     {
         return (fParentKlass != 0) ? fParentKlass->getFullClassName() + "::" + getClassName() : getClassName();
@@ -131,7 +131,8 @@ class Klass
 
     void setLoopProperty(Tree sig, Loop* l);   ///< Store the loop used to compute a signal
     bool getLoopProperty(Tree sig, Loop*& l);  ///< Returns the loop used to compute a signal
-    void listAllLoopProperties(Tree sig, std::set<Loop*>&, std::set<Tree>& visited);  ///< Returns all the loop used to compute a signal
+    void listAllLoopProperties(Tree            sig, std::set<Loop*>&,
+                               std::set<Tree>& visited);  ///< Returns all the loop used to compute a signal
 
     const std::string& getClassName() const { return fKlassName; }  ///< Returns the name of the class
 
@@ -177,6 +178,7 @@ class Klass
     void addZone2b(const std::string& str) { fZone2bCode.push_back(str); }
     void addZone2c(const std::string& str) { fZone2cCode.push_back(str); }
     void addZone3(const std::string& str) { fZone3Code.push_back(str); }
+    void addZone3Post(const std::string& str) { fZone3Post.push_back(str); }
     void addZone4(const std::string& str) { fZone4Code.push_back(str); }
 
     void addPreCode(const Statement& stmt) { fTopLoop->addPreCode(stmt); }
@@ -187,6 +189,7 @@ class Klass
 
     virtual void printComputeMethod(int n, std::ostream& fout);
     virtual void printComputeMethodScalar(int n, std::ostream& fout);
+    virtual void printComputeMethodScalarBlock(int n, std::ostream& fout);
     virtual void printComputeMethodVectorFaster(int n, std::ostream& fout);
     virtual void printComputeMethodVectorSimple(int n, std::ostream& fout);
     virtual void printComputeMethodOpenMP(int n, std::ostream& fout);

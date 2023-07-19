@@ -26,28 +26,28 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <climits>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <climits>
 
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
 #include "floats.hh"
+#include "normalform.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
+#include "sharing.hh"
+#include "sigPromotion.hh"
 #include "sigToGraph.hh"
 #include "signal2vhdlVisitor.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
-#include "normalform.hh"
 #include "timing.hh"
-#include "sharing.hh"
 #include "xtended.hh"
-#include "sigPromotion.hh"
 
 using namespace std;
 
@@ -90,7 +90,7 @@ Tree ScalarCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
     Tree L1 = simplifyToNormalForm(LS);
-    
+
     // dump normal form
     if (gGlobal->gDumpNorm == 0) {
         cout << ppsig(L1) << endl;
@@ -105,41 +105,41 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
     // No more table privatisation
     Tree L2 = L1;
-    
+
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
     endTiming("conditionAnnotation");
-    
+
     startTiming("recursivnessAnnotation");
     recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
     endTiming("recursivnessAnnotation");
-    
+
     startTiming("L2 typeAnnotation");
-    typeAnnotation(L2, true);     // Annotate L2 with type information and check causality
+    typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
-    
+
     startTiming("sharingAnalysis");
-    sharingAnalysis(L2, fSharingKey); // Annotate L2 with sharing count
+    sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count
     endTiming("sharingAnalysis");
-    
+
     startTiming("occurrences analysis");
     delete fOccMarkup;
     fOccMarkup = new OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L2);        // Annotate L2 with occurrences analysis
+    fOccMarkup->mark(L2);  // Annotate L2 with occurrences analysis
     endTiming("occurrences analysis");
-    
+
     endTiming("prepare");
-    
+
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
         sigToGraph(L2, dotfile);
     }
-    
+
     // Generate VHDL if -vhdl option is set
     if (gGlobal->gVHDLSwitch) {
         sigVHDLFile(fOccMarkup, L2, gGlobal->gVHDLTrace);
     }
-    
+
     return L2;
 }
 
@@ -147,9 +147,9 @@ Tree ScalarCompiler::prepare2(Tree L0)
 {
     startTiming("ScalarCompiler::prepare2");
 
-    recursivnessAnnotation(L0);       // Annotate L0 with recursivness information
-    typeAnnotation(L0, true);         // Annotate L0 with type information
-    sharingAnalysis(L0, fSharingKey); // annotate L0 with sharing count
+    recursivnessAnnotation(L0);        // Annotate L0 with recursivness information
+    typeAnnotation(L0, true);          // Annotate L0 with type information
+    sharingAnalysis(L0, fSharingKey);  // annotate L0 with sharing count
 
     delete fOccMarkup;
     fOccMarkup = new OccMarkup();
@@ -289,7 +289,7 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
         // first visit
         fConditionProperty[t] = nc;
     }
-    
+
     // Annotate the subtrees with the new condition nc
     // which is either the nc passed as argument or nc <- (cc v nc)
     Tree x, y;
@@ -337,7 +337,7 @@ string ScalarCompiler::setCompiledExpression(Tree sig, const string& cexp)
         // error << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
         // throw faustexception(error.str());
     }
-    
+
     fCompileProperty.set(sig, cexp);
     return cexp;
 }
@@ -407,21 +407,20 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     L = prepare(L);  // optimize, share and annotate expression
 
     for (int i = 0; i < fClass->inputs(); i++) {
-        fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
-        if (gGlobal->gInPlace) {
-            CS(sigInput(i));
-        }
+        fClass->addZone3(subst("$1* input$0 = &input[$0][index]; // Zone 3", T(i), xfloat()));
     }
     for (int i = 0; i < fClass->outputs(); i++) {
-        fClass->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
+        fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
     }
 
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree sig = hd(L);
-        fClass->addExecCode(
-            Statement("", subst("output$0[i] = $2($1);", T(i), generateCacheCode(sig, CS(sig)), xcast())));
+        fClass->addExecCode(Statement(
+            "", subst("output$0[i] = $2($1);  // Zone Exec Code", T(i), generateCacheCode(sig, CS(sig)), xcast())));
     }
 
+    fClass->addZone3Post("// Zone 3 Post Code");
+    fClass->addZone4("// Zone 4");
     generateMetaData();
     generateUserInterfaceTree(fUITree.prepareUserInterfaceTree(), true);
     generateMacroInterfaceTree("", fUITree.prepareUserInterfaceTree());
@@ -585,7 +584,7 @@ string ScalarCompiler::generateCode(Tree sig)
 
 string ScalarCompiler::generateNumber(Tree sig, const string& exp)
 {
-    string          ctype, vname;
+    string       ctype, vname;
     Occurrences* o = fOccMarkup->retrieve(sig);
 
     // check for number occuring in delays
@@ -605,7 +604,7 @@ string ScalarCompiler::generateFConst(Tree sig, const string& file, const string
     // Special case for 02/25/19 renaming
     string exp = (exp_aux == "fSamplingFreq") ? "fSampleRate" : exp_aux;
 
-    string          ctype, vname;
+    string       ctype, vname;
     Occurrences* o = fOccMarkup->retrieve(sig);
 
     addIncludeFile(file);
@@ -704,9 +703,9 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         return code;
     }
 
-    string          vname, ctype;
-    int             sharing = getSharingCount(sig, fSharingKey);
-    Occurrences* o          = fOccMarkup->retrieve(sig);
+    string       vname, ctype;
+    int          sharing = getSharingCount(sig, fSharingKey);
+    Occurrences* o       = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // check for expression occuring in delays
@@ -741,7 +740,7 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
         return code;
     }
 
-    string          vname, ctype;
+    string       vname, ctype;
     Occurrences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
@@ -754,11 +753,12 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     }
 }
 
-// Definition of variables: Const (computed at init time), Slow (computed at control rate) and "Temp" (computed at sample rate)
+// Definition of variables: Const (computed at init time), Slow (computed at control rate) and "Temp" (computed at
+// sample rate)
 string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 {
-    string          vname, vname_perm, ctype;
-    Type            t = getCertifiedSigType(sig);
+    string       vname, vname_perm, ctype;
+    Type         t = getCertifiedSigType(sig);
     Occurrences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
@@ -946,9 +946,9 @@ string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
     string varname = getFreshID("fSoundfile");
 
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-    
+
     fClass->addDeclCode(subst("Soundfile* \t$0;", varname));
-    
+
     fClass->addInitUICode(subst("if (uintptr_t($0) == 0) $0 = defaultsound;", varname));
     fClass->addFirstPrivateDecl(subst("$0cache", varname));
 
@@ -995,7 +995,7 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
 
 string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 {
-    int size;
+    int  size;
     bool res = isSigInt(tsize, &size);
     // Size type is previously checked in sigWriteReadTable or sigReadOnlyTable
     faustassert(res);
@@ -1017,7 +1017,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 
     // Define table name and type
     getTypedNames(getCertifiedSigType(content), "tbl", ctype, vname);
-    
+
     // Table declaration
     fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(size)));
 
@@ -1032,7 +1032,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 
 string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 {
-    int size;
+    int  size;
     bool res = isSigInt(tsize, &size);
     // Size type is previously checked in sigWriteReadTable or sigReadOnlyTable
     faustassert(res);
@@ -1058,7 +1058,6 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 
     // Define table name and type
     getTypedNames(getCertifiedSigType(content), "tbl", ctype, vname);
-    
 
     // Table declaration
     if (gGlobal->gMemoryManager) {
@@ -1199,13 +1198,13 @@ string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
     string vperm = getFreshID("pfPerm");
     string vtemp = getFreshID("pfTemp");
-    string type = (getCertifiedSigType(sig)->nature() == kInt) ? "int" : ifloat();
+    string type  = (getCertifiedSigType(sig)->nature() == kInt) ? "int" : ifloat();
 
     fClass->addDeclCode(subst("$0 \t$1;", type, vperm));
     fClass->addInitCode(subst("$0 = $1;", vperm, CS(x)));
 
     fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 \t$1 = $2;", type, vtemp, vperm)));
-    
+
     /*
     string res = CS(e);
     string vname;
@@ -1215,7 +1214,7 @@ string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
         faustassert(false);
     }
     */
-    
+
     fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vperm, CS(e))));
     return vtemp;
 }
