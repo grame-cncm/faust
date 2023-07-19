@@ -973,49 +973,53 @@ class JSFXInstVisitor : public TextInstVisitor {
         return -1;
     }
 
+    // The following methods is used to generate code that declares/defines/accesses structures.
+    // The structure correspond to a "DSP" class representing the Faust code. 
+    // This class can be instanciated in MIDI polyphonic context. 
+    // The reason of the many conditionals in this method is that JSFX code structure is not object oriented by default.
+    // Moreover, some variables like fSlow iSlow had to be put in the class (altough it is not the case in C++ backend for example).
+    // In C++, these variables are declared and defined in the compute method of DSP class, just above the audio loop.
+    // In JSFX, scopes are handled differently (the @block section is called once for each instances, and the @sample section too) so these fields had to be moved as 
+    // class members. 
     virtual void visit(NamedAddress* named)
-    { 
-        bool is_block = startWith(named->fName, "iSlow") || startWith(named->fName, "fSlow");
-        
-        if ((named->getAccess() & Address::kStruct && !isControl(named->fName))
-            || (named->getAccess() & Address::kStack && is_block)) {
+    {
+        // iSlow and fSlow need to be treated as class members
+        const bool is_slow = startWith(named->fName, "iSlow") || startWith(named->fName, "fSlow"); 
+        if( (named->isStruct() && !isControl(named->fName))
+            || (named->isStack() && is_slow))
+        {
             *fOut << "obj[dsp.";
-        } 
-        
-        std::string name = named->fName;
-        if (strfind(name, "output")) {
-            int n_out = get_num_output(name);
-            std::string new_name = "obj[dsp.output" + std::to_string(n_out) + "]";
-            name = new_name;
-        } else if (strfind(name, "input")) {
-            name.replace(0, 5, "spl");
-        } else if (strfind(name, "sample_rate")) {
-            name.replace(0, name.size(), "srate");
-        } else if (poly && isControl(named->fName)) {
-            name = "obj[dsp." + name + "]";
-        } 
-
-        *fOut << name;
-        if (isTable(named->fName) && !named->isStruct()) {
-            *fOut << "[";
         }
         
-        if ((named->getAccess() & Address::kStruct && !isControl(named->fName)
-            && !is_block
-            && (!strfind(name, "Rec") && !strfind(name, "Vec")))
-            || (named->getAccess() & Address::kStack && is_block)) {
-            if (!isTable(named->getName())) {
-                *fOut << "]";
-            }
+        std::string name = named->fName;
+        // Replace name with corresponding JSFX names or JSFX object members
+        if(strfind(named->fName, "output")) {
+            name = "obj[dsp.output" + std::to_string(get_num_output(name)) + "]";
+        } else if(strfind(named->fName, "input")) {
+            name.replace(0, 5, "spl");
+        } else if(strfind(named->fName, "sample_rate")) {
+            name = "srate";
+        // Control values in polyphonic context are treated as object members
+        } else if(poly && isControl(named->fName)) {
+            name = "obj[dsp." + name + "]";
+        }
+        *fOut << name;
+        // Open brackets for table that are not already opened
+        if(isTable(named->fName) && !named->isStruct())
+            *fOut << "[";
+        // Close brackets if opened
+        if ( ((named->isStruct() && !isControl(named->fName) && !is_slow && !strfind(named->fName, "Rec") && !strfind(named->fName, "Vec")) 
+            || (named->isStack() && is_slow)) && !isTable(named->fName) )
+        {
+            *fOut << "]";
         }
     }
     
     /*
-    Indexed address can actually be values in an array or fields in a struct type
+    Indexed address can be values in an array or fields in a struct type
     */
     virtual void visit(IndexedAddress* indexed)
     {
-        //std::cout << "*** indexed address "  << indexed->getName() << std::endl;
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
@@ -1027,6 +1031,10 @@ class JSFXInstVisitor : public TextInstVisitor {
                 return;
             }
             Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->getIndex());
+            // In JSFX, arrays do not really exist. Instead, we access a location relative to an initial position in the preallocated DSP memory.
+            // Thus, writing a[10] means accessing the value at a+10. 
+            // The syntax a[5][5] is thus not allowed, so accessing a position inside a member that is an array may be done with :
+            // a[array_pos + index_in_array]
             if (!isTable(indexed->getName())) {
                 if (indexed->isStruct()) {
                     *fOut << " + ";
