@@ -20,8 +20,8 @@
  ************************************************************************/
 
 #include <stdlib.h>
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
 #include "global.hh"
 #include "occurrences.hh"
@@ -58,6 +58,7 @@ Occurrences::Occurrences(int v, int r, Tree xc) : fXVariability(xVariability(v, 
     fOutDelayOcc   = false;
     fMinDelay      = 0;
     fMaxDelay      = 0;
+    fCountDelay    = 0;  // number of times this sig occurs delay
     fExecCondition = xc;
 }
 
@@ -74,6 +75,7 @@ Occurrences* Occurrences::incOccurrences(int v, int r, int d, Tree xc)
     if (d > fMaxDelay) {
         // cerr << "Max delay : " << fMaxDelay << " <- " << d << endl;
         fMaxDelay = d;
+        fCountDelay++;
     }
 
     // check if used in different execution conditions
@@ -96,6 +98,17 @@ bool Occurrences::hasOutDelayOccurrences() const
 int Occurrences::getMaxDelay() const
 {
     return fMaxDelay;
+}
+
+int Occurrences::getCountDelay() const
+{
+    return fCountDelay;
+}
+
+float Occurrences::getDelayDensity() const
+{
+    if (fMaxDelay == 0) return 0.0;
+    return float(fCountDelay) / float(fMaxDelay);
 }
 
 Tree Occurrences::getExecCondition() const
@@ -146,7 +159,7 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         int  v0 = ty->variability();
         int  r0 = getRecursivness(t);
         // fConditions may have been initialized empty
-        Tree c0 = (fConditions.find(t) == fConditions.end()) ? gGlobal->nil : fConditions[t];        
+        Tree c0 = (fConditions.find(t) == fConditions.end()) ? gGlobal->nil : fConditions[t];
         occ     = new Occurrences(v0, r0, c0);
         setOcc(t, occ);
 
