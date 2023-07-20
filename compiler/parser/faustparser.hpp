@@ -106,73 +106,74 @@
      FLOOR = 322,
      CEIL = 323,
      RINT = 324,
-     RDTBL = 325,
-     RWTBL = 326,
-     SELECT2 = 327,
-     SELECT3 = 328,
-     INT = 329,
-     FLOAT = 330,
-     LAMBDA = 331,
-     WIRE = 332,
-     CUT = 333,
-     ENDDEF = 334,
-     VIRG = 335,
-     LPAR = 336,
-     RPAR = 337,
-     LBRAQ = 338,
-     RBRAQ = 339,
-     LCROC = 340,
-     RCROC = 341,
-     WHERE = 342,
-     DEF = 343,
-     IMPORT = 344,
-     COMPONENT = 345,
-     LIBRARY = 346,
-     ENVIRONMENT = 347,
-     WAVEFORM = 348,
-     ROUTE = 349,
-     ENABLE = 350,
-     CONTROL = 351,
-     IPAR = 352,
-     ISEQ = 353,
-     ISUM = 354,
-     IPROD = 355,
-     INPUTS = 356,
-     OUTPUTS = 357,
-     STRING = 358,
-     FSTRING = 359,
-     IDENT = 360,
-     EXTRA = 361,
-     DECLARE = 362,
-     CASE = 363,
-     ARROW = 364,
-     ASSERTBOUNDS = 365,
-     LOWEST = 366,
-     HIGHEST = 367,
-     FLOATMODE = 368,
-     DOUBLEMODE = 369,
-     QUADMODE = 370,
-     FIXEDPOINTMODE = 371,
-     BDOC = 372,
-     EDOC = 373,
-     BEQN = 374,
-     EEQN = 375,
-     BDGM = 376,
-     EDGM = 377,
-     BLST = 378,
-     ELST = 379,
-     BMETADATA = 380,
-     EMETADATA = 381,
-     DOCCHAR = 382,
-     NOTICE = 383,
-     LISTING = 384,
-     LSTTRUE = 385,
-     LSTFALSE = 386,
-     LSTDEPENDENCIES = 387,
-     LSTMDOCTAGS = 388,
-     LSTDISTRIBUTED = 389,
-     LSTEQ = 390,
-     LSTQ = 391
+     ROUND = 325,
+     RDTBL = 326,
+     RWTBL = 327,
+     SELECT2 = 328,
+     SELECT3 = 329,
+     INT = 330,
+     FLOAT = 331,
+     LAMBDA = 332,
+     WIRE = 333,
+     CUT = 334,
+     ENDDEF = 335,
+     VIRG = 336,
+     LPAR = 337,
+     RPAR = 338,
+     LBRAQ = 339,
+     RBRAQ = 340,
+     LCROC = 341,
+     RCROC = 342,
+     WHERE = 343,
+     DEF = 344,
+     IMPORT = 345,
+     COMPONENT = 346,
+     LIBRARY = 347,
+     ENVIRONMENT = 348,
+     WAVEFORM = 349,
+     ROUTE = 350,
+     ENABLE = 351,
+     CONTROL = 352,
+     IPAR = 353,
+     ISEQ = 354,
+     ISUM = 355,
+     IPROD = 356,
+     INPUTS = 357,
+     OUTPUTS = 358,
+     STRING = 359,
+     FSTRING = 360,
+     IDENT = 361,
+     EXTRA = 362,
+     DECLARE = 363,
+     CASE = 364,
+     ARROW = 365,
+     ASSERTBOUNDS = 366,
+     LOWEST = 367,
+     HIGHEST = 368,
+     FLOATMODE = 369,
+     DOUBLEMODE = 370,
+     QUADMODE = 371,
+     FIXEDPOINTMODE = 372,
+     BDOC = 373,
+     EDOC = 374,
+     BEQN = 375,
+     EEQN = 376,
+     BDGM = 377,
+     EDGM = 378,
+     BLST = 379,
+     ELST = 380,
+     BMETADATA = 381,
+     EMETADATA = 382,
+     DOCCHAR = 383,
+     NOTICE = 384,
+     LISTING = 385,
+     LSTTRUE = 386,
+     LSTFALSE = 387,
+     LSTDEPENDENCIES = 388,
+     LSTMDOCTAGS = 389,
+     LSTDISTRIBUTED = 390,
+     LSTEQ = 391,
+     LSTQ = 392
    };
 #endif
 /* Tokens.  */
@@ -243,73 +244,74 @@
 #define FLOOR 322
 #define CEIL 323
 #define RINT 324
-#define RDTBL 325
-#define RWTBL 326
-#define SELECT2 327
-#define SELECT3 328
-#define INT 329
-#define FLOAT 330
-#define LAMBDA 331
-#define WIRE 332
-#define CUT 333
-#define ENDDEF 334
-#define VIRG 335
-#define LPAR 336
-#define RPAR 337
-#define LBRAQ 338
-#define RBRAQ 339
-#define LCROC 340
-#define RCROC 341
-#define WHERE 342
-#define DEF 343
-#define IMPORT 344
-#define COMPONENT 345
-#define LIBRARY 346
-#define ENVIRONMENT 347
-#define WAVEFORM 348
-#define ROUTE 349
-#define ENABLE 350
-#define CONTROL 351
-#define IPAR 352
-#define ISEQ 353
-#define ISUM 354
-#define IPROD 355
-#define INPUTS 356
-#define OUTPUTS 357
-#define STRING 358
-#define FSTRING 359
-#define IDENT 360
-#define EXTRA 361
-#define DECLARE 362
-#define CASE 363
-#define ARROW 364
-#define ASSERTBOUNDS 365
-#define LOWEST 366
-#define HIGHEST 367
-#define FLOATMODE 368
-#define DOUBLEMODE 369
-#define QUADMODE 370
-#define FIXEDPOINTMODE 371
-#define BDOC 372
-#define EDOC 373
-#define BEQN 374
-#define EEQN 375
-#define BDGM 376
-#define EDGM 377
-#define BLST 378
-#define ELST 379
-#define BMETADATA 380
-#define EMETADATA 381
-#define DOCCHAR 382
-#define NOTICE 383
-#define LISTING 384
-#define LSTTRUE 385
-#define LSTFALSE 386
-#define LSTDEPENDENCIES 387
-#define LSTMDOCTAGS 388
-#define LSTDISTRIBUTED 389
-#define LSTEQ 390
-#define LSTQ 391
+#define ROUND 325
+#define RDTBL 326
+#define RWTBL 327
+#define SELECT2 328
+#define SELECT3 329
+#define INT 330
+#define FLOAT 331
+#define LAMBDA 332
+#define WIRE 333
+#define CUT 334
+#define ENDDEF 335
+#define VIRG 336
+#define LPAR 337
+#define RPAR 338
+#define LBRAQ 339
+#define RBRAQ 340
+#define LCROC 341
+#define RCROC 342
+#define WHERE 343
+#define DEF 344
+#define IMPORT 345
+#define COMPONENT 346
+#define LIBRARY 347
+#define ENVIRONMENT 348
+#define WAVEFORM 349
+#define ROUTE 350
+#define ENABLE 351
+#define CONTROL 352
+#define IPAR 353
+#define ISEQ 354
+#define ISUM 355
+#define IPROD 356
+#define INPUTS 357
+#define OUTPUTS 358
+#define STRING 359
+#define FSTRING 360
+#define IDENT 361
+#define EXTRA 362
+#define DECLARE 363
+#define CASE 364
+#define ARROW 365
+#define ASSERTBOUNDS 366
+#define LOWEST 367
+#define HIGHEST 368
+#define FLOATMODE 369
+#define DOUBLEMODE 370
+#define QUADMODE 371
+#define FIXEDPOINTMODE 372
+#define BDOC 373
+#define EDOC 374
+#define BEQN 375
+#define EEQN 376
+#define BDGM 377
+#define EDGM 378
+#define BLST 379
+#define ELST 380
+#define BMETADATA 381
+#define EMETADATA 382
+#define DOCCHAR 383
+#define NOTICE 384
+#define LISTING 385
+#define LSTTRUE 386
+#define LSTFALSE 387
+#define LSTDEPENDENCIES 388
+#define LSTMDOCTAGS 389
+#define LSTDISTRIBUTED 390
+#define LSTEQ 391
+#define LSTQ 392
 
 
 
@@ -325,7 +327,7 @@ typedef union YYSTYPE
     int numvariant;
 }
 /* Line 1529 of yacc.c.  */
-#line 329 "faustparser.hpp"
+#line 331 "faustparser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

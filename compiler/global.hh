@@ -309,6 +309,7 @@ struct global {
     xtended* gSqrtPrim;
     xtended* gSinPrim;
     xtended* gRintPrim;
+    xtended* gRoundPrim;
     xtended* gRemainderPrim;
     xtended* gPowPrim;
     xtended* gMinPrim;

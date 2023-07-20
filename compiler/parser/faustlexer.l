@@ -192,6 +192,7 @@ NSID     {ID}("::"{ID})*
 "floor"       return FLOOR;
 "ceil"        return CEIL;
 "rint"        return RINT;
+"round"       return ROUND;
 
 "seq"         return ISEQ;
 "par"         return IPAR;

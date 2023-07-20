@@ -175,6 +175,7 @@ inline Tree unquote(char* str)
 %token FLOOR
 %token CEIL
 %token RINT
+%token ROUND
 
 %token RDTBL
 %token RWTBL
@@ -564,6 +565,7 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
                 | FLOOR                          { $$ = gGlobal->gFloorPrim->box(); }
                 | CEIL                           { $$ = gGlobal->gCeilPrim->box(); }
                 | RINT                           { $$ = gGlobal->gRintPrim->box(); }
+                | ROUND                          { $$ = gGlobal->gRoundPrim->box(); }
 
                 | RDTBL                          { $$ = boxPrim3(sigReadOnlyTable); }
                 | RWTBL                          { $$ = boxPrim5(sigWriteReadTable); }

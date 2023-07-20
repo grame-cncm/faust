@@ -44,6 +44,7 @@
 #include "powprim.hh"
 #include "remainderprim.hh"
 #include "rintprim.hh"
+#include "roundprim.hh"
 #include "sinprim.hh"
 #include "sourcereader.hh"
 #include "sqrtprim.hh"
@@ -238,6 +239,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gSqrtPrim      = new SqrtPrim();
     gSinPrim       = new SinPrim();
     gRintPrim      = new RintPrim();
+    gRoundPrim     = new RoundPrim();
     gRemainderPrim = new RemainderPrim();
     gPowPrim       = new PowPrim();
     gMinPrim       = new MinPrim();
