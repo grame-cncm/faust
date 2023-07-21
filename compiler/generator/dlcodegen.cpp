@@ -31,14 +31,14 @@ std::string DlCodeGen::globalInit() const
 
 std::string DlCodeGen::localDeclare() const
 {
-    std::string s = "float       " + fDlName + "cache[" + T(fBlockSize) + " + " + T(fDlMaxDelay) +
+    std::string s = fDlType + "\t" + fDlName + "cache[" + T(fBlockSize) + " + " + T(fDlMaxDelay) +
                     "];  // local copy of the delay line";
     return s;
 }
 
 std::string DlCodeGen::PointerSetup() const
 {
-    std::string s = "float* " + fDlName + " = " + fDlName + "cache + " + T(fBlockSize) +
+    std::string s = fDlType + "*\t" + fDlName + " = " + fDlName + "cache + " + T(fBlockSize) +
                     " - 1;  // pointer to the delay line in the local copy";
     return s;
 }
