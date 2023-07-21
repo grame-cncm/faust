@@ -423,7 +423,7 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
     }
 }
 
-ValueInst* DAGInstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
+ValueInst* DAGInstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
     string     vname;
     ValueInst* code = CS(exp);  // ensure exp is compiled to have a vector name

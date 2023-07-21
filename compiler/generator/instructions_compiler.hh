@@ -160,7 +160,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateCode(Tree sig);
 
     virtual ValueInst* generateXtended(Tree sig);
-    virtual ValueInst* generateDelay(Tree sig, Tree arg, Tree size);
+    virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree size);
     virtual ValueInst* generatePrefix(Tree sig, Tree x, Tree e);
     virtual ValueInst* generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 

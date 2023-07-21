@@ -25,8 +25,8 @@
 
 #include "compile_vect.hh"
 #include "floats.hh"
-#include "sharing.hh"
 #include "ppsig.hh"
+#include "sharing.hh"
 
 using namespace std;
 
@@ -90,28 +90,28 @@ string VectorCompiler::CS(Tree sig)
 
         if (fClass->getLoopProperty(sig, ls)) {
             // sig has a loop property
-            //cerr << "CASE SH : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
+            // cerr << "CASE SH : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else if (isSigDelay(sig, x, d) && fClass->getLoopProperty(x, ls)) {
-            //cerr << "CASE DL : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            // cerr << "CASE DL : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else if (isSigDelay(sig, x, d) && isProj(x, &i, r) && fClass->getLoopProperty(r, ls)) {
-            //cerr << "CASE DR : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            // cerr << "CASE DR : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else if (isProj(sig, &i, r) && fClass->getLoopProperty(r, ls)) {
-            //cerr << "CASE R* : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            // cerr << "CASE R* : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else {
             if (isProj(sig, &i, r)) {
-                //cerr << "SYMBOL RECURSIF EN COURS ??? " << *r << endl;
+                // cerr << "SYMBOL RECURSIF EN COURS ??? " << *r << endl;
             } else if (getCertifiedSigType(sig)->variability() < kSamp) {
-                //cerr << "SLOW EXPRESSION " << endl;
+                // cerr << "SLOW EXPRESSION " << endl;
             } else {
-                //cerr << "Expression absorbée" << *sig << endl;
+                // cerr << "Expression absorbée" << *sig << endl;
             }
         }
     }
@@ -215,11 +215,11 @@ string VectorCompiler::generateLoopCode(Tree sig)
  */
 string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
 {
-    string        vname, ctype;
-    int           sharing = getSharingCount(sig, fSharingKey);
-    Type          t       = getCertifiedSigType(sig);
-    Occurrences*  o       = fOccMarkup->retrieve(sig);
-    int           d       = o->getMaxDelay();
+    string       vname, ctype;
+    int          sharing = getSharingCount(sig, fSharingKey);
+    Type         t       = getCertifiedSigType(sig);
+    Occurrences* o       = fOccMarkup->retrieve(sig);
+    int          d       = o->getMaxDelay();
 
     if (t->variability() < kSamp) {
         if (d == 0) {
@@ -249,26 +249,26 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
         // sample-rate signal
         if (d > 0) {
             // used delayed : we need a delay line
-            //cerr << "CHASING BUG 1 " << *sig << endl;
-            //cerr << "CHASING BUG T " << getCertifiedSigType(sig) << endl;
+            // cerr << "CHASING BUG 1 " << *sig << endl;
+            // cerr << "CHASING BUG T " << getCertifiedSigType(sig) << endl;
             getTypedNames(getCertifiedSigType(sig), "Yec", ctype, vname);
-            //cerr << "CHASING BUG N " << ctype << " " << vname << endl;
+            // cerr << "CHASING BUG N " << ctype << " " << vname << endl;
             generateDelayLine(ctype, vname, d, exp, getConditionCode(sig));
             setVectorNameProperty(sig, vname);
 
             if (verySimple(sig)) {
-                //cerr << "CHASING BUG 2 " << exp << endl;
+                // cerr << "CHASING BUG 2 " << exp << endl;
                 return exp;
             } else {
                 if (d < gGlobal->gMaxCopyDelay) {
                     string sss = subst("$0[i]", vname);
-                    //cerr << "CHASING BUG 3 " << sss << endl;
+                    // cerr << "CHASING BUG 3 " << sss << endl;
                     return sss;
                 } else {
                     // we use a ring buffer
                     string mask = T(pow2limit(d + gGlobal->gVecSize) - 1);
                     string sss  = subst("$0[($0_idx+i) & $1]", vname, mask);
-                    //cerr << "CHASING BUG 4 " << sss << endl;
+                    // cerr << "CHASING BUG 4 " << sss << endl;
                     return sss;
                 }
             }
@@ -355,9 +355,9 @@ string VectorCompiler::generateVariableStore(Tree sig, const string& exp)
  * the maximum delay attached to exp.
  */
 
-string VectorCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
+string VectorCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
-    // cerr << "VectorCompiler::generateDelay " << ppsig(sig) << endl;
+    // cerr << "VectorCompiler::generateDelayAccess " << ppsig(sig) << endl;
 
     string code = CS(exp);  // ensure exp is compiled to have a vector name
     int    d, mxd = fOccMarkup->retrieve(exp)->getMaxDelay();

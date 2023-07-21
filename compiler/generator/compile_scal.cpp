@@ -496,7 +496,7 @@ string ScalarCompiler::generateCode(Tree sig)
     }
 
     else if (isSigDelay(sig, x, y)) {
-        return generateDelay(sig, x, y);
+        return generateDelayAccess(sig, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
     } else if (isSigBinOp(sig, &i, x, y)) {
@@ -1272,11 +1272,11 @@ string ScalarCompiler::generateXtended(Tree sig)
  * Generate code for accessing a delayed signal. The generated code depend of
  * the maximum delay attached to exp.
  */
-string ScalarCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
+string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
-    // cerr << "ScalarCompiler::generateDelay sig = " << *sig << endl;
-    // cerr << "ScalarCompiler::generateDelay exp = " << *exp << endl;
-    // cerr << "ScalarCompiler::generateDelay del = " << *delay << endl;
+    // cerr << "ScalarCompiler::generateDelayAccess sig = " << *sig << endl;
+    // cerr << "ScalarCompiler::generateDelayAccess exp = " << *exp << endl;
+    // cerr << "ScalarCompiler::generateDelayAccess del = " << *delay << endl;
 
     string code = CS(exp);  // ensure exp is compiled to have a vector name
     int    mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();

@@ -51,7 +51,7 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
     virtual ValueInst* generateInput(Tree sig, int idx);
 
-    virtual ValueInst* generateDelay(Tree sig, Tree arg, Tree size);
+    virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree size);
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const std::string& vname,
                                         int mxd);
     virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd,

@@ -94,7 +94,7 @@ class DocCompiler : public virtual Garbageable {
     /* Code generation. */
 
     std::string generateXtended(Tree sig, int priority);
-    std::string generateDelay(Tree sig, Tree arg, Tree size, int priority);
+    std::string generateDelayAccess(Tree sig, Tree arg, Tree size, int priority);
     std::string generatePrefix(Tree sig, Tree x, Tree e, int priority);
     std::string generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, int priority);
 
