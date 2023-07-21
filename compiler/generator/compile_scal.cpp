@@ -35,6 +35,7 @@
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
+#include "dlcodegen.hh"
 #include "floats.hh"
 #include "normalform.hh"
 #include "ppsig.hh"
@@ -1335,6 +1336,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
     string ccs = getConditionCode(sig);
 
     if (mxd < gGlobal->gMaxCopyDelay) {
+#if 1
         // short delay : we copy
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
@@ -1349,9 +1351,19 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
         } else {
             fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
         }
+#else
+        DlCodeGen g(ctype, vname, gGlobal->gVecSize, mxd);
+        fClass->addDeclCode(g.globalDeclare());
+        fClass->addClearCode(g.globalInit());
+        fClass->addZone2(g.localDeclare());
+        fClass->addZone3(g.PointerSetup());
+        fClass->addZone3(g.copyGlobalToLocal());
+        fClass->addPostCode(Statement(ccs, g.advance()));
+        fClass->addZone3Post(g.copyLocalToGlobal());
+
+#endif
         setVectorNameProperty(sig, vname);
         return subst("$0[0]", vname);
-
     } else {
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
         int N = pow2limit(mxd + 1);
