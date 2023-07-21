@@ -1,4 +1,4 @@
-% man(1) Version 2.62.0 (17-July-2023) | Faust man page
+% man(1) Version 2.63.0 (21-July-2023) | Faust man page
 
 NAME
 ====
@@ -142,7 +142,7 @@ Code generation options:
 
   **-mapp**       **--math-approximation**        simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
 
-  **-cabi**       -reprc                      (Rust) Force dsp struct layout to follow C ABI.
+  **-noreprc**    **--no-reprc**                  (Rust only) Don't force dsp struct layout to follow C ABI.
 
   **-ns** \<name>  **--namespace** \<name>          generate C++ or D code in a namespace \<name>.
 
