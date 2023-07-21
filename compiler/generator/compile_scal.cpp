@@ -420,8 +420,8 @@ void ScalarCompiler::compileMultiSignal(Tree L)
             "", subst("output$0[i] = $2($1);  // Zone Exec Code", T(i), generateCacheCode(sig, CS(sig)), xcast())));
     }
 
-    fClass->addZone3Post("// Zone 3 Post Code");
-    fClass->addZone4("// Zone 4");
+    // fClass->addZone3Post("// Zone 3 Post Code");
+    // fClass->addZone4("// Zone 4");
     generateMetaData();
     generateUserInterfaceTree(fUITree.prepareUserInterfaceTree(), true);
     generateMacroInterfaceTree("", fUITree.prepareUserInterfaceTree());
@@ -1327,31 +1327,8 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
 /**
  * Generate code for the delay mecchanism without using temporary variables
  */
-string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
-                                              int mxd)
-{
-    faustassert(mxd > 0);
 
-    // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
-    string ccs = getConditionCode(sig);
-
-    if (mxd < gGlobal->gMaxCopyDelay) {
-#if 1
-        // short delay : we copy
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
-        fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
-
-        // generate post processing copy code to update delay values
-        if (mxd == 1) {
-            fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname)));
-        } else if (mxd == 2) {
-            // fClass->addPostCode(subst("$0[2] = $0[1];", vname));
-            fClass->addPostCode(Statement(ccs, subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
-        } else {
-            fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
-        }
-#else
+/*
         DlCodeGen g(ctype, vname, gGlobal->gVecSize, mxd);
         fClass->addDeclCode(g.globalDeclare());
         fClass->addClearCode(g.globalInit());
@@ -1361,23 +1338,20 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
         fClass->addPostCode(Statement(ccs, g.advance()));
         fClass->addZone3Post(g.copyLocalToGlobal());
 
-#endif
-        setVectorNameProperty(sig, vname);
+*/
+string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
+                                              int mxd)
+{
+    faustassert(mxd > 0);
+
+    // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
+    string ccs = getConditionCode(sig);
+    generateDelayLine(ctype, vname, mxd, exp, ccs);
+    setVectorNameProperty(sig, vname);
+    if (mxd < gGlobal->gMaxCopyDelay) {
         return subst("$0[0]", vname);
     } else {
-        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
         int N = pow2limit(mxd + 1);
-
-        // we need an iota index
-        fMaxIota = 0;
-
-        // declare and init
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-
-        // execute
-        fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
-        setVectorNameProperty(sig, vname);
         return subst("$0[IOTA&$1]", vname, T(N - 1));
     }
 }
@@ -1400,6 +1374,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         }
 
     } else if (mxd < gGlobal->gMaxCopyDelay) {
+#if 1
         // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
 
         // short delay : we copy
@@ -1415,7 +1390,17 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         } else {
             fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
         }
-
+#else
+        DlCodeGen g(ctype, vname, gGlobal->gVecSize, mxd);
+        fClass->addDeclCode(g.globalDeclare());
+        fClass->addClearCode(g.globalInit());
+        fClass->addZone2(g.localDeclare());
+        fClass->addZone3(g.PointerSetup());
+        fClass->addZone3(g.copyGlobalToLocal());
+        fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+        fClass->addPostCode(Statement(ccs, g.advance()));
+        fClass->addZone3Post(g.copyLocalToGlobal());
+#endif
     } else {
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
         int N = pow2limit(mxd + 1);
