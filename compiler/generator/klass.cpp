@@ -1473,8 +1473,22 @@ void SigIntGenKlass::println(int n, ostream& fout)
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
-    printlines(n + 2, fZone3Code, fout);
-    printLoopGraphInternal(n + 2, fout);
+
+    tab(n + 2, fout);
+    fout << "int fullcount = count;";
+    tab(n + 2, fout);
+    fout << "for (int index = 0; index < fullcount; index += " << gGlobal->gVecSize << ") {";
+    tab(n + 3, fout);
+    fout << "int count = min(" << gGlobal->gVecSize << ", fullcount-index);";
+
+    printlines(n + 3, fZone3Code, fout);
+    printLoopGraphInternal(n + 3, fout);
+    printlines(n + 3, fZone3Post, fout);
+
+    tab(n + 2, fout);
+    fout << "}";
+
+    printlines(n + 2, fZone4Code, fout);
     tab(n + 1, fout);
     fout << "}";
 
@@ -1523,8 +1537,22 @@ void SigFloatGenKlass::println(int n, ostream& fout)
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
-    printlines(n + 2, fZone3Code, fout);
-    printLoopGraphInternal(n + 2, fout);
+
+    tab(n + 2, fout);
+    fout << "int fullcount = count;";
+    tab(n + 2, fout);
+    fout << "for (int index = 0; index < fullcount; index += " << gGlobal->gVecSize << ") {";
+    tab(n + 3, fout);
+    fout << "int count = min(" << gGlobal->gVecSize << ", fullcount-index);";
+
+    printlines(n + 3, fZone3Code, fout);
+    printLoopGraphInternal(n + 3, fout);
+    printlines(n + 3, fZone3Post, fout);
+
+    tab(n + 2, fout);
+    fout << "}";
+
+    printlines(n + 2, fZone4Code, fout);
     tab(n + 1, fout);
     fout << "}";
 
