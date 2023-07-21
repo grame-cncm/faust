@@ -53,7 +53,7 @@ set (FAUST_INC ${SRCDIR}
 # emscripten support
 set (WASM_EXPORTED "\"['FS']\"")
 set (LIBSNDFILE "${ROOT}/build/wasmglue/libsndfile.a ${ROOT}/build/wasmglue/libogg.a ${ROOT}/build/wasmglue/libvorbis.a ${ROOT}/build/wasmglue/libvorbisenc.a ${ROOT}/build/wasmglue/libFLAC.a")
-set (WASM_LINK_FLAGS "--bind --memory-init-file 0 -s LINKABLE=0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 -s ASSERTIONS=0 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_RUNTIME_METHODS=${WASM_EXPORTED} ${LIBSNDFILE} ${WASM_LINK_FLAGS_EXTRA}")
+set (WASM_LINK_FLAGS "--bind --memory-init-file 0 -s LINKABLE=0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 -s ASSERTIONS=0 -s ALLOW_MEMORY_GROWTH=1 -s STACK_SIZE=5MB -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_RUNTIME_METHODS=${WASM_EXPORTED} ${LIBSNDFILE} ${WASM_LINK_FLAGS_EXTRA}")
  
 ####################################
 # Add the different targets
