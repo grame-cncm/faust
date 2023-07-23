@@ -1374,7 +1374,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         }
 
     } else if (mxd < gGlobal->gMaxCopyDelay) {
-#if 1
+#if 0
         // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
 
         // short delay : we copy
