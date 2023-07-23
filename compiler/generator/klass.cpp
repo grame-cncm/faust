@@ -1484,6 +1484,8 @@ void SigIntGenKlass::println(int n, ostream& fout)
     printlines(n + 3, fZone3Code, fout);
     printLoopGraphInternal(n + 3, fout);
     printlines(n + 3, fZone3Post, fout);
+    tab(n + 3, fout);
+    fout << "output += " << gGlobal->gVecSize << ";";
 
     tab(n + 2, fout);
     fout << "}";
