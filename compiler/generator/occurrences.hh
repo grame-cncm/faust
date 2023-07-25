@@ -41,14 +41,13 @@ class Occurrences : public virtual Garbageable {
     Occurrences(int v, int r, Tree xc);
     Occurrences* incOccurrences(int v, int r, int d, Tree xc);  ///< inc occurrences in context v,r,d,xc
 
-    bool  hasMultiOccurrences() const;     ///< true if multiple occurrences or occ. in higher ctxt
-    bool  hasOutDelayOccurrences() const;  ///< true if has occurrences outside a a delay
-    int   getMaxDelay() const;             ///< return the maximal delay collected
-    int   getMinDelay() const;             ///< return the minimal delay collected
-    int   getCountDelay() const;
-    float getDelayDensity() const;
-    Tree  getExecCondition() const;              ///< return the exec condition
-    int   getOccurrence(int variability) const;  ///< return the number of occurrence by variability
+    bool hasMultiOccurrences() const;     ///< true if multiple occurrences or occ. in higher ctxt
+    bool hasOutDelayOccurrences() const;  ///< true if has occurrences outside a a delay
+    int  getMaxDelay() const;             ///< return the maximal delay collected
+    int  getMinDelay() const;             ///< return the minimal delay collected
+    int  getDelayCount() const;
+    Tree getExecCondition() const;              ///< return the exec condition
+    int  getOccurrence(int variability) const;  ///< return the number of occurrence by variability
 };
 
 /**

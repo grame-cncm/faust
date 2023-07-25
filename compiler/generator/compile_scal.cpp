@@ -591,7 +591,7 @@ string ScalarCompiler::generateNumber(Tree sig, const string& exp)
     // check for number occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
     }
     return exp;
 }
@@ -612,7 +612,7 @@ string ScalarCompiler::generateFConst(Tree sig, const string& file, const string
 
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
     }
     return exp;
 }
@@ -713,9 +713,10 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         if (sharing > 1) {
-            return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay());
+            return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay(),
+                                    o->getDelayCount());
         } else {
-            return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+            return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
         }
 
     } else if ((sharing > 1) || (o->hasMultiOccurrences())) {
@@ -748,7 +749,8 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     // check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay());
+        return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay(),
+                                o->getDelayCount());
     } else {
         return generateVariableStore(sig, exp);
     }
@@ -1154,6 +1156,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
 
     vector<bool>   used(N);
     vector<int>    delay(N);
+    vector<int>    count(N);
     vector<string> vname(N);
     vector<string> ctype(N);
 
@@ -1166,6 +1169,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
             getTypedNames(getCertifiedSigType(e), "Rec", ctype[i], vname[i]);
             setVectorNameProperty(e, vname[i]);
             delay[i] = fOccMarkup->retrieve(e)->getMaxDelay();
+            count[i] = fOccMarkup->retrieve(e)->getDelayCount();
         } else {
             // this projection is not used therefore
             // we should not generate code for it
@@ -1176,7 +1180,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
     // generate delayline for each element of a recursive definition
     for (int i = 0; i < N; i++) {
         if (used[i]) {
-            generateDelayLine(ctype[i], vname[i], delay[i], CS(nth(le, i)), getConditionCode(nth(le, i)));
+            generateDelayLine(ctype[i], vname[i], delay[i], count[i], CS(nth(le, i)), getConditionCode(nth(le, i)));
         }
     }
 }
@@ -1278,8 +1282,9 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
     // cerr << "ScalarCompiler::generateDelayAccess exp = " << *exp << endl;
     // cerr << "ScalarCompiler::generateDelayAccess del = " << *delay << endl;
 
-    string code = CS(exp);  // ensure exp is compiled to have a vector name
-    int    mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
+    string code  = CS(exp);  // ensure exp is compiled to have a vector name
+    int    mxd   = fOccMarkup->retrieve(exp)->getMaxDelay();
+    int    count = fOccMarkup->retrieve(exp)->getDelayCount();
     string vecname;
 
     if (!getVectorNameProperty(exp, vecname)) {
@@ -1296,7 +1301,7 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
         // not a real vector name but a scalar name
         return vecname;
 
-    } else if (mxd < gGlobal->gMaxCopyDelay) {
+    } else if (mxd < count * gGlobal->gMaxCopyDelay) {
         int d;
         if (isSigInt(delay, &d)) {
             return subst("$0[$1]", vecname, CS(delay));
@@ -1314,9 +1319,10 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
  * Generate code for the delay mecchanism. The generated code depend of the
  * maximum delay attached to exp and the "less temporaries" switch
  */
-string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
+string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd,
+                                        int count)
 {
-    string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
+    string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd, count);
     if (getCertifiedSigType(sig)->variability() < kSamp) {
         return exp;
     } else {
@@ -1340,15 +1346,15 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
 
 */
 string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
-                                              int mxd)
+                                              int mxd, int count)
 {
     faustassert(mxd > 0);
 
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
     string ccs = getConditionCode(sig);
-    generateDelayLine(ctype, vname, mxd, exp, ccs);
+    generateDelayLine(ctype, vname, mxd, count, exp, ccs);
     setVectorNameProperty(sig, vname);
-    if (mxd < gGlobal->gMaxCopyDelay) {
+    if (mxd < count * gGlobal->gMaxCopyDelay) {
         return subst("$0[0]", vname);
     } else {
         int N = pow2limit(mxd + 1);
@@ -1360,7 +1366,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
  * Generate code for the delay mecchanism without using temporary variables
  */
 
-void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
+void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, int count, const string& exp,
                                        const string& ccs)
 {
     if (mxd == 0) {
@@ -1373,7 +1379,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
             fClass->addExecCode(Statement(ccs, subst("\t$0 = $1;", vname, exp)));
         }
 
-    } else if (mxd < gGlobal->gMaxCopyDelay) {
+    } else if (mxd < count * gGlobal->gMaxCopyDelay) {
 #if 0
         // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
 

@@ -133,11 +133,11 @@ class ScalarCompiler : public Compiler {
     std::string generateFVar(Tree sig, const std::string& file, const std::string& name);
 
     virtual std::string generateDelayVec(Tree sig, const std::string& exp, const std::string& ctype,
-                                         const std::string& vname, int mxd);
+                                         const std::string& vname, int mxd, int count);
     std::string         generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype,
-                                               const std::string& vname, int mxd);
-    virtual void generateDelayLine(const std::string& ctype, const std::string& vname, int mxd, const std::string& exp,
-                                   const std::string& ccs);
+                                               const std::string& vname, int mxd, int count);
+    virtual void        generateDelayLine(const std::string& ctype, const std::string& vname, int mxd, int count,
+                                          const std::string& exp, const std::string& ccs);
 
     void getTypedNames(::Type t, const std::string& prefix, std::string& ctype, std::string& vname);
     void ensureIotaCode();

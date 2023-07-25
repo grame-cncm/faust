@@ -100,15 +100,9 @@ int Occurrences::getMaxDelay() const
     return fMaxDelay;
 }
 
-int Occurrences::getCountDelay() const
+int Occurrences::getDelayCount() const
 {
     return fCountDelay;
-}
-
-float Occurrences::getDelayDensity() const
-{
-    if (fMaxDelay == 0) return 0.0;
-    return float(fCountDelay) / float(fMaxDelay);
 }
 
 Tree Occurrences::getExecCondition() const
