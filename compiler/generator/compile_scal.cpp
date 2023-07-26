@@ -1318,8 +1318,8 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
         return vecname;
 
     } else if (mxd <= count * gGlobal->gMaxCopyDelay) {
-        return subst("$0[$1]", vecname, CS(delay));
-#if 0
+        return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
+#if 0 
         int d;
         if (isSigInt(delay, &d)) {
             return subst("$0[$1]", vecname, CS(delay));
