@@ -31,16 +31,25 @@ std::string DlCodeGen::globalInit() const
 
 std::string DlCodeGen::localDeclare() const
 {
-    std::string s = fDlType + "\t" + fDlName + "cache[" + T(fBlockSize) + " + " + T(fDlMaxDelay) +
-                    "];  // local copy of the delay line";
-    return s;
+    if (fDlMaxDelay > 1) {
+        std::string s = fDlType + "\t" + fDlName + "cache[" + T(fBlockSize) + " + " + T(fDlMaxDelay) +
+                        "];  // local copy of the delay line";
+        return s;
+    } else {
+        std::string s = fDlType + "\t" + fDlName + "[2];  // local copy of the delay line";
+        return s;
+    }
 }
 
 std::string DlCodeGen::PointerSetup() const
 {
-    std::string s = fDlType + "*\t" + fDlName + " = " + fDlName + "cache + " + T(fBlockSize) +
-                    " - 1;  // pointer to the delay line in the local copy";
-    return s;
+    if (fDlMaxDelay > 1) {
+        std::string s = fDlType + "*\t" + fDlName + " = " + fDlName + "cache + " + T(fBlockSize) +
+                        " - 1;  // pointer to the delay line in the local copy";
+        return s;
+    } else {
+        return "";
+    }
 }
 
 std::string DlCodeGen::copyGlobalToLocal() const
@@ -71,8 +80,13 @@ std::string DlCodeGen::copyLocalToGlobal() const
 
 std::string DlCodeGen::advance() const
 {
-    std::string s = "--" + fDlName + ";\n";
-    return s;
+    if (fDlMaxDelay > 1) {
+        std::string s = "--" + fDlName + ";\n";
+        return s;
+    } else {
+        std::string s = fDlName + "[1] = " + fDlName + "[0];\n";
+        return s;
+    }
 }
 
 std::string DlCodeGen::write(std::string exp) const
