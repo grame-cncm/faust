@@ -1,11 +1,11 @@
 
 /*
-Code generated with Faust version 2.60.2
+Code generated with Faust version 2.63.0
 Compilation options: -lang wasm-ib -ct 1 -cn osc -es 1 -mcd 16 -single -ftz 2 
 */
 
 function getJSONosc() {
-	return '{"name": "osc","filename": "osc.dsp","version": "2.60.2","compile_options": "-lang wasm-ib -ct 1 -cn osc -es 1 -mcd 16 -single -ftz 2","library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/oscillators.lib","/usr/local/share/faust/platform.lib","/usr/local/share/faust/maths.lib","/usr/local/share/faust/basics.lib","/usr/local/share/faust/signals.lib"],"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust",".","/Documents/faust-github-faust2/architecture/webaudio"],"size": 262208,"inputs": 0,"outputs": 1,"meta": [ { "author": "Grame" },{ "basics.lib/name": "Faust Basic Element Library" },{ "basics.lib/tabulateNd": "Copyright (C) 2023 Bart Brouns <bart@magnetophon.nl>" },{ "basics.lib/version": "0.10" },{ "compile_options": "-lang wasm-ib -ct 1 -cn osc -es 1 -mcd 16 -single -ftz 2" },{ "copyright": "(c)GRAME 2009" },{ "filename": "osc.dsp" },{ "license": "BSD" },{ "maths.lib/author": "GRAME" },{ "maths.lib/copyright": "GRAME" },{ "maths.lib/license": "LGPL with exception" },{ "maths.lib/name": "Faust Math Library" },{ "maths.lib/version": "2.6" },{ "name": "osc" },{ "oscillators.lib/name": "Faust Oscillator Library" },{ "oscillators.lib/version": "0.4" },{ "platform.lib/name": "Generic Platform Library" },{ "platform.lib/version": "0.3" },{ "signals.lib/name": "Faust Signal Routing Library" },{ "signals.lib/version": "0.3" },{ "version": "1.0" }],"ui": [ {"type": "vgroup","label": "Oscillator","items": [ {"type": "hslider","label": "freq","shortname": "freq","address": "/Oscillator/freq","index": 262180,"meta": [{ "unit": "Hz" }],"init": 1000,"min": 20,"max": 24000,"step": 1},{"type": "hslider","label": "volume","shortname": "volume","address": "/Oscillator/volume","index": 262152,"meta": [{ "unit": "dB" }],"init": 0,"min": -96,"max": 0,"step": 0.1}]}]}';
+    return '{"name": "osc","filename": "osc.dsp","version": "2.63.0","compile_options": "-lang wasm-ib -ct 1 -cn osc -es 1 -mcd 16 -single -ftz 2","library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/oscillators.lib","/usr/local/share/faust/platform.lib","/usr/local/share/faust/maths.lib","/usr/local/share/faust/basics.lib","/usr/local/share/faust/signals.lib"],"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust",".","/Documents/faust-github-faust2/architecture/webaudio"],"size": 262208,"inputs": 0,"outputs": 1,"meta": [ { "author": "Grame" },{ "basics.lib/name": "Faust Basic Element Library" },{ "basics.lib/tabulateNd": "Copyright (C) 2023 Bart Brouns <bart@magnetophon.nl>" },{ "basics.lib/version": "0.10" },{ "compile_options": "-lang wasm-ib -ct 1 -cn osc -es 1 -mcd 16 -single -ftz 2" },{ "copyright": "(c)GRAME 2009" },{ "filename": "osc.dsp" },{ "license": "BSD" },{ "maths.lib/author": "GRAME" },{ "maths.lib/copyright": "GRAME" },{ "maths.lib/license": "LGPL with exception" },{ "maths.lib/name": "Faust Math Library" },{ "maths.lib/version": "2.6" },{ "name": "osc" },{ "oscillators.lib/name": "Faust Oscillator Library" },{ "oscillators.lib/version": "0.4" },{ "platform.lib/name": "Generic Platform Library" },{ "platform.lib/version": "0.3" },{ "signals.lib/name": "Faust Signal Routing Library" },{ "signals.lib/version": "0.3" },{ "version": "1.0" }],"ui": [ {"type": "vgroup","label": "Oscillator","items": [ {"type": "hslider","label": "freq","shortname": "freq","address": "/Oscillator/freq","index": 262180,"meta": [{ "unit": "Hz" }],"init": 1000,"min": 20,"max": 24000,"step": 1},{"type": "hslider","label": "volume","shortname": "volume","address": "/Oscillator/volume","index": 262152,"meta": [{ "unit": "dB" }],"init": 0,"min": -96,"max": 0,"step": 0.1}]}]}';
 }
 function getBase64Codeosc() { return "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L3NoYXJlL2ZhdXN0L3NpZ25hbHMubGliIl0sImluY2x1ZGVfcGF0aG5hbWVzIjogWyIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0IiwiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdCIsIi91c3Ivc2hhcmUvZmF1c3QiLCIuIiwiL0RvY3VtZW50cy9mYXVzdC1naXRodWItZmF1c3QyL2FyY2hpdGVjdHVyZS93ZWJhdWRpbyJdLCJzaXplIjogMjYyMjA4LCJpbnB1dHMiOiAwLCJvdXRwdXRzIjogMSwibWV0YSI6IFsgeyAiYXV0aG9yIjogIkdyYW1lIiB9LHsgImJhc2ljcy5saWIvbmFtZSI6ICJGYXVzdCBCYXNpYyBFbGVtZW50IExpYnJhcnkiIH0seyAiYmFzaWNzLmxpYi90YWJ1bGF0ZU5kIjogIkNvcHlyaWdodCAoQykgMjAyMyBCYXJ0IEJyb3VucyA8YmFydEBtYWduZXRvcGhvbi5ubD4iIH0seyAiYmFzaWNzLmxpYi92ZXJzaW9uIjogIjAuMTAiIH0seyAiY29tcGlsZV9vcHRpb25zIjogIi1sYW5nIHdhc20taWIgLWN0IDEgLWNuIG9zYyAtZXMgMSAtbWNkIDE2IC1zaW5nbGUgLWZ0eiAyIiB9LHsgImNvcHlyaWdodCI6ICIoYylHUkFNRSAyMDA5IiB9LHsgImZpbGVuYW1lIjogIm9zYy5kc3AiIH0seyAibGljZW5zZSI6ICJCU0QiIH0seyAibWF0aHMubGliL2F1dGhvciI6ICJHUkFNRSIgfSx7ICJtYXRocy5saWIvY29weXJpZ2h0IjogIkdSQU1FIiB9LHsgIm1hdGhzLmxpYi9saWNlbnNlIjogIkxHUEwgd2l0aCBleGNlcHRpb24iIH0seyAibWF0aHMubGliL25hbWUiOiAiRmF1c3QgTWF0aCBMaWJyYXJ5IiB9LHsgIm1hdGhzLmxpYi92ZXJzaW9uIjogIjIuNiIgfSx7ICJuYW1lIjogIm9zYyIgfSx7ICJvc2NpbGxhdG9ycy5saWIvbmFtZSI6ICJGYXVzdCBPc2NpbGxhdG9yIExpYnJhcnkiIH0seyAib3NjaWxsYXRvcnMubGliL3ZlcnNpb24iOiAiMC40IiB9LHsgInBsYXRmb3JtLmxpYi9uYW1lIjogIkdlbmVyaWMgUGxhdGZvcm0gTGlicmFyeSIgfSx7ICJwbGF0Zm9ybS5saWIvdmVyc2lvbiI6ICIwLjMiIH0seyAic2lnbmFscy5saWIvbmFtZSI6ICJGYXVzdCBTaWduYWwgUm91dGluZyBMaWJyYXJ5IiB9LHsgInNpZ25hbHMubGliL3ZlcnNpb24iOiAiMC4zIiB9LHsgInZlcnNpb24iOiAiMS4wIiB9XSwidWkiOiBbIHsidHlwZSI6ICJ2Z3JvdXAiLCJsYWJlbCI6ICJPc2NpbGxhdG9yIiwiaXRlbXMiOiBbIHsidHlwZSI6ICJoc2xpZGVyIiwibGFiZWwiOiAiZnJlcSIsInNob3J0bmFtZSI6ICJmcmVxIiwiYWRkcmVzcyI6ICIvT3NjaWxsYXRvci9mcmVxIiwiaW5kZXgiOiAyNjIxODAsIm1ldGEiOiBbeyAidW5pdCI6ICJIeiIgfV0sImluaXQiOiAxMDAwLCJtaW4iOiAyMCwibWF4IjogMjQwMDAsInN0ZXAiOiAxfSx7InR5cGUiOiAiaHNsaWRlciIsImxhYmVsIjogInZvbHVtZSIsInNob3J0bmFtZSI6ICJ2b2x1bWUiLCJhZGRyZXNzIjogIi9Pc2NpbGxhdG9yL3ZvbHVtZSIsImluZGV4IjogMjYyMTUyLCJtZXRhIjogW3sgInVuaXQiOiAiZEIiIH1dLCJpbml0IjogMCwibWluIjogLTk2LCJtYXgiOiAwLCJzdGVwIjogMC4xfV19XX0="; }
 
@@ -423,7 +423,7 @@ class osc {
                     _min_f: Math.min,
                     _remainderf: (x, y) => x - Math.round(x / y) * y,
                     _powf: Math.pow,
-                    _roundf: Math.fround,
+                    _roundf: Math.round,
                     _sinf: Math.sin,
                     _sqrtf: Math.sqrt,
                     _tanf: Math.tan,
@@ -453,7 +453,7 @@ class osc {
                     _min_: Math.min,
                     _remainder: (x, y) => x - Math.round(x / y) * y,
                     _pow: Math.pow,
-                    _round: Math.fround,
+                    _round: Math.round,
                     _sin: Math.sin,
                     _sqrt: Math.sqrt,
                     _tan: Math.tan,
@@ -663,7 +663,7 @@ let oscProcessorString = `
                         _min_f: Math.min,
                         _remainderf: function(x, y) { return x - Math.round(x/y) * y; },
                         _powf: Math.pow,
-                        _roundf: Math.fround,
+                        _roundf: Math.round,
                         _sinf: Math.sin,
                         _sqrtf: Math.sqrt,
                         _tanf: Math.tan,
@@ -690,7 +690,7 @@ let oscProcessorString = `
                         _min_: Math.min,
                         _remainder:function(x, y) { return x - Math.round(x/y) * y; },
                         _pow: Math.pow,
-                        _round: Math.fround,
+                        _round: Math.round,
                         _sin: Math.sin,
                         _sqrt: Math.sqrt,
                         _tan: Math.tan,
