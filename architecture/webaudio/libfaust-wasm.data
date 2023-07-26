@@ -47,7 +47,7 @@ ro = library("routes.lib");
 de = library("delays.lib");
 
 declare name "High Order Ambisonics library";
-declare version "0.4";
+declare version "1.4.0";
 declare author "Pierre Guillot";
 declare author "Eliott Paris";
 declare author "Julien Colafrancesco";
@@ -1126,7 +1126,7 @@ ma = library("maths.lib");
 it = library("interpolators.lib");
 
 declare name "Faust Compressor Effect Library";
-declare version "0.4";
+declare version "1.5.0";
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -1645,7 +1645,7 @@ declare RMS_FBcompressor_peak_limiter_N_chan author "Bart Brouns";
 declare RMS_FBcompressor_peak_limiter_N_chan license "GPLv3";
 
 RMS_FBcompressor_peak_limiter_N_chan(strength,thresh,threshLim,att,rel,knee,link,meter,meterLim,N) =
-  (((RMS_compression_gain_N_chan_db(strength,thresh,att,rel,knee,0,link,N)),si.bus(N)) : ro.interleave(N,2) : par(i,N,(meter : ba.db2linear)*_) : FFcompressor_N_chan(1,threshLim,0,att:min(rel),knee*0.5,0,link,meterLim : ba.db2linear,N))
+  (((RMS_compression_gain_N_chan_db(strength,thresh,att,rel,knee,0,link,N)),si.bus(N)) : ro.interleave(N,2) : par(i,N,(meter : ba.db2linear)*_) : FFcompressor_N_chan(1,threshLim,0,att:min(rel),knee*0.5,0,link,meterLim,N))
   ~ si.bus(N);
 
 
@@ -2480,7 +2480,7 @@ it = library("interpolators.lib");
 si = library("signals.lib");
 
 declare name "Faust Basic Element Library";
-declare version "0.10";
+declare version "1.11.0";
 
 //=============================Conversion Tools===========================================
 //========================================================================================
@@ -4543,7 +4543,6 @@ declare bitcrusher author "Julius O. Smith III, revised by Stephane Letz";
 bitcrusher(nbits,x) = round(x * scaler) / scaler
 with {
     scaler = float(2^nbits - 1);
-    round(x) = floor(x + 0.5);
 };
 
 
@@ -5101,6 +5100,8 @@ ba = library("basics.lib");
 en = library("envelopes.lib");
 ma = library("maths.lib");
 os = library("oscillators.lib");
+
+declare version "1.1.0";
 
 //----------------------`(dx.)dx7_ampf`--------------------------
 // DX7 amplitude conversion function. 3 versions of this function
@@ -6089,7 +6090,7 @@ fi = library("filters.lib");
 an = library("analyzers.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Analyzer Library";
-declare version "0.2";
+declare version "1.2.0";
 
 /************************************************************************
 FAUST library file, jos section
@@ -7099,7 +7100,7 @@ si = library("signals.lib");
 ma = library("maths.lib");
 
 declare name "Faust Spatialization Library";
-declare version "0.1";
+declare version "1.1.0";
 
 //-----------------------`(sp.)panner`------------------------
 // A simple linear stereo panner.
@@ -7275,7 +7276,7 @@ ba = library("basics.lib");
 si = library("signals.lib");
 
 declare name "Faust Envelope Library";
-declare version "0.2";
+declare version "1.2.0";
 declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
@@ -7701,7 +7702,7 @@ fi = library("filters.lib");
 si = library("signals.lib");
 
 declare name "Faust Oscillator Library";
-declare version "0.4";
+declare version "1.4.0";
 
 // This library contains platform specific constants
 pl = library("platform.lib");
@@ -9499,7 +9500,7 @@ ma = library("maths.lib");
 ba = library("basics.lib");
 
 declare name "Faust mass-interaction physical modelling library";
-declare version "0.0";
+declare version "1.1.0";
 declare author "James Leonard";
 declare author "Romain Michon";
 declare copyright "2018-2020 GRAME / GIPSA-Lab";
@@ -10022,7 +10023,7 @@ fi = library("filters.lib");
 ef = library("misceffects.lib"); // for compatible copy/paste out of this file
 
 declare name "Misc Effects Library";
-declare version "2.1"; 
+declare version "2.1.0"; 
 
 //########################################################################################
 /************************************************************************
@@ -10645,7 +10646,7 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //
 //------------------------------------------------------------
 version =   2,  // MAJOR version when we make incompatible API changes,
-            16, // MINOR version when we add functionality in a backwards compatible manner,
+            18, // MINOR version when we add functionality in a backwards compatible manner,
             0;  // PATCH version when we make backwards compatible bug fixes.
 
             
@@ -10697,7 +10698,7 @@ fi = library("filters.lib");
 declare name "Faust WebAudio Filters Library";
 declare author "GRAME";
 declare copyright "GRAME";
-declare version "0.1";
+declare version "1.1.0";
 declare license "LGPL with exception";
 
 //---------------------------------------------------
@@ -13447,7 +13448,7 @@ si = library("signals.lib");
 fi = library("filters.lib");
 
 declare name "Faust Delay Library";
-declare version "0.1";
+declare version "1.1.0";
 
 //==================================Basic Delay Functions=================================
 //========================================================================================
@@ -13846,7 +13847,7 @@ si = library("signals.lib");
 sp = library("spats.lib");
 
 declare name "Faust Signal Routing Library";
-declare version "0.2";
+declare version "1.2.0";
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -14110,7 +14111,7 @@ ro = library("routes.lib");
 it = library("interpolators.lib");
 
 declare name "Faust Soundfile Library";
-declare version "0.7";
+declare version "1.7.0";
 
 //=======================================================================
 // Utility functions added in a 'super' environment (to test the idea...)
@@ -14331,7 +14332,7 @@ fi = library("filters.lib");
 declare name      "Faust Tonestack Emulation Library";
 declare author    "Guitarix project (<http://guitarix.sourceforge.net/>)";
 declare copyright "Guitarix project";
-declare version   "0.28";
+declare version   "1.28.0";
 declare license   "LGPL";
 
 /****************************************************************
@@ -14769,7 +14770,7 @@ ba = library("basics.lib");
 ma = library("maths.lib");
 
 declare name "Faust Antialiased Nonlinearities";
-declare version "0.3";
+declare version "1.3.0";
 
 //==============================Auxiliary Functions=======================================
 //========================================================================================
@@ -15871,7 +15872,7 @@ ma = library("maths.lib");
 si = library("signals.lib");
 
 declare name "Faust Wave Digital Model Library";
-declare version "0.2.1";
+declare version "1.2.1";
 
 
 //=============================Algebraic One Port Adaptors=================================
@@ -18459,6 +18460,8 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
  ******************************************************************************/
 
 fi = library("filters.lib");
+
+declare version "1.0.0";
 
 /*******************************************************************************
   * 1-dimensional function tables for linear interpolation
@@ -25129,7 +25132,7 @@ fi = library("filters.lib");
 ef = library("misceffects.lib");
 
 declare name "Faust Virtual Analog Filter Effect Library";
-declare version "0.2";
+declare version "1.2.0";
 
 //########################################################################################
 /************************************************************************
@@ -26145,7 +26148,7 @@ ma = library("maths.lib");
 declare name "MaxMSP compatibility Library";
 declare author "GRAME";
 declare copyright "GRAME";
-declare version "1.1";
+declare version "1.1.0";
 declare license "LGPL with exception";
 
 atodb = db2lin;
@@ -26378,7 +26381,7 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Generic Platform Library";
-declare version "0.3";
+declare version "1.3.0";
 
 //---------------------------------`(pl.)SR`-----------------------------------
 // Current sampling rate (between 1 and 192000Hz). Constant during
@@ -26442,7 +26445,7 @@ os = library("oscillators.lib");
 no = library("noises.lib");
 
 declare name "Faust Synthesizer Library";
-declare version "0.1";
+declare version "1.1.0";
 
 //-----------------------------------`(sy.)popFilterDrum`--------------------------------------
 // A simple percussion instrument based on a "popped" resonant bandpass filter.
@@ -26814,7 +26817,7 @@ si = library("signals.lib");
 ma = library("maths.lib");
 
 declare name "Faust Finite Difference Schemes Library";
-declare version "0.0";
+declare version "1.1.0";
 declare author "Riccardo Russo";
 declare author "Romain Michon";
 
@@ -27305,17 +27308,26 @@ with
     phi(u) = 1.41*alpha*dVel(u)*exp(-alpha*dVel(u)*dVel(u)+0.5);
     dVel(x) = select2(vb==0,(x-x')/k - vb,0);
 };
-//#################################### reducemaps.lib ########################################
-// A library to handle reduce/map kind of operation in Faust. Its official prefix is `rm`.
+//############################# reducemaps.lib ###############################
+// A library providing reduce/map operations in Faust. Its official prefix is
+// `rm`. The basic idea behind _reduce_ operations is to combine several values
+// into a single one by repeatedly applying a binary operation. A typical
+// example is finding the maximum of a set of values by repeatedly applying the
+// binary operation `max`.
+//
+// In this reducemaps library, you'll find two types of _reduce_, depending on
+// whether you want to reduce n consecutive samples of the same signal or a set
+// of n parallel signals.
 //
 // #### References
 // * <https://github.com/grame-cncm/faustlibraries/blob/master/reducemaps.lib>
-//##############################################################################################
+//#############################################################################
 
 /************************************************************************
 ************************************************************************
 FAUST library file
-Copyright (C) 2010-2011 GRAME, Centre National de Creation Musicale
+Copyright (C) 2023 Yann Orlarey
+Copyright (C) 2010-2023 GRAME, Centre National de Creation Musicale
 ---------------------------------------------------------------------
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as 
@@ -27347,38 +27359,135 @@ closed source license or any other license if you decide so.
 ba = library("basics.lib");
 
 declare name "Reduce Library";
-declare author "Yann Orlarey (orlarey at grame.fr)";
-declare copyright "Grame";
-declare version "0.1";
+declare author "Yann Orlarey";
+declare copyright "Grame and Yann Orlarey";
+declare version "1.2.0";
 declare license "LGPL with exception"; 
 
-//---------------------------------------------------------------
-// Provides various operations on block of samples
-// using a high order 'reduce(op, n)' fold-like function :
+
+
+//----------------------------`(rm.)parReduce`--------------------------------
+// `parReduce(op,N)` combines a set of `N` parallel signals into a single one
+// using a binary operation `op`.
 //
-//   sumn(n) : the sum  of a block of n input samples
-//   maxn(n) : the max  of a block of n input samples
-//   minn(n) : the min  of a block of n input samples
-//   mean(n) : the mean of a block of n input samples
-//   RMS(n)  : the RMS  of a block of n input samples
-//---------------------------------------------------------------
-
-
-//--------------------`(rm.)reduce`------------------------------
-// Fold-like high order function. Apply a binary operation `op`
-// on a block of consecutive samples of a signal `x`. 
-// For example: `reduce(max,128)` will compute the maximun of each
-// block of 128 samples. Please note that the resulting
-// value, while produced continuously, will be constant for 
-// the duration of a block. A new value is only produced 
-// at the end of a block. Note also that blocks should be of at
-// least one sample (n>0). 
+// With `parReduce`, this reduction process simultaneously occurs on each half
+// of the incoming signals. In other words, `parReduce(max,256)` is equivalent
+// to `parReduce(max,128),parReduce(max,128) : max`.
+//
+// To be used with `parReduce`, binary operation `op` must be associative.
+// Additionally, the concept of a binary operation extends to operations
+// that have `2*n` inputs and `n` outputs. For example, complex signals can be
+// simulated using two signals for the real and imaginary parts. In
+// such case, a binary operation would have 4 inputs and 2 outputs.
+//
+// Please note also that `parReduce` is faster than `topReduce` or `botReduce`
+// for large number of signals. It is therefore the recommended operation
+// whenever `op` is associative.
 //
 // #### Usage
 //
 // ```
-// reduce(op, n, x)
+// _,...,_ : parReduce(op, N) : _
 // ```
+//
+// Where:
+//
+// * `op`: is a binary operation 
+// * `N`: is the number of incomming signals (`N>0`). We use a capital letter
+// here to indicate that the number of incomming signals must be constant and
+// known at compile time.
+//-----------------------------------------------------------------------------
+
+parReduce(op,1) = par(i,outputs(op),_);
+parReduce(op,2) = op;
+parReduce(op,N) = parReduce(op,int(N/2)), parReduce(op,N-int(N/2)) : op;
+
+
+
+
+//----------------------------`(rm.)topReduce`--------------------------------
+// `topReduce(op,N)` involves combining a set of `N` parallel signals into a
+// single one using a binary operation `op`. With `topReduce`, the reduction
+// process starts from the top two incoming signals, down to the bottom. In
+// other words, `topReduce(max,256)` is equivalent to `topReduce(max,255),_ : max`.
+//
+// Contrary to `parReduce`, the binary operation `op` doesn't have to be
+// associative here. Like with `parReduce` the concept of a binary operation can be
+// extended to operations that have 2*n inputs and n outputs. For example,
+// complex signals can be simulated using two signals representing the real and
+// imaginary parts. In such cases, a binary operation would have 4 inputs and 2
+// outputs.
+//
+// #### Usage
+//
+// ```
+//  _,...,_ : topReduce(op, N) : _
+// ```
+//
+// Where:
+//
+// * `op`: is a binary operation
+// * `N`: is the number of incomming signals (`N>0`). We use a capital letter
+// here to indicate that the number of incomming signals must be constant and
+// known at compile time.
+//-----------------------------------------------------------------------------
+
+topReduce(op,1) = par(i,outputs(op),_);
+topReduce(op,2) = op;
+topReduce(op,N) = topReduce(op,N-1), par(i,outputs(op),_) : op;
+
+
+
+//----------------------------`(rm.)botReduce`--------------------------------
+// `botReduce(op,N)` combines a set of `N` parallel signals into a single one
+// using a binary operation `op`. With `botReduce`, the reduction process starts
+// from the bottom two incoming signals, up to the top. In other words,
+// `botReduce(max,256)` is equivalent to `_,botReduce(max,255): max`.
+//
+// Contrary to `parReduce`, the binary operation `op` doesn't have to be
+// associative here. Like with `parReduce` the concept of a binary operation can be
+// extended to operations that have 2*n inputs and n outputs. For example,
+// complex signals can be simulated using two signals representing the real and
+// imaginary parts. In such cases, a binary operation would have 4 inputs and 2
+// outputs.
+//
+// #### Usage
+//
+// ```
+//  _,...,_ : botReduce(op, N) : _
+// ```
+//
+// Where:
+//
+// * op: is a binary operation
+// * N: is the number of incomming signals (`N>0`). We use a capital letter
+// here to indicate that the number of incomming signals must be constant and
+// known at compile time.
+//-----------------------------------------------------------------------------
+
+botReduce(op,1) = par(i,outputs(op),_);
+botReduce(op,2) = op;
+botReduce(op,n) = par(i,outputs(op),_), botReduce(op,n-1) : op;
+
+
+//--------------------------------`(rm.)reduce`--------------------------------
+// Reduce a block of `n` consecutive samples of the incomming signal using a
+// binary operation `op`. For example: `reduce(max,128)` will compute the
+// maximun value of each block of 128 samples. Please note that the resulting
+// value, while computed continuously, will be constant for the duration of a
+// block. A new value is only produced at the end of a block. Note also that
+// blocks should be of at least one sample (n>0).
+//
+// #### Usage
+//
+// ```
+// _ : reduce(op, n) : _
+// ```
+//
+// Where:
+//
+// * `op`: is a binary operation
+// * `n`: is the number of consecutive samples in a block. 
 //-----------------------------------------------------------------------------
 
 reduce(op, n, x) = compute ~ (_,_,_) : (!,!,_)
@@ -27399,8 +27508,14 @@ reduce(op, n, x) = compute ~ (_,_,_) : (!,!,_)
 // #### Usage
 //
 // ```
-// reducemap(op, foo, n, x)
+// _ : reducemap(op, foo, n) : _
 // ```
+//
+// Where:
+//
+// * `op`: is a binary operation
+// * `foo`: is a function applied to the result of the reduction
+// * `n`: is the number of consecutive samples in a block. 
 //-----------------------------------------------------------------------------
 
 reducemap(op, foo, n, x) = compute ~ (_,_,_) : (!,!,_)
@@ -27411,7 +27526,8 @@ reducemap(op, foo, n, x) = compute ~ (_,_,_) : (!,!,_)
             ba.if(count<n, val, foo(acc));  // new val
     };
 
-  
+// Some examples using `reduce`and `reducemap`
+//
 // the sum of the amplitudes of the input signal
 sumn(n) = reduce(+,n);
 
@@ -27441,7 +27557,7 @@ os = library("oscillators.lib");
 pf = library("phaflangers.lib");
 
 declare name "Faust Phaser and Flanger Library";
-declare version "0.1";
+declare version "1.1.0";
 
 //########################################################################################
 /************************************************************************
@@ -27710,7 +27826,7 @@ si = library("signals.lib");
 fi = library("filters.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Filters Library";
-declare version "0.3";
+declare version "1.3.0";
 
 //===============================Basic Filters============================================
 //========================================================================================
@@ -30837,7 +30953,7 @@ ma = library("maths.lib");
 si = library("signals.lib");
 
 declare name "Faust Signal Routing Library";
-declare version "0.3";
+declare version "1.3.0";
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -31282,7 +31398,7 @@ re = library("reverbs.lib");
 declare name "Faust-STK Tools Library";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";
-declare version "1.0";
+declare version "1.0.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 
 
@@ -31541,7 +31657,7 @@ ba = library("basics.lib");
 it = library("interpolators.lib");
 
 declare name "Faust Frequency Quantization Library";
-declare version "0.1";
+declare version "1.1.0";
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -31854,7 +31970,7 @@ os = library("oscillators.lib");
 no = library("noises.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Noise Generator Library";
-declare version "0.4";
+declare version "1.4.0";
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -32918,7 +33034,7 @@ ma = library("maths.lib");
 si = library("signals.lib");
 
 declare name "Faust Interpolator Library";
-declare version "0.3";
+declare version "1.3.0";
 
 reset(trig) = (trig-trig') <= 0;
  
@@ -33512,7 +33628,7 @@ re = library("reverbs.lib");
 en = library("envelopes.lib");
 
 declare name "Faust Demos Library";
-declare version "0.1";
+declare version "1.1.0";
 
 //########################################################################################
 /************************************************************************
@@ -35024,7 +35140,7 @@ fi = library("filters.lib");
 os = library("oscillators.lib");
 
 declare name "Faust Reverb Library";
-declare version "0.2";
+declare version "1.2.0";
 
 //########################################################################################
 /************************************************************************
@@ -35738,7 +35854,7 @@ greyhole(dt, damp, size, early_diff, feedback, mod_depth, mod_freq)
 import("stdfaust.lib");
 
 declare name "Faust Physical Models Library";
-declare version "0.1";
+declare version "1.1.0";
 
 /*
 TODO:
@@ -39740,7 +39856,7 @@ pl = library("platform.lib");
 ma = library("maths.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Math Library";
-declare version "2.6";
+declare version "2.6.0";
 declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
