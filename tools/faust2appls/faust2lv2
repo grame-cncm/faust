@@ -38,8 +38,7 @@ STYLE=""
 
 PROCARCH="-fPIC"
 dllext=".so"
-CXXFLAGS+=" -std=c++11 -fvisibility=hidden -O3"  # WARNING: don't modify this setting
-
+CXXFLAGS+=" -std=c++11 -fvisibility=hidden -O3 "  # WARNING: don't modify this setting
 echo $CXXFLAGS
 
 # Darwin specifics
@@ -178,7 +177,13 @@ if [ -n "$STYLE" ]; then
     STYLE_CXXFLAGS="QMAKE_CXXFLAGS+=-DSTYLE=\"$STYLE\""
 fi
 
+if [ -z ${CXX} ]; then
 CXX=g++
+echo "Using ${CXX}"
+else
+echo "compiler overridden: using ${CXX}"
+fi
+
 CPPFLAGS="-DPLUGIN_URI=\"$URI_PREFIX/$clsname\" -DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC -DFAUST_MTS=$FAUST_MTS -DFAUST_UI=$FAUST_UI -DVOICE_CTRLS=$VOICE_CTRLS"
 if [ $NVOICES -ge 0 ]; then
 CPPFLAGS="$CPPFLAGS -DNVOICES=$NVOICES"
@@ -378,4 +383,4 @@ else
     rm -rf $tmpdir
 fi
 # Print the name of the generated bundle zip file.
-echo "$SRCDIR/$lv2name;"
+echo "LV2 plugin generated at $SRCDIR/$lv2name;"
