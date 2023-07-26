@@ -65,7 +65,7 @@ for f in $FILES; do
     faust $OPTIONS "$f" -lang codebox -double -json -o "${f%.dsp}.codebox" || exit
 
     # compile codebox anf JSON file to maxpat
- 	python3 $ARCHFILE "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat"
+    python3 $ARCHFILE "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat"
   
     # remove temporary files
     rm -f "${f%.dsp}.codebox" "$f.json"
@@ -75,5 +75,4 @@ for f in $FILES; do
 done
 
 echo $BINARIES
-
 
