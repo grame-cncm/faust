@@ -10,3 +10,6 @@
 [submodule "tools/faust2ck"]
 	path = tools/faust2ck
 	url = https://github.com/ccrma/faust2ck
+[submodule "architecture/max-msp/py2max"]
+	path = architecture/max-msp/py2max
+	url = https://github.com/shakfu/py2max.git

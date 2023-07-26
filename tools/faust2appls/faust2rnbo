@@ -1,0 +1,79 @@
+#! /bin/bash -e
+set -e
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to RNBO                     #
+#               (c) Grame, 20203                                    #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+. usage.sh
+
+ARCHFILE=$FAUSTARCH/max-msp/rnbo.py
+
+echoHelp() 
+{
+    usage faust2rnbo "[options] [Faust options] <file.dsp>"
+    echo  "Compiles Faust programs to RNBO"
+    option
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
+#-------------------------------------------------------------------
+# dispatch command arguments
+#-------------------------------------------------------------------
+
+OPTIONS=""
+
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echoHelp
+    fi
+
+    if [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#-------------------------------------------------------------------
+
+for f in $FILES; do
+
+    # compile the DSP to c++ using the architecture file
+    faust $OPTIONS "$f" -lang codebox -double -json -o "${f%.dsp}.codebox" || exit
+
+    # compile codebox anf JSON file to maxpat
+ 	python3 $ARCHFILE "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat"
+  
+    # remove temporary files
+    rm -f "${f%.dsp}.codebox" "$f.json"
+
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp}.maxpat;"
+done
+
+echo $BINARIES
+
+

@@ -8,7 +8,7 @@ The **faust2max6/faust2msp** tools transform a Faust DSP program into a compiled
 
 `faust2max6 [-opt native|generic] [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-us <factor>] [-ds <factor>] [-filter <filter>] [-universal] [-nopatch] [-nopost] [-soundfile/-soundfile-static] [additional Faust options (-vec -vs 8...)] <file.dsp>` 
 
-By default it will create *file~.mxo* external along with a *file.maxpat* patch file and a *ui.js* helper file, that will load the external and automatically create a User Interface (with sliders, buttons...) ready to control it. To be fully functional, the object still has to be connected to audio inputs/outputs or other elements in the patch. **Double-click** on the object allow to display its controls with their **range**, **label**, **shortname** and **complete path**. Note that  *-double* compilation mode is used by default in **faust2max6**.
+By default it will create the *file~.mxo* external along with a *file.maxpat* patch file and a *ui.js* helper file, that will load the external and automatically create a User Interface (with sliders, buttons...) ready to control it. To be fully functional, the object still has to be connected to audio inputs/outputs or other elements in the patch. **Double-click** on the object allow to display its controls with their **range**, **label**, **shortname** and **complete path**. Note that  *-double* compilation mode is used by default in **faust2max6**.
 
 Attributes can be used at object creation time, for instance the following DSP code:
 
@@ -81,3 +81,15 @@ If you plan to use **faust2max6/faust2msp** on your own machine, you will have t
 ## Misc:
 
 - the original DSP file as well as the compiled self-contained C++ file are kept in the compiled `.mxo` external, to be accessed using the *Show Package Contents* option. 
+
+# faust2rnbo
+
+The **faust2rnbo** tool transforms a Faust DSP program into a RNBO patch including the generated codebox code.
+
+## How to use
+
+**faust2rnbo** is used with the following options: 
+
+`faust2rnbo [additional Faust options (-vec -vs 8...)] <file.dsp>` 
+
+By default it will create the *file.maxpat* patch file.
