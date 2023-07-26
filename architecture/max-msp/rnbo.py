@@ -82,8 +82,9 @@ def gen_faust_rnbo(dsp_path, json_path, output_path):
     items_info_list = extract_items_info(json_data)
     for item in items_info_list:
         param = sp.add_textbox('set ' + item["shortname"])
-        #value = sp.add_floatparam(item["shortname"], item["init"], item["min"], item["max"])
-        value = sp.add_textbox('number~');
+        rect = param.patching_rect;
+        value = sp.add_textbox('number~', mode=1, comment = item["shortname"], comment_pos = 'below',
+            patching_rect = [rect[0], rect[1]+25, rect[2], rect[3]])
         sp.add_line(value, param)
         sp.add_line(param, codebox)
 
