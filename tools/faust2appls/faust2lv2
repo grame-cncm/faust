@@ -184,6 +184,8 @@ else
 echo "compiler overridden: using ${CXX}"
 fi
 
+HOST_CXX=g++
+
 CPPFLAGS="-DPLUGIN_URI=\"$URI_PREFIX/$clsname\" -DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC -DFAUST_MTS=$FAUST_MTS -DFAUST_UI=$FAUST_UI -DVOICE_CTRLS=$VOICE_CTRLS"
 if [ $NVOICES -ge 0 ]; then
 CPPFLAGS="$CPPFLAGS -DNVOICES=$NVOICES"
@@ -365,7 +367,7 @@ EOF
 fi
 # This compiles the plugin to an executable which is run to generate the
 # plugin-specific part of the manifest.
-$CXX $CXXFLAGS -DDLLEXT="\"$dllext\"" $FAUSTTOOLSFLAGS -I"$ABSDIR" $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$clsname" || exit 1
+$HOST_CXX $CXXFLAGS -DDLLEXT="\"$dllext\"" $FAUSTTOOLSFLAGS -I"$ABSDIR" $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$clsname" || exit 1
 "$tmpdir/$clsname" > "$tmpdir/$lv2name/$clsname.ttl"
 rm -f "$tmpdir/$clsname"
 fi
