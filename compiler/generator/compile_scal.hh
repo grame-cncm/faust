@@ -50,10 +50,11 @@ class ScalarCompiler : public Compiler {
 
     std::map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
 
-    static std::map<std::string, int> fIDCounters;
-    Tree                              fSharingKey;
-    OccMarkup*                        fOccMarkup;
-    int                               fMaxIota;
+    static std::map<std::string, int>  fIDCounters;
+    Tree                               fSharingKey;
+    OccMarkup*                         fOccMarkup;
+    int                                fMaxIota;
+    std::map<std::string, std::string> fIotaCache;
 
    public:
     ScalarCompiler(const std::string& name, const std::string& super, int numInputs, int numOutputs)
@@ -70,6 +71,7 @@ class ScalarCompiler : public Compiler {
     virtual std::string CS(Tree sig);
     virtual std::string generateCode(Tree sig);
     virtual std::string generateCacheCode(Tree sig, const std::string& exp);
+    virtual std::string generateIotaCache(const std::string& exp);
     virtual std::string forceCacheCode(Tree sig, const std::string& exp);
     virtual std::string generateVariableStore(Tree sig, const std::string& exp);
 

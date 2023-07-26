@@ -695,6 +695,22 @@ void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, 
     }
 }
 
+/**
+ * @brief Avoid multiple computation of the same iota expression
+ *
+ * @param iota expression
+ * @return variable name
+ */
+string ScalarCompiler::generateIotaCache(const std::string& exp)
+{
+    if (fIotaCache.find(exp) == fIotaCache.end()) {
+        string vname = getFreshID("vIota");
+        fClass->addExecCode(Statement("", subst("int $0 = $1;", vname, exp)));
+        fIotaCache[exp] = vname;
+    }
+    return fIotaCache[exp];
+}
+
 string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 {
     string code;
@@ -1301,17 +1317,20 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
         // not a real vector name but a scalar name
         return vecname;
 
-    } else if (mxd < count * gGlobal->gMaxCopyDelay) {
+    } else if (mxd <= count * gGlobal->gMaxCopyDelay) {
+        return subst("$0[$1]", vecname, CS(delay));
+#if 0
         int d;
         if (isSigInt(delay, &d)) {
             return subst("$0[$1]", vecname, CS(delay));
         } else {
             return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
         }
-
+#endif
     } else {
-        int N = pow2limit(mxd + 1);
-        return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N - 1)));
+        int         N   = pow2limit(mxd + 1);
+        std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
+        return generateCacheCode(sig, subst("$0[$1]", vecname, generateIotaCache(idx)));
     }
 }
 
@@ -1354,11 +1373,12 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
     string ccs = getConditionCode(sig);
     generateDelayLine(ctype, vname, mxd, count, exp, ccs);
     setVectorNameProperty(sig, vname);
-    if (mxd < count * gGlobal->gMaxCopyDelay) {
+    if (mxd <= count * gGlobal->gMaxCopyDelay) {
         return subst("$0[0]", vname);
     } else {
-        int N = pow2limit(mxd + 1);
-        return subst("$0[IOTA&$1]", vname, T(N - 1));
+        int         N   = pow2limit(mxd + 1);
+        std::string idx = subst("IOTA&$0", T(N - 1));
+        return subst("$0[$1]", vname, generateIotaCache(idx));
     }
 }
 
@@ -1379,7 +1399,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
             fClass->addExecCode(Statement(ccs, subst("\t$0 = $1;", vname, exp)));
         }
 
-    } else if (mxd < count * gGlobal->gMaxCopyDelay) {
+    } else if (mxd <= count * gGlobal->gMaxCopyDelay) {
 #if 0
         // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
 
@@ -1419,7 +1439,8 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
 
         // execute
-        fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
+        std::string idx = subst("IOTA&$0", T(N - 1));
+        fClass->addExecCode(Statement(ccs, subst("$0[$1] = $2;", vname, generateIotaCache(idx), exp)));
     }
 }
 
