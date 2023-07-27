@@ -33,7 +33,7 @@ Parsing the JSON file gives:
     - the number of audio inputs/outputs to be added in the subpatch
 '''
 
-def gen_faust_rnbo(dsp_path, json_path, output_path):
+def gen_faust_rnbo(dsp_name, codebox_path, json_path, maxpat_path):
 
     # Extracting items info
     def extract_items_info(json_data):
@@ -69,7 +69,7 @@ def gen_faust_rnbo(dsp_path, json_path, output_path):
         return info_list
         
     # Create the patcher
-    patcher = Patcher(output_path)
+    patcher = Patcher(maxpat_path)
     
     # Faust generated patch
     patcher.add_comment('Faust generated RNBO patch, Copyright (c) 2023 Grame', patching_rect = [50.0, 20.0, 250.0, 50.0])
@@ -78,13 +78,13 @@ def gen_faust_rnbo(dsp_path, json_path, output_path):
     audio_out = patcher.add_textbox('ezdac~', patching_rect = [50.0, 100.0, 50.0, 50.0]);
 
     # Create RNBO object
-    sbox = patcher.add_rnbo(patching_rect = [50.0, 60.0, 50.0, 50.0])
+    sbox = patcher.add_rnbo(saved_object_attributes=dict(optimization="O3", title=dsp_name), patching_rect = [50.0, 60.0, 50.0, 50.0])
 
     # Create the subpatcher
     sp = sbox.subpatcher
 
     # Opening codebox file
-    codebox_file = open(dsp_path)
+    codebox_file = open(codebox_path)
     
     # Create codebox~ section
     codebox = sp.add_codebox_tilde(
@@ -123,7 +123,7 @@ def gen_faust_rnbo(dsp_path, json_path, output_path):
     for item in items_info_list:
         param = sp.add_textbox('set ' + item["shortname"])
         rect = param.patching_rect;
-        if item["type"] == "button" or item["type"] == "checkbox":
+        if item["type"] in ["button", "checkbox"]:
             value = sp.add_textbox('toggle', patching_rect = [rect[0], rect[1]-25, 24.0, 24.0])
             sp.add_line(value, param)
             sp.add_line(param, codebox)
@@ -142,10 +142,11 @@ def gen_faust_rnbo(dsp_path, json_path, output_path):
 
 # Parse command line
 parser = argparse.ArgumentParser()
-parser.add_argument('arg1', type=str, help='DSP file')
-parser.add_argument('arg2', type=str, help='JSON file')
-parser.add_argument('arg3', type=str, help='RNBO output file')
+parser.add_argument('arg1', type=str, help='DSP name')
+parser.add_argument('arg2', type=str, help='Codebox file')
+parser.add_argument('arg3', type=str, help='JSON file')
+parser.add_argument('arg4', type=str, help='RNBO maxpat file')
 args = parser.parse_args()
 
 # Create the Faust RNBO patch
-gen_faust_rnbo(args.arg1, args.arg2, args.arg3)
+gen_faust_rnbo(args.arg1, args.arg2, args.arg3, args.arg4)

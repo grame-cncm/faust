@@ -61,11 +61,11 @@ done
 
 for f in $FILES; do
 
-    # compile the DSP to c++ using the architecture file
+    # compile the DSP to codebox using the architecture file
     faust $OPTIONS "$f" -lang codebox -double -json -o "${f%.dsp}.codebox" || exit
 
     # compile codebox anf JSON file to maxpat
-    python3 $ARCHFILE "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat"
+    python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat"
   
     # remove temporary files
     rm -f "${f%.dsp}.codebox" "$f.json"

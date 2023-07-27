@@ -234,10 +234,11 @@ static void test3()
 }
 
 // Compile a complete DSP program to a box expression, then to a source string
+// in several target languages
 static void test4()
 {
     printf("test4\n");
-    const char* lang[] = { "c", "cpp", "cmajor", "csharp", "dlang", "interp", "jax", "julia", "rust", "wast" };
+    const char* lang[] = { "c", "cpp", "cmajor", "codebox", "csharp", "dlang", "interp", "jax", "jsfx", "julia", "rust", "wast" };
     // Context has to be created/destroyed each time
     for (int i = 0; i < 10; i++) {
         createLibContext();
@@ -272,7 +273,7 @@ static void test4()
 static void test5()
 {
     printf("test5\n");
-    const char* lang[] = { "c", "cpp", "cmajor", "csharp", "dlang", "interp", "jax", "julia", "rust", "wast" };
+    const char* lang[] = { "c", "cpp", "cmajor", "codebox", "csharp", "dlang", "interp", "jax", "jsfx", "julia", "rust", "wast" };
     // Context has to be created/destroyed each time
     for (int i = 0; i < 10; i++) {
         createLibContext();
