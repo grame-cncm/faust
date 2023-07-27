@@ -27,7 +27,7 @@ import argparse
 import json
 
 '''
-Takes the DSP compiled as codebox file, the JSON file, an the output file.Codebox will be added in the codebox~ object.
+Take the DSP compiled as codebox file, the JSON file, and the maxpat output file. Codebox code will be added in the codebox~ object.
 Parsing the JSON file gives:
     - the list of parameters (button, checkbox, sliders, nentry) to be added as "set param" objects
     - the number of audio inputs/outputs to be added in the subpatch
@@ -88,8 +88,8 @@ def gen_faust_rnbo(dsp_path, json_path, output_path):
     
     # Create codebox~ section
     codebox = sp.add_codebox_tilde(
-        code = codebox_file.read(),                     # required
-        patching_rect = [200.0, 200.0, 400.0, 400.0]   # optional
+        code = codebox_file.read(),                   # required
+        patching_rect = [200.0, 200.0, 400.0, 400.0]  # optional
     )
 
     # Opening JSON file
