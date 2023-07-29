@@ -28,6 +28,7 @@
 
 // Documentation
 // https://rnbo.cycling74.com/objects/ref/gen~
+// https://rnbo.cycling74.com/learn/how-to-include-rnbo-in-your-c-project
 // https://cycling74.com/tutorials/gen~-for-beginners-part-6-thinking-inside-the-codebox
 // https://rnbo.cycling74.com/codebox
 
@@ -37,10 +38,11 @@ using namespace std;
  Codebox backend description:
 
  - variable identifiers cannot end by a number, so add a "_cb" suffix
- - all init code is done in 'dspsetup', call when audio start or in case of SR change
- - gOneSampleControl mode is used, 'control' is generated as well as 'update'
+ - all init code is done in 'dspsetup', called when audio start or in case of SR change
+ - gOneSampleControl mode is used, 'control' function is generated as well as 'update' function
  which call 'control' only when needed (that is when as least one parameter changes)
  - 'compute' returns the list of audio outputs
+ - some identifiers ending with a digit have to be used with "this." syntax in 'update' function (see CodeboxLabelsVisitor printArgs/printArgsCall)
  */
 
 map<string, bool> CodeboxInstVisitor::gFunctionSymbolTable;
@@ -224,10 +226,10 @@ void CodeboxCodeContainer::produceClass()
     CodeboxLabelsVisitor shortnames2(fOut);
     // First pass to build shortnames
     generateUserInterface(&shortnames2);
-    // Second pass to build the list of shortnames
+    // Second pass to build the list of shortnames for args
     generateUserInterface(&shortnames2);
-    // Then generate the list
-    shortnames2.print();
+    // Then generate the list of args
+    shortnames2.printArgs();
     *fOut << ") {";
     tab(n+1, *fOut);
     CodeboxUpdateParamsVisitor params(fOut, n+1);
@@ -247,7 +249,7 @@ void CodeboxCodeContainer::produceClass()
     *fOut << "// Update parameters";
     tab(n, *fOut);
     *fOut << "update(";
-    shortnames2.print();
+    shortnames2.printArgsCall();
     *fOut << ");";
     tab(n, *fOut);
     

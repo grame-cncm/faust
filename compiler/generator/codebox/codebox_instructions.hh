@@ -31,8 +31,8 @@
 // Variable identifier cannot end by a number, so add a suffix
 inline std::string codeboxVarName(const std::string& name) { return name + "_cb"; }
 
-// Visitor used to fill the 'update' function and associate control labels with their field names
-// (using 2 passes, one to build shortname, the scond to use them)
+// Visitor used to fill the 'update' function and associate control labels with their parameter names
+// (using 2 passes, one to build shortname, the second to use them)
 struct CodeboxUpdateParamsVisitor : public ShortnameInstVisitor {
     std::ostream* fOut;
     int           fTab;
@@ -67,7 +67,7 @@ struct CodeboxUpdateParamsVisitor : public ShortnameInstVisitor {
 };
 
 // Visitor used to create 'update' function prototype by printing the list of shortnames, used as parameters
-// (using 2 passes, one to build shortname, the scond to use them)
+// (using 2 passes, one to build shortname, the second to use them)
 struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
 
     std::vector<std::string> fUILabels;
@@ -93,10 +93,21 @@ struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
         }
     }
     
-    void print()
+    void printArgs()
     {
         for (size_t i = 0; i < fUILabels.size(); i++) {
             *fOut << fUILabels[i];
+            if (i < fUILabels.size() - 1) *fOut << ",";
+        }
+    }
+    
+    // Identifiers ending with a number have to be accessed with "this."
+    void printArgsCall()
+    {
+        for (size_t i = 0; i < fUILabels.size(); i++) {
+            std::string label = fUILabels[i];
+            bool is_digit = isdigit(label.back());
+            *fOut << (is_digit ? "this." : "") << label;
             if (i < fUILabels.size() - 1) *fOut << ",";
         }
     }
@@ -148,7 +159,7 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
     
 };
 
-// Visitor used to generate @params with shortnames (using 2 passes, one to build shortname, the scond to use them)
+// Visitor used to generate @params with shortnames (using 2 passes, one to build shortname, the second to use them)
 struct CodeboxParamsVisitor : public ShortnameInstVisitor {
 
     std::ostream* fOut;
