@@ -113,6 +113,7 @@ class ScalarCompiler : public Compiler {
 
     std::string generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2);
 
+    bool        isSigSimpleRec(Tree sig);
     std::string generateRecProj(Tree sig, Tree exp, int i);
     void        generateRec(Tree sig, Tree var, Tree le);
 
@@ -138,8 +139,8 @@ class ScalarCompiler : public Compiler {
                                          const std::string& vname, int mxd, int count);
     std::string         generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype,
                                                const std::string& vname, int mxd, int count);
-    virtual void        generateDelayLine(const std::string& ctype, const std::string& vname, int mxd, int count,
-                                          const std::string& exp, const std::string& ccs);
+    virtual void generateDelayLine(const std::string& ctype, const std::string& vname, int mxd, int count, bool mono,
+                                   const std::string& exp, const std::string& ccs);
 
     void getTypedNames(::Type t, const std::string& prefix, std::string& ctype, std::string& vname);
     void ensureIotaCode();

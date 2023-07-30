@@ -48,10 +48,11 @@ class DlCodeGen {
     std::string fDlName;
     int         fBlockSize;
     int         fDlMaxDelay;
+    bool        fMono;
 
    public:
-    DlCodeGen(const std::string& dlType, const std::string& dlName, int blockSize, int dlSize)
-        : fDlType(dlType), fDlName(dlName), fBlockSize(blockSize), fDlMaxDelay(dlSize)
+    DlCodeGen(const std::string& dlType, const std::string& dlName, int blockSize, int dlSize, bool mono)
+        : fDlType(dlType), fDlName(dlName), fBlockSize(blockSize), fDlMaxDelay(dlSize), fMono(mono)
     {
     }
     virtual ~DlCodeGen() = default;

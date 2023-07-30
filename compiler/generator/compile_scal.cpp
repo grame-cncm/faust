@@ -1164,6 +1164,40 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
 }
 
 /**
+ * @brief Check if sig is a simple recursive signal that can be expressed using a single variable
+ *
+ * @param sig the signal to analyse, typically proj(i,X)
+ * @return true if sig is of type x = f(x') and x' is used only once. In this case the same variable can be used both
+ * for x and x'
+ * @return false
+ */
+bool ScalarCompiler::isSigSimpleRec(Tree sig)
+{
+    int  i;
+    Tree x;
+
+    // sig is a recursive projection
+    if (isProj(sig, &i, x)) {
+        Tree var, le;
+        // the recursive group contains only one recursive signal
+        if (isRec(x, var, le) && (len(le) == 1)) {
+            int mxd   = fOccMarkup->retrieve(sig)->getMaxDelay();
+            int count = fOccMarkup->retrieve(sig)->getDelayCount();
+            // The maximum delay of sig is 1 and the delay count is 1
+            if ((mxd == 1) && (count == 1)) {
+                // sig@1 has only a single occurence (therefore in the definition of sig)
+                Tree f = sigDelay(sig, sigInt(1));  // check if it is a delay
+                if (fOccMarkup->retrieve(f)) {
+                    // this projection is used
+                    return !fOccMarkup->retrieve(f)->hasMultiOccurrences();
+                }
+            }
+        }
+    }
+    return false;
+}
+
+/**
  * Generate code for a group of mutually recursive definitions
  */
 void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
@@ -1175,6 +1209,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
     vector<int>    count(N);
     vector<string> vname(N);
     vector<string> ctype(N);
+    vector<bool>   mono(N);
 
     // prepare each element of a recursive definition
     for (int i = 0; i < N; i++) {
@@ -1186,17 +1221,30 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
             setVectorNameProperty(e, vname[i]);
             delay[i] = fOccMarkup->retrieve(e)->getMaxDelay();
             count[i] = fOccMarkup->retrieve(e)->getDelayCount();
+            mono[i]  = isSigSimpleRec(e);
+
         } else {
             // this projection is not used therefore
             // we should not generate code for it
             used[i] = false;
         }
     }
-
+#if 0
+    if (isSigSimpleRec(sigProj(0, sig))) {
+        std::cout << "Simple recursive signal : " << *sig << std::endl;
+    }
+    // test special case x = f(x') : no need to generate a delay line
+    if ((N == 1) && (delay[0] == 1) && (count[0] == 1) && mono[0]) {
+        std::cout << "ScalarCompiler::generateRec single variable : " << *sig << std::endl;
+        generateDelayLine(ctype[0], vname[0], delay[0], count[0], CS(nth(le, 0)), getConditionCode(nth(le, 0)));
+        return;
+    }
+#endif
     // generate delayline for each element of a recursive definition
     for (int i = 0; i < N; i++) {
         if (used[i]) {
-            generateDelayLine(ctype[i], vname[i], delay[i], count[i], CS(nth(le, i)), getConditionCode(nth(le, i)));
+            generateDelayLine(ctype[i], vname[i], delay[i], count[i], mono[i], CS(nth(le, i)),
+                              getConditionCode(nth(le, i)));
         }
     }
 }
@@ -1301,6 +1349,7 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
     string code  = CS(exp);  // ensure exp is compiled to have a vector name
     int    mxd   = fOccMarkup->retrieve(exp)->getMaxDelay();
     int    count = fOccMarkup->retrieve(exp)->getDelayCount();
+    bool   mono  = isSigSimpleRec(exp);
     string vecname;
 
     if (!getVectorNameProperty(exp, vecname)) {
@@ -1313,7 +1362,7 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
         }
     }
 
-    if (mxd == 0) {
+    if (mono || mxd == 0) {
         // not a real vector name but a scalar name
         return vecname;
 
@@ -1369,11 +1418,14 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 {
     faustassert(mxd > 0);
 
+    bool mono = isSigSimpleRec(sig);
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
     string ccs = getConditionCode(sig);
-    generateDelayLine(ctype, vname, mxd, count, exp, ccs);
+    generateDelayLine(ctype, vname, mxd, count, mono, exp, ccs);
     setVectorNameProperty(sig, vname);
-    if (mxd <= count * gGlobal->gMaxCopyDelay) {
+    if (mono) {
+        return vname;
+    } else if (mxd <= count * gGlobal->gMaxCopyDelay) {
         return subst("$0[0]", vname);
     } else {
         int         N   = pow2limit(mxd + 1);
@@ -1386,8 +1438,8 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
  * Generate code for the delay mecchanism without using temporary variables
  */
 
-void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, int count, const string& exp,
-                                       const string& ccs)
+void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, int count, bool mono,
+                                       const string& exp, const string& ccs)
 {
     if (mxd == 0) {
         // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
@@ -1399,34 +1451,22 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
             fClass->addExecCode(Statement(ccs, subst("\t$0 = $1;", vname, exp)));
         }
 
-    } else if (mxd <= count * gGlobal->gMaxCopyDelay) {
-#if 0
-        // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
-
-        // short delay : we copy
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
-        fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
-
-        // generate post processing copy code to update delay values
-        if (mxd == 1) {
-            fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname)));
-        } else if (mxd == 2) {
-            fClass->addPostCode(Statement(ccs, subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
-        } else {
-            fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
-        }
-#else
-        DlCodeGen g(ctype, vname, gGlobal->gVecSize, mxd);
+    } else if (mono || (mxd <= count * gGlobal->gMaxCopyDelay)) {
+        // Generate code for short or dense delay lines
+        DlCodeGen g(ctype, vname, gGlobal->gVecSize, mxd, mono);
         fClass->addDeclCode(g.globalDeclare());
         fClass->addClearCode(g.globalInit());
         fClass->addZone2(g.localDeclare());
         fClass->addZone3(g.PointerSetup());
         fClass->addZone3(g.copyGlobalToLocal());
-        fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+        if (mono) {
+            fClass->addExecCode(Statement(ccs, subst("$0 = $1;", vname, exp)));
+        } else {
+            fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+        }
         fClass->addPostCode(Statement(ccs, g.advance()));
         fClass->addZone3Post(g.copyLocalToGlobal());
-#endif
+
     } else {
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
         int N = pow2limit(mxd + 1);
