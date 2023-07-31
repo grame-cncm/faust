@@ -77,6 +77,12 @@ c++ -std=c++14 my_autodiff.cpp /usr/local/lib/libfaust.a \
   --diff $archdir/examples/autodiff/gain/diff.dsp
 ```
 
+The above commands are encapsulated in [autodiff.sh](autodiff.sh).
+```shell
+./autodiff.sh <example_name>
+```
+For a list of available examples, execute `./autodiff.sh` without any arguments.
+
 ## Tips
 - Instead of a dummy .dsp file, provide your differentiable DSP algorithm at compile time
   to see the differentiated `compute` method in your output .cpp file.
@@ -107,6 +113,13 @@ DERIVATIVE: 0.0f
 
 DERIVATIVE: 0.0f*hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)+IN[0]*1.0f
 ```
-Since this algorithm, $y = gx$, is a product, the product rule is employed:
+Since this algorithm, $y = gx$, is a product of the input signal and a gain value, 
+the product rule is employed:
 
-$\frac{dy}{dg} = x\frac{d}{dg}(g) + g\frac{d}{dg}(x) = x(1) + g(0) = x$
+$$
+\begin{align}
+  \frac{dy}{dg} &= x\frac{d}{dg}(g) + g\frac{d}{dg}(x) 
+                &= x(1) + g(0) 
+                &= x
+\end{align}
+$$

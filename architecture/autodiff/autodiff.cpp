@@ -39,6 +39,10 @@ mldsp::mldsp(std::string inputDSPPath,
 mldsp::~mldsp()
 {
     fFile.close();
+    delete fDSP;
+    for (auto &factory: fDSPFactories) {
+        deleteDSPFactory(factory.second);
+    }
 }
 
 void mldsp::initialise()
@@ -49,7 +53,7 @@ void mldsp::initialise()
     const char *argv[] = {"-diff"};
     auto differentiatedDSP{createDSPInstanceFromPath(fDifferentiableDSPPath, 1, argv)};
     
-    fDSP = std::make_unique<dsp_parallelizer>(
+    fDSP = new dsp_parallelizer(
             // Set up the ground truth DSP: s_o(\hat{p})
             new dsp_sequencer(inputDSP->clone(), fixedDSP),
             new dsp_parallelizer(
@@ -66,7 +70,7 @@ void mldsp::initialise()
     
     // Allocate the audio driver
     fAudio = std::make_unique<dummyaudio>(48000, 1);
-    fAudio->init("Dummy audio", fDSP.get());
+    fAudio->init("Dummy audio", fDSP);
     
     // TODO: check that parameter has diff metadata.
     for (auto p{0}; p < fUI->getParamsCount(); ++p) {
@@ -111,27 +115,55 @@ dsp *mldsp::createDSPInstanceFromString(
         const std::string &dspContent
 )
 {
-    std::string errorMessage;
-    auto factory{createDSPFactoryFromString(appName, dspContent, 0, nullptr, "", errorMessage)};
-    if (!factory) {
-        std::cout << errorMessage;
+    auto factory{fDSPFactories.find(appName)};
+    
+    if (factory == fDSPFactories.end()) {
+        std::string errorMessage;
+        
+        fDSPFactories.insert(std::make_pair(
+                appName,
+                createDSPFactoryFromString(appName, dspContent, 0, nullptr, "", errorMessage)
+        ));
+        
+        factory = fDSPFactories.find(appName);
+        
+        if (!factory->second) {
+            std::cout << errorMessage;
+        }
+        assert(factory->second);
     }
-    assert(factory);
-    return factory->createDSPInstance();
+    
+    return factory->second->createDSPInstance();
 }
 
 dsp *mldsp::createDSPInstanceFromPath(const std::string &path,
                                       int argc, const char *argv[])
 {
-    std::string errorMessage;
-    std::cout << "Creating DSP from file " << path << "\n";
-    auto factory{createDSPFactoryFromFile(path, argc, argv, "", errorMessage)};
-    std::cout << "factory: " << factory << "\n";
-    if (!factory) {
-        std::cout << "Error: " << errorMessage;
+    auto key{path};
+    for (int i{0}; i < argc; ++i) {
+        key.append(argv[i]);
     }
-    assert(factory);
-    return factory->createDSPInstance();
+    auto factory{fDSPFactories.find(key)};
+    
+    if (factory == fDSPFactories.end()) {
+        std::string errorMessage;
+        std::cout << "Creating DSP from file with key " << key << "\n";
+        
+        fDSPFactories.insert(std::make_pair(
+                key,
+                createDSPFactoryFromFile(path, argc, argv, "", errorMessage)
+                ));
+        
+        factory = fDSPFactories.find(key);
+        
+        std::cout << "factory: " << factory->second << "\n";
+        if (!factory->second) {
+            std::cout << "Error: " << errorMessage;
+        }
+        assert(factory->second);
+    }
+    
+    return factory->second->createDSPInstance();
 }
 
 void mldsp::computeLoss(FAUSTFLOAT **output, int frame)
@@ -191,7 +223,8 @@ void mldsp::reportState(int iteration, FAUSTFLOAT **output, int frame)
         }
     } else {
         for (auto &p: fLearnableParams) {
-            fFile << ",,";
+//            fFile << ",,";
+            fFile << "," << p.second.gradient << "," << p.second.value;
         }
     }
     

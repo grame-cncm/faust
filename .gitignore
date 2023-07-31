@@ -41,3 +41,5 @@ tests/impulse-tests/ir
 *-svg
 ### Intellij IDEs
 .idea/
+### Pyenv
+.python-version

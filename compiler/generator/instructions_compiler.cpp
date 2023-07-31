@@ -447,6 +447,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     startTiming("compileMultiSignal");
     
     // -diff option may add additional outputs
+    // TODO: this doesn't always count parameters correctly
     if (gGlobal->gAutoDifferentiate) {
         int index;
         Tree sig = L;

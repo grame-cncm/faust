@@ -1,0 +1,7 @@
+import("maths.lib");
+
+diffableOsc = phasor : sin
+with {
+    decimalPart(x) = x-int(x);
+    phasor(f) = f/ma.SR : (+ : decimalPart) ~ _ : *(2 * ma.PI);
+};
