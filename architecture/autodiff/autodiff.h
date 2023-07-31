@@ -10,6 +10,7 @@
 #include <memory>
 #include <fstream>
 #include "faust/gui/MapUI.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/dsp-combiner.h"
 #include "faust/audio/dummy-audio.h"
 
@@ -20,7 +21,7 @@ public:
           std::string differentiableDSPPath,
           FAUSTFLOAT learningRate = 0.1f,
           FAUSTFLOAT sensitivity = 1e-7f,
-          int numIterations = 250);
+          int numIterations = 500);
 
     ~mldsp();
 
@@ -78,7 +79,15 @@ private:
     void reportState(int iteration, FAUSTFLOAT **output, int frame);
 
     std::string fInputDSPPath, fGroundTruthDSPPath, fDifferentiableDSPPath;
-    std::unique_ptr<dsp> fDSP;
+    std::map<std::string, llvm_dsp_factory*> fDSPFactories;
+    /**
+     * This will hold the parallelized ground truth, differentiated, and learnable
+     * versions of the DSP algorithm.
+     *
+     * NB. Using a unique_ptr causes fDSP to be deleted after the factories,
+     * so use a regular pointer.
+     */
+    dsp* fDSP;
     std::unique_ptr<MapUI> fUI;
     std::map<std::string, Parameter> fLearnableParams;
     LossFunction fLossFunction{L2_NORM};

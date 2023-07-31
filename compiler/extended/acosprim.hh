@@ -90,7 +90,7 @@ class AcosPrim : public xtended {
     
     Tree diff(const std::vector<Tree> &args) override
     {
-        // (asin(x))' = -1 / sqrt(1 - x^2)
+        // (acos(x))' = -1 / sqrt(1 - x^2)
         // TODO: check for sqrt of negative number, division by zero.
         return sigDiv(sigReal(-1.0), sigSqrt(sigSub(sigReal(1.0), sigPow(args[0], sigReal(2.0)))));
     }
