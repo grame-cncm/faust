@@ -30,6 +30,7 @@ The maxpat file is generated with the following structure:
     - rnbo~ object
         - subpatch
             - codebox~ object
+            - possibly loadbang box and 'compile C++ and export' message
             - input boxes
             - output boxes
             - parameter boxes
@@ -92,7 +93,13 @@ def extract_items_info(json_data):
 
 
 def create_rnbo_patch(
-    maxpat_path, dsp_name, codebox_code, items_info_list, num_inputs, num_outputs
+    maxpat_path,
+    dsp_name,
+    codebox_code,
+    items_info_list,
+    compile,
+    num_inputs,
+    num_outputs,
 ):
     # Create the patcher
     patcher = Patcher(maxpat_path)
@@ -104,11 +111,23 @@ def create_rnbo_patch(
     )
 
     # Add the audio driver output
-    audio_out = patcher.add_textbox("ezdac~", patching_rect=[50.0, 100.0, 50.0, 50.0])
+    audio_out = patcher.add_textbox("ezdac~", patching_rect=[50.0, 350.0, 50.0, 50.0])
     sbox = patcher.add_rnbo(
         saved_object_attributes=dict(optimization="O3", title=dsp_name),
-        patching_rect=[50.0, 60.0, 50.0, 50.0],
+        patching_rect=[50.0, 320.0, 50.0, 80.0],
     )
+
+    # Add loadbang and 'compile C++ and export' message
+    if compile:
+        load_bang = patcher.add_textbox(
+            "loadbang", patching_rect=[100.0, 260.0, 150.0, 70.0]
+        )
+        compile_message = patcher.add_message(
+            "export cpp-export cpp-code-export",
+            patching_rect=[50.0, 280.0, 150.0, 70.0],
+        )
+        patcher.add_line(load_bang, compile_message)
+        patcher.add_line(compile_message, sbox)
 
     # Create the subpatcher
     sp = sbox.subpatcher
@@ -171,7 +190,7 @@ def create_rnbo_patch(
 
 
 # Generate RNBO patch
-def gen_faust_rnbo(dsp_name, codebox_path, json_path, maxpat_path):
+def gen_faust_rnbo(dsp_name, codebox_path, json_path, maxpat_path, compile):
     with open(codebox_path) as codebox_file:
         codebox_code = codebox_file.read()
 
@@ -182,7 +201,13 @@ def gen_faust_rnbo(dsp_name, codebox_path, json_path, maxpat_path):
         num_outputs = json_data.get("outputs", 0)
 
     create_rnbo_patch(
-        maxpat_path, dsp_name, codebox_code, items_info_list, num_inputs, num_outputs
+        maxpat_path,
+        dsp_name,
+        codebox_code,
+        items_info_list,
+        compile,
+        num_inputs,
+        num_outputs,
     )
 
 
@@ -193,6 +218,7 @@ if __name__ == "__main__":
     parser.add_argument("arg2", type=str, help="Codebox file")
     parser.add_argument("arg3", type=str, help="JSON file")
     parser.add_argument("arg4", type=str, help="RNBO maxpat file")
+    parser.add_argument("arg5", type=str, help="compile")
     args = parser.parse_args()
 
-    gen_faust_rnbo(args.arg1, args.arg2, args.arg3, args.arg4)
+    gen_faust_rnbo(args.arg1, args.arg2, args.arg3, args.arg4, args.arg5 == "True")

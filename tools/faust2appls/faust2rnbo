@@ -13,12 +13,14 @@ set -e
 . usage.sh
 
 ARCHFILE=$FAUSTARCH/max-msp/rnbo.py
+COMPILE=False
 
 echoHelp() 
 {
     usage faust2rnbo "[options] [Faust options] <file.dsp>"
     echo  "Compiles Faust programs to RNBO"
     option
+    option -compile "to trigger C++ compilation at load time"
     option "Faust options"
     exit
 }
@@ -43,7 +45,9 @@ do
         echoHelp
     fi
 
-    if [ ${p:0:1} = "-" ]; then
+    if [ $p = "-compile" ]; then
+        COMPILE=True
+    elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
@@ -65,7 +69,7 @@ for f in $FILES; do
     faust $OPTIONS "$f" -lang codebox -double -json -o "${f%.dsp}.codebox" || exit
 
     # compile codebox anf JSON file to maxpat
-    python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat"
+    python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $COMPILE
   
     # remove temporary files
     rm -f "${f%.dsp}.codebox" "$f.json"
