@@ -266,7 +266,14 @@ void CodeboxCodeContainer::produceClass()
     *fOut << "// Write the outputs";
     tab(n, *fOut);
     for (int out = 0; out < fNumOutputs; out++) {
-        *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "];";
+        // *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "];";
+        // Workaround for C++ generation bug when no audio inputs
+        // See: https://beta.cycling74.com/t/still-confused-on-how-to-use-parameters-in-rnbo-codebox-patches/1763/4
+        if (fNumInputs == 0) {
+            *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "] + in1;";
+        } else {
+            *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "];";
+        }
         tab(n, *fOut);
     }
 }

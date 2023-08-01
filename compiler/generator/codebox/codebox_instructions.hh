@@ -93,6 +93,11 @@ struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
         }
     }
     
+    void visit(AddSoundfileInst* inst) override
+    {
+        throw(faustexception("ERROR : Soundfile is not available in Codebox\n"));
+    }
+    
     void printArgs()
     {
         for (size_t i = 0; i < fUILabels.size(); i++) {
