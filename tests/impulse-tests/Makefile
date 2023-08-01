@@ -76,6 +76,7 @@ help:
 	@echo " 'interp1' : check double output with interpreter/(llvm or MIR) backend and various options"
 	@echo " 'rust'   : check double output with rust backend and various options"
 	@echo " 'cmajor' : check double output with cmajor backend and various options"
+	@echo " 'rnbo'   : check double output with rnbo backend and various options"
 	@echo " 'dlang'  : check double output with D backend and various options"
 	@echo " 'jax'    : check double output with JAX backend and various options"
 	@echo " 'julia'  : check double output with Julia backend and various options"
@@ -371,6 +372,11 @@ cmajor:
 	$(MAKE) -f Make.cmajor outdir=cmajor      FAUSTOPTIONS=" -I dsp -double"
 	$(MAKE) -f Make.cmajor outdir=cmajor/fp   FAUSTOPTIONS=" -I dsp -double -fp"
 	$(MAKE) -f Make.cmajor outdir=cmajor/mapp FAUSTOPTIONS=" -I dsp -double -mapp"
+
+#########################################################################
+# RNBO backend
+rnbo:
+	$(MAKE) -f Make.rnbo outdir=rnbo      FAUSTOPTIONS=" -I dsp -double"
 
 #########################################################################
 # D backend
