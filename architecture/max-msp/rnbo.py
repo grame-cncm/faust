@@ -162,17 +162,21 @@ def create_rnbo_patch(
 
         # button and checkbox use a 'toggle' object
         if item_type in ["button", "checkbox"]:
-            # Upper level parameter control
-
-            # patcher.add_comment(shortname)
-            # param_wrap = patcher.add_textbox("toggle")
-
+            # Upper level parameter control with a 'toggle' and 'attrui' objects
             toggle = patcher.add_textbox("toggle")
             param_wrap = patcher.add_textbox(
                 "attrui",
-                initial=0,
+                maxclass="attrui",
+                attr=shortname,
+                parameter_enable=1,
                 minimum=0,
                 maximum=1,
+                saved_attribute_attributes={
+                    "valueof": {
+                        "parameter_initial": [shortname, 0],
+                        "parameter_initial_enable": 1,
+                    }
+                },
             )
             patcher.add_line(toggle, param_wrap)
             patcher.add_line(param_wrap, sbox)
@@ -192,36 +196,29 @@ def create_rnbo_patch(
                 f"param {shortname} 0 @min 0 @max 1",
             )
 
-        #  slider and nentry use a 'param' object
+        # slider and nentry use a 'param' object
         else:
             min_value = item["min"]
             max_value = item["max"]
             init_value = item["init"]
 
-            # Upper level parameter control with a 'floatbox' object
+            # Upper level parameter control with a 'attrui' object
             param_wrap = patcher.add_textbox(
                 "attrui",
-                initial=init_value,
+                maxclass="attrui",
+                attr=shortname,
                 minimum=min_value,
                 maximum=max_value,
+                parameter_enable=1,
+                saved_attribute_attributes={
+                    "valueof": {
+                        "parameter_initial": [shortname, init_value],
+                        "parameter_initial_enable": 1,
+                    }
+                },
             )
             patcher.add_line(param_wrap, sbox)
 
-            """
-            value = sp.add_textbox(
-                "number~",
-                mode=1,
-                sig=init_value,
-                minimum=min_value,
-                maximum=max_value,
-                patching_rect=[
-                    param.patching_rect[0],
-                    param.patching_rect[1] - 25,
-                    param.patching_rect[2],
-                    param.patching_rect[3],
-                ],
-            )
-            """
             value = sp.add_textbox(
                 f"param {shortname} {init_value} @min {min_value} @max {max_value}",
             )
