@@ -139,7 +139,7 @@ The `-control` option allows to check control parameters, by explicitly setting 
 
 The `-input` option allows to test effects by sending them an *impulse* then a *noise* test signal on all inputs. 
 
-Mode 4 up to 7 also check LOAD/STORE errors, mode 7 is typically used by the Faust compiler developers to check the generated code. Mode 4 and 7 produce FBC (Faust Byte Code) trace as a `DumpCode-foo.txt` file, and the program memory layout as `DumpMem-fooXXX.txt` file.
+Mode 4 up to 7 also check LOAD/STORE errors, mode 7 is typically used by the Faust compiler developers to check the generated code. Mode 7 prints the program memory layout as `DumpMem-fooXXX.txt` file.
 
 `interp-tracer [-trace <1-7>] [-control] [-output] [-timeout <num>] [additional Faust options (-ftz xx)] foo.dsp`
 

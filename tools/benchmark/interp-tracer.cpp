@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
     int time_out = lopt(argv, "-timeout", 10);
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 7) {
-        cout << "interp-tracer [-trace <1-7>] [-control] [-output] [-noui] [-timeout <num>] [additional Faust ftestPrograms (-ftz xx)] foo.dsp" << endl;
+        cout << "interp-tracer [-trace <1-7>] [-control] [-output] [-noui] [-timeout <num>] [additional Faust options (-ftz xx)] foo.dsp" << endl;
         cout << "-control to activate min/max control check then setting all controllers (inside their range) in a random way\n";
         cout << "-input to test effects with various test signals (impulse, noise) \n";
         cout << "-output to display output samples\n";
