@@ -111,7 +111,7 @@ def create_rnbo_patch(
     )
 
     # Add the audio driver output
-    audio_out = patcher.add_textbox("ezdac~", patching_rect=[50.0, 350.0, 50.0, 50.0])
+    audio_out = patcher.add_textbox("ezdac~", patching_rect=[50.0, 370.0, 50.0, 50.0])
     sbox = patcher.add_rnbo(
         saved_object_attributes=dict(optimization="O3", title=dsp_name),
         patching_rect=[50.0, 320.0, 50.0, 80.0],
@@ -134,7 +134,7 @@ def create_rnbo_patch(
 
     # Create codebox~ section
     codebox = sp.add_codebox_tilde(
-        code=codebox_code, patching_rect=[200.0, 200.0, 400.0, 400.0]
+        code=codebox_code, patching_rect=[200.0, 300.0, 400.0, 300.0]
     )
 
     # Generating the lines of code for inputs
@@ -147,15 +147,32 @@ def create_rnbo_patch(
         output_box = sp.add_textbox(f"out~ {i + 1}")
         sp.add_line(codebox, output_box, outlet=i)
 
-    # Add parameter control
+    # Add parameter control for button/checkbox and slider/nentry
     for item in items_info_list:
         shortname = item["shortname"]
         item_type = item["type"]
 
+        # Add a global 'set' param object
         param = sp.add_textbox(f"set {shortname}")
-        # param = sp.add_textbox(f'param~ {shortname} @minimum {min_value} @maximum {max_value}')
 
+        # button and checkbox use a 'toggle' object
         if item_type in ["button", "checkbox"]:
+            # Upper level parameter control
+
+            # patcher.add_comment(shortname)
+            # param_wrap = patcher.add_textbox("toggle")
+
+            toggle = patcher.add_textbox("toggle")
+            param_wrap = patcher.add_textbox(
+                "attrui",
+                initial=0,
+                minimum=0,
+                maximum=1,
+            )
+            patcher.add_line(toggle, param_wrap)
+            patcher.add_line(param_wrap, sbox)
+
+            """
             value = sp.add_textbox(
                 "toggle",
                 patching_rect=[
@@ -165,10 +182,27 @@ def create_rnbo_patch(
                     24.0,
                 ],
             )
+            """
+            value = sp.add_textbox(
+                f"param {shortname} 0 @min 0 @max 1",
+            )
+
+        #  slider and nentry use a 'param' object
         else:
             min_value = item["min"]
             max_value = item["max"]
             init_value = item["init"]
+
+            # Upper level parameter control with a 'floatbox' object
+            param_wrap = patcher.add_textbox(
+                "attrui",
+                initial=init_value,
+                minimum=min_value,
+                maximum=max_value,
+            )
+            patcher.add_line(param_wrap, sbox)
+
+            """
             value = sp.add_textbox(
                 "number~",
                 mode=1,
@@ -182,6 +216,11 @@ def create_rnbo_patch(
                     param.patching_rect[3],
                 ],
             )
+            """
+            value = sp.add_textbox(
+                f"param {shortname} {init_value} @min {min_value} @max {max_value}",
+            )
+
         sp.add_line(value, param)
         sp.add_line(param, codebox)
 
