@@ -939,7 +939,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileFIR(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "c") {
         compileC(signals, numInputs, numOutputs, gDst.get());
-    } else if (gGlobal->gOutputLang == "codebox") {
+    } else if (startWith(gGlobal->gOutputLang, "codebox")) {
         compileCodebox(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "cpp") {
         compileCPP(signals, numInputs, numOutputs, gDst.get());

@@ -31,6 +31,40 @@
 // Variable identifier cannot end by a number, so add a suffix
 inline std::string codeboxVarName(const std::string& name) { return name + "_cb"; }
 
+inline std::string buildButtonLabel(AddButtonInst::ButtonType type, const std::string& label)
+{
+    if (gGlobal->gOutputLang == "codebox-test") {
+        switch (type) {
+            case AddButtonInst::kDefaultButton:
+                return("RB_Button_" + label);
+            case AddButtonInst::kCheckButton:
+                return("RB_Checkbox_" + label);
+            default:
+                faustassert(false);
+                break;
+        }
+    }
+    return label;
+}
+
+inline std::string buildSliderLabel(AddSliderInst::SliderType type, const std::string& label)
+{
+    if (gGlobal->gOutputLang == "codebox-test") {
+        switch (type) {
+            case AddSliderInst::kHorizontal:
+                return("RB_HSlider_" + label);
+            case AddSliderInst::kVertical:
+                return("RB_VSlider_" + label);
+            case AddSliderInst::kNumEntry:
+                return("RB_NEntry_" + label);
+            default:
+                faustassert(false);
+                break;
+        }
+    }
+    return label;
+}
+
 // Visitor used to fill the 'update' function and associate control labels with their parameter names
 // (using 2 passes, one to build shortname, the second to use them)
 struct CodeboxUpdateParamsVisitor : public ShortnameInstVisitor {
@@ -49,7 +83,7 @@ struct CodeboxUpdateParamsVisitor : public ShortnameInstVisitor {
     void visit(AddButtonInst* inst) override
     {
         if (hasShortname()) {
-            print(buildShortname(inst->fLabel), inst->fZone);
+            print(buildButtonLabel(inst->fType, buildShortname(inst->fLabel)), inst->fZone);
         } else {
             ShortnameInstVisitor::visit(inst);
         }
@@ -58,7 +92,7 @@ struct CodeboxUpdateParamsVisitor : public ShortnameInstVisitor {
     void visit(AddSliderInst* inst) override
     {
         if (hasShortname()) {
-            print(buildShortname(inst->fLabel), inst->fZone);
+            print(buildSliderLabel(inst->fType, buildShortname(inst->fLabel)), inst->fZone);
         } else {
             ShortnameInstVisitor::visit(inst);
         }
@@ -78,7 +112,7 @@ struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
     void visit(AddButtonInst* inst) override
     {
         if (hasShortname()) {
-            fUILabels.push_back(buildShortname(inst->fLabel));
+            fUILabels.push_back(buildButtonLabel(inst->fType, buildShortname(inst->fLabel)));
         } else {
             ShortnameInstVisitor::visit(inst);
         }
@@ -87,7 +121,7 @@ struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
     void visit(AddSliderInst* inst) override
     {
         if (hasShortname()) {
-            fUILabels.push_back(buildShortname(inst->fLabel));
+            fUILabels.push_back(buildSliderLabel(inst->fType, buildShortname(inst->fLabel)));
         } else {
             ShortnameInstVisitor::visit(inst);
         }
@@ -175,7 +209,7 @@ struct CodeboxParamsVisitor : public ShortnameInstVisitor {
     virtual void visit(AddButtonInst* inst) override
     {
         if (hasShortname()) {
-            *fOut << "@param({min: 0., max: 1., step: 1}) " << buildShortname(inst->fLabel) << " = 0.;";
+            *fOut << "@param({min: 0., max: 1., step: 1}) " << buildButtonLabel(inst->fType, buildShortname(inst->fLabel)) << " = 0.;";
             tab(fTab, *fOut);
         } else {
             ShortnameInstVisitor::visit(inst);
@@ -187,7 +221,7 @@ struct CodeboxParamsVisitor : public ShortnameInstVisitor {
         if (hasShortname()) {
             *fOut << "@param({min: " << checkReal(inst->fMin) << ", max: "
             << checkReal(inst->fMax) << ", step: " << checkReal(inst->fStep) << "}) "
-            << buildShortname(inst->fLabel) << " = " << checkReal(inst->fInit) << ";";
+            << buildSliderLabel(inst->fType, buildShortname(inst->fLabel)) << " = " << checkReal(inst->fInit) << ";";
             tab(fTab, *fOut);
         } else {
             ShortnameInstVisitor::visit(inst);

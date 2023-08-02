@@ -97,7 +97,8 @@ The **faust2rnbo** tool transforms a Faust DSP program into a RNBO patch includi
 Here are the available options:
 
   - `-compile` : to trigger C++ compilation at load time
-  - `cpp_path` : to set C++ export folder
+  - `-test` : to generate special 'RB_XX' prefix for parameters (for testing)
+  - `cpp_path` : to set C++ export folder 
   - `cpp_filename` : to set C++ export filename
  
 By default it will create the *file.maxpat* patch file.

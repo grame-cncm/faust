@@ -92,6 +92,22 @@ def extract_items_info(json_data):
     return []
 
 
+# Creating the proper label for the parameter
+def build_label(type, shortname):
+    if type == "button":
+        return f"RB_Button_{shortname}"
+    elif type == "checkbox":
+        return f"RB_Checkbox_{shortname}"
+    elif type == "hslider":
+        return f"RB_HSlider_{shortname}"
+    elif type == "vslider":
+        return f"RB_VSlider_{shortname}"
+    elif type == "nentry":
+        return f"RB_NEntry_{shortname}"
+    else:
+        raise ValueError(f"Unknown type {type}")
+
+
 def create_rnbo_patch(
     dsp_name,
     maxpat_path,
@@ -180,9 +196,10 @@ def create_rnbo_patch(
     for item in items_info_list:
         shortname = item["shortname"]
         item_type = item["type"]
+        label = build_label(item_type, shortname)
 
         # Add a global 'set' param object
-        param = sub_patch.add_textbox(f"set {shortname}")
+        param = sub_patch.add_textbox(f"set {label}")
 
         # button and checkbox use a 'toggle' object
         if item_type in ["button", "checkbox"]:
@@ -191,13 +208,13 @@ def create_rnbo_patch(
             param_wrap = patcher.add_textbox(
                 "attrui",
                 maxclass="attrui",
-                attr=shortname,
+                attr=label,
                 parameter_enable=1,
                 minimum=0,
                 maximum=1,
                 saved_attribute_attributes={
                     "valueof": {
-                        "parameter_initial": [shortname, 0],
+                        "parameter_initial": [label, 0],
                         "parameter_initial_enable": 1,
                     }
                 },
@@ -206,7 +223,7 @@ def create_rnbo_patch(
             patcher.add_line(param_wrap, rnbo)
 
             value = sub_patch.add_textbox(
-                f"param {shortname} 0 @min 0 @max 1",
+                f"param {label} 0 @min 0 @max 1",
             )
 
         # slider and nentry use a 'param' object
@@ -219,13 +236,13 @@ def create_rnbo_patch(
             param_wrap = patcher.add_textbox(
                 "attrui",
                 maxclass="attrui",
-                attr=shortname,
+                attr=label,
                 minimum=min_value,
                 maximum=max_value,
                 parameter_enable=1,
                 saved_attribute_attributes={
                     "valueof": {
-                        "parameter_initial": [shortname, init_value],
+                        "parameter_initial": [label, init_value],
                         "parameter_initial_enable": 1,
                     }
                 },
@@ -233,7 +250,7 @@ def create_rnbo_patch(
             patcher.add_line(param_wrap, rnbo)
 
             value = sub_patch.add_textbox(
-                f"param {shortname} {init_value} @min {min_value} @max {max_value}",
+                f"param {label} {init_value} @min {min_value} @max {max_value}",
             )
 
         sub_patch.add_line(value, param)
