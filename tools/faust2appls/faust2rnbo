@@ -14,6 +14,8 @@ set -e
 
 ARCHFILE=$FAUSTARCH/max-msp/rnbo.py
 COMPILE=False
+EXPORT_PATH="/tmp/foo"
+EXPORT_FILENAME="foo.cpp"
 
 echoHelp() 
 {
@@ -21,6 +23,8 @@ echoHelp()
     echo  "Compiles Faust programs to RNBO"
     option
     option -compile "to trigger C++ compilation at load time"
+    option -cpp_path "to set C++ export folder"
+    option -cpp_filename "to set C++ export filename"
     option "Faust options"
     exit
 }
@@ -47,6 +51,12 @@ do
 
     if [ $p = "-compile" ]; then
         COMPILE=True
+    elif [ $p = "-cpp_path" ]; then
+        shift
+        EXPORT_PATH=$1
+    elif [ $p = "-cpp_filename" ]; then
+        shift
+        EXPORT_FILENAME=$1
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -68,8 +78,8 @@ for f in $FILES; do
     # compile the DSP to codebox using the architecture file
     faust $OPTIONS "$f" -lang codebox -double -json -o "${f%.dsp}.codebox" || exit
 
-    # compile codebox anf JSON file to maxpat
-    python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $COMPILE
+    # compile codebox and JSON file to maxpat
+    python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $COMPILE 
   
     # remove temporary files
     rm -f "${f%.dsp}.codebox" "$f.json"

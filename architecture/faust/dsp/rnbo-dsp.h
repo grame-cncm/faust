@@ -9,12 +9,11 @@ struct rnbo_dsp : public dsp {
     RNBO::CoreObject fDSP;
     int fSampleRate;
     
-    bool fFirst = true;
-    
     void init(int sample_rate)
     {
-        fSampleRate = sample_rate;
-        fDSP.prepareToProcess(sample_rate, 512, true);
+        // Inlined
+        // classInit(sample_rate);
+        instanceInit(sample_rate);
     }
     
     int getNumInputs() { return fDSP.getNumInputChannels(); }
@@ -23,7 +22,10 @@ struct rnbo_dsp : public dsp {
     int getSampleRate() { return fSampleRate; }
     
     void instanceInit(int sample_rate)
-    {}
+    {
+        fSampleRate = sample_rate;
+        fDSP.prepareToProcess(sample_rate, 512, true);
+    }
     
     void instanceConstants(int sample_rate)
     {}
@@ -44,10 +46,6 @@ struct rnbo_dsp : public dsp {
     
     void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
-        if (fFirst) {
-            fDSP.prepareToProcess(44100, 512, true);
-            fFirst = false;
-        }
         fDSP.process(inputs, fDSP.getNumInputChannels(), outputs, fDSP.getNumOutputChannels(), count);
     }
     
