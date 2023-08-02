@@ -93,19 +93,22 @@ def extract_items_info(json_data):
 
 
 # Creating the proper label for the parameter
-def build_label(type, shortname):
-    if type == "button":
-        return f"RB_Button_{shortname}"
-    elif type == "checkbox":
-        return f"RB_Checkbox_{shortname}"
-    elif type == "hslider":
-        return f"RB_HSlider_{shortname}"
-    elif type == "vslider":
-        return f"RB_VSlider_{shortname}"
-    elif type == "nentry":
-        return f"RB_NEntry_{shortname}"
+def build_label(type, shortname, test):
+    if test:
+        if type == "button":
+            return f"RB_Button_{shortname}"
+        elif type == "checkbox":
+            return f"RB_Checkbox_{shortname}"
+        elif type == "hslider":
+            return f"RB_HSlider_{shortname}"
+        elif type == "vslider":
+            return f"RB_VSlider_{shortname}"
+        elif type == "nentry":
+            return f"RB_NEntry_{shortname}"
+        else:
+            raise ValueError(f"Unknown type {type}")
     else:
-        raise ValueError(f"Unknown type {type}")
+        return shortname
 
 
 def create_rnbo_patch(
@@ -116,6 +119,7 @@ def create_rnbo_patch(
     codebox_code,
     items_info_list,
     compile,
+    test,
     num_inputs,
     num_outputs,
 ):
@@ -196,7 +200,7 @@ def create_rnbo_patch(
     for item in items_info_list:
         shortname = item["shortname"]
         item_type = item["type"]
-        label = build_label(item_type, shortname)
+        label = build_label(item_type, shortname, test)
 
         # Add a global 'set' param object
         param = sub_patch.add_textbox(f"set {label}")
@@ -231,6 +235,7 @@ def create_rnbo_patch(
             min_value = item["min"]
             max_value = item["max"]
             init_value = item["init"]
+            steps_value = (max_value - min_value) / item["step"]
 
             # Upper level parameter control with a 'attrui' object
             param_wrap = patcher.add_textbox(
@@ -250,6 +255,8 @@ def create_rnbo_patch(
             patcher.add_line(param_wrap, rnbo)
 
             value = sub_patch.add_textbox(
+                # Doe nos work with @steps, with parameter values slightly different
+                # f"param {label} {init_value} @min {min_value} @max {max_value} @steps {steps_value} ",
                 f"param {label} {init_value} @min {min_value} @max {max_value}",
             )
 
@@ -262,7 +269,14 @@ def create_rnbo_patch(
 
 # Generate RNBO patch
 def gen_faust_rnbo(
-    dsp_name, codebox_path, json_path, maxpat_path, export_path, cpp_filename, compile
+    dsp_name,
+    codebox_path,
+    json_path,
+    maxpat_path,
+    export_path,
+    cpp_filename,
+    compile,
+    test,
 ):
     with open(codebox_path) as codebox_file:
         codebox_code = codebox_file.read()
@@ -281,6 +295,7 @@ def gen_faust_rnbo(
         codebox_code,
         items_info_list,
         compile,
+        test,
         num_inputs,
         num_outputs,
     )
@@ -296,6 +311,7 @@ if __name__ == "__main__":
     parser.add_argument("arg5", type=str, help="C++ export folder path")
     parser.add_argument("arg6", type=str, help="C++ export filename")
     parser.add_argument("arg7", type=str, help="compile")
+    parser.add_argument("arg8", type=str, help="test")
     args = parser.parse_args()
 
     gen_faust_rnbo(
@@ -306,4 +322,5 @@ if __name__ == "__main__":
         args.arg5,
         args.arg6,
         args.arg7 == "True",
+        args.arg8 == "True",
     )

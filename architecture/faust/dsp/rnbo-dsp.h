@@ -90,7 +90,8 @@ class rnbo_dsp : public dsp {
                     ui_interface->addButton(name, zone);
                     fZoneFunMap.push_back(std::make_pair(zone, [=] (FAUSTFLOAT val) {
                         // std::cerr << "RB_Button_ " << val << std::endl;
-                        fDSP.setParameterValue(i, val, 0); }));
+                        fDSP.setParameterValue(i, val, 0);
+                    }));
                     ins++;
                 } else if (startWith(name, "RB_Checkbox_")) {
                     fInputsZoneMap[ins] = 0;
@@ -99,17 +100,23 @@ class rnbo_dsp : public dsp {
                     ins++;
                 } else if (startWith(name, "RB_HSlider_")) {
                     fInputsZoneMap[ins] = info.initialValue;
-                    ui_interface->addHorizontalSlider(name, zone, info.initialValue, info.min, info.max, info.steps);
+                    //double step = (info.max-info.min)/info.steps;
+                    double step = 0;
+                    ui_interface->addHorizontalSlider(name, zone, info.initialValue, info.min, info.max, step);
                     fZoneFunMap.push_back(std::make_pair(zone, [=] (FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
                     ins++;
                 } else if (startWith(name, "RB_VSlider_")) {
                     fInputsZoneMap[ins] = info.initialValue;
-                    ui_interface->addVerticalSlider(name, zone, info.initialValue, info.min, info.max, info.steps);
+                    //double step = (info.max-info.min)/info.steps;
+                    double step = 0;
+                    ui_interface->addVerticalSlider(name, zone, info.initialValue, info.min, info.max, step);
                     fZoneFunMap.push_back(std::make_pair(zone, [=] (FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
                     ins++;
                 } else if (startWith(name, "RB_NEntry_")) {
                     fInputsZoneMap[ins] = info.initialValue;
-                    ui_interface->addNumEntry(name, zone, info.initialValue, info.min, info.max, info.steps);
+                    //double step = (info.max-info.min)/info.steps;
+                    double step = 0;
+                    ui_interface->addNumEntry(name, zone, info.initialValue, info.min, info.max, step);
                     fZoneFunMap.push_back(std::make_pair(zone, [=] (FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
                     ins++;
                 }

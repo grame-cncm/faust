@@ -209,7 +209,7 @@ struct CodeboxParamsVisitor : public ShortnameInstVisitor {
     virtual void visit(AddButtonInst* inst) override
     {
         if (hasShortname()) {
-            *fOut << "@param({min: 0., max: 1., step: 1}) " << buildButtonLabel(inst->fType, buildShortname(inst->fLabel)) << " = 0.;";
+            *fOut << "@param({min: 0., max: 1.}) " << buildButtonLabel(inst->fType, buildShortname(inst->fLabel)) << " = 0.;";
             tab(fTab, *fOut);
         } else {
             ShortnameInstVisitor::visit(inst);
@@ -220,7 +220,7 @@ struct CodeboxParamsVisitor : public ShortnameInstVisitor {
     {
         if (hasShortname()) {
             *fOut << "@param({min: " << checkReal(inst->fMin) << ", max: "
-            << checkReal(inst->fMax) << ", step: " << checkReal(inst->fStep) << "}) "
+            << checkReal(inst->fMax) << "}) "
             << buildSliderLabel(inst->fType, buildShortname(inst->fLabel)) << " = " << checkReal(inst->fInit) << ";";
             tab(fTab, *fOut);
         } else {

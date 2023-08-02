@@ -16,7 +16,7 @@ ARCHFILE=$FAUSTARCH/max-msp/rnbo.py
 COMPILE=False
 EXPORT_PATH="/tmp/foo"
 EXPORT_FILENAME="foo.cpp"
-TEST=false
+TEST=False
 
 echoHelp() 
 {
@@ -54,7 +54,7 @@ do
     if [ $p = "-compile" ]; then
         COMPILE=True
     elif [ $p = "-test" ]; then
-        TEST=true
+        TEST=True
     elif [ $p = "-cpp_path" ]; then
         shift
         EXPORT_PATH=$1
@@ -80,13 +80,13 @@ done
 for f in $FILES; do
 
     # compile the DSP to codebox using the architecture file
-    if [ "$TEST" = true ]; then
+    if [ "$TEST" = "True" ]; then
         faust $OPTIONS "$f" -lang codebox-test -double -json -o "${f%.dsp}.codebox" || exit
     else
         faust $OPTIONS "$f" -lang codebox -double -json -o "${f%.dsp}.codebox" || exit
     fi
     # compile codebox and JSON file to maxpat
-    python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $COMPILE 
+    python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $COMPILE $TEST 
   
     # remove temporary files
     rm -f "${f%.dsp}.codebox" "$f.json"
