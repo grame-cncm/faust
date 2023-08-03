@@ -129,23 +129,21 @@ def create_rnbo_patch(
     # Faust generated patch
     patcher.add_comment(
         "Faust generated RNBO patch, Copyright (c) 2023 Grame",
-        patching_rect=[50.0, 20.0, 250.0, 50.0],
+        patching_rect=[50.0, 10.0, 350.0, 100.0],
+        fontsize=16,
     )
 
     # Create the audio driver output
-    audio_out = patcher.add_textbox("ezdac~", patching_rect=[50.0, 370.0, 50.0, 50.0])
+    audio_out = patcher.add_textbox("ezdac~")
 
     # Create the rnbo~ object
     rnbo = patcher.add_rnbo(
-        saved_object_attributes=dict(optimization="O3", title=dsp_name, dumpoutlet=1),
-        patching_rect=[50.0, 320.0, 50.0, 80.0],
+        saved_object_attributes=dict(optimization="O3", title=dsp_name, dumpoutlet=1)
     )
 
     # Add loadbang and 'compile C++ and export' machinery
     if compile:
-        load_bang = patcher.add_textbox(
-            "loadbang", patching_rect=[100.0, 260.0, 150.0, 70.0]
-        )
+        load_bang = patcher.add_textbox("loadbang")
         dump_target_config = patcher.add_message(
             "dumptargetconfig cpp-export cpp-code-export"
         )
@@ -178,7 +176,7 @@ def create_rnbo_patch(
 
     # Create codebox~ section
     codebox = sub_patch.add_codebox_tilde(
-        code=codebox_code, patching_rect=[200.0, 300.0, 400.0, 300.0]
+        code=codebox_code, patching_rect=[500.0, 500.0, 400.0, 200.0]
     )
 
     # Workaround for C++ generation bug when no audio inputs
