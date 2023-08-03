@@ -68,8 +68,10 @@ ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
 	faust2rnbo -test -compile -cpp_path $(realpath archs/rnbo) -cpp_filename rnbo_source.cpp $<
 	open $(patsubst %.dsp, %.maxpat, $<)
-	sleep 5
+	sleep 15
 	rm $(patsubst %.dsp, %.maxpat, $<)
+	# Use a patched version of RNBO C++ sources
+	cp -R archs/rnbo-fix/rnbo archs/rnbo
 	$(CXX) $(GCCOPTIONS) archs/$(arch) -I archs/rnbo/rnbo -I archs/rnbo/rnbo/common -o impulsernbo
 	./impulsernbo > $@
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
