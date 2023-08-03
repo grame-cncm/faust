@@ -32,7 +32,7 @@ option() {
         if [ -z "$doc" ]
         then
             case $option in
-            	"-dyn") doc="create libfaust + LLVM backend dynamic version";;
+                "-dyn") doc="create libfaust + LLVM backend dynamic version";;
                 "-httpd") doc="activates HTTP control";;
                 "-osc") doc="activates OSC control";;
                 "-midi") doc="activates MIDI control";;
@@ -44,6 +44,8 @@ option() {
                 "-us <factor>") doc="upsample the DSP by a factor";;
                 "-ds <factor>") doc="downsample the DSP by a factor";;
                 "-filter <filter>") doc="use a filter for upsampling or downsampling [0..4]";;
+                "-cpp_path <path>") doc="to set C++ export folder";;
+                "-cpp_filename <filename>") doc="to set C++ export filename";;
                 "-source") doc="to only create the source folder";;
                 "-soundfile") doc="when compiling a DSP using the 'soundfile' primitive, add required resources";;
                 "-nodeploy") doc="skip self-contained application generation (using 'macdeployqt')";;

@@ -84,7 +84,7 @@ If you plan to use **faust2max6/faust2msp** on your own machine, you will have t
 
 # faust2rnbo
 
-The **faust2rnbo** tool transforms a Faust DSP program into a RNBO patch including the generated codebox code.
+The **faust2rnbo** tool transforms a Faust DSP program into a RNBO patch including the generated codebox code. Additional options are used to generate a special version of the RNBO patch used in the testing infrastructure.
 
 ## How to use
 
@@ -98,7 +98,7 @@ Here are the available options:
 
   - `-compile` : to trigger C++ compilation at load time
   - `-test` : to generate special 'RB_XX' prefix for parameters (for testing)
-  - `cpp_path` : to set C++ export folder 
-  - `cpp_filename` : to set C++ export filename
+  - `-cpp_path <path>` : to set C++ export folder 
+  - `-cpp_filename <filename>` : to set C++ export filename
  
 By default it will create the *file.maxpat* patch file.

@@ -21,12 +21,12 @@ TEST=False
 echoHelp() 
 {
     usage faust2rnbo "[options] [Faust options] <file.dsp>"
-    echo  "Compiles Faust programs to RNBO"
+    echo  "Compiles Faust programs to RNBO patches"
     option
     option -compile "to trigger C++ compilation at load time"
     option -test "to generate special 'RB_XX' prefix for parameters (for testing)"
-    option -cpp_path "to set C++ export folder"
-    option -cpp_filename "to set C++ export filename"
+    option "-cpp_path <path>"
+    option "-cpp_filename <filename>"
     option "Faust options"
     exit
 }
