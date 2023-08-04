@@ -198,15 +198,22 @@ class VhdlCodeContainer
     std::map<size_t, std::vector<std::pair<size_t, size_t>>> _mappings;
     std::vector<size_t> _output_mappings;
 
+    // Stores code for custom operators
+    std::map<size_t, std::string> _custom_operators;
+
    public:
-    VhdlCodeContainer(const std::string& ip_name, int num_inputs, int num_outputs, int cycles_per_sample):
+    VhdlCodeContainer(const std::string& ip_name, int num_inputs, int num_outputs, int cycles_per_sample, std::map<size_t, std::string> custom_operators):
           _ip_name(ip_name),
           _num_inputs(num_inputs),
-          _num_outputs(num_outputs)
+          _num_outputs(num_outputs),
+          _cycles_per_sample(cycles_per_sample),
+          _custom_operators(custom_operators)
     {
         if (cycles_per_sample) {
             generateRegisterSeries(cycles_per_sample, VhdlType(VhdlInnerType::StdLogic));
         }
+
+
     }
 
     // Registers a new unique component, declaring its related signals and generic

@@ -82,7 +82,7 @@ void VhdlProducer::optimize()
 
 void VhdlProducer::generate(std::ostream& out)
 {
-    auto container = VhdlCodeContainer(_name, _inputs_count, _outputs_count, cyclesPerSample());
+    auto container = VhdlCodeContainer(_name, _inputs_count, _outputs_count, cyclesPerSample(), {});
 
     instantiate_components(container);
     map_ports(container);

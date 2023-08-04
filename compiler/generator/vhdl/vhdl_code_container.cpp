@@ -28,6 +28,15 @@ std::ostream& operator<<(std::ostream& out, const VhdlCodeBlock& block) {
     return out;
 }
 
+std::string entityTypeFromName(const std::string& name) {
+    std::string entity_type;
+    auto last_underscore = name.find_last_of('_');
+    for (size_t i = 0; i < last_underscore && i < name.size(); ++i) {
+        entity_type.push_back(name[i]);
+    }
+    return entity_type;
+}
+
 std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container) {
     out << "-- ======= DEPENDENCIES =====" << std::endl;
     out << "library ieee;" << std::endl
@@ -84,7 +93,7 @@ std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container) 
 
         auto target_hash = mapping.first;
         auto target_id = container._signal_identifier.at(target_hash);
-        out << target_id << " : " << /* type << */ "(" << std::endl;
+        out << target_id << " : " << entityTypeFromName(target_id) << " (" << std::endl;
         out << '\t' << "port map (" << std::endl;
         out << "\t\t" << "clock => ap_clk," << std::endl;
         out << "\t\t" << "reset => ap_rst_n," << std::endl;
@@ -151,6 +160,7 @@ void VhdlCodeContainer::register_component(const Vertex& component)
     Tree    size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
 
     // TODO: implement missing operators
+    // TODO: Add support for custom operators
     if (getUserData(sig)) {
         std::cout << *sig << std::endl;
         for (Tree b : sig->branches()) {
