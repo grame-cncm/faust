@@ -8,16 +8,30 @@
 
 int main(int argc, char *argv[])
 {
+    if (isopt(argv, "--help")) {
+        std::cout << "Usage: " << argv[0] << " --input <file> --gt <file> --diff <file> [-l <loss-function>]\n";
+        exit(0);
+    }
+    
     if (!isopt(argv, "--input") || !isopt(argv, "--gt") || !isopt(argv, "--diff")) {
         std::cout << "Please provide input, ground truth, and differentiable Faust files.\n";
         std::cout << argv[0] << " --input <file> --gt <file> --diff <file>\n";
         exit(1);
     }
+    
     auto input{lopts(argv, "--input", "")};
     auto gt{lopts(argv, "--gt", "")};
     auto diff{lopts(argv, "--diff", "")};
     
-    mldsp mldsp{input, gt, diff};
+    mldsp::LossFunction lf{mldsp::L2_NORM};
+    auto lossFunction{lopts1(argc, argv, "--lossfunction", "-l", "")};
+    if (strcmp(lossFunction, "l1") == 0) {
+        lf = mldsp::L1_NORM;
+    } else if (strcmp(lossFunction, "l2") == 0) {
+        lf = mldsp::L2_NORM;
+    }
+    
+    mldsp mldsp{input, gt, diff, lf};
     mldsp.initialise();
     mldsp.doGradientDescent();
 }
@@ -25,9 +39,11 @@ int main(int argc, char *argv[])
 mldsp::mldsp(std::string inputDSPPath,
              std::string groundTruthDSPPath,
              std::string differentiableDSPPath,
+             LossFunction lossFunction,
              FAUSTFLOAT learningRate,
              FAUSTFLOAT sensitivity,
              int numIterations) :
+        kLossFunction(lossFunction),
         kAlpha(learningRate),
         kEpsilon(sensitivity),
         kNumIterations(numIterations),
@@ -88,6 +104,8 @@ void mldsp::initialise()
 
 void mldsp::doGradientDescent()
 {
+    auto lowLossCount{0};
+    
     for (auto i{1}; i <= kNumIterations; ++i) {
         fAudio->render();
         auto out{fAudio->getOutput()};
@@ -96,6 +114,7 @@ void mldsp::doGradientDescent()
             computeLoss(out, frame);
             
             if (fLoss > kEpsilon) {
+                lowLossCount = 0;
                 computeGradient(out, frame);
                 
                 // Update parameter values.
@@ -103,9 +122,13 @@ void mldsp::doGradientDescent()
                     p.second.value -= kAlpha * p.second.gradient;
                     fUI->setParamValue(p.first, p.second.value);
                 }
+            } else {
+                ++lowLossCount;
             }
             
             reportState(i, out, frame);
+            
+            if (lowLossCount > 20) return;
         }
     }
 }
@@ -168,12 +191,14 @@ dsp *mldsp::createDSPInstanceFromPath(const std::string &path,
 
 void mldsp::computeLoss(FAUSTFLOAT **output, int frame)
 {
-    switch (fLossFunction) {
+    auto delta{output[OutputChannel::LEARNABLE][frame] - output[OutputChannel::GROUND_TRUTH][frame]};
+    
+    switch (kLossFunction) {
         case L1_NORM:
-            fLoss = fabsf(output[OutputChannel::LEARNABLE][frame] - output[OutputChannel::GROUND_TRUTH][frame]);
+            fLoss = fabsf(delta);
             break;
         case L2_NORM:
-            fLoss = powf(output[OutputChannel::LEARNABLE][frame] - output[OutputChannel::GROUND_TRUTH][frame], 2);
+            fLoss = powf(delta, 2);
             break;
         default:
             break;
@@ -182,12 +207,25 @@ void mldsp::computeLoss(FAUSTFLOAT **output, int frame)
 
 void mldsp::computeGradient(FAUSTFLOAT **output, int frame)
 {
+    auto delta{output[OutputChannel::LEARNABLE][frame] - output[OutputChannel::GROUND_TRUTH][frame]};
+    
     // Set up an index to target the appropriate output channel to use for gradient descent for a
     // given differentiable parameter.
     auto k{0};
     for (auto &p: fLearnableParams) {
-        p.second.gradient = 2 * output[OutputChannel::DIFFERENTIATED + k][frame] *
-                            (output[OutputChannel::LEARNABLE][frame] - output[OutputChannel::GROUND_TRUTH][frame]);
+        switch (kLossFunction) {
+            case L1_NORM:
+                p.second.gradient = iszero(delta) ?
+                                    0.f :
+                                    output[OutputChannel::DIFFERENTIATED + k][frame] * delta / fabsf(delta);
+                break;
+            case L2_NORM:
+                p.second.gradient = 2 * output[OutputChannel::DIFFERENTIATED + k][frame] * delta;
+                break;
+            default:
+                break;
+        }
+        
         ++k;
     }
 }

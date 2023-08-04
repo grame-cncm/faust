@@ -252,7 +252,7 @@ class SignalAutoDifferentiate final : public SignalIdentity {
         // The variable with respect to which the differentiation is performed.
         SignalAutoDifferentiate(Tree var) : fVar(var)
         {
-            if (gGlobal->gDetailsSwitch) std::cout << ">>> Differentiate wrt. " << ppsig(var) << "\n\n";
+            if (gGlobal->gDetailsSwitch) std::cout << ">>> Differentiate wrt. " << ppsig(var) << "\n";
             // Go inside tables
             fVisitGen = true;
         }
