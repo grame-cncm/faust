@@ -757,6 +757,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gLightMode) dst << "-light ";
     if (gMemoryManager) dst << "-mem ";
     if (gComputeMix) dst << "-cm ";
+    if (gInlineTable) dst << "-it ";
     if (gRangeUI) dst << "-rui ";
     if (gNoVirtual) dst << "-nvi ";
     if (gFullParentheses) dst << "-fp ";
@@ -928,6 +929,9 @@ global::~global()
 #endif
 #ifdef CPP_BUILD
     CPPInstVisitor::cleanup();
+#endif
+#ifdef CODEBOX_BUILD
+    CodeboxInstVisitor::cleanup();
 #endif
 #ifdef CSHARP_BUILD
     CSharpInstVisitor::cleanup();

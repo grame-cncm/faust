@@ -47,7 +47,7 @@ import argparse
 import json
 
 
-# Extracting items info
+# Extracting UI items info
 def extract_items_info(json_data):
     def extract_from_ui(ui_items):
         info_list = []
@@ -115,6 +115,7 @@ def build_label(type, shortname, test):
         return shortname
 
 
+# Create the RNBO maxpat file
 def create_rnbo_patch(
     dsp_name,
     maxpat_path,
@@ -130,7 +131,7 @@ def create_rnbo_patch(
     # Create the patcher
     patcher = Patcher(maxpat_path)
 
-    # Faust generated patch
+    # Faust generated patch comment
     patcher.add_comment(
         "Faust generated RNBO patch, Copyright (c) 2023 Grame",
         patching_rect=[50.0, 10.0, 350.0, 100.0],
@@ -175,10 +176,10 @@ def create_rnbo_patch(
         patcher.add_line(export, rnbo)
         patcher.add_line(rnbo, route, outlet=1)
 
-    # Create the subpatcher
+    # Create the codebox subpatcher
     sub_patch = rnbo.subpatcher
 
-    # Create codebox~ section
+    # Create codebox~ section in the subpatcher
     codebox = sub_patch.add_codebox_tilde(
         code=codebox_code, patching_rect=[500.0, 500.0, 400.0, 200.0]
     )
@@ -269,8 +270,8 @@ def create_rnbo_patch(
     patcher.save()
 
 
-# Generate RNBO patch
-def gen_faust_rnbo(
+# Open files and create the RNBO maxpat file
+def load_files_create_rnbo_patch(
     dsp_name,
     codebox_path,
     json_path,
@@ -316,7 +317,7 @@ if __name__ == "__main__":
     parser.add_argument("arg8", type=str, help="test")
     args = parser.parse_args()
 
-    gen_faust_rnbo(
+    load_files_create_rnbo_patch(
         args.arg1,
         args.arg2,
         args.arg3,

@@ -33,6 +33,8 @@
 #pragma warning(disable : 4250)
 #endif
 
+// The base class for all Rust code containers.
+
 class RustCodeContainer : public virtual CodeContainer {
    protected:
     RustInstVisitor fCodeProducer;
@@ -66,6 +68,8 @@ class RustCodeContainer : public virtual CodeContainer {
                                           std::ostream* dst = new std::stringstream());
 };
 
+// The Scalar code container.
+
 class RustScalarCodeContainer : public RustCodeContainer {
    protected:
    public:
@@ -75,6 +79,8 @@ class RustScalarCodeContainer : public RustCodeContainer {
 
     void generateCompute(int tab);
 };
+
+// The Vector code container.
 
 class RustVectorCodeContainer : public VectorCodeContainer, public RustCodeContainer {
    protected:
@@ -86,6 +92,8 @@ class RustVectorCodeContainer : public VectorCodeContainer, public RustCodeConta
     BlockInst* generateDAGLoopVariant0(const std::string& counter) override;
 };
 
+// The OpenMP code container (not implemented yet).
+
 class RustOpenMPCodeContainer : public OpenMPCodeContainer, public RustCodeContainer {
    protected:
    public:
@@ -94,6 +102,8 @@ class RustOpenMPCodeContainer : public OpenMPCodeContainer, public RustCodeConta
 
     void generateCompute(int tab);
 };
+
+// The WorkStealing code container (not implemented yet).
 
 class RustWorkStealingCodeContainer : public WSSCodeContainer, public RustCodeContainer {
    protected:

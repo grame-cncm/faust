@@ -110,11 +110,11 @@ struct global {
     std::vector<std::string> gImportDirList;        // dir list enrobage.cpp/fopensearch() searches for imports, etc.
     std::vector<std::string> gArchitectureDirList;  // dir list enrobage.cpp/fopensearch() searches for architecture files
     std::vector<std::string> gLibraryList;
-    std::string         gOutputDir;
-    std::string         gImportFilename;
-    std::string         gOutputFile;
-    std::string         gArchFile;         // -a option
-    std::set<std::string>    gAlreadyIncluded;  // to keep track of already injected files
+    std::string gOutputDir;
+    std::string gImportFilename;
+    std::string gOutputFile;
+    std::string gArchFile;         // -a option
+    std::set<std::string> gAlreadyIncluded;  // to keep track of already injected files
 
     // compilation options
     bool gDetailsSwitch;         // -d option

@@ -24,6 +24,8 @@
 
 #include "dag_instructions_compiler.hh"
 
+// A DAGInstructionsCompilerRust is a DAGInstructionsCompiler that generates FIR code adapted to the Rust target.
+
 class DAGInstructionsCompilerRust : public DAGInstructionsCompiler {
    public:
     DAGInstructionsCompilerRust(CodeContainer* container) : DAGInstructionsCompiler(container) {}
