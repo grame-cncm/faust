@@ -752,19 +752,28 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     }
     
     else if (isSigDelay(sig, x, y)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "Delay: " << "\n" << ppsig(x) << " @ " << ppsig(y) << "\n\n";
+        if (gGlobal->gDetailsSwitch) std::cout << "Delay: " << "\nx: " << ppsig(x) << "\n@y: " << ppsig(y) << "\n\n";
         // For signal x and delay y = y(p), differentiating wrt. delay entails finding the
         // product of:
         // - the derivative wrt. time of the delayed signal and;
         // - the derivative wrt. p of y.
         // (x@y)' = (x(t - y(p)))' = d/dt(x(t - y(p)) * -d/dp(y(p))
+        //
         // e.g. let x = IN[0], y(p) = p
         //     (x@y)' = d/dt(IN[0][t - p]) * -1
-        d = sigSub(sigReal(0.0), sigMul(
+        //
+        // For the more general case:
+        //     d/dp x(t - y(p), p) = -d/dp y(p) d/dt x(t - y(p), p) + d/dp x(t - y(p), p)
+        //                         = d/dp x(t - y(p), p) - d/dp y(p) d/dt x(t - y(p), p)
+        //
+        // e.g. let y(p) = 2p, and x(t - 2p, p) = px(t - 2p):
+        //     dx/dp = -2p d/dt x(t - 2p) + x(t - 2p)
+        d = sigSub(self(x), sigMul(
                 // derivative calculated numerically wrt. sample index:
                 // d/dn(x[n]) = (x[n] - x[n-1]) / 1
                 sigSub(sigDelay(x, y), sigDelay(x, sigAdd(y, sigInt(1)))),
-                diff(y, kInt)));
+                self(y)
+            ));
     }
     
     else if (isProj(sig, &i, x)) {

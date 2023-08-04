@@ -14,7 +14,8 @@
 #include "faust/dsp/dsp-combiner.h"
 #include "faust/audio/dummy-audio.h"
 
-class mldsp {
+class mldsp
+{
 public:
     mldsp(std::string inputDSPPath,
           std::string groundTruthDSPPath,
@@ -22,41 +23,44 @@ public:
           FAUSTFLOAT learningRate = 0.1f,
           FAUSTFLOAT sensitivity = 1e-7f,
           int numIterations = 500);
-
+    
     ~mldsp();
-
+    
     void initialise();
-
+    
     void doGradientDescent();
 
 private:
-    struct Parameter {
+    struct Parameter
+    {
         FAUSTFLOAT value;
         FAUSTFLOAT gradient;
     };
-
-    enum LossFunction {
+    
+    enum LossFunction
+    {
         L1_NORM,
         L2_NORM
     };
-
-    enum OutputChannel {
+    
+    enum OutputChannel
+    {
         GROUND_TRUTH = 0,
         LEARNABLE = 1,
         DIFFERENTIATED = 2
     };
-
+    
     static constexpr int NUMBER_WIDTH{15}, LABEL_WIDTH{13}, PARAM_WIDTH{11};
     const FAUSTFLOAT kAlpha, kEpsilon;
     const int kNumIterations;
-
+    
     dsp *createDSPInstanceFromString(const std::string &appName,
                                      const std::string &dspContent);
-
+    
     dsp *createDSPInstanceFromPath(const std::string &path,
                                    int argc = 0,
                                    const char *argv[] = nullptr);
-
+    
     /**
      * Update the loss value with the squared L-2 norm between the learnable
      * and ground truth signals.
@@ -66,7 +70,7 @@ private:
      * @param frame The output frame with which to compute the loss.
      */
     void computeLoss(FAUSTFLOAT **output, int frame);
-
+    
     /**
      * Update the gradient value with the gradient of the loss function.
      *
@@ -75,11 +79,11 @@ private:
      * @param frame The output frame with which to compute the gradient.
      */
     void computeGradient(FAUSTFLOAT **output, int frame);
-
+    
     void reportState(int iteration, FAUSTFLOAT **output, int frame);
-
+    
     std::string fInputDSPPath, fGroundTruthDSPPath, fDifferentiableDSPPath;
-    std::map<std::string, llvm_dsp_factory*> fDSPFactories;
+    std::map<std::string, llvm_dsp_factory *> fDSPFactories;
     /**
      * This will hold the parallelized ground truth, differentiated, and learnable
      * versions of the DSP algorithm.
@@ -87,7 +91,7 @@ private:
      * NB. Using a unique_ptr causes fDSP to be deleted after the factories,
      * so use a regular pointer.
      */
-    dsp* fDSP;
+    dsp *fDSP;
     std::unique_ptr<MapUI> fUI;
     std::map<std::string, Parameter> fLearnableParams;
     LossFunction fLossFunction{L2_NORM};
