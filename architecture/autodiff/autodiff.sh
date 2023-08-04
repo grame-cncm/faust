@@ -10,7 +10,7 @@ AUTODIFF_EXAMPLES=$FAUSTARCH/examples/autodiff
 
 if [ "$#" -eq 0 ]; then
   dirs=($(ls -d $AUTODIFF_EXAMPLES/*/ | xargs -n 1 basename | cut -f1 -d'/'))
-  echo 'Please, provide the name of an automatic differentiation example to process.'
+  echo 'Please provide the name of an automatic differentiation example to process.'
   echo "Available examples:"
   printf "%s\n" "${dirs[@]}"
   echo ''
@@ -34,6 +34,7 @@ done
 # Copy files to the output directory.
 OUTPUTDIR=~/tmp/faust-autodiff
 mkdir -p $OUTPUTDIR
+rm ${OUTPUTDIR:?}/*
 
 cp $FAUSTARCH/autodiff/autodiff.h $OUTPUTDIR/autodiff.h
 cp $FAUSTARCH/autodiff/plot.py $OUTPUTDIR/plot.py
@@ -63,9 +64,10 @@ cd $OUTPUTDIR || exit
 
 # Run the compiled executable.
 if ! ./my_autodiff \
-  --input $AUTODIFF_EXAMPLES/noise.dsp \
+  --input $AUTODIFF_EXAMPLES/ramp.dsp \
   --gt $AUTODIFF_EXAMPLES/$example/gt.dsp \
-  --diff $AUTODIFF_EXAMPLES/$example/diff.dsp; then
+  --diff $AUTODIFF_EXAMPLES/$example/diff.dsp \
+  --lossfunction l2; then
   exit
 fi
 

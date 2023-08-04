@@ -665,7 +665,10 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     // Math primitives
     xtended* p = (xtended*)getUserData(sig);
     if (p) {
-        if (gGlobal->gDetailsSwitch) std::cout << "math primitive: " << ppsig(sig) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "math primitive: " << ppsig(sig) << "\n";
+        }
         
         if (p == gGlobal->gPowPrim) {
             // derivative of pow requires base, exponent, and differentiated base and exponent.
@@ -680,40 +683,51 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     }
 
     else if (isSigInt(sig, &i)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "Int: " << ppsig(sig) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Int: " << ppsig(sig) << "\n";
+        }
         d = sigInt(0);
     } else if (isSigInt64(sig, &i64)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "Int64: " << ppsig(sig) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Int64: " << ppsig(sig) << "\n";
+        }
         d = sigInt(0);
     } else if (isSigReal(sig, &r)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "Real: " << ppsig(sig) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Real: " << ppsig(sig) << "\n";
+        }
         d = sigReal(0.0);
     }
 
     // Binary operations
     // kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
     else if (isSigBinOp(sig, &op, x, y)) {
-        if (gGlobal->gDetailsSwitch)
-            std::cout << "x: " << ppsig(x) << "\n" << "y: " << ppsig(y) << "\n" << "op: ";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "x: " << ppsig(x) << "\ty: " << ppsig(y) << "\top: ";
+        }
 
         switch (op) {
             case kAdd:
-                if (gGlobal->gDetailsSwitch) std::cout << "ADD\n\n";
+                if (gGlobal->gDetailsSwitch) std::cout << "ADD\n";
                 // (f + g)' = f' + g'
                 d = sigAdd(self(x), self(y));
                 break;
             case kSub:
-                if (gGlobal->gDetailsSwitch) std::cout << "SUB\n\n";
+                if (gGlobal->gDetailsSwitch) std::cout << "SUB\n";
                 // (f - g)' = f' - g'
                 d = sigSub(self(x), self(y));
                 break;
             case kMul:
-                if (gGlobal->gDetailsSwitch) std::cout << "MUL\n\n";
+                if (gGlobal->gDetailsSwitch) std::cout << "MUL\n";
                 // (f * g)' = f' * g + f * g'
                 d = sigAdd(sigMul(self(x), y), sigMul(x, self(y)));
                 break;
             case kDiv:
-                if (gGlobal->gDetailsSwitch) std::cout << "DIV\n\n";
+                if (gGlobal->gDetailsSwitch) std::cout << "DIV\n";
                 // (f / g)' = (f' * g - f * g') / (g * g)
                 d = sigDiv(sigSub(sigMul(self(x), y), sigMul(x, self(y))),
                               sigMul(y, y));
@@ -723,12 +737,11 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
 //
 //                break;
             default:
-                if (gGlobal->gDetailsSwitch) std::cout << "Unhandled sigBinOp: " << op;
+                if (gGlobal->gDetailsSwitch) std::cout << "Unhandled sigBinOp: " << op << "\n";
                 // TO FINISH
                 d = sigBinOp(op, self(x), self(y));
                 break;
         }
-
     }
     
     else if (isSigButton(sig, label)
@@ -736,23 +749,35 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
                || isSigVSlider(sig, label, init, min, max, step)
                || isSigHSlider(sig, label, init, min, max, step)
                || isSigNumEntry(sig, label, init, min, max, step)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "UI element: " << ppsig(sig) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "UI element: " << ppsig(sig) << "\n";
+        }
         d = diff(sig, getCertifiedSigType(sig)->nature());
     }
     
     else if (isSigInput(sig, &i)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "Input: " << ppsig(sig) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Input: " << ppsig(sig) << "\n";
+        }
         d = diff(sig, getCertifiedSigType(sig)->nature());
     }
     
     else if (isSigDelay1(sig, x)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "Mem: " << "\n" << ppsig(sig) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Mem: " << "\t" << ppsig(sig) << "\n";
+        }
         // Derivative of a single sample delay wrt. any parameter is the delayed signal.
         d = diff(sig, getCertifiedSigType(sig)->nature());
     }
     
     else if (isSigDelay(sig, x, y)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "Delay: " << "\nx: " << ppsig(x) << "\n@y: " << ppsig(y) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Delay: " << "\tx: " << ppsig(x) << "\t@y: " << ppsig(y) << "\n";
+        }
         // For signal x and delay y = y(p), differentiating wrt. delay entails finding the
         // product of:
         // - the derivative wrt. time of the delayed signal and;
@@ -767,17 +792,23 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
         //                         = d/dp x(t - y(p), p) - d/dp y(p) d/dt x(t - y(p), p)
         //
         // e.g. let y(p) = 2p, and x(t - 2p, p) = px(t - 2p):
-        //     dx/dp = -2p d/dt x(t - 2p) + x(t - 2p)
-        d = sigSub(self(x), sigMul(
+        //     dx/dp = x(t - 2p) - 2p d/dt x(t - 2p)
+        auto dx{self(x)}, dy{self(y)};
+        d = sigSub(dx, sigMul(
+                dy,
                 // derivative calculated numerically wrt. sample index:
                 // d/dn(x[n]) = (x[n] - x[n-1]) / 1
-                sigSub(sigDelay(x, y), sigDelay(x, sigAdd(y, sigInt(1)))),
-                self(y)
+                sigSub(sigDelay(x, y), sigDelay(x, sigAdd(y, sigInt(1))))
             ));
+        // Just an experiment; doesn't work.
+//        d = sigSub(dx, sigMul(dy, sigDelay(x, dy)));
     }
     
     else if (isProj(sig, &i, x)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "Proj: " << "\n" << ppsig(sig) << "\n" << i<< "\n" << ppsig(x) <<"\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Proj: " << "\t" << ppsig(sig) << "\t" << i<< "\t" << ppsig(x) <<"\n";
+        }
         d = SignalIdentity::transformation(sig);
     }
     
@@ -790,32 +821,50 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
 //            rec(var, gGlobal->nil);  // to avoid infinite recursions
 //            return rec(var, mapselfRec(le));
 //        }
-        if (gGlobal->gDetailsSwitch) std::cout << "Recursion: " << "\n" << ppsig(sig) << "\n" << ppsig(var) << "\n" << ppsig(le) <<"\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Recursion: " << "\t" << ppsig(sig) << "\t" << ppsig(var) << "\t" << ppsig(le) <<"\n";
+        }
         d = SignalIdentity::transformation(sig);
     }
     
     else if (isSigIntCast(sig, x)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "Int cast: " << ppsig(sig) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Int cast: " << ppsig(sig) << "\n";
+        }
         // Acts like flooring operation. Derivative is not 0 at sin(pi*x) != 0, but let's try this
         // for a start.
         d = sigZero(getCertifiedSigType(sig)->nature());
     } else if (isSigBitCast(sig, x)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "Bit cast: " << ppsig(sig) << "\n" << ppsig(x) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Bit cast: " << ppsig(sig) << "\t" << ppsig(x) << "\n";
+        }
         // No idea just yet.
         d = SignalIdentity::transformation(sig);
     } else if (isSigFloatCast(sig, x)) {
-        if (gGlobal->gDetailsSwitch) std::cout << "Float cast: " << ppsig(sig) << "\n" << ppsig(x) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Float cast: " << ppsig(sig) << "\t" << ppsig(x) << "\n";
+        }
         // Acts something like a UI element or input?
         d = diff(sig, getCertifiedSigType(sig)->nature());
     }
 
     else {
-        if (gGlobal->gDetailsSwitch) std::cout << "Unhandled case: " << ppsig(sig) << "\n\n";
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Unhandled case: " << ppsig(sig) << "\n";
+        }
         // Other cases => identity transformation
         d = SignalIdentity::transformation(sig);
     }
 
-    if (gGlobal->gDetailsSwitch) std::cout << "DERIVATIVE: " << ppsig(d) << "\n\n";
+    if (gGlobal->gDetailsSwitch) {
+        tab(fIndent, cout);
+        std::cout << "DERIVATIVE: " << ppsig(d) << "\n";
+    }
 
     return d;
 }

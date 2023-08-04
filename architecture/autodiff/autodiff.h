@@ -17,12 +17,19 @@
 class mldsp
 {
 public:
+    enum LossFunction
+    {
+        L1_NORM,
+        L2_NORM
+    };
+    
     mldsp(std::string inputDSPPath,
           std::string groundTruthDSPPath,
           std::string differentiableDSPPath,
+          LossFunction lossFunction = L2_NORM,
           FAUSTFLOAT learningRate = 0.1f,
           FAUSTFLOAT sensitivity = 1e-7f,
-          int numIterations = 500);
+          int numIterations = 10000);
     
     ~mldsp();
     
@@ -37,12 +44,6 @@ private:
         FAUSTFLOAT gradient;
     };
     
-    enum LossFunction
-    {
-        L1_NORM,
-        L2_NORM
-    };
-    
     enum OutputChannel
     {
         GROUND_TRUTH = 0,
@@ -51,6 +52,7 @@ private:
     };
     
     static constexpr int NUMBER_WIDTH{15}, LABEL_WIDTH{13}, PARAM_WIDTH{11};
+    const LossFunction kLossFunction;
     const FAUSTFLOAT kAlpha, kEpsilon;
     const int kNumIterations;
     
@@ -94,7 +96,6 @@ private:
     dsp *fDSP;
     std::unique_ptr<MapUI> fUI;
     std::map<std::string, Parameter> fLearnableParams;
-    LossFunction fLossFunction{L2_NORM};
     FAUSTFLOAT fLoss{0.f};
     std::unique_ptr<dummyaudio> fAudio;
     std::ofstream fFile;
