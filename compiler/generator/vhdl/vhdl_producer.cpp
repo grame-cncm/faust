@@ -8,12 +8,18 @@ int Vertex::output_counter = 0;
 // Retiming values for each vertex
 typedef std::vector<int> Retiming;
 
+// Constants to make the creation of input/output vertices easier to follow
+const bool INPUT = true;
+const bool OUTPUT = false;
+
+/**
+ * Transforms a given tree-representation of a signal to an equivalent signal DAG representation.
+ */
 void VhdlProducer::visit(Tree signal)
 {
     int vertex_id = _vertices.size();
-    // TODO: those variables are technically unnecessary except for calling isProj and isRec
     int     i;
-    Tree    x, var, le;
+    Tree    x, y;
 
     // Handle recursive signals
     if (isProj(signal, &i, x)) {
@@ -25,24 +31,24 @@ void VhdlProducer::visit(Tree signal)
         _virtual_io_stack.push(vertex_id + 1);
 
         // Creating two vertices, an output and an input, that are linked.
-        _vertices.push_back(Vertex(signal, false));
-        _vertices.push_back(Vertex(signal, true));
-        _edges.push_back({});
-        _edges.push_back({});
+        addVertex(Vertex(signal, OUTPUT));
+        addVertex(Vertex(signal, INPUT));
 
         // Then visiting the projected value.
         self(x);
 
         _virtual_io_stack.pop();
         _visit_stack.pop();
-    } else if (isRec(signal, var, le)) {
-        // Recursive symbols are bypassed in the final graph.
-        mapself(le);
-    } else {
+    }
+    // Recursive symbols are bypassed in the final graph.
+    else if (isRec(signal, x, y)) {
+        mapself(y);
+    }
+    // General case
+    else {
         // Initialize a new vertex
         _visit_stack.push(VisitInfo(vertex_id));
-        _vertices.push_back(Vertex(signal));
-        _edges.push_back({});
+        addVertex(Vertex(signal));
 
         // Then visit its children.
         SignalVisitor::visit(signal);
@@ -51,7 +57,7 @@ void VhdlProducer::visit(Tree signal)
         _visit_stack.pop();
         if (!_visit_stack.empty()) {
             VisitInfo last_visited = _visit_stack.top();
-            int register_count = _vertices[last_visited.vertex_index].node.getSym() == gGlobal->SIGOUTPUT ? SAMPLE_RATE : 0;
+            int register_count = _vertices[last_visited.vertex_index].is_output() ? SAMPLE_RATE : 0;
             _edges[vertex_id].push_back(Edge(last_visited.vertex_index, register_count, _vertices[vertex_id].propagation_delay));
 
             if (last_visited.is_recursive) {
@@ -61,74 +67,48 @@ void VhdlProducer::visit(Tree signal)
             }
         } else {
             // We're at a root node, which means it is an output. To make retiming possible,
-            // we need to create an explicit output node with `SAMPLE_RATE` registers.
+            // we need to create an explicit output node with `MASTER_CLOCK_FREQUENCY / SAMPLE_RATE` registers.
             int output_id = _vertices.size();
-            _vertices.push_back(Vertex(signal, false));
-            _edges.push_back({});
-            _edges[vertex_id].push_back(Edge(output_id, SAMPLE_RATE, _vertices[vertex_id].propagation_delay));
+            addVertex(Vertex(signal, OUTPUT));
+            _edges[vertex_id].push_back(Edge(output_id, static_cast<int>(MASTER_CLOCK_FREQUENCY / SAMPLE_RATE), _vertices[vertex_id].propagation_delay));
         }
     }
 }
 
-
 void VhdlProducer::optimize()
 {
-    retime();
+    retiming();
 }
 
-void VhdlProducer::generate()
+void VhdlProducer::generate(std::ostream& out)
 {
-    declare_dependencies();
-    instantiate_components();
-    map_ports();
+    auto container = VhdlCodeContainer(_name, _inputs_count, _outputs_count, cyclesPerSample());
+
+    instantiate_components(container);
+    map_ports(container);
 
     // Output to file
+    out << container;
 }
 
 /**
  * CODE GENERATION
  */
-void VhdlProducer::declare_dependencies()
+void VhdlProducer::instantiate_components(VhdlCodeContainer& container)
 {
-    /*
-    _code_container.dependencies()
-        << "library ieee;" << std::endl
-        << "use ieee.std_logic_1164.all;" << std::endl
-        << "use ieee.numeric_std.all;" << std::endl
-        << "use ieee.std_logic_arith.all;" << std::endl
-        << "use ieee.std_logic_signed.all;" << std::endl
-        << "use work.fixed_float_types.all;" << std::endl;
-
-    // Include the right package for real numbers encoding
-    if (usingFloatEncoding()) {
-        *_code_container.dependencies() << "use work.float_pkg.all;" << std::endl;
-    } else {
-        *_code_container.dependencies() << "use work.fixed_pkg.all;" << std::endl;
+    // We generate a new component for each vertex
+    for (auto vertex : _vertices) {
+        container.register_component(vertex);
     }
-     */
 }
-void VhdlProducer::generate_entities()
+void VhdlProducer::map_ports(VhdlCodeContainer& container)
 {
-
-}
-void VhdlProducer::instantiate_components()
-{
-
-}
-void VhdlProducer::map_ports()
-{
+    // Iterates over all edges to map ports accordingly
     for (auto it = _vertices.begin(); it != _vertices.end(); ++it) {
         auto vertex = *it;
         auto edges = _edges[it - _vertices.begin()];
         for (auto edge : edges) {
-            // TODO:
-            // <target_name_id>: <generic_target_entity_name>
-            // port map (
-            //  clk => clock,
-            //  rst => ap_rst_n,
-            //  <target_name_id_in> => <source_name_id_out>,
-            //  ...
-            // _code_container.connect(vertex, _vertices[edge.target], edge.register_count);
+            container.connect(vertex, _vertices[edge.target], edge.register_count);
         }
     }
 }
@@ -178,7 +158,7 @@ void VhdlProducer::normalize()
 /**
  * RETIMING
  */
-void VhdlProducer::retime()
+void VhdlProducer::retiming()
 {
     // TODO: First compute W and D matrices to determine max_d
     // Note that this is not necessary as of now, since all operators have an equal
@@ -207,7 +187,7 @@ void VhdlProducer::retime()
     applyRetiming(best_retiming);
 }
 
-std::vector<int> topologicalOrdering(int vertices, const std::vector<std::vector<int>>& edges) {
+std::vector<int> topologicalOrdering(size_t vertices, const std::vector<std::vector<Edge>>& edges) {
     std::vector<int> stack;
 
     std::vector<bool> visited = std::vector<bool>(vertices, false);
@@ -216,8 +196,8 @@ std::vector<int> topologicalOrdering(int vertices, const std::vector<std::vector
     topologicalSort = [&](int vertex) -> void {
       visited[vertex] = true;
       for (auto adjacent : edges[vertex]) {
-          if (!visited[adjacent]) {
-              topologicalSort(adjacent);
+          if (!visited[adjacent.target]) {
+              topologicalSort(adjacent.target);
           }
       }
 
@@ -233,14 +213,14 @@ std::vector<int> topologicalOrdering(int vertices, const std::vector<std::vector
     return stack;
 }
 
-std::vector<int> VhdlProducer::minFeasibleClockPeriod() {
+std::vector<int> VhdlProducer::maxIncomingPropagationDelays() {
     // We first remove edges with weight > 0
-    std::vector<std::vector<int>> zero_edges;
+    std::vector<std::vector<Edge>> zero_edges;
     for (auto vertex_edges : _edges) {
-        std::vector<int> filtered_edges;
+        std::vector<Edge> filtered_edges;
         for (auto edge : vertex_edges) {
             if (edge.register_count == 0) {
-                filtered_edges.push_back(edge.target);
+                filtered_edges.push_back(edge);
             }
         }
 
@@ -271,21 +251,15 @@ std::vector<int> VhdlProducer::minFeasibleClockPeriod() {
       return propagation_delay[vertex_id];
     };
 
-    int max_propagation_delay = 0;
     for (auto vertex : topological_order) {
-        int propagation_delay = computePropagationDelay(vertex);
-        if (propagation_delay > max_propagation_delay) {
-            max_propagation_delay = propagation_delay;
-        }
+        computePropagationDelay(vertex);
     }
-
     return propagation_delay;
 }
 
 void VhdlProducer::computeWeightDelayInformation()
 {
-    // This is done through the use of the Floyd-Warshall algorithm
-    // for all-pairs shortest path
+    // TODO: Unnecessary as long as we do not take into account propagation delay
 }
 
 std::optional<Retiming> VhdlProducer::findRetiming(int target_clock_period)
@@ -297,8 +271,8 @@ std::optional<Retiming> VhdlProducer::findRetiming(int target_clock_period)
     // Repeat |V| - 1 times
     for (int i = 0; i < _vertices.size(); ++i) {
         applyRetiming(retiming);
-        auto propagation_delays = minFeasibleClockPeriod();
-        for (int j = 0; j < _vertices.size(); ++j) {
+        auto propagation_delays = maxIncomingPropagationDelays();
+        for (size_t j = 0; j < _vertices.size(); ++j) {
             if (propagation_delays[j] > target_clock_period) {
                 retiming[j] += 1;
             }
@@ -309,7 +283,7 @@ std::optional<Retiming> VhdlProducer::findRetiming(int target_clock_period)
     // If said clock period is greater than `target_clock_period`, no legal retiming
     // can satisfy the target clock period
     applyRetiming(retiming);
-    auto propagation_delays = minFeasibleClockPeriod();
+    auto propagation_delays = maxIncomingPropagationDelays();
     _edges = saved_edges;
 
     int max_propagation_delay = *std::max_element(std::begin(propagation_delays), std::end(propagation_delays));
@@ -333,7 +307,7 @@ void VhdlProducer::exportGraph(std::ostream& out) const
 {
     out << "digraph {" << std::endl;
     for (size_t i = 0; i < _vertices.size(); ++i) {
-        out << "\"" << std::hex << _vertices[i].node_hash << "_" << std::dec << i << "\" [label=<" << _vertices[i].node << "<BR /><FONT POINT-SIZE=\"10\">id: " << i << ", pipeline stages: " << _vertices[i].pipeline_stages << "</FONT>>, weight=\"" << _vertices[i].pipeline_stages << "\"];" << std::endl;
+        out << "\"" << std::hex << _vertices[i].node_hash << "_" << std::dec << i << "\" [label=<" << _vertices[i].signal->node() << "<BR /><FONT POINT-SIZE=\"10\">id: " << i << ", pipeline stages: " << _vertices[i].pipeline_stages << "</FONT>>, weight=\"" << _vertices[i].pipeline_stages << "\"];" << std::endl;
         for (auto edge : _edges[i]) {
             out << "\"" << std::hex << _vertices[i].node_hash << "_"  << std::dec << i << "\" -> \"" << std::hex << _vertices[edge.target].node_hash << std::dec << "_" << edge.target << "\" [label=\"" << edge.register_count << "\",weight=\"" << edge.register_count << "\"];" << std::endl;
         }
@@ -355,4 +329,46 @@ void VhdlProducer::parseCustomComponents(std::istream& input)
 
         _vertices[std::stoi(id_str)].pipeline_stages = std::stoi(pipeline_stages_str);
     }
+}
+
+int VhdlProducer::cyclesPerSample() const
+{
+    std::vector<int> topological_order = topologicalOrdering(_vertices.size(), _edges);
+    std::vector<std::vector<Edge>> transposed_graph = transposedGraph();
+
+    // Then find the path with maximum weight to each vertex
+    std::vector<int> incoming_weight = std::vector<int>(_vertices.size(), 0);
+    std::function<int(int)> computeIncomingWeight;
+    computeIncomingWeight = [&](int vertex_id) -> int {
+      if (incoming_weight[vertex_id] != 0) {
+          return incoming_weight[vertex_id];
+      }
+
+
+      std::vector<Edge> incoming_edges = transposed_graph[vertex_id];
+      int max_incoming = 0;
+      for (auto edge : incoming_edges) {
+          if (_vertices[vertex_id].is_output()) {
+              continue;
+          }
+
+          int incoming = computeIncomingWeight(edge.target) + edge.register_count;
+          if (incoming > max_incoming) {
+              max_incoming = incoming;
+          }
+      }
+
+      incoming_weight[vertex_id] = _vertices[vertex_id].pipeline_stages + max_incoming;
+      return incoming_weight[vertex_id];
+    };
+
+    int max_incoming_weight= 0;
+    for (auto vertex : topological_order) {
+        int incoming_weight = computeIncomingWeight(vertex);
+        if (incoming_weight > max_incoming_weight) {
+            max_incoming_weight= incoming_weight;
+        }
+    }
+
+    return max_incoming_weight;
 }

@@ -10,27 +10,35 @@
 // Transforms a signal into semantically equivalent VHDL code
 //----------------------------------------------------------------------
 typedef std::vector<int> Retiming;
-const int SAMPLE_RATE = 2400;
+// Target sample rate in kHz
+const float SAMPLE_RATE = 44.1;
+// Target clock frequency in kHz
+const float MASTER_CLOCK_FREQUENCY = 667000;
 
 struct Vertex {
     static int input_counter;
     static int output_counter;
-    Node node;
+    Tree signal;
     size_t node_hash;
 
     int propagation_delay = 1;
     int pipeline_stages = 0;
 
     Vertex(const Tree& signal)
-        : node(signal->node()), node_hash(signal->hashkey()), propagation_delay(1), pipeline_stages(0) {};
+        : signal(signal), node_hash(signal->hashkey()), propagation_delay(1), pipeline_stages(0) {};
 
-    Vertex(const Tree& signal, bool is_input): node(signal->node()), node_hash(signal->hashkey()), propagation_delay(1) {
+    Vertex(const Tree& signal, bool is_input): signal(signal), node_hash(signal->hashkey()), propagation_delay(1) {
         int i;
         Tree group;
         if (!isProj(signal, &i, group)) {
             i = is_input ? input_counter++ : output_counter++;
         }
-        node = is_input ? sigInput(i)->node() : sigOutput(i, signal)->node();
+        this->signal = is_input ? sigInput(i) : sigOutput(i, signal);
+    }
+
+    bool is_output() const
+    {
+        return signal->node() == gGlobal->SIGOUTPUT;
     }
 };
 template<>
@@ -70,96 +78,62 @@ class VhdlProducer : public SignalVisitor {
     std::stack<VisitInfo> _visit_stack;
     std::stack<int> _virtual_io_stack;
 
-    VhdlCodeContainer _code_container;
+    std::string _name;
+    int _inputs_count;
+    int _outputs_count;
 
     /** Visits the signal tree recursively to transform it into a weighted graph */
     virtual void visit(Tree signal) override;
 
    public:
-    VhdlProducer(Tree signal, const std::string& name, int numInputs, int numOutputs, std::ostream& out)
-    : _code_container()
+    VhdlProducer(Tree signal, const std::string& name, int numInputs, int numOutputs)
+    : _name(name), _inputs_count(numInputs), _outputs_count(numOutputs)
     {
-        // Step 1: Convert the input signal to a weighted circuit graph
+        // Convert the input signal to a weighted circuit graph
         visitRoot(signal);
 
-        // Step 1.5: Parse the components file to get pipeline stages information (optional)
-        if (gGlobal->gVHDLComponentsFile != "") {
+        // Parse the components file to get pipeline stages information (optional)
+        if (!gGlobal->gVHDLComponentsFile.empty()) {
             std::ifstream components_file(gGlobal->gVHDLComponentsFile);
             if (!components_file) {
                 std::cerr << "Failed to read file: " << gGlobal->gVHDLComponentsFile << std::endl;
                 faustassert(false);
             }
             parseCustomComponents(components_file);
+            components_file.close();
+
+            // We only need to normalize the graph if we're using user-defined components
             normalize();
         }
-
-        if (gGlobal->gVHDLTrace) {
-            std::cout << "transformation to graph: " << std::endl;
-            for (size_t i = 0; i < _vertices.size(); ++i) {
-                std::cout << i << ": " << _vertices[i].node << " (0x" << std::hex << _vertices[i].node_hash << std::dec << ')' << std::endl;
-
-                for (auto e : _edges[i]) {
-                    std::cout << "\t" << e.target << ", " << e.register_count << " registers" << std::endl;
-                }
-            }
-            std::cout <<  std::endl << "=============================" << std::endl << std::endl;
-        }
-
-        // Step 2: Optimize the graph
-        optimize();
-        if (gGlobal->gVHDLTrace) {
-            std::cout << "after optimization: " << std::endl;
-            for (size_t i = 0; i < _vertices.size(); ++i) {
-                std::cout << i << ": " << _vertices[i].node << " (0x" << std::hex << _vertices[i].node_hash << std::dec << ')' << std::endl;
-
-                for (auto e : _edges[i]) {
-                    std::cout << "\t" << e.target << ", " << e.register_count << " registers" << std::endl;
-                }
-            }
-        }
-
-        // Step 2.5: Export the graph using the DOT language (optional)
-        if (gGlobal->gVHDLTrace) {
-            std::ofstream dot_output;
-            dot_output.open("vhdl_graph.dot");
-            exportGraph(dot_output);
-            dot_output.close();
-        }
-
-        // TODO Step 3: Generate VHDL code structure from the resulting graph
-        // generate();
-
-        // Step 4: Output the generated VHDL to a file
-        //out << _code_container;
     }
 
-   protected:
-    /** Optimizes the graph using implemented optimization passes
+    void addVertex(Vertex v)
+    {
+        _vertices.push_back(v);
+        _edges.push_back({});
+    }
+
+    /** Optimizes the graph using all implemented optimization passes.
      * Currently implemented passes:
      * - retiming
      */
     void optimize();
 
-
     /** Generates the VHDL code corresponding to the graph representation */
-    void generate();
+    void generate(std::ostream& out);
 
+    /** Exports the graph as a DOT language file */
+    void exportGraph(std::ostream& out) const;
+
+    /** Applies an optimal retiming to the circuit, minimizing the feasible clock period */
+    void retiming();
+
+   protected:
     /**
      * CODE GENERATION
      */
-    void declare_dependencies();
-    void generate_entities();
-    void instantiate_components();
-    void map_ports();
-
-    /** Generates a generic VHDL binary operator for the given type */
-    void generic_binop_entity(int op, int kind);
-
-    /** Generates an entity that can be polled for a wave signal */
-    void generate_waveform_entity();
-
-    /** Generates a delay entity */
-    void generate_delay_entity();
+    void instantiate_components(VhdlCodeContainer& container);
+    void map_ports(VhdlCodeContainer& container);
 
     /**
      * NORMALIZATION
@@ -173,11 +147,8 @@ class VhdlProducer : public SignalVisitor {
     /**
      * RETIMING
      */
-    /** Retimes the circuit, minimizing the feasible clock period */
-    void retime();
-
-    /** Computes the minimal feasible clock period of the current circuit */
-    std::vector<int> minFeasibleClockPeriod();
+    /** Computes the maximal propagation delay to access each vertex */
+    std::vector<int> maxIncomingPropagationDelays();
 
     /** Computes the W and D matrices, with
      * W[i][j] = minimum weight (i.e registers count) from i to j -> critical path
@@ -193,7 +164,14 @@ class VhdlProducer : public SignalVisitor {
      /** Applies a given retiming to the circuit, assuming said retiming is legal */
      void applyRetiming(const Retiming& retiming);
 
-    /** HELPER FUNCTIONS */
+    /**
+     * HELPER FUNCTIONS
+     */
+     /** Computes the number of cycles necessary to process one sample.
+      * It is equivalent to the longest path along the graph, weighted by registers and pipeline stages.
+      */
+     int cyclesPerSample() const;
+
     std::optional<int> searchNode(const size_t hash) const {
         for (size_t v = 0; v < _vertices.size(); ++v) {
             if (_vertices[v].node_hash == hash) {
@@ -204,11 +182,11 @@ class VhdlProducer : public SignalVisitor {
         return std::nullopt;
     }
 
-    std::vector<int> incomingEdges(int vertex_id, const std::vector<std::vector<int>>& edges) const {
+    std::vector<int> incomingEdges(int vertex_id, const std::vector<std::vector<Edge>>& edges) const {
         std::vector<int> incoming;
         for (size_t v = 0; v < edges.size(); ++v) {
             for (auto edge : edges[v]) {
-                if (edge == vertex_id) {
+                if (edge.target == vertex_id) {
                     incoming.push_back(v);
                 }
             }
@@ -226,11 +204,6 @@ class VhdlProducer : public SignalVisitor {
         return transposed;
     }
 
-    /** Checks whether reals should encoded using fixed or floating point arithmetic */
-    bool usingFloatEncoding() const { return gGlobal->gVHDLFloatEncoding; }
-
-    /** Exports the graph as a DOT language file */
-    void exportGraph(std::ostream& out) const;
 
     /** Parses a user-defined config file for operators
      * Such files are structured as follows:

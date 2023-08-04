@@ -2034,9 +2034,8 @@ static void printHelp()
     
     cout << tab << "-vhdl          --vhdl                   output vhdl file." << endl;
     cout << tab << "-vhdl-trace    --vhdl-trace             activate trace." << endl;
-    cout << tab << "-vhdl-float --vhdl-float          sample format 0 = sfixed (default), 1 = float." << endl;
-    cout << tab << "-vhdl-msb <n>  --vhdl-msb <n>           Most Significant Bit (MSB) position." << endl;
-    cout << tab << "-vhdl-lsb <n>  --vhdl-lsb <n>           Less Significant Bit (LSB) position." << endl;
+    cout << tab << "-vhdl-float    --vhdl-float             uses IEEE-754 format for samples instead of fixed point." << endl;
+    cout << tab << "-vhdl-components <file> --vhdl-components <file>    path to a file describing custom components for the VHDL backend." << endl;
     cout << tab << "-fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, used in -os2/-os3 mode." << endl;
     
     cout << tab << "-wi <n>     --widening-iterations <n>   number of iterations before widening in signal bounding."

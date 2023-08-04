@@ -778,7 +778,14 @@ static void compileVhdl(Tree signals, int numInputs, int numOutputs, ostream* ou
 {
 #ifdef VHDL_BUILD
     signals = simplifyToNormalForm(signals);
-    VhdlProducer vhdl_prod = VhdlProducer(signals, "FAUST", numInputs, numOutputs, *out);
+    VhdlProducer vhdl_prod = VhdlProducer(signals, gGlobal->gClassName, numInputs, numOutputs);
+    vhdl_prod.optimize();
+    if (gGlobal->gVHDLTrace) {
+        std::ofstream dot_output("vhdl_graph.dot");
+        vhdl_prod.exportGraph(dot_output);
+        dot_output.close();
+    }
+    vhdl_prod.generate(*out);
 #else
     throw faustexception("ERROR : -lang vhdl not supported since VHDL backend is not built\n");
 #endif
