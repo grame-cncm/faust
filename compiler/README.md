@@ -1,4 +1,4 @@
-% man(1) Version 2.64.1 (03-August-2023) | Faust man page
+% man(1) Version 2.65.0 (04-August-2023) | Faust man page
 
 NAME
 ====
@@ -87,6 +87,8 @@ Code generation options:
   **-os2**        **--one-sample2**               generate one sample computation (2 = separated control and DSP struct. Separation in short and long delay lines).
 
   **-os3**        **--one-sample3**               generate one sample computation (3 = like 2 but with external memory pointers kept in the DSP struct).
+
+  **-it**         **--inline-table**              inline rdtable/rwtable code in the main class.
 
   **-cm**         **--compute-mix**               mix in outputs buffers.
 

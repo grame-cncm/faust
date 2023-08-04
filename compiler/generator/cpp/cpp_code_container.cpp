@@ -170,16 +170,24 @@ void CPPCodeContainer::produceInit(int tabs)
         tab(tabs, *fOut);
         *fOut << genVirtual() << "void init(int sample_rate) {";
         tab(tabs + 1, *fOut);
-        *fOut << "classInit(sample_rate);";
-        tab(tabs + 1, *fOut);
+        // Replaced by staticInit called in instanceInit
+        if (!gGlobal->gInlineTable) {
+            *fOut << "classInit(sample_rate);";
+            tab(tabs + 1, *fOut);
+        }
         *fOut << "instanceInit(sample_rate);";
         tab(tabs, *fOut);
         *fOut << "}";
     }
-
+    tab(tabs, *fOut);
     tab(tabs, *fOut);
     *fOut << genVirtual() << "void instanceInit(int sample_rate) {";
     tab(tabs + 1, *fOut);
+    // staticInit has to be called for each instance since the tables are actually not shared between instances
+    if (gGlobal->gInlineTable) {
+        *fOut << "staticInit(sample_rate);";
+        tab(tabs + 1, *fOut);
+    }
     *fOut << "instanceConstants(sample_rate);";
     tab(tabs + 1, *fOut);
     *fOut << "instanceResetUserInterface();";
@@ -301,11 +309,16 @@ void CPPCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
- 
+   
     generateHeader(n);
 
-    // Generate gub containers
-    generateSubContainers();
+    if (gGlobal->gInlineTable) {
+        // Sub containers are merged in the main class
+        mergeSubContainers();
+    } else {
+        // Generate gub containers
+        generateSubContainers();
+    }
     
     // Global declarations
     tab(n, *fOut);
@@ -377,12 +390,29 @@ void CPPCodeContainer::produceClass()
     */
 
     tab(n + 1, *fOut);
-    *fOut << "static void classInit(int sample_rate) {";
-    tab(n + 2, *fOut);
-    fCodeProducer->Tab(n + 2);
-    generateStaticInit(fCodeProducer);
-    back(1, *fOut);
-    *fOut << "}";
+    if (gGlobal->gInlineTable) {
+        // Dummy classInit
+        *fOut << "static void classInit(int sample_rate) {}";
+        tab(n + 1, *fOut);
+        // To be used in instanceInit
+        tab(n + 1, *fOut);
+        *fOut << "void staticInit(int sample_rate) {";
+        {
+            tab(n + 2, *fOut);
+            fCodeProducer->Tab(n + 2);
+            // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+            inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(fCodeProducer);
+        }
+        back(1, *fOut);
+        *fOut << "}";
+    } else {
+        *fOut << "static void classInit(int sample_rate) {";
+        tab(n + 2, *fOut);
+        fCodeProducer->Tab(n + 2);
+        generateStaticInit(fCodeProducer);
+        back(1, *fOut);
+        *fOut << "}";
+    }
 
     if (gGlobal->gMemoryManager) {
         tab(n + 1, *fOut);
@@ -428,7 +458,12 @@ void CPPCodeContainer::produceClass()
     *fOut << genVirtual() << "void instanceConstants(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
-    generateInit(fCodeProducer);
+    if (gGlobal->gInlineTable) {
+        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+        inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
+    } else {
+        generateInit(fCodeProducer);
+    }
     back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
@@ -484,8 +519,8 @@ void CPPCodeContainer::produceClass()
 
     // Init
     produceInit(n + 1);
-
     tab(n + 1, *fOut);
+    
     tab(n + 1, *fOut);
     *fOut << genVirtual() << fKlassName << "* clone() {";
     tab(n + 2, *fOut);
@@ -715,7 +750,7 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, fCodeProducer);
     }
     
-    // Dummy
+    // Dummy classInit
     tab(n + 1, *fOut);
     *fOut << "static void classInit(int sample_rate) {}";
     tab(n + 1, *fOut);
@@ -940,7 +975,7 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, fCodeProducer);
     }
     
-    // Dummy
+    // Dummy classInit
     tab(n + 1, *fOut);
     *fOut << "static void classInit(int sample_rate) {}";
     tab(n + 1, *fOut);
@@ -1185,7 +1220,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, fCodeProducer);
     }
     
-    // Dummy
+    // Dummy classInit
     tab(n + 1, *fOut);
     *fOut << "static void classInit(int sample_rate) {}";
     tab(n + 1, *fOut);
@@ -1452,7 +1487,7 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
         produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, fCodeProducer);
     }
     
-    // Dummy
+    // Dummy classInit
     tab(n + 1, *fOut);
     *fOut << "static void classInit(int sample_rate) {}";
     tab(n + 1, *fOut);

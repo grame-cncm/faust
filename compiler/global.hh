@@ -205,6 +205,7 @@ struct global {
     bool   gRemoveVarAddress;      // If use of variable addresses (like &foo or &foo[n]) have to be removed
     int    gOneSample;             // -osX options, generate one sample computation
     bool   gOneSampleControl;      // -osX options, generate one sample computation control structure in DSP module
+    bool   gInlineTable;           // -it option, only in -cpp backend, to inline rdtable/rwtable code in the main class.
     bool   gComputeMix;            // -cm option, mix in outputs buffers
     bool   gBool2Int;              // Cast bool binary operations (comparison operations) to int
     std::string gNamespace;        // Wrapping namespace used with the C++ backend

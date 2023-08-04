@@ -478,6 +478,7 @@ void global::reset()
     gRemoveVarAddress     = false;
     gOneSample            = -1;
     gOneSampleControl     = false;
+    gInlineTable          = false;
     gComputeMix           = false;
     gBool2Int             = false;
     gFastMathLib          = "";
@@ -1361,6 +1362,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gOneSample = 3;
             i += 1;
             
+        } else if (isCmd(argv[i], "-it", "--inline-table")) {
+            gInlineTable = true;
+            i += 1;
+            
         } else if (isCmd(argv[i], "-cm", "--compute-mix")) {
             gComputeMix = true;
             i += 1;
@@ -1568,6 +1573,11 @@ bool global::processCmdline(int argc, const char* argv[])
     if (gMaskDelayLineThreshold < INT_MAX && (gVectorSwitch || (gOutputLang == "ocpp"))) {
         throw faustexception(
                              "ERROR : '-dlt < INT_MAX' option can only be used in scalar mode and not with the 'ocpp' backend\n");
+    }
+    
+    // gInlinetable check
+    if (gInlineTable && gOutputLang != "cpp") {
+        throw faustexception("ERROR : -it can only be used with 'cpp' backend\n");
     }
     
     // gComputeMix check
@@ -1957,6 +1967,7 @@ static void printHelp()
          << "-os3        --one-sample3               generate one sample computation (3 = like 2 but with external "
          "memory pointers kept in the DSP struct)."
          << endl;
+    cout << tab << "-it         --inline-table              inline rdtable/rwtable code in the main class." << endl;
     
     cout << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
     cout << tab << "-ct         --check-table               check rtable/rwtable index range and generate safe access code [0/1: 1 by default]." << endl;

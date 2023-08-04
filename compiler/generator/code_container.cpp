@@ -398,6 +398,7 @@ void CodeContainer::processFIR(void)
     /*
         Create memory layout, to be used in C++ backend and JSON generation.
         The description order follows what will be done at allocation time.
+        Subcontainers are ignored when gGlobal->gInlineTable == true
      
         // Create static tables
         mydsp::classInit();
@@ -421,22 +422,24 @@ void CodeContainer::processFIR(void)
             loop->accept(&struct_visitor);
             
             // Subcontainers used in classInit
-            for (const auto& it : fSubContainers) {
-                // Check that the subcontainer name appears as a type name in fStaticInitInstructions
-                SearchSubcontainer search_class(it->getClassName());
-                fStaticInitInstructions->accept(&search_class);
-                if (search_class.fFound) {
-                    // Subcontainer size
-                    VariableSizeCounter struct_size(Address::kStruct);
-                    it->generateDeclarations(&struct_size);
-                    fMemoryLayout.push_back(make_tuple(it->getClassName(), "kObj_ptr", 0, struct_size.fSizeBytes, 0, 0));
-                    
-                    // Get the associated table size and access
-                    pair<string, int> field = gGlobal->gTablesSize[it->getClassName()];
-                    
-                    // Check the table name memory description
-                    MemoryDesc& decs = struct_visitor.getMemoryDesc(field.first);
-                    fMemoryLayout.push_back(make_tuple(field.first, Typed::gTypeString[decs.fType], 0, field.second, decs.fRAccessCount, 0));
+            if (!gGlobal->gInlineTable) {
+                for (const auto& it : fSubContainers) {
+                    // Check that the subcontainer name appears as a type name in fStaticInitInstructions
+                    SearchSubcontainer search_class(it->getClassName());
+                    fStaticInitInstructions->accept(&search_class);
+                    if (search_class.fFound) {
+                        // Subcontainer size
+                        VariableSizeCounter struct_size(Address::kStruct);
+                        it->generateDeclarations(&struct_size);
+                        fMemoryLayout.push_back(make_tuple(it->getClassName(), "kObj_ptr", 0, struct_size.fSizeBytes, 0, 0));
+                        
+                        // Get the associated table size and access
+                        pair<string, int> field = gGlobal->gTablesSize[it->getClassName()];
+                        
+                        // Check the table name memory description
+                        MemoryDesc& decs = struct_visitor.getMemoryDesc(field.first);
+                        fMemoryLayout.push_back(make_tuple(field.first, Typed::gTypeString[decs.fType], 0, field.second, decs.fRAccessCount, 0));
+                    }
                 }
             }
         }
@@ -497,14 +500,16 @@ void CodeContainer::processFIR(void)
             }
             
             // Subcontainers used in instanceConstants
-            for (const auto& it : fSubContainers) {
-                // Check that the subcontainer name appears as a type name in fInitInstructions
-                SearchSubcontainer search_class(it->getClassName());
-                fInitInstructions->accept(&search_class);
-                if (search_class.fFound) {
-                    VariableSizeCounter struct_size(Address::kStruct);
-                    it->generateDeclarations(&struct_size);
-                    fMemoryLayout.push_back(make_tuple(it->getClassName(), "kObj_ptr", 0, struct_size.fSizeBytes, 0, 0));
+            if (!gGlobal->gInlineTable) {
+                for (const auto& it : fSubContainers) {
+                    // Check that the subcontainer name appears as a type name in fInitInstructions
+                    SearchSubcontainer search_class(it->getClassName());
+                    fInitInstructions->accept(&search_class);
+                    if (search_class.fFound) {
+                        VariableSizeCounter struct_size(Address::kStruct);
+                        it->generateDeclarations(&struct_size);
+                        fMemoryLayout.push_back(make_tuple(it->getClassName(), "kObj_ptr", 0, struct_size.fSizeBytes, 0, 0));
+                    }
                 }
             }
         }
