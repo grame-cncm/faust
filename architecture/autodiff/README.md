@@ -45,7 +45,7 @@ output directory:
 outputdir=~/tmp/faust-autodiff
 archdir=$(faust --archdir)
 mkdir -p $outputdir
-cp $(faust --archdir)/autodiff/autodiff.h $(faust --archdir)/autodiff/autodiff.cpp $outputdir
+cp $archdir/autodiff/autodiff.h $archdir/autodiff/autodiff.cpp $outputdir
 ```
 
 Compile the generated cpp file.
@@ -55,7 +55,6 @@ LLVM library to link to.
 
 ```shell
 outputdir=~/tmp/faust-autodiff
-archdir=$(faust --archdir)
 cd $outputdir || exit
 c++ -std=c++14 my_autodiff.cpp /usr/local/lib/libfaust.a \
   $(llvm-config --ldflags --libs all --system-libs) \
@@ -136,12 +135,20 @@ NB. plot functionality requires python3 and matplotlib.
 
 ## Tips
 
-- Instead of a dummy .dsp file, provide your differentiable DSP algorithm at compile time
+- Call the Faust compiler with your differentiable DSP algorithm 
   to see the differentiated `compute` method in your output .cpp file.
-    - NB. this `compute` method isn't used at runtime, but it may assist with verifying that
-      your algorithm is being differentiated correctly.
-- Additionally, provide the `-d|--details` flag to the faust compiler to see detailed
-  output of the differentiation process.
+
+```shell
+faust -diff -a $archdir/autodiff/autodiff.cpp \
+  -o $outputdir/my_autodiff.cpp \
+  $archdir/examples/autodiff/gain/diff.dsp
+```
+
+The generated `compute` method isn't used at runtime, but it may assist with 
+verifying that your algorithm is being differentiated correctly.
+
+- Additionally, provide the `-d|--details` flag to the Faust compiler to see 
+  detailed output of the differentiation process.
 
 E.g. for a differentiable gain slider:
 
@@ -154,7 +161,7 @@ computation of the derivative is reported as follows:
 ```
 >>> Differentiate wrt. hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)
 
-    x: IN[0]	y: hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)	op: MUL
+	x: IN[0]	y: hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)	op: MUL
 
 		UI element: hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)
 
