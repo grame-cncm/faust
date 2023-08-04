@@ -30,6 +30,88 @@
 #include <sstream>
 #include <optional>
 
+// General enums for VHDL constructs
+enum class PortMode { Input, Output, InOut, Buffer };
+std::ostream& operator<<(std::ostream& out, const PortMode& port_mode);
+
+enum class ObjectType { Constant, Signal, Variable, File };
+std::ostream& operator<<(std::ostream& out, const ObjectType& type);
+std::string assignmentSymbol(ObjectType type);
+
+enum class VhdlInnerType {
+    Bit,
+    BitVector,
+    Boolean,
+    BooleanVector,
+    Integer,
+    IntegerVector,
+    Natural,
+    Positive,
+    Character,
+    String,
+    RealFloat,
+
+    StdLogic, StdLogicVector,
+    StdULogic, StdULogicVector,
+
+    Unsigned, Signed,
+
+    UFixed, SFixed,
+};
+
+
+struct VhdlType {
+    VhdlInnerType type;
+    int msb, lsb;
+
+    VhdlType(VhdlInnerType type): type(type), msb(0), lsb(0) {}
+    VhdlType(VhdlInnerType type, int msb, int lsb): type(type), msb(msb), lsb(lsb) {}
+    std::string to_string() const;
+};
+std::ostream& operator<<(std::ostream& out, const VhdlType& type);
+
+struct VhdlValue {
+    union {
+        int integer;
+        double real;
+        int64_t long_integer;
+        bool boolean;
+    } value;
+    VhdlType vhdl_type;
+
+    VhdlValue(int value): value(), vhdl_type(VhdlType(VhdlInnerType::Integer, 32, 0)) { this->value.integer = value; }
+    VhdlValue(double value): value(), vhdl_type(VhdlType(VhdlInnerType::SFixed, 23, -8)) { this->value.real = value; }
+    VhdlValue(int64_t value): value(), vhdl_type(VhdlType(VhdlInnerType::Integer, 64, 0)) { this->value.long_integer = value; }
+    VhdlValue(VhdlType type): value(), vhdl_type(type) {
+        switch (type.type) {
+            case VhdlInnerType::Integer: value.integer = 0; break;
+
+            case VhdlInnerType::RealFloat:
+            case VhdlInnerType::SFixed:
+            case VhdlInnerType::UFixed: value.real = 0.0; break;
+
+            case VhdlInnerType::StdLogic:
+            case VhdlInnerType::Boolean:
+            case VhdlInnerType::Bit: value.boolean = false; break;
+            default: {
+                std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : Type does not have a default value: " << type << std::endl;
+                faustassert(false);
+            }
+        }
+    }
+};
+std::ostream& operator<<(std::ostream& out, const VhdlValue& value);
+
+
+struct VhdlPort {
+    std::string name;
+    PortMode mode;
+    VhdlType type;
+
+    VhdlPort(const std::string& name, PortMode mode, VhdlType type): name(name), mode(mode), type(type) {};
+};
+std::ostream& operator<<(std::ostream& out, const VhdlPort& port);
+
 /** Class allowing to store code more easily
  * Blocks are organized in a tree structure,
  */
@@ -40,12 +122,12 @@ class VhdlCodeBlock : public std::ostream, public std::enable_shared_from_this<V
     class VhdlCodeBuffer: public std::stringbuf
     {
         std::stringstream _output;
-        int _depth;
+        int _indent_level;
 
-        VhdlCodeBuffer(int depth): _output(), _depth(depth) {}
+        VhdlCodeBuffer(int indent_level): _output(), _indent_level(indent_level) {}
 
        public:
-        VhdlCodeBuffer(): _output(), _depth(0) {}
+        VhdlCodeBuffer(): _output(), _indent_level(0) {}
         ~VhdlCodeBuffer()
         {
             if (pbase() != pptr())
@@ -59,41 +141,35 @@ class VhdlCodeBlock : public std::ostream, public std::enable_shared_from_this<V
         }
         void indent()
         {
-            _output << std::string(_depth, '\t') << str();
+            _output << std::string(_indent_level, '\t') << str();
             str("");
             _output.flush();
         }
 
-        void output_buffer(std::ostream& out) {
+        void output_buffer(std::ostream& out) const {
             out << _output.str();
-            _output.clear();
         }
+
+        void open_block() { _indent_level += 1; }
+        void close_block() { _indent_level -= 1; }
     };
     VhdlCodeBuffer _buffer;
 
-    std::optional<std::shared_ptr<VhdlCodeBlock>> _opened_block;
-    std::vector<std::shared_ptr<VhdlCodeBlock>> _children;
-
-    VhdlCodeBlock(): std::ostream(&_buffer), _buffer() {}
-
    public:
-    [[nodiscard]] static std::shared_ptr<VhdlCodeBlock> create() {
-        return std::shared_ptr<VhdlCodeBlock>(new VhdlCodeBlock());
-    };
+    VhdlCodeBlock(): std::ostream(&_buffer), _buffer() {}
 
     // Returns a pointer to the currently opened block, defaulting to self if no block
     // is currently opened
     // This is a recursive function, it follows blocks until it finds one with no opened child
-    std::shared_ptr<VhdlCodeBlock> currently_opened()
-    {
-        if (_opened_block.has_value()) {
-            return _opened_block.value()->currently_opened();
-        } else {
-            return shared_from_this();
-        }
+    void open_block() {
+        _buffer.open_block();
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const std::shared_ptr<VhdlCodeBlock> block);
+    void close_block() {
+        _buffer.close_block();
+    }
+
+    friend std::ostream& operator<<(std::ostream& out, const VhdlCodeBlock& block);
 };
 
 /**
@@ -103,38 +179,34 @@ class VhdlCodeBlock : public std::ostream, public std::enable_shared_from_this<V
  */
 class VhdlCodeContainer
 {
+    std::string _ip_name;
+    int _num_inputs;
+    int _num_outputs;
+    int _cycles_per_sample;
+
     // Core blocks that are always accessible
-    std::shared_ptr<VhdlCodeBlock> _dependencies;
-    std::shared_ptr<VhdlCodeBlock> _entities;
-    std::shared_ptr<VhdlCodeBlock> _components;
-    std::shared_ptr<VhdlCodeBlock> _port_mappings;
+    VhdlCodeBlock _entities;
+    VhdlCodeBlock _signals;
+    VhdlCodeBlock _components;
 
     // Keeps track of which entities are already declared, to avoid generating the same
     // code twice
-    std::set<std::string> _declared_entities;
+    std::map<std::string, int> _declared_entities;
 
-    // Associates vertices of the graph to their VHDL identifier
-    std::map<size_t, std::string> _node_identifier;
+    // Associates vertices of the graph to their VHDL signal identifier
+    std::map<size_t, std::string> _signal_identifier;
+    std::map<size_t, std::vector<std::pair<size_t, size_t>>> _mappings;
+    std::vector<size_t> _output_mappings;
 
    public:
-    VhdlCodeContainer():
-          _dependencies(VhdlCodeBlock::create()),
-          _entities(VhdlCodeBlock::create()),
-          _components(VhdlCodeBlock::create()),
-          _port_mappings(VhdlCodeBlock::create())
-    {}
-
-    std::shared_ptr<VhdlCodeBlock> dependencies() {
-        return _dependencies->currently_opened();
-    }
-    std::shared_ptr<VhdlCodeBlock> entities() {
-        return _entities->currently_opened();
-    }
-    std::shared_ptr<VhdlCodeBlock> components() {
-        return _components->currently_opened();
-    }
-    std::shared_ptr<VhdlCodeBlock> port_mappings() {
-        return _port_mappings->currently_opened();
+    VhdlCodeContainer(const std::string& ip_name, int num_inputs, int num_outputs, int cycles_per_sample):
+          _ip_name(ip_name),
+          _num_inputs(num_inputs),
+          _num_outputs(num_outputs)
+    {
+        if (cycles_per_sample) {
+            generateRegisterSeries(cycles_per_sample, VhdlType(VhdlInnerType::StdLogic));
+        }
     }
 
     // Registers a new unique component, declaring its related signals and generic
@@ -144,79 +216,24 @@ class VhdlCodeContainer
     // Connects two nodes with the given amount of lag i.e registers in between source and target
     void connect(const Vertex& source, const Vertex& target, int lag);
 
+    std::string entityName(const std::string& name, VhdlType type) const;
+
+    /**
+     * COMPONENT GENERATORS
+     */
+    size_t generateRegisterSeries(int n, VhdlType type);
+    void generateDelay(size_t hash, VhdlType type);
+    void generateConstant(size_t hash, VhdlValue value);
+    void generateOneSampleStorage(VhdlType type);
+    void generateBinaryOperator(size_t hash, int kind, VhdlType type);
+
     friend std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container);
 };
-
-
-// Contains hand-written code for the operators, indexed by the component's name
-/*
-const std::map<std::string, std::string> VHDL_COMPONENTS = {
-    {
-        "",
-    },
-
-};
- */
 
 //-------------------------Signal2VHDLVisitor---------------------------
 // A signal visitor used to compile signals to VHDL code
 //----------------------------------------------------------------------
-// General enums for VHDL constructs
-//enum class PortMode { Input, Output, InOut, Buffer };
-//std::ostream& operator<<(std::ostream& out, const PortMode& port_mode);
-//
-//enum class ObjectType { Constant, Signal, Variable, File };
-//std::ostream& operator<<(std::ostream& out, const ObjectType& type);
-//std::string assignmentSymbol(ObjectType type);
-//
-//enum class VhdlInnerType {
-//    Bit,
-//    BitVector,
-//    Boolean,
-//    BooleanVector,
-//    Integer,
-//    IntegerVector,
-//    Natural,
-//    Positive,
-//    Character,
-//    String,
-//    RealFloat,
-//    RealFloatVector,
-//
-//    StdLogic, StdLogicVector,
-//    StdULogic, StdULogicVector,
-//
-//    Unsigned, Signed,
-//
-//    UFixed, SFixed, Float,
-//};
-//
-//struct VhdlType {
-//    VhdlInnerType type;
-//    int msb, lsb;
-//
-//    VhdlType(VhdlInnerType type): type(type), msb(0), lsb(0) {}
-//    VhdlType(VhdlInnerType type, int msb, int lsb): type(type), msb(msb), lsb(lsb) {}
-//};
-//std::ostream& operator<<(std::ostream& out, const VhdlType& type);
-//
-//struct VhdlValue {
-//    std::string name;
-//    VhdlType vhdl_type;
-//    ObjectType object_type;
-//
-//    VhdlValue(ObjectType object_type, const std::string& name, VhdlType vhdl_type): name(name), vhdl_type(vhdl_type), object_type(object_type) {}
-//
-//    std::string resetStatement();
-//};
-//
-//struct VhdlPort {
-//    std::string name;
-//    PortMode mode;
-//    VhdlType type;
-//
-//    VhdlPort(const std::string& name, PortMode mode, VhdlType type): name(name), mode(mode), type(type) {};
-//};
+
 //
 //class Signal2VhdlVisitor : public SignalVisitor {
 //   private:
