@@ -23,6 +23,10 @@
 
 """
 Take the DSP name, the DSP compiled as codebox file, the JSON file, and the maxpat output file name. Codebox code will be added in the codebox~ object.
+Addionally, the C++ export path and filename can be specified, and the C++ code will be exported and compiled if 'compile' is True.
+The 'test' option allows to generate a patch with the 'RB_xx' prefixed labels for the parameters, 
+to be used with the C++ RNBO test application with the rnbo_dsp class.
+
 Parsing the JSON file gives:
     - the list of parameters (button, checkbox, sliders, nentry) to be added as "set param" objects
     - the number of audio inputs/outputs to be added in the subpatch

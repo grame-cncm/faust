@@ -31,6 +31,7 @@
 // Variable identifier cannot end by a number, so add a suffix
 inline std::string codeboxVarName(const std::string& name) { return name + "_cb"; }
 
+// When testing, for rnbo_dsp class to properly decode controllers
 inline std::string buildButtonLabel(AddButtonInst::ButtonType type, const std::string& label)
 {
     if (gGlobal->gOutputLang == "codebox-test") {
@@ -47,6 +48,7 @@ inline std::string buildButtonLabel(AddButtonInst::ButtonType type, const std::s
     return label;
 }
 
+// When testing, for rnbo_dsp class to properly decode controllers
 inline std::string buildSliderLabel(AddSliderInst::SliderType type, const std::string& label)
 {
     if (gGlobal->gOutputLang == "codebox-test") {

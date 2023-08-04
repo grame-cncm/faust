@@ -114,10 +114,7 @@ class rnbo_dsp : public dsp {
                 if (startWith(name, "RB_Button_")) {
                     fInputsZoneMap[ins] = 0;
                     ui_interface->addButton(name, zone);
-                    fZoneFunMap.push_back(std::make_pair(zone, [=] (FAUSTFLOAT val) {
-                        // std::cerr << "RB_Button_ " << val << std::endl;
-                        fDSP.setParameterValue(i, val, 0);
-                    }));
+                    fZoneFunMap.push_back(std::make_pair(zone, [=] (FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
                     ins++;
                 } else if (startWith(name, "RB_Checkbox_")) {
                     fInputsZoneMap[ins] = 0;

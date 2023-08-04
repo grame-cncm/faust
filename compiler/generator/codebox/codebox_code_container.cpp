@@ -27,7 +27,7 @@
 #include "global.hh"
 
 // Documentation
-// https://rnbo.cycling74.com/objects/ref/gen~
+// https://rnbo.cycling74.com/objects/ref/rnbo~
 // https://rnbo.cycling74.com/learn/how-to-include-rnbo-in-your-c-project
 // https://cycling74.com/tutorials/gen~-for-beginners-part-6-thinking-inside-the-codebox
 // https://rnbo.cycling74.com/codebox
@@ -43,6 +43,12 @@ using namespace std;
  which call 'control' only when needed (that is when as least one parameter changes)
  - 'compute' returns the list of audio outputs
  - some identifiers ending with a digit have to be used with "this." syntax in 'update' function (see CodeboxLabelsVisitor printArgs/printArgsCall)
+ - workaround for C++ generation bug when no audio inputs by adding an audio 'sig~ 0' input
+ 
+ TODO:
+ - soundfile primitive support: https://rnbo.cycling74.com/learn/audio-files-in-rnbo
+ - MIDI support: https://rnbo.cycling74.com/learn/midi-in-rnbo
+ - polyphonic mode support: https://rnbo.cycling74.com/learn/polyphony-and-voice-management-in-rnbo
  */
 
 map<string, bool> CodeboxInstVisitor::gFunctionSymbolTable;
@@ -117,7 +123,7 @@ void CodeboxCodeContainer::produceClass()
     tab(n, *fOut);
     // Emulates the missing rint : https://en.wikipedia.org/wiki/Rounding#Round_half_to_even
     *fOut << "function faust_rint(x) {\n";
-    *fOut << "\t let i : Int = trunc(x);";
+    *fOut << "\t let i : Int = trunc(x); \n";
     *fOut << "\t let f  : number = x - i; \n";
     *fOut << "\t let odd : Int = abs(i % 2) >= 1; \n";
     *fOut << "\t let even : Int = odd == 0; \n";

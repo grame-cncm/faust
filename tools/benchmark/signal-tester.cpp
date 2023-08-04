@@ -526,9 +526,9 @@ static void test19()
          Signal part = sigInt(0);
          // Wrapped index to avoid reading outside the buffer
          Signal wridx = sigIntCast(sigMax(sigInt(0), sigMin(rdx, sigSub(sigSoundfileLength(sf, sigInt(0)), sigInt(1)))));
-         // Accessing part 0
+         // Accessing part 0 length
          signals.push_back(sigSoundfileLength(sf, part));
-         // Accessing part 0
+         // Accessing part 0 SR
          signals.push_back(sigSoundfileRate(sf, part));
          // Accessing chan 0 and part 0, with a wrapped read index
          signals.push_back(sigSoundfileBuffer(sf, sigInt(0), part, wridx));
