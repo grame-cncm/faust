@@ -152,7 +152,7 @@ dsp *mldsp::createDSPInstanceFromPath(const std::string &path,
         fDSPFactories.insert(std::make_pair(
                 key,
                 createDSPFactoryFromFile(path, argc, argv, "", errorMessage)
-                ));
+        ));
         
         factory = fDSPFactories.find(key);
         
