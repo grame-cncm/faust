@@ -85,7 +85,6 @@ std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container) 
     out << std::endl << "-- ======= COMPONENTS =======" << std::endl;
     out << container._components << std::endl;
 
-    out << "begin" << std::endl;
     out << std::endl << "-- ======= PORT MAPPINGS ====" << std::endl;
     for (auto mapping : container._mappings) {
         // Components that do not depend on anything are constants
@@ -596,7 +595,6 @@ void VhdlCodeContainer::generateBinaryOperator(size_t hash, int kind, VhdlType t
     if (kind >= SOperator::kGT && kind <= SOperator::kNE) {
         output_type = VhdlType(VhdlInnerType::Boolean);
     }
-
 
     std::string entity_name = entityName(operator_name, type);
 
