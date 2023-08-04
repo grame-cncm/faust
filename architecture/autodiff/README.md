@@ -172,8 +172,8 @@ the product rule is employed:
 
 $$
 \begin{align}
-\frac{dy}{dg} &= x\frac{d}{dg}(g) + g\frac{d}{dg}(x)
-&= x(1) + g(0)
+\frac{dy}{dg} &= x\frac{d}{dg}(g) + g\frac{d}{dg}(x) \\
+&= x(1) + g(0) \\
 &= x
 \end{align}
 $$
