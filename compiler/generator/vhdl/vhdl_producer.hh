@@ -1,5 +1,25 @@
-#pragma once
+/************************************************************************
+ ************************************************************************
+ FAUST compiler
+ Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
 
+This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+          Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
+#pragma once
 #include "vhdl_code_container.hh"
 #include "signalVisitor.hh"
 #include "global.hh"
@@ -7,15 +27,16 @@
 #include <fstream>
 #include <optional>
 
-//-------------------------VhdlProducer---------------------------
-// Transforms a signal into semantically equivalent VHDL code
-//----------------------------------------------------------------------
 typedef std::vector<int> Retiming;
 // Target sample rate in kHz
 const float SAMPLE_RATE = 44.1;
 // Target clock frequency in kHz
 const float MASTER_CLOCK_FREQUENCY = 667000;
 
+
+/**
+ * A wrapper around signals, with additional information such as propagation delay of pipeline stages
+ */
 struct Vertex {
     static int input_counter;
     static int output_counter;
@@ -31,6 +52,8 @@ struct Vertex {
     Vertex(const Tree& signal)
         : signal(signal), node_hash(signal->hashkey()), nature(getCertifiedSigType(signal)->nature()), propagation_delay(1), pipeline_stages(0), recursive(false) {};
 
+    // Creates an output/input node from another signal
+    // This node can be a recursive output if it is linked to a Proj signal
     Vertex(const Tree& signal, bool is_input): Vertex(signal) {
         int i;
         Tree group;
@@ -65,6 +88,10 @@ struct std::hash<Vertex> {
     }
 };
 
+/**
+ * Structure holding information about connections between vertices, notably the number of registers between them.
+ * It also keeps intermediate results in memory, such as the highest critical path weight/delay
+ */
 struct Edge {
     int target;
     int register_count;
@@ -75,6 +102,9 @@ struct Edge {
     Edge(int target_id, int register_count, int origin_delay): target(target_id), register_count(register_count), critical_path_weight(register_count), critical_path_delay(-origin_delay) {}
 };
 
+/**
+ * Used to make the creation of a graph from the depth-first traversal of the signal tree clearer.
+ */
 struct VisitInfo {
     int vertex_index;
     bool is_recursive = false;
@@ -88,12 +118,20 @@ struct VisitInfo {
     VisitInfo(int vertex_index): vertex_index(vertex_index) {}
 };
 
+
+//-------------------------VhdlProducer---------------------------------
+// Transforms a signal into semantically equivalent VHDL code
+//----------------------------------------------------------------------
 class VhdlProducer : public SignalVisitor {
+    // Graph
     std::vector<Vertex> _vertices;
     std::vector<std::vector<Edge>> _edges;
+
+    // Used to create the graph from a signal tree
     std::stack<VisitInfo> _visit_stack;
     std::stack<int> _virtual_io_stack;
 
+    // General IP information
     std::string _name;
     int _inputs_count;
     int _outputs_count;
