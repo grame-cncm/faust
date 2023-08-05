@@ -49,11 +49,36 @@ import json
 
 # Extracting UI items info
 def extract_items_info(json_data):
+    """
+    Extracts information about UI items from the given DSP JSON data.
+
+    Args:
+        json_data (dict): DSP JSON data.
+
+    Returns:
+        list: A list of dictionaries containing information about each UI item.
+    """
+
     def extract_from_ui(ui_items):
+        """
+        Recursive helper function to extract UI items information.
+
+        Args:
+            ui_items (list): List of UI items.
+
+        Returns:
+            list: A list of dictionaries containing information about each UI item.
+        """
         info_list = []
         for item in ui_items:
             shortname = item.get("shortname", "")
             item_type = item.get("type", "")
+
+            # get MIDI information
+            midi_info = []
+            for meta_item in item.get("meta", []):
+                if "midi" in meta_item:
+                    midi_info.append(meta_item["midi"])
 
             # button and checkbox
             if item_type in ["button", "checkbox"]:
@@ -65,10 +90,11 @@ def extract_items_info(json_data):
                         "min": 0,
                         "max": 1,
                         "step": 1,
+                        "midi": midi_info,  # Include MIDI information as a list
                     }
                 )
-            # slider and nentry
-            elif "min" in item and "max" in item and "step" in item:
+            # slider and nentry, and has "min", "max", and "step"
+            elif all(key in item for key in ["min", "max", "step"]):
                 init_value = item.get("init", 0)
                 min_value = item["min"]
                 max_value = item["max"]
@@ -81,6 +107,7 @@ def extract_items_info(json_data):
                         "min": min_value,
                         "max": max_value,
                         "step": step_value,
+                        "midi": midi_info,  # Include MIDI information as a list
                     }
                 )
 
@@ -128,6 +155,22 @@ def create_rnbo_patch(
     num_inputs,
     num_outputs,
 ):
+    """
+    This function creates an RNBO Max patcher with the specified parameters.
+
+    Parameters:
+    - dsp_name (str): The name of the DSP.
+    - maxpat_path (str): The path where the Max patcher will be created.
+    - export_path (str): The path for exporting the C++ code.
+    - cpp_filename (str): The filename for the exported C++ code.
+    - codebox_code (str): The code for the codebox~ section in the subpatcher.
+    - items_info_list (list): A list of dictionaries containing information about the items to be added.
+    - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
+    - test (bool): A flag indicating whether the patch is for testing purposes.
+    - num_inputs (int): The number of audio inputs.
+    - num_outputs (int): The number of audio outputs.
+    """
+
     # Create the patcher
     patcher = Patcher(maxpat_path)
 
@@ -281,12 +324,27 @@ def load_files_create_rnbo_patch(
     compile,
     test,
 ):
+    """
+    This function loads the codebox and JSON files, extracts relevant data, and creates the RNBO Max patch.
+
+    Parameters:
+    - dsp_name (str): The name of the DSP.
+    - codebox_path (str): The path to the codebox file.
+    - json_path (str): The path to the JSON file containing items info.
+    - maxpat_path (str): The path where the Max patcher will be created.
+    - export_path (str): The path for exporting the C++ code.
+    - cpp_filename (str): The filename for the exported C++ code.
+    - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
+    - test (bool): A flag indicating whether the patch is for testing purposes.
+    """
+
     with open(codebox_path) as codebox_file:
         codebox_code = codebox_file.read()
 
     with open(json_path) as json_file:
         json_data = json.load(json_file)
         items_info_list = extract_items_info(json_data)
+        print(items_info_list)
         num_inputs = json_data.get("inputs", 0)
         num_outputs = json_data.get("outputs", 0)
 
