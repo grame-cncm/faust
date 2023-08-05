@@ -1810,7 +1810,7 @@ class uiBox : public uiBase, public juce::Component
         void paint(juce::Graphics& g) override
         {
             // Fill the box background in gray shades
-            g.setColour(juce::Colours::black.withAlpha(0.05f));
+            g.setColour(juce::Colours::black.withAlpha(0.5f)); // 0.05, used until 2023-08-5, is not readable on the Mac
             g.fillRect(getLocalBounds());
 
             // Display the name if it's needed
