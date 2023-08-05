@@ -36,7 +36,7 @@ The maxpat file is generated with the following structure:
             - codebox~ object
             - input boxes
             - output boxes
-            - parameter boxes
+            - parameter boxes possibly with MIDI control
             - lines between boxes
     - possibly loadbang box and 'compile C++ and export' machinery
     - ezdac~ object
@@ -45,6 +45,7 @@ The maxpat file is generated with the following structure:
 from py2max.py2max import *
 import argparse
 import json
+import logging
 
 
 # Extracting UI items info
@@ -78,7 +79,7 @@ def extract_items_info(json_data):
             midi_info = []
             for meta_item in item.get("meta", []):
                 if "midi" in meta_item:
-                    midi_info.append(meta_item["midi"])
+                    midi_info.extend(meta_item["midi"].split())
 
             # button and checkbox
             if item_type in ["button", "checkbox"]:
@@ -125,21 +126,84 @@ def extract_items_info(json_data):
 
 # Creating the proper label for the parameter
 def build_label(type, shortname, test):
-    if test:
-        if type == "button":
-            return f"RB_Button_{shortname}"
-        elif type == "checkbox":
-            return f"RB_Checkbox_{shortname}"
-        elif type == "hslider":
-            return f"RB_HSlider_{shortname}"
-        elif type == "vslider":
-            return f"RB_VSlider_{shortname}"
-        elif type == "nentry":
-            return f"RB_NEntry_{shortname}"
-        else:
-            raise ValueError(f"Unknown type {type}")
+    label_prefixes = {
+        "button": "RB_Button_",
+        "checkbox": "RB_Checkbox_",
+        "hslider": "RB_HSlider_",
+        "vslider": "RB_VSlider_",
+        "nentry": "RB_NEntry_",
+    }
+    return label_prefixes[type] + shortname if test else shortname
+
+
+# Adds MIDI control
+def add_midi_control(item, sub_patch, set_param, codebox):
+    """
+    Adds MIDI control to the subpatch.
+
+    This function handles the MIDI control for both input and output in the subpatch.
+    It checks the MIDI control type and prepares the necessary MIDI input and output messages.
+    The scaling for MIDI input and output messages is also defined based on the control type.
+
+    Args:
+        item (dict): The dictionary containing information about the UI item.
+        sub_patch (Patcher): The subpatcher object to which MIDI control will be added.
+        set_param (Textbox): The 'set' param object for the UI item.
+        codebox (Textbox): The codebox~ object in the subpatcher.
+
+    Returns:
+        None: If MIDI control type is not supported, the function logs an error and returns.
+    """
+
+    # Get the MIDI information from the item dictionary
+    midi_info = item.get("midi", None)
+    if not midi_info:
+        return
+
+    # Define the Faust to RNBO syntax mapping for both MIDI input and output
+    midi_mapping = {
+        "ctrl": {"in": "ctlin", "out": "ctlout"},
+        "chanpress": {"in": "touchin", "out": "touchout"},
+        "keyon": {"in": "notein", "out": "noteout"},
+        "keyoff": {"in": "notein", "out": "noteout"},
+        "key": {"in": "notein", "out": "noteout"},
+        "pitchwheel": {"in": "bendin", "out": "bendout"},
+        "pgm": {"in": "pgmin", "out": "pgmout"},
+    }
+
+    # Check if the MIDI control type is supported
+    midi_type = midi_info[0]
+    if midi_type not in midi_mapping:
+        logging.error(f"MIDI control type '{midi_type}' not supported")
+        return
+
+    # Prepare the MIDI input and output messages
+    midi_type = midi_info[0]
+    midi_args = " ".join(midi_info[1:])
+    midi_in = sub_patch.add_textbox(f"{midi_mapping[midi_type]['in']} {midi_args}")
+    midi_out = sub_patch.add_textbox(f"{midi_mapping[midi_type]['out']} {midi_args}")
+
+    # Scaling for MIDI input and output messages
+    # Pitchwheel case
+    if midi_type == "pitchwheel":
+        scaling_in = f"scale 0 16383 {item['min']} {item['max']}"
+        scaling_out = f"scale {item['min']} {item['max']} 0 16383"
+    # General case
     else:
-        return shortname
+        scaling_in = f"scale 0 127 {item['min']} {item['max']}"
+        scaling_out = f"scale {item['min']} {item['max']} 0 127"
+
+    # Create the scaling boxes
+    scaling_in_box = sub_patch.add_textbox(scaling_in)
+    scaling_out_box = sub_patch.add_textbox(scaling_out)
+
+    # Connect the input objects
+    sub_patch.add_line(midi_in, scaling_in_box)
+    sub_patch.add_line(scaling_in_box, set_param)
+
+    # Connect the output objects
+    # sub_patch.add_line(codebox, scaling_out_box)
+    # sub_patch.add_line(scaling_out_box, midi_out)
 
 
 # Create the RNBO maxpat file
@@ -249,7 +313,7 @@ def create_rnbo_patch(
         label = build_label(item_type, shortname, test)
 
         # Add a global 'set' param object
-        param = sub_patch.add_textbox(f"set {label}")
+        set_param = sub_patch.add_textbox(f"set {label}")
 
         # button and checkbox use a 'toggle' object
         if item_type in ["button", "checkbox"]:
@@ -272,7 +336,7 @@ def create_rnbo_patch(
             patcher.add_line(toggle, param_wrap)
             patcher.add_line(param_wrap, rnbo)
 
-            value = sub_patch.add_textbox(
+            param = sub_patch.add_textbox(
                 f"param {label} 0 @min 0 @max 1",
             )
 
@@ -300,14 +364,19 @@ def create_rnbo_patch(
             )
             patcher.add_line(param_wrap, rnbo)
 
-            value = sub_patch.add_textbox(
-                # Doe nos work with @steps, with parameter values slightly different
+            param = sub_patch.add_textbox(
+                # Does not work with @steps, with parameter values slightly different
                 # f"param {label} {init_value} @min {min_value} @max {max_value} @steps {steps_value} ",
                 f"param {label} {init_value} @min {min_value} @max {max_value}",
             )
 
-        sub_patch.add_line(value, param)
-        sub_patch.add_line(param, codebox)
+        # Add a line to connect the parameter control to the 'set' param object
+        sub_patch.add_line(param, set_param)
+        # Add a line to connect the 'set' param object to the codebox
+        sub_patch.add_line(set_param, codebox)
+
+        # Possibly add MIDI input/output control
+        add_midi_control(item, sub_patch, set_param, codebox)
 
     # And finally save the patch
     patcher.save()
