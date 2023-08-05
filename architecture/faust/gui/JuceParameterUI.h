@@ -35,7 +35,7 @@
 struct FaustPlugInAudioParameterBool : public juce::AudioParameterBool, public uiOwnedItem {
     
     FaustPlugInAudioParameterBool(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label)
-    :juce::AudioParameterBool(path, label, false), uiOwnedItem(gui, zone)
+    :juce::AudioParameterBool(juce::ParameterID(path, /* versionHint */ 1), label, false), uiOwnedItem(gui, zone)
     {}
     
     virtual ~FaustPlugInAudioParameterBool() {}
@@ -59,7 +59,7 @@ struct FaustPlugInAudioParameterBool : public juce::AudioParameterBool, public u
 struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public uiOwnedItem {
     
     FaustPlugInAudioParameterFloat(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    :juce::AudioParameterFloat(path, label, float(min), float(max), float(init)), uiOwnedItem(gui, zone)
+    :juce::AudioParameterFloat(juce::ParameterID(path, /* versionHint */ 1), label, float(min), float(max), float(init)), uiOwnedItem(gui, zone)
     {}
     
     virtual ~FaustPlugInAudioParameterFloat() {}
