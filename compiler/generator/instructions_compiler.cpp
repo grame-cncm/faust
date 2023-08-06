@@ -31,8 +31,8 @@
 #include "prim2.hh"
 #include "recursivness.hh"
 #include "sigToGraph.hh"
-#include "signal2vhdlVisitor.hh"
 #include "signal2Elementary.hh"
+#include "xtended.hh"
 #include "sigprint.hh"
 #include "normalform.hh"
 #include "timing.hh"
@@ -143,9 +143,11 @@ Tree InstructionsCompiler::prepare(Tree LS)
     }
     
     // Generate VHDL if -vhdl option is set
+    /* Or don't
     if (gGlobal->gVHDLSwitch) {
         sigVHDLFile(fOccMarkup, L2, gGlobal->gVHDLTrace);
     }
+    */
     
     return L2;
 }

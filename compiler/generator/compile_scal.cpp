@@ -40,7 +40,6 @@
 #include "prim2.hh"
 #include "recursivness.hh"
 #include "sigToGraph.hh"
-#include "signal2vhdlVisitor.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "normalform.hh"
@@ -136,9 +135,11 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
     
     // Generate VHDL if -vhdl option is set
+    /* NOTE: This has been moved, as it had nothing to do here
     if (gGlobal->gVHDLSwitch) {
         sigVHDLFile(fOccMarkup, L2, gGlobal->gVHDLTrace);
     }
+    */
     
     return L2;
 }

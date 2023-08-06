@@ -36,21 +36,6 @@ using namespace std;
 // (or `mapself(lt)` for a list).
 //------------------------------------------------------------------------------
 
-void TreeTraversal::self(Tree t)
-{
-    if (fTrace) traceEnter(t);
-    fIndent++;
-    // First visit
-    if (!fVisited.count(t)) {
-        fVisited[t] = 0;
-        visit(t);
-    }
-    // Keep visit counter
-    fVisited[t]++;
-    fIndent--;
-    if (fTrace) traceExit(t);
-}
-
 void TreeTraversal::traceEnter(Tree t)
 {
     tab(fIndent, cerr);

@@ -24,4 +24,5 @@ set ( RUST_BACKEND   OFF        CACHE STRING  "Include Rust backend" FORCE )
 # Template is deactivated 
 set ( TEMPLATE_BACKEND   OFF    CACHE STRING  "Include Rust backend" FORCE )
 set ( WASM_BACKEND   WASM COMPILER STATIC DYNAMIC CACHE STRING  "Include WASM backend" FORCE )
+set ( VHDL_BACKEND   OFF        CACHE STRING  "Include VHLD backend" FORCE )
 

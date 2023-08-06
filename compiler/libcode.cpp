@@ -134,6 +134,10 @@
 #include "wast_code_container.hh"
 #endif
 
+#ifdef VHDL_BUILD
+#include "vhdl/vhdl_producer.hh"
+#endif
+
 using namespace std;
 
 /****************************************************************
@@ -770,6 +774,23 @@ static void compileDlang(Tree signals, int numInputs, int numOutputs, ostream* o
 #endif
 }
 
+static void compileVhdl(Tree signals, int numInputs, int numOutputs, ostream* out)
+{
+#ifdef VHDL_BUILD
+    signals = simplifyToNormalForm(signals);
+    VhdlProducer vhdl_prod = VhdlProducer(signals, gGlobal->gClassName, numInputs, numOutputs);
+    vhdl_prod.optimize();
+    if (gGlobal->gVHDLTrace) {
+        std::ofstream dot_output("vhdl_graph.dot");
+        vhdl_prod.exportGraph(dot_output);
+        dot_output.close();
+    }
+    vhdl_prod.generate(*out);
+#else
+    throw faustexception("ERROR : -lang vhdl not supported since VHDL backend is not built\n");
+#endif
+}
+
 static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>& enrobage, unique_ptr<ostream>& dst)
 {
     if (openEnrobagefile()) {
@@ -784,8 +805,8 @@ static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>&
 
         gContainer->printHeader();
 
-        streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeIntrinsic>>");
-        streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeclass>>");
+        streamCopyUntil(*gEnrobage.get(), *dst.get(), "<<includeIntrinsic>>");
+        streamCopyUntil(*gEnrobage.get(), *dst.get(), "<<includeclass>>");
 
         if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {
             includeFile("thread.h", *dst.get());
@@ -831,17 +852,17 @@ static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>&
 
         if (gGlobal->gOutputFile == "string") {
             gGlobal->gDSPFactory->write(dst.get(), false, false);
-            if (helpers) gGlobal->gDSPFactory->writeHelper(helpers.get(), false, false);
+            if (gHelpers) gGlobal->gDSPFactory->writeHelper(helpers.get(), false, false);
         } else if (gGlobal->gOutputFile == "binary") {
             gGlobal->gDSPFactory->write(dst.get(), true, false);
-            if (helpers) gGlobal->gDSPFactory->writeHelper(helpers.get(), true, false);
+            if (gHelpers) gGlobal->gDSPFactory->writeHelper(helpers.get(), true, false);
         } else if (gGlobal->gOutputFile != "") {
             // Binary mode for LLVM backend if output different of 'cout'
             gGlobal->gDSPFactory->write(dst.get(), true, false);
-            if (helpers) gGlobal->gDSPFactory->writeHelper(helpers.get(), false, false);
+            if (gHelpers) gGlobal->gDSPFactory->writeHelper(helpers.get(), false, false);
         } else {
             gGlobal->gDSPFactory->write(&cout, false, false);
-            if (helpers) gGlobal->gDSPFactory->writeHelper(&cout, false, false);
+            if (gHelpers) gGlobal->gDSPFactory->writeHelper(&cout, false, false);
         }
     }
 }
@@ -967,6 +988,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileWASM(signals, numInputs, numOutputs, gDst.get(), gOutpath);
     } else if (startWith(gGlobal->gOutputLang, "dlang")) {
         compileDlang(signals, numInputs, numOutputs, gDst.get());
+    } else if (startWith(gGlobal->gOutputLang, "vhdl")) {
+        compileVhdl(signals, numInputs, numOutputs, gDst.get());
     } else {
         stringstream error;
         error << "ERROR : cannot find backend for "
