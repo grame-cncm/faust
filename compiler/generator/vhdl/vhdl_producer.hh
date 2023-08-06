@@ -3,6 +3,7 @@
 #include "vhdl_code_container.hh"
 #include "signalVisitor.hh"
 #include "global.hh"
+#include "sigtyperules.hh"
 #include <fstream>
 #include <optional>
 
@@ -10,28 +11,40 @@
 // Transforms a signal into semantically equivalent VHDL code
 //----------------------------------------------------------------------
 typedef std::vector<int> Retiming;
+
+// TODO: Make those constants parameters of the compiler
 // Target sample rate in kHz
 const float SAMPLE_RATE = 44.1;
 // Target clock frequency in kHz
 const float MASTER_CLOCK_FREQUENCY = 667000;
 
+// Vertices are wrappers around signals adding more information such as propagation delay or
+// pipeline stages
 struct Vertex {
     static int input_counter;
     static int output_counter;
+
     Tree signal;
     size_t node_hash;
+    int nature;
 
     int propagation_delay = 1;
     int pipeline_stages = 0;
 
-    Vertex(const Tree& signal)
-        : signal(signal), node_hash(signal->hashkey()), propagation_delay(1), pipeline_stages(0) {};
+    bool recursive;
 
-    Vertex(const Tree& signal, bool is_input): signal(signal), node_hash(signal->hashkey()), propagation_delay(1) {
+    // Creates a basic vertex from a signal
+    Vertex(const Tree& signal)
+        : signal(signal), node_hash(signal->hashkey()), nature(getCertifiedSigType(signal)->nature()), propagation_delay(1), pipeline_stages(0), recursive(false) {};
+
+    // Creates an input or output vertex sourced by the given signal
+    Vertex(const Tree& signal, bool is_input): Vertex(signal) {
         int i;
         Tree group;
         if (!isProj(signal, &i, group)) {
             i = is_input ? input_counter++ : output_counter++;
+        } else {
+            recursive = true;
         }
         this->signal = is_input ? sigInput(i) : sigOutput(i, signal);
     }
@@ -39,6 +52,16 @@ struct Vertex {
     bool is_output() const
     {
         return signal->node() == gGlobal->SIGOUTPUT;
+    }
+    bool is_input() const {
+        return signal->node() == gGlobal->SIGINPUT;
+    }
+    bool is_recursive() const {
+        return recursive;
+    }
+
+    int get_nature() const {
+        return nature;
     }
 };
 template<>
@@ -49,6 +72,8 @@ struct std::hash<Vertex> {
     }
 };
 
+// Edges carry information about the link between signals.
+// They also hold intermediary results such as the highest incoming critical path weight/delay.
 struct Edge {
     int target;
     int register_count;
@@ -59,6 +84,8 @@ struct Edge {
     Edge(int target_id, int register_count, int origin_delay): target(target_id), register_count(register_count), critical_path_weight(register_count), critical_path_delay(-origin_delay) {}
 };
 
+// Structures information necessary to the graph construction during our depth-first visit of
+// the original signal tree.
 struct VisitInfo {
     int vertex_index;
     bool is_recursive = false;
@@ -72,12 +99,18 @@ struct VisitInfo {
     VisitInfo(int vertex_index): vertex_index(vertex_index) {}
 };
 
+// A VhdlProducer represents signals as a circuit DAG instead of a tree.
+// It then performs transformations to optimize said DAG for VHDL implementation.
 class VhdlProducer : public SignalVisitor {
+    // Graph
     std::vector<Vertex> _vertices;
     std::vector<std::vector<Edge>> _edges;
+
+    // Members necessary for the transformation from tree to circuit graph
     std::stack<VisitInfo> _visit_stack;
     std::stack<int> _virtual_io_stack;
 
+    // General information about the produced DSP unit
     std::string _name;
     int _inputs_count;
     int _outputs_count;
@@ -167,11 +200,13 @@ class VhdlProducer : public SignalVisitor {
     /**
      * HELPER FUNCTIONS
      */
-     /** Computes the number of cycles necessary to process one sample.
-      * It is equivalent to the longest path along the graph, weighted by registers and pipeline stages.
-      */
-     int cyclesPerSample() const;
+    /** Computes the maximum number of cycles necessary to access a given vertex.
+     * It is equivalent to the longest path along the graph, weighted by registers and pipeline stages.
+     * This is useful to propagate signals like ap_start in the actual circuit along a series of registers.
+     */
+    int cyclesFromInput(int vertex) const;
 
+    /** Searches a node given its hash */
     std::optional<int> searchNode(const size_t hash) const {
         for (size_t v = 0; v < _vertices.size(); ++v) {
             if (_vertices[v].node_hash == hash) {
@@ -182,6 +217,7 @@ class VhdlProducer : public SignalVisitor {
         return std::nullopt;
     }
 
+    /** Returns a list of incoming edges to a vertex taken from a given cut of the graph */
     std::vector<int> incomingEdges(int vertex_id, const std::vector<std::vector<Edge>>& edges) const {
         std::vector<int> incoming;
         for (size_t v = 0; v < edges.size(); ++v) {
@@ -194,6 +230,7 @@ class VhdlProducer : public SignalVisitor {
         return incoming;
     }
 
+    /** Returns a transposed set of edges */
     std::vector<std::vector<Edge>> transposedGraph() const {
         std::vector<std::vector<Edge>> transposed = std::vector(_edges.size(), std::vector<Edge>());
         for (size_t v = 0; v < _edges.size(); ++v) {

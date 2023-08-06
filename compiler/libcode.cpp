@@ -1009,7 +1009,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         generateCodeAux2(gEnrobage, gDst);
     }
 #endif
-    else {
+    else if (!startWith(gGlobal->gOutputLang, "vhdl")) {
         faustassert(false);
     }
 
