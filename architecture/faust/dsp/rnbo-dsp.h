@@ -111,31 +111,31 @@ class rnbo_dsp : public dsp {
                 fDSP.getParameterInfo(i, &info);
                 RNBO::ConstCharPointer name = fDSP.getParameterId(i);
                 FAUSTFLOAT* zone = &fInputsZoneMap[ins];
-                if (startWith(name, "RB_Button_")) {
+                if (startWith(name, "RB_button_")) {
                     fInputsZoneMap[ins] = 0;
                     ui_interface->addButton(name, zone);
                     fZoneFunMap.push_back(std::make_pair(zone, [=] (FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
                     ins++;
-                } else if (startWith(name, "RB_Checkbox_")) {
+                } else if (startWith(name, "RB_checkbox_")) {
                     fInputsZoneMap[ins] = 0;
                     ui_interface->addCheckButton(name, zone);
                     fZoneFunMap.push_back(std::make_pair(zone, [=] (FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
                     ins++;
-                } else if (startWith(name, "RB_HSlider_")) {
+                } else if (startWith(name, "RB_hslider_")) {
                     fInputsZoneMap[ins] = info.initialValue;
                     //double step = (info.max-info.min)/info.steps;
                     double step = 0;
                     ui_interface->addHorizontalSlider(name, zone, info.initialValue, info.min, info.max, step);
                     fZoneFunMap.push_back(std::make_pair(zone, [=] (FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
                     ins++;
-                } else if (startWith(name, "RB_VSlider_")) {
+                } else if (startWith(name, "RB_vslider_")) {
                     fInputsZoneMap[ins] = info.initialValue;
                     //double step = (info.max-info.min)/info.steps;
                     double step = 0;
                     ui_interface->addVerticalSlider(name, zone, info.initialValue, info.min, info.max, step);
                     fZoneFunMap.push_back(std::make_pair(zone, [=] (FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
                     ins++;
-                } else if (startWith(name, "RB_NEntry_")) {
+                } else if (startWith(name, "RB_nentry_")) {
                     fInputsZoneMap[ins] = info.initialValue;
                     //double step = (info.max-info.min)/info.steps;
                     double step = 0;

@@ -30,6 +30,8 @@ to be used with the C++ RNBO test application with the rnbo_dsp class.
 Parsing the JSON file gives:
     - the list of parameters (button, checkbox, sliders, nentry) to be added as "set param" objects
     - the number of audio inputs/outputs to be added in the subpatch
+    - the MIDI state to be used in the patch
+    - the nvoices count to be used in the patch
 The maxpat file is generated with the following structure: 
     - rnbo~ object
         - subpatch
@@ -39,6 +41,7 @@ The maxpat file is generated with the following structure:
             - parameter boxes possibly with MIDI control
             - lines between boxes
     - possibly loadbang box and 'compile C++ and export' machinery
+    - possibly midiin/midiout objects
     - ezdac~ object
 """
 
@@ -46,6 +49,46 @@ from py2max.py2max import *
 import argparse
 import json
 import logging
+import re
+
+
+# Analyzing the options metadata
+def get_midi_and_nvoices(json_data):
+    """
+    Extracts the MIDI state and nvoices count from the given JSON data.
+
+    Args:
+        json_data (dict): The JSON data in dictionary format.
+
+    Returns:
+        tuple: A tuple containing the MIDI state (True or False) and nvoices count (int).
+               If the MIDI state or nvoices count is not present in the JSON, the corresponding
+               value in the tuple will be None.
+    """
+
+    # Initialize variables to store the MIDI state and nvoices count
+    midi_state = None
+    nvoices = None
+
+    # Extract the global meta section which is always present
+    global_meta = json_data["meta"]
+    for meta_item in global_meta:
+        # Check for options
+        if "options" in meta_item:
+            options = meta_item["options"]
+            # Extract MIDI state from options
+            if "[midi:on]" in options:
+                midi_state = True
+            else:
+                midi_state = False
+
+            # Extract nvoices count from options
+            nvoices_match = re.search(r"\[nvoices:(\d+)\]", options)
+            if nvoices_match:
+                nvoices = int(nvoices_match.group(1))
+            break
+
+    return midi_state, nvoices
 
 
 # Extracting UI items info
@@ -126,14 +169,7 @@ def extract_items_info(json_data):
 
 # Creating the proper label for the parameter
 def build_label(type, shortname, test):
-    label_prefixes = {
-        "button": "RB_Button_",
-        "checkbox": "RB_Checkbox_",
-        "hslider": "RB_HSlider_",
-        "vslider": "RB_VSlider_",
-        "nentry": "RB_NEntry_",
-    }
-    return label_prefixes[type] + shortname if test else shortname
+    return "RB_" + type + "_" + shortname if test else shortname
 
 
 # Adds MIDI control
@@ -167,7 +203,7 @@ def add_midi_control(item, sub_patch, set_param, codebox):
         "keyon": {"in": "notein", "out": "noteout"},
         "keyoff": {"in": "notein", "out": "noteout"},
         "key": {"in": "notein", "out": "noteout"},
-        "pitchwheel": {"in": "bendin", "out": "bendout"},
+        "pitchwheel": {"in": "bendin @bendmode 1", "out": "bendout @bendmode 1"},
         "pgm": {"in": "pgmin", "out": "pgmout"},
     }
 
@@ -180,14 +216,15 @@ def add_midi_control(item, sub_patch, set_param, codebox):
     # Prepare the MIDI input and output messages
     midi_type = midi_info[0]
     midi_args = " ".join(midi_info[1:])
+    # TDO: handle all channels case: Faust 0 => RNB -1
     midi_in = sub_patch.add_textbox(f"{midi_mapping[midi_type]['in']} {midi_args}")
-    midi_out = sub_patch.add_textbox(f"{midi_mapping[midi_type]['out']} {midi_args}")
+    # midi_out = sub_patch.add_textbox(f"{midi_mapping[midi_type]['out']} {midi_args}")
 
     # Scaling for MIDI input and output messages
-    # Pitchwheel case
+    # Pitchwheel case using @bendmode 1 (-1, 1) mode
     if midi_type == "pitchwheel":
-        scaling_in = f"scale 0 16383 {item['min']} {item['max']}"
-        scaling_out = f"scale {item['min']} {item['max']} 0 16383"
+        scaling_in = f"scale -1 1 {item['min']} {item['max']}"
+        scaling_out = f"scale {item['min']} {item['max']} -1 -1"
     # General case
     else:
         scaling_in = f"scale 0 127 {item['min']} {item['max']}"
@@ -195,7 +232,7 @@ def add_midi_control(item, sub_patch, set_param, codebox):
 
     # Create the scaling boxes
     scaling_in_box = sub_patch.add_textbox(scaling_in)
-    scaling_out_box = sub_patch.add_textbox(scaling_out)
+    # scaling_out_box = sub_patch.add_textbox(scaling_out)
 
     # Connect the input objects
     sub_patch.add_line(midi_in, scaling_in_box)
@@ -214,6 +251,7 @@ def create_rnbo_patch(
     cpp_filename,
     codebox_code,
     items_info_list,
+    midi,
     compile,
     test,
     num_inputs,
@@ -229,6 +267,7 @@ def create_rnbo_patch(
     - cpp_filename (str): The filename for the exported C++ code.
     - codebox_code (str): The code for the codebox~ section in the subpatcher.
     - items_info_list (list): A list of dictionaries containing information about the items to be added.
+    - midi (bool): A flag indicating whether to include MIDI input/output control.
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes.
     - num_inputs (int): The number of audio inputs.
@@ -306,6 +345,13 @@ def create_rnbo_patch(
         output_box = sub_patch.add_textbox(f"out~ {i + 1}")
         sub_patch.add_line(codebox, output_box, outlet=i)
 
+    # Possibly add MIDI input/output control
+    if midi:
+        midi_in = patcher.add_textbox("midiin")
+        midi_out = patcher.add_textbox("midiout")
+        sub_patch.add_line(midi_in, rnbo, inlet=num_inputs + 1)
+        sub_patch.add_line(rnbo, midi_out, outlet=num_outputs + 1)
+
     # Add parameter control for button/checkbox and slider/nentry
     for item in items_info_list:
         shortname = item["shortname"]
@@ -376,7 +422,8 @@ def create_rnbo_patch(
         sub_patch.add_line(set_param, codebox)
 
         # Possibly add MIDI input/output control
-        add_midi_control(item, sub_patch, set_param, codebox)
+        if midi:
+            add_midi_control(item, sub_patch, set_param, codebox)
 
     # And finally save the patch
     patcher.save()
@@ -390,6 +437,7 @@ def load_files_create_rnbo_patch(
     maxpat_path,
     export_path,
     cpp_filename,
+    midi,
     compile,
     test,
 ):
@@ -403,6 +451,7 @@ def load_files_create_rnbo_patch(
     - maxpat_path (str): The path where the Max patcher will be created.
     - export_path (str): The path for exporting the C++ code.
     - cpp_filename (str): The filename for the exported C++ code.
+    - midi (bool): A flag indicating whether to include MIDI input/output control.
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes.
     """
@@ -416,6 +465,7 @@ def load_files_create_rnbo_patch(
         print(items_info_list)
         num_inputs = json_data.get("inputs", 0)
         num_outputs = json_data.get("outputs", 0)
+        options = get_midi_and_nvoices(json_data)
 
     create_rnbo_patch(
         dsp_name,
@@ -424,6 +474,8 @@ def load_files_create_rnbo_patch(
         cpp_filename,
         codebox_code,
         items_info_list,
+        # options[0] is the midi state
+        midi or options[0],
         compile,
         test,
         num_inputs,
@@ -440,8 +492,9 @@ if __name__ == "__main__":
     parser.add_argument("arg4", type=str, help="RNBO maxpat file")
     parser.add_argument("arg5", type=str, help="C++ export folder path")
     parser.add_argument("arg6", type=str, help="C++ export filename")
-    parser.add_argument("arg7", type=str, help="compile")
-    parser.add_argument("arg8", type=str, help="test")
+    parser.add_argument("arg7", type=str, help="MIDI control")
+    parser.add_argument("arg8", type=str, help="compile")
+    parser.add_argument("arg9", type=str, help="test")
     args = parser.parse_args()
 
     load_files_create_rnbo_patch(
@@ -453,4 +506,5 @@ if __name__ == "__main__":
         args.arg6,
         args.arg7 == "True",
         args.arg8 == "True",
+        args.arg9 == "True",
     )

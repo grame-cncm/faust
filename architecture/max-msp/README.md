@@ -96,6 +96,7 @@ The **faust2rnbo** tool transforms a Faust DSP program into a RNBO patch includi
 
 Here are the available options:
 
+  - `-midi` : activates MIDI control
   - `-compile` : to trigger C++ compilation at load time
   - `-test` : to generate special 'RB_XX' prefix for parameters (for testing)
   - `-cpp_path <path>` : to set C++ export folder 

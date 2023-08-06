@@ -37,9 +37,9 @@ inline std::string buildButtonLabel(AddButtonInst::ButtonType type, const std::s
     if (gGlobal->gOutputLang == "codebox-test") {
         switch (type) {
             case AddButtonInst::kDefaultButton:
-                return("RB_Button_" + label);
+                return("RB_button_" + label);
             case AddButtonInst::kCheckButton:
-                return("RB_Checkbox_" + label);
+                return("RB_checkbox_" + label);
             default:
                 faustassert(false);
                 break;
@@ -54,11 +54,11 @@ inline std::string buildSliderLabel(AddSliderInst::SliderType type, const std::s
     if (gGlobal->gOutputLang == "codebox-test") {
         switch (type) {
             case AddSliderInst::kHorizontal:
-                return("RB_HSlider_" + label);
+                return("RB_hslider_" + label);
             case AddSliderInst::kVertical:
-                return("RB_VSlider_" + label);
+                return("RB_vslider_" + label);
             case AddSliderInst::kNumEntry:
-                return("RB_NEntry_" + label);
+                return("RB_nentry_" + label);
             default:
                 faustassert(false);
                 break;

@@ -13,6 +13,7 @@ set -e
 . usage.sh
 
 ARCHFILE=$FAUSTARCH/max-msp/rnbo.py
+MIDI=False
 COMPILE=False
 EXPORT_PATH="/tmp/foo"
 EXPORT_FILENAME="foo.cpp"
@@ -23,6 +24,7 @@ echoHelp()
     usage faust2rnbo "[options] [Faust options] <file.dsp>"
     echo  "Compiles Faust programs to RNBO patches"
     option
+    options -midi
     option -compile "to trigger C++ compilation at load time"
     option -test "to generate special 'RB_XX' prefix for parameters (for testing)"
     option "-cpp_path <path>"
@@ -51,7 +53,9 @@ do
         echoHelp
     fi
 
-    if [ $p = "-compile" ]; then
+    if [ $p = "-midi" ]; then
+        MIDI=True
+    elif [ $p = "-compile" ]; then
         COMPILE=True
     elif [ $p = "-test" ]; then
         TEST=True
@@ -86,7 +90,7 @@ for f in $FILES; do
         faust $OPTIONS "$f" -lang codebox -double -json -o "${f%.dsp}.codebox" || exit
     fi
     # compile codebox and JSON file to maxpat
-    python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $COMPILE $TEST 
+    python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $MIDI $COMPILE $TEST 
   
     # remove temporary files
     rm -f "${f%.dsp}.codebox" "$f.json"
