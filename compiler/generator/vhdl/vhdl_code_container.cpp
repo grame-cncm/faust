@@ -177,7 +177,7 @@ void VhdlCodeContainer::register_component(const Vertex& component, std::optiona
     int      i;
     int64_t  i64;
     double   r;
-    Tree     size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
+    Tree     x, y;
     xtended* user_data = (xtended*)getUserData(sig);
     VhdlType sig_type;
     switch (component.nature) {
@@ -190,7 +190,6 @@ void VhdlCodeContainer::register_component(const Vertex& component, std::optiona
                 VhdlType((gGlobal->gVHDLFloatEncoding ? VhdlInnerType::RealFloat : VhdlInnerType::SFixed), 8, -23);
     }
 
-    // TODO: implement missing operators
     // TODO: Add support for custom operators
     if (user_data) {
         // TODO: Find a more general way to handle user signals
@@ -203,7 +202,6 @@ void VhdlCodeContainer::register_component(const Vertex& component, std::optiona
         generateConstant(component.node_hash, VhdlValue(i64));
     } else if (isSigReal(sig, &r)) {
         generateConstant(component.node_hash, VhdlValue(r));
-    } else if (isSigWaveform(sig)) {
     } else if (isSigInput(sig, &i) && component.is_recursive()) {
         // Recursive inputs do not generate anything
     } else if (isSigInput(sig, &i)) {
@@ -220,73 +218,15 @@ void VhdlCodeContainer::register_component(const Vertex& component, std::optiona
         generateDelay(component.node_hash, sig_type);
     } else if (isSigDelay(sig, x, y)) {
         generateDelay(component.node_hash, sig_type);
-    } else if (isSigPrefix(sig, x, y)) {
     } else if (isSigBinOp(sig, &i, x, y)) {
         generateBinaryOperator(component.node_hash, i, sig_type);
     }
 
-    // Foreign functions
-    else if (isSigFFun(sig, ff, largs)) {
-    } else if (isSigFConst(sig, type, name, file)) {
-    } else if (isSigFVar(sig, type, name, file)) {
-    }
-
-    // Tables
-    else if (isSigWRTbl(sig, size, gen, wi, ws)) {
-    } else if (isSigRDTbl(sig, tbl, ri)) {
-    }
-
-    // Doc
-    else if (isSigDocConstantTbl(sig, x, y)) {
-    } else if (isSigDocWriteTbl(sig, x, y, u, v)) {
-    } else if (isSigDocAccessTbl(sig, x, y)) {
-    }
-
-    // Select2 (and Select3 expressed with Select2)
-    else if (isSigSelect2(sig, sel, x, y)) {
-    }
-
-    // Table sigGen
-    else if (isSigGen(sig, x)) {
-    }
-
-    // recursive signals
-    else if (isProj(sig, &i, x)) {
-    } else if (isRec(sig, var, le)) {
-    }
-
-    // Int, Bit and Float Cast
-    else if (isSigIntCast(sig, x)) {
-    } else if (isSigBitCast(sig, x)) {
-    } else if (isSigFloatCast(sig, x)) {
-    }
-
-    // UI
-    else if (isSigButton(sig, label)) {
-    } else if (isSigCheckbox(sig, label)) {
-    } else if (isSigVSlider(sig, label, c, x, y, z)) {
-    } else if (isSigHSlider(sig, label, c, x, y, z)) {
-    } else if (isSigNumEntry(sig, label, c, x, y, z)) {
-    } else if (isSigVBargraph(sig, label, x, y, z)) {
-    } else if (isSigHBargraph(sig, label, x, y, z)) {
-    }
-
-    // Soundfile length, rate, buffer
-    else if (isSigSoundfile(sig, label)) {
-    } else if (isSigSoundfileLength(sig, sf, x)) {
-    } else if (isSigSoundfileRate(sig, sf, x)) {
-    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
-    }
-
-    // Attach, Enable, Control
-    else if (isSigAttach(sig, x, y)) {
-    } else if (isSigEnable(sig, x, y)) {
-    } else if (isSigControl(sig, x, y)) {
-    }
+    // TODO: implement missing operators, see the original SignalVisitor implementation
 
     else if (isNil(sig)) {
     } else {
-        std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : unrecognized signal : " << *sig << std::endl;
+        std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : tried generating code for a non-implemented signal type : " << *sig << std::endl;
         faustassert(false);
     }
 }
