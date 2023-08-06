@@ -56,13 +56,15 @@ void VhdlProducer::visit(Tree signal)
         // Finally, we create edges from the children to the current vertex.
         _visit_stack.pop();
         if (!_visit_stack.empty()) {
-            VisitInfo last_visited = _visit_stack.top();
-            int register_count = _vertices[last_visited.vertex_index].is_output() ? SAMPLE_RATE : 0;
-            _edges[vertex_id].push_back(Edge(last_visited.vertex_index, register_count, _vertices[vertex_id].propagation_delay));
+            VisitInfo last_visited   = _visit_stack.top();
+            int       register_count = _vertices[last_visited.vertex_index].is_output() ? SAMPLE_RATE : 0;
+            _edges[vertex_id].push_back(
+                Edge(last_visited.vertex_index, register_count, _vertices[vertex_id].propagation_delay));
 
             if (last_visited.is_recursive) {
                 _visit_stack.pop();
-                _edges[vertex_id].push_back(Edge(_visit_stack.top().vertex_index, 0, _vertices[vertex_id].propagation_delay));
+                _edges[vertex_id].push_back(
+                    Edge(_visit_stack.top().vertex_index, 0, _vertices[vertex_id].propagation_delay));
                 _visit_stack.push(last_visited);
             }
         } else {
@@ -70,7 +72,8 @@ void VhdlProducer::visit(Tree signal)
             // we need to create an explicit output node with `MASTER_CLOCK_FREQUENCY / SAMPLE_RATE` registers.
             int output_id = _vertices.size();
             addVertex(Vertex(signal, OUTPUT));
-            _edges[vertex_id].push_back(Edge(output_id, static_cast<int>(MASTER_CLOCK_FREQUENCY / SAMPLE_RATE), _vertices[vertex_id].propagation_delay));
+            _edges[vertex_id].push_back(Edge(output_id, static_cast<int>(MASTER_CLOCK_FREQUENCY / SAMPLE_RATE),
+                                             _vertices[vertex_id].propagation_delay));
         }
     }
 }
@@ -82,7 +85,14 @@ void VhdlProducer::optimize()
 
 void VhdlProducer::generate(std::ostream& out)
 {
-    auto container = VhdlCodeContainer(_name, _inputs_count, _outputs_count, cyclesPerSample(), {});
+    auto max_cycles_to_output = 0;
+    for (size_t vertex = 0; vertex < _vertices.size(); ++vertex) {
+            auto cycles_to_vertex = cyclesFromInput(vertex);
+            if (cycles_to_vertex > max_cycles_to_output) {
+                max_cycles_to_output = cycles_to_vertex;
+            }
+    }
+    auto container = VhdlCodeContainer(_name, _inputs_count, _outputs_count, max_cycles_to_output, {});
 
     instantiate_components(container);
     map_ports(container);
@@ -97,8 +107,10 @@ void VhdlProducer::generate(std::ostream& out)
 void VhdlProducer::instantiate_components(VhdlCodeContainer& container)
 {
     // We generate a new component for each vertex
+    int i = 0;
     for (auto vertex : _vertices) {
-        container.register_component(vertex);
+        container.register_component(vertex, cyclesFromInput(i));
+        ++i;
     }
 }
 void VhdlProducer::map_ports(VhdlCodeContainer& container)
@@ -141,7 +153,7 @@ void VhdlProducer::normalize()
         return max_incoming_weight[vertex].value();
     };
 
-    for (int i = 0; i < _vertices.size(); ++i) {
+    for (size_t i = 0; i < _vertices.size(); ++i) {
         incoming_weight(i);
     }
 
@@ -160,11 +172,11 @@ void VhdlProducer::normalize()
  */
 void VhdlProducer::retiming()
 {
-    // TODO: First compute W and D matrices to determine max_d
+    // TODO: First compute W and D matrices to determine max_d if using the notion of delay
     // Note that this is not necessary as of now, since all operators have an equal
     // propagation delay. It will be necessary however if the notion of delay is ever used
     // in the future.
-    int max_d = 2400;
+    int max_d = MASTER_CLOCK_FREQUENCY / SAMPLE_RATE;
 
     // Use binary search to find a legal retiming of minimal clock period
     int l = 0, r = max_d, m;
@@ -204,7 +216,7 @@ std::vector<int> topologicalOrdering(size_t vertices, const std::vector<std::vec
       stack.push_back(vertex);
     };
 
-    for (int vertex = 0; vertex < vertices; ++vertex) {
+    for (size_t vertex = 0; vertex < vertices; ++vertex) {
         if (!visited[vertex]) {
             topologicalSort(vertex);
         }
@@ -269,7 +281,7 @@ std::optional<Retiming> VhdlProducer::findRetiming(int target_clock_period)
     auto saved_edges = _edges;
 
     // Repeat |V| - 1 times
-    for (int i = 0; i < _vertices.size(); ++i) {
+    for (size_t i = 0; i < _vertices.size(); ++i) {
         applyRetiming(retiming);
         auto propagation_delays = maxIncomingPropagationDelays();
         for (size_t j = 0; j < _vertices.size(); ++j) {
@@ -296,8 +308,8 @@ std::optional<Retiming> VhdlProducer::findRetiming(int target_clock_period)
 
 void VhdlProducer::applyRetiming(const Retiming& retiming)
 {
-    for (int i = 0; i < _vertices.size(); ++i) {
-        for (int j = 0; j < _edges[i].size(); ++j) {
+    for (size_t i = 0; i < _vertices.size(); ++i) {
+        for (size_t j = 0; j < _edges[i].size(); ++j) {
             _edges[i][j].register_count += retiming[_edges[i][j].target] - retiming[i];
         }
     }
@@ -331,7 +343,7 @@ void VhdlProducer::parseCustomComponents(std::istream& input)
     }
 }
 
-int VhdlProducer::cyclesPerSample() const
+int VhdlProducer::cyclesFromInput(int vertex) const
 {
     std::vector<int> topological_order = topologicalOrdering(_vertices.size(), _edges);
     std::vector<std::vector<Edge>> transposed_graph = transposedGraph();
@@ -348,11 +360,7 @@ int VhdlProducer::cyclesPerSample() const
       std::vector<Edge> incoming_edges = transposed_graph[vertex_id];
       int max_incoming = 0;
       for (auto edge : incoming_edges) {
-          if (_vertices[vertex_id].is_output()) {
-              continue;
-          }
-
-          int incoming = computeIncomingWeight(edge.target) + edge.register_count;
+          int incoming = computeIncomingWeight(edge.target) + (_vertices[vertex_id].is_output() ? 0 : edge.register_count);
           if (incoming > max_incoming) {
               max_incoming = incoming;
           }
@@ -362,13 +370,9 @@ int VhdlProducer::cyclesPerSample() const
       return incoming_weight[vertex_id];
     };
 
-    int max_incoming_weight= 0;
     for (auto vertex : topological_order) {
-        int incoming_weight = computeIncomingWeight(vertex);
-        if (incoming_weight > max_incoming_weight) {
-            max_incoming_weight= incoming_weight;
-        }
+        computeIncomingWeight(vertex);
     }
 
-    return max_incoming_weight;
+    return incoming_weight[vertex];
 }

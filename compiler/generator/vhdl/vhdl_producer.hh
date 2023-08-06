@@ -3,6 +3,7 @@
 #include "vhdl_code_container.hh"
 #include "signalVisitor.hh"
 #include "global.hh"
+#include "sigtyperules.hh"
 #include <fstream>
 #include <optional>
 
@@ -20,18 +21,23 @@ struct Vertex {
     static int output_counter;
     Tree signal;
     size_t node_hash;
+    int nature;
 
     int propagation_delay = 1;
     int pipeline_stages = 0;
 
-    Vertex(const Tree& signal)
-        : signal(signal), node_hash(signal->hashkey()), propagation_delay(1), pipeline_stages(0) {};
+    bool recursive;
 
-    Vertex(const Tree& signal, bool is_input): signal(signal), node_hash(signal->hashkey()), propagation_delay(1) {
+    Vertex(const Tree& signal)
+        : signal(signal), node_hash(signal->hashkey()), nature(getCertifiedSigType(signal)->nature()), propagation_delay(1), pipeline_stages(0), recursive(false) {};
+
+    Vertex(const Tree& signal, bool is_input): Vertex(signal) {
         int i;
         Tree group;
         if (!isProj(signal, &i, group)) {
             i = is_input ? input_counter++ : output_counter++;
+        } else {
+            recursive = true;
         }
         this->signal = is_input ? sigInput(i) : sigOutput(i, signal);
     }
@@ -39,6 +45,16 @@ struct Vertex {
     bool is_output() const
     {
         return signal->node() == gGlobal->SIGOUTPUT;
+    }
+    bool is_input() const {
+        return signal->node() == gGlobal->SIGINPUT;
+    }
+    bool is_recursive() const {
+        return recursive;
+    }
+
+    int get_nature() const {
+        return nature;
     }
 };
 template<>
@@ -145,6 +161,14 @@ class VhdlProducer : public SignalVisitor {
     void normalize();
 
     /**
+     * CODE GENERATION
+     */
+    void declare_dependencies();
+    void generate_entities();
+    void instantiate_components();
+    void map_ports();
+
+    /**
      * RETIMING
      */
     /** Computes the maximal propagation delay to access each vertex */
@@ -167,10 +191,11 @@ class VhdlProducer : public SignalVisitor {
     /**
      * HELPER FUNCTIONS
      */
-     /** Computes the number of cycles necessary to process one sample.
-      * It is equivalent to the longest path along the graph, weighted by registers and pipeline stages.
-      */
-     int cyclesPerSample() const;
+    /** Computes the maximum number of cycles necessary to access a given vertex.
+     * It is equivalent to the longest path along the graph, weighted by registers and pipeline stages.
+     * This is useful to propagate signals like ap_start in the actual circuit along a series of registers.
+     */
+    int cyclesFromInput(int vertex) const;
 
     std::optional<int> searchNode(const size_t hash) const {
         for (size_t v = 0; v < _vertices.size(); ++v) {

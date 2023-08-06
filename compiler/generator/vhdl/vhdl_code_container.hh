@@ -34,10 +34,6 @@
 enum class PortMode { Input, Output, InOut, Buffer };
 std::ostream& operator<<(std::ostream& out, const PortMode& port_mode);
 
-enum class ObjectType { Constant, Signal, Variable, File };
-std::ostream& operator<<(std::ostream& out, const ObjectType& type);
-std::string assignmentSymbol(ObjectType type);
-
 enum class VhdlInnerType {
     Bit,
     BitVector,
@@ -57,6 +53,8 @@ enum class VhdlInnerType {
     Unsigned, Signed,
 
     UFixed, SFixed,
+
+    Any,
 };
 
 
@@ -64,6 +62,7 @@ struct VhdlType {
     VhdlInnerType type;
     int msb, lsb;
 
+    VhdlType(): type(VhdlInnerType::Any), msb(0), lsb(0) {}
     VhdlType(VhdlInnerType type): type(type), msb(0), lsb(0) {}
     VhdlType(VhdlInnerType type, int msb, int lsb): type(type), msb(msb), lsb(lsb) {}
     std::string to_string() const;
@@ -172,6 +171,12 @@ class VhdlCodeBlock : public std::ostream, public std::enable_shared_from_this<V
     friend std::ostream& operator<<(std::ostream& out, const VhdlCodeBlock& block);
 };
 
+struct RegisterSeriesInfo {
+    std::string name;
+    std::optional<size_t> source;
+    int registers_count;
+};
+
 /**
  * The VhdlCodeContainer avoids common pitfalls like dealing with
  * indentation manually or generating redundant code
@@ -180,9 +185,9 @@ class VhdlCodeBlock : public std::ostream, public std::enable_shared_from_this<V
 class VhdlCodeContainer
 {
     std::string _ip_name;
-    int _num_inputs;
-    int _num_outputs;
-    int _cycles_per_sample;
+    size_t _num_inputs;
+    size_t _num_outputs;
+    size_t _cycles_per_sample;
 
     // Core blocks that are always accessible
     VhdlCodeBlock _entities;
@@ -191,12 +196,14 @@ class VhdlCodeContainer
 
     // Keeps track of which entities are already declared, to avoid generating the same
     // code twice
-    std::map<std::string, int> _declared_entities;
+    std::map<std::string, size_t> _declared_entities;
 
     // Associates vertices of the graph to their VHDL signal identifier
     std::map<size_t, std::string> _signal_identifier;
     std::map<size_t, std::vector<std::pair<size_t, size_t>>> _mappings;
+    std::vector<RegisterSeriesInfo> _register_series;
     std::vector<size_t> _output_mappings;
+    std::map<size_t, size_t> _one_sample_delay_mappings;
 
     // Stores code for custom operators
     std::map<size_t, std::string> _custom_operators;
@@ -212,13 +219,11 @@ class VhdlCodeContainer
         if (cycles_per_sample) {
             generateRegisterSeries(cycles_per_sample, VhdlType(VhdlInnerType::StdLogic));
         }
-
-
     }
 
     // Registers a new unique component, declaring its related signals and generic
     // component if necessary
-    void register_component(const Vertex& component);
+    void register_component(const Vertex& component, std::optional<int> cycles_from_input = std::nullopt);
 
     // Connects two nodes with the given amount of lag i.e registers in between source and target
     void connect(const Vertex& source, const Vertex& target, int lag);
@@ -231,7 +236,7 @@ class VhdlCodeContainer
     size_t generateRegisterSeries(int n, VhdlType type);
     void generateDelay(size_t hash, VhdlType type);
     void generateConstant(size_t hash, VhdlValue value);
-    void generateOneSampleStorage(VhdlType type);
+    void generateOneSampleDelay(size_t hash, VhdlType type, int cycles_from_input);
     void generateBinaryOperator(size_t hash, int kind, VhdlType type);
 
     friend std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container);
