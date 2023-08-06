@@ -44,6 +44,17 @@
 
 #define kMaxHeight 1024
 
+enum class DelayType {
+    kNotADelay = 0,
+    kZeroDelay,
+    kMonoDelay,
+    kCopyDelay,
+    kDenseDelay,
+    kMaskRingDelay,
+    kSelectRingDelay
+};
+std::string nameDelayType(DelayType dt);
+
 class Compiler : public virtual Garbageable {
    protected:
     Klass*       fClass;
@@ -83,6 +94,9 @@ class Compiler : public virtual Garbageable {
     void generateMacroInterfaceTree(const std::string& pathname, Tree t);
     void generateMacroInterfaceElements(const std::string& pathname, Tree elements);
     void generateWidgetMacro(const std::string& pathname, Tree fulllabel, Tree varname, Tree sig);
+
+    // Analyze delay type
+    virtual DelayType analyzeDelayType(Tree sig) = 0;
 };
 
 #define generateEquivRecGroup generateRecGroup

@@ -1969,12 +1969,12 @@ static void printHelp()
     cout << tab
          << "-mdd <n>    --max-dense-delay <n>       use a dense delay up to max delay <n> (if enough density) and a "
             "ring "
-            "buffer delay above (default 1024)."
+            "buffer delay above (ocpp only, default 1024)."
          << endl;
     cout << tab
          << "-mdy <n>    --min-density <n>           minimal density (100*number of delays/max delay) to use a dense "
             "delays "
-            "(default 33)."
+            "(ocpp only, default 33)."
          << endl;
     cout << tab
          << "-dlt <n>    --delay-line-threshold <n>  use a mask-based ring buffer delays up to max delay <n> and a "
