@@ -48,6 +48,7 @@ enum class DelayType {
     kNotADelay = 0,
     kZeroDelay,
     kMonoDelay,
+    kSingleDelay,
     kCopyDelay,
     kDenseDelay,
     kMaskRingDelay,

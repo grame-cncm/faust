@@ -64,8 +64,8 @@ using namespace std;
 
 std::string nameDelayType(DelayType dt)
 {
-    static std::string delayTypeName[] = {"kNotADelay",  "kZeroDelay",     "kMonoDelay",      "kCopyDelay",
-                                          "kDenseDelay", "kMaskRingDelay", "kSelectRingDelay"};
+    static std::string delayTypeName[] = {"kNotADelay", "kZeroDelay",  "kMonoDelay",     "kSingleDelay",
+                                          "kCopyDelay", "kDenseDelay", "kMaskRingDelay", "kSelectRingDelay"};
     return delayTypeName[int(dt)];
 }
 

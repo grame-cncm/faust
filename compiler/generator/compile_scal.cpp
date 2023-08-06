@@ -1226,6 +1226,7 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
                 return DelayType::kMonoDelay;
             }
         }
+        return DelayType::kSingleDelay;
     }
     if (mxd <= gGlobal->gMaxCopyDelay) {
         return DelayType::kCopyDelay;
@@ -1546,6 +1547,16 @@ void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const 
             fClass->addZone3(subst("$0 = $0State;", vname));
             fClass->addExecCode(Statement(ccs, subst("$0 = $1;", vname, exp)));
             fClass->addZone3Post(subst("$0State = $0;", vname));
+            break;
+
+        case DelayType::kSingleDelay:
+            fClass->addDeclCode(subst("$0 \t$1State; // Single Delay", ctype, vname));
+            fClass->addClearCode(subst("$0State = 0;", vname));
+            fClass->addZone2(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
+            fClass->addZone3(subst("$0[1] = $0State;", vname));
+            fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+            fClass->addPostCode(Statement("", subst("$0[1] = $0[0];", vname)));
+            fClass->addZone3Post(subst("$0State = $0[1];", vname));
             break;
 
         case DelayType::kCopyDelay:
