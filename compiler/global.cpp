@@ -1857,6 +1857,10 @@ static void enumBackends(ostream& out)
     out << dspto << "Template" << endl;
 #endif
     
+#ifdef VHDL_BUILD
+    out << dspto << "VHDL" << endl;
+#endif
+    
 #ifdef WASM_BUILD
     out << dspto << "WebAssembly (wast/wasm)" << endl;
 #endif
@@ -1913,7 +1917,7 @@ static void printHelp()
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
          << "                                        'lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, "
-         "ocpp, rust or wast/wasm."
+         "ocpp, rust, vhdl or wast/wasm."
          << endl;
     cout << tab
          << "-single     --single-precision-floats   use single precision floats for internal computations (default)."
@@ -2032,7 +2036,6 @@ static void printHelp()
          << endl;
     cout << tab << "-ns <name>  --namespace <name>          generate C++ or D code in a namespace <name>." << endl;
     
-    cout << tab << "-vhdl          --vhdl                   output vhdl file." << endl;
     cout << tab << "-vhdl-trace    --vhdl-trace             activate trace." << endl;
     cout << tab << "-vhdl-float    --vhdl-float             uses IEEE-754 format for samples instead of fixed point." << endl;
     cout << tab << "-vhdl-components <file> --vhdl-components <file>    path to a file describing custom components for the VHDL backend." << endl;

@@ -57,7 +57,7 @@ void VhdlProducer::visit(Tree signal)
         _visit_stack.pop();
         if (!_visit_stack.empty()) {
             VisitInfo last_visited   = _visit_stack.top();
-            int       register_count = _vertices[last_visited.vertex_index].is_output() ? SAMPLE_RATE : 0;
+            int       register_count = _vertices[last_visited.vertex_index].is_output() ? FPGA_SAMPLE_RATE : 0;
             _edges[vertex_id].push_back(
                 Edge(last_visited.vertex_index, register_count, _vertices[vertex_id].propagation_delay));
 
@@ -69,10 +69,10 @@ void VhdlProducer::visit(Tree signal)
             }
         } else {
             // We're at a root node, which means it is an output. To make retiming possible,
-            // we need to create an explicit output node with `MASTER_CLOCK_FREQUENCY / SAMPLE_RATE` registers.
+            // we need to create an explicit output node with `MASTER_CLOCK_FREQUENCY / FPGA_SAMPLE_RATE` registers.
             int output_id = _vertices.size();
             addVertex(Vertex(signal, OUTPUT));
-            _edges[vertex_id].push_back(Edge(output_id, static_cast<int>(MASTER_CLOCK_FREQUENCY / SAMPLE_RATE),
+            _edges[vertex_id].push_back(Edge(output_id, static_cast<int>(MASTER_CLOCK_FREQUENCY / FPGA_SAMPLE_RATE),
                                              _vertices[vertex_id].propagation_delay));
         }
     }
@@ -176,7 +176,7 @@ void VhdlProducer::retiming()
     // Note that this is not necessary as of now, since all operators have an equal
     // propagation delay. It will be necessary however if the notion of delay is ever used
     // in the future.
-    int max_d = MASTER_CLOCK_FREQUENCY / SAMPLE_RATE;
+    int max_d = MASTER_CLOCK_FREQUENCY / FPGA_SAMPLE_RATE;
 
     // Use binary search to find a legal retiming of minimal clock period
     int l = 0, r = max_d, m;

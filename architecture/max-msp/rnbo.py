@@ -216,7 +216,7 @@ def add_midi_control(item, sub_patch, set_param, codebox):
     # Prepare the MIDI input and output messages
     midi_type = midi_info[0]
     midi_args = " ".join(midi_info[1:])
-    # TDO: handle all channels case: Faust 0 => RNB -1
+    # TODO: handle all channels case: Faust 0 => RNBO -1
     midi_in = sub_patch.add_textbox(f"{midi_mapping[midi_type]['in']} {midi_args}")
     # midi_out = sub_patch.add_textbox(f"{midi_mapping[midi_type]['out']} {midi_args}")
 

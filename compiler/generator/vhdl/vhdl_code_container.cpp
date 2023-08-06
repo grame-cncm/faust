@@ -160,10 +160,7 @@ std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container) 
 
         out << "audio_out_" << output << " <= " << source_id << ";" << std::endl;
     }
-    std::cout << std::endl;
-
-    out << std::endl << "end DSP;";
-
+    out << std::endl << "end DSP;" << std::endl;
     return out;
 }
 
@@ -630,6 +627,7 @@ std::string VhdlType::to_string() const
     }
     return s.str();
 }
+
 std::ostream& operator<<(std::ostream& out, const VhdlType& type) {
     switch (type.type) {
         case VhdlInnerType::Bit: out << "bit"; break;
@@ -680,10 +678,11 @@ std::ostream& operator<<(std::ostream& out, const VhdlValue& value) {
 
        case VhdlInnerType::StdLogic: out << (value.value.boolean ? "'1'" : "'0'"); break;
        default: {
-            std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : Values of type " << value.vhdl_type << " are not yet implemented" << std::endl;
+            std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : values of type " << value.vhdl_type << " are not yet implemented" << std::endl;
             faustassert(false);
        }
    }
 
    return out;
 }
+

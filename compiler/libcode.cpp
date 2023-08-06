@@ -144,10 +144,12 @@ using namespace std;
  Global context
  *****************************************************************/
 
+// File handling
 static unique_ptr<ifstream> gEnrobage;
 static unique_ptr<ostream>  gHelpers;
 static unique_ptr<ostream>  gDst;
-static string gOutpath;
+static string               gOutpath;
+static bool                 gUseCout = false;
 
 // Old CPP compiler
 #ifdef OCPP_BUILD
@@ -171,7 +173,7 @@ static void includeFile(const string& file, ostream& dst)
     }
 }
 
-static void injectCode(unique_ptr<ifstream>& enrobage, unique_ptr<ostream>& dst, bool is_cout)
+static void injectCode(unique_ptr<ifstream>& enrobage, unique_ptr<ostream>& dst)
 {
     // Check if this is a code injection
     if (gGlobal->gInjectFlag) {
@@ -190,7 +192,7 @@ static void injectCode(unique_ptr<ifstream>& enrobage, unique_ptr<ostream>& dst,
             streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeclass>>");
             streamCopyUntilEnd(*injcode.get(), *dst.get());
             streamCopyUntilEnd(*enrobage.get(), *dst.get());
-            if (is_cout) cout << dynamic_cast<ostringstream*>(dst.get())->str();
+            if (gUseCout) cout << dynamic_cast<ostringstream*>(dst.get())->str();
         }
         throw faustexception("");
     }
@@ -223,6 +225,7 @@ static bool openOutfile()
         }
 
     } else {
+        // cout will be used
         gDst = unique_ptr<ostream>(new ostringstream());
         res = true;
     }
@@ -786,6 +789,7 @@ static void compileVhdl(Tree signals, int numInputs, int numOutputs, ostream* ou
         dot_output.close();
     }
     vhdl_prod.generate(*out);
+    if (gUseCout) cout << dynamic_cast<ostringstream*>(out)->str();
 #else
     throw faustexception("ERROR : -lang vhdl not supported since VHDL backend is not built\n");
 #endif
@@ -990,6 +994,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileDlang(signals, numInputs, numOutputs, gDst.get());
     } else if (startWith(gGlobal->gOutputLang, "vhdl")) {
         compileVhdl(signals, numInputs, numOutputs, gDst.get());
+        // VHDL does not create a compiler, code is already generated here.
+        return;
     } else {
         stringstream error;
         error << "ERROR : cannot find backend for "
@@ -1009,7 +1015,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         generateCodeAux2(gEnrobage, gDst);
     }
 #endif
-    else if (!startWith(gGlobal->gOutputLang, "vhdl")) {
+    else {
         faustassert(false);
     }
 
@@ -1212,7 +1218,7 @@ static void* createFactoryAux1(void* arg)
         faust_alarm(gGlobal->gTimeout);
 
         // Open output file
-        bool is_cout = openOutfile();
+        gUseCout = openOutfile();
         // Open enrobage file
         openEnrobagefile();
 
@@ -1220,7 +1226,7 @@ static void* createFactoryAux1(void* arg)
          1.5 - Check and open some input files
         *****************************************************************/
         // Check for injected code (before checking for architectures)
-        injectCode(gEnrobage, gDst, is_cout);
+        injectCode(gEnrobage, gDst);
 
         /****************************************************************
          2 - parse source files

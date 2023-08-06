@@ -29,10 +29,9 @@ This program is distributed in the hope that it will be useful,
 
 typedef std::vector<int> Retiming;
 // Target sample rate in kHz
-const float SAMPLE_RATE = 44.1;
+const float FPGA_SAMPLE_RATE = 44.1;
 // Target clock frequency in kHz
 const float MASTER_CLOCK_FREQUENCY = 667000;
-
 
 /**
  * A wrapper around signals, with additional information such as propagation delay of pipeline stages
@@ -80,6 +79,7 @@ struct Vertex {
         return nature;
     }
 };
+
 template<>
 struct std::hash<Vertex> {
     std::size_t operator()(Vertex const& v) const noexcept
@@ -118,7 +118,6 @@ struct VisitInfo {
     VisitInfo(int vertex_index): vertex_index(vertex_index) {}
 };
 
-
 //-------------------------VhdlProducer---------------------------------
 // Transforms a signal into semantically equivalent VHDL code
 //----------------------------------------------------------------------
@@ -150,7 +149,7 @@ class VhdlProducer : public SignalVisitor {
         if (!gGlobal->gVHDLComponentsFile.empty()) {
             std::ifstream components_file(gGlobal->gVHDLComponentsFile);
             if (!components_file) {
-                std::cerr << "Failed to read file: " << gGlobal->gVHDLComponentsFile << std::endl;
+                std::cerr << "ASSERT : failed to read file : " << gGlobal->gVHDLComponentsFile << std::endl;
                 faustassert(false);
             }
             parseCustomComponents(components_file);
@@ -259,7 +258,6 @@ class VhdlProducer : public SignalVisitor {
         return transposed;
     }
 
-
     /** Parses a user-defined config file for operators
      * Such files are structured as follows:
      * <id> <implementation file> <pipeline stages>
@@ -271,7 +269,7 @@ class VhdlProducer : public SignalVisitor {
     void parseCustomComponents(std::istream& input);
 
     /** Overrides the TreeTraversal::self method to handle recursion */
-    virtual void self(Tree t)
+    virtual void self(Tree t) override
     {
         if (fTrace) traceEnter(t);
         fIndent++;

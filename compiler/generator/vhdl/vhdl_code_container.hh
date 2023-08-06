@@ -31,7 +31,7 @@
 #include <optional>
 
 // Forward declaration of Vertex from vhdl_producer
-class Vertex;
+struct Vertex;
 
 /**
  * GENERAL ENUMS FOR VHDL CONSTRUCTS
@@ -99,7 +99,7 @@ struct VhdlValue {
             case VhdlInnerType::Boolean:
             case VhdlInnerType::Bit: value.boolean = false; break;
             default: {
-                std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : Type does not have a default value: " << type << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : type does not have a default value : " << type << std::endl;
                 faustassert(false);
             }
         }

@@ -128,7 +128,7 @@ The **interp-tracer** tool runs and instruments the compiled program using the I
 - [INTEGER_OVERFLOW](https://en.wikipedia.org/wiki/Integer_overflow) is produced when computing with integer numbers (actually 32 bits Integer supported by the compiler) and producing out-of-range result. They can be a wanted effect like in the implementation of the [no.noise](https://github.com/grame-cncm/faustlibraries/blob/master/noises.lib#L63) generator.
 - DIV_BY_ZERO(*) happens when dividing a number by 0. 
 - [CAST_INT_OVERFLOW](https://frama-c.com/2013/10/09/Overflow-float-integer.html)(*) happen when converting a floating point number back in an integer number (like when using the `int(val)` expression). 
-- [NEGATIVE_BITSHIFT] happen when doing bit shift operation with a right-hand negative value
+- NEGATIVE_BITSHIFT happen when doing bit shift operation with a right-hand negative value
 - LOAD/STORE(*) happens when reading or writing outside of `rdtable` or `rwtable`, or when loading a non initialized value (typically used by the Faust compiler developers to check the generated code). 
 
 (*) Those errors typically reveal incorrectly written code which must be corrected.
