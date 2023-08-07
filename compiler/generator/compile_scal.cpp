@@ -50,6 +50,9 @@
 #include "timing.hh"
 #include "xtended.hh"
 
+// Old delays are supposed to work while new delays are in progress
+#define OLDDELAY 0
+
 using namespace std;
 
 static Klass* signal2klass(Klass* parent, const string& name, Tree sig)
@@ -1380,6 +1383,7 @@ string ScalarCompiler::generateXtended(Tree sig)
  */
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
+#if OLDDELAY
     // cerr << "ScalarCompiler::generateDelayAccess sig = " << *sig << endl;
     // cerr << "ScalarCompiler::generateDelayAccess exp = " << *exp << endl;
     // cerr << "ScalarCompiler::generateDelayAccess del = " << *delay << endl;
@@ -1419,6 +1423,32 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
         std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
         return generateCacheCode(sig, subst("$0[$1]", vecname, generateIotaCache(idx)));
     }
+#else
+    string    code = CS(exp);  // ensure exp is compiled to have a vector name
+    int       mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
+    DelayType dt   = analyzeDelayType(exp);
+    string    vecname;
+    if (getVectorNameProperty(exp, vecname)) {
+        switch (dt) {
+            case DelayType::kZeroDelay:
+                return vecname;
+
+            case DelayType::kMonoDelay:
+                return vecname;
+
+            case DelayType::kSingleDelay:
+            case DelayType::kCopyDelay:
+            case DelayType::kDenseDelay:
+                return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
+
+            case DelayType::kMaskRingDelay:
+            case DelayType::kSelectRingDelay:
+                int         N   = pow2limit(mxd + 1);
+                std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
+                return generateCacheCode(sig, subst("$0[$1]", vecname, generateIotaCache(idx)));
+        }
+    }
+#endif
 }
 
 /**
@@ -1458,11 +1488,12 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 
     bool mono = isSigSimpleRec(sig);
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
-    string ccs = getConditionCode(sig);
-
-    fClass->addDeclCode(subst("// Normal delay $0 is of type $1", vname, nameDelayType(analyzeDelayType(sig))));
-    generateDelayLine(analyzeDelayType(sig), ctype, vname, mxd, count, mono, exp, ccs);
+    string    ccs = getConditionCode(sig);
+    DelayType dt  = analyzeDelayType(sig);
+    fClass->addDeclCode(subst("// Normal delay $0 is of type $1", vname, nameDelayType(dt)));
+    generateDelayLine(dt, ctype, vname, mxd, count, mono, exp, ccs);
     setVectorNameProperty(sig, vname);
+#if OLDDELAY
     if (mono) {
         return vname;
     } else if (mxd <= count * gGlobal->gMaxCopyDelay) {
@@ -1472,6 +1503,26 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
         std::string idx = subst("IOTA&$0", T(N - 1));
         return subst("$0[$1]", vname, generateIotaCache(idx));
     }
+#else
+    switch (dt) {
+        case DelayType::kZeroDelay:
+            return vname;
+
+        case DelayType::kMonoDelay:
+            return vname;
+
+        case DelayType::kSingleDelay:
+        case DelayType::kCopyDelay:
+        case DelayType::kDenseDelay:
+            return subst("$0[0]", vname);
+
+        case DelayType::kMaskRingDelay:
+        case DelayType::kSelectRingDelay:
+            int         N   = pow2limit(mxd + 1);
+            std::string idx = subst("IOTA&$0", T(N - 1));
+            return subst("$0[$1]", vname, generateIotaCache(idx));
+    }
+#endif
 }
 
 /**
@@ -1481,7 +1532,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const string& vname, int mxd, int count,
                                        bool mono, const string& exp, const string& ccs)
 {
-#if 0
+#if OLDDELAY
     if (mxd == 0) {
         cerr << "MXD==0 :  " << vname << " := " << exp << endl;
         // no need for a real vector
@@ -1530,10 +1581,10 @@ void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const 
             break;
 
         case DelayType::kZeroDelay:
-            cerr << "MXD==0 :  " << vname << " := " << exp << endl;
+            // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
             // no need for a real vector
             if (ccs == "") {
-                fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2;", ctype, vname, exp)));
+                fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2; // Zero delay", ctype, vname, exp)));
             } else {
                 fClass->addZone2(subst("$0 \t$1 = 0;", ctype, vname));
                 fClass->addExecCode(Statement(ccs, subst("\t$0 = $1;", vname, exp)));
@@ -1591,10 +1642,11 @@ void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const 
             int N = pow2limit(mxd + 1);
 
             // we need an iota index
-            fMaxIota = 0;
+            fMaxIota++;
+            // std::cerr << "MaxIota increased" << std::endl;
 
             // declare and init
-            fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
+            fClass->addDeclCode(subst("$0 \t$1[$2]; // Ring Delay", ctype, vname, T(N)));
             fClass->addClearCode(subst("for (int i = 0; i < $1; i++) { $0[i] = 0; }", vname, T(N)));
 
             // execute
@@ -1611,6 +1663,7 @@ void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const 
  */
 void ScalarCompiler::ensureIotaCode()
 {
+    // std::cerr << "ensureIotaCode called " << fMaxIota << std::endl;
     if (fMaxIota >= 0) {
         fClass->addDeclCode("int \tIOTA;");
         fClass->addClearCode(subst("IOTA = $0;", T(fMaxIota)));
