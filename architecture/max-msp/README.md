@@ -84,7 +84,7 @@ If you plan to use **faust2max6/faust2msp** on your own machine, you will have t
 
 # faust2rnbo
 
-The **faust2rnbo** tool transforms a Faust DSP program into a RNBO patch including the generated codebox code. Additional options are used to generate a special version of the RNBO patch used in the testing infrastructure.
+The **faust2rnbo** tool transforms a Faust DSP program into a RNBO patch including the generated codebox code. Additional options are used to generate a special version of the RNBO patch used in the testing infrastructure. 
 
 ## How to use
 
@@ -92,11 +92,12 @@ The **faust2rnbo** tool transforms a Faust DSP program into a RNBO patch includi
 
 `faust2rnbo [options] [additional Faust options (-vec -vs 8...)] <file.dsp>` 
 
-## Options:
+## Options
 
 Here are the available options:
 
   - `-midi` : activates MIDI control
+  - `-nvoices <num>` : produces a polyphonic DSP with <num> voices, ready to be used with MIDI events
   - `-compile` : to trigger C++ compilation at load time
   - `-test` : to generate special 'RB_XX' prefix for parameters (for testing)
   - `-cpp_path <path>` : to set C++ export folder 

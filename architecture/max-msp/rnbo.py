@@ -172,6 +172,58 @@ def build_label(type, shortname, test):
     return "RB_" + type + "_" + shortname if test else shortname
 
 
+# Adds polyphony control
+def add_polyphony_control(
+    sub_patch, set_param_pitch, set_param_gain, set_param_gate, is_freq, is_gain
+):
+    """
+    Adds polyphony control to a sub-patch for MIDI note input.
+
+    This function provides the flexibility to control pitch and gain parameters either
+    by frequency/MIDI key and gain/MIDI velocity. It takes parameters for setting pitch,
+    gain, and gate parameters, along with flags to specify control methods. The MIDI
+    notein and relevant processing elements are added to the sub-patch for polyphonic control.
+
+    Args:
+        sub_patch (SubPatch): The sub-patch to which the polyphony control elements will be added.
+        set_param_pitch (TextBox): The element for setting the pitch parameter.
+        set_param_gain (TextBox): The element for setting the gain parameter.
+        set_param_gate (TextBox): The element for setting the gate parameter.
+        is_freq (bool): Flag indicating whether pitch is controlled by frequency or MIDI key.
+        is_gain (bool): Flag indicating whether gain is controlled by gain or MIDI velocity.
+    """
+
+    # Add MIDI notein
+    note_in = sub_patch.add_textbox("notein")
+
+    # Pitch can be controlled by frequency or MIDI key
+    if is_freq:
+        # MIDI key to frequency conversion
+        mtof = sub_patch.add_textbox("mtof")
+        # freq patching
+        sub_patch.add_line(note_in, mtof)
+        sub_patch.add_line(mtof, set_param_pitch)
+    else:
+        # MIDI key patching
+        sub_patch.add_line(note_in, set_param_pitch)
+
+    # Gain can be controlled by gain or MIDI velocity
+    if is_gain:
+        # MIDI velocity scaled to 0-1
+        scale_gain = sub_patch.add_textbox("scale 0 127 0 1")
+        # Velocity/gain patching
+        sub_patch.add_line(note_in, scale_gain, outlet=1)
+        sub_patch.add_line(scale_gain, set_param_gain)
+    else:
+        # MIDI velocity directly controls gain
+        sub_patch.add_line(note_in, set_param_gain, outlet=1)
+
+    # Velocity/gate patching
+    gate_op = sub_patch.add_textbox("> 0")
+    sub_patch.add_line(note_in, gate_op, outlet=1)
+    sub_patch.add_line(gate_op, set_param_gate)
+
+
 # Adds MIDI control
 def add_midi_control(item, sub_patch, set_param, codebox):
     """
@@ -188,13 +240,13 @@ def add_midi_control(item, sub_patch, set_param, codebox):
         codebox (Textbox): The codebox~ object in the subpatcher.
 
     Returns:
-        None: If MIDI control type is not supported, the function logs an error and returns.
+        bool: True if MIDI control type is supported and added successfully, possible logs an error and return False otherwise.
     """
 
     # Get the MIDI information from the item dictionary
     midi_info = item.get("midi", None)
     if not midi_info:
-        return
+        return False
 
     # Define the Faust to RNBO syntax mapping for both MIDI input and output
     midi_mapping = {
@@ -211,7 +263,7 @@ def add_midi_control(item, sub_patch, set_param, codebox):
     midi_type = midi_info[0]
     if midi_type not in midi_mapping:
         logging.error(f"MIDI control type '{midi_type}' not supported")
-        return
+        return False
 
     # Prepare the MIDI input and output messages
     midi_type = midi_info[0]
@@ -241,6 +293,7 @@ def add_midi_control(item, sub_patch, set_param, codebox):
     # Connect the output objects
     # sub_patch.add_line(codebox, scaling_out_box)
     # sub_patch.add_line(scaling_out_box, midi_out)
+    return True
 
 
 # Create the RNBO maxpat file
@@ -252,6 +305,7 @@ def create_rnbo_patch(
     codebox_code,
     items_info_list,
     midi,
+    nvoices,
     compile,
     test,
     num_inputs,
@@ -269,6 +323,7 @@ def create_rnbo_patch(
     - items_info_list (list): A list of dictionaries containing information about the items to be added.
     - midi (bool): A flag indicating whether to include MIDI input/output control.
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
+    - nvoices (int): The number of voices.
     - test (bool): A flag indicating whether the patch is for testing purposes.
     - num_inputs (int): The number of audio inputs.
     - num_outputs (int): The number of audio outputs.
@@ -288,9 +343,11 @@ def create_rnbo_patch(
     audio_out = patcher.add_textbox("ezdac~")
 
     # Create the rnbo~ object
-    rnbo = patcher.add_rnbo(
-        saved_object_attributes=dict(optimization="O3", title=dsp_name, dumpoutlet=1)
-    )
+    rnbo_attributes = {"optimization": "O3", "title": dsp_name, "dumpoutlet": 1}
+    # Add the polyphony attribute only if nvoices > 0
+    if nvoices > 0:
+        rnbo_attributes["polyphony"] = nvoices
+    rnbo = patcher.add_rnbo(saved_object_attributes=rnbo_attributes)
 
     # Add loadbang and 'compile C++ and export' machinery
     if compile:
@@ -345,14 +402,17 @@ def create_rnbo_patch(
         output_box = sub_patch.add_textbox(f"out~ {i + 1}")
         sub_patch.add_line(codebox, output_box, outlet=i)
 
-    # Possibly add MIDI input/output control
-    if midi:
-        midi_in = patcher.add_textbox("midiin")
-        midi_out = patcher.add_textbox("midiout")
-        sub_patch.add_line(midi_in, rnbo, inlet=num_inputs + 1)
-        sub_patch.add_line(rnbo, midi_out, outlet=num_outputs + 1)
+    # Parameter for polyphony handling
+    set_param_pitch = None
+    set_param_gain = None
+    set_param_gate = None
+    is_freq = False
+    is_gain = False
 
-    # Add parameter control for button/checkbox and slider/nentry
+    # MIDI controlled parameters
+    has_midi = False
+
+    # Add parameter control for button/checkbox and slider/nentry, annlyse for polyphony
     for item in items_info_list:
         shortname = item["shortname"]
         item_type = item["type"]
@@ -421,9 +481,41 @@ def create_rnbo_patch(
         # Add a line to connect the 'set' param object to the codebox
         sub_patch.add_line(set_param, codebox)
 
+        # Analyze the parameter shortname for polyphony handing
+        if midi and nvoices > 0:
+            if shortname.endswith("freq"):
+                set_param_pitch = set_param
+                is_freq = True
+            elif shortname.endswith("key"):
+                set_param_pitch = set_param
+                is_freq = False
+            elif shortname.endswith("gain"):
+                set_param_gain = set_param
+                is_gain = True
+            elif shortname.endswith("velocity"):
+                set_param_gain = set_param
+                is_gain = False
+            elif shortname.endswith("gate"):
+                set_param_gate = set_param
+
         # Possibly add MIDI input/output control
         if midi:
-            add_midi_control(item, sub_patch, set_param, codebox)
+            has_midi = has_midi or add_midi_control(item, sub_patch, set_param, codebox)
+
+    # After analyzing all UI items to get freq/gain/gate controls, possibly add polyphony control
+    if midi and set_param_pitch and set_param_gain and set_param_gate:
+        add_polyphony_control(
+            sub_patch, set_param_pitch, set_param_gain, set_param_gate, is_freq, is_gain
+        )
+        has_midi = True
+
+    # Possibly add MIDI input/output control in the global patcher
+    if midi and has_midi:
+        midi_in = patcher.add_textbox("midiin")
+        midi_out = patcher.add_textbox("midiout")
+        # TODO manually for now
+        # sub_patch.add_line(midi_in, rnbo, inlet=num_inputs + 1)
+        # sub_patch.add_line(rnbo, midi_out, outlet=num_outputs + 1)
 
     # And finally save the patch
     patcher.save()
@@ -438,6 +530,7 @@ def load_files_create_rnbo_patch(
     export_path,
     cpp_filename,
     midi,
+    nvoices,
     compile,
     test,
 ):
@@ -452,6 +545,7 @@ def load_files_create_rnbo_patch(
     - export_path (str): The path for exporting the C++ code.
     - cpp_filename (str): The filename for the exported C++ code.
     - midi (bool): A flag indicating whether to include MIDI input/output control.
+    - nvoices (int): The number of voices.
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes.
     """
@@ -462,7 +556,7 @@ def load_files_create_rnbo_patch(
     with open(json_path) as json_file:
         json_data = json.load(json_file)
         items_info_list = extract_items_info(json_data)
-        print(items_info_list)
+        # print(items_info_list)
         num_inputs = json_data.get("inputs", 0)
         num_outputs = json_data.get("outputs", 0)
         options = get_midi_and_nvoices(json_data)
@@ -474,8 +568,10 @@ def load_files_create_rnbo_patch(
         cpp_filename,
         codebox_code,
         items_info_list,
-        # options[0] is the midi state
+        # Take either the midi parameter or options[0] (= the midi state found in the JSON file)
         midi or options[0],
+        # Take either the given nvoices, otherwise options[1](= the number of voices found in the JSON file) or -1
+        nvoices if nvoices > 0 else options[1] if options[1] else -1,
         compile,
         test,
         num_inputs,
@@ -493,8 +589,9 @@ if __name__ == "__main__":
     parser.add_argument("arg5", type=str, help="C++ export folder path")
     parser.add_argument("arg6", type=str, help="C++ export filename")
     parser.add_argument("arg7", type=str, help="MIDI control")
-    parser.add_argument("arg8", type=str, help="compile")
-    parser.add_argument("arg9", type=str, help="test")
+    parser.add_argument("arg8", type=int, help="nvoices")
+    parser.add_argument("arg9", type=str, help="compile")
+    parser.add_argument("arg10", type=str, help="test")
     args = parser.parse_args()
 
     load_files_create_rnbo_patch(
@@ -505,6 +602,7 @@ if __name__ == "__main__":
         args.arg5,
         args.arg6,
         args.arg7 == "True",
-        args.arg8 == "True",
+        args.arg8,
         args.arg9 == "True",
+        args.arg10 == "True",
     )
