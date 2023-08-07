@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "man" "1" "" "Version 2.65.1 (06-August-2023)" "Faust man page"
+.TH "man" "1" "" "Version 2.66.0 (07-August-2023)" "Faust man page"
 .hy
 .SH NAME
 .PP
@@ -66,7 +66,7 @@ directory of the generated output code and of additional generated files
 .PP
 \f[B]-lang\f[R] <lang> \f[B]\[en]language\f[R] select output language,
 `lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir,
-interp, java, jax, jsfx, julia, llvm, ocpp, rust or wast/wasm.
+interp, java, jax, jsfx, julia, llvm, ocpp, rust, vhdl or wast/wasm.
 .PP
 \f[B]-single\f[R] \f[B]\[en]single-precision-floats\f[R] use single
 precision floats for internal computations (default).
@@ -215,18 +215,13 @@ dsp struct layout to follow C ABI.
 \f[B]-ns\f[R] <name> \f[B]\[en]namespace\f[R] <name> generate C++ or D
 code in a namespace <name>.
 .PP
-\f[B]-vhdl\f[R] \f[B]\[en]vhdl\f[R] output vhdl file.
-.PP
 \f[B]-vhdl\f[R]-trace \f[B]\[en]vhdl-trace\f[R] activate trace.
 .PP
-\f[B]-vhdl\f[R]-type 0|1 \f[B]\[en]vhdl-type\f[R] 0|1 sample format 0 =
-sfixed (default), 1 = float.
+\f[B]-vhdl\f[R]-float \f[B]\[en]vhdl-float\f[R] uses IEEE-754 format for
+samples instead of fixed point.
 .PP
-\f[B]-vhdl\f[R]-msb <n> \f[B]\[en]vhdl-msb\f[R] <n> Most Significant Bit
-(MSB) position.
-.PP
-\f[B]-vhdl\f[R]-lsb <n> \f[B]\[en]vhdl-lsb\f[R] <n> Less Significant Bit
-(LSB) position.
+\f[B]-vhdl\f[R]-components <file> \f[B]\[en]vhdl-components\f[R] <file>
+path to a file describing custom components for the VHDL backend.
 .PP
 \f[B]-fpga\f[R]-mem <n> \f[B]\[en]fpga-mem\f[R] <n> FPGA block ram max
 size, used in -os2/-os3 mode.

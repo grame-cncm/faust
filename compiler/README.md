@@ -1,4 +1,4 @@
-% man(1) Version 2.65.1 (06-August-2023) | Faust man page
+% man(1) Version 2.66.0 (07-August-2023) | Faust man page
 
 NAME
 ====
@@ -148,11 +148,11 @@ Code generation options:
 
   **-ns** \<name>  **--namespace** \<name>          generate C++ or D code in a namespace \<name>.
 
-  **-vhdl-trace**    **--vhdl-trace**             activate VHDL compilation trace, outputs the graph in the `vhdl_graph.dot` file.
+  **-vhdl**-trace    **--vhdl-trace**             activate trace.
 
-  **-vhdl-float** **--vhdl-float**          uses floating point as the sample format.
+  **-vhdl**-float    **--vhdl-float**             uses IEEE-754 format for samples instead of fixed point.
 
-  **-vhdl-operators** \<file> **--vhdl-operators** \<file> optional configuration file that allows to replace some components with user-defined alternatives.
+  **-vhdl**-components \<file> **--vhdl-components** \<file>    path to a file describing custom components for the VHDL backend.
 
   **-fpga**-mem \<n>  **--fpga-mem** \<n>           FPGA block ram max size, used in -os2/-os3 mode.
 

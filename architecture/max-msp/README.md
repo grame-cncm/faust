@@ -47,7 +47,7 @@ All control messages are received in the left most inlet (the signal + message i
 
 When the object has bargraphs, their values are sent on the output messages outlet as a message list *[path, cur, min, max]*.
 
-## Options:
+## Options
 
 Here are the available options:
 
@@ -70,7 +70,7 @@ Here are the available options:
  
 The *faust2msp* tools has to be used to create old Max5 compatible externals, the **faust2max6** tools has to be used starting with Max6. 
 
-## Configuration:
+## Configuration
 
 If you plan to use **faust2max6/faust2msp** on your own machine, you will have to:
 
@@ -78,7 +78,7 @@ If you plan to use **faust2max6/faust2msp** on your own machine, you will have t
 - edit the `faust/tools/faust2appls/faustpath` script to properly setup the $MAXSDK variable, then re-install the scripts again using `sudo make install`
 - alternatively you can locally change the $MAXSDK variable in a terminal using `export MAXSDK=/your/alternate/path`, then use **faust2max6/faust2msp** in this terminal.
 
-## Misc:
+## Misc
 
 - the original DSP file as well as the compiled self-contained C++ file are kept in the compiled `.mxo` external, to be accessed using the *Show Package Contents* option. 
 

@@ -1,4 +1,4 @@
-% man(1) Version 2.65.1 (06-August-2023) | Faust man page
+% man(1) Version 2.66.0 (07-August-2023) | Faust man page
 
 NAME
 ====
@@ -52,7 +52,7 @@ Code generation options:
 ---------------------------------------
 
   **-lang** \<lang> **--language**                 select output language,
-                                          'lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, ocpp, rust or wast/wasm.
+                                          'lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, ocpp, rust, vhdl or wast/wasm.
 
   **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 
@@ -148,15 +148,11 @@ Code generation options:
 
   **-ns** \<name>  **--namespace** \<name>          generate C++ or D code in a namespace \<name>.
 
-  **-vhdl**          **--vhdl**                   output vhdl file.
-
   **-vhdl**-trace    **--vhdl-trace**             activate trace.
 
-  **-vhdl**-type 0|1 **--vhdl-type** 0|1          sample format 0 = sfixed (default), 1 = float.
+  **-vhdl**-float    **--vhdl-float**             uses IEEE-754 format for samples instead of fixed point.
 
-  **-vhdl**-msb \<n>  **--vhdl-msb** \<n>           Most Significant Bit (MSB) position.
-
-  **-vhdl**-lsb \<n>  **--vhdl-lsb** \<n>           Less Significant Bit (LSB) position.
+  **-vhdl**-components \<file> **--vhdl-components** \<file>    path to a file describing custom components for the VHDL backend.
 
   **-fpga**-mem \<n>  **--fpga-mem** \<n>           FPGA block ram max size, used in -os2/-os3 mode.
 
