@@ -22,7 +22,8 @@
 """
 
 """
-Take the DSP name, the DSP compiled as codebox file, the JSON file, and the maxpat output file name. Codebox code will be added in the codebox~ object.
+Take the DSP name, the DSP compiled as codebox file and its associated JSON file, possibly the effect
+compiled as codebox file and its associated JSON file, and the maxpat output file name.
 Addionally, the C++ export path and filename can be specified, and the C++ code will be exported and compiled if 'compile' is True.
 The 'test' option allows to generate a patch with the 'RB_xx' prefixed labels for the parameters, 
 to be used with the C++ RNBO test application with the rnbo_dsp class.
@@ -608,7 +609,7 @@ def create_rnbo_patch(
     - effect_num_inputs (int): The number of effect audio inputs.
     - effect_num_outputs (int): The number of effect audio outputs.
     - midi (bool): A flag indicating whether to include MIDI input/output control.
-    - nvoices (int): The number of voices.
+    - nvoices (int): The number of voices in polyphonic mode.
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes.
     """
@@ -645,7 +646,7 @@ def create_rnbo_patch(
             effect_items_info_list,
             midi,
             -1,
-            test,
+            False,
             effect_num_inputs,
             effect_num_outputs,
         )
@@ -666,6 +667,18 @@ def create_rnbo_patch(
     # Create the audio driver output
     audio_out = patcher.add_textbox("ezdac~")
 
+    # And connect the appropriate rnbo~ object to audio_out
+    if effect_codebox_code:
+        # Connect the effect rnbo~ object to audio_out
+        for i in range(effect_num_outputs):
+            print(i)
+            patcher.add_line(effect_rnbo, audio_out, inlet=i, outlet=i)
+    else:
+        # Connect the DSP rnbo~ object to audio_out
+        for i in range(dsp_num_outputs):
+            print(i)
+            patcher.add_line(dsp_rnbo, audio_out, inlet=i, outlet=i)
+
     # And finally save the patch
     patcher.save()
 
@@ -685,7 +698,7 @@ def load_files_create_rnbo_patch(
     test,
 ):
     """
-    This function loads the codebox and JSON files, extracts relevant data, and creates the RNBO Max patch.
+    This function loads the codebox and JSON files, extracts relevant data in the JSON, and creates the RNBO Max patch.
 
     Parameters:
     - dsp_name (str): The name of the DSP.
@@ -697,9 +710,9 @@ def load_files_create_rnbo_patch(
     - export_path (str): The path for exporting the C++ code.
     - cpp_filename (str): The filename for the exported C++ code.
     - midi (bool): A flag indicating whether to include MIDI input/output control.
-    - nvoices (int): The number of voices.
+    - nvoices (int): The number of voices in polyphonic mode.
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
-    - test (bool): A flag indicating whether the patch is for testing purposes.
+    - test (bool): A flag indicating whether the patch is for testing purposes (causing control parameter special naming).
     """
 
     with open(dsp_codebox_path) as codebox_file:
