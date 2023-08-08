@@ -702,8 +702,6 @@ def load_files_create_rnbo_patch(
     - test (bool): A flag indicating whether the patch is for testing purposes.
     """
 
-    print(effect_codebox_path, effect_json_path)
-
     with open(dsp_codebox_path) as codebox_file:
         dsp_codebox_code = codebox_file.read()
 
