@@ -44,11 +44,11 @@ using namespace std;
  - 'compute' returns the list of audio outputs
  - some identifiers ending with a digit have to be used with "this." syntax in 'update' function (see CodeboxLabelsVisitor printArgs/printArgsCall)
  - workaround for C++ generation bug when no audio inputs by adding an audio 'sig~ 0' input
+ - MIDI support: https://rnbo.cycling74.com/learn/midi-in-rnbo, done in architecture file
+ - polyphonic mode support: https://rnbo.cycling74.com/learn/polyphony-and-voice-management-in-rnbo, done in architecture file
  
  TODO:
  - soundfile primitive support: https://rnbo.cycling74.com/learn/audio-files-in-rnbo
- - MIDI support: https://rnbo.cycling74.com/learn/midi-in-rnbo
- - polyphonic mode support: https://rnbo.cycling74.com/learn/polyphony-and-voice-management-in-rnbo
  */
 
 map<string, bool> CodeboxInstVisitor::gFunctionSymbolTable;

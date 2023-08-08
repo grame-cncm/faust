@@ -270,7 +270,7 @@ def add_midi_control(item, sub_patch, set_param, codebox):
     midi_args = " ".join(midi_info[1:])
     # TODO: handle all channels case: Faust 0 => RNBO -1
     midi_in = sub_patch.add_textbox(f"{midi_mapping[midi_type]['in']} {midi_args}")
-    # midi_out = sub_patch.add_textbox(f"{midi_mapping[midi_type]['out']} {midi_args}")
+    midi_out = sub_patch.add_textbox(f"{midi_mapping[midi_type]['out']} {midi_args}")
 
     # Scaling for MIDI input and output messages
     # Pitchwheel case using @bendmode 1 (-1, 1) mode
@@ -322,8 +322,8 @@ def create_rnbo_patch(
     - codebox_code (str): The code for the codebox~ section in the subpatcher.
     - items_info_list (list): A list of dictionaries containing information about the items to be added.
     - midi (bool): A flag indicating whether to include MIDI input/output control.
-    - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - nvoices (int): The number of voices.
+    - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes.
     - num_inputs (int): The number of audio inputs.
     - num_outputs (int): The number of audio outputs.
@@ -343,11 +343,20 @@ def create_rnbo_patch(
     audio_out = patcher.add_textbox("ezdac~")
 
     # Create the rnbo~ object
-    rnbo_attributes = {"optimization": "O3", "title": dsp_name, "dumpoutlet": 1}
-    # Add the polyphony attribute only if nvoices > 0
-    if nvoices > 0:
+    rnbo_attributes = {"optimization": "O3", "title": dsp_name}
+    # Add the polyphony attribute only if midi is True and nvoices > 0
+    if midi and nvoices > 0:
         rnbo_attributes["polyphony"] = nvoices
-    rnbo = patcher.add_rnbo(saved_object_attributes=rnbo_attributes)
+
+    # Add the MIDI inlet only if midi is True
+    inlets = max(1, num_inputs) + 1 if midi else max(1, num_inputs)
+    # Port message outlet is always added, add the MIDI outlet only if midi is True
+    outlets = max(1, num_outputs) + 2 if midi else max(1, num_outputs) + 1
+    print(inlets, outlets)
+
+    rnbo = patcher.add_rnbo(
+        numinlets=inlets, numoutlets=outlets, saved_object_attributes=rnbo_attributes
+    )
 
     # Add loadbang and 'compile C++ and export' machinery
     if compile:
@@ -513,9 +522,11 @@ def create_rnbo_patch(
     if midi and has_midi:
         midi_in = patcher.add_textbox("midiin")
         midi_out = patcher.add_textbox("midiout")
-        # TODO manually for now
-        # sub_patch.add_line(midi_in, rnbo, inlet=num_inputs + 1)
-        # sub_patch.add_line(rnbo, midi_out, outlet=num_outputs + 1)
+        # See: https://rnbo.cycling74.com/learn/midi-in-rnbo
+        # MIDI inlet will always be the right-most inlet, and inlets numbering starts at 0
+        sub_patch.add_line(midi_in, rnbo, inlet=rnbo.numinlets - 1)
+        # MIDI outlet will always be the second from the right-most outlet, and outlets numbering starts at 0
+        sub_patch.add_line(rnbo, midi_out, outlet=rnbo.numoutlets - 2)
 
     # And finally save the patch
     patcher.save()
