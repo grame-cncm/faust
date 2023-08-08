@@ -98,6 +98,8 @@ Here are the available options:
 
   - `-midi` : activates MIDI control
   - `-nvoices <num>` : produces a polyphonic DSP with <num> voices, ready to be used with MIDI events
+  - `-effect <effect.dsp>` : generates a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC
+  - `-effect auto` : generates a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC
   - `-compile` : to trigger C++ compilation at load time
   - `-test` : to generate special 'RB_XX' prefix for parameters (for testing)
   - `-cpp_path <path>` : to set C++ export folder 

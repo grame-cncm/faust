@@ -19,6 +19,8 @@ COMPILE=False
 EXPORT_PATH="/tmp/foo"
 EXPORT_FILENAME="foo.cpp"
 TEST=False
+POLY="POLY"
+EFFECT=""
 
 echoHelp() 
 {
@@ -27,6 +29,8 @@ echoHelp()
     option
     options -midi
     option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
     option -compile "to trigger C++ compilation at load time"
     option -test "to generate special 'RB_XX' prefix for parameters (for testing)"
     option "-cpp_path <path>"
@@ -59,7 +63,11 @@ do
         MIDI=True
     elif [ $p = "-nvoices" ]; then
         shift
-        NVOICES=$1       
+        NVOICES=$1     
+    elif [ $p = "-effect" ]; then
+        POLY="POLY2"
+        shift
+        EFFECT=$1 
     elif [ $p = "-compile" ]; then
         COMPILE=True
     elif [ $p = "-test" ]; then
@@ -91,11 +99,34 @@ for f in $FILES; do
     # compile the DSP to codebox using the architecture file
     if [ "$TEST" = "True" ]; then
         faust $OPTIONS "$f" -lang codebox-test -double -json -o "${f%.dsp}.codebox" || exit
+        # compile codebox and JSON file to maxpat
+        python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $MIDI $NVOICES $COMPILE $TEST 
     else
         faust $OPTIONS "$f" -lang codebox -double -json -o "${f%.dsp}.codebox" || exit
+        if [ $POLY = "POLY2" ]; then
+            if [ $EFFECT = "auto" ]; then
+                cat > effect.dsp << EndOfCode
+                adapt(1,1) = _;
+                adapt(2,2) = _,_;
+                adapt(1,2) = _ <: _,_;
+                adapt(2,1) = _,_ :> _;
+                adaptor(F,G) = adapt(outputs(F),inputs(G));
+                process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
+EndOfCode
+                faust $OPTIONS effect.dsp -lang codebox -double -json -o effect.codebox || exit
+                rm effect.dsp
+                # compile codebox and JSON files to maxpat
+                python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" --arg4 "effect.codebox" --arg5 "effect.dsp.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $MIDI $NVOICES $COMPILE $TEST 
+            else
+                faust $OPTIONS "$EFFECT" -lang codebox -double -json -o "${EFFECT%.dsp}.codebox"  || exit
+                # compile codebox and JSON files to maxpat
+                python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" --arg4 "${EFFECT%.dsp}.codebox" --arg5 "$EFFECT.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $MIDI $NVOICES $COMPILE $TEST  
+            fi
+         else
+            # compile codebox and JSON file to maxpat
+            python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $MIDI $NVOICES $COMPILE $TEST 
+        fi
     fi
-    # compile codebox and JSON file to maxpat
-    python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $MIDI $NVOICES $COMPILE $TEST 
   
     # remove temporary files
     rm -f "${f%.dsp}.codebox" "$f.json"

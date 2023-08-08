@@ -33,13 +33,14 @@ Parsing the JSON file gives:
     - the MIDI state to be used in the patch
     - the nvoices count to be used in the patch
 The maxpat file is generated with the following structure: 
-    - rnbo~ object
+    - rnbo~ object for DSP
         - subpatch
             - codebox~ object
             - input boxes
             - output boxes
             - parameter boxes possibly with MIDI control
             - lines between boxes
+    - possibly rnbo~ object for effect
     - possibly loadbang box and 'compile C++ and export' machinery
     - possibly midiin/midiout objects
     - ezdac~ object
@@ -52,7 +53,6 @@ import logging
 import re
 
 
-# Analyzing the options metadata
 def get_midi_and_nvoices(json_data):
     """
     Extracts the MIDI state and nvoices count from the given JSON data.
@@ -91,7 +91,6 @@ def get_midi_and_nvoices(json_data):
     return midi_state, nvoices
 
 
-# Extracting UI items info
 def extract_items_info(json_data):
     """
     Extracts information about UI items from the given DSP JSON data.
@@ -172,7 +171,6 @@ def build_label(type, shortname, test):
     return "RB_" + type + "_" + shortname if test else shortname
 
 
-# Adds polyphony control
 def add_polyphony_control(
     sub_patch, set_param_pitch, set_param_gain, set_param_gate, is_freq, is_gain
 ):
@@ -224,7 +222,6 @@ def add_polyphony_control(
     sub_patch.add_line(gate_op, set_param_gate)
 
 
-# Adds MIDI control
 def add_midi_control(item, sub_patch, set_param, codebox):
     """
     Adds MIDI control to the subpatch.
@@ -296,97 +293,53 @@ def add_midi_control(item, sub_patch, set_param, codebox):
     return True
 
 
-# Create the RNBO maxpat file
-def create_rnbo_patch(
+def add_rnbo_object(
+    patcher,
     dsp_name,
-    maxpat_path,
-    export_path,
-    cpp_filename,
     codebox_code,
     items_info_list,
     midi,
     nvoices,
-    compile,
     test,
     num_inputs,
     num_outputs,
 ):
     """
-    This function creates an RNBO Max patcher with the specified parameters.
+    Adds DSP elements, routing, and parameter controls for a DSP to the given Patcher object.
 
     Parameters:
-    - dsp_name (str): The name of the DSP.
-    - maxpat_path (str): The path where the Max patcher will be created.
-    - export_path (str): The path for exporting the C++ code.
-    - cpp_filename (str): The filename for the exported C++ code.
-    - codebox_code (str): The code for the codebox~ section in the subpatcher.
-    - items_info_list (list): A list of dictionaries containing information about the items to be added.
-    - midi (bool): A flag indicating whether to include MIDI input/output control.
-    - nvoices (int): The number of voices.
-    - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
-    - test (bool): A flag indicating whether the patch is for testing purposes.
-    - num_inputs (int): The number of audio inputs.
-    - num_outputs (int): The number of audio outputs.
+        patcher (Patcher): The Patcher object to which DSP elements and controls will be added.
+        dsp_name (str): The name of the DSP.
+        codebox_code (str): The code to be executed by the DSP effect.
+        items_info_list (list): A list of dictionaries containing information about UI items.
+        midi (bool): Indicates whether MIDI control is enabled.
+        nvoices (int): The number of polyphony voices.
+        num_inputs (int): The number of audio input channels.
+        num_outputs (int): The number of audio output channels.
+
+    Returns:
+        rnbo (Object): The added rnbo~ object representing the DSP.
     """
 
-    # Create the patcher
-    patcher = Patcher(maxpat_path)
-
-    # Faust generated patch comment
-    patcher.add_comment(
-        "Faust generated RNBO patch, Copyright (c) 2023 Grame",
-        patching_rect=[50.0, 10.0, 350.0, 100.0],
-        fontsize=16,
-    )
-
-    # Create the audio driver output
-    audio_out = patcher.add_textbox("ezdac~")
-
     # Create the rnbo~ object
-    rnbo_attributes = {"optimization": "O3", "title": dsp_name}
+    rnbo_attributes = {"optimization": "O3", "title": dsp_name, "dumpoutlet": 1}
     # Add the polyphony attribute only if midi is True and nvoices > 0
     if midi and nvoices > 0:
         rnbo_attributes["polyphony"] = nvoices
 
     # Add the MIDI inlet only if midi is True
     inlets = max(1, num_inputs) + 1 if midi else max(1, num_inputs)
-    # Port message outlet is always added, add the MIDI outlet only if midi is True
-    outlets = max(1, num_outputs) + 2 if midi else max(1, num_outputs) + 1
-    print(inlets, outlets)
+    # Port message dump message outlets are always added, add the MIDI outlet only if midi is True
+    outlets = max(1, num_outputs) + 3 if midi else max(1, num_outputs) + 2
+    # print(inlets, outlets)
 
+    # Create the rnbo~ object
     rnbo = patcher.add_rnbo(
-        numinlets=inlets, numoutlets=outlets, saved_object_attributes=rnbo_attributes
+        title=dsp_name,
+        numinlets=inlets,
+        numoutlets=outlets,
+        saved_object_attributes=rnbo_attributes,
     )
-
-    # Add loadbang and 'compile C++ and export' machinery
-    if compile:
-        load_bang = patcher.add_textbox("loadbang")
-        dump_target_config = patcher.add_message(
-            "dumptargetconfig cpp-export cpp-code-export"
-        )
-        tb = patcher.add_textbox("t b b s")
-        set_path = patcher.add_message(
-            f"set output_path {export_path}, set export_name {cpp_filename}"
-        )
-        dict1 = patcher.add_textbox("dict")
-        route_dict = patcher.add_textbox("route dictionary")
-        export = patcher.add_message("export cpp-export cpp-code-export $1")
-        route = patcher.add_textbox("route targetconfig")
-
-        # internal routing
-        patcher.add_line(load_bang, dump_target_config)
-        patcher.add_line(dump_target_config, rnbo)
-        patcher.add_line(tb, dict1)
-        patcher.add_line(tb, set_path, outlet=1)
-        patcher.add_line(tb, dict1, outlet=2, inlet=1)
-        patcher.add_line(set_path, dict1)
-        patcher.add_line(dict1, route_dict)
-        patcher.add_line(route_dict, export)
-        patcher.add_line(route, tb)
-
-        # routing with rnbo object
-        patcher.add_line(export, rnbo)
-        patcher.add_line(rnbo, route, outlet=1)
 
     # Create the codebox subpatcher
     sub_patch = rnbo.subpatcher
@@ -525,18 +478,204 @@ def create_rnbo_patch(
         # See: https://rnbo.cycling74.com/learn/midi-in-rnbo
         # MIDI inlet will always be the right-most inlet, and inlets numbering starts at 0
         sub_patch.add_line(midi_in, rnbo, inlet=rnbo.numinlets - 1)
-        # MIDI outlet will always be the second from the right-most outlet, and outlets numbering starts at 0
-        sub_patch.add_line(rnbo, midi_out, outlet=rnbo.numoutlets - 2)
+        # MIDI outlet will always be the third from the right-most outlet, and outlets numbering starts at 0
+        sub_patch.add_line(rnbo, midi_out, outlet=rnbo.numoutlets - 3)
+
+    return rnbo
+
+
+def connect_dsp_effect(
+    patcher, dsp_rnbo, effect_rnbo, dsp_num_outputs, effect_num_inputs
+):
+    """
+    Connects a DSP module to an effect module within a patcher.
+
+    Args:
+        patcher (Patcher): The patcher object representing the audio patcher.
+        dsp_rnbo (Module): The DSP module's RNBO.
+        effect_rnbo (Module): The effect module's RNBO.
+        dsp_num_outputs (int): Number of output channels of the DSP module.
+        effect_num_inputs (int): Number of input channels of the effect module.
+
+    Notes:
+        This function establishes audio connections between the specified DSP module
+        and effect module by adding appropriate lines to the patcher.
+
+        Implementing this equivalent Faust written logic:
+            connect(1,1) = _;
+            connect(2,2) = _,_;
+            connect(1,2) = _ <: _,_;
+            connect(2,1) = _,_ :> _;
+    """
+
+    print(f"Connecting DSP to effect: {dsp_num_outputs} -> {effect_num_inputs}")
+
+    match (dsp_num_outputs, effect_num_inputs):
+        case (1, 1):
+            print("1 -> 1")
+            patcher.add_line(dsp_rnbo, effect_rnbo)
+        case (1, 2):
+            print("1 -> 2")
+            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=0)
+            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=1, outlet=0)
+        case (2, 1):
+            print("2 -> 1")
+            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=0)
+            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=1)
+        case (2, 2):
+            print("2 -> 2")
+            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=0)
+            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=1, outlet=1)
+
+
+def add_compile_test(patcher, rnbo, export_path, cpp_filename):
+    """
+    Adds a series of objects and routing connections to the given Patcher object in order to set up a compile test.
+
+    Parameters:
+        patcher (Patcher): The Patcher object to which objects and routing connections will be added.
+        rnbo (Object): The target object for routing.
+        export_path (str): The path to the directory where the export will be saved.
+        cpp_filename (str): The desired filename for the exported CPP code.
+
+    Returns:
+        None
+
+    Example:
+        add_compile_test(my_patcher, my_rnbo, "/path/to/export", "my_exported_code.cpp")
+    """
+    load_bang = patcher.add_textbox("loadbang")
+    dump_target_config = patcher.add_message(
+        "dumptargetconfig cpp-export cpp-code-export"
+    )
+    tb = patcher.add_textbox("t b b s")
+    set_path = patcher.add_message(
+        f"set output_path {export_path}, set export_name {cpp_filename}"
+    )
+    dict1 = patcher.add_textbox("dict")
+    route_dict = patcher.add_textbox("route dictionary")
+    export = patcher.add_message("export cpp-export cpp-code-export $1")
+    route = patcher.add_textbox("route targetconfig")
+
+    # internal routing
+    patcher.add_line(load_bang, dump_target_config)
+    patcher.add_line(dump_target_config, rnbo)
+    patcher.add_line(tb, dict1)
+    patcher.add_line(tb, set_path, outlet=1)
+    patcher.add_line(tb, dict1, outlet=2, inlet=1)
+    patcher.add_line(set_path, dict1)
+    patcher.add_line(dict1, route_dict)
+    patcher.add_line(route_dict, export)
+    patcher.add_line(route, tb)
+
+    # routing with rnbo object
+    patcher.add_line(export, rnbo)
+    patcher.add_line(rnbo, route, outlet=1)
+
+
+def create_rnbo_patch(
+    dsp_name,
+    maxpat_path,
+    export_path,
+    cpp_filename,
+    dsp_codebox_code,
+    dsp_items_info_list,
+    dsp_num_inputs,
+    dsp_num_outputs,
+    effect_codebox_code,
+    effect_items_info_list,
+    effect_num_inputs,
+    effect_num_outputs,
+    midi,
+    nvoices,
+    compile,
+    test,
+):
+    """
+    This function creates an RNBO Max patcher with the specified parameters.
+
+    Parameters:
+    - dsp_name (str): The name of the DSP.
+    - maxpat_path (str): The path where the Max patcher will be created.
+    - export_path (str): The path for exporting the C++ code.
+    - cpp_filename (str): The filename for the exported C++ code.
+    - dsp_codebox_code (str): The code for the DSP codebox~ section in the subpatcher.
+    - dsp_items_info_list (list): A list of dictionaries containing information about the items to be added.
+    - dsp_num_inputs (int): The number of DSP audio inputs.
+    - dsp_num_outputs (int): The number of DSP audio outputs.
+    - effect_codebox_code (str): The code for the effect codebox~ section in the subpatcher.
+    - effect_items_info_list (list): A list of dictionaries containing information about the items to be added.
+    - effect_num_inputs (int): The number of effect audio inputs.
+    - effect_num_outputs (int): The number of effect audio outputs.
+    - midi (bool): A flag indicating whether to include MIDI input/output control.
+    - nvoices (int): The number of voices.
+    - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
+    - test (bool): A flag indicating whether the patch is for testing purposes.
+    """
+
+    # Create the patcher
+    patcher = Patcher(maxpat_path)
+
+    # Faust generated patch comment
+    patcher.add_comment(
+        "Faust generated RNBO patch, Copyright (c) 2023 Grame",
+        patching_rect=[50.0, 10.0, 350.0, 100.0],
+        fontsize=16,
+    )
+
+    # Create the DSP rnbo~ object
+    dsp_rnbo = add_rnbo_object(
+        patcher,
+        dsp_name,
+        dsp_codebox_code,
+        dsp_items_info_list,
+        midi,
+        nvoices,
+        test,
+        dsp_num_inputs,
+        dsp_num_outputs,
+    )
+
+    # Possibly create and connect the effect rnbo~ object
+    if effect_codebox_code:
+        effect_rnbo = add_rnbo_object(
+            patcher,
+            "Effect",
+            effect_codebox_code,
+            effect_items_info_list,
+            midi,
+            -1,
+            test,
+            effect_num_inputs,
+            effect_num_outputs,
+        )
+
+        # Connect the DSP and effect rnbo~ objects
+        # connect_dsp_effect(
+        #     patcher,
+        #     dsp_rnbo,
+        #     effect_rnbo,
+        #     dsp_num_outputs,
+        #     effect_num_inputs,
+        # )
+
+    # Add loadbang and 'compile C++ and export' machinery
+    if compile:
+        add_compile_test(patcher, dsp_rnbo, export_path, cpp_filename)
+
+    # Create the audio driver output
+    audio_out = patcher.add_textbox("ezdac~")
 
     # And finally save the patch
     patcher.save()
 
 
-# Open files and create the RNBO maxpat file
 def load_files_create_rnbo_patch(
     dsp_name,
-    codebox_path,
-    json_path,
+    dsp_codebox_path,
+    dsp_json_path,
+    effect_codebox_path,
+    effect_json_path,
     maxpat_path,
     export_path,
     cpp_filename,
@@ -550,8 +689,10 @@ def load_files_create_rnbo_patch(
 
     Parameters:
     - dsp_name (str): The name of the DSP.
-    - codebox_path (str): The path to the codebox file.
-    - json_path (str): The path to the JSON file containing items info.
+    - dsp_codebox_path (str): The path to the DSP codebox file.
+    - dsp_json_path (str): The path to the DSP JSON file containing items info.
+    - effect_codebox_path (str): The path to the effect codebox file.
+    - effect_json_path (str): The path to the effect JSON file containing items info.
     - maxpat_path (str): The path where the Max patcher will be created.
     - export_path (str): The path for exporting the C++ code.
     - cpp_filename (str): The filename for the exported C++ code.
@@ -561,48 +702,88 @@ def load_files_create_rnbo_patch(
     - test (bool): A flag indicating whether the patch is for testing purposes.
     """
 
-    with open(codebox_path) as codebox_file:
-        codebox_code = codebox_file.read()
+    print(effect_codebox_path, effect_json_path)
 
-    with open(json_path) as json_file:
+    with open(dsp_codebox_path) as codebox_file:
+        dsp_codebox_code = codebox_file.read()
+
+    with open(dsp_json_path) as json_file:
         json_data = json.load(json_file)
-        items_info_list = extract_items_info(json_data)
-        # print(items_info_list)
-        num_inputs = json_data.get("inputs", 0)
-        num_outputs = json_data.get("outputs", 0)
+        dsp_items_info_list = extract_items_info(json_data)
+        # print(dsp_items_info_list)
+        dsp_num_inputs = json_data.get("inputs", 0)
+        dsp_num_outputs = json_data.get("outputs", 0)
         options = get_midi_and_nvoices(json_data)
 
-    create_rnbo_patch(
-        dsp_name,
-        maxpat_path,
-        export_path,
-        cpp_filename,
-        codebox_code,
-        items_info_list,
-        # Take either the midi parameter or options[0] (= the midi state found in the JSON file)
-        midi or options[0],
-        # Take either the given nvoices, otherwise options[1](= the number of voices found in the JSON file) or -1
-        nvoices if nvoices > 0 else options[1] if options[1] else -1,
-        compile,
-        test,
-        num_inputs,
-        num_outputs,
-    )
+    if effect_codebox_path is not None and effect_json_path is not None:
+        with open(effect_codebox_path) as codebox_file:
+            effect_codebox_code = codebox_file.read()
+
+        with open(effect_json_path) as json_file:
+            json_data = json.load(json_file)
+            effect_items_info_list = extract_items_info(json_data)
+            # print(effect_items_info_list)
+            effect_num_inputs = json_data.get("inputs", 0)
+            effect_num_outputs = json_data.get("outputs", 0)
+
+        create_rnbo_patch(
+            dsp_name,
+            maxpat_path,
+            export_path,
+            cpp_filename,
+            dsp_codebox_code,
+            dsp_items_info_list,
+            dsp_num_inputs,
+            dsp_num_outputs,
+            effect_codebox_code,
+            effect_items_info_list,
+            effect_num_inputs,
+            effect_num_outputs,
+            # Take either the midi parameter or options[0] (= the midi state found in the JSON file)
+            midi or options[0],
+            # Take either the given nvoices, otherwise options[1](= the number of voices found in the JSON file) or -1
+            nvoices if nvoices > 0 else options[1] if options[1] else -1,
+            compile,
+            test,
+        )
+    else:
+        create_rnbo_patch(
+            dsp_name,
+            maxpat_path,
+            export_path,
+            cpp_filename,
+            dsp_codebox_code,
+            dsp_items_info_list,
+            dsp_num_inputs,
+            dsp_num_outputs,
+            None,
+            None,
+            -1,
+            -1,
+            # Take either the midi parameter or options[0] (= the midi state found in the JSON file)
+            midi or options[0],
+            # Take either the given nvoices, otherwise options[1](= the number of voices found in the JSON file) or -1
+            nvoices if nvoices > 0 else options[1] if options[1] else -1,
+            compile,
+            test,
+        )
 
 
-# Parse command line
-if __name__ == "__main__":
+# Main function to parse command-line arguments and run the script
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("arg1", type=str, help="DSP name")
-    parser.add_argument("arg2", type=str, help="Codebox file")
-    parser.add_argument("arg3", type=str, help="JSON file")
-    parser.add_argument("arg4", type=str, help="RNBO maxpat file")
-    parser.add_argument("arg5", type=str, help="C++ export folder path")
-    parser.add_argument("arg6", type=str, help="C++ export filename")
-    parser.add_argument("arg7", type=str, help="MIDI control")
-    parser.add_argument("arg8", type=int, help="nvoices")
-    parser.add_argument("arg9", type=str, help="compile")
-    parser.add_argument("arg10", type=str, help="test")
+    parser.add_argument("arg2", type=str, help="DSP codebox file")
+    parser.add_argument("arg3", type=str, help="DSP JSON file")
+    parser.add_argument("--arg4", type=str, help="Effect codebox file")  # optional
+    parser.add_argument("--arg5", type=str, help="Effect JSON file")  # optional
+    parser.add_argument("arg6", type=str, help="RNBO maxpat file")
+    parser.add_argument("arg7", type=str, help="C++ export folder path")
+    parser.add_argument("arg8", type=str, help="C++ export filename")
+    parser.add_argument("arg9", type=str, help="MIDI control")
+    parser.add_argument("arg10", type=int, help="nvoices")
+    parser.add_argument("arg11", type=str, help="compile")
+    parser.add_argument("arg12", type=str, help="test")
     args = parser.parse_args()
 
     load_files_create_rnbo_patch(
@@ -612,8 +793,15 @@ if __name__ == "__main__":
         args.arg4,
         args.arg5,
         args.arg6,
-        args.arg7 == "True",
+        args.arg7,
         args.arg8,
         args.arg9 == "True",
-        args.arg10 == "True",
+        args.arg10,
+        args.arg11 == "True",
+        args.arg12 == "True",
     )
+
+
+# Parse command line
+if __name__ == "__main__":
+    main()
