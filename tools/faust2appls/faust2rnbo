@@ -100,7 +100,7 @@ for f in $FILES; do
     if [ "$TEST" = "True" ]; then
         faust $OPTIONS "$f" -lang codebox-test -double -json -o "${f%.dsp}.codebox" || exit
         # compile codebox and JSON file to maxpat
-        python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $MIDI $NVOICES $COMPILE $TEST 
+        python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --maxpat "${f%.dsp}.maxpat" --cpp-export $EXPORT_PATH --cpp-filename $EXPORT_FILENAME --compile $COMPILE --test $TEST 
     else
         faust $OPTIONS "$f" -lang codebox -double -json -o "${f%.dsp}.codebox" || exit
         if [ $POLY = "POLY2" ]; then
@@ -116,15 +116,15 @@ EndOfCode
                 faust $OPTIONS effect.dsp -lang codebox -double -json -o effect.codebox || exit
                 rm effect.dsp
                 # compile codebox and JSON files to maxpat
-                python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" --arg4 "effect.codebox" --arg5 "effect.dsp.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $MIDI $NVOICES $COMPILE $TEST 
+                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "effect.codebox" --effect-json "effect.dsp.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices  $NVOICES
             else
                 faust $OPTIONS "$EFFECT" -lang codebox -double -json -o "${EFFECT%.dsp}.codebox"  || exit
                 # compile codebox and JSON files to maxpat
-                python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" --arg4 "${EFFECT%.dsp}.codebox" --arg5 "$EFFECT.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $MIDI $NVOICES $COMPILE $TEST  
+                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "${EFFECT%.dsp}.codebox" --effect-json "$EFFECT.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices $NVOICES 
             fi
          else
             # compile codebox and JSON file to maxpat
-            python3 $ARCHFILE "${f%.dsp}" "${f%.dsp}.codebox" "$f.json" "${f%.dsp}.maxpat" $EXPORT_PATH $EXPORT_FILENAME $MIDI $NVOICES $COMPILE $TEST 
+            python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices $NVOICES
         fi
     fi
   

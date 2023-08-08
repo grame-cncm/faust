@@ -267,17 +267,17 @@ def add_midi_control(item, sub_patch, set_param, codebox):
     midi_args = " ".join(midi_info[1:])
     # TODO: handle all channels case: Faust 0 => RNBO -1
     midi_in = sub_patch.add_textbox(f"{midi_mapping[midi_type]['in']} {midi_args}")
-    midi_out = sub_patch.add_textbox(f"{midi_mapping[midi_type]['out']} {midi_args}")
+    # midi_out = sub_patch.add_textbox(f"{midi_mapping[midi_type]['out']} {midi_args}")
 
     # Scaling for MIDI input and output messages
     # Pitchwheel case using @bendmode 1 (-1, 1) mode
     if midi_type == "pitchwheel":
         scaling_in = f"scale -1 1 {item['min']} {item['max']}"
-        scaling_out = f"scale {item['min']} {item['max']} -1 -1"
+        # scaling_out = f"scale {item['min']} {item['max']} -1 -1"
     # General case
     else:
         scaling_in = f"scale 0 127 {item['min']} {item['max']}"
-        scaling_out = f"scale {item['min']} {item['max']} 0 127"
+        # scaling_out = f"scale {item['min']} {item['max']} 0 127"
 
     # Create the scaling boxes
     scaling_in_box = sub_patch.add_textbox(scaling_in)
@@ -371,7 +371,7 @@ def add_rnbo_object(
     is_freq = False
     is_gain = False
 
-    # MIDI controlled parameters
+    # MIDI controlled parameters and/or polyphony DSP will possibly set the 'has_midi' flag
     has_midi = False
 
     # Add parameter control for button/checkbox and slider/nentry, annlyse for polyphony
@@ -465,21 +465,21 @@ def add_rnbo_object(
             has_midi = has_midi or add_midi_control(item, sub_patch, set_param, codebox)
 
     # After analyzing all UI items to get freq/gain/gate controls, possibly add polyphony control
-    if midi and set_param_pitch and set_param_gain and set_param_gate:
+    if midi and nvoices > 0 and set_param_pitch and set_param_gain and set_param_gate:
         add_polyphony_control(
             sub_patch, set_param_pitch, set_param_gain, set_param_gate, is_freq, is_gain
         )
         has_midi = True
 
-    # Possibly add MIDI input/output control in the global patcher
+    # Possibly add MIDI input/output control in the global patcher only if the subpatch needs MIDI
     if midi and has_midi:
         midi_in = patcher.add_textbox("midiin")
-        midi_out = patcher.add_textbox("midiout")
+        # midi_out = patcher.add_textbox("midiout")
         # See: https://rnbo.cycling74.com/learn/midi-in-rnbo
         # MIDI inlet will always be the right-most inlet, and inlets numbering starts at 0
         sub_patch.add_line(midi_in, rnbo, inlet=rnbo.numinlets - 1)
         # MIDI outlet will always be the third from the right-most outlet, and outlets numbering starts at 0
-        sub_patch.add_line(rnbo, midi_out, outlet=rnbo.numoutlets - 3)
+        # sub_patch.add_line(rnbo, midi_out, outlet=rnbo.numoutlets - 3)
 
     return rnbo
 
@@ -770,33 +770,38 @@ def load_files_create_rnbo_patch(
 # Main function to parse command-line arguments and run the script
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("arg1", type=str, help="DSP name")
-    parser.add_argument("arg2", type=str, help="DSP codebox file")
-    parser.add_argument("arg3", type=str, help="DSP JSON file")
-    parser.add_argument("--arg4", type=str, help="Effect codebox file")  # optional
-    parser.add_argument("--arg5", type=str, help="Effect JSON file")  # optional
-    parser.add_argument("arg6", type=str, help="RNBO maxpat file")
-    parser.add_argument("arg7", type=str, help="C++ export folder path")
-    parser.add_argument("arg8", type=str, help="C++ export filename")
-    parser.add_argument("arg9", type=str, help="MIDI control")
-    parser.add_argument("arg10", type=int, help="nvoices")
-    parser.add_argument("arg11", type=str, help="compile")
-    parser.add_argument("arg12", type=str, help="test")
+    parser.add_argument("--dsp-name", type=str, help="DSP name")
+    parser.add_argument("--dsp-codebox", type=str, help="DSP codebox file")
+    parser.add_argument("--dsp-json", type=str, help="DSP JSON file")
+    parser.add_argument("--effect-codebox", type=str, help="Effect codebox file")
+    parser.add_argument("--effect-json", type=str, help="Effect JSON file")
+    parser.add_argument("--maxpat", type=str, help="RNBO maxpat file")
+    parser.add_argument("--cpp-export", type=str, help="C++ export folder path")
+    parser.add_argument("--cpp-filename", type=str, help="C++ export filename")
+    parser.add_argument("--midi", type=str, help="MIDI control")
+    parser.add_argument("--nvoices", type=int, help="Set nvoices value")
+    parser.add_argument("--compile", type=str, help="Whether to compile to C++ code")
+    parser.add_argument(
+        "--test",
+        type=str,
+        help="Whether to activate test mode with special labels",
+    )
     args = parser.parse_args()
+    print(args)
 
     load_files_create_rnbo_patch(
-        args.arg1,
-        args.arg2,
-        args.arg3,
-        args.arg4,
-        args.arg5,
-        args.arg6,
-        args.arg7,
-        args.arg8,
-        args.arg9 == "True",
-        args.arg10,
-        args.arg11 == "True",
-        args.arg12 == "True",
+        args.dsp_name,
+        args.dsp_codebox,
+        args.dsp_json,
+        args.effect_codebox,
+        args.effect_json,
+        args.maxpat,
+        args.cpp_export,
+        args.cpp_filename,
+        args.midi == "True",
+        args.nvoices,
+        args.compile == "True",
+        args.test == "True",
     )
 
 
