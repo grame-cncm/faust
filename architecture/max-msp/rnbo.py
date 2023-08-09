@@ -44,7 +44,7 @@ The maxpat file is generated with the following structure:
     - possibly rnbo~ object for effect
     - possibly loadbang box and 'compile C++ and export' machinery
     - possibly midiin/midiout objects
-    - ezdac~ object
+    - dac~ object and possibly adc~ object (if the DSP has inputs)
 """
 
 from py2max.py2max import *
@@ -715,6 +715,9 @@ def create_rnbo_patch(
         dsp_num_outputs,
     )
 
+    # Save subpatcher as an abstraction
+    dsp_rnbo.subpatcher.saveas(maxpat_path.rsplit(".", 1)[0] + "." + "rnbopat")
+
     # Possibly create and connect the effect rnbo~ object
     if effect_codebox_code:
         effect_rnbo = add_rnbo_object(
@@ -736,6 +739,11 @@ def create_rnbo_patch(
             effect_rnbo,
             dsp_num_outputs,
             effect_num_inputs,
+        )
+
+        # Save subpatcher as an abstraction with the '_effect' suffix
+        effect_rnbo.subpatcher.saveas(
+            maxpat_path.rsplit(".", 1)[0] + "_effect." + "rnbopat"
         )
 
     # Add loadbang and 'compile C++ and export' machinery
