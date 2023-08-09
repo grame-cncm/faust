@@ -353,7 +353,8 @@ def add_rnbo_object(
     # Workaround for C++ generation bug when no audio inputs
     # See: https://beta.cycling74.com/t/still-confused-on-how-to-use-parameters-in-rnbo-codebox-patches/1763/4
     if num_inputs == 0:
-        sub_patch.add_line(sub_patch.add_textbox("sig~ 0"), codebox)
+        # sub_patch.add_line(sub_patch.add_textbox("sig~ 0"), codebox)
+        sub_patch.add_line(sub_patch.add_textbox("in~ 1"), codebox)
 
     # Generating the lines of code for inputs
     for i in range(num_inputs):
@@ -388,6 +389,13 @@ def add_rnbo_object(
         if item_type in ["button", "checkbox"]:
             # Upper level parameter control with a 'toggle' and 'attrui' objects
             toggle = patcher.add_textbox("toggle")
+            # Set the position and size of the toggle button on the canvas
+            toggle.patching_rect = [
+                toggle.patching_rect[0],
+                toggle.patching_rect[1],
+                24.0,
+                24.0,
+            ]
             param_wrap = patcher.add_textbox(
                 "attrui",
                 maxclass="attrui",
@@ -478,7 +486,7 @@ def add_rnbo_object(
         # midi_out = patcher.add_textbox("midiout")
         # See: https://rnbo.cycling74.com/learn/midi-in-rnbo
         # MIDI inlet will always be the right-most inlet, and inlets numbering starts at 0
-        sub_patch.add_line(midi_in, rnbo, inlet=rnbo.numinlets - 1)
+        # sub_patch.add_line(midi_in, rnbo, inlet=rnbo.numinlets - 1)
         # MIDI outlet will always be the third from the right-most outlet, and outlets numbering starts at 0
         # sub_patch.add_line(rnbo, midi_out, outlet=rnbo.numoutlets - 3)
 
@@ -492,9 +500,9 @@ def connect_dsp_effect(
     Connects a DSP module to an effect module within a patcher.
 
     Args:
-        patcher (Patcher): The patcher object representing the audio patcher.
-        dsp_rnbo (Module): The DSP module's RNBO.
-        effect_rnbo (Module): The effect module's RNBO.
+        patcher (Patcher): The main patcher where objects will be added.
+        dsp_rnbo (Module): The rnbo DSP module
+        effect_rnbo (Module): The rnbo effect module
         dsp_num_outputs (int): Number of output channels of the DSP module.
         effect_num_inputs (int): Number of input channels of the effect module.
 
@@ -509,22 +517,22 @@ def connect_dsp_effect(
             connect(2,1) = _,_ :> _;
     """
 
-    print(f"Connecting DSP to effect: {dsp_num_outputs} -> {effect_num_inputs}")
+    # print(f"Connecting DSP to effect: {dsp_num_outputs} -> {effect_num_inputs}")
 
     match (dsp_num_outputs, effect_num_inputs):
         case (1, 1):
-            print("1 -> 1")
+            # print("1 -> 1")
             patcher.add_line(dsp_rnbo, effect_rnbo)
         case (1, 2):
-            print("1 -> 2")
+            # print("1 -> 2")
             patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=0)
             patcher.add_line(dsp_rnbo, effect_rnbo, inlet=1, outlet=0)
         case (2, 1):
-            print("2 -> 1")
+            # print("2 -> 1")
             patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=0)
             patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=1)
         case (2, 2):
-            print("2 -> 2")
+            # print("2 -> 2")
             patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=0)
             patcher.add_line(dsp_rnbo, effect_rnbo, inlet=1, outlet=1)
 
@@ -534,8 +542,8 @@ def add_compile_test(patcher, rnbo, export_path, cpp_filename):
     Adds a series of objects and routing connections to the given Patcher object in order to set up a compile test.
 
     Parameters:
-        patcher (Patcher): The Patcher object to which objects and routing connections will be added.
-        rnbo (Object): The target object for routing.
+        patcher (Patcher): The main patcher where objects will be added.
+        rnbo (Object): The rnbo DSP module
         export_path (str): The path to the directory where the export will be saved.
         cpp_filename (str): The desired filename for the exported CPP code.
 
@@ -572,6 +580,76 @@ def add_compile_test(patcher, rnbo, export_path, cpp_filename):
     # routing with rnbo object
     patcher.add_line(export, rnbo)
     patcher.add_line(rnbo, route, outlet=1)
+
+
+def create_audio_output(patcher, rnbo, num_outputs):
+    """
+    Creates the output audio object.
+
+    Parameters:
+        patcher (Patcher): The main patcher where objects will be added.
+        rnbo (Object): The rnbo DSP module
+        num_outputs (int): The number of output channels to create.
+
+    Returns:
+        None
+
+    Description:
+        This function create an 'dac~' audio output with the specified number of output channels,
+        the connect the rnbo object to the audio outputs.
+    """
+
+    # Create the toggle button for audio output activation
+    toggle = patcher.add_textbox("toggle")
+
+    # Set the position and size of the toggle button on the canvas
+    toggle.patching_rect = [
+        toggle.patching_rect[0],
+        toggle.patching_rect[1],
+        24.0,
+        24.0,
+    ]
+
+    # Generate a string for the 'dac~' object with the specified number of output channels
+    dac_str = "dac~ " + " ".join(str(i + 1) for i in range(num_outputs))
+
+    # Create an audio output object with the generated 'dac~' string and the specified number of inlets
+    audio_out = patcher.add_textbox(dac_str, numinlets=num_outputs)
+
+    # Connect the toggle button to the audio output object using a patch line
+    patcher.add_line(toggle, audio_out)
+
+    # Connect the DSP rnbo~ object to audio_out using separate lines for each output channel
+    for i in range(num_outputs):
+        patcher.add_line(rnbo, audio_out, inlet=i, outlet=i)
+
+
+def create_audio_input(patcher, rnbo, num_inputs):
+    """
+     Creates the input audio object.
+
+    Parameters:
+        patcher (Patcher): The main patcher where objects will be added.
+        rnbo (Object): The rnbo DSP module
+        num_inputs (int): The number of input channels to create.
+
+    Returns:
+        None
+
+    Description:
+         This function create an 'adc~' audio input with the specified number of input channels,
+         the connect  the audio inputs to the rnbo object.
+    """
+
+    # Generate a string for the 'adc~' object with the specified number of input channels
+    adc_str = "adc~ " + " ".join(str(i + 1) for i in range(num_inputs))
+
+    # Create an audio input object with the generated 'adc~' string and the specified number of outlets
+    audio_in = patcher.add_textbox(adc_str, numoutlets=num_inputs)
+
+    # Connect audio_in to the DSP rnbo~ object using separate lines for each input channel
+    for i in range(num_inputs):
+        patcher.add_line(audio_in, rnbo, inlet=i, outlet=i)
 
 
 def create_rnbo_patch(
@@ -652,32 +730,29 @@ def create_rnbo_patch(
         )
 
         # Connect the DSP and effect rnbo~ objects
-        # connect_dsp_effect(
-        #     patcher,
-        #     dsp_rnbo,
-        #     effect_rnbo,
-        #     dsp_num_outputs,
-        #     effect_num_inputs,
-        # )
+        connect_dsp_effect(
+            patcher,
+            dsp_rnbo,
+            effect_rnbo,
+            dsp_num_outputs,
+            effect_num_inputs,
+        )
 
     # Add loadbang and 'compile C++ and export' machinery
     if compile:
         add_compile_test(patcher, dsp_rnbo, export_path, cpp_filename)
 
-    # Create the audio driver output
-    audio_out = patcher.add_textbox("ezdac~")
-
-    # And connect the appropriate rnbo~ object to audio_out
+    # Connect the appropriate rnbo~ object to audio_out
     if effect_codebox_code:
-        # Connect the effect rnbo~ object to audio_out
-        for i in range(effect_num_outputs):
-            print(i)
-            patcher.add_line(effect_rnbo, audio_out, inlet=i, outlet=i)
+        # Create the audio driver output
+        create_audio_output(patcher, effect_rnbo, effect_num_outputs)
     else:
-        # Connect the DSP rnbo~ object to audio_out
-        for i in range(dsp_num_outputs):
-            print(i)
-            patcher.add_line(dsp_rnbo, audio_out, inlet=i, outlet=i)
+        # Create the audio driver output
+        create_audio_output(patcher, dsp_rnbo, dsp_num_outputs)
+
+    # Possibly create the audio driver input
+    if dsp_num_inputs > 0:
+        create_audio_input(patcher, dsp_rnbo, dsp_num_inputs)
 
     # And finally save the patch
     patcher.save()
@@ -800,7 +875,7 @@ def main():
         help="Whether to activate test mode with special labels",
     )
     args = parser.parse_args()
-    print(args)
+    # print(args)
 
     load_files_create_rnbo_patch(
         args.dsp_name,
