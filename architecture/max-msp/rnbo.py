@@ -268,29 +268,29 @@ def add_midi_control(item, sub_patch, set_param, codebox):
     midi_args = " ".join(midi_info[1:])
     # TODO: handle all channels case: Faust 0 => RNBO -1
     midi_in = sub_patch.add_textbox(f"{midi_mapping[midi_type]['in']} {midi_args}")
-    # midi_out = sub_patch.add_textbox(f"{midi_mapping[midi_type]['out']} {midi_args}")
+    midi_out = sub_patch.add_textbox(f"{midi_mapping[midi_type]['out']} {midi_args}")
 
     # Scaling for MIDI input and output messages
     # Pitchwheel case using @bendmode 1 (-1, 1) mode
     if midi_type == "pitchwheel":
         scaling_in = f"scale -1 1 {item['min']} {item['max']}"
-        # scaling_out = f"scale {item['min']} {item['max']} -1 -1"
+        scaling_out = f"scale {item['min']} {item['max']} -1 -1"
     # General case
     else:
         scaling_in = f"scale 0 127 {item['min']} {item['max']}"
-        # scaling_out = f"scale {item['min']} {item['max']} 0 127"
+        scaling_out = f"scale {item['min']} {item['max']} 0 127"
 
     # Create the scaling boxes
     scaling_in_box = sub_patch.add_textbox(scaling_in)
-    # scaling_out_box = sub_patch.add_textbox(scaling_out)
+    scaling_out_box = sub_patch.add_textbox(scaling_out)
 
     # Connect the input objects
     sub_patch.add_line(midi_in, scaling_in_box)
     sub_patch.add_line(scaling_in_box, set_param)
 
     # Connect the output objects
-    # sub_patch.add_line(codebox, scaling_out_box)
-    # sub_patch.add_line(scaling_out_box, midi_out)
+    sub_patch.add_line(codebox, scaling_out_box)
+    sub_patch.add_line(scaling_out_box, midi_out)
     return True
 
 
@@ -328,14 +328,53 @@ def add_rnbo_object(
     if midi and nvoices > 0:
         rnbo_attributes["polyphony"] = nvoices
 
-    # Add the MIDI inlet only if midi is True
-    inlets = max(1, num_inputs) + 1 if midi else max(1, num_inputs)
-    # Port message dump message outlets are always added, add the MIDI outlet only if midi is True
-    outlets = max(1, num_outputs) + 3 if midi else max(1, num_outputs) + 2
-    # print(inlets, outlets)
+    # Prepare the inlet and outlet information
+    inletInfo = {"IOInfo": []}
+    outletInfo = {"IOInfo": []}
+    inlets = -1
+    outlets = -1
+
+    # Add the MIDI inlet/outlet only if midi is True
+    if midi:
+        inlets = max(1, num_inputs) + 1
+        # First inlets are signals
+        for i in range(1, num_inputs + 1):
+            io_entry = {"comment": "", "index": i, "tag": f"in{i}", "type": "signal"}
+            inletInfo["IOInfo"].append(io_entry)
+        # Last inlet is MIDI
+        io_entry = {
+            "comment": "",
+            "index": inlets,
+            "tag": f"in{inlets}",
+            "type": "midi",
+        }
+        inletInfo["IOInfo"].append(io_entry)
+        # The MIDI outlet is added, then port message and dump outlets are always added
+        outlets = max(1, num_outputs) + 3
+        # First inlets are signals
+        for i in range(1, num_outputs + 1):
+            io_entry = {"comment": "", "index": i, "tag": f"out{i}", "type": "signal"}
+            outletInfo["IOInfo"].append(io_entry)
+        # Next outlet is MIDI
+        io_entry = {"comment": "", "index": i, "tag": f"out{i}", "type": "midi"}
+        outletInfo["IOInfo"].append(io_entry)
+    else:
+        inlets = max(1, num_inputs)
+        # All inlets are signals
+        for i in range(1, num_inputs + 1):
+            io_entry = {"comment": "", "index": i, "tag": f"in{i}", "type": "signal"}
+            inletInfo["IOInfo"].append(io_entry)
+        # Port message and dump outlets are always added,
+        outlets = max(1, num_outputs) + 2
+        # All inlets are signals
+        for i in range(1, num_outputs + 1):
+            io_entry = {"comment": "", "index": i, "tag": f"out{i}", "type": "signal"}
+            outletInfo["IOInfo"].append(io_entry)
 
     # Create the rnbo~ object
     rnbo = patcher.add_rnbo(
+        inletInfo=inletInfo,
+        outletInfo=outletInfo,
         title=dsp_name,
         numinlets=inlets,
         numoutlets=outlets,
@@ -372,9 +411,6 @@ def add_rnbo_object(
     set_param_gate = None
     is_freq = False
     is_gain = False
-
-    # MIDI controlled parameters and/or polyphony DSP will possibly set the 'has_midi' flag
-    has_midi = False
 
     # Add parameter control for button/checkbox and slider/nentry, annlyse for polyphony
     for item in items_info_list:
@@ -471,24 +507,13 @@ def add_rnbo_object(
 
         # Possibly add MIDI input/output control
         if midi:
-            has_midi = has_midi or add_midi_control(item, sub_patch, set_param, codebox)
+            add_midi_control(item, sub_patch, set_param, codebox)
 
     # After analyzing all UI items to get freq/gain/gate controls, possibly add polyphony control
     if midi and nvoices > 0 and set_param_pitch and set_param_gain and set_param_gate:
         add_polyphony_control(
             sub_patch, set_param_pitch, set_param_gain, set_param_gate, is_freq, is_gain
         )
-        has_midi = True
-
-    # Possibly add MIDI input/output control in the global patcher only if the subpatch needs MIDI
-    if midi and has_midi:
-        midi_in = patcher.add_textbox("midiin")
-        # midi_out = patcher.add_textbox("midiout")
-        # See: https://rnbo.cycling74.com/learn/midi-in-rnbo
-        # MIDI inlet will always be the right-most inlet, and inlets numbering starts at 0
-        # sub_patch.add_line(midi_in, rnbo, inlet=rnbo.numinlets - 1)
-        # MIDI outlet will always be the third from the right-most outlet, and outlets numbering starts at 0
-        # sub_patch.add_line(rnbo, midi_out, outlet=rnbo.numoutlets - 3)
 
     return rnbo
 
@@ -652,6 +677,25 @@ def create_audio_input(patcher, rnbo, num_inputs):
         patcher.add_line(audio_in, rnbo, inlet=i, outlet=i)
 
 
+def connect_midi(patcher, rnbo, midi_in, midi_out):
+    """
+    Connects MIDI input, an effect, and MIDI output in a Max/MSP patcher.
+
+    Parameters:
+        patcher (Patcher): The Max/MSP patcher to add connections to.
+        rnbo (Object): The effect object.
+        midi_in (Object): The MIDI input object.
+        midi_out (Object): The MIDI output object.
+    """
+    # MIDI inlet will always be the right-most inlet, and inlets numbering starts at 0
+    inlet_index = rnbo.numinlets - 1
+    # MIDI outlet will always be the third from the right-most outlet, and outlets numbering starts at 0
+    outlet_index = rnbo.numoutlets - 3
+
+    patcher.add_line(midi_in, rnbo, inlet=inlet_index)
+    patcher.add_line(rnbo, midi_out, outlet=outlet_index)
+
+
 def create_rnbo_patch(
     dsp_name,
     maxpat_path,
@@ -715,6 +759,13 @@ def create_rnbo_patch(
         dsp_num_outputs,
     )
 
+    # Possibly add MIDI input/output control in the global patcher
+    # and connect the DSP rnbo~ object to the midiin/midiout objects
+    if midi:
+        midi_in = patcher.add_textbox("midiin")
+        midi_out = patcher.add_textbox("midiout")
+        connect_midi(patcher, dsp_rnbo, midi_in, midi_out)
+
     # Save subpatcher as an abstraction
     dsp_rnbo.subpatcher.saveas(maxpat_path.rsplit(".", 1)[0] + "." + "rnbopat")
 
@@ -745,6 +796,10 @@ def create_rnbo_patch(
         effect_rnbo.subpatcher.saveas(
             maxpat_path.rsplit(".", 1)[0] + "_effect." + "rnbopat"
         )
+
+        # Connect the effect rnbo~ object to the midiin/midiout objects
+        if midi:
+            connect_midi(patcher, effect_rnbo, midi_in, midi_out)
 
     # Add loadbang and 'compile C++ and export' machinery
     if compile:
