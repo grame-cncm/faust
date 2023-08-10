@@ -351,7 +351,7 @@ def add_rnbo_object(
         inletInfo["IOInfo"].append(io_entry)
         # The MIDI outlet is added, then port message and dump outlets are always added
         outlets = max(1, num_outputs) + 3
-        # First inlets are signals
+        # First outlets are signals
         for i in range(1, num_outputs + 1):
             io_entry = {"comment": "", "index": i, "tag": f"out{i}", "type": "signal"}
             outletInfo["IOInfo"].append(io_entry)
@@ -366,7 +366,7 @@ def add_rnbo_object(
             inletInfo["IOInfo"].append(io_entry)
         # Port message and dump outlets are always added,
         outlets = max(1, num_outputs) + 2
-        # All inlets are signals
+        # All outlets are signals
         for i in range(1, num_outputs + 1):
             io_entry = {"comment": "", "index": i, "tag": f"out{i}", "type": "signal"}
             outletInfo["IOInfo"].append(io_entry)
