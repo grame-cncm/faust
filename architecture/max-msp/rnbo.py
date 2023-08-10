@@ -294,6 +294,64 @@ def add_midi_control(item, sub_patch, set_param, codebox):
     return True
 
 
+def generate_io_info(midi, num_inputs, num_outputs):
+    """
+    Generate inlet and outlet information dictionaries based on the number of inputs and outputs.
+
+    Args:
+        midi (bool): A flag indicating whether to include MIDI inlet/outlet.
+        num_inputs (int): The number of input signals.
+        num_outputs (int): The number of output signals.
+
+    Returns:
+        tuple: A tuple containing four elements:
+            - inlets (int): Total number of inlet ports, including MIDI if applicable.
+            - outlets (int): Total number of outlet ports, including MIDI if applicable.
+            - inletInfo (dict): Dictionary containing information about the input ports.
+            - outletInfo (dict): Dictionary containing information about the output ports.
+    """
+    inletInfo = {"IOInfo": []}
+    outletInfo = {"IOInfo": []}
+
+    if midi:
+        inlets = max(1, num_inputs) + 1
+        # First inlets are signals
+        for i in range(1, num_inputs + 1):
+            io_entry = {"comment": "", "index": i, "tag": f"in{i}", "type": "signal"}
+            inletInfo["IOInfo"].append(io_entry)
+        # Last inlet is MIDI
+        io_entry = {
+            "comment": "",
+            "index": inlets,
+            "tag": f"in{inlets}",
+            "type": "midi",
+        }
+        inletInfo["IOInfo"].append(io_entry)
+        # The MIDI outlet is added, then port message and dump outlets are always added
+        outlets = max(1, num_outputs) + 3
+        # First outlets are signals
+        for i in range(1, num_outputs + 1):
+            io_entry = {"comment": "", "index": i, "tag": f"out{i}", "type": "signal"}
+            outletInfo["IOInfo"].append(io_entry)
+        # Next outlet is MIDI
+        io_entry = {"comment": "", "index": i, "tag": f"out{i}", "type": "midi"}
+        outletInfo["IOInfo"].append(io_entry)
+    else:
+        inlets = max(1, num_inputs)
+        # All inlets are signals
+        for i in range(1, num_inputs + 1):
+            io_entry = {"comment": "", "index": i, "tag": f"in{i}", "type": "signal"}
+            inletInfo["IOInfo"].append(io_entry)
+        # Port message and dump outlets are always added
+        outlets = max(1, num_outputs) + 2
+        # All outlets are signals
+        for i in range(1, num_outputs + 1):
+            io_entry = {"comment": "", "index": i, "tag": f"out{i}", "type": "signal"}
+            outletInfo["IOInfo"].append(io_entry)
+
+    return inlets, outlets, inletInfo, outletInfo
+
+
 def add_rnbo_object(
     patcher,
     dsp_name,
@@ -329,47 +387,9 @@ def add_rnbo_object(
         rnbo_attributes["polyphony"] = nvoices
 
     # Prepare the inlet and outlet information
-    inletInfo = {"IOInfo": []}
-    outletInfo = {"IOInfo": []}
-    inlets = -1
-    outlets = -1
-
-    # Add the MIDI inlet/outlet only if midi is True
-    if midi:
-        inlets = max(1, num_inputs) + 1
-        # First inlets are signals
-        for i in range(1, num_inputs + 1):
-            io_entry = {"comment": "", "index": i, "tag": f"in{i}", "type": "signal"}
-            inletInfo["IOInfo"].append(io_entry)
-        # Last inlet is MIDI
-        io_entry = {
-            "comment": "",
-            "index": inlets,
-            "tag": f"in{inlets}",
-            "type": "midi",
-        }
-        inletInfo["IOInfo"].append(io_entry)
-        # The MIDI outlet is added, then port message and dump outlets are always added
-        outlets = max(1, num_outputs) + 3
-        # First outlets are signals
-        for i in range(1, num_outputs + 1):
-            io_entry = {"comment": "", "index": i, "tag": f"out{i}", "type": "signal"}
-            outletInfo["IOInfo"].append(io_entry)
-        # Next outlet is MIDI
-        io_entry = {"comment": "", "index": i, "tag": f"out{i}", "type": "midi"}
-        outletInfo["IOInfo"].append(io_entry)
-    else:
-        inlets = max(1, num_inputs)
-        # All inlets are signals
-        for i in range(1, num_inputs + 1):
-            io_entry = {"comment": "", "index": i, "tag": f"in{i}", "type": "signal"}
-            inletInfo["IOInfo"].append(io_entry)
-        # Port message and dump outlets are always added,
-        outlets = max(1, num_outputs) + 2
-        # All outlets are signals
-        for i in range(1, num_outputs + 1):
-            io_entry = {"comment": "", "index": i, "tag": f"out{i}", "type": "signal"}
-            outletInfo["IOInfo"].append(io_entry)
+    inlets, outlets, inletInfo, outletInfo = generate_io_info(
+        midi, num_inputs, num_outputs
+    )
 
     # Create the rnbo~ object
     rnbo = patcher.add_rnbo(
@@ -687,6 +707,7 @@ def connect_midi(patcher, rnbo, midi_in, midi_out):
         midi_in (Object): The MIDI input object.
         midi_out (Object): The MIDI output object.
     """
+
     # MIDI inlet will always be the right-most inlet, and inlets numbering starts at 0
     inlet_index = rnbo.numinlets - 1
     # MIDI outlet will always be the third from the right-most outlet, and outlets numbering starts at 0
