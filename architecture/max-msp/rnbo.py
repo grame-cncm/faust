@@ -727,14 +727,14 @@ def create_rnbo_patch(
     dsp_items_info_list,
     dsp_num_inputs,
     dsp_num_outputs,
-    effect_codebox_code,
-    effect_items_info_list,
-    effect_num_inputs,
-    effect_num_outputs,
     midi,
     nvoices,
-    compile,
-    test,
+    effect_codebox_code=None,
+    effect_items_info_list=None,
+    effect_num_inputs=-1,
+    effect_num_outputs=-1,
+    compile=False,
+    test=False,
 ):
     """
     This function creates an RNBO Max patcher with the specified parameters.
@@ -906,14 +906,14 @@ def load_files_create_rnbo_patch(
             dsp_items_info_list,
             dsp_num_inputs,
             dsp_num_outputs,
-            effect_codebox_code,
-            effect_items_info_list,
-            effect_num_inputs,
-            effect_num_outputs,
             # Take either the midi parameter or options[0] (= the midi state found in the JSON file)
             midi or options[0],
             # Take either the given nvoices, otherwise options[1](= the number of voices found in the JSON file) or -1
             nvoices if nvoices > 0 else options[1] if options[1] else -1,
+            effect_codebox_code,
+            effect_items_info_list,
+            effect_num_inputs,
+            effect_num_outputs,
             compile,
             test,
         )
@@ -927,10 +927,6 @@ def load_files_create_rnbo_patch(
             dsp_items_info_list,
             dsp_num_inputs,
             dsp_num_outputs,
-            None,
-            None,
-            -1,
-            -1,
             # Take either the midi parameter or options[0] (= the midi state found in the JSON file)
             midi or options[0],
             # Take either the given nvoices, otherwise options[1](= the number of voices found in the JSON file) or -1
@@ -939,8 +935,8 @@ def load_files_create_rnbo_patch(
             else options[1]
             if options[1]
             else -1,
-            compile,
-            test,
+            compile=compile,
+            test=test,
         )
 
 
