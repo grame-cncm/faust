@@ -624,7 +624,8 @@ def add_compile_test(patcher, rnbo, export_path, cpp_filename):
 
     # routing with rnbo object
     patcher.add_line(export, rnbo)
-    patcher.add_line(rnbo, route, outlet=1)
+    # Right most outlet of rnbo is dump outlet
+    patcher.add_line(rnbo, route, outlet=rnbo.numoutlets - 1)
 
 
 def create_audio_output(patcher, rnbo, num_outputs):
@@ -933,7 +934,11 @@ def load_files_create_rnbo_patch(
             # Take either the midi parameter or options[0] (= the midi state found in the JSON file)
             midi or options[0],
             # Take either the given nvoices, otherwise options[1](= the number of voices found in the JSON file) or -1
-            nvoices if nvoices > 0 else options[1] if options[1] else -1,
+            nvoices
+            if nvoices is not None and nvoices > 0
+            else options[1]
+            if options[1]
+            else -1,
             compile,
             test,
         )
