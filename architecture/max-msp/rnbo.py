@@ -52,9 +52,10 @@ import argparse
 import json
 import logging
 import re
+from typing import Dict, List, Tuple, Optional
 
 
-def get_midi_and_nvoices(json_data):
+def get_midi_and_nvoices(json_data: dict) -> tuple[bool, int]:
     """
     Extracts the MIDI state and nvoices count from the given JSON data.
 
@@ -62,7 +63,7 @@ def get_midi_and_nvoices(json_data):
         json_data (dict): The JSON data in dictionary format.
 
     Returns:
-        tuple: A tuple containing the MIDI state (True or False) and nvoices count (int).
+        tuple[bool, int]: A tuple containing the MIDI state (True or False) and nvoices count (int).
                If the MIDI state or nvoices count is not present in the JSON, the corresponding
                value in the tuple will be None.
     """
@@ -78,11 +79,7 @@ def get_midi_and_nvoices(json_data):
         if "options" in meta_item:
             options = meta_item["options"]
             # Extract MIDI state from options
-            if "[midi:on]" in options:
-                midi_state = True
-            else:
-                midi_state = False
-
+            midi_state = "[midi:on]" in options
             # Extract nvoices count from options
             nvoices_match = re.search(r"\[nvoices:(\d+)\]", options)
             if nvoices_match:
@@ -92,7 +89,7 @@ def get_midi_and_nvoices(json_data):
     return midi_state, nvoices
 
 
-def extract_items_info(json_data):
+def extract_items_info(json_data: dict) -> list[dict]:
     """
     Extracts information about UI items from the given DSP JSON data.
 
@@ -100,10 +97,10 @@ def extract_items_info(json_data):
         json_data (dict): DSP JSON data.
 
     Returns:
-        list: A list of dictionaries containing information about each UI item.
+         list[dict]: A list of dictionaries containing information about each UI item.
     """
 
-    def extract_from_ui(ui_items):
+    def extract_from_ui(ui_items: list) -> list[dict]:
         """
         Recursive helper function to extract UI items information.
 
@@ -168,28 +165,36 @@ def extract_items_info(json_data):
 
 
 # Creating the proper label for the parameter
-def build_label(type, shortname, test):
-    return "RB_" + type + "_" + shortname if test else shortname
+def build_label(item_type: str, shortname: str, test: bool) -> str:
+    return "RB_" + item_type + "_" + shortname if test else shortname
 
 
 def add_polyphony_control(
-    sub_patch, set_param_pitch, set_param_gain, set_param_gate, is_freq, is_gain
-):
+    sub_patch: Patcher,
+    set_param_pitch: Box,
+    set_param_gain: Box,
+    set_param_gate: Box,
+    is_freq: bool,
+    is_gain: bool,
+) -> None:
     """
     Adds polyphony control to a sub-patch for MIDI note input.
 
     This function provides the flexibility to control pitch and gain parameters either
     by frequency/MIDI key and gain/MIDI velocity. It takes parameters for setting pitch,
     gain, and gate parameters, along with flags to specify control methods. The MIDI
-    notein and relevant processing elements are added to the sub-patch for polyphonic control.
+    notein and relevant processing objects are added to the sub-patch for polyphonic control.
 
     Args:
-        sub_patch (SubPatch): The sub-patch to which the polyphony control elements will be added.
-        set_param_pitch (TextBox): The element for setting the pitch parameter.
-        set_param_gain (TextBox): The element for setting the gain parameter.
-        set_param_gate (TextBox): The element for setting the gate parameter.
+        sub_patch (Patcher): The sub-patch to which the polyphony control elements will be added.
+        set_param_pitch (Box): The objects for setting the pitch parameter.
+        set_param_gain (Box): The objects for setting the gain parameter.
+        set_param_gate (Box): The objects for setting the gate parameter.
         is_freq (bool): Flag indicating whether pitch is controlled by frequency or MIDI key.
         is_gain (bool): Flag indicating whether gain is controlled by gain or MIDI velocity.
+
+    Returns:
+        None
     """
 
     # Add MIDI notein
@@ -223,7 +228,9 @@ def add_polyphony_control(
     sub_patch.add_line(gate_op, set_param_gate)
 
 
-def add_midi_control(item, sub_patch, set_param, codebox):
+def add_midi_control(
+    item: dict, sub_patch: Patcher, set_param: Box, codebox: Box
+) -> bool:
     """
     Adds MIDI control to the subpatch.
 
@@ -234,8 +241,8 @@ def add_midi_control(item, sub_patch, set_param, codebox):
     Args:
         item (dict): The dictionary containing information about the UI item.
         sub_patch (Patcher): The subpatcher object to which MIDI control will be added.
-        set_param (Textbox): The 'set' param object for the UI item.
-        codebox (Textbox): The codebox~ object in the subpatcher.
+        set_param (Box): The 'set' param object for the UI item.
+        codebox (Box): The codebox~ object in the subpatcher.
 
     Returns:
         bool: True if MIDI control type is supported and added successfully, possible logs an error and return False otherwise.
@@ -294,7 +301,9 @@ def add_midi_control(item, sub_patch, set_param, codebox):
     return True
 
 
-def generate_io_info(midi, num_inputs, num_outputs):
+def generate_io_info(
+    midi: bool, num_inputs: int, num_outputs: int
+) -> tuple[int, int, dict, dict]:
     """
     Generate inlet and outlet information dictionaries based on the number of inputs and outputs.
 
@@ -353,16 +362,16 @@ def generate_io_info(midi, num_inputs, num_outputs):
 
 
 def add_rnbo_object(
-    patcher,
-    dsp_name,
-    codebox_code,
-    items_info_list,
-    midi,
-    nvoices,
-    test,
-    num_inputs,
-    num_outputs,
-):
+    patcher: Patcher,
+    dsp_name: str,
+    codebox_code: str,
+    items_info_list: list,
+    midi: bool,
+    nvoices: int,
+    test: bool,
+    num_inputs: int,
+    num_outputs: int,
+) -> Box:
     """
     Adds DSP elements, routing, and parameter controls for a DSP to the given Patcher object.
 
@@ -377,7 +386,7 @@ def add_rnbo_object(
         num_outputs (int): The number of audio output channels.
 
     Returns:
-        rnbo (Object): The added rnbo~ object representing the DSP.
+        Box: The added rnbo~ object representing the DSP.
     """
 
     # Create the rnbo~ object
@@ -539,15 +548,19 @@ def add_rnbo_object(
 
 
 def connect_dsp_effect(
-    patcher, dsp_rnbo, effect_rnbo, dsp_num_outputs, effect_num_inputs
-):
+    patcher: Patcher,
+    dsp_rnbo: Box,
+    effect_rnbo: Box,
+    dsp_num_outputs: int,
+    effect_num_inputs: int,
+) -> None:
     """
     Connects a DSP module to an effect module within a patcher.
 
     Args:
         patcher (Patcher): The main patcher where objects will be added.
-        dsp_rnbo (Module): The rnbo DSP module
-        effect_rnbo (Module): The rnbo effect module
+        dsp_rnbo (Box): The rnbo DSP module
+        effect_rnbo (Box): The rnbo effect module
         dsp_num_outputs (int): Number of output channels of the DSP module.
         effect_num_inputs (int): Number of input channels of the effect module.
 
@@ -560,6 +573,8 @@ def connect_dsp_effect(
             connect(2,2) = _,_;
             connect(1,2) = _ <: _,_;
             connect(2,1) = _,_ :> _;
+    Returns:
+        None
     """
 
     # print(f"Connecting DSP to effect: {dsp_num_outputs} -> {effect_num_inputs}")
@@ -582,21 +597,20 @@ def connect_dsp_effect(
             patcher.add_line(dsp_rnbo, effect_rnbo, inlet=1, outlet=1)
 
 
-def add_compile_test(patcher, rnbo, export_path, cpp_filename):
+def add_compile_test(
+    patcher: Patcher, rnbo: Box, export_path: str, cpp_filename: str
+) -> None:
     """
     Adds a series of objects and routing connections to the given Patcher object in order to set up a compile test.
 
     Parameters:
         patcher (Patcher): The main patcher where objects will be added.
-        rnbo (Object): The rnbo DSP module
+        rnbo (Box): The rnbo DSP module
         export_path (str): The path to the directory where the export will be saved.
         cpp_filename (str): The desired filename for the exported CPP code.
 
     Returns:
         None
-
-    Example:
-        add_compile_test(my_patcher, my_rnbo, "/path/to/export", "my_exported_code.cpp")
     """
     load_bang = patcher.add_textbox("loadbang")
     dump_target_config = patcher.add_message(
@@ -628,13 +642,13 @@ def add_compile_test(patcher, rnbo, export_path, cpp_filename):
     patcher.add_line(rnbo, route, outlet=rnbo.numoutlets - 1)
 
 
-def create_audio_output(patcher, rnbo, num_outputs):
+def create_audio_output(patcher: Patcher, rnbo: Box, num_outputs: int) -> None:
     """
     Creates the output audio object.
 
     Parameters:
         patcher (Patcher): The main patcher where objects will be added.
-        rnbo (Object): The rnbo DSP module
+        rnbo (Box): The rnbo DSP module
         num_outputs (int): The number of output channels to create.
 
     Returns:
@@ -642,7 +656,7 @@ def create_audio_output(patcher, rnbo, num_outputs):
 
     Description:
         This function create an 'dac~' audio output with the specified number of output channels,
-        the connect the rnbo object to the audio outputs.
+        then connect the rnbo object to the audio outputs.
     """
 
     # Create the toggle button for audio output activation
@@ -670,13 +684,13 @@ def create_audio_output(patcher, rnbo, num_outputs):
         patcher.add_line(rnbo, audio_out, inlet=i, outlet=i)
 
 
-def create_audio_input(patcher, rnbo, num_inputs):
+def create_audio_input(patcher: Patcher, rnbo: Box, num_inputs: int) -> None:
     """
      Creates the input audio object.
 
     Parameters:
         patcher (Patcher): The main patcher where objects will be added.
-        rnbo (Object): The rnbo DSP module
+        rnbo (Box): The rnbo DSP module
         num_inputs (int): The number of input channels to create.
 
     Returns:
@@ -684,7 +698,7 @@ def create_audio_input(patcher, rnbo, num_inputs):
 
     Description:
          This function create an 'adc~' audio input with the specified number of input channels,
-         the connect  the audio inputs to the rnbo object.
+         then connect  the audio inputs to the rnbo object.
     """
 
     # Generate a string for the 'adc~' object with the specified number of input channels
@@ -698,15 +712,18 @@ def create_audio_input(patcher, rnbo, num_inputs):
         patcher.add_line(audio_in, rnbo, inlet=i, outlet=i)
 
 
-def connect_midi(patcher, rnbo, midi_in, midi_out):
+def connect_midi(patcher: Patcher, rnbo: Box, midi_in: Box, midi_out: Box) -> None:
     """
     Connects MIDI input, an effect, and MIDI output in a Max/MSP patcher.
 
     Parameters:
         patcher (Patcher): The Max/MSP patcher to add connections to.
-        rnbo (Object): The effect object.
-        midi_in (Object): The MIDI input object.
-        midi_out (Object): The MIDI output object.
+        rnbo (Box): The effect object.
+        midi_in (Box): The MIDI input object.
+        midi_out (Box): The MIDI output object.
+
+    Returns:
+        None
     """
 
     # MIDI inlet will always be the right-most inlet, and inlets numbering starts at 0
@@ -719,24 +736,24 @@ def connect_midi(patcher, rnbo, midi_in, midi_out):
 
 
 def create_rnbo_patch(
-    dsp_name,
-    maxpat_path,
-    export_path,
-    cpp_filename,
-    dsp_codebox_code,
-    dsp_items_info_list,
-    dsp_num_inputs,
-    dsp_num_outputs,
-    midi,
-    nvoices,
-    effect_codebox_code=None,
-    effect_items_info_list=None,
-    effect_num_inputs=-1,
-    effect_num_outputs=-1,
-    compile=False,
-    test=False,
-    subpatcher=False,
-):
+    dsp_name: str,
+    maxpat_path: str,
+    export_path: str,
+    cpp_filename: str,
+    dsp_codebox_code: str,
+    dsp_items_info_list: List[Dict],
+    dsp_num_inputs: int,
+    dsp_num_outputs: int,
+    midi: bool,
+    nvoices: int,
+    effect_codebox_code: Optional[str] = None,
+    effect_items_info_list: Optional[List[dict]] = None,
+    effect_num_inputs: int = -1,
+    effect_num_outputs: int = -1,
+    compile: bool = False,
+    test: bool = False,
+    subpatcher: bool = False,
+) -> None:
     """
     This function creates an RNBO Max patcher with the specified parameters.
 
@@ -758,6 +775,9 @@ def create_rnbo_patch(
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes.
     - subpatcher (bool): A flag indicating whether to save subpatchers as foo.rnbopat files.
+
+    Returns:
+        None
     """
 
     # Create the patcher
@@ -848,20 +868,20 @@ def create_rnbo_patch(
 
 
 def load_files_create_rnbo_patch(
-    dsp_name,
-    dsp_codebox_path,
-    dsp_json_path,
-    effect_codebox_path,
-    effect_json_path,
-    maxpat_path,
-    export_path,
-    cpp_filename,
-    midi,
-    nvoices,
-    compile,
-    test,
-    subpatcher,
-):
+    dsp_name: str,
+    dsp_codebox_path: str,
+    dsp_json_path: str,
+    effect_codebox_path: Optional[str],
+    effect_json_path: Optional[str],
+    maxpat_path: str,
+    export_path: str,
+    cpp_filename: str,
+    midi: bool,
+    nvoices: int,
+    compile: bool,
+    test: bool,
+    subpatcher: bool,
+) -> None:
     """
     This function loads the codebox and JSON files, extracts relevant data in the JSON, and creates the RNBO Max patch.
 
@@ -879,6 +899,9 @@ def load_files_create_rnbo_patch(
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes (causing control parameter special naming).
     - subpatcher (bool): A flag indicating whether to save subpatchers as foo.rnbopat files.
+
+    Returns:
+        None
     """
 
     with open(dsp_codebox_path) as codebox_file:
