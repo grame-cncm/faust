@@ -659,8 +659,12 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     int  i;
     int64_t i64;
     double r;
-    Tree sel, x, y, label, init, min, max, step, var, le;
+    Tree sel, x, y, label, init, min, max, step, var, body;
     Tree d;
+    
+//    recursivnessAnnotation(sig);
+//    tab(fIndent, cout);
+//    std::cout << "recursiveness: " << getRecursivness(sig);
     
     // Math primitives
     xtended* p = (xtended*)getUserData(sig);
@@ -767,10 +771,11 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isSigDelay1(sig, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Mem: " << "\t" << ppsig(sig) << "\n";
+            std::cout << "Mem: " << "\t" << ppsig(sig) << "\tx: " << ppsig(x) << "\n";
         }
-        // Derivative of a single sample delay wrt. any parameter is the delayed signal.
-        d = diff(sig, getCertifiedSigType(sig)->nature());
+        // Derivative of a single sample delay wrt. any parameter is the delayed
+        // differentiated signal.
+        d = sigDelay1(self(x));
     }
     
     else if (isSigDelay(sig, x, y)) {
@@ -778,54 +783,80 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             tab(fIndent, cout);
             std::cout << "Delay: " << "\tx: " << ppsig(x) << "\t@y: " << ppsig(y) << "\n";
         }
-        // For signal x and delay y = y(p), differentiating wrt. delay entails finding the
-        // product of:
-        // - the derivative wrt. time of the delayed signal and;
-        // - the derivative wrt. p of y.
-        // (x@y)' = (x(t - y(p)))' = d/dt(x(t - y(p)) * -d/dp(y(p))
-        //
-        // e.g. let x = IN[0], y(p) = p
-        //     (x@y)' = d/dt(IN[0][t - p]) * -1
-        //
-        // For the more general case:
-        //     d/dp x(t - y(p), p) = -d/dp y(p) d/dt x(t - y(p), p) + d/dp x(t - y(p), p)
-        //                         = d/dp x(t - y(p), p) - d/dp y(p) d/dt x(t - y(p), p)
-        //
-        // e.g. let y(p) = 2p, and x(t - 2p, p) = px(t - 2p):
-        //     dx/dp = x(t - 2p) - 2p d/dt x(t - 2p)
-        auto dx{self(x)}, dy{self(y)};
-        d = sigSub(dx, sigMul(
-                dy,
-                // derivative calculated numerically wrt. sample index:
-                // d/dn(x[n]) = (x[n] - x[n-1]) / 1
-                sigSub(sigDelay(x, y), sigDelay(x, sigAdd(y, sigInt(1))))
+        
+        // Don't differentiate zero delay.
+        if (y == sigZero(kInt)) {
+            d = self(x);
+        } else {
+            // For signal x and delay y = y(p), differentiating wrt. delay entails finding the
+            // product of:
+            // - the derivative wrt. time of the delayed signal and;
+            // - the derivative wrt. p of y.
+            // (x@y)' = (x(t - y(p)))' = d/dt(x(t - y(p)) * -d/dp(y(p))
+            //
+            // e.g. let x = IN[0], y(p) = p
+            //     (x@y)' = d/dt(IN[0][t - p]) * -1
+            //
+            // For the more general case:
+            //     d/dp x(t - y(p), p) = -d/dp y(p) d/dt x(t - y(p), p) + d/dp x(t - y(p), p)
+            //                         = d/dp x(t - y(p), p) - d/dp y(p) d/dt x(t - y(p), p)
+            //
+            // e.g. let y(p) = 2p, and x(t - 2p, p) = px(t - 2p):
+            //     dx/dp = x(t - 2p) - 2p d/dt x(t - 2p)
+            auto dx{self(x)}, dy{self(y)};
+            d = sigSub(dx, sigMul(
+                    dy,
+                    // derivative calculated numerically wrt. sample index:
+                    // d/dn(x[n]) = (x[n] - x[n-1]) / 1
+                    sigSub(sigDelay(x, y), sigDelay(x, sigAdd(y, sigInt(1))))
             ));
-        // Just an experiment; doesn't work.
-//        d = sigSub(dx, sigMul(dy, sigDelay(x, dy)));
+            // Just an experiment; doesn't work.
+//          d = sigSub(dx, sigMul(dy, sigDelay(x, dy)));
+        }
     }
     
     else if (isProj(sig, &i, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Proj: " << "\t" << ppsig(sig) << "\t" << i<< "\t" << ppsig(x) <<"\n";
+            std::cout << "Projection: " << "\tsig: " << ppsig(sig) << "\ti: " << i<< "\tx: " << ppsig(x) <<"\n";
         }
-        d = SignalIdentity::transformation(sig);
+        
+        // cf. propagate.cpp:504
+        d = sigDelay0(sigProj(i, self(x)));
     }
     
-    else if (isRec(sig, var, le)) {
-//        if (isNil(le)) {
-//            // we are already visiting this recursive group
-//            return sig;
-//        } else {
-//            // first visit
-//            rec(var, gGlobal->nil);  // to avoid infinite recursions
-//            return rec(var, mapselfRec(le));
-//        }
+    else if (isRec(sig, var, body)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Recursion: " << "\t" << ppsig(sig) << "\t" << ppsig(var) << "\t" << ppsig(le) <<"\n";
+            std::cout << "Recursion: " << "\tsig: " << ppsig(sig) << "\tvar: " << ppsig(var) << "\tbody: " << ppsig(body) << "\n";
         }
-        d = SignalIdentity::transformation(sig);
+        
+        if (true) {
+            int in1, out1, in2, out2;
+//            getBoxType(t1, &in1, &out1);
+//            getBoxType(t2, &in2, &out2);
+            
+//            Tree slotenv2 = lift(gGlobal->nil);
+            siglist l0(1);
+            for (int j = 0; j < 1; j++) l0[j] = sigDelay1(sigProj(j, ref(1)));
+
+//            siglist l1 = propagate(slotenv2, path, t2, l0);
+//            siglist l2 = propagate(slotenv2, path, t1, listConcat(l1, listLift(lsig)));
+
+            d = rec(listConvert(l0));
+        } else {
+            if (isNil(body)) {
+                // we are already visiting this recursive group
+                siglist l(1);
+                for (int j = 0; j < 1; j++) l[j] = sigDelay1(sigProj(j, ref(1)));
+                
+                d = rec(listConvert(l));
+            } else {
+                // first visit
+                rec(var, gGlobal->nil);  // to avoid infinite recursions
+                d = rec(var, mapselfRec(body));
+            }
+        }
     }
     
     else if (isSigIntCast(sig, x)) {
@@ -833,7 +864,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             tab(fIndent, cout);
             std::cout << "Int cast: " << ppsig(sig) << "\n";
         }
-        // Acts like flooring operation. Derivative is not 0 at sin(pi*x) != 0, but let's try this
+        // Acts like flooring operation. Derivative is not 0 at `sin(pi*x) != 0`, but let's try this
         // for a start.
         d = sigZero(getCertifiedSigType(sig)->nature());
     } else if (isSigBitCast(sig, x)) {
@@ -1004,6 +1035,7 @@ Tree signalAutoDifferentiate(Tree sig)
             // Insert at beginning so order of differentiated outputs matches order of
             // differentiable parameters.
             outputs.insert(outputs.begin(), hd(SP.mapself(sig)));
+            if (gGlobal->gDetailsSwitch) std::cout << "\n";
         }
         return listConvert(outputs);
     } else {

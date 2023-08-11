@@ -24,14 +24,19 @@ int main(int argc, char *argv[])
     auto diff{lopts(argv, "--diff", "")};
     
     mldsp::LossFunction lf{mldsp::L2_NORM};
-    auto lossFunction{lopts1(argc, argv, "--lossfunction", "-l", "")};
+    auto lossFunction{lopts1(argc, argv, "--lossfunction", "-lf", "")};
     if (strcmp(lossFunction, "l1") == 0) {
         lf = mldsp::L1_NORM;
     } else if (strcmp(lossFunction, "l2") == 0) {
         lf = mldsp::L2_NORM;
     }
     
-    mldsp mldsp{input, gt, diff, lf};
+    auto learningRate{strtof(
+            lopts1(argc, argv, "--learningrate", "-lr", "0.1"),
+            nullptr
+    )};
+    
+    mldsp mldsp{input, gt, diff, lf, learningRate};
     mldsp.initialise();
     mldsp.doGradientDescent();
 }
@@ -50,7 +55,9 @@ mldsp::mldsp(std::string inputDSPPath,
         fInputDSPPath(inputDSPPath),
         fGroundTruthDSPPath(groundTruthDSPPath),
         fDifferentiableDSPPath(differentiableDSPPath)
-{}
+{
+    std::cout << "Learning rate: " << kAlpha << "\n";
+}
 
 mldsp::~mldsp()
 {
