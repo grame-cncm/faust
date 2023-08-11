@@ -735,6 +735,7 @@ def create_rnbo_patch(
     effect_num_outputs=-1,
     compile=False,
     test=False,
+    subpatcher=False,
 ):
     """
     This function creates an RNBO Max patcher with the specified parameters.
@@ -756,6 +757,7 @@ def create_rnbo_patch(
     - nvoices (int): The number of voices in polyphonic mode.
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes.
+    - subpatcher (bool): A flag indicating whether to save subpatchers as foo.rnbopat files.
     """
 
     # Create the patcher
@@ -789,7 +791,8 @@ def create_rnbo_patch(
         connect_midi(patcher, dsp_rnbo, midi_in, midi_out)
 
     # Save subpatcher as an abstraction
-    dsp_rnbo.subpatcher.saveas(maxpat_path.rsplit(".", 1)[0] + "." + "rnbopat")
+    if subpatcher:
+        dsp_rnbo.subpatcher.saveas(maxpat_path.rsplit(".", 1)[0] + "." + "rnbopat")
 
     # Possibly create and connect the effect rnbo~ object
     if effect_codebox_code:
@@ -815,9 +818,10 @@ def create_rnbo_patch(
         )
 
         # Save subpatcher as an abstraction with the '_effect' suffix
-        effect_rnbo.subpatcher.saveas(
-            maxpat_path.rsplit(".", 1)[0] + "_effect." + "rnbopat"
-        )
+        if subpatcher:
+            effect_rnbo.subpatcher.saveas(
+                maxpat_path.rsplit(".", 1)[0] + "_effect." + "rnbopat"
+            )
 
         # Connect the effect rnbo~ object to the midiin/midiout objects
         if midi:
@@ -856,6 +860,7 @@ def load_files_create_rnbo_patch(
     nvoices,
     compile,
     test,
+    subpatcher,
 ):
     """
     This function loads the codebox and JSON files, extracts relevant data in the JSON, and creates the RNBO Max patch.
@@ -873,6 +878,7 @@ def load_files_create_rnbo_patch(
     - nvoices (int): The number of voices in polyphonic mode.
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes (causing control parameter special naming).
+    - subpatcher (bool): A flag indicating whether to save subpatchers as foo.rnbopat files.
     """
 
     with open(dsp_codebox_path) as codebox_file:
@@ -916,6 +922,7 @@ def load_files_create_rnbo_patch(
             effect_num_outputs,
             compile,
             test,
+            subpatcher,
         )
     else:
         create_rnbo_patch(
@@ -937,6 +944,7 @@ def load_files_create_rnbo_patch(
             else -1,
             compile=compile,
             test=test,
+            subpatcher=subpatcher,
         )
 
 
@@ -958,6 +966,11 @@ def main():
         "--test",
         type=str,
         help="Whether to activate test mode with special labels",
+    ),
+    parser.add_argument(
+        "--subpatcher",
+        type=str,
+        help="Whether to generate sub-patchers as foo.rnbopat files",
     )
     args = parser.parse_args()
     # print(args)
@@ -975,6 +988,7 @@ def main():
         args.nvoices,
         args.compile == "True",
         args.test == "True",
+        args.subpatcher == "True",
     )
 
 

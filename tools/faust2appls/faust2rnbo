@@ -14,6 +14,7 @@ set -e
 
 ARCHFILE=$FAUSTARCH/max-msp/rnbo.py
 MIDI=False
+SUB_PATCHER=False
 NVOICES=-1
 COMPILE=False
 EXPORT_PATH="/tmp/foo"
@@ -33,6 +34,7 @@ echoHelp()
     option "-effect auto"
     option -compile "to trigger C++ compilation at load time"
     option -test "to generate special 'RB_XX' prefix for parameters (for testing)"
+    option -sp "to generate codebox subpatchers as a foo.rnbopat file (and possibly foo_effect.rnbopat)"
     option "-cpp_path <path>"
     option "-cpp_filename <filename>"
     option "Faust options"
@@ -61,6 +63,8 @@ do
 
     if [ $p = "-midi" ]; then
         MIDI=True
+    elif [ $p = "-sp" ]; then
+        SUB_PATCHER=True
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1     
@@ -100,7 +104,7 @@ for f in $FILES; do
     if [ "$TEST" = "True" ]; then
         faust $OPTIONS "$f" -lang codebox-test -double -json -o "${f%.dsp}.codebox" || exit
         # compile codebox and JSON file to maxpat
-        python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --maxpat "${f%.dsp}.maxpat" --cpp-export $EXPORT_PATH --cpp-filename $EXPORT_FILENAME --compile $COMPILE --test $TEST 
+        python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --maxpat "${f%.dsp}.maxpat" --cpp-export $EXPORT_PATH --cpp-filename $EXPORT_FILENAME --compile $COMPILE --test $TEST --subpatcher $SUB_PATCHER
     else
         faust $OPTIONS "$f" -lang codebox -double -json -o "${f%.dsp}.codebox" || exit
         if [ $POLY = "POLY2" ]; then
@@ -116,15 +120,15 @@ EndOfCode
                 faust $OPTIONS effect.dsp -lang codebox -double -json -o effect.codebox || exit
                 rm effect.dsp
                 # compile codebox and JSON files to maxpat
-                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "effect.codebox" --effect-json "effect.dsp.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices  $NVOICES
+                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "effect.codebox" --effect-json "effect.dsp.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices  $NVOICES --subpatcher $SUB_PATCHER
             else
                 faust $OPTIONS "$EFFECT" -lang codebox -double -json -o "${EFFECT%.dsp}.codebox"  || exit
                 # compile codebox and JSON files to maxpat
-                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "${EFFECT%.dsp}.codebox" --effect-json "$EFFECT.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices $NVOICES 
+                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "${EFFECT%.dsp}.codebox" --effect-json "$EFFECT.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices $NVOICES --subpatcher $SUB_PATCHER
             fi
          else
             # compile codebox and JSON file to maxpat
-            python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices $NVOICES
+            python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices $NVOICES --subpatcher $SUB_PATCHER
         fi
     fi
   
