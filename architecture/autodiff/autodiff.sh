@@ -67,7 +67,8 @@ if ! ./my_autodiff \
   --input $AUTODIFF_EXAMPLES/ramp.dsp \
   --gt $AUTODIFF_EXAMPLES/$example/gt.dsp \
   --diff $AUTODIFF_EXAMPLES/$example/diff.dsp \
-  --lossfunction l2; then
+  --lossfunction l2 \
+  --learningrate 0.1; then
   exit
 fi
 

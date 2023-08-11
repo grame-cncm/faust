@@ -38,7 +38,7 @@ sudo make install
 Subject to future modifications to the Faust compiler, compiling and running
 an autodiff example demands the following approach:
 
-Copy the `autodiff.(cpp|h)` from the Faust architecture directory to the
+Copy `autodiff.(cpp|h)` from the Faust architecture directory to the
 output directory:
 
 ```shell
@@ -90,16 +90,20 @@ Run the compiled executable, specifying the following dsp files:
 - `--diff` &mdash; the differentiable dsp to be trained/optimised.
 
 - it is also possible to specify the loss function to use via the optional
-  `-l|--lossfunction` flag.
+  `-lf|--lossfunction <function>` flag.
   Implemented loss functions are:
     - `l1` &mdash; L-1 norm;
     - `l2` (default) &mdash; L-2 norm.
+
+- supply `-lr|--learningrate <rate>` to set a floating-point number to use 
+  as the learning rate (if not provided, the default 0.1).
 
 ```shell
 ./autodiff_example --input $archdir/examples/autodiff/noise.dsp \
   --gt $archdir/examples/autodiff/gain/gt.dsp \
   --diff $archdir/examples/autodiff/gain/diff.dsp \
-  -l l2
+  -lf l2
+  -lr 0.1
 ```
 
 > The above commands are encapsulated in [autodiff.sh](autodiff.sh).
@@ -110,7 +114,7 @@ Run the compiled executable, specifying the following dsp files:
 >
 >For a list of available examples, execute `./autodiff.sh` without any arguments.
 
-Running the executable displays numerical output of the gradient descent process:
+Running the executable displays numerical output describing the gradient descent process:
 
 ```
 Learnable parameter: /Parallelizer/DSP2/Parallelizer/DSP1/Sequencer/DSP2/diff/alpha, value: 0
