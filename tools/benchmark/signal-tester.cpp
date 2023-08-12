@@ -340,6 +340,15 @@ static void test10bis()
 }
 
 // mutual recursion
+
+/*
+process = (cross : (+,+)) ~ (*(0.9),*(0.5))
+with {
+    // Route a,b, (recursive) and c,d (inputs) signals
+    cross(a,b,c,d) = d,b,c,a;
+};
+*/
+
 static void test10ter()
 {
     COMPILER
