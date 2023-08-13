@@ -64,7 +64,7 @@ cd $OUTPUTDIR || exit
 
 # Run the compiled executable.
 if ! ./my_autodiff \
-  --input $AUTODIFF_EXAMPLES/ramp.dsp \
+  --input $AUTODIFF_EXAMPLES/noise.dsp \
   --gt $AUTODIFF_EXAMPLES/$example/gt.dsp \
   --diff $AUTODIFF_EXAMPLES/$example/diff.dsp \
   --lossfunction l2 \
