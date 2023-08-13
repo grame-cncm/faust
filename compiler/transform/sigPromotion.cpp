@@ -823,8 +823,9 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isRec(sig, var, body)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Recursion: " << "\tsig: " << ppsig(sig) << "\tvar: " << ppsig(var) << "\tbody: "
-                      << ppsig(body) << "\n";
+            std::cout << "Recursion: " << "\tsig: " << ppsig(sig)
+                      << "\tvar: " << extractName(var)
+                      << "\tbody: " << ppsig(body) << "\n";
         }
         
         if (isNil(body)) {
@@ -841,8 +842,11 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             auto myvar(tree(unique("W")));
             // first visit
             rec(var, gGlobal->nil);  // to avoid infinite recursions
-            
             d = rec(myvar, mapselfRec(body));
+
+//            siglist l;
+//            l.push_back(sigDelay1(sigProj(0, ref(var))));
+//            d = rec(var, deBruijn2Sym(listConvert(l)));
         }
     }
     
