@@ -249,7 +249,7 @@ class VhdlProducer : public SignalVisitor {
     }
 
     std::vector<std::vector<Edge>> transposedGraph() const {
-        std::vector<std::vector<Edge>> transposed = std::vector(_edges.size(), std::vector<Edge>());
+        std::vector<std::vector<Edge>> transposed(_edges.size(), std::vector<Edge>());
         for (size_t v = 0; v < _edges.size(); ++v) {
             for (auto edge : _edges[v]) {
                 transposed[edge.target].push_back(Edge(v, edge.register_count, edge.critical_path_delay));

@@ -132,25 +132,26 @@ void VhdlProducer::normalize()
 {
     // For each vertex `v`, we find the weight `w` of the longest incoming path.
     // The notion of weight is defined here as the sum of pipeline stages of vertices along the path.
-    std::vector<std::optional<int>> max_incoming_weight = std::vector(_vertices.size(), std::optional<int>());
+    std::vector<std::optional<int>> max_incoming_weight(_vertices.size(), std::optional<int>());
+
     auto transposed_graph = transposedGraph();
 
     std::function<int(int)> incoming_weight;
     incoming_weight = [&](int vertex) {
         if (max_incoming_weight[vertex].has_value()) {
-            return max_incoming_weight[vertex].value();
+            return *max_incoming_weight[vertex];
         }
 
         max_incoming_weight[vertex] = std::make_optional(0);
 
         for (auto edge : transposed_graph[vertex]) {
             int w = incoming_weight(edge.target);
-            if (w > max_incoming_weight[vertex].value()) {
-                max_incoming_weight[vertex].value() = w;
+            if (w > *max_incoming_weight[vertex]) {
+                *max_incoming_weight[vertex] = w;
             }
         }
         max_incoming_weight[vertex] = std::make_optional(_vertices[vertex].pipeline_stages + max_incoming_weight[vertex].value_or(0));
-        return max_incoming_weight[vertex].value();
+        return *max_incoming_weight[vertex];
     };
 
     for (size_t i = 0; i < _vertices.size(); ++i) {
@@ -161,7 +162,7 @@ void VhdlProducer::normalize()
     // to `u -> v` to compensate for the lag.
     for (size_t u = 0; u < _vertices.size(); ++u) {
         for (Edge& edge : _edges[u]) {
-            int max_pipeline_stages = max_incoming_weight[edge.target].value() - _vertices[edge.target].pipeline_stages;
+            int max_pipeline_stages = *max_incoming_weight[edge.target] - _vertices[edge.target].pipeline_stages;
             edge.register_count += max_pipeline_stages - _vertices[u].pipeline_stages;
         }
     }
@@ -189,7 +190,7 @@ void VhdlProducer::retiming()
         // Otherwise, we search for the other half
         auto retiming = findRetiming(m);
         if (retiming.has_value()) {
-            best_retiming = retiming.value();
+            best_retiming = *retiming;
             r = m - 1;
         } else {
             l = m + 1;

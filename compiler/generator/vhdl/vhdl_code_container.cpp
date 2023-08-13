@@ -127,7 +127,8 @@ std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container) 
         out << "\t\t" << "clock => ap_clk," << std::endl;
         out << "\t\t" << "reset => ap_rst_n," << std::endl;
 
-        auto source = register_series.source.has_value() ? container._signal_identifier.at(register_series.source.value()) : "ap_start";
+        auto source = register_series.source.has_value() ? container._signal_identifier.at(*register_series.source) : "ap_start";
+        
         out << "\t\t" << "data_in => " << source << "," << std::endl;
         out << "\t\t" << "data_out => registers_" << register_id << std::endl;
         out << '\t' << ");" << std::endl << std::endl;
@@ -208,7 +209,7 @@ void VhdlCodeContainer::register_component(const Vertex& component, std::optiona
         // For recursive outputs, we generate a one-sample delay as well
         // as a series of registers from ap_start to the write_enable signal
         // of the storage medium
-        generateOneSampleDelay(component.node_hash, sig_type, cycles_from_input.value());
+        generateOneSampleDelay(component.node_hash, sig_type, *cycles_from_input);
     } else if (isSigOutput(sig, &i, x)) {
         // Normal outputs do not generate anything
     } else if (isSigDelay1(sig, x)) {
