@@ -662,10 +662,6 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     Tree sel, x, y, label, init, min, max, step, var, body;
     Tree d;
     
-//    recursivnessAnnotation(sig);
-//    tab(fIndent, cout);
-//    std::cout << "recursiveness: " << getRecursivness(sig);
-    
     // Math primitives
     xtended* p = (xtended*)getUserData(sig);
     if (p) {
@@ -786,7 +782,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
         
         // Don't differentiate zero delay.
         if (y == sigZero(kInt)) {
-            d = self(x);
+            d = sigDelay0(self(x));
         } else {
             // For signal x and delay y = y(p), differentiating wrt. delay entails finding the
             // product of:
@@ -803,15 +799,14 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             //
             // e.g. let y(p) = 2p, and x(t - 2p, p) = px(t - 2p):
             //     dx/dp = x(t - 2p) - 2p d/dt x(t - 2p)
-            auto dx{self(x)}, dy{self(y)};
-            d = sigSub(dx, sigMul(
-                    dy,
+            d = sigSub(self(x), sigMul(
+                    self(y),
                     // derivative calculated numerically wrt. sample index:
                     // d/dn(x[n]) = (x[n] - x[n-1]) / 1
+                    // This is equivalent to convolving with a differentiated
+                    // rectangular pulse of 1-sample duration.
                     sigSub(sigDelay(x, y), sigDelay(x, sigAdd(y, sigInt(1))))
             ));
-            // Just an experiment; doesn't work.
-//          d = sigSub(dx, sigMul(dy, sigDelay(x, dy)));
         }
     }
     
@@ -822,40 +817,32 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
         }
         
         // cf. propagate.cpp:504
-        d = sigDelay0(sigProj(i, self(x)));
+        d = sigProj(i, self(x));
     }
     
     else if (isRec(sig, var, body)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Recursion: " << "\tsig: " << ppsig(sig) << "\tvar: " << ppsig(var) << "\tbody: " << ppsig(body) << "\n";
+            std::cout << "Recursion: " << "\tsig: " << ppsig(sig) << "\tvar: " << ppsig(var) << "\tbody: "
+                      << ppsig(body) << "\n";
         }
         
-        if (true) {
-            int in1, out1, in2, out2;
-//            getBoxType(t1, &in1, &out1);
-//            getBoxType(t2, &in2, &out2);
-            
-//            Tree slotenv2 = lift(gGlobal->nil);
-            siglist l0(1);
-            for (int j = 0; j < 1; j++) l0[j] = sigDelay1(sigProj(j, ref(1)));
+        if (isNil(body)) {
+            // we are already visiting this recursive group
+            siglist l;
+            l.push_back(sigDelay1(sigProj(0, ref(var))));
+//                auto var1{t1ree(unique("w"))};
+//                for (int j = 0; j < 2; j++) l[j] = sigDelay1(sigProj(j, ref(var)));
 
-//            siglist l1 = propagate(slotenv2, path, t2, l0);
-//            siglist l2 = propagate(slotenv2, path, t1, listConcat(l1, listLift(lsig)));
-
-            d = rec(listConvert(l0));
+//                d = deBruijn2Sym(rec(listConvert(l)));
+//                d = rec(var, sigDelay1(sigProj(0, sig)));
+            d = rec(var, deBruijn2Sym(listConvert(l)));
         } else {
-            if (isNil(body)) {
-                // we are already visiting this recursive group
-                siglist l(1);
-                for (int j = 0; j < 1; j++) l[j] = sigDelay1(sigProj(j, ref(1)));
-                
-                d = rec(listConvert(l));
-            } else {
-                // first visit
-                rec(var, gGlobal->nil);  // to avoid infinite recursions
-                d = rec(var, mapselfRec(body));
-            }
+            auto myvar(tree(unique("W")));
+            // first visit
+            rec(var, gGlobal->nil);  // to avoid infinite recursions
+            
+            d = rec(myvar, mapselfRec(body));
         }
     }
     
