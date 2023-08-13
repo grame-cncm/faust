@@ -24,9 +24,11 @@
 """
 Take the DSP name, the DSP compiled as codebox file and its associated JSON file, possibly the effect
 compiled as codebox file and its associated JSON file, and the maxpat output file name.
-Addionally, the C++ export path and filename can be specified, and the C++ code will be exported and compiled if 'compile' is True.
+Addionally, the C++ export path and filename can be specified, and the C++ code 
+will be exported and compiled if 'compile' is True.
 The 'test' option allows to generate a patch with the 'RB_xx' prefixed labels for the parameters, 
-to be used with the C++ RNBO test application with the rnbo_dsp class.
+to be used with the C++ RNBO test application with the rnbo_dsp class. 
+The 'subpatcher' option allows to generate sub-patch as foo.rnbo.pat files.
 
 Parsing the JSON file gives:
     - the list of parameters (button, checkbox, sliders, nentry) to be added as "set param" objects
@@ -136,18 +138,14 @@ def extract_items_info(json_data: dict) -> list[dict]:
                 )
             # slider and nentry, and has "min", "max", and "step"
             elif all(key in item for key in ["min", "max", "step"]):
-                init_value = item.get("init", 0)
-                min_value = item["min"]
-                max_value = item["max"]
-                step_value = item["step"]
                 info_list.append(
                     {
                         "shortname": shortname,
                         "type": item_type,
-                        "init": init_value,
-                        "min": min_value,
-                        "max": max_value,
-                        "step": step_value,
+                        "init": item.get("init", 0),
+                        "min": item["min"],
+                        "max": item["max"],
+                        "step": item["step"],
                         "midi": midi_info,  # Include MIDI information as a list
                     }
                 )

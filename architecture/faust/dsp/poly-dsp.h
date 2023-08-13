@@ -63,8 +63,10 @@ class GroupUI : public GUI, public PathBuilder {
 
     private:
 
+        // Map to associate labels with UI group items
         std::map<std::string, uiGroupItem*> fLabelZoneMap;
 
+        // Insert a zone into the map based on the label folloing the freq/gain/gate polyphonic convention
         void insertMap(std::string label, FAUSTFLOAT* zone)
         {
             if (!MapUI::endsWith(label, "/gate")
@@ -156,12 +158,14 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     
     typedef std::function<double(int)> TransformFunction;
   
+    // Convert MIDI note to frequency
     static double midiToFreq(double note)
     {
         return 440.0 * std::pow(2.0, (note-69.0)/12.0);
     }
     
-    int fCurNote;                       // Playing note pitch
+    // Voice state and properties
+    int fCurNote;                       // Current playing note pitch
     int fNextNote;                      // In kLegatoVoice state, next note to play
     int fNextVel;                       // In kLegatoVoice state, next velocity to play
     int fDate;                          // KeyOn date
@@ -179,7 +183,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
  
     dsp_voice(dsp* dsp):decorator_dsp(dsp)
     {
-        // Default versions
+        // Default conversion functions
         fVelFun = [](int velocity) { return double(velocity)/127.0; };
         fKeyFun = [](int pitch) { return midiToFreq(pitch); };
         dsp->buildUserInterface(this);
@@ -193,6 +197,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     virtual ~dsp_voice()
     {}
     
+    // Compute a slice of audio
     void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         FAUSTFLOAT** inputsSlice = static_cast<FAUSTFLOAT**>(alloca(sizeof(FAUSTFLOAT*) * getNumInputs()));
@@ -206,6 +211,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         compute(slice, inputsSlice, outputsSlice);
     }
     
+    // Compute audio in legato mode
     void computeLegato(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         int slice = count/2;
@@ -225,6 +231,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         computeSlice(slice, slice, inputs, outputs);
     }
 
+    // Extract control paths from fullpath map
     void extractPaths(std::vector<std::string>& gate, std::vector<std::string>& freq, std::vector<std::string>& gain)
     {
         // Keep gain/vel|velocity, freq/key and gate labels
@@ -248,11 +255,13 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         }
     }
     
+    // Reset voice
     void reset()
     {
         init(getSampleRate());
     }
  
+    // Clear instance state
     void instanceClear()
     {
         decorator_dsp::instanceClear();
@@ -273,7 +282,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         }
     }
 
-    // Normalized MIDI velocity [0..1]
+    // KeyOn with normalized MIDI velocity [0..1]
     void keyOn(int pitch, double velocity)
     {
         for (size_t i = 0; i < fFreqPath.size(); i++) {
@@ -319,15 +328,16 @@ struct dsp_voice : public MapUI, public decorator_dsp {
  */
 struct dsp_voice_group {
 
+    // GUI group for controlling voice parameters
     GroupUI fGroups;
 
     std::vector<dsp_voice*> fVoiceTable; // Individual voices
     dsp* fVoiceGroup;                    // Voices group to be used for GUI grouped control
 
-    FAUSTFLOAT fPanic;
+    FAUSTFLOAT fPanic;  // Panic button value
 
-    bool fVoiceControl;
-    bool fGroupControl;
+    bool fVoiceControl; // Voice control mode
+    bool fGroupControl; // Group control mode
 
     dsp_voice_group(uiCallback cb, void* arg, bool control, bool group)
         :fGroups(&fPanic, cb, arg),
@@ -343,16 +353,19 @@ struct dsp_voice_group {
         delete fVoiceGroup;
     }
 
+    // Add a voice to the group
     void addVoice(dsp_voice* voice)
     {
         fVoiceTable.push_back(voice);
     }
-
+        
+    // Clear all voices from the group
     void clearVoices()
     {
         fVoiceTable.clear();
     }
 
+    // Initialize the voice group
     void init()
     {
         // Groups all uiItem for a given path
@@ -363,6 +376,7 @@ struct dsp_voice_group {
         }
     }
     
+    // Reset the user interface for each voice instance
     void instanceResetUserInterface()
     {
         for (size_t i = 0; i < fVoiceTable.size(); i++) {
@@ -370,6 +384,7 @@ struct dsp_voice_group {
         }
     }
 
+    // Build the user interface for the voice group
     void buildUserInterface(UI* ui_interface)
     {
         if (fVoiceTable.size() > 1) {
@@ -413,10 +428,10 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
     protected:
     
     #ifdef EMCC
-        MapUI fMapUI;
-        std::string fJSON;
-        midi_handler fMidiHandler;
-        MidiUI fMIDIUI;
+        MapUI fMapUI;               // Map for UI control
+        std::string fJSON;          // JSON representation of the UI
+        midi_handler fMidiHandler;  // MIDI handler for the UI
+        MidiUI fMIDIUI;             // MIDI UI for the DSP
     #endif
     
     public:
@@ -525,11 +540,12 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
     private:
 
-        FAUSTFLOAT** fMixBuffer;
-        FAUSTFLOAT** fOutBuffer;
-        midi_interface* fMidiHandler; // The midi_interface the DSP is connected to
-        int fDate;
+        FAUSTFLOAT** fMixBuffer;        // Intermediate buffer for mixing voices
+        FAUSTFLOAT** fOutBuffer;        // Intermediate buffer for output
+        midi_interface* fMidiHandler;   // The midi_interface the DSP is connected to
+        int fDate;                      // Current date for managing voices
     
+        // Fade out the audio in the buffer
         void fadeOut(int count, FAUSTFLOAT** outBuffer)
         {
             // FadeOut on half buffer
@@ -542,6 +558,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
     
+        // Mix the audio from the mix buffer to the output buffer, and also calculate the maximum level on the buffer
         FAUSTFLOAT mixCheckVoice(int count, FAUSTFLOAT** mixBuffer, FAUSTFLOAT** outBuffer)
         {
             FAUSTFLOAT level = 0;
@@ -556,6 +573,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             return level;
         }
     
+        // Mix the audio from the mix buffer to the output buffer
         void mixVoice(int count, FAUSTFLOAT** mixBuffer, FAUSTFLOAT** outBuffer)
         {
             for (int chan = 0; chan < getNumOutputs(); chan++) {
@@ -567,6 +585,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
     
+        // Copy the audio from one buffer to another
         void copy(int count, FAUSTFLOAT** mixBuffer, FAUSTFLOAT** outBuffer)
         {
             for (int chan = 0; chan < getNumOutputs(); chan++) {
@@ -574,6 +593,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
 
+        // Clear the audio buffer
         void clear(int count, FAUSTFLOAT** outBuffer)
         {
             for (int chan = 0; chan < getNumOutputs(); chan++) {
@@ -581,6 +601,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
     
+        // Get the index of a voice currently playing a specific pitch
         int getPlayingVoice(int pitch)
         {
             int voice_playing = kNoVoice;
@@ -599,6 +620,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             return voice_playing;
         }
     
+        // Allocate a voice with a given type
         int allocVoice(int voice, int type)
         {
             fVoiceTable[voice]->fDate++;
@@ -606,7 +628,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             return voice;
         }
     
-        // Always returns a voice
+        // Get a free voice for allocation, always returns a voice
         int getFreeVoice()
         {
             // Looks for the first available voice
@@ -658,6 +680,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
 
+        // Callback for panic button
         static void panic(FAUSTFLOAT val, void* arg)
         {
             if (val == FAUSTFLOAT(1)) {
@@ -665,6 +688,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
 
+        // Check if the DSP is polyphonic
         bool checkPolyphony()
         {
             if (fVoiceTable.size() > 0) {
