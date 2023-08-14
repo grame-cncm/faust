@@ -41,7 +41,11 @@ interval interval_algebra::Sinh(const interval& x)
         sign = signMinValAbs(x);
     }
 
-    return {sinh(x.lo()), sinh(x.hi()), exactPrecisionUnary(sinh, v, sign * pow(2, x.lsb()))};
+    int precision = exactPrecisionUnary(sinh, v, sign * pow(2, x.lsb()));
+    if (precision == INT_MIN or taylor_lsb)
+        precision = floor(x.lsb() + log2(cosh(v)));
+
+    return {sinh(x.lo()), sinh(x.hi()), precision};
 }
 
 void interval_algebra::testSinh()
