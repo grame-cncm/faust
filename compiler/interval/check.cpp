@@ -218,6 +218,7 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
         // the loop has almost no chance of drawing X.hi(): we manually add it
         double sample = X.hi();  // not truncated since morally the interval boundaries should already have the right precision
         double y = f(sample);
+        // y = truncate(y, -30);
 
         measurements.insert(y);
 
@@ -234,6 +235,7 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
             double presample = rx(generator);
             sample    = truncate(presample, D.lsb()); 
             y         = f(sample);
+            // y         = truncate(y, -30); // workaround to avoid artefacts in trigonometric functions
 
             measurements.insert(y);
 
@@ -265,11 +267,11 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
         itv::interval Z = (A.*mp)(X);
 
         if (Z >= Y and Z.lsb() <= Y.lsb()) {
-            double lsb = (Z.size() == 0) ? 1 : Y.size() / Z.size();
+            double precision = (Z.size() == 0) ? 1 : Y.size() / Z.size();
 
             std::cout << "\033[32m"
                       << "OK    " << e << ": " << title << "(" << X << ") = \t" << Z << "\t >= \t" << Y
-                      << "\t (precision " << lsb << ", LSB diff = " << Y.lsb() - Z.lsb() << ")"
+                      << "\t (precision " << precision << ", LSB diff = " << Y.lsb() - Z.lsb() << ")"
                       << "\033[0m" << std::endl;
         } else {
             std::cout << "\033[31m"
@@ -297,7 +299,7 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
                          bmth bm)
 {
     std::random_device             R;  // used to generate a random seed, based on some hardware randomness
-    std::default_random_engine     generator(1);
+    std::default_random_engine     generator(R());
     std::uniform_real_distribution rdx(Dx.lo(), Dx.hi());
     std::uniform_real_distribution rdy(Dy.lo(), Dy.hi());
     itv::interval_algebra          A;
@@ -392,4 +394,101 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
         }
     }
     std::cout << std::endl;
+}
+
+/**
+ * @brief Adjusts the lsb of an input interval to match a target output lsb
+ * 
+ * @param title name of the tested function
+ * @param mp the interval method of the studied function
+ * @param X the input interval
+ * @param l the target lsb for the output
+*/
+void propagateBackwardsUnaryMethod(const char* title, umth mp, itv::interval& X, int l)
+{
+    std::cout << "Shaving input " << X << " of " << title << " to achieve an output lsb of " << l << std::endl;
+
+    itv::interval_algebra A;
+    // itv::interval X = itv::interval(D.lo(), D.hi(), D.lsb());
+    itv::interval Z = (A.*mp)(X);
+
+    while (Z.lsb() < l) // the lsb of Z is more precise than l
+    {
+        X = itv::interval(X.lo(), X.hi(), X.lsb() + 1);
+        Z = (A.*mp)(X);
+    }
+
+    if (Z.lsb() > l) // if we've overshot the target lsb
+        X = itv::interval(X.lo(), X.hi(), X.lsb() - 1);
+
+    std::cout << "Input interval " << X << " is sufficient" << std::endl;
+}
+
+/**
+ * @brief Adjusts the lsb of an input iterval to two composed functions to match a target output lsb
+ * 
+ * @param titles names of the tested functions, from outermost to innermost
+ * @param mps the interval methods of the functions, from outermost to innermost
+ * @param X the input interval
+ * @param l the target lsb for the output
+*/
+void propagateBackwardsComposition(std::vector<const char*> titles, std::vector<umth> mps, itv::interval& X, int l)
+{
+    if (titles.size() != mps.size())
+    {
+        std::cout << "Incompatible vector sizes" << std::endl;
+        return;
+    }
+
+    int n = titles.size();
+
+    std::cout << "Shaving input " << X << " of ";
+    for(auto t: titles) 
+        std::cout << t << " ○ ";
+    std::cout << "\b\b\b";
+    std::cout << " to achieve an output lsb of " << l << std::endl << std::endl;
+
+    itv::interval_algebra A;
+    std::vector<itv::interval> intermediate_intervals{X}; // should be one element bigger than titles and mps
+
+    for(int i=0; i < n; i++)
+    {
+        intermediate_intervals.push_back((A.*(mps[n-i-1]))(intermediate_intervals[i]));
+        std::cout << titles[n-i-1] << "(" << intermediate_intervals[i] << ") = " << intermediate_intervals[i+1] << std::endl;
+    }
+
+    std::cout << std::endl << "Intermediate intervals before shaving:" << std::endl;
+
+    for(auto Y: intermediate_intervals)
+        std::cout << Y << std::endl;
+
+    std::cout << std::endl;
+    int li = l;
+    
+    for(int i=0; i<n-1; i++)
+    {
+        propagateBackwardsUnaryMethod(titles[i], mps[i], intermediate_intervals[n-i-1], li);
+        li = intermediate_intervals[n-i-1].lsb();
+        std::cout << std::endl;
+    }
+    propagateBackwardsUnaryMethod(titles[n-1], mps[n-1], X, li);
+    // propagateBackwardsUnaryMethod(titles[0], mps[0], X, li);
+    // propagateBackwardsUnaryMethod(titles[1], mps[1], X, intermediate_intervals[1].lsb());
+
+    std::cout << std::endl;
+
+    itv::interval Y = X;
+
+    for(int i=0; i<n; i++)
+    {
+        std::cout << titles[n-i-1] << "(" << Y <<  ") = " ;
+        Y = (A.*mps[n-i-1])(Y);
+        std::cout << Y << std::endl;
+    }
+    
+    std::cout << std::endl << "Intermediate intervals after shaving:" << std::endl;
+
+    std::cout << X << std::endl;
+    for(auto Y: intermediate_intervals)
+        std::cout << Y << std::endl;
 }

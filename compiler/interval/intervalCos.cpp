@@ -34,60 +34,71 @@ static double cosPi(double x)
 
 interval interval_algebra::Cos(const interval& x)
 {
-    int precision = exactPrecisionUnary(cosPi, 0, pow(2, x.lsb()));
+    int precision = exactPrecisionUnary(cos, 0, pow(2, x.lsb()));
+    if (precision == INT_MIN or taylor_lsb) precision = 2*x.lsb() - 1; // if x.lsb() is so small that the automatic computation doesn't work
 
     if (x.isEmpty()) {
         return {};
     }
-    if (x.size() >= 2) {
+    if (x.size() >= 2*M_PI) {
         return {-1, 1, precision};
     }
 
     // normalize input interval between 0..2 (corresponding to 0..2PI)
-    double l = fmod(x.lo(), 2);
+    double l = fmod(x.lo(), 2*M_PI);
     if (l < 0) {
-        l += 2;
+        l += 2*M_PI;
     }
     interval i(l, l + x.size(), x.lsb());
 
     // compute the default boundaries
-    double a  = cosPi(i.lo());
-    double b  = cosPi(i.hi());
+    double a  = cos(i.lo());
+    double b  = cos(i.hi());
     double lo = std::min(a, b);
     double hi = std::max(a, b);
 
     // check if integers are included
-    if (i.has(0) || i.has(2)) {
+    if (i.has(0) || i.has(2*M_PI)) {
         hi = 1;
     }
-    if (i.has(1) || i.has(3)) {
+    if (i.has(1*M_PI) || i.has(3*M_PI)) {
         lo = -1;
     }
 
     double v = 0;  // value of the interval at which the finest precision is computed
 
-    if (i.hi() < 1 or
-        (i.lo() > 1 and i.hi() < 2))  // if there are no integers in i, i.e i is included in ]0;1[ or ]1;2[
+    if (i.hi() < 1*M_PI or
+        (i.lo() > 1*M_PI and i.hi() < 2*M_PI))  // if there are no integers in i, i.e i is included in ]0;1[ or ]1;2[
     {
-        if (ceil(x.hi()) - x.hi() < x.lo() - floor(x.lo())) {  // if the lowest slope is attained for the higher bound
+        double delta_hi = ceil(x.hi()/M_PI) - x.hi()/M_PI;
+        double delta_lo = x.lo()/M_PI - floor(x.lo()/M_PI);
+        if (delta_hi < delta_lo) {  // if the lowest slope is attained for the higher bound
             v = x.hi();
         } else {  // ... for the lower bound
             v = x.lo();
         }
     }
 
-    precision = exactPrecisionUnary(cosPi, v, pow(2, x.lsb()));
+    precision = exactPrecisionUnary(cos, v, pow(2, x.lsb()));
+    if (precision == INT_MIN or taylor_lsb)
+    {
+        /* cos(x + u) - cos(x) = - u·sin(x) if x != 0
+                                = - u^2/2 · cos(x) = -u^2/2 if x == 0*/
+
+        if (v != 0) precision = x.lsb() + (int)floor(log2(abs(sin(v))));// (int)floor(log2(M_PI*abs(cos(M_PI*v)))) + x.lsb();
+        else precision = 2*x.lsb() -1 ; //- (int)floor(2*log2(M_PI));
+    }
 
     return {lo, hi, precision};
 }
 
 void interval_algebra::testCos()
 {
-    analyzeUnaryMethod(10, 40000, "cos", interval(1, 2, -3), cosPi, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(1, 2, -5), cosPi, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(1, 2, -10), cosPi, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(1, 2, -15), cosPi, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(1, 2, -20), cosPi, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(1, 2, -24), cosPi, &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, 2*M_PI, -3), cos, &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -5), cos, &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -10), cos, &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -15), cos, &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -20), cos, &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -24), cos, &interval_algebra::Cos);
 }
 }  // namespace itv
