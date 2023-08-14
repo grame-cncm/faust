@@ -54,11 +54,16 @@ void typeAnnotation(Tree sig, bool causality);
  */
 ::Type getCertifiedSigType(Tree term);
 
-
 /**
 * Retrieve the type annotation of sig
 * @param sig the signal we want to know the type
 */
 ::Type getSigType(Tree sig);
+
+/**
+ * Retrieve the type annotation of sig
+ * @param sig the signal we want to know the type
+ */
+void setSigType(Tree sig, ::Type);
 
 #endif

@@ -44,6 +44,8 @@ class SignalTypePrinter final : public SignalVisitor {
         
     public:
         SignalTypePrinter(Tree L);
+    
+        std::string print();
 
 };
 

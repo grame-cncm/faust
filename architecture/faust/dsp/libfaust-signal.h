@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <limits>
 
 #include "faust/export.h"
 
@@ -117,6 +118,27 @@ LIBFAUST_API std::string printSignal(Signal sig, bool shared, int max_size);
 #ifndef LIBFAUSTSIGNAL_H
 #define LIBFAUSTSIGNAL_H
 
+// To be used with getSigInterval/setSigInterval
+struct Interval {
+    double fLo{std::numeric_limits<double>::lowest()};  //< minimal value
+    double fHi{std::numeric_limits<double>::max()};     //< maximal value
+    int    fLSB{-24};                                  //< lsb in bits
+    
+    // To be used to set a full interval
+    Interval(double lo, double hi, int lsb):fLo(lo), fHi(hi), fLSB(lsb)
+    {}
+    
+    // To be used to only set the LSB, with fLo and fHi taking default values
+    Interval(int lsb):fLSB(lsb)
+    {}
+};
+
+std::ostream& operator<<(std::ostream& dst, const Interval& it)
+{
+    dst << "Interval [" << it.fLo << ", " << it.fHi << ", " << it.fLSB << "]";
+    return dst;
+}
+
 /**
  * Create global compilation context, has to be done first.
  */
@@ -126,6 +148,11 @@ extern "C" LIBFAUST_API void createLibContext();
  * Destroy global compilation context, has to be done last.
  */
 extern "C" LIBFAUST_API void destroyLibContext();
+
+
+LIBFAUST_API Interval getSigInterval(Signal s);
+
+LIBFAUST_API void setSigInterval(Signal s, Interval& inter);
 
 /**
  * Check if a signal is nil.
@@ -608,7 +635,7 @@ LIBFAUST_API bool isSigSoundfileBuffer(Signal s, Signal& sf, Signal& chan, Signa
 /**
  *  Simplify a signal to its normal form, where:
  *  - all possible optimisations, simplications, and compile time computations have been done
- *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
+ *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile primitive...
  *  are properly typed (arguments and result)
  *  - signal cast are properly done when needed
  *
@@ -621,7 +648,7 @@ LIBFAUST_API Signal simplifyToNormalForm(Signal s);
 /**
  *  Simplify a signal vector to its normal form, where:
  *  - all possible optimisations, simplications, and compile time computations have been done
- *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
+ *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile primitive...
  *  are properly typed (arguments and result)
  *  - signal cast are properly done when needed
  *

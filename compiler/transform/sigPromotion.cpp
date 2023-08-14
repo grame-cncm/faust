@@ -38,16 +38,22 @@ SignalTypePrinter::SignalTypePrinter(Tree L)
     // Check that the root tree is properly type annotated
     getCertifiedSigType(L);
     visitRoot(L);
+}
+
+string SignalTypePrinter::print()
+{
     /*
      HACK: since the signal tree shape is still not deterministic,
      we sort the list to be sure it stays the same.
      To be removed if the tree shape becomes deterministic.
      */
-    std::sort(fPrinted.begin(), fPrinted.end());
-    std::cout << "Size = " << fPrinted.size() << std::endl;
+    stringstream out;
+    sort(fPrinted.begin(), fPrinted.end());
+    out << "Size = " << fPrinted.size() << std::endl;
     for (const auto& it : fPrinted) {
-        std::cout << it;
+        out << it;
     }
+    return out.str();
 }
 
 void SignalTypePrinter::visit(Tree sig)

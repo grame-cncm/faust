@@ -50,7 +50,6 @@ using namespace std;
 // prototypes
 //--------------------------------------------------------------------------
 
-static void        setSigType(Tree sig, Type t);
 static TupletType* initialRecType(Tree t);
 static TupletType* maximalRecType(Tree t);
 
@@ -372,7 +371,7 @@ static void annotationStatistics()
  * @param sig the signal we want to type
  * @param t the type of the signal
  */
-static void setSigType(Tree sig, Type t)
+void setSigType(Tree sig, Type t)
 {
     TRACE(cerr << gGlobal->TABBER << "SET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE) << " TO TYPE " << *t << endl;)
     sig->setType(t);

@@ -110,6 +110,7 @@ class AudioType : public virtual Garbageable {
     int boolean() const { return fBoolean; }              ///< returns when a signal stands for a boolean value
 
     interval getInterval() const { return fInterval; }  ///< returns the interval (min and max values) of a signal
+    void     setInterval(const interval& r) { fInterval = r; }
     res      getRes() const { return fRes; }            ///< returns the resolution of the signal (fixed)
 
     void setCode(Tree code) { fCode = code; }  ///< sets the memoized code of a signal
@@ -125,9 +126,7 @@ class AudioType : public virtual Garbageable {
     virtual std::ostream& print(std::ostream& dst) const = 0;  ///< print nicely a type
     ///< true when type is maximal (and therefore can't change depending of hypothesis)
     virtual bool isMaximal() const = 0;
-
-   protected:
-    void setInterval(const interval& r) { fInterval = r; }
+    
 };
 
 // printing

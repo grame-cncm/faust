@@ -533,7 +533,7 @@ extern "C"
     /**
      *  Simplify a signal to its normal form, where:
      *  - all possible optimisations, simplications, and compile time computations have been done
-     *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
+     *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile primitive...
      *  are properly typed (arguments and result)
      *  - signal cast are properly done when needed
      *
@@ -546,7 +546,7 @@ extern "C"
     /**
      *  Simplify a null terminated array of signals to its normal form, where:
      *  - all possible optimisations, simplications, and compile time computations have been done
-     *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
+     *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile primitive...
      *  are properly typed (arguments and result)
      *  - signal cast are properly done when needed
      *

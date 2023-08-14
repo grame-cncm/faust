@@ -274,6 +274,52 @@ static void normalform()
      )
 }
 
+static void intervals()
+{
+    COMPILER
+    (
+        tvec signals;
+     
+        Signal s1 = sigAdd(sigAdd(sigDelay(sigDelay(sigInput(0), sigReal(500)), sigReal(200)), sigReal(0.5)), sigReal(3));
+        Signal s2 = sigMul(sigMul(sigDelay(sigInput(0), sigInt(500)), sigReal(0.5)), sigReal(4));
+        signals.push_back(s1);
+        signals.push_back(s2);
+         
+        compile("intervals1", signals);
+     
+        Interval i1 = getSigInterval(s1);
+        Interval i2 = getSigInterval(s2);
+     
+        cout << i1 << endl;
+        cout << i2 << endl;
+     
+        Interval i3(48);
+        Interval i4(-10, 10, 48);
+        setSigInterval(s1, i3);
+        setSigInterval(s2, i4);
+     
+        // Compute normal form
+        tvec nf = simplifyToNormalForm2(signals);
+         
+        cout << "\nPrint the signals in normal form\n";
+        for (size_t i = 0; i < nf.size(); i++) {
+            cout << printSignal(nf[i], false, INT_MAX);
+        }
+         
+        cout << "\nPrint the signals in short form\n";
+        for (size_t i = 0; i < nf.size(); i++) {
+            cout << printSignal(nf[i], false, 128);
+        }
+         
+        cout << "\nPrint the signals in normal form in shared mode\n";
+        for (size_t i = 0; i < nf.size(); i++) {
+            cout << printSignal(nf[i], true, INT_MAX);
+        }
+     
+        compile("intervals2", signals);
+     )
+}
+
 // process = @(+(0.5), 500) * vslider("Vol", 0.5, 0, 1, 0.01);
 
 static void test8()
@@ -807,6 +853,7 @@ int main(int argc, char* argv[])
     equivalent1();
     equivalent2();
     normalform();
+    intervals();
     test8();
     test9();
     test10();

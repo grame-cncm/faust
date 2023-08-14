@@ -35,6 +35,7 @@
 #include "ppbox.hh"
 #include "xtended.hh"
 #include "propagate.hh"
+#include "sigtyperules.hh"
 
 using namespace std;
 
@@ -60,6 +61,40 @@ extern "C" LIBFAUST_API void createLibContext()
 extern "C" LIBFAUST_API void destroyLibContext()
 {
     global::destroy();
+}
+
+// MUST match definition in libfaust-signal.h
+#define low  std::numeric_limits<double>::lowest()
+#define high std::numeric_limits<double>::max()
+
+struct Interval {
+    double fLo{low};  //< minimal value
+    double fHi{high}; //< maximal value
+    int    fLSB{-24}; //< lsb in bits
+    
+    Interval(double lo, double hi, int lsb):fLo(lo), fHi(hi), fLSB(lsb)
+    {}
+    Interval(int lsb):fLSB(lsb)
+    {}
+};
+
+LIBFAUST_API Interval getSigInterval(Tree sig)
+{
+    interval it = getSigType(sig)->getInterval();
+    return Interval(it.lo(), it.hi(), it.lsb());
+}
+
+LIBFAUST_API void setSigInterval(Tree sig, Interval& inter)
+{
+    Type ty = getSigType(sig);
+    interval it1 = ty->getInterval();
+    // If the inter argument has low/high range (the defaults), then it1 low/high values are kept,
+    // otherwise use the given ones
+    interval it2 ((inter.fLo == low) ? it1.lo() : inter.fLo,
+                  (inter.fHi == high) ? it1.hi() : inter.fHi,
+                  inter.fLSB);
+    ty->setInterval(it2);
+    setSigType(sig, ty);
 }
 
 LIBFAUST_API const char* xtendedName(Tree tree)

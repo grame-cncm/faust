@@ -154,7 +154,7 @@ void SignalVisitor::visit(Tree sig)
     else if (isSigIntCast(sig, x)) {
         self(x);
         return;
-    }else if (isSigBitCast(sig, x)) {
+    } else if (isSigBitCast(sig, x)) {
         self(x);
         return;
     } else if (isSigFloatCast(sig, x)) {
