@@ -280,24 +280,25 @@ static void intervals()
     (
         tvec signals;
      
-        Signal s1 = sigAdd(sigAdd(sigDelay(sigDelay(sigInput(0), sigReal(500)), sigReal(200)), sigReal(0.5)), sigReal(3));
-        Signal s2 = sigMul(sigMul(sigDelay(sigInput(0), sigInt(500)), sigReal(0.5)), sigReal(4));
+        //Signal s1 = sigAdd(sigAdd(sigDelay(sigDelay(sigInput(0), sigReal(500)), sigReal(200)), sigReal(0.5)), sigReal(3));
+        //Signal s2 = sigMul(sigMul(sigDelay(sigInput(0), sigInt(500)), sigReal(0.5)), sigReal(4));
+        Signal s1 = sigInput(0);
+        Signal s2 = sigMul(sigInput(0), sigReal(4));
+     
         signals.push_back(s1);
         signals.push_back(s2);
          
-        compile("intervals1", signals);
+        // Compile in fixed-point mode
+        const char* argv1[] = { "-fx" };
+        compile("intervals1", signals, 1, argv1);
      
-        Interval i1 = getSigInterval(s1);
-        Interval i2 = getSigInterval(s2);
+        // Set new intervals on both signals
+        Interval i1(-48);
+        Interval i2(-10, 10, -32);
      
-        cout << i1 << endl;
-        cout << i2 << endl;
-     
-        Interval i3(48);
-        Interval i4(-10, 10, 48);
-        setSigInterval(s1, i3);
-        setSigInterval(s2, i4);
-     
+        setSigInterval(s1, i1);
+        setSigInterval(s2, i2);
+      
         // Compute normal form
         tvec nf = simplifyToNormalForm2(signals);
          
@@ -316,7 +317,9 @@ static void intervals()
             cout << printSignal(nf[i], true, INT_MAX);
         }
      
-        compile("intervals2", signals);
+        // Compile gain in fixed-point mode
+        const char* argv2[] = { "-fx" };
+        compile("intervals2", signals, 1, argv2);
      )
 }
 
