@@ -38,14 +38,17 @@ sudo make install
 Subject to future modifications to the Faust compiler, compiling and running
 an autodiff example demands the following approach:
 
-Copy `autodiff.(cpp|h)` from the Faust architecture directory to the
-output directory:
+Copy required files from the Faust architecture directory to the output directory:
 
 ```shell
 outputdir=~/tmp/faust-autodiff
-archdir=$(faust --archdir)
+autodiffdir=$(faust --archdir)/autodiff
 mkdir -p $outputdir
-cp $archdir/autodiff/autodiff.h $archdir/autodiff/autodiff.cpp $outputdir
+cp $autodiffdir/autodiff.h \
+  $autodiffdir/autodiff.cpp \
+  $autodiffdir/dspFactoryOwner.h \
+  $autodiffdir/plot.py \
+  $outputdir
 ```
 
 Compile the generated cpp file.
@@ -56,7 +59,7 @@ LLVM library to link to.
 ```shell
 outputdir=~/tmp/faust-autodiff
 cd $outputdir || exit
-c++ -std=c++14 my_autodiff.cpp /usr/local/lib/libfaust.a \
+c++ -std=c++14 autodiff.cpp /usr/local/lib/libfaust.a \
   $(llvm-config --ldflags --libs all --system-libs) \
   -o autodiff_example
 ```
@@ -74,7 +77,7 @@ brew install zstd
 and adjust the call to `c++` as follows:
 
 ```shell
-c++ -std=c++14 my_autodiff.cpp /usr/local/lib/libfaust.a \
+c++ -std=c++14 autodiff.cpp /usr/local/lib/libfaust.a \
   $(llvm-config --ldflags --libs all --system-libs) \
   -L/opt/local/lib \
   -o autodiff_example
@@ -99,10 +102,13 @@ Run the compiled executable, specifying the following dsp files:
   as the learning rate (if not provided, the default 0.1).
 
 ```shell
-./autodiff_example --input $archdir/examples/autodiff/noise.dsp \
-  --gt $archdir/examples/autodiff/gain/gt.dsp \
-  --diff $archdir/examples/autodiff/gain/diff.dsp \
-  -lf l2
+outputdir=~/tmp/faust-autodiff
+cd $outputdir || exit
+examplesdir=$(faust --archdir)/examples/autodiff
+./autodiff_example --input $examplesdir/noise.dsp \
+  --gt $examplesdir/gain/gt.dsp \
+  --diff $examplesdir/gain/diff.dsp \
+  -lf l2 \
   -lr 0.1
 ```
 
@@ -130,12 +136,10 @@ Learnable parameter: /Parallelizer/DSP2/Parallelizer/DSP1/Sequencer/DSP2/diff/al
     ...
 ```
 
-At the end of the process, a plot is produced of loss against parameter value and
-iteration.
+Run `python3 plot.py` in the output directory to produce a plot of loss against parameter 
+value and iteration, and parameter value against iteration (requires matplotlib).
 
 ![Loss plot example](loss_example.png)
-
-NB. plot functionality requires python3 and matplotlib.
 
 ## Tips
 
@@ -188,3 +192,35 @@ $$
 &= x
 \end{align}
 $$
+
+# Verification via finite differences
+
+The output of a differentiated DSP algorithm can be compared with a numerical 
+derivative computed via finite differences.
+This can be achieved with the `autodiffVerifier` utility.
+
+To build the verifier, copy the required files and compile `autodiffVerifier.cpp`:
+
+```shell
+outputdir=~/tmp/faust-autodiff
+autodiffdir=$(faust --archdir)/autodiff
+mkdir -p $outputdir
+cp $autodiffdir/autodiffVerifier.h \
+  $autodiffdir/autodiffVerifier.cpp \
+  $autodiffdir/dspFactoryOwner.h \
+  $outputdir
+cd $outputdir || exit
+c++ -std=c++14 autodiffVerifier.cpp /usr/local/lib/libfaust.a \
+  $(llvm-config --ldflags --libs all --system-libs) \
+  -o verify
+```
+
+Then run the resulting executable, specifying input and differentiable DSP files:
+
+```shell
+outputdir=~/tmp/faust-autodiff
+cd $outputdir || exit
+examplesdir=$(faust --archdir)/examples/autodiff
+./verify --input $examplesdir/noise.dsp \
+  --diff $examplesdir/gain/diff.dsp
+```

@@ -1,5 +1,3 @@
-// TODO: add licence
-
 #include <iostream>
 #include <cmath>
 #include "autodiff.h"
@@ -9,7 +7,9 @@
 int main(int argc, char *argv[])
 {
     if (isopt(argv, "--help")) {
-        std::cout << "Usage: " << argv[0] << " --input <file> --gt <file> --diff <file> [-l <loss-function>]\n";
+        std::cout << "Usage: " << argv[0] << " --input <file> --gt <file> --diff <file>"
+            << " [-lf|--lossfunction <loss-function>]"
+            << " [-lr|--learningrate <learning-rate>]\n";
         exit(0);
     }
     
@@ -56,16 +56,14 @@ mldsp::mldsp(std::string inputDSPPath,
         fGroundTruthDSPPath(groundTruthDSPPath),
         fDifferentiableDSPPath(differentiableDSPPath)
 {
-    std::cout << "Learning rate: " << kAlpha << "\n";
+    std::cout << "Learning rate: " << kAlpha
+              << "\nSensitivity: " << kEpsilon << "\n\n";
 }
 
 mldsp::~mldsp()
 {
     fFile.close();
     delete fDSP;
-    for (auto &factory: fDSPFactories) {
-        deleteDSPFactory(factory.second);
-    }
 }
 
 void mldsp::initialise()
@@ -75,6 +73,7 @@ void mldsp::initialise()
     auto adjustableDSP{createDSPInstanceFromPath(fDifferentiableDSPPath)};
     const char *argv[] = {"-diff"};
     auto differentiatedDSP{createDSPInstanceFromPath(fDifferentiableDSPPath, 1, argv)};
+//    auto differentiatedDSP{createDSPInstanceFromPath("/usr/local/share/faust/examples/autodiff/recursion/target.dsp", 1, argv)};
     
     fDSP = new dsp_parallelizer(
             // Set up the ground truth DSP: s_o(\hat{p})
@@ -100,12 +99,17 @@ void mldsp::initialise()
         auto address{fUI->getParamAddress(p)};
         fLearnableParams.insert(std::make_pair(address, Parameter{fUI->getParamValue(address), 0.f}));
     }
+    
+    // Set up csv file
     fFile.open("loss.csv");
     fFile << "iteration,loss";
+    std::cout << "\n";
     for (auto &p: fLearnableParams) {
+        auto label{p.first.substr(p.first.find_last_of("/") + 1)};
         std::cout << "Learnable parameter: " << p.first << ", value: " << p.second.value << "\n";
-        fFile << ",gradient,param";
+        fFile << ",gradient_" << label << "," << label;
     }
+    std::cout << "\n";
     fFile << "\n";
 }
 
@@ -138,62 +142,6 @@ void mldsp::doGradientDescent()
             if (lowLossCount > 20) return;
         }
     }
-}
-
-dsp *mldsp::createDSPInstanceFromString(
-        const std::string &appName,
-        const std::string &dspContent
-)
-{
-    auto factory{fDSPFactories.find(appName)};
-    
-    if (factory == fDSPFactories.end()) {
-        std::string errorMessage;
-        
-        fDSPFactories.insert(std::make_pair(
-                appName,
-                createDSPFactoryFromString(appName, dspContent, 0, nullptr, "", errorMessage)
-        ));
-        
-        factory = fDSPFactories.find(appName);
-        
-        if (!factory->second) {
-            std::cout << errorMessage;
-        }
-        assert(factory->second);
-    }
-    
-    return factory->second->createDSPInstance();
-}
-
-dsp *mldsp::createDSPInstanceFromPath(const std::string &path,
-                                      int argc, const char *argv[])
-{
-    auto key{path};
-    for (int i{0}; i < argc; ++i) {
-        key.append(argv[i]);
-    }
-    auto factory{fDSPFactories.find(key)};
-    
-    if (factory == fDSPFactories.end()) {
-        std::string errorMessage;
-        std::cout << "Creating DSP from file with key " << key << "\n";
-        
-        fDSPFactories.insert(std::make_pair(
-                key,
-                createDSPFactoryFromFile(path, argc, argv, "", errorMessage)
-        ));
-        
-        factory = fDSPFactories.find(key);
-        
-        std::cout << "factory: " << factory->second << "\n";
-        if (!factory->second) {
-            std::cout << "Error: " << errorMessage;
-        }
-        assert(factory->second);
-    }
-    
-    return factory->second->createDSPInstance();
 }
 
 void mldsp::computeLoss(FAUSTFLOAT **output, int frame)

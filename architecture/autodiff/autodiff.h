@@ -1,5 +1,3 @@
-// TODO: add licence
-
 #ifndef faust_autodiff_h
 #define faust_autodiff_h
 
@@ -7,14 +5,14 @@
 #define FAUSTFLOAT float
 #endif
 
-#include <memory>
 #include <fstream>
+#include "dspFactoryOwner.h"
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/dsp-combiner.h"
 #include "faust/audio/dummy-audio.h"
 
-class mldsp
+class mldsp : private dspFactoryOwner
 {
 public:
     enum LossFunction
@@ -56,13 +54,6 @@ private:
     const FAUSTFLOAT kAlpha, kEpsilon;
     const int kNumIterations;
     
-    dsp *createDSPInstanceFromString(const std::string &appName,
-                                     const std::string &dspContent);
-    
-    dsp *createDSPInstanceFromPath(const std::string &path,
-                                   int argc = 0,
-                                   const char *argv[] = nullptr);
-    
     /**
      * Update the loss value with the squared L-2 norm between the learnable
      * and ground truth signals.
@@ -85,12 +76,11 @@ private:
     void reportState(int iteration, FAUSTFLOAT **output, int frame);
     
     std::string fInputDSPPath, fGroundTruthDSPPath, fDifferentiableDSPPath;
-    std::map<std::string, llvm_dsp_factory *> fDSPFactories;
     /**
      * This will hold the parallelized ground truth, differentiated, and learnable
      * versions of the DSP algorithm.
      *
-     * NB. Using a unique_ptr causes fDSP to be deleted after the factories,
+     * NB. Using a unique_ptr causes fDSP to be deleted *after* the factories,
      * so use a regular pointer.
      */
     dsp *fDSP;
