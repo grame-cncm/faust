@@ -6,6 +6,7 @@ echoHelp() {
 }
 
 FAUSTARCH=$(faust -archdir)
+AUTODIFFDIR=$FAUSTARCH/autodiff
 AUTODIFF_EXAMPLES=$FAUSTARCH/examples/autodiff
 
 if [ "$#" -eq 0 ]; then
@@ -36,8 +37,7 @@ OUTPUTDIR=~/tmp/faust-autodiff
 mkdir -p $OUTPUTDIR
 rm ${OUTPUTDIR:?}/*
 
-cp $FAUSTARCH/autodiff/autodiff.h $OUTPUTDIR/autodiff.h
-cp $FAUSTARCH/autodiff/plot.py $OUTPUTDIR/plot.py
+cp $AUTODIFFDIR/autodiff.h $AUTODIFFDIR/dspFactoryOwner.h $AUTODIFFDIR/plot.py $OUTPUTDIR
 
 # Run the Faust compiler against the architecture file.
 faust --details -diff -a $FAUSTARCH/autodiff/autodiff.cpp \
