@@ -136,17 +136,17 @@ static Tree simplifyToNormalFormAux(Tree LS)
 }
 
 // Public API
-LIBFAUST_API Tree simplifyToNormalForm(Tree t)
+LIBFAUST_API Tree simplifyToNormalForm(Tree sig)
 {
-    if (isList(t)) {
-        Tree t2 = t->getProperty(gGlobal->NORMALFORM);
+    if (isList(sig)) {
+        Tree t2 = sig->getProperty(gGlobal->NORMALFORM);
         if (!t2) {
-            t2 = simplifyToNormalFormAux(t);
-            t->setProperty(gGlobal->NORMALFORM, t2);
+            t2 = simplifyToNormalFormAux(sig);
+            sig->setProperty(gGlobal->NORMALFORM, t2);
         }
         return t2;
     } else {
-        return simplifyToNormalForm(cons(t, gGlobal->nil));
+        return simplifyToNormalForm(cons(sig, gGlobal->nil));
     }
 }
 

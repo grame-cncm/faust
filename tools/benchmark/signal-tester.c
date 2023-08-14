@@ -23,6 +23,7 @@
  ************************************************************************/
 
 #include <stdio.h>
+#include <limits.h>
 #include <string.h>
 #include <assert.h>
 
@@ -119,7 +120,10 @@ static void test1()
         Signal signals[2];
         signals[0] = phasor(CsigReal(2000));
         signals[1] = NULL; // Null terminated array
-
+    
+        printf("%s\n", CprintSignal(signals[0], false, INT_MAX));
+        printf("%s\n", CprintSignal(signals[0], true, INT_MAX));
+     
         char error_msg[4096];
         llvm_dsp_factory* factory = createCDSPFactoryFromSignals("test1", signals, 0, NULL, "", error_msg, -1);
             
@@ -238,9 +242,9 @@ static void test3()
 static void test4()
 {
     printf("test4\n");
-    const char* lang[] = { "c", "cpp", "cmajor", "codebox", "csharp", "dlang", "interp", "jax", "jsfx", "julia", "rust", "wast" };
+    const char* lang[] = { "c", "cpp", "cmajor", "codebox", "csharp", "dlang", "fir", "interp", "jax", "jsfx", "julia", "rust", "wast" };
     // Context has to be created/destroyed each time
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 13; i++) {
         createLibContext();
         {
             int inputs = 0;
@@ -273,9 +277,9 @@ static void test4()
 static void test5()
 {
     printf("test5\n");
-    const char* lang[] = { "c", "cpp", "cmajor", "codebox", "csharp", "dlang", "interp", "jax", "jsfx", "julia", "rust", "wast" };
+    const char* lang[] = { "c", "cpp", "cmajor", "codebox", "csharp", "dlang", "fir", "interp", "jax", "jsfx", "julia", "rust", "wast" };
     // Context has to be created/destroyed each time
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 13; i++) {
         createLibContext();
         {
             int inputs = 0;

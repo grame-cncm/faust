@@ -49,6 +49,37 @@ enum SType { kSInt, kSReal };
 
 enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+    
+    /**
+     * Print the box.
+     *
+     * @param box - the box to be printed
+     * @param shared - whether the identical sub boxes are printed as identifiers
+     * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
+     *
+     * @return the printed box as a string (to be deleted by the caller using freeCMemory)
+     */
+    LIBFAUST_API char* CprintBox(Box box, bool shared, int max_size);
+
+    /**
+     * Print the signal.
+     *
+     * @param sig - the signal to be printed
+     * @param shared - whether the identical sub signals are printed as identifiers
+     * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
+     *
+     * @return the printed signal as a string (to be deleted by the caller using freeCMemory)
+     */
+    LIBFAUST_API char* CprintSignal(Signal sig, bool shared, int max_size);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 
 #ifndef LIBFAUSTSIGNAL_C_H
@@ -563,7 +594,8 @@ extern "C"
      * @param osigs - the null terminated array of output signals (that will internally be converted in normal form,
      * see simplifyToNormalForm)
      * @param lang - the target source code's language which can be one of "c",
-     * "cpp", "cmajor", "csharp", "dlang", "fir", "java", "julia", "ocpp", "rust" or "wast"
+     * "cpp", "cmajor", "codebox", "csharp", "dlang", "fir", "interp", "java", "jax",
+     * "jsfx", "julia", "ocpp", "rust" or "wast"
      * (depending of which of the corresponding backends are compiled in libfaust)
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters

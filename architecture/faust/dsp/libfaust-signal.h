@@ -149,9 +149,21 @@ extern "C" LIBFAUST_API void createLibContext();
  */
 extern "C" LIBFAUST_API void destroyLibContext();
 
-
+/**
+ * Get the signal interval.
+ * 
+ * @param s - the signal
+ * 
+ * @return the signal interval
+ */
 LIBFAUST_API Interval getSigInterval(Signal s);
 
+/**
+ * Set the signal interval.
+ * 
+ * @param s - the signal
+ * @param inter - the signal interval
+ */
 LIBFAUST_API void setSigInterval(Signal s, Interval& inter);
 
 /**
@@ -646,13 +658,13 @@ LIBFAUST_API bool isSigSoundfileBuffer(Signal s, Signal& sf, Signal& chan, Signa
 LIBFAUST_API Signal simplifyToNormalForm(Signal s);
 
 /**
- *  Simplify a signal vector to its normal form, where:
+ *  Simplify a signal list to its normal form, where:
  *  - all possible optimisations, simplications, and compile time computations have been done
  *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile primitive...
  *  are properly typed (arguments and result)
  *  - signal cast are properly done when needed
  *
- * @param siglist - the signal vector to be processed
+ * @param siglist - the signal list to be processed
  *
  * @return the signal vector in normal form.
  */
@@ -665,7 +677,8 @@ LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
  * @param osigs - the vector of output signals (that will internally be converted in normal form,
  * see simplifyToNormalForm)
  * @param lang - the target source code's language which can be one of "c",
- * "cpp", "cmajor", "csharp", "dlang", "fir", "java", "julia", "ocpp", "rust" or "wast"
+ * "cpp", "cmajor", "codebox", "csharp", "dlang", "fir", "interp", "java", "jax",
+ * "jsfx", "julia", "ocpp", "rust" or "wast"
  * (depending of which of the corresponding backends are compiled in libfaust)
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters

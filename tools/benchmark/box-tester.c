@@ -23,6 +23,7 @@
  ************************************************************************/
 
 #include <stdio.h>
+#include <limits.h>
 #include <string.h>
 #include <assert.h>
 
@@ -118,6 +119,9 @@ static void test1()
     {
         Box box = phasor(CboxReal(2000));
      
+        printf("%s\n", CprintBox(box, false, INT_MAX));
+        printf("%s\n", CprintBox(box, true, INT_MAX));
+    
         char error_msg[4096];
         llvm_dsp_factory* factory = createCDSPFactoryFromBoxes("test1", box, 0, NULL, "", error_msg, -1);
             

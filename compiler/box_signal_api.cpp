@@ -90,9 +90,9 @@ LIBFAUST_API void setSigInterval(Tree sig, Interval& inter)
     interval it1 = ty->getInterval();
     // If the inter argument has low/high range (the defaults), then it1 low/high values are kept,
     // otherwise use the given ones
-    interval it2 ((inter.fLo == low) ? it1.lo() : inter.fLo,
-                  (inter.fHi == high) ? it1.hi() : inter.fHi,
-                  inter.fLSB);
+    interval it2 ((inter.fLo != low) ? inter.fLo : it1.lo(),
+                 (inter.fHi != high) ? inter.fHi : it1.hi(),
+                 inter.fLSB);
     ty->setInterval(it2);
     setSigType(sig, ty);
 }
@@ -2821,6 +2821,18 @@ LIBFAUST_API Tree CboxHBargraphAux(const char* label, Tree min, Tree max, Tree x
 LIBFAUST_API Tree CboxAttachAux(Tree s1, Tree s2)
 {
     return CboxSeq(CboxPar(s1, s2), CboxAttach());
+}
+
+LIBFAUST_API char* CprintBox(Tree box, bool shared, int max_size)
+{
+    string res = printBox(box, shared, max_size);
+    return strdup(res.c_str());
+}
+
+LIBFAUST_API char* CprintSignal(Tree sig, bool shared, int max_size)
+{
+    string res = printSignal(sig, shared, max_size);
+    return strdup(res.c_str());
 }
 
 #ifdef __cplusplus

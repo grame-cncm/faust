@@ -24,10 +24,52 @@
 
 #include "tree.hh"
 
+/**
+ *  Simplify a signal to its normal form, where:
+ *  - all possible optimisations, simplications, and compile time computations have been done
+ *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile primitive...
+ *  are properly typed (arguments and result)
+ *  - signal cast are properly done when needed
+ *
+ * @param sig - the signal to be processed
+ *
+ * @return the signal in normal form.
+ */
 LIBFAUST_API Tree simplifyToNormalForm(Tree sig);
 
-LIBFAUST_API tvec simplifyToNormalForm2(tvec sig);
+/**
+ *  Simplify a signal list to its normal form, where:
+ *  - all possible optimisations, simplications, and compile time computations have been done
+ *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile primitive...
+ *  are properly typed (arguments and result)
+ *  - signal cast are properly done when needed
+ *
+ * @param siglist - the signal vector to be processed
+ *
+ * @return the signal list in normal form.
+ */
+LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
 
-LIBFAUST_API void printSignal(Tree sig, std::ostream& out, bool shared);
+/**
+ * Print the signal.
+ *
+ * @param sig - the signal to be printed
+ * @param shared - whether the identical sub signals are printed as identifiers
+ * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
+ *
+ * @return the printed signal as a string
+ */
+LIBFAUST_API std::string printSignal(Tree sig, bool shared, int max_size);
+
+/**
+ * Print the box.
+ *
+ * @param box - the box to be printed
+ * @param shared - whether the identical sub boxes are printed as identifiers
+ * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
+ *
+ * @return the printed box as a string
+ */
+LIBFAUST_API std::string printBox(Tree box, bool shared, int max_size);
 
 #endif

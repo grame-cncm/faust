@@ -815,7 +815,8 @@ LIBFAUST_API tvec boxesToSignals(Box box, std::string& error_msg);
  * @param name_app - the name of the Faust program
  * @param box - the box expression
  * @param lang - the target source code's language which can be one of "c",
- * "cpp", "cmajor", "csharp", "dlang", "fir", "interp", "java", "julia", "ocpp", "rust" or "wast"
+ * "cpp", "cmajor", "codebox", "csharp", "dlang", "fir", "interp", "java", "jax",
+ * "jsfx", "julia", "ocpp", "rust" or "wast"
  * (depending of which of the corresponding backends are compiled in libfaust)
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters

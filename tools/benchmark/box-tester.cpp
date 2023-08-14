@@ -648,7 +648,7 @@ static void test24(int argc, const char* argv[])
 static void test25()
 {
     cout << "test25\n";
-    vector<const char*> lang = { "c", "cpp", "cmajor", "codebox", "csharp", "dlang", "interp", "jax", "jsfx", "julia", "rust", "wast" };
+    vector<const char*> lang = { "c", "cpp", "cmajor", "codebox", "csharp", "dlang", "fir", "interp", "jax", "jsfx", "julia", "rust", "wast" };
     // Context has to be created/destroyed each time
     for (const auto& it : lang) {
         createLibContext();
