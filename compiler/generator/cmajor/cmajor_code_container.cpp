@@ -297,8 +297,12 @@ void CmajorCodeContainer::produceClass()
     tab(n + 1, *fOut);
     if (gGlobal->gFloatSize == 1) {
         *fOut << "float32 copysign(float32 x, float32 y) { return abs(x) * ((y < 0.0f) ? -1.0f : 1.0f); }";
+        tab(n + 1, *fOut);
+        *fOut << "float32 round(float32 x) { return float32(roundToInt(x)); }";
     } else if (gGlobal->gFloatSize == 2) {
         *fOut << "float64 copysign(float64 x, float64 y) { return abs(x) * ((y < 0.0) ? -1.0 : 1.0); }";
+        tab(n + 1, *fOut);
+        *fOut << "float64 round(float64 x) { return float64(roundToInt(x)); }";
     }
     tab(n + 1, *fOut);
 
