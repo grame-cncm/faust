@@ -26,7 +26,7 @@ namespace itv {
 // interval Acosh(const interval& x);
 // void testAcosh();
 
-static const interval domain(1, HUGE_VAL, 0);
+static const interval domain(1, HUGE_VAL);
 
 interval interval_algebra::Acosh(const interval& x)
 {

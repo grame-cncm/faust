@@ -51,7 +51,7 @@ int exactPrecisionUnary(ufun f, long double x, long double u)
  * @brief compute the precision needed in the input of a function 
  * 
  * @param f the function to analyse
- * @param finv a function such that f o finv = Id locally
+ * @param finv a function such that f o finv = Id locally around x
  * @param x the input point at which the tightest precision is needed
  * @param u the signed gap between the two consecutive numbers at which to compute the precision (ie the ulp)
 */
