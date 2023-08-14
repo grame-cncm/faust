@@ -21,11 +21,10 @@
 
 #pragma once
 
+#include <limits.h>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
-#include <limits.h>
-#include <algorithm>
 #include <string>
 
 // #include "global"
@@ -65,8 +64,11 @@ class interval {
             fLo = NAN;
             fHi = NAN;
         } else {
-            fLo = std::min(n, m);
-            fHi = std::max(n, m);
+            double u = pow(2, lsb);
+            double n_trunc = u*(double)floor(n/u);
+            double m_trunc = u*(double)floor(m/u);
+            fLo = std::min(n_trunc, m_trunc);
+            fHi = std::max(n_trunc, m_trunc);
         }
         fLSB = lsb;
     }
@@ -108,13 +110,15 @@ class interval {
     int    lsb() const { return fLSB; }
 
     // position of the most significant bit of the value, without taking the sign bit into account
-    int    msb() const
+    int msb() const
     {
         // amplitude of the interval
         // can be < 1.0, in which case the msb will be negative and indicate the number of implicit leading zeroes
         double range = std::max(std::abs(fLo), std::abs(fHi));
 
-        if (std::isinf(range)) return 20; // max MSB of the VHDL design; TODO: change when integrating in the compiler
+        if (std::isinf(range)) {
+            return 20;  // max MSB of the VHDL design; TODO: change when integrating in the compiler
+        }
 
         // The sign bit will be added later on
         return int(std::floor(std::log2(range)));
@@ -156,7 +160,7 @@ inline interval intersection(const interval& i, const interval& j)
     } else {
         double l = std::max(i.lo(), j.lo());
         double h = std::min(i.hi(), j.hi());
-        int p = std::min(i.lsb(), j.lsb()); // precision of the intersection should be the finest of the two
+        int    p = std::min(i.lsb(), j.lsb());  // precision of the intersection should be the finest of the two
         if (l > h) {
             return {};
         } else {
@@ -174,24 +178,29 @@ inline interval reunion(const interval& i, const interval& j)
     } else {
         double l = std::min(i.lo(), j.lo());
         double h = std::max(i.hi(), j.hi());
-        int p = std::min(i.lsb(), j.lsb()); // precision of the reunion should be the finest of the two
+        int    p = std::min(i.lsb(), j.lsb());  // precision of the reunion should be the finest of the two
         return {l, h, p};
     }
 }
 
-inline interval singleton(double x, int lsb=-24)
+inline interval singleton(double x, int lsb = -24)
 {
-    if (x==0) return {0,0,0};
+    if (x == 0) {
+        return {0, 0, 0};
+    }
 
     int precision = lsb;
 
-    while (floor(x*pow(2, -precision-1)) == x*pow(2, -precision-1) and x != 0)
-    {
+    while (floor(x * pow(2, -precision - 1)) == x * pow(2, -precision - 1) and x != 0) {
         precision++;
     }
     return {x, x, precision};
 }
 
+inline interval empty() noexcept
+{
+    return {NAN, NAN, 0};
+}
 //-------------------------------------------------------------------------
 // predicates
 //-------------------------------------------------------------------------

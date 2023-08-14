@@ -7,7 +7,7 @@
 #include "interval_def.hh"
 #include "utils.hh"
 
-bool const taylor_lsb = true; // flag that tells us to always compute the LSB using a Taylor expansion of the function 
+bool const taylor_lsb = false; // flag that tells us to always compute the LSB using a Taylor expansion of the function 
                               // instead of going for the exact computation
 
 void check(const std::string& testname, const itv::interval& exp);
@@ -32,3 +32,6 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
 
 void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& C, const itv::interval& D, bfun f,
                          bmth m);
+
+void propagateBackwardsUnaryMethod(const char* title, umth f, itv::interval& X, int l);
+void propagateBackwardsComposition(std::vector<const char*> titles, std::vector<umth> mps, itv::interval& X, int l);

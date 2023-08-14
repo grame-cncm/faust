@@ -47,6 +47,9 @@ interval interval_algebra::Asin(const interval& x)
     }
     int precision = exactPrecisionUnary(asin, v, sign * pow(2, i.lsb()));
 
+    if (precision == INT_MIN or taylor_lsb)
+        precision = floor(x.lsb() - (double)log2(1 - v*v)/2);
+
     return {asin(i.lo()), asin(i.hi()), precision};
 }
 
@@ -57,5 +60,11 @@ void interval_algebra::testAsin()
     analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -10), asin, &interval_algebra::Asin);
     analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -15), asin, &interval_algebra::Asin);
     analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -20), asin, &interval_algebra::Asin);
+
+    /* analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, 30), asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -35), asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -40), asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -45), asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -50), asin, &interval_algebra::Asin);*/
 }
 }  // namespace itv
