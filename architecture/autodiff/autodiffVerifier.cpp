@@ -107,10 +107,10 @@ dsp *autodiffVerifier::createDSPCascade(dsp *input, dsp *process, int numParams)
 
 void autodiffVerifier::verify()
 {
-    std::map<std::string, std::vector<float>> errors;
+    std::map<std::string, std::vector<float>> deltas;
     for (int p = 0; p < fNumParams; ++p) {
         auto address{fUI->getParamAddress(p)};
-        errors.insert(std::make_pair(
+        deltas.insert(std::make_pair(
                 address.substr(address.find_last_of("/") + 1),
                 std::vector<float>()
         ));
@@ -123,38 +123,52 @@ void autodiffVerifier::verify()
     auto undiffedIndex{fNumParams};
     
     for (auto i{1}; i <= kNumIterations; ++i) {
+        if ((i - 1) % 20 == 0) {
+            std::cout << std::string(80, '-') << "\n"
+                      << std::setw(5) << "Iter"
+                      << std::setw(15) << "Param"
+                      << std::setw(15) << "Autodiff"
+                      << std::setw(15) << "Finite diff"
+                      << std::setw(15) << "|delta|"
+                      << std::setw(15) << "Rel. error"
+                      << "\n" << std::string(80, '-') << "\n";
+        }
+        
         fAudio->render();
         auto out{fAudio->getOutput()};
         
         for (int frame = 0; frame < fAudio->getBufferSize(); frame++) {
             std::cout << std::setw(5) << i;
             auto p{0};
-            for (auto &e: errors) {
+            for (auto &d: deltas) {
                 auto autodiff{out[autodiffIndex + p][frame]};
                 auto finiteDiff{(out[p][frame] - out[undiffedIndex][frame]) / kEpsilon};
-                auto error{fabsf(autodiff - finiteDiff)};
-                e.second.push_back(error);
+                auto delta{fabsf(autodiff - finiteDiff)};
+                auto relError{iszero(autodiff) ? 0.f : fabsf(100.f * delta / autodiff)};
+                d.second.push_back(delta);
                 
-                std::cout << std::setw(p == 0 ? 10 : 15) << e.first
+                std::cout << std::setw(p == 0 ? 15 : 20) << d.first
                           << std::setprecision(10) << std::fixed
-                          << std::setw(15) << "autodiff:" << std::setw(15) << autodiff
-                          << std::setw(15) << "finite diff:" << std::setw(15) << finiteDiff
-                          << std::setprecision(3) << (error < 1e-3 ? std::scientific : std::fixed)
-                          << std::setw(10) << "|delta|:" << std::setw(12) << error << "\n";
+                          << std::setw(15) << autodiff
+                          << std::setw(15) << finiteDiff
+                          << std::setprecision(3) << (delta < 1e-3 ? std::scientific : std::fixed)
+                          << std::setw(15) << delta
+                          << std::setprecision(3) << std::fixed
+                          << std::setw(13) << relError << " %\n";
                 
                 ++p;
             }
         }
     }
     
-    for (auto &errs: errors) {
-        auto mean{std::accumulate(errs.second.begin(), errs.second.end(), 0.f) / kNumIterations};
+    for (auto &dd: deltas) {
+        auto mean{std::accumulate(dd.second.begin(), dd.second.end(), 0.f) / kNumIterations};
         auto variance{0.f};
-        for (auto &e: errs.second) {
-            variance += powf(e - mean, 2);
+        for (auto &d: dd.second) {
+            variance += powf(d - mean, 2);
         }
         auto deviation{sqrtf(variance / (kNumIterations - 1))};
-        std::cout << "\nParameter: " << errs.first << "\n" << std::string(31, '=') << "\n"
+        std::cout << "\nParameter: " << dd.first << "\n" << std::string(31, '=') << "\n"
                   << std::setw(20) << "Mean delta:"
                   << (mean < 1e-3 ? std::scientific : std::fixed) << std::setw(11) << mean
                   << "\n"
