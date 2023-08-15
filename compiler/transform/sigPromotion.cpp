@@ -971,51 +971,6 @@ Tree signalAutoDifferentiate(Tree sig)
     getCertifiedSigType(sig);
     
     // Collect input differentiable variables
-    struct DiffVarCollector : public SignalVisitor {
-        
-        siglist inputs;
-        
-        DiffVarCollector(Tree L)
-        {
-            while (!isNil(L)) {
-                self(hd(L));
-                L = tl(L);
-            }
-        }
-        
-        void visit(Tree sig)
-        {
-            Tree label, init, min, max, step;
-        
-            if (isSigButton(sig, label)
-                || isSigCheckbox(sig, label)
-                || isSigVSlider(sig, label, init, min, max, step)
-                || isSigHSlider(sig, label, init, min, max, step)
-                || isSigNumEntry(sig, label, init, min, max, step)) {
-                
-                string simplifiedLabel;
-                map<string, set<string> > metadata;
-                extractMetadata(tree2str(hd(label)), simplifiedLabel, metadata);
-                
-                // Look for [diff:1] or [diff:on]
-                for (const auto& i : metadata) {
-                    if (i.first == "diff") {
-                        const set<string>& values = i.second;
-                        for (const auto& j : values) {
-                            if (j == "1" || j == "on") {
-                                inputs.push_back(sig);
-                                break;
-                            }
-                        }
-                    }
-                }
-            } else {
-                SignalVisitor::visit(sig);
-            }
-        }
-    };
-    
-    // Collect input differentiable variables
     DiffVarCollector collector(sig);
    
     // Compute differentiated tree for each variable and collect the result in a list of outputs

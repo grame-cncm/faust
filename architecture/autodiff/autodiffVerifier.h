@@ -33,7 +33,7 @@ private:
      * @param dsp A DSP algorithm to duplicate as part of the cascade.
      * @param numInstances The number (>= 1) of dsp instances to create.
      * @return If numInstances == 1, a clone of the supplied dsp instance.
-     * Otherwise a dsp_paralellizer instance containing cascaded `dsp`
+     * Otherwise a dsp_paralellizer instance containing cascaded dsp
      * instances, e.g.:
      *
      * ```

@@ -87,6 +87,10 @@ void mldsp::initialise()
             )
     );
     
+    auto tempUI = new MapUI;
+    adjustableDSP->buildUserInterface(tempUI);
+    auto numLearnableParams = tempUI->getParamsCount();
+    
     fUI = std::make_unique<MapUI>();
     fDSP->buildUserInterface(fUI.get());
     
@@ -95,7 +99,7 @@ void mldsp::initialise()
     fAudio->init("Dummy audio", fDSP);
     
     // TODO: check that parameter has diff metadata.
-    for (auto p{0}; p < fUI->getParamsCount(); ++p) {
+    for (auto p{0}; p < numLearnableParams; ++p) {
         auto address{fUI->getParamAddress(p)},
                 shortName{address.substr(address.find_last_of("/") + 1)};
         fLearnableParams.insert(std::make_pair(
