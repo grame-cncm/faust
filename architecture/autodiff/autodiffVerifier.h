@@ -27,7 +27,25 @@ private:
     const int kNumIterations{100};
     const float kEpsilon;
     
-    dsp *createDSPCascade(dsp *, dsp*, int);
+    /**
+     * Create a cascade of parallel `dsp` instances.
+     *
+     * @param dsp A DSP algorithm to duplicate as part of the cascade.
+     * @param numInstances The number (>= 1) of dsp instances to create.
+     * @return If numInstances == 1, a clone of the supplied dsp instance.
+     * Otherwise a dsp_paralellizer instance containing cascaded `dsp`
+     * instances, e.g.:
+     *
+     * ```
+     * new dsp_paralellizer(
+     *     dsp->clone(),
+     *     new dsp_paralellizer(
+     *         dsp->clone(), dsp->clone()
+     *     )
+     * )
+     * ```
+     */
+    dsp *createDSPCascade(dsp *dsp, int numInstances);
     
     int fNumParams;
     std::string fInputDSPPath, fDifferentiableDSPPath;

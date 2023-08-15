@@ -56,12 +56,14 @@ void autodiffVerifier::initialise()
     undifferentiatedDSP->buildUserInterface(tempUI);
     fNumParams = tempUI->getParamsCount();
     
+    auto dsp = new dsp_sequencer(inputDSP, undifferentiatedDSP);
+    
     fDSP = new dsp_parallelizer(
             new dsp_parallelizer(
                     // f(p + \epsilon)
-                    createDSPCascade(inputDSP, undifferentiatedDSP, fNumParams),
+                    createDSPCascade(dsp, fNumParams),
                     // f(p)
-                    new dsp_sequencer(inputDSP, undifferentiatedDSP)
+                    dsp->clone()
             ),
             // f'(p)
             new dsp_sequencer(inputDSP->clone(), differentiatedDSP)
@@ -74,13 +76,12 @@ void autodiffVerifier::initialise()
     fUI = std::make_unique<MapUI>();
     fDSP->buildUserInterface(fUI.get());
     
-    // Increase one of each pair of parameters by epsilon.
+    // Increase one of each group of parameters by epsilon.
     std::cout << "\nEpsilon: " << kEpsilon << "\n";
     for (auto p{0}; p < fNumParams; ++p) {
-        auto address1{fUI->getParamAddress(2 * p + p)},
-                address2{fUI->getParamAddress(fNumParams + p)};
+        auto address{fUI->getParamAddress(fNumParams * p + p)};
         
-        fUI->setParamValue(address1, fUI->getParamValue(address2) + kEpsilon);
+        fUI->setParamValue(address, fUI->getParamValue(address) + kEpsilon);
     }
     
     std::cout << "Parameters:\n";
@@ -93,14 +94,15 @@ void autodiffVerifier::initialise()
     std::cout << "\n";
 }
 
-dsp *autodiffVerifier::createDSPCascade(dsp *input, dsp *process, int numParams)
+dsp *autodiffVerifier::createDSPCascade(dsp *dsp, int numInstances)
 {
-    if (numParams <= 1) {
-        return new dsp_sequencer(input->clone(), process->clone());
+    assert(numInstances > 0);
+    if (numInstances <= 1) {
+        return dsp->clone();
     } else {
         return new dsp_parallelizer(
-                new dsp_sequencer(input->clone(), process->clone()),
-                createDSPCascade(input, process, numParams - 1)
+                dsp->clone(),
+                createDSPCascade(dsp, numInstances - 1)
         );
     }
 }

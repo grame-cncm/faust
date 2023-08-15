@@ -66,7 +66,7 @@ c++ -std=c++14 autodiff.cpp /usr/local/lib/libfaust.a \
 
 ### Missing library `-lzstd`
 
-For LLVM 16 on Mac OS X, `c++` may not be able to find the
+For LLVM 16 on Mac OS X, your c++ compiler may not be able to find the
 [zstd](https://facebook.github.io/zstd/) library.
 The easiest remedy is to install it via homebrew:
 
