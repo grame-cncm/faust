@@ -197,7 +197,13 @@ $$
 
 The output of a differentiated DSP algorithm can be compared with a numerical 
 derivative computed via finite differences.
-This can be achieved with the `autodiffVerifier` utility.
+This can be achieved with the `autodiffVerifier` utility, which takes a differentiable
+DSP algorithm, and, for each parameter $p$, and a perturbation of that parameter
+$\epsilon$, computes the delta between autodiffed output and finite difference output:
+
+$$
+\delta = \left|y'(p) - \frac{y(p + \epsilon) - y(p)}{\epsilon}\right|
+$$
 
 To build the verifier, copy the required files and compile `autodiffVerifier.cpp`:
 
@@ -215,12 +221,14 @@ c++ -std=c++14 autodiffVerifier.cpp /usr/local/lib/libfaust.a \
   -o verify
 ```
 
-Then run the resulting executable, specifying input and differentiable DSP files:
+Then run the resulting executable, specifying input and differentiable DSP files,
+and a value for $\epsilon$.
 
 ```shell
 outputdir=~/tmp/faust-autodiff
 cd $outputdir || exit
 examplesdir=$(faust --archdir)/examples/autodiff
 ./verify --input $examplesdir/noise.dsp \
-  --diff $examplesdir/gain/diff.dsp
+  --diff $examplesdir/gain/diff.dsp \
+  --epsilon 1e-3
 ```

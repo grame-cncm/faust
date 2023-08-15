@@ -14,7 +14,8 @@ class autodiffVerifier : private dspFactoryOwner
 {
 public:
     autodiffVerifier(std::string inputDSPPath,
-                     std::string differentiableDSPPath);
+                     std::string differentiableDSPPath,
+                     float epsilon = 1e-3f);
     
     ~autodiffVerifier();
     
@@ -24,7 +25,7 @@ public:
 
 private:
     const int kNumIterations{100};
-    const float kEpsilon{1e-3f};
+    const float kEpsilon;
     
     dsp *createDSPCascade(dsp *, dsp*, int);
     

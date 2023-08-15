@@ -8,7 +8,7 @@
 int main(int argc, char *argv[])
 {
     if (isopt(argv, "--help")) {
-        std::cout << "Usage: " << argv[0] << " --input <file> --diff <file>\n";
+        std::cout << "Usage: " << argv[0] << " --input <file> --diff <file> [-e <epsilon>]\n";
         exit(0);
     }
     
@@ -20,14 +20,20 @@ int main(int argc, char *argv[])
     
     auto input{lopts(argv, "--input", "")};
     auto diffable{lopts(argv, "--diff", "")};
+    auto epsilon{strtof(
+            lopts1(argc, argv, "--epsilon", "-e", "0.001"),
+            nullptr
+    )};
     
-    autodiffVerifier verifier{input, diffable};
+    autodiffVerifier verifier{input, diffable, epsilon};
     verifier.initialise();
     verifier.verify();
 }
 
 autodiffVerifier::autodiffVerifier(std::string inputDSPPath,
-                                   std::string differentiableDSPPath) :
+                                   std::string differentiableDSPPath,
+                                   float epsilon) :
+        kEpsilon(epsilon),
         fInputDSPPath(inputDSPPath),
         fDifferentiableDSPPath(differentiableDSPPath)
 {}
@@ -134,7 +140,7 @@ void autodiffVerifier::verify()
                           << std::setw(15) << "autodiff:" << std::setw(15) << autodiff
                           << std::setw(15) << "finite diff:" << std::setw(15) << finiteDiff
                           << std::setprecision(3) << (error < 1e-3 ? std::scientific : std::fixed)
-                          << std::setw(10) << "|error|:" << std::setw(12) << error << "\n";
+                          << std::setw(10) << "|delta|:" << std::setw(12) << error << "\n";
                 
                 ++p;
             }
@@ -149,7 +155,7 @@ void autodiffVerifier::verify()
         }
         auto deviation{sqrtf(variance / (kNumIterations - 1))};
         std::cout << "\nParameter: " << errs.first << "\n" << std::string(31, '=') << "\n"
-                  << std::setw(20) << "Mean error:"
+                  << std::setw(20) << "Mean delta:"
                   << (mean < 1e-3 ? std::scientific : std::fixed) << std::setw(11) << mean
                   << "\n"
                   << std::setw(20) << "Standard deviation:"
