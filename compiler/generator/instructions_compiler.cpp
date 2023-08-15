@@ -447,12 +447,16 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     startTiming("compileMultiSignal");
     
     // -diff option may add additional outputs
-    // TODO: this doesn't always count parameters correctly
     if (gGlobal->gAutoDifferentiate) {
-        int index;
-        Tree sig = L;
-        for (index = 0; isList(sig); sig = tl(sig), index++) {}
-        fContainer->setOutputs(index + 1);
+        // Count number of differentiable parameters, and set number of output channels
+        // accordingly.
+        DiffVarCollector collector(L);
+        fContainer->setOutputs(static_cast<int>(collector.inputs.size()));
+        
+        if (gGlobal->gDetailsSwitch) {
+            cout << "Autodiff: process has " << fContainer->inputs()
+                 << " inputs, and " << fContainer->outputs() << " outputs.\n\n";
+        }
     }
     
     // Has to be done *after* gMachinePtrSize is set by the actual backend
