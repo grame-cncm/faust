@@ -222,7 +222,7 @@ c++ -std=c++14 autodiffVerifier.cpp /usr/local/lib/libfaust.a \
 ```
 
 Then run the resulting executable, specifying input and differentiable DSP files,
-and a value for $\epsilon$.
+and an optional value for $\epsilon$ (default 1e-3).
 
 ```shell
 outputdir=~/tmp/faust-autodiff
@@ -232,3 +232,13 @@ examplesdir=$(faust --archdir)/examples/autodiff
   --diff $examplesdir/gain/diff.dsp \
   --epsilon 1e-3
 ```
+
+The differentiable DSP algorithm is compiled in (at least) three forms:
+- unmodified: $y(\mathbf{P})$
+- with $\epsilon$ applied to each adjustable parameter in turn
+  - for multiple parameters, as many copies are made of the DSP as there are
+    parameters, each copy having one parameter increased by $\epsilon$
+  - for the $k$th parameter: $y(\dots,p_k + \epsilon,\dots)$
+- automatically differentiated: $y'(\mathbf{P})$
+
+These are used to compute $\delta$ for each parameter.
