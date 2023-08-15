@@ -38,6 +38,7 @@ public:
 private:
     struct Parameter
     {
+        std::string shortName;
         FAUSTFLOAT value;
         FAUSTFLOAT gradient;
     };
@@ -49,7 +50,7 @@ private:
         DIFFERENTIATED = 2
     };
     
-    static constexpr int NUMBER_WIDTH{15}, LABEL_WIDTH{13}, PARAM_WIDTH{11};
+    static constexpr int COLUMN_WIDTH{15};
     const LossFunction kLossFunction;
     const FAUSTFLOAT kAlpha, kEpsilon;
     const int kNumIterations;

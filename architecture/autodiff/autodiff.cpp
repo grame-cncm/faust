@@ -8,8 +8,8 @@ int main(int argc, char *argv[])
 {
     if (isopt(argv, "--help")) {
         std::cout << "Usage: " << argv[0] << " --input <file> --gt <file> --diff <file>"
-            << " [-lf|--lossfunction <loss-function>]"
-            << " [-lr|--learningrate <learning-rate>]\n";
+                  << " [-lf|--lossfunction <loss-function>]"
+                  << " [-lr|--learningrate <learning-rate>]\n";
         exit(0);
     }
     
@@ -96,8 +96,12 @@ void mldsp::initialise()
     
     // TODO: check that parameter has diff metadata.
     for (auto p{0}; p < fUI->getParamsCount(); ++p) {
-        auto address{fUI->getParamAddress(p)};
-        fLearnableParams.insert(std::make_pair(address, Parameter{fUI->getParamValue(address), 0.f}));
+        auto address{fUI->getParamAddress(p)},
+                shortName{address.substr(address.find_last_of("/") + 1)};
+        fLearnableParams.insert(std::make_pair(
+                address,
+                Parameter{shortName, fUI->getParamValue(address), 0.f})
+        );
     }
     
     // Set up csv file
@@ -105,9 +109,8 @@ void mldsp::initialise()
     fFile << "iteration,loss";
     std::cout << "\n";
     for (auto &p: fLearnableParams) {
-        auto label{p.first.substr(p.first.find_last_of("/") + 1)};
         std::cout << "Learnable parameter: " << p.first << ", value: " << p.second.value << "\n";
-        fFile << ",gradient_" << label << "," << label;
+        fFile << ",gradient_" << p.second.shortName << "," << p.second.shortName;
     }
     std::cout << "\n";
     fFile << "\n";
@@ -139,9 +142,13 @@ void mldsp::doGradientDescent()
             
             reportState(i, out, frame);
             
-            if (lowLossCount > 20) return;
+            if (lowLossCount > 20) {
+                std::cout << "\n";
+                return;
+            }
         }
     }
+    std::cout << "\nReached maximum number of iterations.\n\n";
 }
 
 void mldsp::computeLoss(FAUSTFLOAT **output, int frame)
@@ -187,38 +194,42 @@ void mldsp::computeGradient(FAUSTFLOAT **output, int frame)
 
 void mldsp::reportState(int iteration, FAUSTFLOAT **output, int frame)
 {
-    std::cout << std::fixed << std::setprecision(10) <<
-              std::setw(5) << iteration <<
-              std::setw(LABEL_WIDTH) << "Sig GT: " <<
-              std::setw(NUMBER_WIDTH) << output[OutputChannel::GROUND_TRUTH][frame] <<
-              std::setw(LABEL_WIDTH) << "Sig Learn: " <<
-              std::setw(NUMBER_WIDTH) << output[OutputChannel::LEARNABLE][frame] <<
-              std::setw(LABEL_WIDTH) << "Loss: " <<
-              std::setw(NUMBER_WIDTH) << fLoss;
+    auto lineWidth{5 + (3 + fLearnableParams.size()) * COLUMN_WIDTH};
+    if ((iteration - 1) % 20 == 0) {
+        std::cout << std::string(lineWidth, '-') << "\n"
+                  << std::setw(5) << "Iter"
+                  << std::setw(COLUMN_WIDTH) << "Ground truth"
+                  << std::setw(COLUMN_WIDTH) << "Learnable"
+                  << std::setw(COLUMN_WIDTH) << "Loss";
+        
+        for (auto &p: fLearnableParams) {
+            std::cout << std::setw(COLUMN_WIDTH) << p.second.shortName;
+        }
+        
+        std::cout << "\n" << std::string(lineWidth, '-') << "\n";
+    }
+    
+    std::cout << std::fixed << std::setprecision(10)
+              << std::setw(5) << iteration
+              << std::setw(COLUMN_WIDTH) << output[OutputChannel::GROUND_TRUTH][frame]
+              << std::setw(COLUMN_WIDTH) << output[OutputChannel::LEARNABLE][frame];
+    if (fLoss < 1e-3) {
+        std::cout << std::setprecision(3) << std::scientific;
+    }
+    std::cout << std::setw(COLUMN_WIDTH) << fLoss
+              << std::setprecision(10) << std::fixed;
     
     fFile << iteration << "," << fLoss;
     
-    if (fLoss > kEpsilon) {
-        auto k{0};
-        for (auto &p: fLearnableParams) {
-            std::cout << "\n" << std::setw(5) << "." <<
-                      std::setw(PARAM_WIDTH) << fUI->getParamShortname(k) << ":" <<
-                      std::setw(LABEL_WIDTH) << "ds/dp: " <<
-                      std::setw(NUMBER_WIDTH) << output[OutputChannel::DIFFERENTIATED + k][frame] <<
-                      std::setw(LABEL_WIDTH) << "Grad: " <<
-                      std::setw(NUMBER_WIDTH) << p.second.gradient <<
-                      std::setw(LABEL_WIDTH) << "Value: " <<
-                      std::setw(NUMBER_WIDTH) << p.second.value;
-            
-            fFile << "," << p.second.gradient << "," << p.second.value;
-            
-            ++k;
+    for (auto &p: fLearnableParams) {
+        std::cout << std::setw(COLUMN_WIDTH);
+        if (fLoss > kEpsilon) {
+            std::cout << p.second.value;
+        } else {
+            std::cout << "-";
         }
-    } else {
-        for (auto &p: fLearnableParams) {
-//            fFile << ",,";
-            fFile << "," << p.second.gradient << "," << p.second.value;
-        }
+        
+        fFile << "," << p.second.gradient << "," << p.second.value;
     }
     
     std::cout << "\n";
