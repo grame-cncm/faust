@@ -35,6 +35,7 @@ class CodeboxCodeContainer : public virtual CodeContainer {
    protected:
     static CodeboxInstVisitor* gCodeboxVisitor;
     std::ostream* fOut;
+    CodeboxBargraphVisitor fBargraph;
     
     // Not used since subcontainers are inlined
     virtual void produceInternal()

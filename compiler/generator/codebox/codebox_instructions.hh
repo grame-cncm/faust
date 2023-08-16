@@ -67,22 +67,6 @@ inline std::string buildSliderLabel(AddSliderInst::SliderType type, const std::s
     return label;
 }
 
-inline std::string buildBargraphLabel(AddBargraphInst::BargraphType type, const std::string& label)
-{
-    if (gGlobal->gOutputLang == "codebox-test") {
-        switch (type) {
-            case AddBargraphInst::kHorizontal:
-                return("RB_hbargraph_" + label);
-            case AddBargraphInst::kVertical:
-                return("RB_vbargraph_" + label);
-            default:
-                faustassert(false);
-                break;
-        }
-    }
-    return label;
-}
-
 // Visitor used to fill the 'update' function and associate control labels with their parameter names
 // (using 2 passes, one to build shortname, the second to use them)
 struct CodeboxUpdateParamsVisitor : public ShortnameInstVisitor {
@@ -144,16 +128,7 @@ struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
             ShortnameInstVisitor::visit(inst);
         }
     }
-
-    void visit(AddBargraphInst* inst) override
-    {
-        if (hasShortname()) {
-            fUILabels.push_back(buildShortname(inst->fLabel));
-        } else {
-            ShortnameInstVisitor::visit(inst);
-        }
-    }
-    
+ 
     void visit(AddSoundfileInst* inst) override
     {
         throw(faustexception("ERROR : Soundfile is not available in Codebox\n"));
@@ -225,6 +200,20 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
     
 };
 
+// Visitor retrieve Bargraph variables
+struct CodeboxBargraphVisitor : public DispatchVisitor {
+
+    std::vector<std::string> fVariables;
+    
+    virtual void visit(DeclareVarInst* inst) override
+    {
+        std::string name = inst->fAddress->getName();
+        if (startWith(name, "fHbargraph") || startWith(name, "fVbargraph")) {
+            fVariables.push_back(codeboxVarName(name));
+        }
+    }
+};
+
 // Visitor used to generate @params with shortnames (using 2 passes, one to build shortname, the second to use them)
 struct CodeboxParamsVisitor : public ShortnameInstVisitor {
 
@@ -249,18 +238,6 @@ struct CodeboxParamsVisitor : public ShortnameInstVisitor {
             *fOut << "@param({min: " << checkReal(inst->fMin) << ", max: "
             << checkReal(inst->fMax) << "}) "
             << buildSliderLabel(inst->fType, buildShortname(inst->fLabel)) << " = " << checkReal(inst->fInit) << ";";
-            tab(fTab, *fOut);
-        } else {
-            ShortnameInstVisitor::visit(inst);
-        }
-    }
-
-    virtual void visit(AddBargraphInst* inst) override
-    {
-        if (hasShortname()) {
-            *fOut << "@param({min: " << checkReal(inst->fMin) << ", max: "
-            << checkReal(inst->fMax) << "}) "
-            << buildBargraphLabel(inst->fType, buildShortname(inst->fLabel)) << " = 0;";
             tab(fTab, *fOut);
         } else {
             ShortnameInstVisitor::visit(inst);
