@@ -159,7 +159,7 @@ void CodeboxCodeContainer::produceClass()
     *fOut << "// Fields";
     tab(n, *fOut);
     generateDeclarations(gGlobal->gCodeboxVisitor);
-    // Retrieve Bargraph variables
+    // Keep bargraph variables
     generateDeclarations(&fBargraph);
     // Generate global variables definition
     for (const auto& it : fGlobalDeclarationInstructions->fCode) {
@@ -274,7 +274,8 @@ void CodeboxCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "// Write the outputs: audio ones and bargraph as additional audio signals";
     tab(n, *fOut);
-    for (size_t out = 0; out < size_t(fNumOutputs + fBargraph.fVariables.size()); out++) {
+    int total_outputs = fNumOutputs + fBargraph.fVariables.size();
+    for (int out = 0; out < total_outputs; out++) {
         // *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "];";
         // Workaround for C++ generation bug when no audio inputs
         // See: https://beta.cycling74.com/t/still-confused-on-how-to-use-parameters-in-rnbo-codebox-patches/1763/4

@@ -200,7 +200,7 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
     
 };
 
-// Visitor retrieve Bargraph variables
+// Visitor to keep bargraph variables
 struct CodeboxBargraphVisitor : public DispatchVisitor {
 
     std::vector<std::string> fVariables;

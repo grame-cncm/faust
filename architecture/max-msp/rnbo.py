@@ -136,6 +136,17 @@ def extract_items_info(json_data: dict) -> list[dict]:
                         "midi": midi_info,  # Include MIDI information as a list
                     }
                 )
+            # bargraph with "min", "max"
+            elif item_type in ["vbargraph", "hbargraph"]:
+                info_list.append(
+                    {
+                        "shortname": shortname,
+                        "type": item_type,
+                        "min": item["min"],
+                        "max": item["max"],
+                        "midi": midi_info,  # Include MIDI information as a list
+                    }
+                )
             # slider and nentry, and has "min", "max", and "step"
             elif all(key in item for key in ["min", "max", "step"]):
                 info_list.append(
@@ -227,7 +238,12 @@ def add_polyphony_control(
 
 
 def add_midi_control(
-    item: dict, sub_patch: Patcher, set_param: Box, codebox: Box
+    item: dict,
+    sub_patch: Patcher,
+    codebox: Box,
+    param: Optional[Box] = None,
+    set_param: Optional[Box] = None,
+    change: Optional[Box] = None,
 ) -> bool:
     """
     Adds MIDI control to the subpatch.
@@ -239,7 +255,9 @@ def add_midi_control(
     Args:
         item (dict): The dictionary containing information about the UI item.
         sub_patch (Patcher): The subpatcher object to which MIDI control will be added.
-        set_param (Box): The 'set' param object for the UI item.
+        param (Optional[Box]): The param object for the input UI items.
+        set_param (Optional[Box]): The 'set' param object for the input UI items.
+        change (Optional[Box]): The change object for bargraph UI items.
         codebox (Box): The codebox~ object in the subpatcher.
 
     Returns:
@@ -258,7 +276,7 @@ def add_midi_control(
         "keyon": {"in": "notein", "out": "noteout"},
         "keyoff": {"in": "notein", "out": "noteout"},
         "key": {"in": "notein", "out": "noteout"},
-        "pitchwheel": {"in": "bendin @bendmode 1", "out": "bendout @bendmode 1"},
+        "pitchwheel": {"in": "bendin @bendmode 2", "out": "bendout @bendmode 2"},
         "pgm": {"in": "pgmin", "out": "pgmout"},
     }
 
@@ -271,31 +289,46 @@ def add_midi_control(
     # Prepare the MIDI input and output messages
     midi_type = midi_info[0]
     midi_args = " ".join(midi_info[1:])
-    # TODO: handle all channels case: Faust 0 => RNBO -1
-    midi_in = sub_patch.add_textbox(f"{midi_mapping[midi_type]['in']} {midi_args}")
-    midi_out = sub_patch.add_textbox(f"{midi_mapping[midi_type]['out']} {midi_args}")
 
     # Scaling for MIDI input and output messages
-    # Pitchwheel case using @bendmode 1 (-1, 1) mode
+    # Pitchwheel case using @bendmode 1 (-8192, 8192) mode
     if midi_type == "pitchwheel":
-        scaling_in = f"scale -1 1 {item['min']} {item['max']}"
-        scaling_out = f"scale {item['min']} {item['max']} -1 -1"
+        scaling_in = f"scale -8192 8192 {item['min']} {item['max']}"
+        scaling_out = f"scale {item['min']} {item['max']} -8192 8192"
     # General case
     else:
         scaling_in = f"scale 0 127 {item['min']} {item['max']}"
         scaling_out = f"scale {item['min']} {item['max']} 0 127"
 
-    # Create the scaling boxes
-    scaling_in_box = sub_patch.add_textbox(scaling_in)
-    scaling_out_box = sub_patch.add_textbox(scaling_out)
-
     # Connect the input objects
-    sub_patch.add_line(midi_in, scaling_in_box)
-    sub_patch.add_line(scaling_in_box, set_param)
+    if set_param:
+        # Create MIDI object (TODO: handle all channels case: Faust 0 => RNBO -1)
+        midi_in = sub_patch.add_textbox(f"{midi_mapping[midi_type]['in']} {midi_args}")
+        midi_out = sub_patch.add_textbox(
+            f"{midi_mapping[midi_type]['out']} {midi_args}"
+        )
+        # Create the scaling box
+        scaling_in_box = sub_patch.add_textbox(scaling_in)
+        scaling_out_box = sub_patch.add_textbox(scaling_out)
+        # Input connections
+        sub_patch.add_line(midi_in, scaling_in_box)
+        sub_patch.add_line(scaling_in_box, set_param)
+        # Output connections
+        sub_patch.add_line(param, scaling_out_box)
+        sub_patch.add_line(scaling_out_box, midi_out)
 
     # Connect the output objects
-    sub_patch.add_line(codebox, scaling_out_box)
-    sub_patch.add_line(scaling_out_box, midi_out)
+    if change:
+        # Create MIDI object (TODO: handle all channels case: Faust 0 => RNBO -1)
+        midi_out = sub_patch.add_textbox(
+            f"{midi_mapping[midi_type]['out']} {midi_args}"
+        )
+        # Create the scaling box
+        scaling_out_box = sub_patch.add_textbox(scaling_out)
+        # Connections
+        sub_patch.add_line(change, scaling_out_box)
+        sub_patch.add_line(scaling_out_box, midi_out)
+
     return True
 
 
@@ -363,7 +396,7 @@ def add_rnbo_object(
     patcher: Patcher,
     dsp_name: str,
     codebox_code: str,
-    items_info_list: list,
+    items_info_list: list[dict],
     midi: bool,
     nvoices: int,
     test: bool,
@@ -377,7 +410,7 @@ def add_rnbo_object(
         patcher (Patcher): The Patcher object to which DSP elements and controls will be added.
         dsp_name (str): The name of the DSP.
         codebox_code (str): The code to be executed by the DSP effect.
-        items_info_list (list): A list of dictionaries containing information about UI items.
+        items_info_list (list[dict]): A list of dictionaries containing information about UI items.
         midi (bool): Indicates whether MIDI control is enabled.
         nvoices (int): The number of polyphony voices.
         num_inputs (int): The number of audio input channels.
@@ -439,17 +472,20 @@ def add_rnbo_object(
     is_freq = False
     is_gain = False
 
+    # Counter of bargraph to be used to outlet computation
+    bargraph_count = 0
+
     # Add parameter control for button/checkbox and slider/nentry, annlyse for polyphony
     for item in items_info_list:
         shortname = item["shortname"]
         item_type = item["type"]
         label = build_label(item_type, shortname, test)
 
-        # Add a global 'set' param object
-        set_param = sub_patch.add_textbox(f"set {label}")
-
         # button and checkbox use a 'toggle' object
         if item_type in ["button", "checkbox"]:
+            # Add a global 'set' param object
+            set_param = sub_patch.add_textbox(f"set {label}")
+
             # Upper level parameter control with a 'toggle' and 'attrui' objects
             toggle = patcher.add_textbox("toggle")
             # Set the position and size of the toggle button on the canvas
@@ -480,12 +516,70 @@ def add_rnbo_object(
                 f"param {label} 0 @min 0 @max 1",
             )
 
+            # Add a line to connect the parameter control to the 'set' param object
+            sub_patch.add_line(param, set_param)
+            # Add a line to connect the 'set' param object to the codebox
+            sub_patch.add_line(set_param, codebox)
+
+            # Possibly add MIDI input control
+            if midi:
+                add_midi_control(
+                    item, sub_patch, codebox, param=param, set_param=set_param
+                )
+
+        # bargraph with "min", "max"
+        elif item_type in ["vbargraph", "hbargraph"]:
+            min_value = item["min"]
+            max_value = item["max"]
+
+            # Upper level parameter control with a 'attrui' object
+            param_wrap = patcher.add_textbox(
+                "attrui",
+                maxclass="attrui",
+                attr=label,
+                minimum=min_value,
+                maximum=max_value,
+                parameter_enable=1,
+                saved_attribute_attributes={
+                    "valueof": {
+                        "parameter_initial": [label, 0],
+                        "parameter_initial_enable": 1,
+                    }
+                },
+            )
+            patcher.add_line(param_wrap, rnbo)
+
+            param = sub_patch.add_textbox(
+                f"param {label} 0 @min {min_value} @max {max_value}",
+            )
+
+            # Signal transformed in control
+            snapshot = sub_patch.add_textbox("snapshot~ 10")
+            change = sub_patch.add_textbox("change")
+
+            # Connect codebox outN to snapshot
+            sub_patch.add_line(codebox, snapshot, outlet=num_outputs + bargraph_count)
+            # Connect snapshot to range
+            sub_patch.add_line(snapshot, change)
+            # And finally change to param
+            sub_patch.add_line(change, param)
+
+            # Possibly add MIDI output control
+            if midi:
+                add_midi_control(item, sub_patch, codebox, change=change)
+
+            # Next bargraph
+            bargraph_count += 1
+
         # slider and nentry use a 'param' object
         else:
             min_value = item["min"]
             max_value = item["max"]
             init_value = item["init"]
             steps_value = (max_value - min_value) / item["step"]
+
+            # Add a global 'set' param object
+            set_param = sub_patch.add_textbox(f"set {label}")
 
             # Upper level parameter control with a 'attrui' object
             param_wrap = patcher.add_textbox(
@@ -510,10 +604,16 @@ def add_rnbo_object(
                 f"param {label} {init_value} @min {min_value} @max {max_value}",
             )
 
-        # Add a line to connect the parameter control to the 'set' param object
-        sub_patch.add_line(param, set_param)
-        # Add a line to connect the 'set' param object to the codebox
-        sub_patch.add_line(set_param, codebox)
+            # Add a line to connect the parameter control to the 'set' param object
+            sub_patch.add_line(param, set_param)
+            # Add a line to connect the 'set' param object to the codebox
+            sub_patch.add_line(set_param, codebox)
+
+            # Possibly add MIDI input control
+            if midi:
+                add_midi_control(
+                    item, sub_patch, codebox, param=param, set_param=set_param
+                )
 
         # Analyze the parameter shortname for polyphony handing
         if midi and nvoices > 0:
@@ -531,10 +631,6 @@ def add_rnbo_object(
                 is_gain = False
             elif shortname.endswith("gate"):
                 set_param_gate = set_param
-
-        # Possibly add MIDI input/output control
-        if midi:
-            add_midi_control(item, sub_patch, set_param, codebox)
 
     # After analyzing all UI items to get freq/gain/gate controls, possibly add polyphony control
     if midi and nvoices > 0 and set_param_pitch and set_param_gain and set_param_gate:
@@ -764,8 +860,8 @@ def create_rnbo_patch(
     - dsp_items_info_list (list): A list of dictionaries containing information about the items to be added.
     - dsp_num_inputs (int): The number of DSP audio inputs.
     - dsp_num_outputs (int): The number of DSP audio outputs.
-    - effect_codebox_code (str): The code for the effect codebox~ section in the subpatcher.
-    - effect_items_info_list (list): A list of dictionaries containing information about the items to be added.
+    - effect_codebox_code (Optional[str]): The code for the effect codebox~ section in the subpatcher.
+    - effect_items_info_list (Optional[List[dict]]): A list of dictionaries containing information about the items to be added.
     - effect_num_inputs (int): The number of effect audio inputs.
     - effect_num_outputs (int): The number of effect audio outputs.
     - midi (bool): A flag indicating whether to include MIDI input/output control.
@@ -887,8 +983,8 @@ def load_files_create_rnbo_patch(
     - dsp_name (str): The name of the DSP.
     - dsp_codebox_path (str): The path to the DSP codebox file.
     - dsp_json_path (str): The path to the DSP JSON file containing items info.
-    - effect_codebox_path (str): The path to the effect codebox file.
-    - effect_json_path (str): The path to the effect JSON file containing items info.
+    - effect_codebox_path (Optional[str]): The path to the effect codebox file.
+    - effect_json_path (Optional[str]): The path to the effect JSON file containing items info.
     - maxpat_path (str): The path where the Max patcher will be created.
     - export_path (str): The path for exporting the C++ code.
     - cpp_filename (str): The filename for the exported C++ code.
