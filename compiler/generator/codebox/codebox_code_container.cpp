@@ -42,11 +42,15 @@ using namespace std;
  - all init code is done in 'dspsetup', called when audio start or in case of SR change
  - gOneSampleControl mode is used, 'control' function is generated as well as 'update' function
  which call 'control' only when needed (that is when as least one parameter changes)
- - 'compute' returns the list of audio outputs
- - some identifiers ending with a digit have to be used with "this." syntax in 'update' function (see CodeboxLabelsVisitor printArgs/printArgsCall)
+ - 'compute' returns the list of audio outputs (and possibly additional audio outputs for bargraph)
+ - workaround for some identifiers ending with a digit that have to be used with "this." syntax in 'update' function (see CodeboxLabelsVisitor printArgs/printArgsCall)
  - workaround for C++ generation bug when no audio inputs by adding an audio 'sig~ 0' input
- - MIDI support: https://rnbo.cycling74.com/learn/midi-in-rnbo, done in architecture file
- - polyphonic mode support: https://rnbo.cycling74.com/learn/polyphony-and-voice-management-in-rnbo, done in architecture file
+ - MIDI support: https://rnbo.cycling74.com/learn/midi-in-rnbo, done in the architecture file, by creating MIDI messages specific
+handling objects (line 'ctlin/ctlout') and adding 'midiin/midiout' global objects in the main patch
+ - polyphonic mode support: https://rnbo.cycling74.com/learn/polyphony-and-voice-management-in-rnbo, done in architecture file,
+ creating the 'notein' and decoding MIDI messaged to use the freq/gain/gate parameters
+ - bargraph values cannot directly be send as control values. So additional audio outputs are created for them,
+will be sampled (using 'snapshot~' and 'change') and be connected to 'param' objects, like input controllers.
  
  TODO:
  - soundfile primitive support: https://rnbo.cycling74.com/learn/audio-files-in-rnbo
