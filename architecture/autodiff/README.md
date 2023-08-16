@@ -3,19 +3,6 @@
 Using `[diff:on]` or `[diff:1]` parameter metadata, and the `-diff` compiler flag,
 it is possible to create differentiable DSP algorithms.
 
-## Outlook
-
-Algorithms are differentiated symbolically.
-This may be OK for simple algorithms, but _expression swell_ is a risk for more involved
-DSP implementations.
-A true automatic differentiation implementation may be required if the symbolic
-approach proves unwieldy.
-
-Currently, loss and gradient descent are calculated on a per-sample basis.
-This is fine for a gain control acting on deterministic noise input, but more
-sophisticated approaches will be required to tackle problems involving
-non-deterministic input, or frequency-domain loss.
-
 ## Faust installation
 
 Faust must be compiled with inclusion of the dynamic Faust library. This is
@@ -123,16 +110,16 @@ examplesdir=$(faust --archdir)/examples/autodiff
 Running the executable displays numerical output describing the gradient descent process:
 
 ```
-Learnable parameter: /Parallelizer/DSP2/Parallelizer/DSP1/Sequencer/DSP2/diff/alpha, value: 0
-    1     Sig GT:   -0.9990000129  Sig Learn:   -0.9990000129       Loss:    0.0000000000
-    2     Sig GT:   -1.9870100021  Sig Learn:   -0.9980000257       Loss:    0.9890099764
-    .      alpha:      ds/dp:   -0.9990000129       Grad:   -0.9990000129      Value:    0.0998999998
-    3     Sig GT:   -1.9850200415  Sig Learn:   -1.0967001915       Loss:    0.8883198500
-    .      alpha:      ds/dp:   -0.9980000257       Grad:   -0.9980000257      Value:    0.1996999979
-    4     Sig GT:   -1.9830299616  Sig Learn:   -1.1951009035       Loss:    0.7879290581
-    .      alpha:      ds/dp:   -0.9969999790       Grad:   -0.9969999790      Value:    0.2994000018
-    5     Sig GT:   -1.9810400009  Sig Learn:   -1.2932024002       Loss:    0.6878376007
-    .      alpha:      ds/dp:   -0.9959999919       Grad:   -0.9959999919      Value:    0.3989999890
+Learnable parameter: /Parallelizer/DSP2/Parallelizer/DSP1/Sequencer/DSP2/diff/alpha, value: 0.5
+
+-----------------------------------------------------------------
+ Iter   Ground truth      Learnable           Loss          alpha
+-----------------------------------------------------------------
+    1  -0.9990000129  -0.9990000129      0.000e+00              -
+    2  -1.9870100021  -1.4975000620   0.2396199852   0.5978040695
+    3  -1.9850200415  -1.5936084986   0.1532029957   0.6759297848
+    4  -1.9830299616  -1.6699019670   0.0980491415   0.7383674979
+    5  -1.9810400009  -1.7304140329   0.0628133789   0.7882921696
     ...
 ```
 
@@ -193,7 +180,7 @@ $$
 \end{align}
 $$
 
-# Verification via finite differences
+## Verification via finite differences
 
 The output of a differentiated DSP algorithm can be compared with a numerical 
 derivative computed via finite differences.
@@ -238,7 +225,55 @@ The differentiable DSP algorithm is compiled in (at least) three forms:
 - with $\epsilon$ applied to each adjustable parameter in turn
   - for multiple parameters, as many copies are made of the DSP as there are
     parameters, each copy having one parameter increased by $\epsilon$
-  - for the $k$th parameter: $y(\dots,p_k + \epsilon,\dots)$
+  - for the $k^\text{th}$ parameter: $y(\dots,p_k + \epsilon,\dots)$
 - automatically differentiated: $y'(\mathbf{P})$
 
 These are used to compute $\delta$ for each parameter.
+Additionally, each delta is compared with its corresponding channel in the 
+autodiff algorithm (which represents a partial derivative with respect to that 
+parameter), and relative error reported.
+
+```
+--------------------------------------------------------------------------------
+ Iter          Param       Autodiff    Finite diff        |delta|     Rel. error
+--------------------------------------------------------------------------------
+    1             dc   1.0000000000   0.9999870658      1.293e-05        0.001 %
+                gain   0.0000057486   0.0000298023      2.405e-05      418.428 %
+    2             dc   1.0000000000   0.9999870658      1.293e-05        0.001 %
+                gain  -0.3448459506  -0.3448426425      3.308e-06        0.001 %
+    3             dc   1.0000000000   0.9999870658      1.293e-05        0.001 %
+                gain  -0.6951856613  -0.6951763630      9.298e-06        0.001 %
+...
+   98             dc   1.0000000000   0.9999870658      1.293e-05        0.001 %
+                gain  -0.5611450076  -0.5611385703      6.437e-06        0.001 %
+   99             dc   1.0000000000   0.9999274611      7.254e-05        0.007 %
+                gain   0.8623053432   0.8622407317      6.461e-05        0.007 %
+  100             dc   1.0000000000   0.9999870658      1.293e-05        0.001 %
+                gain  -0.5016716123  -0.5016651750      6.437e-06        0.001 %
+
+Parameter: dc
+===============================
+         Mean delta:  1.989e-05
+ Standard deviation:  1.679e-05
+
+Parameter: gain
+===============================
+         Mean delta:  1.228e-05
+ Standard deviation:  1.216e-05
+```
+
+Note that the high relative error for `gain` at iteration 1 is due to the very low 
+amplitude of the first sample produced by Faust's `no.noise` function.
+
+# Outlook
+
+Algorithms are differentiated symbolically.
+This may be OK for simple algorithms, but _expression swell_ is a risk for more involved
+DSP implementations.
+A true automatic differentiation implementation may be required if the symbolic
+approach proves unwieldy.
+
+Currently, loss and gradient descent are calculated on a per-sample basis.
+This is fine for a gain control acting on deterministic noise input, but more
+sophisticated approaches will be required to tackle problems involving
+non-deterministic input, or frequency-domain loss.

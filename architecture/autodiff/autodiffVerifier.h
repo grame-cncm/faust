@@ -25,6 +25,7 @@ public:
 
 private:
     const int kNumIterations{100};
+    const float kFloatNumIterations{static_cast<float>(kNumIterations)};
     const float kEpsilon;
     
     /**
