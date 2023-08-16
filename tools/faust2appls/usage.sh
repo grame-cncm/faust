@@ -59,3 +59,13 @@ option() {
         echo "Options:"
     fi
 }
+
+# Check if a DSP has MIDI control, looking for the [midi:on] option in the JSON file
+hasMidi() {
+    cat $1 | jq -r '.meta[] | select(.options?) | .options | contains("[midi:on]")'
+}
+
+# Get the number of voices of a polyphonic DSP, looking for the [nvoices:<num>] option in the JSON file
+getNvoices() {
+    cat $1 | jq -r '.meta[] | select(.options?) | .options | capture("\\[nvoices:(?<nvoices>\\d+)\\]") | .nvoices'
+}

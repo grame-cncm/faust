@@ -255,10 +255,10 @@ def add_midi_control(
     Args:
         item (dict): The dictionary containing information about the UI item.
         sub_patch (Patcher): The subpatcher object to which MIDI control will be added.
+        codebox (Box): The codebox~ object in the subpatcher.
         param (Optional[Box]): The param object for the input UI items.
         set_param (Optional[Box]): The 'set' param object for the input UI items.
         change (Optional[Box]): The change object for bargraph UI items.
-        codebox (Box): The codebox~ object in the subpatcher.
 
     Returns:
         bool: True if MIDI control type is supported and added successfully, possible logs an error and return False otherwise.
@@ -291,7 +291,7 @@ def add_midi_control(
     midi_args = " ".join(midi_info[1:])
 
     # Scaling for MIDI input and output messages
-    # Pitchwheel case using @bendmode 1 (-8192, 8192) mode
+    # Pitchwheel case using @bendmode 2 (-8192, 8192) mode
     if midi_type == "pitchwheel":
         scaling_in = f"scale -8192 8192 {item['min']} {item['max']}"
         scaling_out = f"scale {item['min']} {item['max']} -8192 8192"
