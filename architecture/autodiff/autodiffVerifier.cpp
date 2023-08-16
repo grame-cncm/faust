@@ -48,6 +48,7 @@ void autodiffVerifier::initialise()
     // Create the DSP for finite difference calculation
     auto inputDSP{createDSPInstanceFromPath(fInputDSPPath)};
     auto undifferentiatedDSP{createDSPInstanceFromPath(fDifferentiableDSPPath)};
+//    auto differentiatedDSP{createDSPInstanceFromPath("/usr/local/share/faust/examples/autodiff/recursion/target.dsp")};
     const char *argv[] = {"-diff"};
     auto differentiatedDSP{createDSPInstanceFromPath(fDifferentiableDSPPath, 1, argv)};
     
@@ -77,15 +78,21 @@ void autodiffVerifier::initialise()
     fDSP->buildUserInterface(fUI.get());
     
     // Increase one of each group of parameters by epsilon.
-    std::cout << "\nEpsilon: " << kEpsilon << "\n";
+    std::cout << "\nEpsilon: " << kEpsilon << "\n\n";
     for (auto p{0}; p < fNumParams; ++p) {
         auto address{fUI->getParamAddress(fNumParams * p + p)};
         
         fUI->setParamValue(address, fUI->getParamValue(address) + kEpsilon);
     }
     
-    std::cout << "Parameters:\n";
-    for (int p = 0; p < fUI->getParamsCount(); ++p) {
+    for (auto p{0}, q{0}; p < fUI->getParamsCount(); ++p) {
+        if (p % fNumParams == 0) {
+            if (++q <= fNumParams) {
+                std::cout << "Parameter " << q << ", y(p + epsilon)\n";
+            } else {
+                std::cout << "y(p)\n";
+            }
+        }
         std::cout << fUI->getParamAddress(p)
                   << ": "
                   << fUI->getParamValue(fUI->getParamAddress(p))
@@ -113,7 +120,7 @@ void autodiffVerifier::verify()
     for (int p = 0; p < fNumParams; ++p) {
         auto address{fUI->getParamAddress(p)};
         deltas.insert(std::make_pair(
-                address.substr(address.find_last_of("/") + 1),
+                address.substr(address.find_last_of('/') + 1),
                 std::vector<float>()
         ));
     }
@@ -143,10 +150,15 @@ void autodiffVerifier::verify()
             std::cout << std::setw(5) << i;
             auto p{0};
             for (auto &d: deltas) {
+                // Get y'(p)
                 auto autodiff{out[autodiffIndex + p][frame]};
+                // Compute (y(p + epsilon) - y(p)) / epsilon
                 auto finiteDiff{(out[p][frame] - out[undiffedIndex][frame]) / kEpsilon};
+                // Get the absolute difference between the above
                 auto delta{fabsf(autodiff - finiteDiff)};
+                // Compute relative error
                 auto relError{iszero(autodiff) ? 0.f : fabsf(100.f * delta / autodiff)};
+                
                 d.second.push_back(delta);
                 
                 std::cout << std::setw(p == 0 ? 15 : 20) << d.first
@@ -163,13 +175,17 @@ void autodiffVerifier::verify()
         }
     }
     
+    // Report mean and standard deviation.
     for (auto &dd: deltas) {
-        auto mean{std::accumulate(dd.second.begin(), dd.second.end(), 0.f) / kNumIterations};
+        auto mean{std::accumulate(dd.second.begin(), dd.second.end(), 0.f) / kFloatNumIterations};
+        
+        // Compute standard deviation
         auto variance{0.f};
         for (auto &d: dd.second) {
             variance += powf(d - mean, 2);
         }
-        auto deviation{sqrtf(variance / (kNumIterations - 1))};
+        auto deviation{sqrtf(variance / (kFloatNumIterations - 1.f))};
+        
         std::cout << "\nParameter: " << dd.first << "\n" << std::string(31, '=') << "\n"
                   << std::setw(20) << "Mean delta:"
                   << (mean < 1e-3 ? std::scientific : std::fixed) << std::setw(11) << mean

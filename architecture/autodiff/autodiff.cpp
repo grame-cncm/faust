@@ -101,7 +101,7 @@ void mldsp::initialise()
     // TODO: check that parameter has diff metadata.
     for (auto p{0}; p < numLearnableParams; ++p) {
         auto address{fUI->getParamAddress(p)},
-                shortName{address.substr(address.find_last_of("/") + 1)};
+                shortName{address.substr(address.find_last_of('/') + 1)};
         fLearnableParams.insert(std::make_pair(
                 address,
                 Parameter{shortName, fUI->getParamValue(address), 0.f})
