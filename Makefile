@@ -1,4 +1,4 @@
-version := 2.66.6
+version := 2.66.7
 
 system	?= $(shell uname -s)
 
