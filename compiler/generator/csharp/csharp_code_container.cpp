@@ -49,7 +49,7 @@ CodeContainer* CSharpCodeContainer::createContainer(const string& name, const st
     CodeContainer* container;
 
     if (gGlobal->gFloatSize == 3) {
-        throw faustexception("ERROR : quad format not supported for CSharp\n");
+        throw faustexception("ERROR : -quad format not supported for CSharp\n");
     }
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for CSharp\n");

@@ -51,6 +51,8 @@ std::string TAux(float n);
 std::string T(float n);
 std::string TAux(double n);
 std::string T(double n);
+std::string TAux(long double n);
+std::string T(long double n);
 std::string T(int64_t n);
 
 // Add and remove quotes of a std::string
@@ -67,6 +69,10 @@ inline std::string checkFloat(float val)
     return (std::isinf(val)) ? "INFINITY" : T(val);
 }
 inline std::string checkDouble(double val)
+{
+    return (std::isinf(val)) ? "INFINITY" : T(val);
+}
+inline std::string checkQuad(long double val)
 {
     return (std::isinf(val)) ? "INFINITY" : T(val);
 }

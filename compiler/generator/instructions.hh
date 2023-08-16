@@ -81,6 +81,8 @@ struct Int32ArrayNumInst;
 struct BoolNumInst;
 struct DoubleNumInst;
 struct DoubleArrayNumInst;
+struct QuadNumInst;
+struct QuadArrayNumInst;
 struct FixedPointNumInst;
 struct FixedPointArrayNumInst;
 
@@ -175,7 +177,7 @@ typedef std::list<NamedTyped*>::const_iterator NamesIt;
 
 inline bool isRealType(Typed::VarType type)
 {
-    return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble);
+    return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble || type == Typed::kQuad);
 }
 
 inline bool isIntType(Typed::VarType type)
@@ -203,6 +205,11 @@ inline bool isDoubleType(Typed::VarType type)
     return (type == Typed::kDouble);
 }
 
+inline bool isQuadType(Typed::VarType type)
+{
+    return (type == Typed::kQuad);
+}
+
 inline bool isFloatMacroType(Typed::VarType type)
 {
     return (type == Typed::kFloatMacro);
@@ -225,7 +232,9 @@ inline bool isRealPtrType(Typed::VarType type)
             || type == Typed::kFloatMacro_ptr
             || type == Typed::kFloatMacro_ptr_ptr
             || type == Typed::kDouble_ptr
-            || type == Typed::kDouble_ptr_ptr);
+            || type == Typed::kDouble_ptr_ptr
+            || type == Typed::kQuad_ptr
+            || type == Typed::kQuad_ptr_ptr);
 }
 
 inline bool isPtrType(Typed::VarType type)
@@ -289,6 +298,8 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(BoolNumInst* inst) {}
     virtual void visit(DoubleNumInst* inst) {}
     virtual void visit(DoubleArrayNumInst* inst) {}
+    virtual void visit(QuadNumInst* inst) {}
+    virtual void visit(QuadArrayNumInst* inst) {}
     virtual void visit(FixedPointNumInst* inst) {}
     virtual void visit(FixedPointArrayNumInst* inst) {}
 
@@ -365,6 +376,8 @@ struct CloneVisitor : public virtual Garbageable {
     virtual ValueInst* visit(BoolNumInst* inst)        = 0;
     virtual ValueInst* visit(DoubleNumInst* inst)      = 0;
     virtual ValueInst* visit(DoubleArrayNumInst* inst) = 0;
+    virtual ValueInst* visit(QuadNumInst* inst)        = 0;
+    virtual ValueInst* visit(QuadArrayNumInst* inst)   = 0;
     virtual ValueInst* visit(FixedPointNumInst* inst)      = 0;
     virtual ValueInst* visit(FixedPointArrayNumInst* inst) = 0;
 
@@ -1134,6 +1147,27 @@ struct DoubleArrayNumInst : public ArrayNumInst<double> {
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct QuadNumInst : public ValueInst, public NumValueInst {
+    const long double fNum;
+    
+    QuadNumInst(long double num) : ValueInst(), fNum(num) {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual bool isSimpleValue() const { return true; }
+};
+
+struct QuadArrayNumInst : public ArrayNumInst<long double> {
+    QuadArrayNumInst(const std::vector<long double>& nums) : ArrayNumInst<long double>(nums) {}
+    QuadArrayNumInst(int size) : ArrayNumInst<long double>(size) {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct FixedPointNumInst : public ValueInst, public NumValueInst {
     const double fNum;
     
@@ -1532,6 +1566,8 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum); }
     virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum); }
     virtual ValueInst* visit(DoubleArrayNumInst* inst) { return new DoubleArrayNumInst(inst->fNumTable); }
+    virtual ValueInst* visit(QuadNumInst* inst) { return new QuadNumInst(inst->fNum); }
+    virtual ValueInst* visit(QuadArrayNumInst* inst) { return new QuadArrayNumInst(inst->fNumTable); }
     virtual ValueInst* visit(FixedPointNumInst* inst) { return new FixedPointNumInst(inst->fNum); }
     virtual ValueInst* visit(FixedPointArrayNumInst* inst) { return new FixedPointArrayNumInst(inst->fNumTable); }
 
@@ -1959,6 +1995,10 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
     virtual void visit(DoubleNumInst* inst) { Dispatch2Visitor(inst); }
 
     virtual void visit(DoubleArrayNumInst* inst) { Dispatch2Visitor(inst); }
+    
+    virtual void visit(QuadNumInst* inst) { Dispatch2Visitor(inst); }
+    
+    virtual void visit(QuadArrayNumInst* inst) { Dispatch2Visitor(inst); }
 
     virtual void visit(FixedPointNumInst* inst) { Dispatch2Visitor(inst); }
     
@@ -2000,6 +2040,7 @@ class CombinerVisitor : public DispatchVisitor {
 #define castInt64(e) dynamic_cast<Int64NumInst*>(e)
 #define castFloat(e) dynamic_cast<FloatNumInst*>(e)
 #define castDouble(e) dynamic_cast<DoubleNumInst*>(e)
+#define castQuad(e) dynamic_cast<QuadNumInst*>(e)
 
 struct InstBuilder {
     // User interface
@@ -2108,10 +2149,11 @@ struct InstBuilder {
     static FloatArrayNumInst*  genFloatArrayNumInst(int size) { return new FloatArrayNumInst(size); }
     static DoubleNumInst*      genDoubleNumInst(double num) { return new DoubleNumInst(num); }
     static DoubleArrayNumInst* genDoubleArrayNumInst(int size) { return new DoubleArrayNumInst(size); }
+    static QuadNumInst*        genQuadNumInst(long double num) { return new QuadNumInst(num); }
+    static QuadArrayNumInst*   genQuadArrayNumInst(int size) { return new QuadArrayNumInst(size); }
     static FixedPointNumInst*       genFixedPointNumInst(double num) { return new FixedPointNumInst(num); }
     static FixedPointArrayNumInst*  genFixedPointArrayNumInst(int size) { return new FixedPointArrayNumInst(size); }
-    static DoubleNumInst*      genQuadNumInst(double num) { return new DoubleNumInst(num); }  // Use DoubleNumInst
-
+    
     static ValueInst* genTypedNum(Typed::VarType type, double num);
     static ValueInst* genTypedZero(Typed::VarType type);
     static ValueInst* genRealNumInst(Typed::VarType ctype, double num);
@@ -2124,6 +2166,8 @@ struct InstBuilder {
             return new FloatArrayNumInst(size);
         } else if (ctype == Typed::kDouble) {
             return new DoubleArrayNumInst(size);
+        } else if (ctype == Typed::kQuad) {
+            return new QuadArrayNumInst(size);
         } else if (ctype == Typed::kFixedPoint) {
             return new FixedPointArrayNumInst(size);
         } else {
@@ -2239,6 +2283,7 @@ struct InstBuilder {
     static BasicTyped* genVoidTyped() { return genBasicTyped(Typed::kVoid); }
     static BasicTyped* genFloatTyped() { return genBasicTyped(Typed::kFloat); }
     static BasicTyped* genDoubleTyped() { return genBasicTyped(Typed::kDouble); }
+    static BasicTyped* genQuadTyped() { return genBasicTyped(Typed::kQuad); }
     
     static BasicTyped* genFloatMacroTyped() { return genBasicTyped(Typed::kFloatMacro); }
     static BasicTyped* genItFloatTyped();
@@ -2574,7 +2619,8 @@ struct InstBuilder {
         return (castInt32(val) && castInt32(val)->fNum == 0)
             || (castInt64(val) && castInt64(val)->fNum == 0)
             || (castFloat(val) && castFloat(val)->fNum == 0.f)
-            || (castDouble(val) && castDouble(val)->fNum == 0.);
+            || (castDouble(val) && castDouble(val)->fNum == 0.)
+            || (castQuad(val) && castQuad(val)->fNum == 0.L);
     }
     
     static bool isOne(ValueInst* val)
@@ -2582,7 +2628,8 @@ struct InstBuilder {
         return (castInt32(val) && castInt32(val)->fNum == 1)
             || (castInt64(val) && castInt64(val)->fNum == 1)
             || (castFloat(val) && castFloat(val)->fNum == 1.f)
-            || (castDouble(val) && castDouble(val)->fNum == 1.);
+            || (castDouble(val) && castDouble(val)->fNum == 1.)
+            || (castQuad(val) && castQuad(val)->fNum == 1.L);
     }
 
     // Binop operations
@@ -2600,6 +2647,8 @@ struct InstBuilder {
             return genFloatNumInst(castFloat(a1)->fNum + castFloat(a2)->fNum);
         } else if (castDouble(a1) && castDouble(a2)) {
             return genDoubleNumInst(castDouble(a1)->fNum + castDouble(a2)->fNum);
+        } else if (castQuad(a1) && castQuad(a2)) {
+            return genQuadNumInst(castQuad(a1)->fNum + castQuad(a2)->fNum);
         }  else {
             return genBinopInst(kAdd, a1, a2);
         }

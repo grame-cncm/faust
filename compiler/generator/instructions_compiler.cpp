@@ -2188,6 +2188,16 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
                 double_array->setValue(k, r);
             }
         }
+    } else if (ctype == Typed::kQuad) {
+        QuadArrayNumInst* quad_array = dynamic_cast<QuadArrayNumInst*>(num_array);
+        faustassert(quad_array);
+        for (int k = 0; k < size; k++) {
+            if (isSigInt(sig->branch(k), &i)) {
+                quad_array->setValue(k, (long double)i);
+            } else if (isSigReal(sig->branch(k), &r)) {
+                quad_array->setValue(k, r);
+            }
+        }
     } else if (ctype == Typed::kFixedPoint) {
         FixedPointArrayNumInst* fx_array = dynamic_cast<FixedPointArrayNumInst*>(num_array);
         faustassert(fx_array);

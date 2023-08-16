@@ -209,7 +209,7 @@ static string addSuffix(const string& num)
 }
 
 /**
- * Convert a single-precision float into a string.
+ * Convert a single precision real into a string.
  * Adjusts the precision p to the needs.
  */
 string TAux(float n)
@@ -231,7 +231,7 @@ string T(float n)
 }
 
 /**
- * Convert a double-precision float into a string.
+ * Convert a double precision real into a string.
  * Adjusts the precision p to the needs.
  */
 string TAux(double n)
@@ -275,6 +275,53 @@ string T(double n)
 {
     return addSuffix(TAux(n));
 }
+
+/**
+ * Convert a quad (long double) precision real into a string.
+ * Adjusts the precision p to the needs.
+ */
+string TAux(long double n)
+{
+    char  c[512];
+    char* endp;
+    int   p = 1;
+    
+    if (gGlobal->gFloatSize == 1) {
+        float v = (float)n;
+        do {
+            snprintf(c, 512, "%.*g", p++, v);
+            endp = nullptr;
+        } while (strtof(c, &endp) != v);
+    } else if (gGlobal->gFloatSize == 2) {
+        do {
+            snprintf(c, 512, "%.*Lg", p++, n);
+            endp = nullptr;
+        } while (strtod(c, &endp) != n);
+    } else if (gGlobal->gFloatSize == 3) {
+        long double q = (long double)n;
+        do {
+            snprintf(c, 512, "%.*Lg", p++, q);
+            endp = nullptr;
+        } while (strtold(c, &endp) != q);
+    } else if (gGlobal->gFloatSize == 4) {
+        do {
+            snprintf(c, 512, "%.*Lg", p++, n);
+            endp = nullptr;
+        } while (strtod(c, &endp) != n);
+    } else {
+        cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
+        faustassert(false);
+    }
+    
+    ensureFloat(c);
+    return string(c);
+}
+
+string T(long double n)
+{
+    return addSuffix(TAux(n));
+}
+
 
 /**
  * remove quotes from a string

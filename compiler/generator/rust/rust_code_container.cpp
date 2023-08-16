@@ -65,7 +65,7 @@ CodeContainer* RustCodeContainer::createContainer(const string& name, int numInp
     CodeContainer* container;
 
     if (gGlobal->gFloatSize == 3) {
-        throw faustexception("ERROR : quad format not supported for Rust\n");
+        throw faustexception("ERROR : -quad format not supported for Rust\n");
     }
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for Rust\n");

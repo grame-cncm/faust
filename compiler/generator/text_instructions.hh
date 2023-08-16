@@ -187,6 +187,18 @@ class TextInstVisitor : public InstVisitor {
         }
         *fOut << '}';
     }
+    
+    virtual void visit(QuadNumInst* inst) { *fOut << checkQuad(inst->fNum); }
+    
+    virtual void visit(QuadArrayNumInst* inst)
+    {
+        char sep = '{';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << checkQuad(inst->fNumTable[i]);
+            sep = ',';
+        }
+        *fOut << '}';
+    }
 
     /**
      * @brief some binary operations need parentheses in order to silent some c++ warning

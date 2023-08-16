@@ -91,7 +91,7 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
     CodeContainer* container;
 
     if (gGlobal->gFloatSize == 3) {
-        throw faustexception("ERROR : quad format not supported for WebAssembly\n");
+        throw faustexception("ERROR : -quad format not supported for WebAssembly\n");
     }
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for WebAssembly\n");

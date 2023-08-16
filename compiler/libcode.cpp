@@ -380,7 +380,7 @@ static void compileInterp(Tree signals, int numInputs, int numOutputs)
     } else if (gGlobal->gFloatSize == 2) {
         gContainer = InterpreterCodeContainer<double>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
     } else {
-        throw faustexception("ERROR : quad format not supported in Interp\n");
+        throw faustexception("ERROR : -quad format not supported in Interp\n");
     }
     gGlobal->gAllowForeignFunction = false;  // No foreign functions
     gGlobal->gAllowForeignConstant = false;  // No foreign constant

@@ -174,6 +174,9 @@ class CPPInstVisitor : public TextInstVisitor {
         fPolyMathLibTable["sinf"]       = "std::sin";
         fPolyMathLibTable["sqrtf"]      = "std::sqrt";
         fPolyMathLibTable["tanf"]       = "std::tan";
+    
+        fPolyMathLibTable["isnanf"]     = "std::isnan";
+        fPolyMathLibTable["isinff"]     = "std::isinf";
 
         // Polymath mapping double version
         fPolyMathLibTable["max_"] = "std::max<double>";
@@ -201,6 +204,9 @@ class CPPInstVisitor : public TextInstVisitor {
         fPolyMathLibTable["sin"]       = "std::sin";
         fPolyMathLibTable["sqrt"]      = "std::sqrt";
         fPolyMathLibTable["tan"]       = "std::tan";
+    
+        fPolyMathLibTable["isnan"]      = "std::isnan";
+        fPolyMathLibTable["isinf"]      = "std::isinf";
 
         // Polymath mapping quad version
         fPolyMathLibTable["max_l"] = "std::max<quad>";
@@ -228,6 +234,9 @@ class CPPInstVisitor : public TextInstVisitor {
         fPolyMathLibTable["sinl"]       = "std::sin";
         fPolyMathLibTable["sqrtl"]      = "std::sqrt";
         fPolyMathLibTable["tanl"]       = "std::tan";
+    
+        fPolyMathLibTable["isnanl"]      = "std::isnan";
+        fPolyMathLibTable["isinfl"]      = "std::isinf";
     
         // Polymath mapping fx version
         fPolyMathLibTable["max_fx"] = "std::max<fixpoint_t>";
