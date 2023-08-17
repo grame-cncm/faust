@@ -45,53 +45,45 @@ autodiffVerifier::~autodiffVerifier()
 
 void autodiffVerifier::initialise()
 {
-    // Create the DSP for finite difference calculation
-    auto inputDSP{createDSPInstanceFromPath(fInputDSPPath)};
-    auto undifferentiatedDSP{createDSPInstanceFromPath(fDifferentiableDSPPath)};
-//    auto differentiatedDSP{createDSPInstanceFromPath("/usr/local/share/faust/examples/autodiff/recursion/target.dsp")};
-    const char *argv[] = {"-diff"};
-    auto differentiatedDSP{createDSPInstanceFromPath(fDifferentiableDSPPath, 1, argv)};
-    
-    auto tempUI = new MapUI;
-    // Count the number of parameters
-    undifferentiatedDSP->buildUserInterface(tempUI);
-    fNumParams = tempUI->getParamsCount();
-    
-    auto dsp = new dsp_sequencer(inputDSP, undifferentiatedDSP);
-    
-    fDSP = new dsp_parallelizer(
-            new dsp_parallelizer(
-                    // f(p + \epsilon)
-                    createDSPCascade(dsp, fNumParams),
-                    // f(p)
-                    dsp->clone()
-            ),
-            // f'(p)
-            new dsp_sequencer(inputDSP->clone(), differentiatedDSP)
-    );
+    buildDSPs();
+    setupAudio();
+    setupUI();
+}
+
+void autodiffVerifier::setupAudio()
+{
+    assert(fDSPReady);
     
     // Allocate the audio driver
     fAudio = std::make_unique<dummyaudio>(48000, 1);
     fAudio->init("Dummy audio", fDSP);
+    fAudioReady = true;
+}
+
+void autodiffVerifier::setupUI()
+{
+    assert(fAudioReady);
+    
+    std::cout << "\nEpsilon: " << kEpsilon << "\n\n";
     
     fUI = std::make_unique<MapUI>();
-    fDSP->buildUserInterface(fUI.get());
+    // The only parameters of interest are those that must be increased by
+    // epsilon, so only build a UI for the corresponding dsp instance.
+    fEpsilonDSP->buildUserInterface(fUI.get());
     
-    // Increase one of each group of parameters by epsilon.
-    std::cout << "\nEpsilon: " << kEpsilon << "\n\n";
+    // Increase one of each group of parameters by epsilon,
     for (auto p{0}; p < fNumParams; ++p) {
         auto address{fUI->getParamAddress(fNumParams * p + p)};
         
         fUI->setParamValue(address, fUI->getParamValue(address) + kEpsilon);
     }
     
+    // and report the result to standard out.
     for (auto p{0}, q{0}; p < fUI->getParamsCount(); ++p) {
         if (p % fNumParams == 0) {
-            if (++q <= fNumParams) {
-                std::cout << "Parameter " << q << ", y(p + epsilon)\n";
-            } else {
-                std::cout << "y(p)\n";
-            }
+            ++q;
+            std::cout << "y(" << (q == 1 ? "" : "...,") << "p" << q << " + epsilon"
+                      << (q == fNumParams ? "" : ",...") << ")\n";
         }
         std::cout << fUI->getParamAddress(p)
                   << ": "
@@ -99,6 +91,45 @@ void autodiffVerifier::initialise()
                   << "\n";
     }
     std::cout << "\n";
+}
+
+void autodiffVerifier::buildDSPs()
+{
+    // Create the input DSP
+    auto inputDSP{createDSPInstanceFromPath(fInputDSPPath)};
+    
+    // Create the DSP for finite difference calculation
+    auto undifferentiatedDSP{new dsp_sequencer(
+            inputDSP,
+            createDSPInstanceFromPath(fDifferentiableDSPPath)
+    )};
+    
+    // Create the autodiffed DSP for comparison
+    const char *argv[] = {"-diff"};
+    auto differentiatedDSP{new dsp_sequencer(
+            inputDSP->clone(),
+            createDSPInstanceFromPath(fDifferentiableDSPPath, 1, argv)
+            //createDSPInstanceFromPath("/usr/local/share/faust/examples/autodiff/recursion/target.dsp")
+    )};
+    
+    // Count the number of parameters in the undifferentiated DSP
+    auto tempUI = new MapUI;
+    undifferentiatedDSP->buildUserInterface(tempUI);
+    fNumParams = tempUI->getParamsCount();
+    
+    fEpsilonDSP = createDSPCascade(undifferentiatedDSP, fNumParams);
+    
+    fDSP = new dsp_parallelizer(
+            new dsp_parallelizer(
+                    // f(p + \epsilon)
+                    fEpsilonDSP,
+                    // f(p)
+                    undifferentiatedDSP->clone()
+            ),
+            // f'(p)
+            differentiatedDSP
+    );
+    fDSPReady = true;
 }
 
 dsp *autodiffVerifier::createDSPCascade(dsp *dsp, int numInstances)
@@ -125,11 +156,11 @@ void autodiffVerifier::verify()
         ));
     }
     
+    // Index of the undifferentiated, f(p), channel.
+    auto undiffedIndex{fNumParams};
     // Index of the first autodiff channel.
     // There are as many autodiff output channels as there are parameters.
     auto autodiffIndex{fNumParams + 1};
-    // Index of the undifferentiated, f(p), channel.
-    auto undiffedIndex{fNumParams};
     
     for (auto i{1}; i <= kNumIterations; ++i) {
         if ((i - 1) % 20 == 0) {

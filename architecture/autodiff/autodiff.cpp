@@ -2,7 +2,6 @@
 #include <cmath>
 #include "autodiff.h"
 #include "faust/misc.h"
-#include "faust/dsp/llvm-dsp.h"
 
 int main(int argc, char *argv[])
 {
@@ -68,56 +67,95 @@ mldsp::~mldsp()
 
 void mldsp::initialise()
 {
-    auto inputDSP{createDSPInstanceFromPath(fInputDSPPath)};
-    auto fixedDSP{createDSPInstanceFromPath(fGroundTruthDSPPath)};
-    auto adjustableDSP{createDSPInstanceFromPath(fDifferentiableDSPPath)};
-    const char *argv[] = {"-diff"};
-    auto differentiatedDSP{createDSPInstanceFromPath(fDifferentiableDSPPath, 1, argv)};
-//    auto differentiatedDSP{createDSPInstanceFromPath("/usr/local/share/faust/examples/autodiff/recursion/target.dsp", 1, argv)};
+    buildDSP();
+    setupAudio();
+    setupUI();
+    setupReporting();
+}
+
+void mldsp::setupUI()
+{
+    assert(fAudioReady);
     
-    fDSP = new dsp_parallelizer(
-            // Set up the ground truth DSP: s_o(\hat{p})
-            new dsp_sequencer(inputDSP->clone(), fixedDSP),
-            new dsp_parallelizer(
-                    // The adjustable DSP: s_o(p),
-                    new dsp_sequencer(inputDSP->clone(), adjustableDSP),
-                    // The autodiffed DSP: \nabla s_o(p).
-                    // This will have one output channel per differentiable parameter.
-                    new dsp_sequencer(inputDSP->clone(), differentiatedDSP)
-            )
-    );
+    // Build the UI
+    fUI = std::make_unique<AutodiffUI>();
+    fLearnableDSP->buildUserInterface(fUI.get());
+    std::cout << "\nNum params: " << fUI->getParamsCount() << "\n";
     
-    auto tempUI = new MapUI;
-    adjustableDSP->buildUserInterface(tempUI);
-    auto numLearnableParams = tempUI->getParamsCount();
+    // Get the addresses and indices of the differentiable parameters.
+    for (int n = 0; n < fUI->getParamsCount(); ++n) {
+        fLearnableParams.insert(std::make_pair(fUI->getParamAddress(n), n));
+    }
     
-    fUI = std::make_unique<MapUI>();
-    fDSP->buildUserInterface(fUI.get());
+    fUIReady = true;
+}
+
+void mldsp::setupReporting()
+{
+    assert(fUIReady);
+    
+    // Set up a CSV file
+    fFile.open("loss.csv");
+    // And start writing a header to it.
+    fFile << "iteration,loss";
+    std::cout << "\n";
+    
+    for (auto &p: fLearnableParams) {
+        auto label{fUI->getParamLabel(p.second)};
+        std::cout << "Learnable parameter: " << label
+                  << ", value: " << fUI->getParamValue(p.first) << "\n";
+        
+        // Finish the CSV header.
+        fFile << ",gradient_" << label << "," << label;
+    }
+    
+    std::cout << "\n";
+    fFile << "\n";
+}
+
+void mldsp::setupAudio()
+{
+    assert(fDSPReady);
+
+//    fDSP->metadata(fUI.get());
     
     // Allocate the audio driver
     fAudio = std::make_unique<dummyaudio>(48000, 1);
     fAudio->init("Dummy audio", fDSP);
+    fAudioReady = true;
+}
+
+void mldsp::buildDSP()
+{
+    auto inputDSP{createDSPInstanceFromPath(fInputDSPPath)};
+    auto groundTruthDSP{new dsp_sequencer(
+            inputDSP->clone(),
+            createDSPInstanceFromPath(fGroundTruthDSPPath)
+    )};
+    const char *argv[] = {"-diff"};
+    auto differentiatedDSP{new dsp_sequencer(
+            inputDSP->clone(),
+            createDSPInstanceFromPath(fDifferentiableDSPPath, 1, argv)
+//            createDSPInstanceFromPath("/usr/local/share/faust/examples/autodiff/recursion/target.dsp")
+    )};
     
-    // TODO: check that parameter has diff metadata.
-    for (auto p{0}; p < numLearnableParams; ++p) {
-        auto address{fUI->getParamAddress(p)},
-                shortName{address.substr(address.find_last_of('/') + 1)};
-        fLearnableParams.insert(std::make_pair(
-                address,
-                Parameter{shortName, fUI->getParamValue(address), 0.f})
-        );
-    }
+    fLearnableDSP = new dsp_sequencer(
+            inputDSP->clone(),
+            createDSPInstanceFromPath(fDifferentiableDSPPath)
+    );
     
-    // Set up csv file
-    fFile.open("loss.csv");
-    fFile << "iteration,loss";
-    std::cout << "\n";
-    for (auto &p: fLearnableParams) {
-        std::cout << "Learnable parameter: " << p.first << ", value: " << p.second.value << "\n";
-        fFile << ",gradient_" << p.second.shortName << "," << p.second.shortName;
-    }
-    std::cout << "\n";
-    fFile << "\n";
+    fDSP = new dsp_parallelizer(
+            // Set up the ground truth DSP: s_o(\hat{p})
+            groundTruthDSP,
+            new dsp_parallelizer(
+                    // The adjustable DSP: s_o(p),
+                    fLearnableDSP,
+                    // The autodiffed DSP: \nabla s_o(p).
+                    // This will have one output channel per differentiable parameter.
+                    differentiatedDSP
+            )
+    );
+    fDSPReady = true;
 }
 
 void mldsp::doGradientDescent()
@@ -125,6 +163,7 @@ void mldsp::doGradientDescent()
     auto lowLossCount{0};
     
     for (auto i{1}; i <= kNumIterations; ++i) {
+        // Get some new audio output.
         fAudio->render();
         auto out{fAudio->getOutput()};
         
@@ -134,18 +173,14 @@ void mldsp::doGradientDescent()
             if (fLoss > kEpsilon) {
                 lowLossCount = 0;
                 computeGradient(out, frame);
-                
-                // Update parameter values.
-                for (auto &p: fLearnableParams) {
-                    p.second.value -= kAlpha * p.second.gradient;
-                    fUI->setParamValue(p.first, p.second.value);
-                }
             } else {
                 ++lowLossCount;
             }
             
             reportState(i, out, frame);
             
+            // End the gradient descent early if loss has fallen short of the
+            // sensitivity parameter for an arbitrary number of iterations.
             if (lowLossCount > 20) {
                 std::cout << "\n";
                 return;
@@ -179,18 +214,25 @@ void mldsp::computeGradient(FAUSTFLOAT **output, int frame)
     // given differentiable parameter.
     auto k{0};
     for (auto &p: fLearnableParams) {
+        FAUSTFLOAT gradient{0.f};
+        
         switch (kLossFunction) {
             case L1_NORM:
-                p.second.gradient = iszero(delta) ?
-                                    0.f :
-                                    output[OutputChannel::DIFFERENTIATED + k][frame] * delta / fabsf(delta);
+                gradient = iszero(delta) ?
+                           0.f :
+                           output[OutputChannel::DIFFERENTIATED + k][frame] * delta / fabsf(delta);
                 break;
             case L2_NORM:
-                p.second.gradient = 2 * output[OutputChannel::DIFFERENTIATED + k][frame] * delta;
+                gradient = 2 * output[OutputChannel::DIFFERENTIATED + k][frame] * delta;
                 break;
             default:
                 break;
         }
+        
+        // Set the new gradient.
+        fUI->setParamGradient(p.first, gradient);
+        // Trigger a parameter update.
+        fUI->updateParamValue(p.first, kAlpha);
         
         ++k;
     }
@@ -198,7 +240,8 @@ void mldsp::computeGradient(FAUSTFLOAT **output, int frame)
 
 void mldsp::reportState(int iteration, FAUSTFLOAT **output, int frame)
 {
-    auto lineWidth{5 + (3 + fLearnableParams.size()) * COLUMN_WIDTH};
+    auto lineWidth{5 + (3 + fUI->getParamsCount()) * COLUMN_WIDTH};
+    
     if ((iteration - 1) % 20 == 0) {
         std::cout << std::string(lineWidth, '-') << "\n"
                   << std::setw(5) << "Iter"
@@ -207,7 +250,7 @@ void mldsp::reportState(int iteration, FAUSTFLOAT **output, int frame)
                   << std::setw(COLUMN_WIDTH) << "Loss";
         
         for (auto &p: fLearnableParams) {
-            std::cout << std::setw(COLUMN_WIDTH) << p.second.shortName;
+            std::cout << std::setw(COLUMN_WIDTH) << fUI->getParamLabel(p.second);
         }
         
         std::cout << "\n" << std::string(lineWidth, '-') << "\n";
@@ -226,14 +269,16 @@ void mldsp::reportState(int iteration, FAUSTFLOAT **output, int frame)
     fFile << iteration << "," << fLoss;
     
     for (auto &p: fLearnableParams) {
+        auto value{fUI->getParamValue(p.first)},
+                gradient{fUI->getParamGradient(p.first)};
         std::cout << std::setw(COLUMN_WIDTH);
         if (fLoss > kEpsilon) {
-            std::cout << p.second.value;
+            std::cout << value;
         } else {
             std::cout << "-";
         }
         
-        fFile << "," << p.second.gradient << "," << p.second.value;
+        fFile << "," << gradient << "," << value;
     }
     
     std::cout << "\n";
