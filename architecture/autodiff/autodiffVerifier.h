@@ -28,6 +28,12 @@ private:
     const float kFloatNumIterations{static_cast<float>(kNumIterations)};
     const float kEpsilon;
     
+    void buildDSPs();
+    
+    void setupUI();
+    
+    void setupAudio();
+    
     /**
      * Create a cascade of parallel `dsp` instances.
      *
@@ -50,9 +56,30 @@ private:
     
     int fNumParams;
     std::string fInputDSPPath, fDifferentiableDSPPath;
+    /**
+     * The DSP instance to which to apply epsilon for finite difference
+     * calculation.
+     * If the algorithm has more than one parameter, this will be a
+     * dsp_parallelizer.
+     */
+    dsp *fEpsilonDSP;
+    /**
+     * The DSP instance to send to the audio device.
+     * This will be a dsp_parallelizer, and one of its parallel instances
+     * will be fEpsilonDSP.
+     */
     dsp *fDSP;
+    bool fDSPReady{false};
+    /**
+     * A UI instance used to apply epsilon to the DSP instances in
+     * fEpsilonDSP.
+     */
     std::unique_ptr<MapUI> fUI;
+    /**
+     * The audio device.
+     */
     std::unique_ptr<dummyaudio> fAudio;
+    bool fAudioReady{false};
 };
 
 
