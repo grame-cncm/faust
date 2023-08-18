@@ -449,12 +449,12 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     // -diff option may add additional outputs
     if (gGlobal->gAutoDifferentiate) {
         // Count number of differentiable parameters, and set number of output channels
-        // accordingly.
-        DiffVarCollector collector(L);
+        // accordingly. Transform to symbolic representation first.
+        DiffVarCollector collector(deBruijn2Sym(L));
         fContainer->setOutputs(static_cast<int>(collector.inputs.size()));
-        
+
         if (gGlobal->gDetailsSwitch) {
-            cout << "Autodiff: process has " << fContainer->inputs()
+            cout << "Autodiff: differentiated process has "
                  << " inputs, and " << fContainer->outputs() << " outputs.\n\n";
         }
     }
