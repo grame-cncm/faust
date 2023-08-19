@@ -311,7 +311,7 @@ void Description::addGroup(int level, Tree t)
         const int orient = tree2int(left(label));
 
         addLayoutLine(level, subst("<group type=\"$0\">", groupnames[orient]));
-        addLayoutLine(level + 1, subst("<label>$0</label>", checkNullLabel(t, xmlize(tree2str(right(label))), false)));
+        addLayoutLine(level + 1, subst("<label>$0</label>", checkNullLabel(t, xmlize(tree2str(right(label))))));
         while (!isNil(elements)) {
             addGroup(level + 1, right(hd(elements)));
             elements = tl(elements);
@@ -344,7 +344,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         fWidgetID++;
         fActiveWidgetCount++;
         addActiveLine(subst("<widget type=\"button\" id=\"$0\">", T(fWidgetID)));
-        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)), true)));
+        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)))));
         addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addActiveMetadata(label);
         addActiveLine("</widget>");
@@ -353,7 +353,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         fWidgetID++;
         fActiveWidgetCount++;
         addActiveLine(subst("<widget type=\"checkbox\" id=\"$0\">", T(fWidgetID)));
-        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)), true)));
+        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)))));
         addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addActiveMetadata(label);
         addActiveLine("</widget>");
@@ -362,7 +362,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         fWidgetID++;
         fActiveWidgetCount++;
         addActiveLine(subst("<widget type=\"vslider\" id=\"$0\">", T(fWidgetID)));
-        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)), true)));
+        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)))));
         addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addActiveLine(subst("\t<init>$0</init>", T(tree2double(c))));
         addActiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
@@ -375,7 +375,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         fWidgetID++;
         fActiveWidgetCount++;
         addActiveLine(subst("<widget type=\"hslider\" id=\"$0\">", T(fWidgetID)));
-        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)), true)));
+        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)))));
         addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addActiveLine(subst("\t<init>$0</init>", T(tree2double(c))));
         addActiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
@@ -388,7 +388,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         fWidgetID++;
         fActiveWidgetCount++;
         addActiveLine(subst("<widget type=\"nentry\" id=\"$0\">", T(fWidgetID)));
-        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)), true)));
+        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)))));
         addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addActiveLine(subst("\t<init>$0</init>", T(tree2double(c))));
         addActiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
@@ -401,7 +401,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         fWidgetID++;
         fActiveWidgetCount++;
         addActiveLine(subst("<widget type=\"soundfile\" id=\"$0\">", T(fWidgetID)));
-        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)), true)));
+        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)))));
         addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addActiveMetadata(label);
         addActiveLine("</widget>");
@@ -412,7 +412,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         fWidgetID++;
         fPassiveWidgetCount++;
         addPassiveLine(subst("<widget type=\"vbargraph\" id=\"$0\">", T(fWidgetID)));
-        addPassiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)), true)));
+        addPassiveLine(subst("\t<label>$0</label>", checkNullBargraphLabel(sig, xmlize(tree2str(label)), 0)));
         addPassiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addPassiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
         addPassiveLine(subst("\t<max>$0</max>", T(tree2double(y))));
@@ -423,7 +423,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         fWidgetID++;
         fPassiveWidgetCount++;
         addPassiveLine(subst("<widget type=\"hbargraph\" id=\"$0\">", T(fWidgetID)));
-        addPassiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)), true)));
+        addPassiveLine(subst("\t<label>$0</label>", checkNullBargraphLabel(sig, xmlize(tree2str(label)), 1)));
         addPassiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addPassiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
         addPassiveLine(subst("\t<max>$0</max>", T(tree2double(y))));

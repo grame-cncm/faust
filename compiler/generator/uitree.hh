@@ -42,8 +42,8 @@ inline Tree uiLabel(Tree t)
 
 Tree putSubFolder(Tree folder, Tree path, Tree item);
 
-std::string ptrToHex(Tree ptr);
-std::string checkNullLabel(Tree t, const std::string& label, bool bargraph = false);
+std::string checkNullLabel(Tree t, const std::string& label);
+std::string checkNullBargraphLabel(Tree t, const std::string& label, int direction);
 
 // Used in compilers for UI constructions
 struct UITree {

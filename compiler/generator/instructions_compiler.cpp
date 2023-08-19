@@ -2355,18 +2355,16 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
 
     } else if (isSigVBargraph(sig, path, x, y, z)) {
         fContainer->incUIPassiveCount();
-        pushUserInterfaceMethod(InstBuilder::genAddVerticalBargraphInst(
-            checkNullLabel(varname, label, true), tree2str(varname), tree2float(x), tree2float(y)));
+        pushUserInterfaceMethod(InstBuilder::genAddVerticalBargraphInst(checkNullBargraphLabel(varname, label, 1), tree2str(varname), tree2float(x), tree2float(y)));
 
     } else if (isSigHBargraph(sig, path, x, y, z)) {
         fContainer->incUIPassiveCount();
-        pushUserInterfaceMethod(InstBuilder::genAddHorizontalBargraphInst(
-            checkNullLabel(varname, label, true), tree2str(varname), tree2float(x), tree2float(y)));
+        pushUserInterfaceMethod(InstBuilder::genAddHorizontalBargraphInst(checkNullBargraphLabel(varname, label, 0), tree2str(varname), tree2float(x), tree2float(y)));
 
     } else if (isSigSoundfile(sig, path)) {
         fContainer->incUIActiveCount();
         pushUserInterfaceMethod(InstBuilder::genAddSoundfileInst(
-            checkNullLabel(varname, label, true), ((url == "") ? prepareURL(label) : url), tree2str(varname)));
+            checkNullLabel(varname, label), ((url == "") ? prepareURL(label) : url), tree2str(varname)));
 
     } else {
         cerr << "ASSERT : generating widget code\n";

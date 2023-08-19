@@ -296,7 +296,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
     } else if (isSigVBargraph(sig, path, x, y, z)) {
         fClass->incUIPassiveCount();
         fClass->addUICode(subst("ui_interface->addVerticalBargraph(\"$0\", &$1, $2, $3);",
-                                checkNullLabel(varname, label, true), tree2str(varname), T(tree2float(x)),
+                                checkNullBargraphLabel(varname, label, 1), tree2str(varname), T(tree2float(x)),
                                 T(tree2float(y))));
         fJSON.addVerticalBargraph(checkNullLabel(varname, label).c_str(), NULL, (float)tree2float(x),
                                   (float)tree2float(y));
@@ -304,7 +304,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
     } else if (isSigHBargraph(sig, path, x, y, z)) {
         fClass->incUIPassiveCount();
         fClass->addUICode(subst("ui_interface->addHorizontalBargraph(\"$0\", &$1, $2, $3);",
-                                checkNullLabel(varname, label, true), tree2str(varname), T(tree2float(x)),
+                                checkNullBargraphLabel(varname, label, 0), tree2str(varname), T(tree2float(x)),
                                 T(tree2float(y))));
         fJSON.addHorizontalBargraph(checkNullLabel(varname, label).c_str(), NULL, (float)tree2float(x),
                                     (float)tree2float(y));

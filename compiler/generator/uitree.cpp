@@ -238,17 +238,14 @@ Tree putSubFolder(Tree folder, Tree path, Tree item)
  ADD (Folder[(l1,d1)...(lx,dx)...(ln,dn)], (lx,dx')) -> Folder[(l1,d1)...(lx,dx')...(ln,dn)]
 */
 
-// Handle empty labels in a consistent way
-string ptrToHex(Tree ptr)
+string checkNullLabel(Tree t, const string& label)
 {
-    stringstream res;
-    res << hex << ptr;
-    return res.str();
+    return (label == "") ? string("0x00") : label;
 }
 
-string checkNullLabel(Tree t, const string& label, bool bargraph)
+string checkNullBargraphLabel(Tree t, const string& label, int direction)
 {
-    return (label == "") ? (bargraph ? ptrToHex(t) : string("0x00")) : label;
+    return (label == "") ? gGlobal->getFreshID((direction == 0) ? "hbargraph" : "vbargraph") : label;
 }
 
 /**
