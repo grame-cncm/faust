@@ -1490,9 +1490,11 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
     string    ccs = getConditionCode(sig);
     DelayType dt  = analyzeDelayType(sig);
-    fClass->addDeclCode(subst("// Normal delay $0 is of type $1", vname, nameDelayType(dt)));
-    generateDelayLine(dt, ctype, vname, mxd, count, mono, exp, ccs);
+    // fClass->addDeclCode(subst("// Normal delay $0 is of type $1", vname, nameDelayType(dt)));
+    string access = generateDelayLine(dt, ctype, vname, mxd, count, mono, exp, ccs);
     setVectorNameProperty(sig, vname);
+    return access;
+#if 0
 #if OLDDELAY
     if (mono) {
         return vname;
@@ -1523,14 +1525,15 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
             return subst("$0[$1]", vname, generateIotaCache(idx));
     }
 #endif
+#endif
 }
 
 /**
  * Generate code for the delay mecchanism without using temporary variables
  */
 
-void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const string& vname, int mxd, int count,
-                                       bool mono, const string& exp, const string& ccs)
+string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const string& vname, int mxd, int count,
+                                         bool mono, const string& exp, const string& ccs)
 {
 #if OLDDELAY
     if (mxd == 0) {
@@ -1589,7 +1592,7 @@ void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const 
                 fClass->addZone2(subst("$0 \t$1 = 0;", ctype, vname));
                 fClass->addExecCode(Statement(ccs, subst("\t$0 = $1;", vname, exp)));
             }
-            break;
+            return vname;
 
         case DelayType::kMonoDelay:
             fClass->addDeclCode(subst("$0 \t$1State; // Mono Delay", ctype, vname));
@@ -1598,7 +1601,7 @@ void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const 
             fClass->addZone3(subst("$0 = $0State;", vname));
             fClass->addExecCode(Statement(ccs, subst("$0 = $1;", vname, exp)));
             fClass->addZone3Post(subst("$0State = $0;", vname));
-            break;
+            return vname;
 
         case DelayType::kSingleDelay:
             fClass->addDeclCode(subst("$0 \t$1State; // Single Delay", ctype, vname));
@@ -1608,7 +1611,7 @@ void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const 
             fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
             fClass->addPostCode(Statement("", subst("$0[1] = $0[0];", vname)));
             fClass->addZone3Post(subst("$0State = $0[1];", vname));
-            break;
+            return subst("$0[0]", vname);
 
         case DelayType::kCopyDelay:
             fClass->addDeclCode(subst("$0 \t$1State[$2]; // Copy Delay", ctype, vname, T(mxd)));
@@ -1621,7 +1624,7 @@ void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const 
                 fClass->addPostCode(Statement("", subst("$0[$1] = $0[$2];", vname, T(j + 1), T(j))));
             }
             for (int j = 0; j < mxd; j++) fClass->addZone3Post(subst("$0State[$1] = $0[$2];", vname, T(j), T(j + 1)));
-            break;
+            return subst("$0[0]", vname);
 
         case DelayType::kDenseDelay:
 
@@ -1633,7 +1636,7 @@ void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const 
             fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
             fClass->addPostCode(Statement("", subst("--$0;", vname)));
             fClass->addZone3Post(subst("for (int j = 0; j < $0; j++) { $1State[j] = $1[j+1]; }", T(mxd), vname));
-            break;
+            return subst("$0[0]", vname);
 
         case DelayType::kMaskRingDelay:
         case DelayType::kSelectRingDelay:
@@ -1650,9 +1653,10 @@ void ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const 
             fClass->addClearCode(subst("for (int i = 0; i < $1; i++) { $0[i] = 0; }", vname, T(N)));
 
             // execute
-            std::string idx = subst("IOTA&$0", T(N - 1));
-            fClass->addExecCode(Statement(ccs, subst("$0[$1] = $2;", vname, generateIotaCache(idx), exp)));
-            break;
+            std::string idx      = subst("IOTA&$0", T(N - 1));
+            std::string cacheidx = generateIotaCache(idx);
+            fClass->addExecCode(Statement(ccs, subst("$0[$1] = $2;", vname, cacheidx, exp)));
+            return subst("$0[$1]", vname, cacheidx);
     }
 #endif
 }

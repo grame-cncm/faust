@@ -46,7 +46,7 @@ class ScalarCompiler : public Compiler {
     property<std::string>                          fVectorProperty;
     property<std::pair<std::string, std::string> > fStaticInitProperty;  // property added to solve 20101208 kjetil bug
     property<std::pair<std::string, std::string> >
-        fInstanceInitProperty;                                           // property added to solve 20101208 kjetil bug
+        fInstanceInitProperty;  // property added to solve 20101208 kjetil bug
 
     std::map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
 
@@ -139,8 +139,8 @@ class ScalarCompiler : public Compiler {
                                          const std::string& vname, int mxd, int count);
     std::string         generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype,
                                                const std::string& vname, int mxd, int count);
-    virtual void generateDelayLine(DelayType dt, const std::string& ctype, const std::string& vname, int mxd, int count,
-                                   bool mono, const std::string& exp, const std::string& ccs);
+    virtual std::string generateDelayLine(DelayType dt, const std::string& ctype, const std::string& vname, int mxd,
+                                          int count, bool mono, const std::string& exp, const std::string& ccs);
 
     void getTypedNames(::Type t, const std::string& prefix, std::string& ctype, std::string& vname);
     void ensureIotaCode();
