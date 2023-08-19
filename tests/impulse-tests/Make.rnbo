@@ -71,7 +71,7 @@ ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
 	sleep 15
 	rm $(patsubst %.dsp, %.maxpat, $<)
 	# Use a patched version of RNBO C++ sources
-	cp -R archs/rnbo-fix/rnbo archs/rnbo
+	#cp -R archs/rnbo-fix/rnbo archs/rnbo
 	$(CXX) $(GCCOPTIONS) archs/$(arch) -I archs/rnbo/rnbo -I archs/rnbo/rnbo/common -o impulsernbo
 	./impulsernbo > $@
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)

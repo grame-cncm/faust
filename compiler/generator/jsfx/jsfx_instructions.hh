@@ -849,22 +849,9 @@ class JSFXInstVisitor : public TextInstVisitor {
     
         // Div not implemented yet for int32
         if (isInt32Type(type1) && (isInt32Type(type2) || isInt64Type(type2))) {
-            if (inst->fOpcode == kAdd) {
-                *fOut << "int32(add32(";
-                inst->fInst1->accept(this);
-                *fOut << ", ";
-                inst->fInst2->accept(this);
-                *fOut << "))";
-                return;
-            } else if (inst->fOpcode == kSub) {
-                *fOut << "int32(sub32(";
-                inst->fInst1->accept(this);
-                *fOut << ", ";
-                inst->fInst2->accept(this);
-                *fOut << "))";
-                return;
-            } else if (inst->fOpcode == kMul) {
-                *fOut << "int32(mul32(";
+            static std::map<int, std::string> iop = { {kAdd, "int32(add32("}, {kSub, "int32(sub32("}, {kMul, "int32(mul32("} };
+            if (iop.find(inst->fOpcode) != iop.end()) {
+                *fOut << iop[inst->fOpcode];
                 inst->fInst1->accept(this);
                 *fOut << ", ";
                 inst->fInst2->accept(this);

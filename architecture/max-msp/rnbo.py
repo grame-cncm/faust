@@ -452,8 +452,8 @@ def add_rnbo_object(
     # Workaround for C++ generation bug when no audio inputs
     # See: https://beta.cycling74.com/t/still-confused-on-how-to-use-parameters-in-rnbo-codebox-patches/1763/4
     if num_inputs == 0:
-        # sub_patch.add_line(sub_patch.add_textbox("sig~ 0"), codebox)
-        sub_patch.add_line(sub_patch.add_textbox("in~ 1"), codebox)
+        sub_patch.add_line(sub_patch.add_textbox("sig~ 0"), codebox)
+        # sub_patch.add_line(sub_patch.add_textbox("in~ 1"), codebox)
 
     # Generating the lines of code for inputs
     for i in range(num_inputs):

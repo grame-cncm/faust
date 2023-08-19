@@ -126,16 +126,6 @@ void CodeboxCodeContainer::produceClass()
     // Additional functions'
     *fOut << "// Additional functions";
     tab(n, *fOut);
-    // Emulates the missing rint : https://en.wikipedia.org/wiki/Rounding#Round_half_to_even
-    *fOut << "function faust_rint(x) {\n";
-    *fOut << "\t let i : Int = trunc(x); \n";
-    *fOut << "\t let f  : number = x - i; \n";
-    *fOut << "\t let odd : Int = abs(i % 2) >= 1; \n";
-    *fOut << "\t let even : Int = odd == 0; \n";
-    *fOut << "\t let a : number = (x > 0) * (((f > 0.5) * even) + ((f >= 0.5) * odd)); \n";
-    *fOut << "\t let b : number = (x < 0) * (((f < -0.5) * even) + ((f <= -0.5) * odd)); \n";
-    *fOut << "\t return i + (a - b); \n";
-    *fOut<< "} \n";
     
     // Params
     *fOut << "// Params";

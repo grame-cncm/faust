@@ -396,8 +396,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10f"]     = "log10";
         gPolyMathLibTable["powf"]       = "pow";
         gPolyMathLibTable["remainderf"] = "remainder";
-        // Emulate the missing 'rint'
-        gPolyMathLibTable["rintf"]      = "faust_rint";
+        gPolyMathLibTable["rintf"]      = "rint";
         gPolyMathLibTable["roundf"]     = "round";
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sqrtf"]      = "sqrt";
@@ -437,8 +436,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10"]     = "log10";
         gPolyMathLibTable["pow"]       = "pow";
         gPolyMathLibTable["remainder"] = "remainder";
-        // Emulate the missing 'rint'
-        gPolyMathLibTable["rint"]      = "faust_rint";
+        gPolyMathLibTable["rint"]      = "rint";
         gPolyMathLibTable["round"]     = "round";
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sqrt"]      = "sqrt";
@@ -544,6 +542,22 @@ class CodeboxInstVisitor : public TextInstVisitor {
     
     virtual void visit(BinopInst* inst)
     {
+        Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
+        Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
+    
+        // Some special cases for integers 
+        if (isInt32Type(type1) && isInt32Type(type2)) {
+            static std::map<int, std::string> iop = { {kRem, "imod("}, {kAdd, "iadd("}, {kMul, "imul("} };
+            if (iop.find(inst->fOpcode) != iop.end()) {
+                *fOut << iop[inst->fOpcode];
+                inst->fInst1->accept(this);
+                *fOut << ", ";
+                inst->fInst2->accept(this);
+                *fOut << ")";
+                return;
+            }
+        }
+    
         // Operator precedence is possibly not like C/C++, so for simplicity, we keep the fully parenthesized version
         *fOut << "(";
         inst->fInst1->accept(this);
