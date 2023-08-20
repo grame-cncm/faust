@@ -523,6 +523,8 @@ LIBFAUST_API Box boxSin();
 LIBFAUST_API Box boxSin(Box x);
 LIBFAUST_API Box boxRint();
 LIBFAUST_API Box boxRint(Box x);
+LIBFAUST_API Box boxRound();
+LIBFAUST_API Box boxRound(Box x);
 LIBFAUST_API Box boxLog();
 LIBFAUST_API Box boxLog(Box x);
 LIBFAUST_API Box boxLog10();

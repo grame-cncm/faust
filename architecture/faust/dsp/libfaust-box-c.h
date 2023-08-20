@@ -477,6 +477,8 @@ extern "C"
     LIBFAUST_API Box CboxSinAux(Box x);
     LIBFAUST_API Box CboxRint();
     LIBFAUST_API Box CboxRintAux(Box x);
+    LIBFAUST_API Box CboxRound();
+    LIBFAUST_API Box CboxRoundAux(Box x);
     LIBFAUST_API Box CboxLog();
     LIBFAUST_API Box CboxLogAux(Box x);
     LIBFAUST_API Box CboxLog10();

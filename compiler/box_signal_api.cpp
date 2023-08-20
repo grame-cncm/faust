@@ -1308,6 +1308,10 @@ LIBFAUST_API Tree boxRint()
 {
     return gGlobal->gRintPrim->box();
 }
+LIBFAUST_API Tree boxRound()
+{
+    return gGlobal->gRoundPrim->box();
+}
 LIBFAUST_API Tree boxRemainder()
 {
     return gGlobal->gRemainderPrim->box();
@@ -1586,6 +1590,11 @@ LIBFAUST_API Tree boxSin(Tree x)
 LIBFAUST_API Tree boxRint(Tree x)
 {
     return boxSeq(x, boxRint());
+}
+
+LIBFAUST_API Tree boxRound(Tree x)
+{
+    return boxSeq(x, boxRound());
 }
 
 LIBFAUST_API Tree boxLog(Tree x)
@@ -1945,6 +1954,10 @@ LIBFAUST_API Tree CboxSin()
 LIBFAUST_API Tree CboxRint()
 {
     return boxRint();
+}
+LIBFAUST_API Tree CboxRound()
+{
+    return boxRound();
 }
 LIBFAUST_API Tree CboxRemainder()
 {
@@ -2731,6 +2744,11 @@ LIBFAUST_API Tree CboxSinAux(Tree x)
 LIBFAUST_API Tree CboxRintAux(Tree x)
 {
     return CboxSeq(x, CboxRint());
+}
+    
+LIBFAUST_API Tree CboxRoundAux(Tree x)
+{
+    return CboxSeq(x, CboxRound());
 }
 
 LIBFAUST_API Tree CboxLogAux(Tree x)
