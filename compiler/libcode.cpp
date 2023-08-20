@@ -1103,6 +1103,7 @@ static void* expandDSPInternal(void* arg)
         /****************************************************************
          1 - process command line
         *****************************************************************/
+        gGlobal->reset();
         gGlobal->initDirectories(argc, argv);
         gGlobal->processCmdline(argc, argv);
 
@@ -1162,6 +1163,7 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
     /****************************************************************
      1 - process command line
      *****************************************************************/
+    gGlobal->reset();
     gGlobal->initDirectories(argc1, argv1);
     gGlobal->processCmdline(argc1, argv1);
 
@@ -1211,6 +1213,7 @@ static void* createFactoryAux1(void* arg)
         /****************************************************************
          1 - process command line
         *****************************************************************/
+        gGlobal->reset();
         gGlobal->initDirectories(argc, argv);
         gGlobal->processCmdline(argc, argv);
         gGlobal->printDirectories();
@@ -1331,6 +1334,7 @@ static void* createFactoryAux2(void* arg)
         /****************************************************************
          1 - process command line
          *****************************************************************/
+        gGlobal->reset();
         gGlobal->initDirectories(argc, argv);
         gGlobal->processCmdline(argc, argv);
 

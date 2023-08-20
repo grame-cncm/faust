@@ -39,6 +39,7 @@ class RoundPrim : public xtended {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
         if (i.isValid()) {
+            // TODO: Round is missing in interval library
             return castInterval(floatCast(args[0]), gAlgebra.Rint(i));
         } else {
             return floatCast(args[0]);
