@@ -133,7 +133,7 @@ struct Interval {
     {}
 };
 
-std::ostream& operator<<(std::ostream& dst, const Interval& it)
+inline static std::ostream& operator<<(std::ostream& dst, const Interval& it)
 {
     dst << "Interval [" << it.fLo << ", " << it.fHi << ", " << it.fLSB << "]";
     return dst;
