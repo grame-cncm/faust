@@ -906,7 +906,7 @@ def create_rnbo_patch(
 
     # Save subpatcher as an abstraction
     if subpatcher:
-        dsp_rnbo.subpatcher.saveas(maxpat_path.rsplit(".", 1)[0] + "." + "rnbopat")
+        dsp_rnbo.subpatcher.save_as(maxpat_path.rsplit(".", 1)[0] + "." + "rnbopat")
 
     # Possibly create and connect the effect rnbo~ object
     if effect_codebox_code:
@@ -933,7 +933,7 @@ def create_rnbo_patch(
 
         # Save subpatcher as an abstraction with the '_effect' suffix
         if subpatcher:
-            effect_rnbo.subpatcher.saveas(
+            effect_rnbo.subpatcher.save_as(
                 maxpat_path.rsplit(".", 1)[0] + "_effect." + "rnbopat"
             )
 
