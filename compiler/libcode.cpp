@@ -1162,6 +1162,8 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
     /****************************************************************
      1 - process command line
      *****************************************************************/
+    // Reset to allow multiple calls within the same context.
+    gGlobal->reset();
     gGlobal->initDirectories(argc1, argv1);
     gGlobal->processCmdline(argc1, argv1);
 
