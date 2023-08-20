@@ -302,7 +302,7 @@ static void test5()
                 return;
             }
             
-            // Compile it to the target language
+            // Compile signals to the target language
             char* source = CcreateSourceFromSignals("FaustDSP", signals, lang[i], 0, NULL, error_msg);
             if (source) {
                 printf("%s\n", source);

@@ -808,6 +808,40 @@ static void test25()
             int inputs = 0;
             int outputs = 0;
             string error_msg;
+            
+            // Create the oscillator
+            Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, nullptr, &inputs, &outputs, error_msg);
+            if (!osc) {
+                cerr << error_msg;
+                destroyLibContext();
+                return;
+            }
+             
+            // Compile it to the target language
+            string source = createSourceFromBoxes("FaustDSP", osc, it, 0, nullptr, error_msg);
+            if (source != "") {
+                cout << source;
+            } else {
+                cerr << error_msg;
+            }
+        }
+        destroyLibContext();
+    }
+}
+
+// Compile a complete DSP program to a box expression, then a list of signals, then to a source string
+// in several target languages
+static void test26()
+{
+    cout << "test26\n";
+    vector<const char*> lang = { "c", "cpp", "cmajor", "codebox", "csharp", "dlang", "fir", "interp", "jax", "jsfx", "julia", "rust", "wast" };
+    // Context has to be created/destroyed each time
+    for (const auto& it : lang) {
+        createLibContext();
+        {
+            int inputs = 0;
+            int outputs = 0;
+            string error_msg;
         
             // Create the oscillator
             Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, nullptr, &inputs, &outputs, error_msg);
@@ -825,8 +859,8 @@ static void test25()
                 return;
             }
         
-            // Compile it to the target language
-            string source = createSourceFromBoxes("FaustDSP", osc, it, 0, nullptr, error_msg);
+            // Compile signals to the target language
+            string source = createSourceFromSignals("FaustDSP", signals, it,  0, nullptr, error_msg);
             if (source != "") {
                 cout << source;
             } else {
@@ -871,9 +905,6 @@ int main(int argc, char* argv[])
     test20();
     test21();
     
-    // Test 'DSPToBoxes' API (1)
-    test25();
-    
     // Test with audio, GUI and LLVM backend
     test22(argc, argv);
     
@@ -882,7 +913,13 @@ int main(int argc, char* argv[])
     
     // Test with audio, GUI, MIDI and Interp backend
     test24(argc, argv);
-
+  
+    // Test 'DSPToBoxes/createSourceFromBoxes' API
+    test25();
+    
+    // Test 'DSPToBoxes/boxesToSignals/createSourceFromSignals' API
+    test26();
+    
     return 0;
 }
 
