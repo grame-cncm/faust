@@ -531,7 +531,6 @@ class CodeboxInstVisitor : public TextInstVisitor {
     {
         if (isIntType(inst->fType->getType())) {
             // int(X) is incorrectly using floor in the generated code
-            // *fOut << "int(";
             *fOut << "trunc(";
             inst->fInst->accept(this);
             *fOut << ")";

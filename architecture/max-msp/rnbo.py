@@ -1067,7 +1067,7 @@ def create_audio_input(patcher: Patcher, rnbo: Box, num_inputs: int) -> None:
 
     Description:
          This function create an 'adc~' audio input with the specified number of input channels,
-         then connect  the audio inputs to the rnbo object.
+         then connect the audio inputs to the rnbo object.
     """
 
     # Generate a string for the 'adc~' object with the specified number of input channels
@@ -1083,11 +1083,11 @@ def create_audio_input(patcher: Patcher, rnbo: Box, num_inputs: int) -> None:
 
 def connect_midi(patcher: Patcher, rnbo: Box, midi_in: Box, midi_out: Box) -> None:
     """
-    Connects MIDI input, an effect, and MIDI output in a Max/MSP patcher.
+    Connects MIDI input, a DSP, and MIDI output in a Max/MSP patcher.
 
     Parameters:
         patcher (Patcher): The Max/MSP patcher to add connections to.
-        rnbo (Box): The effect object.
+        rnbo (Box): The DSP object.
         midi_in (Box): The MIDI input object.
         midi_out (Box): The MIDI output object.
 
@@ -1488,7 +1488,7 @@ def main():
     parser.add_argument(
         "--subpatcher",
         type=str,
-        help="Whether to generate sub-patchers as foo.rnbopat files",
+        help="Whether to generate subpatchers as foo.rnbopat files",
     )
     args = parser.parse_args()
     # print(args)
