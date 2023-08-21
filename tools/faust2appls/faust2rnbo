@@ -34,7 +34,7 @@ echoHelp()
     option "-effect auto"
     option -compile "to trigger C++ compilation at load time"
     option -test "to generate special 'RB_XX' prefix for parameters (for testing)"
-    option -sp "to generate codebox subpatcher as a file.rnbopat file (and possibly file_effect.rnbopat)"
+    option -sp "to generate codebox subpatcher as a file.rnbopat file"
     option "-cpp_path <path>"
     option "-cpp_filename <filename>"
     option "Faust options"

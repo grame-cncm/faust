@@ -84,7 +84,7 @@ If you plan to use **faust2max6/faust2msp** on your own machine, you will have t
 
 # faust2rnbo
 
-The **faust2rnbo** tool transforms a Faust DSP program into a RNBO patch including the generated codebox code. Polyphonic and MIDI controllable instruments can be created. Additional options are used to generate a special version of the RNBO patch used in the testing infrastructure. 
+The **faust2rnbo** tool transforms a Faust DSP program into a RNBO patch including the generated codebox code. Polyphonic and MIDI controllable instruments can be created. The `-sp` option allows to generate as a reusable rnbopat file. Two rnbopat files will always be generated in polyphonic mode with an effect, since using abstractions is the appropriate model to combine the DSP and effect in a single `rnbo~`object. Additional options are used to generate a special version of the RNBO patch used in the testing infrastructure. 
 
 ## How to use
 
@@ -102,7 +102,7 @@ Here are the available options:
   - `-effect auto` : generates a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC
   - `-compile` : to trigger C++ compilation at load time
   - `-test` : to generate special 'RB_XX' prefix for parameters (for testing)
-  - `-sp` : to generate codebox subpatchers as a file.rnbopat file (and possibly file_effect.rnbopat)
+  - `-sp` : to generate codebox subpatchers as a file.rnbopat file
   - `-cpp_path <path>` : to set C++ export folder 
   - `-cpp_filename <filename>` : to set C++ export filename
  

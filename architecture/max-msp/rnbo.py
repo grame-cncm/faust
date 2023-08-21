@@ -43,7 +43,8 @@ The maxpat file is generated with the following structure:
             - output boxes
             - parameter boxes possibly with MIDI control
             - lines between boxes
-    - possibly rnbo~ object for effect
+    - the subpatch can be generated as flat or as a foo.rnbopat file then loaded as a 'p' abstraction
+    - the polyphony control is added if the MIDI state is True and the nvoices count is > 0. Effect is added as a 'p' abstraction.
     - possibly loadbang box and 'compile C++ and export' machinery
     - possibly midiin/midiout objects
     - dac~ object and possibly adc~ object (if the DSP has inputs)
@@ -392,9 +393,11 @@ def generate_io_info(
     return inlets, outlets, inletInfo, outletInfo
 
 
-def add_rnbo_object(
+def add_codebox_object(
     patcher: Patcher,
-    dsp_name: str,
+    sub_patcher: Patcher,
+    rnbo: Box,
+    prefix: str,
     codebox_code: str,
     items_info_list: list[dict],
     midi: bool,
@@ -402,68 +405,48 @@ def add_rnbo_object(
     test: bool,
     num_inputs: int,
     num_outputs: int,
-) -> Box:
+) -> None:
     """
-    Adds DSP elements, routing, and parameter controls for a DSP to the given Patcher object.
+    Add a codebox~ object and parameter controls to a Max/MSP subpatcher.
+
+    This function sets up a codebox~ object and associated parameter controls
+    within a Max/MSP subpatcher. It generates input and output lines, handles
+    UI elements like buttons, sliders, and MIDI controls, and provides polyphony
+    control when applicable.
 
     Parameters:
-        patcher (Patcher): The Patcher object to which DSP elements and controls will be added.
-        dsp_name (str): The name of the DSP.
-        codebox_code (str): The code to be executed by the DSP effect.
-        items_info_list (list[dict]): A list of dictionaries containing information about UI items.
-        midi (bool): Indicates whether MIDI control is enabled.
-        nvoices (int): The number of polyphony voices.
-        num_inputs (int): The number of audio input channels.
-        num_outputs (int): The number of audio output channels.
-
-    Returns:
-        Box: The added rnbo~ object representing the DSP.
+        patcher (Patcher): The main Max/MSP patcher.
+        sub_patcher (Patcher): The subpatcher where the codebox~ will be added.
+        rnbo (Box): The rnbo object.
+        prefix (str): The prefix to be added to the label.
+        codebox_code (str): The code to be added to the codebox~.
+        items_info_list (list[dict]): List of dictionaries containing UI item information.
+        midi (bool): Whether MIDI controls should be added.
+        nvoices (int): Number of voices for polyphony control.
+        test (bool): Whether the code is for testing purposes.
+        num_inputs (int): Number of audio inputs.
+        num_outputs (int): Number of audio outputs.
     """
-
-    # Create the rnbo~ object
-    rnbo_attributes = {"optimization": "O3", "title": dsp_name, "dumpoutlet": 1}
-    # Add the polyphony attribute only if midi is True and nvoices > 0
-    if midi and nvoices > 0:
-        rnbo_attributes["polyphony"] = nvoices
-
-    # Prepare the inlet and outlet information
-    inlets, outlets, inletInfo, outletInfo = generate_io_info(
-        midi, num_inputs, num_outputs
-    )
-
-    # Create the rnbo~ object
-    rnbo = patcher.add_rnbo(
-        inletInfo=inletInfo,
-        outletInfo=outletInfo,
-        title=dsp_name,
-        numinlets=inlets,
-        numoutlets=outlets,
-        saved_object_attributes=rnbo_attributes,
-    )
-
-    # Create the codebox subpatcher
-    sub_patch = rnbo.subpatcher
-
     # Create codebox~ section in the subpatcher
-    codebox = sub_patch.add_codebox_tilde(
+    codebox = sub_patcher.add_codebox_tilde(
         code=codebox_code, patching_rect=[500.0, 500.0, 400.0, 200.0]
     )
 
     # Workaround for C++ generation bug when no audio inputs
     # See: https://beta.cycling74.com/t/still-confused-on-how-to-use-parameters-in-rnbo-codebox-patches/1763/4
     if num_inputs == 0:
-        sub_patch.add_line(sub_patch.add_textbox("sig~ 0"), codebox)
-        # sub_patch.add_line(sub_patch.add_textbox("in~ 1"), codebox)
+        sub_patcher.add_line(sub_patcher.add_textbox("sig~ 0"), codebox)
+        # sub_patcher.add_line(sub_patcher.add_textbox("in~ 1"), codebox)
 
     # Generating the lines of code for inputs
     for i in range(num_inputs):
-        input_box = sub_patch.add_textbox(f"in~ {i + 1}")
-        sub_patch.add_line(input_box, codebox, inlet=i)
+        input_box = sub_patcher.add_textbox(f"in~ {i + 1}")
+        sub_patcher.add_line(input_box, codebox, inlet=i)
 
     # Generating the lines of code for outputs
     for i in range(num_outputs):
-        output_box = sub_patch.add_textbox(f"out~ {i + 1}")
-        sub_patch.add_line(codebox, output_box, outlet=i)
+        output_box = sub_patcher.add_textbox(f"out~ {i + 1}")
+        sub_patcher.add_line(codebox, output_box, outlet=i)
 
     # Parameter for polyphony handling
     set_param_pitch = None
@@ -480,11 +463,13 @@ def add_rnbo_object(
         shortname = item["shortname"]
         item_type = item["type"]
         label = build_label(item_type, shortname, test)
+        label_path = prefix + label
+        # print(label_path)
 
         # button and checkbox use a 'toggle' object
         if item_type in ["button", "checkbox"]:
             # Add a global 'set' param object
-            set_param = sub_patch.add_textbox(f"set {label}")
+            set_param = sub_patcher.add_textbox(f"set {label}")
 
             # Upper level parameter control with a 'toggle' and 'attrui' objects
             toggle = patcher.add_textbox("toggle")
@@ -504,7 +489,7 @@ def add_rnbo_object(
                 maximum=1,
                 saved_attribute_attributes={
                     "valueof": {
-                        "parameter_initial": [label, 0],
+                        "parameter_initial": [label_path, 0],
                         "parameter_initial_enable": 1,
                     }
                 },
@@ -512,19 +497,19 @@ def add_rnbo_object(
             patcher.add_line(toggle, param_wrap)
             patcher.add_line(param_wrap, rnbo)
 
-            param = sub_patch.add_textbox(
+            param = sub_patcher.add_textbox(
                 f"param {label} 0 @min 0 @max 1",
             )
 
             # Add a line to connect the parameter control to the 'set' param object
-            sub_patch.add_line(param, set_param)
+            sub_patcher.add_line(param, set_param)
             # Add a line to connect the 'set' param object to the codebox
-            sub_patch.add_line(set_param, codebox)
+            sub_patcher.add_line(set_param, codebox)
 
             # Possibly add MIDI input control
             if midi:
                 add_midi_control(
-                    item, sub_patch, codebox, param=param, set_param=set_param
+                    item, sub_patcher, codebox, param=param, set_param=set_param
                 )
 
         # bargraph with "min", "max"
@@ -542,31 +527,31 @@ def add_rnbo_object(
                 parameter_enable=1,
                 saved_attribute_attributes={
                     "valueof": {
-                        "parameter_initial": [label, 0],
+                        "parameter_initial": [label_path, 0],
                         "parameter_initial_enable": 1,
                     }
                 },
             )
             patcher.add_line(param_wrap, rnbo)
 
-            param = sub_patch.add_textbox(
+            param = sub_patcher.add_textbox(
                 f"param {label} 0 @min {min_value} @max {max_value}",
             )
 
             # Signal transformed in control
-            snapshot = sub_patch.add_textbox("snapshot~ 10")
-            change = sub_patch.add_textbox("change")
+            snapshot = sub_patcher.add_textbox("snapshot~ 10")
+            change = sub_patcher.add_textbox("change")
 
             # Connect codebox outN to snapshot
-            sub_patch.add_line(codebox, snapshot, outlet=num_outputs + bargraph_count)
+            sub_patcher.add_line(codebox, snapshot, outlet=num_outputs + bargraph_count)
             # Connect snapshot to range
-            sub_patch.add_line(snapshot, change)
+            sub_patcher.add_line(snapshot, change)
             # And finally change to param
-            sub_patch.add_line(change, param)
+            sub_patcher.add_line(change, param)
 
             # Possibly add MIDI output control
             if midi:
-                add_midi_control(item, sub_patch, codebox, change=change)
+                add_midi_control(item, sub_patcher, codebox, change=change)
 
             # Next bargraph
             bargraph_count += 1
@@ -579,7 +564,7 @@ def add_rnbo_object(
             steps_value = (max_value - min_value) / item["step"]
 
             # Add a global 'set' param object
-            set_param = sub_patch.add_textbox(f"set {label}")
+            set_param = sub_patcher.add_textbox(f"set {label}")
 
             # Upper level parameter control with a 'attrui' object
             param_wrap = patcher.add_textbox(
@@ -591,28 +576,28 @@ def add_rnbo_object(
                 parameter_enable=1,
                 saved_attribute_attributes={
                     "valueof": {
-                        "parameter_initial": [label, init_value],
+                        "parameter_initial": [label_path, init_value],
                         "parameter_initial_enable": 1,
                     }
                 },
             )
             patcher.add_line(param_wrap, rnbo)
 
-            param = sub_patch.add_textbox(
+            param = sub_patcher.add_textbox(
                 # Does not work with @steps, with parameter values slightly different
                 # f"param {label} {init_value} @min {min_value} @max {max_value} @steps {steps_value} ",
                 f"param {label} {init_value} @min {min_value} @max {max_value}",
             )
 
             # Add a line to connect the parameter control to the 'set' param object
-            sub_patch.add_line(param, set_param)
+            sub_patcher.add_line(param, set_param)
             # Add a line to connect the 'set' param object to the codebox
-            sub_patch.add_line(set_param, codebox)
+            sub_patcher.add_line(set_param, codebox)
 
             # Possibly add MIDI input control
             if midi:
                 add_midi_control(
-                    item, sub_patch, codebox, param=param, set_param=set_param
+                    item, sub_patcher, codebox, param=param, set_param=set_param
                 )
 
         # Analyze the parameter shortname for polyphony handing
@@ -635,16 +620,306 @@ def add_rnbo_object(
     # After analyzing all UI items to get freq/gain/gate controls, possibly add polyphony control
     if midi and nvoices > 0 and set_param_pitch and set_param_gain and set_param_gate:
         add_polyphony_control(
-            sub_patch, set_param_pitch, set_param_gain, set_param_gate, is_freq, is_gain
+            sub_patcher,
+            set_param_pitch,
+            set_param_gain,
+            set_param_gate,
+            is_freq,
+            is_gain,
         )
+
+
+def create_rnbo_object(
+    patcher: Patcher,
+    dsp_name: str,
+    midi: bool,
+    nvoices: int,
+    num_inputs: int,
+    num_outputs: int,
+):
+    """
+    Create and configure the rnbo~ object.
+
+    This function creates and configures the rnbo~ object within a Max/MSP patcher.
+    It sets attributes such as optimization, title, and polyphony (if applicable)
+    based on the provided parameters.
+
+    Parameters:
+        patcher (Patcher): The Max/MSP patcher where the rnbo~ object will be added.
+        dsp_name (str): The name of the DSP module.
+        midi (bool): Whether MIDI controls should be added.
+        nvoices (int): Number of voices for polyphony control.
+        num_inputs (int): Number of audio inputs.
+        num_outputs (int): Number of audio outputs.
+
+    Returns:
+        rnbo (Box): The created rnbo~ object.
+    """
+    # Create the rnbo~ object
+    rnbo_attributes = {"optimization": "O3", "title": dsp_name, "dumpoutlet": 1}
+    # Add the polyphony attribute only if midi is True and nvoices > 0
+    if midi and nvoices > 0:
+        rnbo_attributes["polyphony"] = nvoices
+
+    # Prepare the inlet and outlet information
+    inlets, outlets, inletInfo, outletInfo = generate_io_info(
+        midi, num_inputs, num_outputs
+    )
+
+    # Create the rnbo~ object
+    rnbo = patcher.add_rnbo(
+        inletInfo=inletInfo,
+        outletInfo=outletInfo,
+        title=dsp_name,
+        numinlets=inlets,
+        numoutlets=outlets,
+        saved_object_attributes=rnbo_attributes,
+    )
+    # And return it
+    return rnbo
+
+
+def add_rnbo_object1(
+    patcher: Patcher,
+    dsp_name: str,
+    codebox_code: str,
+    items_info_list: list[dict],
+    midi: bool,
+    nvoices: int,
+    test: bool,
+    num_inputs: int,
+    num_outputs: int,
+) -> Box:
+    """
+    Adds DSP elements, routing, and parameter controls for a DSP to the given Patcher object in flat mode.
+
+    Parameters:
+        patcher (Patcher): The Patcher object to which DSP elements and controls will be added.
+        dsp_name (str): The name of the DSP.
+        codebox_code (str): The code to be executed by the DSP effect.
+        items_info_list (list[dict]): A list of dictionaries containing information about UI items.
+        midi (bool): Indicates whether MIDI control is enabled.
+        nvoices (int): The number of polyphony voices.
+        num_inputs (int): The number of audio input channels.
+        num_outputs (int): The number of audio output channels.
+
+    Returns:
+        Box: The added rnbo~ object representing the DSP.
+    """
+
+    # Create the rnbo~ object
+    rnbo = create_rnbo_object(patcher, dsp_name, midi, nvoices, num_inputs, num_outputs)
+
+    # Create the codebox subpatcher
+    sub_patcher = rnbo.subpatcher
+    add_codebox_object(
+        patcher,
+        sub_patcher,
+        rnbo,
+        "",
+        codebox_code,
+        items_info_list,
+        midi,
+        nvoices,
+        test,
+        num_inputs,
+        num_outputs,
+    )
+
+    return rnbo
+
+
+def add_rnbo_object2(
+    patcher: Patcher,
+    rnbopat_path: str,
+    dsp_name: str,
+    codebox_code: str,
+    items_info_list: list[dict],
+    midi: bool,
+    nvoices: int,
+    test: bool,
+    num_inputs: int,
+    num_outputs: int,
+) -> Box:
+    """
+    Adds DSP elements, routing, and parameter controls for a DSP to the given Patcher object in 'p' abstraction mode.
+
+    Parameters:
+        patcher (Patcher): The Patcher object to which DSP elements and controls will be added.
+        rnbopat_path (str): The path to the directory where the maxpat will be saved.
+        dsp_name (str): The name of the DSP.
+        codebox_code (str): The code to be executed by the DSP effect.
+        items_info_list (list[dict]): A list of dictionaries containing information about UI items.
+        midi (bool): Indicates whether MIDI control is enabled.
+        nvoices (int): The number of polyphony voices.
+        num_inputs (int): The number of audio input channels.
+        num_outputs (int): The number of audio output channels.
+
+    Returns:
+        Box: The added rnbo~ object representing the DSP.
+    """
+
+    # Create the rnbo~ object
+    rnbo = create_rnbo_object(patcher, dsp_name, midi, nvoices, num_inputs, num_outputs)
+
+    # Create the codebox subpatcher in a rnbopat file
+    rnbopat = Patcher(rnbopat_path, classnamespace="rnbo")
+    add_codebox_object(
+        patcher,
+        rnbopat,
+        rnbo,
+        "poly/" + dsp_name + "/" if nvoices > 0 else dsp_name + "/",
+        codebox_code,
+        items_info_list,
+        midi,
+        nvoices,
+        test,
+        num_inputs,
+        num_outputs,
+    )
+
+    # Save the rnbopat file
+    rnbopat.save()
+
+    # Get the subpatcher
+    sub_patcher = rnbo.subpatcher
+
+    # Add the DSP subpatcher
+    p_sub_patcher = sub_patcher.add_textbox(f"p @title {dsp_name} @file {rnbopat_path}")
+
+    # Generating the lines of code for inputs
+    for i in range(num_inputs):
+        input_box = sub_patcher.add_textbox(f"in~ {i + 1}")
+        sub_patcher.add_line(input_box, p_sub_patcher, inlet=i)
+
+    # Generating the lines of code for outputs
+    for i in range(num_outputs):
+        output_box = sub_patcher.add_textbox(f"out~ {i + 1}")
+        sub_patcher.add_line(p_sub_patcher, output_box, outlet=i)
+
+    return rnbo
+
+
+def add_rnbo_object3(
+    patcher: Patcher,
+    dsp_rnbopat_path: str,
+    effect_rnbopat_path: str,
+    dsp_name: str,
+    dsp_codebox_code: str,
+    effect_codebox_code: str,
+    dsp_items_info_list: list[dict],
+    effect_items_info_list: list[dict],
+    midi: bool,
+    nvoices: int,
+    test: bool,
+    dsp_num_inputs: int,
+    dsp_num_outputs: int,
+    effect_num_inputs: int,
+    effect_num_outputs: int,
+) -> Box:
+    """
+    Adds DSP elements, routing, and parameter controls for a DSP to the given Patcher object for DSP and effect.
+
+    Parameters:
+        patcher (Patcher): The Patcher object to which DSP elements and controls will be added.
+        dsp_rnbopat_path (str): The path to the directory where the DSP maxpat will be saved.
+        effect_rnbopat_path (str): The path to the directory where the effect maxpat will be saved.
+        dsp_name (str): The name of the DSP.
+        dsp_codebox_code (str): The code to be executed by the DSP.
+        effect_codebox_code (str): The code to be executed by the effect.
+        dsp_items_info_list (list[dict]): A list of dictionaries containing information about UI items for the DSP.
+        effect_items_info_list (list[dict]): A list of dictionaries containing information about UI items for the effect.
+        midi (bool): Indicates whether MIDI control is enabled.
+        nvoices (int): The number of polyphony voices.
+        dsp_num_inputs (int): The number of audio input channels.
+        dsp_num_outputs (int): The number of audio output channels.
+        effect_num_inputs (int): The number of audio input channels.
+        effect_num_outputs (int): The number of audio output channels.
+
+    Returns:
+        Box: The added rnbo~ object representing the DSP.
+    """
+
+    # Create the rnbo~ object
+    rnbo = create_rnbo_object(
+        patcher, dsp_name, midi, nvoices, dsp_num_inputs, effect_num_outputs
+    )
+
+    # Create the DSP codebox subpatcher in a dsp_rnbo_pat file
+    dsp_rnbo_pat = Patcher(dsp_rnbopat_path, classnamespace="rnbo")
+    add_codebox_object(
+        patcher,
+        dsp_rnbo_pat,
+        rnbo,
+        "poly/" + dsp_name + "/" if nvoices > 0 else dsp_name + "/",
+        dsp_codebox_code,
+        dsp_items_info_list,
+        midi,
+        nvoices,
+        test,
+        dsp_num_inputs,
+        dsp_num_outputs,
+    )
+
+    # Save the rnbo_pat file
+    dsp_rnbo_pat.save()
+
+    # Create the effect codebox subpatcher in a rnbo_effect_pat file
+    effect_rnbo_pat = Patcher(effect_rnbopat_path, classnamespace="rnbo")
+    add_codebox_object(
+        patcher,
+        effect_rnbo_pat,
+        rnbo,
+        "poly/" + dsp_name + "[1]/" if nvoices > 0 else dsp_name + "/",
+        effect_codebox_code,
+        effect_items_info_list,
+        midi,
+        -1,
+        False,
+        effect_num_inputs,
+        effect_num_outputs,
+    )
+
+    # Save the rnbo_effect_pat file
+    effect_rnbo_pat.save()
+
+    # Get the subpatcher
+    sub_patcher = rnbo.subpatcher
+
+    # Add the DSP subpatcher
+    p_dsp_box = sub_patcher.add_textbox(f"p @title {dsp_name} @file {dsp_rnbopat_path}")
+
+    # Add the effect subpatcher
+    p_effect_box = sub_patcher.add_textbox(
+        f"p @title {dsp_name} @file {effect_rnbopat_path}"
+    )
+
+    # Generating the lines of code for inputs
+    for i in range(dsp_num_inputs):
+        input_box = sub_patcher.add_textbox(f"in~ {i + 1}")
+        sub_patcher.add_line(input_box, p_dsp_box, inlet=i)
+
+    # Connect the DSP to the effect
+    connect_dsp_effect(
+        sub_patcher,
+        p_dsp_box,
+        p_effect_box,
+        dsp_num_outputs,
+        effect_num_inputs,
+    )
+
+    # Generating the lines of code for outputs
+    for i in range(effect_num_outputs):
+        output_box = sub_patcher.add_textbox(f"out~ {i + 1}")
+        sub_patcher.add_line(p_effect_box, output_box, outlet=i)
 
     return rnbo
 
 
 def connect_dsp_effect(
     patcher: Patcher,
-    dsp_rnbo: Box,
-    effect_rnbo: Box,
+    dsp_box: Box,
+    effect_box: Box,
     dsp_num_outputs: int,
     effect_num_inputs: int,
 ) -> None:
@@ -653,8 +928,8 @@ def connect_dsp_effect(
 
     Args:
         patcher (Patcher): The main patcher where objects will be added.
-        dsp_rnbo (Box): The rnbo DSP module
-        effect_rnbo (Box): The rnbo effect module
+        dsp_box (Box): The rnbo DSP module
+        effect_box (Box): The rnbo effect module
         dsp_num_outputs (int): Number of output channels of the DSP module.
         effect_num_inputs (int): Number of input channels of the effect module.
 
@@ -676,19 +951,19 @@ def connect_dsp_effect(
     match (dsp_num_outputs, effect_num_inputs):
         case (1, 1):
             # print("1 -> 1")
-            patcher.add_line(dsp_rnbo, effect_rnbo)
+            patcher.add_line(dsp_box, effect_box)
         case (1, 2):
             # print("1 -> 2")
-            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=0)
-            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=1, outlet=0)
+            patcher.add_line(dsp_box, effect_box, inlet=0, outlet=0)
+            patcher.add_line(dsp_box, effect_box, inlet=1, outlet=0)
         case (2, 1):
             # print("2 -> 1")
-            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=0)
-            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=1)
+            patcher.add_line(dsp_box, effect_box, inlet=0, outlet=0)
+            patcher.add_line(dsp_box, effect_box, inlet=0, outlet=1)
         case (2, 2):
             # print("2 -> 2")
-            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=0, outlet=0)
-            patcher.add_line(dsp_rnbo, effect_rnbo, inlet=1, outlet=1)
+            patcher.add_line(dsp_box, effect_box, inlet=0, outlet=0)
+            patcher.add_line(dsp_box, effect_box, inlet=1, outlet=1)
 
 
 def add_compile_test(
@@ -885,7 +1160,7 @@ def create_rnbo_patch(
     )
 
     # Create the DSP rnbo~ object
-    dsp_rnbo = add_rnbo_object(
+    dsp_rnbo = add_rnbo_object1(
         patcher,
         dsp_name,
         dsp_codebox_code,
@@ -910,7 +1185,7 @@ def create_rnbo_patch(
 
     # Possibly create and connect the effect rnbo~ object
     if effect_codebox_code:
-        effect_rnbo = add_rnbo_object(
+        effect_rnbo = add_rnbo_object1(
             patcher,
             "Effect",
             effect_codebox_code,
@@ -952,6 +1227,132 @@ def create_rnbo_patch(
     else:
         # Create the audio driver output
         create_audio_output(patcher, dsp_rnbo, dsp_num_outputs)
+
+    # Possibly create the audio driver input
+    if dsp_num_inputs > 0:
+        create_audio_input(patcher, dsp_rnbo, dsp_num_inputs)
+
+    # And finally save the patch
+    patcher.save()
+
+
+# New version using 'p' abstraction mode, to be used when MIDI out is fixed in C++ export
+def create_rnbo_patch2(
+    dsp_name: str,
+    maxpat_path: str,
+    export_path: str,
+    cpp_filename: str,
+    dsp_codebox_code: str,
+    dsp_items_info_list: List[Dict],
+    dsp_num_inputs: int,
+    dsp_num_outputs: int,
+    midi: bool,
+    nvoices: int,
+    effect_codebox_code: Optional[str] = None,
+    effect_items_info_list: Optional[List[dict]] = None,
+    effect_num_inputs: int = -1,
+    effect_num_outputs: int = -1,
+    compile: bool = False,
+    test: bool = False,
+    subpatcher: bool = False,
+) -> None:
+    """
+    This function creates an RNBO Max patcher with the specified parameters.
+
+    Parameters:
+    - dsp_name (str): The name of the DSP.
+    - maxpat_path (str): The path where the Max patcher will be created.
+    - export_path (str): The path for exporting the C++ code.
+    - cpp_filename (str): The filename for the exported C++ code.
+    - dsp_codebox_code (str): The code for the DSP codebox~ section in the subpatcher.
+    - dsp_items_info_list (list): A list of dictionaries containing information about the items to be added.
+    - dsp_num_inputs (int): The number of DSP audio inputs.
+    - dsp_num_outputs (int): The number of DSP audio outputs.
+    - effect_codebox_code (Optional[str]): The code for the effect codebox~ section in the subpatcher.
+    - effect_items_info_list (Optional[List[dict]]): A list of dictionaries containing information about the items to be added.
+    - effect_num_inputs (int): The number of effect audio inputs.
+    - effect_num_outputs (int): The number of effect audio outputs.
+    - midi (bool): A flag indicating whether to include MIDI input/output control.
+    - nvoices (int): The number of voices in polyphonic mode.
+    - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
+    - test (bool): A flag indicating whether the patch is for testing purposes.
+    - subpatcher (bool): A flag indicating whether to save subpatchers as foo.rnbopat files.
+
+    Returns:
+        None
+    """
+
+    # Create the patcher
+    patcher = Patcher(maxpat_path)
+
+    # Faust generated patch comment
+    patcher.add_comment(
+        "Faust generated RNBO patch, Copyright (c) 2023 Grame",
+        patching_rect=[50.0, 10.0, 350.0, 100.0],
+        fontsize=16,
+    )
+
+    if effect_codebox_code:
+        # Create the DSP rnbo~ object in 'p' abstraction mode with DSP and effect
+        dsp_rnbo = add_rnbo_object3(
+            patcher,
+            maxpat_path.rsplit(".", 1)[0] + "." + "rnbopat",
+            maxpat_path.rsplit(".", 1)[0] + "_effect." + "rnbopat",
+            dsp_name,
+            dsp_codebox_code,
+            effect_codebox_code,
+            dsp_items_info_list,
+            effect_items_info_list,
+            midi,
+            nvoices,
+            test,
+            dsp_num_inputs,
+            dsp_num_outputs,
+            effect_num_inputs,
+            effect_num_outputs,
+        )
+    else:
+        if subpatcher:
+            # Create the DSP rnbo~ object in 'p' abstraction mode with DSP
+            dsp_rnbo = add_rnbo_object2(
+                patcher,
+                maxpat_path.rsplit(".", 1)[0] + "." + "rnbopat",
+                dsp_name,
+                dsp_codebox_code,
+                dsp_items_info_list,
+                midi,
+                nvoices,
+                test,
+                dsp_num_inputs,
+                dsp_num_outputs,
+            )
+        else:
+            # Create the DSP rnbo~ object in flat mode with DSP
+            dsp_rnbo = add_rnbo_object1(
+                patcher,
+                dsp_name,
+                dsp_codebox_code,
+                dsp_items_info_list,
+                midi,
+                nvoices,
+                test,
+                dsp_num_inputs,
+                dsp_num_outputs,
+            )
+
+    # Possibly add MIDI input/output control in the global patcher
+    # and connect the DSP rnbo~ object to the midiin/midiout objects
+    if midi:
+        midi_in = patcher.add_textbox("midiin")
+        midi_out = patcher.add_textbox("midiout")
+        connect_midi(patcher, dsp_rnbo, midi_in, midi_out)
+
+    # Add loadbang and 'compile C++ and export' machinery
+    if compile:
+        add_compile_test(patcher, dsp_rnbo, export_path, cpp_filename)
+
+    # Create the audio driver output
+    create_audio_output(patcher, dsp_rnbo, dsp_num_outputs)
 
     # Possibly create the audio driver input
     if dsp_num_inputs > 0:
