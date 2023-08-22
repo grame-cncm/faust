@@ -309,13 +309,13 @@ void CodeboxScalarCodeContainer::generateCompute(int n)
     
     // Declare local variables for all inputs args
     for (int in = 0; in < fNumInputs; in++) {
-        *fOut << "let input" << std::to_string(in) << "_cb = i" << std::to_string(in) << ";";
+        *fOut << "let input" << std::to_string(in) << "_cb : number = i" << std::to_string(in) << ";";
         tab(n + 1, *fOut);
     }
     
     // Declare local variables for all outputs
     for (int out = 0; out < fNumOutputs; out++) {
-        *fOut << "let output" << std::to_string(out) << "_cb = 0;";
+        *fOut << "let output" << std::to_string(out) << "_cb : number = 0;";
         tab(n + 1, *fOut);
     }
   
