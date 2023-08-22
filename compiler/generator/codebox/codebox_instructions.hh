@@ -467,7 +467,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
     
     virtual void visit(DeclareVarInst* inst)
     {
-        // Do not generate 
+        // inputXX/outputXX are generated as local variables at the begining of 'compute'
         if (startWith(inst->fAddress->getName(), "input") || startWith(inst->fAddress->getName(), "output")) {
             return;
         }

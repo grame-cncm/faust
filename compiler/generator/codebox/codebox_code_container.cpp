@@ -51,6 +51,7 @@ handling objects (line 'ctlin/ctlout') and adding 'midiin/midiout' global object
  creating the 'notein' and decoding MIDI messaged to use the freq/gain/gate parameters
  - bargraph values cannot directly be send as control values. So additional audio outputs are created for them,
 will be sampled (using 'snapshot~' and 'change') and be connected to 'param' objects, like input controllers.
+ - in gOneSampleControl mode, inputXX/outputXX are added in the DSP struct. Here they are generated as local variables at the begining of 'compute'.
  
  TODO:
  - soundfile primitive support: https://rnbo.cycling74.com/learn/audio-files-in-rnbo
@@ -305,8 +306,16 @@ void CodeboxScalarCodeContainer::generateCompute(int n)
     }
     *fOut << ") {";
     tab(n + 1, *fOut);
+    
+    // Declare local variables for all inputs args
     for (int in = 0; in < fNumInputs; in++) {
-        *fOut << "input" << std::to_string(in) << "_cb = i" << std::to_string(in) << ";";
+        *fOut << "let input" << std::to_string(in) << "_cb = i" << std::to_string(in) << ";";
+        tab(n + 1, *fOut);
+    }
+    
+    // Declare local variables for all outputs
+    for (int out = 0; out < fNumOutputs; out++) {
+        *fOut << "let output" << std::to_string(out) << "_cb = 0;";
         tab(n + 1, *fOut);
     }
   
