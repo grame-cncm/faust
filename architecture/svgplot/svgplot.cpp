@@ -32,13 +32,12 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include <cstdio>
-#include <faust/gui/UI.h>
 #include <iostream>
 #include <ostream>
 #include <string>
 
+#include "faust/gui/UI.h"
 #include "faust/audio/channels.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/console.h"
@@ -55,7 +54,7 @@
 using namespace std;
 
 // A class to count Probe
-struct DisplayUI : public GenericUI 
+struct ProbeCounter : public GenericUI
 {
 
     map<string, FAUSTFLOAT*> fProbeMap;
@@ -122,11 +121,11 @@ class SVGPlot {
         bool fSplit;
     
         // global plot
-        signalsmith::plot::Plot2D plot;
+        signalsmith::plot::Plot2D fPlot;
         // plot for probes in split mode
-        signalsmith::plot::Plot2D splot;
+        signalsmith::plot::Plot2D fSplot;
         // plot for lines in split mode
-        signalsmith::plot::Plot2D stplot;
+        signalsmith::plot::Plot2D fStplot;
     
         // Function to create buffers
         FAUSTFLOAT** createbuffer(int chan, int buffer_size)
@@ -148,7 +147,7 @@ class SVGPlot {
             delete [] buffer;
         }
     
-        void generateHtml(int channels, int numbprobes, bool split)
+        void generateHTML(int channels, int num_probes, bool split)
         {
             ofstream file("mydsp.html"); // Create a file named "output.html"
             if (file.is_open()) {
@@ -159,10 +158,10 @@ class SVGPlot {
                 file << "<body>\n";
                 file << "<img src=mydsp.svg>\n";
                 if (split) {
-                    for (int i = 0; i<channels; i++) {
+                    for (int i = 0; i < channels; i++) {
                         file << "<img src=" << "mydsp_Channel" + std::to_string(i+1) << ".svg>\n";
                     }
-                    for (int i = 0; i<numbprobes; i++) {
+                    for (int i = 0; i < num_probes; i++) {
                         file << "<img src=" << "mydsp_Probe" + std::to_string(i+1) << ".svg>\n";
                     }
                 }
@@ -208,8 +207,8 @@ class SVGPlot {
         void exec()
         {
             // Custom UI functions
-            DisplayUI disp;
-            fDSP->buildUserInterface(&disp);
+            ProbeCounter probe_counter;
+            fDSP->buildUserInterface(&probe_counter);
         
             // Init position for max and min
             FAUSTFLOAT max = fDSPOutputs[0][0];
@@ -219,21 +218,20 @@ class SVGPlot {
             fDSP->init(fSampleRate);
 
             // Create the graph legend
-            auto& legend = plot.legend(0, -1);
+            auto& legend = fPlot.legend(0, -1);
         
             // Compute
             fDSP->compute(fCountSamples, fDSPInputs, fDSPOutputs);
 
             // Go through the different channels
-            for (int chan = 0; chan< fDSP->getNumOutputs(); ++chan)
-            {
+            for (int chan = 0; chan< fDSP->getNumOutputs(); ++chan) {
                 // reset for straight line and no dotted line
-                plot.styleCounter.dash = 0;
+                fPlot.styleCounter.dash = 0;
                 // create a line for the actual channel
-                auto &line = plot.line();
+                auto& line = fPlot.line();
                 // temporary line
-                auto &sline = stplot.line();
-                auto &slegend = stplot.legend(0, -1);
+                auto& sline = fStplot.line();
+                auto& slegend = fStplot.legend(0, -1);
                 // fixed Index colour position similar to channel
                 line.styleIndex.colour = chan;
                 for (int frame = fStartSample; frame < fCountSamples; ++frame) {
@@ -249,26 +247,26 @@ class SVGPlot {
                      
                     sline.add(frame, sub_outputs[frame]);
                     if (fSplit) {
-                        //disp.returnProbe(splot, spr:wobe, curpos, numbprobes, valuepro);
+                        //probe_counter.returnProbe(fSplot, spr:wobe, curpos, num_probes, valuepro);
                     }
                 }
                 // add legend name
-                legend.line(line,"Channel "+ std::to_string(chan+1));
+                legend.line(line, "Channel " + std::to_string(chan+1));
                 if (fSplit) {
-                    stplot.y.blank(1);
-                    stplot.x.blank(1);
-                    stplot.y.blankLabels(1);
-                    stplot.x.blankLabels(1);
+                    fStplot.y.blank(1);
+                    fStplot.x.blank(1);
+                    fStplot.y.blankLabels(1);
+                    fStplot.x.blankLabels(1);
                     
                     slegend.line(sline,"Channel " + std::to_string(chan+1));
                     
-                    stplot.x.linear(fStartSample, fCountSamples).major(fStartSample).minor(fCountSamples).label("Samples");
-	                stplot.y.minors(min, max).label("Values");
-                    stplot.y.majors(0);
+                    fStplot.x.linear(fStartSample, fCountSamples).major(fStartSample).minor(fCountSamples).label("Samples");
+	                fStplot.y.minors(min, max).label("Values");
+                    fStplot.y.majors(0);
                 
                     // create the svg file
-                    stplot.write("mydsp_Channel" + std::to_string(chan + 1) + ".svg");
-                    // auto &sprobe=splot.fill();
+                    fStplot.write("mydsp_Channel" + std::to_string(chan + 1) + ".svg");
+                    // auto& sprobe = fSplot.fill();
                     cout << "mydsp_Channel" + std::to_string(chan+1) + ".svg;" << endl;
                 
                     sline.toFrame(0);
@@ -277,27 +275,27 @@ class SVGPlot {
             }
 
             // if probe metadata in the dsp code
-            if (disp.getNumProbes() > 0) {
-                for (int numbprobes = 0; numbprobes< disp.getNumProbes(); ++numbprobes) {
+            if (probe_counter.getNumProbes() > 0) {
+                for (int num_probes = 0; num_probes < probe_counter.getNumProbes(); ++num_probes) {
                     float minpro = 0.0;
                     float maxpro = 0.0;
                     float valuepro = 0.0;
-                    auto& slegend = splot.legend(0, -1);
+                    auto& slegend = fSplot.legend(0, -1);
                     fDSP->init(fSampleRate);
                     // probegraph_init
                     // reset for dotted line and no straight line
-                    plot.styleCounter.dash = 5; 
+                    fPlot.styleCounter.dash = 5;
                     // create a line
-                    auto &probe = plot.line();
+                    auto& probe = fPlot.line();
                     // fixed Index colour position similar to probe number
-                    probe.styleIndex.colour = numbprobes;
+                    probe.styleIndex.colour = num_probes;
 
                     // temporary probe
-                    splot.styleCounter.dash = 5; 
-                    auto &sprobe = splot.line();
-                    sprobe.styleIndex.colour = numbprobes;
+                    fSplot.styleCounter.dash = 5;
+                    auto& sprobe = fSplot.line();
+                    sprobe.styleIndex.colour = num_probes;
 
-                    //buffer counter
+                    // buffer counter
                     int bcount = 0;
                     // samples with start point
                     int nbsamples = int(fCountSamples)-fStartSample;
@@ -314,48 +312,50 @@ class SVGPlot {
                         // create a current frame position for probes
                         int curpos = fStartSample - 1 + bcount * int(fBufferSize);
                       
-                        disp.displayProbe(plot, probe, curpos, numbprobes,valuepro);
+                        probe_counter.displayProbe(fPlot, probe, curpos, num_probes, valuepro);
                         if (fSplit) {
-                            disp.displayProbe(splot, sprobe, curpos, numbprobes,valuepro);
+                            probe_counter.displayProbe(fSplot, sprobe, curpos, num_probes, valuepro);
                             minpro = std::min(minpro, valuepro);
                             maxpro = std::max(maxpro, valuepro);
                         }
                     } while (nbsamples > 0);
                     
                     // create a legend for the current line
-                    legend.line(probe, "Probe " + std::to_string(numbprobes + 1));
+                    legend.line(probe, "Probe " + std::to_string(num_probes + 1));
                     // split option
                     if (fSplit) {
                         // reset axes
-                        splot.y.blank(1);
-                        splot.x.blank(1);
+                        fSplot.y.blank(1);
+                        fSplot.x.blank(1);
                         // reset axes labels
-                        splot.y.blankLabels(1);
-                        splot.x.blankLabels(1);
+                        fSplot.y.blankLabels(1);
+                        fSplot.x.blankLabels(1);
                         // line legend
-                        slegend.line(sprobe, "Probe " + std::to_string(numbprobes + 1));
+                        slegend.line(sprobe, "Probe " + std::to_string(num_probes + 1));
                         // sample axe
-                        splot.x.linear(fStartSample, fCountSamples).major(fStartSample).minor(fCountSamples).label("Samples");
+                        fSplot.x.linear(fStartSample, fCountSamples).major(fStartSample).minor(fCountSamples).label("Samples");
 	                    // value axe
-                        splot.y.minors(minpro, maxpro).label("Values");
-                        splot.y.majors(0);
+                        fSplot.y.minors(minpro, maxpro).label("Values");
+                        fSplot.y.majors(0);
                         // create the svg file
-                        splot.write("mydsp_Probe" + std::to_string(numbprobes + 1)+".svg");
-                        // auto &sprobe=splot.fill();
-                        cout<<"mydsp_Probe" + std::to_string(numbprobes + 1) + ".svg;"<<endl;
+                        fSplot.write("mydsp_Probe" + std::to_string(num_probes + 1) + ".svg");
+                        // auto& sprobe = fSplot.fill();
+                        cout << "mydsp_Probe" + std::to_string(num_probes + 1) + ".svg;" << endl;
                         // reset the current plot
                         sprobe.toFrame(0);
                         sprobe.clearFrames();
                     }
                 }
-                generateHtml(fDSP->getNumOutputs(), disp.getNumProbes(), fSplit);
+                generateHTML(fDSP->getNumOutputs(), probe_counter.getNumProbes(), fSplit);
             }
+        
             // create the axes
-            plot.x.linear(fStartSample,fCountSamples).major(fStartSample).minor(fCountSamples).label("Samples");
-            plot.y.minors(min, max).label("Values");
-            plot.y.majors(0);
+            fPlot.x.linear(fStartSample, fCountSamples).major(fStartSample).minor(fCountSamples).label("Samples");
+            fPlot.y.minors(min, max).label("Values");
+            fPlot.y.majors(0);
+        
             // create the svg file
-            plot.write("mydsp.svg");
+            fPlot.write("mydsp.svg");
             cout << "mydsp.svg;" << endl;
         }
 
