@@ -5,11 +5,12 @@
 ### Usage
 ```
 ./faust2svgplot <options> <file.dsp> 
-
 ./file -n (nb_samples)[default:4096]> -bs (buffer_size)[default:1]> -r (sample_rate)[default:44100]> -s (start_at_sample)[default:0]> -sp (split)[default:0]>
 ```
 ### Basic example 
-dsp code:
+
+Here is a DSP code example:
+ 
 ```
 import("stdfaust.lib");
 process = 
@@ -21,15 +22,16 @@ process =
     )
 );
 ```
-![example](/example.png)
+
+<img src="example.png" class="mx-auto d-block" width="100%">
+<center>*Basic example*</center>
 
 #### Notes
 * in usage, insert in <file.dsp> your favourite Faust dsp file
 
 ### The probe metadata 
 
-You can use the probe metadata in bargraph in order to plot at a different node of the dsp program.
-dsp code example :
+You can use the probe metadata in bargraph in order to plot at a different node of the dsp program. Here is a DSP code example:
 
 ```cpp
 import("stdfaust.lib");
@@ -46,14 +48,17 @@ process =
     )
 );
 ```
-![probe example](/probeexample.png)
+
+<img src="probeexample.png" class="mx-auto d-block" width="100%">
+<center>*Example with probes*</center>
 
 ### The split option
 You can split your graph in multiples graph.svg for every probe and every channel.
-* usage : `./file -sp 1`
+* usage: `./file -sp 1`
 
-![example](/splitexample.png)
+<img src="splitexample.png" class="mx-auto d-block" width="100%">
+<center>*Example in split mode*</center>
 
 #### Notes
-* The probes are evaluated at every buffer size end. 
+* the probes are evaluated at every buffer size end. 
 If you want the maximum precision, you will need to have a buffer size of 1 sample (set to 1 by default).

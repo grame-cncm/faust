@@ -63,11 +63,9 @@ struct DisplayUI : public GenericUI
     void displayProbeHeaders()
     {
         int c = 0;
-        if (fProbeMap.size() > 0)
-        {
+        if (fProbeMap.size() > 0) {
             printf(",\t");
-            for (const auto& it : fProbeMap) 
-            {
+            for (const auto& it : fProbeMap) {
                 if (c > 0) {
                     printf(",\t");
                     printf("Probe %d", c + 1);
