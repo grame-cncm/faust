@@ -4,7 +4,7 @@
 
 ### Usage
 ```
-./faust2svgplot <options> <file.dsp> 
+faust2svgplot <options> <file.dsp> 
 ./file -n (nb_samples)[default:4096]> -bs (buffer_size)[default:1] -r (sample_rate)[default:44100] -s (start_at_sample)[default:0] -sp (split)[default:0]
 ```
 ### Basic example 
