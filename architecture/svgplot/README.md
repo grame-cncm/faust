@@ -1,11 +1,11 @@
 # faust2svgplot
 
-## A tool to create svg of HTML files of plotted values.
+## A tool to create SVG and HTML files of plotted values.
 
 ### Usage
 ```
 ./faust2svgplot <options> <file.dsp> 
-./file -n (nb_samples)[default:4096]> -bs (buffer_size)[default:1]> -r (sample_rate)[default:44100]> -s (start_at_sample)[default:0]> -sp (split)[default:0]>
+./file -n (nb_samples)[default:4096]> -bs (buffer_size)[default:1] -r (sample_rate)[default:44100] -s (start_at_sample)[default:0] -sp (split)[default:0]
 ```
 ### Basic example 
 
