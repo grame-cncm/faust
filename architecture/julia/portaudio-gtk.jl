@@ -45,7 +45,7 @@ function main!(args)
     my_dsp = mydsp{REAL}()
 
     # Audio driver allocation and init
-    driver = portaudio(16, 44100)
+    driver = portaudio(512, 44100)
     init!(driver, "dummy", my_dsp)
 
     println("getNumInputs: ", getNumInputs(my_dsp))

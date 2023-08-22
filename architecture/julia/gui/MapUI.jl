@@ -34,7 +34,7 @@ end
 function buildPath(builder::PathBuilder, label::String)
     path = join(builder.controlsLevel, "/")
     res = "/$path/$label"
-    for c in [' ', '#', '*', ',', '?', '[', ']', '{', '}', '(', ')'] 
+    for c in [' ', '#', '*', ',', '?', '[', ']', '{', '}', '(', ')']
         res = replace(res, c => '_')
     end
     res
@@ -57,27 +57,33 @@ mutable struct MapUI <: UI
         map_ui.label_paths = Dict{String,UIZone}()
         map_ui.osc_paths = Dict{String,UIZone}()
         map_ui.path_builder = PathBuilder([])
-        map_ui.root = String("") 
+        map_ui.root = String("")
         map_ui
-	end
+    end
     dsp::dsp
     path_builder::PathBuilder
     label_paths::Dict{String,UIZone}
     osc_paths::Dict{String,UIZone}
     root::String
 end
-    
+
 # -- widget's layouts
 function openTabBox!(ui_interface::MapUI, label::String)
-    if (ui_interface.root == "") ui_interface.root = label end
+    if (ui_interface.root == "")
+        ui_interface.root = label
+    end
     pushLabel!(ui_interface.path_builder, label)
 end
 function openHorizontalBox!(ui_interface::MapUI, label::String)
-    if (ui_interface.root == "") ui_interface.root = label end
+    if (ui_interface.root == "")
+        ui_interface.root = label
+    end
     pushLabel!(ui_interface.path_builder, label)
 end
 function openVerticalBox!(ui_interface::MapUI, label::String)
-    if (ui_interface.root == "") ui_interface.root = label end
+    if (ui_interface.root == "")
+        ui_interface.root = label
+    end
     pushLabel!(ui_interface.path_builder, label)
 end
 function closeBox!(ui_interface::MapUI)
@@ -85,27 +91,27 @@ function closeBox!(ui_interface::MapUI)
 end
 
 # -- active widgets
-function addButton!(ui_interface::MapUI, label::String, param::Symbol) 
+function addButton!(ui_interface::MapUI, label::String, param::Symbol)
     zone = UIZone(param, 0, 0, 1, 0)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
-function addCheckButton!(ui_interface::MapUI, label::String, param::Symbol) 
+function addCheckButton!(ui_interface::MapUI, label::String, param::Symbol)
     zone = UIZone(param, 0, 0, 1, 0)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
-function addHorizontalSlider!(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+function addHorizontalSlider!(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT)
     zone = UIZone(param, init, min, max, step)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
-function addVerticalSlider!(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+function addVerticalSlider!(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT)
     zone = UIZone(param, init, min, max, step)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
-function addNumEntry!(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+function addNumEntry!(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT)
     zone = UIZone(param, init, min, max, step)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
@@ -129,7 +135,7 @@ function setParamValue!(ui_interface::MapUI, path::String, value::FAUSTFLOAT)
         setproperty!(ui_interface.dsp, ui_interface.osc_paths[path].field, value)
     elseif (haskey(ui_interface.label_paths, path))
         setproperty!(ui_interface.dsp, ui_interface.label_paths[path].field, value)
-    else 
+    else
         println("ERROR : setParamValue! '", path, "' not found")
     end
 end
@@ -139,9 +145,9 @@ function getParamValue(ui_interface::MapUI, path::String)
         return getproperty(ui_interface.dsp, ui_interface.osc_paths[path].field)
     elseif (haskey(ui_interface.label_paths, path))
         return getproperty(ui_interface.dsp, ui_interface.label_paths[path].field)
-    else 
+    else
         println("ERROR : getParamValue '", path, "' not found")
-        return 0;
+        return 0
     end
 end
 
