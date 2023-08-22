@@ -23,15 +23,14 @@ process =
 );
 ```
 
-<img src="example.png" class="mx-auto d-block" width="100%">
-<center>*Basic example*</center>
+<img src="example.png" class="mx-auto d-block" width="80%">
 
 #### Notes
 * in usage, insert in <file.dsp> your favourite Faust dsp file
 
 ### The probe metadata 
 
-You can use the probe metadata in bargraph in order to plot at a different node of the dsp program. Here is a DSP code example:
+You can use the `probe` metadata in bargraph in order to plot specific signals in the program. Here is a DSP code example:
 
 ```cpp
 import("stdfaust.lib");
@@ -49,15 +48,13 @@ process =
 );
 ```
 
-<img src="probeexample.png" class="mx-auto d-block" width="100%">
-<center>*Example with probes*</center>
+<img src="probeexample.png" class="mx-auto d-block" width="80%">
 
 ### The split option
 You can split your graph in multiples graph.svg for every probe and every channel.
 * usage: `./file -sp 1`
 
-<img src="splitexample.png" class="mx-auto d-block" width="100%">
-<center>*Example in split mode*</center>
+<img src="splitexample.png" class="mx-auto d-block" width="80%">
 
 #### Notes
 * the probes are evaluated at every buffer size end. 
