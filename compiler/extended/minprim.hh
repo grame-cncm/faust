@@ -160,4 +160,15 @@ class MinPrim : public xtended {
         ::Type t = inferSigType(types);
         return subst("\\min\\left( $0, $1 \\right)", args[0], args[1]);
     }
+    
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        /*                /
+         *                | f', f < g
+         * (max(f, g))' = {
+         *                | g', otherwise
+         *                \
+         */
+        return sigSelect2(sigLT(args[0], args[1]), args[2], args[3]);
+    }
 };

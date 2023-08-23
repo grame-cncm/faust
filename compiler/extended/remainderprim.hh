@@ -100,4 +100,11 @@ class RemainderPrim : public xtended {
 
         return subst("$0\\pmod{$1}", args[0], args[1]);  // Same as fmodprim.cpp.
     }
+    
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        // remainder(f, g) = f - g * round(f / g)
+        // (remainder(f, g))' = f' - g' * round(f / g), cos(pi * f / g) != 0
+        return sigSub(args[2], sigMul(args[3], sigRint(sigDiv(args[0], args[1]))));
+    }
 };

@@ -85,4 +85,10 @@ class RintPrim : public xtended {
 
         return subst("\\left[ {$0} \\right]", args[0]);
     }
+    
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        // (round(x))' = 0, cos(pi * x) != 0
+        return getCertifiedSigType(args[0])->nature() == kInt ? sigInt(0) : sigReal(0.0);
+    }
 };

@@ -226,9 +226,8 @@ class PowPrim : public xtended {
 
     Tree diff(const std::vector<Tree> &args) override
     {
-        // Let f = f(x), g = g(x):
-        // (f^g)' = (f^g)(g*ln(f))' = f^{g-1}*g*f' + f^g*g'*ln(f)
-        //                          = f^{g-1}(g*f' + ln(f)*f*g'))
+        // (f^g)' = (f^g)(g*ln(f))' = f^{g-1} * g * f' + f^g * g' * ln(f)
+        //                          = f^{g-1}(g * f' + ln(f) * f * g'))
         return sigMul(
                 sigPow(args[0], sigSub(args[1], sigReal(1.0))),
                 sigAdd(

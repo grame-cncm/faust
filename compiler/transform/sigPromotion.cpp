@@ -670,8 +670,12 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             std::cout << "math primitive: " << ppsig(sig) << "\n";
         }
         
-        if (p == gGlobal->gPowPrim) {
-            // derivative of pow requires base, exponent, and differentiated base and exponent.
+        if (p == gGlobal->gPowPrim
+            || p == gGlobal->gFmodPrim
+            || p == gGlobal->gRemainderPrim
+            || p == gGlobal->gMaxPrim
+            || p == gGlobal->gMinPrim) {
+            // Derivative of these primitives require f, g, f' and g'.
             auto branches{sig->branches()};
             branches.push_back(self(sig->branch(0)));
             branches.push_back(self(sig->branch(1)));
@@ -693,7 +697,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             tab(fIndent, cout);
             std::cout << "Int64: " << ppsig(sig) << "\n";
         }
-        d = sigInt(0);
+        d = sigInt64(0);
     } else if (isSigReal(sig, &r)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
@@ -703,7 +707,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     }
 
     // Binary operations
-    // kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
+    // kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR
     else if (isSigBinOp(sig, &op, x, y)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
@@ -729,21 +733,43 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             case kDiv:
                 if (gGlobal->gDetailsSwitch) std::cout << "DIV\n";
                 // (f / g)' = (f' * g - f * g') / (g * g)
-                d = sigDiv(sigSub(sigMul(self(x), y), sigMul(x, self(y))),
-                              sigMul(y, y));
+                d = sigDiv(sigSub(sigMul(self(x), y), sigMul(x, self(y))), sigMul(y, y));
                 break;
-//            case kRem:
-//                std::cout << "REM\n\n";
-//
-//                break;
+            case kRem:
+                // NB, this *is* the modulo operator (not the remainder primitive).
+                if (gGlobal->gDetailsSwitch) std::cout << "REM\n";
+                // (f % g)' = f' - g' * floor(f / g), sin(pi * f / g) != 0
+                // TODO: use `sigSelect2` to handle the indeterminate case?
+                d = sigSub(self(x), sigMul(self(y), sigFloor(sigDiv(x, y))));
+                break;
+            case kLsh:
+            case kARsh:
+            case kLRsh:
+                if (gGlobal->gDetailsSwitch) std::cout << "Bitshift\n";
+                // e.g., (f << g)' = 0, sin(pi * f / g) != 0
+                d = sigZero(getCertifiedSigType(sig)->nature());
+                break;
+            case kGT:
+            case kLT:
+            case kGE:
+            case kLE:
+            case kEQ:
+            case kNE:
+            case kAND:
+            case kOR:
+            case kXOR:
+                if (gGlobal->gDetailsSwitch) std::cout << "Binary comparison\n";
+                d = sigZero(getCertifiedSigType(sig)->nature());
+                break;
             default:
                 if (gGlobal->gDetailsSwitch) std::cout << "Unhandled sigBinOp: " << op << "\n";
-                // TO FINISH
                 d = sigBinOp(op, self(x), self(y));
                 break;
         }
     }
     
+    // init, min, max, and step must be real constant numerical expressions,
+    // i.e. they are not differentiable.
     else if (isSigButton(sig, label)
                || isSigCheckbox(sig, label)
                || isSigVSlider(sig, label, init, min, max, step)
@@ -803,7 +829,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
                     self(y),
                     // derivative calculated numerically wrt. sample index:
                     // d/dn(x[n]) = (x[n] - x[n-1]) / 1
-                    // This is equivalent to convolving with a differentiated
+                    // This is equivalent to convolution with a differentiated
                     // rectangular pulse of 1-sample duration.
                     sigSub(sigDelay(x, y), sigDelay(x, sigAdd(y, sigInt(1))))
             ));
@@ -829,7 +855,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
         }
         
         if (isNil(body)) {
-            // we are already visiting this recursive group
+            // we are already visiting this recursive groupe
             siglist l;
             l.push_back(sigDelay1(sigProj(0, ref(var))));
 //                auto var1{t1ree(unique("w"))};
@@ -853,11 +879,18 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isSigIntCast(sig, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Int cast: " << ppsig(sig) << "\n";
+            std::cout << "Int cast: " << ppsig(sig) << "\t" << ppsig(x) << "\n";
         }
-        // Acts like flooring operation. Derivative is not 0 at `sin(pi*x) != 0`, but let's try this
-        // for a start.
-        d = sigZero(getCertifiedSigType(sig)->nature());
+        // Acts like flooring operation. Derivative is not 0 at `sin(pi*x) != 0`,
+        // but let's try this for a start.
+        d = sigZero(getCertifiedSigType(x)->nature());
+    } else if (isSigFloatCast(sig, x)) {
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "Float cast: " << ppsig(sig) << "\t" << ppsig(x) << "\n";
+        }
+        // In principle, float casting doesn't change the real value of a signal.
+        d = self(x);
     } else if (isSigBitCast(sig, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
@@ -865,13 +898,6 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
         }
         // No idea just yet.
         d = SignalIdentity::transformation(sig);
-    } else if (isSigFloatCast(sig, x)) {
-        if (gGlobal->gDetailsSwitch) {
-            tab(fIndent, cout);
-            std::cout << "Float cast: " << ppsig(sig) << "\t" << ppsig(x) << "\n";
-        }
-        // Acts something like a UI element or input?
-        d = diff(sig, getCertifiedSigType(sig)->nature());
     }
 
     else {
