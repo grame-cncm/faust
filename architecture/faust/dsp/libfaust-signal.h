@@ -249,6 +249,15 @@ LIBFAUST_API Signal sigInput(int idx);
 LIBFAUST_API Signal sigDelay(Signal s, Signal del);
 
 /**
+ * Create a one sample delayed signal.
+ *
+ * @param s - the signal to be delayed
+ *
+ * @return the delayed signal.
+ */
+LIBFAUST_API Signal sigDelay1(Signal s);
+
+/**
  * Create a casted signal.
  *
  * @param s - the signal to be casted in integer

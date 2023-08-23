@@ -165,6 +165,16 @@ extern "C"
     LIBFAUST_API Signal CsigDelay(Signal s, Signal del);
     
     /**
+     * Create a one sample delayed signal.
+     *
+     * @param s - the signal to be delayed
+     *
+     * @return the delayed signal.
+     */
+    LIBFAUST_API Signal CsigDelay1(Signal s);
+
+    
+    /**
      * Create a casted signal.
      *
      * @param s - the signal to be casted in integer

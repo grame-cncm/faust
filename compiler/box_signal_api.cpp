@@ -302,6 +302,11 @@ LIBFAUST_API Tree CsigDelay(Tree t0, Tree del)
 {
     return sigDelay(t0, del);
 }
+    
+LIBFAUST_API Tree CsigDelay1(Tree t0)
+{
+    return sigDelay1(t0);
+}
 
 LIBFAUST_API Tree CsigIntCast(Tree s)
 {

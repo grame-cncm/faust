@@ -67,7 +67,7 @@ LIBFAUST_API bool isSigOutput(Tree t, int* i, Tree& t0);
 
 // Delay
 Tree sigDelay0(Tree t);
-Tree sigDelay1(Tree t);
+LIBFAUST_API Tree sigDelay1(Tree t);
 LIBFAUST_API bool isSigDelay1(Tree t, Tree& t0);
 
 LIBFAUST_API Tree sigDelay(Tree t0, Tree t1);

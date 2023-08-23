@@ -123,7 +123,7 @@ Tree sigDelay0(Tree t0)
     return sigDelay(t0, sigInt(0));
 }
 
-Tree sigDelay1(Tree t0)
+LIBFAUST_API Tree sigDelay1(Tree t0)
 {
     return tree(gGlobal->SIGDELAY1, t0);
 }
