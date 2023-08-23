@@ -165,7 +165,7 @@ class MinPrim : public xtended {
     {
         /*                /
          *                | f', f < g
-         * (max(f, g))' = {
+         * (min(f, g))' = {
          *                | g', otherwise
          *                \
          */
