@@ -87,4 +87,10 @@ class CeilPrim : public xtended {
 
         return subst("\\left\\lceil $0 \\right\\rceil", args[0]);
     }
+    
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        // (ceil(x))' = 0, sin(pi * x) != 0
+        return getCertifiedSigType(args[0])->nature() == kInt ? sigInt(0) : sigReal(0.0);
+    }
 };

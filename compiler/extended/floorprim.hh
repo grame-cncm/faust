@@ -20,10 +20,11 @@
  ************************************************************************/
 
 #include <math.h>
-
 #include "Text.hh"
+
 #include "floats.hh"
 #include "xtended.hh"
+#include "sigtyperules.hh"
 
 class FloorPrim : public xtended {
    public:
@@ -86,5 +87,11 @@ class FloorPrim : public xtended {
         faustassert(types.size() == arity());
 
         return subst("\\left\\lfloor {$0} \\right\\rfloor", args[0]);
+    }
+    
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        // (floor(x))' = 0, sin(pi * x) != 0
+        return getCertifiedSigType(args[0])->nature() == kInt ? sigInt(0) : sigReal(0.0);
     }
 };

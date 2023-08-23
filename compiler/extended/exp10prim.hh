@@ -86,4 +86,10 @@ class Exp10Prim : public xtended {
 
         return subst("e10^{$0}", args[0]);
     }
+    
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        // (10^x)' = 10^x * ln(10)
+        return sigMul(sigExp10(args[0]), sigLog(sigReal(10.0)));
+    }
 };

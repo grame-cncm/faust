@@ -95,7 +95,7 @@ class SqrtPrim : public xtended {
     
     virtual Tree diff(const std::vector<Tree>& args)
     {
-        // (x^1/2)' =  1/2 * x^-1/2
+        // (x^{1/2})' =  1/2 * x^{-1/2}
         return sigMul(sigReal(0.5), sigPow(args[0], sigReal(-0.5)));
     }
 };

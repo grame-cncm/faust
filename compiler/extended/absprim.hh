@@ -124,4 +124,10 @@ class AbsPrim : public xtended {
         ::Type t = inferSigType(types);
         return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
     }
+    
+    Tree diff(const std::vector<Tree> &args) override
+    {
+        // |x|' = x / |x|, x != 0
+        return sigDiv(args[0], sigAbs(args[0]));
+    }
 };
