@@ -454,7 +454,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         fContainer->setOutputs(static_cast<int>(collector.inputs.size()));
 
         if (gGlobal->gDetailsSwitch) {
-            cout << "Autodiff: differentiated process has "
+            cout << "Autodiff: differentiated process has " << fContainer->inputs()
                  << " inputs, and " << fContainer->outputs() << " outputs.\n\n";
         }
     }

@@ -659,7 +659,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     int  i;
     int64_t i64;
     double r;
-    Tree sel, x, y, label, init, min, max, step, var, body;
+    Tree sel, w, x, y, z, label, init, min, max, step, var, body;
     Tree d;
     
     // Math primitives
@@ -839,7 +839,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isProj(sig, &i, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Projection: " << "\tsig: " << ppsig(sig) << "\ti: " << i<< "\tx: " << ppsig(x) <<"\n";
+            std::cout << "Projection: " << "\tsig: " << ppsig(sig) << "\ti: " << i << "\tx: " << ppsig(x) <<"\n";
         }
         
         // cf. propagate.cpp:504
@@ -855,7 +855,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
         }
         
         if (isNil(body)) {
-            // we are already visiting this recursive groupe
+            // we are already visiting this recursive group
             siglist l;
             l.push_back(sigDelay1(sigProj(0, ref(var))));
 //                auto var1{t1ree(unique("w"))};
@@ -898,6 +898,35 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
         }
         // No idea just yet.
         d = SignalIdentity::transformation(sig);
+    }
+    
+    else if (isSigWRTbl(sig, w, x, y, z)) {
+        if (y == gGlobal->nil) {
+            // rdtable
+            if (gGlobal->gDetailsSwitch) {
+                tab(fIndent, cout);
+                std::cout << "rdtable: " << ppsig(sig) << "\tw:" << ppsig(w)
+                          << "\tx:" << ppsig(x) << "\n";
+            }
+            return diff(sig, getCertifiedSigType(sig)->nature());
+        } else {
+            // rwtable
+            if (gGlobal->gDetailsSwitch) {
+                tab(fIndent, cout);
+                std::cout << "rwtable: " << ppsig(sig) << "\tw:" << ppsig(w)
+                          << "\tx:" << ppsig(x)
+                          << "\ty:" << ppsig(y)
+                          << "\tz:" << ppsig(z)
+                          << "\n";
+            }
+            return diff(sig, getCertifiedSigType(sig)->nature());
+        }
+    } else if (isSigRDTbl(sig, x, y)) {
+        if (gGlobal->gDetailsSwitch) {
+            tab(fIndent, cout);
+            std::cout << "rdtable: " << ppsig(sig) << "\tx:" << ppsig(x) << "\ty:" << ppsig(y) << "\n";
+        }
+        return diff(sig, getCertifiedSigType(sig)->nature());
     }
 
     else {
