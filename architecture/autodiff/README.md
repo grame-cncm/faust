@@ -105,7 +105,7 @@ with respect to the vector of parameters; for each parameter, the function produ
 _gradient_, $\frac{\partial \mathcal{L}}{\partial p\_{i,k}}$, which, scaled by a 
 _learning rate_, $\alpha$, is used to produce an updated parameter value, thus:
 $$
-\mathbf{p}_{k+1} = \mathbf{p}_k - \alpha\frac{\partial \mathcal{L}}{\partial \mathbf{p}_k}.
+\mathbf{p}\_{k+1} = \mathbf{p}\_k - \alpha\frac{\partial \mathcal{L}}{\partial \mathbf{p}\_k}.
 $$
 This process is repeated iteratively with the aim of minimising the value returned by the   
 loss function, i.e. until the learnable parameters approximate the hidden ones.
