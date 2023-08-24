@@ -94,15 +94,15 @@ A common audio machine learning problem is that of parameter optimisation; the a
 file [autodiff.cpp](./autodiff.cpp) is designed to handle basic parameter optimisation
 problems.
 
-An output signal, $s_o(\mathbf{p}_k)$, produced by a DSP algorithm with a vector of 
+An output signal, $s_o(\mathbf{p}\_k)$, produced by a DSP algorithm with a vector of 
 _learnable parameters_, is compared, by way of a **loss function**, $\mathcal{L}$, with 
 that of a _ground truth_ output signal, $s_o(\mathbf{\hat{p}})$, governed by 
 _hidden parameters_. 
-A **gradient function** uses the partial derivatives, $\nabla s_o(\mathbf{p}_k)$, produced 
+A **gradient function** uses the partial derivatives, $\nabla s_o(\mathbf{p}\_k)$, produced 
 by the differentiated DSP algorithm to compute 
-$\frac{\partial \mathcal{L}}{\partial \mathbf{p}_k}$, the derivative of the loss function 
+$\frac{\partial \mathcal{L}}{\partial \mathbf{p}\_k}$, the derivative of the loss function 
 with respect to the vector of parameters; for each parameter, the function produces a 
-_gradient_, $\frac{\partial \mathcal{L}}{\partial p_{i,k}}$, which, scaled by a 
+_gradient_, $\frac{\partial \mathcal{L}}{\partial p\_{i,k}}$, which, scaled by a 
 _learning rate_, $\alpha$, is used to produce an updated parameter value, thus:
 $$
 \mathbf{p}_{k+1} = \mathbf{p}_k - \alpha\frac{\partial \mathcal{L}}{\partial \mathbf{p}_k}.
