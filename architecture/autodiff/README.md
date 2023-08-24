@@ -1,22 +1,143 @@
-# Differentiable DSP
+# Differentiable DSP in Faust
 
-Using `[diff:on]` or `[diff:1]` parameter metadata, and the `-diff` compiler flag,
-it is possible to create differentiable DSP algorithms.
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Compiling](#compiling-an-autodiff-example)
+- [Running](#running-an-autodiff-example)
+- [Verifying](#verification-via-finite-differences)
 
-## Faust installation
+## Introduction
 
-Faust must be compiled with inclusion of the dynamic Faust library. This is
-easily (if not quickly) achieved via:
+Using `[diff:on]` or `[diff:1]` parameter metadata, and the `-diff` flag to the Faust 
+compiler, it is possible to create differentiable DSP algorithms.
+
+Consider the following differentiable Faust algorithm, `gain.dsp`:
+
+```faust
+gain = hslider("gain [diff:1]", .5, 0, 1, .001);
+
+process = _*(gain);
+```
+
+which can be represented mathematically as $y = gx$, where $y$ is the output signal,
+$x$ the input signal, and $g$ the value of the gain parameter.
+
+Compiling this algorithm with `faust gain.dsp` produces a `compute` method of the 
+following form:
+
+```c++
+virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+        FAUSTFLOAT* input0 = inputs[0];
+        FAUSTFLOAT* output0 = outputs[0];
+        float fSlow0 = float(fHslider0);
+        for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+                output0[i0] = FAUSTFLOAT(fSlow0 * float(input0[i0]));
+        }
+}
+```
+
+The algorithm can be differentiated with respect to its parameter, `gain`, by calling
+the Faust compiler with the `-diff` flag:
+
+```shell
+faust -diff gain.dsp
+```
+
+The result is a new DSP algorithm whose output is the derivative of the original algorithm
+with respect to `gain`. In the case of this simple example, the compiler applies the product
+rule:
+
+$$
+\begin{align*}
+\frac{dy}{dg} &= v\frac{du}{dx} + u\frac{dv}{dx}, \quad u = g, v = x \\
+              &= x\frac{d}{dg}(g) + g\frac{d}{dg}(x) \\
+              &= x(1) + g(0) \\
+              &= x
+\end{align*}
+$$
+
+This is the resulting `compute` method:
+
+```c++
+virtual void compute(int count, FAUSTFLOAT** RE&=STRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+        FAUSTFLOAT* input0 = inputs[0];
+        FAUSTFLOAT* output0 = outputs[0];
+        for (int i0 = 0; i0 < count; i0 = i0 + &=1) {
+                output0[i0] = FAUSTFLOAT(float(input0[i0]));
+        }
+}
+```
+
+The Faust compiler generates this output by performing _automatic differentiation_ 
+(_forward_, or _tangent_ mode autodiff, to be precise) as a signal stage
+transformation of the input DSP algorithm.
+
+For algorithms with multiple differentiable parameters, i.e. a vector of parameters 
+$\mathbf{p}$, the differentiated DSP instance possesses a number of output channels 
+equal to the number of parameters, each output representing an element in a vector of 
+partial derivatives:
+
+$$
+\frac{\partial y}{\partial \mathbf{p}} = \begin{bmatrix}
+    \frac{\partial y}{\partial p_1}
+    \frac{\partial y}{\partial p_2}
+    \cdots
+    \frac{\partial y}{\partial p_N}
+\end{bmatrix}^T
+$$
+
+### Motivation
+
+Differentiable DSP algorithms lend themselves to applications reliant on _gradient descent_, 
+such as machine learning.
+A common audio machine learning problem is that of parameter optimisation; the architecture
+file [autodiff.cpp](./autodiff.cpp) is designed to handle basic parameter optimisation
+problems.
+
+An output signal, $s_o(\mathbf{p}_k)$, produced by a DSP algorithm with a vector of 
+_learnable parameters_, is compared, by way of a **loss function**, $\mathcal{L}$, with 
+that of a _ground truth_ output signal, $s_o(\mathbf{\hat{p}})$, governed by 
+_hidden parameters_. 
+A **gradient function** uses the partial derivatives, $\nabla s_o(\mathbf{p}_k)$, produced 
+by the differentiated DSP algorithm to compute 
+$\frac{\partial \mathcal{L}}{\partial \mathbf{p}_k}$, the derivative of the loss function 
+with respect to the vector of parameters; for each parameter, the function produces a 
+_gradient_, $\frac{\partial \mathcal{L}}{\partial p_{i,k}}$, which, scaled by a 
+_learning rate_, $\alpha$, is used to produce an updated parameter value, thus:
+$$
+\mathbf{p}_{k+1} = \mathbf{p}_k - \alpha\frac{\partial \mathcal{L}}{\partial \mathbf{p}_k}.
+$$
+This process is repeated iteratively with the aim of minimising the value returned by the   
+loss function, i.e. until the learnable parameters approximate the hidden ones.
+
+```mermaid
+flowchart LR
+A[Input DSP] --> B[Ground Truth DSP]
+A --> C[Learnable DSP]
+A --> D[Differentiated DSP]
+B --> E{{Loss\nFunction}} 
+C --> E
+G((Learning\nRate)) -.-> F
+B --> F{{Gradient\nFunction}}
+E -.-|"(derivative)"| F
+C --> F
+D & D & D --> F
+F & F & F -.-> H(("(Learnable DSP\nparameters)"))
+```
+
+## Installation
+
+The simplest way to work with differentiable DSP in Faust is to use the architecture file
+[autodiff.cpp](./autodiff.cpp), which uses Faust's LLVM backend to compile
+DSP files at runtime (see [Compiling an autodiff example](#compiling-an-autodiff-example)).
+
+To work with the Faust compiler directly, e.g. `faust -diff differentiable.dsp` Faust must 
+be compiled with inclusion of the dynamic Faust library. This is most easily (if not quickly) 
+achieved by building Faust with all backends and targets:
 
 ```shell
 cd ../../build
 make BACKENDS=all.cmake TARGETS=all.cmake
-```
-
-Followed by:
-
-```shell
-cd ../../build
 sudo make install
 ```
 
@@ -86,7 +207,7 @@ Run the compiled executable, specifying the following dsp files:
     - `l2` (default) &mdash; L-2 norm.
 
 - supply `-lr|--learningrate <rate>` to set a floating-point number to use 
-  as the learning rate (if not provided, the default 0.1).
+  as the learning rate (if not provided, the default value is 0.1).
 
 ```shell
 outputdir=~/tmp/faust-autodiff
@@ -110,10 +231,14 @@ examplesdir=$(faust --archdir)/examples/autodiff
 Running the executable displays numerical output describing the gradient descent process:
 
 ```
-Learnable parameter: /Parallelizer/DSP2/Parallelizer/DSP1/Sequencer/DSP2/diff/alpha, value: 0.5
+./autodiff.sh one_zero
+Learning rate: 0.1
+Sensitivity: 1e-07
+...
+Learnable parameter: b1, value: 0.5
 
 -----------------------------------------------------------------
- Iter   Ground truth      Learnable           Loss          alpha
+ Iter   Ground truth      Learnable           Loss             b1
 -----------------------------------------------------------------
     1  -0.9990000129  -0.9990000129      0.000e+00              -
     2  -1.9870100021  -1.4975000620   0.2396199852   0.5978040695
@@ -173,11 +298,11 @@ Since this algorithm, $y = gx$, is a product of the input signal and a gain valu
 the product rule is employed:
 
 $$
-\begin{align}
+\begin{align*}
 \frac{dy}{dg} &= x\frac{d}{dg}(g) + g\frac{d}{dg}(x) \\
 &= x(1) + g(0) \\
 &= x
-\end{align}
+\end{align*}
 $$
 
 ## Verification via finite differences
@@ -221,12 +346,12 @@ examplesdir=$(faust --archdir)/examples/autodiff
 ```
 
 The differentiable DSP algorithm is compiled in (at least) three forms:
-- unmodified: $y(\mathbf{P})$
+- unmodified: $y(\mathbf{p})$
 - with $\epsilon$ applied to each adjustable parameter in turn
   - for multiple parameters, as many copies are made of the DSP as there are
     parameters, each copy having one parameter increased by $\epsilon$
   - for the $k^\text{th}$ parameter: $y(\dots,p_k + \epsilon,\dots)$
-- automatically differentiated: $y'(\mathbf{P})$
+- automatically differentiated: $y'(\mathbf{p})$
 
 These are used to compute $\delta$ for each parameter.
 Additionally, each delta is compared with its corresponding channel in the 

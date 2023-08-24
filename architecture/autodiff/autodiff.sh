@@ -32,17 +32,12 @@ done
 # Building and running the autodiff example
 ###########################################
 
-# Copy files to the output directory.
 OUTPUTDIR=~/tmp/faust-autodiff
 mkdir -p $OUTPUTDIR
 rm ${OUTPUTDIR:?}/*
 
-cp $AUTODIFFDIR/autodiff.h $AUTODIFFDIR/dspFactoryOwner.h $AUTODIFFDIR/plot.py $OUTPUTDIR
-
-# Run the Faust compiler against the architecture file.
-faust --details -diff -a $FAUSTARCH/autodiff/autodiff.cpp \
-  -o $OUTPUTDIR/my_autodiff.cpp \
-  $AUTODIFF_EXAMPLES/$example/diff.dsp
+# Copy the plot script to the output directory
+cp $AUTODIFFDIR/plot.py $OUTPUTDIR
 
 # Get the OS on which the script is running.
 PLATFORM=$(uname -s | tr -s '[:upper:]' '[:lower:]')
@@ -57,14 +52,14 @@ darwin)
   ;;
 esac
 
-c++ -std=c++14 $OUTPUTDIR/my_autodiff.cpp /usr/local/lib/libfaust.a \
+c++ -std=c++14 $AUTODIFFDIR/autodiff.cpp /usr/local/lib/libfaust.a \
   -o $OUTPUTDIR/my_autodiff $FLAGS
 
 cd $OUTPUTDIR || exit
 
 # Run the compiled executable.
 if ! ./my_autodiff \
-  --input $AUTODIFF_EXAMPLES/noise.dsp \
+  --input $AUTODIFF_EXAMPLES/ramp.dsp \
   --gt $AUTODIFF_EXAMPLES/$example/gt.dsp \
   --diff $AUTODIFF_EXAMPLES/$example/diff.dsp \
   --lossfunction l2 \
