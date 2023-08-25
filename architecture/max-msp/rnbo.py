@@ -43,8 +43,8 @@ The maxpat file is generated with the following structure:
             - output boxes
             - parameter boxes possibly with MIDI control
             - lines between boxes
-    - the subpatch can be generated as flat or as a foo.rnbopat file then loaded as a 'p' abstraction
-    - the polyphony control is added if the MIDI state is True and the nvoices count is > 0. Effect is added as a 'p' abstraction.
+    - the subpatch can be generated as flat or as a foo.rnbopat file then loaded as a 'p' subpatcher
+    - the polyphony control is added if the MIDI state is True and the nvoices count is > 0. Effect is added as a 'p' subpatcher.
     - possibly loadbang box and 'compile C++ and export' machinery
     - possibly midiin/midiout objects
     - dac~ object and possibly adc~ object (if the DSP has inputs)
@@ -679,7 +679,7 @@ def create_rnbo_object(
     return rnbo
 
 
-def add_rnbo_object1(
+def add_rnbo_object_flat(
     patcher: Patcher,
     dsp_name: str,
     codebox_code: str,
@@ -729,7 +729,7 @@ def add_rnbo_object1(
     return rnbo
 
 
-def add_rnbo_object2(
+def add_rnbo_object_subpatcher(
     patcher: Patcher,
     rnbopat_path: str,
     dsp_name: str,
@@ -742,7 +742,7 @@ def add_rnbo_object2(
     num_outputs: int,
 ) -> Box:
     """
-    Adds DSP elements, routing, and parameter controls for a DSP to the given Patcher object in 'p' abstraction mode.
+    Adds DSP elements, routing, and parameter controls for a DSP to the given Patcher object in 'p' subpatcher.
 
     Parameters:
         patcher (Patcher): The Patcher object to which DSP elements and controls will be added.
@@ -785,22 +785,37 @@ def add_rnbo_object2(
     sub_patcher = rnbo.subpatcher
 
     # Add the DSP subpatcher
-    p_sub_patcher = sub_patcher.add_textbox(f"p @title {dsp_name} @file {rnbopat_path}")
+    if nvoices > 0:
+        p_dsp_box = sub_patcher.add_textbox(
+            f"p @title {dsp_name} @file {rnbopat_path} @polyphony {nvoices}"
+        )
+    else:
+        p_dsp_box = sub_patcher.add_textbox(f"p @title {dsp_name} @file {rnbopat_path}")
 
     # Generating the lines of code for inputs
     for i in range(num_inputs):
         input_box = sub_patcher.add_textbox(f"in~ {i + 1}")
-        sub_patcher.add_line(input_box, p_sub_patcher, inlet=i)
+        sub_patcher.add_line(input_box, p_dsp_box, inlet=i)
 
     # Generating the lines of code for outputs
     for i in range(num_outputs):
         output_box = sub_patcher.add_textbox(f"out~ {i + 1}")
-        sub_patcher.add_line(p_sub_patcher, output_box, outlet=i)
+        sub_patcher.add_line(p_dsp_box, output_box, outlet=i)
+
+    # Possibly add MIDI input/output control in the global patcher
+    # and connect the DSP rnbo~ object to the midiin/midiout objects.
+    # midi_in/midi_out are only needed in polyphonic mode
+    if midi and nvoices > 0:
+        midi_in = sub_patcher.add_textbox("midiin")
+        midi_out = sub_patcher.add_textbox("midiout")
+        connect_midi_subpatcher(
+            sub_patcher, p_dsp_box, midi_in, midi_out, num_inputs, num_outputs
+        )
 
     return rnbo
 
 
-def add_rnbo_object3(
+def add_rnbo_object_poly_effect(
     patcher: Patcher,
     dsp_rnbopat_path: str,
     effect_rnbopat_path: str,
@@ -887,7 +902,14 @@ def add_rnbo_object3(
     sub_patcher = rnbo.subpatcher
 
     # Add the DSP subpatcher
-    p_dsp_box = sub_patcher.add_textbox(f"p @title {dsp_name} @file {dsp_rnbopat_path}")
+    if nvoices > 0:
+        p_dsp_box = sub_patcher.add_textbox(
+            f"p @title {dsp_name} @file {dsp_rnbopat_path} @polyphony {nvoices}"
+        )
+    else:
+        p_dsp_box = sub_patcher.add_textbox(
+            f"p @title {dsp_name} @file {dsp_rnbopat_path}"
+        )
 
     # Add the effect subpatcher
     p_effect_box = sub_patcher.add_textbox(
@@ -912,6 +934,15 @@ def add_rnbo_object3(
     for i in range(effect_num_outputs):
         output_box = sub_patcher.add_textbox(f"out~ {i + 1}")
         sub_patcher.add_line(p_effect_box, output_box, outlet=i)
+
+    # Possibly add MIDI input/output control in the global patcher
+    # and connect the DSP rnbo~ object to the midiin/midiout objects
+    if midi:
+        midi_in = sub_patcher.add_textbox("midiin")
+        midi_out = sub_patcher.add_textbox("midiout")
+        connect_midi_subpatcher(
+            sub_patcher, p_dsp_box, midi_in, midi_out, dsp_num_inputs, dsp_num_outputs
+        )
 
     return rnbo
 
@@ -1081,7 +1112,7 @@ def create_audio_input(patcher: Patcher, rnbo: Box, num_inputs: int) -> None:
         patcher.add_line(audio_in, rnbo, inlet=i, outlet=i)
 
 
-def connect_midi(patcher: Patcher, rnbo: Box, midi_in: Box, midi_out: Box) -> None:
+def connect_midi_rnbo(patcher: Patcher, rnbo: Box, midi_in: Box, midi_out: Box) -> None:
     """
     Connects MIDI input, a DSP, and MIDI output in a Max/MSP patcher.
 
@@ -1104,7 +1135,34 @@ def connect_midi(patcher: Patcher, rnbo: Box, midi_in: Box, midi_out: Box) -> No
     patcher.add_line(rnbo, midi_out, outlet=outlet_index)
 
 
-def create_rnbo_patch(
+def connect_midi_subpatcher(
+    patcher: Patcher,
+    pbox: Box,
+    midi_in: Box,
+    midi_out: Box,
+    inlet: int,
+    outlet: int,
+) -> None:
+    """
+    Connects MIDI input, a DSP, and MIDI output in a 'p' subpatcher.
+
+    Parameters:
+        patcher (Patcher): The Max/MSP patcher to add connections to.
+        rnbo (Box): The DSP object.
+        midi_in (Box): The MIDI input object.
+        midi_out (Box): The MIDI output object.
+        inlet: (int): The index of the inlet to connect to.
+        outlet: (int) : The index of the outlet to connect to.
+
+    Returns:
+        None
+    """
+
+    patcher.add_line(midi_in, pbox, inlet=inlet)
+    patcher.add_line(pbox, midi_out, outlet=outlet)
+
+
+def create_rnbo_patch_flat(
     dsp_name: str,
     maxpat_path: str,
     export_path: str,
@@ -1160,7 +1218,7 @@ def create_rnbo_patch(
     )
 
     # Create the DSP rnbo~ object
-    dsp_rnbo = add_rnbo_object1(
+    dsp_rnbo = add_rnbo_object_flat(
         patcher,
         dsp_name,
         dsp_codebox_code,
@@ -1177,7 +1235,7 @@ def create_rnbo_patch(
     if midi:
         midi_in = patcher.add_textbox("midiin")
         midi_out = patcher.add_textbox("midiout")
-        connect_midi(patcher, dsp_rnbo, midi_in, midi_out)
+        connect_midi_rnbo(patcher, dsp_rnbo, midi_in, midi_out)
 
     # Save subpatcher as an abstraction
     if subpatcher:
@@ -1185,7 +1243,7 @@ def create_rnbo_patch(
 
     # Possibly create and connect the effect rnbo~ object
     if effect_codebox_code:
-        effect_rnbo = add_rnbo_object1(
+        effect_rnbo = add_rnbo_object_flat(
             patcher,
             "Effect",
             effect_codebox_code,
@@ -1214,7 +1272,7 @@ def create_rnbo_patch(
 
         # Connect the effect rnbo~ object to the midiin/midiout objects
         if midi:
-            connect_midi(patcher, effect_rnbo, midi_in, midi_out)
+            connect_midi_rnbo(patcher, effect_rnbo, midi_in, midi_out)
 
     # Add loadbang and 'compile C++ and export' machinery
     if compile:
@@ -1236,8 +1294,8 @@ def create_rnbo_patch(
     patcher.save()
 
 
-# New version using 'p' abstraction mode, to be used when MIDI out is fixed in C++ export
-def create_rnbo_patch2(
+# New version using 'p' subpatcher, to be used when MIDI out is fixed in C++ export
+def create_rnbo_patch(
     dsp_name: str,
     maxpat_path: str,
     export_path: str,
@@ -1293,8 +1351,8 @@ def create_rnbo_patch2(
     )
 
     if effect_codebox_code:
-        # Create the DSP rnbo~ object in 'p' abstraction mode with DSP and effect
-        dsp_rnbo = add_rnbo_object3(
+        # Create the DSP rnbo~ object in 'p' subpatcher with DSP and effect
+        dsp_rnbo = add_rnbo_object_poly_effect(
             patcher,
             maxpat_path.rsplit(".", 1)[0] + "." + "rnbopat",
             maxpat_path.rsplit(".", 1)[0] + "_effect." + "rnbopat",
@@ -1313,8 +1371,8 @@ def create_rnbo_patch2(
         )
     else:
         if subpatcher:
-            # Create the DSP rnbo~ object in 'p' abstraction mode with DSP
-            dsp_rnbo = add_rnbo_object2(
+            # Create the DSP rnbo~ object in 'p' subpatcher mode with DSP
+            dsp_rnbo = add_rnbo_object_subpatcher(
                 patcher,
                 maxpat_path.rsplit(".", 1)[0] + "." + "rnbopat",
                 dsp_name,
@@ -1328,7 +1386,7 @@ def create_rnbo_patch2(
             )
         else:
             # Create the DSP rnbo~ object in flat mode with DSP
-            dsp_rnbo = add_rnbo_object1(
+            dsp_rnbo = add_rnbo_object_flat(
                 patcher,
                 dsp_name,
                 dsp_codebox_code,
@@ -1345,7 +1403,7 @@ def create_rnbo_patch2(
     if midi:
         midi_in = patcher.add_textbox("midiin")
         midi_out = patcher.add_textbox("midiout")
-        connect_midi(patcher, dsp_rnbo, midi_in, midi_out)
+        connect_midi_rnbo(patcher, dsp_rnbo, midi_in, midi_out)
 
     # Add loadbang and 'compile C++ and export' machinery
     if compile:
