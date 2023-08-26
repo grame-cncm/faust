@@ -1,10 +1,15 @@
 # Differentiable DSP in Faust
 
 - [Introduction](#introduction)
+  - [Motivation](#motivation)
+  - [Autodiff in Faust](#automatic-differentiation-of-faust-programs)
+  - [Gradient descent in autodiff.cpp](#gradient-descent-in-the-autodiff-architecture-file)
 - [Installation](#installation)
-- [Compiling](#compiling-an-autodiff-example)
-- [Running](#running-an-autodiff-example)
-- [Verifying](#verification-via-finite-differences)
+- [Compiling an autodiff example](#compiling-an-autodiff-example)
+- [Running an autodiff example](#running-an-autodiff-example)
+- [Verifying via finite differences](#verification-via-finite-differences)
+- [Status of derivative implementations](#status-of-derivative-implementations)
+- [Outlook](#outlook)
 
 ## Introduction
 
@@ -27,12 +32,12 @@ following form:
 
 ```c++
 virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
-        FAUSTFLOAT* input0 = inputs[0];
-        FAUSTFLOAT* output0 = outputs[0];
-        float fSlow0 = float(fHslider0);
-        for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-                output0[i0] = FAUSTFLOAT(fSlow0 * float(input0[i0]));
-        }
+    FAUSTFLOAT* input0 = inputs[0];
+    FAUSTFLOAT* output0 = outputs[0];
+    float fSlow0 = float(fHslider0);
+    for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+            output0[i0] = FAUSTFLOAT(fSlow0 * float(input0[i0]));
+    }
 }
 ```
 
@@ -60,17 +65,41 @@ This is the resulting `compute` method:
 
 ```c++
 virtual void compute(int count, FAUSTFLOAT** RE&=STRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
-        FAUSTFLOAT* input0 = inputs[0];
-        FAUSTFLOAT* output0 = outputs[0];
-        for (int i0 = 0; i0 < count; i0 = i0 + &=1) {
-                output0[i0] = FAUSTFLOAT(float(input0[i0]));
-        }
+    FAUSTFLOAT* input0 = inputs[0];
+    FAUSTFLOAT* output0 = outputs[0];
+    for (int i0 = 0; i0 < count; i0 = i0 + &=1) {
+            output0[i0] = FAUSTFLOAT(float(input0[i0]));
+    }
 }
 ```
 
-The Faust compiler generates this output by performing _automatic differentiation_ 
-(_forward_, or _tangent_ mode autodiff, to be precise) as a signal stage
+The Faust compiler generates this output by performing _automatic differentiation_
+(_forward_, or _tangent_ mode **autodiff**, to be precise) as a signal stage
 transformation of the input DSP algorithm.
+
+Provide the `-d|--details` flag to the Faust compiler to see detailed output of the
+differentiation process.
+
+E.g. for a differentiable gain slider, computation of the derivative is reported as follows:
+
+```
+$ faust -d -diff gain.dsp
+process = _,hslider("gain [diff:1]", 0.5f, 0.0f, 1.0f, 0.001f) : *;
+...
+>>> Differentiate wrt. hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)
+
+	x: IN[0]	y: hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)	op: MUL
+
+		UI element: hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)
+
+		DERIVATIVE: 1.0f
+
+		Input: IN[0]
+
+		DERIVATIVE: 0.0f
+
+	DERIVATIVE: 0.0f*hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)+IN[0]*1.0f
+```
 
 For algorithms with multiple differentiable parameters, i.e. a vector of parameters 
 $\mathbf{p}$, the differentiated DSP instance possesses a number of output channels 
@@ -86,13 +115,84 @@ $$
 \end{bmatrix}^T
 $$
 
+For example, given an algorithm consisting of a differentiable gain control and DC offset,
+$y = p\_{\text{gain}}x + p\_{\text{dc}}$:
+
+```faust
+gain = hslider("gain [diff:1]", .5, 0, 1, .001);
+dc = hslider("dc [diff:1]", .25, -.5, .5, .001);
+
+process = _*gain,dc : +;
+```
+
+the resulting `compute` method is:
+
+```c++
+virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+    FAUSTFLOAT* input0 = inputs[0];
+    FAUSTFLOAT* output0 = outputs[0];
+    FAUSTFLOAT* output1 = outputs[1];
+    for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+        output0[i0] = FAUSTFLOAT(1.0f);
+        output1[i0] = FAUSTFLOAT(float(input0[i0]));
+    }
+}
+```
+
+The first output channel represents the partial derivative with respect to the `dc`
+parameter:
+
+$$
+\frac{\partial y}{\partial p_{\text{dc}}} = 1.
+$$
+
+The second output channel is the partial derivative with respect to `gain`:
+
+$$
+\frac{\partial y}{\partial p_{\text{gain}}} = x.
+$$
+
 ### Motivation
 
-Differentiable DSP algorithms lend themselves to applications reliant on _gradient descent_, 
-such as machine learning.
-A common audio machine learning problem is that of parameter optimisation; the architecture
-file [autodiff.cpp](./autodiff.cpp) is designed to handle basic parameter optimisation
-problems.
+With increasing interest in machine learning, differentiable programming, a key
+component in implementations of _gradient descent_, has become a hot topic in recent years.
+Python libraries such as PyTorch and JAX provide APIs for automatic differentiation of 
+primitive functions, and the Swift language has introduced (limited) support for
+autodiff as a first-class language feature (see Swift's [differentiable programming 
+manifesto](https://github.com/apple/swift/blob/main/docs/DifferentiableProgramming.md)).
+
+In the audio domain, pioneering work in differentiable DSP by Google's Magenta team 
+([magenta/ddsp](https://github.com/magenta/ddsp)) demonstrated timbre transfer via
+gradient descent, based on differentiable implementations of functions supporting
+an array of audio synthesis and signal processing operations. 
+More generic differentiable DSP has been demonstrated by
+[jaxdsp](https://github.com/khiner/jaxdsp/), and, with specific applicability to Faust,
+David Braun's [DawDreamer](https://github.com/DBraun/DawDreamer) project can transpile Faust
+code to Python to take advantage of the autodiff functionality provided by JAX.
+
+Faust, as an audio DSL, presents an interesting opportunity to implement native 
+differentiable programming for audio-specific applications. 
+The `autodiff` architecture files, and associated modifications to the Faust compiler,
+facilitate this implementation and support parameter optimisation problems based on 
+automatic differentiation and gradient descent.
+
+### Automatic differentiation of Faust programs
+
+Differentiation of Faust programs is computed with respect to parameters represented by UI 
+elements with `[diff:1]` or `[diff:on]` parameter metadata. 
+Intuitively, this applies to `hslider`, `vslider` and `nentry` UI elements, but `button`
+and `checkbox` elements may also be given `diff` metadata.
+
+Forward mode autodiff is carried out as a signal stage transformation in 
+[sigpromotion.cpp](../../compiler/transform/sigPromotion.cpp), with derivative expressions for math.h equivalent primitives added in
+their respective [classes](../../compiler/extended).
+With the exception of the recursive operator `~`, derivatives for all of Faust's basic and 
+C-equivalent primitives are defined. See [below](#status-of-derivative-implementations) 
+for an overview of the status of implementations of Faust's primitive functions and operators.
+
+### Gradient descent in the autodiff architecture file
+
+Gradient descent is implemented in the architecture file, [autodiff.cpp](./autodiff.cpp).
 
 An output signal, $s_o(\mathbf{p}\_k)$, produced by a DSP algorithm with a vector of 
 _learnable parameters_, is compared, by way of a **loss function**, $\mathcal{L}$, with 
@@ -104,11 +204,10 @@ $\frac{\partial \mathcal{L}}{\partial \mathbf{p}\_k}$, the derivative of the los
 with respect to the vector of parameters; for each parameter, the function produces a 
 _gradient_, $\frac{\partial \mathcal{L}}{\partial p\_{i,k}}$, which, scaled by a 
 _learning rate_, $\alpha$, is used to produce an updated parameter value, thus:
+
 $$
-\mathbf{p}\_{k+1} = \mathbf{p}\_k - \alpha\frac{\partial \mathcal{L}}{\partial \mathbf{p}\_k}.
+\mathbf{p}_{k+1} = \mathbf{p}_k - \alpha\frac{\partial \mathcal{L}}{\partial \mathbf{p}_k}.
 $$
-This process is repeated iteratively with the aim of minimising the value returned by the   
-loss function, i.e. until the learnable parameters approximate the hidden ones.
 
 ```mermaid
 flowchart LR
@@ -124,6 +223,19 @@ C --> F
 D & D & D --> F
 F & F & F -.-> H(("(Learnable DSP\nparameters)"))
 ```
+
+This process is repeated iteratively with the aim of minimising the value returned by the   
+loss function, i.e. until the learnable parameters approximate the hidden ones.
+
+Note that, at present, support is only provided for provision of a single ground truth signal,
+i.e. there is no way to provide batches of training data. 
+Further, loss is calculated in the time domain on a per-sample basis, so, for gradient descent
+to work the input signal must be deterministic, and the same input signal is delivered 
+to each of the ground truth, learnable, and differentiated DSP instances.
+Finally, in order to operate sample-by-sample, the autodiff architecture file uses a dummy
+audio driver, with a buffer size of 1, in order to be able to make per-sample parameter
+updates; at present, autodiff in Faust is an exploratory topic, and not a platform for 
+generating sound in real time.
 
 ## Installation
 
@@ -143,33 +255,22 @@ sudo make install
 
 ## Compiling an autodiff example
 
-Subject to future modifications to the Faust compiler, compiling and running
-an autodiff example demands the following approach:
+autodiff.cpp differs from other architecture files (and is not yet a _true_
+Faust architecture file) in that rather than populated by the Faust compiler (via the `-a`
+flag), it uses 
+[libfaust](https://faustdoc.grame.fr/manual/embedding/#libfaust-with-llvm-backend-api)
+to dynamically compile Faust algorithms at runtime.
+As such, it is intended to be compiled directly, or via the shell script 
+[autodiff.sh](./autodiff.sh).
 
-Copy required files from the Faust architecture directory to the output directory:
-
-```shell
-outputdir=~/tmp/faust-autodiff
-autodiffdir=$(faust --archdir)/autodiff
-mkdir -p $outputdir
-cp $autodiffdir/autodiff.h \
-  $autodiffdir/autodiff.cpp \
-  $autodiffdir/dspFactoryOwner.h \
-  $autodiffdir/plot.py \
-  $outputdir
-```
-
-Compile the generated cpp file.
-Autodiff architecture uses libfaust to dynamically compile Faust algorithms
-at runtime, so `llvm-config` must be used to determine the appropriate
-LLVM library to link to.
+To compile autodiff.cpp, execute the following commands. `llvm-config` must be used to 
+generate flags for the appropriate LLVM library to link to.
 
 ```shell
 outputdir=~/tmp/faust-autodiff
-cd $outputdir || exit
-c++ -std=c++14 autodiff.cpp /usr/local/lib/libfaust.a \
+c++ -std=c++14 autodiff.cpp $(faust -libdir)/libfaust.a \
   $(llvm-config --ldflags --libs all --system-libs) \
-  -o autodiff_example
+  -o $outputdir/autodiff_example
 ```
 
 ### Missing library `-lzstd`
@@ -185,7 +286,7 @@ brew install zstd
 and adjust the call to `c++` as follows:
 
 ```shell
-c++ -std=c++14 autodiff.cpp /usr/local/lib/libfaust.a \
+c++ -std=c++14 autodiff.cpp $(faust -libdir)/libfaust.a \
   $(llvm-config --ldflags --libs all --system-libs) \
   -L/opt/local/lib \
   -o autodiff_example
@@ -228,10 +329,10 @@ examplesdir=$(faust --archdir)/examples/autodiff
 >
 >For a list of available examples, execute `./autodiff.sh` without any arguments.
 
-Running the executable displays numerical output describing the gradient descent process:
+Running the executable displays numerical output describing the gradient descent process.
+For the `one_zero` example:
 
 ```
-./autodiff.sh one_zero
 Learning rate: 0.1
 Sensitivity: 1e-07
 ...
@@ -248,62 +349,12 @@ Learnable parameter: b1, value: 0.5
     ...
 ```
 
-Run `python3 plot.py` in the output directory to produce a plot of loss against parameter 
-value and iteration, and parameter value against iteration (requires matplotlib).
+The executable generates a csv file containing the loss and parameter values at each 
+iteration.
+To plot this data, copy [plot.py](./plot.py) to your output directory and run
+`python3 plot.py` (requires that matplotlib is installed globally).
 
 ![Loss plot example](loss_example.png)
-
-## Tips
-
-- Call the Faust compiler with your differentiable DSP algorithm 
-  to see the differentiated `compute` method in your output .cpp file.
-
-```shell
-faust -diff -a $archdir/autodiff/autodiff.cpp \
-  -o $outputdir/my_autodiff.cpp \
-  $archdir/examples/autodiff/gain/diff.dsp
-```
-
-The generated `compute` method isn't used at runtime, but it may assist with 
-verifying that your algorithm is being differentiated correctly.
-
-- Additionally, provide the `-d|--details` flag to the Faust compiler to see 
-  detailed output of the differentiation process.
-
-E.g. for a differentiable gain slider:
-
-```faust
-process = _*(hslider("gain [diff:1]", .5, 0, 1, .001));
-```
-
-computation of the derivative is reported as follows:
-
-```
->>> Differentiate wrt. hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)
-
-	x: IN[0]	y: hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)	op: MUL
-
-		UI element: hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)
-
-		DERIVATIVE: 1.0f
-
-		Input: IN[0]
-
-		DERIVATIVE: 0.0f
-
-	DERIVATIVE: 0.0f*hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)+IN[0]*1.0f
-```
-
-Since this algorithm, $y = gx$, is a product of the input signal and a gain value,
-the product rule is employed:
-
-$$
-\begin{align*}
-\frac{dy}{dg} &= x\frac{d}{dg}(g) + g\frac{d}{dg}(x) \\
-&= x(1) + g(0) \\
-&= x
-\end{align*}
-$$
 
 ## Verification via finite differences
 
@@ -321,16 +372,10 @@ To build the verifier, copy the required files and compile `autodiffVerifier.cpp
 
 ```shell
 outputdir=~/tmp/faust-autodiff
-autodiffdir=$(faust --archdir)/autodiff
 mkdir -p $outputdir
-cp $autodiffdir/autodiffVerifier.h \
-  $autodiffdir/autodiffVerifier.cpp \
-  $autodiffdir/dspFactoryOwner.h \
-  $outputdir
-cd $outputdir || exit
-c++ -std=c++14 autodiffVerifier.cpp /usr/local/lib/libfaust.a \
+c++ -std=c++14 autodiffVerifier.cpp $(faust -libdir)/libfaust.a \
   $(llvm-config --ldflags --libs all --system-libs) \
-  -o verify
+  -o $outputdir/autodiff_verify
 ```
 
 Then run the resulting executable, specifying input and differentiable DSP files,
@@ -340,7 +385,7 @@ and an optional value for $\epsilon$ (default 1e-3).
 outputdir=~/tmp/faust-autodiff
 cd $outputdir || exit
 examplesdir=$(faust --archdir)/examples/autodiff
-./verify --input $examplesdir/noise.dsp \
+./autodiff_verify --input $examplesdir/noise.dsp \
   --diff $examplesdir/gain/diff.dsp \
   --epsilon 1e-3
 ```
@@ -390,15 +435,100 @@ Parameter: gain
 Note that the high relative error for `gain` at iteration 1 is due to the very low 
 amplitude of the first sample produced by Faust's `no.noise` function.
 
+# Status of derivative implementations
+
+### C-equivalent primitives
+
+- [x] Arithmetical operations `+`, `-`, `*`, `/`, `^`, `%`
+    - derivative of `f % g` ignores the case where $f = kg, k \in \mathbb{Z}$
+      and pretends that the function is smooth
+- [x] Bitwise operations `&`, `|`, `xor`, `<<`, `>>`
+    - the piecewise derivatives of these functions are zero _almost_ everywhere, so their
+      derivatives are defined as zero everywhere.
+- [x] Logical comparisons `<`, `>`, `<=`, `>=`, `!=`
+    - derivatives also defined as zero everywhere.
+
+### math.h-equivalent primitives
+
+- [x] All functions besides `atan2`
+    - derivative of `abs(x)` is defined as zero at $x = 0$
+    - derivatives of `acos(x)` and `asin(x)` are only defined over the domain 
+      $x \in \mathbb{R} : -1 < x < 1$
+    - derivative of `tan(x)` doesn't behave well for $x = (2n - 1)\pi/2, n \in \mathbb{Z}$
+    - derivatives of `ceil` and `floor`, `rint`, `round` are defined as zero everywhere
+    - `fmod` and `remainder` are defined like `f % g` above
+    - `log(x)` and `log10(x)` don't behave well at $x = 0$
+- [ ] `atan2`
+
+### Other primitives and expressions
+- [x] Time operators `mem`, `'`, `@`
+  - the derivative of `@` is implemented as convolution with a differentiated square pulse
+    of single sample duration; this narrow support, coupled with per-sample time domain loss,
+    means that, if differentiating with respect to a dynamic delay, the derivative may fail
+    to capture the dynamic behaviour, in which case gradient descent will fail.
+- [ ] `rdtable`, `rwtable`
+- [ ] `soundfile`, `waveform`
+- [ ] `select2`, `select3`
+- [ ] Foreign expressions
+- [ ] Recursion `~`
+  - see [Outlook](#recursion) for further discussion of the difficulty of implementing a 
+    derivative of a recursive expression at the signal stage.
+
 # Outlook
 
-Algorithms are differentiated symbolically.
-This may be OK for simple algorithms, but _expression swell_ is a risk for more involved
-DSP implementations.
-A true automatic differentiation implementation may be required if the symbolic
-approach proves unwieldy.
+### Autodiff modes
 
-Currently, loss and gradient descent are calculated on a per-sample basis.
-This is fine for a gain control acting on deterministic noise input, but more
-sophisticated approaches will be required to tackle problems involving
-non-deterministic input, or frequency-domain loss.
+Algorithms are differentiated using forward mode autodiff only.
+This is acceptable for algorithms with small numbers of differentiable parameters, but for
+more algorithms with many parameters this may be computationally unviable.
+As the Faust Autodiff project moves beyond an exploratory stage, it will be important to
+consider implementing reverse mode autodiff too.
+
+### Loss computation
+
+Currently, loss and gradient descent are calculated in the time domain on a per-sample 
+basis.
+This works for simple parameter optimisation problems such as a learnable gain control 
+acting on deterministic noise input, but more demanding problems will require the 
+development of better measures of loss.
+`magenta/ddsp` describes spectral loss as the [_bread and butter of comparing two audio 
+signals_](https://github.com/magenta/ddsp/blob/7e0a39420f3bd87d9efd54cf0d36f4e258311340/ddsp/losses.py#L132);
+it will be an important step to implement frequency-domain loss functions to support
+sophisticated machine learning approaches in Faust.
+
+### Recursion
+
+A simple recursive DSP algorithm $y[n]$, dependent on continuous parameter $p$, may be
+expressed as a composition of $f(u\_1, u\_2, u\_3)$, the non-recursive component, and 
+$g(v\_1, v\_2)$, the recursive component:
+
+$$
+y(p)[n] = f(p, x[n], g(p, y(p)[n-1])).
+$$
+
+Its derivative with respect to $p$ is:
+
+$$
+\frac{d}{dp}y(p)[n] = \frac{\partial}{\partial u_1}f + \frac{\partial}{\partial u_3}f\left(
+    \frac{\partial}{\partial v_1}g + 
+    \frac{\partial}{\partial v_2}g\frac{\partial}{\partial p}y(p)[n-1] 
+\right)
+$$
+
+Due to the way that recursion is expressed symbolically at the signal stage, however, it
+is not straightforward to separate the elements of the body of the recursion in order to 
+calculate the required partial derivatives.
+Consequently, a derivative of recursion has not yet been implemented, which is of course a
+significant drawback, given the ubiquity of recursive algorithms in signal processing and 
+audio synthesis.
+
+Decomposition of the body of a recursive expression may be possible at the **box stage**,
+however; further work on this project should focus on establishing whether this is indeed
+the case.
+
+An additional potential advantage of moving autodiff to the box stage is that differentiation
+could become a part of Faust's core syntax and box algebra.
+
+### Using this to make sounds
+
+...

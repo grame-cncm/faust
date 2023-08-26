@@ -128,6 +128,9 @@ class AbsPrim : public xtended {
     Tree diff(const std::vector<Tree> &args) override
     {
         // |x|' = x / |x|, x != 0
-        return sigDiv(args[0], sigAbs(args[0]));
+        return sigSelect2(sigEQ(args[0], sigReal(0.0)),
+                          sigReal(0.0),
+                          sigDiv(args[0], sigAbs(args[0]))
+        );
     }
 };
