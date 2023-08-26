@@ -52,7 +52,7 @@ darwin)
   ;;
 esac
 
-c++ -std=c++14 $AUTODIFFDIR/autodiff.cpp /usr/local/lib/libfaust.a \
+c++ -std=c++14 $AUTODIFFDIR/autodiff.cpp $(faust -libdir)/libfaust.a \
   -o $OUTPUTDIR/my_autodiff $FLAGS
 
 cd $OUTPUTDIR || exit
