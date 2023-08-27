@@ -49,6 +49,7 @@
 #include "sourcereader.hh"
 #include "sqrtprim.hh"
 #include "tanprim.hh"
+#include "internalprim.hh"
 #include "tree.hh"
 #include "occur.hh"
 #include "enrobage.hh"
@@ -613,6 +614,8 @@ void global::init()
     NIL  = symbol("nil");
     // Predefined nil tree
     nil = tree(NIL);
+
+    gInternalEnv = mkInternalEnv();
 
     PROCESS = symbol("process");
 

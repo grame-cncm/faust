@@ -218,6 +218,8 @@ inline Tree unquote(char* str)
 %token ISUM
 %token IPROD
 
+%token INTERNAL
+
 %token INPUTS
 %token OUTPUTS
 
@@ -589,6 +591,7 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
                 | ffunction                     { $$ = boxFFun($1); }
                 | fconst                        { $$ = $1; }
                 | fvariable                     { $$ = $1; }
+                | INTERNAL                      { $$ = gGlobal->gInternalEnv; }
                 | COMPONENT LPAR uqstring RPAR  { $$ = boxComponent($3); }
                 | LIBRARY LPAR uqstring RPAR    { $$ = boxLibrary($3); }
                 | ENVIRONMENT LBRAQ stmtlist RBRAQ { $$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
