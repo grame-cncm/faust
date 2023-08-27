@@ -393,7 +393,7 @@ outputdir=~/tmp/faust-autodiff
 cd $outputdir || exit
 examplesdir=$(faust --archdir)/examples/autodiff
 ./autodiff_verify --input $examplesdir/noise.dsp \
-  --diff $examplesdir/gain/diff.dsp \
+  --diff $examplesdir/gain_dc/diff.dsp \
   --epsilon 1e-3
 ```
 
