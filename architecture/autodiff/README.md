@@ -33,6 +33,9 @@ Faust code to Python to take advantage of the autodiff functionality provided by
 
 Faust, as an audio DSL, presents an interesting opportunity to implement native
 differentiable programming for audio-specific applications.
+Implemented effectively in the Faust compiler, differentiable DSP could benefit all available 
+backends, and differentiable Faust algorithms could thus be deployed on all possible targets, 
+from FPGA to the web.
 The `autodiff` architecture files, and associated modifications to the Faust compiler,
 facilitate this implementation and support parameter optimisation problems based on
 automatic differentiation and gradient descent.
@@ -484,7 +487,7 @@ amplitude of the first sample produced by Faust's `no.noise` function.
 
 Algorithms are differentiated using forward mode autodiff only.
 This is acceptable for algorithms with small numbers of differentiable parameters, but for
-more algorithms with many parameters this may be computationally unviable.
+algorithms with many parameters this may be computationally unviable.
 As the Faust Autodiff project moves beyond an exploratory stage, it will be important to
 consider implementing reverse mode autodiff too.
 
