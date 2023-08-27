@@ -23,7 +23,7 @@
 #include "simplify.hh"
 #include "sigorderrules.hh"
 
-enum InternalOp { kId, kRate };
+enum InternalOp { kId, kRate, kLo, kHi };
 
 class InternalPrim : public xtended {
     private:
@@ -43,6 +43,11 @@ class InternalPrim : public xtended {
 		case kRate:
 			ret = getSigOrder(sig);
 			break;
+		case kLo: case kHi: {
+			typeAnnotation(sig, false);
+			interval i = getCertifiedSigType(sig)->getInterval();
+			return tree(fOp == kLo ? i.lo() : i.hi());
+		}
 		default:
 			faustassert(false);
 		}
@@ -90,6 +95,8 @@ static Tree mkInternalEnv()
 
 	defs = add_internal_def(defs, kId, "id");
 	defs = add_internal_def(defs, kRate, "rate");
+	defs = add_internal_def(defs, kLo, "lo");
+	defs = add_internal_def(defs, kHi, "hi");
 
 	return boxWithLocalDef(boxEnvironment(), defs);
 }
