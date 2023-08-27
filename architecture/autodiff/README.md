@@ -202,9 +202,9 @@ at runtime and a `dsp_paralellizer` instance used to compute their output in par
 (see [Compiling an autodiff example](#compiling-an-autodiff-example)).
 
 An output signal, $s_o(\mathbf{p}\_k)$, produced by a DSP algorithm with a vector of 
-_learnable parameters_, $\mathbf{p}$, is compared, by way of a **loss function**, 
-$\mathcal{L}$, with that of a _ground truth_ output signal, $s_o(\mathbf{\hat{p}})$, 
-governed by _hidden parameters_ $\mathbf{\hat{p}}$. 
+_learnable parameters_, $\mathbf{p}$ (at iteration $k$), is compared, by way of a 
+**loss function**, $\mathcal{L}$, with that of a _ground truth_ output signal, 
+$s_o(\mathbf{\hat{p}})$, governed by _hidden parameters_ $\mathbf{\hat{p}}$. 
 A **gradient function** uses the partial derivatives, $\nabla s_o(\mathbf{p}\_k)$, produced 
 by the differentiated DSP algorithm to compute 
 $\frac{\partial \mathcal{L}}{\partial \mathbf{p}\_k}$, the derivative of the loss function 
