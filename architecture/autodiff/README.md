@@ -2,9 +2,9 @@
 
 - [Introduction](#introduction)
   - [Motivation](#motivation)
-  - [Autodiff in Faust](#automatic-differentiation-of-faust-programs)
+  - [Differentiable Faust programs](#differentiable-faust-programs)
   - [Gradient descent in autodiff.cpp](#gradient-descent-in-the-autodiff-architecture-file)
-- [Installation](#installation)
+- [Faust Installation](#faust-installation)
 - [Compiling an autodiff example](#compiling-an-autodiff-example)
 - [Running an autodiff example](#running-an-autodiff-example)
 - [Verifying via finite differences](#verification-via-finite-differences)
@@ -13,8 +13,46 @@
 
 ## Introduction
 
+### Motivation
+
+With increasing interest in machine learning, differentiable programming, a key
+component in implementations of _gradient descent_, has become a hot topic in recent years.
+Python libraries such as PyTorch and JAX provide APIs for automatic differentiation of
+primitive functions, and the Swift language has introduced (limited) support for
+autodiff as a first-class language feature (see Swift's [differentiable programming
+manifesto](https://github.com/apple/swift/blob/main/docs/DifferentiableProgramming.md)).
+
+In the audio domain, pioneering work in differentiable DSP by Google's Magenta team
+([magenta/ddsp](https://github.com/magenta/ddsp)) demonstrated timbre transfer via gradient descent, based on 
+differentiable implementations of functions supporting an array of audio synthesis and 
+signal processing routines.
+More generic differentiable DSP has been demonstrated by 
+[jaxdsp](https://github.com/khiner/jaxdsp/), and, with specific applicability to Faust, 
+David Braun's [DawDreamer](https://github.com/DBraun/DawDreamer) project transpiles 
+Faust code to Python to take advantage of the autodiff functionality provided by JAX.
+
+Faust, as an audio DSL, presents an interesting opportunity to implement native
+differentiable programming for audio-specific applications.
+The `autodiff` architecture files, and associated modifications to the Faust compiler,
+facilitate this implementation and support parameter optimisation problems based on
+automatic differentiation and gradient descent.
+
+### Differentiable Faust programs
+
 Using `[diff:on]` or `[diff:1]` parameter metadata, and the `-diff` flag to the Faust 
 compiler, it is possible to create differentiable DSP algorithms.
+`diff` metadata indicates a parameter with respect to which differentiation should be 
+carried out, and can be applied to `hslider`, `vslider`, `nentry`, `button`, and `checkbox`
+UI elements.
+
+Forward mode autodiff is carried out as a signal stage transformation in the 
+`SignalAutoDifferentiate` class (see [sigpromotion.cpp](../../compiler/transform/sigPromotion.cpp)), with derivative expressions 
+for math.h equivalent primitives added in their respective [classes](../../compiler/extended).
+With the exception of the recursive operator `~`, derivatives for all of Faust's basic and
+C-equivalent primitives are defined. See [below](#status-of-derivative-implementations)
+for an overview of the status of derivative implementations.
+
+---
 
 Consider the following differentiable Faust algorithm, `gain.dsp`:
 
@@ -57,7 +95,7 @@ $$
 \frac{dy}{dg} &= v\frac{du}{dx} + u\frac{dv}{dx}, \quad u = g, v = x \\
               &= x\frac{d}{dg}(g) + g\frac{d}{dg}(x) \\
               &= x(1) + g(0) \\
-              &= x
+              &= x.
 \end{align*}
 $$
 
@@ -99,6 +137,7 @@ process = _,hslider("gain [diff:1]", 0.5f, 0.0f, 1.0f, 0.001f) : *;
 		DERIVATIVE: 0.0f
 
 	DERIVATIVE: 0.0f*hslider("gain [diff:1]",0.5f,0.0f,1.0f,0.001f)+IN[0]*1.0f
+...
 ```
 
 For algorithms with multiple differentiable parameters, i.e. a vector of parameters 
@@ -152,58 +191,23 @@ $$
 \frac{\partial y}{\partial p_{\text{gain}}} = x.
 $$
 
-### Motivation
-
-With increasing interest in machine learning, differentiable programming, a key
-component in implementations of _gradient descent_, has become a hot topic in recent years.
-Python libraries such as PyTorch and JAX provide APIs for automatic differentiation of 
-primitive functions, and the Swift language has introduced (limited) support for
-autodiff as a first-class language feature (see Swift's [differentiable programming 
-manifesto](https://github.com/apple/swift/blob/main/docs/DifferentiableProgramming.md)).
-
-In the audio domain, pioneering work in differentiable DSP by Google's Magenta team 
-([magenta/ddsp](https://github.com/magenta/ddsp)) demonstrated timbre transfer via
-gradient descent, based on differentiable implementations of functions supporting
-an array of audio synthesis and signal processing operations. 
-More generic differentiable DSP has been demonstrated by
-[jaxdsp](https://github.com/khiner/jaxdsp/), and, with specific applicability to Faust,
-David Braun's [DawDreamer](https://github.com/DBraun/DawDreamer) project can transpile Faust
-code to Python to take advantage of the autodiff functionality provided by JAX.
-
-Faust, as an audio DSL, presents an interesting opportunity to implement native 
-differentiable programming for audio-specific applications. 
-The `autodiff` architecture files, and associated modifications to the Faust compiler,
-facilitate this implementation and support parameter optimisation problems based on 
-automatic differentiation and gradient descent.
-
-### Automatic differentiation of Faust programs
-
-Differentiation of Faust programs is computed with respect to parameters represented by UI 
-elements with `[diff:1]` or `[diff:on]` parameter metadata. 
-Intuitively, this applies to `hslider`, `vslider` and `nentry` UI elements, but `button`
-and `checkbox` elements may also be given `diff` metadata.
-
-Forward mode autodiff is carried out as a signal stage transformation in 
-[sigpromotion.cpp](../../compiler/transform/sigPromotion.cpp), with derivative expressions for math.h equivalent primitives added in
-their respective [classes](../../compiler/extended).
-With the exception of the recursive operator `~`, derivatives for all of Faust's basic and 
-C-equivalent primitives are defined. See [below](#status-of-derivative-implementations) 
-for an overview of the status of implementations of Faust's primitive functions and operators.
-
 ### Gradient descent in the autodiff architecture file
 
 Gradient descent is implemented in the architecture file, [autodiff.cpp](./autodiff.cpp).
+Input, ground truth, learnable and differentiated DSP instances are compiled dynamically
+at runtime and a `dsp_paralellizer` instance used to compute their output in parallel 
+(see [Compiling an autodiff example](#compiling-an-autodiff-example)).
 
 An output signal, $s_o(\mathbf{p}\_k)$, produced by a DSP algorithm with a vector of 
-_learnable parameters_, is compared, by way of a **loss function**, $\mathcal{L}$, with 
-that of a _ground truth_ output signal, $s_o(\mathbf{\hat{p}})$, governed by 
-_hidden parameters_. 
+_learnable parameters_, $\mathbf{p}$, is compared, by way of a **loss function**, 
+$\mathcal{L}$, with that of a _ground truth_ output signal, $s_o(\mathbf{\hat{p}})$, 
+governed by _hidden parameters_ $\mathbf{\hat{p}}$. 
 A **gradient function** uses the partial derivatives, $\nabla s_o(\mathbf{p}\_k)$, produced 
 by the differentiated DSP algorithm to compute 
 $\frac{\partial \mathcal{L}}{\partial \mathbf{p}\_k}$, the derivative of the loss function 
 with respect to the vector of parameters; for each parameter, the function produces a 
 _gradient_, $\frac{\partial \mathcal{L}}{\partial p\_{i,k}}$, which, scaled by a 
-_learning rate_, $\alpha$, is used to produce an updated parameter value, thus:
+_learning rate_, $\alpha$, is used to produce an updated parameter value:
 
 $$
 \mathbf{p}_{k+1} = \mathbf{p}_k - \alpha\frac{\partial \mathcal{L}}{\partial \mathbf{p}_k}.
@@ -227,25 +231,27 @@ F & F & F -.-> H(("(Learnable DSP\nparameters)"))
 This process is repeated iteratively with the aim of minimising the value returned by the   
 loss function, i.e. until the learnable parameters approximate the hidden ones.
 
-Note that, at present, support is only provided for provision of a single ground truth signal,
-i.e. there is no way to provide batches of training data. 
-Further, loss is calculated in the time domain on a per-sample basis, so, for gradient descent
-to work the input signal must be deterministic, and the same input signal is delivered 
-to each of the ground truth, learnable, and differentiated DSP instances.
-Finally, in order to operate sample-by-sample, the autodiff architecture file uses a dummy
-audio driver, with a buffer size of 1, in order to be able to make per-sample parameter
-updates; at present, autodiff in Faust is an exploratory topic, and not a platform for 
-generating sound in real time.
+#### Caveats
 
-## Installation
+- at present, support is only provided for provision of a single ground truth signal,
+  i.e. there is no way to provide batches of training data. 
+- loss is calculated in the time domain on a per-sample basis, so, for gradient descent
+  to work, the input signal must be deterministic, and the same input signal is delivered 
+  to each of the ground truth, learnable, and differentiated DSP instances.
+- in order to operate sample-by-sample, the autodiff architecture file uses a dummy
+  audio driver, with a buffer size of 1, in order to be able to make per-sample parameter
+  updates.
+  - at present, autodiff in Faust is an exploratory project, and not a platform for 
+    generating sound in real time.
 
-The simplest way to work with differentiable DSP in Faust is to use the architecture file
-[autodiff.cpp](./autodiff.cpp), which uses Faust's LLVM backend to compile
-DSP files at runtime (see [Compiling an autodiff example](#compiling-an-autodiff-example)).
+## Faust Installation
 
-To work with the Faust compiler directly, e.g. `faust -diff differentiable.dsp` Faust must 
-be compiled with inclusion of the dynamic Faust library. This is most easily (if not quickly) 
-achieved by building Faust with all backends and targets:
+The autodiff architecture file and verifier use 
+[libfaust](https://faustdoc.grame.fr/manual/embedding/#libfaust-with-llvm-backend-api)
+and Faust's LLVM backend to compile DSP files dynamically at runtime.
+To support this, Faust must be compiled with inclusion of the LLVM backend. 
+This is most easily (if not quickly) achieved by building Faust with all backends and 
+targets:
 
 ```shell
 cd ../../build
@@ -256,15 +262,12 @@ sudo make install
 ## Compiling an autodiff example
 
 autodiff.cpp differs from other architecture files (and is not yet a _true_
-Faust architecture file) in that rather than populated by the Faust compiler (via the `-a`
-flag), it uses 
-[libfaust](https://faustdoc.grame.fr/manual/embedding/#libfaust-with-llvm-backend-api)
-to dynamically compile Faust algorithms at runtime.
-As such, it is intended to be compiled directly, or via the shell script 
-[autodiff.sh](./autodiff.sh).
+Faust architecture file) in that, rather than being populated by the Faust compiler via the 
+`-a` flag, it is intended to be compiled directly (or via the shell script 
+[autodiff.sh](./autodiff.sh)).
 
-To compile autodiff.cpp, execute the following commands. `llvm-config` must be used to 
-generate flags for the appropriate LLVM library to link to.
+To compile, `llvm-config` should be used to generate flags for the appropriate LLVM library
+to link to.
 
 ```shell
 outputdir=~/tmp/faust-autodiff
@@ -289,7 +292,7 @@ and adjust the call to `c++` as follows:
 c++ -std=c++14 autodiff.cpp $(faust -libdir)/libfaust.a \
   $(llvm-config --ldflags --libs all --system-libs) \
   -L/opt/local/lib \
-  -o autodiff_example
+  -o $outputdir/autodiff_example
 ```
 
 ## Running an autodiff example
@@ -298,6 +301,7 @@ Run the compiled executable, specifying the following dsp files:
 
 - `--input` &mdash; the signal to run through the ground truth and
   differentiable dsp algorithms;
+  - for differentiable algorithms with no input, any valid `.dsp` file will do; 
 - `--gt` &mdash; the ground truth dsp;
 - `--diff` &mdash; the differentiable dsp to be trained/optimised.
 
@@ -308,7 +312,7 @@ Run the compiled executable, specifying the following dsp files:
     - `l2` (default) &mdash; L-2 norm.
 
 - supply `-lr|--learningrate <rate>` to set a floating-point number to use 
-  as the learning rate (if not provided, the default value is 0.1).
+  as the learning rate (if not provided, the default value, 0.1, is used).
 
 ```shell
 outputdir=~/tmp/faust-autodiff
@@ -346,7 +350,7 @@ Learnable parameter: b1, value: 0.5
     3  -1.9850200415  -1.5936084986   0.1532029957   0.6759297848
     4  -1.9830299616  -1.6699019670   0.0980491415   0.7383674979
     5  -1.9810400009  -1.7304140329   0.0628133789   0.7882921696
-    ...
+  ...
 ```
 
 The executable generates a csv file containing the loss and parameter values at each 
@@ -472,7 +476,7 @@ amplitude of the first sample produced by Faust's `no.noise` function.
 - [ ] Foreign expressions
 - [ ] Recursion `~`
   - see [Outlook](#recursion) for further discussion of the difficulty of implementing a 
-    derivative of a recursive expression at the signal stage.
+    derivative of a recursive expression at the Faust compiler's signal stage.
 
 # Outlook
 
@@ -489,7 +493,7 @@ consider implementing reverse mode autodiff too.
 Currently, loss and gradient descent are calculated in the time domain on a per-sample 
 basis.
 This works for simple parameter optimisation problems such as a learnable gain control 
-acting on deterministic noise input, but more demanding problems will require the 
+acting on deterministic input, but more demanding problems will require the 
 development of better measures of loss.
 `magenta/ddsp` describes spectral loss as the [_bread and butter of comparing two audio 
 signals_](https://github.com/magenta/ddsp/blob/7e0a39420f3bd87d9efd54cf0d36f4e258311340/ddsp/losses.py#L132);
@@ -512,7 +516,7 @@ $$
 \frac{d}{dp}y(p)[n] = \frac{\partial}{\partial u_1}f + \frac{\partial}{\partial u_3}f\left(
     \frac{\partial}{\partial v_1}g + 
     \frac{\partial}{\partial v_2}g\frac{\partial}{\partial p}y(p)[n-1] 
-\right)
+\right).
 $$
 
 Due to the way that recursion is expressed symbolically at the signal stage, however, it
@@ -529,6 +533,13 @@ the case.
 An additional potential advantage of moving autodiff to the box stage is that differentiation
 could become a part of Faust's core syntax and box algebra.
 
-### Using this to make sounds
+### Putting autodiff to practical use
 
-...
+As described, gradient descent is carried out on a per-sample basis, which is only possible
+with a buffer size of 1 sample, facilitated by the use of a dummy audio driver.
+This means gradient descent, in its current implementation is of illustrative, but limited 
+practical use.
+Coupled with more sophisticated measures of loss, computed for windowed chunks of output
+produced by the learnable algorithm, it should be possible (and indeed an important aim for
+further development of this work) to use a real audio driver and optimise parameters in real
+time.
