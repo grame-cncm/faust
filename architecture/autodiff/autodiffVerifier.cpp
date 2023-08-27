@@ -188,7 +188,7 @@ void autodiffVerifier::verify()
                 // Get the absolute difference between the above
                 auto delta{fabsf(autodiff - finiteDiff)};
                 // Compute relative error
-                auto relError{iszero(autodiff) ? 0.f : fabsf(100.f * delta / autodiff)};
+                auto relError{autodiff == 0.f ? 0.f : fabsf(100.f * delta / autodiff)};
                 
                 d.second.push_back(delta);
                 
