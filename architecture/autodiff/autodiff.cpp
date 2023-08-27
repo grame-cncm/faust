@@ -218,7 +218,7 @@ void mldsp::computeGradient(FAUSTFLOAT **output, int frame)
         
         switch (kLossFunction) {
             case L1_NORM:
-                gradient = iszero(delta) ?
+                gradient = delta == 0.f ?
                            0.f :
                            output[OutputChannel::DIFFERENTIATED + k][frame] * delta / fabsf(delta);
                 break;
