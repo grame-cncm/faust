@@ -51,8 +51,6 @@ class Atan2Prim : public xtended {
         num n, m;
         if (isNum(args[0], n) && isNum(args[1], m)) {
             return tree(atan2(double(n), double(m)));
-        } else if (args[0] == args[1]) {
-            return tree(M_PI/4.0);
         } else {
             return tree(symbol(), args[0], args[1]);
         }
