@@ -15,15 +15,15 @@ malloc_memory_manager::destroy
 malloc_manager::allocate 24
 malloc_manager::allocate 8
 Render one buffer
-sample out 40.0000000000
+	 chan 0 out 40.0000000000	 chan 1 out 4.4000000954
 Render one buffer
-sample out 70.0000000000
+	 chan 0 out 70.0000000000	 chan 1 out 7.6999998093
 Render one buffer
-sample out 30.0000000000
+	 chan 0 out 30.0000000000	 chan 1 out 3.2999999523
 Render one buffer
-sample out 60.0000000000
+	 chan 0 out 60.0000000000	 chan 1 out 6.5999999046
 Render one buffer
-sample out 20.0000000000
+	 chan 0 out 20.0000000000	 chan 1 out 2.2000000477
 malloc_memory_manager::destroy
 malloc_memory_manager::destroy
 malloc_memory_manager::destroy

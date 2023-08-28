@@ -1,1941 +1,1941 @@
 Render one buffer
-sample out 0.0099999998
-sample out 0.0199999996
-sample out 0.0299999993
-sample out 0.0399999991
-sample out 0.0499999970
-sample out 0.0599999949
-sample out 0.0699999928
-sample out 0.0799999908
-sample out 0.0899999887
-sample out 0.0999999866
-sample out 0.1099999845
-sample out 0.1199999824
-sample out 0.1299999803
-sample out 0.1399999857
-sample out 0.1499999911
-sample out 0.1599999964
-sample out 0.1700000018
-sample out 0.1800000072
-sample out 0.1900000125
-sample out 0.2000000179
-sample out 0.2100000232
-sample out 0.2200000286
-sample out 0.2300000340
-sample out 0.2400000393
-sample out 0.2500000298
-sample out 0.2600000203
-sample out 0.2700000107
-sample out 0.2800000012
-sample out 0.2899999917
-sample out 0.2999999821
-sample out 0.3099999726
-sample out 0.3199999630
-sample out 0.3299999535
-sample out 0.3399999440
-sample out 0.3499999344
-sample out 0.3599999249
-sample out 0.3699999154
-sample out 0.3799999058
-sample out 0.3899998963
-sample out 0.3999998868
-sample out 0.4099998772
-sample out 0.4199998677
-sample out 0.4299998581
-sample out 0.4399998486
-sample out 0.4499998391
-sample out 0.4599998295
-sample out 0.4699998200
-sample out 0.4799998105
-sample out 0.4899998009
-sample out 0.4999997914
-sample out 0.5099998116
-sample out 0.5199998021
-sample out 0.5299997926
-sample out 0.5399997830
-sample out 0.5499997735
-sample out 0.5599997640
-sample out 0.5699997544
-sample out 0.5799997449
-sample out 0.5899997354
-sample out 0.5999997258
-sample out 0.6099997163
-sample out 0.6199997067
-sample out 0.6299996972
-sample out 0.6399996877
-sample out 0.6499996781
-sample out 0.6599996686
-sample out 0.6699996591
-sample out 0.6799996495
-sample out 0.6899996400
-sample out 0.6999996305
-sample out 0.7099996209
-sample out 0.7199996114
-sample out 0.7299996018
-sample out 0.7399995923
-sample out 0.7499995828
-sample out 0.7599995732
-sample out 0.7699995637
-sample out 0.7799995542
-sample out 0.7899995446
-sample out 0.7999995351
-sample out 0.8099995255
-sample out 0.8199995160
-sample out 0.8299995065
-sample out 0.8399994969
-sample out 0.8499994874
-sample out 0.8599994779
-sample out 0.8699994683
-sample out 0.8799994588
-sample out 0.8899994493
-sample out 0.8999994397
-sample out 0.9099994302
-sample out 0.9199994206
-sample out 0.9299994111
-sample out 0.9399994016
-sample out 0.9499993920
-sample out 0.9599993825
-sample out 0.9699993730
-sample out 0.9799993634
-sample out 0.9899993539
-sample out 0.9999993443
-sample out 0.0099993944
-sample out 0.0199993942
-sample out 0.0299993940
-sample out 0.0399993956
-sample out 0.0499993935
-sample out 0.0599993914
-sample out 0.0699993894
-sample out 0.0799993873
-sample out 0.0899993852
-sample out 0.0999993831
-sample out 0.1099993810
-sample out 0.1199993789
-sample out 0.1299993843
-sample out 0.1399993896
-sample out 0.1499993950
-sample out 0.1599994004
-sample out 0.1699994057
-sample out 0.1799994111
-sample out 0.1899994165
-sample out 0.1999994218
-sample out 0.2099994272
-sample out 0.2199994326
-sample out 0.2299994379
-sample out 0.2399994433
-sample out 0.2499994487
-sample out 0.2599994540
-sample out 0.2699994445
-sample out 0.2799994349
+	 chan 0 out 0.0099999998
+	 chan 0 out 0.0199999996
+	 chan 0 out 0.0299999993
+	 chan 0 out 0.0399999991
+	 chan 0 out 0.0499999970
+	 chan 0 out 0.0599999949
+	 chan 0 out 0.0699999928
+	 chan 0 out 0.0799999908
+	 chan 0 out 0.0899999887
+	 chan 0 out 0.0999999866
+	 chan 0 out 0.1099999845
+	 chan 0 out 0.1199999824
+	 chan 0 out 0.1299999803
+	 chan 0 out 0.1399999857
+	 chan 0 out 0.1499999911
+	 chan 0 out 0.1599999964
+	 chan 0 out 0.1700000018
+	 chan 0 out 0.1800000072
+	 chan 0 out 0.1900000125
+	 chan 0 out 0.2000000179
+	 chan 0 out 0.2100000232
+	 chan 0 out 0.2200000286
+	 chan 0 out 0.2300000340
+	 chan 0 out 0.2400000393
+	 chan 0 out 0.2500000298
+	 chan 0 out 0.2600000203
+	 chan 0 out 0.2700000107
+	 chan 0 out 0.2800000012
+	 chan 0 out 0.2899999917
+	 chan 0 out 0.2999999821
+	 chan 0 out 0.3099999726
+	 chan 0 out 0.3199999630
+	 chan 0 out 0.3299999535
+	 chan 0 out 0.3399999440
+	 chan 0 out 0.3499999344
+	 chan 0 out 0.3599999249
+	 chan 0 out 0.3699999154
+	 chan 0 out 0.3799999058
+	 chan 0 out 0.3899998963
+	 chan 0 out 0.3999998868
+	 chan 0 out 0.4099998772
+	 chan 0 out 0.4199998677
+	 chan 0 out 0.4299998581
+	 chan 0 out 0.4399998486
+	 chan 0 out 0.4499998391
+	 chan 0 out 0.4599998295
+	 chan 0 out 0.4699998200
+	 chan 0 out 0.4799998105
+	 chan 0 out 0.4899998009
+	 chan 0 out 0.4999997914
+	 chan 0 out 0.5099998116
+	 chan 0 out 0.5199998021
+	 chan 0 out 0.5299997926
+	 chan 0 out 0.5399997830
+	 chan 0 out 0.5499997735
+	 chan 0 out 0.5599997640
+	 chan 0 out 0.5699997544
+	 chan 0 out 0.5799997449
+	 chan 0 out 0.5899997354
+	 chan 0 out 0.5999997258
+	 chan 0 out 0.6099997163
+	 chan 0 out 0.6199997067
+	 chan 0 out 0.6299996972
+	 chan 0 out 0.6399996877
+	 chan 0 out 0.6499996781
+	 chan 0 out 0.6599996686
+	 chan 0 out 0.6699996591
+	 chan 0 out 0.6799996495
+	 chan 0 out 0.6899996400
+	 chan 0 out 0.6999996305
+	 chan 0 out 0.7099996209
+	 chan 0 out 0.7199996114
+	 chan 0 out 0.7299996018
+	 chan 0 out 0.7399995923
+	 chan 0 out 0.7499995828
+	 chan 0 out 0.7599995732
+	 chan 0 out 0.7699995637
+	 chan 0 out 0.7799995542
+	 chan 0 out 0.7899995446
+	 chan 0 out 0.7999995351
+	 chan 0 out 0.8099995255
+	 chan 0 out 0.8199995160
+	 chan 0 out 0.8299995065
+	 chan 0 out 0.8399994969
+	 chan 0 out 0.8499994874
+	 chan 0 out 0.8599994779
+	 chan 0 out 0.8699994683
+	 chan 0 out 0.8799994588
+	 chan 0 out 0.8899994493
+	 chan 0 out 0.8999994397
+	 chan 0 out 0.9099994302
+	 chan 0 out 0.9199994206
+	 chan 0 out 0.9299994111
+	 chan 0 out 0.9399994016
+	 chan 0 out 0.9499993920
+	 chan 0 out 0.9599993825
+	 chan 0 out 0.9699993730
+	 chan 0 out 0.9799993634
+	 chan 0 out 0.9899993539
+	 chan 0 out 0.9999993443
+	 chan 0 out 0.0099993944
+	 chan 0 out 0.0199993942
+	 chan 0 out 0.0299993940
+	 chan 0 out 0.0399993956
+	 chan 0 out 0.0499993935
+	 chan 0 out 0.0599993914
+	 chan 0 out 0.0699993894
+	 chan 0 out 0.0799993873
+	 chan 0 out 0.0899993852
+	 chan 0 out 0.0999993831
+	 chan 0 out 0.1099993810
+	 chan 0 out 0.1199993789
+	 chan 0 out 0.1299993843
+	 chan 0 out 0.1399993896
+	 chan 0 out 0.1499993950
+	 chan 0 out 0.1599994004
+	 chan 0 out 0.1699994057
+	 chan 0 out 0.1799994111
+	 chan 0 out 0.1899994165
+	 chan 0 out 0.1999994218
+	 chan 0 out 0.2099994272
+	 chan 0 out 0.2199994326
+	 chan 0 out 0.2299994379
+	 chan 0 out 0.2399994433
+	 chan 0 out 0.2499994487
+	 chan 0 out 0.2599994540
+	 chan 0 out 0.2699994445
+	 chan 0 out 0.2799994349
 Render one buffer
-sample out 0.2899994254
-sample out 0.2999994159
-sample out 0.3099994063
-sample out 0.3199993968
-sample out 0.3299993873
-sample out 0.3399993777
-sample out 0.3499993682
-sample out 0.3599993587
-sample out 0.3699993491
-sample out 0.3799993396
-sample out 0.3899993300
-sample out 0.3999993205
-sample out 0.4099993110
-sample out 0.4199993014
-sample out 0.4299992919
-sample out 0.4399992824
-sample out 0.4499992728
-sample out 0.4599992633
-sample out 0.4699992537
-sample out 0.4799992442
-sample out 0.4899992347
-sample out 0.4999992251
-sample out 0.5099992156
-sample out 0.5199992061
-sample out 0.5299991965
-sample out 0.5399991870
-sample out 0.5499991775
-sample out 0.5599991679
-sample out 0.5699991584
-sample out 0.5799991488
-sample out 0.5899991393
-sample out 0.5999991298
-sample out 0.6099991202
-sample out 0.6199991107
-sample out 0.6299991012
-sample out 0.6399990916
-sample out 0.6499990821
-sample out 0.6599990726
-sample out 0.6699990630
-sample out 0.6799990535
-sample out 0.6899990439
-sample out 0.6999990344
-sample out 0.7099990249
-sample out 0.7199990153
-sample out 0.7299990058
-sample out 0.7399989963
-sample out 0.7499989867
-sample out 0.7599989772
-sample out 0.7699989676
-sample out 0.7799989581
-sample out 0.7899989486
-sample out 0.7999989390
-sample out 0.8099989295
-sample out 0.8199989200
-sample out 0.8299989104
-sample out 0.8399989009
-sample out 0.8499988914
-sample out 0.8599988818
-sample out 0.8699988723
-sample out 0.8799988627
-sample out 0.8899988532
-sample out 0.8999988437
-sample out 0.9099988341
-sample out 0.9199988246
-sample out 0.9299988151
-sample out 0.9399988055
-sample out 0.9499987960
-sample out 0.9599987864
-sample out 0.9699987769
-sample out 0.9799987674
-sample out 0.9899987578
-sample out 0.9999987483
-sample out 0.0099987984
-sample out 0.0199987981
-sample out 0.0299987979
-sample out 0.0399987996
-sample out 0.0499987975
-sample out 0.0599987954
-sample out 0.0699987933
-sample out 0.0799987912
-sample out 0.0899987891
-sample out 0.0999987870
-sample out 0.1099987850
-sample out 0.1199987829
-sample out 0.1299987882
-sample out 0.1399987936
-sample out 0.1499987990
-sample out 0.1599988043
-sample out 0.1699988097
-sample out 0.1799988151
-sample out 0.1899988204
-sample out 0.1999988258
-sample out 0.2099988312
-sample out 0.2199988365
-sample out 0.2299988419
-sample out 0.2399988472
-sample out 0.2499988526
-sample out 0.2599988580
-sample out 0.2699988484
-sample out 0.2799988389
-sample out 0.2899988294
-sample out 0.2999988198
-sample out 0.3099988103
-sample out 0.3199988008
-sample out 0.3299987912
-sample out 0.3399987817
-sample out 0.3499987721
-sample out 0.3599987626
-sample out 0.3699987531
-sample out 0.3799987435
-sample out 0.3899987340
-sample out 0.3999987245
-sample out 0.4099987149
-sample out 0.4199987054
-sample out 0.4299986959
-sample out 0.4399986863
-sample out 0.4499986768
-sample out 0.4599986672
-sample out 0.4699986577
-sample out 0.4799986482
-sample out 0.4899986386
-sample out 0.4999986291
-sample out 0.5099986196
-sample out 0.5199986100
-sample out 0.5299986005
-sample out 0.5399985909
-sample out 0.5499985814
-sample out 0.5599985719
+	 chan 0 out 0.2899994254
+	 chan 0 out 0.2999994159
+	 chan 0 out 0.3099994063
+	 chan 0 out 0.3199993968
+	 chan 0 out 0.3299993873
+	 chan 0 out 0.3399993777
+	 chan 0 out 0.3499993682
+	 chan 0 out 0.3599993587
+	 chan 0 out 0.3699993491
+	 chan 0 out 0.3799993396
+	 chan 0 out 0.3899993300
+	 chan 0 out 0.3999993205
+	 chan 0 out 0.4099993110
+	 chan 0 out 0.4199993014
+	 chan 0 out 0.4299992919
+	 chan 0 out 0.4399992824
+	 chan 0 out 0.4499992728
+	 chan 0 out 0.4599992633
+	 chan 0 out 0.4699992537
+	 chan 0 out 0.4799992442
+	 chan 0 out 0.4899992347
+	 chan 0 out 0.4999992251
+	 chan 0 out 0.5099992156
+	 chan 0 out 0.5199992061
+	 chan 0 out 0.5299991965
+	 chan 0 out 0.5399991870
+	 chan 0 out 0.5499991775
+	 chan 0 out 0.5599991679
+	 chan 0 out 0.5699991584
+	 chan 0 out 0.5799991488
+	 chan 0 out 0.5899991393
+	 chan 0 out 0.5999991298
+	 chan 0 out 0.6099991202
+	 chan 0 out 0.6199991107
+	 chan 0 out 0.6299991012
+	 chan 0 out 0.6399990916
+	 chan 0 out 0.6499990821
+	 chan 0 out 0.6599990726
+	 chan 0 out 0.6699990630
+	 chan 0 out 0.6799990535
+	 chan 0 out 0.6899990439
+	 chan 0 out 0.6999990344
+	 chan 0 out 0.7099990249
+	 chan 0 out 0.7199990153
+	 chan 0 out 0.7299990058
+	 chan 0 out 0.7399989963
+	 chan 0 out 0.7499989867
+	 chan 0 out 0.7599989772
+	 chan 0 out 0.7699989676
+	 chan 0 out 0.7799989581
+	 chan 0 out 0.7899989486
+	 chan 0 out 0.7999989390
+	 chan 0 out 0.8099989295
+	 chan 0 out 0.8199989200
+	 chan 0 out 0.8299989104
+	 chan 0 out 0.8399989009
+	 chan 0 out 0.8499988914
+	 chan 0 out 0.8599988818
+	 chan 0 out 0.8699988723
+	 chan 0 out 0.8799988627
+	 chan 0 out 0.8899988532
+	 chan 0 out 0.8999988437
+	 chan 0 out 0.9099988341
+	 chan 0 out 0.9199988246
+	 chan 0 out 0.9299988151
+	 chan 0 out 0.9399988055
+	 chan 0 out 0.9499987960
+	 chan 0 out 0.9599987864
+	 chan 0 out 0.9699987769
+	 chan 0 out 0.9799987674
+	 chan 0 out 0.9899987578
+	 chan 0 out 0.9999987483
+	 chan 0 out 0.0099987984
+	 chan 0 out 0.0199987981
+	 chan 0 out 0.0299987979
+	 chan 0 out 0.0399987996
+	 chan 0 out 0.0499987975
+	 chan 0 out 0.0599987954
+	 chan 0 out 0.0699987933
+	 chan 0 out 0.0799987912
+	 chan 0 out 0.0899987891
+	 chan 0 out 0.0999987870
+	 chan 0 out 0.1099987850
+	 chan 0 out 0.1199987829
+	 chan 0 out 0.1299987882
+	 chan 0 out 0.1399987936
+	 chan 0 out 0.1499987990
+	 chan 0 out 0.1599988043
+	 chan 0 out 0.1699988097
+	 chan 0 out 0.1799988151
+	 chan 0 out 0.1899988204
+	 chan 0 out 0.1999988258
+	 chan 0 out 0.2099988312
+	 chan 0 out 0.2199988365
+	 chan 0 out 0.2299988419
+	 chan 0 out 0.2399988472
+	 chan 0 out 0.2499988526
+	 chan 0 out 0.2599988580
+	 chan 0 out 0.2699988484
+	 chan 0 out 0.2799988389
+	 chan 0 out 0.2899988294
+	 chan 0 out 0.2999988198
+	 chan 0 out 0.3099988103
+	 chan 0 out 0.3199988008
+	 chan 0 out 0.3299987912
+	 chan 0 out 0.3399987817
+	 chan 0 out 0.3499987721
+	 chan 0 out 0.3599987626
+	 chan 0 out 0.3699987531
+	 chan 0 out 0.3799987435
+	 chan 0 out 0.3899987340
+	 chan 0 out 0.3999987245
+	 chan 0 out 0.4099987149
+	 chan 0 out 0.4199987054
+	 chan 0 out 0.4299986959
+	 chan 0 out 0.4399986863
+	 chan 0 out 0.4499986768
+	 chan 0 out 0.4599986672
+	 chan 0 out 0.4699986577
+	 chan 0 out 0.4799986482
+	 chan 0 out 0.4899986386
+	 chan 0 out 0.4999986291
+	 chan 0 out 0.5099986196
+	 chan 0 out 0.5199986100
+	 chan 0 out 0.5299986005
+	 chan 0 out 0.5399985909
+	 chan 0 out 0.5499985814
+	 chan 0 out 0.5599985719
 Render one buffer
-sample out 0.5699985623
-sample out 0.5799985528
-sample out 0.5899985433
-sample out 0.5999985337
-sample out 0.6099985242
-sample out 0.6199985147
-sample out 0.6299985051
-sample out 0.6399984956
-sample out 0.6499984860
-sample out 0.6599984765
-sample out 0.6699984670
-sample out 0.6799984574
-sample out 0.6899984479
-sample out 0.6999984384
-sample out 0.7099984288
-sample out 0.7199984193
-sample out 0.7299984097
-sample out 0.7399984002
-sample out 0.7499983907
-sample out 0.7599983811
-sample out 0.7699983716
-sample out 0.7799983621
-sample out 0.7899983525
-sample out 0.7999983430
-sample out 0.8099983335
-sample out 0.8199983239
-sample out 0.8299983144
-sample out 0.8399983048
-sample out 0.8499982953
-sample out 0.8599982858
-sample out 0.8699982762
-sample out 0.8799982667
-sample out 0.8899982572
-sample out 0.8999982476
-sample out 0.9099982381
-sample out 0.9199982285
-sample out 0.9299982190
-sample out 0.9399982095
-sample out 0.9499981999
-sample out 0.9599981904
-sample out 0.9699981809
-sample out 0.9799981713
-sample out 0.9899981618
-sample out 0.9999981523
-sample out 0.0099982023
-sample out 0.0199982021
-sample out 0.0299982019
-sample out 0.0399982035
-sample out 0.0499982014
-sample out 0.0599981993
-sample out 0.0699981973
-sample out 0.0799981952
-sample out 0.0899981931
-sample out 0.0999981910
-sample out 0.1099981889
-sample out 0.1199981868
-sample out 0.1299981922
-sample out 0.1399981976
-sample out 0.1499982029
-sample out 0.1599982083
-sample out 0.1699982136
-sample out 0.1799982190
-sample out 0.1899982244
-sample out 0.1999982297
-sample out 0.2099982351
-sample out 0.2199982405
-sample out 0.2299982458
-sample out 0.2399982512
-sample out 0.2499982566
-sample out 0.2599982619
-sample out 0.2699982524
-sample out 0.2799982429
-sample out 0.2899982333
-sample out 0.2999982238
-sample out 0.3099982142
-sample out 0.3199982047
-sample out 0.3299981952
-sample out 0.3399981856
-sample out 0.3499981761
-sample out 0.3599981666
-sample out 0.3699981570
-sample out 0.3799981475
-sample out 0.3899981380
-sample out 0.3999981284
-sample out 0.4099981189
-sample out 0.4199981093
-sample out 0.4299980998
-sample out 0.4399980903
-sample out 0.4499980807
-sample out 0.4599980712
-sample out 0.4699980617
-sample out 0.4799980521
-sample out 0.4899980426
-sample out 0.4999980330
-sample out 0.5099980235
-sample out 0.5199980140
-sample out 0.5299980044
-sample out 0.5399979949
-sample out 0.5499979854
-sample out 0.5599979758
-sample out 0.5699979663
-sample out 0.5799979568
-sample out 0.5899979472
-sample out 0.5999979377
-sample out 0.6099979281
-sample out 0.6199979186
-sample out 0.6299979091
-sample out 0.6399978995
-sample out 0.6499978900
-sample out 0.6599978805
-sample out 0.6699978709
-sample out 0.6799978614
-sample out 0.6899978518
-sample out 0.6999978423
-sample out 0.7099978328
-sample out 0.7199978232
-sample out 0.7299978137
-sample out 0.7399978042
-sample out 0.7499977946
-sample out 0.7599977851
-sample out 0.7699977756
-sample out 0.7799977660
-sample out 0.7899977565
-sample out 0.7999977469
-sample out 0.8099977374
-sample out 0.8199977279
-sample out 0.8299977183
-sample out 0.8399977088
+	 chan 0 out 0.5699985623
+	 chan 0 out 0.5799985528
+	 chan 0 out 0.5899985433
+	 chan 0 out 0.5999985337
+	 chan 0 out 0.6099985242
+	 chan 0 out 0.6199985147
+	 chan 0 out 0.6299985051
+	 chan 0 out 0.6399984956
+	 chan 0 out 0.6499984860
+	 chan 0 out 0.6599984765
+	 chan 0 out 0.6699984670
+	 chan 0 out 0.6799984574
+	 chan 0 out 0.6899984479
+	 chan 0 out 0.6999984384
+	 chan 0 out 0.7099984288
+	 chan 0 out 0.7199984193
+	 chan 0 out 0.7299984097
+	 chan 0 out 0.7399984002
+	 chan 0 out 0.7499983907
+	 chan 0 out 0.7599983811
+	 chan 0 out 0.7699983716
+	 chan 0 out 0.7799983621
+	 chan 0 out 0.7899983525
+	 chan 0 out 0.7999983430
+	 chan 0 out 0.8099983335
+	 chan 0 out 0.8199983239
+	 chan 0 out 0.8299983144
+	 chan 0 out 0.8399983048
+	 chan 0 out 0.8499982953
+	 chan 0 out 0.8599982858
+	 chan 0 out 0.8699982762
+	 chan 0 out 0.8799982667
+	 chan 0 out 0.8899982572
+	 chan 0 out 0.8999982476
+	 chan 0 out 0.9099982381
+	 chan 0 out 0.9199982285
+	 chan 0 out 0.9299982190
+	 chan 0 out 0.9399982095
+	 chan 0 out 0.9499981999
+	 chan 0 out 0.9599981904
+	 chan 0 out 0.9699981809
+	 chan 0 out 0.9799981713
+	 chan 0 out 0.9899981618
+	 chan 0 out 0.9999981523
+	 chan 0 out 0.0099982023
+	 chan 0 out 0.0199982021
+	 chan 0 out 0.0299982019
+	 chan 0 out 0.0399982035
+	 chan 0 out 0.0499982014
+	 chan 0 out 0.0599981993
+	 chan 0 out 0.0699981973
+	 chan 0 out 0.0799981952
+	 chan 0 out 0.0899981931
+	 chan 0 out 0.0999981910
+	 chan 0 out 0.1099981889
+	 chan 0 out 0.1199981868
+	 chan 0 out 0.1299981922
+	 chan 0 out 0.1399981976
+	 chan 0 out 0.1499982029
+	 chan 0 out 0.1599982083
+	 chan 0 out 0.1699982136
+	 chan 0 out 0.1799982190
+	 chan 0 out 0.1899982244
+	 chan 0 out 0.1999982297
+	 chan 0 out 0.2099982351
+	 chan 0 out 0.2199982405
+	 chan 0 out 0.2299982458
+	 chan 0 out 0.2399982512
+	 chan 0 out 0.2499982566
+	 chan 0 out 0.2599982619
+	 chan 0 out 0.2699982524
+	 chan 0 out 0.2799982429
+	 chan 0 out 0.2899982333
+	 chan 0 out 0.2999982238
+	 chan 0 out 0.3099982142
+	 chan 0 out 0.3199982047
+	 chan 0 out 0.3299981952
+	 chan 0 out 0.3399981856
+	 chan 0 out 0.3499981761
+	 chan 0 out 0.3599981666
+	 chan 0 out 0.3699981570
+	 chan 0 out 0.3799981475
+	 chan 0 out 0.3899981380
+	 chan 0 out 0.3999981284
+	 chan 0 out 0.4099981189
+	 chan 0 out 0.4199981093
+	 chan 0 out 0.4299980998
+	 chan 0 out 0.4399980903
+	 chan 0 out 0.4499980807
+	 chan 0 out 0.4599980712
+	 chan 0 out 0.4699980617
+	 chan 0 out 0.4799980521
+	 chan 0 out 0.4899980426
+	 chan 0 out 0.4999980330
+	 chan 0 out 0.5099980235
+	 chan 0 out 0.5199980140
+	 chan 0 out 0.5299980044
+	 chan 0 out 0.5399979949
+	 chan 0 out 0.5499979854
+	 chan 0 out 0.5599979758
+	 chan 0 out 0.5699979663
+	 chan 0 out 0.5799979568
+	 chan 0 out 0.5899979472
+	 chan 0 out 0.5999979377
+	 chan 0 out 0.6099979281
+	 chan 0 out 0.6199979186
+	 chan 0 out 0.6299979091
+	 chan 0 out 0.6399978995
+	 chan 0 out 0.6499978900
+	 chan 0 out 0.6599978805
+	 chan 0 out 0.6699978709
+	 chan 0 out 0.6799978614
+	 chan 0 out 0.6899978518
+	 chan 0 out 0.6999978423
+	 chan 0 out 0.7099978328
+	 chan 0 out 0.7199978232
+	 chan 0 out 0.7299978137
+	 chan 0 out 0.7399978042
+	 chan 0 out 0.7499977946
+	 chan 0 out 0.7599977851
+	 chan 0 out 0.7699977756
+	 chan 0 out 0.7799977660
+	 chan 0 out 0.7899977565
+	 chan 0 out 0.7999977469
+	 chan 0 out 0.8099977374
+	 chan 0 out 0.8199977279
+	 chan 0 out 0.8299977183
+	 chan 0 out 0.8399977088
 Render one buffer
-sample out 0.8499976993
-sample out 0.8599976897
-sample out 0.8699976802
-sample out 0.8799976707
-sample out 0.8899976611
-sample out 0.8999976516
-sample out 0.9099976420
-sample out 0.9199976325
-sample out 0.9299976230
-sample out 0.9399976134
-sample out 0.9499976039
-sample out 0.9599975944
-sample out 0.9699975848
-sample out 0.9799975753
-sample out 0.9899975657
-sample out 0.9999975562
-sample out 0.0099976063
-sample out 0.0199976061
-sample out 0.0299976058
-sample out 0.0399976075
-sample out 0.0499976054
-sample out 0.0599976033
-sample out 0.0699976012
-sample out 0.0799975991
-sample out 0.0899975970
-sample out 0.0999975950
-sample out 0.1099975929
-sample out 0.1199975908
-sample out 0.1299975961
-sample out 0.1399976015
-sample out 0.1499976069
-sample out 0.1599976122
-sample out 0.1699976176
-sample out 0.1799976230
-sample out 0.1899976283
-sample out 0.1999976337
-sample out 0.2099976391
-sample out 0.2199976444
-sample out 0.2299976498
-sample out 0.2399976552
-sample out 0.2499976605
-sample out 0.2599976659
-sample out 0.2699976563
-sample out 0.2799976468
-sample out 0.2899976373
-sample out 0.2999976277
-sample out 0.3099976182
-sample out 0.3199976087
-sample out 0.3299975991
-sample out 0.3399975896
-sample out 0.3499975801
-sample out 0.3599975705
-sample out 0.3699975610
-sample out 0.3799975514
-sample out 0.3899975419
-sample out 0.3999975324
-sample out 0.4099975228
-sample out 0.4199975133
-sample out 0.4299975038
-sample out 0.4399974942
-sample out 0.4499974847
-sample out 0.4599974751
-sample out 0.4699974656
-sample out 0.4799974561
-sample out 0.4899974465
-sample out 0.4999974370
-sample out 0.5099974275
-sample out 0.5199974179
-sample out 0.5299974084
-sample out 0.5399973989
-sample out 0.5499973893
-sample out 0.5599973798
-sample out 0.5699973702
-sample out 0.5799973607
-sample out 0.5899973512
-sample out 0.5999973416
-sample out 0.6099973321
-sample out 0.6199973226
-sample out 0.6299973130
-sample out 0.6399973035
-sample out 0.6499972939
-sample out 0.6599972844
-sample out 0.6699972749
-sample out 0.6799972653
-sample out 0.6899972558
-sample out 0.6999972463
-sample out 0.7099972367
-sample out 0.7199972272
-sample out 0.7299972177
-sample out 0.7399972081
-sample out 0.7499971986
-sample out 0.7599971890
-sample out 0.7699971795
-sample out 0.7799971700
-sample out 0.7899971604
-sample out 0.7999971509
-sample out 0.8099971414
-sample out 0.8199971318
-sample out 0.8299971223
-sample out 0.8399971128
-sample out 0.8499971032
-sample out 0.8599970937
-sample out 0.8699970841
-sample out 0.8799970746
-sample out 0.8899970651
-sample out 0.8999970555
-sample out 0.9099970460
-sample out 0.9199970365
-sample out 0.9299970269
-sample out 0.9399970174
-sample out 0.9499970078
-sample out 0.9599969983
-sample out 0.9699969888
-sample out 0.9799969792
-sample out 0.9899969697
-sample out 0.9999969602
-sample out 0.0099970102
-sample out 0.0199970100
-sample out 0.0299970098
-sample out 0.0399970114
-sample out 0.0499970093
-sample out 0.0599970073
-sample out 0.0699970052
-sample out 0.0799970031
-sample out 0.0899970010
-sample out 0.0999969989
-sample out 0.1099969968
-sample out 0.1199969947
+	 chan 0 out 0.8499976993
+	 chan 0 out 0.8599976897
+	 chan 0 out 0.8699976802
+	 chan 0 out 0.8799976707
+	 chan 0 out 0.8899976611
+	 chan 0 out 0.8999976516
+	 chan 0 out 0.9099976420
+	 chan 0 out 0.9199976325
+	 chan 0 out 0.9299976230
+	 chan 0 out 0.9399976134
+	 chan 0 out 0.9499976039
+	 chan 0 out 0.9599975944
+	 chan 0 out 0.9699975848
+	 chan 0 out 0.9799975753
+	 chan 0 out 0.9899975657
+	 chan 0 out 0.9999975562
+	 chan 0 out 0.0099976063
+	 chan 0 out 0.0199976061
+	 chan 0 out 0.0299976058
+	 chan 0 out 0.0399976075
+	 chan 0 out 0.0499976054
+	 chan 0 out 0.0599976033
+	 chan 0 out 0.0699976012
+	 chan 0 out 0.0799975991
+	 chan 0 out 0.0899975970
+	 chan 0 out 0.0999975950
+	 chan 0 out 0.1099975929
+	 chan 0 out 0.1199975908
+	 chan 0 out 0.1299975961
+	 chan 0 out 0.1399976015
+	 chan 0 out 0.1499976069
+	 chan 0 out 0.1599976122
+	 chan 0 out 0.1699976176
+	 chan 0 out 0.1799976230
+	 chan 0 out 0.1899976283
+	 chan 0 out 0.1999976337
+	 chan 0 out 0.2099976391
+	 chan 0 out 0.2199976444
+	 chan 0 out 0.2299976498
+	 chan 0 out 0.2399976552
+	 chan 0 out 0.2499976605
+	 chan 0 out 0.2599976659
+	 chan 0 out 0.2699976563
+	 chan 0 out 0.2799976468
+	 chan 0 out 0.2899976373
+	 chan 0 out 0.2999976277
+	 chan 0 out 0.3099976182
+	 chan 0 out 0.3199976087
+	 chan 0 out 0.3299975991
+	 chan 0 out 0.3399975896
+	 chan 0 out 0.3499975801
+	 chan 0 out 0.3599975705
+	 chan 0 out 0.3699975610
+	 chan 0 out 0.3799975514
+	 chan 0 out 0.3899975419
+	 chan 0 out 0.3999975324
+	 chan 0 out 0.4099975228
+	 chan 0 out 0.4199975133
+	 chan 0 out 0.4299975038
+	 chan 0 out 0.4399974942
+	 chan 0 out 0.4499974847
+	 chan 0 out 0.4599974751
+	 chan 0 out 0.4699974656
+	 chan 0 out 0.4799974561
+	 chan 0 out 0.4899974465
+	 chan 0 out 0.4999974370
+	 chan 0 out 0.5099974275
+	 chan 0 out 0.5199974179
+	 chan 0 out 0.5299974084
+	 chan 0 out 0.5399973989
+	 chan 0 out 0.5499973893
+	 chan 0 out 0.5599973798
+	 chan 0 out 0.5699973702
+	 chan 0 out 0.5799973607
+	 chan 0 out 0.5899973512
+	 chan 0 out 0.5999973416
+	 chan 0 out 0.6099973321
+	 chan 0 out 0.6199973226
+	 chan 0 out 0.6299973130
+	 chan 0 out 0.6399973035
+	 chan 0 out 0.6499972939
+	 chan 0 out 0.6599972844
+	 chan 0 out 0.6699972749
+	 chan 0 out 0.6799972653
+	 chan 0 out 0.6899972558
+	 chan 0 out 0.6999972463
+	 chan 0 out 0.7099972367
+	 chan 0 out 0.7199972272
+	 chan 0 out 0.7299972177
+	 chan 0 out 0.7399972081
+	 chan 0 out 0.7499971986
+	 chan 0 out 0.7599971890
+	 chan 0 out 0.7699971795
+	 chan 0 out 0.7799971700
+	 chan 0 out 0.7899971604
+	 chan 0 out 0.7999971509
+	 chan 0 out 0.8099971414
+	 chan 0 out 0.8199971318
+	 chan 0 out 0.8299971223
+	 chan 0 out 0.8399971128
+	 chan 0 out 0.8499971032
+	 chan 0 out 0.8599970937
+	 chan 0 out 0.8699970841
+	 chan 0 out 0.8799970746
+	 chan 0 out 0.8899970651
+	 chan 0 out 0.8999970555
+	 chan 0 out 0.9099970460
+	 chan 0 out 0.9199970365
+	 chan 0 out 0.9299970269
+	 chan 0 out 0.9399970174
+	 chan 0 out 0.9499970078
+	 chan 0 out 0.9599969983
+	 chan 0 out 0.9699969888
+	 chan 0 out 0.9799969792
+	 chan 0 out 0.9899969697
+	 chan 0 out 0.9999969602
+	 chan 0 out 0.0099970102
+	 chan 0 out 0.0199970100
+	 chan 0 out 0.0299970098
+	 chan 0 out 0.0399970114
+	 chan 0 out 0.0499970093
+	 chan 0 out 0.0599970073
+	 chan 0 out 0.0699970052
+	 chan 0 out 0.0799970031
+	 chan 0 out 0.0899970010
+	 chan 0 out 0.0999969989
+	 chan 0 out 0.1099969968
+	 chan 0 out 0.1199969947
 Render one buffer
-sample out 0.1299970001
-sample out 0.1399970055
-sample out 0.1499970108
-sample out 0.1599970162
-sample out 0.1699970216
-sample out 0.1799970269
-sample out 0.1899970323
-sample out 0.1999970376
-sample out 0.2099970430
-sample out 0.2199970484
-sample out 0.2299970537
-sample out 0.2399970591
-sample out 0.2499970645
-sample out 0.2599970698
-sample out 0.2699970603
-sample out 0.2799970508
-sample out 0.2899970412
-sample out 0.2999970317
-sample out 0.3099970222
-sample out 0.3199970126
-sample out 0.3299970031
-sample out 0.3399969935
-sample out 0.3499969840
-sample out 0.3599969745
-sample out 0.3699969649
-sample out 0.3799969554
-sample out 0.3899969459
-sample out 0.3999969363
-sample out 0.4099969268
-sample out 0.4199969172
-sample out 0.4299969077
-sample out 0.4399968982
-sample out 0.4499968886
-sample out 0.4599968791
-sample out 0.4699968696
-sample out 0.4799968600
-sample out 0.4899968505
-sample out 0.4999968410
-sample out 0.5099968314
-sample out 0.5199968219
-sample out 0.5299968123
-sample out 0.5399968028
-sample out 0.5499967933
-sample out 0.5599967837
-sample out 0.5699967742
-sample out 0.5799967647
-sample out 0.5899967551
-sample out 0.5999967456
-sample out 0.6099967360
-sample out 0.6199967265
-sample out 0.6299967170
-sample out 0.6399967074
-sample out 0.6499966979
-sample out 0.6599966884
-sample out 0.6699966788
-sample out 0.6799966693
-sample out 0.6899966598
-sample out 0.6999966502
-sample out 0.7099966407
-sample out 0.7199966311
-sample out 0.7299966216
-sample out 0.7399966121
-sample out 0.7499966025
-sample out 0.7599965930
-sample out 0.7699965835
-sample out 0.7799965739
-sample out 0.7899965644
-sample out 0.7999965549
-sample out 0.8099965453
-sample out 0.8199965358
-sample out 0.8299965262
-sample out 0.8399965167
-sample out 0.8499965072
-sample out 0.8599964976
-sample out 0.8699964881
-sample out 0.8799964786
-sample out 0.8899964690
-sample out 0.8999964595
-sample out 0.9099964499
-sample out 0.9199964404
-sample out 0.9299964309
-sample out 0.9399964213
-sample out 0.9499964118
-sample out 0.9599964023
-sample out 0.9699963927
-sample out 0.9799963832
-sample out 0.9899963737
-sample out 0.9999963641
-sample out 0.0099964142
-sample out 0.0199964140
-sample out 0.0299964137
-sample out 0.0399964154
-sample out 0.0499964133
-sample out 0.0599964112
-sample out 0.0699964091
-sample out 0.0799964070
-sample out 0.0899964049
-sample out 0.0999964029
-sample out 0.1099964008
-sample out 0.1199963987
-sample out 0.1299964041
-sample out 0.1399964094
-sample out 0.1499964148
-sample out 0.1599964201
-sample out 0.1699964255
-sample out 0.1799964309
-sample out 0.1899964362
-sample out 0.1999964416
-sample out 0.2099964470
-sample out 0.2199964523
-sample out 0.2299964577
-sample out 0.2399964631
-sample out 0.2499964684
-sample out 0.2599964738
-sample out 0.2699964643
-sample out 0.2799964547
-sample out 0.2899964452
-sample out 0.2999964356
-sample out 0.3099964261
-sample out 0.3199964166
-sample out 0.3299964070
-sample out 0.3399963975
-sample out 0.3499963880
-sample out 0.3599963784
-sample out 0.3699963689
-sample out 0.3799963593
-sample out 0.3899963498
-sample out 0.3999963403
+	 chan 0 out 0.1299970001
+	 chan 0 out 0.1399970055
+	 chan 0 out 0.1499970108
+	 chan 0 out 0.1599970162
+	 chan 0 out 0.1699970216
+	 chan 0 out 0.1799970269
+	 chan 0 out 0.1899970323
+	 chan 0 out 0.1999970376
+	 chan 0 out 0.2099970430
+	 chan 0 out 0.2199970484
+	 chan 0 out 0.2299970537
+	 chan 0 out 0.2399970591
+	 chan 0 out 0.2499970645
+	 chan 0 out 0.2599970698
+	 chan 0 out 0.2699970603
+	 chan 0 out 0.2799970508
+	 chan 0 out 0.2899970412
+	 chan 0 out 0.2999970317
+	 chan 0 out 0.3099970222
+	 chan 0 out 0.3199970126
+	 chan 0 out 0.3299970031
+	 chan 0 out 0.3399969935
+	 chan 0 out 0.3499969840
+	 chan 0 out 0.3599969745
+	 chan 0 out 0.3699969649
+	 chan 0 out 0.3799969554
+	 chan 0 out 0.3899969459
+	 chan 0 out 0.3999969363
+	 chan 0 out 0.4099969268
+	 chan 0 out 0.4199969172
+	 chan 0 out 0.4299969077
+	 chan 0 out 0.4399968982
+	 chan 0 out 0.4499968886
+	 chan 0 out 0.4599968791
+	 chan 0 out 0.4699968696
+	 chan 0 out 0.4799968600
+	 chan 0 out 0.4899968505
+	 chan 0 out 0.4999968410
+	 chan 0 out 0.5099968314
+	 chan 0 out 0.5199968219
+	 chan 0 out 0.5299968123
+	 chan 0 out 0.5399968028
+	 chan 0 out 0.5499967933
+	 chan 0 out 0.5599967837
+	 chan 0 out 0.5699967742
+	 chan 0 out 0.5799967647
+	 chan 0 out 0.5899967551
+	 chan 0 out 0.5999967456
+	 chan 0 out 0.6099967360
+	 chan 0 out 0.6199967265
+	 chan 0 out 0.6299967170
+	 chan 0 out 0.6399967074
+	 chan 0 out 0.6499966979
+	 chan 0 out 0.6599966884
+	 chan 0 out 0.6699966788
+	 chan 0 out 0.6799966693
+	 chan 0 out 0.6899966598
+	 chan 0 out 0.6999966502
+	 chan 0 out 0.7099966407
+	 chan 0 out 0.7199966311
+	 chan 0 out 0.7299966216
+	 chan 0 out 0.7399966121
+	 chan 0 out 0.7499966025
+	 chan 0 out 0.7599965930
+	 chan 0 out 0.7699965835
+	 chan 0 out 0.7799965739
+	 chan 0 out 0.7899965644
+	 chan 0 out 0.7999965549
+	 chan 0 out 0.8099965453
+	 chan 0 out 0.8199965358
+	 chan 0 out 0.8299965262
+	 chan 0 out 0.8399965167
+	 chan 0 out 0.8499965072
+	 chan 0 out 0.8599964976
+	 chan 0 out 0.8699964881
+	 chan 0 out 0.8799964786
+	 chan 0 out 0.8899964690
+	 chan 0 out 0.8999964595
+	 chan 0 out 0.9099964499
+	 chan 0 out 0.9199964404
+	 chan 0 out 0.9299964309
+	 chan 0 out 0.9399964213
+	 chan 0 out 0.9499964118
+	 chan 0 out 0.9599964023
+	 chan 0 out 0.9699963927
+	 chan 0 out 0.9799963832
+	 chan 0 out 0.9899963737
+	 chan 0 out 0.9999963641
+	 chan 0 out 0.0099964142
+	 chan 0 out 0.0199964140
+	 chan 0 out 0.0299964137
+	 chan 0 out 0.0399964154
+	 chan 0 out 0.0499964133
+	 chan 0 out 0.0599964112
+	 chan 0 out 0.0699964091
+	 chan 0 out 0.0799964070
+	 chan 0 out 0.0899964049
+	 chan 0 out 0.0999964029
+	 chan 0 out 0.1099964008
+	 chan 0 out 0.1199963987
+	 chan 0 out 0.1299964041
+	 chan 0 out 0.1399964094
+	 chan 0 out 0.1499964148
+	 chan 0 out 0.1599964201
+	 chan 0 out 0.1699964255
+	 chan 0 out 0.1799964309
+	 chan 0 out 0.1899964362
+	 chan 0 out 0.1999964416
+	 chan 0 out 0.2099964470
+	 chan 0 out 0.2199964523
+	 chan 0 out 0.2299964577
+	 chan 0 out 0.2399964631
+	 chan 0 out 0.2499964684
+	 chan 0 out 0.2599964738
+	 chan 0 out 0.2699964643
+	 chan 0 out 0.2799964547
+	 chan 0 out 0.2899964452
+	 chan 0 out 0.2999964356
+	 chan 0 out 0.3099964261
+	 chan 0 out 0.3199964166
+	 chan 0 out 0.3299964070
+	 chan 0 out 0.3399963975
+	 chan 0 out 0.3499963880
+	 chan 0 out 0.3599963784
+	 chan 0 out 0.3699963689
+	 chan 0 out 0.3799963593
+	 chan 0 out 0.3899963498
+	 chan 0 out 0.3999963403
 ins 0
 outs 1
 Render one buffer
-sample out 0.4099963307
-sample out 0.4199963212
-sample out 0.4299963117
-sample out 0.4399963021
-sample out 0.4499962926
-sample out 0.4599962831
-sample out 0.4699962735
-sample out 0.4799962640
-sample out 0.4899962544
-sample out 0.4999962449
-sample out 0.5099962354
-sample out 0.5199962258
-sample out 0.5299962163
-sample out 0.5399962068
-sample out 0.5499961972
-sample out 0.5599961877
-sample out 0.5699961782
-sample out 0.5799961686
-sample out 0.5899961591
-sample out 0.5999961495
-sample out 0.6099961400
-sample out 0.6199961305
-sample out 0.6299961209
-sample out 0.6399961114
-sample out 0.6499961019
-sample out 0.6599960923
-sample out 0.6699960828
-sample out 0.6799960732
-sample out 0.6899960637
-sample out 0.6999960542
-sample out 0.7099960446
-sample out 0.7199960351
-sample out 0.7299960256
-sample out 0.7399960160
-sample out 0.7499960065
-sample out 0.7599959970
-sample out 0.7699959874
-sample out 0.7799959779
-sample out 0.7899959683
-sample out 0.7999959588
-sample out 0.8099959493
-sample out 0.8199959397
-sample out 0.8299959302
-sample out 0.8399959207
-sample out 0.8499959111
-sample out 0.8599959016
-sample out 0.8699958920
-sample out 0.8799958825
-sample out 0.8899958730
-sample out 0.8999958634
-sample out 0.9099958539
-sample out 0.9199958444
-sample out 0.9299958348
-sample out 0.9399958253
-sample out 0.9499958158
-sample out 0.9599958062
-sample out 0.9699957967
-sample out 0.9799957871
-sample out 0.9899957776
-sample out 0.9999957681
-sample out 0.0099958181
-sample out 0.0199958179
-sample out 0.0299958177
-sample out 0.0399958193
-sample out 0.0499958172
-sample out 0.0599958152
-sample out 0.0699958131
-sample out 0.0799958110
-sample out 0.0899958089
-sample out 0.0999958068
-sample out 0.1099958047
-sample out 0.1199958026
-sample out 0.1299958080
-sample out 0.1399958134
-sample out 0.1499958187
-sample out 0.1599958241
-sample out 0.1699958295
-sample out 0.1799958348
-sample out 0.1899958402
-sample out 0.1999958456
-sample out 0.2099958509
-sample out 0.2199958563
-sample out 0.2299958616
-sample out 0.2399958670
-sample out 0.2499958724
-sample out 0.2599958777
-sample out 0.2699958682
-sample out 0.2799958587
-sample out 0.2899958491
-sample out 0.2999958396
-sample out 0.3099958301
-sample out 0.3199958205
-sample out 0.3299958110
-sample out 0.3399958014
-sample out 0.3499957919
-sample out 0.3599957824
-sample out 0.3699957728
-sample out 0.3799957633
-sample out 0.3899957538
-sample out 0.3999957442
-sample out 0.4099957347
-sample out 0.4199957252
-sample out 0.4299957156
-sample out 0.4399957061
-sample out 0.4499956965
-sample out 0.4599956870
-sample out 0.4699956775
-sample out 0.4799956679
-sample out 0.4899956584
-sample out 0.4999956489
-sample out 0.5099956393
-sample out 0.5199956298
-sample out 0.5299956203
-sample out 0.5399956107
-sample out 0.5499956012
-sample out 0.5599955916
-sample out 0.5699955821
-sample out 0.5799955726
-sample out 0.5899955630
-sample out 0.5999955535
-sample out 0.6099955440
-sample out 0.6199955344
-sample out 0.6299955249
-sample out 0.6399955153
-sample out 0.6499955058
-sample out 0.6599954963
-sample out 0.6699954867
-sample out 0.6799954772
+	 chan 0 out 0.4099963307
+	 chan 0 out 0.4199963212
+	 chan 0 out 0.4299963117
+	 chan 0 out 0.4399963021
+	 chan 0 out 0.4499962926
+	 chan 0 out 0.4599962831
+	 chan 0 out 0.4699962735
+	 chan 0 out 0.4799962640
+	 chan 0 out 0.4899962544
+	 chan 0 out 0.4999962449
+	 chan 0 out 0.5099962354
+	 chan 0 out 0.5199962258
+	 chan 0 out 0.5299962163
+	 chan 0 out 0.5399962068
+	 chan 0 out 0.5499961972
+	 chan 0 out 0.5599961877
+	 chan 0 out 0.5699961782
+	 chan 0 out 0.5799961686
+	 chan 0 out 0.5899961591
+	 chan 0 out 0.5999961495
+	 chan 0 out 0.6099961400
+	 chan 0 out 0.6199961305
+	 chan 0 out 0.6299961209
+	 chan 0 out 0.6399961114
+	 chan 0 out 0.6499961019
+	 chan 0 out 0.6599960923
+	 chan 0 out 0.6699960828
+	 chan 0 out 0.6799960732
+	 chan 0 out 0.6899960637
+	 chan 0 out 0.6999960542
+	 chan 0 out 0.7099960446
+	 chan 0 out 0.7199960351
+	 chan 0 out 0.7299960256
+	 chan 0 out 0.7399960160
+	 chan 0 out 0.7499960065
+	 chan 0 out 0.7599959970
+	 chan 0 out 0.7699959874
+	 chan 0 out 0.7799959779
+	 chan 0 out 0.7899959683
+	 chan 0 out 0.7999959588
+	 chan 0 out 0.8099959493
+	 chan 0 out 0.8199959397
+	 chan 0 out 0.8299959302
+	 chan 0 out 0.8399959207
+	 chan 0 out 0.8499959111
+	 chan 0 out 0.8599959016
+	 chan 0 out 0.8699958920
+	 chan 0 out 0.8799958825
+	 chan 0 out 0.8899958730
+	 chan 0 out 0.8999958634
+	 chan 0 out 0.9099958539
+	 chan 0 out 0.9199958444
+	 chan 0 out 0.9299958348
+	 chan 0 out 0.9399958253
+	 chan 0 out 0.9499958158
+	 chan 0 out 0.9599958062
+	 chan 0 out 0.9699957967
+	 chan 0 out 0.9799957871
+	 chan 0 out 0.9899957776
+	 chan 0 out 0.9999957681
+	 chan 0 out 0.0099958181
+	 chan 0 out 0.0199958179
+	 chan 0 out 0.0299958177
+	 chan 0 out 0.0399958193
+	 chan 0 out 0.0499958172
+	 chan 0 out 0.0599958152
+	 chan 0 out 0.0699958131
+	 chan 0 out 0.0799958110
+	 chan 0 out 0.0899958089
+	 chan 0 out 0.0999958068
+	 chan 0 out 0.1099958047
+	 chan 0 out 0.1199958026
+	 chan 0 out 0.1299958080
+	 chan 0 out 0.1399958134
+	 chan 0 out 0.1499958187
+	 chan 0 out 0.1599958241
+	 chan 0 out 0.1699958295
+	 chan 0 out 0.1799958348
+	 chan 0 out 0.1899958402
+	 chan 0 out 0.1999958456
+	 chan 0 out 0.2099958509
+	 chan 0 out 0.2199958563
+	 chan 0 out 0.2299958616
+	 chan 0 out 0.2399958670
+	 chan 0 out 0.2499958724
+	 chan 0 out 0.2599958777
+	 chan 0 out 0.2699958682
+	 chan 0 out 0.2799958587
+	 chan 0 out 0.2899958491
+	 chan 0 out 0.2999958396
+	 chan 0 out 0.3099958301
+	 chan 0 out 0.3199958205
+	 chan 0 out 0.3299958110
+	 chan 0 out 0.3399958014
+	 chan 0 out 0.3499957919
+	 chan 0 out 0.3599957824
+	 chan 0 out 0.3699957728
+	 chan 0 out 0.3799957633
+	 chan 0 out 0.3899957538
+	 chan 0 out 0.3999957442
+	 chan 0 out 0.4099957347
+	 chan 0 out 0.4199957252
+	 chan 0 out 0.4299957156
+	 chan 0 out 0.4399957061
+	 chan 0 out 0.4499956965
+	 chan 0 out 0.4599956870
+	 chan 0 out 0.4699956775
+	 chan 0 out 0.4799956679
+	 chan 0 out 0.4899956584
+	 chan 0 out 0.4999956489
+	 chan 0 out 0.5099956393
+	 chan 0 out 0.5199956298
+	 chan 0 out 0.5299956203
+	 chan 0 out 0.5399956107
+	 chan 0 out 0.5499956012
+	 chan 0 out 0.5599955916
+	 chan 0 out 0.5699955821
+	 chan 0 out 0.5799955726
+	 chan 0 out 0.5899955630
+	 chan 0 out 0.5999955535
+	 chan 0 out 0.6099955440
+	 chan 0 out 0.6199955344
+	 chan 0 out 0.6299955249
+	 chan 0 out 0.6399955153
+	 chan 0 out 0.6499955058
+	 chan 0 out 0.6599954963
+	 chan 0 out 0.6699954867
+	 chan 0 out 0.6799954772
 Render one buffer
-sample out 0.6899954677
-sample out 0.6999954581
-sample out 0.7099954486
-sample out 0.7199954391
-sample out 0.7299954295
-sample out 0.7399954200
-sample out 0.7499954104
-sample out 0.7599954009
-sample out 0.7699953914
-sample out 0.7799953818
-sample out 0.7899953723
-sample out 0.7999953628
-sample out 0.8099953532
-sample out 0.8199953437
-sample out 0.8299953341
-sample out 0.8399953246
-sample out 0.8499953151
-sample out 0.8599953055
-sample out 0.8699952960
-sample out 0.8799952865
-sample out 0.8899952769
-sample out 0.8999952674
-sample out 0.9099952579
-sample out 0.9199952483
-sample out 0.9299952388
-sample out 0.9399952292
-sample out 0.9499952197
-sample out 0.9599952102
-sample out 0.9699952006
-sample out 0.9799951911
-sample out 0.9899951816
-sample out 0.9999951720
-sample out 0.0099952221
-sample out 0.0199952219
-sample out 0.0299952216
-sample out 0.0399952233
-sample out 0.0499952212
-sample out 0.0599952191
-sample out 0.0699952170
-sample out 0.0799952149
-sample out 0.0899952129
-sample out 0.0999952108
-sample out 0.1099952087
-sample out 0.1199952066
-sample out 0.1299952120
-sample out 0.1399952173
-sample out 0.1499952227
-sample out 0.1599952281
-sample out 0.1699952334
-sample out 0.1799952388
-sample out 0.1899952441
-sample out 0.1999952495
-sample out 0.2099952549
-sample out 0.2199952602
-sample out 0.2299952656
-sample out 0.2399952710
-sample out 0.2499952763
-sample out 0.2599952817
-sample out 0.2699952722
-sample out 0.2799952626
-sample out 0.2899952531
-sample out 0.2999952435
-sample out 0.3099952340
-sample out 0.3199952245
-sample out 0.3299952149
-sample out 0.3399952054
-sample out 0.3499951959
-sample out 0.3599951863
-sample out 0.3699951768
-sample out 0.3799951673
-sample out 0.3899951577
-sample out 0.3999951482
-sample out 0.4099951386
-sample out 0.4199951291
-sample out 0.4299951196
-sample out 0.4399951100
-sample out 0.4499951005
-sample out 0.4599950910
-sample out 0.4699950814
-sample out 0.4799950719
-sample out 0.4899950624
-sample out 0.4999950528
-sample out 0.5099950433
-sample out 0.5199950337
-sample out 0.5299950242
-sample out 0.5399950147
-sample out 0.5499950051
-sample out 0.5599949956
-sample out 0.5699949861
-sample out 0.5799949765
-sample out 0.5899949670
-sample out 0.5999949574
-sample out 0.6099949479
-sample out 0.6199949384
-sample out 0.6299949288
-sample out 0.6399949193
-sample out 0.6499949098
-sample out 0.6599949002
-sample out 0.6699948907
-sample out 0.6799948812
-sample out 0.6899948716
-sample out 0.6999948621
-sample out 0.7099948525
-sample out 0.7199948430
-sample out 0.7299948335
-sample out 0.7399948239
-sample out 0.7499948144
-sample out 0.7599948049
-sample out 0.7699947953
-sample out 0.7799947858
-sample out 0.7899947762
-sample out 0.7999947667
-sample out 0.8099947572
-sample out 0.8199947476
-sample out 0.8299947381
-sample out 0.8399947286
-sample out 0.8499947190
-sample out 0.8599947095
-sample out 0.8699947000
-sample out 0.8799946904
-sample out 0.8899946809
-sample out 0.8999946713
-sample out 0.9099946618
-sample out 0.9199946523
-sample out 0.9299946427
-sample out 0.9399946332
-sample out 0.9499946237
-sample out 0.9599946141
+	 chan 0 out 0.6899954677
+	 chan 0 out 0.6999954581
+	 chan 0 out 0.7099954486
+	 chan 0 out 0.7199954391
+	 chan 0 out 0.7299954295
+	 chan 0 out 0.7399954200
+	 chan 0 out 0.7499954104
+	 chan 0 out 0.7599954009
+	 chan 0 out 0.7699953914
+	 chan 0 out 0.7799953818
+	 chan 0 out 0.7899953723
+	 chan 0 out 0.7999953628
+	 chan 0 out 0.8099953532
+	 chan 0 out 0.8199953437
+	 chan 0 out 0.8299953341
+	 chan 0 out 0.8399953246
+	 chan 0 out 0.8499953151
+	 chan 0 out 0.8599953055
+	 chan 0 out 0.8699952960
+	 chan 0 out 0.8799952865
+	 chan 0 out 0.8899952769
+	 chan 0 out 0.8999952674
+	 chan 0 out 0.9099952579
+	 chan 0 out 0.9199952483
+	 chan 0 out 0.9299952388
+	 chan 0 out 0.9399952292
+	 chan 0 out 0.9499952197
+	 chan 0 out 0.9599952102
+	 chan 0 out 0.9699952006
+	 chan 0 out 0.9799951911
+	 chan 0 out 0.9899951816
+	 chan 0 out 0.9999951720
+	 chan 0 out 0.0099952221
+	 chan 0 out 0.0199952219
+	 chan 0 out 0.0299952216
+	 chan 0 out 0.0399952233
+	 chan 0 out 0.0499952212
+	 chan 0 out 0.0599952191
+	 chan 0 out 0.0699952170
+	 chan 0 out 0.0799952149
+	 chan 0 out 0.0899952129
+	 chan 0 out 0.0999952108
+	 chan 0 out 0.1099952087
+	 chan 0 out 0.1199952066
+	 chan 0 out 0.1299952120
+	 chan 0 out 0.1399952173
+	 chan 0 out 0.1499952227
+	 chan 0 out 0.1599952281
+	 chan 0 out 0.1699952334
+	 chan 0 out 0.1799952388
+	 chan 0 out 0.1899952441
+	 chan 0 out 0.1999952495
+	 chan 0 out 0.2099952549
+	 chan 0 out 0.2199952602
+	 chan 0 out 0.2299952656
+	 chan 0 out 0.2399952710
+	 chan 0 out 0.2499952763
+	 chan 0 out 0.2599952817
+	 chan 0 out 0.2699952722
+	 chan 0 out 0.2799952626
+	 chan 0 out 0.2899952531
+	 chan 0 out 0.2999952435
+	 chan 0 out 0.3099952340
+	 chan 0 out 0.3199952245
+	 chan 0 out 0.3299952149
+	 chan 0 out 0.3399952054
+	 chan 0 out 0.3499951959
+	 chan 0 out 0.3599951863
+	 chan 0 out 0.3699951768
+	 chan 0 out 0.3799951673
+	 chan 0 out 0.3899951577
+	 chan 0 out 0.3999951482
+	 chan 0 out 0.4099951386
+	 chan 0 out 0.4199951291
+	 chan 0 out 0.4299951196
+	 chan 0 out 0.4399951100
+	 chan 0 out 0.4499951005
+	 chan 0 out 0.4599950910
+	 chan 0 out 0.4699950814
+	 chan 0 out 0.4799950719
+	 chan 0 out 0.4899950624
+	 chan 0 out 0.4999950528
+	 chan 0 out 0.5099950433
+	 chan 0 out 0.5199950337
+	 chan 0 out 0.5299950242
+	 chan 0 out 0.5399950147
+	 chan 0 out 0.5499950051
+	 chan 0 out 0.5599949956
+	 chan 0 out 0.5699949861
+	 chan 0 out 0.5799949765
+	 chan 0 out 0.5899949670
+	 chan 0 out 0.5999949574
+	 chan 0 out 0.6099949479
+	 chan 0 out 0.6199949384
+	 chan 0 out 0.6299949288
+	 chan 0 out 0.6399949193
+	 chan 0 out 0.6499949098
+	 chan 0 out 0.6599949002
+	 chan 0 out 0.6699948907
+	 chan 0 out 0.6799948812
+	 chan 0 out 0.6899948716
+	 chan 0 out 0.6999948621
+	 chan 0 out 0.7099948525
+	 chan 0 out 0.7199948430
+	 chan 0 out 0.7299948335
+	 chan 0 out 0.7399948239
+	 chan 0 out 0.7499948144
+	 chan 0 out 0.7599948049
+	 chan 0 out 0.7699947953
+	 chan 0 out 0.7799947858
+	 chan 0 out 0.7899947762
+	 chan 0 out 0.7999947667
+	 chan 0 out 0.8099947572
+	 chan 0 out 0.8199947476
+	 chan 0 out 0.8299947381
+	 chan 0 out 0.8399947286
+	 chan 0 out 0.8499947190
+	 chan 0 out 0.8599947095
+	 chan 0 out 0.8699947000
+	 chan 0 out 0.8799946904
+	 chan 0 out 0.8899946809
+	 chan 0 out 0.8999946713
+	 chan 0 out 0.9099946618
+	 chan 0 out 0.9199946523
+	 chan 0 out 0.9299946427
+	 chan 0 out 0.9399946332
+	 chan 0 out 0.9499946237
+	 chan 0 out 0.9599946141
 Render one buffer
-sample out 0.9699946046
-sample out 0.9799945951
-sample out 0.9899945855
-sample out 0.9999945760
-sample out 0.0099946260
-sample out 0.0199946258
-sample out 0.0299946256
-sample out 0.0399946272
-sample out 0.0499946252
-sample out 0.0599946231
-sample out 0.0699946210
-sample out 0.0799946189
-sample out 0.0899946168
-sample out 0.0999946147
-sample out 0.1099946126
-sample out 0.1199946105
-sample out 0.1299946159
-sample out 0.1399946213
-sample out 0.1499946266
-sample out 0.1599946320
-sample out 0.1699946374
-sample out 0.1799946427
-sample out 0.1899946481
-sample out 0.1999946535
-sample out 0.2099946588
-sample out 0.2199946642
-sample out 0.2299946696
-sample out 0.2399946749
-sample out 0.2499946803
-sample out 0.2599946856
-sample out 0.2699946761
-sample out 0.2799946666
-sample out 0.2899946570
-sample out 0.2999946475
-sample out 0.3099946380
-sample out 0.3199946284
-sample out 0.3299946189
-sample out 0.3399946094
-sample out 0.3499945998
-sample out 0.3599945903
-sample out 0.3699945807
-sample out 0.3799945712
-sample out 0.3899945617
-sample out 0.3999945521
-sample out 0.4099945426
-sample out 0.4199945331
-sample out 0.4299945235
-sample out 0.4399945140
-sample out 0.4499945045
-sample out 0.4599944949
-sample out 0.4699944854
-sample out 0.4799944758
-sample out 0.4899944663
-sample out 0.4999944568
-sample out 0.5099944472
-sample out 0.5199944377
-sample out 0.5299944282
-sample out 0.5399944186
-sample out 0.5499944091
-sample out 0.5599943995
-sample out 0.5699943900
-sample out 0.5799943805
-sample out 0.5899943709
-sample out 0.5999943614
-sample out 0.6099943519
-sample out 0.6199943423
-sample out 0.6299943328
-sample out 0.6399943233
-sample out 0.6499943137
-sample out 0.6599943042
-sample out 0.6699942946
-sample out 0.6799942851
-sample out 0.6899942756
-sample out 0.6999942660
-sample out 0.7099942565
-sample out 0.7199942470
-sample out 0.7299942374
-sample out 0.7399942279
-sample out 0.7499942183
-sample out 0.7599942088
-sample out 0.7699941993
-sample out 0.7799941897
-sample out 0.7899941802
-sample out 0.7999941707
-sample out 0.8099941611
-sample out 0.8199941516
-sample out 0.8299941421
-sample out 0.8399941325
-sample out 0.8499941230
-sample out 0.8599941134
-sample out 0.8699941039
-sample out 0.8799940944
-sample out 0.8899940848
-sample out 0.8999940753
-sample out 0.9099940658
-sample out 0.9199940562
-sample out 0.9299940467
-sample out 0.9399940372
-sample out 0.9499940276
-sample out 0.9599940181
-sample out 0.9699940085
-sample out 0.9799939990
-sample out 0.9899939895
-sample out 0.9999939799
-sample out 0.0099940300
-sample out 0.0199940298
-sample out 0.0299940296
-sample out 0.0399940312
-sample out 0.0499940291
-sample out 0.0599940270
-sample out 0.0699940249
-sample out 0.0799940228
-sample out 0.0899940208
-sample out 0.0999940187
-sample out 0.1099940166
-sample out 0.1199940145
-sample out 0.1299940199
-sample out 0.1399940252
-sample out 0.1499940306
-sample out 0.1599940360
-sample out 0.1699940413
-sample out 0.1799940467
-sample out 0.1899940521
-sample out 0.1999940574
-sample out 0.2099940628
-sample out 0.2199940681
-sample out 0.2299940735
-sample out 0.2399940789
+	 chan 0 out 0.9699946046
+	 chan 0 out 0.9799945951
+	 chan 0 out 0.9899945855
+	 chan 0 out 0.9999945760
+	 chan 0 out 0.0099946260
+	 chan 0 out 0.0199946258
+	 chan 0 out 0.0299946256
+	 chan 0 out 0.0399946272
+	 chan 0 out 0.0499946252
+	 chan 0 out 0.0599946231
+	 chan 0 out 0.0699946210
+	 chan 0 out 0.0799946189
+	 chan 0 out 0.0899946168
+	 chan 0 out 0.0999946147
+	 chan 0 out 0.1099946126
+	 chan 0 out 0.1199946105
+	 chan 0 out 0.1299946159
+	 chan 0 out 0.1399946213
+	 chan 0 out 0.1499946266
+	 chan 0 out 0.1599946320
+	 chan 0 out 0.1699946374
+	 chan 0 out 0.1799946427
+	 chan 0 out 0.1899946481
+	 chan 0 out 0.1999946535
+	 chan 0 out 0.2099946588
+	 chan 0 out 0.2199946642
+	 chan 0 out 0.2299946696
+	 chan 0 out 0.2399946749
+	 chan 0 out 0.2499946803
+	 chan 0 out 0.2599946856
+	 chan 0 out 0.2699946761
+	 chan 0 out 0.2799946666
+	 chan 0 out 0.2899946570
+	 chan 0 out 0.2999946475
+	 chan 0 out 0.3099946380
+	 chan 0 out 0.3199946284
+	 chan 0 out 0.3299946189
+	 chan 0 out 0.3399946094
+	 chan 0 out 0.3499945998
+	 chan 0 out 0.3599945903
+	 chan 0 out 0.3699945807
+	 chan 0 out 0.3799945712
+	 chan 0 out 0.3899945617
+	 chan 0 out 0.3999945521
+	 chan 0 out 0.4099945426
+	 chan 0 out 0.4199945331
+	 chan 0 out 0.4299945235
+	 chan 0 out 0.4399945140
+	 chan 0 out 0.4499945045
+	 chan 0 out 0.4599944949
+	 chan 0 out 0.4699944854
+	 chan 0 out 0.4799944758
+	 chan 0 out 0.4899944663
+	 chan 0 out 0.4999944568
+	 chan 0 out 0.5099944472
+	 chan 0 out 0.5199944377
+	 chan 0 out 0.5299944282
+	 chan 0 out 0.5399944186
+	 chan 0 out 0.5499944091
+	 chan 0 out 0.5599943995
+	 chan 0 out 0.5699943900
+	 chan 0 out 0.5799943805
+	 chan 0 out 0.5899943709
+	 chan 0 out 0.5999943614
+	 chan 0 out 0.6099943519
+	 chan 0 out 0.6199943423
+	 chan 0 out 0.6299943328
+	 chan 0 out 0.6399943233
+	 chan 0 out 0.6499943137
+	 chan 0 out 0.6599943042
+	 chan 0 out 0.6699942946
+	 chan 0 out 0.6799942851
+	 chan 0 out 0.6899942756
+	 chan 0 out 0.6999942660
+	 chan 0 out 0.7099942565
+	 chan 0 out 0.7199942470
+	 chan 0 out 0.7299942374
+	 chan 0 out 0.7399942279
+	 chan 0 out 0.7499942183
+	 chan 0 out 0.7599942088
+	 chan 0 out 0.7699941993
+	 chan 0 out 0.7799941897
+	 chan 0 out 0.7899941802
+	 chan 0 out 0.7999941707
+	 chan 0 out 0.8099941611
+	 chan 0 out 0.8199941516
+	 chan 0 out 0.8299941421
+	 chan 0 out 0.8399941325
+	 chan 0 out 0.8499941230
+	 chan 0 out 0.8599941134
+	 chan 0 out 0.8699941039
+	 chan 0 out 0.8799940944
+	 chan 0 out 0.8899940848
+	 chan 0 out 0.8999940753
+	 chan 0 out 0.9099940658
+	 chan 0 out 0.9199940562
+	 chan 0 out 0.9299940467
+	 chan 0 out 0.9399940372
+	 chan 0 out 0.9499940276
+	 chan 0 out 0.9599940181
+	 chan 0 out 0.9699940085
+	 chan 0 out 0.9799939990
+	 chan 0 out 0.9899939895
+	 chan 0 out 0.9999939799
+	 chan 0 out 0.0099940300
+	 chan 0 out 0.0199940298
+	 chan 0 out 0.0299940296
+	 chan 0 out 0.0399940312
+	 chan 0 out 0.0499940291
+	 chan 0 out 0.0599940270
+	 chan 0 out 0.0699940249
+	 chan 0 out 0.0799940228
+	 chan 0 out 0.0899940208
+	 chan 0 out 0.0999940187
+	 chan 0 out 0.1099940166
+	 chan 0 out 0.1199940145
+	 chan 0 out 0.1299940199
+	 chan 0 out 0.1399940252
+	 chan 0 out 0.1499940306
+	 chan 0 out 0.1599940360
+	 chan 0 out 0.1699940413
+	 chan 0 out 0.1799940467
+	 chan 0 out 0.1899940521
+	 chan 0 out 0.1999940574
+	 chan 0 out 0.2099940628
+	 chan 0 out 0.2199940681
+	 chan 0 out 0.2299940735
+	 chan 0 out 0.2399940789
 Render one buffer
-sample out 0.2499940842
-sample out 0.2599940896
-sample out 0.2699940801
-sample out 0.2799940705
-sample out 0.2899940610
-sample out 0.2999940515
-sample out 0.3099940419
-sample out 0.3199940324
-sample out 0.3299940228
-sample out 0.3399940133
-sample out 0.3499940038
-sample out 0.3599939942
-sample out 0.3699939847
-sample out 0.3799939752
-sample out 0.3899939656
-sample out 0.3999939561
-sample out 0.4099939466
-sample out 0.4199939370
-sample out 0.4299939275
-sample out 0.4399939179
-sample out 0.4499939084
-sample out 0.4599938989
-sample out 0.4699938893
-sample out 0.4799938798
-sample out 0.4899938703
-sample out 0.4999938607
-sample out 0.5099938512
-sample out 0.5199938416
-sample out 0.5299938321
-sample out 0.5399938226
-sample out 0.5499938130
-sample out 0.5599938035
-sample out 0.5699937940
-sample out 0.5799937844
-sample out 0.5899937749
-sample out 0.5999937654
-sample out 0.6099937558
-sample out 0.6199937463
-sample out 0.6299937367
-sample out 0.6399937272
-sample out 0.6499937177
-sample out 0.6599937081
-sample out 0.6699936986
-sample out 0.6799936891
-sample out 0.6899936795
-sample out 0.6999936700
-sample out 0.7099936604
-sample out 0.7199936509
-sample out 0.7299936414
-sample out 0.7399936318
-sample out 0.7499936223
-sample out 0.7599936128
-sample out 0.7699936032
-sample out 0.7799935937
-sample out 0.7899935842
-sample out 0.7999935746
-sample out 0.8099935651
-sample out 0.8199935555
-sample out 0.8299935460
-sample out 0.8399935365
-sample out 0.8499935269
-sample out 0.8599935174
-sample out 0.8699935079
-sample out 0.8799934983
-sample out 0.8899934888
-sample out 0.8999934793
-sample out 0.9099934697
-sample out 0.9199934602
-sample out 0.9299934506
-sample out 0.9399934411
-sample out 0.9499934316
-sample out 0.9599934220
-sample out 0.9699934125
-sample out 0.9799934030
-sample out 0.9899933934
-sample out 0.9999933839
-sample out 0.0099934340
-sample out 0.0199934337
-sample out 0.0299934335
-sample out 0.0399934351
-sample out 0.0499934331
-sample out 0.0599934310
-sample out 0.0699934289
-sample out 0.0799934268
-sample out 0.0899934247
-sample out 0.0999934226
-sample out 0.1099934205
-sample out 0.1199934185
-sample out 0.1299934238
-sample out 0.1399934292
-sample out 0.1499934345
-sample out 0.1599934399
-sample out 0.1699934453
-sample out 0.1799934506
-sample out 0.1899934560
-sample out 0.1999934614
-sample out 0.2099934667
-sample out 0.2199934721
-sample out 0.2299934775
-sample out 0.2399934828
-sample out 0.2499934882
-sample out 0.2599934936
-sample out 0.2699934840
-sample out 0.2799934745
-sample out 0.2899934649
-sample out 0.2999934554
-sample out 0.3099934459
-sample out 0.3199934363
-sample out 0.3299934268
-sample out 0.3399934173
-sample out 0.3499934077
-sample out 0.3599933982
-sample out 0.3699933887
-sample out 0.3799933791
-sample out 0.3899933696
-sample out 0.3999933600
-sample out 0.4099933505
-sample out 0.4199933410
-sample out 0.4299933314
-sample out 0.4399933219
-sample out 0.4499933124
-sample out 0.4599933028
-sample out 0.4699932933
-sample out 0.4799932837
-sample out 0.4899932742
-sample out 0.4999932647
-sample out 0.5099932551
-sample out 0.5199932456
+	 chan 0 out 0.2499940842
+	 chan 0 out 0.2599940896
+	 chan 0 out 0.2699940801
+	 chan 0 out 0.2799940705
+	 chan 0 out 0.2899940610
+	 chan 0 out 0.2999940515
+	 chan 0 out 0.3099940419
+	 chan 0 out 0.3199940324
+	 chan 0 out 0.3299940228
+	 chan 0 out 0.3399940133
+	 chan 0 out 0.3499940038
+	 chan 0 out 0.3599939942
+	 chan 0 out 0.3699939847
+	 chan 0 out 0.3799939752
+	 chan 0 out 0.3899939656
+	 chan 0 out 0.3999939561
+	 chan 0 out 0.4099939466
+	 chan 0 out 0.4199939370
+	 chan 0 out 0.4299939275
+	 chan 0 out 0.4399939179
+	 chan 0 out 0.4499939084
+	 chan 0 out 0.4599938989
+	 chan 0 out 0.4699938893
+	 chan 0 out 0.4799938798
+	 chan 0 out 0.4899938703
+	 chan 0 out 0.4999938607
+	 chan 0 out 0.5099938512
+	 chan 0 out 0.5199938416
+	 chan 0 out 0.5299938321
+	 chan 0 out 0.5399938226
+	 chan 0 out 0.5499938130
+	 chan 0 out 0.5599938035
+	 chan 0 out 0.5699937940
+	 chan 0 out 0.5799937844
+	 chan 0 out 0.5899937749
+	 chan 0 out 0.5999937654
+	 chan 0 out 0.6099937558
+	 chan 0 out 0.6199937463
+	 chan 0 out 0.6299937367
+	 chan 0 out 0.6399937272
+	 chan 0 out 0.6499937177
+	 chan 0 out 0.6599937081
+	 chan 0 out 0.6699936986
+	 chan 0 out 0.6799936891
+	 chan 0 out 0.6899936795
+	 chan 0 out 0.6999936700
+	 chan 0 out 0.7099936604
+	 chan 0 out 0.7199936509
+	 chan 0 out 0.7299936414
+	 chan 0 out 0.7399936318
+	 chan 0 out 0.7499936223
+	 chan 0 out 0.7599936128
+	 chan 0 out 0.7699936032
+	 chan 0 out 0.7799935937
+	 chan 0 out 0.7899935842
+	 chan 0 out 0.7999935746
+	 chan 0 out 0.8099935651
+	 chan 0 out 0.8199935555
+	 chan 0 out 0.8299935460
+	 chan 0 out 0.8399935365
+	 chan 0 out 0.8499935269
+	 chan 0 out 0.8599935174
+	 chan 0 out 0.8699935079
+	 chan 0 out 0.8799934983
+	 chan 0 out 0.8899934888
+	 chan 0 out 0.8999934793
+	 chan 0 out 0.9099934697
+	 chan 0 out 0.9199934602
+	 chan 0 out 0.9299934506
+	 chan 0 out 0.9399934411
+	 chan 0 out 0.9499934316
+	 chan 0 out 0.9599934220
+	 chan 0 out 0.9699934125
+	 chan 0 out 0.9799934030
+	 chan 0 out 0.9899933934
+	 chan 0 out 0.9999933839
+	 chan 0 out 0.0099934340
+	 chan 0 out 0.0199934337
+	 chan 0 out 0.0299934335
+	 chan 0 out 0.0399934351
+	 chan 0 out 0.0499934331
+	 chan 0 out 0.0599934310
+	 chan 0 out 0.0699934289
+	 chan 0 out 0.0799934268
+	 chan 0 out 0.0899934247
+	 chan 0 out 0.0999934226
+	 chan 0 out 0.1099934205
+	 chan 0 out 0.1199934185
+	 chan 0 out 0.1299934238
+	 chan 0 out 0.1399934292
+	 chan 0 out 0.1499934345
+	 chan 0 out 0.1599934399
+	 chan 0 out 0.1699934453
+	 chan 0 out 0.1799934506
+	 chan 0 out 0.1899934560
+	 chan 0 out 0.1999934614
+	 chan 0 out 0.2099934667
+	 chan 0 out 0.2199934721
+	 chan 0 out 0.2299934775
+	 chan 0 out 0.2399934828
+	 chan 0 out 0.2499934882
+	 chan 0 out 0.2599934936
+	 chan 0 out 0.2699934840
+	 chan 0 out 0.2799934745
+	 chan 0 out 0.2899934649
+	 chan 0 out 0.2999934554
+	 chan 0 out 0.3099934459
+	 chan 0 out 0.3199934363
+	 chan 0 out 0.3299934268
+	 chan 0 out 0.3399934173
+	 chan 0 out 0.3499934077
+	 chan 0 out 0.3599933982
+	 chan 0 out 0.3699933887
+	 chan 0 out 0.3799933791
+	 chan 0 out 0.3899933696
+	 chan 0 out 0.3999933600
+	 chan 0 out 0.4099933505
+	 chan 0 out 0.4199933410
+	 chan 0 out 0.4299933314
+	 chan 0 out 0.4399933219
+	 chan 0 out 0.4499933124
+	 chan 0 out 0.4599933028
+	 chan 0 out 0.4699932933
+	 chan 0 out 0.4799932837
+	 chan 0 out 0.4899932742
+	 chan 0 out 0.4999932647
+	 chan 0 out 0.5099932551
+	 chan 0 out 0.5199932456
 Render one buffer
-sample out 0.5299932361
-sample out 0.5399932265
-sample out 0.5499932170
-sample out 0.5599932075
-sample out 0.5699931979
-sample out 0.5799931884
-sample out 0.5899931788
-sample out 0.5999931693
-sample out 0.6099931598
-sample out 0.6199931502
-sample out 0.6299931407
-sample out 0.6399931312
-sample out 0.6499931216
-sample out 0.6599931121
-sample out 0.6699931026
-sample out 0.6799930930
-sample out 0.6899930835
-sample out 0.6999930739
-sample out 0.7099930644
-sample out 0.7199930549
-sample out 0.7299930453
-sample out 0.7399930358
-sample out 0.7499930263
-sample out 0.7599930167
-sample out 0.7699930072
-sample out 0.7799929976
-sample out 0.7899929881
-sample out 0.7999929786
-sample out 0.8099929690
-sample out 0.8199929595
-sample out 0.8299929500
-sample out 0.8399929404
-sample out 0.8499929309
-sample out 0.8599929214
-sample out 0.8699929118
-sample out 0.8799929023
-sample out 0.8899928927
-sample out 0.8999928832
-sample out 0.9099928737
-sample out 0.9199928641
-sample out 0.9299928546
-sample out 0.9399928451
-sample out 0.9499928355
-sample out 0.9599928260
-sample out 0.9699928164
-sample out 0.9799928069
-sample out 0.9899927974
-sample out 0.9999927878
-sample out 0.0099928379
-sample out 0.0199928377
-sample out 0.0299928375
-sample out 0.0399928391
-sample out 0.0499928370
-sample out 0.0599928349
-sample out 0.0699928328
-sample out 0.0799928308
-sample out 0.0899928287
-sample out 0.0999928266
-sample out 0.1099928245
-sample out 0.1199928224
-sample out 0.1299928278
-sample out 0.1399928331
-sample out 0.1499928385
-sample out 0.1599928439
-sample out 0.1699928492
-sample out 0.1799928546
-sample out 0.1899928600
-sample out 0.1999928653
-sample out 0.2099928707
-sample out 0.2199928761
-sample out 0.2299928814
-sample out 0.2399928868
-sample out 0.2499928921
-sample out 0.2599928975
-sample out 0.2699928880
-sample out 0.2799928784
-sample out 0.2899928689
-sample out 0.2999928594
-sample out 0.3099928498
-sample out 0.3199928403
-sample out 0.3299928308
-sample out 0.3399928212
-sample out 0.3499928117
-sample out 0.3599928021
-sample out 0.3699927926
-sample out 0.3799927831
-sample out 0.3899927735
-sample out 0.3999927640
-sample out 0.4099927545
-sample out 0.4199927449
-sample out 0.4299927354
-sample out 0.4399927258
-sample out 0.4499927163
-sample out 0.4599927068
-sample out 0.4699926972
-sample out 0.4799926877
-sample out 0.4899926782
-sample out 0.4999926686
-sample out 0.5099926591
-sample out 0.5199926496
-sample out 0.5299926400
-sample out 0.5399926305
-sample out 0.5499926209
-sample out 0.5599926114
-sample out 0.5699926019
-sample out 0.5799925923
-sample out 0.5899925828
-sample out 0.5999925733
-sample out 0.6099925637
-sample out 0.6199925542
-sample out 0.6299925447
-sample out 0.6399925351
-sample out 0.6499925256
-sample out 0.6599925160
-sample out 0.6699925065
-sample out 0.6799924970
-sample out 0.6899924874
-sample out 0.6999924779
-sample out 0.7099924684
-sample out 0.7199924588
-sample out 0.7299924493
-sample out 0.7399924397
-sample out 0.7499924302
-sample out 0.7599924207
-sample out 0.7699924111
-sample out 0.7799924016
-sample out 0.7899923921
-sample out 0.7999923825
+	 chan 0 out 0.5299932361
+	 chan 0 out 0.5399932265
+	 chan 0 out 0.5499932170
+	 chan 0 out 0.5599932075
+	 chan 0 out 0.5699931979
+	 chan 0 out 0.5799931884
+	 chan 0 out 0.5899931788
+	 chan 0 out 0.5999931693
+	 chan 0 out 0.6099931598
+	 chan 0 out 0.6199931502
+	 chan 0 out 0.6299931407
+	 chan 0 out 0.6399931312
+	 chan 0 out 0.6499931216
+	 chan 0 out 0.6599931121
+	 chan 0 out 0.6699931026
+	 chan 0 out 0.6799930930
+	 chan 0 out 0.6899930835
+	 chan 0 out 0.6999930739
+	 chan 0 out 0.7099930644
+	 chan 0 out 0.7199930549
+	 chan 0 out 0.7299930453
+	 chan 0 out 0.7399930358
+	 chan 0 out 0.7499930263
+	 chan 0 out 0.7599930167
+	 chan 0 out 0.7699930072
+	 chan 0 out 0.7799929976
+	 chan 0 out 0.7899929881
+	 chan 0 out 0.7999929786
+	 chan 0 out 0.8099929690
+	 chan 0 out 0.8199929595
+	 chan 0 out 0.8299929500
+	 chan 0 out 0.8399929404
+	 chan 0 out 0.8499929309
+	 chan 0 out 0.8599929214
+	 chan 0 out 0.8699929118
+	 chan 0 out 0.8799929023
+	 chan 0 out 0.8899928927
+	 chan 0 out 0.8999928832
+	 chan 0 out 0.9099928737
+	 chan 0 out 0.9199928641
+	 chan 0 out 0.9299928546
+	 chan 0 out 0.9399928451
+	 chan 0 out 0.9499928355
+	 chan 0 out 0.9599928260
+	 chan 0 out 0.9699928164
+	 chan 0 out 0.9799928069
+	 chan 0 out 0.9899927974
+	 chan 0 out 0.9999927878
+	 chan 0 out 0.0099928379
+	 chan 0 out 0.0199928377
+	 chan 0 out 0.0299928375
+	 chan 0 out 0.0399928391
+	 chan 0 out 0.0499928370
+	 chan 0 out 0.0599928349
+	 chan 0 out 0.0699928328
+	 chan 0 out 0.0799928308
+	 chan 0 out 0.0899928287
+	 chan 0 out 0.0999928266
+	 chan 0 out 0.1099928245
+	 chan 0 out 0.1199928224
+	 chan 0 out 0.1299928278
+	 chan 0 out 0.1399928331
+	 chan 0 out 0.1499928385
+	 chan 0 out 0.1599928439
+	 chan 0 out 0.1699928492
+	 chan 0 out 0.1799928546
+	 chan 0 out 0.1899928600
+	 chan 0 out 0.1999928653
+	 chan 0 out 0.2099928707
+	 chan 0 out 0.2199928761
+	 chan 0 out 0.2299928814
+	 chan 0 out 0.2399928868
+	 chan 0 out 0.2499928921
+	 chan 0 out 0.2599928975
+	 chan 0 out 0.2699928880
+	 chan 0 out 0.2799928784
+	 chan 0 out 0.2899928689
+	 chan 0 out 0.2999928594
+	 chan 0 out 0.3099928498
+	 chan 0 out 0.3199928403
+	 chan 0 out 0.3299928308
+	 chan 0 out 0.3399928212
+	 chan 0 out 0.3499928117
+	 chan 0 out 0.3599928021
+	 chan 0 out 0.3699927926
+	 chan 0 out 0.3799927831
+	 chan 0 out 0.3899927735
+	 chan 0 out 0.3999927640
+	 chan 0 out 0.4099927545
+	 chan 0 out 0.4199927449
+	 chan 0 out 0.4299927354
+	 chan 0 out 0.4399927258
+	 chan 0 out 0.4499927163
+	 chan 0 out 0.4599927068
+	 chan 0 out 0.4699926972
+	 chan 0 out 0.4799926877
+	 chan 0 out 0.4899926782
+	 chan 0 out 0.4999926686
+	 chan 0 out 0.5099926591
+	 chan 0 out 0.5199926496
+	 chan 0 out 0.5299926400
+	 chan 0 out 0.5399926305
+	 chan 0 out 0.5499926209
+	 chan 0 out 0.5599926114
+	 chan 0 out 0.5699926019
+	 chan 0 out 0.5799925923
+	 chan 0 out 0.5899925828
+	 chan 0 out 0.5999925733
+	 chan 0 out 0.6099925637
+	 chan 0 out 0.6199925542
+	 chan 0 out 0.6299925447
+	 chan 0 out 0.6399925351
+	 chan 0 out 0.6499925256
+	 chan 0 out 0.6599925160
+	 chan 0 out 0.6699925065
+	 chan 0 out 0.6799924970
+	 chan 0 out 0.6899924874
+	 chan 0 out 0.6999924779
+	 chan 0 out 0.7099924684
+	 chan 0 out 0.7199924588
+	 chan 0 out 0.7299924493
+	 chan 0 out 0.7399924397
+	 chan 0 out 0.7499924302
+	 chan 0 out 0.7599924207
+	 chan 0 out 0.7699924111
+	 chan 0 out 0.7799924016
+	 chan 0 out 0.7899923921
+	 chan 0 out 0.7999923825
 ins 0
 outs 1
 Render one buffer
-sample out 0.8099923730
-sample out 0.8199923635
-sample out 0.8299923539
-sample out 0.8399923444
-sample out 0.8499923348
-sample out 0.8599923253
-sample out 0.8699923158
-sample out 0.8799923062
-sample out 0.8899922967
-sample out 0.8999922872
-sample out 0.9099922776
-sample out 0.9199922681
-sample out 0.9299922585
-sample out 0.9399922490
-sample out 0.9499922395
-sample out 0.9599922299
-sample out 0.9699922204
-sample out 0.9799922109
-sample out 0.9899922013
-sample out 0.9999921918
-sample out 0.0099922419
-sample out 0.0199922416
-sample out 0.0299922414
-sample out 0.0399922431
-sample out 0.0499922410
-sample out 0.0599922389
-sample out 0.0699922368
-sample out 0.0799922347
-sample out 0.0899922326
-sample out 0.0999922305
-sample out 0.1099922284
-sample out 0.1199922264
-sample out 0.1299922317
-sample out 0.1399922371
-sample out 0.1499922425
-sample out 0.1599922478
-sample out 0.1699922532
-sample out 0.1799922585
-sample out 0.1899922639
-sample out 0.1999922693
-sample out 0.2099922746
-sample out 0.2199922800
-sample out 0.2299922854
-sample out 0.2399922907
-sample out 0.2499922961
-sample out 0.2599923015
-sample out 0.2699922919
-sample out 0.2799922824
-sample out 0.2899922729
-sample out 0.2999922633
-sample out 0.3099922538
-sample out 0.3199922442
-sample out 0.3299922347
-sample out 0.3399922252
-sample out 0.3499922156
-sample out 0.3599922061
-sample out 0.3699921966
-sample out 0.3799921870
-sample out 0.3899921775
-sample out 0.3999921679
-sample out 0.4099921584
-sample out 0.4199921489
-sample out 0.4299921393
-sample out 0.4399921298
-sample out 0.4499921203
-sample out 0.4599921107
-sample out 0.4699921012
-sample out 0.4799920917
-sample out 0.4899920821
-sample out 0.4999920726
-sample out 0.5099920630
-sample out 0.5199920535
-sample out 0.5299920440
-sample out 0.5399920344
-sample out 0.5499920249
-sample out 0.5599920154
-sample out 0.5699920058
-sample out 0.5799919963
-sample out 0.5899919868
-sample out 0.5999919772
-sample out 0.6099919677
-sample out 0.6199919581
-sample out 0.6299919486
-sample out 0.6399919391
-sample out 0.6499919295
-sample out 0.6599919200
-sample out 0.6699919105
-sample out 0.6799919009
-sample out 0.6899918914
-sample out 0.6999918818
-sample out 0.7099918723
-sample out 0.7199918628
-sample out 0.7299918532
-sample out 0.7399918437
-sample out 0.7499918342
-sample out 0.7599918246
-sample out 0.7699918151
-sample out 0.7799918056
-sample out 0.7899917960
-sample out 0.7999917865
-sample out 0.8099917769
-sample out 0.8199917674
-sample out 0.8299917579
-sample out 0.8399917483
-sample out 0.8499917388
-sample out 0.8599917293
-sample out 0.8699917197
-sample out 0.8799917102
-sample out 0.8899917006
-sample out 0.8999916911
-sample out 0.9099916816
-sample out 0.9199916720
-sample out 0.9299916625
-sample out 0.9399916530
-sample out 0.9499916434
-sample out 0.9599916339
-sample out 0.9699916244
-sample out 0.9799916148
-sample out 0.9899916053
-sample out 0.9999915957
-sample out 0.0099916458
-sample out 0.0199916456
-sample out 0.0299916454
-sample out 0.0399916470
-sample out 0.0499916449
-sample out 0.0599916428
-sample out 0.0699916407
-sample out 0.0799916387
+	 chan 0 out 0.8099923730
+	 chan 0 out 0.8199923635
+	 chan 0 out 0.8299923539
+	 chan 0 out 0.8399923444
+	 chan 0 out 0.8499923348
+	 chan 0 out 0.8599923253
+	 chan 0 out 0.8699923158
+	 chan 0 out 0.8799923062
+	 chan 0 out 0.8899922967
+	 chan 0 out 0.8999922872
+	 chan 0 out 0.9099922776
+	 chan 0 out 0.9199922681
+	 chan 0 out 0.9299922585
+	 chan 0 out 0.9399922490
+	 chan 0 out 0.9499922395
+	 chan 0 out 0.9599922299
+	 chan 0 out 0.9699922204
+	 chan 0 out 0.9799922109
+	 chan 0 out 0.9899922013
+	 chan 0 out 0.9999921918
+	 chan 0 out 0.0099922419
+	 chan 0 out 0.0199922416
+	 chan 0 out 0.0299922414
+	 chan 0 out 0.0399922431
+	 chan 0 out 0.0499922410
+	 chan 0 out 0.0599922389
+	 chan 0 out 0.0699922368
+	 chan 0 out 0.0799922347
+	 chan 0 out 0.0899922326
+	 chan 0 out 0.0999922305
+	 chan 0 out 0.1099922284
+	 chan 0 out 0.1199922264
+	 chan 0 out 0.1299922317
+	 chan 0 out 0.1399922371
+	 chan 0 out 0.1499922425
+	 chan 0 out 0.1599922478
+	 chan 0 out 0.1699922532
+	 chan 0 out 0.1799922585
+	 chan 0 out 0.1899922639
+	 chan 0 out 0.1999922693
+	 chan 0 out 0.2099922746
+	 chan 0 out 0.2199922800
+	 chan 0 out 0.2299922854
+	 chan 0 out 0.2399922907
+	 chan 0 out 0.2499922961
+	 chan 0 out 0.2599923015
+	 chan 0 out 0.2699922919
+	 chan 0 out 0.2799922824
+	 chan 0 out 0.2899922729
+	 chan 0 out 0.2999922633
+	 chan 0 out 0.3099922538
+	 chan 0 out 0.3199922442
+	 chan 0 out 0.3299922347
+	 chan 0 out 0.3399922252
+	 chan 0 out 0.3499922156
+	 chan 0 out 0.3599922061
+	 chan 0 out 0.3699921966
+	 chan 0 out 0.3799921870
+	 chan 0 out 0.3899921775
+	 chan 0 out 0.3999921679
+	 chan 0 out 0.4099921584
+	 chan 0 out 0.4199921489
+	 chan 0 out 0.4299921393
+	 chan 0 out 0.4399921298
+	 chan 0 out 0.4499921203
+	 chan 0 out 0.4599921107
+	 chan 0 out 0.4699921012
+	 chan 0 out 0.4799920917
+	 chan 0 out 0.4899920821
+	 chan 0 out 0.4999920726
+	 chan 0 out 0.5099920630
+	 chan 0 out 0.5199920535
+	 chan 0 out 0.5299920440
+	 chan 0 out 0.5399920344
+	 chan 0 out 0.5499920249
+	 chan 0 out 0.5599920154
+	 chan 0 out 0.5699920058
+	 chan 0 out 0.5799919963
+	 chan 0 out 0.5899919868
+	 chan 0 out 0.5999919772
+	 chan 0 out 0.6099919677
+	 chan 0 out 0.6199919581
+	 chan 0 out 0.6299919486
+	 chan 0 out 0.6399919391
+	 chan 0 out 0.6499919295
+	 chan 0 out 0.6599919200
+	 chan 0 out 0.6699919105
+	 chan 0 out 0.6799919009
+	 chan 0 out 0.6899918914
+	 chan 0 out 0.6999918818
+	 chan 0 out 0.7099918723
+	 chan 0 out 0.7199918628
+	 chan 0 out 0.7299918532
+	 chan 0 out 0.7399918437
+	 chan 0 out 0.7499918342
+	 chan 0 out 0.7599918246
+	 chan 0 out 0.7699918151
+	 chan 0 out 0.7799918056
+	 chan 0 out 0.7899917960
+	 chan 0 out 0.7999917865
+	 chan 0 out 0.8099917769
+	 chan 0 out 0.8199917674
+	 chan 0 out 0.8299917579
+	 chan 0 out 0.8399917483
+	 chan 0 out 0.8499917388
+	 chan 0 out 0.8599917293
+	 chan 0 out 0.8699917197
+	 chan 0 out 0.8799917102
+	 chan 0 out 0.8899917006
+	 chan 0 out 0.8999916911
+	 chan 0 out 0.9099916816
+	 chan 0 out 0.9199916720
+	 chan 0 out 0.9299916625
+	 chan 0 out 0.9399916530
+	 chan 0 out 0.9499916434
+	 chan 0 out 0.9599916339
+	 chan 0 out 0.9699916244
+	 chan 0 out 0.9799916148
+	 chan 0 out 0.9899916053
+	 chan 0 out 0.9999915957
+	 chan 0 out 0.0099916458
+	 chan 0 out 0.0199916456
+	 chan 0 out 0.0299916454
+	 chan 0 out 0.0399916470
+	 chan 0 out 0.0499916449
+	 chan 0 out 0.0599916428
+	 chan 0 out 0.0699916407
+	 chan 0 out 0.0799916387
 Render one buffer
-sample out 0.0899916366
-sample out 0.0999916345
-sample out 0.1099916324
-sample out 0.1199916303
-sample out 0.1299916357
-sample out 0.1399916410
-sample out 0.1499916464
-sample out 0.1599916518
-sample out 0.1699916571
-sample out 0.1799916625
-sample out 0.1899916679
-sample out 0.1999916732
-sample out 0.2099916786
-sample out 0.2199916840
-sample out 0.2299916893
-sample out 0.2399916947
-sample out 0.2499917001
-sample out 0.2599917054
-sample out 0.2699916959
-sample out 0.2799916863
-sample out 0.2899916768
-sample out 0.2999916673
-sample out 0.3099916577
-sample out 0.3199916482
-sample out 0.3299916387
-sample out 0.3399916291
-sample out 0.3499916196
-sample out 0.3599916101
-sample out 0.3699916005
-sample out 0.3799915910
-sample out 0.3899915814
-sample out 0.3999915719
-sample out 0.4099915624
-sample out 0.4199915528
-sample out 0.4299915433
-sample out 0.4399915338
-sample out 0.4499915242
-sample out 0.4599915147
-sample out 0.4699915051
-sample out 0.4799914956
-sample out 0.4899914861
-sample out 0.4999914765
-sample out 0.5099914670
-sample out 0.5199914575
-sample out 0.5299914479
-sample out 0.5399914384
-sample out 0.5499914289
-sample out 0.5599914193
-sample out 0.5699914098
-sample out 0.5799914002
-sample out 0.5899913907
-sample out 0.5999913812
-sample out 0.6099913716
-sample out 0.6199913621
-sample out 0.6299913526
-sample out 0.6399913430
-sample out 0.6499913335
-sample out 0.6599913239
-sample out 0.6699913144
-sample out 0.6799913049
-sample out 0.6899912953
-sample out 0.6999912858
-sample out 0.7099912763
-sample out 0.7199912667
-sample out 0.7299912572
-sample out 0.7399912477
-sample out 0.7499912381
-sample out 0.7599912286
-sample out 0.7699912190
-sample out 0.7799912095
-sample out 0.7899912000
-sample out 0.7999911904
-sample out 0.8099911809
-sample out 0.8199911714
-sample out 0.8299911618
-sample out 0.8399911523
-sample out 0.8499911427
-sample out 0.8599911332
-sample out 0.8699911237
-sample out 0.8799911141
-sample out 0.8899911046
-sample out 0.8999910951
-sample out 0.9099910855
-sample out 0.9199910760
-sample out 0.9299910665
-sample out 0.9399910569
-sample out 0.9499910474
-sample out 0.9599910378
-sample out 0.9699910283
-sample out 0.9799910188
-sample out 0.9899910092
-sample out 0.9999909997
-sample out 0.0099910498
-sample out 0.0199910495
-sample out 0.0299910493
-sample out 0.0399910510
-sample out 0.0499910489
-sample out 0.0599910468
-sample out 0.0699910447
-sample out 0.0799910426
-sample out 0.0899910405
-sample out 0.0999910384
-sample out 0.1099910364
-sample out 0.1199910343
-sample out 0.1299910396
-sample out 0.1399910450
-sample out 0.1499910504
-sample out 0.1599910557
-sample out 0.1699910611
-sample out 0.1799910665
-sample out 0.1899910718
-sample out 0.1999910772
-sample out 0.2099910825
-sample out 0.2199910879
-sample out 0.2299910933
-sample out 0.2399910986
-sample out 0.2499911040
-sample out 0.2599911094
-sample out 0.2699910998
-sample out 0.2799910903
-sample out 0.2899910808
-sample out 0.2999910712
-sample out 0.3099910617
-sample out 0.3199910522
-sample out 0.3299910426
-sample out 0.3399910331
-sample out 0.3499910235
-sample out 0.3599910140
+	 chan 0 out 0.0899916366
+	 chan 0 out 0.0999916345
+	 chan 0 out 0.1099916324
+	 chan 0 out 0.1199916303
+	 chan 0 out 0.1299916357
+	 chan 0 out 0.1399916410
+	 chan 0 out 0.1499916464
+	 chan 0 out 0.1599916518
+	 chan 0 out 0.1699916571
+	 chan 0 out 0.1799916625
+	 chan 0 out 0.1899916679
+	 chan 0 out 0.1999916732
+	 chan 0 out 0.2099916786
+	 chan 0 out 0.2199916840
+	 chan 0 out 0.2299916893
+	 chan 0 out 0.2399916947
+	 chan 0 out 0.2499917001
+	 chan 0 out 0.2599917054
+	 chan 0 out 0.2699916959
+	 chan 0 out 0.2799916863
+	 chan 0 out 0.2899916768
+	 chan 0 out 0.2999916673
+	 chan 0 out 0.3099916577
+	 chan 0 out 0.3199916482
+	 chan 0 out 0.3299916387
+	 chan 0 out 0.3399916291
+	 chan 0 out 0.3499916196
+	 chan 0 out 0.3599916101
+	 chan 0 out 0.3699916005
+	 chan 0 out 0.3799915910
+	 chan 0 out 0.3899915814
+	 chan 0 out 0.3999915719
+	 chan 0 out 0.4099915624
+	 chan 0 out 0.4199915528
+	 chan 0 out 0.4299915433
+	 chan 0 out 0.4399915338
+	 chan 0 out 0.4499915242
+	 chan 0 out 0.4599915147
+	 chan 0 out 0.4699915051
+	 chan 0 out 0.4799914956
+	 chan 0 out 0.4899914861
+	 chan 0 out 0.4999914765
+	 chan 0 out 0.5099914670
+	 chan 0 out 0.5199914575
+	 chan 0 out 0.5299914479
+	 chan 0 out 0.5399914384
+	 chan 0 out 0.5499914289
+	 chan 0 out 0.5599914193
+	 chan 0 out 0.5699914098
+	 chan 0 out 0.5799914002
+	 chan 0 out 0.5899913907
+	 chan 0 out 0.5999913812
+	 chan 0 out 0.6099913716
+	 chan 0 out 0.6199913621
+	 chan 0 out 0.6299913526
+	 chan 0 out 0.6399913430
+	 chan 0 out 0.6499913335
+	 chan 0 out 0.6599913239
+	 chan 0 out 0.6699913144
+	 chan 0 out 0.6799913049
+	 chan 0 out 0.6899912953
+	 chan 0 out 0.6999912858
+	 chan 0 out 0.7099912763
+	 chan 0 out 0.7199912667
+	 chan 0 out 0.7299912572
+	 chan 0 out 0.7399912477
+	 chan 0 out 0.7499912381
+	 chan 0 out 0.7599912286
+	 chan 0 out 0.7699912190
+	 chan 0 out 0.7799912095
+	 chan 0 out 0.7899912000
+	 chan 0 out 0.7999911904
+	 chan 0 out 0.8099911809
+	 chan 0 out 0.8199911714
+	 chan 0 out 0.8299911618
+	 chan 0 out 0.8399911523
+	 chan 0 out 0.8499911427
+	 chan 0 out 0.8599911332
+	 chan 0 out 0.8699911237
+	 chan 0 out 0.8799911141
+	 chan 0 out 0.8899911046
+	 chan 0 out 0.8999910951
+	 chan 0 out 0.9099910855
+	 chan 0 out 0.9199910760
+	 chan 0 out 0.9299910665
+	 chan 0 out 0.9399910569
+	 chan 0 out 0.9499910474
+	 chan 0 out 0.9599910378
+	 chan 0 out 0.9699910283
+	 chan 0 out 0.9799910188
+	 chan 0 out 0.9899910092
+	 chan 0 out 0.9999909997
+	 chan 0 out 0.0099910498
+	 chan 0 out 0.0199910495
+	 chan 0 out 0.0299910493
+	 chan 0 out 0.0399910510
+	 chan 0 out 0.0499910489
+	 chan 0 out 0.0599910468
+	 chan 0 out 0.0699910447
+	 chan 0 out 0.0799910426
+	 chan 0 out 0.0899910405
+	 chan 0 out 0.0999910384
+	 chan 0 out 0.1099910364
+	 chan 0 out 0.1199910343
+	 chan 0 out 0.1299910396
+	 chan 0 out 0.1399910450
+	 chan 0 out 0.1499910504
+	 chan 0 out 0.1599910557
+	 chan 0 out 0.1699910611
+	 chan 0 out 0.1799910665
+	 chan 0 out 0.1899910718
+	 chan 0 out 0.1999910772
+	 chan 0 out 0.2099910825
+	 chan 0 out 0.2199910879
+	 chan 0 out 0.2299910933
+	 chan 0 out 0.2399910986
+	 chan 0 out 0.2499911040
+	 chan 0 out 0.2599911094
+	 chan 0 out 0.2699910998
+	 chan 0 out 0.2799910903
+	 chan 0 out 0.2899910808
+	 chan 0 out 0.2999910712
+	 chan 0 out 0.3099910617
+	 chan 0 out 0.3199910522
+	 chan 0 out 0.3299910426
+	 chan 0 out 0.3399910331
+	 chan 0 out 0.3499910235
+	 chan 0 out 0.3599910140
 Render one buffer
-sample out 0.3699910045
-sample out 0.3799909949
-sample out 0.3899909854
-sample out 0.3999909759
-sample out 0.4099909663
-sample out 0.4199909568
-sample out 0.4299909472
-sample out 0.4399909377
-sample out 0.4499909282
-sample out 0.4599909186
-sample out 0.4699909091
-sample out 0.4799908996
-sample out 0.4899908900
-sample out 0.4999908805
-sample out 0.5099908710
-sample out 0.5199908614
-sample out 0.5299908519
-sample out 0.5399908423
-sample out 0.5499908328
-sample out 0.5599908233
-sample out 0.5699908137
-sample out 0.5799908042
-sample out 0.5899907947
-sample out 0.5999907851
-sample out 0.6099907756
-sample out 0.6199907660
-sample out 0.6299907565
-sample out 0.6399907470
-sample out 0.6499907374
-sample out 0.6599907279
-sample out 0.6699907184
-sample out 0.6799907088
-sample out 0.6899906993
-sample out 0.6999906898
-sample out 0.7099906802
-sample out 0.7199906707
-sample out 0.7299906611
-sample out 0.7399906516
-sample out 0.7499906421
-sample out 0.7599906325
-sample out 0.7699906230
-sample out 0.7799906135
-sample out 0.7899906039
-sample out 0.7999905944
-sample out 0.8099905849
-sample out 0.8199905753
-sample out 0.8299905658
-sample out 0.8399905562
-sample out 0.8499905467
-sample out 0.8599905372
-sample out 0.8699905276
-sample out 0.8799905181
-sample out 0.8899905086
-sample out 0.8999904990
-sample out 0.9099904895
-sample out 0.9199904799
-sample out 0.9299904704
-sample out 0.9399904609
-sample out 0.9499904513
-sample out 0.9599904418
-sample out 0.9699904323
-sample out 0.9799904227
-sample out 0.9899904132
-sample out 0.9999904037
-sample out 0.0099904537
-sample out 0.0199904535
-sample out 0.0299904533
-sample out 0.0399904549
-sample out 0.0499904528
-sample out 0.0599904507
-sample out 0.0699904487
-sample out 0.0799904466
-sample out 0.0899904445
-sample out 0.0999904424
-sample out 0.1099904403
-sample out 0.1199904382
-sample out 0.1299904436
-sample out 0.1399904490
-sample out 0.1499904543
-sample out 0.1599904597
-sample out 0.1699904650
-sample out 0.1799904704
-sample out 0.1899904758
-sample out 0.1999904811
-sample out 0.2099904865
-sample out 0.2199904919
-sample out 0.2299904972
-sample out 0.2399905026
-sample out 0.2499905080
-sample out 0.2599905133
-sample out 0.2699905038
-sample out 0.2799904943
-sample out 0.2899904847
-sample out 0.2999904752
-sample out 0.3099904656
-sample out 0.3199904561
-sample out 0.3299904466
-sample out 0.3399904370
-sample out 0.3499904275
-sample out 0.3599904180
-sample out 0.3699904084
-sample out 0.3799903989
-sample out 0.3899903893
-sample out 0.3999903798
-sample out 0.4099903703
-sample out 0.4199903607
-sample out 0.4299903512
-sample out 0.4399903417
-sample out 0.4499903321
-sample out 0.4599903226
-sample out 0.4699903131
-sample out 0.4799903035
-sample out 0.4899902940
-sample out 0.4999902844
-sample out 0.5099902749
-sample out 0.5199902654
-sample out 0.5299902558
-sample out 0.5399902463
-sample out 0.5499902368
-sample out 0.5599902272
-sample out 0.5699902177
-sample out 0.5799902081
-sample out 0.5899901986
-sample out 0.5999901891
-sample out 0.6099901795
-sample out 0.6199901700
-sample out 0.6299901605
-sample out 0.6399901509
+	 chan 0 out 0.3699910045
+	 chan 0 out 0.3799909949
+	 chan 0 out 0.3899909854
+	 chan 0 out 0.3999909759
+	 chan 0 out 0.4099909663
+	 chan 0 out 0.4199909568
+	 chan 0 out 0.4299909472
+	 chan 0 out 0.4399909377
+	 chan 0 out 0.4499909282
+	 chan 0 out 0.4599909186
+	 chan 0 out 0.4699909091
+	 chan 0 out 0.4799908996
+	 chan 0 out 0.4899908900
+	 chan 0 out 0.4999908805
+	 chan 0 out 0.5099908710
+	 chan 0 out 0.5199908614
+	 chan 0 out 0.5299908519
+	 chan 0 out 0.5399908423
+	 chan 0 out 0.5499908328
+	 chan 0 out 0.5599908233
+	 chan 0 out 0.5699908137
+	 chan 0 out 0.5799908042
+	 chan 0 out 0.5899907947
+	 chan 0 out 0.5999907851
+	 chan 0 out 0.6099907756
+	 chan 0 out 0.6199907660
+	 chan 0 out 0.6299907565
+	 chan 0 out 0.6399907470
+	 chan 0 out 0.6499907374
+	 chan 0 out 0.6599907279
+	 chan 0 out 0.6699907184
+	 chan 0 out 0.6799907088
+	 chan 0 out 0.6899906993
+	 chan 0 out 0.6999906898
+	 chan 0 out 0.7099906802
+	 chan 0 out 0.7199906707
+	 chan 0 out 0.7299906611
+	 chan 0 out 0.7399906516
+	 chan 0 out 0.7499906421
+	 chan 0 out 0.7599906325
+	 chan 0 out 0.7699906230
+	 chan 0 out 0.7799906135
+	 chan 0 out 0.7899906039
+	 chan 0 out 0.7999905944
+	 chan 0 out 0.8099905849
+	 chan 0 out 0.8199905753
+	 chan 0 out 0.8299905658
+	 chan 0 out 0.8399905562
+	 chan 0 out 0.8499905467
+	 chan 0 out 0.8599905372
+	 chan 0 out 0.8699905276
+	 chan 0 out 0.8799905181
+	 chan 0 out 0.8899905086
+	 chan 0 out 0.8999904990
+	 chan 0 out 0.9099904895
+	 chan 0 out 0.9199904799
+	 chan 0 out 0.9299904704
+	 chan 0 out 0.9399904609
+	 chan 0 out 0.9499904513
+	 chan 0 out 0.9599904418
+	 chan 0 out 0.9699904323
+	 chan 0 out 0.9799904227
+	 chan 0 out 0.9899904132
+	 chan 0 out 0.9999904037
+	 chan 0 out 0.0099904537
+	 chan 0 out 0.0199904535
+	 chan 0 out 0.0299904533
+	 chan 0 out 0.0399904549
+	 chan 0 out 0.0499904528
+	 chan 0 out 0.0599904507
+	 chan 0 out 0.0699904487
+	 chan 0 out 0.0799904466
+	 chan 0 out 0.0899904445
+	 chan 0 out 0.0999904424
+	 chan 0 out 0.1099904403
+	 chan 0 out 0.1199904382
+	 chan 0 out 0.1299904436
+	 chan 0 out 0.1399904490
+	 chan 0 out 0.1499904543
+	 chan 0 out 0.1599904597
+	 chan 0 out 0.1699904650
+	 chan 0 out 0.1799904704
+	 chan 0 out 0.1899904758
+	 chan 0 out 0.1999904811
+	 chan 0 out 0.2099904865
+	 chan 0 out 0.2199904919
+	 chan 0 out 0.2299904972
+	 chan 0 out 0.2399905026
+	 chan 0 out 0.2499905080
+	 chan 0 out 0.2599905133
+	 chan 0 out 0.2699905038
+	 chan 0 out 0.2799904943
+	 chan 0 out 0.2899904847
+	 chan 0 out 0.2999904752
+	 chan 0 out 0.3099904656
+	 chan 0 out 0.3199904561
+	 chan 0 out 0.3299904466
+	 chan 0 out 0.3399904370
+	 chan 0 out 0.3499904275
+	 chan 0 out 0.3599904180
+	 chan 0 out 0.3699904084
+	 chan 0 out 0.3799903989
+	 chan 0 out 0.3899903893
+	 chan 0 out 0.3999903798
+	 chan 0 out 0.4099903703
+	 chan 0 out 0.4199903607
+	 chan 0 out 0.4299903512
+	 chan 0 out 0.4399903417
+	 chan 0 out 0.4499903321
+	 chan 0 out 0.4599903226
+	 chan 0 out 0.4699903131
+	 chan 0 out 0.4799903035
+	 chan 0 out 0.4899902940
+	 chan 0 out 0.4999902844
+	 chan 0 out 0.5099902749
+	 chan 0 out 0.5199902654
+	 chan 0 out 0.5299902558
+	 chan 0 out 0.5399902463
+	 chan 0 out 0.5499902368
+	 chan 0 out 0.5599902272
+	 chan 0 out 0.5699902177
+	 chan 0 out 0.5799902081
+	 chan 0 out 0.5899901986
+	 chan 0 out 0.5999901891
+	 chan 0 out 0.6099901795
+	 chan 0 out 0.6199901700
+	 chan 0 out 0.6299901605
+	 chan 0 out 0.6399901509
 Render one buffer
-sample out 0.6499901414
-sample out 0.6599901319
-sample out 0.6699901223
-sample out 0.6799901128
-sample out 0.6899901032
-sample out 0.6999900937
-sample out 0.7099900842
-sample out 0.7199900746
-sample out 0.7299900651
-sample out 0.7399900556
-sample out 0.7499900460
-sample out 0.7599900365
-sample out 0.7699900270
-sample out 0.7799900174
-sample out 0.7899900079
-sample out 0.7999899983
-sample out 0.8099899888
-sample out 0.8199899793
-sample out 0.8299899697
-sample out 0.8399899602
-sample out 0.8499899507
-sample out 0.8599899411
-sample out 0.8699899316
-sample out 0.8799899220
-sample out 0.8899899125
-sample out 0.8999899030
-sample out 0.9099898934
-sample out 0.9199898839
-sample out 0.9299898744
-sample out 0.9399898648
-sample out 0.9499898553
-sample out 0.9599898458
-sample out 0.9699898362
-sample out 0.9799898267
-sample out 0.9899898171
-sample out 0.9999898076
-sample out 0.0099898577
-sample out 0.0199898575
-sample out 0.0299898572
-sample out 0.0399898589
-sample out 0.0499898568
-sample out 0.0599898547
-sample out 0.0699898526
-sample out 0.0799898505
-sample out 0.0899898484
-sample out 0.0999898463
-sample out 0.1099898443
-sample out 0.1199898422
-sample out 0.1299898475
-sample out 0.1399898529
-sample out 0.1499898583
-sample out 0.1599898636
-sample out 0.1699898690
-sample out 0.1799898744
-sample out 0.1899898797
-sample out 0.1999898851
-sample out 0.2099898905
-sample out 0.2199898958
-sample out 0.2299899012
-sample out 0.2399899065
-sample out 0.2499899119
-sample out 0.2599899173
-sample out 0.2699899077
-sample out 0.2799898982
-sample out 0.2899898887
-sample out 0.2999898791
-sample out 0.3099898696
-sample out 0.3199898601
-sample out 0.3299898505
-sample out 0.3399898410
-sample out 0.3499898314
-sample out 0.3599898219
-sample out 0.3699898124
-sample out 0.3799898028
-sample out 0.3899897933
-sample out 0.3999897838
-sample out 0.4099897742
-sample out 0.4199897647
-sample out 0.4299897552
-sample out 0.4399897456
-sample out 0.4499897361
-sample out 0.4599897265
-sample out 0.4699897170
-sample out 0.4799897075
-sample out 0.4899896979
-sample out 0.4999896884
-sample out 0.5099896789
-sample out 0.5199896693
-sample out 0.5299896598
-sample out 0.5399896502
-sample out 0.5499896407
-sample out 0.5599896312
-sample out 0.5699896216
-sample out 0.5799896121
-sample out 0.5899896026
-sample out 0.5999895930
-sample out 0.6099895835
-sample out 0.6199895740
-sample out 0.6299895644
-sample out 0.6399895549
-sample out 0.6499895453
-sample out 0.6599895358
-sample out 0.6699895263
-sample out 0.6799895167
-sample out 0.6899895072
-sample out 0.6999894977
-sample out 0.7099894881
-sample out 0.7199894786
-sample out 0.7299894691
-sample out 0.7399894595
-sample out 0.7499894500
-sample out 0.7599894404
-sample out 0.7699894309
-sample out 0.7799894214
-sample out 0.7899894118
-sample out 0.7999894023
-sample out 0.8099893928
-sample out 0.8199893832
-sample out 0.8299893737
-sample out 0.8399893641
-sample out 0.8499893546
-sample out 0.8599893451
-sample out 0.8699893355
-sample out 0.8799893260
-sample out 0.8899893165
-sample out 0.8999893069
-sample out 0.9099892974
-sample out 0.9199892879
+	 chan 0 out 0.6499901414
+	 chan 0 out 0.6599901319
+	 chan 0 out 0.6699901223
+	 chan 0 out 0.6799901128
+	 chan 0 out 0.6899901032
+	 chan 0 out 0.6999900937
+	 chan 0 out 0.7099900842
+	 chan 0 out 0.7199900746
+	 chan 0 out 0.7299900651
+	 chan 0 out 0.7399900556
+	 chan 0 out 0.7499900460
+	 chan 0 out 0.7599900365
+	 chan 0 out 0.7699900270
+	 chan 0 out 0.7799900174
+	 chan 0 out 0.7899900079
+	 chan 0 out 0.7999899983
+	 chan 0 out 0.8099899888
+	 chan 0 out 0.8199899793
+	 chan 0 out 0.8299899697
+	 chan 0 out 0.8399899602
+	 chan 0 out 0.8499899507
+	 chan 0 out 0.8599899411
+	 chan 0 out 0.8699899316
+	 chan 0 out 0.8799899220
+	 chan 0 out 0.8899899125
+	 chan 0 out 0.8999899030
+	 chan 0 out 0.9099898934
+	 chan 0 out 0.9199898839
+	 chan 0 out 0.9299898744
+	 chan 0 out 0.9399898648
+	 chan 0 out 0.9499898553
+	 chan 0 out 0.9599898458
+	 chan 0 out 0.9699898362
+	 chan 0 out 0.9799898267
+	 chan 0 out 0.9899898171
+	 chan 0 out 0.9999898076
+	 chan 0 out 0.0099898577
+	 chan 0 out 0.0199898575
+	 chan 0 out 0.0299898572
+	 chan 0 out 0.0399898589
+	 chan 0 out 0.0499898568
+	 chan 0 out 0.0599898547
+	 chan 0 out 0.0699898526
+	 chan 0 out 0.0799898505
+	 chan 0 out 0.0899898484
+	 chan 0 out 0.0999898463
+	 chan 0 out 0.1099898443
+	 chan 0 out 0.1199898422
+	 chan 0 out 0.1299898475
+	 chan 0 out 0.1399898529
+	 chan 0 out 0.1499898583
+	 chan 0 out 0.1599898636
+	 chan 0 out 0.1699898690
+	 chan 0 out 0.1799898744
+	 chan 0 out 0.1899898797
+	 chan 0 out 0.1999898851
+	 chan 0 out 0.2099898905
+	 chan 0 out 0.2199898958
+	 chan 0 out 0.2299899012
+	 chan 0 out 0.2399899065
+	 chan 0 out 0.2499899119
+	 chan 0 out 0.2599899173
+	 chan 0 out 0.2699899077
+	 chan 0 out 0.2799898982
+	 chan 0 out 0.2899898887
+	 chan 0 out 0.2999898791
+	 chan 0 out 0.3099898696
+	 chan 0 out 0.3199898601
+	 chan 0 out 0.3299898505
+	 chan 0 out 0.3399898410
+	 chan 0 out 0.3499898314
+	 chan 0 out 0.3599898219
+	 chan 0 out 0.3699898124
+	 chan 0 out 0.3799898028
+	 chan 0 out 0.3899897933
+	 chan 0 out 0.3999897838
+	 chan 0 out 0.4099897742
+	 chan 0 out 0.4199897647
+	 chan 0 out 0.4299897552
+	 chan 0 out 0.4399897456
+	 chan 0 out 0.4499897361
+	 chan 0 out 0.4599897265
+	 chan 0 out 0.4699897170
+	 chan 0 out 0.4799897075
+	 chan 0 out 0.4899896979
+	 chan 0 out 0.4999896884
+	 chan 0 out 0.5099896789
+	 chan 0 out 0.5199896693
+	 chan 0 out 0.5299896598
+	 chan 0 out 0.5399896502
+	 chan 0 out 0.5499896407
+	 chan 0 out 0.5599896312
+	 chan 0 out 0.5699896216
+	 chan 0 out 0.5799896121
+	 chan 0 out 0.5899896026
+	 chan 0 out 0.5999895930
+	 chan 0 out 0.6099895835
+	 chan 0 out 0.6199895740
+	 chan 0 out 0.6299895644
+	 chan 0 out 0.6399895549
+	 chan 0 out 0.6499895453
+	 chan 0 out 0.6599895358
+	 chan 0 out 0.6699895263
+	 chan 0 out 0.6799895167
+	 chan 0 out 0.6899895072
+	 chan 0 out 0.6999894977
+	 chan 0 out 0.7099894881
+	 chan 0 out 0.7199894786
+	 chan 0 out 0.7299894691
+	 chan 0 out 0.7399894595
+	 chan 0 out 0.7499894500
+	 chan 0 out 0.7599894404
+	 chan 0 out 0.7699894309
+	 chan 0 out 0.7799894214
+	 chan 0 out 0.7899894118
+	 chan 0 out 0.7999894023
+	 chan 0 out 0.8099893928
+	 chan 0 out 0.8199893832
+	 chan 0 out 0.8299893737
+	 chan 0 out 0.8399893641
+	 chan 0 out 0.8499893546
+	 chan 0 out 0.8599893451
+	 chan 0 out 0.8699893355
+	 chan 0 out 0.8799893260
+	 chan 0 out 0.8899893165
+	 chan 0 out 0.8999893069
+	 chan 0 out 0.9099892974
+	 chan 0 out 0.9199892879
 Render one buffer
-sample out 0.9299892783
-sample out 0.9399892688
-sample out 0.9499892592
-sample out 0.9599892497
-sample out 0.9699892402
-sample out 0.9799892306
-sample out 0.9899892211
-sample out 0.9999892116
-sample out 0.0099892616
-sample out 0.0199892614
-sample out 0.0299892612
-sample out 0.0399892628
-sample out 0.0499892607
-sample out 0.0599892586
-sample out 0.0699892566
-sample out 0.0799892545
-sample out 0.0899892524
-sample out 0.0999892503
-sample out 0.1099892482
-sample out 0.1199892461
-sample out 0.1299892515
-sample out 0.1399892569
-sample out 0.1499892622
-sample out 0.1599892676
-sample out 0.1699892730
-sample out 0.1799892783
-sample out 0.1899892837
-sample out 0.1999892890
-sample out 0.2099892944
-sample out 0.2199892998
-sample out 0.2299893051
-sample out 0.2399893105
-sample out 0.2499893159
-sample out 0.2599893212
-sample out 0.2699893117
-sample out 0.2799893022
-sample out 0.2899892926
-sample out 0.2999892831
-sample out 0.3099892735
-sample out 0.3199892640
-sample out 0.3299892545
-sample out 0.3399892449
-sample out 0.3499892354
-sample out 0.3599892259
-sample out 0.3699892163
-sample out 0.3799892068
-sample out 0.3899891973
-sample out 0.3999891877
-sample out 0.4099891782
-sample out 0.4199891686
-sample out 0.4299891591
-sample out 0.4399891496
-sample out 0.4499891400
-sample out 0.4599891305
-sample out 0.4699891210
-sample out 0.4799891114
-sample out 0.4899891019
-sample out 0.4999890924
-sample out 0.5099890828
-sample out 0.5199890733
-sample out 0.5299890637
-sample out 0.5399890542
-sample out 0.5499890447
-sample out 0.5599890351
-sample out 0.5699890256
-sample out 0.5799890161
-sample out 0.5899890065
-sample out 0.5999889970
-sample out 0.6099889874
-sample out 0.6199889779
-sample out 0.6299889684
-sample out 0.6399889588
-sample out 0.6499889493
-sample out 0.6599889398
-sample out 0.6699889302
-sample out 0.6799889207
-sample out 0.6899889112
-sample out 0.6999889016
-sample out 0.7099888921
-sample out 0.7199888825
-sample out 0.7299888730
-sample out 0.7399888635
-sample out 0.7499888539
-sample out 0.7599888444
-sample out 0.7699888349
-sample out 0.7799888253
-sample out 0.7899888158
-sample out 0.7999888062
-sample out 0.8099887967
-sample out 0.8199887872
-sample out 0.8299887776
-sample out 0.8399887681
-sample out 0.8499887586
-sample out 0.8599887490
-sample out 0.8699887395
-sample out 0.8799887300
-sample out 0.8899887204
-sample out 0.8999887109
-sample out 0.9099887013
-sample out 0.9199886918
-sample out 0.9299886823
-sample out 0.9399886727
-sample out 0.9499886632
-sample out 0.9599886537
-sample out 0.9699886441
-sample out 0.9799886346
-sample out 0.9899886250
-sample out 0.9999886155
-sample out 0.0099886656
-sample out 0.0199886654
-sample out 0.0299886651
-sample out 0.0399886668
-sample out 0.0499886647
-sample out 0.0599886626
-sample out 0.0699886605
-sample out 0.0799886584
-sample out 0.0899886563
-sample out 0.0999886543
-sample out 0.1099886522
-sample out 0.1199886501
-sample out 0.1299886554
-sample out 0.1399886608
-sample out 0.1499886662
-sample out 0.1599886715
-sample out 0.1699886769
-sample out 0.1799886823
-sample out 0.1899886876
-sample out 0.1999886930
+	 chan 0 out 0.9299892783
+	 chan 0 out 0.9399892688
+	 chan 0 out 0.9499892592
+	 chan 0 out 0.9599892497
+	 chan 0 out 0.9699892402
+	 chan 0 out 0.9799892306
+	 chan 0 out 0.9899892211
+	 chan 0 out 0.9999892116
+	 chan 0 out 0.0099892616
+	 chan 0 out 0.0199892614
+	 chan 0 out 0.0299892612
+	 chan 0 out 0.0399892628
+	 chan 0 out 0.0499892607
+	 chan 0 out 0.0599892586
+	 chan 0 out 0.0699892566
+	 chan 0 out 0.0799892545
+	 chan 0 out 0.0899892524
+	 chan 0 out 0.0999892503
+	 chan 0 out 0.1099892482
+	 chan 0 out 0.1199892461
+	 chan 0 out 0.1299892515
+	 chan 0 out 0.1399892569
+	 chan 0 out 0.1499892622
+	 chan 0 out 0.1599892676
+	 chan 0 out 0.1699892730
+	 chan 0 out 0.1799892783
+	 chan 0 out 0.1899892837
+	 chan 0 out 0.1999892890
+	 chan 0 out 0.2099892944
+	 chan 0 out 0.2199892998
+	 chan 0 out 0.2299893051
+	 chan 0 out 0.2399893105
+	 chan 0 out 0.2499893159
+	 chan 0 out 0.2599893212
+	 chan 0 out 0.2699893117
+	 chan 0 out 0.2799893022
+	 chan 0 out 0.2899892926
+	 chan 0 out 0.2999892831
+	 chan 0 out 0.3099892735
+	 chan 0 out 0.3199892640
+	 chan 0 out 0.3299892545
+	 chan 0 out 0.3399892449
+	 chan 0 out 0.3499892354
+	 chan 0 out 0.3599892259
+	 chan 0 out 0.3699892163
+	 chan 0 out 0.3799892068
+	 chan 0 out 0.3899891973
+	 chan 0 out 0.3999891877
+	 chan 0 out 0.4099891782
+	 chan 0 out 0.4199891686
+	 chan 0 out 0.4299891591
+	 chan 0 out 0.4399891496
+	 chan 0 out 0.4499891400
+	 chan 0 out 0.4599891305
+	 chan 0 out 0.4699891210
+	 chan 0 out 0.4799891114
+	 chan 0 out 0.4899891019
+	 chan 0 out 0.4999890924
+	 chan 0 out 0.5099890828
+	 chan 0 out 0.5199890733
+	 chan 0 out 0.5299890637
+	 chan 0 out 0.5399890542
+	 chan 0 out 0.5499890447
+	 chan 0 out 0.5599890351
+	 chan 0 out 0.5699890256
+	 chan 0 out 0.5799890161
+	 chan 0 out 0.5899890065
+	 chan 0 out 0.5999889970
+	 chan 0 out 0.6099889874
+	 chan 0 out 0.6199889779
+	 chan 0 out 0.6299889684
+	 chan 0 out 0.6399889588
+	 chan 0 out 0.6499889493
+	 chan 0 out 0.6599889398
+	 chan 0 out 0.6699889302
+	 chan 0 out 0.6799889207
+	 chan 0 out 0.6899889112
+	 chan 0 out 0.6999889016
+	 chan 0 out 0.7099888921
+	 chan 0 out 0.7199888825
+	 chan 0 out 0.7299888730
+	 chan 0 out 0.7399888635
+	 chan 0 out 0.7499888539
+	 chan 0 out 0.7599888444
+	 chan 0 out 0.7699888349
+	 chan 0 out 0.7799888253
+	 chan 0 out 0.7899888158
+	 chan 0 out 0.7999888062
+	 chan 0 out 0.8099887967
+	 chan 0 out 0.8199887872
+	 chan 0 out 0.8299887776
+	 chan 0 out 0.8399887681
+	 chan 0 out 0.8499887586
+	 chan 0 out 0.8599887490
+	 chan 0 out 0.8699887395
+	 chan 0 out 0.8799887300
+	 chan 0 out 0.8899887204
+	 chan 0 out 0.8999887109
+	 chan 0 out 0.9099887013
+	 chan 0 out 0.9199886918
+	 chan 0 out 0.9299886823
+	 chan 0 out 0.9399886727
+	 chan 0 out 0.9499886632
+	 chan 0 out 0.9599886537
+	 chan 0 out 0.9699886441
+	 chan 0 out 0.9799886346
+	 chan 0 out 0.9899886250
+	 chan 0 out 0.9999886155
+	 chan 0 out 0.0099886656
+	 chan 0 out 0.0199886654
+	 chan 0 out 0.0299886651
+	 chan 0 out 0.0399886668
+	 chan 0 out 0.0499886647
+	 chan 0 out 0.0599886626
+	 chan 0 out 0.0699886605
+	 chan 0 out 0.0799886584
+	 chan 0 out 0.0899886563
+	 chan 0 out 0.0999886543
+	 chan 0 out 0.1099886522
+	 chan 0 out 0.1199886501
+	 chan 0 out 0.1299886554
+	 chan 0 out 0.1399886608
+	 chan 0 out 0.1499886662
+	 chan 0 out 0.1599886715
+	 chan 0 out 0.1699886769
+	 chan 0 out 0.1799886823
+	 chan 0 out 0.1899886876
+	 chan 0 out 0.1999886930
 ins 0
 outs 1
