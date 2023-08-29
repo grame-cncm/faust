@@ -47,7 +47,7 @@ aterm::aterm(Tree t)
 /**
  * Add two terms trying to simplify the result
  */
-static Tree simplifyingAdd(Tree t1, Tree t2)
+Tree simplifyingAdd(Tree t1, Tree t2)
 {
     faustassert(t1);
     faustassert(t2);
