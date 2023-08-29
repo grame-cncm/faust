@@ -44,7 +44,6 @@ using namespace std;
  which call 'control' only when needed (that is when as least one parameter changes)
  - 'compute' returns the list of audio outputs (and possibly additional audio outputs for bargraph)
  - workaround for some identifiers ending with a digit that have to be used with "this." syntax in 'update' function (see CodeboxLabelsVisitor printArgs/printArgsCall)
- - workaround for C++ generation bug when no audio inputs by adding an audio 'sig~ 0' input
  - MIDI support: https://rnbo.cycling74.com/learn/midi-in-rnbo, done in the architecture file, by creating MIDI messages specific
 handling objects (line 'ctlin/ctlout') and adding 'midiin/midiout' global objects in the main patch
  - polyphonic mode support: https://rnbo.cycling74.com/learn/polyphony-and-voice-management-in-rnbo, done in architecture file,
@@ -271,14 +270,7 @@ void CodeboxCodeContainer::produceClass()
     tab(n, *fOut);
     int total_outputs = fNumOutputs + fBargraph.fVariables.size();
     for (int out = 0; out < total_outputs; out++) {
-        // *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "];";
-        // Workaround for C++ generation bug when no audio inputs
-        // See: https://beta.cycling74.com/t/still-confused-on-how-to-use-parameters-in-rnbo-codebox-patches/1763/4
-        if (fNumInputs == 0) {
-            *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "] + in1*0;";
-        } else {
-            *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "];";
-        }
+        *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "];";
         tab(n, *fOut);
     }
 }
