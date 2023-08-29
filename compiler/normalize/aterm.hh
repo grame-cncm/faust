@@ -66,4 +66,6 @@ inline std::ostream& operator<<(std::ostream& s, const aterm& a)
     return a.print(s);
 }
 
+Tree simplifyingAdd(Tree t1, Tree t2);
+
 #endif

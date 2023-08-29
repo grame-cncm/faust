@@ -31,6 +31,7 @@
 #include "prim2.hh"
 #include "simplify.hh"
 #include "xtended.hh"
+#include "aterm.hh"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -537,7 +538,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
                     Tree exp = outsigs[dst - 1];
                     if ((src > 0) & (src <= ins)) {
                         // we have a source
-                        outsigs[dst - 1] = sigAdd(exp, lsig[src - 1]);
+                        outsigs[dst - 1] = simplifyingAdd(exp, lsig[src - 1]);
                     }
                 }
             }
