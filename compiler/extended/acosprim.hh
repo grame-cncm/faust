@@ -29,11 +29,11 @@ class AcosPrim : public xtended {
    public:
     AcosPrim() : xtended("acos") {}
 
-    virtual unsigned int arity() { return 1; }
+    virtual unsigned int arity() override { return 1; }
 
-    virtual bool needCache() { return true; }
-
-    virtual ::Type inferSigType(ConstTypes args)
+    virtual bool needCache() override { return true; } 
+ 
+    virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == 1);
         Type     t = args[0];
@@ -46,9 +46,9 @@ class AcosPrim : public xtended {
         return castInterval(floatCast(t), gAlgebra.Acos(i));
     }
 
-    virtual int inferSigOrder(const std::vector<int>& args) { return args[0]; }
+    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
-    virtual Tree computeSigOutput(const std::vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
         num n;
         if (isNum(args[0], n)) {
@@ -64,7 +64,7 @@ class AcosPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types)
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -72,7 +72,7 @@ class AcosPrim : public xtended {
         return generateFun(container, subst("acos$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -80,7 +80,7 @@ class AcosPrim : public xtended {
         return subst("acos$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

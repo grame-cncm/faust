@@ -29,11 +29,11 @@ class SqrtPrim : public xtended {
    public:
     SqrtPrim() : xtended("sqrt") {}
 
-    virtual unsigned int arity() { return 1; }
+    virtual unsigned int arity() override { return 1; }
 
-    virtual bool needCache() { return true; }
+    virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args)
+    virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == 1);
         Type     t = args[0];
@@ -50,9 +50,9 @@ class SqrtPrim : public xtended {
         return castInterval(floatCast(t), gAlgebra.Sqrt(i));
     }
 
-    virtual int inferSigOrder(const std::vector<int>& args) { return args[0]; }
+    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
-    virtual Tree computeSigOutput(const std::vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
         // check simplifications
         num n;
@@ -69,7 +69,7 @@ class SqrtPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types)
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -77,7 +77,7 @@ class SqrtPrim : public xtended {
         return generateFun(container, subst("sqrt$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -85,7 +85,7 @@ class SqrtPrim : public xtended {
         return subst("sqrt$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -93,7 +93,7 @@ class SqrtPrim : public xtended {
         return subst("\\sqrt{$0}", args[0]);
     }
     
-    virtual Tree diff(const std::vector<Tree>& args)
+    virtual Tree diff(const std::vector<Tree>& args) override
     {
         // (x^{1/2})' =  1/2 * x^{-1/2}
         return sigMul(sigReal(0.5), sigPow(args[0], sigReal(-0.5)));

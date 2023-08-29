@@ -30,11 +30,11 @@ class RemainderPrim : public xtended {
    public:
     RemainderPrim() : xtended("remainder") {}
 
-    virtual unsigned int arity() { return 2; }
+    virtual unsigned int arity() override { return 2; }
 
-    virtual bool needCache() { return true; }
+    virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args)
+    virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == arity());
 
@@ -49,13 +49,13 @@ class RemainderPrim : public xtended {
         return castInterval(floatCast(args[0] | args[1]), gAlgebra.Remainder(i));  // temporary rule !!!
     }
 
-    virtual int inferSigOrder(const std::vector<int>& args)
+    virtual int inferSigOrder(const std::vector<int>& args) override
     {
         faustassert(args.size() == arity());
         return std::max(args[0], args[1]);
     }
 
-    virtual Tree computeSigOutput(const std::vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
         num n, m;
         faustassert(args.size() == arity());
@@ -77,7 +77,7 @@ class RemainderPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types)
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -85,7 +85,7 @@ class RemainderPrim : public xtended {
         return generateFun(container, subst("remainder$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -93,7 +93,7 @@ class RemainderPrim : public xtended {
         return subst("remainder$2($0,$1)", args[0], args[1], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

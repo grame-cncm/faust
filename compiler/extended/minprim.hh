@@ -30,11 +30,11 @@ class MinPrim : public xtended {
    public:
     MinPrim() : xtended("min") {}
 
-    virtual unsigned int arity() { return 2; }
+    virtual unsigned int arity() override { return 2; }
 
-    virtual bool needCache() { return true; }
+    virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args)
+    virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
@@ -43,13 +43,13 @@ class MinPrim : public xtended {
         return castInterval(args[0] | args[1], gAlgebra.Min(i, j));
     }
 
-    virtual int inferSigOrder(const std::vector<int>& args)
+    virtual int inferSigOrder(const std::vector<int>& args) override
     {
         faustassert(args.size() == arity());
         return std::max(args[0], args[1]);
     }
 
-    virtual Tree computeSigOutput(const std::vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
         double f, g;
         int    i, j;
@@ -79,7 +79,7 @@ class MinPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types)
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -107,7 +107,7 @@ class MinPrim : public xtended {
         return generateFun(container, fun_name, args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -152,7 +152,7 @@ class MinPrim : public xtended {
         }
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
