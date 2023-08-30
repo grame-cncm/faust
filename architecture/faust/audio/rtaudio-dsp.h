@@ -27,7 +27,7 @@
 
 #include <stdio.h>
 #include <assert.h>
-#include <RtAudio.h>
+#include <rtaudio/RtAudio.h>
 #include <stdlib.h>
 
 #include "faust/audio/audio.h"
