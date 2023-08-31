@@ -33,10 +33,24 @@ architecture section is not modified.
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
 
-// Base class and common code for binary combiners
+/**
+ * @file dsp-combiner.h
+ * @brief DSP Combiner Library
+ *
+ * This library provides classes for combining DSP modules.
+ * It includes classes for sequencing, parallelizing, splitting, merging, recursing, and crossfading DSP modules.
+ *
+ */
 
 enum Layout { kVerticalGroup, kHorizontalGroup, kTabGroup };
 
+/**
+ * @class dsp_binary_combiner
+ * @brief Base class and common code for binary combiners
+ *
+ * This class serves as the base class for various DSP combiners that work with two DSP modules.
+ * It provides common methods for building user interfaces, allocating and deleting channels, and more.
+ */
 class dsp_binary_combiner : public dsp {
 
     protected:
@@ -145,8 +159,13 @@ class dsp_binary_combiner : public dsp {
 
 };
 
-// Combine two 'compatible' DSP in sequence
-
+/**
+ * @class dsp_sequencer
+ * @brief Combine two 'compatible' DSP modules in sequence
+ *
+ * This class allows you to combine two DSP modules in sequence.
+ * It computes the first DSP module's outputs and uses them as inputs for the second DSP module.
+ */
 class dsp_sequencer : public dsp_binary_combiner {
 
     private:
@@ -192,8 +211,13 @@ class dsp_sequencer : public dsp_binary_combiner {
 
 };
 
-// Combine two DSP in parallel
-
+/**
+ * @class dsp_parallelizer
+ * @brief Combine two DSP modules in parallel
+ *
+ * This class combines two DSP modules in parallel.
+ * It computes both DSP modules separately and combines their outputs.
+ */
 class dsp_parallelizer : public dsp_binary_combiner {
 
     private:
@@ -251,8 +275,13 @@ class dsp_parallelizer : public dsp_binary_combiner {
 
 };
 
-// Combine two 'compatible' DSP in splitter
-
+/**
+ * @class dsp_splitter
+ * @brief Combine two 'compatible' DSP modules in a splitter
+ *
+ * This class combines two DSP modules in a splitter configuration.
+ * The outputs of the first DSP module are connected to the inputs of the second DSP module.
+ */
 class dsp_splitter : public dsp_binary_combiner {
 
     private:
@@ -303,8 +332,13 @@ class dsp_splitter : public dsp_binary_combiner {
         }
 };
 
-// Combine two 'compatible' DSP in merger
-
+/**
+ * @class dsp_merger
+ * @brief Combine two 'compatible' DSP modules in a merger
+ *
+ * This class combines two DSP modules in a merger configuration.
+ * The outputs of the first DSP module are combined with the inputs of the second DSP module.
+ */
 class dsp_merger : public dsp_binary_combiner {
 
     private:
@@ -372,8 +406,13 @@ class dsp_merger : public dsp_binary_combiner {
         }
 };
 
-// Combine two 'compatible' DSP in a recursive way
-
+/**
+ * @class dsp_recursiver
+ * @brief Combine two 'compatible' DSP modules in a recursive way
+ *
+ * This class recursively combines two DSP modules.
+ * The outputs of each module are fed as inputs to the other module in a recursive manner.
+ */
 class dsp_recursiver : public dsp_binary_combiner {
 
     private:
@@ -448,12 +487,15 @@ class dsp_recursiver : public dsp_binary_combiner {
 
 };
 
-/*
- Crossfade between two DSP.
- When fCrossfade = 1, the first DSP only is computed, when fCrossfade = 0,
- the second DSP only is computed, otherwise both DSPs are computed and mixed.
-*/
-
+/**
+ * @class dsp_crossfader
+ * @brief Crossfade between two DSP modules
+ *
+ * This class allows you to crossfade between two DSP modules.
+ * The crossfade parameter (as a slider) controls the mix between the two modules' outputs.
+ * When Crossfade = 1, the first DSP only is computed, when Crossfade = 0,
+ * the second DSP only is computed, otherwise both DSPs are computed and mixed.
+ */
 class dsp_crossfader: public dsp_binary_combiner {
 
     private:
@@ -547,11 +589,26 @@ class dsp_crossfader: public dsp_binary_combiner {
 #ifndef __dsp_algebra_api__
 #define __dsp_algebra_api__
 
-// DSP algebra API
-/*
- Each operation takes two DSP and a optional Layout and Label parameters, returns the combined DSPs, or null if failure with an error message.
+/**
+ * DSP algebra API
+ * Each operation takes two DSP and a optional Layout and Label parameters, returns the combined DSPs,
+ * or null if failure with an error message.
+ * It includes methods to create sequencers, parallelizers, splitters, mergers, recursives, and crossfaders.
  */
 
+/**
+ * Create a DSP Sequencer
+ *
+ * This method creates a DSP Sequencer, which combines two DSP modules in a sequencer configuration.
+ * The outputs of the first DSP module are connected to the inputs of the second DSP module.
+ *
+ * @param dsp1 The first DSP module to combine
+ * @param dsp2 The second DSP module to combine
+ * @param error A reference to a string to store error messages (if any)
+ * @param layout The layout for the user interface (default: kTabGroup)
+ * @param label The label for the combiner (default: "Sequencer")
+ * @return A pointer to the created DSP Sequencer, or nullptr if an error occurs
+ */
 static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2,
                                std::string& error,
                                Layout layout = Layout::kTabGroup,
@@ -569,6 +626,19 @@ static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2,
     }
 }
 
+/**
+ * Create a DSP Parallelizer
+ *
+ * This method creates a DSP Parallelizer, which combines two DSP modules in parallel.
+ * The resulting DSP module computes both input modules separately and combines their outputs.
+ *
+ * @param dsp1 The first DSP module to combine
+ * @param dsp2 The second DSP module to combine
+ * @param error A reference to a string to store error messages (if any)
+ * @param layout The layout for the user interface (default: kTabGroup)
+ * @param label The label for the combiner (default: "Parallelizer")
+ * @return A pointer to the created DSP Parallelizer, or nullptr if an error occurs
+ */
 static dsp* createDSPParallelizer(dsp* dsp1, dsp* dsp2,
                                   std::string& error,
                                   Layout layout = Layout::kTabGroup,
@@ -577,6 +647,19 @@ static dsp* createDSPParallelizer(dsp* dsp1, dsp* dsp2,
     return new dsp_parallelizer(dsp1, dsp2, 4096, layout, label);
 }
 
+/**
+ * Create a DSP Splitter
+ *
+ * This method creates a DSP Splitter, which combines two 'compatible' DSP modules in a splitter configuration.
+ * The outputs of the first DSP module are connected to the inputs of the second DSP module.
+ *
+ * @param dsp1 The first DSP module to combine
+ * @param dsp2 The second DSP module to combine
+ * @param error A reference to a string to store error messages (if any)
+ * @param layout The layout for the user interface (default: kTabGroup)
+ * @param label The label for the combiner (default: "Splitter")
+ * @return A pointer to the created DSP Splitter, or nullptr if an error occurs
+ */
 static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error, Layout layout = Layout::kTabGroup, const std::string& label = "Splitter")
 {
     if (dsp1->getNumOutputs() == 0) {
@@ -600,6 +683,19 @@ static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error, Layout l
     }
 }
 
+/**
+ * Create a DSP Merger
+ *
+ * This method creates a DSP Merger, which combines two 'compatible' DSP modules in a merger configuration.
+ * The outputs of the first DSP module are combined with the inputs of the second DSP module.
+ *
+ * @param dsp1 The first DSP module to combine
+ * @param dsp2 The second DSP module to combine
+ * @param error A reference to a string to store error messages (if any)
+ * @param layout The layout for the user interface (default: kTabGroup)
+ * @param label The label for the combiner (default: "Merger")
+ * @return A pointer to the created DSP Merger, or nullptr if an error occurs
+ */
 static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2,
                             std::string& error,
                             Layout layout = Layout::kTabGroup,
@@ -626,6 +722,19 @@ static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2,
     }
 }
 
+/**
+ * Create a DSP Recursiver
+ *
+ * This method creates a DSP Recursiver, which combines two 'compatible' DSP modules in a recursive way.
+ * The outputs of each module are fed as inputs to the other module in a recursive manner.
+ *
+ * @param dsp1 The first DSP module to combine
+ * @param dsp2 The second DSP module to combine
+ * @param error A reference to a string to store error messages (if any)
+ * @param layout The layout for the user interface (default: kTabGroup)
+ * @param label The label for the combiner (default: "Recursiver")
+ * @return A pointer to the created DSP Recursiver, or nullptr if an error occurs
+ */
 static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2,
                                 std::string& error,
                                 Layout layout = Layout::kTabGroup,
@@ -653,6 +762,21 @@ static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2,
     }
 }
 
+/**
+ * Create a DSP Crossfader
+ *
+ * This method creates a DSP Crossfader, which allows you to crossfade between two DSP modules.
+ * The crossfade parameter (as a slider) controls the mix between the two modules' outputs.
+ * When Crossfade = 1, the first DSP only is computed, when Crossfade = 0,
+ * the second DSP only is computed, otherwise both DSPs are computed and mixed.
+ *
+ * @param dsp1 The first DSP module to combine
+ * @param dsp2 The second DSP module to combine
+ * @param error A reference to a string to store error messages (if any)
+ * @param layout The layout for the user interface (default: kTabGroup)
+ * @param label The label for the crossfade slider (default: "Crossfade")
+ * @return A pointer to the created DSP Crossfader, or nullptr if an error occurs
+ */
 static dsp* createDSPCrossfader(dsp* dsp1, dsp* dsp2,
                                 std::string& error,
                                 Layout layout = Layout::kTabGroup,
@@ -660,14 +784,14 @@ static dsp* createDSPCrossfader(dsp* dsp1, dsp* dsp2,
 {
     if (dsp1->getNumInputs() != dsp2->getNumInputs()) {
         std::stringstream error_aux;
-        error_aux << "Connection error in dsp_crossfader : the number of inputs ("
+        error_aux << "Error in dsp_crossfader : the number of inputs ("
         << dsp1->getNumInputs() << ") of A "
         << "must be equal to the number of inputs (" << dsp2->getNumInputs() << ") of B" << std::endl;
         error = error_aux.str();
         return nullptr;
     } else if (dsp1->getNumOutputs() != dsp2->getNumOutputs()) {
         std::stringstream error_aux;
-        error_aux << "Connection error in dsp_crossfader : the number of outputs ("
+        error_aux << "Error in dsp_crossfader : the number of outputs ("
         << dsp1->getNumOutputs() << ") of A "
         << "must be equal to the number of outputs (" << dsp2->getNumOutputs() << ") of B" << std::endl;
         error = error_aux.str();
