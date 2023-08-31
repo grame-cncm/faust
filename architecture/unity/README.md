@@ -4,16 +4,16 @@
 
 The compiled folder is a Unity package (i.e. FaustPlugin_<dspname>.unitypackage) which contains two different types of files:
 
-    - Libraries (in `libFaustPlugin_<dspname>.bundle`) containing the native C++ part.
-    - Two C# scripts (`FaustPlugin_<dspname>.cs` and `FaustUtilities_<dspname>.cs`) containing the methods and classes which link the native part to the Unity audio system, and manage the plugin inspector interface.
+- Libraries (in `libFaustPlugin_<dspname>.bundle`) containing the native C++ part.
+- Two C# scripts (`FaustPlugin_<dspname>.cs` and `FaustUtilities_<dspname>.cs`) containing the methods and classes which link the native part to the Unity audio system, and manage the plugin inspector interface.
 
 Libraries are available for several platforms and architectures:
 
-    - Windows 32 bits and 64 bits (.dll)
-    - macOS (.bundle)
-    - iOS (.a)
-    - Android armeabi-v7a and x86 (.so)
-    - Linux (.so).
+- Windows 32 bits and 64 bits (.dll)
+- macOS (.bundle)
+- iOS (.a)
+- Android armeabi-v7a and x86 (.so)
+- Linux (.so).
 
 ## How to use
 
