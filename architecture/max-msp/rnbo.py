@@ -973,19 +973,38 @@ def connect_dsp_effect(
 
     # print(f"Connecting DSP to effect: {dsp_num_outputs} -> {effect_num_inputs}")
 
-    match (dsp_num_outputs, effect_num_inputs):
-        case (1, 1):
+    # Python 3.10 and later
+    # match (dsp_num_outputs, effect_num_inputs):
+    #     case (1, 1):
+    #         # print("1 -> 1")
+    #         patcher.add_line(dsp_box, effect_box)
+    #     case (1, 2):
+    #         # print("1 -> 2")
+    #         patcher.add_line(dsp_box, effect_box, inlet=0, outlet=0)
+    #         patcher.add_line(dsp_box, effect_box, inlet=1, outlet=0)
+    #     case (2, 1):
+    #         # print("2 -> 1")
+    #         patcher.add_line(dsp_box, effect_box, inlet=0, outlet=0)
+    #         patcher.add_line(dsp_box, effect_box, inlet=0, outlet=1)
+    #     case (2, 2):
+    #         # print("2 -> 2")
+    #         patcher.add_line(dsp_box, effect_box, inlet=0, outlet=0)
+    #         patcher.add_line(dsp_box, effect_box, inlet=1, outlet=1)
+
+    if dsp_num_outputs == 1:
+        if effect_num_inputs == 1:
             # print("1 -> 1")
             patcher.add_line(dsp_box, effect_box)
-        case (1, 2):
+        elif effect_num_inputs == 2:
             # print("1 -> 2")
             patcher.add_line(dsp_box, effect_box, inlet=0, outlet=0)
             patcher.add_line(dsp_box, effect_box, inlet=1, outlet=0)
-        case (2, 1):
+    elif dsp_num_outputs == 2:
+        if effect_num_inputs == 1:
             # print("2 -> 1")
             patcher.add_line(dsp_box, effect_box, inlet=0, outlet=0)
             patcher.add_line(dsp_box, effect_box, inlet=0, outlet=1)
-        case (2, 2):
+        elif effect_num_inputs == 2:
             # print("2 -> 2")
             patcher.add_line(dsp_box, effect_box, inlet=0, outlet=0)
             patcher.add_line(dsp_box, effect_box, inlet=1, outlet=1)
