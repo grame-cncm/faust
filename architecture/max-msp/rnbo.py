@@ -58,7 +58,7 @@ import re
 from typing import Dict, List, Tuple, Optional
 
 
-def get_midi_and_nvoices(json_data: dict) -> tuple[bool, int]:
+def get_midi_and_nvoices(json_data: dict) -> Tuple[bool, int]:
     """
     Extracts the MIDI state and nvoices count from the given JSON data.
 
@@ -66,7 +66,7 @@ def get_midi_and_nvoices(json_data: dict) -> tuple[bool, int]:
         json_data (dict): The JSON data in dictionary format.
 
     Returns:
-        tuple[bool, int]: A tuple containing the MIDI state (True or False) and nvoices count (int).
+        Tuple[bool, int]: A tuple containing the MIDI state (True or False) and nvoices count (int).
                If the MIDI state or nvoices count is not present in the JSON, the corresponding
                value in the tuple will be None.
     """
@@ -92,7 +92,7 @@ def get_midi_and_nvoices(json_data: dict) -> tuple[bool, int]:
     return midi_state, nvoices
 
 
-def extract_items_info(json_data: dict) -> list[dict]:
+def extract_items_info(json_data: dict) -> List[dict]:
     """
     Extracts information about UI items from the given DSP JSON data.
 
@@ -100,18 +100,18 @@ def extract_items_info(json_data: dict) -> list[dict]:
         json_data (dict): DSP JSON data.
 
     Returns:
-         list[dict]: A list of dictionaries containing information about each UI item.
+         List[dict]: A list of dictionaries containing information about each UI item.
     """
 
-    def extract_from_ui(ui_items: list) -> list[dict]:
+    def extract_from_ui(ui_items: List) -> List[dict]:
         """
         Recursive helper function to extract UI items information.
 
         Args:
-            ui_items (list): List of UI items.
+            ui_items (List): List of UI items.
 
         Returns:
-            list: A list of dictionaries containing information about each UI item.
+            List: A list of dictionaries containing information about each UI item.
         """
         info_list = []
         for item in ui_items:
@@ -335,7 +335,7 @@ def add_midi_control(
 
 def generate_io_info(
     midi: bool, num_inputs: int, num_outputs: int
-) -> tuple[int, int, dict, dict]:
+) -> Tuple[int, int, dict, dict]:
     """
     Generate inlet and outlet information dictionaries based on the number of inputs and outputs.
 
@@ -345,7 +345,7 @@ def generate_io_info(
         num_outputs (int): The number of output signals.
 
     Returns:
-        tuple: A tuple containing four elements:
+        Tuple: A tuple containing four elements:
             - inlets (int): Total number of inlet ports, including MIDI if applicable.
             - outlets (int): Total number of outlet ports, including MIDI if applicable.
             - inletInfo (dict): Dictionary containing information about the input ports.
@@ -399,7 +399,7 @@ def add_codebox_object(
     rnbo: Box,
     prefix: str,
     codebox_code: str,
-    items_info_list: list[dict],
+    items_info_list: List[dict],
     midi: bool,
     nvoices: int,
     test: bool,
@@ -677,7 +677,7 @@ def add_rnbo_object_flat(
     patcher: Patcher,
     dsp_name: str,
     codebox_code: str,
-    items_info_list: list[dict],
+    items_info_list: List[dict],
     midi: bool,
     nvoices: int,
     test: bool,
@@ -691,7 +691,7 @@ def add_rnbo_object_flat(
         patcher (Patcher): The Patcher object to which DSP elements and controls will be added.
         dsp_name (str): The name of the DSP.
         codebox_code (str): The code to be executed by the DSP effect.
-        items_info_list (list[dict]): A list of dictionaries containing information about UI items.
+        items_info_list (List[dict]): A list of dictionaries containing information about UI items.
         midi (bool): Indicates whether MIDI control is enabled.
         nvoices (int): The number of polyphony voices.
         num_inputs (int): The number of audio input channels.
@@ -728,7 +728,7 @@ def add_rnbo_object_subpatcher(
     rnbopat_path: str,
     dsp_name: str,
     codebox_code: str,
-    items_info_list: list[dict],
+    items_info_list: List[dict],
     midi: bool,
     nvoices: int,
     test: bool,
@@ -743,7 +743,7 @@ def add_rnbo_object_subpatcher(
         rnbopat_path (str): The path to the directory where the maxpat will be saved.
         dsp_name (str): The name of the DSP.
         codebox_code (str): The code to be executed by the DSP effect.
-        items_info_list (list[dict]): A list of dictionaries containing information about UI items.
+        items_info_list (List[dict]): A list of dictionaries containing information about UI items.
         midi (bool): Indicates whether MIDI control is enabled.
         nvoices (int): The number of polyphony voices.
         num_inputs (int): The number of audio input channels.
@@ -816,8 +816,8 @@ def add_rnbo_object_poly_effect(
     dsp_name: str,
     dsp_codebox_code: str,
     effect_codebox_code: str,
-    dsp_items_info_list: list[dict],
-    effect_items_info_list: list[dict],
+    dsp_items_info_list: List[dict],
+    effect_items_info_list: List[dict],
     midi: bool,
     nvoices: int,
     test: bool,
@@ -836,8 +836,8 @@ def add_rnbo_object_poly_effect(
         dsp_name (str): The name of the DSP.
         dsp_codebox_code (str): The code to be executed by the DSP.
         effect_codebox_code (str): The code to be executed by the effect.
-        dsp_items_info_list (list[dict]): A list of dictionaries containing information about UI items for the DSP.
-        effect_items_info_list (list[dict]): A list of dictionaries containing information about UI items for the effect.
+        dsp_items_info_list (List[dict]): A list of dictionaries containing information about UI items for the DSP.
+        effect_items_info_list (List[dict]): A list of dictionaries containing information about UI items for the effect.
         midi (bool): Indicates whether MIDI control is enabled.
         nvoices (int): The number of polyphony voices.
         dsp_num_inputs (int): The number of audio input channels.
