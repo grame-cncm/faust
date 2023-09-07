@@ -45,7 +45,7 @@ inline std::string buildButtonLabel(AddButtonInst::ButtonType type, const std::s
                 break;
         }
     }
-    return label;
+    return isdigit(label[0]) ? ("cb_" + label) : label;
 }
 
 // When testing, for rnbo_dsp class to properly decode controllers
@@ -64,7 +64,7 @@ inline std::string buildSliderLabel(AddSliderInst::SliderType type, const std::s
                 break;
         }
     }
-    return label;
+    return isdigit(label[0]) ? ("cb_" + label) : label;
 }
 
 // Visitor used to fill the 'update' function and associate control labels with their parameter names

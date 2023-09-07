@@ -176,7 +176,12 @@ def extract_items_info(json_data: dict) -> List[dict]:
 
 # Creating the proper label for the parameter
 def build_label(item_type: str, shortname: str, test: bool) -> str:
-    return "RB_" + item_type + "_" + shortname if test else shortname
+    if test:
+        return "RB_" + item_type + "_" + shortname
+    elif shortname[0].isdigit():
+        return "cb_" + shortname
+    else:
+        return shortname
 
 
 def add_polyphony_control(
