@@ -28,7 +28,7 @@ Addionally, the C++ export path and filename can be specified, and the C++ code
 will be exported and compiled if 'compile' is True.
 The 'test' option allows to generate a patch with the 'RB_xx' prefixed labels for the parameters, 
 to be used with the C++ RNBO test application with the rnbo_dsp class. 
-The 'subpatcher' option allows to generate sub-patch as foo.rnbo.pat files.
+The 'subpatcher' option allows to generate sub-patch as foo.rnbopat files.
 
 Parsing the JSON file gives:
     - the list of parameters (button, checkbox, sliders, nentry) to be added as "set param" objects

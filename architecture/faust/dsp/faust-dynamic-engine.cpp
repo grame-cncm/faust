@@ -109,9 +109,7 @@ struct dsp_aux {
     #ifdef LLVM_DSP
         fFactory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, "", gLastError, opt_level);
     #elif INTERP_DSP
-    std::cout << "INTERP_DSP " << std::endl;
         fFactory = createInterpreterDSPFactoryFromString(name_app, dsp_content, argc, argv, gLastError);
-    std::cout << "fFactory " << fFactory << std::endl;
     #endif
         if (fFactory) {
             fDSP = fFactory->createDSPInstance();
