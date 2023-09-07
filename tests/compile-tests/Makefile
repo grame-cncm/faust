@@ -40,7 +40,7 @@ all:
 	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=dlang lang=dlang ext=dlang FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=cmajor lang=cmajor ext=cmajor FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=codebox lang=codebox ext=codebox FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=rnbo lang=rnbo ext=rnbo FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=interp lang=interp ext=interp FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=jax lang=jax ext=jax FAUSTOPTIONS=""
 	$(MAKE) gcc1
@@ -91,6 +91,9 @@ jtrace:
 
 cmajor:
 	$(MAKE) -f Make.lang cmajor 
+
+rnbo:
+	$(MAKE) -f Make.lang rnbo 
 	
 doc:
 	$(MAKE) -f Make.lang doc 
@@ -123,8 +126,8 @@ help:
 	@echo " 'julia'      : compiles using the Julia backend"
 	@echo " 'rust'       : compiles using the Rust backend"
 	@echo " 'web'        : compiles using the wast/wasm backends"
-	@echo " 'cmajor'     : compiles using the faust2cmajor"
-	@echo " 'codebox'    : compiles using the codebox backend"
+	@echo " 'cmajor'     : compiles using faust2cmajor"
+	@echo " 'rnbo'       : compiles using faust2rnbo"
 	@echo " 'trace'      : compiles using the interp-tracer application"
 	@echo " 'jtrace'     : compiles using Julia minimal-control architecture"
 	@echo " 'me'         : compiles using the C++ backend with -me option"

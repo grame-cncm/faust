@@ -47,6 +47,11 @@ cmajor:
 	for file in $(dspfiles) ; do \
 		faust2cmajor -test $$file ; \
 	done
+
+rnbo:
+	for file in $(dspfiles) ; do \
+		faust2rnbo $$file ; \
+	done
 	
 doc:
 	for file in $(dspfiles) ; do \
