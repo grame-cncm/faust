@@ -241,6 +241,7 @@ void JSFXCodeContainer::produceClass()
     // If polyphonic & voice stealing : generate the voice stealing array 
     if (poly && gGlobal->gJSFXVisitor->mode == JSFXMIDIVoiceMode::voice_steal)
     {
+        tab(n, *fOut);
         *fOut << "voices_arr = MEMORY.alloc_memory(" << nvoices << ");\n";
         for (int i = 0; i < nvoices; ++i) {
             *fOut << "voices_arr[" << i << "] = " << i << ";\n";

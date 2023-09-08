@@ -659,7 +659,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         }
     }
     
-    bool hasMIDIInstructions() { return _midi_instructions.size() > 0; }
+    bool hasMIDIInstructions() { return _midi_instructions.size() > 0 || poly; }
 
     void generateMIDIInstructions()
     {
