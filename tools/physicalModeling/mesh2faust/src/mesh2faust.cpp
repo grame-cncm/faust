@@ -7,9 +7,9 @@
 #include "tetMesher.h"
 
 // Spectra
-#include <Spectra/SymGEigsShiftSolver.h>
-#include <Spectra/MatOp/SymShiftInvert.h>
 #include <Spectra/MatOp/SparseSymMatProd.h>
+#include <Spectra/MatOp/SymShiftInvert.h>
+#include <Spectra/SymGEigsShiftSolver.h>
 
 #include <sstream>
 
@@ -88,156 +88,118 @@ string m2f::mesh2faust(
 
     OpType op(K, M);
     BOpType Bop(M);
-    int convergenceRatio = min(max(2*femNModes+1, 20), numVertices * vertexDim);
+    int convergenceRatio = min(max(2 * femNModes + 1, 20), numVertices * vertexDim);
     double sigma = -1.0;
-    Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert>
-        eigs(op, Bop, femNModes, convergenceRatio, sigma);
+    Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert> eigs(op, Bop, femNModes, convergenceRatio, sigma);
     eigs.init();
-    eigs.compute(Spectra::SortRule::LargestMagn);
-
-    string dsp = ""; // Faust DSP code to return. Populated below if successful.
-
-    if (eigs.info() == Spectra::CompInfo::Successful) {
-        Eigen::VectorXd eigenValues = eigs.eigenvalues();
-        Eigen::MatrixXd eigenVectors = eigs.eigenvectors();
-
-        /////////////////////////////////////
-        // COMPUTE MODE FREQS
-        /////////////////////////////////////
- 
-        if (args.debugMode) cout << "Computing modes frequencies\n\n";
-
-        float modesFreqs[femNModes];
-        int lowestModeIndex = 0;
-        int highestModeIndex = 0;
-        for (int i = 0; i < femNModes; i++) {
-            double eigenValue = eigenValues[femNModes - 1 - i]; // Eigenvalues are ordered largest-first.
-            modesFreqs[i] = eigenValue <= 0 ? 0.0 : sqrt((float)eigenValue) / (2 * M_PI);
-            if (modesFreqs[i] < args.modesMinFreq) {
-                lowestModeIndex++;
-            }
-            if (modesFreqs[i] < args.modesMaxFreq &&
-                (highestModeIndex - lowestModeIndex) < targetNModes &&
-                highestModeIndex < numVertices) {
-                highestModeIndex++;
-            }
-        }
- 
-        // Adjust number of target modes to modes range.
-        int modesRange = highestModeIndex - lowestModeIndex;
-        if (modesRange < targetNModes) targetNModes = modesRange;
- 
-        // Diplay mode frequencies.
-        if (args.showFreqs) {
-            cout << "Mode frequencies between " << args.modesMinFreq << "Hz and " << args.modesMaxFreq << "Hz:\n";
-            for (int i = 0; i < targetNModes; i++) {
-                cout << modesFreqs[i + lowestModeIndex] << "\n";
-            }
-            cout << "\n";
-        }
- 
-        /////////////////////////////////////
-        // COMPUTE GAINS
-        /////////////////////////////////////
- 
-        if (args.debugMode) {
-            cout << "Computing modes gains for modes between " << args.modesMinFreq
-                << "Hz and " << args.modesMaxFreq << "Hz\n\n";
-        }
-        if (args.exPos.size() > 0) {
-            // If exPos list specified, retrieve number of ex positions.
-            args.nExPos = args.exPos.size();
-        } else if (args.nExPos == -1) {
-            // If nExPos and exPos not specified, use max number of excitation positions.
-            args.nExPos = numVertices;
-        }
-        args.nExPos = std::min(args.nExPos, numVertices); // Limit nExPos to number of vertices.
-
-        int exPosStep = numVertices / args.nExPos; // Number of vertices to skip between each exPos.
-
-        /////////////////////////////////////
-        // GENERATE FAUST DSP
-        /////////////////////////////////////
-
-        // TODO: say something about the model that will be generated (parameters available, etc.)
-
-        stringstream dspStream;
-        dspStream << "import(\"stdfaust.lib\");\n\n";
-        if (args.freqControl) {
-            dspStream << args.modelName
-                << "(freq,exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
-                "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
-                "modesGains(int(exPos),i))) :> /(nModes)\n";
-        } else {
-            dspStream << args.modelName
-                << "(exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
-                "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
-                "modesGains(int(exPos),i))) :> /(nModes)\n";
-        }
-        dspStream << "with{\n";
-        dspStream << "nModes = " << targetNModes << ";\n";
-        if (args.nExPos > 1) dspStream << "nExPos = " << args.nExPos << ";\n";
-
-        if (args.freqControl) {
-            dspStream << "modesFreqRatios(n) = ba.take(n+1,(";
-            for (int i = 0; i < targetNModes; i++) {
-                dspStream << modesFreqs[lowestModeIndex + i] / modesFreqs[lowestModeIndex];
-                if (i < (targetNModes - 1)) dspStream << ",";
-            }
-            dspStream << "));\n";
-            dspStream << "modesFreqs(i) = freq*modesFreqRatios(i);\n";
-        } else {
-            dspStream << "modesFreqs(n) = ba.take(n+1,(";
-            for (int i = 0; i < targetNModes; i++) {
-                dspStream << modesFreqs[lowestModeIndex + i];
-                if (i < (targetNModes - 1)) dspStream << ",";
-            }
-            dspStream << "));\n";
-        }
-        dspStream << "modesGains(p,n) = waveform{";
-        float unnormalizedGains[targetNModes]; // Used to store gains for each exitation position.
-        for (int i = 0; i < args.nExPos; i++) { // i = excitation position
-            float maxGain = 0; // for normalization
-            for (int j = 0; j < targetNModes; j++) { // j = current mode
-                // If exPos was defined, then retrieve data. Otherwise, choose linear ex pos.
-                int evIndex = j + lowestModeIndex;
-                evIndex = femNModes - 1 - evIndex; // Eigenvectors are ordered largest-first.
-                int evValueIndex = vertexDim * (i < args.exPos.size() ? args.exPos[i] : (i * exPosStep));
-                float unnormalizedGain = 0;
-                for (int k = 0; k < vertexDim; k++) {
-                    // Eigen is column-major by default.
-                    unnormalizedGain += pow(eigenVectors(evValueIndex + k, evIndex), 2);
-                }
-                unnormalizedGains[j] = sqrt(unnormalizedGain);
-                if (unnormalizedGains[j] > maxGain) maxGain = unnormalizedGains[j];
-            }
-            for (int j = 0; j < targetNModes; j++) {
-                dspStream << unnormalizedGains[j] / maxGain;
-                if (j < (targetNModes - 1)) dspStream << ",";
-            }
-            if (i < (args.nExPos - 1)) dspStream << ",";
-        }
-        if (args.freqControl) {
-            dspStream << "},int(p*nModes+n) : rdtable : select2(modesFreqs(n)<(ma.SR/2-1),0);\n"
-                << "modesT60s(i) = t60*pow(1-(modesFreqRatios(i)/"
-                << modesFreqs[highestModeIndex] / modesFreqs[lowestModeIndex]
-                << ")*t60DecayRatio,t60DecaySlope);\n";
-        } else {
-            dspStream << "},int(p*nModes+n) : rdtable;\n"
-                << "modesT60s(i) = t60*pow(1-(modesFreqs(i)/"
-                << modesFreqs[highestModeIndex]
-                << ")*t60DecayRatio,t60DecaySlope);\n";
-        }
-        dspStream << "};\n";
-
-        dsp = dspStream.str();
+    eigs.compute(Spectra::SortRule::LargestMagn, 1000, 1e-10, Spectra::SortRule::SmallestAlge);
+    if (eigs.info() != Spectra::CompInfo::Successful) {
+        if (args.debugMode) cout << "Could not compute eigenvalues.\n";
+        return "";
     }
 
-    return dsp;
+    /////////////////////////////////////
+    // COMPUTE MODE FREQS
+    /////////////////////////////////////
+
+    if (args.debugMode) cout << "Computing modes frequencies\n\n";
+
+    Eigen::VectorXd eigenValues = eigs.eigenvalues();
+    Eigen::MatrixXd eigenVectors = eigs.eigenvectors();
+
+    float modesFreqs[femNModes];
+    int lowestModeIndex = 0, highestModeIndex = 0;
+    for (int i = 0; i < femNModes; i++) {
+        modesFreqs[i] = eigenValues[i] <= 0 ? 0.0 : sqrt((float)eigenValues[i]) / (2 * M_PI);
+        if (modesFreqs[i] < args.modesMinFreq) lowestModeIndex++;
+        if (modesFreqs[i] < args.modesMaxFreq && highestModeIndex - lowestModeIndex < targetNModes && highestModeIndex < numVertices) {
+            highestModeIndex++;
+        }
+    }
+
+    // Adjust number of target modes to modes range.
+    int modesRange = highestModeIndex - lowestModeIndex;
+    if (modesRange < targetNModes) targetNModes = modesRange;
+
+    // Diplay mode frequencies.
+    if (args.showFreqs) {
+        cout << "Mode frequencies between " << args.modesMinFreq << "Hz and " << args.modesMaxFreq << "Hz:\n";
+        for (int i = 0; i < targetNModes; i++) cout << modesFreqs[i + lowestModeIndex] << "\n";
+        cout << "\n";
+    }
+
+    /////////////////////////////////////
+    // COMPUTE GAINS
+    /////////////////////////////////////
+
+    if (args.debugMode) cout << "Computing modes gains for modes between " << args.modesMinFreq << "Hz and " << args.modesMaxFreq << "Hz\n\n";
+
+    if (!args.exPos.empty()) args.nExPos = args.exPos.size();
+    else if (args.nExPos == -1) args.nExPos = numVertices;
+    args.nExPos = std::min(args.nExPos, numVertices);
+
+    int exPosStep = numVertices / args.nExPos; // Number of vertices to skip between each exPos.
+
+    /////////////////////////////////////
+    // GENERATE FAUST DSP
+    /////////////////////////////////////
+
+    stringstream dspStream;
+    dspStream << "import(\"stdfaust.lib\");\n\n"
+              << args.modelName << "(" << (args.freqControl ? "freq," : "")
+              << "exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
+                 "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
+                 "modesGains(int(exPos),i))) :> /(nModes)\n"
+              << "with{\n"
+              << "nModes = " << targetNModes << ";\n";
+    if (args.nExPos > 1) dspStream << "nExPos = " << args.nExPos << ";\n";
+
+    if (args.freqControl) {
+        dspStream << "modesFreqRatios(n) = ba.take(n+1,(";
+        for (int i = 0; i < targetNModes; i++) {
+            dspStream << modesFreqs[lowestModeIndex + i] / modesFreqs[lowestModeIndex];
+            if (i < targetNModes - 1) dspStream << ",";
+        }
+        dspStream << "));\n"
+                  << "modesFreqs(i) = freq*modesFreqRatios(i);\n";
+    } else {
+        dspStream << "modesFreqs(n) = ba.take(n+1,(";
+        for (int i = 0; i < targetNModes; i++) {
+            dspStream << modesFreqs[lowestModeIndex + i];
+            if (i < targetNModes - 1) dspStream << ",";
+        }
+        dspStream << "));\n";
+    }
+    dspStream << "modesGains(p,n) = waveform{";
+    float unnormalizedGains[targetNModes]; // Used to store gains for each exitation position.
+    for (int i = 0; i < args.nExPos; i++) { // i = excitation position
+        float maxGain = 0; // for normalization
+        for (int j = 0; j < targetNModes; j++) { // j = current mode
+            // If exPos was defined, then retrieve data. Otherwise, choose linear ex pos.
+            int evIndex = j + lowestModeIndex;
+            int evValueIndex = vertexDim * (i < args.exPos.size() ? args.exPos[i] : i * exPosStep);
+            float unnormalizedGain = 0;
+            for (int k = 0; k < vertexDim; k++) {
+                // Eigen is column-major by default.
+                unnormalizedGain += pow(eigenVectors(evValueIndex + k, evIndex), 2);
+            }
+            unnormalizedGains[j] = sqrt(unnormalizedGain);
+            if (unnormalizedGains[j] > maxGain) maxGain = unnormalizedGains[j];
+        }
+        for (int j = 0; j < targetNModes; j++) {
+            dspStream << unnormalizedGains[j] / maxGain;
+            if (j < targetNModes - 1) dspStream << ",";
+        }
+        if (i < args.nExPos - 1) dspStream << ",";
+    }
+    dspStream << "},int(p*nModes+n) : rdtable" << (args.freqControl ? " : select2(modesFreqs(n)<(ma.SR/2-1),0)" : "") << ";\n"
+              << "modesT60s(i) = t60*pow(1-(" << (args.freqControl ? "modesFreqRatios(i)" : "modesFreqs(i)") << "/" << (modesFreqs[highestModeIndex] / (args.freqControl ? modesFreqs[lowestModeIndex] : 1.f)) << ")*t60DecayRatio,t60DecaySlope);\n"
+              << "};\n";
+
+    return dspStream.str();
 }
 
-string m2f::mesh2faust(const char *objectFileName, MaterialProperties materialProperties, CommonArguments args)
-{
+string m2f::mesh2faust(const char *objectFileName, MaterialProperties materialProperties, CommonArguments args) {
     /////////////////////////////////////
     // RETRIEVE MODEL
     /////////////////////////////////////
@@ -245,7 +207,7 @@ string m2f::mesh2faust(const char *objectFileName, MaterialProperties materialPr
     // Load mesh file.
     if (args.debugMode) cout << "Loading the mesh file\n";
     ObjMesh *objMesh = new ObjMesh(objectFileName);
- 
+
     // Generate 3D volumetric mesh from obj mesh.
     if (args.debugMode) {
         cout << "\nGenerating a 3D mesh with the following properties\n";
