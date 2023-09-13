@@ -317,7 +317,7 @@ for p in $FILES; do
         sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
 
         # copy JavaScript UI file
-        cp $FAUSTARCH/max-msp/ui.js .
+        cp $FAUSTARCH/max-msp/$JSFILE_PATH .
 
         rm ${f%.dsp}-temp1.maxpat
         rm ${f%.dsp}-temp2.maxpat
@@ -326,7 +326,7 @@ for p in $FILES; do
 done
 
 if [ "$NOPATCH" = "0" ]; then
-    BINARIES="$BINARIES ${f%.dsp}.maxpat ui.js"
+    BINARIES="$BINARIES ${f%.dsp}.maxpat $JSFILE_PATH"
 fi
 
 echo $BINARIES

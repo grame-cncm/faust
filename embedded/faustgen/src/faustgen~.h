@@ -57,7 +57,7 @@
 #include "jgraphics.h"
 #include "ext_drag.h"
 
-#define FAUSTGEN_VERSION "1.65"
+#define FAUSTGEN_VERSION "1.66"
 
 #include "faustgen_factory.h"
 
