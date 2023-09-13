@@ -119,10 +119,11 @@ LIBFAUST_API std::string printSignal(Signal sig, bool shared, int max_size);
 #define LIBFAUSTSIGNAL_H
 
 // To be used with getSigInterval/setSigInterval
+// see: https://stackoverflow.com/questions/27442885/syntax-error-with-stdnumeric-limitsmax
 struct Interval {
-    double fLo{std::numeric_limits<double>::lowest()};  //< minimal value
-    double fHi{std::numeric_limits<double>::max()};     //< maximal value
-    int    fLSB{-24};                                  //< lsb in bits
+    double fLo = (std::numeric_limits<double>::lowest());  //< minimal value
+    double fHi = (std::numeric_limits<double>::max());     //< maximal value
+    int    fLSB = -24;                                     //< lsb in bits
     
     // To be used to set a full interval
     Interval(double lo, double hi, int lsb):fLo(lo), fHi(hi), fLSB(lsb)
