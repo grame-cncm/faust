@@ -373,19 +373,19 @@ void RustCodeContainer::produceMetadata(int n)
     for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first != tree("author")) {
             tab(n + 1, *fOut);
-            *fOut << "m.declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
+            *fOut << "m.declare(\"" << *(i.first) << "\", r" << **(i.second.begin()) << ");";
         } else {
             // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become
             // "contributor"
             for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
                 if (j == i.second.begin()) {
                     tab(n + 1, *fOut);
-                    *fOut << "m.declare(\"" << *(i.first) << "\", " << **j << ");";
+                    *fOut << "m.declare(\"" << *(i.first) << "\", r" << **j << ");";
                 } else {
                     tab(n + 1, *fOut);
                     *fOut << "m.declare(\""
                           << "contributor"
-                          << "\", " << **j << ");";
+                          << "\", r" << **j << ");";
                 }
             }
         }
@@ -527,7 +527,7 @@ BlockInst* RustVectorCodeContainer::generateDAGLoopVariant0(const string& counte
                                                      InstBuilder::genBasicTyped(Typed::kInt32),
                                                      InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     fComputeBlockInstructions->pushFrontInst(vsize_decl);
-   
+
     block_res->pushBackInst(InstBuilder::genLabelInst("/* Main loop */"));
     BlockInst* loop_code = InstBuilder::genBlockInst();
 
