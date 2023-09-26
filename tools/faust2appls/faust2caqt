@@ -33,6 +33,7 @@ EFFECT=""
 PRESETDIR="auto"
 PRESETDEFS=""
 NVOICES=-1
+ADDEDINCLUDES=""
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILEINC=""
@@ -60,6 +61,7 @@ echoHelp()
     option -me "to catch math computation exceptions (floating point exceptions and integer div-by-zero or overflow)"
     option -debug "to print all the build steps"
     option -nodeploy
+    option "-I include-path" "add an include-directory to the generated Qt project for finding ffunction headers and such"
     option "Faust options"
     exit
 }
@@ -103,6 +105,9 @@ do
         EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
+    elif [ $p = "-I" ]; then
+        shift
+        ADDEDINCLUDES+=" INCLUDEPATH+=$1"
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="DEFINES += SOUNDFILE"
@@ -216,7 +221,7 @@ EndOfCode
     # compile c++ to binary
     (
         cd "$TMP"
-        qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$FAUSTINC" "INCLUDEPATH+=$SOUNDFILEINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$MATHDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
+        qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$FAUSTINC" $ADDEDINCLUDES "INCLUDEPATH+=$SOUNDFILEINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$MATHDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
         qmake $SPEC
         make
     ) > /dev/null || exit
