@@ -37,6 +37,8 @@ echoHelp()
     option
     options -httpd -osc -midi -soundfile
     option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
     option "Faust options"
     exit
 }
@@ -67,11 +69,17 @@ do
         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"
         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-nvoices" ]; then
+        POLYDEFS="-DPOLY"
         shift
         NVOICES=$1
         if [ $NVOICES -ge 0 ]; then
             CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
         fi
+    elif [ $p = "-effect" ]; then
+        POLYDEFS="-DPOLY2"
+        POLY="POLY2"
+        shift
+        EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-soundfile" ]; then
@@ -100,18 +108,37 @@ done
 for f in $FILES; do
 
     # compile faust to c++
-    faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+    if [ $POLY = "POLY2" ]; then
+        if [ $EFFECT = "auto" ]; then
+            cat > effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
+EndOfCode
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp effect.dsp -o effect.h || exit
+            rm effect.dsp
+        else
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "effect.h" || exit
+        fi
+    else
+        faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp"|| exit
+    fi
 
     # compile c++ to binary
     (
-        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $HTTPLIBS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -pthread -o "${f%.dsp}"
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $HTTPLIBS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $ARCHLIB -ldl -pthread -o "${f%.dsp}"
         if [[ $(uname) == Darwin ]]; then
             codesign --sign - --deep --force "${f%.dsp}"
         fi
     ) > /dev/null || exit
 
     # remove temporary files
-    rm -f "$f.cpp"
+    rm -f "$f.cpp" effect.h "$f.json"
 
     # collect binary file name for FaustWorks
     BINARIES="$BINARIES${f%.dsp};"
