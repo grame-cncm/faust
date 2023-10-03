@@ -16,7 +16,7 @@ else()
 endif()
 set (MAXINCL ${MAXSDK}/max-includes ${MAXSDK}/msp-includes)
 if (APPLE)
-	set (MAXLIBS "-F${MAXSDK}/max-includes -framework MaxAPI -F${MAXSDK}/msp-includes -framework MaxAudioAPI")
+	set (MAXLIBS "-F${MAXSDK}/max-includes -F${MAXSDK}/msp-includes -framework MaxAudioAPI")
 elseif (WIN32)
 	file (GLOB MAPI ${MAXSDK}/max-includes/x64/MaxAPI.lib)
 	file (GLOB MAUDIO ${MAXSDK}/msp-includes/x64/MaxAudio.lib)
@@ -122,7 +122,8 @@ endif()
 
 if (APPLE)
 set_target_properties (faustgen PROPERTIES 
-	LINK_FLAGS "${MACLIBS} -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp"
+	# With Max 8.6, the MaxAPI framework is not linked anymore, so a bunch of symbols are undefined, are ignored with the -U flag and will be resolved at runtime.
+	LINK_FLAGS "${MACLIBS} -Wl,-U,_object_new_imp,-U,_atom_getlong,-U,_atom_getobj,-U,_atom_getsym,-U,_atom_gettype,-U,_atom_setfloat,-U,_atom_setsym,-U,_class_addmethod,-U,_class_new,-U,_class_register,-U,_common_symbols_gettable,-U,_dictionary_appendlong,-U,_dictionary_appendstring,-U,_dictionary_getlong,-U,_dictionary_getstring,-U,_gensym,-U,_jbox_get_color,-U,_jbox_get_nextobject,-U,_jbox_get_object,-U,_jbox_get_varname,-U,_jbox_set_varname,-U,_jmouse_getposition_global,-U,_jpatcher_get_firstobject,-U,_jpatcher_set_dirty,-U,_jpopupmenu_additem,-U,_jpopupmenu_create,-U,_jpopupmenu_destroy,-U,_jpopupmenu_popup,-U,_jrgba_set,-U,_locatefile_extended,-U,_object_alloc,-U,_object_attr_setchar,-U,_object_attr_setsym,-U,_object_classname,-U,_object_classname_compare,-U,_object_error_obtrusive,-U,_object_free,-U,_object_method_imp,-U,_object_method_typed,-U,_object_obex_lookup,-U,_open_dialog,-U,_outlet_append,-U,_outlet_bang,-U,_outlet_delete,-U,_outlet_int,-U,_outlet_list,-U,_outlet_nth,-U,_path_createsysfile,-U,_path_opensysfile,-U,_path_setdefault,-U,_path_topathname,-U,_post,-U,_proxy_getinlet,-U,_saveas_dialog,-U,_strncpy_zero,-U,_sysfile_close,-U,_sysfile_readtextfile,-U,_sysfile_setpos,-U,_sysfile_writetextfile,-U,_sysmem_copyptr,-U,_sysmem_freehandle,-U,_sysmem_handlesize,-U,_sysmem_newhandle,-U,_sysmem_newhandleclear,-U,_jbox_set_color,-U,_path_getdefault"
 	BUNDLE TRUE
 	BUNDLE_EXTENSION mxo
 	MACOSX_BUNDLE_INFO_PLIST ${ROOT}/Info.plist
