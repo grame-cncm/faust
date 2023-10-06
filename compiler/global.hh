@@ -145,44 +145,41 @@ struct global {
     bool gExportDSP;            // -e option
 
     // code generation options
-    bool gVectorSwitch;       // -vec option
-    bool gDeepFirstSwitch;    // -dfs option
-    int  gVecSize;            // -vs option
-    int  gVectorLoopVariant;  // -lv [0|1] option
-    bool gOpenMPSwitch;       // -omp option
-    bool gOpenMPLoop;         // -pl option
-    bool gSchedulerSwitch;    // -sch option
-    bool gOpenCLSwitch;       // -ocl option
-    bool gCUDASwitch;         // -cuda option
-    bool gGroupTaskSwitch;    // -g option
-    bool gFunTaskSwitch;      // -fun option
-    int  gMaxCopyDelay;       // -mcd option
-    int gFloatSize;  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad', 4 for 'fixed-point')
-    int gMaskDelayLineThreshold;  // -dlt <num> power-of-two and mask delay-lines treshold
-    bool gEnableFlag;             // -es option (0/1: 0 by default)
-    bool gNoVirtual;              // -nvi option, when compiled with the C++ backend, does not add the 'virtual' keyword
-    bool gMemoryManager;          // -mem option
-    bool gRangeUI;   // -rui option, whether to generate code to limit vslider/hslider/nentry values in [min..max] range
-    bool gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init value by default)
-    int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
-    bool gInPlace;   // -inpl option, add cache to input for correct in-place computations
-    bool gStrictSelect;  // -sts option, generate strict code for 'selectX' even for stateless branches (both are
-                         // computed)
+    bool gVectorSwitch;          // -vec option
+    bool gDeepFirstSwitch;       // -dfs option
+    int  gVecSize;               // -vs option
+    int  gVectorLoopVariant;     // -lv [0|1] option
+    bool gOpenMPSwitch;          // -omp option
+    bool gOpenMPLoop;            // -pl option
+    bool gSchedulerSwitch;       // -sch option
+    bool gOpenCLSwitch;          // -ocl option
+    bool gCUDASwitch;            // -cuda option
+    bool gGroupTaskSwitch;       // -g option
+    bool gFunTaskSwitch;         // -fun option
+    int gMaxCopyDelay;           // -mcd option
+    int gFloatSize;              // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad', 4 for 'fixed-point')
+    int gFixedPointSize;         // -fx-size (-1 by default = not used)
+    int gMaskDelayLineThreshold; // -dlt <num> power-of-two and mask delay-lines treshold
+    bool gEnableFlag;            // -es option (0/1: 0 by default)
+    bool gNoVirtual;             // -nvi option, when compiled with the C++ backend, does not add the 'virtual' keyword
+    bool gMemoryManager;         // -mem option
+    bool gRangeUI;               // -rui option, whether to generate code to limit vslider/hslider/nentry values in [min..max] range
+    bool gFreezeUI;              // -fui option, whether to freeze vslider/hslider/nentry to a given value (init value by default)
+    int  gFTZMode;               // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
+    bool gInPlace;               // -inpl option, add cache to input for correct in-place computations
+    bool gStrictSelect;          // -sts option, generate strict code for 'selectX' even for stateless branches (both are computed)
+    
+    bool gDSPStruct;             // to control method generation in -fun mode
+    bool gLightMode;             // -light option, do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module for JavaScript)
+    bool gClang;                 // -clang option, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    bool gFullParentheses;       // -fp option, generate less parenthesis in some textual backends: C/C++, Cmajor, Dlang, Rust
+    bool gCheckIntRange;         // -cir option, check float to integer range conversion
+    bool gReprC;                 // (Rust) Force dsp struct layout to follow C ABI
 
-    bool gDSPStruct;  // to control method generation in -fun mode
-    bool gLightMode;  // -light option, do not generate the entire DSP API (to be used with Emscripten to generate a
-                      // light DSP module for JavaScript)
-    bool gClang;      // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
-    bool
-        gFullParentheses;  // -fp option, generate less parenthesis in some textual backends: C/C++, Cmajor, Dlang, Rust
-    bool gCheckIntRange;   // -cir option, check float to integer range conversion
-    bool gReprC;           // (Rust) Force dsp struct layout to follow C ABI
-
-    std::string gClassName;    // -cn option, name of the generated dsp class, by default 'mydsp'
-    std::string gProcessName;  // -pn option, name of the entry point of the Faust program, by default 'process'
-    std::string
-        gSuperClassName;  // -scn option, name of the root class the generated dsp class inherits from, by default 'dsp'
-
+    std::string gClassName;      // -cn option, name of the generated dsp class, by default 'mydsp'
+    std::string gProcessName;    // -pn option, name of the entry point of the Faust program, by default 'process'
+    std::string gSuperClassName; // -scn option, name of the root class the generated dsp class inherits from, by default 'dsp'
+    
     // Debug option
     bool gCheckTable;  // -ct to check rtable/rwtable index range and generate safe access code (0/1: 1 by default)
 
