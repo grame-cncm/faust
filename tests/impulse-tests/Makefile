@@ -67,6 +67,7 @@ help:
 	@echo " 'c2'     : check double outputs with the c backend in scalar one-sample mode (-os1)"
 	@echo " 'c3'     : check double outputs with the c backend in scalar one-sample mode (-os2)"
 	@echo " 'c4'     : check double outputs with the c backend in scalar one-sample mode (-os3)"
+	@echo " 'fx'     : check double outputs with the cpp backend in -fx mode"
 	@echo " 'mute'   : check double output with mute"
 	@echo " 'wasm'   : check double output with wasm backend and various options"
 	@echo " 'wast'   : check double output with wast backend and various options"
