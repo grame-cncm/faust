@@ -19,54 +19,20 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+
 namespace itv {
-void interval_algebra::testAll()
+//------------------------------------------------------------------------------------------
+// Interval Round
+// interval Round(const interval& x);
+// void testRound();
+
+interval interval_algebra::Round(const interval& x)
 {
-    testAbs();
-    testAcos();
-    testAcosh();
-    testAdd();
-    testAnd();
-    testAsin();
-    testAsinh();
-    testAtan();
-    testAtanh();
-    testCeil();
-    testCos();
-    testCosh();
-    testDelay();
-    testDiv();
-    testEq();
-    testExp();
-    testFloatCast();
-    testFloor();
-    testGe();
-    testGt();
-    testIntCast();
-    testInv();
-    testLog();
-    testLog10();
-    testLsh();
-    testLt();
-    testMax();
-    testMem();
-    testMin();
-    testMod();
-    testMul();
-    testNe();
-    testNeg();
-    testNot();
-    testOr();
-    testPow();
-    testRint();
-    testRound();
-    testRsh();
-    testSin();
-    testSinh();
-    testSqrt();
-    testSub();
-    testTan();
-    testTanh();
-    testXor();
+    return {round(x.lo()), round(x.hi()), 0}; // round to integral value (regardless of rounding direction) => integer => precision 0
+}
+
+void interval_algebra::testRound()
+{
+    check("test algebra Round", Round(interval(-3.1, 5.9)), interval(-3, 6));
 }
 }  // namespace itv

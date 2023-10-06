@@ -425,7 +425,44 @@ void propagateBackwardsUnaryMethod(const char* title, umth mp, itv::interval& X,
 }
 
 /**
- * @brief Adjusts the lsb of an input iterval to two composed functions to match a target output lsb
+ * @brief Adjusts the lsbs of two input intervals to a binary function to match a target output lbs
+ * 
+ * @param title name of the tested function
+ * @param bm the interval method of the studied function
+ * @param X the first input interval
+ * @param Y the second input interval
+ * @param l the target lsb for the output
+*/
+void propagateBackwardsBinaryMethod(const char* title, bmth bm, itv::interval& X, itv::interval& Y, int l)
+{
+    std::cout << "Shaving inputs " << X << " and " << Y << " of " << title << " to achieve an output lsb of " << l << std::endl;
+
+    itv::interval_algebra A;
+
+    itv::interval Z = (A.*bm)(X, Y);
+
+    while (Z.lsb() < l)
+    {
+        // std::cout << "X = " << X << "; Y = " << Y << std::endl;
+        if (X.lsb() < Y.lsb())
+        {
+            X = itv::interval(X.lo(), X.hi(), X.lsb()+1);
+            std::cout << "Shaving interval X = " << X << std::endl;
+        }
+        else
+        {
+            Y = itv::interval(Y.lo(), Y.hi(), Y.lsb()+1);
+            std::cout << "Shaving interval Y = " << Y << std::endl;
+        }
+        Z = (A.*bm)(X, Y);
+    }
+
+    std::cout << "Input intervals " << X << " and " << Y << " are sufficient" << std::endl;
+}
+
+
+/**
+ * @brief Adjusts the lsb of an input iterval to a list of composed functions to match a target output lsb
  * 
  * @param titles names of the tested functions, from outermost to innermost
  * @param mps the interval methods of the functions, from outermost to innermost

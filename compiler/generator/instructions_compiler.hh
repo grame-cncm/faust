@@ -273,7 +273,7 @@ class InstructionsFXCompiler : public InstructionsCompiler {
         ValueInst* generateTable(Tree sig, Tree x, Tree y) override;
         ValueInst* generateRDTbl(Tree sig, Tree x, Tree y) override;
         ValueInst* generateSigGen(Tree sig, Tree x) override;
-         */
+        */
         ValueInst* generateSelect2(Tree sig, Tree sel, Tree x, Tree y) override;
     
         /*

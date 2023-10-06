@@ -34,4 +34,5 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& C
                          bmth m);
 
 void propagateBackwardsUnaryMethod(const char* title, umth f, itv::interval& X, int l);
+void propagateBackwardsBinaryMethod(const char* title, bmth bm, itv::interval& X, itv::interval& Y, int l);
 void propagateBackwardsComposition(std::vector<const char*> titles, std::vector<umth> mps, itv::interval& X, int l);
