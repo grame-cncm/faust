@@ -2220,6 +2220,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         for (int k = 0; k < size; k++) {
             double_array->setValue(k, tree2float(sig->branch(k)));
         }
+        num_array = double_array;
     } else if (ctype == Typed::kQuad) {
         QuadArrayNumInst* quad_array = dynamic_cast<QuadArrayNumInst*>(num_array);
         for (int k = 0; k < size; k++) {
