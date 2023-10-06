@@ -156,6 +156,8 @@ class interval_algebra : public FaustAlgebra<interval>
     void     testRemainder();
     interval Rint(const interval& x) override;
     void     testRint();
+    interval Round(const interval& x) override;
+    void     testRound();
     interval Rsh(const interval& x, const interval& y) override;
     void     testRsh();
     interval Sin(const interval& x) override;

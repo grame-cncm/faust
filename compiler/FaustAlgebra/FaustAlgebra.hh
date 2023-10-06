@@ -116,6 +116,7 @@ class FaustAlgebra
     virtual T Pow(const T& x, const T& y)                 = 0;
     virtual T Remainder(const T& x)                       = 0;
     virtual T Rint(const T& x)                            = 0;
+    virtual T Round(const T& x)                           = 0;
     virtual T Rsh(const T& x, const T& y)                 = 0;
     virtual T Select2(const T& x, const T& y, const T& z) = 0;
     virtual T Sin(const T& x)                             = 0;
@@ -256,6 +257,7 @@ class FaustAlgebra
         fUnFuncs[symbol("not")]       = &FaustAlgebra::Not;
         fUnFuncs[symbol("remainder")] = &FaustAlgebra::Remainder;
         fUnFuncs[symbol("rint")]      = &FaustAlgebra::Rint;
+        fUnFuncs[symbol("round")]     = &FaustAlgebra::Round;
         fUnFuncs[symbol("sin")]       = &FaustAlgebra::Sin;
         fUnFuncs[symbol("sinh")]      = &FaustAlgebra::Sinh;
         fUnFuncs[symbol("sqrt")]      = &FaustAlgebra::Sqrt;

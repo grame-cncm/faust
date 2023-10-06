@@ -37,8 +37,8 @@ interval interval_algebra::Add(const interval& x, const interval& y)
     }
 
     return {x.lo() + y.lo(), x.hi() + y.hi(),
-            std::min(x.lsb(),
-                     y.lsb())};  // the result of an addition needs to be as precise as the most precise of the operands
+            std::max(x.lsb(),
+                     y.lsb())};  // the result of an addition needs to be only as precise as the least precise of the operands
 }
 
 void interval_algebra::testAdd()
