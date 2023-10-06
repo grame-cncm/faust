@@ -26,6 +26,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <sstream>
 
 #include "exception.hh"
 #include "instructions.hh"
@@ -102,6 +103,18 @@ class CStringTypeManager : public StringTypeManager {
 
         fTypeDirectTable[Typed::kUint_ptr] = "uintptr_t";
     }
+    
+    int calcMSB(int msb)
+    {
+        if (gGlobal->gFixedPointSize < msb) {
+            std::stringstream error;
+            error << "WARNING : -fx-size ('" << gGlobal->gFixedPointSize << "' less than needed '" << msb << "')" << std::endl;
+            gWarningMessages.push_back(error.str());
+            return std::min(20, gGlobal->gFixedPointSize);
+        } else {
+            return msb;
+        }
+    }
 
     virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
     {
@@ -115,10 +128,20 @@ class CStringTypeManager : public StringTypeManager {
         if (fx_typed) {
             if (fx_typed->fIsSigned) {
                 // return "sfx_t(" + std::to_string(std::max<int>(0, std::min<int>(20, fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ")";
-                return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
+                if (gGlobal->gFixedPointSize > 0) {
+                    int msb = calcMSB(fx_typed->fMSB);
+                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(msb - gGlobal->gFixedPointSize) + ")";
+                } else {
+                    return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
+                }
             } else {
                 // return "ufx_t(" + std::to_string(std::max<int>(0, std::min<int>(20, fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ")";
-                return "ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
+                if (gGlobal->gFixedPointSize > 0) {
+                    int msb = calcMSB(fx_typed->fMSB);
+                    return "ufx_t(" + std::to_string(msb) + "," + std::to_string(msb - gGlobal->gFixedPointSize) + ")";
+                } else {
+                    return "ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
+                }
             }
         } else if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType];
@@ -149,11 +172,21 @@ class CStringTypeManager : public StringTypeManager {
         // fx_typed is a subclass of basic_typed, so has to be tested first
         if (fx_typed) {
             if (fx_typed->fIsSigned) {
-                //return "sfx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
-                return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
+                // return "sfx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
+                if (gGlobal->gFixedPointSize > 0) {
+                    int msb = calcMSB(fx_typed->fMSB);
+                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(msb - gGlobal->gFixedPointSize) + ") " + name;
+                } else {
+                    return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
+                }
             } else {
-                //return "ufx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
-                return "ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
+                // return "ufx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
+                if (gGlobal->gFixedPointSize > 0) {
+                    int msb = calcMSB(fx_typed->fMSB);
+                    return "ufx_t(" + std::to_string(msb) + "," + std::to_string(msb- gGlobal->gFixedPointSize) + ") " + name;
+                } else {
+                    return "ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
+                }
             }
         } else if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType] + " " + name;

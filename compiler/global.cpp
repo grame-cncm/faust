@@ -436,7 +436,8 @@ void global::reset()
     gRangeUI       = false;
     gFreezeUI      = false;
 
-    gFloatSize = 1;  // -single by default
+    gFloatSize      = 1;  // -single by default
+    gFixedPointSize = -1;
 
     gPrintFileListSwitch = false;
     gInlineArchSwitch    = false;
@@ -1284,6 +1285,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gFloatSize = 4;
             i += 1;
             
+        } else if (isCmd(argv[i], "-fx-size", "--fixed-point-size")) {
+            gFixedPointSize = std::atoi(argv[i + 1]);
+            i += 2;
+            
         } else if (isCmd(argv[i], "-mdoc", "--mathdoc")) {
             gPrintDocSwitch = true;
             i += 1;
@@ -1934,6 +1939,7 @@ static void printHelp()
     cout << tab << "-quad       --quad-precision-floats     use quad precision floats for internal computations."
          << endl;
     cout << tab << "-fx         --fixed-point               use fixed-point for internal computations." << endl;
+    cout << tab << "-fx-size    --fixed-point-size          fixed-point number total size in bits." << endl;
     cout << tab
          << "-es 1|0     --enable-semantics 1|0      use enable semantics when 1 (default), and simple multiplication "
          "otherwise."
