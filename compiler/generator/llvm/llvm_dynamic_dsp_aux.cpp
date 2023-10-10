@@ -45,7 +45,6 @@
 #include <llvm/IR/PassManager.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Linker/Linker.h>
-#include <llvm/MC/SubtargetFeature.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/FormattedStream.h>
 #if LLVM_VERSION_MAJOR >= 16
