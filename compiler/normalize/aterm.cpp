@@ -126,8 +126,9 @@ Tree aterm::normalizedTree() const
     // store positive and negative terms by order and sign
     // positive terms are stored in P[]
     // negative terms are inverted (made positive) and stored in N[]
+    // terms sorted by order: to better enable the sharing of expensive expressions (like signal over control.etc)
     Tree P[4], N[4];
- 
+    
     // prepare
     for (int order = 0; order < 4; order++) P[order] = N[order] = tree(0);
 
@@ -135,7 +136,7 @@ Tree aterm::normalizedTree() const
     for (const auto& p : fSig2MTerms) {
         const mterm& m = p.second;
         if (m.isNegative()) {
-            Tree t          = m.normalizedTree(false, true);
+            Tree t          = m.normalizedTree(false, true); // not in signatureMode
             int  order      = getSigOrder(t);
             N[order]        = simplifyingAdd(N[order], t);
         } else {
@@ -161,8 +162,9 @@ Tree aterm::normalizedTree() const
     }
 
     if (!signe) {
-        SUM = sigSub(sigInt(0), SUM);
+        SUM = sigBinOp(kMul, sigInt(-1), SUM);
     }
+    
 #ifdef TRACE
     cerr << __LINE__ << ":" << __FUNCTION__ << "(" << *this << ") ---> " << ppsig(SUM) << endl;
 #endif
