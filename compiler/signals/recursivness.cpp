@@ -50,7 +50,9 @@ static int position(Tree env, Tree t, int p = 1);
 //--------------------------------------------------------------------------
 
 /**
- * Annotate a signal with recursivness. Should be used before calling getRecursivness.
+ * Annotate a signal with recursivness information, the amount of
+ * recursive dependencies of a signal. Should be used before
+ * calling getRecursivness.
  * @param sig signal to annotate
  */
 void recursivnessAnnotation(Tree sig)
@@ -133,7 +135,6 @@ static int position(Tree env, Tree t, int p)
  * @param sig the signal to analyze
  * @return the set of symbols
  */
-
 static Tree symlistVisit(Tree sig, set<Tree>& visited)
 {
     Tree S;
@@ -152,9 +153,9 @@ static Tree symlistVisit(Tree sig, set<Tree>& visited)
             }
             return U;
         } else {
-            vector<Tree> subsigs;
-            int          n = getSubSignals(sig, subsigs, true);  // tables have to be visited also
-            Tree         U = gGlobal->nil;
+            tvec subsigs;
+            int  n = getSubSignals(sig, subsigs, true);  // tables have to be visited also
+            Tree U = gGlobal->nil;
             for (int i = 0; i < n; i++) {
                 U = setUnion(U, symlistVisit(subsigs[i], visited));
             }

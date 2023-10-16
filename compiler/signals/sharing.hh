@@ -22,7 +22,7 @@
 #include "tlib.hh"
 
 //------------------------------------------------------------------------------
-// Create a specific property key for the sharing count of subtrees of sig
+// Get the sharing count of sig
 //------------------------------------------------------------------------------
 
 int getSharingCount(Tree sig, Tree key);

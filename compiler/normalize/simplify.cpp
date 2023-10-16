@@ -324,13 +324,12 @@ static void eraseAllProperties(Tree t)
 }
 #endif
 
+static Tree docTableConverter(Tree sig);
+
 /**
  * Converts regular tables into doc tables in order to
  * facilitate the mathematical documentation generation
  */
-
-static Tree docTableConverter(Tree sig);
-
 Tree docTableConvertion(Tree sig)
 {
     Tree r = sigMapRename(gGlobal->DOCTABLES, gGlobal->NULLENV, docTableConverter, sig);

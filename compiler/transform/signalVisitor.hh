@@ -28,6 +28,8 @@
 //-------------------------SignalVisitor-------------------------------
 // An identity transformation on signals. Can be used to test
 // that everything works, and as a pattern for real transformations.
+// Here signals are using the symbolic representation for recursive trees,
+// so have to be converted using deBruijn2Sym before.
 //----------------------------------------------------------------------
 
 class SignalVisitor : public TreeTraversal {
@@ -49,7 +51,7 @@ class SignalVisitor : public TreeTraversal {
 
    protected:
     
-    bool fVisitGen{false};
+    bool fVisitGen{false}; // wether to visit gen signal for tables
     virtual void visit(Tree t) override;
    
 };

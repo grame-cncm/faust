@@ -93,7 +93,6 @@ Tree normalizeDelay1Term(Tree s)
  * \param d the value of the delay
  * \return the normalized term
  */
-
 Tree normalizeDelayTerm(Tree s, Tree d)
 {
     Tree x, y, r;

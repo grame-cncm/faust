@@ -74,8 +74,8 @@ static void sharingAnnotation(int vctxt, Tree sig, Tree key)
         }
         
         // Annotate the sub signals
-        vector<Tree> subsig;
-        int          n = getSubSignals(sig, subsig);
+        tvec subsig;
+        int  n = getSubSignals(sig, subsig);
         if (n > 0 && !isSigGen(sig)) {
             for (int i = 0; i < n; i++) sharingAnnotation(v, subsig[i], key);
         }
@@ -83,7 +83,7 @@ static void sharingAnnotation(int vctxt, Tree sig, Tree key)
 }
 
 //------------------------------------------------------------------------------
-// Create a specific property key for the sharing count of subtrees of sig
+// Get the sharing count of sig
 //------------------------------------------------------------------------------
 
 int getSharingCount(Tree sig, Tree key)

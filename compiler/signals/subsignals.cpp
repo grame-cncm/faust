@@ -35,7 +35,6 @@ using namespace std;
  * @param vsigs a reference to the vector where the subsignals will be placed
  * @return the number of subsignals
  */
-
 int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
 {
     vsigs.clear();

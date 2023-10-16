@@ -1489,7 +1489,7 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine") ||
                    isCmd(argv[i], "-poly", "--polyphonic-mode") || isCmd(argv[i], "-voices", "--polyphonic-voices") ||
                    isCmd(argv[i], "-group", "--polyphonic-group")) {
-                // Ignore arg
+            // Ignore arg
             i += 2;
             
         } else if (argv[i][0] != '-') {

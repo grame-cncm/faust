@@ -113,8 +113,8 @@ void CodeContainer::listAllLoopProperties(Tree sig, set<CodeLoop*>& L, set<Tree>
             L.insert(l);
         } else {
             // we go down the expression
-            vector<Tree> subsigs;
-            int          n = getSubSignals(sig, subsigs, false);
+            tvec subsigs;
+            int  n = getSubSignals(sig, subsigs, false);
             for (int i = 0; i < n; i++) {
                 listAllLoopProperties(subsigs[i], L, visited);
             }

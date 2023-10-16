@@ -30,6 +30,10 @@
  */
 Tree simplify(Tree sig);
 
+/**
+ * Converts regular tables into doc tables in order to
+ * facilitate the mathematical documentation generation
+ */
 Tree docTableConvertion(Tree sig);
 
 #endif

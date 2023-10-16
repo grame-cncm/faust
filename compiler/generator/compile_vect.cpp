@@ -141,8 +141,8 @@ void VectorCompiler::generateCodeRecursions(Tree sig)
         fClass->closeLoop(sig);
     } else {
         // we go down the expression
-        vector<Tree> subsigs;
-        int          n = getSubSignals(sig, subsigs, false);
+        tvec subsigs;
+        int  n = getSubSignals(sig, subsigs, false);
         for (int i = 0; i < n; i++) {
             generateCodeRecursions(subsigs[i]);
         }

@@ -72,8 +72,8 @@ void sigToGraph(Tree L, ostream& fout)
 static void recdraw(Tree sig, set<Tree>& drawn, ostream& fout)
 {
     // cerr << ++gGlobal->TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
-    vector<Tree> subsig;
-    int          n;
+    tvec subsig;
+    int  n;
 
     if (drawn.count(sig) == 0) {
         drawn.insert(sig);

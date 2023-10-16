@@ -162,8 +162,8 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
             incOcc(env, v0, r0, 1, c0, x);
             incOcc(env, v0, r0, 0, c0, y);
         } else {
-            vector<Tree> br;
-            int          n = getSubSignals(t, br);
+            tvec br;
+            int  n = getSubSignals(t, br);
             if (n > 0 && !isSigGen(t)) {
                 for (int i = 0; i < n; i++) incOcc(env, v0, r0, 0, c0, br[i]);
             }

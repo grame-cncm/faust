@@ -66,7 +66,7 @@ bool mterm::isNotZero() const
 }
 
 /**
- * true if mterm doesn't represent number 0
+ * true if mterm is strictly negative
  */
 bool mterm::isNegative() const
 {
@@ -202,7 +202,7 @@ const mterm& mterm::operator/=(Tree t)
 }
 
 /**
- * replace the content with a copy of m
+ * Replace the content with a copy of m
  */
 const mterm& mterm::operator=(const mterm& m)
 {
@@ -324,7 +324,7 @@ mterm mterm::operator/(const mterm& m) const
 }
 
 /**
- * return the "common quantity" of two numbers
+ * Return the "common quantity" of two numbers
  */
 static int common(int a, int b)
 {
@@ -338,7 +338,7 @@ static int common(int a, int b)
 }
 
 /**
- * return a mterm that is the greatest common divisor of two mterms
+ * Return a mterm that is the greatest common divisor of two mterms
  */
 mterm gcd(const mterm& m1, const mterm& m2)
 {
@@ -402,7 +402,7 @@ bool mterm::hasDivisor(const mterm& n) const
 }
 
 /**
- * produce the canonical tree correspoding to a mterm
+ * Produce the canonical tree corresponding to a mterm
  */
 
 /**
@@ -435,7 +435,7 @@ static void combineMulLeft(Tree& R, Tree A)
 }
 
 /**
- * Combine R and A doing R = R*A or R = A
+ * Combine R and A doing R = R/A or R = A
  */
 static void combineDivLeft(Tree& R, Tree A)
 {
@@ -468,7 +468,7 @@ static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
 }
 
 /**
- * returns a normalized (canonical) tree expression of structure :
+ * Returns a normalized (canonical) tree expression of structure :
  * 		((v1/v2)*(c1/c2))*(s1/s2)
  */
 Tree mterm::signatureTree() const
@@ -477,7 +477,7 @@ Tree mterm::signatureTree() const
 }
 
 /**
- * returns a normalized (canonical) tree expression of structure :
+ * Returns a normalized (canonical) tree expression of structure :
  * 		((k*(v1/v2))*(c1/c2))*(s1/s2)
  * In signature mode the fCoef factor is ommited
  * In negativeMode the sign of the fCoef factor is inverted

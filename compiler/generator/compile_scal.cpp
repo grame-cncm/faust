@@ -301,8 +301,8 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
     } else {
         // general annotation case
         // Annotate the sub signals with nc
-        vector<Tree> subsig;
-        int          n = getSubSignals(t, subsig);
+        tvec subsig;
+        int n = getSubSignals(t, subsig);
         if (n > 0 && !isSigGen(t)) {
             for (int i = 0; i < n; i++) conditionAnnotation(subsig[i], nc);
         }

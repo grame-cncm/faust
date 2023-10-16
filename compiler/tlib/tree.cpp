@@ -159,16 +159,8 @@ size_t CTree::calcTreeHash(const Node& n, const tvec& br)
 Tree CTree::make(const Node& n, int ar, Tree* tbl)
 {
     tvec br(ar);
-
     for (int i = 0; i < ar; i++) br[i] = tbl[i];
-
-    size_t hk = calcTreeHash(n, br);
-    Tree   t  = gHashTable[hk % kHashTableSize];
-
-    while (t && !t->equiv(n, br)) {
-        t = t->fNext;
-    }
-    return (t) ? t : new CTree(hk, n, br);
+    return CTree::make(n, br);
 }
 
 Tree CTree::make(const Node& n, const tvec& br)

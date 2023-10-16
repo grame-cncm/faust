@@ -120,7 +120,7 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     plist        fProperties;  ///< the properties list attached to the tree
     size_t       fHashKey;     ///< the hashtable key
     size_t       fSerial;      ///< the increasing serial number
-    int          fAperture;    ///< how "open" is a tree (synthezised field)
+    int          fAperture;    ///< how "open" is a tree (synthesized field)
     unsigned int fVisitTime;   ///< keep track of visits
     tvec         fBranch;      ///< the subtrees
 
@@ -185,7 +185,7 @@ class LIBFAUST_API CTree : public virtual Garbageable {
 
 //---------------------------------API---------------------------------------
 
-// to build trees
+// To build trees
 inline Tree tree(const Node& n)
 {
     Tree br[1];
@@ -222,16 +222,16 @@ inline Tree tree(const Node& n, const tvec& br)
     return CTree::make(n, br);
 }
 
-// useful conversions
+// Useful conversions
 LIBFAUST_API int tree2int(Tree t); ///< if t has a node of type int, return it otherwise error
-double      tree2float(Tree t);   ///< if t has a node of type float, return it otherwise error
-double      tree2double(Tree t);  ///< if t has a node of type float, return it otherwise error
+double      tree2float(Tree t);    ///< if t has a node of type float, return it otherwise error
+double      tree2double(Tree t);   ///< if t has a node of type float, return it otherwise error
 LIBFAUST_API const char* tree2str(Tree t);     ///< if t has a node of type symbol, return its name otherwise error
 std::string tree2quotedstr(Tree t);
-void*       tree2ptr(Tree t);     ///< if t has a node of type ptr, return it otherwise error
+void*       tree2ptr(Tree t);            ///< if t has a node of type ptr, return it otherwise error
 LIBFAUST_API void* getUserData(Tree t);  ///< if t has a node of type symbol, return the associated user data
 
-// pattern matching
+// Pattern matching
 bool isTree(const Tree& t, const Node& n);
 bool isTree(const Tree& t, const Node& n, Tree& a);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b);
@@ -239,25 +239,25 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e);
 
-// printing
+// Printing
 inline std::ostream& operator<<(std::ostream& s, const CTree& t)
 {
     return t.print(s);
 }
 
 //-----------------------------------------------------------------------------
-// recursive trees
+// Recursive trees
 //-----------------------------------------------------------------------------
 
-// creation a recursive trees
+// Creation of recursive trees
 
 Tree rec(Tree body);           ///< create a de Bruijn recursive tree
 Tree rec(Tree id, Tree body);  ///< create a symbolic recursive tree
 
-bool isRec(Tree t, Tree& body);            ///< is t a de Bruijn recursive tree
+bool isRec(Tree t, Tree& body);                         ///< is t a de Bruijn recursive tree
 LIBFAUST_API bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursive tree
 
-// creation of recursive references
+// Creation of recursive references
 
 Tree ref(int level);  ///< create a de Bruijn recursive reference
 Tree ref(Tree id);    ///< create a symbolic recursive reference
@@ -271,16 +271,17 @@ inline bool isOpen(Tree t)
 {
     return t->aperture() > 0;
 }  ///< t contains free de Bruijn references
+   
 inline bool isClosed(Tree t)
 {
     return t->aperture() <= 0;
-}  ///< t dont contain free de Bruijn ref
+}  ///< t does not contain free de Bruijn ref
 
-// lift by 1 the free de Bruijn references
+// Lift by 1 the free de Bruijn references
 
 Tree lift(Tree t);  ////< add 1 to the free de bruijn references of t
 
-Tree deBruijn2Sym(Tree t);  ////< transform a tree from deBruijn to symbolic notation
+Tree deBruijn2Sym(Tree t);  ////< transform a tree from deBruijn to symbolic representation
 
 //---------------------------------------------------------------------------
 
@@ -311,7 +312,7 @@ class Tabber {
     }
 };
 
-// printing
+// Printing
 inline std::ostream& operator<<(std::ostream& s, Tabber& t)
 {
     return t.print(s);

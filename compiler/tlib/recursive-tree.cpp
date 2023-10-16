@@ -106,7 +106,7 @@ bool isRef(Tree t, Tree& v)
 //-----------------------------------------------------------------------------------------
 // The aperture of a tree is the deepest deBruijn reference it contains.
 // Symbolic references count as zero which means that a tree with aperture
-// 0 has no free de bruijn references.
+// 0 has no free deBruijn references.
 
 int CTree::calcTreeAperture(const Node& n, const tvec& br)
 {
@@ -192,12 +192,10 @@ static Tree calcliftn(Tree t, int threshold)
 
     } else {
         int n1 = t->arity();
-        // Tree	br[4];
         tvec br(n1);
         for (int i = 0; i < n1; i++) {
             br[i] = liftn(t->branch(i), threshold);
         }
-        // return CTree::make(t->node(), n, br);
         return CTree::make(t->node(), br);
     }
 }
@@ -236,14 +234,11 @@ static Tree calcDeBruijn2Sym(Tree t)
         return t;
 
     } else {
-        // Tree	br[4];
         int  a = t->arity();
         tvec br(a);
-
         for (int i1 = 0; i1 < a; i1++) {
             br[i1] = deBruijn2Sym(t->branch(i1));
         }
-        // return CTree::make(t->node(), a, br);
         return CTree::make(t->node(), br);
     }
 }
@@ -273,11 +268,9 @@ static Tree calcsubstitute(Tree t, int level, Tree id)
     if (isRec(t, body)) return rec(substitute(body, level + 1, id));
 
     int ar = t->arity();
-    // Tree	br[4];
     tvec br(ar);
     for (int i = 0; i < ar; i++) {
         br[i] = substitute(t->branch(i), level, id);
     }
-    // return CTree::make(t->node(), ar, br);
     return CTree::make(t->node(), br);
 }

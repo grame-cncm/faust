@@ -31,7 +31,7 @@ aterm::aterm()
 {}
 
 /**
- * create a aterm from a tree expression
+ * Create a aterm from a tree expression
  */
 aterm::aterm(Tree t)
 {
@@ -70,7 +70,7 @@ Tree simplifyingAdd(Tree t1, Tree t2)
 }
 
 /**
- * return the corresponding normalized expression tree
+ * Return the corresponding normalized expression tree
  */
 
 /*====================================================
