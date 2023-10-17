@@ -309,10 +309,11 @@ nothrow:
     void updateFaustParams()
     {
         foreach(param; params())
-        {
+        {            
+            int paramIndex = param.index();
             foreach(faustParam; _faustParams)
             {
-                if (param.label() == faustParam.label)
+                if (paramIndex == faustParam.ParamId)
                 {
                     if (cast(FloatParameter)param)
                     {
@@ -354,7 +355,7 @@ nothrow:
             outputs[chan][0..frames] = 0; // D has array slices assignments and operations
     }
 
-private:
+protected:
     FAUSTCLASS _dsp;
     UI _faustUI;
     FaustParam[] _faustParams;
