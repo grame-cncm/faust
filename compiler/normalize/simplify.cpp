@@ -121,14 +121,13 @@ static Tree simplification(Tree sig)
             else
                 return sigBinOp(kMul, tree(minusNode(n1)), sigBinOp(kSub, v2, v1));
 
-            // (x-y)*-n -> n*(y-x)
-            // (x-y)*-1 -> y-x
+        // (x-y)*-n -> n*(y-x)
+        // (x-y)*-1 -> y-x
         } else if ((opnum == kMul) && isNegative(n2) && isSigBinOp(t1, &opnum2, v1, v2) && (opnum2 == kSub)) {
             if (isMinusOne(n2))
                 return sigBinOp(kSub, v2, v1);
             else
                 return sigBinOp(kMul, tree(minusNode(n2)), sigBinOp(kSub, v2, v1));
-
         }
 
         // n*(m*x) -> (n*m)*x or x (if n*m == 1)

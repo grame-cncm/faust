@@ -277,20 +277,52 @@ class TextInstVisitor : public InstVisitor {
             return false;
         }
     }
+    
+    bool isMinusOne(ValueInst* val)
+    {
+        if (castInt32(val) && castInt32(val)->fNum == -1) return true;
+        else if (castInt64(val) && castInt64(val)->fNum == -1) return true;
+        else if (castFloat(val) && castFloat(val)->fNum == -1.f) return true;
+        else if (castDouble(val) && castDouble(val)->fNum == 1.) return true;
+        else if (castQuad(val) && castQuad(val)->fNum == -1) return true;
+        else return false;
+    }
 
     virtual void visit(BinopInst* inst)
     {
-        bool cond1 = leftArgNeedsParentheses(inst, inst->fInst1);
-        bool cond2 = rightArgNeedsParentheses(inst, inst->fInst2);
-        if (cond1) *fOut << "(";
-        inst->fInst1->accept(this);
-        if (cond1) *fOut << ")";
-        *fOut << " ";
-        *fOut << gBinOpTable[inst->fOpcode]->fName;
-        *fOut << " ";
-        if (cond2) *fOut << "(";
-        inst->fInst2->accept(this);
-        if (cond2) *fOut << ")";
+        // Special case for -1*a2
+        if ((inst->fOpcode == kMul) && isMinusOne(inst->fInst1)) {
+            if (dynamic_cast<LoadVarInst*>(inst->fInst2)) {
+                *fOut << "-";
+                inst->fInst2->accept(this);
+            } else {
+                *fOut << "-(";
+                inst->fInst2->accept(this);
+                *fOut << ")";
+            }
+        // Special case for a1*-1
+        } else if ((inst->fOpcode == kMul) && isMinusOne(inst->fInst2)) {
+            if (dynamic_cast<LoadVarInst*>(inst->fInst1)) {
+                *fOut << "-";
+                inst->fInst1->accept(this);
+            } else {
+                *fOut << "-(";
+                inst->fInst1->accept(this);
+                *fOut << ")";
+            }
+        } else {
+            bool cond1 = leftArgNeedsParentheses(inst, inst->fInst1);
+            bool cond2 = rightArgNeedsParentheses(inst, inst->fInst2);
+            if (cond1) *fOut << "(";
+            inst->fInst1->accept(this);
+            if (cond1) *fOut << ")";
+            *fOut << " ";
+            *fOut << gBinOpTable[inst->fOpcode]->fName;
+            *fOut << " ";
+            if (cond2) *fOut << "(";
+            inst->fInst2->accept(this);
+            if (cond2) *fOut << ")";
+        }
     }
 
     virtual void visit(::CastInst* inst) { faustassert(false); }

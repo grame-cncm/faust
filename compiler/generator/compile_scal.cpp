@@ -657,6 +657,7 @@ string ScalarCompiler::generateOutput(Tree sig, const string& idx, const string&
 
 string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
+    // Special case for -1*a2
     if ((opcode == kMul) && isMinusOne(arg1)) {
         std::string res = CS(arg2);
         if ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i')) {
@@ -664,7 +665,7 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         } else {
             return subst("-($0)", res);
         }
-
+    // Special case for a1*-1
     } else if ((opcode == kMul) && isMinusOne(arg2)) {
         std::string res = CS(arg1);
         if ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i')) {
