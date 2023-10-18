@@ -20,8 +20,8 @@
  ************************************************************************/
 
 #include <stdlib.h>
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
 #include "global.hh"
 #include "occurrences.hh"
@@ -80,6 +80,7 @@ Occurrences* Occurrences::incOccurrences(int v, int r, int d, Tree xc)
     if (fExecCondition != xc) {
         fMultiOcc = true;
     }
+
     return this;
 }
 
@@ -138,15 +139,15 @@ Occurrences* OccMarkup::retrieve(Tree t)
 void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 {
     // Check if we have already visited this tree
-    Occurrences* occ = getOcc(t);
-
-    if (occ == 0) {
+    Occurrences* occ        = getOcc(t);
+    bool         firstVisit = (occ == 0);
+    if (firstVisit) {
         // 1) We build initial occurence information
         Type ty = getCertifiedSigType(t);
         int  v0 = ty->variability();
         int  r0 = getRecursivness(t);
         // fConditions may have been initialized empty
-        Tree c0 = (fConditions.find(t) == fConditions.end()) ? gGlobal->nil : fConditions[t];        
+        Tree c0 = (fConditions.find(t) == fConditions.end()) ? gGlobal->nil : fConditions[t];
         occ     = new Occurrences(v0, r0, c0);
         setOcc(t, occ);
 
@@ -171,6 +172,16 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
     }
 
     occ->incOccurrences(v, r, d, xc);
+
+    if (!firstVisit) {
+        // Special case for -1*y. Because the sharing of -1*y will be ignored
+        // at code generation, we need to propagate its sharing to y
+        int  opnum;
+        Tree x, y;
+        if (isSigBinOp(t, &opnum, x, y) && (opnum == kMul) && isMinusOne(x)) {
+            incOcc(env, v, r, d, xc, y);
+        }
+    }
 }
 
 Occurrences* OccMarkup::getOcc(Tree t)

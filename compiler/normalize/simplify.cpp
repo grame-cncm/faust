@@ -61,7 +61,8 @@ static Tree traced_simplification(Tree sig)
     Tree r = simplification(sig);
     faustassert(r != 0);
 #ifdef TRACE
-    cerr << --gGlobal->TABBER << "Simplification of : " << ppsig(sig, MAX_ERROR_SIZE) << " Returns : " << ppsig(r, MAX_ERROR_SIZE) << endl;
+    cerr << --gGlobal->TABBER << "Simplification of : " << ppsig(sig, MAX_ERROR_SIZE)
+         << " Returns : " << ppsig(r, MAX_ERROR_SIZE) << endl;
     /*
     fprintf(stderr, "Simplification of : ");
     printSignal(sig, stderr);
@@ -75,7 +76,9 @@ static Tree traced_simplification(Tree sig)
 
 Tree simplify(Tree sig)
 {
-    return sigMap(gGlobal->SIMPLIFIED, traced_simplification, sig);
+    Tree r1 = sigMap(gGlobal->SIMPLIFIED, traced_simplification, sig);
+    Tree r2 = sigMap(gGlobal->SIMPLIFIED, traced_simplification, r1);
+    return r2;
 }
 
 // Implementation
@@ -83,8 +86,8 @@ Tree simplify(Tree sig)
 static Tree simplification(Tree sig)
 {
     faustassert(sig);
-    int  opnum;
-    Tree t1, t2, t3;
+    int  opnum, opnum2;
+    Tree t1, t2, t3, v1, v2;
 
     xtended* xt = (xtended*)getUserData(sig);
     // primitive elements
@@ -106,12 +109,50 @@ static Tree simplification(Tree sig)
         Node   n1 = t1->node();
         Node   n2 = t2->node();
 
-        if (isNum(n1) && isNum(n2))
-            return tree(op->compute(n1, n2));
+        if (isNum(n1) && isNum(n2)) return tree(op->compute(n1, n2));
 
+        // New rules for -E
+
+        // -n*(x-y) -> n*(y-x)
+        // -1*(x-y) -> y-x
+        else if ((opnum == kMul) && isNegative(n1) && isSigBinOp(t2, &opnum2, v1, v2) && (opnum2 == kSub)) {
+            if (isMinusOne(n1))
+                return sigBinOp(kSub, v2, v1);
+            else
+                return sigBinOp(kMul, tree(minusNode(n1)), sigBinOp(kSub, v2, v1));
+
+            // (x-y)*-n -> n*(y-x)
+            // (x-y)*-1 -> y-x
+        } else if ((opnum == kMul) && isNegative(n2) && isSigBinOp(t1, &opnum2, v1, v2) && (opnum2 == kSub)) {
+            if (isMinusOne(n2))
+                return sigBinOp(kSub, v2, v1);
+            else
+                return sigBinOp(kMul, tree(minusNode(n2)), sigBinOp(kSub, v2, v1));
+
+        }
+
+        // n*(m*x) -> (n*m)*x or x (if n*m == 1)
+        else if ((opnum == kMul) && isNum(n1) && isSigBinOp(t2, &opnum2, v1, v2) && (opnum2 == kMul) && isNum(v1)) {
+            Tree m = tree(mulNode(n1, v1->node()));
+            if (isOne(m))
+                return v2;
+            else
+                return sigBinOp(kMul, m, v2);
+        }
+
+        // n*(x*m) -> (n*m)*x or x (if n*m == 1)
+        else if ((opnum == kMul) && isNum(n1) && isSigBinOp(t2, &opnum2, v1, v2) && (opnum2 == kMul) && isNum(v2)) {
+            Tree m = tree(mulNode(n1, v2->node()));
+            if (isOne(m))
+                return v1;
+            else
+                return sigBinOp(kMul, m, v1);
+        }
+
+        // End new rules
         else if (opnum == kSub && isZero(n1))
             return sigBinOp(kMul, sigInt(-1), t2);
-        
+
         else if (op->isLeftNeutral(n1))
             return t2;
 
@@ -123,13 +164,14 @@ static Tree simplification(Tree sig)
 
         else if (op->isRightAbsorbing(n2))
             return t2;
-        
+
         else if (t1 == t2) {
             if ((opnum == kAND) || (opnum == kOR)) return t1;
             if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) return sigInt(1);
-            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) || (opnum == kXOR)) return sigInt(0);
+            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) || (opnum == kXOR))
+                return sigInt(0);
         }
-        
+
         return normalizeAddTerm(sig);
 
     } else if (isSigDelay1(sig, t1)) {
@@ -147,7 +189,7 @@ static Tree simplification(Tree sig)
         if (isDouble(n1, &x)) return tree(int(x));
 
         return sig;
-        
+
     } else if (isSigBitCast(sig, t1)) {
         return sig;
 

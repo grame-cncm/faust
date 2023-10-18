@@ -210,6 +210,11 @@ inline bool isMinusOne(const Node& n)
     return ((n.type() == kDoubleNode) && (n.getDouble() == -1.0)) || ((n.type() == kIntNode) && (n.getInt() == -1));
 }
 
+inline bool isNegative(const Node& n)
+{
+    return ((n.type() == kDoubleNode) && (n.getDouble() < 0.0)) || ((n.type() == kIntNode) && (n.getInt() < 0));
+}
+
 bool sameMagnitude(const Node& a, const Node& b);
 
 // numbers in general

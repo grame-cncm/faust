@@ -34,6 +34,9 @@
 #include "simplify.hh"
 #include "tlib.hh"
 
+using namespace std;
+#undef TRACE
+
 /**
  * Compute the Add-Normal form of a term t.
  * \param t the term to be normalized
