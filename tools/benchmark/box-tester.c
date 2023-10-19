@@ -252,7 +252,8 @@ static void test4()
         // Create the filter parameters and connect
         Box cutoff = CboxHSlider("cutoff", CboxReal(300), CboxReal(100), CboxReal(2000), CboxReal(0.01));
         Box cutoffAndInput = CboxPar(cutoff, CboxWire());
-        Box filteredInput = CboxSeq(cutoffAndInput, filter);
+        Box group = CboxSeq(cutoffAndInput, filter);
+        Box filteredInput = CboxHGroup("test4", group);
         
         CgetBoxType(filteredInput, &inputs, &outputs);
         printf("CgetBoxType inputs: %d outputs: %d\n", inputs, outputs);

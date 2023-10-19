@@ -299,15 +299,15 @@ LIBFAUST_API bool isBoxHBargraph(Tree s);
 LIBFAUST_API bool isBoxHBargraph(Tree s, Tree& label, Tree& min, Tree& max);
 
 // Groups
-Tree boxVGroup(Tree label, Tree x);
+LIBFAUST_API Tree boxVGroup(Tree label, Tree x);
 LIBFAUST_API bool isBoxVGroup(Tree s);
 LIBFAUST_API bool isBoxVGroup(Tree s, Tree& label, Tree& x);
 
-Tree boxHGroup(Tree label, Tree x);
+LIBFAUST_API Tree boxHGroup(Tree label, Tree x);
 LIBFAUST_API bool isBoxHGroup(Tree s);
 LIBFAUST_API bool isBoxHGroup(Tree s, Tree& label, Tree& x);
 
-Tree boxTGroup(Tree label, Tree x);
+LIBFAUST_API Tree boxTGroup(Tree label, Tree x);
 LIBFAUST_API bool isBoxTGroup(Tree s);
 LIBFAUST_API bool isBoxTGroup(Tree s, Tree& label, Tree& x);
 

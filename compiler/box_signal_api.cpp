@@ -1415,6 +1415,21 @@ LIBFAUST_API Tree boxHBargraph(const string& label, Tree min, Tree max)
     return boxHBargraph(tree(label), min, max);
 }
 
+LIBFAUST_API Tree boxVGroup(const std::string& label, Tree group)
+{
+    return boxVGroup(tree(label), group);
+}
+
+LIBFAUST_API Tree boxHGroup(const std::string& label, Tree group)
+{
+    return boxHGroup(tree(label), group);
+}
+
+LIBFAUST_API Tree boxTGroup(const std::string& label, Tree group)
+{
+    return boxTGroup(tree(label), group);
+}
+
 LIBFAUST_API Tree boxAttach()
 {
     return boxPrim2(sigAttach);
@@ -2060,6 +2075,21 @@ LIBFAUST_API Tree CboxVBargraph(const char* label, Tree min, Tree max)
 LIBFAUST_API Tree CboxHBargraph(const char* label, Tree min, Tree max)
 {
     return boxHBargraph(label, min, max);
+}
+    
+LIBFAUST_API Tree CboxVGroup(const char* label, Tree group)
+{
+    return boxVGroup(label, group);
+}
+    
+LIBFAUST_API Tree CboxHGroup(const char* label, Tree group)
+{
+    return boxHGroup(label, group);
+}
+    
+LIBFAUST_API Tree CboxTGroup(const char* label, Tree group)
+{
+    return boxTGroup(label, group);
 }
 
 LIBFAUST_API Tree CboxAttach()

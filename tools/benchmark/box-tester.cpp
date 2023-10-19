@@ -414,7 +414,8 @@ static void test21(int argc, const char* argv[])
     {
         Box sl1 = boxVSlider("h:Oscillator/Freq1", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
         Box sl2 = boxVSlider("h:Oscillator/Freq2", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
-        Box box = boxPar(osc(sl1), osc(sl2));
+        Box group = boxPar(osc(sl1), osc(sl2));
+        Box box = boxVGroup("test21", group);
         
         string error_msg;
         llvm_dsp_factory* factory = createDSPFactoryFromBoxes("FaustDSP", box, 0, nullptr, "", error_msg);
@@ -456,7 +457,8 @@ static void test22(int argc, const char* argv[])
     {
         Box sl1 = boxHSlider("v:Oscillator/Freq1", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
         Box sl2 = boxHSlider("v:Oscillator/Freq2", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
-        Box box = boxPar(osc(sl1), osc(sl2));
+        Box group = boxPar(osc(sl1), osc(sl2));
+        Box box = boxHGroup("test22", group);
         
         string error_msg;
         interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromBoxes("FaustDSP", box, 0, nullptr, error_msg);
@@ -503,7 +505,8 @@ static void test23(int argc, const char* argv[])
                              boxReal(100), boxReal(2000), boxReal(0.01));
         Box sl2 = boxHSlider("v:Oscillator/Freq2", boxReal(300),
                              boxReal(100), boxReal(2000), boxReal(0.01));
-        Box box = boxPar(osc(sl1), osc(sl2));
+        Box group = boxPar(osc(sl1), osc(sl2));
+        Box box = boxTGroup("test23", group);
     
         // Print the box
         cout << "Print the box\n";

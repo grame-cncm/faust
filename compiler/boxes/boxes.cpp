@@ -804,7 +804,7 @@ LIBFAUST_API bool isBoxNumEntry(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& m
     }
 }
 
-Tree boxHGroup(Tree lbl, Tree x)
+LIBFAUST_API Tree boxHGroup(Tree lbl, Tree x)
 {
     return tree(gGlobal->BOXHGROUP, lbl, x);
 }
@@ -818,7 +818,7 @@ LIBFAUST_API bool isBoxHGroup(Tree s, Tree& lbl, Tree& x)
     return isTree(s, gGlobal->BOXHGROUP, lbl, x);
 }
 
-Tree boxVGroup(Tree lbl, Tree x)
+LIBFAUST_API Tree boxVGroup(Tree lbl, Tree x)
 {
     return tree(gGlobal->BOXVGROUP, lbl, x);
 }
@@ -832,7 +832,7 @@ LIBFAUST_API bool isBoxVGroup(Tree s, Tree& lbl, Tree& x)
     return isTree(s, gGlobal->BOXVGROUP, lbl, x);
 }
 
-Tree boxTGroup(Tree lbl, Tree x)
+LIBFAUST_API Tree boxTGroup(Tree lbl, Tree x)
 {
     return tree(gGlobal->BOXTGROUP, lbl, x);
 }

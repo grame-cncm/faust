@@ -618,6 +618,33 @@ extern "C"
     LIBFAUST_API Box CboxHBargraphAux(const char* label, Box min, Box max, Box x);
     
     /**
+     * Create a vertical group box.
+     * @param label - the label definition (see [2])
+     * @param group - the group to be added
+     *
+     * @return the vertical group box.
+     */
+    LIBFAUST_API Box CboxVGroup(const char* label, Box group);
+    
+    /**
+     * Create a horizontal group box.
+     * @param label - the label definition (see [2])
+     * @param group - the group to be added
+     *
+     * @return the horizontal group box.
+     */
+    LIBFAUST_API Box CboxHGroup(const char* label, Box group);
+    
+    /**
+     * Create a tab group box.
+     * @param label - the label definition (see [2])
+     * @param group - the group to be added
+     *
+     * @return the tab group box.
+     */
+    LIBFAUST_API Box CboxTGroup(const char* label, Box group);
+
+    /**
      * Create an attach box.
      *
      * The attach primitive takes two input boxes and produces one output box
