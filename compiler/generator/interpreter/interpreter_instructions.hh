@@ -479,6 +479,12 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     virtual void visit(DoubleArrayNumInst* inst) {}
 
     // Numerical computation
+    virtual void visit(MinusInst* inst)
+    {
+        Typed::VarType type = TypingVisitor::getType(inst->fInst);
+        InstBuilder::genMul(InstBuilder::genTypedNum(type, -1.), inst->fInst)->accept(this);
+    }
+    
     virtual void visit(BinopInst* inst)
     {
         bool real_t1, real_t2;

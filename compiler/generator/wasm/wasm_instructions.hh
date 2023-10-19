@@ -1134,6 +1134,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     }
 
     // Numerical computation
+    virtual void visit(MinusInst* inst)
+    {
+        Typed::VarType type = TypingVisitor::getType(inst->fInst);
+        visit(InstBuilder::genMul(InstBuilder::genTypedNum(type, -1.), inst->fInst));
+    }
+    
     void visitAuxInt(BinopInst* inst, Typed::VarType type)
     {
         inst->fInst1->accept(this);

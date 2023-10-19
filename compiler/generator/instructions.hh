@@ -86,6 +86,9 @@ struct QuadArrayNumInst;
 struct FixedPointNumInst;
 struct FixedPointArrayNumInst;
 
+// Math Unop
+struct MinusInst;
+
 // Math Binop
 struct BinopInst;
 
@@ -304,6 +307,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(FixedPointArrayNumInst* inst) {}
 
     // Numerical computation
+    virtual void visit(MinusInst* inst) {}
     virtual void visit(BinopInst* inst) {}
 
     // Cast
@@ -381,6 +385,8 @@ struct CloneVisitor : public virtual Garbageable {
     virtual ValueInst* visit(FixedPointNumInst* inst)      = 0;
     virtual ValueInst* visit(FixedPointArrayNumInst* inst) = 0;
 
+    // Math Unop
+    virtual ValueInst* visit(MinusInst* inst) = 0;
     // Math Binop
     virtual ValueInst* visit(BinopInst* inst) = 0;
 
@@ -1234,6 +1240,26 @@ struct BoolNumInst : public ValueInst, public NumValueInst {
     virtual bool isSimpleValue() const { return true; }
 };
 
+// ==========
+// Math Unop
+// ==========
+
+struct MinusInst : public ValueInst {
+    ValueInst* fInst;
+    
+    MinusInst(ValueInst* inst) : ValueInst(), fInst(inst)
+    {
+    }
+    
+    virtual ~MinusInst() {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual int size() const { return fInst->size(); }
+};
+
 // ===========
 // Math Binop
 // ===========
@@ -1572,6 +1598,11 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual ValueInst* visit(FixedPointArrayNumInst* inst) { return new FixedPointArrayNumInst(inst->fNumTable); }
 
     // Numerical computation
+    virtual ValueInst* visit(MinusInst* inst)
+    {
+        return new MinusInst(inst->fInst->clone(this));
+    }
+    
     virtual ValueInst* visit(BinopInst* inst)
     {
         // To be sure args are evaluated in order
@@ -1807,6 +1838,11 @@ struct DispatchVisitor : public InstVisitor {
             it->accept(this);
         }
     }
+    
+    virtual void visit(MinusInst* inst)
+    {
+        inst->fInst->accept(this);
+    }
 
     virtual void visit(BinopInst* inst)
     {
@@ -2003,6 +2039,8 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
     virtual void visit(FixedPointNumInst* inst) { Dispatch2Visitor(inst); }
     
     virtual void visit(FixedPointArrayNumInst* inst) { Dispatch2Visitor(inst); }
+    
+    virtual void visit(MinusInst* inst) { Dispatch2Visitor(inst); }
 
     virtual void visit(BinopInst* inst) { Dispatch2Visitor(inst); }
 
@@ -2181,6 +2219,10 @@ struct InstBuilder {
     static BoolNumInst*  genBoolNumInst(bool num) { return new BoolNumInst(num); }
 
     // Numerical computation
+    static MinusInst* genMinusInst(ValueInst* inst)
+    {
+        return new MinusInst(inst);
+    }
     static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2)
     {
         return new BinopInst(opcode, inst1, inst2);

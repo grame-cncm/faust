@@ -903,7 +903,13 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
 
 ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tree a2)
 {
-    return generateCacheCode(sig, InstBuilder::genBinopInst(opcode, CS(a1), CS(a2)));
+    if ((opcode == kMul) && isMinusOne(a1)) {
+        return InstBuilder::genMinusInst(CS(a2));
+    } else if ((opcode == kMul) && isMinusOne(a2)) {
+        return InstBuilder::genMinusInst(CS(a1));
+    } else {
+        return generateCacheCode(sig, InstBuilder::genBinopInst(opcode, CS(a1), CS(a2)));
+    }
 }
 
 /*****************************************************************************

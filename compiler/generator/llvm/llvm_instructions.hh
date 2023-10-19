@@ -779,6 +779,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     virtual void visit(Int64NumInst* inst) { fCurValue = genInt64(inst->fNum); }
 
+    virtual void visit(MinusInst* inst)
+    {
+        fCurValue = fBuilder->CreateNeg(fCurValue);
+    }
+    
     virtual void visit(BinopInst* inst)
     {
         // Keep result of first arg compilation

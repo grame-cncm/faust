@@ -468,7 +468,14 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
         *fOut << '}';
     }
-
+    
+    virtual void visit(MinusInst* inst)
+    {
+        *fOut << "MinusInst(";
+        inst->fInst->accept(this);
+        *fOut << ")";
+    }
+ 
     virtual void visit(BinopInst* inst)
     {
         *fOut << "BinopInst(";
