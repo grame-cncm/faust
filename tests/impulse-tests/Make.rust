@@ -60,6 +60,7 @@ all: ir/rust/lowboost.ir
 all: ir/rust/lowcut.ir
 all: ir/rust/lowShelf.ir
 all: ir/rust/math.ir
+all: ir/rust/math_simp.ir
 all: ir/rust/matrix.ir
 all: ir/rust/midi_tester.ir
 all: ir/rust/mixer.ir

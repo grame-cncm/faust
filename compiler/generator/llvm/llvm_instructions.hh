@@ -316,6 +316,16 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     
     LLVMValue genTypedZero() { return (getCurType() == getInt32Ty()) ?  genInt32(0) :  genInt64(0); }
     
+    LLVMValue genTypedNum(LLVMType type, double num)
+    {
+        if (type == getInt32Ty()) return genInt32(num);
+        if (type == getInt64Ty()) return genInt64(num);
+        if (type == getFloatTy()) return genFloat(num);
+        if (type == getDoubleTy()) return genDouble(num);
+        faustassert(false);
+        return nullptr;
+    }
+    
     LLVMBlock genBlock(const std::string& name, LLVMFun fun = nullptr)
     {
         return llvm::BasicBlock::Create(fModule->getContext(), name, fun);
@@ -781,7 +791,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     virtual void visit(MinusInst* inst)
     {
-        fCurValue = fBuilder->CreateNeg(fCurValue);
+        inst->fInst->accept(this);
+        fCurValue = generateBinop(kMul, genTypedNum(getCurType(), -1.), fCurValue);
     }
     
     virtual void visit(BinopInst* inst)
