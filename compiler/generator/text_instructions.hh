@@ -280,7 +280,7 @@ class TextInstVisitor : public InstVisitor {
     
     virtual void visit(MinusInst* inst)
     {
-        if (dynamic_cast<LoadVarInst*>(inst->fInst)) {
+        if (inst->fInst->isSimpleValue()) {
             *fOut << "-";
             inst->fInst->accept(this);
         } else {
