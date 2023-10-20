@@ -1,4 +1,4 @@
-declare version "2.58.3";
+declare version "2.68.5";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/grain3.dsp -o reference/grain3.box";
 declare basics_lib_name "Faust Basic Element Library";
 declare basics_lib_version "0.1";

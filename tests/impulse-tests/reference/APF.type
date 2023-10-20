@@ -1,12 +1,11 @@
-Size = 48
-Type = NKCVN interval(0,0,-24)
-Type = NKCVN interval(1,1,-24)
-Type = NKCVN interval(2,2,-24)
+Size = 47
+Type = NKCVN interval(0,0,0)
+Type = NKCVN interval(1,1,0)
+Type = NKCVN interval(2,2,0)
 Type = NKIVN interval(-1.79769e+308,1.79769e+308,-24)
 Type = RBEVN interval(-1,1,-24)
 Type = RBEVN interval(-1,1,-24)
 Type = RBEVN interval(-100,100,-24)
-Type = RBEVN interval(-2,2,-24)
 Type = RBEVN interval(-2,2,-24)
 Type = RBEVN interval(-49,51,-24)
 Type = RBEVN interval(-49,51,-24)

@@ -1,8 +1,8 @@
     Size = 19
-Type = NKCVN interval(0,0,-24)
-Type = NKCVN interval(1,1,-24)
-Type = NKCVN interval(1.10352e+09,1.10352e+09,-24)
-Type = NKCVN interval(12345,12345,-24)
+Type = NKCVN interval(0,0,0)
+Type = NKCVN interval(1,1,0)
+Type = NKCVN interval(1.10352e+09,1.10352e+09,0)
+Type = NKCVN interval(12345,12345,0)
 Type = NSISN interval(0,inf,-24)
 Type = NSISN interval(0,inf,-24)
 Type = NSISN interval(0,inf,-24)

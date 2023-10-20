@@ -1,11 +1,11 @@
 // Size = 9
 ID_0 = nentry("[1]pan[style:knob]",0.0f,-9e+01f,9e+01f,1.0f);
 ID_1 = (ID_0+-9e+01f);
-ID_2 = 0.0055555557f*ID_1;
-ID_3 = 0.0f-ID_2;
-ID_4 = sqrt(ID_3);
-ID_5 = ID_4*IN[0];
-ID_6 = ID_2+1.0f;
+ID_2 = -0.0055555557f*ID_1;
+ID_3 = sqrt(ID_2);
+ID_4 = ID_3*IN[0];
+ID_5 = 0.0055555557f*ID_1;
+ID_6 = ID_5+1.0f;
 ID_7 = sqrt(ID_6);
 ID_8 = ID_7*IN[0];
-SIG = (ID_5, ID_8);
+SIG = (ID_4, ID_8);

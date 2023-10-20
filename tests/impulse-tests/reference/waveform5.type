@@ -1,7 +1,7 @@
 Size = 15
 Type = NBEVN interval(0,4,0)
 Type = NBEVN interval(10,50,-24)
-Type = NKCVN interval(5,5,-24)
+Type = NKCVN interval(5,5,0)
 Type = NKIVN interval(10,50,-24):Table(NSCSN interval(10,50,-24))
 Type = NSCSN interval(10,50,-24)
 Type = RBEVN interval(-1,1,-24)

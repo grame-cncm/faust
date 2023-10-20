@@ -1,6 +1,6 @@
 // Size = 9
 ID_0 = waveform{...};
-ID_1 = TABLE(6,ID_0);
+ID_1 = write(6,ID_0,,);
 ID_2 = abs(IN[0]);
 ID_3 = 4.0f*ID_2;
 ID_4 = int(ID_3);

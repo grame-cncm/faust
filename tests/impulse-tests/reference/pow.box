@@ -1,4 +1,4 @@
-declare version "2.50.2";
+declare version "2.68.5";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/pow.dsp -o reference/pow.box";
 declare filename "pow.dsp";
 declare name "pow";

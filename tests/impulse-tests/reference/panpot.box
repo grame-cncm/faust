@@ -1,4 +1,4 @@
-declare version "2.50.2";
+declare version "2.68.5";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/panpot.dsp -o reference/panpot.box";
 declare author "Grame";
 declare copyright "(c)GRAME 2006";

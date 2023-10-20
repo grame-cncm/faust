@@ -1,4 +1,4 @@
-declare version "2.58.3";
+declare version "2.68.5";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/modulations.dsp -o reference/modulations.box";
 declare author "ER";
 declare basics_lib_name "Faust Basic Element Library";
@@ -11,7 +11,7 @@ declare envelopes_lib_copyright "GRAME";
 declare envelopes_lib_license "LGPL with exception";
 declare envelopes_lib_name "Faust Envelope Library";
 declare envelopes_lib_version "0.0";
-declare filename "modulations.dsp";
+declare filename "Modulations";
 declare filters_lib_name "Faust Filters Library";
 declare filters_lib_version "0.0";
 declare instruments_lib_author "Romain Michon (rmichon@ccrma.stanford.edu)";

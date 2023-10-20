@@ -1,6 +1,6 @@
 Size = 165
-Type = NKCVN interval(0,0,-24)
-Type = NKCVN interval(1,1,-24)
+Type = NKCVN interval(0,0,0)
+Type = NKCVN interval(1,1,0)
 Type = RBEVN interval(-0.5,0.5,-24)
 Type = RBEVN interval(-0.5,0.5,-24)
 Type = RBEVN interval(-0.5,0.5,-24)

@@ -1,6 +1,6 @@
 // Size = 9
 ID_0 = waveform{...};
-ID_1 = TABLE(5,ID_0);
+ID_1 = write(5,ID_0,,);
 ID_2 = hslider("value",0.0f,0.0f,1.0f,0.01f);
 ID_3 = 4.0f*ID_2;
 ID_4 = int(ID_3);

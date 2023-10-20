@@ -1,4 +1,4 @@
-declare version "2.50.2";
+declare version "2.68.5";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/capture.dsp -o reference/capture.box";
 declare library_path0 "/Users/letz/Developpements/faust/tests/impulse-tests/dsp/music.lib";
 declare library_path1 "/Users/letz/Developpements/faust/tests/impulse-tests/dsp/math.lib";

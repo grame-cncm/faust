@@ -1,4 +1,4 @@
-declare version "2.50.2";
+declare version "2.68.5";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/zita_rev1.dsp -o reference/zita_rev1.box";
 declare library_path0 "/Users/letz/Developpements/faust/tests/impulse-tests/dsp/effect.lib";
 declare library_path1 "/Users/letz/Developpements/faust/tests/impulse-tests/dsp/filter.lib";

@@ -1,5 +1,5 @@
 Size = 13
-Type = NKCVN interval(6,6,-24)
+Type = NKCVN interval(6,6,0)
 Type = NKIVN interval(10,60,-24):Table(NSCSN interval(10,60,-24))
 Type = NSCSN interval(10,60,-24)
 Type = NSEVN interval(0,4,0)

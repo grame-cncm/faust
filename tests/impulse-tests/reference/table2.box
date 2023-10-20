@@ -1,4 +1,4 @@
-declare version "2.52.2";
+declare version "2.68.5";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/table2.dsp -o reference/table2.box";
 declare filename "table2.dsp";
 declare name "table2";
