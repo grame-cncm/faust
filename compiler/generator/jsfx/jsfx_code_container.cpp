@@ -108,10 +108,10 @@ void JSFXCodeContainer::produceClass()
 
     // inputs/outputs
     tab(n, *fOut);
-    if (fNumInputs > 64) {
+    if (fNumInputs > 64 && (gGlobal->gOutputLang != "jsfx-test")) {
         throw(faustexception("ERROR : JSFX format does not support more than 64 inputs\n"));
     }
-    if (fNumOutputs > 64) {
+    if (fNumOutputs > 64 && (gGlobal->gOutputLang != "jsfx-test")) {
         throw(faustexception("ERROR : JSFX format does not support more than 64 outputs\n"));
     }
     for (int i = 0; i < fNumInputs; i++) {

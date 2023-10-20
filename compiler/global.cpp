@@ -882,7 +882,7 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
          || (gOutputLang == "csharp")
          || (gOutputLang == "rust")
          || (gOutputLang == "julia")
-         || (gOutputLang == "jsfx")
+         || startWith(gOutputLang, "jsfx")
          || (gOutputLang == "jax"));
 
     return (internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) || is_linkable;

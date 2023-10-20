@@ -980,7 +980,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileTemplate(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "julia") {
         compileJulia(signals, numInputs, numOutputs, gDst.get());
-    } else if (gGlobal->gOutputLang == "jsfx") {
+    } else if (startWith(gGlobal->gOutputLang, "jsfx")) {
         compileJSFX(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "csharp") {
         compileCSharp(signals, numInputs, numOutputs, gDst.get());

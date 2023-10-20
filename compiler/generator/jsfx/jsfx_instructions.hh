@@ -737,7 +737,7 @@ class JSFXInstVisitor : public TextInstVisitor {
             _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1};
         }
         skip_slider = false;
-        if (slider_count == 64) {
+        if (slider_count == 64 && (gGlobal->gOutputLang != "jsfx-test")) {
             throw(faustexception("ERROR : JSFX format does not support more than 64 controllers\n"));
         }
     }
@@ -778,7 +778,7 @@ class JSFXInstVisitor : public TextInstVisitor {
             _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax, inst->fStep};
         }
         skip_slider = false;
-        if (slider_count == 64) {
+        if (slider_count == 64 && (gGlobal->gOutputLang != "jsfx-test")) {
             throw(faustexception("ERROR : JSFX format does not support more than 64 controllers\n"));
         }
     }

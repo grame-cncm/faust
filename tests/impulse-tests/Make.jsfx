@@ -15,7 +15,7 @@ MAKE ?= make
 
 GCCOPTIONS := -Ofast -I../../architecture -Iarchs -pthread -std=c++17
 outdir ?= jsfx/double
-lang ?= jsfx
+lang ?= jsfx-test
 ext  ?= o
 precision ?=        # filesCompare precision (empty by default)
 FAUSTOPTIONS ?= 
