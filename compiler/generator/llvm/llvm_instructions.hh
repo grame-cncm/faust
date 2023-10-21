@@ -789,6 +789,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     virtual void visit(Int64NumInst* inst) { fCurValue = genInt64(inst->fNum); }
 
+    // Simply multiply the value by -1 here
     virtual void visit(MinusInst* inst)
     {
         inst->fInst->accept(this);

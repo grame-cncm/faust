@@ -45,7 +45,7 @@ struct JuceReader : public SoundfileReader {
         if (file.existsAsFile()) {
             return true;
         } else {
-            std::cerr << "ERROR : cannot open '" << path_name << "'" << std::endl;
+            //std::cerr << "ERROR : cannot open '" << path_name << "'" << std::endl;
             return false;
         }
     }

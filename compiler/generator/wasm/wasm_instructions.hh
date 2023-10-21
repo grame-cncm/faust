@@ -1134,6 +1134,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     }
 
     // Numerical computation
+    
+    // Simply multiply the value by -1 here
     virtual void visit(MinusInst* inst)
     {
         Typed::VarType type = TypingVisitor::getType(inst->fInst);

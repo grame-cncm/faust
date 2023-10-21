@@ -1244,6 +1244,7 @@ struct BoolNumInst : public ValueInst, public NumValueInst {
 // Math Unop
 // ==========
 
+// Negate the wrapped value
 struct MinusInst : public ValueInst {
     ValueInst* fInst;
     
