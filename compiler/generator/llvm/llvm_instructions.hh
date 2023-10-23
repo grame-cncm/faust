@@ -789,12 +789,26 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     virtual void visit(Int64NumInst* inst) { fCurValue = genInt64(inst->fNum); }
 
-    // Simply multiply the value by -1 here
+    //======
+    // Unop
+    //======
+    
     virtual void visit(MinusInst* inst)
     {
         inst->fInst->accept(this);
-        fCurValue = generateBinop(kMul, genTypedNum(getCurType(), -1.), fCurValue);
+        if (getCurType() == getInt32Ty()) {
+            fCurValue = fBuilder->CreateNeg(fCurValue);
+        } else if (getCurType() == getFloatTy() || getCurType() == getDoubleTy()) {
+            fCurValue = fBuilder->CreateFNeg(fCurValue);
+        } else {
+            // Simply multiply the value by -1 here
+            fCurValue = generateBinop(kMul, genTypedNum(getCurType(), -1.), fCurValue);
+        }
     }
+    
+    //=======
+    // Binop
+    //=======
     
     virtual void visit(BinopInst* inst)
     {

@@ -539,6 +539,13 @@ class CodeboxInstVisitor : public TextInstVisitor {
         }
     }
     
+    // Simply multiply the value by -1 here
+    virtual void visit(MinusInst* inst)
+    {
+        Typed::VarType type = TypingVisitor::getType(inst->fInst);
+        InstBuilder::genMul(InstBuilder::genTypedNum(type, -1.), inst->fInst)->accept(this);
+    }
+    
     virtual void visit(BinopInst* inst)
     {
         Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
