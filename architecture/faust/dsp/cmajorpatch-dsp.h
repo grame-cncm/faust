@@ -180,7 +180,7 @@ class cmajor_dsp_factory : public dsp_factory {
             settings.setSessionID(123456);
             fEngine.setBuildSettings (settings);
             
-            if (!fEngine.load(messages, program)) {
+            if (!fEngine.load(messages, program, nullptr, nullptr)) {
                 error_msg = "ERROR : failed to load : " + messages.toString() + "\n";
                 throw std::bad_alloc();
             }

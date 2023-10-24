@@ -438,19 +438,10 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         int in1, out1, in2, out2;
         getBoxType(t1, &in1, &out1);
         getBoxType(t2, &in2, &out2);
-
+        
+        // Connection coherency is checked in evaluateBlockDiagram
         faustassert(out1 == in2);
-
-        if (out1 == in2) {
-            return propagate(slotenv, path, t2, propagate(slotenv, path, t1, lsig));
-        } else if (out1 > in2) {
-            siglist lr = propagate(slotenv, path, t1, lsig);
-            return listConcat(propagate(slotenv, path, t2, listRange(lr, 0, in2)), listRange(lr, in2, out1));
-        } else {
-            return propagate(slotenv, path, t2,
-                             listConcat(propagate(slotenv, path, t1, listRange(lsig, 0, in1)),
-                                        listRange(lsig, in1, in1 + in2 - out1)));
-        }
+        return propagate(slotenv, path, t2, propagate(slotenv, path, t1, lsig));
     }
 
     else if (isBoxPar(box, t1, t2)) {
@@ -458,6 +449,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t1, &in1, &out1);
         getBoxType(t2, &in2, &out2);
 
+        // No restriction in connection
         return listConcat(propagate(slotenv, path, t1, listRange(lsig, 0, in1)),
                           propagate(slotenv, path, t2, listRange(lsig, in1, in1 + in2)));
     }
@@ -467,6 +459,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t1, &in1, &out1);
         getBoxType(t2, &in2, &out2);
 
+        // Connection coherency is checked in evaluateBlockDiagram
         siglist l1 = propagate(slotenv, path, t1, lsig);
         siglist l2 = split(l1, in2);
         return propagate(slotenv, path, t2, l2);
@@ -477,6 +470,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t1, &in1, &out1);
         getBoxType(t2, &in2, &out2);
 
+        // Connection coherency is checked in evaluateBlockDiagram
         siglist l1 = propagate(slotenv, path, t1, lsig);
         siglist l2 = mix(l1, in2);
         return propagate(slotenv, path, t2, l2);
@@ -486,10 +480,11 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         int in1, out1, in2, out2;
         getBoxType(t1, &in1, &out1);
         getBoxType(t2, &in2, &out2);
-
+        
         // The environment must also be lifted
         Tree slotenv2 = lift(slotenv);
 
+        // Connection coherency is checked in evaluateBlockDiagram
         siglist l0 = makeMemSigProjList(ref(1), in2);
         siglist l1 = propagate(slotenv2, path, t2, l0);
         siglist l2 = propagate(slotenv2, path, t1, listConcat(l1, listLift(lsig)));

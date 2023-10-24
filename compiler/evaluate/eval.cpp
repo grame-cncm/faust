@@ -1122,7 +1122,7 @@ static Tree applyList(Tree fun, Tree larg)
 
         // Check arity of function
         Tree efun = a2sb(fun);
-        if (!getBoxType(efun, &ins, &outs)) {  // on laisse comme ca pour le moment
+        if (!getBoxType(efun, &ins, &outs)) {  // we leave it that way for now
             // We can't determine the input arity of the expression,
             // hope for the best
             return boxSeq(larg2par(larg), fun);

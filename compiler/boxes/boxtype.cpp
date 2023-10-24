@@ -88,9 +88,7 @@ LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum)
 
 static string outputs(int n)
 {
-    stringstream msg;
-    msg << n << ((n == 1) ? " output" : " outputs");
-    return msg.str();
+    return std::to_string(n) + ((n == 1) ? " output" : " outputs");
 }
 
 /**
@@ -101,9 +99,7 @@ static string outputs(int n)
 
 static string inputs(int n)
 {
-    stringstream msg;
-    msg << n << ((n == 1) ? " input" : " inputs");
-    return msg.str();
+    return std::to_string(n) + ((n == 1) ? " input" : " inputs");
 }
 
 /**
