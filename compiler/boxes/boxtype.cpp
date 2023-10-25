@@ -81,28 +81,6 @@ LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum)
 }
 
 /**
- * Produces "1 output" or "n outputs" according to n
- * \param n the number of outputs
- * \return the corresponding string
- */
-
-static string outputs(int n)
-{
-    return std::to_string(n) + ((n == 1) ? " output" : " outputs");
-}
-
-/**
- * Produces "1 input" or "n inputs" according to n
- * \param n the number of inputs
- * \return the corresponding string
- */
-
-static string inputs(int n)
-{
-    return std::to_string(n) + ((n == 1) ? " input" : " inputs");
-}
-
-/**
  * Compute a parametric type error message
  * \param a the LHS expression
  * \param b the RHS expression

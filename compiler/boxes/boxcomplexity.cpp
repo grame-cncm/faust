@@ -76,8 +76,6 @@ int boxComplexity(Tree box)
  */
 static int computeBoxComplexity(Tree box)
 {
-    int    i;
-    double r;
     prim0  p0;
     prim1  p1;
     prim2  p2;
@@ -92,9 +90,9 @@ static int computeBoxComplexity(Tree box)
     // simple elements
     if (xt)
         return 1;
-    else if (isBoxInt(box, &i))
+    else if (isBoxInt(box))
         return 1;
-    else if (isBoxReal(box, &r))
+    else if (isBoxReal(box))
         return 1;
 
     else if (isBoxWaveform(box))
@@ -126,7 +124,7 @@ static int computeBoxComplexity(Tree box)
     else if (isBoxFVar(box, type, name, file))
         return 1;
     // slots and symbolic boxes
-    else if (isBoxSlot(box, &i))
+    else if (isBoxSlot(box))
         return 1;
     else if (isBoxSymbolic(box, t1, t2))
         return 1 + BC(t2);

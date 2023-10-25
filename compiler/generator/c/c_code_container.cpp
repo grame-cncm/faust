@@ -78,7 +78,7 @@ CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub
 
 CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
-    gGlobal->gDSPStruct = true;
+    gGlobal->gDSPStruct = true; // for -vec -fun mode
     CodeContainer* container;
 
     if (gGlobal->gOpenCLSwitch) {

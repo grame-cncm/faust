@@ -85,7 +85,6 @@ CodeContainer* JAXCodeContainer::createScalarContainer(const string& name, int s
 
 CodeContainer* JAXCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
-    gGlobal->gDSPStruct = true;
     CodeContainer* container;
 
     if (gGlobal->gOpenCLSwitch) {

@@ -41,7 +41,6 @@
 #include <string.h>
 #include "exception.hh"
 #include "global.hh"
-#include "ppbox.hh"
 #include "prim2.hh"
 #include "xtended.hh"
 

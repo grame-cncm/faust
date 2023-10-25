@@ -85,7 +85,6 @@ CodeContainer* CodeboxCodeContainer::createScalarContainer(const string& name, i
 
 CodeContainer* CodeboxCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
-    gGlobal->gDSPStruct = true;
     CodeContainer* container;
 
     if (gGlobal->gOpenCLSwitch) {

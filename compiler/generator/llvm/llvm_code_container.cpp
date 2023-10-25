@@ -95,7 +95,7 @@ LLVMCodeContainer::~LLVMCodeContainer()
 
 CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
 {
-    gGlobal->gDSPStruct = true;
+    gGlobal->gDSPStruct = true; // for -vec -fun mode
     CodeContainer* container;
 
     if (gGlobal->gFloatSize == 3) {

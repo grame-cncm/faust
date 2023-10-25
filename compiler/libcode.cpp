@@ -300,7 +300,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     }
 
     if (gGlobal->gDetailsSwitch) {
-        cout << "process has " << numInputs << " inputs, and " << numOutputs << " outputs" << endl;
+        cout << "process has " << inputs(numInputs) << ", and " << outputs(numOutputs) << endl;
     }
 
     endTiming("evaluation");

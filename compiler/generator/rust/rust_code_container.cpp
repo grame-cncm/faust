@@ -61,7 +61,6 @@ CodeContainer* RustCodeContainer::createVectorContainer(const string& name, int 
 
 CodeContainer* RustCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
-    gGlobal->gDSPStruct = true;
     CodeContainer* container;
 
     if (gGlobal->gFloatSize == 3) {

@@ -284,8 +284,6 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         Tree sig;
         faustassert(lsig.size() == 0);
         if (!searchEnv(box, sig, slotenv)) {
-            // test YO : diagrams simplification 
-            // cerr << "propagate : internal error (slot undefined)\n");
             sig = sigInput(++gGlobal->gDummyInput);
         }
         return makeList(sig);
@@ -359,7 +357,6 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     }
 
     else if (isBoxFFun(box, ff)) {
-        // cerr << "propagate en boxFFun of arity " << ffarity(ff) << endl;
         faustassert(int(lsig.size()) == ffarity(ff));
         return makeList(sigFFun(ff, listConvert(lsig)));
     }
@@ -575,9 +572,9 @@ siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         result = realPropagate(slotenv, path, box, lsig);
         setPropagateProperty(args, result);
     }
-        // cerr << "propagate in " << boxpp(box) << endl;
-        // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
-        // cerr << endl;
+    // cerr << "propagate in " << boxpp(box) << endl;
+    // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
+    // cerr << endl;
     return result;
 }
 

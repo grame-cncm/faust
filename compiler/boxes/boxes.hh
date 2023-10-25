@@ -347,4 +347,24 @@ LIBFAUST_API bool isBoxMetadata(Tree s, Tree& exp, Tree& mdlist);
 // Return the number of inputs and outputs
 LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum);
 
+/**
+ * Produces "1 input" or "n inputs" according to n
+ * \param n the number of inputs
+ * \return the corresponding string
+ */
+inline std::string inputs(int n)
+{
+    return std::to_string(n) + ((n == 1) ? " input" : " inputs");
+}
+
+/**
+ * Produces "1 output" or "n outputs" according to n
+ * \param n the number of outputs
+ * \return the corresponding string
+ */
+inline std::string outputs(int n)
+{
+    return std::to_string(n) + ((n == 1) ? " output" : " outputs");
+}
+
 #endif
