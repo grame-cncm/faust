@@ -37,10 +37,10 @@ interval interval_algebra::Gt(const interval& x, const interval& y)
         return interval{};
     }
     if (x.lo() > y.hi()) {
-        return singleton(1, 0);
+        return interval{1,1,0};
     }
     if (x.hi() <= y.lo()) {
-        return singleton(0, 0);
+        return interval{0,0,0};
     }
     return interval{0, 1, 0};
 }
