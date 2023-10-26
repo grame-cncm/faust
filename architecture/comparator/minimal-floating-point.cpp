@@ -35,8 +35,7 @@
 
 #include "faust/gui/PrintUI.h"
 #include "faust/gui/meta.h"
-#include "faust/audio/dummy-audio.h"
-#include "faust/dsp/one-sample-dsp.h"
+#include "faust/dsp/dsp.h"
 
 // faust -a minimal.cpp noise.dsp -o noise.cpp && c++ -std=c++11 noise.cpp -o noise && ./noise
 
@@ -59,8 +58,6 @@
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
-
 
 /******************* END minimal.cpp ****************/
 
