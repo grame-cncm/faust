@@ -17,3 +17,4 @@ The following tools are currently available:
   * several 'waveforms' for separated mono channels
   * a resulting 'processor' that simply output all mono 'waveforms' 
 * `benchmark` folder contains additional tools to test the C++, LLVM, WebAssembly and Interpreter backends, and the performance of their generated code. 
+* `faust2comparator` allows to compare the fixed-point and floating-point versions of a program.
