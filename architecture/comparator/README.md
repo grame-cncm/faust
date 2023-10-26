@@ -1,12 +1,6 @@
 # Comparator
-fixedpoint/float faust compilation comparator
 
-## Compile with make
-
-* `make all` (to create fixed.cpp float.cpp out)
-* `./out`
-
-* to clean everything `make clean`
+A fixedpoint/float Faust compilation comparator tool.
 
 ## Compile with faust2comparator script
 
