@@ -34,7 +34,7 @@ static interval ipow(const interval& x, int y)
 {
     assert(y >= 0);
     if (y == 0) {
-        return singleton(1.0, 0);
+        return interval{1,1,0};
     }
 
     // explicit expression because passing an anonymous function to exactPrecisionUnary is complicated

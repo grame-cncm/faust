@@ -186,17 +186,22 @@ inline interval reunion(const interval& i, const interval& j)
     }
 }
 
-inline interval singleton(double x, int lsb = -24)
+inline interval singleton(double x)
 {
     if (x == 0) {
         return {0, 0, 0};
     }
 
-    int precision = lsb;
+    /* int precision = lsb;
 
     while (floor(x * pow(2, -precision - 1)) == x * pow(2, -precision - 1) and x != 0) {
         precision++;
-    }
+    }*/
+
+    int m = std::floor(std::log2(std::abs(x)));
+
+    int precision = m - 32; // 32 = set width
+
     return {x, x, precision};
 }
 
