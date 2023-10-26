@@ -126,6 +126,9 @@ class CStringTypeManager : public StringTypeManager {
 
         // fx_typed is a subclass of basic_typed, so has to be tested first
         if (fx_typed) {
+            if (fx_typed->fLSB >= 0) { // if there are no bits after the fixed point, ie if it's an integer
+                return fTypeDirectTable[Typed::kInt32]; // 32 or 64 bits?
+            }
             if (fx_typed->fIsSigned) {
                 // return "sfx_t(" + std::to_string(std::max<int>(0, std::min<int>(20, fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ")";
                 if (gGlobal->gFixedPointSize > 0) {
