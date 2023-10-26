@@ -141,9 +141,11 @@ class CStringTypeManager : public StringTypeManager {
                 // return "ufx_t(" + std::to_string(std::max<int>(0, std::min<int>(20, fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ")";
                 if (gGlobal->gFixedPointSize > 0) {
                     int msb = calcMSB(fx_typed->fMSB);
-                    return "ufx_t(" + std::to_string(msb) + "," + std::to_string(msb - gGlobal->gFixedPointSize) + ")";
+                    // return "ufx_t(" + std::to_string(msb) + "," + std::to_string(msb - gGlobal->gFixedPointSize) + ")";
+                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(msb - gGlobal->gFixedPointSize) + ")";
                 } else {
-                    return "ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
+                    // return "ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
+                    return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
                 }
             }
         } else if (basic_typed) {
