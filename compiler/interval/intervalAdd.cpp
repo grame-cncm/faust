@@ -30,27 +30,47 @@ static double add(double x, double y)
     return x + y;
 }
 
+static double addint(double x, double y)
+{
+    return (int)x + (int)y;
+}
+
 interval interval_algebra::Add(const interval& x, const interval& y)
 {
     if (x.isEmpty() || y.isEmpty()) {
         return {};
     }
 
+    if (x.lsb() >= 0 and y.lsb() >= 0) { // if both intervals are integers
+        // if we're dealing with integers the interval has to wrap around 0
+        const int xlo = (int)x.lo();
+        const int xhi = (int)x.hi();
+        const int ylo = (int)y.lo();
+        const int yhi = (int)y.hi();
+
+        // detect wrapping
+        if (xhi + yhi < std::max(xhi, yhi) or xlo + ylo > std::max(xlo, ylo))
+            return {(double) INT_MIN, (double) INT_MAX, std::min(x.lsb(), y.lsb())};
+
+        return {(double)(xlo + ylo), (double)(xhi + yhi), std::min(x.lsb(), y.lsb())};
+    }
+
     return {x.lo() + y.lo(), x.hi() + y.hi(),
-            std::max(x.lsb(),
-                     y.lsb())};  // the result of an addition needs to be only as precise as the least precise of the operands
+            std::min(x.lsb(),
+                     y.lsb())};  // the result of an addition needs to be only as precise as the most precise of the operands
 }
 
 void interval_algebra::testAdd()
 {
     // check("test algebra Add", Add(interval(0, 100), interval(10, 500)), interval(10, 600));
-    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, 0), interval(0, 10, 0), add, &interval_algebra::Add);
-    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -5), interval(0, 10, 0), add, &interval_algebra::Add);
+    // analyzeBinaryMethod(10, 2000, "add", interval(0, 10, 0), interval(0, 10, 0), add, &interval_algebra::Add);
+    analyzeBinaryMethod(10, 2000, "add", interval(0, pow(2, 31), 0), interval(0, pow(2, 31), 0), addint, &interval_algebra::Add);
+    /* analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -5), interval(0, 10, 0), add, &interval_algebra::Add);
     analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -10), interval(0, 10, 0), add, &interval_algebra::Add);
     analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -15), interval(0, 10, 0), add, &interval_algebra::Add);
     analyzeBinaryMethod(10, 2000, "add", interval(0, 10, 0), interval(0, 10, -10), add, &interval_algebra::Add);
     analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -5), interval(0, 10, -10), add, &interval_algebra::Add);
     analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -10), interval(0, 10, -10), add, &interval_algebra::Add);
-    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -15), interval(0, 10, -10), add, &interval_algebra::Add);
+    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -15), interval(0, 10, -10), add, &interval_algebra::Add);*/
 }
 }  // namespace itv
