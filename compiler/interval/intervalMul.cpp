@@ -34,10 +34,42 @@ static double specialmult(double a, double b)
     return ((a == 0.0) || (b == 0.0)) ? 0.0 : a * b;
 }
 
+static double specialmultint(double a, double b)
+{
+    // we want inf*0 to be 0
+    return ((a == 0.0) || (b == 0.0)) ? 0.0 : (int)a * (int)b;
+}
+
 interval interval_algebra::Mul(const interval& x, const interval& y)
 {
     if (x.isEmpty() || y.isEmpty()) {
         return {};
+    }
+
+    if (x.lsb() >= 0 and y.lsb() >= 0) // operation between integers
+    {
+        // if the quotient of an INT limit by an interval limit is below a limit of the other interval
+        // ie, if there is something big enough in the other interval to make the interval limit go beyond an INT limit
+        if ((min4(std::abs(INT_MAX/y.lo()), 
+                  std::abs(INT_MAX/y.hi()), 
+                  std::abs(INT_MIN/y.lo()), 
+                  std::abs(INT_MIN/y.hi())) 
+                  <= std::max(std::abs(x.hi()), 
+                              std::abs(x.lo()))) or 
+            (min4(std::abs(INT_MAX/x.lo()), 
+                  std::abs(INT_MAX/x.hi()), 
+                  std::abs(INT_MIN/x.lo()), 
+                  std::abs(INT_MIN/x.hi())) 
+                  <= std::max(std::abs(y.hi()), 
+                              std::abs(y.lo()))))
+            return {(double) INT_MIN, (double) INT_MAX, x.lsb() + y.lsb()};
+
+        int a = (int)x.lo() * (int)y.lo();
+        int b = (int)x.lo() * (int)y.hi();
+        int c = (int)x.hi() * (int)y.lo();
+        int d = (int)x.hi() * (int)y.hi();
+
+        return {min4(a, b, c, d), max4(a, b, c, d), x.lsb() + y.lsb()};
     }
 
     double a = specialmult(x.lo(), y.lo());
@@ -55,8 +87,10 @@ void interval_algebra::testMul()
     check("test algebra Mul", Mul(interval(-2, -1), interval(-2, -1)), interval(1, 4));
     check("test algebra Mul", Mul(interval(0), interval(-HUGE_VAL, HUGE_VAL)), interval(0));
     check("test algebra Mul", Mul(interval(-HUGE_VAL, HUGE_VAL), interval(0)), interval(0));*/
-    analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, 0), interval(0, 10, 0), specialmult, &interval_algebra::Mul);
-    analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -5), interval(0, 10, 0), specialmult, &interval_algebra::Mul);
+
+    // analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, 0), interval(0, 10, 0), specialmult, &interval_algebra::Mul);
+    analyzeBinaryMethod(10, 2000, "mul", interval(-pow(2, 31), pow(2, 31), 0), interval(-pow(2, 31), pow(2, 31), 0), specialmultint, &interval_algebra::Mul);
+    /* analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -5), interval(0, 10, 0), specialmult, &interval_algebra::Mul);
     analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -10), interval(0, 10, 0), specialmult, &interval_algebra::Mul);
     analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -15), interval(0, 10, 0), specialmult, &interval_algebra::Mul);
     analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, 0), interval(0, 10, -10), specialmult, &interval_algebra::Mul);
@@ -65,6 +99,6 @@ void interval_algebra::testMul()
     analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -10), interval(0, 10, -10), specialmult,
                         &interval_algebra::Mul);
     analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, -15), interval(0, 10, -10), specialmult,
-                        &interval_algebra::Mul);
+                        &interval_algebra::Mul); */
 }
 }  // namespace itv

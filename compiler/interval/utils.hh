@@ -23,6 +23,22 @@ static double max4(double a, double b, double c, double d)
 }
 
 /**
+ * @brief Computes the minimum of four ints
+ */
+static double min4(int a, int b, int c, int d)
+{
+    return std::min(std::min(a, b), std::min(c, d));
+}
+
+/**
+ * @brief Computes the maximum of four ints
+ */
+static double max4(int a, int b, int c, int d)
+{
+    return std::max(std::max(a, b), std::max(c, d));
+}
+
+/**
  * @brief Computes the value with minimum absolute value among the bounds of an interval
 */
 static double minValAbs(interval x)
