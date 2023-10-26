@@ -118,13 +118,18 @@ class interval {
         // amplitude of the interval
         // can be < 1.0, in which case the msb will be negative and indicate the number of implicit leading zeroes
         double range = std::max(std::abs(fLo), std::abs(fHi));
+        
 
         if (std::isinf(range)) {
-            return 20;  // max MSB of the VHDL design; TODO: change when integrating in the compiler
+            // if (fLSB == 0) // if we're dealing with integers: is that a good criterion?
+                return 31;
+            // return 20;  // max MSB of the VHDL design; TODO: change when integrating in the compiler
         }
 
+        int l = int(std::ceil(std::log2(range)));
+
         // The sign bit will be added later on
-        return int(std::floor(std::log2(range)));
+        return l;
     }
 
     std::string to_string() const
