@@ -56,8 +56,8 @@ for f in $FILES; do
 
     # compile the DSP to c++ using the architecture file
     echo "compile the DSP to c++ using the architecture file"
-    faust -i -a $ARCHFILE1 -cn "fldsp" "$f" -o "float.cpp"|| exit
-    faust -i -a $ARCHFILE2 -fx -cn "fxdsp" "$f" -o "fixed.cpp"|| exit
+    faust -i -a $ARCHFILE1 $OPTIONS -cn "fldsp" "$f" -o "float.cpp"|| exit
+    faust -i -a $ARCHFILE2 $OPTIONS -fx -cn "fxdsp" "$f" -o "fixed.cpp"|| exit
 
     # compile c++ to binary
     echo "compile c++ to binary"
