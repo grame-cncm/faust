@@ -77,7 +77,7 @@ class comparateur {
             
             sizechosen = size;
             int slice = size;
-            
+
             comp = createbuffer(FL->getNumOutputs(),size);
             
             snr = 0; //signal to noise ratio
@@ -154,29 +154,35 @@ int main(int argc, char* argv[])
     bool execute = false;
     bool logging = false;
     bool help = false;
+
+    int window_size = 200;
     
-    while ((opt = getopt(argc, argv, ":lwh")) != -1) {
+    while ((opt = getopt(argc, argv, ":lwhn:")) != -1) {
         switch (opt) {
-            case 'l':
-                logging = true;
-                break;
-            case 'w':
-                execute = true;
-                break;
-            case 'h':
-                help = true;
-                break;
+	case 'l':
+	  logging = true;
+	  break;
+	case 'w':
+	  execute = true;
+	  break;
+	case 'h':
+	  help = true;
+	  break;
+	case 'n':
+	  window_size = atoi(optarg);
+	  break;
         }
     }
     
     if (help) {
-        cout << "Usage: "
-        << argv[0] << " [options]" << endl
-        << "Options :"<< endl
-        << "\t -w : writes the floating-point and fixed-point outputs to sound files" << endl
-        << "\t -l : logs the floating-point and fixed-point samples to a text file" << endl
-        << "\t -h : displays this help message" << endl ;
-        return 0;
+      cout << "Usage: "
+	   << argv[0] << " [options]" << endl
+	   << "Options :"<< endl
+	   << "\t -w : writes the floating-point and fixed-point outputs to sound files" << endl
+	   << "\t -l : logs the floating-point and fixed-point samples to a text file" << endl
+	   << "\t -n : number of samples over which to compute the statistical indicators" << endl
+	   << "\t -h : displays this help message" << endl ;
+      return 0;
     }
     
     // init
@@ -280,6 +286,6 @@ int main(int argc, char* argv[])
     FX.init(48000);
     
     comparateur comp((dsp*) &FL, (dsp*) &FX);
-    comp.compare(200, logging, filename);
+    comp.compare(window_size, logging, filename);
     comp.display();
 }
