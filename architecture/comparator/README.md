@@ -23,4 +23,4 @@ Once the comparator program is compiled, it can be invoked with the following op
 The comparator outputs several statistical indicators regarding the numerical differences between floating-point and fixed-point programs outputs.
 It measures this difference over the first $n$ samples (by default 200), and displays the sum of these differences, the mean error for one sample, the maximum error, and the signal-to-noise ratio, defined as follows:
 
-$$SNR = \log(\lVert\frac{f\_{FL}(x)}{f\_{FL}(x) -f\_{FX}(x)}}\rVert)$$
+$$SNR = \log(\lVert\frac{s\_{FL}}{s\_{FL} -s\_{FX}}\rVert)$$
