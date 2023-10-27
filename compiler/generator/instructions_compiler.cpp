@@ -2658,3 +2658,51 @@ ValueInst* InstructionsFXCompiler::generateAttach(Tree sig, Tree x, Tree y)
     return castFX(sig, InstructionsCompiler::generateAttach(sig, x, y));
 }
 */
+
+/**
+ * Generate code for a group of mutually recursive definitions
+ */
+ValueInst* InstructionsFXCompiler::generateRec(Tree sig, Tree var, Tree le, int index)
+{
+    int N = len(le);
+    
+    ValueInst*          res = nullptr;
+    vector<bool>        used(N);
+    vector<int>         delay(N);
+    vector<string>      vname(N);
+    vector<BasicTyped*> ctype(N);
+    vector<Tree>        vsig(N);
+    
+    // Prepare each element of a recursive definition
+    for (int i = 0; i < N; i++) {
+        vsig[i] = sigProj(i, sig);  // recreate each recursive definition
+        if (fOccMarkup->retrieve(vsig[i])) {
+            // This projection is used
+            used[i] = true;
+            getTypedNames(getCertifiedSigType(vsig[i]), "Rec", ctype[i], vname[i]);
+            setVectorNameProperty(vsig[i], vname[i]);
+            delay[i] = fOccMarkup->retrieve(vsig[i])->getMaxDelay();
+        } else {
+            // This projection is not used therefore
+            // we should not generate code for it
+            used[i] = false;
+        }
+    }
+    
+    // Generate delayline for each element of a recursive definition
+    for (int i = 0; i < N; i++) {
+        if (used[i]) {
+            Address::AccessType access;
+            ValueInst* ccs = getConditionCode(nth(le, i));
+            if (index == i) {
+                // Explicit cast in the projection type
+                res = generateDelayLine(castFX(vsig[i], CS(nth(le, i))), ctype[i], vname[i], delay[i], access, ccs);
+            } else {
+                // Explicit cast in the projection type
+                generateDelayLine(castFX(vsig[i], CS(nth(le, i))), ctype[i], vname[i], delay[i], access, ccs);
+            }
+        }
+    }
+    
+    return res;
+}

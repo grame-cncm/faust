@@ -255,6 +255,7 @@ class InstructionsFXCompiler : public InstructionsCompiler {
     
         ValueInst* generateCacheCode(Tree sig, ValueInst* inst) override;
         ValueInst* generateRealNumber(Tree sig, double num) override;
+        ValueInst* generateRec(Tree sig, Tree var, Tree le, int index) override;
        
         /*
         ValueInst* generateXtended(Tree sig) override;
