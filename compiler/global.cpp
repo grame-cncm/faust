@@ -726,7 +726,7 @@ string global::printFloat()
         case 3:
             return "-quad ";
         case 4:
-            return "-fx ";
+            return "-fx -fx-size " + std::to_string(gFixedPointSize) + " ";
         default:
             faustassert(false);
             return "";
