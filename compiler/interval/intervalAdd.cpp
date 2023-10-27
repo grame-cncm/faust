@@ -49,7 +49,10 @@ interval interval_algebra::Add(const interval& x, const interval& y)
         const int yhi = (int)y.hi();
 
         // detect wrapping
-        if (xhi + yhi < std::max(xhi, yhi) or xlo + ylo > std::max(xlo, ylo))
+        if (std::abs((double)xhi + (double)yhi) >= (double) INT_MAX 
+            or std::abs((double)xhi + (double)yhi) <= (double) INT_MIN 
+            or std::abs((double)xlo + (double)ylo) >= (double) INT_MAX
+            or std::abs((double)xlo + (double)ylo) <= (double) INT_MIN)
             return {(double) INT_MIN, (double) INT_MAX, std::min(x.lsb(), y.lsb())};
 
         return {(double)(xlo + ylo), (double)(xhi + yhi), std::min(x.lsb(), y.lsb())};
