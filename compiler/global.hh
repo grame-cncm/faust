@@ -159,6 +159,8 @@ struct global {
     int gMaxCopyDelay;           // -mcd option
     int gFloatSize;              // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad', 4 for 'fixed-point')
     int gFixedPointSize;         // -fx-size (-1 by default = not used)
+    int gFixedPointMSB;          // max value of MSB in -fx mode
+    int gFixedPointLSB;          // min value of LSB in -fx mode
     int gMaskDelayLineThreshold; // -dlt <num> power-of-two and mask delay-lines treshold
     bool gEnableFlag;            // -es option (0/1: 0 by default)
     bool gNoVirtual;             // -nvi option, when compiled with the C++ backend, does not add the 'virtual' keyword

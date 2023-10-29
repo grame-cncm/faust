@@ -106,14 +106,21 @@ class CStringTypeManager : public StringTypeManager {
     
     int calcMSB(int msb)
     {
+        int res;
         if (gGlobal->gFixedPointSize < msb) {
             std::stringstream error;
             error << "WARNING : -fx-size ('" << gGlobal->gFixedPointSize << "' less than needed '" << msb << "')" << std::endl;
             gWarningMessages.push_back(error.str());
-            return std::min(20, gGlobal->gFixedPointSize);
+            res = std::min(20, gGlobal->gFixedPointSize);
         } else {
-            return msb;
+            res = msb;
         }
+        return res;
+    }
+    
+    int calcLSB(int msb, int lsb)
+    {
+        return std::max(msb - gGlobal->gFixedPointSize, lsb);
     }
 
     virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
@@ -133,7 +140,8 @@ class CStringTypeManager : public StringTypeManager {
                 // return "sfx_t(" + std::to_string(std::max<int>(0, std::min<int>(20, fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ")";
                 if (gGlobal->gFixedPointSize > 0) {
                     int msb = calcMSB(fx_typed->fMSB);
-                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(std::max(msb - gGlobal->gFixedPointSize, fx_typed->fLSB)) + ")";
+                    int lsb = calcLSB(msb, fx_typed->fLSB);
+                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ")";
                 } else {
                     return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
                 }
@@ -141,8 +149,9 @@ class CStringTypeManager : public StringTypeManager {
                 // return "ufx_t(" + std::to_string(std::max<int>(0, std::min<int>(20, fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ")";
                 if (gGlobal->gFixedPointSize > 0) {
                     int msb = calcMSB(fx_typed->fMSB);
+                    int lsb = calcLSB(msb, fx_typed->fLSB);
                     // return "ufx_t(" + std::to_string(msb) + "," + std::to_string(msb - gGlobal->gFixedPointSize) + ")";
-                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(std::max(msb - gGlobal->gFixedPointSize, fx_typed->fLSB)) + ")";
+                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ")";
                 } else {
                     // return "ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
                     return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
@@ -180,7 +189,8 @@ class CStringTypeManager : public StringTypeManager {
                 // return "sfx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
                 if (gGlobal->gFixedPointSize > 0) {
                     int msb = calcMSB(fx_typed->fMSB);
-                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(std::max(msb - gGlobal->gFixedPointSize, fx_typed->fLSB)) + ") " + name;
+                    int lsb = calcLSB(msb, fx_typed->fLSB);
+                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ") " + name;
                 } else {
                     return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
                 }
@@ -188,8 +198,9 @@ class CStringTypeManager : public StringTypeManager {
                 // return "ufx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
                 if (gGlobal->gFixedPointSize > 0) {
                     int msb = calcMSB(fx_typed->fMSB);
+                    int lsb = calcLSB(msb, fx_typed->fLSB);
                     // return "ufx_t(" + std::to_string(msb) + "," + std::to_string(msb- gGlobal->gFixedPointSize) + ") " + name;
-                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(std::max(msb - gGlobal->gFixedPointSize, fx_typed->fLSB)) + ") " + name;
+                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ") " + name;
                 } else {
                     // return "ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
                     return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ") " + name;

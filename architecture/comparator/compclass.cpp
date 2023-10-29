@@ -34,7 +34,7 @@ class comparateur {
 
     public : 
         
-        FAUSTFLOAT** createbuffer (int chan, int buffer_size)
+        FAUSTFLOAT** createbuffer(int chan, int buffer_size)
         {
             FAUSTFLOAT** buffer = new FAUSTFLOAT*[chan];
             for (int i = 0; i < chan; i++) {
@@ -44,7 +44,7 @@ class comparateur {
             return buffer;
         }
 
-        void deletebuffer (FAUSTFLOAT** buffer, int chan)
+        void deletebuffer(FAUSTFLOAT** buffer, int chan)
         {
             for (int i = 0; i <chan; i++) {
                 delete [] buffer[i];
@@ -139,7 +139,6 @@ class comparateur {
             deletebuffer(FL_outputs, FL->getNumOutputs());
             deletebuffer(FX_outputs, FX->getNumOutputs());
         }
-
 };
 
 int main(int argc, char* argv[])
@@ -159,30 +158,30 @@ int main(int argc, char* argv[])
     
     while ((opt = getopt(argc, argv, ":lwhn:")) != -1) {
         switch (opt) {
-	case 'l':
-	  logging = true;
-	  break;
-	case 'w':
-	  execute = true;
-	  break;
-	case 'h':
-	  help = true;
-	  break;
-	case 'n':
-	  window_size = atoi(optarg);
-	  break;
+            case 'l':
+                logging = true;
+                break;
+            case 'w':
+                execute = true;
+                break;
+            case 'h':
+                help = true;
+                break;
+            case 'n':
+                window_size = atoi(optarg);
+                break;
         }
     }
     
     if (help) {
-      cout << "Usage: "
-	   << argv[0] << " [options]" << endl
-	   << "Options :"<< endl
-	   << "\t -w : writes the floating-point and fixed-point outputs to sound files" << endl
-	   << "\t -l : logs the floating-point and fixed-point samples to a text file" << endl
-	   << "\t -n : number of samples over which to compute the statistical indicators" << endl
-	   << "\t -h : displays this help message" << endl ;
-      return 0;
+        cout << "Usage: "
+        << argv[0] << " [options]" << endl
+        << "Options :"<< endl
+        << "\t -w : writes the floating-point and fixed-point outputs to sound files" << endl
+        << "\t -l : logs the floating-point and fixed-point samples to a text file" << endl
+        << "\t -n : number of samples over which to compute the statistical indicators" << endl
+        << "\t -h : displays this help message" << endl;
+        return 0;
     }
     
     // init
@@ -194,7 +193,7 @@ int main(int argc, char* argv[])
     string executable_name(argv[0]);
     string filename = executable_name.substr(executable_name.rfind("/")+1);
     
-    if (execute){
+    if (execute) {
         // number of samples to compute for each DSP
         int audiolength = 3;
         int samplenb = audiolength*samplerate;

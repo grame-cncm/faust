@@ -439,6 +439,8 @@ void global::reset()
 
     gFloatSize      = 1;  // -single by default
     gFixedPointSize = -1;
+    gFixedPointMSB  = 0;
+    gFixedPointLSB  = 0;
 
     gPrintFileListSwitch = false;
     gInlineArchSwitch    = false;
