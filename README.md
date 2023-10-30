@@ -11,9 +11,9 @@ Build status: [![Ubuntu](https://github.com/grame-cncm/faust/actions/workflows/u
 
 ## Introduction
 
-Faust (Functional Audio Stream) is a functional programming language specifically designed for real-time signal processing and synthesis. A distinctive characteristic of Faust is to be fully compiled.
+Faust (Functional Audio Stream) is a functional programming language specifically designed for real-time signal processing and synthesis. A distinctive characteristic feature of Faust is to be fully compiled.
 
-The Faust compiler translates DSP specifications into very efficient code for various languages (C++, C, JAVA, LLVM IR, WebAssembly etc.) working at sample level. It targets high-performance signal processing applications, libraries, and audio plug-ins for a variety of audio platforms and standards. A same Faust specification can be used to easily generate various kinds of native standalone applications, iOS and Android apps, as well as Csound, LADSPA, Max/MSP, PD, Q, SuperCollider, VST, AU plugins, etc. (see the README in the `/architecture` folder for an exhaustive list).
+The Faust compiler translates DSP specifications into very efficient code for various languages (C++, C, JAVA, LLVM IR, WebAssembly etc.) working at sample level. It targets high-performance signal processing applications, libraries and audio plug-ins for a variety of audio platforms and standards. A same Faust specification can be used to easily generate various kinds of native standalone applications, iOS and Android apps, as well as Csound, LADSPA, Max/MSP, PD, Q, SuperCollider, VST, AU plugins, etc. (see the README in the `/architecture` folder for an exhaustive list).
 
 While there are Faust contributors everywhere across the globe, Faust is mainly being developed at Grame, Centre National de Creation Musicale (<https://www.grame.fr>), its birthplace.
 
@@ -160,9 +160,9 @@ Obviously, the corresponding dependencies for each of them must be installed on 
 * The [Faust online course](https://ccrma.stanford.edu/~rmichon/faustWorkshops/course2015/) or the [Faust Hero in 2 Hours tutorial](https://ccrma.stanford.edu/~rmichon/faustTutorials/#faust-hero-in-2-hours) might be good starting points for beginners.
 * [Julius Smith's website](https://ccrma.stanford.edu/~jos) is an incredible resource on various topics around DSP and Faust.
 
-## Acknowledgments
+## Acknowledgements
 
-Many persons have been contributing to the Faust project by
+Many persons have been frequently  contributing to the Faust project by
 providing code for the compiler, architecture files, libraries,
 examples, documentation, scripts, bug reports, ideas, etc.
 
