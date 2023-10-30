@@ -111,7 +111,7 @@ class CStringTypeManager : public StringTypeManager {
             std::stringstream error;
             error << "WARNING : -fx-size ('" << gGlobal->gFixedPointSize << "' less than needed '" << msb << "')" << std::endl;
             gWarningMessages.push_back(error.str());
-            res = std::min(20, gGlobal->gFixedPointSize);
+            res = std::min(31, gGlobal->gFixedPointSize);
         } else {
             res = msb;
         }
