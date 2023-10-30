@@ -44,7 +44,7 @@ struct MemoryDesc {
     int            fSizeBytes;     // Size in bytes
     Typed::VarType fType;          // FIR type
     bool           fIsConst;       // True when constant
-    bool           fIsControl;     // True when control (slider, nentry, buttons, checkbox, bargraph)
+    bool           fIsControl;     // True when control (slider, nentry, button, checkbox, bargraph)
     memType        fMemType;       // Memory type
 
     MemoryDesc()

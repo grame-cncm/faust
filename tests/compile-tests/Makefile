@@ -40,7 +40,7 @@ all:
 	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=dlang lang=dlang ext=dlang FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=cmajor lang=cmajor ext=cmajor FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=rnbo lang=rnbo ext=rnbo FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=codebox lang=codebox ext=codebox FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=interp lang=interp ext=interp FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=jax lang=jax ext=jax FAUSTOPTIONS=""
 	$(MAKE) gcc1
