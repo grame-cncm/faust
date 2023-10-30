@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
             0,
             0
         };
-        cout << "Format = " << (int)(SF_FORMAT_WAV|SF_FORMAT_PCM_24|SF_ENDIAN_LITTLE) << endl;
+
         SNDFILE* out_sf_fx = sf_open(name, SFM_WRITE, &out_info);
         if (!out_sf_fx) {
             cerr << "ERROR : cannot write output file " << name << endl;
