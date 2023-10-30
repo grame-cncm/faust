@@ -70,7 +70,14 @@ class num : public virtual Garbageable {
     // constructors
     num(int x = 0) : fType(0) { fData.i = x; }
     num(double x) : fType(1) { fData.f = x; }
-    num(const num& n) : fType(n.fType) { fData.i = n.fData.i; }
+    num(const num& n) : fType(n.fType)
+    {
+        if (fType == 0) {
+            fData.i = n.fData.i;
+        } else {
+            fData.f = n.fData.f;
+        }
+    }
 
     num& operator=(int n)
     {
@@ -87,12 +94,38 @@ class num : public virtual Garbageable {
 
     // accessors
     int type() const { return fType; }
-    operator int() const { return (fType) ? int(fData.f) : fData.i; }
-    operator double() const { return (fType) ? fData.f : double(fData.i); }
+    operator int() const
+    {
+        if (fType == 0) {
+            return fData.i;
+        } else {
+            return static_cast<int>(fData.f);
+        }
+    }
+    
+    operator double() const
+    {
+        if (fType == 0) {
+            return static_cast<double>(fData.i);
+        } else {
+            return fData.f;
+        }
+    }
 
     // predicats
-    bool operator==(const num& n) const { return fType == n.fType && fData.i == n.fData.i; }
-    bool operator!=(const num& n) const { return fType != n.fType || fData.i != n.fData.i; }
+    bool operator==(const num& n) const
+    {
+        if (fType != n.fType) {
+            return false;
+        }
+        if (fType == 0) {
+            return fData.i == n.fData.i;
+        } else {
+            return fData.f == n.fData.f;
+        }
+    }
+
+    bool operator!=(const num& n) const { return !(*this == n); }
 };
 
 inline int isfloat(const num& n)
