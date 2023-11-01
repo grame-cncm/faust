@@ -326,7 +326,9 @@ struct global {
     xtended* gAtanPrim;
     xtended* gAtan2Prim;
     xtended* gAsinPrim;
- 
+
+    Tree gInternalEnv;
+
     // Signals
     Sym BOXIDENT;
     Sym BOXCUT;

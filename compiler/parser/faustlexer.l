@@ -199,6 +199,8 @@ NSID     {ID}("::"{ID})*
 "sum"         return ISUM;
 "prod"        return IPROD;
 
+"internal"    return INTERNAL;
+
 "inputs"      return INPUTS;
 "outputs"     return OUTPUTS;
 
