@@ -280,7 +280,7 @@ static Tree eval(Tree exp, Tree visited, Tree localValEnv)
     Tree id;
     Tree result;
 
-    // std::cerr << "eval : " << boxpp(exp) << " in env " << envpp(localValEnv) << std::endl;
+    // cerr << "eval : " << boxpp(exp) << " in env " << envpp(localValEnv) << endl;
 
     if (!getEvalProperty(exp, localValEnv, result)) {
         gGlobal->gLoopDetector.detect(cons(exp, localValEnv));
@@ -338,7 +338,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
 
     xtended* xt = (xtended*)getUserData(exp);
 
-    // std::cerr << "realeval : " << boxpp(exp) << " in env " << envpp(localValEnv) << std::endl;
+    // cerr << "realeval : " << boxpp(exp) << " in env " << envpp(localValEnv) << endl;
 
     // Constants
     //-----------
@@ -697,7 +697,9 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
         Tree mbody = bm.self(ebody);
 
         if (mbody == ebody) {
-            std::cerr << "Warning, no modulation of: " << *elabel << " took place in: " << boxpp(ebody) << std::endl;
+            stringstream error;
+            error << "WARNING : no modulation of: '" << *elabel << "' took place in: " << boxpp(ebody) << endl;
+            gWarningMessages.push_back(error.str());
         }
 
         // if we have a slot, we need to wrap the modulation body in a symbolic box
@@ -868,7 +870,7 @@ static void writeIdentValue(string& dst, const string& format, const string& ide
  */
 static string evalLabel(const char* src, Tree visited, Tree localValEnv)
 {
-    // std::cerr << "Eval Label : " << src;
+    // cerr << "Eval Label : " << src;
     int    state = 0;  // current state
     string dst;        // label once evaluated
     string ident;      // current identifier
@@ -935,7 +937,7 @@ static string evalLabel(const char* src, Tree visited, Tree localValEnv)
             }
 
         } else {
-            cerr << "ASSERT : evallabel, undefined state : " << state << std::endl;
+            cerr << "ASSERT : evallabel, undefined state : " << state << endl;
             faustassert(false);
         }
     }
