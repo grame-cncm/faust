@@ -61,7 +61,7 @@ def remainder(x, y):
 			fBuffers = fBuffers.at[:y.shape[0],offset:offset+y.shape[1]].set(y)
 			offset += y.shape[1]
 		if label.startswith('param:'):
-			label = label[6:]  # remove param:
+			label = label[6:]  # remove "param:"
 			label = "/".join(ui_path+[label])
 			fBuffers = self.param("_"+label, (lambda key, shape: fBuffers), None)
 		else:
@@ -121,21 +121,33 @@ def remainder(x, y):
 	def __call__(self, x, T: int) -> jnp.array:
 		state = self.initialize(self.sample_rate, x, T)
 		state = self.build_interface(state, x, T)
-		# convert numpy array to jax numpy array
+		# convert any numpy arrays to jax numpy arrays
 		state = jax.tree_map(jnp.array, state)
-		return jnp.transpose(jax.lax.scan(self.tick, state, jnp.transpose(x, axes=(1, 0)))[1], axes=(1,0))
+
+		x = jnp.transpose(x, axes=(1, 0))
+		state, y = jax.lax.scan(self.tick, state, x)
+		y = jnp.transpose(y, axes=(1, 0))
+		return y
 
 
 def test(args):
 
+	import logging
+
 	model = mydsp(sample_rate=args.sample_rate)
-	print("NUM INPUT CHANNELS: ", model.getNumInputs())
-	print("NUM OUTPUT CHANNELS: ", model.getNumOutputs())
+
+	log_level = getattr(logging, args.log_level.upper())
+	logging.basicConfig(level=log_level, format='%(levelname)s: %(message)s')
+
+	logger = logging.getLogger(__name__)
+
+	logger.info(f"Number of input channels: {model.getNumInputs()}")
+	logger.info(f"Number of output channels: {model.getNumOutputs()}")
 
 	json_obj = model.getJSON()
-	# print('json_obj: ', json_obj)
+	logger.debug(f"JSON info: {json_obj}")
 
-	key = random.PRNGKey(0)
+	key = random.PRNGKey(args.seed)
 
 	if args.input is not None:
 		input_audio, _ = librosa.load(args.input, mono=False, sr=args.sample_rate, duration=args.duration)
@@ -171,6 +183,8 @@ def test(args):
 		from scipy.io import wavfile
 		output_audio = np.array(y).T
 		wavfile.write(args.output, args.sample_rate, output_audio)
+
+	logger.info("All done!")
 		
 
 if __name__ == '__main__':
@@ -180,10 +194,12 @@ if __name__ == '__main__':
 	parser.add_argument('-d', '--duration', type=float, default=None, help='Output duration in seconds')
 	parser.add_argument('--random', action='store_true',
 		help="Whether the default audio is random. By default it's an impulse.")
+	parser.add_argument('--seed', default=0, type=int, help="Seed for random number generator (default: 0)")
 	parser.add_argument('-i', '--input', type=str, default=None, help='Filepath for input audio WAV')
 	parser.add_argument('-o', '--output', type=str, default=None, help='Filepath for output audio WAV')
+	parser.add_argument('--log-level', default='INFO', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], 
+						help='Set the logger level (default: INFO)')
 
 	args = parser.parse_args()
 
 	test(args)
-	print('All done!')
