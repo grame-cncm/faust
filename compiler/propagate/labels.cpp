@@ -2,6 +2,7 @@
  ************************************************************************
     FAUST compiler
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2023-2023 INRIA
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +22,7 @@
 
 #include "labels.hh"
 #include "compatibility.hh"
+#include "description.hh"
 #include "global.hh"
 
 using namespace std;
@@ -168,7 +170,10 @@ static Tree normalizeLabel(Tree label, Tree path)
     }
 }
 
-// Normalize a path
+// Normalize a path. For example, assuming i=3, "h:bidule/foo%i"
+// is transformed into: cons[foo3,cons[cons[1,bidule],nil]]
+// Where 0 indicates v, 1 indicates h, and 2 indicates t.
+// Metadata are not removed !
 Tree normalizePath(Tree path)
 {
     // cout << "Normalize Path [[" << *path << "]]" << endl;
@@ -180,4 +185,60 @@ Tree normalizePath(Tree path)
     }
     // cout << "              -> [[" << *npath << "]]" << endl;
     return npath;
+}
+
+// SuperNormalize a path by removing vht indications.
+// For example, assuming i=3, "h:bidule/foo%i"
+// is transformed into: cons[foo3,cons[bidule,nil]]
+// Where 0 indicates v, 1 indicates h, and 2 indicates t.
+// Metadata are not removed !
+Tree superNormalizePath(Tree path)
+{
+    Tree npath = normalizePath(path);
+    Tree spath;
+
+    // std::cout << "SuperNormalize Path [[" << *path << "]]" << endl;
+    if (isNil(npath)) {
+        spath = npath;
+    } else {
+        Tree head = hd(npath);
+        if (isList(head)) {
+            std::string fulllabel = tree2str(tl(head));
+            std::string label     = removeMetadata(fulllabel);
+            spath                 = cons(tree(label), superNormalizePath(tl(npath)));
+        } else {
+            std::string fulllabel = tree2str(head);
+            std::string label     = removeMetadata(fulllabel);
+            spath                 = cons(tree(label), superNormalizePath(tl(npath)));
+        }
+    }
+    // std::cout << "SuperNormalizePath " << *path << " -> " << *spath << std::endl;
+    return spath;
+}
+
+/**
+ * @brief Test if a label path is part of a group.
+ * @param gpath the group path
+ * @param lpath the label path
+ * @param rpath the remaining path if there is a match
+ * @return true if the label path is part of the group path
+ */
+bool matchGroup(Tree gpath, Tree lpath, Tree& rpath)
+{
+    if (gpath == lpath) {
+        rpath = gGlobal->nil;
+        return true;
+    } else if (isList(lpath)) {
+        Tree head = hd(lpath);
+        Tree tail = tl(lpath);
+        Tree rest;
+        if (matchGroup(gpath, tail, rest)) {
+            rpath = cons(head, rest);
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
 }

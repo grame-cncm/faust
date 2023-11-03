@@ -34,11 +34,11 @@
 #include <unistd.h>
 #endif
 
-#include "smartpointer.hh"
 #include "exception.hh"
 #include "instructions_type.hh"
 #include "loopDetector.hh"
 #include "property.hh"
+#include "smartpointer.hh"
 #include "sourcereader.hh"
 
 class Occur;
@@ -82,131 +82,137 @@ typedef std::map<Tree, std::set<Tree>>           FunMDSet;  // foo -> {(file/foo
 
 // Global outside of the global context
 extern std::vector<std::string> gWarningMessages;
-extern bool           gAllWarning;
+extern bool                     gAllWarning;
 
 // Global singleton like compiler state
 struct global {
     // Parsing
-    SourceReader gReader;
-    Tree         gExpandedDefList;
+    SourceReader           gReader;
+    Tree                   gExpandedDefList;
     std::string            gInputString;
     std::list<std::string> gInputFiles;
-    tvec         gWaveForm;  // used in the parser to keep values parsed for a given waveform
-    Tree         gResult;
+    tvec                   gWaveForm;  // used in the parser to keep values parsed for a given waveform
+    Tree                   gResult;
 
     // Metadata handling
     MetaDataSet gMetaDataSet;
     FunMDSet    gFunMDSet;
 
     // File handling
-    std::string gFaustSuperSuperDirectory;
-    std::string gFaustSuperDirectory;
-    std::string gFaustDirectory;
-    std::string gFaustExeDir;
-    std::string gFaustRootDir;  // abs path to Faust root directory
-    std::string gMasterDocument;
-    std::string gMasterDirectory;
-    std::string gMasterName;
-    std::vector<std::string> gImportDirList;        // dir list enrobage.cpp/fopensearch() searches for imports, etc.
-    std::vector<std::string> gArchitectureDirList;  // dir list enrobage.cpp/fopensearch() searches for architecture files
+    std::string              gFaustSuperSuperDirectory;
+    std::string              gFaustSuperDirectory;
+    std::string              gFaustDirectory;
+    std::string              gFaustExeDir;
+    std::string              gFaustRootDir;  // abs path to Faust root directory
+    std::string              gMasterDocument;
+    std::string              gMasterDirectory;
+    std::string              gMasterName;
+    std::vector<std::string> gImportDirList;  // dir list enrobage.cpp/fopensearch() searches for imports, etc.
+    std::vector<std::string>
+        gArchitectureDirList;  // dir list enrobage.cpp/fopensearch() searches for architecture files
     std::vector<std::string> gLibraryList;
-    std::string gOutputDir;
-    std::string gImportFilename;
-    std::string gOutputFile;
-    std::string gArchFile;         // -a option
-    std::set<std::string> gAlreadyIncluded;  // to keep track of already injected files
+    std::string              gOutputDir;
+    std::string              gImportFilename;
+    std::string              gOutputFile;
+    std::string              gArchFile;         // -a option
+    std::set<std::string>    gAlreadyIncluded;  // to keep track of already injected files
 
     // compilation options
-    bool gDetailsSwitch;         // -d option
-    bool gDrawSignals;           // -sg option
-    bool gDrawRouteFrame;        // -drf option
-    bool gShadowBlur;            // -blur option, note: svg2pdf doesn't like the blur filter
-    bool gScaledSVG;             // -sc option, to draw scaled SVG files
-    bool gStripDocSwitch;        // -stripmdoc option, Strip <mdoc> content from doc listings
-    int  gFoldThreshold;         // -f option, global complexity threshold before activating folding
-    int  gFoldComplexity;        // -fc option, individual complexity threshold before folding
-    int  gMaxNameSize;           // -mns option
-    bool gSimpleNames;           // -sn option
-    bool gSimplifyDiagrams;      // -sd option
-    bool gPrintFileListSwitch;   // -flist option
-    bool gInlineArchSwitch;      // -i option
-    bool gUIMacroSwitch;         // -uim option
-    int  gDumpNorm;              // -norm option
-    bool gMathExceptions;        // -me option, whether to check math functions domains
-    bool gLocalCausalityCheck;   // -lcc option, when true trigs local causality errors (negative delay)
-    bool gGraphSwitch;           // -tg option
-    bool gDrawPSSwitch;          // -ps option
-    bool gDrawSVGSwitch;         // -svg option
-    int  gFPGAMemory;            // -fpga-mem option: FPGA block ram max size
-    bool gPrintXMLSwitch;        // -xml option
-    bool gPrintJSONSwitch;       // -json option
-    bool gPrintDocSwitch;        // -mdoc option
-    bool gExportDSP;             // -e option
-  
-    // code generation options
-    bool gVectorSwitch;          // -vec option
-    bool gDeepFirstSwitch;       // -dfs option
-    int  gVecSize;               // -vs option
-    int  gVectorLoopVariant;     // -lv [0|1] option
-    bool gOpenMPSwitch;          // -omp option
-    bool gOpenMPLoop;            // -pl option
-    bool gSchedulerSwitch;       // -sch option
-    bool gOpenCLSwitch;          // -ocl option
-    bool gCUDASwitch;            // -cuda option
-    bool gGroupTaskSwitch;       // -g option
-    bool gFunTaskSwitch;         // -fun option
-    int gMaxCopyDelay;           // -mcd option
-    int gFloatSize;              // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad', 4 for 'fixed-point')
-    int gMaskDelayLineThreshold; // -dlt <num> power-of-two and mask delay-lines treshold
-    bool gEnableFlag;            // -es option (0/1: 0 by default)
-    bool gNoVirtual;             // -nvi option, when compiled with the C++ backend, does not add the 'virtual' keyword
-    bool gMemoryManager;         // -mem option
-    bool gRangeUI;               // -rui option, whether to generate code to limit vslider/hslider/nentry values in [min..max] range
-    bool gFreezeUI;              // -fui option, whether to freeze vslider/hslider/nentry to a given value (init value by default)
-    int  gFTZMode;               // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
-    bool gInPlace;               // -inpl option, add cache to input for correct in-place computations
-    bool gStrictSelect;          // -sts option, generate strict code for 'selectX' even for stateless branches (both are computed)
-    
-    bool gDSPStruct;             // to control method generation in -fun mode
-    bool gLightMode;             // -light option, do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module for JavaScript)
-    bool gClang;                 // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
-    bool gFullParentheses;       // -fp option, generate less parenthesis in some textual backends: C/C++, Cmajor, Dlang, Rust
-    bool gCheckIntRange;         // -cir option, check float to integer range conversion
-    bool gReprC;                 // (Rust) Force dsp struct layout to follow C ABI
+    bool gDetailsSwitch;        // -d option
+    bool gDrawSignals;          // -sg option
+    bool gDrawRouteFrame;       // -drf option
+    bool gShadowBlur;           // -blur option, note: svg2pdf doesn't like the blur filter
+    bool gScaledSVG;            // -sc option, to draw scaled SVG files
+    bool gStripDocSwitch;       // -stripmdoc option, Strip <mdoc> content from doc listings
+    int  gFoldThreshold;        // -f option, global complexity threshold before activating folding
+    int  gFoldComplexity;       // -fc option, individual complexity threshold before folding
+    int  gMaxNameSize;          // -mns option
+    bool gSimpleNames;          // -sn option
+    bool gSimplifyDiagrams;     // -sd option
+    bool gPrintFileListSwitch;  // -flist option
+    bool gInlineArchSwitch;     // -i option
+    bool gUIMacroSwitch;        // -uim option
+    int  gDumpNorm;             // -norm option
+    bool gMathExceptions;       // -me option, whether to check math functions domains
+    bool gLocalCausalityCheck;  // -lcc option, when true trigs local causality errors (negative delay)
+    bool gGraphSwitch;          // -tg option
+    bool gDrawPSSwitch;         // -ps option
+    bool gDrawSVGSwitch;        // -svg option
+    int  gFPGAMemory;           // -fpga-mem option: FPGA block ram max size
+    bool gPrintXMLSwitch;       // -xml option
+    bool gPrintJSONSwitch;      // -json option
+    bool gPrintDocSwitch;       // -mdoc option
+    bool gExportDSP;            // -e option
 
-    std::string gClassName;      // -cn option, name of the generated dsp class, by default 'mydsp'
-    std::string gProcessName;    // -pn option, name of the entry point of the Faust program, by default 'process'
-    std::string gSuperClassName; // -scn option, name of the root class the generated dsp class inherits from, by default 'dsp'
-    
+    // code generation options
+    bool gVectorSwitch;       // -vec option
+    bool gDeepFirstSwitch;    // -dfs option
+    int  gVecSize;            // -vs option
+    int  gVectorLoopVariant;  // -lv [0|1] option
+    bool gOpenMPSwitch;       // -omp option
+    bool gOpenMPLoop;         // -pl option
+    bool gSchedulerSwitch;    // -sch option
+    bool gOpenCLSwitch;       // -ocl option
+    bool gCUDASwitch;         // -cuda option
+    bool gGroupTaskSwitch;    // -g option
+    bool gFunTaskSwitch;      // -fun option
+    int  gMaxCopyDelay;       // -mcd option
+    int gFloatSize;  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad', 4 for 'fixed-point')
+    int gMaskDelayLineThreshold;  // -dlt <num> power-of-two and mask delay-lines treshold
+    bool gEnableFlag;             // -es option (0/1: 0 by default)
+    bool gNoVirtual;              // -nvi option, when compiled with the C++ backend, does not add the 'virtual' keyword
+    bool gMemoryManager;          // -mem option
+    bool gRangeUI;   // -rui option, whether to generate code to limit vslider/hslider/nentry values in [min..max] range
+    bool gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init value by default)
+    int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
+    bool gInPlace;   // -inpl option, add cache to input for correct in-place computations
+    bool gStrictSelect;  // -sts option, generate strict code for 'selectX' even for stateless branches (both are
+                         // computed)
+
+    bool gDSPStruct;  // to control method generation in -fun mode
+    bool gLightMode;  // -light option, do not generate the entire DSP API (to be used with Emscripten to generate a
+                      // light DSP module for JavaScript)
+    bool gClang;      // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    bool
+        gFullParentheses;  // -fp option, generate less parenthesis in some textual backends: C/C++, Cmajor, Dlang, Rust
+    bool gCheckIntRange;   // -cir option, check float to integer range conversion
+    bool gReprC;           // (Rust) Force dsp struct layout to follow C ABI
+
+    std::string gClassName;    // -cn option, name of the generated dsp class, by default 'mydsp'
+    std::string gProcessName;  // -pn option, name of the entry point of the Faust program, by default 'process'
+    std::string
+        gSuperClassName;  // -scn option, name of the root class the generated dsp class inherits from, by default 'dsp'
+
     // Debug option
-    bool gCheckTable;            // -ct to check rtable/rwtable index range and generate safe access code (0/1: 1 by default)
+    bool gCheckTable;  // -ct to check rtable/rwtable index range and generate safe access code (0/1: 1 by default)
 
     // Backend configuration
-    std::string gOutputLang;       // Chosen backend
-    bool   gAllowForeignFunction;  // Can use foreign functions
-    bool   gAllowForeignConstant;  // Can use foreign constant
-    bool   gAllowForeignVar;       // Can use foreign variable
-    bool   gComputeIOTA;           // Cache some computation done with IOTA variable
-    bool   gFAUSTFLOAT2Internal;   // FAUSTFLOAT type (= kFloatMacro) forced to internal real
-    bool   gHasExp10;              // -exp10, if the 'exp10' math function is available
-    bool   gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
-    bool   gUseMemmove;            // Use 'memmove' function to shift arrays
-    bool   gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
-    bool   gUseDefaultSound;       // If default global variable is used in 'soundfile' primitive generation
-    bool   gHasTeeLocal;           // For wast/wasm backends
-    std::string gFastMathLib;      // -fm faster version of some mathematical functions (pow/exp/log), the fastmath code mapping file
-    bool   gMathApprox;            // -mapp option, simpler/faster versions of 'floor/fmod/remainder' functions
-    bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
-    bool   gRemoveVarAddress;      // If use of variable addresses (like &foo or &foo[n]) have to be removed
-    int    gOneSample;             // -osX options, generate one sample computation
-    bool   gOneSampleControl;      // -osX options, generate one sample computation control structure in DSP module
-    bool   gInlineTable;           // -it option, only in -cpp backend, to inline rdtable/rwtable code in the main class.
-    bool   gComputeMix;            // -cm option, mix in outputs buffers
-    bool   gBool2Int;              // Cast bool binary operations (comparison operations) to int
-    std::string gNamespace;        // Wrapping namespace used with the C++ backend
-    bool gVHDLTrace;               // -vhdl-trace option
-    bool gVHDLFloatEncoding;       // -vhdl-float, floating point encoding for real numbers
-    std::string gVHDLComponentsFile; // -vhdl-operators, a config file to replace specific operators
+    std::string gOutputLang;            // Chosen backend
+    bool        gAllowForeignFunction;  // Can use foreign functions
+    bool        gAllowForeignConstant;  // Can use foreign constant
+    bool        gAllowForeignVar;       // Can use foreign variable
+    bool        gComputeIOTA;           // Cache some computation done with IOTA variable
+    bool        gFAUSTFLOAT2Internal;   // FAUSTFLOAT type (= kFloatMacro) forced to internal real
+    bool        gHasExp10;              // -exp10, if the 'exp10' math function is available
+    bool        gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
+    bool        gUseMemmove;            // Use 'memmove' function to shift arrays
+    bool        gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
+    bool        gUseDefaultSound;       // If default global variable is used in 'soundfile' primitive generation
+    bool        gHasTeeLocal;           // For wast/wasm backends
+    std::string gFastMathLib;    // -fm faster version of some mathematical functions (pow/exp/log), the fastmath code
+                                 // mapping file
+    bool        gMathApprox;     // -mapp option, simpler/faster versions of 'floor/fmod/remainder' functions
+    bool        gNeedManualPow;  // If manual pow(x, y) generation when y is an integer is needed
+    bool        gRemoveVarAddress;  // If use of variable addresses (like &foo or &foo[n]) have to be removed
+    int         gOneSample;         // -osX options, generate one sample computation
+    bool        gOneSampleControl;  // -osX options, generate one sample computation control structure in DSP module
+    bool        gInlineTable;  // -it option, only in -cpp backend, to inline rdtable/rwtable code in the main class.
+    bool        gComputeMix;   // -cm option, mix in outputs buffers
+    bool        gBool2Int;     // Cast bool binary operations (comparison operations) to int
+    std::string gNamespace;    // Wrapping namespace used with the C++ backend
+    bool        gVHDLTrace;    // -vhdl-trace option
+    bool        gVHDLFloatEncoding;   // -vhdl-float, floating point encoding for real numbers
+    std::string gVHDLComponentsFile;  // -vhdl-operators, a config file to replace specific operators
 
     int gWideningLimit;   // Max number of iterations before interval widening
     int gNarrowingLimit;  // Max number of iterations to compute interval widener
@@ -219,34 +225,34 @@ struct global {
     bool gLstDependenciesSwitch;  // mdoc listing management
     bool gLstMdocTagsSwitch;      // mdoc listing management
     bool gLstDistributedSwitch;   // mdoc listing management
-    
+
     bool gAutoDifferentiate;
 
     // Automatic documentation
-    std::string         gDocLang;
-    std::string         gDocName;
-    std::map<std::string, std::string>  gDocMetadatasStringMap;
-    std::set<std::string>               gDocMetadatasKeySet;
-    std::map<std::string, std::string>  gDocAutodocStringMap;
-    std::set<std::string>               gDocAutodocKeySet;
-    std::map<std::string, bool>         gDocNoticeFlagMap;
-    std::map<std::string, std::string>  gDocMathStringMap;
-    std::vector<Tree>                   gDocVector;     //< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM
-    std::map<std::string, std::string>  gDocNoticeStringMap;
-    std::set<std::string>               gDocNoticeKeySet;
-    std::set<std::string>               gDocMathKeySet;
-    const char*         gDocDevSuffix;   //< ".tex" (or .??? - used to choose output device)
-    std::string         gCurrentDir;     //< Room to save current directory name
-    std::string         gLatexheaderfilename;
-    struct tm           gCompilationDate;
-    int                 gFileNum;
-    bool                gLatexDocSwitch;  // Only LaTeX outformat is handled for the moment
-    std::string         gDocTextsDefaultFile;
+    std::string                        gDocLang;
+    std::string                        gDocName;
+    std::map<std::string, std::string> gDocMetadatasStringMap;
+    std::set<std::string>              gDocMetadatasKeySet;
+    std::map<std::string, std::string> gDocAutodocStringMap;
+    std::set<std::string>              gDocAutodocKeySet;
+    std::map<std::string, bool>        gDocNoticeFlagMap;
+    std::map<std::string, std::string> gDocMathStringMap;
+    std::vector<Tree>                  gDocVector;  //< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM
+    std::map<std::string, std::string> gDocNoticeStringMap;
+    std::set<std::string>              gDocNoticeKeySet;
+    std::set<std::string>              gDocMathKeySet;
+    const char*                        gDocDevSuffix;  //< ".tex" (or .??? - used to choose output device)
+    std::string                        gCurrentDir;    //< Room to save current directory name
+    std::string                        gLatexheaderfilename;
+    struct tm                          gCompilationDate;
+    int                                gFileNum;
+    bool                               gLatexDocSwitch;  // Only LaTeX outformat is handled for the moment
+    std::string                        gDocTextsDefaultFile;
 
     // Error handling
-    int gErrorCount;
+    int         gErrorCount;
     std::string gErrorMessage;
-    Tabber TABBER;
+    Tabber      TABBER;
 
     // ------------
     // boxppShared
@@ -302,7 +308,7 @@ struct global {
     Tree BCOMPLEXITY;  // Node used for memoization purposes
     Tree LETRECBODY;
     Node PROPAGATEPROPERTY;
-    
+
     // Extended math
     xtended* gAbsPrim;
     xtended* gAcosPrim;
@@ -326,7 +332,7 @@ struct global {
     xtended* gAtanPrim;
     xtended* gAtan2Prim;
     xtended* gAsinPrim;
- 
+
     // Signals
     Sym BOXIDENT;
     Sym BOXCUT;
@@ -345,6 +351,7 @@ struct global {
     Sym BOXISUM;
     Sym BOXIPROD;
     Sym BOXABSTR;
+    Sym BOXMODULATION;
     Sym BOXAPPL;
     Sym CLOSURE;
     Sym BOXERROR;
@@ -463,7 +470,7 @@ struct global {
     // Essential predefined types
     Type TINPUT;
     Type TGUI;
-  
+
     // Trying to accelerate type convergence
     Type TREC;  // kVect ou kScal ?
     Type TRECMAX;
@@ -502,24 +509,25 @@ struct global {
     std::map<std::string, int> gIDCounters;
 
     // Internal state during drawing
-    Occur*            gOccurrences;
-    bool              gFoldingFlag;     // true with complex block-diagrams
-    std::stack<Tree>  gPendingExp;      // Expressions that need to be drawn
-    std::set<Tree>    gDrawnExp;        // Expressions drawn or scheduled so far
-    const char*        gDevSuffix;       // .svg or .ps used to choose output device
-    std::string       gSchemaFileName;  // name of schema file beeing generated
-    Tree              gInverter[6];
+    Occur*                      gOccurrences;
+    bool                        gFoldingFlag;     // true with complex block-diagrams
+    std::stack<Tree>            gPendingExp;      // Expressions that need to be drawn
+    std::set<Tree>              gDrawnExp;        // Expressions drawn or scheduled so far
+    const char*                 gDevSuffix;       // .svg or .ps used to choose output device
+    std::string                 gSchemaFileName;  // name of schema file beeing generated
+    Tree                        gInverter[6];
     std::map<Tree, std::string> gBackLink;  // link to enclosing file for sub schema
 
     // FIR
     std::map<Typed::VarType, BasicTyped*> gTypeTable;     // To share a unique BasicTyped* object for a given type
     std::map<std::string, Typed*>         gVarTypeTable;  // Types of variables or functions
     std::map<Typed::VarType, int>         gTypeSizeMap;   // Size of types in bytes
-    std::map<std::string, std::pair<std::string, int>>   gTablesSize;    // Global tables size in bytes: class name, <table name, size>
+    std::map<std::string, std::pair<std::string, int>>
+        gTablesSize;  // Global tables size in bytes: class name, <table name, size>
 
     // Colorize
     std::map<Tree, int> gColorMap;
-    int gNextFreeColor;
+    int                 gNextFreeColor;
 
     // To keep current local
     char* gCurrentLocal;
@@ -556,7 +564,7 @@ struct global {
 #ifdef TEMPLATE_BUILD
     TemplateInstVisitor* gTemplateVisitor;
 #endif
-    
+
 #ifdef CODEBOX_BUILD
     CodeboxInstVisitor* gCodeboxVisitor;
 #endif
@@ -571,7 +579,7 @@ struct global {
     bool gPathListSwitch;
 
     // Source file injection
-    bool gInjectFlag;
+    bool        gInjectFlag;
     std::string gInjectFile;
 
     int gTimeout;  // Time out to abort compiler (in seconds)
@@ -619,12 +627,15 @@ struct global {
 
     void setVarType(const std::string& name, Typed::VarType type);
 
-    inline bool startWith(const std::string& str, const std::string& prefix) { return (str.substr(0, prefix.size()) == prefix); }
+    inline bool startWith(const std::string& str, const std::string& prefix)
+    {
+        return (str.substr(0, prefix.size()) == prefix);
+    }
 
     // Some backends have an internal implementation of foreign functions like acos, asinh...
     bool hasForeignFunction(const std::string& name, const std::string& inc_file);
 
-    void printCompilationOptions(std::stringstream& dst, bool backend = true);
+    void        printCompilationOptions(std::stringstream& dst, bool backend = true);
     std::string printCompilationOptions1();
 
     void initTypeSizeMap();
@@ -633,19 +644,19 @@ struct global {
 
     // Allows to test if a given debug environment variable is set
     static bool isDebug(const std::string& debug_val);
-    
+
     bool processCmdline(int argc, const char* argv[]);
     void initDocumentNames();
     void initDirectories(int argc, const char* argv[]);
     void printDeclareHeader(std::ostream& dst);
     void parseSourceFiles();
-    
+
     void printLibDir();
     void printIncludeDir();
     void printArchDir();
     void printDspDir();
     void printPaths();
-    
+
     void printDirectories();
 };
 
@@ -664,15 +675,15 @@ void callFun(threaded_fun fun, void* arg);
 
 // Used to pass parameters and possibly return a result
 struct CallContext {
-    std::string fNameApp = "";
-    std::string fDSPContent = "";
-    int fArgc = 0;
-    const char** fArgv = nullptr;
-    bool fGenerate = false;
-    int fNumInputs = -1;
-    int fNumOutputs = -1;
-    Tree fTree = nullptr;   // Used for in/out
-    std::string fRes = "";  // Used for out
+    std::string  fNameApp    = "";
+    std::string  fDSPContent = "";
+    int          fArgc       = 0;
+    const char** fArgv       = nullptr;
+    bool         fGenerate   = false;
+    int          fNumInputs  = -1;
+    int          fNumOutputs = -1;
+    Tree         fTree       = nullptr;  // Used for in/out
+    std::string  fRes        = "";       // Used for out
 };
 
 #endif

@@ -1,3 +1,34 @@
+# EXPERIMENTAL WIDGET MODULATION CONSTRUCT
+
+Faust is a very modular language, and it's easy to reuse any Faust program as a component of another, thanks to the `component()` construct. For example: `component("freeverb.dsp")` lets you integrate a fully functional reverb, with its user interface, inside another program.
+
+But how to control the parameters of this reverb other than by hand via the user interface? How to get the equivalent of a "voltage control"? How to modulate one of the parameters with an LFO, for example? Well, if the reverb designer didn't anticipate this from the beginning, it's simply impossible! 
+
+It is a lack in the Faust language that limits the reusability of existing code. A technique to fill this gap is to write the code in such a way as to separate the audio algorithm itself from its user interface. This approach makes it easy to reuse the audio algorithm in another context or with another user interface. It is a good practice, but it's not very convenient.
+
+The new language construct presented here avoids just this. It can be used on an existing component, for example, to modulate a slider, replace one slider with another, replace a slider with a constant, etc., without modifying the component's source code!
+
+Its simplest form is the following:
+
+`["Wet" -> freeverb]`
+
+It adds an input to the freeverb, that is used to modulate the "Wet" slider. An LFO, for example, can be connected to this input: 
+
+`lfo(10, 0.5), _, _ : ["Wet" -> freeverb]`
+
+The "Wet" label designates the slider to modulate. Of course, this presupposes knowing the names of the sliders. But these names appear on the user interface, so it's easy enough. If several widgets have the same name, adding the names of the surrounding groups, for example: `"h:group/h:subgroup/label"` can help distinguish them. 
+
+Multiple sliders can be indicated as in: `["Wet", "Damp", "RoomSize" -> freeverb]`. In this case, three new inputs are added. 
+
+We haven't said how sliders are modulated. By default, when nothing is specified, the modulation is a multiplication. The previous example is equivalent to the explicit form `["Wet":*, "Damp":*, "RoomSize":* -> freeverb]`. Please note that the `:` sign used here is just a visual separator, it is not the sequential composition operator. 
+
+The multiplication can be replaced by any other circuit with at most two inputs and exactly one output. For example, one could write `["Wet", "Damp", "RoomSize":+ -> freeverb]` to indicate that the `"RoomSize"` parameter is modulated by the addition of an offset signal.
+
+Again, the only constraint on the modulation circuit is that it must have only one output and at most two inputs. We can therefore have 0->1, `1->1`, or `2->1` circuits. Only `2->1` circuits create additional inputs. Moreover, `0->1` circuits lead to the elimination of the slider.
+
+We can therefore rewrite `lfo(10, 0.5), _, _ : ["Wet" -> freeverb]` as follows: `["Wet":*(lfo(10, 0.5)) -> freeverb]`. The latter form does not lead to the creation of additional input, as the LFO is placed inside the reverb. The form `["Wet":0.75 -> freeverb]` results in the deletion of the "Wet" slider, replaced by the constant 0.75. Finally, the form `["Wet":+(hslider("More Wet", 0, 0, 1, 0.1)) -> freeverb]` adds a second slider to the freeverb interface.
+
+
 # Faust - Programming Language for Audio Applications and Plugins
 
 ## Grame, Centre National de Creation Musicale: <https://www.grame.fr>

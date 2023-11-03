@@ -186,6 +186,7 @@ inline Tree unquote(char* str)
 %token INT
 %token FLOAT
 
+%token MODULATE
 %token LAMBDA
 %token DOT
 
@@ -203,6 +204,7 @@ inline Tree unquote(char* str)
 %token LETREC
 %token WHERE
 %token DEF
+%token LAPPLY
 
 %token IMPORT
 %token COMPONENT
@@ -276,6 +278,8 @@ inline Tree unquote(char* str)
 %type <exp> recinition
 
 %type <exp> params
+%type <exp> modentry
+%type <exp> modlist
 
 %type <exp> expression
 
@@ -452,12 +456,20 @@ defname         : ident                                 { $$=$1; }
 recname         : DELAY1 ident                          { $$=$2; }
                 ;
 
-params          : ident                                      { $$ = cons($1,gGlobal->nil); }
-                | params PAR ident                           { $$ = cons($3,$1); }
+params          : ident                                   { $$ = cons($1,gGlobal->nil); }
+                | params PAR ident                        { $$ = cons($3,$1); }
                 ;
 
-expression       : expression WITH LBRAQ deflist RBRAQ    { $$ = boxWithLocalDef($1,formatDefinitions($4)); }
-                | expression LETREC LBRAQ reclist RBRAQ    { $$ = boxWithRecDef($1,formatDefinitions($4), gGlobal->nil); }
+modentry        : uqstring                                { $$ = cons($1,gGlobal->nil); }
+                | uqstring SEQ argument                   { $$ = cons($1,$3); }
+                ;
+
+modlist         : modentry                                { $$ = cons($1,gGlobal->nil); }
+                | modlist PAR modentry                    { $$ = cons($3,$1); }
+                ;
+
+expression      : expression WITH LBRAQ deflist RBRAQ    { $$ = boxWithLocalDef($1,formatDefinitions($4)); }
+                | expression LETREC LBRAQ reclist RBRAQ  { $$ = boxWithRecDef($1,formatDefinitions($4), gGlobal->nil); }
                 | expression LETREC LBRAQ reclist WHERE deflist RBRAQ    { $$ = boxWithRecDef($1,formatDefinitions($4),formatDefinitions($6)); }
                 | expression PAR expression              { $$ = boxPar($1,$3); }
                 | expression SEQ expression              { $$ = boxSeq($1,$3); }
@@ -584,6 +596,12 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
                 | LAMBDA LPAR params RPAR DOT LPAR expression RPAR
                                                   { $$ = buildBoxAbstr($3,$7); }
 
+                /* | MODULATE LPAR modlist RPAR DOT LPAR expression RPAR
+                                                  { $$ = buildBoxModulation($3,$7); } */
+
+                | LCROC modlist  LAPPLY  expression RCROC
+                                                  { $$ = buildBoxModulation($2,$4); }
+
                 | CASE LBRAQ rulelist RBRAQ     { $$ = boxCase(checkRulelist($3)); }
                 
                 | ffunction                     { $$ = boxFFun($1); }
@@ -683,7 +701,7 @@ fvariable       : FVARIABLE LPAR type name PAR fstring RPAR
                 ;
 
 /* Description of user interface building blocks */
-button            : BUTTON LPAR uqstring RPAR    { $$ = boxButton($3); }
+button           : BUTTON LPAR uqstring RPAR    { $$ = boxButton($3); }
                 ;
 
 checkbox        : CHECKBOX LPAR uqstring RPAR    { $$ = boxCheckbox($3); }

@@ -2,6 +2,7 @@
  ************************************************************************
     FAUST compiler
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2023-2023 INRIA
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -31,12 +32,12 @@
 
 using namespace std;
 
-const char* prim0name(CTree *(*ptr)())
+const char* prim0name(CTree* (*ptr)())
 {
     return "prim0???";
 }
 
-const char* prim1name(CTree *(*ptr)(CTree *))
+const char* prim1name(CTree* (*ptr)(CTree*))
 {
     if (ptr == sigDelay1) return "mem";
     if (ptr == sigIntCast) return "int";
@@ -46,7 +47,7 @@ const char* prim1name(CTree *(*ptr)(CTree *))
     return "prim1???";
 }
 
-const char* prim2name(CTree *(*ptr)(CTree *, CTree *))
+const char* prim2name(CTree* (*ptr)(CTree*, CTree*))
 {
     if (ptr == sigAdd) return "+";
     if (ptr == sigSub) return "-";
@@ -61,7 +62,7 @@ const char* prim2name(CTree *(*ptr)(CTree *, CTree *))
     if (ptr == sigLeftShift) return "<<";
     if (ptr == sigARightShift) return ">>";
     if (ptr == sigLRightShift) return ">>>";
-    
+
     if (ptr == sigLT) return "<";
     if (ptr == sigLE) return "<=";
     if (ptr == sigGT) return ">";
@@ -78,7 +79,7 @@ const char* prim2name(CTree *(*ptr)(CTree *, CTree *))
     return "prim2???";
 }
 
-const char* prim3name(CTree *(*ptr)(CTree *, CTree *, CTree *))
+const char* prim3name(CTree* (*ptr)(CTree*, CTree*, CTree*))
 {
     if (ptr == sigReadOnlyTable) return "rdtable";
     if (ptr == sigSelect2) return "select2";
@@ -86,13 +87,13 @@ const char* prim3name(CTree *(*ptr)(CTree *, CTree *, CTree *))
     return "prim3???";
 }
 
-const char* prim4name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *))
+const char* prim4name(CTree* (*ptr)(CTree*, CTree*, CTree*, CTree*))
 {
     if (ptr == sigSelect3) return "select3";
     return "prim4???";
 }
 
-const char* prim5name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *, CTree *))
+const char* prim5name(CTree* (*ptr)(CTree*, CTree*, CTree*, CTree*, CTree*))
 {
     if (ptr == sigWriteReadTable) return "rwtable";
     return "prim5???";
@@ -107,21 +108,21 @@ string mBox(Tree b, int max_size)
     return (int(str.size()) > max_size) ? (str.substr(0, max_size) + " ...") : str;
 }
 
-static void streambinop(ostream &fout, Tree t1, const char *op, Tree t2, int curPriority, int upPriority)
+static void streambinop(ostream& fout, Tree t1, const char* op, Tree t2, int curPriority, int upPriority)
 {
     if (upPriority > curPriority) fout << '(';
     fout << boxpp(t1, curPriority) << op << boxpp(t2, curPriority);
     if (upPriority > curPriority) fout << ')';
 }
 
-static void streambinopShared(ostream &fout, Tree t1, const char *op, Tree t2, int curPriority, int upPriority)
+static void streambinopShared(ostream& fout, Tree t1, const char* op, Tree t2, int curPriority, int upPriority)
 {
     if (upPriority > curPriority) fout << '(';
     fout << boxppShared(t1, curPriority) << op << boxppShared(t2, curPriority);
     if (upPriority > curPriority) fout << ')';
 }
 
-static void printRule(ostream &fout, Tree rule)
+static void printRule(ostream& fout, Tree rule)
 {
     Tree lhs = left(rule);
     Tree rhs = right(rule);
@@ -168,7 +169,7 @@ ostream& boxpp::print(ostream& fout) const
         ldef, slot, ident, rules, chan, ins, outs, lroutes;
 
     const char* str;
-    xtended* xt = (xtended*)getUserData(fBox);
+    xtended*    xt = (xtended*)getUserData(fBox);
 
     // Primitive elements
     if (xt)
@@ -368,6 +369,10 @@ ostream& boxpp::print(ostream& fout) const
         fout << "route(" << boxpp(ins) << "," << boxpp(outs) << "," << boxpp(lroutes) << ")";
     }
 
+    else if (isBoxModulation(fBox, ident, body)) {
+        fout << "modulate(" << *(ident) << ").(" << boxpp(body) << ")";
+    }
+
     else if (isBoxError(fBox)) {
         fout << "ERROR";
     }
@@ -387,15 +392,15 @@ ostream& boxpp::print(ostream& fout) const
     return fout;
 }
 
-#define BOX_INSERT_ID(exp) \
-    if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) { \
-        stringstream s; \
-        (exp); \
-        gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str()); \
+#define BOX_INSERT_ID(exp)                                                                                    \
+    if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) {                                          \
+        stringstream s;                                                                                       \
+        (exp);                                                                                                \
+        gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());                                  \
         gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + ";\n"); \
-        gGlobal->gBoxCounter++;\
-    } \
-    fout << "ID_" << gGlobal->gBoxTable[fBox].first; \
+        gGlobal->gBoxCounter++;                                                                               \
+    }                                                                                                         \
+    fout << "ID_" << gGlobal->gBoxTable[fBox].first;
 
 ostream& boxppShared::print(ostream& fout) const
 {
@@ -407,13 +412,13 @@ ostream& boxppShared::print(ostream& fout) const
     prim3  p3;
     prim4  p4;
     prim5  p5;
-    
+
     Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, body, fun, args, abstr, genv, vis, lenv,
         ldef, slot, ident, rules, chan, ins, outs, lroutes;
-    
+
     const char* str;
-    xtended* xt = (xtended*)getUserData(fBox);
-    
+    xtended*    xt = (xtended*)getUserData(fBox);
+
     // Primitive elements
     if (xt)
         fout << xt->name();
@@ -439,7 +444,7 @@ ostream& boxppShared::print(ostream& fout) const
         fout << prim4name(p4);
     else if (isBoxPrim5(fBox, &p5))
         fout << prim5name(p5);
-    
+
     else if (isBoxAbstr(fBox, arg, body)) {
         // BoxAbstr cannot be safely expanded with 'boxppShared' since 'arg' used in 'body' will be somewhat free
         fout << "\\" << boxpp(arg) << ".(" << boxpp(body) << ")";
@@ -447,11 +452,11 @@ ostream& boxppShared::print(ostream& fout) const
         BOX_INSERT_ID(s << boxppShared(fun) << boxppShared(args));
     } else if (isBoxWithLocalDef(fBox, body, ldef)) {
         BOX_INSERT_ID(s << boxppShared(body) << " with { " << envpp(ldef) << " }");
-    // Foreign elements
+        // Foreign elements
     } else if (isBoxFFun(fBox, ff)) {
         if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) {
             stringstream s;
-                
+
             s << "ffunction(" << type2str(ffrestype(ff));
             Tree namelist = nth(ffsignature(ff), 1);
             char sep      = ' ';
@@ -466,7 +471,7 @@ ostream& boxppShared::print(ostream& fout) const
             }
             s << ')';
             s << ',' << ffincfile(ff) << ',' << fflibfile(ff) << ')';
-            
+
             gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());
             gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + ";\n");
             gGlobal->gBoxCounter++;
@@ -474,10 +479,12 @@ ostream& boxppShared::print(ostream& fout) const
         // gGlobal->gBoxCounter used a ID
         fout << "ID_" << gGlobal->gBoxTable[fBox].first;
     } else if (isBoxFConst(fBox, type, name, file)) {
-        BOX_INSERT_ID(s << "fconstant(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')');
+        BOX_INSERT_ID(s << "fconstant(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file)
+                        << ')');
     } else if (isBoxFVar(fBox, type, name, file)) {
-        BOX_INSERT_ID(s << "fvariable(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')');
-    // Block diagram binary operator
+        BOX_INSERT_ID(s << "fvariable(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file)
+                        << ')');
+        // Block diagram binary operator
     } else if (isBoxSeq(fBox, t1, t2)) {
         BOX_INSERT_ID(streambinopShared(s, t1, " : ", t2, 1, fPriority));
     } else if (isBoxSplit(fBox, t1, t2)) {
@@ -488,12 +495,12 @@ ostream& boxppShared::print(ostream& fout) const
         BOX_INSERT_ID(streambinopShared(s, t1, ", ", t2, 2, fPriority));
     } else if (isBoxRec(fBox, t1, t2)) {
         BOX_INSERT_ID(streambinopShared(s, t1, " ~ ", t2, 4, fPriority));
-    // Iterative block diagram construction
+        // Iterative block diagram construction
     } else if (isBoxIPar(fBox, t1, t2, t3)) {
         BOX_INSERT_ID(s << "par(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
     } else if (isBoxISeq(fBox, t1, t2, t3)) {
         BOX_INSERT_ID(s << "seq(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
-     } else if (isBoxISum(fBox, t1, t2, t3)) {
+    } else if (isBoxISum(fBox, t1, t2, t3)) {
         BOX_INSERT_ID(s << "sum(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
     } else if (isBoxIProd(fBox, t1, t2, t3)) {
         BOX_INSERT_ID(s << "prod(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
@@ -501,16 +508,18 @@ ostream& boxppShared::print(ostream& fout) const
         BOX_INSERT_ID(s << "inputs(" << boxppShared(t1) << ")");
     } else if (isBoxOutputs(fBox, t1)) {
         BOX_INSERT_ID(s << "outputs(" << boxppShared(t1) << ")");
-    
-    // User interface
+
+        // User interface
     } else if (isBoxButton(fBox, label)) {
-        BOX_INSERT_ID(s  << "button(" << tree2quotedstr(label) << ')');
+        BOX_INSERT_ID(s << "button(" << tree2quotedstr(label) << ')');
     } else if (isBoxCheckbox(fBox, label)) {
         BOX_INSERT_ID(s << "checkbox(" << tree2quotedstr(label) << ')');
     } else if (isBoxVSlider(fBox, label, cur, min, max, step)) {
-        BOX_INSERT_ID(s << "vslider(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
+        BOX_INSERT_ID(s << "vslider(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min)
+                        << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
     } else if (isBoxHSlider(fBox, label, cur, min, max, step)) {
-        BOX_INSERT_ID(s << "hslider(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
+        BOX_INSERT_ID(s << "hslider(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min)
+                        << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
     } else if (isBoxVGroup(fBox, label, t1)) {
         BOX_INSERT_ID(s << "vgroup(" << tree2quotedstr(label) << ", " << boxppShared(t1, 0) << ')');
     } else if (isBoxHGroup(fBox, label, t1)) {
@@ -518,31 +527,34 @@ ostream& boxppShared::print(ostream& fout) const
     } else if (isBoxTGroup(fBox, label, t1)) {
         BOX_INSERT_ID(s << "tgroup(" << tree2quotedstr(label) << ", " << boxppShared(t1, 0) << ')');
     } else if (isBoxHBargraph(fBox, label, min, max)) {
-        BOX_INSERT_ID(s << "hbargraph(" << tree2quotedstr(label) << ", " << boxppShared(min) << ", " << boxppShared(max) << ')');
+        BOX_INSERT_ID(s << "hbargraph(" << tree2quotedstr(label) << ", " << boxppShared(min) << ", " << boxppShared(max)
+                        << ')');
     } else if (isBoxMetadata(fBox, t1, t2)) {
         BOX_INSERT_ID(s << boxppShared(t1, 0) << "/* md */");
     } else if (isBoxVBargraph(fBox, label, min, max)) {
-        BOX_INSERT_ID(s << "vbargraph(" << tree2quotedstr(label) << ", " << boxppShared(min) << ", " << boxppShared(max) << ')');
+        BOX_INSERT_ID(s << "vbargraph(" << tree2quotedstr(label) << ", " << boxppShared(min) << ", " << boxppShared(max)
+                        << ')');
     } else if (isBoxNumEntry(fBox, label, cur, min, max, step)) {
-        BOX_INSERT_ID(s << "nentry(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
+        BOX_INSERT_ID(s << "nentry(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min)
+                        << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
     } else if (isBoxSoundfile(fBox, label, chan)) {
         BOX_INSERT_ID(s << "soundfile(" << tree2quotedstr(label) << ", " << boxppShared(chan) << ')');
     }
-    
+
     else if (isNil(fBox)) {
         fout << "()";
     } else if (isList(fBox)) {
         if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) {
             stringstream s;
-            Tree l   = fBox;
-            char sep = '(';
-            
+            Tree         l   = fBox;
+            char         sep = '(';
+
             do {
                 s << sep << boxppShared(hd(l));
                 sep = ',';
                 l   = tl(l);
             } while (isList(l));
-            
+
             s << ')';
             gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());
             gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + ";\n");
@@ -569,7 +581,8 @@ ostream& boxppShared::print(ostream& fout) const
     } else if (isBoxEnvironment(fBox)) {
         fout << "environment";
     } else if (isClosure(fBox, abstr, genv, vis, lenv)) {
-        BOX_INSERT_ID(s << "closure[" << boxppShared(abstr) << ", genv = " << envpp(genv) << ", lenv = " << envpp(lenv) << "]");
+        BOX_INSERT_ID(s << "closure[" << boxppShared(abstr) << ", genv = " << envpp(genv) << ", lenv = " << envpp(lenv)
+                        << "]");
     } else if (isBoxComponent(fBox, label)) {
         fout << "component(" << tree2quotedstr(label) << ')';
     } else if (isBoxAccess(fBox, t1, t2)) {
@@ -583,7 +596,7 @@ ostream& boxppShared::print(ostream& fout) const
         // BoxSymbolic cannot be safely expanded with 'boxppShared' since 'slot' used in 'body' will be somewhat free
         fout << "\\(" << boxpp(slot) << ").(" << boxpp(body) << ")";
     }
-    
+
     // pattern Matching Extensions
     else if (isBoxCase(fBox, rules)) {
         fout << "case {";
@@ -604,15 +617,16 @@ ostream& boxppShared::print(ostream& fout) const
         fout << boxppShared(ident);
     }
 #endif
-    
+
     else if (isBoxPatternMatcher(fBox)) {
         fout << "PM[" << fBox << "]";
     }
-    
+
     else if (isBoxRoute(fBox, ins, outs, lroutes)) {
-        BOX_INSERT_ID(s << "route(" << boxppShared(ins) << "," << boxppShared(outs) << "," << boxppShared(lroutes) << ")");
+        BOX_INSERT_ID(s << "route(" << boxppShared(ins) << "," << boxppShared(outs) << "," << boxppShared(lroutes)
+                        << ")");
     }
-    
+
     else if (isBoxError(fBox)) {
         fout << "ERROR";
     }
@@ -623,15 +637,13 @@ ostream& boxppShared::print(ostream& fout) const
         error << "ERROR : boxppShared::print() : " << *fBox << " is not a valid box" << endl;
         throw faustexception(error.str());
     }
-    
+
     return fout;
 }
 
 void boxppShared::printIDs(ostream& fout)
 {
-    for (const auto& it : gGlobal->gBoxTrace) {
-        fout << it;
-    }
+    for (const auto& it : gGlobal->gBoxTrace) { fout << it; }
 }
 
 /*****************************************************************************
@@ -644,11 +656,12 @@ ostream& envpp::print(ostream& fout) const
     Tree        l   = fEnv;
 
     fout << '{';
-    while (isList(l)) {
-        fout << sep << boxpp(hd(hd(l))) << "=" << boxpp(tl(hd(l)));
-        sep = ", ";
-        l   = tl(l);
-    }
+    // while (isList(l)) {
+    //     fout << sep << boxpp(hd(hd(l))) << "=" << boxpp(tl(hd(l)));
+    //     sep = ", ";
+    //     l   = tl(l);
+    // }
+    fout << *l;
     fout << '}';
     return fout;
 }

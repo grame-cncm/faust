@@ -1,8 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
-    Copyright (C) 2023-2023 INRIA
+    FAUST compiler, boxModulation source code
+    Copyright (C) 2023 INRIA
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -20,16 +19,30 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __LABELS__
-#define __LABELS__
+#ifndef __BOXMODULATION__
+#define __BOXMODULATION__
 
-#include "boxes.hh"
-#include "signals.hh"
-#include "tlib.hh"
+#include <stdlib.h>
+#include <cstdlib>
 
-// Normalize a path
-Tree normalizePath(Tree path);
-Tree superNormalizePath(Tree path);
-bool matchGroup(Tree gpath, Tree lpath, Tree& rpath);
+#include "boxIdentity.hh"
+#include "treeTransform.hh"
+
+//-------------------------BoxModulation-------------------------------
+// Rewrite a circuit to modulate a slider designated by a path
+//----------------------------------------------------------------------
+
+class BoxModulation : public BoxIdentity {
+    Tree fPath;
+    Tree fSlot;
+
+   public:
+    BoxModulation(Tree path, Tree slot) : fPath(path), fSlot(slot) {}
+
+   protected:
+    virtual Tree transformation(Tree t);
+    Tree         modulateIfMatch(Tree box, Tree label);
+    Tree         modulateIfSameGroup(int gcode, Tree glabel, Tree x);
+};
 
 #endif

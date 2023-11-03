@@ -301,6 +301,10 @@ Tree boxAbstr(Tree x, Tree y)
 {
     return tree(gGlobal->BOXABSTR, x, y);
 }
+Tree boxModulation(Tree x, Tree y)
+{
+    return tree(gGlobal->BOXMODULATION, x, y);
+}
 Tree boxAppl(Tree x, Tree y)
 {
     return tree(gGlobal->BOXAPPL, x, y);
@@ -310,6 +314,11 @@ LIBFAUST_API bool isBoxAbstr(Tree t)
 {
     return t->node() == Node(gGlobal->BOXABSTR);
 }
+
+LIBFAUST_API bool isBoxModulation(Tree t)
+{
+    return t->node() == Node(gGlobal->BOXMODULATION);
+}
 LIBFAUST_API bool isBoxAppl(Tree t)
 {
     return t->node() == Node(gGlobal->BOXAPPL);
@@ -318,6 +327,11 @@ LIBFAUST_API bool isBoxAppl(Tree t)
 LIBFAUST_API bool isBoxAbstr(Tree t, Tree& x, Tree& y)
 {
     return isTree(t, gGlobal->BOXABSTR, x, y);
+}
+
+LIBFAUST_API bool isBoxModulation(Tree t, Tree& x, Tree& y)
+{
+    return isTree(t, gGlobal->BOXMODULATION, x, y);
 }
 LIBFAUST_API bool isBoxAppl(Tree t, Tree& x, Tree& y)
 {
@@ -330,6 +344,15 @@ Tree buildBoxAbstr(Tree largs, Tree body)
         return body;
     } else {
         return buildBoxAbstr(tl(largs), boxAbstr(hd(largs), body));
+    }
+}
+
+Tree buildBoxModulation(Tree largs, Tree body)
+{
+    if (isNil(largs)) {
+        return body;
+    } else {
+        return buildBoxModulation(tl(largs), boxModulation(hd(largs), body));
     }
 }
 

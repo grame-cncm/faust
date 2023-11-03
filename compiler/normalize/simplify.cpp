@@ -93,9 +93,7 @@ static Tree simplification(Tree sig)
     // primitive elements
     if (xt) {
         vector<Tree> args;
-        for (int i = 0; i < sig->arity(); i++) {
-            args.push_back(sig->branch(i));
-        }
+        for (int i = 0; i < sig->arity(); i++) { args.push_back(sig->branch(i)); }
 
         // to avoid negative power to further normalization
         if (xt != gGlobal->gPowPrim) {
@@ -121,8 +119,8 @@ static Tree simplification(Tree sig)
             else
                 return sigBinOp(kMul, tree(minusNode(n1)), sigBinOp(kSub, v2, v1));
 
-        // (x-y)*-n -> n*(y-x)
-        // (x-y)*-1 -> y-x
+            // (x-y)*-n -> n*(y-x)
+            // (x-y)*-1 -> y-x
         } else if ((opnum == kMul) && isNegative(n2) && isSigBinOp(t1, &opnum2, v1, v2) && (opnum2 == kSub)) {
             if (isMinusOne(n2))
                 return sigBinOp(kSub, v2, v1);
@@ -271,9 +269,7 @@ static Tree sigMap(Tree key, tfun f, Tree t)
     } else {
         tvec br;
         int  n = t->arity();
-        for (int i = 0; i < n; i++) {
-            br.push_back(sigMap(key, f, t->branch(i)));
-        }
+        for (int i = 0; i < n; i++) { br.push_back(sigMap(key, f, t->branch(i))); }
 
         Tree r1 = tree(t->node(), br);
 
@@ -317,9 +313,7 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
     } else {
         tvec br;
         int  n = t->arity();
-        for (int i = 0; i < n; i++) {
-            br.push_back(sigMapRename(key, env, f, t->branch(i)));
-        }
+        for (int i = 0; i < n; i++) { br.push_back(sigMapRename(key, env, f, t->branch(i))); }
 
         Tree r1 = tree(t->node(), br);
 

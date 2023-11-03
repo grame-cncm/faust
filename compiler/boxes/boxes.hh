@@ -41,7 +41,9 @@ box ::= i | f | p0 | p1 | p3
 
 #include "tlib.hh"
 
-namespace PM { struct Automaton; }
+namespace PM {
+struct Automaton;
+}
 
 /*****************************************************************************
 ******************************************************************************
@@ -55,7 +57,7 @@ namespace PM { struct Automaton; }
                                     Identifiers
 *****************************************************************************/
 
-Tree boxIdent(const char* name);
+Tree              boxIdent(const char* name);
 LIBFAUST_API bool isBoxIdent(Tree t);
 LIBFAUST_API bool isBoxIdent(Tree t, const char** name);
 
@@ -159,15 +161,19 @@ LIBFAUST_API bool isBoxOutputs(Tree t, Tree& x);
 *****************************************************************************/
 
 Tree buildBoxAbstr(Tree x, Tree y);
+Tree buildBoxModulation(Tree x, Tree y);
 Tree buildBoxAppl(Tree x, Tree y);
 
 Tree boxAbstr(Tree x, Tree y);
+Tree boxModulation(Tree x, Tree y);
 Tree boxAppl(Tree x, Tree y);
 
 LIBFAUST_API bool isBoxAbstr(Tree t);
+LIBFAUST_API bool isBoxModulation(Tree t);
 LIBFAUST_API bool isBoxAppl(Tree t);
 
 LIBFAUST_API bool isBoxAbstr(Tree t, Tree& x, Tree& y);
+LIBFAUST_API bool isBoxModulation(Tree t, Tree& x, Tree& y);
 LIBFAUST_API bool isBoxAppl(Tree t, Tree& x, Tree& y);
 
 Tree closure(Tree abstr, Tree genv, Tree vis, Tree lenv);
@@ -175,29 +181,29 @@ Tree closure(Tree abstr, Tree genv, Tree vis, Tree lenv);
 bool isClosure(Tree t, Tree& abstr, Tree& genv, Tree& vis, Tree& lenv);
 
 // for foo(x,y).faa expressions
-Tree boxAccess(Tree exp, Tree id);
+Tree              boxAccess(Tree exp, Tree id);
 LIBFAUST_API bool isBoxAccess(Tree t, Tree& exp, Tree& id);
 
 /*****************************************************************************
                         Boxes with local definitions
 *****************************************************************************/
 
-Tree boxWithLocalDef(Tree body, Tree ldef);
+Tree              boxWithLocalDef(Tree body, Tree ldef);
 LIBFAUST_API bool isBoxWithLocalDef(Tree t, Tree& body, Tree& ldef);
-Tree boxWithRecDef(Tree body, Tree ldef, Tree ldef2);
+Tree              boxWithRecDef(Tree body, Tree ldef, Tree ldef2);
 
 /*****************************************************************************
                         Modification of local definitions
 *****************************************************************************/
 
-Tree boxModifLocalDef(Tree body, Tree ldef);
+Tree              boxModifLocalDef(Tree body, Tree ldef);
 LIBFAUST_API bool isBoxModifLocalDef(Tree t, Tree& body, Tree& ldef);
 
 /*****************************************************************************
                              Error Box
 *****************************************************************************/
 
-Tree boxError();
+Tree              boxError();
 LIBFAUST_API bool isBoxError(Tree t);
 
 /*****************************************************************************
@@ -252,13 +258,13 @@ LIBFAUST_API bool isBoxFVar(Tree s, Tree& type, Tree& name, Tree& file);
                              Modules
 *****************************************************************************/
 
-Tree boxEnvironment();
+Tree              boxEnvironment();
 LIBFAUST_API bool isBoxEnvironment(Tree s);
 
-Tree boxComponent(Tree filename);
+Tree              boxComponent(Tree filename);
 LIBFAUST_API bool isBoxComponent(Tree s, Tree& filename);
 
-Tree boxLibrary(Tree filename);
+Tree              boxLibrary(Tree filename);
 LIBFAUST_API bool isBoxLibrary(Tree s, Tree& filename);
 
 Tree importFile(Tree filename);
@@ -318,7 +324,7 @@ LIBFAUST_API bool isBoxSoundfile(Tree s, Tree& label, Tree& chan);
 /*****************************************************************************
                              Case (pattern matching)
 *****************************************************************************/
-Tree boxCase(Tree rules);
+Tree              boxCase(Tree rules);
 LIBFAUST_API bool isBoxCase(Tree s);
 LIBFAUST_API bool isBoxCase(Tree s, Tree& rules);
 
@@ -333,7 +339,7 @@ bool isBoxPatternVar(Tree s, Tree& id);
 /*****************************************************************************
                              Metadata (pattern matching)
 *****************************************************************************/
-Tree boxMetadata(Tree exp, Tree mdlist);
+Tree              boxMetadata(Tree exp, Tree mdlist);
 LIBFAUST_API bool isBoxMetadata(Tree s, Tree& exp, Tree& mdlist);
 
 /*****************************************************************************

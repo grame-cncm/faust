@@ -151,6 +151,17 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
     label = rmWhiteSpaces(label);
 }
 
+/**
+ * Extracts metadata from a label : 'vol [unit: dB]' -> 'vol' + metadata
+ */
+std::string removeMetadata(const string& fulllabel)
+{
+    map<string, set<string>> metadata;
+    string                   label;
+    extractMetadata(fulllabel, label, metadata);
+    return label;
+}
+
 //------------------------ specific schema -------------------------
 
 string extractName(Tree full_label)
@@ -281,7 +292,7 @@ void Description::print(int n, ostream& fout)
     // widget layout
     tab(n + 2, fout);
     fout << "<layout>";
-    list<int>::iterator t;
+    list<int>::iterator    t;
     list<string>::iterator s;
     for (t = fLayoutTabs.begin(), s = fLayoutLines.begin(); s != fLayoutLines.end(); t++, s++) {
         tab(n + 3 + *t, fout);
@@ -440,10 +451,10 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 
 void Description::addActiveMetadata(Tree label)
 {
-    map<string, set<string>>     metadata;
-    string                       shortLabel;
-    list<string>                 lines;
-  
+    map<string, set<string>> metadata;
+    string                   shortLabel;
+    list<string>             lines;
+
     extractMetadata(tree2str(label), shortLabel, metadata);
     lines = xmlOfMetadata(metadata, 1);
 
@@ -452,10 +463,10 @@ void Description::addActiveMetadata(Tree label)
 
 void Description::addPassiveMetadata(Tree label)
 {
-    map<string, set<string>>     metadata;
-    string                       shortLabel;
-    list<string>                 lines;
-  
+    map<string, set<string>> metadata;
+    string                   shortLabel;
+    list<string>             lines;
+
     extractMetadata(tree2str(label), shortLabel, metadata);
     lines = xmlOfMetadata(metadata, 1);
 
@@ -465,7 +476,7 @@ void Description::addPassiveMetadata(Tree label)
 void Description::printXML(int ins, int outs)
 {
     ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
-    
+
     for (const auto& it1 : gGlobal->gMetaDataSet) {
         const string key = tree2str(it1.first);
         for (const auto& it2 : it1.second) {
@@ -485,7 +496,7 @@ void Description::printXML(int ins, int outs)
             }
         }
     }
-    
+
     className(gGlobal->gClassName);
     inputs(ins);
     outputs(outs);

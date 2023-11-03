@@ -2,6 +2,7 @@
  ************************************************************************
     FAUST compiler
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2023-2023 INRIA
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -31,35 +32,35 @@
 ***********************************************************************/
 
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <utility>
-#include <map>
 
 #include "boxes.hh"
 #include "garbageable.hh"
 
-LIBFAUST_API const char *prim0name(CTree *(*ptr)());
-LIBFAUST_API const char *prim1name(CTree *(*ptr)(CTree *));
-LIBFAUST_API const char *prim2name(CTree *(*ptr)(CTree *, CTree *));
-LIBFAUST_API const char *prim3name(CTree *(*ptr)(CTree *, CTree *, CTree *));
-LIBFAUST_API const char *prim4name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *));
-LIBFAUST_API const char *prim5name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *, CTree *));
+LIBFAUST_API const char* prim0name(CTree* (*ptr)());
+LIBFAUST_API const char* prim1name(CTree* (*ptr)(CTree*));
+LIBFAUST_API const char* prim2name(CTree* (*ptr)(CTree*, CTree*));
+LIBFAUST_API const char* prim3name(CTree* (*ptr)(CTree*, CTree*, CTree*));
+LIBFAUST_API const char* prim4name(CTree* (*ptr)(CTree*, CTree*, CTree*, CTree*));
+LIBFAUST_API const char* prim5name(CTree* (*ptr)(CTree*, CTree*, CTree*, CTree*, CTree*));
 
 // Box pretty printer.
 // usage : out << boxpp(aBoxExp);
 
 class boxpp : public virtual Garbageable {
-    protected:
-        Tree fBox;
-        int  fPriority;
-        
-    public:
-        boxpp(Tree b, int p = 0) : fBox(b), fPriority(p) {}
-        virtual ~boxpp() {}
-        virtual std::ostream& print(std::ostream& fout) const;
+   protected:
+    Tree fBox;
+    int  fPriority;
+
+   public:
+    boxpp(Tree b, int p = 0) : fBox(b), fPriority(p) {}
+    virtual ~boxpp() {}
+    virtual std::ostream& print(std::ostream& fout) const;
 };
 
-inline std::ostream& operator<<(std::ostream& file, const boxpp &bpp)
+inline std::ostream& operator<<(std::ostream& file, const boxpp& bpp)
 {
     return bpp.print(file);
 }
@@ -68,22 +69,22 @@ inline std::ostream& operator<<(std::ostream& file, const boxpp &bpp)
 // printIDs allow to print the <ID, expression> list before 'process = exp;' final line.
 
 class boxppShared : public boxpp {
-  
-    public:
-        boxppShared(Tree b, int p = 0) : boxpp(b, p) {}
-        boxppShared(Tree L, std::ostream& fout):boxpp(L)
-        {
-            // Create a map of <ID, expression>
-            std::stringstream s; s << boxppShared(L);
-            // Print the <ID, expression> list
-            printIDs(fout);
-            fout << "process = " << s.str() << ";" << std::endl;
-        }
-    
-        virtual ~boxppShared() {}
-        virtual std::ostream& print(std::ostream& fout) const;
-    
-        static void printIDs(std::ostream& fout);
+   public:
+    boxppShared(Tree b, int p = 0) : boxpp(b, p) {}
+    boxppShared(Tree L, std::ostream& fout) : boxpp(L)
+    {
+        // Create a map of <ID, expression>
+        std::stringstream s;
+        s << boxppShared(L);
+        // Print the <ID, expression> list
+        printIDs(fout);
+        fout << "process = " << s.str() << ";" << std::endl;
+    }
+
+    virtual ~boxppShared() {}
+    virtual std::ostream& print(std::ostream& fout) const;
+
+    static void printIDs(std::ostream& fout);
 };
 
 // environment pretty printer.
@@ -92,12 +93,12 @@ class boxppShared : public boxpp {
 class envpp : public virtual Garbageable {
     Tree fEnv;
 
-    public:
-        envpp(Tree e) : fEnv(e) {}
-        std::ostream& print(std::ostream& fout) const;
+   public:
+    envpp(Tree e) : fEnv(e) {}
+    std::ostream& print(std::ostream& fout) const;
 };
 
-inline std::ostream& operator<<(std::ostream& file, const envpp &epp)
+inline std::ostream& operator<<(std::ostream& file, const envpp& epp)
 {
     return epp.print(file);
 }

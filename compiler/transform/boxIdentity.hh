@@ -1,8 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
-    Copyright (C) 2023-2023 INRIA
+    FAUST compiler, boxIdentity source code
+    Copyright (C) 2023 INRIA
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -20,16 +19,27 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __LABELS__
-#define __LABELS__
+#ifndef __BOXIDENTITY__
+#define __BOXIDENTITY__
 
-#include "boxes.hh"
-#include "signals.hh"
-#include "tlib.hh"
+#include <stdlib.h>
+#include <cstdlib>
 
-// Normalize a path
-Tree normalizePath(Tree path);
-Tree superNormalizePath(Tree path);
-bool matchGroup(Tree gpath, Tree lpath, Tree& rpath);
+#include "treeTransform.hh"
+
+//-------------------------BoxIdentity-------------------------------
+// An identity transformation on evaluated boxes. Can be used to test
+// that everything works, and as a pattern for real transformations.
+//----------------------------------------------------------------------
+
+class BoxIdentity : public TreeTransform {
+   public:
+    BoxIdentity() = default;
+
+   protected:
+    virtual Tree transformation(Tree t);
+    virtual void traceEnter(Tree t);
+    virtual void traceExit(Tree t, Tree r);
+};
 
 #endif

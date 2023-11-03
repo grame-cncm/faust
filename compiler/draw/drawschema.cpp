@@ -53,6 +53,7 @@
 #include "files.hh"
 #include "global.hh"
 #include "names.hh"
+#include "occur.hh"
 #include "occurrences.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
@@ -60,7 +61,6 @@
 #include "routeSchema.h"
 #include "schema.h"
 #include "xtended.hh"
-#include "occur.hh"
 
 #if 0
 #define linkcolor "#b3d1dc"
@@ -145,16 +145,16 @@ static schema* addSchemaOutputs(int outs, schema* x);
  */
 void drawSchema(Tree bd, const char* projname, const char* dev)
 {
-    gGlobal->gDevSuffix   = dev; // .svg or .ps used to choose output device
+    gGlobal->gDevSuffix   = dev;  // .svg or .ps used to choose output device
     gGlobal->gFoldingFlag = boxComplexity(bd) > gGlobal->gFoldThreshold;
 
-    mkchDir(projname);      // create a directory to store files
+    mkchDir(projname);  // create a directory to store files
 
-    scheduleDrawing(bd);    // schedule the initial drawing
+    scheduleDrawing(bd);  // schedule the initial drawing
 
     Tree t;
     while (pendingDrawing(t)) {
-        writeSchemaFile(t); // generate all the pending drawing
+        writeSchemaFile(t);  // generate all the pending drawing
     }
 
     choldDir();  // return to current directory
@@ -287,9 +287,7 @@ static char* legalFileName(Tree t, int n, char* dst)
     int  i = 0;
     if (getDefNameProperty(t, id)) {
         const char* src = tree2str(id);
-        for (i = 0; isalnum(src[i]) && i < 16; i++) {
-            dst[i] = src[i];
-        }
+        for (i = 0; isalnum(src[i]) && i < 16; i++) { dst[i] = src[i]; }
     }
     dst[i] = 0;
     if (strcmp(dst, "process") != 0) {
@@ -604,9 +602,12 @@ static schema* generateSoundfileSchema(Tree t)
  */
 static schema* generateInputSlotSchema(Tree a)
 {
+    int i;
+    faustassert(isBoxSlot(a, &i));
     Tree id;
     faustassert(getDefNameProperty(a, id));
-    return makeBlockSchema(1, 0, tree2str(id), slotcolor, "");
+    string name = subst("[$0] $1", T(i), tree2str(id));
+    return makeBlockSchema(1, 0, name, slotcolor, "");
 }
 
 /**
@@ -614,9 +615,12 @@ static schema* generateInputSlotSchema(Tree a)
  */
 static schema* generateOutputSlotSchema(Tree a)
 {
+    int i;
+    faustassert(isBoxSlot(a, &i));
     Tree id;
     faustassert(getDefNameProperty(a, id));
-    return makeBlockSchema(0, 1, tree2str(id), slotcolor, "");
+    string name = subst("[$0] $1", T(i), tree2str(id));
+    return makeBlockSchema(0, 1, name, slotcolor, "");
 }
 
 /**

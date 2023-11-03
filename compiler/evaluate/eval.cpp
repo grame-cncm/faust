@@ -2,6 +2,7 @@
  ************************************************************************
     FAUST compiler
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2024-2024 INRIA
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -31,12 +32,15 @@
 #include <stdio.h>
 #include <cstdlib>
 
+#include "boxIdentity.hh"
+#include "boxModulationImplanter.hh"
 #include "compatibility.hh"
 #include "environment.hh"
 #include "errormsg.hh"
 #include "eval.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "labels.hh"
 #include "names.hh"
 #include "patternmatcher.hh"
 #include "ppbox.hh"
@@ -100,12 +104,10 @@ Tree evalprocess(Tree eqlist)
 {
     // Init stack overflow detector
     gGlobal->gStackOverflowDetector = stackOverflowDetector(MAX_STACK_SIZE);
-    Tree b = a2sb(eval(boxIdent(gGlobal->gProcessName.c_str()), gGlobal->nil,
-                       pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
+    Tree b                          = a2sb(eval(boxIdent(gGlobal->gProcessName.c_str()), gGlobal->nil,
+                                                pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
 
-    if (gGlobal->gSimplifyDiagrams) {
-        b = boxSimplification(b);
-    }
+    if (gGlobal->gSimplifyDiagrams) { b = boxSimplification(b); }
 
     return b;
 }
@@ -113,7 +115,7 @@ Tree evalprocess(Tree eqlist)
 /* Eval a documentation expression. */
 Tree evaldocexpr(Tree docexpr, Tree eqlist)
 {
-    // Init stack overflow detector 
+    // Init stack overflow detector
     gGlobal->gStackOverflowDetector = stackOverflowDetector(MAX_STACK_SIZE);
     return a2sb(eval(docexpr, gGlobal->nil, pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
 }
@@ -125,14 +127,12 @@ Tree evaldocexpr(Tree docexpr, Tree eqlist)
  *
  */
 /* uncomment for debugging output */
-//#define DEBUG
+// #define DEBUG
 Tree simplifyPattern(Tree value)
 {
     Tree num;
     if (!getNumericProperty(value, num)) {
-        if (!isBoxNumeric(value, num)) {
-            num = value;
-        }
+        if (!isBoxNumeric(value, num)) { num = value; }
         setNumericProperty(value, num);
     }
     return num;
@@ -156,9 +156,7 @@ static Tree a2sb(Tree exp)
     Tree result;
     Tree id;
 
-    if (gGlobal->gSymbolicBoxProperty->get(exp, result)) {
-        return result;
-    }
+    if (gGlobal->gSymbolicBoxProperty->get(exp, result)) { return result; }
 
     result = real_a2sb(exp);
     if (result != exp && getDefNameProperty(exp, id)) {
@@ -186,8 +184,9 @@ static Tree real_a2sb(Tree exp)
             // Here we have remaining abstraction that we will try to
             // transform in a symbolic box by applying it to a slot
 
-            Tree slot = boxSlot(++gGlobal->gBoxSlotNumber);
-            stringstream s; s << boxpp(var);
+            Tree         slot = boxSlot(++gGlobal->gBoxSlotNumber);
+            stringstream s;
+            s << boxpp(var);
             setDefNameProperty(slot, s.str());
 
             // Apply the abstraction to the slot
@@ -281,6 +280,8 @@ static Tree eval(Tree exp, Tree visited, Tree localValEnv)
     Tree id;
     Tree result;
 
+    // std::cerr << "eval : " << boxpp(exp) << " in env " << envpp(localValEnv) << std::endl;
+
     if (!getEvalProperty(exp, localValEnv, result)) {
         gGlobal->gLoopDetector.detect(cons(exp, localValEnv));
         gGlobal->gStackOverflowDetector.detect();
@@ -337,6 +338,8 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
 
     xtended* xt = (xtended*)getUserData(exp);
 
+    // std::cerr << "realeval : " << boxpp(exp) << " in env " << envpp(localValEnv) << std::endl;
+
     // Constants
     //-----------
 
@@ -364,9 +367,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
             Tree lres = boxPropagateSig(gGlobal->nil, a2, lsig);
             if (isList(lres) && isNil(tl(lres))) {
                 Tree r = simplify(hd(lres));
-                if (isNum(r)) {
-                    return r;
-                }
+                if (isNum(r)) { return r; }
             }
         }
         // No numerical simplification
@@ -433,34 +434,44 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
 
     } else if (isBoxButton(exp, label)) {
         const char* l1 = tree2str(label);
-        string      l2 = evalLabel(l1, visited, localValEnv);
-        return boxButton(tree(l2.c_str()));
+        string      s1 = evalLabel(l1, visited, localValEnv);
+        Tree        l2 = tree(s1.c_str());
+        Tree        w  = boxButton(l2);
+        return w;
 
     } else if (isBoxCheckbox(exp, label)) {
         const char* l1 = tree2str(label);
-        string      l2 = evalLabel(l1, visited, localValEnv);
-        return boxCheckbox(tree(l2.c_str()));
+        string      s1 = evalLabel(l1, visited, localValEnv);
+        Tree        l2 = tree(s1.c_str());
+        Tree        w  = boxCheckbox(l2);
+        return w;
 
     } else if (isBoxVSlider(exp, label, cur, lo, hi, step)) {
         const char* l1 = tree2str(label);
-        string      l2 = evalLabel(l1, visited, localValEnv);
-        return (boxVSlider(tree(l2.c_str()), tree(eval2double(cur, visited, localValEnv)),
-                           tree(eval2double(lo, visited, localValEnv)), tree(eval2double(hi, visited, localValEnv)),
-                           tree(eval2double(step, visited, localValEnv))));
+        string      s1 = evalLabel(l1, visited, localValEnv);
+        Tree        l2 = tree(s1.c_str());
+        Tree        w =
+            (boxVSlider(l2, tree(eval2double(cur, visited, localValEnv)), tree(eval2double(lo, visited, localValEnv)),
+                        tree(eval2double(hi, visited, localValEnv)), tree(eval2double(step, visited, localValEnv))));
+        return w;
 
     } else if (isBoxHSlider(exp, label, cur, lo, hi, step)) {
         const char* l1 = tree2str(label);
-        string      l2 = evalLabel(l1, visited, localValEnv);
-        return (boxHSlider(tree(l2.c_str()), tree(eval2double(cur, visited, localValEnv)),
-                           tree(eval2double(lo, visited, localValEnv)), tree(eval2double(hi, visited, localValEnv)),
-                           tree(eval2double(step, visited, localValEnv))));
+        string      s1 = evalLabel(l1, visited, localValEnv);
+        Tree        l2 = tree(s1.c_str());
+        Tree        w =
+            (boxHSlider(l2, tree(eval2double(cur, visited, localValEnv)), tree(eval2double(lo, visited, localValEnv)),
+                        tree(eval2double(hi, visited, localValEnv)), tree(eval2double(step, visited, localValEnv))));
+        return w;
 
     } else if (isBoxNumEntry(exp, label, cur, lo, hi, step)) {
         const char* l1 = tree2str(label);
-        string      l2 = evalLabel(l1, visited, localValEnv);
-        return (boxNumEntry(tree(l2.c_str()), tree(eval2double(cur, visited, localValEnv)),
-                            tree(eval2double(lo, visited, localValEnv)), tree(eval2double(hi, visited, localValEnv)),
-                            tree(eval2double(step, visited, localValEnv))));
+        string      s1 = evalLabel(l1, visited, localValEnv);
+        Tree        l2 = tree(s1.c_str());
+        Tree        w =
+            (boxNumEntry(l2, tree(eval2double(cur, visited, localValEnv)), tree(eval2double(lo, visited, localValEnv)),
+                         tree(eval2double(hi, visited, localValEnv)), tree(eval2double(step, visited, localValEnv))));
+        return w;
 
     } else if (isBoxSoundfile(exp, label, chan)) {
         const char* l1 = tree2str(label);
@@ -620,10 +631,80 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
                 for (int j = o3 - 2; j >= 0; j--) b = boxPar(boxInt(wr[j]), b);
                 return boxRoute(boxInt(w1[0]), boxInt(w2[0]), b);
             } else {
-                evalerror(getDefFileProp(exp), getDefLineProp(exp), "invalid route expression, parameters should be numbers", exp);
+                evalerror(getDefFileProp(exp), getDefLineProp(exp),
+                          "invalid route expression, parameters should be numbers", exp);
             }
         } else {
-            evalerror(getDefFileProp(exp), getDefLineProp(exp), "invalid route expression, first two parameters should be blocks producing a value, third parameter a list of input/output pairs", exp);
+            evalerror(getDefFileProp(exp), getDefLineProp(exp),
+                      "invalid route expression, first two parameters should be blocks producing a value, third "
+                      "parameter a list of input/output pairs",
+                      exp);
+        }
+
+    } else if (isBoxModulation(exp, var, body)) {
+        // Evaluation of a box modulation expression. The body will be rewriten to introduce modulation circuits.
+
+        // Var is a pair (label, modulation circuit). The modulation circuit can be NIL if was not specified
+        faustassert(isList(var));
+
+        // Evaluate the label and the modulation circuit to be used
+        Tree   ulabel = hd(var);
+        string s1     = evalLabel(tree2str(ulabel), visited, localValEnv);
+        Tree   elabel = tree(s1.c_str());
+
+        Tree mcircuit  = tl(var);
+        Tree emcircuit = isNil(mcircuit) ? boxPrim2(sigMul) : a2sb(eval(mcircuit, visited, localValEnv));
+
+        // Check the number of inputs (<= 2) and outputs (1) of the modulation circuit
+        int inum, onum;
+        if (getBoxType(emcircuit, &inum, &onum)) {
+            if (inum > 2) {
+                evalerror(getDefFileProp(exp), getDefLineProp(exp),
+                          "invalid modulation circuit, should have no more than 2 inputs", exp);
+            } else if (onum != 1) {
+                evalerror(getDefFileProp(exp), getDefLineProp(exp),
+                          "invalid modulation circuit, it should have exactly 1 output", exp);
+            }
+        } else {
+            evalerror(getDefFileProp(exp), getDefLineProp(exp), "invalid modulation circuit, should be a block diagram",
+                      exp);
+        }
+
+        // If needed, create a new slot named after the evaluated label
+        Tree slot;
+
+        if (inum == 2) {
+            // we need a slot for the modulation signal
+            slot = boxSlot(++gGlobal->gBoxSlotNumber);
+            stringstream s;
+            s << *elabel;
+            setDefNameProperty(slot, s.str());
+        } else {
+            // no need for a slot
+            slot = gGlobal->nil;
+        }
+
+        // Create a path from the evaluated label
+        Tree mpath = superNormalizePath(cons(elabel, gGlobal->nil));
+
+        // Fully evaluate the body we are going to rewrite
+        Tree ebody = a2sb(eval(body, visited, localValEnv));
+
+        // rewrite the body
+        BoxModulationImplanter bm(mpath, slot, inum, emcircuit);
+        // bm.trace(true);
+
+        Tree mbody = bm.self(ebody);
+
+        if (mbody == ebody) {
+            std::cerr << "Warning, no modulation of: " << *elabel << " took place in: " << boxpp(ebody) << std::endl;
+        }
+
+        // if we have a slot, we need to wrap the modulation body in a symbolic box
+        if (inum == 2) {
+            return boxSymbolic(slot, mbody);
+        } else {
+            return mbody;
         }
 
     } else {
@@ -673,7 +754,7 @@ static bool isBoxNumeric(Tree in, Tree& out)
         if (getBoxType(v, &numInputs, &numOutputs) && (numInputs == 0) && (numOutputs == 1)) {
             // Potential numerical expression
             Tree lsignals = boxPropagateSig(gGlobal->nil, v, makeSigInputList(numInputs));
-            Tree res = simplify(hd(lsignals));
+            Tree res      = simplify(hd(lsignals));
             if (isSigReal(res, &x)) {
                 out = boxReal(x);
                 return true;
@@ -725,7 +806,7 @@ static double eval2double(Tree exp, Tree visited, Tree localValEnv)
         return 1;
     } else {
         Tree lsignals = boxPropagateSig(gGlobal->nil, diagram, makeSigInputList(numInputs));
-        Tree val = simplify(hd(lsignals));
+        Tree val      = simplify(hd(lsignals));
         return tree2float(val);
     }
 }
@@ -754,7 +835,7 @@ static int eval2int(Tree exp, Tree visited, Tree localValEnv)
         return 1;
     } else {
         Tree lsignals = boxPropagateSig(gGlobal->nil, diagram, makeSigInputList(numInputs));
-        Tree val = simplify(hd(lsignals));
+        Tree val      = simplify(hd(lsignals));
         return tree2int(val);
     }
 }
@@ -913,9 +994,7 @@ static Tree neutralExpSeq(Tree id, Tree body, Tree visited, Tree localValEnv)
         throw faustexception(error.str());
     } else if (outs > 0) {
         Tree bus = boxWire();
-        for (int j = 1; j < outs; j++) {
-            bus = boxPar(bus, boxWire());
-        }
+        for (int j = 1; j < outs; j++) { bus = boxPar(bus, boxWire()); }
         return bus;
     } else {
         return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
@@ -1045,9 +1124,7 @@ static bool boxlistOutputs(Tree boxlist, int* outputs)
 static Tree nwires(int n)
 {
     Tree l = gGlobal->nil;
-    while (n--) {
-        l = cons(boxWire(), l);
-    }
+    while (n--) { l = cons(boxWire(), l); }
     return l;
 }
 
@@ -1082,9 +1159,7 @@ static Tree applyList(Tree fun, Tree larg)
 
     if (isNil(larg)) return fun;
 
-    if (isBoxError(fun) || isBoxError(larg)) {
-        return boxError();
-    }
+    if (isBoxError(fun) || isBoxError(larg)) { return boxError(); }
 
     if (isBoxPatternMatcher(fun, automat, state, envList, originalRules, revParamList)) {
         Tree         result;
@@ -1155,9 +1230,7 @@ static Tree applyList(Tree fun, Tree larg)
     }
 
     // Here fun is a closure, we can test the content of abstr
-    if (isBoxEnvironment(abstr)) {
-        evalerrorbox(FAUSTfilename, -1, "an environment can't be used as a function", fun);
-    }
+    if (isBoxEnvironment(abstr)) { evalerrorbox(FAUSTfilename, -1, "an environment can't be used as a function", fun); }
 
     if (isBoxIdent(abstr)) {
         // We have an unevaluated Ident inside a closure
@@ -1174,9 +1247,7 @@ static Tree applyList(Tree fun, Tree larg)
     {
         Tree arg = eval(hd(larg), visited, localValEnv);
         Tree narg;
-        if (isBoxNumeric(arg, narg)) {
-            arg = narg;
-        }
+        if (isBoxNumeric(arg, narg)) { arg = narg; }
         Tree f = eval(body, visited, pushValueDef(id, arg, localValEnv));
 
         Tree fname;
@@ -1218,12 +1289,8 @@ static Tree revEvalList(Tree lexp, Tree visited, Tree localValEnv)
  */
 static Tree larg2par(Tree larg)
 {
-    if (isNil(larg)) {
-        evalerror(FAUSTfilename, -1, "empty list of arguments", larg);
-    }
-    if (isNil(tl(larg))) {
-        return hd(larg);
-    }
+    if (isNil(larg)) { evalerror(FAUSTfilename, -1, "empty list of arguments", larg); }
+    if (isNil(tl(larg))) { return hd(larg); }
     return boxPar(hd(larg), larg2par(tl(larg)));
 }
 
@@ -1233,7 +1300,7 @@ static Tree larg2par(Tree larg)
  * a set of visited IDxENV. Associates the symbol as a definition name
  * property of the definition.
  *
- * @param id the symbol ID t-o search
+ * @param id the symbol ID to search
  * @param visited set of visited symbols (used for recursive definition detection)
  * @param lenv the environment where to search
  * @return the evaluated definition of ID
@@ -1377,9 +1444,7 @@ static Tree vec2list(const vector<Tree>& v)
     Tree l = gGlobal->nil;
     int  n = (int)v.size();
 
-    while (n--) {
-        l = cons(v[n], l);
-    }
+    while (n--) { l = cons(v[n], l); }
     return l;
 }
 
@@ -1431,7 +1496,7 @@ static Tree numericBoxSimplification(Tree box)
         error << *box << endl;
         throw faustexception(error.str());
     }
-   
+
     if (ins == 0 && outs == 1) {
         // This box can potentially denote a number
         if (isBoxInt(box, &i) || isBoxReal(box, &x)) {
@@ -1441,7 +1506,7 @@ static Tree numericBoxSimplification(Tree box)
             int    i1;
             double x1;
             Tree   lsignals = boxPropagateSig(gGlobal->nil, box, makeSigInputList(0));
-            Tree s = simplify(hd(lsignals));
+            Tree   s        = simplify(hd(lsignals));
 
             if (isSigReal(s, &x1)) {
                 result = boxReal(x1);
@@ -1611,24 +1676,24 @@ static Tree insideBoxSimplification(Tree box)
         Tree s2 = boxSimplification(t2);
         return boxMerge(s1, s2);
     }
-    
+
     else if (isBoxRec(box, t1, t2)) {
         Tree s1 = boxSimplification(t1);
         Tree s2 = boxSimplification(t2);
         return boxRec(s1, s2);
     }
-    
+
     else if (isBoxMetadata(box, t1, t2)) {
         Tree s1 = boxSimplification(t1);
         return boxMetadata(s1, t2);
-    
+
     }
-    
+
     else if (isBoxWaveform(box)) {
         // A waveform is always in Normal Form, nothing to simplify
         return box;
     }
-    
+
     else if (isBoxRoute(box, ins, outs, routes)) {
         Tree s1 = boxSimplification(ins);
         Tree s2 = boxSimplification(outs);

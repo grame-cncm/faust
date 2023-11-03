@@ -36,34 +36,35 @@
 #include "tlib.hh"
 #include "uitree.hh"
 
-void extractMetadata(const std::string& fulllabel, std::string& label, std::map<std::string, std::set<std::string>>& metadata);
+void        extractMetadata(const std::string& fulllabel, std::string& label,
+                            std::map<std::string, std::set<std::string>>& metadata);
+std::string removeMetadata(const std::string& fulllabel);
 
 LIBFAUST_API std::string extractName(Tree full_label);
 
 class Description : public virtual Garbageable {
-    
-  private:
-    std::string fName;
-    std::string fAuthor;
-    std::string fCopyright;
-    std::string fLicense;
-    std::string fVersion;
+   private:
+    std::string                                  fName;
+    std::string                                  fAuthor;
+    std::string                                  fCopyright;
+    std::string                                  fLicense;
+    std::string                                  fVersion;
     std::map<std::string, std::set<std::string>> fMetadata;
-    
-    std::string fClassName;
-    int         fInputs;
-    int         fOutputs;
-    int         fWidgetID;
-    int         fActiveWidgetCount;
-    int         fPassiveWidgetCount;
+
+    std::string            fClassName;
+    int                    fInputs;
+    int                    fOutputs;
+    int                    fWidgetID;
+    int                    fActiveWidgetCount;
+    int                    fPassiveWidgetCount;
     std::list<std::string> fActiveLines;
     std::list<std::string> fPassiveLines;
     std::list<std::string> fLayoutLines;
     std::list<int>         fLayoutTabs;
-    
+
     void addGroup(int level, Tree t);
     int  addWidget(Tree label, Tree varname, Tree sig);
-    
+
     void tab(int n, std::ostream& fout);
     void addActiveLine(const std::string& l) { fActiveLines.push_back(l); }
     void addPassiveLine(const std::string& l) { fPassiveLines.push_back(l); }
@@ -76,14 +77,7 @@ class Description : public virtual Garbageable {
     }
 
    public:
-    Description()
-        : fInputs(0),
-          fOutputs(0),
-          fWidgetID(0),
-          fActiveWidgetCount(0),
-          fPassiveWidgetCount(0)
-    {
-    }
+    Description() : fInputs(0), fOutputs(0), fWidgetID(0), fActiveWidgetCount(0), fPassiveWidgetCount(0) {}
 
     Description* name(const std::string& s)
     {
@@ -135,7 +129,6 @@ class Description : public virtual Garbageable {
     void ui(Tree t);
     void print(int n, std::ostream& fout);
     void printXML(int ins, int outs);
-    
 };
 
 #endif
