@@ -25,7 +25,7 @@ In the following subsections, details about the branches of the repository are g
 
 ### `master`
 
-`master` is the main Faust branch. It can compile in different languages: C, C++, JAVA, LLVM IR, WebAssembly etc. Thanks to its ability to generate LLVM IR and by using LLVM JIT, Faust is "embeddable" in any C++ program through a library called `libfaust`. Faust is needed by some sister projects of Faust such as FaustLive, FaucK, faustgen~, etc.
+`master` is the main Faust branch. It can compile in different languages: C, C++, JAVA, LLVM IR, WebAssembly etc. Thanks to its ability to generate LLVM IR and by using LLVM JIT, Faust is "embeddable" in any C++ program through a library called `libfaust`, which is needed by some sister projects of Faust such as FaustLive, FaucK, faustgen~, etc.
 
 ### `master-dev` (Preferred Development Branch)
 
