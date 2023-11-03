@@ -201,15 +201,15 @@ void JAXCodeContainer::produceClass()
         }
         tab(n + 2, *fOut);
         tab(n + 2, *fOut);
-        *fOut << "# init constants:";
-        tab(n + 2, *fOut);
-        gGlobal->gJAXVisitor->Tab(n + 2);
-        inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJAXVisitor);
-        tab(n + 2, *fOut);
         *fOut << "# inline subcontainers:";
         tab(n + 2, *fOut);
         gGlobal->gJAXVisitor->Tab(n + 2);
         inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJAXVisitor);
+        tab(n + 2, *fOut);
+        *fOut << "# init constants:";
+        tab(n + 2, *fOut);
+        gGlobal->gJAXVisitor->Tab(n + 2);
+        inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJAXVisitor);
         tab(n + 2, *fOut);
         *fOut << "# instance clear:";
         tab(n + 2, *fOut);

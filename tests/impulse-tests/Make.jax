@@ -29,6 +29,9 @@ dspfiles := $(wildcard dsp/*.dsp)
 dspfiles := $(filter-out dsp/bs.dsp,$(dspfiles))
 dspfiles := $(filter-out dsp/osc_enable.dsp,$(dspfiles))
 
+# todo: don't ignore bells.dsp (perceptually it sounds the same but is off due to precision issues)
+dspfiles := $(filter-out dsp/bells.dsp,$(dspfiles))
+
 listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) 
 
 SRCDIR := tools

@@ -122,6 +122,7 @@ def remainder(x, y):
 		state = jax.tree_map(jnp.array, state)
 		return jnp.transpose(jax.lax.scan(self.tick, state, jnp.transpose(x, axes=(1, 0)))[1], axes=(1,0))
 
+
 class SubClass(mydsp):
 
 	"""
@@ -161,7 +162,10 @@ class SubClass(mydsp):
 
 			return state, out
 
-		return jnp.transpose(jax.lax.scan(tick2, state, jnp.transpose(x, axes=(1, 0)))[1], axes=(1,0))
+		x = jnp.transpose(x, axes=(1, 0))
+		state, y = jax.lax.scan(tick2, state, x)
+		y = jnp.transpose(y, axes=(1, 0))
+		return y
 
 def test(args, N_SAMPLES, OFFSET, print_header=True):
 
