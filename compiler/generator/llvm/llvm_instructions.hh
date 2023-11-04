@@ -662,7 +662,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             return res;
         } else {
             LLVMValue res = MakeCreateInBoundsGEP(type1, load_ptr, fCurValue);
-            res_type = llvm::dyn_cast<llvm::GEPOperator>(res)->getSourceElementType();
+            if (llvm::dyn_cast<llvm::GEPOperator>(res)) {
+                res_type = llvm::dyn_cast<llvm::GEPOperator>(res)->getSourceElementType();
+            } else {
+                res_type = res->getType();
+            }
             return res;
         }
     }
