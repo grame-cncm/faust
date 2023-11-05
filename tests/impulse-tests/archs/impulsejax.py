@@ -16,6 +16,8 @@
 
 import json
 import re
+import dataclasses
+from pathlib import Path
 from typing import List
 
 import numpy as np
@@ -32,17 +34,28 @@ def remainder(x, y):
 <<includeIntrinsic>>
 <<includeclass>>
 	
-	def load_soundfile(self, filepath):
-		try:
-			audio, sr = librosa.load(filepath, mono=False, sr=None)
-		except FileNotFoundError:
-			return np.zeros((1,1024)), 44100
-		if audio.ndim == 1:
-			audio = np.expand_dims(audio, 0)
-		return audio, sr
+	def load_soundfile(self, filepath: str):
+		# soundfile_dirs should always include at least "".
+		soundfile_dirs = [""] + list(self.soundfile_dirs)
+		# Create a list of potential filepaths to check
+		potential_paths = [Path(filepath)] if Path(filepath).is_absolute() else [Path(d) / filepath for d in soundfile_dirs]
+
+		# Loop through potential paths and try to load the audio file
+		for full_path in potential_paths:
+			try:
+				audio, sr = librosa.load(str(full_path), mono=False, sr=None)
+				if audio.ndim == 1:
+					audio = np.expand_dims(audio, 0)
+				return audio, sr
+			except FileNotFoundError:
+				# If not found at this path, continue to the next
+				continue
+		
+		# If none of the paths worked, return the default silence array and sample rate
+		return np.zeros((1, 1024)), self.sample_rate
 	
 	def add_soundfile(self, state, zone: str, ui_path: List[str], label: str, url: str, x):
-		# todo: better parsing
+		# example url: {'tango.wav';'foo.wav';'bar/baz.wav'}
 		filepaths = url[2:-2].split("';'")
 		fLength, fOffset, fSR, offset = [], [], [], 0
 		audio_data = [self.load_soundfile(filepath) for filepath in filepaths]
@@ -116,7 +129,7 @@ def remainder(x, y):
 		
 	@nn.compact
 	def __call__(self, x, T: int) -> jnp.array:
-		state = self.initialize(self.sample_rate, x, T)
+		state = self.initialize(x, T)
 		state = self.build_interface(state, x, T)
 		# convert numpy array to jax numpy array
 		state = jax.tree_map(jnp.array, state)
@@ -138,7 +151,7 @@ class SubClass(mydsp):
 
 	@nn.compact
 	def __call__(self, x, T: int) -> jnp.array:
-		state = self.initialize(self.sample_rate, x, T)
+		state = self.initialize(x, T)
 		state = self.build_interface(state, x, T)
 		# convert numpy array to jax numpy array
 		state = jax.tree_map(jnp.array, state)
