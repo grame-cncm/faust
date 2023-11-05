@@ -45,6 +45,8 @@ class JAXCodeContainer : public virtual CodeContainer {
 
     void generateCompute(int n);
 
+    virtual void generateSR();
+
    public:
     JAXCodeContainer()
     {}

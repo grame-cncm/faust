@@ -177,6 +177,8 @@ void JAXCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     *fOut << "sample_rate: int";
+    tab(n + 1, *fOut);
+    *fOut << "soundfile_dirs: list[str] = dataclasses.field(default_factory=list)";
 
     tab(n + 1, *fOut);
     gGlobal->gJAXVisitor->Tab(n);
@@ -184,7 +186,7 @@ void JAXCodeContainer::produceClass()
     tab(n + 1, *fOut);
     produceInfoFunctions(n + 1, "", "self", false, FunTyped::kDefault, gGlobal->gJAXVisitor);
     
-    *fOut << "def initialize(self, sample_rate, x, T):";
+    *fOut << "def initialize(self, x, T):";
     {
         tab(n + 2, *fOut);
         *fOut << "state = {}";
@@ -275,6 +277,15 @@ void JAXCodeContainer::generateCompute(int n)
 
     generatePostComputeBlock(gGlobal->gJAXVisitor);
     gGlobal->gJAXVisitor->fUseNumpy = true;
+}
+
+void JAXCodeContainer::generateSR()
+{
+    if (!fGeneratedSR) {
+        pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
+    }
+    pushPreInitMethod(
+        InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("self.sample_rate")));
 }
 
 // Scalar
