@@ -107,12 +107,8 @@ std::set<Tree> ondemandCompileToInstr(Tree lsig)
     while (!isNil(lsig)) {
         Tree sig         = hd(lsig);
         lsig             = tl(lsig);
-        Tree sigwclklist = cons(sig, gGlobal->nil);
-        /*Tree expr        =*/C.self(sigwclklist);
-        // std::cerr << " expr : " << ppsig(expr) << std::endl;
-        //  Tree ident       = outID(sigwclklist);
-        //  Tree instr       = sigInstruction2MemWrite(gGlobal->nil, ident, kReal, expr);
-        //  C.insert(instr);
+        Tree sigwclklist = cons(sig, gGlobal->nil); // add emply clocklist
+        C.self(sigwclklist); // and compile it
     }
     return C.instructions();
 }
@@ -160,15 +156,11 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         Tree m2       = selfclk(y, clklist);  // we compile the clock signal
         Tree clklist2 = cons(m2, clklist);
         Tree m1       = selfclk(x, clklist2);  // we compile x in the new time reference
-#if 1
-        Tree ident = scalID(nature, cons(m1, clklist2));
-        Tree instr = sigInstruction2MemWrite(clklist2, ident, nature, m1);
+        Tree ident    = scalID(nature, cons(m1, clklist2));
+        Tree instr    = sigInstruction2MemWrite(clklist2, ident, nature, m1);
         // std::cerr << "Upsampling instr " << ppsig(instr) << std::endl;
         fInstructions.insert(instr);
         return sigInstruction2MemRead(ident, nature);
-#else
-        return m1;
-#endif
     } else if (isSigDownsampling(sig, x, y)) {
         // assert(isCons(clklist));
         Tree clklist0 = tl(clklist);
@@ -295,6 +287,8 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         return sigHBargraph(label, selfclk(x, clklist), selfclk(y, clklist), selfclk(z, clklist));
     } else if (isSigWaveform(sig)) {
         return sig;
+    } else if (isSigAttach(sig, x, y)) {
+        return sigAttach(selfclk(x, clklist), selfclk(y, clklist));
     }
 
     // Select2 and Select3
@@ -362,9 +356,7 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
     }
 
     // Attach, Enable, Control
-    else if (isSigAttach(sig, x, y)) {
-        return sigAttach(self(x), self(y));
-    } else if (isSigEnable(sig, x, y)) {
+     else if (isSigEnable(sig, x, y)) {
         return sigEnable(self(x), self(y));
     } else if (isSigControl(sig, x, y)) {
         return sigControl(self(x), self(y));
