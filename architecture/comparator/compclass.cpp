@@ -197,12 +197,18 @@ int main(int argc, char* argv[])
         // number of samples to compute for each DSP
         int audiolength = 3;
         int samplenb = audiolength*samplerate;
+
+	// representation of real numbers
+	// double or float, but NO PCM otherwise samples over 1 wrap and distortion ensues
+	int subtype_format = 0; 
         
         sample_write writer;
         if (sizeof(FAUSTFLOAT) == 4) {
             writer = reinterpret_cast<sample_write>(sf_writef_float);
+	    subtype_format = SF_FORMAT_FLOAT;
         } else {
             writer = reinterpret_cast<sample_write>(sf_writef_double);
+	    subtype_format = SF_FORMAT_DOUBLE;
         }
         
         ////////////////////////////////////
@@ -221,7 +227,9 @@ int main(int argc, char* argv[])
             samplenb,
             samplerate,
             FL.getNumOutputs(),
-            SF_FORMAT_WAV|SF_FORMAT_PCM_24|SF_ENDIAN_LITTLE,
+            SF_FORMAT_WAV|
+	    subtype_format|
+	    SF_ENDIAN_LITTLE,
             0,
             0
         };
@@ -255,7 +263,9 @@ int main(int argc, char* argv[])
             samplenb,
             samplerate,
             FX.getNumOutputs(),
-            SF_FORMAT_WAV|SF_FORMAT_PCM_24|SF_ENDIAN_LITTLE,
+            SF_FORMAT_WAV|
+	    subtype_format|
+	    SF_ENDIAN_LITTLE,
             0,
             0
         };
