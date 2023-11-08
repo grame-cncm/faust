@@ -157,40 +157,41 @@ extern int FAUSTdebug;
     IPROD = 358,                   /* IPROD  */
     INPUTS = 359,                  /* INPUTS  */
     OUTPUTS = 360,                 /* OUTPUTS  */
-    STRING = 361,                  /* STRING  */
-    FSTRING = 362,                 /* FSTRING  */
-    IDENT = 363,                   /* IDENT  */
-    EXTRA = 364,                   /* EXTRA  */
-    DECLARE = 365,                 /* DECLARE  */
-    CASE = 366,                    /* CASE  */
-    ARROW = 367,                   /* ARROW  */
-    ASSERTBOUNDS = 368,            /* ASSERTBOUNDS  */
-    LOWEST = 369,                  /* LOWEST  */
-    HIGHEST = 370,                 /* HIGHEST  */
-    FLOATMODE = 371,               /* FLOATMODE  */
-    DOUBLEMODE = 372,              /* DOUBLEMODE  */
-    QUADMODE = 373,                /* QUADMODE  */
-    FIXEDPOINTMODE = 374,          /* FIXEDPOINTMODE  */
-    BDOC = 375,                    /* BDOC  */
-    EDOC = 376,                    /* EDOC  */
-    BEQN = 377,                    /* BEQN  */
-    EEQN = 378,                    /* EEQN  */
-    BDGM = 379,                    /* BDGM  */
-    EDGM = 380,                    /* EDGM  */
-    BLST = 381,                    /* BLST  */
-    ELST = 382,                    /* ELST  */
-    BMETADATA = 383,               /* BMETADATA  */
-    EMETADATA = 384,               /* EMETADATA  */
-    DOCCHAR = 385,                 /* DOCCHAR  */
-    NOTICE = 386,                  /* NOTICE  */
-    LISTING = 387,                 /* LISTING  */
-    LSTTRUE = 388,                 /* LSTTRUE  */
-    LSTFALSE = 389,                /* LSTFALSE  */
-    LSTDEPENDENCIES = 390,         /* LSTDEPENDENCIES  */
-    LSTMDOCTAGS = 391,             /* LSTMDOCTAGS  */
-    LSTDISTRIBUTED = 392,          /* LSTDISTRIBUTED  */
-    LSTEQ = 393,                   /* LSTEQ  */
-    LSTQ = 394                     /* LSTQ  */
+    ONDEMAND = 361,                /* ONDEMAND  */
+    STRING = 362,                  /* STRING  */
+    FSTRING = 363,                 /* FSTRING  */
+    IDENT = 364,                   /* IDENT  */
+    EXTRA = 365,                   /* EXTRA  */
+    DECLARE = 366,                 /* DECLARE  */
+    CASE = 367,                    /* CASE  */
+    ARROW = 368,                   /* ARROW  */
+    ASSERTBOUNDS = 369,            /* ASSERTBOUNDS  */
+    LOWEST = 370,                  /* LOWEST  */
+    HIGHEST = 371,                 /* HIGHEST  */
+    FLOATMODE = 372,               /* FLOATMODE  */
+    DOUBLEMODE = 373,              /* DOUBLEMODE  */
+    QUADMODE = 374,                /* QUADMODE  */
+    FIXEDPOINTMODE = 375,          /* FIXEDPOINTMODE  */
+    BDOC = 376,                    /* BDOC  */
+    EDOC = 377,                    /* EDOC  */
+    BEQN = 378,                    /* BEQN  */
+    EEQN = 379,                    /* EEQN  */
+    BDGM = 380,                    /* BDGM  */
+    EDGM = 381,                    /* EDGM  */
+    BLST = 382,                    /* BLST  */
+    ELST = 383,                    /* ELST  */
+    BMETADATA = 384,               /* BMETADATA  */
+    EMETADATA = 385,               /* EMETADATA  */
+    DOCCHAR = 386,                 /* DOCCHAR  */
+    NOTICE = 387,                  /* NOTICE  */
+    LISTING = 388,                 /* LISTING  */
+    LSTTRUE = 389,                 /* LSTTRUE  */
+    LSTFALSE = 390,                /* LSTFALSE  */
+    LSTDEPENDENCIES = 391,         /* LSTDEPENDENCIES  */
+    LSTMDOCTAGS = 392,             /* LSTMDOCTAGS  */
+    LSTDISTRIBUTED = 393,          /* LSTDISTRIBUTED  */
+    LSTEQ = 394,                   /* LSTEQ  */
+    LSTQ = 395                     /* LSTQ  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -207,7 +208,7 @@ union YYSTYPE
     bool b;
     int numvariant;
 
-#line 211 "faustparser.hpp"
+#line 212 "faustparser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

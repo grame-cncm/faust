@@ -222,6 +222,7 @@ inline Tree unquote(char* str)
 
 %token INPUTS
 %token OUTPUTS
+%token ONDEMAND
 
 %token STRING
 %token FSTRING
@@ -313,6 +314,7 @@ inline Tree unquote(char* str)
 
 %type <exp> finputs
 %type <exp> foutputs
+%type <exp> fondemand
 
 %type <exp> button
 %type <exp> checkbox
@@ -632,6 +634,7 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
                 
                 | finputs                       { $$ = $1; }
                 | foutputs                      { $$ = $1; }
+                | fondemand                     { $$ = $1; }
                 ;
 
 
@@ -685,6 +688,10 @@ finputs         : INPUTS LPAR expression RPAR { $$ = boxInputs($3); }
 
 foutputs        : OUTPUTS LPAR expression RPAR { $$ = boxOutputs($3); }
                 ;
+
+fondemand     	: ONDEMAND LPAR expression RPAR { $$ = boxOndemand($3); }
+                ;
+
 
 /* description of foreign functions */
 
