@@ -131,6 +131,8 @@ struct global {
     bool gSimplifyDiagrams;     // -sd option
     bool gPrintFileListSwitch;  // -flist option
     bool gInlineArchSwitch;     // -i option
+    bool gDebugSwitch;          // in debug mode activate transformation's traces
+    bool gDebugDiagram;         // activates .dot diagrams
     bool gUIMacroSwitch;        // -uim option
     int  gDumpNorm;             // -norm option
     bool gMathExceptions;       // -me option, whether to check math functions domains
@@ -149,6 +151,7 @@ struct global {
     bool gDeepFirstSwitch;    // -dfs option
     int  gVecSize;            // -vs option
     int  gVectorLoopVariant;  // -lv [0|1] option
+    int  gCodeMode;           // -cm [0|1|2] option (TODO)
     bool gOpenMPSwitch;       // -omp option
     bool gOpenMPLoop;         // -pl option
     bool gSchedulerSwitch;    // -sch option
@@ -206,6 +209,8 @@ struct global {
     bool        gRemoveVarAddress;  // If use of variable addresses (like &foo or &foo[n]) have to be removed
     int         gOneSample;         // -osX options, generate one sample computation
     bool        gOneSampleControl;  // -osX options, generate one sample computation control structure in DSP module
+    bool        gOptShortDLines;    // Optimise short dlines
+    bool        gSplitAdditions;    // Split addition branches
     bool        gInlineTable;  // -it option, only in -cpp backend, to inline rdtable/rwtable code in the main class.
     bool        gComputeMix;   // -cm option, mix in outputs buffers
     bool        gBool2Int;     // Cast bool binary operations (comparison operations) to int
@@ -305,6 +310,7 @@ struct global {
     Tree NORMALFORM;
     Tree DEFNAMEPROPERTY;
     Tree NICKNAMEPROPERTY;
+    Tree INSTRUCTIONPROPERTY;
     Tree BCOMPLEXITY;  // Node used for memoization purposes
     Tree LETRECBODY;
     Node PROPAGATEPROPERTY;
@@ -332,6 +338,9 @@ struct global {
     xtended* gAtanPrim;
     xtended* gAtan2Prim;
     xtended* gAsinPrim;
+
+    xtended* gDownsamplePrim;
+    xtended* gUpsamplePrim;
 
     // Signals
     Sym BOXIDENT;
@@ -386,6 +395,8 @@ struct global {
     Sym BOXPATVAR;
     Sym BOXINPUTS;
     Sym BOXOUTPUTS;
+    Sym BOXONDEMAND;
+
     Sym BOXSOUNDFILE;
     Sym BOXMETADATA;
     Sym DOCEQN;
@@ -408,6 +419,42 @@ struct global {
     // The property used to memoize the results
     property<Tree>* gSymListProp;
 
+    // Explicitation of the cache system when compiling signals
+    Sym SIGINSTRUCTIONDELAYLINEWRITE;
+    Sym SIGINSTRUCTIONDELAYLINEREAD;
+
+    Sym SIGINSTRUCTIONSHAREDWRITE;
+    Sym SIGINSTRUCTIONSHAREDREAD;
+
+    //--------------- new instruction 2
+    Sym SIGINSTRUCTION2MEMWRITE;
+    Sym SIGINSTRUCTION2MEMREAD;
+
+    Sym SIGINSTRUCTION2DELAYWRITE;
+    Sym SIGINSTRUCTION2DELAYREAD;
+    Sym SIGINSTRUCTION2INCWRITE;
+
+    //----------------------------------
+
+    Sym SIGINSTRUCTIONVECTORWRITE;
+    Sym SIGINSTRUCTIONVECTORREAD;
+
+    Sym SIGINSTRUCTIONSHORTDLINEWRITE;
+    Sym SIGINSTRUCTIONSHORTDLINEREAD;
+
+    Sym SIGINSTRUCTIONCONTROLWRITE;
+    Sym SIGINSTRUCTIONCONTROLREAD;
+
+    Sym SIGINSTRUCTIONTABLEWRITE;
+    Sym SIGINSTRUCTIONTABLEREAD;
+    Sym SIGINSTRUCTIONTABLEACCESSWRITE;
+
+    Sym SIGINSTRUCTIONBARGRAPHWRITE;
+    Sym SIGINSTRUCTIONBARGRAPHREAD;
+
+    Sym SIGINSTRUCTIONTIMEWRITE;
+    Sym SIGINSTRUCTIONTIMEREAD;
+
     // Memoized type contruction
     property<AudioType*>* gMemoizedTypes;
 
@@ -422,6 +469,9 @@ struct global {
     Sym SIGOUTPUT;
     Sym SIGDELAY1;
     Sym SIGDELAY;
+    Sym SIGUPSAMPLING;
+    Sym SIGDOWNSAMPLING;
+    Sym SIGTIME;
     Sym SIGPREFIX;
     Sym SIGRDTBL;
     Sym SIGWRTBL;
@@ -527,7 +577,7 @@ struct global {
 
     // Colorize
     std::map<Tree, int> gColorMap;
-    int                 gNextFreeColor;
+    int                 gNextFreeColor{1};
 
     // To keep current local
     char* gCurrentLocal;

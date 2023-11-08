@@ -126,7 +126,7 @@ extern const char* FAUSTfilename;
 list<Garbageable*> global::gObjectTable;
 bool               global::gHeapCleanup = false;
 
-global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
+global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE)
 {
     CTree::init();
     Symbol::init();
@@ -233,28 +233,30 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFastMathLibTable["sqrtfx"]      = "fast_sqrt";
     gFastMathLibTable["tanfx"]       = "fast_tan";
 
-    gAbsPrim       = new AbsPrim();
-    gAcosPrim      = new AcosPrim();
-    gTanPrim       = new TanPrim();
-    gSqrtPrim      = new SqrtPrim();
-    gSinPrim       = new SinPrim();
-    gRintPrim      = new RintPrim();
-    gRoundPrim     = new RoundPrim();
-    gRemainderPrim = new RemainderPrim();
-    gPowPrim       = new PowPrim();
-    gMinPrim       = new MinPrim();
-    gMaxPrim       = new MaxPrim();
-    gLogPrim       = new LogPrim();
-    gLog10Prim     = new Log10Prim();
-    gFmodPrim      = new FmodPrim();
-    gFloorPrim     = new FloorPrim();
-    gExpPrim       = new ExpPrim();
-    gExp10Prim     = new Exp10Prim();
-    gCosPrim       = new CosPrim();
-    gCeilPrim      = new CeilPrim();
-    gAtanPrim      = new AtanPrim();
-    gAtan2Prim     = new Atan2Prim();
-    gAsinPrim      = new AsinPrim();
+    gAbsPrim        = new AbsPrim();
+    gAcosPrim       = new AcosPrim();
+    gTanPrim        = new TanPrim();
+    gSqrtPrim       = new SqrtPrim();
+    gSinPrim        = new SinPrim();
+    gRintPrim       = new RintPrim();
+    gRoundPrim      = new RoundPrim();
+    gRemainderPrim  = new RemainderPrim();
+    gPowPrim        = new PowPrim();
+    gMinPrim        = new MinPrim();
+    gMaxPrim        = new MaxPrim();
+    gLogPrim        = new LogPrim();
+    gLog10Prim      = new Log10Prim();
+    gFmodPrim       = new FmodPrim();
+    gFloorPrim      = new FloorPrim();
+    gExpPrim        = new ExpPrim();
+    gExp10Prim      = new Exp10Prim();
+    gCosPrim        = new CosPrim();
+    gCeilPrim       = new CeilPrim();
+    gAtanPrim       = new AtanPrim();
+    gAtan2Prim      = new Atan2Prim();
+    gAsinPrim       = new AsinPrim();
+    gDownsamplePrim = nullptr;  // new DownsamplePrim(); TODO
+    gUpsamplePrim   = nullptr;  // new UpsamplePrim();
 
     BOXIDENT         = symbol("BoxIdent");
     BOXCUT           = symbol("BoxCut");
@@ -309,6 +311,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     BOXINPUTS        = symbol("BoxInputs");
     BOXOUTPUTS       = symbol("BoxOutputs");
     BOXSOUNDFILE     = symbol("boxSoundfile");
+    BOXONDEMAND      = symbol("BoxOndemand");
     BOXMETADATA      = symbol("boxMetadata");
 
     DOCEQN      = symbol("DocEqn");
@@ -325,49 +328,74 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     PATHCURRENT = symbol(".");
     FFUN        = symbol("ForeignFunction");
 
-    SIGINPUT           = symbol("SigInput");
-    SIGOUTPUT          = symbol("SigOutput");
-    SIGDELAY1          = symbol("SigDelay1");
-    SIGDELAY           = symbol("SigDelay");
-    SIGPREFIX          = symbol("SigPrefix");
-    SIGRDTBL           = symbol("SigRDTbl");
-    SIGWRTBL           = symbol("SigWRTbl");
-    SIGGEN             = symbol("SigGen");
-    SIGDOCONSTANTTBL   = symbol("SigDocConstantTbl");
-    SIGDOCWRITETBL     = symbol("SigDocWriteTbl");
-    SIGDOCACCESSTBL    = symbol("SigDocAccessTbl");
-    SIGSELECT2         = symbol("SigSelect2");
-    SIGASSERTBOUNDS    = symbol("sigAssertBounds");
-    SIGHIGHEST         = symbol("sigHighest");
-    SIGLOWEST          = symbol("sigLowest");
-    SIGBINOP           = symbol("SigBinOp");
-    SIGFFUN            = symbol("SigFFun");
-    SIGFCONST          = symbol("SigFConst");
-    SIGFVAR            = symbol("SigFVar");
-    SIGPROJ            = symbol("SigProj");
-    SIGINTCAST         = symbol("SigIntCast");
-    SIGBITCAST         = symbol("SigBitCast");
-    SIGFLOATCAST       = symbol("SigFloatCast");
-    SIGBUTTON          = symbol("SigButton");
-    SIGCHECKBOX        = symbol("SigCheckbox");
-    SIGWAVEFORM        = symbol("SigWaveform");
-    SIGHSLIDER         = symbol("SigHSlider");
-    SIGVSLIDER         = symbol("SigVSlider");
-    SIGNUMENTRY        = symbol("SigNumEntry");
-    SIGHBARGRAPH       = symbol("SigHBargraph");
-    SIGVBARGRAPH       = symbol("SigVBargraph");
-    SIGATTACH          = symbol("SigAttach");
-    SIGENABLE          = symbol("SigEnable");
-    SIGCONTROL         = symbol("SigControl");
-    SIGSOUNDFILE       = symbol("SigSoundfile");
-    SIGSOUNDFILELENGTH = symbol("SigSoundfileLength");
-    SIGSOUNDFILERATE   = symbol("SigSoundfileRate");
-    SIGSOUNDFILEBUFFER = symbol("SigSoundfileBuffer");
-    SIGTUPLE           = symbol("SigTuple");
-    SIGTUPLEACCESS     = symbol("SigTupleAccess");
-    SIMPLETYPE         = symbol("SimpleType");
-    TABLETYPE          = symbol("TableType");
-    TUPLETTYPE         = symbol("TupletType");
+    SIGINPUT                       = symbol("SigInput");
+    SIGOUTPUT                      = symbol("SigOutput");
+    SIGDELAY1                      = symbol("SigDelay1");
+    SIGDELAY                       = symbol("SigDelay");
+    SIGUPSAMPLING                  = symbol("SigUpsampling");
+    SIGDOWNSAMPLING                = symbol("SigDownsampling");
+    SIGPREFIX                      = symbol("SigPrefix");
+    SIGTIME                        = symbol("SigTime");
+    SIGRDTBL                       = symbol("SigRDTbl");
+    SIGWRTBL                       = symbol("SigWRTbl");
+    SIGGEN                         = symbol("SigGen");
+    SIGDOCONSTANTTBL               = symbol("SigDocConstantTbl");
+    SIGDOCWRITETBL                 = symbol("SigDocWriteTbl");
+    SIGDOCACCESSTBL                = symbol("SigDocAccessTbl");
+    SIGSELECT2                     = symbol("SigSelect2");
+    SIGASSERTBOUNDS                = symbol("sigAssertBounds");
+    SIGHIGHEST                     = symbol("sigHighest");
+    SIGLOWEST                      = symbol("sigLowest");
+    SIGBINOP                       = symbol("SigBinOp");
+    SIGFFUN                        = symbol("SigFFun");
+    SIGFCONST                      = symbol("SigFConst");
+    SIGFVAR                        = symbol("SigFVar");
+    SIGPROJ                        = symbol("SigProj");
+    SIGINTCAST                     = symbol("SigIntCast");
+    SIGBITCAST                     = symbol("SigBitCast");
+    SIGFLOATCAST                   = symbol("SigFloatCast");
+    SIGBUTTON                      = symbol("SigButton");
+    SIGCHECKBOX                    = symbol("SigCheckbox");
+    SIGWAVEFORM                    = symbol("SigWaveform");
+    SIGHSLIDER                     = symbol("SigHSlider");
+    SIGVSLIDER                     = symbol("SigVSlider");
+    SIGNUMENTRY                    = symbol("SigNumEntry");
+    SIGHBARGRAPH                   = symbol("SigHBargraph");
+    SIGVBARGRAPH                   = symbol("SigVBargraph");
+    SIGATTACH                      = symbol("SigAttach");
+    SIGENABLE                      = symbol("SigEnable");
+    SIGCONTROL                     = symbol("SigControl");
+    SIGSOUNDFILE                   = symbol("SigSoundfile");
+    SIGSOUNDFILELENGTH             = symbol("SigSoundfileLength");
+    SIGSOUNDFILERATE               = symbol("SigSoundfileRate");
+    SIGSOUNDFILEBUFFER             = symbol("SigSoundfileBuffer");
+    SIGTUPLE                       = symbol("SigTuple");
+    SIGTUPLEACCESS                 = symbol("SigTupleAccess");
+    SIGINSTRUCTIONDELAYLINEREAD    = symbol("SigInstructionDelayLineRead");
+    SIGINSTRUCTIONDELAYLINEWRITE   = symbol("SigInstructionDelayLineWrite");
+    SIGINSTRUCTIONSHAREDWRITE      = symbol("SigInstructionSharedWrite");
+    SIGINSTRUCTIONSHAREDREAD       = symbol("SigInstructionSharedRead");
+    SIGINSTRUCTION2MEMWRITE        = symbol("SigInstruction2MemWrite");
+    SIGINSTRUCTION2MEMREAD         = symbol("SigInstruction2MemRead");
+    SIGINSTRUCTION2DELAYWRITE      = symbol("SigInstruction2DelayWrite");
+    SIGINSTRUCTION2DELAYREAD       = symbol("SigInstruction2DelayRead");
+    SIGINSTRUCTION2INCWRITE        = symbol("SigInstruction2IncWrite");
+    SIGINSTRUCTIONVECTORWRITE      = symbol("SigInstructionVectorWrite");
+    SIGINSTRUCTIONVECTORREAD       = symbol("SigInstructionVectorRead");
+    SIGINSTRUCTIONSHORTDLINEWRITE  = symbol("SigInstructionShortDLineWrite");
+    SIGINSTRUCTIONSHORTDLINEREAD   = symbol("SigInstructionShortDLineRead");
+    SIGINSTRUCTIONCONTROLREAD      = symbol("SigInstructionControlRead");
+    SIGINSTRUCTIONCONTROLWRITE     = symbol("SigInstructionControlWrite");
+    SIGINSTRUCTIONTABLEREAD        = symbol("SigInstructionTableRead");
+    SIGINSTRUCTIONTABLEWRITE       = symbol("SigInstructionTableWrite");
+    SIGINSTRUCTIONTABLEACCESSWRITE = symbol("SigInstructionTableAccessWrite");
+    SIGINSTRUCTIONBARGRAPHREAD     = symbol("SigInstructionBargraphRead");
+    SIGINSTRUCTIONBARGRAPHWRITE    = symbol("SigInstructionBargraphWrite");
+    SIGINSTRUCTIONTIMEREAD         = symbol("SigInstructionTimeRead");
+    SIGINSTRUCTIONTIMEWRITE        = symbol("SigInstructionTimeWrite");
+    SIMPLETYPE                     = symbol("SimpleType");
+    TABLETYPE                      = symbol("TableType");
+    TUPLETTYPE                     = symbol("TupletType");
 
     // recursive trees
     DEBRUIJN    = symbol("DEBRUIJN");
@@ -406,6 +434,8 @@ void global::reset()
     gExpandedDefList = nullptr;
 
     gDetailsSwitch    = false;
+    gDebugSwitch      = false;
+    gDebugDiagram     = false;
     gDrawSignals      = false;
     gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
@@ -422,6 +452,7 @@ void global::reset()
     gDeepFirstSwitch   = false;
     gVecSize           = 32;
     gVectorLoopVariant = 0;
+    gCodeMode          = 5;
 
     gOpenMPSwitch    = false;
     gOpenMPLoop      = false;
@@ -479,6 +510,8 @@ void global::reset()
     gRemoveVarAddress     = false;
     gOneSample            = -1;
     gOneSampleControl     = false;
+    gOptShortDLines       = false;
+    gSplitAdditions       = false;
     gInlineTable          = false;
     gComputeMix           = false;
     gBool2Int             = false;
@@ -617,24 +650,25 @@ void global::init()
 
     PROCESS = symbol("process");
 
-    BOXTYPEPROP      = tree(symbol("boxTypeProp"));
-    NUMERICPROPERTY  = tree(symbol("NUMERICPROPERTY"));
-    DEFLINEPROP      = tree(symbol("DefLineProp"));
-    USELINEPROP      = tree(symbol("UseLineProp"));
-    SIMPLIFIED       = tree(symbol("sigSimplifiedProp"));
-    DOCTABLES        = tree(symbol("DocTablesProp"));
-    NULLENV          = tree(symbol("NullRenameEnv"));
-    COLORPROPERTY    = tree(symbol("ColorProperty"));
-    ORDERPROP        = tree(symbol("OrderProp"));
-    RECURSIVNESS     = tree(symbol("RecursivnessProp"));
-    NULLTYPEENV      = tree(symbol("NullTypeEnv"));
-    RECDEF           = tree(symbol("RECDEF"));
-    DEBRUIJN2SYM     = tree(symbol("deBruijn2Sym"));
-    NORMALFORM       = tree(symbol("NormalForm"));
-    DEFNAMEPROPERTY  = tree(symbol("DEFNAMEPROPERTY"));
-    NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
-    BCOMPLEXITY      = tree("BCOMPLEXITY");
-    LETRECBODY       = boxIdent("RECURSIVEBODY");
+    BOXTYPEPROP         = tree(symbol("boxTypeProp"));
+    NUMERICPROPERTY     = tree(symbol("NUMERICPROPERTY"));
+    DEFLINEPROP         = tree(symbol("DefLineProp"));
+    USELINEPROP         = tree(symbol("UseLineProp"));
+    SIMPLIFIED          = tree(symbol("sigSimplifiedProp"));
+    DOCTABLES           = tree(symbol("DocTablesProp"));
+    NULLENV             = tree(symbol("NullRenameEnv"));
+    COLORPROPERTY       = tree(symbol("ColorProperty"));
+    ORDERPROP           = tree(symbol("OrderProp"));
+    RECURSIVNESS        = tree(symbol("RecursivnessProp"));
+    NULLTYPEENV         = tree(symbol("NullTypeEnv"));
+    RECDEF              = tree(symbol("RECDEF"));
+    DEBRUIJN2SYM        = tree(symbol("deBruijn2Sym"));
+    NORMALFORM          = tree(symbol("NormalForm"));
+    DEFNAMEPROPERTY     = tree(symbol("DEFNAMEPROPERTY"));
+    INSTRUCTIONPROPERTY = tree(symbol("INSTRUCTIONPROPERTY"));
+    NICKNAMEPROPERTY    = tree(symbol("NICKNAMEPROPERTY"));
+    BCOMPLEXITY         = tree("BCOMPLEXITY");
+    LETRECBODY          = boxIdent("RECURSIVEBODY");
 
     PROPAGATEPROPERTY = symbol("PropagateProperty");
 
@@ -646,9 +680,7 @@ void global::init()
     gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
     gCurrentLocal = setlocale(LC_ALL, NULL);
-    if (gCurrentLocal != NULL) {
-        gCurrentLocal = strdup(gCurrentLocal);
-    }
+    if (gCurrentLocal != NULL) { gCurrentLocal = strdup(gCurrentLocal); }
 
     // Setup standard "C" local
     // (workaround for a bug in bitcode generation : http://lists.cs.uiuc.edu/pipermail/llvmbugs/2012-May/023530.html)
@@ -887,9 +919,7 @@ BasicTyped* global::genBasicTyped(Typed::VarType type)
     Typed::VarType new_type = ((type == Typed::kFloatMacro) && gFAUSTFLOAT2Internal) ? itfloat() : type;
 
     // If not defined, add the type in the table
-    if (gTypeTable.find(new_type) == gTypeTable.end()) {
-        gTypeTable[new_type] = new BasicTyped(new_type);
-    }
+    if (gTypeTable.find(new_type) == gTypeTable.end()) { gTypeTable[new_type] = new BasicTyped(new_type); }
     return gTypeTable[new_type];
 }
 
@@ -994,9 +1024,7 @@ string global::makeDrawPathNoExt()
 
 string global::getFreshID(const string& prefix)
 {
-    if (gIDCounters.find(prefix) == gIDCounters.end()) {
-        gIDCounters[prefix] = 0;
-    }
+    if (gIDCounters.find(prefix) == gIDCounters.end()) { gIDCounters[prefix] = 0; }
     int n               = gIDCounters[prefix];
     gIDCounters[prefix] = n + 1;
     return subst("$0$1", prefix, T(n));
@@ -1413,9 +1441,7 @@ bool global::processCmdline(int argc, const char* argv[])
             } else {
                 char  temp[PATH_MAX + 1];
                 char* path = realpath(argv[i + 1], temp);
-                if (path) {
-                    gArchitectureDirList.push_back(path);
-                }
+                if (path) { gArchitectureDirList.push_back(path); }
             }
             i += 2;
 
@@ -1487,9 +1513,7 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (argv[i][0] != '-') {
             const char* url = argv[i];
-            if (checkURL(url)) {
-                gInputFiles.push_back(url);
-            }
+            if (checkURL(url)) { gInputFiles.push_back(url); }
             i++;
 
         } else {
@@ -1510,9 +1534,7 @@ bool global::processCmdline(int argc, const char* argv[])
     // Check options coherency
     // ========================
 
-    if (gInPlace && gVectorSwitch) {
-        throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n");
-    }
+    if (gInPlace && gVectorSwitch) { throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n"); }
 
 #if 0
     if (gOutputLang == "ocpp" && gVectorSwitch) {
@@ -1607,9 +1629,7 @@ bool global::processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -a can only be used with 'c', 'cpp', 'ocpp', 'rust' and 'cmajor' backends\n");
     }
 
-    if (gClassName == "") {
-        throw faustexception("ERROR : -cn used with empty string \n");
-    }
+    if (gClassName == "") { throw faustexception("ERROR : -cn used with empty string \n"); }
 
     if (err != 0) {
         stringstream error;
@@ -1632,17 +1652,13 @@ static string fxName(const string& filename)
     // determine position right after the last '/' or 0
     size_t p1 = 0;
     for (size_t i = 0; i < filename.size(); i++) {
-        if (filename[i] == '/') {
-            p1 = i + 1;
-        }
+        if (filename[i] == '/') { p1 = i + 1; }
     }
 
     // determine position of the last '.'
     size_t p2 = filename.size();
     for (size_t i = p1; i < filename.size(); i++) {
-        if (filename[i] == '.') {
-            p2 = i;
-        }
+        if (filename[i] == '.') { p2 = i; }
     }
 
     return filename.substr(p1, p2 - p1);
@@ -1682,9 +1698,7 @@ void global::initDirectories(int argc, const char* argv[])
     //-------------------------------------------------------------------------------------
     // init gImportDirList : a list of path where to search .lib files
     //-------------------------------------------------------------------------------------
-    if (char* envpath = getenv("FAUST_LIB_PATH")) {
-        gImportDirList.push_back(envpath);
-    }
+    if (char* envpath = getenv("FAUST_LIB_PATH")) { gImportDirList.push_back(envpath); }
 #ifdef INSTALL_PREFIX
     gImportDirList.push_back(INSTALL_PREFIX "/share/faust");
 #endif
@@ -1696,9 +1710,7 @@ void global::initDirectories(int argc, const char* argv[])
     //-------------------------------------------------------------------------------------
     // init gArchitectureDirList : a list of path where to search architectures files
     //-------------------------------------------------------------------------------------
-    if (char* envpath = getenv("FAUST_ARCH_PATH")) {
-        gArchitectureDirList.push_back(envpath);
-    }
+    if (char* envpath = getenv("FAUST_ARCH_PATH")) { gArchitectureDirList.push_back(envpath); }
     gArchitectureDirList.push_back(gFaustDirectory + "/architecture");
     gArchitectureDirList.push_back(gFaustSuperDirectory + "/architecture");
     gArchitectureDirList.push_back(gFaustSuperSuperDirectory + "/architecture");
@@ -1755,9 +1767,7 @@ void global::parseSourceFiles()
         throw faustexception("ERROR : no files specified; for help type \"faust --help\"\n");
     }
     for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
-        if (s == gInputFiles.begin()) {
-            gMasterDocument = *s;
-        }
+        if (s == gInputFiles.begin()) { gMasterDocument = *s; }
         result = cons(importFile(tree(s->c_str())), result);
     }
 
@@ -2221,9 +2231,7 @@ void Garbageable::operator delete(void* ptr)
 {
     // We may have cases when a pointer will be deleted during
     // a compilation, thus the pointer has to be removed from the list.
-    if (!global::gHeapCleanup) {
-        global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
-    }
+    if (!global::gHeapCleanup) { global::gObjectTable.remove(static_cast<Garbageable*>(ptr)); }
     free(ptr);
 }
 
@@ -2239,9 +2247,7 @@ void Garbageable::operator delete[](void* ptr)
 {
     // We may have cases when a pointer will be deleted during
     // a compilation, thus the pointer has to be removed from the list.
-    if (!global::gHeapCleanup) {
-        global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
-    }
+    if (!global::gHeapCleanup) { global::gObjectTable.remove(static_cast<Garbageable*>(ptr)); }
     free(ptr);
 }
 

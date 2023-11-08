@@ -152,9 +152,11 @@ LIBFAUST_API bool isBoxIProd(Tree t, Tree& x, Tree& y, Tree& z);
 
 Tree boxInputs(Tree x);
 Tree boxOutputs(Tree x);
+Tree boxOndemand(Tree x);
 
 LIBFAUST_API bool isBoxInputs(Tree t, Tree& x);
 LIBFAUST_API bool isBoxOutputs(Tree t, Tree& x);
+LIBFAUST_API bool isBoxOndemand(Tree t, Tree& x);
 
 /*****************************************************************************
                               Lambda-Calculus of Boxes

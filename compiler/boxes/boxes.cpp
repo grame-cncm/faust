@@ -284,6 +284,11 @@ Tree boxOutputs(Tree x)
     return tree(gGlobal->BOXOUTPUTS, x);
 }
 
+Tree boxOndemand(Tree x)
+{
+    return tree(gGlobal->BOXONDEMAND, x);
+}
+
 LIBFAUST_API bool isBoxInputs(Tree t, Tree& x)
 {
     return isTree(t, gGlobal->BOXINPUTS, x);
@@ -291,6 +296,11 @@ LIBFAUST_API bool isBoxInputs(Tree t, Tree& x)
 LIBFAUST_API bool isBoxOutputs(Tree t, Tree& x)
 {
     return isTree(t, gGlobal->BOXOUTPUTS, x);
+}
+
+LIBFAUST_API bool isBoxOndemand(Tree t, Tree& x)
+{
+    return isTree(t, gGlobal->BOXONDEMAND, x);
 }
 
 /*****************************************************************************

@@ -93,20 +93,24 @@ LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum)
  */
 
 static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string& opcode, const string& opname,
-                                    const string& msg)
+                                      const string& msg)
 {
     stringstream error;
     string       aStr("A"), bStr("B");
     Tree         aID, bID;
-    
+
     if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
-      
+
     error << "ERROR : " << opname << " " << aStr << opcode << bStr << endl
           << "The number of outputs [" << o << "] of " << aStr << msg << "the number of inputs [" << i << "] of "
-          << bStr << endl << endl
-          << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl << "has " << outputs(o) << endl << endl
-          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(i) << endl;
+          << bStr << endl
+          << endl
+          << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl
+          << "has " << outputs(o) << endl
+          << endl
+          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl
+          << "has " << inputs(i) << endl;
     return error.str();
 }
 
@@ -129,15 +133,21 @@ static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, in
 
     if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
-    
+
     error << "ERROR : recursive composition " << aStr << '~' << bStr << endl;
     if (v < x)
-        error << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x << "] of " << bStr << ". ";
+        error << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x
+              << "] of " << bStr << ". ";
     if (u < y)
-        error << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y << "] of " << bStr << ". " << endl << endl;
+        error << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y
+              << "] of " << bStr << ". " << endl
+              << endl;
 
-    error << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(u) << " and " << outputs(v) << endl << endl
-          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(x) << " and " << outputs(y) << endl;
+    error << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl
+          << "has " << inputs(u) << " and " << outputs(v) << endl
+          << endl
+          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl
+          << "has " << inputs(x) << " and " << outputs(y) << endl;
     return error.str();
 }
 
@@ -309,9 +319,7 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
         int u, v, x, y;
         if (!getBoxType(a, &u, &v)) return false;
         if (!getBoxType(b, &x, &y)) return false;
-        if ((x > v) || (y > u)) {
-            throw faustexception(computeTypeRecErrorMessage(a, b, u, v, x, y));
-        }
+        if ((x > v) || (y > u)) { throw faustexception(computeTypeRecErrorMessage(a, b, u, v, x, y)); }
         *inum = std::max(0, u - y);
         *onum = v;
 
@@ -324,6 +332,16 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
 
     } else if (isBoxRoute(box, ins, outs, lroutes)) {
         return isBoxInt(ins, inum) && isBoxInt(outs, onum);
+
+    } else if (isBoxOndemand(box, a)) {
+        int u, v;
+        if (getBoxType(a, &u, &v)) {
+            *inum = u + 1;
+            *onum = v;
+            return true;
+        } else {
+            return false;
+        }
 
     } else {
         stringstream error;

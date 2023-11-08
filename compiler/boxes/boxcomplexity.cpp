@@ -76,12 +76,12 @@ int boxComplexity(Tree box)
  */
 static int computeBoxComplexity(Tree box)
 {
-    prim0  p0;
-    prim1  p1;
-    prim2  p2;
-    prim3  p3;
-    prim4  p4;
-    prim5  p5;
+    prim0 p0;
+    prim1 p1;
+    prim2 p2;
+    prim3 p3;
+    prim4 p4;
+    prim5 p5;
 
     Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, chan;
 
@@ -172,6 +172,9 @@ static int computeBoxComplexity(Tree box)
         return 0;
     else if (isBoxMetadata(box, t1, t2))
         return BC(t1);
+
+    else if (isBoxOndemand(box, t1))
+        return 1 + BC(t1);
 
     else if (isBoxRoute(box, t1, t2, t3))
         return 0;
