@@ -38,12 +38,11 @@ void sigvisitor::visit(Tree sig)
     int     i;
     int64_t i64;
     double  r;
-    Tree   sel, s1, s2, s3, s4, ff, ls, l, var, body, type, name, file, cur, min, max, step;
+    Tree    sel, s1, s2, s3, s4, ff, ls, l, var, body, type, name, file, cur, min, max, step;
 
     faustassert(sig);
 
-    if (isSigInt(sig, &i))
-        visitInt(sig, i);
+    if (isSigInt(sig, &i)) visitInt(sig, i);
 
     if (isSigInt64(sig, &i64))
         visitInt(sig, i64);
@@ -65,6 +64,12 @@ void sigvisitor::visit(Tree sig)
 
     else if (isSigDelay(sig, s1, s2))
         visitDelay(sig, s1, s2);
+
+    else if (isSigUpsampling(sig, s1, s2))
+        visitUpsampling(sig, s1, s2);
+
+    else if (isSigDownsampling(sig, s1, s2))
+        visitDownsampling(sig, s1, s2);
 
     else if (isSigBinOp(sig, &i, s1, s2))
         visitBinOp(sig, i, s1, s2);

@@ -21,6 +21,7 @@
 
 #include "propagate.hh"
 #include "Text.hh"
+#include "aterm.hh"
 #include "exception.hh"
 #include "floats.hh"
 #include "global.hh"
@@ -31,7 +32,6 @@
 #include "prim2.hh"
 #include "simplify.hh"
 #include "xtended.hh"
-#include "aterm.hh"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -56,9 +56,7 @@ static siglist mix(const siglist& lsig, int nbus)
 
     for (int b = 0; b < nbus; b++) {
         Tree t = (b < nlines) ? lsig[b] : sigInt(0);
-        for (int i = b + nbus; i < nlines; i += nbus) {
-            t = sigAdd(t, lsig[i]);
-        }
+        for (int i = b + nbus; i < nlines; i += nbus) { t = sigAdd(t, lsig[i]); }
         dst[b] = t;
     }
     return dst;
@@ -71,9 +69,7 @@ static siglist split(const siglist& inputs, int nbus)
 
     siglist outputs(nbus);
 
-    for (int b = 0; b < nbus; b++) {
-        outputs[b] = inputs[b % nlines];
-    }
+    for (int b = 0; b < nbus; b++) { outputs[b] = inputs[b % nlines]; }
     return outputs;
 }
 
@@ -283,9 +279,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     else if (isBoxSlot(box)) {
         Tree sig;
         faustassert(lsig.size() == 0);
-        if (!searchEnv(box, sig, slotenv)) {
-            sig = sigInput(++gGlobal->gDummyInput);
-        }
+        if (!searchEnv(box, sig, slotenv)) { sig = sigInput(++gGlobal->gDummyInput); }
         return makeList(sig);
     }
 
@@ -409,9 +403,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
         // compute bound limited read index : int(max(0, min(ridx,length-1)))
         Tree ridx = sigMax(sigInt(0), sigMin(lsig[1], sigSub(lsig2[0], sigInt(1))));
-        for (int i1 = 0; i1 < c; i1++) {
-            lsig2[i1 + 2] = sigSoundfileBuffer(soundfile, sigInt(i1), part, ridx);
-        }
+        for (int i1 = 0; i1 < c; i1++) { lsig2[i1 + 2] = sigSoundfileBuffer(soundfile, sigInt(i1), part, ridx); }
         return lsig2;
     }
 
@@ -435,7 +427,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         int in1, out1, in2, out2;
         getBoxType(t1, &in1, &out1);
         getBoxType(t2, &in2, &out2);
-        
+
         // Connection coherency is checked in evaluateBlockDiagram
         faustassert(out1 == in2);
         return propagate(slotenv, path, t2, propagate(slotenv, path, t1, lsig));
@@ -477,7 +469,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         int in1, out1, in2, out2;
         getBoxType(t1, &in1, &out1);
         getBoxType(t2, &in2, &out2);
-        
+
         // The environment must also be lifted
         Tree slotenv2 = lift(slotenv);
 
@@ -542,9 +534,23 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
                   << endl;
             throw faustexception(error.str());
         }
+    } else if (isBoxOndemand(box, t1)) {
+        int in1, out1;
+        getBoxType(t1, &in1, &out1);
+        faustassert(int(lsig.size()) == in1 + 1);
+        Tree              clock = lsig[0];
+        std::vector<Tree> downsigs(in1);  // downsampled input signals
+        std::vector<Tree> upsigs(out1);   // upsampled output signals
+        for (int j = 0; j < in1; j++) { downsigs[j] = sigDownsampling(lsig[j + 1], clock); }
+        siglist l1 = propagate(slotenv, path, t1, downsigs);
+        for (int j = 0; j < out1; j++) {
+            upsigs[j] = gGlobal->gUpsamplePrim->computeSigOutput({l1[j], clock});
+            upsigs[j] = sigUpsampling(l1[j], clock);
+        }
+        return upsigs;
     }
-    cerr << "ASSERT : file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box)
-         << endl;
+
+    cerr << "ASSERT : file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box) << endl;
     faustassert(false);
 
     return siglist();

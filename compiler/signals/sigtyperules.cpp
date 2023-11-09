@@ -254,9 +254,7 @@ void typeAnnotation(Tree sig, bool causality)
     for (Tree l = sl; isList(l); l = tl(l)) {
         Tree id, body;
         faustassert(isRec(hd(l), id, body));
-        if (!isRec(hd(l), id, body)) {
-            continue;
-        }
+        if (!isRec(hd(l), id, body)) { continue; }
         vrec.push_back(hd(l));
         vdef.push_back(body);
 
@@ -279,13 +277,9 @@ void typeAnnotation(Tree sig, bool causality)
     faustassert((int)vAgeMax.size() == n);
 
     // cerr << "compute upper bounds for recursive types" << endl;
-    for (int k = 0; k < gGlobal->gNarrowingLimit; k++) {
-        updateRecTypes(vrec, vdef, vdefSizes, vtypeUp, true);
-    }
+    for (int k = 0; k < gGlobal->gNarrowingLimit; k++) { updateRecTypes(vrec, vdef, vdefSizes, vtypeUp, true); }
 
-    for (const auto& ty : vtypeUp) {
-        vUp.push_back(derefRecCert(ty));
-    }
+    for (const auto& ty : vtypeUp) { vUp.push_back(derefRecCert(ty)); }
 
     // cerr << "find an upperbound of the least fixpoint" << endl;
     while (!finished) {
@@ -295,7 +289,7 @@ void typeAnnotation(Tree sig, bool causality)
         finished = true;
         for (int i = 0; i < n; i++) {
             newTuplet.clear();
-            //cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
+            // cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
             if (vtype[i] != getSigType(vrec[i])) {
                 finished   = false;
                 newRecType = derefRecCert(vtype[i]);
@@ -526,17 +520,45 @@ static Type inferSigType(Tree sig, Tree env)
         return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
     }
 
+    else if (isSigUpsampling(sig, s1, s2)) {
+        Type     t1     = T(s1, env);
+        Type     t2     = T(s2, env);
+        interval ii     = t2->getInterval();
+        bool     valid2 = (0 <= ii.lo()) && (ii.hi() <= 1);
+        if (!valid2) {
+            stringstream error;
+            error << "ERROR : invalid clock signal  : " << ppsig(s2) << endl
+                  << "        used in upsampling expression : " << ppsig(sig) << endl;
+            throw faustexception(error.str());
+        } else {
+            return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0, 0)));
+        }
+    } else if (isSigDownsampling(sig, s1, s2)) {
+        Type     t1     = T(s1, env);
+        Type     t2     = T(s2, env);
+        interval ii     = t2->getInterval();
+        bool     valid2 = (0 <= ii.lo()) && (ii.hi() <= 1);
+        if (!valid2) {
+            stringstream error;
+            error << "ERROR : invalid clock signal  : " << ppsig(s2) << endl
+                  << "        used in downsampling expression : " << ppsig(sig) << endl;
+            throw faustexception(error.str());
+        } else {
+            return sampCast(t1);
+        }
+    }
+
     else if (isSigBinOp(sig, &i, s1, s2)) {
         Type t1 = T(s1, env);
         Type t2 = T(s2, env);
         Type t3 = castInterval(t1 | t2, arithmetic(i, t1->getInterval(), t2->getInterval()));
-   
+
         if (i == kDiv) {
-            return floatCast(t3);   // division always result in a float even with int arguments
+            return floatCast(t3);  // division always result in a float even with int arguments
         } else if ((i >= kGT) && (i <= kNE)) {
-            return boolCast(t3);    // comparison always result in a boolean int
+            return boolCast(t3);  // comparison always result in a boolean int
         } else if (((i >= kLsh) && (i <= kLRsh)) || ((i >= kAND) && (i <= kXOR))) {
-            return intCast(t3);     // boolean and logical operators always result in an int
+            return intCast(t3);  // boolean and logical operators always result in an int
         } else {
             return t3;  //  otherwise most general of t1 and t2
         }
@@ -560,14 +582,12 @@ static Type inferSigType(Tree sig, Tree env)
     else if (isSigFVar(sig, type, name, file))
         return inferFVarType(type);
 
-    else if (isSigButton(sig)) { 
-        return castInterval(gGlobal->TGUI, 
-                            gAlgebra.Button(interval(0, 0))); // todo replace the name
+    else if (isSigButton(sig)) {
+        return castInterval(gGlobal->TGUI, gAlgebra.Button(interval(0, 0)));  // todo replace the name
     }
 
     else if (isSigCheckbox(sig)) {
-        return castInterval(gGlobal->TGUI,
-                            gAlgebra.Checkbox(interval(0, 0))); // todo replace the name
+        return castInterval(gGlobal->TGUI, gAlgebra.Checkbox(interval(0, 0)));  // todo replace the name
     }
 
     else if (isSigVSlider(sig, label, cur, min, max, step)) {
@@ -575,12 +595,9 @@ static Type inferSigType(Tree sig, Tree env)
         Type t2 = T(min, env);
         Type t3 = T(max, env);
         Type t4 = T(step, env);
-        return castInterval(gGlobal->TGUI, 
-                            gAlgebra.VSlider(interval(0, 0), // todo replace the name
-                            t1->getInterval(), 
-                            t2->getInterval(),
-                            t3->getInterval(),
-                            t4->getInterval()));
+        return castInterval(gGlobal->TGUI, gAlgebra.VSlider(interval(0, 0),  // todo replace the name
+                                                            t1->getInterval(), t2->getInterval(), t3->getInterval(),
+                                                            t4->getInterval()));
     }
 
     else if (isSigHSlider(sig, label, cur, min, max, step)) {
@@ -588,12 +605,9 @@ static Type inferSigType(Tree sig, Tree env)
         Type t2 = T(min, env);
         Type t3 = T(max, env);
         Type t4 = T(step, env);
-        return castInterval(gGlobal->TGUI, 
-                            gAlgebra.HSlider(interval(0, 0), // todo replace the name
-                            t1->getInterval(),
-                            t2->getInterval(),
-                            t3->getInterval(),
-                            t4->getInterval()));
+        return castInterval(gGlobal->TGUI, gAlgebra.HSlider(interval(0, 0),  // todo replace the name
+                                                            t1->getInterval(), t2->getInterval(), t3->getInterval(),
+                                                            t4->getInterval()));
     }
 
     else if (isSigNumEntry(sig, label, cur, min, max, step)) {
@@ -601,12 +615,9 @@ static Type inferSigType(Tree sig, Tree env)
         Type t2 = T(min, env);
         Type t3 = T(max, env);
         Type t4 = T(step, env);
-        return castInterval(gGlobal->TGUI, 
-                            gAlgebra.NumEntry(interval(0, 0), // todo replace the name
-                            t1->getInterval(),
-                            t2->getInterval(),
-                            t3->getInterval(),
-                            t4->getInterval()));
+        return castInterval(gGlobal->TGUI, gAlgebra.NumEntry(interval(0, 0),  // todo replace the name
+                                                             t1->getInterval(), t2->getInterval(), t3->getInterval(),
+                                                             t4->getInterval()));
     }
 
     else if (isSigHBargraph(sig, l, x, y, s1)) {
@@ -680,7 +691,7 @@ static Type inferSigType(Tree sig, Tree env)
             return inferWriteTableType(inferTableType(s1, s2, env), T(s3, env), T(s4, env));
         }
     }
-    
+
     else if (isSigRDTbl(sig, s1, s2))
         return inferReadTableType(T(s1, env), T(s2, env));
 
@@ -765,7 +776,7 @@ static Type inferProjType(Type t, int i, int vec)
                     ->promoteVariability(t->variability())
                     ->promoteComputability(t->computability())
                     ->promoteVectorability(vec /*t->vectorability()*/);
- 
+
     if (vec == kVect) temp = vecCast(temp);
     return temp;
 }
@@ -799,13 +810,13 @@ static Type inferWriteTableType(Type tbl, Type wi, Type ws)
     TRACE(cerr << gGlobal->TABBER << "inferring write table type : wi type = " << wi << endl);
     TRACE(cerr << gGlobal->TABBER << "inferring write table type : wd type = " << ws << endl);
 
-    int      n   = ws->nature();
-    int      b   = ws->boolean();
-    int      v   = wi->variability() | ws->variability();
-    int      c   = wi->computability() | ws->computability();
-    int      vec = wi->vectorability() | ws->vectorability();
+    int n   = ws->nature();
+    int b   = ws->boolean();
+    int v   = wi->variability() | ws->variability();
+    int c   = wi->computability() | ws->computability();
+    int vec = wi->vectorability() | ws->vectorability();
     // Interval is the reunion of tbl (and its init signal) and ws
-    interval i   = itv::reunion(tbl->getInterval(), ws->getInterval());
+    interval i = itv::reunion(tbl->getInterval(), ws->getInterval());
     TRACE(cerr << gGlobal->TABBER << "infering write table type : n="
                << "NR"[n] << ", v="
                << "KB?S"[v] << ", c="
@@ -834,12 +845,11 @@ static Type inferReadTableType(Type tbl, Type ri)
         error << "ERROR : inferring read table type, no read index type : " << ri << endl;
         throw faustexception(error.str());
     }
- 
+
     Type temp = makeSimpleType(tbl->nature(), tbl->variability() | ri->variability(),
-                               tbl->computability() | ri->computability(),
-                               tbl->vectorability() | ri->vectorability(),
+                               tbl->computability() | ri->computability(), tbl->vectorability() | ri->vectorability(),
                                tbl->boolean(), tbl->getInterval());
-    
+
     return temp;
 }
 
@@ -852,7 +862,7 @@ static Type inferDocConstantTblType(Type size, Type init)
 static Type inferDocWriteTblType(Type size, Type init, Type widx, Type wsig)
 {
     checkKonst(checkInt(checkInit(size)));
-    Type temp = init->promoteVariability(kSamp)         // difficult to tell, therefore kSamp to be safe
+    Type temp = init->promoteVariability(kSamp)  // difficult to tell, therefore kSamp to be safe
                     ->promoteComputability(widx->computability() | wsig->computability())
                     ->promoteVectorability(kScal)       // difficult to tell, therefore kScal to be safe
                     ->promoteNature(wsig->nature())     // nature of the initial and written signal
@@ -957,10 +967,10 @@ static Type inferFVarType(Tree type)
 static Type inferWaveformType(Tree wfsig, Tree env)
 {
     // start with the first item interval
-    Tree   v     = wfsig->branch(0);
-    bool   iflag1 = isInt(v->node());
-    int    n     = wfsig->arity();
-    interval res = (iflag1) ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2float(v));
+    Tree     v      = wfsig->branch(0);
+    bool     iflag1 = isInt(v->node());
+    int      n      = wfsig->arity();
+    interval res    = (iflag1) ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2float(v));
     T(v, env);
 
     // loop for remaining items
@@ -969,7 +979,7 @@ static Type inferWaveformType(Tree wfsig, Tree env)
         T(v, env);
         // compute interval
         bool iflag2 = isInt(v->node());
-        res = itv::reunion(res, iflag2 ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2float(v)));
+        res         = itv::reunion(res, iflag2 ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2float(v)));
         iflag1 &= iflag2;
     }
 

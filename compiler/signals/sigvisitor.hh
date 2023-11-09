@@ -22,8 +22,8 @@
 #ifndef __SIGVISITOR__
 #define __SIGVISITOR__
 
-#include "signals.hh"
 #include "global.hh"
+#include "signals.hh"
 
 struct sigvisitor {
     // predefined visit scheme
@@ -48,6 +48,10 @@ struct sigvisitor {
     virtual void visitDelay1(Tree sig, Tree s)           = 0;
     virtual void visitPrefix(Tree sig, Tree s1, Tree s2) = 0;
     virtual void visitDelay(Tree sig, Tree s1, Tree s2)  = 0;
+
+    // up and down sampling
+    virtual void visitUpsampling(Tree sig, Tree s1, Tree s2)   = 0;
+    virtual void visitDownsampling(Tree sig, Tree s1, Tree s2) = 0;
 
     // numerical operations
     virtual void visitBinOp(Tree sig, int opcode, Tree s1, Tree s2)     = 0;

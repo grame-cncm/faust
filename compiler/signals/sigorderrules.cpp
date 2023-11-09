@@ -85,21 +85,19 @@ static int inferSigOrder(Tree sig)
     int     i;
     int64_t i64;
     double  r;
-    Tree   sel, s1, s2, s3, s4, ff, ls, l, x, y, z, var, body, type, name, file, sf;
+    Tree    sel, s1, s2, s3, s4, ff, ls, l, x, y, z, var, body, type, name, file, sf;
 
     xtended* xt = (xtended*)getUserData(sig);
     // primitive elements
     if (xt) {
         vector<int> args;
-        for (int i1 = 0; i1 < sig->arity(); i1++) {
-            args.push_back(O(sig->branch(i1)));
-        }
+        for (int i1 = 0; i1 < sig->arity(); i1++) { args.push_back(O(sig->branch(i1))); }
         return xt->inferSigOrder(args);
     }
 
     else if (isSigInt(sig, &i))
         return 0;
-    
+
     else if (isSigInt64(sig, &i64))
         return 0;
 
@@ -124,12 +122,18 @@ static int inferSigOrder(Tree sig)
     else if (isSigDelay(sig, s1, s2))
         return 3;
 
+    else if (isSigUpsampling(sig, s1, s2))
+        return 3;
+
+    else if (isSigDownsampling(sig, s1, s2))
+        return 3;
+
     else if (isSigBinOp(sig, &i, s1, s2))
         return std::max(O(s1), O(s2));
 
     else if (isSigIntCast(sig, s1))
         return O(s1);
-    
+
     else if (isSigBitCast(sig, s1))
         return O(s1);
 
@@ -201,7 +205,7 @@ static int inferSigOrder(Tree sig)
         cerr << "ASSERT : inferring signal order : isRef\n";  // not supposed to happen.
         faustassert(false);
         return -1;
-        
+
     } else if (isProj(sig, &i, s1))
         return 3;
 
@@ -229,7 +233,7 @@ static int inferSigOrder(Tree sig)
     else if (isList(sig)) {
         int r1 = 0;
         while (isList(sig)) {
-            r1 = std::max(r1, O(hd(sig)));
+            r1  = std::max(r1, O(hd(sig)));
             sig = tl(sig);
         }
         return r1;

@@ -125,9 +125,21 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs("@", out);
         printSignal(y, out, 4);
         if (prec > 4) fputs(")", out);
-    }
 
-    else if (isProj(sig, &i, x)) {
+    } else if (isSigUpsampling(sig, x, y)) {
+        fputs("upsampling((", out);
+        printSignal(x, out, 0);
+        fputs(",", out);
+        printSignal(y, out, 0);
+        fputs(")", out);
+    } else if (isSigDownsampling(sig, x, y)) {
+        fputs("downsampling(", out);
+        printSignal(x, out, 0);
+        fputs(",", out);
+        printSignal(y, out, 0);
+        fputs(")", out);
+
+    } else if (isProj(sig, &i, x)) {
         printSignal(x, out, prec);
         fprintf(out, "#%d", i);
     } else if (isRef(sig, i)) {
@@ -201,7 +213,7 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs("int(", out);
         printSignal(x, out, 0);
         fputs(")", out);
-    }else if (isSigBitCast(sig, x)) {
+    } else if (isSigBitCast(sig, x)) {
         fputs("bit(", out);
         printSignal(x, out, 0);
         fputs(")", out);

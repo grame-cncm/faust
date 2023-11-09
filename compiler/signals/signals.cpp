@@ -150,6 +150,26 @@ LIBFAUST_API bool isSigPrefix(Tree t, Tree& t0, Tree& t1)
     return isTree(t, gGlobal->SIGPREFIX, t0, t1);
 }
 
+// Up and Down Sampling
+
+Tree sigUpsampling(Tree t0, Tree t1)
+{
+    return tree(gGlobal->SIGUPSAMPLING, t0, sigIntCast(t1));
+}
+bool isSigUpsampling(Tree t, Tree& t0, Tree& t1)
+{
+    return isTree(t, gGlobal->SIGUPSAMPLING, t0, t1);
+}
+
+Tree sigDownsampling(Tree t0, Tree t1)
+{
+    return tree(gGlobal->SIGDOWNSAMPLING, t0, sigIntCast(t1));
+}
+bool isSigDownsampling(Tree t, Tree& t0, Tree& t1)
+{
+    return isTree(t, gGlobal->SIGDOWNSAMPLING, t0, t1);
+}
+
 // Read only and read write tables
 
 Tree sigRDTbl(Tree tbl, Tree ri)
