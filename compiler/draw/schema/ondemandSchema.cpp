@@ -46,7 +46,9 @@ schema* makeOndemandSchema(schema* s)
  * a certain width. The wires are prolonged accordingly.
  */
 ondemandSchema::ondemandSchema(schema* s)
-    : schema(s->inputs() + 1, s->outputs(), max(fMinWidth, s->width() + 2 * fHorMargin), s->height() + fTopMargin + fBotMargin), fSchema(s)
+    : schema(s->inputs() + 1, s->outputs(), max(fMinWidth, s->width() + 2 * fHorMargin),
+             s->height() + fTopMargin + fBotMargin),
+      fSchema(s)
 {
     for (unsigned int i = 0; i < inputs(); i++) fInputPoint.push_back(point(0, 0));
     for (unsigned int i = 0; i < outputs(); i++) fOutputPoint.push_back(point(0, 0));

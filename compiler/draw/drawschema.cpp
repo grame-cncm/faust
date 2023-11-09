@@ -55,6 +55,7 @@
 #include "names.hh"
 #include "occur.hh"
 #include "occurrences.hh"
+#include "ondemandSchema.h"
 #include "ppbox.hh"
 #include "prim2.hh"
 #include "property.hh"
@@ -519,6 +520,9 @@ static schema* generateInsideSchema(Tree t)
                   << endl;
             throw faustexception(error.str());
         }
+    } else if (isBoxOndemand(t, a)) {
+        return makeOndemandSchema(generateDiagramSchema(a));
+
     } else {
         stringstream error;
         error << "ERROR in generateInsideSchema, box expression not recognized : ";

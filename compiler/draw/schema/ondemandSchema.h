@@ -21,6 +21,8 @@
 
 #ifndef __SEQSCHEMA__
 #define __SEQSCHEMA__
+#include <string>
+#include <vector>
 
 #include "schema.h"
 
@@ -36,10 +38,10 @@ class ondemandSchema : public schema {
     static const double fBotMargin;  // gap between the bottom and the bottom of the inside schema
     static const double fMinWidth;   // gap between the bottom and the bottom of the inside schema
 
-    static const string fText;         // Test to display, tipically "ondemand"
-    schema*             fSchema;       // the schema inside the on-demand box
-    vector<point>       fInputPoint;   // input points
-    vector<point>       fOutputPoint;  // output points
+    static const std::string fText;         // Test to display, tipically "ondemand"
+    schema*                  fSchema;       // the schema inside the on-demand box
+    std::vector<point>       fInputPoint;   // input points
+    std::vector<point>       fOutputPoint;  // output points
 
    public:
     friend schema* makeOndemandSchema(schema* s1);
@@ -55,5 +57,7 @@ class ondemandSchema : public schema {
     void drawInternalWires(device& dev);
     void collectInternalWires(collector& c);
 };
+
+schema* makeOndemandSchema(schema* s);
 
 #endif
