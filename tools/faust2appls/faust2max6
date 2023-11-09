@@ -77,7 +77,7 @@ echoHelp()
 {
     usage faust2max6 "[options] [Faust options] <file.dsp>"
     require Max/MSP SDK
-    echo "Compiles Faust programs to Max6 externals using double precision samples"
+    echo "Compiles Faust programs to Max6 externals using double precision samples (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/max-msp)"
     option
     options -osc -midi -soundfile
     option -soundfile-dynamic "similar to -soundfile, but using the installed libsndfile (so possibly using dynamic link)."

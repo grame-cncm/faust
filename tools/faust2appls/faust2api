@@ -60,7 +60,7 @@ fi
 echoHelp() 
 {
     usage faust2api "[options] [Faust options] <file.dsp>"
-    echo "faust2api can be used to generate Faust based dsp objects for various platforms:"
+    echo "faust2api can be used to generate Faust based dsp objects for various platforms (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/api):"
     echo
     echo "Output options:"
     option -ios "generates an iOS API"

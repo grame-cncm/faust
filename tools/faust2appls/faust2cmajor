@@ -17,7 +17,7 @@ ARCHFILE=$FAUSTARCH/cmajor/minimal.cmajor
 echoHelp() 
 {
     usage faust2cmajor "[options] [Faust options] <file.dsp>"
-    echo  "Compiles Faust programs to Cmajor"
+    echo  "Compiles Faust programs to Cmajor (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/cmajor)"
     option
     option -midi
     option "-nvoices <num>"

@@ -34,7 +34,7 @@ echoHelp()
     usage faust2android "[options] [Faust options] <file.dsp>"
     platform Android
     require Android SDK
-    echo "Compile a Faust program to an Android app"
+    echo "Compile a Faust program to an Android app (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/android)"
     option
     option -osc
     option -source "creates an eclipse project of the app in the current directory."

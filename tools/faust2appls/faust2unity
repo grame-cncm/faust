@@ -25,7 +25,7 @@ echoHelp()
     usage faust2unity "[options] [Faust options] <file.dsp>"
     platform Android, Linux, MacOSX, iOS, Windows
     require Unity
-    echo "Generates a unity package (compressed .unitypackage folder) with all available architecture libraries for faust unity plugin and the C# files required. Use arguments to generate specific architectures"
+    echo "Generates a unity package (compressed .unitypackage folder) with all available architecture libraries for faust unity plugin and the C# files required. Use arguments to generate specific architectures (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/unity)"
     option
     option -w32 "generates a Windows 32 bits library"
     option -w64 "generates a Windows 64 bits library"

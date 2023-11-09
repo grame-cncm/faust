@@ -28,7 +28,7 @@ VERSION="1.0.0"
 echoHelp()
 {
     echo "faust2vcvrack [-soundfile] [-source] [-nvoices <num>] [Faust options] <file.dsp>"
-    echo "Compiles Faust programs to VCV Rack modules"
+    echo "Compiles Faust programs to VCV Rack modules (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/vcvrack)"
     options -soundfile
     option "-source"
     option "-nvoices <num>"

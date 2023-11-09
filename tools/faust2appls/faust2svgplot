@@ -21,7 +21,7 @@ SOUNDFILELIBS=""
 
 echoHelp() {
     usage faust2svgplot "[options] [Faust options] <file.dsp>"
-    echo "Compiles Faust programs to SVG plotters, additional control parameters depend of the DSP, the following 2 options are given at runtime:"
+    echo "Compiles Faust programs to SVG plotters, additional control parameters depend of the DSP, the following 2 options are given at runtime (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/svgplot):"
     option "-r <rate>" "change the sample rate (default is 44100 Hz)"
     option
     option -double "generates code with samples of type 'double'."

@@ -19,7 +19,7 @@ echoHelp()
 {
     usage faust2juce "[options] [Faust options] <file.dsp>"
     require Juce
-    echo "Compiles Faust programs to JUCE standalones or plugins"
+    echo "Compiles Faust programs to JUCE standalones or plugins (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/juce)"
     option
     options -osc -midi -soundfile
     option "-nvoices <num>"

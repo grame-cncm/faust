@@ -25,7 +25,7 @@ echoHelp()
 {
     echo "faust2teensy [-lib] [-midi] [-nvoices <num>] [Faust options (-vec -vs 8...)] <file.dsp>"
     option
-    option -lib "generates a package containing an object compatible with the Teensy audio library."
+    option -lib "generates a package containing an object compatible with the Teensy audio library (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/teensy)"
     option -midi
     option "-nvoices <num>"
     option "Faust options"

@@ -38,7 +38,7 @@ echoHelp()
 {
     usage faust2esp32 "[options] [Faust options] <file.dsp> <file.dsp>"
     echo "faust2esp32 can be used to fully program the ESP32 microncontroller and to generate DSP objects"
-    echo "that can be integrated into any ESP32 project"
+    echo "that can be integrated into any ESP32 project (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/esp32)" 
     option
     option -gramophone "generates for GRAME Gramophone"
     option -multi "generate for GRAME Gramophone in multi DSP mode"
