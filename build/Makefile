@@ -66,11 +66,11 @@ ifeq ($(WORKLET), on)
 WORKLETOPT = "-DWORKLET=on"
 endif
 
-CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release $(WORKLETOPT)
-BUILDOPT ?= --config Release
+# CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release $(WORKLETOPT)
+# BUILDOPT ?= --config Release
 
-#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug $(WORKLETOPT)
-#BUILDOPT ?= --config Debug
+CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug $(WORKLETOPT)
+BUILDOPT ?= --config Debug
 
 #===============================================================
 # options

@@ -255,8 +255,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gAtanPrim       = new AtanPrim();
     gAtan2Prim      = new Atan2Prim();
     gAsinPrim       = new AsinPrim();
-    gDownsamplePrim = nullptr;  // new DownsamplePrim(); TODO
-    gUpsamplePrim   = nullptr;  // new UpsamplePrim();
+    gDownsamplePrim = new DownsamplePrim();
+    gUpsamplePrim   = new UpsamplePrim();
 
     BOXIDENT         = symbol("BoxIdent");
     BOXCUT           = symbol("BoxCut");
