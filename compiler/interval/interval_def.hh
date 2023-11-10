@@ -60,17 +60,21 @@ class interval {
 
     interval(double n, double m, int lsb = -24) noexcept
     {
+        if (lsb == INT_MIN)
+            fLSB = -24;
+        else
+            fLSB = lsb;
+
         if (std::isnan(n) || std::isnan(m)) {
             fLo = NAN;
             fHi = NAN;
         } else {
-            double u = pow(2, lsb);
+            double u = pow(2, fLSB);
             double n_trunc = u*(double)floor(n/u);
             double m_trunc = u*(double)floor(m/u);
             fLo = std::min(n_trunc, m_trunc);
             fHi = std::max(n_trunc, m_trunc);
         }
-        fLSB = lsb;
     }
 
     explicit interval(double n) noexcept : interval(n, n) {}
@@ -127,6 +131,8 @@ class interval {
         }
 
         int l = int(std::ceil(std::log2(range)));
+
+        std::cout << "The MSB of [" << fLo << ", \t" << fHi << "] is \t" << l << std::endl;
 
         // The sign bit will be added later on
         return l;
