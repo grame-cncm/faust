@@ -43,7 +43,6 @@ using namespace std;
  - gOneSampleControl mode is used, 'control' function is generated as well as 'update' function
  which call 'control' only when needed (that is when as least one parameter changes)
  - 'compute' returns the list of audio outputs (and possibly additional audio outputs for bargraph)
- - workaround for some identifiers ending with a digit that have to be used with "this." syntax in 'update' function (see CodeboxLabelsVisitor printArgs/printArgsCall)
  - MIDI support: https://rnbo.cycling74.com/learn/midi-in-rnbo, done in the architecture file, by creating MIDI messages specific
 handling objects (line 'ctlin/ctlout') and adding 'midiin/midiout' global objects in the main patch
  - polyphonic mode support: https://rnbo.cycling74.com/learn/polyphony-and-voice-management-in-rnbo, done in architecture file,

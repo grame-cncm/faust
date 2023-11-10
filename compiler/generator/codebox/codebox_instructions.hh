@@ -142,13 +142,10 @@ struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
         }
     }
     
-    // Identifiers ending with a number have to be accessed with "this."
     void printArgsCall()
     {
         for (size_t i = 0; i < fUILabels.size(); i++) {
-            std::string label = fUILabels[i];
-            bool is_digit = isdigit(label.back());
-            *fOut << (is_digit ? "this." : "") << label;
+            *fOut << fUILabels[i];
             if (i < fUILabels.size() - 1) *fOut << ",";
         }
     }
