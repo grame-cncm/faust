@@ -70,10 +70,15 @@ class interval {
             fHi = NAN;
         } else {
             double u = pow(2, fLSB);
-            double n_trunc = u*(double)floor(n/u);
-            double m_trunc = u*(double)floor(m/u);
-            fLo = std::min(n_trunc, m_trunc);
-            fHi = std::max(n_trunc, m_trunc);
+            if (u != 0) {
+                double n_trunc = u*(double)floor(n/u);
+                double m_trunc = u*(double)floor(m/u);
+                fLo = std::min(n_trunc, m_trunc);
+                fHi = std::max(n_trunc, m_trunc);
+            } else {
+                fLo = std::min(n, m);
+                fHi = std::max(n, m);
+            }
         }
     }
 
