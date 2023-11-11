@@ -36,7 +36,7 @@ class UpsamplePrim : public xtended {
 
     bool needCache() override { return true; }
 
-    ::Type infereSigType(const vector< ::Type>& args) override
+    ::Type inferSigType(const vector< ::Type>& args) override
     {
         faustassert(args.size() == arity());
         Type t = args[0];
