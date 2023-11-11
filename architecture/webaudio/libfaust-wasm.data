@@ -2480,7 +2480,7 @@ it = library("interpolators.lib");
 si = library("signals.lib");
 
 declare name "Faust Basic Element Library";
-declare version "1.11.0";
+declare version "1.11.1";
 
 //=============================Conversion Tools===========================================
 //========================================================================================
@@ -2874,7 +2874,7 @@ time = (+(1)~_) - 1;
 
 
 //-------`(ba.)ramp`----------
-// A linear ramp with a slope of '(+/-)1/n' samples to reach the next value.
+// A linear ramp with a slope of '(+/-)1/n' samples to reach the next target value.
 //
 // #### Usage
 //
@@ -2892,9 +2892,11 @@ ramp = case {
 
 
 //-------`(ba.)line`----------
-// A linear ramp to reach a next value in 'n' samples.
-// Note that the interpolation process is restarted every time
-// the desired output value changes, the interpolation time is sampled only then.
+// A ramp interpolator that generates a linear transition to reach a target value:
+//
+//  - the interpolation process restarts each time a new and distinct input value is received
+//  - it utilizes 'n' samples to achieve the transition to the target value
+//  - after reaching the target value, the output value is maintained.
 //
 // #### Usage
 //
@@ -2903,7 +2905,7 @@ ramp = case {
 // ```
 // Where:
 //
-// * `n`: number of samples to reach the next value
+// * `n`: number of samples to reach the new target received at its input
 //------------------------
 line(n, x) = state ~ (_,_) : !,_
 with {
@@ -3374,17 +3376,13 @@ declare tabulate_chebychev license "MIT-style STK-4.3 license";
 
 
 //-------`(ba.)tabulateNd`----------
-// Tabulate an nD function for access via nearest-value or linear or cubic interpolation.  
-// In other words, the tabulated function can be evaluated using interpolation of order 0 (none), 1 (linear), or 3 (cubic).  
-// The table size and parameter range of each dimension can and must be separately specified.  
-// You can use it anywhere you have an expensive function with multiple parameters with known ranges.  
-// You could use it to build a wavetable synth, for example.
+// Tabulate an nD function for access via nearest-value or linear or cubic interpolation. In other words, the tabulated function can be evaluated using interpolation of order 0 (none), 1 (linear), or 3 (cubic).  
+//
+// The table size and parameter range of each dimension can and must be separately specified. You can use it anywhere you have an expensive function with multiple parameters with known ranges. You could use it to build a wavetable synth, for example.
 //
 // The number of dimensions is deduced from the number of parameters you give, see below.
 //
-// Note that processing the last point in each interval is not safe.  
-// So either be sure the inputs stay in their respective ranges, or use `C = 1`.  
-// Similarly for the first point when doing cubic interpolation.
+// Note that processing the last point in each interval is not safe. So either be sure the inputs stay in their respective ranges, or use `C = 1`. Similarly for the first point when doing cubic interpolation.
 //
 // #### Usage
 //
@@ -3394,8 +3392,7 @@ declare tabulate_chebychev license "MIT-style STK-4.3 license";
 //
 // * `C`: whether to dynamically force the parameter values for each dimension to the ranges specified in parameters: 1 forces the check, 0 deactivates it (constant numerical expression)
 // * `function`: the function we want to tabulate. Can have any number of inputs, but needs to have just one output.
-// * `(parameters)`: sizes, ranges and read values.  
-//   Note: these need to be in brackets, to make them one entity.  
+// * `(parameters)`: sizes, ranges and read values. Note: these need to be in brackets, to make them one entity.  
 //
 //   If N is the number of dimensions, we need:
 // 
@@ -3448,9 +3445,8 @@ declare tabulate_chebychev license "MIT-style STK-4.3 license";
 //
 // * We have a grid of values, and we want to find the value at a point (x, y) within this grid.  
 // * We first find the four closest points (A, B, C, D) in the grid surrounding the point (x, y).  
-// Then, we perform linear interpolation in the x-direction between points A and B, and between points C and D.  
-// This gives us two new points E and F.  
-// Finally, we perform linear interpolation in the y-direction between points E and F to get our value.
+// 
+// Then, we perform linear interpolation in the x-direction between points A and B, and between points C and D. This gives us two new points E and F. Finally, we perform linear interpolation in the y-direction between points E and F to get our value.
 //
 // To implement this in Faust, we need N sequential groups of interpolators, where N is the number of dimensions.  
 // Each group feeds into the next, with the last "group" being a single interpolator, and the group before it containing one interpolator for each input of the group it's feeding.
@@ -3494,8 +3490,7 @@ declare tabulate_chebychev license "MIT-style STK-4.3 license";
 // This is what the ``mixers`` function does.
 //
 // Besides the values, each interpolator also needs to know the weight of each value in it's output.  
-// Let's call this `d`, like in ``ba.interpolate``.  
-// It is the same for each group of interpolators, since it correlates to a dimension.  
+// Let's call this `d`, like in ``ba.interpolate``. It is the same for each group of interpolators, since it correlates to a dimension.  
 // It's value is calculated the similarly to ``ba.interpolate``:
 // 
 // * First we prepare a "float table read-index" for that dimension (``id`` in ``ba.tabulate``)
@@ -3543,25 +3538,15 @@ declare tabulate_chebychev license "MIT-style STK-4.3 license";
 //
 // To understand how we get the ``readIndex``for ``.val``, let's work trough how we'd do it in our 2D linear example.  
 // For simplicity's sake, the ranges of the inputs to our ``function`` are both 0 to 1.  
-// Say we wanted to read the value closest to ``x=0.5`` and ``y=0``, so the ``id`` of ``x`` is ``1`` (the second value) and the ``id`` of ``y`` is 0 (first value).  
-// In this case, the read index is just the ``id`` of ``x``, rounded to the nearest integer, just like in ``ba.tabulate``.
+// Say we wanted to read the value closest to ``x=0.5`` and ``y=0``, so the ``id`` of ``x`` is ``1`` (the second value) and the ``id`` of ``y`` is 0 (first value). In this case, the read index is just the ``id`` of ``x``, rounded to the nearest integer, just like in ``ba.tabulate``.
 // 
-// If we want to read the value belonging to ``x=0.5`` and ``y=2/3``, things get more complicated.  
-// The ``id`` for ``y`` is now ``2``, the third value.  
-// For each step in the ``y`` direction, we need to increase the index by ``3``, the number of values that are stored for ``x``.  
-// So the influence of the ``y`` is:  the size of ``x`` times the rounded ``id`` of ``y``.  
-// The final read index is the rounded ``id`` of ``x`` plus the influence of ``y``.
+// If we want to read the value belonging to ``x=0.5`` and ``y=2/3``, things get more complicated. The ``id`` for ``y`` is now ``2``, the third value. For each step in the ``y`` direction, we need to increase the index by ``3``, the number of values that are stored for ``x``. So the influence of the ``y`` is:  the size of ``x`` times the rounded ``id`` of ``y``. The final read index is the rounded ``id`` of ``x`` plus the influence of ``y``.
 //
-// For the general nD case, we need to do the same operation N times, each feeding into the next.  
-// This operation is the ``riN`` function.  
-// We take four parameters: the size of the dimension before it ``prevSize``, the index of the previous dimension ``prevIX``, the current size ``sizeX`` and the current id ``idX``.  
-// ``riN`` has 2 outputs, the size, for feeding into the next dimension's ``prevSize``, and the read index feeding into the next dimension's prevIX.  
-// The size is the ``sizeX`` times ``prevSize``.  
-// The read index is the rounded ``idX`` times ``prevSize`` added to the ``prevIX``.  
-// Our final ``readIndex`` is the read index output of the last dimension.
+// For the general nD case, we need to do the same operation N times, each feeding into the next. This operation is the ``riN`` function. We take four parameters: the size of the dimension before it ``prevSize``, the index of the previous dimension ``prevIX``, the current size ``sizeX`` and the current id ``idX``.  ``riN`` has 2 outputs, the size, for feeding into the next dimension's ``prevSize``, and the read index feeding into the next dimension's ``prevIX``.  
+// The size is the ``sizeX`` times ``prevSize``. The read index is the rounded ``idX`` times ``prevSize`` added to the ``prevIX``. Our final ``readIndex`` is the read index output of the last dimension.
 //
-// To get the read values for the  interpolators need a pattern of offsets in each dimension, since we are looking for the read indexes surrounding the point of interest.  
-// These offsets are best explained by looking at the code of ``tabulate2d``, the hardcoded 2D version:
+// To get the read values for the  interpolators need a pattern of offsets in each dimension, since we are looking for the read indexes surrounding the point of interest. These offsets are best explained by looking at the code of ``tabulate2d``, the hardcoded 2D version:
+//
 // ```faust
 // tabulate2d(C,function, sizeX,sizeY, rx0,ry0, rx1,ry1, x,y) =
 //   environment {
@@ -3952,6 +3937,83 @@ declare tabulateNd license "AGPL-3.0";
 if(cond,then,else) = select2(cond,else,then);
 // TODO: perhaps it would make more sense to have an if(a,b) and an ifelse(a,b,c)?
 
+//-----------------------------`(ba.)ifNc`--------------------------------------
+// if-then-elseif-then-...elsif-then-else implemented on top of `ba.if`.
+//
+// #### Usage
+//
+// ```
+//    ifNc((cond1,then1, cond2,then2, ... condN,thenN, else)) : _
+// or
+//    ifNc(Nc, cond1,then1, cond2,then2, ... condN,thenN, else) : _
+// or
+//    cond1,then1, cond2,then2, ... condN,thenN, else : ifNc(Nc) : _
+// ```
+//
+// Where:
+//
+// * `Nc` : number of branches/conditions (constant numerical expression)
+// * `condX`: condition
+// * `thenX`: signal selected if condX is the 1st true condition
+// * `else`: signal selected if all the cond1-condN conditions are false
+//
+// #### Example test program
+//
+// ```
+//    process(x,y) = ifNc((x<y,-1, x>y,+1, 0));
+// or
+//    process(x,y) = ifNc(2, x<y,-1, x>y,+1, 0);
+// or
+//    process(x,y) = x<y,-1, x>y,+1, 0 : ifNc(2);
+// ```
+//
+// outputs `-1` if `x<y`, `+1` if `x>y`, `0` otherwise.
+//-----------------------------------------------------------------------------
+ifNc((c,r)) = c,r : ifNc(outputs(r)/2);
+ifNc(1) = if;
+ifNc(n) = _,_,ifNc(n-1) : ifNc(1);
+
+declare ifNc author "Oleg Nesterov";
+declare ifNc copyright "Copyright (C) 2023 Oleg Nesterov <oleg@redhat.com>";
+declare ifNc license "MIT-style STK-4.3 license";
+
+//-----------------------------`(ba.)ifNcNo`-------------------------------------
+// `ifNcNo(Nc,No)` is similar to `ifNc(Nc)` above but then/else branches have `No` outputs.
+//
+// #### Usage
+//
+// ```
+//    ifNcNo(Nc,No, cond1,then1, cond2,then2, ... condN,thenN, else) : sig.bus(No)
+// ```
+//
+// Where:
+//
+// * `Nc` : number of branches/conditions (constant numerical expression)
+// * `No` : number of outputs (constant numerical expression)
+// * `condX`: condition
+// * `thenX`: list of No signals selected if condX is the 1st true condition
+// * `else`: list of No signals selected if all the cond1-condN conditions are false
+//
+// #### Example test program
+//
+// ```
+//    process(x) = ifNcNo(2,3, x<0, -1,-1,-1, x>0, 1,1,1, 0,0,0);
+// ```
+//
+// outputs `-1,-1,-1` if `x<0`, `1,1,1` if `x>0`, `0,0,0` otherwise.
+//-----------------------------------------------------------------------------
+ifNcNo(Nc,No) = si.bus(Ni) <: par(no,No, slice(no) : ifNc(Nc))
+with {
+    Ni = Nc*No + Nc+No;
+    slice(no) = route(Ni,2*Nc+1, (par(nc,Nc, ct(nc,no)),else(no)));
+    ct(nc,no) = nc*(No+1)+1,    2*nc+1,    // cond[nc]
+                nc*(No+1)+2+no, 2*nc+2;    // then[nc][no]
+    else(no)  = Nc*(No+1)+1+no, 2*Nc+1;    // else[no]
+};
+
+declare ifNcNo author "Oleg Nesterov";
+declare ifNcNo copyright "Copyright (C) 2023 Oleg Nesterov <oleg@redhat.com>";
+declare ifNcNo license "MIT-style STK-4.3 license";
 
 //-----------------------------`(ba.)selector`---------------------------------
 // Selects the ith input among n at compile time.
@@ -7271,12 +7333,14 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
+aa = library("aanl.lib");
 ma = library("maths.lib");
 ba = library("basics.lib");
 si = library("signals.lib");
+it = library("interpolators.lib");
 
 declare name "Faust Envelope Library";
-declare version "1.2.0";
+declare version "1.3.0";
 declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
@@ -7434,6 +7498,257 @@ with {
     R = rtime/rn;
 
 };
+
+
+adsr_bias_env = environment
+{
+  // In the functions below, we use the equation `y=bias_curve(b,x)`.
+  // `b`: bias between 0 and 1. Bias of 0.5 results in `y=x`. Bias above 0.5 pulls y upward.
+  // `x`: input between 0 and 1 that needs to be remapped/biased into `y`
+  // `y`: `x` after it has been biased. Note that `(y==0 iff x==0) AND (y==1 iff x==1)`.
+  bias_curve(b,x) = (x / ((((1.0/b) - 2.0)*(1.0 - x))+1.0));
+
+  // d/dx of bias_curve(b,x)
+  bias_curve_d_dx(b, x) = 0-(-1+b)*b/((1-x+b*(-1+2*x))^2);
+
+  // Solve for x in y=bias_curve(b,x)
+  bias_curve_inverse(b,y) = (b-1)*y / (2*b*y-b-y);
+
+  // We don't allow the bias to be too close to 0 or 1 because it leads to slopes too
+  // close to positive or negative infinity.
+  bias_clip = aa.clip(.03, .97);
+
+  adsr_bias(att, dec, sus, rel, final, bias_att, bias_dec, bias_rel, legato, gate) = envelope 
+  with {
+    ugate = gate>0;
+
+    fb(_state, _y) = nextState, nextY
+    with {
+      // Legato control
+      onset = ba.impulsify(ugate);
+      state = select2(onset, _state, 0), _state : select2(legato);
+
+      // two conditions in which we want to hard-reset the `y` to `final`
+      // instead of using the previous `_y`.
+      y = ba.if((onset & (legato<0.5)) | (ba.time==0), final, _y);
+      // note that if final is a constant zero then this could simply be
+      // y = ba.if(onset & (legato<0.5), 0, _y);
+
+      // State 0: release
+      // State 1: attack
+      // State 2: decay 
+
+      y_at_release = ba.if(ba.time==0,1,y) : ba.latch(gate==0);
+      // note that if final is a constant zero then this could simply be
+      // y_at_release = y : ba.latch(gate==0);
+
+      // Slope is a y-distance divided by a number of samples
+      att_slope = (1-final) / max(1,(att*ma.SR));
+      dec_slope = (sus-1) / max(1,(dec*ma.SR));
+      rel_slope = (final-y_at_release) / max(1,(rel*ma.SR));
+
+      // Get bias based on the state, then clip for safety.
+      b = bias_rel, bias_att, bias_dec : select3(state) : bias_clip;
+
+      // We will remap from an input domain to [0..1] based on the current state.
+      from1 = ba.if(state==2, sus, final);
+      from2 = ba.if(state==0, y_at_release, 1);
+
+      // Prevent divide-by-zero in it.remap
+      pct = it.remap(from1, from2, 0, 1, y), 0.5 : select2(from1==from2) : bias_curve_inverse(b);
+      
+      slope = rel_slope, att_slope, dec_slope : select3(state) : _*bias_curve_d_dx(b, pct);
+          
+      nextY = y + slope : aa.clip(from1, 1);
+      nextState = select2(ugate,
+        0,
+        select3(state,
+          1,
+          select2(y < 1.0, 2, 1),
+          2
+        )
+      );
+    };
+    envelope = fb ~ (_,_) : !, _;
+  };
+
+  ahdsr_bias(att, hol, dec, sus, rel, final, bias_att, bias_dec, bias_rel, legato, gate) = envelope 
+  with {
+    ugate = gate>0;
+
+    fb(_state, _y) = nextState, nextY
+    with {
+      // Legato control
+      onset = ba.impulsify(ugate);
+      state = select2(onset, _state, 0), _state : select2(legato);
+
+      // two conditions in which we want to hard-reset the `y` to `final`
+      // instead of using the previous `_y`.
+      y = ba.if((onset & (legato<0.5)) | (ba.time==0), final, _y);
+      // note that if final is a constant zero then this could simply be
+      // y = ba.if(onset & (legato<0.5), 0, _y);
+
+      // State 0: release
+      // State 1: attack
+      // State 2: hold
+      // State 3: decay 
+
+      y_at_release = ba.if(ba.time==0,1,y) : ba.latch(gate==0);
+      // note that if final is a constant zero then this could simply be
+      // y_at_release = y : ba.latch(gate==0);
+
+      // Slope is a y-distance divided by a number of samples
+      att_slope = (1-final) / max(1,(att*ma.SR));
+      hold_slope = ba.if(gate, att_slope, rel_slope);
+      dec_slope = (sus-1) / max(1,(dec*ma.SR));
+      rel_slope = (final-y_at_release) / max(1,(rel*ma.SR));
+
+      // Get bias based on the state, then clip for safety.
+      // Note that for the hold state, we choose a bias of 0.5 (the middle value).
+      b = bias_rel, bias_att, .5, bias_dec : ba.selectn(4, state) : bias_clip;
+
+      from1 = ba.if(state==3, sus, final);
+      from2 = ba.if(state==0, y_at_release, 1);
+
+      // Prevent divide-by-zero in it.remap
+      pct = it.remap(from1, from2, 0, 1, y), 0.5 : select2(from1==from2) : bias_curve_inverse(b);
+      
+      slope = rel_slope, att_slope, hold_slope, dec_slope : ba.selectn(4, state) : _*bias_curve_d_dx(b, pct);
+
+      hold_time = ma.SR * hol;
+      hold_timer = ugate : +~(*(ugate * (state != 1)));
+          
+      nextY = y + slope : aa.clip(from1, 1);
+      nextState = select2(ugate,
+        0,
+        ba.selectn(4, state,
+          1,
+          select2(y < 1.0, 2, 1),
+          select2(hold_timer < hold_time, 3, 2),
+          3
+        )
+      );
+    };
+    envelope = fb ~ (_,_) : !, _;
+  };
+};
+
+
+//------------------------`(en.)adsrf_bias`------------------------------
+// ADSR (Attack, Decay, Sustain, Release, Final) envelope generator with
+// control over bias on each segment, and toggle for legato.
+//
+// #### Usage
+//
+// ```
+// adsrf_bias(at,dt,sl,rt,final,b_att,b_dec,b_rel,legato,t) : _
+// ```
+//
+// Where:
+//
+// * `at`: attack time (sec)
+// * `dt`: decay time (sec)
+// * `sl`: sustain level (between 0..1)
+// * `rt`: release time (sec)
+// * `final`: final level (between 0..1) but less than or equal to `sl`
+// * `b_att`: bias during attack (between 0..1) where 0.5 is no bias.
+// * `b_dec`: bias during decay (between 0..1) where 0.5 is no bias.
+// * `b_rel`: bias during release (between 0..1) where 0.5 is no bias.
+// * `legato`: toggle for legato. If disabled, envelopes "re-trigger" from zero.
+// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
+// when `t=0`)
+//-------------------------------------------------------------------------------
+declare adsrf_bias author "Andrew John March and David Braun";
+declare adsrf_bias licence "STK-4.3";
+adsrf_bias(att, dec, sus, rel, final, bias_att, bias_dec, bias_rel, legato, gate) = adsr_bias_env.adsr_bias(att, dec, sus, rel, final, bias_att, bias_dec, bias_rel, legato, gate);
+
+
+//------------------------`(en.)adsr_bias`------------------------------
+// ADSR (Attack, Decay, Sustain, Release) envelope generator with
+// control over bias on each segment, and toggle for legato.
+//
+// #### Usage
+//
+// ```
+// adsr_bias(at,dt,sl,rt,b_att,b_dec,b_rel,legato,t) : _
+// ```
+//
+// Where:
+//
+// * `at`: attack time (sec)
+// * `dt`: decay time (sec)
+// * `sl`: sustain level (between 0..1)
+// * `rt`: release time (sec)
+// * `b_att`: bias during attack (between 0..1) where 0.5 is no bias.
+// * `b_dec`: bias during decay (between 0..1) where 0.5 is no bias.
+// * `b_rel`: bias during release (between 0..1) where 0.5 is no bias.
+// * `legato`: toggle for legato. If disabled, envelopes "re-trigger" from zero.
+// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
+// when `t=0`)
+//-------------------------------------------------------------------------------
+declare adsr_bias author "Andrew John March and David Braun";
+declare adsr_bias licence "STK-4.3";
+adsr_bias(      att, dec, sus, rel,        bias_att, bias_dec, bias_rel, legato, gate) = adsr_bias_env.adsr_bias(att, dec, sus, rel, 0,     bias_att, bias_dec, bias_rel, legato, gate);
+
+
+//------------------------`(en.)ahdsrf_bias`---------------------------
+// AHDSR (Attack, Hold, Decay, Sustain, Release, Final) envelope generator
+// with control over bias on each segment, and toggle for legato.
+//
+// #### Usage
+//
+// ```
+// ahdsrf_bias(at,ht,dt,sl,rt,final,b_att,b_dec,b_rel,legato,t) : _
+// ```
+//
+// Where:
+//
+// * `at`: attack time (sec)
+// * `ht`: hold time (sec)
+// * `dt`: decay time (sec)
+// * `sl`: sustain level (between 0..1)
+// * `rt`: release time (sec)
+// * `final`: final level (between 0..1) but less than or equal to `sl`
+// * `b_att`: bias during attack (between 0..1) where 0.5 is no bias.
+// * `b_dec`: bias during decay (between 0..1) where 0.5 is no bias.
+// * `b_rel`: bias during release (between 0..1) where 0.5 is no bias.
+// * `legato`: toggle for legato. If disabled, envelopes "re-trigger" from zero.
+// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
+// when `t=0`)
+//---------------------------------------------------------------------
+declare ahdsrf_bias author "Andrew John March and David Braun";
+declare ahdsrf_bias licence "STK-4.3";
+ahdsrf_bias(att, hol, dec, sus, rel, final, bias_att, bias_dec, bias_rel, legato, gate) = adsr_bias_env.ahdsr_bias(att, hol, dec, sus, rel, final, bias_att, bias_dec, bias_rel, legato, gate);
+
+
+//------------------------`(en.)ahdsr_bias`---------------------------
+// AHDSR (Attack, Hold, Decay, Sustain, Release) envelope generator
+// with control over bias on each segment, and toggle for legato.
+//
+// #### Usage
+//
+// ```
+// ahdsr_bias(at,ht,dt,sl,rt,final,b_att,b_dec,b_rel,legato,t) : _
+// ```
+//
+// Where:
+//
+// * `at`: attack time (sec)
+// * `ht`: hold time (sec)
+// * `dt`: decay time (sec)
+// * `sl`: sustain level (between 0..1)
+// * `rt`: release time (sec)
+// * `final`: final level (between 0..1) but less than or equal to `sl`
+// * `b_att`: bias during attack (between 0..1) where 0.5 is no bias.
+// * `b_dec`: bias during decay (between 0..1) where 0.5 is no bias.
+// * `b_rel`: bias during release (between 0..1) where 0.5 is no bias.
+// * `legato`: toggle for legato. If disabled, envelopes "re-trigger" from zero.
+// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
+// when `t=0`)
+//---------------------------------------------------------------------
+declare ahdsr_bias author "Andrew John March and David Braun";
+declare ahdsr_bias licence "STK-4.3";
+ahdsr_bias(att, hol, dec, sus, rel, bias_att, bias_dec, bias_rel, legato, gate) = adsr_bias_env.ahdsr_bias(att, hol, dec, sus, rel, 0, bias_att, bias_dec, bias_rel, legato, gate);
 
 
 //------------------------`(en.)smoothEnvelope`------------------------
@@ -7708,8 +8023,8 @@ declare version "1.4.0";
 pl = library("platform.lib");
 
 //=========================Wave-Table-Based Oscillators===================================
+// Oscillators based on mathematical functions.
 //========================================================================================
-
 
 //-----------------------`(os.)sinwaveform`------------------------
 // Sine waveform ready to use with a `rdtable`.
@@ -7978,6 +8293,38 @@ with {
 // * `freq`: the frequency in Hz
 //------------------------------------------------------------
 osc = oscsin;
+
+
+//-----------------------`(os.)m_oscsin`------------------------
+// Sine wave oscillator based on the `sin` mathematical function.
+//
+// #### Usage
+//
+// ```
+// m_oscsin(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: the frequency in Hz
+//------------------------------------------------------------
+m_oscsin(freq) = lf_sawpos(freq) : *(2*ma.PI) : sin;
+
+
+//-----------------------`(os.)m_osccos`------------------------
+// Sine wave oscillator based on the `sin` mathematical function.
+//
+// #### Usage
+//
+// ```
+// m_osccos(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: the frequency in Hz
+//------------------------------------------------------------
+m_osccos(freq) = lf_sawpos(freq) : *(2*ma.PI) : cos;
 
 
 // end GRAME section
@@ -9976,7 +10323,18 @@ with{
   comp = (x2-x1) < thres;
 };
 //################################## misceffects.lib ##########################################
-// This library contains a collection of audio effects. Its official prefix is `ef`.
+// Collection of audio effects library. Its official prefix is `ef`.
+//
+// The library is organized into 7 sections:
+//
+// * [Dynamic](#Dynamic)
+// * [Fibonacci](#fibonacci)
+// * [Filtering](#filtering)
+// * [Meshes](#meshes)
+// * [Mixing](#mixing)
+// * [Time Based](#time-based)
+// * [Pitch Shifting](#pitch-shifting)
+// * [Saturators](#saturators)
 //
 // #### References
 // * <https://github.com/grame-cncm/faustlibraries/blob/master/misceffects.lib>
@@ -10020,25 +10378,12 @@ de = library("delays.lib");
 si = library("signals.lib");
 an = library("analyzers.lib");
 fi = library("filters.lib");
+ro = library("routes.lib");
+aa = library("aanl.lib");
 ef = library("misceffects.lib"); // for compatible copy/paste out of this file
 
 declare name "Misc Effects Library";
-declare version "2.1.0"; 
-
-//########################################################################################
-/************************************************************************
-FAUST library file, jos section
-
-Except where noted otherwise, The Faust functions below in this
-section are Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>
-([jos](http://ccrma.stanford.edu/~jos/)), and released under the
-(MIT-style) [STK-4.3](#stk-4.3-license) license.
-
-MarkDown comments in this section are Copyright 2016-2019 by Romain
-Michon and Julius O. Smith III, and are released under the
-[CCA4I](https://creativecommons.org/licenses/by/4.0/) license (TODO: if/when Romain agrees!)
-
-************************************************************************/
+declare version "2.4.0"; 
 
 //======================================Dynamic===========================================
 //========================================================================================
@@ -10075,6 +10420,10 @@ with {
 
 cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : fi.dcblocker;
 
+declare cubicnl author "Julius O. Smith III";
+declare cubicnl license "STK-4.3";
+declare cubicnl_nodc author "Julius O. Smith III";
+declare cubicnl_nodc license "STK-4.3";
 
 //-----------------`(ef.)gate_mono`-------------------
 // Mono signal gate.
@@ -10101,6 +10450,8 @@ cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : fi.dcblocker;
 //------------------------------------------------------------
 gate_mono(thresh,att,hold,rel,x) = x * gate_gain_mono(thresh,att,hold,rel,x);
 
+declare gate_mono author "Julius O. Smith III";
+declare gate_mono license "STK-4.3";
 
 //-----------------`(ef.)gate_stereo`-------------------
 // Stereo signal gates.
@@ -10140,35 +10491,126 @@ gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : an.amp_follower_ar
   holdsamps = int(hold*ma.SR);
 };
 
+declare gate_stereo author "Julius O. Smith III";
+declare gate_stereo license "STK-4.3";
+declare gate_gain_mono author "Julius O. Smith III";
+declare gate_gain_mono license "STK-4.3";
+
+//=====================================Fibonacci==========================================
+//========================================================================================
+
+//---------------`(ef.)fibonacci`---------------------------
+// Fibonacci system where the current output is the current
+// input plus the sum of the previous N outputs.
+//
+// #### Usage
+//
+// ```
+// _ : fibonacci(N) : _
+// ```
+//
+// Where:
+//
+// * `N`: the Fibonacci system's order, where 2 is standard
+//
+// #### Example
+// Generate the famous series: [1, 1, 2, 3, 5, 8, 13, ...]
+//
+// ```
+// 1. : ba.impulsify : fibonacci(2)
+// ```
+//------------------------------------------------------------
+declare fibonacci author "Dario Sanfilippo";
+
+fibonacci(order) = +~(_<:sum(i, order, @(i)):>_);
+
+
+//---------------`(ef.)fibonacciGeneral`----------------------
+// Fibonacci system with customizable coefficients.
+// The order of the system is inferred from the number of coefficients.
+//
+// #### Usage
+//
+// ```
+// _ : fibonacciGeneral(wave) : _
+// ```
+//
+// Where:
+//
+// * `wave`: a waveform such as `waveform{1, 1}`
+//
+// #### Example:
+// Use the update equation `y = 2*y' + 3*y'' + 4*y'''`
+//
+// ```
+// 1. : ba.impulsify : fibonacciGeneral(waveform{2, 3, 4})
+// ```
+//------------------------------------------------------------
+declare fibonacciGeneral author "Dario Sanfilippo and David Braun";
+
+fibonacciGeneral(wave) = +~(_<:sum(i, N, func(i)):>_)
+with {
+    N = wave : _, !;
+    func(i) = @(i) : _ * (wave, i : rdtable);
+};
+
+//---------------`(ef.)fibonacciSeq`---------------------------
+// First N numbers of the Fibonacci sequence [1, 1, 2, 3, 5, 8, ...]
+// as parallel channels.
+//
+// #### Usage
+//
+// ```
+// fibonacciSeq(N) : si.bus(N)
+// ```
+//
+// Where:
+//
+// * `N`: The number of Fibonacci numbers to generate as channels.
+// 
+//------------------------------------------------------------
+
+fibonacciSeq(N) = iterate(N, (1, 1))
+with {
+  iterate(1, (A0, A1)) = A0;
+  iterate(N, (A0, A1)) = A0 , iterate(N - 1, (A1, A0 + A1));
+};
+
+declare fibonacciSeq author "Dario Sanfilippo";
+
 
 //=====================================Filtering==========================================
 //========================================================================================
 
 //-------------------------`(ef.)speakerbp`-------------------------------
 // Dirt-simple speaker simulator (overall bandpass eq with observed
-// roll-offs above and below the passband).
+// roll-offs above and below the passband). `speakerbp` is a standard Faust function.
 //
 // Low-frequency speaker model = +12 dB/octave slope breaking to
 // flat near f1. Implemented using two dc blockers in series.
 //
 // High-frequency model = -24 dB/octave slope implemented using a
 // fourth-order Butterworth lowpass.
+
 //
-// Example based on measured Celestion G12 (12" speaker):
-//
-// `speakerbp` is a standard Faust function.
 //
 // #### Usage
-//
 // ```
-// speakerbp(f1,f2)
-// _ : speakerbp(130,5000) : _
+// _ : speakerbp(f1,f2) : _
+// ```
+// #### Example
+//
+// Based on measured Celestion G12 (12" speaker):
+// ```
+// speakerbp(130,5000)
 // ```
 //------------------------------------------------------------
 // TODO: perhaps this should be moved to physmodels.lib
 // [JOS: I don't think so because it's merely a bandpass filter tuned to speaker bandwidth]
 speakerbp(f1,f2) = fi.dcblockerat(f1) : fi.dcblockerat(f1) : fi.lowpass(4,f2);
 
+declare speakerbp author "Julius O. Smith III";
+declare speakerbp license "STK-4.3";
 
 //------------`(ef.)piano_dispersion_filter`---------------
 // Piano dispersion allpass filter in closed form.
@@ -10228,6 +10670,9 @@ with {
  Df0 = polydel(a1) - polydel(1.0/a1);
 };
 
+declare piano_dispersion_filter author "Julius O. Smith III";
+declare piano_dispersion_filter license "STK-4.3";
+
 //-------------------------`(ef.)stereo_width`---------------------------
 // Stereo Width effect using the Blumlein Shuffler technique.
 // `stereo_width` is a standard Faust function.
@@ -10258,6 +10703,9 @@ with {
      sgain = w/2;
 };
 
+declare stereo_width author "Julius O. Smith III";
+declare stereo_width license "STK-4.3";
+
 //===========================================Meshes=======================================
 //========================================================================================
 
@@ -10286,30 +10734,34 @@ with {
 // The mesh is constructed recursively using 2x2 embeddings. Thus,
 // the top level of `mesh_square(M)` is a block 2x2 mesh, where each
 // block is a `mesh(M/2)`. Let these blocks be numbered 1,2,3,4 in the
-// geometry NW,NE,SW,SE, i.e., as
+// geometry NW,NE,SW,SE, i.e., as:
+//
 //         1 2
 //         3 4
+// 
 // Each block has four vector inputs and four vector outputs, where the
-// length of each vector is `M/2`.  Label the input vectors as Ni,Ei,Wi,Si,
+// length of each vector is `M/2`. Label the input vectors as Ni,Ei,Wi,Si,
 // i.e., as the inputs from the North, East South, and West,
-// and similarly for the outputs.  Then, for example, the upper
-// left input block of M/2 signals is labeled 1Ni.  Most of the
-// connections are internal, such as 1Eo -> 2Wi.  The `8*(M/2)` input
-// signals are grouped in the order
+// and similarly for the outputs. Then, for example, the upper
+// left input block of M/2 signals is labeled 1Ni. Most of the
+// connections are internal, such as 1Eo -> 2Wi. The `8*(M/2)` input
+// signals are grouped in the order:
+// 
 //        1Ni 2Ni
 //        3Si 4Si
 //        1Wi 3Wi
 //        2Ei 4Ei
-// and the output signals are
+// 
+// and the output signals are:
+//
 //        1No 1Wo
 //        2No 2Eo
 //        3So 3Wo
 //        4So 4Eo
-// or
+// or:
 //
-// In: 1No 1Wo 2No 2Eo 3So 3Wo 4So 4Eo
-//
-// Out: 1Ni 2Ni 3Si 4Si 1Wi 3Wi 2Ei 4Ei
+//        In: 1No 1Wo 2No 2Eo 3So 3Wo 4So 4Eo
+//        Out: 1Ni 2Ni 3Si 4Si 1Wi 3Wi 2Ei 4Ei
 //
 // Thus, the inputs are grouped by direction N,S,W,E, while the
 // outputs are grouped by block number 1,2,3,4, which can also be
@@ -10322,15 +10774,16 @@ with {
 //
 // ```
 // mesh_square_test(N,x) = mesh_square(N)~(busi(4*N,x)) // input to corner
-// with { busi(N,x) = bus(N) : par(i,N,*(-1)) : par(i,N-1,_), +(x); };
+// with { 
+//     busi(N,x) = bus(N) : par(i,N,*(-1)) : par(i,N-1,_), +(x); 
+// };
 // process = 1-1' : mesh_square_test(4); // all modes excited forever
 // ```
 //
 // In this simple example, the mesh edges are connected as follows:
 //
-// 1No -> 1Ni, 1Wo -> 2Ni, 2No -> 3Si, 2Eo -> 4Si,
-//
-// 3So -> 1Wi, 3Wo -> 3Wi, 4So -> 2Ei, 4Eo -> 4Ei
+//        1No -> 1Ni, 1Wo -> 2Ni, 2No -> 3Si, 2Eo -> 4Si,
+//        3So -> 1Wi, 3Wo -> 3Wi, 4So -> 2Ei, 4Eo -> 4Ei
 //
 // A routing matrix can be used to obtain other connection geometries.
 //------------------------------------------------------------
@@ -10380,122 +10833,9 @@ with {
     : si.bus(16*N);
 };
 
-//--------------------`(ef.)reverseEchoN(nChans,delay)`-------------------
-// Reverse echo effect.
-//
-// #### Usage
-//
-// ```
-// _ : ef.reverseEchoN(N,delay) : si.bus(N)
-// ```
-//
-// Where:
-//
-// *     `N`: Number of output channels desired (1 or more)
-// * `delay`: echo delay (integer power of 2)
-//
-// #### Demo
-//
-// ```
-// _ : dm.reverseEchoN(N) : _,_
-// ```
-//
-// #### Description
-//
-// The effect uses N instances of `reverseDelayRamped` at different phases.
-//
-//------------------------------------------------------------
-reverseEchoN(N,delMax) = _<: par(i,N,ef.reverseDelayRamped(delMax,i/N));
+declare mesh_square author "Julius O. Smith III";
+declare mesh_square license "STK-4.3";
 
-//-------------------`(ef.)reverseDelayRamped(delay,phase)`------------------
-// Reverse delay with amplitude ramp.
-//
-// #### Usage
-//
-// ```
-// _ : ef.reverseDelayRamped(delay,phase) : _
-// ```
-//
-// Where:
-//
-// * `delay`: echo delay (integer power of 2)
-// * `phase`: float between 0 and 1 giving ramp delay phase*delay
-//
-// #### Demo
-//
-// ```
-// _ : ef.reverseDelayRamped(32,0.6) : _,_
-// ```
-//
-//------------------------------------------------------------
-reverseDelayRamped(delMax,phs) = rampGain * de.delay(delMax,del) with {
-  rampGain = 4 * (del/delMax) * (1 - del/delMax); // suppress click when delay-line wraps around
-  delOffset = int(floor(0.5 + delMax * max(0,min(0.999999,phs)))); // starting point in delay line
-  startPulse = (1-1') * delOffset;
-  del = int(startPulse : + ~ +(2)) & (delMax-1);
-};
-
-
-//-------------------`(ef.)uniformPanToStereo(nChans)`------------------
-// Pan nChans channels to the stereo field, spread uniformly left to right.
-//
-// #### Usage
-//
-// ```
-// si.bus(N) : ef.uniformPanToStereo(N) : _,_
-// ```
-//
-// Where:
-//
-// * `N`: Number of input channels to pan down to stereo
-//
-// #### Demo
-//
-// ```
-// _,_,_ : ef.uniformPanToStereo(3) : _,_
-// ```
-//
-//------------------------------------------------------------
-uniformPanToStereo(N) = si.bus(N) <: par(i,2*N,_) :
-              (par(i,N,*(i/(N-1))) :> _),
-              (par(i,N,*(1-i/(N-1))) :> _);
-
-// end jos section
-/************************************************************************
-************************************************************************
-FAUST library file, GRAME section
-
-Except where noted otherwise, Copyright (C) 2003-2017 by GRAME,
-Centre National de Creation Musicale.
-----------------------------------------------------------------------
-GRAME LICENSE
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as
-published by the Free Software Foundation; either version 2.1 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with the GNU C Library; if not, write to the Free
-Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-02111-1307 USA.
-
-EXCEPTION TO THE LGPL LICENSE : As a special exception, you may create a
-larger FAUST program which directly or indirectly imports this library
-file and still distribute the compiled code generated by the FAUST
-compiler, or a modified version of this compiled code, under your own
-copyright and license. This EXCEPTION TO THE LGPL LICENSE explicitly
-grants you the right to freely choose the license for the resulting
-compiled code. In particular the resulting compiled code has no obligation
-to be LGPL or GPL. For example you are free to choose a commercial or
-closed source license or any other license if you decide so.
-************************************************************************
-************************************************************************/
 
 //=====================================Mixing=============================================
 //========================================================================================
@@ -10561,6 +10901,196 @@ declare dryWetMixerConstantPower author "David Braun, revised by Stéphane Letz"
 dryWetMixerConstantPower(wetAmount, FX) = dwmEnv(wetAmount, FX).dryWetMixerConstantPower;
 
 
+mixingEnv = environment
+{
+  // Note that i goes from 0 to N-1.
+  // m goes from 0 to N-1 typically, but the output should be periodic with size N.
+  // In other words the output with m=-4*N is the same as -2*N, -1*N, 0, 1*N, 2*N etc.
+  phaseLoop(N, m, i) = select2(abs(phase1)<abs(phase2), phase2, phase1)
+  with {
+    phase1 = fmod(i-m,N);
+    phase2 = phase1+ba.if(phase1<0,N,-N);
+  };
+
+  phaseClamp(N, m, i) = i-aa.clip(0,N-1,m);
+
+  // We divide by sqrt(2) at the end so that for m=0.5,1.5,2.5 etc,
+  // the total gain is 1.0, matching phase2LinearWeight. However,
+  // this means for m=0,1,2,3, etc, the gain is (1./sqrt(2)~=0.7071).
+  phase2PowerWeight = aa.clip(-1, 1) : cos(_*ma.PI*.5) / sqrt(2.);
+
+  phase2LinearWeight = aa.clip(-1, 1) : 1-abs(_);
+
+  //------------------------`weightsPowerLoop`---------------------------
+  // "Fan out" an index into N weights between 0 and 1. At any given
+  // moment, two weights may be non-zero. Suppose they are N_m and N_{m+1}.
+  // Then `cos(N_m)^2+sin(N_{m+1})^2==0.5`. 
+  //
+  // #### Usage
+  //
+  // ```
+  // _ : weightsPowerLoop(N) : si.bus(N)
+  // ```
+  // Where:
+  //
+  // * `N`: number of output weights
+  // * `m`: [0;N-1] (float) blend index. If m is outside [0;N-1], the behavior will loop.
+  //.       So m=-N, m=0, and m=N should give the same output.
+  weightsPowerLoop(N, m) = par(i, N, gain(i))
+  with {
+    gain(i) = phaseLoop(N, m, i) : phase2PowerWeight;
+  };
+
+  // Same as above, but the two weights being blended at any moment SUM to 1.
+  weightsLinearLoop(N, m) = par(i, N, gain(i))
+  with {
+    gain(i) = phaseLoop(N, m, i) : phase2LinearWeight;
+  };
+
+  // Same as weightsPowerLoop, but m is clamped to [0;N-1]
+  weightsPowerClamp(N, m) = par(i, N, gain(i))
+  with {
+    gain(i) = phaseClamp(N, m, i) : phase2PowerWeight;
+  };
+
+  // Same as weightsLinearLoop, but m is clamped to [0;N-1]
+  weightsLinearClamp(N, m) = par(i, N, gain(i))
+  with {
+    gain(i) = phaseClamp(N, m, i) : phase2LinearWeight;
+  };
+
+  dryWetMixer(wetAmount, FX) = si.vecOp((weights, sounds), *) :> si.bus(C)
+  with {
+    N = 2; // We know in advance that there are 2 sounds (the dry and wet).
+    C = inputs(FX);
+    weights = weightsLinearClamp(N, wetAmount) <: ro.interleave(N, C);
+    sounds = si.bus(C) <: si.bus(C), FX;
+  };
+
+  dryWetMixerConstantPower(wetAmount, FX) = si.vecOp((weights, sounds), *) :> si.bus(C)
+  with {
+    N = 2; // We know in advance that there are 2 sounds (the dry and wet).
+    C = inputs(FX);
+    weights = weightsPowerClamp(N, wetAmount) <: ro.interleave(N, C);
+    sounds = si.bus(C) <: si.bus(C), FX;
+  };
+
+  // Suppose `sounds` is N buses, each of C channels.
+  // We want to linearly mix the buses using index `m` [0;N-1]
+  mixLinearClamp(N, C, m, sounds) = si.vecOp((weights, sounds), *) :> si.bus(C)
+  with {
+    weights = weightsLinearClamp(N, m) <: ro.interleave(N, C);
+  };
+
+  mixLinearLoop(N, C, m, sounds) = si.vecOp((weights, sounds), *) :> si.bus(C)
+  with {
+    weights = weightsLinearLoop(N, m) <: ro.interleave(N, C);
+  };
+
+  mixPowerClamp(N, C, m, sounds) = si.vecOp((weights, sounds), *) :> si.bus(C)
+  with {
+    weights = weightsPowerClamp(N, m) <: ro.interleave(N, C);
+  };
+
+  mixPowerLoop(N, C, m, sounds) = si.vecOp((weights, sounds), *) :> si.bus(C)
+  with {
+    weights = weightsPowerLoop(N, m) <: ro.interleave(N, C);
+  };
+};
+
+
+//---------------`(ef.)mixLinearClamp`-------------------------------------------------
+// Linear mixer for `N` buses, each with `C` channels. The output will be a sum of 2 buses
+// determined by the mixing index `mix`. 0 produces the first bus, 1 produces the
+// second, and so on. `mix` is clamped automatically. For example, `mixLinearClamp(4, 1, 1)`
+// will weight its 4 inputs by `(0, 1, 0, 0)`. Similarly, `mixLinearClamp(4, 1, 1.1)`
+// will weight its 4 inputs by `(0,.9,.1,0)`.
+//
+// #### Usage
+//
+// ```
+// si.bus(N*C) : mixLinearClamp(N, C, mix) : si.bus(C)
+// ```
+//
+// Where:
+//
+// * `N`: the number of input buses
+// * `C`: the number of channels in each bus
+// * `mix`: the mixing index, continuous in [0;N-1].
+//---------------------------------------------------------------------------------------
+declare mixLinearClamp author "David Braun";
+
+mixLinearClamp = mixingEnv.mixLinearClamp;
+
+
+//---------------`(ef.)mixLinearLoop`-------------------------------------------------
+// Linear mixer for `N` buses, each with `C` channels. Refer to `mixLinearClamp`. `mix`
+// will loop for multiples of `N`. For example, `mixLinearLoop(4, 1, 0)` has the same
+// effect as `mixLinearLoop(4, 1, -4)` and `mixLinearLoop(4, 1, 4)`.
+//
+// #### Usage
+//
+// ```
+// si.bus(N*C) : mixLinearLoop(N, C, mix) : si.bus(C)
+// ```
+//
+// Where:
+//
+// * `N`: the number of input buses
+// * `C`: the number of channels in each bus
+// * `mix`: the mixing index (N-1) selects the last bus, and 0 or N selects the 0th bus.
+//---------------------------------------------------------------------------------------
+declare mixLinearLoop author "David Braun";
+
+mixLinearLoop = mixingEnv.mixLinearLoop;
+
+
+//---------------`(ef.)mixPowerClamp`-------------------------------------------------
+// Constant-power mixer for `N` buses, each with `C` channels. The output will be a sum of 2 buses
+// determined by the mixing index `mix`. 0 produces the first bus, 1 produces the
+// second, and so on. `mix` is clamped automatically. `mixPowerClamp(4, 1, 1)`
+// will weight its 4 inputs by `(0, 1./sqrt(2), 0, 0)`. Similarly, `mixPowerClamp(4, 1, 1.5)`
+// will weight its 4 inputs by `(0,.5,.5,0)`.
+//
+// #### Usage
+//
+// ```
+// si.bus(N*C) : mixPowerClamp(N, C, mix) : si.bus(C)
+// ```
+//
+// Where:
+//
+// * `N`: the number of input buses
+// * `C`: the number of channels in each bus
+// * `mix`: the mixing index, continuous in [0;N-1].
+//---------------------------------------------------------------------------------------
+declare mixPowerClamp author "David Braun";
+
+mixPowerClamp = mixingEnv.mixPowerClamp;
+
+
+//---------------`(ef.)mixPowerLoop`-----------------------------------------------------
+// Constant-power mixer for `N` buses, each with `C` channels. Refer to `mixPowerClamp`. `mix`
+// will loop for multiples of `N`. For example, `mixPowerLoop(4, 1, 0)` has the same effect
+// as `mixPowerLoop(4, 1, -4)` and `mixPowerLoop(4, 1, 4)`.
+//
+// #### Usage
+//
+// ```
+// si.bus(N*C) : mixPowerLoop(N, C, mix) : si.bus(C)
+// ```
+//
+// Where:
+//
+// * `N`: the number of input buses
+// * `C`: the number of channels in each bus
+// * `mix`: the mixing index (N-1) selects the last bus, and 0 or N selects the 0th bus.
+//---------------------------------------------------------------------------------------
+declare mixPowerLoop author "David Braun";
+
+mixPowerLoop = mixingEnv.mixPowerLoop;
+
+
 //========================================Time Based======================================
 //========================================================================================
 
@@ -10590,6 +11120,95 @@ with{
 
 // TODO demo function for echo
 
+//--------------------`(ef.)reverseEchoN(nChans,delay)`-------------------
+// Reverse echo effect.
+//
+// #### Usage
+//
+// ```
+// _ : ef.reverseEchoN(N,delay) : si.bus(N)
+// ```
+//
+// Where:
+//
+// *  `N`: Number of output channels desired (1 or more), a constant numerical expression
+// * `delay`: echo delay (integer power of 2)
+//
+// #### Demo
+//
+// ```
+// _ : dm.reverseEchoN(N) : _,_
+// ```
+//
+// #### Description
+//
+// The effect uses N instances of `reverseDelayRamped` at different phases.
+//
+//------------------------------------------------------------
+reverseEchoN(N,delMax) = _<: par(i,N,ef.reverseDelayRamped(delMax,i/N));
+
+declare reverseEchoN author "Julius O. Smith III";
+declare reverseEchoN license "STK-4.3";
+
+
+//-------------------`(ef.)reverseDelayRamped(delay,phase)`------------------
+// Reverse delay with amplitude ramp.
+//
+// #### Usage
+//
+// ```
+// _ : ef.reverseDelayRamped(delay,phase) : _
+// ```
+//
+// Where:
+//
+// * `delay`: echo delay (integer power of 2)
+// * `phase`: float between 0 and 1 giving ramp delay phase*delay
+//
+// #### Demo
+//
+// ```
+// _ : ef.reverseDelayRamped(32,0.6) : _,_
+// ```
+//
+//------------------------------------------------------------
+reverseDelayRamped(delMax,phs) = rampGain * de.delay(delMax,del) with {
+  rampGain = 4 * (del/delMax) * (1 - del/delMax); // suppress click when delay-line wraps around
+  delOffset = int(floor(0.5 + delMax * max(0,min(0.999999,phs)))); // starting point in delay line
+  startPulse = (1-1') * delOffset;
+  del = int(startPulse : + ~ +(2)) & (delMax-1);
+};
+
+declare reverseDelayRamped author "Julius O. Smith III";
+declare reverseDelayRamped license "STK-4.3";
+
+//-------------------`(ef.)uniformPanToStereo(nChans)`------------------
+// Pan nChans channels to the stereo field, spread uniformly left to right.
+//
+// #### Usage
+//
+// ```
+// si.bus(N) : ef.uniformPanToStereo(N) : _,_
+// ```
+//
+// Where:
+//
+// * `N`: Number of input channels to pan down to stereo, a constant numerical expression
+//
+// #### Demo
+//
+// ```
+// _,_,_ : ef.uniformPanToStereo(3) : _,_
+// ```
+//
+//------------------------------------------------------------
+uniformPanToStereo(N) = si.bus(N) <: par(i,2*N,_) :
+              (par(i,N,*(i/(N-1))) :> _),
+              (par(i,N,*(1-i/(N-1))) :> _);
+
+declare uniformPanToStereo author "Julius O. Smith III";
+declare uniformPanToStereo license "STK-4.3";
+
 //=======================================Pitch Shifting===================================
 //========================================================================================
 
@@ -10616,6 +11235,79 @@ with {
     i = 1 - pow(2, s/12);
     d = i : (+ : +(w) : fmod(_,w)) ~ _;
 };
+
+//=======================================Saturators=======================================
+//========================================================================================
+
+nonlinearityEnv = environment
+{
+  // Turn a function f(x) into a odd function g(x) such that
+  // g(x)==f(x) for x>=0, AND g(x)==-g(-x).
+  makeOdd(f, x) = x : optionalNegate : f : optionalNegate
+  with {
+    optionalNegate(y) = ba.if(x<0, -y, y);
+  };
+
+  // Quadratic Soft-Clip
+  // coded by David Braun
+  // Reference:
+  // M. Schetzen: The Volterra and Wiener Theories of Nonlinear Systems. Robert Krieger Publishing, 1980.
+  softclipQuadratic(x) = makeOdd(f, x)
+  with {
+    f(x) = ba.if(x <= 1./3., 2*x, ba.if(x <= 2./3.,y,1))
+    with {
+      y = (3-(2-3*x)^2)/3;
+    };
+  };
+
+  // Wavefolder/Wavefolding
+  // coded by David Braun
+  // Reference: Chapter 10: Nonlinear Processing. Figure 10.7
+  // U. Zölzer: Digital Audio Signal Processing. John Wiley & Sons Ltd, 2022.
+  wavefold(width, x) = makeOdd(f, x)
+  with {
+    f(x) = ba.if(x>(1-2*a), tri, x) : *(g)
+    with {
+      // a is the adjusted width.
+      a = width : aa.clip(0, 1) : *(.4);
+      g = 1/(1-2*a); // peak-level normalization
+
+      // triangle-like function
+      tri = 1 - 2.5*a + a*abs(ma.frac((x-(1-2*a))/(2*a))-.5);
+    };
+  };
+};
+
+//---------------`(ef.)softclipQuadratic`-------------------------------------------------
+// Quadratic softclip nonlinearity.
+//
+// #### Usage
+//
+// ```
+// _ : softclipQuadratic : _;
+// ```
+//---------------------------------------------------------------------------------------
+declare softclipQuadratic author "David Braun";
+
+softclipQuadratic = nonlinearityEnv.softclipQuadratic;
+
+//---------------`(ef.)wavefold`-------------------------------------------------
+// Wavefolding nonlinearity.
+//
+// #### Usage
+//
+// ```
+// _ : wavefold(width) : _;
+// ```
+//
+// Where:
+//
+// * `width`: The width of the folded section [0..1] (float).
+//---------------------------------------------------------------------------------------
+declare wavefold author "David Braun";
+
+wavefold = nonlinearityEnv.wavefold;
+
 
 //////////////////////////////////Deprecated Functions////////////////////////////////////
 // This section implements functions that used to be in music.lib but that are now
@@ -10646,7 +11338,7 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //
 //------------------------------------------------------------
 version =   2,  // MAJOR version when we make incompatible API changes,
-            18, // MINOR version when we add functionality in a backwards compatible manner,
+            25, // MINOR version when we add functionality in a backwards compatible manner,
             0;  // PATCH version when we make backwards compatible bug fixes.
 
             
@@ -27779,7 +28471,7 @@ elsewhere among the libraries.  It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 //##################################### filters.lib ########################################
-// Faust Filters library. Its official prefix is `fi`.
+// Filters library. Its official prefix is `fi`.
 //
 // The Filters library is organized into 22 sections:
 //
@@ -29347,7 +30039,7 @@ with {
 //
 // Where:
 //
-// * `N`: filter order (number of poles) [nonnegative constant numerical expression]
+// * `N`: filter order (number of poles), nonnegative constant numerical expression
 // * `fc`: desired cut-off frequency (-3dB frequency) in Hz
 //
 // #### References
@@ -29372,7 +30064,7 @@ lowpass(N,fc) = lowpass0_highpass1(0,N,fc);
 //
 // Where:
 //
-// * `N`: filter order (number of poles) [nonnegative constant numerical expression]
+// * `N`: filter order (number of poles), nonnegative constant numerical expression
 // * `fc`: desired cut-off frequency (-3dB frequency) in Hz
 //
 // #### References
@@ -30953,7 +31645,7 @@ ma = library("maths.lib");
 si = library("signals.lib");
 
 declare name "Faust Signal Routing Library";
-declare version "1.3.0";
+declare version "1.5.0";
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -31008,6 +31700,45 @@ block(N) = par(i, N, !);
 // * `i`: interpolation control between 0 and 1 (0: first input; 1: second input)
 //-----------------------------------------------------------------------------
 interpolate(i,x,y) = x + i*(y-x);  
+
+//---------------`(si.)repeat`----------------------------------------------
+// Repeat an effect N time(s) and take the parallel sum of all
+// intermediate buses.
+//
+// #### References
+// * <https://github.com/orlarey/presentation-compilateur-faust/blob/master/slides.pdf>
+//
+// #### Usage
+//
+// ```
+// si.bus(inputs(FX)) : repeat(N, FX) : si.bus(outputs(FX))
+// ```
+//
+// Where:
+//
+// * `N`: Number of repetitions, minimum of 1, a constant numerical expression 
+// * `FX`: an arbitrary effect (N inputs and N outputs) that will be repeated
+//
+// Example 1:
+// ```
+// process = repeat(2, dm.zita_light) : _*.5,_*.5;
+// ```
+//
+// Example 2:
+// ```
+// N = 4;
+// C = 2;
+// fx(i) = i+1, par(j, C, @(i*5000));
+// process = 0, si.bus(C) : repeat(N, fx) : !, par(i, C, _*.2/N);
+// ```
+//---------------------------------------------------------------------------
+declare repeat author "Yann Orlarey and Stéphane Letz, revised by David Braun";
+
+repeat(1, FX) = FX;
+repeat(n, FX) = FX <: si.bus(N), repeat(n-1, FX) :> si.bus(N)
+with {
+    N = outputs(FX);
+};
 
 //------------------------`(si.)smoo`---------------------------------------
 // Smoothing function based on `smooth` ideal to smooth UI signals
@@ -31157,6 +31888,57 @@ smooth_imp = case {
 // The best compromise on modern CPUs where two independent multiplications can be done in parallel.
 // Other versions could possibly be faster on embedded devices. 
 smooth = smooth_imp(0);
+
+
+//--------------------------------`(si.)smoothq`-------------------------------------
+// Smoothing with continuously variable curves from Exponential to Linear, with a constant time.
+//
+// #### Usage
+//
+// ```
+// _ : smoothq(time, q) : _;
+// ```
+//
+// Where:
+//
+// * `time`: seconds to reach target
+// * `q`: curve shape (between 0..1, 0 is Exponential, 1 is Linear)
+//-----------------------------------------------------------------------------
+declare smoothq author "Andrew John March";
+declare smoothq licence "STK-4.3";
+
+smoothq(time, q, tar) = envelope 
+    with {
+        ratio = pow(q, 5) * 32 : max(0.001);
+        coef = (ratio / (1 + ratio))^(1 / (ma.SR * time));
+        fb(cBase, cTar, cSrc, cDistance, cDir, cY, cOut) = base, tar, src, distance, dir, y, out
+            with {
+                trig = cTar != tar;
+                src = select2(trig, cSrc, cOut);
+                dir = select2(trig, cDir, tar > src);
+                base = select2(trig, cBase, select2(dir,
+                    (0.0 - ratio) * (1.0 - coef),
+                    (1.0 + ratio) * (1.0 - coef)
+                ));
+                distance = select2(trig, cDistance, abs(tar - src));
+                y = select2(dir,
+                    select2(trig, 
+                        max( 0, base + cY * coef),
+                        1
+                    ),
+                    select2(trig,
+                        min( 1, base + cY * coef),
+                        0
+                    )
+                );
+                out = select2(dir,
+                    tar + y * distance,
+                    src + y * distance
+                );
+            };
+        envelope = fb ~ (_,_,_,_,_,_,_) : !,!,!,!,!,!,_;
+    };
+
 
 //--------------------------------`(si.)cbus`-------------------------------------
 // N parallel cables for complex signals.
@@ -35256,7 +36038,7 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 //
 // * `N`: 2, 4, 8, ...  (power of 2)
 // * `MAXDELAY`: power of 2 at least as large as longest delay-line length
-// * `delays`: N delay lines, N a power of 2, lengths perferably coprime
+// * `delays`: N delay lines, N a power of 2, lengths preferably coprime
 // * `BBSO`: odd positive integer = order of bandsplit desired at freqs
 // * `freqs`: NB-1 crossover frequencies separating desired frequency bands
 // * `durs`: NB decay times (t60) desired for the various bands
@@ -39856,7 +40638,7 @@ pl = library("platform.lib");
 ma = library("maths.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Math Library";
-declare version "2.6.0";
+declare version "2.7.0";
 declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
@@ -39948,7 +40730,10 @@ E = 2.71828182845904523536;
 
 
 //---------------------------------`(ma.)EPSILON`---------------------------------------
-// Constant EPSILON available in simple/double/quad precision.
+// Constant EPSILON available in simple/double/quad precision, 
+// as defined in the [floating-point standard](https://en.wikipedia.org/wiki/IEEE_754) 
+// and [machine epsilon](https://en.wikipedia.org/wiki/Machine_epsilon), 
+// that is smallest positive number such that `1.0 + EPSILON != 1.0`.
 //
 // #### Usage
 //
@@ -39958,7 +40743,7 @@ E = 2.71828182845904523536;
 //-----------------------------------------------------------------------------
 singleprecision EPSILON = 1.192092896e-07;
 doubleprecision EPSILON = 2.2204460492503131e-016;
-quadprecision EPSILON = 2.2204460492503131e-016;
+quadprecision EPSILON = 1.084202172485504434007452e-019;
 fixedpointprecision EPSILON = 2.2204460492503131e-016;
 
 
@@ -40034,6 +40819,19 @@ copysign = ffunction(float copysignf|copysign|copysignl (float, float), <math.h>
 // ```
 //-----------------------------------------------------------------------------
 neg(x) = -x;
+
+
+//---------------------------------`(ma.)not`---------------------------------------
+// Bitwise `not` implemented with [xor](https://faustdoc.grame.fr/manual/syntax/#xor-primitive) as `not(x) = x xor -1;`.
+// So working regardless of the size of the integer, assuming negative numbers in two's complement.
+//
+// #### Usage
+//
+// ```
+// _ : not : _
+// ```
+//-----------------------------------------------------------------------------
+not(x) = x xor -1;
 
 
 //-------`(ma.)sub(x,y)`------------------
