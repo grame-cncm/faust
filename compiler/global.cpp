@@ -30,6 +30,7 @@
 #include "binop.hh"
 #include "ceilprim.hh"
 #include "cosprim.hh"
+#include "downsampleprim.hh"
 #include "enrobage.hh"
 #include "exepath.hh"
 #include "exp10prim.hh"
@@ -53,6 +54,8 @@
 #include "sqrtprim.hh"
 #include "tanprim.hh"
 #include "timing.hh"
+#include "upsampleprim.hh"
+
 #include "tree.hh"
 
 #ifdef WIN32
