@@ -313,6 +313,9 @@ int main(int argc, char* argv[])
         gui.run();
     }
     
+    // Finally delete all factories that will themselves delete all attached DSP.
+    deleteAllDSPFactories();
+    
     return 0;
 }
 
