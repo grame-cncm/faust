@@ -224,8 +224,8 @@ class dsp_optimizer_real {
                  t1.push_back("-vs");
                  t1.push_back(std::to_string(size));
                  fVecOptionsTable.push_back(t1);
-             }
-             */
+            }
+            */
         }
     
         void printItem(const std::vector <std::string>& item)
@@ -422,14 +422,23 @@ class dsp_optimizer_real {
                 best_res = best_vec;
             }
            
+            // Current best
+            TOptionTable options_table;
+            {
+                TOption best = std::get<3>(best_res);
+                options_table.push_back(best);
+            }
+        
             if (std::get<3>(best_res)[0] == "-vec") {
-                if (fTrace) fprintf(stdout, "Check with -g or -dfs\n");
-                // Current best
-                TOptionTable options_table;
+                if (fTrace) fprintf(stdout, "Check with -ct 0\n");
+                // Add -ct 0
                 {
                     TOption best = std::get<3>(best_res);
+                    best.push_back("-ct");
+                    best.push_back("0");
                     options_table.push_back(best);
                 }
+                if (fTrace) fprintf(stdout, "Check with -g or -dfs\n");
                 // Add -g
                 {
                     TOption best = std::get<3>(best_res);
@@ -451,7 +460,15 @@ class dsp_optimizer_real {
                 }
                 return findOptimizedParametersAux(options_table);
             } else {
-                return best_res;
+                if (fTrace) fprintf(stdout, "Check with -ct 0\n");
+                // Add -ct 0
+                {
+                    TOption best = std::get<3>(best_res);
+                    best.push_back("-ct");
+                    best.push_back("0");
+                    options_table.push_back(best);
+                }
+                return findOptimizedParametersAux(options_table);
             }
         }
     
