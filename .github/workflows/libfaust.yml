@@ -138,12 +138,14 @@ jobs:
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
             HOST: aarch64-apple-darwin
+            ENABLE_MPEG: OFF
           - name: x64
             os: macos-11
             llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-macos10.15-x86_64.zip
             ARCHS: "-arch x86_64"
             CMAKE_OSX_ARCHITECTURES: x86_64
             HOST: x86_64-apple-darwin
+            ENABLE_MPEG: ON
 
     runs-on: ${{ matrix.os }}
 
@@ -171,7 +173,7 @@ jobs:
       # todo: should we bother with brew update?
       run: |
         brew update
-        PACKAGES=(ncurses gtk+ qt@5 liblo lame flac libogg libtool libvorbis opus mpg123)
+        PACKAGES=(ncurses gtk+ liblo lame flac libogg libtool libvorbis opus)
         DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' ' '))
         PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
         export HOMEBREW_NO_INSTALL_CLEANUP=1
@@ -215,7 +217,7 @@ jobs:
         cd libsndfile
         LIBSNDFILE_INSTALL_PREFIX="$PWD/install"
         mkdir CMakeBuild && cd CMakeBuild
-        cmake .. -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$LIBSNDFILE_INSTALL_PREFIX" -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_OSX_ARCHITECTURES=$CMAKE_OSX_ARCHITECTURES -DCMAKE_OSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
+        cmake .. -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$LIBSNDFILE_INSTALL_PREFIX" -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_OSX_ARCHITECTURES=$CMAKE_OSX_ARCHITECTURES -DCMAKE_OSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DENABLE_MPEG=${{ matrix.ENABLE_MPEG }}
         make && make install
         otool -L $LIBSNDFILE_INSTALL_PREFIX/lib/libsndfile.a
         echo "Testing pkg-config for sndfile"

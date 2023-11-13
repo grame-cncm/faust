@@ -125,9 +125,6 @@ macro (llvm_config)
     string ( APPEND LLVM_LIBS " ${LLVM_SYS_LIBS}")
     string ( REPLACE " " ";" LLVM_LIBS ${LLVM_LIBS} )
 
-    # fix for when LLVM is built but not "installed"
-    set(LLVM_INCLUDE_DIRS ${LLVM_INCLUDE_DIRS} ${LLVM_INCLUDE_DIRS}/../build/include)
-
 endmacro()
 
 ####################################
