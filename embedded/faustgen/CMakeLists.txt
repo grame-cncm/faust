@@ -69,7 +69,7 @@ else()
 		pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbis)
 		pkg_check_modules(OGG REQUIRED IMPORTED_TARGET ogg)
 		pkg_check_modules(OPUS REQUIRED IMPORTED_TARGET opus)
-		pkg_check_modules(MPG123 REQUIRED IMPORTED_TARGET libmpg123)
+		pkg_check_modules(MPG123 IMPORTED_TARGET libmpg123) # libmpg123 is not REQUIRED because it requires macos 12
 		list(POP_BACK PKG_CONFIG_EXECUTABLE)  # undo the append above
 	else()
 		# We expect the user to have installed sndfile with
@@ -80,7 +80,7 @@ else()
 		pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbis)
 		pkg_check_modules(OGG REQUIRED IMPORTED_TARGET ogg)
 		pkg_check_modules(OPUS REQUIRED IMPORTED_TARGET opus)
-		pkg_check_modules(MPG123 REQUIRED IMPORTED_TARGET libmpg123)
+		pkg_check_modules(MPG123 IMPORTED_TARGET libmpg123) # libmpg123 is not REQUIRED because it requires macos 12
 	endif()
 endif()
 
