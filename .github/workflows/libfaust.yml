@@ -171,6 +171,7 @@ jobs:
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
       # todo: should we bother with brew update?
+      # todo: add mpg123 so that faustgen and other projects can decode mp3
       run: |
         brew update
         PACKAGES=(ncurses gtk+ liblo lame flac libogg libtool libvorbis opus)
@@ -193,7 +194,16 @@ jobs:
 
     - name: Brew install requirements (x64)
       if: ${{ endsWith( matrix.name, 'x64') }}
-      run: brew install pkg-config ncurses gtk+ qt@5 liblo lame flac libogg libtool libvorbis opus mpg123
+      run: brew install pkg-config ncurses gtk+ liblo lame flac libogg libtool libvorbis opus mpg123
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '5.15.2'
+        host: 'mac'
+        target: 'desktop'
+        dir: '${{ github.workspace }}/qt_install'
+        # tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
 
     - name: Download LLVM
       run: |
@@ -241,7 +251,7 @@ jobs:
     - name: Build everything
       # todo: do we need to specify the qt@5 path for PKG_CONFIG_PATH?
       run: |
-        export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig:$PWD/libsndfile/install/lib/pkgconfig:$PWD/libmicrohttpd/libmicrohttpd/lib/pkgconfig"
+        export PKG_CONFIG_PATH="$QT_ROOT_DIR/lib/pkgconfig:$PWD/libsndfile/install/lib/pkgconfig:$PWD/libmicrohttpd/libmicrohttpd/lib/pkgconfig"
         export LLVM_DIR=$PWD/llvm/lib/cmake/llvm
         export LLVM_LIB_DIR=$PWD/llvm/lib
         export LLVM_INCLUDE_DIRS=$PWD/llvm/include
