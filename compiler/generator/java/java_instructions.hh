@@ -22,6 +22,8 @@
 #ifndef _JAVA_INSTRUCTIONS_H
 #define _JAVA_INSTRUCTIONS_H
 
+#include <iostream>
+
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
 
@@ -216,6 +218,12 @@ class JAVAInstVisitor : public TextInstVisitor {
         *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fMin)
               << ", " << checkReal(inst->fMax) << ")";
         EndLine();
+    }
+    
+    virtual void visit(AddSoundfileInst* inst)
+    {
+        // Not supported for now
+        throw faustexception("ERROR : 'soundfile' primitive not yet supported for JAVA\n");
     }
 
     virtual void visit(LabelInst* inst) {}
@@ -425,7 +433,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                     *fOut << ")?1:0)";
                     break;
                 default:
-                    printf("visitor.fCurType %d\n", fTypingVisitor.fCurType);
+                    std::cerr << "visitor.fCurType " <<  fTypingVisitor.fCurType << std::endl;
                     faustassert(false);
                     break;
             }
@@ -446,7 +454,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                     *fOut << ")?1.f:0.f)";
                     break;
                 default:
-                    printf("visitor.fCurType %d\n", fTypingVisitor.fCurType);
+                    std::cerr << "visitor.fCurType " << fTypingVisitor.fCurType << std::endl;
                     faustassert(false);
                     break;
             }
