@@ -7,16 +7,15 @@ on:
   pull_request:
     branches: [ master-dev ]
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
+    if: github.repository == 'grame-cncm' || github.event_name == 'pull_request'
     runs-on: macos-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: Build Faust
-        run: make
+    - name: Build Faust
+      run: make

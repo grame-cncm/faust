@@ -9,9 +9,8 @@ on:
 
 jobs:
   build:
-
+    if: github.repository == 'grame-cncm' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
 
@@ -19,5 +18,6 @@ jobs:
       run: |
         sudo apt-get update -qq 
         sudo apt-get install libmicrohttpd-dev
+
     - name: Build Faust
       run: make
