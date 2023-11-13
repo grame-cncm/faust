@@ -137,8 +137,6 @@ class interval {
 
         int l = int(std::ceil(std::log2(range)));
 
-        std::cout << "The MSB of [" << fLo << ", \t" << fHi << "] is \t" << l << std::endl;
-
         // The sign bit will be added later on
         return l;
     }
