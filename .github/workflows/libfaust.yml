@@ -74,7 +74,7 @@ jobs:
       id: cache-llvm-restore
       uses: actions/cache/restore@v3
       with:
-        path: llvm-project
+        path: llvm-project/llvm/llvm
         key: cache-llvm-${{env.LLVM_PACKAGE_VERSION}}-${{ matrix.name }}
 
     - name: Clone LLVM
@@ -97,18 +97,18 @@ jobs:
       id: cache-llvm-save
       uses: actions/cache/save@v3
       with:
-        path: llvm-project
+        path: llvm-project/llvm/llvm
         key: ${{ steps.cache-llvm-restore.outputs.cache-primary-key }}
 
     - name: Build libfaust
       run: |
-        export PATH="${{ github.workspace }}/llvm-project/llvm/build/bin:$PATH"
+        export LLVM_DIR=$LLVM_ROOT
+        export PATH="$LLVM_ROOT/bin:$PATH"
         cd build
-        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=ON -DLLVM_CONFIG=$LLVM_CONFIG -DCMAKE_PREFIX_PATH="$LLVM_DIR"
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=ON -DLLVM_CONFIG="$LLVM_ROOT/bin/llvm-config" -DCMAKE_PREFIX_PATH="$LLVM_ROOT/lib/cmake/llvm"
         cmake --build build --config Release
       env:
-        LLVM_DIR: ${{ github.workspace }}/llvm-project/llvm/build/lib/cmake/llvm
-        LLVM_CONFIG: ${{ github.workspace }}/llvm-project/llvm/build/bin/llvm-config
+        LLVM_ROOT: ${{ github.workspace }}/llvm-project/llvm/llvm
    
     - name: Make distribution
       run: |
