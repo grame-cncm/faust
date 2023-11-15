@@ -590,10 +590,13 @@ class dsp_crossfader: public dsp_binary_combiner {
 #define __dsp_algebra_api__
 
 /**
- * DSP algebra API
- * Each operation takes two DSP and a optional Layout and Label parameters, returns the combined DSPs,
+ * DSP algebra API allowing to combine DSPs using the 5 operators Faust block algebra and an additional crossfader combiner.
+ * The two arguments GUI are composed in a group, either kVerticalGroup, kHorizontalGroup or kTabGroup with a label.
+ *
+ * Each operation takes two DSP and a optional layout and label parameters, returns the combined DSPs,
  * or null if failure with an error message.
- * It includes methods to create sequencers, parallelizers, splitters, mergers, recursives, and crossfaders.
+ * 
+ * It includes methods to create sequencers, parallelizers, splitters, mergers, recursivers, and crossfaders.
  */
 
 /**
@@ -605,7 +608,7 @@ class dsp_crossfader: public dsp_binary_combiner {
  * @param dsp1 The first DSP module to combine
  * @param dsp2 The second DSP module to combine
  * @param error A reference to a string to store error messages (if any)
- * @param layout The layout for the user interface (default: kTabGroup)
+ * @param layout The layout for the combined user interface (default: kTabGroup)
  * @param label The label for the combiner (default: "Sequencer")
  * @return A pointer to the created DSP Sequencer, or nullptr if an error occurs
  */
@@ -635,7 +638,7 @@ static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2,
  * @param dsp1 The first DSP module to combine
  * @param dsp2 The second DSP module to combine
  * @param error A reference to a string to store error messages (if any)
- * @param layout The layout for the user interface (default: kTabGroup)
+ * @param layout The layout for the combined user interface (default: kTabGroup)
  * @param label The label for the combiner (default: "Parallelizer")
  * @return A pointer to the created DSP Parallelizer, or nullptr if an error occurs
  */
@@ -656,7 +659,7 @@ static dsp* createDSPParallelizer(dsp* dsp1, dsp* dsp2,
  * @param dsp1 The first DSP module to combine
  * @param dsp2 The second DSP module to combine
  * @param error A reference to a string to store error messages (if any)
- * @param layout The layout for the user interface (default: kTabGroup)
+ * @param layout The layout for the combined user interface (default: kTabGroup)
  * @param label The label for the combiner (default: "Splitter")
  * @return A pointer to the created DSP Splitter, or nullptr if an error occurs
  */
@@ -692,7 +695,7 @@ static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error, Layout l
  * @param dsp1 The first DSP module to combine
  * @param dsp2 The second DSP module to combine
  * @param error A reference to a string to store error messages (if any)
- * @param layout The layout for the user interface (default: kTabGroup)
+ * @param layout The layout for the combined user interface (default: kTabGroup)
  * @param label The label for the combiner (default: "Merger")
  * @return A pointer to the created DSP Merger, or nullptr if an error occurs
  */
@@ -731,7 +734,7 @@ static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2,
  * @param dsp1 The first DSP module to combine
  * @param dsp2 The second DSP module to combine
  * @param error A reference to a string to store error messages (if any)
- * @param layout The layout for the user interface (default: kTabGroup)
+ * @param layout The layout for the combined user interface (default: kTabGroup)
  * @param label The label for the combiner (default: "Recursiver")
  * @return A pointer to the created DSP Recursiver, or nullptr if an error occurs
  */
@@ -773,7 +776,7 @@ static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2,
  * @param dsp1 The first DSP module to combine
  * @param dsp2 The second DSP module to combine
  * @param error A reference to a string to store error messages (if any)
- * @param layout The layout for the user interface (default: kTabGroup)
+ * @param layout The layout for the combined user interface (default: kTabGroup)
  * @param label The label for the crossfade slider (default: "Crossfade")
  * @return A pointer to the created DSP Crossfader, or nullptr if an error occurs
  */
