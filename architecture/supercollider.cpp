@@ -260,6 +260,7 @@ static size_t       g_numControls; // Number of controls
 static const char*  g_unitName;    // Unit name
 
 #ifdef SOUNDFILE
+// Loaded soundfiles are shared between all UGen instances
 static SoundUI*     g_SoundInterface = nullptr;
 #endif
 
@@ -515,6 +516,8 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     
 #ifdef SOUNDFILE
     g_SoundInterface = new SoundUI(SoundUI::getBinaryPath());
+    // Force soundfile loading at UGen load time
+    tmp_dsp->buildUserInterface(g_SoundInterface);
 #endif
 
 #if defined(F2SC_DEBUG_MES) & defined(SC_API_EXPORT)
