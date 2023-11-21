@@ -31,7 +31,7 @@
 #include "text_instructions.hh"
 #include "faust/gui/PathBuilder.h"
 
-static std::vector<char> gReplace = {' ', '(', ')', '\\', '.', '-'};
+static std::vector<char> gReplace = {' ', '(', ')', '\\', '/', '.', '-'};
 
 struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
     std::stringstream     fOut;
