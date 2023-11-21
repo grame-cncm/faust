@@ -44,12 +44,12 @@
 #if defined(JUCE_32BIT) || defined(JUCE_64BIT)
 #include "faust/gui/JuceReader.h"
 static JuceReader gReader;
+#elif defined(DAISY) || defined(SUPERCOLLIDER)
+#include "faust/gui/WaveReader.h"
+static WaveReader gReader;
 #elif defined(ESP32)
 #include "faust/gui/Esp32Reader.h"
 static Esp32Reader gReader;
-#elif defined(DAISY)
-#include "faust/gui/WaveReader.h"
-static WaveReader gReader;
 #elif defined(MEMORY_READER)
 #include "faust/gui/MemoryReader.h"
 static MemoryReader gReader;

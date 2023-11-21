@@ -57,8 +57,10 @@ class Description : public virtual Garbageable {
     int                    fWidgetID;
     int                    fActiveWidgetCount;
     int                    fPassiveWidgetCount;
+    int                    fSFWidgetCount;
     std::list<std::string> fActiveLines;
     std::list<std::string> fPassiveLines;
+    std::list<std::string> fSFLines;
     std::list<std::string> fLayoutLines;
     std::list<int>         fLayoutTabs;
 
@@ -68,8 +70,10 @@ class Description : public virtual Garbageable {
     void tab(int n, std::ostream& fout);
     void addActiveLine(const std::string& l) { fActiveLines.push_back(l); }
     void addPassiveLine(const std::string& l) { fPassiveLines.push_back(l); }
+    void addSFLine(const std::string& l) { fSFLines.push_back(l); }
     void addActiveMetadata(Tree label);
     void addPassiveMetadata(Tree label);
+    void addSFMetadata(Tree label);
     void addLayoutLine(int n, const std::string& l)
     {
         fLayoutTabs.push_back(n);
@@ -77,7 +81,7 @@ class Description : public virtual Garbageable {
     }
 
    public:
-    Description() : fInputs(0), fOutputs(0), fWidgetID(0), fActiveWidgetCount(0), fPassiveWidgetCount(0) {}
+    Description() : fInputs(0), fOutputs(0), fWidgetID(0), fActiveWidgetCount(0), fPassiveWidgetCount(0), fSFWidgetCount(0) {}
 
     Description* name(const std::string& s)
     {

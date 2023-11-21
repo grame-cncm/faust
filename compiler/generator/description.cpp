@@ -286,6 +286,20 @@ void Description::print(int n, ostream& fout)
     }
     tab(n + 2, fout);
     fout << "</passivewidgets>";
+    
+    tab(n + 2, fout);
+    
+    // soundfile widget list
+    tab(n + 2, fout);
+    fout << "<soundfilewidgets>";
+    tab(n + 3, fout);
+    fout << "<count>" << fSFWidgetCount << "</count>";
+    for (const auto& s : fSFLines) {
+        tab(n + 3, fout);
+        fout << s;
+    }
+    tab(n + 2, fout);
+    fout << "</soundfilewidgets>";
 
     tab(n + 2, fout);
 
@@ -410,14 +424,14 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 
     } else if (isSigSoundfile(sig, path)) {
         fWidgetID++;
-        fActiveWidgetCount++;
-        addActiveLine(subst("<widget type=\"soundfile\" id=\"$0\">", T(fWidgetID)));
-        addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)))));
-        addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
-        addActiveMetadata(label);
-        addActiveLine("</widget>");
+        fSFWidgetCount++;
+        addSFLine(subst("<widget type=\"soundfile\" id=\"$0\">", T(fWidgetID)));
+        addSFLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)))));
+        addSFLine(subst("\t<varname>$0</varname>", tree2str(varname)));
+        addSFMetadata(label);
+        addSFLine("</widget>");
 
-        // add a passive widget description
+    // add a passive widget description
 
     } else if (isSigVBargraph(sig, path, x, y, z)) {
         fWidgetID++;
@@ -471,6 +485,18 @@ void Description::addPassiveMetadata(Tree label)
     lines = xmlOfMetadata(metadata, 1);
 
     for (const auto& it : lines) fPassiveLines.push_back(it);
+}
+
+void Description::addSFMetadata(Tree label)
+{
+    map<string, set<string>> metadata;
+    string                   shortLabel;
+    list<string>             lines;
+    
+    extractMetadata(tree2str(label), shortLabel, metadata);
+    lines = xmlOfMetadata(metadata, 1);
+    
+    for (const auto& it : lines) fSFLines.push_back(it);
 }
 
 void Description::printXML(int ins, int outs)

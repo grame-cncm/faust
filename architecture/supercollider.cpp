@@ -46,6 +46,10 @@
 #include <faust/gui/UI.h>
 #include <faust/misc.h>
 
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
 using namespace std;
 
 #if defined(__GNUC__) && __GNUC__ >= 4
@@ -255,6 +259,10 @@ struct Faust : public Unit
 static size_t       g_numControls; // Number of controls
 static const char*  g_unitName;    // Unit name
 
+#ifdef SOUNDFILE
+static SoundUI*     g_SoundInterface = nullptr;
+#endif
+
 // Return the unit size in bytes, including static fields and controls.
 static size_t unitSize();
 
@@ -395,7 +403,11 @@ void Faust_Ctor(Faust* unit)  // module constructor
         unit->mDSP->buildUserInterface(&ca);
         unit->mInBufCopy  = 0;
         unit->mInBufValue = 0;
-     
+    
+#ifdef SOUNDFILE
+        unit->mDSP->buildUserInterface(g_SoundInterface);
+#endif
+
         // check input/output channel configuration
         const size_t numInputs = unit->mDSP->getNumInputs() + unit->mNumControls;
         const size_t numOutputs = unit->mDSP->getNumOutputs();
@@ -500,6 +512,10 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
         name = fileNameToUnitName(__FILE__);
     }
     name = normalizeClassName(name);
+    
+#ifdef SOUNDFILE
+    g_SoundInterface = new SoundUI(SoundUI::getBinaryPath());
+#endif
 
 #if defined(F2SC_DEBUG_MES) & defined(SC_API_EXPORT)
     Print("Faust: supercollider.cpp: sc_api_version = %d\n", sc_api_version);

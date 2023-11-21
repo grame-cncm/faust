@@ -4,7 +4,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to supercollider            #
-#               (c) Grame, 2010                                     #
+#               (c) Grame, 2010-2023                                #
 #                                                                   #
 #####################################################################
 
@@ -21,6 +21,11 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 UNIVERSAL="0"
 
 ARCHFILE=$FAUSTARCH/supercollider.cpp
+
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILEINC=""
+SOUNDFILELIBS=""
 
 #-------------------------------------------------------------------
 # Need SuperCollider 'plugin_interface' include path to compile UGens:
@@ -56,7 +61,7 @@ INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/ -I$FAUSTINC"
 
 if [ $# = 0 ]; then
     echo USAGE:
-    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] [-universal] file1.dsp [file2.dsp ...]"
+    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] [-soundfile] [-universal] file1.dsp [file2.dsp ...]"
     exit 1
 fi
 
@@ -71,6 +76,7 @@ fi
 # if -sd or -synthdef           -> SYNTHDEF
 # if -sn                        -> SUPERNOVA_FLAG
 # if -universal                 -> build a universal (arm/intel) external
+# if -soundfile                 -> load soundfiles
 # existing *.dsp files          -> FILES
 #
 
@@ -81,6 +87,9 @@ SUPERNOVA_FLAG=0
 KEEP_SRC=0
 SYNTHDEF=""
 NO_FAUST_PREFIX=0
+
+#IGNORE_FLAGS="-Wl,-U,_src_delete,-U,_src_new,-U,_src_process,-U,_src_strerror"
+IGNORE_FLAGS=""
 
 for p in $@; do
 
@@ -98,6 +107,10 @@ for p in $@; do
         SUPERNOVA_FLAG=1
     elif [ $p = "-universal" ]; then
         UNIVERSAL="1"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE -DSUPERCOLLIDER"
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -122,8 +135,17 @@ fi
 
 if [ "$FILES" = "" ]; then
     echo USAGE:
-    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] [-universal] file1.dsp [file2.dsp ...]"
+    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] [-soundfile] [-universal] file1.dsp [file2.dsp ...]"
     exit 1
+fi
+
+#-------------------------------------------------------------------
+# Check Darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    ARCHLIB+=" -framework CoreFoundation -framework CoreServices"
+else
+    ARCHLIB+=""
 fi
 
 #-------------------------------------------------------------------
@@ -131,7 +153,8 @@ fi
 #
 if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
     EXT="scx"
-    SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN $DNDEBUG -bundle"
+    #SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN $DNDEBUG -bundle"
+    SCFLAGS="-DSC_DARWIN $DNDEBUG -bundle"
 elif [[ $(uname) == Linux ]]; then
     EXT="so"
     SCFLAGS="-DNO_LIBSNDFILE -DSC_LINUX $DNDEBUG -shared -fPIC"
@@ -157,6 +180,7 @@ for p in $FILES; do
     # compile the .dsp file to c++ and xml
     faust -i -a $ARCHFILE -xml $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     mv "$SRCDIR/$f.xml" "$TMP/"
+    
 
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
     (
@@ -172,20 +196,20 @@ for p in $FILES; do
         # build for build scsynth
         # universal binaries produced on M1
         if [[ $(uname) == Darwin && ($(uname -p) = arm  || "$UNIVERSAL" = "1") ]]; then
-            $CXX $BUILDFLAGS -arch x86_64 "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_x86_64.$EXT" 
-            $CXX $BUILDFLAGS -arch arm64 "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_arm64.$EXT"
+            $CXX $BUILDFLAGS -arch x86_64 $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_x86_64.$EXT" 
+            $CXX $BUILDFLAGS -arch arm64 $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_arm64.$EXT"
             $LIPO -create "${f%.dsp}_x86_64.$EXT" "${f%.dsp}_arm64.$EXT" -output "${f%.dsp}.$EXT" || exit
         else
-            $CXX $BUILDFLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}.$EXT" 
+            $CXX $BUILDFLAGS $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}.$EXT" 
         fi 
         # build for supernova
         if [ $SUPERNOVA_FLAG = 1 ]; then
             if [[ $(uname) == Darwin && ($(uname -p) = arm  || "$UNIVERSAL" = "1") ]]; then
-                $CXX $BUILDFLAGS -arch x86_64 -DSUPERNOVA "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova_x86_64.$EXT" 
-                $CXX $BUILDFLAGS -arch arm64 -DSUPERNOVA "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova_arm64.$EXT" 
+                $CXX $BUILDFLAGS -arch x86_64 -DSUPERNOVA $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova_x86_64.$EXT" 
+                $CXX $BUILDFLAGS -arch arm64 -DSUPERNOVA $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova_arm64.$EXT" 
                 $LIPO -create "${f%.dsp}_supernova_x86_64.$EXT" "${f%.dsp}_supernova_arm64.$EXT" -output "${f%.dsp}_supernova.$EXT" || exit
             else
-                $CXX $BUILDFLAGS -DSUPERNOVA "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova.$EXT" 
+                $CXX $BUILDFLAGS -DSUPERNOVA $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova.$EXT" 
             fi
         fi
 

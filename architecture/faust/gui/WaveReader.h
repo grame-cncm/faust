@@ -341,8 +341,14 @@ struct WaveReader : public SoundfileReader {
             float factor = 1.f/32767.f;
             for (int sample = 0; sample < soundfile->fLength[part]; sample++) {
                 short* frame = (short*)&reader.fWave->data[reader.fWave->block_align * sample];
-                for (int chan = 0; chan < reader.fWave->num_channels; chan++) {
-                    soundfile->fBuffers[chan][offset + sample] = frame[chan] * factor;
+                if (soundfile->fIsDouble) {
+                    for (int chan = 0; chan < reader.fWave->num_channels; chan++) {
+                        static_cast<double**>(soundfile->fBuffers)[chan][offset + sample] = frame[chan] * factor;
+                    }
+                } else {
+                    for (int chan = 0; chan < reader.fWave->num_channels; chan++) {
+                        static_cast<float**>(soundfile->fBuffers)[chan][offset + sample] = frame[chan] * factor;
+                    }
                 }
             }
         } else if (reader.fWave->bits_per_sample == 32) {
