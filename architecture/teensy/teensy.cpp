@@ -88,8 +88,9 @@
 #define MULT_16 32767
 #define DIV_16 0.0000305185
 
-unsigned __exidx_start;
-unsigned __exidx_end;
+// Not needed
+// unsigned __exidx_start;
+// unsigned __exidx_end;
 
 #if MIDICTRL
 std::list<GUI*> GUI::fGuiList;
