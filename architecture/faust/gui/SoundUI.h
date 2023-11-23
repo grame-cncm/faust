@@ -68,7 +68,7 @@ class SoundUI : public SoundUIInterface
     protected:
     
         // The soundfile directories
-        std::vector<std::string> fSoundfileDir;
+        Soundfile::Directories fSoundfileDir;
         // Map to share loaded soundfiles
         std::map<std::string, std::shared_ptr<Soundfile>> fSoundfileMap;
         // The soundfile reader
@@ -109,7 +109,7 @@ class SoundUI : public SoundUIInterface
          *
          * @return the soundfile loader.
          */
-        SoundUI(const std::vector<std::string>& sound_directories, int sample_rate = -1, SoundfileReader* reader = nullptr, bool is_double = false)
+        SoundUI(const Soundfile::Directories& sound_directories, int sample_rate = -1, SoundfileReader* reader = nullptr, bool is_double = false)
         :fSoundfileDir(sound_directories)
         {
             fSoundReader = (reader)

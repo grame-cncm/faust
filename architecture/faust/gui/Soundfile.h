@@ -167,6 +167,8 @@ struct Soundfile {
         delete[] fOffset;
     }
 
+    typedef std::vector<std::string> Directories;
+    
 } POST_PACKED_STRUCTURE;
 
 /*
@@ -180,7 +182,7 @@ class SoundfileReader {
     int fDriverSR;
    
     // Check if a soundfile exists and return its real path_name
-    std::string checkFile(const std::vector<std::string>& sound_directories, const std::string& file_name)
+    std::string checkFile(const Soundfile::Directories& sound_directories, const std::string& file_name)
     {
         if (checkFile(file_name)) {
             return file_name;
@@ -322,7 +324,7 @@ class SoundfileReader {
     }
 
     // Check if all soundfiles exist and return their real path_name
-    std::vector<std::string> checkFiles(const std::vector<std::string>& sound_directories,
+    std::vector<std::string> checkFiles(const Soundfile::Directories& sound_directories,
                                         const std::vector<std::string>& file_name_list)
     {
         std::vector<std::string> path_name_list;

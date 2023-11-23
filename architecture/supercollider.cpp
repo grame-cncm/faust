@@ -61,10 +61,18 @@ std::string defaultUserAppSupportDirectory()
 {
     return std::string(getenv("HOME")) + "/Library/Application Support/SuperCollider/Extensions";
 }
+std::string defaultSoundfilesDirectory1()
+{
+    return std::string(getenv("HOME")) + "/Library/Application Support/SuperCollider/Extensions/FaustSounds";
+}
 #else
 std::string defaultUserAppSupportDirectory()
 {
     return getenv("HOME");
+}
+std::string defaultSoundfilesDirectory1()
+{
+    return std::string(getenv("HOME")) + "/FaustSounds";
 }
 #endif
 
@@ -533,7 +541,12 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     name = normalizeClassName(name);
     
 #ifdef SOUNDFILE
-    std::vector<std::string> soundfile_dirs = { defaultUserAppSupportDirectory(), defaultSoundfilesDirectory(), SoundUI::getBinaryPath() };
+    Soundfile::Directories soundfile_dirs
+        = { defaultUserAppSupportDirectory(),
+            defaultSoundfilesDirectory(),
+            defaultSoundfilesDirectory1(),
+            SoundUI::getBinaryPath()
+        };
     g_SoundInterface = new SoundUI(soundfile_dirs);
     // Force soundfile loading at UGen load time
     tmp_dsp->buildUserInterface(g_SoundInterface);

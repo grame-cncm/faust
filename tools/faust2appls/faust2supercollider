@@ -153,8 +153,7 @@ fi
 #
 if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
     EXT="scx"
-    #SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN $DNDEBUG -bundle"
-    SCFLAGS="-DSC_DARWIN $DNDEBUG -bundle"
+    SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN $DNDEBUG -bundle"
 elif [[ $(uname) == Linux ]]; then
     EXT="so"
     SCFLAGS="-DNO_LIBSNDFILE -DSC_LINUX $DNDEBUG -shared -fPIC"
