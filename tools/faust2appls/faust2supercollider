@@ -88,9 +88,6 @@ KEEP_SRC=0
 SYNTHDEF=""
 NO_FAUST_PREFIX=0
 
-#IGNORE_FLAGS="-Wl,-U,_src_delete,-U,_src_new,-U,_src_process,-U,_src_strerror"
-IGNORE_FLAGS=""
-
 for p in $@; do
 
     if [ "$p" = -debug ] || [ "$p" = -d ]; then
@@ -109,8 +106,10 @@ for p in $@; do
         UNIVERSAL="1"
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE `pkg-config --cflags sndfile`"
+    elif [ $p = "-soundfile_wav" ]; then
+        SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE -DSUPERCOLLIDER"
-        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -143,7 +142,8 @@ fi
 # Check Darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    ARCHLIB+=" -framework CoreFoundation -framework CoreServices"
+    # Use -undefined dynamic_lookup flag for libsndfile (part of the SC runtime) weak linking
+    ARCHLIB+=" -framework CoreFoundation -framework CoreServices -undefined dynamic_lookup"
 else
     ARCHLIB+=""
 fi
@@ -196,8 +196,8 @@ for p in $FILES; do
         # build for build scsynth
         # universal binaries produced on M1
         if [[ $(uname) == Darwin && ($(uname -p) = arm  || "$UNIVERSAL" = "1") ]]; then
-            $CXX $BUILDFLAGS -arch x86_64 $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_x86_64.$EXT" 
-            $CXX $BUILDFLAGS -arch arm64 $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_arm64.$EXT"
+            $CXX $BUILDFLAGS -arch x86_64 $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_x86_64.$EXT" 
+            $CXX $BUILDFLAGS -arch arm64 $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_arm64.$EXT"
             $LIPO -create "${f%.dsp}_x86_64.$EXT" "${f%.dsp}_arm64.$EXT" -output "${f%.dsp}.$EXT" || exit
         else
             $CXX $BUILDFLAGS $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}.$EXT" 
@@ -205,11 +205,11 @@ for p in $FILES; do
         # build for supernova
         if [ $SUPERNOVA_FLAG = 1 ]; then
             if [[ $(uname) == Darwin && ($(uname -p) = arm  || "$UNIVERSAL" = "1") ]]; then
-                $CXX $BUILDFLAGS -arch x86_64 -DSUPERNOVA $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova_x86_64.$EXT" 
-                $CXX $BUILDFLAGS -arch arm64 -DSUPERNOVA $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova_arm64.$EXT" 
+                $CXX $BUILDFLAGS -arch x86_64 -DSUPERNOVA $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova_x86_64.$EXT" 
+                $CXX $BUILDFLAGS -arch arm64 -DSUPERNOVA $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova_arm64.$EXT" 
                 $LIPO -create "${f%.dsp}_supernova_x86_64.$EXT" "${f%.dsp}_supernova_arm64.$EXT" -output "${f%.dsp}_supernova.$EXT" || exit
             else
-                $CXX $BUILDFLAGS -DSUPERNOVA $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB $IGNORE_FLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova.$EXT" 
+                $CXX $BUILDFLAGS -DSUPERNOVA $SOUNDFILEDEFS $SOUNDFILELIBS $ARCHLIB "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova.$EXT" 
             fi
         fi
 
@@ -223,12 +223,12 @@ for p in $FILES; do
     cp "$TMP/${f%.dsp}.sc" "$SRCDIR/${f%.dsp}.sc"
 
     # Deactivated for now
-    #if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
-    #    codesign --sign - --deep --force "$SRCDIR/${f%.dsp}.$EXT"
-    #    if [ $SUPERNOVA_FLAG = 1 ]; then
-    #        codesign --sign - --deep --force "$SRCDIR/${f%.dsp}_supernova.$EXT"
-    #    fi
-    #fi
+    if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
+        codesign --sign - --deep --force "$SRCDIR/${f%.dsp}.$EXT"
+        if [ $SUPERNOVA_FLAG = 1 ]; then
+            codesign --sign - --deep --force "$SRCDIR/${f%.dsp}_supernova.$EXT"
+        fi
+    fi
 
     if [ $KEEP_SRC = 1 ]; then
         cp "$TMP/${f%.dsp}.cpp" "$SRCDIR/${f%.dsp}.cpp"

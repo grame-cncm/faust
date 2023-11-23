@@ -25,7 +25,7 @@
 #ifndef __LibsndfileReader__
 #define __LibsndfileReader__
 
-#ifdef SAMPLERATE
+#ifdef _SAMPLERATE
 #include <samplerate.h>
 #endif
 #include <sndfile.h>
@@ -221,7 +221,7 @@ struct LibsndfileReader : public SoundfileReader {
     {
         assert(snd_file);
         channels = int(snd_info.channels);
-    #ifdef SAMPLERATE
+    #ifdef _SAMPLERATE
         length = (isResampling(snd_info.samplerate)) ? ((double(snd_info.frames) * double(fDriverSR) / double(snd_info.samplerate)) + BUFFER_SIZE) : int(snd_info.frames);
     #else
         length = int(snd_info.frames);
@@ -252,7 +252,7 @@ struct LibsndfileReader : public SoundfileReader {
     {
         assert(snd_file);
         int channels = std::min<int>(max_chan, snd_info.channels);
-    #ifdef SAMPLERATE
+    #ifdef _SAMPLERATE
         if (isResampling(snd_info.samplerate)) {
             soundfile->fLength[part] = int(double(snd_info.frames) * double(fDriverSR) / double(snd_info.samplerate));
             soundfile->fSR[part] = fDriverSR;
@@ -279,7 +279,7 @@ struct LibsndfileReader : public SoundfileReader {
             reader = reinterpret_cast<sample_read>(sf_readf_float);
         }
         
-    #ifdef SAMPLERATE
+    #ifdef _SAMPLERATE
         // Resampling
         SRC_STATE* resampler = nullptr;
         float* src_buffer_out = nullptr;
@@ -305,7 +305,7 @@ struct LibsndfileReader : public SoundfileReader {
         
         do {
             nbf = reader(snd_file, buffer_in, BUFFER_SIZE);
-        #ifdef SAMPLERATE
+        #ifdef _SAMPLERATE
             // Resampling
             if  (isResampling(snd_info.samplerate)) {
                 int in_offset = 0;
@@ -355,7 +355,7 @@ struct LibsndfileReader : public SoundfileReader {
         } while (nbf == BUFFER_SIZE);
 		
         sf_close(snd_file);
-    #ifdef SAMPLERATE
+    #ifdef _SAMPLERATE
         if (resampler) src_delete(resampler);
     #endif
     }
