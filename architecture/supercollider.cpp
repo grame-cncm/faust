@@ -50,6 +50,24 @@
 #include "faust/gui/SoundUI.h"
 #endif
 
+std::string defaultSoundfilesDirectory()
+{
+    char* soundfiles_dir = getenv("FAUST_SOUNDFILES");
+    return std::string((soundfiles_dir) ? soundfiles_dir : "");
+}
+
+#ifdef __APPLE__
+std::string defaultUserAppSupportDirectory()
+{
+    return std::string(getenv("HOME")) + "/Library/Application Support/SuperCollider/Extensions";
+}
+#else
+std::string defaultUserAppSupportDirectory()
+{
+    return getenv("HOME");
+}
+#endif
+
 using namespace std;
 
 #if defined(__GNUC__) && __GNUC__ >= 4
@@ -515,7 +533,8 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     name = normalizeClassName(name);
     
 #ifdef SOUNDFILE
-    g_SoundInterface = new SoundUI(SoundUI::getBinaryPath());
+    std::vector<std::string> soundfile_dirs = { defaultUserAppSupportDirectory(), defaultSoundfilesDirectory(), SoundUI::getBinaryPath() };
+    g_SoundInterface = new SoundUI(soundfile_dirs);
     // Force soundfile loading at UGen load time
     tmp_dsp->buildUserInterface(g_SoundInterface);
 #endif
