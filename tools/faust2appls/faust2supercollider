@@ -16,6 +16,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 UNIVERSAL="0"
@@ -59,16 +60,9 @@ fi
 
 INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/ -I$FAUSTINC"
 
-if [ $# = 0 ]; then
-    echo USAGE:
-    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] [-soundfile] [-universal] file1.dsp [file2.dsp ...]"
-    exit 1
-fi
-
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
-# if -omp : -openmp or -fopenmp -> OPENMP
 # if -d or -debug               -> F2SC_DEBUG
 # if -dm                        -> F2SC_DEBUG_MES
 # if -ks                        -> KEEP_SRC
@@ -86,18 +80,45 @@ F2SC_DEBUG_MES=0
 SUPERNOVA_FLAG=0
 KEEP_SRC=0
 SYNTHDEF=""
-NO_FAUST_PREFIX=0
+SC_FAUST_PREFIX="Faust"
+
+echoHelp()
+{
+    usage faust2supercollider "[options] [Faust options] <file.dsp>"
+    require SuperCollider includes
+    echo "Compiles Faust programs to SuperCollider UGens. On macOS, soundfiles will be searched in 'xx/Library/Application Support/SuperCollider/Extensions/' and 'xx/Library/Application Support/SuperCollider/Extensions/FaustSounds'"
+    option
+    option "-d[ebug]" "to activate debug mode"
+    option "-dm" "to activate debug message mode"
+    option "-sd" "activate the --synthdef option in faust2sc"
+    option "-ks" "to keep the UGen source"
+    option "-sn" "to compile for SuperNova"
+    option "-noprefix" "to remove the standard 'Faust' prefix"
+    options -soundfile
+    option -universal "to generate a universal (arm/intel) UGens"
+    option "Faust options"
+    exit
+}
+
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
 
 for p in $@; do
 
-    if [ "$p" = -debug ] || [ "$p" = -d ]; then
+   if [ $p = "-help" ] || [ $p = "-h" ]; then
+       echoHelp
+    elif [ "$p" = -debug ] || [ "$p" = -d ]; then
         F2SC_DEBUG=1
     elif [ "$p" = -dm ]; then
         F2SC_DEBUG_MES=1
     elif [ "$p" = -ks ]; then
         KEEP_SRC=1
     elif [ "$p" = -noprefix ]; then
-        NO_FAUST_PREFIX=1
+        SC_FAUST_PREFIX=""
     elif [ "$p" = -sd ] || [ "$p" = -synthdef ]; then
         SYNTHDEF="--synthdef"
     elif [ "$p" = -sn ] || [ "$p" = -supernova ]; then
@@ -132,10 +153,11 @@ else
     DNDEBUG="-DNDEBUG"
 fi
 
-if [ "$FILES" = "" ]; then
-    echo USAGE:
-    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] [-soundfile] [-universal] file1.dsp [file2.dsp ...]"
-    exit 1
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
 fi
 
 #-------------------------------------------------------------------
@@ -183,11 +205,6 @@ for p in $FILES; do
 
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
     (
-        SC_FAUST_PREFIX="Faust"
-        if [ $NO_FAUST_PREFIX = 1 ]; then
-            SC_FAUST_PREFIX=""
-        fi
-
         cd "$TMP"
         faust2sc --prefix="$SC_FAUST_PREFIX" $SYNTHDEF "$f.xml" > "${f%.dsp}.sc" 2>$OUTDEV
         BUILDFLAGS="$FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -DSC_FAUST_PREFIX=\"$SC_FAUST_PREFIX\""

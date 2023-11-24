@@ -282,8 +282,9 @@ struct Faust : public Unit
 
 // Global state
 
-static size_t       g_numControls; // Number of controls
-static const char*  g_unitName;    // Unit name
+static size_t       g_numControls;          // Number of controls
+static const char*  g_unitName;             // Unit name
+static int          g_sampleRate = 48000;   // Default SR
 
 #ifdef SOUNDFILE
 // Loaded soundfiles are shared between all UGen instances
@@ -380,15 +381,15 @@ inline static void Faust_updateControls(Faust* unit)
 
 void Faust_next(Faust* unit, int inNumSamples)
 {
-    // update controls
+    // Update controls
     Faust_updateControls(unit);
-    // dsp computation
+    // DSP computation
     unit->mDSP->compute(inNumSamples, unit->mInBuf, unit->mOutBuf);
 }
 
 void Faust_next_copy(Faust* unit, int inNumSamples)
 {
-    // update controls
+    // Update controls
     Faust_updateControls(unit);
     // Copy buffers
     for (int i = 0; i < unit->getNumAudioInputs(); ++i) {
@@ -403,7 +404,7 @@ void Faust_next_copy(Faust* unit, int inNumSamples)
             unit->mInBufValue[i] = v1;
         }
     }
-    // dsp computation
+    // DSP computation
     unit->mDSP->compute(inNumSamples, unit->mInBufCopy, unit->mOutBuf);
 }
 
@@ -414,17 +415,22 @@ void Faust_next_clear(Faust* unit, int inNumSamples)
 
 void Faust_Ctor(Faust* unit)  // module constructor
 {
-    // allocate dsp
+    // Allocate DSP
     unit->mDSP = new(RTAlloc(unit->mWorld, sizeof(FAUSTCLASS))) FAUSTCLASS();
     if (!unit->mDSP) {
         Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
         goto end;
     }
     {
-        // init dsp
+        // Possibly call classInit again
+        if (SAMPLERATE != g_sampleRate) {
+            g_sampleRate = SAMPLERATE;
+            unit->mDSP->classInit(g_sampleRate);
+        }
+        // Init DSP
         unit->mDSP->instanceInit((int)SAMPLERATE);
      
-        // allocate controls
+        // Allocate controls
         unit->mNumControls = g_numControls;
         ControlAllocator ca(unit->mControls);
         unit->mDSP->buildUserInterface(&ca);
@@ -432,10 +438,11 @@ void Faust_Ctor(Faust* unit)  // module constructor
         unit->mInBufValue = 0;
     
 #ifdef SOUNDFILE
+        // Access soundfiles
         unit->mDSP->buildUserInterface(g_SoundInterface);
 #endif
 
-        // check input/output channel configuration
+        // Check input/output channel configuration
         const size_t numInputs = unit->mDSP->getNumInputs() + unit->mNumControls;
         const size_t numOutputs = unit->mDSP->getNumOutputs();
 
@@ -505,7 +512,7 @@ end:
     ClearUnitOutputs(unit, 1);
 }
 
-void Faust_Dtor(Faust* unit)  // module destructor
+void Faust_Dtor(Faust* unit)  // Module destructor
 {
     if (unit->mInBufValue) {
         RTFree(unit->mWorld, unit->mInBufValue);
@@ -542,7 +549,8 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     
 #ifdef SOUNDFILE
     Soundfile::Directories soundfile_dirs
-        = { defaultUserAppSupportDirectory(),
+        = {
+            defaultUserAppSupportDirectory(),
             defaultSoundfilesDirectory(),
             defaultSoundfilesDirectory1(),
             SoundUI::getBinaryPath()
@@ -571,8 +579,8 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
   
     g_unitName = STRDUP(name.c_str());
     
-    // TODO: use correct sample rate
-    tmp_dsp->classInit(48000);
+    // Use the default SR
+    tmp_dsp->classInit(g_sampleRate);
     ControlCounter cc;
     tmp_dsp->buildUserInterface(&cc);
     g_numControls = cc.getNumControls();
