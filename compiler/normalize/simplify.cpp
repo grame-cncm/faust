@@ -83,6 +83,19 @@ Tree simplify(Tree sig)
 
 // Implementation
 
+static bool isSigBool(Tree sig)
+{
+    int opnum;
+    Tree t1, t2;
+
+    if (!isSigBinOp(sig, &opnum, t1, t2))
+        return false;
+    if (isBoolOpcode(opnum))
+        return true;
+
+    return isLogicalOpcode(opnum) && isSigBool(t1) && isSigBool(t2);
+}
+
 static Tree simplification(Tree sig)
 {
     faustassert(sig);
@@ -167,6 +180,12 @@ static Tree simplification(Tree sig)
             if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) return sigInt(1);
             if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) || (opnum == kXOR))
                 return sigInt(0);
+
+        } else if ((opnum == kAND) || (opnum == kOR)) {
+            if (isOne(n1) && isSigBool(t2))
+                return opnum == kAND ? t2 : sigInt(1);
+            if (isOne(n2) && isSigBool(t1))
+                return opnum == kAND ? t1 : sigInt(1);
         }
 
         return normalizeAddTerm(sig);
