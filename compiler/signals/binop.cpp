@@ -101,7 +101,7 @@ BinOp* gBinOpTable[] = {
               FBCInstruction::kANDInt, 3, false, &andNode, &isMinusOne, &isMinusOne, isZero, isZero),
     new BinOp("|", "or_vec", "or_scal", "or", "or", Instruction::Or, Instruction::Or, "i32.or", "i64.or", "dummy",
               "dummy", WasmOp::I32Or, WasmOp::I64Or, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kORInt,
-              FBCInstruction::kORInt, 1, false, &orNode, &isZero, &isZero),
+              FBCInstruction::kORInt, 1, false, &orNode, &isZero, &isZero, &isMinusOne, &isMinusOne),
     new BinOp("^", "xor_vec", "xor_scal", "xor", "xor", Instruction::Xor, Instruction::Xor, "i32.xor", "i64.xor",
               "dummy", "dummy", WasmOp::I32Xor, WasmOp::I64Xor, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kXORInt,
               FBCInstruction::kXORInt, 2, false, &xorNode, &noNtrl, &noNtrl)
@@ -163,7 +163,7 @@ BinOp* gBinOpTable[] = {
               &andNode, &isMinusOne, &isMinusOne, isZero, isZero),
     new BinOp("|", "or_vec", "or_scal", "or", "or", 0, 0, "i32.or", "i64.or", "dummy", "dummy", WasmOp::I32Or,
               WasmOp::I64Or, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kORInt, FBCInstruction::kORInt, 1, false,
-              &orNode, &isZero, &isZero),
+              &orNode, &isZero, &isZero, &isMinusOne, &isMinusOne),
     new BinOp("^", "xor_vec", "xor_scal", "xor", "xor", 0, 0, "i32.xor", "i64.xor", "dummy", "dummy", WasmOp::I32Xor,
               WasmOp::I64Xor, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kXORInt, FBCInstruction::kXORInt, 2, false,
               &xorNode, &noNtrl, &noNtrl)
@@ -226,7 +226,7 @@ BinOp* gBinOpLateqTable[] = {
               FBCInstruction::kANDInt, 3, false, &andNode, &isMinusOne, &isMinusOne, isZero, isZero),
     new BinOp("\\vee", "or_vec", "or_scal", "or", "or", 0, 0, "i32.or", "i64.or", "dummy", "dummy", WasmOp::I32Or,
               WasmOp::I64Or, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kORInt, FBCInstruction::kORInt, 3, false, &orNode,
-              &isZero, &isZero),
+              &isZero, &isZero, &isMinusOne, &isMinusOne),
     new BinOp("\\veebar", "xor_vec", "xor_scal", "xor", "xor", 0, 0, "i32.xor", "i64.xor", "dummy", "dummy",
               WasmOp::I32Xor, WasmOp::I64Xor, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kXORInt,
               FBCInstruction::kXORInt, 2, false, &xorNode, &noNtrl, &noNtrl)
