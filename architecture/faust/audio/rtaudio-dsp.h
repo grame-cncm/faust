@@ -92,13 +92,20 @@ class rtaudio : public audio {
                 fDevNumInChans(0), fDevNumOutChans(0) {}
             
         virtual ~rtaudio() 
-        {   
+        {
+#if RTAUDIO_VERSION_MAJOR < 6
             try {
                 fAudioDAC.stopStream();
                 fAudioDAC.closeStream();
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+#else
+            RtAudioErrorType err = fAudioDAC.stopStream();
+            if (err != RTAUDIO_NO_ERROR) {
+                std::cout << '\n' << fAudioDAC.getErrorText() << '\n' << std::endl;
             }
+            fAudioDAC.closeStream();
+#endif
         }
         
         virtual bool init(const char* name, dsp* DSP)
@@ -134,16 +141,24 @@ class rtaudio : public audio {
             
             RtAudio::StreamOptions options;
             options.flags |= RTAUDIO_NONINTERLEAVED;
-         
+
+#if RTAUDIO_VERSION_MAJOR < 6
             try {
-                fAudioDAC.openStream(((numOutputs > 0) ? &oParams : NULL), 
-                    ((numInputs > 0) ? &iParams : NULL), FORMAT, 
+                fAudioDAC.openStream(((numOutputs > 0) ? &oParams : NULL),
+                    ((numInputs > 0) ? &iParams : NULL), FORMAT,
                     fSampleRate, &fBufferSize, audioCallback, this, &options);
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+#else
+            RtAudioErrorType err = fAudioDAC.openStream(
+                ((numOutputs > 0) ? &oParams : NULL),
+                ((numInputs > 0) ? &iParams : NULL), FORMAT,
+                fSampleRate, &fBufferSize, audioCallback, this, &options);
+            if (err != RTAUDIO_NO_ERROR) {
+                std::cout << '\n' << fAudioDAC.getErrorText() << '\n' << std::endl;
+#endif
                 return false;
             }
-               
             return true;
         }
         
@@ -163,10 +178,16 @@ class rtaudio : public audio {
         
         virtual bool start() 
         {
+#if RTAUDIO_VERSION_MAJOR < 6
             try {
                 fAudioDAC.startStream();
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+#else
+            RtAudioErrorType err = fAudioDAC.startStream();
+            if (err != RTAUDIO_NO_ERROR) {
+                std::cout << '\n' << fAudioDAC.getErrorText() << '\n' << std::endl;
+#endif
                 return false;
             }
             return true;
@@ -174,11 +195,18 @@ class rtaudio : public audio {
         
         virtual void stop() 
         {
+#if RTAUDIO_VERSION_MAJOR < 6
             try {
                 fAudioDAC.stopStream();
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
             }
+#else
+            RtAudioErrorType err = fAudioDAC.stopStream();
+            if (err != RTAUDIO_NO_ERROR) {
+                std::cout << '\n' << fAudioDAC.getErrorText() << '\n' << std::endl;
+            }
+#endif
         }
         
         virtual int getBufferSize() 
