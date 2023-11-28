@@ -795,45 +795,11 @@ static void test24(int argc, char* argv[])
     }
 }
 
-// Compile a complete DSP program to a box expression, then to a source string
+// Compile a complete DSP program to a box expression, then a list of signals, then to a source string
 // in several target languages
 static void test25()
 {
     cout << "test25\n";
-    vector<const char*> lang = { "c", "cpp", "cmajor", "codebox", "csharp", "dlang", "fir", "interp", "jax", "jsfx", "julia", "rust", "wast" };
-    // Context has to be created/destroyed each time
-    for (const auto& it : lang) {
-        createLibContext();
-        {
-            int inputs = 0;
-            int outputs = 0;
-            string error_msg;
-            
-            // Create the oscillator
-            Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, nullptr, &inputs, &outputs, error_msg);
-            if (!osc) {
-                cerr << error_msg;
-                destroyLibContext();
-                return;
-            }
-             
-            // Compile it to the target language
-            string source = createSourceFromBoxes("FaustDSP", osc, it, 0, nullptr, error_msg);
-            if (source != "") {
-                cout << source;
-            } else {
-                cerr << error_msg;
-            }
-        }
-        destroyLibContext();
-    }
-}
-
-// Compile a complete DSP program to a box expression, then a list of signals, then to a source string
-// in several target languages
-static void test26()
-{
-    cout << "test26\n";
     vector<const char*> lang = { "c", "cpp", "cmajor", "codebox", "csharp", "dlang", "fir", "interp", "jax", "jsfx", "julia", "rust", "wast" };
     // Context has to be created/destroyed each time
     for (const auto& it : lang) {
@@ -913,12 +879,9 @@ int main(int argc, char* argv[])
     
     // Test with audio, GUI, MIDI and Interp backend
     test24(argc, argv);
-  
-    // Test 'DSPToBoxes/createSourceFromBoxes' API
-    test25();
     
     // Test 'DSPToBoxes/boxesToSignals/createSourceFromSignals' API
-    test26();
+    test25();
     
     return 0;
 }

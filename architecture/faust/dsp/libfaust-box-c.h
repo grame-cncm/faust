@@ -735,7 +735,7 @@ extern "C"
      *
      * @return a flattened box on success, otherwise a null pointer.
      */
-    LIBFAUST_API Box CDSPToBoxes(const char* name_appp, const char* dsp_content, int argc, const char* argv[], int* inputs, int* outputs, char* error_msg);
+    LIBFAUST_API Box CDSPToBoxes(const char* name_app, const char* dsp_content, int argc, const char* argv[], int* inputs, int* outputs, char* error_msg);
     
     /**
      * Return the number of inputs and outputs of a box

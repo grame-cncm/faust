@@ -747,7 +747,7 @@ int main(int argc, const char* argv[])
     // Test 'DSPToBoxes' API (1)
     test25();
     
-    // Test 'DSPToBoxes' API (2)
+    // Test 'DSPToBoxes/createSourceFromBoxes' API (2)
     test26();
     
     // Test with audio, GUI and LLVM backend
@@ -761,6 +761,7 @@ int main(int argc, const char* argv[])
     
     // Test with audio, GUI, MIDI and Interp backend
     test24(argc, argv);
+    
     return 0;
 }
 
