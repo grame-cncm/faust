@@ -33,6 +33,7 @@
 #include "normalform.hh"
 #include "instructions.hh"
 #include "ppbox.hh"
+#include "prim2.hh"
 #include "xtended.hh"
 #include "propagate.hh"
 #include "sigtyperules.hh"
@@ -145,12 +146,23 @@ LIBFAUST_API string createSourceFromSignals(const string& name_app, tvec signals
 
 // Foreign
 
-LIBFAUST_API Tree sigFFun(Tree ff, tvec largs)
-{
-    return sigFFun(ff, listConvert(largs));
-}
-
 enum SType { kSInt, kSReal };
+
+typedef vector<SType> svec;
+
+typedef std::vector<std::string> nvec;
+
+LIBFAUST_API Signal sigFFun(SType rtype, nvec names, svec atypes, const std::string& incfile, const std::string& libfile, tvec largs)
+{
+    Tree atypes1 = gGlobal->nil;
+    for (const auto& it : atypes) atypes1 = cons(tree(it), atypes1);
+    
+    Tree names1 = gGlobal->nil;
+    for (const auto& it : names) names1 = cons(tree(it), names1);
+    
+    Tree signature = cons(tree(rtype), cons(names1, atypes1));
+    return sigFFun(ffunction(signature, tree(incfile), tree(libfile)), listConvert(largs));
+}
 
 LIBFAUST_API Tree sigFConst(SType type, const string& name, const string& file)
 {
@@ -368,6 +380,30 @@ LIBFAUST_API Tree CsigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
     return sigSelect3(selector, s1, s2, s3);
 }
+    
+LIBFAUST_API Signal CsigFFun(SType rtype, const char** names, SType* atypes, const char* incfile, const char* libfile, Signal* largs)
+{
+    svec atypes1;
+    int i = 0;
+    while (atypes[i]) {
+        atypes1.push_back(atypes[i]);
+        i++;
+    }
+    nvec names1;
+    int j = 0;
+    while (names[j]) {
+        names1.push_back(names[j]);
+        j++;
+    }
+    tvec largs1;
+    int k = 0;
+    while (largs[k]) {
+        largs1.push_back(largs[k]);
+        k++;
+    }
+    return sigFFun(rtype, names1, atypes1, incfile, libfile, largs1);
+}
+    
 
 LIBFAUST_API Tree CsigFConst(SType type, const char* name, const char* file)
 {
@@ -1195,14 +1231,26 @@ LIBFAUST_API Tree boxSelect3()
     return boxPrim4(sigSelect3);
 }
 
-LIBFAUST_API Tree boxFConst(SType type, const string& name, const string& file)
+LIBFAUST_API Tree boxFFun(SType rtype, nvec names, svec atypes, const string& incfile, const string& libfile)
 {
-    return boxFConst(tree(type), tree(name), tree(file));
+    Tree atypes1 = gGlobal->nil;
+    for (const auto& it : atypes) atypes1 = cons(tree(it), atypes1);
+    
+    Tree names1 = gGlobal->nil;
+    for (const auto& it : names) names1 = cons(tree(it), names1);
+    
+    Tree signature = cons(tree(rtype), cons(names1, atypes1));
+    return boxFFun(ffunction(signature, tree(incfile), tree(libfile)));
 }
 
-LIBFAUST_API Tree boxFVar(SType type, const string& name, const string& file)
+LIBFAUST_API Tree boxFConst(SType type, const string& name, const string& incfile)
 {
-    return boxFVar(tree(type), tree(name), tree(file));
+    return boxFConst(tree(type), tree(name), tree(incfile));
+}
+
+LIBFAUST_API Tree boxFVar(SType type, const string& name, const string& incfile)
+{
+    return boxFVar(tree(type), tree(name), tree(incfile));
 }
 
 LIBFAUST_API Tree boxBinOp(SOperator op)
@@ -1858,6 +1906,23 @@ LIBFAUST_API Tree CboxSelect2()
 LIBFAUST_API Tree CboxSelect3()
 {
     return boxSelect3();
+}
+    
+LIBFAUST_API Tree CboxFFun(SType rtype, const char** names, SType* atypes, const char* incfile, const char* libfile)
+{
+    svec atypes1;
+    int i = 0;
+    while (atypes[i]) {
+        atypes1.push_back(atypes[i]);
+        i++;
+    }
+    nvec names1;
+    int j = 0;
+    while (names[j]) {
+        names1.push_back(names[j]);
+        j++;
+    }
+    return boxFFun(rtype, names1, atypes1, incfile, libfile);
 }
 
 LIBFAUST_API Tree CboxFConst(SType type, const char* name, const char* file)

@@ -62,6 +62,14 @@ inline Box BS()
     return boxFVar(SType::kSInt, "count", "<math.h>");
 }
 
+/**
+ * Creates a foreign function*
+ */
+inline Box SINH()
+{
+    return boxFFun(SType::kSReal, {"sinhf", "sinh", "sinhl", "sinhfx"}, { SType::kSReal }, "<FOO.h>",  "");
+}
+
 #define COMPILER(exp)    \
 {                        \
     createLibContext();  \
@@ -77,6 +85,16 @@ static void compile(const string& name_app, Box box, int argc = 0, const char* a
     } else {
         cerr << error_msg;
     }
+}
+
+// process = ffunction(float sinhf|sinh|sinhl|sinhfx(float), <math.h>, "");
+
+static void test0()
+{
+    COMPILER
+    (
+        compile("test0", SINH());
+    )
 }
 
 // process = 7,3.14;
@@ -721,6 +739,7 @@ ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, const char* argv[])
 {
+    test0();
     test1();
     test2();
     test3();

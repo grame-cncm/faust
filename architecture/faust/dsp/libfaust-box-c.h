@@ -387,26 +387,39 @@ extern "C"
     LIBFAUST_API Box CboxSelect3Aux(Box selector, Box b1, Box b2, Box b3);
     
     /**
+     * Create a foreign function box.
+     *
+     * @param rtype - the foreign function return type of SType
+     * @param names - the list of function names for single, double, quad, fixed-point
+     * @param atypes - the list of arguments types
+     * @param incfile - the include file where the foreign function is defined
+     * @param libfile - the library file where the foreign function is defined
+     *
+     * @return the foreign function box.
+     */
+    LIBFAUST_API Box CboxFFun(SType rtype, const char** names, SType* atypes, const char* incfile, const char* libfile);
+
+    /**
      * Create a foreign constant box.
      *
      * @param type - the foreign constant type of SType
      * @param name - the foreign constant name
-     * @param file - the include file where the foreign constant is defined
+     * @param incfile - the include file where the foreign constant is defined
      *
      * @return the foreign constant box.
      */
-    LIBFAUST_API Box CboxFConst(SType type, const char* name, const char* file);
+    LIBFAUST_API Box CboxFConst(SType type, const char* name, const char* incfile);
     
     /**
      * Create a foreign variable box.
      *
      * @param type - the foreign variable type of SType
      * @param name - the foreign variable name
-     * @param file - the include file where the foreign variable is defined
+     * @param incfile - the include file where the foreign variable is defined
      *
      * @return the foreign variable box.
      */
-    LIBFAUST_API Box CboxFVar(SType type, const char* name, const char* file);
+    LIBFAUST_API Box CboxFVar(SType type, const char* name, const char* incfile);
     
     /**
      * Generic binary mathematical functions.

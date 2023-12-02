@@ -63,6 +63,15 @@ inline Signal BS()
     return sigFVar(SType::kSInt, "count", "<math.h>");
 }
 
+/**
+* Creates a foreign function*
+*/
+inline Box SINH()
+{
+    tvec signals;
+    signals.push_back(sigInput(0));
+    return sigFFun(SType::kSReal, {"sinhf", "sinh", "sinhl", "sinhfx"}, { SType::kSReal }, "<FOO.h>",  "", signals);
+}
 
 #define COMPILER(exp)    \
 {                        \
@@ -79,6 +88,19 @@ static void compile(const string& name_app, tvec signals, int argc = 0, const ch
     } else {
         cerr << error_msg;
     }
+}
+
+// process = ffunction(float sinhf|sinh|sinhl|sinhfx(float), <math.h>, "");
+
+static void test0()
+{
+    COMPILER
+    (
+        tvec signals;
+        signals.push_back(SINH());
+     
+        compile("test0", signals);
+    )
 }
 
 // process = 0.5;
@@ -843,6 +865,7 @@ ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, char* argv[])
 {
+    test0();
     test1();
     test2();
     test3();

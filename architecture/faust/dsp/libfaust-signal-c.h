@@ -291,6 +291,20 @@ extern "C"
      * @return the selected signal depending of the selector value at each time t.
      */
     LIBFAUST_API Signal CsigSelect3(Signal selector, Signal s1, Signal s2, Signal s3);
+    
+    /**
+     * Create a foreign function signal.
+     *
+     * @param rtype - the foreign function return type of SType
+     * @param names - the list of function names for single, double, quad, fixed-point
+     * @param atypes - the list of arguments types
+     * @param incfile - the include file where the foreign function is defined
+     * @param libfile - the library file where the foreign function is defined
+     * @param largs - the list of args
+     *
+     * @return the foreign function signal.
+     */
+    LIBFAUST_API Signal CsigFFun(SType rtype, const char** names, SType* atypes, const char* incfile, const char* libfile, Signal* largs);
       
     /**
      * Create a foreign constant signal.

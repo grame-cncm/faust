@@ -78,6 +78,10 @@ LIBFAUST_API int ffarity(Signal s);
 
 enum SType { kSInt, kSReal };
 
+typedef std::vector<SType> svec;
+
+typedef std::vector<std::string> nvec;
+
 enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
 
 /**
@@ -433,26 +437,39 @@ LIBFAUST_API Box boxSelect3();
 LIBFAUST_API Box boxSelect3(Box selector, Box b1, Box b2, Box b3);
 
 /**
+ * Create a foreign function box.
+ *
+ * @param rtype - the foreign function return type of SType
+ * @param names - the list of function names for single, double, quad, fixed-point 
+ * @param atypes - the list of arguments types
+ * @param incfile - the include file where the foreign function is defined
+ * @param libfile - the library file where the foreign function is defined
+ *
+ * @return the foreign function box.
+ */
+LIBFAUST_API Box boxFFun(SType rtype, nvec names, svec atypes, const std::string& incfile, const std::string& libfile);
+
+/**
  * Create a foreign constant box.
  *
  * @param type - the foreign constant type of SType
  * @param name - the foreign constant name
- * @param file - the include file where the foreign constant is defined
+ * @param incfile - the include file where the foreign constant is defined
  *
  * @return the foreign constant box.
  */
-LIBFAUST_API Box boxFConst(SType type, const std::string& name, const std::string& file);
+LIBFAUST_API Box boxFConst(SType type, const std::string& name, const std::string& incfile);
 
 /**
  * Create a foreign variable box.
  *
  * @param type - the foreign variable type of SType
  * @param name - the foreign variable name
- * @param file - the include file where the foreign variable is defined
+ * @param incfile - the include file where the foreign variable is defined
  *
  * @return the foreign variable box.
  */
-LIBFAUST_API Box boxFVar(SType type, const std::string& name, const std::string& file);
+LIBFAUST_API Box boxFVar(SType type, const std::string& name, const std::string& incfile);
 
 /**
  * Generic binary mathematical functions.
