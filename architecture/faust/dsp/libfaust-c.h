@@ -101,9 +101,7 @@ LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* 
                                            char* error_msg);
 
 /**
- * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey,
- * getCDSPCode, getCLibraryList, getAllCDSPFactories, writeCDSPFactoryToBitcode,
- * writeCDSPFactoryToIR, writeCDSPFactoryToMachine,expandCDSPFromString and expandCDSPFromFile.
+ * The free function to be used on memory returned expandCDSPFromString and expandCDSPFromFile.
  *
  * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
  *

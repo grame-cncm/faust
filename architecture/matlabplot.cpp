@@ -97,95 +97,36 @@ int main(int argc, char* argv[])
     interface->addOption("-ds", &down_sample, 1.0, 1.0, 16.0);
     interface->addOption("-us", &up_sample, 1.0, 1.0, 16.0);
     interface->addOption("-filter", &filter_type, 1.0, 1.0, 4.0);
+   
+    // SR, ds, us, filter have to be read before DSP init
+    interface->process_one_init("-r");
+    interface->process_one_init("-us");
+    interface->process_one_init("-ds");
+    interface->process_one_init("-filter");
     
     if ((down_sample != 1.0) && (up_sample != 1.0)) {
         cerr << "ERROR : -ds '" << down_sample << "' and -us '" << up_sample << "' cannot be used at the same time !\n";
         exit(1);
     }
-   
-    // setup up/down sampling, FC factor is expressed as a Double<INT,DENOM> to allow template specialization
-    int filter = int(filter_type);
-    if (down_sample != 1.0) {
-        int ds = int(down_sample);
-        dsp* busN = new dsp_bus(DSP->getNumOutputs());
-        switch (filter) {
-            case 1:
-                if (ds == 2) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass3<Double<45,100>, 2, float> >(busN));
-                else if (ds == 4) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass3<Double<45,100>, 4, float> >(busN));
-                else if (ds == 8) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass3<Double<45,100>, 8, float> >(busN));
-                else if (ds == 16) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass3<Double<45,100>, 16, float> >(busN));
-                else cerr << "Downsampling factor must be a power of two and <= 16\n";
-                break;
-            case 2:
-                if (ds == 2) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass4<Double<45,100>, 2, float> >(busN));
-                else if (ds == 4) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass4<Double<45,100>, 4, float> >(busN));
-                else if (ds == 8) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass4<Double<45,100>, 8, float> >(busN));
-                else if (ds == 16) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass4<Double<45,100>, 16, float> >(busN));
-                else cerr << "Downsampling factor must be a power of two and <= 16\n";
-                break;
-            case 3:
-                if (ds == 2) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass3e<Double<45,100>, 2, float> >(busN));
-                else if (ds == 4) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass3e<Double<45,100>, 4, float> >(busN));
-                else if (ds == 8) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass3e<Double<45,100>, 8, float> >(busN));
-                else if (ds == 16) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass3e<Double<45,100>, 16, float> >(busN));
-                else cerr << "Downsampling factor must be a power of two and <= 16\n";
-                break;
-            case 4:
-                if (ds == 2) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass6e<Double<45,100>, 2, float> >(busN));
-                else if (ds == 4) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass6e<Double<45,100>, 4, float> >(busN));
-                else if (ds == 8) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass6e<Double<45,100>, 8, float> >(busN));
-                else if (ds == 16) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass6e<Double<45,100>, 16, float> >(busN));
-                break;
-            default:
-                cerr << "Incorrect filter type : " << filter << endl;
-                break;
-        }
-    } else if (up_sample != 1.0) {
-        int up = int(up_sample);
-        dsp* busN = new dsp_bus(DSP->getNumOutputs());
-        switch (filter) {
-            case 1:
-                if (up == 2) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass3<Double<45,100>, 2, float> >(busN));
-                else if (up == 4) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass3<Double<45,100>, 4, float> >(busN));
-                else if (up == 8) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass3<Double<45,100>, 8, float> >(busN));
-                else if (up == 16) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass3<Double<45,100>, 16, float> >(busN));
-                else cerr << "Upsampling factor must be a power of two and <= 16\n";
-                break;
-            case 2:
-                if (up == 2) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass4<Double<45,100>, 2, float> >(busN));
-                else if (up == 4) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass4<Double<45,100>, 4, float> >(busN));
-                else if (up == 8) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass4<Double<45,100>, 8, float> >(busN));
-                else if (up == 16) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass4<Double<45,100>, 16, float> >(busN));
-                else cerr << "Upsampling factor must be a power of two and <= 16\n";
-                break;
-            case 3:
-                if (up == 2) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass3e<Double<45,100>, 2, float> >(busN));
-                else if (up == 4) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass3e<Double<45,100>, 4, float> >(busN));
-                else if (up == 8) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass3e<Double<45,100>, 8, float> >(busN));
-                else if (up == 16) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass3e<Double<45,100>, 16, float> >(busN));
-                else cerr << "Upsampling factor must be a power of two and <= 16\n";
-                break;
-            case 4:
-                if (up == 2) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass6e<Double<45,100>, 2, float> >(busN));
-                else if (up == 4) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass6e<Double<45,100>, 4, float> >(busN));
-                else if (up == 8) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass6e<Double<45,100>, 8, float> >(busN));
-                else if (up == 16) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass6e<Double<45,100>, 16, float> >(busN));
-                break;
-            default:
-                cerr << "Incorrect filter type : " << filter << endl;
-                break;
-        }
-    }
     
-    // SR has to be read before DSP init
-    interface->process_one_init("-r");
+    // setup up/down sampling, FC factor is expressed as a Double<INT,DENOM> to allow template specialization
+    if (down_sample != 1.0 || up_sample != 1.0) {
+        string error;
+        dsp* busN = new dsp_bus(DSP->getNumOutputs());
+        dsp* adapter = createSRAdapter<FAUSTFLOAT>(busN, error, int(down_sample), int(up_sample), int(filter_type));
+        if (!adapter) {
+            cerr << error;
+            exit(1);
+        }
+        DSP = createDSPSequencer(DSP, adapter, error);
+    }
     
     // init signal processor and the user interface values
     DSP->init(int(sample_rate));
 
     // modify the UI values according to the command line options, after init
     interface->process_command();
-
+ 
     // prepare input channels (if any) with an impulse
     int nins = DSP->getNumInputs();
     channels inchan(kFrames, nins);

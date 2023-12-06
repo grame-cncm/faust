@@ -100,21 +100,6 @@ LIBFAUST_API bool generateAuxFilesFromFile(const std::string& filename, int argc
 LIBFAUST_API bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc,
                                              const char* argv[], std::string& error_msg);
 
-/**
- * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey,
- * getCDSPCode, getCLibraryList, getAllCDSPFactories, writeCDSPFactoryToBitcode,
- * writeCDSPFactoryToIR, writeCDSPFactoryToMachine,expandCDSPFromString and expandCDSPFromFile.
- *
- * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
- *
- * @param ptr - the pointer to be deleted.
- */
-#ifdef EMCC
-extern "C" void freeCMemory(void* ptr);
-#else
-extern "C" LIBFAUST_API void freeCMemory(void* ptr);
-#endif
-
 /*!
  @}
  */
