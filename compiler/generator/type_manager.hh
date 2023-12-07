@@ -31,6 +31,10 @@
 #include "exception.hh"
 #include "instructions.hh"
 
+#ifndef AP_INT_MAX_W
+#define AP_INT_MAX_W 1024
+#endif
+
 // Base class for type manager
 
 struct StringTypeManager {
@@ -104,23 +108,24 @@ class CStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kUint_ptr] = "uintptr_t";
     }
     
-    int calcMSB(int msb)
+    int calcMSB(int msb, int max_width)
     {
         int res;
-        if (gGlobal->gFixedPointSize < msb) {
+        if (max_width < msb) {
             std::stringstream error;
-            error << "WARNING : -fx-size ('" << gGlobal->gFixedPointSize << "' less than needed '" << msb << "')" << std::endl;
+            error << "WARNING : -fx-size ('" << max_width << "' less than needed '" << msb << "')" << std::endl;
             gWarningMessages.push_back(error.str());
-            res = std::min(31, gGlobal->gFixedPointSize);
+            res = std::min(31, max_width);
         } else {
             res = msb;
         }
         return res;
     }
     
-    int calcLSB(int msb, int lsb)
+    int calcLSB(int msb, int lsb, int max_width)
     {
-        return std::max(msb - gGlobal->gFixedPointSize, lsb);
+        int res = std::max(msb - max_width, lsb);
+        return res;
     }
 
     virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
@@ -139,22 +144,26 @@ class CStringTypeManager : public StringTypeManager {
             if (fx_typed->fIsSigned) {
                 // return "sfx_t(" + std::to_string(std::max<int>(0, std::min<int>(20, fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ")";
                 if (gGlobal->gFixedPointSize > 0) {
-                    int msb = calcMSB(fx_typed->fMSB);
-                    int lsb = calcLSB(msb, fx_typed->fLSB);
+                    int msb = calcMSB(fx_typed->fMSB, gGlobal->gFixedPointSize-2); // -2 to make space for the sign bit and the from-0 numbering
+                    int lsb = calcLSB(msb, fx_typed->fLSB, gGlobal->gFixedPointSize-2);
                     return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ")";
                 } else {
-                    return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
+                    int msb = calcMSB(fx_typed->fMSB, AP_INT_MAX_W-2); // -2 to make space for the sign bit and the from-0 numbering
+                    int lsb = calcLSB(msb, fx_typed->fLSB, AP_INT_MAX_W-2);
+                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ")";
                 }
             } else {
                 // return "ufx_t(" + std::to_string(std::max<int>(0, std::min<int>(20, fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ")";
                 if (gGlobal->gFixedPointSize > 0) {
-                    int msb = calcMSB(fx_typed->fMSB);
-                    int lsb = calcLSB(msb, fx_typed->fLSB);
+                    int msb = calcMSB(fx_typed->fMSB, gGlobal->gFixedPointSize -2);
+                    int lsb = calcLSB(msb, fx_typed->fLSB, gGlobal->gFixedPointSize -2);
                     // return "ufx_t(" + std::to_string(msb) + "," + std::to_string(msb - gGlobal->gFixedPointSize) + ")";
                     return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ")";
                 } else {
+                    int msb = calcMSB(fx_typed->fMSB, AP_INT_MAX_W-2);
+                    int lsb = calcLSB(msb, fx_typed->fLSB, AP_INT_MAX_W-2);
                     // return "ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
-                    return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")";
+                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ")";
                 }
             }
         } else if (basic_typed) {
@@ -188,22 +197,26 @@ class CStringTypeManager : public StringTypeManager {
             if (fx_typed->fIsSigned) {
                 // return "sfx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
                 if (gGlobal->gFixedPointSize > 0) {
-                    int msb = calcMSB(fx_typed->fMSB);
-                    int lsb = calcLSB(msb, fx_typed->fLSB);
+                    int msb = calcMSB(fx_typed->fMSB, gGlobal->gFixedPointSize-2);
+                    int lsb = calcLSB(msb, fx_typed->fLSB, gGlobal->gFixedPointSize-2);
                     return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ") " + name;
                 } else {
-                    return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
+                    int msb = calcMSB(fx_typed->fMSB, AP_INT_MAX_W-2);
+                    int lsb = calcLSB(msb, fx_typed->fLSB, AP_INT_MAX_W-2);
+                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ") " + name;
                 }
             } else {
                 // return "ufx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
                 if (gGlobal->gFixedPointSize > 0) {
-                    int msb = calcMSB(fx_typed->fMSB);
-                    int lsb = calcLSB(msb, fx_typed->fLSB);
+                    int msb = calcMSB(fx_typed->fMSB, gGlobal->gFixedPointSize-2);
+                    int lsb = calcLSB(msb, fx_typed->fLSB, gGlobal->gFixedPointSize-2);
                     // return "ufx_t(" + std::to_string(msb) + "," + std::to_string(msb- gGlobal->gFixedPointSize) + ") " + name;
                     return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ") " + name;
                 } else {
+                    int msb = calcMSB(fx_typed->fMSB, AP_INT_MAX_W-2);
+                    int lsb = calcLSB(msb, fx_typed->fLSB, AP_INT_MAX_W-2);
                     // return "ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
-                    return "sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
+                    return "sfx_t(" + std::to_string(msb) + "," + std::to_string(lsb) + ") " + name;
                 }
             }
         } else if (basic_typed) {
