@@ -60,17 +60,26 @@ class interval {
 
     interval(double n, double m, int lsb = -24) noexcept
     {
+        if (lsb == INT_MIN)
+            fLSB = -24;
+        else
+            fLSB = lsb;
+
         if (std::isnan(n) || std::isnan(m)) {
             fLo = NAN;
             fHi = NAN;
         } else {
-            double u = pow(2, lsb);
-            double n_trunc = u*(double)floor(n/u);
-            double m_trunc = u*(double)floor(m/u);
-            fLo = std::min(n_trunc, m_trunc);
-            fHi = std::max(n_trunc, m_trunc);
+            double u = pow(2, fLSB);
+            if (u != 0) {
+                double n_trunc = u*(double)floor(n/u);
+                double m_trunc = u*(double)floor(m/u);
+                fLo = std::min(n_trunc, m_trunc);
+                fHi = std::max(n_trunc, m_trunc);
+            } else {
+                fLo = std::min(n, m);
+                fHi = std::max(n, m);
+            }
         }
-        fLSB = lsb;
     }
 
     explicit interval(double n) noexcept : interval(n, n) {}
