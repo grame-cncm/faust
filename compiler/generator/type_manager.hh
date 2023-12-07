@@ -110,7 +110,6 @@ class CStringTypeManager : public StringTypeManager {
     
     int calcMSB(int msb, int max_width)
     {
-        std::cout << "Calling calcMSB with a max width of " << max_width << std::endl;
         int res;
         if (max_width < msb) {
             std::stringstream error;
@@ -120,15 +119,12 @@ class CStringTypeManager : public StringTypeManager {
         } else {
             res = msb;
         }
-        std::cout << "Computed a MSB of " << res << std::endl;
         return res;
     }
     
     int calcLSB(int msb, int lsb, int max_width)
     {
-        std::cout << "Calling calcLSB with a max width of " << max_width << std::endl;
         int res = std::max(msb - max_width, lsb);
-        std::cout << "Computed a LSB of " << res << std::endl;
         return res;
     }
 
