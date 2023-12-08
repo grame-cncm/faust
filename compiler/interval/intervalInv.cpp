@@ -52,6 +52,8 @@ interval interval_algebra::Inv(const interval& x)
     if (precision == INT_MIN or taylor_lsb)
         precision = floor(x.lsb() - 2*log2(abs(v))); // 1/(x+u) - 1/x = -u/x^2 + o(u)
 
+    precision = std::max(precision, -31);
+
     if ((x.hi() < 0) || (x.lo() >= 0)) {
         return {1.0 / x.hi(), 1.0 / x.lo(), precision};
     }
