@@ -500,6 +500,7 @@ void propagateBackwardsUnaryMethod(const char* title, umth mp, itv::interval& X,
     {
         X = itv::interval(X.lo(), X.hi(), X.lsb() + 1);
         Z = (A.*mp)(X);
+        std::cout << X.lsb() << " -> " << Z.lsb() << std::endl;
     }
 
     if (Z.lsb() > l) // if we've overshot the target lsb
