@@ -308,6 +308,11 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
 
     for (int e = 0; e < E; e++) {  // for each experiment
 
+        // store output values in order to measure the output precision
+        std::set<double> measurements;
+
+        if (Dx.lsb() < 0 or Dy.lsb() < 0) // if we're not doing an integer operation
+        {
         // X: random input interval X < Dx
         double        x0 = truncate(rdx(generator), Dx.lsb());
         double        x1 = truncate(rdx(generator), Dx.lsb());
@@ -328,9 +333,6 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
         // random values in X
         std::uniform_real_distribution rvx(X.lo(), X.hi());
         std::uniform_real_distribution rvy(Y.lo(), Y.hi());
-
-        // store output values in order to measure the output precision
-        std::set<double> measurements;
 
         // draw the upper bounds manually
         double z = f(X.hi(), Y.hi()); // no need to truncate: interval boundaries are already truncated
@@ -358,6 +360,86 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
                 if (z > zhi) {
                     zhi = z;
                 }
+            }
+        } 
+
+        double meas = *(measurements.begin());
+
+        for (auto it = std::next(measurements.begin()); it != measurements.end();  ++it)
+        {
+            double next = *it;
+            double l = log2(next - meas);
+            if (l < lsb)
+            {
+                lsb = floor(l);
+            }
+
+            meas = next;
+        }
+
+        itv::interval Zm(zlo, zhi, lsb);    // the measured Z
+        itv::interval Zc  = (A.*bm)(X, Y);  // the computed Z
+        double        precision = (Zm.size() == Zc.size()) ? 1 : Zm.size() / Zc.size();
+
+        if (Zc >= Zm and Zc.lsb() <= Zm.lsb()) {
+            std::string color = "\033[32m"; 
+            if (precision < 0.8 or Zm.lsb() - Zc.lsb() >= 10) color = "\033[36m"; // cyan instead of green if approximation is technically correct but of poor quality
+            std::cout << color 
+                      << "OK    " << e << ": " << title << "(" << X << ",\t" << Y << ")\t =c=> " << Zc << " >= " << Zm
+                      << "\t (precision " << precision << "), \t LSB diff = " << Zm.lsb() - Zc.lsb()  
+                      << "\033[0m" << std::endl;
+        } else {
+            std::cout << "\033[31m"
+                      << "ERROR " << e << ": " << title << "(" << X << ",\t" << Y << ")\t =c=> " << Zc << " != " << Zm
+                      << "\t LSB diff = " << Zm.lsb() - Zc.lsb()  
+                      << "\033[0m" << std::endl;
+        }
+        
+        } else { // integer operation
+        std::cout << "Testing integer version of " << title << std::endl;
+        // X: random input interval X < Dx
+        int        x0 = truncate(rdx(generator), Dx.lsb());
+        int        x1 = truncate(rdx(generator), Dx.lsb());
+        itv::interval X(std::min(x0, x1), std::max(x0, x1), Dx.lsb());
+
+        // Y: random input interval Y < Dy
+        int        y0 = truncate(rdy(generator), Dy.lsb());
+        int        y1 = truncate(rdy(generator), Dy.lsb());
+        itv::interval Y(std::min(y0, y1), std::max(y0, y1), Dy.lsb());
+
+        // boundaries of the resulting interval Z
+        int zlo = INT_MAX;  // std::min(t0, t1);
+        int zhi = INT_MIN;  // std::max(t0, t1);
+
+        // precision of the resulting interval
+        int lsb = INT_MAX;
+
+        // random values in X and Y
+        std::uniform_int_distribution ivx((int)X.lo(), (int)X.hi());
+        std::uniform_int_distribution ivy((int)Y.lo(), (int)Y.hi());
+
+        // draw the upper bounds manually
+        int z = f(X.hi(), Y.hi()); // no need to truncate: interval boundaries are already truncated
+        measurements.insert((double)z);
+
+        if (z < zlo) {
+            zlo = z;
+        }
+        if (z > zhi) {
+            zhi = z;
+        }
+
+        // measure the interval Z using the numerical function f
+        for (int m = 0; m < M; m++) {  // M measurements
+            z = f(truncate(ivx(generator), Dx.lsb()), truncate(ivy(generator), Dy.lsb()));
+
+            measurements.insert(z);
+
+            if (z < zlo) {
+                zlo = z;
+            }
+            if (z > zhi) {
+                zhi = z;
             }
         }
 
@@ -392,6 +474,8 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
                       << "\t LSB diff = " << Zm.lsb() - Zc.lsb()  
                       << "\033[0m" << std::endl;
         }
+        }
+
     }
     std::cout << std::endl;
 }

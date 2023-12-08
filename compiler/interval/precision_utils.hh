@@ -17,6 +17,20 @@ double truncate(double x, int lsb)
     return res;
 }
 
+/** 
+ * @brief truncate x at the precision induced by lsb (integer version)
+ * 
+ * @param x value to truncate
+ * @param lsb the precision to which to truncate
+ * @return x truncated with lsb bits of precision
+ * */
+int truncate(int x, int lsb)
+{
+    double u = pow(2, lsb); // ulp
+    double res = u*(double)floor(x/u);
+    return (int)res;
+}
+
 /**
  * @brief Computes the position of the least significant bit of a number
  * Floored to -24
