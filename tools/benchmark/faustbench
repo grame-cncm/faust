@@ -164,6 +164,12 @@ for p in $FILES; do
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
         faust -cn dsp_scal_exp10 $OPTIONS -exp10 "$SRCDIR/$f" -o "$TMP/dsp_scal_exp10.h"
+        faust -cn dsp_scal_mcd0 $OPTIONS -mcd 0 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd0.h"
+        faust -cn dsp_scal_mcd2 $OPTIONS -mcd 2 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd2.h"
+        faust -cn dsp_scal_mcd8 $OPTIONS -mcd 8 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd8.h"
+        faust -cn dsp_scal_mcd16 $OPTIONS -mcd 16 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd16.h"
+        faust -cn dsp_scal_mcd32 $OPTIONS -mcd 32 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd32.h"
+        faust -cn dsp_scal_mcd64 $OPTIONS -mcd 64 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd64.h"
         faust -cn dsp_scal_os $OPTIONS -os "$SRCDIR/$f" -o "$TMP/dsp_scal_os.h"
 
         faust -cn dsp_vec0_4 $OPTIONS -vec -lv 0 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec0_4.h"
@@ -215,8 +221,11 @@ for p in $FILES; do
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
         faust -cn dsp_scal_exp10 $OPTIONS -exp10 "$SRCDIR/$f" -o "$TMP/dsp_scal_exp10.h"
+        faust -cn dsp_scal_mcd0 $OPTIONS -mcd 0 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd0.h"
+        faust -cn dsp_scal_mcd8 $OPTIONS -mcd 8 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd8.h"
+        faust -cn dsp_scal_mcd32 $OPTIONS -mcd 32 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd32.h"
         faust -cn dsp_scal_os $OPTIONS -os "$SRCDIR/$f" -o "$TMP/dsp_scal_os.h"
-
+        
         faust -cn dsp_vec0_32 $OPTIONS -vec -lv 0 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec0_32.h"
         faust -cn dsp_vec0g_32 $OPTIONS -vec -lv 0 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_32.h"
         faust -cn dsp_vec1_32 $OPTIONS -vec -lv 1 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec1_32.h"

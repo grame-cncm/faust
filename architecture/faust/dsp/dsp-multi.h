@@ -672,7 +672,8 @@ class mydspmulti : public decorator_dsp {
             assert(fDSP);
             
             // Create a DS/US + Filter adapted DSP
-            fDSP = createSRAdapter<float>(fDSP, DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE);
+            std::string error;
+            fDSP = createSRAdapter<float>(fDSP, error, DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE);
             
             Meta1 meta;
             fDSP->metadata(&meta);

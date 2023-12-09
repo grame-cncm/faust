@@ -42,6 +42,12 @@ Soundfile* defaultsound = nullptr;
 
 #include "dsp_scal.h"
 #include "dsp_scal_exp10.h"
+#include "dsp_scal_mcd0.h"
+#include "dsp_scal_mcd2.h"
+#include "dsp_scal_mcd8.h"
+#include "dsp_scal_mcd16.h"
+#include "dsp_scal_mcd32.h"
+#include "dsp_scal_mcd64.h"
 #include "dsp_scal_os.h"
 
 #include "dsp_vec0_4.h"
@@ -93,6 +99,9 @@ Soundfile* defaultsound = nullptr;
 
 #include "dsp_scal.h"
 #include "dsp_scal_exp10.h"
+#include "dsp_scal_mcd0.h"
+#include "dsp_scal_mcd8.h"
+#include "dsp_scal_mcd32.h"
 #include "dsp_scal_os.h"
 #include "dsp_vec0_32.h"
 #include "dsp_vec1_32.h"
@@ -152,6 +161,12 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     
     options.push_back("-scal" + OPTIONS);
     options.push_back("-scal -exp10" + OPTIONS);
+    options.push_back("-scal -mcd 0" + OPTIONS);
+    options.push_back("-scal -mcd 2" + OPTIONS);
+    options.push_back("-scal -mcd 8" + OPTIONS);
+    options.push_back("-scal -mcd 16" + OPTIONS);
+    options.push_back("-scal -mcd 32" + OPTIONS);
+    options.push_back("-scal -mcd 64" + OPTIONS);
     options.push_back("-scal -os" + OPTIONS);
     
     options.push_back("-vec -lv 0 -vs 4" + OPTIONS);
@@ -203,6 +218,9 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     
     options.push_back("-scal" + OPTIONS);
     options.push_back("-scal -exp10" + OPTIONS);
+    options.push_back("-scal -mcd 0" + OPTIONS);
+    options.push_back("-scal -mcd 8" + OPTIONS);
+    options.push_back("-scal -mcd 32" + OPTIONS);
     options.push_back("-scal -os" + OPTIONS);
     options.push_back("-vec -lv 0 -vs 32" + OPTIONS);
     options.push_back("-vec -lv 0 -vs 32 -g" + OPTIONS);
@@ -222,6 +240,12 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     // Scalar
     measures.push_back(bench<FAUSTFLOAT>(new dsp_scal(), sizeof(dsp_scal), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
     measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_exp10(), sizeof(dsp_scal_exp10), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
+    measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_mcd0(), sizeof(dsp_scal_mcd0), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
+    measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_mcd2(), sizeof(dsp_scal_mcd2), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
+    measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_mcd8(), sizeof(dsp_scal_mcd8), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
+    measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_mcd16(), sizeof(dsp_scal_mcd16), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
+    measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_mcd32(), sizeof(dsp_scal_mcd32), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
+    measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_mcd64(), sizeof(dsp_scal_mcd64), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
     measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_os(), sizeof(dsp_scal_os), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
     
     // Vector -lv 0
@@ -266,6 +290,9 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     
     measures.push_back(bench<FAUSTFLOAT>(new dsp_scal(), sizeof(dsp_scal), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
     measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_exp10(), sizeof(dsp_scal_exp10), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
+    measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_mcd0(), sizeof(dsp_scal_mcd0), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
+    measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_mcd8(), sizeof(dsp_scal_mcd8), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
+    measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_mcd32(), sizeof(dsp_scal_mcd32), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
     measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_os(), sizeof(dsp_scal_os), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));
     
     measures.push_back(bench<FAUSTFLOAT>(new dsp_vec0_32(), sizeof(dsp_vec0_32), options[ind++], run, buffer_size, is_trace, is_control, ds, us, filter));

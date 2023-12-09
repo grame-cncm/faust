@@ -59,8 +59,10 @@ class mydspmulti : public decorator_dsp {
     public:
     
         // Create a DS/US + Filter adapted DSP
-        mydspmulti():decorator_dsp(createSRAdapter<float>(createmydspgeneric(), DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE))
+        mydspmulti():decorator_dsp()
         {
+            std::string error;
+            fDSP = createSRAdapter<float>(createmydspgeneric(), error, DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE);
             Meta1 meta;
             fDSP->metadata(&meta);
             std::cout << "Faust compile options : " << meta.fOptions << std::endl;

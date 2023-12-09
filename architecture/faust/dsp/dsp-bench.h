@@ -436,8 +436,10 @@ class measure_dsp_real : public decorator_dsp {
                         int ds = 0,
                         int us = 0,
                         int filter = 0)
-            :decorator_dsp(createSRAdapter<REAL>(dsp, ds, us, filter)), fBufferSize(buffer_size), fCount(count), fControl(control)
+            :decorator_dsp(), fBufferSize(buffer_size), fCount(count), fControl(control)
         {
+            std::string error;
+            fDSP = createSRAdapter<REAL>(dsp, error, ds, us, filter);
             init();
             fBench = new time_bench_real<REAL>(fCount, 10);
         }
@@ -463,8 +465,10 @@ class measure_dsp_real : public decorator_dsp {
                         int ds = 0,
                         int us = 0,
                         int filter = 0)
-            :decorator_dsp(createSRAdapter<REAL>(dsp, ds, us, filter)), fBufferSize(buffer_size), fControl(control)
+            :decorator_dsp(), fBufferSize(buffer_size), fControl(control)
         {
+            std::string error;
+            fDSP = createSRAdapter<REAL>(dsp, error, ds, us, filter);
             init();
             
             // Creates a first time_bench_real object to estimate the proper 'count' number of measure to do later
