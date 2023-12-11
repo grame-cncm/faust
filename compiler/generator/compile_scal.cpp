@@ -660,7 +660,7 @@ string ScalarCompiler::generateOutput(Tree sig, const string& idx, const string&
 string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
     return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
-}
+    }
 
 /*****************************************************************************
  Primitive Operations
@@ -1209,7 +1209,7 @@ bool ScalarCompiler::isSigSimpleRec(Tree sig)
  */
 DelayType ScalarCompiler::analyzeDelayType(Tree sig)
 {
-    Occurrences* occ = fOccMarkup->retrieve(sig);
+        Occurrences* occ = fOccMarkup->retrieve(sig);
     faustassert(occ != nullptr);
     int mxd   = occ->getMaxDelay();
     int count = occ->getDelayCount();
@@ -1446,6 +1446,14 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
                 int         N   = pow2limit(mxd + 1);
                 std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
                 return generateCacheCode(sig, subst("$0[$1]", vecname, generateIotaCache(idx)));
+        }
+    } else {
+        if (mxd == 0) {
+            // cerr << "it is a pure zero delay : " << code << endl;
+            return code;
+        } else {
+            cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
+            faustassert(false);
         }
     }
 #endif
