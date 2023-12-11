@@ -198,7 +198,8 @@ void faust_allocate(t_faust* x, int nvoices)
         post("monophonic DSP");
     #endif
         // Create a DS/US + Filter adapted DSP
-        x->m_dsp = createSRAdapter<FAUSTFLOAT>(new mydsp(), DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE);
+        std::string error;
+        x->m_dsp = createSRAdapter<FAUSTFLOAT>(new mydsp(), error, DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE);
     }
     
 #ifdef MIDICTRL

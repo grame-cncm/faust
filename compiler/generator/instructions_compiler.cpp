@@ -86,7 +86,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     
     /*
      Possibly cast bool binary operations (comparison operations) to int.
-     Done after simplifyToNormalForm with does SignalTreeChecker,
+     Done after simplifyToNormalForm which does SignalTreeChecker,
      that would fail after sigBool2IntPromote which adds additional
      sigIntCast on bool producing BinOp operations.
      */
