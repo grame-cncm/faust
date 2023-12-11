@@ -660,7 +660,7 @@ string ScalarCompiler::generateOutput(Tree sig, const string& idx, const string&
 string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
     return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
-    }
+}
 
 /*****************************************************************************
  Primitive Operations
@@ -1209,7 +1209,7 @@ bool ScalarCompiler::isSigSimpleRec(Tree sig)
  */
 DelayType ScalarCompiler::analyzeDelayType(Tree sig)
 {
-        Occurrences* occ = fOccMarkup->retrieve(sig);
+    Occurrences* occ = fOccMarkup->retrieve(sig);
     faustassert(occ != nullptr);
     int mxd   = occ->getMaxDelay();
     int count = occ->getDelayCount();
