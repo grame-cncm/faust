@@ -1016,7 +1016,7 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
             setLabelPos();
             fLabel.setEditable(false, false, false);
             fLabel.setJustificationType(juce::Justification::centred);
-            fLabel.setText(juce::String((int)*fZone) + " " + fUnit, juce::dontSendNotification);
+            fLabel.setText(juce::String(*fZone) + " " + fUnit, juce::dontSendNotification);
             fLabel.setTooltip(tooltip);
             addAndMakeVisible(fLabel);
         }
@@ -1433,7 +1433,7 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
             } else {
                 fLevel = range((rawLevel-fMin)/(fMax-fMin));
             }
-            fLabel.setText(juce::String((int)rawLevel) + " " + fUnit, juce::dontSendNotification);
+            fLabel.setText(juce::String(rawLevel) + " " + fUnit, juce::dontSendNotification);
         }
         
         FAUSTFLOAT range(FAUSTFLOAT level) { return (level > fMax) ? fMax : ((level < fMin) ? fMin : level); }
