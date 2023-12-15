@@ -344,7 +344,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         
         // Create the pass manager.
         OptimizationLevel opt_table[] = {OptimizationLevel::O0, OptimizationLevel::O1, OptimizationLevel::O2, OptimizationLevel::O3};
-        fOptLevel = std::max(fOptLevel, 3);
+        fOptLevel = std::min(fOptLevel, 3);
         ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(opt_table[fOptLevel]);
         
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
