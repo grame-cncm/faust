@@ -58,17 +58,17 @@ interval interval_algebra::Inv(const interval& x)
         return {1.0 / x.hi(), 1.0 / x.lo(), precision};
     }
     if (x.hi() == 0 && x.lo() < 0) {
-        // return {-HUGE_VAL, 1.0 / x.lo(), precision};
+        return {-HUGE_VAL, 1.0 / x.lo(), precision};
         // normally, we don't divide by 0
         // so the bounds of the image interval are not infinity but 1/ulp
-        return {-pow(2, -x.lsb()), 1.0 / x.lo(), precision}; 
+        // return {-pow(2, -x.lsb()), 1.0 / x.lo(), precision}; 
     }
     if (x.lo() == 0 && x.hi() > 0) {
-        // return {1 / x.hi(), HUGE_VAL, precision};
-        return {1 / x.hi(), pow(2, -x.lsb()), precision};
+        return {1 / x.hi(), HUGE_VAL, precision};
+        // return {1 / x.hi(), pow(2, -x.lsb()), precision};
     }
-    // return {-HUGE_VAL, HUGE_VAL, precision};
-    return {-pow(2, -x.lsb()), pow(2, -x.lsb()), precision};
+    return {-HUGE_VAL, HUGE_VAL, precision};
+    // return {-pow(2, -x.lsb()), pow(2, -x.lsb()), precision};
 }
 
 void interval_algebra::testInv()
