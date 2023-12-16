@@ -1566,6 +1566,9 @@ bool global::processCmdline(int argc, const char* argv[])
     if (gInlineTable && gOutputLang != "cpp") {
         throw faustexception("ERROR : -it can only be used with 'cpp' backend\n");
     }
+    if (gInlineTable && gMemoryManager) {
+        throw faustexception("ERROR : -it cannot be used with -mem\n");
+    }
 
     // gComputeMix check
     if (gComputeMix && gOutputLang == "ocpp") {
