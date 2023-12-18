@@ -24,6 +24,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <regex>
 
 #include "text_instructions.hh"
 #include "struct_manager.hh"

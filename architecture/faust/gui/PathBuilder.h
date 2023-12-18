@@ -30,7 +30,6 @@
 #include <map>
 #include <string>
 #include <algorithm>
-#include <regex>
 
 #include "faust/export.h"
 
@@ -64,9 +63,15 @@ class FAUST_API PathBuilder {
          * @param src
          * @return modified string
          */
-        std::string remove0x00(const std::string& src) const
+        std::string remove0x00(const std::string& src_aux) const
         {
-            return std::regex_replace(src, std::regex("/0x00"), "");
+            std::string src = src_aux;
+            std::string from = "/0x00";
+            std::string to = "";
+            for (size_t pos = src.find(from); pos != std::string::npos; pos = src.find(from, pos + 1)) {
+                src.replace(pos, from.length(), to);
+            }
+            return src;
         }
     
         /**
