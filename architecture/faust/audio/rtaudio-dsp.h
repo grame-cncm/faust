@@ -99,6 +99,7 @@ class rtaudio : public audio {
                 fAudioDAC.closeStream();
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+            }
 #else
             RtAudioErrorType err = fAudioDAC.stopStream();
             if (err != RTAUDIO_NO_ERROR) {
@@ -149,6 +150,9 @@ class rtaudio : public audio {
                     fSampleRate, &fBufferSize, audioCallback, this, &options);
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+                return false;
+            }
+            return true;
 #else
             RtAudioErrorType err = fAudioDAC.openStream(
                 ((numOutputs > 0) ? &oParams : NULL),
@@ -156,10 +160,10 @@ class rtaudio : public audio {
                 fSampleRate, &fBufferSize, audioCallback, this, &options);
             if (err != RTAUDIO_NO_ERROR) {
                 std::cout << '\n' << fAudioDAC.getErrorText() << '\n' << std::endl;
-#endif
                 return false;
             }
             return true;
+#endif
         }
         
         void setDsp(dsp* DSP)
@@ -183,14 +187,17 @@ class rtaudio : public audio {
                 fAudioDAC.startStream();
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+                return false;
+            }
+            return true;
 #else
             RtAudioErrorType err = fAudioDAC.startStream();
             if (err != RTAUDIO_NO_ERROR) {
                 std::cout << '\n' << fAudioDAC.getErrorText() << '\n' << std::endl;
-#endif
                 return false;
             }
             return true;
+#endif
         }
         
         virtual void stop() 
