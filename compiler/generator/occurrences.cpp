@@ -58,6 +58,7 @@ Occurrences::Occurrences(int v, int r, Tree xc) : fXVariability(xVariability(v, 
     fOutDelayOcc   = false;
     fMinDelay      = 0;
     fMaxDelay      = 0;
+    fCountDelay    = 0;  // number of times this sig occurs delay
     fExecCondition = xc;
 }
 
@@ -74,6 +75,7 @@ Occurrences* Occurrences::incOccurrences(int v, int r, int d, Tree xc)
     if (d > fMaxDelay) {
         // cerr << "Max delay : " << fMaxDelay << " <- " << d << endl;
         fMaxDelay = d;
+        fCountDelay++;
     }
 
     // check if used in different execution conditions
@@ -97,6 +99,11 @@ bool Occurrences::hasOutDelayOccurrences() const
 int Occurrences::getMaxDelay() const
 {
     return fMaxDelay;
+}
+
+int Occurrences::getDelayCount() const
+{
+    return fCountDelay;
 }
 
 Tree Occurrences::getExecCondition() const

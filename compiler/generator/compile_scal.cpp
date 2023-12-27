@@ -35,6 +35,7 @@
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
+#include "dlcodegen.hh"
 #include "floats.hh"
 #include "normalform.hh"
 #include "ppsig.hh"
@@ -47,6 +48,9 @@
 #include "sigtype.hh"
 #include "timing.hh"
 #include "xtended.hh"
+
+// Old delays are supposed to work while new delays are in progress
+#define OLDDELAY 0
 
 using namespace std;
 
@@ -133,13 +137,6 @@ Tree ScalarCompiler::prepare(Tree LS)
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
         sigToGraph(L2, dotfile);
     }
-
-    // Generate VHDL if -vhdl option is set
-    /* NOTE: This has been moved, as it had nothing to do here
-    if (gGlobal->gVHDLSwitch) {
-        sigVHDLFile(fOccMarkup, L2, gGlobal->gVHDLTrace);
-    }
-    */
 
     return L2;
 }
@@ -408,19 +405,20 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     L = prepare(L);  // optimize, share and annotate expression
 
     for (int i = 0; i < fClass->inputs(); i++) {
-        fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
-        if (gGlobal->gInPlace) {
-            CS(sigInput(i));
-        }
+        fClass->addZone3(subst("$1* input$0 = &input[$0][index]; // Zone 3", T(i), xfloat()));
+        // Deactivated for now
+        // if (gGlobal->gInPlace) {
+        //     CS(sigInput(i));
+        // }
     }
     for (int i = 0; i < fClass->outputs(); i++) {
-        fClass->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
+        fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
     }
 
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree sig = hd(L);
-        fClass->addExecCode(
-            Statement("", subst("output$0[i] = $2($1);", T(i), generateCacheCode(sig, CS(sig)), xcast())));
+        fClass->addExecCode(Statement(
+            "", subst("output$0[i] = $2($1);  // Zone Exec Code", T(i), generateCacheCode(sig, CS(sig)), xcast())));
     }
 
     generateMetaData();
@@ -497,7 +495,7 @@ string ScalarCompiler::generateCode(Tree sig)
     }
 
     else if (isSigDelay(sig, x, y)) {
-        return generateDelay(sig, x, y);
+        return generateDelayAccess(sig, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
     } else if (isSigBinOp(sig, &i, x, y)) {
@@ -592,7 +590,7 @@ string ScalarCompiler::generateNumber(Tree sig, const string& exp)
     // check for number occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
     }
     return exp;
 }
@@ -613,7 +611,7 @@ string ScalarCompiler::generateFConst(Tree sig, const string& file, const string
 
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
     }
     return exp;
 }
@@ -714,6 +712,22 @@ void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, 
     }
 }
 
+/**
+ * @brief Avoid multiple computation of the same iota expression
+ *
+ * @param iota expression
+ * @return variable name
+ */
+string ScalarCompiler::generateIotaCache(const std::string& exp)
+{
+    if (fIotaCache.find(exp) == fIotaCache.end()) {
+        string vname = getFreshID("vIota");
+        fClass->addExecCode(Statement("", subst("int $0 = $1;", vname, exp)));
+        fIotaCache[exp] = vname;
+    }
+    return fIotaCache[exp];
+}
+
 string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 {
     string code;
@@ -732,9 +746,10 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         if (sharing > 1) {
-            return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay());
+            return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay(),
+                                    o->getDelayCount());
         } else {
-            return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+            return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
         }
 
     } else if ((sharing > 1) || (o->hasMultiOccurrences())) {
@@ -767,7 +782,8 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     // check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay());
+        return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay(),
+                                o->getDelayCount());
     } else {
         return generateVariableStore(sig, exp);
     }
@@ -1165,6 +1181,83 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
 }
 
 /**
+ * @brief Check if sig is a simple recursive signal that can be expressed using a single variable
+ *
+ * @param sig the signal to analyse, typically proj(i,X)
+ * @return true if sig is of type x = f(x') and x' is used only once. In this case the same variable can be used both
+ * for x and x'
+ * @return false
+ */
+bool ScalarCompiler::isSigSimpleRec(Tree sig)
+{
+    int  i;
+    Tree x;
+
+    // sig is a recursive projection
+    if (isProj(sig, &i, x)) {
+        Tree var, le;
+        // the recursive group contains only one recursive signal
+        if (isRec(x, var, le) && (len(le) == 1)) {
+            int mxd   = fOccMarkup->retrieve(sig)->getMaxDelay();
+            int count = fOccMarkup->retrieve(sig)->getDelayCount();
+            // The maximum delay of sig is 1 and the delay count is 1
+            if ((mxd == 1) && (count == 1)) {
+                // sig@1 has only a single occurence (therefore in the definition of sig)
+                Tree f = sigDelay(sig, sigInt(1));  // check if it is a delay
+                if (fOccMarkup->retrieve(f)) {
+                    // this projection is used
+                    return !fOccMarkup->retrieve(f)->hasMultiOccurrences();
+                }
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * @brief indicate best delay implementation type for a signal according to its max delay and various compilation
+ * options
+ *
+ * @param sig
+ * @return DelayType
+ */
+DelayType ScalarCompiler::analyzeDelayType(Tree sig)
+{
+    Occurrences* occ = fOccMarkup->retrieve(sig);
+    faustassert(occ != nullptr);
+    int mxd   = occ->getMaxDelay();
+    int count = occ->getDelayCount();
+    int dnsty = (100 * count) / mxd;
+
+    if (mxd == 0) {
+        return DelayType::kZeroDelay;
+    }
+    if (mxd == 1) {
+        // check for special mono delay case
+        int  i;
+        Tree x, var, le;
+        if (count == 1 && isProj(sig, &i, x) && isRec(x, var, le) && (len(le) == 1)) {
+            // potential simple recursion if sig@1 is used only once
+            Tree f = sigDelay(sig, sigInt(1));  // check if it is a delay
+            if (fOccMarkup->retrieve(f) && !fOccMarkup->retrieve(f)->hasMultiOccurrences()) {
+                return DelayType::kMonoDelay;
+            }
+        }
+        return DelayType::kSingleDelay;
+    }
+    if (mxd <= gGlobal->gMaxCopyDelay) {
+        return DelayType::kCopyDelay;
+    }
+    if ((mxd <= gGlobal->gMaxDenseDelay) && (dnsty >= gGlobal->gMinDensity)) {
+        return DelayType::kDenseDelay;
+    }
+    if (mxd <= gGlobal->gMaskDelayLineThreshold) {
+        return DelayType::kMaskRingDelay;
+    }
+    return DelayType::kSelectRingDelay;
+}
+
+/**
  * Generate code for a group of mutually recursive definitions
  */
 void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
@@ -1173,8 +1266,11 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
 
     vector<bool>   used(N);
     vector<int>    delay(N);
+    vector<int>    count(N);
+    vector<Tree>   exp(N);
     vector<string> vname(N);
     vector<string> ctype(N);
+    vector<bool>   mono(N);
 
     // prepare each element of a recursive definition
     for (int i = 0; i < N; i++) {
@@ -1185,17 +1281,25 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
             getTypedNames(getCertifiedSigType(e), "Rec", ctype[i], vname[i]);
             setVectorNameProperty(e, vname[i]);
             delay[i] = fOccMarkup->retrieve(e)->getMaxDelay();
+            count[i] = fOccMarkup->retrieve(e)->getDelayCount();
+            mono[i]  = isSigSimpleRec(e);
+            exp[i]   = e;
+
         } else {
             // this projection is not used therefore
             // we should not generate code for it
             used[i] = false;
         }
     }
-
     // generate delayline for each element of a recursive definition
     for (int i = 0; i < N; i++) {
         if (used[i]) {
-            generateDelayLine(ctype[i], vname[i], delay[i], CS(nth(le, i)), getConditionCode(nth(le, i)));
+            Tree def = nth(le, i);
+            fClass->addDeclCode(
+                subst("// Recursion delay $0 is of type $1", vname[i], nameDelayType(analyzeDelayType(exp[i]))));
+            fClass->addDeclCode(subst("// While its definition is of type $0", nameDelayType(analyzeDelayType(def))));
+            generateDelayLine(analyzeDelayType(exp[i]), ctype[i], vname[i], delay[i], count[i], mono[i], CS(def),
+                              getConditionCode(def));
         }
     }
 }
@@ -1291,14 +1395,17 @@ string ScalarCompiler::generateXtended(Tree sig)
  * Generate code for accessing a delayed signal. The generated code depend of
  * the maximum delay attached to exp.
  */
-string ScalarCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
+string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
-    // cerr << "ScalarCompiler::generateDelay sig = " << *sig << endl;
-    // cerr << "ScalarCompiler::generateDelay exp = " << *exp << endl;
-    // cerr << "ScalarCompiler::generateDelay del = " << *delay << endl;
+#if OLDDELAY
+    // cerr << "ScalarCompiler::generateDelayAccess sig = " << *sig << endl;
+    // cerr << "ScalarCompiler::generateDelayAccess exp = " << *exp << endl;
+    // cerr << "ScalarCompiler::generateDelayAccess del = " << *delay << endl;
 
-    string code = CS(exp);  // ensure exp is compiled to have a vector name
-    int    mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
+    string code  = CS(exp);  // ensure exp is compiled to have a vector name
+    int    mxd   = fOccMarkup->retrieve(exp)->getMaxDelay();
+    int    count = fOccMarkup->retrieve(exp)->getDelayCount();
+    bool   mono  = isSigSimpleRec(exp);
     string vecname;
 
     if (!getVectorNameProperty(exp, vecname)) {
@@ -1311,31 +1418,76 @@ string ScalarCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
         }
     }
 
-    if (mxd == 0) {
+    if (mono || mxd == 0) {
         // not a real vector name but a scalar name
         return vecname;
 
-    } else if (mxd < gGlobal->gMaxCopyDelay) {
+    } else if (mxd <= count * gGlobal->gMaxCopyDelay) {
+        return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
+#if 0 
         int d;
         if (isSigInt(delay, &d)) {
             return subst("$0[$1]", vecname, CS(delay));
         } else {
             return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
         }
-
+#endif
     } else {
-        int N = pow2limit(mxd + 1);
-        return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N - 1)));
+        int         N   = pow2limit(mxd + 1);
+        std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
+        return generateCacheCode(sig, subst("$0[$1]", vecname, generateIotaCache(idx)));
     }
+#else
+    string    code = CS(exp);  // ensure exp is compiled to have a vector name
+    int       mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
+    DelayType dt   = analyzeDelayType(exp);
+    string    vecname;
+    if (getVectorNameProperty(exp, vecname)) {
+        switch (dt) {
+                
+            case DelayType::kNotADelay:
+                faustexception("Try to compile has a delay something that is not a delay");
+                return "";
+                break;
+                
+            case DelayType::kZeroDelay:
+                return vecname;
+
+            case DelayType::kMonoDelay:
+                return vecname;
+
+            case DelayType::kSingleDelay:
+            case DelayType::kCopyDelay:
+            case DelayType::kDenseDelay:
+                return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
+
+            case DelayType::kMaskRingDelay:
+            case DelayType::kSelectRingDelay:
+                int         N   = pow2limit(mxd + 1);
+                std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
+                return generateCacheCode(sig, subst("$0[$1]", vecname, generateIotaCache(idx)));
+        }
+    } else {
+        if (mxd == 0) {
+            // cerr << "it is a pure zero delay : " << code << endl;
+            return code;
+        } else {
+            cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
+            faustassert(false);
+            return "";
+        }
+    }
+#endif
 }
 
 /**
  * Generate code for the delay mecchanism. The generated code depend of the
  * maximum delay attached to exp and the "less temporaries" switch
  */
-string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
+string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd,
+                                        int count)
 {
-    string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
+    string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd, count);
     if (getCertifiedSigType(sig)->variability() < kSamp) {
         return exp;
     } else {
@@ -1346,59 +1498,74 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
 /**
  * Generate code for the delay mecchanism without using temporary variables
  */
+
+/*
+    DlCodeGen g(ctype, vname, gGlobal->gVecSize, mxd);
+    fClass->addDeclCode(g.globalDeclare());
+    fClass->addClearCode(g.globalInit());
+    fClass->addZone2(g.localDeclare());
+    fClass->addZone3(g.PointerSetup());
+    fClass->addZone3(g.copyGlobalToLocal());
+    fClass->addPostCode(Statement(ccs, g.advance()));
+    fClass->addZone3Post(g.copyLocalToGlobal());
+*/
 string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
-                                              int mxd)
+                                              int mxd, int count)
 {
     faustassert(mxd > 0);
 
+    bool mono = isSigSimpleRec(sig);
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
-    string ccs = getConditionCode(sig);
-
-    if (mxd < gGlobal->gMaxCopyDelay) {
-        // short delay : we copy
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
-        fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
-
-        // generate post processing copy code to update delay values
-        if (mxd == 1) {
-            fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname)));
-        } else if (mxd == 2) {
-            // fClass->addPostCode(subst("$0[2] = $0[1];", vname));
-            fClass->addPostCode(Statement(ccs, subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
-        } else {
-            fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
-        }
-        setVectorNameProperty(sig, vname);
+    string    ccs = getConditionCode(sig);
+    DelayType dt  = analyzeDelayType(sig);
+    // fClass->addDeclCode(subst("// Normal delay $0 is of type $1", vname, nameDelayType(dt)));
+    string access = generateDelayLine(dt, ctype, vname, mxd, count, mono, exp, ccs);
+    setVectorNameProperty(sig, vname);
+    return access;
+#if 0
+#if OLDDELAY
+    if (mono) {
+        return vname;
+    } else if (mxd <= count * gGlobal->gMaxCopyDelay) {
         return subst("$0[0]", vname);
-
     } else {
-        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int N = pow2limit(mxd + 1);
-
-        // we need an iota index
-        fMaxIota = 0;
-
-        // declare and init
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-
-        // execute
-        fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
-        setVectorNameProperty(sig, vname);
-        return subst("$0[IOTA&$1]", vname, T(N - 1));
+        int         N   = pow2limit(mxd + 1);
+        std::string idx = subst("IOTA&$0", T(N - 1));
+        return subst("$0[$1]", vname, generateIotaCache(idx));
     }
+#else
+    switch (dt) {
+        case DelayType::kZeroDelay:
+            return vname;
+
+        case DelayType::kMonoDelay:
+            return vname;
+
+        case DelayType::kSingleDelay:
+        case DelayType::kCopyDelay:
+        case DelayType::kDenseDelay:
+            return subst("$0[0]", vname);
+
+        case DelayType::kMaskRingDelay:
+        case DelayType::kSelectRingDelay:
+            int         N   = pow2limit(mxd + 1);
+            std::string idx = subst("IOTA&$0", T(N - 1));
+            return subst("$0[$1]", vname, generateIotaCache(idx));
+    }
+#endif
+#endif
 }
 
 /**
  * Generate code for the delay mecchanism without using temporary variables
  */
 
-void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                       const string& ccs)
+string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const string& vname, int mxd, int count,
+                                         bool mono, const string& exp, const string& ccs)
 {
+#if OLDDELAY
     if (mxd == 0) {
-        // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
+        cerr << "MXD==0 :  " << vname << " := " << exp << endl;
         // no need for a real vector
         if (ccs == "") {
             fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2;", ctype, vname, exp)));
@@ -1407,22 +1574,21 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
             fClass->addExecCode(Statement(ccs, subst("\t$0 = $1;", vname, exp)));
         }
 
-    } else if (mxd < gGlobal->gMaxCopyDelay) {
-        // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
-
-        // short delay : we copy
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
-        fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
-
-        // generate post processing copy code to update delay values
-        if (mxd == 1) {
-            fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname)));
-        } else if (mxd == 2) {
-            fClass->addPostCode(Statement(ccs, subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
+    } else if (mono || (mxd <= count * gGlobal->gMaxCopyDelay)) {
+        // Generate code for short or dense delay lines
+        DlCodeGen g(ctype, vname, gGlobal->gVecSize, mxd, mono);
+        fClass->addDeclCode(g.globalDeclare());
+        fClass->addClearCode(g.globalInit());
+        fClass->addZone2(g.localDeclare());
+        fClass->addZone3(g.PointerSetup());
+        fClass->addZone3(g.copyGlobalToLocal());
+        if (mono) {
+            fClass->addExecCode(Statement(ccs, subst("$0 = $1;", vname, exp)));
         } else {
-            fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
+            fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
         }
+        fClass->addPostCode(Statement(ccs, g.advance()));
+        fClass->addZone3Post(g.copyLocalToGlobal());
 
     } else {
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
@@ -1436,8 +1602,92 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
 
         // execute
-        fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
+        std::string idx = subst("IOTA&$0", T(N - 1));
+        fClass->addExecCode(Statement(ccs, subst("$0[$1] = $2;", vname, generateIotaCache(idx), exp)));
     }
+#else
+    switch (dt) {
+        case DelayType::kNotADelay:
+            faustexception("Try to compile has a delay something that is not a delay");
+            return "";
+            break;
+
+        case DelayType::kZeroDelay:
+            // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
+            // no need for a real vector
+            if (ccs == "") {
+                fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2; // Zero delay", ctype, vname, exp)));
+            } else {
+                fClass->addZone2(subst("$0 \t$1 = 0;", ctype, vname));
+                fClass->addExecCode(Statement(ccs, subst("\t$0 = $1;", vname, exp)));
+            }
+            return vname;
+
+        case DelayType::kMonoDelay:
+            fClass->addDeclCode(subst("$0 \t$1State; // Mono Delay", ctype, vname));
+            fClass->addClearCode(subst("$0State = 0;", vname));
+            fClass->addZone2(subst("$0 \t$1;", ctype, vname));
+            fClass->addZone3(subst("$0 = $0State;", vname));
+            fClass->addExecCode(Statement(ccs, subst("$0 = $1;", vname, exp)));
+            fClass->addZone3Post(subst("$0State = $0;", vname));
+            return vname;
+
+        case DelayType::kSingleDelay:
+            fClass->addDeclCode(subst("$0 \t$1State; // Single Delay", ctype, vname));
+            fClass->addClearCode(subst("$0State = 0;", vname));
+            fClass->addZone2(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
+            fClass->addZone3(subst("$0[1] = $0State;", vname));
+            fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+            fClass->addPostCode(Statement("", subst("$0[1] = $0[0];", vname)));
+            fClass->addZone3Post(subst("$0State = $0[1];", vname));
+            return subst("$0[0]", vname);
+
+        case DelayType::kCopyDelay:
+            fClass->addDeclCode(subst("$0 \t$1State[$2]; // Copy Delay", ctype, vname, T(mxd)));
+            fClass->addClearCode(subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd), vname));
+            fClass->addZone2(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
+            for (int j = 0; j < mxd; j++) fClass->addZone3(subst("$0[$1] = $0State[$2];", vname, T(j + 1), T(j)));
+            fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+            for (int j = 0; j < mxd; j++) {
+                // warning ; line stacked in reverse order !!!
+                fClass->addPostCode(Statement("", subst("$0[$1] = $0[$2];", vname, T(j + 1), T(j))));
+            }
+            for (int j = 0; j < mxd; j++) fClass->addZone3Post(subst("$0State[$1] = $0[$2];", vname, T(j), T(j + 1)));
+            return subst("$0[0]", vname);
+
+        case DelayType::kDenseDelay:
+
+            fClass->addDeclCode(subst("$0 \t$1State[$2]; // Dense Delay", ctype, vname, T(mxd)));
+            fClass->addClearCode(subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd), vname));
+            fClass->addZone2(subst("$0 \t$1Cache[$2+$3];", ctype, vname, T(gGlobal->gVecSize), T(mxd)));
+            fClass->addZone3(subst("$0* \t$1 = $1Cache + $2 - 1;", ctype, vname, T(gGlobal->gVecSize)));
+            fClass->addZone3(subst("for (int j = 0; j < $0; j++) { $1[j+1] = $1State[j]; }", T(mxd), vname));
+            fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+            fClass->addPostCode(Statement("", subst("--$0;", vname)));
+            fClass->addZone3Post(subst("for (int j = 0; j < $0; j++) { $1State[j] = $1[j+1]; }", T(mxd), vname));
+            return subst("$0[0]", vname);
+
+        case DelayType::kMaskRingDelay:
+        case DelayType::kSelectRingDelay:
+
+            // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+            int N = pow2limit(mxd + 1);
+
+            // we need an iota index
+            fMaxIota++;
+            // std::cerr << "MaxIota increased" << std::endl;
+
+            // declare and init
+            fClass->addDeclCode(subst("$0 \t$1[$2]; // Ring Delay", ctype, vname, T(N)));
+            fClass->addClearCode(subst("for (int i = 0; i < $1; i++) { $0[i] = 0; }", vname, T(N)));
+
+            // execute
+            std::string idx      = subst("IOTA&$0", T(N - 1));
+            std::string cacheidx = generateIotaCache(idx);
+            fClass->addExecCode(Statement(ccs, subst("$0[$1] = $2;", vname, cacheidx, exp)));
+            return subst("$0[$1]", vname, cacheidx);
+    }
+#endif
 }
 
 /**
@@ -1446,6 +1696,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
  */
 void ScalarCompiler::ensureIotaCode()
 {
+    // std::cerr << "ensureIotaCode called " << fMaxIota << std::endl;
     if (fMaxIota >= 0) {
         fClass->addDeclCode("int \tIOTA;");
         fClass->addClearCode(subst("IOTA = $0;", T(fMaxIota)));

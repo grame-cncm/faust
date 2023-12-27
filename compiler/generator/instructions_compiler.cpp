@@ -660,7 +660,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     }
 
     else if (isSigDelay(sig, x, y)) {
-        return generateDelay(sig, x, y);
+        return generateDelayAccess(sig, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
     } else if (isSigBinOp(sig, &i, x, y)) {
@@ -1895,7 +1895,7 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
  * Generate code for accessing a delayed signal. The generated code depend of
  * the maximum delay attached to exp.
  */
-ValueInst* InstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
+ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
     ValueInst* code = CS(exp);  // Ensure exp is compiled to have a vector name
     int        mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();

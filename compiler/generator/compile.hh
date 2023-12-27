@@ -44,6 +44,18 @@
 
 #define kMaxHeight 1024
 
+enum class DelayType {
+    kNotADelay = 0,
+    kZeroDelay,         // delay = 0
+    kMonoDelay,         // 1 sample delay where 1 single variable can be used (the delay appears once in the expression)
+    kSingleDelay,       // 1 sample delay where the delay appears several times in the expression, so a buffer of size 2 is used
+    kCopyDelay,         // longer delay with a cache
+    kDenseDelay,        // longer delay with a cache, only when the read density is high enough
+    kMaskRingDelay,     // sparse delay without cache, using wrapping index (based on a power-of-two size and a mask)
+    kSelectRingDelay    // sparse delay without cache, using wrapping index (based on an if/select)
+};
+std::string nameDelayType(DelayType dt);
+
 class Compiler : public virtual Garbageable {
    protected:
     Klass*       fClass;
@@ -83,6 +95,9 @@ class Compiler : public virtual Garbageable {
     void generateMacroInterfaceTree(const std::string& pathname, Tree t);
     void generateMacroInterfaceElements(const std::string& pathname, Tree elements);
     void generateWidgetMacro(const std::string& pathname, Tree fulllabel, Tree varname, Tree sig);
+
+    // Analyze delay type
+    virtual DelayType analyzeDelayType(Tree sig) = 0;
 };
 
 #define generateEquivRecGroup generateRecGroup

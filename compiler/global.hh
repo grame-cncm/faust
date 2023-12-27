@@ -109,7 +109,7 @@ struct global {
     std::string              gMasterName;
     std::vector<std::string> gImportDirList;  // dir list enrobage.cpp/fopensearch() searches for imports, etc.
     std::vector<std::string>
-        gArchitectureDirList;  // dir list enrobage.cpp/fopensearch() searches for architecture files
+        gArchitectureDirList;                 // dir list enrobage.cpp/fopensearch() searches for architecture files
     std::vector<std::string> gLibraryList;
     std::string              gOutputDir;
     std::string              gImportFilename;
@@ -156,7 +156,9 @@ struct global {
     bool gCUDASwitch;         // -cuda option
     bool gGroupTaskSwitch;    // -g option
     bool gFunTaskSwitch;      // -fun option
-    int  gMaxCopyDelay;       // -mcd option
+    int  gMaxCopyDelay;       // -mcd threshold
+    int  gMaxDenseDelay;      // -mdd threshold
+    int  gMinDensity;         // -mdy threshold
     int gFloatSize;  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad', 4 for 'fixed-point')
     int gMaskDelayLineThreshold;  // -dlt <num> power-of-two and mask delay-lines treshold
     bool gEnableFlag;             // -es option (0/1: 0 by default)
@@ -169,10 +171,10 @@ struct global {
     bool gStrictSelect;  // -sts option, generate strict code for 'selectX' even for stateless branches (both are
                          // computed)
 
-    bool gDSPStruct;  // to control method generation in -fun mode
-    bool gLightMode;  // -light option, do not generate the entire DSP API (to be used with Emscripten to generate a
-                      // light DSP module for JavaScript)
-    bool gClang;      // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    bool gDSPStruct;     // to control method generation in -fun mode
+    bool gLightMode;     // -light option, do not generate the entire DSP API (to be used with Emscripten to generate a
+                         // light DSP module for JavaScript)
+    bool gClang;  // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
     bool
         gFullParentheses;  // -fp option, generate less parenthesis in some textual backends: C/C++, Cmajor, Dlang, Rust
     bool gCheckIntRange;   // -cir option, check float to integer range conversion
@@ -209,22 +211,22 @@ struct global {
     bool        gInlineTable;  // -it option, only in -cpp backend, to inline rdtable/rwtable code in the main class.
     bool        gComputeMix;   // -cm option, mix in outputs buffers
     bool        gBool2Int;     // Cast bool binary operations (comparison operations) to int
-    std::string gNamespace;    // Wrapping namespace used with the C++ backend
-    bool        gVHDLTrace;    // -vhdl-trace option
+    std::string gNamespace;           // Wrapping namespace used with the C++ backend
+    bool        gVHDLTrace;           // -vhdl-trace option
     bool        gVHDLFloatEncoding;   // -vhdl-float, floating point encoding for real numbers
     std::string gVHDLComponentsFile;  // -vhdl-operators, a config file to replace specific operators
-
-    int gWideningLimit;   // Max number of iterations before interval widening
-    int gNarrowingLimit;  // Max number of iterations to compute interval widener
+   
+    int gWideningLimit;             // Max number of iterations before interval widening
+    int gNarrowingLimit;            // Max number of iterations to compute interval widener
 
     std::map<std::string, std::string> gFastMathLibTable;      // Mapping table for fastmath functions
     std::map<std::string, bool>        gMathForeignFunctions;  // Map of math foreign functions
 
-    dsp_factory_base* gDSPFactory;  // compiled factory
+    dsp_factory_base* gDSPFactory;                             // compiled factory
 
-    bool gLstDependenciesSwitch;  // mdoc listing management
-    bool gLstMdocTagsSwitch;      // mdoc listing management
-    bool gLstDistributedSwitch;   // mdoc listing management
+    bool gLstDependenciesSwitch;                               // mdoc listing management
+    bool gLstMdocTagsSwitch;                                   // mdoc listing management
+    bool gLstDistributedSwitch;                                // mdoc listing management
 
     bool gAutoDifferentiate;
 
@@ -516,14 +518,14 @@ struct global {
     const char*                 gDevSuffix;       // .svg or .ps used to choose output device
     std::string                 gSchemaFileName;  // name of schema file beeing generated
     Tree                        gInverter[6];
-    std::map<Tree, std::string> gBackLink;  // link to enclosing file for sub schema
+    std::map<Tree, std::string> gBackLink;        // link to enclosing file for sub schema
 
     // FIR
     std::map<Typed::VarType, BasicTyped*> gTypeTable;     // To share a unique BasicTyped* object for a given type
     std::map<std::string, Typed*>         gVarTypeTable;  // Types of variables or functions
     std::map<Typed::VarType, int>         gTypeSizeMap;   // Size of types in bytes
     std::map<std::string, std::pair<std::string, int>>
-        gTablesSize;  // Global tables size in bytes: class name, <table name, size>
+        gTablesSize;                                      // Global tables size in bytes: class name, <table name, size>
 
     // Colorize
     std::map<Tree, int> gColorMap;

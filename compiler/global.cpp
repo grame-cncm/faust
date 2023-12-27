@@ -416,7 +416,9 @@ void global::reset()
     gMaxNameSize      = 40;
     gSimpleNames      = false;
     gSimplifyDiagrams = false;
-    gMaxCopyDelay     = 16;
+    gMaxCopyDelay     = 16;    // Maximal delay too choose a copy representation
+    gMaxDenseDelay    = 1024;  // Maximal delay too choose a dense representation
+    gMinDensity       = 33;    // Minimal density d/100 to choose a dense representation
 
     gVectorSwitch      = false;
     gDeepFirstSwitch   = false;
@@ -497,7 +499,7 @@ void global::reset()
 
     gAutoDifferentiate = false;
 
-    gLatexDocSwitch = true;  // Only LaTeX outformat is handled for the moment.
+    gLatexDocSwitch = true;         // Only LaTeX outformat is handled for the moment.
 
     gFileNum = 0;
 
@@ -778,6 +780,8 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gSchedulerSwitch) dst << "-sch ";
     if (gOpenMPSwitch) dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
     dst << "-mcd " << gMaxCopyDelay << " ";
+    dst << "-mdd " << gMaxDenseDelay << " ";
+    dst << "-mdy " << gMinDensity << " ";
     if (gUIMacroSwitch) dst << "-uim ";
     dst << printFloat();
     dst << "-ftz " << gFTZMode << " ";
@@ -1135,11 +1139,11 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-vhdl-trace", "--vhdl-trace")) {
             gVHDLTrace = true;
             i += 1;
-
+            
         } else if (isCmd(argv[i], "-vhdl-float", "--vhdl-float")) {
             gVHDLFloatEncoding = true;
             i += 1;
-
+            
         } else if (isCmd(argv[i], "-vhdl-components", "--vhdl-components") && (i + 1 < argc)) {
             gVHDLComponentsFile = std::string(argv[i + 1]);
             i += 2;
@@ -1166,6 +1170,14 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i + 1 < argc)) {
             gMaxCopyDelay = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-mdd", "--max-dense-delay") && (i + 1 < argc)) {
+            gMaxDenseDelay = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-mdy", "--min-density") && (i + 1 < argc)) {
+            gMinDensity = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-dlt", "-delay-line-threshold") && (i + 1 < argc)) {
@@ -1569,7 +1581,7 @@ bool global::processCmdline(int argc, const char* argv[])
     if (gInlineTable && gMemoryManager) {
         throw faustexception("ERROR : -it cannot be used with -mem\n");
     }
-
+  
     // gComputeMix check
     if (gComputeMix && gOutputLang == "ocpp") {
         throw faustexception("ERROR : -cm cannot be used with the 'ocpp' backend\n");
@@ -1967,13 +1979,22 @@ static void printHelp()
     cout << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process."
          << endl;
     cout << tab
-         << "-mcd <n>    --max-copy-delay <n>        threshold between copy and ring buffer implementation (default 16 "
-            "samples)."
+         << "-mcd <n>    --max-copy-delay <n>        use a copy delay up to max delay <n> and a dense delay above (ocpp only) "
+            "or a ring buffer (defaut 16 samples)."
          << endl;
     cout << tab
-         << "-dlt <n>    --delay-line-threshold <n>  threshold between 'mask' and 'select' ring buffer implementation "
-            "(default INT_MAX "
-            "samples)."
+         << "-mdd <n>    --max-dense-delay <n>       use a dense delay up to max delay <n> (if enough density) and a "
+            "ring "
+            "buffer delay above (ocpp only, default 1024)."
+         << endl;
+    cout << tab
+         << "-mdy <n>    --min-density <n>           minimal density (100*number of delays/max delay) to use a dense "
+            "delays "
+            "(ocpp only, default 33)."
+         << endl;
+    cout << tab
+         << "-dlt <n>    --delay-line-threshold <n>  use a mask-based ring buffer delays up to max delay <n> and a "
+            "select based ring buffers above (default INT_MAX samples)."
          << endl;
     cout << tab
          << "-mem        --memory-manager            allocate static in global state using a custom memory manager."
@@ -2255,7 +2276,7 @@ void callFun(threaded_fun fun, void* arg)
     // No thread support in JavaScript
     fun(arg);
 #elif defined(_WIN32)
-    DWORD id;
+    DWORD  id;
     HANDLE thread = CreateThread(NULL, MAX_STACK_SIZE, LPTHREAD_START_ROUTINE(fun), arg, 0, &id);
     faustassert(thread != NULL);
     WaitForSingleObject(thread, INFINITE);

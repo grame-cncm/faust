@@ -34,6 +34,7 @@ Compile a list of FAUST signals into a C++ class.
 *****************************************************************************/
 
 #include <stdio.h>
+#include <string>
 
 #include "compile.hh"
 #include "floats.hh"
@@ -60,6 +61,13 @@ using namespace std;
 
 ******************************************************************************
 *****************************************************************************/
+
+std::string nameDelayType(DelayType dt)
+{
+    static std::string delayTypeName[] = {"kNotADelay", "kZeroDelay",  "kMonoDelay",     "kSingleDelay",
+                                          "kCopyDelay", "kDenseDelay", "kMaskRingDelay", "kSelectRingDelay"};
+    return delayTypeName[int(dt)];
+}
 
 /*****************************************************************************
                                constructor
@@ -333,7 +341,7 @@ void Compiler::generateMacroInterfaceTree(const string& pathname, Tree t)
 
     if (isUiFolder(t, label, elements)) {
         string pathname2 = pathname;
-        string str = tree2str(right(label));
+        string str       = tree2str(right(label));
         if (str.length() > 0) pathname2 += str + "/";
         generateMacroInterfaceElements(pathname2, elements);
     } else if (isUiWidget(t, label, varname, sig)) {

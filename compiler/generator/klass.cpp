@@ -90,7 +90,7 @@ void Klass::openLoop(Tree recsymbol, const string& size)
 
 void Klass::listAllLoopProperties(Tree sig, set<Loop*>& L, set<Tree>& visited)
 {
-    if (visited.count(sig)==0) {
+    if (visited.count(sig) == 0) {
         visited.insert(sig);
         Loop* l;
         if (getLoopProperty(sig, l)) {
@@ -113,15 +113,15 @@ void Klass::listAllLoopProperties(Tree sig, set<Loop*>& L, set<Tree>& visited)
 void Klass::closeLoop(Tree sig)
 {
     faustassert(fTopLoop);
-    
+
     // fix the missing dependencies
     set<Loop*> L;
-    set<Tree> V;
+    set<Tree>  V;
     listAllLoopProperties(sig, L, V);
     for (Loop* l : L) {
         fTopLoop->fBackwardLoopDependencies.insert(l);
     }
-  
+
     Loop* l  = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
     faustassert(fTopLoop);
@@ -973,7 +973,8 @@ void Klass::println(int n, ostream& fout)
             }
         }
         tab(n + 1, fout);
-        fout << "#define FAUST_CLASS_NAME " << "\"" << fKlassName << "\"";
+        fout << "#define FAUST_CLASS_NAME "
+             << "\"" << fKlassName << "\"";
         tab(n + 1, fout);
         fout << "#define FAUST_COMPILATION_OPIONS \"" << gGlobal->printCompilationOptions1() << "\"";
         tab(n + 1, fout);
@@ -1016,7 +1017,7 @@ void Klass::printComputeMethod(int n, ostream& fout)
             }
         }
     } else {
-        printComputeMethodScalar(n, fout);
+        printComputeMethodScalarBlock(n, fout);
     }
 }
 
@@ -1039,6 +1040,32 @@ void Klass::printComputeMethodScalar(int n, ostream& fout)
     tab(n + 2, fout);
     fout << "//LoopGraphScalar";
     printLoopGraphScalar(n + 2, fout);
+    printlines(n + 2, fZone4Code, fout);
+    tab(n + 1, fout);
+    fout << "}";
+}
+
+void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
+{
+    tab(n + 1, fout);
+    fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
+    printlines(n + 2, fZone1Code, fout);
+    printlines(n + 2, fZone2Code, fout);
+    printlines(n + 2, fZone2bCode, fout);
+
+    tab(n + 2, fout);
+    fout << "int fullcount = count;";
+    tab(n + 2, fout);
+    fout << "for (int index = 0; index < fullcount; index += " << gGlobal->gVecSize << ") {";
+    tab(n + 3, fout);
+    fout << "int count = min(" << gGlobal->gVecSize << ", fullcount-index);";
+    printlines(n + 3, fZone3Code, fout);
+    printLoopGraphScalar(n + 3, fout);
+    printlines(n + 3, fZone3Post, fout);
+
+    tab(n + 2, fout);
+    fout << "}";
+
     printlines(n + 2, fZone4Code, fout);
     tab(n + 1, fout);
     fout << "}";
@@ -1446,8 +1473,24 @@ void SigIntGenKlass::println(int n, ostream& fout)
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
-    printlines(n + 2, fZone3Code, fout);
-    printLoopGraphInternal(n + 2, fout);
+
+    tab(n + 2, fout);
+    fout << "int fullcount = count;";
+    tab(n + 2, fout);
+    fout << "for (int index = 0; index < fullcount; index += " << gGlobal->gVecSize << ") {";
+    tab(n + 3, fout);
+    fout << "int count = min(" << gGlobal->gVecSize << ", fullcount-index);";
+
+    printlines(n + 3, fZone3Code, fout);
+    printLoopGraphInternal(n + 3, fout);
+    printlines(n + 3, fZone3Post, fout);
+    tab(n + 3, fout);
+    fout << "output += " << gGlobal->gVecSize << ";";
+
+    tab(n + 2, fout);
+    fout << "}";
+
+    printlines(n + 2, fZone4Code, fout);
     tab(n + 1, fout);
     fout << "}";
 
@@ -1496,8 +1539,24 @@ void SigFloatGenKlass::println(int n, ostream& fout)
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
-    printlines(n + 2, fZone3Code, fout);
-    printLoopGraphInternal(n + 2, fout);
+
+    tab(n + 2, fout);
+    fout << "int fullcount = count;";
+    tab(n + 2, fout);
+    fout << "for (int index = 0; index < fullcount; index += " << gGlobal->gVecSize << ") {";
+    tab(n + 3, fout);
+    fout << "int count = min(" << gGlobal->gVecSize << ", fullcount-index);";
+
+    printlines(n + 3, fZone3Code, fout);
+    printLoopGraphInternal(n + 3, fout);
+    printlines(n + 3, fZone3Post, fout);
+    tab(n + 3, fout);
+    fout << "output += " << gGlobal->gVecSize << ";";
+
+    tab(n + 2, fout);
+    fout << "}";
+
+    printlines(n + 2, fZone4Code, fout);
     tab(n + 1, fout);
     fout << "}";
 
