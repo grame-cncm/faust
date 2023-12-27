@@ -1,4 +1,4 @@
-% man(1) Version 2.69.10 (13-December-2023) | Faust man page
+% man(1) Version 2.70.0 (28-December-2023) | Faust man page
 
 NAME
 ====
@@ -100,9 +100,13 @@ Code generation options:
 
   **-pn** \<name>  **--process-name** \<name>       specify the name of the dsp entry-point instead of process.
 
-  **-mcd** \<n>    **--max-copy-delay** \<n>        threshold between copy and ring buffer implementation (default 16 samples).
+  **-mcd** \<n>    **--max-copy-delay** \<n>        use a copy delay up to max delay \<n> and a dense delay above (ocpp only) or a ring buffer (defaut 16 samples).
 
-  **-dlt** \<n>    **--delay-line-threshold** \<n>  threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX samples).
+  **-mdd** \<n>    **--max-dense-delay** \<n>       use a dense delay up to max delay \<n> (if enough density) and a ring buffer delay above (ocpp only, default 1024).
+
+  **-mdy** \<n>    **--min-density** \<n>           minimal density (100*number of delays/max delay) to use a dense delays (ocpp only, default 33).
+
+  **-dlt** \<n>    **--delay-line-threshold** \<n>  use a mask-based ring buffer delays up to max delay \<n> and a select based ring buffers above (default INT_MAX samples).
 
   **-mem**        **--memory-manager**            allocate static in global state using a custom memory manager.
 
