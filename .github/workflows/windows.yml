@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    if: github.repository == 'grame-cncm' || github.event_name == 'pull_request'
+    if: github.repository_owner == 'grame-cncm' || github.event_name == 'pull_request'
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
