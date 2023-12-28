@@ -1227,8 +1227,7 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
     faustassert(occ != nullptr);
     int mxd   = occ->getMaxDelay();
     int count = occ->getDelayCount();
-    int dnsty = (100 * count) / mxd;
-
+    
     if (mxd == 0) {
         return DelayType::kZeroDelay;
     }
@@ -1248,6 +1247,7 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
     if (mxd <= gGlobal->gMaxCopyDelay) {
         return DelayType::kCopyDelay;
     }
+    int dnsty = (100 * count) / mxd;
     if ((mxd <= gGlobal->gMaxDenseDelay) && (dnsty >= gGlobal->gMinDensity)) {
         return DelayType::kDenseDelay;
     }
