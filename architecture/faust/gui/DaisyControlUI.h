@@ -22,7 +22,6 @@ that work under terms of your choice, so long as this FAUST
 architecture section is not modified.
 *************************************************************************/
 
-
 #ifndef FAUST_DAISYCONTROL_H
 #define FAUST_DAISYCONTROL_H
 
