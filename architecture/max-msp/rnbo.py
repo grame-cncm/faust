@@ -1,6 +1,6 @@
 """
  FAUST Architecture File
- Copyright (C) 2023 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2023-2024 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
@@ -1230,7 +1230,7 @@ def create_rnbo_patch_flat(
 
     # Faust generated patch comment
     patcher.add_comment(
-        "Faust generated RNBO patch, Copyright (c) 2023 Grame",
+        "Faust generated RNBO patch, Copyright (c) 2023-2024 Grame",
         patching_rect=[50.0, 10.0, 350.0, 100.0],
         fontsize=16,
     )
@@ -1363,7 +1363,7 @@ def create_rnbo_patch(
 
     # Faust generated patch comment
     patcher.add_comment(
-        "Faust generated RNBO patch, Copyright (c) 2023 Grame",
+        "Faust generated RNBO patch, Copyright (c) 2023-2024 Grame",
         patching_rect=[50.0, 10.0, 350.0, 100.0],
         fontsize=16,
     )

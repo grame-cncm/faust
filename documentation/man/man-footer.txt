@@ -12,6 +12,6 @@ Please report bugs to: **<https://github.com/grame-cncm/faust/issues>**
 AUTHOR
 ======
 
-Copyright (C) 2002-2023, GRAME - Centre National de Creation Musicale.
+Copyright (C) 2002-2024, GRAME - Centre National de Creation Musicale.
 All rights reserved.
 
