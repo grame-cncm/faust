@@ -179,9 +179,9 @@ int main(int argc, char **argv)
 
     string dsp = m2f::mesh2faust(
         objectFileName,
+        materialProperties,
         {
             modelName,
-            materialProperties,
             freqControl,
             modesMinFreq,
             modesMaxFreq,

@@ -28,7 +28,7 @@ This section walks you through the different steps to build and install `mesh2fa
 - Install the Eigen library:
   - Linux: `sudo apt install libeigen3-dev`
   - MacOS: `brew install eigen`
-- Build and make:
+- Build and make (from this directory):
   - `mkdir build && cd build`
   - `cmake .. && make`
 - To install, simply copy the executable to your desired binary location:
