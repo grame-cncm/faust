@@ -13,6 +13,12 @@ set(VegaDir ${CMAKE_CURRENT_SOURCE_DIR}/vega/libraries)
 
 set(LIBRARY_NAME ${PROJECT_NAME})
 
+if(APPLE)
+  set(EIGEN_INCLUDE_DIR /opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3)
+else()
+  set(EIGEN_INCLUDE_DIR /usr/include/eigen3)
+endif()
+
 add_library(${LIBRARY_NAME} STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/mesh2faust.cpp
   ${VegaDir}/objMesh/objMesh.cpp
@@ -56,11 +62,7 @@ add_library(${LIBRARY_NAME} STATIC
 set_target_properties(${LIBRARY_NAME} PROPERTIES CXX_STANDARD 14)
 
 target_include_directories(${LIBRARY_NAME} PUBLIC src vega/libraries/include spectra/include)
-if(APPLE)
-  target_include_directories(${LIBRARY_NAME} PRIVATE /opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3)
-else()
-  target_include_directories(${LIBRARY_NAME} PRIVATE /usr/include/eigen3)
-endif()
+target_include_directories(${LIBRARY_NAME} PRIVATE ${EIGEN_INCLUDE_DIR})
 
 find_package(OpenGL REQUIRED)
 target_link_libraries(${LIBRARY_NAME} PRIVATE OpenGL::GL)
@@ -72,8 +74,11 @@ endif()
 if(INCLUDE_EXECUTABLE)
   add_executable(${PROJECT_NAME}-bin ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
+  target_include_directories(${PROJECT_NAME}-bin PRIVATE ${EIGEN_INCLUDE_DIR})
+
   # Link static library to the executable.
   target_link_libraries(${PROJECT_NAME}-bin PRIVATE ${LIBRARY_NAME})
-  # Remove the "-bin" suffix from the executable's name. (Only added to avoid name clash with the library.)
+
+  # Remove the "-bin" suffix from the executable's name.
   set_target_properties(${PROJECT_NAME}-bin PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 endif()
