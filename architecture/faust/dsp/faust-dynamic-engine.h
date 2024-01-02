@@ -54,6 +54,14 @@
 extern "C" {
 #endif
     
+#ifdef _MSC_VER
+    typedef void CTree;
+#else
+    typedef struct {} CTree;
+#endif
+    
+    typedef CTree* Box;
+    
     /**
      * @brief Opaque structure representing a DSP object.
      */
@@ -84,18 +92,38 @@ extern "C" {
      *
      * This function creates a new DSP object using the provided parameters. The created DSP object can be used for audio processing.
      *
-     * @param name_app Name of the application.
-     * @param dsp_content DSP content in Faust language.
-     * @param argc The number of parameters in argv array
-     * @param argv The array of parameters (like -vec.etc.)
-     * @param target The LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     * @param name_app - the name of the Faust program.
+     * @param dsp_content - the Faust program as a string
+     * @param argc - the number of parameters in argv array
+     * @param argv - the array of parameters (like -vec.etc.)
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
      *               using an empty string takes the current machine settings,
      *               and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor, not used if compiled with INTERP_DSP mode.
-     * @param opt_level LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'),
+     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'),
      * not used if compiled with INTERP_DSP mode.
+     *
      * @return A pointer to the created DSP object on success, otherwise a null pointer. Use getLastError to access the error.
      */
     dsp* createDsp(const char* name_app, const char* dsp_content, int argc, const char* argv[], const char* target, int opt_level);
+    
+    /**
+     * @brief Create a DSP object.
+     *
+     * This function creates a new DSP object using the provided parameters. The created DSP object can be used for audio processing.
+     *
+     * @param name_app - the name of the Faust program
+     * @param box - the box expression
+     * @param argc - the number of parameters in argv array
+     * @param argv - the array of parameters (like -vec.etc.)
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings,
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'),
+     * not used if compiled with INTERP_DSP mode.
+     *
+     * @return A pointer to the created DSP object on success, otherwise a null pointer. Use getLastError to access the error.
+     */
+    dsp* createDspFromBoxes(const char* name_app, Box box, int argc, const char* argv[], const char* target, int opt_level);
     
     /**
      * @brief Destroy a DSP object.
@@ -107,10 +135,11 @@ extern "C" {
     /**
      * @brief Initialize the DSP object.
      *
-     * @param dsp Pointer to the DSP object.
-     * @param renderer Renderer type.
-     * @param sr Sample rate in Hz. Not used when kJackRenderer is used, since sr will be imposed by the JACK server.
-     * @param bsize Buffer size in samples. Not used when kJackRenderer is used, since bs will be imposed by the JACK server.
+     * @param dsp - pointer to the DSP object
+     * @param renderer - renderer type
+     * @param sr - sample rate in Hz. Not used when kJackRenderer is used, since sr will be imposed by the JACK server
+     * @param bsize - buffer size in samples. Not used when kJackRenderer is used, since bs will be imposed by the JACK server
+     *
      * @return True if initialization is successful, false otherwise.
      */
     bool initDsp(dsp* dsp, RendererType renderer, int sr, int bsize);
@@ -118,7 +147,8 @@ extern "C" {
     /**
      * @brief Start processing audio.
      *
-     * @param dsp Pointer to the DSP object.
+     * @param dsp - pointer to the DSP object
+     *
      * @return True if the start is successful, false otherwise.
      */
     bool startDsp(dsp* dsp);
@@ -126,7 +156,7 @@ extern "C" {
     /**
      * @brief Stop processing audio.
      *
-     * @param dsp Pointer to the DSP object.
+     * @param dsp - pointer to the DSP object
      */
     void stopDsp(dsp* dsp);
     
@@ -139,7 +169,7 @@ extern "C" {
     /**
      * @brief Get the number of input ports.
      *
-     * @param dsp Pointer to the DSP object.
+     * @param dsp - pointer to the DSP object
      * @return The number of input ports.
      */
     int getNumInputsDsp(dsp* dsp);
@@ -147,7 +177,8 @@ extern "C" {
     /**
      * @brief Get the number of output ports.
      *
-     * @param dsp Pointer to the DSP object.
+     * @param dsp - pointer to the DSP object
+     *
      * @return The number of output ports.
      */
     int getNumOutputsDsp(dsp* dsp);
@@ -155,30 +186,31 @@ extern "C" {
     /**
      * @brief Connect two DSP objects.
      *
-     * @param dsp1 Source DSP object.
-     * @param dsp2 Destination DSP object.
-     * @param src Source port index.
-     * @param dst Destination port index.
+     * @param dsp1 - source DSP object
+     * @param dsp2 - destination DSP object
+     * @param src - source port index
+     * @param dst - destination port index
      */
     void connectDsp(dsp* dsp1, dsp* dsp2, int src, int dst);
     
     /**
      * @brief Disconnect two DSP objects.
      *
-     * @param dsp1 Source DSP object.
-     * @param dsp2 Destination DSP object.
-     * @param src Source port index.
-     * @param dst Destination port index.
+     * @param dsp1 - source DSP object
+     * @param dsp2 - destination DSP object
+     * @param src - source port index
+     * @param dst - destination port index
      */
     void disconnectDsp(dsp* dsp1, dsp* dsp2, int src, int dst);
     
     /**
      * @brief Check if two DSP objects are connected.
      *
-     * @param dsp1 Source DSP object.
-     * @param dsp2 Destination DSP object.
-     * @param src Source port index.
-     * @param dst Destination port index.
+     * @param dsp1 - source DSP object
+     * @param dsp2 - destination DSP object
+     * @param src - source port index
+     * @param dst - destination port index
+     *
      * @return True if connected, false otherwise.
      */
     bool isConnectedDsp(dsp* dsp1, dsp* dsp2, int src, int dst);
@@ -186,7 +218,8 @@ extern "C" {
     /**
      * @brief Retrieve JSON description of the UI.
      *
-     * @param dsp Pointer to the DSP object.
+     * @param dsp - pointer to the DSP object
+     *
      * @return A pointer to the JSON description.
      */
     const char* getJSONDsp(dsp* dsp);
@@ -194,7 +227,8 @@ extern "C" {
     /**
      * @brief Get the count of parameters in the DSP object.
      *
-     * @param dsp_ext Pointer to the DSP object.
+     * @param dsp_ext - pointer to the DSP object
+     *
      * @return The count of parameters.
      */
     int getParamsCountDsp(dsp* dsp_ext);
@@ -202,8 +236,9 @@ extern "C" {
     /**
      * @brief Get the index of a parameter by its name.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param name Name of the parameter.
+     * @param dsp_ext - pointer to the DSP object
+     * @param name - name of the parameter
+     *
      * @return The index of the parameter, or -1 if not found.
      */
     int getParamIndexDsp(dsp* dsp_ext, const char* name);
@@ -211,8 +246,9 @@ extern "C" {
     /**
      * @brief Get the address of a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     *
      * @return The memory address of the parameter.
      */
     const char* getParamAddressDsp(dsp* dsp_ext, int p);
@@ -220,8 +256,9 @@ extern "C" {
     /**
      * @brief Get the unit of a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     * 
      * @return The unit of the parameter, or NULL if not specified.
      */
     const char* getParamUnitDsp(dsp* dsp_ext, int p);
@@ -229,8 +266,9 @@ extern "C" {
     /**
      * @brief Get the minimum value of a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     *
      * @return The minimum value of the parameter.
      */
     FAUSTFLOAT getParamMinDsp(dsp* dsp_ext, int p);
@@ -238,8 +276,9 @@ extern "C" {
     /**
      * @brief Get the maximum value of a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     *
      * @return The maximum value of the parameter.
      */
     FAUSTFLOAT getParamMaxDsp(dsp* dsp_ext, int p);
@@ -247,8 +286,9 @@ extern "C" {
     /**
      * @brief Get the step value of a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     *
      * @return The step value of the parameter.
      */
     FAUSTFLOAT getParamStepDsp(dsp* dsp_ext, int p);
@@ -256,8 +296,9 @@ extern "C" {
     /**
      * @brief Get the value of a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     *
      * @return The current value of the parameter.
      */
     FAUSTFLOAT getParamValueDsp(dsp* dsp_ext, int p);
@@ -265,17 +306,18 @@ extern "C" {
     /**
      * @brief Set the value of a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
-     * @param v New value for the parameter.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter.
+     * @param val - new value for the parameter.
      */
-    void setParamValueDsp(dsp* dsp_ext, int p, FAUSTFLOAT v);
+    void setParamValueDsp(dsp* dsp_ext, int p, FAUSTFLOAT val);
     
     /**
      * @brief Get the ratio value of a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     *
      * @return The ratio value of the parameter.
      */
     FAUSTFLOAT getParamRatioDsp(dsp* dsp_ext, int p);
@@ -283,18 +325,19 @@ extern "C" {
     /**
      * @brief Set the ratio value of a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
-     * @param v New ratio value for the parameter.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     * @param v - new ratio value for the parameter
      */
     void setParamRatioDsp(dsp* dsp_ext, int p, FAUSTFLOAT v);
     
     /**
      * @brief Convert a value to a ratio using a parameter's settings.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
-     * @param r Raw value to be converted.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     * @param r - raw value to be converted
+     *
      * @return The converted ratio value.
      */
     FAUSTFLOAT value2ratioDsp(dsp* dsp_ext, int p, FAUSTFLOAT r);
@@ -302,9 +345,10 @@ extern "C" {
     /**
      * @brief Convert a ratio to a value using a parameter's settings.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
-     * @param r Ratio value to be converted.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     * @param r - ratio value to be converted
+     *
      * @return The converted raw value.
      */
     FAUSTFLOAT ratio2valueDsp(dsp* dsp_ext, int p, FAUSTFLOAT r);
@@ -312,72 +356,72 @@ extern "C" {
     /**
      * @brief Propagate accelerometer influence to related parameters.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param acc Accelerometer type.
-     * @param a Accelerometer value.
+     * @param dsp_ext - pointer to the DSP object
+     * @param acc - accelerometer type
+     * @param val - accelerometer value
      */
-    void propagateAccDsp(dsp* dsp_ext, int acc, FAUSTFLOAT a);
+    void propagateAccDsp(dsp* dsp_ext, int acc, FAUSTFLOAT val);
     
     /**
      * @brief Set accelerometer converter settings for a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
-     * @param acc Accelerometer type.
-     * @param curve Accelerometer curve.
-     * @param amin Minimum value.
-     * @param amid Middle value.
-     * @param amax Maximum value.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     * @param acc - accelerometer type
+     * @param curve - accelerometer curve
+     * @param amin - minimum value
+     * @param amid - middle value
+     * @param amax - maximum value
      */
     void setAccConverterDsp(dsp* dsp_ext, int p, int acc, int curve, FAUSTFLOAT amin, FAUSTFLOAT amid, FAUSTFLOAT amax);
     
     /**
      * @brief Get accelerometer converter settings for a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
-     * @param acc Pointer to store accelerometer type.
-     * @param curve Pointer to store accelerometer curve.
-     * @param amin Pointer to store minimum value.
-     * @param amid Pointer to store middle value.
-     * @param amax Pointer to store maximum value.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     * @param acc - pointer to store accelerometer type
+     * @param curve - pointer to store accelerometer curve
+     * @param amin - pointer to store minimum value
+     * @param amid - pointer to store middle value
+     * @param amax - pointer to store maximum value
      */
     void getAccConverterDsp(dsp* dsp_ext, int p, int* acc, int* curve, FAUSTFLOAT* amin, FAUSTFLOAT* amid, FAUSTFLOAT* amax);
     
     /**
      * @brief Propagate gyroscope influence to related parameters.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param acc Gyroscope type.
-     * @param a Gyroscope value.
+     * @param dsp_ext - pointer to the DSP object
+     * @param gyr - gyroscope type
+     * @param val - gyroscope value
      */
-    void propagateGyrDsp(dsp* dsp_ext, int acc, FAUSTFLOAT a);
+    void propagateGyrDsp(dsp* dsp_ext, int gyr, FAUSTFLOAT val);
     
     /**
      * @brief Set gyroscope converter settings for a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
-     * @param acc Gyroscope type.
-     * @param curve Gyroscope curve.
-     * @param amin Minimum value.
-     * @param amid Middle value.
-     * @param amax Maximum value.
+     * @param dsp_ext - pointer to the DSP object.
+     * @param p - index of the parameter
+     * @param gyr - gyroscope type
+     * @param curve - gyroscope curve.
+     * @param amin - minimum value.
+     * @param amid - middle value.
+     * @param amax - maximum value.
      */
-    void setGyrConverterDsp(dsp* dsp_ext, int p, int acc, int curve, FAUSTFLOAT amin, FAUSTFLOAT amid, FAUSTFLOAT amax);
+    void setGyrConverterDsp(dsp* dsp_ext, int p, int gyr, int curve, FAUSTFLOAT amin, FAUSTFLOAT amid, FAUSTFLOAT amax);
     
     /**
      * @brief Get gyroscope converter settings for a parameter.
      *
-     * @param dsp_ext Pointer to the DSP object.
-     * @param p Index of the parameter.
-     * @param acc Pointer to store gyroscope type.
-     * @param curve Pointer to store gyroscope curve.
-     * @param amin Pointer to store minimum value.
-     * @param amid Pointer to store middle value.
-     * @param amax Pointer to store maximum value.
+     * @param dsp_ext - pointer to the DSP object
+     * @param p - index of the parameter
+     * @param gyr - pointer to store gyroscope type
+     * @param curve - pointer to store gyroscope curve
+     * @param amin - pointer to store minimum value
+     * @param amid - pointer to store middle value
+     * @param amax - pointer to store maximum value
      */
-    void getGyrConverterDsp(dsp* dsp_ext, int p, int* acc, int* curve, FAUSTFLOAT* amin, FAUSTFLOAT* amid, FAUSTFLOAT* amax);
+    void getGyrConverterDsp(dsp* dsp_ext, int p, int* gyr, int* curve, FAUSTFLOAT* amin, FAUSTFLOAT* amid, FAUSTFLOAT* amax);
     
 #ifdef __cplusplus
 }
