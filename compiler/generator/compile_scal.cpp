@@ -1448,7 +1448,6 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
             case DelayType::kNotADelay:
                 faustexception("Try to compile has a delay something that is not a delay");
                 return "";
-                break;
                 
             case DelayType::kZeroDelay:
                 return vecname;
@@ -1481,7 +1480,7 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 }
 
 /**
- * Generate code for the delay mecchanism. The generated code depend of the
+ * Generate code for the delay mechanism. The generated code depend of the
  * maximum delay attached to exp and the "less temporaries" switch
  */
 string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd,
@@ -1496,7 +1495,7 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
 }
 
 /**
- * Generate code for the delay mecchanism without using temporary variables
+ * Generate code for the delay mechanism without using temporary variables
  */
 
 /*
@@ -1504,7 +1503,7 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
     fClass->addDeclCode(g.globalDeclare());
     fClass->addClearCode(g.globalInit());
     fClass->addZone2(g.localDeclare());
-    fClass->addZone3(g.PointerSetup());
+    fClass->addZone3(g.pointerSetup());
     fClass->addZone3(g.copyGlobalToLocal());
     fClass->addPostCode(Statement(ccs, g.advance()));
     fClass->addZone3Post(g.copyLocalToGlobal());
@@ -1557,7 +1556,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 }
 
 /**
- * Generate code for the delay mecchanism without using temporary variables
+ * Generate code for the delay mechanism without using temporary variables
  */
 
 string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const string& vname, int mxd, int count,
@@ -1580,7 +1579,7 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
         fClass->addDeclCode(g.globalDeclare());
         fClass->addClearCode(g.globalInit());
         fClass->addZone2(g.localDeclare());
-        fClass->addZone3(g.PointerSetup());
+        fClass->addZone3(g.pointerSetup());
         fClass->addZone3(g.copyGlobalToLocal());
         if (mono) {
             fClass->addExecCode(Statement(ccs, subst("$0 = $1;", vname, exp)));
@@ -1610,8 +1609,7 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
         case DelayType::kNotADelay:
             faustexception("Try to compile has a delay something that is not a delay");
             return "";
-            break;
-
+     
         case DelayType::kZeroDelay:
             // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
             // no need for a real vector

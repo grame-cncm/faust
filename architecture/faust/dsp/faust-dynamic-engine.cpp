@@ -125,7 +125,7 @@ struct dsp_aux {
     {
         fNameApp = name_app;
     #ifdef LLVM_DSP
-    fFactory = createDSPFactoryFromBoxes(name_app, box, argc, argv, target, gLastError, opt_level);
+        fFactory = createDSPFactoryFromBoxes(name_app, box, argc, argv, target, gLastError, opt_level);
     #elif INTERP_DSP
         fFactory = createInterpreterDSPFactoryFromBoxes(name_app, box, argc, argv, gLastError);
     #endif

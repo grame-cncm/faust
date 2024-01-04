@@ -1,3 +1,24 @@
+/************************************************************************
+ ************************************************************************
+ FAUST compiler
+ Copyright (C) 2023 INRIA
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
 #include "dlcodegen.hh"
 #include "Text.hh"
 
@@ -52,7 +73,7 @@ string DlCodeGen::localDeclare() const
     }
 }
 
-string DlCodeGen::PointerSetup() const
+string DlCodeGen::pointerSetup() const
 {
     if (fDlMaxDelay > 2) {
         string s = fDlType + "*\t" + fDlName + " = " + fDlName + "cache + " + T(fBlockSize) +
@@ -114,27 +135,6 @@ string DlCodeGen::advance() const
         return s;
     } else {
         string s = fDlName + "[1] = " + fDlName + "[0];";
-        return s;
-    }
-}
-
-string DlCodeGen::write(const string& exp) const
-{
-    if (fMono) {
-        string s = fDlName + " = " + exp + ";\n";
-        return s;
-    } else {
-        string s = fDlName + "[0] = " + exp + ";\n";
-        return s;
-    }
-}
-
-string DlCodeGen::read(const string& index) const
-{
-    if (fMono) {
-        return fDlName;
-    } else {
-        string s = fDlName + "[" + index + "]";
         return s;
     }
 }
