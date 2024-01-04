@@ -266,7 +266,12 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     EngineBuilder builder((unique_ptr<Module>(fModule)));
 
+#if LLVM_VERSION_MAJOR >= 18
+    builder.setOptLevel(CodeGenOptLevel::Aggressive);
+#else
     builder.setOptLevel(CodeGenOpt::Aggressive);
+#endif
+    
     builder.setEngineKind(EngineKind::JIT);
 
     string buider_error;
@@ -465,14 +470,16 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
     fModule->setDataLayout(TheTargetMachine->createDataLayout());
 
     error_code EC;
-    raw_fd_ostream  dest(object_code_path.c_str(), EC, sys::fs::OF_None);
+    raw_fd_ostream dest(object_code_path.c_str(), EC, sys::fs::OF_None);
     if (EC) {
         errs() << "ERROR : writeDSPFactoryToObjectcodeFile could not open file : " << EC.message();
         return false;
     }
-
+    
     legacy::PassManager pass;
-#if LLVM_VERSION_MAJOR >= 10
+#if LLVM_VERSION_MAJOR >= 18
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, CodeGenFileType::ObjectFile)) {
+#elif LLVM_VERSION_MAJOR >= 10
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, CGFT_ObjectFile)) {
 #elif LLVM_VERSION_MAJOR >= 8
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, TargetMachine::CGFT_ObjectFile)) {
