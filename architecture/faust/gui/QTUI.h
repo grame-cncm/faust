@@ -1139,6 +1139,8 @@ public:
         fNumEntry->setSingleStep(fStep);
         fNumEntry->setDecimals(decimals);
         fNumEntry->setValue(fCur);
+        // See https://doc.qt.io/qt-6/qabstractspinbox.html#keyboardTracking-prop
+        fNumEntry->setKeyboardTracking(false);
         *fZone = fCur;
     }
     
