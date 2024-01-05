@@ -1126,7 +1126,65 @@ ma = library("maths.lib");
 it = library("interpolators.lib");
 
 declare name "Faust Compressor Effect Library";
-declare version "1.5.0";
+declare version "1.6.0";
+
+//================================Conversion Tools=======================================
+// Useful conversion tools for compressors.
+//========================================================================================
+
+//--------------------`(co.)ratio2strength `-------------------
+// Most compressors have a ratio parameter to define the amount of compression.
+// A ratio of 1 means no compression, a ratio of 2 means that for every dB the input goes above the threshold,
+// the output gets turned down half a dB.
+// To use a compressor as a brick wall limiter, the ratio needs to be infinity.
+// This is hard to express in a faust UI element, and overcompression can not be expressed at all,
+// therefore most compressors in this library use a strength parameter instead, where
+// 0 means no compression, 1 means hard limiting and  bigger than 1 means over-compression.
+//
+// This utility converts a ratio to a strength.
+//
+// #### Usage
+//
+// ```
+// ratio2strength(ratio) : _
+// ```
+//
+// Where:
+//
+// * `ratio`:  compression ratio, between 1 and infinity (1=no compression, infinity means hard limiting)
+//------------------------------------------------------------
+
+declare ratio2strength author "Bart Brouns";
+declare ratio2strength license "GPLv3";
+
+ratio2strength(ratio) = 1-(1/ratio);
+
+//--------------------`(co.)strength2ratio `-------------------
+// Most compressors have a ratio parameter to define the amount of compression.
+// A ratio of 1 means no compression, a ratio of 2 means that for every dB the input goes above the threshold,
+// the output gets turned down half a dB.
+// To use a compressor as a brick wall limiter, the ratio needs to be infinity.
+// This is hard to express in a faust UI element, and overcompression can not be expressed at all,
+// therefore most compressors in this library use a strength parameter instead, where
+// 0 means no compression, 1 means hard limiting and bigger than 1 means over-compression.
+//
+// This utility converts a strength to a ratio.
+//
+// #### Usage
+//
+// ```
+// strength2ratio(strength) : _
+// ```
+//
+// Where:
+//
+// * `strength`: strength of the compression (0 = no compression, 1 means hard limiting, >1 means over-compression)
+//------------------------------------------------------------
+
+declare strength2ratio author "Bart Brouns";
+declare strength2ratio license "GPLv3";
+
+strength2ratio(strength) = 1/(1-strength);
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -2480,7 +2538,7 @@ it = library("interpolators.lib");
 si = library("signals.lib");
 
 declare name "Faust Basic Element Library";
-declare version "1.11.1";
+declare version "1.12.0";
 
 //=============================Conversion Tools===========================================
 //========================================================================================
@@ -4310,6 +4368,17 @@ peakholder(n) = peakhold2 ~ reset : (!,_) with {
     peakhold2 = _,abs <: peakhold,!,_ <: >=,_,!;
 };
 */
+
+//--------------------------`(ba.)kr2ar`---------------------------
+// Force a control rate signal to be used as an audio rate signal.
+//
+// #### Usage
+//
+// ```
+// hslider("freq", 200, 200, 2000, 0.1) : kr2ar;
+// ```
+//----------------------------------------------------------------
+kr2ar = + ~ *(0); 
 
 
 //--------------------------`(ba.)impulsify`---------------------------
@@ -8017,7 +8086,7 @@ fi = library("filters.lib");
 si = library("signals.lib");
 
 declare name "Faust Oscillator Library";
-declare version "1.4.0";
+declare version "1.5.0";
 
 // This library contains platform specific constants
 pl = library("platform.lib");
@@ -8062,26 +8131,26 @@ coswaveform(tablesize) =
 // Possibly faster version using integer arithmetic
 phasor_env(freq, N) = environment {
 
-    //——————— GLOBAL PARAMS
+    //------- GLOBAL PARAMS
     nbits = 31;
     tablesize = 1<<N;
     accuracy = int(nbits - N);
     mask = (1<<nbits)-1;
     inc(step) = int(tablesize * step * (1<<accuracy));
 
-    //——————— LAMBDA DSP CASE 
+    //------- LAMBDA DSP CASE 
     lambda(inc_op) = (inc_op : &(mask)) ~ _ : >>(accuracy) : /(tablesize);
 
-    //——————— MINIMAL CASE
+    //------- MINIMAL CASE
     hsp(0,0) = lambda(+(inc(freq/ma.SR)'));
     
-    //——————— GENERAL CASE
+    //------- GENERAL CASE
     hsp(reset,phase) = lambda(select2(hard_reset,+(inc(freq/ma.SR)),inc(phase)))
     with {
         hard_reset = (1-1')|reset;
     };
 };
-declare phasor_env author "Pierre Mascarade Relaño, Maxime Sirbu, Stéphane Letz";
+declare phasor_env author "Pierre Mascarade Relano, Maxime Sirbu, Stéphane Letz";
 
 // Generic phasor with `reset` and `phase` parameters to be specialised in concrete use-cases.
 phasor_imp(freq, reset, phase) = (select2(hard_reset, +(freq/ma.SR), phase) : ma.decimal) ~ _
@@ -9185,12 +9254,12 @@ with {
 };
 
 //-----------------`(os.)quadosc`--------------------
-// Sinusoidal oscillator based on QuadOsc by Martin Vicanek.
+// Quadrature (cosine and sine) oscillator based on QuadOsc by Martin Vicanek.
 //
 // #### Usage
 //
 // ```
-// quadosc(freq) : _
+// quadosc(freq) : _,_
 // ```
 //
 // where
@@ -9215,6 +9284,138 @@ with {
     };
 };
 
+//-----------------------------`(os.)sidebands`--------------------------------------
+// Adds harmonics to quad oscillator.
+//
+// #### Usage
+//
+// ```
+//    cos(x),sin(x) : sidebands(vs) : _,_
+// ```
+//
+// Where:
+//
+// * `vs` : list of amplitudes
+//
+// #### Example test program
+//
+// ```
+//    cos(x),sin(x) : sidebands((10,20,30))
+// ```
+//
+// outputs:
+//
+// ```
+//    10*cos(x) + 20*cos(2*x) + 30*cos(3*x),
+//    10*sin(x) + 20*sin(2*x) + 30*sin(3*x);
+// ```
+//
+// The following:
+//
+// ```
+//    process = os.quadosc(F) : sidebands((10,20,30))
+// ```
+//
+// is (modulo floating point issues) the same as:
+//
+// ```
+//    c = os.quadosc : _,!;
+//    s = os.quadosc : !,_;
+//    process =
+//        10*c(F) + 20*c(2*F) + 30*c(F),
+//        10*s(F) + 20*s(2*F) + 30*s(F);
+// ```
+//
+// but much more efficient.
+//
+// #### Implementation Notes
+//
+// This is based on the trivial trigonometric identities:
+//
+// ```
+//    cos((n + 1) x) = 2 cos(x) cos(n x) - cos((n - 1) x)
+//    sin((n + 1) x) = 2 cos(x) sin(n x) - sin((n - 1) x)
+// ```
+//
+// Note that the calculation of the cosine/sine parts do not depend
+// on each other, so if you only need the sine part you can do:
+//
+// ```
+//    process = os.quadosc(F) : sidebands(vs) : !,_;
+// ```
+//
+// and the compiler will discard the half of the calculations.
+//-----------------------------------------------------------------------------
+sidebands(vs, c0,s0)
+	= c0*vn(0),s0*vn(0), 1,c0, 0,s0
+	: seq(n, outputs(vs)-1, add(vn(n+1)))
+	: _,_, !,!, !,!
+with {
+	// ba.take(n+1, vs)
+	vn(n) = vs : route(outputs(vs),1, n+1,1);
+
+	add(vn, co,so, cn_2,cn_1, sn_2,sn_1) =
+		co+cn*vn, so+sn*vn, cn_1,cn, sn_1,sn
+	with {
+		cn = 2*c0*cn_1 - cn_2;
+		sn = 2*c0*sn_1 - sn_2;
+	};
+};
+
+//-----------------------------`(os.)sidebands_list`--------------------------------------
+// Creates the list of complex harmonics from quad oscillator.
+//
+// Similar to `sidebands` but doesn't sum the harmonics, so it is more
+// generic but less convenient for immediate usage.
+//
+// #### Usage
+//
+// ```
+//    cos(x),sin(x) : sidebands_list(N) : si.bus(2*N)
+// ```
+//
+// Where:
+//
+// * `N` : number of harmonics, compile time constant > 1
+//
+// #### Example test program
+//
+// ```
+//    cos(x),sin(x) : sidebands_list(3)
+// ```
+//
+// outputs:
+//
+// ```
+//    cos(x),sin(x), cos(2*x),sin(2*x), cos(3*x),sin(3*x);
+// ```
+//
+// The following:
+//
+// ```
+//    process = os.quadosc(F) : sidebands_list(3)
+// ```
+//
+// is (modulo floating point issues) the same as:
+//
+// ```
+//    process = os.quadosc(F), os.quadosc(2*F), os.quadosc(3*F);
+// ```
+//
+// but much more efficient.
+//-----------------------------------------------------------------------------
+sidebands_list(N, c0,s0)
+	= c0,s0, 1,c0, 0,s0
+	: seq(n, N-1, si.bus(2*(n+1)), add)
+	: si.bus(2*N), !,!, !,!
+with {
+	add(cn_2,cn_1, sn_2,sn_1) =
+		cn,sn, cn_1,cn, sn_1,sn
+	with {
+		cn = 2*c0*cn_1 - cn_2;
+		sn = 2*c0*sn_1 - sn_2;
+	};
+};
 
 //================ Waveguide-Resonator-Based Oscillators ================
 // Sinusoidal oscillator based on the waveguide resonator `wgr`.
@@ -11338,7 +11539,7 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //
 //------------------------------------------------------------
 version =   2,  // MAJOR version when we make incompatible API changes,
-            25, // MINOR version when we add functionality in a backwards compatible manner,
+            28, // MINOR version when we add functionality in a backwards compatible manner,
             0;  // PATCH version when we make backwards compatible bug fixes.
 
             
@@ -25824,7 +26025,7 @@ fi = library("filters.lib");
 ef = library("misceffects.lib");
 
 declare name "Faust Virtual Analog Filter Effect Library";
-declare version "1.2.0";
+declare version "1.2.1";
 
 //########################################################################################
 /************************************************************************
@@ -25974,9 +26175,10 @@ with {
                             v4 + lp4 , // define s4
                             lp4 // system output
         with {
+            invSqrt2 = 1/sqrt(2);
             T = 1.0 / ma.SR;
             cf = normFreq * .5 * ma.SR;
-            k = 4.0 * (Q - 0.707) / (25.0 - 0.707);
+            k = 4.0 * (Q - invSqrt2) / (25.0 - invSqrt2);
             omegaWarp = tan(ma.PI * cf * T);
             g = omegaWarp / (1.0 + omegaWarp);
             G = g * g * g * g; // ladder's G in generalised form y = G * xi + S
@@ -26029,8 +26231,9 @@ letrec{
   'y = -(s3*B3*k):-(s2*B2*k):-(s1*B1*k):*(alpha0):-(s1):*(alpha):+(s1):-(s2):*(alpha):+(s2) <:_*-1,((-(s3):*(alpha):+(s3))*2):>_;
 }
 with{
+  invSqrt2 = 1/sqrt(2);
   freq = 2*(10^(3*normFreq+1));
-  k = 2.0*(Q - 0.707)/(25.0 - 0.707);
+  k = 2.0*(Q - invSqrt2)/(25.0 - invSqrt2);
   wd = 2*ma.PI*freq;
   T = 1/ma.SR;
   wa = (2/T)*tan(wd*T/2);
@@ -26140,7 +26343,8 @@ letrec{
 }
 with{
   freq = 2*(10^(3*normFreq+1));
-  k = (17 - (normFreq^10)*9.7)*(Q - 0.707)/(25.0 - 0.707);
+  invSqrt2 = 1/sqrt(2);
+  k = (17 - (normFreq^10)*9.7)*(Q - invSqrt2)/(25.0 - invSqrt2);
   wd = 2*ma.PI*freq;
   T = 1/ma.SR;
   wa = (2/T)*tan(wd*T/2);
@@ -26215,8 +26419,9 @@ letrec{
   'y = _-s1:_*alpha:_+s1:_+(s3*B3):_+(s2*B2) :_*alpha0:_-s3:_*alpha:_+s3;
 }
 with{
+  invSqrt2 = 1/sqrt(2);
   freq = 2*(10^(3*normFreq+1));
-  K = 2.0*(Q - 0.707)/(10.0 - 0.707);
+  K = 2.0*(Q - invSqrt2)/(10.0 - invSqrt2);
   wd = 2*ma.PI*freq;
   T = 1/ma.SR;
   wa = (2/T)*tan(wd*T/2);
@@ -26254,8 +26459,9 @@ letrec{
   'y = _<:(_-s1:_*alpha:_+s1)*-1,_:>_+(s3*B3):_+(s2*B2):_*alpha0;
 }
 with{
+  invSqrt2 = 1/sqrt(2);
   freq = 2*(10^(3*normFreq+1));
-  K = 2.0*(Q - 0.707)/(10.0 - 0.707);
+  K = 2.0*(Q - invSqrt2)/(10.0 - invSqrt2);
   wd = 2*ma.PI*freq;
   T = 1/ma.SR;
   wa = (2/T)*tan(wd*T/2);
@@ -27151,7 +27357,7 @@ declare version "1.1.0";
 //
 // Where:
 //
-// * `freq`: the resonance frequency of the instrument
+// * `freq`: the resonance frequency of the instrument in Hz
 // * `q`: the q of the res filter (typically, 5 is a good value)
 // * `gate`: the trigger signal (0 or 1)
 //----------------------------------------------------------------------------------------
@@ -27172,7 +27378,7 @@ popFilterDrum(freq,q,gate) = en.ar(0.001,0.001,gate)*no.noise : fi.resonbp(freq,
 //
 // Where:
 //
-// * `freq`: frequency of the sawtooth
+// * `freq`: frequency of the sawtooth in Hz
 // * `ctFreq`: cutoff frequency of the filter
 // * `q`: Q of the filter
 // * `gate`: the trigger signal (0 or 1)
@@ -27193,13 +27399,12 @@ with {
 // #### Usage
 //
 // ```
-// sawTrombone(att,freq,gain,gate) : _
+// sawTrombone(freq,gain,gate) : _
 // ```
 //
 // Where:
 //
-// * `att`: exponential attack duration in s (typically 0.01)
-// * `freq`: the frequency
+// * `freq`: the frequency in Hz
 // * `gain`: the gain (0-1)
 // * `gate`: the gate (0 or 1)
 //----------------------------------------------------------------------------------------
@@ -27225,7 +27430,7 @@ with {
 //
 // Where:
 //
-// * `freq`: the frequency of the string
+// * `freq`: the frequency of the string in Hz
 // * `res`: string T60 (resonance time) in second
 // * `gate`: trigger signal (0 or 1)
 //----------------------------------------------------------------------------------------
@@ -27253,7 +27458,7 @@ with {
 //
 // Where:
 //
-// * `freq`: the resonance frequency of the drum
+// * `freq`: the resonance frequency of the drum in Hz
 // * `freqRatio`: a list of ratio to choose the frequency of the mode in
 //                function of `freq` e.g.(1 1.2 1.5 ...). The first element should always
 //                be one (fundamental).
@@ -27267,12 +27472,12 @@ with {
 //----------------------------------------------------------------------------------------
 declare additiveDrum author "Romain Michon";
 
-additiveDrum(freq,freqRatio,gain,modeDec,att,rel,gate) = par(i,N,os.osc(modeFreq(i))*gainEnvelope(i)) :> _
+additiveDrum(freq,freqRatio,gain,harmDec,att,rel,gate) = par(i,N,os.osc(modeFreq(i))*gainEnvelope(i)) :> _
 with {
     N = ba.count(freqRatio);
     modeFreq(i) = freq*ba.take(i+1,freqRatio);
     modeGain(i) = ba.take(i+1,gain);
-    gainEnvelope(i) = modeGain(i)*en.ar(att,rel*(1-(modeDec*(i/N))),gate);
+    gainEnvelope(i) = modeGain(i)*en.ar(att,rel*(1-(harmDec*(i/N))),gate);
 };
 
 
@@ -34410,7 +34615,7 @@ re = library("reverbs.lib");
 en = library("envelopes.lib");
 
 declare name "Faust Demos Library";
-declare version "1.1.0";
+declare version "1.1.1";
 
 //########################################################################################
 /************************************************************************
@@ -35298,9 +35503,9 @@ declare jprev_demo license "GPL2+";
 jprev_demo = re.jpverb(t60, damp, size, early_diff, mod_depth, mod_freq, low, mid, high, low_cutoff, high_cutoff)
 with {
     rev_group(x) = vgroup("[0] JPrev",x);
-    
+    invSqrt2 = 1/sqrt(2);
     mix_group(x) = rev_group(hgroup("[0] Mix",x));
-    early_diff = mix_group(hslider("[1]earlyDiff [style:knob]", 0.707, 0, 0.990, 0.001));
+    early_diff = mix_group(hslider("[1]earlyDiff [style:knob]", invSqrt2, 0, 0.990, 0.001));
     size = mix_group(hslider("[2]size [style:knob]", 1, 0.5, 3, 0.01));
     t60 = mix_group(hslider("[3]t60 [style:knob]", 1, 0.1, 60, 0.1));
     damp = mix_group(hslider("[4]damp [style:knob]", 0, 0, 0.999, 0.0001));
@@ -35922,7 +36127,7 @@ fi = library("filters.lib");
 os = library("oscillators.lib");
 
 declare name "Faust Reverb Library";
-declare version "1.2.0";
+declare version "1.2.1";
 
 //########################################################################################
 /************************************************************************
@@ -36477,6 +36682,7 @@ jp_gh_rev = environment {
 
     smooth_init(s,default) = *(1.0 - s) : + ~ (+(default*init(1)):*(s)) with { init(value) = value - value'; };
 
+    invSqrt2 = 1/sqrt(2);
     jpverb(t60, damp, size, early_diff, mod_depth, mod_freq, low, mid, high, low_cutoff, high_cutoff)
         = ((si.bus(4) :> (de.fdelay4(512, depth + depth*os.oscrs(mod_freq) + 5),de.fdelay4(512, depth + depth*os.oscrc(mod_freq) + 5))
             : par(i,2,si.smooth(damp))
@@ -36484,11 +36690,11 @@ jp_gh_rev = environment {
             : diffuser(ma.PI/4,early_diff,215,85,size)
             : diffuser(ma.PI/4,early_diff,115,190,size)
             : diffuser(ma.PI/4,early_diff,175,145,size)
-        )~(seq(i,5,diffuser(ma.PI/4,0.707,10+30*i,110+30*i,size))
+        )~(seq(i,5,diffuser(ma.PI/4,invSqrt2,10+30*i,110+30*i,size))
             : par(i,2,de.fdelay4(512, depth + (-1^i)*depth*os.oscrc(mod_freq)+5)
             : de.fdelay1a(8192,(prime_delays(size*(54+150*i))
             : smooth_init(0.995,prime_delays(size*(54+150*i)))) -1))
-            : seq(i,5,diffuser(ma.PI/4,0.707,125+30*i,25+30*i,size))
+            : seq(i,5,diffuser(ma.PI/4,invSqrt2,125+30*i,25+30*i,size))
             : par(i,2,de.fdelay4(8192, depth + (-1^i)*depth*os.oscrs(mod_freq)+5)
             : de.fdelay1a(8192,(prime_delays(size*(134-100*i))
             : smooth_init(0.995,prime_delays(size*(134-100*i)))) -1))
@@ -36533,16 +36739,16 @@ jp_gh_rev = environment {
 // Where:
 //
 // * `t60`: approximate reverberation time in seconds ([0.1..60] sec) (T60 - the time for the reverb to decay by 60db when damp == 0 ). Does not effect early reflections
-// * `damp`: controls damping of high-frequencies as the reverb decays. 0 is no damping, 1 is very strong damping. Values should be between ([0..1])
-// * `size`: scales size of delay-lines within the reverberator, producing the impression of a larger or smaller space. Values below 1 can sound metallic. Values should be between [0.5..5]
-// * `early_diff`: controls shape of early reflections. Values of 0.707 or more produce smooth exponential decay. Lower values produce a slower build-up of echoes. Values should be between ([0..1])
-// * `mod_depth`: depth ([0..1]) of delay-line modulation. Use in combination with mod_freq to set amount of chorusing within the structure
-// * `modFreq`: frequency ([0..10] Hz) of delay-line modulation. Use in combination with modDepth to set amount of chorusing within the structure
+// * `damp`: controls damping of high-frequencies as the reverb decays. 0 is no damping, 1 is very strong damping. Values should be in the range ([0..1])
+// * `size`: scales size of delay-lines within the reverberator, producing the impression of a larger or smaller space. Values below 1 can sound metallic. Values should be in the range [0.5..5]
+// * `early_diff`: controls shape of early reflections. Values of 0.707 or more produce smooth exponential decay. Lower values produce a slower build-up of echoes. Values should be in the range ([0..1])
+// * `mod_depth`: depth ([0..1]) of delay-line modulation. Use in combination with `mod_freq` to set amount of chorusing within the structure
+// * `mod_freq`: frequency ([0..10] Hz) of delay-line modulation. Use in combination with `mod_depth` to set amount of chorusing within the structure
 // * `low`: multiplier ([0..1]) for the reverberation time within the low band
 // * `mid`: multiplier ([0..1]) for the reverberation time within the mid band
 // * `high`: multiplier ([0..1]) for the reverberation time within the high band
-// * `lowcut`: frequency (100..6000 Hz) at which the crossover between the low and mid bands of the reverb occurs
-// * `highcut`: frequency (1000..10000 Hz) at which the crossover between the mid and high bands of the reverb occurs
+// * `low_cutoff`: frequency (100..6000 Hz) at which the crossover between the low and mid bands of the reverb occurs
+// * `high_cutoff`: frequency (1000..10000 Hz) at which the crossover between the mid and high bands of the reverb occurs
 //
 // #### Reference
 //
@@ -36574,12 +36780,11 @@ jpverb(t60, damp, size, early_diff,
 //
 // * `dt`: approximate reverberation time in seconds ([0.1..60 sec])
 // * `damp`: controls damping of high-frequencies as the reverb decays. 0 is no damping, 1 is very strong damping. Values should be between ([0..1])
-// * `size`: scales size of delay-lines within the diffusion unit, producing the impression of a larger or smaller space. Values below 1 can sound metallic. Values should be between ([0.5..5])
-// * `size`: control of relative "room size" roughly between ([0.5..3])
+// * `size`: control of relative "room size" roughly in the range ([0.5..3])
 // * `early_diff`: controls pattern of echoes produced by the diffuser. At very low values, the diffuser acts like a delay-line whose length is controlled by the 'size' parameter. Medium values produce a slow build-up of echoes, giving the sound a reversed-like quality. Values of 0.707 or greater than produce smooth exponentially decaying echoes. Values should be in the range ([0..1])
 // * `feedback`: amount of feedback through the system. Sets the number of repeating echoes. A setting of 1.0 produces infinite sustain. Values should be in the range ([0..1])
-// * `mod_depth`: depth ([0..1]) of delay-line modulation. Use in combination with mod_freq to produce chorus and pitch-variations in the echoes
-// * `mod_freq`: frequency ([0..10] Hz) of delay-line modulation. Use in combination with mod_depth to produce chorus and pitch-variations in the echoes
+// * `mod_depth`: depth ([0..1]) of delay-line modulation. Use in combination with `mod_freq` to produce chorus and pitch-variations in the echoes
+// * `mod_freq`: frequency ([0..10] Hz) of delay-line modulation. Use in combination with `mod_depth` to produce chorus and pitch-variations in the echoes
 //
 // #### Reference
 //
