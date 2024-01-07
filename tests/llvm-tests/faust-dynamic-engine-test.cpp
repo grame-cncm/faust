@@ -3,22 +3,23 @@
 #include <unistd.h>
 
 #include "faust/dsp/faust-dynamic-engine.cpp"
+#include "faust/dsp/libfaust-box.h"
 
 static void test1()
 {
     // Create a DSP engine with a simple sine oscillator
     const char* code = "import(\"stdfaust.lib\"); process = os.osc(500);";
-    dsp*        DSP1 = createDsp("Osc", code, 0, NULL, "", -1);
-    assert(DSP1);
+    dsp*        DSP = createDsp("Osc", code, 0, NULL, "", -1);
+    assert(DSP);
 
     // Initialize the DSP engine with JACK as renderer
     // bool res = initDsp(DSP1, kJackRenderer, -1, -1);
-    bool res = initDsp(DSP1, kRtAudioRenderer, 44100, 512);
+    bool res = initDsp(DSP, kRtAudioRenderer, 44100, 512);
     // bool res = initDsp(DSP1, kPortAudioRenderer, 44100, 512);
     assert(res);
 
     // Start the DSP engine
-    startDsp(DSP1);
+    startDsp(DSP);
 
     char c;
     printf("Press 'q' to move to next test\n");
@@ -27,23 +28,23 @@ static void test1()
     }
 
     // Stop the DSP engine and destroy it
-    stopDsp(DSP1);
-    destroyDsp(DSP1);
+    stopDsp(DSP);
+    destroyDsp(DSP);
 }
 
 static void test2()
 {
     // Create a DSP engine with a soundfile player
     const char* code = "process = 0,_~+(1):soundfile(\"sound[url:{'tango.wav'}]\",2):!,!,_,_;";
-    dsp*        DSP1 = createDsp("Player", code, 0, NULL, "", -1);
-    assert(DSP1);
+    dsp*        DSP = createDsp("Player", code, 0, NULL, "", -1);
+    assert(DSP);
 
     // Initialize the DSP engine with JACK as renderer
-    bool res = initDsp(DSP1, kJackRenderer, -1, -1);
+    bool res = initDsp(DSP, kJackRenderer, -1, -1);
     assert(res);
 
     // Start the DSP engine
-    startDsp(DSP1);
+    startDsp(DSP);
 
     char c;
     printf("Press 'q' to move to next test\n");
@@ -52,8 +53,44 @@ static void test2()
     }
 
     // Stop the DSP engine and destroy it
-    stopDsp(DSP1);
-    destroyDsp(DSP1);
+    stopDsp(DSP);
+    destroyDsp(DSP);
+}
+
+static void test2bis()
+{
+    // Create a compilation context
+    createLibContext();
+    
+    // Create a soundfile player box
+    int inputs = 0;
+    int outputs = 0;
+    string error_msg;
+    Box player = DSPToBoxes("FaustDSP", "process = 0,_~+(1):soundfile(\"sound[url:{'tango.wav'}]\",2):!,!,_,_;", 0, nullptr, &inputs, &outputs, error_msg);
+    
+    // Create a DSP engine with the soundfile player box
+    dsp* DSP = createDspFromBoxes("Player", player, 0, NULL, "", -1);
+    assert(DSP);
+    
+    // Initialize the DSP engine with JACK as renderer
+    bool res = initDsp(DSP, kJackRenderer, -1, -1);
+    assert(res);
+    
+    // Start the DSP engine
+    startDsp(DSP);
+    
+    char c;
+    printf("Press 'q' to move to next test\n");
+    while ((c = getchar() != 'q')) {
+        usleep(100000);
+    }
+    
+    // Stop the DSP engine and destroy it
+    stopDsp(DSP);
+    destroyDsp(DSP);
+    
+    // Destroy the compilation context
+    destroyLibContext();
 }
 
 static void test3()
@@ -120,6 +157,7 @@ int main()
 {
     test1();
     test2();
+    test2bis();
     test3();
     return 0;
 }
