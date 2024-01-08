@@ -68,8 +68,9 @@ class FAUST_API PathBuilder {
             std::string src = src_aux;
             std::string from = "/0x00";
             std::string to = "";
-            for (size_t pos = src.find(from); pos != std::string::npos; pos = src.find(from, pos + 1)) {
-                src.replace(pos, from.length(), to);
+            size_t pos = std::string::npos;
+            while ((pos = src.find(from)) && (pos != std::string::npos)) {
+                src = src.replace(pos, from.length(), to);
             }
             return src;
         }
