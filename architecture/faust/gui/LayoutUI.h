@@ -38,9 +38,10 @@
 
 /*******************************************************************************
  * LayoutUI
+ * This section defines the LayoutUI structure and associated classes.
  ******************************************************************************/
 
-// Definition of the elements standard size
+// Struct defining standard sizes for UI elements like knobs, sliders, buttons, etc.
 
 struct LayoutItemSize {
     
@@ -59,7 +60,7 @@ struct LayoutItemSize {
     float kCheckButtonWidth = 10.f;
     float kCheckButtonHeight = 10.f;
 
-    float kNumEntryWidth = 10.f;
+    float kNumEntryWidth = 20.f;
     float kNumEntryHeight = 10.f;
 
     float kVBargraphWidth = 10.f;
@@ -67,25 +68,42 @@ struct LayoutItemSize {
 
     float kHBargraphWidth = 20.f;
     float kHBargraphHeight = 10.f;
+    
+    float kBorderX = 5.f;
+    float kBorderY = 5.f;
+    
 };
 
+// Global variable for item sizes
 static LayoutItemSize gItemSize;
 
+/**
+ Main LayoutUI class inheriting from GenericUI, PathBuilder, and MetaDataUI.
+ All UI leave items have a (x,y) position and a (width,height) size, and are kept in a hierarchy of Groups.
+ The size of items (leaves and groups) can be read with getWidth/getHeight, and their position with getPosX/getPosY.
+ The size of items (leaves and groups) can be set with setSize, and their position with setPos.
+ 
+ The idea is to:
+ - build the hierarchy of Groups using buildUserInterface, a top group (fCurrentGroup field) is created
+ - the top group size can be read using getWidth/getHeight,
+ - the top group size is set using setSize, so that all leave item size are set
+ - the position is set using setPos, so that all leave item position are set
+*/
 struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
 {
 
-    // Base class
-    struct UIItem {
+    // Base UI item class
+    struct BaseUIItem {
         
-        typedef std::shared_ptr<UIItem> shared_item;
+        typedef std::shared_ptr<BaseUIItem> shared_item;
       
         std::string fLabel;
         
-        UIItem(const std::string& label):fLabel(label) {}
-        virtual ~UIItem() {}
+        BaseUIItem(const std::string& label):fLabel(label) {}
+        virtual ~BaseUIItem() {}
         
-        virtual float getTopX() { return 0.f; };
-        virtual float getTopY() { return 0.f; };
+        virtual float getPosX() { return 0.f; };
+        virtual float getPosY() { return 0.f; };
         
         virtual float getBorderX() { return 0.f; };
         virtual float getBorderY() { return 0.f; };
@@ -99,8 +117,8 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         virtual std::ostream& print(std::ostream& file) { return file; }
     };
     
-    // Leave
-    struct UILeaveItem : UIItem  {
+    // Derived class for leaf UI elements
+    struct UIItem : BaseUIItem  {
         
         float fBorderX = 0.f;
         float fBorderY = 0.f;
@@ -108,16 +126,16 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         float fWidth = 0.f;
         float fHeight = 0.f;
         
-        float fTopX = 0.f;
-        float fTopY = 0.f;
+        float fPosX = 0.f;
+        float fPosY = 0.f;
         
-        UILeaveItem(const std::string& label,
+        UIItem(const std::string& label,
                     float width = 0.0f,
                     float height = 0.0f)
-            :UIItem(label), fWidth(width), fHeight(height) {}
+            :BaseUIItem(label), fWidth(width), fHeight(height) {}
        
-        float getTopX() override { return fTopX; };
-        float getTopY() override { return fTopY; };
+        float getPosX() override { return fPosX; };
+        float getPosY() override { return fPosY; };
         
         float getBorderX() override { return fBorderX; };
         float getBorderY() override { return fBorderY; };
@@ -135,20 +153,21 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         // Adapt all leave positions
         void setPos(float top_x, float top_y) override
         {
-            fTopX = top_x;
-            fTopY = top_y;
+            fPosX = top_x;
+            fPosY = top_y;
         }
         
         std::ostream& print(std::ostream& file) override
         {
-            file << "fTopX = " << fTopX << " fTopY = " << fTopY << std::endl;
-            file <<"fWidth = " << fWidth << " fHeight = " << fHeight << std::endl;
+            file << "Label = " << fLabel << std::endl;
+            file << "fPosX = " << fPosX << " fPosY = " << fPosY << std::endl;
+            file << "fWidth = " << fWidth << " fHeight = " << fHeight << std::endl;
             file << "--------------------------" << std::endl;
             return file;
         }
     };
     
-    // Grouping classes
+    // Base grouping class for UI items
     struct Group : UIItem {
         
         typedef std::shared_ptr<Group> shared_group;
@@ -162,7 +181,8 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         
         void add(UIItem::shared_item item) { fItems.push_back(item); }
         
-        void setSize(float width, float height) override
+        // Base implementation
+        virtual void setSize(float width, float height) override
         {
             float real_width = getWidth() - getBorderX();
             float real_height = getHeight() - getBorderY();
@@ -177,6 +197,13 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         
     };
     
+    /**
+     For an horizontal group:
+        - width is the sum of all item width
+        - height is the max of all item height
+        - items x pos is moving by each consecutive item width
+        - all items have the same y pos
+     */
     struct HGroup : Group {
         
         HGroup(const std::string& label):Group(label)
@@ -207,8 +234,30 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
                 top_x += it->getWidth();
             }
         }
+        
+        void setSize(float width, float height) override
+        {
+            float real_width = getWidth() - getBorderX();
+            float real_height = getHeight() - getBorderY();
+            
+            float w_ratio = width / real_width;
+            float h_ratio = height / real_height;
+            
+            // Force all items height with real_height
+            for (const auto& it : fItems) {
+                it->setSize(it->getWidth() * w_ratio, real_height * h_ratio);
+            }
+        }
+        
     };
     
+    /**
+     For a vertical group:
+        - width is the max of all item width
+        - height is the sum of all item height
+        - items y pos is moving by each consecutive item height
+        - all items have the same x pos
+     */
     struct VGroup : Group {
         
         VGroup(const std::string& label):Group(label)
@@ -239,90 +288,107 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
                 top_y += it->getHeight();
             }
         }
+        
+        void setSize(float width, float height) override
+        {
+            float real_width = getWidth() - getBorderX();
+            float real_height = getHeight() - getBorderY();
+            
+            float w_ratio = width / real_width;
+            float h_ratio = height / real_height;
+            
+            // Force all items width with real_width
+            for (const auto& it : fItems) {
+                it->setSize(real_width * w_ratio, it->getHeight() * h_ratio);
+            }
+        }
+        
     };
     
-    // Terminal items
-    struct Button : UILeaveItem {
+    // Terminal item classes representing various UI elements
+    struct Button : UIItem {
         
-        Button(const std::string& label):UILeaveItem(label, gItemSize.kButtonWidth, gItemSize.kButtonHeight) {}
+        Button(const std::string& label):UIItem(label, gItemSize.kButtonWidth, gItemSize.kButtonHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
             file << "----------Button----------" << std::endl;
-            return UILeaveItem::print(file);
+            return UIItem::print(file);
         }
     };
     
-    struct CheckButton : UILeaveItem {
+    struct CheckButton : UIItem {
         
-        CheckButton(const std::string& label):UILeaveItem(label, gItemSize.kCheckButtonWidth, gItemSize.kCheckButtonHeight) {}
+        CheckButton(const std::string& label):UIItem(label, gItemSize.kCheckButtonWidth, gItemSize.kCheckButtonHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
             file << "----------CheckButton----------" << std::endl;
-            return UILeaveItem::print(file);
+            return UIItem::print(file);
         }
     };
     
-    struct HSlider : UILeaveItem {
+    struct HSlider : UIItem {
         
-        HSlider(const std::string& label):UILeaveItem(label, gItemSize.kVSliderWidth, gItemSize.kVSliderHeight) {}
+        HSlider(const std::string& label):UIItem(label, gItemSize.kHSliderWidth, gItemSize.kHSliderHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
             file << "----------HSlider----------" << std::endl;
-            return UILeaveItem::print(file);
+            return UIItem::print(file);
         }
     };
     
-    struct VSlider : UILeaveItem {
+    struct VSlider : UIItem {
         
-        VSlider(const std::string& label):UILeaveItem(label, gItemSize.kHSliderWidth, gItemSize.kHSliderHeight) {}
+        VSlider(const std::string& label):UIItem(label, gItemSize.kVSliderWidth, gItemSize.kVSliderHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
             file << "----------VSlider----------" << std::endl;
-            return UILeaveItem::print(file);
+            return UIItem::print(file);
         }
     };
     
-    struct NumEntry : UILeaveItem {
+    struct NumEntry : UIItem {
         
-        NumEntry(const std::string& label):UILeaveItem(label, gItemSize.kNumEntryWidth, gItemSize.kNumEntryHeight) {}
+        NumEntry(const std::string& label):UIItem(label, gItemSize.kNumEntryWidth, gItemSize.kNumEntryHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
             file << "----------NumEntry----------" << std::endl;
-            return UILeaveItem::print(file);
+            return UIItem::print(file);
         }
     };
     
-    struct HBargraph : UILeaveItem {
+    struct HBargraph : UIItem {
         
-        HBargraph(const std::string& label):UILeaveItem(label, gItemSize.kHBargraphWidth, gItemSize.kHBargraphHeight) {}
+        HBargraph(const std::string& label):UIItem(label, gItemSize.kHBargraphWidth, gItemSize.kHBargraphHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
             file << "----------HBargraph----------" << std::endl;
-            return UILeaveItem::print(file);
+            return UIItem::print(file);
         }
     };
     
-    struct VBargraph : UILeaveItem {
+    struct VBargraph : UIItem {
         
-        VBargraph(const std::string& label):UILeaveItem(label, gItemSize.kVBargraphWidth, gItemSize.kVBargraphHeight) {}
+        VBargraph(const std::string& label):UIItem(label, gItemSize.kVBargraphWidth, gItemSize.kVBargraphHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
             file << "----------VBargraph----------" << std::endl;
-            return UILeaveItem::print(file);
+            return UIItem::print(file);
         }
     };
     
+    // Attributes for managing groups and UI elements
     Group::shared_group fCurrentGroup = nullptr;
     std::stack<Group::shared_group> fGroupStack;
     std::map<std::string, UIItem::shared_item> fPathItemMap;
 
+    // Method definitions for adding and managing UI elements and groups
     void addItem(const char* label, UIItem::shared_item item)
     {
         fPathItemMap[buildPath(label)] = item;
@@ -341,6 +407,32 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
 
     LayoutUI() {}
     virtual ~LayoutUI() {}
+    
+    float getWidth()
+    {
+        return fCurrentGroup->getWidth();
+    }
+    
+    float getHeight()
+    {
+        return fCurrentGroup->getHeight();
+    }
+    
+    void setSize(float width, float height)
+    {
+        fCurrentGroup->setSize(width, height);
+    }
+    
+    void setPos(float x_pos, float y_pos)
+    {
+        fCurrentGroup->setPos(x_pos, y_pos);
+    }
+    
+    void setPosAndSize(float x_pos, float y_pos, float width, float height)
+    {
+        fCurrentGroup->setSize(width, height);
+        fCurrentGroup->setPos(x_pos, y_pos);
+    }
 
     // -- widget's layouts
 
@@ -412,7 +504,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     }
 };
 
-// Generic print
+// Generic print function for UI items
 template <typename T>
 inline std::ostream& operator<<(std::ostream& file, std::shared_ptr<T> item)
 {

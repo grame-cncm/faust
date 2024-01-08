@@ -735,17 +735,17 @@ struct mydspModule : Module {
             cout << it.second << endl;
         }
         
-        cout << "Width " << fLayoutUI.fCurrentGroup->getWidth() << endl;
-        cout << "Height " << fLayoutUI.fCurrentGroup->getHeight() << endl;
+        cout << "Width " << fLayoutUI.getWidth() << endl;
+        cout << "Height " << fLayoutUI.getHeight() << endl;
         
-        width = fLayoutUI.fCurrentGroup->getWidth();
-        height = fLayoutUI.fCurrentGroup->getHeight();
+        width = fLayoutUI.getWidth();
+        height = fLayoutUI.getHeight();
     }
     
     void setSize(float x_pos, float y_pos, float width, float height)
     {
-        fLayoutUI.fCurrentGroup->setSize(width, height);
-        fLayoutUI.fCurrentGroup->setPos(x_pos, y_pos);
+        fLayoutUI.setSize(width, height);
+        fLayoutUI.setPos(x_pos, y_pos);
         
         cout << "==========================" << endl;
         for (const auto& it : fLayoutUI.fPathItemMap) {
@@ -753,8 +753,8 @@ struct mydspModule : Module {
             cout << it.second << endl;
         }
         
-        cout << "Width " << fLayoutUI.fCurrentGroup->getWidth() << endl;
-        cout << "Height " << fLayoutUI.fCurrentGroup->getHeight() << endl;
+        cout << "Width " << fLayoutUI.getWidth() << endl;
+        cout << "Height " << fLayoutUI.getHeight() << endl;
     }
     
 };

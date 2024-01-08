@@ -25,6 +25,7 @@ ARCHFILE=$FAUSTARCH/minimal.cpp
 # Global variables
 OPTIONS=""
 FILES=""
+UI=""
 
 echoHelp()
 {
@@ -54,7 +55,9 @@ do
 
     echo "dispatch command arguments"
 
-    if [ ${p:0:1} = "-" ]; then
+    if [ $p = "-layout" ]; then
+        UI="-DLAYOUT_UI"
+    elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
@@ -79,7 +82,7 @@ for f in $FILES; do
     # compile c++ to binary
     echo "compile c++ to binary"
     (
-        $CXX $CXXFLAGS "${f%.dsp}.cpp" -o "${f%.dsp}" ${LIBADD}
+        $CXX $CXXFLAGS "${f%.dsp}.cpp" $UI -o "${f%.dsp}" ${LIBADD}
     ) > /dev/null || exit
 
     # remove temporary files
