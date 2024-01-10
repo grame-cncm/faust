@@ -28,6 +28,8 @@ architecture section is not modified.
 #include <assert.h>
 #include "faust/dsp/dsp.h"
 
+// To be used with -os0 mode
+
 template <typename REAL>
 class FAUST_API one_sample_dsp : public dsp {
   

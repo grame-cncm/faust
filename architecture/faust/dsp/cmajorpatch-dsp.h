@@ -44,8 +44,8 @@ architecture section is not modified.
 class cmajor_dsp_factory;
 
 /**
-* Faust wrapped Cmajor DSP
-*/
+ * Faust wrapped JIT compiled Cmajor DSP
+ */
 class cmajorpatch_dsp : public dsp {
     
     private:

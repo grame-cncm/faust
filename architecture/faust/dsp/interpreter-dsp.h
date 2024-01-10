@@ -214,7 +214,7 @@ LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const 
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
  * allocated factories so that the compilation of same DSP code (that is same source code and 
  * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will have to explicitly
- * use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
+ * use deleteInterpreterDSPFactory to properly decrement reference counter when the factory is no more needed.
  * 
  * @param name_app - the name of the Faust program
  * @param dsp_content - the Faust program as a string

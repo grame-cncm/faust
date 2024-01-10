@@ -23,7 +23,7 @@
  ***************************************************************************/
 
 /*
- * This file describe a simple C API for Faust objects including the audio drivers.
+ * This file describes a simple C API for Faust objects including the audio drivers.
  * Faust objects are built with createDsp, then initialized with initDsp and the sampling rate and buffer size.
  * Then start() is called to open the drivers and start processing audio until stop() is called.
  * All parameters can be accessed and controlled (typically using getParamsCountDsp/setParamValueDsp/getParamValueDsp).
@@ -36,12 +36,12 @@
  * The Interpreter backend can possibly be used instead of LLVM, using INTERP_DSP compilation flag as in:
  * c++ -std=c++11 -DINTERP_DSP -DPORTAUDIO_DRIVER -DSOUNDFILE faust-dynamic-engine.cpp
  *
- * Several different audio drivers can possiby be compiled (to be choosen at init time). With something like;
+ * Several different audio drivers can possibly be compiled (to be chosen at init time). With something like:
  * c++ -std=c++11 -DLLVM_DSP -DPORTAUDIO_DRIVER -DRTAUDIO_DRIVER -DJACK_DRIVER -DSOUNDFILE faust-dynamic-engine.cpp
  * and adding the needed libraries at link time.
  *
  * JACK (https://jackaudio.org) can possibly be used instead of PortAudio to provide a "multiple connectable DSP" experience:
- * each DSP is created with createDsp/initDsp, then connected to others with getNumInputsDsp/getNumOutputsDsp and
+ * each DSP is created with createDsp/initDsp, then connected to other with getNumInputsDsp/getNumOutputsDsp and
  * connectDsp/disconnectDsp/isConnectedDsp functions, or using an external connection tool
  * like QjackCtl (https://qjackctl.sourceforge.io).
  */

@@ -66,12 +66,9 @@ architecture section is not modified.
 #include "faust/gui/SoundUI.h"
 #endif
 
-//**************************************************************
-// APIUI : Faust User Interface
-// This class a simple parameter based interface
-//**************************************************************
-
 using namespace std;
+
+// Audio renderer types
 
 enum RendererType {
     kPortAudioRenderer = 0,

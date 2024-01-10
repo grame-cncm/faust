@@ -33,6 +33,9 @@
 #include "rnbo/rnbo/RNBO.h"
 #include "rnbo/rnbo_source.cpp"
 
+/**
+ * Faust wrapped RNBO DSP
+ */
 class rnbo_dsp : public dsp {
    private:
     RNBO::CoreObject                                                     fDSP;

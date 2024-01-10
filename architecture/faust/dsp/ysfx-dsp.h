@@ -33,7 +33,7 @@ architecture section is not modified.
 #include "ysfx.h"
 
 /**
- * DSP instance class with methods.
+ * Faust wrapped YSFX DSP
  */
 template <class REAL>
 class ysfx_dsp : public dsp {
