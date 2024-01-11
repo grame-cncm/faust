@@ -123,7 +123,11 @@ class LIBFAUST_API interpreter_dsp_factory : public dsp_factory {
         /* Get warning messages list for a given compilation */
         std::vector<std::string> getWarningMessages();
   
-        /* Create a new DSP instance, to be deleted with C++ 'delete' */
+        /* Create a new DSP instance, to be deleted with C++ 'delete'.
+         Note that the factory keeps track of all DSP allocated with 'createDSPInstance',
+         so a DSP can be manually deleted using the C++ 'delete', or will be finally garbaged
+         by 'deleteInterpreterDSPFactory' if needed.
+         */
         interpreter_dsp* createDSPInstance();
         
         /* Set a custom memory manager to be used when creating instances */
