@@ -24,6 +24,7 @@
 #include "Text.hh"
 #include "compatibility.hh"
 #include "floats.hh"
+#include "signalVisitor.hh"
 #include "xtended.hh"
 
 using namespace std;
