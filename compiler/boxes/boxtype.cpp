@@ -186,6 +186,12 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
     else if (isBoxSlot(box)) {
         *inum = 0;
         *onum = 1;
+    } else if (isBoxTap(box)) {
+        *inum = 0;
+        *onum = 1;
+    } else if (isBoxTapDef(box)) {
+        *inum = 1;
+        *onum = 0;
     } else if (isBoxSymbolic(box, s, b)) {
         if (!getBoxType(b, inum, onum)) return false;
         *inum += 1;

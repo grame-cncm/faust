@@ -128,6 +128,11 @@ static int computeBoxComplexity(Tree box)
         return 1;
     else if (isBoxSymbolic(box, t1, t2))
         return 1 + BC(t2);
+    // taps
+    else if (isBoxTap(box))
+        return 1;
+    else if (isBoxTapDef(box))
+        return 1;
 
     // block diagram binary operator
     else if (isBoxSeq(box, t1, t2))

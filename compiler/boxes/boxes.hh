@@ -61,6 +61,14 @@ Tree              boxIdent(const char* name);
 LIBFAUST_API bool isBoxIdent(Tree t);
 LIBFAUST_API bool isBoxIdent(Tree t, const char** name);
 
+Tree              boxTap(const char* name);
+LIBFAUST_API bool isBoxTap(Tree t);
+LIBFAUST_API bool isBoxTap(Tree t, const char** name);
+
+Tree              boxTapDef(Tree tap);
+LIBFAUST_API bool isBoxTapDef(Tree t);
+LIBFAUST_API bool isBoxTapDef(Tree t, Tree& tap);
+
 /*****************************************************************************
                                     Numbers
 *****************************************************************************/

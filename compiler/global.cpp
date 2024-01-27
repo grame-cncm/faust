@@ -257,6 +257,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gAsinPrim      = new AsinPrim();
 
     BOXIDENT         = symbol("BoxIdent");
+    BOXTAP           = symbol("BoxTap");
+    BOXTAPDEF        = symbol("BoxTapDef");
     BOXCUT           = symbol("BoxCut");
     BOXWAVEFORM      = symbol("BoxWaveform");
     BOXROUTE         = symbol("BoxRoute");

@@ -130,6 +130,8 @@ static bool    pendingDrawing(Tree& t);
 static schema* generateAbstractionSchema(schema* x, Tree t);
 static schema* generateOutputSlotSchema(Tree a);
 static schema* generateInputSlotSchema(Tree a);
+static schema* generateOutputTapSchema(Tree a);
+static schema* generateTapDefSchema(Tree a);
 static schema* generateBargraphSchema(Tree t);
 static schema* generateUserInterfaceSchema(Tree t);
 static schema* generateSoundfileSchema(Tree t);
@@ -503,7 +505,10 @@ static schema* generateInsideSchema(Tree t)
         } else {
             return makeDecorateSchema(generateAbstractionSchema(generateInputSlotSchema(a), b), 10, "Abstraction");
         }
-
+    } else if (isBoxTap(t)) {
+        return generateOutputTapSchema(t);
+    } else if (isBoxTapDef(t)) {
+        return generateTapDefSchema(t);
     } else if (isBoxEnvironment(t)) {
         return makeBlockSchema(0, 0, "environment{...}", normalcolor, "");
 
@@ -622,6 +627,25 @@ static schema* generateOutputSlotSchema(Tree a)
     string name = subst("[$0] $1", T(i), tree2str(id));
     return makeBlockSchema(0, 1, name, slotcolor, "");
 }
+
+static schema* generateOutputTapSchema(Tree a)
+{
+    const char* str;
+    faustassert(isBoxTap(a, &str));
+    string name{str};
+    return makeBlockSchema(0, 1, name, slotcolor, "");
+}
+
+static schema* generateTapDefSchema(Tree a)
+{
+    Tree tap;
+    const char* str;
+    faustassert(isBoxTapDef(a, tap));
+    faustassert(isBoxTap(tap, &str));
+    string name{str};
+    return makeBlockSchema(1, 0, name, slotcolor, "");
+}
+
 
 /**
  * Generate an abstraction schema by placing in sequence

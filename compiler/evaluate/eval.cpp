@@ -587,6 +587,12 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxSlot(exp)) {
         return exp;
 
+    } else if (isBoxTap(exp)) {
+        return exp;
+
+    } else if (isBoxTapDef(exp)) {
+        return exp;
+
     } else if (isBoxSymbolic(exp)) {
         return exp;
 

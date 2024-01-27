@@ -166,7 +166,7 @@ ostream& boxpp::print(ostream& fout) const
     prim5  p5;
 
     Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, body, fun, args, abstr, genv, vis, lenv,
-        ldef, slot, ident, rules, chan, ins, outs, lroutes;
+        ldef, slot, ident, tap, rules, chan, ins, outs, lroutes;
 
     const char* str;
     xtended*    xt = (xtended*)getUserData(fBox);
@@ -338,6 +338,10 @@ ostream& boxpp::print(ostream& fout) const
         fout << "x" << id;
     } else if (isBoxSymbolic(fBox, slot, body)) {
         fout << "\\(" << boxpp(slot) << ").(" << boxpp(body) << ")";
+    } else if (isBoxTap(fBox, &str)) {
+        fout << "$" << str;
+    } else if (isBoxTapDef(fBox, tap) && isBoxTap(tap, &str)) {
+        fout << "#" << str;
     }
 
     // pattern Matching Extensions

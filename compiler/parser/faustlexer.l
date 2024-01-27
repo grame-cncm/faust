@@ -131,6 +131,8 @@ NSID     {ID}("::"{ID})*
 
 "\\"          return LAMBDA;
 "."           return DOT;
+"#"           return HASH;
+"$"           return CASH;
 "with"        return WITH;
 "letrec"      return LETREC;
 "where"       return WHERE;

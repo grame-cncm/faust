@@ -338,6 +338,8 @@ struct global {
 
     // Signals
     Sym BOXIDENT;
+    Sym BOXTAP;
+    Sym BOXTAPDEF;
     Sym BOXCUT;
     Sym BOXWAVEFORM;
     Sym BOXROUTE;

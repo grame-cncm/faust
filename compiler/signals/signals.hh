@@ -22,6 +22,7 @@
 #ifndef _SIGNALS_
 #define _SIGNALS_
 
+#include <utility>
 #include <vector>
 
 #include "faust/export.h"
@@ -44,6 +45,7 @@
 ///////////////////////////////////////////////////////////////////////
 
 typedef std::vector<Tree> siglist;
+typedef std::pair<siglist, Tree> siglistAndTaps;
 
 // Constant signals : for all t, x(t)=n
 LIBFAUST_API Tree sigInt(int n);

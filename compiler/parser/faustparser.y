@@ -189,6 +189,8 @@ inline Tree unquote(char* str)
 %token MODULATE
 %token LAMBDA
 %token DOT
+%token CASH
+%token HASH
 
 %token WIRE
 %token CUT
@@ -292,6 +294,8 @@ inline Tree unquote(char* str)
 %type <exp> arglist
 
 %type <exp> ident
+%type <exp> tap
+%type <exp> tapdef
 %type <exp> name
 
 %type <exp> ffunction
@@ -591,6 +595,8 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
 
                 | ident                          { $$ = $1;  setUseProp($1, FAUSTfilename, FAUSTlineno);}
                 | SUB ident                      { $$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub)); }
+                | CASH tap                       { $$ = $2;  setUseProp($2, FAUSTfilename, FAUSTlineno);}
+                | HASH tapdef                    { $$ = $2;  setUseProp($2, FAUSTfilename, FAUSTlineno);}
 
                 | LPAR expression RPAR            { $$ = $2; }
                 | LAMBDA LPAR params RPAR DOT LPAR expression RPAR
@@ -636,6 +642,12 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
 
 
 ident           : IDENT                         { $$ = boxIdent(FAUSTtext); setUseProp($$, FAUSTfilename, FAUSTlineno);  }
+                ;
+
+tap             : IDENT                         { $$ = boxTap(FAUSTtext); setUseProp($$, FAUSTfilename, FAUSTlineno);  }
+                ;
+
+tapdef          : IDENT                         { $$ = boxTapDef(boxTap(FAUSTtext)); setDefProp($$, FAUSTfilename, FAUSTlineno);  }
                 ;
 
 name            : IDENT                         { $$ = tree(FAUSTtext); setUseProp($$, FAUSTfilename, FAUSTlineno);  }

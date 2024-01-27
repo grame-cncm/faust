@@ -21,6 +21,7 @@
 
 #include "propagate.hh"
 #include "Text.hh"
+#include "errormsg.hh"
 #include "exception.hh"
 #include "floats.hh"
 #include "global.hh"
@@ -118,16 +119,23 @@ static siglist listConcat(const siglist& a, const siglist& b)
     return r;
 }
 
+static Tree listAndTapsConvert(const siglistAndTaps& sigAndT) {
+    return cons(listConvert(sigAndT.first), sigAndT.second);
+}
+
 /**
  * Convert a tree list of signals into an stl vector of signals
  */
-static void treelist2siglist(Tree l, siglist& r)
+static void treelist2siglistAndTaps(Tree l, siglistAndTaps& r)
 {
-    r.clear();
-    while (!isNil(l)) {
-        r.push_back(hd(l));
-        l = tl(l);
+    Tree lsig = hd(l);
+    Tree tapenv = tl(l);
+    r.first.clear();
+    while (!isNil(lsig)) {
+        r.first.push_back(hd(lsig));
+        lsig = tl(lsig);
     }
+    r.second = tapenv;
 }
 
 static siglist listLift(const siglist& l)
@@ -145,9 +153,9 @@ static siglist listLift(const siglist& l)
  * @param args propagation arguments
  * @param value propagation result
  */
-static void setPropagateProperty(Tree args, const siglist& lsig)
+static void setPropagateProperty(Tree args, const siglistAndTaps& lsigAndT)
 {
-    setProperty(args, tree(gGlobal->PROPAGATEPROPERTY), listConvert(lsig));
+    setProperty(args, tree(gGlobal->PROPAGATEPROPERTY), listAndTapsConvert(lsigAndT));
 }
 
 /**
@@ -157,11 +165,11 @@ static void setPropagateProperty(Tree args, const siglist& lsig)
  * @param lsig the propagation result if any
  * @return true if a propagation result was stored
  */
-static bool getPropagateProperty(Tree args, siglist& lsig)
+static bool getPropagateProperty(Tree args, siglistAndTaps& lsigAndT)
 {
     Tree value;
     if (getProperty(args, tree(gGlobal->PROPAGATEPROPERTY), value)) {
-        treelist2siglist(value, lsig);
+        treelist2siglistAndTaps(value, lsigAndT);
         return true;
     } else {
         return false;
@@ -177,7 +185,7 @@ static bool getPropagateProperty(Tree args, siglist& lsig)
  * @param lsig the list of input signals to propagate
  * @return the resulting list of output signals
  */
-static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig);
+static siglistAndTaps realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig);
 
 // Collect the leaf numbers of tree l into vector v.
 // return true if l is a number or a parallel tree of numbers.
@@ -213,9 +221,9 @@ static bool isIntTree(Tree l, vector<int>& v)
  * @param path user interface group path
  * @param box the block diagram
  * @param lsig the list of input signals to propagate
- * @return the resulting list of output signals
+ * @return the resulting list of output signals and taps
  */
-static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
+static siglistAndTaps realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
     int    i;
     double r;
@@ -226,7 +234,8 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     prim4  p4;
     prim5  p5;
 
-    Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, slot, body, chan;
+    Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, slot, body, chan, tap;
+    const char* str;
     tvec wf;
 
     xtended* xt = (xtended*)getUserData(box);
@@ -235,17 +244,17 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     if (xt) {
         faustassert(lsig.size() == xt->arity());
-        return makeList(xt->computeSigOutput(lsig));
+        return {makeList(xt->computeSigOutput(lsig)), gGlobal->nil};
     }
 
     // Numbers and Constants
 
     else if (isBoxInt(box, &i)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigInt(i));
+        return {makeList(sigInt(i)), gGlobal->nil};
     } else if (isBoxReal(box, &r)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigReal(r));
+        return {makeList(sigReal(r)), gGlobal->nil};
     }
 
     // A Waveform has two outputs it size and a period signal representing its content
@@ -253,29 +262,29 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     else if (isBoxWaveform(box)) {
         faustassert(lsig.size() == 0);
         const tvec br = box->branches();
-        return listConcat(makeList(sigInt(int(br.size()))), makeList(sigWaveform(br)));
+        return {listConcat(makeList(sigInt(int(br.size()))), makeList(sigWaveform(br))), gGlobal->nil};
     }
 
     else if (isBoxFConst(box, type, name, file)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigFConst(type, name, file));
+        return {makeList(sigFConst(type, name, file)), gGlobal->nil};
     }
 
     else if (isBoxFVar(box, type, name, file)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigFVar(type, name, file));
+        return {makeList(sigFVar(type, name, file)), gGlobal->nil};
     }
 
     // Wire and Cut
 
     else if (isBoxCut(box)) {
         faustassert(lsig.size() == 1);
-        return siglist();
+        return {siglist(), gGlobal->nil};
     }
 
     else if (isBoxWire(box)) {
         faustassert(lsig.size() == 1);
-        return lsig;
+        return {lsig, gGlobal->nil};
     }
 
     // Slots and Symbolic Boxes
@@ -286,7 +295,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         if (!searchEnv(box, sig, slotenv)) {
             sig = sigInput(++gGlobal->gDummyInput);
         }
-        return makeList(sig);
+        return {makeList(sig), gGlobal->nil};
     }
 
     else if (isBoxSymbolic(box, slot, body)) {
@@ -294,20 +303,37 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         return propagate(pushEnv(slot, lsig[0], slotenv), path, body, listRange(lsig, 1, (int)lsig.size()));
     }
 
+    // Tap definitions
+    else if (isBoxTap(box, &str)) {
+        Tree sig;
+        faustassert(lsig.size() == 0);
+        if (!searchEnv(box, sig, slotenv)) {
+            stringstream error;
+            error << "ERROR : undefined tap " << str << " at " << getUseFileProp(box) << ":" << getUseLineProp(box) << endl;
+            throw faustexception(error.str());
+        }
+        return {makeList(sig), gGlobal->nil};
+    }
+
+    else if (isBoxTapDef(box, tap)) {
+        faustassert(lsig.size() == 1);
+        return {siglist(), cons(cons(tap, lsig[0]), gGlobal->nil)};
+    }
+
     // Primitives
 
     else if (isBoxPrim0(box, &p0)) {
         faustassert(lsig.size() == 0);
-        return makeList(p0());
+        return {makeList(p0()), gGlobal->nil};
     }
 
     else if (isBoxPrim1(box, &p1)) {
         faustassert(lsig.size() == 1);
         num n;
         if (isNum(lsig[0], n)) {
-            return makeList(simplify(p1(lsig[0])));
+            return {makeList(simplify(p1(lsig[0]))), gGlobal->nil};
         } else {
-            return makeList(p1(lsig[0]));
+            return {makeList(p1(lsig[0])), gGlobal->nil};
         }
     }
 
@@ -318,84 +344,84 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
             if (gGlobal->gEnableFlag) {
                 // special case for sigEnable that requires a transformation
                 // enable(X,Y) -> sigControl(X*Y, Y!=0)
-                return makeList(sigControl(sigMul(lsig[0], lsig[1]), sigNE(lsig[1], sigReal(0.0))));
+                return {makeList(sigControl(sigMul(lsig[0], lsig[1]), sigNE(lsig[1], sigReal(0.0)))), gGlobal->nil};
             } else {
                 // If gEnableFlag is false we replace enable by a simple multiplication
-                return makeList(sigMul(lsig[0], lsig[1]));
+                return {makeList(sigMul(lsig[0], lsig[1])), gGlobal->nil};
             }
         } else if (p2 == &sigControl) {
             if (gGlobal->gEnableFlag) {
                 // special case for sigControl that requires a transformation
                 // control(X,Y) -> sigControl(X, Y!=0)
-                return makeList(sigControl(lsig[0], sigNE(lsig[1], sigReal(0.0))));
+                return {makeList(sigControl(lsig[0], sigNE(lsig[1], sigReal(0.0)))), gGlobal->nil};
             } else {
                 // If gEnableFlag is false we replace control by identity function
-                return makeList(lsig[0]);
+                return {makeList(lsig[0]), gGlobal->nil};
             }
         } else {
             num n, m;
             if (isNum(lsig[0], n) && isNum(lsig[1], m)) {
-                return makeList(simplify(p2(lsig[0], lsig[1])));
+                return {makeList(simplify(p2(lsig[0], lsig[1]))), gGlobal->nil};
             } else {
-                return makeList(p2(lsig[0], lsig[1]));
+                return {makeList(p2(lsig[0], lsig[1])), gGlobal->nil};
             }
         }
     }
 
     else if (isBoxPrim3(box, &p3)) {
         faustassert(lsig.size() == 3);
-        return makeList(p3(lsig[0], lsig[1], lsig[2]));
+        return {makeList(p3(lsig[0], lsig[1], lsig[2])), gGlobal->nil};
     }
 
     else if (isBoxPrim4(box, &p4)) {
         faustassert(lsig.size() == 4);
-        return makeList(p4(lsig[0], lsig[1], lsig[2], lsig[3]));
+        return {makeList(p4(lsig[0], lsig[1], lsig[2], lsig[3])), gGlobal->nil};
     }
 
     else if (isBoxPrim5(box, &p5)) {
-        return makeList(p5(lsig[0], lsig[1], lsig[2], lsig[3], lsig[4]));
+        return {makeList(p5(lsig[0], lsig[1], lsig[2], lsig[3], lsig[4])), gGlobal->nil};
     }
 
     else if (isBoxFFun(box, ff)) {
         faustassert(int(lsig.size()) == ffarity(ff));
-        return makeList(sigFFun(ff, listConvert(lsig)));
+        return {makeList(sigFFun(ff, listConvert(lsig))), gGlobal->nil};
     }
 
     // User Interface Widgets
 
     else if (isBoxButton(box, label)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigButton(normalizePath(cons(label, path))));
+        return {makeList(sigButton(normalizePath(cons(label, path)))), gGlobal->nil};
     }
 
     else if (isBoxCheckbox(box, label)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigCheckbox(normalizePath(cons(label, path))));
+        return {makeList(sigCheckbox(normalizePath(cons(label, path)))), gGlobal->nil};
     }
 
     else if (isBoxVSlider(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigVSlider(normalizePath(cons(label, path)), cur, min, max, step));
+        return {makeList(sigVSlider(normalizePath(cons(label, path)), cur, min, max, step)), gGlobal->nil};
     }
 
     else if (isBoxHSlider(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigHSlider(normalizePath(cons(label, path)), cur, min, max, step));
+        return {makeList(sigHSlider(normalizePath(cons(label, path)), cur, min, max, step)), gGlobal->nil};
     }
 
     else if (isBoxNumEntry(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step));
+        return {makeList(sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step)), gGlobal->nil};
     }
 
     else if (isBoxVBargraph(box, label, min, max)) {
         faustassert(lsig.size() == 1);
-        return makeList(sigVBargraph(normalizePath(cons(label, path)), min, max, lsig[0]));
+        return {makeList(sigVBargraph(normalizePath(cons(label, path)), min, max, lsig[0])), gGlobal->nil};
     }
 
     else if (isBoxHBargraph(box, label, min, max)) {
         faustassert(lsig.size() == 1);
-        return makeList(sigHBargraph(normalizePath(cons(label, path)), min, max, lsig[0]));
+        return {makeList(sigHBargraph(normalizePath(cons(label, path)), min, max, lsig[0])), gGlobal->nil};
     }
 
     else if (isBoxSoundfile(box, label, chan)) {
@@ -412,7 +438,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         for (int i1 = 0; i1 < c; i1++) {
             lsig2[i1 + 2] = sigSoundfileBuffer(soundfile, sigInt(i1), part, ridx);
         }
-        return lsig2;
+        return {lsig2, gGlobal->nil};
     }
 
     // User Interface Groups
@@ -438,7 +464,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         
         // Connection coherency is checked in evaluateBlockDiagram
         faustassert(out1 == in2);
-        return propagate(slotenv, path, t2, propagate(slotenv, path, t1, lsig));
+        siglistAndTaps t1result = propagate(slotenv, path, t1, lsig);
+        siglistAndTaps t2result = propagate(concat(slotenv, t1result.second), path, t2, t1result.first);
+        return {t2result.first, concat(t1result.second, t2result.second)};
     }
 
     else if (isBoxPar(box, t1, t2)) {
@@ -447,8 +475,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t2, &in2, &out2);
 
         // No restriction in connection
-        return listConcat(propagate(slotenv, path, t1, listRange(lsig, 0, in1)),
-                          propagate(slotenv, path, t2, listRange(lsig, in1, in1 + in2)));
+        siglistAndTaps t1result = propagate(slotenv, path, t1, listRange(lsig, 0, in1));
+        siglistAndTaps t2result = propagate(concat(slotenv, t1result.second), path, t2, listRange(lsig, in1, in1 + in2));
+        return {listConcat(t1result.first, t2result.first), concat(t1result.second, t2result.second)};
     }
 
     else if (isBoxSplit(box, t1, t2)) {
@@ -457,9 +486,10 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t2, &in2, &out2);
 
         // Connection coherency is checked in evaluateBlockDiagram
-        siglist l1 = propagate(slotenv, path, t1, lsig);
-        siglist l2 = split(l1, in2);
-        return propagate(slotenv, path, t2, l2);
+        siglistAndTaps t1result = propagate(slotenv, path, t1, lsig);
+        siglist l2 = split(t1result.first, in2);
+        siglistAndTaps t2result = propagate(concat(slotenv, t1result.second), path, t2, l2);
+        return {t2result.first, concat(t1result.second, t2result.second)};
     }
 
     else if (isBoxMerge(box, t1, t2)) {
@@ -468,9 +498,10 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t2, &in2, &out2);
 
         // Connection coherency is checked in evaluateBlockDiagram
-        siglist l1 = propagate(slotenv, path, t1, lsig);
-        siglist l2 = mix(l1, in2);
-        return propagate(slotenv, path, t2, l2);
+        siglistAndTaps t1result = propagate(slotenv, path, t1, lsig);
+        siglist l2 = mix(t1result.first, in2);
+        siglistAndTaps t2result = propagate(concat(slotenv, t1result.second), path, t2, l2);
+        return {t2result.first, concat(t1result.second, t2result.second)};
     }
 
     else if (isBoxRec(box, t1, t2)) {
@@ -483,15 +514,15 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
         // Connection coherency is checked in evaluateBlockDiagram
         siglist l0 = makeMemSigProjList(ref(1), in2);
-        siglist l1 = propagate(slotenv2, path, t2, l0);
-        siglist l2 = propagate(slotenv2, path, t1, listConcat(l1, listLift(lsig)));
-        Tree    g  = rec(listConvert(l2));
+        siglistAndTaps t2result = propagate(slotenv2, path, t2, l0);
+        siglistAndTaps t1result = propagate(concat(slotenv2, t2result.second), path, t1, listConcat(t2result.first, listLift(lsig)));
+        Tree    g  = rec(listConvert(t1result.first));
 
         // Compute output list of recursive signals
         siglist ol(out1);  // output list
         int     p = 0;     // projection number
 
-        for (const auto& exp : l2) {
+        for (const auto& exp : t1result.first) {
             if (exp->aperture() > 0) {
                 // it is a regular recursive expression branch
                 ol[p] = sigDelay0(sigProj(p, g));
@@ -504,12 +535,12 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
             p++;
         }
 
-        return ol;
+        return {ol, t1result.second};
     }
 
     else if (isBoxEnvironment(box)) {
         faustassert(lsig.size() == 0);
-        return siglist();
+        return {siglist(), gGlobal->nil};
 
     } else if (isBoxRoute(box, t1, t2, t3)) {
         int         ins, outs;
@@ -534,7 +565,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
                     }
                 }
             }
-            return outsigs;
+            return {outsigs, gGlobal->nil};
 
         } else {
             stringstream error;
@@ -547,7 +578,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
          << endl;
     faustassert(false);
 
-    return siglist();
+    return {siglist(), gGlobal->nil};
 }
 
 //------------------
@@ -561,13 +592,13 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
  * @param path user interface group path
  * @param box the block diagram
  * @param lsig the list of input signals to propagate
- * @return the resulting list of output signals
+ * @return the resulting list of output signals and taps
  */
 
-siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
+siglistAndTaps propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
     Tree    args = tree(gGlobal->PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig));
-    siglist result;
+    siglistAndTaps result;
     if (!getPropagateProperty(args, result)) {
         result = realPropagate(slotenv, path, box, lsig);
         setPropagateProperty(args, result);
@@ -596,5 +627,5 @@ siglist makeSigInputList(int n)
 
 Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig)
 {
-    return listConvert(propagate(gGlobal->nil, path, box, lsig));
+    return listConvert(propagate(gGlobal->nil, path, box, lsig).first);
 }
