@@ -32,6 +32,14 @@ extern int          FAUSTerr;
 
 int FAUSTlex();
 
+void yyerror(char* msg) 
+{
+    std::stringstream error;
+    error << FAUSTfilename << " : " << FAUSTlineno << " : ERROR : " << msg << endl;
+    gGlobal->gErrorCount++;
+    throw faustexception(error.str());
+}
+
 //----------------------------------------------------------
 // unquote() : remove enclosing quotes and carriage return 
 // characters from string. Returns a Tree 
