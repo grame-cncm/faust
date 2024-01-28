@@ -47,8 +47,7 @@ Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig);
  * @param path user interface group path
  * @param box the block diagram
  * @param lsig the list of input signals to propagate
- * @param tapenv environment associating taps and signals
- * @return the resulting list of output signals
+ * @return the resulting list of output signals and the tap environment
  */
 siglistAndTaps propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig);
 
