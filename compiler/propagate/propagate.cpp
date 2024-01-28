@@ -465,7 +465,7 @@ static siglistAndTaps realPropagate(Tree slotenv, Tree path, Tree box, const sig
         // Connection coherency is checked in evaluateBlockDiagram
         faustassert(out1 == in2);
         siglistAndTaps t1result = propagate(slotenv, path, t1, lsig);
-        siglistAndTaps t2result = propagate(concat(slotenv, t1result.second), path, t2, t1result.first);
+        siglistAndTaps t2result = propagate(concat(t1result.second, slotenv), path, t2, t1result.first);
         return {t2result.first, concat(t1result.second, t2result.second)};
     }
 
@@ -476,8 +476,8 @@ static siglistAndTaps realPropagate(Tree slotenv, Tree path, Tree box, const sig
 
         // No restriction in connection
         siglistAndTaps t1result = propagate(slotenv, path, t1, listRange(lsig, 0, in1));
-        siglistAndTaps t2result = propagate(concat(slotenv, t1result.second), path, t2, listRange(lsig, in1, in1 + in2));
-        return {listConcat(t1result.first, t2result.first), concat(t1result.second, t2result.second)};
+        siglistAndTaps t2result = propagate(concat(t1result.second, slotenv), path, t2, listRange(lsig, in1, in1 + in2));
+        return {listConcat(t1result.first, t2result.first), concat(t2result.second, t1result.second)};
     }
 
     else if (isBoxSplit(box, t1, t2)) {
@@ -488,8 +488,8 @@ static siglistAndTaps realPropagate(Tree slotenv, Tree path, Tree box, const sig
         // Connection coherency is checked in evaluateBlockDiagram
         siglistAndTaps t1result = propagate(slotenv, path, t1, lsig);
         siglist l2 = split(t1result.first, in2);
-        siglistAndTaps t2result = propagate(concat(slotenv, t1result.second), path, t2, l2);
-        return {t2result.first, concat(t1result.second, t2result.second)};
+        siglistAndTaps t2result = propagate(concat(t1result.second, slotenv), path, t2, l2);
+        return {t2result.first, concat(t2result.second, t1result.second)};
     }
 
     else if (isBoxMerge(box, t1, t2)) {
@@ -500,8 +500,8 @@ static siglistAndTaps realPropagate(Tree slotenv, Tree path, Tree box, const sig
         // Connection coherency is checked in evaluateBlockDiagram
         siglistAndTaps t1result = propagate(slotenv, path, t1, lsig);
         siglist l2 = mix(t1result.first, in2);
-        siglistAndTaps t2result = propagate(concat(slotenv, t1result.second), path, t2, l2);
-        return {t2result.first, concat(t1result.second, t2result.second)};
+        siglistAndTaps t2result = propagate(concat(t1result.second, slotenv), path, t2, l2);
+        return {t2result.first, concat(t2result.second, t1result.second)};
     }
 
     else if (isBoxRec(box, t1, t2)) {
@@ -515,8 +515,20 @@ static siglistAndTaps realPropagate(Tree slotenv, Tree path, Tree box, const sig
         // Connection coherency is checked in evaluateBlockDiagram
         siglist l0 = makeMemSigProjList(ref(1), in2);
         siglistAndTaps t2result = propagate(slotenv2, path, t2, l0);
-        siglistAndTaps t1result = propagate(concat(slotenv2, t2result.second), path, t1, listConcat(t2result.first, listLift(lsig)));
-        Tree    g  = rec(listConvert(t1result.first));
+        Tree t2tapenv = t2result.second;
+        siglistAndTaps t1result = propagate(concat(t2tapenv, slotenv2), path, t1, listConcat(t2result.first, listLift(lsig)));
+        Tree t1tapenv = t1result.second;
+        Tree t1sigs = listConvert(t1result.first);
+
+        auto tapenvs = concat(t1tapenv, t2tapenv);
+        auto tapvals = lmap(
+            [](Tree keyval) { return tl(keyval); },
+            tapenvs
+        );
+        auto tapvec = treeConvert(tapenvs);
+
+        // Include the tap signals in the list of outputs
+        Tree    g  = rec(concat(t1sigs, tapvals));
 
         // Compute output list of recursive signals
         siglist ol(out1);  // output list
@@ -535,7 +547,21 @@ static siglistAndTaps realPropagate(Tree slotenv, Tree path, Tree box, const sig
             p++;
         }
 
-        return {ol, t1result.second};
+        // output taps; they also need to be part of the recursive group
+        siglist otapvec{};
+        otapvec.reserve(tapvec.size());
+        for (const auto& keyval : tapvec) {
+            auto key = hd(keyval);
+            auto val = tl(keyval);
+            if (val->aperture() > 0) {
+                otapvec.push_back(cons(key, sigDelay0(sigProj(p, g))));
+            } else {
+                otapvec.push_back(keyval);
+            }
+            p++;
+        }
+
+        return {ol, listConvert(otapvec)};
     }
 
     else if (isBoxEnvironment(box)) {
