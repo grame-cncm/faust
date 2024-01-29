@@ -1882,7 +1882,7 @@ string global::printVersion()
     stringstream sstr;
     sstr << "FAUST Version " << FAUSTVERSION << "\n";
     sstr << "Embedded backends: \n";
-    enumBackends(cout);
+    enumBackends(sstr);
 #ifdef LLVM_BUILD
     sstr << "Build with LLVM version " << LLVM_VERSION << "\n";
 #endif
@@ -1977,8 +1977,7 @@ string global::printHelp()
          << "-os3        --one-sample3               generate one sample computation (3 = like 2 but with external "
          "memory pointers kept in the DSP struct)."
          << endl;
-    cout << tab << "-it         --inline-table              inline rdtable/rwtable code in the main class." << endl;
-    
+    sstr << tab << "-it         --inline-table              inline rdtable/rwtable code in the main class." << endl;
     sstr << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
     sstr << tab << "-ct         --check-table               check rtable/rwtable index range and generate safe access code [0/1: 1 by default]." << endl;
     sstr << tab
