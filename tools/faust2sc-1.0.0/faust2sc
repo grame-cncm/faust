@@ -2,6 +2,7 @@
 # ======================================================================
 # faust2sc - Generate language modules from Faust XML.
 # Copyright (C) 2005-2008 Stefan Kersten
+# Copyright (C) 2024 GRAME, Centre National de Creation Musicale
 # ======================================================================
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +27,7 @@ require 'getoptlong'
 require 'rexml/document'
 
 PROGRAM         = File.basename($0)
-PROGRAM_VERSION = "1.1.0"
+PROGRAM_VERSION = "1.2.0"
 
 class Array
   def flatten1
@@ -130,6 +131,9 @@ module Faust
     end
     def total_inputs
       inputs + ui.active_widgets.size
+    end
+    def total_outputs
+      outputs + ui.passive_widgets.size
     end
     def Plugin::from_file(path)
       self.new(path, REXML::Document.new(File.open(path) { |io| io.read }))
@@ -367,10 +371,10 @@ module Faust
         @plugin.inputs
       end
       def outputs
-        @plugin.outputs
+        @plugin.total_outputs
       end
       def superclass_name
-        @plugin.outputs > 1 ? "MultiOutUGen" : "UGen"
+        @plugin.total_outputs > 1 ? "MultiOutUGen" : "UGen"
       end
       def input_names
         (1..self.inputs).collect { |i| "in#{i}" }
