@@ -304,7 +304,7 @@ extern "C"
      *
      * @return the foreign function signal.
      */
-    LIBFAUST_API Signal CsigFFun(SType rtype, const char** names, SType* atypes, const char* incfile, const char* libfile, Signal* largs);
+    LIBFAUST_API Signal CsigFFun(enum SType rtype, const char** names, enum SType* atypes, const char* incfile, const char* libfile, Signal* largs);
       
     /**
      * Create a foreign constant signal.
