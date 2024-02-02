@@ -17,17 +17,16 @@ NCURSES_PRIMARY_PREFIX := /usr/local/Cellar/ncurses
 NCURSES_BACKUP1_PREFIX := /opt/homebrew/Cellar/ncurses
 NCURSES_BACKUP2_PREFIX := /opt/local
 LIBNCURSES_PATH ?= $(shell find $(NCURSES_PRIMARY_PREFIX) -name libncurses.a 2>/dev/null || find $(NCURSES_BACKUP1_PREFIX) -name libncurses.a 2>/dev/null || find $(NCURSES_BACKUP2_PREFIX) -name libncurses.a 2>/dev/null)
-else
-LIBNCURSES_PATH ?= $(shell find /usr -name libncurses.a)
-endif
 
-ifdef LLVM_LIB_DIR
 INPUT   := $(shell ls $(LLVM_LIB_DIR)/lib*.a | sed "s|$(LLVM_LIB_DIR)/\(lib.*\.a\)|\1|g" | tr '\n' ' ')
 SYSLIBS := -lm -lz -lcurses -lxml2
 else
+# ubuntu
+LIBNCURSES_PATH ?= $(shell find /usr -name libncurses.a)
+
 LLVM_CONFIG ?= llvm-config
-INPUT 	:= $(shell $(LLVM_CONFIG) --libnames --link-static)
-LLVM_LIB_DIR 	:= $(shell $(LLVM_CONFIG) --libdir)
+INPUT := $(shell $(LLVM_CONFIG) --libnames --link-static)
+LLVM_LIB_DIR := $(shell $(LLVM_CONFIG) --libdir)
 SYSLIBS := $(shell $(LLVM_CONFIG) --system-libs)
 endif
 
