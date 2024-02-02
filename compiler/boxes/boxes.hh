@@ -238,8 +238,68 @@ LIBFAUST_API bool isBoxPrim3(Tree s, prim3* p);
 LIBFAUST_API bool isBoxPrim4(Tree s, prim4* p);
 LIBFAUST_API bool isBoxPrim5(Tree s, prim5* p);
 
+LIBFAUST_API Tree boxAdd();
+LIBFAUST_API Tree boxSub();
+LIBFAUST_API Tree boxMul();
+LIBFAUST_API Tree boxDiv();
+LIBFAUST_API Tree boxRem();
+
+LIBFAUST_API Tree boxAND();
+LIBFAUST_API Tree boxOR();
+LIBFAUST_API Tree boxXOR();
+
+LIBFAUST_API Tree boxLeftShift();
+LIBFAUST_API Tree boxLRightShift();
+LIBFAUST_API Tree boxARightShift();
+
+LIBFAUST_API Tree boxLT();
+LIBFAUST_API Tree boxGT();
+LIBFAUST_API Tree boxGE();
+LIBFAUST_API Tree boxLE();
+LIBFAUST_API Tree boxEQ();
+LIBFAUST_API Tree boxNE();
+
+LIBFAUST_API Tree boxPow();
+
 /*****************************************************************************
-                             Foreign Functions
+                            Delays
+ *****************************************************************************/
+
+LIBFAUST_API Tree boxDelay();
+LIBFAUST_API Tree boxDelay1();
+LIBFAUST_API Tree boxPrefix();
+
+/*****************************************************************************
+                            Cast
+ *****************************************************************************/
+
+LIBFAUST_API Tree boxIntCast();
+LIBFAUST_API Tree boxFloatCast();
+
+/*****************************************************************************
+                            Tables
+ *****************************************************************************/
+
+LIBFAUST_API Tree boxReadOnlyTable();
+LIBFAUST_API Tree boxWriteReadTable();
+
+/*****************************************************************************
+                            Select
+ *****************************************************************************/
+
+LIBFAUST_API Tree boxSelect2();
+LIBFAUST_API Tree boxSelect3();
+
+/*****************************************************************************
+                            Bounds
+ *****************************************************************************/
+
+LIBFAUST_API Tree boxAssertBound();
+LIBFAUST_API Tree boxLowest();
+LIBFAUST_API Tree boxHighest();
+
+/*****************************************************************************
+                            Foreign Functions
 *****************************************************************************/
 
 LIBFAUST_API Tree boxFFun(Tree ff);
@@ -320,6 +380,10 @@ LIBFAUST_API bool isBoxTGroup(Tree s, Tree& label, Tree& x);
 LIBFAUST_API Tree boxSoundfile(Tree label, Tree chan);
 LIBFAUST_API bool isBoxSoundfile(Tree s);
 LIBFAUST_API bool isBoxSoundfile(Tree s, Tree& label, Tree& chan);
+
+LIBFAUST_API Tree boxAttach();
+LIBFAUST_API Tree boxEnable();
+LIBFAUST_API Tree boxControl();
 
 /*****************************************************************************
                              Case (pattern matching)

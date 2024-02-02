@@ -5,12 +5,10 @@
 %{
 
 #include "global.hh"
-
 #include "tree.hh"
 #include "xtended.hh"
 #include "boxes.hh"
 #include "prim2.hh"
-#include "signals.hh"
 #include "errormsg.hh"
 #include "sourcereader.hh"
 #include "doc.hh"
@@ -487,29 +485,29 @@ expression      : expression WITH LBRAQ deflist RBRAQ    { $$ = boxWithLocalDef(
                 | infixexp                               { $$ = $1; }
                 ;
 
-infixexp        : infixexp ADD infixexp     { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd)); }
-                | infixexp SUB infixexp     { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigSub)); }
-                | infixexp MUL infixexp     { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigMul)); }
-                | infixexp DIV infixexp     { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigDiv)); }
-                | infixexp MOD infixexp     { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigRem)); }
-                | infixexp POWOP infixexp   { $$ = boxSeq(boxPar($1,$3),gGlobal->gPowPrim->box()); }
-                | infixexp FDELAY infixexp  { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigDelay)); }
-                | infixexp DELAY1           { $$ = boxSeq($1,boxPrim1(sigDelay1)); }
+infixexp        : infixexp ADD infixexp     { $$ = boxSeq(boxPar($1,$3),boxAdd()); }
+                | infixexp SUB infixexp     { $$ = boxSeq(boxPar($1,$3),boxSub()); }
+                | infixexp MUL infixexp     { $$ = boxSeq(boxPar($1,$3),boxMul()); }
+                | infixexp DIV infixexp     { $$ = boxSeq(boxPar($1,$3),boxDiv()); }
+                | infixexp MOD infixexp     { $$ = boxSeq(boxPar($1,$3),boxRem()); }
+                | infixexp POWOP infixexp   { $$ = boxSeq(boxPar($1,$3),boxPow()); }
+                | infixexp FDELAY infixexp  { $$ = boxSeq(boxPar($1,$3),boxDelay()); }
+                | infixexp DELAY1           { $$ = boxSeq($1,boxDelay1()); }
                 | infixexp DOT ident        { $$ = boxAccess($1,$3); }
 
-                | infixexp AND infixexp     { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAND)); }
-                | infixexp OR infixexp      { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigOR)); }
-                | infixexp XOR infixexp     { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigXOR)); }
+                | infixexp AND infixexp     { $$ = boxSeq(boxPar($1,$3),boxAND()); }
+                | infixexp OR infixexp      { $$ = boxSeq(boxPar($1,$3),boxOR()); }
+                | infixexp XOR infixexp     { $$ = boxSeq(boxPar($1,$3),boxXOR()); }
 
-                | infixexp LSH infixexp     { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigLeftShift)); }
-                | infixexp RSH infixexp     { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigARightShift)); }
+                | infixexp LSH infixexp     { $$ = boxSeq(boxPar($1,$3),boxLeftShift()); }
+                | infixexp RSH infixexp     { $$ = boxSeq(boxPar($1,$3),boxARightShift()); }
 
-                | infixexp LT infixexp      { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigLT)); }
-                | infixexp LE infixexp      { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigLE)); }
-                | infixexp GT infixexp      { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigGT)); }
-                | infixexp GE infixexp      { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigGE)); }
-                | infixexp EQ infixexp      { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigEQ)); }
-                | infixexp NE infixexp      { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigNE)); }
+                | infixexp LT infixexp      { $$ = boxSeq(boxPar($1,$3),boxLT()); }
+                | infixexp LE infixexp      { $$ = boxSeq(boxPar($1,$3),boxLE()); }
+                | infixexp GT infixexp      { $$ = boxSeq(boxPar($1,$3),boxGT()); }
+                | infixexp GE infixexp      { $$ = boxSeq(boxPar($1,$3),boxGE()); }
+                | infixexp EQ infixexp      { $$ = boxSeq(boxPar($1,$3),boxEQ()); }
+                | infixexp NE infixexp      { $$ = boxSeq(boxPar($1,$3),boxNE()); }
 
                 | infixexp LPAR arglist RPAR       { $$ = buildBoxAppl($1,$3); }
                 | infixexp LCROC deflist RCROC     { $$ = boxModifLocalDef($1,formatDefinitions($3)); }
@@ -529,36 +527,36 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
                 | WIRE                          { $$ = boxWire(); }
                 | CUT                           { $$ = boxCut(); }
 
-                | MEM                           { $$ = boxPrim1(sigDelay1); }
-                | PREFIX                        { $$ = boxPrim2(sigPrefix); }
+                | MEM                           { $$ = boxDelay1(); }
+                | PREFIX                        { $$ = boxPrefix(); }
 
-                | INTCAST                       { $$ = boxPrim1(sigIntCast); }
-                | FLOATCAST                     { $$ = boxPrim1(sigFloatCast); }
+                | INTCAST                       { $$ = boxIntCast(); }
+                | FLOATCAST                     { $$ = boxFloatCast(); }
 
-                | ADD                           { $$ = boxPrim2(sigAdd); }
-                | SUB                           { $$ = boxPrim2(sigSub); }
-                | MUL                           { $$ = boxPrim2(sigMul); }
-                | DIV                           { $$ = boxPrim2(sigDiv); }
-                | MOD                           { $$ = boxPrim2(sigRem); }
-                | FDELAY                        { $$ = boxPrim2(sigDelay); }
+                | ADD                           { $$ = boxAdd(); }
+                | SUB                           { $$ = boxSub(); }
+                | MUL                           { $$ = boxMul(); }
+                | DIV                           { $$ = boxDiv(); }
+                | MOD                           { $$ = boxRem(); }
+                | FDELAY                        { $$ = boxDelay(); }
 
-                | AND                           { $$ = boxPrim2(sigAND); }
-                | OR                            { $$ = boxPrim2(sigOR); }
-                | XOR                           { $$ = boxPrim2(sigXOR); }
+                | AND                           { $$ = boxAND(); }
+                | OR                            { $$ = boxOR(); }
+                | XOR                           { $$ = boxXOR(); }
 
-                | LSH                           { $$ = boxPrim2(sigLeftShift); }
-                | RSH                           { $$ = boxPrim2(sigARightShift); }
+                | LSH                           { $$ = boxLeftShift(); }
+                | RSH                           { $$ = boxARightShift(); }
 
-                | LT                            { $$ = boxPrim2(sigLT); }
-                | LE                            { $$ = boxPrim2(sigLE); }
-                | GT                            { $$ = boxPrim2(sigGT); }
-                | GE                            { $$ = boxPrim2(sigGE); }
-                | EQ                            { $$ = boxPrim2(sigEQ); }
-                | NE                            { $$ = boxPrim2(sigNE); }
+                | LT                            { $$ = boxLT(); }
+                | LE                            { $$ = boxLE(); }
+                | GT                            { $$ = boxGT(); }
+                | GE                            { $$ = boxGE(); }
+                | EQ                            { $$ = boxEQ(); }
+                | NE                            { $$ = boxNE(); }
 
-                | ATTACH                        { $$ = boxPrim2(sigAttach); }
-                | ENABLE                        { $$ = boxPrim2(sigEnable); }
-                | CONTROL                       { $$ = boxPrim2(sigControl); }
+                | ATTACH                        { $$ = boxAttach(); }
+                | ENABLE                        { $$ = boxEnable(); }
+                | CONTROL                       { $$ = boxControl(); }
 
                 | ACOS                           { $$ = gGlobal->gAcosPrim->box(); }
                 | ASIN                           { $$ = gGlobal->gAsinPrim->box(); }
@@ -587,18 +585,18 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
                 | RINT                           { $$ = gGlobal->gRintPrim->box(); }
                 | ROUND                          { $$ = gGlobal->gRoundPrim->box(); }
 
-                | RDTBL                          { $$ = boxPrim3(sigReadOnlyTable); }
-                | RWTBL                          { $$ = boxPrim5(sigWriteReadTable); }
+                | RDTBL                          { $$ = boxReadOnlyTable(); }
+                | RWTBL                          { $$ = boxWriteReadTable(); }
 
-                | SELECT2                        { $$ = boxPrim3(sigSelect2); }
-                | SELECT3                        { $$ = boxPrim4(sigSelect3); }
+                | SELECT2                        { $$ = boxSelect2(); }
+                | SELECT3                        { $$ = boxSelect3(); }
 
-                | ASSERTBOUNDS                   { $$ = boxPrim3(sigAssertBounds);}
-                | LOWEST                         { $$ = boxPrim1(sigLowest);}
-                | HIGHEST                        { $$ = boxPrim1(sigHighest);}
+                | ASSERTBOUNDS                   { $$ = boxAssertBound(); }
+                | LOWEST                         { $$ = boxLowest(); }
+                | HIGHEST                        { $$ = boxHighest(); }
 
-                | ident                          { $$ = $1;  setUseProp($1, FAUSTfilename, FAUSTlineno);}
-                | SUB ident                      { $$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub)); }
+                | ident                          { $$ = $1; setUseProp($1, FAUSTfilename, FAUSTlineno);}
+                | SUB ident                      { $$ = boxSeq(boxPar(boxInt(0),$2),boxSub()); }
 
                 | LPAR expression RPAR            { $$ = $2; }
                 | LAMBDA LPAR params RPAR DOT LPAR expression RPAR
@@ -641,7 +639,6 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
                 | finputs                       { $$ = $1; }
                 | foutputs                      { $$ = $1; }
                 ;
-
 
 ident           : IDENT                         { $$ = boxIdent(FAUSTtext); setUseProp($$, FAUSTfilename, FAUSTlineno);  }
                 ;

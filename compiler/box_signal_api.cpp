@@ -1196,6 +1196,16 @@ LIBFAUST_API Tree boxDelay()
     return boxPrim2(sigDelay);
 }
 
+LIBFAUST_API Tree boxDelay1()
+{
+    return boxPrim1(sigDelay1);
+}
+
+LIBFAUST_API Tree boxPrefix()
+{
+    return boxPrim2(sigPrefix);
+}
+
 LIBFAUST_API Tree boxIntCast()
 {
     return boxPrim1(sigIntCast);
@@ -1426,6 +1436,23 @@ LIBFAUST_API Tree boxAsin()
     return gGlobal->gAsinPrim->box();
 }
 
+// Bounds
+
+LIBFAUST_API Tree boxAssertBound()
+{
+    return boxPrim3(sigAssertBounds);
+}
+
+LIBFAUST_API Tree boxLowest()
+{
+    return boxPrim1(sigLowest);
+}
+
+LIBFAUST_API Tree boxHighest()
+{
+    return boxPrim1(sigHighest);
+}
+
 // User Interface
 
 LIBFAUST_API Tree boxButton(const string& label)
@@ -1481,6 +1508,16 @@ LIBFAUST_API Tree boxTGroup(const std::string& label, Tree group)
 LIBFAUST_API Tree boxAttach()
 {
     return boxPrim2(sigAttach);
+}
+
+LIBFAUST_API Tree boxEnable()
+{
+    return boxPrim2(sigEnable);
+}
+
+LIBFAUST_API Tree boxControl()
+{
+    return boxPrim2(sigControl);
 }
 
 // Helpers
