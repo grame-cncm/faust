@@ -145,12 +145,14 @@ inline static std::ostream& operator<<(std::ostream& dst, const Interval& it)
 }
 
 /**
- * Create global compilation context, has to be done first.
+ * Create global compilation context, has to be done first,
+ * and paired with a call to destroyLibContext().
  */
 extern "C" LIBFAUST_API void createLibContext();
 
 /**
- * Destroy global compilation context, has to be done last.
+ * Destroy global compilation context, has to be done last,
+ * and paired with a call to createLibContext().
  */
 extern "C" LIBFAUST_API void destroyLibContext();
 
