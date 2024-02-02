@@ -19,96 +19,45 @@ on:
         type: boolean
         description: Create a draft release
         default: true
-      use_llvm_cache:
-        type: boolean
-        description: Use a cache of LLVM if it exists
-        default: true
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
 
   build-ubuntu:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: ubuntu-x86_64
-            theContainer: docker://quay.io/pypa/manylinux2014_x86_64
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             cmake-options: >-
               -DCMAKE_BUILD_TYPE=Release
               -DCMAKE_VERBOSE_MAKEFILE=ON
-            llvm-options: >-
-              -DLLVM_TARGETS_TO_BUILD="X86"
-              -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-linux-gnu"
-              -DLLVM_ENABLE_ZLIB=off
-              -DLLVM_INCLUDE_TESTS=OFF
 
     runs-on: ${{ matrix.os }}
-    container:
-      image: ${{matrix.theContainer}}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: true
 
-    - name: Install zip
+    - name: Install dependencies
       run: |
-        yum install -y zip
+        sudo apt-get install -y zstd libncurses-dev libxml2-dev
 
-    - name: Checkout ncurses
-      uses: actions/checkout@v2
-      with:
-        repository: mirror/ncurses
-        path: ncurses
-
-    - name: ncurses install
+    - name: Install dependencies
       run: |
-        cd ncurses
-        ./configure --prefix=/usr/local/ncurses/6_4 --with-shared --with-pkg-config-libdir=/usr/local/ncurses/6_4/lib/pkgconfig --enable-pc-files
-        make
-        make install
-
-    - name: Restore LLVM
-      if: ${{ inputs.use_llvm_cache }}
-      id: cache-llvm-restore
-      uses: actions/cache/restore@v3
-      with:
-        path: llvm-project/llvm/llvm
-        key: cache-llvm-${{env.LLVM_PACKAGE_VERSION}}-${{ matrix.name }}
-
-    - name: Clone LLVM
-      if: ${{ !inputs.use_llvm_cache || steps.cache-llvm-restore.outputs.cache-hit != 'true'}}
-      uses: actions/checkout@v3
-      with:
-        repository: llvm/llvm-project
-        path: llvm-project
-        ref: ${{ env.LLVM_COMMIT }}
-
-    - name: Build LLVM
-      if: ${{ !inputs.use_llvm_cache || steps.cache-llvm-restore.outputs.cache-hit != 'true'}}
-      run: |
-        cd llvm-project/llvm
-        cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" -DCMAKE_PREFIX_PATH="/usr/local/ncurses/6_4/lib/pkgconfig" ${{matrix.cmake-options}} ${{matrix.llvm-options}}
-        cmake --build build --config Release
-        cmake --build build --target install
-
-    - name: Cache LLVM output
-      id: cache-llvm-save
-      uses: actions/cache/save@v3
-      with:
-        path: llvm-project/llvm/llvm
-        key: ${{ steps.cache-llvm-restore.outputs.cache-primary-key }}
+        sudo apt-get install -y libllvm15 llvm-15 llvm-15-dev
 
     - name: Build libfaust
       run: |
-        export LLVM_DIR=$LLVM_ROOT
-        export PATH="$LLVM_ROOT/bin:$PATH"
+        find /usr -name llvm-config
+        export PATH="/usr/lib/llvm-15/bin:$PATH"
+        export LLVM_ROOT=$(llvm-config --prefix | tr '\n' ' ')
+        echo "LLVM_ROOT: " $LLVM_ROOT
         cd build
-        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=ON -DLLVM_CONFIG="$LLVM_ROOT/bin/llvm-config" -DCMAKE_PREFIX_PATH="$LLVM_ROOT/lib/cmake/llvm"
+        cmake -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=ON
         cmake --build build --config Release
-      env:
-        LLVM_ROOT: ${{ github.workspace }}/llvm-project/llvm/llvm
    
     - name: Make distribution
       run: |
@@ -127,20 +76,96 @@ jobs:
         path: build/libfaust-${{ matrix.name }}.zip
         if-no-files-found: error
 
+  build-ubuntu-aarch64:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ubuntu-aarch64
+            os: ubuntu-22.04
+            llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-17.0.6-ubuntu-aarch64.zip
+            cmake-options: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+              
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Download LLVM
+      run: |
+        # Libfaust will need to link against LLVM.
+        # Since we're using an x86_64 GitHub actions runner, we're unable to build arm64 LLVM on-demand.
+        # To get around this, we download a compatible LLVM build that we've built in advance.
+        curl -L ${{ matrix.llvm-url }} -o llvm.zip
+        unzip -o llvm.zip
+        rm llvm.zip
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@main
+      with:
+        # this might remove tools that are actually needed,
+        # if set to "true" but frees about 6 GB
+        tool-cache: false
+        
+        # all of these default to true, but feel free to set to
+        # "false" if necessary for your workflow
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: Dockerfile-aarch64
+        tags: mylibrary-builder:latest
+        platforms: linux/arm64
+        load: true
+
+    - name: Create Container from Image
+      run: docker create --name mylib-container mylibrary-builder:latest
+
+    - name: Copy Compiled Library from Container
+      run: |
+        docker cp mylib-container:/faust/build/libfaust-${{ matrix.name }}.zip libfaust-${{ matrix.name }}.zip
+        docker rm mylib-container
+        
+    - name: Upload libfaust artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: libfaust-${{ matrix.name }}.zip
+        path: libfaust-${{ matrix.name }}.zip
+        if-no-files-found: error
+
   build-macos:
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: arm64
-            os: macos-11
+            os: macos-12
             llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-macos10.15-arm64.zip
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
             HOST: aarch64-apple-darwin
             ENABLE_MPEG: OFF
           - name: x64
-            os: macos-11
+            os: macos-12
             llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-macos10.15-x86_64.zip
             ARCHS: "-arch x86_64"
             CMAKE_OSX_ARCHITECTURES: x86_64
@@ -150,7 +175,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: true
 
@@ -183,7 +208,7 @@ jobs:
         for PACKAGE in "${PACKAGES[@]}"
         do
           echo "Fetching bottle: $PACKAGE"
-          response=$(brew fetch --bottle-tag=arm64_big_sur $PACKAGE 2>&1)
+          response=$(brew fetch --bottle-tag=arm64_monterey $PACKAGE 2>&1)
           package_path=$(echo $response | sed -n 's/.*\:\ \(.*\.tar\.gz\).*/\1/p')
           package_path=$(echo "$package_path" | xargs)
           echo "Package Path: $package_path"
@@ -214,7 +239,7 @@ jobs:
         unzip -o llvm.zip
 
     - name: Clone Libsndfile
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: libsndfile/libsndfile
         path: libsndfile
@@ -237,13 +262,13 @@ jobs:
         CMAKE_OSX_ARCHITECTURES: ${{matrix.CMAKE_OSX_ARCHITECTURES}}
 
     - name: Clone MAX SDK
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: Cycling74/max-sdk-base
         path: max-sdk-base
 
     # - name: Clone faustlive
-    #   uses: actions/checkout@v3
+    #   uses: actions/checkout@v4
     #   with:
     #     repository: grame-cncm/faustlive
     #     path: faustlive
@@ -309,11 +334,11 @@ jobs:
         include:
           - name: win64
             os: windows-2022
-            llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-win11-x86_64.zip
+            llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-17.0.6-win11-x86_64.zip
             libsndfile-url: https://github.com/libsndfile/libsndfile/releases/download/1.2.0/libsndfile-1.2.0-win64.zip
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: true
     
@@ -339,7 +364,7 @@ jobs:
     #     7z x libmicrohttpd.zip -y
 
     - name: Clone Max SDK
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: Cycling74/max-sdk-base
         path: max-sdk-base
@@ -349,6 +374,8 @@ jobs:
       run: |
         cd build
         call MakeRelease.bat
+      env:
+        LLVM_PACKAGE_VERSION: 17.0.6
 
     - name: Make distribution
       shell: cmd
@@ -372,7 +399,7 @@ jobs:
 
   create-release:
     if: ${{ inputs.create_release }} 
-    needs: [build-ubuntu, build-macos, build-windows]
+    needs: [build-ubuntu, build-ubuntu-aarch64, build-macos, build-windows]
     runs-on: ubuntu-latest
     name: "Create Release on GitHub"
     permissions:

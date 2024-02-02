@@ -1,0 +1,51 @@
+FROM quay.io/pypa/manylinux_2_28_aarch64
+
+RUN mkdir /faust
+WORKDIR /faust
+COPY . /faust
+
+# need ncurses-devel for `tinfo` -ltinfo
+RUN yum install -y libxml2-devel ncurses-devel libmicrohttpd-devel git cmake pkgconfig
+RUN yum update -y cmake
+
+# build ncurses because we need libncurses.a in `Make.llvm.static`,
+# and the yum package `ncurses-devel` may not have it
+RUN git clone https://github.com/mirror/ncurses.git
+WORKDIR ncurses
+RUN ./configure --prefix=/usr/local/ncurses/6_4 --with-shared --with-pkg-config-libdir=/usr/local/ncurses/6_4/lib/pkgconfig --enable-pc-files
+RUN make && make install
+
+WORKDIR /faust
+ENV LLVM_CONFIG="/faust/llvm/bin/llvm-config"
+RUN chmod u+x $LLVM_CONFIG
+
+WORKDIR /faust/build
+RUN cmake -C ./backends/all.cmake . -Bbuild -DCMAKE_PREFIX_PATH="/usr/local/ncurses/6_4/lib/pkgconfig" -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=ON -DLLVM_CONFIG=$LLVM_CONFIG
+RUN cmake --build build --config Release
+
+WORKDIR /faust/build/lib
+RUN rm -f libfaust.so libfaust.so.2
+# get the newest libfaust.
+RUN mv $(ls -1 libfaust.so.* | tail -n1) libfaust.so
+RUN strip --strip-unneeded libfaust.so
+
+# cleanup to prevent running out of space during GitHub Action
+RUN yum clean all
+RUN rm -rf /var/cache/yum
+WORKDIR /faust/build
+RUN rm -rf build
+RUN rm -rf bin
+WORKDIR /faust
+RUN rm -rf ncurses
+RUN rm -rf llvm
+RUN rm -rf architecture
+RUN rm -rf embedded
+RUN rm -rf examples
+RUN rm -rf libraries
+RUN rm -rf tests
+
+# Create the zip of libfaust
+WORKDIR /faust/build
+RUN yum install -y zip
+RUN zip -r libfaust-ubuntu-aarch64.zip lib
+RUN rm -rf lib
