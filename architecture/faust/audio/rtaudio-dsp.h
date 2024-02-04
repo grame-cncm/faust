@@ -62,8 +62,8 @@ class rtaudio : public audio {
         {
             AVOIDDENORMALS;
             
-            float* inputs[fDsp->getNumInputs()];
-            float* outputs[fDsp->getNumOutputs()];
+            float** inputs = (float**)alloca(fDsp->getNumInputs() * sizeof(float*));
+            float** outputs = (float**)alloca(fDsp->getNumOutputs() * sizeof(float*));
             
             for (int i = 0; i < fDsp->getNumInputs(); i++) {
                 inputs[i] = &(static_cast<float*>(inbuf))[i * frames];
