@@ -399,7 +399,7 @@ extern "C"
      *
      * @return the foreign function box.
      */
-    LIBFAUST_API Box CboxFFun(SType rtype, const char** names, SType* atypes, const char* incfile, const char* libfile);
+    LIBFAUST_API Box CboxFFun(enum SType rtype, const char** names, enum SType* atypes, const char* incfile, const char* libfile);
 
     /**
      * Create a foreign constant box.
@@ -410,7 +410,7 @@ extern "C"
      *
      * @return the foreign constant box.
      */
-    LIBFAUST_API Box CboxFConst(SType type, const char* name, const char* incfile);
+    LIBFAUST_API Box CboxFConst(enum SType type, const char* name, const char* incfile);
     
     /**
      * Create a foreign variable box.
@@ -421,7 +421,7 @@ extern "C"
      *
      * @return the foreign variable box.
      */
-    LIBFAUST_API Box CboxFVar(SType type, const char* name, const char* incfile);
+    LIBFAUST_API Box CboxFVar(enum SType type, const char* name, const char* incfile);
     
     /**
      * Generic binary mathematical functions.
