@@ -618,7 +618,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             return nullptr;
         }
     }
-
+ 
     LLVMValue visitIndexedAddress(IndexedAddress* indexed_address, LLVMType& res_type)
     {
         NamedAddress* named_address = dynamic_cast<NamedAddress*>(indexed_address->fAddress);
@@ -662,11 +662,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             return res;
         } else {
             LLVMValue res = MakeCreateInBoundsGEP(type1, load_ptr, fCurValue);
-            if (llvm::dyn_cast<llvm::GEPOperator>(res)) {
-                res_type = llvm::dyn_cast<llvm::GEPOperator>(res)->getSourceElementType();
-            } else {
-                res_type = res->getType();
-            }
+            res_type = type1;
             return res;
         }
     }
