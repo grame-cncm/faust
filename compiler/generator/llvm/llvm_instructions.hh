@@ -72,19 +72,19 @@
 
 #define MakeIdx(beg, end) llvm::ArrayRef<LLVMValue>(beg, end)
 
-#if LLVM_VERSION_MAJOR >= 16
-#define InsertBlock(fun, block) fun->insert(fun->end(), block);
+#if LLVM_VERSION_MAJOR >= 12
+#define GetTypeByName(name) llvm::StructType::getTypeByName(fModule->getContext(), name);
 #else
-#define InsertBlock(fun, block) fun->getBasicBlockList().push_back(block);
+#define GetTypeByName(name) fModule->getTypeByName(name);
 #endif
 
 #if LLVM_VERSION_MAJOR >= 14
-#define ADD_ATTRIBUTE_AT_INDEX(a, b, c) a->addAttributeAtIndex(b, c)
+#define AddAttributeAtIndex(a, b, c) a->addAttributeAtIndex(b, c)
 #define MakeCreateInBoundsGEP(type, v1, v2) fBuilder->CreateInBoundsGEP(type, v1, v2);
 #define MakeCreateLoad(type, var, is_volatile) fBuilder->CreateLoad(type, var, is_volatile)
 #define MakeCreateLoad1(type, var) fBuilder->CreateLoad(type, var)
 #else
-#define ADD_ATTRIBUTE_AT_INDEX(a, b, c) a->addAttribute(b, c)
+#define AddAttributeAtIndex(a, b, c) a->addAttribute(b, c)
 #define MakeCreateInBoundsGEP(type, v1, v2) fBuilder->CreateInBoundsGEP(v1, v2);
 #define MakeCreateLoad(type, var, is_volatile) fBuilder->CreateLoad(var, is_volatile)
 #define MakeCreateLoad1(type, var) fBuilder->CreateLoad(var)
@@ -94,9 +94,12 @@
 #define MakeIntPtrType() fModule->getDataLayout().getIntPtrType(fModule->getContext())
 
 #if LLVM_VERSION_MAJOR >= 16
+#define makeArrayRef(args) llvm::ArrayRef<LLVMType>(args)
 #define CreateFuncall(fun, args) fBuilder->CreateCall(fun, llvm::ArrayRef<LLVMValue>(args))
+#define InsertBlock(fun, block) fun->insert(fun->end(), block);
 #else
 #define CreateFuncall(fun, args) fBuilder->CreateCall(fun, makeArrayRef(args))
+#define InsertBlock(fun, block) fun->getBasicBlockList().push_back(block);
 #endif
 
 #define CreatePhi(type, name) fBuilder->CreatePHI(type, 0, name);
@@ -216,19 +219,11 @@ struct LLVMTypeHelper {
     LLVMType getStructType(const std::string& name, const LLVMVecTypes& types)
     {
         // We want to have a unique creation for struct types, so check if the given type has already been created
-    #if LLVM_VERSION_MAJOR >= 12
-        llvm::StructType* struct_type = llvm::StructType::getTypeByName(fModule->getContext(), name);
-    #else
-        llvm::StructType* struct_type = fModule->getTypeByName(name);
-    #endif
+        llvm::StructType* struct_type = GetTypeByName(name);
         if (!struct_type) {
             struct_type = llvm::StructType::create(fModule->getContext(), name);
             // Create "packed" struct type to match the size of C++ "packed" defined ones
-        #if LLVM_VERSION_MAJOR >= 16
-            struct_type->setBody(llvm::ArrayRef<LLVMType>(types), true);
-        #else
-             struct_type->setBody(makeArrayRef(types), true);
-        #endif
+            struct_type->setBody(makeArrayRef(types), true);
         }
         return struct_type;
     }
@@ -245,11 +240,7 @@ struct LLVMTypeHelper {
         if (basic_typed) {
             return fTypeMap[basic_typed->fType];
         } else if (named_typed) {
-        #if LLVM_VERSION_MAJOR >= 12
-            LLVMType type = llvm::StructType::getTypeByName(fModule->getContext(), "struct.dsp" + named_typed->fName);
-        #else
-            LLVMType type = fModule->getTypeByName("struct.dsp" + named_typed->fName);
-        #endif
+            llvm::StructType* type = GetTypeByName(named_typed->fName);
             return (type) ? getTyPtr(type) : fir2LLVMType(named_typed->fType);
         } else if (array_typed) {
             // Arrays of 0 size are actually pointers on the type
@@ -540,11 +531,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
 
             // Creates function
-        #if LLVM_VERSION_MAJOR >= 16
-            llvm::FunctionType* fun_type = llvm::FunctionType::get(return_type, llvm::ArrayRef<LLVMType>(fun_args_type), false);
-        #else
             llvm::FunctionType* fun_type = llvm::FunctionType::get(return_type, makeArrayRef(fun_args_type), false);
-        #endif
             function = llvm::Function::Create(fun_type, (inst->fType->fAttribute & FunTyped::kLocal
                                                    || inst->fType->fAttribute & FunTyped::kStatic)
                                         ? llvm::GlobalValue::InternalLinkage
@@ -629,41 +616,38 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         Address::AccessType access = named_address->fAccess;
         std::string         name   = named_address->fName;
     
-        LLVMValue load_ptr;
         faustassert(fVarTypes.find(name) != fVarTypes.end());
-        LLVMType type = fVarTypes[name].first;
+    
+        LLVMValue load_ptr;
+        LLVMType type1 = fVarTypes[name].first;
+        LLVMType type2 = fVarTypes[name].second;
         
         if (access & Address::kStruct) {
-            load_ptr = loadArrayAsPointer(loadStructField(name), type);
+            load_ptr = loadArrayAsPointer(loadStructField(name), type1);
         } else if (access & Address::kFunArgs) {
             load_ptr = loadFunArg(name);
         } else if (access & Address::kStack || access & Address::kLoop) {
             // We want to see array like [256 x float] as a float*
-            load_ptr = loadArrayAsPointer(fStackVars[name], type);
+            load_ptr = loadArrayAsPointer(fStackVars[name], type1);
         } else if (access & Address::kGlobal || access & Address::kStaticStruct) {
             // We want to see array like [256 x float] as a float*
-            load_ptr = loadArrayAsPointer(fModule->getGlobalVariable(name, true), type);
+            load_ptr = loadArrayAsPointer(fModule->getGlobalVariable(name, true), type1);
         } else {
             faustassert(false);
             return nullptr;
         }
-
-        LLVMType type1 = fVarTypes[name].second;
-        
+     
         // Indexed adresses can actually be values in an array or fields in a struct type
         if (isStructType(indexed_address->getName())) {
-            LLVMValue idx[] = {genInt32(0), fCurValue};
-            LLVMValue res = MakeCreateInBoundsGEP(type1, load_ptr, MakeIdx(idx, idx + 2));
             /*
-                We only have external soundfile structure for now.
-                The struct field type is returned.
+                We only have external soundfile structure for now, the struct field type is returned.
              */
             res_type = llvm::dyn_cast<llvm::StructType>(fTypeMap[Typed::kSound])->getTypeAtIndex(fCurValue);
-            return res;
+            LLVMValue idx[] = {genInt32(0), fCurValue};
+            return MakeCreateInBoundsGEP(type2, load_ptr, MakeIdx(idx, idx + 2));
         } else {
-            LLVMValue res = MakeCreateInBoundsGEP(type1, load_ptr, fCurValue);
-            res_type = type1;
-            return res;
+            res_type = type2;
+            return MakeCreateInBoundsGEP(type2, load_ptr, fCurValue);
         }
     }
     
@@ -954,14 +938,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         } else if (fUnaryIntrinsicTable.find(inst->fName) != fUnaryIntrinsicTable.end()) {
             
             llvm::CallInst* call_inst = fBuilder->CreateUnaryIntrinsic(fUnaryIntrinsicTable[inst->fName], fun_args[0]);
-            ADD_ATTRIBUTE_AT_INDEX(call_inst, llvm::AttributeList::FunctionIndex, llvm::Attribute::Builtin);
+            AddAttributeAtIndex(call_inst, llvm::AttributeList::FunctionIndex, llvm::Attribute::Builtin);
             fCurValue = call_inst;
             
         // LLVM binary intrinsic
         } else if (fBinaryIntrinsicTable.find(inst->fName) != fBinaryIntrinsicTable.end()) {
             
             llvm::CallInst* call_inst = fBuilder->CreateBinaryIntrinsic(fBinaryIntrinsicTable[inst->fName], fun_args[0], fun_args[1]);
-            ADD_ATTRIBUTE_AT_INDEX(call_inst, llvm::AttributeList::FunctionIndex, llvm::Attribute::Builtin);
+            AddAttributeAtIndex(call_inst, llvm::AttributeList::FunctionIndex, llvm::Attribute::Builtin);
             fCurValue = call_inst;  
     #endif
         } else {
@@ -971,7 +955,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         
             // Result is function call
             llvm::CallInst* call_inst = CreateFuncall(function, fun_args);
-            ADD_ATTRIBUTE_AT_INDEX(call_inst, llvm::AttributeList::FunctionIndex, llvm::Attribute::Builtin);
+            AddAttributeAtIndex(call_inst, llvm::AttributeList::FunctionIndex, llvm::Attribute::Builtin);
             fCurValue = call_inst;
         }
     }
