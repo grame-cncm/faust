@@ -565,7 +565,11 @@ DEPRECATED(llvm_dsp* createDSPInstance(llvm_dsp_factory* factory));
 DEPRECATED(void deleteDSPInstance(llvm_dsp* dsp));
 
 /**
- * Register a custom foreign function that will be exported by the host binary running the DSP code.
+ * Register a custom foreign function in libfaust,
+ * to be compiled and exported by the host binary running the DSP code,
+ * so that to be usable in the DSP code using the 'ffunction' primitive.
+ * 
+ * Note that all needed functions have to be registered before compiling the DSP code.
  *
  * @param function_name - the function name to be available
  */

@@ -154,6 +154,10 @@ class FAUST_API dsp {
         /**
          * DSP instance computation, to be called with successive in/out audio buffers.
          *
+         * Note that by default inputs and outputs buffers are supposed to be distinct memory zones,
+         * so one cannot safely write compute(count, inputs, inputs).
+         * The -inpl compilation option can be used for that, but only in scalar mode for now.
+         *
          * @param count - the number of frames to compute
          * @param inputs - the input audio buffers as an array of non-interleaved FAUSTFLOAT samples (eiher float, double or quad)
          * @param outputs - the output audio buffers as an array of non-interleaved FAUSTFLOAT samples (eiher float, double or quad)
