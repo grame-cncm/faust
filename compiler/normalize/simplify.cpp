@@ -257,10 +257,12 @@ static Tree simplification(Tree sig)
             return sig;
 
     } else if (isSigLowest(sig, t1)) {
+        typeAnnotation(t1, gGlobal->gLocalCausalityCheck);
         Type ty = getCertifiedSigType(t1);
         return sigReal(ty->getInterval().lo());
 
     } else if (isSigHighest(sig, t1)) {
+        typeAnnotation(t1, gGlobal->gLocalCausalityCheck);
         Type ty = getCertifiedSigType(t1);
         return sigReal(ty->getInterval().hi());
 
