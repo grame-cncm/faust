@@ -1162,7 +1162,7 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
 
     pushDeclare(InstBuilder::genDecStructVar(varname, type));
     pushResetUIInstructions(
-        InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, tree2float(cur))));
+        InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, tree2double(cur))));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // Cast to internal float
@@ -2357,28 +2357,28 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
     } else if (isSigVSlider(sig, path, c, x, y, z)) {
         fContainer->incUIActiveCount();
         pushUserInterfaceMethod(InstBuilder::genAddVerticalSliderInst(checkNullLabel(varname, label), tree2str(varname),
-                                                                      tree2float(c), tree2float(x), tree2float(y),
-                                                                      tree2float(z)));
+                                                                      tree2double(c), tree2double(x), tree2double(y),
+                                                                      tree2double(z)));
 
     } else if (isSigHSlider(sig, path, c, x, y, z)) {
         fContainer->incUIActiveCount();
         pushUserInterfaceMethod(InstBuilder::genAddHorizontalSliderInst(checkNullLabel(varname, label),
-                                                                        tree2str(varname), tree2float(c), tree2float(x),
-                                                                        tree2float(y), tree2float(z)));
+                                                                        tree2str(varname), tree2double(c), tree2double(x),
+                                                                        tree2double(y), tree2double(z)));
 
     } else if (isSigNumEntry(sig, path, c, x, y, z)) {
         fContainer->incUIActiveCount();
         pushUserInterfaceMethod(InstBuilder::genAddNumEntryInst(checkNullLabel(varname, label), tree2str(varname),
-                                                                tree2float(c), tree2float(x), tree2float(y),
-                                                                tree2float(z)));
+                                                                tree2double(c), tree2double(x), tree2double(y),
+                                                                tree2double(z)));
 
     } else if (isSigVBargraph(sig, path, x, y, z)) {
         fContainer->incUIPassiveCount();
-        pushUserInterfaceMethod(InstBuilder::genAddVerticalBargraphInst(checkNullBargraphLabel(varname, label, 1), tree2str(varname), tree2float(x), tree2float(y)));
+        pushUserInterfaceMethod(InstBuilder::genAddVerticalBargraphInst(checkNullBargraphLabel(varname, label, 1), tree2str(varname), tree2double(x), tree2double(y)));
 
     } else if (isSigHBargraph(sig, path, x, y, z)) {
         fContainer->incUIPassiveCount();
-        pushUserInterfaceMethod(InstBuilder::genAddHorizontalBargraphInst(checkNullBargraphLabel(varname, label, 0), tree2str(varname), tree2float(x), tree2float(y)));
+        pushUserInterfaceMethod(InstBuilder::genAddHorizontalBargraphInst(checkNullBargraphLabel(varname, label, 0), tree2str(varname), tree2double(x), tree2double(y)));
 
     } else if (isSigSoundfile(sig, path)) {
         fContainer->incUIActiveCount();
@@ -2450,38 +2450,38 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
 
     } else if (isSigVSlider(sig, path, c, x, y, z)) {
         fContainer->addUIMacro(subst("FAUST_ADDVERTICALSLIDER(\"$0\", $1, $2, $3, $4, $5);", pathlabel,
-                                     tree2str(varname), T(tree2float(c)), T(tree2float(x)), T(tree2float(y)),
-                                     T(tree2float(z))));
+                                     tree2str(varname), T(tree2double(c)), T(tree2double(x)), T(tree2double(y)),
+                                     T(tree2double(z))));
         fContainer->addUIMacroActives(subst("p(VERTICALSLIDER, $0, \"$1\", $2, $3, $4, $5, $6) \\", rawlabel, pathlabel,
-                                            tree2str(varname), T(tree2float(c)), T(tree2float(x)), T(tree2float(y)),
-                                            T(tree2float(z))));
+                                            tree2str(varname), T(tree2double(c)), T(tree2double(x)), T(tree2double(y)),
+                                            T(tree2double(z))));
 
     } else if (isSigHSlider(sig, path, c, x, y, z)) {
         fContainer->addUIMacro(subst("FAUST_ADDHORIZONTALSLIDER(\"$0\", $1, $2, $3, $4, $5);", pathlabel,
-                                     tree2str(varname), T(tree2float(c)), T(tree2float(x)), T(tree2float(y)),
-                                     T(tree2float(z))));
+                                     tree2str(varname), T(tree2double(c)), T(tree2double(x)), T(tree2double(y)),
+                                     T(tree2double(z))));
         fContainer->addUIMacroActives(subst("p(HORIZONTALSLIDER, $0, \"$1\", $2, $3, $4, $5, $6) \\", rawlabel, pathlabel,
-                                            tree2str(varname), T(tree2float(c)), T(tree2float(x)), T(tree2float(y)),
-                                            T(tree2float(z))));
+                                            tree2str(varname), T(tree2double(c)), T(tree2double(x)), T(tree2double(y)),
+                                            T(tree2double(z))));
 
     } else if (isSigNumEntry(sig, path, c, x, y, z)) {
         fContainer->addUIMacro(subst("FAUST_ADDNUMENTRY(\"$0\", $1, $2, $3, $4, $5);", pathlabel, tree2str(varname),
-                                     T(tree2float(c)), T(tree2float(x)), T(tree2float(y)), T(tree2float(z))));
+                                     T(tree2double(c)), T(tree2double(x)), T(tree2double(y)), T(tree2double(z))));
         fContainer->addUIMacroActives(subst("p(NUMENTRY, $0, \"$1\", $2, $3, $4, $5, $6) \\", rawlabel, pathlabel,
-                                            tree2str(varname), T(tree2float(c)), T(tree2float(x)), T(tree2float(y)),
-                                            T(tree2float(z))));
+                                            tree2str(varname), T(tree2double(c)), T(tree2double(x)), T(tree2double(y)),
+                                            T(tree2double(z))));
 
     } else if (isSigVBargraph(sig, path, x, y, z)) {
         fContainer->addUIMacro(subst("FAUST_ADDVERTICALBARGRAPH(\"$0\", $1, $2, $3);", pathlabel, tree2str(varname),
-                                     T(tree2float(x)), T(tree2float(y))));
+                                     T(tree2double(x)), T(tree2double(y))));
         fContainer->addUIMacroPassives(subst("p(VERTICALBARGRAPH, $0, \"$1\", $2, 0.0, $3, $4, 0.0) \\", rawlabel, pathlabel,
-                                            tree2str(varname), T(tree2float(x)), T(tree2float(y))));
+                                            tree2str(varname), T(tree2double(x)), T(tree2double(y))));
 
     } else if (isSigHBargraph(sig, path, x, y, z)) {
         fContainer->addUIMacro(subst("FAUST_ADDHORIZONTALBARGRAPH(\"$0\", $1, $2, $3);", pathlabel, tree2str(varname),
-                                     T(tree2float(x)), T(tree2float(y))));
+                                     T(tree2double(x)), T(tree2double(y))));
         fContainer->addUIMacroPassives(subst("p(HORIZONTALBARGRAPH, $0, \"$1\", $2, 0.0, $3, $4, 0.0) \\", rawlabel, pathlabel,
-                                            tree2str(varname), T(tree2float(x)), T(tree2float(y))));
+                                            tree2str(varname), T(tree2double(x)), T(tree2double(y))));
 
     } else if (isSigSoundfile(sig, path)) {
         fContainer->addUIMacro(subst("FAUST_ADDSOUNDFILE(\"$0\", $1);", pathlabel, tree2str(varname)));

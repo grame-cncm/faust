@@ -960,7 +960,7 @@ static Type inferWaveformType(Tree wfsig, Tree env)
     Tree   v     = wfsig->branch(0);
     bool   iflag1 = isInt(v->node());
     int    n     = wfsig->arity();
-    interval res = (iflag1) ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2float(v));
+    interval res = (iflag1) ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2double(v));
     T(v, env);
 
     // loop for remaining items
@@ -969,7 +969,7 @@ static Type inferWaveformType(Tree wfsig, Tree env)
         T(v, env);
         // compute interval
         bool iflag2 = isInt(v->node());
-        res = itv::reunion(res, iflag2 ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2float(v)));
+        res = itv::reunion(res, iflag2 ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2double(v)));
         iflag1 &= iflag2;
     }
 

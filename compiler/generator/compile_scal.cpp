@@ -894,7 +894,7 @@ string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, 
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
-    fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2float(cur))));
+    fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2double(cur))));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // return generateCacheCode(sig, varname);
@@ -905,7 +905,7 @@ string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, 
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
-    fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2float(cur))));
+    fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2double(cur))));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // return generateCacheCode(sig, varname);
@@ -916,7 +916,7 @@ string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min,
 {
     string varname = getFreshID("fentry");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
-    fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2float(cur))));
+    fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2double(cur))));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // return generateCacheCode(sig, varname);

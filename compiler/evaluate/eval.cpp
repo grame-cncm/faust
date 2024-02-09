@@ -809,7 +809,7 @@ static double eval2double(Tree exp, Tree visited, Tree localValEnv)
     } else {
         Tree lsignals = boxPropagateSig(gGlobal->nil, diagram, makeSigInputList(numInputs));
         Tree val      = simplify(hd(lsignals));
-        return tree2float(val);
+        return tree2double(val);
     }
 }
 

@@ -70,9 +70,9 @@ void SignalTypePrinter::visit(Tree sig)
 void SignalChecker::isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux)
 {
     std::stringstream error;
-    double init = tree2float(init_aux);
-    double min = tree2float(min_aux);
-    double max = tree2float(max_aux);
+    double init = tree2double(init_aux);
+    double min = tree2double(min_aux);
+    double max = tree2double(max_aux);
     if (min > max) {
         error << "ERROR : min = " << min << " should be less than max = " << max << " in '" << ppsig(sig) << "'\n";
         throw faustexception(error.str());

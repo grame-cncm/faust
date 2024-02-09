@@ -237,8 +237,8 @@ LIBFAUST_API int tree2int(Tree t)
     return i;
 }
 
-// if t has a node of type int, return casted to float, or float, return it, otherwise error
-double tree2float(Tree t)
+// if t has a node of type int, return casted to double, or double, return it, otherwise error
+LIBFAUST_API double tree2double(Tree t)
 {
     double x;
     int    i;
@@ -251,22 +251,6 @@ double tree2float(Tree t)
         ERROR("ERROR : the parameter must be a real constant numerical expression : ", t);
     }
     return x;
-}
-
-// if t has a node of type float, return it as a double otherwise error
-double tree2double(Tree t)
-{
-    double x;
-    int    i;
-
-    if (isInt(t->node(), &i)) {
-        x = double(i);
-    } else if (isDouble(t->node(), &x)) {
-        // nothing to do
-    } else {
-        ERROR("ERROR : the parameter must a constant numerical expression : ", t);
-    }
-    return double(x);
 }
 
 // if t has a node of type symbol, return its name otherwise error

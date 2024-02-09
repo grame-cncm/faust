@@ -34,7 +34,7 @@
  * <b>Useful conversions :</b>
  *
  * \li int          tree2int (t)   : if t has a node of type int, return it otherwise error
- * \li float        tree2float (t) : if t has a node of type float, return it otherwise error
+ * \li float        tree2double (t) : if t has a node of type double, return it otherwise error
  * \li const char*  tree2str (t)   : if t has a node of type symbol, return its name otherwise error
  * \li void*        tree2ptr (t)   : if t has a node of type ptr, return it otherwise error
  *
@@ -223,10 +223,9 @@ inline Tree tree(const Node& n, const tvec& br)
 }
 
 // Useful conversions
-LIBFAUST_API int tree2int(Tree t); ///< if t has a node of type int, return it otherwise error
-double      tree2float(Tree t);    ///< if t has a node of type float, return it otherwise error
-double      tree2double(Tree t);   ///< if t has a node of type float, return it otherwise error
-LIBFAUST_API const char* tree2str(Tree t);     ///< if t has a node of type symbol, return its name otherwise error
+LIBFAUST_API int tree2int(Tree t);          ///< if t has a node of type int, return it otherwise error
+LIBFAUST_API double tree2double(Tree t);    ///< if t has a node of type double, return it otherwise error
+LIBFAUST_API const char* tree2str(Tree t);  ///< if t has a node of type symbol, return its name otherwise error
 std::string tree2quotedstr(Tree t);
 void*       tree2ptr(Tree t);            ///< if t has a node of type ptr, return it otherwise error
 LIBFAUST_API void* getUserData(Tree t);  ///< if t has a node of type symbol, return the associated user data

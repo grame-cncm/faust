@@ -1238,9 +1238,9 @@ string DocCompiler::prepareIntervallicUI(const string& name, Tree path, Tree tcu
 {
     string label, unit, cur, min, max;
     getUIDocInfos(path, label, unit);
-    cur = docT(tree2float(tcur));
-    min = docT(tree2float(tmin));
-    max = docT(tree2float(tmax));
+    cur = docT(tree2double(tcur));
+    min = docT(tree2double(tmin));
+    max = docT(tree2double(tmax));
 
     string s = "";
     label    = (label.size() > 0) ? ("\\textsf{\"" + label + "\"} ") : "";
