@@ -16,7 +16,7 @@ ARCHFILE=$FAUSTARCH/rust/jack-float.rs
 
 echoHelp()
 {
-    usage faust2jackrust "[options] [Faust options] <file.dsp>"
+    usage faust2jackrust "[-source] [Faust options] <file.dsp>"
     echo "Compiles Faust programs to JACK and Rust binary"
     option
     option -source "only generates the source project."

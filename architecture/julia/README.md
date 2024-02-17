@@ -34,7 +34,7 @@ Here are the available options:
 
 By default, it will create a `file.jl` to be executed with the `julia file.jl` command, or in an interactive session. Using the `-play <num>` option allows to directly start the Julia executable.
 
-- `-help or -h` : shows the different options 
+- `-help or -h : shows the different options` 
 
 As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2portaudiojulia**, like `-vec -lv 1` to compile in vector mode.etc.
 

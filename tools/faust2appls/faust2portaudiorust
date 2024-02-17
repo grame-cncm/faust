@@ -16,7 +16,7 @@ ARCHFILE=$FAUSTARCH/rust/portaudio-float.rs
 
 echoHelp()
 {
-    usage faust2portaudiorust "[options] [Faust options] <file.dsp>"
+    usage faust2portaudiorust "[-source] [Faust options] <file.dsp>"
     require PortAudio
     echo "Compiles Faust programs to PortAudio and Rust binary"
     option

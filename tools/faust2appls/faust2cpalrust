@@ -12,11 +12,11 @@
 . usage.sh
 
 SRC="0"
-ARCHFILE=$FAUSTARCH/cpal.rs
+ARCHFILE=$FAUSTARCH/rust/cpal.rs
 
 echoHelp() 
 {
-    usage faust2cpalrust "[options] [Faust options] <file.dsp>"
+    usage faust2cpalrust "[-source] [Faust options] <file.dsp>"
     require CPAL
     echo "Compiles Faust programs to CPAL and Rust binary"
     option
