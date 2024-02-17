@@ -12,7 +12,7 @@
 . usage.sh
 
 SRC="0"
-ARCHFILE=$FAUSTARCH/jack.rs
+ARCHFILE=$FAUSTARCH/jack-float.rs
 
 echoHelp()
 {
@@ -38,6 +38,9 @@ do
         echoHelp
     elif [ $p = "-source" ]; then
         SRC="1"
+    elif [ $p = "-double" ]; then
+        ARCHFILE=$FAUSTARCH/jack-double.rs
+        OPTIONS="$OPTIONS $p"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then

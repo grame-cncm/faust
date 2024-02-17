@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2024 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -31,9 +31,9 @@
 #![allow(unused_mut)]
 #![allow(non_upper_case_globals)]
 
-//! PortAudio architecture file
-extern crate portaudio;
-use portaudio as pa;
+//! Faust JACK architecture file
+extern crate jack;
+use jack::prelude as j;
 use std::io;
 extern crate libm;
 
@@ -102,17 +102,10 @@ pub trait UI<T> {
 <<includeIntrinsic>>
 <<includeclass>>
 
-const CHANNELS: i32 = 2;
-const SAMPLE_RATE: f64 = 44_100.0;
-const FRAMES_PER_BUFFER: u32 = 64;
-
 fn main() {
-    run().unwrap()
-}
 
-fn run() -> Result<(), pa::Error> {
-
-    let pa = pa::PortAudio::new()?;
+    // Create JACK client
+    let (client, _status) = j::Client::new("faust_rust", j::client_options::NO_START_SERVER).unwrap();
 
     // Allocation DSP on the heap
     let mut dsp;
@@ -127,66 +120,73 @@ fn run() -> Result<(), pa::Error> {
         dsp = Box::new(mydsp::new());
     }
 
-    println!("Faust Rust code running with Portaudio: sample-rate = {} buffer-size = {}", SAMPLE_RATE, FRAMES_PER_BUFFER);
-
-    //Create a input/output stream with the same number of input and output channels
-    const INTERLEAVED: bool = false;// We want NON interleaved streams
-    let input_device = pa.default_input_device()?;
-    let output_device = pa.default_output_device()?;
-    let input_latency = pa.device_info(input_device)?.default_low_input_latency;
-    let output_latency = pa.device_info(output_device)?.default_low_input_latency;
-
-    let in_params = pa::StreamParameters::new(input_device, CHANNELS, INTERLEAVED, input_latency);
-    let out_params = pa::StreamParameters::new(output_device, CHANNELS, INTERLEAVED, output_latency);
-    let settings = pa::DuplexStreamSettings::new(in_params, out_params, SAMPLE_RATE, FRAMES_PER_BUFFER);
-    //This would have been interleaved:
-    //let mut settings = try!(pa.default_duplex_stream_settings(CHANNELS, CHANNELS, SAMPLE_RATE, FRAMES_PER_BUFFER));
+    println!("Faust Rust code running with JACK: sample-rate = {} buffer-size = {}", client.sample_rate(), client.buffer_size());
 
     println!("get_num_inputs: {}", dsp.get_num_inputs());
     println!("get_num_outputs: {}", dsp.get_num_outputs());
 
     // Init DSP with a given SR
-    dsp.init(SAMPLE_RATE as i32);
+    dsp.init(client.sample_rate() as i32);
 
-    //settings.flags = pa::stream_flags::CLIP_OFF;
+    // Register ports. They will be used in a callback that will be
+    // called when new data is available.
 
-    // This routine will be called by the PortAudio engine when audio is needed. It may called at
-    // interrupt level on some machines so don't do anything that could mess up the system like
-    // dynamic resource allocation or IO.
-    let callback = move |pa::DuplexStreamCallbackArgs { in_buffer, out_buffer, frames, time, .. } : pa::DuplexStreamCallbackArgs<f32, f32>| {
-        let out_buffr: &mut [*mut f32];
-        let in_buffr: & [*const f32];
-        //rust-portaudio does not support non-interleaved audio out of the box (but portaudio does)
-        unsafe {
-            let out_buffer: *mut *mut f32 = ::std::mem::transmute(out_buffer.get_unchecked_mut(0));
-            out_buffr = ::std::slice::from_raw_parts_mut(out_buffer, CHANNELS as usize);
-            let output0 = ::std::slice::from_raw_parts_mut(out_buffr[0], frames);
-            let output1 = ::std::slice::from_raw_parts_mut(out_buffr[1], frames);
+    let in_a = client.register_port("in1", j::AudioInSpec::default()).unwrap();
+    let in_b = client.register_port("in2", j::AudioInSpec::default()).unwrap();
 
-            let in_buffer: *const *const f32 = ::std::mem::transmute(in_buffer.get_unchecked(0));
-            in_buffr = ::std::slice::from_raw_parts(in_buffer, CHANNELS as usize);
-            let input0 = ::std::slice::from_raw_parts(in_buffr[0], frames);
-            let input1 = ::std::slice::from_raw_parts(in_buffr[1], frames);
+    let mut out_a = client.register_port("out1", j::AudioOutSpec::default()).unwrap();
+    let mut out_b = client.register_port("out2", j::AudioOutSpec::default()).unwrap();
 
-            let inputs = &[input0, input1];
-            let outputs = &mut [output0, output1];
+    let process_callback = move |_: &j::Client, ps: &j::ProcessScope| -> j::JackControl {
+        let mut out_a_p = j::AudioOutPort::new(&mut out_a, ps);
+        let mut out_b_p = j::AudioOutPort::new(&mut out_b, ps);
 
-            dsp.compute(frames as i32, inputs, outputs);
+        let in_a_p = j::AudioInPort::new(&in_a, ps);
+        let in_b_p = j::AudioInPort::new(&in_b, ps);
+
+        // Adapt f32 inputs in f64 inputs
+        let input0: &[f32] = &in_a_p;
+        let input1: &[f32] = &in_b_p;
+
+        let input0_f64: Vec<f64> = input0.iter().map(|&sample| sample as f64).collect();
+        let input1_f64: Vec<f64> = input1.iter().map(|&sample| sample as f64).collect();    
+     
+        let inputs_f64: [&[f64]; 2] = [&input0_f64[..], &input1_f64[..]];
+        let inputs_ref: &[&[f64]] = &inputs_f64;
+
+        // Prepare f64 outputs
+        let mut output0_f64: Vec<f64> = vec![0.0; out_a_p.len()];
+        let mut output1_f64: Vec<f64> = vec![0.0; out_b_p.len()];
+
+        let mut outputs_f64: [&mut [f64]; 2] = [&mut output0_f64[..], &mut output1_f64[..]];
+        let outputs_ref: &mut [&mut [f64]] = &mut outputs_f64;
+
+        // Compute using f64 inputs and outputs
+        dsp.compute(in_a_p.len() as i32, inputs_ref, outputs_ref);
+
+        // Convert f64 outputs to f32 outputs
+        let output0: &mut[f32] = &mut out_a_p;
+        let output1: &mut[f32] = &mut out_b_p;
+       
+        // Copy and convert outputs_ref[0] (f64) to output0 (f32)
+        for (dest, &src) in output0.iter_mut().zip(outputs_ref[0].iter()) {
+            *dest = src as f32;
         }
-        pa::Continue
+         for (dest, &src) in output1.iter_mut().zip(outputs_ref[1].iter()) {
+            *dest = src as f32;
+        }
+
+        j::JackControl::Continue
     };
+    let process = j::ClosureProcessHandler::new(process_callback);
 
-    let mut stream = pa.open_non_blocking_stream(settings, callback)?;
-
-    stream.start()?;
+    // Activate the client, which starts the processing.
+    let active_client = j::AsyncClient::new(client, (), process).unwrap();
 
     // Wait for user input to quit
     println!("Press enter/return to quit...");
     let mut user_input = String::new();
     io::stdin().read_line(&mut user_input).ok();
 
-    stream.stop()?;
-    stream.close()?;
-
-    Ok(())
+    active_client.deactivate().unwrap();
 }
