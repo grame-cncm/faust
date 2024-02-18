@@ -23,6 +23,7 @@
 #define _Text_H
 
 #include <string.h>
+#include <cstdint>
 
 #include <fstream>
 #include <iostream>
