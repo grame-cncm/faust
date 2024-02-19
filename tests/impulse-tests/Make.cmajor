@@ -13,7 +13,7 @@ else
 endif
 MAKE ?= make
 
-GCCOPTIONS := -Ofast -I../../architecture -I/usr/local/include/ap_fixed  -Iarchs -pthread -std=c++17
+GCCOPTIONS := -Ofast -I../../architecture -Iarchs -pthread -std=c++17
 outdir ?= cmajor/double
 lang ?= cpp
 ext  ?= o

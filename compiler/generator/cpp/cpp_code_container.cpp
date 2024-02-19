@@ -1140,7 +1140,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
 {
     VariableSizeCounter heap_counter(Address::kStruct);
     generateDeclarations(&heap_counter);
-    fCodeProducer = new CPPInstVisitor2(fOut, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory));
+    fCodeProducer = new CPPInstVisitor2(fOut, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory), Address::kFunArgs);
     
     int n = 0;
     
@@ -1412,7 +1412,7 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
 {
     VariableSizeCounter heap_counter(Address::kStruct);
     generateDeclarations(&heap_counter);
-    fCodeProducer = new CPPInstVisitor3(fOut, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory));
+    fCodeProducer = new CPPInstVisitor2(fOut, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory), Address::kStruct);
     
     int n = 0;
     

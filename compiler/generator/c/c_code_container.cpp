@@ -816,7 +816,7 @@ void CScalarOneSampleCodeContainer3::produceClass()
 {
     VariableSizeCounter heap_counter(Address::kStruct);
     generateDeclarations(&heap_counter);
-    fCodeProducer = new CInstVisitor2(fOut, fKlassName, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory));
+    fCodeProducer = new CInstVisitor2(fOut, fKlassName, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory), Address::kFunArgs);
     
     int n = 0;
     
@@ -1074,7 +1074,7 @@ void CScalarOneSampleCodeContainer4::produceClass()
 {
     VariableSizeCounter heap_counter(Address::kStruct);
     generateDeclarations(&heap_counter);
-    fCodeProducer = new CInstVisitor3(fOut, fKlassName, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory));
+    fCodeProducer = new CInstVisitor2(fOut, fKlassName, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory), Address::kStruct);
      
     int n = 0;
     

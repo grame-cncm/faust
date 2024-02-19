@@ -3,10 +3,6 @@
 #define FAUSTFLOAT double
 #endif
 
-#ifndef REAL
-#define REAL double
-#endif
-
 #include "faust/gui/CGlue.h"
 #include "faust/dsp/one-sample-dsp.h"
 #include "controlTools.h"

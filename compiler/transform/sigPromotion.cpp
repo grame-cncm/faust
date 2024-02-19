@@ -659,7 +659,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     int  i;
     int64_t i64;
     double r;
-    Tree sel, w, x, y, z, label, init, min, max, step, var, body;
+    Tree w, x, y, z, label, init, min, max, step, var, body;
     Tree d;
     
     // Math primitives

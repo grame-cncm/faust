@@ -2363,6 +2363,36 @@ struct InstBuilder {
     {
         return new IndexedAddress(address, indices);
     }
+    
+    static IndexedAddress* genIndexedStructAddress(const std::string& name, ValueInst* index)
+    {
+        return genIndexedAddress(genNamedAddress(name, Address::kStruct), index);
+    }
+    
+    static IndexedAddress* genIndexedStructAddress(const std::string& name, int index)
+    {
+        return genIndexedAddress(genNamedAddress(name, Address::kStruct), genInt32NumInst(index));
+    }
+    
+    static IndexedAddress* genIndexedFunArgsAddress(const std::string& name, ValueInst* index)
+    {
+        return genIndexedAddress(genNamedAddress(name, Address::kFunArgs), index);
+    }
+    
+    static IndexedAddress* genIndexedFunArgsAddress(const std::string& name, int index)
+    {
+        return genIndexedAddress(genNamedAddress(name, Address::kFunArgs), genInt32NumInst(index));
+    }
+    
+    static IndexedAddress* genIndexedAddress(const std::string& name, Address::AccessType access, ValueInst* index)
+    {
+        return genIndexedAddress(genNamedAddress(name, access), index);
+    }
+    
+    static IndexedAddress* genIndexedAddress(const std::string& name, Address::AccessType access, int index)
+    {
+        return genIndexedAddress(genNamedAddress(name, access), genInt32NumInst(index));
+    }
 
     // Helper build methods
     static DeclareVarInst* genDecArrayVar(const std::string& vname, Address::AccessType access, Typed* type, int size)

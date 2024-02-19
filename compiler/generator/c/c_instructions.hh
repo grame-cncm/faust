@@ -521,10 +521,10 @@ class CInstVisitor1 : public CInstVisitor {
             if (fStructVisitor.hasField(name, type)) {
                 if (type == Typed::kInt32) {
                     FIRIndex value = FIRIndex(fStructVisitor.getFieldIntOffset(name)/sizeof(int));
-                    InstBuilder::genLoadArrayFunArgsVar("iZone", value)->accept(this);
+                    InstBuilder::genIndexedFunArgsAddress("iZone", value)->accept(this);
                 } else {
                     FIRIndex value = FIRIndex(fStructVisitor.getFieldRealOffset(name)/ifloatsize());
-                    InstBuilder::genLoadArrayFunArgsVar("fZone", value)->accept(this);
+                    InstBuilder::genIndexedFunArgsAddress("fZone", value)->accept(this);
                 }
             } else {
                 CInstVisitor::visit(named);
@@ -539,13 +539,13 @@ class CInstVisitor1 : public CInstVisitor {
             if (fStructVisitor.hasField(name, type)) {
                 if (type == Typed::kInt32) {
                     FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
-                    InstBuilder::genLoadArrayFunArgsVar("iZone", value)->accept(this);
+                    InstBuilder::genIndexedFunArgsAddress("iZone", value)->accept(this);
                 } else {
                     FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
-                    InstBuilder::genLoadArrayFunArgsVar("fZone", value)->accept(this);
+                    InstBuilder::genIndexedFunArgsAddress("fZone", value)->accept(this);
                 }
             } else {
-                TextInstVisitor::visit(indexed);
+                CInstVisitor::visit(indexed);
             }
         }
     
@@ -556,20 +556,22 @@ class CInstVisitor1 : public CInstVisitor {
 };
 
 /**
- Implement C FIR visitor: used for -os2 mode, accessing iZone/fZone as function args.
+ Implement C FIR visitor: used for -os2 and -os3 modes, accessing iZone/fZone.
  */
 
 class CInstVisitor2 : public CInstVisitor {
     
     protected:
         
-        // Fields are distributed between the DSP struct and iZone/fZone model
+        // Fields are distributed between the DSP struct and iZone/fZone arrays
         StructInstVisitor1 fStructVisitor;
+    
+        Address::AccessType fAccess;
          
     public:
         
-        CInstVisitor2(std::ostream* out, const std::string& structname, int external_memory, int tab = 0)
-        :CInstVisitor(out, structname, tab), fStructVisitor(external_memory, 4)
+        CInstVisitor2(std::ostream* out, const std::string& structname, int external_memory, Address::AccessType access, int tab = 0)
+        :CInstVisitor(out, structname, tab), fStructVisitor(external_memory, 4), fAccess(access)
         {}
         
         virtual void visit(DeclareVarInst* inst)
@@ -577,6 +579,7 @@ class CInstVisitor2 : public CInstVisitor {
             Address::AccessType access = inst->fAddress->getAccess();
             std::string name = inst->fAddress->getName();
             if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !isControl(name)) {
+                // Separate access between kLocal and kExternal
                 fStructVisitor.visit(inst);
                 // Local fields have to be generated
                 if (fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kLocal) {
@@ -595,13 +598,13 @@ class CInstVisitor2 : public CInstVisitor {
             if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
                 if (type == Typed::kInt32) {
                     FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
-                    InstBuilder::genLoadArrayFunArgsVar("iZone", value)->accept(this);
+                    InstBuilder::genIndexedAddress("iZone", fAccess, value)->accept(this);
                 } else {
                     FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
-                    InstBuilder::genLoadArrayFunArgsVar("fZone", value)->accept(this);
+                    InstBuilder::genIndexedAddress("fZone", fAccess, value)->accept(this);
                 }
             } else {
-                TextInstVisitor::visit(indexed);
+                CInstVisitor::visit(indexed);
             }
         }
       
@@ -609,38 +612,6 @@ class CInstVisitor2 : public CInstVisitor {
         int getIntZoneSize() { return fStructVisitor.getStructIntSize()/sizeof(int); }
         int getRealZoneSize() { return fStructVisitor.getStructRealSize()/ifloatsize(); }
     
-};
-
-/**
- Implement C FIR visitor: used for -os3 mode, accessing iZone/fZone in DSP struct.
- */
-
-class CInstVisitor3 : public CInstVisitor2 {
-    
-    public:
-        
-        CInstVisitor3(std::ostream* out, const std::string& structname, int external_memory, int tab = 0)
-        :CInstVisitor2(out, structname, external_memory, tab)
-        {}
-         
-        virtual void visit(IndexedAddress* indexed)
-        {
-            Typed::VarType type;
-            std::string name = indexed->getName();
-            
-            if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
-                if (type == Typed::kInt32) {
-                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
-                    InstBuilder::genLoadArrayStructVar("iZone", value)->accept(this);
-                } else {
-                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
-                    InstBuilder::genLoadArrayStructVar("fZone", value)->accept(this);
-                }
-            } else {
-                TextInstVisitor::visit(indexed);
-            }
-        }
-     
 };
 
 #endif
