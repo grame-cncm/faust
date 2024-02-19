@@ -24,6 +24,7 @@ MIDI=false
 POLY=""
 PATCH=false
 POD=false
+PATCHSM=false
 SR=44100
 BS=16
 SOURCE=false
