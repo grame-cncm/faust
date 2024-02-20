@@ -77,7 +77,7 @@ class FAUST_API one_sample_dsp : public dsp {
         }
     
         /**
-         * Return the number of 'int' typed values necessary to compute the internal DSP state
+         * Return the number of 'int' typed values necessary to compute the internal DSP control state
          *
          * @return the number of 'int' typed values.
          */
@@ -254,7 +254,7 @@ class FAUST_API one_sample_dsp_real : public dsp {
         virtual void instanceClear(int* iZone, REAL* fZone) = 0;
 
         /**
-         * Return the number of 'int' typed values necessary to compute the internal DSP state
+         * Return the number of 'int' typed values necessary to compute the internal DSP control state
          *
          * @return the number of 'int' typed values.
          */
@@ -385,7 +385,7 @@ class FAUST_API one_sample_dsp_real1 : public dsp {
         }
         
         /**
-         * Return the number of 'int' typed values necessary to compute the internal DSP state
+         * Return the number of 'int' typed values necessary to compute the internal DSP control state
          *
          * @return the number of 'int' typed values.
          */

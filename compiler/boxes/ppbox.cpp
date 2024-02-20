@@ -652,10 +652,10 @@ void boxppShared::printIDs(ostream& fout)
 
 ostream& envpp::print(ostream& fout) const
 {
-    const char* sep = "";
-    Tree        l   = fEnv;
+    Tree l = fEnv;
 
     fout << '{';
+    // const char* sep = "";
     // while (isList(l)) {
     //     fout << sep << boxpp(hd(hd(l))) << "=" << boxpp(tl(hd(l)));
     //     sep = ", ";
