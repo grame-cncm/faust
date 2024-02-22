@@ -165,10 +165,21 @@ void JAXCodeContainer::produceClass()
     // Merge sub containers
     mergeSubContainers();
 
+    // Missing math function
+    tab(n, *fOut);
+    *fOut << "def remainder(x, y):";
+    tab(n + 1, *fOut);
+    *fOut << "\"\"\"C++ std::remainder implemented with jax numpy\"\"\"";
+    tab(n + 1, *fOut);
+    *fOut << "quo = jnp.round(x/y)";
+    tab(n + 1, *fOut);
+    *fOut << "return x - quo * y";
+    tab(n + 1, *fOut);
+
     // Functions
     tab(n, *fOut);
     gGlobal->gJAXVisitor->Tab(n);
-       
+ 
     *fOut << "class " << fKlassName << "(nn.Module):";
     tab(n + 1, *fOut);
 

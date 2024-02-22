@@ -27,12 +27,6 @@ import jax.numpy as jnp
 from jax import random
 from flax import linen as nn
 
-
-def remainder(x, y):
-	a = jnp.remainder(x, y)
-	return a - y*((a > y/2).astype(jnp.int32))
-
-
 # Generated code
 <<includeIntrinsic>>
 <<includeclass>>
