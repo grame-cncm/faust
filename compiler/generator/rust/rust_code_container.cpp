@@ -175,12 +175,75 @@ void RustCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
+    // Missing math functions
+    // See: https://users.rust-lang.org/t/analog-of-c-std-remainder/59670
+    if (gGlobal->gFloatSize == 1) {
+        *fOut << "mod ffi {";
+        tab(n + 1, *fOut);
+        *fOut << "use std::os::raw::{c_float};";
+        tab(n + 1, *fOut);
+        *fOut << "#[link(name = \"m\")]";
+        tab(n + 1, *fOut);
+        *fOut << "extern {";
+        tab(n + 2, *fOut);
+        *fOut << "pub fn remainderf(from: c_float, to: c_float) -> c_float;";
+        tab(n + 2, *fOut);
+        *fOut << "pub fn rintf(val: c_float) -> c_float;";
+        tab(n + 1, *fOut);
+        *fOut << "}";
+        tab(n, *fOut);
+        *fOut << "}";
+        tab(n, *fOut);
+        *fOut << "fn remainder_f32(from: f32, to: f32) -> f32 {";
+        tab(n + 1, *fOut);
+        *fOut << "unsafe { ffi::remainderf(from, to) }";
+        tab(n, *fOut);
+        *fOut << "}";
+        tab(n, *fOut);
+        *fOut << "fn rint_f32(val: f32) -> f32 {";
+        tab(n + 1, *fOut);
+        *fOut << "unsafe { ffi::rintf(val) }";
+        tab(n, *fOut);
+        *fOut << "}";
+        tab(n, *fOut);
+    } else if (gGlobal->gFloatSize == 2) {
+        *fOut << "mod ffi {";
+        tab(n + 1, *fOut);
+        *fOut << "use std::os::raw::{c_double};";
+        tab(n + 1, *fOut);
+        *fOut << "#[link(name = \"m\")]";
+        tab(n + 1, *fOut);
+        *fOut << "extern {";
+        tab(n + 2, *fOut);
+        *fOut << "pub fn remainder(from: c_double, to: c_double) -> c_double;";
+        tab(n + 2, *fOut);
+        *fOut << "pub fn rint(val: c_double) -> c_double;";
+        tab(n + 1, *fOut);
+        *fOut << "}";
+        tab(n, *fOut);
+        *fOut << "}";
+        tab(n, *fOut);
+        *fOut << "fn remainder_f64(from: f64, to: f64) -> f64 {";
+        tab(n + 1, *fOut);
+        *fOut << "unsafe { ffi::remainder(from, to) }";
+        tab(n, *fOut);
+        *fOut << "}";
+        tab(n, *fOut);
+        *fOut << "fn rint_f64(val: f64) -> f64 {";
+        tab(n + 1, *fOut);
+        *fOut << "unsafe { ffi::rint(val) }";
+        tab(n, *fOut);
+        *fOut << "}";
+        tab(n, *fOut);
+    }
+    
     tab(n, *fOut);
     *fOut << "#[cfg_attr(feature = \"default-boxed\", derive(default_boxed::DefaultBoxed))]";
     if (gGlobal->gReprC) {
         tab(n, *fOut);
         *fOut << "#[repr(C)]";
     }
+    
     tab(n, *fOut);
     *fOut << "pub struct " << fKlassName << " {";
     tab(n + 1, *fOut);

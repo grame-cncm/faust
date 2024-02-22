@@ -120,9 +120,11 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["max_f"]      = "F32::max";
         fMathLibTable["min_f"]      = "F32::min";
         fMathLibTable["powf"]       = "F32::powf";
-        fMathLibTable["remainderf"] = "F32::rem_euclid";
-        // fMathLibTable["rintf"]      = "linux_api_math::rintf"; // TODO
-        fMathLibTable["rintf"]  = "F32::round";
+    
+        // Add 2 missing math functions
+        fMathLibTable["remainderf"] = "remainder_f32";
+        fMathLibTable["rintf"]  = "rint_f32";
+    
         fMathLibTable["roundf"] = "F32::round";
         fMathLibTable["sinf"]   = "F32::sin";
         fMathLibTable["sqrtf"]  = "F32::sqrt";
@@ -156,9 +158,11 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["max_"]      = "F64::max";
         fMathLibTable["min_"]      = "F64::min";
         fMathLibTable["pow"]       = "F64::powf";
-        fMathLibTable["remainder"] = "F64::rem_euclid";
-        // fMathLibTable["rint"]      = "linux_api_math::rint";  // TODO
-        fMathLibTable["rint"]  = "F64::round";
+    
+        // Add 2 missing math functions
+        fMathLibTable["remainder"] = "remainder_f64";
+        fMathLibTable["rint"]  = "rint_f64";
+    
         fMathLibTable["round"] = "F64::round";
         fMathLibTable["sin"]   = "F64::sin";
         fMathLibTable["sqrt"]  = "F64::sqrt";
