@@ -29,8 +29,9 @@ from flax import linen as nn
 
 
 def remainder(x, y):
-	a = jnp.remainder(x, y)
-	return a - y*((a > y/2).astype(jnp.int32))
+	"""C++ std::remainder implemented with jax numpy"""
+	quo = jnp.round(x/y)
+	return x - quo * y
 
 
 # Generated code
