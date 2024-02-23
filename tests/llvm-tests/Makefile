@@ -19,7 +19,7 @@ prefix := $(DESTDIR)$(PREFIX)
 all: llvm-test llvm-algebra-test llvm-test-c faust-dynamic-engine-test
 
 faust-dynamic-engine-test: faust-dynamic-engine-test.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 faust-dynamic-engine-test.cpp -DLLVM_DSP -DJACK_DRIVER -DPORTAUDIO_DRIVER -DRTAUDIO_DRIVER -DSOUNDFILE -I$(INC) -I$(INC_OPT) -lsndfile -ljack -lportaudio -lrtaudio -L$(LIB) -L$(LIB_OPT) $(LIB_OPT1) $(LIB)/libfaust.a -lpthread `llvm-config --ldflags --libs all --system-libs` -o faust-dynamic-engine-test
+	$(CXX) -std=c++11 -O3 faust-dynamic-engine-test.cpp /usr/local/include/faust/dsp/faust-dynamic-engine.cpp -DLLVM_DSP -DJACK_DRIVER -DPORTAUDIO_DRIVER -DRTAUDIO_DRIVER -DSOUNDFILE -I$(INC) -I$(INC_OPT) -lsndfile -ljack -lportaudio -lrtaudio -L$(LIB) -L$(LIB_OPT) $(LIB_OPT1) $(LIB)/libfaust.a -lpthread `llvm-config --ldflags --libs all --system-libs` -o faust-dynamic-engine-test
 
 llvm-test: llvm-test.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 llvm-test.cpp -I$(INC) -L$(LIB) -L$(LIB_OPT) $(LIB)/libfaust.a -lpthread `llvm-config --ldflags --libs all --system-libs` $(LDFLAGS) -o llvm-test

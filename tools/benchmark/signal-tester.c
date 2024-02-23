@@ -115,6 +115,9 @@ static Signal phasor(Signal f)
 
 static void test1()
 {
+    char error_msg[4096];
+    llvm_dsp_factory* factory = NULL;
+    
     createLibContext();
     {
         Signal signals[2];
@@ -124,26 +127,26 @@ static void test1()
         printf("%s\n", CprintSignal(signals[0], false, INT_MAX));
         printf("%s\n", CprintSignal(signals[0], true, INT_MAX));
      
-        char error_msg[4096];
-        llvm_dsp_factory* factory = createCDSPFactoryFromSignals("test1", signals, 0, NULL, "", error_msg, -1);
-            
-        if (factory) {
-            
-            llvm_dsp* dsp = createCDSPInstance(factory);
-            assert(dsp);
-            
-            // Render audio
-            render(dsp);
-            
-            // Cleanup
-            deleteCDSPInstance(dsp);
-            deleteCDSPFactory(factory);
-        
-        } else {
-            printf("Cannot create factory : %s\n", error_msg);
-        }
+        factory = createCDSPFactoryFromSignals("test1", signals, 0, NULL, "", error_msg, -1);
     }
     destroyLibContext();
+    
+    // The factory can be used outside of the createLibContext/destroyLibContext scope
+    if (factory) {
+        
+        llvm_dsp* dsp = createCDSPInstance(factory);
+        assert(dsp);
+        
+        // Render audio
+        render(dsp);
+        
+        // Cleanup
+        deleteCDSPInstance(dsp);
+        deleteCDSPFactory(factory);
+    
+    } else {
+        printf("Cannot create factory : %s\n", error_msg);
+    }
 }
 
 /*
@@ -163,6 +166,9 @@ static Signal osc(Signal f)
 
 static void test2()
 {
+    char error_msg[4096];
+    llvm_dsp_factory* factory = NULL;
+    
     createLibContext();
     {
         Signal signals[3];
@@ -170,26 +176,26 @@ static void test2()
         signals[1] = osc(CsigReal(440.0));
         signals[2] = NULL; // Null terminated array
         
-        char error_msg[4096];
-        llvm_dsp_factory* factory = createCDSPFactoryFromSignals("test2", signals, 0, NULL, "", error_msg, -1);
-        
-        if (factory) {
-            
-            llvm_dsp* dsp = createCDSPInstance(factory);
-            assert(dsp);
-            
-            // Render audio
-            render(dsp);
-            
-            // Cleanup
-            deleteCDSPInstance(dsp);
-            deleteCDSPFactory(factory);
-            
-        } else {
-            printf("Cannot create factory : %s\n", error_msg);
-        }
+        factory = createCDSPFactoryFromSignals("test2", signals, 0, NULL, "", error_msg, -1);
     }
     destroyLibContext();
+    
+    // The factory can be used outside of the createLibContext/destroyLibContext scope
+    if (factory) {
+        
+        llvm_dsp* dsp = createCDSPInstance(factory);
+        assert(dsp);
+        
+        // Render audio
+        render(dsp);
+        
+        // Cleanup
+        deleteCDSPInstance(dsp);
+        deleteCDSPFactory(factory);
+        
+    } else {
+        printf("Cannot create factory : %s\n", error_msg);
+    }
 }
 
 /*
@@ -203,6 +209,9 @@ static void test2()
 
 static void test3()
 {
+    char error_msg[4096];
+    llvm_dsp_factory* factory = NULL;
+
     createLibContext();
     {
         Signal signals[2];
@@ -211,30 +220,30 @@ static void test3()
         signals[0] = CsigMul(freq, CsigMul(gain, CsigInput(0)));
         signals[1] = NULL; // Null terminated array
 
-        char error_msg[4096];
-        llvm_dsp_factory* factory = createCDSPFactoryFromSignals("test3", signals, 0, NULL, "", error_msg, -1);
-        
-        if (factory) {
-            
-            llvm_dsp* dsp = createCDSPInstance(factory);
-            assert(dsp);
-            
-            printf("=================UI=================\n");
-            
-            // Defined in PrintCUI.h
-            metadataCDSPInstance(dsp, &mglue);
-            
-            buildUserInterfaceCDSPInstance(dsp, &uglue);
-            
-            // Cleanup
-            deleteCDSPInstance(dsp);
-            deleteCDSPFactory(factory);
-            
-        } else {
-            printf("Cannot create factory : %s\n", error_msg);
-        }
+        factory = createCDSPFactoryFromSignals("test3", signals, 0, NULL, "", error_msg, -1);
     }
     destroyLibContext();
+    
+    // The factory can be used outside of the createLibContext/destroyLibContext scope
+    if (factory) {
+        
+        llvm_dsp* dsp = createCDSPInstance(factory);
+        assert(dsp);
+        
+        printf("=================UI=================\n");
+        
+        // Defined in PrintCUI.h
+        metadataCDSPInstance(dsp, &mglue);
+        
+        buildUserInterfaceCDSPInstance(dsp, &uglue);
+        
+        // Cleanup
+        deleteCDSPInstance(dsp);
+        deleteCDSPFactory(factory);
+        
+    } else {
+        printf("Cannot create factory : %s\n", error_msg);
+    }
 }
 
 // Compile a complete DSP program to a box expression, then to a source string

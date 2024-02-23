@@ -37,8 +37,10 @@
  */
 
 #ifdef _MSC_VER
+#define CTree_DEFINED
 typedef void CTree;
 #else
+#define CTree_DEFINED
 typedef struct {} CTree;
 #endif
 
@@ -99,6 +101,8 @@ extern "C"
     /**
      * Destroy global compilation context, has to be done last,
      * and paired with a call to createLibContext().
+     * Note that the created DSP factory can be used outside
+     * of the createLibContext/destroyLibContext scope.
      */
     LIBFAUST_API void destroyLibContext();
 

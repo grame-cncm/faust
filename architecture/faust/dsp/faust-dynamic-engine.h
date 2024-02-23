@@ -54,10 +54,12 @@
 extern "C" {
 #endif
     
+#ifndef CTree_DEFINED
 #ifdef _MSC_VER
     typedef void CTree;
 #else
     typedef struct {} CTree;
+#endif
 #endif
     
     typedef CTree* Box;

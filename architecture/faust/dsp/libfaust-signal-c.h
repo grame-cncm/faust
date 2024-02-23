@@ -99,6 +99,8 @@ extern "C"
     /**
      * Destroy global compilation context, has to be done last,
      * and paired with a call to createLibContext().
+     * Note that the created DSP factory can be used outside
+     * of the createLibContext/destroyLibContext scope.
      */
     LIBFAUST_API void destroyLibContext();
     

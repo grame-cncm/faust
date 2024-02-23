@@ -337,7 +337,7 @@ bool isConnectedDsp(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
 #if JACK_DRIVER
     jackaudio* driver1 = getJackDriver(dsp1_ext);
     jackaudio* driver2 = getJackDriver(dsp2_ext);
-    if (driver1 == nullptr && driver2 == nullptr) false;
+    if (driver1 == nullptr && driver2 == nullptr) return false;
 
     if (driver1 == nullptr) {
         // Connection test with physical input

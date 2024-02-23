@@ -428,6 +428,9 @@ static void test20()
 static void test21(int argc, const char* argv[])
 {
     cout << "test21\n";
+    string error_msg;
+    llvm_dsp_factory* factory = nullptr;
+    
     createLibContext();
     {
         Box sl1 = boxVSlider("h:Oscillator/Freq1", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
@@ -435,80 +438,83 @@ static void test21(int argc, const char* argv[])
         Box group = boxPar(osc(sl1), osc(sl2));
         Box box = boxVGroup("test21", group);
         
-        string error_msg;
-        llvm_dsp_factory* factory = createDSPFactoryFromBoxes("FaustDSP", box, 0, nullptr, "", error_msg);
-        
-        if (factory) {
-            dsp* dsp = factory->createDSPInstance();
-            assert(dsp);
-            
-            // Allocate audio driver
-            jackaudio audio;
-            audio.init("Test", dsp);
-            
-            // Create GUI
-            GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, (char***)&argv);
-            dsp->buildUserInterface(&gtk_ui);
-            
-            // Start real-time processing
-            audio.start();
-            
-            // Start GUI
-            gtk_ui.run();
-            
-            // Cleanup
-            audio.stop();
-            delete dsp;
-            deleteDSPFactory(factory);
-        } else {
-            cerr << "Cannot create factory" << error_msg << endl;
-        }
+        factory = createDSPFactoryFromBoxes("FaustDSP", box, 0, nullptr, "", error_msg);
     }
     destroyLibContext();
+    
+    // The factory can be used outside of the createLibContext/destroyLibContext scope
+    if (factory) {
+        dsp* dsp = factory->createDSPInstance();
+        assert(dsp);
+        
+        // Allocate audio driver
+        jackaudio audio;
+        audio.init("Test", dsp);
+        
+        // Create GUI
+        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, (char***)&argv);
+        dsp->buildUserInterface(&gtk_ui);
+        
+        // Start real-time processing
+        audio.start();
+        
+        // Start GUI
+        gtk_ui.run();
+        
+        // Cleanup
+        audio.stop();
+        delete dsp;
+        deleteDSPFactory(factory);
+    } else {
+        cerr << "Cannot create factory" << error_msg << endl;
+    }
 }
 
 // Using the Interpreter backend.
 static void test22(int argc, const char* argv[])
 {
     cout << "test22\n";
+    string error_msg;
+    interpreter_dsp_factory* factory = nullptr;
+    
     createLibContext();
     {
         Box sl1 = boxHSlider("v:Oscillator/Freq1", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
         Box sl2 = boxHSlider("v:Oscillator/Freq2", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
         Box group = boxPar(osc(sl1), osc(sl2));
         Box box = boxHGroup("test22", group);
-        
-        string error_msg;
-        interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromBoxes("FaustDSP", box, 0, nullptr, error_msg);
-        
-        if (factory) {
-            dsp* dsp = factory->createDSPInstance();
-            assert(dsp);
-            
-            // Allocate audio driver
-            jackaudio audio;
-            audio.init("Test", dsp);
-            
-            // Create GUI
-            GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, (char***)&argv);
-            dsp->buildUserInterface(&gtk_ui);
-            
-            // Start real-time processing
-            audio.start();
-            
-            // Start GUI
-            gtk_ui.run();
-            
-            // Cleanup
-            audio.stop();
-            delete dsp;
-            deleteInterpreterDSPFactory(factory);
-        } else {
-            cerr << "Cannot create factory" << error_msg << endl;
-        }
+ 
+        factory = createInterpreterDSPFactoryFromBoxes("FaustDSP", box, 0, nullptr, error_msg);
     }
     destroyLibContext();
-}
+    
+    // The factory can be used outside of the createLibContext/destroyLibContext scope
+    if (factory) {
+        dsp* dsp = factory->createDSPInstance();
+        assert(dsp);
+        
+        // Allocate audio driver
+        jackaudio audio;
+        audio.init("Test", dsp);
+        
+        // Create GUI
+        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, (char***)&argv);
+        dsp->buildUserInterface(&gtk_ui);
+        
+        // Start real-time processing
+        audio.start();
+        
+        // Start GUI
+        gtk_ui.run();
+        
+        // Cleanup
+        audio.stop();
+        delete dsp;
+        deleteInterpreterDSPFactory(factory);
+    } else {
+        cerr << "Cannot create factory" << error_msg << endl;
+    }
+ }
 
 // Using the Interpreter backend.
 static void test23(int argc, const char* argv[])
@@ -563,7 +569,7 @@ static void test23(int argc, const char* argv[])
     }
     destroyLibContext();
     
-    // Use factory outside of the createLibContext/destroyLibContext scope
+    // The factory can be used outside of the createLibContext/destroyLibContext scope
     if (factory) {
         dsp* dsp = factory->createDSPInstance();
         assert(dsp);
@@ -626,7 +632,7 @@ static void test24(int argc, const char* argv[])
     }
     destroyLibContext();
         
-    // Use factory outside of the createLibContext/destroyLibContext scope
+    // The factory can be used outside of the createLibContext/destroyLibContext scope
     if (factory) {
         dsp* dsp = factory->createDSPInstance();
         assert(dsp);
