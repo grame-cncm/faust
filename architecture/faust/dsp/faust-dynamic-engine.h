@@ -63,6 +63,7 @@ extern "C" {
 #endif
     
     typedef CTree* Box;
+    typedef CTree* Signal;
     
     /**
      * @brief Opaque structure representing a DSP object.
@@ -126,6 +127,26 @@ extern "C" {
      * @return A pointer to the created DSP object on success, otherwise a null pointer. Use getLastError to access the error.
      */
     dsp* createDspFromBoxes(const char* name_app, Box box, int argc, const char* argv[], const char* target, int opt_level);
+    
+    /**
+     * @brief Create a DSP object.
+     *
+     * This function creates a new DSP object using the provided parameters. The created DSP object can be used for audio
+     * processing.
+     *
+     * @param name_app - the name of the Faust program
+     * @param signals - the null terminated array of output signals
+     * @param argc - the number of parameters in argv array
+     * @param argv - the array of parameters (like -vec.etc.)
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings,
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'),
+     * not used if compiled with INTERP_DSP mode.
+     *
+     * @return A pointer to the created DSP object on success, otherwise a null pointer. Use getLastError to access the error.
+     */
+    dsp* createDspFromSignals(const char* name_app, Signal* signals, int argc, const char* argv[], const char* target, int opt_level);
     
     /**
      * @brief Destroy a DSP object.

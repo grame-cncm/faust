@@ -89,7 +89,7 @@ enum RendererType {
 struct dsp_aux {
     dsp_factory* fFactory;
 #if SOUNDFILE
-    SoundUI* fSoundInterface;
+    SoundUI*    fSoundInterface;
 #endif
     dsp*        fDSP;
     audio*      fDriver;
@@ -125,6 +125,29 @@ struct dsp_aux {
         fFactory = createDSPFactoryFromBoxes(name_app, box, argc, argv, target, gLastError, opt_level);
     #elif INTERP_DSP
         fFactory = createInterpreterDSPFactoryFromBoxes(name_app, box, argc, argv, gLastError);
+    #endif
+        if (fFactory) {
+            fDSP = fFactory->createDSPInstance();
+            createJSON(name_app);
+        } else {
+            throw std::bad_alloc();
+        }
+    }
+    
+    dsp_aux(const char* name_app, Signal* signals_aux, int argc, const char* argv[], const char* target, int opt_level)
+    : fDriver(nullptr)
+    {
+        fNameApp = name_app;
+        tvec signals;
+        int k = 0;
+        while (signals_aux[k]) {
+            signals.push_back(signals_aux[k]);
+            k++;
+        }
+    #ifdef LLVM_DSP
+        fFactory = createDSPFactoryFromSignals(name_app, signals, argc, argv, target, gLastError, opt_level);
+    #elif INTERP_DSP
+        fFactory = createInterpreterDSPFactoryFromSignals(name_app, signals, argc, argv, gLastError);
     #endif
         if (fFactory) {
             fDSP = fFactory->createDSPInstance();
@@ -375,6 +398,15 @@ dsp* createDspFromBoxes(const char* name_app, Box box, int argc, const char* arg
     }
 }
     
+dsp* createDspFromSignals(const char* name_app, Signal* signals, int argc, const char* argv[], const char* target, int opt_level)
+{
+    try {
+        return reinterpret_cast<dsp*>(new dsp_aux(name_app, signals, argc, argv, target, opt_level));
+    } catch (...) {
+        cerr << "Cannot create DSP\n";
+        return nullptr;
+    }
+}
 
 const char* getLastError()
 {
