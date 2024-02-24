@@ -490,8 +490,8 @@ void global::reset()
     gCheckIntRange        = false;
     gReprC                = true;
 
-    gNarrowingLimit = 0;
-    gWideningLimit  = 0;
+    gNarrowingLimit = 5;
+    gWideningLimit  = 5;
 
     gLstDependenciesSwitch = true;  // mdoc listing management.
     gLstMdocTagsSwitch     = true;  // mdoc listing management.
@@ -499,7 +499,7 @@ void global::reset()
 
     gAutoDifferentiate = false;
 
-    gLatexDocSwitch = true;         // Only LaTeX outformat is handled for the moment.
+    gLatexDocSwitch = true;  // Only LaTeX outformat is handled for the moment.
 
     gFileNum = 0;
 
@@ -648,9 +648,7 @@ void global::init()
     gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
     gCurrentLocal = setlocale(LC_ALL, NULL);
-    if (gCurrentLocal != NULL) {
-        gCurrentLocal = strdup(gCurrentLocal);
-    }
+    if (gCurrentLocal != NULL) { gCurrentLocal = strdup(gCurrentLocal); }
 
     // Setup standard "C" local
     // (workaround for a bug in bitcode generation : http://lists.cs.uiuc.edu/pipermail/llvmbugs/2012-May/023530.html)
@@ -891,9 +889,7 @@ BasicTyped* global::genBasicTyped(Typed::VarType type)
     Typed::VarType new_type = ((type == Typed::kFloatMacro) && gFAUSTFLOAT2Internal) ? itfloat() : type;
 
     // If not defined, add the type in the table
-    if (gTypeTable.find(new_type) == gTypeTable.end()) {
-        gTypeTable[new_type] = new BasicTyped(new_type);
-    }
+    if (gTypeTable.find(new_type) == gTypeTable.end()) { gTypeTable[new_type] = new BasicTyped(new_type); }
     return gTypeTable[new_type];
 }
 
@@ -998,9 +994,7 @@ string global::makeDrawPathNoExt()
 
 string global::getFreshID(const string& prefix)
 {
-    if (gIDCounters.find(prefix) == gIDCounters.end()) {
-        gIDCounters[prefix] = 0;
-    }
+    if (gIDCounters.find(prefix) == gIDCounters.end()) { gIDCounters[prefix] = 0; }
     int n               = gIDCounters[prefix];
     gIDCounters[prefix] = n + 1;
     return subst("$0$1", prefix, T(n));
@@ -1139,11 +1133,11 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-vhdl-trace", "--vhdl-trace")) {
             gVHDLTrace = true;
             i += 1;
-            
+
         } else if (isCmd(argv[i], "-vhdl-float", "--vhdl-float")) {
             gVHDLFloatEncoding = true;
             i += 1;
-            
+
         } else if (isCmd(argv[i], "-vhdl-components", "--vhdl-components") && (i + 1 < argc)) {
             gVHDLComponentsFile = std::string(argv[i + 1]);
             i += 2;
@@ -1151,11 +1145,11 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-fpga-mem", "-fpga-mem") && (i + 1 < argc)) {
             gFPGAMemory = std::atoi(argv[i + 1]);
             i += 2;
-            
+
         } else if (isCmd(argv[i], "-style", "--svgstyle")) {
             gGlobal->gStyleFile = argv[i + 1];
             i += 2;
-            
+
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
             gFoldThreshold = std::atoi(argv[i + 1]);
             i += 2;
@@ -1429,9 +1423,7 @@ bool global::processCmdline(int argc, const char* argv[])
             } else {
                 char  temp[PATH_MAX + 1];
                 char* path = realpath(argv[i + 1], temp);
-                if (path) {
-                    gArchitectureDirList.push_back(path);
-                }
+                if (path) { gArchitectureDirList.push_back(path); }
             }
             i += 2;
 
@@ -1503,9 +1495,7 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (argv[i][0] != '-') {
             const char* url = argv[i];
-            if (checkURL(url)) {
-                gInputFiles.push_back(url);
-            }
+            if (checkURL(url)) { gInputFiles.push_back(url); }
             i++;
 
         } else {
@@ -1526,9 +1516,7 @@ bool global::processCmdline(int argc, const char* argv[])
     // Check options coherency
     // ========================
 
-    if (gInPlace && gVectorSwitch) {
-        throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n");
-    }
+    if (gInPlace && gVectorSwitch) { throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n"); }
 
 #if 0
     if (gOutputLang == "ocpp" && gVectorSwitch) {
@@ -1582,10 +1570,8 @@ bool global::processCmdline(int argc, const char* argv[])
     if (gInlineTable && gOutputLang != "cpp") {
         throw faustexception("ERROR : -it can only be used with 'cpp' backend\n");
     }
-    if (gInlineTable && gMemoryManager) {
-        throw faustexception("ERROR : -it cannot be used with -mem\n");
-    }
-  
+    if (gInlineTable && gMemoryManager) { throw faustexception("ERROR : -it cannot be used with -mem\n"); }
+
     // gComputeMix check
     if (gComputeMix && gOutputLang == "ocpp") {
         throw faustexception("ERROR : -cm cannot be used with the 'ocpp' backend\n");
@@ -1626,9 +1612,7 @@ bool global::processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -a can only be used with 'c', 'cpp', 'ocpp', 'rust' and 'cmajor' backends\n");
     }
 
-    if (gClassName == "") {
-        throw faustexception("ERROR : -cn used with empty string \n");
-    }
+    if (gClassName == "") { throw faustexception("ERROR : -cn used with empty string \n"); }
 
     if (err != 0) {
         stringstream error;
@@ -1651,17 +1635,13 @@ static string fxName(const string& filename)
     // determine position right after the last '/' or 0
     size_t p1 = 0;
     for (size_t i = 0; i < filename.size(); i++) {
-        if (filename[i] == '/') {
-            p1 = i + 1;
-        }
+        if (filename[i] == '/') { p1 = i + 1; }
     }
 
     // determine position of the last '.'
     size_t p2 = filename.size();
     for (size_t i = p1; i < filename.size(); i++) {
-        if (filename[i] == '.') {
-            p2 = i;
-        }
+        if (filename[i] == '.') { p2 = i; }
     }
 
     return filename.substr(p1, p2 - p1);
@@ -1701,9 +1681,7 @@ void global::initDirectories(int argc, const char* argv[])
     //-------------------------------------------------------------------------------------
     // init gImportDirList : a list of path where to search .lib files
     //-------------------------------------------------------------------------------------
-    if (char* envpath = getenv("FAUST_LIB_PATH")) {
-        gImportDirList.push_back(envpath);
-    }
+    if (char* envpath = getenv("FAUST_LIB_PATH")) { gImportDirList.push_back(envpath); }
 #ifdef INSTALL_PREFIX
     gImportDirList.push_back(INSTALL_PREFIX "/share/faust");
 #endif
@@ -1715,9 +1693,7 @@ void global::initDirectories(int argc, const char* argv[])
     //-------------------------------------------------------------------------------------
     // init gArchitectureDirList : a list of path where to search architectures files
     //-------------------------------------------------------------------------------------
-    if (char* envpath = getenv("FAUST_ARCH_PATH")) {
-        gArchitectureDirList.push_back(envpath);
-    }
+    if (char* envpath = getenv("FAUST_ARCH_PATH")) { gArchitectureDirList.push_back(envpath); }
     gArchitectureDirList.push_back(gFaustDirectory + "/architecture");
     gArchitectureDirList.push_back(gFaustSuperDirectory + "/architecture");
     gArchitectureDirList.push_back(gFaustSuperSuperDirectory + "/architecture");
@@ -1774,9 +1750,7 @@ void global::parseSourceFiles()
         throw faustexception("ERROR : no files specified; for help type \"faust --help\"\n");
     }
     for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
-        if (s == gInputFiles.begin()) {
-            gMasterDocument = *s;
-        }
+        if (s == gInputFiles.begin()) { gMasterDocument = *s; }
         result = cons(importFile(tree(s->c_str())), result);
     }
 
@@ -1893,14 +1867,14 @@ string global::printVersion()
 string global::printHelp()
 {
     stringstream sstr;
-    const char* tab  = "  ";
-    const char* line = "\n---------------------------------------\n";
-    
+    const char*  tab  = "  ";
+    const char*  line = "\n---------------------------------------\n";
+
     sstr << "FAUST compiler version " << FAUSTVERSION << "\n";
     sstr << "usage : faust [options] file1 [file2 ...]." << endl;
 #ifndef EMCC
     sstr << "        where options represent zero or more compiler options \n\tand fileN represents a Faust source "
-         "file (.dsp extension)."
+            "file (.dsp extension)."
          << endl;
 #endif
     sstr << endl << "Input options:" << line;
@@ -1923,15 +1897,16 @@ string global::printHelp()
     sstr << tab << "-json                                   generate a JSON description file." << endl;
     sstr << tab
          << "-O <dir>  --output-dir <dir>            specify the relative directory of the generated output code and "
-         "of additional generated files (SVG, XML...)."
+            "of additional generated files (SVG, XML...)."
          << endl;
 #endif
     sstr << endl << "Code generation options:" << line;
 #ifndef EMCC
     sstr << tab << "-lang <lang> --language                 select output language," << endl;
     sstr << tab
-         << "                                        'lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, "
-         "ocpp, rust, vhdl or wast/wasm."
+         << "                                        'lang' should be c, cpp (default), cmajor, codebox, csharp, "
+            "dlang, fir, interp, java, jax, jsfx, julia, llvm, "
+            "ocpp, rust, vhdl or wast/wasm."
          << endl;
 #endif
     sstr << tab
@@ -1946,18 +1921,18 @@ string global::printHelp()
     sstr << tab << "-fx         --fixed-point               use fixed-point for internal computations." << endl;
     sstr << tab
          << "-es 1|0     --enable-semantics 1|0      use enable semantics when 1 (default), and simple multiplication "
-         "otherwise."
+            "otherwise."
          << endl;
     sstr << tab << "-lcc        --local-causality-check     check causality also at local level." << endl;
 #ifndef EMCC
     sstr << tab << "-light      --light-mode                do not generate the entire DSP API." << endl;
     sstr << tab
          << "-clang      --clang                     when compiled with clang/clang++, adds specific #pragma for "
-         "auto-vectorization."
+            "auto-vectorization."
          << endl;
     sstr << tab
          << "-nvi        --no-virtual                when compiled with the C++ backend, does not add the 'virtual' "
-         "keyword."
+            "keyword."
          << endl;
     sstr << tab << "-fp         --full-parentheses          always add parentheses around binops." << endl;
     sstr << tab << "-cir        --check-integer-range       check float to integer range conversion." << endl;
@@ -1967,19 +1942,22 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-os1        --one-sample1               generate one sample computation (1 = separated control and DSP "
-         "struct)."
+            "struct)."
          << endl;
     sstr << tab
          << "-os2        --one-sample2               generate one sample computation (2 = separated control and DSP "
-         "struct. Separation in short and long delay lines)."
+            "struct. Separation in short and long delay lines)."
          << endl;
     sstr << tab
          << "-os3        --one-sample3               generate one sample computation (3 = like 2 but with external "
-         "memory pointers kept in the DSP struct)."
+            "memory pointers kept in the DSP struct)."
          << endl;
     sstr << tab << "-it         --inline-table              inline rdtable/rwtable code in the main class." << endl;
     sstr << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
-    sstr << tab << "-ct         --check-table               check rtable/rwtable index range and generate safe access code [0/1: 1 by default]." << endl;
+    sstr << tab
+         << "-ct         --check-table               check rtable/rwtable index range and generate safe access code "
+            "[0/1: 1 by default]."
+         << endl;
     sstr << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
          << endl;
@@ -1989,7 +1967,8 @@ string global::printHelp()
     sstr << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process."
          << endl;
     sstr << tab
-         << "-mcd <n>    --max-copy-delay <n>        use a copy delay up to max delay <n> and a dense delay above (ocpp only) "
+         << "-mcd <n>    --max-copy-delay <n>        use a copy delay up to max delay <n> and a dense delay above "
+            "(ocpp only) "
             "or a ring buffer (defaut 16 samples)."
          << endl;
     sstr << tab
@@ -2014,66 +1993,76 @@ string global::printHelp()
 #endif
     sstr << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no (default), 1:fabs based, "
-         "2:mask based (fastest)]."
+            "2:mask based (fastest)]."
          << endl;
 #ifndef EMCC
     sstr << tab
-         << "-rui        --range-ui                  whether to generate code to constraint vslider/hslider/nentry values "
-         "in [min..max] range."
+         << "-rui        --range-ui                  whether to generate code to constraint vslider/hslider/nentry "
+            "values "
+            "in [min..max] range."
          << endl;
     sstr << tab
-         << "-fui        --freeze-ui                 whether to freeze vslider/hslider/nentry to a given value (init value by default)."
+         << "-fui        --freeze-ui                 whether to freeze vslider/hslider/nentry to a given value (init "
+            "value by default)."
          << endl;
-    sstr << tab
-         << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compiling "
-         "a dsp file."
-         << endl;
+    sstr
+        << tab
+        << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compiling "
+           "a dsp file."
+        << endl;
     sstr << tab << "-scal       --scalar                    generate non-vectorized code (default)." << endl;
     sstr << tab
          << "-inpl       --in-place                  generates code working when input and output buffers are the same "
-         "(scalar mode only)."
+            "(scalar mode only)."
          << endl;
     sstr << tab << "-vec        --vectorize                 generate easier to vectorize code." << endl;
     sstr << tab << "-vs <n>     --vec-size <n>              size of the vector (default 32 samples)." << endl;
-    sstr << tab << "-lv <n>     --loop-variant <n>          [0:fastest, fixed vector size and a remaining loop (default), 1:simple, variable vector size]."    << endl;
+    sstr << tab
+         << "-lv <n>     --loop-variant <n>          [0:fastest, fixed vector size and a remaining loop (default), "
+            "1:simple, variable vector size]."
+         << endl;
     sstr << tab << "-omp        --openmp                    generate OpenMP pragmas, activates --vectorize option."
          << endl;
     sstr << tab << "-pl         --par-loop                  generate parallel loops in --openmp mode." << endl;
     sstr << tab
          << "-sch        --scheduler                 generate tasks and use a Work Stealing scheduler, activates "
-         "--vectorize option."
+            "--vectorize option."
          << endl;
     sstr << tab << "-ocl        --opencl                    generate tasks with OpenCL (experimental)." << endl;
     sstr << tab << "-cuda       --cuda                      generate tasks with CUDA (experimental)." << endl;
     sstr << tab << "-dfs        --deep-first-scheduling     schedule vector loops in deep first order." << endl;
     sstr << tab
          << "-g          --group-tasks               group single-threaded sequential tasks together when -omp or -sch "
-         "is used."
+            "is used."
          << endl;
     sstr << tab
          << "-fun        --fun-tasks                 separate tasks code as separated functions (in -vec, -sch, or "
-         "-omp mode)."
+            "-omp mode)."
          << endl;
     sstr << tab
          << "-fm <file>  --fast-math <file>          use optimized versions of mathematical functions implemented in "
-         "<file>, use 'faust/dsp/fastmath.cpp' when file is 'def', assume functions are defined in the architecture file when file is 'arch'."
+            "<file>, use 'faust/dsp/fastmath.cpp' when file is 'def', assume functions are defined in the architecture "
+            "file when file is 'arch'."
          << endl;
     sstr << tab
          << "-mapp       --math-approximation        simpler/faster versions of 'floor/ceil/fmod/remainder' functions."
          << endl;
-    sstr << tab
-         << "-noreprc    --no-reprc                  (Rust only) Don't force dsp struct layout to follow C ABI."
+    sstr << tab << "-noreprc    --no-reprc                  (Rust only) Don't force dsp struct layout to follow C ABI."
          << endl;
     sstr << tab << "-ns <name>  --namespace <name>          generate C++ or D code in a namespace <name>." << endl;
-    
+
     sstr << tab << "-vhdl-trace    --vhdl-trace             activate trace." << endl;
-    sstr << tab << "-vhdl-float    --vhdl-float             uses IEEE-754 format for samples instead of fixed point." << endl;
-    sstr << tab << "-vhdl-components <file> --vhdl-components <file>    path to a file describing custom components for the VHDL backend." << endl;
+    sstr << tab << "-vhdl-float    --vhdl-float             uses IEEE-754 format for samples instead of fixed point."
+         << endl;
+    sstr << tab
+         << "-vhdl-components <file> --vhdl-components <file>    path to a file describing custom components for the "
+            "VHDL backend."
+         << endl;
     sstr << tab << "-fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, used in -os2/-os3 mode." << endl;
-    
+
     sstr << tab << "-wi <n>     --widening-iterations <n>   number of iterations before widening in signal bounding."
          << endl;
-    
+
     sstr << tab
          << "-ni <n>     --narrowing-iterations <n>  number of iterations before stopping narrowing in signal bounding."
          << endl;
@@ -2086,31 +2075,31 @@ string global::printHelp()
     sstr << tab << "-drf       --draw-route-frame           draw route frames instead of simple cables." << endl;
     sstr << tab
          << "-f <n>     --fold <n>                   threshold to activate folding mode during block-diagram "
-         "generation (default 25 elements)."
+            "generation (default 25 elements)."
          << endl;
     sstr << tab
          << "-fc <n>    --fold-complexity <n>        complexity threshold to fold an expression in folding mode "
-         "(default 2)."
+            "(default 2)."
          << endl;
     sstr << tab
          << "-mns <n>   --max-name-size <n>          threshold during block-diagram generation (default 40 char)."
          << endl;
     sstr << tab
          << "-sn        --simple-names               use simple names (without arguments) during block-diagram "
-         "generation."
+            "generation."
          << endl;
     sstr << tab << "-blur      --shadow-blur                add a shadow blur to SVG boxes." << endl;
     sstr << tab << "-sc        --scaled-svg                 automatic scalable SVG." << endl;
-    
+
     sstr << endl << "Math doc options:" << line;
     sstr << tab
          << "-mdoc       --mathdoc                   print math documentation of the Faust program in LaTeX format in "
-         "a -mdoc folder."
+            "a -mdoc folder."
          << endl;
     sstr << tab << "-mdlang <l> --mathdoc-lang <l>          if translation file exists (<l> = en, fr, ...)." << endl;
     sstr << tab << "-stripmdoc  --strip-mdoc-tags           strip mdoc tags when printing Faust -mdoc listings."
          << endl;
-    
+
     sstr << endl << "Debug options:" << line;
     sstr << tab << "-d          --details                   print compilation details." << endl;
     sstr << tab << "-time       --compilation-time          display compilation phases timing information." << endl;
@@ -2121,13 +2110,16 @@ string global::printHelp()
     sstr << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
     sstr << tab
          << "-me         --math-exceptions           check / for 0 as denominator and remainder, fmod, sqrt, log10, "
-         "log, acos, asin functions domain."
+            "log, acos, asin functions domain."
          << endl;
-    sstr << tab << "-sts        --strict-select             generate strict code for 'selectX' even for stateless branches (both are computed)." << endl;
+    sstr << tab
+         << "-sts        --strict-select             generate strict code for 'selectX' even for stateless branches "
+            "(both are computed)."
+         << endl;
     sstr << tab << "-wall       --warning-all               print all warnings." << endl;
     sstr << tab << "-t <sec>    --timeout <sec>             abort compilation after <sec> seconds (default 120)."
          << endl;
-    
+
     sstr << endl << "Information options:" << line;
     sstr << tab << "-h          --help                      print this help message." << endl;
     sstr << tab << "-v          --version                   print version information and embedded backends list."
@@ -2139,7 +2131,7 @@ string global::printHelp()
     sstr << tab << "-dspdir     --dspdir                    print directory containing the Faust dsp libraries."
          << endl;
     sstr << tab << "-pathslist  --pathslist                 print the architectures and dsp library paths." << endl;
-    
+
     sstr << endl << "Example:" << line;
     sstr << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp" << endl;
 #endif
@@ -2259,9 +2251,7 @@ void Garbageable::operator delete(void* ptr)
 {
     // We may have cases when a pointer will be deleted during
     // a compilation, thus the pointer has to be removed from the list.
-    if (!global::gHeapCleanup) {
-        global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
-    }
+    if (!global::gHeapCleanup) { global::gObjectTable.remove(static_cast<Garbageable*>(ptr)); }
     free(ptr);
 }
 
@@ -2277,9 +2267,7 @@ void Garbageable::operator delete[](void* ptr)
 {
     // We may have cases when a pointer will be deleted during
     // a compilation, thus the pointer has to be removed from the list.
-    if (!global::gHeapCleanup) {
-        global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
-    }
+    if (!global::gHeapCleanup) { global::gObjectTable.remove(static_cast<Garbageable*>(ptr)); }
     free(ptr);
 }
 
@@ -2290,7 +2278,7 @@ void callFun(threaded_fun fun, void* arg)
     // No thread support in JavaScript
     fun(arg);
 #elif defined(_WIN32)
-    DWORD  id;
+    DWORD id;
     HANDLE thread = CreateThread(NULL, MAX_STACK_SIZE, LPTHREAD_START_ROUTINE(fun), arg, 0, &id);
     faustassert(thread != NULL);
     WaitForSingleObject(thread, INFINITE);
