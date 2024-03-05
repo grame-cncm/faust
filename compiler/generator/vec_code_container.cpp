@@ -227,6 +227,12 @@ void VectorCodeContainer::processFIR(void)
     if (gGlobal->gRemoveVarAddress) {
         fDAGBlock = remover.getCode(fDAGBlock);
     }
+    
+    // Rewrite "Rec/Vec" indexes in iZone/fZone access
+    if (gGlobal->gMemoryManager >= 1) {
+        fDAGBlock = gGlobal->gIntZone->getCode(fDAGBlock);
+        fDAGBlock = gGlobal->gRealZone->getCode(fDAGBlock);
+    }
 
     // Verify code
     /*

@@ -235,7 +235,7 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->getAccess() & Address::kStaticStruct) {
             *fOut << "static ";
         }
 

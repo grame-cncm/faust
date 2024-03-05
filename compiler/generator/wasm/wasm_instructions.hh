@@ -291,7 +291,7 @@ struct LocalVariableCounter : public DispatchVisitor {
     {
         std::string    name = inst->fAddress->getName();
         Typed::VarType type = inst->fType->getType();
-        Address::AccessType access = inst->fAddress->getAccess();
+        Address::AccessType access = inst->getAccess();
 
         faustassert(fLocalVarTable.find(name) == fLocalVarTable.end());
 
@@ -454,8 +454,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        bool is_struct = (inst->fAddress->getAccess() & Address::kStruct)
-                        || (inst->fAddress->getAccess() & Address::kStaticStruct);
+        bool is_struct = (inst->getAccess() & Address::kStruct)
+                        || (inst->getAccess() & Address::kStaticStruct);
         
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         std::string name = inst->fAddress->getName();
@@ -815,7 +815,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        Address::AccessType access      = inst->fAddress->getAccess();
+        Address::AccessType access      = inst->getAccess();
         bool                is_struct  = (access & Address::kStruct) || (access & Address::kStaticStruct);
         ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         std::string        name        = inst->fAddress->getName();
@@ -889,7 +889,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(LoadVarInst* inst)
     {
         Typed::VarType type        = TypingVisitor::getType(inst);
-        Address::AccessType access = inst->fAddress->getAccess();
+        Address::AccessType access = inst->getAccess();
         std::string          name = inst->fAddress->getName();
         IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
     
@@ -943,7 +943,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(StoreVarInst* inst)
     {
         Typed::VarType type        = TypingVisitor::getType(inst->fValue);
-        Address::AccessType access = inst->fAddress->getAccess();
+        Address::AccessType access = inst->getAccess();
         std::string name           = inst->fAddress->getName();
         IndexedAddress* indexed    = dynamic_cast<IndexedAddress*>(inst->fAddress);
 

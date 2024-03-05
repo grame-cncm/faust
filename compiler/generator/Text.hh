@@ -292,12 +292,19 @@ inline bool isUIControl(const std::string& name)
 }
 
 // To check all control fields in the DSP structure
+/*
 inline bool isControl(const std::string& name)
 {
     return isUIControl(name)
         || name == "iControl" || name == "fControl"
         || name == "iZone" || name == "fZone"
         || name == "fSampleRate";
+}
+*/
+
+inline bool isControl(const std::string& name)
+{
+    return isUIControl(name) || name == "fSampleRate";
 }
 
 inline bool isConst(const std::string& name)

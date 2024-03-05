@@ -885,15 +885,15 @@ class JSFXInstVisitor : public TextInstVisitor {
         if (strfind(name, "output") || strfind(name, "input")) {
             return;
         }
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->getAccess() & Address::kStaticStruct) {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
         } else {
             bool is_block = startWith(name, "iSlow") || startWith(name, "fSlow");
-            if (inst->fAddress->getAccess() & Address::kStack && is_block) {
+            if (inst->getAccess() & Address::kStack && is_block) {
                 *fOut << "obj[dsp.";
             }
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
-            if (inst->fAddress->getAccess() & Address::kStack && is_block) {
+            if (inst->getAccess() & Address::kStack && is_block) {
                 *fOut << "]";
             }
             if (inst->fValue) {

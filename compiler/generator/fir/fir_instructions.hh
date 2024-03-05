@@ -259,7 +259,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         *fOut << "DeclareVarInst(";
         *fOut << generateType(inst->fType, inst->fAddress->getName());
-        *fOut << ", " << Address::dumpString(inst->fAddress->getAccess());
+        *fOut << ", " << Address::dumpString(inst->getAccess());
         if (inst->fValue) {
             *fOut << ", ";
             inst->fValue->accept(this);
@@ -388,6 +388,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     virtual void visit(NullStatementInst* inst)
     {
         *fOut << "NullStatementInst()";
+        tab(fTab, *fOut);
     }
 
     virtual void visit(LoadVarInst* inst)

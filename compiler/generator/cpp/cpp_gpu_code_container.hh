@@ -353,7 +353,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         virtual void visit(DeclareVarInst* inst)
         {
             /*
-            if (inst->fAddress->getAccess() & Address::kGlobal) {
+            if (inst->getAccess() & Address::kGlobal) {
                 if (gGlobal->gSymbolGlobalsTable.find(inst->fAddress->getName()) == gGlobal->gSymbolGlobalsTable.end())
                 {
                     // If global is not defined
@@ -364,15 +364,15 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             }
             */
 
-            if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+            if (inst->getAccess() & Address::kStaticStruct) {
                 *fOut << "static ";
             }
 
-            if (inst->fAddress->getAccess() & Address::kVolatile) {
+            if (inst->getAccess() & Address::kVolatile) {
                 *fOut << "volatile ";
             }
 
-            if (inst->fAddress->getAccess() & Address::kStack) {
+            if (inst->getAccess() & Address::kStack) {
                 *fOut << "__local ";
             }
 
@@ -426,15 +426,15 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 
         virtual void visit(DeclareVarInst* inst)
         {
-            if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+            if (inst->getAccess() & Address::kStaticStruct) {
                 *fOut << "static ";
             }
 
-            if (inst->fAddress->getAccess() & Address::kVolatile) {
+            if (inst->getAccess() & Address::kVolatile) {
                 *fOut << "volatile ";
             }
 
-            if (inst->fAddress->getAccess() & Address::kStack) {
+            if (inst->getAccess() & Address::kStack) {
                 *fOut << "__shared__ ";
             }
 

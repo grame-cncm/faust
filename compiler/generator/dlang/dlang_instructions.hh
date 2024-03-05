@@ -226,15 +226,15 @@ class DLangInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kConst) {
+        if (inst->getAccess() & Address::kConst) {
             *fOut << "const ";
         }
 
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->getAccess() & Address::kStaticStruct) {
             *fOut << "__gshared ";
         }
 
-        if (inst->fAddress->getAccess() & Address::kVolatile) {
+        if (inst->getAccess() & Address::kVolatile) {
             *fOut << "volatile ";
         }
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);

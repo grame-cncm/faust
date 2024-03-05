@@ -489,7 +489,7 @@ class JAXInstVisitor : public TextInstVisitor {
    
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->getAccess() & Address::kStaticStruct) {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
             // Allocation is actually done in JAXInitFieldsVisitor
         } else {

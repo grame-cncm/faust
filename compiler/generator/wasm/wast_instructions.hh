@@ -102,7 +102,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     
     virtual void visit(DeclareVarInst* inst)
     {
-        Address::AccessType access      = inst->fAddress->getAccess();
+        Address::AccessType access      = inst->getAccess();
         bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
         ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         std::string              name        = inst->fAddress->getName();
@@ -222,7 +222,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(LoadVarInst* inst)
     {
         Typed::VarType        type = TypingVisitor::getType(inst);
-        Address::AccessType access = inst->fAddress->getAccess();
+        Address::AccessType access = inst->getAccess();
         std::string          name = inst->fAddress->getName();
         IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
@@ -277,7 +277,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(StoreVarInst* inst)
     {
         Typed::VarType type = TypingVisitor::getType(inst->fValue);
-        Address::AccessType access = inst->fAddress->getAccess();
+        Address::AccessType access = inst->getAccess();
         IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
   
         if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {

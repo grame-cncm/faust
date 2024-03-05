@@ -47,7 +47,7 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
         tab(fTab, *fOut);
         *fOut << inst->fAddress->getName() << ": ";
         ZeroInitializer(fOut, inst->fType);
-        if (inst->fAddress->getAccess() & Address::kStruct) *fOut << ",";
+        if (inst->getAccess() & Address::kStruct) *fOut << ",";
     }
 
     // Generate zero initialisation code for simple int/real scalar and arrays types
@@ -190,9 +190,9 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->getAccess() & Address::kStaticStruct) {
             *fOut << "static mut ";
-        } else if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
+        } else if (inst->getAccess() & Address::kStack || inst->getAccess() & Address::kLoop) {
             *fOut << "let mut ";
         } else if (inst->getAccess() & Address::kConst) {
             *fOut << "const ";
@@ -208,7 +208,7 @@ class RustInstVisitor : public TextInstVisitor {
         if (inst->fValue) {
             *fOut << " = ";
             inst->fValue->accept(this);
-        } else if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        } else if (inst->getAccess() & Address::kStaticStruct) {
             *fOut << " = ";
             RustInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
         } else if (inst->getAccess() == Address::kStack && dynamic_cast<ArrayTyped*>(inst->fType)) {
@@ -217,7 +217,7 @@ class RustInstVisitor : public TextInstVisitor {
             RustInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
         }
 
-        EndLine((inst->fAddress->getAccess() & Address::kStruct) ? ',' : ';');
+        EndLine((inst->getAccess() & Address::kStruct) ? ',' : ';');
     }
 
     virtual void visit(DeclareBufferIterators* inst)
@@ -381,11 +381,11 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(LoadVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->getAccess() & Address::kStaticStruct) {
             *fOut << "unsafe { ";
         }
         inst->fAddress->accept(this);
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->getAccess() & Address::kStaticStruct) {
             *fOut << " }";
         }
     }

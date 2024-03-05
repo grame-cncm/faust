@@ -163,7 +163,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         DispatchVisitor::visit(inst);
-        Address::AccessType access = inst->fAddress->getAccess();
+        Address::AccessType access = inst->getAccess();
 
         if (access == Address::kStack || access == Address::kLoop) {
             // Keep local variables in the loop

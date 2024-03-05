@@ -101,7 +101,7 @@ struct Stack2StructRewriter2 : public DispatchVisitor {
         BasicCloneVisitor cloner;
         std::string       name = inst->fAddress->getName();
 
-        if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != std::string::npos) {
+        if (inst->getAccess() == Address::kStack && name.find(fName) != std::string::npos) {
             // Variable moved to the Struct
             fContainer->pushDeclare(InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
 
@@ -151,7 +151,7 @@ struct RemoverCloneVisitor : public BasicCloneVisitor {
     // Rewrite Declare as a no-op (DropInst)
     StatementInst* visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->getAccess() == Address::kLink) {
+        if (inst->getAccess() == Address::kLink) {
             return InstBuilder::genDropInst();
         } else {
             return BasicCloneVisitor::visit(inst);
@@ -404,7 +404,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
         }
         // Then pure declaration
         for (std::list<StatementInst*>::reverse_iterator it = fVarTableDeclaration.rbegin();
-             it != fVarTableDeclaration.rend(); ++it) {
+            it != fVarTableDeclaration.rend(); ++it) {
             dst->pushFrontInst(*it);
         }
         return dst;
@@ -421,7 +421,7 @@ struct LoopVariableRenamer : public BasicCloneVisitor {
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
         // Rename 'loop' variables
-        if (dynamic_cast<NamedAddress*>(inst->fAddress) && inst->fAddress->getAccess() == Address::kLoop) {
+        if (dynamic_cast<NamedAddress*>(inst->fAddress) && inst->getAccess() == Address::kLoop) {
             std::string name = inst->fAddress->getName();
             fLoopIndexMap[name] = gGlobal->getFreshID(name + "_re");
         }
@@ -496,8 +496,7 @@ struct VariableSizeCounter : public DispatchVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         DispatchVisitor::visit(inst);
-
-        if (((fType == Typed::kNoType) || (inst->fType->getType() == fType)) && inst->fAddress->getAccess() | fAccess) {
+        if (((fType == Typed::kNoType) || (inst->fType->getType() == fType)) && inst->getAccess() | fAccess) {
             fSizeBytes += inst->fType->getSizeBytes();
         }
     }
@@ -722,7 +721,7 @@ struct ConstantsCopyMemory : public BasicCloneVisitor {
     int fIntIndex = 0;
     int fRealIndex = 0;
     
-    ConstantsCopyMemory(int int_index, int float_index):fIntIndex(int_index), fRealIndex(float_index)
+    ConstantsCopyMemory(int int_index, int real_index):fIntIndex(int_index), fRealIndex(real_index)
     {}
     
     // Removed instructions
@@ -741,13 +740,13 @@ struct ConstantsCopyMemory : public BasicCloneVisitor {
 // Analysis to copy constants from an external memory zone (FunArgs version) used in -os2 and -os3 modes
 struct ConstantsCopyFromMemory : public ConstantsCopyMemory {
     
-    ConstantsCopyFromMemory(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)
+    ConstantsCopyFromMemory(int int_index, int real_index):ConstantsCopyMemory(int_index, real_index)
     {}
     
     StatementInst* visit(StoreVarInst* inst)
     {
         std::string name = inst->fAddress->getName();
-        bool is_struct = inst->fAddress->getAccess() & Address::kStruct;
+        bool is_struct = inst->getAccess() & Address::kStruct;
         if (startWith(name, "iConst") && is_struct) {
             ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("iZone", FIRIndex(fIntIndex++));
             return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
@@ -766,13 +765,13 @@ struct ConstantsCopyFromMemory : public ConstantsCopyMemory {
 // Analysis to copy constants from an external memory zone (Struct version) used in -os2 and -os3 modes
 struct ConstantsCopyFromMemory1 : public ConstantsCopyMemory {
     
-    ConstantsCopyFromMemory1(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)
+    ConstantsCopyFromMemory1(int int_index, int real_index):ConstantsCopyMemory(int_index, real_index)
     {}
     
     StatementInst* visit(StoreVarInst* inst)
     {
         std::string name = inst->fAddress->getName();
-        bool is_struct = inst->fAddress->getAccess() & Address::kStruct;
+        bool is_struct = inst->getAccess() & Address::kStruct;
         if (startWith(name, "iConst") && is_struct) {
             ValueInst* zone = InstBuilder::genLoadArrayStructVar("iZone", FIRIndex(fIntIndex++));
             return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
@@ -791,13 +790,13 @@ struct ConstantsCopyFromMemory1 : public ConstantsCopyMemory {
 // Analysis to copy constants to an external memory zone (FunArgs version) used in -os2 and -os3 modes
 struct ConstantsCopyToMemory : public ConstantsCopyMemory {
     
-    ConstantsCopyToMemory(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)
+    ConstantsCopyToMemory(int int_index, int real_index):ConstantsCopyMemory(int_index, real_index)
     {}
     
     StatementInst* visit(StoreVarInst* inst)
     {
         std::string name = inst->fAddress->getName();
-        bool is_struct = inst->fAddress->getAccess() & Address::kStruct;
+        bool is_struct = inst->getAccess() & Address::kStruct;
         if (startWith(name, "iConst") && is_struct) {
             return InstBuilder::genStoreArrayFunArgsVar("iZone", FIRIndex(fIntIndex++), InstBuilder::genLoadStructVar(name));
         } else if (startWith(name, "fConst") && is_struct) {
@@ -814,13 +813,13 @@ struct ConstantsCopyToMemory : public ConstantsCopyMemory {
 // Analysis to copy constants to an external memory zone (Struct version) used in -os2 and -os3 modes
 struct ConstantsCopyToMemory1 : public ConstantsCopyMemory {
     
-    ConstantsCopyToMemory1(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)
+    ConstantsCopyToMemory1(int int_index, int real_index):ConstantsCopyMemory(int_index, real_index)
     {}
     
     StatementInst* visit(StoreVarInst* inst)
     {
         std::string name = inst->fAddress->getName();
-        bool is_struct = inst->fAddress->getAccess() & Address::kStruct;
+        bool is_struct = inst->getAccess() & Address::kStruct;
         if (startWith(name, "iConst") && is_struct) {
             return InstBuilder::genStoreArrayStructVar("iZone", FIRIndex(fIntIndex++), InstBuilder::genLoadStructVar(name));
         } else if (startWith(name, "fConst") && is_struct) {
@@ -841,6 +840,27 @@ struct ArrayToPointer : public BasicCloneVisitor {
     {
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_typed) {
+            return InstBuilder::genDecStructVar(inst->getName(), InstBuilder::genArrayTyped(array_typed->fType->clone(this), 0));
+        } else {
+            return BasicCloneVisitor::visit(inst);
+        }
+    }
+    
+};
+
+inline bool isControlOrZone(const std::string& name)
+{
+    std::vector<std::string> names = { "iControl", "fControl", "iZone", "fZone" };
+    return std::find(names.begin(), names.end(), name) != std::end(names);
+}
+
+// Check if array and in {"iControl", "fControl", "iZone", "fZone"}
+struct ArrayToPointer1 : public BasicCloneVisitor {
+    
+    virtual StatementInst* visit(DeclareVarInst* inst)
+    {
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        if (array_typed && isControlOrZone(inst->getName())) {
             return InstBuilder::genDecStructVar(inst->getName(), InstBuilder::genArrayTyped(array_typed->fType->clone(this), 0));
         } else {
             return BasicCloneVisitor::visit(inst);

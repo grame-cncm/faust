@@ -141,38 +141,27 @@ static void runDSP2(dsp* DSP, const string& file, int& linenum, int nbsamples, b
     
     delete ichan;
     if (ochan != ichan) delete ochan;
-    mydsp::destroy(oldDSP);
-    mydsp::destroy(DSP);
+    delete oldDSP;
+    delete DSP;
 }
 
-malloc_memory_manager_check gManager;
+int iControl[FAUST_INT_CONTROLS];
+double fControl[FAUST_REAL_CONTROLS];
+
+int iZone[FAUST_INT_ZONE];
+double fZone[FAUST_FLOAT_ZONE];
 
 int main(int argc, char* argv[])
 {
     int linenum = 0;
     int nbsamples = 60000;
-    
-    // Setup the global custom memory manager
-    mydsp::fManager = &gManager;
-    
-    // Make the memory manager get information on all subcontainers,
-    // static tables, DSP and arrays
-    mydsp::memoryInfo();
-    
-    // Done once before allocating any DSP
-    mydsp::classInit(44100);
-    
+  
     // print general informations
-    printHeader(mydsp::create(), nbsamples);
+    printHeader(new mydsp(iControl, fControl, iZone, fZone), nbsamples);
     
-    // linenum is incremented in runDSP and runPolyDSP
-    runDSP2(mydsp::create(), argv[0], linenum, nbsamples/4);
-    runDSP2(mydsp::create(), argv[0], linenum, nbsamples/4, false, true);
-    //runPolyDSP(new mydsp(), linenum, nbsamples/4, 4);
-    //runPolyDSP(new mydsp(), linenum, nbsamples/4, 1);
-    
-    // Done once after the last DSP has been destroyed
-    mydsp::classDestroy();
-    
+    // linenum is incremented in runDSP
+    runDSP2(new mydsp(iControl, fControl, iZone, fZone), argv[0], linenum, nbsamples/4);
+    runDSP2(new mydsp(iControl, fControl, iZone, fZone), argv[0], linenum, nbsamples/4, false, true);
+     
     return 0;
 }

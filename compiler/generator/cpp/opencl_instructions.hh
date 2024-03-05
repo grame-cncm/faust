@@ -134,11 +134,11 @@ class OpenCLInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->getAccess() & Address::kStaticStruct) {
             *fOut << "static ";
         }
 
-        if (inst->fAddress->getAccess() & Address::kVolatile) {
+        if (inst->getAccess() & Address::kVolatile) {
             *fOut << "volatile ";
         }
 

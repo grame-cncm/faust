@@ -520,7 +520,7 @@ void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const str
 {
     // "$0 $1[$2];"
     DeclareVarInst* table_inst = InstBuilder::genDecStackVar(
-        vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), gGlobal->gVecSize));
+        vname, InstBuilder::genArrayTyped(ctype, gGlobal->gVecSize));
     pushComputeBlockMethod(table_inst);
 
     // -- compute the new samples

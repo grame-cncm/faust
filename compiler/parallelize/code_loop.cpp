@@ -96,8 +96,15 @@ BlockInst* CodeLoop::generateOneSample()
     ControlExpander exp;
     block = exp.getCode(block);
 
-    BasicCloneVisitor cloner;
-    return static_cast<BlockInst*>(block->clone(&cloner));
+    // Rewrite "Rec/Vec" indexes in iZone/fZone access
+    if (gGlobal->gMemoryManager >= 1) {
+        block = gGlobal->gIntZone->getCode(block);
+        block = gGlobal->gRealZone->getCode(block);
+        return block;
+    } else {
+        BasicCloneVisitor cloner;
+        return static_cast<BlockInst*>(block->clone(&cloner));
+    }
 }
 
 void CodeLoop::generateDAGScalarLoop(BlockInst* block, LoadVarInst* count, bool omp)

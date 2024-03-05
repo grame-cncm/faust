@@ -44,6 +44,8 @@ class CCodeContainer : public virtual CodeContainer {
 
     virtual void produceClass();
     void produceMetadata(int tabs);
+    void produceInit(int tabs);
+    
     virtual void produceInternal();
     
     virtual void generateComputeAux(int tab) = 0;
@@ -217,121 +219,6 @@ class CScalarCodeContainer : public CCodeContainer {
 };
 
 /**
- * Implement C FIR scalar container (special version for -os0 generation mode)
- */
-
-class CScalarOneSampleCodeContainer1 : public CScalarCodeContainer {
-   protected:
-    virtual void produceClass();
-   public:
-    CScalarOneSampleCodeContainer1(const std::string& name,
-                                  int numInputs,
-                                  int numOutputs,
-                                  std::ostream* out,
-                                  int sub_container_type)
-    {
-        initialize(numInputs, numOutputs);
-        fKlassName = name;
-        fOut = out;
-        
-        printMathHeader();
-        
-        fSubContainerType = sub_container_type;
-        fCodeProducer = new CInstVisitor(out, name);
-    }
-
-    virtual ~CScalarOneSampleCodeContainer1()
-    {}
-    
-    void generateComputeAux(int tab);
-};
-
-/**
- * Implement C FIR scalar container (special version for -os1 generation mode with iZone and fZone).
- */
-
-class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
-    protected:
-        virtual void produceClass();
-    public:
-        CScalarOneSampleCodeContainer2()
-        {}
-        CScalarOneSampleCodeContainer2(const std::string& name,
-                                      int numInputs,
-                                      int numOutputs,
-                                      std::ostream* out,
-                                      int sub_container_type)
-        {
-            initialize(numInputs, numOutputs);
-            fKlassName = name;
-            fOut = out;
-            
-            printMathHeader();
-            
-            fSubContainerType = sub_container_type;
-            fCodeProducer = new CInstVisitor1(out, name);
-        }
-    
-        virtual ~CScalarOneSampleCodeContainer2()
-        {}
-    
-        void generateComputeAux(int tab);
-};
-
-/**
- Implement C FIR scalar container (special version for -os2 generation mode with iZone and fZone). Some of the DSP struct fields will be moved in the iZone/fZone (typically long delay lines). The others will stay in the DSP structure.
- */
-
-class CScalarOneSampleCodeContainer3 : public CScalarOneSampleCodeContainer2 {
-    protected:
-        virtual void produceClass();
-    public:
-        CScalarOneSampleCodeContainer3(const std::string& name,
-                                       int numInputs,
-                                       int numOutputs,
-                                       std::ostream* out,
-                                       int sub_container_type)
-        {
-            initialize(numInputs, numOutputs);
-            fKlassName = name;
-            fOut = out;
-            
-            printMathHeader();
-            
-            fSubContainerType = sub_container_type;
-            // Setup in produceClass
-            fCodeProducer = nullptr;
-        }
-        
-        virtual ~CScalarOneSampleCodeContainer3()
-        {}
-    
-};
-
-/**
- Implement C FIR scalar container (special version for -os3 generation mode with iZone and fZone in DSP struct).
- */
-
-class CScalarOneSampleCodeContainer4 : public CScalarOneSampleCodeContainer3 {
-    protected:
-        virtual void produceClass();
-    public:
-        CScalarOneSampleCodeContainer4(const std::string& name,
-                                       int numInputs,
-                                       int numOutputs,
-                                       std::ostream* out,
-                                       int sub_container_type)
-        :CScalarOneSampleCodeContainer3(name, numInputs, numOutputs, out, sub_container_type)
-        {}
-        
-        virtual ~CScalarOneSampleCodeContainer4()
-        {}
-        
-        void generateComputeAux(int tab);
-    
-};
-
-/**
  Implement C FIR vector container.
  */
 
@@ -342,7 +229,7 @@ class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
     virtual ~CVectorCodeContainer()
     {}
 
-    void generateComputeAux(int n);
+    void generateComputeAux(int tab);
 };
 
 /**

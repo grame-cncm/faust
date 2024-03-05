@@ -12,6 +12,34 @@
 
 <<includeclass>>
 
+// Wrapping C++ class used with -ec option.
+
+struct ControlDSP : public decorator_dsp {
+    
+    ControlDSP(dsp* dsp):decorator_dsp(dsp)
+    {}
+    
+    virtual ~ControlDSP()
+    {
+        mydsp::destroy(fDSP);
+        // fDSP is now desallocated, we don't want decorator_dsp to delete the pointer
+        fDSP = nullptr;
+    }
+    
+    // This is mandatory
+    virtual ControlDSP* clone()
+    {
+        return new ControlDSP(fDSP->clone());
+    }
+    
+    void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs)
+    {
+        fDSP->control();
+        fDSP->compute(count, inputs, outputs);
+    }
+    
+};
+
 // To be used in static context with -mem
 static void runDSP2(dsp* DSP, const string& file, int& linenum, int nbsamples, bool inpl = false, bool random = false)
 {
@@ -141,11 +169,11 @@ static void runDSP2(dsp* DSP, const string& file, int& linenum, int nbsamples, b
     
     delete ichan;
     if (ochan != ichan) delete ochan;
-    mydsp::destroy(oldDSP);
-    mydsp::destroy(DSP);
+    delete oldDSP;
+    delete DSP;
 }
 
-malloc_memory_manager_check gManager;
+malloc_memory_manager_check_dsp gManager(sizeof(mydsp));
 
 int main(int argc, char* argv[])
 {
@@ -166,8 +194,8 @@ int main(int argc, char* argv[])
     printHeader(mydsp::create(), nbsamples);
     
     // linenum is incremented in runDSP and runPolyDSP
-    runDSP2(mydsp::create(), argv[0], linenum, nbsamples/4);
-    runDSP2(mydsp::create(), argv[0], linenum, nbsamples/4, false, true);
+    runDSP2(new ControlDSP(mydsp::create()), argv[0], linenum, nbsamples/4);
+    runDSP2(new ControlDSP(mydsp::create()), argv[0], linenum, nbsamples/4, false, true);
     //runPolyDSP(new mydsp(), linenum, nbsamples/4, 4);
     //runPolyDSP(new mydsp(), linenum, nbsamples/4, 1);
     
