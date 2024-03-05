@@ -3036,7 +3036,7 @@ struct ControlArray : public virtual Garbageable {
  * - 'declare' is used to extend the Zone with a new array
  * - fCurIndex is the array size when allocation is finished
  * - getCode is used to rewrite array access in iZone/fZone
- * - declareConstant/getLoadConstantCode/getStoreConstantCode is used to generate instanceConstantsFromMem/instanceConstantsToMem
+ * - declareConstant/getLoadConstantCode/getStoreConstantCode is used to generate instanceConstantsFromMem/instanceConstantsToMem functions
  */
 
 Typed::VarType itfloat();
@@ -3166,18 +3166,9 @@ struct ZoneArray : public virtual Garbageable {
             StatementInst* visit(StoreVarInst* inst)
             {
                 std::string name = inst->getName();
-                bool is_struct = inst->fAddress->isStruct();
-                Typed::VarType type = ZoneArray::getConstType(name);
-                
-                if (type != Typed::kNoType && is_struct) {
-                    if (fArray->fMap.count(name) > 0) {
-                        ValueInst* zone = InstBuilder::genLoadArrayStructVar(fArray->fName, FIRIndex(fArray->fMap[name]));
-                        return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
-                    } else {
-                        return BasicCloneVisitor::visit(inst);
-                    }
-                } else if (name == "fSampleRate") {
-                    return BasicCloneVisitor::visit(inst);
+                if (inst->fAddress->isStruct() && fArray->fMap.count(name) > 0) {
+                    ValueInst* zone = InstBuilder::genLoadArrayStructVar(fArray->fName, FIRIndex(fArray->fMap[name]));
+                    return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
                 } else {
                     return BasicCloneVisitor::visit(inst);
                 }
@@ -3188,7 +3179,7 @@ struct ZoneArray : public virtual Garbageable {
         return static_cast< BlockInst*>(statement->clone(&builder));
     }
     
-    // Rewrite iConst/fConst variables write using iZone/fZone (respectively)
+    // Rewrite iConst/fConst variables store using iZone/fZone (respectively)
     BlockInst* getStoreConstantCode(BlockInst* statement)
     {
         struct CodeBuilder : public ConstantsCopyMemory {
@@ -3201,17 +3192,8 @@ struct ZoneArray : public virtual Garbageable {
             StatementInst* visit(StoreVarInst* inst)
             {
                 std::string name = inst->getName();
-                bool is_struct = inst->fAddress->isStruct();
-                Typed::VarType type = ZoneArray::getConstType(name);
-            
-                if (type != Typed::kNoType && is_struct) {
-                    if (fArray->fMap.count(name) > 0) {
-                        return InstBuilder::genStoreArrayStructVar(fArray->fName, FIRIndex(fArray->fMap[name]), InstBuilder::genLoadStructVar(name));
-                    } else {
-                        return BasicCloneVisitor::visit(inst);
-                    }
-                } else if (name == "fSampleRate") {
-                    return BasicCloneVisitor::visit(inst);
+                if (inst->fAddress->isStruct() && fArray->fMap.count(name) > 0) {
+                    return InstBuilder::genStoreArrayStructVar(fArray->fName, FIRIndex(fArray->fMap[name]), InstBuilder::genLoadStructVar(name));
                 } else {
                     return BasicCloneVisitor::visit(inst);
                 }

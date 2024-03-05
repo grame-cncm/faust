@@ -714,125 +714,6 @@ struct ControlExpander : public BasicCloneVisitor {
     
 };
 
-// Base class for iConst/fConst memory copy in -osX modes
-struct ConstantsCopyMemory : public BasicCloneVisitor {
-    
-    // Additional variables are added at the end of iZone/fZone arrays
-    int fIntIndex = 0;
-    int fRealIndex = 0;
-    
-    ConstantsCopyMemory(int int_index, int real_index):fIntIndex(int_index), fRealIndex(real_index)
-    {}
-    
-    // Removed instructions
-    StatementInst* visit(DeclareVarInst* inst)
-    {
-        return InstBuilder::genDropInst();
-    }
-    
-    StatementInst* visit(ForLoopInst* inst)
-    {
-        return InstBuilder::genDropInst();
-    }
-    
-};
-
-// Analysis to copy constants from an external memory zone (FunArgs version) used in -os2 and -os3 modes
-struct ConstantsCopyFromMemory : public ConstantsCopyMemory {
-    
-    ConstantsCopyFromMemory(int int_index, int real_index):ConstantsCopyMemory(int_index, real_index)
-    {}
-    
-    StatementInst* visit(StoreVarInst* inst)
-    {
-        std::string name = inst->getName();
-        bool is_struct = inst->fAddress->isStruct();
-        if (startWith(name, "iConst") && is_struct) {
-            ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("iZone", FIRIndex(fIntIndex++));
-            return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
-        } else if (startWith(name, "fConst") && is_struct) {
-            ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("fZone", FIRIndex(fRealIndex++));
-            return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
-        } else if (name == "fSampleRate") {
-            return BasicCloneVisitor::visit(inst);
-        } else {
-            return InstBuilder::genDropInst();
-        }
-    }
-    
-};
-
-// Analysis to copy constants from an external memory zone (Struct version) used in -os2 and -os3 modes
-struct ConstantsCopyFromMemory1 : public ConstantsCopyMemory {
-    
-    ConstantsCopyFromMemory1(int int_index, int real_index):ConstantsCopyMemory(int_index, real_index)
-    {}
-    
-    StatementInst* visit(StoreVarInst* inst)
-    {
-        std::string name = inst->getName();
-        bool is_struct = inst->fAddress->isStruct();
-        if (startWith(name, "iConst") && is_struct) {
-            ValueInst* zone = InstBuilder::genLoadArrayStructVar("iZone", FIRIndex(fIntIndex++));
-            return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
-        } else if (startWith(name, "fConst") && is_struct) {
-            ValueInst* zone = InstBuilder::genLoadArrayStructVar("fZone", FIRIndex(fRealIndex++));
-            return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
-        } else if (name == "fSampleRate") {
-            return BasicCloneVisitor::visit(inst);
-        } else {
-            return InstBuilder::genDropInst();
-        }
-    }
-    
-};
-
-// Analysis to copy constants to an external memory zone (FunArgs version) used in -os2 and -os3 modes
-struct ConstantsCopyToMemory : public ConstantsCopyMemory {
-    
-    ConstantsCopyToMemory(int int_index, int real_index):ConstantsCopyMemory(int_index, real_index)
-    {}
-    
-    StatementInst* visit(StoreVarInst* inst)
-    {
-        std::string name = inst->getName();
-        bool is_struct = inst->fAddress->isStruct();
-        if (startWith(name, "iConst") && is_struct) {
-            return InstBuilder::genStoreArrayFunArgsVar("iZone", FIRIndex(fIntIndex++), InstBuilder::genLoadStructVar(name));
-        } else if (startWith(name, "fConst") && is_struct) {
-            return InstBuilder::genStoreArrayFunArgsVar("fZone", FIRIndex(fRealIndex++), InstBuilder::genLoadStructVar(name));
-        } else if (name == "fSampleRate") {
-            return BasicCloneVisitor::visit(inst);
-        } else {
-            return InstBuilder::genDropInst();
-        }
-    }
-
-};
-
-// Analysis to copy constants to an external memory zone (Struct version) used in -os2 and -os3 modes
-struct ConstantsCopyToMemory1 : public ConstantsCopyMemory {
-    
-    ConstantsCopyToMemory1(int int_index, int real_index):ConstantsCopyMemory(int_index, real_index)
-    {}
-    
-    StatementInst* visit(StoreVarInst* inst)
-    {
-        std::string name = inst->getName();
-        bool is_struct = inst->fAddress->isStruct();
-        if (startWith(name, "iConst") && is_struct) {
-            return InstBuilder::genStoreArrayStructVar("iZone", FIRIndex(fIntIndex++), InstBuilder::genLoadStructVar(name));
-        } else if (startWith(name, "fConst") && is_struct) {
-            return InstBuilder::genStoreArrayStructVar("fZone", FIRIndex(fRealIndex++), InstBuilder::genLoadStructVar(name));
-        } else if (name == "fSampleRate") {
-            return BasicCloneVisitor::visit(inst);
-        } else {
-            return InstBuilder::genDropInst();
-        }
-    }
-    
-};
-
 // Rewrite DSP array fields as pointers
 struct ArrayToPointer : public BasicCloneVisitor {
     
@@ -845,7 +726,6 @@ struct ArrayToPointer : public BasicCloneVisitor {
             return BasicCloneVisitor::visit(inst);
         }
     }
-    
 };
 
 inline bool isControlOrZone(const std::string& name)
@@ -866,7 +746,6 @@ struct ArrayToPointer1 : public BasicCloneVisitor {
             return BasicCloneVisitor::visit(inst);
         }
     }
-    
 };
 
 #endif
