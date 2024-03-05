@@ -99,7 +99,7 @@ struct Stack2StructRewriter2 : public DispatchVisitor {
     void visit(DeclareVarInst* inst)
     {
         BasicCloneVisitor cloner;
-        std::string       name = inst->fAddress->getName();
+        std::string       name = inst->getName();
 
         if (inst->getAccess() == Address::kStack && name.find(fName) != std::string::npos) {
             // Variable moved to the Struct
@@ -183,7 +183,7 @@ struct DspRenamer : public BasicCloneVisitor {
     // Remove allocation
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
-        if (startWith(inst->fAddress->getName(), "sig")) {
+        if (startWith(inst->getName(), "sig")) {
             return InstBuilder::genDropInst();
         } else {
             return BasicCloneVisitor::visit(inst);
@@ -217,7 +217,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                         if (int_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->fAddress->getName(), InstBuilder::genInt32NumInst(i),
+                                    inst->getName(), InstBuilder::genInt32NumInst(i),
                                     InstBuilder::genInt32NumInst(int_array->getValue(i))));
                             }
                         } else {
@@ -229,7 +229,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                         if (float_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->fAddress->getName(), InstBuilder::genInt32NumInst(i),
+                                    inst->getName(), InstBuilder::genInt32NumInst(i),
                                     InstBuilder::genFloatNumInst(float_array->getValue(i))));
                             }
                         } else {
@@ -241,7 +241,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                         if (double_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->fAddress->getName(), InstBuilder::genInt32NumInst(i),
+                                    inst->getName(), InstBuilder::genInt32NumInst(i),
                                     InstBuilder::genDoubleNumInst(double_array->getValue(i))));
                             }
                         } else {
@@ -342,7 +342,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                         if (int_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->fAddress->getName(), InstBuilder::genInt32NumInst(i),
+                                    inst->getName(), InstBuilder::genInt32NumInst(i),
                                     InstBuilder::genInt32NumInst(int_array->getValue(i))));
                             }
                         } else {
@@ -354,7 +354,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                         if (float_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->fAddress->getName(), InstBuilder::genInt32NumInst(i),
+                                    inst->getName(), InstBuilder::genInt32NumInst(i),
                                     InstBuilder::genFloatNumInst(float_array->getValue(i))));
                             }
                         } else {
@@ -366,7 +366,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                         if (double_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->fAddress->getName(), InstBuilder::genInt32NumInst(i),
+                                    inst->getName(), InstBuilder::genInt32NumInst(i),
                                     InstBuilder::genDoubleNumInst(double_array->getValue(i))));
                             }
                         } else {
@@ -422,7 +422,7 @@ struct LoopVariableRenamer : public BasicCloneVisitor {
     {
         // Rename 'loop' variables
         if (dynamic_cast<NamedAddress*>(inst->fAddress) && inst->getAccess() == Address::kLoop) {
-            std::string name = inst->fAddress->getName();
+            std::string name = inst->getName();
             fLoopIndexMap[name] = gGlobal->getFreshID(name + "_re");
         }
         return BasicCloneVisitor::visit(inst);
@@ -649,7 +649,7 @@ struct VarAddressRemover : public BasicCloneVisitor {
     {
         LoadVarAddressInst* var_address = dynamic_cast<LoadVarAddressInst*>(inst->fValue);
         if (var_address) {
-            fVariableMap[inst->fAddress->getName()] = var_address;
+            fVariableMap[inst->getName()] = var_address;
             return InstBuilder::genNullStatementInst();
         } else {
             return BasicCloneVisitor::visit(inst);
@@ -660,7 +660,7 @@ struct VarAddressRemover : public BasicCloneVisitor {
     {
         LoadVarAddressInst* var_address = dynamic_cast<LoadVarAddressInst*>(inst->fValue);
         if (var_address) {
-            fVariableMap[inst->fAddress->getName()] = var_address;
+            fVariableMap[inst->getName()] = var_address;
             return InstBuilder::genNullStatementInst();
         } else {
             return BasicCloneVisitor::visit(inst);
@@ -745,8 +745,8 @@ struct ConstantsCopyFromMemory : public ConstantsCopyMemory {
     
     StatementInst* visit(StoreVarInst* inst)
     {
-        std::string name = inst->fAddress->getName();
-        bool is_struct = inst->getAccess() & Address::kStruct;
+        std::string name = inst->getName();
+        bool is_struct = inst->fAddress->isStruct();
         if (startWith(name, "iConst") && is_struct) {
             ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("iZone", FIRIndex(fIntIndex++));
             return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
@@ -770,8 +770,8 @@ struct ConstantsCopyFromMemory1 : public ConstantsCopyMemory {
     
     StatementInst* visit(StoreVarInst* inst)
     {
-        std::string name = inst->fAddress->getName();
-        bool is_struct = inst->getAccess() & Address::kStruct;
+        std::string name = inst->getName();
+        bool is_struct = inst->fAddress->isStruct();
         if (startWith(name, "iConst") && is_struct) {
             ValueInst* zone = InstBuilder::genLoadArrayStructVar("iZone", FIRIndex(fIntIndex++));
             return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
@@ -795,8 +795,8 @@ struct ConstantsCopyToMemory : public ConstantsCopyMemory {
     
     StatementInst* visit(StoreVarInst* inst)
     {
-        std::string name = inst->fAddress->getName();
-        bool is_struct = inst->getAccess() & Address::kStruct;
+        std::string name = inst->getName();
+        bool is_struct = inst->fAddress->isStruct();
         if (startWith(name, "iConst") && is_struct) {
             return InstBuilder::genStoreArrayFunArgsVar("iZone", FIRIndex(fIntIndex++), InstBuilder::genLoadStructVar(name));
         } else if (startWith(name, "fConst") && is_struct) {
@@ -818,8 +818,8 @@ struct ConstantsCopyToMemory1 : public ConstantsCopyMemory {
     
     StatementInst* visit(StoreVarInst* inst)
     {
-        std::string name = inst->fAddress->getName();
-        bool is_struct = inst->getAccess() & Address::kStruct;
+        std::string name = inst->getName();
+        bool is_struct = inst->fAddress->isStruct();
         if (startWith(name, "iConst") && is_struct) {
             return InstBuilder::genStoreArrayStructVar("iZone", FIRIndex(fIntIndex++), InstBuilder::genLoadStructVar(name));
         } else if (startWith(name, "fConst") && is_struct) {

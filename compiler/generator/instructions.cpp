@@ -434,7 +434,7 @@ bool LoadVarInst::isSimpleValue() const
 {
     NamedAddress* named = dynamic_cast<NamedAddress*>(fAddress);
     IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(fAddress);
-    return named || (indexed && dynamic_cast<Int32NumInst*>(indexed->getIndex()));
+    return named || (indexed && isInt32Num(indexed->getIndex()));
 }
 
 void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)

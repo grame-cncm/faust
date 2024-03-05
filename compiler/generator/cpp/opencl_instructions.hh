@@ -134,7 +134,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->getAccess() & Address::kStaticStruct) {
+        if (inst->fAddress->isStaticStruct()) {
             *fOut << "static ";
         }
 
@@ -142,7 +142,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
             *fOut << "volatile ";
         }
 
-        *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+        *fOut << fTypeManager->generateType(inst->fType, inst->getName());
         if (inst->fValue) {
             *fOut << " = ";
             inst->fValue->accept(this);

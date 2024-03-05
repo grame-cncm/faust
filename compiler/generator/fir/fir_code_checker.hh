@@ -131,7 +131,7 @@ struct FIRCodeChecker : public DispatchVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        std::string name         = inst->fAddress->getName();
+        std::string name         = inst->getName();
         fCurVarScope[name].first = inst->getAccess();
 
         if (inst->fValue) {
@@ -149,7 +149,7 @@ struct FIRCodeChecker : public DispatchVisitor {
     virtual void visit(LoadVarInst* inst)
     {
         std::pair<Address::AccessType, bool> var_def;
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
         bool res = getVarName(name, var_def);
 
         if (!res) {
@@ -173,7 +173,7 @@ struct FIRCodeChecker : public DispatchVisitor {
     virtual void visit(LoadVarAddressInst* inst)
     {
         std::pair<Address::AccessType, bool> var_def;
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
         bool res = getVarName(name, var_def);
 
         if (!res) {
@@ -193,7 +193,7 @@ struct FIRCodeChecker : public DispatchVisitor {
     virtual void visit(StoreVarInst* inst)
     {
         std::pair<Address::AccessType, bool> var_def;
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
         bool res = getVarName(name, var_def);
 
         if (!res) {
@@ -300,7 +300,7 @@ struct StructVarAnalyser : public DispatchVisitor {
             } else {
                 init = InstBuilder::genInt32NumInst(1);
             }
-            fSpecializedValueTable[inst->fAddress->getName()] = init;
+            fSpecializedValueTable[inst->getName()] = init;
         }
     }
 };
@@ -318,10 +318,10 @@ struct ControlSpecializer : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
 
-            if (fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end()) {
+            if (fSpecializedValueTable.find(inst->getName()) != fSpecializedValueTable.end()) {
                 inst->fAddress->setAccess(Address::kLink);
             } else {
-                // cout << "ControlSpecializer StoreVarInst " << inst->fAddress->getName() << endl;
+                // cout << "ControlSpecializer StoreVarInst " << inst->getName() << endl;
             }
         }
 
@@ -329,10 +329,10 @@ struct ControlSpecializer : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
 
-            if (fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end()) {
+            if (fSpecializedValueTable.find(inst->getName()) != fSpecializedValueTable.end()) {
                 inst->fAddress->setAccess(Address::kLink);
             } else {
-                // cout << "ControlSpecializer LoadVarInst " << inst->fAddress->getName() << endl;
+                // cout << "ControlSpecializer LoadVarInst " << inst->getName() << endl;
             }
         }
     };
@@ -346,7 +346,7 @@ struct ControlSpecializer : public DispatchVisitor {
         // Rewrite Load as an access to kept ValueInst
         ValueInst* visit(LoadVarInst* inst)
         {
-            std::string name = inst->fAddress->getName();
+            std::string name = inst->getName();
             if (inst->getAccess() == Address::kLink) {
                 faustassert(fSpecializedValueTable.find(name) != fSpecializedValueTable.end());
                 return fSpecializedValueTable[name]->clone(this);
@@ -359,7 +359,7 @@ struct ControlSpecializer : public DispatchVisitor {
         StatementInst* visit(StoreVarInst* inst)
         {
             if (inst->getAccess() == Address::kLink) {
-                faustassert(fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end());
+                faustassert(fSpecializedValueTable.find(inst->getName()) != fSpecializedValueTable.end());
                 return InstBuilder::genDropInst();
             } else {
                 return BasicCloneVisitor::visit(inst);

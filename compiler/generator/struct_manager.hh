@@ -248,10 +248,9 @@ struct StructInstVisitor : public DispatchVisitor {
     // Declarations
     void visit(DeclareVarInst* inst)
     {
-        std::string         name   = inst->fAddress->getName();
-        Address::AccessType access = inst->getAccess();
-
-        bool        is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
+        std::string         name   = inst->getName();
+       
+        bool        is_struct   = inst->fAddress->isStruct() || inst->fAddress->isStaticStruct();
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
 
         if (array_typed && array_typed->fSize >= 1) {

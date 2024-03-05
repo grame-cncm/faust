@@ -37,7 +37,7 @@ struct StackVarAnalyser : public DispatchVisitor {
         // Keep "simple" stack variables and pointers on simple variables (that is everything but arrays)
         if (inst->fAddress->isStack()
             && !((array_typed = dynamic_cast<ArrayTyped*>(inst->fType)) && array_typed->fSize > 0)) {
-            fFirstPrivateTable.push_back(inst->fAddress->getName());
+            fFirstPrivateTable.push_back(inst->getName());
         }
     }
 };

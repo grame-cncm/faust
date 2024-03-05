@@ -264,7 +264,7 @@ class CInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->getAccess() & Address::kStaticStruct) {
+        if (inst->fAddress->isStaticStruct()) {
             *fOut << "static ";
         }
 
@@ -272,7 +272,7 @@ class CInstVisitor : public TextInstVisitor {
             *fOut << "volatile ";
         }
 
-        *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+        *fOut << fTypeManager->generateType(inst->fType, inst->getName());
         if (inst->fValue) {
             *fOut << " = ";
             inst->fValue->accept(this);
@@ -327,7 +327,7 @@ class CInstVisitor : public TextInstVisitor {
 
     virtual void visit(NamedAddress* named)
     {
-        if (named->getAccess() & Address::kStruct) {
+        if (named->isStruct()) {
             *fOut << "dsp->";
         }
         *fOut << named->fName;

@@ -230,7 +230,7 @@ class DLangInstVisitor : public TextInstVisitor {
             *fOut << "const ";
         }
 
-        if (inst->getAccess() & Address::kStaticStruct) {
+        if (inst->fAddress->isStaticStruct()) {
             *fOut << "__gshared ";
         }
 
@@ -241,13 +241,13 @@ class DLangInstVisitor : public TextInstVisitor {
         if (array_typed && array_typed->fSize > 1) {
             std::string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
             if (inst->fValue) {
-                *fOut << type << "[] " << inst->fAddress->getName() << " = ";
+                *fOut << type << "[] " << inst->getName() << " = ";
                 inst->fValue->accept(this);
             } else {
-                *fOut << type << "[" << array_typed->fSize << "] " << inst->fAddress->getName();
+                *fOut << type << "[" << array_typed->fSize << "] " << inst->getName();
             }
         } else {
-            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
             if (inst->fValue) {
                 *fOut << " = ";
                 inst->fValue->accept(this);

@@ -410,7 +410,7 @@ class CmajorInstVisitor : public TextInstVisitor {
     
     virtual void visit(DeclareVarInst* inst)
     {
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
 
         // special case for input/output considered as 'streams'
         if (startWith(name, "input")) {
@@ -443,7 +443,7 @@ class CmajorInstVisitor : public TextInstVisitor {
             Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
             *fOut << "." << struct_type->fType->getName(field_index->fNum);
         } else {
-            if (dynamic_cast<Int32NumInst*>(indexed->getIndex())) {
+            if (isInt32Num(indexed->getIndex())) {
                 *fOut << "[";
                 indexed->getIndex()->accept(this);
                 *fOut << "]";
@@ -458,7 +458,7 @@ class CmajorInstVisitor : public TextInstVisitor {
 
     virtual void visit(StoreVarInst* inst)
     {
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
         // special case for 'output' considered as a 'stream'
         if (startWith(name, "output")) {
             inst->fAddress->accept(this);
@@ -622,7 +622,7 @@ class CmajorSubContainerInstVisitor : public CmajorInstVisitor {
 
     virtual void visit(NamedAddress* named)
     {
-        if (named->getAccess() & Address::kStruct) {
+        if (named->isStruct()) {
             *fOut << "this.";
         }
         *fOut << named->fName;

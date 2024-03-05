@@ -365,7 +365,7 @@ class CPPInstVisitor : public TextInstVisitor {
             *fOut << "const ";
         }
 
-        if (inst->getAccess() & Address::kStaticStruct) {
+        if (inst->fAddress->isStaticStruct()) {
             *fOut << "static ";
         }
 
@@ -373,7 +373,7 @@ class CPPInstVisitor : public TextInstVisitor {
             *fOut << "volatile ";
         }
 
-        *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+        *fOut << fTypeManager->generateType(inst->fType, inst->getName());
         if (inst->fValue) {
             *fOut << " = ";
             inst->fValue->accept(this);

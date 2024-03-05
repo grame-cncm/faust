@@ -764,7 +764,6 @@ struct IndexedAddress : public Address {
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 };
 
-
 // ===============
 // User interface
 // ===============
@@ -3125,8 +3124,8 @@ struct ZoneArray : public virtual Garbageable {
             
             void visit(StoreVarInst* inst)
             {
-                std::string name = inst->fAddress->getName();
-                bool is_struct = inst->getAccess() & Address::kStruct;
+                std::string name = inst->getName();
+                bool is_struct = inst->fAddress->isStruct();
                 if (ZoneArray::getConstType(name) == fArray->fType && is_struct) {
                     fArray->fMap[name] = fArray->fCurIndex++;
                 }
@@ -3166,8 +3165,8 @@ struct ZoneArray : public virtual Garbageable {
               
             StatementInst* visit(StoreVarInst* inst)
             {
-                std::string name = inst->fAddress->getName();
-                bool is_struct = inst->getAccess() & Address::kStruct;
+                std::string name = inst->getName();
+                bool is_struct = inst->fAddress->isStruct();
                 Typed::VarType type = ZoneArray::getConstType(name);
                 
                 if (type != Typed::kNoType && is_struct) {
@@ -3201,8 +3200,8 @@ struct ZoneArray : public virtual Garbageable {
             
             StatementInst* visit(StoreVarInst* inst)
             {
-                std::string name = inst->fAddress->getName();
-                bool is_struct = inst->getAccess() & Address::kStruct;
+                std::string name = inst->getName();
+                bool is_struct = inst->fAddress->isStruct();
                 Typed::VarType type = ZoneArray::getConstType(name);
             
                 if (type != Typed::kNoType && is_struct) {
@@ -3225,6 +3224,10 @@ struct ZoneArray : public virtual Garbageable {
 
     int getSize() { return fCurIndex; }
 };
+
+inline bool isInt32Num(ValueInst* inst) { return dynamic_cast<Int32NumInst*>(inst); }
+inline bool isFloatNum(ValueInst* inst) { return dynamic_cast<FloatNumInst*>(inst); }
+inline bool isDoubleNum(ValueInst* inst) { return dynamic_cast<DoubleNumInst*>(inst); }
 
 #endif
 
