@@ -221,6 +221,11 @@ LIBFAUST_API Tree sigSelf()
     return sigDelay1(sigProj(0, ref(1)));
 }
 
+LIBFAUST_API Tree sigSelfZero()
+{
+    return sigDelay0(sigProj(0, ref(1)));
+}
+
 LIBFAUST_API Tree sigRecursion(Tree s)
 {
     return sigDelay0(sigProj(0, rec(cons(s, gGlobal->nil))));
@@ -230,6 +235,11 @@ LIBFAUST_API Tree sigRecursion(Tree s)
 LIBFAUST_API Tree sigSelfN(int i)
 {
     return sigDelay1(sigProj(i, ref(1)));
+}
+
+LIBFAUST_API Tree sigSelfZeroN(int i)
+{
+    return sigDelay0(sigProj(i, ref(1)));
 }
 
 LIBFAUST_API tvec sigRecursionN(const tvec& ins)
