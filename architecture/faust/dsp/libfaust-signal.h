@@ -497,6 +497,13 @@ LIBFAUST_API Signal sigAtan2(Signal x, Signal y);
 LIBFAUST_API Signal sigSelf();
 
 /**
+ * Create a recursive signal inside the sigRecursion expression, without the one sample delay.
+ *
+ * @return the recursive signal.
+ */
+LIBFAUST_API Signal sigSelfZero();
+
+/**
  * Create a recursive signal. Use sigSelf() to refer to the
  * recursive signal inside the sigRecursion expression.
  *
@@ -514,6 +521,15 @@ LIBFAUST_API Signal sigRecursion(Signal s);
  * @return the recursive signal.
  */
 LIBFAUST_API Signal sigSelfN(int id);
+
+/**
+ * Create a recursive signal inside the sigRecursionN expression, without the one sample delay.
+ *
+ * @param id - the recursive signal index (starting from 0, up to the number of outputs signals in the recursive block)
+ *
+ * @return the recursive signal.
+ */
+LIBFAUST_API Signal sigSelfZeroN(int id);
 
 /**
  * Create a recursive block of signals. Use sigSelfN() to refer to the

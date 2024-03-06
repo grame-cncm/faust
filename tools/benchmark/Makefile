@@ -120,6 +120,9 @@ emcc: $(FASTMATH)
 	emcc -O3 -s WASM=1 -s SIDE_MODULE=1 -s LEGALIZE_JS_FFI=0 $(FASTMATH) -o fastmath.wasm
 	wasm-dis fastmath.wasm -o fastmath.wast
 
+ciaramella: ciaramella.cpp $(LIB)/libfaust.a
+	$(CXX) $(COMPILEOPT) ciaramella.cpp -L/opt/local/lib $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) -lz -lncurses -lpthread -o $@
+
 install:
 	cp $(TARGETS) $(prefix)/bin
 	cp wasm-node-bench.js wasm-bench.js wasm-bench-emcc.js wasm-bench-jsmem.js $(prefix)/share/faust/webaudio
