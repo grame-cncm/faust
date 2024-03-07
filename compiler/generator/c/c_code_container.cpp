@@ -34,7 +34,7 @@ using namespace std;
  C backend and module description:
  
     1) in -os mode: a 'frame' function is generated
-    2) in -ec mode: a 'control' function is generated, with a empty 'compute"
+    2) in -ec mode: a 'control' function is generated, with a empty 'compute'
  
     3) in -fx mode:
          - then/else branches of 'select2' are explicitly casted to 'float', otherwise AP_fixed compilation may trigger "ambigous type" errors

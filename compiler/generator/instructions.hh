@@ -3167,7 +3167,7 @@ struct ZoneArray : public virtual Garbageable {
             {
                 std::string name = inst->getName();
                 if (inst->fAddress->isStruct() && fArray->fMap.count(name) > 0) {
-                    ValueInst* zone = InstBuilder::genLoadArrayStructVar(fArray->fName, FIRIndex(fArray->fMap[name]));
+                    ValueInst* zone = InstBuilder::genLoadArrayVar(fArray->fName, fArray->fAccess,  FIRIndex(fArray->fMap[name]));
                     return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
                 } else {
                     return BasicCloneVisitor::visit(inst);
@@ -3193,7 +3193,7 @@ struct ZoneArray : public virtual Garbageable {
             {
                 std::string name = inst->getName();
                 if (inst->fAddress->isStruct() && fArray->fMap.count(name) > 0) {
-                    return InstBuilder::genStoreArrayStructVar(fArray->fName, FIRIndex(fArray->fMap[name]), InstBuilder::genLoadStructVar(name));
+                    return InstBuilder::genStoreArrayVar(fArray->fName,  fArray->fAccess, FIRIndex(fArray->fMap[name]), InstBuilder::genLoadStructVar(name));
                 } else {
                     return BasicCloneVisitor::visit(inst);
                 }

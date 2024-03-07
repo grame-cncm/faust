@@ -407,10 +407,10 @@ void CodeContainer::processFIR(void)
     // Additional iControl/fControl fields
     if (gGlobal->gExtControl && gGlobal->gMemoryManager >= 1) {
         
-        if (fIntControl->getSize() > 0) {
+        if (fIntControl->getSize() > 0 && fIntControl->fAccess == Address::kStruct) {
             pushDeclare(InstBuilder::genDecStructVar("iControl", InstBuilder::genArrayTyped(Typed::kInt32, fIntControl->getSize())));
         }
-        if (fRealControl->getSize() > 0) {
+        if (fRealControl->getSize() > 0 && fIntControl->fAccess == Address::kStruct) {
             pushDeclare(InstBuilder::genDecStructVar("fControl", InstBuilder::genArrayTyped(itfloat(), fRealControl->getSize())));
         }
     }
@@ -433,10 +433,10 @@ void CodeContainer::processFIR(void)
     // Additional iZone/fZone fields
     if (gGlobal->gMemoryManager >= 1) {
         
-        if (gGlobal->gIntZone->getSize() > 0) {
+        if (gGlobal->gIntZone->getSize() > 0 && gGlobal->gIntZone->fAccess == Address::kStruct) {
             pushDeclare(InstBuilder::genDecStructVar("iZone", InstBuilder::genArrayTyped(Typed::kInt32, gGlobal->gIntZone->getSize())));
         }
-        if (gGlobal->gRealZone->getSize() > 0) {
+        if (gGlobal->gRealZone->getSize() > 0 && gGlobal->gRealZone->fAccess == Address::kStruct) {
             pushDeclare(InstBuilder::genDecStructVar("fZone", InstBuilder::genArrayTyped(itfloat(), gGlobal->gRealZone->getSize())));
         }
     }
