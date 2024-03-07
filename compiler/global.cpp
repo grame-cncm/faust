@@ -1196,6 +1196,10 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-mem2", "--memory-manager2")) {
             gMemoryManager = 2;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-mem3", "--memory-manager3")) {
+            gMemoryManager = 3;
+            i += 1;
 
         } else if (isCmd(argv[i], "-sd", "--simplify-diagrams")) {
             gSimplifyDiagrams = true;
@@ -1581,8 +1585,8 @@ bool global::processCmdline(int argc, const char* argv[])
     
     if (gInlineTable && gMemoryManager == 0) { throw faustexception("ERROR : '-it' and '-mem' cannot be used together\n"); }
 
-    if ((gMemoryManager == 1 || gMemoryManager == 2) && !gInlineTable) {
-        throw faustexception("ERROR : -mem1/-mem2 has to be used with -it\n");
+    if ((gMemoryManager >= 1) && !gInlineTable) {
+        throw faustexception("ERROR : -mem1/-mem2/-mem3 has to be used with -it\n");
     }
     
     if ((gMemoryManager == 0 || gMemoryManager == 1) &&  (gOutputLang == "c")) {
@@ -1999,8 +2003,10 @@ string global::printHelp()
             " and use iControl/fControl, iZone/fZone model."
          << endl;
     sstr << tab
-         << "-mem2        --memory-manager2          allocate static in global state using a custom memory manager,"
-            " and use iControl/fControl, iZone/fZone model and no explicit memory manager."
+         << "-mem2        --memory-manager2          use iControl/fControl, iZone/fZone model and no explicit memory manager."
+         << endl;
+    sstr << tab
+         << "-mem3        --memory-manager3          use iControl/fControl, iZone/fZone model with access as parameters and no explicit memory manager."
          << endl;
 #endif
     sstr << tab

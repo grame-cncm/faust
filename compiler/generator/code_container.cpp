@@ -71,10 +71,14 @@ CodeContainer::CodeContainer()
 {
     fCurLoop = new CodeLoop(0, gGlobal->getFreshID("i"));
     
-    // iControl/fControl are created when -ec and -mem1/2 are used together
+    Address::AccessType access;
+    if (gGlobal->gMemoryManager == 2) access = Address::kStruct;
+    if (gGlobal->gMemoryManager == 3) access = Address::kFunArgs;
+    
+    // iControl/fControl are created when -ec and -mem1/2/3 are used together
     if (gGlobal->gExtControl && gGlobal->gMemoryManager >= 1) {
-        fIntControl = new ControlArray("iControl", Address::kStruct);
-        fRealControl = new ControlArray("fControl", Address::kStruct);
+        fIntControl = new ControlArray("iControl", access);
+        fRealControl = new ControlArray("fControl", access);
     } else {
         fIntControl = nullptr;
         fRealControl = nullptr;
@@ -84,8 +88,8 @@ CodeContainer::CodeContainer()
     if (gGlobal->gMemoryManager >= 1 && !gGlobal->gIntZone && !gGlobal->gRealZone) {
         // Allocation done once to be shared by all containers
         ZoneArray::gInternalMemorySize = gGlobal->gFPGAMemory;
-        gGlobal->gIntZone = new ZoneArray("iZone", Address::kStruct, Typed::kInt32, 4);
-        gGlobal->gRealZone = new ZoneArray("fZone", Address::kStruct, itfloat(), 4);
+        gGlobal->gIntZone = new ZoneArray("iZone", access, Typed::kInt32, 4);
+        gGlobal->gRealZone = new ZoneArray("fZone", access, itfloat(), 4);
     }
 }
 
@@ -416,7 +420,7 @@ void CodeContainer::processFIR(void)
     }
     
     // Prepare fConstantFromMem/fConstantToMem blocks
-    if (gGlobal->gMemoryManager == 2) {
+    if (gGlobal->gMemoryManager >= 2) {
         
         // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
         BlockInst* declare_block = inlineSubcontainersFunCalls(fInitInstructions);
