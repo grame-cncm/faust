@@ -188,7 +188,6 @@ static void injectCode(unique_ptr<ifstream>& enrobage, unique_ptr<ostream>& dst)
             throw faustexception(error.str());
         } else {
             streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeIntrinsic>>");
-            gContainer->printMacros(*dst.get(), 0);
             streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeclass>>");
             streamCopyUntilEnd(*injcode.get(), *dst.get());
             streamCopyUntilEnd(*enrobage.get(), *dst.get());

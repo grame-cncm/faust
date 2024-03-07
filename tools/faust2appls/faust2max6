@@ -229,25 +229,27 @@ for p in $FILES; do
 
     # compile Faust to c++
     if [ "$EFFECT" = "" ]; then
-        faust -i -cn ${f%.dsp} -uim -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -cn ${f%.dsp} -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     else
-        faust -i -cn ${f%.dsp} -uim -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -cn ${f%.dsp} -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
         faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
     fi
-    # compile self-contained expansion
-    faust $OPTIONS -e "$SRCDIR/$f" -o "$TMP/${f%.dsp}-exp.dsp"
+    # compile self-contained expansion (without $OPTIONS which is not needed)
+    faust -e "$SRCDIR/$f" -o "$TMP/${f%.dsp}-exp.dsp"
 
     # compile c++ to binary
     (
+        # FAUST_FILE_NAME is always added
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
         # universal binaries produced on M1
         if [[ $(uname -p) = arm  || "$UNIVERSAL" = "1" ]]; then
-            $CXX $CXXFLAGS -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64"
-            $CXX $CXXFLAGS -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
+            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64"
+            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
             $LIPO -create "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~" || exit
         else
-           $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        # native target
+           $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
         fi
         if which codesign > /dev/null; then
             codesign --sign - --deep --force "${f%.dsp}$EXT"
@@ -303,7 +305,7 @@ for p in $FILES; do
 
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
     rm -rf "$TDR"
-    rm $p.json
+    rm -f $p.json
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
