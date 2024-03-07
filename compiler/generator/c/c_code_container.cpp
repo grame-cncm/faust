@@ -246,7 +246,6 @@ void CCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
         *fOut << "#define min(a,b) ((a < b) ? a : b)\n";
-        tab(n, *fOut);
     }
  
     tab(n, *fOut);
@@ -271,107 +270,105 @@ void CCodeContainer::produceClass()
 
     // Memory methods
     tab(n, *fOut);
-    if (!gGlobal->gLightMode) {
         
-        generateAllocateFun(n);
-        tab(n, *fOut);
-        generateDestroyFun(n);
+    generateAllocateFun(n);
+    tab(n, *fOut);
+    generateDestroyFun(n);
+    
+    // iControl/fControl and iZone/fZone are given as parameters,
+    // in the constructors and in an additional setMemory method.
+    // The really needed one only will be set.
+    
+    if (gGlobal->gMemoryManager == 2) {
         
-        // iControl/fControl and iZone/fZone are given as parameters,
-        // in the constructors and in an additional setMemory method.
-        // The really needed one only will be set.
-        
-        if (gGlobal->gMemoryManager == 2) {
-            
-            bool int_control = (fIntControl) ? fIntControl->getSize() > 0 : false;
-            bool real_control = (fRealControl) ? fRealControl->getSize() > 0 : false;
-            bool int_zone = gGlobal->gIntZone->getSize() > 0;
-            bool real_zone = gGlobal->gRealZone->getSize() > 0;
-              
-            // Constructor
-            *fOut << fKlassName << "* new" << fKlassName << "(int* icontrol, " << ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone) {";
+        bool int_control = (fIntControl) ? fIntControl->getSize() > 0 : false;
+        bool real_control = (fRealControl) ? fRealControl->getSize() > 0 : false;
+        bool int_zone = gGlobal->gIntZone->getSize() > 0;
+        bool real_zone = gGlobal->gRealZone->getSize() > 0;
+          
+        // Constructor
+        *fOut << fKlassName << "* new" << fKlassName << "(int* icontrol, " << ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone) {";
+        tab(n + 1, *fOut);
+        *fOut << fKlassName << "* dsp = (" << fKlassName << "*)calloc(1, sizeof(" << fKlassName << "));";
+        if (fAllocateInstructions->fCode.size() > 0) {
             tab(n + 1, *fOut);
-            *fOut << fKlassName << "* dsp = (" << fKlassName << "*)calloc(1, sizeof(" << fKlassName << "));";
-            if (fAllocateInstructions->fCode.size() > 0) {
-                tab(n + 1, *fOut);
-                *fOut << "allocate" << fKlassName << "(dsp);";
-            }
-            if (int_control) {
-                tab(n + 1, *fOut);
-                *fOut << "dsp->iControl = icontrol;";
-            }
-            if (real_control) {
-                tab(n + 1, *fOut);
-                *fOut << "dsp->fControl = fcontrol;";
-            }
-            if (int_zone) {
-                tab(n + 1, *fOut);
-                *fOut << "dsp->iZone = izone;";
-            }
-            if (real_zone) {
-                tab(n + 1, *fOut);
-                *fOut << "dsp->fZone = fzone;";
-            }
-            tab(n + 1, *fOut);
-            *fOut << "return dsp;";
-            tab(n, *fOut);
-            *fOut << "}";
-            
-            // setMemory
-            tab(n, *fOut);
-            *fOut << "void setMemory" << fKlassName << "(" << fKlassName << "* dsp, int* icontrol, " << ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone) {";
-            if (int_control) {
-                tab(n + 1, *fOut);
-                *fOut << "dsp->iControl = icontrol;";
-            }
-            if (real_control) {
-                tab(n + 1, *fOut);
-                *fOut << "dsp->fControl = fcontrol;";
-            }
-            if (int_zone) {
-                tab(n + 1, *fOut);
-                *fOut << "dsp->iZone = izone;";
-            }
-            if (real_zone) {
-                tab(n + 1, *fOut);
-                *fOut << "dsp->fZone = fzone;";
-            }
-            tab(n, *fOut);
-            *fOut << "}";
-            
-        } else {
-            // Default constructor
-            *fOut << fKlassName << "* new" << fKlassName << "() { ";
-            tab(n + 1, *fOut);
-            *fOut << fKlassName << "* dsp = (" << fKlassName << "*)calloc(1, sizeof(" << fKlassName << "));";
-            if (fAllocateInstructions->fCode.size() > 0) {
-                tab(n + 1, *fOut);
-                *fOut << "allocate" << fKlassName << "(dsp);";
-            }
-            tab(n + 1, *fOut);
-            *fOut << "return dsp;";
-            tab(n, *fOut);
-            *fOut << "}";
+            *fOut << "allocate" << fKlassName << "(dsp);";
         }
-        
-        // Destructor
-        tab(n, *fOut);
-        tab(n, *fOut);
-        *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) { ";
-        if (fDestroyInstructions->fCode.size() > 0) {
+        if (int_control) {
             tab(n + 1, *fOut);
-            *fOut << "destroy" << fKlassName << "(dsp);";
+            *fOut << "dsp->iControl = icontrol;";
+        }
+        if (real_control) {
+            tab(n + 1, *fOut);
+            *fOut << "dsp->fControl = fcontrol;";
+        }
+        if (int_zone) {
+            tab(n + 1, *fOut);
+            *fOut << "dsp->iZone = izone;";
+        }
+        if (real_zone) {
+            tab(n + 1, *fOut);
+            *fOut << "dsp->fZone = fzone;";
         }
         tab(n + 1, *fOut);
-        *fOut << "free(dsp);";
+        *fOut << "return dsp;";
         tab(n, *fOut);
         *fOut << "}";
-
-        // Print metadata declaration
+        
+        // setMemory
         tab(n, *fOut);
-        produceMetadata(n);
+        *fOut << "void setMemory" << fKlassName << "(" << fKlassName << "* dsp, int* icontrol, " << ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone) {";
+        if (int_control) {
+            tab(n + 1, *fOut);
+            *fOut << "dsp->iControl = icontrol;";
+        }
+        if (real_control) {
+            tab(n + 1, *fOut);
+            *fOut << "dsp->fControl = fcontrol;";
+        }
+        if (int_zone) {
+            tab(n + 1, *fOut);
+            *fOut << "dsp->iZone = izone;";
+        }
+        if (real_zone) {
+            tab(n + 1, *fOut);
+            *fOut << "dsp->fZone = fzone;";
+        }
+        tab(n, *fOut);
+        *fOut << "}";
+        
+    } else {
+        // Default constructor
+        *fOut << fKlassName << "* new" << fKlassName << "() { ";
+        tab(n + 1, *fOut);
+        *fOut << fKlassName << "* dsp = (" << fKlassName << "*)calloc(1, sizeof(" << fKlassName << "));";
+        if (fAllocateInstructions->fCode.size() > 0) {
+            tab(n + 1, *fOut);
+            *fOut << "allocate" << fKlassName << "(dsp);";
+        }
+        tab(n + 1, *fOut);
+        *fOut << "return dsp;";
+        tab(n, *fOut);
+        *fOut << "}";
     }
+    
+    // Destructor
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) { ";
+    if (fDestroyInstructions->fCode.size() > 0) {
+        tab(n + 1, *fOut);
+        *fOut << "destroy" << fKlassName << "(dsp);";
+    }
+    tab(n + 1, *fOut);
+    *fOut << "free(dsp);";
+    tab(n, *fOut);
+    *fOut << "}";
 
+    // Print metadata declaration
+    tab(n, *fOut);
+    produceMetadata(n);
+   
     // Get sample rate method
     tab(n, *fOut);
     fCodeProducer->Tab(n);
