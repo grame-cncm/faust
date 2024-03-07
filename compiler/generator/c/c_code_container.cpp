@@ -365,9 +365,11 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "}";
 
-    // Print metadata declaration
-    tab(n, *fOut);
-    produceMetadata(n);
+    if (!gGlobal->gLightMode) {
+        // Print metadata declaration
+        tab(n, *fOut);
+        produceMetadata(n);
+    }
    
     // Get sample rate method
     tab(n, *fOut);
