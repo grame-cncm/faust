@@ -611,6 +611,32 @@ struct FIRChecker : public DispatchVisitor {
     }
 };
 
+// Check variable access
+struct FIRVarChecker : public DispatchVisitor {
+    
+    std::map<std::string, Address::AccessType> fAccessTable;
+    
+    FIRVarChecker(BlockInst* control, ForLoopInst* loop)
+    {
+        control->accept(this);
+        loop->accept(this);
+    }
+    
+    virtual void visit(DeclareVarInst* inst)
+    {
+        fAccessTable[inst->getName()] = inst->fAddress->getAccess();
+    }
+    
+    void visit(NamedAddress* address)
+    {
+        // Error if a non declared kStack variable is used in the code
+        if (address->isStack() && fAccessTable.count(address->getName()) == 0) {
+            dump2FIR(address);
+            faustassert(false);
+        }
+    }
+};
+
 /*
   Remove usage of var address:
   int* v1 = &foo[n]; ==> v1 definition is removed, usage of v1[m] are replaced with foo[n+m]

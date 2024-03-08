@@ -46,6 +46,10 @@ all:
 	$(MAKE) gcc1
 	$(MAKE) gcc2
 	
+check: 
+	export FAUST_DEBUG=FIR_VAR_CHECKER; \
+	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -a ./min.cpp"
+	
 release:
 	$(MAKE) c
 	$(MAKE) os
@@ -131,6 +135,7 @@ help:
 	@echo " 'trace'      : compiles using the interp-tracer application"
 	@echo " 'jtrace'     : compiles using Julia minimal-control architecture"
 	@echo " 'me'         : compiles using the C++ backend with -me option"
+	@echo " 'check'      : compiles using the C++ backend and FAUST_DEBUG=FIR_VAR_CHECKER"
 	@echo " 'doc'        : test the -mdoc, -svg options"
 
 	@echo " 'clean'      : to remove the folder named using faust version"

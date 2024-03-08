@@ -532,6 +532,13 @@ void CodeContainer::processFIR(void)
         flattenFIR()->accept(&fir_checker);
         endTiming("FIR checker");
     }
+
+    if (global::isDebug("FIR_VAR_CHECKER")) {
+        startTiming("FIR var checker");
+        // Check variable scope in 'compute'
+        FIRVarChecker fir_var_checker(fComputeBlockInstructions, fCurLoop->generateScalarLoop("count"));
+        endTiming("FIR var checker");
+    }
 }
 
 BlockInst* CodeContainer::flattenFIR(void)
