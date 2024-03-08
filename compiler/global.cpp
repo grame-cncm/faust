@@ -1589,6 +1589,10 @@ bool global::processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -mem1/-mem2/-mem3 has to be used with -it\n");
     }
     
+    if ((gMemoryManager == 3) && gOutputLang != "c") {
+        throw faustexception("ERROR : -mem3 can only be used with 'c' backend\n");
+    }
+    
     if ((gMemoryManager == 0 || gMemoryManager == 1) &&  (gOutputLang == "c")) {
         throw faustexception("ERROR : -mem0/-mem1 cannot be used with 'c' backend\n");
     }
