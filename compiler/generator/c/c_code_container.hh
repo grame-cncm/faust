@@ -219,7 +219,7 @@ class CScalarCodeContainer : public CCodeContainer {
 };
 
 /**
- For -mem3 generation mode.
+ For -mem3 generation mode (special version for SYFALA).
  */
 
 class CScalarCodeContainer1 : public CCodeContainer {
@@ -260,7 +260,7 @@ class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
 };
 
 /**
- Implement C FIR vector container.
+ For -mem3 generation mode (special version for SYFALA).
  */
 
 class CVectorCodeContainer1 : public VectorCodeContainer, public CScalarCodeContainer1 {

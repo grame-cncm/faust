@@ -748,4 +748,20 @@ struct ArrayToPointer1 : public BasicCloneVisitor {
     }
 };
 
+// Check if array and in {"iControl", "fControl", "iZone", "fZone"}, remove input controls
+struct NoControlArrayToPointer : public BasicCloneVisitor {
+    
+    virtual StatementInst* visit(DeclareVarInst* inst)
+    {
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        if (array_typed && isControlOrZone(inst->getName())) {
+            return InstBuilder::genDecStructVar(inst->getName(), InstBuilder::genArrayTyped(array_typed->fType->clone(this), 0));
+        } else if (isUIInputControl(inst->getName())) {
+            return InstBuilder::genDropInst();
+        } else {
+            return BasicCloneVisitor::visit(inst);
+        }
+    }
+};
+
 #endif

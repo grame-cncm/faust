@@ -35,8 +35,9 @@ using namespace std;
  
     1) in -os mode: a 'frame' function is generated
     2) in -ec mode: a 'control' function is generated, with a empty 'compute'
+    3) in -mem3 mode: a minimal subset of functions are generated
  
-    3) in -fx mode:
+    4) in -fx mode:
          - then/else branches of 'select2' are explicitly casted to 'float', otherwise AP_fixed compilation may trigger "ambigous type" errors
          - all math operators are named "FOOfx" and are supposed to be implemented in the architecture file (doing the proper cast on arguments and return value when needed)
  */
@@ -643,8 +644,8 @@ void CScalarCodeContainer1::produceClass()
     tab(n + 1, *fOut);
     // Fields
     fCodeProducer->Tab(n + 1);
-    // Only "iControl", "fControl", "iZone", "fZone" are rewritten as pointers
-    ArrayToPointer1 array_pointer;
+    // Only "iControl", "fControl", "iZone", "fZone" are rewritten as pointers, remove input controls
+    NoControlArrayToPointer array_pointer;
     array_pointer.getCode(fDeclarationInstructions)->accept(fCodeProducer);
     back(1, *fOut);
     *fOut << "} " << fKlassName << ";";
@@ -681,11 +682,6 @@ void CScalarCodeContainer1::produceClass()
         
         tab(n + 1, *fOut);
         fCodeProducer->Tab(n + 1);
-        
-        if (!gGlobal->gExtControl) {
-            // Generates local variables declaration and setup
-            generateComputeBlock(fCodeProducer);
-        }
         
         // Generates one sample computation
         BlockInst* block = fCurLoop->generateOneSample();
@@ -863,7 +859,6 @@ CVectorCodeContainer1::CVectorCodeContainer1(const string& name, int numInputs, 
 void CVectorCodeContainer1::generateComputeAux(int n)
 {
     // Generates declaration
-    tab(n, *fOut);
     if (gGlobal->gInPlace) {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
         << subst("* dsp, int $0, $1** inputs, $1** outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", fFullCount, xfloat());
