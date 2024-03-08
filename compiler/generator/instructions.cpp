@@ -457,21 +457,19 @@ void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)
 DeclareVarInst* InstBuilder::genDecStructVar(const string& vname, Typed* type, ValueInst* exp)
 {
     if (gGlobal->gMemoryManager >= 1) {
-        if (startWith(vname, "iRec")
+        if ((startWith(vname, "iRec")
             || startWith(vname, "iVec")
             || startWith(vname, "iYec")
             || startWith(vname, "iZec")
-            || startWith(vname, "itbl")) {
+            || startWith(vname, "itbl")) && dynamic_cast<ArrayTyped*>(type)) {
             // The "iRec/iVec..." array has a base index in the iZone array, to be added to the actual index
-            faustassert(dynamic_cast<ArrayTyped*>(type));
             return gGlobal->gIntZone->declare(vname, type, exp);
-        } else if (startWith(vname, "fRec")
+        } else if ((startWith(vname, "fRec")
                    || startWith(vname, "fVec")
                    || startWith(vname, "fYec")
                    || startWith(vname, "fZec")
-                   || startWith(vname, "ftbl")) {
+                   || startWith(vname, "ftbl")) && dynamic_cast<ArrayTyped*>(type)) {
             // The "fRec/fVec..." array has a base index in the fZone array, to be added to the actual index
-            faustassert(dynamic_cast<ArrayTyped*>(type));
             return gGlobal->gRealZone->declare(vname, type, exp);
         }
     }

@@ -1583,7 +1583,8 @@ bool global::processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -it can only be used with 'cpp' and 'c' backends\n");
     }
     
-    if (gInlineTable && gMemoryManager == 0) { throw faustexception("ERROR : '-it' and '-mem' cannot be used together\n"); }
+    // gMemoryManager check
+    if (gMemoryManager == 0 && gInlineTable) { throw faustexception("ERROR : '-it' and '-mem' cannot be used together\n"); }
 
     if ((gMemoryManager >= 1) && !gInlineTable) {
         throw faustexception("ERROR : -mem1/-mem2/-mem3 has to be used with -it\n");
@@ -1591,6 +1592,10 @@ bool global::processCmdline(int argc, const char* argv[])
     
     if ((gMemoryManager == 3) && gOutputLang != "c") {
         throw faustexception("ERROR : -mem3 can only be used with 'c' backend\n");
+    }
+    
+    if ((gMemoryManager == 3) && !gExtControl) {
+        throw faustexception("ERROR : -mem3 has to be used with -ec\n");
     }
     
     if ((gMemoryManager == 0 || gMemoryManager == 1) &&  (gOutputLang == "c")) {

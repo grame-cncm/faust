@@ -218,8 +218,11 @@ class CScalarCodeContainer : public CCodeContainer {
     void generateComputeAux(int tab);
 };
 
-// For -mem3 generation mode
-class CScalarCodeContainer1 : public CScalarCodeContainer {
+/**
+ For -mem3 generation mode.
+ */
+
+class CScalarCodeContainer1 : public CCodeContainer {
     protected:
     
         void produceClass();
@@ -232,8 +235,10 @@ class CScalarCodeContainer1 : public CScalarCodeContainer {
                              int numOutputs,
                              std::ostream* out,
                              int sub_container_type)
-        :CScalarCodeContainer(name, numInputs, numOutputs, out, sub_container_type)
-        {}
+        :CCodeContainer(name, numInputs, numOutputs, out)
+        {
+            fSubContainerType = sub_container_type;
+        }
         virtual ~CScalarCodeContainer1()
         {}
         
@@ -252,6 +257,20 @@ class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
     {}
 
     void generateComputeAux(int tab);
+};
+
+/**
+ Implement C FIR vector container.
+ */
+
+class CVectorCodeContainer1 : public VectorCodeContainer, public CScalarCodeContainer1 {
+    protected:
+    public:
+        CVectorCodeContainer1(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
+        virtual ~CVectorCodeContainer1()
+        {}
+        
+        void generateComputeAux(int tab);
 };
 
 /**

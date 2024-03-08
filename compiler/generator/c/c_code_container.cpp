@@ -77,8 +77,14 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
     } else if (gGlobal->gSchedulerSwitch) {
         container = new CWorkStealingCodeContainer(name, numInputs, numOutputs, dst);
     } else if (gGlobal->gVectorSwitch) {
-        container = new CVectorCodeContainer(name, numInputs, numOutputs, dst);
+        if (gGlobal->gMemoryManager == 3) {
+            // Special version for SYFALA
+            container = new CVectorCodeContainer1(name, numInputs, numOutputs, dst);
+        } else {
+            container = new CVectorCodeContainer(name, numInputs, numOutputs, dst);
+        }
     } else if (gGlobal->gMemoryManager == 3) {
+        // Special version for SYFALA
         container = new CScalarCodeContainer1(name, numInputs, numOutputs, dst, kInt);
     } else {
         container = createScalarContainer(name, numInputs, numOutputs, dst, kInt);
@@ -612,13 +618,9 @@ void CScalarCodeContainer1::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    if (gGlobal->gInlineTable) {
-        // Sub containers are merged in the main class
-        mergeSubContainers();
-    } else {
-        // Generate sub containers
-        generateSubContainers();
-    }
+    // Sub containers are merged in the main class
+    faustassert(gGlobal->gInlineTable);
+    mergeSubContainers();
     
     // Global declarations
     tab(n, *fOut);
@@ -641,18 +643,9 @@ void CScalarCodeContainer1::produceClass()
     tab(n + 1, *fOut);
     // Fields
     fCodeProducer->Tab(n + 1);
-    // DSP fields as flat arrays are rewritten as pointers
-    if (gGlobal->gMemoryManager == 0) {
-        // All arrays are rewritten as pointers
-        ArrayToPointer array_pointer;
-        array_pointer.getCode(fDeclarationInstructions)->accept(fCodeProducer);
-    } else if (gGlobal->gMemoryManager >= 1) {
-        // Only "iControl", "fControl", "iZone", "fZone" are rewritten as pointers
-        ArrayToPointer1 array_pointer;
-        array_pointer.getCode(fDeclarationInstructions)->accept(fCodeProducer);
-    } else {
-        generateDeclarations(fCodeProducer);
-    }
+    // Only "iControl", "fControl", "iZone", "fZone" are rewritten as pointers
+    ArrayToPointer1 array_pointer;
+    array_pointer.getCode(fDeclarationInstructions)->accept(fCodeProducer);
     back(1, *fOut);
     *fOut << "} " << fKlassName << ";";
     
@@ -807,7 +800,7 @@ void CScalarCodeContainer1::generateComputeAux(int n)
     // Generates declaration
     if (gGlobal->gInPlace) {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-        << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+        << subst("* dsp, int $0, $1** inputs, $1** outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", fFullCount, xfloat());
     } else {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
         << subst("* dsp, int $0, $1** RESTRICT inputs, $1** RESTRICT outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", fFullCount, xfloat());
@@ -858,6 +851,35 @@ void CVectorCodeContainer::generateComputeAux(int n)
     // Generates the DSP loop
     fDAGBlock->accept(fCodeProducer);
 
+    back(1, *fOut);
+    *fOut << "}" << endl;
+}
+
+CVectorCodeContainer1::CVectorCodeContainer1(const string& name, int numInputs, int numOutputs, std::ostream* out)
+: VectorCodeContainer(numInputs, numOutputs), CScalarCodeContainer1(name, numInputs, numOutputs, out, kInt)
+{
+}
+
+void CVectorCodeContainer1::generateComputeAux(int n)
+{
+    // Generates declaration
+    tab(n, *fOut);
+    if (gGlobal->gInPlace) {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+        << subst("* dsp, int $0, $1** inputs, $1** outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", fFullCount, xfloat());
+    } else {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+        << subst("* dsp, int $0, $1** RESTRICT inputs, $1** RESTRICT outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", fFullCount, xfloat());
+    }
+    tab(n + 1, *fOut);
+    fCodeProducer->Tab(n + 1);
+    
+    // Generates local variables declaration and setup
+    generateComputeBlock(fCodeProducer);
+    
+    // Generates the DSP loop
+    fDAGBlock->accept(fCodeProducer);
+    
     back(1, *fOut);
     *fOut << "}" << endl;
 }
