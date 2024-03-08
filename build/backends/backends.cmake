@@ -18,11 +18,12 @@ set ( INTERP_BACKEND OFF                            CACHE STRING  "Include Inter
 set ( JAVA_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include JAVA backend"      FORCE )
 set ( JAX_BACKEND    COMPILER STATIC DYNAMIC        CACHE STRING  "Include JAX backend"       FORCE )
 set ( JULIA_BACKEND  COMPILER STATIC DYNAMIC        CACHE STRING  "Include Julia backend"     FORCE )
-set ( JSFX_BACKEND  COMPILER STATIC DYNAMIC        CACHE STRING  "Include JSFX backend"     FORCE )
+set ( JSFX_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include JSFX backend"     FORCE )
 set ( LLVM_BACKEND            STATIC DYNAMIC        CACHE STRING  "Include LLVM backend"      FORCE )
 set ( OLDCPP_BACKEND COMPILER STATIC DYNAMIC        CACHE STRING  "Include old CPP backend"   FORCE )
 set ( RUST_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include Rust backend"      FORCE )
 # Template is deactivated 
 set ( TEMPLATE_BACKEND   OFF    CACHE STRING  "Include Template backend"  FORCE )
+set ( VHDL_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include VHDL backend"      FORCE )
 set ( WASM_BACKEND   COMPILER STATIC DYNAMIC WASM   CACHE STRING  "Include WASM backend"      FORCE )
-set ( VHDL_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include VHDL bakcned"      FORCE )
+
