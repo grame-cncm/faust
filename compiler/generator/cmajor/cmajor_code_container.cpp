@@ -72,7 +72,7 @@ CodeContainer* CmajorCodeContainer::createContainer(const string& name, int numI
 
 void CmajorCodeContainer::produceInternal()
 {
-    int n = 0;
+    int n = 1;
     CmajorSubContainerInstVisitor struct_visitor(fOut);
 
     // Global declarations
@@ -187,12 +187,16 @@ void CmajorCodeContainer::produceInit(int tabs)
 
 void CmajorCodeContainer::produceClass()
 {
-    int n = 0;
+    int n = 1;
    
+    // Start of namespace
+    *fOut << "namespace faust \n{";
+    fCodeProducer.Tab(n + 1);
+
     // Look for the "fillXXX" function
     generateStaticInit(gGlobal->gTableSizeVisitor);
     generateInit(gGlobal->gTableSizeVisitor);
- 
+    
     // Processor generation
     tab(n, *fOut);
     *fOut << "processor " << fKlassName;
@@ -201,7 +205,6 @@ void CmajorCodeContainer::produceClass()
 
     // Fields
     tab(n + 1, *fOut);
-    fCodeProducer.Tab(n + 1);
     
     if (gGlobal->gOutputLang == "cmajor-dsp") {
         string json = generateJSONAux();
@@ -220,6 +223,7 @@ void CmajorCodeContainer::produceClass()
         tab(n + 1, *fOut);
     }
     
+    fUIVisitor.Tab(n + 1);
     generateUserInterface(&fUIVisitor);
     *fOut << fUIVisitor.fOut.str();
     generateDeclarations(&fCodeProducer);
@@ -396,6 +400,11 @@ void CmajorCodeContainer::produceClass()
  
     // Compute
     generateCompute(n + 1);
+    back(1, *fOut);
+    tab(n, *fOut);
+    *fOut << "}" << endl;
+    
+    // End of namespace
     *fOut << "}" << endl;
 }
 

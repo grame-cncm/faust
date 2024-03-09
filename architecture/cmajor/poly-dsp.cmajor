@@ -54,14 +54,14 @@ graph dsp_voice
 
     event eventIn (std::notes::NoteOn e)
     {
-        mydsp.event_freq <- std::notes::noteToFrequency (e.pitch);
-        mydsp.event_gain <- e.velocity;
-        mydsp.event_gate <- 1.0f;
+        faust::mydsp.event_freq <- std::notes::noteToFrequency (e.pitch);
+        faust::mydsp.event_gain <- e.velocity;
+        faust::mydsp.event_gate <- 1.0f;
     }
      
     event eventIn (std::notes::NoteOff e)
     { 
-        mydsp.event_gate <- 0.0f;
+        faust::mydsp.event_gate <- 0.0f;
     }
     
     event eventIn (std::notes::PitchBend e)
@@ -71,8 +71,8 @@ graph dsp_voice
 
     connection
     {        
-        mydsp.output0 ->  audioOut0;
-        mydsp.output1 ->  audioOut1;
+        faust::mydsp.output0 ->  audioOut0;
+        faust::mydsp.output1 ->  audioOut1;
     }
 }
 

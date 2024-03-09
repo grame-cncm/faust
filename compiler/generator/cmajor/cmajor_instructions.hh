@@ -45,6 +45,8 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
 
     CmajorInstUIVisitor(int tab = 1) : fTypeManager(xfloat(), "*"), fTab(tab), fHasBargraph(false) {}
     
+    void Tab(int tab) { fTab = tab; }
+    
     void addMeta()
     {
         if (fMetaAux.size() > 0) {
