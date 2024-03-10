@@ -98,7 +98,7 @@ ValueInst* InstBuilder::genRealNumInst(Typed::VarType ctype, double num)
 
 ValueInst* InstBuilder::genTypedNum(Typed::VarType type, double num)
 {
-    if (type == Typed::kInt32) {
+    if (type == Typed::kInt32 || type == Typed::kBool) {
         return genInt32NumInst(int(num));
     } else if (type == Typed::kInt64) {
         return genInt64NumInst(int64_t(num));
