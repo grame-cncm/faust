@@ -276,7 +276,7 @@ static void Test(const char* dspFileAux)
         deleteDSPFactory(factory);
     }
     
-    // Test generateAuxFilesFromFile/generateAuxFilesFromString
+    // Test generateAuxFilesFromFile/generateAuxFilesFromString to generate a SVG file
     string tempDir = "/private/var/tmp/";
     int argc2 = 0;
     const char* argv2[64];
@@ -287,7 +287,7 @@ static void Test(const char* dspFileAux)
    
     {
         cout << "=============================\n";
-        cout << "Test generateAuxFilesFromFile\n";
+        cout << "Test generateAuxFilesFromFile in /private/var/tmp/\n";
         if (!generateAuxFilesFromFile(dspFile, argc2, argv2, error_msg)) {
             cout << "ERROR in generateAuxFilesFromFile : " << error_msg;
         } else {
@@ -304,7 +304,7 @@ static void Test(const char* dspFileAux)
     
     {
         cout << "===============================\n";
-        cout << "Test generateAuxFilesFromString\n";
+        cout << "Test generateAuxFilesFromString in /private/var/tmp/\n";
         if (!generateAuxFilesFromString("FaustDSP", pathToContent(dspFile), argc2, argv2, error_msg)) {
             cout << "generateAuxFilesFromString error : " << error_msg;
         } else {
@@ -317,6 +317,33 @@ static void Test(const char* dspFileAux)
             }
         }
     }
+    
+    // Test generateAuxFilesFromString to generate a Cmajor file
+    int argc3 = 0;
+    const char* argv3[64];
+    argv3[argc3++] = "-lang";
+    argv3[argc3++] = "cmajor";
+    argv3[argc3++] = "-o";
+    argv3[argc3++] = "FaustDSP.cmajor";
+    argv3[argc3++] = "-O";
+    argv3[argc3++] = tempDir.c_str();
+    argv3[argc3] = nullptr;  // NULL terminated argv
+    {
+        cout << "===============================\n";
+        cout << "Test generateAuxFilesFromString to use Rust backend in /private/var/tmp/\n";
+        if (!generateAuxFilesFromString("FaustDSP", pathToContent(dspFile), argc3, argv3, error_msg)) {
+            cout << "generateAuxFilesFromString error : " << error_msg;
+        } else {
+            string pathname = tempDir + "/FaustDSP.cmajor";
+            ifstream reader(pathname.c_str());
+            if (!reader.is_open()) {
+                cerr << "ERROR in generateAuxFilesFromString error : " << pathname << " cannot be opened\n";
+            } else {
+                cout << "generateAuxFilesFromString to use Cmajor backend OK\n";
+            }
+        }
+    }
+    
 }
 
 int main(int argc, char* argv[])
