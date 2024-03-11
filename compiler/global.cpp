@@ -490,8 +490,8 @@ void global::reset()
     gCheckIntRange        = false;
     gReprC                = true;
 
-    gNarrowingLimit = 5;
-    gWideningLimit  = 5;
+    gNarrowingLimit = 0;
+    gWideningLimit  = 0;
 
     gLstDependenciesSwitch = true;  // mdoc listing management.
     gLstMdocTagsSwitch     = true;  // mdoc listing management.
