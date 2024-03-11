@@ -336,12 +336,12 @@ void CodeContainer::produceInfoFunctions(int tabs, const string& classname, cons
     generateGetOutputs(out_fun + classname, obj, ismethod, funtype)->accept(producer);
 }
 
-void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, LoadVarInst* count, bool omp)
+void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, ValueInst* count, bool omp)
 {
     loop->generateDAGScalarLoop(block, count, omp);
 }
 
-void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, LoadVarInst* count, int loop_num,
+void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, ValueInst* count, int loop_num,
                                        bool omp)
 {
     if (gGlobal->gFunTaskSwitch) {
@@ -363,7 +363,7 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Loa
     }
 }
 
-void CodeContainer::generateDAGLoop(BlockInst* block, LoadVarInst* count)
+void CodeContainer::generateDAGLoop(BlockInst* block, ValueInst* count)
 {
     int loop_num = 0;
 

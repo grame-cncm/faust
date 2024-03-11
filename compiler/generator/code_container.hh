@@ -157,9 +157,9 @@ class CodeContainer : public virtual Garbageable {
         merge(S, fLibrarySet);
     }
 
-    void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, LoadVarInst* count, int loop_num,
+    void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, ValueInst* count, int loop_num,
                             bool omp = false);
-    void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, LoadVarInst* count, bool omp);
+    void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, ValueInst* count, bool omp);
 
     void includeFastMath()
     {
@@ -343,7 +343,7 @@ class CodeContainer : public virtual Garbageable {
     void produceInfoFunctions(int tabs, const std::string& classname, const std::string& obj, bool ismethod, FunTyped::FunAttribute funtype,
                               TextInstVisitor* producer, const std::string& in_fun = "getNumInputs", const std::string& out_fun = "getNumOutputs");
 
-    void generateDAGLoop(BlockInst* loop_code, LoadVarInst* count);
+    void generateDAGLoop(BlockInst* loop_code, ValueInst* count);
     
     template <typename REAL>
     void generateMetaData(JSONUIReal<REAL>* json)

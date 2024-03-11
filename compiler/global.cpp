@@ -1544,7 +1544,7 @@ bool global::processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : '-os' option can only be used in scalar mode\n");
     }
     
-    if (gVectorLoopVariant < 0 || gVectorLoopVariant > 1) {
+    if (gVectorLoopVariant < 0 || gVectorLoopVariant > 2) {
         stringstream error;
         error << "ERROR : invalid loop variant [-lv = " << gVectorLoopVariant << "] should be 0 or 1" << endl;
         throw faustexception(error.str());

@@ -858,8 +858,8 @@ CVectorCodeContainer1::CVectorCodeContainer1(const string& name, int numInputs, 
 void CVectorCodeContainer1::generateComputeAux(int n)
 {
     // Generates declaration
-    *fOut << "void compute" << fKlassName << "(" << fKlassName
-    << subst("* dsp, int $0, $1 inputs[FAUST_INPUTS][SYFALA_BLOCK_SIZE], $1 outputs[FAUST_OUTPUTS][SYFALA_BLOCK_SIZE], int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", fFullCount, xfloat());
+    *fOut << "void computeBlock" << fKlassName << "(" << fKlassName
+    << subst("* dsp, $0 inputs[FAUST_INPUTS][SYFALA_BLOCK_SIZE], $0 outputs[FAUST_OUTPUTS][SYFALA_BLOCK_SIZE], int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", xfloat());
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     

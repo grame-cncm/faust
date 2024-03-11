@@ -107,7 +107,7 @@ BlockInst* CodeLoop::generateOneSample()
     }
 }
 
-void CodeLoop::generateDAGScalarLoop(BlockInst* block, LoadVarInst* count, bool omp)
+void CodeLoop::generateDAGScalarLoop(BlockInst* block, ValueInst* count, bool omp)
 {
     // Generate code for extra loops
     for (list<CodeLoop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
