@@ -793,13 +793,9 @@ void CScalarCodeContainer::generateComputeAux(int n)
 void CScalarCodeContainer1::generateComputeAux(int n)
 {
     // Generates declaration
-    if (gGlobal->gInPlace) {
-        *fOut << "void compute" << fKlassName << "(" << fKlassName
-        << subst("* dsp, int $0, $1** inputs, $1** outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", fFullCount, xfloat());
-    } else {
-        *fOut << "void compute" << fKlassName << "(" << fKlassName
-        << subst("* dsp, int $0, $1** RESTRICT inputs, $1** RESTRICT outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", fFullCount, xfloat());
-    }
+    *fOut << "void computeBlock" << fKlassName << "(" << fKlassName
+    << subst("* dsp, $0 inputs[FAUST_INPUTS][SYFALA_BLOCK_SIZE], $0 outputs[FAUST_OUTPUTS][SYFALA_BLOCK_SIZE], int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", xfloat());
+    
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     
@@ -807,7 +803,7 @@ void CScalarCodeContainer1::generateComputeAux(int n)
     generateComputeBlock(fCodeProducer);
     
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+    ForLoopInst* loop = fCurLoop->generateFixedScalarLoop();
     loop->accept(fCodeProducer);
     
     /*

@@ -56,6 +56,21 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
     return static_cast<ForLoopInst*>(loop->clone(&cloner));
 }
 
+ForLoopInst* CodeLoop::generateFixedScalarLoop()
+{
+    DeclareVarInst* loop_decl =
+    InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
+    
+    ValueInst* loop_end          = InstBuilder::genLessThan(loop_decl->load(), FIRIndex(gGlobal->gVecSize));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+
+    BlockInst* block = generateOneSample();
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block, fIsRecursive);
+    
+    BasicCloneVisitor cloner;
+    return static_cast<ForLoopInst*>(loop->clone(&cloner));
+}
+
 // To be used for the 'rust' backend
 SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
 {
