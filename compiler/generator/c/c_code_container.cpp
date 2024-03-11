@@ -639,6 +639,9 @@ void CScalarCodeContainer1::produceClass()
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
     
+    // Generate user interface macros if needed
+    printMacros(*fOut, n);
+    
     tab(n, *fOut);
     *fOut << "typedef struct {";
     tab(n + 1, *fOut);
@@ -657,7 +660,6 @@ void CScalarCodeContainer1::produceClass()
     tab(n, *fOut);
     generateDestroyFun(n);
     
-    tab(n, *fOut);
     *fOut << "void instanceConstantsFromMem" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, "
           << subst("int* RESTRICT iZone, $0* RESTRICT fZone) {", ifloat());
     tab(n + 1, *fOut);
@@ -711,9 +713,6 @@ void CScalarCodeContainer1::produceClass()
     *fOut << "#define FAUST_INT_ZONE " << gGlobal->gIntZone->getSize() << endl;
     *fOut << "#define FAUST_FLOAT_ZONE " << gGlobal->gRealZone->getSize();
     tab(n, *fOut);
-    
-    // Generate user interface macros if needed
-    printMacros(*fOut, n);
     
     tab(n, *fOut);
     *fOut << "#ifdef __cplusplus" << endl;
@@ -859,13 +858,8 @@ CVectorCodeContainer1::CVectorCodeContainer1(const string& name, int numInputs, 
 void CVectorCodeContainer1::generateComputeAux(int n)
 {
     // Generates declaration
-    if (gGlobal->gInPlace) {
-        *fOut << "void compute" << fKlassName << "(" << fKlassName
-        << subst("* dsp, int $0, $1** inputs, $1** outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", fFullCount, xfloat());
-    } else {
-        *fOut << "void compute" << fKlassName << "(" << fKlassName
-        << subst("* dsp, int $0, $1** RESTRICT inputs, $1** RESTRICT outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", fFullCount, xfloat());
-    }
+    *fOut << "void compute" << fKlassName << "(" << fKlassName
+    << subst("* dsp, int $0, $1[FAUST_INPUTS][SYFALA_BLOCK_SIZE] inputs, $1[FAUST_OUTPUTS][SYFALA_BLOCK_SIZE] outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", fFullCount, xfloat());
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     
