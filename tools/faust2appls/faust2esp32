@@ -32,7 +32,7 @@ MIDIDEFS=""
 #OSCDEFS=""
 DRIVER=""
 SOUNDFILE="0"
-#OPTIONS=""
+OPTIONS=""
 
 echoHelp()
 {
@@ -252,7 +252,7 @@ fi
 
 if [[ "$LIB" == "0" && "$GRAMOPHONE" == "0" ]]; then
     mkdir -p $MODULENAME/FaustDSP/include
-    faust -uim -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/FaustDSP/$MODULENAME.cpp
+    faust -uim -a $FAUSTARCH/esp32/esp32.cpp -i $OPTIONS $FILE -o $MODULENAME/FaustDSP/$MODULENAME.cpp
     cp $FAUSTARCH/esp32/esp32.h $MODULENAME/FaustDSP/include/$MODULENAME.h
     cp $FAUSTARCH/esp32/component.mk $MODULENAME/FaustDSP/component.mk
     cp $FAUSTARCH/esp32/CMakeLists.txt $MODULENAME/FaustDSP/CMakeLists.txt
