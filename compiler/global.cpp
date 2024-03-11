@@ -1598,6 +1598,10 @@ bool global::processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -mem3 has to be used with -ec\n");
     }
     
+    if ((gMemoryManager == 3) && gVectorSwitch && gVectorLoopVariant != 2) {
+        throw faustexception("ERROR : -mem3 and -vec has to be used with -lv 2\n");
+    }
+    
     if ((gMemoryManager == 0 || gMemoryManager == 1) &&  (gOutputLang == "c")) {
         throw faustexception("ERROR : -mem0/-mem1 cannot be used with 'c' backend\n");
     }
@@ -2046,7 +2050,7 @@ string global::printHelp()
     sstr << tab << "-vs <n>     --vec-size <n>              size of the vector (default 32 samples)." << endl;
     sstr << tab
          << "-lv <n>     --loop-variant <n>          [0:fastest, fixed vector size and a remaining loop (default), "
-            "1:simple, variable vector size]."
+            "1:simple, variable vector size, 2:fixed, fixed vector size]."
          << endl;
     sstr << tab << "-omp        --openmp                    generate OpenMP pragmas, activates --vectorize option."
          << endl;
