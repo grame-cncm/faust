@@ -152,7 +152,7 @@ class esp32_midi : public midi_handler {
                 .stop_bits = UART_STOP_BITS_1,
                 .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
                 .rx_flow_ctrl_thresh = 122,
-                .use_ref_tick = false
+                .source_clk = UART_SCLK_DEFAULT
             };
             uart_param_config(PORT_NUM, &uart_config);
             uart_set_pin(PORT_NUM, TX1, RX1, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
