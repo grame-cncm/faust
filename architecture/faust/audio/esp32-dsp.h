@@ -30,13 +30,15 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/i2s.h"
+#include "driver/gpio.h"
+#include "soc/io_mux_reg.h"
 
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
 
 #define MULT_S32 2147483647
 #define DIV_S32 4.6566129e-10
-#define clip(sample) std::max(-MULT_S32, std::min(MULT_S32, ((int32_t)(sample * MULT_S32))));
+#define clip(sample) std::max(static_cast<int32_t>(-MULT_S32), std::min(static_cast<int32_t>((sample) * MULT_S32), static_cast<int32_t>(MULT_S32)))
 
 #define AUDIO_MAX_CHAN 2
 
@@ -155,13 +157,15 @@ class esp32audio : public audio {
             i2s_pin_config_t pin_config;
         #if TTGO_TAUDIO
             pin_config = {
+                .mck_io_num = I2S_PIN_NO_CHANGE,
                 .bck_io_num = 33,
                 .ws_io_num = 25,
                 .data_out_num = 26,
-                .data_in_num = 27
+                .data_in_num = 27  
             };
         #elif A1S_BOARD
             pin_config = {
+                .mck_io_num = I2S_PIN_NO_CHANGE,
                 .bck_io_num = 27,
                 .ws_io_num = 26,
                 .data_out_num = 25,
@@ -169,6 +173,7 @@ class esp32audio : public audio {
             };
         #elif LYRA_T
             pin_config = {
+                .mck_io_num = I2S_PIN_NO_CHANGE,
                 .bck_io_num = 5,
                 .ws_io_num = 25,
                 .data_out_num = 26,
@@ -176,6 +181,7 @@ class esp32audio : public audio {
             };
         #else // Default
             pin_config = {
+                .mck_io_num = I2S_PIN_NO_CHANGE,
                 .bck_io_num = 33,
                 .ws_io_num = 25,
                 .data_out_num = 26,
@@ -186,19 +192,23 @@ class esp32audio : public audio {
         #if A1S_BOARD
             i2s_config_t i2s_config = {
                 .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
-                .sample_rate = uint32_t(fSampleRate),
+                .sample_rate = static_cast<uint32_t>(fSampleRate),
                 .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
                 .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
                 .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
                 .intr_alloc_flags = ESP_INTR_FLAG_LEVEL3, // high interrupt priority
                 .dma_buf_count = 3,
                 .dma_buf_len = fBufferSize,
-                .use_apll = true
+                .use_apll = true,
+                .tx_desc_auto_clear = false,
+                .fixed_mclk = 0,
+                .mclk_multiple = I2S_MCLK_MULTIPLE_256,
+                .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT
             };
         #else // default
             i2s_config_t i2s_config = {
                 .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
-                .sample_rate = uint32_t(fSampleRate),
+                .sample_rate = static_cast<uint32_t>(fSampleRate)
                 .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
                 .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
                 .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
