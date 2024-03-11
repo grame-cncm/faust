@@ -37,8 +37,10 @@
 
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
+#include "faust/gui/DecoratorUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/audio/esp32-dsp.h"
+#include "faust/gui/SimpleParser.h"
 
 #ifdef SOUNDFILE
 #define ESP32
