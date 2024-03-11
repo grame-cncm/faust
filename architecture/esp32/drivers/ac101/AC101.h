@@ -238,6 +238,9 @@ public:
 	// Constructor.
   	AC101();
 
+  	// Deconstructor.
+	~AC101();
+
 	// Initialize the I2C interface
     esp_err_t InitI2C(void);
 
