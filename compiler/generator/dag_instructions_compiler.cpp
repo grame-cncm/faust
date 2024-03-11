@@ -535,7 +535,10 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
                                                 Address::AccessType& access)
 {
     BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
-
+    
+    // -lv 2 uses -vs value
+    ValueInst* vsize = (gGlobal->gVectorLoopVariant == 2) ? FIRIndex(gGlobal->gVecSize) : InstBuilder::genLoadLoopVar("vsize");
+   
     if (delay < gGlobal->gMaxCopyDelay) {
         // Implementation of a copy based delayline
         // create names for temporary and permanent storage
@@ -567,7 +570,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, getCurrentLoopIndex(), exp));
 
         // -- copy back to stored samples
-        pushPostComputeDSPMethod(generateCopyBackArray(pmem, buf, delay));
+        pushPostComputeDSPMethod(generateCopyBackArray(pmem, buf, vsize, delay));
 
         // Set desired variable access
         access = Address::kStack;
@@ -602,8 +605,6 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, index4, exp));
 
         // -- save index
-        // -lv 2 uses -vs value
-        ValueInst* vsize = (gGlobal->gVectorLoopVariant == 2) ? FIRIndex(gGlobal->gVecSize) : InstBuilder::genLoadLoopVar("vsize");
         pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(idx_save, vsize));
 
         // Set desired variable access
@@ -611,7 +612,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
     }
 }
 
-StatementInst* DAGInstructionsCompiler::generateCopyBackArray(const string& vname_to, const string& vname_from,
+StatementInst* DAGInstructionsCompiler::generateCopyBackArray(const string& vname_to, const string& vname_from, ValueInst* vec_size,
                                                               int size)
 {
     string index = gGlobal->getFreshID("j");
@@ -624,9 +625,7 @@ StatementInst* DAGInstructionsCompiler::generateCopyBackArray(const string& vnam
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
-    // -lv 2 uses -vs value
-    ValueInst* vsize = (gGlobal->gVectorLoopVariant == 2) ? FIRIndex(gGlobal->gVecSize) : InstBuilder::genLoadLoopVar("vsize");
-    FIRIndex   load_index = FIRIndex(vsize) + loop_decl->load();
+    FIRIndex   load_index = FIRIndex(vec_size) + loop_decl->load();
     ValueInst* load_value = InstBuilder::genLoadArrayStackVar(vname_from, load_index);
 
     loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname_to, loop_decl->load(), load_value));
