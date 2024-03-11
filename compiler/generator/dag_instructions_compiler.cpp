@@ -602,7 +602,9 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, index4, exp));
 
         // -- save index
-        pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genLoadLoopVar("vsize")));
+        // -lv 2 uses -vs value
+        ValueInst* vsize = (gGlobal->gVectorLoopVariant == 2) ? FIRIndex(gGlobal->gVecSize) : InstBuilder::genLoadLoopVar("vsize");
+        pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(idx_save, vsize));
 
         // Set desired variable access
         access = Address::kStruct;
@@ -622,7 +624,9 @@ StatementInst* DAGInstructionsCompiler::generateCopyBackArray(const string& vnam
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
-    FIRIndex   load_index = FIRIndex(InstBuilder::genLoadLoopVar("vsize")) + loop_decl->load();
+    // -lv 2 uses -vs value
+    ValueInst* vsize = (gGlobal->gVectorLoopVariant == 2) ? FIRIndex(gGlobal->gVecSize) : InstBuilder::genLoadLoopVar("vsize");
+    FIRIndex   load_index = FIRIndex(vsize) + loop_decl->load();
     ValueInst* load_value = InstBuilder::genLoadArrayStackVar(vname_from, load_index);
 
     loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname_to, loop_decl->load(), load_value));
@@ -637,7 +641,9 @@ ValueInst* DAGInstructionsCompiler::generateWaveform(Tree sig)
     declareWaveform(sig, vname, size);
 
     string   idx    = subst("$0_idx", vname);
-    FIRIndex index1 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + InstBuilder::genLoadLoopVar("vsize")) % size;
+    // -lv 2 uses -vs value
+    ValueInst* vsize = (gGlobal->gVectorLoopVariant == 2) ? FIRIndex(gGlobal->gVecSize) : InstBuilder::genLoadLoopVar("vsize");
+    FIRIndex index1 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + vsize) % size;
     pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(idx, index1));
     FIRIndex index2 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + getCurrentLoopIndex()) % size;
     return generateCacheCode(sig, InstBuilder::genLoadArrayStaticStructVar(vname, index2));
