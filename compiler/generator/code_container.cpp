@@ -73,6 +73,7 @@ CodeContainer::CodeContainer()
     
     Address::AccessType access;
     if (gGlobal->gMemoryManager == 2) access = Address::kStruct;
+    // Special version for SYFALA where iControl/fControl and iZone/fZone have to be parameters
     if (gGlobal->gMemoryManager == 3) access = Address::kFunArgs;
     
     // iControl/fControl are created when -ec and -mem1/2/3 are used together

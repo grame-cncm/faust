@@ -856,6 +856,7 @@ void CVectorCodeContainer1::generateComputeAux(int n)
     // Generates declaration
     *fOut << "void computeBlock" << fKlassName << "(" << fKlassName
     << subst("* dsp, $0 inputs[FAUST_INPUTS][SYFALA_BLOCK_SIZE], $0 outputs[FAUST_OUTPUTS][SYFALA_BLOCK_SIZE], int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", xfloat());
+    
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     
