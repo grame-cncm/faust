@@ -45,6 +45,7 @@ architecture section is not modified.
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/GUI.h"
 #include "faust/gui/MapUI.h"
+#include "faust/gui/MidiUI.h"
 #include "faust/gui/JSONControl.h"
 
 #define kActiveVoice    0
@@ -1048,7 +1049,8 @@ struct dsp_poly_factory : public dsp_factory {
 
     /* Create a new polyphonic DSP instance with global effect, to be deleted with C++ 'delete'
      *
-     * @param nvoices - number of polyphony voices, should be at least 1
+     * @param nvoices - number of polyphony voices, should be at least 1.
+     * If -1 is used, the voice number found in the 'declare options "[nvoices:N]";' section will be used.
      * @param control - whether voices will be dynamically allocated and controlled (typically by a MIDI controler).
      *                If false all voices are always running.
      * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
@@ -1058,6 +1060,13 @@ struct dsp_poly_factory : public dsp_factory {
      */
     dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group, bool is_double = false)
     {
+        if (nvoices == -1) {
+            // Get 'nvoices' from the metadata declaration
+            dsp* dsp = fProcessFactory->createDSPInstance();
+            bool midi_sync;
+            MidiMeta::analyse(dsp, midi_sync, nvoices);
+            delete dsp;
+        }
         dsp_poly* dsp_poly = new mydsp_poly(adaptDSP(fProcessFactory->createDSPInstance(), is_double), nvoices, control, group);
         if (fEffectFactory) {
             // the 'dsp_poly' object has to be controlled with MIDI, so kept separated from new dsp_sequencer(...) object

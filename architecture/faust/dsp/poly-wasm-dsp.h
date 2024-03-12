@@ -169,10 +169,10 @@ static dsp_poly_factory* readWasmPolyDSPFactoryFromMachineFile(const std::string
     wasm_dsp_factory* process_factory = readWasmDSPFactoryFromMachineFile(process_path, error_msg);
     wasm_dsp_factory* effect_factory = readWasmDSPFactoryFromMachineFile(effect_path, error_msg);
     if (process_factory) {
-        return new dsp_poly_factory(process_factory, effect_factory);
+        return new wasm_dsp_poly_factory(process_factory, effect_factory);
     } else {
         process_factory = readWasmDSPFactoryFromMachineFile(machine_code_path, error_msg);
-        return (process_factory) ? new dsp_poly_factory(process_factory, NULL) : NULL;
+        return (process_factory) ? new wasm_dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }
 

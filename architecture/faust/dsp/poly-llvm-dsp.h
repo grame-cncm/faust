@@ -55,6 +55,10 @@ struct llvm_dsp_poly_factory : public dsp_poly_factory {
         }
     }
     
+    llvm_dsp_poly_factory(llvm_dsp_factory* process_factory, llvm_dsp_factory* effect_factory)
+    :dsp_poly_factory(process_factory, effect_factory)
+    {}
+    
     virtual ~llvm_dsp_poly_factory()
     {
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(fProcessFactory));
@@ -131,10 +135,10 @@ static dsp_poly_factory* readPolyDSPFactoryFromBitcodeFile(const std::string& bi
     llvm_dsp_factory* process_factory = readDSPFactoryFromBitcodeFile(process_path, target, error_msg, opt_level);
     llvm_dsp_factory* effect_factory = readDSPFactoryFromBitcodeFile(effect_path, target, error_msg, opt_level);
     if (process_factory) {
-        return new dsp_poly_factory(process_factory, effect_factory);
+        return new llvm_dsp_poly_factory(process_factory, effect_factory);
     } else {
         llvm_dsp_factory* process_factory = readDSPFactoryFromBitcodeFile(bit_code_path, target, error_msg, opt_level);
-        return (process_factory) ? new dsp_poly_factory(process_factory, NULL) : NULL;
+        return (process_factory) ? new llvm_dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }
 
@@ -175,10 +179,10 @@ static dsp_poly_factory* readPolyDSPFactoryFromIRFile(const std::string& ir_code
     llvm_dsp_factory* process_factory = readDSPFactoryFromIRFile(process_path, target, error_msg, opt_level);
     llvm_dsp_factory* effect_factory = readDSPFactoryFromIRFile(effect_path, target, error_msg, opt_level);
     if (process_factory) {
-        return new dsp_poly_factory(process_factory, effect_factory);
+        return new llvm_dsp_poly_factory(process_factory, effect_factory);
     } else {
         llvm_dsp_factory* process_factory = readDSPFactoryFromIRFile(ir_code_path, target, error_msg, opt_level);
-        return (process_factory) ? new dsp_poly_factory(process_factory, NULL) : NULL;
+        return (process_factory) ? new llvm_dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }
 
@@ -219,10 +223,10 @@ static dsp_poly_factory* readPolyDSPFactoryFromMachineFile(const std::string& ma
     llvm_dsp_factory* process_factory = readDSPFactoryFromMachineFile(process_path, target, error_msg);
     llvm_dsp_factory* effect_factory = readDSPFactoryFromMachineFile(effect_path, target, error_msg);
     if (process_factory) {
-        return new dsp_poly_factory(process_factory, effect_factory);
+        return new llvm_dsp_poly_factory(process_factory, effect_factory);
     } else {
         llvm_dsp_factory* process_factory = readDSPFactoryFromMachineFile(machine_code_path, target, error_msg);
-        return (process_factory) ? new dsp_poly_factory(process_factory, NULL) : NULL;
+        return (process_factory) ? new llvm_dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }
 

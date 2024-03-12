@@ -53,6 +53,10 @@ struct interpreter_dsp_poly_factory : public dsp_poly_factory {
         }
     }
     
+    interpreter_dsp_poly_factory(interpreter_dsp_factory* process_factory, interpreter_dsp_factory* effect_factory)
+    :dsp_poly_factory(process_factory, effect_factory)
+    {}
+    
     virtual ~interpreter_dsp_poly_factory()
     {
         deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fProcessFactory));
@@ -115,10 +119,10 @@ static dsp_poly_factory* readInterpreterPolyDSPFactoryFromMachineFile(const std:
     interpreter_dsp_factory* process_factory = readInterpreterDSPFactoryFromBitcodeFile(process_path, error_msg);
     interpreter_dsp_factory* effect_factory = readInterpreterDSPFactoryFromBitcodeFile(effect_path, error_msg);
     if (process_factory) {
-        return new dsp_poly_factory(process_factory, effect_factory);
+        return new interpreter_dsp_poly_factory(process_factory, effect_factory);
     } else {
         interpreter_dsp_factory* process_factory = readInterpreterDSPFactoryFromBitcodeFile(bit_code_path, error_msg);
-        return (process_factory) ? new dsp_poly_factory(process_factory, NULL) : NULL;
+        return (process_factory) ? new interpreter_dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }
 

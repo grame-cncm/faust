@@ -143,11 +143,6 @@ int main(int argc, char* argv[])
     
     argv1[argc1] = nullptr;  // NULL terminated argv
     
-    if (nvoices <= 0) {
-        cout << "Cannot start polyphonic with 0 voice\n";
-        exit(EXIT_FAILURE);
-    }
-    
     if (is_llvm) {
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
@@ -260,8 +255,8 @@ int main(int argc, char* argv[])
         DSP->buildUserInterface(oscinterface);
     }
    
+    rt_midi midi_handler(name);
     if (is_midi) {
-        rt_midi midi_handler(name);
         midiinterface = new MidiUI(&midi_handler);
         DSP->buildUserInterface(midiinterface);
         cout << "MIDI is on" << endl;
