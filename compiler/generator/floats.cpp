@@ -144,7 +144,7 @@ void initFaustFloat()
         floatmax[4] = 0x7F800000;
 
     // Specific for JAX backend
-    } else  if (gGlobal->gOutputLang == "jax") {
+    } else if (gGlobal->gOutputLang == "jax") {
         numsuffix[0] = "";
         numsuffix[1] = "";
         numsuffix[2] = "";
