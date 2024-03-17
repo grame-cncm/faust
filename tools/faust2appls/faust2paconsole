@@ -1,0 +1,149 @@
+#! /bin/bash -e
+
+#######################################################
+#                                                     #
+#    Compiles Faust programs to PortAudio (no GUI)    #
+#    (c) Aaron Krister Johnson, Grame, 2024           #
+#                                                     #
+#######################################################
+
+. faustpath
+. faustoptflags
+. usage.sh
+
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
+ARCHFILE=$FAUSTARCH/pa-console.cpp
+
+OSCDEFS=""
+NVOICES=-1
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILELIBS=""
+
+# Check Darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    ARCHLIB="-L/usr/local/lib -lportaudio -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices"
+else
+    ARCHLIB="-L/usr/local/lib -lportaudio -lasound"
+fi
+
+echoHelp()
+{
+    usage faust2paconsole "[options] [Faust options] <file.dsp>"
+    require PortAudio
+    echo "Compiles Faust programs to PortAudio"
+    option
+    options -httpd -osc -midi
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# existing *.dsp files          -> FILES
+#
+
+# dispatch command arguments
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echoHelp
+    elif [ $p = "-osc" ]; then
+        OSCDEFS="-DOSCCTRL -lOSCFaust"
+    elif [ $p = "-httpd" ]; then
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"
+        HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
+    elif [ $p = "-nvoices" ]; then
+        POLYDEFS="-DPOLY"
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
+    elif [ $p = "-effect" ]; then
+        POLYDEFS="-DPOLY2"
+        POLY="POLY2"
+        shift
+        EFFECT=$1
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE"
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
+    elif [ $p = "-arch32" ]; then
+        PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-arch64" ]; then
+        PROCARCH="-m64"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+for f in $FILES; do
+
+    # compile faust to c++
+    if [ $POLY = "POLY2" ]; then
+        if [ $EFFECT = "auto" ]; then
+            cat > effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
+EndOfCode
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp effect.dsp -o effect.h || exit
+            rm effect.dsp
+        else
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "effect.h" || exit
+        fi
+    else
+        faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp"|| exit
+    fi
+
+    # compile c++ to binary
+    (
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" -I/usr/local/include -L/usr/local/lib \
+            $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $HTTPLIBS $MIDIDEFS $POLYDEFS \
+            $SOUNDFILEDEFS $ARCHLIB \
+            -ldl -pthread -o "${f%.dsp}"
+        if [[ $(uname) == Darwin ]]; then
+            codesign --sign - --deep --force "${f%.dsp}"
+        fi
+    ) > /dev/null || exit
+
+    # remove temporary files
+    rm -f "$f.cpp" effect.h "$f.json"
+
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
+done
+
+echo $BINARIES
