@@ -209,7 +209,7 @@ class FaustComponent : public juce::AudioAppComponent, private juce::Timer
 
         void paint (juce::Graphics& g) override
         {
-            g.fillAll (juce::Colour (juce::Colours::white));
+            g.fillAll (juce::Colour (juce::Colours::black));
         }
 
         void resized() override
