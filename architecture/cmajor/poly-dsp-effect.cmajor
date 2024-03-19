@@ -43,65 +43,70 @@
     This indirection is done since the "expose control event" model is not yet in place.
     So we have some 'ad-hoc' code for now that may change in the future
 */
-graph dsp_voice
-{
-    input event (std::notes::NoteOn,
-                 std::notes::NoteOff,
-                 std::notes::PitchBend) eventIn;
-    
-    output stream float audioOut0;
-    output stream float audioOut1;
 
-    event eventIn (std::notes::NoteOn e)
-    {
-        faust::mydsp.event_freq <- std::notes::noteToFrequency (e.pitch);
-        faust::mydsp.event_gain <- e.velocity;
-        faust::mydsp.event_gate <- 1.0f;
-    }
-     
-    event eventIn (std::notes::NoteOff e)
-    { 
-        faust::mydsp.event_gate <- 0.0f;
-    }
+namespace faust {
     
-    event eventIn (std::notes::PitchBend e)
+    graph dsp_voice
     {
-        // TODO
-    }
-
-    connection
-    {        
-        faust::mydsp.output0 ->  audioOut0;
-        faust::mydsp.output1 ->  audioOut1;
-    }
-}
-
-// Allocates voices, does dynamic voice management, connect to MIDI parser
-graph mydsp_poly_effect [[ main ]]
-{
-    input event std::midi::Message midiIn;
-    output stream float audioOut0;
-    output stream float audioOut1;
-    
-    node
-    {
-        midiParser = std::midi::MPEConverter;
-        voices = dsp_voice[NVOICES];
-        voiceAllocator = std::voices::VoiceAllocator (NVOICES);
-    }
-      
-    connection
-    {
-       midiIn -> midiParser -> voiceAllocator -> voices;
-   
-       // Sum the voices audio out to the effect
-        voices.audioOut0 -> faust::effect.input0;
-        voices.audioOut1 -> faust::effect.input1;
+        input event (std::notes::NoteOn,
+                     std::notes::NoteOff,
+                     std::notes::PitchBend) eventIn;
         
-        // Connect the effect to the output
-        faust::effect.output0 -> audioOut0;
-        faust::effect.output1 -> audioOut1;
+        output stream float audioOut0;
+        output stream float audioOut1;
+
+        event eventIn (std::notes::NoteOn e)
+        {
+            faust::mydsp.event_freq <- std::notes::noteToFrequency (e.pitch);
+            faust::mydsp.event_gain <- e.velocity;
+            faust::mydsp.event_gate <- 1.0f;
+        }
+         
+        event eventIn (std::notes::NoteOff e)
+        {
+            faust::mydsp.event_gate <- 0.0f;
+        }
+        
+        event eventIn (std::notes::PitchBend e)
+        {
+            // TODO
+        }
+
+        connection
+        {
+            faust::mydsp.output0 ->  audioOut0;
+            faust::mydsp.output1 ->  audioOut1;
+        }
     }
+
+    // Allocates voices, does dynamic voice management, connect to MIDI parser
+    graph mydsp_poly_effect [[ main ]]
+    {
+        input event std::midi::Message midiIn;
+        output stream float audioOut0;
+        output stream float audioOut1;
+        
+        node
+        {
+            midiParser = std::midi::MPEConverter;
+            voices = dsp_voice[NVOICES];
+            voiceAllocator = std::voices::VoiceAllocator (NVOICES);
+        }
+          
+        connection
+        {
+           midiIn -> midiParser -> voiceAllocator -> voices;
+       
+           // Sum the voices audio out to the effect
+            voices.audioOut0 -> faust::effect.input0;
+            voices.audioOut1 -> faust::effect.input1;
+            
+            // Connect the effect to the output
+            faust::effect.output0 -> audioOut0;
+            faust::effect.output1 -> audioOut1;
+        }
+    }
+
 }
 
 /******************** END poly-dsp-effect.cmajor ****************/
