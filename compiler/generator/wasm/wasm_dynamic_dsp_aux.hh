@@ -49,8 +49,7 @@ class LIBFAUST_API wasm_dynamic_dsp_factory : public wasm_dsp_factory {
 
 LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg, bool internal_memory);
 
-LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg,
-                                                        bool internal_memory);
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg, bool internal_memory);
 
 LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name_app, tvec signals,
                                                         int argc, const char* argv[], std::string& error_msg,

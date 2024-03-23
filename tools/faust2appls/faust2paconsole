@@ -107,8 +107,8 @@ done
 for f in $FILES; do
 
     # compile faust to c++
-    if [ $POLY = "POLY2" ]; then
-        if [ $EFFECT = "auto" ]; then
+    if [ "$POLY" = "POLY2" ]; then
+        if [ "$EFFECT" = "auto" ]; then
             cat > effect.dsp << EndOfCode
             adapt(1,1) = _;
             adapt(2,2) = _,_;
@@ -133,6 +133,7 @@ EndOfCode
         $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" -I/usr/local/include -L/usr/local/lib \
             $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $HTTPLIBS $MIDIDEFS $POLYDEFS \
             $SOUNDFILEDEFS $ARCHLIB \
+            `pkg-config --cflags --libs portaudio`
             -ldl -pthread -o "${f%.dsp}"
         if [[ $(uname) == Darwin ]]; then
             codesign --sign - --deep --force "${f%.dsp}"

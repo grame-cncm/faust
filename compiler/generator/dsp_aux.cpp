@@ -276,9 +276,9 @@ LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const strin
     argv1[argc1++] = "faust";
     // Filter arguments
     for (int i = 0; i < argc; i++) {
-    if (!(strcmp(argv[i], "-vec") == 0 || strcmp(argv[i], "-sch") == 0)) {
-        argv1[argc1++] = argv[i];
-    }
+        if (!(strcmp(argv[i], "-vec") == 0 || strcmp(argv[i], "-sch") == 0)) {
+            argv1[argc1++] = argv[i];
+        }
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
 
