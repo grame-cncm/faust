@@ -11,8 +11,8 @@ set ( C_BACKEND      COMPILER STATIC DYNAMIC      CACHE STRING  "Include C backe
 set ( CODEBOX_BACKEND      COMPILER STATIC DYNAMIC      CACHE STRING  "Include Codebox backend" FORCE )
 set ( CPP_BACKEND    COMPILER STATIC DYNAMIC      CACHE STRING  "Include CPP backend" FORCE )
 # To generate libfaust.wasm including Cmajor
-# set ( CMAJOR_BACKEND COMPILER STATIC DYNAMIC WASM CACHE STRING  "Include Cmajor backend" FORCE )
-set ( CMAJOR_BACKEND COMPILER STATIC DYNAMIC      CACHE STRING  "Include Cmajor backend" FORCE )
+set ( CMAJOR_BACKEND COMPILER STATIC DYNAMIC WASM CACHE STRING  "Include Cmajor backend" FORCE )
+#set ( CMAJOR_BACKEND COMPILER STATIC DYNAMIC      CACHE STRING  "Include Cmajor backend" FORCE )
 set ( CSHARP_BACKEND COMPILER STATIC DYNAMIC      CACHE STRING  "Include CSharp backend" FORCE )
 set ( DLANG_BACKEND  COMPILER STATIC DYNAMIC      CACHE STRING  "Include Dlang backend" FORCE )
 set ( FIR_BACKEND                        OFF      CACHE STRING  "Include FIR backend" FORCE )

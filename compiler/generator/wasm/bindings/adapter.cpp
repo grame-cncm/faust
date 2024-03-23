@@ -96,16 +96,10 @@ bool libFaustWasm::generateAuxFiles(const string name, const string dsp_content,
 {
     vector<string> argsv;
     string2StringsVector(args_aux, argsv);
-    // Add mandatory options to compile with a correct context
-    argsv.push_back("-lang");
-    argsv.push_back("wasm");
-    argsv.push_back("-o");
-    argsv.push_back("binary");
-    size_t n = argsv.size();
-    
     // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
     string error_msg;
     const char** args = stringVector2argv(argsv);
+    size_t n = argsv.size();
     bool res = ::generateAuxFilesFromString(name, dsp_content, n, args, error_msg);
     delete [] args;
     return res;
