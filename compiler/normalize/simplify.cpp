@@ -76,6 +76,7 @@ static Tree traced_simplification(Tree sig)
 
 Tree simplify(Tree sig)
 {
+    // TO IMPROVE: the simplication has to be done twice here because the second can still discover possible simplications
     Tree r1 = sigMap(gGlobal->SIMPLIFIED, traced_simplification, sig);
     Tree r2 = sigMap(gGlobal->SIMPLIFIED, traced_simplification, r1);
     return r2;

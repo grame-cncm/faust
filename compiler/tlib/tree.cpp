@@ -111,7 +111,7 @@ CTree::CTree(size_t hk, const Node& n, const tvec& br)
       fVisitTime(0),
       fBranch(br)
 {
-    // link dans la hash table
+    // link in the hash table
     int j         = hk % kHashTableSize;
     fNext         = gHashTable[j];
     gHashTable[j] = this;

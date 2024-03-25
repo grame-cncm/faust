@@ -288,16 +288,15 @@ mterm aterm::greatestDivisor() const
     mterm maxGCD(1);
     // cerr << "greatestDivisor of " << *this << endl;
 
-    for (SM::const_iterator p1 = fSig2MTerms.begin(); p1 != fSig2MTerms.end(); p1++) {
-        for (SM::const_iterator p2 = p1; p2 != fSig2MTerms.end(); p2++) {
-            if (p2 != p1) {
-                mterm g = gcd(p1->second, p2->second);
-                // cerr << "TRYING " << g << " of complexity " << g.complexity() << " (max complexity so far " <<
-                // maxComplexity << ")" << endl;
-                if (g.complexity() > maxComplexity) {
-                    maxComplexity = g.complexity();
-                    maxGCD        = g;
-                }
+    for (auto p1 = fSig2MTerms.begin(); p1 != fSig2MTerms.end(); p1++) {
+        for (auto p2 = std::next(p1); p2 != fSig2MTerms.end(); p2++) {
+            mterm g = gcd(p1->second, p2->second);
+            // cerr << "TRYING " << g << " of complexity " << g.complexity() << " (max complexity so far " <<
+            // maxComplexity << ")" << endl;
+            int complexity = g.complexity();
+            if (complexity > maxComplexity) {
+                maxComplexity = complexity;
+                maxGCD        = g;
             }
         }
     }
