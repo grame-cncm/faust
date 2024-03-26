@@ -214,7 +214,7 @@ int main(int argc_aux, char* argv_aux[])
         
         // Compute tail, if any
         if (num_samples > 0) {
-            FAUSTFLOAT** inputs = (FAUSTFLOAT**)alloca(DSP.getNumInputs() * sizeof(FAUSTFLOAT));
+            FAUSTFLOAT** inputs = (FAUSTFLOAT**)alloca(DSP.getNumInputs() * sizeof(FAUSTFLOAT*));
             for (int chan = 0; chan < DSP.getNumInputs(); chan++) {
                 inputs[chan] = (FAUSTFLOAT*)alloca(num_samples * sizeof(FAUSTFLOAT));
                 memset(inputs[chan], 0, num_samples * sizeof(FAUSTFLOAT));
