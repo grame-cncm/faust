@@ -198,7 +198,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         }
     }
 
-    inline void warningOverflow(InstructionIT it)
+    inline void warningOverflow(InstructionIT it, const std::string& op)
     {
         if (TRACE >= 6) return;
 
@@ -207,7 +207,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         }
 
         if (TRACE >= 5) {
-            std::cout << "-------- Interpreter 'Overflow' warning trace start --------" << std::endl;
+            std::cout << "-------- Interpreter 'Overflow' [" << op << "] warning trace start --------" << std::endl;
             traceInstruction(it);
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter 'Overflow' warning trace end --------\n\n";
@@ -242,6 +242,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
              
             if (TRACE >= 4) {
                 std::cout << "-------- Interpreter 'CastIntOverflow' trace start --------" << std::endl;
+                std::cout << "val = " << val << std::endl;
                 traceInstruction(it);
                 fTraceContext.write(&std::cout);
                 std::cout << "-------- Interpreter 'CastIntOverflow' trace end --------\n\n";
@@ -366,9 +367,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
-            if (TRACE == 4 || TRACE == 7) {
-                throw faustexception("Interpreter exit\n");
-            }
+            throw faustexception("Interpreter exit\n");
         }
         return index;
     }
@@ -393,9 +392,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
-            if (TRACE == 4 || TRACE == 7) {
-                throw faustexception("Interpreter exit\n");
-            }
+            throw faustexception("Interpreter exit\n");
         }
         return index;
     }
@@ -422,9 +419,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
-            if (TRACE == 4 || TRACE == 7) {
-                throw faustexception("Interpreter exit\n");
-            }
+            throw faustexception("Interpreter exit\n");
         }
         return index;
     }
@@ -451,9 +446,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
-            if (TRACE == 4 || TRACE == 7) {
-                throw faustexception("Interpreter exit\n");
-            }
+            throw faustexception("Interpreter exit\n");
         }
         return index;
     }
@@ -1013,7 +1006,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     if (TRACE > 0) {
                         int res;
                         if (__builtin_sadd_overflow(v1, v2, &res)) {
-                            warningOverflow(it);
+                            warningOverflow(it, "kAddInt");
                         }
                         pushInt(res);
                     } else {
@@ -1035,7 +1028,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     if (TRACE > 0) {
                         int res;
                         if (__builtin_ssub_overflow(v1, v2, &res)) {
-                            warningOverflow(it);
+                            warningOverflow(it, "kSubInt");
                         }
                         pushInt(res);
                     } else {
@@ -1057,7 +1050,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     if (TRACE > 0) {
                         int res;
                         if (__builtin_smul_overflow(v1, v2, &res)) {
-                            warningOverflow(it);
+                            warningOverflow(it, "kMultInt");
                         }
                         pushInt(res);
                     } else {
@@ -3125,7 +3118,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         if (TRACE > 0) {
             int res;
             if (__builtin_sadd_overflow(v1, v2, &res)) {
-                warningOverflow(it);
+                warningOverflow(it, "kAddInt");
             }
             pushInt(res);
         } else {
@@ -3147,7 +3140,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         if (TRACE > 0) {
             int res;
             if (__builtin_ssub_overflow(v1, v2, &res)) {
-                warningOverflow(it);
+                warningOverflow(it, "kSubInt");
             }
             pushInt(res);
         } else {
@@ -3169,7 +3162,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         if (TRACE > 0) {
             int res;
             if (__builtin_smul_overflow(v1, v2, &res)) {
-                warningOverflow(it);
+                warningOverflow(it, "kMultInt");
             }
             pushInt(res);
         } else {

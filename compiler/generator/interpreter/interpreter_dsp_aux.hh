@@ -720,8 +720,13 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         } else {
             
             if (TRACE > 0) {
-                std::cout << "------------------------" << std::endl;
-                std::cout << "compute " << count << std::endl;
+                // A single display
+                static bool display = true;
+                if (display) {
+                    std::cout << "------------------------" << std::endl;
+                    std::cout << "compute " << count << std::endl;
+                    display = false;
+                }
             }
             
             REAL** inputs  = reinterpret_cast<REAL**>(inputs_aux);
