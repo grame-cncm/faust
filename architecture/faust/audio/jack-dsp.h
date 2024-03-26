@@ -480,7 +480,7 @@ class jackaudio_midi : public jackaudio, public jack_midi {
                 fOutChannel[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes);
             }
             
-            // By convention timestamp of -1 means 'no timestamp conversion' : events already have a timestamp espressed in frames
+            // By convention timestamp of -1 means 'no timestamp conversion', events already have a timestamp expressed in frames
             fDSP->compute(-1, nframes, reinterpret_cast<FAUSTFLOAT**>(fInChannel), reinterpret_cast<FAUSTFLOAT**>(fOutChannel));
         }
     

@@ -84,7 +84,7 @@ class midi {
         midi() {}
         virtual ~midi() {}
 
-        // Additional time-stamped API for MIDI input
+        // Additional timestamped API for MIDI input
         virtual MapUI* keyOn(double, int channel, int pitch, int velocity)
         {
             return keyOn(channel, pitch, velocity);

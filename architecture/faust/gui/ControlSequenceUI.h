@@ -44,7 +44,7 @@ struct TSMessage {
 };
 
 /*
- Allows to process a sequence of time-stamped messages.
+ Allows to process a sequence of timestamped messages.
  */
 class ControlSequenceUI : public MapUI {
     
