@@ -214,8 +214,11 @@ int main(int argc_aux, char* argv_aux[])
         
         // Compute tail, if any
         if (num_samples > 0) {
-            FAUSTFLOAT* input = (FAUSTFLOAT*)calloc(num_samples * DSP.getNumInputs(), sizeof(FAUSTFLOAT));
-            FAUSTFLOAT* inputs[1] = { input };
+            FAUSTFLOAT** inputs = (FAUSTFLOAT**)alloca(DSP.getNumInputs() * sizeof(FAUSTFLOAT));
+            for (int chan = 0; chan < DSP.getNumInputs(); chan++) {
+                inputs[chan] = (FAUSTFLOAT*)alloca(num_samples * sizeof(FAUSTFLOAT));
+                memset(inputs[chan], 0, num_samples * sizeof(FAUSTFLOAT));
+            }
             Interleaver ilv(num_samples, DSP.getNumOutputs(), DSP.getNumOutputs());
             DSP.compute(num_samples, inputs, ilv.inputs());
             ilv.interleave();
