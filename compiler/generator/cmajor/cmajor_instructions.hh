@@ -31,7 +31,10 @@
 #include "text_instructions.hh"
 #include "faust/gui/PathBuilder.h"
 
-static std::vector<char> gReplace = {' ', '(', ')', '\\', '/', '.', '-'};
+inline std::string buildLabel(const std::string& label)
+{
+    return replaceCharList(label, {' ', '(', ')', '\\', '/', '.', '-'}, '_');
+}
 
 struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
     std::stringstream     fOut;
@@ -78,7 +81,7 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
     {
         if (gGlobal->gOutputLang == "cmajor-poly") {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
-            << " event_" << replaceCharList(inst->fLabel, gReplace, '_')
+            << " event_" << buildLabel(inst->fLabel)
             << " [[ name: " << quote(inst->fLabel)
             << ", group: " << quote(buildPath(inst->fLabel));
             if (inst->fType != AddButtonInst::kDefaultButton) {
@@ -91,7 +94,7 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
             std::string cmajor_meta = getCmajorMetadata();
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
-            << " " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
+            << " " << ((cmajor_meta != "") ? cmajor_meta : buildLabel(inst->fLabel))
             << " [[ name: " << quote(inst->fLabel)
             << ", group: " << quote(buildPath(inst->fLabel));
             if (inst->fType != AddButtonInst::kDefaultButton) {
@@ -121,7 +124,7 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
     {
         if (gGlobal->gOutputLang == "cmajor-poly") {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
-            << " event_" << replaceCharList(inst->fLabel, gReplace, '_')
+            << " event_" << buildLabel(inst->fLabel)
             << " [[ name: " << quote(inst->fLabel)
             << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
@@ -133,7 +136,7 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
             std::string cmajor_meta = getCmajorMetadata();
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
-            << " " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
+            << " " << ((cmajor_meta != "") ? cmajor_meta : buildLabel(inst->fLabel))
             << " [[ name: " << quote(inst->fLabel)
             << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
@@ -164,7 +167,7 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
         
         if (gGlobal->gOutputLang == "cmajor-poly") {
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
-            << " event_" << quote(replaceCharList(inst->fLabel, gReplace, '_'))
+            << " event_" << quote(buildLabel(inst->fLabel))
             << " [[ name: " << quote(inst->fLabel)
             << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
@@ -174,7 +177,7 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
             std::string cmajor_meta = getCmajorMetadata();
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
-            << " " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
+            << " " << ((cmajor_meta != "") ? cmajor_meta : buildLabel(inst->fLabel))
             << " [[ name: " << quote(inst->fLabel)
             << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
@@ -356,12 +359,12 @@ class CmajorInstVisitor : public TextInstVisitor {
         *fOut << "// " << inst->fLabel;
         EndLine(' ');
         if (gGlobal->gOutputLang == "cmajor-poly") {
-            *fOut << "event event_" << replaceCharList(inst->fLabel, gReplace, '_') << " ("
+            *fOut << "event event_" << buildLabel(inst->fLabel) << " ("
                   << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
                   << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
             std::string cmajor_meta = getCmajorMetadata();
-            *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
+            *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : buildLabel(inst->fLabel))
                   << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
                   << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
             fMetaAux.clear();
@@ -379,12 +382,12 @@ class CmajorInstVisitor : public TextInstVisitor {
               << ", step = " << checkReal(inst->fStep) << "]";
         EndLine(' ');
         if (gGlobal->gOutputLang == "cmajor-poly") {
-            *fOut << "event event_" << replaceCharList(inst->fLabel, gReplace, '_') << " ("
+            *fOut << "event event_" << buildLabel(inst->fLabel) << " ("
                   << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
                   << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
             std::string cmajor_meta = getCmajorMetadata();
-            *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
+            *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : buildLabel(inst->fLabel))
                   << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
                   << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
             fMetaAux.clear();
