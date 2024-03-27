@@ -55,7 +55,7 @@ createInfoPList() {
     echo '  <key>CFBundleShortVersionString</key>'
     echo '  <string>1.0.0</string>'
     echo '  <key>CFBundleLongVersionString</key>'
-    echo "  <string>$1 1.0.0, Copyright 2012-2018 Grame</string>"
+    echo "  <string>$1 1.0.0, Copyright 2012-2024 Grame</string>"
     echo '  <key>CSResourcesFileMapped</key>'
     echo '  <true/>'
     echo '</dict>'

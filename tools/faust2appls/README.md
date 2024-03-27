@@ -1,6 +1,6 @@
 
 
-This folder contains useful scripts that combines Faust and the C++ compiler to generates executable binary. Use `-h` or  `-help` to get more information on each specific script options. Additional  Faust compiler options (like `-vec -lv 0 -I /path/to/lib`) can be given. You can possibly use the  `CXXFLAGS ` environment variable to give additional options to the C++ compiler.
+This folder contains useful scripts that combines Faust and the C++ compiler to generates executable binary. Use `-h` or `-help` to get more information on each specific script options. Additional  Faust compiler options (like `-vec -lv 0 -I /path/to/lib`) can be given. You can possibly use the  `CXXFLAGS` environment variable to give additional options to the C++ compiler.
 
 You can use 'sudo make install' to install them. 
 

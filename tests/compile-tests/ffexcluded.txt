@@ -1,7 +1,7 @@
 # files excluded from compilation for backends that don't support foreign functions:
 #  - wasm
 #  - wast
-#  - soul
+#  - cmajor
 
 ../codegen-tests/felix1.dsp
 ../codegen-tests/test27.dsp

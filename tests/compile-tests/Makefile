@@ -30,19 +30,20 @@ C_OPTIONS := -Wno-unused-command-line-argument -I$(FAUSTINC)
 
 all:
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -a ./min.cpp"
-	$(MAKE) -f Make.lang outdir=ocpp lang=ocpp ext=o.cpp FAUSTOPTIONS=" -a ./min.cpp"
+	$(MAKE) -f Make.lang outdir=ocpp lang=ocpp ext=cpp FAUSTOPTIONS=" -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=c lang=c ext=c FAUSTOPTIONS=" -a ./min.c"
-	$(MAKE) -f Make.lang outdir=wasm lang=wasm ext=wasm FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=wast lang=wast ext=wast FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=llvm lang=llvm ext=llvm  FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=fir lang=fir ext=fir FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=julia lang=julia ext=julia FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=dlang lang=dlang ext=dlang FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=cmajor lang=cmajor ext=cmajor FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=codebox lang=codebox ext=codebox FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=interp lang=interp ext=interp FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=dlang lang=dlang ext=dlang FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=fir lang=fir ext=fir FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=julia lang=julia ext=julia FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=jsfx lang=jsfx ext=jsfx FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=interp lang=interp ext=fbc FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=jax lang=jax ext=jax FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=llvm lang=llvm ext=bc  FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rs FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=wasm lang=wasm ext=wasm FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=wast lang=wast ext=wast FAUSTOPTIONS=""
 	$(MAKE) gcc1
 	$(MAKE) gcc2
 	
