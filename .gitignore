@@ -17,7 +17,7 @@ compile.sh
 *.app
 .DS_Store
 *tmp*
-*dir*
+*dir
 windows/_output/
 windows/.vs/
 windows/*.*db
