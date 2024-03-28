@@ -42,6 +42,7 @@
 #include "prim2.hh"
 #include "recursivness.hh"
 #include "sharing.hh"
+#include "sigDependenciesGraph.hh"
 #include "sigPromotion.hh"
 #include "sigToGraph.hh"
 #include "sigprint.hh"
@@ -175,7 +176,9 @@ Tree ScalarCompiler::prepare2(Tree L0)
 
 string ScalarCompiler::dnf2code(Tree cc)
 {
-    if (cc == gGlobal->nil) return "";
+    if (cc == gGlobal->nil) {
+        return "";
+    }
     Tree c1 = hd(cc);
     cc      = tl(cc);
     if (cc == gGlobal->nil) {
@@ -187,7 +190,9 @@ string ScalarCompiler::dnf2code(Tree cc)
 
 string ScalarCompiler::and2code(Tree cs)
 {
-    if (cs == gGlobal->nil) return "";
+    if (cs == gGlobal->nil) {
+        return "";
+    }
     Tree c1 = hd(cs);
     cs      = tl(cs);
     if (cs == gGlobal->nil) {
@@ -199,7 +204,9 @@ string ScalarCompiler::and2code(Tree cs)
 
 string ScalarCompiler::cnf2code(Tree cs)
 {
-    if (cs == gGlobal->nil) return "";
+    if (cs == gGlobal->nil) {
+        return "";
+    }
     Tree c1 = hd(cs);
     cs      = tl(cs);
     if (cs == gGlobal->nil) {
@@ -211,7 +218,9 @@ string ScalarCompiler::cnf2code(Tree cs)
 
 string ScalarCompiler::or2code(Tree cs)
 {
-    if (cs == gGlobal->nil) return "";
+    if (cs == gGlobal->nil) {
+        return "";
+    }
     Tree c1 = hd(cs);
     cs      = tl(cs);
     if (cs == gGlobal->nil) {
@@ -299,9 +308,11 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
         // general annotation case
         // Annotate the sub signals with nc
         tvec subsig;
-        int n = getSubSignals(t, subsig);
+        int  n = getSubSignals(t, subsig);
         if (n > 0 && !isSigGen(t)) {
-            for (int i = 0; i < n; i++) conditionAnnotation(subsig[i], nc);
+            for (int i = 0; i < n; i++) {
+                conditionAnnotation(subsig[i], nc);
+            }
         }
     }
 }
@@ -414,11 +425,19 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     for (int i = 0; i < fClass->outputs(); i++) {
         fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
     }
-
+#if 0
+    // force a specific compilation order
+    auto S = serialize(immediateGraph(L));
+    for (auto& sig : S) {
+        if (isNil(sig)) {
+            std::cerr << "We have a Nil in the schdule !" << std::endl;
+        }
+        CS(sig);
+    }
+#endif
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree sig = hd(L);
-        fClass->addExecCode(Statement(
-            "", subst("output$0[i] = $2($1);  // Zone Exec Code", T(i), generateCacheCode(sig, CS(sig)), xcast())));
+        fClass->addExecCode(Statement("", subst("output$0[i] = $2($1);  // Zone Exec Code", T(i), generateCacheCode(sig, CS(sig)), xcast())));
     }
 
     generateMetaData();
@@ -465,7 +484,7 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
 
 string ScalarCompiler::generateCode(Tree sig)
 {
-#if 0
+#if 1
     fprintf(stderr, "CALL generateCode(");
     printSignal(sig, stderr);
     fprintf(stderr, ")\n");
@@ -557,8 +576,7 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigSoundfileRate(sig, sf, x)) {
         return generateCacheCode(sig, subst("$0cache->fSR[$1]", CS(sf), CS(x)));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
-        return generateCacheCode(sig, subst("(($1)$0cache->fBuffers)[$2][$0cache->fOffset[$3]+$4]", CS(sf),
-                                            ifloatptrptr(), CS(x), CS(y), CS(z)));
+        return generateCacheCode(sig, subst("(($1)$0cache->fBuffers)[$2][$0cache->fOffset[$3]+$4]", CS(sf), ifloatptrptr(), CS(x), CS(y), CS(z)));
     }
 
     else if (isSigAttach(sig, x, y)) {
@@ -572,7 +590,7 @@ string ScalarCompiler::generateCode(Tree sig)
     }
     /* we should not have any control at this stage */
     else {
-        cerr << "ASSERT : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+        cerr << "ASSERT : when compiling, unrecognized signal : " << *sig << endl;
         faustassert(false);
     }
     return "error in generated code";
@@ -663,7 +681,7 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         } else {
             return subst("-($0)", res);
         }
-    // Special case for a1*-1
+        // Special case for a1*-1
     } else if ((opcode == kMul) && isMinusOne(arg2)) {
         std::string res = CS(arg1);
         if ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i')) {
@@ -746,8 +764,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         if (sharing > 1) {
-            return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay(),
-                                    o->getDelayCount());
+            return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay(), o->getDelayCount());
         } else {
             return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
         }
@@ -782,8 +799,7 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     // check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay(),
-                                o->getDelayCount());
+        return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay(), o->getDelayCount());
     } else {
         return generateVariableStore(sig, exp);
     }
@@ -1099,8 +1115,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
     if (gGlobal->gMemoryManager) {
         fClass->addDeclCode(subst("static $0* \t$1;", ctype, vname));
         fClass->addStaticFields(subst("$0* \t$1::$2 = 0;", ctype, fClass->getClassName(), vname));
-        fClass->addStaticInitCode(
-            subst("$0 = static_cast<$1*>(fManager->allocate(sizeof($1) * $2));", vname, ctype, T(size)));
+        fClass->addStaticInitCode(subst("$0 = static_cast<$1*>(fManager->allocate(sizeof($1) * $2));", vname, ctype, T(size)));
         fClass->addStaticDestroyCode(subst("fManager->destroy($0);", vname));
     } else {
         fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
@@ -1123,15 +1138,19 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 string ScalarCompiler::generateWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws)
 {
     string tblName = generateTable(sig, size, gen);
+    std::cerr << "wi = " << *wi << " ws = " << *ws << "\n";
+    std::string swi = CS(wi);
+    std::string sws = CS(ws);
+
     switch (getCertifiedSigType(sig)->variability()) {
         case kKonst:
-            fClass->addInitCode(subst("$0[$1] = $2;", tblName, CS(wi), CS(ws)));
+            fClass->addInitCode(subst("$0[$1] = $2;", tblName, swi, sws));
             break;
         case kBlock:
-            fClass->addZone2(subst("$0[$1] = $2;", tblName, CS(wi), CS(ws)));
+            fClass->addZone2(subst("$0[$1] = $2;", tblName, swi, sws));
             break;
         default:
-            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(wi), CS(ws))));
+            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, swi, sws)));
             break;
     }
 
@@ -1227,7 +1246,7 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
     faustassert(occ != nullptr);
     int mxd   = occ->getMaxDelay();
     int count = occ->getDelayCount();
-    
+
     if (mxd == 0) {
         return DelayType::kZeroDelay;
     }
@@ -1295,11 +1314,9 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
     for (int i = 0; i < N; i++) {
         if (used[i]) {
             Tree def = nth(le, i);
-            fClass->addDeclCode(
-                subst("// Recursion delay $0 is of type $1", vname[i], nameDelayType(analyzeDelayType(exp[i]))));
+            fClass->addDeclCode(subst("// Recursion delay $0 is of type $1", vname[i], nameDelayType(analyzeDelayType(exp[i]))));
             fClass->addDeclCode(subst("// While its definition is of type $0", nameDelayType(analyzeDelayType(def))));
-            generateDelayLine(analyzeDelayType(exp[i]), ctype[i], vname[i], delay[i], count[i], mono[i], CS(def),
-                              getConditionCode(def));
+            generateDelayLine(analyzeDelayType(exp[i]), ctype[i], vname[i], delay[i], count[i], mono[i], CS(def), getConditionCode(def));
         }
     }
 }
@@ -1444,11 +1461,10 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
     string    vecname;
     if (getVectorNameProperty(exp, vecname)) {
         switch (dt) {
-                
             case DelayType::kNotADelay:
                 faustexception("Try to compile has a delay something that is not a delay");
                 return "";
-                
+
             case DelayType::kZeroDelay:
                 return vecname;
 
@@ -1483,8 +1499,7 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
  * Generate code for the delay mechanism. The generated code depend of the
  * maximum delay attached to exp and the "less temporaries" switch
  */
-string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd,
-                                        int count)
+string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd, int count)
 {
     string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd, count);
     if (getCertifiedSigType(sig)->variability() < kSamp) {
@@ -1508,8 +1523,7 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
     fClass->addPostCode(Statement(ccs, g.advance()));
     fClass->addZone3Post(g.copyLocalToGlobal());
 */
-string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
-                                              int mxd, int count)
+string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd, int count)
 {
     faustassert(mxd > 0);
 
@@ -1559,8 +1573,8 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
  * Generate code for the delay mechanism without using temporary variables
  */
 
-string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const string& vname, int mxd, int count,
-                                         bool mono, const string& exp, const string& ccs)
+string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const string& vname, int mxd, int count, bool mono, const string& exp,
+                                         const string& ccs)
 {
 #if OLDDELAY
     if (mxd == 0) {
@@ -1609,7 +1623,7 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
         case DelayType::kNotADelay:
             faustexception("Try to compile has a delay something that is not a delay");
             return "";
-     
+
         case DelayType::kZeroDelay:
             // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
             // no need for a real vector
@@ -1644,13 +1658,17 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addDeclCode(subst("$0 \t$1State[$2]; // Copy Delay", ctype, vname, T(mxd)));
             fClass->addClearCode(subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd), vname));
             fClass->addZone2(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-            for (int j = 0; j < mxd; j++) fClass->addZone3(subst("$0[$1] = $0State[$2];", vname, T(j + 1), T(j)));
+            for (int j = 0; j < mxd; j++) {
+                fClass->addZone3(subst("$0[$1] = $0State[$2];", vname, T(j + 1), T(j)));
+            }
             fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
             for (int j = 0; j < mxd; j++) {
                 // warning ; line stacked in reverse order !!!
                 fClass->addPostCode(Statement("", subst("$0[$1] = $0[$2];", vname, T(j + 1), T(j))));
             }
-            for (int j = 0; j < mxd; j++) fClass->addZone3Post(subst("$0State[$1] = $0[$2];", vname, T(j), T(j + 1)));
+            for (int j = 0; j < mxd; j++) {
+                fClass->addZone3Post(subst("$0State[$1] = $0[$2];", vname, T(j), T(j + 1)));
+            }
             return subst("$0[0]", vname);
 
         case DelayType::kDenseDelay:
@@ -1732,8 +1750,7 @@ void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
     fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
     fClass->addDeclCode(subst("int \tidx$0;", vname));
     fClass->addInitCode(subst("idx$0 = 0;", vname));
-    fClass->getTopParentKlass()->addStaticFields(
-        subst("$0 \t$1::$2[$3] = ", ctype, fClass->getFullClassName(), vname, T(size)) + content.str() + ";");
+    fClass->getTopParentKlass()->addStaticFields(subst("$0 \t$1::$2[$3] = ", ctype, fClass->getFullClassName(), vname, T(size)) + content.str() + ";");
 }
 
 string ScalarCompiler::generateWaveform(Tree sig)
