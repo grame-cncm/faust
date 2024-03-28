@@ -73,6 +73,22 @@ bool sortTypeDeclarations(StatementInst* a, StatementInst* b)
     }
 }
 
+/*
+ Sort soundfiles
+ */
+
+bool sortSoundfiles(StatementInst* a, StatementInst* b)
+{
+    DeclareVarInst* inst1 = dynamic_cast<DeclareVarInst*>(a);
+    DeclareVarInst* inst2 = dynamic_cast<DeclareVarInst*>(b);
+    
+    if (inst1 && inst2) {
+        return (startWith(inst1->getName(), "fSoundfile") && !startWith(inst2->getName(), "fSoundfile"));
+    } else {
+        return false;
+    }
+}
+
 // Inlining tools
 // TODO: stack variables should be renamed since inlining the same function several times will create variables name clash
 

@@ -55,6 +55,21 @@ using namespace std;
  - 'wasm-i' (internal memory for monophonic DSP)
  - 'wasm-e' (external memory for polyphonic DSP)
  - or 'wasm' which is equivalent to 'wasm-i'
+ 
+ Soundfile management:
+ 
+ - the Soundfile* pointers are moved first in the DSP Struct
+ - the pointers are allocated in wasm memory and filled on JS side. The Soundfile structure memory layout has to be reproduced in a "flat way" in wasm memory. The JSON description is used to know the number of soundfiles and to fill them.
+
+ struct Soundfile {
+     void* fBuffers; // will correspond to a double** or float** pointer chosen at runtime
+     int* fLength;   // length of each part (so fLength[P] contains the length in frames of part P)
+     int* fSR;       // sample rate of each part (so fSR[P] contains the SR of part P)
+     int* fOffset;   // offset of each part in the global buffer (so fOffset[P] contains the offset in frames of part P)
+     int fChannels;  // max number of channels of all concatenated files
+     int fParts;     // the total number of loaded parts
+     bool fIsDouble; // keep the sample format (float or double)
+ }
 */
 
 dsp_factory_base* WASMCodeContainer::produceFactory()
@@ -71,11 +86,6 @@ WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numO
     initialize(numInputs, numOutputs);
     fKlassName      = name;
     fInternalMemory = internal_memory;
-
-    // Allocate one static visitor to be shared by main module and sub containers
-    if (!gGlobal->gWASMVisitor) {
-        gGlobal->gWASMVisitor = new WASMInstVisitor(&fBinaryOut, internal_memory);
-    }
 }
 
 CodeContainer* WASMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -221,6 +231,17 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
 
 void WASMCodeContainer::produceClass()
 {
+    CheckSoundfilesVisitor check_soundfiles;
+    generateUserInterface(&check_soundfiles);
+   
+    // If the DSP struct has soundfiles, external memory has to be used
+    fInternalMemory = (check_soundfiles.fHasSoundfiles) ? false : fInternalMemory;
+    
+    // Allocate one static visitor to be shared by main module and sub containers
+    if (!gGlobal->gWASMVisitor) {
+        gGlobal->gWASMVisitor = new WASMInstVisitor(&fBinaryOut, fInternalMemory);
+    }
+    
     // Module definition
     gGlobal->gWASMVisitor->generateModuleHeader();
 

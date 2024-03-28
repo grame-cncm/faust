@@ -97,7 +97,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
-        throw faustexception("ERROR : 'soundfile' primitive not yet supported for wast\n");
+        // throw faustexception("ERROR : 'soundfile' primitive not yet supported for wast\n");
     }
     
     virtual void visit(DeclareVarInst* inst)
@@ -105,7 +105,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         Address::AccessType access      = inst->fAddress->getAccess();
         bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
         ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        std::string              name        = inst->fAddress->getName();
+        std::string         name        = inst->fAddress->getName();
   
         // fSampleRate may appear several time (in subcontainers and in main DSP)
         if (name != "fSampleRate") {
@@ -540,6 +540,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 break;
             
              case Typed::kInt64:
+                dump2FIR(inst);
                 faustassert(false);
                 break;
                 
@@ -558,12 +559,15 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                     inst->fInst->accept(this);
                     *fOut << ")";
                 } else {
+                    dump2FIR(inst);
                     faustassert(false);
                 }
                 break;
                 
             default:
-                faustassert(false);
+                // Pointers are i32
+                faustassert(isPtrType(inst->fType->getType()));
+                inst->fInst->accept(this);
                 break;
         }
     }
@@ -592,6 +596,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 *fOut << ")";
                 break;
             default:
+                dump2FIR(inst);
                 faustassert(false);
                 break;
         }

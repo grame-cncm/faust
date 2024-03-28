@@ -525,6 +525,9 @@ void CodeContainer::processFIR(void)
      fDeclarationInstructions->fCode.sort(sortTypeDeclarations);
      */
     
+    // Soundfile fields moved first
+    fDeclarationInstructions->fCode.sort(sortSoundfiles);
+    
     // Check FIR code
     if (global::isDebug("FIR_CHECKER")) {
         startTiming("FIR checker");

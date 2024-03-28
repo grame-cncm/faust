@@ -810,9 +810,9 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
-        throw faustexception("ERROR : 'soundfile' primitive not yet supported for wasm\n");
+        // throw faustexception("ERROR : 'soundfile' primitive not yet supported for wasm\n");
     }
-
+    
     virtual void visit(DeclareVarInst* inst)
     {
         Address::AccessType access      = inst->fAddress->getAccess();
@@ -1211,6 +1211,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 break;
                 
             case Typed::kInt64:
+                dump2FIR(inst);
                 faustassert(false);
                 break;
                 
@@ -1229,12 +1230,15 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32SConvertI32)
                                                          : int8_t(BinaryConsts::F64SConvertI32));
                 } else {
+                    dump2FIR(inst);
                     faustassert(false);
                 }
                 break;
                 
             default:
-                faustassert(false);
+                // Pointers are i32
+                faustassert(isPtrType(inst->fType->getType()));
+                inst->fInst->accept(this);
                 break;
         }
     }
@@ -1257,6 +1261,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 *fOut << int8_t(BinaryConsts::F64ReinterpretI64);
                 break;
             default:
+                dump2FIR(inst);
                 faustassert(false);
                 break;
         }

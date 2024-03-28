@@ -61,6 +61,16 @@ inline int genMemSize(int struct_size, int channels, int json_len)
     return std::max<int>((wasm_pow2limit(std::max<int>(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) / wasmBlockSize), 1);
 }
 
+// To check if the DSP struct has soundfiles
+struct CheckSoundfilesVisitor : public DispatchVisitor {
+
+    bool fHasSoundfiles = false;
+    void visit(AddSoundfileInst* inst)
+    {
+        fHasSoundfiles = true;
+    }
+};
+
 // Base class for textual 'wast' and binary 'wasm' visitors
 struct WASInst {
     // Description of math functions

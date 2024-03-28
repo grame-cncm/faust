@@ -39,7 +39,7 @@ architecture section is not modified.
 /**
  * Faust/Cmajor hybrid file parser
  */
-class faust_cmajor_parser  {
+class faust_cmajor_parser {
     
     private:
         
