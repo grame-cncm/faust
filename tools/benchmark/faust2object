@@ -3,8 +3,9 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust DSP to machine code                  #
-#               for several CPUs using dynamic-faust                #
-#               (c) Grame, 2020-2021                                #
+#               for several CPUs using C++ compiler                 #
+#               or LLVM with dynamic-faust                          #
+#               (c) Grame, 2020-2024                                #
 #                                                                   #
 #####################################################################
 
@@ -199,10 +200,12 @@ for p in $FILES; do
     fi
 
     # add info for DS/US + filter adapter
-    echo "#define DOWN_SAMPLING $DS" | cat -  $dspName"multi.h" > temp && mv temp $dspName"multi.h"
-    echo "#define UP_SAMPLING $US" | cat -  $dspName"multi.h" > temp && mv temp $dspName"multi.h"
-    echo "#define FILTER_TYPE $FILTER" | cat -  $dspName"multi.h" > temp && mv temp $dspName"multi.h"
-
+    if [ -f  $dspName"multi.h" ]; then
+        echo "#define DOWN_SAMPLING $DS" | cat -  $dspName"multi.h" > temp && mv temp $dspName"multi.h"
+        echo "#define UP_SAMPLING $US" | cat -  $dspName"multi.h" > temp && mv temp $dspName"multi.h"
+        echo "#define FILTER_TYPE $FILTER" | cat -  $dspName"multi.h" > temp && mv temp $dspName"multi.h"
+    fi
+    
     # create a test program
     if [ $TEST = true ]; then
     

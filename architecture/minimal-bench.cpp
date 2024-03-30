@@ -67,7 +67,8 @@ static void bench(dsp* dsp, int dsp_size, const std::string& name, int run)
     measure_dsp mes(dsp, 512, 5., true);
     for (int i = 0; i < run; i++) {
         mes.measure();
-        std::cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << "), DSP size : " << dsp_size << std::endl;
+        std::pair<double, double> res = mes.getStats();
+        std::cout << name << " : " << res.first << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << "), DSP size : " << dsp_size << std::endl;
     }
 }
 
