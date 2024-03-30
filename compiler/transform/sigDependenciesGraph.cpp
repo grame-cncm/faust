@@ -36,7 +36,9 @@ class SigDependenciesGraph : public SignalVisitor {
 void SigDependenciesGraph::visit(Tree t)
 {
     int  i;
-    Tree w, x, y;
+    Tree w, x, y, tbl, ri;
+    Tree size, gen, wi, ws;
+
     if (isProj(t, &i, w)) {
         // The immediate dependency of a projection is
         // its definition
@@ -61,6 +63,26 @@ void SigDependenciesGraph::visit(Tree t)
         fGraph.add(t, y, 0);
         self(x);
         self(y);
+    } else if (isSigRDTbl(t, tbl, ri)) {
+        // special case for tables. We can't compile the content without knowing the context
+
+        if (isSigWRTbl(tbl, size, gen)) {
+            fGraph.add(t, ri, 0);
+            self(ri);
+        } else if (isSigWRTbl(tbl, size, gen, wi, ws)) {
+            fGraph.add(t, ri, 0);
+            fGraph.add(t, wi, 0);
+            fGraph.add(t, ws, 0);
+            self(ri);
+            self(wi);
+            self(ws);
+        } else {
+            // not supposed to happen
+            faustassert(false);
+        }
+    } else if (isSigWRTbl(t, size, gen, wi, ws)) {
+        // not supposed to happen
+        faustassert(false);
     } else {
         tvec subs;
         int  n = getSubSignals(t, subs, false);
