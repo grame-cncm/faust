@@ -167,11 +167,19 @@ struct LibsndfileReader : public SoundfileReader {
          #endif
          */
         
+        #if TARGET_OS_IPHONE
+        std::ifstream ifs(path_name);
+        if (!ifs.is_open()) {
+            std::cerr << "Error opening file: " << path_name << std::endl;
+            return false;
+        }
+        #else
         std::ofstream ofs;
         ofs.open(path_name, std::ios_base::in);
         if (!ofs.is_open()) {
             return false;
         }
+        #endif
     
         SF_INFO snd_info;
         snd_info.format = 0;
