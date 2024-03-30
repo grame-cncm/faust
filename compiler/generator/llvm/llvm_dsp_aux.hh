@@ -257,7 +257,9 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     void metadata(Meta* m);
 
     void metadata(MetaGlue* glue);
-
+    
+    static std::string findJSON(llvm::Module* module);
+   
     // Factory instance management
     static int gInstance;
     static dsp_factory_table<SDsp_factory> gLLVMFactoryTable;

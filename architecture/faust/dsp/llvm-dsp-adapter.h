@@ -25,6 +25,14 @@ architecture section is not modified.
 #ifndef LLVM_mydsp_adapter_H
 #define LLVM_mydsp_adapter_H
 
+// This allows to use -Dfoo to generate "foo" class expecting to have the LLVM code compiled with the '-cn foo' option.
+#ifndef FAUSTCLASS
+#define FAUSTCLASS mydsp
+#endif
+
+#define CONCATENATE_IMPL(prefix, name) prefix##name
+#define CONCATENATE(prefix, name) CONCATENATE_IMPL(prefix, name)
+
 #if defined(SOUNDFILE)
 #include "faust/gui/SoundUI.h"
 #endif
@@ -35,15 +43,15 @@ architecture section is not modified.
 /*
  Wraps a LLVM module compiled as object code in a C++ 'dsp' class.
  */
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-    
+
     // LLVM module API
     typedef char comp_llvm_mydsp;
 
+    /*
     // Used in -sch mode
     void allocatemydsp(comp_llvm_mydsp* dsp);
     void destroymydsp(comp_llvm_mydsp* dsp);
@@ -52,12 +60,21 @@ extern "C"
     void classInitmydsp(int sample_rate);
     void computemydsp(comp_llvm_mydsp* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
     char* getJSONmydsp();
-    
+    */
+
+    void CONCATENATE(allocate, FAUSTCLASS)(comp_llvm_mydsp* dsp);
+    void CONCATENATE(destroy, FAUSTCLASS)(comp_llvm_mydsp* dsp);
+    void CONCATENATE(instanceConstants, FAUSTCLASS)(comp_llvm_mydsp* dsp, int sample_rate);
+    void CONCATENATE(instanceClear, FAUSTCLASS)(comp_llvm_mydsp* dsp);
+    void CONCATENATE(classInit, FAUSTCLASS)(int sample_rate);
+    void CONCATENATE(compute, FAUSTCLASS)(comp_llvm_mydsp* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+    char* CONCATENATE(getJSON, FAUSTCLASS)();
+
 #ifdef __cplusplus
 }
 #endif
 
-class mydsp : public dsp {
+class FAUSTCLASS : public dsp {
     
     private:
         
@@ -66,16 +83,16 @@ class mydsp : public dsp {
     
     public:
     
-        mydsp()
+        FAUSTCLASS()
         {
-            fDecoder = createJSONUIDecoder(getJSONmydsp());
+            fDecoder = createJSONUIDecoder(CONCATENATE(getJSON, FAUSTCLASS)());
             fDSP = static_cast<comp_llvm_mydsp*>(calloc(1, fDecoder->getDSPSize()));
-            allocatemydsp(fDSP);
+            CONCATENATE(allocate, FAUSTCLASS)(fDSP);
         }
         
-        virtual ~mydsp()
+        virtual ~FAUSTCLASS()
         {
-            destroymydsp(fDSP);
+            CONCATENATE(destroy, FAUSTCLASS)(fDSP);
             free(fDSP);
             delete fDecoder;
         }
@@ -109,7 +126,7 @@ class mydsp : public dsp {
         
         virtual void instanceConstants(int sample_rate)
         {
-            instanceConstantsmydsp(fDSP, sample_rate);
+            CONCATENATE(instanceConstants, FAUSTCLASS)(fDSP, sample_rate);
         }
     
         virtual void instanceResetUserInterface()
@@ -123,17 +140,17 @@ class mydsp : public dsp {
     
         virtual void instanceClear()
         {
-            instanceClearmydsp(fDSP);
+            CONCATENATE(instanceClear, FAUSTCLASS)(fDSP);
         }
     
         static void classInit(int sample_rate)
         {
-            classInitmydsp(sample_rate);
+            CONCATENATE(classInit, FAUSTCLASS)(sample_rate);
         }
     
-        virtual mydsp* clone()
+        virtual FAUSTCLASS* clone()
         {
-            return new mydsp();
+            return new FAUSTCLASS();
         }
         
         virtual void metadata(Meta* m)
@@ -143,7 +160,7 @@ class mydsp : public dsp {
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
-            computemydsp(fDSP, count, input, output);
+            CONCATENATE(compute, FAUSTCLASS)(fDSP, count, input, output);
         }
     
         virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -154,7 +171,7 @@ class mydsp : public dsp {
 };
 
 // Factory API
-dsp* createmydsp() { return new mydsp(); }
+dsp* createmydsp() { return new FAUSTCLASS(); }
 
 #endif
 /************************** END llvm-dsp-adapter.h **************************/

@@ -27,7 +27,7 @@ EMSCRIPTEN_BINDINGS(CStruct) {
 
 EMSCRIPTEN_BINDINGS(FaustModule) {
     
-    emscripten::class_<libFaustWasm>("libFaustWasm")
+  emscripten::class_<libFaustWasm>("libFaustWasm")
     .constructor<>()
     .function("version",                &libFaustWasm::version, allow_raw_pointers())
     
@@ -41,9 +41,8 @@ EMSCRIPTEN_BINDINGS(FaustModule) {
     .function("cleanupAfterException",  &libFaustWasm::cleanupAfterException)
     .function("getErrorAfterException", &libFaustWasm::getErrorAfterException, allow_raw_pointers())
 
-    .function("getInfos", 				&libFaustWasm::getInfos, allow_raw_pointers());
+    .function("getInfos",               &libFaustWasm::getInfos, allow_raw_pointers());
 
-    register_vector<int>("vector<int>");
-    
+     register_vector<int>("vector<int>");
 }
 

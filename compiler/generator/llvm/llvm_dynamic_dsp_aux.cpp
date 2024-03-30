@@ -97,6 +97,18 @@ using namespace std;
         cout << out_str.str() << endl;   \
     }
 
+// Assuming there is a single JSON string in the module
+std::string llvm_dsp_factory_aux::findJSON(llvm::Module* module)
+{
+    for (const auto& global : module->globals()) {
+        auto* initializer = global.getInitializer();
+        if (auto* array = llvm::dyn_cast<llvm::ConstantDataArray>(initializer)) {
+            if (array->isString()) return array->getAsString().str();
+        }
+    }
+    return "";
+}
+
 static void splitTarget(const string& target, string& triple, string& cpu)
 {
     size_t pos1 = target.find_first_of(':');
@@ -563,7 +575,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
     }
 }
 
-// Helper functions
+// Helper public functions
 ModulePTR loadSingleModule(const string filename, LLVMContext* context)
 {
     SMDiagnostic err;
@@ -587,7 +599,7 @@ ModulePTR loadModule(const string& module_name, LLVMContext* context)
         return nullptr;
     }
 }
-
+        
 bool linkModules(Module* dst, ModulePTR src, string& error)
 {
     bool res = false;

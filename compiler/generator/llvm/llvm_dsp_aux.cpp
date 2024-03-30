@@ -203,6 +203,7 @@ void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
     fInstanceClear     = nullptr;
     fClassInit         = nullptr;
     fCompute           = nullptr;
+    // By default
     fClassName         = "mydsp";
     fName              = dsp_name;
     fTypeName          = type_name;
@@ -252,8 +253,14 @@ bool llvm_dsp_factory_aux::initJITAux()
     // Run static constructors.
     fJIT->runStaticConstructorsDestructors(false);
     fJIT->DisableLazyCompilation(true);
-
-    // Access methos generated in the LLVM module
+    
+    // Possibly get -cn option
+    string JSON = llvm_dsp_factory_aux::findJSON(fModule);
+    JSONUIDecoder decoder(JSON);
+    string cname = decoder.getCompileOption("-cn");
+    fClassName = (cname == "") ? fClassName : cname;
+  
+    // Access methods generated in the LLVM module
     fAllocate          = (allocateDspFun)loadOptimize("allocate" + fClassName);
     fDestroy           = (destroyDspFun)loadOptimize("destroy" + fClassName);
     fInstanceConstants = (instanceConstantsFun)loadOptimize("instanceConstants" + fClassName);

@@ -181,11 +181,11 @@ struct LLVMTypeHelper {
         return llvm::ConstantArray::get(array_type, num_array);
     }
     
-    LLVMGVar genGlovalVar(LLVMType type, bool is_const, const std::string& name)
+    LLVMGVar genGlobalVar(LLVMType type, bool is_const, const std::string& name)
     {
         return new llvm::GlobalVariable(*fModule, type, is_const, llvm::GlobalValue::InternalLinkage, 0, name);
     }
-
+  
     // Type generation
     LLVMType getVoidTy() { return llvm::Type::getVoidTy(fModule->getContext()); }
     LLVMType getFloatTy() { return llvm::Type::getFloatTy(fModule->getContext()); }
@@ -328,7 +328,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         type_def = llvm::ArrayType::get(getInt8Ty(), str.size() + 1);
 
         if (fStringTable.find(str) == fStringTable.end()) {
-            fStringTable[str] = genGlovalVar(type_def, true, str);
+            fStringTable[str] = genGlobalVar(type_def, true, str);
             fStringTable[str]->setInitializer(llvm::ConstantDataArray::getString(fModule->getContext(), str, true));
         }
 
@@ -483,7 +483,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         } else if (access & Address::kGlobal || access & Address::kStaticStruct) {
             
-            LLVMGVar gvalue = genGlovalVar(type, (access & Address::kConst), name);
+            LLVMGVar gvalue = genGlobalVar(type, (access & Address::kConst), name);
             
             // Declaration with a value
             if (inst->fValue) {

@@ -99,6 +99,7 @@ struct FAUST_API JSONUIDecoderBase
     virtual void buildUserInterface(UI* ui_interface, char* memory_block) = 0;
     virtual void buildUserInterface(UIGlue* ui_interface, char* memory_block) = 0;
     virtual bool hasCompileOption(const std::string& option) = 0;
+    virtual std::string getCompileOption(const std::string& option) = 0;
 };
 
 template <typename REAL>
@@ -543,6 +544,20 @@ struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
             if (token == option) return true;
         }
         return false;
+    }
+    
+    std::string getCompileOption(const std::string& option)
+    {
+        std::istringstream iss(fCompileOptions);
+        std::string token;
+        while (std::getline(iss, token, ' ')) {
+            if (token == option) {
+                std::string res;
+                iss >> res;
+                return res;
+            }
+        }
+        return "";
     }
     
     int getDSPSize() { return fDSPSize; }
