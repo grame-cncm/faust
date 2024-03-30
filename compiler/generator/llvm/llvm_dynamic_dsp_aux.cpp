@@ -316,8 +316,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     
     targetOptions.GuaranteedTailCallOpt = true;
     
-    string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM3") != string::npos)) {
+    if (global::isDebug("FAUST_LLVM3")) {
 #if LLVM_VERSION_MAJOR < 12
         targetOptions.PrintMachineCode = true;
 #endif
@@ -364,14 +363,13 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         fOptLevel = std::min(fOptLevel, 3);
         ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(opt_table[fOptLevel]);
         
-        if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
+        if (global::isDebug("FAUST_LLVM1")) {
             dumpLLVM(fModule);
         }
         
         // Optimize the IR
         MPM.run(*fModule, MAM);
-        
-        if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
+        if (global::isDebug("FAUST_LLVM2")) {
             dumpLLVM(fModule);
         }
 #else
@@ -391,7 +389,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             AddOptimizationPasses(pm, fpm, fOptLevel, 0);
         }
 
-        if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
+        if (global::isDebug("FAUST_LLVM1")) {
             dumpLLVM(fModule);
         }
 
@@ -402,14 +400,14 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         fpm.doFinalization();
         pm.add(createVerifierPass());
 
-        if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
+        if (global::isDebug("FAUST_LLVM4")) {
             // TODO
             // tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
         }
 
         // Now that we have all of the passes ready, run them.
         pm.run(*fModule);
-        if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
+        if (global::isDebug("FAUST_LLVM2")) {
             dumpLLVM(fModule);
         }
 #endif

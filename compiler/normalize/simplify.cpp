@@ -189,8 +189,8 @@ static Tree simplification(Tree sig)
                 return opnum == kAND ? t1 : sigInt(1);
         }
 
-        return normalizeAddTerm(sig);
-
+        return (global::isOpt("SIG_NO_NORM") ? sig : normalizeAddTerm(sig));
+  
     } else if (isSigDelay1(sig, t1)) {
         return normalizeDelay1Term(t1);
 

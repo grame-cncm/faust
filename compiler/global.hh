@@ -647,6 +647,9 @@ struct global {
 
     // Allows to test if a given debug environment variable is set
     static bool isDebug(const std::string& debug_val);
+    
+    // Allows to test if a given optimisation environment variable is set
+    static bool isOpt(const std::string& debug_val);
 
     bool processCmdline(int argc, const char* argv[]);
     void initDocumentNames();

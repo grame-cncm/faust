@@ -1006,6 +1006,12 @@ bool global::isDebug(const string& debug_val)
     return debug_var == debug_val;
 }
 
+bool global::isOpt(const string& opt_val)
+{
+    string opt_var = (getenv("FAUST_OPT")) ? string(getenv("FAUST_OPT")) : "";
+    return opt_var == opt_val;
+}
+
 /****************************************************************
  Command line tools and arguments
  *****************************************************************/
