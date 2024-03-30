@@ -425,12 +425,12 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     for (int i = 0; i < fClass->outputs(); i++) {
         fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
     }
-#if 0
+#if 1
     // force a specific compilation order
     auto S = serialize(immediateGraph(L));
     for (auto& sig : S) {
         if (isNil(sig)) {
-            std::cerr << "We have a Nil in the schdule !" << std::endl;
+            std::cerr << "We have a Nil in the schedule !" << std::endl;
         }
         CS(sig);
     }
@@ -1193,8 +1193,19 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
 
     if (!getVectorNameProperty(sig, vname)) {
         faustassert(isRec(r, var, le));
-        generateRec(r, var, le);
-        faustassert(getVectorNameProperty(sig, vname));
+        // generateRec(r, var, le);
+        // faustassert(getVectorNameProperty(sig, vname));
+        std::string ctype;
+        Type        ty = getCertifiedSigType(sig);
+        getTypedNames(ty, "Reec", ctype, vname);
+        setVectorNameProperty(sig, vname);
+        int  delay = fOccMarkup->retrieve(sig)->getMaxDelay();
+        int  count = fOccMarkup->retrieve(sig)->getDelayCount();
+        bool mono  = isSigSimpleRec(sig);
+        Tree def   = nth(le, i);
+        fClass->addDeclCode(subst("// Recursion delay $0 is of type $1", vname, nameDelayType(analyzeDelayType(sig))));
+        fClass->addDeclCode(subst("// While its definition is of type $0", nameDelayType(analyzeDelayType(def))));
+        generateDelayLine(analyzeDelayType(sig), ctype, vname, delay, count, mono, CS(def), getConditionCode(def));
     }
     return "[[UNUSED EXP]]";  // make sure the resulting expression is never used in the generated code
 }
