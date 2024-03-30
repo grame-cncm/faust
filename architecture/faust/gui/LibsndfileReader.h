@@ -165,18 +165,17 @@ struct LibsndfileReader : public SoundfileReader {
             return false;
          }
          #endif
-         */
-        
-        std::ofstream ofs;
-        ofs.open(path_name, std::ios_base::in);
-        if (!ofs.is_open()) {
-            return false;
-        }
+        */
     
-        SF_INFO snd_info;
-        snd_info.format = 0;
-        SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
-        return checkFileAux(snd_file, path_name);
+        std::ifstream ifs(path_name);
+        if (!ifs.is_open()) {
+            return false;
+        } else {
+            SF_INFO snd_info;
+            snd_info.format = 0;
+            SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
+            return checkFileAux(snd_file, path_name);
+        }
     }
     
     bool checkFile(unsigned char* buffer, size_t length) override
