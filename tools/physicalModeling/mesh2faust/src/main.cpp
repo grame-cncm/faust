@@ -187,11 +187,15 @@ int main(int argc, char **argv) {
             femNModes,
             exPos,
             nExPos,
-            showFreqs,
             debugMode
         }
     );
 
+    if (showFreqs) {
+        cout << "Mode frequencies:\n";
+        for (float modeFreq : response.model.modeFreqs) cout << modeFreq << "\n";
+        cout << "\n";
+    }
     string faustFileName = modelName + ".lib";
     ofstream faustFile(faustFileName.c_str());
     faustFile << response.modelDsp;
