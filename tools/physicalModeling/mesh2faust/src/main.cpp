@@ -5,8 +5,7 @@
 
 using namespace std;
 
-void printHelp()
-{
+void printHelp() {
     cout << "MESH2FAUST: FAUST PHYSICAL MODEL GENERATOR\n\n";
     cout << "mesh2faust is an open-source modal physical model generator "
         "for the Faust programming language. mesh2faust takes a volumetric mesh of "
@@ -42,8 +41,7 @@ void printHelp()
         "to the physical model and synthesized. E.g.: --nsynthmodes 50\n";
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     const char *objectFileName = "";
     std::string modelName = "modalModel";
     m2f::MaterialProperties materialProperties{};
@@ -177,7 +175,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    string dsp = m2f::mesh2faust(
+    auto response = m2f::mesh2faust(
         objectFileName,
         materialProperties,
         {
@@ -196,7 +194,7 @@ int main(int argc, char **argv)
 
     string faustFileName = modelName + ".lib";
     ofstream faustFile(faustFileName.c_str());
-    faustFile << dsp;
+    faustFile << response.modelDsp;
     faustFile.close();
 
     return 0;
