@@ -38,6 +38,26 @@
 
 using namespace std;
 
+// Run a DSP with a GUI
+static void runAudio(dsp* dsp, const char* name, int argc, char* argv[])
+{
+    // Allocate audio driver
+    jackaudio audio;
+    audio.init("Test", dsp);
+    
+    // Create GUI
+    GTKUI gtk_ui = GTKUI((char*)name, &argc, &argv);
+    dsp->buildUserInterface(&gtk_ui);
+    
+    // Start real-time processing
+    audio.start();
+    
+    // Start GUI
+    gtk_ui.run();
+    
+    // Cleanup
+    audio.stop();
+}
 
 /**
  * Return the current runtime sample rate.
@@ -675,27 +695,57 @@ static void test22(int argc, char* argv[])
     if (factory) {
         dsp* dsp = factory->createDSPInstance();
         assert(dsp);
-        
-        // Allocate audio driver
-        jackaudio audio;
-        audio.init("Test", dsp);
-
-        // Create GUI
-        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, &argv);
-        dsp->buildUserInterface(&gtk_ui);
-        
-        // Start real-time processing
-        audio.start();
-        
-        // Start GUI
-        gtk_ui.run();
-        
-        // Cleanup
-        audio.stop();
+        runAudio(dsp, "Organ", argc, argv);
         delete dsp;
         deleteDSPFactory(factory);
     } else {
         cerr << "Cannot create factory" << error_msg << endl;
+    }
+}
+
+static void test22bis(int argc, char* argv[])
+{
+    cout << "test22\n";
+    string error_msg;
+    llvm_dsp_factory* factory1 = nullptr;
+    llvm_dsp_factory* factory2 = nullptr;
+    
+    createLibContext();
+    {
+        {
+            tvec signals;
+            signals.push_back(osc(sigVSlider("h:Oscillator/Freq1", sigReal(300), sigReal(100), sigReal(2000), sigReal(0.01))));
+            signals.push_back(osc(sigVSlider("h:Oscillator/Freq2", sigReal(500), sigReal(100), sigReal(2000), sigReal(0.01))));
+            factory1 = createDSPFactoryFromSignals("FaustDSP1", signals, 0, nullptr, "", error_msg);
+        }
+        
+        {
+            tvec signals;
+            signals.push_back(osc(sigVSlider("h:Oscillator/Foo1", sigReal(200), sigReal(100), sigReal(2000), sigReal(0.01))));
+            signals.push_back(osc(sigVSlider("h:Oscillator/Foo2", sigReal(700), sigReal(100), sigReal(2000), sigReal(0.01))));
+            factory2 = createDSPFactoryFromSignals("FaustDSP2", signals, 0, nullptr, "", error_msg);
+        }
+    }
+    destroyLibContext();
+    
+    // The factories can be used outside of the createLibContext/destroyLibContext scope
+    if (factory1 && factory2) {
+        {
+            dsp* dsp = factory1->createDSPInstance();
+            assert(dsp);
+            runAudio(dsp, "Organ1", argc, argv);
+            delete dsp;
+        }
+        {
+            dsp* dsp = factory2->createDSPInstance();
+            assert(dsp);
+            runAudio(dsp, "Organ2", argc, argv);
+            delete dsp;
+        }
+        deleteDSPFactory(factory1);
+        deleteDSPFactory(factory2);
+    } else {
+        cerr << "Cannot create factories" << error_msg << endl;
     }
 }
 
@@ -720,23 +770,7 @@ static void test23(int argc, char* argv[])
     if (factory) {
         dsp* dsp = factory->createDSPInstance();
         assert(dsp);
-        
-        // Allocate audio driver
-        jackaudio audio;
-        audio.init("Test", dsp);
-        
-        // Create GUI
-        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, &argv);
-        dsp->buildUserInterface(&gtk_ui);
-        
-        // Start real-time processing
-        audio.start();
-        
-        // Start GUI
-        gtk_ui.run();
-        
-        // Cleanup
-        audio.stop();
+        runAudio(dsp, "Organ", argc, argv);
         delete dsp;
         deleteInterpreterDSPFactory(factory);
     } else {
@@ -899,6 +933,9 @@ int main(int argc, char* argv[])
     
     // Test with audio, GUI and LLVM backend
     test22(argc, argv);
+    
+    // Test with audio, GUI and LLVM backend and 2 factories/DSP
+    test22bis(argc, argv);
     
     // Test with audio, GUI and Interp backend
     test23(argc, argv);

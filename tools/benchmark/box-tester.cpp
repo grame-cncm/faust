@@ -38,6 +38,27 @@
 
 using namespace std;
 
+// Run a DSP with a GUI
+static void runAudio(dsp* dsp, const char* name, int argc, char* argv[])
+{
+    // Allocate audio driver
+    jackaudio audio;
+    audio.init("Test", dsp);
+    
+    // Create GUI
+    GTKUI gtk_ui = GTKUI((char*)name, &argc, &argv);
+    dsp->buildUserInterface(&gtk_ui);
+    
+    // Start real-time processing
+    audio.start();
+    
+    // Start GUI
+    gtk_ui.run();
+    
+    // Cleanup
+    audio.stop();
+}
+
 /**
  * Return the current runtime sample rate.
  *
@@ -425,7 +446,7 @@ static void test20()
  */
 
 // Using the LLVM backend.
-static void test21(int argc, const char* argv[])
+static void test21(int argc, char* argv[])
 {
     cout << "test21\n";
     string error_msg;
@@ -446,23 +467,7 @@ static void test21(int argc, const char* argv[])
     if (factory) {
         dsp* dsp = factory->createDSPInstance();
         assert(dsp);
-        
-        // Allocate audio driver
-        jackaudio audio;
-        audio.init("Test", dsp);
-        
-        // Create GUI
-        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, (char***)&argv);
-        dsp->buildUserInterface(&gtk_ui);
-        
-        // Start real-time processing
-        audio.start();
-        
-        // Start GUI
-        gtk_ui.run();
-        
-        // Cleanup
-        audio.stop();
+        runAudio(dsp, "Organ", argc, argv);
         delete dsp;
         deleteDSPFactory(factory);
     } else {
@@ -471,7 +476,7 @@ static void test21(int argc, const char* argv[])
 }
 
 // Using the Interpreter backend.
-static void test22(int argc, const char* argv[])
+static void test22(int argc, char* argv[])
 {
     cout << "test22\n";
     string error_msg;
@@ -492,23 +497,7 @@ static void test22(int argc, const char* argv[])
     if (factory) {
         dsp* dsp = factory->createDSPInstance();
         assert(dsp);
-        
-        // Allocate audio driver
-        jackaudio audio;
-        audio.init("Test", dsp);
-        
-        // Create GUI
-        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, (char***)&argv);
-        dsp->buildUserInterface(&gtk_ui);
-        
-        // Start real-time processing
-        audio.start();
-        
-        // Start GUI
-        gtk_ui.run();
-        
-        // Cleanup
-        audio.stop();
+        runAudio(dsp, "Organ", argc, argv);
         delete dsp;
         deleteInterpreterDSPFactory(factory);
     } else {
@@ -517,7 +506,7 @@ static void test22(int argc, const char* argv[])
  }
 
 // Using the Interpreter backend.
-static void test23(int argc, const char* argv[])
+static void test23(int argc, char* argv[])
 {
     cout << "test23\n";
     interpreter_dsp_factory* factory = nullptr;
@@ -573,23 +562,7 @@ static void test23(int argc, const char* argv[])
     if (factory) {
         dsp* dsp = factory->createDSPInstance();
         assert(dsp);
-        
-        // Allocate audio driver
-        jackaudio audio;
-        audio.init("Test", dsp);
-        
-        // Create GUI
-        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, (char***)&argv);
-        dsp->buildUserInterface(&gtk_ui);
-        
-        // Start real-time processing
-        audio.start();
-        
-        // Start GUI
-        gtk_ui.run();
-        
-        // Cleanup
-        audio.stop();
+        runAudio(dsp, "Organ", argc, argv);
         delete dsp;
         deleteInterpreterDSPFactory(factory);
     } else {
@@ -612,7 +585,7 @@ static void test23(int argc, const char* argv[])
  */
 
 // Simple polyphonic DSP.
-static void test24(int argc, const char* argv[])
+static void test24(int argc, char* argv[])
 {
     cout << "test24\n";
     interpreter_dsp_factory* factory = nullptr;
@@ -743,7 +716,7 @@ static void test26()
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-int main(int argc, const char* argv[])
+int main(int argc, char* argv[])
 {
     test0();
     test1();

@@ -292,7 +292,7 @@ static void test4()
     }
 }
 
-int main(int argc, const char* argv[])
+int main(int argc, char* argv[])
 {
     test1();
     test2();
