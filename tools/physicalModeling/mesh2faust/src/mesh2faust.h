@@ -3,8 +3,9 @@
 #include <string>
 #include <vector>
 
-#include "tetMesh.h"
 #include <Eigen/SparseCore>
+
+class TetMesh;
 
 namespace m2f {
 
@@ -16,7 +17,7 @@ struct MaterialProperties {
 };
 
 struct CommonArguments {
-    std::string modelName = "modalModel"; // Name for the generated model
+    std::string modelName = "modalModel"; // Name for the model function
     bool freqControl = false;    // Freq control activated
     float modesMinFreq = 20;     // Lowest mode freq
     float modesMaxFreq = 10000;  // Highest mode freq
@@ -41,7 +42,7 @@ struct Response {
 // The main library function.
 // The `mesh2faust` command line tool wraps this function.
 Response mesh2faust(
-    const char *objectFileName = "", // .obj file name
+    const char *objFileName = "", // .obj file name
     MaterialProperties materialProperties = {}, // Material properties of the mesh, for FEA
     CommonArguments args = {}
 );

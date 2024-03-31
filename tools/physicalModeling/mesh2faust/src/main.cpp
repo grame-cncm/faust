@@ -42,7 +42,7 @@ void printHelp() {
 }
 
 int main(int argc, char **argv) {
-    const char *objectFileName = "";
+    const char *objFileName = "";
     std::string modelName = "modalModel";
     m2f::MaterialProperties materialProperties{};
     bool freqControl = false;
@@ -60,8 +60,8 @@ int main(int argc, char **argv) {
         while (currentArg <= (argc - 1)) {
             if (strcmp(argv[currentArg], "--infile") == 0) {
                 currentArg++;
-                objectFileName = argv[currentArg];
-                if (strcmp(objectFileName, "") == 0) {
+                objFileName = argv[currentArg];
+                if (strcmp(objFileName, "") == 0) {
                     cout << "No .obj file provided!\n";
                     return 0;
                 }
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
     }
 
     auto response = m2f::mesh2faust(
-        objectFileName,
+        objFileName,
         materialProperties,
         {
             modelName,

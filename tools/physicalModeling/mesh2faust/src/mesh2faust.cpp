@@ -4,6 +4,7 @@
 #include "StVKElementABCDLoader.h"
 #include "StVKStiffnessMatrix.h"
 #include "generateMassMatrix.h"
+#include "tetMesh.h"
 #include "tetMesher.h"
 
 // Spectra
@@ -29,8 +30,8 @@ m2f::Response m2f::mesh2faust(TetMesh *volumetricMesh, CommonArguments args) {
     StVKStiffnessMatrix stiffnessMatrixClass{&internalForces};
     stiffnessMatrixClass.GetStiffnessMatrixTopology(&stiffnessMatrix);
 
-    uint vertexDim = 3;
-    int numVertices = volumetricMesh->getNumVertices();
+    const uint vertexDim = 3;
+    const int numVertices = volumetricMesh->getNumVertices();
     double *zero = (double *)calloc(numVertices * vertexDim, sizeof(double));
     stiffnessMatrixClass.ComputeStiffnessMatrix(zero, stiffnessMatrix);
 
@@ -52,7 +53,7 @@ m2f::Response m2f::mesh2faust(TetMesh *volumetricMesh, CommonArguments args) {
         }
     }
 
-    int n = stiffnessMatrix->Getn();
+    const int n = stiffnessMatrix->Getn();
     Eigen::SparseMatrix<double> K(n, n), M(n, n);
     K.setFromTriplets(K_triplets.begin(), K_triplets.end());
     M.setFromTriplets(M_triplets.begin(), M_triplets.end());
@@ -62,7 +63,7 @@ m2f::Response m2f::mesh2faust(TetMesh *volumetricMesh, CommonArguments args) {
     delete stiffnessMatrix;
     stiffnessMatrix = nullptr;
 
-    const auto model = mesh2modal(M, K, numVertices, vertexDim, args);
+    auto model = mesh2modal(M, K, numVertices, vertexDim, args);
     return modal2faust(std::move(model), {args.modelName, args.freqControl});
 }
 
@@ -72,19 +73,21 @@ m2f::ModalModel m2f::mesh2modal(
     int numVertices, int vertexDim,
     CommonArguments args
 ) {
-    int femNModes = std::min(args.femNModes, numVertices * vertexDim - 1);
+    const int femNModes = std::min(args.femNModes, numVertices * vertexDim - 1);
+
+    /** Compute mass/stiffness eigenvalues and eigenvectors **/
     if (args.debugMode) {
-        cout << "\nStarting the eigen solver\n";
-        cout << femNModes << " modes will be computed for the FEM analysis\n\n";
+        cout << "\nStarting the eigen solver.\n";
+        cout << femNModes << " modes will be computed for FEM analysis.\n\n";
     }
 
     using OpType = Spectra::SymShiftInvert<double, Eigen::Sparse, Eigen::Sparse>;
     using BOpType = Spectra::SparseSymMatProd<double>;
 
+    const int convergenceRatio = min(max(2 * femNModes + 1, 20), numVertices * vertexDim);
+    const double sigma = -1.0;
     OpType op(K, M);
     BOpType Bop(M);
-    int convergenceRatio = min(max(2 * femNModes + 1, 20), numVertices * vertexDim);
-    double sigma = -1.0;
     Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert> eigs(op, Bop, femNModes, convergenceRatio, sigma);
     eigs.init();
     eigs.compute(Spectra::SortRule::LargestMagn, 1000, 1e-10, Spectra::SortRule::SmallestAlge);
@@ -92,29 +95,27 @@ m2f::ModalModel m2f::mesh2modal(
         if (args.debugMode) cout << "Could not compute eigenvalues.\n";
         return {};
     }
-
-    Eigen::VectorXd eigenValues = eigs.eigenvalues();
-    Eigen::MatrixXd eigenVectors = eigs.eigenvectors();
+    const auto eigenvalues = eigs.eigenvalues();
+    const auto eigenvectors = eigs.eigenvectors();
 
     /** Compute modes frequencies **/
-    if (args.debugMode) cout << "Computing modes frequencies\n\n";
+    if (args.debugMode) cout << "Computing modes frequencies...\n\n";
 
     std::vector<float> modeFreqs(femNModes); // Start with all modes and filter later.
     int lowestModeIndex = 0, highestModeIndex = 0;
-    int targetNModes = std::min(args.targetNModes, femNModes);
-    for (int mode = 0; mode < eigenValues.size(); ++mode) {
-        modeFreqs[mode] = eigenValues[mode] <= 0 ? 0.0 : sqrt(float(eigenValues[mode])) / (2 * M_PI);
+    for (int mode = 0; mode < eigenvalues.size(); ++mode) {
+        modeFreqs[mode] = eigenvalues[mode] <= 0 ? 0.0 : sqrt(float(eigenvalues[mode])) / (2 * M_PI);
         if (modeFreqs[mode] < args.modesMinFreq) ++lowestModeIndex;
         if (modeFreqs[mode] < args.modesMaxFreq) ++highestModeIndex;
     }
 
     // Adjust modes to include only the requested range.
+    const int nModes = std::min(std::min(args.targetNModes, femNModes), highestModeIndex - lowestModeIndex);
     modeFreqs.erase(modeFreqs.begin(), modeFreqs.begin() + lowestModeIndex);
-    int nModes = std::min(targetNModes, highestModeIndex - lowestModeIndex);
     modeFreqs.resize(nModes);
 
     /** Compute modes gains **/
-    if (args.debugMode) cout << "Computing modes gains\n\n";
+    if (args.debugMode) cout << "Computing modes gains...\n\n";
 
     if (!args.exPos.empty()) args.nExPos = args.exPos.size();
     else if (args.nExPos == -1) args.nExPos = numVertices;
@@ -129,7 +130,7 @@ m2f::ModalModel m2f::mesh2modal(
             float gain = 0;
             int evValueIndex = vertexDim * (exPos < args.exPos.size() ? args.exPos[exPos] : exPos * numVertices / args.nExPos);
             int evIndex = mode + lowestModeIndex;
-            for (int vi = 0; vi < vertexDim; ++vi) gain += pow(eigenVectors(evValueIndex + vi, evIndex), 2);
+            for (int vi = 0; vi < vertexDim; ++vi) gain += pow(eigenvectors(evValueIndex + vi, evIndex), 2);
 
             gains[exPos][mode] = sqrt(gain);
             if (gains[exPos][mode] > maxGain) maxGain = gains[exPos][mode];
@@ -140,22 +141,21 @@ m2f::ModalModel m2f::mesh2modal(
     return {std::move(modeFreqs), std::move(gains)};
 }
 
-m2f::Response m2f::mesh2faust(const char *objectFileName, MaterialProperties materialProperties, CommonArguments args) {
+m2f::Response m2f::mesh2faust(const char *objFileName, MaterialProperties materialProperties, CommonArguments args) {
     // Load mesh file.
-    if (args.debugMode) cout << "Loading the mesh file\n";
-    ObjMesh objMesh{objectFileName};
+    if (args.debugMode) cout << "Loading the mesh file...\n";
+    ObjMesh objMesh{objFileName};
 
     // Generate 3D volumetric mesh from obj mesh.
     if (args.debugMode) {
-        cout << "\nGenerating a 3D mesh with the following properties\n";
-        cout << "Young's modulus: " << materialProperties.youngModulus << "\n";
-        cout << "Poisson's ratio: " << materialProperties.poissonRatio << "\n";
-        cout << "Density: " << materialProperties.density << "\n";
+        cout << "\nGenerating a 3D mesh with the following properties:"
+             << "\n\tYoung's modulus: " << materialProperties.youngModulus
+             << "\n\tPoisson's ratio: " << materialProperties.poissonRatio
+             << "\n\tDensity: " << materialProperties.density << "\n\n";
     }
 
     // TODO: no way to prevent printing here (yet)
     TetMesh *volumetricMesh = TetMesher().compute(&objMesh);
-    // Set mesh material properties.
     volumetricMesh->setSingleMaterial(materialProperties.youngModulus, materialProperties.poissonRatio, materialProperties.density);
 
     auto response = mesh2faust(volumetricMesh, args);
