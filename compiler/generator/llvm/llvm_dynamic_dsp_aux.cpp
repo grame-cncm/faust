@@ -100,12 +100,14 @@ using namespace std;
 // Assuming there is a single JSON string in the module
 std::string llvm_dsp_factory_aux::findJSON(llvm::Module* module)
 {
+#if LLVM_VERSION_MAJOR >= 16
     for (const auto& global : module->globals()) {
         auto* initializer = global.getInitializer();
         if (auto* array = llvm::dyn_cast<llvm::ConstantDataArray>(initializer)) {
             if (array->isString()) return array->getAsString().str();
         }
     }
+#endif
     return "";
 }
 
