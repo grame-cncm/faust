@@ -13,11 +13,7 @@ Currently has available features :
 * Bargraph for MIDI output
 * Test MIDI and slider scaling with FAUST MIDI laws (steps)
 
-
-# Possible improvements 
+# Possible improvements 
 
 * GFX (graphics) section described by user and compiled with an architecture file or similar mechanism
 * Or a GFX library accessible by sliders metadata
-
-
-

@@ -1035,6 +1035,8 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
     switch (t->variability()) {
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
+            
+            /* TODO: deactivated for now since getOccurrence fails in some cases
             // The variable is used in compute (kBlock or kSamp), so define is as a field in the DSP struct
             if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
                 pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genBasicTyped(ctype)));
@@ -1045,6 +1047,12 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
                 pushInitMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
                 return InstBuilder::genLoadStackVar(vname);
             }
+            */
+            
+            // Always put variables in DSP struct for now
+            pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genBasicTyped(ctype)));
+            pushInitMethod(InstBuilder::genStoreStructVar(vname, exp));
+            return InstBuilder::genLoadStructVar(vname);
   
         case kBlock:
             if (gGlobal->gOneSample >= 0 || gGlobal->gOneSampleControl) {
@@ -1063,10 +1071,8 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 
         case kSamp:
             getTypedNames(t, "Temp", ctype, vname);
-
             // Only generated for the DSP loop
             if (gGlobal->gHasTeeLocal) {
-
                 if (dynamic_cast<NullValueInst*>(getConditionCode(sig))) {
                     pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype)));
                 } else {
@@ -1077,8 +1083,8 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
                     pushComputeBlockMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), InstBuilder::genLoadStructVar(vname_perm)));
                     pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(vname_perm, InstBuilder::genLoadStackVar(vname)));
                 }
-
                 return InstBuilder::genTeeVar(vname, exp);
+                
             } else {
 
                 if (dynamic_cast<NullValueInst*>(getConditionCode(sig))) {
