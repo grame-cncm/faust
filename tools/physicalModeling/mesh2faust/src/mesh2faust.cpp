@@ -16,29 +16,25 @@
 using namespace std;
 
 m2f::Response m2f::mesh2faust(TetMesh *volumetricMesh, CommonArguments args) {
-    // Compute mass matrix.
     if (args.debugMode) cout << "Creating and computing mass matrix\n";
+
     SparseMatrix *massMatrix;
     GenerateMassMatrix::computeMassMatrix(volumetricMesh, &massMatrix, true);
 
-    // computing stiffness matrix
     if (args.debugMode) cout << "Creating and computing stiffness matrix\n";
+
     StVKElementABCD *precomputedIntegrals = StVKElementABCDLoader::load(volumetricMesh);
-    StVKInternalForces *internalForces = new StVKInternalForces(volumetricMesh, precomputedIntegrals);
+    StVKInternalForces internalForces{volumetricMesh, precomputedIntegrals};
     SparseMatrix *stiffnessMatrix;
-    StVKStiffnessMatrix *stiffnessMatrixClass = new StVKStiffnessMatrix(internalForces);
-    stiffnessMatrixClass->GetStiffnessMatrixTopology(&stiffnessMatrix);
+    StVKStiffnessMatrix stiffnessMatrixClass{&internalForces};
+    stiffnessMatrixClass.GetStiffnessMatrixTopology(&stiffnessMatrix);
 
     uint vertexDim = 3;
     int numVertices = volumetricMesh->getNumVertices();
     double *zero = (double *)calloc(numVertices * vertexDim, sizeof(double));
-    stiffnessMatrixClass->ComputeStiffnessMatrix(zero, stiffnessMatrix);
+    stiffnessMatrixClass.ComputeStiffnessMatrix(zero, stiffnessMatrix);
 
     free(zero);
-    delete stiffnessMatrixClass;
-    stiffnessMatrixClass = nullptr;
-    delete internalForces;
-    internalForces = nullptr;
     delete precomputedIntegrals;
     precomputedIntegrals = nullptr;
 
@@ -66,14 +62,14 @@ m2f::Response m2f::mesh2faust(TetMesh *volumetricMesh, CommonArguments args) {
     delete stiffnessMatrix;
     stiffnessMatrix = nullptr;
 
-    return mesh2faust(M, K, numVertices, vertexDim, args);
+    const auto model = mesh2modal(M, K, numVertices, vertexDim, args);
+    return modal2faust(std::move(model), {args.modelName, args.freqControl});
 }
 
-m2f::Response m2f::mesh2faust(
+m2f::ModalModel m2f::mesh2modal(
     const Eigen::SparseMatrix<double> &M,
     const Eigen::SparseMatrix<double> &K,
-    int numVertices,
-    int vertexDim,
+    int numVertices, int vertexDim,
     CommonArguments args
 ) {
     int femNModes = std::min(args.femNModes, numVertices * vertexDim - 1);
@@ -117,12 +113,6 @@ m2f::Response m2f::mesh2faust(
     int nModes = std::min(targetNModes, highestModeIndex - lowestModeIndex);
     modeFreqs.resize(nModes);
 
-    if (args.showFreqs) {
-        cout << "Mode frequencies:\n";
-        for (float modeFreq : modeFreqs) cout << modeFreq << "\n";
-        cout << "\n";
-    }
-
     /** Compute modes gains **/
     if (args.debugMode) cout << "Computing modes gains\n\n";
 
@@ -147,64 +137,13 @@ m2f::Response m2f::mesh2faust(
         for (float &gain : gains[exPos]) gain /= maxGain;
     }
 
-    /////////////////////////////////////
-    // GENERATE FAUST DSP
-    /////////////////////////////////////
-
-    stringstream dspStream;
-    dspStream << "import(\"stdfaust.lib\");\n\n"
-              << args.modelName << "(" << (args.freqControl ? "freq," : "")
-              << "exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
-                 "par(mode,nModes,pm.modeFilter(modeFreqs(mode),modesT60s(mode),"
-                 "modesGains(int(exPos),mode))) :> /(nModes)\n"
-              << "with{\n"
-              << "nModes = " << nModes << ";\n";
-    if (args.nExPos > 1) dspStream << "nExPos = " << args.nExPos << ";\n";
-
-    if (args.freqControl) {
-        dspStream << "modeFreqRatios(n) = ba.take(n+1,(";
-        for (int mode = 0; mode < nModes; ++mode) {
-            dspStream << modeFreqs[mode] / modeFreqs.front();
-            if (mode < nModes - 1) dspStream << ",";
-        }
-        dspStream << "));\n"
-                  << "modeFreqs(mode) = freq*modeFreqRatios(mode);\n";
-    } else {
-        dspStream << "modeFreqs(n) = ba.take(n+1,(";
-        for (int mode = 0; mode < nModes; ++mode) {
-            dspStream << modeFreqs[mode];
-            if (mode < nModes - 1) dspStream << ",";
-        }
-        dspStream << "));\n";
-    }
-
-    dspStream << "modesGains(p,n) = waveform{";
-    for (int exPos = 0; exPos < gains.size(); ++exPos) {
-        for (int mode = 0; mode < gains[exPos].size(); ++mode) {
-            dspStream << gains[exPos][mode];
-            if (mode < nModes - 1) dspStream << ",";
-        }
-        if (exPos < gains.size() - 1) dspStream << ",";
-    }
-
-    dspStream << "},int(p*nModes+n) : rdtable"
-              << (args.freqControl ? " : select2(modeFreqs(n)<(ma.SR/2-1),0)" : "") << ";\n"
-              << "modesT60s(mode) = t60*pow(1-("
-              << (args.freqControl ? "modeFreqRatios(mode)" : "modeFreqs(mode)") << "/"
-              << (args.freqControl ? (modeFreqs.back() / modeFreqs.front()) : modeFreqs.back())
-              << ")*t60DecayRatio,t60DecaySlope);\n};\n";
-
-    return {dspStream.str(), std::move(modeFreqs), std::move(gains)};
+    return {std::move(modeFreqs), std::move(gains)};
 }
 
 m2f::Response m2f::mesh2faust(const char *objectFileName, MaterialProperties materialProperties, CommonArguments args) {
-    /////////////////////////////////////
-    // RETRIEVE MODEL
-    /////////////////////////////////////
-
     // Load mesh file.
     if (args.debugMode) cout << "Loading the mesh file\n";
-    auto *objMesh = new ObjMesh(objectFileName);
+    ObjMesh objMesh{objectFileName};
 
     // Generate 3D volumetric mesh from obj mesh.
     if (args.debugMode) {
@@ -215,7 +154,7 @@ m2f::Response m2f::mesh2faust(const char *objectFileName, MaterialProperties mat
     }
 
     // TODO: no way to prevent printing here (yet)
-    TetMesh *volumetricMesh = TetMesher().compute(objMesh);
+    TetMesh *volumetricMesh = TetMesher().compute(&objMesh);
     // Set mesh material properties.
     volumetricMesh->setSingleMaterial(materialProperties.youngModulus, materialProperties.poissonRatio, materialProperties.density);
 
@@ -223,8 +162,58 @@ m2f::Response m2f::mesh2faust(const char *objectFileName, MaterialProperties mat
 
     delete volumetricMesh;
     volumetricMesh = nullptr;
-    delete objMesh;
-    objMesh = nullptr;
 
     return response;
+}
+
+m2f::Response m2f::modal2faust(const ModalModel &model, DspGenArguments args) {
+    const auto &freqs = model.modeFreqs;
+    const auto &gains = model.modeGains;
+    const auto nModes = freqs.size();
+    const auto nExPos = gains.size();
+
+    stringstream dsp;
+    dsp << "import(\"stdfaust.lib\");\n\n"
+        << args.modelName << "(" << (args.freqControl ? "freq," : "")
+        << "exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
+           "par(mode,nModes,pm.modeFilter(modeFreqs(mode),modesT60s(mode),"
+           "modesGains(int(exPos),mode))) :> /(nModes)\n"
+        << "with{\n"
+        << "nModes = " << nModes << ";\n";
+    if (nExPos > 1) dsp << "nExPos = " << nExPos << ";\n";
+
+    if (args.freqControl) {
+        dsp << "modeFreqRatios(n) = ba.take(n+1,(";
+        for (int mode = 0; mode < nModes; ++mode) {
+            dsp << freqs[mode] / freqs.front();
+            if (mode < nModes - 1) dsp << ",";
+        }
+        dsp << "));\n"
+                  << "modeFreqs(mode) = freq*modeFreqRatios(mode);\n";
+    } else {
+        dsp << "modeFreqs(n) = ba.take(n+1,(";
+        for (int mode = 0; mode < nModes; ++mode) {
+            dsp << freqs[mode];
+            if (mode < nModes - 1) dsp << ",";
+        }
+        dsp << "));\n";
+    }
+
+    dsp << "modesGains(p,n) = waveform{";
+    for (int exPos = 0; exPos < gains.size(); ++exPos) {
+        for (int mode = 0; mode < gains[exPos].size(); ++mode) {
+            dsp << gains[exPos][mode];
+            if (mode < nModes - 1) dsp << ",";
+        }
+        if (exPos < gains.size() - 1) dsp << ",";
+    }
+
+    dsp << "},int(p*nModes+n) : rdtable"
+        << (args.freqControl ? " : select2(modeFreqs(n)<(ma.SR/2-1),0)" : "") << ";\n"
+        << "modesT60s(mode) = t60*pow(1-("
+        << (args.freqControl ? "modeFreqRatios(mode)" : "modeFreqs(mode)") << "/"
+        << (args.freqControl ? (freqs.back() / freqs.front()) : freqs.back())
+        << ")*t60DecayRatio,t60DecaySlope);\n};\n";
+
+    return {dsp.str(), std::move(model)};
 }

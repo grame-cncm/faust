@@ -16,7 +16,7 @@ struct MaterialProperties {
 };
 
 struct CommonArguments {
-    std::string modelName = "modalModel"; // name for the generated model
+    std::string modelName = "modalModel"; // Name for the generated model
     bool freqControl = false;    // Freq control activated
     float modesMinFreq = 20;     // Lowest mode freq
     float modesMaxFreq = 10000;  // Highest mode freq
@@ -24,17 +24,18 @@ struct CommonArguments {
     int femNModes = 100;         // Number of modes to be computed with Finite Element Analysis (FEA)
     std::vector<int> exPos = {}; // Specific excitation positions
     int nExPos = -1;             // Number of excitation positions (default is max)
-    bool showFreqs = false;      // Display computed frequencies
     bool debugMode = false;      // Verbose printing
 };
 
-// The response type of all mesh2faust functions.
-// todo introduce an intermediate function to return just mode freqs and gains in its own struct
-// (and anything else needed) then a function to turn this into dsp code.
-struct Response {
-    std::string modelDsp; // Faust DSP code defining the model function, with the provided `modelName`
+struct ModalModel {
     std::vector<float> modeFreqs; // Mode frequencies
     std::vector<std::vector<float>> modeGains; // Mode gains by [exitation position][mode]
+};
+
+// The response type of all mesh2faust functions.
+struct Response {
+    std::string modelDsp; // Faust DSP code defining the model function, with the provided `modelName`
+    ModalModel model; // Model data
 };
 
 // The main library function.
@@ -49,12 +50,21 @@ Response mesh2faust(
 // Material properties are assumed to already be baked into the mesh.
 Response mesh2faust(TetMesh *volumetricMesh, CommonArguments args = {});
 
-Response mesh2faust(
+ModalModel mesh2modal(
     const Eigen::SparseMatrix<double> &M, // Mass matrix
     const Eigen::SparseMatrix<double> &K, // Stiffness matrix
     int numVertices,
     int vertexDim = 3,
-    CommonArguments arg = {}
+    CommonArguments args = {}
 );
+
+// Subset of `CommonArguments` required for the DSP code generation phase
+struct DspGenArguments {
+    std::string modelName = "modalModel"; // Name for the generated model
+    bool freqControl = false; // Freq control activated
+};
+
+// Generate DSP code from a `ModalModel`.
+Response modal2faust(const ModalModel &, DspGenArguments args = {});
 
 } // namespace mesh2faust
