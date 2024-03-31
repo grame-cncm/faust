@@ -1,6 +1,6 @@
 # Deploying Faust DSP on the Web
 
-Using developments done for the Web (WebAssembly backends and **libfaust** library compiled in WebAssembly with [Emscripten](https://emscripten.org)), statically and dynamically Faust generated WebAudio nodes can be easily produced and deployed on the Web.
+[**WARNING**] 03/31/2024: this code using the Faust 2.70.3 is now obsolete. Please use the [faustwasm](https://github.com/grame-cncm/faustwasm) project for new developments [**WARNING**]. This folder will be cleanup at the next release.
 
 ## Deploying statically compiled Faust WebAudio nodes
 
