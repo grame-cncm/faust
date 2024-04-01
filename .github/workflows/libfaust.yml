@@ -70,7 +70,7 @@ jobs:
         zip -r libfaust-${{ matrix.name }}.zip lib
         
     - name: Upload libfaust artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: libfaust-${{ matrix.name }}.zip
         path: build/libfaust-${{ matrix.name }}.zip
@@ -146,7 +146,7 @@ jobs:
         docker rm mylib-container
         
     - name: Upload libfaust artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: libfaust-${{ matrix.name }}.zip
         path: libfaust-${{ matrix.name }}.zip
@@ -306,7 +306,7 @@ jobs:
         ARCHS: ${{matrix.ARCHS}}
 
     - name: Upload Faust artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: faust-${{env.FAUST_VERSION}}-${{ matrix.name }}.dmg
         path: build/Release-${{env.FAUST_VERSION}}/Faust-${{env.FAUST_VERSION}}-${{matrix.name}}.dmg
@@ -314,14 +314,14 @@ jobs:
 
     - name: Upload Faust source artifact
       if: ${{ endsWith( matrix.name, 'arm64') }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: faust-${{env.FAUST_VERSION}}.tar.gz
         path: build/Release-${{env.FAUST_VERSION}}/faust-${{env.FAUST_VERSION}}.tar.gz
         if-no-files-found: error
 
     - name: Upload faustgen~ artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.dmg
         path: build/Release-${{env.FAUST_VERSION}}/faustgen-${{env.FAUSTGEN_VERSION}}-${{matrix.name}}.dmg
@@ -384,14 +384,14 @@ jobs:
         7z a -tzip faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.zip faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}
 
     - name: Upload Faust installer
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Faust-${{env.FAUST_VERSION}}-${{matrix.name}}.exe
         path: build/Faust-${{env.FAUST_VERSION}}-${{matrix.name}}.exe
         if-no-files-found: error
 
     - name: Upload faustgen~ artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.zip
         path: embedded/faustgen/package/faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.zip
