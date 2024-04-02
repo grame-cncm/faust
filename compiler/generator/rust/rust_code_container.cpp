@@ -178,11 +178,14 @@ void RustCodeContainer::produceClass()
     // Missing math functions
     // See: https://users.rust-lang.org/t/analog-of-c-std-remainder/59670
     if (gGlobal->gFloatSize == 1) {
+ 
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
         *fOut << "use std::os::raw::{c_float};";
         tab(n + 1, *fOut);
-        *fOut << "#[link(name = \"m\")]";
+        *fOut << "// Conditionally compile the link attribute only on non-Windows platforms";
+        tab(n + 1, *fOut);
+        *fOut << "#[cfg_attr(not(target_os=\"windows\"), link(name=\"m\"))]";
         tab(n + 1, *fOut);
         *fOut << "extern {";
         tab(n + 2, *fOut);
@@ -206,12 +209,21 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
+        
+        /*
+        tab(n, *fOut);
+        *fOut << "fn remainder_f32(a: f32, b: f32) -> f32 { let n = (a/b).round(); a - b*n }";
+        tab(n, *fOut);
+        */
     } else if (gGlobal->gFloatSize == 2) {
+   
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
         *fOut << "use std::os::raw::{c_double};";
         tab(n + 1, *fOut);
-        *fOut << "#[link(name = \"m\")]";
+        *fOut << "// Conditionally compile the link attribute only on non-Windows platforms";
+        tab(n + 1, *fOut);
+        *fOut << "#[cfg_attr(not(target_os=\"windows\"), link(name=\"m\"))]";
         tab(n + 1, *fOut);
         *fOut << "extern {";
         tab(n + 2, *fOut);
@@ -235,7 +247,14 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
+        
+        /*
+        tab(n, *fOut);
+        *fOut << "fn remainder_f64(a: f64, b: f64) -> f64 { let n = (a/b).round(); a - b*n }";
+        tab(n, *fOut);
+        */
     }
+    
     
     tab(n, *fOut);
     *fOut << "#[cfg_attr(feature = \"default-boxed\", derive(default_boxed::DefaultBoxed))]";
