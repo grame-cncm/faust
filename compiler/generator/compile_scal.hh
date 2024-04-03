@@ -44,9 +44,8 @@ class ScalarCompiler : public Compiler {
     property<std::string>                          fCompileProperty;
     property<std::string>                          fSoundfileVariableProperty;  // variable associated to a soundfile
     property<std::string>                          fVectorProperty;
-    property<std::pair<std::string, std::string> > fStaticInitProperty;  // property added to solve 20101208 kjetil bug
-    property<std::pair<std::string, std::string> >
-        fInstanceInitProperty;  // property added to solve 20101208 kjetil bug
+    property<std::pair<std::string, std::string> > fStaticInitProperty;    // property added to solve 20101208 kjetil bug
+    property<std::pair<std::string, std::string> > fInstanceInitProperty;  // property added to solve 20101208 kjetil bug
 
     std::map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
 
@@ -84,8 +83,9 @@ class ScalarCompiler : public Compiler {
     bool        getCompiledExpression(Tree sig, std::string& name);
     std::string setCompiledExpression(Tree sig, const std::string& name);
 
-    void setVectorNameProperty(Tree sig, const std::string& vecname);
-    bool getVectorNameProperty(Tree sig, std::string& vecname);
+    void        setVectorNameProperty(Tree sig, const std::string& vecname);
+    bool        getVectorNameProperty(Tree sig, std::string& vecname);
+    std::string ensureVectorNameProperty(const std::string altname, Tree sig);
 
     void        conditionAnnotation(Tree l);
     void        conditionAnnotation(Tree t, Tree nc);
@@ -135,12 +135,10 @@ class ScalarCompiler : public Compiler {
     std::string generateFConst(Tree sig, const std::string& file, const std::string& name);
     std::string generateFVar(Tree sig, const std::string& file, const std::string& name);
 
-    virtual std::string generateDelayVec(Tree sig, const std::string& exp, const std::string& ctype,
-                                         const std::string& vname, int mxd, int count);
-    std::string         generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype,
-                                               const std::string& vname, int mxd, int count);
-    virtual std::string generateDelayLine(DelayType dt, const std::string& ctype, const std::string& vname, int mxd,
-                                          int count, bool mono, const std::string& exp, const std::string& ccs);
+    virtual std::string generateDelayVec(Tree sig, const std::string& exp, const std::string& ctype, const std::string& vname, int mxd, int count);
+    std::string         generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype, const std::string& vname, int mxd, int count);
+    virtual std::string generateDelayLine(DelayType dt, const std::string& ctype, const std::string& vname, int mxd, int count, bool mono,
+                                          const std::string& exp, const std::string& ccs);
 
     void getTypedNames(::Type t, const std::string& prefix, std::string& ctype, std::string& vname);
     void ensureIotaCode();

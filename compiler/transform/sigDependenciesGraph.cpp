@@ -1,4 +1,5 @@
 #include "sigDependenciesGraph.hh"
+#include "ppsig.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
 
@@ -39,6 +40,8 @@ void SigDependenciesGraph::visit(Tree t)
     Tree w, x, y, tbl, ri;
     Tree size, gen, wi, ws;
 
+    std::cerr << "Visiting: " << t << " : " << ppsig(t, 10) << "\n";
+    fGraph.add(t);
     if (isProj(t, &i, w)) {
         // The immediate dependency of a projection is
         // its definition
@@ -57,12 +60,24 @@ void SigDependenciesGraph::visit(Tree t)
         int      dmin = int(Iy.lo());
         if (fFullGraph || (dmin == 0)) {
             // x is an immediate dependencies
-            std::cerr << "The interval of y is: " << Iy << "\n";
+            // std::cerr << "The interval of y is: " << Iy << "\n";
             fGraph.add(t, x, dmin);
         }
         fGraph.add(t, y, 0);
         self(x);
         self(y);
+    } else if (isSigDelay1(t, x)) {
+        faustassert(false);
+        // We place x in the graph only if:
+        // - we want the full graph
+        // - or the dependency to x is immediate
+        //  (i.e. the delay can potentially be 0)
+        if (fFullGraph) {
+            // x is an immediate dependencies
+            // std::cerr << "The interval of y is: " << Iy << "\n";
+            fGraph.add(t, x, 1);
+        }
+        self(x);
     } else if (isSigRDTbl(t, tbl, ri)) {
         // special case for tables. We can't compile the content without knowing the context
 
