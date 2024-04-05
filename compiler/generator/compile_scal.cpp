@@ -419,12 +419,16 @@ string ScalarCompiler::CS(Tree sig)
          }
          */
         int step = gGlobal->gSTEP;
-        std::cerr << "\n" << step << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
+        std::cerr << "\n"
+                  << step << " [order: " << fScheduleOrder[sig] << "] "
+                  << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
 
         code = generateCode(sig);
         setCompiledExpression(sig, code);
 
-        std::cerr << "\n" << step << "::" << sig << "\t: ============> " << code << std::endl;
+        std::cerr << "\n"
+                  << step << " [order: " << fScheduleOrder[sig] << "] "
+                  << "::" << sig << "\t: ============> " << code << std::endl;
     }
     return code;
 }
@@ -452,25 +456,32 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     // force a specific compilation order
     auto G = immediateGraph(L);
     auto S = dfschedule(G);
+    // register the compilation order S for debug purposes
+    {
+        int jj = 0;
+        for (auto& s : S.elements()) {
+            fScheduleOrder[s] = ++jj;
+        }
+    }
     std::cerr << "\nBEFORE COMPILING" << std::endl;
     std::cerr << G << std::endl;
     std::cerr << S << std::endl;
 
     std::cerr << "\nCOMPILE SCHEDULE" << std::endl;
     // gGlobal->gSTEP = 0;
-    for (auto& sig : S.elements()) {
-        if (isNil(sig)) {
+    for (auto& s : S.elements()) {
+        if (isNil(s)) {
             std::cerr << "NOT SUPPOSED TO HAPPEN: We have a Nil in the schedule !" << std::endl;
             faustassert(false);
         }
         int lSTEP = gGlobal->gSTEP;  // conveninient for debug
-        CS(sig);
+        CS(s);
         gGlobal->gSTEP++;
     }
 #endif
     for (int i = 0; isList(L); L = tl(L), i++) {
-        Tree sig = hd(L);
-        fClass->addExecCode(Statement("", subst("output$0[i] = $2($1);  // Zone Exec Code", T(i), generateCacheCode(sig, CS(sig)), xcast())));
+        Tree s = hd(L);
+        fClass->addExecCode(Statement("", subst("output$0[i] = $2($1);  // Zone Exec Code", T(i), generateCacheCode(s, CS(s)), xcast())));
     }
 
     generateMetaData();
@@ -498,21 +509,30 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
     sig = prepare2(sig);  // optimize and annotate expression
 
 #if 1
+    std::cerr << "\nSTART COMPILING SINGLE SIGNAL: " << ppsig(sig, 20) << std::endl;
+
     // force a specific compilation order
     auto G = immediateGraph(cons(sig, gGlobal->nil));
     auto S = dfschedule(G);
     std::cerr << "\nBEFORE COMPILING SINGLE SIGNAL" << std::endl;
     std::cerr << G << std::endl;
     std::cerr << S << std::endl;
+    // register the compilation order S for debug purposes
+    {
+        int jj = 1000;
+        for (auto& s : S.elements()) {
+            fScheduleOrder[s] += ++jj;
+        }
+    }
 
     std::cerr << "\nCOMPILE SINGLE SIGNAL SCHEDULE" << std::endl;
-    for (auto& sig : S.elements()) {
-        if (isNil(sig)) {
+    for (auto& s : S.elements()) {
+        if (isNil(s)) {
             std::cerr << "NOT SUPPOSED TO HAPPEN: We have a Nil in the schedule !" << std::endl;
             faustassert(false);
         }
-        int lSTEP = gGlobal->gSTEP;  // conveninient for debug
-        CS(sig);
+        int lSTEP = gGlobal->gSTEP;  // convenient for debug
+        CS(s);
         gGlobal->gSTEP++;
     }
 #endif
@@ -1058,7 +1078,7 @@ string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
 }
 
 /*****************************************************************************
- TABLES
+                                TABLES
  *****************************************************************************/
 
 /*----------------------------------------------------------------------------
@@ -1213,6 +1233,8 @@ string ScalarCompiler::generateWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tre
 string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
 {
     // Test the special case of a read only table that can be compiled as a static member
+    Occurrences* o = fOccMarkup->retrieve(sig);
+    std::cerr << "generateRDTbl : " << sig << "; mxd=" << o->getMaxDelay() << "; delay count=" << o->getDelayCount() << "\n";
     Tree size, gen;
     if (isSigWRTbl(tbl, size, gen)) {
         // rdtable
@@ -1220,7 +1242,10 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
         if (!getCompiledExpression(tbl, tblname)) {
             tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, gen));
         }
-        return generateCacheCode(sig, subst("$0[$1]", tblname, CS(ri)));
+        std::string ricode = CS(ri);
+        std::string instr  = subst("$0[$1]", tblname, ricode);
+        std::string result = generateCacheCode(sig, instr);
+        return result;
     } else {
         // rwtable
         return generateCacheCode(sig, subst("$0[$1]", CS(tbl), CS(ri)));
@@ -1269,7 +1294,7 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
     fClass->addDeclCode(subst("// While its definition is of type $0", nameDelayType(analyzeDelayType(def))));
     generateDelayLine(analyzeDelayType(sig), ctype, vecname, delay, count, mono, CS(def), getConditionCode(def));
 
-    return "[[UNUSED EXP]]";  // make sure the resulting expression is never used in the generated code
+    return subst("[[UNUSED EXP $0]]", vecname);  // make sure the resulting expression is never used in the generated code
 }
 
 /**
@@ -1539,30 +1564,38 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
     string    vecname = ensureVectorNameProperty(pname, exp);
     int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
     DelayType dt      = analyzeDelayType(exp);
-    std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere " << exp << " :: " << ppsig(exp, 10) << std::endl;
+    std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step " << fScheduleOrder[exp] << " -- " << exp
+              << " :: " << ppsig(exp, 10) << std::endl;
 
+    std::string result;
     switch (dt) {
         case DelayType::kNotADelay:
             faustexception("Try to compile has a delay something that is not a delay");
-            return "";
+            result = "";
+            break;
 
         case DelayType::kZeroDelay:
-            return vecname;
+            result = vecname;
+            break;
 
         case DelayType::kMonoDelay:
-            return vecname;
+            result = vecname;
+            break;
 
         case DelayType::kSingleDelay:
         case DelayType::kCopyDelay:
         case DelayType::kDenseDelay:
-            return subst("$0[$1]", vecname, CS(delay));
+            result = subst("$0[$1]", vecname, CS(delay));
+            break;
 
         case DelayType::kMaskRingDelay:
         case DelayType::kSelectRingDelay:
             int         N   = pow2limit(mxd + 1);
             std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
-            return subst("$0[$1]", vecname, generateIotaCache(idx));
+            result          = subst("$0[$1]", vecname, generateIotaCache(idx));
+            break;
     }
+    return generateCacheCode(sig, result);
 
 #endif
 }

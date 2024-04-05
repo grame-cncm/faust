@@ -54,6 +54,7 @@ class ScalarCompiler : public Compiler {
     OccMarkup*                         fOccMarkup;
     int                                fMaxIota;
     std::map<std::string, std::string> fIotaCache;
+    std::map<Tree, int>                fScheduleOrder;
 
    public:
     ScalarCompiler(const std::string& name, const std::string& super, int numInputs, int numOutputs)
