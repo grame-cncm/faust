@@ -3,6 +3,7 @@
 #include "signals.hh"
 #include "sigtyperules.hh"
 
+#undef TRACE
 /**
  * @brief A signal visitor that builds a graph of dependencies
  * when full is true, the graph contains all dependencies,
@@ -39,8 +40,9 @@ void SigDependenciesGraph::visit(Tree t)
     int  i;
     Tree w, x, y, tbl, ri;
     Tree size, gen, wi, ws;
-
+#ifdef TRACE
     std::cerr << "Visiting: " << t << " : " << ppsig(t, 10) << "\n";
+#endif
     fGraph.add(t);
     if (isProj(t, &i, w)) {
         // The immediate dependency of a projection is

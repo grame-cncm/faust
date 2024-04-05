@@ -25,11 +25,13 @@
 
 #include "global.hh"
 #include "occurrences.hh"
+#include "ppsig.hh"
 #include "recursivness.hh"
 #include "sigtyperules.hh"
 
 using namespace std;
 
+#undef TRACE
 /**
  * Extended Variability with recursiveness indication
  */
@@ -38,7 +40,9 @@ static int xVariability(int v, int r)
     // cerr << "xVariability (" << v << ", " <<  r << ")" << endl;
     // faustassert(v < 3);				// kKonst=0, kBlock=1, kSamp=2
     // faustassert(r==0 | v==2);
-    if (r > 1) r = 1;
+    if (r > 1) {
+        r = 1;
+    }
     return std::min<int>(3, v + r);
 }
 
@@ -53,7 +57,9 @@ int Occurrences::getOccurrence(int variability) const
 
 Occurrences::Occurrences(int v, int r, Tree xc) : fXVariability(xVariability(v, r))
 {
-    for (int i = 0; i < 4; i++) fOccurrences[i] = 0;
+    for (int i = 0; i < 4; i++) {
+        fOccurrences[i] = 0;
+    }
     fMultiOcc      = false;
     fOutDelayOcc   = false;
     fMinDelay      = 0;
@@ -145,6 +151,9 @@ Occurrences* OccMarkup::retrieve(Tree t)
 
 void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 {
+#ifdef TRACE
+    std::cerr << "incOcc(variability:" << v << ", r:" << r << ", delay:" << d << "; " << t << ":" << ppsig(t, 10) << ")" << std::endl;
+#endif
     // Check if we have already visited this tree
     Occurrences* occ        = getOcc(t);
     bool         firstVisit = (occ == 0);
@@ -173,7 +182,9 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
             tvec br;
             int  n = getSubSignals(t, br);
             if (n > 0 && !isSigGen(t)) {
-                for (int i = 0; i < n; i++) incOcc(env, v0, r0, 0, c0, br[i]);
+                for (int i = 0; i < n; i++) {
+                    incOcc(env, v0, r0, 0, c0, br[i]);
+                }
             }
         }
     }

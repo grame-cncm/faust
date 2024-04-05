@@ -51,6 +51,8 @@
 #include "timing.hh"
 #include "xtended.hh"
 
+#undef TRACE
+
 // Old delays are supposed to work while new delays are in progress
 #define OLDDELAY 0
 
@@ -412,23 +414,26 @@ string ScalarCompiler::CS(Tree sig)
     string code;
 
     if (!getCompiledExpression(sig, code)) {
-        // not compiled yet
-        /*
-         if (getRecursivness(sig) != contextRecursivness.get()) {
-            contextRecursivness.set(getRecursivness(sig));
-         }
-         */
+// not compiled yet
+/*
+ if (getRecursivness(sig) != contextRecursivness.get()) {
+    contextRecursivness.set(getRecursivness(sig));
+ }
+ */
+#ifdef TRACE
         int step = gGlobal->gSTEP;
         std::cerr << "\n"
                   << step << " [order: " << fScheduleOrder[sig] << "] "
                   << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
-
+#endif
         code = generateCode(sig);
         setCompiledExpression(sig, code);
 
+#ifdef TRACE
         std::cerr << "\n"
                   << step << " [order: " << fScheduleOrder[sig] << "] "
                   << "::" << sig << "\t: ============> " << code << std::endl;
+#endif
     }
     return code;
 }
@@ -452,7 +457,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     for (int i = 0; i < fClass->outputs(); i++) {
         fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
     }
-#if 1
+
     // force a specific compilation order
     auto G = immediateGraph(L);
     auto S = dfschedule(G);
@@ -463,11 +468,14 @@ void ScalarCompiler::compileMultiSignal(Tree L)
             fScheduleOrder[s] = ++jj;
         }
     }
+
+#ifdef TRACE
     std::cerr << "\nBEFORE COMPILING" << std::endl;
     std::cerr << G << std::endl;
     std::cerr << S << std::endl;
 
     std::cerr << "\nCOMPILE SCHEDULE" << std::endl;
+#endif
     // gGlobal->gSTEP = 0;
     for (auto& s : S.elements()) {
         if (isNil(s)) {
@@ -478,7 +486,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         CS(s);
         gGlobal->gSTEP++;
     }
-#endif
+
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree s = hd(L);
         fClass->addExecCode(Statement("", subst("output$0[i] = $2($1);  // Zone Exec Code", T(i), generateCacheCode(s, CS(s)), xcast())));
@@ -508,15 +516,17 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
     // contextor recursivness(0);
     sig = prepare2(sig);  // optimize and annotate expression
 
-#if 1
+#ifdef TRACE
     std::cerr << "\nSTART COMPILING SINGLE SIGNAL: " << ppsig(sig, 20) << std::endl;
-
+#endif
     // force a specific compilation order
     auto G = immediateGraph(cons(sig, gGlobal->nil));
     auto S = dfschedule(G);
+#ifdef TRACE
     std::cerr << "\nBEFORE COMPILING SINGLE SIGNAL" << std::endl;
     std::cerr << G << std::endl;
     std::cerr << S << std::endl;
+#endif
     // register the compilation order S for debug purposes
     {
         int jj = 1000;
@@ -524,8 +534,9 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
             fScheduleOrder[s] += ++jj;
         }
     }
-
+#ifdef TRACE
     std::cerr << "\nCOMPILE SINGLE SIGNAL SCHEDULE" << std::endl;
+#endif
     for (auto& s : S.elements()) {
         if (isNil(s)) {
             std::cerr << "NOT SUPPOSED TO HAPPEN: We have a Nil in the schedule !" << std::endl;
@@ -535,7 +546,6 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
         CS(s);
         gGlobal->gSTEP++;
     }
-#endif
 
     fClass->addExecCode(Statement("", subst("output[i] = $0;", CS(sig))));
     generateUserInterfaceTree(fUITree.prepareUserInterfaceTree(), true);
@@ -891,7 +901,10 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
                 fClass->addInitCode(subst("$0 = $1; // step: $2", vname, exp, T(gGlobal->gSTEP)));
             } else {
                 // Otherwise it can stay as a local variable
-                fClass->addInitCode(subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP)));
+                // fClass->addInitCode(subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP)));
+                // FIX Bug const ???
+                fClass->addDeclCode(subst("$0 \t$1; // step: $2", ctype, vname, T(gGlobal->gSTEP)));
+                fClass->addInitCode(subst("$0 = $1; // step: $2", vname, exp, T(gGlobal->gSTEP)));
             }
             break;
 
@@ -1234,7 +1247,9 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
 {
     // Test the special case of a read only table that can be compiled as a static member
     Occurrences* o = fOccMarkup->retrieve(sig);
+#ifdef TRACE
     std::cerr << "generateRDTbl : " << sig << "; mxd=" << o->getMaxDelay() << "; delay count=" << o->getDelayCount() << "\n";
+#endif
     Tree size, gen;
     if (isSigWRTbl(tbl, size, gen)) {
         // rdtable
@@ -1564,9 +1579,10 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
     string    vecname = ensureVectorNameProperty(pname, exp);
     int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
     DelayType dt      = analyzeDelayType(exp);
+#ifdef TRACE
     std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step " << fScheduleOrder[exp] << " -- " << exp
               << " :: " << ppsig(exp, 10) << std::endl;
-
+#endif
     std::string result;
     switch (dt) {
         case DelayType::kNotADelay:
