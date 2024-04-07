@@ -84,7 +84,8 @@ for f in $FILES; do
 
     # compile Faust DSP then create the binary
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
-    (
+    ( 
+    echo "ICI"
         $CXX $CXXFLAGS -DFILE_MODE=$FILE_MODE "$f.cpp" `pkg-config --cflags --static --libs sndfile` -o "${f%.dsp}"
     ) > /dev/null || exit
 
