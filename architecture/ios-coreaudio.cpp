@@ -36,6 +36,7 @@
 #include "faust/midi/midi.h"
 #include "faust/gui/GUI.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/MidiUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/gui/APIUI.h"
 #include "faust/gui/SimpleParser.h"
@@ -53,7 +54,6 @@
 #endif
 
 #if MIDICTRL
-#include "faust/gui/MidiUI.h"
 #include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
 #endif
