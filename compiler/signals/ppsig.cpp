@@ -37,6 +37,7 @@ ppsig::ppsig(Tree s, int max_size) : fSig(s), fEnv(gGlobal->nil), fPriority(0), 
 
 ostream& ppsig::printinfix(ostream& fout, const string& opname, int priority, Tree x, Tree y) const
 {
+#if 0
     if (fPriority > priority) {
         fout << "(";
     }
@@ -45,6 +46,8 @@ ostream& ppsig::printinfix(ostream& fout, const string& opname, int priority, Tr
         fout << ")";
     }
     return fout;
+#endif
+    return printfun(fout, opname, x, y);
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x) const
@@ -239,7 +242,7 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else if (isSigDelay1(fSig, x)) {
-        fout << ppsig(x, fEnv, 9, fMaxSize) << "'";
+        printDelay(fout, x, sigInt(1));
     } else if (isSigDelay(fSig, x, y)) {
         printDelay(fout, x, y);
     } else if (isSigPrefix(fSig, x, y)) {
@@ -511,7 +514,7 @@ ostream& ppsigShared::print(ostream& fout) const
     }
 
     else if (isSigDelay1(fSig, x)) {
-        SIG_INSERT_ID(s << ppsigShared(x, fEnv, 9) << "'");
+        SIG_INSERT_ID(printDelay(s, x, sigInt(1)));
     } else if (isSigDelay(fSig, x, y)) {
         SIG_INSERT_ID(printDelay(s, x, y));
     } else if (isSigPrefix(fSig, x, y)) {
