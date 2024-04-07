@@ -377,11 +377,12 @@ void faust_make_json(t_faust* x)
 void* faust_new(t_symbol* s, short ac, t_atom* av)
 {
     bool midi_sync = false;
+    bool midi = false;
     int nvoices = 0;
     t_faust* x = (t_faust*)object_alloc(faust_class);
     
     mydsp* tmp_dsp = new mydsp();
-    MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+    MidiMeta::analyse(tmp_dsp, midi, midi_sync, nvoices);
 #ifdef SOUNDFILE
     Max_Meta3 meta3;
     tmp_dsp->metadata(&meta3);

@@ -61,7 +61,7 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string> {
         return (this->find(key) != this->end()) ? (*this)[key] : def;
     }
     
-    static void analyse(dsp* mono_dsp, bool& midi_sync, int& nvoices)
+    static void analyse(dsp* mono_dsp, bool& midi, bool& midi_sync, int& nvoices)
     {
         JSONUI jsonui;
         mono_dsp->buildUserInterface(&jsonui);
@@ -78,6 +78,7 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string> {
         MidiMeta meta;
         mono_dsp->metadata(&meta);
         bool found_voices = false;
+        bool found_midi = false;
         // If "options" metadata is used
         std::string options = meta.get("options", "");
         if (options != "") {
@@ -88,6 +89,10 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string> {
                 nvoices = std::atoi(metadata["nvoices"].c_str());
                 found_voices = true;
             }
+            if (metadata.find("midi") != metadata.end()) {
+                midi = (metadata["midi"] == "on" || metadata["midi"] == "1");
+                found_midi = true;
+            }
         }
         // Otherwise test for "nvoices" metadata
         if (!found_voices) {
@@ -95,6 +100,11 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string> {
             nvoices = std::atoi(numVoices.c_str());
         }
         nvoices = std::max<int>(0, nvoices);
+        // Otherwise test for "midi" metadata
+        if (!found_midi) {
+            std::string midiState = meta.get("midi", "off");
+            midi = (midiState == "on" || midiState == "1");
+        }
     #endif
     }
     

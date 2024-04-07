@@ -61,13 +61,13 @@ int main(int argc, char* argv[])
     char rcfilename[256];
     char* home = getenv("HOME");
     int nvoices = 0;
+    bool is_midi = false;
     bool midi_sync = false;
     
     snprintf(name, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
     snprintf(rcfilename, 255, "%s/.%s-%src", home, name, filename);
     
-    bool is_midi = isopt(argv, "-midi");
     bool is_osc = isopt(argv, "-osc");
     bool is_httpd = isopt(argv, "-httpd");
     
@@ -110,8 +110,11 @@ int main(int argc, char* argv[])
     bool is_double = hasCompileOption(factory->getCompileOptions(), "-double");
     
     // Before reading the -nvoices parameter
-    MidiMeta::analyse(DSP, midi_sync, nvoices);
+    MidiMeta::analyse(DSP, is_midi, midi_sync, nvoices);
+    
+    // Possibly update the state read in "options" with command line parameters
     nvoices = lopt(argv, "-nvoices", nvoices);
+    is_midi = isopt(argv, "-midi") || is_midi;
     
     if (nvoices > 0) {
         cout << "Starting polyphonic mode nvoices : " << nvoices << endl;

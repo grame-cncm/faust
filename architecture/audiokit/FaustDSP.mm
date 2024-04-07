@@ -124,8 +124,9 @@ class Faustmydsp : public DSPBase, public GenericUI {
         #ifdef POLY
             int nvoices = 0;
             bool midi_sync = false;
+            bool midi = false;
             fDSP = new mydsp();
-            MidiMeta::analyse(DSP, midi_sync, nvoices);
+            MidiMeta::analyse(DSP, midi, midi_sync, nvoices);
             fDSP = new mydsp_poly(DSP, nvoices, true, true);
         #else
             fDSP = new mydsp();

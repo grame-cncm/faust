@@ -125,8 +125,9 @@ int main(void)
 #ifdef POLY
     int nvoices = 0;
     bool midi_sync = false;
+    bool midi = false;
     DSP = new mydsp();
-    MidiMeta::analyse(DSP, midi_sync, nvoices);
+    MidiMeta::analyse(DSP, midi, midi_sync, nvoices);
     DSP = new mydsp_poly(DSP, nvoices, true, true);
 #else
     DSP = new mydsp();

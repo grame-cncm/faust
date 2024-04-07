@@ -119,6 +119,7 @@ struct DynamicDSP {
         char rcfilename[256];
         char* home = getenv("HOME");
         int nvoices = 0;
+        bool is_midi = false;
         bool midi_sync = false;
         string error_msg;
         
@@ -129,7 +130,6 @@ struct DynamicDSP {
         
         is_llvm = isopt(argv, "-llvm");
         bool is_interp = isopt(argv, "-interp");
-        bool is_midi = isopt(argv, "-midi");
         bool is_osc = isopt(argv, "-osc");
         bool is_all = isopt(argv, "-all");
         bool is_generic = isopt(argv, "-generic");
@@ -262,9 +262,12 @@ struct DynamicDSP {
         cout << "getName " << fFactory->getName() << endl;
         cout << "getSHAKey " << fFactory->getSHAKey() << endl;
         
-        // Before reading the -nvoices parameter
-        MidiMeta::analyse(fDSP, midi_sync, nvoices);
+        // Before reading the -nvoices and -midi parameters
+        MidiMeta::analyse(fDSP, is_midi, midi_sync, nvoices);
+    
+        // Possibly update the state read in "options" with command line parameters
         nvoices = lopt(argv, "-nvoices", nvoices);
+        is_midi = isopt(argv, "-midi") || is_midi;
         
         if (nvoices > 0) {
             cout << "Starting polyphonic mode 'nvoices' : " << nvoices << " and 'all' : " << is_all << endl;

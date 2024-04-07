@@ -111,11 +111,12 @@ float uiBox::gDummy = 0;
     _openPanelChanged = YES;
     
     bool midi_sync = false;
+    bool midi = false;
     int nvoices = 0;
     
 #if MIDICTRL
     mydsp* tmp_dsp = new mydsp();
-    MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+    MidiMeta::analyse(tmp_dsp, midi, midi_sync, nvoices);
     delete tmp_dsp;
  #endif
     

@@ -236,6 +236,7 @@ int main(int argc, char* argv[])
     char rcfilename[256];
     char* home = getenv("HOME");
     bool midi_sync = false;
+    bool midi = false;
     int nvoices = 0;
     bool control = true;
     
@@ -245,7 +246,7 @@ int main(int argc, char* argv[])
     }
     
     mydsp* tmp_dsp = new mydsp();
-    MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+    MidiMeta::analyse(tmp_dsp, midi, midi_sync, nvoices);
     delete tmp_dsp;
     
 #ifdef IOS

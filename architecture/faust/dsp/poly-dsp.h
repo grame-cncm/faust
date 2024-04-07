@@ -1063,8 +1063,9 @@ struct dsp_poly_factory : public dsp_factory {
         if (nvoices == -1) {
             // Get 'nvoices' from the metadata declaration
             dsp* dsp = fProcessFactory->createDSPInstance();
-            bool midi_sync;
-            MidiMeta::analyse(dsp, midi_sync, nvoices);
+            bool midi_sync = false;
+            bool midi = false;
+            MidiMeta::analyse(dsp, midi, midi_sync, nvoices);
             delete dsp;
         }
         dsp_poly* dsp_poly = new mydsp_poly(adaptDSP(fProcessFactory->createDSPInstance(), is_double), nvoices, control, group);

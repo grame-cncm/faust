@@ -70,11 +70,12 @@ class FaustComponent : public juce::AudioAppComponent, private juce::Timer
         FaustComponent()
         {
             bool midi_sync = false;
+            bool midi = false;
             int nvoices = 0;
             bool group = true;
             
             mydsp* tmp_dsp = new mydsp();
-            MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+            MidiMeta::analyse(tmp_dsp, midi, midi_sync, nvoices);
             delete tmp_dsp;
             
         #ifdef POLY2

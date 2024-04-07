@@ -1950,8 +1950,9 @@ bool setup(BelaContext* context, void* userData)
 {
     int nvoices = 0;
     bool midi_sync = false;
+    bool midi = false;
     mydsp* tmp_dsp = new mydsp();
-    MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+    MidiMeta::analyse(tmp_dsp, midi, midi_sync, nvoices);
     delete tmp_dsp;
     
     // Routing the stderr stream to a file (some code part in the mydsp_poly are too talkative and generate mode switch during the execution)
