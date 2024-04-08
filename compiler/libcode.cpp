@@ -160,7 +160,7 @@ static Compiler* gOldComp = nullptr;
 static InstructionsCompiler* gNewComp   = nullptr;
 static CodeContainer*        gContainer = nullptr;
 
-// Shared context
+// Shared compilation context
 global* gGlobal = nullptr;
 
 string reorganizeCompilationOptions(int argc, const char* argv[]);
@@ -446,16 +446,16 @@ static void compileCodebox(Tree signals, int numInputs, int numOutputs, ostream*
     gGlobal->gAllowForeignFunction = false;  // No foreign functions
     gGlobal->gAllowForeignConstant = false;  // No foreign constant
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
+    gGlobal->gExtControl           = true;   // Separated control
 
     // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
     
-    // "one sample" model by default;
+    // "one sample control" model by default;
     gGlobal->gOneSampleControl = true;
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an
 
     gContainer = CodeboxCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
-    
     gNewComp = new InstructionsCompiler(gContainer);
     
     if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) gNewComp->setDescription(new Description());
@@ -658,6 +658,7 @@ static void compileCmajor(Tree signals, int numInputs, int numOutputs, ostream* 
     gGlobal->gAllowForeignConstant = false;  // No foreign constant
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
     gGlobal->gBool2Int             = true;   // Cast bool binary operations (comparison operations) to int
+    gGlobal->gExtControl           = true;   // Separated control
 
     // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
@@ -665,6 +666,7 @@ static void compileCmajor(Tree signals, int numInputs, int numOutputs, ostream* 
     // "one sample control" model by default;
     gGlobal->gOneSampleControl = true;
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an integer
+    
     gContainer = CmajorCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     if (gGlobal->gVectorSwitch) {
         gNewComp = new DAGInstructionsCompiler(gContainer);

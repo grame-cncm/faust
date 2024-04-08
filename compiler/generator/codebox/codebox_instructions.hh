@@ -165,7 +165,7 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
     {
         // Keep the array name
         if (inst->fType->isArrayTyped() && inst->fValue) {
-            fCurArray = codeboxVarName(inst->fAddress->getName());
+            fCurArray = codeboxVarName(inst->getName());
             inst->fValue->accept(this);
         }
     }
@@ -204,7 +204,7 @@ struct CodeboxBargraphVisitor : public DispatchVisitor {
     
     virtual void visit(DeclareVarInst* inst) override
     {
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
         if (startWith(name, "fHbargraph") || startWith(name, "fVbargraph")) {
             fVariables.push_back(codeboxVarName(name));
         }
@@ -465,7 +465,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         // inputXX/outputXX are generated as local variables at the begining of 'compute'
-        if (startWith(inst->fAddress->getName(), "input") || startWith(inst->fAddress->getName(), "output")) {
+        if (startWith(inst->getName(), "input") || startWith(inst->getName(), "output")) {
             return;
         }
         // Struct variables should persist across the codebox lifetime
@@ -475,7 +475,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
         } else if (inst->fAddress->isStack() || inst->fAddress->isLoop()) {
             *fOut << "let ";
         }
-        *fOut << fTypeManager->generateType(inst->fType, codeboxVarName(inst->fAddress->getName()));
+        *fOut << fTypeManager->generateType(inst->fType, codeboxVarName(inst->getName()));
         // Arrays are set in CodeboxInitArraysVisitor
         if (inst->fValue && inst->fType->isBasicTyped()) {
             *fOut << " = ";

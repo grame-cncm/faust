@@ -116,7 +116,7 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
         ValueInst* visit(LoadVarInst* inst)
         {
             BasicCloneVisitor cloner;
-            if (inst->fAddress->getName() == fNamed->fName) {
+            if (inst->getName() == fNamed->fName) {
                 if (fArg->isSimpleValue() || (fOccurence == 1)) {
                     return fArg->clone(&cloner);
                 } else {
@@ -144,7 +144,7 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
         StatementInst* visit(StoreVarInst* inst)
         {
             LoadVarInst* arg;
-            if ((inst->fAddress->getName() == fNamed->fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
+            if ((inst->getName() == fNamed->fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
                 
                 return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, arg->fAddress),
                                                     inst->fValue->clone(this));
@@ -164,7 +164,7 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
         
         virtual void visit(LoadVarInst* inst)
         {
-            if (inst->fAddress->getName() == fName) {
+            if (inst->getName() == fName) {
                 fOccurence++;
             }
         }

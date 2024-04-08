@@ -10,7 +10,6 @@
 
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/libfaust.h"
-#include "faust/dsp/one-sample-dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/audio/channels.h"
@@ -183,7 +182,33 @@ struct malloc_memory_manager_check : public dsp_memory_manager {
     {
         free(ptr);
     }
+};
+
+
+struct malloc_memory_manager_check_dsp : public malloc_memory_manager {
     
+    int fDSPSize = 0;
+    std::vector<int> fZones;
+    
+    malloc_memory_manager_check_dsp(int dsp_size):fDSPSize(dsp_size)
+    {}
+    
+    virtual void begin(size_t count)
+    {}
+    
+    virtual void info(size_t size, size_t reads, size_t writes)
+    {
+        fZones.push_back(size);
+    }
+    
+    virtual void end()
+    {
+        std::cerr << "DSP size info " << fZones[0]  << std::endl;
+        std::cerr << "DSP Size " << fDSPSize << std::endl;
+        if (fZones[1] != fDSPSize + 8 + 8) {
+            std::cerr << "ERROR : wrong size" << std::endl;
+        }
+    }
 };
 
 static void printHeader(dsp* DSP, int nbsamples)

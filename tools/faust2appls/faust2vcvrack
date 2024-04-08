@@ -23,7 +23,7 @@ NVOICES=1
 POLY=""
 SOURCE=false
 SOUNDFILE=false
-VERSION="1.0.0"
+VERSION="2.0.0"
 
 echoHelp()
 {
@@ -32,7 +32,7 @@ echoHelp()
     options -soundfile
     option "-source"
     option "-nvoices <num>"
-    option "-version <1|2>" "to set the plugin version, 1 by default"
+    option "-version <1|2>" "to set the plugin version, 2 by default"
     option "Faust options"
     echo ""
     exit
@@ -125,7 +125,7 @@ for p in $FILE; do
 
     # compile faust to c++
     cp -r $FAUSTARCH/vcvrack/template/* "$SRCDIR/$dspName/"
-    faust -json -os -cn $dspName -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/src/FaustModule.cpp" || exit
+    faust -json -os -cn $dspName -scn rack_dsp -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/src/FaustModule.cpp" || exit
 
     # add NVOICES flag
     echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/src/FaustModule.cpp" > temp && mv temp "$SRCDIR/$dspName/src/FaustModule.cpp"

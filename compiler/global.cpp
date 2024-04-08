@@ -394,6 +394,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 #endif
 
     gMachineMaxStackSize = MAX_MACHINE_STACK_SIZE;
+    
+    gIntZone = nullptr;
+    gRealZone = nullptr;
 }
 
 // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
@@ -479,8 +482,9 @@ void global::reset()
     gMathApprox           = false;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
-    gOneSample            = -1;
+    gOneSample            = false;
     gOneSampleControl     = false;
+    gExtControl           = false;
     gInlineTable          = false;
     gComputeMix           = false;
     gBool2Int             = false;
@@ -512,7 +516,7 @@ void global::reset()
     gDummyInput = 10000;
 
     gBoxSlotNumber = 0;
-    gMemoryManager = false;
+    gMemoryManager = -1;
 
     gLocalCausalityCheck = false;
     gCausality           = false;
@@ -568,7 +572,7 @@ void global::reset()
     gDrawSVGSwitch     = false;
     gVHDLTrace         = false;
     gVHDLFloatEncoding = false;
-    gFPGAMemory        = 10000;
+    gFPGAMemory        = 0;
     gPrintXMLSwitch    = false;
     gPrintJSONSwitch   = false;
     gPrintDocSwitch    = false;
@@ -751,18 +755,17 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gInlineArchSwitch) dst << "-i ";
     if (gInPlace) dst << "-inpl ";
     if (gStrictSelect) dst << "-sts ";
-    if (gOneSample >= 0) {
-        dst << "-os" << gOneSample << " ";
-        dst << "-fpga-mem " << gFPGAMemory << " ";
-    }
+    if (gFPGAMemory > 0) dst << "-fpga-mem " << gFPGAMemory << " ";
+    if (gOneSample) dst << "-os ";
     if (gLightMode) dst << "-light ";
-    if (gMemoryManager) dst << "-mem ";
+    if (gMemoryManager >= 0) dst << "-mem" << gMemoryManager << " ";
     if (gComputeMix) dst << "-cm ";
     if (gInlineTable) dst << "-it ";
     if (gRangeUI) dst << "-rui ";
     if (gNoVirtual) dst << "-nvi ";
     if (gFullParentheses) dst << "-fp ";
     if (gCheckIntRange) dst << "-cir ";
+    if (gExtControl) dst << "-ec ";
     dst << "-ct " << gCheckTable << " ";
     if (gMathApprox) dst << "-mapp ";
     if (gMathExceptions) dst << "-me ";
@@ -1188,8 +1191,20 @@ bool global::processCmdline(int argc, const char* argv[])
             gMaskDelayLineThreshold = std::atoi(argv[i + 1]);
             i += 2;
 
-        } else if (isCmd(argv[i], "-mem", "--memory-manager")) {
-            gMemoryManager = true;
+        } else if (isCmd(argv[i], "-mem", "--memory-manager") || isCmd(argv[i], "-mem0", "--memory-manager0")) {
+            gMemoryManager = 0;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-mem1", "--memory-manager1")) {
+            gMemoryManager = 1;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-mem2", "--memory-manager2")) {
+            gMemoryManager = 2;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-mem3", "--memory-manager3")) {
+            gMemoryManager = 3;
             i += 1;
 
         } else if (isCmd(argv[i], "-sd", "--simplify-diagrams")) {
@@ -1346,20 +1361,12 @@ bool global::processCmdline(int argc, const char* argv[])
             gHasExp10 = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-os", "--one-sample") || isCmd(argv[i], "-os0", "--one-sample0")) {
-            gOneSample = 0;
+        } else if (isCmd(argv[i], "-os", "--one-sample")) {
+            gOneSample = true;
             i += 1;
-
-        } else if (isCmd(argv[i], "-os1", "--one-sample1")) {
-            gOneSample = 1;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-os2", "--one-sample2")) {
-            gOneSample = 2;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-os3", "--one-sample3")) {
-            gOneSample = 3;
+          
+        } else if (isCmd(argv[i], "-ec", "--external-control")) {
+            gExtControl = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-it", "--inline-table")) {
@@ -1515,9 +1522,14 @@ bool global::processCmdline(int argc, const char* argv[])
         }
     }
 
+    // ========================
     // Adjust related options
+    // ========================
+    
     if (gOpenMPSwitch || gSchedulerSwitch) gVectorSwitch = true;
-
+    
+    if (gMemoryManager >= 1) gGlobal->gWaveformInDSP = true;
+  
     // ========================
     // Check options coherency
     // ========================
@@ -1529,16 +1541,16 @@ bool global::processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
     }
 #endif
-    if (gOneSample >= 0 && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "dlang" &&
+    if (gOneSample && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "dlang" &&
         !startWith(gOutputLang, "cmajor") && gOutputLang != "fir") {
         throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'cmajor' backends\n");
     }
 
-    if (gOneSample >= 0 && gVectorSwitch) {
-        throw faustexception("ERROR : '-os' option cannot only be used in scalar mode\n");
+    if (gOneSample && gVectorSwitch) {
+        throw faustexception("ERROR : '-os' option can only be used in scalar mode\n");
     }
-
-    if (gVectorLoopVariant < 0 || gVectorLoopVariant > 1) {
+    
+    if (gVectorLoopVariant < 0 || gVectorLoopVariant > 2) {
         stringstream error;
         error << "ERROR : invalid loop variant [-lv = " << gVectorLoopVariant << "] should be 0 or 1" << endl;
         throw faustexception(error.str());
@@ -1573,10 +1585,32 @@ bool global::processCmdline(int argc, const char* argv[])
     }
 
     // gInlinetable check
-    if (gInlineTable && gOutputLang != "cpp") {
-        throw faustexception("ERROR : -it can only be used with 'cpp' backend\n");
+    if (gInlineTable && (gOutputLang != "cpp" && gOutputLang != "c")) {
+        throw faustexception("ERROR : -it can only be used with 'cpp' and 'c' backends\n");
     }
-    if (gInlineTable && gMemoryManager) { throw faustexception("ERROR : -it cannot be used with -mem\n"); }
+    
+    // gMemoryManager check
+    if (gMemoryManager == 0 && gInlineTable) { throw faustexception("ERROR : '-it' and '-mem' cannot be used together\n"); }
+
+    if ((gMemoryManager >= 1) && !gInlineTable) {
+        throw faustexception("ERROR : -mem1/-mem2/-mem3 has to be used with -it\n");
+    }
+    
+    if ((gMemoryManager == 3) && gOutputLang != "c") {
+        throw faustexception("ERROR : -mem3 can only be used with 'c' backend\n");
+    }
+    
+    if ((gMemoryManager == 3) && !gExtControl) {
+        throw faustexception("ERROR : -mem3 has to be used with -ec\n");
+    }
+    
+    if ((gMemoryManager == 3) && gVectorSwitch && gVectorLoopVariant != 2) {
+        throw faustexception("ERROR : -mem3 and -vec has to be used with -lv 2\n");
+    }
+    
+    if ((gMemoryManager == 0 || gMemoryManager == 1) &&  (gOutputLang == "c")) {
+        throw faustexception("ERROR : -mem0/-mem1 cannot be used with 'c' backend\n");
+    }
 
     // gComputeMix check
     if (gComputeMix && gOutputLang == "ocpp") {
@@ -1609,8 +1643,8 @@ bool global::processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -nvi can only be used with 'c', 'cpp' or 'ocpp' backends\n");
     }
 
-    if (gMemoryManager && gOutputLang != "cpp" && gOutputLang != "ocpp") {
-        throw faustexception("ERROR : -mem can only be used with 'cpp' or 'ocpp' backends\n");
+    if (gMemoryManager >= 0 && gOutputLang != "cpp" && gOutputLang != "ocpp" && gOutputLang != "c") {
+        throw faustexception("ERROR : -mem can only be used with 'cpp', 'c', or 'ocpp' backends\n");
     }
 
     if (gArchFile != "" && ((gOutputLang == "wast") || (gOutputLang == "wasm") || (gOutputLang == "interp") ||
@@ -1628,7 +1662,7 @@ bool global::processCmdline(int argc, const char* argv[])
 
     // When -lang has been set
     initFaustFloat();
-
+  
     return (err == 0);
 }
 
@@ -1943,21 +1977,8 @@ string global::printHelp()
     sstr << tab << "-fp         --full-parentheses          always add parentheses around binops." << endl;
     sstr << tab << "-cir        --check-integer-range       check float to integer range conversion." << endl;
     sstr << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
-    sstr << tab << "-os         --one-sample                generate one sample computation (same as -os0)." << endl;
-    sstr << tab << "-os0        --one-sample0               generate one sample computation (0 = separated control)."
-         << endl;
-    sstr << tab
-         << "-os1        --one-sample1               generate one sample computation (1 = separated control and DSP "
-            "struct)."
-         << endl;
-    sstr << tab
-         << "-os2        --one-sample2               generate one sample computation (2 = separated control and DSP "
-            "struct. Separation in short and long delay lines)."
-         << endl;
-    sstr << tab
-         << "-os3        --one-sample3               generate one sample computation (3 = like 2 but with external "
-            "memory pointers kept in the DSP struct)."
-         << endl;
+    sstr << tab << "-os         --one-sample                generate one sample computation." << endl;
+    sstr << tab << "-ec         --external-control          separated 'control' and 'compute' functions." << endl;
     sstr << tab << "-it         --inline-table              inline rdtable/rwtable code in the main class." << endl;
     sstr << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
     sstr << tab
@@ -1994,7 +2015,17 @@ string global::printHelp()
 #endif
 #ifndef EMCC
     sstr << tab
-         << "-mem        --memory-manager            allocate static in global state using a custom memory manager."
+         << "-mem        --memory-manager            allocations done using a custom memory manager."
+         << endl;
+    sstr << tab
+         << "-mem1       --memory-manager1           allocations done using a custom memory manager,"
+            " using the iControl/fControl and iZone/fZone model."
+         << endl;
+    sstr << tab
+         << "-mem2       --memory-manager2           use iControl/fControl, iZone/fZone model and no explicit memory manager."
+         << endl;
+    sstr << tab
+         << "-mem3       --memory-manager3           use iControl/fControl, iZone/fZone model and no explicit memory manager with access as function parameters."
          << endl;
 #endif
     sstr << tab
@@ -2025,7 +2056,7 @@ string global::printHelp()
     sstr << tab << "-vs <n>     --vec-size <n>              size of the vector (default 32 samples)." << endl;
     sstr << tab
          << "-lv <n>     --loop-variant <n>          [0:fastest, fixed vector size and a remaining loop (default), "
-            "1:simple, variable vector size]."
+            "1:simple, variable vector size, 2:fixed, fixed vector size]."
          << endl;
     sstr << tab << "-omp        --openmp                    generate OpenMP pragmas, activates --vectorize option."
          << endl;
@@ -2064,7 +2095,7 @@ string global::printHelp()
          << "-vhdl-components <file> --vhdl-components <file>    path to a file describing custom components for the "
             "VHDL backend."
          << endl;
-    sstr << tab << "-fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, used in -os2/-os3 mode." << endl;
+    sstr << tab << "-fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, used in -mem1/-mem2 mode." << endl;
 
     sstr << tab << "-wi <n>     --widening-iterations <n>   number of iterations before widening in signal bounding."
          << endl;

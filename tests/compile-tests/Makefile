@@ -64,14 +64,8 @@ web:
 	$(MAKE) -f Make.lang outdir=wast lang=wast ext=wast FAUSTOPTIONS=""
 	
 os:
-	$(MAKE) -f Make.lang outdir=cppos0 lang=cpp ext=cpp FAUSTOPTIONS=" -os0 -a ./min.cpp"
-	$(MAKE) -f Make.lang outdir=cppos1 lang=cpp ext=cpp FAUSTOPTIONS=" -os1 -a ./min.cpp"
-	$(MAKE) -f Make.lang outdir=cppos2 lang=cpp ext=cpp FAUSTOPTIONS=" -os2 -a ./min.cpp"
-	$(MAKE) -f Make.lang outdir=cppos3 lang=cpp ext=cpp FAUSTOPTIONS=" -os3 -a ./min.cpp"
-	$(MAKE) -f Make.lang outdir=cos0 lang=c ext=c FAUSTOPTIONS="-lang c -os0 -a ./min.c"
-	$(MAKE) -f Make.lang outdir=cos1 lang=c ext=c FAUSTOPTIONS="-lang c -os1 -a ./min.c"
-	$(MAKE) -f Make.lang outdir=cos2 lang=c ext=c FAUSTOPTIONS="-lang c -os2 -a ./min.c"
-	$(MAKE) -f Make.lang outdir=cos3 lang=c ext=c FAUSTOPTIONS="-lang c -os3 -a ./min.c"
+	$(MAKE) -f Make.lang outdir=cppos0 lang=cpp ext=cpp FAUSTOPTIONS=" -os -a ./min.cpp"
+	$(MAKE) -f Make.lang outdir=cos0 lang=c ext=c FAUSTOPTIONS="-lang c -os -a ./min.c"
 
 c:
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -a ./min.cpp"

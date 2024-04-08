@@ -236,15 +236,6 @@ void CmajorCodeContainer::produceClass()
         tab(n + 1, *fOut);
     }
  
-    // For control computation
-    if (fIntControl->fCurIndex > 0) {
-        *fOut << "int32[" << fIntControl->fCurIndex << "] iControl;";
-        tab(n + 1, *fOut);
-    }
-    if (fRealControl->fCurIndex > 0) {
-        *fOut << fCodeProducer.getTypeManager()->fTypeDirectTable[itfloat()] << "[" << fRealControl->fCurIndex << "] fControl;";
-    }
-
     // Global declarations
     if (fGlobalDeclarationInstructions->fCode.size() > 0) {
         tab(n + 1, *fOut);
@@ -386,15 +377,16 @@ void CmajorCodeContainer::produceClass()
 
     // Control
     tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
     *fOut << "void control()";
     tab(n + 1, *fOut);
     *fOut << "{";
     tab(n + 2, *fOut);
-    // Debug code
-    //*fOut << "console << \"control\\n\";";
     fCodeProducer.Tab(n + 2);
-    // Generates local variables declaration and setup
+    // First generate values (for bargraph)
     generateComputeBlock(&fCodeProducer);
+    // Then generate iSlow/fSlow variables
+    generateControlDeclarations(&fCodeProducer);
     back(1, *fOut);
     *fOut << "}" << endl;
  

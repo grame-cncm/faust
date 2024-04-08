@@ -159,6 +159,9 @@ class CodeLoop : public virtual Garbageable {
     ValueInst* getLoopIndex() { return InstBuilder::genLoadLoopVar(fLoopIndex); }
 
     ForLoopInst* generateScalarLoop(const std::string& counter, bool loop_var_in_bytes = false);
+    
+    // For SYFALA : loop with a fixed size (known at compile time)
+    ForLoopInst* generateFixedScalarLoop();
 
     // For Rust backend
     SimpleForLoopInst* generateSimpleScalarLoop(const std::string& counter);
@@ -166,8 +169,8 @@ class CodeLoop : public virtual Garbageable {
 
     BlockInst* generateOneSample();
 
-    void generateDAGScalarLoop(BlockInst* block, LoadVarInst* count, bool omp);
-
+    void generateDAGScalarLoop(BlockInst* block, ValueInst* count, bool omp);
+    
     void transform(DispatchVisitor* visitor)
     {
         // Transform extra loops

@@ -179,7 +179,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
 };
 
 /*
- FIR visitor used with PathBuilder to prepare the path <==> shotnames map
+ FIR visitor used with PathBuilder to prepare the path <==> short names map
  */
 
 struct ShortnameInstVisitor : public DispatchVisitor, public PathBuilder {

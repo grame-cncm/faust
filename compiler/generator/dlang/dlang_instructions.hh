@@ -226,28 +226,28 @@ class DLangInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kConst) {
+        if (inst->getAccess() & Address::kConst) {
             *fOut << "const ";
         }
 
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->fAddress->isStaticStruct()) {
             *fOut << "__gshared ";
         }
 
-        if (inst->fAddress->getAccess() & Address::kVolatile) {
+        if (inst->getAccess() & Address::kVolatile) {
             *fOut << "volatile ";
         }
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_typed && array_typed->fSize > 1) {
             std::string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
             if (inst->fValue) {
-                *fOut << type << "[] " << inst->fAddress->getName() << " = ";
+                *fOut << type << "[] " << inst->getName() << " = ";
                 inst->fValue->accept(this);
             } else {
-                *fOut << type << "[" << array_typed->fSize << "] " << inst->fAddress->getName();
+                *fOut << type << "[" << array_typed->fSize << "] " << inst->getName();
             }
         } else {
-            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
             if (inst->fValue) {
                 *fOut << " = ";
                 inst->fValue->accept(this);

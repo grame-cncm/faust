@@ -39,7 +39,7 @@ dsp_factory_base* DLangCodeContainer::produceFactory()
 
 CodeContainer* DLangCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return (gGlobal->gOneSample >= 0)
+    return (gGlobal->gOneSample)
         ? new DLangScalarOneSampleCodeContainer(name, "", 0, 1, fOut, sub_container_type)
         : new DLangScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
@@ -66,7 +66,7 @@ CodeContainer* DLangCodeContainer::createContainer(const string& name, const str
     } else if (gGlobal->gVectorSwitch) {
         container = new DLangVectorCodeContainer(name, super, numInputs, numOutputs, dst);
     } else {
-        container = (gGlobal->gOneSample >= 0)
+        container = (gGlobal->gOneSample)
             ? new DLangScalarOneSampleCodeContainer(name, super, numInputs, numOutputs, dst, kInt)
             : new DLangScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }
@@ -481,8 +481,8 @@ void DLangScalarOneSampleCodeContainer::produceClass()
 
     *fOut << "enum FAUST_INPUTS = " << fNumInputs << ";" << endl;
     *fOut << "enum FAUST_OUTPUTS = " << fNumOutputs << ";" << endl;
-    *fOut << "enum FAUST_INT_CONTROLS = " << fIntControl->fCurIndex << ";" << endl;
-    *fOut << "enum FAUST_REAL_CONTROLS = " << fRealControl->fCurIndex << ";" << endl;
+    *fOut << "enum FAUST_INT_CONTROLS = " << fIntControl->getSize() << ";" << endl;
+    *fOut << "enum FAUST_REAL_CONTROLS = " << fRealControl->getSize() << ";" << endl;
     fSuperKlassName = "one_sample_dsp";
 
     tab(n, *fOut);
@@ -622,9 +622,9 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     *fOut << "}" << endl;
 
     tab(n + 1, *fOut);
-    *fOut << "int getNumIntControls() nothrow @nogc { return " << fIntControl->fCurIndex << "; }";
+    *fOut << "int getNumIntControls() nothrow @nogc { return " << fIntControl->getSize() << "; }";
     tab(n + 1, *fOut);
-    *fOut << "int getNumRealControls() nothrow @nogc { return " << fRealControl->fCurIndex << "; }";
+    *fOut << "int getNumRealControls() nothrow @nogc { return " << fRealControl->getSize() << "; }";
 
     // Compute
     generateCompute(n);

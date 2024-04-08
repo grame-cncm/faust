@@ -54,12 +54,12 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
         if (array_type) {
             tab(fTab, *fOut);
             if (inst->fValue) {
-                fCurArray = inst->fAddress->getName();
+                fCurArray = inst->getName();
                 *fOut << fCurArray << " = MEMORY.alloc_memory(" << array_type->fSize << ");";
                 inst->fValue->accept(this);
             } else {
                 if (inst->fAddress->isStruct()) {
-                    ZeroInitializer(fOut, inst->fType, inst->fAddress->getName());    
+                    ZeroInitializer(fOut, inst->fType, inst->getName());    
                 } else {
                     inst->fAddress->accept(this);
                     *fOut << " = ";
@@ -72,11 +72,11 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     
     virtual void visit(NamedAddress* named)
     {
-        if (named->getAccess() & Address::kStruct) {
+        if (named->isStruct()) {
             *fOut << "obj[dsp.";
         }
         *fOut << named->fName;
-        if (named->getAccess() & Address::kStruct) {
+        if (named->isStruct()) {
             *fOut << "]";
         }
     }
@@ -881,19 +881,19 @@ class JSFXInstVisitor : public TextInstVisitor {
    
     virtual void visit(DeclareVarInst* inst)
     {
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
         if (strfind(name, "output") || strfind(name, "input")) {
             return;
         }
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+        if (inst->fAddress->isStaticStruct()) {
+            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
         } else {
             bool is_block = startWith(name, "iSlow") || startWith(name, "fSlow");
-            if (inst->fAddress->getAccess() & Address::kStack && is_block) {
+            if (inst->getAccess() & Address::kStack && is_block) {
                 *fOut << "obj[dsp.";
             }
-            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
-            if (inst->fAddress->getAccess() & Address::kStack && is_block) {
+            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
+            if (inst->getAccess() & Address::kStack && is_block) {
                 *fOut << "]";
             }
             if (inst->fValue) {

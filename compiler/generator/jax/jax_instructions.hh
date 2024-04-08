@@ -52,11 +52,11 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
     virtual void visit(NamedAddress* named)
     {
         // kStaticStruct are actually merged in the main DSP
-        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+        if (named->isStruct() || named->isStaticStruct()) {
             *fOut << "state[\"";
         }
         *fOut << named->fName;
-        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+        if (named->isStruct() || named->isStaticStruct()) {
             *fOut << "\"]";
         }
     }
@@ -489,11 +489,11 @@ class JAXInstVisitor : public TextInstVisitor {
    
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+        if (inst->fAddress->isStaticStruct()) {
+            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
             // Allocation is actually done in JAXInitFieldsVisitor
         } else {
-            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
             if (inst->fValue) {
                 *fOut << " = ";
                 inst->fValue->accept(this);
@@ -572,11 +572,11 @@ class JAXInstVisitor : public TextInstVisitor {
     virtual void visit(NamedAddress* named)
     {
         // kStaticStruct are actually merged in the main DSP
-        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+        if (named->isStruct() || named->isStaticStruct()) {
             *fOut << "state[\"";
         }
         *fOut << named->fName;
-        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+        if (named->isStruct() || named->isStaticStruct()) {
             *fOut << "\"]";
         }
     }

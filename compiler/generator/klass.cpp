@@ -844,7 +844,7 @@ void Klass::println(int n, ostream& fout)
     tab(n, fout);
     fout << "  public:";
 
-    if (gGlobal->gMemoryManager) {
+    if (gGlobal->gMemoryManager >= 0) {
         tab(n + 1, fout);
         fout << "static dsp_memory_manager* fManager;" << endl;
     }
@@ -875,7 +875,7 @@ void Klass::println(int n, ostream& fout)
     tab(n + 1, fout);
     fout << "}";
 
-    if (gGlobal->gMemoryManager) {
+    if (gGlobal->gMemoryManager >= 0) {
         tab(n + 1, fout);
         fout << "static void classDestroy() {";
         printlines(n + 2, fStaticDestroyCode, fout);
@@ -903,7 +903,7 @@ void Klass::println(int n, ostream& fout)
     tab(n + 1, fout);
     fout << "}";
 
-    if (gGlobal->gMemoryManager) {
+    if (gGlobal->gMemoryManager >= 0) {
         tab(n + 1, fout);
         fout << "virtual void init(int sample_rate) {}";
     } else {
@@ -955,7 +955,7 @@ void Klass::println(int n, ostream& fout)
 
     printlines(n, fStaticFields, fout);
 
-    if (gGlobal->gMemoryManager) {
+    if (gGlobal->gMemoryManager >= 0) {
         tab(n, fout);
         fout << "dsp_memory_manager* " << fKlassName << "::fManager = 0;" << endl;
     }
@@ -1019,30 +1019,6 @@ void Klass::printComputeMethod(int n, ostream& fout)
     } else {
         printComputeMethodScalarBlock(n, fout);
     }
-}
-
-void Klass::printComputeMethodScalar(int n, ostream& fout)
-{
-    tab(n + 1, fout);
-    fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
-    tab(n + 2, fout);
-    fout << "//zone1";
-    printlines(n + 2, fZone1Code, fout);
-    tab(n + 2, fout);
-    fout << "//zone2";
-    printlines(n + 2, fZone2Code, fout);
-    tab(n + 2, fout);
-    fout << "//zone2b";
-    printlines(n + 2, fZone2bCode, fout);
-    tab(n + 2, fout);
-    fout << "//zone3";
-    printlines(n + 2, fZone3Code, fout);
-    tab(n + 2, fout);
-    fout << "//LoopGraphScalar";
-    printLoopGraphScalar(n + 2, fout);
-    printlines(n + 2, fZone4Code, fout);
-    tab(n + 1, fout);
-    fout << "}";
 }
 
 void Klass::printComputeMethodScalarBlock(int n, ostream& fout)

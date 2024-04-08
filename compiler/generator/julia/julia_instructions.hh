@@ -52,7 +52,7 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
     virtual void visit(NamedAddress* named)
     {
         // kStaticStruct are actually merged in the main DSP
-        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+        if (named->isStruct() || named->isStaticStruct()) {
             *fOut << "dsp.";
         }
         *fOut << named->fName;
@@ -465,11 +465,11 @@ class JuliaInstVisitor : public TextInstVisitor {
    
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+        if (inst->fAddress->isStaticStruct()) {
+            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
             // Allocation is actually done in JuliaInitFieldsVisitor
         } else {
-            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
             if (inst->fValue) {
                 *fOut << " = ";
                 inst->fValue->accept(this);
@@ -543,7 +543,7 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void visit(NamedAddress* named)
     {
         // kStaticStruct are actually merged in the main DSP
-        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+        if (named->isStruct() || named->isStaticStruct()) {
             *fOut << "dsp.";
         }
         *fOut << named->fName;

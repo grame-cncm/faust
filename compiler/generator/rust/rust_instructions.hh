@@ -45,9 +45,9 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         tab(fTab, *fOut);
-        *fOut << inst->fAddress->getName() << ": ";
+        *fOut << inst->getName() << ": ";
         ZeroInitializer(fOut, inst->fType);
-        if (inst->fAddress->getAccess() & Address::kStruct) *fOut << ",";
+        if (inst->fAddress->isStruct()) *fOut << ",";
     }
 
     // Generate zero initialisation code for simple int/real scalar and arrays types
@@ -190,9 +190,9 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->fAddress->isStaticStruct()) {
             *fOut << "static mut ";
-        } else if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
+        } else if (inst->getAccess() & Address::kStack || inst->getAccess() & Address::kLoop) {
             *fOut << "let mut ";
         } else if (inst->getAccess() & Address::kConst) {
             *fOut << "const ";
@@ -200,15 +200,15 @@ class RustInstVisitor : public TextInstVisitor {
 
         // If type is kNoType, only generate the name, otherwise a typed expression
         if (inst->fType->getType() == Typed::kNoType) {
-            *fOut << inst->fAddress->getName();
+            *fOut << inst->getName();
         } else {
-            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
         }
 
         if (inst->fValue) {
             *fOut << " = ";
             inst->fValue->accept(this);
-        } else if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        } else if (inst->fAddress->isStaticStruct()) {
             *fOut << " = ";
             RustInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
         } else if (inst->getAccess() == Address::kStack && dynamic_cast<ArrayTyped*>(inst->fType)) {
@@ -217,7 +217,7 @@ class RustInstVisitor : public TextInstVisitor {
             RustInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
         }
 
-        EndLine((inst->fAddress->getAccess() & Address::kStruct) ? ',' : ';');
+        EndLine((inst->fAddress->isStruct()) ? ',' : ';');
     }
 
     virtual void visit(DeclareBufferIterators* inst)
@@ -348,13 +348,13 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(NamedAddress* named)
     {
-        if (named->getAccess() & Address::kStruct) {
+        if (named->isStruct()) {
             if (named->getAccess() & Address::kReference && named->getAccess() & Address::kMutable) {
                 *fOut << "&mut self.";
             } else {
                 *fOut << "self.";
             }
-        } else if (named->getAccess() & Address::kStaticStruct) {
+        } else if (named->isStaticStruct()) {
             if (named->getAccess() & Address::kReference && named->getAccess() & Address::kMutable) {
                 *fOut << "&mut ";
             }
@@ -365,7 +365,7 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(IndexedAddress* indexed)
     {
         indexed->fAddress->accept(this);
-        if (dynamic_cast<Int32NumInst*>(indexed->getIndex())) {
+        if (isInt32Num(indexed->getIndex())) {
             *fOut << "[";
             indexed->getIndex()->accept(this);
             *fOut << "]";
@@ -381,11 +381,11 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(LoadVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->fAddress->isStaticStruct()) {
             *fOut << "unsafe { ";
         }
         inst->fAddress->accept(this);
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->fAddress->isStaticStruct()) {
             *fOut << " }";
         }
     }

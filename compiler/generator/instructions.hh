@@ -112,6 +112,7 @@ struct StatementInst;
 
 // Declarations
 struct DeclareVarInst;
+struct NullDeclareVarInst;
 struct DeclareBufferIterators;
 struct DeclareFunInst;
 struct DeclareStructTypeInst;
@@ -281,6 +282,7 @@ struct InstVisitor : public virtual Garbageable {
 
     // Declarations
     virtual void visit(DeclareVarInst* inst) {}
+    virtual void visit(NullDeclareVarInst* inst) {}
     virtual void visit(DeclareFunInst* inst) {}
     virtual void visit(DeclareStructTypeInst* inst) {}
     virtual void visit(DeclareBufferIterators* inst) {}
@@ -360,6 +362,7 @@ struct CloneVisitor : public virtual Garbageable {
 
     // Declarations
     virtual StatementInst* visit(DeclareVarInst* inst)        = 0;
+    virtual StatementInst* visit(NullDeclareVarInst* inst)    = 0;
     virtual StatementInst* visit(DeclareFunInst* inst)        = 0;
     virtual StatementInst* visit(DeclareStructTypeInst* inst) = 0;
     virtual StatementInst* visit(DeclareBufferIterators* inst) = 0;
@@ -761,7 +764,6 @@ struct IndexedAddress : public Address {
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 };
 
-
 // ===============
 // User interface
 // ===============
@@ -914,6 +916,13 @@ struct BlockInst : public StatementInst {
         }
     }
     
+    void mergeFront(BlockInst* inst)
+    {
+        for (const auto& it : inst->fCode) {
+            fCode.push_front(it);
+        }
+    }
+    
     int size() const { return int(fCode.size()); }
     
     bool hasReturn() const;
@@ -931,6 +940,9 @@ struct DeclareVarInst : public StatementInst {
 
     static void cleanup();
 
+    DeclareVarInst():fAddress(nullptr),fType(nullptr),fValue(nullptr)
+    {}
+    
     DeclareVarInst(Address* address, Typed* typed, ValueInst* value);
 
     virtual ~DeclareVarInst() {}
@@ -947,6 +959,17 @@ struct DeclareVarInst : public StatementInst {
 
     struct StoreVarInst* store(ValueInst* val);
     struct LoadVarInst*  load();
+};
+
+struct NullDeclareVarInst : public DeclareVarInst {
+
+    NullDeclareVarInst():DeclareVarInst()
+    {}
+    
+    // Empty
+    void accept(InstVisitor* visitor) {}
+    
+    StatementInst* clone(CloneVisitor* cloner) { return new NullStatementInst(); }
 };
 
 struct DeclareBufferIterators : public StatementInst {
@@ -1007,6 +1030,9 @@ struct LoadVarInst : public ValueInst {
 
     void   setName(const std::string& name) { fAddress->setName(name); }
     std::string getName() const { return fAddress->getName(); }
+    
+    void                setAccess(Address::AccessType access) { fAddress->setAccess(access); }
+    Address::AccessType getAccess() const  { return fAddress->getAccess(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1025,6 +1051,9 @@ struct LoadVarAddressInst : public ValueInst {
     void   setName(const std::string& name) { fAddress->setName(name); }
     std::string getName() const { return fAddress->getName(); }
 
+    void                setAccess(Address::AccessType access) { fAddress->setAccess(access); }
+    Address::AccessType getAccess() const  { return fAddress->getAccess(); }
+    
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -1044,6 +1073,9 @@ struct TeeVarInst : public ValueInst {
     void   setName(const std::string& name) { fAddress->setName(name); }
     std::string getName() const { return fAddress->getName(); }
 
+    void                setAccess(Address::AccessType access) { fAddress->setAccess(access); }
+    Address::AccessType getAccess() const  { return fAddress->getAccess(); }
+    
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -1060,6 +1092,9 @@ struct StoreVarInst : public StatementInst {
     void   setName(const std::string& name) { fAddress->setName(name); }
     std::string getName() const { return fAddress->getName(); }
 
+    void                setAccess(Address::AccessType access) { fAddress->setAccess(access); }
+    Address::AccessType getAccess() const  { return fAddress->getAccess(); }
+    
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -1536,6 +1571,10 @@ class BasicCloneVisitor : public CloneVisitor {
         Typed* cloned_type = inst->fType->clone(this);
         return new DeclareVarInst(cloned_address, cloned_type, ((inst->fValue) ? inst->fValue->clone(this) : nullptr));
     }
+    virtual StatementInst* visit(NullDeclareVarInst* inst)
+    {
+        return new NullStatementInst();
+    }
     virtual StatementInst* visit(DeclareFunInst* inst)
     {
         // To be sure args are evaluated in order
@@ -1809,6 +1848,9 @@ struct DispatchVisitor : public InstVisitor {
             inst->fValue->accept(this);
         }
     }
+    
+    virtual void visit(NullDeclareVarInst* inst)
+    {}
 
     virtual void visit(DeclareFunInst* inst)
     {
@@ -2082,6 +2124,9 @@ class CombinerVisitor : public DispatchVisitor {
 #define castQuad(e) dynamic_cast<QuadNumInst*>(e)
 
 struct InstBuilder {
+    
+    typedef std::vector<ValueInst*>::const_iterator Iterator;
+    
     // User interface
     static AddMetaDeclareInst* genAddMetaDeclareInst(const std::string& zone, const std::string& key, const std::string& value)
     {
@@ -2141,6 +2186,7 @@ struct InstBuilder {
     // Null instruction
     static NullValueInst*     genNullValueInst() { return new NullValueInst(); }
     static NullStatementInst* genNullStatementInst() { return new NullStatementInst(); }
+    static NullDeclareVarInst* genNullDeclareVarInst() { return new NullDeclareVarInst(); }
 
     // Declarations
     static DeclareVarInst* genDeclareVarInst(Address* address, Typed* typed, ValueInst* value = nullptr)
@@ -2340,10 +2386,17 @@ struct InstBuilder {
         return new FunTyped(args, result, attribute);
     }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
+    
     static ArrayTyped* genArrayTyped(Typed* type, int size)
     {
         return new ArrayTyped(type, size);
     }
+    
+    static ArrayTyped* genArrayTyped(Typed::VarType ctype, int size)
+    {
+        return genArrayTyped(genBasicTyped(ctype), size);
+    }
+    
     static StructTyped* genStructTyped(const std::string& name, const std::vector<NamedTyped*>& fields)
     {
         return new StructTyped(name, fields);
@@ -2416,11 +2469,26 @@ struct InstBuilder {
     {
         return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, access), index), exp);
     }
+    
+    
+    static LoadVarInst* genLoadArrayVar(const std::string& vname, Address::AccessType access, Iterator begin, Iterator end)
+    {
+        Address* address = genNamedAddress(vname, access);
+        std::vector<ValueInst*> indices;
+        for (Iterator it = begin; it != end; ++it) {
+            indices.push_back(*it);
+        }
+        address = genIndexedAddress(address, indices);
+        return genLoadVarInst(address);
+    }
 
     // Struct variable
-    static DeclareVarInst* genDecStructVar(const std::string& vname, Typed* type, ValueInst* exp = nullptr)
+                      
+    static DeclareVarInst* genDecStructVar(const std::string& vname, Typed* type, ValueInst* exp = nullptr);
+    
+    static DeclareVarInst* genDecStructVar(const std::string& vname, Typed::VarType type, ValueInst* exp = nullptr)
     {
-        return genDeclareVarInst(genNamedAddress(vname, Address::kStruct), type, exp);
+        return genDecStructVar(vname, genBasicTyped(type), exp);
     }
 
     static DeclareVarInst* genDecVolatileStructVar(const std::string& vname, Typed* type, ValueInst* exp = nullptr)
@@ -2449,26 +2517,14 @@ struct InstBuilder {
     {
         return genLoadVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)));
     }
-    
-    template <typename Iterator>
-    static LoadVarInst* genLoadArrayVar(const std::string& vname, Address::AccessType access, Iterator begin, Iterator end)
-    {
-        Address* address = genNamedAddress(vname, access);
-        std::vector<ValueInst*> indices;
-        for (Iterator it = begin; it != end; ++it) {
-            indices.push_back(*it);
-        }
-        address = genIndexedAddress(address, indices);
-    
-        return genLoadVarInst(address);
-    }
-
-    template <typename Iterator>
-    static LoadVarInst* genLoadArrayStructVar(const std::string& vname, Iterator indexBegin, Iterator indexEnd)
+   
+    static LoadVarInst* genLoadArrayStructVar(const std::string& vname,
+                                                    Iterator indexBegin,
+                                                    Iterator indexEnd)
     {
         return genLoadArrayVar(vname, Address::kStruct, indexBegin, indexEnd);
     }
-
+  
     static LoadVarInst* genLoadArrayStructVar(const std::string& vname, ValueInst* index)
     {
         std::vector<ValueInst*> indices = { index };
@@ -2501,8 +2557,6 @@ struct InstBuilder {
                                exp);
     }
 
-    
-    template <typename Iterator>
     static StoreVarInst* genStoreArrayVar(const std::string& vname,
                                           ValueInst* exp,
                                           Address::AccessType access,
@@ -2519,7 +2573,6 @@ struct InstBuilder {
         return genStoreVarInst(address, exp);
     }
 
-    template <typename Iterator>
     static StoreVarInst* genStoreArrayStructVar(const std::string& vname,
                                                 ValueInst* exp,
                                                 Iterator indexBegin,
@@ -2527,7 +2580,7 @@ struct InstBuilder {
     {
         return genStoreArrayVar(vname, exp, Address::kStruct, indexBegin, indexEnd);
     }
-
+  
     static StoreVarInst* genStoreArrayStructVar(const std::string& vname, ValueInst* index, ValueInst* exp)
     {
         std::vector<ValueInst*> indices = {index};
@@ -2540,10 +2593,12 @@ struct InstBuilder {
     }
 
     // Static struct variable
-    static DeclareVarInst* genDecStaticStructVar(const std::string& vname, Typed* type, ValueInst* exp = nullptr)
+    static DeclareVarInst* genDecStaticStructVar(const std::string& vname, Typed* type, ValueInst* exp = nullptr);
+    /*
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStaticStruct), type, exp);
     }
+    */
 
     static DeclareVarInst* genDecConstStaticStructVar(const std::string& vname, Typed* type, ValueInst* exp = nullptr)
     {
@@ -2567,7 +2622,6 @@ struct InstBuilder {
         return genStoreVarInst(genNamedAddress(vname, Address::kStaticStruct), exp);
     }
 
-    template <typename Iterator>
     static LoadVarInst* genLoadArrayStaticStructVar(const std::string& vname, Iterator indexBegin, Iterator indexEnd)
     {
         return genLoadArrayVar(vname, Address::kStaticStruct, indexBegin, indexEnd);
@@ -2579,7 +2633,6 @@ struct InstBuilder {
         return genLoadArrayStaticStructVar(vname, indices.begin(), indices.end());
     }
 
-    template <typename Iterator>
     static StoreVarInst* genStoreArrayStaticStructVar(const std::string& vname, ValueInst* exp, Iterator indexBegin,
                                                       Iterator indexEnd)
     {
@@ -2596,6 +2649,11 @@ struct InstBuilder {
     static DeclareVarInst* genDecStackVar(const std::string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStack), type, exp);
+    }
+    
+    static DeclareVarInst* genDecStackVar(const std::string& vname, Typed::VarType type, ValueInst* exp = nullptr)
+    {
+        return genDecStackVar(vname, genBasicTyped(type), exp);
     }
 
     static DeclareVarInst* genDecArrayStackVar(const std::string& vname, Typed* type, int size)
@@ -2631,6 +2689,22 @@ struct InstBuilder {
     static StoreVarInst* genStoreArrayStackVar(const std::string& vname, ValueInst* index, ValueInst* exp)
     {
         return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStack), index), exp);
+    }
+    
+    // Generic versions
+    static DeclareVarInst* genDecVar(const std::string& vname, Typed* type, Address::AccessType access, ValueInst* exp = nullptr)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, access), type, exp);
+    }
+    
+    static LoadVarInst* genLoadVar(const std::string& vname, Address::AccessType access)
+    {
+       return genLoadVarInst(genNamedAddress(vname, access));
+    }
+    
+    static StoreVarInst* genStoreVar(const std::string& vname, Address::AccessType access, ValueInst* exp)
+    {
+        return genStoreVarInst(genNamedAddress(vname, access), exp);
     }
 
     // Loop variable
@@ -2924,6 +2998,218 @@ class FIRIndex {
 };
 
 Typed::VarType convert2FIRType(int type);
+
+/*
+ * Helper class for iControl/fControl management in -ec mode:
+ *
+ * - 'store' is used to store a value at the current index
+ * - 'load' is used to load the value at the current index, then increment the index for the next store
+ * - fCurIndex is the array size when allocation is finished
+ */
+struct ControlArray : public virtual Garbageable {
+    
+    const std::string fName;
+    Address::AccessType fAccess;
+    int fCurIndex = 0;
+    
+    // The array name and access type
+    ControlArray(const std::string& name, Address::AccessType access)
+    :fName(name), fAccess(access)
+    {}
+        
+    StoreVarInst* store(ValueInst* exp)
+    {
+        return InstBuilder::genStoreArrayVar(fName, fAccess, FIRIndex(fCurIndex), exp);
+    }
+    
+    ValueInst* load()
+    {
+        return InstBuilder::genLoadArrayVar(fName, fAccess, FIRIndex(fCurIndex++));
+    }
+    
+    int getSize() { return fCurIndex; }
+};
+
+/*
+ * Helper class for iZone/fZone management in -mem1/2 mode:
+ *
+ * - 'declare' is used to extend the Zone with a new array
+ * - fCurIndex is the array size when allocation is finished
+ * - getCode is used to rewrite array access in iZone/fZone
+ * - declareConstant/getLoadConstantCode/getStoreConstantCode is used to generate instanceConstantsFromMem/instanceConstantsToMem functions
+ */
+
+Typed::VarType itfloat();
+
+struct ZoneArray : public virtual Garbageable {
+    
+    std::string fName;
+    Address::AccessType fAccess;
+    Typed::VarType fType;
+    int fCurIndex = 0;
+    int fDLThreshold = 0;
+    
+    // Associate a variable (scalar or array) with the correspondinf index in iZone/fZone
+    std::map<std::string, int> fMap;
+    
+    // Shared between iZone and fZone
+    static int gInternalMemorySize;
+    
+    static Typed::VarType getConstType(const std::string& name)
+    {
+        if (isConst(name) && startWith(name, "i")) return Typed::kInt32;
+        if (isConst(name) && startWith(name, "f")) return itfloat();
+        return Typed::kNoType;
+    }
+    
+    ZoneArray(const std::string& name, Address::AccessType access, Typed::VarType type, int dl_threshold = 0)
+    :fName(name),fAccess(access),fType(type),fDLThreshold(dl_threshold)
+    {}
+    
+    // Static arrays are always allocated externally
+    DeclareVarInst* declare(const std::string& vname, Typed* type, ValueInst* exp, bool is_static = false)
+    {
+        if (fMap.count(vname) == 0) {
+            int size = dynamic_cast<ArrayTyped*>(type)->fSize;
+            if (size <= fDLThreshold && size <= gInternalMemorySize && !is_static) {
+                gInternalMemorySize -= size;
+                return InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), type, exp);
+            } else {
+                fMap[vname] = fCurIndex;
+                fCurIndex += size;
+                return InstBuilder::genNullDeclareVarInst();
+            }
+        } else {
+            faustassert(false);
+            return nullptr;
+        }
+    }
+    
+    // Rewrite the arg block by using indexes in the fName array
+    BlockInst* getCode(BlockInst* statement)
+    {
+        struct CodeBuilder : public BasicCloneVisitor {
+            
+            ZoneArray* fArray;
+       
+            CodeBuilder(ZoneArray* array):fArray(array)
+            {}
+            
+            Address* visit(IndexedAddress* indexed)
+            {
+                std::string name = indexed->getName();
+                if (fArray->fMap.count(name) > 0) {
+                    return InstBuilder::genIndexedAddress(fArray->fName,
+                                                          fArray->fAccess,
+                                                          FIRIndex(fArray->fMap[name]) + indexed->getIndex()->clone(this));
+                } else {
+                    return BasicCloneVisitor::visit(indexed);
+                }
+            }
+        };
+    
+        CodeBuilder builder(this);
+        return static_cast< BlockInst*>(statement->clone(&builder));
+    }
+
+    // Add iConst/fConst variables in iZone/fZone (respectively)
+    void declareConstant(BlockInst* block)
+    {
+        struct DeclareVisitor : public DispatchVisitor {
+            
+            ZoneArray* fArray;
+            
+            DeclareVisitor(ZoneArray* array):fArray(array)
+            {}
+            
+            void visit(StoreVarInst* inst)
+            {
+                std::string name = inst->getName();
+                bool is_struct = inst->fAddress->isStruct();
+                if (ZoneArray::getConstType(name) == fArray->fType && is_struct) {
+                    fArray->fMap[name] = fArray->fCurIndex++;
+                }
+                    
+                DispatchVisitor::visit(inst);
+            }
+        };
+        
+        DeclareVisitor declare_visitor(this);
+        block->accept(&declare_visitor);
+    }
+    
+    // Base class for iConst/fConst variables load/store rewrite
+    struct ConstantsCopyMemory : public BasicCloneVisitor {
+        
+        // Removed instructions
+        StatementInst* visit(DeclareVarInst* inst)
+        {
+            return InstBuilder::genDropInst();
+        }
+        
+        StatementInst* visit(ForLoopInst* inst)
+        {
+            return InstBuilder::genDropInst();
+        }
+    };
+     
+    // Rewrite iConst/fConst variables load using iZone/fZone (respectively)
+    BlockInst* getLoadConstantCode(BlockInst* statement)
+    {
+        struct CodeBuilder : public ConstantsCopyMemory {
+            
+            ZoneArray* fArray;
+            
+            CodeBuilder(ZoneArray* array):fArray(array)
+            {}
+              
+            StatementInst* visit(StoreVarInst* inst)
+            {
+                std::string name = inst->getName();
+                if (inst->fAddress->isStruct() && fArray->fMap.count(name) > 0) {
+                    ValueInst* zone = InstBuilder::genLoadArrayVar(fArray->fName, fArray->fAccess,  FIRIndex(fArray->fMap[name]));
+                    return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
+                } else {
+                    return BasicCloneVisitor::visit(inst);
+                }
+            }
+        };
+    
+        CodeBuilder builder(this);
+        return static_cast< BlockInst*>(statement->clone(&builder));
+    }
+    
+    // Rewrite iConst/fConst variables store using iZone/fZone (respectively)
+    BlockInst* getStoreConstantCode(BlockInst* statement)
+    {
+        struct CodeBuilder : public ConstantsCopyMemory {
+            
+            ZoneArray* fArray;
+            
+            CodeBuilder(ZoneArray* array):fArray(array)
+            {}
+            
+            StatementInst* visit(StoreVarInst* inst)
+            {
+                std::string name = inst->getName();
+                if (inst->fAddress->isStruct() && fArray->fMap.count(name) > 0) {
+                    return InstBuilder::genStoreArrayVar(fArray->fName,  fArray->fAccess, FIRIndex(fArray->fMap[name]), InstBuilder::genLoadStructVar(name));
+                } else {
+                    return BasicCloneVisitor::visit(inst);
+                }
+            }
+        };
+    
+        CodeBuilder builder(this);
+        return static_cast< BlockInst*>(statement->clone(&builder));
+    }
+
+    int getSize() { return fCurIndex; }
+};
+
+inline bool isInt32Num(ValueInst* inst) { return dynamic_cast<Int32NumInst*>(inst); }
+inline bool isFloatNum(ValueInst* inst) { return dynamic_cast<FloatNumInst*>(inst); }
+inline bool isDoubleNum(ValueInst* inst) { return dynamic_cast<DoubleNumInst*>(inst); }
 
 #endif
 

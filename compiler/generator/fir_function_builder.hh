@@ -163,11 +163,11 @@ struct Loop2FunctionBuider : public DispatchVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         DispatchVisitor::visit(inst);
-        Address::AccessType access = inst->fAddress->getAccess();
+        Address::AccessType access = inst->getAccess();
 
         if (access == Address::kStack || access == Address::kLoop) {
             // Keep local variables in the loop
-            fLocalVarTable[inst->fAddress->getName()] = access;
+            fLocalVarTable[inst->getName()] = access;
         }
     }
 
@@ -320,7 +320,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         ValueInst*    val1   = inst->fValue->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
         Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
-        std::string  name   = inst->fAddress->getName();
+        std::string  name   = inst->getName();
 
         if (float1) {
             // float1->dump();
@@ -339,7 +339,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     virtual ValueInst* visit(LoadVarInst* inst)
     {
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
         if (fValueTable.find(name) != fValueTable.end()) {
             return fValueTable[name];
         } else {
@@ -353,7 +353,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         ValueInst*    val1   = inst->fValue->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
         Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
-        std::string  name   = inst->fAddress->getName();
+        std::string  name   = inst->getName();
 
         if (float1) {
             // float1->dump();

@@ -230,7 +230,7 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+        if (inst->fAddress->isStaticStruct()) {
             *fOut << "static ";
         }
 
@@ -238,14 +238,14 @@ class JAVAInstVisitor : public TextInstVisitor {
         if (array_typed && array_typed->fSize > 1) {
             std::string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
             if (inst->fValue) {
-                *fOut << type << " " << inst->fAddress->getName() << "[] = ";
+                *fOut << type << " " << inst->getName() << "[] = ";
                 inst->fValue->accept(this);
             } else {
-                *fOut << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize
+                *fOut << type << " " << inst->getName() << "[] = new " << type << "[" << array_typed->fSize
                       << "]";
             }
         } else {
-            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
             if (inst->fValue) {
                 *fOut << " = ";
                 inst->fValue->accept(this);

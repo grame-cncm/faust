@@ -64,36 +64,6 @@ struct SearchSubcontainer : public DispatchVisitor {
     }
 };
 
-/*
- * Helper class for iControl/fControl management in -os mode:
- *
- * - 'store' is used to store a value at the current index
- * - 'load' is used to load the value at the current index, then increment the index for the next store
- * - fCurIndex is the array size when allocation is finished
- */
-struct ArrayVar : public virtual Garbageable {
-    
-    const std::string fName;
-    Address::AccessType fAccess;
-    int fCurIndex = 0;
-    
-    // The array name and access type
-    ArrayVar(const std::string& name, Address::AccessType access)
-    :fName(name), fAccess(access)
-    {}
-    
-    StatementInst* store(ValueInst* exp)
-    {
-        return InstBuilder::genStoreArrayVar(fName, fAccess, FIRIndex(fCurIndex), exp);
-    }
-    
-    ValueInst* load()
-    {
-        return InstBuilder::genLoadArrayVar(fName, fAccess, FIRIndex(fCurIndex++));
-    }
-    
-};
-
 // DSP or field name, type, size, size-in-bytes, reads, writes
 typedef std::tuple<std::string, std::string, int, int, int, int> MemoryLayoutItem;
 typedef std::vector<MemoryLayoutItem> MemoryLayoutType;
@@ -113,20 +83,26 @@ class CodeContainer : public virtual Garbageable {
     bool fGeneratedSR;
 
     MemoryLayoutType fMemoryLayout;
-
     std::string fKlassName;
 
     // Declaration part
     BlockInst* fExtGlobalDeclarationInstructions;
     BlockInst* fGlobalDeclarationInstructions;
+    
+    // For DSP Struct
     BlockInst* fDeclarationInstructions;
+    
+    // For control() function
+    BlockInst* fControlDeclarationInstructions;
 
     // Init method
     BlockInst* fInitInstructions;
+    BlockInst* fConstantFromMem;
+    BlockInst* fConstantToMem;
     BlockInst* fResetUserInterfaceInstructions;
     BlockInst* fClearInstructions;
     BlockInst* fPostInitInstructions;
-
+   
     // To be used in allocate method (or constructor)
     BlockInst* fAllocateInstructions;
 
@@ -181,9 +157,9 @@ class CodeContainer : public virtual Garbageable {
         merge(S, fLibrarySet);
     }
 
-    void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, LoadVarInst* count, int loop_num,
+    void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, ValueInst* count, int loop_num,
                             bool omp = false);
-    void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, LoadVarInst* count, bool omp);
+    void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, ValueInst* count, bool omp);
 
     void includeFastMath()
     {
@@ -253,6 +229,9 @@ class CodeContainer : public virtual Garbageable {
         }
         return args;
     }
+    
+    void createMemoryLayout();
+    void rewriteInZones();
     
    public:
     CodeContainer();
@@ -364,7 +343,7 @@ class CodeContainer : public virtual Garbageable {
     void produceInfoFunctions(int tabs, const std::string& classname, const std::string& obj, bool ismethod, FunTyped::FunAttribute funtype,
                               TextInstVisitor* producer, const std::string& in_fun = "getNumInputs", const std::string& out_fun = "getNumOutputs");
 
-    void generateDAGLoop(BlockInst* loop_code, LoadVarInst* count);
+    void generateDAGLoop(BlockInst* loop_code, ValueInst* count);
     
     template <typename REAL>
     void generateMetaData(JSONUIReal<REAL>* json)
@@ -475,6 +454,13 @@ class CodeContainer : public virtual Garbageable {
         fExtGlobalDeclarationInstructions->pushBackInst(inst);
         return inst;
     }
+    
+    StatementInst* pushControlDeclare(StatementInst* inst)
+    {
+        faustassert(inst);
+        fControlDeclarationInstructions->pushBackInst(inst);
+        return inst;
+    }
 
     ValueInst* pushFunction(const std::string& name, Typed::VarType result, std::vector<Typed::VarType>& types,
                             const Values& args);
@@ -497,6 +483,13 @@ class CodeContainer : public virtual Garbageable {
     {
         if (fDeclarationInstructions->fCode.size() > 0) {
             fDeclarationInstructions->accept(visitor);
+        }
+    }
+    
+    void generateControlDeclarations(InstVisitor* visitor)
+    {
+        if (fControlDeclarationInstructions->fCode.size() > 0) {
+            fControlDeclarationInstructions->accept(visitor);
         }
     }
 
@@ -556,7 +549,7 @@ class CodeContainer : public virtual Garbageable {
             fComputeFunctions->accept(visitor);
         }
     }
-
+   
     void generateComputeBlock(InstVisitor* visitor)
     {
         if (fComputeBlockInstructions->fCode.size() > 0) {
@@ -687,20 +680,8 @@ class CodeContainer : public virtual Garbageable {
     }
 
     // merge declaration part
-    void mergeSubContainers()
-    {
-        for (const auto& it : fSubContainers) {
-            // Merge the subcontainer in the main one
-            fExtGlobalDeclarationInstructions->merge(it->fExtGlobalDeclarationInstructions);
-            fGlobalDeclarationInstructions->merge(it->fGlobalDeclarationInstructions);
-            fDeclarationInstructions->merge(it->fDeclarationInstructions);
-            // Then clear it
-            it->fGlobalDeclarationInstructions->fCode.clear();
-            it->fExtGlobalDeclarationInstructions->fCode.clear();
-            it->fDeclarationInstructions->fCode.clear();
-        }
-    }
-
+    void mergeSubContainers();
+   
     size_t getSubContainers() { return fSubContainers.size(); }
 
     const std::string getTableName() { return fTableName; }
@@ -735,8 +716,9 @@ class CodeContainer : public virtual Garbageable {
     
     void generateJSONFile();
     
-    ArrayVar* fIntControl;  // array of 'int32' intermediate control values
-    ArrayVar* fRealControl; // array of 'real' intermediate control values
+    // Used in -ec mode
+    ControlArray* fIntControl;  // array of 'int32' intermediate control values
+    ControlArray* fRealControl; // array of 'real' intermediate control values
 
 };
 

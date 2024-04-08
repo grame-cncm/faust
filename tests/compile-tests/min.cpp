@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "gui/UI.h"
-#include "dsp/one-sample-dsp.h"
+#include "dsp/dsp.h"
 
 using namespace std;
 

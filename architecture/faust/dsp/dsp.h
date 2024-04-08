@@ -152,16 +152,36 @@ class FAUST_API dsp {
         virtual void metadata(Meta* m) = 0;
     
         /**
-         * DSP instance computation, to be called with successive in/out audio buffers.
+         * Read all controllers (buttons, sliders..etc), and update the DSP state to be used by 'frame' or 'compute'.
+         * This method will be filled with the -ec (--external-control) option.
+         */
+        virtual void control() {}
+    
+        /**
+         * DSP instance computation to process one single frame.
+         *
+         * Note that by default inputs and outputs buffers are supposed to be distinct memory zones,
+         * so one cannot safely write frame(inputs, inputs).
+         * The -inpl option can be used for that, but only in scalar mode for now.
+         * This method will be filled with the -os (--one-sample) option.
+         *
+         * @param inputs - the input audio buffers as an array of FAUSTFLOAT samples (eiher float, double or quad)
+         * @param outputs - the output audio buffers as an array of FAUSTFLOAT samples (eiher float, double or quad)
+         */
+        virtual void frame(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs) {}
+        
+        /**
+         * DSP instance computation to be called with successive in/out audio buffers.
          *
          * Note that by default inputs and outputs buffers are supposed to be distinct memory zones,
          * so one cannot safely write compute(count, inputs, inputs).
          * The -inpl compilation option can be used for that, but only in scalar mode for now.
          *
          * @param count - the number of frames to compute
-         * @param inputs - the input audio buffers as an array of non-interleaved FAUSTFLOAT samples (eiher float, double or quad)
-         * @param outputs - the output audio buffers as an array of non-interleaved FAUSTFLOAT samples (eiher float, double or quad)
-         *
+         * @param inputs - the input audio buffers as an array of non-interleaved FAUSTFLOAT buffers
+         * (containing either float, double or quad samples)
+         * @param outputs - the output audio buffers as an array of non-interleaved FAUSTFLOAT buffers
+         * (containing either float, double or quad samples)
          */
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) = 0;
     
@@ -174,7 +194,6 @@ class FAUST_API dsp {
          * @param count - the number of frames to compute
          * @param inputs - the input audio buffers as an array of non-interleaved FAUSTFLOAT samples (either float, double or quad)
          * @param outputs - the output audio buffers as an array of non-interleaved FAUSTFLOAT samples (either float, double or quad)
-         *
          */
         virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
        
@@ -207,6 +226,8 @@ class FAUST_API decorator_dsp : public dsp {
         virtual decorator_dsp* clone() { return new decorator_dsp(fDSP->clone()); }
         virtual void metadata(Meta* m) { fDSP->metadata(m); }
         // Beware: subclasses usually have to overload the two 'compute' methods
+        virtual void control() { fDSP->control(); }
+        virtual void frame(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs) { fDSP->frame(inputs, outputs); }
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(date_usec, count, inputs, outputs); }
     

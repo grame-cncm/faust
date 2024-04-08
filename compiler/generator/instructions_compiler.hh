@@ -111,6 +111,7 @@ class InstructionsCompiler : public virtual Garbageable {
     StatementInst* pushUserInterfaceMethod(StatementInst* inst) { return fContainer->pushUserInterfaceMethod(inst); }
   
     StatementInst* pushDeclare(StatementInst* inst) { return fContainer->pushDeclare(inst); }
+    StatementInst* pushControlDeclare(StatementInst* inst) { return fContainer->pushControlDeclare(inst); }
     StatementInst* pushGlobalDeclare(StatementInst* inst) { return fContainer->pushGlobalDeclare(inst); }
     StatementInst* pushExtGlobalDeclare(StatementInst* inst) { return fContainer->pushExtGlobalDeclare(inst); }
 

@@ -1096,7 +1096,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
     getTypedNames(getCertifiedSigType(content), "tbl", ctype, vname);
 
     // Table declaration
-    if (gGlobal->gMemoryManager) {
+    if (gGlobal->gMemoryManager >= 0) {
         fClass->addDeclCode(subst("static $0* \t$1;", ctype, vname));
         fClass->addStaticFields(subst("$0* \t$1::$2 = 0;", ctype, fClass->getClassName(), vname));
         fClass->addStaticInitCode(

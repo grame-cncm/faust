@@ -40,6 +40,7 @@ class FIRCodeContainer : public virtual CodeContainer {
 
     virtual void dumpThread(FIRInstVisitor& firvisitor, std::ostream* dst){};
     virtual void dumpComputeBlock(FIRInstVisitor& firvisitor, std::ostream* dst);
+    virtual void dumpControlBlock(FIRInstVisitor& firvisitor, std::ostream* dst);
     virtual void dumpCompute(FIRInstVisitor& firvisitor, std::ostream* dst) = 0;
     virtual void dumpPostCompute(FIRInstVisitor& firvisitor, std::ostream* dst);
     virtual void dumpMemory(std::ostream* dst);

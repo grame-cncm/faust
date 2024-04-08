@@ -188,7 +188,6 @@ class Klass {
     virtual void println(int n, std::ostream& fout);
 
     virtual void printComputeMethod(int n, std::ostream& fout);
-    virtual void printComputeMethodScalar(int n, std::ostream& fout);
     virtual void printComputeMethodScalarBlock(int n, std::ostream& fout);
     virtual void printComputeMethodVectorFaster(int n, std::ostream& fout);
     virtual void printComputeMethodVectorSimple(int n, std::ostream& fout);

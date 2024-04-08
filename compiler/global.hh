@@ -73,6 +73,9 @@ struct BasicTyped;
 
 struct dsp_factory_base;
 
+struct ControlArray;
+struct ZoneArray;
+
 struct comp_str {
     bool operator()(Tree s1, Tree s2) const { return (strcmp(tree2str(s1), tree2str(s2)) < 0); }
 };
@@ -139,7 +142,7 @@ struct global {
     bool gGraphSwitch;          // -tg option
     bool gDrawPSSwitch;         // -ps option
     bool gDrawSVGSwitch;        // -svg option
-    int  gFPGAMemory;           // -fpga-mem option: FPGA block ram max size
+    int  gFPGAMemory;           // -fpga-mem option: FPGA block RAM max size
     bool gPrintXMLSwitch;       // -xml option
     bool gPrintJSONSwitch;      // -json option
     bool gPrintDocSwitch;       // -mdoc option
@@ -164,7 +167,7 @@ struct global {
     int gMaskDelayLineThreshold;  // -dlt <num> power-of-two and mask delay-lines treshold
     bool gEnableFlag;             // -es option (0/1: 0 by default)
     bool gNoVirtual;              // -nvi option, when compiled with the C++ backend, does not add the 'virtual' keyword
-    bool gMemoryManager;          // -mem option
+    int gMemoryManager;           // -mem option
     bool gRangeUI;   // -rui option, whether to generate code to limit vslider/hslider/nentry values in [min..max] range
     bool gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init value by default)
     int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
@@ -209,6 +212,7 @@ struct global {
     bool        gRemoveVarAddress;  // If use of variable addresses (like &foo or &foo[n]) have to be removed
     int         gOneSample;         // -osX options, generate one sample computation
     bool        gOneSampleControl;  // -osX options, generate one sample computation control structure in DSP module
+    int         gExtControl;        // separated 'control' and 'compute' functions
     bool        gInlineTable;  // -it option, only in -cpp backend, to inline rdtable/rwtable code in the main class.
     bool        gComputeMix;   // -cm option, mix in outputs buffers
     bool        gBool2Int;     // Cast bool binary operations (comparison operations) to int
@@ -216,7 +220,7 @@ struct global {
     bool        gVHDLTrace;           // -vhdl-trace option
     bool        gVHDLFloatEncoding;   // -vhdl-float, floating point encoding for real numbers
     std::string gVHDLComponentsFile;  // -vhdl-operators, a config file to replace specific operators
-   
+    
     int gWideningLimit;             // Max number of iterations before interval widening
     int gNarrowingLimit;            // Max number of iterations to compute interval widener
 
@@ -590,6 +594,9 @@ struct global {
     // Garbage collection
     static std::list<Garbageable*> gObjectTable;
     static bool                    gHeapCleanup;
+    
+    ZoneArray* gIntZone;  // array of 'int32' intermediate zone values
+    ZoneArray* gRealZone; // array of 'real' intermediate zone values
 
     global();
     ~global();

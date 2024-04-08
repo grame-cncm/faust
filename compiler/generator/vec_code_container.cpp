@@ -188,6 +188,21 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     return res_block;
 }
 
+BlockInst* VectorCodeContainer::generateDAGLoopVariant2(const string& counter)
+{
+    BlockInst* res_block = InstBuilder::genBlockInst();
+    string index = "vindex";
+    res_block->pushBackInst(InstBuilder::genDecStackVar("vindex", InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0)));
+    
+    // Generate local input/output access
+    generateLocalInputs(res_block, index);
+    generateLocalOutputs(res_block, index);
+
+    // Generates the loop DAG
+    generateDAGLoop(res_block, InstBuilder::genInt32NumInst(gGlobal->gVecSize));
+    return res_block;
+}
+
 void VectorCodeContainer::processFIR(void)
 {
     // Default FIR to FIR transformations
@@ -219,6 +234,8 @@ void VectorCodeContainer::processFIR(void)
         fDAGBlock = generateDAGLoopVariant0(fFullCount);
     } else if (gGlobal->gVectorLoopVariant == 1) {
         fDAGBlock = generateDAGLoopVariant1(fFullCount);
+    } else if (gGlobal->gVectorLoopVariant == 2) {
+        fDAGBlock = generateDAGLoopVariant2(fFullCount);
     } else {
         faustassert(false);
     }
@@ -226,6 +243,12 @@ void VectorCodeContainer::processFIR(void)
     // Possibly remove LoadVarAddress
     if (gGlobal->gRemoveVarAddress) {
         fDAGBlock = remover.getCode(fDAGBlock);
+    }
+    
+    // Rewrite "Rec/Vec" indexes in iZone/fZone access
+    if (gGlobal->gMemoryManager >= 1) {
+        fDAGBlock = gGlobal->gIntZone->getCode(fDAGBlock);
+        fDAGBlock = gGlobal->gRealZone->getCode(fDAGBlock);
     }
 
     // Verify code

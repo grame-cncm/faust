@@ -102,15 +102,14 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     
     virtual void visit(DeclareVarInst* inst)
     {
-        Address::AccessType access      = inst->fAddress->getAccess();
-        bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
-        ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        std::string         name        = inst->fAddress->getName();
+        bool         is_struct  = inst->fAddress->isStruct() || inst->fAddress->isStaticStruct();
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        std::string name        = inst->getName();
   
         // fSampleRate may appear several time (in subcontainers and in main DSP)
         if (name != "fSampleRate") {
             // When inlined in classInit and instanceConstants, kStaticStruct may appear several times
-            if (fFieldTable.find(name) != fFieldTable.end() && (access & Address::kStaticStruct)) {
+            if (fFieldTable.find(name) != fFieldTable.end() && (inst->fAddress->isStaticStruct())) {
                 return;
             }
             faustassert(fFieldTable.find(name) == fFieldTable.end());
@@ -221,12 +220,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(LoadVarInst* inst)
     {
-        Typed::VarType        type = TypingVisitor::getType(inst);
-        Address::AccessType access = inst->fAddress->getAccess();
-        std::string          name = inst->fAddress->getName();
-        IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+        Typed::VarType     type = TypingVisitor::getType(inst);
+        std::string        name = inst->getName();
+        IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
-        if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
+        if (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct() || indexed) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type)) {
@@ -262,7 +260,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         // 'tee_local' is generated the first time the variable is used
         // All future access simply use a local.get
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
 
         if (fTeeMap.find(name) == fTeeMap.end()) {
             *fOut << "(tee_local $" << name << " ";
@@ -277,10 +275,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(StoreVarInst* inst)
     {
         Typed::VarType type = TypingVisitor::getType(inst->fValue);
-        Address::AccessType access = inst->fAddress->getAccess();
         IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
   
-        if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
+        if (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct() || indexed) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type) || isRealPtrType(type)) {
@@ -311,7 +308,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 *fOut << ")";
             }
         } else {
-            *fOut << "(local.set $" << inst->fAddress->getName() << " ";
+            *fOut << "(local.set $" << inst->getName() << " ";
             inst->fValue->accept(this);
             *fOut << ")";
         }
@@ -321,7 +318,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(NamedAddress* named)
     {
-        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+        if (named->isStruct() || named->isStaticStruct()) {
             faustassert(fFieldTable.find(named->getName()) != fFieldTable.end());
             MemoryDesc tmp = fFieldTable[named->getName()];
             if (fFastMemory) {

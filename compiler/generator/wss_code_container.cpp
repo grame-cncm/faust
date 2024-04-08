@@ -48,7 +48,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
         void visit(DeclareVarInst* inst)
         {
             BasicCloneVisitor cloner;
-            if (inst->fAddress->isStack() && containVar(inst->fAddress->getName())) {
+            if (inst->fAddress->isStack() && containVar(inst->getName())) {
                 // For local thread access (in computeThread)
                 fContainer->pushComputeThread(inst->clone(&cloner));
                 // Mark inst to be removed

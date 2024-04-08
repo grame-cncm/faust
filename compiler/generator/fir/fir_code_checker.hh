@@ -131,8 +131,8 @@ struct FIRCodeChecker : public DispatchVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        std::string name         = inst->fAddress->getName();
-        fCurVarScope[name].first = inst->fAddress->getAccess();
+        std::string name         = inst->getName();
+        fCurVarScope[name].first = inst->getAccess();
 
         if (inst->fValue) {
             inst->fValue->accept(this);
@@ -149,21 +149,21 @@ struct FIRCodeChecker : public DispatchVisitor {
     virtual void visit(LoadVarInst* inst)
     {
         std::pair<Address::AccessType, bool> var_def;
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
         bool res = getVarName(name, var_def);
 
         if (!res) {
-            if (inst->fAddress->getAccess() != Address::kFunArgs) {
-                std::cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name
+            if (inst->getAccess() != Address::kFunArgs) {
+                std::cout << "Error load : " << Address::dumpString(inst->getAccess()) << " variable \"" << name
                      << "\" with no enclosing definition" << std::endl;
                 fError++;
             }
         } else {
-            if (!var_def.second && inst->fAddress->getAccess() != Address::kFunArgs) {
+            if (!var_def.second && inst->getAccess() != Address::kFunArgs) {
                 std::cout << "Error load : variable \"" << name << "\" not initialized !!" << std::endl;
                 fError++;
             }
-            if (var_def.first != inst->fAddress->getAccess()) {
+            if (var_def.first != inst->getAccess()) {
                 std::cout << "Error load : incoherency in variable access \"" << name << "\"" << std::endl;
                 fError++;
             }
@@ -173,17 +173,17 @@ struct FIRCodeChecker : public DispatchVisitor {
     virtual void visit(LoadVarAddressInst* inst)
     {
         std::pair<Address::AccessType, bool> var_def;
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
         bool res = getVarName(name, var_def);
 
         if (!res) {
-            if (inst->fAddress->getAccess() != Address::kFunArgs) {
-                std::cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name
+            if (inst->getAccess() != Address::kFunArgs) {
+                std::cout << "Error load : " << Address::dumpString(inst->getAccess()) << " variable \"" << name
                      << "\" with no enclosing definition" << std::endl;
                 fError++;
             }
         } else {
-            if (var_def.first != inst->fAddress->getAccess()) {
+            if (var_def.first != inst->getAccess()) {
                 std::cout << "Error load : incoherency in variable access \"" << name << "\"" << std::endl;
                 fError++;
             }
@@ -193,15 +193,15 @@ struct FIRCodeChecker : public DispatchVisitor {
     virtual void visit(StoreVarInst* inst)
     {
         std::pair<Address::AccessType, bool> var_def;
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
         bool res = getVarName(name, var_def);
 
         if (!res) {
-            std::cout << "Error store : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name
+            std::cout << "Error store : " << Address::dumpString(inst->getAccess()) << " variable \"" << name
                  << "\" with no enclosing definition" << std::endl;
             fError++;
         } else {
-            if (var_def.first != inst->fAddress->getAccess()) {
+            if (var_def.first != inst->getAccess()) {
                 std::cout << "Error store : incoherency in variable access \"" << name << "\"" << std::endl;
                 fError++;
             }
@@ -291,7 +291,7 @@ struct StructVarAnalyser : public DispatchVisitor {
         DispatchVisitor::visit(inst);
 
         // Keep "simple" struct variables
-        if (inst->fAddress->getAccess() == Address::kStruct &&
+        if (inst->getAccess() == Address::kStruct &&
             (dynamic_cast<BasicTyped*>(inst->fType) || dynamic_cast<NamedTyped*>(inst->fType))) {
             Typed::VarType type = inst->fType->getType();
             ValueInst*     init;
@@ -300,7 +300,7 @@ struct StructVarAnalyser : public DispatchVisitor {
             } else {
                 init = InstBuilder::genInt32NumInst(1);
             }
-            fSpecializedValueTable[inst->fAddress->getName()] = init;
+            fSpecializedValueTable[inst->getName()] = init;
         }
     }
 };
@@ -318,10 +318,10 @@ struct ControlSpecializer : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
 
-            if (fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end()) {
+            if (fSpecializedValueTable.find(inst->getName()) != fSpecializedValueTable.end()) {
                 inst->fAddress->setAccess(Address::kLink);
             } else {
-                // cout << "ControlSpecializer StoreVarInst " << inst->fAddress->getName() << endl;
+                // cout << "ControlSpecializer StoreVarInst " << inst->getName() << endl;
             }
         }
 
@@ -329,10 +329,10 @@ struct ControlSpecializer : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
 
-            if (fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end()) {
+            if (fSpecializedValueTable.find(inst->getName()) != fSpecializedValueTable.end()) {
                 inst->fAddress->setAccess(Address::kLink);
             } else {
-                // cout << "ControlSpecializer LoadVarInst " << inst->fAddress->getName() << endl;
+                // cout << "ControlSpecializer LoadVarInst " << inst->getName() << endl;
             }
         }
     };
@@ -346,8 +346,8 @@ struct ControlSpecializer : public DispatchVisitor {
         // Rewrite Load as an access to kept ValueInst
         ValueInst* visit(LoadVarInst* inst)
         {
-            std::string name = inst->fAddress->getName();
-            if (inst->fAddress->getAccess() == Address::kLink) {
+            std::string name = inst->getName();
+            if (inst->getAccess() == Address::kLink) {
                 faustassert(fSpecializedValueTable.find(name) != fSpecializedValueTable.end());
                 return fSpecializedValueTable[name]->clone(this);
             } else {
@@ -358,8 +358,8 @@ struct ControlSpecializer : public DispatchVisitor {
         // Rewrite Store as a no-op (DropInst)
         StatementInst* visit(StoreVarInst* inst)
         {
-            if (inst->fAddress->getAccess() == Address::kLink) {
-                faustassert(fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end());
+            if (inst->getAccess() == Address::kLink) {
+                faustassert(fSpecializedValueTable.find(inst->getName()) != fSpecializedValueTable.end());
                 return InstBuilder::genDropInst();
             } else {
                 return BasicCloneVisitor::visit(inst);

@@ -162,6 +162,17 @@ void FIRCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst
     }
 }
 
+void FIRCodeContainer::dumpControlBlock(FIRInstVisitor& firvisitor, ostream* dst)
+{
+    if (fControlDeclarationInstructions->fCode.size() > 0) {
+        *dst << "======= Control begin ==========" << endl << endl;
+        // Complexity estimation
+        dumpCost(fControlDeclarationInstructions, dst);
+        fControlDeclarationInstructions->accept(&firvisitor);
+        *dst << endl << "======= Control end ==========" << endl << endl;
+    }
+}
+
 void FIRCodeContainer::dumpFlatten(ostream* dst)
 {
     *dst << "======= Flatten FIR begin ==========" << endl << endl;
@@ -204,6 +215,21 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
         *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes"
              << "\n\n";
         
+        *dst << "======= Variable access in Control ==========" << endl << endl;
+        {
+            StructInstVisitor struct_visitor;
+            fDeclarationInstructions->accept(&struct_visitor);
+            fControlDeclarationInstructions->accept(&struct_visitor);
+            
+            for (const auto& it : struct_visitor.getFieldTable()) {
+                *dst << "Field = " << it.first ;
+                *dst << " size = " << it.second.fSize;
+                *dst << " size_bytes = " << it.second.fSizeBytes;
+                *dst << " read = " << it.second.fRAccessCount;
+                *dst << " write = " << it.second.fWAccessCount;
+                *dst << " ratio = " << float(it.second.fRAccessCount + it.second.fWAccessCount) / float(it.second.fSize) << endl;
+            }
+        }
         *dst << "======= Variable access in compute control ==========" << endl << endl;
         {
             StructInstVisitor struct_visitor;
@@ -269,6 +295,7 @@ void FIRCodeContainer::produceClass()
     dumpGlobalsAndInit(firvisitor, fOut);
     dumpThread(firvisitor, fOut);
     dumpComputeBlock(firvisitor, fOut);
+    dumpControlBlock(firvisitor, fOut);
     dumpCompute(firvisitor, fOut);
     dumpPostCompute(firvisitor, fOut);
     dumpFlatten(fOut);

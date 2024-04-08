@@ -37,6 +37,9 @@ class VectorCodeContainer : public virtual CodeContainer {
     // Code generated with -lv 1 option
     BlockInst* generateDAGLoopVariant1(const std::string& counter);
 
+    // Code generated with -lv 2 option
+    BlockInst* generateDAGLoopVariant2(const std::string& counter);
+
     void generateLocalInputs(BlockInst* loop_code, const std::string& index);
     void generateLocalOutputs(BlockInst* loop_code, const std::string& index);
 

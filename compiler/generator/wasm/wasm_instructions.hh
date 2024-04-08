@@ -289,9 +289,9 @@ struct LocalVariableCounter : public DispatchVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        std::string    name = inst->fAddress->getName();
+        std::string    name = inst->getName();
         Typed::VarType type = inst->fType->getType();
-        Address::AccessType access = inst->fAddress->getAccess();
+        Address::AccessType access = inst->getAccess();
 
         faustassert(fLocalVarTable.find(name) == fLocalVarTable.end());
 
@@ -454,11 +454,9 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        bool is_struct = (inst->fAddress->getAccess() & Address::kStruct)
-                        || (inst->fAddress->getAccess() & Address::kStaticStruct);
-        
+        bool is_struct = (inst->fAddress->isStruct()) || (inst->fAddress->isStaticStruct());
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
@@ -815,14 +813,13 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
     virtual void visit(DeclareVarInst* inst)
     {
-        Address::AccessType access      = inst->fAddress->getAccess();
-        bool                is_struct  = (access & Address::kStruct) || (access & Address::kStaticStruct);
-        ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        std::string        name        = inst->fAddress->getName();
+        bool                is_struct  = inst->fAddress->isStruct() || inst->fAddress->isStaticStruct();
+        ArrayTyped*        array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        std::string        name        = inst->getName();
     
         // fSampleRate may appear several time (in subcontainers and in main DSP)
         if (name != "fSampleRate") {
-            if (fFieldTable.find(name) != fFieldTable.end() && (access & Address::kStaticStruct)) {
+            if (fFieldTable.find(name) != fFieldTable.end() && (inst->fAddress->isStaticStruct())) {
                 // When inlined in classInit and instanceConstants, kStaticStruct may appear several times
                 return;
             }
@@ -889,11 +886,10 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(LoadVarInst* inst)
     {
         Typed::VarType type        = TypingVisitor::getType(inst);
-        Address::AccessType access = inst->fAddress->getAccess();
-        std::string          name = inst->fAddress->getName();
+        std::string          name  = inst->getName();
         IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
     
-        if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
+        if (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct() || indexed) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 // Generate 0
@@ -924,7 +920,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(TeeVarInst* inst)
     {
-        std::string name = inst->fAddress->getName();
+        std::string name = inst->getName();
 
         faustassert(fLocalVarTable.find(name) != fLocalVarTable.end());
         LocalVarDesc local = fLocalVarTable[name];
@@ -943,11 +939,10 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(StoreVarInst* inst)
     {
         Typed::VarType type        = TypingVisitor::getType(inst->fValue);
-        Address::AccessType access = inst->fAddress->getAccess();
-        std::string name           = inst->fAddress->getName();
+        std::string name           = inst->getName();
         IndexedAddress* indexed    = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
-        if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
+        if (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct() || indexed) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 // Generate 0
@@ -980,7 +975,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(NamedAddress* named)
     {
-        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+        if (named->isStruct() || named->isStaticStruct()) {
             faustassert(fFieldTable.find(named->getName()) != fFieldTable.end());
             MemoryDesc tmp = fFieldTable[named->getName()];
             if (fFastMemory) {

@@ -162,17 +162,7 @@ void CodeboxCodeContainer::produceClass()
     // Control
     *fOut << "@state fUpdated : Int = 0;";
     tab(n, *fOut);
-    
-    // For control computation
-    if (fIntControl->fCurIndex > 0) {
-        *fOut << "@state iControl_cb = new FixedIntArray(" << fIntControl->fCurIndex << ");";
-        tab(n, *fOut);
-    }
-    if (fRealControl->fCurIndex > 0) {
-        *fOut << "@state fControl_cb = new " << gGlobal->gCodeboxVisitor->getTypeManager()->fTypeDirectTable[itfloatptr()] << "(" << fRealControl->fCurIndex << ");";
-    }
-    tab(n, *fOut);
-  
+   
     *fOut << "// Init";
     tab(n, *fOut);
     *fOut << "function dspsetup() {";
@@ -214,8 +204,10 @@ void CodeboxCodeContainer::produceClass()
     *fOut << "function control() {";
     tab(n + 1, *fOut);
     gGlobal->gCodeboxVisitor->Tab(n + 1);
-    // Generates local variables declaration and setup
+    // First generate values (for bargraph)
     generateComputeBlock(gGlobal->gCodeboxVisitor);
+    // Then generate iSlow/fSlow variables
+    generateControlDeclarations(gGlobal->gCodeboxVisitor);
     back(1, *fOut);
     *fOut << "}";
     tab(n, *fOut);

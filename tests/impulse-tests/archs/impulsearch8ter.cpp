@@ -12,6 +12,76 @@
 
 <<includeclass>>
 
+struct OneSample : public decorator_dsp {
+    
+    FAUSTFLOAT* fInputs;
+    FAUSTFLOAT* fOutputs;
+    
+    OneSample(dsp* dsp):decorator_dsp(dsp),fInputs(nullptr),fOutputs(nullptr)
+    {}
+    
+    virtual ~OneSample()
+    {
+        delete [] fInputs;
+        delete [] fOutputs;
+    }
+    
+        // This is mandatory
+    virtual OneSample* clone()
+    {
+        return new OneSample(fDSP->clone());
+    }
+    
+    // The standard 'compute' expressed using the control/compute (one sample) model
+    virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
+    {
+        // TODO : not RT safe
+        if (!fInputs) {
+            fInputs = new FAUSTFLOAT[getNumInputs() * 4096];
+            fOutputs = new FAUSTFLOAT[getNumOutputs() * 4096];
+        }
+        
+        // Control
+        fDSP->control();
+        
+        // Compute
+        int num_inputs = getNumInputs();
+        int num_outputs = getNumOutputs();
+        
+        FAUSTFLOAT* inputs_ptr = &fInputs[0];
+        FAUSTFLOAT* outputs_ptr = &fOutputs[0];
+        
+        for (int frame = 0; frame < count; frame++) {
+            for (int chan = 0; chan < num_inputs; chan++) {
+                inputs_ptr[chan] = inputs_aux[chan][frame];
+            }
+            inputs_ptr += num_inputs;
+        }
+        
+        inputs_ptr = &fInputs[0];
+        for (int frame = 0; frame < count; frame++) {
+            // One sample compute
+            fDSP->frame(inputs_ptr, outputs_ptr);
+            inputs_ptr += num_inputs;
+            outputs_ptr += num_outputs;
+        }
+    
+        outputs_ptr = &fOutputs[0];
+        for (int frame = 0; frame < count; frame++) {
+            for (int chan = 0; chan < num_outputs; chan++) {
+                outputs_aux[chan][frame] = outputs_ptr[chan];
+            }
+            outputs_ptr += num_outputs;
+        }
+    }
+    
+    virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    {
+        compute(count, inputs, outputs);
+    }
+    
+};
+
 // To be used in static context with -mem
 static void runDSP2(dsp* DSP, const string& file, int& linenum, int nbsamples, bool inpl = false, bool random = false)
 {
@@ -141,38 +211,27 @@ static void runDSP2(dsp* DSP, const string& file, int& linenum, int nbsamples, b
     
     delete ichan;
     if (ochan != ichan) delete ochan;
-    mydsp::destroy(oldDSP);
-    mydsp::destroy(DSP);
+    delete oldDSP;
+    delete DSP;
 }
 
-malloc_memory_manager_check gManager;
+int iControl[FAUST_INT_CONTROLS];
+double fControl[FAUST_REAL_CONTROLS];
+
+int iZone[FAUST_INT_ZONE];
+double fZone[FAUST_FLOAT_ZONE];
 
 int main(int argc, char* argv[])
 {
     int linenum = 0;
     int nbsamples = 60000;
-    
-    // Setup the global custom memory manager
-    mydsp::fManager = &gManager;
-    
-    // Make the memory manager get information on all subcontainers,
-    // static tables, DSP and arrays
-    mydsp::memoryInfo();
-    
-    // Done once before allocating any DSP
-    mydsp::classInit(44100);
-    
+  
     // print general informations
-    printHeader(mydsp::create(), nbsamples);
+    printHeader(new mydsp(iControl, fControl, iZone, fZone), nbsamples);
     
-    // linenum is incremented in runDSP and runPolyDSP
-    runDSP2(mydsp::create(), argv[0], linenum, nbsamples/4);
-    runDSP2(mydsp::create(), argv[0], linenum, nbsamples/4, false, true);
-    //runPolyDSP(new mydsp(), linenum, nbsamples/4, 4);
-    //runPolyDSP(new mydsp(), linenum, nbsamples/4, 1);
-    
-    // Done once after the last DSP has been destroyed
-    mydsp::classDestroy();
+    // linenum is incremented in runDSP
+    runDSP2(new OneSample(new mydsp(iControl, fControl, iZone, fZone)), argv[0], linenum, nbsamples/4);
+    runDSP2(new OneSample(new mydsp(iControl, fControl, iZone, fZone)), argv[0], linenum, nbsamples/4, false, true);
     
     return 0;
 }

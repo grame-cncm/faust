@@ -52,7 +52,10 @@ CodeContainer::CodeContainer()
       fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fDeclarationInstructions(InstBuilder::genBlockInst()),
+      fControlDeclarationInstructions(InstBuilder::genBlockInst()),
       fInitInstructions(InstBuilder::genBlockInst()),
+      fConstantFromMem(nullptr),
+      fConstantToMem(nullptr),
       fResetUserInterfaceInstructions(InstBuilder::genBlockInst()),
       fClearInstructions(InstBuilder::genBlockInst()),
       fPostInitInstructions(InstBuilder::genBlockInst()),
@@ -67,11 +70,31 @@ CodeContainer::CodeContainer()
       fUserInterfaceInstructions(InstBuilder::genBlockInst())
 {
     fCurLoop = new CodeLoop(0, gGlobal->getFreshID("i"));
-    // iControl/fControl are given as arguments, or kept as struct fields in -os3 mode.
-    Address::AccessType access = (gGlobal->gOneSample == 3) ? Address::AccessType::kStruct : Address::AccessType::kFunArgs;
-    fIntControl = new ArrayVar("iControl", access);
-    fRealControl = new ArrayVar("fControl", access);
+    
+    Address::AccessType access;
+    if (gGlobal->gMemoryManager == 2) access = Address::kStruct;
+    // Special version for SYFALA where iControl/fControl and iZone/fZone have to be parameters
+    if (gGlobal->gMemoryManager == 3) access = Address::kFunArgs;
+    
+    // iControl/fControl are created when -ec and -mem1/2/3 are used together
+    if (gGlobal->gExtControl && gGlobal->gMemoryManager >= 1) {
+        fIntControl = new ControlArray("iControl", access);
+        fRealControl = new ControlArray("fControl", access);
+    } else {
+        fIntControl = nullptr;
+        fRealControl = nullptr;
+    }
+    
+    // Memory handling with gMemoryManager
+    if (gGlobal->gMemoryManager >= 1 && !gGlobal->gIntZone && !gGlobal->gRealZone) {
+        // Allocation done once to be shared by all containers
+        ZoneArray::gInternalMemorySize = gGlobal->gFPGAMemory;
+        gGlobal->gIntZone = new ZoneArray("iZone", access, Typed::kInt32, 4);
+        gGlobal->gRealZone = new ZoneArray("fZone", access, itfloat(), 4);
+    }
 }
+
+int ZoneArray::gInternalMemorySize = 0;
 
 CodeContainer::~CodeContainer()
 {}
@@ -314,12 +337,12 @@ void CodeContainer::produceInfoFunctions(int tabs, const string& classname, cons
     generateGetOutputs(out_fun + classname, obj, ismethod, funtype)->accept(producer);
 }
 
-void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, LoadVarInst* count, bool omp)
+void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, ValueInst* count, bool omp)
 {
     loop->generateDAGScalarLoop(block, count, omp);
 }
 
-void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, LoadVarInst* count, int loop_num,
+void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, ValueInst* count, int loop_num,
                                        bool omp)
 {
     if (gGlobal->gFunTaskSwitch) {
@@ -341,7 +364,7 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Loa
     }
 }
 
-void CodeContainer::generateDAGLoop(BlockInst* block, LoadVarInst* count)
+void CodeContainer::generateDAGLoop(BlockInst* block, ValueInst* count)
 {
     int loop_num = 0;
 
@@ -372,19 +395,60 @@ void CodeContainer::processFIR(void)
     
     // Type used in several methods using 'sample_rate' parameter
     gGlobal->setVarType("sample_rate", Typed::kInt32);
-    
-    /*
-        Used in Cmajor backend and -os mode (C/C++)
-        18/08/22 : gGlobal->gOneSample == 3 fails because of typing
-        issues with iControl/fControl, so deactivated for now
-    */
-    if ((gGlobal->gOneSample >= 0 && gGlobal->gOneSample < 3) || gGlobal->gOneSampleControl) {
-        // Control is separated in the 'control()' function and iControl/fControl arrays
-        // are used to compute control related state to be used in 'run'
-        gGlobal->setVarType("iControl", Typed::kInt32_ptr);
-        gGlobal->setVarType("fControl", itfloatptr());
+ 
+    // ==========================================================================================
+    // FIR to FIR passes that are generic for all backends, depending of the compilation options
+    // ==========================================================================================
+
+    if (gGlobal->gInlineTable) {
+        
+        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+        fStaticInitInstructions = inlineSubcontainersFunCalls(fStaticInitInstructions);
+        
+        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+        fInitInstructions = inlineSubcontainersFunCalls(fInitInstructions);
     }
-      
+    
+    // Additional iControl/fControl fields
+    if (gGlobal->gExtControl && gGlobal->gMemoryManager >= 1) {
+        
+        if (fIntControl->getSize() > 0 && fIntControl->fAccess == Address::kStruct) {
+            pushDeclare(InstBuilder::genDecStructVar("iControl", InstBuilder::genArrayTyped(Typed::kInt32, fIntControl->getSize())));
+        }
+        if (fRealControl->getSize() > 0 && fIntControl->fAccess == Address::kStruct) {
+            pushDeclare(InstBuilder::genDecStructVar("fControl", InstBuilder::genArrayTyped(itfloat(), fRealControl->getSize())));
+        }
+    }
+    
+    // Prepare fConstantFromMem/fConstantToMem blocks
+    if (gGlobal->gMemoryManager >= 2) {
+        
+        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+        BlockInst* declare_block = inlineSubcontainersFunCalls(fInitInstructions);
+        gGlobal->gIntZone->declareConstant(declare_block);
+        gGlobal->gRealZone->declareConstant(declare_block);
+    
+        fConstantFromMem = gGlobal->gIntZone->getLoadConstantCode(declare_block);
+        fConstantFromMem = gGlobal->gRealZone->getLoadConstantCode(fConstantFromMem);
+    
+        fConstantToMem = gGlobal->gIntZone->getStoreConstantCode(declare_block);
+        fConstantToMem = gGlobal->gRealZone->getStoreConstantCode(fConstantToMem);
+    }
+    
+    // Additional iZone/fZone fields
+    if (gGlobal->gMemoryManager >= 1) {
+        
+        if (gGlobal->gIntZone->getSize() > 0 && gGlobal->gIntZone->fAccess == Address::kStruct) {
+            pushDeclare(InstBuilder::genDecStructVar("iZone", InstBuilder::genArrayTyped(Typed::kInt32, gGlobal->gIntZone->getSize())));
+        }
+        if (gGlobal->gRealZone->getSize() > 0 && gGlobal->gRealZone->fAccess == Address::kStruct) {
+            pushDeclare(InstBuilder::genDecStructVar("fZone", InstBuilder::genArrayTyped(itfloat(), gGlobal->gRealZone->getSize())));
+        }
+    }
+    
+    // Possibly rewrite arrays access using iZone/fZone
+    rewriteInZones();
+    
     // Possibly add "fSamplingRate" field
     generateSR();
 
@@ -395,124 +459,8 @@ void CodeContainer::processFIR(void)
         CodeLoop::groupSeqLoops(fCurLoop, visited);
     }
  
-    /*
-        Create memory layout, to be used in C++ backend and JSON generation.
-        The description order follows what will be done at allocation time.
-        Subcontainers are ignored when gGlobal->gInlineTable == true
-     
-        // Create static tables
-        mydsp::classInit();
-     
-        // Create DSP
-        dsp* DSP = mydsp::create();
-     
-        // Init DSP
-        DSP->instanceInit(44100);
-     */
-    if (gGlobal->gMemoryManager) {
-        {
-            // Compute DSP struct arrays size
-            StructInstVisitor struct_visitor;
-        
-            // Add the global static tables
-            fGlobalDeclarationInstructions->accept(&struct_visitor);
-        
-            // Compute R/W access for each subcontainer
-            ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
-            loop->accept(&struct_visitor);
-            
-            // Subcontainers used in classInit
-            if (!gGlobal->gInlineTable) {
-                for (const auto& it : fSubContainers) {
-                    // Check that the subcontainer name appears as a type name in fStaticInitInstructions
-                    SearchSubcontainer search_class(it->getClassName());
-                    fStaticInitInstructions->accept(&search_class);
-                    if (search_class.fFound) {
-                        // Subcontainer size
-                        VariableSizeCounter struct_size(Address::kStruct);
-                        it->generateDeclarations(&struct_size);
-                        fMemoryLayout.push_back(make_tuple(it->getClassName(), "kObj_ptr", 0, struct_size.fSizeBytes, 0, 0));
-                        
-                        // Get the associated table size and access
-                        pair<string, int> field = gGlobal->gTablesSize[it->getClassName()];
-                        
-                        // Check the table name memory description
-                        MemoryDesc& decs = struct_visitor.getMemoryDesc(field.first);
-                        fMemoryLayout.push_back(make_tuple(field.first, Typed::gTypeString[decs.fType], 0, field.second, decs.fRAccessCount, 0));
-                    }
-                }
-            }
-        }
-        
-        {
-            // Compute DSP struct arrays size and R/W access
-            StructInstVisitor struct_visitor;
-        
-            // Add the DSP fields
-            fDeclarationInstructions->accept(&struct_visitor);
-            
-            // To generate R/W access in the DSP loop
-            ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
-            loop->accept(&struct_visitor);
-            
-            // DSP object
-            int read_access = 0;
-            int write_access = 0;
-            for (const auto& it : struct_visitor.getFieldTable()) {
-                // Scalar types are kept in the DSP
-                if (it.second.fSize == 1) {
-                    read_access += it.second.fRAccessCount;
-                    write_access += it.second.fWAccessCount;
-                }
-            }
-            
-            // Array fields are transformed in pointers
-            ArrayToPointer array_pointer;
-            VariableSizeCounter struct_size(Address::kStruct);
-            array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
-            fMemoryLayout.push_back(make_tuple(fKlassName,
-                                                "kObj_ptr",
-                                                0,
-                                                // Upper value : add virtual method pointer (8 bytes in 64 bits)
-                                                // + 8 bytes for memory alignment
-                                                struct_size.fSizeBytes + 8 + 8,
-                                                read_access,
-                                                write_access));
-            
-            // Arrays inside the DSP object
-            for (const auto& it : struct_visitor.getFieldTable()) {
-                if (it.second.fSize == 1 && !it.second.fIsControl) {
-                    fMemoryLayout.push_back(make_tuple(it.first,
-                                                       Typed::gTypeString[it.second.fType],
-                                                       it.second.fSize,
-                                                       it.second.fSizeBytes,
-                                                       it.second.fRAccessCount,
-                                                       it.second.fWAccessCount));
-                // Arrays have size > 1
-                } else if (it.second.fSize > 1) {
-                    fMemoryLayout.push_back(make_tuple(it.first,
-                                                        Typed::gTypeString[Typed::getPtrFromType(it.second.fType)],
-                                                        it.second.fSize,
-                                                        it.second.fSizeBytes,
-                                                        it.second.fRAccessCount,
-                                                        it.second.fWAccessCount));
-                }
-            }
-            
-            // Subcontainers used in instanceConstants
-            if (!gGlobal->gInlineTable) {
-                for (const auto& it : fSubContainers) {
-                    // Check that the subcontainer name appears as a type name in fInitInstructions
-                    SearchSubcontainer search_class(it->getClassName());
-                    fInitInstructions->accept(&search_class);
-                    if (search_class.fFound) {
-                        VariableSizeCounter struct_size(Address::kStruct);
-                        it->generateDeclarations(&struct_size);
-                        fMemoryLayout.push_back(make_tuple(it->getClassName(), "kObj_ptr", 0, struct_size.fSizeBytes, 0, 0));
-                    }
-                }
-            }
-        }
+    if (gGlobal->gMemoryManager >= 0) {
+        createMemoryLayout();
     }
     
     // Possibly generate JSON
@@ -544,6 +492,183 @@ void CodeContainer::processFIR(void)
     }
 }
 
+// Possibly rewrite arrays access using iZone/fZone
+void CodeContainer::rewriteInZones()
+{
+    if (gGlobal->gMemoryManager >= 1) {
+        if (gGlobal->gIntZone->getSize() > 0) {
+            // Rewrite DSP struct access in iZone access
+            fGlobalDeclarationInstructions = gGlobal->gIntZone->getCode(fGlobalDeclarationInstructions);
+            fStaticInitInstructions = gGlobal->gIntZone->getCode(fStaticInitInstructions);
+            fInitInstructions = gGlobal->gIntZone->getCode(fInitInstructions);
+            fControlDeclarationInstructions = gGlobal->gIntZone->getCode(fControlDeclarationInstructions);
+            fComputeBlockInstructions = gGlobal->gIntZone->getCode(fComputeBlockInstructions);
+            fComputeFunctions = gGlobal->gIntZone->getCode(fComputeFunctions);
+            fClearInstructions = gGlobal->gIntZone->getCode(fClearInstructions);
+        }
+        if (gGlobal->gRealZone->getSize() > 0) {
+            // Rewrite DSP struct access in fZone access
+            fGlobalDeclarationInstructions = gGlobal->gRealZone->getCode(fGlobalDeclarationInstructions);
+            fStaticInitInstructions = gGlobal->gRealZone->getCode(fStaticInitInstructions);
+            fInitInstructions = gGlobal->gRealZone->getCode(fInitInstructions);
+            fControlDeclarationInstructions = gGlobal->gRealZone->getCode(fControlDeclarationInstructions);
+            fComputeBlockInstructions = gGlobal->gRealZone->getCode(fComputeBlockInstructions);
+            fComputeFunctions = gGlobal->gRealZone->getCode(fComputeFunctions);
+            fClearInstructions = gGlobal->gRealZone->getCode(fClearInstructions);
+        }
+    }
+}
+
+void CodeContainer::mergeSubContainers()
+{
+    for (const auto& it : fSubContainers) {
+        // Merge the subcontainer in the main one
+        fExtGlobalDeclarationInstructions->merge(it->fExtGlobalDeclarationInstructions);
+        fGlobalDeclarationInstructions->merge(it->fGlobalDeclarationInstructions);
+        fDeclarationInstructions->merge(it->fDeclarationInstructions);
+        fControlDeclarationInstructions->merge(it->fControlDeclarationInstructions);
+        // TO CHECK (used for waveform initialisation which has to be moved first...)
+        fStaticInitInstructions->mergeFront(it->fStaticInitInstructions);
+        // Then clear it
+        it->fGlobalDeclarationInstructions->fCode.clear();
+        it->fExtGlobalDeclarationInstructions->fCode.clear();
+        it->fDeclarationInstructions->fCode.clear();
+        it->fControlDeclarationInstructions->fCode.clear();
+        it->fStaticInitInstructions->fCode.clear();
+    }
+    
+    // Possibly rewrite access in iZone/fZone
+    rewriteInZones();
+}
+
+/*
+ Create memory layout, to be used in C++ backend and JSON generation.
+ The description order follows what will be done at allocation time.
+ Subcontainers are ignored when gGlobal->gInlineTable == true.
+ 
+ // Create static tables
+ mydsp::classInit();
+ 
+ // Create DSP
+ dsp* DSP = mydsp::create();
+ 
+ // Init DSP
+ DSP->instanceInit(44100);
+ */
+
+void CodeContainer::createMemoryLayout()
+{
+    // Subcontainers used in classInit
+    if (!gGlobal->gInlineTable) {
+        
+        // Compute DSP struct arrays size
+        StructInstVisitor struct_visitor;
+        
+        // Add the global static tables
+        fGlobalDeclarationInstructions->accept(&struct_visitor);
+        
+        // Compute R/W access for each subcontainer
+        ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
+        loop->accept(&struct_visitor);
+        
+        for (const auto& it : fSubContainers) {
+            // Check that the subcontainer name appears as a type name in fStaticInitInstructions
+            SearchSubcontainer search_class(it->getClassName());
+            fStaticInitInstructions->accept(&search_class);
+            if (search_class.fFound) {
+                // Subcontainer size
+                VariableSizeCounter struct_size(Address::kStruct);
+                it->generateDeclarations(&struct_size);
+                fMemoryLayout.push_back(make_tuple(it->getClassName(), "kObj_ptr", 0, struct_size.fSizeBytes, 0, 0));
+                
+                // Get the associated table size and access
+                pair<string, int> field = gGlobal->gTablesSize[it->getClassName()];
+                
+                // Check the table name memory description
+                MemoryDesc& decs = struct_visitor.getMemoryDesc(field.first);
+                fMemoryLayout.push_back(make_tuple(field.first, Typed::gTypeString[decs.fType], 0, field.second, decs.fRAccessCount, 0));
+            }
+        }
+    }
+    
+    {
+        // Compute DSP struct arrays size and R/W access
+        StructInstVisitor struct_visitor;
+        
+        // Add the DSP fields
+        fDeclarationInstructions->accept(&struct_visitor);
+        
+        // To generate R/W access in the DSP loop
+        ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
+        loop->accept(&struct_visitor);
+        
+        // DSP object
+        int read_access = 0;
+        int write_access = 0;
+        for (const auto& it : struct_visitor.getFieldTable()) {
+            // Scalar types are kept in the DSP
+            if (it.second.fIsScalar) {
+                read_access += it.second.fRAccessCount;
+                write_access += it.second.fWAccessCount;
+            }
+        }
+    
+        {
+        
+            // Array fields are transformed in pointers
+            ArrayToPointer array_pointer;
+            VariableSizeCounter struct_size(Address::kStruct);
+            array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
+        
+            // TODO: rework DSP site comptations with local arrays
+        
+            fMemoryLayout.push_back(make_tuple(fKlassName,
+                                               "kObj_ptr",
+                                               0,
+                                               // Raised value:
+                                               // - add virtual method pointer (8 bytes in 64 bits)
+                                               // - add 8 bytes for memory alignment
+                                               struct_size.fSizeBytes + 8 + 8,
+                                               read_access,
+                                               write_access));
+        }
+    
+        // Arrays and scalars inside the DSP struct
+        for (const auto& it : struct_visitor.getFieldTable()) {
+            if (!it.second.fIsControl) {
+                /*
+                std::cout << "it.first " << it.first << std::endl;
+                std::cout << "Typed::gTypeString[it.second.fType] " << Typed::gTypeString[it.second.fType] << std::endl;
+                std::cout << "it.second.fSize " << it.second.fSize << std::endl;
+                std::cout << "it.second.fSizeBytes " << it.second.fSizeBytes << std::endl;
+                */
+                fMemoryLayout.push_back(make_tuple(it.first,
+                                                   Typed::gTypeString[(it.second.fIsScalar)
+                                                                      ? it.second.fType
+                                                                      : Typed::getPtrFromType(it.second.fType)],
+                                                   it.second.fSize,
+                                                   it.second.fSizeBytes,
+                                                   it.second.fRAccessCount,
+                                                   it.second.fWAccessCount));
+            }
+        }
+    
+        // Subcontainers used in instanceConstants
+        if (!gGlobal->gInlineTable) {
+            for (const auto& it : fSubContainers) {
+                // Check that the subcontainer name appears as a type name in fInitInstructions
+                SearchSubcontainer search_class(it->getClassName());
+                fInitInstructions->accept(&search_class);
+                if (search_class.fFound) {
+                    VariableSizeCounter struct_size(Address::kStruct);
+                    it->generateDeclarations(&struct_size);
+                    fMemoryLayout.push_back(make_tuple(it->getClassName(), "kObj_ptr", 0, struct_size.fSizeBytes, 0, 0));
+                }
+            }
+        }
+    }
+}
+
 BlockInst* CodeContainer::flattenFIR(void)
 {
     BlockInst* global_block = InstBuilder::genBlockInst();
@@ -572,6 +697,10 @@ BlockInst* CodeContainer::flattenFIR(void)
         global_block->merge(it->flattenFIR());
     }
 
+    // Control method
+    global_block->pushBackInst(InstBuilder::genLabelInst("========== Control =========="));
+    global_block->merge(fControlDeclarationInstructions);
+    
     // Compute method
     global_block->pushBackInst(InstBuilder::genLabelInst("========== Compute control =========="));
     global_block->merge(fComputeBlockInstructions);
@@ -587,23 +716,17 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
 {
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
     block = DspRenamer().getCode(block);
-    //dump2FIR(block);
-
+ 
     // Inline subcontainers 'instanceInit' and 'fill' function call
     for (const auto& it : fSubContainers) {
         // Build the function to be inlined (prototype and code)
         DeclareFunInst* inst_init_fun = it->generateInstanceInitFun("instanceInit" + it->getClassName(), "dsp", true, false);
-        //dump2FIR(inst_init_fun);
         block = FunctionCallInliner(inst_init_fun).getCode(block);
-        //dump2FIR(block);
     
         // Build the function to be inlined (prototype and code)
         DeclareFunInst* fill_fun = it->generateFillFun("fill" + it->getClassName(), "dsp", true, false);
-        //dump2FIR(fill_fun);
         block = FunctionCallInliner(fill_fun).getCode(block);
-        //dump2FIR(block);
     }
-    // dump2FIR(block);
     
     // Rename all loop variables name to avoid name clash
     LoopVariableRenamer loop_renamer;
@@ -939,7 +1062,7 @@ DeclareFunInst* CodeContainer::generateComputeFun(const string& name, const stri
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
 
-// Memory
+// Memory methods
 
 DeclareFunInst* CodeContainer::generateCalloc()
 {

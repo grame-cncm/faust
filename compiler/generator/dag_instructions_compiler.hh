@@ -57,7 +57,7 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd,
                                          Address::AccessType& access, ValueInst* ccs);
 
-    StatementInst* generateCopyBackArray(const std::string& vname_to, const std::string& vname_from, int size);
+    StatementInst* generateCopyBackArray(const std::string& vname_to, const std::string& vname_from,  ValueInst* vec_size, int size);
 
     // private helper functions
     bool needSeparateLoop(Tree sig);
