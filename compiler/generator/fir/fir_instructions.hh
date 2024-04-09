@@ -268,6 +268,12 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         EndLine();
     }
     
+    virtual void visit(NullDeclareVarInst* inst)
+    {
+        *fOut << "NullDeclareVarInst()";
+        EndLine();
+    }
+    
     // For Rust and Julia backends
     virtual void visit(DeclareBufferIterators* inst)
     {

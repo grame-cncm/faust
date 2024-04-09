@@ -415,7 +415,7 @@ void CodeContainer::processFIR(void)
         if (fIntControl->getSize() > 0 && fIntControl->fAccess == Address::kStruct) {
             pushDeclare(InstBuilder::genDecStructVar("iControl", InstBuilder::genArrayTyped(Typed::kInt32, fIntControl->getSize())));
         }
-        if (fRealControl->getSize() > 0 && fIntControl->fAccess == Address::kStruct) {
+        if (fRealControl->getSize() > 0 && fRealControl->fAccess == Address::kStruct) {
             pushDeclare(InstBuilder::genDecStructVar("fControl", InstBuilder::genArrayTyped(itfloat(), fRealControl->getSize())));
         }
     }

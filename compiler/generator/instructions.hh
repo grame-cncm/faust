@@ -675,7 +675,8 @@ struct Address : public Printable {
         kVolatile     = 0x80,
         kReference    = 0x100,  // Access by reference (for Rust backend)
         kMutable      = 0x200,  // Mutable access (for Rust backend)
-        kConst        = 0x400   // Const access
+        kConst        = 0x400,  // Const access
+        kNoAccess     = 0x800   // Degenerated case used in NullDeclareVarInst
     };
 
     Address() {}
@@ -966,8 +967,13 @@ struct NullDeclareVarInst : public DeclareVarInst {
     NullDeclareVarInst():DeclareVarInst()
     {}
     
-    // Empty
-    void accept(InstVisitor* visitor) {}
+    void                setAccess(Address::AccessType access) {}
+    Address::AccessType getAccess() const  { return Address::kNoAccess; }
+    
+    void   setName(const std::string& name) {}
+    std::string getName() const { return "NullDeclareVarInst"; }
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
     
     StatementInst* clone(CloneVisitor* cloner) { return new NullStatementInst(); }
 };
