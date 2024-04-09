@@ -93,13 +93,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     }
 
     virtual ~WASTInstVisitor() {}
-
-    virtual void visit(AddSoundfileInst* inst)
-    {
-        // Not supported for now
-        // throw faustexception("ERROR : 'soundfile' primitive not yet supported for wast\n");
-    }
-    
+ 
     virtual void visit(DeclareVarInst* inst)
     {
         bool         is_struct  = inst->fAddress->isStruct() || inst->fAddress->isStaticStruct();

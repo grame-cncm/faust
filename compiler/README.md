@@ -1,4 +1,4 @@
-% man(1) Version 2.72.16 (07-April-2024) | Faust man page
+% man(1) Version 2.73.0 (09-April-2024) | Faust man page
 
 NAME
 ====
@@ -78,15 +78,9 @@ Code generation options:
 
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
-  **-os**         **--one-sample**                generate one sample computation (same as -os0).
+  **-os**         **--one-sample**                generate one sample computation.
 
-  **-os0**        **--one-sample0**               generate one sample computation (0 = separated control).
-
-  **-os1**        **--one-sample1**               generate one sample computation (1 = separated control and DSP struct).
-
-  **-os2**        **--one-sample2**               generate one sample computation (2 = separated control and DSP struct. Separation in short and long delay lines).
-
-  **-os3**        **--one-sample3**               generate one sample computation (3 = like 2 but with external memory pointers kept in the DSP struct).
+  **-ec**         **--external-control**          separated 'control' and 'compute' functions.
 
   **-it**         **--inline-table**              inline rdtable/rwtable code in the main class.
 
@@ -108,7 +102,13 @@ Code generation options:
 
   **-dlt** \<n>    **--delay-line-threshold** \<n>  use a mask-based ring buffer delays up to max delay \<n> and a select based ring buffers above (default INT_MAX samples).
 
-  **-mem**        **--memory-manager**            allocate static in global state using a custom memory manager.
+  **-mem**        **--memory-manager**            allocations done using a custom memory manager.
+
+  **-mem1**       **--memory-manager1**           allocations done using a custom memory manager, using the iControl/fControl and iZone/fZone model.
+
+  **-mem2**       **--memory-manager2**           use iControl/fControl, iZone/fZone model and no explicit memory manager.
+
+  **-mem3**       **--memory-manager3**           use iControl/fControl, iZone/fZone model and no explicit memory manager with access as function parameters.
 
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
 
@@ -126,7 +126,7 @@ Code generation options:
 
   **-vs** \<n>     **--vec-size** \<n>              size of the vector (default 32 samples).
 
-  **-lv** \<n>     **--loop-variant** \<n>          [0:fastest, fixed vector size and a remaining loop (default), 1:simple, variable vector size].
+  **-lv** \<n>     **--loop-variant** \<n>          [0:fastest, fixed vector size and a remaining loop (default), 1:simple, variable vector size, 2:fixed, fixed vector size].
 
   **-omp**        **--openmp**                    generate OpenMP pragmas, activates --vectorize option.
 
@@ -158,7 +158,7 @@ Code generation options:
 
   **-vhdl**-components \<file> **--vhdl-components** \<file>    path to a file describing custom components for the VHDL backend.
 
-  **-fpga**-mem \<n>  **--fpga-mem** \<n>           FPGA block ram max size, used in -os2/-os3 mode.
+  **-fpga**-mem \<n>  **--fpga-mem** \<n>           FPGA block ram max size, used in -mem1/-mem2 mode.
 
   **-wi** \<n>     **--widening-iterations** \<n>   number of iterations before widening in signal bounding.
 
