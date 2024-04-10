@@ -27,7 +27,6 @@
 #include "was_instructions.hh"
 
 #define realStr ((gGlobal->gFloatSize == 1) ? "f32" : ((gGlobal->gFloatSize == 2) ? "f64" : ""))
-#define offStr ((gGlobal->gFloatSize == 1) ? "2" : ((gGlobal->gFloatSize == 2) ? "3" : ""))
 
 class WASTInstVisitor : public TextInstVisitor, public WASInst {
    private:
@@ -187,7 +186,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         // generated
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             MathFunDesc desc = fMathLibTable[inst->fName];
-            if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
+            if (desc.fMathMode == MathFunDesc::Gen::kExtMath || desc.fMathMode == MathFunDesc::Gen::kExtWAS) {
                 tab(fTab, *fOut);
                 // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
                 *fOut << "(import $" << inst->fName << " \"env\" \""
@@ -349,7 +348,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 if (fSubContainerType == kInt) {
                     *fOut << " (i32.const 2)))";
                 } else {
-                    *fOut << " (i32.const " << offStr << ")))";
+                    *fOut << " (i32.const " << offStrNum << ")))";
                 }
             }
         } else {
@@ -375,22 +374,22 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                         if (tmp.fOffset == 0) {
                             *fOut << "(i32.shl ";
                             indexed->getIndex()->accept(this);
-                            *fOut << " (i32.const " << offStr << "))";
+                            *fOut << " (i32.const " << offStrNum << "))";
                         } else {
                             *fOut << "(i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
                             indexed->getIndex()->accept(this);
-                            *fOut << " (i32.const " << offStr << ")))";
+                            *fOut << " (i32.const " << offStrNum << ")))";
                         }
                     } else {
                         // Micro optimization if the field is actually the first one in the structure
                         if (tmp.fOffset == 0) {
                             *fOut << "(i32.add (local.get $dsp) (i32.shl ";
                             indexed->getIndex()->accept(this);
-                            *fOut << " (i32.const " << offStr << ")))";
+                            *fOut << " (i32.const " << offStrNum << ")))";
                         } else {
                             *fOut << "(i32.add (local.get $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
                             indexed->getIndex()->accept(this);
-                            *fOut << " (i32.const " << offStr << "))))";
+                            *fOut << " (i32.const " << offStrNum << "))))";
                         }
                     }
                 }
@@ -410,7 +409,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 } else {
                     *fOut << "(i32.add (local.get " << indexed->getName() << ") (i32.shl ";
                     indexed->getIndex()->accept(this);
-                    *fOut << " (i32.const " << offStr << ")))";
+                    *fOut << " (i32.const " << offStrNum << ")))";
                 }
             }
         }
@@ -612,7 +611,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             MathFunDesc desc = fMathLibTable[inst->fName];
-            if (desc.fMode == MathFunDesc::Gen::kWAS) {
+            if (desc.fMathMode == MathFunDesc::Gen::kWAS) {
                 // Special case for min/max
                 if (checkMinMax(desc.fName)) {
                     generateMinMax(inst->fArgs, desc.fName);

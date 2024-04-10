@@ -492,7 +492,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             MathFunDesc desc = fMathLibTable[inst->fName];
 
-            if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
+            if (desc.fMathMode == MathFunDesc::Gen::kExtMath || desc.fMathMode == MathFunDesc::Gen::kExtWAS) {
                 
                 // Build function type (args type same as return type)
                 Names args;
@@ -1283,7 +1283,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // Then compile funcall
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             MathFunDesc desc = fMathLibTable[inst->fName];
-            if (desc.fMode == MathFunDesc::Gen::kWAS) {
+            if (desc.fMathMode == MathFunDesc::Gen::kWAS) {
                 // Special case for min/max
                 if (checkMinMax(desc.fName)) {
                     generateMinMax(inst->fArgs, inst->fName);

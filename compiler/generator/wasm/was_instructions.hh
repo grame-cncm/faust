@@ -84,8 +84,8 @@ struct WASInst {
 
         MathFunDesc() {}
 
-        MathFunDesc(Gen mode, const std::string& name, WasmOp op, Typed::VarType type_in, Typed::VarType type_out, int args)
-            : fMode(mode),
+        MathFunDesc(Gen math_mode, const std::string& name, WasmOp op, Typed::VarType type_in, Typed::VarType type_out, int args)
+            : fMathMode(math_mode),
             fName(name),
             fWasmOp(op),
             fTypeIn(type_in),
@@ -93,8 +93,8 @@ struct WASInst {
             fArgs(args)
         {}
 
-        MathFunDesc(Gen mode, const std::string& name, Typed::VarType type_in, Typed::VarType type_out, int args)
-            : fMode(mode),
+        MathFunDesc(Gen math_mode, const std::string& name, Typed::VarType type_in, Typed::VarType type_out, int args)
+            : fMathMode(math_mode),
             fName(name),
             fWasmOp(WasmOp::Dummy),
             fTypeIn(type_in),
@@ -102,7 +102,7 @@ struct WASInst {
             fArgs(args)
         {}
 
-        Gen            fMode;
+        Gen            fMathMode;   // Math function model
         std::string    fName;
         WasmOp         fWasmOp;
         Typed::VarType fTypeIn;
@@ -120,7 +120,7 @@ struct WASInst {
     int  fStructOffset;  // Keep the offset in bytes of the structure
     int  fSubContainerType;
     bool fFastMemory;    // If true, assume $dsp is always 0 to simplify and speed-up dsp memory access code
-
+ 
     WASInst(bool fast_memory = false)
     {
         // Integer version
