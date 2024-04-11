@@ -217,8 +217,8 @@ class APIUI : public PathBuilder, public Meta, public UI
                 int id4 = getZoneIndex(table, p, val);
                 if (id4 != -1) {
                     // Reactivate the one we edit...
-                  table[val][uint(id4)]->setMappingValues(curve, amin, amid, amax, fItems[uint(p)].fMin, fItems[uint(p)].fInit, fItems[uint(p)].fMax);
-                  table[val][uint(id4)]->setActive(true);
+                    table[val][uint(id4)]->setMappingValues(curve, amin, amid, amax, fItems[uint(p)].fMin, fItems[uint(p)].fInit, fItems[uint(p)].fMax);
+                    table[val][uint(id4)]->setActive(true);
                 } else {
                     // Allocate a new CurveZoneControl which is 'active' by default
                     FAUSTFLOAT* zone = fItems[uint(p)].fZone;

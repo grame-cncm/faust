@@ -35,3 +35,26 @@ Here are the available options:
 By default, it will create a `file-jackrust` folder with the Rust project and compile it using cargo. 
 
 As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2portaudiorust**, like `-vec -lv 1` to compile in vector mode.etc.
+
+## Memory allocation issues
+
+At the moment, there is no formal way to allocate an arbitrary struct on the heap in rust. The current approach taken by Faust is to allocate the dsp with `Box::new(Dsp::new())` which would be expected to first allocate on stack then move on heap, but this move is optimized away in release and it's allocated directly on the heap. However, when running in debug mode, the intermediary allocation is here making any echo or reverb very likely to stack overflow.
+
+The standard way is to allocate the DSP on the heap with the help of the third-party `crate default-boxed`.
+
+The change in the generated code of Faust is very conservative: it's under conditional compilation with a feature, disabled by default. When the feature is enabled, it adds a `new default_boxed()` method. This change should not break any user, including in specific environment such as embedded/no-std. The following code can be used to setup the allocation:
+
+```Rust
+let mut dsp;
+     #[cfg(feature = "default-boxed")]
+     {
+         use default_boxed::DefaultBoxed;
+         dsp = mydsp::default_boxed();
+     }
+
+     #[cfg(not(feature = "default-boxed"))]
+     {
+         dsp = Box::new(mydsp::new());
+     }
+```
+

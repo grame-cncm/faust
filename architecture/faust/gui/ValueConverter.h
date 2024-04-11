@@ -30,7 +30,7 @@
  (GRAME, Copyright 2015-2019)
  
  Set of conversion objects used to map user interface values (for example a gui slider
- delivering values between 0 and 1) to faust values (for example a vslider between
+ delivering values between 0 and 1) to Faust values (for example a vslider between
  20 and 20000) using a log scale.
  
  -- Utilities
@@ -494,10 +494,12 @@ class FAUST_API CurveZoneControl : public ZoneControl {
             fValueConverters.push_back(new AccDownUpConverter(amin, amid, amax, min, init, max));
             fCurve = curve;
         }
+    
         virtual ~CurveZoneControl()
         {
             for (const auto& it : fValueConverters) { delete it; }
         }
+    
         void update(double v) const { if (fValueConverters[fCurve]->getActive()) *fZone = FAUSTFLOAT(fValueConverters[fCurve]->ui2faust(v)); }
 
         void setMappingValues(int curve, double amin, double amid, double amax, double min, double init, double max)
