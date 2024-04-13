@@ -92,8 +92,7 @@ ostream& operator<<(ostream& dst, const TupletType& t)
  */
 ostream& SimpleType::print(ostream& dst) const
 {
-    return dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()]
-               << "N?B"[boolean()] << " " << fInterval;
+    return dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()] << "N?B"[boolean()] << " " << fInterval;
 }
 
 /**
@@ -101,8 +100,7 @@ ostream& SimpleType::print(ostream& dst) const
  */
 ostream& TableType::print(ostream& dst) const
 {
-    dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()]
-        << "N?B"[boolean()] << " " << fInterval << ":Table(";
+    dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()] << "N?B"[boolean()] << " " << fInterval << ":Table(";
     fContent->print(dst);
     return dst << ')';
 }
@@ -136,7 +134,9 @@ ostream& TupletType::print(ostream& dst) const
 bool TupletType::isMaximal() const
 {
     for (unsigned int i = 0; i < fComponents.size(); i++) {
-        if (!fComponents[i]->isMaximal()) return false;
+        if (!fComponents[i]->isMaximal()) {
+            return false;
+        }
     }
     return true;
 }
@@ -155,9 +155,9 @@ Type operator|(const Type& t1, const Type& t2)
     TupletType *nt1, *nt2;
 
     if ((st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2))) {
-        return makeSimpleType(st1->nature() | st2->nature(), st1->variability() | st2->variability(),
-                              st1->computability() | st2->computability(), st1->vectorability() | st2->vectorability(),
-                              st1->boolean() | st2->boolean(), itv::reunion(st1->getInterval(), st2->getInterval()));
+        return makeSimpleType(st1->nature() | st2->nature(), st1->variability() | st2->variability(), st1->computability() | st2->computability(),
+                              st1->vectorability() | st2->vectorability(), st1->boolean() | st2->boolean(),
+                              itv::reunion(st1->getInterval(), st2->getInterval()));
 
     } else if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) {
         return makeTableType(tt1->content() | tt2->content());
@@ -180,26 +180,36 @@ Type operator|(const Type& t1, const Type& t2)
 bool operator==(const Type& t1, const Type& t2)
 {
     SimpleType *st1, *st2;
-    TableType* tt1, *tt2;
+    TableType * tt1, *tt2;
     TupletType *nt1, *nt2;
 
-    if (t1->variability() != t2->variability()) return false;
-    if (t1->computability() != t2->computability()) return false;
+    if (t1->variability() != t2->variability()) {
+        return false;
+    }
+    if (t1->computability() != t2->computability()) {
+        return false;
+    }
 
-    if ((st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2)))
-        return (st1->nature() == st2->nature()) && (st1->variability() == st2->variability()) &&
-               (st1->computability() == st2->computability()) && (st1->vectorability() == st2->vectorability()) &&
-               (st1->boolean() == st2->boolean()) && (st1->getInterval().lo() == st2->getInterval().lo()) &&
-               (st1->getInterval().hi() == st2->getInterval().hi()) &&
+    if ((st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2))) {
+        // we need to ignore fix point resolution, because it never converges
+        return (st1->nature() == st2->nature()) && (st1->variability() == st2->variability()) && (st1->computability() == st2->computability()) &&
+               (st1->vectorability() == st2->vectorability()) && (st1->boolean() == st2->boolean()) && (st1->getInterval().lo() == st2->getInterval().lo()) &&
+               (st1->getInterval().hi() == st2->getInterval().hi()) /*&&
                (st1->getInterval().isValid() == st2->getInterval().isValid()) &&
-               st1->getRes().valid == st2->getRes().valid && st1->getRes().index == st2->getRes().index;
-    if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) return tt1->content() == tt2->content();
+               st1->getRes().valid == st2->getRes().valid && st1->getRes().index == st2->getRes().index*/
+            ;
+    }
+    if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) {
+        return tt1->content() == tt2->content();
+    }
     if ((nt1 = isTupletType(t1)) && (nt2 = isTupletType(t2))) {
         int a1 = nt1->arity();
         int a2 = nt2->arity();
         if (a1 == a2) {
             for (int i = 0; i < a1; i++) {
-                if ((*nt1)[i] != (*nt2)[i]) return false;
+                if ((*nt1)[i] != (*nt2)[i]) {
+                    return false;
+                }
             }
             return true;
         } else {
@@ -347,7 +357,9 @@ Tree codeAudioType(AudioType* t)
 
     Tree r;
 
-    if ((r = t->getCode())) return r;
+    if ((r = t->getCode())) {
+        return r;
+    }
 
     if ((st = isSimpleType(t))) {
         r = codeSimpleType(st);

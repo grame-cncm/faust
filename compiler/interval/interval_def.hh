@@ -225,7 +225,8 @@ inline bool operator==(const interval& i, const interval& j)
 
 inline bool operator<=(const interval& i, const interval& j)
 {
-    return reunion(i, j) == j;
+    // return reunion(i, j) == j;
+    return (i.lo() >= j.lo()) && (i.hi() <= j.hi());
 }
 
 // additional predicates
