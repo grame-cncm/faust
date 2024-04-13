@@ -17,7 +17,7 @@ Here are the available options:
 - `-source : only generates the source project`
 - `-help or -h : shows the different options` 
 
-By default, it will create a `file-portaudiorust` folder with the Rust project and compile it using cargo. 
+By default, it will create a `file-portaudiorust` folder with the Rust project and compile it using *cargo*. 
 
 As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2portaudiorust**, like `-vec -lv 1` to compile in vector mode.etc.
 
@@ -32,9 +32,9 @@ Here are the available options:
 - `-source : only generates the source project.`
 - `-help or -h : shows the different options` 
 
-By default, it will create a `file-jackrust` folder with the Rust project and compile it using cargo. 
+By default, it will create a `file-jackrust` folder with the Rust project and compile it using *cargo*. 
 
-As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2portaudiorust**, like `-vec -lv 1` to compile in vector mode.etc.
+As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2jackrust**, like `-vec -lv 1` to compile in vector mode.etc.
 
 ## Memory allocation issues
 
@@ -46,15 +46,15 @@ The change in the generated code of Faust is very conservative: it's under condi
 
 ```Rust
 let mut dsp;
-     #[cfg(feature = "default-boxed")]
-     {
-         use default_boxed::DefaultBoxed;
-         dsp = mydsp::default_boxed();
-     }
+#[cfg(feature = "default-boxed")]
+{
+    use default_boxed::DefaultBoxed;
+    dsp = mydsp::default_boxed();
+}
 
-     #[cfg(not(feature = "default-boxed"))]
-     {
-         dsp = Box::new(mydsp::new());
-     }
+#[cfg(not(feature = "default-boxed"))]
+{
+    dsp = Box::new(mydsp::new());
+}
 ```
 
