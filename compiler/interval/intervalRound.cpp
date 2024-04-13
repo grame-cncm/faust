@@ -22,22 +22,22 @@
 
 namespace itv {
 //------------------------------------------------------------------------------------------
-// Interval Floor
-// interval Floor(const interval& x);
-// void testFloor();
+// Interval Round
+// interval Round(const interval& x);
+// void testRound();
 
-interval interval_algebra::Floor(const interval& x)
+interval interval_algebra::Round(const interval& x)
 {
     if (x.isEmpty()) {
-        return interval::empty();
+        return x;
     }
-    return {floor(x.lo()), floor(x.hi()), -1};  // even though the output of floor are mathematical integers,
-                                                // they are implemented as floats and thus should not be given precision
-                                                // 0, lest it be cast as an int
+
+    // round to integral value (regardless of rounding direction) => integer => precision 0
+    return {round(x.lo()), round(x.hi()), std::max(0, x.lsb())};
 }
 
-void interval_algebra::testFloor()
+void interval_algebra::testRound()
 {
-    analyzeUnaryMethod(10, 1000, "floor", interval(-10, 10, -24), floor, &interval_algebra::Floor);
+    check("test algebra Round", Round(interval(-3.1, 5.9)), interval(-3, 6));
 }
 }  // namespace itv

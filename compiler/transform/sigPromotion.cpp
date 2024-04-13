@@ -23,14 +23,14 @@
 #include <cstdlib>
 #include <sstream>
 
-#include "sigPromotion.hh"
+#include "floats.hh"
 #include "global.hh"
+#include "ppsig.hh"
 #include "prim2.hh"
+#include "sigPromotion.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
-#include "floats.hh"
-#include "ppsig.hh"
 
 using namespace std;
 
@@ -62,7 +62,7 @@ void SignalTypePrinter::visit(Tree sig)
     stringstream type;
     type << "Type = " << getCertifiedSigType(sig) << endl;
     fPrinted.push_back(type.str());
-    
+
     // Default case and recursion
     SignalVisitor::visit(sig);
 }
@@ -70,9 +70,9 @@ void SignalTypePrinter::visit(Tree sig)
 void SignalChecker::isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux)
 {
     std::stringstream error;
-    double init = tree2double(init_aux);
-    double min = tree2double(min_aux);
-    double max = tree2double(max_aux);
+    double            init = tree2double(init_aux);
+    double            min  = tree2double(min_aux);
+    double            max  = tree2double(max_aux);
     if (min > max) {
         error << "ERROR : min = " << min << " should be less than max = " << max << " in '" << ppsig(sig) << "'\n";
         throw faustexception(error.str());
@@ -146,7 +146,7 @@ void SignalChecker::visit(Tree sig)
             cerr << "ASSERT : isSigIntCast of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
-        
+
     } else if (isSigBitCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kInt) {
             cerr << "ASSERT : isSigBitCast of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
@@ -198,11 +198,10 @@ void SignalChecker::visit(Tree sig)
             cerr << "ASSERT : isSigSoundfileBuffer with a wrong typed ri : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
-        
+
         // Sliders and nentry
-    } else if (isSigVSlider(sig, label, init, min, max, step)
-               || isSigHSlider(sig, label, init, min, max, step)
-               || isSigNumEntry(sig, label, init, min, max, step)) {
+    } else if (isSigVSlider(sig, label, init, min, max, step) || isSigHSlider(sig, label, init, min, max, step) ||
+               isSigNumEntry(sig, label, init, min, max, step)) {
         isRange(sig, init, min, max);
 
         // Bargraph
@@ -217,12 +216,12 @@ void SignalChecker::visit(Tree sig)
             cerr << "ASSERT : isSigVBargraph of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
-        
+
         // signal bounds
     } else if (isSigLowest(sig, x) || isSigHighest(sig, x)) {
         cerr << "ASSERT : annotations should have been deleted in Simplification process" << endl;
         faustassert(false);
-        
+
         // enable/control
     } else if (isSigControl(sig, x, y) && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
@@ -250,7 +249,7 @@ Tree SignalPromotion::transformation(Tree sig)
         for (Tree b : sig->branches()) {
             vt.push_back(getCertifiedSigType(b));
         }
-        Type tr = p->inferSigType(vt);
+        Type         tr = p->inferSigType(vt);
         vector<Tree> new_branches;
         for (Tree b : sig->branches()) {
             new_branches.push_back(smartCast(tr, getCertifiedSigType(b), self(b)));
@@ -395,8 +394,7 @@ Tree SignalPromotion::transformation(Tree sig)
     } else if (isSigSoundfileRate(sig, sf, part)) {
         return sigSoundfileRate(self(sf), smartIntCast(getCertifiedSigType(part), self(part)));
     } else if (isSigSoundfileBuffer(sig, sf, chan, part, ri)) {
-        return sigSoundfileBuffer(self(sf), self(chan), smartIntCast(getCertifiedSigType(part), self(part)),
-                                  smartIntCast(getCertifiedSigType(ri), self(ri)));
+        return sigSoundfileBuffer(self(sf), self(chan), smartIntCast(getCertifiedSigType(part), self(part)), smartIntCast(getCertifiedSigType(ri), self(ri)));
     }
 
     // All UI items with range (vslider, hslider, nentry) are treated
@@ -412,7 +410,7 @@ Tree SignalPromotion::transformation(Tree sig)
         Type tx0 = getCertifiedSigType(t0);
         return sigVBargraph(label, self(min), self(max), smartFloatCast(tx0, self(t0)));
     }
-   
+
     else {
         // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
@@ -475,7 +473,7 @@ Tree SignalBool2IntPromotion::transformation(Tree sig)
 {
     int  op;
     Tree x, y;
-    
+
     if (isSigBinOp(sig, &op, x, y)) {
         if (isBoolOpcode(op)) {
             return sigIntCast(sigBinOp(op, self(x), self(y)));
@@ -496,7 +494,7 @@ Tree SignalFXPromotion::transformation(Tree sig)
     } else {
         // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
-   }
+    }
 }
 
 Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size_aux, Tree ri)
@@ -507,8 +505,8 @@ Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size_aux, Tree 
         error << "ERROR : RDTbl size = " << size << " should be > 0 \n";
         throw faustexception(error.str());
     }
-    Type ty = getSigType(ri);
-    interval ri_i;
+    Type     ty = getSigType(ri);
+    interval ri_i(NAN, NAN);
     // The tree may not be properly typed because of a inner safeSigRDTbl/safeSigWRTbl call
     if (ty) {
         ri_i = ty->getInterval();
@@ -518,11 +516,11 @@ Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size_aux, Tree 
     if (ri_i.lo() < 0 || ri_i.hi() >= size) {
         if (gAllWarning) {
             stringstream error;
-            error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi() << "] is outside of table size ("
-                  << size << ") in " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi() << "] is outside of table size (" << size << ") in "
+                  << ppsig(sig, MAX_ERROR_SIZE) << endl;
             gWarningMessages.push_back(error.str());
         }
-        return sigRDTbl(self(tbl), sigMax(sigInt(0), sigMin(self(ri), sigInt(size-1))));
+        return sigRDTbl(self(tbl), sigMax(sigInt(0), sigMin(self(ri), sigInt(size - 1))));
     } else {
         // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
@@ -537,8 +535,8 @@ Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree size_aux, Tree gen, Tree 
         error << "ERROR : WRTbl size = " << size << " should be > 0 \n";
         throw faustexception(error.str());
     }
-    Type ty = getSigType(wi);
-    interval wi_i;
+    Type     ty = getSigType(wi);
+    interval wi_i(NAN, NAN);
     // The tree may not be properly typed because of a inner safeSigRDTbl/safeSigWRTbl call
     if (ty) {
         wi_i = ty->getInterval();
@@ -548,11 +546,11 @@ Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree size_aux, Tree gen, Tree 
     if (wi_i.lo() < 0 || wi_i.hi() >= size) {
         if (gAllWarning) {
             stringstream error;
-            error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi() << "] is outside of table size ("
-                  << size << ") in " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi() << "] is outside of table size (" << size << ") in "
+                  << ppsig(sig, MAX_ERROR_SIZE) << endl;
             gWarningMessages.push_back(error.str());
         }
-        return sigWRTbl(self(size_aux), self(gen), sigMax(sigInt(0), sigMin(self(wi), sigInt(size-1))), self(ws));
+        return sigWRTbl(self(size_aux), self(gen), sigMax(sigInt(0), sigMin(self(wi), sigInt(size - 1))), self(ws));
     } else {
         // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
@@ -586,14 +584,14 @@ Tree SignalIntCastPromotion::transformation(Tree sig)
         if (x_i.lo() <= INT32_MIN || x_i.hi() >= INT32_MAX) {
             if (gAllWarning) {
                 stringstream error;
-                error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi()
-                      << "] is outside of integer range in " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+                error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi() << "] is outside of integer range in "
+                      << ppsig(sig, MAX_ERROR_SIZE) << endl;
                 gWarningMessages.push_back(error.str());
             }
             return sigIntCast(sigMin(sigReal(INT32_MAX), sigMax(x, sigReal(INT32_MIN))));
         }
     }
-    
+
     // Other cases => identity transformation
     return SignalIdentity::transformation(sig);
 }
@@ -601,10 +599,8 @@ Tree SignalIntCastPromotion::transformation(Tree sig)
 Tree SignalUIPromotion::transformation(Tree sig)
 {
     Tree label, init, min, max, step;
-    
-    if (isSigVSlider(sig, label, init, min, max, step)
-        || isSigHSlider(sig, label, init, min, max, step)
-        || isSigNumEntry(sig, label, init, min, max, step)) {
+
+    if (isSigVSlider(sig, label, init, min, max, step) || isSigHSlider(sig, label, init, min, max, step) || isSigNumEntry(sig, label, init, min, max, step)) {
         return sigMax(min, sigMin(max, sig));
     } else {
         // Other cases => identity transformation
@@ -616,9 +612,7 @@ Tree SignalUIFreezePromotion::transformation(Tree sig)
 {
     Tree label, init, min, max, step;
 
-    if (isSigVSlider(sig, label, init, min, max, step)
-        || isSigHSlider(sig, label, init, min, max, step)
-        || isSigNumEntry(sig, label, init, min, max, step)) {
+    if (isSigVSlider(sig, label, init, min, max, step) || isSigHSlider(sig, label, init, min, max, step) || isSigNumEntry(sig, label, init, min, max, step)) {
         /*
          Freeze with the init value.
          TODO:
@@ -636,7 +630,7 @@ Tree SignalFTZPromotion::selfRec(Tree l)
 {
     // Recursion here
     l = self(l);
-    
+
     // Add FTZ on real signals only
     if (getCertifiedSigType(l)->nature() == kReal) {
         if (gGlobal->gFTZMode == 1) {
@@ -649,19 +643,19 @@ Tree SignalFTZPromotion::selfRec(Tree l)
             }
         }
     }
-    
+
     return l;
 }
 
 Tree SignalAutoDifferentiate::transformation(Tree sig)
 {
-    int  op;
-    int  i;
+    int     op;
+    int     i;
     int64_t i64;
-    double r;
-    Tree w, x, y, z, label, init, min, max, step, var, body;
-    Tree d;
-    
+    double  r;
+    Tree    w, x, y, z, label, init, min, max, step, var, body;
+    Tree    d;
+
     // Math primitives
     xtended* p = (xtended*)getUserData(sig);
     if (p) {
@@ -669,12 +663,8 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             tab(fIndent, cout);
             std::cout << "math primitive: " << ppsig(sig) << "\n";
         }
-        
-        if (p == gGlobal->gPowPrim
-            || p == gGlobal->gFmodPrim
-            || p == gGlobal->gRemainderPrim
-            || p == gGlobal->gMaxPrim
-            || p == gGlobal->gMinPrim) {
+
+        if (p == gGlobal->gPowPrim || p == gGlobal->gFmodPrim || p == gGlobal->gRemainderPrim || p == gGlobal->gMaxPrim || p == gGlobal->gMinPrim) {
             // Derivative of these primitives require f, g, f' and g'.
             auto branches{sig->branches()};
             branches.push_back(self(sig->branch(0)));
@@ -716,28 +706,38 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
 
         switch (op) {
             case kAdd:
-                if (gGlobal->gDetailsSwitch) std::cout << "ADD\n";
+                if (gGlobal->gDetailsSwitch) {
+                    std::cout << "ADD\n";
+                }
                 // (f + g)' = f' + g'
                 d = sigAdd(self(x), self(y));
                 break;
             case kSub:
-                if (gGlobal->gDetailsSwitch) std::cout << "SUB\n";
+                if (gGlobal->gDetailsSwitch) {
+                    std::cout << "SUB\n";
+                }
                 // (f - g)' = f' - g'
                 d = sigSub(self(x), self(y));
                 break;
             case kMul:
-                if (gGlobal->gDetailsSwitch) std::cout << "MUL\n";
+                if (gGlobal->gDetailsSwitch) {
+                    std::cout << "MUL\n";
+                }
                 // (f * g)' = f' * g + f * g'
                 d = sigAdd(sigMul(self(x), y), sigMul(x, self(y)));
                 break;
             case kDiv:
-                if (gGlobal->gDetailsSwitch) std::cout << "DIV\n";
+                if (gGlobal->gDetailsSwitch) {
+                    std::cout << "DIV\n";
+                }
                 // (f / g)' = (f' * g - f * g') / (g * g)
                 d = sigDiv(sigSub(sigMul(self(x), y), sigMul(x, self(y))), sigMul(y, y));
                 break;
             case kRem:
                 // NB, this *is* the modulo operator (not the remainder primitive).
-                if (gGlobal->gDetailsSwitch) std::cout << "REM\n";
+                if (gGlobal->gDetailsSwitch) {
+                    std::cout << "REM\n";
+                }
                 // (f % g)' = f' - g' * floor(f / g), sin(pi * f / g) != 0
                 // TODO: use `sigSelect2` to handle the indeterminate case?
                 d = sigSub(self(x), sigMul(self(y), sigFloor(sigDiv(x, y))));
@@ -745,7 +745,9 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             case kLsh:
             case kARsh:
             case kLRsh:
-                if (gGlobal->gDetailsSwitch) std::cout << "Bitshift\n";
+                if (gGlobal->gDetailsSwitch) {
+                    std::cout << "Bitshift\n";
+                }
                 // e.g., (f << g)' = 0, sin(pi * f / g) != 0
                 d = sigZero(getCertifiedSigType(sig)->nature());
                 break;
@@ -758,30 +760,31 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             case kAND:
             case kOR:
             case kXOR:
-                if (gGlobal->gDetailsSwitch) std::cout << "Binary comparison\n";
+                if (gGlobal->gDetailsSwitch) {
+                    std::cout << "Binary comparison\n";
+                }
                 d = sigZero(getCertifiedSigType(sig)->nature());
                 break;
             default:
-                if (gGlobal->gDetailsSwitch) std::cout << "Unhandled sigBinOp: " << op << "\n";
+                if (gGlobal->gDetailsSwitch) {
+                    std::cout << "Unhandled sigBinOp: " << op << "\n";
+                }
                 d = sigBinOp(op, self(x), self(y));
                 break;
         }
     }
-    
+
     // init, min, max, and step must be real constant numerical expressions,
     // i.e. they are not differentiable.
-    else if (isSigButton(sig, label)
-               || isSigCheckbox(sig, label)
-               || isSigVSlider(sig, label, init, min, max, step)
-               || isSigHSlider(sig, label, init, min, max, step)
-               || isSigNumEntry(sig, label, init, min, max, step)) {
+    else if (isSigButton(sig, label) || isSigCheckbox(sig, label) || isSigVSlider(sig, label, init, min, max, step) ||
+             isSigHSlider(sig, label, init, min, max, step) || isSigNumEntry(sig, label, init, min, max, step)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
             std::cout << "UI element: " << ppsig(sig) << "\n";
         }
         d = diff(sig, getCertifiedSigType(sig)->nature());
     }
-    
+
     else if (isSigInput(sig, &i)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
@@ -789,23 +792,25 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
         }
         d = diff(sig, getCertifiedSigType(sig)->nature());
     }
-    
+
     else if (isSigDelay1(sig, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Mem: " << "\t" << ppsig(sig) << "\tx: " << ppsig(x) << "\n";
+            std::cout << "Mem: "
+                      << "\t" << ppsig(sig) << "\tx: " << ppsig(x) << "\n";
         }
         // Derivative of a single sample delay wrt. any parameter is the delayed
         // differentiated signal.
         d = sigDelay1(self(x));
     }
-    
+
     else if (isSigDelay(sig, x, y)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Delay: " << "\tx: " << ppsig(x) << "\t@y: " << ppsig(y) << "\n";
+            std::cout << "Delay: "
+                      << "\tx: " << ppsig(x) << "\t@y: " << ppsig(y) << "\n";
         }
-        
+
         // Don't differentiate zero delay.
         if (y == sigZero(kInt)) {
             d = sigDelay0(self(x));
@@ -825,44 +830,42 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             //
             // e.g. let y(p) = 2p, and x(t - 2p, p) = px(t - 2p):
             //     dx/dp = x(t - 2p) - 2p d/dt x(t - 2p)
-            d = sigSub(self(x), sigMul(
-                    self(y),
-                    // derivative calculated numerically wrt. sample index:
-                    // d/dn(x[n]) = (x[n] - x[n-1]) / 1
-                    // This is equivalent to convolution with a differentiated
-                    // rectangular pulse of 1-sample duration.
-                    sigSub(sigDelay(x, y), sigDelay(x, sigAdd(y, sigInt(1))))
-            ));
+            d = sigSub(self(x), sigMul(self(y),
+                                       // derivative calculated numerically wrt. sample index:
+                                       // d/dn(x[n]) = (x[n] - x[n-1]) / 1
+                                       // This is equivalent to convolution with a differentiated
+                                       // rectangular pulse of 1-sample duration.
+                                       sigSub(sigDelay(x, y), sigDelay(x, sigAdd(y, sigInt(1))))));
         }
     }
-    
+
     else if (isProj(sig, &i, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Projection: " << "\tsig: " << ppsig(sig) << "\ti: " << i << "\tx: " << ppsig(x) <<"\n";
+            std::cout << "Projection: "
+                      << "\tsig: " << ppsig(sig) << "\ti: " << i << "\tx: " << ppsig(x) << "\n";
         }
-        
+
         // cf. propagate.cpp:504
         d = sigProj(i, self(x));
     }
-    
+
     else if (isRec(sig, var, body)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Recursion: " << "\tsig: " << ppsig(sig)
-                      << "\tvar: " << extractName(var)
-                      << "\tbody: " << ppsig(body) << "\n";
+            std::cout << "Recursion: "
+                      << "\tsig: " << ppsig(sig) << "\tvar: " << extractName(var) << "\tbody: " << ppsig(body) << "\n";
         }
-        
+
         if (isNil(body)) {
             // we are already visiting this recursive group
             siglist l;
             l.push_back(sigDelay1(sigProj(0, ref(var))));
-//                auto var1{t1ree(unique("w"))};
-//                for (int j = 0; j < 2; j++) l[j] = sigDelay1(sigProj(j, ref(var)));
+            //                auto var1{t1ree(unique("w"))};
+            //                for (int j = 0; j < 2; j++) l[j] = sigDelay1(sigProj(j, ref(var)));
 
-//                d = deBruijn2Sym(rec(listConvert(l)));
-//                d = rec(var, sigDelay1(sigProj(0, sig)));
+            //                d = deBruijn2Sym(rec(listConvert(l)));
+            //                d = rec(var, sigDelay1(sigProj(0, sig)));
             d = rec(var, deBruijn2Sym(listConvert(l)));
         } else {
             auto myvar(tree(unique("W")));
@@ -870,12 +873,12 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             rec(var, gGlobal->nil);  // to avoid infinite recursions
             d = rec(myvar, mapselfRec(body));
 
-//            siglist l;
-//            l.push_back(sigDelay1(sigProj(0, ref(var))));
-//            d = rec(var, deBruijn2Sym(listConvert(l)));
+            //            siglist l;
+            //            l.push_back(sigDelay1(sigProj(0, ref(var))));
+            //            d = rec(var, deBruijn2Sym(listConvert(l)));
         }
     }
-    
+
     else if (isSigIntCast(sig, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
@@ -899,25 +902,20 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
         // No idea just yet.
         d = SignalIdentity::transformation(sig);
     }
-    
+
     else if (isSigWRTbl(sig, w, x, y, z)) {
         if (y == gGlobal->nil) {
             // rdtable
             if (gGlobal->gDetailsSwitch) {
                 tab(fIndent, cout);
-                std::cout << "rdtable: " << ppsig(sig) << "\tw:" << ppsig(w)
-                          << "\tx:" << ppsig(x) << "\n";
+                std::cout << "rdtable: " << ppsig(sig) << "\tw:" << ppsig(w) << "\tx:" << ppsig(x) << "\n";
             }
             return diff(sig, getCertifiedSigType(sig)->nature());
         } else {
             // rwtable
             if (gGlobal->gDetailsSwitch) {
                 tab(fIndent, cout);
-                std::cout << "rwtable: " << ppsig(sig) << "\tw:" << ppsig(w)
-                          << "\tx:" << ppsig(x)
-                          << "\ty:" << ppsig(y)
-                          << "\tz:" << ppsig(z)
-                          << "\n";
+                std::cout << "rwtable: " << ppsig(sig) << "\tw:" << ppsig(w) << "\tx:" << ppsig(x) << "\ty:" << ppsig(y) << "\tz:" << ppsig(z) << "\n";
             }
             return diff(sig, getCertifiedSigType(sig)->nature());
         }
@@ -953,7 +951,9 @@ Tree signalPromote(Tree sig, bool trace)
     getCertifiedSigType(sig);
 
     SignalPromotion SP;
-    if (trace) SP.trace(true, "Cast");
+    if (trace) {
+        SP.trace(true, "Cast");
+    }
     return SP.mapself(sig);
 }
 
@@ -970,7 +970,7 @@ Tree signalFXPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
-    
+
     SignalFXPromotion SP;
     return SP.mapself(sig);
 }
@@ -988,7 +988,7 @@ Tree signalIntCastPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
-    
+
     SignalIntCastPromotion SP;
     return SP.mapself(sig);
 }
@@ -1006,7 +1006,7 @@ Tree signalUIFreezePromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
-    
+
     SignalUIFreezePromotion SP;
     return SP.mapself(sig);
 }
@@ -1015,7 +1015,7 @@ Tree signalFTZPromotion(Tree sig)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
-    
+
     SignalFTZPromotion SP;
     return SP.mapself(sig);
 }
@@ -1024,10 +1024,10 @@ Tree signalAutoDifferentiate(Tree sig)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
-    
+
     // Collect input differentiable variables
     DiffVarCollector collector(sig);
-   
+
     // Compute differentiated tree for each variable and collect the result in a list of outputs
     if (!collector.inputs.empty()) {
         siglist outputs;
@@ -1036,7 +1036,9 @@ Tree signalAutoDifferentiate(Tree sig)
             // Insert at beginning so order of differentiated outputs matches order of
             // differentiable parameters.
             outputs.insert(outputs.begin(), hd(SP.mapself(sig)));
-            if (gGlobal->gDetailsSwitch) std::cout << "\n";
+            if (gGlobal->gDetailsSwitch) {
+                std::cout << "\n";
+            }
         }
         return listConvert(outputs);
     } else {

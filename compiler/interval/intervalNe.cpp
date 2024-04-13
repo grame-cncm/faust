@@ -23,18 +23,24 @@
 namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Ne
-// interval Ne(const interval& x, const interval& y) const;
-// void testNe() const;
+// interval Ne(const interval& x, const interval& y);
+// void testNe();
 
-interval interval_algebra::Ne(const interval& x, const interval& y) const
+interval interval_algebra::Ne(const interval& x, const interval& y)
 {
-    if (x.isEmpty() || y.isEmpty()) { return {}; }
-    if ((x.hi() < y.lo()) || x.lo() > y.hi()) { return interval{1.0}; }
-    if ((x.hi() == y.lo()) && x.lo() == y.hi()) { return interval{0.0}; }
-    return {0, 1};
+    if (x.isEmpty() || y.isEmpty()) {
+        return interval::empty();
+    }
+    if ((x.hi() < y.lo()) || x.lo() > y.hi()) {
+        return interval{1, 1, 0};
+    }
+    if ((x.hi() == y.hi() && x.lo() == y.lo()) && x.lo() == y.hi()) {
+        return interval{0, 0, 0};
+    }
+    return {0, 1, 0};
 }
 
-void interval_algebra::testNe() const
+void interval_algebra::testNe()
 {
     check("test algebra Ne", Ne(interval(0, 5), interval(-3, 10)), interval(0, 1));
     check("test algebra Ne", Ne(interval(0, 5), interval(8, 10)), interval(1));

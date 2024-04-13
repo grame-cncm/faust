@@ -32,6 +32,7 @@
 #include <sstream>
 #include <vector>
 
+#include <sigNewConstantPropagation.hh>
 #include "Schedule.hh"
 #include "compatibility.hh"
 #include "compile.hh"
@@ -111,7 +112,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         throw faustexception("Dump signal type finished...\n");
     }
     // No more table privatisation
-    Tree L2 = L1;
+    Tree L2 = newConstantPropagation(L1);
 
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);

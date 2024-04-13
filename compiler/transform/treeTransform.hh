@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 #include <cstdlib>
+#include <string>
 #include "property.hh"
 #include "tree.hh"
 
@@ -40,16 +41,18 @@ class TreeTransform : public Garbageable {
    protected:
     property<Tree> fResult;  // cache previously computed transformations
     // used when tracing
-    bool   fTrace;           // trace transformations when true
-    int    fIndent;          // current indentation during trace
-    std::string fMessage;    // trace message
+    bool        fTrace;    // trace transformations when true
+    int         fIndent;   // current indentation during trace
+    std::string fMessage;  // trace message
 
    public:
-    TreeTransform() : fTrace(false), fIndent(0), fMessage("TreeTransform") {}
+    TreeTransform(int indentation = 0) : fTrace(false), fIndent(indentation), fMessage("TreeTransform") {}
 
     Tree self(Tree t);
     Tree mapself(Tree lt);
-    
+
+    int getIndentation() { return fIndent; }
+
     // recursive signals transformation
     virtual Tree selfRec(Tree t);
     virtual Tree mapselfRec(Tree lt);
@@ -57,12 +60,21 @@ class TreeTransform : public Garbageable {
     void trace(bool b) { fTrace = b; }
     void trace(bool b, const std::string& m)
     {
-        fTrace = b;
+        fTrace   = b;
         fMessage = m;
     }
+    void trace(bool b, const std::string& m, int identation)
+    {
+        fTrace   = b;
+        fMessage = m;
+        fIndent  = identation;
+    }
+    void traceMsg(std::string msg);
+    void traceMsg(std::string msg, Tree t);
 
    protected:
     virtual Tree transformation(Tree) = 0;   // the tranformation to implement
+    virtual Tree postprocess(Tree);          // modify a tree after the transformation of its children
     virtual void traceEnter(Tree t);         // called when entering a transformation
     virtual void traceExit(Tree t, Tree r);  // called when exiting a transformation
 };

@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,17 +23,20 @@
 namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Min
-// interval Min(const interval& x) const;
-// void testMin() const;
+// interval Min(const interval& x);
+// void testMin();
 
-interval interval_algebra::Min(const interval& x, const interval& y) const
+interval interval_algebra::Min(const interval& x, const interval& y)
 {
-    if (x.isEmpty() || y.isEmpty()) return {};
+    if (x.isEmpty() || y.isEmpty()) {
+        return interval::empty();
+    }
 
-    return {std::min(x.lo(), y.lo()), std::min(x.hi(), y.hi())};
+    return {std::min(x.lo(), y.lo()), std::min(x.hi(), y.hi()),
+            std::min(x.lsb(), y.lsb())};  // resulting interval should be as precise as the most precise of the operands
 }
 
-void interval_algebra::testMin() const
+void interval_algebra::testMin()
 {
     check("test algebra Min", Min(interval(0, 5), interval(-3, 10)), interval(-3, 5));
     check("test algebra Min", Min(interval(0, 5), interval(-3, -3)), interval(-3, -3));
