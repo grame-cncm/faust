@@ -21,8 +21,12 @@ static void explainInterval(Tree sig)
     int            i = 0;
     std::cerr << "\n\n EXPLAIN INTERVAL: " << getCertifiedSigType(sig)->getInterval() << " FOR SIGNAL " << sig << " = " << ppsig(sig, 10) << std::endl;
     for (Tree s : S.elements()) {
-        Type Ty = getCertifiedSigType(s);
-        std::cerr << "\n" << ++i << "@" << s << " : " << Ty->getInterval() << "; sig = " << ppsig(s, 10) << std::endl;
+        Type Ty = getSigType(sig);
+        if (Ty.pointee() == nullptr) {
+            std::cerr << "\n" << ++i << "@" << s << " : " << "NOTYPE" << "; sig = " << ppsig(s, 10) << std::endl;
+        } else {
+            std::cerr << "\n" << ++i << "@" << s << " : " << Ty->getInterval() << "; sig = " << ppsig(s, 10) << std::endl;
+        }
     }
 }
 
@@ -41,10 +45,10 @@ Tree SigNewConstantPropagation::transformation(Tree sig)
     } else {
         res = SignalIdentity::transformation(sig);
     }
-    if (res != sig) {
-        std::cerr << "\n\nConstant propagation: " << ppsig(sig, 10) << " ==> " << ppsig(res, 10) << std::endl;
-        explainInterval(sig);
-    }
+    // if (res != sig) {
+    //     std::cerr << "\n\nConstant propagation: " << ppsig(sig, 10) << " ==> " << ppsig(res, 10) << std::endl;
+    //     explainInterval(sig);
+    // }
     return res;
 }
 
