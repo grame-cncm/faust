@@ -63,7 +63,9 @@ const char* faustexception::gJSExceptionMsg = nullptr;
 
 extern "C" LIBFAUST_API const char* getErrorAfterException()
 {
-    return faustexception::gJSExceptionMsg;
+    return (std::string(faustexception::gJSExceptionMsg) == "emsc")
+        ? "ERROR : stack overflow\n"
+        : faustexception::gJSExceptionMsg;
 }
 #endif
 
