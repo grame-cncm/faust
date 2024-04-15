@@ -102,12 +102,23 @@ interval interval_algebra::iPow(const interval& x, const interval& y)
     return z;
 }
 
+// Special cases for the pow x^y function
+// x^0 = 1 for all x
+// 0^y = 0 for y>0
 interval interval_algebra::Pow(const interval& x, const interval& y)
 {
     interval z  = interval::empty();
     interval xp = intersection(x, interval{nexttoward(0.0, 1.0), HUGE_VAL, 0});
-    interval xn = intersection(x, interval{-HUGE_VAL, 0, 0});
+    interval xn = intersection(x, interval{-HUGE_VAL, nexttoward(0.0, -1.0), 0});
 
+    if (y.hasZero()) {
+        // x^0 = 1
+        z = reunion(z, interval(1, 1, 0));
+    }
+    if (x.hasZero()) {
+        // 0^y = 0
+        z = reunion(z, interval(0, 0, 0));
+    }
     if (!xp.isEmpty()) {
         z = reunion(z, fPow(xp, y));
     }
@@ -136,12 +147,9 @@ void interval_algebra::testPow()
 
     analyzeBinaryMethod(5, 2000000, "Pow", interval(-1, 1, -24), interval(0.01, 6, -4), myfPow, &interval_algebra::Pow);
     analyzeBinaryMethod(5, 2000000, "Pow", interval(-1, 1, -24), interval(0.0, 2, -4), myfPow, &interval_algebra::Pow);
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-100, 100, 0), interval(0, 200, 0), myiPow,
-                        &interval_algebra::iPow);
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-100, 100, -5), interval(0, 200, 0), myiPow,
-                        &interval_algebra::iPow);
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-100, 100, 0), interval(0, 200, -5), myiPow,
-                        &interval_algebra::iPow);
+    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-100, 100, 0), interval(0, 200, 0), myiPow, &interval_algebra::iPow);
+    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-100, 100, -5), interval(0, 200, 0), myiPow, &interval_algebra::iPow);
+    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-100, 100, 0), interval(0, 200, -5), myiPow, &interval_algebra::iPow);
 
     analyzeBinaryMethod(5, 2000000, "iPow2", interval(-1, 1, 0), interval(1, 3, 0), myiPow, &interval_algebra::iPow);
     analyzeBinaryMethod(5, 2000000, "iPow2", interval(-1, 1, -5), interval(1, 3, 0), myiPow, &interval_algebra::iPow);

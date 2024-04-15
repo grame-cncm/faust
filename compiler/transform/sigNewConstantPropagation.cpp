@@ -12,7 +12,8 @@
 
 class SigNewConstantPropagation final : public SignalIdentity {
    protected:
-    Tree transformation(Tree sig) override;
+    virtual Tree transformation(Tree sig) override;
+    virtual Tree postprocess(Tree) override;  // modify a tree after the transformation of its children
 };
 static void explainInterval(Tree sig)
 {
@@ -21,7 +22,7 @@ static void explainInterval(Tree sig)
     int            i = 0;
     std::cerr << "\n\n EXPLAIN INTERVAL: " << getCertifiedSigType(sig)->getInterval() << " FOR SIGNAL " << sig << " = " << ppsig(sig, 10) << std::endl;
     for (Tree s : S.elements()) {
-        Type Ty = getSigType(sig);
+        Type Ty = getSigType(s);
         if (Ty.pointee() == nullptr) {
             std::cerr << "\n" << ++i << "@" << s << " : " << "NOTYPE" << "; sig = " << ppsig(s, 10) << std::endl;
         } else {
@@ -50,6 +51,58 @@ Tree SigNewConstantPropagation::transformation(Tree sig)
     //     explainInterval(sig);
     // }
     return res;
+}
+
+/**
+ * @brief simplify numerical expressions
+ *
+ * @param sig
+ * @return Tree
+ */
+Tree SigNewConstantPropagation::postprocess(Tree sig)
+{
+    int  opnum, projnum;
+    Tree t1, t2, rg;
+
+    if (isSigBinOp(sig, &opnum, t1, t2)) {
+        BinOp* op = gBinOpTable[opnum];
+
+        Node n1 = t1->node();
+        Node n2 = t2->node();
+
+        if (isNum(n1) && isNum(n2)) {
+            std::cerr << "\nnumop\n" << std::endl;
+            return tree(op->compute(n1, n2));
+
+        } else if (op->isLeftNeutral(n1)) {
+            std::cerr << "\nleft neutral\n" << std::endl;
+            return t2;
+        } else if (op->isLeftAbsorbing(n1)) {
+            std::cerr << "\nleft absorbing\n" << std::endl;
+            return t1;
+        } else if (op->isRightNeutral(n2)) {
+            std::cerr << "\nright neutral\n" << std::endl;
+            return t1;
+        } else if (op->isRightAbsorbing(n2)) {
+            std::cerr << "\nright absorbing\n" << std::endl;
+            return t2;
+        } else if (t1 == t2) {
+            if ((opnum == kAND) || (opnum == kOR)) {
+                std::cerr << "\nAnd or Or\n" << std::endl;
+                return t1;
+            }
+            if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) {
+                std::cerr << "\nGE, LE or EQ\n" << std::endl;
+                return sigInt(1);
+            }
+            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) || (opnum == kXOR)) {
+                std::cerr << "\nGT LT NE REM XOR\n" << std::endl;
+                return sigInt(0);
+            }
+        }
+        return sig;
+    }
+    return sig;
 }
 
 /**
