@@ -86,7 +86,7 @@ m2f::ModalModel m2f::mesh2modal(
     using BOpType = Spectra::SparseSymMatProd<double>;
 
     const int convergenceRatio = min(max(2 * femNModes + 1, 20), numVertices * vertexDim);
-    const double sigma = -1.0;
+    const double sigma = pow(2 * M_PI * args.modesMinFreq, 2);
     OpType op(K, M);
     BOpType Bop(M);
     Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert> eigs(op, Bop, femNModes, convergenceRatio, sigma);
