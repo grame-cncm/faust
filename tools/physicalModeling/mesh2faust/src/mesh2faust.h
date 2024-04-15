@@ -14,6 +14,7 @@ struct MaterialProperties {
     double youngModulus{70E9};
     double poissonRatio{0.35};
     double density{2700};
+    double alpha{0}, beta{0}; // Rayleigh damping coefficients
 };
 
 struct CommonArguments {
@@ -30,6 +31,7 @@ struct CommonArguments {
 
 struct ModalModel {
     std::vector<float> modeFreqs; // Mode frequencies
+    std::vector<float> modeT60s; // Mode T60 decay times
     std::vector<std::vector<float>> modeGains; // Mode gains by [exitation position][mode]
 };
 
@@ -41,21 +43,18 @@ struct Response {
 
 // The main library function.
 // The `mesh2faust` command line tool wraps this function.
-Response mesh2faust(
-    const char *objFileName = "", // .obj file name
-    MaterialProperties materialProperties = {}, // Material properties of the mesh, for FEA
-    CommonArguments args = {}
-);
+Response mesh2faust(const char *objFileName = "", MaterialProperties material = {}, CommonArguments args = {});
 
 // This version takes a pre-loaded tetraheral mesh.
-// Material properties are assumed to already be baked into the mesh.
-Response mesh2faust(TetMesh *volumetricMesh, CommonArguments args = {});
+// Material properties are assumed to already be baked into the mesh, but we still need the Rayleigh damping coefficients.
+Response mesh2faust(TetMesh *volumetricMesh, MaterialProperties material = {}, CommonArguments args = {});
 
 ModalModel mesh2modal(
     const Eigen::SparseMatrix<double> &M, // Mass matrix
     const Eigen::SparseMatrix<double> &K, // Stiffness matrix
     int numVertices,
     int vertexDim = 3,
+    MaterialProperties material = {},
     CommonArguments args = {}
 );
 
