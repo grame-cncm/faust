@@ -84,7 +84,7 @@ string libFaustWasm::expandDSP(const string name, const string dsp_content, cons
     string2StringsVector(args_aux, argsv);
     size_t n = argsv.size();
     
-    // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
+    // 'error_msg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
     string sha_key, error_msg;
     const char** args = stringVector2argv(argsv);
     string expanded = ::expandDSPFromString(name, dsp_content, n, args, sha_key, error_msg);
@@ -96,7 +96,7 @@ bool libFaustWasm::generateAuxFiles(const string name, const string dsp_content,
 {
     vector<string> argsv;
     string2StringsVector(args_aux, argsv);
-    // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
+    // 'error_msg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
     string error_msg;
     const char** args = stringVector2argv(argsv);
     size_t n = argsv.size();

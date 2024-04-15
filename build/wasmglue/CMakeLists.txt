@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4.0)
+cmake_minimum_required(VERSION 3.6.0)
 
 set(HAVE_FLAG_SEARCH_PATHS_FIRST 0)
 

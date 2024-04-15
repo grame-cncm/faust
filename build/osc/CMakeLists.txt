@@ -1,6 +1,6 @@
 # CMAKE oscpack
 project(OSCFaust)
-cmake_minimum_required(VERSION 3.4.0)
+cmake_minimum_required(VERSION 3.6.0)
 
 #######################################
 # versions management
