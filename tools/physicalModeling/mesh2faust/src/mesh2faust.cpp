@@ -16,7 +16,7 @@
 
 using namespace std;
 
-m2f::Response m2f::mesh2faust(TetMesh *volumetricMesh, CommonArguments args) {
+m2f::Response m2f::mesh2faust(TetMesh *volumetricMesh, MaterialProperties material, CommonArguments args) {
     if (args.debugMode) cout << "Creating and computing mass matrix\n";
 
     SparseMatrix *massMatrix;
@@ -63,7 +63,7 @@ m2f::Response m2f::mesh2faust(TetMesh *volumetricMesh, CommonArguments args) {
     delete stiffnessMatrix;
     stiffnessMatrix = nullptr;
 
-    auto model = mesh2modal(M, K, numVertices, vertexDim, args);
+    auto model = mesh2modal(M, K, numVertices, vertexDim, material, args);
     return modal2faust(std::move(model), {args.modelName, args.freqControl});
 }
 
@@ -71,6 +71,7 @@ m2f::ModalModel m2f::mesh2modal(
     const Eigen::SparseMatrix<double> &M,
     const Eigen::SparseMatrix<double> &K,
     int numVertices, int vertexDim,
+    MaterialProperties material,
     CommonArguments args
 ) {
     const int femNModes = std::min(args.femNModes, numVertices * vertexDim - 1);
@@ -95,16 +96,34 @@ m2f::ModalModel m2f::mesh2modal(
         if (args.debugMode) cout << "Could not compute eigenvalues.\n";
         return {};
     }
+
     const auto eigenvalues = eigs.eigenvalues();
     const auto eigenvectors = eigs.eigenvectors();
 
-    /** Compute modes frequencies **/
-    if (args.debugMode) cout << "Computing modes frequencies...\n\n";
+    /** Compute modes frequencies/gains/T60s **/
+    if (args.debugMode) cout << "Computing modes ...\n\n";
 
-    std::vector<float> modeFreqs(femNModes); // Start with all modes and filter later.
+    std::vector<float> modeFreqs(femNModes), modeT60s(femNModes);
     int lowestModeIndex = 0, highestModeIndex = 0;
-    for (int mode = 0; mode < eigenvalues.size(); ++mode) {
-        modeFreqs[mode] = eigenvalues[mode] <= 0 ? 0.0 : sqrt(float(eigenvalues[mode])) / (2 * M_PI);
+    for (int mode = 0; mode < femNModes; ++mode) {
+        if (eigenvalues[mode] > 1) { // Ignore very small eigenvalues
+            // See Eqs. 1-12 in https://www.cs.cornell.edu/~djames/papers/DyRT.pdf for a derivation of the following.
+            auto &v = eigenvectors.col(mode);
+            double omega_i = sqrt(eigenvalues[mode]); // Undamped natural frequency, in rad/s
+            // With good eigenvalue estimates, this should be near-equivalent:
+            // double Mv = v.transpose() * M * v, Kv = v.transpose() * K * v, omega_i = sqrt(Kv / Mv);
+            double xi_i = 0.5 * (material.alpha / omega_i + material.beta * omega_i); // Damping ratio
+            double omega_i_hz = omega_i / (2 * M_PI);
+            modeFreqs[mode] = omega_i_hz * sqrt(1 - xi_i * xi_i); // Damped natural frequency
+            // T60 is the time for the mode's amplitude to decay by 60 dB.
+            // 20 * log10(1000) = 60 dB -> After T60 time, the amplitude is 1/1000th of its initial value.
+            // A change of basis gets us to the ln(1000) factor.
+            // See https://ccrma.stanford.edu/~jos/st/Audio_Decay_Time_T60.html
+            static const double LN_1000 = std::log(1000);
+            modeT60s[mode] = LN_1000 / (xi_i * omega_i_hz); // Damping is based on the _undamped_ natural frequency.
+        } else {
+            modeFreqs[mode] = modeT60s[mode] = 0.0;
+        }
         if (modeFreqs[mode] < args.modesMinFreq) ++lowestModeIndex;
         if (modeFreqs[mode] < args.modesMaxFreq) ++highestModeIndex;
     }
@@ -113,9 +132,8 @@ m2f::ModalModel m2f::mesh2modal(
     const int nModes = std::min(std::min(args.targetNModes, femNModes), highestModeIndex - lowestModeIndex);
     modeFreqs.erase(modeFreqs.begin(), modeFreqs.begin() + lowestModeIndex);
     modeFreqs.resize(nModes);
-
-    /** Compute modes gains **/
-    if (args.debugMode) cout << "Computing modes gains...\n\n";
+    modeT60s.erase(modeT60s.begin(), modeT60s.begin() + lowestModeIndex);
+    modeT60s.resize(nModes);
 
     if (!args.exPos.empty()) args.nExPos = args.exPos.size();
     else if (args.nExPos == -1) args.nExPos = numVertices;
@@ -123,14 +141,13 @@ m2f::ModalModel m2f::mesh2modal(
 
     std::vector<std::vector<float>> gains(args.nExPos); // Mode gains by [exitation position][mode]
     for (int exPos = 0; exPos < args.nExPos; ++exPos) { // For each excitation position
+        // If exPos was provided, retrieve data. Otherwise, distribute excitation positions linearly.
+        int evIndex = vertexDim * (exPos < args.exPos.size() ? args.exPos[exPos] : exPos * numVertices / args.nExPos);
         gains[exPos] = std::vector<float>(nModes);
         float maxGain = 0;
         for (int mode = 0; mode < nModes; ++mode) {
-            // If exPos was provided, retrieve data. Otherwise, distribute excitation positions linearly.
             float gain = 0;
-            int evValueIndex = vertexDim * (exPos < args.exPos.size() ? args.exPos[exPos] : exPos * numVertices / args.nExPos);
-            int evIndex = mode + lowestModeIndex;
-            for (int vi = 0; vi < vertexDim; ++vi) gain += pow(eigenvectors(evValueIndex + vi, evIndex), 2);
+            for (int vi = 0; vi < vertexDim; ++vi) gain += pow(eigenvectors(evIndex + vi, mode + lowestModeIndex), 2);
 
             gains[exPos][mode] = sqrt(gain);
             if (gains[exPos][mode] > maxGain) maxGain = gains[exPos][mode];
@@ -138,27 +155,30 @@ m2f::ModalModel m2f::mesh2modal(
         for (float &gain : gains[exPos]) gain /= maxGain;
     }
 
-    return {std::move(modeFreqs), std::move(gains)};
+    return {std::move(modeFreqs), std::move(modeT60s), std::move(gains)};
 }
 
-m2f::Response m2f::mesh2faust(const char *objFileName, MaterialProperties materialProperties, CommonArguments args) {
+m2f::Response m2f::mesh2faust(const char *objFileName, MaterialProperties material, CommonArguments args) {
     // Load mesh file.
     if (args.debugMode) cout << "Loading the mesh file...\n";
     ObjMesh objMesh{objFileName};
 
     // Generate 3D volumetric mesh from obj mesh.
     if (args.debugMode) {
-        cout << "\nGenerating a 3D mesh with the following properties:"
-             << "\n\tYoung's modulus: " << materialProperties.youngModulus
-             << "\n\tPoisson's ratio: " << materialProperties.poissonRatio
-             << "\n\tDensity: " << materialProperties.density << "\n\n";
+        cout << "\nGenerating a 3D mesh with the following material properties:"
+             << "\n\tYoung's modulus: " << material.youngModulus
+             << "\n\tPoisson's ratio: " << material.poissonRatio
+             << "\n\tDensity: " << material.density
+             << "\n\tRayleigh damping alpha: " << material.alpha
+             << "\n\tRayleigh damping beta: " << material.beta
+             << "\n\n";
     }
 
     // TODO: no way to prevent printing here (yet)
     TetMesh *volumetricMesh = TetMesher().compute(&objMesh);
-    volumetricMesh->setSingleMaterial(materialProperties.youngModulus, materialProperties.poissonRatio, materialProperties.density);
+    volumetricMesh->setSingleMaterial(material.youngModulus, material.poissonRatio, material.density);
 
-    auto response = mesh2faust(volumetricMesh, args);
+    auto response = mesh2faust(volumetricMesh, material, args);
 
     delete volumetricMesh;
     volumetricMesh = nullptr;
@@ -169,13 +189,14 @@ m2f::Response m2f::mesh2faust(const char *objFileName, MaterialProperties materi
 m2f::Response m2f::modal2faust(const ModalModel &model, DspGenArguments args) {
     const auto &freqs = model.modeFreqs;
     const auto &gains = model.modeGains;
+    const auto &t60s = model.modeT60s;
     const auto nModes = freqs.size();
     const auto nExPos = gains.size();
 
     stringstream dsp;
     dsp << "import(\"stdfaust.lib\");\n\n"
         << args.modelName << "(" << (args.freqControl ? "freq," : "")
-        << "exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
+        << "exPos,t60Scale) = _ <: "
            "par(mode,nModes,pm.modeFilter(modeFreqs(mode),modesT60s(mode),"
            "modesGains(int(exPos),mode))) :> /(nModes)\n"
         << "with{\n"
@@ -207,13 +228,15 @@ m2f::Response m2f::modal2faust(const ModalModel &model, DspGenArguments args) {
         }
         if (exPos < gains.size() - 1) dsp << ",";
     }
+    dsp << "},int(p*nModes+n) : rdtable" << (args.freqControl ? " : select2(modeFreqs(n)<(ma.SR/2-1),0)" : "") << ";\n";
 
-    dsp << "},int(p*nModes+n) : rdtable"
-        << (args.freqControl ? " : select2(modeFreqs(n)<(ma.SR/2-1),0)" : "") << ";\n"
-        << "modesT60s(mode) = t60*pow(1-("
-        << (args.freqControl ? "modeFreqRatios(mode)" : "modeFreqs(mode)") << "/"
-        << (args.freqControl ? (freqs.back() / freqs.front()) : freqs.back())
-        << ")*t60DecayRatio,t60DecaySlope);\n};\n";
+    dsp << "modesT60s(n) = t60Scale * ba.take(n+1,(";
+    for (int mode = 0; mode < nModes; ++mode) {
+        dsp << t60s[mode];
+        if (mode < nModes - 1) dsp << ",";
+    }
+    dsp << "));\n";
+    dsp << "};\n";
 
     return {dsp.str(), std::move(model)};
 }
