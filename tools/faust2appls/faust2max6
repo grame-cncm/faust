@@ -232,10 +232,10 @@ for p in $FILES; do
         faust -i -cn ${f%.dsp} -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     else
         faust -i -cn ${f%.dsp} -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-        faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
+        faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp $OPTIONS "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
     fi
     # compile self-contained expansion (without $OPTIONS which is not needed)
-    faust -e "$SRCDIR/$f" -o "$TMP/${f%.dsp}-exp.dsp"
+    faust -e "$SRCDIR/$f" $OPTIONS -o "$TMP/${f%.dsp}-exp.dsp"
 
     # compile c++ to binary
     (
