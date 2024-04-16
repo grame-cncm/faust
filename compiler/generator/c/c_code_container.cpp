@@ -36,7 +36,6 @@ using namespace std;
     1) in -os mode: a 'frame' function is generated
     2) in -ec mode: a 'control' function is generated, with a empty 'compute'
     3) in -mem3 mode: a minimal subset of functions are generated
- 
     4) in -fx mode:
          - then/else branches of 'select2' are explicitly casted to 'float', otherwise AP_fixed compilation may trigger "ambigous type" errors
          - all math operators are named "FOOfx" and are supposed to be implemented in the architecture file (doing the proper cast on arguments and return value when needed)

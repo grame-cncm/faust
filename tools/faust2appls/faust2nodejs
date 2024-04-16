@@ -122,7 +122,7 @@ cp "$FAUSTARCH/nodejs/README.md" .
 # Customizing configuration file
 # TODO: for now only ported compilation flags for alsa and JACK: missing
 # portaudio, rtaudio, and coreaudio
-if [ $DRIVER = "-jack" ]; then
+if [ "$DRIVER" = "-jack" ]; then
     if [ $PLATFORM = "Darwin" ]; then
         sed -i "" "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
         sed -i "" "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
@@ -130,10 +130,10 @@ if [ $DRIVER = "-jack" ]; then
         sed -i "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
         sed -i "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
     fi
-elif [ $DRIVER = "-alsa" ]; then
+elif [ "$DRIVER" = "-alsa" ]; then
     sed -i "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
     sed -i "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
-elif [ $DRIVER = "-coreaudio" ]; then
+elif [ "$DRIVER" = "-coreaudio" ]; then
     sed -i "" "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
     sed -i "" "s/__LIBFLAGS__/$COREAUDIO_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
 fi

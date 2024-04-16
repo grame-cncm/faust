@@ -30,10 +30,10 @@
 class OpenMPCodeContainer : public virtual CodeContainer {
    private:
     StatementInst* generateDAGLoopOMP(const std::string& counter);
-    void           processFIR();
+    void           processFIR() override;
 
-    void generateLocalInputs(BlockInst* loop_code, const std::string& index);
-    void generateLocalOutputs(BlockInst* loop_code, const std::string& index);
+    void generateLocalInputs(BlockInst* loop_code, const std::string& index) override;
+    void generateLocalOutputs(BlockInst* loop_code, const std::string& index) override;
 
    public:
     StatementInst* fGlobalLoopBlock;

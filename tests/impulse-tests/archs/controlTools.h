@@ -10,6 +10,7 @@
 
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/libfaust.h"
+#include "faust/dsp/fixed-point.h"
 #include "faust/gui/GUI.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/audio/channels.h"

@@ -239,8 +239,8 @@ class CPPInstVisitor : public TextInstVisitor {
         fPolyMathLibTable["isinfl"]      = "std::isinf";
     
         // Polymath mapping fx version
-        fPolyMathLibTable["max_fx"] = "std::max<fixpoint_t>";
-        fPolyMathLibTable["min_fx"] = "std::min<fixpoint_t>";
+        fPolyMathLibTable["max_fx"] = "maxfx";
+        fPolyMathLibTable["min_fx"] = "minfx";
         
         fPolyMathLibTable["fabsfx"]      = "fabsfx";
         fPolyMathLibTable["acosfx"]      = "acosfx";
@@ -460,18 +460,6 @@ class CPPInstVisitor : public TextInstVisitor {
         } else {
             TextInstVisitor::visit(inst);
         }
-    }
-
-    virtual void visit(FixedPointNumInst* inst) { *fOut << "fixpoint_t(" << checkFloat(inst->fNum) << ")"; }
-
-    virtual void visit(FixedPointArrayNumInst* inst)
-    {
-        char sep = '{';
-        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << "fixpoint_t(" << checkFloat(inst->fNumTable[i]) << ")";
-            sep = ',';
-        }
-        *fOut << '}';
     }
 
     virtual void visit(::CastInst* inst)

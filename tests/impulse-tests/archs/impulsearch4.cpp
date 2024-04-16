@@ -12,16 +12,17 @@
 
 <<includeclass>>
 
-// Global external memory
-int iControl[FAUST_INT_CONTROLS];
-double fControl[FAUST_REAL_CONTROLS];
-int iZone[FAUST_INT_ZONE];
-double fZone[FAUST_FLOAT_ZONE];
-
-int main(int argc, char* argv[])
+template <typename REAL>
+int main_aux(int argc, char* argv[])
 {
     int linenum = 0;
     int nbsamples = 60000;
+    
+    // Global external memory
+    int iControl[FAUST_INT_CONTROLS];
+    REAL fControl[FAUST_REAL_CONTROLS];
+    int iZone[FAUST_INT_ZONE];
+    REAL fZone[FAUST_FLOAT_ZONE];
     
     // print general informations
     printHeader(new mydsp(iControl, fControl, iZone, fZone), nbsamples);
@@ -35,4 +36,10 @@ int main(int argc, char* argv[])
     //runPolyDSP(new mydsp(iControl, fControl, iZone, fZone), linenum, nbsamples/4, 1);
     
     return 0;
+}
+
+int main(int argc, char* argv[])
+{
+    //return main_aux<fixpoint_t>(argc, argv);
+    return main_aux<double>(argc, argv);
 }

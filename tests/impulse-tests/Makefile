@@ -15,7 +15,7 @@ else
 endif
 
 MAKE ?= make
-GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++14
+GCCOPTIONS := -O3 -I../../architecture -I/usr/local/include/ap_fixed -Iarchs -pthread -std=c++14
 outdir ?= float
 arch ?= ./archs/impulsearch.cpp
 FAUSTOPTIONS := -lang cpp -double -i -a $(arch)
@@ -149,13 +149,12 @@ quad:
 	$(MAKE) -f Make.gcc outdir=c/quad/omp      lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -omp"
 
 fx:
-	$(MAKE) -f Make.gcc outdir=cpp/fx            lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx"
-	$(MAKE) -f Make.gcc outdir=cpp/fx/os0        lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx -os0"
-	$(MAKE) -f Make.gcc outdir=cpp/fx/os2        lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx -os2"
-	$(MAKE) -f Make.gcc outdir=c/fx              lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -fx"
-	$(MAKE) -f Make.gcc outdir=c/fx/os0          lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -fx -os0"
-	$(MAKE) -f Make.gcc outdir=c/fx/os2          lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -fx -os2"
-	$(MAKE) -f Make.gcc outdir=c/fx/os3          lang=c arch=impulsearch2qua.cpp FAUSTOPTIONS="-I dsp -fx -os3"
+	$(MAKE) -f Make.gcc outdir=cpp/fx lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx"
+	$(MAKE) -f Make.gcc outdir=c/fx   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -fx"
+
+fx1:
+	$(MAKE) -f Make.gcc outdir=cpp/fx1 lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx -fx-size -1"
+	$(MAKE) -f Make.gcc outdir=c/fx1   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -fx -fx-size -1"
 
 cpp1:
 	$(MAKE) -f Make.gcc outdir=cpp1/double/mem0  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -mem"
@@ -439,17 +438,17 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 	$(CXX) $(TOOLSOPTIONS) $(SRCDIR)/filesCompare.cpp -o filesCompare
 
 impulseinterp: $(SRCDIR)/impulseinterp.cpp ./archs/controlTools.h $(LIB)
-	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -Iarchs $(SRCDIR)/impulseinterp.cpp $(LIB) $(LLVM_LIB) -o impulseinterp
+	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -I/usr/local/include/ap_fixed -Iarchs $(SRCDIR)/impulseinterp.cpp $(LIB) $(LLVM_LIB) -o impulseinterp
 
 impulseinterp1: $(SRCDIR)/impulseinterp1.cpp ./archs/controlTools.h $(LIB)
-	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -Iarchs $(SRCDIR)/impulseinterp1.cpp $(MACHINE_LIB) $(LLVM_LIB) -o impulseinterp1
+	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -I/usr/local/include/ap_fixed -Iarchs $(SRCDIR)/impulseinterp1.cpp $(MACHINE_LIB) $(LLVM_LIB) -o impulseinterp1
 
 # Target to use the Interp MIR backend
 impulseinterp2: $(SRCDIR)/impulseinterp1.cpp ./archs/controlTools.h $(LIB)
-	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -Iarchs $(SRCDIR)/impulseinterp1.cpp $(MACHINE_LIB) /usr/local/lib/libmir.a -o impulseinterp1
+	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -I/usr/local/include/ap_fixed -Iarchs $(SRCDIR)/impulseinterp1.cpp $(MACHINE_LIB) /usr/local/lib/libmir.a -o impulseinterp1
 
 impulsellvm: $(SRCDIR)/impulsellvm.cpp ./archs/controlTools.h $(LIB)
-	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsellvm
+	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -I/usr/local/include/ap_fixed -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsellvm
 
 #########################################################################
 # rules for mute tests

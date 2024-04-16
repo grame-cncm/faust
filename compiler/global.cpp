@@ -442,7 +442,10 @@ void global::reset()
     gRangeUI       = false;
     gFreezeUI      = false;
 
-    gFloatSize = 1;  // -single by default
+    gFloatSize      = 1;              // -single by default
+    gFixedPointSize = AP_INT_MAX_W;   // Special -1 value will be used to generate fixpoint_t type
+    gFixedPointMSB  = 0;
+    gFixedPointLSB  = 0;
 
     gPrintFileListSwitch = false;
     gInlineArchSwitch    = false;
@@ -730,7 +733,7 @@ string global::printFloat()
         case 3:
             return "-quad ";
         case 4:
-            return "-fx ";
+            return "-fx -fx-size " + std::to_string(gFixedPointSize) + " ";
         default:
             faustassert(false);
             return "";
@@ -1307,7 +1310,11 @@ bool global::processCmdline(int argc, const char* argv[])
             }
             gFloatSize = 4;
             i += 1;
-
+            
+        } else if (isCmd(argv[i], "-fx-size", "--fixed-point-size")) {
+            gFixedPointSize = std::atoi(argv[i + 1]);
+            i += 2;
+            
         } else if (isCmd(argv[i], "-mdoc", "--mathdoc")) {
             gPrintDocSwitch = true;
             i += 1;
@@ -1959,6 +1966,7 @@ string global::printHelp()
          << endl;
 #endif
     sstr << tab << "-fx         --fixed-point               use fixed-point for internal computations." << endl;
+    sstr << tab << "-fx-size    --fixed-point-size          fixed-point number total size in bits (-1 is used to generate a unique fixpoint_t type)." << endl;
     sstr << tab
          << "-es 1|0     --enable-semantics 1|0      use enable semantics when 1 (default), and simple multiplication "
             "otherwise."

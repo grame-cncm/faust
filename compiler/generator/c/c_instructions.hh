@@ -359,18 +359,7 @@ class CInstVisitor : public TextInstVisitor {
             TextInstVisitor::visit(inst);
         }
     }
-    virtual void visit(FixedPointNumInst* inst) { *fOut << "(fixpoint_t)" << checkFloat(inst->fNum); }
     
-    virtual void visit(FixedPointArrayNumInst* inst)
-    {
-        char sep = '{';
-        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << "(fixpoint_t)" << checkFloat(inst->fNumTable[i]);
-            sep = ',';
-        }
-        *fOut << '}';
-    }
-
     virtual void visit(::CastInst* inst)
     {
         *fOut << "(" << fTypeManager->generateType(inst->fType) << ")(";

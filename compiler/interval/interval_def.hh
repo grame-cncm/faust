@@ -21,11 +21,13 @@
 
 #pragma once
 
+#include <limits.h>
+#include <algorithm>
 #include <cmath>
 #include <iostream>
-#include <limits>
-#include <algorithm>
 #include <string>
+
+// #include "global"
 
 // ***************************************************************************
 //
@@ -58,6 +60,11 @@ class interval {
 
     interval(double n, double m, int lsb = -24) noexcept
     {
+        if (lsb == INT_MIN)
+            fLSB = -24;
+        else
+            fLSB = lsb;
+
         if (std::isnan(n) || std::isnan(m)) {
             fLo = NAN;
             fHi = NAN;
@@ -65,7 +72,6 @@ class interval {
             fLo = std::min(n, m);
             fHi = std::max(n, m);
         }
-        fLSB = lsb;
     }
 
     explicit interval(double n) noexcept : interval(n, n) {}
@@ -103,19 +109,30 @@ class interval {
     double hi() const { return fHi; }
     double size() const { return fHi - fLo; }
     int    lsb() const { return fLSB; }
-    int    msb() const
-    {
-        double range = std::max(1.0, std::max(std::abs(fLo), std::abs(fHi)));
-        int    m     = int(std::ceil(std::log2(range)));
 
-        if (fLo >= 0) {
-            // no need for a sign bit
-            return m;
-        } else {
-            // we generally need a sign bit
-            return 1 + m;
+    // position of the most significant bit of the value, without taking the sign bit into account
+    int msb() const
+    {
+        if (fLo == 0 and fHi == 0)
+            return 0;
+
+        // amplitude of the interval
+        // can be < 1.0, in which case the msb will be negative and indicate the number of implicit leading zeroes
+        double range = std::max(std::abs(fLo), std::abs(fHi));
+        
+
+        if (std::isinf(range)) {
+            // if (fLSB == 0) // if we're dealing with integers: is that a good criterion?
+                return 31;
+            // return 20;  // max MSB of the VHDL design; TODO: change when integrating in the compiler
         }
+
+        int l = int(std::ceil(std::log2(range)));
+
+        // The sign bit will be added later on
+        return l;
     }
+
     std::string to_string() const
     {
         if (isEmpty()) {
@@ -152,10 +169,11 @@ inline interval intersection(const interval& i, const interval& j)
     } else {
         double l = std::max(i.lo(), j.lo());
         double h = std::min(i.hi(), j.hi());
+        int    p = std::min(i.lsb(), j.lsb());  // precision of the intersection should be the finest of the two
         if (l > h) {
             return {};
         } else {
-            return {l, h};
+            return {l, h, p};
         }
     }
 }
@@ -169,10 +187,34 @@ inline interval reunion(const interval& i, const interval& j)
     } else {
         double l = std::min(i.lo(), j.lo());
         double h = std::max(i.hi(), j.hi());
-        return {l, h};
+        int    p = std::min(i.lsb(), j.lsb());  // precision of the reunion should be the finest of the two
+        return {l, h, p};
     }
 }
 
+inline interval singleton(double x)
+{
+    if (x == 0) {
+        return {0, 0, 0};
+    }
+
+    /* int precision = lsb;
+
+    while (floor(x * pow(2, -precision - 1)) == x * pow(2, -precision - 1) and x != 0) {
+        precision++;
+    }*/
+
+    int m = std::floor(std::log2(std::abs(x)));
+
+    int precision = m - 32; // 32 = set width
+
+    return {x, x, precision};
+}
+
+inline interval empty() noexcept
+{
+    return {NAN, NAN, 0};
+}
 //-------------------------------------------------------------------------
 // predicates
 //-------------------------------------------------------------------------

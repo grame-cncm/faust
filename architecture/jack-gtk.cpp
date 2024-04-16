@@ -45,6 +45,9 @@
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/PresetUI.h"
 #include "faust/audio/jack-dsp.h"
+#ifdef FIXED_POINT
+#include "faust/dsp/fixed-point.h"
+#endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"

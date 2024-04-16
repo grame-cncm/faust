@@ -59,9 +59,9 @@ string SignalTypePrinter::print()
 
 void SignalTypePrinter::visit(Tree sig)
 {
-    stringstream type;
-    type << "Type = " << getCertifiedSigType(sig) << endl;
-    fPrinted.push_back(type.str());
+    stringstream res;
+    res << "Sig = " << ppsig(sig, MAX_ERROR_SIZE) << ", "<< getCertifiedSigType(sig) << endl;
+    fPrinted.push_back(res.str());
     
     // Default case and recursion
     SignalVisitor::visit(sig);
@@ -1011,7 +1011,7 @@ Tree signalUIFreezePromote(Tree sig)
     return SP.mapself(sig);
 }
 
-Tree signalFTZPromotion(Tree sig)
+Tree signalFTZPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);

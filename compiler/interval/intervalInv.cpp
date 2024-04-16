@@ -1,11 +1,11 @@
 /* Copyright 2023 Yann ORLAREY
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,27 +24,70 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval inverse
 
-interval interval_algebra::Inv(const interval& x) const
+static double inv(double x)
 {
-    if (x.isEmpty()) {
-        return {};
+    if (x == 0) {
+        return HUGE_VAL;
     }
-    if ((x.hi() < 0) || (x.lo() >= 0)) {
-        return {1.0 / x.hi(), 1.0 / x.lo()};
-    }
-    if (x.hi() == 0) {
-        return {-HUGE_VAL, 1.0 / x.lo()};
-    }
-    return {-HUGE_VAL, HUGE_VAL};
+    return 1 / x;
 }
 
-void interval_algebra::testInv() const
+interval interval_algebra::Inv(const interval& x)
 {
-    check("test algebra Inv", Inv(interval(-16, -4)), interval(-1. / 4., -1. / 16.));
+    if (x.isEmpty()) {
+        return empty();
+    }
+
+    int    sign = signMaxValAbs(x);
+    double v    = maxValAbs(x);  // precision is computed at the bound with the highest absolute value
+
+    // if v is infinite, this means that images of interval elements will get closer and closer
+    // but since we're writing the fixed-point numbers on at most 31 bits of MSB
+    // we can take the max number to be an integer bound
+    // and this one will give a finite precision, unlike a floating-point infinity
+    if (std::isinf(v)) {
+        sign == -1 ? v = INT_MAX : v = INT_MIN;
+    }
+
+    int precision = exactPrecisionUnary(inv, v, sign * pow(2, x.lsb()));
+    if (precision == INT_MIN or taylor_lsb) {
+        precision = floor(x.lsb() - 2*log2(abs(v))); // 1/(x+u) - 1/x = -u/x^2 + o(u)
+    }
+
+    // precision = std::max(precision, -31);
+
+    if ((x.hi() < 0) || (x.lo() >= 0)) {
+        return {1.0 / x.hi(), 1.0 / x.lo(), precision};
+    }
+    if (x.hi() == 0 && x.lo() < 0) {
+        return {-HUGE_VAL, 1.0 / x.lo(), precision};
+        // normally, we don't divide by 0
+        // so the bounds of the image interval are not infinity but 1/ulp
+        // return {-pow(2, -x.lsb()), 1.0 / x.lo(), precision}; 
+    }
+    if (x.lo() == 0 && x.hi() > 0) {
+        return {1 / x.hi(), HUGE_VAL, precision};
+        // return {1 / x.hi(), pow(2, -x.lsb()), precision};
+    }
+    return {-HUGE_VAL, HUGE_VAL, precision};
+    // return {-pow(2, -x.lsb()), pow(2, -x.lsb()), precision};
+}
+
+void interval_algebra::testInv()
+{
+    /* check("test algebra Inv", Inv(interval(-16, -4)), interval(-1. / 4., -1. / 16.));
     check("test algebra Inv", Inv(interval(4, 16)), interval(1.0 / 16, 0.25));
     check("test algebra Inv", Inv(interval(0, 10)), interval(0.1, +HUGE_VAL));
     check("test algebra Inv", Inv(interval(-10, 0)), interval(-HUGE_VAL, -0.1));
     check("test algebra Inv", Inv(interval(-20, +20)), interval(-HUGE_VAL, +HUGE_VAL));
-    check("test algebra Inv", Inv(interval(0, 0)), interval(+HUGE_VAL, +HUGE_VAL));
+    check("test algebra Inv", Inv(interval(0, 0)), interval(+HUGE_VAL, +HUGE_VAL));*/
+
+    analyzeUnaryMethod(10, 2000, "inv", interval(-16, -4, -5), inv, &interval_algebra::Inv);
+    analyzeUnaryMethod(10, 2000, "inv", interval(4, 16, -5), inv, &interval_algebra::Inv);
+    analyzeUnaryMethod(10, 2000, "inv", interval(0, 10, -5), inv, &interval_algebra::Inv);
+    analyzeUnaryMethod(10, 2000, "inv", interval(-10, 0, -5), inv, &interval_algebra::Inv);
+    analyzeUnaryMethod(10, 2000, "inv", interval(-20, 20, -5), inv, &interval_algebra::Inv);
+    // analyzeUnaryMethod(10, 2000, "inv", interval(0, 0, -5), inv, &interval_algebra::Inv);
+    // analyzeUnaryMethod(10, 2000, "inv", interval(-10, 0, -5), inv, &interval_algebra::Inv);
 }
 }  // namespace itv

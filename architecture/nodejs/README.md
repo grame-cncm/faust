@@ -6,7 +6,7 @@
 
 The latest version of [nodejs](https://nodejs.org) should be installed on your system. Additionally, you should make sure that `node-gyp` is available on your computer. 
 
-On the mac:
+On macOS:
 
 ```
 sudo npm install node-gyp -g
@@ -30,11 +30,11 @@ faust2nodejs [DRIVER] [OPTIONS] faustFile.dsp
 
 With [DRIVER]:
 
-* `-coreaudio`: coreaudio audio engine
-* `-alsa`: alsa audio engine
+* `-coreaudio`: CoreAudio audio engine
+* `-alsa`: ALSA audio engine
 * `-jack`: JACK audio engine
-* `-portaudio`: portaudio audio engine
-* `-rtaudio`: rtaudio audio engine
+* `-portaudio`: PortAudio audio engine
+* `-rtaudio`: RtAudio audio engine
 * `-dummy`: dummy audio engine
 
 and with [OPTION] (mostly inherited from [faust2api](https://ccrma.stanford.edu/~rmichon/faust2api/)):
@@ -85,8 +85,8 @@ dspFaustNode.setParamValue(paramID,value);
 Parameters address and ID can be easily with:
 
 ```
-for(i=0;i<dspFaustNode.getParamsCount();i++){
-  console.log("ID: " + i + " Address: " + dspFaustNode.getParamAddress(i));
+for (i = 0; i < dspFaustNode.getParamsCount(); i++){
+    console.log("ID: " + i + " Address: " + dspFaustNode.getParamAddress(i));
 }
 ``` 
 
@@ -118,8 +118,8 @@ Weirdly, ALSA audio engines generated with **faust2api** are fine when called fr
 // search for 32-bits or 16-bits format
 err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S32);
 if (err) {
-  err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S16);
-  check_error_msg(err, "unable to set format to either 32-bits or 16-bits");
+    err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S16);
+    check_error_msg(err, "unable to set format to either 32-bits or 16-bits");
 }
 snd_pcm_hw_params_get_format(params, &fSampleFormat);
 ```

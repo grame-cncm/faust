@@ -81,6 +81,9 @@ do
     elif [ $p = "-resample" ]; then
         SAMPLERATEDEFS="-DSAMPLERATE"
         SAMPLERATELIBS=`pkg-config --cflags --static --libs samplerate`
+    elif [ $p = "-fx" ]; then
+        OPTIONS="$OPTIONS $p"
+        CXXFLAGS="$CXXFLAGS -I /usr/local/include/ap_fixed -DFIXED_POINT"
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then

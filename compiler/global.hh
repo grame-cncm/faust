@@ -163,7 +163,10 @@ struct global {
     int  gMaxCopyDelay;       // -mcd threshold
     int  gMaxDenseDelay;      // -mdd threshold
     int  gMinDensity;         // -mdy threshold
-    int gFloatSize;  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad', 4 for 'fixed-point')
+    int gFloatSize;           // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad', 4 for 'fixed-point')
+    int gFixedPointSize;         // -fx-size (-1 by default = not used)
+    int gFixedPointMSB;          // max value of MSB in -fx mode
+    int gFixedPointLSB;          // min value of LSB in -fx mode
     int gMaskDelayLineThreshold;  // -dlt <num> power-of-two and mask delay-lines treshold
     bool gEnableFlag;             // -es option (0/1: 0 by default)
     bool gNoVirtual;              // -nvi option, when compiled with the C++ backend, does not add the 'virtual' keyword
@@ -178,7 +181,7 @@ struct global {
     bool gDSPStruct;     // to control method generation in -fun mode
     bool gLightMode;     // -light option, do not generate the entire DSP API (to be used with Emscripten to generate a
                          // light DSP module for JavaScript)
-    bool gClang;  // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    bool gClang;         // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
     bool
         gFullParentheses;  // -fp option, generate less parenthesis in some textual backends: C/C++, Cmajor, Dlang, Rust
     bool gCheckIntRange;   // -cir option, check float to integer range conversion

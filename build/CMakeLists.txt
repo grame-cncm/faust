@@ -56,6 +56,7 @@ file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh  ${SRCDIR}/generator/fir/*.hh)
 set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/draw
 	${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended
+	${SRCDIR}/FaustAlgebra
 	${SRCDIR}/generator
 	${SRCDIR}/generator/dlang
 	${SRCDIR}/generator/csharp
@@ -441,7 +442,7 @@ install (
 )
 
 # install folders
-set (ARCHSRC android api AU audiokit autodiff cmajor daisy esp32 iOS jax juce julia max-msp nodejs osclib rust sam smartKeyboard svgplot teensy unity vcvrack webaudio)
+set (ARCHSRC android api AU audiokit autodiff comparator daisy esp32 iOS jax juce julia cmajor max-msp nodejs osclib sam smartKeyboard svgplot teensy unity rust vcvrack webaudio)
 foreach (dir ${ARCHSRC})
 	set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()

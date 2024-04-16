@@ -38,8 +38,6 @@
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
-#include "faust/audio/dummy-audio.h"
-#include "faust/dsp/one-sample-dsp.h"
 
 #if defined(SOUNDFILE)
 #include "faust/gui/SoundUI.h"
@@ -47,110 +45,109 @@
 
 #include "ap_fixed.h"
 
-typedef ap_fixed<32, 8, AP_RND_CONV, AP_SAT> fixpoint_t;
+typedef ap_fixed<32,8,AP_RND_CONV,AP_SAT> fixpoint_t;
+
+// m: position of the most significant bit of the value, without taking the sign bit into account
+// l: LSB with negative coding
+#define sfx_t(m,l) ap_fixed<((m+1)-l+1),(m+1)+1,AP_RND_CONV,AP_SAT>
+#define ufx_t(m,l) ap_ufixed<((m+1)-l),(m+1),AP_RND_CONV,AP_SAT>
 
 // fx version
-inline fixpoint_t fabsfx(fixpoint_t x)
+inline float fabsfx(float x)
 {
-    return fixpoint_t(std::fabs(float(x)));
+    return std::fabs(x);
 }
-inline fixpoint_t acosfx(fixpoint_t x)
+inline float acosfx(float x)
 {
-    return fixpoint_t(std::acos(float(x)));
+    return std::acos(x);
 }
-inline fixpoint_t asinfx(fixpoint_t x)
+inline float asinfx(float x)
 {
-    return fixpoint_t(std::asin(float(x)));
+    return std::asin(x);
 }
-inline fixpoint_t atanfx(fixpoint_t x)
+inline float atanfx(float x)
 {
-    return fixpoint_t(std::atan(float(x)));
+    return std::atan(x);
 }
-inline fixpoint_t atan2fx(fixpoint_t x, fixpoint_t y)
+inline float atan2fx(float x, float y)
 {
-    return fixpoint_t(std::atan2(float(x), float(y)));
+    return std::atan2(x, y);
 }
-inline fixpoint_t ceilfx(fixpoint_t x)
+inline float ceilfx(float x)
 {
-    return fixpoint_t(std::ceil(float(x)));
+    return std::ceil(x);
 }
-inline fixpoint_t cosfx(fixpoint_t x)
+inline float cosfx(float x)
 {
-    return fixpoint_t(std::cos(float(x)));
+    return std::cos(x);
 }
-inline fixpoint_t expfx(fixpoint_t x)
+inline float expfx(float x)
 {
-    return fixpoint_t(std::exp(float(x)));
+    return std::exp(x);
 }
-inline fixpoint_t exp2fx(fixpoint_t x)
+inline float exp2fx(float x)
 {
-    return fixpoint_t(std::exp2(float(x)));
+    return std::exp2(x);
 }
-inline fixpoint_t exp10fx(fixpoint_t x)
+inline float exp10fx(float x)
 {
 #ifdef __APPLE__
-    return fixpoint_t(__exp10f(float(x)));
+    return __exp10f(x);
 #else
-    return fixpoint_t(exp10(float(x)));
+    return exp10(x);
 #endif
 }
-inline fixpoint_t floorfx(fixpoint_t x)
+inline float floorfx(float x)
 {
-    return fixpoint_t(std::floor(float(x)));
+    return std::floor(x);
 }
-inline fixpoint_t fmodfx(fixpoint_t x, fixpoint_t y)
+inline float fmodfx(float x, float y)
 {
-    return fixpoint_t(std::fmod(float(x), float(y)));
+    return std::fmod(x, y);
 }
-inline fixpoint_t logfx(fixpoint_t x)
+inline float logfx(float x)
 {
-    return fixpoint_t(std::log(float(x)));
+    return std::log(x);
 }
-inline fixpoint_t log2fx(fixpoint_t x)
+inline float log2fx(float x)
 {
-    return fixpoint_t(std::log2(float(x)));
+    return std::log2(x);
 }
-inline fixpoint_t log10fx(fixpoint_t x)
+inline float log10fx(float x)
 {
-    return fixpoint_t(std::log10(float(x)));
+    return std::log10(x);
 }
-inline fixpoint_t powfx(fixpoint_t x, fixpoint_t y)
+inline float powfx(float x, float y)
 {
-    return fixpoint_t(std::pow(float(x), float(y)));
+    return std::pow(x, y);
 }
-inline fixpoint_t remainderfx(fixpoint_t x, fixpoint_t y)
+inline float remainderfx(float x, float y)
 {
-    return fixpoint_t(std::remainder(float(x), float(y)));
+    return std::remainder(x, y);
 }
-inline fixpoint_t rintfx(fixpoint_t x)
+inline float rintfx(float x)
 {
-    return fixpoint_t(std::rint(float(x)));
+    return std::rint(x);
 }
-inline fixpoint_t roundfx(fixpoint_t x)
+inline float roundfx(float x)
 {
-    return fixpoint_t(std::round(float(x)));
+    return std::round(x);
 }
-inline fixpoint_t sinfx(fixpoint_t x)
+inline float sinfx(float x)
 {
-    return fixpoint_t(std::sin(float(x)));
+    return std::sin(x);
 }
-inline fixpoint_t sqrtfx(fixpoint_t x)
+inline float sqrtfx(float x)
 {
-    return fixpoint_t(std::sqrt(float(x)));
+    return std::sqrt(x);
 }
-inline fixpoint_t tanfx(fixpoint_t x)
+inline float tanfx(float x)
 {
-    return fixpoint_t(std::tan(float(x)));
+    return std::tan(x);
 }
-// min/max
-inline fixpoint_t fminfx(fixpoint_t x, fixpoint_t y)
-{
-    return fixpoint_t(std::min(float(x), float(y)));
-}
-inline fixpoint_t fmaxfx(fixpoint_t x, fixpoint_t y)
-{
-    return fixpoint_t(std::max(float(x), float(y)));
-}
+
+inline float minfx(float x, float y) { return (x < y) ? x : y; }
+inline float maxfx(float x, float y) { return (x < y) ? y : x; }
 
 /******************************************************************************
  *******************************************************************************
@@ -171,25 +168,5 @@ inline fixpoint_t fmaxfx(fixpoint_t x, fixpoint_t y)
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
-using namespace std;
-
-int main(int argc, char* argv[])
-{
-    mydsp DSP;
-    cout << "DSP size: " << sizeof(DSP) << " bytes\n";
-    
-    // Activate the UI, here that only print the control paths
-    PrintUI ui;
-    DSP.buildUserInterface(&ui);
-    
-    // Allocate the audio driver to render 5 buffers of 512 frames
-    dummyaudio audio(5);
-    audio.init("Test", static_cast<dsp*>(&DSP));
-    
-    // Render buffers...
-    audio.start();
-    audio.stop();
-}
 
 /******************* END minimal-fixed-point.cpp ****************/

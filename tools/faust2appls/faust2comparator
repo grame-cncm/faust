@@ -1,0 +1,72 @@
+#! /bin/bash -e
+
+# Define some common paths
+. faustpath
+# Define compilation flags
+. faustoptflags
+# Helper file to build the 'help' option
+. usage.sh
+
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
+# The architecture file name
+ARCHFILE1=$FAUSTARCH/comparator/minimal-floating-point.cpp
+ARCHFILE2=$FAUSTARCH/comparator/minimal-fixed-point.cpp
+
+# Global variables
+OPTIONS=""
+FILES=""
+
+#-------------------------------------------------------------------
+# dispatch command arguments
+#-------------------------------------------------------------------
+
+while [ $1 ]
+do
+  p=$1
+
+  if [ $p = "-help" ] || [ $p = "-h" ]; then
+     usage faust2comparator "[options] [Faust options] <file.dsp>"
+     exit
+  fi
+
+  echo "dispatch command arguments"
+
+  if [ ${p:0:1} = "-" ]; then
+       OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+       FILES="$FILES $p"
+    else
+       OPTIONS="$OPTIONS $p"        
+  fi
+
+shift
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files 
+#-------------------------------------------------------------------
+
+for f in $FILES; do
+
+    # compile the DSP to c++ using the architecture file
+    echo "compile the DSP to c++ using the architecture file"
+    faust -i -a $ARCHFILE1 $OPTIONS -cn "fldsp" "$f" -o "float.cpp" || exit
+    faust -i -a $ARCHFILE2 $OPTIONS -fx -cn "fxdsp" "$f" -o "fixed.cpp" -it || exit
+
+    # compile c++ to binary
+    echo "compile c++ to binary"
+    (
+        $CXX $CXXFLAGS -g "$FAUSTARCH/comparator/compclass.cpp" "-I/usr/local/include/ap_fixed" `pkg-config --cflags --static --libs sndfile jack gtk+-2.0` -o "${f%.dsp}"
+    ) > /dev/null || exit
+
+ 	# remove tempory files # actually, they're useful to have to track bugs in FX inference
+    # rm -f "float.cpp"
+    # rm -f "fixed.cpp"
+
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
+done
+
+echo $BINARIES
+
