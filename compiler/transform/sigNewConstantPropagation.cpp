@@ -7,26 +7,33 @@
 #include "sigDependenciesGraph.hh"
 #include "sigIdentity.hh"
 #include "sigNewConstantPropagation.hh"
+#include "sigRecursiveDependencies.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
 
 class SigNewConstantPropagation final : public SignalIdentity {
    protected:
     virtual Tree transformation(Tree sig) override;
-    virtual Tree postprocess(Tree) override;  // modify a tree after the transformation of its children
+    virtual Tree postprocess(
+        Tree) override;  // modify a tree after the transformation of its children
 };
 static void explainInterval(Tree sig)
 {
     digraph<Tree>  G = fullGraph(list1(sig));
     schedule<Tree> S = dfcyclesschedule(G);
     int            i = 0;
-    std::cerr << "\n\n EXPLAIN INTERVAL: " << getCertifiedSigType(sig)->getInterval() << " FOR SIGNAL " << sig << " = " << ppsig(sig, 10) << std::endl;
+    std::cerr << "\n\n EXPLAIN INTERVAL: " << getCertifiedSigType(sig)->getInterval()
+              << " FOR SIGNAL " << sig << " = " << ppsig(sig, 10) << std::endl;
     for (Tree s : S.elements()) {
         Type Ty = getSigType(s);
         if (Ty.pointee() == nullptr) {
-            std::cerr << "\n" << ++i << "@" << s << " : " << "NOTYPE" << "; sig = " << ppsig(s, 10) << std::endl;
+            std::cerr << "\n"
+                      << ++i << "@" << s << " : " << "NOTYPE" << "; sig = " << ppsig(s, 10)
+                      << std::endl;
         } else {
-            std::cerr << "\n" << ++i << "@" << s << " : " << Ty->getInterval() << "; sig = " << ppsig(s, 10) << std::endl;
+            std::cerr << "\n"
+                      << ++i << "@" << s << " : " << Ty->getInterval() << "; sig = " << ppsig(s, 10)
+                      << std::endl;
         }
     }
 }
@@ -47,8 +54,8 @@ Tree SigNewConstantPropagation::transformation(Tree sig)
         res = SignalIdentity::transformation(sig);
     }
     // if (res != sig) {
-    //     std::cerr << "\n\nConstant propagation: " << ppsig(sig, 10) << " ==> " << ppsig(res, 10) << std::endl;
-    //     explainInterval(sig);
+    //     std::cerr << "\n\nConstant propagation: " << ppsig(sig, 10) << " ==> " << ppsig(res, 10)
+    //     << std::endl; explainInterval(sig);
     // }
     return res;
 }
@@ -62,7 +69,7 @@ Tree SigNewConstantPropagation::transformation(Tree sig)
 Tree SigNewConstantPropagation::postprocess(Tree sig)
 {
     int  opnum, projnum;
-    Tree t1, t2, rg;
+    Tree t1, t2, rg, var, le;
 
     if (isSigBinOp(sig, &opnum, t1, t2)) {
         BinOp* op = gBinOpTable[opnum];
@@ -71,32 +78,33 @@ Tree SigNewConstantPropagation::postprocess(Tree sig)
         Node n2 = t2->node();
 
         if (isNum(n1) && isNum(n2)) {
-            std::cerr << "\nnumop\n" << std::endl;
+            // std::cerr << "\nnumop\n" << std::endl;
             return tree(op->compute(n1, n2));
 
         } else if (op->isLeftNeutral(n1)) {
-            std::cerr << "\nleft neutral\n" << std::endl;
+            // std::cerr << "\nleft neutral\n" << std::endl;
             return t2;
         } else if (op->isLeftAbsorbing(n1)) {
-            std::cerr << "\nleft absorbing\n" << std::endl;
+            // std::cerr << "\nleft absorbing\n" << std::endl;
             return t1;
         } else if (op->isRightNeutral(n2)) {
-            std::cerr << "\nright neutral\n" << std::endl;
+            // std::cerr << "\nright neutral\n" << std::endl;
             return t1;
         } else if (op->isRightAbsorbing(n2)) {
-            std::cerr << "\nright absorbing\n" << std::endl;
+            // std::cerr << "\nright absorbing\n" << std::endl;
             return t2;
         } else if (t1 == t2) {
             if ((opnum == kAND) || (opnum == kOR)) {
-                std::cerr << "\nAnd or Or\n" << std::endl;
+                // std::cerr << "\nAnd or Or\n" << std::endl;
                 return t1;
             }
             if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) {
-                std::cerr << "\nGE, LE or EQ\n" << std::endl;
+                // std::cerr << "\nGE, LE or EQ\n" << std::endl;
                 return sigInt(1);
             }
-            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) || (opnum == kXOR)) {
-                std::cerr << "\nGT LT NE REM XOR\n" << std::endl;
+            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) ||
+                (opnum == kXOR)) {
+                // std::cerr << "\nGT LT NE REM XOR\n" << std::endl;
                 return sigInt(0);
             }
         }
