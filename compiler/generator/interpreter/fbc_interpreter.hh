@@ -727,6 +727,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 case FBCInstruction::kLoadSoundFieldInt: {
                     faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
                     Soundfile* sf = this->fSoundTable[(*it)->fName];
+                    faustassert(sf);
                     int field_index = popInt();
                     int part = popInt();
                     int* field = nullptr;
@@ -754,6 +755,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 case FBCInstruction::kLoadSoundFieldReal: {
                     faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
                     Soundfile* sf = this->fSoundTable[(*it)->fName];
+                    faustassert(sf);
                     // field_index (unused)
                     popInt();
                     int chan = popInt();
@@ -2839,6 +2841,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     do_kLoadSoundFieldInt: {
         faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
         Soundfile* sf = this->fSoundTable[(*it)->fName];
+        faustassert(sf);
         int field_index = popInt();
         int part = popInt();
         int* field = nullptr;
@@ -2866,6 +2869,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     do_kLoadSoundFieldReal: {
         faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
         Soundfile* sf = this->fSoundTable[(*it)->fName];
+        faustassert(sf);
         // field_index (unused)
         popInt();
         int chan = popInt();

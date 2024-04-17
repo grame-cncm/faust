@@ -1,0 +1,5 @@
+for f in $@
+do
+    echo "Processing $f file..."
+    interp-tracer -trace 4 -control $f >> interp-tracer.log
+done

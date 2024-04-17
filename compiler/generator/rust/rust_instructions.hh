@@ -582,16 +582,18 @@ class RustInstVisitor : public TextInstVisitor {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
 
-        auto        init = dynamic_cast<DeclareVarInst*>(inst->fInit);
+        auto init1 = dynamic_cast<DeclareVarInst*>(inst->fInit);
+        auto init2 = dynamic_cast<StoreVarInst*>(inst->fInit);
         std::string name;
-        ValueInst*  value;
-        if (init) {
-            name  = init->getName();
-            value = init->fValue;
+        ValueInst*  value = nullptr;
+        if (init1) {
+            name  = init1->getName();
+            value = init1->fValue;
+        } else if (init2) {
+            name  = init2->getName();
+            value = init2->fValue;
         } else {
-            auto init = dynamic_cast<StoreVarInst*>(inst->fInit);
-            name      = init->getName();
-            value     = init->fValue;
+            faustassert(false);
         }
 
         auto increment      = dynamic_cast<BinopInst*>(dynamic_cast<StoreVarInst*>(inst->fIncrement)->fValue)->fInst2;
@@ -605,12 +607,13 @@ class RustInstVisitor : public TextInstVisitor {
         *fOut << "for " << name << " in ";
         if (!increment_by_1) *fOut << "(";
         value->accept(this);
-        if (end->fOpcode == kLT)
+        if (end->fOpcode == kLT) {
             *fOut << "..";
-        else if (end->fOpcode == kLE)
+        } else if (end->fOpcode == kLE) {
             *fOut << "..=";
-        else
-            throw faustexception("Unhandled opcode");
+        } else {
+            faustassert(false);
+        }
         end->fInst2->accept(this);
 
         // Increment

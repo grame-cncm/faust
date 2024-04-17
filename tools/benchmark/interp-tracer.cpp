@@ -41,7 +41,13 @@
 #include "faust/gui/MapUI.h"
 #include "faust/misc.h"
 
+#define MEMORY_READER
+#include "faust/gui/SoundUI.h"
+
 using namespace std;
+
+static MemoryReader* memory_reader = new MemoryReader();
+static SoundUI* sound_ui = new SoundUI("", -1, memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
 
 static void printList(const vector<string>& list)
 {
@@ -250,6 +256,9 @@ int main(int argc, char* argv[])
         if (!audio->init(filename, DSP)) {
             exit(EXIT_FAILURE);
         }
+        
+        // Soundfile setting
+        DSP->buildUserInterface(sound_ui);
         
         if (is_control) {
             

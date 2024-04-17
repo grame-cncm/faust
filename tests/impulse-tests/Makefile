@@ -90,6 +90,8 @@ help:
 	@echo " 'test-box'          : test box creation intermediate step"
 	@echo " 'test-signal'       : test signal creation intermediate step"
 	@echo " 'test-type'         : test signal typing intermediate step"
+	@echo " 'bench'             : benchmark using faustbench-llvm and faustbench"
+	@echo " 'interp-tracer'     : use interp-tracer tool"
 	@echo " 'tools'             : builds binary tools used by the tests"
 	
 	@echo
@@ -431,6 +433,18 @@ test-signal:
 
 test-type:
 	cd dsp && ./type-script *.dsp
+
+#########################################################################
+# Benchmark using faustbench-llvm and faustbench
+
+bench:
+	cd dsp && ./bench-script *.dsp
+
+#########################################################################
+# Using interp-tracer
+
+interp-tracer:
+	cd dsp && ./interp-tracer-script *.dsp
 
 #########################################################################
 # tools

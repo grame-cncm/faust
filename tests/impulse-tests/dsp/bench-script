@@ -1,0 +1,9 @@
+export FAUSTBENCH_LOG=on
+
+for f in $@
+do
+  echo "Processing $f file..."
+  echo $f >> Faustbench.csv
+  faustbench-llvm -single $f
+  faustbench -single $f
+done

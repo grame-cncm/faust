@@ -490,7 +490,7 @@ bool llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_co
     STREAM_ERROR   err;
     raw_fd_ostream out(machine_code_path.c_str(), err, sysfs_binary_flag);
     if (err) {
-        cerr << "ERROR : writeDSPFactoryToMachineFile could not open file : " << err.message();
+        cerr << "ERROR : writeDSPFactoryToMachineFile could not open file : " << err.message() << endl;
         return false;
     }
     out << writeDSPFactoryToMachineAux(target);
