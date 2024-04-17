@@ -25,10 +25,10 @@
 #include "code_container.hh"
 #include "dsp_factory.hh"
 #include "fir_to_fir.hh"
-#include "vec_code_container.hh"
-#include "wasm_instructions.hh"
 #include "json_instructions.hh"
 #include "rn_base64.h"
+#include "vec_code_container.hh"
+#include "wasm_instructions.hh"
 
 class WASMCodeContainer : public virtual CodeContainer {
    protected:
@@ -37,15 +37,19 @@ class WASMCodeContainer : public virtual CodeContainer {
     std::stringstream      fHelper;
     int                    fInternalMemory;  // Whether memory is allocated inside wasm module or JS
 
-    DeclareFunInst* generateInstanceInitFun(const std::string& name, const std::string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceInitFun(const std::string& name, const std::string& obj,
+                                            bool ismethod, bool isvirtual);
     DeclareFunInst* generateClassInit(const std::string& name);
-    DeclareFunInst* generateInstanceClear(const std::string& name, const std::string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateInstanceConstants(const std::string& name, const std::string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateInstanceResetUserInterface(const std::string& name, const std::string& obj, bool ismethod,
+    DeclareFunInst* generateInstanceClear(const std::string& name, const std::string& obj,
+                                          bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceConstants(const std::string& name, const std::string& obj,
+                                              bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceResetUserInterface(const std::string& name,
+                                                       const std::string& obj, bool ismethod,
                                                        bool isvirtual);
 
     void generateComputeAux(BlockInst* compute_block);
-    
+
     template <typename REAL>
     std::string generateJSON()
     {
@@ -53,7 +57,7 @@ class WASMCodeContainer : public virtual CodeContainer {
         JSONInstVisitor<REAL> json_visitor1;
         generateUserInterface(&json_visitor1);
 
-        PathTableType path_index_table;
+        PathTableType                      path_index_table;
         std::map<std::string, MemoryDesc>& fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
         for (const auto& it : json_visitor1.fPathTable) {
             // Get field index
@@ -62,11 +66,14 @@ class WASMCodeContainer : public virtual CodeContainer {
         }
 
         // "name", "filename" found in metadata
-        std::string dsp_code = (gGlobal->gInputString.size() > 0) ? gGlobal->gInputString : pathToContent(gGlobal->gMasterDocument);
-        JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs,
-                                            -1, "", base64_encode(dsp_code), FAUSTVERSION, gGlobal->printCompilationOptions1(),
-                                            gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
-                                            gGlobal->gWASMVisitor->getStructSize(), path_index_table, MemoryLayoutType());
+        std::string           dsp_code = (gGlobal->gInputString.size() > 0)
+                                             ? gGlobal->gInputString
+                                             : pathToContent(gGlobal->gMasterDocument);
+        JSONInstVisitor<REAL> json_visitor2(
+            "", "", fNumInputs, fNumOutputs, -1, "", base64_encode(dsp_code), FAUSTVERSION,
+            gGlobal->printCompilationOptions1(), gGlobal->gReader.listLibraryFiles(),
+            gGlobal->gImportDirList, gGlobal->gWASMVisitor->getStructSize(), path_index_table,
+            MemoryLayoutType());
         generateUserInterface(&json_visitor2);
         generateMetaData(&json_visitor2);
 
@@ -85,17 +92,18 @@ class WASMCodeContainer : public virtual CodeContainer {
     virtual dsp_factory_base* produceFactory();
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
-    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type, bool internal_memory = true);
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type,
+                                         bool internal_memory = true);
 
-    static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst,
-                                          bool internal_memory);
+    static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs,
+                                          std::ostream* dst, bool internal_memory);
 };
 
 class WASMScalarCodeContainer : public WASMCodeContainer {
    protected:
    public:
-    WASMScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
-                            int sub_container_type, bool internal_memory);
+    WASMScalarCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                            std::ostream* out, int sub_container_type, bool internal_memory);
     virtual ~WASMScalarCodeContainer() {}
 
     void generateCompute();
@@ -104,7 +112,8 @@ class WASMScalarCodeContainer : public WASMCodeContainer {
 class WASMVectorCodeContainer : public VectorCodeContainer, public WASMCodeContainer {
    protected:
    public:
-    WASMVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
+    WASMVectorCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                            std::ostream* out, bool internal_memory);
     virtual ~WASMVectorCodeContainer() {}
 
     void generateCompute();

@@ -22,32 +22,30 @@
 #ifndef __SIGPROMOTION__
 #define __SIGPROMOTION__
 
-#include <vector>
 #include <map>
-#include <string>
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include "description.hh"
+#include "ppsig.hh"
 #include "sigIdentity.hh"
 #include "signalVisitor.hh"
 #include "sigtyperules.hh"
-#include "ppsig.hh"
 
 /*
  Print the type of a signal.
  To be used on a type annotated signal.
  */
 class SignalTypePrinter final : public SignalVisitor {
+   private:
+    std::vector<std::string> fPrinted;
+    void                     visit(Tree sig) override;
 
-    private:
-        std::vector<std::string> fPrinted;
-        void visit(Tree sig) override;
+   public:
+    SignalTypePrinter(Tree L);
 
-    public:
-        SignalTypePrinter(Tree L);
-    
-        std::string print();
-
+    std::string print();
 };
 
 /*
@@ -62,19 +60,18 @@ class SignalTypePrinter final : public SignalVisitor {
  To be used on a type annotated signal.
 */
 class SignalChecker final : public SignalVisitor {
+   private:
+    void visit(Tree sig) override;
 
-    private:
-        void visit(Tree sig) override;
+    void isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux);
 
-        void isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux);
-
-    public:
-        SignalChecker(Tree L)
-        {
-            // Check that the root tree is properly type annotated
-            getCertifiedSigType(L);
-            visitRoot(L);
-        }
+   public:
+    SignalChecker(Tree L)
+    {
+        // Check that the root tree is properly type annotated
+        getCertifiedSigType(L);
+        visitRoot(L);
+    }
 };
 
 //-------------------------SignalPromotion------------------------------
@@ -83,117 +80,105 @@ class SignalChecker final : public SignalVisitor {
 // To be used on a type annotated signal.
 //----------------------------------------------------------------------
 class SignalPromotion final : public SignalIdentity {
+   private:
+    Tree transformation(Tree sig);
 
-    private:
-        Tree transformation(Tree sig);
+    // Cast a sig to t1 if t1 != t2
+    Tree smartCast(Type t1, Type t2, Tree sig);
+    Tree smartCast(int t1, int t2, Tree sig);
+    // Cast a sig to t
+    Tree cast(Type t, Tree sig);
+    Tree cast(int t, Tree sig);
+    // Adds an intCast only if needed
+    Tree smartIntCast(Type t, Tree sig);
+    // Adds a floatCast only if needed
+    Tree smartFloatCast(Type t, Tree sig);
 
-        // Cast a sig to t1 if t1 != t2
-        Tree smartCast(Type t1, Type t2, Tree sig);
-        Tree smartCast(int t1, int t2, Tree sig);
-        // Cast a sig to t
-        Tree cast(Type t, Tree sig);
-        Tree cast(int t, Tree sig);
-        // Adds an intCast only if needed
-        Tree smartIntCast(Type t, Tree sig);
-        // Adds a floatCast only if needed
-        Tree smartFloatCast(Type t, Tree sig);
-
-    public:
-        SignalPromotion()
-        {
-            // Go inside tables
-            fVisitGen = true;
-        }
-
+   public:
+    SignalPromotion()
+    {
+        // Go inside tables
+        fVisitGen = true;
+    }
 };
 
 //--------------------SignalBool2IntPromotion------------------
 // Cast bool binary operations (comparison operations) to int.
 //-------------------------------------------------------------
 class SignalBool2IntPromotion final : public SignalIdentity {
+   private:
+    Tree transformation(Tree sig);
 
-    private:
-        Tree transformation(Tree sig);
-
-    public:
-        SignalBool2IntPromotion()
-        {
-            // Go inside tables
-            fVisitGen = true;
-        }
-
+   public:
+    SignalBool2IntPromotion()
+    {
+        // Go inside tables
+        fVisitGen = true;
+    }
 };
 
 //--------------------SignalFXPromotion------------------
 // Special math function casting mode in -fx generation.
 //-------------------------------------------------------------
 class SignalFXPromotion final : public SignalIdentity {
+   private:
+    Tree transformation(Tree sig);
 
-    private:
-        Tree transformation(Tree sig);
-
-    public:
-        SignalFXPromotion()
-        {
-            // Go inside tables
-            fVisitGen = true;
-        }
-
+   public:
+    SignalFXPromotion()
+    {
+        // Go inside tables
+        fVisitGen = true;
+    }
 };
 
 //-------------SignalIntCastPromotion---------------
 // Float to integer conversion, checking the range.
 //--------------------------------------------------
 class SignalIntCastPromotion final : public SignalIdentity {
+   private:
+    Tree transformation(Tree sig);
 
-    private:
-        Tree transformation(Tree sig);
-
-    public:
-        SignalIntCastPromotion()
-        {
-            // Go inside tables
-            fVisitGen = true;
-        }
-
+   public:
+    SignalIntCastPromotion()
+    {
+        // Go inside tables
+        fVisitGen = true;
+    }
 };
 
 //-------------------------SignalTablePromotion----------------------
 // Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]).
 //-------------------------------------------------------------------
 class SignalTablePromotion final : public SignalIdentity {
+   private:
+    Tree transformation(Tree sig);
 
-    private:
-        Tree transformation(Tree sig);
+    // Safe version of rtable/rwtable access
+    Tree safeSigRDTbl(Tree sig, Tree tbl, Tree size, Tree ri);
+    Tree safeSigWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws);
 
-        // Safe version of rtable/rwtable access
-        Tree safeSigRDTbl(Tree sig, Tree tbl, Tree size, Tree ri);
-        Tree safeSigWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws);
-
-    public:
-        SignalTablePromotion()
-        {
-            // Go inside tables
-            fVisitGen = true;
-        }
-
+   public:
+    SignalTablePromotion()
+    {
+        // Go inside tables
+        fVisitGen = true;
+    }
 };
 
 //-------------------------SignalUIPromotion--------------------
 // Generate safe access to range UI items (sliders and nentry).
 //--------------------------------------------------------------
 class SignalUIPromotion final : public SignalIdentity {
+   private:
+    Tree transformation(Tree sig);
 
-    private:
-        Tree transformation(Tree sig);
-
-    public:
-        SignalUIPromotion()
-        {
-            // Go inside tables
-            fVisitGen = true;
-        }
-
+   public:
+    SignalUIPromotion()
+    {
+        // Go inside tables
+        fVisitGen = true;
+    }
 };
 
 //-------------------------SignalUIFreezePromotion---------------------------
@@ -201,17 +186,15 @@ class SignalUIPromotion final : public SignalIdentity {
 // that depends of sliders and nentry will be computed at compile time.
 //---------------------------------------------------------------------------
 class SignalUIFreezePromotion final : public SignalIdentity {
+   private:
+    Tree transformation(Tree sig);
 
-    private:
-        Tree transformation(Tree sig);
-
-    public:
-        SignalUIFreezePromotion()
-        {
-            // Go inside tables
-            fVisitGen = true;
-        }
-
+   public:
+    SignalUIFreezePromotion()
+    {
+        // Go inside tables
+        fVisitGen = true;
+    }
 };
 
 //-------------SignalFTZPromotion---------------
@@ -219,49 +202,44 @@ class SignalUIFreezePromotion final : public SignalIdentity {
 // This option should be used only when it is not available on the CPU.
 //--------------------------------------------------
 class SignalFTZPromotion final : public SignalIdentity {
+   private:
+    Tree selfRec(Tree t);
 
-    private:
-        Tree selfRec(Tree t);
-
-    public:
-        SignalFTZPromotion()
-        {
-            // Go inside tables
-            fVisitGen = true;
-        }
-
+   public:
+    SignalFTZPromotion()
+    {
+        // Go inside tables
+        fVisitGen = true;
+    }
 };
 
 //-------------SignalAutoDifferentiate---------------
 // Auto Differentiate a signal for a given variable
 //--------------------------------------------------
 class SignalAutoDifferentiate final : public SignalIdentity {
+   private:
+    Tree fVar;
 
-    private:
-        Tree fVar;
+    Tree sigZero(int type) { return (type == kInt) ? sigInt(0) : sigReal(0.0); }
+    Tree sigOne(int type) { return (type == kInt) ? sigInt(1) : sigReal(1.0); }
+    Tree diff(Tree x, int ty) { return (x == fVar) ? sigOne(ty) : sigZero(ty); }
+    Tree transformation(Tree sig);
 
-        Tree sigZero(int type) { return (type == kInt) ? sigInt(0) : sigReal(0.0); }
-        Tree sigOne(int type) { return (type == kInt) ? sigInt(1) : sigReal(1.0); }
-        Tree diff(Tree x, int ty)
-        {
-            return (x == fVar) ? sigOne(ty) : sigZero(ty);
+   public:
+    // The variable with respect to which the differentiation is performed.
+    SignalAutoDifferentiate(Tree var) : fVar(var)
+    {
+        if (gGlobal->gDetailsSwitch) {
+            std::cout << ">>> Differentiate wrt. " << ppsig(var) << "\n";
         }
-        Tree transformation(Tree sig);
-
-    public:
-        // The variable with respect to which the differentiation is performed.
-        SignalAutoDifferentiate(Tree var) : fVar(var)
-        {
-            if (gGlobal->gDetailsSwitch) std::cout << ">>> Differentiate wrt. " << ppsig(var) << "\n";
-            // Go inside tables
-            fVisitGen = true;
-        }
+        // Go inside tables
+        fVisitGen = true;
+    }
 };
 
 struct DiffVarCollector : public SignalVisitor {
-    
     siglist inputs;
-    
+
     DiffVarCollector(Tree L)
     {
         while (!isNil(L)) {
@@ -269,21 +247,19 @@ struct DiffVarCollector : public SignalVisitor {
             L = tl(L);
         }
     }
-    
+
     void visit(Tree sig)
     {
         Tree label, init, min, max, step;
-        
-        if (isSigButton(sig, label)
-            || isSigCheckbox(sig, label)
-            || isSigVSlider(sig, label, init, min, max, step)
-            || isSigHSlider(sig, label, init, min, max, step)
-            || isSigNumEntry(sig, label, init, min, max, step)) {
-            
-            std::string simplifiedLabel;
+
+        if (isSigButton(sig, label) || isSigCheckbox(sig, label) ||
+            isSigVSlider(sig, label, init, min, max, step) ||
+            isSigHSlider(sig, label, init, min, max, step) ||
+            isSigNumEntry(sig, label, init, min, max, step)) {
+            std::string                                   simplifiedLabel;
             std::map<std::string, std::set<std::string> > metadata;
             extractMetadata(tree2str(hd(label)), simplifiedLabel, metadata);
-            
+
             // Look for [diff:1] or [diff:on]
             for (const auto& i : metadata) {
                 if (i.first == "diff") {

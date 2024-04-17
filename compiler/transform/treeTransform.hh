@@ -40,16 +40,16 @@ class TreeTransform : public Garbageable {
    protected:
     property<Tree> fResult;  // cache previously computed transformations
     // used when tracing
-    bool   fTrace;           // trace transformations when true
-    int    fIndent;          // current indentation during trace
-    std::string fMessage;    // trace message
+    bool        fTrace;    // trace transformations when true
+    int         fIndent;   // current indentation during trace
+    std::string fMessage;  // trace message
 
    public:
     TreeTransform() : fTrace(false), fIndent(0), fMessage("TreeTransform") {}
 
     Tree self(Tree t);
     Tree mapself(Tree lt);
-    
+
     // recursive signals transformation
     virtual Tree selfRec(Tree t);
     virtual Tree mapselfRec(Tree lt);
@@ -57,7 +57,7 @@ class TreeTransform : public Garbageable {
     void trace(bool b) { fTrace = b; }
     void trace(bool b, const std::string& m)
     {
-        fTrace = b;
+        fTrace   = b;
         fMessage = m;
     }
 

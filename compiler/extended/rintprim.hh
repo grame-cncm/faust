@@ -62,7 +62,8 @@ class RintPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -70,7 +71,8 @@ class RintPrim : public xtended {
         return generateFun(container, subst("rint$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -78,15 +80,16 @@ class RintPrim : public xtended {
         return subst("rint$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("\\left[ {$0} \\right]", args[0]);
     }
-    
-    Tree diff(const std::vector<Tree> &args) override
+
+    Tree diff(const std::vector<Tree>& args) override
     {
         // (rint(x))' = 0, cos(pi * x) != 0
         return getCertifiedSigType(args[0])->nature() == kInt ? sigInt(0) : sigReal(0.0);

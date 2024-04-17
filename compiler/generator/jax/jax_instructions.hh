@@ -24,16 +24,16 @@
 
 #include <string>
 
-#include "text_instructions.hh"
 #include "struct_manager.hh"
+#include "text_instructions.hh"
 
 // Visitor used to initialize array fields into the DSP structure
 struct JAXInitFieldsVisitor : public DispatchVisitor {
     std::ostream* fOut;
     int           fTab;
-    
+
     JAXInitFieldsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
-    
+
     virtual void visit(DeclareVarInst* inst)
     {
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
@@ -48,7 +48,7 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
             }
         }
     }
-    
+
     virtual void visit(NamedAddress* named)
     {
         // kStaticStruct are actually merged in the main DSP
@@ -60,7 +60,7 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
             *fOut << "\"]";
         }
     }
-    
+
     static void ZeroInitializer(std::ostream* fOut, Typed* typed)
     {
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
@@ -73,7 +73,7 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
             *fOut << "np.zeros((" << array_type->fSize << ",), dtype=np.float64)";
         }
     }
-    
+
     // Needed for waveforms
     virtual void visit(Int32ArrayNumInst* inst)
     {
@@ -85,7 +85,7 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
         }
         *fOut << "], dtype=np.int32)";
     }
-    
+
     virtual void visit(FloatArrayNumInst* inst)
     {
         *fOut << "np.array(";
@@ -96,7 +96,7 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
         }
         *fOut << "], dtype=np.float32)";
     }
-    
+
     virtual void visit(DoubleArrayNumInst* inst)
     {
         *fOut << "np.array(";
@@ -111,7 +111,6 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
 
 class JAXInstVisitor : public TextInstVisitor {
    private:
-     
     /*
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
@@ -120,17 +119,18 @@ class JAXInstVisitor : public TextInstVisitor {
 
     // Polymorphic math functions
     std::map<std::string, std::string> gPolyMathLibTable;
-        
+
     // bool for "is storing left-hand-side".
     // Suppose the output code will be `state['foo'] = bar`.
-    // This boolean indicates that we are starting this line but haven't yet reached the equals sign.
-    bool fIsStoringLhs = false; 
+    // This boolean indicates that we are starting this line but haven't yet reached the equals
+    // sign.
+    bool fIsStoringLhs = false;
 
     // bool for "will set array".
     // jax has a special syntax for setting items of arrays:
     // https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.ndarray.at.html
-    // This bool helps us know that we're going to use the .at[X] operator followed by the set(Y) operator.
-    // This bool is used in tandem with fIsStoringLhs.
+    // This bool helps us know that we're going to use the .at[X] operator followed by the set(Y)
+    // operator. This bool is used in tandem with fIsStoringLhs.
     bool fWillSetArray = false;
 
     // This bool is not related to fIsStoringLhs or fWillSetArray.
@@ -139,7 +139,7 @@ class JAXInstVisitor : public TextInstVisitor {
 
     std::set<std::string> fLogSet;  // set of widget zone having a log UI scale
     std::set<std::string> fExpSet;  // set of widget zone having an exp UI scale
-   
+
    public:
     using TextInstVisitor::visit;
 
@@ -153,10 +153,10 @@ class JAXInstVisitor : public TextInstVisitor {
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
-    
+
         gFunctionSymbolTable["max_i"] = true;
         gFunctionSymbolTable["min_i"] = true;
-        
+
         gFunctionSymbolTable["max_f"] = true;
         gFunctionSymbolTable["min_f"] = true;
 
@@ -187,7 +187,7 @@ class JAXInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinf"]       = true;
         gFunctionSymbolTable["sqrtf"]      = true;
         gFunctionSymbolTable["tanf"]       = true;
-    
+
         // Hyperbolic
         gFunctionSymbolTable["acoshf"] = true;
         gFunctionSymbolTable["asinhf"] = true;
@@ -217,12 +217,12 @@ class JAXInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
-    
+
         // Hyperbolic
         gFunctionSymbolTable["acosh"] = true;
         gFunctionSymbolTable["asinh"] = true;
         gFunctionSymbolTable["atanh"] = true;
-        gFunctionSymbolTable["coshf"]  = true;
+        gFunctionSymbolTable["coshf"] = true;
         gFunctionSymbolTable["sinh"]  = true;
         gFunctionSymbolTable["tanh"]  = true;
 
@@ -247,7 +247,7 @@ class JAXInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinl"]       = true;
         gFunctionSymbolTable["sqrtl"]      = true;
         gFunctionSymbolTable["tanl"]       = true;
-    
+
         // Hyperbolic
         gFunctionSymbolTable["acoshl"] = true;
         gFunctionSymbolTable["asinhl"] = true;
@@ -255,7 +255,7 @@ class JAXInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["coshl"]  = true;
         gFunctionSymbolTable["sinhl"]  = true;
         gFunctionSymbolTable["tanhl"]  = true;
-   
+
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "jnp.abs";
         gPolyMathLibTable["max_i"] = "jnp.maximum";
@@ -265,79 +265,83 @@ class JAXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["max_f"] = "jnp.maximum";
         gPolyMathLibTable["min_f"] = "jnp.minimum";
 
-        gPolyMathLibTable["fabsf"]      = "jnp.abs";
-        gPolyMathLibTable["acosf"]      = "jnp.arccos";
-        gPolyMathLibTable["asinf"]      = "jnp.arcsin";
-        gPolyMathLibTable["atanf"]      = "jnp.arctan";
-        gPolyMathLibTable["atan2f"]     = "jnp.arctan2";
-        gPolyMathLibTable["ceilf"]      = "jnp.ceil";
-        gPolyMathLibTable["cosf"]       = "jnp.cos";
-        gPolyMathLibTable["expf"]       = "jnp.exp";
-        gPolyMathLibTable["exp2f"]      = "jnp.exp2";
-        gPolyMathLibTable["exp10f"]     = "jnp.exp10f";
-        gPolyMathLibTable["floorf"]     = "jnp.floor";
-        gPolyMathLibTable["fmodf"]      = "jnp.mod";
-        gPolyMathLibTable["logf"]       = "jnp.log";
-        gPolyMathLibTable["log2f"]      = "jnp.log2";
-        gPolyMathLibTable["log10f"]     = "jnp.log10";
-        gPolyMathLibTable["powf"]       = "jnp.power";
-        gPolyMathLibTable["remainderf"] = "remainder";  // todo: we currently rely on a custom remainder implementation in the architecture file.
-        gPolyMathLibTable["rintf"]      = "jnp.rint";
-        gPolyMathLibTable["roundf"]     = "jnp.round";
-        gPolyMathLibTable["sinf"]       = "jnp.sin";
-        gPolyMathLibTable["sqrtf"]      = "jnp.sqrt";
-        gPolyMathLibTable["tanf"]       = "jnp.tan";
-                             
+        gPolyMathLibTable["fabsf"]  = "jnp.abs";
+        gPolyMathLibTable["acosf"]  = "jnp.arccos";
+        gPolyMathLibTable["asinf"]  = "jnp.arcsin";
+        gPolyMathLibTable["atanf"]  = "jnp.arctan";
+        gPolyMathLibTable["atan2f"] = "jnp.arctan2";
+        gPolyMathLibTable["ceilf"]  = "jnp.ceil";
+        gPolyMathLibTable["cosf"]   = "jnp.cos";
+        gPolyMathLibTable["expf"]   = "jnp.exp";
+        gPolyMathLibTable["exp2f"]  = "jnp.exp2";
+        gPolyMathLibTable["exp10f"] = "jnp.exp10f";
+        gPolyMathLibTable["floorf"] = "jnp.floor";
+        gPolyMathLibTable["fmodf"]  = "jnp.mod";
+        gPolyMathLibTable["logf"]   = "jnp.log";
+        gPolyMathLibTable["log2f"]  = "jnp.log2";
+        gPolyMathLibTable["log10f"] = "jnp.log10";
+        gPolyMathLibTable["powf"]   = "jnp.power";
+        gPolyMathLibTable["remainderf"] =
+            "remainder";  // todo: we currently rely on a custom remainder implementation in the
+                          // architecture file.
+        gPolyMathLibTable["rintf"]  = "jnp.rint";
+        gPolyMathLibTable["roundf"] = "jnp.round";
+        gPolyMathLibTable["sinf"]   = "jnp.sin";
+        gPolyMathLibTable["sqrtf"]  = "jnp.sqrt";
+        gPolyMathLibTable["tanf"]   = "jnp.tan";
+
         // Hyperbolic
-        gPolyMathLibTable["acoshf"]     = "jnp.arccosh";
-        gPolyMathLibTable["asinhf"]     = "jnp.arcsinh";
-        gPolyMathLibTable["atanhf"]     = "jnp.arctanh";
-        gPolyMathLibTable["coshf"]      = "jnp.cosh";
-        gPolyMathLibTable["sinhf"]      = "jnp.sinh";
-        gPolyMathLibTable["tanhf"]      = "jnp.tanh";
-    
-        gPolyMathLibTable["isnanf"]     = "jnp.isnan";
-        gPolyMathLibTable["isinff"]     = "jnp.isinf";
-        gPolyMathLibTable["copysignf"]  = "jnp.copysign";
-        
+        gPolyMathLibTable["acoshf"] = "jnp.arccosh";
+        gPolyMathLibTable["asinhf"] = "jnp.arcsinh";
+        gPolyMathLibTable["atanhf"] = "jnp.arctanh";
+        gPolyMathLibTable["coshf"]  = "jnp.cosh";
+        gPolyMathLibTable["sinhf"]  = "jnp.sinh";
+        gPolyMathLibTable["tanhf"]  = "jnp.tanh";
+
+        gPolyMathLibTable["isnanf"]    = "jnp.isnan";
+        gPolyMathLibTable["isinff"]    = "jnp.isinf";
+        gPolyMathLibTable["copysignf"] = "jnp.copysign";
+
         // Polymath mapping double version
         gPolyMathLibTable["max_"] = "jnp.maximum";
         gPolyMathLibTable["min_"] = "jnp.minimum";
 
-        gPolyMathLibTable["fabs"]      = "jnp.abs";
-        gPolyMathLibTable["acos"]      = "jnp.arccos";
-        gPolyMathLibTable["asin"]      = "jnp.arcsin";
-        gPolyMathLibTable["atan"]      = "jnp.arctan";
-        gPolyMathLibTable["atan2"]     = "jnp.arctan2";
-        gPolyMathLibTable["ceil"]      = "jnp.ceil";
-        gPolyMathLibTable["cos"]       = "jnp.cos";
-        gPolyMathLibTable["exp"]       = "jnp.exp";
-        gPolyMathLibTable["exp2"]      = "jnp.exp2";
-        gPolyMathLibTable["exp10"]     = "jnp.exp10";
-        gPolyMathLibTable["floor"]     = "jnp.floor";
-        gPolyMathLibTable["fmod"]      = "jnp.mod";
-        gPolyMathLibTable["log"]       = "jnp.log";
-        gPolyMathLibTable["log2"]      = "jnp.log2";
-        gPolyMathLibTable["log10"]     = "jnp.log10";
-        gPolyMathLibTable["pow"]       = "jnp.power";
-        gPolyMathLibTable["remainder"] = "remainder"; // todo: we currently rely on a custom remainder implementation in the architecture file.
-        gPolyMathLibTable["rint"]      = "jnp.rint";
-        gPolyMathLibTable["round"]     = "jnp.round";
-        gPolyMathLibTable["sin"]       = "jnp.sin";
-        gPolyMathLibTable["sqrt"]      = "jnp.sqrt";
-        gPolyMathLibTable["tan"]       = "jnp.tan";
-    
-        // Hyperbolic
-        gPolyMathLibTable["acosh"]     = "jnp.arccosh";
-        gPolyMathLibTable["asinh"]     = "jnp.arcsinh";
-        gPolyMathLibTable["atanh"]     = "jnp.arctanh";
-        gPolyMathLibTable["cosh"]      = "jnp.cosh";
-        gPolyMathLibTable["sinh"]      = "jnp.sinh";
-        gPolyMathLibTable["tanh"]      = "jnp.tanh";
+        gPolyMathLibTable["fabs"]  = "jnp.abs";
+        gPolyMathLibTable["acos"]  = "jnp.arccos";
+        gPolyMathLibTable["asin"]  = "jnp.arcsin";
+        gPolyMathLibTable["atan"]  = "jnp.arctan";
+        gPolyMathLibTable["atan2"] = "jnp.arctan2";
+        gPolyMathLibTable["ceil"]  = "jnp.ceil";
+        gPolyMathLibTable["cos"]   = "jnp.cos";
+        gPolyMathLibTable["exp"]   = "jnp.exp";
+        gPolyMathLibTable["exp2"]  = "jnp.exp2";
+        gPolyMathLibTable["exp10"] = "jnp.exp10";
+        gPolyMathLibTable["floor"] = "jnp.floor";
+        gPolyMathLibTable["fmod"]  = "jnp.mod";
+        gPolyMathLibTable["log"]   = "jnp.log";
+        gPolyMathLibTable["log2"]  = "jnp.log2";
+        gPolyMathLibTable["log10"] = "jnp.log10";
+        gPolyMathLibTable["pow"]   = "jnp.power";
+        gPolyMathLibTable["remainder"] =
+            "remainder";  // todo: we currently rely on a custom remainder implementation in the
+                          // architecture file.
+        gPolyMathLibTable["rint"]  = "jnp.rint";
+        gPolyMathLibTable["round"] = "jnp.round";
+        gPolyMathLibTable["sin"]   = "jnp.sin";
+        gPolyMathLibTable["sqrt"]  = "jnp.sqrt";
+        gPolyMathLibTable["tan"]   = "jnp.tan";
 
-        gPolyMathLibTable["isnan"]     = "jnp.isnan";
-        gPolyMathLibTable["isinf"]     = "jnp.isinf";
-        gPolyMathLibTable["copysign"]  = "jnp.copysign";
+        // Hyperbolic
+        gPolyMathLibTable["acosh"] = "jnp.arccosh";
+        gPolyMathLibTable["asinh"] = "jnp.arcsinh";
+        gPolyMathLibTable["atanh"] = "jnp.arctanh";
+        gPolyMathLibTable["cosh"]  = "jnp.cosh";
+        gPolyMathLibTable["sinh"]  = "jnp.sinh";
+        gPolyMathLibTable["tanh"]  = "jnp.tanh";
+
+        gPolyMathLibTable["isnan"]    = "jnp.isnan";
+        gPolyMathLibTable["isinf"]    = "jnp.isinf";
+        gPolyMathLibTable["copysign"] = "jnp.copysign";
     }
 
     virtual ~JAXInstVisitor() {}
@@ -366,10 +370,11 @@ class JAXInstVisitor : public TextInstVisitor {
         *fOut << "ui_path.pop()";
         tab(fTab, *fOut);
     }
-    
+
     virtual void visit(AddButtonInst* inst)
     {
-        *fOut << "self.add_button(state, " << quote(inst->fZone) << ", ui_path," << quote(inst->fLabel) << ")";
+        *fOut << "self.add_button(state, " << quote(inst->fZone) << ", ui_path,"
+              << quote(inst->fLabel) << ")";
         EndLine(' ');
     }
 
@@ -420,14 +425,15 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        *fOut << "self.add_soundfile(state, " << quote(inst->fSFZone) << ", ui_path, " << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", x)";
+        *fOut << "self.add_soundfile(state, " << quote(inst->fSFZone) << ", ui_path, "
+              << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", x)";
         EndLine(' ');
     }
 
     virtual void visit(Int32NumInst* inst) { *fOut << inst->fNum; }
-    
+
     virtual void visit(Int64NumInst* inst) { *fOut << inst->fNum; }
-    
+
     virtual void visit(Int32ArrayNumInst* inst)
     {
         *fOut << "jnp.array(";
@@ -438,7 +444,7 @@ class JAXInstVisitor : public TextInstVisitor {
         }
         *fOut << "], dtype=jnp.int32)";
     }
-    
+
     virtual void visit(FloatArrayNumInst* inst)
     {
         *fOut << "jnp.array(";
@@ -449,7 +455,7 @@ class JAXInstVisitor : public TextInstVisitor {
         }
         *fOut << "], dtype=jnp.float32)";
     }
-    
+
     virtual void visit(DoubleArrayNumInst* inst)
     {
         *fOut << "jnp.array(";
@@ -460,17 +466,18 @@ class JAXInstVisitor : public TextInstVisitor {
         }
         *fOut << "], dtype=jnp.float64)";
     }
-    
+
     virtual void visit(BinopInst* inst)
     {
         if (inst->fOpcode == kXOR) {
             *fOut << "(";
             inst->fInst1->accept(this);
             *fOut << " ^ ";
-             inst->fInst2->accept(this);
+            inst->fInst2->accept(this);
             *fOut << ")";
         } else {
-            // Operator prededence is not like C/C++, so for simplicity, we keep the fully parenthezid version
+            // Operator prededence is not like C/C++, so for simplicity, we keep the fully
+            // parenthezid version
             *fOut << "(";
             inst->fInst1->accept(this);
             *fOut << " ";
@@ -481,12 +488,13 @@ class JAXInstVisitor : public TextInstVisitor {
 
             bool opCodeIsBoolean = inst->fOpcode >= kGT && inst->fOpcode <= kXOR;
             if (opCodeIsBoolean && !fIsDoingWhile) {
-                // these opcodes (>,>=,<,<= etc.) result in bools which should be re-cast to integers
+                // these opcodes (>,>=,<,<= etc.) result in bools which should be re-cast to
+                // integers
                 *fOut << ".astype(jnp.int32)";
             }
         }
     }
-   
+
     virtual void visit(DeclareVarInst* inst)
     {
         if (inst->fAddress->isStaticStruct()) {
@@ -513,7 +521,7 @@ class JAXInstVisitor : public TextInstVisitor {
             EndLine(' ');
         }
     }
-    
+
     virtual void visit(DropInst* inst)
     {
         if (inst->fResult) {
@@ -521,32 +529,35 @@ class JAXInstVisitor : public TextInstVisitor {
             EndLine(' ');
         }
     }
-    
+
     virtual void visit(DeclareFunInst* inst)
     {
         // Already generated
         if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
-           return;
+            return;
         } else {
-           gFunctionSymbolTable[inst->fName] = true;
+            gFunctionSymbolTable[inst->fName] = true;
         }
-        
+
         *fOut << "def " << inst->fName;
         generateFunDefArgs(inst);
         generateFunDefBody(inst);
     }
-    
+
     virtual void visit(DeclareBufferIterators* inst)
     {
         // Don't generate if no channels
-        if (inst->fChannels == 0) return;
-    
+        if (inst->fChannels == 0) {
+            return;
+        }
+
         for (int i = 0; i < inst->fChannels; ++i) {
-            *fOut << inst->fBufferName1 << i << " = " << inst->fBufferName2 << "[ " << i << ":" << i+1 << ",:]";
+            *fOut << inst->fBufferName1 << i << " = " << inst->fBufferName2 << "[ " << i << ":"
+                  << i + 1 << ",:]";
             tab(fTab, *fOut);
         }
     }
-    
+
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
@@ -580,14 +591,13 @@ class JAXInstVisitor : public TextInstVisitor {
             *fOut << "\"]";
         }
     }
-    
+
     /*
     Indexed address can actually be values in an array or fields in a struct type
     */
     virtual void visit(IndexedAddress* indexed)
     {
         if (fUseNumpy) {
-
             indexed->fAddress->accept(this);
             DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
             if (struct_type) {
@@ -603,9 +613,8 @@ class JAXInstVisitor : public TextInstVisitor {
                     *fOut << "]";
                 }
             }
-        
+
         } else {
-        
             indexed->fAddress->accept(this);
             DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
             if (struct_type) {
@@ -634,11 +643,8 @@ class JAXInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(LoadVarAddressInst* inst)
-    {
-        faustassert(false);
-    }
-    
+    virtual void visit(LoadVarAddressInst* inst) { faustassert(false); }
+
     virtual void visit(StoreVarInst* inst)
     {
         fIsStoringLhs = true;
@@ -657,7 +663,7 @@ class JAXInstVisitor : public TextInstVisitor {
 
         EndLine(' ');
     }
-      
+
     virtual void visit(::CastInst* inst)
     {
         if (isIntType(inst->fType->getType())) {
@@ -671,18 +677,15 @@ class JAXInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(BitcastInst* inst)
-    {
-        faustassert(false);
-    }
-    
+    virtual void visit(BitcastInst* inst) { faustassert(false); }
+
     virtual void visitCond(ValueInst* cond)
     {
         *fOut << "(";
         cond->accept(this);
         *fOut << " != 0)";
     }
-    
+
     virtual void visit(Select2Inst* inst)
     {
         *fOut << "jnp.where(";
@@ -697,7 +700,9 @@ class JAXInstVisitor : public TextInstVisitor {
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {
-        std::string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
+        std::string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end())
+                               ? gPolyMathLibTable[inst->fName]
+                               : inst->fName;
         if (fUseNumpy && name.rfind("jnp.") == 0) {
             // turn "jnp." into "np."
             name = name.substr(1, name.size() - 1);
@@ -707,7 +712,7 @@ class JAXInstVisitor : public TextInstVisitor {
         generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
         *fOut << ")";
     }
-    
+
     virtual void visit(IfInst* inst)
     {
         *fOut << "if ";
@@ -732,7 +737,9 @@ class JAXInstVisitor : public TextInstVisitor {
     virtual void visit(ForLoopInst* inst)
     {
         // Don't generate empty loops...
-        if (inst->fCode->size() == 0) return;
+        if (inst->fCode->size() == 0) {
+            return;
+        }
 
         fIsDoingWhile = true;
 
@@ -754,13 +761,15 @@ class JAXInstVisitor : public TextInstVisitor {
         back(1, *fOut);
         tab(fTab, *fOut);
     }
-    
+
     virtual void visit(SimpleForLoopInst* inst)
     {
         // Don't generate empty loops...
-        if (inst->fCode->size() == 0) return;
+        if (inst->fCode->size() == 0) {
+            return;
+        }
         *fOut << "for " << inst->getName() << " in ";
-    
+
         if (inst->fReverse) {
             // todo:
             *fOut << "reverse(";
@@ -770,7 +779,8 @@ class JAXInstVisitor : public TextInstVisitor {
             Int32NumInst* upper_bound = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
             if (upper_bound) {
                 // If an Int32NumInst, we just generate it without any type information
-                // (see visit(Int32NumInst* inst) which adds type information that we don't want here)
+                // (see visit(Int32NumInst* inst) which adds type information that we don't want
+                // here)
                 *fOut << upper_bound->fNum;
             } else {
                 inst->fUpperBound->accept(this);
@@ -799,7 +809,7 @@ class JAXInstVisitor : public TextInstVisitor {
         back(1, *fOut);
         tab(fTab, *fOut);
     }
-    
+
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 

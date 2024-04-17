@@ -88,7 +88,8 @@ static void addLayerDef(Tree id, Tree def, Tree lenv)
     Tree olddef = nullptr;
     if (getProperty(lenv, id, olddef)) {
         if (def == olddef) {
-            // evalwarning(getDefFileProp(id), getDefLineProp(id), "equivalent re-definitions of", id);
+            // evalwarning(getDefFileProp(id), getDefLineProp(id), "equivalent re-definitions of",
+            // id);
         } else {
             stringstream error;
             error << getDefFileProp(id) << ':' << getDefLineProp(id)
@@ -131,7 +132,9 @@ Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
         Tree         cl  = closure(tl(def), gGlobal->nil, visited, lenv2);
         stringstream s;
         s << boxpp(id);
-        if (!isBoxCase(rhs)) setDefNameProperty(cl, s.str());
+        if (!isBoxCase(rhs)) {
+            setDefNameProperty(cl, s.str());
+        }
         addLayerDef(id, cl, lenv2);
         ldefs = tl(ldefs);
     }
@@ -187,12 +190,13 @@ Tree copyEnvReplaceDefs(Tree anEnv, Tree ldefs, Tree visited, Tree curEnv)
     vector<Tree> ids, clos;
     Tree         copyEnv;
 
-    anEnv->exportProperties(ids, clos);        // get the definitions of the environment
+    anEnv->exportProperties(ids, clos);  // get the definitions of the environment
     faustassert(anEnv->arity() > 0);
     copyEnv = pushNewLayer(anEnv->branch(0));  // create new environment with same stack
     updateClosures(clos, anEnv, copyEnv);      // update the closures replacing oldEnv with newEnv
 
-    for (unsigned int i = 0; i < clos.size(); i++) {  // transfers the updated definitions to the new environment
+    for (unsigned int i = 0; i < clos.size();
+         i++) {  // transfers the updated definitions to the new environment
         setProperty(copyEnv, ids[i], clos[i]);
     }
 
@@ -203,7 +207,9 @@ Tree copyEnvReplaceDefs(Tree anEnv, Tree ldefs, Tree visited, Tree curEnv)
         Tree         cl  = closure(rhs, gGlobal->nil, visited, curEnv);
         stringstream s;
         s << boxpp(id);
-        if (!isBoxCase(rhs)) setDefNameProperty(cl, s.str());
+        if (!isBoxCase(rhs)) {
+            setDefNameProperty(cl, s.str());
+        }
         setProperty(copyEnv, id, cl);
         ldefs = tl(ldefs);
     }

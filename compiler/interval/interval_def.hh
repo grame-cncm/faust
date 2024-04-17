@@ -60,10 +60,11 @@ class interval {
 
     interval(double n, double m, int lsb = -24) noexcept
     {
-        if (lsb == INT_MIN)
+        if (lsb == INT_MIN) {
             fLSB = -24;
-        else
+        } else {
             fLSB = lsb;
+        }
 
         if (std::isnan(n) || std::isnan(m)) {
             fLo = NAN;
@@ -113,18 +114,20 @@ class interval {
     // position of the most significant bit of the value, without taking the sign bit into account
     int msb() const
     {
-        if (fLo == 0 and fHi == 0)
+        if (fLo == 0 and fHi == 0) {
             return 0;
+        }
 
         // amplitude of the interval
-        // can be < 1.0, in which case the msb will be negative and indicate the number of implicit leading zeroes
+        // can be < 1.0, in which case the msb will be negative and indicate the number of implicit
+        // leading zeroes
         double range = std::max(std::abs(fLo), std::abs(fHi));
-        
 
         if (std::isinf(range)) {
             // if (fLSB == 0) // if we're dealing with integers: is that a good criterion?
-                return 31;
-            // return 20;  // max MSB of the VHDL design; TODO: change when integrating in the compiler
+            return 31;
+            // return 20;  // max MSB of the VHDL design; TODO: change when integrating in the
+            // compiler
         }
 
         int l = int(std::ceil(std::log2(range)));
@@ -169,7 +172,8 @@ inline interval intersection(const interval& i, const interval& j)
     } else {
         double l = std::max(i.lo(), j.lo());
         double h = std::min(i.hi(), j.hi());
-        int    p = std::min(i.lsb(), j.lsb());  // precision of the intersection should be the finest of the two
+        int    p = std::min(i.lsb(),
+                            j.lsb());  // precision of the intersection should be the finest of the two
         if (l > h) {
             return {};
         } else {
@@ -187,7 +191,8 @@ inline interval reunion(const interval& i, const interval& j)
     } else {
         double l = std::min(i.lo(), j.lo());
         double h = std::max(i.hi(), j.hi());
-        int    p = std::min(i.lsb(), j.lsb());  // precision of the reunion should be the finest of the two
+        int    p =
+            std::min(i.lsb(), j.lsb());  // precision of the reunion should be the finest of the two
         return {l, h, p};
     }
 }
@@ -206,7 +211,7 @@ inline interval singleton(double x)
 
     int m = std::floor(std::log2(std::abs(x)));
 
-    int precision = m - 32; // 32 = set width
+    int precision = m - 32;  // 32 = set width
 
     return {x, x, precision};
 }

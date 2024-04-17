@@ -168,17 +168,20 @@ void print(Tree t, FILE* out)
     Sym    s;
     void*  p;
 
-    if (printlist(t, out)) return;
+    if (printlist(t, out)) {
+        return;
+    }
 
     Node n = t->node();
-    if (isInt(n, &i))
+    if (isInt(n, &i)) {
         fprintf(out, "%d", i);
-    else if (isDouble(n, &f))
+    } else if (isDouble(n, &f)) {
         fprintf(out, "%f", f);
-    else if (isSym(n, &s))
+    } else if (isSym(n, &s)) {
         fprintf(out, "%s", name(s));
-    else if (isPointer(n, &p))
+    } else if (isPointer(n, &p)) {
         fprintf(out, "#%p", p);
+    }
 
     int k = t->arity();
     if (k > 0) {
@@ -199,7 +202,9 @@ void print(Tree t, FILE* out)
 Tree nth(Tree l, int i)
 {
     while (isList(l)) {
-        if (i == 0) return hd(l);
+        if (i == 0) {
+            return hd(l);
+        }
         l = tl(l);
         i--;
     }
@@ -243,7 +248,9 @@ Tree lrange(Tree l, int i, int j)
 {
     Tree r = gGlobal->nil;
     int  c = j;
-    while (c > i) r = cons(nth(l, --c), r);
+    while (c > i) {
+        r = cons(nth(l, --c), r);
+    }
     return r;
 }
 
@@ -288,8 +295,12 @@ Tree reverseall(Tree l)
 bool isElement(Tree e, Tree l)
 {
     while (isList(l)) {
-        if (hd(l) == e) return true;
-        if (hd(l) > e) return false;
+        if (hd(l) == e) {
+            return true;
+        }
+        if (hd(l) > e) {
+            return false;
+        }
         l = tl(l);
     }
     return false;
@@ -342,29 +353,53 @@ Tree list2set(Tree l)
 
 Tree setUnion(Tree A, Tree B)
 {
-    if (isNil(A)) return B;
-    if (isNil(B)) return A;
+    if (isNil(A)) {
+        return B;
+    }
+    if (isNil(B)) {
+        return A;
+    }
 
-    if (hd(A) == hd(B)) return cons(hd(A), setUnion(tl(A), tl(B)));
-    if (hd(A) < hd(B)) return cons(hd(A), setUnion(tl(A), B));
+    if (hd(A) == hd(B)) {
+        return cons(hd(A), setUnion(tl(A), tl(B)));
+    }
+    if (hd(A) < hd(B)) {
+        return cons(hd(A), setUnion(tl(A), B));
+    }
     /* hd(A) > hd(B) */ return cons(hd(B), setUnion(A, tl(B)));
 }
 
 Tree setIntersection(Tree A, Tree B)
 {
-    if (isNil(A)) return A;
-    if (isNil(B)) return B;
-    if (hd(A) == hd(B)) return cons(hd(A), setIntersection(tl(A), tl(B)));
-    if (hd(A) < hd(B)) return setIntersection(tl(A), B);
+    if (isNil(A)) {
+        return A;
+    }
+    if (isNil(B)) {
+        return B;
+    }
+    if (hd(A) == hd(B)) {
+        return cons(hd(A), setIntersection(tl(A), tl(B)));
+    }
+    if (hd(A) < hd(B)) {
+        return setIntersection(tl(A), B);
+    }
     /* (hd(A) > hd(B)*/ return setIntersection(A, tl(B));
 }
 
 Tree setDifference(Tree A, Tree B)
 {
-    if (isNil(A)) return A;
-    if (isNil(B)) return A;
-    if (hd(A) == hd(B)) return setDifference(tl(A), tl(B));
-    if (hd(A) < hd(B)) return cons(hd(A), setDifference(tl(A), B));
+    if (isNil(A)) {
+        return A;
+    }
+    if (isNil(B)) {
+        return A;
+    }
+    if (hd(A) == hd(B)) {
+        return setDifference(tl(A), tl(B));
+    }
+    if (hd(A) < hd(B)) {
+        return cons(hd(A), setDifference(tl(A), B));
+    }
     /* (hd(A) > hd(B)*/ return setDifference(A, tl(B));
 }
 
@@ -503,7 +538,8 @@ Tree tmap(Tree key, tfun f, Tree t)
 static Tree substkey(Tree t, Tree id, Tree val)
 {
     char name[256];
-    snprintf(name, 255, "SUBST<%p,%p,%p> : ", (void*)(CTree*)t, (void*)(CTree*)id, (void*)(CTree*)val);
+    snprintf(name, 255, "SUBST<%p,%p,%p> : ", (void*)(CTree*)t, (void*)(CTree*)id,
+             (void*)(CTree*)val);
     return tree(unique(name));
 }
 

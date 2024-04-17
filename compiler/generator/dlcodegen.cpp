@@ -7,12 +7,12 @@
  it under the terms of the GNU Lesser General Public License as published by
  the Free Software Foundation; either version 2.1 of the License, or
  (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -66,7 +66,7 @@ string DlCodeGen::localDeclare() const
         return s;
     } else if (fDlMaxDelay > 2) {
         string s = fDlType + "\t" + fDlName + "cache[" + T(fBlockSize) + " + " + T(fDlMaxDelay) +
-                        "];  // local copy of the delay line";
+                   "];  // local copy of the delay line";
         return s;
     } else {
         return "ERROR1";
@@ -77,7 +77,7 @@ string DlCodeGen::pointerSetup() const
 {
     if (fDlMaxDelay > 2) {
         string s = fDlType + "*\t" + fDlName + " = " + fDlName + "cache + " + T(fBlockSize) +
-                        " - 1;  // pointer to the delay line in the local copy";
+                   " - 1;  // pointer to the delay line in the local copy";
         return s;
     } else {
         return "";
@@ -92,7 +92,8 @@ string DlCodeGen::copyGlobalToLocal() const
         s += " }\n";
         return s;
     } else if (fDlMaxDelay == 2) {
-        string s = fDlName + "[1] = " + fDlName + "State[0] ; " + fDlName + "[2] = " + fDlName + "State[1];\n";
+        string s = fDlName + "[1] = " + fDlName + "State[0] ; " + fDlName + "[2] = " + fDlName +
+                   "State[1];\n";
         return s;
     } else if (fMono) {
         string s = fDlName + " = " + fDlName + "State;\n";
@@ -111,7 +112,8 @@ string DlCodeGen::copyLocalToGlobal() const
         s += " }\n";
         return s;
     } else if (fDlMaxDelay == 2) {
-        string s = fDlName + "State[0] = " + fDlName + "[1]; " + fDlName + "State[1] = " + fDlName + "[2];\n";
+        string s = fDlName + "State[0] = " + fDlName + "[1]; " + fDlName + "State[1] = " + fDlName +
+                   "[2];\n";
         return s;
     } else if (fMono) {
         string s = fDlName + "State = " + fDlName + ";\n";

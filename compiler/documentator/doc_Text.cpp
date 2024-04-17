@@ -115,13 +115,18 @@ static bool AlmostEqual(double A, double B)
     double maxRelativeError = 2 * dblEpsilon();
     double maxAbsoluteError = maxRelativeError;
 
-    if (fabs(A - B) < maxAbsoluteError) return true;
+    if (fabs(A - B) < maxAbsoluteError) {
+        return true;
+    }
     double relativeError;
-    if (fabs(B) > fabs(A))
+    if (fabs(B) > fabs(A)) {
         relativeError = fabs((A - B) / B);
-    else
+    } else {
         relativeError = fabs((A - B) / A);
-    if (relativeError <= maxRelativeError) return true;
+    }
+    if (relativeError <= maxRelativeError) {
+        return true;
+    }
     return false;
 }
 
@@ -137,7 +142,9 @@ bool isPiPower(double n, string& s)
     int          k = (int)floor(log(n) / log(M_PI));
     if (AlmostEqual(n, exp(k * log(M_PI))) && (k != 0) && (abs(k) < 5.0)) {
         ss << "\\pi";
-        if (k != 1) ss << "^{" << k << "}";
+        if (k != 1) {
+            ss << "^{" << k << "}";
+        }
         s = ss.str();
         return true;
     } else {
@@ -156,7 +163,9 @@ bool isExpPower(double n, string& s)
     int          k = (int)floor(log(n));
     if (AlmostEqual(n, exp(float(k))) && (k != 0) && (abs(k) < 5.0)) {
         ss << "e";
-        if (k != 1) ss << "^{" << k << "}";
+        if (k != 1) {
+            ss << "^{" << k << "}";
+        }
         s = ss.str();
         return true;
     } else {

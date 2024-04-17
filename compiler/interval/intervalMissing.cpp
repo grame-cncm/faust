@@ -1,11 +1,10 @@
 #include "interval_algebra.hh"
 #include "interval_def.hh"
 
-namespace itv
-{
+namespace itv {
 //------------------------------------------------------------------------------------------
-// Missing operations. A default implementation is provided for the code to compile. A real implementation has to be
-// provided.
+// Missing operations. A default implementation is provided for the code to compile. A real
+// implementation has to be provided.
 
 interval interval_algebra::Nil()
 {
@@ -69,7 +68,8 @@ interval interval_algebra::RDTbl(const interval& wtbl, const interval& ri)
 {
     return interval(0);
 }
-interval interval_algebra::WRTbl(const interval& n, const interval& g, const interval& wi, const interval& ws)
+interval interval_algebra::WRTbl(const interval& n, const interval& g, const interval& wi,
+                                 const interval& ws)
 {
     return interval(0);
 }
@@ -90,7 +90,8 @@ interval interval_algebra::SoundFileLength(const interval& sf, const interval& x
 {
     return interval(0);
 }
-interval interval_algebra::SoundFileBuffer(const interval& sf, const interval& x, const interval& y, const interval& z)
+interval interval_algebra::SoundFileBuffer(const interval& sf, const interval& x, const interval& y,
+                                           const interval& z)
 {
     return interval(0);
 }
@@ -99,18 +100,18 @@ interval interval_algebra::Waveform(const std::vector<interval>& w)
     return interval(0);
 }
 /*
-interval interval_algebra::VSlider(const interval& name, const interval& init, const interval& lo, const interval& hi,
-                                   const interval& step)
+interval interval_algebra::VSlider(const interval& name, const interval& init, const interval& lo,
+const interval& hi, const interval& step)
 {
     return interval(0);
 }
-interval interval_algebra::HSlider(const interval& name, const interval& init, const interval& lo, const interval& hi,
-                                   const interval& step)
+interval interval_algebra::HSlider(const interval& name, const interval& init, const interval& lo,
+const interval& hi, const interval& step)
 {
     return interval(0);
 }
-interval interval_algebra::NumEntry(const interval& name, const interval& init, const interval& lo, const interval& hi,
-                                    const interval& step)
+interval interval_algebra::NumEntry(const interval& name, const interval& init, const interval& lo,
+const interval& hi, const interval& step)
 {
     return interval(0);
 }
@@ -137,11 +138,13 @@ interval interval_algebra::ForeignFunction(const std::vector<interval>& ff)
 {
     return interval(0);
 }
-interval interval_algebra::ForeignVar(const interval& type, const interval& name, const interval& file)
+interval interval_algebra::ForeignVar(const interval& type, const interval& name,
+                                      const interval& file)
 {
     return interval(0);
 }
-interval interval_algebra::ForeignConst(const interval& type, const interval& name, const interval& file)
+interval interval_algebra::ForeignConst(const interval& type, const interval& name,
+                                        const interval& file)
 {
     return interval(0);
 }

@@ -32,7 +32,8 @@ interval interval_algebra::Rint(const interval& x)
         return empty();
     }
 
-    return {rint(x.lo()), rint(x.hi()), std::max(0, x.lsb())}; // round to nearest integral value => integer => precision 0
+    return {rint(x.lo()), rint(x.hi()),
+            std::max(0, x.lsb())};  // round to nearest integral value => integer => precision 0
 }
 
 void interval_algebra::testRint()

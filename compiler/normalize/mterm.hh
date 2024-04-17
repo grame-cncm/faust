@@ -45,7 +45,7 @@ struct CompareTree {
 };
 
 class mterm : public virtual Garbageable {
-    Tree fCoef;     ///< constant part of the term (usually 1 or -1)
+    Tree                             fCoef;     ///< constant part of the term (usually 1 or -1)
     std::map<Tree, int, CompareTree> fFactors;  ///< non constant terms and their power
 
    public:
@@ -70,16 +70,16 @@ class mterm : public virtual Garbageable {
     const mterm& operator*=(const mterm& m);  ///< multiply in place by a mterm
     const mterm& operator/=(const mterm& m);  ///< divide in place by a mterm
 
-    mterm    operator*(const mterm& m) const;  ///< mterms multiplication
-    mterm    operator/(const mterm& m) const;  ///< mterms division
-    std::ostream& print(std::ostream& dst) const;        ///< print a mterm k*x1**n1*x2**n2...
+    mterm         operator*(const mterm& m) const;  ///< mterms multiplication
+    mterm         operator/(const mterm& m) const;  ///< mterms division
+    std::ostream& print(std::ostream& dst) const;   ///< print a mterm k*x1**n1*x2**n2...
 
     int  complexity() const;  ///< return an evaluation of the complexity
     Tree normalizedTree(bool sign = false,
                         bool neg  = false) const;  ///< return the normalized tree of the mterm
-    Tree signatureTree() const;                    ///< return a signature (a normalized tree)
+    Tree signatureTree() const;                   ///< return a signature (a normalized tree)
 
-    bool         hasDivisor(const mterm& n) const;       ///< return true if this can be divided by n
+    bool         hasDivisor(const mterm& n) const;  ///< return true if this can be divided by n
     friend mterm gcd(const mterm& m1, const mterm& m2);  /// greatest common divisor of two mterms
 };
 

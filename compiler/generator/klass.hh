@@ -98,7 +98,8 @@ class Klass {
     bool fVec;
 
    public:
-    Klass(const std::string& name, const std::string& super, int numInputs, int numOutputs, bool __vec = false)
+    Klass(const std::string& name, const std::string& super, int numInputs, int numOutputs,
+          bool __vec = false)
         : fParentKlass(0),
           fKlassName(name),
           fSuperKlassName(super),
@@ -118,11 +119,15 @@ class Klass {
         // std::cerr << this << " setParentKlass(" << parent << ")" << std::endl;
         fParentKlass = parent;
     }
-    Klass*      getParentKlass() { return fParentKlass; }
-    Klass*      getTopParentKlass() { return (fParentKlass != 0) ? fParentKlass->getTopParentKlass() : this; }
+    Klass* getParentKlass() { return fParentKlass; }
+    Klass* getTopParentKlass()
+    {
+        return (fParentKlass != 0) ? fParentKlass->getTopParentKlass() : this;
+    }
     std::string getFullClassName()
     {
-        return (fParentKlass != 0) ? fParentKlass->getFullClassName() + "::" + getClassName() : getClassName();
+        return (fParentKlass != 0) ? fParentKlass->getFullClassName() + "::" + getClassName()
+                                   : getClassName();
     }  ///< Returns the name of the class
 
     void openLoop(const std::string& size);
@@ -131,10 +136,14 @@ class Klass {
 
     void setLoopProperty(Tree sig, Loop* l);   ///< Store the loop used to compute a signal
     bool getLoopProperty(Tree sig, Loop*& l);  ///< Returns the loop used to compute a signal
-    void listAllLoopProperties(Tree            sig, std::set<Loop*>&,
-                               std::set<Tree>& visited);  ///< Returns all the loop used to compute a signal
+    void listAllLoopProperties(
+        Tree            sig, std::set<Loop*>&,
+        std::set<Tree>& visited);  ///< Returns all the loop used to compute a signal
 
-    const std::string& getClassName() const { return fKlassName; }  ///< Returns the name of the class
+    const std::string& getClassName() const
+    {
+        return fKlassName;
+    }  ///< Returns the name of the class
 
     Loop* topLoop() { return fTopLoop; }
 
@@ -222,14 +231,20 @@ class Klass {
 
 class SigIntGenKlass : public Klass {
    public:
-    SigIntGenKlass(Klass* parent, const std::string& name) : Klass(name, "", 0, 1, false) { fParentKlass = parent; }
+    SigIntGenKlass(Klass* parent, const std::string& name) : Klass(name, "", 0, 1, false)
+    {
+        fParentKlass = parent;
+    }
 
     virtual void println(int n, std::ostream& fout);
 };
 
 class SigFloatGenKlass : public Klass {
    public:
-    SigFloatGenKlass(Klass* parent, const std::string& name) : Klass(name, "", 0, 1, false) { fParentKlass = parent; }
+    SigFloatGenKlass(Klass* parent, const std::string& name) : Klass(name, "", 0, 1, false)
+    {
+        fParentKlass = parent;
+    }
 
     virtual void println(int n, std::ostream& fout);
 };

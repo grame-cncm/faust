@@ -22,8 +22,8 @@
 #ifndef __SIGVISITOR__
 #define __SIGVISITOR__
 
-#include "signals.hh"
 #include "global.hh"
+#include "signals.hh"
 
 struct sigvisitor {
     // predefined visit scheme

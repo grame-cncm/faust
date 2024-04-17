@@ -24,7 +24,8 @@
 
 #include "code_container.hh"
 
-// The name of the struct variable used to share the 'count' parameter between 'compute' and 'computeThread'
+// The name of the struct variable used to share the 'count' parameter between 'compute' and
+// 'computeThread'
 #define fFFullCount "fCount"
 
 /*
@@ -44,7 +45,8 @@ class WSSCodeContainer : public virtual CodeContainer {
     void       generateDAGLoopWSSAux2(lclgraph dag, const std::string& counter);
     void       generateDAGLoopWSSAux3(int loop_count, const std::vector<int>& ready_loop);
 
-    DeclareFunInst* generateComputeThread(const std::string& name, const std::string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateComputeThread(const std::string& name, const std::string& obj,
+                                          bool ismethod, bool isvirtual);
     DeclareFunInst* generateComputeThreadExternal(const std::string& name, const std::string& obj);
 
     void       processFIR(void) override;
@@ -53,7 +55,7 @@ class WSSCodeContainer : public virtual CodeContainer {
    protected:
     BlockInst* fThreadLoopBlock;
     BlockInst* fComputeThreadBlockInstructions;
-    
+
     StatementInst* pushComputeThread(StatementInst* inst)
     {
         fComputeThreadBlockInstructions->pushBackInst(inst);

@@ -141,7 +141,8 @@ interval interval_algebra::And(const interval& x, const interval& y)
 
     int precision = std::min(x.lsb(), y.lsb());
 
-    /* int precision = std::max(x.lsb(), y.lsb());  // output precision cannot be finer than that of the input intervals
+    /* int precision = std::max(x.lsb(), y.lsb());  // output precision cannot be finer than that of
+    the input intervals
 
     // however, if one of the intervals is reduced to one element, the mask can make it so
     int precisionx = 0;
@@ -166,21 +167,29 @@ interval interval_algebra::And(const interval& x, const interval& y)
         }
     }*/
 
-    return {double(z.lo), double(z.hi), 
+    return {double(z.lo), double(z.hi),
             // std::max(precision, std::max(precisionx, precisiony))
             precision};
 }
 
 void interval_algebra::testAnd()
 {
-    analyzeBinaryMethod(10, 2000, "And", interval(0, 257, 0), singleton(12), myAnd, &interval_algebra::And);
-    analyzeBinaryMethod(10, 2000, "And", interval(-1000, -800, 0), singleton(12), myAnd, &interval_algebra::And);
-    analyzeBinaryMethod(10, 2000, "And", interval(-1000, -800, 0), singleton(12), myAnd, &interval_algebra::And);
-    analyzeBinaryMethod(10, 2000, "And", interval(-128, 128, 0), singleton(127), myAnd, &interval_algebra::And);
-    analyzeBinaryMethod(10, 2000, "And", interval(0, 1000, 0), interval(63, 127), myAnd, &interval_algebra::And);
-    analyzeBinaryMethod(10, 2000, "And", interval(-1000, 1000, 0), interval(63, 127), myAnd, &interval_algebra::And);
-    analyzeBinaryMethod(10, 2000, "And", interval(10, 20, 0), singleton(0), myAnd, &interval_algebra::And);
-    analyzeBinaryMethod(10, 2000, "And", singleton(0), interval(15, 25, 0), myAnd, &interval_algebra::And);
+    analyzeBinaryMethod(10, 2000, "And", interval(0, 257, 0), singleton(12), myAnd,
+                        &interval_algebra::And);
+    analyzeBinaryMethod(10, 2000, "And", interval(-1000, -800, 0), singleton(12), myAnd,
+                        &interval_algebra::And);
+    analyzeBinaryMethod(10, 2000, "And", interval(-1000, -800, 0), singleton(12), myAnd,
+                        &interval_algebra::And);
+    analyzeBinaryMethod(10, 2000, "And", interval(-128, 128, 0), singleton(127), myAnd,
+                        &interval_algebra::And);
+    analyzeBinaryMethod(10, 2000, "And", interval(0, 1000, 0), interval(63, 127), myAnd,
+                        &interval_algebra::And);
+    analyzeBinaryMethod(10, 2000, "And", interval(-1000, 1000, 0), interval(63, 127), myAnd,
+                        &interval_algebra::And);
+    analyzeBinaryMethod(10, 2000, "And", interval(10, 20, 0), singleton(0), myAnd,
+                        &interval_algebra::And);
+    analyzeBinaryMethod(10, 2000, "And", singleton(0), interval(15, 25, 0), myAnd,
+                        &interval_algebra::And);
     analyzeBinaryMethod(10, 2000, "And", singleton(0), singleton(0), myAnd, &interval_algebra::And);
 }
 }  // namespace itv

@@ -36,22 +36,22 @@
 // Loop internal code
 
 /*
- 
+
  We have independent loops that will be "connected" with vectors
- 
+
  We would like to be able to connect loops and remove the intermediate vectors.
- 
+
  We start from a DAG of loops, we want to be able to:
- 
+
  - put this DAG on the form of a sequence of loops (topological sorting)
  - merge all the loops into one, so basically extract the loops code and merge it
- 
+
  Scalarization of a loop:
- 
+
  - identify all input and output vectors
  - transform the vectors into scalars
  - transform the accesses (Load/Store) into scalar accesses
- 
+
 */
 
 class CodeLoop;
@@ -76,10 +76,10 @@ class CodeLoop : public virtual Garbageable {
 
     std::string fLoopIndex;
 
-    int             fUseCount;    ///< how many loops depend on this one
+    int                  fUseCount;    ///< how many loops depend on this one
     std::list<CodeLoop*> fExtraLoops;  ///< extra loops that where in sequences
 
-    std::set<Tree>      fRecDependencies;           ///< Loops having recursive dependencies must be merged
+    std::set<Tree>      fRecDependencies;  ///< Loops having recursive dependencies must be merged
     std::set<CodeLoop*> fBackwardLoopDependencies;  ///< Loops that must be computed before this one
     std::set<CodeLoop*> fForwardLoopDependencies;   ///< Loops that will be computed after this one
 
@@ -159,18 +159,18 @@ class CodeLoop : public virtual Garbageable {
     ValueInst* getLoopIndex() { return InstBuilder::genLoadLoopVar(fLoopIndex); }
 
     ForLoopInst* generateScalarLoop(const std::string& counter, bool loop_var_in_bytes = false);
-    
+
     // For SYFALA : loop with a fixed size (known at compile time)
     ForLoopInst* generateFixedScalarLoop();
 
     // For Rust backend
-    SimpleForLoopInst* generateSimpleScalarLoop(const std::string& counter);
+    SimpleForLoopInst*   generateSimpleScalarLoop(const std::string& counter);
     IteratorForLoopInst* generateSimpleScalarLoop(const std::vector<std::string>& iterators);
 
     BlockInst* generateOneSample();
 
     void generateDAGScalarLoop(BlockInst* block, ValueInst* count, bool omp);
-    
+
     void transform(DispatchVisitor* visitor)
     {
         // Transform extra loops

@@ -39,7 +39,7 @@ interval interval_algebra::Inv(const interval& x)
     }
 
     int    sign = signMaxValAbs(x);
-    double v    = maxValAbs(x);  // precision is computed at the bound with the highest absolute value
+    double v = maxValAbs(x);  // precision is computed at the bound with the highest absolute value
 
     // if v is infinite, this means that images of interval elements will get closer and closer
     // but since we're writing the fixed-point numbers on at most 31 bits of MSB
@@ -51,7 +51,7 @@ interval interval_algebra::Inv(const interval& x)
 
     int precision = exactPrecisionUnary(inv, v, sign * pow(2, x.lsb()));
     if (precision == INT_MIN or taylor_lsb) {
-        precision = floor(x.lsb() - 2*log2(abs(v))); // 1/(x+u) - 1/x = -u/x^2 + o(u)
+        precision = floor(x.lsb() - 2 * log2(abs(v)));  // 1/(x+u) - 1/x = -u/x^2 + o(u)
     }
 
     // precision = std::max(precision, -31);
@@ -63,7 +63,7 @@ interval interval_algebra::Inv(const interval& x)
         return {-HUGE_VAL, 1.0 / x.lo(), precision};
         // normally, we don't divide by 0
         // so the bounds of the image interval are not infinity but 1/ulp
-        // return {-pow(2, -x.lsb()), 1.0 / x.lo(), precision}; 
+        // return {-pow(2, -x.lsb()), 1.0 / x.lo(), precision};
     }
     if (x.lo() == 0 && x.hi() > 0) {
         return {1 / x.hi(), HUGE_VAL, precision};

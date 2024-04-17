@@ -83,7 +83,8 @@ static bool isBefore(Tree k1, Tree k2)
         k2 = tl(k2);
     }
 
-    // fprintf(stderr, "isBefore("); print(k1, stderr); fprintf(stderr,", "); print(k2, stderr); fprintf(stderr,")\n");
+    // fprintf(stderr, "isBefore("); print(k1, stderr); fprintf(stderr,", "); print(k2, stderr);
+    // fprintf(stderr,")\n");
     Sym s1, s2;
     if (!isSym(k1->node(), &s1)) {
         FAUST_ERROR("the node of the tree is not a symbol", k1);
@@ -92,26 +93,37 @@ static bool isBefore(Tree k1, Tree k2)
         FAUST_ERROR("the node of the tree is not a symbol", k2);
     }
 
-    // fprintf (stderr, "strcmp(\"%s\", \"%s\") = %d\n", name(s1), name(s2), strcmp(name(s1), name(s2)));
+    // fprintf (stderr, "strcmp(\"%s\", \"%s\") = %d\n", name(s1), name(s2), strcmp(name(s1),
+    // name(s2)));
     return strcmp(name(s1), name(s2)) < 0;
 }
 
 static bool findKey(Tree pl, Tree key, Tree& val)
 {
-    if (isNil(pl)) return false;
+    if (isNil(pl)) {
+        return false;
+    }
     if (left(hd(pl)) == key) {
         val = right(hd(pl));
         return true;
     }
-    if (isBefore(left(hd(pl)), key)) return findKey(tl(pl), key, val);
+    if (isBefore(left(hd(pl)), key)) {
+        return findKey(tl(pl), key, val);
+    }
     return false;
 }
 
 static Tree updateKey(Tree pl, Tree key, Tree val)
 {
-    if (isNil(pl)) return cons(cons(key, val), gGlobal->nil);
-    if (left(hd(pl)) == key) return cons(cons(key, val), tl(pl));
-    if (isBefore(left(hd(pl)), key)) return cons(hd(pl), updateKey(tl(pl), key, val));
+    if (isNil(pl)) {
+        return cons(cons(key, val), gGlobal->nil);
+    }
+    if (left(hd(pl)) == key) {
+        return cons(cons(key, val), tl(pl));
+    }
+    if (isBefore(left(hd(pl)), key)) {
+        return cons(hd(pl), updateKey(tl(pl), key, val));
+    }
     return cons(cons(key, val), pl);
 }
 
@@ -120,8 +132,12 @@ static Tree updateKey(Tree pl, Tree key, Tree val)
  */
 static Tree addKey(Tree pl, Tree key, Tree val)
 {
-    if (isNil(pl)) return cons(cons(key, val), gGlobal->nil);
-    if (isBefore(key, left(hd(pl)))) return cons(cons(key, val), pl);
+    if (isNil(pl)) {
+        return cons(cons(key, val), gGlobal->nil);
+    }
+    if (isBefore(key, left(hd(pl)))) {
+        return cons(cons(key, val), pl);
+    }
     return cons(hd(pl), addKey(tl(pl), key, val));
 }
 
@@ -228,13 +244,13 @@ Tree putSubFolder(Tree folder, Tree path, Tree item)
  Folder at 1 level : a folder contains a list of things identified by a name:
  Folder[(l1,d1)...(ln,dn)]
  where (lx,dx) is a thing dx identified by a name lx. We assume that the lx are all different.
- 
+
  You can add a thing to a folder: Add(Folder, Thing) -> Folder
- 
+
  If the folder already contains something with the same name, this thing is replaced by the new one.
- 
+
  ADD (Folder[(l1,d1)...(ln,dn)], (lx,dx)) -> Folder[(l1,d1)...(lx,dx)...(ln,dn)]
- 
+
  ADD (Folder[(l1,d1)...(lx,dx)...(ln,dn)], (lx,dx')) -> Folder[(l1,d1)...(lx,dx')...(ln,dn)]
 */
 
@@ -245,7 +261,8 @@ string checkNullLabel(Tree t, const string& label)
 
 string checkNullBargraphLabel(Tree t, const string& label, int direction)
 {
-    return (label == "") ? gGlobal->getFreshID((direction == 0) ? "hbargraph" : "vbargraph") : label;
+    return (label == "") ? gGlobal->getFreshID((direction == 0) ? "hbargraph" : "vbargraph")
+                         : label;
 }
 
 /**

@@ -36,14 +36,15 @@
 class DLangCodeContainer : public virtual CodeContainer {
    protected:
     DLangInstVisitor fCodeProducer;
-    std::ostream*  fOut;
-    std::string   fSuperKlassName;
+    std::ostream*    fOut;
+    std::string      fSuperKlassName;
 
     void produceMetadata(int tabs);
     void produceInit(int tabs);
 
    public:
-    DLangCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out)
+    DLangCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                       int numOutputs, std::ostream* out)
         : fCodeProducer(out), fOut(out), fSuperKlassName(super)
     {
         initialize(numInputs, numOutputs);
@@ -55,8 +56,8 @@ class DLangCodeContainer : public virtual CodeContainer {
     virtual void produceClass();
     virtual void generateCompute(int tab) = 0;
     virtual void produceInternal();
-  
-    void generateImports();
+
+    void               generateImports();
     static std::string dModuleName(const std::string& klassName);
 
     virtual dsp_factory_base* produceFactory();
@@ -68,16 +69,17 @@ class DLangCodeContainer : public virtual CodeContainer {
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
 
-    static CodeContainer* createContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* dst = new std::stringstream());
+    static CodeContainer* createContainer(const std::string& name, const std::string& super,
+                                          int numInputs, int numOutputs,
+                                          std::ostream* dst = new std::stringstream());
 };
 
 class DLangScalarCodeContainer : public DLangCodeContainer {
    protected:
    public:
-    DLangScalarCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out,
-                           int sub_container_type);
-    virtual ~DLangScalarCodeContainer()
-    {}
+    DLangScalarCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                             int numOutputs, std::ostream* out, int sub_container_type);
+    virtual ~DLangScalarCodeContainer() {}
 
     void generateCompute(int tab);
 };
@@ -85,12 +87,15 @@ class DLangScalarCodeContainer : public DLangCodeContainer {
 class DLangScalarOneSampleCodeContainer : public DLangScalarCodeContainer {
    protected:
     virtual void produceClass();
+
    public:
-    DLangScalarOneSampleCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
-    : DLangScalarCodeContainer(name, super, numInputs, numOutputs, out, sub_container_type)
-    {}
-    virtual ~DLangScalarOneSampleCodeContainer()
-    {}
+    DLangScalarOneSampleCodeContainer(const std::string& name, const std::string& super,
+                                      int numInputs, int numOutputs, std::ostream* out,
+                                      int sub_container_type)
+        : DLangScalarCodeContainer(name, super, numInputs, numOutputs, out, sub_container_type)
+    {
+    }
+    virtual ~DLangScalarOneSampleCodeContainer() {}
 
     void generateCompute(int tab);
 };
@@ -98,9 +103,9 @@ class DLangScalarOneSampleCodeContainer : public DLangScalarCodeContainer {
 class DLangVectorCodeContainer : public VectorCodeContainer, public DLangCodeContainer {
    protected:
    public:
-    DLangVectorCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~DLangVectorCodeContainer()
-    {}
+    DLangVectorCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                             int numOutputs, std::ostream* out);
+    virtual ~DLangVectorCodeContainer() {}
 
     void generateCompute(int tab);
 };

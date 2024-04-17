@@ -34,7 +34,8 @@ dsp_factory_base* JAVACodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        "");
 }
 
 CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -42,8 +43,8 @@ CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int 
     return new JAVAScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
-CodeContainer* JAVACodeContainer::createContainer(const string& name, const string& super, int numInputs,
-                                                  int numOutputs, ostream* dst)
+CodeContainer* JAVACodeContainer::createContainer(const string& name, const string& super,
+                                                  int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -71,8 +72,9 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
 }
 
 // Scalar
-JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                                                 std::ostream* out, int sub_container_type)
+JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const string& super,
+                                                 int numInputs, int numOutputs, std::ostream* out,
+                                                 int sub_container_type)
     : JAVACodeContainer(name, super, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;
@@ -318,7 +320,8 @@ void JAVAScalarCodeContainer::generateCompute(int n)
 {
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("public void compute(int $0, $1[][] inputs, $1[][] outputs) {", fFullCount, ifloat());
+    *fOut << subst("public void compute(int $0, $1[][] inputs, $1[][] outputs) {", fFullCount,
+                   ifloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 

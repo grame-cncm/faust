@@ -120,7 +120,7 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinl"]       = true;
         gFunctionSymbolTable["sqrtl"]      = true;
         gFunctionSymbolTable["tanl"]       = true;
-    
+
         // Fx version
         gFunctionSymbolTable["fabsfx"]      = true;
         gFunctionSymbolTable["acosfx"]      = true;
@@ -174,9 +174,9 @@ class CPPInstVisitor : public TextInstVisitor {
         fPolyMathLibTable["sinf"]       = "std::sin";
         fPolyMathLibTable["sqrtf"]      = "std::sqrt";
         fPolyMathLibTable["tanf"]       = "std::tan";
-    
-        fPolyMathLibTable["isnanf"]     = "std::isnan";
-        fPolyMathLibTable["isinff"]     = "std::isinf";
+
+        fPolyMathLibTable["isnanf"] = "std::isnan";
+        fPolyMathLibTable["isinff"] = "std::isinf";
 
         // Polymath mapping double version
         fPolyMathLibTable["max_"] = "std::max<double>";
@@ -204,9 +204,9 @@ class CPPInstVisitor : public TextInstVisitor {
         fPolyMathLibTable["sin"]       = "std::sin";
         fPolyMathLibTable["sqrt"]      = "std::sqrt";
         fPolyMathLibTable["tan"]       = "std::tan";
-    
-        fPolyMathLibTable["isnan"]      = "std::isnan";
-        fPolyMathLibTable["isinf"]      = "std::isinf";
+
+        fPolyMathLibTable["isnan"] = "std::isnan";
+        fPolyMathLibTable["isinf"] = "std::isinf";
 
         // Polymath mapping quad version
         fPolyMathLibTable["max_l"] = "std::max<quad>";
@@ -234,14 +234,14 @@ class CPPInstVisitor : public TextInstVisitor {
         fPolyMathLibTable["sinl"]       = "std::sin";
         fPolyMathLibTable["sqrtl"]      = "std::sqrt";
         fPolyMathLibTable["tanl"]       = "std::tan";
-    
-        fPolyMathLibTable["isnanl"]      = "std::isnan";
-        fPolyMathLibTable["isinfl"]      = "std::isinf";
-    
+
+        fPolyMathLibTable["isnanl"] = "std::isnan";
+        fPolyMathLibTable["isinfl"] = "std::isinf";
+
         // Polymath mapping fx version
         fPolyMathLibTable["max_fx"] = "maxfx";
         fPolyMathLibTable["min_fx"] = "minfx";
-        
+
         fPolyMathLibTable["fabsfx"]      = "fabsfx";
         fPolyMathLibTable["acosfx"]      = "acosfx";
         fPolyMathLibTable["asinfx"]      = "asinfx";
@@ -272,8 +272,8 @@ class CPPInstVisitor : public TextInstVisitor {
     {
         // Special case
         if (inst->fZone == "0") {
-            *fOut << "ui_interface->declare(" << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue)
-                  << ")";
+            *fOut << "ui_interface->declare(" << inst->fZone << ", " << quote(inst->fKey) << ", "
+                  << quote(inst->fValue) << ")";
         } else {
             *fOut << "ui_interface->declare(&" << inst->fZone << ", " << quote(inst->fKey) << ", "
                   << quote(inst->fValue) << ")";
@@ -308,9 +308,11 @@ class CPPInstVisitor : public TextInstVisitor {
     virtual void visit(AddButtonInst* inst)
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
-            *fOut << "ui_interface->addButton(" << quote(inst->fLabel) << ", &" << inst->fZone << ")";
+            *fOut << "ui_interface->addButton(" << quote(inst->fLabel) << ", &" << inst->fZone
+                  << ")";
         } else {
-            *fOut << "ui_interface->addCheckButton(" << quote(inst->fLabel) << ", &" << inst->fZone << ")";
+            *fOut << "ui_interface->addCheckButton(" << quote(inst->fLabel) << ", &" << inst->fZone
+                  << ")";
         }
         EndLine();
     }
@@ -331,7 +333,8 @@ class CPPInstVisitor : public TextInstVisitor {
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", "
               << "&" << inst->fZone << ", " << cast2FAUSTFLOAT(checkReal(inst->fInit)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", " << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ", "
               << cast2FAUSTFLOAT(checkReal(inst->fStep)) << ")";
         EndLine();
     }
@@ -348,14 +351,15 @@ class CPPInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", &" << inst->fZone << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", " << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ")";
+              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ")";
         EndLine();
     }
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        *fOut << "ui_interface->addSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &"
-              << inst->fSFZone << ")";
+        *fOut << "ui_interface->addSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL)
+              << ", &" << inst->fSFZone << ")";
         EndLine();
     }
 
@@ -404,10 +408,11 @@ class CPPInstVisitor : public TextInstVisitor {
             *fOut << "virtual ";
         }
 
-        if (inst->fType->fAttribute & FunTyped::kLocal || inst->fType->fAttribute & FunTyped::kStatic) {
+        if (inst->fType->fAttribute & FunTyped::kLocal ||
+            inst->fType->fAttribute & FunTyped::kStatic) {
             *fOut << "static ";
         }
-    
+
         if (inst->fType->fAttribute & FunTyped::kStaticConstExpr) {
             *fOut << "static constexpr ";
         }
@@ -424,14 +429,17 @@ class CPPInstVisitor : public TextInstVisitor {
 
         size_t size = inst->fType->fArgsTypes.size(), i = 0;
         for (const auto& it : inst->fType->fArgsTypes) {
-            // Pointers are set with 'noalias' for non paired arguments, which are garantied to be unique
+            // Pointers are set with 'noalias' for non paired arguments, which are garantied to be
+            // unique
             // TODO: better associate a proper kNoalias atribute at FIR creation time
             if (isPtrType(it->getType()) && !inst->fType->isPairedFunArg(it->fName)) {
                 *fOut << fTypeManager->generateType(it, NamedTyped::kNoalias);
             } else {
                 *fOut << fTypeManager->generateType(it);
             }
-            if (i++ < size - 1) *fOut << ", ";
+            if (i++ < size - 1) {
+                *fOut << ", ";
+            }
         }
     }
 
@@ -508,14 +516,17 @@ class CPPInstVisitor : public TextInstVisitor {
     virtual void visit(FunCallInst* inst)
     {
         std::string name = gGlobal->getMathFunction(inst->fName);
-        name = (fPolyMathLibTable.find(name) != fPolyMathLibTable.end()) ? fPolyMathLibTable[name] : name;
+        name = (fPolyMathLibTable.find(name) != fPolyMathLibTable.end()) ? fPolyMathLibTable[name]
+                                                                         : name;
         generateFunCall(inst, name);
     }
-    
+
     virtual void visit(ForLoopInst* inst)
     {
         // Don't generate empty loops...
-        if (inst->fCode->size() == 0) return;
+        if (inst->fCode->size() == 0) {
+            return;
+        }
 
         if (gGlobal->gClang && !inst->fIsRecursive) {
             *fOut << "#pragma clang loop vectorize(enable) interleave(enable)";

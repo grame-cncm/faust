@@ -115,7 +115,9 @@ Loop::Loop(Loop* encl, const string& size)
 bool Loop::hasRecDependencyIn(Tree S)
 {
     Loop* l = this;
-    while (l && isNil(setIntersection(l->fRecSymbolSet, S))) l = l->fEnclosingLoop;
+    while (l && isNil(setIntersection(l->fRecSymbolSet, S))) {
+        l = l->fEnclosingLoop;
+    }
     return l != 0;
 }
 
@@ -125,7 +127,8 @@ bool Loop::hasRecDependencyIn(Tree S)
  */
 bool Loop::isEmpty()
 {
-    return fPreCode.empty() && fExecCode.empty() && fPostCode.empty() && (fExtraLoops.begin() == fExtraLoops.end());
+    return fPreCode.empty() && fExecCode.empty() && fPostCode.empty() &&
+           (fExtraLoops.begin() == fExtraLoops.end());
 }
 
 /**
@@ -163,12 +166,13 @@ void Loop::addPostCode(const Statement& stmt)
 void Loop::absorb(Loop* l)
 {
     // the loops must have the same number of iterations
-    //cerr << "Loop absorbtion : " << this << " absorb " << l << endl;
+    // cerr << "Loop absorbtion : " << this << " absorb " << l << endl;
     faustassert(fSize == l->fSize);
     fRecSymbolSet = setUnion(fRecSymbolSet, l->fRecSymbolSet);
 
     // update loop dependencies by adding those from the absorbed loop
-    fBackwardLoopDependencies.insert(l->fBackwardLoopDependencies.begin(), l->fBackwardLoopDependencies.end());
+    fBackwardLoopDependencies.insert(l->fBackwardLoopDependencies.begin(),
+                                     l->fBackwardLoopDependencies.end());
 
     // add the line of code of the absorbed loop
     fPreCode.insert(fPreCode.end(), l->fPreCode.begin(), l->fPreCode.end());
@@ -190,7 +194,9 @@ void Loop::println(int n, ostream& fout)
     if (fExtraLoops.size() > 0) {
         tab(n, fout);
         fout << "// Extra loops: ";
-        for (Loop* l : fExtraLoops) fout << l << " ";
+        for (Loop* l : fExtraLoops) {
+            fout << l << " ";
+        }
     }
 
     tab(n, fout);
@@ -200,12 +206,16 @@ void Loop::println(int n, ostream& fout)
         emptyflag = false;
         fout << l << " ";
     }  ///< Loops that must be computed before this one
-    if (emptyflag) fout << "WARNING empty";
+    if (emptyflag) {
+        fout << "WARNING empty";
+    }
 
     if (fForwardLoopDependencies.size() > 0) {
         tab(n, fout);
         fout << "// Forward loops: ";
-        for (Loop* l : fForwardLoopDependencies) fout << l << " ";
+        for (Loop* l : fForwardLoopDependencies) {
+            fout << l << " ";
+        }
     }
 
     tab(n, fout);

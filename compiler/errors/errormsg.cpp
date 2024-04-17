@@ -21,8 +21,8 @@
 
 #include "faust/export.h"
 
-#include "errormsg.hh"
 #include "boxes.hh"
+#include "errormsg.hh"
 #include "exception.hh"
 #include "global.hh"
 #include "ppbox.hh"
@@ -39,7 +39,8 @@ void faustassertaux(bool cond, const string& file, int line)
 #ifdef EMCC
         str << "ASSERT : please report this message and the failing DSP file to Faust developers (";
 #else
-        str << "ASSERT : please report this message, the stack trace, and the failing DSP file to Faust developers (";
+        str << "ASSERT : please report this message, the stack trace, and the failing DSP file to "
+               "Faust developers (";
 #endif
         str << "file: " << file.substr(file.find_last_of('/') + 1) << ", line: " << line << ", ";
         str << "version: " << FAUSTVERSION;

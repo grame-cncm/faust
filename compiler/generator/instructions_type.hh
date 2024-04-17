@@ -261,7 +261,7 @@ struct Typed : public Printable {
     virtual void accept(InstVisitor* visitor) = 0;
 
     virtual Typed* clone(CloneVisitor* cloner) = 0;
-    
+
     bool isBasicTyped();
     bool isNamedTyped();
     bool isArrayTyped();

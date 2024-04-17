@@ -27,12 +27,12 @@
 #include <sstream>
 
 #include "Text.hh"
-#include "sha_key.hh"
 #include "compatibility.hh"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
-#include "lock_api.hh"
 #include "libfaust.h"
+#include "lock_api.hh"
+#include "sha_key.hh"
 
 #ifdef WIN32
 #pragma warning(disable : 4996)
@@ -72,9 +72,10 @@ static bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions
     return false;
 }
 
-// Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
-static void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key,
-                                  const string& defaultValue)
+// Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if
+// different from "")
+static void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions,
+                                  const string& key, const string& defaultValue)
 {
     int position = 0;
 
@@ -170,7 +171,9 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
 
     //-------Add Other Options that are possibily passed to the compiler (-I, -blabla, ...)
     while (options.size() != 0) {
-        if (options[0] != "faust") newoptions.push_back(options[0]);  // "faust" first argument
+        if (options[0] != "faust") {
+            newoptions.push_back(options[0]);  // "faust" first argument
+        }
         options.erase(options.begin());
     }
 
@@ -210,7 +213,8 @@ string reorganizeCompilationOptions(int argc, const char* argv[])
     return quote(res3);
 }
 
-string sha1FromDSP(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& sha_key)
+string sha1FromDSP(const string& name_app, const string& dsp_content, int argc, const char* argv[],
+                   string& sha_key)
 {
     sha_key = generateSHA1(name_app + dsp_content + reorganizeCompilationOptions(argc, argv));
     return dsp_content;
@@ -218,19 +222,20 @@ string sha1FromDSP(const string& name_app, const string& dsp_content, int argc, 
 
 // External C++ libfaust API
 
-LIBFAUST_API string expandDSPFromFile(const string& filename, int argc, const char* argv[], string& sha_key,
-                                string& error_msg)
+LIBFAUST_API string expandDSPFromFile(const string& filename, int argc, const char* argv[],
+                                      string& sha_key, string& error_msg)
 {
     string base = basename((char*)filename.c_str());
     size_t pos  = filename.find(".dsp");
-    return expandDSPFromString(base.substr(0, pos), pathToContent(filename), argc, argv, sha_key, error_msg);
+    return expandDSPFromString(base.substr(0, pos), pathToContent(filename), argc, argv, sha_key,
+                               error_msg);
 }
 
 /*
 Same DSP code and same normalized compilation options will generate the same SHA key.
 */
-LIBFAUST_API string expandDSPFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
-                                        string& sha_key, string& error_msg)
+LIBFAUST_API string expandDSPFromString(const string& name_app, const string& dsp_content, int argc,
+                                        const char* argv[], string& sha_key, string& error_msg)
 {
     LOCK_API
     if (startWith(dsp_content, COMPILATION_OPTIONS)) {
@@ -241,8 +246,8 @@ LIBFAUST_API string expandDSPFromString(const string& name_app, const string& ds
         } else {
             // Otherwise add a new compilation options line, consider it as the new expanded code,
             // generate SHA key and return it
-            string new_dsp_content =
-                COMPILATION_OPTIONS + reorganizeCompilationOptions(argc, argv) + ";\n" + dsp_content;
+            string new_dsp_content = COMPILATION_OPTIONS +
+                                     reorganizeCompilationOptions(argc, argv) + ";\n" + dsp_content;
             sha_key = generateSHA1(new_dsp_content);
             return new_dsp_content;
         }
@@ -255,23 +260,26 @@ LIBFAUST_API string expandDSPFromString(const string& name_app, const string& ds
         }
         argv1[argc1] = nullptr;  // NULL terminated argv
 
-        // 'expandDsp' adds the normalized compilation options in the DSP code before computing the SHA key
+        // 'expandDsp' adds the normalized compilation options in the DSP code before computing the
+        // SHA key
         return expandDSP(name_app, dsp_content, argc1, argv1, sha_key, error_msg);
     }
 }
 
-LIBFAUST_API bool generateAuxFilesFromFile(const string& filename, int argc, const char* argv[], string& error_msg)
+LIBFAUST_API bool generateAuxFilesFromFile(const string& filename, int argc, const char* argv[],
+                                           string& error_msg)
 {
     string base = basename((char*)filename.c_str());
     size_t pos  = filename.find(".dsp");
-    return generateAuxFilesFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg);
+    return generateAuxFilesFromString(base.substr(0, pos), pathToContent(filename), argc, argv,
+                                      error_msg);
 }
 
-LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
-                                            string& error_msg)
+LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const string& dsp_content,
+                                             int argc, const char* argv[], string& error_msg)
 {
     LOCK_API
-    int argc1 = 0;
+    int         argc1 = 0;
     const char* argv1[64];
     argv1[argc1++] = "faust";
     // Filter arguments
@@ -282,7 +290,8 @@ LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const strin
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
 
-    dsp_factory_base* factory = createFactory(name_app, dsp_content, argc1, argv1, error_msg, false);
+    dsp_factory_base* factory =
+        createFactory(name_app, dsp_content, argc1, argv1, error_msg, false);
     // Factory is no more needed
     delete factory;
     return (factory != nullptr);
@@ -293,9 +302,9 @@ LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const strin
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
-LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
-                                        char* error_msg)
+
+LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[],
+                                            char* sha_key, char* error_msg)
 {
     string sha_key_aux;
     string error_msg_aux;
@@ -305,8 +314,9 @@ LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, cons
     return strdup(res.c_str());
 }
 
-LIBFAUST_API const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
-                                        char* sha_key, char* error_msg)
+LIBFAUST_API const char* expandCDSPFromString(const char* name_app, const char* dsp_content,
+                                              int argc, const char* argv[], char* sha_key,
+                                              char* error_msg)
 {
     string sha_key_aux;
     string error_msg_aux;
@@ -316,7 +326,8 @@ LIBFAUST_API const char* expandCDSPFromString(const char* name_app, const char* 
     return strdup(res.c_str());
 }
 
-LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
+LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[],
+                                            char* error_msg)
 {
     string error_msg_aux;
     bool   res = generateAuxFilesFromFile(filename, argc, argv, error_msg_aux);
@@ -324,8 +335,8 @@ LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, cons
     return res;
 }
 
-LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
-                                        char* error_msg)
+LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content,
+                                              int argc, const char* argv[], char* error_msg)
 {
     string error_msg_aux;
     bool   res = generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg_aux);

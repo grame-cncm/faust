@@ -57,6 +57,8 @@ void collector::draw(device& dev)
 {
     computeVisibleTraits();
     for (set<trait>::iterator p = fTraits.begin(); p != fTraits.end(); p++) {
-        if (isVisible(*p)) p->draw(dev);
+        if (isVisible(*p)) {
+            p->draw(dev);
+        }
     }
 }

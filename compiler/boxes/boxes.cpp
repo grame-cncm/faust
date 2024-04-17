@@ -494,10 +494,12 @@ static Tree makeRecProjectionsList(int n, int i, Tree lnames, Tree ldef)
 static Tree buildRecursiveBodyDef(int n, Tree lnames, Tree lexp, Tree ldef2)
 {
     if (ldef2 == gGlobal->nil) {
-        return cons(gGlobal->LETRECBODY, boxRec(makeBoxAbstr(lnames, makeParList(lexp)), makeBus(n)));
-    } else {
         return cons(gGlobal->LETRECBODY,
-                    boxRec(makeBoxAbstr(lnames, boxWithLocalDef(makeParList(lexp), ldef2)), makeBus(n)));
+                    boxRec(makeBoxAbstr(lnames, makeParList(lexp)), makeBus(n)));
+    } else {
+        return cons(
+            gGlobal->LETRECBODY,
+            boxRec(makeBoxAbstr(lnames, boxWithLocalDef(makeParList(lexp), ldef2)), makeBus(n)));
     }
 }
 
@@ -953,115 +955,128 @@ static Tree preparePattern(Tree box)
     prim4  p4;
     prim5  p5;
 
-    Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, body, fun, args, ldef, slot, ident, rules;
+    Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, body, fun, args, ldef,
+        slot, ident, rules;
 
     xtended* xt = (xtended*)getUserData(box);
 
     // Primitive elements
-    if (xt)
+    if (xt) {
         return box;
-    else if (isBoxIdent(box))
+    } else if (isBoxIdent(box)) {
         return boxPatternVar(box);
-    else if (isBoxAppl(box, fun, args)) {
-        if (isBoxIdent(fun))
+    } else if (isBoxAppl(box, fun, args)) {
+        if (isBoxIdent(fun)) {
             return boxAppl(fun, lmap(preparePattern, args));
-        else
+        } else {
             return boxAppl(preparePattern(fun), lmap(preparePattern, args));
-    } else if (isBoxAbstr(box, arg, body))
+        }
+    } else if (isBoxAbstr(box, arg, body)) {
         return box;
-    else if (isBoxInt(box))
+    } else if (isBoxInt(box)) {
         return box;
-    else if (isBoxReal(box, &r))
+    } else if (isBoxReal(box, &r)) {
         return box;
-    else if (isBoxWaveform(box))
+    } else if (isBoxWaveform(box)) {
         return box;
-    else if (isBoxCut(box))
+    } else if (isBoxCut(box)) {
         return box;
-    else if (isBoxWire(box))
+    } else if (isBoxWire(box)) {
         return box;
-    else if (isBoxPrim0(box, &p0))
+    } else if (isBoxPrim0(box, &p0)) {
         return box;
-    else if (isBoxPrim1(box, &p1))
+    } else if (isBoxPrim1(box, &p1)) {
         return box;
-    else if (isBoxPrim2(box, &p2))
+    } else if (isBoxPrim2(box, &p2)) {
         return box;
-    else if (isBoxPrim3(box, &p3))
+    } else if (isBoxPrim3(box, &p3)) {
         return box;
-    else if (isBoxPrim4(box, &p4))
+    } else if (isBoxPrim4(box, &p4)) {
         return box;
-    else if (isBoxPrim5(box, &p5))
+    } else if (isBoxPrim5(box, &p5)) {
         return box;
+    }
 
-    else if (isBoxWithLocalDef(box, body, ldef))
+    else if (isBoxWithLocalDef(box, body, ldef)) {
         return boxWithLocalDef(preparePattern(body), ldef);
+    }
 
     // Foreign elements
-    else if (isBoxFFun(box, ff))
+    else if (isBoxFFun(box, ff)) {
         return box;
-    else if (isBoxFConst(box, type, name, file))
+    } else if (isBoxFConst(box, type, name, file)) {
         return box;
-    else if (isBoxFVar(box, type, name, file))
+    } else if (isBoxFVar(box, type, name, file)) {
         return box;
+    }
 
     // Block diagram binary operator
-    else if (isBoxSeq(box, t1, t2))
+    else if (isBoxSeq(box, t1, t2)) {
         return boxSeq(preparePattern(t1), preparePattern(t2));
-    else if (isBoxSplit(box, t1, t2))
+    } else if (isBoxSplit(box, t1, t2)) {
         return boxSplit(preparePattern(t1), preparePattern(t2));
-    else if (isBoxMerge(box, t1, t2))
+    } else if (isBoxMerge(box, t1, t2)) {
         return boxMerge(preparePattern(t1), preparePattern(t2));
-    else if (isBoxPar(box, t1, t2))
+    } else if (isBoxPar(box, t1, t2)) {
         return boxPar(preparePattern(t1), preparePattern(t2));
-    else if (isBoxRec(box, t1, t2))
+    } else if (isBoxRec(box, t1, t2)) {
         return boxRec(preparePattern(t1), preparePattern(t2));
+    }
 
     // Iterative block diagram construction
-    else if (isBoxIPar(box, t1, t2, t3))
+    else if (isBoxIPar(box, t1, t2, t3)) {
         return boxIPar(t1, t2, preparePattern(t3));
-    else if (isBoxISeq(box, t1, t2, t3))
+    } else if (isBoxISeq(box, t1, t2, t3)) {
         return boxISeq(t1, t2, preparePattern(t3));
-    else if (isBoxISum(box, t1, t2, t3))
+    } else if (isBoxISum(box, t1, t2, t3)) {
         return boxISum(t1, t2, preparePattern(t3));
-    else if (isBoxIProd(box, t1, t2, t3))
+    } else if (isBoxIProd(box, t1, t2, t3)) {
         return boxIProd(t1, t2, preparePattern(t3));
+    }
 
     // Static information
-    else if (isBoxInputs(box, t1))
+    else if (isBoxInputs(box, t1)) {
         return boxInputs(preparePattern(t1));
-    else if (isBoxOutputs(box, t1))
+    } else if (isBoxOutputs(box, t1)) {
         return boxOutputs(preparePattern(t1));
+    }
 
     // User interface
-    else if (isBoxButton(box, label))
+    else if (isBoxButton(box, label)) {
         return box;
-    else if (isBoxCheckbox(box, label))
+    } else if (isBoxCheckbox(box, label)) {
         return box;
+    }
 
-    else if (isBoxVSlider(box, label, cur, min, max, step))
+    else if (isBoxVSlider(box, label, cur, min, max, step)) {
         return box;
-    else if (isBoxHSlider(box, label, cur, min, max, step))
+    } else if (isBoxHSlider(box, label, cur, min, max, step)) {
         return box;
+    }
 
-    else if (isBoxVGroup(box, label, t1))
+    else if (isBoxVGroup(box, label, t1)) {
         return boxVGroup(label, preparePattern(t1));
-    else if (isBoxHGroup(box, label, t1))
+    } else if (isBoxHGroup(box, label, t1)) {
         return boxHGroup(label, preparePattern(t1));
-    else if (isBoxTGroup(box, label, t1))
+    } else if (isBoxTGroup(box, label, t1)) {
         return boxTGroup(label, preparePattern(t1));
+    }
 
-    else if (isBoxHBargraph(box, label, min, max))
+    else if (isBoxHBargraph(box, label, min, max)) {
         return box;
-    else if (isBoxVBargraph(box, label, min, max))
+    } else if (isBoxVBargraph(box, label, min, max)) {
         return box;
-    else if (isBoxNumEntry(box, label, cur, min, max, step))
+    } else if (isBoxNumEntry(box, label, cur, min, max, step)) {
         return box;
+    }
 
-    else if (isNil(box))
+    else if (isNil(box)) {
         return box;
-    else if (isList(box))
+    } else if (isList(box)) {
         return lmap(preparePattern, box);
-    else if (isBoxEnvironment(box))
+    } else if (isBoxEnvironment(box)) {
         return box;
+    }
     /* not expected
     else if (isClosure(box, abstr, genv, vis, lenv)) {
         fout << "closure[" << boxpp(abstr)
@@ -1070,10 +1085,11 @@ static Tree preparePattern(Tree box)
             << "]";
     }
     */
-    else if (isBoxComponent(box, label))
+    else if (isBoxComponent(box, label)) {
         return box;
-    else if (isBoxAccess(box, t1, t2))
+    } else if (isBoxAccess(box, t1, t2)) {
         return box;
+    }
 
     /* not expected
     else if (isImportFile(box, label)) {
@@ -1082,16 +1098,18 @@ static Tree preparePattern(Tree box)
     }
     */
 
-    else if (isBoxSlot(box, &id))
+    else if (isBoxSlot(box, &id)) {
         return box;
-    else if (isBoxSymbolic(box, slot, body))
+    } else if (isBoxSymbolic(box, slot, body)) {
         return box;
+    }
 
     // Pattern Matching Extensions
-    else if (isBoxCase(box, rules))
+    else if (isBoxCase(box, rules)) {
         return box;
-    else if (isBoxPatternVar(box, ident))
+    } else if (isBoxPatternVar(box, ident)) {
         return box;
+    }
 
     // None of the previous tests succeded, then it is not a valid box
     else {
@@ -1152,7 +1170,8 @@ bool isBoxPatternMatcher(Tree s)
     return isTree(s, gGlobal->BOXPATMATCHER, ta, ts, env, orig, rpl);
 }
 
-bool isBoxPatternMatcher(Tree s, PM::Automaton*& a, int& state, Tree& env, Tree& origRules, Tree& revParamList)
+bool isBoxPatternMatcher(Tree s, PM::Automaton*& a, int& state, Tree& env, Tree& origRules,
+                         Tree& revParamList)
 {
     Tree ta, ts;
     if (isTree(s, gGlobal->BOXPATMATCHER, ta, ts, env, origRules, revParamList)) {

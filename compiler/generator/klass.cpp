@@ -218,31 +218,43 @@ void Klass::printAdditionalCode(ostream& fout)
         fout << "#define FAUSTPOWER" << endl;
         fout << "#include <cmath>" << endl;
 
-        fout << "template <int N> inline int faustpower(int x)              { return faustpower<N/2>(x) * "
+        fout << "template <int N> inline int faustpower(int x)              { return "
+                "faustpower<N/2>(x) * "
                 "faustpower<N-N/2>(x); } "
              << endl;
         fout << "template <> 	 inline int faustpower<0>(int x)            { return 1; }" << endl;
         fout << "template <> 	 inline int faustpower<1>(int x)            { return x; }" << endl;
-        fout << "template <> 	 inline int faustpower<2>(int x)            { return x*x; }" << endl;
+        fout << "template <> 	 inline int faustpower<2>(int x)            { return x*x; }"
+             << endl;
 
         if (gGlobal->gFloatSize == 1) {
-            fout << "template <int N> inline float faustpower(float x)            { return faustpower<N/2>(x) * "
+            fout << "template <int N> inline float faustpower(float x)            { return "
+                    "faustpower<N/2>(x) * "
                     "faustpower<N-N/2>(x); } "
                  << endl;
-            fout << "template <> 	 inline float faustpower<0>(float x)          { return 1; }" << endl;
-            fout << "template <> 	 inline float faustpower<1>(float x)          { return x; }" << endl;
-            fout << "template <> 	 inline float faustpower<2>(float x)          { return x*x; }" << endl;
+            fout << "template <> 	 inline float faustpower<0>(float x)          { return 1; }"
+                 << endl;
+            fout << "template <> 	 inline float faustpower<1>(float x)          { return x; }"
+                 << endl;
+            fout << "template <> 	 inline float faustpower<2>(float x)          { return x*x; }"
+                 << endl;
 
         } else if (gGlobal->gFloatSize == 2) {
-            fout << "template <int N> inline double faustpower(double x)          { return faustpower<N/2>(x) * "
+            fout << "template <int N> inline double faustpower(double x)          { return "
+                    "faustpower<N/2>(x) * "
                     "faustpower<N-N/2>(x); } "
                  << endl;
-            fout << "template <> 	 inline double faustpower<0>(double x)        { return 1; }" << endl;
-            fout << "template <> 	 inline double faustpower<1>(double x)        { return x; }" << endl;
-            fout << "template <> 	 inline double faustpower<2>(double x)        { return x*x; }" << endl;
+            fout << "template <> 	 inline double faustpower<0>(double x)        { return 1; }"
+                 << endl;
+            fout << "template <> 	 inline double faustpower<1>(double x)        { return x; }"
+                 << endl;
+            fout << "template <> 	 inline double faustpower<2>(double x)        { return x*x; }"
+                 << endl;
 
         } else if (gGlobal->gFloatSize == 3) {
-            fout << "template <int N> inline long double faustpower(long double x){ return powl(x,N); }" << endl;
+            fout << "template <int N> inline long double faustpower(long double x){ return "
+                    "powl(x,N); }"
+                 << endl;
         }
         fout << "#endif" << endl;
     }
@@ -256,14 +268,15 @@ void Klass::printMetadata(int n, const MetaDataSet& S, ostream& fout)
     tab(n, fout);
     fout << "virtual void metadata(Meta* m) { ";
 
-    // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
+    // We do not want to accumulate metadata from all hierachical levels, so the upper level only is
+    // kept
     for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first != tree("author")) {
             tab(n + 1, fout);
             fout << "m->declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
         } else {
-            // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become
-            // "contributor"
+            // But the "author" meta data is accumulated, the upper level becomes the main author
+            // and sub-levels become "contributor"
             for (const auto& j : i.second) {
                 if (j == *i.second.begin()) {
                     tab(n + 1, fout);
@@ -293,13 +306,16 @@ inline bool isElement(const set<Loop*>& S, Loop* l)
 void Klass::printLoopDeepFirst(int n, ostream& fout, Loop* l, set<Loop*>& visited)
 {
     // avoid printing already printed loops
-    if (isElement(visited, l)) return;
+    if (isElement(visited, l)) {
+        return;
+    }
 
     // remember we have printed this loop
     visited.insert(l);
 
     // print the dependencies loops (that need to be computed before this one)
-    for (lset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
+    for (lset::const_iterator p = l->fBackwardLoopDependencies.begin();
+         p != l->fBackwardLoopDependencies.end(); p++) {
         printLoopDeepFirst(n, fout, *p, visited);
     }
     // the print the loop itself
@@ -316,7 +332,8 @@ static void computeUseCount(Loop* l)
 {
     l->fUseCount++;
     if (l->fUseCount == 1) {
-        for (lset::iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
+        for (lset::iterator p = l->fBackwardLoopDependencies.begin();
+             p != l->fBackwardLoopDependencies.end(); p++) {
             computeUseCount(*p);
         }
     }
@@ -342,8 +359,8 @@ static void groupSeqLoops(Loop* l, set<Loop*>& visited)
             }
             return;
         } else if (n > 1) {
-            for (lset::iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
-                 p++) {
+            for (lset::iterator p = l->fBackwardLoopDependencies.begin();
+                 p != l->fBackwardLoopDependencies.end(); p++) {
                 groupSeqLoops(*p, visited);
             }
         }
@@ -436,12 +453,16 @@ void Klass::buildTasksList()
         buf << "int task_list[" << task_num.size() << "] = {";
         for (size_t i = 0; i < task_num.size(); i++) {
             buf << task_num[i];
-            if (i != (task_num.size() - 1)) buf << ",";
+            if (i != (task_num.size() - 1)) {
+                buf << ",";
+            }
         }
         buf << "};";
 
         addZone3(buf.str());
-        addZone3("taskqueue.InitTaskList(task_list_size, task_list, fDynamicNumThreads, cur_thread, tasknum);");
+        addZone3(
+            "taskqueue.InitTaskList(task_list_size, task_list, fDynamicNumThreads, cur_thread, "
+            "tasknum);");
     }
 
     // Last stage connected to end task
@@ -456,8 +477,9 @@ void Klass::buildTasksList()
     addZone2c("// Only initialize taks with more than one input");
     for (int l = (int)G.size() - 1; l >= 0; l--) {
         for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
-            if ((*p)->fBackwardLoopDependencies.size() > 1) {  // Only initialize taks with more than 1 input, since
-                                                               // taks with one input are "directly" activated.
+            if ((*p)->fBackwardLoopDependencies.size() >
+                1) {  // Only initialize taks with more than 1 input, since
+                      // taks with one input are "directly" activated.
                 addZone2c(subst("fGraph.InitTask($0,$1);", T(START_TASK_INDEX + gTaskCount++),
                                 T((int)(*p)->fBackwardLoopDependencies.size())));
             } else {
@@ -468,7 +490,8 @@ void Klass::buildTasksList()
 
     addInitCode("fStaticNumThreads = get_max_cpu();");
     addInitCode(
-        "fDynamicNumThreads = getenv(\"OMP_NUM_THREADS\") ? atoi(getenv(\"OMP_NUM_THREADS\")) : fStaticNumThreads;");
+        "fDynamicNumThreads = getenv(\"OMP_NUM_THREADS\") ? atoi(getenv(\"OMP_NUM_THREADS\")) : "
+        "fStaticNumThreads;");
     addInitCode("fThreadPool->StartAll(fStaticNumThreads - 1, false);");
 
     gTaskCount = 0;
@@ -573,8 +596,8 @@ void Klass::printGraphDotFormat(ostream& fout)
         // for each task in the level
         for (lset::const_iterator t = G[l].begin(); t != G[l].end(); t++) {
             // print task label "Lxxx : 0xffffff"
-            fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++ << "</font> : " << (*t)
-                 << ">];" << endl;
+            fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++
+                 << "</font> : " << (*t) << ">];" << endl;
             // for each source of the task
             for (lset::const_iterator src = (*t)->fBackwardLoopDependencies.begin();
                  src != (*t)->fBackwardLoopDependencies.end(); src++) {
@@ -620,7 +643,9 @@ void Klass::printLoopGraphScalar(int n, ostream& fout)
 static bool nonRecursiveLevel(const lset& L)
 {
     for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
-        if ((*p)->fIsRecursive) return false;
+        if ((*p)->fIsRecursive) {
+            return false;
+        }
     }
     return true;
 }
@@ -736,7 +761,8 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
             fout << subst("tasknum = $0;", T((*p1)->fIndex));
         } else {
             tab(n + 1, fout);
-            fout << subst("fGraph.ActivateOneOutputTask(taskqueue, $0, tasknum);", T((*p1)->fIndex));
+            fout << subst("fGraph.ActivateOneOutputTask(taskqueue, $0, tasknum);",
+                          T((*p1)->fIndex));
         }
 
     } else {
@@ -765,7 +791,8 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
             } else {
                 if (keep == NULL) {
                     tab(n + 1, fout);
-                    fout << subst("fGraph.ActivateOutputTask(taskqueue, $0, tasknum);", T((*p1)->fIndex));
+                    fout << subst("fGraph.ActivateOutputTask(taskqueue, $0, tasknum);",
+                                  T((*p1)->fIndex));
                 } else {
                     tab(n + 1, fout);
                     fout << subst("fGraph.ActivateOutputTask(taskqueue, $0);", T((*p1)->fIndex));
@@ -834,7 +861,9 @@ void Klass::println(int n, ostream& fout)
         fout << "  private:";
     }
 
-    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->println(n + 1, fout);
+    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) {
+        (*k)->println(n + 1, fout);
+    }
 
     printlines(n + 1, fDeclCode, fout);
 
@@ -976,7 +1005,8 @@ void Klass::println(int n, ostream& fout)
         fout << "#define FAUST_CLASS_NAME "
              << "\"" << fKlassName << "\"";
         tab(n + 1, fout);
-        fout << "#define FAUST_COMPILATION_OPIONS \"" << gGlobal->printCompilationOptions1() << "\"";
+        fout << "#define FAUST_COMPILATION_OPIONS \"" << gGlobal->printCompilationOptions1()
+             << "\"";
         tab(n + 1, fout);
         fout << "#define FAUST_INPUTS " << fNumInputs;
         tab(n + 1, fout);
@@ -1068,7 +1098,8 @@ void Klass::printComputeMethodVectorFaster(int n, ostream& fout)
     fout << "int fullcount = count;";
 
     tab(n + 2, fout);
-    fout << "for (index = 0; index <= fullcount - " << gGlobal->gVecSize << "; index += " << gGlobal->gVecSize << ") {";
+    fout << "for (index = 0; index <= fullcount - " << gGlobal->gVecSize
+         << "; index += " << gGlobal->gVecSize << ") {";
     tab(n + 3, fout);
     fout << "// compute by blocks of " << gGlobal->gVecSize << " samples";
     tab(n + 3, fout);
@@ -1132,12 +1163,10 @@ void Klass::printComputeMethodVectorFix0 (int n, ostream& fout)
         printlines(n+2, fZone1Code, fout);
         printlines(n+2, fZone2Code, fout);
         printlines(n+2, fZone2bCode, fout);
-        tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
-            tab(n+3,fout); fout << "if (fullcount >= index + " << gVecSize << ") {";
-                tab(n+4,fout); fout << "// compute by blocks of " << gVecSize << " samples";
-                tab(n+4,fout); fout << "const int count = " << gVecSize << ";"; // temporaire
-                printlines(n+4, fZone3Code, fout);
-                printLoopGraph (n+4,fout);
+        tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ")
+{"; tab(n+3,fout); fout << "if (fullcount >= index + " << gVecSize << ") {"; tab(n+4,fout); fout <<
+"// compute by blocks of " << gVecSize << " samples"; tab(n+4,fout); fout << "const int count = " <<
+gVecSize << ";"; // temporaire printlines(n+4, fZone3Code, fout); printLoopGraph (n+4,fout);
             tab(n+3,fout); fout << "} else if (fullcount > index) {";
                 //tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
                 tab(n+4,fout); fout << "// compute the remaining samples";
@@ -1226,9 +1255,8 @@ void Klass::printComputeMethodOpenMP(int n, ostream& fout)
 /*
 void Klass::printComputeMethodScheduler(int n, ostream& fout)
 {
-    tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
-        printlines(n+2, fZone1Code, fout);
-        printlines(n+2, fZone2Code, fout);
+    tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {",
+xfloat()); printlines(n+2, fZone1Code, fout); printlines(n+2, fZone2Code, fout);
 
         // Init input and output
         tab(n+2,fout); fout << "// Init input and output";
@@ -1262,30 +1290,26 @@ void Klass::printComputeMethodScheduler(int n, ostream& fout)
                             tab(n+7, fout); fout << "case " << gTaskCount++ << ": { ";
                             printlines(n+8, fZone6Code, fout);
                             tab(n+8, fout); fout << "index_in += count;";
-                            tab(n+8, fout); fout << "last_cycle_for_thread = (index_in > fullcount);";
-                            tab(n+8, fout); fout << "break;";
-                            tab(n+7, fout); fout << "} ";
+                            tab(n+8, fout); fout << "last_cycle_for_thread = (index_in >
+fullcount);"; tab(n+8, fout); fout << "break;"; tab(n+7, fout); fout << "} ";
 
                             // Output task
                             tab(n+7, fout); fout << "case " << gTaskCount++ << ": { ";
                             printlines(n+8, fZone7Code, fout);
                             tab(n+8, fout); fout << "index_out += count;";
-                            tab(n+8, fout); fout << "last_cycle_for_thread = (index_out > fullcount);";
-                            tab(n+8, fout); fout << "break;";
-                            tab(n+7, fout); fout << "} ";
+                            tab(n+8, fout); fout << "last_cycle_for_thread = (index_out >
+fullcount);"; tab(n+8, fout); fout << "break;"; tab(n+7, fout); fout << "} ";
 
                             // End task
                             tab(n+7, fout); fout << "case " << gTaskCount++ << ": { ";
-                            tab(n+8, fout); fout << "is_finished = ((index_in >= fullcount) && (index_out >=
-fullcount));"; tab(n+8, fout); fout << "break;"; tab(n+7, fout); fout << "} ";
+                            tab(n+8, fout); fout << "is_finished = ((index_in >= fullcount) &&
+(index_out >= fullcount));"; tab(n+8, fout); fout << "break;"; tab(n+7, fout); fout << "} ";
 
                         tab(n+6,fout); fout << "}";
                         tab(n+6,fout); fout << "if (last_cycle_for_thread) break;";
 
-                    tab(n+5,fout); fout << "} while ((task = task->concludeAndTryToAcquireNext()) != NULL);";
-                tab(n+4,fout); fout << "}";
-            tab(n+3,fout); fout << "}";
-        tab(n+2,fout); fout << "}";
+                    tab(n+5,fout); fout << "} while ((task = task->concludeAndTryToAcquireNext()) !=
+NULL);"; tab(n+4,fout); fout << "}"; tab(n+3,fout); fout << "}"; tab(n+2,fout); fout << "}";
         tab(n+2,fout); fout << "PrintSchedulingMap();";
     tab(n+1,fout); fout << "}";
 }
@@ -1421,7 +1445,9 @@ void SigIntGenKlass::println(int n, ostream& fout)
     tab(n + 1, fout);
     fout << "int fSampleRate;";
 
-    for (const auto& k : fSubClassList) k->println(n + 1, fout);
+    for (const auto& k : fSubClassList) {
+        k->println(n + 1, fout);
+    }
 
     printlines(n + 1, fDeclCode, fout);
 
@@ -1487,7 +1513,9 @@ void SigFloatGenKlass::println(int n, ostream& fout)
     tab(n + 1, fout);
     fout << "int fSampleRate;";
 
-    for (const auto& k : fSubClassList) k->println(n + 1, fout);
+    for (const auto& k : fSubClassList) {
+        k->println(n + 1, fout);
+    }
 
     printlines(n + 1, fDeclCode, fout);
 
@@ -1542,17 +1570,23 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 
 static void merge(set<string>& dst, set<string>& src)
 {
-    for (const auto& i : src) dst.insert(i);
+    for (const auto& i : src) {
+        dst.insert(i);
+    }
 }
 
 void Klass::collectIncludeFile(set<string>& S)
 {
-    for (const auto& k : fSubClassList) k->collectIncludeFile(S);
+    for (const auto& k : fSubClassList) {
+        k->collectIncludeFile(S);
+    }
     merge(S, fIncludeFileSet);
 }
 
 void Klass::collectLibrary(set<string>& S)
 {
-    for (const auto& k : fSubClassList) k->collectLibrary(S);
+    for (const auto& k : fSubClassList) {
+        k->collectLibrary(S);
+    }
     merge(S, fLibrarySet);
 }

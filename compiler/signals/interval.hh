@@ -27,8 +27,8 @@
 
 #include "exception.hh"
 #include "garbageable.hh"
-#include "interval/interval_def.hh"
 #include "interval/interval_algebra.hh"
+#include "interval/interval_def.hh"
 
 extern itv::interval_algebra gAlgebra;
 

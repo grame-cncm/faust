@@ -34,12 +34,14 @@
 
 // FBC compiler
 template <class REAL>
-class FBCCompiler : public FBCInterpreter<REAL,0> {
+class FBCCompiler : public FBCInterpreter<REAL, 0> {
    public:
-    typedef typename std::map<FBCBlockInstruction<REAL>*, FBCExecuteFun<REAL>*>           CompiledBlocksType;
-    typedef typename std::map<FBCBlockInstruction<REAL>*, FBCExecuteFun<REAL>*>::iterator CompiledBlocksTypeIT;
+    typedef typename std::map<FBCBlockInstruction<REAL>*, FBCExecuteFun<REAL>*> CompiledBlocksType;
+    typedef typename std::map<FBCBlockInstruction<REAL>*, FBCExecuteFun<REAL>*>::iterator
+        CompiledBlocksTypeIT;
 
-    FBCCompiler(interpreter_dsp_factory_aux<REAL,0>* factory, CompiledBlocksType* map) : FBCInterpreter<REAL,0>(factory)
+    FBCCompiler(interpreter_dsp_factory_aux<REAL, 0>* factory, CompiledBlocksType* map)
+        : FBCInterpreter<REAL, 0>(factory)
     {
         fCompiledBlocks = map;
     }
@@ -50,9 +52,10 @@ class FBCCompiler : public FBCInterpreter<REAL,0> {
     {
         // The 'DSP' compute block only is compiled..
         if (fCompiledBlocks->find(block) != fCompiledBlocks->end()) {
-            ((*fCompiledBlocks)[block])->execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
+            ((*fCompiledBlocks)[block])
+                ->execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
         } else {
-            FBCInterpreter<REAL,0>::executeBlock(block);
+            FBCInterpreter<REAL, 0>::executeBlock(block);
         }
     }
 
@@ -62,24 +65,24 @@ class FBCCompiler : public FBCInterpreter<REAL,0> {
     void compileBlock(FBCBlockInstruction<REAL>* block)
     {
         if (fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
-        #ifdef INTERP_COMP_BUILD
-            #ifdef INTERP_MIR_BUILD
-                // Run with interp/MIR compiler
-                (*fCompiledBlocks)[block] = new FBCMIRCompiler<REAL>(block, this->fSoundTable);
-            #elif INTERP_LLVM_BUILD
-                // Run with interp/LLVM compiler
-                (*fCompiledBlocks)[block] = new FBCLLVMCompiler<REAL>(block, this->fSoundTable);
-            #elif INTERP_TEMPLATE_BUILD
-                // Run with template compiler
-                (*fCompiledBlocks)[block] = new FBCTemplateCompiler<REAL>(block, this->fSoundTable);
-            #endif
-        #else
-            #ifdef WIN32
-                #pragma message("warning pure Interpreter mode");
-            #else
-                #warning pure Interpreter mode
-            #endif
-        #endif
+#ifdef INTERP_COMP_BUILD
+#ifdef INTERP_MIR_BUILD
+            // Run with interp/MIR compiler
+            (*fCompiledBlocks)[block] = new FBCMIRCompiler<REAL>(block, this->fSoundTable);
+#elif INTERP_LLVM_BUILD
+            // Run with interp/LLVM compiler
+            (*fCompiledBlocks)[block] = new FBCLLVMCompiler<REAL>(block, this->fSoundTable);
+#elif INTERP_TEMPLATE_BUILD
+            // Run with template compiler
+            (*fCompiledBlocks)[block] = new FBCTemplateCompiler<REAL>(block, this->fSoundTable);
+#endif
+#else
+#ifdef WIN32
+#pragma message("warning pure Interpreter mode");
+#else
+#warning pure Interpreter mode
+#endif
+#endif
         } else {
             // std::cout << "FBCCompiler: reuse compiled block" << std::endl;
         }

@@ -33,17 +33,17 @@
 #include "global.hh"
 #include "libfaust.h"
 #include "llvm_dynamic_dsp_aux.hh"
-#include "rn_base64.h"
 #include "lock_api.hh"
+#include "rn_base64.h"
 
 #include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/ExecutionEngine/ObjectCache.h>
+#include <llvm/IR/Constants.h>
 #include <llvm/IR/IRPrintingPasses.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/LegacyPassNameParser.h>
-#include <llvm/IR/Verifier.h>
 #include <llvm/IR/PassManager.h>
-#include <llvm/IR/Constants.h>
+#include <llvm/IR/Verifier.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Linker/Linker.h>
 #include <llvm/Support/FileSystem.h>
@@ -61,17 +61,17 @@
 #if LLVM_VERSION_MAJOR < 17
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #endif
-#include <llvm/Transforms/IPO/AlwaysInliner.h>
-#include <llvm/Transforms/Scalar.h>
 #include <llvm/Analysis/TargetLibraryInfo.h>
 #include <llvm/Analysis/TargetTransformInfo.h>
-#include <llvm/Target/TargetMachine.h>
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Transforms/IPO/AlwaysInliner.h>
+#include <llvm/Transforms/Scalar.h>
 
 #if LLVM_VERSION_MAJOR >= 17
-#include <llvm/Analysis/LoopAnalysisManager.h>
 #include <llvm/Analysis/CGSCCPassManager.h>
+#include <llvm/Analysis/LoopAnalysisManager.h>
 #include <llvm/Passes/PassBuilder.h>
 #endif
 
@@ -104,7 +104,9 @@ std::string llvm_dsp_factory_aux::findJSON(llvm::Module* module)
     for (const auto& global : module->globals()) {
         auto* initializer = global.getInitializer();
         if (auto* array = llvm::dyn_cast<llvm::ConstantDataArray>(initializer)) {
-            if (array->isString()) return array->getAsString().str();
+            if (array->isString()) {
+                return array->getAsString().str();
+            }
         }
     }
     return "";
@@ -122,7 +124,9 @@ static void splitTarget(const string& target, string& triple, string& cpu)
 static string getParam(int argc, const char* argv[], const string& param, const string& def)
 {
     for (int i = 0; i < argc; i++) {
-        if (string(argv[i]) == param) return argv[i + 1];
+        if (string(argv[i]) == param) {
+            return argv[i + 1];
+        }
     }
     return def;
 }
@@ -140,7 +144,7 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER buffer, LLVMContext& context, stri
 
 void llvm_dynamic_dsp_factory_aux::write(ostream* out, bool binary, bool small)
 {
-    string res;
+    string             res;
     raw_string_ostream out_str(res);
     if (binary) {
 #if LLVM_VERSION_MAJOR >= 8
@@ -157,7 +161,7 @@ void llvm_dynamic_dsp_factory_aux::write(ostream* out, bool binary, bool small)
 // Bitcode
 string llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcode()
 {
-    string res;
+    string             res;
     raw_string_ostream out(res);
 #if LLVM_VERSION_MAJOR >= 8
     WriteBitcodeToFile(*fModule, out);
@@ -170,7 +174,7 @@ string llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcode()
 
 bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcodeFile(const string& bit_code_path)
 {
-    STREAM_ERROR err;
+    STREAM_ERROR   err;
     raw_fd_ostream out(bit_code_path.c_str(), err, sysfs_binary_flag);
     if (err) {
         cerr << "ERROR : writeDSPFactoryToBitcodeFile could not open file : " << err.message();
@@ -217,8 +221,8 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToIRFile(const string& ir_code
 /// duplicates llvm-gcc behaviour.
 ///
 /// OptLevel - Optimization Level
-static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& FPM, unsigned OptLevel,
-                                  unsigned SizeLevel)
+static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& FPM,
+                                  unsigned OptLevel, unsigned SizeLevel)
 {
     FPM.add(createVerifierPass());  // Verify that input is correct
 
@@ -236,9 +240,9 @@ static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& F
         if (OptLevel > 2) {
             Threshold = 275;
         }
-    #if LLVM_VERSION_MAJOR < 17
+#if LLVM_VERSION_MAJOR < 17
         Builder.Inliner = createFunctionInliningPass(Threshold);
-    #endif
+#endif
     } else {
         Builder.Inliner = createAlwaysInlinerLegacyPass();
     }
@@ -284,12 +288,12 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 #else
     builder.setOptLevel(CodeGenOpt::Aggressive);
 #endif
-    
+
     builder.setEngineKind(EngineKind::JIT);
 
     string buider_error;
     builder.setErrorStr(&buider_error);
-  
+
     string triple, cpu;
     splitTarget(fTarget, triple, cpu);
     fModule->setTargetTriple(triple);
@@ -304,19 +308,19 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     targetOptions.NoNaNsFPMath          = true;
     targetOptions.GuaranteedTailCallOpt = true;
     targetOptions.NoTrappingFPMath      = true;
-    
+
 #if LLVM_VERSION_MAJOR >= 9
-    targetOptions.NoSignedZerosFPMath   = true;
+    targetOptions.NoSignedZerosFPMath = true;
 #endif
-    
+
 #if LLVM_VERSION_MAJOR >= 11
     targetOptions.setFPDenormalMode(DenormalMode::getIEEE());
 #else
     targetOptions.FPDenormalMode = FPDenormal::IEEE;
 #endif
-    
+
     targetOptions.GuaranteedTailCallOpt = true;
-    
+
     if (global::isDebug("FAUST_LLVM3")) {
 #if LLVM_VERSION_MAJOR < 12
         targetOptions.PrintMachineCode = true;
@@ -336,38 +340,38 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     int optlevel = getOptlevel();
 
     if ((optlevel == -1) || (fOptLevel > optlevel)) {
-        
 #if LLVM_VERSION_MAJOR >= 17
         // See: https://llvm.org/docs/NewPassManager.html
-        
+
         // Create the analysis managers.
-        LoopAnalysisManager LAM;
+        LoopAnalysisManager     LAM;
         FunctionAnalysisManager FAM;
-        CGSCCAnalysisManager CGAM;
-        ModuleAnalysisManager MAM;
-        
+        CGSCCAnalysisManager    CGAM;
+        ModuleAnalysisManager   MAM;
+
         // Create the new pass manager builder.
         // Take a look at the PassBuilder constructor parameters for more
         // customization, e.g. specifying a TargetMachine or various debugging
         // options.
         PassBuilder PB;
-        
+
         // Register all the basic analyses with the managers.
         PB.registerModuleAnalyses(MAM);
         PB.registerCGSCCAnalyses(CGAM);
         PB.registerFunctionAnalyses(FAM);
         PB.registerLoopAnalyses(LAM);
         PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
-        
+
         // Create the pass manager.
-        OptimizationLevel opt_table[] = {OptimizationLevel::O0, OptimizationLevel::O1, OptimizationLevel::O2, OptimizationLevel::O3};
-        fOptLevel = std::min(fOptLevel, 3);
-        ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(opt_table[fOptLevel]);
-        
+        OptimizationLevel opt_table[] = {OptimizationLevel::O0, OptimizationLevel::O1,
+                                         OptimizationLevel::O2, OptimizationLevel::O3};
+        fOptLevel                     = std::min(fOptLevel, 3);
+        ModulePassManager MPM         = PB.buildPerModuleDefaultPipeline(opt_table[fOptLevel]);
+
         if (global::isDebug("FAUST_LLVM1")) {
             dumpLLVM(fModule);
         }
-        
+
         // Optimize the IR
         MPM.run(*fModule, MAM);
         if (global::isDebug("FAUST_LLVM2")) {
@@ -382,8 +386,8 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         pm.add(new TargetLibraryInfoWrapperPass(TLII));
         fModule->setDataLayout(fJIT->getDataLayout());
 
-        // Add internal analysis passes from the target machine (mandatory for vectorization to work)
-        // Code taken from opt.cpp
+        // Add internal analysis passes from the target machine (mandatory for vectorization to
+        // work) Code taken from opt.cpp
         pm.add(createTargetTransformInfoWrapperPass(tm->getTargetIRAnalysis()));
 
         if (fOptLevel > 0) {
@@ -420,8 +424,8 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 }
 
 // Bitcode <==> string
-static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, const string& target, string& error_msg,
-                                                      int opt_level)
+static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, const string& target,
+                                                      string& error_msg, int opt_level)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     dsp_factory_table<SDsp_factory>::factory_iterator it;
@@ -434,9 +438,11 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
         try {
             LLVMContext* context = new LLVMContext();
             Module*      module  = ParseBitcodeFile(buffer, *context, error_msg);
-            if (!module) return nullptr;
-            llvm_dynamic_dsp_factory_aux* factory_aux
-                = new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
+            if (!module) {
+                return nullptr;
+            }
+            llvm_dynamic_dsp_factory_aux* factory_aux =
+                new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
             if (factory_aux->initJIT(error_msg)) {
                 llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
                 llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
@@ -454,12 +460,13 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
 }
 
 // Object code <==> file (taken from toy.cpp)
-bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const string& object_code_path)
+bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(
+    const string& object_code_path)
 {
     auto TargetTriple = sys::getDefaultTargetTriple();
     fModule->setTargetTriple(TargetTriple);
     string Error;
-    auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
+    auto   Target = TargetRegistry::lookupTarget(TargetTriple, Error);
 
     // Print an error and exit if we couldn't find the requested target.
     // This generally occurs if we've forgotten to initialise the
@@ -469,8 +476,8 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
         return false;
     }
 
-    StringRef CPU = sys::getHostCPUName();
-    string Features;
+    StringRef     CPU = sys::getHostCPUName();
+    string        Features;
     TargetOptions opt;
 #if LLVM_VERSION_MAJOR >= 16
     auto RM = optional<Reloc::Model>();
@@ -480,20 +487,21 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
     auto TheTargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
     fModule->setDataLayout(TheTargetMachine->createDataLayout());
 
-    error_code EC;
+    error_code     EC;
     raw_fd_ostream dest(object_code_path.c_str(), EC, sys::fs::OF_None);
     if (EC) {
         errs() << "ERROR : writeDSPFactoryToObjectcodeFile could not open file : " << EC.message();
         return false;
     }
-    
+
     legacy::PassManager pass;
 #if LLVM_VERSION_MAJOR >= 18
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, CodeGenFileType::ObjectFile)) {
 #elif LLVM_VERSION_MAJOR >= 10
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, CGFT_ObjectFile)) {
 #elif LLVM_VERSION_MAJOR >= 8
-    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, TargetMachine::CGFT_ObjectFile)) {
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr,
+                                              TargetMachine::CGFT_ObjectFile)) {
 #else
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, TargetMachine::CGFT_ObjectFile, true)) {
 #endif
@@ -525,14 +533,14 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFile(const string&
         return writeDSPFactoryToObjectcodeFileAux(object_code_path);
     }
 }
-        
+
 // IR <==> string
-static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target, string& error_msg,
-                                                 int opt_level)
+static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target,
+                                                 string& error_msg, int opt_level)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     dsp_factory_table<SDsp_factory>::factory_iterator it;
-    
+
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
         SDsp_factory sfactory = (*it).first;
         sfactory->addReference();
@@ -556,8 +564,8 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
                 setlocale(LC_ALL, tmp_local);
                 free(tmp_local);
             }
-            llvm_dynamic_dsp_factory_aux* factory_aux
-                = new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
+            llvm_dynamic_dsp_factory_aux* factory_aux =
+                new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
             if (factory_aux->initJIT(error_msg)) {
                 llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
                 llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
@@ -578,7 +586,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
 ModulePTR loadSingleModule(const string filename, LLVMContext* context)
 {
     SMDiagnostic err;
-    ModulePTR module = parseIRFile(filename, err, *context);
+    ModulePTR    module = parseIRFile(filename, err, *context);
     return module;
 }
 
@@ -598,7 +606,7 @@ ModulePTR loadModule(const string& module_name, LLVMContext* context)
         return nullptr;
     }
 }
-        
+
 bool linkModules(Module* dst, ModulePTR src, string& error)
 {
     bool res = false;
@@ -625,34 +633,35 @@ Module* linkAllModules(LLVMContext* context, Module* dst, string& error)
     }
     return dst;
 }
-        
+
 // Public C++ API
-LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
-                                                  const string& target, string& error_msg, int opt_level)
+LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int argc,
+                                                        const char* argv[], const string& target,
+                                                        string& error_msg, int opt_level)
 {
     string base = basename((char*)filename.c_str());
     size_t pos  = filename.find(".dsp");
-    
+
     if (pos != string::npos) {
-        return createDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, target, error_msg,
-                                          opt_level);
+        return createDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv,
+                                          target, error_msg, opt_level);
     } else {
         error_msg = "ERROR : file extension is not the one expected (.dsp expected)\n";
         return nullptr;
     }
 }
 
-LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
-                                                       const char* argv[], const string& target, string& error_msg,
-                                                       int opt_level)
+LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const string& name_app,
+                                                          const string& dsp_content, int argc,
+                                                          const char* argv[], const string& target,
+                                                          string& error_msg, int opt_level)
 {
     LOCK_API
     string expanded_dsp_content, sha_key;
-   
+
     if ((expanded_dsp_content = sha1FromDSP(name_app, dsp_content, argc, argv, sha_key)) == "") {
         return nullptr;
     } else {
-        
         dsp_factory_table<SDsp_factory>::factory_iterator it;
         if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
@@ -672,13 +681,10 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const string& name_app
                     argv1[argc1++] = argv[i];
                 }
                 argv1[argc1] = nullptr;  // NULL terminated argv
-                
-                llvm_dynamic_dsp_factory_aux* factory_aux
-                    = static_cast<llvm_dynamic_dsp_factory_aux*>(createFactory(name_app,
-                                                                            dsp_content,
-                                                                            argc1, argv1,
-                                                                            error_msg,
-                                                                            true));
+
+                llvm_dynamic_dsp_factory_aux* factory_aux =
+                    static_cast<llvm_dynamic_dsp_factory_aux*>(
+                        createFactory(name_app, dsp_content, argc1, argv1, error_msg, true));
                 if (factory_aux && factory_aux->initJIT(error_msg)) {
                     factory_aux->setTarget(target);
                     factory_aux->setOptlevel(opt_level);
@@ -700,12 +706,11 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const string& name_app
         }
     }
 }
-        
+
 LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const string& name_app, tvec signals,
-                                                        int argc, const char* argv[],
-                                                        const string& target,
-                                                        string& error_msg,
-                                                        int opt_level)
+                                                           int argc, const char* argv[],
+                                                           const string& target, string& error_msg,
+                                                           int opt_level)
 {
     LOCK_API
     try {
@@ -721,9 +726,9 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const string& name_ap
             argv1[argc1++] = argv[i];
         }
         argv1[argc1] = nullptr;  // NULL terminated argv
-        
-        llvm_dynamic_dsp_factory_aux* factory_aux
-            = static_cast<llvm_dynamic_dsp_factory_aux*>(createFactory(name_app, signals, argc1, argv1, error_msg));
+
+        llvm_dynamic_dsp_factory_aux* factory_aux = static_cast<llvm_dynamic_dsp_factory_aux*>(
+            createFactory(name_app, signals, argc1, argv1, error_msg));
         if (factory_aux && factory_aux->initJIT(error_msg)) {
             factory_aux->setTarget(target);
             factory_aux->setOptlevel(opt_level);
@@ -741,29 +746,29 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const string& name_ap
         return nullptr;
     }
 }
-        
-LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromBoxes(const string& name_app, Tree box,
-                                                      int argc, const char* argv[],
-                                                      const string& target,
-                                                      string& error_msg,
-                                                      int opt_level)
+
+LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromBoxes(const string& name_app, Tree box, int argc,
+                                                         const char* argv[], const string& target,
+                                                         string& error_msg, int opt_level)
 {
     LOCK_API
     try {
         tvec signals = boxesToSignalsAux(box);
-        return createDSPFactoryFromSignals(name_app, signals, argc, argv, target, error_msg, opt_level);
+        return createDSPFactoryFromSignals(name_app, signals, argc, argv, target, error_msg,
+                                           opt_level);
     } catch (faustexception& e) {
         error_msg = e.Message();
         return nullptr;
     }
 }
 
-LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromBitcode(const string& bit_code, const string& target, string& error_msg,
-                                                      int opt_level)
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromBitcode(const string& bit_code,
+                                                         const string& target, string& error_msg,
+                                                         int opt_level)
 {
     LOCK_API
-    return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(bit_code))), target, error_msg,
-                                        opt_level);
+    return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(bit_code))),
+                                        target, error_msg, opt_level);
 }
 
 LIBFAUST_API string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
@@ -773,8 +778,9 @@ LIBFAUST_API string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 }
 
 // Bitcode <==> file
-LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target,
-                                                          string& error_msg, int opt_level)
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path,
+                                                             const string& target,
+                                                             string& error_msg, int opt_level)
 {
     LOCK_API
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
@@ -782,21 +788,24 @@ LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_c
         error_msg = "ERROR : " + ec.message() + "\n";
         return nullptr;
     } else {
-        return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg, opt_level);
+        return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg,
+                                            opt_level);
     }
 }
 
-LIBFAUST_API bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string& bit_code_path)
+LIBFAUST_API bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory,
+                                               const string&     bit_code_path)
 {
     LOCK_API
     return (factory) ? factory->writeDSPFactoryToBitcodeFile(bit_code_path) : false;
 }
 
-LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromIR(const string& ir_code, const string& target, string& error_msg,
-                                              int opt_level)
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromIR(const string& ir_code, const string& target,
+                                                    string& error_msg, int opt_level)
 {
     LOCK_API
-    return readDSPFactoryFromIRAux(MEMORY_BUFFER_CREATE(StringRef(ir_code)), target, error_msg, opt_level);
+    return readDSPFactoryFromIRAux(MEMORY_BUFFER_CREATE(StringRef(ir_code)), target, error_msg,
+                                   opt_level);
 }
 
 LIBFAUST_API string writeDSPFactoryToIR(llvm_dsp_factory* factory)
@@ -806,8 +815,9 @@ LIBFAUST_API string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 }
 
 // IR <==> file
-LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, string& error_msg,
-                                                     int opt_level)
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path,
+                                                        const string& target, string& error_msg,
+                                                        int opt_level)
 {
     LOCK_API
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
@@ -830,61 +840,64 @@ LIBFAUST_API bool writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const strin
 extern "C" {
 #endif
 
-LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[],
-                                                      const char* target, char* error_msg, int opt_level)
+LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc,
+                                                         const char* argv[], const char* target,
+                                                         char* error_msg, int opt_level)
 {
-    string error_msg_aux;
-    llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
+    string            error_msg_aux;
+    llvm_dsp_factory* factory =
+        createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
 
-LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
-                                                        const char* argv[], const char* target, char* error_msg,
-                                                        int opt_level)
+LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app,
+                                                           const char* dsp_content, int argc,
+                                                           const char* argv[], const char* target,
+                                                           char* error_msg, int opt_level)
 {
-    string error_msg_aux;
-    llvm_dsp_factory* factory =
-        createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
-    strncpy(error_msg, error_msg_aux.c_str(), 4096);
-    return factory;
-}
-    
-LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromSignals(const char* name_app, Signal* signals_aux,
-                                                         int argc, const char* argv[],
-                                                         const char* target,
-                                                         char* error_msg,
-                                                         int opt_level)
-{
-    string error_msg_aux;
-    tvec signals;
-    int i = 0;
-    while (signals_aux[i]) { signals.push_back(signals_aux[i]); i++; }
-    llvm_dsp_factory* factory =
-        createDSPFactoryFromSignals(name_app, signals, argc, argv, target, error_msg_aux, opt_level);
+    string            error_msg_aux;
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv,
+                                                           target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
 
-LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromBoxes(const char* name_app,
-                                                       Tree box,
-                                                       int argc, const char* argv[],
-                                                       const char* target,
-                                                       char* error_msg,
-                                                       int opt_level)
+LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromSignals(const char* name_app,
+                                                            Signal* signals_aux, int argc,
+                                                            const char* argv[], const char* target,
+                                                            char* error_msg, int opt_level)
 {
     string error_msg_aux;
+    tvec   signals;
+    int    i = 0;
+    while (signals_aux[i]) {
+        signals.push_back(signals_aux[i]);
+        i++;
+    }
+    llvm_dsp_factory* factory = createDSPFactoryFromSignals(name_app, signals, argc, argv, target,
+                                                            error_msg_aux, opt_level);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
+    return factory;
+}
+
+LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromBoxes(const char* name_app, Tree box, int argc,
+                                                          const char* argv[], const char* target,
+                                                          char* error_msg, int opt_level)
+{
+    string            error_msg_aux;
     llvm_dsp_factory* factory =
         createDSPFactoryFromBoxes(name_app, box, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
 
-LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, char* error_msg,
-                                                       int opt_level)
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target,
+                                                          char* error_msg, int opt_level)
 {
-    string error_msg_aux;
-    llvm_dsp_factory* factory = readDSPFactoryFromBitcode(bit_code, target, error_msg_aux, opt_level);
+    string            error_msg_aux;
+    llvm_dsp_factory* factory =
+        readDSPFactoryFromBitcode(bit_code, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
@@ -894,23 +907,27 @@ LIBFAUST_API char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
     return (factory) ? strdup(writeDSPFactoryToBitcode(factory).c_str()) : nullptr;
 }
 
-LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, char* error_msg,
-                                                           int opt_level)
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path,
+                                                              const char* target, char* error_msg,
+                                                              int opt_level)
 {
-    string error_msg_aux;
-    llvm_dsp_factory* factory = readDSPFactoryFromBitcodeFile(bit_code_path, target, error_msg_aux, opt_level);
+    string            error_msg_aux;
+    llvm_dsp_factory* factory =
+        readDSPFactoryFromBitcodeFile(bit_code_path, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
 
-LIBFAUST_API bool writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path)
+LIBFAUST_API bool writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory,
+                                                const char*       bit_code_path)
 {
     return writeDSPFactoryToBitcodeFile(factory, bit_code_path);
 }
 
-LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, char* error_msg, int opt_level)
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target,
+                                                     char* error_msg, int opt_level)
 {
-    string error_msg_aux;
+    string            error_msg_aux;
     llvm_dsp_factory* factory = readDSPFactoryFromIR(ir_code, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
@@ -921,11 +938,13 @@ LIBFAUST_API char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
     return (factory) ? strdup(writeDSPFactoryToIR(factory).c_str()) : nullptr;
 }
 
-LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, char* error_msg,
-                                                   int opt_level)
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path,
+                                                         const char* target, char* error_msg,
+                                                         int opt_level)
 {
     string            error_msg_aux;
-    llvm_dsp_factory* factory = readDSPFactoryFromIRFile(ir_code_path, target, error_msg_aux, opt_level);
+    llvm_dsp_factory* factory =
+        readDSPFactoryFromIRFile(ir_code_path, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }

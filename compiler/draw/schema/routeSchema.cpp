@@ -51,10 +51,18 @@ schema* makeRouteSchema(unsigned int inputs, unsigned int outputs, const std::ve
 routeSchema::routeSchema(unsigned int inputs, unsigned int outputs, double width, double height,
                          const std::vector<int>& routes)
 
-    : schema(inputs, outputs, width, height), fText(""), fColor("#EEEEAA"), fLink(""), fRoutes(routes)
+    : schema(inputs, outputs, width, height),
+      fText(""),
+      fColor("#EEEEAA"),
+      fLink(""),
+      fRoutes(routes)
 {
-    for (unsigned int i = 0; i < inputs; i++) fInputPoint.push_back(point(0, 0));
-    for (unsigned int i = 0; i < outputs; i++) fOutputPoint.push_back(point(0, 0));
+    for (unsigned int i = 0; i < inputs; i++) {
+        fInputPoint.push_back(point(0, 0));
+    }
+    for (unsigned int i = 0; i < outputs; i++) {
+        fOutputPoint.push_back(point(0, 0));
+    }
 }
 
 /**
@@ -165,7 +173,8 @@ void routeSchema::draw(device& dev)
  */
 void routeSchema::drawRectangle(device& dev)
 {
-    dev.rect(x() + dHorz, y() + dVert, width() - 2 * dHorz, height() - 2 * dVert, fColor.c_str(), fLink.c_str());
+    dev.rect(x() + dHorz, y() + dVert, width() - 2 * dHorz, height() - 2 * dVert, fColor.c_str(),
+             fLink.c_str());
 }
 
 /**
@@ -229,7 +238,8 @@ void routeSchema::collectTraits(collector& c)
             int   dst = fRoutes[i + 1] - 1;
             point p1  = fInputPoint[src];
             point p2  = fOutputPoint[dst];
-            // cerr << "add traits: " << p1.x << 'x' << p1.y << " -> " << p2.x << "x" << p2.y << endl;
+            // cerr << "add traits: " << p1.x << 'x' << p1.y << " -> " << p2.x << "x" << p2.y <<
+            // endl;
             double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
             c.addTrait(trait(point(p1.x + dx, p1.y), point(p2.x - dx, p2.y)));
         }

@@ -35,13 +35,15 @@ interval interval_algebra::Atan(const interval& x)
         return empty();
     }
 
-    double v    = maxValAbs(x);  // value at which the min slope is attained, here the bound of highest absolute value
-    int    sign = signMaxValAbs(x);  // whether we compute the difference between f(v) and f(v+ε) or f(v-ε)
+    double v = maxValAbs(
+        x);  // value at which the min slope is attained, here the bound of highest absolute value
+    int sign =
+        signMaxValAbs(x);  // whether we compute the difference between f(v) and f(v+ε) or f(v-ε)
 
     int precision = exactPrecisionUnary(atan, v, sign * pow(2, x.lsb()));
 
     if (precision == INT_MIN or taylor_lsb) {
-        precision = floor(x.lsb() - (double)log2(1 + v*v));
+        precision = floor(x.lsb() - (double)log2(1 + v * v));
     }
 
     return {atan(x.lo()), atan(x.hi()), precision};

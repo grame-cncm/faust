@@ -81,7 +81,15 @@ class Description : public virtual Garbageable {
     }
 
    public:
-    Description() : fInputs(0), fOutputs(0), fWidgetID(0), fActiveWidgetCount(0), fPassiveWidgetCount(0), fSFWidgetCount(0) {}
+    Description()
+        : fInputs(0),
+          fOutputs(0),
+          fWidgetID(0),
+          fActiveWidgetCount(0),
+          fPassiveWidgetCount(0),
+          fSFWidgetCount(0)
+    {
+    }
 
     Description* name(const std::string& s)
     {

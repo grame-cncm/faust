@@ -27,7 +27,8 @@ namespace itv {
 // interval Atanh(const interval& x);
 // void testAtanh();
 
-static const interval domain(std::nexttoward(-1, 0), std::nexttoward(1, 0), 0);  // interval ]-1,1[, precision 0
+static const interval domain(std::nexttoward(-1, 0), std::nexttoward(1, 0),
+                             0);  // interval ]-1,1[, precision 0
 
 interval interval_algebra::Atanh(const interval& x)
 {
@@ -36,12 +37,12 @@ interval interval_algebra::Atanh(const interval& x)
         return empty();
     }
 
-    double v = minValAbs(x);
-    double sign = signMinValAbs(x);
-    int precision = exactPrecisionUnary(atanh, v, sign*pow(2, x.lsb()));
+    double v         = minValAbs(x);
+    double sign      = signMinValAbs(x);
+    int    precision = exactPrecisionUnary(atanh, v, sign * pow(2, x.lsb()));
 
     if (precision == INT_MIN or taylor_lsb) {
-        precision = floor(x.lsb() - (double)log2(1 - v*v));
+        precision = floor(x.lsb() - (double)log2(1 - v * v));
     }
 
     return {atanh(i.lo()), atanh(i.hi()), precision};

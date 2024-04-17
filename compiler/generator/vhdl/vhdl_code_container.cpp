@@ -20,26 +20,29 @@
  ************************************************************************/
 
 #include "vhdl_code_container.hh"
-#include "vhdl_producer.hh"
 #include "binop.hh"
 #include "sigtyperules.hh"
+#include "vhdl_producer.hh"
 #include "xtended.hh"
 
-std::ostream& operator<<(std::ostream& out, const VhdlCodeBlock& block) {
+std::ostream& operator<<(std::ostream& out, const VhdlCodeBlock& block)
+{
     block._buffer.output_buffer(out);
     return out;
 }
 
-std::string entityTypeFromName(const std::string& name) {
+std::string entityTypeFromName(const std::string& name)
+{
     std::string entity_type;
-    auto last_underscore = name.find_last_of('_');
+    auto        last_underscore = name.find_last_of('_');
     for (size_t i = 0; i < last_underscore && i < name.size(); ++i) {
         entity_type.push_back(name[i]);
     }
     return entity_type;
 }
 
-std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container) {
+std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container)
+{
     out << "-- ======= DEPENDENCIES =====" << std::endl;
     out << "library ieee;" << std::endl
         << "use ieee.std_logic_1164.all;" << std::endl
@@ -61,25 +64,42 @@ std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container) 
     out << std::endl << "-- ======= FAUST IP =========" << std::endl;
     out << "entity " << container._ip_name << " is" << std::endl
         << "port (" << std::endl
-        << '\t' << VhdlPort("ws", PortMode::Input, VhdlType(VhdlInnerType::StdLogic)) << ";" << std::endl
-        << '\t' << VhdlPort("ap_clk", PortMode::Input, VhdlType(VhdlInnerType::StdLogic)) << ";" << std::endl
-        << '\t' << VhdlPort("ap_rst_n", PortMode::Input, VhdlType(VhdlInnerType::StdLogic)) << ";" << std::endl
-        << '\t' << VhdlPort("ap_start", PortMode::Input, VhdlType(VhdlInnerType::StdLogic)) << ";" << std::endl
-        << '\t' << VhdlPort("bypass_dsp", PortMode::Input, VhdlType(VhdlInnerType::StdLogic)) << ";" << std::endl
-        << '\t' << VhdlPort("bypass_faust", PortMode::Input, VhdlType(VhdlInnerType::StdLogic)) << ";" << std::endl
-        << '\t' << VhdlPort("ap_done", PortMode::Output, VhdlType(VhdlInnerType::StdLogic)) << ";" << std::endl;
+        << '\t' << VhdlPort("ws", PortMode::Input, VhdlType(VhdlInnerType::StdLogic)) << ";"
+        << std::endl
+        << '\t' << VhdlPort("ap_clk", PortMode::Input, VhdlType(VhdlInnerType::StdLogic)) << ";"
+        << std::endl
+        << '\t' << VhdlPort("ap_rst_n", PortMode::Input, VhdlType(VhdlInnerType::StdLogic)) << ";"
+        << std::endl
+        << '\t' << VhdlPort("ap_start", PortMode::Input, VhdlType(VhdlInnerType::StdLogic)) << ";"
+        << std::endl
+        << '\t' << VhdlPort("bypass_dsp", PortMode::Input, VhdlType(VhdlInnerType::StdLogic)) << ";"
+        << std::endl
+        << '\t' << VhdlPort("bypass_faust", PortMode::Input, VhdlType(VhdlInnerType::StdLogic))
+        << ";" << std::endl
+        << '\t' << VhdlPort("ap_done", PortMode::Output, VhdlType(VhdlInnerType::StdLogic)) << ";"
+        << std::endl;
 
     for (size_t input = 0; input < container._num_inputs; ++input) {
-        out << '\t' << VhdlPort("audio_in_" + std::to_string(input), PortMode::Input, VhdlType(VhdlInnerType::StdLogicVector, 23, 0)) << (input == container._num_inputs - 1 && container._num_outputs == 0 ? "" : ";") << std::endl;
+        out << '\t'
+            << VhdlPort("audio_in_" + std::to_string(input), PortMode::Input,
+                        VhdlType(VhdlInnerType::StdLogicVector, 23, 0))
+            << (input == container._num_inputs - 1 && container._num_outputs == 0 ? "" : ";")
+            << std::endl;
     }
     for (size_t output = 0; output < container._num_outputs; ++output) {
-        out << '\t' << VhdlPort("audio_out_" + std::to_string(output), PortMode::Output, VhdlType(VhdlInnerType::StdLogicVector, 23, 0)) << ";" << std::endl;
-        out << '\t' << VhdlPort("audio_out_ap_vld_" + std::to_string(output), PortMode::Output, VhdlType(VhdlInnerType::StdLogic)) << (output == container._num_outputs - 1 ? "" : ";") << std::endl;
+        out << '\t'
+            << VhdlPort("audio_out_" + std::to_string(output), PortMode::Output,
+                        VhdlType(VhdlInnerType::StdLogicVector, 23, 0))
+            << ";" << std::endl;
+        out << '\t'
+            << VhdlPort("audio_out_ap_vld_" + std::to_string(output), PortMode::Output,
+                        VhdlType(VhdlInnerType::StdLogic))
+            << (output == container._num_outputs - 1 ? "" : ";") << std::endl;
     }
 
     out << ");" << std::endl << "end " << container._ip_name << ";" << std::endl;
 
-    out << "architecture DSP of "<< container._ip_name << " is" << std::endl;
+    out << "architecture DSP of " << container._ip_name << " is" << std::endl;
     out << std::endl << "-- ======= SIGNALS ==========" << std::endl;
     out << container._signals << std::endl;
     out << std::endl << "-- ======= COMPONENTS =======" << std::endl;
@@ -93,44 +113,61 @@ std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container) 
         }
 
         auto target_hash = mapping.first;
-        auto target_id = container._signal_identifier.at(target_hash);
+        auto target_id   = container._signal_identifier.at(target_hash);
         out << target_id << " : " << entityTypeFromName(target_id) << std::endl;
         out << '\t' << "port map (" << std::endl;
-        out << "\t\t" << "clock => ap_clk," << std::endl;
-        out << "\t\t" << "reset => ap_rst_n," << std::endl;
+        out << "\t\t"
+            << "clock => ap_clk," << std::endl;
+        out << "\t\t"
+            << "reset => ap_rst_n," << std::endl;
 
         // Check if the component is a one sample delay
         auto write_enable_sig = container._one_sample_delay_mappings.find(target_hash);
         if (write_enable_sig != container._one_sample_delay_mappings.end()) {
-            out << "\t\t" << "write_enable => registers_" << write_enable_sig->second << "," << std::endl;
+            out << "\t\t"
+                << "write_enable => registers_" << write_enable_sig->second << "," << std::endl;
         }
 
         for (size_t i = 0; i < mapping.second.size(); ++i) {
-            auto source_hash = mapping.second[i].first;
+            auto source_hash  = mapping.second[i].first;
             auto registers_id = mapping.second[i].second;
 
             if (registers_id) {
-                out << "\t\t" << "data_in_" << i << " => " << "registers_" << registers_id << "," << std::endl;
+                out << "\t\t"
+                    << "data_in_" << i << " => "
+                    << "registers_" << registers_id << "," << std::endl;
             } else {
-                out << "\t\t" << "data_in_" << i << " => " << container._signal_identifier.at(source_hash) << "," << std::endl;
+                out << "\t\t"
+                    << "data_in_" << i << " => " << container._signal_identifier.at(source_hash)
+                    << "," << std::endl;
             }
         }
-        out << "\t\t" << "data_out => " << target_id << std::endl;
-        out << "\t" << ");" << std::endl << std::endl;
+        out << "\t\t"
+            << "data_out => " << target_id << std::endl;
+        out << "\t"
+            << ");" << std::endl
+            << std::endl;
     }
     for (size_t register_id = 0; register_id < container._register_series.size(); ++register_id) {
         auto register_series = container._register_series[register_id];
 
-        out << register_series.name << " : " << entityTypeFromName(register_series.name) << std::endl;
+        out << register_series.name << " : " << entityTypeFromName(register_series.name)
+            << std::endl;
         out << '\t' << "generic map (n => " << register_series.registers_count << ")" << std::endl;
         out << '\t' << "port map (" << std::endl;
-        out << "\t\t" << "clock => ap_clk," << std::endl;
-        out << "\t\t" << "reset => ap_rst_n," << std::endl;
+        out << "\t\t"
+            << "clock => ap_clk," << std::endl;
+        out << "\t\t"
+            << "reset => ap_rst_n," << std::endl;
 
-        auto source = register_series.source.has_value() ? container._signal_identifier.at(*register_series.source) : "ap_start";
-        
-        out << "\t\t" << "data_in => " << source << "," << std::endl;
-        out << "\t\t" << "data_out => registers_" << register_id << std::endl;
+        auto source = register_series.source.has_value()
+                          ? container._signal_identifier.at(*register_series.source)
+                          : "ap_start";
+
+        out << "\t\t"
+            << "data_in => " << source << "," << std::endl;
+        out << "\t\t"
+            << "data_out => registers_" << register_id << std::endl;
         out << '\t' << ");" << std::endl << std::endl;
     }
 
@@ -157,7 +194,7 @@ std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container) 
         }
 
         auto source_hash = container._output_mappings[output_mapping];
-        auto source_id = container._signal_identifier.at(source_hash);
+        auto source_id   = container._signal_identifier.at(source_hash);
 
         out << "audio_out_" << output << " <= " << source_id << ";" << std::endl;
     }
@@ -165,7 +202,8 @@ std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container) 
     return out;
 }
 
-void VhdlCodeContainer::register_component(const Vertex& component, std::optional<int> cycles_from_input)
+void VhdlCodeContainer::register_component(const Vertex&      component,
+                                           std::optional<int> cycles_from_input)
 {
     if (!component.is_output()) {
         _mappings.insert({component.node_hash, {}});
@@ -184,8 +222,9 @@ void VhdlCodeContainer::register_component(const Vertex& component, std::optiona
             break;
         case Nature::kAny:
         case Nature::kReal:
-            sig_type =
-                VhdlType((gGlobal->gVHDLFloatEncoding ? VhdlInnerType::RealFloat : VhdlInnerType::SFixed), 8, -23);
+            sig_type = VhdlType(
+                (gGlobal->gVHDLFloatEncoding ? VhdlInnerType::RealFloat : VhdlInnerType::SFixed), 8,
+                -23);
     }
 
     // TODO: Add support for custom operators
@@ -204,7 +243,8 @@ void VhdlCodeContainer::register_component(const Vertex& component, std::optiona
         // Recursive inputs do not generate anything
     } else if (isSigInput(sig, &i)) {
         // For inputs, we simply need to map the hash of the vertex to the correct identifier
-        _signal_identifier.insert({component.node_hash, std::string("audio_in_") + std::to_string(i)});
+        _signal_identifier.insert(
+            {component.node_hash, std::string("audio_in_") + std::to_string(i)});
     } else if (isSigOutput(sig, &i, x) && component.is_recursive()) {
         // For recursive outputs, we generate a one-sample delay as well
         // as a series of registers from ap_start to the write_enable signal
@@ -224,7 +264,9 @@ void VhdlCodeContainer::register_component(const Vertex& component, std::optiona
 
     else if (isNil(sig)) {
     } else {
-        std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : tried generating code for a non-implemented signal type : " << *sig << std::endl;
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " ASSERT : tried generating code for a non-implemented signal type : " << *sig
+                  << std::endl;
         faustassert(false);
     }
 }
@@ -242,15 +284,21 @@ void VhdlCodeContainer::connect(const Vertex& source, const Vertex& target, int 
         // Create the lag component if necessary, returning the resulting id or 0
         VhdlType sig_type;
         switch (source.nature) {
-            case Nature::kInt: sig_type = VhdlType(VhdlInnerType::Integer); break;
+            case Nature::kInt:
+                sig_type = VhdlType(VhdlInnerType::Integer);
+                break;
             case Nature::kAny:
-            case Nature::kReal: sig_type = VhdlType((gGlobal->gVHDLFloatEncoding ? VhdlInnerType::RealFloat : VhdlInnerType::SFixed), 23, -8);
+            case Nature::kReal:
+                sig_type = VhdlType((gGlobal->gVHDLFloatEncoding ? VhdlInnerType::RealFloat
+                                                                 : VhdlInnerType::SFixed),
+                                    23, -8);
         }
-        size_t registers_id = (lag && !target.is_output()) ? generateRegisterSeries(lag, sig_type) : 0;
+        size_t registers_id =
+            (lag && !target.is_output()) ? generateRegisterSeries(lag, sig_type) : 0;
 
         _register_series[registers_id].source = std::make_optional(source_hash);
 
-        _mappings.find(target_hash)->second.push_back({ source_hash, registers_id });
+        _mappings.find(target_hash)->second.push_back({source_hash, registers_id});
     }
 }
 
@@ -265,11 +313,10 @@ size_t VhdlCodeContainer::generateRegisterSeries(int n, VhdlType type)
 {
     std::string entity_name = entityName("RegisterSeries", type);
 
-    int instance_identifier;
+    int  instance_identifier;
     auto entry = _declared_entities.find(entity_name);
     // If the generic entity is already declared, we do not redeclare it
-    if (entry == _declared_entities.end())
-    {
+    if (entry == _declared_entities.end()) {
         _declared_entities.insert({entity_name, 0});
         _entities << "entity " << entity_name << " is" << std::endl;
         _entities.open_block();
@@ -292,7 +339,8 @@ size_t VhdlCodeContainer::generateRegisterSeries(int n, VhdlType type)
         _entities << "architecture Behavioral of " << entity_name << " is" << std::endl;
         _entities.open_block();
         _entities << "type register_array is array(0 to n - 1) of " << type << ";" << std::endl;
-        _entities << "signal registers: register_array := (others => (others => '0'));" << std::endl;
+        _entities << "signal registers: register_array := (others => (others => '0'));"
+                  << std::endl;
         _entities.close_block();
         _entities << "begin" << std::endl;
         _entities.open_block();
@@ -345,9 +393,10 @@ size_t VhdlCodeContainer::generateRegisterSeries(int n, VhdlType type)
 
     // Anyhow, we still instantiate a new signal
     std::string signal_name = entity_name + "_" + std::to_string(instance_identifier);
-    _signals << "signal " << signal_name << " : " << type << " := " << VhdlValue(type) <<  ";" << std::endl;
+    _signals << "signal " << signal_name << " : " << type << " := " << VhdlValue(type) << ";"
+             << std::endl;
 
-    _register_series.push_back({ signal_name, std::nullopt, n });
+    _register_series.push_back({signal_name, std::nullopt, n});
     return _register_series.size() - 1;
 }
 
@@ -405,16 +454,16 @@ void VhdlCodeContainer::generateDelay(size_t hash, VhdlType type)
     }
 
     std::string signal_identifier = entity_name + "_" + std::to_string(instance_identifier);
-    _signals << "signal " << signal_identifier << " : " << type << " := " << VhdlValue(type) << ";" << std::endl;
+    _signals << "signal " << signal_identifier << " : " << type << " := " << VhdlValue(type) << ";"
+             << std::endl;
     _signal_identifier.insert({hash, signal_identifier});
 }
 
 void VhdlCodeContainer::generateConstant(size_t hash, VhdlValue value)
 {
-    int instance_identifier;
+    int  instance_identifier;
     auto entry = _declared_entities.find("Constant");
-    if (entry == _declared_entities.end())
-    {
+    if (entry == _declared_entities.end()) {
         _declared_entities.insert({"Constant", 0});
         instance_identifier = 0;
     } else {
@@ -422,7 +471,8 @@ void VhdlCodeContainer::generateConstant(size_t hash, VhdlValue value)
         instance_identifier = entry->second;
     }
     std::string signal_identifier = std::string("constant_") + std::to_string(instance_identifier);
-    _signals << "signal " << signal_identifier << " : " << value.vhdl_type << " := " << value << ";" << std::endl;
+    _signals << "signal " << signal_identifier << " : " << value.vhdl_type << " := " << value << ";"
+             << std::endl;
     _signal_identifier.insert({hash, signal_identifier});
 }
 
@@ -430,7 +480,7 @@ void VhdlCodeContainer::generateOneSampleDelay(size_t hash, VhdlType type, int c
 {
     std::string entity_name = entityName("OneSampleDelay", type);
 
-    int instance_identifier;
+    int  instance_identifier;
     auto entry = _declared_entities.find(entity_name);
     // If the generic entity is already declared, we do not redeclare it
     if (entry == _declared_entities.end()) {
@@ -497,12 +547,14 @@ void VhdlCodeContainer::generateOneSampleDelay(size_t hash, VhdlType type, int c
     }
 
     std::string signal_identifier = entity_name + "_" + std::to_string(instance_identifier);
-    _signals << "signal " << signal_identifier << " : " << type << " := " << VhdlValue(type) << ";" << std::endl;
+    _signals << "signal " << signal_identifier << " : " << type << " := " << VhdlValue(type) << ";"
+             << std::endl;
     _signal_identifier.insert({hash, signal_identifier});
 
-    // The write_enable port needs to be connected to a series of registers that runs parallel to the
-    // currently computed sample, so that its value is '1' when the result to be saved is ready.
-    auto registers_id = generateRegisterSeries(cycles_from_input, VhdlType(VhdlInnerType::StdLogic));
+    // The write_enable port needs to be connected to a series of registers that runs parallel to
+    // the currently computed sample, so that its value is '1' when the result to be saved is ready.
+    auto registers_id =
+        generateRegisterSeries(cycles_from_input, VhdlType(VhdlInnerType::StdLogic));
     _one_sample_delay_mappings.insert({hash, registers_id});
 }
 
@@ -510,25 +562,77 @@ void VhdlCodeContainer::generateBinaryOperator(size_t hash, int kind, VhdlType t
 {
     std::string operator_name;
     std::string operator_symbol = gBinOpTable[kind]->fName;
-    VhdlType output_type = type;
+    VhdlType    output_type     = type;
     switch (kind) {
-        case SOperator::kAdd: { operator_name = "Add"; break; }
-        case SOperator::kSub: { operator_name = "Sub"; break; }
-        case SOperator::kMul: { operator_name = "Mul"; break; }
-        case SOperator::kDiv: { operator_name = "Div"; break; }
-        case SOperator::kRem: { operator_name = "Rem"; operator_symbol = "mod"; break; }
-        case SOperator::kLsh: { operator_name = "LeftShift"; break; }
-        case SOperator::kARsh: { operator_name = "ArithRightShift"; break; }
-        case SOperator::kLRsh: { operator_name = "LogicRightShift"; break; }
-        case SOperator::kGT: { operator_name = "GreaterThan"; break; }
-        case SOperator::kLT: { operator_name = "LesserThan"; break; }
-        case SOperator::kGE: { operator_name = "GreaterEqual"; break; }
-        case SOperator::kLE: { operator_name = "LesserEqual"; break; }
-        case SOperator::kEQ: { operator_name = "Equal"; break; }
-        case SOperator::kNE: { operator_name = "NotEqual"; break; }
-        case SOperator::kAND: { operator_name = "And"; break; }
-        case SOperator::kOR: { operator_name = "Or"; break; }
-        case SOperator::kXOR: { operator_name = "Xor"; break; }
+        case SOperator::kAdd: {
+            operator_name = "Add";
+            break;
+        }
+        case SOperator::kSub: {
+            operator_name = "Sub";
+            break;
+        }
+        case SOperator::kMul: {
+            operator_name = "Mul";
+            break;
+        }
+        case SOperator::kDiv: {
+            operator_name = "Div";
+            break;
+        }
+        case SOperator::kRem: {
+            operator_name   = "Rem";
+            operator_symbol = "mod";
+            break;
+        }
+        case SOperator::kLsh: {
+            operator_name = "LeftShift";
+            break;
+        }
+        case SOperator::kARsh: {
+            operator_name = "ArithRightShift";
+            break;
+        }
+        case SOperator::kLRsh: {
+            operator_name = "LogicRightShift";
+            break;
+        }
+        case SOperator::kGT: {
+            operator_name = "GreaterThan";
+            break;
+        }
+        case SOperator::kLT: {
+            operator_name = "LesserThan";
+            break;
+        }
+        case SOperator::kGE: {
+            operator_name = "GreaterEqual";
+            break;
+        }
+        case SOperator::kLE: {
+            operator_name = "LesserEqual";
+            break;
+        }
+        case SOperator::kEQ: {
+            operator_name = "Equal";
+            break;
+        }
+        case SOperator::kNE: {
+            operator_name = "NotEqual";
+            break;
+        }
+        case SOperator::kAND: {
+            operator_name = "And";
+            break;
+        }
+        case SOperator::kOR: {
+            operator_name = "Or";
+            break;
+        }
+        case SOperator::kXOR: {
+            operator_name = "Xor";
+            break;
+        }
     }
     if (kind >= SOperator::kGT && kind <= SOperator::kNE) {
         output_type = VhdlType(VhdlInnerType::Boolean);
@@ -536,11 +640,10 @@ void VhdlCodeContainer::generateBinaryOperator(size_t hash, int kind, VhdlType t
 
     std::string entity_name = entityName(operator_name, type);
 
-    int instance_identifier;
+    int  instance_identifier;
     auto entry = _declared_entities.find(entity_name);
     // If the generic entity is already declared, we do not redeclare it
-    if (entry == _declared_entities.end())
-    {
+    if (entry == _declared_entities.end()) {
         _declared_entities.insert({entity_name, 0});
         _entities << "entity " << entity_name << " is" << std::endl;
         _entities.open_block();
@@ -584,16 +687,26 @@ void VhdlCodeContainer::generateBinaryOperator(size_t hash, int kind, VhdlType t
     }
 
     std::string signal_identifier = entity_name + "_" + std::to_string(instance_identifier);
-    _signals << "signal " << signal_identifier << " : " << type << " := " << VhdlValue(type) << ";" << std::endl;
+    _signals << "signal " << signal_identifier << " : " << type << " := " << VhdlValue(type) << ";"
+             << std::endl;
     _signal_identifier.insert({hash, signal_identifier});
 }
 
-std::ostream& operator<<(std::ostream& out, const PortMode& port) {
+std::ostream& operator<<(std::ostream& out, const PortMode& port)
+{
     switch (port) {
-        case PortMode::Input: out << "in"; break;
-        case PortMode::Output: out << "out"; break;
-        case PortMode::InOut: out << "inout"; break;
-        case PortMode::Buffer: out << "buffer"; break;
+        case PortMode::Input:
+            out << "in";
+            break;
+        case PortMode::Output:
+            out << "out";
+            break;
+        case PortMode::InOut:
+            out << "inout";
+            break;
+        case PortMode::Buffer:
+            out << "buffer";
+            break;
     }
     return out;
 }
@@ -602,55 +715,135 @@ std::string VhdlType::to_string() const
 {
     std::stringstream s;
     switch (type) {
-        case VhdlInnerType::Bit: s << "Bit"; break;
-        case VhdlInnerType::BitVector: s << "BitVector"; break;
-        case VhdlInnerType::Boolean: s << "Boolean"; break;
-        case VhdlInnerType::BooleanVector: s << "BooleanVector"; break;
-        case VhdlInnerType::Integer: s << "Integer"; break;
-        case VhdlInnerType::IntegerVector: s << "IntegerVector"; break;
-        case VhdlInnerType::Natural: s << "Natural"; break;
-        case VhdlInnerType::Positive: s << "Positive"; break;
-        case VhdlInnerType::Character: s << "Character"; break;
-        case VhdlInnerType::String: s << "String"; break;
-        case VhdlInnerType::RealFloat: s << "Real"; break;
-        case VhdlInnerType::StdLogic: s << "Logic"; break;
-        case VhdlInnerType::StdLogicVector: s << "LogicVector"; break;
-        case VhdlInnerType::StdULogic: s << "ULogic"; break;
-        case VhdlInnerType::StdULogicVector: s << "ULogicVector"; break;
-        case VhdlInnerType::Unsigned: s << "Unsigned"; break;
-        case VhdlInnerType::Signed: s << "Signed"; break;
-        case VhdlInnerType::UFixed: s << "UFixed"; break;
-        case VhdlInnerType::SFixed: s << "SFixed"; break;
-        default: break;
+        case VhdlInnerType::Bit:
+            s << "Bit";
+            break;
+        case VhdlInnerType::BitVector:
+            s << "BitVector";
+            break;
+        case VhdlInnerType::Boolean:
+            s << "Boolean";
+            break;
+        case VhdlInnerType::BooleanVector:
+            s << "BooleanVector";
+            break;
+        case VhdlInnerType::Integer:
+            s << "Integer";
+            break;
+        case VhdlInnerType::IntegerVector:
+            s << "IntegerVector";
+            break;
+        case VhdlInnerType::Natural:
+            s << "Natural";
+            break;
+        case VhdlInnerType::Positive:
+            s << "Positive";
+            break;
+        case VhdlInnerType::Character:
+            s << "Character";
+            break;
+        case VhdlInnerType::String:
+            s << "String";
+            break;
+        case VhdlInnerType::RealFloat:
+            s << "Real";
+            break;
+        case VhdlInnerType::StdLogic:
+            s << "Logic";
+            break;
+        case VhdlInnerType::StdLogicVector:
+            s << "LogicVector";
+            break;
+        case VhdlInnerType::StdULogic:
+            s << "ULogic";
+            break;
+        case VhdlInnerType::StdULogicVector:
+            s << "ULogicVector";
+            break;
+        case VhdlInnerType::Unsigned:
+            s << "Unsigned";
+            break;
+        case VhdlInnerType::Signed:
+            s << "Signed";
+            break;
+        case VhdlInnerType::UFixed:
+            s << "UFixed";
+            break;
+        case VhdlInnerType::SFixed:
+            s << "SFixed";
+            break;
+        default:
+            break;
     }
     if (msb != lsb) {
-        s << (msb < 0 ? "m" : "") << (msb < 0 ? -msb : msb) << "_" << (lsb < 0 ? "m" : "") << (lsb < 0 ? -lsb : lsb);
+        s << (msb < 0 ? "m" : "") << (msb < 0 ? -msb : msb) << "_" << (lsb < 0 ? "m" : "")
+          << (lsb < 0 ? -lsb : lsb);
     }
     return s.str();
 }
 
-std::ostream& operator<<(std::ostream& out, const VhdlType& type) {
+std::ostream& operator<<(std::ostream& out, const VhdlType& type)
+{
     switch (type.type) {
-        case VhdlInnerType::Bit: out << "bit"; break;
-        case VhdlInnerType::BitVector: out << "bit_vector"; break;
-        case VhdlInnerType::Boolean: out << "boolean"; break;
-        case VhdlInnerType::BooleanVector: out << "boolean_vector"; break;
-        case VhdlInnerType::Integer: out << "integer"; break;
-        case VhdlInnerType::IntegerVector: out << "integer_vector"; break;
-        case VhdlInnerType::Natural: out << "natural"; break;
-        case VhdlInnerType::Positive: out << "positive"; break;
-        case VhdlInnerType::Character: out << "character"; break;
-        case VhdlInnerType::String: out << "string"; break;
-        case VhdlInnerType::RealFloat: out << "real"; break;
-        case VhdlInnerType::StdLogic: out << "std_logic"; break;
-        case VhdlInnerType::StdLogicVector: out << "std_logic_vector"; break;
-        case VhdlInnerType::StdULogic: out << "std_ulogic"; break;
-        case VhdlInnerType::StdULogicVector: out << "std_ulogic_vector"; break;
-        case VhdlInnerType::Unsigned: out << "unsigned"; break;
-        case VhdlInnerType::Signed: out << "signed"; break;
-        case VhdlInnerType::UFixed: out << "ufixed"; break;
-        case VhdlInnerType::SFixed: out << "sfixed"; break;
-        default: break;
+        case VhdlInnerType::Bit:
+            out << "bit";
+            break;
+        case VhdlInnerType::BitVector:
+            out << "bit_vector";
+            break;
+        case VhdlInnerType::Boolean:
+            out << "boolean";
+            break;
+        case VhdlInnerType::BooleanVector:
+            out << "boolean_vector";
+            break;
+        case VhdlInnerType::Integer:
+            out << "integer";
+            break;
+        case VhdlInnerType::IntegerVector:
+            out << "integer_vector";
+            break;
+        case VhdlInnerType::Natural:
+            out << "natural";
+            break;
+        case VhdlInnerType::Positive:
+            out << "positive";
+            break;
+        case VhdlInnerType::Character:
+            out << "character";
+            break;
+        case VhdlInnerType::String:
+            out << "string";
+            break;
+        case VhdlInnerType::RealFloat:
+            out << "real";
+            break;
+        case VhdlInnerType::StdLogic:
+            out << "std_logic";
+            break;
+        case VhdlInnerType::StdLogicVector:
+            out << "std_logic_vector";
+            break;
+        case VhdlInnerType::StdULogic:
+            out << "std_ulogic";
+            break;
+        case VhdlInnerType::StdULogicVector:
+            out << "std_ulogic_vector";
+            break;
+        case VhdlInnerType::Unsigned:
+            out << "unsigned";
+            break;
+        case VhdlInnerType::Signed:
+            out << "signed";
+            break;
+        case VhdlInnerType::UFixed:
+            out << "ufixed";
+            break;
+        case VhdlInnerType::SFixed:
+            out << "sfixed";
+            break;
+        default:
+            break;
     }
     if (type.msb != type.lsb) {
         out << '(' << type.msb << " downto " << type.lsb << ')';
@@ -660,30 +853,43 @@ std::ostream& operator<<(std::ostream& out, const VhdlType& type) {
 
 std::ostream& operator<<(std::ostream& out, const VhdlPort& port)
 {
-   out << port.name << " : " << port.mode << " " << port.type;
-   return out;
+    out << port.name << " : " << port.mode << " " << port.type;
+    return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const VhdlValue& value) {
-   switch (value.vhdl_type.type) {
-       case VhdlInnerType::Integer:
-       case VhdlInnerType::Natural:
-       case VhdlInnerType::Positive:
-       case VhdlInnerType::Signed:
-       case VhdlInnerType::Unsigned: out << value.value.integer; break;
+std::ostream& operator<<(std::ostream& out, const VhdlValue& value)
+{
+    switch (value.vhdl_type.type) {
+        case VhdlInnerType::Integer:
+        case VhdlInnerType::Natural:
+        case VhdlInnerType::Positive:
+        case VhdlInnerType::Signed:
+        case VhdlInnerType::Unsigned:
+            out << value.value.integer;
+            break;
 
-       case VhdlInnerType::RealFloat: out << value.value.real; break;
+        case VhdlInnerType::RealFloat:
+            out << value.value.real;
+            break;
 
-       case VhdlInnerType::UFixed: out << "to_ufixed(" << value.value.real << ", " << value.vhdl_type.msb << ", " << value.vhdl_type.lsb << ")"; break;
-       case VhdlInnerType::SFixed: out << "to_sfixed(" << value.value.real << ", " << value.vhdl_type.msb << ", " << value.vhdl_type.lsb << ")"; break;
+        case VhdlInnerType::UFixed:
+            out << "to_ufixed(" << value.value.real << ", " << value.vhdl_type.msb << ", "
+                << value.vhdl_type.lsb << ")";
+            break;
+        case VhdlInnerType::SFixed:
+            out << "to_sfixed(" << value.value.real << ", " << value.vhdl_type.msb << ", "
+                << value.vhdl_type.lsb << ")";
+            break;
 
-       case VhdlInnerType::StdLogic: out << (value.value.boolean ? "'1'" : "'0'"); break;
-       default: {
-            std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : values of type " << value.vhdl_type << " are not yet implemented" << std::endl;
+        case VhdlInnerType::StdLogic:
+            out << (value.value.boolean ? "'1'" : "'0'");
+            break;
+        default: {
+            std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : values of type "
+                      << value.vhdl_type << " are not yet implemented" << std::endl;
             faustassert(false);
-       }
-   }
+        }
+    }
 
-   return out;
+    return out;
 }
-

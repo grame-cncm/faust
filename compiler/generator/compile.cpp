@@ -64,8 +64,9 @@ using namespace std;
 
 std::string nameDelayType(DelayType dt)
 {
-    static std::string delayTypeName[] = {"kNotADelay", "kZeroDelay",  "kMonoDelay",     "kSingleDelay",
-                                          "kCopyDelay", "kDenseDelay", "kMaskRingDelay", "kSelectRingDelay"};
+    static std::string delayTypeName[] = {"kNotADelay",     "kZeroDelay",      "kMonoDelay",
+                                          "kSingleDelay",   "kCopyDelay",      "kDenseDelay",
+                                          "kMaskRingDelay", "kSelectRingDelay"};
     return delayTypeName[int(dt)];
 }
 
@@ -94,14 +95,17 @@ Compiler::Compiler(Klass* k)
 
 Compiler::~Compiler()
 {
-    if (fNeedToDeleteClass) delete fClass;
+    if (fNeedToDeleteClass) {
+        delete fClass;
+    }
 }
 
 /*****************************************************************************
                             user interface elements
 *****************************************************************************/
 
-//================================= some string processing utilities =================================
+//================================= some string processing utilities
+//=================================
 
 /**
  * Removes enclosing whitespaces : '  toto  ' -> 'toto'
@@ -110,8 +114,12 @@ static string wdel(const string& s)
 {
     size_t i = 0;
     size_t j = s.size();
-    while (i < j && s[i] == ' ') i++;
-    while (j > i && s[j - 1] == ' ') j--;
+    while (i < j && s[i] == ' ') {
+        i++;
+    }
+    while (j > i && s[j - 1] == ' ') {
+        j--;
+    }
     return s.substr(i, j - i);
 }
 
@@ -120,7 +128,8 @@ static string wdel(const string& s)
 void Compiler::generateMetaData()
 {
     // Add global metadata
-    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin();
+         i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             stringstream str1, str2;
             str1 << *(i->first);
@@ -158,8 +167,8 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
 
     if (isUiFolder(t, label, elements)) {
         const int orient = tree2int(left(label));
-        // Empty labels will be renamed with a 0xABCD (address) kind of name that is ignored and not displayed by UI
-        // architectures
+        // Empty labels will be renamed with a 0xABCD (address) kind of name that is ignored and not
+        // displayed by UI architectures
         const char* str   = tree2str(right(label));
         const char* model = nullptr;
 
@@ -174,13 +183,14 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
             const string&      key    = i->first;
             const set<string>& values = i->second;
             for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-                fClass->addUICode(subst("ui_interface->declare($0, \"$1\", \"$2\");", "0", wdel(key), wdel(*j)));
+                fClass->addUICode(
+                    subst("ui_interface->declare($0, \"$1\", \"$2\");", "0", wdel(key), wdel(*j)));
                 fJSON.declare(NULL, wdel(key).c_str(), wdel(*j).c_str());
             }
         }
 
-        // At rool level and if label is empty, use the name kept in "metadata" (either the one coded in 'declare name
-        // "XXX";' line, or the filename)
+        // At rool level and if label is empty, use the name kept in "metadata" (either the one
+        // coded in 'declare name "XXX";' line, or the filename)
         string group = (root && (simplifiedLabel == ""))
                            ? unquote(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())))
                            : checkNullLabel(t, simplifiedLabel);
@@ -258,8 +268,8 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
             const string&      key    = i->first;
             const set<string>& values = i->second;
             for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-                fClass->addUICode(
-                    subst("ui_interface->declare(&$0, \"$1\", \"$2\");", tree2str(varname), wdel(key), wdel(*j)));
+                fClass->addUICode(subst("ui_interface->declare(&$0, \"$1\", \"$2\");",
+                                        tree2str(varname), wdel(key), wdel(*j)));
                 fJSON.declare(NULL, wdel(key).c_str(), wdel(*j).c_str());
             }
         }
@@ -267,60 +277,66 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
     if (isSigButton(sig, path)) {
         fClass->incUIActiveCount();
-        fClass->addUICode(
-            subst("ui_interface->addButton(\"$0\", &$1);", checkNullLabel(varname, label), tree2str(varname)));
+        fClass->addUICode(subst("ui_interface->addButton(\"$0\", &$1);",
+                                checkNullLabel(varname, label), tree2str(varname)));
         fJSON.addButton(checkNullLabel(varname, label).c_str(), NULL);
 
     } else if (isSigCheckbox(sig, path)) {
         fClass->incUIActiveCount();
-        fClass->addUICode(
-            subst("ui_interface->addCheckButton(\"$0\", &$1);", checkNullLabel(varname, label), tree2str(varname)));
+        fClass->addUICode(subst("ui_interface->addCheckButton(\"$0\", &$1);",
+                                checkNullLabel(varname, label), tree2str(varname)));
         fJSON.addCheckButton(checkNullLabel(varname, label).c_str(), NULL);
 
     } else if (isSigVSlider(sig, path, c, x, y, z)) {
         fClass->incUIActiveCount();
         fClass->addUICode(subst("ui_interface->addVerticalSlider(\"$0\", &$1, $2, $3, $4, $5);",
-                                checkNullLabel(varname, label), tree2str(varname), T(tree2double(c)), T(tree2double(x)),
-                                T(tree2double(y)), T(tree2double(z))));
+                                checkNullLabel(varname, label), tree2str(varname),
+                                T(tree2double(c)), T(tree2double(x)), T(tree2double(y)),
+                                T(tree2double(z))));
         fJSON.addVerticalSlider(checkNullLabel(varname, label).c_str(), NULL, (float)tree2double(c),
-                                (float)tree2double(x), (float)tree2double(y), (float)tree2double(z));
+                                (float)tree2double(x), (float)tree2double(y),
+                                (float)tree2double(z));
 
     } else if (isSigHSlider(sig, path, c, x, y, z)) {
         fClass->incUIActiveCount();
         fClass->addUICode(subst("ui_interface->addHorizontalSlider(\"$0\", &$1, $2, $3, $4, $5);",
-                                checkNullLabel(varname, label), tree2str(varname), T(tree2double(c)), T(tree2double(x)),
-                                T(tree2double(y)), T(tree2double(z))));
-        fJSON.addHorizontalSlider(checkNullLabel(varname, label).c_str(), NULL, (float)tree2double(c),
-                                  (float)tree2double(x), (float)tree2double(y), (float)tree2double(z));
+                                checkNullLabel(varname, label), tree2str(varname),
+                                T(tree2double(c)), T(tree2double(x)), T(tree2double(y)),
+                                T(tree2double(z))));
+        fJSON.addHorizontalSlider(checkNullLabel(varname, label).c_str(), NULL,
+                                  (float)tree2double(c), (float)tree2double(x),
+                                  (float)tree2double(y), (float)tree2double(z));
 
     } else if (isSigNumEntry(sig, path, c, x, y, z)) {
         fClass->incUIActiveCount();
         fClass->addUICode(subst("ui_interface->addNumEntry(\"$0\", &$1, $2, $3, $4, $5);",
-                                checkNullLabel(varname, label), tree2str(varname), T(tree2double(c)), T(tree2double(x)),
-                                T(tree2double(y)), T(tree2double(z))));
-        fJSON.addNumEntry(checkNullLabel(varname, label).c_str(), NULL, (float)tree2double(c), (float)tree2double(x),
-                          (float)tree2double(y), (float)tree2double(z));
+                                checkNullLabel(varname, label), tree2str(varname),
+                                T(tree2double(c)), T(tree2double(x)), T(tree2double(y)),
+                                T(tree2double(z))));
+        fJSON.addNumEntry(checkNullLabel(varname, label).c_str(), NULL, (float)tree2double(c),
+                          (float)tree2double(x), (float)tree2double(y), (float)tree2double(z));
 
     } else if (isSigVBargraph(sig, path, x, y, z)) {
         fClass->incUIPassiveCount();
         fClass->addUICode(subst("ui_interface->addVerticalBargraph(\"$0\", &$1, $2, $3);",
-                                checkNullBargraphLabel(varname, label, 1), tree2str(varname), T(tree2double(x)),
-                                T(tree2double(y))));
-        fJSON.addVerticalBargraph(checkNullLabel(varname, label).c_str(), NULL, (float)tree2double(x),
-                                  (float)tree2double(y));
+                                checkNullBargraphLabel(varname, label, 1), tree2str(varname),
+                                T(tree2double(x)), T(tree2double(y))));
+        fJSON.addVerticalBargraph(checkNullLabel(varname, label).c_str(), NULL,
+                                  (float)tree2double(x), (float)tree2double(y));
 
     } else if (isSigHBargraph(sig, path, x, y, z)) {
         fClass->incUIPassiveCount();
         fClass->addUICode(subst("ui_interface->addHorizontalBargraph(\"$0\", &$1, $2, $3);",
-                                checkNullBargraphLabel(varname, label, 0), tree2str(varname), T(tree2double(x)),
-                                T(tree2double(y))));
-        fJSON.addHorizontalBargraph(checkNullLabel(varname, label).c_str(), NULL, (float)tree2double(x),
-                                    (float)tree2double(y));
+                                checkNullBargraphLabel(varname, label, 0), tree2str(varname),
+                                T(tree2double(x)), T(tree2double(y))));
+        fJSON.addHorizontalBargraph(checkNullLabel(varname, label).c_str(), NULL,
+                                    (float)tree2double(x), (float)tree2double(y));
 
     } else if (isSigSoundfile(sig, path)) {
         fClass->incUIActiveCount();
-        fClass->addUICode(subst("ui_interface->addSoundfile(\"$0\", \"$1\", &$2);", checkNullLabel(varname, label),
-                                ((url == "") ? prepareURL(label).c_str() : url.c_str()), tree2str(varname)));
+        fClass->addUICode(subst(
+            "ui_interface->addSoundfile(\"$0\", \"$1\", &$2);", checkNullLabel(varname, label),
+            ((url == "") ? prepareURL(label).c_str() : url.c_str()), tree2str(varname)));
         fJSON.addSoundfile(checkNullLabel(varname, label).c_str(),
                            ((url == "") ? prepareURL(label).c_str() : url.c_str()), NULL);
     } else {
@@ -342,7 +358,9 @@ void Compiler::generateMacroInterfaceTree(const string& pathname, Tree t)
     if (isUiFolder(t, label, elements)) {
         string pathname2 = pathname;
         string str       = tree2str(right(label));
-        if (str.length() > 0) pathname2 += str + "/";
+        if (str.length() > 0) {
+            pathname2 += str + "/";
+        }
         generateMacroInterfaceElements(pathname2, elements);
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetMacro(pathname, label, varname, sig);
@@ -383,24 +401,27 @@ void Compiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree 
         fClass->addUIMacro(subst("FAUST_ADDCHECKBOX(\"$0\", $1);", pathlabel, tree2str(varname)));
 
     } else if (isSigVSlider(sig, path, c, x, y, z)) {
-        fClass->addUIMacro(subst("FAUST_ADDVERTICALSLIDER(\"$0\", $1, $2, $3, $4, $5);", pathlabel, tree2str(varname),
-                                 T(tree2double(c)), T(tree2double(x)), T(tree2double(y)), T(tree2double(z))));
+        fClass->addUIMacro(subst("FAUST_ADDVERTICALSLIDER(\"$0\", $1, $2, $3, $4, $5);", pathlabel,
+                                 tree2str(varname), T(tree2double(c)), T(tree2double(x)),
+                                 T(tree2double(y)), T(tree2double(z))));
 
     } else if (isSigHSlider(sig, path, c, x, y, z)) {
-        fClass->addUIMacro(subst("FAUST_ADDHORIZONTALSLIDER(\"$0\", $1, $2, $3, $4, $5);", pathlabel, tree2str(varname),
-                                 T(tree2double(c)), T(tree2double(x)), T(tree2double(y)), T(tree2double(z))));
+        fClass->addUIMacro(subst("FAUST_ADDHORIZONTALSLIDER(\"$0\", $1, $2, $3, $4, $5);",
+                                 pathlabel, tree2str(varname), T(tree2double(c)), T(tree2double(x)),
+                                 T(tree2double(y)), T(tree2double(z))));
 
     } else if (isSigNumEntry(sig, path, c, x, y, z)) {
-        fClass->addUIMacro(subst("FAUST_ADDNUMENTRY(\"$0\", $1, $2, $3, $4, $5);", pathlabel, tree2str(varname),
-                                 T(tree2double(c)), T(tree2double(x)), T(tree2double(y)), T(tree2double(z))));
+        fClass->addUIMacro(subst("FAUST_ADDNUMENTRY(\"$0\", $1, $2, $3, $4, $5);", pathlabel,
+                                 tree2str(varname), T(tree2double(c)), T(tree2double(x)),
+                                 T(tree2double(y)), T(tree2double(z))));
 
     } else if (isSigVBargraph(sig, path, x, y, z)) {
-        fClass->addUIMacro(subst("FAUST_ADDVERTICALBARGRAPH(\"$0\", $1, $2, $3);", pathlabel, tree2str(varname),
-                                 T(tree2double(x)), T(tree2double(y))));
+        fClass->addUIMacro(subst("FAUST_ADDVERTICALBARGRAPH(\"$0\", $1, $2, $3);", pathlabel,
+                                 tree2str(varname), T(tree2double(x)), T(tree2double(y))));
 
     } else if (isSigHBargraph(sig, path, x, y, z)) {
-        fClass->addUIMacro(subst("FAUST_ADDHORIZONTALBARGRAPH(\"$0\", $1, $2, $3);", pathlabel, tree2str(varname),
-                                 T(tree2double(x)), T(tree2double(y))));
+        fClass->addUIMacro(subst("FAUST_ADDHORIZONTALBARGRAPH(\"$0\", $1, $2, $3);", pathlabel,
+                                 tree2str(varname), T(tree2double(x)), T(tree2double(y))));
 
     } else if (isSigSoundfile(sig, path)) {
         fClass->addUIMacro(subst("FAUST_ADDSOUNDFILE(\"$0\", $1);", pathlabel, tree2str(varname)));

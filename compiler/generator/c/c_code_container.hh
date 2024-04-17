@@ -43,20 +43,20 @@ class CCodeContainer : public virtual CodeContainer {
     std::ostream* fOut;
 
     virtual void produceClass();
-    void produceMetadata(int tabs);
-    void produceInit(int tabs);
-    
+    void         produceMetadata(int tabs);
+    void         produceInit(int tabs);
+
     virtual void produceInternal();
-    
+
     virtual void generateComputeAux(int tab) = 0;
-    
+
     void generateCompute(int n)
     {
         // Possibly generate separated functions
         tab(n, *fOut);
         fCodeProducer->Tab(n);
         generateComputeFunctions(fCodeProducer);
-        
+
         char* archs = getenv("FAUST_ARCHS");
         if (archs) {
             tab(n, *fOut);
@@ -73,7 +73,7 @@ class CCodeContainer : public virtual CodeContainer {
             generateComputeAux(n);
         }
     }
-    
+
     void generateAllocateFun(int n)
     {
         if (fAllocateInstructions->fCode.size() > 0) {
@@ -85,7 +85,7 @@ class CCodeContainer : public virtual CodeContainer {
             *fOut << "}";
         }
     }
-    
+
     void generateDestroyFun(int n)
     {
         if (fDestroyInstructions->fCode.size() > 0) {
@@ -98,7 +98,7 @@ class CCodeContainer : public virtual CodeContainer {
             tab(n, *fOut);
         }
     }
-    
+
     void generateHeader1(int n)
     {
         tab(n, *fOut);
@@ -106,7 +106,7 @@ class CCodeContainer : public virtual CodeContainer {
         *fOut << "extern \"C\" {" << std::endl;
         *fOut << "#endif" << std::endl;
         tab(n, *fOut);
-        
+
         *fOut << "#if defined(_WIN32)" << std::endl;
         *fOut << "#define RESTRICT __restrict" << std::endl;
         *fOut << "#else" << std::endl;
@@ -114,7 +114,7 @@ class CCodeContainer : public virtual CodeContainer {
         *fOut << "#endif" << std::endl;
         tab(n, *fOut);
     }
-    
+
     void generateHeader2(int n)
     {
         tab(n, *fOut);
@@ -122,12 +122,12 @@ class CCodeContainer : public virtual CodeContainer {
         *fOut << "#define FAUSTCLASS " << fKlassName << std::endl;
         *fOut << "#endif" << std::endl;
         tab(n, *fOut);
-        
+
         *fOut << "#ifdef __APPLE__ " << std::endl;
         *fOut << "#define exp10f __exp10f" << std::endl;
         *fOut << "#define exp10 __exp10" << std::endl;
         *fOut << "#endif" << std::endl;
-        
+
         if (gGlobal->gLightMode) {
             tab(n, *fOut);
             *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
@@ -135,7 +135,7 @@ class CCodeContainer : public virtual CodeContainer {
             tab(n, *fOut);
         }
     }
-    
+
     void printMathHeader()
     {
         // For mathematical functions
@@ -144,7 +144,7 @@ class CCodeContainer : public virtual CodeContainer {
         } else {
             addIncludeFile("<math.h>");
         }
-        
+
         // For malloc/free
         addIncludeFile("<stdlib.h>");
         // For int64_t type
@@ -152,16 +152,15 @@ class CCodeContainer : public virtual CodeContainer {
     }
 
    public:
-    CCodeContainer()
-    {}
+    CCodeContainer() {}
     CCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
-        fOut = out;
+        fOut       = out;
 
         printMathHeader();
-        
+
         fCodeProducer = new CInstVisitor(out, name);
     }
 
@@ -169,7 +168,7 @@ class CCodeContainer : public virtual CodeContainer {
     {
         // fCodeProducer is a 'Garbageable'
     }
-    
+
     virtual dsp_factory_base* produceFactory();
 
     virtual void printHeader()
@@ -190,8 +189,10 @@ class CCodeContainer : public virtual CodeContainer {
         *fOut << "#endif" << std::endl;
     }
 
-    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
-    static CodeContainer* createScalarContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst, int sub_container_type);
+    CodeContainer*        createScalarContainer(const std::string& name, int sub_container_type);
+    static CodeContainer* createScalarContainer(const std::string& name, int numInputs,
+                                                int numOutputs, std::ostream* dst,
+                                                int sub_container_type);
 
     static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs,
                                           std::ostream* dst = new std::stringstream());
@@ -203,17 +204,11 @@ class CCodeContainer : public virtual CodeContainer {
 
 class CScalarCodeContainer : public CCodeContainer {
    protected:
-   
    public:
-    CScalarCodeContainer()
-    {}
-    CScalarCodeContainer(const std::string& name,
-                         int numInputs,
-                         int numOutputs,
-                         std::ostream* out,
+    CScalarCodeContainer() {}
+    CScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
                          int sub_container_type);
-    virtual ~CScalarCodeContainer()
-    {}
+    virtual ~CScalarCodeContainer() {}
 
     void generateComputeAux(int tab);
 };
@@ -223,26 +218,20 @@ class CScalarCodeContainer : public CCodeContainer {
  */
 
 class CScalarCodeContainer1 : public CCodeContainer {
-    protected:
-    
-        void produceClass();
-        
-    public:
-    CScalarCodeContainer1()
-        {}
-        CScalarCodeContainer1(const std::string& name,
-                             int numInputs,
-                             int numOutputs,
-                             std::ostream* out,
-                             int sub_container_type)
-        :CCodeContainer(name, numInputs, numOutputs, out)
-        {
-            fSubContainerType = sub_container_type;
-        }
-        virtual ~CScalarCodeContainer1()
-        {}
-        
-        void generateComputeAux(int tab);
+   protected:
+    void produceClass();
+
+   public:
+    CScalarCodeContainer1() {}
+    CScalarCodeContainer1(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
+                          int sub_container_type)
+        : CCodeContainer(name, numInputs, numOutputs, out)
+    {
+        fSubContainerType = sub_container_type;
+    }
+    virtual ~CScalarCodeContainer1() {}
+
+    void generateComputeAux(int tab);
 };
 
 /**
@@ -253,8 +242,7 @@ class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
    protected:
    public:
     CVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CVectorCodeContainer()
-    {}
+    virtual ~CVectorCodeContainer() {}
 
     void generateComputeAux(int tab);
 };
@@ -264,13 +252,13 @@ class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
  */
 
 class CVectorCodeContainer1 : public VectorCodeContainer, public CScalarCodeContainer1 {
-    protected:
-    public:
-        CVectorCodeContainer1(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~CVectorCodeContainer1()
-        {}
-        
-        void generateComputeAux(int tab);
+   protected:
+   public:
+    CVectorCodeContainer1(const std::string& name, int numInputs, int numOutputs,
+                          std::ostream* out);
+    virtual ~CVectorCodeContainer1() {}
+
+    void generateComputeAux(int tab);
 };
 
 /**
@@ -281,8 +269,7 @@ class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
    protected:
    public:
     COpenMPCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~COpenMPCodeContainer()
-    {}
+    virtual ~COpenMPCodeContainer() {}
 
     void generateComputeAux(int tab);
 };
@@ -294,9 +281,9 @@ class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
 class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContainer {
    protected:
    public:
-    CWorkStealingCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CWorkStealingCodeContainer()
-    {}
+    CWorkStealingCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                               std::ostream* out);
+    virtual ~CWorkStealingCodeContainer() {}
 
     void generateComputeAux(int tab);
 };

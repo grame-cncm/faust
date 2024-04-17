@@ -22,9 +22,9 @@
 #ifndef _JSFX_CODE_CONTAINER_H
 #define _JSFX_CODE_CONTAINER_H
 
-#include "jsfx_instructions.hh"
 #include "code_container.hh"
 #include "dsp_factory.hh"
+#include "jsfx_instructions.hh"
 #include "vec_code_container.hh"
 
 #ifdef WIN32
@@ -35,31 +35,30 @@
 class JSFXCodeContainer : public virtual CodeContainer {
    protected:
     static JSFXInstVisitor* gJSFXVisitor;
-    std::ostream* fOut;
+    std::ostream*           fOut;
 
-   // Is midi metadata on ? 
-    bool midi = false; 
+    // Is midi metadata on ?
+    bool midi = false;
 
     // Is nvoices set  (not implemented yet)
-    bool poly = false;
-    int nvoices = 1;
+    bool poly    = false;
+    int  nvoices = 1;
 
     virtual void produceClass();
-    
+
     void produceMetadata(int tabs);
-    
+
     virtual void produceInternal();
-   
+
    public:
-    JSFXCodeContainer()
-    {}
+    JSFXCodeContainer() {}
     JSFXCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    
+
     virtual ~JSFXCodeContainer()
     {
         // fCodeProducer is a 'Garbageable', so nothing to delete
     }
-    
+
     virtual void generateCompute(int tab) = 0;
 
     virtual dsp_factory_base* produceFactory();
@@ -73,17 +72,11 @@ class JSFXCodeContainer : public virtual CodeContainer {
 // Used in -scalar (= default) mode
 class JSFXScalarCodeContainer : public JSFXCodeContainer {
    protected:
-  
    public:
-    JSFXScalarCodeContainer()
-    {}
-    JSFXScalarCodeContainer(const std::string& name,
-                             int numInputs,
-                             int numOutputs,
-                             std::ostream* out,
-                             int sub_container_type);
-    virtual ~JSFXScalarCodeContainer()
-    {}
+    JSFXScalarCodeContainer() {}
+    JSFXScalarCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                            std::ostream* out, int sub_container_type);
+    virtual ~JSFXScalarCodeContainer() {}
 
     void generateCompute(int n);
 };

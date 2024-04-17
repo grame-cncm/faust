@@ -22,9 +22,9 @@
 #ifndef _FAUSTFLOATS_
 #define _FAUSTFLOATS_
 
-#include <iostream>
 #include <float.h>
 #include <cstdint>
+#include <iostream>
 
 #include "instructions.hh"
 

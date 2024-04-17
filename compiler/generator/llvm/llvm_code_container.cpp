@@ -40,7 +40,8 @@ using namespace std;
  - several init and 'clone' methods are implemented in the 'llvm_dsp' wrapping code
  - starting with LLVM 15, the LLVMInstVisitor::fVarTypes keeps association of address and types
 
- TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
+ TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and
+ destroy time
 */
 
 // Helper functions
@@ -56,27 +57,28 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
 {
     LLVMContext* context = new LLVMContext();
-    Module* module = new Module(gGlobal->printCompilationOptions1() + ", v" + string(FAUSTVERSION), *context);
-    
+    Module*      module =
+        new Module(gGlobal->printCompilationOptions1() + ", v" + string(FAUSTVERSION), *context);
+
     init(name, numInputs, numOutputs, module, context);
 }
 
-LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module,
-                                     LLVMContext* context)
+LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs,
+                                     Module* module, LLVMContext* context)
 {
     init(name, numInputs, numOutputs, module, context);
- }
+}
 
 void LLVMCodeContainer::init(const string& name, int numInputs, int numOutputs, Module* module,
                              LLVMContext* context)
 {
     initialize(numInputs, numOutputs);
-    
+
     fKlassName = name;
     fModule    = module;
     fContext   = context;
     fBuilder   = new IRBuilder<>(*fContext);
-    
+
     // Set "-fast-math"
     FastMathFlags FMF;
 #if LLVM_VERSION_MAJOR >= 8
@@ -95,7 +97,7 @@ LLVMCodeContainer::~LLVMCodeContainer()
 
 CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
 {
-    gGlobal->gDSPStruct = true; // for -vec -fun mode
+    gGlobal->gDSPStruct = true;  // for -vec -fun mode
     CodeContainer* container;
 
     if (gGlobal->gFloatSize == 3) {
@@ -153,11 +155,12 @@ void LLVMCodeContainer::generateFunMaps()
     }
 }
 
-void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body)
+void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args,
+                                       bool body)
 {
     Typed::VarType type = itfloat();
-    string fun1 = fun1_aux + isuffix();
-    string fun2 = fun2_aux + isuffix();
+    string         fun1 = fun1_aux + isuffix();
+    string         fun2 = fun2_aux + isuffix();
 
     list<NamedTyped*> args1;
     list<ValueInst*>  args2;
@@ -168,8 +171,10 @@ void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun
     }
 
     // Creates function
-    FunTyped* fun_type1 = InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kLocal);
-    FunTyped* fun_type2 = InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kDefault);
+    FunTyped* fun_type1 =
+        InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kLocal);
+    FunTyped* fun_type2 =
+        InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kDefault);
 
     InstBuilder::genDeclareFunInst(fun2, fun_type2)->accept(fCodeProducer);
     if (body) {
@@ -201,7 +206,8 @@ void LLVMCodeContainer::produceInternal()
     generateExtGlobalDeclarations(fCodeProducer);
     generateGlobalDeclarations(fCodeProducer);
 
-    generateInstanceInitFun("instanceInit" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
+    generateInstanceInitFun("instanceInit" + fKlassName, "dsp", false, false)
+        ->accept(fCodeProducer);
     generateFillFun("fill" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
 }
 
@@ -209,7 +215,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 {
     // Generate gub containers
     generateSubContainers();
-    
+
     // Build DSP struct
     generateDeclarations(&fStructVisitor);
     DeclareStructTypeInst* dec_type = fStructVisitor.getStructType(fKlassName);
@@ -225,7 +231,8 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 
     generateStaticInitFun("classInit" + fKlassName, false)->accept(fCodeProducer);
     generateInstanceClear("instanceClear" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
-    generateInstanceConstants("instanceConstants" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
+    generateInstanceConstants("instanceConstants" + fKlassName, "dsp", false, false)
+        ->accept(fCodeProducer);
     generateAllocate("allocate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
     generateDestroy("destroy" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
 
@@ -243,7 +250,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     set<string> S;
     collectLibrary(S);
     string error;
-    
+
     if (S.size() > 0) {
         for (const auto& f : S) {
             string module_name = unquote(f);
@@ -251,7 +258,9 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
                 ModulePTR module = loadModule(module_name, fContext);
                 if (module) {
                     bool res = linkModules(fModule, MovePTR(module), error);
-                    if (!res) cerr << "WARNING : " << error << endl;
+                    if (!res) {
+                        cerr << "WARNING : " << error << endl;
+                    }
                 }
             }
         }
@@ -271,8 +280,9 @@ LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInpu
 {
 }
 
-LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module,
-                                                 LLVMContext* context, int sub_container_type)
+LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs,
+                                                 Module* module, LLVMContext* context,
+                                                 int sub_container_type)
     : LLVMCodeContainer(name, numInputs, numOutputs, module, context)
 {
     fSubContainerType = sub_container_type;
@@ -401,7 +411,8 @@ void LLVMOpenMPCodeContainer::generateOMPDeclarations()
 }
 
 // Works stealing scheduler
-LLVMWorkStealingCodeContainer::LLVMWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs)
+LLVMWorkStealingCodeContainer::LLVMWorkStealingCodeContainer(const string& name, int numInputs,
+                                                             int numOutputs)
     : WSSCodeContainer(numInputs, numOutputs, "dsp"), LLVMCodeContainer(name, numInputs, numOutputs)
 {
 }

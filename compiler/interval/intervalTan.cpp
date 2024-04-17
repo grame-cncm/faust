@@ -37,7 +37,7 @@ interval interval_algebra::Tan(const interval& x)
     if (x.isEmpty()) {
         return empty();
     }
-    
+
     if (x.size() >= M_PI) {  // spans asymptots and contains an integer multiple of pi
         // std::cout << "Spanning more than one period" << std::endl;
         int precision = exactPrecisionUnary(tan, 0, pow(2, x.lsb()));
@@ -57,13 +57,13 @@ interval interval_algebra::Tan(const interval& x)
     if (i.lo() > 0) {
         v = i.lo();
     } else if (i.hi() < 0) {
-        v = i.hi();
+        v    = i.hi();
         sign = -1;
     }
 
     int precision = exactPrecisionUnary(tan, v, sign * pow(2, x.lsb()));
     if (precision == INT_MIN or taylor_lsb) {
-        precision = floor(x.lsb() - 2*(double)log2(cos(v)));
+        precision = floor(x.lsb() - 2 * (double)log2(cos(v)));
     }
 
     if (i.has(-M_PI_2) or i.has(M_PI_2)) {  // asymptots at PI/2

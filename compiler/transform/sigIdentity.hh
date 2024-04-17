@@ -33,12 +33,11 @@
 //----------------------------------------------------------------------
 
 class SignalIdentity : public TreeTransform {
-    
    public:
     SignalIdentity() : fVisitGen(false) {}
 
    protected:
-    bool fVisitGen;
+    bool         fVisitGen;
     virtual Tree transformation(Tree t);
     virtual void traceEnter(Tree t);
     virtual void traceExit(Tree t, Tree r);

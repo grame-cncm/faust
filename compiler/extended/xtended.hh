@@ -22,8 +22,8 @@
 #ifndef __XTENDED__
 #define __XTENDED__
 
-#include <vector>
 #include <sstream>
+#include <vector>
 
 #include "garbageable.hh"
 #include "instructions.hh"
@@ -37,9 +37,11 @@ class CodeContainer;
 
 /*
  Base class for math primitives:
- - most of them have same args and result type, except 'pow' which can have different value and exponent types
+ - most of them have same args and result type, except 'pow' which can have different value and
+ exponent types
  - max/min, abs/fabs have polymorphic kInt/kReal versions
- - some of them have optimized versions for specific arguments (like 'pow') or with gMathApprox (experimental)
+ - some of them have optimized versions for specific arguments (like 'pow') or with gMathApprox
+ (experimental)
  */
 
 class xtended : public virtual Garbageable {
@@ -65,15 +67,18 @@ class xtended : public virtual Garbageable {
     virtual unsigned int arity() = 0;
 
     // FIR backends
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type rtype, ConstTypes types) = 0;
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type rtype,
+                                    ConstTypes types) = 0;
     // Old CPP backend
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) = 0;
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) = 0;
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, const std::vector< ::Type>& types) = 0;
-    virtual int    inferSigOrder(const std::vector<int>& args)                                           = 0;
-    virtual ::Type inferSigType(ConstTypes args)                                                        = 0;
-    virtual Tree   computeSigOutput(const std::vector<Tree>& args)                                        = 0;
-    virtual bool   needCache()                                                                           = 0;
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      const std::vector< ::Type>& types) = 0;
+    virtual int         inferSigOrder(const std::vector<int>& args)      = 0;
+    virtual ::Type      inferSigType(ConstTypes args)                    = 0;
+    virtual Tree        computeSigOutput(const std::vector<Tree>& args)  = 0;
+    virtual bool        needCache()                                      = 0;
 
     // Compute the derivative of a primitive with respect to its arguments.
     virtual Tree diff(const std::vector<Tree>& args)
@@ -81,14 +86,14 @@ class xtended : public virtual Garbageable {
         // TODO: implement `diff` for all `xtended` implementations.
         return nullptr;
     }
-    
+
     virtual bool isSpecialInfix()
     {
         return false;
     }  ///< generally false, but true for binary op # such that #(x) == _#x
 
-    ValueInst* generateFun(CodeContainer* container, const std::string& fun_name, const Values& args, ::Type rtype,
-                           ConstTypes types);
+    ValueInst* generateFun(CodeContainer* container, const std::string& fun_name,
+                           const Values& args, ::Type rtype, ConstTypes types);
 };
 
 // True if two floating point numbers are close enough to be considered identical.

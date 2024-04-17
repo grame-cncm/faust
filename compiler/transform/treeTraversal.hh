@@ -38,22 +38,25 @@
 class TreeTraversal : public Garbageable {
    protected:
     // used when tracing
-    bool           fTrace{false};      // trace transformations when true
-    int            fIndent{0};         // current indentation during trace
-    std::string    fMessage;           // trace message
-    
+    bool        fTrace{false};  // trace transformations when true
+    int         fIndent{0};     // current indentation during trace
+    std::string fMessage;       // trace message
+
     virtual void visit(Tree) = 0;     // the visit to implement
     void         traceEnter(Tree t);  // called when entering a visit
     void         traceExit(Tree t);   // called when exiting a visit
-   
+
    public:
     explicit TreeTraversal(const std::string& msg = "TreeTraversal") : fMessage(msg) {}
     virtual ~TreeTraversal() = default;
-    
-    std::map<Tree, int> fVisited;      // visiting counter
-    
-    virtual void self(Tree t) {
-        if (fTrace) traceEnter(t);
+
+    std::map<Tree, int> fVisited;  // visiting counter
+
+    virtual void self(Tree t)
+    {
+        if (fTrace) {
+            traceEnter(t);
+        }
         fIndent++;
         // First visit
         if (!fVisited.count(t)) {
@@ -63,23 +66,24 @@ class TreeTraversal : public Garbageable {
         // Keep visit counter
         fVisited[t]++;
         fIndent--;
-        if (fTrace) traceExit(t);
+        if (fTrace) {
+            traceExit(t);
+        }
     };
     void mapself(Tree lt);
 
     void trace(bool b) { fTrace = b; }
     void trace(bool b, const std::string& m)
     {
-        fTrace = b;
+        fTrace   = b;
         fMessage = m;
     }
-    
+
     int getVisitCount(Tree sig)
     {
         faustassert(fVisited.find(sig) != fVisited.end());
         return fVisited[sig];
     }
-    
 };
 
 inline std::ostream& operator<<(std::ostream& out, const TreeTraversal& pp)

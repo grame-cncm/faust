@@ -22,13 +22,13 @@
 #ifndef _JSON_INSTRUCTIONS_H
 #define _JSON_INSTRUCTIONS_H
 
-#include <string>
-#include <sstream>
 #include <set>
+#include <sstream>
+#include <string>
 
+#include "exception.hh"
 #include "faust/gui/JSONUI.h"
 #include "instructions.hh"
-#include "exception.hh"
 
 #ifdef WIN32
 #pragma warning(disable : 4244)
@@ -40,12 +40,12 @@
 
 template <typename REAL>
 struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
-    std::map<std::string, std::string> fPathTable;  // Table : field_name, complete path
-    std::set<std::string> fInputsPathSet;           // Set of already used inputs control paths
-    std::set<std::string> fOuputsPathSet;           // Set of already used outputs control paths
- 
+    std::map<std::string, std::string> fPathTable;      // Table : field_name, complete path
+    std::set<std::string>              fInputsPathSet;  // Set of already used inputs control paths
+    std::set<std::string>              fOuputsPathSet;  // Set of already used outputs control paths
+
     using DispatchVisitor::visit;
-    
+
     const std::string& insertInputsPath(const std::string& path)
     {
         // Two input control cannot have a same path (ERROR)
@@ -59,12 +59,13 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
         fInputsPathSet.insert(path);
         return path;
     }
-    
+
     const std::string& insertOutputsPath(const std::string& path)
     {
         // An input control and a bargraph cannot have the same path (ERROR)
         if (fInputsPathSet.find(path) != fInputsPathSet.end()) {
-            throw faustexception("ERROR : path '" + path + "' is already used for a input control\n");
+            throw faustexception("ERROR : path '" + path +
+                                 "' is already used for a input control\n");
         }
         // Two bargraph can have the same path (WARNING)
         if (fOuputsPathSet.find(path) != fOuputsPathSet.end()) {
@@ -75,16 +76,17 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
         fOuputsPathSet.insert(path);
         return path;
     }
-  
-    JSONInstVisitor(const std::string& name, const std::string& filename, int inputs, int outputs, int sr_index,
-                    const std::string& sha_key, const std::string& dsp_code, const std::string& version,
-                    const std::string& compile_options, const std::vector<std::string>& library_list,
+
+    JSONInstVisitor(const std::string& name, const std::string& filename, int inputs, int outputs,
+                    int sr_index, const std::string& sha_key, const std::string& dsp_code,
+                    const std::string& version, const std::string& compile_options,
+                    const std::vector<std::string>& library_list,
                     const std::vector<std::string>& include_pathnames, int size,
-                    const PathTableType& path_table,
-                    MemoryLayoutType memory_layout,
+                    const PathTableType& path_table, MemoryLayoutType memory_layout,
                     InstComplexity inst_comp = {})
-        : JSONUIReal<REAL>(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list,
-                 include_pathnames, size, path_table, memory_layout, inst_comp)
+        : JSONUIReal<REAL>(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version,
+                           compile_options, library_list, include_pathnames, size, path_table,
+                           memory_layout, inst_comp)
     {
     }
 
@@ -93,8 +95,11 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
     JSONInstVisitor() : JSONUIReal<REAL>() {}
 
     virtual ~JSONInstVisitor() {}
-  
-    virtual void visit(AddMetaDeclareInst* inst) { this->declare(NULL, inst->fKey.c_str(), inst->fValue.c_str()); }
+
+    virtual void visit(AddMetaDeclareInst* inst)
+    {
+        this->declare(NULL, inst->fKey.c_str(), inst->fValue.c_str());
+    }
 
     virtual void visit(OpenboxInst* inst)
     {
@@ -134,13 +139,16 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
     {
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                this->addHorizontalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                this->addHorizontalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin,
+                                          inst->fMax, inst->fStep);
                 break;
             case AddSliderInst::kVertical:
-                this->addVerticalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                this->addVerticalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin,
+                                        inst->fMax, inst->fStep);
                 break;
             case AddSliderInst::kNumEntry:
-                this->addNumEntry(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                this->addNumEntry(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin,
+                                  inst->fMax, inst->fStep);
                 break;
             default:
                 faustassert(false);
@@ -183,12 +191,8 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
  */
 
 struct ShortnameInstVisitor : public DispatchVisitor, public PathBuilder {
+    virtual void visit(OpenboxInst* inst) override { pushLabel(inst->fName); }
 
-    virtual void visit(OpenboxInst* inst) override
-    {
-        pushLabel(inst->fName);
-    }
-    
     virtual void visit(CloseboxInst* inst) override
     {
         if (popLabel()) {
@@ -196,21 +200,12 @@ struct ShortnameInstVisitor : public DispatchVisitor, public PathBuilder {
             computeShortNames();
         }
     }
-    
-    virtual void visit(AddButtonInst* inst) override
-    {
-        addFullPath(inst->fLabel);
-    }
-    
-    virtual void visit(AddSliderInst* inst) override
-    {
-        addFullPath(inst->fLabel);
-    }
-    
-    virtual void visit(AddBargraphInst* inst) override
-    {
-        addFullPath(inst->fLabel);
-    }
+
+    virtual void visit(AddButtonInst* inst) override { addFullPath(inst->fLabel); }
+
+    virtual void visit(AddSliderInst* inst) override { addFullPath(inst->fLabel); }
+
+    virtual void visit(AddBargraphInst* inst) override { addFullPath(inst->fLabel); }
 };
 
 #endif

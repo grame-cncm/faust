@@ -29,9 +29,9 @@
 #include <sstream>
 #include <string>
 
+#include "Text.hh"
 #include "fir_to_fir.hh"
 #include "instructions.hh"
-#include "Text.hh"
 #include "type_manager.hh"
 
 // Base class to textual visitor: C, C++, Cmajor, Codebox, CSharp, Dlang, JAX, Julia, Rust, wast
@@ -69,15 +69,21 @@ class TextInstVisitor : public InstVisitor {
         fTypeManager = new CStringTypeManager(xfloat(), "*");
     }
 
-    TextInstVisitor(std::ostream* out, const std::string& object_access, const std::string& float_macro_name,
-                    const std::string& ptr_postfix, int tab = 0)
+    TextInstVisitor(std::ostream* out, const std::string& object_access,
+                    const std::string& float_macro_name, const std::string& ptr_postfix,
+                    int tab = 0)
         : fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
     {
         fTypeManager = new CStringTypeManager(float_macro_name, ptr_postfix);
     }
 
-    TextInstVisitor(std::ostream* out, const std::string& object_access, StringTypeManager* manager, int tab = 0)
-        : fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access), fTypeManager(manager)
+    TextInstVisitor(std::ostream* out, const std::string& object_access, StringTypeManager* manager,
+                    int tab = 0)
+        : fTab(tab),
+          fOut(out),
+          fFinishLine(true),
+          fObjectAccess(object_access),
+          fTypeManager(manager)
     {
     }
 
@@ -187,9 +193,9 @@ class TextInstVisitor : public InstVisitor {
         }
         *fOut << '}';
     }
-    
+
     virtual void visit(QuadNumInst* inst) { *fOut << checkQuad(inst->fNum); }
-    
+
     virtual void visit(QuadArrayNumInst* inst)
     {
         char sep = '{';
@@ -201,7 +207,7 @@ class TextInstVisitor : public InstVisitor {
     }
 
     virtual void visit(FixedPointNumInst* inst) { *fOut << checkFloat(inst->fNum); }
-    
+
     virtual void visit(FixedPointArrayNumInst* inst)
     {
         char sep = '{';
@@ -221,8 +227,9 @@ class TextInstVisitor : public InstVisitor {
      */
     bool special(const std::string& name)
     {
-        return (name == "==") || (name == "!=") || (name == "<") || (name == ">") || (name == "<=") || (name == ">=") ||
-               (name == ">>") || (name == "<<") || (name == "&") || (name == "|");
+        return (name == "==") || (name == "!=") || (name == "<") || (name == ">") ||
+               (name == "<=") || (name == ">=") || (name == ">>") || (name == "<<") ||
+               (name == "&") || (name == "|");
     }
 
     /**
@@ -278,8 +285,10 @@ class TextInstVisitor : public InstVisitor {
             if (special(gBinOpTable[a->fOpcode]->fName)) {
                 // to silence warnings we add also parentheses to special arguments
                 return true;
-            } else if ((p0 < p1) || ((inst->fOpcode == a->fOpcode) && gBinOpTable[inst->fOpcode]->fAssociativity)) {
-                // no parentheses for higher priority right arguments or in case of associative operation
+            } else if ((p0 < p1) || ((inst->fOpcode == a->fOpcode) &&
+                                     gBinOpTable[inst->fOpcode]->fAssociativity)) {
+                // no parentheses for higher priority right arguments or in case of associative
+                // operation
                 return false;
             } else {
                 return true;
@@ -289,7 +298,7 @@ class TextInstVisitor : public InstVisitor {
             return false;
         }
     }
-    
+
     virtual void visit(MinusInst* inst)
     {
         if (inst->fInst->isSimpleValue()) {
@@ -301,27 +310,36 @@ class TextInstVisitor : public InstVisitor {
             *fOut << ")";
         }
     }
-    
+
     virtual void visit(BinopInst* inst)
     {
         bool cond1 = leftArgNeedsParentheses(inst, inst->fInst1);
         bool cond2 = rightArgNeedsParentheses(inst, inst->fInst2);
-        if (cond1) *fOut << "(";
+        if (cond1) {
+            *fOut << "(";
+        }
         inst->fInst1->accept(this);
-        if (cond1) *fOut << ")";
+        if (cond1) {
+            *fOut << ")";
+        }
         *fOut << " ";
         *fOut << gBinOpTable[inst->fOpcode]->fName;
         *fOut << " ";
-        if (cond2) *fOut << "(";
+        if (cond2) {
+            *fOut << "(";
+        }
         inst->fInst2->accept(this);
-        if (cond2) *fOut << ")";
+        if (cond2) {
+            *fOut << ")";
+        }
     }
 
     virtual void visit(::CastInst* inst) { faustassert(false); }
 
     virtual std::string generateFunName(const std::string& name)
     {
-        // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
+        // If function is actually a method (that is "xx::name"), then keep "xx::name" in
+        // gGlobalTable but print "name"
         size_t pos;
         if ((pos = name.find("::")) != std::string::npos) {
             return name.substr(pos + 2);  // After the "::"
@@ -336,7 +354,9 @@ class TextInstVisitor : public InstVisitor {
         for (ValuesIt it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
-            if (i < size - 1) *fOut << ", ";
+            if (i < size - 1) {
+                *fOut << ", ";
+            }
         }
     }
 
@@ -346,7 +366,9 @@ class TextInstVisitor : public InstVisitor {
         size_t size = inst->fType->fArgsTypes.size(), i = 0;
         for (const auto& it : inst->fType->fArgsTypes) {
             *fOut << fTypeManager->generateType(it);
-            if (i++ < size - 1) *fOut << ", ";
+            if (i++ < size - 1) {
+                *fOut << ", ";
+            }
         }
     }
 
@@ -424,7 +446,9 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(ForLoopInst* inst)
     {
         // Don't generate empty loops...
-        if (inst->fCode->size() == 0) return;
+        if (inst->fCode->size() == 0) {
+            return;
+        }
 
         *fOut << "for (";
         fFinishLine = false;

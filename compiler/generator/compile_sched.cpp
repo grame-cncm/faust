@@ -66,7 +66,8 @@ void SchedulerCompiler::compileMultiSignal(Tree L)
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void SchedulerCompiler::vectorLoop(const string& tname, const string& vecname, const string& cexp, const string& ccs)
+void SchedulerCompiler::vectorLoop(const string& tname, const string& vecname, const string& cexp,
+                                   const string& ccs)
 {
     // -- declare the vector
     fClass->addSharedDecl(vecname);
@@ -87,8 +88,8 @@ void SchedulerCompiler::vectorLoop(const string& tname, const string& vecname, c
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void SchedulerCompiler::dlineLoop(const string& tname, const string& dlname, int delay, const string& cexp,
-                                  const string& ccs)
+void SchedulerCompiler::dlineLoop(const string& tname, const string& dlname, int delay,
+                                  const string& cexp, const string& ccs)
 {
     if (delay < gGlobal->gMaxCopyDelay) {
         // Implementation of a copy based delayline
@@ -119,13 +120,15 @@ void SchedulerCompiler::dlineLoop(const string& tname, const string& dlname, int
         fClass->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
 
         // -- copy the stored samples to the delay line
-        fClass->addPreCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize)));
+        fClass->addPreCode(
+            Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize)));
 
         // -- compute the new samples
         fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", dlname, cexp)));
 
         // -- copy back to stored samples
-        fClass->addPostCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize)));
+        fClass->addPostCode(
+            Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize)));
 
     } else {
         // Implementation of a ring-buffer delayline

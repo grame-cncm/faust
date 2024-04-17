@@ -54,7 +54,8 @@ struct TypingVisitor : public InstVisitor {
             }
         } else {
             fCurType = Typed::kNoType;
-            std::cerr << "ASSERT : TypingVisitor : variable '" << name << "' has Typed::kNoType" << std::endl;
+            std::cerr << "ASSERT : TypingVisitor : variable '" << name << "' has Typed::kNoType"
+                      << std::endl;
             faustassert(false);
         }
     }
@@ -66,7 +67,8 @@ struct TypingVisitor : public InstVisitor {
             fCurType = gGlobal->getVarType(name);
         } else {
             fCurType = Typed::kNoType;
-            std::cerr << "ASSERT : TypingVisitor : variable '" << name << "' has Typed::kNoType" << std::endl;
+            std::cerr << "ASSERT : TypingVisitor : variable '" << name << "' has Typed::kNoType"
+                      << std::endl;
             faustassert(false);
         }
     }
@@ -86,11 +88,8 @@ struct TypingVisitor : public InstVisitor {
     virtual void visit(BoolNumInst* inst) { fCurType = Typed::kBool; }
 
     virtual void visit(DoubleNumInst* inst) { fCurType = Typed::kDouble; }
-    
-    virtual void visit(MinusInst* inst)
-    {
-        inst->fInst->accept(this);
-    }
+
+    virtual void visit(MinusInst* inst) { inst->fInst->accept(this); }
 
     virtual void visit(BinopInst* inst)
     {
@@ -115,7 +114,8 @@ struct TypingVisitor : public InstVisitor {
                 } else {
                     // Should never happen...
                     std::cerr << "ASSERT : TypingVisitor : BinopInst a1 = ";
-                    std::cerr << Typed::gTypeString[type1] << " a2 = " << Typed::gTypeString[type2] << std::endl;
+                    std::cerr << Typed::gTypeString[type1] << " a2 = " << Typed::gTypeString[type2]
+                              << std::endl;
                     faustassert(false);
                 }
             }
@@ -138,18 +138,18 @@ struct TypingVisitor : public InstVisitor {
             fCurType = gGlobal->getVarType(inst->fName);
         } else {
             // Should never happen...
-            std::cerr << "ASSERT : TypingVisitor::visit(FunCallInst* inst) name " << inst->fName << std::endl;
+            std::cerr << "ASSERT : TypingVisitor::visit(FunCallInst* inst) name " << inst->fName
+                      << std::endl;
             faustassert(false);
         }
     }
-    
+
     static Typed::VarType getType(ValueInst* value)
     {
         TypingVisitor typing;
         value->accept(&typing);
         return typing.fCurType;
     }
-    
 };
 
 #endif

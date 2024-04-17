@@ -36,9 +36,9 @@ interval interval_algebra::Abs(const interval& x)
     if (x.lo() >= 0) {
         return x;
     }
-    
+
     // integer overflowing
-    if (x.lsb() >= 0 and x.lo() <= (double)INT_MIN){ 
+    if (x.lsb() >= 0 and x.lo() <= (double)INT_MIN) {
         double lo = (x.hi() >= 0) ? 0 : std::min(std::abs(x.hi()), (double)INT_MAX);
         return {lo, (double)INT_MAX, x.lsb()};
     }
@@ -53,9 +53,11 @@ void interval_algebra::testAbs()
 {
     std::cout << "Testing abs on finite intervals" << std::endl;
     analyzeUnaryMethod(
-        10, 10000, "abs", interval(-10, 10, 0), [](double x) { return std::abs(x); }, &interval_algebra::Abs);
+        10, 10000, "abs", interval(-10, 10, 0), [](double x) { return std::abs(x); },
+        &interval_algebra::Abs);
     analyzeUnaryMethod(
-        10, 10000, "abs", interval(-10, 10, -15), [](double x) { return std::abs(x); }, &interval_algebra::Abs);
+        10, 10000, "abs", interval(-10, 10, -15), [](double x) { return std::abs(x); },
+        &interval_algebra::Abs);
 
     std::cout << "Testing abs on intervals with limit bounds" << std::endl;
     check("abs", Abs(interval(INT_MIN, INT_MIN, 0)), interval(INT_MAX, INT_MAX, 0));
@@ -64,6 +66,7 @@ void interval_algebra::testAbs()
     check("abs", Abs(interval(-10, INT_MAX, 0)), interval(0, INT_MAX, 0));
 
     check("abs", Abs(interval(INT_MIN, INT_MIN, 5)), interval(INT_MAX, INT_MAX, 5));
-    check("abs", Abs(interval(INT_MIN, INT_MIN, -5)), interval(-(float)INT_MIN, -(float)INT_MIN, -5));
+    check("abs", Abs(interval(INT_MIN, INT_MIN, -5)),
+          interval(-(float)INT_MIN, -(float)INT_MIN, -5));
 }
 }  // namespace itv

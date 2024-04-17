@@ -27,8 +27,8 @@
 /**
  *  Simplify a signal to its normal form, where:
  *  - all possible optimisations, simplications, and compile time computations have been done
- *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile primitive...
- *  are properly typed (arguments and result)
+ *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile
+ * primitive... are properly typed (arguments and result)
  *  - signal cast are properly done when needed
  *
  * @param sig - the signal to be processed
@@ -40,8 +40,8 @@ LIBFAUST_API Tree simplifyToNormalForm(Tree sig);
 /**
  *  Simplify a signal list to its normal form, where:
  *  - all possible optimisations, simplications, and compile time computations have been done
- *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile primitive...
- *  are properly typed (arguments and result)
+ *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile
+ * primitive... are properly typed (arguments and result)
  *  - signal cast are properly done when needed
  *
  * @param siglist - the signal vector to be processed
@@ -55,7 +55,8 @@ LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
  *
  * @param sig - the signal to be printed
  * @param shared - whether the identical sub signals are printed as identifiers
- * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
+ * @param max_size - the maximum number of characters to be printed (possibly needed for big
+ * expressions in non shared mode)
  *
  * @return the printed signal as a string
  */
@@ -66,7 +67,8 @@ LIBFAUST_API std::string printSignal(Tree sig, bool shared, int max_size);
  *
  * @param box - the box to be printed
  * @param shared - whether the identical sub boxes are printed as identifiers
- * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
+ * @param max_size - the maximum number of characters to be printed (possibly needed for big
+ * expressions in non shared mode)
  *
  * @return the printed box as a string
  */

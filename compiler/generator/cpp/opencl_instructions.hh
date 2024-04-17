@@ -109,8 +109,9 @@ class OpenCLInstVisitor : public TextInstVisitor {
         *fOut << name << "("
               << "\"" << inst->fLabel << "\""
               << ", "
-              << "&" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
-              << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+              << "&" << inst->fZone << ", " << checkReal(inst->fInit) << ", "
+              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", "
+              << checkReal(inst->fStep) << ")";
         EndLine();
     }
 
@@ -128,7 +129,8 @@ class OpenCLInstVisitor : public TextInstVisitor {
         *fOut << name << "("
               << "\"" << inst->fLabel << "\""
               << ", "
-              << "&" << inst->fZone << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+              << "&" << inst->fZone << ", " << checkReal(inst->fMin) << ", "
+              << checkReal(inst->fMax) << ")";
         EndLine();
     }
 

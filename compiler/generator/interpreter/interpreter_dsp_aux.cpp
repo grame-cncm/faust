@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#include "interpreter_dsp.hh"
 #include "compatibility.hh"
+#include "interpreter_dsp.hh"
 #include "libfaust.h"
 #include "lock_api.hh"
 
@@ -32,7 +32,8 @@ void faustassertaux(bool cond, const string& file, int line)
 {
     if (!cond) {
         stringstream str;
-        str << "ASSERT : please report this message, the stack trace, and the failing DSP file to Faust developers (";
+        str << "ASSERT : please report this message, the stack trace, and the failing DSP file to "
+               "Faust developers (";
         str << "file: " << file.substr(file.find_last_of('/') + 1) << ", line: " << line << ", ";
         str << "version: " << FAUSTVERSION;
         str << ")\n";
@@ -49,7 +50,8 @@ dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
 LIBFAUST_API interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string& sha_key)
 {
     LOCK_API
-    return static_cast<interpreter_dsp_factory*>(gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
+    return static_cast<interpreter_dsp_factory*>(
+        gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
 LIBFAUST_API bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
@@ -103,7 +105,8 @@ LIBFAUST_API interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 LIBFAUST_API void interpreter_dsp::operator delete(void* ptr)
 {
     if (ptr) {
-        dsp_memory_manager* manager = static_cast<interpreter_dsp*>(ptr)->fFactory->getMemoryManager();
+        dsp_memory_manager* manager =
+            static_cast<interpreter_dsp*>(ptr)->fFactory->getMemoryManager();
         if (manager) {
             manager->destroy(ptr);
         } else {
@@ -128,11 +131,12 @@ static string read_real_type(istream* in)
     return type;
 }
 
-static interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeAux(const string& bitcode, string& error_msg)
+static interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeAux(const string& bitcode,
+                                                                        string&       error_msg)
 {
     try {
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        
+
         string sha_key = generateSHA1(bitcode);
 
         if (gInterpreterFactoryTable.getFactory(sha_key, it)) {
@@ -145,9 +149,11 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeAux(const st
             string                   type = read_real_type(&reader);
 
             if (type == "float") {
-                factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<float, 0>::read(&reader));
+                factory = new interpreter_dsp_factory(
+                    interpreter_dsp_factory_aux<float, 0>::read(&reader));
             } else if (type == "double") {
-                factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<double, 0>::read(&reader));
+                factory = new interpreter_dsp_factory(
+                    interpreter_dsp_factory_aux<double, 0>::read(&reader));
             } else {
                 throw faustexception("ERROR : unrecognized file format\n");
             }
@@ -163,7 +169,8 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeAux(const st
     }
 }
 
-LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const string& bitcode, string& error_msg)
+LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const string& bitcode,
+                                                                           string&       error_msg)
 {
     LOCK_API
     return readInterpreterDSPFactoryFromBitcodeAux(bitcode, error_msg);
@@ -177,7 +184,8 @@ LIBFAUST_API string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory*
     return writer.str();
 }
 
-LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const string& bitcode_path, string& error_msg)
+LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(
+    const string& bitcode_path, string& error_msg)
 {
     LOCK_API
     string base = basename((char*)bitcode_path.c_str());
@@ -198,7 +206,8 @@ LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(c
     }
 }
 
-LIBFAUST_API bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const string& bitcode_path)
+LIBFAUST_API bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory,
+                                                          const string&            bitcode_path)
 {
     LOCK_API
     ofstream writer(bitcode_path.c_str());
@@ -287,11 +296,12 @@ LIBFAUST_API void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTF
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 LIBFAUST_API interpreter_dsp_factory* getCInterpreterDSPFactoryFromSHAKey(const char* sha_key)
 {
     LOCK_API
-    return static_cast<interpreter_dsp_factory*>(gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
+    return static_cast<interpreter_dsp_factory*>(
+        gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
 LIBFAUST_API bool deleteCInterpreterDSPFactory(interpreter_dsp_factory* factory)
@@ -303,13 +313,14 @@ LIBFAUST_API const char** getCInterpreterDSPFactoryLibraryList(interpreter_dsp_f
 {
     if (factory) {
         vector<string> library_list1 = factory->getLibraryList();
-        const char**   library_list2 = (const char**)malloc(sizeof(char*) * (library_list1.size() + 1));
-        
+        const char**   library_list2 =
+            (const char**)malloc(sizeof(char*) * (library_list1.size() + 1));
+
         size_t i;
         for (i = 0; i < library_list1.size(); i++) {
             library_list2[i] = strdup(library_list1[i].c_str());
         }
-        
+
         // Last element is NULL
         library_list2[i] = nullptr;
         return library_list2;
@@ -322,39 +333,43 @@ LIBFAUST_API const char** getAllCInterpreterDSPFactories()
 {
     vector<string> sha_key_list1 = getAllInterpreterDSPFactories();
     const char**   sha_key_list2 = (const char**)malloc(sizeof(char*) * (sha_key_list1.size() + 1));
-    
+
     size_t i;
     for (i = 0; i < sha_key_list1.size(); i++) {
         sha_key_list2[i] = strdup(sha_key_list1[i].c_str());
     }
-    
+
     // Last element is NULL
     sha_key_list2[i] = nullptr;
     return sha_key_list2;
 }
 
-LIBFAUST_API interpreter_dsp_factory* readCInterpreterDSPFactoryFromBitcode(const char* bitcode, char* error_msg)
+LIBFAUST_API interpreter_dsp_factory* readCInterpreterDSPFactoryFromBitcode(const char* bitcode,
+                                                                            char*       error_msg)
 {
-    string error_msg_aux;
+    string                   error_msg_aux;
     interpreter_dsp_factory* factory = readInterpreterDSPFactoryFromBitcode(bitcode, error_msg_aux);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
-    
+
 LIBFAUST_API char* writeCInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory)
 {
     return (factory) ? strdup(writeInterpreterDSPFactoryToBitcode(factory).c_str()) : nullptr;
 }
 
-LIBFAUST_API interpreter_dsp_factory* readCInterpreterDSPFactoryFromBitcodeFile(const char* bitcode_path, char* error_msg)
+LIBFAUST_API interpreter_dsp_factory* readCInterpreterDSPFactoryFromBitcodeFile(
+    const char* bitcode_path, char* error_msg)
 {
-    string error_msg_aux;
-    interpreter_dsp_factory* factory = readInterpreterDSPFactoryFromBitcodeFile(bitcode_path, error_msg_aux);
+    string                   error_msg_aux;
+    interpreter_dsp_factory* factory =
+        readInterpreterDSPFactoryFromBitcodeFile(bitcode_path, error_msg_aux);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
 
-LIBFAUST_API bool writeCInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const char* bitcode_path)
+LIBFAUST_API bool writeCInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory,
+                                                           const char*              bitcode_path)
 {
     return (factory) ? writeInterpreterDSPFactoryToBitcodeFile(factory, bitcode_path) : false;
 }
@@ -363,7 +378,7 @@ LIBFAUST_API void deleteAllCInterpreterDSPFactories()
 {
     deleteAllInterpreterDSPFactories();
 }
-    
+
 LIBFAUST_API void metadataCInterpreterDSPInstance(interpreter_dsp* dsp, MetaGlue* glue)
 {
     if (dsp) {
@@ -428,7 +443,8 @@ LIBFAUST_API void buildUserInterfaceCInterpreterDSPInstance(interpreter_dsp* dsp
     }
 }
 
-LIBFAUST_API void computeCInterpreterDSPInstance(interpreter_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+LIBFAUST_API void computeCInterpreterDSPInstance(interpreter_dsp* dsp, int count,
+                                                 FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     if (dsp) {
         dsp->compute(count, input, output);
@@ -449,7 +465,7 @@ LIBFAUST_API void deleteCInterpreterDSPInstance(interpreter_dsp* dsp)
 {
     delete dsp;
 }
-    
+
 #ifdef __cplusplus
 }
 #endif

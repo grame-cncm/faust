@@ -27,11 +27,11 @@
 
 #include <algorithm>
 
-#include "names.hh"
 #include "Text.hh"
 #include "doc_Text.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "names.hh"
 #include "ppsig.hh"
 #include "property.hh"
 

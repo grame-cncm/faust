@@ -45,16 +45,16 @@
  */
 
 struct Loop {
-    const bool   fIsRecursive;    ///< recursive loops can't be SIMDed
-    Tree         fRecSymbolSet;   ///< recursive loops define a set of recursive symbol
-    Loop* const  fEnclosingLoop;  ///< Loop from which this one originated
-    const std::string fSize;      ///< number of iterations of the loop
+    const bool        fIsRecursive;    ///< recursive loops can't be SIMDed
+    Tree              fRecSymbolSet;   ///< recursive loops define a set of recursive symbol
+    Loop* const       fEnclosingLoop;  ///< Loop from which this one originated
+    const std::string fSize;           ///< number of iterations of the loop
     // fields concerned by absorbsion
-    std::set<Loop*>      fBackwardLoopDependencies;  ///< Loops that must be computed before this one
-    std::set<Loop*>      fForwardLoopDependencies;   ///< Loops that will be computed after this one
-    std::list<Statement> fPreCode;                   ///< code to execute at the begin of the loop
-    std::list<Statement> fExecCode;                  ///< code to execute in the loop
-    std::list<Statement> fPostCode;                  ///< code to execute at the end of the loop
+    std::set<Loop*> fBackwardLoopDependencies;  ///< Loops that must be computed before this one
+    std::set<Loop*> fForwardLoopDependencies;   ///< Loops that will be computed after this one
+    std::list<Statement> fPreCode;              ///< code to execute at the begin of the loop
+    std::list<Statement> fExecCode;             ///< code to execute in the loop
+    std::list<Statement> fPostCode;             ///< code to execute at the end of the loop
     // for topological sort
     int fOrder;  ///< used during topological sort
     int fIndex;  ///< used during scheduler mode code generation
@@ -68,12 +68,13 @@ struct Loop {
     Loop(Tree recsymbol, Loop* encl, const std::string& size);  ///< create a recursive loop
     Loop(Loop* encl, const std::string& size);                  ///< create a non recursive loop
 
-    bool isEmpty();                   ///< true when the loop doesn't contain any line of code
-    bool hasRecDependencyIn(Tree S);  ///< returns true is this loop or its ancestors define a symbol in S
+    bool isEmpty();  ///< true when the loop doesn't contain any line of code
+    bool hasRecDependencyIn(
+        Tree S);  ///< returns true is this loop or its ancestors define a symbol in S
 
-    void addPreCode(const Statement& str);      ///< add a line of C++ code pre code
-    void addExecCode(const Statement& str);     ///< add a line of C++ code
-    void addPostCode(const Statement& str);     ///< add a line of C++ post code
+    void addPreCode(const Statement& str);           ///< add a line of C++ code pre code
+    void addExecCode(const Statement& str);          ///< add a line of C++ code
+    void addPostCode(const Statement& str);          ///< add a line of C++ post code
     void println(int n, std::ostream& fout);         ///< print the loop
     void printParLoopln(int n, std::ostream& fout);  ///< print the loop with a #pragma omp loop
 

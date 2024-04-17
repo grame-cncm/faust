@@ -24,10 +24,10 @@
 #include <stdlib.h>
 #include <cstdlib>
 
-#include "signals.hh"
+#include "Text.hh"
 #include "global.hh"
 #include "ppsig.hh"
-#include "Text.hh"
+#include "signals.hh"
 
 using namespace std;
 
@@ -45,7 +45,8 @@ void SignalIdentity::traceEnter(Tree t)
 void SignalIdentity::traceExit(Tree t, Tree r)
 {
     tab(fIndent, cerr);
-    cerr << fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << " => " << ppsig(r, MAX_ERROR_SIZE) << endl;
+    cerr << fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << " => " << ppsig(r, MAX_ERROR_SIZE)
+         << endl;
 }
 
 Tree SignalIdentity::transformation(Tree sig)
@@ -53,7 +54,7 @@ Tree SignalIdentity::transformation(Tree sig)
     int     i;
     int64_t i64;
     double  r;
-    Tree   c, sel, w, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
+    Tree    c, sel, w, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
 
     if (getUserData(sig)) {
         vector<Tree> newBranches;
@@ -118,7 +119,7 @@ Tree SignalIdentity::transformation(Tree sig)
     else if (isSigSelect2(sig, sel, x, y)) {
         return sigSelect2(self(sel), self(x), self(y));
     }
-    
+
     // Table sigGen
     else if (isSigGen(sig, x)) {
         if (fVisitGen) {
@@ -145,7 +146,7 @@ Tree SignalIdentity::transformation(Tree sig)
     // Int and Float Cast
     else if (isSigIntCast(sig, x)) {
         return sigIntCast(self(x));
-    }else if (isSigBitCast(sig, x)) {
+    } else if (isSigBitCast(sig, x)) {
         return sigBitCast(self(x));
     } else if (isSigFloatCast(sig, x)) {
         return sigFloatCast(self(x));
@@ -196,7 +197,7 @@ Tree SignalIdentity::transformation(Tree sig)
     } else if (isSigHighest(sig, x)) {
         return sigHighest(self(x));
     }
-    	
+
     else {
         cerr << "ASSERT : unrecognized signal : " << *sig << endl;
         faustassert(false);

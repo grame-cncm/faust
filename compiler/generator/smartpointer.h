@@ -49,7 +49,9 @@ class smartable {
     //! removeReference delete the object when refCount is zero
     void removeReference()
     {
-        if (--refCount == 0) delete this;
+        if (--refCount == 0) {
+            delete this;
+        }
     }
 
    protected:
@@ -86,24 +88,32 @@ class SMARTP {
     //! build a smart pointer from a class pointer
     SMARTP(T* rawptr) : fSmartPtr(rawptr)
     {
-        if (fSmartPtr) fSmartPtr->addReference();
+        if (fSmartPtr) {
+            fSmartPtr->addReference();
+        }
     }
     //! build a smart pointer from an convertible class reference
     template <class T2>
     SMARTP(const SMARTP<T2>& ptr) : fSmartPtr((T*)ptr)
     {
-        if (fSmartPtr) fSmartPtr->addReference();
+        if (fSmartPtr) {
+            fSmartPtr->addReference();
+        }
     }
     //! build a smart pointer from another smart pointer reference
     SMARTP(const SMARTP& ptr) : fSmartPtr((T*)ptr)
     {
-        if (fSmartPtr) fSmartPtr->addReference();
+        if (fSmartPtr) {
+            fSmartPtr->addReference();
+        }
     }
 
     //! the smart pointer destructor: simply removes one reference count
     ~SMARTP()
     {
-        if (fSmartPtr) fSmartPtr->removeReference();
+        if (fSmartPtr) {
+            fSmartPtr->removeReference();
+        }
     }
 
     //! cast operator to retrieve the actual class pointer
@@ -139,9 +149,13 @@ class SMARTP {
         // check first that pointers differ
         if (fSmartPtr != p_) {
             // increments the ref count of the new pointer if not null
-            if (p_ != 0) p_->addReference();
+            if (p_ != 0) {
+                p_->addReference();
+            }
             // decrements the ref count of the old pointer if not null
-            if (fSmartPtr != 0) fSmartPtr->removeReference();
+            if (fSmartPtr != 0) {
+                fSmartPtr->removeReference();
+            }
             // and finally stores the new actual pointer
             fSmartPtr = p_;
         }

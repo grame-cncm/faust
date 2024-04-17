@@ -34,14 +34,16 @@ static double lsh(double x, double k)
 
 interval interval_algebra::Lsh(const interval& x, const interval& k)
 {
-    if (x.isEmpty() || k.isEmpty())
+    if (x.isEmpty() || k.isEmpty()) {
         return empty();
+    }
 
     interval j{pow(2, k.lo()), pow(2, k.hi())};
     interval z = Mul(x, j);
 
     return {z.lo(), z.hi(),
-            x.lsb() + (int)k.lo()};  // lshifts shave some precision off the numbers, at least y.lo() bits
+            x.lsb() +
+                (int)k.lo()};  // lshifts shave some precision off the numbers, at least y.lo() bits
 }
 
 void interval_algebra::testLsh()
@@ -49,10 +51,15 @@ void interval_algebra::testLsh()
     /* check("test algebra Lsh", Lsh(interval(0, 1), interval(4)), interval(0, 16));
     check("test algebra Lsh", Lsh(interval(0.5, 1), interval(-1, 4)), interval(0.25, 16));
     check("test algebra Lsh", Lsh(interval(-10, 10), interval(-1, 4)), interval(-160, 160));*/
-    analyzeBinaryMethod(10, 100000, "lshift", interval(0, 32, 0), interval(8, 8, 1), lsh, &interval_algebra::Lsh);
-    analyzeBinaryMethod(10, 100000, "lshift", interval(0, 1024, 0), interval(-10, 10, 0), lsh, &interval_algebra::Lsh);
-    analyzeBinaryMethod(10, 100000, "lshift", interval(0, 1024, 2), interval(-10, 10, 0), lsh, &interval_algebra::Lsh);
-    analyzeBinaryMethod(10, 100000, "lshift", interval(0, 1024, 0), interval(-10, 10, 1), lsh, &interval_algebra::Lsh);
-    analyzeBinaryMethod(10, 100000, "lshift", interval(0, 1024, 2), interval(-10, 10, 1), lsh, &interval_algebra::Lsh);
+    analyzeBinaryMethod(10, 100000, "lshift", interval(0, 32, 0), interval(8, 8, 1), lsh,
+                        &interval_algebra::Lsh);
+    analyzeBinaryMethod(10, 100000, "lshift", interval(0, 1024, 0), interval(-10, 10, 0), lsh,
+                        &interval_algebra::Lsh);
+    analyzeBinaryMethod(10, 100000, "lshift", interval(0, 1024, 2), interval(-10, 10, 0), lsh,
+                        &interval_algebra::Lsh);
+    analyzeBinaryMethod(10, 100000, "lshift", interval(0, 1024, 0), interval(-10, 10, 1), lsh,
+                        &interval_algebra::Lsh);
+    analyzeBinaryMethod(10, 100000, "lshift", interval(0, 1024, 2), interval(-10, 10, 1), lsh,
+                        &interval_algebra::Lsh);
 }
 }  // namespace itv

@@ -22,8 +22,8 @@
 #include <cstdlib>
 
 #include "Text.hh"
-#include "treeTraversal.hh"
 #include "list.hh"
+#include "treeTraversal.hh"
 
 using namespace std;
 

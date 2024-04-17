@@ -102,7 +102,7 @@ class num : public virtual Garbageable {
             return static_cast<int>(fData.f);
         }
     }
-    
+
     operator double() const
     {
         if (fType == 0) {

@@ -40,7 +40,9 @@ schema* makeCableSchema(unsigned int n)
  */
 cableSchema::cableSchema(unsigned int n) : schema(n, n, 0, n * dWire)
 {
-    for (unsigned int i = 0; i < n; i++) fPoint.push_back(point(0, 0));
+    for (unsigned int i = 0; i < n; i++) {
+        fPoint.push_back(point(0, 0));
+    }
 }
 
 /**

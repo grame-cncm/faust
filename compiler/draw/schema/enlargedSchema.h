@@ -29,7 +29,7 @@
  */
 
 class enlargedSchema : public schema {
-    schema*       fSchema;
+    schema*            fSchema;
     std::vector<point> fInputPoint;
     std::vector<point> fOutputPoint;
 

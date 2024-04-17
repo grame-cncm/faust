@@ -96,7 +96,9 @@ static int annotate(Tree env, Tree sig)
             return p;  // we are inside \x.(...)
         } else {
             int r = annotate(cons(sig, env), body) - 1;
-            if (r < 0) r = 0;
+            if (r < 0) {
+                r = 0;
+            }
             setProperty(sig, gGlobal->RECURSIVNESS, tree(r));
             return r;
         }
@@ -106,7 +108,9 @@ static int annotate(Tree env, Tree sig)
         getSubSignals(sig, v);
         for (unsigned int i = 0; i < v.size(); i++) {
             int r = annotate(env, v[i]);
-            if (r > rmax) rmax = r;
+            if (r > rmax) {
+                rmax = r;
+            }
         }
         setProperty(sig, gGlobal->RECURSIVNESS, tree(rmax));
         return rmax;
@@ -121,7 +125,9 @@ static int annotate(Tree env, Tree sig)
  */
 static int position(Tree env, Tree t, int p)
 {
-    if (isNil(env)) return 0;  // was not in the environment
+    if (isNil(env)) {
+        return 0;  // was not in the environment
+    }
     if (hd(env) == t) {
         return p;
     } else {

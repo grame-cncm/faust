@@ -166,18 +166,19 @@ struct BinOp {
     comp fCompute;
     int  fPriority;
     bool fAssociativity;
-    
+
     pred fLeftNeutral;
     pred fRightNeutral;
     pred fLeftAbsorbing;
     pred fRightAbsorbing;
-   
+
     BinOp(const char* name, const char* name_vec, const char* name_scal, const char* name_llvm_int,
-          const char* name_llvm_float, unsigned int llvm_int, unsigned int llvm_float, const char* name_wasm_int32,
-          const char* name_wasm_int64, const char* name_wasm_float, const char* name_wasm_double, WasmOp wasm_int32,
-          WasmOp wasm_int64, WasmOp wasm_float, WasmOp wasm_double, FBCInstruction::Opcode interp_int32,
-          FBCInstruction::Opcode interp_float, int priority, bool associativity, comp fun, pred ln, pred rn, pred la = falsePredicate,
-          pred ra = falsePredicate)
+          const char* name_llvm_float, unsigned int llvm_int, unsigned int llvm_float,
+          const char* name_wasm_int32, const char* name_wasm_int64, const char* name_wasm_float,
+          const char* name_wasm_double, WasmOp wasm_int32, WasmOp wasm_int64, WasmOp wasm_float,
+          WasmOp wasm_double, FBCInstruction::Opcode interp_int32,
+          FBCInstruction::Opcode interp_float, int priority, bool associativity, comp fun, pred ln,
+          pred rn, pred la = falsePredicate, pred ra = falsePredicate)
         : fName(name),
           fNameVec(name_vec),
           fNameScal(name_scal),
@@ -211,15 +212,32 @@ struct BinOp {
     bool isLeftNeutral(const Node& a) { return fLeftNeutral(a); }
     bool isLeftAbsorbing(const Node& a) { return fLeftAbsorbing(a); }
     bool isRightAbsorbing(const Node& a) { return fRightAbsorbing(a); }
-    
-    static const char* getString(int op);
 
+    static const char* getString(int op);
 };
 
 extern BinOp* gBinOpTable[];
 extern BinOp* gBinOpLateqTable[];
 
-enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
+enum SOperator {
+    kAdd,
+    kSub,
+    kMul,
+    kDiv,
+    kRem,
+    kLsh,
+    kARsh,
+    kLRsh,
+    kGT,
+    kLT,
+    kGE,
+    kLE,
+    kEQ,
+    kNE,
+    kAND,
+    kOR,
+    kXOR
+};
 
 bool isBoolOpcode(int o);
 bool isLogicalOpcode(int o);

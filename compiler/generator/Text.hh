@@ -25,25 +25,29 @@
 #include <string.h>
 #include <cstdint>
 
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <list>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <cmath>
 
 std::string subst(const std::string& m, const std::string& a0);
 std::string subst(const std::string& m, const std::vector<std::string>& vargs);
 std::string subst(const std::string& m, const std::string& a0, const std::string& a1);
-std::string subst(const std::string& m, const std::string& a0, const std::string& a1, const std::string& a2);
-std::string subst(const std::string& model, const std::string& a0, const std::string& a1, const std::string& a2, const std::string& a3);
-std::string subst(const std::string& model, const std::string& a0, const std::string& a1, const std::string& a2, const std::string& a3,
-             const std::string& a4);
-std::string subst(const std::string& model, const std::string& a0, const std::string& a1, const std::string& a2, const std::string& a3,
-             const std::string& a4, const std::string& a5);
-std::string subst(const std::string& model, const std::string& a0, const std::string& a1, const std::string& a2, const std::string& a3,
-             const std::string& a4, const std::string& a5, const std::string& a6);
+std::string subst(const std::string& m, const std::string& a0, const std::string& a1,
+                  const std::string& a2);
+std::string subst(const std::string& model, const std::string& a0, const std::string& a1,
+                  const std::string& a2, const std::string& a3);
+std::string subst(const std::string& model, const std::string& a0, const std::string& a1,
+                  const std::string& a2, const std::string& a3, const std::string& a4);
+std::string subst(const std::string& model, const std::string& a0, const std::string& a1,
+                  const std::string& a2, const std::string& a3, const std::string& a4,
+                  const std::string& a5);
+std::string subst(const std::string& model, const std::string& a0, const std::string& a1,
+                  const std::string& a2, const std::string& a3, const std::string& a4,
+                  const std::string& a5, const std::string& a6);
 
 std::string T(char* c);
 std::string T(int n);
@@ -60,9 +64,10 @@ std::string T(int64_t n);
 std::string unquote(const std::string& s);
 std::string quote(const std::string& s);
 
-void tab(int n, std::ostream& fout);
-void back(int n, std::ostream& fout);
-void printlines(int n, std::list<std::string>& lines, std::ostream& fout, const std::string& sep = "");
+void        tab(int n, std::ostream& fout);
+void        back(int n, std::ostream& fout);
+void        printlines(int n, std::list<std::string>& lines, std::ostream& fout,
+                       const std::string& sep = "");
 std::string rmWhiteSpaces(const std::string& s);
 
 inline std::string checkFloat(float val)
@@ -85,12 +90,14 @@ std::string replaceCharList(const std::string& str, const std::vector<char>& ch1
 
 inline bool checkMin(const std::string& str)
 {
-    return ((str == "min") || (str == "min_i") || (str == "min_f") || (str == "min_") || (str == "min_l") || (str == "min_fx"));
+    return ((str == "min") || (str == "min_i") || (str == "min_f") || (str == "min_") ||
+            (str == "min_l") || (str == "min_fx"));
 }
 
 inline bool checkMax(const std::string& str)
 {
-    return ((str == "max") || (str == "max_i") || (str == "max_f") || (str == "max_") || (str == "max_l") || (str == "max_fx"));
+    return ((str == "max") || (str == "max_i") || (str == "max_f") || (str == "max_") ||
+            (str == "max_l") || (str == "max_fx"));
 }
 
 inline bool checkMinMax(const std::string& str)
@@ -129,7 +136,9 @@ inline std::string removeChar(const std::string& str, char c)
     std::string res;
     res.reserve(str.size());  // optional, avoids buffer reallocations in the loop
     for (size_t i = 0; i < str.size(); ++i) {
-        if (str[i] != c) res += str[i];
+        if (str[i] != c) {
+            res += str[i];
+        }
     }
     return res;
 }
@@ -159,7 +168,7 @@ inline std::string pathToContent(const std::string& path)
     file.read(buffer, size);
 
     // Terminate the string
-    buffer[size]  = 0;
+    buffer[size]       = 0;
     std::string result = buffer;
     file.close();
     delete[] buffer;
@@ -170,7 +179,7 @@ inline std::string pathToContent(const std::string& path)
 // put a unique file in a {...} list
 inline std::string prepareURL(const std::string& url)
 {
-    bool in_str = false;
+    bool              in_str = false;
     std::stringstream dst;
     for (size_t i = 0; i < url.size(); i++) {
         switch (url[i]) {
@@ -184,7 +193,9 @@ inline std::string prepareURL(const std::string& url)
                 break;
             case ' ':
                 // Do not remove spaces in path ('....')
-                if (in_str) dst << url[i];
+                if (in_str) {
+                    dst << url[i];
+                }
                 break;
             default:
                 dst << url[i];
@@ -260,12 +271,16 @@ inline std::string flattenJSON1(const std::string& src)
     return dst;
 }
 
-// To filter compilation arguments in 'createDSPFactoryFromString' and 'createInterpreterDSPFactoryFromString'
+// To filter compilation arguments in 'createDSPFactoryFromString' and
+// 'createInterpreterDSPFactoryFromString'
 inline bool testArg(const char* arg)
 {
-    std::vector<const char*> filter_argv = { "-tg", "-sg", "-ps", "-svg", "-mdoc", "-mdlang", "-stripdoc", "-sd", "-xml", "-json" };
+    std::vector<const char*> filter_argv = {"-tg",     "-sg",       "-ps", "-svg", "-mdoc",
+                                            "-mdlang", "-stripdoc", "-sd", "-xml", "-json"};
     for (size_t i = 0; i < filter_argv.size(); i++) {
-        if (strcmp(filter_argv[i], arg) == 0) return true;
+        if (strcmp(filter_argv[i], arg) == 0) {
+            return true;
+        }
     }
     return false;
 }
@@ -280,17 +295,14 @@ int pow2limit(int x, int def = 2);
 inline bool ispowerof2(int x)
 {
     /* First x in the below expression is for the case when x is 0 */
-    return x && (!(x&(x-1)));
+    return x && (!(x & (x - 1)));
 }
 
 // To check all UI control fields in the DSP structure
 inline bool isUIInputControl(const std::string& name)
 {
-    return startWith(name, "fButton")
-        || startWith(name, "fCheckbox")
-        || startWith(name, "fVslider")
-        || startWith(name, "fHslider")
-        || startWith(name, "fEntry");
+    return startWith(name, "fButton") || startWith(name, "fCheckbox") ||
+           startWith(name, "fVslider") || startWith(name, "fHslider") || startWith(name, "fEntry");
 }
 
 inline bool isUIOutputControl(const std::string& name)

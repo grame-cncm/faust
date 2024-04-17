@@ -32,7 +32,6 @@
 #define LLVMType llvm::Type*
 
 class LLVMCodeContainer : public virtual CodeContainer {
-    
    protected:
     using CodeContainer::generateFillFun;
     using CodeContainer::generateInstanceInitFun;
@@ -41,28 +40,32 @@ class LLVMCodeContainer : public virtual CodeContainer {
     LLVMInstVisitor*  fCodeProducer;
     StructInstVisitor fStructVisitor;
 
-    LLVMModule fModule;
+    LLVMModule         fModule;
     llvm::LLVMContext* fContext;
 
     // To be used for mathematical function mapping (-fm and exp10 on OSX)
-    void generateFunMap(const std::string& fun1_aux, const std::string& fun2_aux, int num_args, bool body = false);
+    void generateFunMap(const std::string& fun1_aux, const std::string& fun2_aux, int num_args,
+                        bool body = false);
     void generateFunMaps();
 
     // To be implemented in each LLVMScalarCodeContainer, LLVMVectorCodeContainer
     // and LLVMWorkStealingCodeContainer classes
     virtual void generateCompute() = 0;
-    
+
     template <typename REAL>
     void generateGetJSON()
     {
-        LLVMPtrType string_ptr = llvm::PointerType::get(fBuilder->getInt8Ty(), 0);
+        LLVMPtrType  string_ptr = llvm::PointerType::get(fBuilder->getInt8Ty(), 0);
         LLVMVecTypes getJSON_args;
-    #if LLVM_VERSION_MAJOR >= 16
-        llvm::FunctionType* getJSON_type = llvm::FunctionType::get(string_ptr, llvm::ArrayRef<LLVMType>(getJSON_args), false);
-    #else
-        llvm::FunctionType* getJSON_type = llvm::FunctionType::get(string_ptr, makeArrayRef(getJSON_args), false);
-    #endif
-        LLVMFun getJSON = llvm::Function::Create(getJSON_type, llvm::GlobalValue::ExternalLinkage, "getJSON" + fKlassName, fModule);
+#if LLVM_VERSION_MAJOR >= 16
+        llvm::FunctionType* getJSON_type =
+            llvm::FunctionType::get(string_ptr, llvm::ArrayRef<LLVMType>(getJSON_args), false);
+#else
+        llvm::FunctionType* getJSON_type =
+            llvm::FunctionType::get(string_ptr, makeArrayRef(getJSON_args), false);
+#endif
+        LLVMFun getJSON = llvm::Function::Create(getJSON_type, llvm::GlobalValue::ExternalLinkage,
+                                                 "getJSON" + fKlassName, fModule);
 
         // JSON generation
         JSONInstVisitor<REAL> json_visitor1;
@@ -76,24 +79,30 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         faustassert(fStructVisitor.getFieldOffset("fSampleRate") != -1);
 
-        JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs, fStructVisitor.getFieldOffset("fSampleRate"), "", "",
-                                            FAUSTVERSION, gGlobal->printCompilationOptions1(), gGlobal->gReader.listLibraryFiles(),
-                                            gGlobal->gImportDirList, fStructVisitor.getStructSize(), path_index_table, MemoryLayoutType());
+        JSONInstVisitor<REAL> json_visitor2(
+            "", "", fNumInputs, fNumOutputs, fStructVisitor.getFieldOffset("fSampleRate"), "", "",
+            FAUSTVERSION, gGlobal->printCompilationOptions1(), gGlobal->gReader.listLibraryFiles(),
+            gGlobal->gImportDirList, fStructVisitor.getStructSize(), path_index_table,
+            MemoryLayoutType());
         generateUserInterface(&json_visitor2);
         generateMetaData(&json_visitor2);
 
-        llvm::BasicBlock* return_block = llvm::BasicBlock::Create(*fContext, "return_block", getJSON);
-        llvm::ReturnInst::Create(*fContext, fCodeProducer->genStringConstant(json_visitor2.JSON(true)), return_block);
-        
+        llvm::BasicBlock* return_block =
+            llvm::BasicBlock::Create(*fContext, "return_block", getJSON);
+        llvm::ReturnInst::Create(
+            *fContext, fCodeProducer->genStringConstant(json_visitor2.JSON(true)), return_block);
+
         verifyFunction(*getJSON);
         fBuilder->ClearInsertionPoint();
     }
- 
-    void init(const std::string& name, int numInputs, int numOutputs, LLVMModule module, llvm::LLVMContext* context);
+
+    void init(const std::string& name, int numInputs, int numOutputs, LLVMModule module,
+              llvm::LLVMContext* context);
 
    public:
     LLVMCodeContainer(const std::string& name, int numInputs, int numOutputs);
-    LLVMCodeContainer(const std::string& name, int numInputs, int numOutputs, LLVMModule module, llvm::LLVMContext* context);
+    LLVMCodeContainer(const std::string& name, int numInputs, int numOutputs, LLVMModule module,
+                      llvm::LLVMContext* context);
     virtual ~LLVMCodeContainer();
 
     virtual dsp_factory_base* produceFactory();
@@ -105,20 +114,18 @@ class LLVMCodeContainer : public virtual CodeContainer {
 };
 
 class LLVMScalarCodeContainer : public LLVMCodeContainer {
-    
    protected:
     void       generateCompute();
     BlockInst* generateComputeAux();
 
    public:
     LLVMScalarCodeContainer(const std::string& name, int numInputs, int numOutputs);
-    LLVMScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, LLVMModule module, llvm::LLVMContext* context,
-                            int sub_container_type);
+    LLVMScalarCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                            LLVMModule module, llvm::LLVMContext* context, int sub_container_type);
     virtual ~LLVMScalarCodeContainer();
 };
 
 class LLVMVectorCodeContainer : public VectorCodeContainer, public LLVMCodeContainer {
-    
    protected:
     void       generateCompute();
     BlockInst* generateComputeAux();
@@ -129,7 +136,6 @@ class LLVMVectorCodeContainer : public VectorCodeContainer, public LLVMCodeConta
 };
 
 class LLVMOpenMPCodeContainer : public OpenMPCodeContainer, public LLVMCodeContainer {
-    
    protected:
     void       generateOMPDeclarations();
     void       generateOMPCompute();
@@ -152,7 +158,6 @@ class LLVMOpenMPCodeContainer : public OpenMPCodeContainer, public LLVMCodeConta
 };
 
 class LLVMWorkStealingCodeContainer : public WSSCodeContainer, public LLVMCodeContainer {
-    
    protected:
     void       generateCompute();
     BlockInst* generateComputeAux();

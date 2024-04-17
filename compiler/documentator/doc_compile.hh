@@ -55,7 +55,8 @@ class DocCompiler : public virtual Garbageable {
     int       fPriority;  ///< math priority context
 
    public:
-    DocCompiler(int numInputs, int numOutputs) : fLateq(new Lateq(numInputs, numOutputs)), fDescription(0), fPriority(0)
+    DocCompiler(int numInputs, int numOutputs)
+        : fLateq(new Lateq(numInputs, numOutputs)), fDescription(0), fPriority(0)
     {
     }
 
@@ -78,7 +79,7 @@ class DocCompiler : public virtual Garbageable {
 
     std::string getFreshID(const std::string& prefix);
 
-    bool   getCompiledExpression(Tree sig, std::string& name);
+    bool        getCompiledExpression(Tree sig, std::string& name);
     std::string setCompiledExpression(Tree sig, const std::string& name);
 
     void setVectorNameProperty(Tree sig, const std::string& vecname);
@@ -108,9 +109,9 @@ class DocCompiler : public virtual Garbageable {
     std::string generateDocAccessTbl(Tree sig, Tree tbl, Tree ridx);
 
     std::string generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2, int priority);
-   
+
     std::string generateRecProj(Tree sig, Tree exp, int i, int priority);
-    void   generateRec(Tree sig, Tree var, Tree le, int priority);
+    void        generateRec(Tree sig, Tree var, Tree le, int priority);
 
     std::string generateIntCast(Tree sig, Tree x, int priority);
     std::string generateFloatCast(Tree sig, Tree x, int priority);
@@ -129,19 +130,23 @@ class DocCompiler : public virtual Garbageable {
     std::string generateFConst(Tree sig, const std::string& file, const std::string& name);
     std::string generateFVar(Tree sig, const std::string& file, const std::string& name);
 
-    std::string generateDelayVec(Tree sig, const std::string& exp, const std::string& ctype, const std::string& vname, int mxd);
-    std::string generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype, const std::string& vname, int mxd);
-    void   generateDelayLine(const std::string& ctype, const std::string& vname, int mxd, const std::string& exp);
+    std::string generateDelayVec(Tree sig, const std::string& exp, const std::string& ctype,
+                                 const std::string& vname, int mxd);
+    std::string generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype,
+                                       const std::string& vname, int mxd);
+    void        generateDelayLine(const std::string& ctype, const std::string& vname, int mxd,
+                                  const std::string& exp);
 
     void getTypedNames(Type t, const std::string& prefix, std::string& ctype, std::string& vname);
     void printGCCall(Tree sig, const std::string& calledFunction);
 
     /* Managment of user interface elements. */
 
-    void   getUIDocInfos(Tree path, std::string& label, std::string& unit);
+    void        getUIDocInfos(Tree path, std::string& label, std::string& unit);
     std::string getUIDir(Tree pathname);
     std::string prepareBinaryUI(const std::string& name, Tree pathname);
-    std::string prepareIntervallicUI(const std::string& name, Tree path, Tree tcur, Tree tmin, Tree tmax);
+    std::string prepareIntervallicUI(const std::string& name, Tree path, Tree tcur, Tree tmin,
+                                     Tree tmax);
 };
 
 #endif

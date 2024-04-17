@@ -41,20 +41,21 @@
 class CPPCodeContainer : public virtual CodeContainer {
    protected:
     CPPInstVisitor* fCodeProducer;
-    std::ostream*  fOut;
-    std::string    fSuperKlassName;
+    std::ostream*   fOut;
+    std::string     fSuperKlassName;
 
     void produceMetadata(int tabs);
     void produceInit(int tabs);
-    
+
     std::string genVirtual();
     std::string genFinal();
-    
+
     inline bool isPtr(const std::string& type)
     {
-        return (type == "kFloat_ptr" || type == "kDouble_ptr" || type == "kQuad_ptr" || type == "kInt32_ptr" || type == "kObj_ptr");
+        return (type == "kFloat_ptr" || type == "kDouble_ptr" || type == "kQuad_ptr" ||
+                type == "kInt32_ptr" || type == "kObj_ptr");
     }
-    
+
     void generateHeader(int n)
     {
         tab(n, *fOut);
@@ -62,20 +63,20 @@ class CPPCodeContainer : public virtual CodeContainer {
         *fOut << "#define FAUSTCLASS " << fKlassName << std::endl;
         *fOut << "#endif" << std::endl;
         tab(n, *fOut);
-        
+
         *fOut << "#ifdef __APPLE__ " << std::endl;
         *fOut << "#define exp10f __exp10f" << std::endl;
         *fOut << "#define exp10 __exp10" << std::endl;
         *fOut << "#endif" << std::endl;
         tab(n, *fOut);
-        
+
         *fOut << "#if defined(_WIN32)" << std::endl;
         *fOut << "#define RESTRICT __restrict" << std::endl;
         *fOut << "#else" << std::endl;
         *fOut << "#define RESTRICT __restrict__" << std::endl;
         *fOut << "#endif" << std::endl;
     }
-    
+
     void generateAllocateFun(int n)
     {
         if (fAllocateInstructions->fCode.size() > 0) {
@@ -89,7 +90,7 @@ class CPPCodeContainer : public virtual CodeContainer {
             tab(n + 1, *fOut);
         }
     }
-    
+
     void printMathHeader()
     {
         // For mathematical functions
@@ -102,7 +103,7 @@ class CPPCodeContainer : public virtual CodeContainer {
             addIncludeFile("<cstdint>");
         }
     }
-    
+
     void generateDestroyFun(int n)
     {
         if (fDestroyInstructions->fCode.size() > 0) {
@@ -116,7 +117,7 @@ class CPPCodeContainer : public virtual CodeContainer {
             tab(n + 1, *fOut);
         }
     }
-    
+
     void generateConstructor(const std::string& fun_proto, int n)
     {
         if (fAllocateInstructions->fCode.size() > 0) {
@@ -129,7 +130,7 @@ class CPPCodeContainer : public virtual CodeContainer {
             *fOut << fun_proto << " {";
         }
     }
-    
+
     void generateDestructor(int n)
     {
         if (fDestroyInstructions->fCode.size() > 0) {
@@ -141,18 +142,19 @@ class CPPCodeContainer : public virtual CodeContainer {
             *fOut << "}" << std::endl;
         }
     }
-   
+
    public:
-    CPPCodeContainer()
-    {}
-    CPPCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out) : fSuperKlassName(super)
+    CPPCodeContainer() {}
+    CPPCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                     int numOutputs, std::ostream* out)
+        : fSuperKlassName(super)
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
-        fOut = out;
+        fOut       = out;
 
         printMathHeader();
-    
+
         fCodeProducer = new CPPInstVisitor(out);
     }
 
@@ -185,10 +187,13 @@ class CPPCodeContainer : public virtual CodeContainer {
         *fOut << "#endif" << std::endl;
     }
 
-    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
-    static CodeContainer* createScalarContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* dst, int sub_container_type);
-    
-    static CodeContainer* createContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs,
+    CodeContainer*        createScalarContainer(const std::string& name, int sub_container_type);
+    static CodeContainer* createScalarContainer(const std::string& name, const std::string& super,
+                                                int numInputs, int numOutputs, std::ostream* dst,
+                                                int sub_container_type);
+
+    static CodeContainer* createContainer(const std::string& name, const std::string& super,
+                                          int numInputs, int numOutputs,
                                           std::ostream* dst = new std::stringstream());
 };
 
@@ -199,12 +204,10 @@ class CPPCodeContainer : public virtual CodeContainer {
 class CPPScalarCodeContainer : public CPPCodeContainer {
    protected:
    public:
-    CPPScalarCodeContainer()
-    {}
-    CPPScalarCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out,
-                           int sub_container_type);
-    virtual ~CPPScalarCodeContainer()
-    {}
+    CPPScalarCodeContainer() {}
+    CPPScalarCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                           int numOutputs, std::ostream* out, int sub_container_type);
+    virtual ~CPPScalarCodeContainer() {}
 
     void generateCompute(int tab);
 };
@@ -216,9 +219,9 @@ class CPPScalarCodeContainer : public CPPCodeContainer {
 class CPPVectorCodeContainer : public VectorCodeContainer, public CPPCodeContainer {
    protected:
    public:
-    CPPVectorCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CPPVectorCodeContainer()
-    {}
+    CPPVectorCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                           int numOutputs, std::ostream* out);
+    virtual ~CPPVectorCodeContainer() {}
 
     void generateCompute(int tab);
 };
@@ -230,9 +233,9 @@ class CPPVectorCodeContainer : public VectorCodeContainer, public CPPCodeContain
 class CPPOpenMPCodeContainer : public OpenMPCodeContainer, public CPPCodeContainer {
    protected:
    public:
-    CPPOpenMPCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CPPOpenMPCodeContainer()
-    {}
+    CPPOpenMPCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                           int numOutputs, std::ostream* out);
+    virtual ~CPPOpenMPCodeContainer() {}
 
     void generateCompute(int tab);
 };
@@ -244,10 +247,9 @@ class CPPOpenMPCodeContainer : public OpenMPCodeContainer, public CPPCodeContain
 class CPPWorkStealingCodeContainer : public WSSCodeContainer, public CPPCodeContainer {
    protected:
    public:
-    CPPWorkStealingCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs,
-                                 std::ostream* out);
-    virtual ~CPPWorkStealingCodeContainer()
-    {}
+    CPPWorkStealingCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                                 int numOutputs, std::ostream* out);
+    virtual ~CPPWorkStealingCodeContainer() {}
 
     void produceClass();
     void generateCompute(int tab);

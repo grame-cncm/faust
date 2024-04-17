@@ -36,7 +36,7 @@ class LogPrim : public xtended {
     virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == arity());
-        Type t = args[0];
+        Type     t = args[0];
         interval i = t->getInterval();
 
         if (i.isValid() && i.lo() < 0 && gGlobal->gMathExceptions) {
@@ -65,7 +65,8 @@ class LogPrim : public xtended {
         } else if (isNum(args[0], n)) {
             if (double(n) < 0) {
                 std::stringstream error;
-                error << "ERROR : out of domain in log(" << ppsig(args[0], MAX_ERROR_SIZE) << ")" << std::endl;
+                error << "ERROR : out of domain in log(" << ppsig(args[0], MAX_ERROR_SIZE) << ")"
+                      << std::endl;
                 throw faustexception(error.str());
             } else {
                 return tree(log(double(n)));
@@ -75,7 +76,8 @@ class LogPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -83,7 +85,8 @@ class LogPrim : public xtended {
         return generateFun(container, subst("log$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -91,15 +94,16 @@ class LogPrim : public xtended {
         return subst("log$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("\\ln\\left( $0 \\right)", args[0]);
     }
-    
-    Tree diff(const std::vector<Tree> &args) override
+
+    Tree diff(const std::vector<Tree>& args) override
     {
         // (ln(x))' = 1/x
         // TODO: handle division by zero

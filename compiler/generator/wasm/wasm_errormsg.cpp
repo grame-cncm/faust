@@ -32,7 +32,7 @@ using namespace std;
 #if defined(EMCC) && !defined(FAUST_LIB)
 
 list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
+ztimedmap  GUI::gTimedZoneMap;
 
 void faustassertaux(bool cond, const string& file, int line)
 {

@@ -27,7 +27,7 @@ namespace itv {
 // void testGt();
 
 static double myGt(double x, double y)
-{ 
+{
     return (x > y);
 }
 
@@ -37,10 +37,10 @@ interval interval_algebra::Gt(const interval& x, const interval& y)
         return empty();
     }
     if (x.lo() > y.hi()) {
-        return interval{1,1,0};
+        return interval{1, 1, 0};
     }
     if (x.hi() <= y.lo()) {
-        return interval{0,0,0};
+        return interval{0, 0, 0};
     }
     return interval{0, 1, 0};
 }
@@ -53,8 +53,11 @@ void interval_algebra::testGt()
     check("test algebra Gt", Gt(interval(2, 5), interval(5, 20)), interval(0));
     check("test algebra Gt", Gt(interval(2, 5), interval(0, 20)), interval(0, 1)); */
 
-    analyzeBinaryMethod(10, 200, "Gt", interval(-1, 1, 0), interval(-1, 1, 0), myGt, &interval_algebra::Gt);
-    analyzeBinaryMethod(10, 200, "Gt", interval(-10, 10, 0), interval(-10, 10, 0), myGt, &interval_algebra::Gt);
-    analyzeBinaryMethod(10, 2000, "Gt", interval(-10, 10), interval(-10, 10), myGt, &interval_algebra::Gt);
+    analyzeBinaryMethod(10, 200, "Gt", interval(-1, 1, 0), interval(-1, 1, 0), myGt,
+                        &interval_algebra::Gt);
+    analyzeBinaryMethod(10, 200, "Gt", interval(-10, 10, 0), interval(-10, 10, 0), myGt,
+                        &interval_algebra::Gt);
+    analyzeBinaryMethod(10, 2000, "Gt", interval(-10, 10), interval(-10, 10), myGt,
+                        &interval_algebra::Gt);
 }
 }  // namespace itv

@@ -40,7 +40,7 @@ interval interval_algebra::Acosh(const interval& x)
     int precision = exactPrecisionUnary(acosh, x.hi(), -pow(2, x.lsb()));
 
     if (precision == INT_MIN or taylor_lsb) {
-        precision = floor(x.lsb() - (double)log2(x.hi()*x.hi() - 1)/2);
+        precision = floor(x.lsb() - (double)log2(x.hi() * x.hi() - 1) / 2);
     }
 
     return {acosh(i.lo()), acosh(i.hi()), precision};
@@ -50,9 +50,12 @@ void interval_algebra::testAcosh()
 {
     analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, 0), acosh, &interval_algebra::Acosh);
     analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -5), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -10), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -15), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -20), acosh, &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -10), acosh,
+                       &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -15), acosh,
+                       &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -20), acosh,
+                       &interval_algebra::Acosh);
 
     /* analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, 0), acosh, &interval_algebra::Acosh);
     analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, -5), acosh, &interval_algebra::Acosh);

@@ -38,7 +38,8 @@ schema* makeInverterSchema(const string& color)
 /**
  * Build n cables in parallel
  */
-inverterSchema::inverterSchema(const string& color) : blockSchema(1, 1, 2.5 * dWire, dWire, "-1", color, "")
+inverterSchema::inverterSchema(const string& color)
+    : blockSchema(1, 1, 2.5 * dWire, dWire, "-1", color, "")
 {
 }
 
@@ -48,6 +49,6 @@ inverterSchema::inverterSchema(const string& color) : blockSchema(1, 1, 2.5 * dW
  */
 void inverterSchema::draw(device& dev)
 {
-    dev.triangle(x() + dHorz, y() + 0.5, width() - 2 * dHorz, height() - 1, fColor.c_str(), fLink.c_str(),
-                 orientation() == kLeftRight);
+    dev.triangle(x() + dHorz, y() + 0.5, width() - 2 * dHorz, height() - 1, fColor.c_str(),
+                 fLink.c_str(), orientation() == kLeftRight);
 }

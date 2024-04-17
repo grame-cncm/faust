@@ -46,7 +46,9 @@ class TMutex {
     TMutex()
     {
         fMutex = CreateMutex(0, FALSE, 0);
-        if (!fMutex) throw std::bad_alloc();
+        if (!fMutex) {
+            throw std::bad_alloc();
+        }
     }
     virtual ~TMutex() { CloseHandle(fMutex); }
 
@@ -62,9 +64,15 @@ class TMutex {
     {
         // Use recursive mutex
         pthread_mutexattr_t mutex_attr;
-        if (pthread_mutexattr_init(&mutex_attr) != 0) throw std::bad_alloc();
-        if (pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE) != 0) throw std::bad_alloc();
-        if (pthread_mutex_init(&fMutex, &mutex_attr) != 0) throw std::bad_alloc();
+        if (pthread_mutexattr_init(&mutex_attr) != 0) {
+            throw std::bad_alloc();
+        }
+        if (pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE) != 0) {
+            throw std::bad_alloc();
+        }
+        if (pthread_mutex_init(&fMutex, &mutex_attr) != 0) {
+            throw std::bad_alloc();
+        }
     }
     virtual ~TMutex() { pthread_mutex_destroy(&fMutex); }
 
@@ -99,17 +107,23 @@ class TLock {
    public:
     TLock(TLockAble* obj) : fObj(obj)
     {
-        if (fObj) fObj->Lock();
+        if (fObj) {
+            fObj->Lock();
+        }
     }
 
     TLock(const TLockAble* obj) : fObj((TLockAble*)obj)
     {
-        if (fObj) fObj->Lock();
+        if (fObj) {
+            fObj->Lock();
+        }
     }
 
     virtual ~TLock()
     {
-        if (fObj) fObj->Unlock();
+        if (fObj) {
+            fObj->Unlock();
+        }
     }
 };
 

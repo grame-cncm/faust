@@ -38,7 +38,7 @@ class AbsPrim : public xtended {
     virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == arity());
-        Type t = args[0];
+        Type     t = args[0];
         interval i = t->getInterval();
         return castInterval(t, gAlgebra.Abs(i));
     }
@@ -71,14 +71,15 @@ class AbsPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         /*
-         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval
-         [O..inf] !
+         04/25/22 : this optimisation cannot be done because interval computation is buggy: like
+         no.noise interval [O..inf] !
          */
 
         /*
@@ -89,8 +90,8 @@ class AbsPrim : public xtended {
                 if (t->nature() == kReal) {
                     Values cargs;
                     prepareTypeArgsResult(result, args, types, rtype, atypes, cargs);
-                    return container->pushFunction(subst("fabs$0", isuffix()), rtype, atypes, cargs);
-                } else {
+                    return container->pushFunction(subst("fabs$0", isuffix()), rtype, atypes,
+           cargs); } else {
                     // "Int" abs
                     rtype = Typed::kInt32;
                     atypes.push_back(Typed::kInt32);
@@ -103,7 +104,8 @@ class AbsPrim : public xtended {
         return generateFun(container, fun_name, args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -116,7 +118,8 @@ class AbsPrim : public xtended {
         }
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -124,13 +127,11 @@ class AbsPrim : public xtended {
         ::Type t = inferSigType(types);
         return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
     }
-    
-    Tree diff(const std::vector<Tree> &args) override
+
+    Tree diff(const std::vector<Tree>& args) override
     {
         // |x|' = x / |x|, x != 0
-        return sigSelect2(sigEQ(args[0], sigReal(0.0)),
-                          sigReal(0.0),
-                          sigDiv(args[0], sigAbs(args[0]))
-        );
+        return sigSelect2(sigEQ(args[0], sigReal(0.0)), sigReal(0.0),
+                          sigDiv(args[0], sigAbs(args[0])));
     }
 };

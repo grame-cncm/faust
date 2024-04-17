@@ -26,7 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #ifndef WIN32
 #include <unistd.h>
 #else
-//#include <io.h>
+// #include <io.h>
 #endif
 
 #if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID) && !defined(ALPINE)
@@ -38,7 +38,10 @@ class faustexception : public std::runtime_error {
 #ifdef EMCC
     static const char* gJSExceptionMsg;
 
-    faustexception(const std::string& msg = "") : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg.c_str()); }
+    faustexception(const std::string& msg = "") : std::runtime_error(msg)
+    {
+        gJSExceptionMsg = strdup(msg.c_str());
+    }
     faustexception(char* msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg); }
     faustexception(const char* msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg); }
 #else

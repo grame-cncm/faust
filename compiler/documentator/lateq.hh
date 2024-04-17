@@ -29,7 +29,7 @@
         - Several containers store LaTeX formulas by type of signals -
         - Formulas usually are signal definitions,
             except for input signals (only names). -
- 
+
         Historique :
         -----------
         17-10-2001 : (klass.hh) initial implementation  (yo)
@@ -50,7 +50,10 @@
 
 class Lateq : public virtual Garbageable {
    public:
-    Lateq(const int& numInputs, const int& numOutputs) : fNumInputs(numInputs), fNumOutputs(numOutputs) {}
+    Lateq(const int& numInputs, const int& numOutputs)
+        : fNumInputs(numInputs), fNumOutputs(numOutputs)
+    {
+    }
 
     ~Lateq() {}
 
@@ -65,7 +68,10 @@ class Lateq : public virtual Garbageable {
     void addSelectSigFormula(const std::string& str) { fSelectSigsFormulas.push_back(str); }
     void addPrefixSigFormula(const std::string& str) { fPrefixSigsFormulas.push_back(str); }
     void addOutputSigFormula(const std::string& str) { fOutputSigsFormulas.push_back(str); }
-    void addUISigFormula(const std::string& path, const std::string& str) { fUISigsFormulas.insert(make_pair(path, str)); };
+    void addUISigFormula(const std::string& path, const std::string& str)
+    {
+        fUISigsFormulas.insert(make_pair(path, str));
+    };
 
     /** Top-level method to print a whole set of compiled LaTeX formulas. */
     void println(std::ostream& docout);
@@ -78,31 +84,35 @@ class Lateq : public virtual Garbageable {
     const int fNumOutputs;
 
     /** LaTeX formulas to print. */
-    std::list<std::string>             fInputSigsFormulas;
-    std::list<std::string>             fConstSigsFormulas;
-    std::list<std::string>             fParamSigsFormulas;
-    std::list<std::string>             fStoreSigsFormulas;
-    std::list<std::string>             fRecurSigsFormulas;
-    std::list<std::string>             fRDTblSigsFormulas;
-    std::list<std::string>             fRWTblSigsFormulas;
-    std::list<std::string>             fSelectSigsFormulas;
-    std::list<std::string>             fPrefixSigsFormulas;
-    std::list<std::string>             fOutputSigsFormulas;
+    std::list<std::string>                  fInputSigsFormulas;
+    std::list<std::string>                  fConstSigsFormulas;
+    std::list<std::string>                  fParamSigsFormulas;
+    std::list<std::string>                  fStoreSigsFormulas;
+    std::list<std::string>                  fRecurSigsFormulas;
+    std::list<std::string>                  fRDTblSigsFormulas;
+    std::list<std::string>                  fRWTblSigsFormulas;
+    std::list<std::string>                  fSelectSigsFormulas;
+    std::list<std::string>                  fPrefixSigsFormulas;
+    std::list<std::string>                  fOutputSigsFormulas;
     std::multimap<std::string, std::string> fUISigsFormulas;
 
-    std::string                makeItemTitle(size_t formulasListSize, const std::string& titleName);
-    std::string                makeSignamesList(const std::list<std::string>& formulasList, const std::string& ending);
-    std::string                makeSignamesList(const std::vector<std::list<std::string> >& formulasListsVector,
-                                           const std::string& ending);  ///< For all "internal" signals.
-    std::string                getSigName(const std::string& s);
-    std::string                makeSigDomain(const std::list<std::string>& formulasList);
-    std::string                getUISigName(const std::string& s);
-    char                  getUISigType(const std::string& s);
-    std::vector<std::list<std::string>> makeUISignamesVector(const std::multimap<std::string, std::string>& field);
+    std::string makeItemTitle(size_t formulasListSize, const std::string& titleName);
+    std::string makeSignamesList(const std::list<std::string>& formulasList,
+                                 const std::string&            ending);
+    std::string makeSignamesList(const std::vector<std::list<std::string>>& formulasListsVector,
+                                 const std::string& ending);  ///< For all "internal" signals.
+    std::string getSigName(const std::string& s);
+    std::string makeSigDomain(const std::list<std::string>& formulasList);
+    std::string getUISigName(const std::string& s);
+    char        getUISigType(const std::string& s);
+    std::vector<std::list<std::string>> makeUISignamesVector(
+        const std::multimap<std::string, std::string>& field);
 
     void printOneLine(const std::string& section, std::ostream& docout);
-    void printHierarchy(const std::string& section, std::multimap<std::string, std::string>& field, std::ostream& docout);
-    void printDGroup(const std::string& section, std::list<std::string>& field, std::ostream& docout);
+    void printHierarchy(const std::string& section, std::multimap<std::string, std::string>& field,
+                        std::ostream& docout);
+    void printDGroup(const std::string& section, std::list<std::string>& field,
+                     std::ostream& docout);
     void printMath(const std::string& section, std::list<std::string>& field, std::ostream& docout);
 
     bool hasNotOnlyEmptyKeys(std::multimap<std::string, std::string>& mm);

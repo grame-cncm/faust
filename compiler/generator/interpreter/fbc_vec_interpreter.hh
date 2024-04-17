@@ -34,7 +34,7 @@
 #include "fbc_executor.hh"
 #include "interpreter_bytecode.hh"
 
-//#define interp_assert(exp) faustassert(exp)
+// #define interp_assert(exp) faustassert(exp)
 #define interp_assert(exp)
 
 template <class REAL, int TRACE>
@@ -46,8 +46,8 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
    protected:
     interpreter_dsp_factory_aux<T, 0>* fFactory;
 
-    int*        fIntHeap;
-    REAL*       fRealHeap;
+    int*  fIntHeap;
+    REAL* fRealHeap;
 
     REAL** fInputs;
     REAL** fOutputs;
@@ -57,7 +57,8 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
 #define pushAddr(addr) (address_stack[addr_stack_index++] = addr)
 #define popAddr() (address_stack[--addr_stack_index])
 
-    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UIInterface* glue)
+    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block,
+                                           UIInterface*                         glue)
     {
         for (const auto& it : block->fInstructions) {
             // it->write(&std::cout);
@@ -88,39 +89,44 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
                     break;
 
                 case FBCInstruction::kAddHorizontalSlider:
-                    glue->addHorizontalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin,
-                                              it->fMax, it->fStep);
+                    glue->addHorizontalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset],
+                                              it->fInit, it->fMin, it->fMax, it->fStep);
                     break;
 
                 case FBCInstruction::kAddVerticalSlider:
-                    glue->addVerticalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin, it->fMax,
-                                            it->fStep);
+                    glue->addVerticalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit,
+                                            it->fMin, it->fMax, it->fStep);
                     break;
 
                 case FBCInstruction::kAddNumEntry:
-                    glue->addNumEntry(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin, it->fMax,
-                                      it->fStep);
+                    glue->addNumEntry(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit,
+                                      it->fMin, it->fMax, it->fStep);
                     break;
 
                 case FBCInstruction::kAddSoundfile:
                     // fKey use for label, fValue used for URL, fLabel for SF field name
-                    glue->addSoundfile(it->fKey.c_str(), it->fValue.c_str(), &this->fSoundTable[it->fLabel]);
+                    glue->addSoundfile(it->fKey.c_str(), it->fValue.c_str(),
+                                       &this->fSoundTable[it->fLabel]);
                     break;
 
                 case FBCInstruction::kAddHorizontalBargraph:
-                    glue->addHorizontalBargraph(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fMin, it->fMax);
+                    glue->addHorizontalBargraph(it->fLabel.c_str(), &fRealHeap[it->fOffset],
+                                                it->fMin, it->fMax);
                     break;
 
                 case FBCInstruction::kAddVerticalBargraph:
-                    glue->addVerticalBargraph(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fMin, it->fMax);
+                    glue->addVerticalBargraph(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fMin,
+                                              it->fMax);
                     break;
 
                 case FBCInstruction::kDeclare:
                     // Special case for "0" zone
                     if (it->fOffset == -1) {
-                        glue->declare(static_cast<T*>(nullptr), it->fKey.c_str(), it->fValue.c_str());
+                        glue->declare(static_cast<T*>(nullptr), it->fKey.c_str(),
+                                      it->fValue.c_str());
                     } else {
-                        glue->declare(&fRealHeap[it->fOffset], it->fKey.c_str(), it->fValue.c_str());
+                        glue->declare(&fRealHeap[it->fOffset], it->fKey.c_str(),
+                                      it->fValue.c_str());
                     }
                     break;
 
@@ -139,87 +145,99 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             &&do_kRealValue, &&do_kInt32Value,
 
             // Memory
-            &&do_kLoadReal, &&do_kLoadInt, &&do_kLoadSoundFieldInt, &&do_kLoadSoundFieldReal, &&do_kStoreReal, &&do_kStoreInt,
-            &&do_kStoreRealValue, &&do_kStoreIntValue, &&do_kLoadIndexedReal, &&do_kLoadIndexedInt,
-            &&do_kStoreIndexedReal, &&do_kStoreIndexedInt, &&do_kBlockStoreReal, &&do_kBlockStoreInt, &&do_kMoveReal,
-            &&do_kMoveInt, &&do_kPairMoveReal, &&do_kPairMoveInt, &&do_kBlockPairMoveReal, &&do_kBlockPairMoveInt,
-            &&do_kBlockShiftReal, &&do_kBlockShiftInt, &&do_kLoadInput, &&do_kStoreOutput,
+            &&do_kLoadReal, &&do_kLoadInt, &&do_kLoadSoundFieldInt, &&do_kLoadSoundFieldReal,
+            &&do_kStoreReal, &&do_kStoreInt, &&do_kStoreRealValue, &&do_kStoreIntValue,
+            &&do_kLoadIndexedReal, &&do_kLoadIndexedInt, &&do_kStoreIndexedReal,
+            &&do_kStoreIndexedInt, &&do_kBlockStoreReal, &&do_kBlockStoreInt, &&do_kMoveReal,
+            &&do_kMoveInt, &&do_kPairMoveReal, &&do_kPairMoveInt, &&do_kBlockPairMoveReal,
+            &&do_kBlockPairMoveInt, &&do_kBlockShiftReal, &&do_kBlockShiftInt, &&do_kLoadInput,
+            &&do_kStoreOutput,
 
             // Cast/bitcast
-            &&do_kCastReal, &&do_kCastInt, &&do_kCastRealHeap, &&do_kCastIntHeap, &&do_kBitcastInt, &&do_kBitcastReal,
+            &&do_kCastReal, &&do_kCastInt, &&do_kCastRealHeap, &&do_kCastIntHeap, &&do_kBitcastInt,
+            &&do_kBitcastReal,
 
             // Standard math (stack OP stack)
-            &&do_kAddReal, &&do_kAddInt, &&do_kSubReal, &&do_kSubInt, &&do_kMultReal, &&do_kMultInt, &&do_kDivReal,
-            &&do_kDivInt, &&do_kRemReal, &&do_kRemInt, &&do_kLshInt, &&do_kARshInt, &&do_kGTInt, &&do_kLTInt,
-            &&do_kGEInt, &&do_kLEInt, &&do_kEQInt, &&do_kNEInt, &&do_kGTReal, &&do_kLTReal, &&do_kGEReal, &&do_kLEReal,
-            &&do_kEQReal, &&do_kNEReal, &&do_kANDInt, &&do_kORInt, &&do_kXORInt,
+            &&do_kAddReal, &&do_kAddInt, &&do_kSubReal, &&do_kSubInt, &&do_kMultReal, &&do_kMultInt,
+            &&do_kDivReal, &&do_kDivInt, &&do_kRemReal, &&do_kRemInt, &&do_kLshInt, &&do_kARshInt,
+            &&do_kGTInt, &&do_kLTInt, &&do_kGEInt, &&do_kLEInt, &&do_kEQInt, &&do_kNEInt,
+            &&do_kGTReal, &&do_kLTReal, &&do_kGEReal, &&do_kLEReal, &&do_kEQReal, &&do_kNEReal,
+            &&do_kANDInt, &&do_kORInt, &&do_kXORInt,
 
             // Standard math (heap OP heap)
-            &&do_kAddRealHeap, &&do_kAddIntHeap, &&do_kSubRealHeap, &&do_kSubIntHeap, &&do_kMultRealHeap,
-            &&do_kMultIntHeap, &&do_kDivRealHeap, &&do_kDivIntHeap, &&do_kRemRealHeap, &&do_kRemIntHeap,
-            &&do_kLshIntHeap, &&do_kARshIntHeap, &&do_kGTIntHeap, &&do_kLTIntHeap, &&do_kGEIntHeap, &&do_kLEIntHeap,
-            &&do_kEQIntHeap, &&do_kNEIntHeap, &&do_kGTRealHeap, &&do_kLTRealHeap, &&do_kGERealHeap, &&do_kLERealHeap,
+            &&do_kAddRealHeap, &&do_kAddIntHeap, &&do_kSubRealHeap, &&do_kSubIntHeap,
+            &&do_kMultRealHeap, &&do_kMultIntHeap, &&do_kDivRealHeap, &&do_kDivIntHeap,
+            &&do_kRemRealHeap, &&do_kRemIntHeap, &&do_kLshIntHeap, &&do_kARshIntHeap,
+            &&do_kGTIntHeap, &&do_kLTIntHeap, &&do_kGEIntHeap, &&do_kLEIntHeap, &&do_kEQIntHeap,
+            &&do_kNEIntHeap, &&do_kGTRealHeap, &&do_kLTRealHeap, &&do_kGERealHeap, &&do_kLERealHeap,
             &&do_kEQRealHeap, &&do_kNERealHeap, &&do_kANDIntHeap, &&do_kORIntHeap, &&do_kXORIntHeap,
 
             // Standard math (heap OP stack)
-            &&do_kAddRealStack, &&do_kAddIntStack, &&do_kSubRealStack, &&do_kSubIntStack, &&do_kMultRealStack,
-            &&do_kMultIntStack, &&do_kDivRealStack, &&do_kDivIntStack, &&do_kRemRealStack, &&do_kRemIntStack,
-            &&do_kLshIntStack, &&do_kARshIntStack, &&do_kGTIntStack, &&do_kLTIntStack, &&do_kGEIntStack,
-            &&do_kLEIntStack, &&do_kEQIntStack, &&do_kNEIntStack, &&do_kGTRealStack, &&do_kLTRealStack,
-            &&do_kGERealStack, &&do_kLERealStack, &&do_kEQRealStack, &&do_kNERealStack, &&do_kANDIntStack,
-            &&do_kORIntStack, &&do_kXORIntStack,
+            &&do_kAddRealStack, &&do_kAddIntStack, &&do_kSubRealStack, &&do_kSubIntStack,
+            &&do_kMultRealStack, &&do_kMultIntStack, &&do_kDivRealStack, &&do_kDivIntStack,
+            &&do_kRemRealStack, &&do_kRemIntStack, &&do_kLshIntStack, &&do_kARshIntStack,
+            &&do_kGTIntStack, &&do_kLTIntStack, &&do_kGEIntStack, &&do_kLEIntStack,
+            &&do_kEQIntStack, &&do_kNEIntStack, &&do_kGTRealStack, &&do_kLTRealStack,
+            &&do_kGERealStack, &&do_kLERealStack, &&do_kEQRealStack, &&do_kNERealStack,
+            &&do_kANDIntStack, &&do_kORIntStack, &&do_kXORIntStack,
 
             // Standard math (value OP stack)
-            &&do_kAddRealStackValue, &&do_kAddIntStackValue, &&do_kSubRealStackValue, &&do_kSubIntStackValue,
-            &&do_kMultRealStackValue, &&do_kMultIntStackValue, &&do_kDivRealStackValue, &&do_kDivIntStackValue,
-            &&do_kRemRealStackValue, &&do_kRemIntStackValue, &&do_kLshIntStackValue, &&do_kARshIntStackValue,
-            &&do_kGTIntStackValue, &&do_kLTIntStackValue, &&do_kGEIntStackValue, &&do_kLEIntStackValue,
-            &&do_kEQIntStackValue, &&do_kNEIntStackValue, &&do_kGTRealStackValue, &&do_kLTRealStackValue,
-            &&do_kGERealStackValue, &&do_kLERealStackValue, &&do_kEQRealStackValue, &&do_kNERealStackValue,
+            &&do_kAddRealStackValue, &&do_kAddIntStackValue, &&do_kSubRealStackValue,
+            &&do_kSubIntStackValue, &&do_kMultRealStackValue, &&do_kMultIntStackValue,
+            &&do_kDivRealStackValue, &&do_kDivIntStackValue, &&do_kRemRealStackValue,
+            &&do_kRemIntStackValue, &&do_kLshIntStackValue, &&do_kARshIntStackValue,
+            &&do_kGTIntStackValue, &&do_kLTIntStackValue, &&do_kGEIntStackValue,
+            &&do_kLEIntStackValue, &&do_kEQIntStackValue, &&do_kNEIntStackValue,
+            &&do_kGTRealStackValue, &&do_kLTRealStackValue, &&do_kGERealStackValue,
+            &&do_kLERealStackValue, &&do_kEQRealStackValue, &&do_kNERealStackValue,
             &&do_kANDIntStackValue, &&do_kORIntStackValue, &&do_kXORIntStackValue,
 
             // Standard math (value OP heap)
-            &&do_kAddRealValue, &&do_kAddIntValue, &&do_kSubRealValue, &&do_kSubIntValue, &&do_kMultRealValue,
-            &&do_kMultIntValue, &&do_kDivRealValue, &&do_kDivIntValue, &&do_kRemRealValue, &&do_kRemIntValue,
-            &&do_kLshIntValue, &&do_kARshIntValue, &&do_kGTIntValue, &&do_kLTIntValue, &&do_kGEIntValue,
-            &&do_kLEIntValue, &&do_kEQIntValue, &&do_kNEIntValue, &&do_kGTRealValue, &&do_kLTRealValue,
-            &&do_kGERealValue, &&do_kLERealValue, &&do_kEQRealValue, &&do_kNERealValue, &&do_kANDIntValue,
-            &&do_kORIntValue, &&do_kXORIntValue,
+            &&do_kAddRealValue, &&do_kAddIntValue, &&do_kSubRealValue, &&do_kSubIntValue,
+            &&do_kMultRealValue, &&do_kMultIntValue, &&do_kDivRealValue, &&do_kDivIntValue,
+            &&do_kRemRealValue, &&do_kRemIntValue, &&do_kLshIntValue, &&do_kARshIntValue,
+            &&do_kGTIntValue, &&do_kLTIntValue, &&do_kGEIntValue, &&do_kLEIntValue,
+            &&do_kEQIntValue, &&do_kNEIntValue, &&do_kGTRealValue, &&do_kLTRealValue,
+            &&do_kGERealValue, &&do_kLERealValue, &&do_kEQRealValue, &&do_kNERealValue,
+            &&do_kANDIntValue, &&do_kORIntValue, &&do_kXORIntValue,
 
             // Standard math (value OP heap) : non commutative operations
-            &&do_kSubRealValueInvert, &&do_kSubIntValueInvert, &&do_kDivRealValueInvert, &&do_kDivIntValueInvert,
-            &&do_kRemRealValueInvert, &&do_kRemIntValueInvert, &&do_kLshIntValueInvert, &&do_kARshIntValueInvert,
-            &&do_kGTIntValueInvert, &&do_kLTIntValueInvert, &&do_kGEIntValueInvert, &&do_kLEIntValueInvert,
-            &&do_kGTRealValueInvert, &&do_kLTRealValueInvert, &&do_kGERealValueInvert, &&do_kLERealValueInvert,
+            &&do_kSubRealValueInvert, &&do_kSubIntValueInvert, &&do_kDivRealValueInvert,
+            &&do_kDivIntValueInvert, &&do_kRemRealValueInvert, &&do_kRemIntValueInvert,
+            &&do_kLshIntValueInvert, &&do_kARshIntValueInvert, &&do_kGTIntValueInvert,
+            &&do_kLTIntValueInvert, &&do_kGEIntValueInvert, &&do_kLEIntValueInvert,
+            &&do_kGTRealValueInvert, &&do_kLTRealValueInvert, &&do_kGERealValueInvert,
+            &&do_kLERealValueInvert,
 
             // Extended unary math
-            &&do_kAbs, &&do_kAbsf, &&do_kAcosf, &&do_kAsinf, &&do_kAtanf, &&do_kCeilf, &&do_kCosf, &&do_kCoshf,
-            &&do_kExpf, &&do_kFloorf, &&do_kLogf, &&do_kLog10f, &&do_kRintf, &&do_kRoundf, &&do_kSinf, &&do_kSinhf, &&do_kSqrtf,
-            &&do_kTanf, &&do_kTanhf,
+            &&do_kAbs, &&do_kAbsf, &&do_kAcosf, &&do_kAsinf, &&do_kAtanf, &&do_kCeilf, &&do_kCosf,
+            &&do_kCoshf, &&do_kExpf, &&do_kFloorf, &&do_kLogf, &&do_kLog10f, &&do_kRintf,
+            &&do_kRoundf, &&do_kSinf, &&do_kSinhf, &&do_kSqrtf, &&do_kTanf, &&do_kTanhf,
 
             // Extended unary math (heap OP heap)
-            &&do_kAbsHeap, &&do_kAbsfHeap, &&do_kAcosfHeap, &&do_kAsinfHeap, &&do_kAtanfHeap, &&do_kCeilfHeap,
-            &&do_kCosfHeap, &&do_kCoshfHeap, &&do_kExpfHeap, &&do_kFloorfHeap, &&do_kLogfHeap, &&do_kLog10fHeap,
-            &&do_kRintfHeap, &&do_kRoundfHeap, &&do_kSinfHeap, &&do_kSinhfHeap, &&do_kSqrtfHeap, &&do_kTanfHeap, &&do_kTanhfHeap,
+            &&do_kAbsHeap, &&do_kAbsfHeap, &&do_kAcosfHeap, &&do_kAsinfHeap, &&do_kAtanfHeap,
+            &&do_kCeilfHeap, &&do_kCosfHeap, &&do_kCoshfHeap, &&do_kExpfHeap, &&do_kFloorfHeap,
+            &&do_kLogfHeap, &&do_kLog10fHeap, &&do_kRintfHeap, &&do_kRoundfHeap, &&do_kSinfHeap,
+            &&do_kSinhfHeap, &&do_kSqrtfHeap, &&do_kTanfHeap, &&do_kTanhfHeap,
 
             // Extended binary math
             &&do_kAtan2f, &&do_kFmodf, &&do_kPowf, &&do_kMax, &&do_kMaxf, &&do_kMin, &&do_kMinf,
 
             // Extended binary math (heap version)
-            &&do_kAtan2fHeap, &&do_kFmodfHeap, &&do_kPowfHeap, &&do_kMaxHeap, &&do_kMaxfHeap, &&do_kMinHeap,
-            &&do_kMinfHeap,
+            &&do_kAtan2fHeap, &&do_kFmodfHeap, &&do_kPowfHeap, &&do_kMaxHeap, &&do_kMaxfHeap,
+            &&do_kMinHeap, &&do_kMinfHeap,
 
             // Extended binary math (stack version)
-            &&do_kAtan2fStack, &&do_kFmodfStack, &&do_kPowfStack, &&do_kMaxStack, &&do_kMaxfStack, &&do_kMinStack,
-            &&do_kMinfStack,
+            &&do_kAtan2fStack, &&do_kFmodfStack, &&do_kPowfStack, &&do_kMaxStack, &&do_kMaxfStack,
+            &&do_kMinStack, &&do_kMinfStack,
 
             // Extended binary math (Stack/Value version)
-            &&do_kAtan2fStackValue, &&do_kFmodfStackValue, &&do_kPowfStackValue, &&do_kMaxStackValue,
-            &&do_kMaxfStackValue, &&do_kMinStackValue, &&do_kMinfStackValue,
+            &&do_kAtan2fStackValue, &&do_kFmodfStackValue, &&do_kPowfStackValue,
+            &&do_kMaxStackValue, &&do_kMaxfStackValue, &&do_kMinStackValue, &&do_kMinfStackValue,
 
             // Extended binary math (Value version)
-            &&do_kAtan2fValue, &&do_kFmodfValue, &&do_kPowfValue, &&do_kMaxValue, &&do_kMaxfValue, &&do_kMinValue,
-            &&do_kMinfValue,
+            &&do_kAtan2fValue, &&do_kFmodfValue, &&do_kPowfValue, &&do_kMaxValue, &&do_kMaxfValue,
+            &&do_kMinValue, &&do_kMinfValue,
 
             // Extended binary math (Value version) : non commutative operations
             &&do_kAtan2fValueInvert, &&do_kFmodfValueInvert, &&do_kPowfValueInvert,
@@ -282,7 +300,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
     }
 #define emptyReturnVec() (addr_stack_index == 0)
 
-// #pragma clang loop vectorize(enable) interleave(enable)
+        // #pragma clang loop vectorize(enable) interleave(enable)
 
 #define VEC_LOOP(code)                  \
     {                                   \
@@ -315,8 +333,8 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         // std::cout << "ExecuteBlock : " << block->fInstructions.size() << "\n";
         // block->write(&std::cout);
 
-        int v1_int[VEC];
-        int v2_int[VEC];
+        int  v1_int[VEC];
+        int  v2_int[VEC];
         REAL v1_real[VEC];
         REAL v2_real[VEC];
 
@@ -338,70 +356,70 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         */
 
         // Number operations
-        do_kRealValue : {
+        do_kRealValue: {
             VEC_LOOP(PUSH_VEC_REAL((*it)->fRealValue));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kInt32Value : {
+        do_kInt32Value: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Memory operations
-        do_kLoadReal : {
+        do_kLoadReal: {
             VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kLoadInt : {
+        do_kLoadInt: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLoadSoundFieldInt : {
-            // TODO
-        }
-            
-        do_kLoadSoundFieldReal : {
+        do_kLoadSoundFieldInt: {
             // TODO
         }
 
-        do_kStoreReal : {
+        do_kLoadSoundFieldReal: {
+            // TODO
+        }
+
+        do_kStoreReal: {
             VEC_LOOP(WRITE_HEAP_VEC_REAL((*it)->fOffset1, POP_VEC_REAL()));
             STACK_DOWN_REAL();
             dispatchNextVec();
         }
 
-        do_kStoreInt : {
+        do_kStoreInt: {
             VEC_LOOP(WRITE_HEAP_VEC_INT((*it)->fOffset1, POP_VEC_INT()));
             STACK_DOWN_INT();
             dispatchNextVec();
         }
 
         // Directly store a value
-        do_kStoreRealValue : {
+        do_kStoreRealValue: {
             VEC_LOOP(WRITE_HEAP_VEC_REAL((*it)->fOffset1, (*it)->fRealValue));
             dispatchNextVec();
         }
 
-        do_kStoreIntValue : {
+        do_kStoreIntValue: {
             VEC_LOOP(WRITE_HEAP_VEC_INT((*it)->fOffset1, (*it)->fIntValue));
             dispatchNextVec();
         }
 
-        do_kLoadIndexedReal : {
+        do_kLoadIndexedReal: {
             VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1 + POP_VEC_INT())));
             STACK_UP_REAL();
             STACK_DOWN_INT();
             dispatchNextVec();
         }
 
-        do_kLoadIndexedInt : {
+        do_kLoadIndexedInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1 + v1_int[j])));
@@ -409,14 +427,14 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kStoreIndexedReal : {
+        do_kStoreIndexedReal: {
             VEC_LOOP(WRITE_HEAP_VEC_REAL((*it)->fOffset1 + POP_VEC_INT(), POP_VEC_REAL()));
             STACK_DOWN_REAL();
             STACK_DOWN_INT();
             dispatchNextVec();
         }
 
-        do_kStoreIndexedInt : {
+        do_kStoreIndexedInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(WRITE_HEAP_VEC_INT((*it)->fOffset1 + v1_int[j], POP_VEC_INT()));
@@ -424,8 +442,9 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kBlockStoreReal : {
-            FIRBlockStoreRealInstruction<T>* inst = static_cast<FIRBlockStoreRealInstruction<T>*>(*it);
+        do_kBlockStoreReal: {
+            FIRBlockStoreRealInstruction<T>* inst =
+                static_cast<FIRBlockStoreRealInstruction<T>*>(*it);
             interp_assert(inst);
             for (int i = 0; i < inst->fOffset2; i++) {
                 fRealHeap[inst->fOffset1 + i] = inst->fNumTable[i];
@@ -433,8 +452,9 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kBlockStoreInt : {
-            FIRBlockStoreIntInstruction<T>* inst = static_cast<FIRBlockStoreIntInstruction<T>*>(*it);
+        do_kBlockStoreInt: {
+            FIRBlockStoreIntInstruction<T>* inst =
+                static_cast<FIRBlockStoreIntInstruction<T>*>(*it);
             interp_assert(inst);
             for (int i = 0; i < inst->fOffset2; i++) {
                 fIntHeap[inst->fOffset1 + i] = inst->fNumTable[i];
@@ -442,50 +462,50 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMoveReal : {
+        do_kMoveReal: {
             fRealHeap[(*it)->fOffset1] = fRealHeap[(*it)->fOffset2];
             dispatchNextVec();
         }
 
-        do_kMoveInt : {
+        do_kMoveInt: {
             fIntHeap[(*it)->fOffset1] = fIntHeap[(*it)->fOffset2];
             dispatchNextVec();
         }
 
-        do_kPairMoveReal : {
+        do_kPairMoveReal: {
             fRealHeap[(*it)->fOffset1] = fRealHeap[(*it)->fOffset1 - 1];
             fRealHeap[(*it)->fOffset2] = fRealHeap[(*it)->fOffset2 - 1];
             dispatchNextVec();
         }
 
-        do_kPairMoveInt : {
+        do_kPairMoveInt: {
             fIntHeap[(*it)->fOffset1] = fIntHeap[(*it)->fOffset1 - 1];
             fIntHeap[(*it)->fOffset2] = fIntHeap[(*it)->fOffset2 - 1];
             dispatchNextVec();
         }
 
-        do_kBlockPairMoveReal : {
+        do_kBlockPairMoveReal: {
             for (int i = (*it)->fOffset1; i < (*it)->fOffset2; i += 2) {
                 fRealHeap[i + 1] = fRealHeap[i];
             }
             dispatchNextVec();
         }
 
-        do_kBlockPairMoveInt : {
+        do_kBlockPairMoveInt: {
             for (int i = (*it)->fOffset1; i < (*it)->fOffset2; i += 2) {
                 fIntHeap[i + 1] = fIntHeap[i];
             }
             dispatchNextVec();
         }
 
-        do_kBlockShiftReal : {
+        do_kBlockShiftReal: {
             for (int i = (*it)->fOffset1; i > (*it)->fOffset2; i -= 1) {
                 fRealHeap[i] = fRealHeap[i - 1];
             }
             dispatchNextVec();
         }
 
-        do_kBlockShiftInt : {
+        do_kBlockShiftInt: {
             for (int i = (*it)->fOffset1; i > (*it)->fOffset2; i -= 1) {
                 fIntHeap[i] = fIntHeap[i - 1];
             }
@@ -493,14 +513,14 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Input/output access
-        do_kLoadInput : {
+        do_kLoadInput: {
             VEC_LOOP(PUSH_VEC_REAL(fInputs[(*it)->fOffset1][POP_VEC_INT()]));
             STACK_UP_REAL();
             STACK_DOWN_INT();
             dispatchNextVec();
         }
 
-        do_kStoreOutput : {
+        do_kStoreOutput: {
             VEC_LOOP(fOutputs[(*it)->fOffset1][POP_VEC_INT()] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             STACK_DOWN_INT();
@@ -508,41 +528,41 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Cast operations
-        do_kCastReal : {
+        do_kCastReal: {
             VEC_LOOP(PUSH_VEC_REAL(T(POP_VEC_INT())));
             STACK_UP_REAL();
             STACK_DOWN_INT();
             dispatchNextVec();
         }
 
-        do_kCastRealHeap : {
+        do_kCastRealHeap: {
             VEC_LOOP(PUSH_VEC_REAL(T(READ_HEAP_VEC_INT((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kCastInt : {
+        do_kCastInt: {
             VEC_LOOP(PUSH_VEC_INT(T(POP_VEC_REAL())));
             STACK_DOWN_REAL();
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kCastIntHeap : {
+        do_kCastIntHeap: {
             VEC_LOOP(PUSH_VEC_INT(T(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Bitcast operations
-        do_kBitcastInt : {
+        do_kBitcastInt: {
             VEC_LOOP(T v1 = POP_VEC_REAL(); PUSH_VEC_INT(*reinterpret_cast<int*>(&v1)));
             STACK_DOWN_REAL();
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kBitcastReal : {
+        do_kBitcastReal: {
             VEC_LOOP(int v1 = POP_VEC_INT(); PUSH_VEC_REAL(*reinterpret_cast<T*>(&v1)));
             STACK_UP_REAL();
             STACK_DOWN_INT();
@@ -553,7 +573,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Standard math operations : 'stack' OP 'stack' version
             //-------------------------------------------------------
 
-        do_kAddReal : {
+        do_kAddReal: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -563,7 +583,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kAddInt : {
+        do_kAddInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -573,7 +593,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kSubReal : {
+        do_kSubReal: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -583,7 +603,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kSubInt : {
+        do_kSubInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -593,7 +613,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMultReal : {
+        do_kMultReal: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -603,7 +623,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMultInt : {
+        do_kMultInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -613,7 +633,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kDivReal : {
+        do_kDivReal: {
             VEC_LOOP(v1_int[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -623,7 +643,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kDivInt : {
+        do_kDivInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -633,7 +653,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kRemReal : {
+        do_kRemReal: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -643,7 +663,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kRemInt : {
+        do_kRemInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -654,7 +674,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Shift operation
-        do_kLshInt : {
+        do_kLshInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -664,7 +684,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kARshInt : {
+        do_kARshInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -675,7 +695,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Comparaison Int
-        do_kGTInt : {
+        do_kGTInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -685,7 +705,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLTInt : {
+        do_kLTInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -695,7 +715,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kGEInt : {
+        do_kGEInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -705,7 +725,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLEInt : {
+        do_kLEInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -715,7 +735,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kEQInt : {
+        do_kEQInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -725,7 +745,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kNEInt : {
+        do_kNEInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -736,7 +756,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Comparaison Real
-        do_kGTReal : {
+        do_kGTReal: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -746,7 +766,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLTReal : {
+        do_kLTReal: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -756,7 +776,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kGEReal : {
+        do_kGEReal: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -766,7 +786,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLEReal : {
+        do_kLEReal: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -776,7 +796,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kEQReal : {
+        do_kEQReal: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -786,7 +806,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kNEReal : {
+        do_kNEReal: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -797,7 +817,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Logical operations
-        do_kANDInt : {
+        do_kANDInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -807,7 +827,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kORInt : {
+        do_kORInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -817,7 +837,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kXORInt : {
+        do_kXORInt: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -831,169 +851,195 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Standard math operations : 'heap' OP 'heap' version
             //-----------------------------------------------------
 
-        do_kAddRealHeap : {
-            VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) + READ_HEAP_VEC_REAL((*it)->fOffset2)));
+        do_kAddRealHeap: {
+            VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) +
+                                   READ_HEAP_VEC_REAL((*it)->fOffset2)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kAddIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) + READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kAddIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) +
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kSubRealHeap : {
-            VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) - READ_HEAP_VEC_REAL((*it)->fOffset2)));
+        do_kSubRealHeap: {
+            VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) -
+                                   READ_HEAP_VEC_REAL((*it)->fOffset2)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kSubIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) - READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kSubIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) -
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kMultRealHeap : {
-            VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) * READ_HEAP_VEC_REAL((*it)->fOffset2)));
+        do_kMultRealHeap: {
+            VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) *
+                                   READ_HEAP_VEC_REAL((*it)->fOffset2)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kMultIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) * READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kMultIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) *
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kDivRealHeap : {
-            VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) / READ_HEAP_VEC_REAL((*it)->fOffset2)));
+        do_kDivRealHeap: {
+            VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) /
+                                   READ_HEAP_VEC_REAL((*it)->fOffset2)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kDivIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) / READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kDivIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) /
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kRemRealHeap : {
-            VEC_LOOP(PUSH_VEC_REAL(
-                std::remainder(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
+        do_kRemRealHeap: {
+            VEC_LOOP(PUSH_VEC_REAL(std::remainder(READ_HEAP_VEC_REAL((*it)->fOffset1),
+                                                  READ_HEAP_VEC_REAL((*it)->fOffset2))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kRemIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) % READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kRemIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) %
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Shift operation
-        do_kLshIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) << READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kLshIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1)
+                                  << READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kARshIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >> READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kARshIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >>
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Comparaison Int
-        do_kGTIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) > READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kGTIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLTIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) < READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kLTIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) <
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kGEIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >= READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kGEIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >=
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLEIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) <= READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kLEIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) <=
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kEQIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) == READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kEQIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) ==
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kNEIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) != READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kNEIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) !=
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Comparaison Real
-        do_kGTRealHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) > READ_HEAP_VEC_REAL((*it)->fOffset2)));
+        do_kGTRealHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) >
+                                  READ_HEAP_VEC_REAL((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLTRealHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) < READ_HEAP_VEC_REAL((*it)->fOffset2)));
+        do_kLTRealHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) <
+                                  READ_HEAP_VEC_REAL((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kGERealHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) >= READ_HEAP_VEC_REAL((*it)->fOffset2)));
+        do_kGERealHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) >=
+                                  READ_HEAP_VEC_REAL((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLERealHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) <= READ_HEAP_VEC_REAL((*it)->fOffset2)));
+        do_kLERealHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) <=
+                                  READ_HEAP_VEC_REAL((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kEQRealHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) == READ_HEAP_VEC_REAL((*it)->fOffset2)));
+        do_kEQRealHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) ==
+                                  READ_HEAP_VEC_REAL((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kNERealHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) != READ_HEAP_VEC_REAL((*it)->fOffset2)));
+        do_kNERealHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) !=
+                                  READ_HEAP_VEC_REAL((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Logical operations
-        do_kANDIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) & READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kANDIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) &
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kORIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) | READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kORIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) |
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kXORIntHeap : {
-            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) ^ READ_HEAP_VEC_INT((*it)->fOffset2)));
+        do_kXORIntHeap: {
+            VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) ^
+                                  READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
         }
@@ -1002,7 +1048,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Standard math operations : 'stack' OP 'heap' version
             //------------------------------------------------------
 
-        do_kAddRealStack : {
+        do_kAddRealStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) + v1_real[j]));
@@ -1010,7 +1056,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kAddIntStack : {
+        do_kAddIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) + v1_int[j]));
@@ -1018,7 +1064,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kSubRealStack : {
+        do_kSubRealStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) - v1_real[j]));
@@ -1026,7 +1072,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kSubIntStack : {
+        do_kSubIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) - v1_int[j]));
@@ -1034,7 +1080,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMultRealStack : {
+        do_kMultRealStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) * v1_real[j]));
@@ -1042,7 +1088,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMultIntStack : {
+        do_kMultIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) * v1_int[j]));
@@ -1050,7 +1096,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kDivRealStack : {
+        do_kDivRealStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) / v1_real[j]));
@@ -1058,7 +1104,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kDivIntStack : {
+        do_kDivIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) / v1_int[j]));
@@ -1066,15 +1112,16 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kRemRealStack : {
+        do_kRemRealStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
-            VEC_LOOP(PUSH_VEC_REAL(std::remainder(READ_HEAP_VEC_REAL((*it)->fOffset1), v1_real[j])));
+            VEC_LOOP(
+                PUSH_VEC_REAL(std::remainder(READ_HEAP_VEC_REAL((*it)->fOffset1), v1_real[j])));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kRemIntStack : {
+        do_kRemIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) % v1_int[j]));
@@ -1083,7 +1130,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Shift operation
-        do_kLshIntStack : {
+        do_kLshIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) << v1_int[j]));
@@ -1091,7 +1138,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kARshIntStack : {
+        do_kARshIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >> v1_int[j]));
@@ -1100,7 +1147,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Comparaison Int
-        do_kGTIntStack : {
+        do_kGTIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) > v1_int[j]));
@@ -1108,7 +1155,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLTIntStack : {
+        do_kLTIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) < v1_int[j]));
@@ -1116,7 +1163,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kGEIntStack : {
+        do_kGEIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >= v1_int[j]));
@@ -1124,7 +1171,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLEIntStack : {
+        do_kLEIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) <= v1_int[j]));
@@ -1132,7 +1179,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kEQIntStack : {
+        do_kEQIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) == v1_int[j]));
@@ -1140,7 +1187,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kNEIntStack : {
+        do_kNEIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) != v1_int[j]));
@@ -1149,7 +1196,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Comparaison Real
-        do_kGTRealStack : {
+        do_kGTRealStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) > v1_real[j]));
@@ -1157,7 +1204,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLTRealStack : {
+        do_kLTRealStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) < v1_real[j]));
@@ -1165,7 +1212,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kGERealStack : {
+        do_kGERealStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) >= v1_real[j]));
@@ -1173,7 +1220,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLERealStack : {
+        do_kLERealStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) <= v1_real[j]));
@@ -1181,7 +1228,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kEQRealStack : {
+        do_kEQRealStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) == v1_real[j]));
@@ -1189,7 +1236,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kNERealStack : {
+        do_kNERealStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) != v1_real[j]));
@@ -1198,7 +1245,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Logical operations
-        do_kANDIntStack : {
+        do_kANDIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) & v1_int[j]));
@@ -1206,7 +1253,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kORIntStack : {
+        do_kORIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) | v1_int[j]));
@@ -1214,7 +1261,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kXORIntStack : {
+        do_kXORIntStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) ^ v1_int[j]));
@@ -1226,7 +1273,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Standard math operations : 'stack' OP 'value' version
             //-------------------------------------------------------
 
-        do_kAddRealStackValue : {
+        do_kAddRealStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL((*it)->fRealValue + v1_real[j]));
@@ -1234,7 +1281,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kAddIntStackValue : {
+        do_kAddIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue + v1_int[j]));
@@ -1242,7 +1289,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kSubRealStackValue : {
+        do_kSubRealStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL((*it)->fRealValue - v1_real[j]));
@@ -1250,7 +1297,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kSubIntStackValue : {
+        do_kSubIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue - v1_int[j]));
@@ -1258,7 +1305,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMultRealStackValue : {
+        do_kMultRealStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL((*it)->fRealValue * v1_real[j]));
@@ -1266,7 +1313,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMultIntStackValue : {
+        do_kMultIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue * v1_int[j]));
@@ -1274,7 +1321,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kDivRealStackValue : {
+        do_kDivRealStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL((*it)->fRealValue / v1_real[j]));
@@ -1282,7 +1329,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kDivIntStackValue : {
+        do_kDivIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue / v1_int[j]));
@@ -1290,7 +1337,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kRemRealStackValue : {
+        do_kRemRealStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::remainder((*it)->fRealValue, v1_real[j])));
@@ -1298,7 +1345,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kRemIntStackValue : {
+        do_kRemIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue % v1_int[j]));
@@ -1307,7 +1354,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Shift operation
-        do_kLshIntStackValue : {
+        do_kLshIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue << v1_int[j]));
@@ -1315,7 +1362,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kARshIntStackValue : {
+        do_kARshIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue >> v1_int[j]));
@@ -1324,7 +1371,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Comparaison Int
-        do_kGTIntStackValue : {
+        do_kGTIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue > v1_int[j]));
@@ -1332,7 +1379,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLTIntStackValue : {
+        do_kLTIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue < v1_int[j]));
@@ -1340,7 +1387,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kGEIntStackValue : {
+        do_kGEIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue >= v1_int[j]));
@@ -1348,7 +1395,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLEIntStackValue : {
+        do_kLEIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue <= v1_int[j]));
@@ -1356,7 +1403,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kEQIntStackValue : {
+        do_kEQIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue == v1_int[j]));
@@ -1364,7 +1411,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kNEIntStackValue : {
+        do_kNEIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue != v1_int[j]));
@@ -1373,7 +1420,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Comparaison Real
-        do_kGTRealStackValue : {
+        do_kGTRealStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue > v1_real[j]));
@@ -1381,7 +1428,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLTRealStackValue : {
+        do_kLTRealStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue < v1_real[j]));
@@ -1389,7 +1436,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kGERealStackValue : {
+        do_kGERealStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue >= v1_real[j]));
@@ -1397,7 +1444,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLERealStackValue : {
+        do_kLERealStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue <= v1_real[j]));
@@ -1405,7 +1452,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kEQRealStackValue : {
+        do_kEQRealStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue == v1_real[j]));
@@ -1413,7 +1460,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kNERealStackValue : {
+        do_kNERealStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue != v1_real[j]));
@@ -1422,7 +1469,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         // Logical operations
-        do_kANDIntStackValue : {
+        do_kANDIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue & v1_int[j]));
@@ -1430,7 +1477,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kORIntStackValue : {
+        do_kORIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue | v1_int[j]));
@@ -1438,7 +1485,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kXORIntStackValue : {
+        do_kXORIntStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue ^ v1_int[j]));
@@ -1450,167 +1497,168 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Standard math operations : 'value' OP 'heap' version
             //------------------------------------------------------
 
-        do_kAddRealValue : {
+        do_kAddRealValue: {
             VEC_LOOP(PUSH_VEC_REAL((*it)->fRealValue + READ_HEAP_VEC_REAL((*it)->fOffset1)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kAddIntValue : {
+        do_kAddIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue + READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kSubRealValue : {
+        do_kSubRealValue: {
             VEC_LOOP(PUSH_VEC_REAL((*it)->fRealValue - READ_HEAP_VEC_REAL((*it)->fOffset1)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kSubIntValue : {
+        do_kSubIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue - READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kMultRealValue : {
+        do_kMultRealValue: {
             VEC_LOOP(PUSH_VEC_REAL((*it)->fRealValue * READ_HEAP_VEC_REAL((*it)->fOffset1)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kMultIntValue : {
+        do_kMultIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue * READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kDivRealValue : {
+        do_kDivRealValue: {
             VEC_LOOP(PUSH_VEC_REAL((*it)->fRealValue / READ_HEAP_VEC_REAL((*it)->fOffset1)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kDivIntValue : {
+        do_kDivIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue / READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kRemRealValue : {
-            VEC_LOOP(PUSH_VEC_REAL(std::remainder((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
+        do_kRemRealValue: {
+            VEC_LOOP(PUSH_VEC_REAL(
+                std::remainder((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kRemIntValue : {
+        do_kRemIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue % READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Shift operation
-        do_kLshIntValue : {
+        do_kLshIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue << READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kARshIntValue : {
+        do_kARshIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue >> READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Comparaison Int
-        do_kGTIntValue : {
+        do_kGTIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue > READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLTIntValue : {
+        do_kLTIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue < READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kGEIntValue : {
+        do_kGEIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue >= READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLEIntValue : {
+        do_kLEIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue <= READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kEQIntValue : {
+        do_kEQIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue == READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kNEIntValue : {
+        do_kNEIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue != READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Comparaison Real
-        do_kGTRealValue : {
+        do_kGTRealValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue > READ_HEAP_VEC_REAL((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLTRealValue : {
+        do_kLTRealValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue < READ_HEAP_VEC_REAL((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kGERealValue : {
+        do_kGERealValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue >= READ_HEAP_VEC_REAL((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLERealValue : {
+        do_kLERealValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue <= READ_HEAP_VEC_REAL((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kEQRealValue : {
+        do_kEQRealValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue == READ_HEAP_VEC_REAL((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kNERealValue : {
+        do_kNERealValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fRealValue != READ_HEAP_VEC_REAL((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Logical operations
-        do_kANDIntValue : {
+        do_kANDIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue & READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kORIntValue : {
+        do_kORIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue | READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kXORIntValue : {
+        do_kXORIntValue: {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue ^ READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
@@ -1621,100 +1669,101 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // (non commutative operations)
             //----------------------------------------------------
 
-        do_kSubRealValueInvert : {
+        do_kSubRealValueInvert: {
             VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) - (*it)->fRealValue));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kSubIntValueInvert : {
+        do_kSubIntValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) - (*it)->fIntValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kDivRealValueInvert : {
+        do_kDivRealValueInvert: {
             VEC_LOOP(PUSH_VEC_REAL(READ_HEAP_VEC_REAL((*it)->fOffset1) / (*it)->fRealValue));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kDivIntValueInvert : {
+        do_kDivIntValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) / (*it)->fIntValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kRemRealValueInvert : {
-            VEC_LOOP(PUSH_VEC_REAL(std::remainder(READ_HEAP_VEC_REAL((*it)->fOffset1), (*it)->fRealValue)));
+        do_kRemRealValueInvert: {
+            VEC_LOOP(PUSH_VEC_REAL(
+                std::remainder(READ_HEAP_VEC_REAL((*it)->fOffset1), (*it)->fRealValue)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kRemIntValueInvert : {
+        do_kRemIntValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) % (*it)->fIntValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Shift operation
-        do_kLshIntValueInvert : {
+        do_kLshIntValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) << (*it)->fIntValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kARshIntValueInvert : {
+        do_kARshIntValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >> (*it)->fIntValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Comparaison Int
-        do_kGTIntValueInvert : {
+        do_kGTIntValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) > (*it)->fIntValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLTIntValueInvert : {
+        do_kLTIntValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) < (*it)->fIntValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kGEIntValueInvert : {
+        do_kGEIntValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >= (*it)->fIntValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLEIntValueInvert : {
+        do_kLEIntValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) <= (*it)->fIntValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
         // Comparaison Real
-        do_kGTRealValueInvert : {
+        do_kGTRealValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) > (*it)->fRealValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLTRealValueInvert : {
+        do_kLTRealValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) < (*it)->fRealValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kGERealValueInvert : {
+        do_kGERealValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) >= (*it)->fRealValue));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kLERealValueInvert : {
+        do_kLERealValueInvert: {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_REAL((*it)->fOffset1) <= (*it)->fRealValue));
             STACK_UP_INT();
             dispatchNextVec();
@@ -1724,7 +1773,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Extended unary math
             //---------------------
 
-        do_kAbs : {
+        do_kAbs: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(std::abs(v1_int[j])));
@@ -1732,7 +1781,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kAbsf : {
+        do_kAbsf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::fabs(v1_real[j])));
@@ -1740,7 +1789,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kAcosf : {
+        do_kAcosf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::acos(v1_real[j])));
@@ -1748,7 +1797,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kAsinf : {
+        do_kAsinf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::asin(v1_real[j])));
@@ -1756,7 +1805,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kAtanf : {
+        do_kAtanf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::atan(v1_real[j])));
@@ -1764,7 +1813,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kCeilf : {
+        do_kCeilf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::ceil(v1_real[j])));
@@ -1772,7 +1821,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kCosf : {
+        do_kCosf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::cos(v1_real[j])));
@@ -1780,7 +1829,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kCoshf : {
+        do_kCoshf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::cosh(v1_real[j])));
@@ -1788,7 +1837,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kExpf : {
+        do_kExpf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::exp(v1_real[j])));
@@ -1796,7 +1845,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kFloorf : {
+        do_kFloorf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::floor(v1_real[j])));
@@ -1804,7 +1853,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLogf : {
+        do_kLogf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::log(v1_real[j])));
@@ -1812,15 +1861,15 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLog10f : {
+        do_kLog10f: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::log10(v1_real[j])));
             STACK_UP_REAL();
             dispatchNextVec();
         }
-            
-        do_kRintf : {
+
+        do_kRintf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::rint(v1_real[j])));
@@ -1828,7 +1877,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kRoundf : {
+        do_kRoundf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::round(v1_real[j])));
@@ -1836,7 +1885,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kSinf : {
+        do_kSinf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::sin(v1_real[j])));
@@ -1844,7 +1893,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kSinhf : {
+        do_kSinhf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::sinh(v1_real[j])));
@@ -1852,14 +1901,14 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kSqrtf : {
+        do_kSqrtf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::sqrt(v1_real[j])));
             dispatchNextVec();
         }
 
-        do_kTanf : {
+        do_kTanf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::tan(v1_real[j])));
@@ -1867,7 +1916,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kTanhf : {
+        do_kTanhf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::tanh(v1_real[j])));
@@ -1879,115 +1928,115 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Extended unary math (heap version)
             ///-----------------------------------
 
-        do_kAbsHeap : {
+        do_kAbsHeap: {
             VEC_LOOP(PUSH_VEC_INT(std::abs(READ_HEAP_VEC_INT((*it)->fOffset1))));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kAbsfHeap : {
+        do_kAbsfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::fabs(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kAcosfHeap : {
+        do_kAcosfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::acos(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kAsinfHeap : {
+        do_kAsinfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::asin(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kAtanfHeap : {
+        do_kAtanfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::atan(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kCeilfHeap : {
+        do_kCeilfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::ceil(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kCosfHeap : {
+        do_kCosfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::cos(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kCoshfHeap : {
+        do_kCoshfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::cosh(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kExpfHeap : {
+        do_kExpfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::exp(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kFloorfHeap : {
+        do_kFloorfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::floor(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kLogfHeap : {
+        do_kLogfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::log(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kLog10fHeap : {
+        do_kLog10fHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::log10(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
-            
-        do_kRintfHeap : {
+
+        do_kRintfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::rint(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kRoundfHeap : {
+        do_kRoundfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::round(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kSinfHeap : {
+        do_kSinfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::sin(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kSinhfHeap : {
+        do_kSinhfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::sinh(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kSqrtfHeap : {
+        do_kSqrtfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::sqrt(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kTanfHeap : {
+        do_kTanfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::tan(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kTanhfHeap : {
+        do_kTanhfHeap: {
             VEC_LOOP(PUSH_VEC_REAL(std::tanh(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
@@ -1997,7 +2046,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Extended binary math
             //----------------------
 
-        do_kAtan2f : {
+        do_kAtan2f: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -2007,7 +2056,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kFmodf : {
+        do_kFmodf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -2017,7 +2066,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kPowf : {
+        do_kPowf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -2027,7 +2076,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMax : {
+        do_kMax: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -2037,7 +2086,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMaxf : {
+        do_kMaxf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -2047,7 +2096,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMin : {
+        do_kMin: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -2057,7 +2106,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMinf : {
+        do_kMinf: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(v2_real[j] = POP_VEC_REAL());
@@ -2071,46 +2120,51 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Extended binary math (heap version)
             //-------------------------------------
 
-        do_kAtan2fHeap : {
-            VEC_LOOP(
-                PUSH_VEC_REAL(std::atan2(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
+        do_kAtan2fHeap: {
+            VEC_LOOP(PUSH_VEC_REAL(std::atan2(READ_HEAP_VEC_REAL((*it)->fOffset1),
+                                              READ_HEAP_VEC_REAL((*it)->fOffset2))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kFmodfHeap : {
-            VEC_LOOP(
-                PUSH_VEC_REAL(std::fmod(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
+        do_kFmodfHeap: {
+            VEC_LOOP(PUSH_VEC_REAL(std::fmod(READ_HEAP_VEC_REAL((*it)->fOffset1),
+                                             READ_HEAP_VEC_REAL((*it)->fOffset2))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kPowfHeap : {
-            VEC_LOOP(PUSH_VEC_REAL(std::pow(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
+        do_kPowfHeap: {
+            VEC_LOOP(PUSH_VEC_REAL(std::pow(READ_HEAP_VEC_REAL((*it)->fOffset1),
+                                            READ_HEAP_VEC_REAL((*it)->fOffset2))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kMaxHeap : {
-            VEC_LOOP(PUSH_VEC_INT(std::max(READ_HEAP_VEC_INT((*it)->fOffset1), READ_HEAP_VEC_INT((*it)->fOffset2))));
+        do_kMaxHeap: {
+            VEC_LOOP(PUSH_VEC_INT(
+                std::max(READ_HEAP_VEC_INT((*it)->fOffset1), READ_HEAP_VEC_INT((*it)->fOffset2))));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kMaxfHeap : {
-            VEC_LOOP(PUSH_VEC_REAL(std::max(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
+        do_kMaxfHeap: {
+            VEC_LOOP(PUSH_VEC_REAL(std::max(READ_HEAP_VEC_REAL((*it)->fOffset1),
+                                            READ_HEAP_VEC_REAL((*it)->fOffset2))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kMinHeap : {
-            VEC_LOOP(PUSH_VEC_INT(std::min(READ_HEAP_VEC_INT((*it)->fOffset1), READ_HEAP_VEC_INT((*it)->fOffset2))));
+        do_kMinHeap: {
+            VEC_LOOP(PUSH_VEC_INT(
+                std::min(READ_HEAP_VEC_INT((*it)->fOffset1), READ_HEAP_VEC_INT((*it)->fOffset2))));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kMinfHeap : {
-            VEC_LOOP(PUSH_VEC_REAL(std::min(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
+        do_kMinfHeap: {
+            VEC_LOOP(PUSH_VEC_REAL(std::min(READ_HEAP_VEC_REAL((*it)->fOffset1),
+                                            READ_HEAP_VEC_REAL((*it)->fOffset2))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
@@ -2119,7 +2173,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Extended binary math (stack version)
             //--------------------------------------
 
-        do_kAtan2fStack : {
+        do_kAtan2fStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::atan2(READ_HEAP_VEC_REAL((*it)->fOffset1), v1_real[j])));
@@ -2127,7 +2181,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kFmodfStack : {
+        do_kFmodfStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::fmod(READ_HEAP_VEC_REAL((*it)->fOffset1), v1_real[j])));
@@ -2135,7 +2189,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kPowfStack : {
+        do_kPowfStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::pow(READ_HEAP_VEC_REAL((*it)->fOffset1), v1_real[j])));
@@ -2143,7 +2197,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMaxStack : {
+        do_kMaxStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(std::max(READ_HEAP_VEC_INT((*it)->fOffset1), v1_int[j])));
@@ -2151,7 +2205,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMaxfStack : {
+        do_kMaxfStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::max(READ_HEAP_VEC_REAL((*it)->fOffset1), v1_real[j])));
@@ -2159,7 +2213,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMinStack : {
+        do_kMinStack: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(std::min(READ_HEAP_VEC_INT((*it)->fOffset1), v1_int[j])));
@@ -2167,7 +2221,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMinfStack : {
+        do_kMinfStack: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::min(READ_HEAP_VEC_REAL((*it)->fOffset1), v1_real[j])));
@@ -2179,7 +2233,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Extended binary math (stack/value version)
             //--------------------------------------------
 
-        do_kAtan2fStackValue : {
+        do_kAtan2fStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::atan2((*it)->fRealValue, v1_real[j])));
@@ -2187,7 +2241,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kFmodfStackValue : {
+        do_kFmodfStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::fmod((*it)->fRealValue, v1_real[j])));
@@ -2195,7 +2249,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kPowfStackValue : {
+        do_kPowfStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::pow((*it)->fRealValue, v1_real[j])));
@@ -2203,7 +2257,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMaxStackValue : {
+        do_kMaxStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(std::max((*it)->fIntValue, v1_int[j])));
@@ -2211,7 +2265,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMaxfStackValue : {
+        do_kMaxfStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::max((*it)->fRealValue, v1_real[j])));
@@ -2219,7 +2273,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMinStackValue : {
+        do_kMinStackValue: {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(std::min((*it)->fIntValue, v1_int[j])));
@@ -2227,7 +2281,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kMinfStackValue : {
+        do_kMinfStackValue: {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
             STACK_DOWN_REAL();
             VEC_LOOP(PUSH_VEC_REAL(std::min((*it)->fRealValue, v1_real[j])));
@@ -2239,44 +2293,49 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Extended binary math (Value version)
             //-------------------------------------
 
-        do_kAtan2fValue : {
-            VEC_LOOP(PUSH_VEC_REAL(std::atan2((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
+        do_kAtan2fValue: {
+            VEC_LOOP(
+                PUSH_VEC_REAL(std::atan2((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kFmodfValue : {
-            VEC_LOOP(PUSH_VEC_REAL(std::fmod((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
+        do_kFmodfValue: {
+            VEC_LOOP(
+                PUSH_VEC_REAL(std::fmod((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kPowfValue : {
-            VEC_LOOP(PUSH_VEC_REAL(std::pow((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
+        do_kPowfValue: {
+            VEC_LOOP(
+                PUSH_VEC_REAL(std::pow((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kMaxValue : {
+        do_kMaxValue: {
             VEC_LOOP(PUSH_VEC_INT(std::max((*it)->fIntValue, READ_HEAP_VEC_INT((*it)->fOffset1))));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kMaxfValue : {
-            VEC_LOOP(PUSH_VEC_REAL(std::max((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
+        do_kMaxfValue: {
+            VEC_LOOP(
+                PUSH_VEC_REAL(std::max((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kMinValue : {
+        do_kMinValue: {
             VEC_LOOP(PUSH_VEC_INT(std::min((*it)->fIntValue, READ_HEAP_VEC_INT((*it)->fOffset1))));
             STACK_UP_INT();
             dispatchNextVec();
         }
 
-        do_kMinfValue : {
-            VEC_LOOP(PUSH_VEC_REAL(std::min((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
+        do_kMinfValue: {
+            VEC_LOOP(
+                PUSH_VEC_REAL(std::min((*it)->fRealValue, READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
@@ -2285,20 +2344,23 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Extended binary math (Value version) : non commutative operations
             //-------------------------------------------------------------------
 
-        do_kAtan2fValueInvert : {
-            VEC_LOOP(PUSH_VEC_REAL(std::atan2(READ_HEAP_VEC_REAL((*it)->fOffset1), (*it)->fRealValue)));
+        do_kAtan2fValueInvert: {
+            VEC_LOOP(
+                PUSH_VEC_REAL(std::atan2(READ_HEAP_VEC_REAL((*it)->fOffset1), (*it)->fRealValue)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kFmodfValueInvert : {
-            VEC_LOOP(PUSH_VEC_REAL(std::fmod(READ_HEAP_VEC_REAL((*it)->fOffset1), (*it)->fRealValue)));
+        do_kFmodfValueInvert: {
+            VEC_LOOP(
+                PUSH_VEC_REAL(std::fmod(READ_HEAP_VEC_REAL((*it)->fOffset1), (*it)->fRealValue)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
-        do_kPowfValueInvert : {
-            VEC_LOOP(PUSH_VEC_REAL(std::pow(READ_HEAP_VEC_REAL((*it)->fOffset1), (*it)->fRealValue)));
+        do_kPowfValueInvert: {
+            VEC_LOOP(
+                PUSH_VEC_REAL(std::pow(READ_HEAP_VEC_REAL((*it)->fOffset1), (*it)->fRealValue)));
             STACK_UP_REAL();
             dispatchNextVec();
         }
@@ -2307,7 +2369,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             // Control
             //---------
 
-        do_kReturn : {
+        do_kReturn: {
             // Empty addr stack = end of computation
             if (emptyReturnVec()) {
                 goto end;
@@ -2316,7 +2378,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             }
         }
 
-        do_kIf : {
+        do_kIf: {
             // Keep next instruction
             saveReturnVec();
 
@@ -2333,7 +2395,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             }
         }
 
-        do_kSelectReal : {
+        do_kSelectReal: {
             // Keep next instruction
             saveReturnVec();
 
@@ -2342,10 +2404,11 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             // Execute new block
-            VEC_LOOP(if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
+            VEC_LOOP(
+                if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
         }
 
-        do_kSelectInt : {
+        do_kSelectInt: {
             // Keep next instruction
             saveReturnVec();
 
@@ -2354,10 +2417,11 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             // Execute new block
-            VEC_LOOP(if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
+            VEC_LOOP(
+                if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
         }
 
-        do_kCondBranch : {
+        do_kCondBranch: {
             // If condition is true, just branch back on the block beginning
             if (POP_INT()) {
                 interp_assert((*it)->fBranch1);
@@ -2368,7 +2432,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             }
         }
 
-        do_kLoop : {
+        do_kLoop: {
             // (*it)->fIntValue = vec_size
 
             // this->ExecuteVecLoop((*it));
@@ -2404,7 +2468,8 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         }
 
         end:
-            // printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
+            // printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index,
+            // int_stack_index);
 
             // Check stack coherency
             interp_assert(real_stack_index == 0 && int_stack_index == 0 && sound_stack_index == 0);
@@ -2428,15 +2493,15 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         fFactory = factory;
 
         if (fFactory->getMemoryManager()) {
-            fRealHeap  = static_cast<T*>(fFactory->allocate(sizeof(T) * fFactory->fRealHeapSize));
-            fIntHeap   = static_cast<int*>(fFactory->allocate(sizeof(T) * fFactory->fIntHeapSize));
-            fInputs    = static_cast<T**>(fFactory->allocate(sizeof(T*) * fFactory->fNumInputs));
-            fOutputs   = static_cast<T**>(fFactory->allocate(sizeof(T*) * fFactory->fNumOutputs));
+            fRealHeap = static_cast<T*>(fFactory->allocate(sizeof(T) * fFactory->fRealHeapSize));
+            fIntHeap  = static_cast<int*>(fFactory->allocate(sizeof(T) * fFactory->fIntHeapSize));
+            fInputs   = static_cast<T**>(fFactory->allocate(sizeof(T*) * fFactory->fNumInputs));
+            fOutputs  = static_cast<T**>(fFactory->allocate(sizeof(T*) * fFactory->fNumOutputs));
         } else {
-            fRealHeap  = new T[fFactory->fRealHeapSize];
-            fIntHeap   = new int[fFactory->fIntHeapSize];
-            fInputs    = new T*[fFactory->fNumInputs];
-            fOutputs   = new T*[fFactory->fNumOutputs];
+            fRealHeap = new T[fFactory->fRealHeapSize];
+            fIntHeap  = new int[fFactory->fIntHeapSize];
+            fInputs   = new T*[fFactory->fNumInputs];
+            fOutputs  = new T*[fFactory->fNumOutputs];
         }
 
         // std::cout << "==== FBCVecInterpreter ==== " << std::endl;

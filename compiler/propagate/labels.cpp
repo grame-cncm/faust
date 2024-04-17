@@ -118,7 +118,9 @@ static Tree label2path(const char* label)
             s.push_back(label[i]);
             i++;
         }
-        if (label[i] == '/') i++;
+        if (label[i] == '/') {
+            i++;
+        }
         return cons(encodeName(g, s), label2path(&label[i]));
 
     } else {

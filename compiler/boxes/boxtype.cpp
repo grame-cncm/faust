@@ -92,21 +92,29 @@ LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum)
  * \return the error message as a string
  */
 
-static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string& opcode, const string& opname,
-                                    const string& msg)
+static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string& opcode,
+                                      const string& opname, const string& msg)
 {
     stringstream error;
     string       aStr("A"), bStr("B");
     Tree         aID, bID;
-    
-    if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
-    if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
-      
+
+    if (getDefNameProperty(a, aID)) {
+        aStr = tree2str(aID);
+    }
+    if (getDefNameProperty(b, bID)) {
+        bStr = tree2str(bID);
+    }
+
     error << "ERROR : " << opname << " " << aStr << opcode << bStr << endl
-          << "The number of outputs [" << o << "] of " << aStr << msg << "the number of inputs [" << i << "] of "
-          << bStr << endl << endl
-          << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl << "has " << outputs(o) << endl << endl
-          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(i) << endl;
+          << "The number of outputs [" << o << "] of " << aStr << msg << "the number of inputs ["
+          << i << "] of " << bStr << endl
+          << endl
+          << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl
+          << "has " << outputs(o) << endl
+          << endl
+          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl
+          << "has " << inputs(i) << endl;
     return error.str();
 }
 
@@ -127,17 +135,29 @@ static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, in
     string       aStr("A"), bStr("B");
     Tree         aID, bID;
 
-    if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
-    if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
-    
-    error << "ERROR : recursive composition " << aStr << '~' << bStr << endl;
-    if (v < x)
-        error << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x << "] of " << bStr << ". ";
-    if (u < y)
-        error << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y << "] of " << bStr << ". " << endl << endl;
+    if (getDefNameProperty(a, aID)) {
+        aStr = tree2str(aID);
+    }
+    if (getDefNameProperty(b, bID)) {
+        bStr = tree2str(bID);
+    }
 
-    error << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(u) << " and " << outputs(v) << endl << endl
-          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(x) << " and " << outputs(y) << endl;
+    error << "ERROR : recursive composition " << aStr << '~' << bStr << endl;
+    if (v < x) {
+        error << "The number of outputs [" << v << "] of " << aStr
+              << " must be at least the number of inputs [" << x << "] of " << bStr << ". ";
+    }
+    if (u < y) {
+        error << "The number of inputs [" << u << "] of " << aStr
+              << " must be at least the number of outputs [" << y << "] of " << bStr << ". " << endl
+              << endl;
+    }
+
+    error << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl
+          << "has " << inputs(u) << " and " << outputs(v) << endl
+          << endl
+          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl
+          << "has " << inputs(x) << " and " << outputs(y) << endl;
     return error.str();
 }
 
@@ -187,7 +207,9 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
         *inum = 0;
         *onum = 1;
     } else if (isBoxSymbolic(box, s, b)) {
-        if (!getBoxType(b, inum, onum)) return false;
+        if (!getBoxType(b, inum, onum)) {
+            return false;
+        }
         *inum += 1;
     }
 
@@ -260,12 +282,16 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
         *onum = 2 + tree2int(c);
     } else if (isBoxSeq(box, a, b)) {
         int u, v, x, y;
-        if (!getBoxType(a, &u, &v)) return false;
-        if (!getBoxType(b, &x, &y)) return false;
+        if (!getBoxType(a, &u, &v)) {
+            return false;
+        }
+        if (!getBoxType(b, &x, &y)) {
+            return false;
+        }
 
         if (v != x) {
-            throw faustexception(
-                computeTypeErrorMessage(a, b, v, x, ":", "sequential composition", " must be equal to "));
+            throw faustexception(computeTypeErrorMessage(a, b, v, x, ":", "sequential composition",
+                                                         " must be equal to "));
         } else {
             *inum = u;
             *onum = y;
@@ -273,20 +299,28 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
 
     } else if (isBoxPar(box, a, b)) {
         int u, v, x, y;
-        if (!getBoxType(a, &u, &v)) return false;
-        if (!getBoxType(b, &x, &y)) return false;
+        if (!getBoxType(a, &u, &v)) {
+            return false;
+        }
+        if (!getBoxType(b, &x, &y)) {
+            return false;
+        }
 
         *inum = u + x;
         *onum = v + y;
 
     } else if (isBoxSplit(box, a, b)) {
         int u, v, x, y;
-        if (!getBoxType(a, &u, &v)) return false;
-        if (!getBoxType(b, &x, &y)) return false;
+        if (!getBoxType(a, &u, &v)) {
+            return false;
+        }
+        if (!getBoxType(b, &x, &y)) {
+            return false;
+        }
 
         if ((v == 0) || (x == 0) || (x % v != 0)) {
-            throw faustexception(
-                (computeTypeErrorMessage(a, b, v, x, "<:", "split composition", " must be a divisor of ")));
+            throw faustexception((computeTypeErrorMessage(a, b, v, x, "<:", "split composition",
+                                                          " must be a divisor of ")));
         }
 
         *inum = u;
@@ -294,12 +328,16 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
 
     } else if (isBoxMerge(box, a, b)) {
         int u, v, x, y;
-        if (!getBoxType(a, &u, &v)) return false;
-        if (!getBoxType(b, &x, &y)) return false;
+        if (!getBoxType(a, &u, &v)) {
+            return false;
+        }
+        if (!getBoxType(b, &x, &y)) {
+            return false;
+        }
 
         if ((v == 0) || (x == 0) || (v % x != 0)) {
-            throw faustexception(
-                computeTypeErrorMessage(a, b, v, x, ":>", "merge composition", " must be a multiple of "));
+            throw faustexception(computeTypeErrorMessage(a, b, v, x, ":>", "merge composition",
+                                                         " must be a multiple of "));
         }
 
         *inum = u;
@@ -307,8 +345,12 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
 
     } else if (isBoxRec(box, a, b)) {
         int u, v, x, y;
-        if (!getBoxType(a, &u, &v)) return false;
-        if (!getBoxType(b, &x, &y)) return false;
+        if (!getBoxType(a, &u, &v)) {
+            return false;
+        }
+        if (!getBoxType(b, &x, &y)) {
+            return false;
+        }
         if ((x > v) || (y > u)) {
             throw faustexception(computeTypeRecErrorMessage(a, b, u, v, x, y));
         }

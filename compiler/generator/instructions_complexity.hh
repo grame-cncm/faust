@@ -31,20 +31,19 @@
 #include <vector>
 
 #include "exception.hh"
+#include "faust/gui/JSONUI.h"
 #include "instructions.hh"
 #include "typing_instructions.hh"
-#include "faust/gui/JSONUI.h"
 
 class InstComplexityVisitor : public DispatchVisitor {
    private:
     InstComplexity fIComp;
- 
+
    public:
     using DispatchVisitor::visit;
 
-    InstComplexityVisitor()
-    {}
-    
+    InstComplexityVisitor() {}
+
     virtual ~InstComplexityVisitor() {}
 
     virtual void visit(Printable* inst) {}
@@ -77,9 +76,11 @@ class InstComplexityVisitor : public DispatchVisitor {
         Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
         Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
         if (isRealType(type1) || isRealType(type2)) {
-            fIComp.fBinopSymbolTable["Real(" + std::string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
+            fIComp.fBinopSymbolTable["Real(" + std::string(gBinOpTable[inst->fOpcode]->fName) +
+                                     ")"]++;
         } else {
-            fIComp.fBinopSymbolTable["Int(" + std::string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
+            fIComp
+                .fBinopSymbolTable["Int(" + std::string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
         }
         DispatchVisitor::visit(inst);
     }
@@ -153,7 +154,8 @@ class InstComplexityVisitor : public DispatchVisitor {
             *dst << "]";
         }
         *dst << " Numbers = " << fIComp.fNumbers << " Declare = " << fIComp.fDeclare;
-        *dst << " Cast = " << fIComp.fCast << " Select = " << fIComp.fSelect << " Loop = " << fIComp.fLoop << "\n";
+        *dst << " Cast = " << fIComp.fCast << " Select = " << fIComp.fSelect
+             << " Loop = " << fIComp.fLoop << "\n";
     }
 
     int cost()
@@ -161,7 +163,7 @@ class InstComplexityVisitor : public DispatchVisitor {
         // A polynom based on measured values
         return 0;
     }
-    
+
     InstComplexity getInstComplexity() { return fIComp; }
 };
 

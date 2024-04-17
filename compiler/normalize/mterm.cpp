@@ -86,7 +86,9 @@ ostream& mterm::print(ostream& dst) const
     // if (true) { dst << ppsig(fCoef); sep = " * "; }
     for (const auto& p : fFactors) {
         dst << sep << ppsig(p.first);
-        if (p.second != 1) dst << "**" << p.second;
+        if (p.second != 1) {
+            dst << "**" << p.second;
+        }
         sep = " * ";
     }
     return dst;
@@ -344,7 +346,9 @@ mterm gcd(const mterm& m1, const mterm& m2)
 {
     // cerr << "GCD of " << m1 << " and " << m2 << endl;
 
-    Tree  c = (sameMagnitude(m1.fCoef, m2.fCoef)) ? m1.fCoef : tree(1);  // common coefficient (real gcd not needed)
+    Tree  c = (sameMagnitude(m1.fCoef, m2.fCoef))
+                  ? m1.fCoef
+                  : tree(1);  // common coefficient (real gcd not needed)
     mterm R(c);
     for (const auto& p1 : m1.fFactors) {
         Tree               t  = p1.first;
@@ -352,7 +356,7 @@ mterm gcd(const mterm& m1, const mterm& m2)
         if (p2 != m2.fFactors.end()) {
             int v1 = p1.second;
             int v2 = p2->second;
-            int c1  = common(v1, v2);
+            int c1 = common(v1, v2);
             if (c1 != 0) {
                 R.fFactors[t] = c1;
             }
@@ -391,11 +395,15 @@ bool mterm::hasDivisor(const mterm& n) const
 
         // check that f is also a factor of *this
         MP::const_iterator p2 = fFactors.find(f);
-        if (p2 == fFactors.end()) return false;
+        if (p2 == fFactors.end()) {
+            return false;
+        }
 
         // analyze quantities
         int u = p2->second;
-        if (!contains(u, v)) return false;
+        if (!contains(u, v)) {
+            return false;
+        }
     }
     // cerr << __LINE__ << ":" << __func__ << *this << " is divisible by " << n << endl;
     return true;
@@ -490,7 +498,9 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 
     if (fFactors.empty() || isZero(fCoef)) {
         // it's a pure number
-        if (signatureMode) return tree(1);
+        if (signatureMode) {
+            return tree(1);
+        }
         if (negativeMode) {
             return minusNum(fCoef);
         } else {
@@ -513,8 +523,12 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
             }
         }
 #if 1
-        if (A[0] != 0) cerr << "A[0] == " << *A[0] << endl;
-        if (B[0] != 0) cerr << "B[0] == " << *B[0] << endl;
+        if (A[0] != 0) {
+            cerr << "A[0] == " << *A[0] << endl;
+        }
+        if (B[0] != 0) {
+            cerr << "B[0] == " << *B[0] << endl;
+        }
         // in principle here zero order is empty because it corresponds to the numerical coef
         faustassert(A[0] == 0);
         faustassert(B[0] == 0);
@@ -550,7 +564,9 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
                 combineDivLeft(RR, B[order]);
             }
         }
-        if (RR == 0) RR = tree(1);  // to check *******************
+        if (RR == 0) {
+            RR = tree(1);  // to check *******************
+        }
 
         faustassert(RR);
 #ifdef TRACE

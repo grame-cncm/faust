@@ -106,7 +106,8 @@ void DocCompiler::sharingAnnotation(int vctxt, Tree sig)
 
         // check "time sharing" cases
         if (v < vctxt) {
-            setSharingCount(sig, 2);  // time sharing occurence : slower expression in faster context
+            setSharingCount(sig,
+                            2);  // time sharing occurence : slower expression in faster context
         } else {
             setSharingCount(sig, 1);  // regular occurence
         }
@@ -115,7 +116,9 @@ void DocCompiler::sharingAnnotation(int vctxt, Tree sig)
         tvec subsig;
         int  n = getSubSignals(sig, subsig);
         if (n > 0 && !isSigGen(sig)) {
-            for (int i = 0; i < n; i++) sharingAnnotation(v, subsig[i]);
+            for (int i = 0; i < n; i++) {
+                sharingAnnotation(v, subsig[i]);
+            }
         }
     }
     // cerr << "END sharing annotation of " << *sig << endl;

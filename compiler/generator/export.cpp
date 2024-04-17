@@ -36,7 +36,8 @@ bool                     gAllWarning = false;
 extern "C" LIBFAUST_API const char* getCLibFaustVersion()
 {
 #ifdef LLVM_BUILD
-    static std::string version = std::string(FAUSTVERSION) + " (LLVM " + std::string(LLVM_VERSION) + ")";
+    static std::string version =
+        std::string(FAUSTVERSION) + " (LLVM " + std::string(LLVM_VERSION) + ")";
     return version.c_str();
 #else
     return FAUSTVERSION;
@@ -45,7 +46,8 @@ extern "C" LIBFAUST_API const char* getCLibFaustVersion()
 
 /*
  Regular C++ exceptions are deactivated when compiled with 'emcc' since adding
- them (using Emscripten runtime mechanism) practically doubles the size of the generated wasm library.
+ them (using Emscripten runtime mechanism) practically doubles the size of the generated wasm
+ library.
 
  A 'light' exception handling model is used:
 
@@ -64,8 +66,8 @@ const char* faustexception::gJSExceptionMsg = nullptr;
 extern "C" LIBFAUST_API const char* getErrorAfterException()
 {
     return (std::string(faustexception::gJSExceptionMsg) == "emsc")
-        ? "ERROR : stack overflow\n"
-        : faustexception::gJSExceptionMsg;
+               ? "ERROR : stack overflow\n"
+               : faustexception::gJSExceptionMsg;
 }
 #endif
 

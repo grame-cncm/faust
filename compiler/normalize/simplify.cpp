@@ -76,7 +76,8 @@ static Tree traced_simplification(Tree sig)
 
 Tree simplify(Tree sig)
 {
-    // TO IMPROVE: the simplication has to be done twice here because the second can still discover possible simplications
+    // TO IMPROVE: the simplication has to be done twice here because the second can still discover
+    // possible simplications
     Tree r1 = sigMap(gGlobal->SIMPLIFIED, traced_simplification, sig);
     Tree r2 = sigMap(gGlobal->SIMPLIFIED, traced_simplification, r1);
     return r2;
@@ -86,13 +87,15 @@ Tree simplify(Tree sig)
 
 static bool isSigBool(Tree sig)
 {
-    int opnum;
+    int  opnum;
     Tree t1, t2;
 
-    if (!isSigBinOp(sig, &opnum, t1, t2))
+    if (!isSigBinOp(sig, &opnum, t1, t2)) {
         return false;
-    if (isBoolOpcode(opnum))
+    }
+    if (isBoolOpcode(opnum)) {
         return true;
+    }
 
     return isLogicalOpcode(opnum) && isSigBool(t1) && isSigBool(t2);
 }
@@ -107,7 +110,9 @@ static Tree simplification(Tree sig)
     // primitive elements
     if (xt) {
         vector<Tree> args;
-        for (int i = 0; i < sig->arity(); i++) { args.push_back(sig->branch(i)); }
+        for (int i = 0; i < sig->arity(); i++) {
+            args.push_back(sig->branch(i));
+        }
 
         // to avoid negative power to further normalization
         if (xt != gGlobal->gPowPrim) {
@@ -121,76 +126,99 @@ static Tree simplification(Tree sig)
         Node   n1 = t1->node();
         Node   n2 = t2->node();
 
-        if (isNum(n1) && isNum(n2)) return tree(op->compute(n1, n2));
+        if (isNum(n1) && isNum(n2)) {
+            return tree(op->compute(n1, n2));
+        }
 
         // New rules for -E
 
         // -n*(x-y) -> n*(y-x)
         // -1*(x-y) -> y-x
-        else if ((opnum == kMul) && isNegative(n1) && isSigBinOp(t2, &opnum2, v1, v2) && (opnum2 == kSub)) {
-            if (isMinusOne(n1))
+        else if ((opnum == kMul) && isNegative(n1) && isSigBinOp(t2, &opnum2, v1, v2) &&
+                 (opnum2 == kSub)) {
+            if (isMinusOne(n1)) {
                 return sigBinOp(kSub, v2, v1);
-            else
+            } else {
                 return sigBinOp(kMul, tree(minusNode(n1)), sigBinOp(kSub, v2, v1));
+            }
 
             // (x-y)*-n -> n*(y-x)
             // (x-y)*-1 -> y-x
-        } else if ((opnum == kMul) && isNegative(n2) && isSigBinOp(t1, &opnum2, v1, v2) && (opnum2 == kSub)) {
-            if (isMinusOne(n2))
+        } else if ((opnum == kMul) && isNegative(n2) && isSigBinOp(t1, &opnum2, v1, v2) &&
+                   (opnum2 == kSub)) {
+            if (isMinusOne(n2)) {
                 return sigBinOp(kSub, v2, v1);
-            else
+            } else {
                 return sigBinOp(kMul, tree(minusNode(n2)), sigBinOp(kSub, v2, v1));
+            }
         }
 
         // n*(m*x) -> (n*m)*x or x (if n*m == 1)
-        else if ((opnum == kMul) && isNum(n1) && isSigBinOp(t2, &opnum2, v1, v2) && (opnum2 == kMul) && isNum(v1)) {
+        else if ((opnum == kMul) && isNum(n1) && isSigBinOp(t2, &opnum2, v1, v2) &&
+                 (opnum2 == kMul) && isNum(v1)) {
             Tree m = tree(mulNode(n1, v1->node()));
-            if (isOne(m))
+            if (isOne(m)) {
                 return v2;
-            else
+            } else {
                 return sigBinOp(kMul, m, v2);
+            }
         }
 
         // n*(x*m) -> (n*m)*x or x (if n*m == 1)
-        else if ((opnum == kMul) && isNum(n1) && isSigBinOp(t2, &opnum2, v1, v2) && (opnum2 == kMul) && isNum(v2)) {
+        else if ((opnum == kMul) && isNum(n1) && isSigBinOp(t2, &opnum2, v1, v2) &&
+                 (opnum2 == kMul) && isNum(v2)) {
             Tree m = tree(mulNode(n1, v2->node()));
-            if (isOne(m))
+            if (isOne(m)) {
                 return v1;
-            else
+            } else {
                 return sigBinOp(kMul, m, v1);
+            }
         }
 
         // End new rules
-        else if (opnum == kSub && isZero(n1))
+        else if (opnum == kSub && isZero(n1)) {
             return sigBinOp(kMul, sigInt(-1), t2);
+        }
 
-        else if (op->isLeftNeutral(n1))
+        else if (op->isLeftNeutral(n1)) {
             return t2;
+        }
 
-        else if (op->isLeftAbsorbing(n1))
+        else if (op->isLeftAbsorbing(n1)) {
             return t1;
+        }
 
-        else if (op->isRightNeutral(n2))
+        else if (op->isRightNeutral(n2)) {
             return t1;
+        }
 
-        else if (op->isRightAbsorbing(n2))
+        else if (op->isRightAbsorbing(n2)) {
             return t2;
+        }
 
         else if (t1 == t2) {
-            if ((opnum == kAND) || (opnum == kOR)) return t1;
-            if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) return sigInt(1);
-            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) || (opnum == kXOR))
+            if ((opnum == kAND) || (opnum == kOR)) {
+                return t1;
+            }
+            if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) {
+                return sigInt(1);
+            }
+            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) ||
+                (opnum == kXOR)) {
                 return sigInt(0);
+            }
 
         } else if ((opnum == kAND) || (opnum == kOR)) {
-            if (isOne(n1) && isSigBool(t2))
+            if (isOne(n1) && isSigBool(t2)) {
                 return opnum == kAND ? t2 : sigInt(1);
-            if (isOne(n2) && isSigBool(t1))
+            }
+            if (isOne(n2) && isSigBool(t1)) {
                 return opnum == kAND ? t1 : sigInt(1);
+            }
         }
 
         return (global::isOpt("SIG_NO_NORM") ? sig : normalizeAddTerm(sig));
-  
+
     } else if (isSigDelay1(sig, t1)) {
         return normalizeDelay1Term(t1);
 
@@ -202,8 +230,12 @@ static Tree simplification(Tree sig)
         double x;
         Node   n1 = t1->node();
 
-        if (isInt(n1, &i)) return t1;
-        if (isDouble(n1, &x)) return tree(int(x));
+        if (isInt(n1, &i)) {
+            return t1;
+        }
+        if (isDouble(n1, &x)) {
+            return tree(int(x));
+        }
 
         return sig;
 
@@ -215,32 +247,45 @@ static Tree simplification(Tree sig)
         double x;
         Node   n1 = t1->node();
 
-        if (isInt(n1, &i)) return tree(double(i));
-        if (isDouble(n1, &x)) return t1;
+        if (isInt(n1, &i)) {
+            return tree(double(i));
+        }
+        if (isDouble(n1, &x)) {
+            return t1;
+        }
 
         return sig;
 
     } else if (isSigSelect2(sig, t1, t2, t3)) {
         Node n1 = t1->node();
 
-        if (isZero(n1)) return t2;
-        if (isNum(n1)) return t3;
+        if (isZero(n1)) {
+            return t2;
+        }
+        if (isNum(n1)) {
+            return t3;
+        }
 
-        if (t2 == t3) return t2;
+        if (t2 == t3) {
+            return t2;
+        }
 
         return sig;
 
     } else if (isSigEnable(sig, t1, t2)) {
         Node n2 = t2->node();
 
-        if (isZero(n2))
+        if (isZero(n2)) {
             return sigInt(0);  // a 'zero' with the correct type
+        }
 
-        else if (isOne(n2))
+        else if (isOne(n2)) {
             return t1;
+        }
 
-        else
+        else {
             return sig;
+        }
 
         // Control(t1, 0) => 0
         // Control(t1, 1) => t1
@@ -248,14 +293,17 @@ static Tree simplification(Tree sig)
     } else if (isSigControl(sig, t1, t2)) {
         Node n2 = t2->node();
 
-        if (isZero(n2))
+        if (isZero(n2)) {
             return sigInt(0);  // a 'zero' with the correct type
+        }
 
-        else if (isOne(n2))
+        else if (isOne(n2)) {
             return t1;
+        }
 
-        else
+        else {
             return sig;
+        }
 
     } else if (isSigLowest(sig, t1)) {
         typeAnnotation(t1, gGlobal->gLocalCausalityCheck);
@@ -291,7 +339,9 @@ static Tree sigMap(Tree key, tfun f, Tree t)
     } else {
         tvec br;
         int  n = t->arity();
-        for (int i = 0; i < n; i++) { br.push_back(sigMap(key, f, t->branch(i))); }
+        for (int i = 0; i < n; i++) {
+            br.push_back(sigMap(key, f, t->branch(i)));
+        }
 
         Tree r1 = tree(t->node(), br);
 
@@ -335,7 +385,9 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
     } else {
         tvec br;
         int  n = t->arity();
-        for (int i = 0; i < n; i++) { br.push_back(sigMapRename(key, env, f, t->branch(i))); }
+        for (int i = 0; i < n; i++) {
+            br.push_back(sigMapRename(key, env, f, t->branch(i)));
+        }
 
         Tree r1 = tree(t->node(), br);
 

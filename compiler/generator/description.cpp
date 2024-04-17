@@ -286,9 +286,9 @@ void Description::print(int n, ostream& fout)
     }
     tab(n + 2, fout);
     fout << "</passivewidgets>";
-    
+
     tab(n + 2, fout);
-    
+
     // soundfile widget list
     tab(n + 2, fout);
     fout << "<soundfilewidgets>";
@@ -336,7 +336,8 @@ void Description::addGroup(int level, Tree t)
         const int orient = tree2int(left(label));
 
         addLayoutLine(level, subst("<group type=\"$0\">", groupnames[orient]));
-        addLayoutLine(level + 1, subst("<label>$0</label>", checkNullLabel(t, xmlize(tree2str(right(label))))));
+        addLayoutLine(level + 1, subst("<label>$0</label>",
+                                       checkNullLabel(t, xmlize(tree2str(right(label))))));
         while (!isNil(elements)) {
             addGroup(level + 1, right(hd(elements)));
             elements = tl(elements);
@@ -356,7 +357,9 @@ void Description::addGroup(int level, Tree t)
 void Description::tab(int n, ostream& fout)
 {
     fout << '\n';
-    while (n--) fout << '\t';
+    while (n--) {
+        fout << '\t';
+    }
 }
 
 int Description::addWidget(Tree label, Tree varname, Tree sig)
@@ -431,13 +434,14 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         addSFMetadata(label);
         addSFLine("</widget>");
 
-    // add a passive widget description
+        // add a passive widget description
 
     } else if (isSigVBargraph(sig, path, x, y, z)) {
         fWidgetID++;
         fPassiveWidgetCount++;
         addPassiveLine(subst("<widget type=\"vbargraph\" id=\"$0\">", T(fWidgetID)));
-        addPassiveLine(subst("\t<label>$0</label>", checkNullBargraphLabel(sig, xmlize(tree2str(label)), 0)));
+        addPassiveLine(
+            subst("\t<label>$0</label>", checkNullBargraphLabel(sig, xmlize(tree2str(label)), 0)));
         addPassiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addPassiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
         addPassiveLine(subst("\t<max>$0</max>", T(tree2double(y))));
@@ -448,7 +452,8 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         fWidgetID++;
         fPassiveWidgetCount++;
         addPassiveLine(subst("<widget type=\"hbargraph\" id=\"$0\">", T(fWidgetID)));
-        addPassiveLine(subst("\t<label>$0</label>", checkNullBargraphLabel(sig, xmlize(tree2str(label)), 1)));
+        addPassiveLine(
+            subst("\t<label>$0</label>", checkNullBargraphLabel(sig, xmlize(tree2str(label)), 1)));
         addPassiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addPassiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
         addPassiveLine(subst("\t<max>$0</max>", T(tree2double(y))));
@@ -472,7 +477,9 @@ void Description::addActiveMetadata(Tree label)
     extractMetadata(tree2str(label), shortLabel, metadata);
     lines = xmlOfMetadata(metadata, 1);
 
-    for (const auto& it : lines) fActiveLines.push_back(it);
+    for (const auto& it : lines) {
+        fActiveLines.push_back(it);
+    }
 }
 
 void Description::addPassiveMetadata(Tree label)
@@ -484,7 +491,9 @@ void Description::addPassiveMetadata(Tree label)
     extractMetadata(tree2str(label), shortLabel, metadata);
     lines = xmlOfMetadata(metadata, 1);
 
-    for (const auto& it : lines) fPassiveLines.push_back(it);
+    for (const auto& it : lines) {
+        fPassiveLines.push_back(it);
+    }
 }
 
 void Description::addSFMetadata(Tree label)
@@ -492,11 +501,13 @@ void Description::addSFMetadata(Tree label)
     map<string, set<string>> metadata;
     string                   shortLabel;
     list<string>             lines;
-    
+
     extractMetadata(tree2str(label), shortLabel, metadata);
     lines = xmlOfMetadata(metadata, 1);
-    
-    for (const auto& it : lines) fSFLines.push_back(it);
+
+    for (const auto& it : lines) {
+        fSFLines.push_back(it);
+    }
 }
 
 void Description::printXML(int ins, int outs)

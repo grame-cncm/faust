@@ -31,11 +31,9 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     virtual void compileMultiSignal(Tree sig) override;
 
    protected:
-    
     virtual ValueInst* CS(Tree sig) override;
 
    private:
-   
     virtual ValueInst* generateCode(Tree sig) override;
     virtual void       generateCodeRecursions(Tree sig);
     virtual ValueInst* generateCodeNonRec(Tree sig);
@@ -46,18 +44,21 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     void generateVectorLoop(BasicTyped* ctype, const std::string& vecname, ValueInst* exp,
                             Address::AccessType& access);
     void generateDlineLoop(BasicTyped* ctype, const std::string& vecname, int delay, ValueInst* exp,
-                            Address::AccessType& access);
+                           Address::AccessType& access);
 
     virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst) override;
     virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst) override;
     virtual ValueInst* generateInput(Tree sig, int idx) override;
 
     virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree size) override;
-    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd) override;
-    virtual ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd,
+    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype,
+                                        const std::string& vname, int mxd) override;
+    virtual ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype,
+                                         const std::string& vname, int mxd,
                                          Address::AccessType& access, ValueInst* ccs) override;
 
-    StatementInst* generateCopyBackArray(const std::string& vname_to, const std::string& vname_from,  ValueInst* vec_size, int size);
+    StatementInst* generateCopyBackArray(const std::string& vname_to, const std::string& vname_from,
+                                         ValueInst* vec_size, int size);
 
     // private helper functions
     bool needSeparateLoop(Tree sig);

@@ -43,12 +43,12 @@ interval interval_algebra::Sqrt(const interval& x)
     int precision = exactPrecisionUnary(sqrt, i.hi(), -pow(2, i.lsb()));
     if (precision == INT_MIN or taylor_lsb) {
         if (i.hi() == 0) {
-            precision = floor(i.lsb()/2);
+            precision = floor(i.lsb() / 2);
         } else {
-            precision = floor(i.lsb() - log2(i.hi()) - 1); // sqrt(x+u) - sqrt(x) = 1/2 u/sqrt(x)
+            precision = floor(i.lsb() - log2(i.hi()) - 1);  // sqrt(x+u) - sqrt(x) = 1/2 u/sqrt(x)
         }
     }
-    
+
     return {sqrt(i.lo()), sqrt(i.hi()), precision};
 }
 

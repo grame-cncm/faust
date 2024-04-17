@@ -23,13 +23,13 @@
 #include <map>
 
 #include "global.hh"
-#include "tree.hh"
-#include "ppsig.hh"
 #include "ppbox.hh"
-#include "simplify.hh"
+#include "ppsig.hh"
 #include "sigPromotion.hh"
 #include "sigtyperules.hh"
+#include "simplify.hh"
 #include "timing.hh"
+#include "tree.hh"
 
 using namespace std;
 
@@ -40,102 +40,102 @@ static Tree simplifyToNormalFormAux(Tree LS)
     startTiming("deBruijn2Sym");
     Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
-    
+
     // Annotate L1 with type information
     startTiming("L1 typeAnnotation");
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");
-    
+
     if (gGlobal->gRangeUI) {
         // Generate safe values for range UI items (sliders and nentry)
         startTiming("Safe values for range UI items");
         L1 = signalUIPromote(L1);
         endTiming("Safe values for range UI items");
-        
+
         // Annotate L1 with type information
         startTiming("L1 typeAnnotation");
         typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
         endTiming("L1 typeAnnotation");
     }
-    
+
     if (gGlobal->gFreezeUI) {
         // Freeze range UI items (sliders and nentry)to their init value
         startTiming("Freeze values for range UI items");
         L1 = signalUIFreezePromote(L1);
         endTiming("Freeze values for range UI items");
-        
+
         // Annotate L1 with type information
         startTiming("L1 typeAnnotation");
         typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
         endTiming("L1 typeAnnotation");
     }
-    
+
     if (gGlobal->gFTZMode > 0) {
         // Wrap real signals with FTZ
         startTiming("FTZ on recursive signals");
         L1 = signalFTZPromote(L1);
         endTiming("FTZ on recursive signals");
-        
+
         // Annotate L1 with type information
         startTiming("L1 typeAnnotation");
         typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
         endTiming("L1 typeAnnotation");
     }
-    
+
     // Auto differentiation
     if (gGlobal->gAutoDifferentiate) {
         L1 = signalAutoDifferentiate(L1);
         typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     }
-    
+
     // Needed before 'simplify' (see sigPromotion.hh)
     startTiming("Cast and Promotion");
     Tree L2 = signalPromote(L1);
     endTiming("Cast and Promotion");
-    
+
     // Simplify by executing every computable operation
     startTiming("L2 simplification");
     Tree L3 = simplify(L2);
     endTiming("L2 simplification");
-    
+
     // Annotate L3 with type information
     startTiming("L3 typeAnnotation");
     typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
     endTiming("L3 typeAnnotation");
-    
+
     startTiming("Cast and Promotion");
     Tree L4 = signalPromote(L3);
     endTiming("Cast and Promotion");
-    
+
     startTiming("L4 typeAnnotation");
     typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
     endTiming("L4 typeAnnotation");
-    
+
     // Must be done after simplifation so that 'size' signal is properly simplified to a constant
     if (gGlobal->gCheckTable) {
         // Check and generate safe access to rdtable/rwtable
         startTiming("Safe access to rdtable/rwtable");
         L4 = signalTablePromote(L4);
         endTiming("Safe access to rdtable/rwtable");
-        
+
         // Annotate L4 with type information
         startTiming("L4 typeAnnotation");
         typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
         endTiming("L4 typeAnnotation");
     }
-     
+
     if (gGlobal->gCheckIntRange) {
         // Check and generate safe float to integer range conversion
         startTiming("Safe float to integer conversion");
         L4 = signalIntCastPromote(L4);
         endTiming("Safe float to integer conversion");
-        
+
         // Annotate L4 with type information
         startTiming("L4 typeAnnotation");
         typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
         endTiming("L4 typeAnnotation");
     }
-    
+
     // Check signal tree
     SignalChecker checker(L4);
     return L4;
@@ -159,7 +159,9 @@ LIBFAUST_API Tree simplifyToNormalForm(Tree sig)
 LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist)
 {
     tvec res;
-    for (const auto& it : siglist) { res.push_back(simplifyToNormalForm(it));}
+    for (const auto& it : siglist) {
+        res.push_back(simplifyToNormalForm(it));
+    }
     return res;
 }
 

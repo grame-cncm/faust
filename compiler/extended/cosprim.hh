@@ -36,9 +36,10 @@ class CosPrim : public xtended {
     virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == 1);
-        Type t = args[0];
+        Type     t = args[0];
         interval i = t->getInterval();
-        return castInterval(floatCast(t), gAlgebra.Cos(i)); // todo change once the intervals library is updated
+        return castInterval(floatCast(t),
+                            gAlgebra.Cos(i));  // todo change once the intervals library is updated
     }
 
     virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
@@ -52,13 +53,13 @@ class CosPrim : public xtended {
             if (comparable(x, 0)) {  // cos(0)
                 return tree(1.0);    // cos(0) = 1
             } else if (comparable(x, 2 * M_PI)) {
-                return tree(1.0);    // cos(2.PI) = 1
+                return tree(1.0);  // cos(2.PI) = 1
             } else if (comparable(x, M_PI)) {
-                return tree(-1.0);   // cos(PI) = -1
+                return tree(-1.0);  // cos(PI) = -1
             } else if (comparable(x, M_PI / 2)) {
-                return tree(0.0);    // cos(PI/2) = 0
+                return tree(0.0);  // cos(PI/2) = 0
             } else if (comparable(x, 3 * M_PI / 2)) {
-                return tree(0.0);    // cos(3.PI/2) = 0
+                return tree(0.0);  // cos(3.PI/2) = 0
             } else {
                 return tree(cos(x));  // cos(x)
             }
@@ -67,7 +68,8 @@ class CosPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -75,7 +77,8 @@ class CosPrim : public xtended {
         return generateFun(container, subst("cos$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -83,18 +86,18 @@ class CosPrim : public xtended {
         return subst("cos$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("\\cos\\left($0\\right)", args[0]);
     }
-    
+
     virtual Tree diff(const std::vector<Tree>& args) override
     {
         // cos(x)' = -sin(x)
         return sigMul(sigReal(-1.0), sigSin(args[0]));
     }
-    
 };

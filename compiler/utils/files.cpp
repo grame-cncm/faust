@@ -95,5 +95,3 @@ void getCurrentDir()
     char* current_dir    = getcwd(buffer, FAUST_PATH_MAX);
     gGlobal->gCurrentDir = (current_dir) ? current_dir : "";
 }
-
-

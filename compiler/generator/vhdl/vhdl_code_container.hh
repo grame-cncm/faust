@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "global.hh"
-#include <memory>
-#include <vector>
-#include <set>
-#include <map>
 #include <iostream>
-#include <sstream>
+#include <map>
+#include <memory>
 #include <optional>
+#include <set>
+#include <sstream>
+#include <vector>
+#include "global.hh"
 
 // Forward declaration of Vertex from vhdl_producer
 struct Vertex;
@@ -52,54 +52,75 @@ enum class VhdlInnerType {
     String,
     RealFloat,
 
-    StdLogic, StdLogicVector,
-    StdULogic, StdULogicVector,
+    StdLogic,
+    StdLogicVector,
+    StdULogic,
+    StdULogicVector,
 
-    Unsigned, Signed,
+    Unsigned,
+    Signed,
 
-    UFixed, SFixed,
+    UFixed,
+    SFixed,
 
     Any,
 };
 
 struct VhdlType {
     VhdlInnerType type;
-    int msb, lsb;
+    int           msb, lsb;
 
-    VhdlType(): type(VhdlInnerType::Any), msb(0), lsb(0) {}
-    VhdlType(VhdlInnerType type): type(type), msb(0), lsb(0) {}
-    VhdlType(VhdlInnerType type, int msb, int lsb): type(type), msb(msb), lsb(lsb) {}
+    VhdlType() : type(VhdlInnerType::Any), msb(0), lsb(0) {}
+    VhdlType(VhdlInnerType type) : type(type), msb(0), lsb(0) {}
+    VhdlType(VhdlInnerType type, int msb, int lsb) : type(type), msb(msb), lsb(lsb) {}
     std::string to_string() const;
 };
 std::ostream& operator<<(std::ostream& out, const VhdlType& type);
 
 struct VhdlValue {
     union {
-        int integer;
-        double real;
+        int     integer;
+        double  real;
         int64_t long_integer;
-        bool boolean;
+        bool    boolean;
     } value;
     VhdlType vhdl_type;
 
-    VhdlValue(int value): value(), vhdl_type(VhdlType(VhdlInnerType::Integer, 32, 0)) { this->value.integer = value; }
-    VhdlValue(double value): value(), vhdl_type(VhdlType(VhdlInnerType::SFixed, 23, -8)) { this->value.real = value; }
-    VhdlValue(int64_t value): value(), vhdl_type(VhdlType(VhdlInnerType::Integer, 64, 0)) { this->value.long_integer = value; }
+    VhdlValue(int value) : value(), vhdl_type(VhdlType(VhdlInnerType::Integer, 32, 0))
+    {
+        this->value.integer = value;
+    }
+    VhdlValue(double value) : value(), vhdl_type(VhdlType(VhdlInnerType::SFixed, 23, -8))
+    {
+        this->value.real = value;
+    }
+    VhdlValue(int64_t value) : value(), vhdl_type(VhdlType(VhdlInnerType::Integer, 64, 0))
+    {
+        this->value.long_integer = value;
+    }
 
     /** Creates a "default value" for a given VHDL type */
-    VhdlValue(VhdlType type): value(), vhdl_type(type) {
+    VhdlValue(VhdlType type) : value(), vhdl_type(type)
+    {
         switch (type.type) {
-            case VhdlInnerType::Integer: value.integer = 0; break;
+            case VhdlInnerType::Integer:
+                value.integer = 0;
+                break;
 
             case VhdlInnerType::RealFloat:
             case VhdlInnerType::SFixed:
-            case VhdlInnerType::UFixed: value.real = 0.0; break;
+            case VhdlInnerType::UFixed:
+                value.real = 0.0;
+                break;
 
             case VhdlInnerType::StdLogic:
             case VhdlInnerType::Boolean:
-            case VhdlInnerType::Bit: value.boolean = false; break;
+            case VhdlInnerType::Bit:
+                value.boolean = false;
+                break;
             default: {
-                std::cerr << __FILE__ << ":" << __LINE__ << " ASSERT : type does not have a default value : " << type << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__
+                          << " ASSERT : type does not have a default value : " << type << std::endl;
                 faustassert(false);
             }
         }
@@ -109,29 +130,29 @@ std::ostream& operator<<(std::ostream& out, const VhdlValue& value);
 
 struct VhdlPort {
     std::string name;
-    PortMode mode;
-    VhdlType type;
+    PortMode    mode;
+    VhdlType    type;
 
-    VhdlPort(const std::string& name, PortMode mode, VhdlType type): name(name), mode(mode), type(type) {};
+    VhdlPort(const std::string& name, PortMode mode, VhdlType type)
+        : name(name), mode(mode), type(type){};
 };
 std::ostream& operator<<(std::ostream& out, const VhdlPort& port);
 
 /** Handles indentation automatically, to avoid repeating '\t' everywhere which is error prone */
-class VhdlCodeBlock : public std::ostream, public std::enable_shared_from_this<VhdlCodeBlock>
-{
-    class VhdlCodeBuffer: public std::stringbuf
-    {
+class VhdlCodeBlock : public std::ostream, public std::enable_shared_from_this<VhdlCodeBlock> {
+    class VhdlCodeBuffer : public std::stringbuf {
         std::stringstream _output;
-        int _indent_level;
+        int               _indent_level;
 
-        VhdlCodeBuffer(int indent_level): _output(), _indent_level(indent_level) {}
+        VhdlCodeBuffer(int indent_level) : _output(), _indent_level(indent_level) {}
 
        public:
-        VhdlCodeBuffer(): _output(), _indent_level(0) {}
+        VhdlCodeBuffer() : _output(), _indent_level(0) {}
         ~VhdlCodeBuffer()
         {
-            if (pbase() != pptr())
+            if (pbase() != pptr()) {
                 indent();
+            }
         }
 
         virtual int sync()
@@ -146,9 +167,7 @@ class VhdlCodeBlock : public std::ostream, public std::enable_shared_from_this<V
             _output.flush();
         }
 
-        void output_buffer(std::ostream& out) const {
-            out << _output.str();
-        }
+        void output_buffer(std::ostream& out) const { out << _output.str(); }
 
         void open_block() { _indent_level += 1; }
         void close_block() { _indent_level -= 1; }
@@ -156,17 +175,13 @@ class VhdlCodeBlock : public std::ostream, public std::enable_shared_from_this<V
     VhdlCodeBuffer _buffer;
 
    public:
-    VhdlCodeBlock(): std::ostream(&_buffer), _buffer() {}
+    VhdlCodeBlock() : std::ostream(&_buffer), _buffer() {}
 
     /** Opens a new block, incrementing the indentation level */
-    void open_block() {
-        _buffer.open_block();
-    }
+    void open_block() { _buffer.open_block(); }
 
     /** Closes a block, decrementing the indentation level */
-    void close_block() {
-        _buffer.close_block();
-    }
+    void close_block() { _buffer.close_block(); }
 
     friend std::ostream& operator<<(std::ostream& out, const VhdlCodeBlock& block);
 };
@@ -177,21 +192,20 @@ class VhdlCodeBlock : public std::ostream, public std::enable_shared_from_this<V
  * carries the 'ap_start' signal.
  */
 struct RegisterSeriesInfo {
-    std::string name;
+    std::string           name;
     std::optional<size_t> source;
-    int registers_count;
+    int                   registers_count;
 };
 
 /**
  * Generates actual VHDL source code from the intermediate representations used in VhdlProducer.
  */
-class VhdlCodeContainer
-{
+class VhdlCodeContainer {
     // General information about the IP
     std::string _ip_name;
-    size_t _num_inputs;
-    size_t _num_outputs;
-    size_t _cycles_per_sample;
+    size_t      _num_inputs;
+    size_t      _num_outputs;
+    size_t      _cycles_per_sample;
 
     // Core blocks that are always accessible
     VhdlCodeBlock _entities;
@@ -204,28 +218,30 @@ class VhdlCodeContainer
 
     // Associates vertices of the graph to their VHDL signal identifier
     std::map<size_t, std::string> _signal_identifier;
-    // Maps a source node's hash to a pair of target node hash and register count along the connection
+    // Maps a source node's hash to a pair of target node hash and register count along the
+    // connection
     std::map<size_t, std::vector<std::pair<size_t, size_t>>> _mappings;
     // Information about initialized register series
     std::vector<RegisterSeriesInfo> _register_series;
 
     // Mappings specific to outputs and/or recursive storage
-    std::vector<size_t> _output_mappings;
+    std::vector<size_t>      _output_mappings;
     std::map<size_t, size_t> _one_sample_delay_mappings;
 
     // Stores code for custom operators
     std::map<size_t, std::string> _custom_operators;
 
    public:
-    VhdlCodeContainer(const std::string& ip_name, int num_inputs, int num_outputs, int cycles_per_sample, std::map<size_t, std::string> custom_operators):
-          _ip_name(ip_name),
+    VhdlCodeContainer(const std::string& ip_name, int num_inputs, int num_outputs,
+                      int cycles_per_sample, std::map<size_t, std::string> custom_operators)
+        : _ip_name(ip_name),
           _num_inputs(num_inputs),
           _num_outputs(num_outputs),
           _cycles_per_sample(cycles_per_sample),
           _custom_operators(custom_operators)
     {
-        // If the implementation takes more than one clock cycle to produce an output, we create a series of
-        // registers to sync the 'ap_done' and validation signals.
+        // If the implementation takes more than one clock cycle to produce an output, we create a
+        // series of registers to sync the 'ap_done' and validation signals.
         if (cycles_per_sample) {
             generateRegisterSeries(cycles_per_sample, VhdlType(VhdlInnerType::StdLogic));
         }
@@ -233,7 +249,8 @@ class VhdlCodeContainer
 
     // Registers a new unique component, declaring its related signals and generic
     // component if necessary
-    void register_component(const Vertex& component, std::optional<int> cycles_from_input = std::nullopt);
+    void register_component(const Vertex&      component,
+                            std::optional<int> cycles_from_input = std::nullopt);
 
     // Connects two nodes with the given amount of lag i.e registers in between source and target
     void connect(const Vertex& source, const Vertex& target, int lag);
@@ -244,10 +261,10 @@ class VhdlCodeContainer
      * COMPONENT GENERATORS
      */
     size_t generateRegisterSeries(int n, VhdlType type);
-    void generateDelay(size_t hash, VhdlType type);
-    void generateConstant(size_t hash, VhdlValue value);
-    void generateOneSampleDelay(size_t hash, VhdlType type, int cycles_from_input);
-    void generateBinaryOperator(size_t hash, int kind, VhdlType type);
+    void   generateDelay(size_t hash, VhdlType type);
+    void   generateConstant(size_t hash, VhdlValue value);
+    void   generateOneSampleDelay(size_t hash, VhdlType type, int cycles_from_input);
+    void   generateBinaryOperator(size_t hash, int kind, VhdlType type);
 
     friend std::ostream& operator<<(std::ostream& out, const VhdlCodeContainer& container);
 };

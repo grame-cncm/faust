@@ -76,7 +76,8 @@ std::pair<interval, interval> splitnz(interval x)
     if (x.hi() < 0) {
         return {x, empty()};
     }
-    return {interval{x.lo(), nexttoward(0.0, -1.0), x.lsb()}, interval{nexttoward(0.0, 1.0), x.hi(), x.lsb()}};
+    return {interval{x.lo(), nexttoward(0.0, -1.0), x.lsb()},
+            interval{nexttoward(0.0, 1.0), x.hi(), x.lsb()}};
 }
 
 //------------------------------------------------------------------------------------------
@@ -97,7 +98,7 @@ interval positiveFMod(const interval& x, const interval& y)
         return empty();
     }
     int n = int(x.lo() / y.hi());
-    //std::cout << "n = " << n << std::endl;
+    // std::cout << "n = " << n << std::endl;
     int precision = std::min(x.lsb(), y.lsb());
 
     // n == 0 obeys the same rules as the general case
@@ -126,7 +127,7 @@ interval positiveFMod(const interval& x, const interval& y)
     }
     // prop : y.lo() > hi
     // in that case, the quotient between x and y is constant and equal
-    return interval{x.lo() - n*y.hi(), x.hi() - n*y.lo(), precision};
+    return interval{x.lo() - n * y.hi(), x.hi() - n * y.lo(), precision};
 }
 
 // fmod of two signed intervals
@@ -142,10 +143,8 @@ interval interval_algebra::Mod(const interval& x, const interval& y)
     auto xpyp = positiveFMod(xp, yp);
 
     // Make sure these 4 values are in the resulting interval
-    auto bb = singleton(fmod(x.hi(), y.hi())) 
-            + singleton(fmod(x.lo(), y.hi())) 
-            + singleton(fmod(x.hi(), y.lo())) 
-            + singleton(fmod(x.lo(), y.lo()));
+    auto bb = singleton(fmod(x.hi(), y.hi())) + singleton(fmod(x.lo(), y.hi())) +
+              singleton(fmod(x.hi(), y.lo())) + singleton(fmod(x.lo(), y.lo()));
 
     bb = interval{bb.lo(), bb.hi(), std::min(x.lsb(), y.lsb())};
 
@@ -155,21 +154,28 @@ interval interval_algebra::Mod(const interval& x, const interval& y)
 
 void interval_algebra::testMod()
 {
-    // check("test algebra Mod", Mod(interval(-100, 100), 1.0), interval(nextafter(-1.0, 0.0), nextafter(1.0, 0.0)));
-    // check("test algebra Mod", Mod(interval(0, 100), 2), interval(0, nextafter(2.0, 0)));
-    // check("test algebra Mod", Mod(interval(0, 100), -1.0), interval(0, nextafter(1.0, 0)));
+    // check("test algebra Mod", Mod(interval(-100, 100), 1.0), interval(nextafter(-1.0, 0.0),
+    // nextafter(1.0, 0.0))); check("test algebra Mod", Mod(interval(0, 100), 2), interval(0,
+    // nextafter(2.0, 0))); check("test algebra Mod", Mod(interval(0, 100), -1.0), interval(0,
+    // nextafter(1.0, 0)));
     /* check("test algebra Mod", Mod(interval(5, 7), interval(4, 4.5)), interval(0.5, 3));
     check("test algebra Mod", Mod(interval(5, 7), interval(8, 10)), interval(5, 7));
     check("test algebra Mod", Mod(interval(-7, 7), interval(8, 10)), interval(-7, 7));
-    check("test algebra Mod", Mod(interval(0, 100), interval(7, 7)), interval(0, nextafter(7.0, 0.0)));*/
+    check("test algebra Mod", Mod(interval(0, 100), interval(7, 7)), interval(0, nextafter(7.0,
+    0.0)));*/
 
-    // analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, -5), interval(0, 10, -5), fmod, &interval_algebra::Mod);
-    analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, 1), interval(0, 10, 0), fmod, &interval_algebra::Mod);
-    /* analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, 0), interval(0, 10, 0), fmod, &interval_algebra::Mod);
-    analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, 0), interval(0, 10, -5), fmod, &interval_algebra::Mod);
+    // analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, -5), interval(0, 10, -5), fmod,
+    // &interval_algebra::Mod);
+    analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, 1), interval(0, 10, 0), fmod,
+                        &interval_algebra::Mod);
+    /* analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, 0), interval(0, 10, 0), fmod,
+    &interval_algebra::Mod); analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, 0), interval(0,
+    10, -5), fmod, &interval_algebra::Mod);
 
-    analyzeBinaryMethod(10, 100000000, "mod", interval(3, 4, -3), interval(1.2, 1.4, -3), fmod, &interval_algebra::Mod);*/
-    // analyzeBinaryMethod(10, 10000, "mod", interval(-10, 10, -5), interval(-10, 10, -5), fmod, &interval_algebra::Mod);
+    analyzeBinaryMethod(10, 100000000, "mod", interval(3, 4, -3), interval(1.2, 1.4, -3), fmod,
+    &interval_algebra::Mod);*/
+    // analyzeBinaryMethod(10, 10000, "mod", interval(-10, 10, -5), interval(-10, 10, -5), fmod,
+    // &interval_algebra::Mod);
 }
 
 }  // namespace itv

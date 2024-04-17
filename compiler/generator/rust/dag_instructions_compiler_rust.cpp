@@ -36,10 +36,10 @@ void DAGInstructionsCompilerRust::compileMultiSignal(Tree L)
     L = prepare(L);  // Optimize, share and annotate expression
 
     Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr);
-    pushComputeBlockMethod(
-        InstBuilder::genDeclareBufferIterators("input", "inputs", fContainer->inputs(), type, false, true));
-    pushComputeBlockMethod(
-        InstBuilder::genDeclareBufferIterators("output", "outputs", fContainer->outputs(), type, true, true));
+    pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators(
+        "input", "inputs", fContainer->inputs(), type, false, true));
+    pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators(
+        "output", "outputs", fContainer->outputs(), type, true, true));
 
     for (int index = 0; isList(L); L = tl(L), index++) {
         Tree   sig  = hd(L);
@@ -51,10 +51,13 @@ void DAGInstructionsCompilerRust::compileMultiSignal(Tree L)
         ValueInst* res = genCastedOutput(getCertifiedSigType(sig)->nature(), CS(sig));
 
         if (gGlobal->gComputeMix) {
-            ValueInst* res1 = InstBuilder::genAdd(res, InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex()));
-            pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res1));
+            ValueInst* res1 = InstBuilder::genAdd(
+                res, InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex()));
+            pushComputeDSPMethod(
+                InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res1));
         } else {
-            pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
+            pushComputeDSPMethod(
+                InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
         }
 
         fContainer->closeLoop(sig);
@@ -72,7 +75,8 @@ void DAGInstructionsCompilerRust::compileMultiSignal(Tree L)
     endTiming("compileMultiSignal");
 }
 
-StatementInst* DAGInstructionsCompilerRust::generateInitArray(const string& vname, BasicTyped* ctype, int delay)
+StatementInst* DAGInstructionsCompilerRust::generateInitArray(const string& vname,
+                                                              BasicTyped* ctype, int delay)
 {
     ValueInst*  init  = InstBuilder::genTypedZero(ctype);
     BasicTyped* typed = ctype;
@@ -93,24 +97,27 @@ StatementInst* DAGInstructionsCompilerRust::generateShiftArray(const string& vna
     ValueInst* upperBound = InstBuilder::genInt32NumInst(delay);
     ValueInst* lowerBound = InstBuilder::genInt32NumInst(1);
 
-    SimpleForLoopInst* loop        = InstBuilder::genSimpleForLoopInst(index, upperBound, lowerBound, true);
-    LoadVarInst*       loadVarInst = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop));
-    ValueInst*         load_value2 = InstBuilder::genSub(loadVarInst, InstBuilder::genInt32NumInst(1));
-    ValueInst*         load_value3 = InstBuilder::genLoadArrayStructVar(vname, load_value2);
+    SimpleForLoopInst* loop =
+        InstBuilder::genSimpleForLoopInst(index, upperBound, lowerBound, true);
+    LoadVarInst* loadVarInst =
+        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop));
+    ValueInst* load_value2 = InstBuilder::genSub(loadVarInst, InstBuilder::genInt32NumInst(1));
+    ValueInst* load_value3 = InstBuilder::genLoadArrayStructVar(vname, load_value2);
 
     loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, loadVarInst, load_value3));
     return loop;
 }
 
-StatementInst* DAGInstructionsCompilerRust::generateCopyArray(const string& vname_to, const string& vname_from,
-                                                              int size)
+StatementInst* DAGInstructionsCompilerRust::generateCopyArray(const string& vname_to,
+                                                              const string& vname_from, int size)
 {
     string index = gGlobal->getFreshID("j");
 
-    ValueInst*         upperBound  = InstBuilder::genInt32NumInst(size);
-    SimpleForLoopInst* loop        = InstBuilder::genSimpleForLoopInst(index, upperBound);
-    LoadVarInst*       loadVarInst = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop));
-    ValueInst*         load_value  = InstBuilder::genLoadArrayStructVar(vname_from, loadVarInst);
+    ValueInst*         upperBound = InstBuilder::genInt32NumInst(size);
+    SimpleForLoopInst* loop       = InstBuilder::genSimpleForLoopInst(index, upperBound);
+    LoadVarInst*       loadVarInst =
+        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop));
+    ValueInst* load_value = InstBuilder::genLoadArrayStructVar(vname_from, loadVarInst);
 
     loop->pushFrontInst(InstBuilder::genStoreArrayStackVar(vname_to, loadVarInst, load_value));
     return loop;

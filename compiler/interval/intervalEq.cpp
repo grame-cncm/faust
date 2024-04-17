@@ -34,9 +34,15 @@ static double myEq(double x, double y)
 interval interval_algebra::Eq(const interval& x, const interval& y)
 {
     // boolean value => precision 0
-    if (x.isEmpty() || y.isEmpty()) return empty();
-    if (x.lo() == x.hi() && x.lo() == y.lo() && x.lo() == y.hi()) return interval{1,1,0};
-    if (x.hi() < y.lo() || x.lo() > y.hi()) return interval{0, 0, 0};
+    if (x.isEmpty() || y.isEmpty()) {
+        return empty();
+    }
+    if (x.lo() == x.hi() && x.lo() == y.lo() && x.lo() == y.hi()) {
+        return interval{1, 1, 0};
+    }
+    if (x.hi() < y.lo() || x.lo() > y.hi()) {
+        return interval{0, 0, 0};
+    }
     return interval{0, 1, 0};
 }
 
@@ -46,8 +52,11 @@ void interval_algebra::testEq()
     check("test algebra Eq", Eq(interval(2, 5), interval(0, 1)), interval(0));
     check("test algebra Eq", Eq(interval(-1, 1), interval(0, 10)), interval(0, 1));*/
 
-    analyzeBinaryMethod(10, 200, "Eq", interval(-1, 1, 0), interval(-1, 1, 0), myEq, &interval_algebra::Eq);
-    analyzeBinaryMethod(10, 200, "Eq", interval(-10, 10, 0), interval(-10, 10, 0), myEq, &interval_algebra::Eq);
-    analyzeBinaryMethod(10, 20000, "Eq", interval(-1, 1, -2), interval(-1, 1, -2), myEq, &interval_algebra::Eq);
+    analyzeBinaryMethod(10, 200, "Eq", interval(-1, 1, 0), interval(-1, 1, 0), myEq,
+                        &interval_algebra::Eq);
+    analyzeBinaryMethod(10, 200, "Eq", interval(-10, 10, 0), interval(-10, 10, 0), myEq,
+                        &interval_algebra::Eq);
+    analyzeBinaryMethod(10, 20000, "Eq", interval(-1, 1, -2), interval(-1, 1, -2), myEq,
+                        &interval_algebra::Eq);
 }
 }  // namespace itv

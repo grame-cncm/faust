@@ -30,10 +30,10 @@
 
 #include "Text.hh"
 #include "code_container.hh"
+#include "dcond.hh"
 #include "garbageable.hh"
 #include "global.hh"
 #include "instructions.hh"
-#include "dcond.hh"
 #include "occurrences.hh"
 #include "property.hh"
 
@@ -43,111 +43,170 @@ class InstructionsCompiler : public virtual Garbageable {
    protected:
     CodeContainer* fContainer;
 
-    property<ValueInst*>  fCompileProperty;
-    property<std::string> fVectorProperty;
+    property<ValueInst*>                          fCompileProperty;
+    property<std::string>                         fVectorProperty;
     property<std::pair<std::string, std::string>> fStaticInitProperty;
     property<std::pair<std::string, std::string>> fInstanceInitProperty;
-    property<std::string> fTableProperty;
-    
-    std::map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
-    
-    Tree        fSharingKey;
-    OccMarkup*  fOccMarkup;
+    property<std::string>                         fTableProperty;
+
+    std::map<Tree, Tree>
+        fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
+
+    Tree       fSharingKey;
+    OccMarkup* fOccMarkup;
 
     // Ensure IOTA base fixed delays are computed once
     std::map<int, std::string> fIOTATable;
-    
+
     // Several 'IOTA' variables may be needed when subcontainers are inlined in the main module
     std::string fCurrentIOTA;
 
     UITree       fUITree;
     Description* fDescription;
-    
+
     /*
      -dlt <N> : threshold between 'mask' and 'select' based ring-buffer delay line model.
      'mask' delay-lines use the next power-of-two value size and a mask (faster but use more memory)
-     'select' delay-line use N+1 and use select to wrap the read/write indexes (use less memory but slower)
+     'select' delay-line use N+1 and use select to wrap the read/write indexes (use less memory but
+     slower)
     */
-  
-    void getTypedNames(::Type t, const std::string& prefix, Typed::VarType& ctype, std::string& vname);
+
+    void getTypedNames(::Type t, const std::string& prefix, Typed::VarType& ctype,
+                       std::string& vname);
     void getTypedNames(::Type t, const std::string& prefix, BasicTyped*& ctype, std::string& vname);
 
-    bool getCompiledExpression(Tree sig, ValueType& cexp);
+    bool      getCompiledExpression(Tree sig, ValueType& cexp);
     ValueType setCompiledExpression(Tree sig, const ValueType& cexp);
 
     bool getVectorNameProperty(Tree sig, std::string& vecname);
     void setVectorNameProperty(Tree sig, const std::string& vecname);
-    
+
     bool getTableNameProperty(Tree sig, std::string& vecname);
     void setTableNameProperty(Tree sig, const std::string& vecname);
-  
+
     // Redefined by RustInstructionsCompiler
-    virtual StatementInst* generateInitArray(const std::string& vname, BasicTyped* ctype, int delay);
-    virtual StatementInst* generateCopyArray(const std::string& vname, int index_from, int index_to);
-    virtual StatementInst* generateCopyArray(const std::string& vname_to, const std::string& vname_from, int size);
-    
+    virtual StatementInst* generateInitArray(const std::string& vname, BasicTyped* ctype,
+                                             int delay);
+    virtual StatementInst* generateCopyArray(const std::string& vname, int index_from,
+                                             int index_to);
+    virtual StatementInst* generateCopyArray(const std::string& vname_to,
+                                             const std::string& vname_from, int size);
+
     // Redefined in InterpreterInstructionsCompiler
     virtual StatementInst* generateShiftArray(const std::string& vname, int delay);
 
     virtual ValueInst* generateButtonAux(Tree sig, Tree path, const std::string& name);
     virtual ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, const std::string& name);
-    virtual ValueInst* generateBargraphAux(Tree sig, Tree path, ValueInst* exp, const std::string& name);
-    virtual ValueInst* generateSelect2Aux(Tree sig, Tree s1, Tree s2, ValueInst* cond, ValueInst* v1, ValueInst* v2);
+    virtual ValueInst* generateBargraphAux(Tree sig, Tree path, ValueInst* exp,
+                                           const std::string& name);
+    virtual ValueInst* generateSelect2Aux(Tree sig, Tree s1, Tree s2, ValueInst* cond,
+                                          ValueInst* v1, ValueInst* v2);
 
     // Wrapper functions to access code container
     StatementInst* pushInitMethod(StatementInst* inst) { return fContainer->pushInitMethod(inst); }
-    StatementInst* pushResetUIInstructions(StatementInst* inst) { return fContainer->pushResetUIInstructions(inst); }
-    StatementInst* pushClearMethod(StatementInst* inst) { return fContainer->pushClearMethod(inst); }
-    StatementInst* pushPostInitMethod(StatementInst* inst) { return fContainer->pushPostInitMethod(inst); }
-    StatementInst* pushPreInitMethod(StatementInst* inst) { return fContainer->pushPreInitMethod(inst); }
-    StatementInst* pushAllocateMethod(StatementInst* inst) { return fContainer->pushAllocateMethod(inst); }
-    StatementInst* pushDestroyMethod(StatementInst* inst) { return fContainer->pushDestroyMethod(inst); }
-    StatementInst* pushStaticInitMethod(StatementInst* inst) { return fContainer->pushStaticInitMethod(inst); }
-    StatementInst* pushPostStaticInitMethod(StatementInst* inst) { return fContainer->pushPostStaticInitMethod(inst); }
-    StatementInst* pushStaticDestroyMethod(StatementInst* inst) { return fContainer->pushStaticDestroyMethod(inst); }
-    StatementInst* pushComputeBlockMethod(StatementInst* inst) { return fContainer->pushComputeBlockMethod(inst); }
+    StatementInst* pushResetUIInstructions(StatementInst* inst)
+    {
+        return fContainer->pushResetUIInstructions(inst);
+    }
+    StatementInst* pushClearMethod(StatementInst* inst)
+    {
+        return fContainer->pushClearMethod(inst);
+    }
+    StatementInst* pushPostInitMethod(StatementInst* inst)
+    {
+        return fContainer->pushPostInitMethod(inst);
+    }
+    StatementInst* pushPreInitMethod(StatementInst* inst)
+    {
+        return fContainer->pushPreInitMethod(inst);
+    }
+    StatementInst* pushAllocateMethod(StatementInst* inst)
+    {
+        return fContainer->pushAllocateMethod(inst);
+    }
+    StatementInst* pushDestroyMethod(StatementInst* inst)
+    {
+        return fContainer->pushDestroyMethod(inst);
+    }
+    StatementInst* pushStaticInitMethod(StatementInst* inst)
+    {
+        return fContainer->pushStaticInitMethod(inst);
+    }
+    StatementInst* pushPostStaticInitMethod(StatementInst* inst)
+    {
+        return fContainer->pushPostStaticInitMethod(inst);
+    }
+    StatementInst* pushStaticDestroyMethod(StatementInst* inst)
+    {
+        return fContainer->pushStaticDestroyMethod(inst);
+    }
+    StatementInst* pushComputeBlockMethod(StatementInst* inst)
+    {
+        return fContainer->pushComputeBlockMethod(inst);
+    }
     StatementInst* pushPostComputeBlockMethod(StatementInst* inst)
     {
         return fContainer->pushPostComputeBlockMethod(inst);
     }
-    StatementInst* pushUserInterfaceMethod(StatementInst* inst) { return fContainer->pushUserInterfaceMethod(inst); }
-  
-    StatementInst* pushDeclare(StatementInst* inst) { return fContainer->pushDeclare(inst); }
-    StatementInst* pushControlDeclare(StatementInst* inst) { return fContainer->pushControlDeclare(inst); }
-    StatementInst* pushGlobalDeclare(StatementInst* inst) { return fContainer->pushGlobalDeclare(inst); }
-    StatementInst* pushExtGlobalDeclare(StatementInst* inst) { return fContainer->pushExtGlobalDeclare(inst); }
+    StatementInst* pushUserInterfaceMethod(StatementInst* inst)
+    {
+        return fContainer->pushUserInterfaceMethod(inst);
+    }
 
-    StatementInst* pushPreComputeDSPMethod(StatementInst* inst) { return fContainer->pushPreComputeDSPMethod(inst); }
-    StatementInst* pushComputeDSPMethod(StatementInst* inst) { return fContainer->pushComputeDSPMethod(inst); }
-    StatementInst* pushPostComputeDSPMethod(StatementInst* inst) { return fContainer->pushPostComputeDSPMethod(inst); }
+    StatementInst* pushDeclare(StatementInst* inst) { return fContainer->pushDeclare(inst); }
+    StatementInst* pushControlDeclare(StatementInst* inst)
+    {
+        return fContainer->pushControlDeclare(inst);
+    }
+    StatementInst* pushGlobalDeclare(StatementInst* inst)
+    {
+        return fContainer->pushGlobalDeclare(inst);
+    }
+    StatementInst* pushExtGlobalDeclare(StatementInst* inst)
+    {
+        return fContainer->pushExtGlobalDeclare(inst);
+    }
+
+    StatementInst* pushPreComputeDSPMethod(StatementInst* inst)
+    {
+        return fContainer->pushPreComputeDSPMethod(inst);
+    }
+    StatementInst* pushComputeDSPMethod(StatementInst* inst)
+    {
+        return fContainer->pushComputeDSPMethod(inst);
+    }
+    StatementInst* pushPostComputeDSPMethod(StatementInst* inst)
+    {
+        return fContainer->pushPostComputeDSPMethod(inst);
+    }
 
     void ensureIotaCode();
- 
+
     CodeContainer* signal2Container(const std::string& name, Tree sig);
 
     FIRIndex getCurrentLoopIndex() { return FIRIndex(fContainer->getCurLoop()->getLoopIndex()); }
-    
+
     void declareWaveform(Tree sig, std::string& vname, int& size);
-    
+
     // Enable/control
     void conditionAnnotation(Tree l);
     void conditionAnnotation(Tree t, Tree nc);
     void conditionStatistics(Tree l);
-    
+
     ValueInst* cnf2code(Tree cc);
     ValueInst* or2code(Tree oc);
-    
+
     ValueInst* dnf2code(Tree cc);
     ValueInst* and2code(Tree oc);
-    
+
     ValueInst* getConditionCode(Tree sig);
-    
+
     // Casting for inputs/ousputs
     virtual ValueInst* genCastedInput(ValueInst* value);
-    ValueInst* genCastedOutput(int type, ValueInst* value);
-    
+    ValueInst*         genCastedOutput(int type, ValueInst* value);
+
     virtual BasicTyped* genFloatType(::Type type);
-    
+
     virtual ValueInst* CS(Tree sig);
 
    public:
@@ -164,7 +223,7 @@ class InstructionsCompiler : public virtual Garbageable {
 
     // Code generation
     virtual ValueInst* generateCode(Tree sig);
-  
+
     virtual ValueInst* generateXtended(Tree sig);
     virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree size);
     virtual ValueInst* generatePrefix(Tree sig, Tree x, Tree e);
@@ -183,7 +242,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateStaticSigGen(Tree sig, Tree content);
 
     virtual ValueInst* generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2);
-   
+
     virtual ValueInst* generateRecProj(Tree sig, Tree exp, int i);
     virtual ValueInst* generateRec(Tree sig, Tree var, Tree le, int index = -1);
 
@@ -203,20 +262,25 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateSoundfile(Tree sig, Tree label);
     virtual ValueInst* generateSoundfileLength(Tree sig, ValueInst* sf, ValueInst* part);
     virtual ValueInst* generateSoundfileRate(Tree sig, ValueInst* sf, ValueInst* part);
-    virtual ValueInst* generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y, ValueInst* z);
+    virtual ValueInst* generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y,
+                                               ValueInst* z);
 
     virtual ValueInst* generateAttach(Tree sig, Tree x, Tree y);
-    
+
     virtual ValueInst* generateIntNumber(Tree sig, int num);
     virtual ValueInst* generateInt64Number(Tree sig, int64_t num);
     virtual ValueInst* generateRealNumber(Tree sig, double num);
-    virtual ValueInst* generateFConst(Tree sig, Tree type, const std::string& file, const std::string& name);
-    virtual ValueInst* generateFVar(Tree sig, Tree type, const std::string& file, const std::string& name);
+    virtual ValueInst* generateFConst(Tree sig, Tree type, const std::string& file,
+                                      const std::string& name);
+    virtual ValueInst* generateFVar(Tree sig, Tree type, const std::string& file,
+                                    const std::string& name);
 
-    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd);
-    virtual ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd,
+    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype,
+                                        const std::string& vname, int mxd);
+    virtual ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype,
+                                         const std::string& vname, int mxd,
                                          Address::AccessType& access, ValueInst* ccs);
-    
+
     virtual ValueInst* generateControl(Tree sig, Tree x, Tree y);
 
     // UI hierachy description
@@ -228,12 +292,11 @@ class InstructionsCompiler : public virtual Garbageable {
     void generateMacroInterfaceElements(const std::string& pathname, Tree elements);
     void generateWidgetMacro(const std::string& pathname, Tree fulllabel, Tree varname, Tree sig);
 
-    void setDescription(Description* descr) { fDescription = descr; }
+    void         setDescription(Description* descr) { fDescription = descr; }
     Description* getDescription() { return fDescription; }
-    
+
     Tree prepare(Tree LS);
     Tree prepare2(Tree L0);
-  
 };
 
 // =========================================
@@ -241,52 +304,47 @@ class InstructionsCompiler : public virtual Garbageable {
 // =========================================
 
 class InstructionsFXCompiler : public InstructionsCompiler {
+   protected:
+    ValueInst*          castFX(Tree sig, ValueInst* value);
+    virtual BasicTyped* genFloatType(::Type type) override;
+    virtual ValueInst*  genCastedInput(ValueInst* value) override;
 
-    protected:
-    
-        ValueInst* castFX(Tree sig, ValueInst* value);
-        virtual BasicTyped* genFloatType(::Type type) override;
-        virtual ValueInst* genCastedInput(ValueInst* value) override;
-    
-    public:
-    
-        InstructionsFXCompiler(CodeContainer* container)
-        :InstructionsCompiler(container)
-        {}
-    
-        ValueInst* generateCacheCode(Tree sig, ValueInst* inst) override;
-        ValueInst* generateRealNumber(Tree sig, double num) override;
-        ValueInst* generateRec(Tree sig, Tree var, Tree le, int index) override;
-       
-        /*
-        ValueInst* generateXtended(Tree sig) override;
-        
-        ValueInst* generateWaveform(Tree sig) override;
-        ValueInst* generateInput(Tree sig, int input) override;
-        ValueInst* generateDelay(Tree sig, Tree x, Tree y) override;
-        ValueInst* generatePrefix(Tree sig, Tree x, Tree y) override;
-        
-        ValueInst* generateBinOp(Tree sig, int op, Tree x, Tree y) override;
-        
-        ValueInst* generateFFun(Tree sig, Tree ff, Tree largs) override;
-        ValueInst* generateFConst(Tree sig, Tree type, const std::string& file, const std::string& name) override;
-        ValueInst* generateFVar(Tree sig, Tree type, const std::string& file, const std::string& name) override;
+   public:
+    InstructionsFXCompiler(CodeContainer* container) : InstructionsCompiler(container) {}
 
-        ValueInst* generateTable(Tree sig, Tree x, Tree y) override;
-        ValueInst* generateRDTbl(Tree sig, Tree x, Tree y) override;
-        ValueInst* generateSigGen(Tree sig, Tree x) override;
-        */
-        ValueInst* generateSelect2(Tree sig, Tree sel, Tree x, Tree y) override;
-    
-        /*
-        ValueInst* generateRecProj(Tree sig, Tree x, int proj) override;
-        ValueInst* generateFloatCast(Tree sig, Tree x) override;
-        ValueInst* generateButtonAux(Tree sig, Tree path, const std::string& name) override;
-        ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, const std::string& name) override;
-        ValueInst* generateBargraphAux(Tree sig, Tree path, ValueInst* exp, const std::string& name) override;
-        ValueInst* generateAttach(Tree sig, Tree x, Tree y) override;
-        */
+    ValueInst* generateCacheCode(Tree sig, ValueInst* inst) override;
+    ValueInst* generateRealNumber(Tree sig, double num) override;
+    ValueInst* generateRec(Tree sig, Tree var, Tree le, int index) override;
 
+    /*
+    ValueInst* generateXtended(Tree sig) override;
+
+    ValueInst* generateWaveform(Tree sig) override;
+    ValueInst* generateInput(Tree sig, int input) override;
+    ValueInst* generateDelay(Tree sig, Tree x, Tree y) override;
+    ValueInst* generatePrefix(Tree sig, Tree x, Tree y) override;
+
+    ValueInst* generateBinOp(Tree sig, int op, Tree x, Tree y) override;
+
+    ValueInst* generateFFun(Tree sig, Tree ff, Tree largs) override;
+    ValueInst* generateFConst(Tree sig, Tree type, const std::string& file, const std::string& name)
+    override; ValueInst* generateFVar(Tree sig, Tree type, const std::string& file, const
+    std::string& name) override;
+
+    ValueInst* generateTable(Tree sig, Tree x, Tree y) override;
+    ValueInst* generateRDTbl(Tree sig, Tree x, Tree y) override;
+    ValueInst* generateSigGen(Tree sig, Tree x) override;
+    */
+    ValueInst* generateSelect2(Tree sig, Tree sel, Tree x, Tree y) override;
+
+    /*
+    ValueInst* generateRecProj(Tree sig, Tree x, int proj) override;
+    ValueInst* generateFloatCast(Tree sig, Tree x) override;
+    ValueInst* generateButtonAux(Tree sig, Tree path, const std::string& name) override;
+    ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, const std::string& name) override;
+    ValueInst* generateBargraphAux(Tree sig, Tree path, ValueInst* exp, const std::string& name)
+    override; ValueInst* generateAttach(Tree sig, Tree x, Tree y) override;
+    */
 };
 
 #endif

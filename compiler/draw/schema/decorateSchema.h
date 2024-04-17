@@ -31,9 +31,9 @@
  */
 
 class decorateSchema : public schema {
-    schema*       fSchema;
-    double        fMargin;
-    std::string   fText;
+    schema*            fSchema;
+    double             fMargin;
+    std::string        fText;
     std::vector<point> fInputPoint;
     std::vector<point> fOutputPoint;
 

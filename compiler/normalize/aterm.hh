@@ -54,11 +54,11 @@ class aterm : public virtual Garbageable {
 
     const aterm& operator+=(const mterm& m);  ///< add in place an mterm
     const aterm& operator-=(const mterm& m);  ///< add in place an mterm
-    Tree         normalizedTree() const;      ///< return the corresponding normalized expression tree
+    Tree         normalizedTree() const;  ///< return the corresponding normalized expression tree
 
     std::ostream& print(std::ostream& dst) const;  ///< print a aterm m1 + m2 + m3 +...
-    mterm    greatestDivisor() const;    ///< return the greatest divisor of any two mterms
-    aterm    factorize(const mterm& d);  ///< reorganize the aterm by factorizing d
+    mterm         greatestDivisor() const;    ///< return the greatest divisor of any two mterms
+    aterm         factorize(const mterm& d);  ///< reorganize the aterm by factorizing d
 };
 
 inline std::ostream& operator<<(std::ostream& s, const aterm& a)

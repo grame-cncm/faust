@@ -4,10 +4,8 @@
 
 #include "FaustAlgebra.hh"
 
-namespace itv
-{
-class interval_algebra : public FaustAlgebra<interval>
-{
+namespace itv {
+class interval_algebra : public FaustAlgebra<interval> {
    private:
     interval iPow(const interval& x, const interval& y);  // integer power, when x can be negative
     interval fPow(const interval& x, const interval& y);  // float power, when x is positive
@@ -34,27 +32,30 @@ class interval_algebra : public FaustAlgebra<interval>
     interval Select2(const interval& x, const interval& y, const interval& z) override;
     interval Prefix(const interval& x, const interval& y) override;
     interval RDTbl(const interval& wtbl, const interval& ri) override;
-    interval WRTbl(const interval& n, const interval& g, const interval& wi, const interval& ws) override;
+    interval WRTbl(const interval& n, const interval& g, const interval& wi,
+                   const interval& ws) override;
     interval SoundFile(const interval& label) override;
     interval SoundFileRate(const interval& sf, const interval& x) override;
     interval SoundFileLength(const interval& sf, const interval& x) override;
-    interval SoundFileBuffer(const interval& sf, const interval& x, const interval& y, const interval& z) override;
+    interval SoundFileBuffer(const interval& sf, const interval& x, const interval& y,
+                             const interval& z) override;
     interval Waveform(const std::vector<interval>& w) override;
 
     // Foreign functions
     interval ForeignFunction(const std::vector<interval>& ff) override;
     interval ForeignVar(const interval& type, const interval& name, const interval& file) override;
-    interval ForeignConst(const interval& type, const interval& name, const interval& file) override;
+    interval ForeignConst(const interval& type, const interval& name,
+                          const interval& file) override;
 
     // User interface elements
     interval Button(const interval& name) override;
     interval Checkbox(const interval& name) override;
-    interval VSlider(const interval& name, const interval& init, const interval& lo, const interval& hi,
-                     const interval& step) override;
-    interval HSlider(const interval& name, const interval& init, const interval& lo, const interval& hi,
-                     const interval& step) override;
-    interval NumEntry(const interval& name, const interval& init, const interval& lo, const interval& hi,
-                      const interval& step) override;
+    interval VSlider(const interval& name, const interval& init, const interval& lo,
+                     const interval& hi, const interval& step) override;
+    interval HSlider(const interval& name, const interval& init, const interval& lo,
+                     const interval& hi, const interval& step) override;
+    interval NumEntry(const interval& name, const interval& init, const interval& lo,
+                      const interval& hi, const interval& step) override;
 
     interval Abs(const interval& x) override;
     void     testAbs();
