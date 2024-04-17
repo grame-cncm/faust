@@ -118,6 +118,10 @@
 
 using namespace std;
 
+#ifndef AP_INT_MAX_W
+#define AP_INT_MAX_W 1024
+#endif
+
 // Globals for flex/bison parser
 extern FILE*       FAUSTin;
 extern const char* FAUSTfilename;
