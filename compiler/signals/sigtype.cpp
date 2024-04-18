@@ -206,11 +206,7 @@ bool operator==(const Type& t1, const Type& t2)
                (st1->vectorability() == st2->vectorability()) &&
                (st1->boolean() == st2->boolean()) &&
                (st1->getInterval().lo() == st2->getInterval().lo()) &&
-               (st1->getInterval().hi() ==
-                st2->getInterval().hi()) /*&&
-(st1->getInterval().isValid() == st2->getInterval().isValid()) &&
-st1->getRes().valid == st2->getRes().valid && st1->getRes().index == st2->getRes().index*/
-            ;
+               (st1->getInterval().hi() == st2->getInterval().hi());
     }
     if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) {
         return tt1->content() == tt2->content();
