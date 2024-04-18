@@ -479,7 +479,8 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                 } else {
                     std::cerr << jj << " proj " << pnum << " of " << *rg
                               << " is NOT recursive and could be simplified: "
-                              << ppsig(getProjDefinition(s)) << std::endl;
+                              /*<< ppsig(getProjDefinition(s))*/
+                              << std::endl;
                 }
             }
 #endif
@@ -1342,12 +1343,10 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
                               nameDelayType(analyzeDelayType(sig))));
     fClass->addDeclCode(
         subst("// While its definition is of type $0", nameDelayType(analyzeDelayType(def))));
-    generateDelayLine(analyzeDelayType(sig), ctype, vecname, delay, count, mono, CS(def),
-                      getConditionCode(def));
+    std::string dl0 = generateDelayLine(analyzeDelayType(sig), ctype, vecname, delay, count, mono,
+                                        CS(def), getConditionCode(def));
 
-    return subst(
-        "[[UNUSED EXP $0]]",
-        vecname);  // make sure the resulting expression is never used in the generated code
+    return dl0;
 }
 
 /**
