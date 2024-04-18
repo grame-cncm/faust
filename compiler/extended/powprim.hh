@@ -165,34 +165,31 @@ class PowPrim : public xtended {
             Typed::VarType              rtype  = convert2FIRType(result->nature());
 
             // Expand the pow depending on the exponent argument
-            BlockInst*  block            = InstBuilder::genBlockInst();
+            BlockInst*  block            = IB::genBlockInst();
             std::string faust_power_name = container->getFaustPowerName() +
                                            std::to_string(pow_arg) +
                                            ((rtype == Typed::kInt32) ? "_i" : "_f");
 
             Names named_args;
-            named_args.push_back(
-                InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(t0)));
+            named_args.push_back(IB::genNamedTyped("value", IB::genBasicTyped(t0)));
 
             if (pow_arg == 0) {
-                block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genTypedNum(t0, 1.0)));
+                block->pushBackInst(IB::genRetInst(IB::genTypedNum(t0, 1.0)));
             } else {
-                ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
+                ValueInst* res = IB::genLoadFunArgsVar("value");
                 for (int i = 0; i < pow_arg - 1; i++) {
-                    res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
+                    res = IB::genMul(res, IB::genLoadFunArgsVar("value"));
                 }
-                block->pushBackInst(InstBuilder::genRetInst(res));
+                block->pushBackInst(IB::genRetInst(res));
             }
 
-            container->pushGlobalDeclare(InstBuilder::genDeclareFunInst(
+            container->pushGlobalDeclare(IB::genDeclareFunInst(
                 faust_power_name,
-                InstBuilder::genFunTyped(named_args, InstBuilder::genBasicTyped(rtype),
-                                         FunTyped::kLocal),
-                block));
+                IB::genFunTyped(named_args, IB::genBasicTyped(rtype), FunTyped::kLocal), block));
 
             Values truncated_args;
             truncated_args.push_back((*args.begin()));
-            return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
+            return IB::genFunCallInst(faust_power_name, truncated_args);
 
         } else {
             // Both arguments forced to itfloat()

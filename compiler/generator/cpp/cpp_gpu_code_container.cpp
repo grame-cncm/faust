@@ -127,9 +127,8 @@ void CPPOpenCLCodeContainer::produceClass()
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init
     // function
-    pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
-    pushPreInitMethod(InstBuilder::genStoreStructVar(
-        "fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
+    pushDeclare(IB::genDecStructVar("fSampleRate", IB::genInt32Typed()));
+    pushPreInitMethod(IB::genStoreStructVar("fSampleRate", IB::genLoadFunArgsVar("sample_rate")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
@@ -1075,63 +1074,59 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     CodeLoop::sortGraph(fCurLoop, dag);
     computeForwardDAG(dag, loop_count, ready_loop);
 
-    BlockInst* loop_code = InstBuilder::genBlockInst();
+    BlockInst* loop_code = IB::genBlockInst();
 
     // Generate local input/output access
     // generateLocalInputs(loop_code);
     // generateLocalOutputs(loop_code);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
+    ValueInst* init1 = IB::genLoadFunArgsVar(counter);
+    ValueInst* init2 = IB::genSub(init1, IB::genLoadLoopVar(index));
     Values     min_fun_args;
-    min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
+    min_fun_args.push_back(IB::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
-    ValueInst*      init3 = InstBuilder::genFunCallInst("min", min_fun_args);
-    DeclareVarInst* count_dec =
-        InstBuilder::genDecStackVar("count", InstBuilder::genInt32Typed(), init3);
+    ValueInst*      init3     = IB::genFunCallInst("min", min_fun_args);
+    DeclareVarInst* count_dec = IB::genDecStackVar("count", IB::genInt32Typed(), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
     Values args;
-    args.push_back(InstBuilder::genInt32NumInst(0));
-    loop_code->pushBackInst(
-        InstBuilder::genDecStackVar("tasknum", InstBuilder::genInt32Typed(),
-                                    InstBuilder::genFunCallInst("get_global_id", args)));
+    args.push_back(IB::genInt32NumInst(0));
+    loop_code->pushBackInst(IB::genDecStackVar("tasknum", IB::genInt32Typed(),
+                                               IB::genFunCallInst("get_global_id", args)));
 
     // Generate DAG
     for (int l = int(dag.size() - 1); l >= 0; l--) {
-        ValueInst*    switch_cond  = InstBuilder::genLoadStackVar("tasknum");
-        ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
+        ValueInst*    switch_cond  = IB::genLoadStackVar("tasknum");
+        ::SwitchInst* switch_block = IB::genSwitchInst(switch_cond);
 
         if (dag[l].size() > 1) {
             int loop_num = 0;
             for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
-                BlockInst* switch_case_block = InstBuilder::genBlockInst();
+                BlockInst* switch_case_block = IB::genBlockInst();
                 generateDAGLoopAux(*p, switch_case_block, count_dec->load(), loop_num);
                 switch_block->addCase(loop_num, switch_case_block);
                 loop_num++;
             }
         } else {
-            BlockInst* single_case_block = InstBuilder::genBlockInst();
+            BlockInst* single_case_block = IB::genBlockInst();
             generateDAGLoopAux(*dag[l].begin(), single_case_block, count_dec->load(), 0);
             switch_block->addCase(0, single_case_block);
         }
 
         loop_code->pushBackInst(switch_block);
-        loop_code->pushBackInst(InstBuilder::genLabelInst("barrier(CLK_LOCAL_MEM_FENCE);"));
+        loop_code->pushBackInst(IB::genLabelInst("barrier(CLK_LOCAL_MEM_FENCE);"));
     }
 
     // Generates the DAG enclosing loop
-    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(),
-                                                           InstBuilder::genInt32NumInst(0));
-    ValueInst*      loop_end =
-        InstBuilder::genLessThan(loop_init->load(), InstBuilder::genLoadFunArgsVar(counter));
+    DeclareVarInst* loop_init =
+        IB::genDecLoopVar(index, IB::genInt32Typed(), IB::genInt32NumInst(0));
+    ValueInst*    loop_end = IB::genLessThan(loop_init->load(), IB::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment =
-        loop_init->store(InstBuilder::genAdd(loop_init->load(), gGlobal->gVecSize));
+        loop_init->store(IB::genAdd(loop_init->load(), gGlobal->gVecSize));
 
-    StatementInst* loop =
-        InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
+    StatementInst* loop = IB::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
     // Generates the final loop
     loop->accept(fKernelCodeProducer);
@@ -1286,9 +1281,8 @@ void CPPCUDACodeContainer::produceClass()
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init
     // function
-    pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
-    pushPreInitMethod(InstBuilder::genStoreStructVar(
-        "fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
+    pushDeclare(IB::genDecStructVar("fSampleRate", IB::genInt32Typed()));
+    pushPreInitMethod(IB::genStoreStructVar("fSampleRate", IB::genLoadFunArgsVar("sample_rate")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
@@ -2027,73 +2021,69 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     CodeLoop::sortGraph(fCurLoop, dag);
     computeForwardDAG(dag, loop_count, ready_loop);
 
-    BlockInst* loop_code = InstBuilder::genBlockInst();
+    BlockInst* loop_code = IB::genBlockInst();
 
     // Generate local input/output access
     // generateLocalInputs(loop_code);
     // generateLocalOutputs(loop_code);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst* init1 =
-        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs));
-    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
+    ValueInst* init1 = IB::genLoadVarInst(IB::genNamedAddress(counter, Address::kFunArgs));
+    ValueInst* init2 = IB::genSub(init1, IB::genLoadLoopVar(index));
     Values     min_fun_args;
-    min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
+    min_fun_args.push_back(IB::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
-    ValueInst*      init3 = InstBuilder::genFunCallInst("min", min_fun_args);
-    DeclareVarInst* count_dec =
-        InstBuilder::genDecStackVar("count", InstBuilder::genInt32Typed(), init3);
+    ValueInst*      init3     = IB::genFunCallInst("min", min_fun_args);
+    DeclareVarInst* count_dec = IB::genDecStackVar("count", IB::genInt32Typed(), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
     Values args;
-    args.push_back(InstBuilder::genInt32NumInst(0));
+    args.push_back(IB::genInt32NumInst(0));
 
     /*
-    loop_code->pushBackInst(InstBuilder::genDeclareVarInst("tasknum",
-        InstBuilder::genInt32Typed(), Address::kStack,
-        InstBuilder::genFunCallInst("get_global_id", args)));
+    loop_code->pushBackInst(IB::genDeclareVarInst("tasknum",
+        IB::genInt32Typed(), Address::kStack,
+        IB::genFunCallInst("get_global_id", args)));
     */
 
     loop_code->pushBackInst(
-        InstBuilder::genLabelInst("int tasknum = blockDim.x * blockIdx.x + threadIdx.x;"));
+        IB::genLabelInst("int tasknum = blockDim.x * blockIdx.x + threadIdx.x;"));
 
     // Generate DAG
     for (int l = (int)dag.size() - 1; l >= 0; l--) {
         ValueInst* switch_cond =
-            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack));
-        ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
+            IB::genLoadVarInst(IB::genNamedAddress("tasknum", Address::kStack));
+        ::SwitchInst* switch_block = IB::genSwitchInst(switch_cond);
 
         if (dag[l].size() > 1) {
             int loop_num = 0;
             for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
-                BlockInst* switch_case_block = InstBuilder::genBlockInst();
+                BlockInst* switch_case_block = IB::genBlockInst();
                 generateDAGLoopAux(*p, switch_case_block, count_dec->load(), loop_num);
                 switch_block->addCase(loop_num, switch_case_block);
                 loop_num++;
             }
         } else {
-            BlockInst* single_case_block = InstBuilder::genBlockInst();
+            BlockInst* single_case_block = IB::genBlockInst();
             generateDAGLoopAux(*dag[l].begin(), single_case_block, count_dec->load(), 0);
             switch_block->addCase(0, single_case_block);
         }
 
         loop_code->pushBackInst(switch_block);
-        loop_code->pushBackInst(InstBuilder::genLabelInst("__syncthreads();"));
+        loop_code->pushBackInst(IB::genLabelInst("__syncthreads();"));
     }
 
     // Generates the DAG enclosing loop
-    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(),
-                                                           InstBuilder::genInt32NumInst(0));
+    DeclareVarInst* loop_decl =
+        IB::genDecLoopVar(index, IB::genInt32Typed(), IB::genInt32NumInst(0));
 
-    ValueInst* loop_end = InstBuilder::genLessThan(
-        loop_decl->load(),
-        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs)));
+    ValueInst* loop_end = IB::genLessThan(
+        loop_decl->load(), IB::genLoadVarInst(IB::genNamedAddress(counter, Address::kFunArgs)));
     StoreVarInst* loop_increment =
-        loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gGlobal->gVecSize));
+        loop_decl->store(IB::genAdd(loop_decl->load(), gGlobal->gVecSize));
 
-    StatementInst* loop =
-        InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);
+    StatementInst* loop = IB::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);
 
     // Generates the final loop
     loop->accept(fKernelCodeProducer);

@@ -64,7 +64,7 @@ class WSSCodeContainer : public virtual CodeContainer {
 
    public:
     WSSCodeContainer(int numInputs, int numOutputs, const std::string& objName)
-        : fObjName(objName), fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
+        : fObjName(objName), fComputeThreadBlockInstructions(IB::genBlockInst())
     {
         initialize(numInputs, numOutputs);
     }

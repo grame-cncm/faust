@@ -107,11 +107,11 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                         // Local in the enclosing context, becomes a fun parameter
                         BasicCloneVisitor cloner;
-                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(
-                            name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
+                        fArgsTypeList.push_back(
+                            IB::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
                         // It becomes a value in the fun-call argument list
-                        fArgsValueList.push_back(InstBuilder::genLoadStackVar(name));
+                        fArgsValueList.push_back(IB::genLoadStackVar(name));
 
                         // Variable added in parameter list
                         fAddedVarTable.push_back(name);
@@ -134,11 +134,11 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                     // Parameter in the enclosing function, becomes a fun parameter
                     BasicCloneVisitor cloner;
-                    fArgsTypeList.push_back(InstBuilder::genNamedTyped(
-                        name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
+                    fArgsTypeList.push_back(
+                        IB::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
                     // It becomes a value in the fun-call argument list : keep it's kFunArgs status
-                    fArgsValueList.push_back(InstBuilder::genLoadFunArgsVar(name));
+                    fArgsValueList.push_back(IB::genLoadFunArgsVar(name));
 
                     // Variable added in parameter list
                     fAddedVarTable.push_back(name);
@@ -201,7 +201,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
             {
                 if (find(fAddedVarTable.begin(), fAddedVarTable.end(), address->fName) !=
                     fAddedVarTable.end()) {
-                    return InstBuilder::genNamedAddress(address->fName, Address::kFunArgs);
+                    return IB::genNamedAddress(address->fName, Address::kFunArgs);
                 } else {
                     return BasicCloneVisitor::visit(address);
                 }
@@ -213,21 +213,19 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         BlockInst*       function_code = static_cast<BlockInst*>(block->clone(&cloner));
 
         // Add a Ret (void) instruction (needed in LLVM backend)
-        function_code->pushBackInst(InstBuilder::genRetInst());
+        function_code->pushBackInst(IB::genRetInst());
 
         // Add "dsp" arg in function prototype and in parameter list
         if (add_object) {
-            fArgsTypeList.push_front(
-                InstBuilder::genNamedTyped("dsp", InstBuilder::genBasicTyped(Typed::kObj_ptr)));
-            fArgsValueList.push_front(InstBuilder::genLoadFunArgsVar("dsp"));
+            fArgsTypeList.push_front(IB::genNamedTyped("dsp", IB::genBasicTyped(Typed::kObj_ptr)));
+            fArgsValueList.push_front(IB::genLoadFunArgsVar("dsp"));
         }
 
         // Create function
-        fFunctionDef = InstBuilder::genVoidFunction(fun_name, fArgsTypeList, function_code);
+        fFunctionDef = IB::genVoidFunction(fun_name, fArgsTypeList, function_code);
 
         // Create function call
-        fFunctionCall =
-            InstBuilder::genDropInst(InstBuilder::genFunCallInst(fun_name, fArgsValueList));
+        fFunctionCall = IB::genDropInst(IB::genFunCallInst(fun_name, fArgsValueList));
     }
 };
 
@@ -259,13 +257,13 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         if (float1 && float2) {
             switch (inst->fOpcode) {
                 case kAdd:
-                    return InstBuilder::genFloatNumInst(float1->fNum + float2->fNum);
+                    return IB::genFloatNumInst(float1->fNum + float2->fNum);
                 case kSub:
-                    return InstBuilder::genFloatNumInst(float1->fNum - float2->fNum);
+                    return IB::genFloatNumInst(float1->fNum - float2->fNum);
                 case kMul:
-                    return InstBuilder::genFloatNumInst(float1->fNum * float2->fNum);
+                    return IB::genFloatNumInst(float1->fNum * float2->fNum);
                 case kDiv:
-                    return InstBuilder::genFloatNumInst(float1->fNum / float2->fNum);
+                    return IB::genFloatNumInst(float1->fNum / float2->fNum);
                 default:
                     return 0;
             }
@@ -274,7 +272,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             faustassert(false);
             return 0;
         } else {
-            return InstBuilder::genBinopInst(inst->fOpcode, val1, val2);
+            return IB::genBinopInst(inst->fOpcode, val1, val2);
         }
     }
 
@@ -285,9 +283,9 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
 
         if (inst->fType->getType() == Typed::kFloat) {
-            return (float1) ? float1 : InstBuilder::genFloatNumInst(float(int1->fNum));
+            return (float1) ? float1 : IB::genFloatNumInst(float(int1->fNum));
         } else if (inst->fType->getType() == Typed::kInt32) {
-            return (int1) ? int1 : InstBuilder::genInt32NumInst(int(float1->fNum));
+            return (int1) ? int1 : IB::genInt32NumInst(int(float1->fNum));
         } else {
             faustassert(false);
             return 0;
@@ -301,7 +299,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             cloned.push_back(it->clone(this));
         }
         // TODO : si toute la liste des values sont des nombres, alors effectuer le calcul
-        return InstBuilder::genFunCallInst(inst->fName, cloned, inst->fMethod);
+        return IB::genFunCallInst(inst->fName, cloned, inst->fMethod);
     }
 
     virtual ValueInst* visit(Select2Inst* inst)
@@ -315,8 +313,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         } else if (int1) {
             return (int1->fNum > 0) ? inst->fThen->clone(this) : inst->fElse->clone(this);
         } else {
-            return InstBuilder::genSelect2Inst(val1, inst->fThen->clone(this),
-                                               inst->fElse->clone(this));
+            return IB::genSelect2Inst(val1, inst->fThen->clone(this), inst->fElse->clone(this));
         }
     }
 
@@ -331,15 +328,15 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             // float1->dump();
             // Creates a "link" so that corresponding load see the real value
             fValueTable[name] = float1;
-            return InstBuilder::genDropInst();
+            return IB::genDropInst();
         } else if (int1) {
             // Creates a "link" so that corresponding load see the real value
             fValueTable[name] = int1;
-            return InstBuilder::genDropInst();
+            return IB::genDropInst();
         } else {
             BasicCloneVisitor cloner;
-            return InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner),
-                                                  inst->fType->clone(&cloner), val1);
+            return IB::genDeclareVarInst(inst->fAddress->clone(&cloner),
+                                         inst->fType->clone(&cloner), val1);
         }
     }
 
@@ -350,7 +347,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             return fValueTable[name];
         } else {
             BasicCloneVisitor cloner;
-            return InstBuilder::genLoadVarInst(inst->fAddress->clone(&cloner));
+            return IB::genLoadVarInst(inst->fAddress->clone(&cloner));
         }
     }
 
@@ -365,14 +362,14 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             // float1->dump();
             // Creates a "link" so that corresponding load see the real value
             fValueTable[name] = float1;
-            return InstBuilder::genDropInst();
+            return IB::genDropInst();
         } else if (int1) {
             // Creates a "link" so that corresponding load see the real value
             fValueTable[name] = int1;
-            return InstBuilder::genDropInst();
+            return IB::genDropInst();
         } else {
             BasicCloneVisitor cloner;
-            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), val1);
+            return IB::genStoreVarInst(inst->fAddress->clone(&cloner), val1);
         }
     }
 };

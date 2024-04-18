@@ -2289,7 +2289,7 @@ class CombinerVisitor : public DispatchVisitor {
 #define castQuad(e) dynamic_cast<QuadNumInst*>(e)
 #define castFixed(e) dynamic_cast<FixedPointNumInst*>(e)
 
-struct InstBuilder {
+struct IB {
     typedef std::vector<ValueInst*>::const_iterator Iterator;
 
     // User interface
@@ -2403,7 +2403,7 @@ struct InstBuilder {
     }
     static TeeVarInst* genTeeVar(const std::string& vname, ValueInst* value)
     {
-        return new TeeVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), value);
+        return new TeeVarInst(IB::genNamedAddress(vname, Address::kStack), value);
     }
     static StoreVarInst* genStoreVarInst(Address* address, ValueInst* value)
     {
@@ -3163,7 +3163,7 @@ class FIRIndex {
     /* explicit constructors in order to avoid the generation of implicit conversions */
     explicit FIRIndex(ValueInst* inst) : fValue(inst) {}
 
-    explicit FIRIndex(int num) : fValue(InstBuilder::genInt32NumInst(num)) {}
+    explicit FIRIndex(int num) : fValue(IB::genInt32NumInst(num)) {}
 
     FIRIndex(FIRIndex const& rhs) : fValue(rhs.fValue) {}
 
@@ -3173,7 +3173,7 @@ class FIRIndex {
     // Add
     friend FIRIndex operator+(FIRIndex const& lhs, ValueInst* rhs)
     {
-        return FIRIndex(InstBuilder::genAdd(lhs.fValue, rhs));
+        return FIRIndex(IB::genAdd(lhs.fValue, rhs));
     }
 
     friend FIRIndex operator+(FIRIndex const& lhs, FIRIndex const& rhs)
@@ -3183,13 +3183,13 @@ class FIRIndex {
 
     friend FIRIndex operator+(FIRIndex const& lhs, int rhs)
     {
-        return operator+(lhs, InstBuilder::genInt32NumInst(rhs));
+        return operator+(lhs, IB::genInt32NumInst(rhs));
     }
 
     // Sub
     friend FIRIndex operator-(FIRIndex const& lhs, ValueInst* rhs)
     {
-        return FIRIndex(InstBuilder::genSub(lhs.fValue, rhs));
+        return FIRIndex(IB::genSub(lhs.fValue, rhs));
     }
 
     friend FIRIndex operator-(FIRIndex const& lhs, FIRIndex const& rhs)
@@ -3199,13 +3199,13 @@ class FIRIndex {
 
     friend FIRIndex operator-(FIRIndex const& lhs, int rhs)
     {
-        return operator-(lhs, InstBuilder::genInt32NumInst(rhs));
+        return operator-(lhs, IB::genInt32NumInst(rhs));
     }
 
     // Mul
     friend FIRIndex operator*(FIRIndex const& lhs, ValueInst* rhs)
     {
-        return FIRIndex(InstBuilder::genMul(lhs.fValue, rhs));
+        return FIRIndex(IB::genMul(lhs.fValue, rhs));
     }
 
     friend FIRIndex operator*(FIRIndex const& lhs, FIRIndex const& rhs)
@@ -3215,13 +3215,13 @@ class FIRIndex {
 
     friend FIRIndex operator*(FIRIndex const& lhs, int rhs)
     {
-        return operator*(lhs, InstBuilder::genInt32NumInst(rhs));
+        return operator*(lhs, IB::genInt32NumInst(rhs));
     }
 
     // Div
     friend FIRIndex operator/(FIRIndex const& lhs, ValueInst* rhs)
     {
-        return FIRIndex(InstBuilder::genDiv(lhs.fValue, rhs));
+        return FIRIndex(IB::genDiv(lhs.fValue, rhs));
     }
 
     friend FIRIndex operator/(FIRIndex const& lhs, FIRIndex const& rhs)
@@ -3231,13 +3231,13 @@ class FIRIndex {
 
     friend FIRIndex operator/(FIRIndex const& lhs, int rhs)
     {
-        return operator/(lhs, InstBuilder::genInt32NumInst(rhs));
+        return operator/(lhs, IB::genInt32NumInst(rhs));
     }
 
     // And
     friend FIRIndex operator&(FIRIndex const& lhs, ValueInst* rhs)
     {
-        return FIRIndex(InstBuilder::genAnd(lhs.fValue, rhs));
+        return FIRIndex(IB::genAnd(lhs.fValue, rhs));
     }
 
     friend FIRIndex operator&(FIRIndex const& lhs, FIRIndex const& rhs)
@@ -3247,13 +3247,13 @@ class FIRIndex {
 
     friend FIRIndex operator&(FIRIndex const& lhs, int rhs)
     {
-        return operator&(lhs, InstBuilder::genInt32NumInst(rhs));
+        return operator&(lhs, IB::genInt32NumInst(rhs));
     }
 
     // Modulo
     friend FIRIndex operator%(FIRIndex const& lhs, ValueInst* rhs)
     {
-        return FIRIndex(InstBuilder::genRem(lhs.fValue, rhs));
+        return FIRIndex(IB::genRem(lhs.fValue, rhs));
     }
 
     friend FIRIndex operator%(FIRIndex const& lhs, FIRIndex const& rhs)
@@ -3263,13 +3263,13 @@ class FIRIndex {
 
     friend FIRIndex operator%(FIRIndex const& lhs, int rhs)
     {
-        return operator%(lhs, InstBuilder::genInt32NumInst(rhs));
+        return operator%(lhs, IB::genInt32NumInst(rhs));
     }
 
     // Equal
     friend FIRIndex operator==(FIRIndex const& lhs, ValueInst* rhs)
     {
-        return FIRIndex(InstBuilder::genEqual(lhs.fValue, rhs));
+        return FIRIndex(IB::genEqual(lhs.fValue, rhs));
     }
 
     friend FIRIndex operator==(FIRIndex const& lhs, FIRIndex const& rhs)
@@ -3279,13 +3279,13 @@ class FIRIndex {
 
     friend FIRIndex operator==(FIRIndex const& lhs, int rhs)
     {
-        return operator==(lhs, InstBuilder::genInt32NumInst(rhs));
+        return operator==(lhs, IB::genInt32NumInst(rhs));
     }
 
     // Inf
     friend FIRIndex operator<(FIRIndex const& lhs, ValueInst* rhs)
     {
-        return FIRIndex(InstBuilder::genLessThan(lhs.fValue, rhs));
+        return FIRIndex(IB::genLessThan(lhs.fValue, rhs));
     }
 
     friend FIRIndex operator<(FIRIndex const& lhs, FIRIndex const& rhs)
@@ -3295,7 +3295,7 @@ class FIRIndex {
 
     friend FIRIndex operator<(FIRIndex const& lhs, int rhs)
     {
-        return operator<(lhs, InstBuilder::genInt32NumInst(rhs));
+        return operator<(lhs, IB::genInt32NumInst(rhs));
     }
 
    private:
@@ -3324,13 +3324,10 @@ struct ControlArray : public virtual Garbageable {
 
     StoreVarInst* store(ValueInst* exp)
     {
-        return InstBuilder::genStoreArrayVar(fName, fAccess, FIRIndex(fCurIndex), exp);
+        return IB::genStoreArrayVar(fName, fAccess, FIRIndex(fCurIndex), exp);
     }
 
-    ValueInst* load()
-    {
-        return InstBuilder::genLoadArrayVar(fName, fAccess, FIRIndex(fCurIndex++));
-    }
+    ValueInst* load() { return IB::genLoadArrayVar(fName, fAccess, FIRIndex(fCurIndex++)); }
 
     int getSize() { return fCurIndex; }
 };
@@ -3385,12 +3382,12 @@ struct ZoneArray : public virtual Garbageable {
             int size = dynamic_cast<ArrayTyped*>(type)->fSize;
             if (size <= fDLThreshold && size <= gInternalMemorySize && !is_static) {
                 gInternalMemorySize -= size;
-                return InstBuilder::genDeclareVarInst(
-                    InstBuilder::genNamedAddress(vname, Address::kStruct), type, exp);
+                return IB::genDeclareVarInst(IB::genNamedAddress(vname, Address::kStruct), type,
+                                             exp);
             } else {
                 fMap[vname] = fCurIndex;
                 fCurIndex += size;
-                return InstBuilder::genNullDeclareVarInst();
+                return IB::genNullDeclareVarInst();
             }
         } else {
             faustassert(false);
@@ -3410,7 +3407,7 @@ struct ZoneArray : public virtual Garbageable {
             {
                 std::string name = indexed->getName();
                 if (fArray->fMap.count(name) > 0) {
-                    return InstBuilder::genIndexedAddress(
+                    return IB::genIndexedAddress(
                         fArray->fName, fArray->fAccess,
                         FIRIndex(fArray->fMap[name]) + indexed->getIndex()->clone(this));
                 } else {
@@ -3450,9 +3447,9 @@ struct ZoneArray : public virtual Garbageable {
     // Base class for iConst/fConst variables load/store rewrite
     struct ConstantsCopyMemory : public BasicCloneVisitor {
         // Removed instructions
-        StatementInst* visit(DeclareVarInst* inst) { return InstBuilder::genDropInst(); }
+        StatementInst* visit(DeclareVarInst* inst) { return IB::genDropInst(); }
 
-        StatementInst* visit(ForLoopInst* inst) { return InstBuilder::genDropInst(); }
+        StatementInst* visit(ForLoopInst* inst) { return IB::genDropInst(); }
     };
 
     // Rewrite iConst/fConst variables load using iZone/fZone (respectively)
@@ -3467,9 +3464,9 @@ struct ZoneArray : public virtual Garbageable {
             {
                 std::string name = inst->getName();
                 if (inst->fAddress->isStruct() && fArray->fMap.count(name) > 0) {
-                    ValueInst* zone = InstBuilder::genLoadArrayVar(fArray->fName, fArray->fAccess,
-                                                                   FIRIndex(fArray->fMap[name]));
-                    return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
+                    ValueInst* zone = IB::genLoadArrayVar(fArray->fName, fArray->fAccess,
+                                                          FIRIndex(fArray->fMap[name]));
+                    return IB::genStoreVarInst(inst->fAddress->clone(this), zone);
                 } else {
                     return BasicCloneVisitor::visit(inst);
                 }
@@ -3492,9 +3489,9 @@ struct ZoneArray : public virtual Garbageable {
             {
                 std::string name = inst->getName();
                 if (inst->fAddress->isStruct() && fArray->fMap.count(name) > 0) {
-                    return InstBuilder::genStoreArrayVar(fArray->fName, fArray->fAccess,
-                                                         FIRIndex(fArray->fMap[name]),
-                                                         InstBuilder::genLoadStructVar(name));
+                    return IB::genStoreArrayVar(fArray->fName, fArray->fAccess,
+                                                FIRIndex(fArray->fMap[name]),
+                                                IB::genLoadStructVar(name));
                 } else {
                     return BasicCloneVisitor::visit(inst);
                 }

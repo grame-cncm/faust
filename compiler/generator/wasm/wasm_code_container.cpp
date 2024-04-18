@@ -142,16 +142,15 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
 DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
 {
     Names args;
-    args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("dsp", Typed::kObj_ptr));
+    args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
 
     BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
     BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
 
     // Creates function
-    FunTyped* fun_type =
-        InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(), FunTyped::kDefault);
+    return IB::genDeclareFunInst(name, fun_type, block);
 }
 
 DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, const string& obj,
@@ -159,7 +158,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, con
 {
     Names args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
+        args.push_back(IB::genNamedTyped(obj, Typed::kObj_ptr));
     }
 
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
@@ -167,9 +166,8 @@ DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, con
     BlockInst* block   = MoveVariablesInFront3().getCode(renamed);
 
     // Creates function
-    FunTyped* fun_type =
-        InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(), FunTyped::kDefault);
+    return IB::genDeclareFunInst(name, fun_type, block);
 }
 
 DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name, const string& obj,
@@ -177,17 +175,16 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
 {
     Names args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
+        args.push_back(IB::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
 
     BlockInst* inlined = inlineSubcontainersFunCalls(fInitInstructions);
     BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
 
     // Creates function
-    FunTyped* fun_type =
-        InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(), FunTyped::kDefault);
+    return IB::genDeclareFunInst(name, fun_type, block);
 }
 
 DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const string& name,
@@ -196,7 +193,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const stri
 {
     Names args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
+        args.push_back(IB::genNamedTyped(obj, Typed::kObj_ptr));
     }
 
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
@@ -204,9 +201,8 @@ DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const stri
     BlockInst* block   = MoveVariablesInFront3().getCode(renamed);
 
     // Creates function
-    FunTyped* fun_type =
-        InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(), FunTyped::kDefault);
+    return IB::genDeclareFunInst(name, fun_type, block);
 }
 
 // Scalar
@@ -224,21 +220,21 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
 {
     Names args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
+        args.push_back(IB::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
 
-    BlockInst* init_block = InstBuilder::genBlockInst();
+    BlockInst* init_block = IB::genBlockInst();
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fStaticInitInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fInitInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fPostInitInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fResetUserInterfaceInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fClearInstructions));
 
-    init_block->pushBackInst(InstBuilder::genRetInst());
+    init_block->pushBackInst(IB::genRetInst());
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, init_block, isvirtual);
+    return IB::genVoidFunction(name, args, init_block, isvirtual);
 }
 
 void WASMCodeContainer::produceClass()
@@ -414,20 +410,19 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
 
     // Creates function and visit it
     Names args;
-    args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-    args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
-    args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));
-    args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));
-    FunTyped* fun_type =
-        InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
+    args.push_back(IB::genNamedTyped("dsp", Typed::kObj_ptr));
+    args.push_back(IB::genNamedTyped("count", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("inputs", Typed::kVoid_ptr));
+    args.push_back(IB::genNamedTyped("outputs", Typed::kVoid_ptr));
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(), FunTyped::kDefault);
 
-    InstBuilder::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
+    IB::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
 }
 
 void WASMScalarCodeContainer::generateCompute()
 {
     // Loop 'i' variable is moved by bytes
-    BlockInst* compute_block = InstBuilder::genBlockInst();
+    BlockInst* compute_block = IB::genBlockInst();
     compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
 
     // Generates post DSP loop code

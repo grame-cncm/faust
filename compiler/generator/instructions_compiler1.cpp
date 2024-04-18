@@ -26,20 +26,19 @@ using namespace std;
 StatementInst* InstructionsCompiler1::generateInitArray(const string& vname, BasicTyped* ctype,
                                                         int delay)
 {
-    ValueInst*  init  = InstBuilder::genTypedZero(ctype);
+    ValueInst*  init  = IB::genTypedZero(ctype);
     BasicTyped* typed = ctype;
     string      index = gGlobal->getFreshID("l");
 
     // Generates table declaration
-    pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genArrayTyped(typed, delay)));
+    pushDeclare(IB::genDecStructVar(vname, IB::genArrayTyped(typed, delay)));
 
-    ValueInst* upperBound = InstBuilder::genInt32NumInst(delay);
+    ValueInst* upperBound = IB::genInt32NumInst(delay);
     // Generates init table loop
-    SimpleForLoopInst* loop = InstBuilder::genSimpleForLoopInst(index, upperBound);
+    SimpleForLoopInst* loop = IB::genSimpleForLoopInst(index, upperBound);
 
-    LoadVarInst* loadVarInst =
-        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop));
-    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, loadVarInst, init));
+    LoadVarInst* loadVarInst = IB::genLoadVarInst(IB::genNamedAddress(index, Address::kLoop));
+    loop->pushFrontInst(IB::genStoreArrayStructVar(vname, loadVarInst, init));
     return loop;
 }
 
@@ -47,17 +46,15 @@ StatementInst* InstructionsCompiler1::generateShiftArray(const string& vname, in
 {
     string index = gGlobal->getFreshID("j");
 
-    ValueInst* upperBound = InstBuilder::genInt32NumInst(delay);
-    ValueInst* lowerBound = InstBuilder::genInt32NumInst(1);
+    ValueInst* upperBound = IB::genInt32NumInst(delay);
+    ValueInst* lowerBound = IB::genInt32NumInst(1);
 
-    SimpleForLoopInst* loop =
-        InstBuilder::genSimpleForLoopInst(index, upperBound, lowerBound, true);
-    LoadVarInst* loadVarInst =
-        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop));
-    ValueInst* load_value2 = InstBuilder::genSub(loadVarInst, InstBuilder::genInt32NumInst(1));
-    ValueInst* load_value3 = InstBuilder::genLoadArrayStructVar(vname, load_value2);
+    SimpleForLoopInst* loop        = IB::genSimpleForLoopInst(index, upperBound, lowerBound, true);
+    LoadVarInst*       loadVarInst = IB::genLoadVarInst(IB::genNamedAddress(index, Address::kLoop));
+    ValueInst*         load_value2 = IB::genSub(loadVarInst, IB::genInt32NumInst(1));
+    ValueInst*         load_value3 = IB::genLoadArrayStructVar(vname, load_value2);
 
-    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, loadVarInst, load_value3));
+    loop->pushFrontInst(IB::genStoreArrayStructVar(vname, loadVarInst, load_value3));
     return loop;
 }
 
@@ -66,12 +63,11 @@ StatementInst* InstructionsCompiler1::generateCopyArray(const string& vname_to,
 {
     string index = gGlobal->getFreshID("j");
 
-    ValueInst*         upperBound = InstBuilder::genInt32NumInst(size);
-    SimpleForLoopInst* loop       = InstBuilder::genSimpleForLoopInst(index, upperBound);
-    LoadVarInst*       loadVarInst =
-        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop));
-    ValueInst* load_value = InstBuilder::genLoadArrayStructVar(vname_from, loadVarInst);
+    ValueInst*         upperBound  = IB::genInt32NumInst(size);
+    SimpleForLoopInst* loop        = IB::genSimpleForLoopInst(index, upperBound);
+    LoadVarInst*       loadVarInst = IB::genLoadVarInst(IB::genNamedAddress(index, Address::kLoop));
+    ValueInst*         load_value  = IB::genLoadArrayStructVar(vname_from, loadVarInst);
 
-    loop->pushFrontInst(InstBuilder::genStoreArrayStackVar(vname_to, loadVarInst, load_value));
+    loop->pushFrontInst(IB::genStoreArrayStackVar(vname_to, loadVarInst, load_value));
     return loop;
 }

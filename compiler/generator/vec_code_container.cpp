@@ -43,28 +43,26 @@ void VectorCodeContainer::moveStack2Struct()
 void VectorCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index)
 {
     // Generates line like: FAUSTFLOAT* input0 = &input0_ptr[index];
-    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
+    Typed* type = IB::genArrayTyped(IB::genFloatMacroTyped(), 0);
 
     for (int i = 0; i < inputs(); i++) {
         string name1 = subst("input$0", T(i));
         string name2 = subst("input$0_ptr", T(i));
-        loop_code->pushBackInst(InstBuilder::genDecStackVar(
-            name1, type,
-            InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+        loop_code->pushBackInst(IB::genDecStackVar(
+            name1, type, IB::genLoadArrayStackVarAddress(name2, IB::genLoadLoopVar(index))));
     }
 }
 
 void VectorCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& index)
 {
     // Generates line like: FAUSTFLOAT* ouput0 = &output0_ptr[index];
-    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
+    Typed* type = IB::genArrayTyped(IB::genFloatMacroTyped(), 0);
 
     for (int i = 0; i < outputs(); i++) {
         string name1 = subst("output$0", T(i));
         string name2 = subst("output$0_ptr", T(i));
-        loop_code->pushBackInst(InstBuilder::genDecStackVar(
-            name1, type,
-            InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+        loop_code->pushBackInst(IB::genDecStackVar(
+            name1, type, IB::genLoadArrayStackVarAddress(name2, IB::genLoadLoopVar(index))));
     }
 }
 
@@ -74,79 +72,75 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
     string size  = "vsize";
 
     // Define result block
-    BlockInst* block_res = InstBuilder::genBlockInst();
+    BlockInst* block_res = IB::genBlockInst();
 
     // Declare the "index" variable outside the loop
-    DeclareVarInst* index_dec = InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(),
-                                                           InstBuilder::genInt32NumInst(0));
+    DeclareVarInst* index_dec =
+        IB::genDecLoopVar(index, IB::genInt32Typed(), IB::genInt32NumInst(0));
     block_res->pushBackInst(index_dec);
-    block_res->pushBackInst(InstBuilder::genLabelInst("/* Main loop */"));
+    block_res->pushBackInst(IB::genLabelInst("/* Main loop */"));
 
-    BlockInst* loop_code = InstBuilder::genBlockInst();
+    BlockInst* loop_code = IB::genBlockInst();
 
     // Generate local input/output access
     generateLocalInputs(loop_code, index);
     generateLocalOutputs(loop_code, index);
 
     // Generate : int count = 32;
-    DeclareVarInst* size_dec = InstBuilder::genDecLoopVar(
-        size, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(gGlobal->gVecSize));
+    DeclareVarInst* size_dec =
+        IB::genDecLoopVar(size, IB::genInt32Typed(), IB::genInt32NumInst(gGlobal->gVecSize));
     loop_code->pushBackInst(size_dec);
 
     // Debug code
     /*
-    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vsize << std::endl;"));
-    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << fullcount << std::endl;"));
-    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vindex << std::endl;"));
+    loop_code->pushBackInst(IB::genLabelInst("std::cout << vsize << std::endl;"));
+    loop_code->pushBackInst(IB::genLabelInst("std::cout << fullcount << std::endl;"));
+    loop_code->pushBackInst(IB::genLabelInst("std::cout << vindex << std::endl;"));
     */
 
     // Generates the loop DAG
     generateDAGLoop(loop_code, size_dec->load());
 
     // Generates the DAG enclosing loop
-    StoreVarInst* loop_init = index_dec->store(InstBuilder::genInt32NumInst(0));
+    StoreVarInst* loop_init = index_dec->store(IB::genInt32NumInst(0));
 
-    ValueInst* loop_end = InstBuilder::genLessEqual(
-        index_dec->load(),
-        InstBuilder::genSub(InstBuilder::genLoadFunArgsVar(counter), gGlobal->gVecSize));
+    ValueInst* loop_end = IB::genLessEqual(
+        index_dec->load(), IB::genSub(IB::genLoadFunArgsVar(counter), gGlobal->gVecSize));
     StoreVarInst* loop_increment =
-        index_dec->store(InstBuilder::genAdd(index_dec->load(), gGlobal->gVecSize));
-    StatementInst* loop =
-        InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code, true);
+        index_dec->store(IB::genAdd(index_dec->load(), gGlobal->gVecSize));
+    StatementInst* loop = IB::genForLoopInst(loop_init, loop_end, loop_increment, loop_code, true);
 
     // Put loop in block_res
     block_res->pushBackInst(loop);
 
     // Remaining frames
-    block_res->pushBackInst(InstBuilder::genLabelInst("/* Remaining frames */"));
+    block_res->pushBackInst(IB::genLabelInst("/* Remaining frames */"));
 
-    ValueInst* if_cond =
-        InstBuilder::genLessThan(index_dec->load(), InstBuilder::genLoadFunArgsVar(counter));
+    ValueInst* if_cond = IB::genLessThan(index_dec->load(), IB::genLoadFunArgsVar(counter));
 
-    BlockInst* then_block = InstBuilder::genBlockInst();
+    BlockInst* then_block = IB::genBlockInst();
 
     // Generate local input/output access
     generateLocalInputs(then_block, index);
     generateLocalOutputs(then_block, index);
 
     // Generate : int count = fullcount-index;
-    DeclareVarInst* size_dec1 = InstBuilder::genDecLoopVar(
-        size, InstBuilder::genInt32Typed(),
-        InstBuilder::genSub(InstBuilder::genLoadFunArgsVar(counter), index_dec->load()));
+    DeclareVarInst* size_dec1 = IB::genDecLoopVar(
+        size, IB::genInt32Typed(), IB::genSub(IB::genLoadFunArgsVar(counter), index_dec->load()));
 
     then_block->pushBackInst(size_dec1);
 
     // Debug code
     /*
-    then_block->pushBackInst(InstBuilder::genLabelInst("std::cout << vsize << std::endl;"));
-    then_block->pushBackInst(InstBuilder::genLabelInst("std::cout << fullcount << std::endl;"));
-    then_block->pushBackInst(InstBuilder::genLabelInst("std::cout << vindex << std::endl;"));
+    then_block->pushBackInst(IB::genLabelInst("std::cout << vsize << std::endl;"));
+    then_block->pushBackInst(IB::genLabelInst("std::cout << fullcount << std::endl;"));
+    then_block->pushBackInst(IB::genLabelInst("std::cout << vindex << std::endl;"));
     */
 
     // Generates the loop DAG
     generateDAGLoop(then_block, size_dec1->load());
 
-    block_res->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
+    block_res->pushBackInst(IB::genIfInst(if_cond, then_block));
     return block_res;
 }
 
@@ -155,62 +149,58 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     string index = "vindex";
     string size  = "vsize";
 
-    BlockInst* loop_code = InstBuilder::genBlockInst();
+    BlockInst* loop_code = IB::genBlockInst();
 
     // Generates the DAG enclosing loop
-    DeclareVarInst* loop_dec = InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(),
-                                                          InstBuilder::genInt32NumInst(0));
+    DeclareVarInst* loop_dec =
+        IB::genDecLoopVar(index, IB::genInt32Typed(), IB::genInt32NumInst(0));
 
     // Generate local input/output access
     generateLocalInputs(loop_code, index);
     generateLocalOutputs(loop_code, index);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst* init2 = InstBuilder::genSub(init1, loop_dec->load());
+    ValueInst* init1 = IB::genLoadFunArgsVar(counter);
+    ValueInst* init2 = IB::genSub(init1, loop_dec->load());
     Values     min_fun_args;
-    min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
+    min_fun_args.push_back(IB::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
-    ValueInst*      init3 = InstBuilder::genFunCallInst("min_i", min_fun_args);
-    DeclareVarInst* size_dec =
-        InstBuilder::genDecLoopVar(size, InstBuilder::genInt32Typed(), init3);
+    ValueInst*      init3    = IB::genFunCallInst("min_i", min_fun_args);
+    DeclareVarInst* size_dec = IB::genDecLoopVar(size, IB::genInt32Typed(), init3);
     loop_code->pushBackInst(size_dec);
 
     // Debug code
     /*
-    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vsize << std::endl;"));
-    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << fullcount << std::endl;"));
-    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vindex << std::endl;"));
+    loop_code->pushBackInst(IB::genLabelInst("std::cout << vsize << std::endl;"));
+    loop_code->pushBackInst(IB::genLabelInst("std::cout << fullcount << std::endl;"));
+    loop_code->pushBackInst(IB::genLabelInst("std::cout << vindex << std::endl;"));
     */
 
     // Generates the loop DAG
     generateDAGLoop(loop_code, size_dec->load());
 
-    ValueInst* loop_end =
-        InstBuilder::genLessThan(loop_dec->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment =
-        loop_dec->store(InstBuilder::genAdd(loop_dec->load(), gGlobal->gVecSize));
-    StatementInst* loop =
-        InstBuilder::genForLoopInst(loop_dec, loop_end, loop_increment, loop_code, true);
+    ValueInst*    loop_end = IB::genLessThan(loop_dec->load(), IB::genLoadFunArgsVar(counter));
+    StoreVarInst* loop_increment = loop_dec->store(IB::genAdd(loop_dec->load(), gGlobal->gVecSize));
+    StatementInst* loop = IB::genForLoopInst(loop_dec, loop_end, loop_increment, loop_code, true);
 
-    BlockInst* res_block = InstBuilder::genBlockInst();
+    BlockInst* res_block = IB::genBlockInst();
     res_block->pushBackInst(loop);
     return res_block;
 }
 
 BlockInst* VectorCodeContainer::generateDAGLoopVariant2(const string& counter)
 {
-    BlockInst* res_block = InstBuilder::genBlockInst();
+    BlockInst* res_block = IB::genBlockInst();
     string     index     = "vindex";
-    res_block->pushBackInst(InstBuilder::genDecStackVar("vindex", InstBuilder::genInt32Typed(),
-                                                        InstBuilder::genInt32NumInst(0)));
+    res_block->pushBackInst(
+        IB::genDecStackVar("vindex", IB::genInt32Typed(), IB::genInt32NumInst(0)));
 
     // Generate local input/output access
     generateLocalInputs(res_block, index);
     generateLocalOutputs(res_block, index);
 
     // Generates the loop DAG
-    generateDAGLoop(res_block, InstBuilder::genInt32NumInst(gGlobal->gVecSize));
+    generateDAGLoop(res_block, IB::genInt32NumInst(gGlobal->gVecSize));
     return res_block;
 }
 

@@ -187,8 +187,8 @@ struct global {
     bool gDSPStruct;  // to control method generation in -fun mode
     bool gLightMode;  // -light option, do not generate the entire DSP API (to be used with
                       // Emscripten to generate a light DSP module for JavaScript)
-    bool gClang;  // -clang opttion, when compiled with clang/clang++, adds specific #pragma for
-                  // auto-vectorization
+    bool gClang;      // -clang option, when compiled with clang/clang++, adds specific #pragma for
+                      // auto-vectorization
     bool gFullParentheses;  // -fp option, generate less parenthesis in some textual backends:
                             // C/C++, Cmajor, Dlang, Rust
     bool gCheckIntRange;    // -cir option, check float to integer range conversion

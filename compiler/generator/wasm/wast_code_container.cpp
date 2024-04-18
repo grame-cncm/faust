@@ -148,21 +148,21 @@ DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, c
 {
     Names args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
+        args.push_back(IB::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
 
-    BlockInst* init_block = InstBuilder::genBlockInst();
+    BlockInst* init_block = IB::genBlockInst();
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fStaticInitInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fInitInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fPostInitInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fResetUserInterfaceInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fClearInstructions));
 
-    init_block->pushBackInst(InstBuilder::genRetInst());
+    init_block->pushBackInst(IB::genRetInst());
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, init_block, isvirtual);
+    return IB::genVoidFunction(name, args, init_block, isvirtual);
 }
 
 void WASTCodeContainer::produceClass()
@@ -392,18 +392,16 @@ DeclareFunInst* WASInst::generateIntMin()
     string v2 = gGlobal->getFreshID("v2");
 
     Names args;
-    args.push_back(InstBuilder::genNamedTyped(v1, Typed::kInt32));
-    args.push_back(InstBuilder::genNamedTyped(v2, Typed::kInt32));
+    args.push_back(IB::genNamedTyped(v1, Typed::kInt32));
+    args.push_back(IB::genNamedTyped(v2, Typed::kInt32));
 
-    BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genSelect2Inst(
-        InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar(v1),
-                                 InstBuilder::genLoadFunArgsVar(v2)),
-        InstBuilder::genLoadFunArgsVar(v1), InstBuilder::genLoadFunArgsVar(v2))));
+    BlockInst* block = IB::genBlockInst();
+    block->pushBackInst(IB::genRetInst(
+        IB::genSelect2Inst(IB::genLessThan(IB::genLoadFunArgsVar(v1), IB::genLoadFunArgsVar(v2)),
+                           IB::genLoadFunArgsVar(v1), IB::genLoadFunArgsVar(v2))));
     // Creates function
-    FunTyped* fun_type =
-        InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst("min_i", fun_type, block);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genInt32Typed(), FunTyped::kDefault);
+    return IB::genDeclareFunInst("min_i", fun_type, block);
 }
 
 DeclareFunInst* WASInst::generateIntMax()
@@ -412,18 +410,16 @@ DeclareFunInst* WASInst::generateIntMax()
     string v2 = gGlobal->getFreshID("v2");
 
     Names args;
-    args.push_back(InstBuilder::genNamedTyped(v1, Typed::kInt32));
-    args.push_back(InstBuilder::genNamedTyped(v2, Typed::kInt32));
+    args.push_back(IB::genNamedTyped(v1, Typed::kInt32));
+    args.push_back(IB::genNamedTyped(v2, Typed::kInt32));
 
-    BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genSelect2Inst(
-        InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar(v1),
-                                 InstBuilder::genLoadFunArgsVar(v2)),
-        InstBuilder::genLoadFunArgsVar(v2), InstBuilder::genLoadFunArgsVar(v1))));
+    BlockInst* block = IB::genBlockInst();
+    block->pushBackInst(IB::genRetInst(
+        IB::genSelect2Inst(IB::genLessThan(IB::genLoadFunArgsVar(v1), IB::genLoadFunArgsVar(v2)),
+                           IB::genLoadFunArgsVar(v2), IB::genLoadFunArgsVar(v1))));
     // Creates function
-    FunTyped* fun_type =
-        InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst("max_i", fun_type, block);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genInt32Typed(), FunTyped::kDefault);
+    return IB::genDeclareFunInst("max_i", fun_type, block);
 }
 
 // Auxiliary functions for shared code in generateCompute
@@ -463,7 +459,7 @@ void WASTScalarCodeContainer::generateCompute(int n)
     generateComputeAux1(n);
 
     // Loop 'i' variable is moved by bytes
-    BlockInst* compute_block = InstBuilder::genBlockInst();
+    BlockInst* compute_block = IB::genBlockInst();
     compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
 
     // Generates post DSP loop code

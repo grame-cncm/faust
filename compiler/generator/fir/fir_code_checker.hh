@@ -307,9 +307,9 @@ struct StructVarAnalyser : public DispatchVisitor {
             Typed::VarType type = inst->fType->getType();
             ValueInst*     init;
             if (type == Typed::kFloat) {
-                init = InstBuilder::genFloatNumInst(0.5);
+                init = IB::genFloatNumInst(0.5);
             } else {
-                init = InstBuilder::genInt32NumInst(1);
+                init = IB::genInt32NumInst(1);
             }
             fSpecializedValueTable[inst->getName()] = init;
         }
@@ -378,7 +378,7 @@ struct ControlSpecializer : public DispatchVisitor {
             if (inst->getAccess() == Address::kLink) {
                 faustassert(fSpecializedValueTable.find(inst->getName()) !=
                             fSpecializedValueTable.end());
-                return InstBuilder::genDropInst();
+                return IB::genDropInst();
             } else {
                 return BasicCloneVisitor::visit(inst);
             }

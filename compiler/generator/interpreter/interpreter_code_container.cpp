@@ -158,7 +158,7 @@ template <class REAL>
 dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
 {
     // "count" variable added to be setup later by 'compute'
-    pushDeclare(InstBuilder::genDecStructVar("count", InstBuilder::genInt32Typed()));
+    pushDeclare(IB::genDecStructVar("count", IB::genInt32Typed()));
 
     // Sub containers are merged
     mergeSubContainers();
@@ -323,7 +323,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
 template <class REAL>
 FBCBlockInstruction<REAL>* InterpreterScalarCodeContainer<REAL>::generateCompute()
 {
-    BlockInst* compute_block = InstBuilder::genBlockInst();
+    BlockInst* compute_block = IB::genBlockInst();
     compute_block->pushBackInst(this->fCurLoop->generateScalarLoop(fFullCount));
 
     // Generates post DSP loop code

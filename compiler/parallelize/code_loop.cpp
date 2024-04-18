@@ -34,27 +34,25 @@ using namespace std;
 
 ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_in_bytes)
 {
-    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(),
-                                                           InstBuilder::genInt32NumInst(0));
-    ValueInst*      loop_end;
-    StoreVarInst*   loop_increment;
+    DeclareVarInst* loop_decl =
+        IB::genDecLoopVar(fLoopIndex, IB::genInt32Typed(), IB::genInt32NumInst(0));
+    ValueInst*    loop_end;
+    StoreVarInst* loop_increment;
 
     if (loop_var_in_bytes) {
-        loop_end = InstBuilder::genLessThan(
-            loop_decl->load(),
-            InstBuilder::genMul(InstBuilder::genInt32NumInst((int)pow(2, gGlobal->gFloatSize + 1)),
-                                InstBuilder::genLoadFunArgsVar(counter)));
-        loop_increment = loop_decl->store(
-            InstBuilder::genAdd(loop_decl->load(), (int)pow(2, gGlobal->gFloatSize + 1)));
+        loop_end = IB::genLessThan(
+            loop_decl->load(), IB::genMul(IB::genInt32NumInst((int)pow(2, gGlobal->gFloatSize + 1)),
+                                          IB::genLoadFunArgsVar(counter)));
+        loop_increment =
+            loop_decl->store(IB::genAdd(loop_decl->load(), (int)pow(2, gGlobal->gFloatSize + 1)));
     } else {
-        loop_end =
-            InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
-        loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+        loop_end       = IB::genLessThan(loop_decl->load(), IB::genLoadFunArgsVar(counter));
+        loop_increment = loop_decl->store(IB::genAdd(loop_decl->load(), 1));
     }
 
     BlockInst*   block = generateOneSample();
     ForLoopInst* loop =
-        InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block, fIsRecursive);
+        IB::genForLoopInst(loop_decl, loop_end, loop_increment, block, fIsRecursive);
 
     BasicCloneVisitor cloner;
     return static_cast<ForLoopInst*>(loop->clone(&cloner));
@@ -62,15 +60,15 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
 
 ForLoopInst* CodeLoop::generateFixedScalarLoop()
 {
-    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(),
-                                                           InstBuilder::genInt32NumInst(0));
+    DeclareVarInst* loop_decl =
+        IB::genDecLoopVar(fLoopIndex, IB::genInt32Typed(), IB::genInt32NumInst(0));
 
-    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), FIRIndex(gGlobal->gVecSize));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+    ValueInst*    loop_end       = IB::genLessThan(loop_decl->load(), FIRIndex(gGlobal->gVecSize));
+    StoreVarInst* loop_increment = loop_decl->store(IB::genAdd(loop_decl->load(), 1));
 
     BlockInst*   block = generateOneSample();
     ForLoopInst* loop =
-        InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block, fIsRecursive);
+        IB::genForLoopInst(loop_decl, loop_end, loop_increment, block, fIsRecursive);
 
     BasicCloneVisitor cloner;
     return static_cast<ForLoopInst*>(loop->clone(&cloner));
@@ -79,12 +77,12 @@ ForLoopInst* CodeLoop::generateFixedScalarLoop()
 // To be used for the 'rust' backend
 SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
 {
-    ValueInst* upper_bound = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst* lower_bound = InstBuilder::genInt32NumInst(0);
+    ValueInst* upper_bound = IB::genLoadFunArgsVar(counter);
+    ValueInst* lower_bound = IB::genInt32NumInst(0);
 
     BlockInst*         block = generateOneSample();
     SimpleForLoopInst* loop =
-        InstBuilder::genSimpleForLoopInst(fLoopIndex, upper_bound, lower_bound, false, block);
+        IB::genSimpleForLoopInst(fLoopIndex, upper_bound, lower_bound, false, block);
 
     BasicCloneVisitor cloner;
     return static_cast<SimpleForLoopInst*>(loop->clone(&cloner));
@@ -94,11 +92,11 @@ IteratorForLoopInst* CodeLoop::generateSimpleScalarLoop(const std::vector<string
 {
     std::vector<NamedAddress*> iterators1;
     for (const auto& it : iterators) {
-        iterators1.push_back(InstBuilder::genNamedAddress(it, Address::kStack));
+        iterators1.push_back(IB::genNamedAddress(it, Address::kStack));
     }
 
     BlockInst*           block = generateOneSample();
-    IteratorForLoopInst* loop  = InstBuilder::genIteratorForLoopInst(iterators1, false, block);
+    IteratorForLoopInst* loop  = IB::genIteratorForLoopInst(iterators1, false, block);
 
     BasicCloneVisitor cloner;
     return static_cast<IteratorForLoopInst*>(loop->clone(&cloner));
@@ -107,7 +105,7 @@ IteratorForLoopInst* CodeLoop::generateSimpleScalarLoop(const std::vector<string
 // Generate the scalar sample code
 BlockInst* CodeLoop::generateOneSample()
 {
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
 
     pushBlock(fPreInst, block);
     pushBlock(fComputeInst, block);
@@ -137,38 +135,38 @@ void CodeLoop::generateDAGScalarLoop(BlockInst* block, ValueInst* count, bool om
 
     // Generate code before the loop
     if (fPreInst->fCode.size() > 0) {
-        block->pushBackInst(InstBuilder::genLabelInst("/* Pre code */"));
+        block->pushBackInst(IB::genLabelInst("/* Pre code */"));
         if (omp) {
-            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp single"));
+            block->pushBackInst(IB::genLabelInst("#pragma omp single"));
         }
         pushBlock(fPreInst, block);
     }
 
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
-        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(
-            fLoopIndex, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
-        ValueInst*    loop_end       = InstBuilder::genLessThan(loop_decl->load(), count);
-        StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+        DeclareVarInst* loop_decl =
+            IB::genDecLoopVar(fLoopIndex, IB::genInt32Typed(), IB::genInt32NumInst(0));
+        ValueInst*    loop_end       = IB::genLessThan(loop_decl->load(), count);
+        StoreVarInst* loop_increment = loop_decl->store(IB::genAdd(loop_decl->load(), 1));
 
-        block->pushBackInst(InstBuilder::genLabelInst("/* Compute code */"));
+        block->pushBackInst(IB::genLabelInst("/* Compute code */"));
         if (omp) {
-            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp for"));
+            block->pushBackInst(IB::genLabelInst("#pragma omp for"));
         }
 
-        BlockInst* block1 = InstBuilder::genBlockInst();
+        BlockInst* block1 = IB::genBlockInst();
         pushBlock(fComputeInst, block1);
 
         ForLoopInst* loop =
-            InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block1, fIsRecursive);
+            IB::genForLoopInst(loop_decl, loop_end, loop_increment, block1, fIsRecursive);
         block->pushBackInst(loop);
     }
 
     // Generate code after the loop
     if (fPostInst->fCode.size() > 0) {
-        block->pushBackInst(InstBuilder::genLabelInst("/* Post code */"));
+        block->pushBackInst(IB::genLabelInst("/* Post code */"));
         if (omp) {
-            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp single"));
+            block->pushBackInst(IB::genLabelInst("#pragma omp single"));
         }
         pushBlock(fPostInst, block);
     }

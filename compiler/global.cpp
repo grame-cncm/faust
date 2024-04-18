@@ -678,19 +678,15 @@ void global::init()
 
     // Create type declaration for external 'soundfile' type
     vector<NamedTyped*> sf_type_fields;
-    sf_type_fields.push_back(
-        InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
-    sf_type_fields.push_back(
-        InstBuilder::genNamedTyped("fLength", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
-    sf_type_fields.push_back(
-        InstBuilder::genNamedTyped("fSR", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
-    sf_type_fields.push_back(
-        InstBuilder::genNamedTyped("fOffset", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
-    sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genInt32Typed()));
-    sf_type_fields.push_back(InstBuilder::genNamedTyped("fParts", InstBuilder::genInt32Typed()));
-    sf_type_fields.push_back(InstBuilder::genNamedTyped("fIsDouble", InstBuilder::genInt32Typed()));
-    gExternalStructTypes[Typed::kSound] = InstBuilder::genDeclareStructTypeInst(
-        InstBuilder::genStructTyped("Soundfile", sf_type_fields));
+    sf_type_fields.push_back(IB::genNamedTyped("fBuffers", IB::genBasicTyped(Typed::kVoid_ptr)));
+    sf_type_fields.push_back(IB::genNamedTyped("fLength", IB::genBasicTyped(Typed::kInt32_ptr)));
+    sf_type_fields.push_back(IB::genNamedTyped("fSR", IB::genBasicTyped(Typed::kInt32_ptr)));
+    sf_type_fields.push_back(IB::genNamedTyped("fOffset", IB::genBasicTyped(Typed::kInt32_ptr)));
+    sf_type_fields.push_back(IB::genNamedTyped("fChannels", IB::genInt32Typed()));
+    sf_type_fields.push_back(IB::genNamedTyped("fParts", IB::genInt32Typed()));
+    sf_type_fields.push_back(IB::genNamedTyped("fIsDouble", IB::genInt32Typed()));
+    gExternalStructTypes[Typed::kSound] =
+        IB::genDeclareStructTypeInst(IB::genStructTyped("Soundfile", sf_type_fields));
 
     // Foreign math functions supported by the Interp, Cmajor, codebox, wasm/wast backends
     gMathForeignFunctions["acoshf"] = true;

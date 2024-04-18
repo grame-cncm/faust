@@ -28,10 +28,10 @@ using namespace std;
 StatementInst* InstructionsCompilerJAX::generateShiftArray(const string& vname, int delay)
 {
     Values truncated_args;
-    truncated_args.push_back(InstBuilder::genLoadArrayStructVar(vname));
-    truncated_args.push_back(InstBuilder::genLoadStackVar("1"));
-    return InstBuilder::genStoreArrayStructVar(
-        vname, InstBuilder::genFunCallInst(string("jnp.roll"), truncated_args));
+    truncated_args.push_back(IB::genLoadArrayStructVar(vname));
+    truncated_args.push_back(IB::genLoadStackVar("1"));
+    return IB::genStoreArrayStructVar(vname,
+                                      IB::genFunCallInst(string("jnp.roll"), truncated_args));
 }
 
 ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, BasicTyped* ctype,
@@ -41,12 +41,10 @@ ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, BasicTyped
     if (mxd == 0) {
         // Generate scalar use
         if (dynamic_cast<NullValueInst*>(ccs)) {
-            pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, ctype, exp));
+            pushComputeDSPMethod(IB::genDecStackVar(vname, ctype, exp));
         } else {
-            pushPreComputeDSPMethod(
-                InstBuilder::genDecStackVar(vname, ctype, InstBuilder::genTypedZero(ctype)));
-            pushComputeDSPMethod(
-                InstBuilder::genControlInst(ccs, InstBuilder::genStoreStackVar(vname, exp)));
+            pushPreComputeDSPMethod(IB::genDecStackVar(vname, ctype, IB::genTypedZero(ctype)));
+            pushComputeDSPMethod(IB::genControlInst(ccs, IB::genStoreStackVar(vname, exp)));
         }
 
     } else if (mxd < gGlobal->gMaxCopyDelay) {
@@ -54,11 +52,11 @@ ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, BasicTyped
         generateInitArray(vname, ctype, mxd + 1);
 
         // Generate table use
-        pushComputeDSPMethod(InstBuilder::genControlInst(
-            ccs, InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genInt32NumInst(0), exp)));
+        pushComputeDSPMethod(IB::genControlInst(
+            ccs, IB::genStoreArrayStructVar(vname, IB::genInt32NumInst(0), exp)));
 
         // Generates post processing copy code to update delay values
-        pushPostComputeDSPMethod(InstBuilder::genControlInst(ccs, generateShiftArray(vname, mxd)));
+        pushPostComputeDSPMethod(IB::genControlInst(ccs, generateShiftArray(vname, mxd)));
 
     } else {
         int N = pow2limit(mxd + 1);
@@ -73,25 +71,24 @@ ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, BasicTyped
                 if (fIOTATable.find(N) == fIOTATable.end()) {
                     string   iota_name = subst("i$0", gGlobal->getFreshID(fCurrentIOTA + "_temp"));
                     FIRIndex value2 =
-                        FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
+                        FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
 
-                    pushPreComputeDSPMethod(InstBuilder::genDecStackVar(
-                        iota_name, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0)));
-                    pushComputeDSPMethod(InstBuilder::genControlInst(
-                        ccs, InstBuilder::genStoreStackVar(iota_name, value2)));
+                    pushPreComputeDSPMethod(
+                        IB::genDecStackVar(iota_name, IB::genInt32Typed(), IB::genInt32NumInst(0)));
+                    pushComputeDSPMethod(
+                        IB::genControlInst(ccs, IB::genStoreStackVar(iota_name, value2)));
 
                     fIOTATable[N] = iota_name;
                 }
 
-                pushComputeDSPMethod(InstBuilder::genControlInst(
-                    ccs, InstBuilder::genStoreArrayStructVar(
-                             vname, InstBuilder::genLoadStackVar(fIOTATable[N]), exp)));
+                pushComputeDSPMethod(IB::genControlInst(
+                    ccs,
+                    IB::genStoreArrayStructVar(vname, IB::genLoadStackVar(fIOTATable[N]), exp)));
 
             } else {
-                FIRIndex value2 =
-                    FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
-                pushComputeDSPMethod(InstBuilder::genControlInst(
-                    ccs, InstBuilder::genStoreArrayStructVar(vname, value2, exp)));
+                FIRIndex value2 = FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
+                pushComputeDSPMethod(
+                    IB::genControlInst(ccs, IB::genStoreArrayStructVar(vname, value2, exp)));
             }
         } else {
             // 'select' based delay
@@ -99,39 +96,35 @@ ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, BasicTyped
             string widx_name     = vname + "_widx";
 
             // Generates table write index
-            pushDeclare(InstBuilder::genDecStructVar(widx_name, InstBuilder::genInt32Typed()));
-            pushInitMethod(
-                InstBuilder::genStoreStructVar(widx_name, InstBuilder::genInt32NumInst(0)));
+            pushDeclare(IB::genDecStructVar(widx_name, IB::genInt32Typed()));
+            pushInitMethod(IB::genStoreStructVar(widx_name, IB::genInt32NumInst(0)));
 
             // Generates table init
             generateInitArray(vname, ctype, mxd + 1);
 
             // int w = widx;
-            pushComputeDSPMethod(InstBuilder::genControlInst(
-                ccs, InstBuilder::genDecStackVar(widx_tmp_name,
-                                                 InstBuilder::genBasicTyped(Typed::kInt32),
-                                                 InstBuilder::genLoadStructVar(widx_name))));
+            pushComputeDSPMethod(IB::genControlInst(
+                ccs, IB::genDecStackVar(widx_tmp_name, IB::genBasicTyped(Typed::kInt32),
+                                        IB::genLoadStructVar(widx_name))));
 
             // dline[w] = v;
-            pushComputeDSPMethod(InstBuilder::genControlInst(
-                ccs, InstBuilder::genStoreArrayStructVar(
-                         vname, InstBuilder::genLoadStackVar(widx_tmp_name), exp)));
+            pushComputeDSPMethod(IB::genControlInst(
+                ccs, IB::genStoreArrayStructVar(vname, IB::genLoadStackVar(widx_tmp_name), exp)));
 
             // w = w + 1;
-            FIRIndex widx_tmp1 = FIRIndex(InstBuilder::genLoadStackVar(widx_tmp_name));
-            pushPostComputeDSPMethod(InstBuilder::genControlInst(
-                ccs, InstBuilder::genStoreStackVar(widx_tmp_name, widx_tmp1 + 1)));
+            FIRIndex widx_tmp1 = FIRIndex(IB::genLoadStackVar(widx_tmp_name));
+            pushPostComputeDSPMethod(
+                IB::genControlInst(ccs, IB::genStoreStackVar(widx_tmp_name, widx_tmp1 + 1)));
 
             // w = ((w == delay) ? 0 : w);
-            FIRIndex widx_tmp2 = FIRIndex(InstBuilder::genLoadStackVar(widx_tmp_name));
-            pushPostComputeDSPMethod(InstBuilder::genControlInst(
-                ccs, InstBuilder::genStoreStackVar(
-                         widx_tmp_name, InstBuilder::genSelect2Inst(widx_tmp2 == FIRIndex(mxd + 1),
-                                                                    FIRIndex(0), widx_tmp2))));
+            FIRIndex widx_tmp2 = FIRIndex(IB::genLoadStackVar(widx_tmp_name));
+            pushPostComputeDSPMethod(IB::genControlInst(
+                ccs, IB::genStoreStackVar(widx_tmp_name,
+                                          IB::genSelect2Inst(widx_tmp2 == FIRIndex(mxd + 1),
+                                                             FIRIndex(0), widx_tmp2))));
             // *widx = w
-            pushPostComputeDSPMethod(InstBuilder::genControlInst(
-                ccs, InstBuilder::genStoreStructVar(widx_name,
-                                                    InstBuilder::genLoadStackVar(widx_tmp_name))));
+            pushPostComputeDSPMethod(IB::genControlInst(
+                ccs, IB::genStoreStructVar(widx_name, IB::genLoadStackVar(widx_tmp_name))));
         }
     }
 
@@ -145,32 +138,26 @@ ValueInst* InstructionsCompilerJAX::generateSoundfile(Tree sig, Tree path)
 
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    pushDeclare(
-        InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
+    pushDeclare(IB::genDecStructVar(varname, IB::genBasicTyped(Typed::kSound_ptr)));
 
     if (gGlobal->gUseDefaultSound) {
-        BlockInst* block = InstBuilder::genBlockInst();
-        block->pushBackInst(
-            InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
+        BlockInst* block = IB::genBlockInst();
+        block->pushBackInst(IB::genStoreStructVar(varname, IB::genLoadGlobalVar("defaultsound")));
 
-        pushResetUIInstructions(InstBuilder::genIfInst(
-            InstBuilder::genEqual(
-                InstBuilder::genCastInst(InstBuilder::genLoadStructVar(varname),
-                                         InstBuilder::genBasicTyped(Typed::kUint_ptr)),
-                InstBuilder::genTypedZero(Typed::kSound_ptr)),
-            block, InstBuilder::genBlockInst()));
+        pushResetUIInstructions(IB::genIfInst(
+            IB::genEqual(
+                IB::genCastInst(IB::genLoadStructVar(varname), IB::genBasicTyped(Typed::kUint_ptr)),
+                IB::genTypedZero(Typed::kSound_ptr)),
+            block, IB::genBlockInst()));
     }
 
     if (gGlobal->gOneSample >= 0) {
-        pushDeclare(
-            InstBuilder::genDecStructVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
-        pushComputeBlockMethod(
-            InstBuilder::genStoreStructVar(SFcache, InstBuilder::genLoadStructVar(varname)));
+        pushDeclare(IB::genDecStructVar(SFcache, IB::genBasicTyped(Typed::kSound_ptr)));
+        pushComputeBlockMethod(IB::genStoreStructVar(SFcache, IB::genLoadStructVar(varname)));
     } else {
-        pushComputeBlockMethod(
-            InstBuilder::genDecStackVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr),
-                                        InstBuilder::genLoadStructVar(varname)));
+        pushComputeBlockMethod(IB::genDecStackVar(SFcache, IB::genBasicTyped(Typed::kSound_ptr),
+                                                  IB::genLoadStructVar(varname)));
     }
 
-    return InstBuilder::genLoadStructVar(varname);
+    return IB::genLoadStructVar(varname);
 }

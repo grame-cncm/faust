@@ -121,8 +121,7 @@ struct Stack2StructRewriter2 : public DispatchVisitor {
 
         if (inst->getAccess() == Address::kStack && name.find(fName) != std::string::npos) {
             // Variable moved to the Struct
-            fContainer->pushDeclare(
-                InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
+            fContainer->pushDeclare(IB::genDecStructVar(name, inst->fType->clone(&cloner)));
 
             // For local thread access (in compute):
             // - rewrite the Declare instruction by a Store and put in Init section
@@ -132,7 +131,7 @@ struct Stack2StructRewriter2 : public DispatchVisitor {
                 Stack2StructRewriter1 rewriter(name);
                 inst->fValue->accept(&rewriter);
                 fContainer->pushInitMethod(
-                    InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
+                    IB::genStoreStructVar(name, inst->fValue->clone(&cloner)));
             }
 
             // Mark inst to be removed
@@ -176,7 +175,7 @@ struct RemoverCloneVisitor : public BasicCloneVisitor {
     StatementInst* visit(DeclareVarInst* inst)
     {
         if (inst->getAccess() == Address::kLink) {
-            return InstBuilder::genDropInst();
+            return IB::genDropInst();
         } else {
             return BasicCloneVisitor::visit(inst);
         }
@@ -198,7 +197,7 @@ struct DspRenamer : public BasicCloneVisitor {
     virtual Address* visit(NamedAddress* named)
     {
         if (startWith(named->getName(), "sig")) {
-            return InstBuilder::genNamedAddress("dsp", named->fAccess);
+            return IB::genNamedAddress("dsp", named->fAccess);
         } else {
             return BasicCloneVisitor::visit(named);
         }
@@ -208,7 +207,7 @@ struct DspRenamer : public BasicCloneVisitor {
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
         if (startWith(inst->getName(), "sig")) {
-            return InstBuilder::genDropInst();
+            return IB::genDropInst();
         } else {
             return BasicCloneVisitor::visit(inst);
         }
@@ -228,13 +227,13 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
         if (inst->fValue) {
             if (dynamic_cast<NumValueInst*>(inst->fValue)) {
                 fVarTable.push_back(inst->clone(&cloner));
-                return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                    inst->fValue->clone(&cloner));
+                return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                           inst->fValue->clone(&cloner));
                 // "In extension" array definition
             } else if (array_typed) {
-                fVarTable.push_back(InstBuilder::genDeclareVarInst(
+                fVarTable.push_back(IB::genDeclareVarInst(
                     inst->fAddress->clone(&cloner), inst->fType->clone(&cloner),
-                    InstBuilder::genTypedZero(inst->fType->getType())));
+                    IB::genTypedZero(inst->fType->getType())));
                 Typed::VarType ctype = array_typed->fType->getType();
                 if (array_typed->fSize > 0) {
                     if (ctype == Typed::kInt32) {
@@ -242,76 +241,76 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                             dynamic_cast<Int32ArrayNumInst*>(inst->fValue);
                         if (int_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
-                                fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->getName(), InstBuilder::genInt32NumInst(i),
-                                    InstBuilder::genInt32NumInst(int_array->getValue(i))));
+                                fVarTable.push_back(IB::genStoreArrayStaticStructVar(
+                                    inst->getName(), IB::genInt32NumInst(i),
+                                    IB::genInt32NumInst(int_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                                inst->fValue->clone(&cloner));
+                            return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                       inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
                         FloatArrayNumInst* float_array =
                             dynamic_cast<FloatArrayNumInst*>(inst->fValue);
                         if (float_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
-                                fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->getName(), InstBuilder::genInt32NumInst(i),
-                                    InstBuilder::genFloatNumInst(float_array->getValue(i))));
+                                fVarTable.push_back(IB::genStoreArrayStaticStructVar(
+                                    inst->getName(), IB::genInt32NumInst(i),
+                                    IB::genFloatNumInst(float_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                                inst->fValue->clone(&cloner));
+                            return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                       inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kDouble) {
                         DoubleArrayNumInst* double_array =
                             dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
                         if (double_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
-                                fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->getName(), InstBuilder::genInt32NumInst(i),
-                                    InstBuilder::genDoubleNumInst(double_array->getValue(i))));
+                                fVarTable.push_back(IB::genStoreArrayStaticStructVar(
+                                    inst->getName(), IB::genInt32NumInst(i),
+                                    IB::genDoubleNumInst(double_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                                inst->fValue->clone(&cloner));
+                            return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                       inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kFixedPoint) {
                         FixedPointArrayNumInst* fixed_array =
                             dynamic_cast<FixedPointArrayNumInst*>(inst->fValue);
                         if (fixed_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
-                                fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->fAddress->getName(), InstBuilder::genInt32NumInst(i),
-                                    InstBuilder::genCastInst(
-                                        InstBuilder::genFixedPointNumInst(fixed_array->getValue(i)),
+                                fVarTable.push_back(IB::genStoreArrayStaticStructVar(
+                                    inst->fAddress->getName(), IB::genInt32NumInst(i),
+                                    IB::genCastInst(
+                                        IB::genFixedPointNumInst(fixed_array->getValue(i)),
                                         fixed_array->fType)));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                                inst->fValue->clone(&cloner));
+                            return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                       inst->fValue->clone(&cloner));
                         }
                     } else {
                         faustassert(false);
                     }
-                    return InstBuilder::genDropInst();
+                    return IB::genDropInst();
                 } else {
-                    return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                        inst->fValue->clone(&cloner));
+                    return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                               inst->fValue->clone(&cloner));
                 }
             } else {
-                fVarTable.push_back(InstBuilder::genDeclareVarInst(
+                fVarTable.push_back(IB::genDeclareVarInst(
                     inst->fAddress->clone(&cloner), inst->fType->clone(&cloner),
-                    InstBuilder::genTypedZero(inst->fType->getType())));
-                return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                    inst->fValue->clone(&cloner));
+                    IB::genTypedZero(inst->fType->getType())));
+                return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                           inst->fValue->clone(&cloner));
             }
 
         } else {
-            fVarTable.push_back(InstBuilder::genDeclareVarInst(
-                inst->fAddress->clone(&cloner), inst->fType->clone(&cloner),
-                InstBuilder::genTypedZero(inst->fType->getType())));
-            return InstBuilder::genDropInst();
+            fVarTable.push_back(IB::genDeclareVarInst(inst->fAddress->clone(&cloner),
+                                                      inst->fType->clone(&cloner),
+                                                      IB::genTypedZero(inst->fType->getType())));
+            return IB::genDropInst();
         }
     }
 
@@ -331,10 +330,10 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                 DeclareVarInst* dec_inst   = dynamic_cast<DeclareVarInst*>(*it);
                 StoreVarInst*   store_inst = dynamic_cast<StoreVarInst*>(*it);
                 if (dec_inst) {
-                    dec.push_back(InstBuilder::genDeclareVarInst(dec_inst->fAddress->clone(&cloner),
-                                                                 dec_inst->fType->clone(&cloner)));
-                    store.push_back(InstBuilder::genStoreVarInst(dec_inst->fAddress->clone(&cloner),
-                                                                 dec_inst->fValue->clone(&cloner)));
+                    dec.push_back(IB::genDeclareVarInst(dec_inst->fAddress->clone(&cloner),
+                                                        dec_inst->fType->clone(&cloner)));
+                    store.push_back(IB::genStoreVarInst(dec_inst->fAddress->clone(&cloner),
+                                                        dec_inst->fValue->clone(&cloner)));
                 } else if (store_inst) {
                     store.push_back(store_inst->clone(&cloner));
                 } else {
@@ -376,16 +375,16 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
         if (inst->fValue) {
             if (dynamic_cast<NumValueInst*>(inst->fValue)) {
                 // Declaration rewriten as simple DeclareVarInst (without value) and a store
-                fVarTableDeclaration.push_back(InstBuilder::genDeclareVarInst(
-                    inst->fAddress->clone(&cloner), inst->fType->clone(&cloner)));
-                fVarTableStore.push_back(InstBuilder::genStoreVarInst(
-                    inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner)));
-                return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                    inst->fValue->clone(&cloner));
+                fVarTableDeclaration.push_back(IB::genDeclareVarInst(inst->fAddress->clone(&cloner),
+                                                                     inst->fType->clone(&cloner)));
+                fVarTableStore.push_back(IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                             inst->fValue->clone(&cloner)));
+                return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                           inst->fValue->clone(&cloner));
                 // "In extension" array definition
             } else if (array_typed) {
-                fVarTableDeclaration.push_back(InstBuilder::genDeclareVarInst(
-                    inst->fAddress->clone(&cloner), inst->fType->clone(&cloner)));
+                fVarTableDeclaration.push_back(IB::genDeclareVarInst(inst->fAddress->clone(&cloner),
+                                                                     inst->fType->clone(&cloner)));
                 Typed::VarType ctype = array_typed->fType->getType();
                 if (array_typed->fSize > 0) {
                     if (ctype == Typed::kInt32) {
@@ -393,76 +392,76 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                             dynamic_cast<Int32ArrayNumInst*>(inst->fValue);
                         if (int_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
-                                fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->getName(), InstBuilder::genInt32NumInst(i),
-                                    InstBuilder::genInt32NumInst(int_array->getValue(i))));
+                                fVarTableStore.push_back(IB::genStoreArrayStaticStructVar(
+                                    inst->getName(), IB::genInt32NumInst(i),
+                                    IB::genInt32NumInst(int_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                                inst->fValue->clone(&cloner));
+                            return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                       inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
                         FloatArrayNumInst* float_array =
                             dynamic_cast<FloatArrayNumInst*>(inst->fValue);
                         if (float_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
-                                fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->getName(), InstBuilder::genInt32NumInst(i),
-                                    InstBuilder::genFloatNumInst(float_array->getValue(i))));
+                                fVarTableStore.push_back(IB::genStoreArrayStaticStructVar(
+                                    inst->getName(), IB::genInt32NumInst(i),
+                                    IB::genFloatNumInst(float_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                                inst->fValue->clone(&cloner));
+                            return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                       inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kDouble) {
                         DoubleArrayNumInst* double_array =
                             dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
                         if (double_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
-                                fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->getName(), InstBuilder::genInt32NumInst(i),
-                                    InstBuilder::genDoubleNumInst(double_array->getValue(i))));
+                                fVarTableStore.push_back(IB::genStoreArrayStaticStructVar(
+                                    inst->getName(), IB::genInt32NumInst(i),
+                                    IB::genDoubleNumInst(double_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                                inst->fValue->clone(&cloner));
+                            return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                       inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kFixedPoint) {
                         FixedPointArrayNumInst* fixed_array =
                             dynamic_cast<FixedPointArrayNumInst*>(inst->fValue);
                         if (fixed_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
-                                fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
-                                    inst->fAddress->getName(), InstBuilder::genInt32NumInst(i),
-                                    InstBuilder::genCastInst(
-                                        InstBuilder::genFixedPointNumInst(fixed_array->getValue(i)),
+                                fVarTableStore.push_back(IB::genStoreArrayStaticStructVar(
+                                    inst->fAddress->getName(), IB::genInt32NumInst(i),
+                                    IB::genCastInst(
+                                        IB::genFixedPointNumInst(fixed_array->getValue(i)),
                                         fixed_array->fType)));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                                inst->fValue->clone(&cloner));
+                            return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                       inst->fValue->clone(&cloner));
                         }
                     } else {
                         faustassert(false);
                     }
-                    return InstBuilder::genDropInst();
+                    return IB::genDropInst();
                 } else {
-                    return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                        inst->fValue->clone(&cloner));
+                    return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                               inst->fValue->clone(&cloner));
                 }
             } else {
                 // Declaration rewriten as simple DeclareVarInst (without value) and a store
-                fVarTableDeclaration.push_back(InstBuilder::genDeclareVarInst(
-                    inst->fAddress->clone(&cloner), inst->fType->clone(&cloner)));
-                fVarTableStore.push_back(InstBuilder::genStoreVarInst(
-                    inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner)));
-                return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
-                                                    inst->fValue->clone(&cloner));
+                fVarTableDeclaration.push_back(IB::genDeclareVarInst(inst->fAddress->clone(&cloner),
+                                                                     inst->fType->clone(&cloner)));
+                fVarTableStore.push_back(IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                             inst->fValue->clone(&cloner)));
+                return IB::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                           inst->fValue->clone(&cloner));
             }
 
         } else {
             fVarTableDeclaration.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
-            return InstBuilder::genDropInst();
+            return IB::genDropInst();
         }
     }
 
@@ -504,8 +503,7 @@ struct LoopVariableRenamer : public BasicCloneVisitor {
     {
         if (address->fAccess == Address::kLoop &&
             fLoopIndexMap.find(address->getName()) != fLoopIndexMap.end()) {
-            return InstBuilder::genNamedAddress(fLoopIndexMap[address->getName()],
-                                                address->fAccess);
+            return IB::genNamedAddress(fLoopIndexMap[address->getName()], address->fAccess);
         } else {
             return BasicCloneVisitor::visit(address);
         }
@@ -590,14 +588,14 @@ struct CastRemover : public BasicCloneVisitor {
             } else {
                 /*
                 // TODO = protection out-of [INT32_MIN, INT32_MAX] range
-                ValueInst* max = InstBuilder::genRealNumInst(Typed::kFloat,
+                ValueInst* max = IB::genRealNumInst(Typed::kFloat,
                 double(std::numeric_limits<int>::max())); ValueInst* min =
-                InstBuilder::genRealNumInst(Typed::kFloat, double(std::numeric_limits<int>::min()));
+                IB::genRealNumInst(Typed::kFloat, double(std::numeric_limits<int>::min()));
 
-                return InstBuilder::genSelect2Inst(InstBuilder::genGreater(inst->fInst->clone(this),
-                max), InstBuilder::genInt32NumInst(std::numeric_limits<int>::max()),
-                                                   InstBuilder::genSelect2Inst(InstBuilder::genLess(inst->fInst->clone(this),
-                min), InstBuilder::genInt32NumInst(std::numeric_limits<int>::min()),
+                return IB::genSelect2Inst(IB::genGreater(inst->fInst->clone(this),
+                max), IB::genInt32NumInst(std::numeric_limits<int>::max()),
+                                                   IB::genSelect2Inst(IB::genLess(inst->fInst->clone(this),
+                min), IB::genInt32NumInst(std::numeric_limits<int>::min()),
                                                                                BasicTypingCloneVisitor::visit(inst)));
                 */
                 return BasicCloneVisitor::visit(inst);
@@ -721,7 +719,7 @@ struct VarAddressRemover : public BasicCloneVisitor {
         LoadVarAddressInst* var_address = dynamic_cast<LoadVarAddressInst*>(inst->fValue);
         if (var_address) {
             fVariableMap[inst->getName()] = var_address;
-            return InstBuilder::genNullStatementInst();
+            return IB::genNullStatementInst();
         } else {
             return BasicCloneVisitor::visit(inst);
         }
@@ -732,7 +730,7 @@ struct VarAddressRemover : public BasicCloneVisitor {
         LoadVarAddressInst* var_address = dynamic_cast<LoadVarAddressInst*>(inst->fValue);
         if (var_address) {
             fVariableMap[inst->getName()] = var_address;
-            return InstBuilder::genNullStatementInst();
+            return IB::genNullStatementInst();
         } else {
             return BasicCloneVisitor::visit(inst);
         }
@@ -748,9 +746,8 @@ struct VarAddressRemover : public BasicCloneVisitor {
             faustassert(id_add1);
             ValueInst* id1 = id_add1->getIndex();
             ValueInst* id2 = id_add2->getIndex();
-            return InstBuilder::genIndexedAddress(
-                id_add1->fAddress->clone(this),
-                InstBuilder::genAdd(id1->clone(this), id2->clone(this)));
+            return IB::genIndexedAddress(id_add1->fAddress->clone(this),
+                                         IB::genAdd(id1->clone(this), id2->clone(this)));
         } else {
             return BasicCloneVisitor::visit(address);
         }
@@ -789,8 +786,8 @@ struct ArrayToPointer : public BasicCloneVisitor {
     {
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_typed) {
-            return InstBuilder::genDecStructVar(
-                inst->getName(), InstBuilder::genArrayTyped(array_typed->fType->clone(this), 0));
+            return IB::genDecStructVar(inst->getName(),
+                                       IB::genArrayTyped(array_typed->fType->clone(this), 0));
         } else {
             return BasicCloneVisitor::visit(inst);
         }
@@ -809,8 +806,8 @@ struct ArrayToPointer1 : public BasicCloneVisitor {
     {
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_typed && isControlOrZone(inst->getName())) {
-            return InstBuilder::genDecStructVar(
-                inst->getName(), InstBuilder::genArrayTyped(array_typed->fType->clone(this), 0));
+            return IB::genDecStructVar(inst->getName(),
+                                       IB::genArrayTyped(array_typed->fType->clone(this), 0));
         } else {
             return BasicCloneVisitor::visit(inst);
         }
@@ -823,10 +820,10 @@ struct NoControlArrayToPointer : public BasicCloneVisitor {
     {
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_typed && isControlOrZone(inst->getName())) {
-            return InstBuilder::genDecStructVar(
-                inst->getName(), InstBuilder::genArrayTyped(array_typed->fType->clone(this), 0));
+            return IB::genDecStructVar(inst->getName(),
+                                       IB::genArrayTyped(array_typed->fType->clone(this), 0));
         } else if (isUIInputControl(inst->getName())) {
-            return InstBuilder::genDropInst();
+            return IB::genDropInst();
         } else {
             return BasicCloneVisitor::visit(inst);
         }

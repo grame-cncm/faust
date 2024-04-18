@@ -34,7 +34,7 @@ stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 
 vector<string> NamedTyped::AttributeMap = {" ", " RESTRICT "};
 
-BasicTyped* InstBuilder::genItFloatTyped()
+BasicTyped* IB::genItFloatTyped()
 {
     return genBasicTyped(itfloat());
 }
@@ -73,7 +73,7 @@ DeclareStructTypeInst* isStructType(const string& name)
     return nullptr;
 }
 
-ValueInst* InstBuilder::genTypedZero(Typed::VarType type)
+ValueInst* IB::genTypedZero(Typed::VarType type)
 {
     if (type == Typed::kInt32) {
         return genInt32NumInst(0);
@@ -95,7 +95,7 @@ ValueInst* InstBuilder::genTypedZero(Typed::VarType type)
 
 // Handle all possible cast at compile time, and use genCastInst only with the 'unknown at compile
 // time' kFloatMacro
-ValueInst* InstBuilder::genRealNumInst(Typed::VarType ctype, double num)
+ValueInst* IB::genRealNumInst(Typed::VarType ctype, double num)
 {
     if (ctype == Typed::kFloat) {
         return new FloatNumInst(float(num));
@@ -117,7 +117,7 @@ ValueInst* InstBuilder::genRealNumInst(Typed::VarType ctype, double num)
     return nullptr;
 }
 
-ValueInst* InstBuilder::genTypedNum(Typed::VarType type, double num)
+ValueInst* IB::genTypedNum(Typed::VarType type, double num)
 {
     if (type == Typed::kInt32 || type == Typed::kBool) {
         return genInt32NumInst(int(num));
@@ -251,7 +251,7 @@ Typed::VarType convert2FIRType(int type)
     return (type == kInt) ? Typed::kInt32 : itfloat();
 }
 
-BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
+BasicTyped* IB::genBasicTyped(Typed::VarType type)
 {
     return gGlobal->genBasicTyped(type);
 }
@@ -308,10 +308,10 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
 }
 
 // Function argument variable types are kept in the global num <===> type table
-NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed* type)
+NamedTyped* IB::genNamedTyped(const string& name, Typed* type)
 {
     if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
-        // cout << "InstBuilder::genNamedTyped " << name << " " <<
+        // cout << "IB::genNamedTyped " << name << " " <<
         // Typed::gTypeString[type->getType()] << endl;
         gGlobal->gVarTypeTable[name] = type;
     }
@@ -319,25 +319,25 @@ NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed* type)
 }
 
 // Function argument variable types are kept in the global num <===> type table
-NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed::VarType type)
+NamedTyped* IB::genNamedTyped(const string& name, Typed::VarType type)
 {
     return genNamedTyped(name, genBasicTyped(type));
 }
 
 // Casting
-ValueInst* InstBuilder::genCastRealInst(ValueInst* inst)
+ValueInst* IB::genCastRealInst(ValueInst* inst)
 {
-    return InstBuilder::genCastInst(inst, InstBuilder::genItFloatTyped());
+    return IB::genCastInst(inst, IB::genItFloatTyped());
 }
 
-ValueInst* InstBuilder::genCastFloatMacroInst(ValueInst* inst)
+ValueInst* IB::genCastFloatMacroInst(ValueInst* inst)
 {
-    return InstBuilder::genCastInst(inst, InstBuilder::genFloatMacroTyped());
+    return IB::genCastInst(inst, IB::genFloatMacroTyped());
 }
 
-ValueInst* InstBuilder::genCastInt32Inst(ValueInst* inst)
+ValueInst* IB::genCastInt32Inst(ValueInst* inst)
 {
-    return InstBuilder::genCastInst(inst, InstBuilder::genInt32Typed());
+    return IB::genCastInst(inst, IB::genInt32Typed());
 }
 
 // BasicTyped are not cloned, but actually point on the same underlying type
@@ -363,18 +363,18 @@ ValueInst* BlockInst::getReturnValue()
         fCode.pop_back();
         return ret->fResult;
     } else {
-        return InstBuilder::genNullValueInst();
+        return IB::genNullValueInst();
     }
 }
 
 struct StoreVarInst* DeclareVarInst::store(ValueInst* exp)
 {
-    return InstBuilder::genStoreVarInst(fAddress, exp);
+    return IB::genStoreVarInst(fAddress, exp);
 }
 
 struct LoadVarInst* DeclareVarInst::load()
 {
-    return InstBuilder::genLoadVarInst(fAddress);
+    return IB::genLoadVarInst(fAddress);
 }
 
 bool ControlInst::hasCondition(ValueInst* cond)
@@ -392,118 +392,109 @@ SimpleForLoopInst::SimpleForLoopInst(const string& name, ValueInst* upperBound,
     : fUpperBound(upperBound), fLowerBound(lowerBound), fName(name), fReverse(reverse), fCode(code)
 {
     // Define the loop variable in order to have it correctly typed when checking in FIRChecker
-    fInit = InstBuilder::genDecLoopVar(name, InstBuilder::genInt32Typed(),
-                                       InstBuilder::genInt32NumInst(0));
+    fInit = IB::genDecLoopVar(name, IB::genInt32Typed(), IB::genInt32NumInst(0));
 }
 
 // Function calls
-DeclareFunInst* InstBuilder::genVoidFunction(const string& name, BlockInst* code)
+DeclareFunInst* IB::genVoidFunction(const string& name, BlockInst* code)
 {
     Names     args;
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped());
-    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped());
+    return IB::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* InstBuilder::genVoidFunction(const string& name, Names& args, BlockInst* code,
-                                             bool isvirtual)
+DeclareFunInst* IB::genVoidFunction(const string& name, Names& args, BlockInst* code,
+                                    bool isvirtual)
 {
-    FunTyped* fun_type = InstBuilder::genFunTyped(
-        args, InstBuilder::genVoidTyped(), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(),
+                                         (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    return IB::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* InstBuilder::genFunction0(const string& name, Typed::VarType res, BlockInst* code)
+DeclareFunInst* IB::genFunction0(const string& name, Typed::VarType res, BlockInst* code)
 {
     Names     args;
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genBasicTyped(res));
+    return IB::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* InstBuilder::genFunction1(const string& name, Typed::VarType res,
-                                          const string& arg1, Typed::VarType arg1_ty,
-                                          BlockInst* code)
+DeclareFunInst* IB::genFunction1(const string& name, Typed::VarType res, const string& arg1,
+                                 Typed::VarType arg1_ty, BlockInst* code)
 {
     Names args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+    args.push_back(IB::genNamedTyped(arg1, arg1_ty));
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genBasicTyped(res));
+    return IB::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* InstBuilder::genFunction2(const string& name, Typed::VarType res,
-                                          const string& arg1, Typed::VarType arg1_ty,
-                                          const string& arg2, Typed::VarType arg2_ty,
-                                          BlockInst* code)
+DeclareFunInst* IB::genFunction2(const string& name, Typed::VarType res, const string& arg1,
+                                 Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
+                                 BlockInst* code)
 {
     Names args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+    args.push_back(IB::genNamedTyped(arg1, arg1_ty));
+    args.push_back(IB::genNamedTyped(arg2, arg2_ty));
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genBasicTyped(res));
+    return IB::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* InstBuilder::genFunction3(const string& name, Typed::VarType res,
-                                          const string& arg1, Typed::VarType arg1_ty,
-                                          const string& arg2, Typed::VarType arg2_ty,
-                                          const string& arg3, Typed::VarType arg3_ty,
-                                          BlockInst* code)
+DeclareFunInst* IB::genFunction3(const string& name, Typed::VarType res, const string& arg1,
+                                 Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
+                                 const string& arg3, Typed::VarType arg3_ty, BlockInst* code)
 {
     Names args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+    args.push_back(IB::genNamedTyped(arg1, arg1_ty));
+    args.push_back(IB::genNamedTyped(arg2, arg2_ty));
+    args.push_back(IB::genNamedTyped(arg3, arg3_ty));
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genBasicTyped(res));
+    return IB::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* InstBuilder::genFunction4(const string& name, Typed::VarType res,
-                                          const string& arg1, Typed::VarType arg1_ty,
-                                          const string& arg2, Typed::VarType arg2_ty,
-                                          const string& arg3, Typed::VarType arg3_ty,
-                                          const string& arg4, Typed::VarType arg4_ty,
-                                          BlockInst* code)
+DeclareFunInst* IB::genFunction4(const string& name, Typed::VarType res, const string& arg1,
+                                 Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
+                                 const string& arg3, Typed::VarType arg3_ty, const string& arg4,
+                                 Typed::VarType arg4_ty, BlockInst* code)
 {
     Names args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg4, arg4_ty));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+    args.push_back(IB::genNamedTyped(arg1, arg1_ty));
+    args.push_back(IB::genNamedTyped(arg2, arg2_ty));
+    args.push_back(IB::genNamedTyped(arg3, arg3_ty));
+    args.push_back(IB::genNamedTyped(arg4, arg4_ty));
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genBasicTyped(res));
+    return IB::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* InstBuilder::genFunction5(const string& name, Typed::VarType res,
-                                          const string& arg1, Typed::VarType arg1_ty,
-                                          const string& arg2, Typed::VarType arg2_ty,
-                                          const string& arg3, Typed::VarType arg3_ty,
-                                          const string& arg4, Typed::VarType arg4_ty,
-                                          const string& arg5, Typed::VarType arg5_ty,
-                                          BlockInst* code)
+DeclareFunInst* IB::genFunction5(const string& name, Typed::VarType res, const string& arg1,
+                                 Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
+                                 const string& arg3, Typed::VarType arg3_ty, const string& arg4,
+                                 Typed::VarType arg4_ty, const string& arg5, Typed::VarType arg5_ty,
+                                 BlockInst* code)
 {
     Names args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg4, arg4_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg5, arg5_ty));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+    args.push_back(IB::genNamedTyped(arg1, arg1_ty));
+    args.push_back(IB::genNamedTyped(arg2, arg2_ty));
+    args.push_back(IB::genNamedTyped(arg3, arg3_ty));
+    args.push_back(IB::genNamedTyped(arg4, arg4_ty));
+    args.push_back(IB::genNamedTyped(arg5, arg5_ty));
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genBasicTyped(res));
+    return IB::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* InstBuilder::genFunction6(
-    const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty,
-    const string& arg2, Typed::VarType arg2_ty, const string& arg3, Typed::VarType arg3_ty,
-    const string& arg4, Typed::VarType arg4_ty, const string& arg5, Typed::VarType arg5_ty,
-    const string& arg6, Typed::VarType arg6_ty, BlockInst* code)
+DeclareFunInst* IB::genFunction6(const string& name, Typed::VarType res, const string& arg1,
+                                 Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
+                                 const string& arg3, Typed::VarType arg3_ty, const string& arg4,
+                                 Typed::VarType arg4_ty, const string& arg5, Typed::VarType arg5_ty,
+                                 const string& arg6, Typed::VarType arg6_ty, BlockInst* code)
 {
     Names args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg4, arg4_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg5, arg5_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg6, arg6_ty));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+    args.push_back(IB::genNamedTyped(arg1, arg1_ty));
+    args.push_back(IB::genNamedTyped(arg2, arg2_ty));
+    args.push_back(IB::genNamedTyped(arg3, arg3_ty));
+    args.push_back(IB::genNamedTyped(arg4, arg4_ty));
+    args.push_back(IB::genNamedTyped(arg5, arg5_ty));
+    args.push_back(IB::genNamedTyped(arg6, arg6_ty));
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genBasicTyped(res));
+    return IB::genDeclareFunInst(name, fun_type, code);
 }
 
 bool LoadVarInst::isSimpleValue() const
@@ -530,7 +521,7 @@ void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)
 // Patching the DSP struct declare instructions used with "Rec/Vec..." arrays
 // to use the iZone/fZone model
 
-DeclareVarInst* InstBuilder::genDecStructVar(const string& vname, Typed* type, ValueInst* exp)
+DeclareVarInst* IB::genDecStructVar(const string& vname, Typed* type, ValueInst* exp)
 {
     if (gGlobal->gMemoryManager >= 1) {
         if ((startWith(vname, "iRec") || startWith(vname, "iVec") || startWith(vname, "iYec") ||
@@ -555,7 +546,7 @@ DeclareVarInst* InstBuilder::genDecStructVar(const string& vname, Typed* type, V
 // Patching the static declare instructions used with "itbl/ftbl" arrays and waveform
 // to use the iZone/fZone model
 
-DeclareVarInst* InstBuilder::genDecStaticStructVar(const string& vname, Typed* type, ValueInst* exp)
+DeclareVarInst* IB::genDecStaticStructVar(const string& vname, Typed* type, ValueInst* exp)
 {
     if (gGlobal->gMemoryManager >= 1) {
         if (startWith(vname, "i")) {
@@ -591,7 +582,7 @@ isInt(x->node(), n); }
 
 static property<DeclareTypeInst* > gFirTypeProperty;
 
-map<string, int> InstBuilder::fIDCounters;
+map<string, int> IB::fIDCounters;
 
 static Tree signalTypeToSharedType(AudioType* type)
 {
@@ -610,7 +601,7 @@ static Tree signalTypeToSharedType(AudioType* type)
     }
 }
 
-DeclareTypeInst* InstBuilder::genType(AudioType* type)
+DeclareTypeInst* IB::genType(AudioType* type)
 {
     Tree shared_type = signalTypeToSharedType(type);
     DeclareTypeInst* dec_type;
@@ -621,10 +612,10 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
         if (isSimpleType(type)) {
             if (type->nature() == kInt32) {
                 printf("FaustVectorType intType \n");
-                dec_type = genDeclareTypeInst(InstBuilder::genInt32Typed());
+                dec_type = genDeclareTypeInst(IB::genInt32Typed());
             } else if (type->nature() == kReal) {
                 printf("FaustVectorType floatType \n");
-                dec_type = genDeclareTypeInst(InstBuilder::genFloatTyped());
+                dec_type = genDeclareTypeInst(IB::genFloatTyped());
             } else {
                 faustassert(false);
             }
@@ -633,7 +624,7 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
             DeclareTypeInst* sub_type = genType(vec->dereferenceType());
             dec_type = genDeclareTypeInst(
                     genStructTyped(getFreshID("vecType"),
-                    InstBuilder::genArrayTyped(sub_type->fType, vec->size())));
+                    IB::genArrayTyped(sub_type->fType, vec->size())));
         } else {
             faustassert(false);
         }
@@ -650,20 +641,20 @@ static Typed* sharedTypeToFirType(Tree t)
 
     if (isTypeInt(t)) {
         printf("sharedTypeToFirType isTypeInt\n");
-        return InstBuilder::genInt32Typed();
+        return IB::genInt32Typed();
     } else if (isTypeFloat(t)) {
         printf("sharedTypeToFirType isTypeFloat\n");
-        return InstBuilder::genFloatTyped();
+        return IB::genFloatTyped();
     } else if (isTypeArray(t, &size, subtree)) {
         printf("sharedTypeToFirType isTypeArray size %d\n", size);
-        return InstBuilder::genArrayTyped(sharedTypeToFirType(subtree), size);
+        return IB::genArrayTyped(sharedTypeToFirType(subtree), size);
     } else {
         faustassert(false);
         return nullptr;
     }
 }
 
-DeclareTypeInst* InstBuilder::genType(AudioType* type)
+DeclareTypeInst* IB::genType(AudioType* type)
 {
     Tree shared_type = signalTypeToSharedType(type);
     DeclareTypeInst* dec_type;

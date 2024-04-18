@@ -637,7 +637,7 @@ static void calcEqnsNicknames(const vector<string>& eqNames, vector<string>& eqN
         //		for( vector<string>::iterator it = v.begin(); it < v.end()-1; ++it ) {
         //			if (init == *it) {
         //				//cerr << "!! Warning Documentator : calcEqnsNicknames : duplicates \"" <<
-        //init << "\"" << endl;
+        // init << "\"" << endl;
         //			}
         //		}
         eqNicknames.push_back(init);

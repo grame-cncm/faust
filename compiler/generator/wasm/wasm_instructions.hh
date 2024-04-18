@@ -403,10 +403,9 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         // Additional functions defined in the module
         {
             Names args;
-            args.push_back(InstBuilder::genNamedTyped("arg1", Typed::kInt32));
-            args.push_back(InstBuilder::genNamedTyped("arg2", Typed::kInt32));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
+            args.push_back(IB::genNamedTyped("arg1", Typed::kInt32));
+            args.push_back(IB::genNamedTyped("arg2", Typed::kInt32));
+            FunTyped* fun_type = IB::genFunTyped(args, IB::genInt32Typed(), FunTyped::kDefault);
             fFunTypes["min_i"] = fun_type;
             fFunTypes["max_i"] = fun_type;
         }
@@ -416,9 +415,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         // getNumInputs/getNumOutputs
         {
             Names args;
-            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
+            args.push_back(IB::genNamedTyped("dsp", Typed::kObj_ptr));
+            FunTyped* fun_type = IB::genFunTyped(args, IB::genInt32Typed(), FunTyped::kDefault);
             fFunTypes["getNumInputs"]  = fun_type;
             fFunTypes["getNumOutputs"] = fun_type;
         }
@@ -426,21 +424,19 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         // getSampleRate
         {
             Names args;
-            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
+            args.push_back(IB::genNamedTyped("dsp", Typed::kObj_ptr));
+            FunTyped* fun_type = IB::genFunTyped(args, IB::genInt32Typed(), FunTyped::kDefault);
             fFunTypes["getSampleRate"] = fun_type;
         }
 
         // init/instanceConstants/instanceInit
         {
             Names args;
-            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
-            fFunTypes["init"]              = fun_type;
-            fFunTypes["classInit"]         = fun_type;
+            args.push_back(IB::genNamedTyped("dsp", Typed::kObj_ptr));
+            args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
+            FunTyped* fun_type     = IB::genFunTyped(args, IB::genVoidTyped(), FunTyped::kDefault);
+            fFunTypes["init"]      = fun_type;
+            fFunTypes["classInit"] = fun_type;
             fFunTypes["instanceConstants"] = fun_type;
             fFunTypes["instanceInit"]      = fun_type;
         }
@@ -448,9 +444,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         // instanceClear/instanceResetUserInterface
         {
             Names args;
-            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
+            args.push_back(IB::genNamedTyped("dsp", Typed::kObj_ptr));
+            FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["instanceClear"]              = fun_type;
             fFunTypes["instanceResetUserInterface"] = fun_type;
         }
@@ -458,35 +453,32 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         // setParamValue
         {
             Names args;
-            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            args.push_back(InstBuilder::genNamedTyped("index", Typed::kInt32));
-            args.push_back(InstBuilder::genNamedTyped("value", itfloat()));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
+            args.push_back(IB::genNamedTyped("dsp", Typed::kObj_ptr));
+            args.push_back(IB::genNamedTyped("index", Typed::kInt32));
+            args.push_back(IB::genNamedTyped("value", itfloat()));
+            FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["setParamValue"] = fun_type;
         }
 
         // getParamValue
         {
             Names args;
-            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            args.push_back(InstBuilder::genNamedTyped("index", Typed::kInt32));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genItFloatTyped(), FunTyped::kDefault);
+            args.push_back(IB::genNamedTyped("dsp", Typed::kObj_ptr));
+            args.push_back(IB::genNamedTyped("index", Typed::kInt32));
+            FunTyped* fun_type = IB::genFunTyped(args, IB::genItFloatTyped(), FunTyped::kDefault);
             fFunTypes["getParamValue"] = fun_type;
         }
 
         // compute
         {
             Names args;
-            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
-            args.push_back(InstBuilder::genNamedTyped(
+            args.push_back(IB::genNamedTyped("dsp", Typed::kObj_ptr));
+            args.push_back(IB::genNamedTyped("count", Typed::kInt32));
+            args.push_back(IB::genNamedTyped(
                 "inputs", Typed::kVoid_ptr));  // so that fun type is correcty generated
-            args.push_back(InstBuilder::genNamedTyped(
+            args.push_back(IB::genNamedTyped(
                 "outputs", Typed::kVoid_ptr));  // so that fun type is correcty generated
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
+            FunTyped* fun_type   = IB::genFunTyped(args, IB::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["compute"] = fun_type;
         }
     }
@@ -541,19 +533,16 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
                 // Build function type (args type same as return type)
                 Names args;
                 if (desc.fArgs == 1) {
-                    args.push_back(
-                        InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fTypeIn));
+                    args.push_back(IB::genNamedTyped(gGlobal->getFreshID("v1"), desc.fTypeIn));
                 } else if (desc.fArgs == 2) {
-                    args.push_back(
-                        InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fTypeIn));
-                    args.push_back(
-                        InstBuilder::genNamedTyped(gGlobal->getFreshID("v2"), desc.fTypeIn));
+                    args.push_back(IB::genNamedTyped(gGlobal->getFreshID("v1"), desc.fTypeIn));
+                    args.push_back(IB::genNamedTyped(gGlobal->getFreshID("v2"), desc.fTypeIn));
                 } else {
                     faustassert(false);
                 }
 
-                FunTyped* fun_type = InstBuilder::genFunTyped(
-                    args, InstBuilder::genBasicTyped(desc.fTypeOut), FunTyped::kDefault);
+                FunTyped* fun_type =
+                    IB::genFunTyped(args, IB::genBasicTyped(desc.fTypeOut), FunTyped::kDefault);
                 fFunTypes[inst->fName] = fun_type;
 
                 // Build function import
@@ -697,7 +686,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     void generateMemoryAccess(int offset = 0)
     {
         //*fOut << U32LEB(offStrNum); // Makes V8 return: 'invalid alignment; expected maximum
-        //alignment is 2, actual
+        // alignment is 2, actual
         // alignment is 3'
         *fOut << U32LEB(2);
         *fOut << U32LEB(offset);
@@ -1205,7 +1194,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(MinusInst* inst)
     {
         Typed::VarType type = TypingVisitor::getType(inst->fInst);
-        InstBuilder::genMul(InstBuilder::genTypedNum(type, -1.), inst->fInst)->accept(this);
+        IB::genMul(IB::genTypedNum(type, -1.), inst->fInst)->accept(this);
     }
 
     void visitAuxInt(BinopInst* inst, Typed::VarType type)

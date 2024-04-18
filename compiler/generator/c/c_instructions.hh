@@ -426,16 +426,15 @@ class CInstVisitor : public TextInstVisitor {
         StoreVarInst*   c99_init_inst    = nullptr;
 
         if (c99_declare_inst) {
-            InstBuilder::genLabelInst("/* C99 loop */")->accept(this);
+            IB::genLabelInst("/* C99 loop */")->accept(this);
             *fOut << "{";
             fTab++;
             tab(fTab, *fOut);
 
             // To generate C99 compatible loops...
-            c99_init_inst    = InstBuilder::genStoreStackVar(c99_declare_inst->getName(),
-                                                             c99_declare_inst->fValue);
-            c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(),
-                                                           InstBuilder::genInt32Typed());
+            c99_init_inst =
+                IB::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
+            c99_declare_inst = IB::genDecStackVar(c99_declare_inst->getName(), IB::genInt32Typed());
             // C99 loop variable declared outside the loop
             c99_declare_inst->accept(this);
         }

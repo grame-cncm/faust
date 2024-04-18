@@ -156,7 +156,7 @@ class CodeLoop : public virtual Garbageable {
     std::set<CodeLoop*>& getForwardLoopDependencies() { return fForwardLoopDependencies; }
     std::set<CodeLoop*>& getBackwardLoopDependencies() { return fBackwardLoopDependencies; }
 
-    ValueInst* getLoopIndex() { return InstBuilder::genLoadLoopVar(fLoopIndex); }
+    ValueInst* getLoopIndex() { return IB::genLoadLoopVar(fLoopIndex); }
 
     ForLoopInst* generateScalarLoop(const std::string& counter, bool loop_var_in_bytes = false);
 

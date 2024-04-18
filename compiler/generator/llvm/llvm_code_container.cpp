@@ -166,21 +166,19 @@ void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun
     list<ValueInst*>  args2;
     for (int i = 0; i < num_args; i++) {
         string var = gGlobal->getFreshID("val");
-        args1.push_back(InstBuilder::genNamedTyped(var, type));
-        args2.push_back(InstBuilder::genLoadFunArgsVar(var));
+        args1.push_back(IB::genNamedTyped(var, type));
+        args2.push_back(IB::genLoadFunArgsVar(var));
     }
 
     // Creates function
-    FunTyped* fun_type1 =
-        InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kLocal);
-    FunTyped* fun_type2 =
-        InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kDefault);
+    FunTyped* fun_type1 = IB::genFunTyped(args1, IB::genBasicTyped(type), FunTyped::kLocal);
+    FunTyped* fun_type2 = IB::genFunTyped(args1, IB::genBasicTyped(type), FunTyped::kDefault);
 
-    InstBuilder::genDeclareFunInst(fun2, fun_type2)->accept(fCodeProducer);
+    IB::genDeclareFunInst(fun2, fun_type2)->accept(fCodeProducer);
     if (body) {
-        BlockInst* block = InstBuilder::genBlockInst();
-        block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genFunCallInst(fun2, args2)));
-        InstBuilder::genDeclareFunInst(fun1, fun_type1, block)->accept(fCodeProducer);
+        BlockInst* block = IB::genBlockInst();
+        block->pushBackInst(IB::genRetInst(IB::genFunCallInst(fun2, args2)));
+        IB::genDeclareFunInst(fun1, fun_type1, block)->accept(fCodeProducer);
     }
 }
 
@@ -299,7 +297,7 @@ void LLVMScalarCodeContainer::generateCompute()
 
 BlockInst* LLVMScalarCodeContainer::generateComputeAux()
 {
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     // Generates control
     block->pushBackInst(fComputeBlockInstructions);
     // Generates the DSP loop
@@ -329,7 +327,7 @@ void LLVMVectorCodeContainer::generateCompute()
 
 BlockInst* LLVMVectorCodeContainer::generateComputeAux()
 {
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     // Generates control
     block->pushBackInst(fComputeBlockInstructions);
     // Generates the DSP loop
@@ -438,7 +436,7 @@ void LLVMWorkStealingCodeContainer::generateCompute()
 
 BlockInst* LLVMWorkStealingCodeContainer::generateComputeAux()
 {
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     // Generates control
     block->pushBackInst(fComputeBlockInstructions);
     return block;

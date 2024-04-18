@@ -39,7 +39,7 @@ class InterpreterCodeContainer : public virtual CodeContainer {
     virtual void generateSR()
     {
         if (!fGeneratedSR) {
-            pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
+            pushDeclare(IB::genDecStructVar("fSampleRate", IB::genInt32Typed()));
         }
     }
 
@@ -93,8 +93,7 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
    protected:
     StatementInst* generateShiftArray(const std::string& vname, int delay) override
     {
-        return InstBuilder::genShiftArrayVarInst(
-            InstBuilder::genNamedAddress(vname, Address::kStruct), delay);
+        return IB::genShiftArrayVarInst(IB::genNamedAddress(vname, Address::kStruct), delay);
     }
 
     ValueInst* generateSoundfile(Tree sig, Tree path) override
@@ -103,9 +102,8 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         std::string SFcache = varname + "ca";
 
         fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-        pushDeclare(
-            InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
-        return InstBuilder::genLoadStructVar(varname);
+        pushDeclare(IB::genDecStructVar(varname, IB::genBasicTyped(Typed::kSound_ptr)));
+        return IB::genLoadStructVar(varname);
     }
 
     // Soundfile struct access are fully generated, instead of using intermediate local stack
@@ -118,8 +116,8 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         faustassert(load);
 
         // In reverse order for the Interp stack
-        std::vector<ValueInst*> indices = {x, InstBuilder::genInt32NumInst(Soundfile::kLength)};
-        return InstBuilder::genLoadArrayStructVar(load->fAddress->getName(), indices);
+        std::vector<ValueInst*> indices = {x, IB::genInt32NumInst(Soundfile::kLength)};
+        return IB::genLoadArrayStructVar(load->fAddress->getName(), indices);
     }
 
     // x = part
@@ -129,8 +127,8 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         faustassert(load);
 
         // In reverse order for the Interp stack
-        std::vector<ValueInst*> indices = {x, InstBuilder::genInt32NumInst(Soundfile::kSR)};
-        return InstBuilder::genLoadArrayStructVar(load->fAddress->getName(), indices);
+        std::vector<ValueInst*> indices = {x, IB::genInt32NumInst(Soundfile::kSR)};
+        return IB::genLoadArrayStructVar(load->fAddress->getName(), indices);
     }
 
     // x = chan, y = part, z = ridx
@@ -141,13 +139,13 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         faustassert(load);
 
         // In reverse order for the Interp stack
-        std::vector<ValueInst*> indices1 = {y, InstBuilder::genInt32NumInst(Soundfile::kOffset)};
-        ValueInst* offset = InstBuilder::genLoadArrayStructVar(load->fAddress->getName(), indices1);
+        std::vector<ValueInst*> indices1 = {y, IB::genInt32NumInst(Soundfile::kOffset)};
+        ValueInst* offset = IB::genLoadArrayStructVar(load->fAddress->getName(), indices1);
         // In reverse order for the Interp stack
-        std::vector<ValueInst*> indices2 = {InstBuilder::genAdd(offset, z), x,
-                                            InstBuilder::genInt32NumInst(Soundfile::kBuffers)};
+        std::vector<ValueInst*> indices2 = {IB::genAdd(offset, z), x,
+                                            IB::genInt32NumInst(Soundfile::kBuffers)};
 
-        return InstBuilder::genLoadArrayStructVar(load->fAddress->getName(), indices2);
+        return IB::genLoadArrayStructVar(load->fAddress->getName(), indices2);
     }
 };
 

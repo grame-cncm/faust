@@ -104,9 +104,9 @@ struct MemoryDesc {
     Typed* getTyped()
     {
         if (fIsScalar) {
-            return InstBuilder::genBasicTyped(fType);
+            return IB::genBasicTyped(fType);
         } else {
-            return InstBuilder::genArrayTyped(fType, fSize);
+            return IB::genArrayTyped(fType, fSize);
         }
     }
 };
@@ -255,11 +255,9 @@ struct StructInstVisitor : public DispatchVisitor {
     {
         std::vector<NamedTyped*> dsp_type_fields;
         for (auto& field : fFieldTable) {
-            dsp_type_fields.push_back(
-                InstBuilder::genNamedTyped(field.first, field.second.getTyped()));
+            dsp_type_fields.push_back(IB::genNamedTyped(field.first, field.second.getTyped()));
         }
-        return InstBuilder::genDeclareStructTypeInst(
-            InstBuilder::genStructTyped(name, dsp_type_fields));
+        return IB::genDeclareStructTypeInst(IB::genStructTyped(name, dsp_type_fields));
     }
 
     // Declarations

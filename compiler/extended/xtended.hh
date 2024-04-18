@@ -106,20 +106,20 @@ inline bool comparable(double x, double y)
 // Casting operations
 inline ValueInst* promote2real(int type, ValueInst* val)
 {
-    return (type == kReal) ? val : InstBuilder::genCastRealInst(val);
+    return (type == kReal) ? val : IB::genCastRealInst(val);
 }
 inline ValueInst* promote2int(int type, ValueInst* val)
 {
-    return (type == kInt) ? val : InstBuilder::genCastInt32Inst(val);
+    return (type == kInt) ? val : IB::genCastInt32Inst(val);
 }
 
 inline ValueInst* cast2real(int type, ValueInst* val)
 {
-    return (type == kReal) ? InstBuilder::genCastRealInst(val) : val;
+    return (type == kReal) ? IB::genCastRealInst(val) : val;
 }
 inline ValueInst* cast2int(int type, ValueInst* val)
 {
-    return (type == kInt) ? InstBuilder::genCastInt32Inst(val) : val;
+    return (type == kInt) ? IB::genCastInt32Inst(val) : val;
 }
 
 #endif

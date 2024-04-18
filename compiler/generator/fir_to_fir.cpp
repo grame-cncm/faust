@@ -131,15 +131,15 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
                         fVarTable[fNamed->fName] = tmp_in;
                         if (gGlobal->gHasTeeLocal) {
                             fBlockStack.top()->pushBackInst(
-                                InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner)));
-                            return InstBuilder::genTeeVar(tmp_in, fArg->clone(&cloner));
+                                IB::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner)));
+                            return IB::genTeeVar(tmp_in, fArg->clone(&cloner));
                         } else {
-                            fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(
+                            fBlockStack.top()->pushBackInst(IB::genDecStackVar(
                                 tmp_in, fNamed->fType->clone(&cloner), fArg->clone(&cloner)));
-                            return InstBuilder::genLoadStackVar(tmp_in);
+                            return IB::genLoadStackVar(tmp_in);
                         }
                     } else {
-                        return InstBuilder::genLoadStackVar(fVarTable[fNamed->fName]);
+                        return IB::genLoadStackVar(fVarTable[fNamed->fName]);
                     }
                 }
             } else {
@@ -151,8 +151,8 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
         {
             LoadVarInst* arg;
             if ((inst->getName() == fNamed->fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
-                return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, arg->fAddress),
-                                                    inst->fValue->clone(this));
+                return IB::genStoreVarInst(renameAddress(inst->fAddress, arg->fAddress),
+                                           inst->fValue->clone(this));
             } else {
                 return BasicCloneVisitor::visit(inst);
             }

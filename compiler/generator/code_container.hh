@@ -207,10 +207,10 @@ class CodeContainer : public virtual Garbageable {
     virtual void generateSR()
     {
         if (!fGeneratedSR) {
-            pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
+            pushDeclare(IB::genDecStructVar("fSampleRate", IB::genInt32Typed()));
         }
-        pushPreInitMethod(InstBuilder::genStoreStructVar(
-            "fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
+        pushPreInitMethod(
+            IB::genStoreStructVar("fSampleRate", IB::genLoadFunArgsVar("sample_rate")));
     }
 
     BlockInst* inlineSubcontainersFunCalls(BlockInst* block);
@@ -219,7 +219,7 @@ class CodeContainer : public virtual Garbageable {
     {
         Names args;
         if (!ismethod) {
-            args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
+            args.push_back(IB::genNamedTyped(obj, Typed::kObj_ptr));
         }
         return args;
     }
@@ -228,7 +228,7 @@ class CodeContainer : public virtual Garbageable {
     {
         Values args;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+            args.push_back(IB::genLoadFunArgsVar(obj));
         }
         return args;
     }

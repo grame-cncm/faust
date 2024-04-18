@@ -49,25 +49,25 @@ CodeContainer::CodeContainer()
       fNumPassives(0),
       fSubContainerType(kInt),
       fGeneratedSR(false),
-      fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
-      fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
-      fDeclarationInstructions(InstBuilder::genBlockInst()),
-      fControlDeclarationInstructions(InstBuilder::genBlockInst()),
-      fInitInstructions(InstBuilder::genBlockInst()),
+      fExtGlobalDeclarationInstructions(IB::genBlockInst()),
+      fGlobalDeclarationInstructions(IB::genBlockInst()),
+      fDeclarationInstructions(IB::genBlockInst()),
+      fControlDeclarationInstructions(IB::genBlockInst()),
+      fInitInstructions(IB::genBlockInst()),
       fConstantFromMem(nullptr),
       fConstantToMem(nullptr),
-      fResetUserInterfaceInstructions(InstBuilder::genBlockInst()),
-      fClearInstructions(InstBuilder::genBlockInst()),
-      fPostInitInstructions(InstBuilder::genBlockInst()),
-      fAllocateInstructions(InstBuilder::genBlockInst()),
-      fDestroyInstructions(InstBuilder::genBlockInst()),
-      fStaticInitInstructions(InstBuilder::genBlockInst()),
-      fPostStaticInitInstructions(InstBuilder::genBlockInst()),
-      fStaticDestroyInstructions(InstBuilder::genBlockInst()),
-      fComputeBlockInstructions(InstBuilder::genBlockInst()),
-      fPostComputeBlockInstructions(InstBuilder::genBlockInst()),
-      fComputeFunctions(InstBuilder::genBlockInst()),
-      fUserInterfaceInstructions(InstBuilder::genBlockInst())
+      fResetUserInterfaceInstructions(IB::genBlockInst()),
+      fClearInstructions(IB::genBlockInst()),
+      fPostInitInstructions(IB::genBlockInst()),
+      fAllocateInstructions(IB::genBlockInst()),
+      fDestroyInstructions(IB::genBlockInst()),
+      fStaticInitInstructions(IB::genBlockInst()),
+      fPostStaticInitInstructions(IB::genBlockInst()),
+      fStaticDestroyInstructions(IB::genBlockInst()),
+      fComputeBlockInstructions(IB::genBlockInst()),
+      fPostComputeBlockInstructions(IB::genBlockInst()),
+      fComputeFunctions(IB::genBlockInst()),
+      fUserInterfaceInstructions(IB::genBlockInst())
 {
     fCurLoop = new CodeLoop(0, gGlobal->getFreshID("i"));
 
@@ -305,12 +305,12 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
 {
     Names named_args;
     for (size_t i = 0; i < types.size(); i++) {
-        named_args.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i),
-                                                        InstBuilder::genBasicTyped(types[i])));
+        named_args.push_back(
+            IB::genNamedTyped("dummy" + to_string(i), IB::genBasicTyped(types[i])));
     }
-    pushGlobalDeclare(InstBuilder::genDeclareFunInst(
-        name, InstBuilder::genFunTyped(named_args, InstBuilder::genBasicTyped(result))));
-    return InstBuilder::genFunCallInst(name, args);
+    pushGlobalDeclare(
+        IB::genDeclareFunInst(name, IB::genFunTyped(named_args, IB::genBasicTyped(result))));
+    return IB::genFunCallInst(name, args);
 }
 
 void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result)
@@ -356,18 +356,18 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Val
                                        int loop_num, bool omp)
 {
     if (gGlobal->gFunTaskSwitch) {
-        BlockInst* block = InstBuilder::genBlockInst();
+        BlockInst* block = IB::genBlockInst();
         // Generates scalar or vectorized loop
         generateDAGLoopInternal(loop, block, count, omp);
         Loop2FunctionBuider builder(subst("fun$0" + getClassName(), T(loop_num)), block,
                                     gGlobal->gDSPStruct);
         pushOtherComputeMethod(builder.fFunctionDef);
-        loop_code->pushBackInst(InstBuilder::genLabelInst(
+        loop_code->pushBackInst(IB::genLabelInst(
             (loop->fIsRecursive) ? subst("/* Recursive function $0 */", T(loop_num))
                                  : subst("/* Vectorizable function $0 */", T(loop_num))));
         loop_code->pushBackInst(builder.fFunctionCall);
     } else {
-        loop_code->pushBackInst(InstBuilder::genLabelInst(
+        loop_code->pushBackInst(IB::genLabelInst(
             (loop->fIsRecursive) ? subst("/* Recursive loop $0 */", T(loop_num))
                                  : subst("/* Vectorizable loop $0 */", T(loop_num))));
         // Generates scalar or vectorized loop
@@ -424,12 +424,12 @@ void CodeContainer::processFIR(void)
     // Additional iControl/fControl fields
     if (gGlobal->gExtControl && gGlobal->gMemoryManager >= 1) {
         if (fIntControl->getSize() > 0 && fIntControl->fAccess == Address::kStruct) {
-            pushDeclare(InstBuilder::genDecStructVar(
-                "iControl", InstBuilder::genArrayTyped(Typed::kInt32, fIntControl->getSize())));
+            pushDeclare(IB::genDecStructVar(
+                "iControl", IB::genArrayTyped(Typed::kInt32, fIntControl->getSize())));
         }
         if (fRealControl->getSize() > 0 && fRealControl->fAccess == Address::kStruct) {
-            pushDeclare(InstBuilder::genDecStructVar(
-                "fControl", InstBuilder::genArrayTyped(itfloat(), fRealControl->getSize())));
+            pushDeclare(IB::genDecStructVar("fControl",
+                                            IB::genArrayTyped(itfloat(), fRealControl->getSize())));
         }
     }
 
@@ -451,12 +451,12 @@ void CodeContainer::processFIR(void)
     // Additional iZone/fZone fields
     if (gGlobal->gMemoryManager >= 1) {
         if (gGlobal->gIntZone->getSize() > 0 && gGlobal->gIntZone->fAccess == Address::kStruct) {
-            pushDeclare(InstBuilder::genDecStructVar(
-                "iZone", InstBuilder::genArrayTyped(Typed::kInt32, gGlobal->gIntZone->getSize())));
+            pushDeclare(IB::genDecStructVar(
+                "iZone", IB::genArrayTyped(Typed::kInt32, gGlobal->gIntZone->getSize())));
         }
         if (gGlobal->gRealZone->getSize() > 0 && gGlobal->gRealZone->fAccess == Address::kStruct) {
-            pushDeclare(InstBuilder::genDecStructVar(
-                "fZone", InstBuilder::genArrayTyped(itfloat(), gGlobal->gRealZone->getSize())));
+            pushDeclare(IB::genDecStructVar(
+                "fZone", IB::genArrayTyped(itfloat(), gGlobal->gRealZone->getSize())));
         }
     }
 
@@ -688,43 +688,42 @@ void CodeContainer::createMemoryLayout()
 
 BlockInst* CodeContainer::flattenFIR(void)
 {
-    BlockInst* global_block = InstBuilder::genBlockInst();
+    BlockInst* global_block = IB::genBlockInst();
 
     // Declaration part
-    global_block->pushBackInst(InstBuilder::genLabelInst("========== Declaration part =========="));
+    global_block->pushBackInst(IB::genLabelInst("========== Declaration part =========="));
     global_block->merge(fExtGlobalDeclarationInstructions);
     global_block->merge(fGlobalDeclarationInstructions);
     global_block->merge(fDeclarationInstructions);
 
     // Init method
-    global_block->pushBackInst(InstBuilder::genLabelInst("========== Init method =========="));
+    global_block->pushBackInst(IB::genLabelInst("========== Init method =========="));
     global_block->merge(fInitInstructions);
     global_block->merge(fResetUserInterfaceInstructions);
     global_block->merge(fClearInstructions);
     global_block->merge(fPostInitInstructions);
 
     // Static init method
-    global_block->pushBackInst(
-        InstBuilder::genLabelInst("========== Static init method =========="));
+    global_block->pushBackInst(IB::genLabelInst("========== Static init method =========="));
     global_block->merge(fStaticInitInstructions);
     global_block->merge(fPostStaticInitInstructions);
 
     // Subcontainers
-    global_block->pushBackInst(InstBuilder::genLabelInst("========== Subcontainers =========="));
+    global_block->pushBackInst(IB::genLabelInst("========== Subcontainers =========="));
     for (const auto& it : fSubContainers) {
         global_block->merge(it->flattenFIR());
     }
 
     // Control method
-    global_block->pushBackInst(InstBuilder::genLabelInst("========== Control =========="));
+    global_block->pushBackInst(IB::genLabelInst("========== Control =========="));
     global_block->merge(fControlDeclarationInstructions);
 
     // Compute method
-    global_block->pushBackInst(InstBuilder::genLabelInst("========== Compute control =========="));
+    global_block->pushBackInst(IB::genLabelInst("========== Compute control =========="));
     global_block->merge(fComputeBlockInstructions);
-    global_block->pushBackInst(InstBuilder::genLabelInst("========== Compute DSP =========="));
+    global_block->pushBackInst(IB::genLabelInst("========== Compute DSP =========="));
     global_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
-    global_block->pushBackInst(InstBuilder::genLabelInst("========== Post compute DSP =========="));
+    global_block->pushBackInst(IB::genLabelInst("========== Post compute DSP =========="));
     global_block->merge(fPostComputeBlockInstructions);
 
     return global_block;
@@ -824,12 +823,12 @@ DeclareFunInst* CodeContainer::generateGetIO(const string& name, const string& o
                                              bool ismethod, FunTyped::FunAttribute funtype)
 {
     Names      args  = genMethod(obj, ismethod);
-    BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genInt32NumInst(io)));
+    BlockInst* block = IB::genBlockInst();
+    block->pushBackInst(IB::genRetInst(IB::genInt32NumInst(io)));
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), funtype);
-    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genInt32Typed(), funtype);
+    return IB::genDeclareFunInst(name, fun_type, block);
 }
 
 DeclareFunInst* CodeContainer::generateGetInputs(const string& name, const string& obj,
@@ -849,14 +848,14 @@ DeclareFunInst* CodeContainer::generateAllocate(const string& name, const string
 {
     Names args = genMethod(obj, ismethod);
 
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     block->pushBackInst(fAllocateInstructions);
 
     // Explicit return
-    block->pushBackInst(InstBuilder::genRetInst());
+    block->pushBackInst(IB::genRetInst());
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+    return IB::genVoidFunction(name, args, block, isvirtual);
 }
 
 DeclareFunInst* CodeContainer::generateDestroy(const string& name, const string& obj, bool ismethod,
@@ -864,52 +863,50 @@ DeclareFunInst* CodeContainer::generateDestroy(const string& name, const string&
 {
     Names args = genMethod(obj, ismethod);
 
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     block->pushBackInst(fDestroyInstructions);
 
     // Explicit return
-    block->pushBackInst(InstBuilder::genRetInst());
+    block->pushBackInst(IB::genRetInst());
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+    return IB::genVoidFunction(name, args, block, isvirtual);
 }
 
 DeclareFunInst* CodeContainer::generateGetIORate(const string& name, const string& obj,
                                                  vector<int>& io, bool ismethod, bool isvirtual)
 {
     Names args = genMethod(obj, ismethod);
-    args.push_back(InstBuilder::genNamedTyped("channel", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("channel", Typed::kInt32));
 
-    BlockInst*    block        = InstBuilder::genBlockInst();
-    ValueInst*    switch_cond  = InstBuilder::genLoadFunArgsVar("channel");
-    ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
-    block->pushBackInst(InstBuilder::genDecStackVar("rate", InstBuilder::genInt32Typed()));
+    BlockInst*    block        = IB::genBlockInst();
+    ValueInst*    switch_cond  = IB::genLoadFunArgsVar("channel");
+    ::SwitchInst* switch_block = IB::genSwitchInst(switch_cond);
+    block->pushBackInst(IB::genDecStackVar("rate", IB::genInt32Typed()));
     block->pushBackInst(switch_block);
 
     int i = 0;
     for (const auto& it : io) {
         // Creates "case" block
-        BlockInst* case_block = InstBuilder::genBlockInst();
+        BlockInst* case_block = IB::genBlockInst();
         // Compiles "case" block
-        case_block->pushBackInst(
-            InstBuilder::genStoreStackVar("rate", InstBuilder::genInt32NumInst(it)));
+        case_block->pushBackInst(IB::genStoreStackVar("rate", IB::genInt32NumInst(it)));
         // Add it into the switch
         switch_block->addCase(i++, case_block);
     }
 
     // Default case
-    BlockInst* default_case_block = InstBuilder::genBlockInst();
-    default_case_block->pushBackInst(
-        InstBuilder::genStoreStackVar("rate", InstBuilder::genInt32NumInst(-1)));
+    BlockInst* default_case_block = IB::genBlockInst();
+    default_case_block->pushBackInst(IB::genStoreStackVar("rate", IB::genInt32NumInst(-1)));
     switch_block->addCase(-1, default_case_block);
 
     // Return "rate" result
-    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genLoadStackVar("rate")));
+    block->pushBackInst(IB::genRetInst(IB::genLoadStackVar("rate")));
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(
-        args, InstBuilder::genInt32Typed(), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genInt32Typed(),
+                                         (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    return IB::genDeclareFunInst(name, fun_type, block);
 }
 
 DeclareFunInst* CodeContainer::generateInstanceClear(const string& name, const string& obj,
@@ -917,38 +914,38 @@ DeclareFunInst* CodeContainer::generateInstanceClear(const string& name, const s
 {
     Names args = genMethod(obj, ismethod);
 
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     block->pushBackInst(fClearInstructions);
 
     // Explicit return
-    block->pushBackInst(InstBuilder::genRetInst());
+    block->pushBackInst(IB::genRetInst());
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+    return IB::genVoidFunction(name, args, block, isvirtual);
 }
 
 DeclareFunInst* CodeContainer::generateInstanceConstants(const string& name, const string& obj,
                                                          bool ismethod, bool isvirtual)
 {
     Names args = genMethod(obj, ismethod);
-    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
 
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     block->pushBackInst(fInitInstructions);
 
     // Explicit return
-    block->pushBackInst(InstBuilder::genRetInst());
+    block->pushBackInst(IB::genRetInst());
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+    return IB::genVoidFunction(name, args, block, isvirtual);
 }
 
 DeclareFunInst* CodeContainer::generateStaticInitFun(const string& name, bool isstatic)
 {
     Names args;
-    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
 
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     block->pushBackInst(fStaticInitInstructions);
     block->pushBackInst(fPostStaticInitInstructions);
 
@@ -959,45 +956,45 @@ DeclareFunInst* CodeContainer::generateStaticInitFun(const string& name, bool is
     */
 
     // Explicit return
-    block->pushBackInst(InstBuilder::genRetInst());
+    block->pushBackInst(IB::genRetInst());
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(
-        args, InstBuilder::genVoidTyped(), (isstatic) ? FunTyped::kStatic : FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(),
+                                         (isstatic) ? FunTyped::kStatic : FunTyped::kDefault);
+    return IB::genDeclareFunInst(name, fun_type, block);
 }
 
 DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, const string& obj,
                                                        bool ismethod, bool isvirtual)
 {
     Names args = genMethod(obj, ismethod);
-    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
 
-    BlockInst* init_block = InstBuilder::genBlockInst();
+    BlockInst* init_block = IB::genBlockInst();
     init_block->pushBackInst(fInitInstructions);
     init_block->pushBackInst(fPostInitInstructions);
     init_block->pushBackInst(fResetUserInterfaceInstructions);
     init_block->pushBackInst(fClearInstructions);
 
     // Explicit return
-    init_block->pushBackInst(InstBuilder::genRetInst());
+    init_block->pushBackInst(IB::genRetInst());
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, init_block, isvirtual);
+    return IB::genVoidFunction(name, args, init_block, isvirtual);
 }
 
 DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string& obj, bool ismethod,
                                                bool isvirtual)
 {
     Names args = genMethod(obj, ismethod);
-    args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("count", Typed::kInt32));
     if (fSubContainerType == kInt) {
-        args.push_back(InstBuilder::genNamedTyped(fTableName, Typed::kInt32_ptr));
+        args.push_back(IB::genNamedTyped(fTableName, Typed::kInt32_ptr));
     } else {
-        args.push_back(InstBuilder::genNamedTyped(fTableName, itfloatptr()));
+        args.push_back(IB::genNamedTyped(fTableName, itfloatptr()));
     }
 
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     block->pushBackInst(fComputeBlockInstructions);
     // Hack for Julia
     if (gGlobal->gOutputLang == "julia" || gGlobal->gOutputLang == "jax") {
@@ -1007,60 +1004,60 @@ DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string&
     }
 
     // Explicit return
-    block->pushBackInst(InstBuilder::genRetInst());
+    block->pushBackInst(IB::genRetInst());
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+    return IB::genVoidFunction(name, args, block, isvirtual);
 }
 
 DeclareFunInst* CodeContainer::generateInit(const string& name, const string& obj, bool ismethod,
                                             bool isvirtual)
 {
     Names args = genMethod(obj, ismethod);
-    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
 
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     {
         Values args1 = genObjArg(obj, ismethod);
-        args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("classInit", args1));
+        args1.push_back(IB::genLoadFunArgsVar("sample_rate"));
+        block->pushBackInst(IB::genVoidFunCallInst("classInit", args1));
     }
 
     {
         Values args1 = genObjArg(obj, ismethod);
-        args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceInit", args1));
+        args1.push_back(IB::genLoadFunArgsVar("sample_rate"));
+        block->pushBackInst(IB::genVoidFunCallInst("instanceInit", args1));
     }
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+    return IB::genVoidFunction(name, args, block, isvirtual);
 }
 
 DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const string& obj,
                                                     bool ismethod, bool isvirtual)
 {
     Names args = genMethod(obj, ismethod);
-    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
 
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     {
         Values args1 = genObjArg(obj, ismethod);
-        args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceConstants", args1));
+        args1.push_back(IB::genLoadFunArgsVar("sample_rate"));
+        block->pushBackInst(IB::genVoidFunCallInst("instanceConstants", args1));
     }
 
     {
         Values args1 = genObjArg(obj, ismethod);
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceResetUserInterface", args1));
+        block->pushBackInst(IB::genVoidFunCallInst("instanceResetUserInterface", args1));
     }
 
     {
         Values args1 = genObjArg(obj, ismethod);
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceClear", args1));
+        block->pushBackInst(IB::genVoidFunCallInst("instanceClear", args1));
     }
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+    return IB::genVoidFunction(name, args, block, isvirtual);
 }
 
 DeclareFunInst* CodeContainer::generateGetSampleRate(const string& name, const string& obj,
@@ -1068,31 +1065,31 @@ DeclareFunInst* CodeContainer::generateGetSampleRate(const string& name, const s
 {
     Names args = genMethod(obj, ismethod);
 
-    BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genLoadStructVar("fSampleRate")));
+    BlockInst* block = IB::genBlockInst();
+    block->pushBackInst(IB::genRetInst(IB::genLoadStructVar("fSampleRate")));
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(
-        args, InstBuilder::genInt32Typed(), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genInt32Typed(),
+                                         (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    return IB::genDeclareFunInst(name, fun_type, block);
 }
 
 DeclareFunInst* CodeContainer::generateComputeFun(const string& name, const string& obj,
                                                   bool ismethod, bool isvirtual)
 {
     Names args = genMethod(obj, ismethod);
-    args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
-    args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kFloatMacro_ptr_ptr));
-    args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kFloatMacro_ptr_ptr));
+    args.push_back(IB::genNamedTyped("count", Typed::kInt32));
+    args.push_back(IB::genNamedTyped("inputs", Typed::kFloatMacro_ptr_ptr));
+    args.push_back(IB::genNamedTyped("outputs", Typed::kFloatMacro_ptr_ptr));
 
     // Generates control + DSP block
     BlockInst* block = generateComputeAux();
 
     // Explicit return
-    block->pushBackInst(InstBuilder::genRetInst());
+    block->pushBackInst(IB::genRetInst());
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+    return IB::genVoidFunction(name, args, block, isvirtual);
 }
 
 // Memory methods
@@ -1100,66 +1097,63 @@ DeclareFunInst* CodeContainer::generateComputeFun(const string& name, const stri
 DeclareFunInst* CodeContainer::generateCalloc()
 {
     Names args;
-    args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt64));
-    args.push_back(InstBuilder::genNamedTyped("size", Typed::kInt64));
+    args.push_back(IB::genNamedTyped("count", Typed::kInt64));
+    args.push_back(IB::genNamedTyped("size", Typed::kInt64));
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(
-        args, InstBuilder::genBasicTyped(Typed::kVoid_ptr), FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst("calloc", fun_type);
+    FunTyped* fun_type =
+        IB::genFunTyped(args, IB::genBasicTyped(Typed::kVoid_ptr), FunTyped::kDefault);
+    return IB::genDeclareFunInst("calloc", fun_type);
 }
 
 DeclareFunInst* CodeContainer::generateFree()
 {
     Names args;
-    args.push_back(InstBuilder::genNamedTyped("ptr", Typed::kVoid_ptr));
+    args.push_back(IB::genNamedTyped("ptr", Typed::kVoid_ptr));
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid),
-                                                  FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst("free", fun_type);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    return IB::genDeclareFunInst("free", fun_type);
 }
 
 DeclareFunInst* CodeContainer::generateNewDsp(const string& name, int size)
 {
     Names args;
 
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     {
         Values args1;
-        args1.push_back(InstBuilder::genInt64NumInst(1));
-        args1.push_back(InstBuilder::genInt64NumInst(size));
-        block->pushBackInst(InstBuilder::genRetInst(
-            InstBuilder::genCastInst(InstBuilder::genFunCallInst("calloc", args1),
-                                     InstBuilder::genBasicTyped(Typed::kObj_ptr))));
+        args1.push_back(IB::genInt64NumInst(1));
+        args1.push_back(IB::genInt64NumInst(size));
+        block->pushBackInst(IB::genRetInst(IB::genCastInst(IB::genFunCallInst("calloc", args1),
+                                                           IB::genBasicTyped(Typed::kObj_ptr))));
     }
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kObj_ptr),
-                                                  FunTyped::kLocal);
-    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+    FunTyped* fun_type =
+        IB::genFunTyped(args, IB::genBasicTyped(Typed::kObj_ptr), FunTyped::kLocal);
+    return IB::genDeclareFunInst(name, fun_type, block);
 }
 
 DeclareFunInst* CodeContainer::generateDeleteDsp(const string& name, const string& obj)
 {
     Names args;
-    args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
+    args.push_back(IB::genNamedTyped(obj, Typed::kObj_ptr));
 
-    BlockInst* block = InstBuilder::genBlockInst();
+    BlockInst* block = IB::genBlockInst();
     {
         Values args1;
-        args1.push_back(InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj),
-                                                 InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
-        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("free", args1)));
+        args1.push_back(
+            IB::genCastInst(IB::genLoadFunArgsVar(obj), IB::genBasicTyped(Typed::kVoid_ptr)));
+        block->pushBackInst(IB::genDropInst(IB::genFunCallInst("free", args1)));
     }
 
     // Explicit return
-    block->pushBackInst(InstBuilder::genRetInst());
+    block->pushBackInst(IB::genRetInst());
 
     // Creates function
-    FunTyped* fun_type =
-        InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kLocal);
-    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genBasicTyped(Typed::kVoid), FunTyped::kLocal);
+    return IB::genDeclareFunInst(name, fun_type, block);
 }
 
 void CodeContainer::generateJSONFile()

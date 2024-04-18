@@ -612,35 +612,33 @@ void RustVectorCodeContainer::generateCompute(int n)
 BlockInst* RustVectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 {
     // Define result block
-    BlockInst* block_res = InstBuilder::genBlockInst();
+    BlockInst* block_res = IB::genBlockInst();
 
     // declare vsize on top of the function
-    auto vsize_decl = InstBuilder::genDeclareVarInst(
-        InstBuilder::genNamedAddress("vsize", Address::kConst),
-        InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(gGlobal->gVecSize));
+    auto vsize_decl = IB::genDeclareVarInst(IB::genNamedAddress("vsize", Address::kConst),
+                                            IB::genBasicTyped(Typed::kInt32),
+                                            IB::genInt32NumInst(gGlobal->gVecSize));
     fComputeBlockInstructions->pushFrontInst(vsize_decl);
 
-    block_res->pushBackInst(InstBuilder::genLabelInst("/* Main loop */"));
-    BlockInst* loop_code = InstBuilder::genBlockInst();
+    block_res->pushBackInst(IB::genLabelInst("/* Main loop */"));
+    BlockInst* loop_code = IB::genBlockInst();
 
     // TODO(rust) use usize where needed instead of casting everywhere
     // Generates the loop DAG
-    generateDAGLoop(loop_code, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(
-                                   "output0.len() as i32", Address::kStack)));
+    generateDAGLoop(loop_code, IB::genLoadVarInst(
+                                   IB::genNamedAddress("output0.len() as i32", Address::kStack)));
 
     std::vector<NamedAddress*> iterators;
     iterators.reserve(fNumInputs + fNumOutputs);
     for (int i = 0; i < fNumInputs; ++i) {
-        iterators.push_back(
-            InstBuilder::genNamedAddress("inputs" + std::to_string(i), Address::kStack));
+        iterators.push_back(IB::genNamedAddress("inputs" + std::to_string(i), Address::kStack));
     }
     for (int i = 0; i < fNumOutputs; ++i) {
-        iterators.push_back(
-            InstBuilder::genNamedAddress("outputs" + std::to_string(i), Address::kStack));
+        iterators.push_back(IB::genNamedAddress("outputs" + std::to_string(i), Address::kStack));
     }
 
     // Generates the DAG enclosing loop
-    StatementInst* loop = InstBuilder::genIteratorForLoopInst(iterators, false, loop_code);
+    StatementInst* loop = IB::genIteratorForLoopInst(iterators, false, loop_code);
 
     // Put loop in block_res
     block_res->pushBackInst(loop);

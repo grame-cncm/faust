@@ -299,10 +299,10 @@ void JAXCodeContainer::generateCompute(int n)
 void JAXCodeContainer::generateSR()
 {
     if (!fGeneratedSR) {
-        pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
+        pushDeclare(IB::genDecStructVar("fSampleRate", IB::genInt32Typed()));
     }
-    pushPreInitMethod(InstBuilder::genStoreStructVar(
-        "fSampleRate", InstBuilder::genLoadFunArgsVar("self.sample_rate")));
+    pushPreInitMethod(
+        IB::genStoreStructVar("fSampleRate", IB::genLoadFunArgsVar("self.sample_rate")));
 }
 
 // Scalar

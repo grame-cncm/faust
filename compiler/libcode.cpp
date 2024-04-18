@@ -327,7 +327,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 static void compileCLLVM(Tree signals, int numInputs, int numOutputs)
 {
 #ifdef CLANG_BUILD
-    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
 
     gContainer = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
@@ -356,7 +356,7 @@ static void compileLLVM(Tree signals, int numInputs, int numOutputs, bool genera
 
     // libc functions will be found by the LLVM linker, but not user defined ones...
     gGlobal->gAllowForeignFunction = false;
-    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
     gGlobal->gUseDefaultSound     = false;
 
@@ -398,7 +398,7 @@ static void compileInterp(Tree signals, int numInputs, int numOutputs)
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
     // gGlobal->gComputeIOTA       = true;   // Ensure IOTA base fixed delays are computed once
 
-    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
     gGlobal->gNeedManualPow =
         false;  // Standard pow function will be used in pow(x,y) when y in an integer
@@ -474,7 +474,7 @@ static void compileCodebox(Tree signals, int numInputs, int numOutputs, ostream*
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
     gGlobal->gExtControl           = true;   // Separated control
 
-    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
 
     // "one sample control" model by default;
@@ -545,7 +545,7 @@ static void compileOCPP(Tree signals, int numInputs, int numOutputs)
 static void compileRust(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef RUST_BUILD
-    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
     gContainer =
         RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
@@ -720,7 +720,7 @@ static void compileCmajor(Tree signals, int numInputs, int numOutputs, ostream* 
     gGlobal->gBool2Int   = true;  // Cast bool binary operations (comparison operations) to int
     gGlobal->gExtControl = true;  // Separated control
 
-    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
 
     // "one sample control" model by default;
@@ -753,7 +753,7 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gAllowForeignConstant = false;  // No foreign constant
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
 
-    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
     // the 'i' variable used in the scalar loop moves by bytes instead of frames
     gGlobal->gLoopVarInBytes = true;
@@ -795,7 +795,7 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gAllowForeignConstant = false;  // No foreign constant
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
 
-    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
     // the 'i' variable used in the scalar loop moves by bytes instead of frames
     gGlobal->gLoopVarInBytes = true;

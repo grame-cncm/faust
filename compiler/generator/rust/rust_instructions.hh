@@ -467,7 +467,7 @@ class RustInstVisitor : public TextInstVisitor {
             // Force cast to Int32
             *fOut << "(";
             TextInstVisitor::visit(inst);
-            *fOut << ") as " << fTypeManager->generateType(InstBuilder::genInt32Typed());
+            *fOut << ") as " << fTypeManager->generateType(IB::genInt32Typed());
         } else if (isIntType(type1) &&
                    fWrappingOpTable.find(inst->fOpcode) != fWrappingOpTable.end()) {
             // Special case for integer add, sub and mul:
@@ -519,7 +519,7 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(FunCallInst* inst)
     {
         if (inst->fName == "fmodf" || inst->fName == "fmod") {
-            InstBuilder::genRem(inst->fArgs.front(), inst->fArgs.back())->accept(this);
+            IB::genRem(inst->fArgs.front(), inst->fArgs.back())->accept(this);
         } else if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             generateFunCall(inst, fMathLibTable[inst->fName]);
         } else {
