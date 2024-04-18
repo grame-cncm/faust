@@ -683,10 +683,7 @@ void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, dou
             } else {
                 x->m_dsp->compute(sampleframes, reinterpret_cast<FAUSTFLOAT**>(ins), reinterpret_cast<FAUSTFLOAT**>(outs));
             }
-        #ifdef OSCCTRL
-            if (x->m_oscInterface) x->m_oscInterface->endBundle();
-        #endif
-            //faust_update_outputs(x);
+            // faust_update_outputs(x);
             // Use the right outlet to output messages
             faust_dump_outputs(x);
         }

@@ -139,10 +139,6 @@
 #include "faust/gui/JuceOSCUI.h"
 #else
 #include "faust/gui/OSCUI.h"
-static void osc_compute_callback(void* arg)
-{
-    static_cast<OSCUI*>(arg)->endBundle();
-}
 #endif
 #endif
 
@@ -306,7 +302,6 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
      argv[10] = "1";             // TODO same
      */
     fOSCInterface = new OSCUI("Faust", 9, (char**)argv); // TODO fix name
-    driver->addControlCallback(osc_compute_callback, fOSCInterface);
 #endif
     fPolyEngine->buildUserInterface(fOSCInterface);
 #endif

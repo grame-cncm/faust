@@ -72,10 +72,6 @@ SoundUI* soundinterface = NULL;
 
 #if OSCCTRL
 OSCUI* oscinterface = NULL;
-static void osc_compute_callback(void* arg)
-{
-    oscinterface->endBundle();
-}
 #endif
 
 MY_Meta metadata;
@@ -911,7 +907,6 @@ static inline const char* transmit_value(int num)
     // Start OSC interface
     oscinterface = new OSCUI(_name, 9, (char**)argv);
     DSP->buildUserInterface(oscinterface);
-    audio_device->addControlCallback(osc_compute_callback, self);
     
     // Load current controller state
     DSP->buildUserInterface(saveinterface);

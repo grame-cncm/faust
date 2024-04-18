@@ -197,9 +197,15 @@ class OSCUI : public GUI
             return true;
         }
         
-        void stop()			{ fCtrl->stop(); }
-        void endBundle() 	{ fCtrl->endBundle(); }
-        
+        void stop()          { fCtrl->stop(); }
+        void endBundle()     { fCtrl->endBundle(); }
+    
+        // To be called by updateAllGuis
+        virtual void update()
+        {
+            endBundle();
+        }
+       
         std::string getInfos()          { return fCtrl->getInfos(); }
         
         const char* getRootName()		{ return fCtrl->getRootName(); }

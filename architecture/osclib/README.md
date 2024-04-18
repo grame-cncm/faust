@@ -98,10 +98,10 @@ Different listening port numbers can be used to create a group of applications r
 - `-outport num`: sets the listening port number (default: 5511)
 - `-errport num`: sets the listening port number (default: 5512)
 - `-desthost [IP|hostname]`: sets the output destination address (defaults to the first incoming message address)
-- `-xmit [0|1|2]`: controls UI values transmition  (default: 0)
+- `-xmit [0|1|2]`: controls UI values transmition (default: 0)
 - `-xmitfilter <paths list>`: sets OSC paths to be filtered on output.
-- `-reuse [0|1]`: turns listening port sharing on or off  (default: 0)
-- `-bundle [0|1]`: turns OSC bundles on or off  (default: 0)
+- `-reuse [0|1]`: turns listening port sharing on or off (default: 0)
+- `-bundle [0|1]`: turns OSC bundles on or off (default: 0)
 - `-help`: print a summary of the OSC options
 
 ---

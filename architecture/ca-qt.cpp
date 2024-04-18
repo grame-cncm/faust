@@ -57,10 +57,6 @@
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
-static void osc_compute_callback(void* arg)
-{
-    static_cast<OSCUI*>(arg)->endBundle();
-}
 #endif
 
 #ifdef HTTPCTRL
@@ -372,7 +368,6 @@ int main(int argc, char* argv[])
     OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);
     cout << "OSC is on" << endl;
-    audio.addControlCallback(osc_compute_callback, &oscinterface);
 #endif
     
     if (!audio.start()) {

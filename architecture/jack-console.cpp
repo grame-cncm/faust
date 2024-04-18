@@ -52,10 +52,6 @@
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
-static void osc_compute_callback(void* arg)
-{
-    static_cast<OSCUI*>(arg)->endBundle();
-}
 #endif
 
 #ifdef SOUNDFILE
@@ -208,7 +204,6 @@ int main(int argc, char* argv[])
 #ifdef OSCCTRL
     OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);
-    audio.addControlCallback(osc_compute_callback, &oscinterface);
 #endif
 
 #ifdef MIDICTRL

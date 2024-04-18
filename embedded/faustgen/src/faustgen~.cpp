@@ -574,7 +574,6 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
         // Has to be tested again when the lock has been taken...
         if (fDSP) {
             fDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
-            if (fOSCUI) fOSCUI->endBundle();
             // Use the right outlet to output messages
             dump_outputs();
             // Done for fMidiUI and fOSCUI

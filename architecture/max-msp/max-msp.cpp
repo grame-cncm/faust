@@ -631,10 +631,7 @@ t_int* faust_perform(t_int* w)
     if (!x->m_mute && systhread_mutex_trylock(x->m_mutex) == MAX_ERR_NONE) {
         if (x->m_dsp) {
             x->m_dsp->compute(n, ((float**)&w[offset]), ((float**)&w[offset + x->m_dsp->getNumInputs()]));
-        #ifdef OSCCTRL
-            if (x->m_oscInterface) x->m_oscInterface->endBundle();
-        #endif
-            //faust_update_outputs(x);
+            // faust_update_outputs(x);
             // Use the right outlet to output messages
             faust_dump_outputs(x);
         }

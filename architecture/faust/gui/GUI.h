@@ -175,10 +175,15 @@ class GUI : public UI
             }
         }
     
+        // To be implemented when a single global update is needed per updateAllGuis refresh
+        virtual void update()
+        {}
+        
         static void updateAllGuis()
         {
             for (const auto& g : fGuiList) {
                 g->updateAllZones();
+                g->update();
             }
         }
     
