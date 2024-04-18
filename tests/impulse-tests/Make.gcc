@@ -25,6 +25,8 @@ ifeq ($(lang), c)
 	ext = c
 endif
 
+CXX=g++
+
 .PHONY: test 
 .DELETE_ON_ERROR:
 
