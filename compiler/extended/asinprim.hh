@@ -46,7 +46,7 @@ class AsinPrim : public xtended {
         return castInterval(t, gAlgebra.Asin(i));
     }
 
-    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; } 
+    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -54,7 +54,8 @@ class AsinPrim : public xtended {
         if (isNum(args[0], n)) {
             if ((double(n) < -1) || (double(n) > 1)) {
                 std::stringstream error;
-                error << "ERROR : out of domain in asin(" << ppsig(args[0], MAX_ERROR_SIZE) << ")" << std::endl;
+                error << "ERROR : out of domain in asin(" << ppsig(args[0], MAX_ERROR_SIZE) << ")"
+                      << std::endl;
                 throw faustexception(error.str());
             } else {
                 return tree(asin(double(n)));
@@ -64,7 +65,8 @@ class AsinPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -72,7 +74,8 @@ class AsinPrim : public xtended {
         return generateFun(container, subst("asin$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -80,15 +83,16 @@ class AsinPrim : public xtended {
         return subst("asin$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("\\arcsin\\left($0\\right)", args[0]);
     }
-    
-    Tree diff(const std::vector<Tree> &args) override
+
+    Tree diff(const std::vector<Tree>& args) override
     {
         // (asin(x))' = 1 / sqrt(1 - x^2), -1 < x < 1
         return sigDiv(sigReal(1.0), sigSqrt(sigSub(sigReal(1.0), sigPow(args[0], sigReal(2.0)))));

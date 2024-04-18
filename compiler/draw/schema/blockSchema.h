@@ -42,7 +42,9 @@ class blockSchema : public schema {
     std::vector<point> fOutputPoint;  ///< output connection points
 
    public:
-    friend schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const std::string& name, const std::string& color, const std::string& link);
+    friend schema* makeBlockSchema(unsigned int inputs, unsigned int outputs,
+                                   const std::string& name, const std::string& color,
+                                   const std::string& link);
 
     virtual void  place(double x, double y, int orientation);
     virtual void  draw(device& dev);
@@ -51,8 +53,8 @@ class blockSchema : public schema {
     virtual void  collectTraits(collector& c);
 
    protected:
-    blockSchema(unsigned int inputs, unsigned int outputs, double width, double height, const std::string& name,
-                const std::string& color, const std::string& link);
+    blockSchema(unsigned int inputs, unsigned int outputs, double width, double height,
+                const std::string& name, const std::string& color, const std::string& link);
 
     void placeInputPoints();
     void placeOutputPoints();

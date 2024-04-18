@@ -121,13 +121,15 @@ class interval {
         }
 
         // amplitude of the interval
-        // can be < 1.0, in which case the msb will be negative and indicate the number of implicit leading zeroes
+        // can be < 1.0, in which case the msb will be negative and indicate the number of implicit
+        // leading zeroes
         double range = std::max(std::abs(fLo), std::abs(fHi));
 
         if (std::isinf(range)) {
             // if (fLSB == 0) // if we're dealing with integers: is that a good criterion?
             return 31;
-            // return 20;  // max MSB of the VHDL design; TODO: change when integrating in the compiler
+            // return 20;  // max MSB of the VHDL design; TODO: change when integrating in the
+            // compiler
         }
 
         int l = int(std::ceil(std::log2(range)));
@@ -172,7 +174,8 @@ inline interval intersection(const interval& i, const interval& j)
     } else {
         double l = std::max(i.lo(), j.lo());
         double h = std::min(i.hi(), j.hi());
-        int    p = std::min(i.lsb(), j.lsb());  // precision of the intersection should be the finest of the two
+        int    p = std::min(i.lsb(),
+                            j.lsb());  // precision of the intersection should be the finest of the two
         if (l > h) {
             return interval::empty();
         } else {
@@ -190,7 +193,8 @@ inline interval reunion(const interval& i, const interval& j)
     } else {
         double l = std::min(i.lo(), j.lo());
         double h = std::max(i.hi(), j.hi());
-        int    p = std::min(i.lsb(), j.lsb());  // precision of the reunion should be the finest of the two
+        int    p =
+            std::min(i.lsb(), j.lsb());  // precision of the reunion should be the finest of the two
         return {l, h, p};
     }
 }

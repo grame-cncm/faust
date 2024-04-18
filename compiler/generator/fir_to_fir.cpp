@@ -67,28 +67,31 @@ bool sortTypeDeclarations(StatementInst* a, StatementInst* b)
     DeclareVarInst* inst2 = dynamic_cast<DeclareVarInst*>(b);
 
     if (inst1 && inst2) {
-        return (inst1->fType->getType() == Typed::kInt32) || (inst1->fType->getType() == Typed::kInt32_ptr);
+        return (inst1->fType->getType() == Typed::kInt32) ||
+               (inst1->fType->getType() == Typed::kInt32_ptr);
     } else {
         return false;
     }
 }
 
 // Inlining tools
-// TODO: stack variables should be renamed since inlining the same function several times will create variables name clash
+// TODO: stack variables should be renamed since inlining the same function several times will
+// create variables name clash
 
-BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* named, ValueInst* arg)
+BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* named,
+                                                  ValueInst* arg)
 {
     struct ValueInliner : public BasicCloneVisitor {
         NamedTyped*          fNamed;
         ValueInst*           fArg;
         map<string, string>& fVarTable;
         int                  fOccurence;
-        
+
         ValueInliner(NamedTyped* named, ValueInst* arg, map<string, string>& table, int occurence)
-        : fNamed(named), fArg(arg), fVarTable(table), fOccurence(occurence)
+            : fNamed(named), fArg(arg), fVarTable(table), fOccurence(occurence)
         {
         }
-        
+
         Address* renameAddress(Address* dst_address, Address* src_address)
         {
             Address* cloned_dst_address = dst_address->clone(this);
@@ -96,7 +99,7 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
             cloned_dst_address->setAccess(src_address->getAccess());
             return cloned_dst_address;
         }
-        
+
         ValueInst* visit(LoadVarInst* inst)
         {
             BasicCloneVisitor cloner;
@@ -110,10 +113,12 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
                         string tmp_in            = gGlobal->getFreshID("tmp_in");
                         fVarTable[fNamed->fName] = tmp_in;
                         if (gGlobal->gHasTeeLocal) {
-                            fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner)));
+                            fBlockStack.top()->pushBackInst(
+                                InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner)));
                             return InstBuilder::genTeeVar(tmp_in, fArg->clone(&cloner));
                         } else {
-                            fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner), fArg->clone(&cloner)));
+                            fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(
+                                tmp_in, fNamed->fType->clone(&cloner), fArg->clone(&cloner)));
                             return InstBuilder::genLoadStackVar(tmp_in);
                         }
                     } else {
@@ -124,28 +129,27 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
                 return inst->clone(&cloner);
             }
         }
-        
+
         StatementInst* visit(StoreVarInst* inst)
         {
             LoadVarInst* arg;
-            if ((inst->fAddress->getName() == fNamed->fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
-                
+            if ((inst->fAddress->getName() == fNamed->fName) &&
+                (arg = dynamic_cast<LoadVarInst*>(fArg))) {
                 return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, arg->fAddress),
                                                     inst->fValue->clone(this));
             } else {
                 return BasicCloneVisitor::visit(inst);
             }
         }
-        
     };
-    
+
     // Count variable load occurences in a block
     struct VariableLoadCounter : public DispatchVisitor {
         string fName;
         int    fOccurence;
-        
+
         VariableLoadCounter(const string& name) : fName(name), fOccurence(0) {}
-        
+
         virtual void visit(LoadVarInst* inst)
         {
             if (inst->fAddress->getName() == fName) {
@@ -153,26 +157,29 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
             }
         }
     };
-    
+
     // Count variable occurence
     VariableLoadCounter counter(named->fName);
     code->accept(&counter);
-    
+
     ValueInliner inliner(named, arg, fVarTable, counter.fOccurence);
     return inliner.getCode(code);
 }
 
-BlockInst* FunctionInliner::ReplaceParametersByArgs(BlockInst* code, Names args_type, Values args, bool ismethod)
+BlockInst* FunctionInliner::ReplaceParametersByArgs(BlockInst* code, Names args_type, Values args,
+                                                    bool ismethod)
 {
-    NamesIt it1 = args_type.begin();
-    ValuesIt  it2 = args.begin();
-    if (ismethod) { it2++; }
-    
+    NamesIt  it1 = args_type.begin();
+    ValuesIt it2 = args.begin();
+    if (ismethod) {
+        it2++;
+    }
+
     for (; it1 != args_type.end(); it1++, it2++) {
         faustassert(it2 != args.end());
         code = ReplaceParameterByArg(code, *it1, *it2);
     }
-    
+
     return code;
 }
 
@@ -181,9 +188,10 @@ void ControlExpander::beginCond(ControlInst* inst)
 {
     faustassert(fIfBlockStack.top().fCond == nullptr);
     faustassert(fIfBlockStack.top().fIfInst == nullptr);
-    
+
     fIfBlockStack.top().fCond = inst->fCond;
-    fIfBlockStack.top().fIfInst = new IfInst(inst->fCond->clone(this), new BlockInst(), new BlockInst());
+    fIfBlockStack.top().fIfInst =
+        new IfInst(inst->fCond->clone(this), new BlockInst(), new BlockInst());
     fIfBlockStack.top().fIfInst->fThen->pushBackInst(inst->fStatement->clone(this));
 }
 
@@ -196,7 +204,7 @@ void ControlExpander::continueCond(ControlInst* inst)
 void ControlExpander::endCond()
 {
     faustassert(fBlockStack.top() != nullptr);
- 
+
     if (fIfBlockStack.size() > 0 && fIfBlockStack.top().fIfInst) {
         fBlockStack.top()->pushBackInst(fIfBlockStack.top().fIfInst);
         fIfBlockStack.top().init();
@@ -213,7 +221,7 @@ StatementInst* ControlExpander::visit(ControlInst* inst)
         endCond();
         beginCond(inst);
     }
-    
+
     // Not used
     return nullptr;
 }
@@ -222,9 +230,9 @@ StatementInst* ControlExpander::visit(BlockInst* inst)
 {
     BlockInst* cloned = new BlockInst();
     fBlockStack.push(cloned);
-    
+
     fIfBlockStack.push(IfBlock());
-    
+
     for (const auto& it : inst->fCode) {
         if (dynamic_cast<ControlInst*>(it)) {
             // ControlInst will progressively fill the current block by side effect
@@ -234,12 +242,12 @@ StatementInst* ControlExpander::visit(BlockInst* inst)
             cloned->pushBackInst(it->clone(this));
         }
     }
-    
+
     // Possibly end last IF
     endCond();
-    
+
     fBlockStack.pop();
     fIfBlockStack.pop();
-    
+
     return cloned;
 }

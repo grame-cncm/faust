@@ -27,7 +27,8 @@ namespace itv {
 // interval Atanh(const interval& x);
 // void testAtanh();
 
-static const interval domain(std::nexttoward(-1, 0), std::nexttoward(1, 0), 0);  // interval ]-1,1[, precision 0
+static const interval domain(std::nexttoward(-1, 0), std::nexttoward(1, 0),
+                             0);  // interval ]-1,1[, precision 0
 
 interval interval_algebra::Atanh(const interval& x)
 {

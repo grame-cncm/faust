@@ -23,9 +23,11 @@ namespace itv {
 
 interval interval_algebra::IntNum(int x)
 {
-    /* int lsb = -24;  // lsb_number(x); // x is an integer so lsb is bound to be >=0, but we might be able to shave a
+    /* int lsb = -24;  // lsb_number(x); // x is an integer so lsb is bound to be >=0, but we might
+    be able to shave a
                     // couple more bits
-                    // actually this is a terrible idea, in regard of the consequences on later inferred precisions
+                    // actually this is a terrible idea, in regard of the consequences on later
+    inferred precisions
                     // why should _,16:*:sin have a different output precision than _,15:*:sin ?
                     // shaving a couple extra bits is not worth the later consequences
 
@@ -39,7 +41,8 @@ interval interval_algebra::IntNum(int x)
 
 interval interval_algebra::Int64Num(int64_t x)
 {
-    /* int lsb = -24;  // lsb_number(x); // x is an integer so lsb is bound to be >=0, but we might be able to shave a
+    /* int lsb = -24;  // lsb_number(x); // x is an integer so lsb is bound to be >=0, but we might
+    be able to shave a
                     // couple more bits
 
     while (floor(x * pow(2, -lsb - 1)) == x * pow(2, -lsb - 1) and x != 0) {

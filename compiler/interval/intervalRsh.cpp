@@ -40,17 +40,25 @@ interval interval_algebra::Rsh(const interval& x, const interval& k)
     interval j{pow(2, -k.hi()), pow(2, -k.lo())};
     interval z = Mul(x, j);
 
-    return {z.lo(), z.hi(), x.lsb() - (int)k.hi()};  // rshifts add some precision to the numbers, at most y.hi() bits
+    return {
+        z.lo(), z.hi(),
+        x.lsb() - (int)k.hi()};  // rshifts add some precision to the numbers, at most y.hi() bits
 }
 
 void interval_algebra::testRsh()
 {
     // check("test algebra Rsh", Rsh(interval(8, 16), interval(4)), interval(0.5, 1));
-    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 32, 0), interval(8, 8, 1), rsh, &interval_algebra::Rsh);
-    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 0), interval(-10, 10, 0), rsh, &interval_algebra::Rsh);
-    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 2), interval(-10, 10, 0), rsh, &interval_algebra::Rsh);
-    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 0), interval(-10, 10, 1), rsh, &interval_algebra::Rsh);
-    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 2), interval(-10, 10, 1), rsh, &interval_algebra::Rsh);
-    // analyzeBinaryMethod(10, 1000, "rshift", interval(0, 32, 0), interval(-3, 0, 0), rsh, &interval_algebra::Rsh);
+    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 32, 0), interval(8, 8, 1), rsh,
+                        &interval_algebra::Rsh);
+    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 0), interval(-10, 10, 0), rsh,
+                        &interval_algebra::Rsh);
+    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 2), interval(-10, 10, 0), rsh,
+                        &interval_algebra::Rsh);
+    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 0), interval(-10, 10, 1), rsh,
+                        &interval_algebra::Rsh);
+    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 2), interval(-10, 10, 1), rsh,
+                        &interval_algebra::Rsh);
+    // analyzeBinaryMethod(10, 1000, "rshift", interval(0, 32, 0), interval(-3, 0, 0), rsh,
+    // &interval_algebra::Rsh);
 }
 }  // namespace itv

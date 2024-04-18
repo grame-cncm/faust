@@ -46,7 +46,10 @@ class TreeTransform : public Garbageable {
     std::string fMessage;  // trace message
 
    public:
-    TreeTransform(int indentation = 0) : fTrace(false), fIndent(indentation), fMessage("TreeTransform") {}
+    TreeTransform(int indentation = 0)
+        : fTrace(false), fIndent(indentation), fMessage("TreeTransform")
+    {
+    }
 
     Tree self(Tree t);
     Tree mapself(Tree lt);
@@ -73,9 +76,9 @@ class TreeTransform : public Garbageable {
     void traceMsg(std::string msg, Tree t);
 
    protected:
-    virtual Tree transformation(Tree) = 0;   // the tranformation to implement
-    virtual Tree postprocess(Tree);          // modify a tree after the transformation of its children
-    virtual void traceEnter(Tree t);         // called when entering a transformation
+    virtual Tree transformation(Tree) = 0;  // the tranformation to implement
+    virtual Tree postprocess(Tree);   // modify a tree after the transformation of its children
+    virtual void traceEnter(Tree t);  // called when entering a transformation
     virtual void traceExit(Tree t, Tree r);  // called when exiting a transformation
 };
 

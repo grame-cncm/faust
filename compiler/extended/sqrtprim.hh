@@ -59,7 +59,8 @@ class SqrtPrim : public xtended {
         if (isNum(args[0], n)) {
             if (double(n) < 0) {
                 std::stringstream error;
-                error << "ERROR : out of domain in sqrt(" << ppsig(args[0], MAX_ERROR_SIZE) << ")" << std::endl;
+                error << "ERROR : out of domain in sqrt(" << ppsig(args[0], MAX_ERROR_SIZE) << ")"
+                      << std::endl;
                 throw faustexception(error.str());
             } else {
                 return tree(sqrt(double(n)));
@@ -69,7 +70,8 @@ class SqrtPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -77,7 +79,8 @@ class SqrtPrim : public xtended {
         return generateFun(container, subst("sqrt$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -85,14 +88,15 @@ class SqrtPrim : public xtended {
         return subst("sqrt$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("\\sqrt{$0}", args[0]);
     }
-    
+
     virtual Tree diff(const std::vector<Tree>& args) override
     {
         // (x^{1/2})' =  1/2 * x^{-1/2}

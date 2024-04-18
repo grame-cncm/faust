@@ -90,19 +90,23 @@ string VectorCompiler::CS(Tree sig)
 
         if (fClass->getLoopProperty(sig, ls)) {
             // sig has a loop property
-            // cerr << "CASE SH : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
+            // cerr << "CASE SH : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son-->
+            // " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else if (isSigDelay(sig, x, d) && fClass->getLoopProperty(x, ls)) {
-            // cerr << "CASE DL : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            // cerr << "CASE DL : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son-->
+            // " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else if (isSigDelay(sig, x, d) && isProj(x, &i, r) && fClass->getLoopProperty(r, ls)) {
-            // cerr << "CASE DR : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            // cerr << "CASE DR : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son-->
+            // " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else if (isProj(sig, &i, r) && fClass->getLoopProperty(r, ls)) {
-            // cerr << "CASE R* : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            // cerr << "CASE R* : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son-->
+            // " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else {
@@ -396,10 +400,12 @@ string VectorCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
             if (d == 0) {
                 return generateCacheCode(sig, subst("$0[($0_idx+i)&$1]", vecname, T(N - 1)));
             } else {
-                return generateCacheCode(sig, subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), T(d)));
+                return generateCacheCode(sig,
+                                         subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), T(d)));
             }
         } else {
-            return generateCacheCode(sig, subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), CS(delay)));
+            return generateCacheCode(sig,
+                                     subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), CS(delay)));
         }
     }
 }
@@ -409,7 +415,8 @@ string VectorCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
  * maximum delay attached to exp and the "less temporaries" switch
  */
 
-string VectorCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
+string VectorCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype,
+                                        const string& vname, int mxd)
 {
     // it is a non-sample but used delayed
     // we need a delay line
@@ -422,8 +429,8 @@ string VectorCompiler::generateDelayVec(Tree sig, const string& exp, const strin
     }
 }
 
-void VectorCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                       const string& ccs)
+void VectorCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd,
+                                       const string& exp, const string& ccs)
 {
     if (mxd == 0) {
         generateVectorLoop(ctype, vname, exp, ccs);
@@ -441,8 +448,8 @@ void VectorCompiler::generateDelayLine(const string& ctype, const string& vname,
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void VectorCompiler::generateVectorLoop(const string& tname, const string& vecname, const string& cexp,
-                                        const string& ccs)
+void VectorCompiler::generateVectorLoop(const string& tname, const string& vecname,
+                                        const string& cexp, const string& ccs)
 {
     // -- declare the vector
     fClass->addSharedDecl(vecname);
@@ -463,8 +470,8 @@ void VectorCompiler::generateVectorLoop(const string& tname, const string& vecna
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname, int delay, const string& cexp,
-                                       const string& ccs)
+void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname, int delay,
+                                       const string& cexp, const string& ccs)
 {
     if (delay < gGlobal->gMaxCopyDelay) {
         // Implementation of a copy based delayline
@@ -495,13 +502,15 @@ void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname
         fClass->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
 
         // -- copy the stored samples to the delay line
-        fClass->addPreCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize)));
+        fClass->addPreCode(
+            Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize)));
 
         // -- compute the new samples
         fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", dlname, cexp)));
 
         // -- copy back to stored samples
-        fClass->addPostCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize)));
+        fClass->addPostCode(
+            Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize)));
 
     } else {
         // Implementation of a ring-buffer delayline
@@ -542,6 +551,7 @@ string VectorCompiler::generateWaveform(Tree sig)
     int    size;
 
     declareWaveform(sig, vname, size);
-    fClass->addPostCode(Statement(getConditionCode(sig), subst("idx$0 = (idx$0 + count) % $1;", vname, T(size))));
+    fClass->addPostCode(
+        Statement(getConditionCode(sig), subst("idx$0 = (idx$0 + count) % $1;", vname, T(size))));
     return generateCacheCode(sig, subst("$0[(idx$0+i)%$1]", vname, T(size)));
 }

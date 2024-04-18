@@ -44,7 +44,8 @@ class routeSchema : public schema {
 
    public:
     friend schema* makeRouteSchema(unsigned int n, unsigned int m, const std::vector<int>& routes);
-    // friend schema* makeRoutingSchema(unsigned int inputs, unsigned int outputs, const vector<int>& route);
+    // friend schema* makeRoutingSchema(unsigned int inputs, unsigned int outputs, const
+    // vector<int>& route);
     virtual void  place(double x, double y, int orientation);
     virtual void  draw(device& dev);
     virtual point inputPoint(unsigned int i) const;
@@ -52,7 +53,8 @@ class routeSchema : public schema {
     virtual void  collectTraits(collector& c);
 
    protected:
-    routeSchema(unsigned int inputs, unsigned int outputs, double width, double height, const std::vector<int>& routes);
+    routeSchema(unsigned int inputs, unsigned int outputs, double width, double height,
+                const std::vector<int>& routes);
 
     void placeInputPoints();
     void placeOutputPoints();

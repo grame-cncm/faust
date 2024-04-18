@@ -30,32 +30,36 @@ using namespace std;
  - sub-containers are compiled as 'struct' with associated functions
  - classInit is a Processor method for now (waiting for the Cmajor external model to be ready)
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
- - the 'fillXXX' function needs to generate the actual size of the table argument type. This is done using the
- TableSizeVisitor class.
- - bargraphs use 'output event' type and are outputting values at 50 Hz. The code is conditionally generated.
+ - the 'fillXXX' function needs to generate the actual size of the table argument type. This is done
+ using the TableSizeVisitor class.
+ - bargraphs use 'output event' type and are outputting values at 50 Hz. The code is conditionally
+ generated.
 */
 
 dsp_factory_base* CmajorCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", ((static_cast<ostringstream*>(fOut)) ? static_cast<ostringstream*>(fOut)->str() : ""), "");
+        fKlassName, "", "",
+        ((static_cast<ostringstream*>(fOut)) ? static_cast<ostringstream*>(fOut)->str() : ""), "");
 }
 
-CodeContainer* CmajorCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+CodeContainer* CmajorCodeContainer::createScalarContainer(const string& name,
+                                                          int           sub_container_type)
 {
     return new CmajorScalarCodeContainer(name, 0, 1, sub_container_type, fOut);
 }
 
-CodeContainer* CmajorCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+CodeContainer* CmajorCodeContainer::createContainer(const string& name, int numInputs,
+                                                    int numOutputs, ostream* dst)
 {
     if (isdigit(name[0])) {
         stringstream error;
         error << "ERROR : processor '" << name << "' cannot start with a digit\n";
         throw faustexception(error.str());
     }
-    
+
     CodeContainer* container;
-    
+
     if (gGlobal->gOpenMPSwitch) {
         throw faustexception("ERROR : OpenMP not supported for Cmajor\n");
     } else if (gGlobal->gSchedulerSwitch) {
@@ -72,7 +76,7 @@ CodeContainer* CmajorCodeContainer::createContainer(const string& name, int numI
 
 void CmajorCodeContainer::produceInternal()
 {
-    int n = 1;
+    int                           n = 1;
     CmajorSubContainerInstVisitor struct_visitor(fOut);
 
     // Global declarations
@@ -118,13 +122,15 @@ void CmajorCodeContainer::produceInternal()
             if (fSubContainerType == kInt) {
                 tab(n + 1, *fOut);
                 *fOut << "void " << fun_name_aux << " (" << fKlassName << "& this, "
-                      << subst("int $0, int[" + to_string(table_size) + "]& " + fTableName + ")", counter);
+                      << subst("int $0, int[" + to_string(table_size) + "]& " + fTableName + ")",
+                               counter);
                 tab(n + 1, *fOut);
                 *fOut << "{";
             } else {
                 tab(n + 1, *fOut);
                 *fOut << "void " << fun_name_aux << " (" << fKlassName << "& this, "
-                      << subst("int $0, $1[" + to_string(table_size) + "]& " + fTableName + ")", counter,
+                      << subst("int $0, $1[" + to_string(table_size) + "]& " + fTableName + ")",
+                               counter,
                                struct_visitor.getTypeManager()->fTypeDirectTable[itfloat()]);
                 tab(n + 1, *fOut);
                 *fOut << "{";
@@ -159,7 +165,8 @@ void CmajorCodeContainer::produceInit(int tabs)
         *fOut << "fControlSlice = int (processor.frequency) / 50;";
         tab(tabs + 1, *fOut);
     }
-    *fOut << "// classInit is not called here since the tables are actually not shared between instances";
+    *fOut << "// classInit is not called here since the tables are actually not shared between "
+             "instances";
     tab(tabs + 1, *fOut);
     *fOut << "instanceInit (sample_rate);";
     tab(tabs, *fOut);
@@ -171,7 +178,8 @@ void CmajorCodeContainer::produceInit(int tabs)
     tab(tabs, *fOut);
     *fOut << "{";
     tab(tabs + 1, *fOut);
-    *fOut << "// classInit has to be called for each instance since the tables are actually not shared between instances";
+    *fOut << "// classInit has to be called for each instance since the tables are actually not "
+             "shared between instances";
     tab(tabs + 1, *fOut);
     *fOut << "classInit (sample_rate);";
     tab(tabs + 1, *fOut);
@@ -188,7 +196,7 @@ void CmajorCodeContainer::produceInit(int tabs)
 void CmajorCodeContainer::produceClass()
 {
     int n = 1;
-   
+
     // Start of namespace
     *fOut << "namespace faust \n{";
     fCodeProducer.Tab(n + 1);
@@ -196,7 +204,7 @@ void CmajorCodeContainer::produceClass()
     // Look for the "fillXXX" function
     generateStaticInit(gGlobal->gTableSizeVisitor);
     generateInit(gGlobal->gTableSizeVisitor);
-    
+
     // Processor generation
     tab(n, *fOut);
     *fOut << "processor " << fKlassName;
@@ -205,12 +213,13 @@ void CmajorCodeContainer::produceClass()
 
     // Fields
     tab(n + 1, *fOut);
-    
+
     if (gGlobal->gOutputLang == "cmajor-dsp") {
         string json = generateJSONAux();
         *fOut << "// Event used to call additional methods";
         tab(n + 1, *fOut);
-        *fOut << "input event int eventbuildUserInterface [[json: \"" << flattenJSON(json) << "\"]];";
+        *fOut << "input event int eventbuildUserInterface [[json: \"" << flattenJSON(json)
+              << "\"]];";
         tab(n + 1, *fOut);
         *fOut << "input event int eventclassInit;";
         tab(n + 1, *fOut);
@@ -222,12 +231,12 @@ void CmajorCodeContainer::produceClass()
         tab(n + 1, *fOut);
         tab(n + 1, *fOut);
     }
-    
+
     fUIVisitor.Tab(n + 1);
     generateUserInterface(&fUIVisitor);
     *fOut << fUIVisitor.fOut.str();
     generateDeclarations(&fCodeProducer);
-  
+
     // Control
     *fOut << "bool fUpdated;";
     tab(n + 1, *fOut);
@@ -235,14 +244,15 @@ void CmajorCodeContainer::produceClass()
         *fOut << "int fControlSlice;";
         tab(n + 1, *fOut);
     }
- 
+
     // For control computation
     if (fIntControl->fCurIndex > 0) {
         *fOut << "int32[" << fIntControl->fCurIndex << "] iControl;";
         tab(n + 1, *fOut);
     }
     if (fRealControl->fCurIndex > 0) {
-        *fOut << fCodeProducer.getTypeManager()->fTypeDirectTable[itfloat()] << "[" << fRealControl->fCurIndex << "] fControl;";
+        *fOut << fCodeProducer.getTypeManager()->fTypeDirectTable[itfloat()] << "["
+              << fRealControl->fCurIndex << "] fControl;";
     }
 
     // Global declarations
@@ -258,26 +268,24 @@ void CmajorCodeContainer::produceClass()
         fCodeProducer.Tab(n + 1);
         generateUserInterface(&fCodeProducer);
     }
-    
+
     /*
     // Debug version
     if (gGlobal->gOutputLang == "cmajor-dsp") {
         *fOut << "// Event handler used to call additional methods";
         tab(n + 1, *fOut);
-        *fOut << "event eventbuildUserInterface (int dummy) { console << \"eventbuildUserInterface\n\"; }";
-        tab(n + 1, *fOut);
-        *fOut << "event eventclassInit (int sample_rate) { console << \"eventclassInit\n\"; classInit(sample_rate); }";
-        tab(n + 1, *fOut);
-        *fOut << "event eventinstanceConstants (int sample_rate) { console << \"eventinstanceConstants\n\"; instanceConstants(sample_rate); }";
-        tab(n + 1, *fOut);
-        *fOut << "event eventinstanceResetUserInterface (int dummy) { console << \"eventinstanceResetUserInterface\n\"; instanceResetUserInterface(); }";
-        tab(n + 1, *fOut);
-        *fOut << "event eventinstanceClear (int dummy) { console << \"eventinstanceClear\n\"; instanceClear(); }";
-        tab(n + 1, *fOut);
-        tab(n + 1, *fOut);
+        *fOut << "event eventbuildUserInterface (int dummy) { console <<
+    \"eventbuildUserInterface\n\"; }"; tab(n + 1, *fOut); *fOut << "event eventclassInit (int
+    sample_rate) { console << \"eventclassInit\n\"; classInit(sample_rate); }"; tab(n + 1, *fOut);
+        *fOut << "event eventinstanceConstants (int sample_rate) { console <<
+    \"eventinstanceConstants\n\"; instanceConstants(sample_rate); }"; tab(n + 1, *fOut); *fOut <<
+    "event eventinstanceResetUserInterface (int dummy) { console <<
+    \"eventinstanceResetUserInterface\n\"; instanceResetUserInterface(); }"; tab(n + 1, *fOut);
+        *fOut << "event eventinstanceClear (int dummy) { console << \"eventinstanceClear\n\";
+    instanceClear(); }"; tab(n + 1, *fOut); tab(n + 1, *fOut);
     }
     */
-    
+
     if (gGlobal->gOutputLang == "cmajor-dsp") {
         *fOut << "// Event handler used to call additional methods";
         tab(n + 1, *fOut);
@@ -285,26 +293,30 @@ void CmajorCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "event eventclassInit (int sample_rate) { classInit(sample_rate); }";
         tab(n + 1, *fOut);
-        *fOut << "event eventinstanceConstants (int sample_rate) { instanceConstants(sample_rate); }";
+        *fOut
+            << "event eventinstanceConstants (int sample_rate) { instanceConstants(sample_rate); }";
         tab(n + 1, *fOut);
-        *fOut << "event eventinstanceResetUserInterface (int dummy) { instanceResetUserInterface(); }";
+        *fOut << "event eventinstanceResetUserInterface (int dummy) { "
+                 "instanceResetUserInterface(); }";
         tab(n + 1, *fOut);
         *fOut << "event eventinstanceClear (int dummy) { instanceClear(); }";
         tab(n + 1, *fOut);
         tab(n + 1, *fOut);
     }
-  
+
     // Generate gub containers
     generateSubContainers();
-    
+
     // Missing math functions
     tab(n + 1, *fOut);
     if (gGlobal->gFloatSize == 1) {
-        *fOut << "float32 copysign(float32 x, float32 y) { return abs(x) * ((y < 0.0f) ? -1.0f : 1.0f); }";
+        *fOut << "float32 copysign(float32 x, float32 y) { return abs(x) * ((y < 0.0f) ? -1.0f : "
+                 "1.0f); }";
         tab(n + 1, *fOut);
         *fOut << "float32 round(float32 x) { return float32(roundToInt(x)); }";
     } else if (gGlobal->gFloatSize == 2) {
-        *fOut << "float64 copysign(float64 x, float64 y) { return abs(x) * ((y < 0.0) ? -1.0 : 1.0); }";
+        *fOut << "float64 copysign(float64 x, float64 y) { return abs(x) * ((y < 0.0) ? -1.0 : "
+                 "1.0); }";
         tab(n + 1, *fOut);
         *fOut << "float64 round(float64 x) { return float64(roundToInt(x)); }";
     }
@@ -363,7 +375,7 @@ void CmajorCodeContainer::produceClass()
     // Control
     *fOut << "fUpdated = true;";
     tab(n + 2, *fOut);
- 
+
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
     back(1, *fOut);
@@ -397,13 +409,13 @@ void CmajorCodeContainer::produceClass()
     generateComputeBlock(&fCodeProducer);
     back(1, *fOut);
     *fOut << "}" << endl;
- 
+
     // Compute
     generateCompute(n + 1);
     back(1, *fOut);
     tab(n, *fOut);
     *fOut << "}" << endl;
-    
+
     // End of namespace
     *fOut << "}" << endl;
 }
@@ -424,7 +436,7 @@ void CmajorScalarCodeContainer::generateCompute(int n)
     *fOut << "if (fUpdated) { fUpdated = false; control(); }";
     tab(n + 2, *fOut);
     tab(n + 2, *fOut);
-   
+
     // Generates one sample computation
     fCodeProducer.Tab(n + 2);
     *fOut << "// Computes one sample";
@@ -475,7 +487,7 @@ void CmajorVectorCodeContainer::generateCompute(int n)
     *fOut << "if (fUpdated) { fUpdated = false; control(); }";
     tab(n + 2, *fOut);
     tab(n + 2, *fOut);
- 
+
     // TODO
     fCodeProducer.Tab(n + 2);
 

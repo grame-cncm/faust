@@ -31,8 +31,8 @@ class AcosPrim : public xtended {
 
     virtual unsigned int arity() override { return 1; }
 
-    virtual bool needCache() override { return true; } 
- 
+    virtual bool needCache() override { return true; }
+
     virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == 1);
@@ -54,7 +54,8 @@ class AcosPrim : public xtended {
         if (isNum(args[0], n)) {
             if ((double(n) < -1) || (double(n) > 1)) {
                 std::stringstream error;
-                error << "ERROR : out of domain in acos(" << ppsig(args[0], MAX_ERROR_SIZE) << ")" << std::endl;
+                error << "ERROR : out of domain in acos(" << ppsig(args[0], MAX_ERROR_SIZE) << ")"
+                      << std::endl;
                 throw faustexception(error.str());
             } else {
                 return tree(acos(double(n)));
@@ -64,7 +65,8 @@ class AcosPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -72,7 +74,8 @@ class AcosPrim : public xtended {
         return generateFun(container, subst("acos$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -80,15 +83,16 @@ class AcosPrim : public xtended {
         return subst("acos$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("\\arccos\\left($0\\right)", args[0]);
     }
-    
-    Tree diff(const std::vector<Tree> &args) override
+
+    Tree diff(const std::vector<Tree>& args) override
     {
         // (acos(x))' = -1 / sqrt(1 - x^2), -1 < x < 1
         return sigDiv(sigReal(-1.0), sigSqrt(sigSub(sigReal(1.0), sigPow(args[0], sigReal(2.0)))));

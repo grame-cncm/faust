@@ -42,8 +42,11 @@ void interval_algebra::testLt()
     check("test algebra Lt", Lt(interval(2, 5), interval(0, 2)), interval(0));
     check("test algebra Lt", Lt(interval(-1, 1), interval(0, 10)), interval(0, 1)); */
 
-    analyzeBinaryMethod(10, 200, "Lt", interval(-1, 1, 0), interval(-1, 1, 0), myLt, &interval_algebra::Lt);
-    analyzeBinaryMethod(10, 200, "Lt", interval(-10, 10, 0), interval(-10, 10, 0), myLt, &interval_algebra::Lt);
-    analyzeBinaryMethod(10, 2000, "Lt", interval(-10, 10), interval(-10, 10), myLt, &interval_algebra::Lt);    
+    analyzeBinaryMethod(10, 200, "Lt", interval(-1, 1, 0), interval(-1, 1, 0), myLt,
+                        &interval_algebra::Lt);
+    analyzeBinaryMethod(10, 200, "Lt", interval(-10, 10, 0), interval(-10, 10, 0), myLt,
+                        &interval_algebra::Lt);
+    analyzeBinaryMethod(10, 2000, "Lt", interval(-10, 10), interval(-10, 10), myLt,
+                        &interval_algebra::Lt);
 }
 }  // namespace itv

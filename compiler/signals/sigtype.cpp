@@ -40,17 +40,22 @@ using namespace std;
     }
 
 AudioType::AudioType(int n, int v, int c, int vec, int b, interval i, res r)
-    : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b), fInterval(i), fRes(r), fCode(0)
+    : fNature(n),
+      fVariability(v),
+      fComputability(c),
+      fVectorability(vec),
+      fBoolean(b),
+      fInterval(i),
+      fRes(r),
+      fCode(0)
 {
-    TRACE(cerr << gGlobal->TABBER << "Building audioType : n="
-               << "NR"[n] << ", v="
-               << "KB?S"[v] << ", c="
-               << "CI?E"[c] << ", vec="
-               << "VS?TS"[vec] << ", b="
-               << "N?B"[b] << ", i=" << i << endl);
+    TRACE(cerr << gGlobal->TABBER << "Building audioType : n=" << "NR"[n] << ", v=" << "KB?S"[v]
+               << ", c=" << "CI?E"[c] << ", vec=" << "VS?TS"[vec] << ", b=" << "N?B"[b]
+               << ", i=" << i << endl);
 }  ///< constructs an abstract audio type
 
-bool SimpleType::isMaximal() const  ///< true when type is maximal (and therefore can't change depending of hypothesis)
+bool SimpleType::isMaximal()
+    const  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 {
     return (fNature == kReal) && (fVariability == kSamp) && (fComputability == kExec);
 }
@@ -92,7 +97,8 @@ ostream& operator<<(ostream& dst, const TupletType& t)
  */
 ostream& SimpleType::print(ostream& dst) const
 {
-    return dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()] << "N?B"[boolean()] << " " << fInterval;
+    return dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()]
+               << "VS?TS"[vectorability()] << "N?B"[boolean()] << " " << fInterval;
 }
 
 /**
@@ -100,7 +106,8 @@ ostream& SimpleType::print(ostream& dst) const
  */
 ostream& TableType::print(ostream& dst) const
 {
-    dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()] << "N?B"[boolean()] << " " << fInterval << ":Table(";
+    dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()]
+        << "VS?TS"[vectorability()] << "N?B"[boolean()] << " " << fInterval << ":Table(";
     fContent->print(dst);
     return dst << ')';
 }
@@ -155,9 +162,11 @@ Type operator|(const Type& t1, const Type& t2)
     TupletType *nt1, *nt2;
 
     if ((st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2))) {
-        return makeSimpleType(st1->nature() | st2->nature(), st1->variability() | st2->variability(), st1->computability() | st2->computability(),
-                              st1->vectorability() | st2->vectorability(), st1->boolean() | st2->boolean(),
-                              itv::reunion(st1->getInterval(), st2->getInterval()));
+        return makeSimpleType(
+            st1->nature() | st2->nature(), st1->variability() | st2->variability(),
+            st1->computability() | st2->computability(),
+            st1->vectorability() | st2->vectorability(), st1->boolean() | st2->boolean(),
+            itv::reunion(st1->getInterval(), st2->getInterval()));
 
     } else if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) {
         return makeTableType(tt1->content() | tt2->content());
@@ -192,11 +201,15 @@ bool operator==(const Type& t1, const Type& t2)
 
     if ((st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2))) {
         // we need to ignore fix point resolution, because it never converges
-        return (st1->nature() == st2->nature()) && (st1->variability() == st2->variability()) && (st1->computability() == st2->computability()) &&
-               (st1->vectorability() == st2->vectorability()) && (st1->boolean() == st2->boolean()) && (st1->getInterval().lo() == st2->getInterval().lo()) &&
-               (st1->getInterval().hi() == st2->getInterval().hi()) /*&&
-               (st1->getInterval().isValid() == st2->getInterval().isValid()) &&
-               st1->getRes().valid == st2->getRes().valid && st1->getRes().index == st2->getRes().index*/
+        return (st1->nature() == st2->nature()) && (st1->variability() == st2->variability()) &&
+               (st1->computability() == st2->computability()) &&
+               (st1->vectorability() == st2->vectorability()) &&
+               (st1->boolean() == st2->boolean()) &&
+               (st1->getInterval().lo() == st2->getInterval().lo()) &&
+               (st1->getInterval().hi() ==
+                st2->getInterval().hi()) /*&&
+(st1->getInterval().isValid() == st2->getInterval().isValid()) &&
+st1->getRes().valid == st2->getRes().valid && st1->getRes().index == st2->getRes().index*/
             ;
     }
     if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) {
@@ -310,7 +323,8 @@ Type checkWRTbl(Type tbl, Type wr)
     // check that wr is compatible with tbl content
     if (wr->nature() > tbl->nature()) {
         stringstream error;
-        error << "ERROR : checkWRTbl failed, the content of " << tbl << " is incompatible with " << wr << endl;
+        error << "ERROR : checkWRTbl failed, the content of " << tbl << " is incompatible with "
+              << wr << endl;
         throw faustexception(error.str());
     }
     return tbl;
@@ -327,7 +341,8 @@ int checkDelayInterval(Type t)
         return int(i.hi() + 0.5);
     } else {
         stringstream error;
-        error << "ERROR : invalid delay parameter range: " << i << ". The range must be between 0 and INT_MAX" << endl;
+        error << "ERROR : invalid delay parameter range: " << i
+              << ". The range must be between 0 and INT_MAX" << endl;
         throw faustexception(error.str());
     }
 }

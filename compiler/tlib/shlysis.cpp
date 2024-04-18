@@ -137,7 +137,9 @@ static void annotate(Tree k, Tree t, barrier foo)
         } else {
             int n = t->arity();
             if (n > 0 && !foo(t)) {
-                for (int i = 0; i < n; i++) annotate(k, t->branch(i), foo);
+                for (int i = 0; i < n; i++) {
+                    annotate(k, t->branch(i), foo);
+                }
             }
         }
     } else {

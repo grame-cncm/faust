@@ -187,8 +187,8 @@ static bool isIntTree(Tree l, vector<int>& v)
 
     } else {
         stringstream error;
-        error << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l)
-              << endl;
+        error << "ERROR : file " << __FILE__ << ':' << __LINE__
+              << ", not a valid list of numbers : " << boxpp(l) << endl;
         throw faustexception(error.str());
     }
 }
@@ -202,7 +202,8 @@ static void scheduleDrawing(Tree t)
 {
     if (gGlobal->gDrawnExp.find(t) == gGlobal->gDrawnExp.end()) {
         gGlobal->gDrawnExp.insert(t);
-        gGlobal->gBackLink.insert(make_pair(t, gGlobal->gSchemaFileName));  // remember the enclosing filename
+        gGlobal->gBackLink.insert(
+            make_pair(t, gGlobal->gSchemaFileName));  // remember the enclosing filename
         gGlobal->gPendingExp.push(t);
     }
 }
@@ -212,7 +213,9 @@ static void scheduleDrawing(Tree t)
  */
 static bool pendingDrawing(Tree& t)
 {
-    if (gGlobal->gPendingExp.empty()) return false;
+    if (gGlobal->gPendingExp.empty()) {
+        return false;
+    }
     t = gGlobal->gPendingExp.top();
     gGlobal->gPendingExp.pop();
     return true;
@@ -252,7 +255,8 @@ static void writeSchemaFile(Tree bd)
 
     // generate the label of the schema
     string link = gGlobal->gBackLink[bd];
-    ts = makeTopSchema(addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd))), 20, tree2str(id), link);
+    ts = makeTopSchema(addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd))), 20,
+                       tree2str(id), link);
     // draw to the device defined by gDevSuffix
     if (strcmp(gGlobal->gDevSuffix, "svg") == 0) {
         SVGDev dev(res1.c_str(), ts->width(), ts->height());
@@ -287,7 +291,9 @@ static char* legalFileName(Tree t, int n, char* dst)
     int  i = 0;
     if (getDefNameProperty(t, id)) {
         const char* src = tree2str(id);
-        for (i = 0; isalnum(src[i]) && i < 16; i++) { dst[i] = src[i]; }
+        for (i = 0; isalnum(src[i]) && i < 16; i++) {
+            dst[i] = src[i];
+        }
     }
     dst[i] = 0;
     if (strcmp(dst, "process") != 0) {
@@ -307,7 +313,9 @@ static bool isInverter(Tree t)
 {
     // cerr << "isInverter " << t << '$' << boxpp(t) << endl;
     for (int i = 0; i < 6; i++) {
-        if (t == gGlobal->gInverter[i]) return true;
+        if (t == gGlobal->gInverter[i]) {
+            return true;
+        }
     }
     return false;
 }
@@ -501,7 +509,8 @@ static schema* generateInsideSchema(Tree t)
         if (getDefNameProperty(t, id)) {
             return generateAbstractionSchema(generateInputSlotSchema(a), b);
         } else {
-            return makeDecorateSchema(generateAbstractionSchema(generateInputSlotSchema(a), b), 10, "Abstraction");
+            return makeDecorateSchema(generateAbstractionSchema(generateInputSlotSchema(a), b), 10,
+                                      "Abstraction");
         }
 
     } else if (isBoxEnvironment(t)) {
@@ -515,8 +524,8 @@ static schema* generateInsideSchema(Tree t)
             return makeRouteSchema(ins, outs, route);
         } else {
             stringstream error;
-            error << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(t)
-                  << endl;
+            error << "ERROR : file " << __FILE__ << ':' << __LINE__
+                  << ", invalid route expression : " << boxpp(t) << endl;
             throw faustexception(error.str());
         }
     } else {
@@ -536,16 +545,16 @@ static string userInterfaceDescription(Tree box)
     Tree         t1, label, cur, min, max, step, chan;
     stringstream fout;
     // user interface
-    if (isBoxButton(box, label))
+    if (isBoxButton(box, label)) {
         fout << "button(" << extractName(label) << ')';
-    else if (isBoxCheckbox(box, label))
+    } else if (isBoxCheckbox(box, label)) {
         fout << "checkbox(" << extractName(label) << ')';
-    else if (isBoxVSlider(box, label, cur, min, max, step)) {
-        fout << "vslider(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+    } else if (isBoxVSlider(box, label, cur, min, max, step)) {
+        fout << "vslider(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", "
+             << boxpp(max) << ", " << boxpp(step) << ')';
     } else if (isBoxHSlider(box, label, cur, min, max, step)) {
-        fout << "hslider(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+        fout << "hslider(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", "
+             << boxpp(max) << ", " << boxpp(step) << ')';
     } else if (isBoxVGroup(box, label, t1)) {
         fout << "vgroup(" << extractName(label) << ", " << boxpp(t1, 0) << ')';
     } else if (isBoxHGroup(box, label, t1)) {
@@ -553,12 +562,14 @@ static string userInterfaceDescription(Tree box)
     } else if (isBoxTGroup(box, label, t1)) {
         fout << "tgroup(" << extractName(label) << ", " << boxpp(t1, 0) << ')';
     } else if (isBoxHBargraph(box, label, min, max)) {
-        fout << "hbargraph(" << extractName(label) << ", " << boxpp(min) << ", " << boxpp(max) << ')';
+        fout << "hbargraph(" << extractName(label) << ", " << boxpp(min) << ", " << boxpp(max)
+             << ')';
     } else if (isBoxVBargraph(box, label, min, max)) {
-        fout << "vbargraph(" << extractName(label) << ", " << boxpp(min) << ", " << boxpp(max) << ')';
+        fout << "vbargraph(" << extractName(label) << ", " << boxpp(min) << ", " << boxpp(max)
+             << ')';
     } else if (isBoxNumEntry(box, label, cur, min, max, step)) {
-        fout << "nentry(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+        fout << "nentry(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", "
+             << boxpp(max) << ", " << boxpp(step) << ')';
     } else if (isBoxSoundfile(box, label, chan)) {
         fout << "soundfile(" << extractName(label) << ", " << boxpp(chan) << ')';
     } else {

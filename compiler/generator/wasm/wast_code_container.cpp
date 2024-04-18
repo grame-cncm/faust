@@ -30,22 +30,24 @@ using namespace std;
 /*
  WAST backend and module description:
 
- - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from JS
- "global.Math", or are externally implemented (fmod and remainder in JS)
- - local variables have to be declared first on the block, before being actually initialized or set: this is done using
- MoveVariablesInFront3
+ - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are
+ imported from JS "global.Math", or are externally implemented (fmod and remainder in JS)
+ - local variables have to be declared first on the block, before being actually initialized or set:
+ this is done using MoveVariablesInFront3
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
  - subcontainers are inlined in 'classInit' and 'instanceConstants' functions
- - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun
+ - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of
+ generateInstanceInitFun
  - integer 'min/max' is done in the module in 'min_i/max_i' (using lt/select)
  - memory can be allocated internally in the module and exported, or externally in JS and imported
- - the JSON string is written at offset 0 in a data segment. This string *has* to be converted in a JS string *before*
- using the DSP instance
- - memory module size cannot be written while generating the output stream, since DSP size is computed when inlining
- subcontainers and waveform. The final memory size is finally written after module code generation.
+ - the JSON string is written at offset 0 in a data segment. This string *has* to be converted in a
+ JS string *before* using the DSP instance
+ - memory module size cannot be written while generating the output stream, since DSP size is
+ computed when inlining subcontainers and waveform. The final memory size is finally written after
+ module code generation.
  - in Load/Store, check if address is constant, so that to be used as an 'offset'
- - move loop 'i' variable by bytes instead of frames to save index code generation of input/output accesses
- (gLoopVarInBytes)
+ - move loop 'i' variable by bytes instead of frames to save index code generation of input/output
+ accesses (gLoopVarInBytes)
  - offset of inputs/outputs are constant, so can be directly generated
 
 */
@@ -54,11 +56,12 @@ dsp_factory_base* WASTCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), fHelper.str());
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        fHelper.str());
 }
 
-WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
-                                     bool internal_memory)
+WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numOutputs,
+                                     ostream* out, bool internal_memory)
     : fOut(out)
 {
     initialize(numInputs, numOutputs);
@@ -82,8 +85,8 @@ CodeContainer* WASTCodeContainer::createScalarContainer(const string& name, int 
     return new WASTScalarCodeContainer(name, 0, 1, &fOutAux, sub_container_type, internal_memory);
 }
 
-CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst,
-                                                  bool internal_memory)
+CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInputs, int numOutputs,
+                                                  ostream* dst, bool internal_memory)
 {
     CodeContainer* container;
 
@@ -108,37 +111,39 @@ CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInp
         }
         container = new WASTVectorCodeContainer(name, numInputs, numOutputs, dst, internal_memory);
     } else {
-        container = new WASTScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, internal_memory);
+        container =
+            new WASTScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, internal_memory);
     }
 
     return container;
 }
 
 // Scalar
-WASTScalarCodeContainer::WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
-                                                 int sub_container_type, bool internal_memory)
+WASTScalarCodeContainer::WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs,
+                                                 ostream* out, int sub_container_type,
+                                                 bool internal_memory)
     : WASTCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {
     fSubContainerType = sub_container_type;
 }
 
 // Special version that uses MoveVariablesInFront3 to inline waveforms...
-DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
-                                                           bool isvirtual)
+DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, const string& obj,
+                                                           bool ismethod, bool isvirtual)
 {
     Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
-    
+
     BlockInst* init_block = InstBuilder::genBlockInst();
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fStaticInitInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fInitInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fPostInitInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fResetUserInterfaceInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fClearInstructions));
-    
+
     init_block->pushBackInst(InstBuilder::genRetInst());
 
     // Creates function
@@ -204,10 +209,12 @@ void WASTCodeContainer::produceClass()
     tab(n + 1, fOutAux);
     WASInst::generateIntMin()->accept(gGlobal->gWASTVisitor);
     WASInst::generateIntMax()->accept(gGlobal->gWASTVisitor);
-    
+
     // getNumInputs/getNumOutputs
-    generateGetInputs("getNumInputs", "dsp", false, FunTyped::kDefault)->accept(gGlobal->gWASTVisitor);
-    generateGetOutputs("getNumOutputs", "dsp", false, FunTyped::kDefault)->accept(gGlobal->gWASTVisitor);
+    generateGetInputs("getNumInputs", "dsp", false, FunTyped::kDefault)
+        ->accept(gGlobal->gWASTVisitor);
+    generateGetOutputs("getNumOutputs", "dsp", false, FunTyped::kDefault)
+        ->accept(gGlobal->gWASTVisitor);
 
     // Inits
     tab(n + 1, fOutAux);
@@ -273,7 +280,8 @@ void WASTCodeContainer::produceClass()
 
     // setParamValue
     tab(n + 1, fOutAux);
-    fOutAux << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
+    fOutAux << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value " << realStr
+            << ")";
     tab(n + 2, fOutAux);
     fOutAux << "(" << realStr << ".store ";
     tab(n + 3, fOutAux);
@@ -287,7 +295,8 @@ void WASTCodeContainer::produceClass()
 
     // getParamValue
     tab(n + 1, fOutAux);
-    fOutAux << "(func $getParamValue (param $dsp i32) (param $index i32) (result " << realStr << ")";
+    fOutAux << "(func $getParamValue (param $dsp i32) (param $index i32) (result " << realStr
+            << ")";
     tab(n + 2, fOutAux);
     fOutAux << "(return (" << realStr << ".load (i32.add (local.get $dsp) (local.get $index))))";
     tab(n + 1, fOutAux);
@@ -325,12 +334,14 @@ void WASTCodeContainer::produceClass()
     string json1 = flattenJSON(json);
     tab(n + 1, *fOut);
     if (fInternalMemory) {
-        int memory_size = genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json1.size());
+        int memory_size = genMemSize(gGlobal->gWASTVisitor->getStructSize(),
+                                     fNumInputs + fNumOutputs, (int)json1.size());
         *fOut << "(memory (export \"memory\") ";
         // Since JSON is written in data segment at offset 0, the memory size
         // must be computed taking account JSON size and DSP + audio buffer size
-        *fOut << memory_size // initial memory pages
-              << " " << (memory_size + 1000) << ")";  // maximum memory pages number, minimum value is to be extended on JS side for soundfiles
+        *fOut << memory_size                          // initial memory pages
+              << " " << (memory_size + 1000) << ")";  // maximum memory pages number, minimum value
+                                                      // is to be extended on JS side for soundfiles
     } else {
         // Memory size set by JS code, so use a minimum value that contains
         // the data segment size (shoud be OK for any JSON)
@@ -359,10 +370,12 @@ DeclareFunInst* WASInst::generateIntMin()
 
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genSelect2Inst(
-        InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar(v1), InstBuilder::genLoadFunArgsVar(v2)),
+        InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar(v1),
+                                 InstBuilder::genLoadFunArgsVar(v2)),
         InstBuilder::genLoadFunArgsVar(v1), InstBuilder::genLoadFunArgsVar(v2))));
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
+    FunTyped* fun_type =
+        InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("min_i", fun_type, block);
 }
 
@@ -377,10 +390,12 @@ DeclareFunInst* WASInst::generateIntMax()
 
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genSelect2Inst(
-        InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar(v1), InstBuilder::genLoadFunArgsVar(v2)),
+        InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar(v1),
+                                 InstBuilder::genLoadFunArgsVar(v2)),
         InstBuilder::genLoadFunArgsVar(v2), InstBuilder::genLoadFunArgsVar(v1))));
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
+    FunTyped* fun_type =
+        InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("max_i", fun_type, block);
 }
 
@@ -388,7 +403,8 @@ DeclareFunInst* WASInst::generateIntMax()
 void WASTCodeContainer::generateComputeAux1(int n)
 {
     tab(n + 1, fOutAux);
-    fOutAux << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
+    fOutAux << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param "
+               "$outputs i32)";
     tab(n + 2, fOutAux);
     gGlobal->gWASTVisitor->Tab(n + 2);
 }
@@ -422,7 +438,7 @@ void WASTScalarCodeContainer::generateCompute(int n)
     // Loop 'i' variable is moved by bytes
     BlockInst* compute_block = InstBuilder::genBlockInst();
     compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
-    
+
     // Generates post DSP loop code
     compute_block->pushBackInst(fPostComputeBlockInstructions);
 
@@ -430,9 +446,10 @@ void WASTScalarCodeContainer::generateCompute(int n)
 }
 
 // Vector
-WASTVectorCodeContainer::WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
-                                                 bool internal_memory)
-    : VectorCodeContainer(numInputs, numOutputs), WASTCodeContainer(name, numInputs, numOutputs, out, internal_memory)
+WASTVectorCodeContainer::WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs,
+                                                 ostream* out, bool internal_memory)
+    : VectorCodeContainer(numInputs, numOutputs),
+      WASTCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {
     // No array on stack, move all of them in struct
     gGlobal->gMachineMaxStackSize = -1;

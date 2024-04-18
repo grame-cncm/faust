@@ -24,7 +24,8 @@
 
 #include "dag_instructions_compiler.hh"
 
-// A DAGInstructionsCompilerRust is a DAGInstructionsCompiler that generates FIR code adapted to the Rust target.
+// A DAGInstructionsCompilerRust is a DAGInstructionsCompiler that generates FIR code adapted to the
+// Rust target.
 
 class DAGInstructionsCompilerRust : public DAGInstructionsCompiler {
    public:
@@ -33,9 +34,11 @@ class DAGInstructionsCompilerRust : public DAGInstructionsCompiler {
     void compileMultiSignal(Tree sig) override;
 
    private:
-    StatementInst* generateInitArray(const std::string& vname, Typed::VarType ctype, int delay) override;
+    StatementInst* generateInitArray(const std::string& vname, Typed::VarType ctype,
+                                     int delay) override;
     StatementInst* generateShiftArray(const std::string& vname, int delay) override;
-    StatementInst* generateCopyArray(const std::string& vname_to, const std::string& vname_from, int size) override;
+    StatementInst* generateCopyArray(const std::string& vname_to, const std::string& vname_from,
+                                     int size) override;
 };
 
 #endif  // FAUST_DAG_INSTRUCTIONS_COMPILER_RUST_H

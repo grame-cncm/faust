@@ -40,42 +40,48 @@ static double max4(int a, int b, int c, int d)
 
 /**
  * @brief Computes the value with minimum absolute value among the bounds of an interval
-*/
+ */
 static double minValAbs(interval x)
 {
-    if (std::abs(x.lo()) < std::abs(x.hi()))
+    if (std::abs(x.lo()) < std::abs(x.hi())) {
         return x.lo();
+    }
     return x.hi();
 }
 
 /**
  * @brief Computes the value with maximum absolute value
-*/
+ */
 static double maxValAbs(interval x)
 {
-    if (std::abs(x.lo()) < std::abs(x.hi()))
+    if (std::abs(x.lo()) < std::abs(x.hi())) {
         return x.hi();
+    }
     return x.lo();
 }
 
 /**
- * @brief Computes the direction of the interior of the interval at the minimum absolute value of its bounds
-*/
+ * @brief Computes the direction of the interior of the interval at the minimum absolute value of
+ * its bounds
+ */
 static int signMinValAbs(interval x)
 {
-    if (std::abs(x.lo()) < std::abs(x.hi()))
+    if (std::abs(x.lo()) < std::abs(x.hi())) {
         return 1;
+    }
     return -1;
 }
 
 /**
- * @brief Computes the direction of the interior of the interval at the maximum absolute value of its bounds
-*/
+ * @brief Computes the direction of the interior of the interval at the maximum absolute value of
+ * its bounds
+ */
 static int signMaxValAbs(interval x)
 {
-    if (std::abs(x.lo()) < std::abs(x.hi()))
+    if (std::abs(x.lo()) < std::abs(x.hi())) {
         return -1;
+    }
     return 1;
 }
 
-} // namespace itv
+}  // namespace itv

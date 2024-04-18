@@ -33,8 +33,8 @@
 
 #include <stdio.h>
 
-#include "sigtyperules.hh"
 #include "sharing.hh"
+#include "sigtyperules.hh"
 
 using namespace std;
 
@@ -61,23 +61,26 @@ static void sharingAnnotation(int vctxt, Tree sig, Tree key)
     if (count > 0) {
         // it is not our first visit
         setSharingCount(sig, key, count + 1);
-        
+
     } else {
         // it is our first visit,
         int v = getCertifiedSigType(sig)->variability();
-        
+
         // check "time sharing" cases
         if (v < vctxt) {
-            setSharingCount(sig, key, 2);  // time sharing occurence : slower expression in faster context
+            setSharingCount(sig, key,
+                            2);  // time sharing occurence : slower expression in faster context
         } else {
             setSharingCount(sig, key, 1);  // regular occurence
         }
-        
+
         // Annotate the sub signals
         tvec subsig;
         int  n = getSubSignals(sig, subsig);
         if (n > 0 && !isSigGen(sig)) {
-            for (int i = 0; i < n; i++) sharingAnnotation(v, subsig[i], key);
+            for (int i = 0; i < n; i++) {
+                sharingAnnotation(v, subsig[i], key);
+            }
         }
     }
 }

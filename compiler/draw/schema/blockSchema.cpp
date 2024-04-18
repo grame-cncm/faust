@@ -38,8 +38,8 @@ static double quantize(int n)
  * Computes the size of the box according to the length of the text
  * and the maximum number of ports.
  */
-schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const string& text, const string& color,
-                        const string& link)
+schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const string& text,
+                        const string& color, const string& link)
 {
     // determine the optimal size of the box
     double minimal = 3 * dWire;
@@ -55,13 +55,17 @@ schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const string&
  * The length of the text as well as th number of inputs and outputs
  * are used to compute the size of the blockSchema
  */
-blockSchema::blockSchema(unsigned int inputs, unsigned int outputs, double width, double height, const string& text,
-                         const string& color, const string& link)
+blockSchema::blockSchema(unsigned int inputs, unsigned int outputs, double width, double height,
+                         const string& text, const string& color, const string& link)
 
     : schema(inputs, outputs, width, height), fText(text), fColor(color), fLink(link)
 {
-    for (unsigned int i = 0; i < inputs; i++) fInputPoint.push_back(point(0, 0));
-    for (unsigned int i = 0; i < outputs; i++) fOutputPoint.push_back(point(0, 0));
+    for (unsigned int i = 0; i < inputs; i++) {
+        fInputPoint.push_back(point(0, 0));
+    }
+    for (unsigned int i = 0; i < outputs; i++) {
+        fOutputPoint.push_back(point(0, 0));
+    }
 }
 
 /**
@@ -170,7 +174,8 @@ void blockSchema::draw(device& dev)
  */
 void blockSchema::drawRectangle(device& dev)
 {
-    dev.rect(x() + dHorz, y() + dVert, width() - 2 * dHorz, height() - 2 * dVert, fColor.c_str(), fLink.c_str());
+    dev.rect(x() + dHorz, y() + dVert, width() - 2 * dHorz, height() - 2 * dVert, fColor.c_str(),
+             fLink.c_str());
 }
 
 /**

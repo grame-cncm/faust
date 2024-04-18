@@ -1,12 +1,11 @@
 #pragma once
 
 #include <limits.h>
+#include <algorithm>
 #include <iostream>
 #include <utility>
-#include <algorithm>
 
-namespace itv
-{
+namespace itv {
 //==============================================================================
 // Definitions of signed and unsigned intervals for bitwise operations
 //==============================================================================
@@ -41,7 +40,9 @@ bool isEmpty(const BitwiseInterval<T>& i)
 template <typename T>
 bool operator==(const BitwiseInterval<T>& a, const BitwiseInterval<T>& b)
 {
-    if (isEmpty(a)) return isEmpty(b);
+    if (isEmpty(a)) {
+        return isEmpty(b);
+    }
     return (a.lo == b.lo) && (a.hi == b.hi);
 }
 
@@ -49,7 +50,9 @@ bool operator==(const BitwiseInterval<T>& a, const BitwiseInterval<T>& b)
 template <typename T>
 bool operator!=(const BitwiseInterval<T>& a, const BitwiseInterval<T>& b)
 {
-    if (isEmpty(a)) return !isEmpty(b);
+    if (isEmpty(a)) {
+        return !isEmpty(b);
+    }
     return (a.lo != b.lo) || (a.hi != b.hi);
 }
 
@@ -59,13 +62,17 @@ bool operator!=(const BitwiseInterval<T>& a, const BitwiseInterval<T>& b)
 
 inline std::ostream& operator<<(std::ostream& os, const UInterval& x)
 {
-    if (isEmpty(x)) return os << "U[]";
+    if (isEmpty(x)) {
+        return os << "U[]";
+    }
     return os << "U[" << x.lo << ".." << x.hi << "]";
 }
 
 inline std::ostream& operator<<(std::ostream& os, const SInterval& x)
 {
-    if (isEmpty(x)) return os << "S[]";
+    if (isEmpty(x)) {
+        return os << "S[]";
+    }
     return os << "S[" << x.lo << ".." << x.hi << "]";
 }
 
@@ -77,8 +84,12 @@ inline std::ostream& operator<<(std::ostream& os, const SInterval& x)
 template <typename T>
 BitwiseInterval<T> operator+(const BitwiseInterval<T>& a, const BitwiseInterval<T>& b)
 {
-    if (isEmpty(a)) return b;
-    if (isEmpty(b)) return a;
+    if (isEmpty(a)) {
+        return b;
+    }
+    if (isEmpty(b)) {
+        return a;
+    }
     return {std::min(a.lo, b.lo), std::max(a.hi, b.hi)};
 }
 

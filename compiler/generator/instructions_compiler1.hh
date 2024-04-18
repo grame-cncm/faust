@@ -28,13 +28,13 @@
 
 class InstructionsCompiler1 : public InstructionsCompiler {
    public:
-    InstructionsCompiler1(CodeContainer* container): InstructionsCompiler(container)
-    {}
+    InstructionsCompiler1(CodeContainer* container) : InstructionsCompiler(container) {}
 
    private:
     StatementInst* generateInitArray(const std::string& vname, Typed::VarType ctype, int delay);
     StatementInst* generateShiftArray(const std::string& vname, int delay);
-    StatementInst* generateCopyArray(const std::string& vname_to, const std::string& vname_from, int size);
+    StatementInst* generateCopyArray(const std::string& vname_to, const std::string& vname_from,
+                                     int size);
 };
 
 #endif

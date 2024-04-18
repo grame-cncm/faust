@@ -20,18 +20,15 @@
  ************************************************************************/
 
 #include "xtended.hh"
-#include "floats.hh"
 #include "code_container.hh"
+#include "floats.hh"
 
 using namespace std;
 
-ValueInst* xtended::generateFun(CodeContainer* container,
-                                const string& fun_name,
-                                const Values& args,
-                                ::Type result,
-                                ConstTypes types)
+ValueInst* xtended::generateFun(CodeContainer* container, const string& fun_name,
+                                const Values& args, ::Type result, ConstTypes types)
 {
-    Typed::VarType rtype = convert2FIRType(result->nature());
+    Typed::VarType         rtype = convert2FIRType(result->nature());
     vector<Typed::VarType> atypes;
     for (size_t i = 0; i < types.size(); i++) {
         atypes.push_back(convert2FIRType(types[i]->nature()));

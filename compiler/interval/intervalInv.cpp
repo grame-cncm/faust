@@ -39,7 +39,7 @@ interval interval_algebra::Inv(const interval& x)
     }
 
     int    sign = signMaxValAbs(x);
-    double v    = maxValAbs(x);  // precision is computed at the bound with the highest absolute value
+    double v = maxValAbs(x);  // precision is computed at the bound with the highest absolute value
 
     // if v is infinite, this means that images of interval elements will get closer and closer
     // but since we're writing the fixed-point numbers on at most 31 bits of MSB

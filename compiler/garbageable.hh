@@ -32,10 +32,8 @@
 
 class LIBFAUST_API Garbageable {
    public:
-    Garbageable()
-    {}
-    virtual ~Garbageable()
-    {}
+    Garbageable() {}
+    virtual ~Garbageable() {}
 
     void* operator new(size_t size);
     void* operator new[](size_t size);

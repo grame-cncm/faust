@@ -50,7 +50,8 @@ schema* makeSplitSchema(schema* s1, schema* s2)
  * private in order to enforce the usage of makeSplitSchema
  */
 splitSchema::splitSchema(schema* s1, schema* s2, double hgap)
-    : schema(s1->inputs(), s2->outputs(), s1->width() + s2->width() + hgap, max(s1->height(), s2->height())),
+    : schema(s1->inputs(), s2->outputs(), s1->width() + s2->width() + hgap,
+             max(s1->height(), s2->height())),
       fSchema1(s1),
       fSchema2(s2),
       fHorzGap(hgap)

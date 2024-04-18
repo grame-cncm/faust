@@ -31,14 +31,14 @@ class Exp10Prim : public xtended {
 
     virtual unsigned int arity() override { return 1; }
 
-    virtual bool needCache() override { return true; } 
+    virtual bool needCache() override { return true; }
 
     virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == arity());
-        Type t = args[0];
+        Type     t = args[0];
         interval i = t->getInterval();
-        return castInterval(floatCast(t), gAlgebra.Exp(gAlgebra.Mul(i, interval(10,10,0))));
+        return castInterval(floatCast(t), gAlgebra.Exp(gAlgebra.Mul(i, interval(10, 10, 0))));
     }
 
     virtual int inferSigOrder(const std::vector<int>& args) override
@@ -51,7 +51,7 @@ class Exp10Prim : public xtended {
     {
         num n;
         faustassert(args.size() == arity());
-    
+
         // exp10(log10(sig)) ==> sig
         xtended* xt = (xtended*)getUserData(args[0]);
         if (xt == gGlobal->gLog10Prim) {
@@ -63,7 +63,8 @@ class Exp10Prim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -71,7 +72,8 @@ class Exp10Prim : public xtended {
         return generateFun(container, subst("exp10$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -79,15 +81,16 @@ class Exp10Prim : public xtended {
         return subst("exp10$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("e10^{$0}", args[0]);
     }
-    
-    Tree diff(const std::vector<Tree> &args) override
+
+    Tree diff(const std::vector<Tree>& args) override
     {
         // (10^x)' = 10^x * ln(10)
         return sigMul(sigExp10(args[0]), sigLog(sigReal(10.0)));

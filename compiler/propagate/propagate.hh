@@ -23,8 +23,8 @@
 #define _PROPAGATE_
 
 #include <vector>
-#include "signals.hh"
 #include "boxes.hh"
+#include "signals.hh"
 
 /**
  * makeSigInputList : create a list of input signals

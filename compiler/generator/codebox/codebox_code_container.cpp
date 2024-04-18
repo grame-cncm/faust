@@ -43,14 +43,18 @@ using namespace std;
  - gOneSampleControl mode is used, 'control' function is generated as well as 'update' function
  which call 'control' only when needed (that is when as least one parameter changes)
  - 'compute' returns the list of audio outputs (and possibly additional audio outputs for bargraph)
- - MIDI support: https://rnbo.cycling74.com/learn/midi-in-rnbo, done in the architecture file, by creating MIDI messages specific
-handling objects (line 'ctlin/ctlout') and adding 'midiin/midiout' global objects in the main patch
- - polyphonic mode support: https://rnbo.cycling74.com/learn/polyphony-and-voice-management-in-rnbo, done in architecture file,
- creating the 'notein' and decoding MIDI messaged to use the freq/gain/gate parameters
- - bargraph values cannot directly be send as control values. So additional audio outputs are created for them,
-will be sampled (using 'snapshot~' and 'change') and be connected to 'param' objects, like input controllers.
- - in gOneSampleControl mode, inputXX/outputXX are added in the DSP struct. Here they are generated as local variables at the begining of 'compute'.
- 
+ - MIDI support: https://rnbo.cycling74.com/learn/midi-in-rnbo, done in the architecture file, by
+creating MIDI messages specific handling objects (line 'ctlin/ctlout') and adding 'midiin/midiout'
+global objects in the main patch
+ - polyphonic mode support: https://rnbo.cycling74.com/learn/polyphony-and-voice-management-in-rnbo,
+done in architecture file, creating the 'notein' and decoding MIDI messaged to use the
+freq/gain/gate parameters
+ - bargraph values cannot directly be send as control values. So additional audio outputs are
+created for them, will be sampled (using 'snapshot~' and 'change') and be connected to 'param'
+objects, like input controllers.
+ - in gOneSampleControl mode, inputXX/outputXX are added in the DSP struct. Here they are generated
+as local variables at the begining of 'compute'.
+
  TODO:
  - soundfile primitive support: https://rnbo.cycling74.com/learn/audio-files-in-rnbo
  */
@@ -61,28 +65,32 @@ dsp_factory_base* CodeboxCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        "");
 }
 
-CodeboxCodeContainer::CodeboxCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
+CodeboxCodeContainer::CodeboxCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                                           std::ostream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
     fKlassName = name;
-    fOut = out;
-    
+    fOut       = out;
+
     // Allocate one static visitor to be shared by main module and sub containers
     if (!gGlobal->gCodeboxVisitor) {
         gGlobal->gCodeboxVisitor = new CodeboxInstVisitor(out, name);
     }
 }
 
-CodeContainer* CodeboxCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+CodeContainer* CodeboxCodeContainer::createScalarContainer(const string& name,
+                                                           int           sub_container_type)
 {
     return new CodeboxScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
 }
 
-CodeContainer* CodeboxCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+CodeContainer* CodeboxCodeContainer::createContainer(const string& name, int numInputs,
+                                                     int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -112,7 +120,7 @@ CodeContainer* CodeboxCodeContainer::createContainer(const string& name, int num
 void CodeboxCodeContainer::produceClass()
 {
     int n = 0;
-    
+
     // Print header
     *fOut << "// Code generated with Faust version " << FAUSTVERSION << endl;
     *fOut << "// Compilation options: ";
@@ -120,21 +128,21 @@ void CodeboxCodeContainer::produceClass()
     gGlobal->printCompilationOptions(stream);
     *fOut << stream.str();
     tab(n, *fOut);
-    
+
     // Additional functions'
     *fOut << "// Additional functions";
     tab(n, *fOut);
-    
+
     // Params
     *fOut << "// Params";
     tab(n, *fOut);
-    
+
     CodeboxParamsVisitor shortnames1(fOut);
     // First pass to build shortnames
     generateUserInterface(&shortnames1);
     // Second pass to generate
     generateUserInterface(&shortnames1);
-    
+
     // Possibly merge sub containers (with an empty 'produceInternal' method)
     mergeSubContainers();
 
@@ -146,7 +154,7 @@ void CodeboxCodeContainer::produceClass()
             it->accept(gGlobal->gCodeboxVisitor);
         }
     }
-    
+
     // Fields
     *fOut << "// Fields";
     tab(n, *fOut);
@@ -162,17 +170,19 @@ void CodeboxCodeContainer::produceClass()
     // Control
     *fOut << "@state fUpdated : Int = 0;";
     tab(n, *fOut);
-    
+
     // For control computation
     if (fIntControl->fCurIndex > 0) {
         *fOut << "@state iControl_cb = new FixedIntArray(" << fIntControl->fCurIndex << ");";
         tab(n, *fOut);
     }
     if (fRealControl->fCurIndex > 0) {
-        *fOut << "@state fControl_cb = new " << gGlobal->gCodeboxVisitor->getTypeManager()->fTypeDirectTable[itfloatptr()] << "(" << fRealControl->fCurIndex << ");";
+        *fOut << "@state fControl_cb = new "
+              << gGlobal->gCodeboxVisitor->getTypeManager()->fTypeDirectTable[itfloatptr()] << "("
+              << fRealControl->fCurIndex << ");";
     }
     tab(n, *fOut);
-  
+
     *fOut << "// Init";
     tab(n, *fOut);
     *fOut << "function dspsetup() {";
@@ -180,7 +190,7 @@ void CodeboxCodeContainer::produceClass()
     *fOut << "fUpdated = true;";
     tab(n + 1, *fOut);
     gGlobal->gCodeboxVisitor->Tab(n + 1);
-    
+
     CodeboxInitArraysVisitor initializer(fOut, n + 1);
     generateDeclarations(&initializer);
     // Generate global variables initialisation
@@ -189,25 +199,27 @@ void CodeboxCodeContainer::produceClass()
             it->accept(&initializer);
         }
     }
-    
+
     // classInit
-    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and
+    // 'fill' function call
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gCodeboxVisitor);
-    
+
     // instanceResetUserInterface
     generateResetUserInterface(gGlobal->gCodeboxVisitor);
-    
+
     // instanceClear
     generateClear(gGlobal->gCodeboxVisitor);
-  
+
     // instanceConstants
-    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and
+    // 'fill' function call
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gCodeboxVisitor);
- 
+
     back(1, *fOut);
     *fOut << "}";
     tab(n, *fOut);
-    
+
     // Control
     *fOut << "// Control";
     tab(n, *fOut);
@@ -219,7 +231,7 @@ void CodeboxCodeContainer::produceClass()
     back(1, *fOut);
     *fOut << "}";
     tab(n, *fOut);
-    
+
     // Update parameters
     *fOut << "// Update parameters";
     tab(n, *fOut);
@@ -232,8 +244,8 @@ void CodeboxCodeContainer::produceClass()
     // Then generate the list of args
     shortnames2.printArgs();
     *fOut << ") {";
-    tab(n+1, *fOut);
-    CodeboxUpdateParamsVisitor params(fOut, n+1);
+    tab(n + 1, *fOut);
+    CodeboxUpdateParamsVisitor params(fOut, n + 1);
     // First pass to build shortnames
     generateUserInterface(&params);
     // Second pass to print the update lines
@@ -242,10 +254,10 @@ void CodeboxCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "}";
     tab(n, *fOut);
-    
+
     // Compute
     generateCompute(n);
-    
+
     // Update parameters
     *fOut << "// Update parameters";
     tab(n, *fOut);
@@ -253,14 +265,16 @@ void CodeboxCodeContainer::produceClass()
     shortnames2.printArgsCall();
     *fOut << ");";
     tab(n, *fOut);
-    
+
     // Compute one frame
     *fOut << "// Compute one frame";
     tab(n, *fOut);
     *fOut << "outputs = compute(";
     for (int in = 0; in < fNumInputs; in++) {
-        *fOut << "in" << std::to_string(in+1);
-        if (in < fNumInputs - 1) *fOut << ",";
+        *fOut << "in" << std::to_string(in + 1);
+        if (in < fNumInputs - 1) {
+            *fOut << ",";
+        }
     }
     *fOut << ");";
     tab(n, *fOut);
@@ -268,16 +282,15 @@ void CodeboxCodeContainer::produceClass()
     tab(n, *fOut);
     int total_outputs = fNumOutputs + fBargraph.fVariables.size();
     for (int out = 0; out < total_outputs; out++) {
-        *fOut << "out" << std::to_string(out+1) << " = outputs[" << std::to_string(out) << "];";
+        *fOut << "out" << std::to_string(out + 1) << " = outputs[" << std::to_string(out) << "];";
         tab(n, *fOut);
     }
 }
 
 // Scalar
-CodeboxScalarCodeContainer::CodeboxScalarCodeContainer(const string& name,
-                                                    int numInputs, int numOutputs,
-                                                    std::ostream* out,
-                                                    int sub_container_type)
+CodeboxScalarCodeContainer::CodeboxScalarCodeContainer(const string& name, int numInputs,
+                                                       int numOutputs, std::ostream* out,
+                                                       int sub_container_type)
     : CodeboxCodeContainer(name, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;
@@ -292,32 +305,35 @@ void CodeboxScalarCodeContainer::generateCompute(int n)
     *fOut << "function compute(";
     for (int in = 0; in < fNumInputs; in++) {
         *fOut << "i" << std::to_string(in);
-        if (in < fNumInputs - 1) *fOut << ",";
+        if (in < fNumInputs - 1) {
+            *fOut << ",";
+        }
     }
     *fOut << ") {";
     tab(n + 1, *fOut);
-    
+
     // Declare local variables for all inputs args
     for (int in = 0; in < fNumInputs; in++) {
-        *fOut << "let input" << std::to_string(in) << "_cb : number = i" << std::to_string(in) << ";";
+        *fOut << "let input" << std::to_string(in) << "_cb : number = i" << std::to_string(in)
+              << ";";
         tab(n + 1, *fOut);
     }
-    
+
     // Declare local variables for all outputs
     for (int out = 0; out < fNumOutputs; out++) {
         *fOut << "let output" << std::to_string(out) << "_cb : number = 0;";
         tab(n + 1, *fOut);
     }
-  
+
     gGlobal->gCodeboxVisitor->Tab(n + 1);
-    
+
     // Generates one sample block
     BlockInst* block = fCurLoop->generateOneSample();
     block->accept(gGlobal->gCodeboxVisitor);
 
     // Generates post compute
     generatePostComputeBlock(gGlobal->gCodeboxVisitor);
-    
+
     *fOut << "return [";
     // Total audio outputs
     int total_outputs = fNumOutputs + fBargraph.fVariables.size();
@@ -329,11 +345,12 @@ void CodeboxScalarCodeContainer::generateCompute(int n)
             // Then bargraph as additional audio signals
             *fOut << fBargraph.fVariables[out - fNumOutputs];
         }
-        if (out < total_outputs - 1) *fOut << ",";
+        if (out < total_outputs - 1) {
+            *fOut << ",";
+        }
     }
     *fOut << "];";
     tab(n, *fOut);
     *fOut << "}";
     tab(n, *fOut);
 }
-

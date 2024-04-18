@@ -26,9 +26,9 @@
 #include <string>
 #include <vector>
 
-#include "faust/gui/MapUI.h"
-#include "faust/gui/JSONControl.h"
 #include "faust/export.h"
+#include "faust/gui/JSONControl.h"
+#include "faust/gui/MapUI.h"
 
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
@@ -54,16 +54,20 @@ struct WasmBinaryReader {
         memcpy(input, code.c_str(), code.size());
         size             = code.size();
         data_segment_pos = -1;
-        if (debug) std::cerr << "WasmBinaryReader size : " << size << std::endl;
+        if (debug) {
+            std::cerr << "WasmBinaryReader size : " << size << std::endl;
+        }
     }
-    
+
     ~WasmBinaryReader() { free(input); }
 
     bool more() { return pos < size; }
 
     uint8_t getInt8()
     {
-        if (!more()) throw faustexception("ERROR : WasmBinaryReader, unexpected end of input\n");
+        if (!more()) {
+            throw faustexception("ERROR : WasmBinaryReader, unexpected end of input\n");
+        }
         return input[pos++];
     }
 
@@ -90,29 +94,39 @@ struct WasmBinaryReader {
 
     uint32_t getU32LEB()
     {
-        if (debug) std::cerr << "<==" << std::endl;
+        if (debug) {
+            std::cerr << "<==" << std::endl;
+        }
         U32LEB ret;
         ret.read([&]() { return getInt8(); });
-        if (debug) std::cerr << "getU32LEB: " << ret.value << " ==>" << std::endl;
+        if (debug) {
+            std::cerr << "getU32LEB: " << ret.value << " ==>" << std::endl;
+        }
         return ret.value;
     }
 
     void verifyInt8(int8_t x)
     {
         int8_t y = getInt8();
-        if (x != y) throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
+        if (x != y) {
+            throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
+        }
     }
 
     void verifyInt16(int16_t x)
     {
         int16_t y = getInt16();
-        if (x != y) throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
+        if (x != y) {
+            throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
+        }
     }
 
     void verifyInt32(int32_t x)
     {
         int32_t y = getInt32();
-        if (x != y) throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
+        if (x != y) {
+            throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
+        }
     }
 
     void read()
@@ -124,7 +138,9 @@ struct WasmBinaryReader {
             size_t   sectionCode_start = pos;
             uint32_t sectionCode       = getU32LEB();
             uint32_t payloadLen        = getU32LEB();
-            if (pos + payloadLen > size) faustexception("ERROR : WasmBinaryReader, section extends beyond end of input\n");
+            if (pos + payloadLen > size) {
+                faustexception("ERROR : WasmBinaryReader, section extends beyond end of input\n");
+            }
             auto oldPos = pos;
 
             switch (sectionCode) {
@@ -157,8 +173,8 @@ struct WasmBinaryReader {
                     break;
                 case BinaryConsts::Section::Data: {
                     readDataSegments();
-                    // Keep 'data_segment_pos' with is actually the new module end (so remove the last 'data segment'
-                    // section)
+                    // Keep 'data_segment_pos' with is actually the new module end (so remove the
+                    // last 'data segment' section)
                     data_segment_pos = sectionCode_start;
                     break;
                 }
@@ -176,59 +192,81 @@ struct WasmBinaryReader {
 
     void readHeader()
     {
-        if (debug) std::cerr << "== readHeader" << std::endl;
+        if (debug) {
+            std::cerr << "== readHeader" << std::endl;
+        }
         verifyInt32(BinaryConsts::Magic);
         verifyInt32(BinaryConsts::Version);
     }
 
     void readStart()
     {
-        if (debug) std::cerr << "== readStart" << std::endl;
+        if (debug) {
+            std::cerr << "== readStart" << std::endl;
+        }
     }
 
     void readMemory()
     {
-        if (debug) std::cerr << "== readMemory" << std::endl;
+        if (debug) {
+            std::cerr << "== readMemory" << std::endl;
+        }
     }
 
     void readSignatures()
     {
-        if (debug) std::cerr << "== readSignatures" << std::endl;
+        if (debug) {
+            std::cerr << "== readSignatures" << std::endl;
+        }
     }
 
     void readImports()
     {
-        if (debug) std::cerr << "== readImports" << std::endl;
+        if (debug) {
+            std::cerr << "== readImports" << std::endl;
+        }
     }
 
     void readFunctionSignatures()
     {
-        if (debug) std::cerr << "== readFunctionSignatures" << std::endl;
+        if (debug) {
+            std::cerr << "== readFunctionSignatures" << std::endl;
+        }
     }
 
     void readFunctions()
     {
-        if (debug) std::cerr << "== readFunctions" << std::endl;
+        if (debug) {
+            std::cerr << "== readFunctions" << std::endl;
+        }
     }
 
     void readExports()
     {
-        if (debug) std::cerr << "== readExports" << std::endl;
+        if (debug) {
+            std::cerr << "== readExports" << std::endl;
+        }
     }
 
     void readTableElements()
     {
-        if (debug) std::cerr << "== readTableElements" << std::endl;
+        if (debug) {
+            std::cerr << "== readTableElements" << std::endl;
+        }
     }
 
     void readGlobals()
     {
-        if (debug) std::cerr << "== readGlobals" << std::endl;
+        if (debug) {
+            std::cerr << "== readGlobals" << std::endl;
+        }
     }
 
     void readDataSegments()
     {
-        if (debug) std::cerr << "== readDataSegments" << std::endl;
+        if (debug) {
+            std::cerr << "== readDataSegments" << std::endl;
+        }
         auto num = getU32LEB();
         for (size_t i = 0; i < num; i++) {
             auto memoryIndex = getU32LEB();
@@ -236,8 +274,9 @@ struct WasmBinaryReader {
                 faustexception("ERROR : WasmBinaryReader, bad memory index, must be 0\n");
             }
 
-            // Offset defined as an 'initializer expression' is 0 (see WASMInstVisitor::generateJSON)
-            // *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(0) << int8_t(BinaryConsts::End);
+            // Offset defined as an 'initializer expression' is 0 (see
+            // WASMInstVisitor::generateJSON) *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(0)
+            // << int8_t(BinaryConsts::End);
             pos += 3;  // move 3 int8_t
 
             // read JSON size
@@ -247,18 +286,24 @@ struct WasmBinaryReader {
             for (size_t j = 0; j < jsize; j++) {
                 json += char(getInt8());
             }
-            if (debug) std::cerr << "JSON : " << json << std::endl;
+            if (debug) {
+                std::cerr << "JSON : " << json << std::endl;
+            }
         }
     }
 
     void readFunctionTableDeclaration()
     {
-        if (debug) std::cerr << "== readFunctionTableDeclaration" << std::endl;
+        if (debug) {
+            std::cerr << "== readFunctionTableDeclaration" << std::endl;
+        }
     }
 
     void readUserSection(size_t payloadLen)
     {
-        if (debug) std::cerr << "== readUserSection" << std::endl;
+        if (debug) {
+            std::cerr << "== readUserSection" << std::endl;
+        }
     }
 };
 
@@ -270,8 +315,8 @@ class MidiUI;
 class LIBFAUST_API wasm_dsp : public dsp, public JSONControl {
    private:
     wasm_dsp_factory* fFactory;
-    int               fDSP;       // Index of wasm DSP memory (needed with AUDIO_WORKLET)
-    
+    int               fDSP;  // Index of wasm DSP memory (needed with AUDIO_WORKLET)
+
    public:
     wasm_dsp() : fFactory(nullptr), fDSP(-1) {}
     wasm_dsp(wasm_dsp_factory* factory);
@@ -302,32 +347,31 @@ class LIBFAUST_API wasm_dsp : public dsp, public JSONControl {
     virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
     virtual void computeJS(int count, uintptr_t inputs, uintptr_t outputs);
-    
-    virtual void setParamValue(const std::string& path, FAUSTFLOAT value);
-    
-    virtual FAUSTFLOAT getParamValue(const std::string& path);
 
+    virtual void setParamValue(const std::string& path, FAUSTFLOAT value);
+
+    virtual FAUSTFLOAT getParamValue(const std::string& path);
 };
 
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
 class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable {
     friend class wasm_dsp;
+
    protected:
-    dsp_factory_base*   fFactory;
-    JSONUIDecoderBase*  fDecoder;
-    int                 fInstance; // Index of wasm DSP instance
-    MapUI               fMapUI;
-   
-/*
-#ifdef EMCC
-    SoundUI* fSoundUI;
-#endif
-*/
+    dsp_factory_base*  fFactory;
+    JSONUIDecoderBase* fDecoder;
+    int                fInstance;  // Index of wasm DSP instance
+    MapUI              fMapUI;
+
+    /*
+    #ifdef EMCC
+        SoundUI* fSoundUI;
+    #endif
+    */
 
    public:
-    wasm_dsp_factory():fFactory(nullptr), fDecoder(nullptr), fInstance(0)
-    {}
+    wasm_dsp_factory() : fFactory(nullptr), fDecoder(nullptr), fInstance(0) {}
     wasm_dsp_factory(dsp_factory_base* factory);
     wasm_dsp_factory(int instance, const std::string& json);
 
@@ -344,14 +388,14 @@ class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable
     std::string              getCompileOptions();
     std::vector<std::string> getLibraryList();
     std::vector<std::string> getIncludePathnames();
-    
+
     std::vector<std::string> getWarningMessages();
 
     JSONUIDecoderBase* getDecoder() { return fDecoder; }
 
     wasm_dsp* createDSPInstance();
-    void deleteDSPInstance(wasm_dsp* dsp);
-  
+    void      deleteDSPInstance(wasm_dsp* dsp);
+
     void                setMemoryManager(dsp_memory_manager* manager);
     dsp_memory_manager* getMemoryManager();
 
@@ -360,16 +404,17 @@ class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable
 
     std::string getBinaryCode();
 
-    static wasm_dsp_factory* readWasmDSPFactoryFromMachineFile2(const std::string& machine_code_path);
+    static wasm_dsp_factory* readWasmDSPFactoryFromMachineFile2(
+        const std::string& machine_code_path);
 
     static wasm_dsp_factory* readWasmDSPFactoryFromMachine2(const std::string& machine_code);
-    
+
     static wasm_dsp_factory* createWasmDSPFactory(int instance, const std::string& json);
-    
+
     static bool deleteWasmDSPFactory2(wasm_dsp_factory* factory);
-    
+
     static std::string extractJSON(const std::string& code);
-   
+
     static std::string gErrorMessage;
 
     static const std::string& getErrorMessage();
@@ -381,12 +426,15 @@ LIBFAUST_API bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
 
 LIBFAUST_API void deleteAllWasmDSPFactories();
 
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code, std::string& error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code,
+                                                             std::string&       error_msg);
 
 LIBFAUST_API std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
 
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(
+    const std::string& machine_code_path, std::string& error_msg);
 
-LIBFAUST_API void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
+LIBFAUST_API void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory*  factory,
+                                                   const std::string& machine_code_path);
 
 #endif

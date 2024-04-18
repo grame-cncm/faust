@@ -23,8 +23,8 @@
 #include <signals.hh>
 #include <sstream>
 
-#include "global.hh"
 #include "exception.hh"
+#include "global.hh"
 
 using namespace std;
 
@@ -42,7 +42,8 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     int     i;
     int64_t i64;
     double  r;
-    Tree    size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
+    Tree size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name,
+        file, sf;
 
     if (getUserData(sig)) {
         for (int i1 = 0; i1 < sig->arity(); i1++) {
@@ -233,7 +234,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         vsigs.push_back(x);
         return 1;
     }
-    
+
     else {
         cerr << "ASSERT : getSubSignals unrecognized signal : " << *sig << endl;
         faustassert(false);

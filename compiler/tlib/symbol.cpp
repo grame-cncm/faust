@@ -68,7 +68,9 @@ Symbol* Symbol::get(const char* rawstr)
     int          bckt = hsh % kHashTableSize;
     Symbol*      item = gSymbolTable[bckt];
 
-    while (item && !item->equiv(hsh, str.c_str())) item = item->fNext;
+    while (item && !item->equiv(hsh, str.c_str())) {
+        item = item->fNext;
+    }
     Symbol* r = item ? item : gSymbolTable[bckt] = new Symbol(str, hsh, gSymbolTable[bckt]);
 
     return r;
@@ -86,14 +88,15 @@ bool Symbol::isnew(const char* str)
     int          bckt = hsh % kHashTableSize;
     Symbol*      item = gSymbolTable[bckt];
 
-    while (item && !item->equiv(hsh, str)) item = item->fNext;
+    while (item && !item->equiv(hsh, str)) {
+        item = item->fNext;
+    }
     return item == 0;
 }
 
 /**
- * Creates a new symbol with a name obtained by concatenating the \p str prefix with a number in order to make it unique.
- * \param str the prefix of the name
- * \return a symbol of name \p prefix++n
+ * Creates a new symbol with a name obtained by concatenating the \p str prefix with a number in
+ * order to make it unique. \param str the prefix of the name \return a symbol of name \p prefix++n
  */
 
 Symbol* Symbol::prefix(const char* str)
@@ -102,7 +105,9 @@ Symbol* Symbol::prefix(const char* str)
 
     for (int n = 0; n < 10000; n++) {
         snprintf(name, 256, "%s%d", str, gPrefixCounters[str]++);
-        if (isnew(name)) return get(name);
+        if (isnew(name)) {
+            return get(name);
+        }
     }
     faustassert(false);
     return get("UNIQUEOVERFLOW");
@@ -133,7 +138,9 @@ unsigned int Symbol::calcHashKey(const char* str)
 {
     unsigned int h = 0;
 
-    while (*str) h = (h << 1) ^ (h >> 20) ^ (*str++);
+    while (*str) {
+        h = (h << 1) ^ (h >> 20) ^ (*str++);
+    }
     return h;
 }
 

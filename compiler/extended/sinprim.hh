@@ -37,10 +37,12 @@ class SinPrim : public xtended {
     {
         faustassert(args.size() == 1);
 
-        Type t = args[0];
+        Type     t = args[0];
         interval i = t->getInterval();
 
-        return castInterval(floatCast(t), gAlgebra.Sin(i)); // to replace by sin(pi*i) once the new version of the interval library is plugged in
+        return castInterval(floatCast(t),
+                            gAlgebra.Sin(i));  // to replace by sin(pi*i) once the new version of
+                                               // the interval library is plugged in
     }
 
     virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
@@ -54,13 +56,13 @@ class SinPrim : public xtended {
             if (comparable(x, 0)) {  // sin(0)
                 return tree(0.0);    // sin(0) = 0
             } else if (comparable(x, 2 * M_PI)) {
-                return tree(0.0);    // sin(2.PI) = 0
+                return tree(0.0);  // sin(2.PI) = 0
             } else if (comparable(x, M_PI)) {
-                return tree(0.0);    // sin(PI) = 0
+                return tree(0.0);  // sin(PI) = 0
             } else if (comparable(x, M_PI / 2)) {
-                return tree(1.0);    // sin(PI/2) = 1
+                return tree(1.0);  // sin(PI/2) = 1
             } else if (comparable(x, 3 * M_PI / 2)) {
-                return tree(-1.0);   // sin(3*PI/2) = -1
+                return tree(-1.0);  // sin(3*PI/2) = -1
             } else {
                 return tree(sin(x));  // sin(x)
             }
@@ -69,7 +71,8 @@ class SinPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -77,7 +80,8 @@ class SinPrim : public xtended {
         return generateFun(container, subst("sin$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -85,18 +89,18 @@ class SinPrim : public xtended {
         return subst("sin$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("\\sin\\left($0\\right)", args[0]);
     }
-    
+
     virtual Tree diff(const std::vector<Tree>& args) override
     {
         // sin(x)' = cos(x)
         return sigCos(args[0]);
     }
-    
 };

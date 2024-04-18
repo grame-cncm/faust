@@ -35,16 +35,18 @@ dsp_factory_base* CSharpCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        "");
 }
 
-CodeContainer* CSharpCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+CodeContainer* CSharpCodeContainer::createScalarContainer(const string& name,
+                                                          int           sub_container_type)
 {
     return new CSharpScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
-CodeContainer* CSharpCodeContainer::createContainer(const string& name, const string& super, int numInputs,
-                                                  int numOutputs, ostream* dst)
+CodeContainer* CSharpCodeContainer::createContainer(const string& name, const string& super,
+                                                    int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -72,9 +74,9 @@ CodeContainer* CSharpCodeContainer::createContainer(const string& name, const st
 }
 
 // Scalar
-CSharpScalarCodeContainer::CSharpScalarCodeContainer(const string& name, const string& super, int numInputs,
-                                                   int numOutputs,
-                                                 std::ostream* out, int sub_container_type)
+CSharpScalarCodeContainer::CSharpScalarCodeContainer(const string& name, const string& super,
+                                                     int numInputs, int numOutputs,
+                                                     std::ostream* out, int sub_container_type)
     : CSharpCodeContainer(name, super, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;
@@ -127,10 +129,12 @@ void CSharpCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
-        *fOut << "public void fill" << fKlassName << subst("(int $0, int[] " + fTableName + ") { ", counter);
+        *fOut << "public void fill" << fKlassName
+              << subst("(int $0, int[] " + fTableName + ") { ", counter);
     } else {
         tab(n + 1, *fOut);
-        *fOut << "public void fill" << fKlassName << subst("(int $0, $1[] " + fTableName + ") {", counter, ifloat());
+        *fOut << "public void fill" << fKlassName
+              << subst("(int $0, $1[] " + fTableName + ") {", counter, ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
@@ -145,8 +149,7 @@ void CSharpCodeContainer::produceInternal()
 
     // Memory methods (as globals)
     tab(n, *fOut);
-    *fOut << fKlassName << " new" << fKlassName << "() {"
-          << "return new " << fKlassName << "()"
+    *fOut << fKlassName << " new" << fKlassName << "() {" << "return new " << fKlassName << "()"
           << "; }";
 
     tab(n, *fOut);
@@ -161,7 +164,7 @@ void CSharpCodeContainer::produceClass()
     // Libraries
     printLibrary(*fOut);
     tab(n, *fOut);
-        
+
     tab(n, *fOut);
     *fOut << "public class " << fKlassName << " : " << fSuperKlassName << ", " << "IFaustDSP";
     tab(n, *fOut);
@@ -234,9 +237,7 @@ void CSharpCodeContainer::produceClass()
                     *fOut << "MetaData.Declare(\"" << *(i.first) << "\", " << **j << ");";
                 } else {
                     tab(n + 2, *fOut);
-                    *fOut << "MetaData.Declare(\""
-                          << "contributor"
-                          << "\", " << **j << ");";
+                    *fOut << "MetaData.Declare(\"" << "contributor" << "\", " << **j << ");";
                 }
             }
         }
@@ -347,20 +348,23 @@ void CSharpCodeContainer::produceClass()
     *fOut << "};\n" << endl;
 }
 
-void CSharpCodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod,
-                                            FunTyped::FunAttribute funtype, TextInstVisitor* producer)
+void CSharpCodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj,
+                                               bool ismethod, FunTyped::FunAttribute funtype,
+                                               TextInstVisitor* producer)
 {
     // Input/Output method
     producer->Tab(tabs);
     generateGetInputs(subst("GetNumInputs$0", classname), obj, ismethod, funtype)->accept(producer);
-    generateGetOutputs(subst("GetNumOutputs$0", classname), obj, ismethod, funtype)->accept(producer);
+    generateGetOutputs(subst("GetNumOutputs$0", classname), obj, ismethod, funtype)
+        ->accept(producer);
 }
 
 void CSharpScalarCodeContainer::generateCompute(int n)
 {
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("public void Compute(int $0, $1[][] inputs, $1[][] outputs)", fFullCount, ifloat());
+    *fOut << subst("public void Compute(int $0, $1[][] inputs, $1[][] outputs)", fFullCount,
+                   ifloat());
     tab(n + 1, *fOut);
     *fOut << "{";
     tab(n + 2, *fOut);

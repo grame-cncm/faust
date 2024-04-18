@@ -34,7 +34,8 @@ interval interval_algebra::Log10(const interval& x)
 
     // lowest slope is at the highest bound of the interval
     int precision = exactPrecisionUnary(
-        log10, x.hi(), -pow(2, x.lsb()));  // -pow because we take the FP number right before the higher bound
+        log10, x.hi(),
+        -pow(2, x.lsb()));  // -pow because we take the FP number right before the higher bound
     if (precision == INT_MIN or taylor_lsb) {
         precision = floor(x.lsb() - (double)log2(abs(x.hi())) - log2(log(10)));
     }

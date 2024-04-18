@@ -79,8 +79,8 @@ struct MemoryDesc {
     {
     }
 
-    MemoryDesc(int index, int offset, int int_offset, int real_offset, int size, int size_bytes, Typed::VarType type,
-               bool is_const, bool is_control, memType mem_type = kLocal)
+    MemoryDesc(int index, int offset, int int_offset, int real_offset, int size, int size_bytes,
+               Typed::VarType type, bool is_const, bool is_control, memType mem_type = kLocal)
         : fFieldIndex(index),
           fOffset(offset),
           fIntOffset(int_offset),
@@ -138,7 +138,9 @@ struct StructInstVisitor : public DispatchVisitor {
     int getFieldOffset(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
-            if (field.first == name) return field.second.fOffset;
+            if (field.first == name) {
+                return field.second.fOffset;
+            }
         }
         std::cerr << "ASSERT : getFieldOffset : " << name << std::endl;
         faustassert(false);
@@ -149,7 +151,9 @@ struct StructInstVisitor : public DispatchVisitor {
     int getFieldIntOffset(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
-            if (field.first == name) return field.second.fIntOffset;
+            if (field.first == name) {
+                return field.second.fIntOffset;
+            }
         }
         std::cerr << "ASSERT : getFieldIntOffset : " << name << std::endl;
         faustassert(false);
@@ -160,7 +164,9 @@ struct StructInstVisitor : public DispatchVisitor {
     int getFieldRealOffset(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
-            if (field.first == name) return field.second.fRealOffset;
+            if (field.first == name) {
+                return field.second.fRealOffset;
+            }
         }
         std::cerr << "ASSERT : getFieldRealOffset : " << name << std::endl;
         faustassert(false);
@@ -171,7 +177,9 @@ struct StructInstVisitor : public DispatchVisitor {
     int getFieldIndex(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
-            if (field.first == name) return field.second.fFieldIndex;
+            if (field.first == name) {
+                return field.second.fFieldIndex;
+            }
         }
         std::cerr << "ASSERT : getFieldIndex : " << name << std::endl;
         faustassert(false);
@@ -182,7 +190,9 @@ struct StructInstVisitor : public DispatchVisitor {
     Typed::VarType getFieldType(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
-            if (field.first == name) return field.second.fType;
+            if (field.first == name) {
+                return field.second.fType;
+            }
         }
         std::cerr << "ASSERT : getFieldType : " << name << std::endl;
         faustassert(false);
@@ -193,7 +203,9 @@ struct StructInstVisitor : public DispatchVisitor {
     MemoryDesc::memType getFieldMemoryType(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
-            if (field.first == name) return field.second.fMemType;
+            if (field.first == name) {
+                return field.second.fMemType;
+            }
         }
         std::cerr << "ASSERT : getFieldMemoryType : " << name << std::endl;
         faustassert(false);
@@ -204,7 +216,9 @@ struct StructInstVisitor : public DispatchVisitor {
     MemoryDesc& getMemoryDesc(const std::string& name)
     {
         for (auto& field : fFieldTable) {
-            if (field.first == name) return field.second;
+            if (field.first == name) {
+                return field.second;
+            }
         }
         return fDefault;
     }
@@ -224,7 +238,9 @@ struct StructInstVisitor : public DispatchVisitor {
     {
         int res = 0;
         for (const auto& field : fFieldTable) {
-            if (field.second.fSize > 1) res++;
+            if (field.second.fSize > 1) {
+                res++;
+            }
         }
         return res;
     }
@@ -234,9 +250,11 @@ struct StructInstVisitor : public DispatchVisitor {
     {
         std::vector<NamedTyped*> dsp_type_fields;
         for (auto& field : fFieldTable) {
-            dsp_type_fields.push_back(InstBuilder::genNamedTyped(field.first, field.second.getTyped()));
+            dsp_type_fields.push_back(
+                InstBuilder::genNamedTyped(field.first, field.second.getTyped()));
         }
-        return InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped(name, dsp_type_fields));
+        return InstBuilder::genDeclareStructTypeInst(
+            InstBuilder::genStructTyped(name, dsp_type_fields));
     }
 
     // Declarations
@@ -252,8 +270,9 @@ struct StructInstVisitor : public DispatchVisitor {
             Typed::VarType type = array_typed->fType->getType();
             if (is_struct) {
                 fFieldTable.push_back(
-                    make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(), getStructIntSize(), getStructRealSize(),
-                                               array_typed->fSize, array_typed->getSizeBytes(), type, false, false)));
+                    make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(), getStructIntSize(),
+                                               getStructRealSize(), array_typed->fSize,
+                                               array_typed->getSizeBytes(), type, false, false)));
                 if (type == Typed::kInt32) {
                     fStructIntOffset += array_typed->getSizeBytes();
                 } else {
@@ -266,9 +285,9 @@ struct StructInstVisitor : public DispatchVisitor {
         } else {
             if (is_struct) {
                 fFieldTable.push_back(make_pair(
-                    name,
-                    MemoryDesc(fFieldIndex++, getStructSize(), getStructIntSize(), getStructRealSize(), 1,
-                               inst->fType->getSizeBytes(), inst->fType->getType(), isConst(name), isControl(name))));
+                    name, MemoryDesc(fFieldIndex++, getStructSize(), getStructIntSize(),
+                                     getStructRealSize(), 1, inst->fType->getSizeBytes(),
+                                     inst->fType->getType(), isConst(name), isControl(name))));
                 if (inst->fType->getType() == Typed::kInt32) {
                     fStructIntOffset += inst->fType->getSizeBytes();
                 } else {
@@ -277,7 +296,9 @@ struct StructInstVisitor : public DispatchVisitor {
             }
         }
 
-        if (inst->fValue) getMemoryDesc(inst->getName()).fWAccessCount++;
+        if (inst->fValue) {
+            getMemoryDesc(inst->getName()).fWAccessCount++;
+        }
         DispatchVisitor::visit(inst);
     }
 
@@ -329,8 +350,9 @@ struct StructInstVisitor1 : public StructInstVisitor {
                 if ((access & Address::kStaticStruct) || isTable(name) ||
                     (fExternalMemory > 0 && array_typed->fSize > fDLThreshold)) {
                     fFieldTable.push_back(
-                        make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(), getStructIntSize(),
-                                                   getStructRealSize(), array_typed->fSize, array_typed->getSizeBytes(),
+                        make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(),
+                                                   getStructIntSize(), getStructRealSize(),
+                                                   array_typed->fSize, array_typed->getSizeBytes(),
                                                    type, false, false, MemoryDesc::kExternal)));
 
                     if (type == Typed::kInt32) {
@@ -342,8 +364,9 @@ struct StructInstVisitor1 : public StructInstVisitor {
                 } else {
                     // Keep arrays in local struct memory
                     fFieldTable.push_back(
-                        make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(), getStructIntSize(),
-                                                   getStructRealSize(), array_typed->fSize, array_typed->getSizeBytes(),
+                        make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(),
+                                                   getStructIntSize(), getStructRealSize(),
+                                                   array_typed->fSize, array_typed->getSizeBytes(),
                                                    type, false, false, MemoryDesc::kLocal)));
                 }
             } else {
@@ -354,13 +377,16 @@ struct StructInstVisitor1 : public StructInstVisitor {
             if (is_struct) {
                 // Scalar variable always stay in local struct memory
                 fFieldTable.push_back(
-                    make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(), getStructIntSize(), getStructRealSize(),
-                                               1, inst->fType->getSizeBytes(), inst->fType->getType(), isConst(name),
+                    make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(), getStructIntSize(),
+                                               getStructRealSize(), 1, inst->fType->getSizeBytes(),
+                                               inst->fType->getType(), isConst(name),
                                                isControl(name), MemoryDesc::kLocal)));
             }
         }
 
-        if (inst->fValue) getMemoryDesc(inst->getName()).fWAccessCount++;
+        if (inst->fValue) {
+            getMemoryDesc(inst->getName()).fWAccessCount++;
+        }
         DispatchVisitor::visit(inst);
     }
 };

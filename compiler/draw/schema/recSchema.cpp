@@ -57,8 +57,12 @@ recSchema::recSchema(schema* s1, schema* s2, double width)
     faustassert(s1->width() >= s2->width());
 
     // create the input and output points
-    for (unsigned int i = 0; i < inputs(); i++) fInputPoint.push_back(point(0, 0));
-    for (unsigned int i = 0; i < outputs(); i++) fOutputPoint.push_back(point(0, 0));
+    for (unsigned int i = 0; i < inputs(); i++) {
+        fInputPoint.push_back(point(0, 0));
+    }
+    for (unsigned int i = 0; i < outputs(); i++) {
+        fOutputPoint.push_back(point(0, 0));
+    }
 }
 
 /**
@@ -162,7 +166,8 @@ void recSchema::collectTraits(collector& c)
 
     // draw the feedback connections to each fSchema2 input
     for (unsigned int i = 0; i < fSchema2->inputs(); i++) {
-        collectFeedback(c, fSchema1->outputPoint(i), fSchema2->inputPoint(i), i * dWire, outputPoint(i));
+        collectFeedback(c, fSchema1->outputPoint(i), fSchema2->inputPoint(i), i * dWire,
+                        outputPoint(i));
     }
 
     // draw the non recursive output lines
@@ -190,7 +195,8 @@ void recSchema::collectTraits(collector& c)
  * Draw a feedback connection between two points with an horizontal
  * displacement dx
  */
-void recSchema::collectFeedback(collector& c, const point& src, const point& dst, double dx, const point& out)
+void recSchema::collectFeedback(collector& c, const point& src, const point& dst, double dx,
+                                const point& out)
 {
     double ox = src.x + ((orientation() == kLeftRight) ? dx : -dx);
     double ct = (orientation() == kLeftRight) ? dWire / 2 : -dWire / 2;

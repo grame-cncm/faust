@@ -36,12 +36,12 @@ class AtanPrim : public xtended {
     virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == 1);
-        Type t = args[0];
+        Type     t = args[0];
         interval i = t->getInterval();
         return castInterval(floatCast(t), gAlgebra.Atan(i));
     }
 
-    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; } 
+    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -53,15 +53,17 @@ class AtanPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-      
+
         return generateFun(container, subst("atan$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -69,15 +71,16 @@ class AtanPrim : public xtended {
         return subst("atan$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("\\arctan\\left($0\\right)", args[0]);
     }
-    
-    Tree diff(const std::vector<Tree> &args) override
+
+    Tree diff(const std::vector<Tree>& args) override
     {
         // (atan(x))' = 1 / (x^2 + 1), x real
         return sigDiv(sigReal(1.0), sigAdd(sigPow(args[0], sigReal(2.0)), sigReal(1.0)));

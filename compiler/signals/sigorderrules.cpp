@@ -85,7 +85,7 @@ static int inferSigOrder(Tree sig)
     int     i;
     int64_t i64;
     double  r;
-    Tree   sel, s1, s2, s3, s4, ff, ls, l, x, y, z, var, body, type, name, file, sf;
+    Tree    sel, s1, s2, s3, s4, ff, ls, l, x, y, z, var, body, type, name, file, sf;
 
     xtended* xt = (xtended*)getUserData(sig);
     // primitive elements
@@ -97,100 +97,130 @@ static int inferSigOrder(Tree sig)
         return xt->inferSigOrder(args);
     }
 
-    else if (isSigInt(sig, &i))
+    else if (isSigInt(sig, &i)) {
         return 0;
-    
-    else if (isSigInt64(sig, &i64))
+    }
+
+    else if (isSigInt64(sig, &i64)) {
         return 0;
+    }
 
-    else if (isSigReal(sig, &r))
+    else if (isSigReal(sig, &r)) {
         return 0;
+    }
 
-    else if (isSigWaveform(sig))
+    else if (isSigWaveform(sig)) {
         return 3;
+    }
 
-    else if (isSigInput(sig, &i))
+    else if (isSigInput(sig, &i)) {
         return 3;
+    }
 
-    else if (isSigOutput(sig, &i, s1))
+    else if (isSigOutput(sig, &i, s1)) {
         return 3;
+    }
 
-    else if (isSigDelay1(sig, s1))
+    else if (isSigDelay1(sig, s1)) {
         return 3;
+    }
 
-    else if (isSigPrefix(sig, s1, s2))
+    else if (isSigPrefix(sig, s1, s2)) {
         return 3;
+    }
 
-    else if (isSigDelay(sig, s1, s2))
+    else if (isSigDelay(sig, s1, s2)) {
         return 3;
+    }
 
-    else if (isSigBinOp(sig, &i, s1, s2))
+    else if (isSigBinOp(sig, &i, s1, s2)) {
         return std::max(O(s1), O(s2));
+    }
 
-    else if (isSigIntCast(sig, s1))
+    else if (isSigIntCast(sig, s1)) {
         return O(s1);
-    
-    else if (isSigBitCast(sig, s1))
-        return O(s1);
+    }
 
-    else if (isSigFloatCast(sig, s1))
+    else if (isSigBitCast(sig, s1)) {
         return O(s1);
+    }
 
-    else if (isSigFFun(sig, ff, ls) && isNil(ls))
+    else if (isSigFloatCast(sig, s1)) {
+        return O(s1);
+    }
+
+    else if (isSigFFun(sig, ff, ls) && isNil(ls)) {
         return 3;
+    }
 
-    else if (isSigFFun(sig, ff, ls))
+    else if (isSigFFun(sig, ff, ls)) {
         return std::max(1, O(ls));
+    }
 
-    else if (isSigFConst(sig, type, name, file))
+    else if (isSigFConst(sig, type, name, file)) {
         return 1;
+    }
 
-    else if (isSigFVar(sig, type, name, file))
+    else if (isSigFVar(sig, type, name, file)) {
         return 2;
+    }
 
-    else if (isSigButton(sig))
+    else if (isSigButton(sig)) {
         return 2;
+    }
 
-    else if (isSigCheckbox(sig))
+    else if (isSigCheckbox(sig)) {
         return 2;
+    }
 
-    else if (isSigVSlider(sig))
+    else if (isSigVSlider(sig)) {
         return 2;
+    }
 
-    else if (isSigHSlider(sig))
+    else if (isSigHSlider(sig)) {
         return 2;
+    }
 
-    else if (isSigNumEntry(sig))
+    else if (isSigNumEntry(sig)) {
         return 2;
+    }
 
-    else if (isSigHBargraph(sig, l, x, y, s1))
+    else if (isSigHBargraph(sig, l, x, y, s1)) {
         return std::max(2, O(s1));  // at least a user interface
+    }
 
-    else if (isSigVBargraph(sig, l, x, y, s1))
+    else if (isSigVBargraph(sig, l, x, y, s1)) {
         return std::max(2, O(s1));  // at least a user interface
+    }
 
-    else if (isSigEnable(sig, s1, s2))
+    else if (isSigEnable(sig, s1, s2)) {
         return std::max(O(s1), O(s2));  // O(s1);
+    }
 
-    else if (isSigControl(sig, s1, s2))
+    else if (isSigControl(sig, s1, s2)) {
         return std::max(O(s1), O(s2));  // O(s1);
+    }
 
     else if (isSigSoundfile(sig, l)) {
         cerr << "ASSERT : inferring signal order : isSigSoundfile\n";  // not supposed to happen
         faustassert(false);
         return -1;
 
-    } else if (isSigSoundfileLength(sig, sf, x))
+    } else if (isSigSoundfileLength(sig, sf, x)) {
         return 2;
+    }
 
-    else if (isSigSoundfileRate(sig, sf, x))
+    else if (isSigSoundfileRate(sig, sf, x)) {
         return 2;
+    }
 
-    else if (isSigSoundfileBuffer(sig, sf, x, y, z))
+    else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
         return 3;
+    }
 
-    else if (isSigAttach(sig, s1, s2))
+    else if (isSigAttach(sig, s1, s2)) {
         return std::max(1, O(s1));  // at least a constant
+    }
 
     else if (isRec(sig, var, body)) {
         cerr << "ASSERT : inferring signal order : isRec\n";  // not supposed to happen
@@ -201,35 +231,43 @@ static int inferSigOrder(Tree sig)
         cerr << "ASSERT : inferring signal order : isRef\n";  // not supposed to happen.
         faustassert(false);
         return -1;
-        
-    } else if (isProj(sig, &i, s1))
-        return 3;
 
-    else if (isSigWRTbl(sig, s1, s2, s3, s4))
+    } else if (isProj(sig, &i, s1)) {
         return 3;
+    }
 
-    else if (isSigRDTbl(sig, s1, s2))
+    else if (isSigWRTbl(sig, s1, s2, s3, s4)) {
         return 3;
+    }
 
-    else if (isSigDocConstantTbl(sig, s1, s2))
+    else if (isSigRDTbl(sig, s1, s2)) {
         return 3;
+    }
 
-    else if (isSigDocWriteTbl(sig, s1, s2, s3, s4))
+    else if (isSigDocConstantTbl(sig, s1, s2)) {
         return 3;
+    }
 
-    else if (isSigDocAccessTbl(sig, s1, s2))
+    else if (isSigDocWriteTbl(sig, s1, s2, s3, s4)) {
         return 3;
+    }
 
-    else if (isSigGen(sig, s1))
+    else if (isSigDocAccessTbl(sig, s1, s2)) {
         return 3;
+    }
 
-    else if (isSigSelect2(sig, sel, s1, s2))
+    else if (isSigGen(sig, s1)) {
         return 3;
+    }
+
+    else if (isSigSelect2(sig, sel, s1, s2)) {
+        return 3;
+    }
 
     else if (isList(sig)) {
         int r1 = 0;
         while (isList(sig)) {
-            r1 = std::max(r1, O(hd(sig)));
+            r1  = std::max(r1, O(hd(sig)));
             sig = tl(sig);
         }
         return r1;

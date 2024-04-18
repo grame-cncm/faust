@@ -31,15 +31,16 @@
  */
 
 class topSchema : public schema {
-    schema*       fSchema;
-    double        fMargin;
-    std::string   fText;
-    std::string   fLink;
+    schema*            fSchema;
+    double             fMargin;
+    std::string        fText;
+    std::string        fLink;
     std::vector<point> fInputPoint;
     std::vector<point> fOutputPoint;
 
    public:
-    friend schema* makeTopSchema(schema* s1, double margin, const std::string& text, const std::string& link);
+    friend schema* makeTopSchema(schema* s1, double margin, const std::string& text,
+                                 const std::string& link);
 
     virtual void  place(double ox, double oy, int orientation);
     virtual void  draw(device& dev);

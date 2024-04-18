@@ -22,12 +22,12 @@
 #ifndef _FBC_TEMPLATE_COMPILER_H
 #define _FBC_TEMPLATE_COMPILER_H
 
-#include <string>
-#include <map>
 #include <stdio.h>
+#include <map>
+#include <string>
 
-#include "interpreter_bytecode.hh"
 #include "fbc_executor.hh"
+#include "interpreter_bytecode.hh"
 
 /*
  * FBC template compiler, where REAL will be either 'float' or 'double'
@@ -35,29 +35,26 @@
  */
 template <class REAL>
 class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
-
    protected:
-      
     // Compile the FBC code used in 'compute'
     void CompileBlock(FBCBlockInstruction<REAL>* block)
     {
         InstructionIT it  = block->fInstructions.begin();
         bool          end = false;
-     
+
         while ((it != block->fInstructions.end()) && !end) {
             //(*it)->write(&std::cout);
-         
+
             switch ((*it)->fOpcode) {
-                    
                 // Numbers
                 case FBCInstruction::kRealValue:
                     it++;
                     break;
-             
+
                 case FBCInstruction::kInt32Value:
                     it++;
                     break;
-              
+
                 // Memory load/store
                 case FBCInstruction::kLoadReal:
                     it++;
@@ -66,7 +63,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kLoadInt:
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kStoreReal:
                     it++;
                     break;
@@ -75,40 +72,41 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                     it++;
                     break;
 
-                // Indexed memory load/store: constant values are added at generation time by CreateBinOp...
+                // Indexed memory load/store: constant values are added at generation time by
+                // CreateBinOp...
                 case FBCInstruction::kLoadIndexedReal:
                     it++;
                     break;
-             
+
                 case FBCInstruction::kLoadIndexedInt:
                     it++;
                     break;
-             
+
                 case FBCInstruction::kLoadSoundFieldInt:
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kLoadSoundFieldReal:
                     it++;
                     break;
-            
+
                 case FBCInstruction::kStoreIndexedReal:
                     it++;
                     break;
-              
+
                 case FBCInstruction::kStoreIndexedInt:
                     it++;
                     break;
-           
+
                 // Memory shift
                 case FBCInstruction::kBlockShiftReal:
                     it++;
                     break;
-              
+
                 case FBCInstruction::kBlockShiftInt:
                     it++;
                     break;
-              
+
                 // Input/output
                 case FBCInstruction::kLoadInput:
                     it++;
@@ -122,19 +120,19 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kCastReal:
                     it++;
                     break;
-          
+
                 case FBCInstruction::kCastInt:
                     it++;
                     break;
-         
+
                 case FBCInstruction::kBitcastInt:
                     it++;
                     break;
-          
+
                 case FBCInstruction::kBitcastReal:
                     it++;
                     break;
-         
+
                 // Binary math
                 case FBCInstruction::kAddReal:
                     it++;
@@ -256,7 +254,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kAcosf:
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kAcoshf:
                     it++;
                     break;
@@ -264,7 +262,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kAsinf:
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kAsinhf:
                     it++;
                     break;
@@ -272,7 +270,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kAtanf:
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kAtanhf:
                     it++;
                     break;
@@ -304,7 +302,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kLog10f:
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kRintf:
                     it++;
                     break;
@@ -332,15 +330,15 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kTanhf:
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kIsnanf:
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kIsinff:
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kCopysignf:
                     it++;
                     break;
@@ -361,11 +359,11 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kMax:
                     it++;
                     break;
-    
+
                 case FBCInstruction::kMaxf:
                     it++;
                     break;
- 
+
                 case FBCInstruction::kMin:
                     it++;
                     break;
@@ -373,7 +371,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kMinf:
                     it++;
                     break;
-  
+
                 // Control
                 case FBCInstruction::kReturn:
                     end = true;
@@ -381,23 +379,23 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
 
                 case FBCInstruction::kIf:
                     break;
-                    
+
                 case FBCInstruction::kSelectInt:
                     it++;
                     break;
-                   
+
                 case FBCInstruction::kSelectReal:
                     it++;
                     break;
-            
+
                 case FBCInstruction::kCondBranch:
                     it++;
                     break;
-             
+
                 case FBCInstruction::kLoop:
                     it++;
                     break;
-             
+
                 default:
                     (*it)->write(&std::cout);
                     faustassert(false);
@@ -405,17 +403,16 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
             }
         }
     }
-    
+
    public:
     FBCTemplateCompiler(FBCBlockInstruction<REAL>* fbc_block, soundTable& sound_table)
-    :FBCExecuteFun<REAL>(fbc_block, sound_table)
+        : FBCExecuteFun<REAL>(fbc_block, sound_table)
     {
         // Compile the 'compute' function once.
         CompileBlock(fbc_block);
     }
 
-    virtual ~FBCTemplateCompiler()
-    {}
+    virtual ~FBCTemplateCompiler() {}
 
     /*
      * The function to be executed each cycle.
@@ -425,9 +422,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
      * @param inputs - the audio inputs
      * @param outputs - the audio outputs
      */
-    void execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
-    {}
-    
+    void execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs) {}
 };
 
 #endif

@@ -32,13 +32,14 @@ class CSharpInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static std::map<std::string, bool> gFunctionSymbolTable;
+    static std::map<std::string, bool>        gFunctionSymbolTable;
     static std::map<std::string, std::string> gMathLibTable;
 
    public:
     using TextInstVisitor::visit;
 
-    CSharpInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", ifloat(), "[]", tab)
+    CSharpInstVisitor(std::ostream* out, int tab = 0)
+        : TextInstVisitor(out, ".", ifloat(), "[]", tab)
     {
         initMathTable();
 
@@ -81,7 +82,7 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["tanhf"]  = "(float)Math.Tanh";
 
         gMathLibTable["remainderf"] = "(float)Math.IEEERemainder";
-        gMathLibTable["rintf"]  = "(float)Math.Round";
+        gMathLibTable["rintf"]      = "(float)Math.Round";
 
         // Additional hyperbolic math functions
         gMathLibTable["acoshf"] = "(float)Math.Acosh";
@@ -90,11 +91,11 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["coshf"]  = "(float)Math.Cosh";
         gMathLibTable["sinhf"]  = "(float)Math.Sinh";
         gMathLibTable["tanhf"]  = "(float)Math.Tanh";
-    
-        gMathLibTable["isnanf"]     = "(float)Math.IsNan";
+
+        gMathLibTable["isnanf"] = "(float)Math.IsNan";
         // Manually implemented
-        gMathLibTable["isinff"]     = "IsInfinityF";
-        gMathLibTable["copysignf"]  = "(float)Math.CopySign";
+        gMathLibTable["isinff"]    = "IsInfinityF";
+        gMathLibTable["copysignf"] = "(float)Math.CopySign";
 
         // Double version
         gMathLibTable["fabs"]  = "Math.Abs";
@@ -121,8 +122,8 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["tanh"]  = "Math.Tanh";
 
         gMathLibTable["remainder"] = "Math.IEEERemainder";
-        gMathLibTable["rint"]  = "Math.Round";
-    
+        gMathLibTable["rint"]      = "Math.Round";
+
         // Additional hyperbolic math functions
         gMathLibTable["acosh"] = "Math.Acosh";
         gMathLibTable["asinh"] = "Math.Asinh";
@@ -130,12 +131,11 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["cosh"]  = "Math.Cosh";
         gMathLibTable["sinh"]  = "Math.Sinh";
         gMathLibTable["tanh"]  = "Math.Tanh";
-    
-        gMathLibTable["isnan"]     = "Math.IsNan";
-        // Manually implemented
-        gMathLibTable["isinf"]     = "IsInfinity";
-        gMathLibTable["copysign"]  = "Math.CopySign";
 
+        gMathLibTable["isnan"] = "Math.IsNan";
+        // Manually implemented
+        gMathLibTable["isinf"]    = "IsInfinity";
+        gMathLibTable["copysign"] = "Math.CopySign";
     }
 
     virtual ~CSharpInstVisitor() {}
@@ -144,16 +144,22 @@ class CSharpInstVisitor : public TextInstVisitor {
     {
         if (strcmp(ifloat(), "float") == 0) {
             return "new FaustVariableAccessor {\n"
-                   "\t\t\t\tID = \"" + varname + "\",\n"
-                   "\t\t\t\tSetValue = delegate(double val) { " + varname + " = (float)val; },\n" +
-                   "\t\t\t\tGetValue = delegate { return " + varname + "; }\n" +
+                   "\t\t\t\tID = \"" +
+                   varname +
+                   "\",\n"
+                   "\t\t\t\tSetValue = delegate(double val) { " +
+                   varname + " = (float)val; },\n" + "\t\t\t\tGetValue = delegate { return " +
+                   varname + "; }\n" +
                    "\t\t\t}\n"
                    "\t\t\t";
         } else {
             return "new FaustVariableAccessor {\n"
-                   "\t\t\t\tID = \"" + varname + "\",\n"
-                   "\t\t\t\tSetValue = delegate(double val) { " + varname + " = val; },\n" +
-                   "\t\t\t\tGetValue = delegate { return " + varname + "; }\n" +
+                   "\t\t\t\tID = \"" +
+                   varname +
+                   "\",\n"
+                   "\t\t\t\tSetValue = delegate(double val) { " +
+                   varname + " = val; },\n" + "\t\t\t\tGetValue = delegate { return " + varname +
+                   "; }\n" +
                    "\t\t\t}\n"
                    "\t\t\t";
         }
@@ -161,7 +167,8 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
-        *fOut << "UIDefinition.DeclareElementMetaData(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" << inst->fValue << "\")";
+        *fOut << "UIDefinition.DeclareElementMetaData(\"" << inst->fZone << "\", \"" << inst->fKey
+              << "\", \"" << inst->fValue << "\")";
         EndLine();
     }
 
@@ -169,13 +176,18 @@ class CSharpInstVisitor : public TextInstVisitor {
     {
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
-                *fOut << "UIDefinition.StartBox(new FaustBoxElement(EFaustUIElementType.VerticalBox, " << quote(inst->fName) << "))";
+                *fOut
+                    << "UIDefinition.StartBox(new FaustBoxElement(EFaustUIElementType.VerticalBox, "
+                    << quote(inst->fName) << "))";
                 break;
             case OpenboxInst::kHorizontalBox:
-                *fOut << "UIDefinition.StartBox(new FaustBoxElement(EFaustUIElementType.HorizontalBox, " << quote(inst->fName) << "))";
+                *fOut << "UIDefinition.StartBox(new "
+                         "FaustBoxElement(EFaustUIElementType.HorizontalBox, "
+                      << quote(inst->fName) << "))";
                 break;
             case OpenboxInst::kTabBox:
-                *fOut << "UIDefinition.StartBox(new FaustBoxElement(EFaustUIElementType.TabBox, " << quote(inst->fName) << "))";
+                *fOut << "UIDefinition.StartBox(new FaustBoxElement(EFaustUIElementType.TabBox, "
+                      << quote(inst->fName) << "))";
                 break;
         }
         EndLine();
@@ -190,9 +202,13 @@ class CSharpInstVisitor : public TextInstVisitor {
     virtual void visit(AddButtonInst* inst)
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
-            *fOut << "UIDefinition.AddElement(new FaustUIVariableElement(EFaustUIElementType.Button, " << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << "))";
+            *fOut
+                << "UIDefinition.AddElement(new FaustUIVariableElement(EFaustUIElementType.Button, "
+                << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << "))";
         } else {
-            *fOut << "UIDefinition.AddElement(new FaustUIVariableElement(EFaustUIElementType.CheckBox, " << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << "))";
+            *fOut << "UIDefinition.AddElement(new "
+                     "FaustUIVariableElement(EFaustUIElementType.CheckBox, "
+                  << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << "))";
         }
         EndLine();
     }
@@ -202,18 +218,24 @@ class CSharpInstVisitor : public TextInstVisitor {
         std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                name = "UIDefinition.AddElement(new FaustUIWriteableFloatElement(EFaustUIElementType.HorizontalSlider, ";
+                name =
+                    "UIDefinition.AddElement(new "
+                    "FaustUIWriteableFloatElement(EFaustUIElementType.HorizontalSlider, ";
                 break;
             case AddSliderInst::kVertical:
-                name = "UIDefinition.AddElement(new FaustUIWriteableFloatElement(EFaustUIElementType.VerticalSlider, ";
+                name =
+                    "UIDefinition.AddElement(new "
+                    "FaustUIWriteableFloatElement(EFaustUIElementType.VerticalSlider, ";
                 break;
             case AddSliderInst::kNumEntry:
-                name = "UIDefinition.AddElement(new FaustUIWriteableFloatElement(EFaustUIElementType.NumEntry, ";
+                name =
+                    "UIDefinition.AddElement(new "
+                    "FaustUIWriteableFloatElement(EFaustUIElementType.NumEntry, ";
                 break;
         }
-        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fInit)
-              << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep)
-              << "))";
+        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", "
+              << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
+              << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << "))";
         EndLine();
     }
 
@@ -222,14 +244,18 @@ class CSharpInstVisitor : public TextInstVisitor {
         std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
-                name = "UIDefinition.AddElement(new FaustUIFloatElement(EFaustUIElementType.HorizontalBargraph, ";
+                name =
+                    "UIDefinition.AddElement(new "
+                    "FaustUIFloatElement(EFaustUIElementType.HorizontalBargraph, ";
                 break;
             case AddBargraphInst::kVertical:
-                name = "UIDefinition.AddElement(new FaustUIFloatElement(EFaustUIElementType.VerticalBargraph, ";
+                name =
+                    "UIDefinition.AddElement(new "
+                    "FaustUIFloatElement(EFaustUIElementType.VerticalBargraph, ";
                 break;
         }
-        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fMin)
-              << ", " << checkReal(inst->fMax) << "))";
+        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", "
+              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << "))";
         EndLine();
     }
 
@@ -246,8 +272,8 @@ class CSharpInstVisitor : public TextInstVisitor {
                 *fOut << type << "[] " << inst->fAddress->getName() << " = ";
                 inst->fValue->accept(this);
             } else {
-                *fOut << type << "[] " << inst->fAddress->getName() << " = new " << type << "[" << array_typed->fSize
-                      << "]";
+                *fOut << type << "[] " << inst->fAddress->getName() << " = new " << type << "["
+                      << array_typed->fSize << "]";
             }
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
@@ -264,7 +290,7 @@ class CSharpInstVisitor : public TextInstVisitor {
                         *fOut << "?1:0)";
                     }
                 } else {
-                     inst->fValue->accept(this);
+                    inst->fValue->accept(this);
                 }
             }
         }
@@ -340,9 +366,13 @@ class CSharpInstVisitor : public TextInstVisitor {
         bool cond2 = rightArgNeedsParentheses(inst, inst->fInst2);
 
         if (type1 != Typed::kBool) {
-            if (cond1) *fOut << "(";
+            if (cond1) {
+                *fOut << "(";
+            }
             inst->fInst1->accept(this);
-            if (cond1) *fOut << ")";
+            if (cond1) {
+                *fOut << ")";
+            }
         } else {
             *fOut << "(";
             inst->fInst1->accept(this);
@@ -354,22 +384,25 @@ class CSharpInstVisitor : public TextInstVisitor {
         *fOut << " ";
 
         if (type2 != Typed::kBool) {
-            if (cond2) *fOut << "(";
+            if (cond2) {
+                *fOut << "(";
+            }
             inst->fInst2->accept(this);
-            if (cond2) *fOut << ")";
+            if (cond2) {
+                *fOut << ")";
+            }
         } else {
             *fOut << "(";
             inst->fInst2->accept(this);
             *fOut << "?1:0)";
         }
-
     }
 
     virtual void visit(Select2Inst* inst)
     {
-        Typed::VarType type1 = TypingVisitor::getType(inst->fThen);
-        Typed::VarType type2 = TypingVisitor::getType(inst->fElse);
-        bool forceInt = (type1 != Typed::kBool) || (type2 != Typed::kBool);
+        Typed::VarType type1    = TypingVisitor::getType(inst->fThen);
+        Typed::VarType type2    = TypingVisitor::getType(inst->fElse);
+        bool           forceInt = (type1 != Typed::kBool) || (type2 != Typed::kBool);
 
         *fOut << "(";
         visitCond(inst->fCond);
@@ -382,7 +415,7 @@ class CSharpInstVisitor : public TextInstVisitor {
         } else {
             inst->fThen->accept(this);
         }
-     
+
         *fOut << " : ";
 
         if (forceInt && (type2 == Typed::kBool)) {
@@ -393,7 +426,7 @@ class CSharpInstVisitor : public TextInstVisitor {
             inst->fElse->accept(this);
         }
 
-        *fOut << ")";        
+        *fOut << ")";
     }
 
     virtual void visitCond(ValueInst* cond)
@@ -403,10 +436,11 @@ class CSharpInstVisitor : public TextInstVisitor {
         cond->accept(this);
         Typed::VarType type = TypingVisitor::getType(cond);
 
-        if (type != Typed::kBool)
+        if (type != Typed::kBool) {
             *fOut << "!=0";
-        
-        *fOut << ")";        
+        }
+
+        *fOut << ")";
     }
 
     virtual void visit(::CastInst* inst)
@@ -432,8 +466,7 @@ class CSharpInstVisitor : public TextInstVisitor {
         }
 
         std::string type = fTypeManager->generateType(inst->fType);
-        *fOut << "(" << type << ")"
-              << "(";
+        *fOut << "(" << type << ")" << "(";
         inst->fInst->accept(this);
         *fOut << ")";
     }
@@ -442,8 +475,9 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual void visit(FunCallInst* inst)
     {
-        std::string fun_name =
-            (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;
+        std::string fun_name = (gMathLibTable.find(inst->fName) != gMathLibTable.end())
+                                   ? gMathLibTable[inst->fName]
+                                   : inst->fName;
         generateFunCall(inst, fun_name);
     }
 

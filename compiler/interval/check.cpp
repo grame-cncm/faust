@@ -34,11 +34,10 @@ void check(const std::string& expected, const itv::interval& exp)
     std::stringstream ss;
     ss << exp;
     if (ss.str().compare(expected) == 0) {
-        std::cout << "\033[32m"
-                  << "OK: " << expected << "\033[0m" << std::endl;
+        std::cout << "\033[32m" << "OK: " << expected << "\033[0m" << std::endl;
     } else {
-        std::cout << "\033[31m"
-                  << "ERR:  We got " << ss.str() << " instead of " << expected << "\033[0m" << std::endl;
+        std::cout << "\033[31m" << "ERR:  We got " << ss.str() << " instead of " << expected
+                  << "\033[0m" << std::endl;
     }
 }
 
@@ -52,15 +51,15 @@ void check(const std::string& expected, const itv::interval& exp)
 void check(const std::string& testname, const itv::interval& exp, const itv::interval& res)
 {
     if (exp == res) {
-        std::cout << "\033[32m"
-                  << "OK: " << testname << " " << exp << " = " << res << "\033[0m" << std::endl;
+        std::cout << "\033[32m" << "OK: " << testname << " " << exp << " = " << res << "\033[0m"
+                  << std::endl;
         if (exp.lsb() != res.lsb()) {
-            std::cout << "\033[33m"
-                      << "\t But precisions differ by " << exp.lsb() - res.lsb() << "\033[0m" << std::endl;
+            std::cout << "\033[33m" << "\t But precisions differ by " << exp.lsb() - res.lsb()
+                      << "\033[0m" << std::endl;
         }
     } else {
-        std::cout << "\033[31m"
-                  << "ERR:" << testname << " FAILED. We got " << exp << " instead of " << res << "\033[0m" << std::endl;
+        std::cout << "\033[31m" << "ERR:" << testname << " FAILED. We got " << exp << " instead of "
+                  << res << "\033[0m" << std::endl;
     }
 }
 
@@ -74,11 +73,10 @@ void check(const std::string& testname, const itv::interval& exp, const itv::int
 void check(const std::string& testname, bool exp, bool res)
 {
     if (exp == res) {
-        std::cout << "\033[32m"
-                  << "OK: " << testname << "\033[0m" << std::endl;
+        std::cout << "\033[32m" << "OK: " << testname << "\033[0m" << std::endl;
     } else {
-        std::cout << "\033[31m"
-                  << "ERR:" << testname << " FAILED. We got " << exp << " instead of " << res << "\033[0m" << std::endl;
+        std::cout << "\033[31m" << "ERR:" << testname << " FAILED. We got " << exp << " instead of "
+                  << res << "\033[0m" << std::endl;
     }
 }
 
@@ -93,7 +91,7 @@ void check(const std::string& testname, bool exp, bool res)
  */
 itv::interval testfun(int N, bfun f, const itv::interval& x, const itv::interval& y)
 {
-    std::random_device             rd;  // used to generate a random seed, based on some hardware randomness
+    std::random_device rd;  // used to generate a random seed, based on some hardware randomness
     std::default_random_engine     generator(rd());
     std::uniform_real_distribution rx(x.lo(), x.hi());
     std::uniform_real_distribution ry(y.lo(), y.hi());
@@ -131,7 +129,8 @@ itv::interval testfun(int N, bfun f, const itv::interval& x, const itv::interval
 void analyzemod(itv::interval x, itv::interval y)
 {
     itv::interval_algebra A;
-    std::cout << "simulated fmod(" << x << "," << y << ") = " << testfun(10000, fmod, x, y) << std::endl;
+    std::cout << "simulated fmod(" << x << "," << y << ") = " << testfun(10000, fmod, x, y)
+              << std::endl;
     std::cout << "computed  fmod(" << x << "," << y << ") = " << A.Mod(x, y) << std::endl;
     std::cout << std::endl;
 }
@@ -147,7 +146,7 @@ void analyzemod(itv::interval x, itv::interval y)
  */
 void analyzeUnaryFunction(int E, int M, const char* title, const itv::interval& D, ufun f)
 {
-    std::random_device             R;  // used to generate a random seed, based on some hardware randomness
+    std::random_device R;  // used to generate a random seed, based on some hardware randomness
     std::default_random_engine     generator(R());
     std::uniform_real_distribution rd(D.lo(), D.hi());
 
@@ -197,12 +196,13 @@ void analyzeUnaryFunction(int E, int M, const char* title, const itv::interval& 
  */
 void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D, ufun f, umth mp)
 {
-    std::random_device             R;  // used to generate a random seed, based on some hardware randomness
+    std::random_device R;  // used to generate a random seed, based on some hardware randomness
     std::default_random_engine     generator(R());
     std::uniform_real_distribution rd(D.lo(), D.hi());
     itv::interval_algebra          A;
 
-    std::cout << "Analysis of " << title << " in domain " << D << " (u = " << pow(2, D.lsb()) << ")" << std::endl;
+    std::cout << "Analysis of " << title << " in domain " << D << " (u = " << pow(2, D.lsb()) << ")"
+              << std::endl;
 
     for (int e = 0; e < E; e++) {  // E experiments
 
@@ -225,8 +225,8 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
         std::set<double> measurements;
 
         // the loop has almost no chance of drawing X.hi(): we manually add it
-        double sample =
-            X.hi();  // not truncated since morally the interval boundaries should already have the right precision
+        double sample = X.hi();  // not truncated since morally the interval boundaries should
+                                 // already have the right precision
         double y = f(sample);
         // y = truncate(y, -30);
 
@@ -246,7 +246,8 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
             sample           = truncate(presample, D.lsb());  // truncated sample
             double pre_y     = f(presample);
             y                = f(sample);
-            // y         = truncate(y, -30); // workaround to avoid artefacts in trigonometric functions
+            // y         = truncate(y, -30); // workaround to avoid artefacts in trigonometric
+            // functions
 
             measurements.insert(y);
 
@@ -288,16 +289,13 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
         if (Z >= Y and Z.lsb() <= Y.lsb()) {
             double precision = (Z.size() == 0) ? 1 : Y.size() / Z.size();
 
-            std::cout << "\033[32m"
-                      << "OK    " << e << ": " << title << "(" << X << ") = \n"
+            std::cout << "\033[32m" << "OK    " << e << ": " << title << "(" << X << ") = \n"
                       << Z << "(c)\t >= \t" << Y << "(m)\t (precision " << precision
-                      << ", LSB diff = " << Y.lsb() - Z.lsb() << ")"
-                      << "\033[0m" << std::endl;
+                      << ", LSB diff = " << Y.lsb() - Z.lsb() << ")" << "\033[0m" << std::endl;
         } else {
-            std::cout << "\033[31m"
-                      << "ERROR " << e << ": " << title << "(" << X << ") = \n"
-                      << Z << "(c)\t INSTEAD OF \t" << Y << "(m), \t LSB diff = " << Y.lsb() - Z.lsb() << "\033[0m"
-                      << std::endl;
+            std::cout << "\033[31m" << "ERROR " << e << ": " << title << "(" << X << ") = \n"
+                      << Z << "(c)\t INSTEAD OF \t" << Y
+                      << "(m), \t LSB diff = " << Y.lsb() - Z.lsb() << "\033[0m" << std::endl;
         }
         std::cout << std::endl;
     }
@@ -316,10 +314,10 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
  * @param bm the interval method corresponding to f
  */
 
-void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& Dx, const itv::interval& Dy, bfun f,
-                         bmth bm)
+void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& Dx,
+                         const itv::interval& Dy, bfun f, bmth bm)
 {
-    std::random_device             R;  // used to generate a random seed, based on some hardware randomness
+    std::random_device R;  // used to generate a random seed, based on some hardware randomness
     std::default_random_engine     generator(R());
     std::uniform_real_distribution rdx(Dx.lo(), Dx.hi());
     std::uniform_real_distribution rdy(Dy.lo(), Dy.hi());
@@ -355,7 +353,8 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
             std::uniform_real_distribution rvy(Y.lo(), Y.hi());
 
             // draw the upper bounds manually
-            double z = f(X.hi(), Y.hi());  // no need to truncate: interval boundaries are already truncated
+            double z = f(X.hi(),
+                         Y.hi());  // no need to truncate: interval boundaries are already truncated
             measurements.insert(z);
 
             if (!std::isnan(z)) {
@@ -405,22 +404,20 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
             if (Zc >= Zm and Zc.lsb() <= Zm.lsb()) {
                 std::string color = "\033[32m";
                 if (precision < 0.8 or Zm.lsb() - Zc.lsb() >= 10) {
-                    color = "\033[36m";  // cyan instead of green if approximation is technically correct but of poor
-                                         // quality
+                    color = "\033[36m";  // cyan instead of green if approximation is technically
+                                         // correct but of poor quality
                 }
-                std::cout << color << "OK    " << e << ": " << title << "(" << X << ",\t" << Y << ")\n =c=> " << Zc
-                          << "(c) >= " << Zm << "(m)"
-                          << "\t (precision " << precision << "), \t LSB diff = " << Zm.lsb() - Zc.lsb() << "\033[0m"
+                std::cout << color << "OK    " << e << ": " << title << "(" << X << ",\t" << Y
+                          << ")\n =c=> " << Zc << "(c) >= " << Zm << "(m)" << "\t (precision "
+                          << precision << "), \t LSB diff = " << Zm.lsb() - Zc.lsb() << "\033[0m"
                           << std::endl;
             } else if (Zc >= Zm) {
-                std::cout << "\033[33m"
-                          << "WARNING " << e << ": " << title << "(" << X << ",\t" << Y << ")\n =c=> " << Zc
-                          << "(c) >= " << Zm << "(m)"
+                std::cout << "\033[33m" << "WARNING " << e << ": " << title << "(" << X << ",\t"
+                          << Y << ")\n =c=> " << Zc << "(c) >= " << Zm << "(m)"
                           << "\t LSB diff = " << Zm.lsb() - Zc.lsb() << "\033[0m" << std::endl;
             } else {
-                std::cout << "\033[31m"
-                          << "ERROR " << e << ": " << title << "(" << X << ",\t" << Y << ")\n =c=> " << Zc << "(c) < "
-                          << Zm << "(m)"
+                std::cout << "\033[31m" << "ERROR " << e << ": " << title << "(" << X << ",\t" << Y
+                          << ")\n =c=> " << Zc << "(c) < " << Zm << "(m)"
                           << "\t LSB diff = " << Zm.lsb() - Zc.lsb() << "\033[0m" << std::endl;
             }
         } else {  // integer operation
@@ -447,7 +444,8 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
             std::uniform_int_distribution ivy((int)Y.lo(), (int)Y.hi());
 
             // draw the upper bounds manually
-            int z = f(X.hi(), Y.hi());  // no need to truncate: interval boundaries are already truncated
+            int z = f(X.hi(),
+                      Y.hi());  // no need to truncate: interval boundaries are already truncated
             measurements.insert((double)z);
 
             if (z < zlo) {
@@ -497,24 +495,23 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
             if (Zc >= Zm and Zc.lsb() <= Zm.lsb()) {
                 std::string color = "\033[32m";
                 if (precision < 0.8 or Zm.lsb() - Zc.lsb() >= 10) {
-                    color = "\033[36m";  // cyan instead of green if approximation is technically correct but of poor
-                                         // quality
+                    color = "\033[36m";  // cyan instead of green if approximation is technically
+                                         // correct but of poor quality
                 }
-                std::cout << color << "OK    " << e << ": " << title << "(" << X << ",\t" << Y << ")\n =c=> " << Zc
-                          << "(c) >= " << Zm << "(m)"
-                          << "\t (precision " << precision << "), \t LSB diff = " << Zm.lsb() - Zc.lsb() << "\033[0m"
+                std::cout << color << "OK    " << e << ": " << title << "(" << X << ",\t" << Y
+                          << ")\n =c=> " << Zc << "(c) >= " << Zm << "(m)" << "\t (precision "
+                          << precision << "), \t LSB diff = " << Zm.lsb() - Zc.lsb() << "\033[0m"
                           << std::endl;
             } else if (Zc >= Zm) {
                 std::string color = "\033[33m";
 
-                std::cout << color << "WARNING    " << e << ": " << title << "(" << X << ",\t" << Y << ")\n =c=> " << Zc
-                          << "(c) >= " << Zm << "(m)"
-                          << "\t (precision " << precision << "), \t LSB diff = " << Zm.lsb() - Zc.lsb() << "\033[0m"
+                std::cout << color << "WARNING    " << e << ": " << title << "(" << X << ",\t" << Y
+                          << ")\n =c=> " << Zc << "(c) >= " << Zm << "(m)" << "\t (precision "
+                          << precision << "), \t LSB diff = " << Zm.lsb() - Zc.lsb() << "\033[0m"
                           << std::endl;
             } else {
-                std::cout << "\033[31m"
-                          << "ERROR " << e << ": " << title << "(" << X << ",\t" << Y << ")\n =c=> " << Zc << "(c) < "
-                          << Zm << "(m)"
+                std::cout << "\033[31m" << "ERROR " << e << ": " << title << "(" << X << ",\t" << Y
+                          << ")\n =c=> " << Zc << "(c) < " << Zm << "(m)"
                           << "\t LSB diff = " << Zm.lsb() - Zc.lsb() << "\033[0m" << std::endl;
             }
         }
@@ -532,7 +529,8 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
  */
 void propagateBackwardsUnaryMethod(const char* title, umth mp, itv::interval& X, int l)
 {
-    std::cout << "Shaving input " << X << " of " << title << " to achieve an output lsb of " << l << std::endl;
+    std::cout << "Shaving input " << X << " of " << title << " to achieve an output lsb of " << l
+              << std::endl;
 
     itv::interval_algebra A;
     // itv::interval X = itv::interval(D.lo(), D.hi(), D.lsb());
@@ -561,10 +559,11 @@ void propagateBackwardsUnaryMethod(const char* title, umth mp, itv::interval& X,
  * @param Y the second input interval
  * @param l the target lsb for the output
  */
-void propagateBackwardsBinaryMethod(const char* title, bmth bm, itv::interval& X, itv::interval& Y, int l)
+void propagateBackwardsBinaryMethod(const char* title, bmth bm, itv::interval& X, itv::interval& Y,
+                                    int l)
 {
-    std::cout << "Shaving inputs " << X << " and " << Y << " of " << title << " to achieve an output lsb of " << l
-              << std::endl;
+    std::cout << "Shaving inputs " << X << " and " << Y << " of " << title
+              << " to achieve an output lsb of " << l << std::endl;
 
     itv::interval_algebra A;
 
@@ -586,14 +585,16 @@ void propagateBackwardsBinaryMethod(const char* title, bmth bm, itv::interval& X
 }
 
 /**
- * @brief Adjusts the lsb of an input iterval to a list of composed functions to match a target output lsb
+ * @brief Adjusts the lsb of an input iterval to a list of composed functions to match a target
+ * output lsb
  *
  * @param titles names of the tested functions, from outermost to innermost
  * @param mps the interval methods of the functions, from outermost to innermost
  * @param X the input interval
  * @param l the target lsb for the output
  */
-void propagateBackwardsComposition(std::vector<const char*> titles, std::vector<umth> mps, itv::interval& X, int l)
+void propagateBackwardsComposition(std::vector<const char*> titles, std::vector<umth> mps,
+                                   itv::interval& X, int l)
 {
     if (titles.size() != mps.size()) {
         std::cout << "Incompatible vector sizes" << std::endl;
@@ -610,12 +611,13 @@ void propagateBackwardsComposition(std::vector<const char*> titles, std::vector<
     std::cout << " to achieve an output lsb of " << l << std::endl << std::endl;
 
     itv::interval_algebra      A;
-    std::vector<itv::interval> intermediate_intervals{X};  // should be one element bigger than titles and mps
+    std::vector<itv::interval> intermediate_intervals{
+        X};  // should be one element bigger than titles and mps
 
     for (int i = 0; i < n; i++) {
         intermediate_intervals.push_back((A.*(mps[n - i - 1]))(intermediate_intervals[i]));
-        std::cout << titles[n - i - 1] << "(" << intermediate_intervals[i] << ") = " << intermediate_intervals[i + 1]
-                  << std::endl;
+        std::cout << titles[n - i - 1] << "(" << intermediate_intervals[i]
+                  << ") = " << intermediate_intervals[i + 1] << std::endl;
     }
 
     std::cout << std::endl << "Intermediate intervals before shaving:" << std::endl;

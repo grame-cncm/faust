@@ -40,12 +40,8 @@ class OpenCLInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
-        *fOut << "interface->declare("
-              << "&" << inst->fZone << ", "
-              << "\"" << inst->fKey << "\""
-              << ", "
-              << "\"" << inst->fValue << "\""
-              << ")";
+        *fOut << "interface->declare(" << "&" << inst->fZone << ", " << "\"" << inst->fKey << "\""
+              << ", " << "\"" << inst->fValue << "\"" << ")";
         EndLine();
     }
 
@@ -63,9 +59,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
                 name = "interface->openTabBox";
                 break;
         }
-        *fOut << name << "("
-              << "\"" << inst->fName << "\""
-              << ")";
+        *fOut << name << "(" << "\"" << inst->fName << "\"" << ")";
         EndLine();
     }
 
@@ -78,16 +72,12 @@ class OpenCLInstVisitor : public TextInstVisitor {
     virtual void visit(AddButtonInst* inst)
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
-            *fOut << "interface->addButton("
-                  << "\"" << inst->fLabel << "\""
-                  << ","
-                  << "&" << inst->fZone << ")";
+            *fOut << "interface->addButton(" << "\"" << inst->fLabel << "\"" << "," << "&"
+                  << inst->fZone << ")";
             EndLine();
         } else {
-            *fOut << "interface->addCheckButton("
-                  << "\"" << inst->fLabel << "\""
-                  << ","
-                  << "&" << inst->fZone << ")";
+            *fOut << "interface->addCheckButton(" << "\"" << inst->fLabel << "\"" << "," << "&"
+                  << inst->fZone << ")";
             EndLine();
         }
     }
@@ -106,10 +96,8 @@ class OpenCLInstVisitor : public TextInstVisitor {
                 name = "interface->addNumEntry";
                 break;
         }
-        *fOut << name << "("
-              << "\"" << inst->fLabel << "\""
-              << ", "
-              << "&" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
+        *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "
+              << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
               << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
         EndLine();
     }
@@ -125,10 +113,8 @@ class OpenCLInstVisitor : public TextInstVisitor {
                 name = "interface->addVerticalBargraph";
                 break;
         }
-        *fOut << name << "("
-              << "\"" << inst->fLabel << "\""
-              << ", "
-              << "&" << inst->fZone << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+        *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "
+              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
         EndLine();
     }
 

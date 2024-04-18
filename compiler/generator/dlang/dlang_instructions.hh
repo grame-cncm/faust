@@ -35,7 +35,7 @@ class DLangInstVisitor : public TextInstVisitor {
 
     // Polymorphic math functions
     std::map<std::string, std::string> gPolyMathLibTable;
-    
+
     std::string cast2FAUSTFLOAT(const std::string& str) { return "cast(FAUSTFLOAT)" + str; }
 
    public:
@@ -47,86 +47,86 @@ class DLangInstVisitor : public TextInstVisitor {
         fTypeManager->fTypeDirectTable[Typed::kInt64]     = "long";
         fTypeManager->fTypeDirectTable[Typed::kInt64_ptr] = "long*";
         fTypeManager->fTypeDirectTable[Typed::kInt64_vec] = "vector<long>";
-     
+
         // Int version
         gPolyMathLibTable["abs"]   = "std.math.abs";
         gPolyMathLibTable["max_i"] = "max";
         gPolyMathLibTable["min_i"] = "min";
-        gPolyMathLibTable["rint"] = "round";
+        gPolyMathLibTable["rint"]  = "round";
 
         // Float version
-        gPolyMathLibTable["fabsf"]  = "fabs";
-        gPolyMathLibTable["acosf"]  = "acos";
-        gPolyMathLibTable["asinf"]  = "asin";
-        gPolyMathLibTable["atanf"]  = "atan";
-        gPolyMathLibTable["atan2f"] = "atan2";
-        gPolyMathLibTable["ceilf"]  = "ceil";
-        gPolyMathLibTable["cosf"]   = "cos";
-        gPolyMathLibTable["coshf"]  = "cosh";
-        gPolyMathLibTable["expf"]   = "exp";
-        gPolyMathLibTable["floorf"] = "floor";
-        gPolyMathLibTable["fmodf"]  = "fmod";
-        gPolyMathLibTable["logf"]   = "log";
-        gPolyMathLibTable["log10f"] = "log10";
-        gPolyMathLibTable["max_f"]  = "fmax";
-        gPolyMathLibTable["min_f"]  = "fmin";
-        gPolyMathLibTable["powf"]   = "pow";
-        gPolyMathLibTable["remainderf"] = "remainder";
-        gPolyMathLibTable["roundf"] = "round";
-        gPolyMathLibTable["sinf"]   = "sin";
-        gPolyMathLibTable["sinhf"]  = "sinh";
-        gPolyMathLibTable["sqrtf"]  = "sqrt";
-        gPolyMathLibTable["tanf"]   = "tan";
-        gPolyMathLibTable["tanhf"]  = "tanh";
-    
-        // Hyperbolic
-        gPolyMathLibTable["acoshf"]     = "acosh";
-        gPolyMathLibTable["asinhf"]     = "asinh";
-        gPolyMathLibTable["atanhf"]     = "atanh";
+        gPolyMathLibTable["fabsf"]      = "fabs";
+        gPolyMathLibTable["acosf"]      = "acos";
+        gPolyMathLibTable["asinf"]      = "asin";
+        gPolyMathLibTable["atanf"]      = "atan";
+        gPolyMathLibTable["atan2f"]     = "atan2";
+        gPolyMathLibTable["ceilf"]      = "ceil";
+        gPolyMathLibTable["cosf"]       = "cos";
         gPolyMathLibTable["coshf"]      = "cosh";
+        gPolyMathLibTable["expf"]       = "exp";
+        gPolyMathLibTable["floorf"]     = "floor";
+        gPolyMathLibTable["fmodf"]      = "fmod";
+        gPolyMathLibTable["logf"]       = "log";
+        gPolyMathLibTable["log10f"]     = "log10";
+        gPolyMathLibTable["max_f"]      = "fmax";
+        gPolyMathLibTable["min_f"]      = "fmin";
+        gPolyMathLibTable["powf"]       = "pow";
+        gPolyMathLibTable["remainderf"] = "remainder";
+        gPolyMathLibTable["roundf"]     = "round";
+        gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sinhf"]      = "sinh";
+        gPolyMathLibTable["sqrtf"]      = "sqrt";
+        gPolyMathLibTable["tanf"]       = "tan";
         gPolyMathLibTable["tanhf"]      = "tanh";
-        
-        gPolyMathLibTable["isnanf"]     = "isNaN";
-        gPolyMathLibTable["isinff"]     = "isInfinity";
-        gPolyMathLibTable["copysignf"]  = "copysign";
-   
-        // Double version
-        gPolyMathLibTable["fabs"]  = "fabs";
-        gPolyMathLibTable["acos"]  = "acos";
-        gPolyMathLibTable["asin"]  = "asin";
-        gPolyMathLibTable["atan"]  = "atan";
-        gPolyMathLibTable["atan2"] = "atan2";
-        gPolyMathLibTable["ceil"]  = "ceil";
-        gPolyMathLibTable["cos"]   = "cos";
-        gPolyMathLibTable["cosh"]  = "cosh";
-        gPolyMathLibTable["exp"]   = "exp";
-        gPolyMathLibTable["floor"] = "floor";
-        gPolyMathLibTable["fmod"]  = "fmod";
-        gPolyMathLibTable["log"]   = "log";
-        gPolyMathLibTable["log10"] = "log10";
-        gPolyMathLibTable["max_"]  = "fmax";
-        gPolyMathLibTable["min_"]  = "fmin";
-        gPolyMathLibTable["pow"]   = "pow";
-        gPolyMathLibTable["remainder"] = "remainder";
-        gPolyMathLibTable["round"] = "round";
-        gPolyMathLibTable["sin"]   = "sin";
-        gPolyMathLibTable["sinh"]  = "sinh";
-        gPolyMathLibTable["sqrt"]  = "sqrt";
-        gPolyMathLibTable["tan"]   = "tan";
-        gPolyMathLibTable["tanh"]  = "tanh";
-    
+
         // Hyperbolic
-        gPolyMathLibTable["acosh"]     = "acosh";
-        gPolyMathLibTable["asinh"]     = "asinh";
-        gPolyMathLibTable["atanh"]     = "atanh";
+        gPolyMathLibTable["acoshf"] = "acosh";
+        gPolyMathLibTable["asinhf"] = "asinh";
+        gPolyMathLibTable["atanhf"] = "atanh";
+        gPolyMathLibTable["coshf"]  = "cosh";
+        gPolyMathLibTable["sinhf"]  = "sinh";
+        gPolyMathLibTable["tanhf"]  = "tanh";
+
+        gPolyMathLibTable["isnanf"]    = "isNaN";
+        gPolyMathLibTable["isinff"]    = "isInfinity";
+        gPolyMathLibTable["copysignf"] = "copysign";
+
+        // Double version
+        gPolyMathLibTable["fabs"]      = "fabs";
+        gPolyMathLibTable["acos"]      = "acos";
+        gPolyMathLibTable["asin"]      = "asin";
+        gPolyMathLibTable["atan"]      = "atan";
+        gPolyMathLibTable["atan2"]     = "atan2";
+        gPolyMathLibTable["ceil"]      = "ceil";
+        gPolyMathLibTable["cos"]       = "cos";
         gPolyMathLibTable["cosh"]      = "cosh";
+        gPolyMathLibTable["exp"]       = "exp";
+        gPolyMathLibTable["floor"]     = "floor";
+        gPolyMathLibTable["fmod"]      = "fmod";
+        gPolyMathLibTable["log"]       = "log";
+        gPolyMathLibTable["log10"]     = "log10";
+        gPolyMathLibTable["max_"]      = "fmax";
+        gPolyMathLibTable["min_"]      = "fmin";
+        gPolyMathLibTable["pow"]       = "pow";
+        gPolyMathLibTable["remainder"] = "remainder";
+        gPolyMathLibTable["round"]     = "round";
+        gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sinh"]      = "sinh";
+        gPolyMathLibTable["sqrt"]      = "sqrt";
+        gPolyMathLibTable["tan"]       = "tan";
         gPolyMathLibTable["tanh"]      = "tanh";
-        
-        gPolyMathLibTable["isnan"]     = "isNaN";
-        gPolyMathLibTable["isinf"]     = "isInfinity";
-        gPolyMathLibTable["copysign"]  = "copysign";
+
+        // Hyperbolic
+        gPolyMathLibTable["acosh"] = "acosh";
+        gPolyMathLibTable["asinh"] = "asinh";
+        gPolyMathLibTable["atanh"] = "atanh";
+        gPolyMathLibTable["cosh"]  = "cosh";
+        gPolyMathLibTable["sinh"]  = "sinh";
+        gPolyMathLibTable["tanh"]  = "tanh";
+
+        gPolyMathLibTable["isnan"]    = "isNaN";
+        gPolyMathLibTable["isinf"]    = "isInfinity";
+        gPolyMathLibTable["copysign"] = "copysign";
     }
 
     virtual ~DLangInstVisitor() {}
@@ -135,8 +135,8 @@ class DLangInstVisitor : public TextInstVisitor {
     {
         // Special case
         if (inst->fZone == "0") {
-            *fOut << "uiInterface.declare(" << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue)
-                  << ")";
+            *fOut << "uiInterface.declare(" << inst->fZone << ", " << quote(inst->fKey) << ", "
+                  << quote(inst->fValue) << ")";
         } else {
             *fOut << "uiInterface.declare(&" << inst->fZone << ", " << quote(inst->fKey) << ", "
                   << quote(inst->fValue) << ")";
@@ -173,7 +173,8 @@ class DLangInstVisitor : public TextInstVisitor {
         if (inst->fType == AddButtonInst::kDefaultButton) {
             *fOut << "uiInterface.addButton(" << quote(inst->fLabel) << ", &" << inst->fZone << ")";
         } else {
-            *fOut << "uiInterface.addCheckButton(" << quote(inst->fLabel) << ", &" << inst->fZone << ")";
+            *fOut << "uiInterface.addCheckButton(" << quote(inst->fLabel) << ", &" << inst->fZone
+                  << ")";
         }
         EndLine();
     }
@@ -219,8 +220,8 @@ class DLangInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        *fOut << "uiInterface.addSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &"
-              << inst->fSFZone << ")";
+        *fOut << "uiInterface.addSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL)
+              << ", &" << inst->fSFZone << ")";
         EndLine();
     }
 
@@ -280,13 +281,17 @@ class DLangInstVisitor : public TextInstVisitor {
             *fOut << "inline ";
         }
 
-        if (inst->fType->fAttribute & FunTyped::kLocal || inst->fType->fAttribute & FunTyped::kStatic) {
+        if (inst->fType->fAttribute & FunTyped::kLocal ||
+            inst->fType->fAttribute & FunTyped::kStatic) {
             *fOut << "static ";
         }
 
         // Prototype
-        // Special case: member function `init` renamed to `initialize` so it doesnt conflict with D `.init` property.
-        *fOut << fTypeManager->generateType(inst->fType->fResult, generateFunName(inst->fName == "init" ? "initialize" : inst->fName));
+        // Special case: member function `init` renamed to `initialize` so it doesnt conflict with D
+        // `.init` property.
+        *fOut << fTypeManager->generateType(
+            inst->fType->fResult,
+            generateFunName(inst->fName == "init" ? "initialize" : inst->fName));
         generateFunDefArgs(inst);
         generateFunDefBody(inst);
     }
@@ -313,7 +318,7 @@ class DLangInstVisitor : public TextInstVisitor {
         *fOut << "&";
         inst->fAddress->accept(this);
     }
-    
+
     virtual void visit(BinopInst* inst)
     {
         // Special case for 'logical right-shift'
@@ -364,10 +369,11 @@ class DLangInstVisitor : public TextInstVisitor {
     virtual void visit(FunCallInst* inst)
     {
         std::string name = gGlobal->getMathFunction(inst->fName);
-        name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
+        name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name]
+                                                                         : name;
         generateFunCall(inst, name);
     }
-    
+
     virtual void visit(FloatArrayNumInst* inst)
     {
         char sep = '[';

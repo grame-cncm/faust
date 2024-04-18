@@ -28,14 +28,16 @@
 #include <string>
 #include <vector>
 
+#include "Text.hh"
 #include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
-#include "Text.hh"
 
 static void tab(int n, ostream& fout)
 {
     fout << '\n';
-    while (n--) fout << '\t';
+    while (n--) {
+        fout << '\t';
+    }
 }
 
 #define dispatchReturn() \
@@ -112,15 +114,12 @@ class FBCCPPCompiler {
 
     CPPBlockList fBlockList;
 
-    std::string genFloat(float num)
+    std::string genFloat(float num) { return T(num); }
+    std::string genDouble(double num) { return T(num); }
+    std::string genReal(double num)
     {
-        return T(num);
+        return (sizeof(T) == sizeof(double)) ? genDouble(num) : genFloat(num);
     }
-    std::string genDouble(double num)
-    {
-        return T(num);
-    }
-    std::string genReal(double num) { return (sizeof(T) == sizeof(double)) ? genDouble(num) : genFloat(num); }
     std::string genInt32(int num) { return std::to_string(num); }
     std::string genInt64(int64_t num) { return std::to_string(num); }
 
@@ -132,15 +131,27 @@ class FBCCPPCompiler {
     bool          emptyReturn() { return (fAddrStackIndex == 0); }
 
     void pushUnaryCall(const std::string& name) { pushValue(name + "(" + popValue() + ")"); }
-    void pushBinaryCall(const std::string& name) { pushValue(name + "(" + popValue() + ", " + popValue() + ")"); }
-    void pushBinopCall(const std::string& name) { pushValue("(" + popValue() + " " + name + " " + popValue() + ")"); }
+    void pushBinaryCall(const std::string& name)
+    {
+        pushValue(name + "(" + popValue() + ", " + popValue() + ")");
+    }
+    void pushBinopCall(const std::string& name)
+    {
+        pushValue("(" + popValue() + " " + name + " " + popValue() + ")");
+    }
 
-    void pushLoadArray(const std::string& array, int index) { pushValue(array + "[" + std::to_string(index) + "]"); }
+    void pushLoadArray(const std::string& array, int index)
+    {
+        pushValue(array + "[" + std::to_string(index) + "]");
+    }
     void pushStoreArray(const std::string& array, int index)
     {
         fBlockList.addInst(array + "[" + std::to_string(index) + "] = " + popValue() + ";");
     }
-    void pushLoadArray(const std::string& array, const std::string& index) { pushValue(array + "[" + index + "]"); }
+    void pushLoadArray(const std::string& array, const std::string& index)
+    {
+        pushValue(array + "[" + index + "]");
+    }
     void pushStoreArray(const std::string& array, const std::string& index)
     {
         fBlockList.addInst(array + "[" + index + "] = " + popValue() + ";");
@@ -152,8 +163,8 @@ class FBCCPPCompiler {
     }
     void pushStoreOutput(int index)
     {
-        fBlockList.addInst("outputs[" + std::to_string(index) + "][" + popValue() + "] = FAUSTFLOAT(" + popValue() +
-                           ");");
+        fBlockList.addInst("outputs[" + std::to_string(index) + "][" + popValue() +
+                           "] = FAUSTFLOAT(" + popValue() + ");");
     }
 
     void CompileBlock(FBCBlockInstruction<T>* block)
@@ -197,7 +208,8 @@ class FBCCPPCompiler {
                     it++;
                     break;
 
-                    // Indexed memory load/store: constant values are added at generation time by CreateBinOp...
+                    // Indexed memory load/store: constant values are added at generation time by
+                    // CreateBinOp...
                 case FBCInstruction::kLoadIndexedReal: {
                     std::string offset = genInt32((*it)->fOffset1) + "+" + popValue();
                     pushLoadArray("fRealHeap", offset);
@@ -211,12 +223,12 @@ class FBCCPPCompiler {
                     it++;
                     break;
                 }
-                    
+
                 case FBCInstruction::kLoadSoundFieldInt:
                     // TODO
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kLoadSoundFieldReal:
                     // TODO
                     it++;
@@ -451,7 +463,7 @@ class FBCCPPCompiler {
                     pushUnaryCall("std::log10");
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kRintf:
                     pushUnaryCall("std::rint");
                     it++;
@@ -486,17 +498,17 @@ class FBCCPPCompiler {
                     pushUnaryCall("std::tanh");
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kIsnanf:
                     pushUnaryCall("std::isnan");
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kIsinff:
                     pushUnaryCall("std::isinf");
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kCopysignf:
                     pushBinaryCall("std::copysign");
                     it++;
@@ -621,8 +633,8 @@ class FBCCPPCompiler {
                     std::string id2 = fBlockList.getIndex();
 
                     // Branch to current block
-                    fBlockList.addPreviousInst("if " + cond + " { goto label" + id1 + "; } else { goto label" + id2 +
-                                               "; }");
+                    fBlockList.addPreviousInst("if " + cond + " { goto label" + id1 +
+                                               "; } else { goto label" + id2 + "; }");
 
                     it++;
                     break;
@@ -689,12 +701,14 @@ class FBCCPPCompiler {
 
                 case FBCInstruction::kAddButton:
                     tab(n + 1, out);
-                    out << "ui_interface->addButton(\"" << it->fLabel << "\", &fRealHeap[" << it->fOffset << "]);";
+                    out << "ui_interface->addButton(\"" << it->fLabel << "\", &fRealHeap["
+                        << it->fOffset << "]);";
                     break;
 
                 case FBCInstruction::kAddCheckButton:
                     tab(n + 1, out);
-                    out << "ui_interface->addCheckButton(\"" << it->fLabel << "\", &fRealHeap[" << it->fOffset << "]);";
+                    out << "ui_interface->addCheckButton(\"" << it->fLabel << "\", &fRealHeap["
+                        << it->fOffset << "]);";
                     break;
 
                 case FBCInstruction::kAddHorizontalSlider:
@@ -752,10 +766,11 @@ class FBCCPPCompiler {
                     // Special case for "0" zone
                     tab(n + 1, out);
                     if (it->fOffset == -1) {
-                        out << "ui_interface->declare(0, \"" << it->fKey << "\", \"" << it->fValue << "\");";
+                        out << "ui_interface->declare(0, \"" << it->fKey << "\", \"" << it->fValue
+                            << "\");";
                     } else {
-                        out << "ui_interface->declare(&fRealHeap[" << it->fOffset << "], \"" << it->fKey << "\", \""
-                            << it->fValue << "\");";
+                        out << "ui_interface->declare(&fRealHeap[" << it->fOffset << "], \""
+                            << it->fKey << "\", \"" << it->fValue << "\");";
                     }
                     break;
 
@@ -828,7 +843,8 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
         tab(tabs + 1, out);
         out << "int fIntHeap[" << this->fFactory->fIntHeapSize << "];";
         tab(tabs + 1, out);
-        out << FBCCPPCompiler<T>::getRealTy() << " fRealHeap[" << this->fFactory->fRealHeapSize << "];";
+        out << FBCCPPCompiler<T>::getRealTy() << " fRealHeap[" << this->fFactory->fRealHeapSize
+            << "];";
 
         tab(tabs, out);
         tab(tabs, out);
@@ -858,7 +874,8 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
 
         tab(tabs + 1, out);
         tab(tabs + 1, out);
-        out << "virtual int getSampleRate() { return fIntHeap[" << this->fFactory->fSROffset << "]; }";
+        out << "virtual int getSampleRate() { return fIntHeap[" << this->fFactory->fSROffset
+            << "]; }";
 
         tab(tabs + 1, out);
         tab(tabs + 1, out);
@@ -894,7 +911,8 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
         {
             FBCCPPCompiler<T> compiler;
             compiler.AddBlock();
-            compiler.AddInst("fIntHeap[" + std::to_string(this->fFactory->fSROffset) + "] = sample_rate;");
+            compiler.AddInst("fIntHeap[" + std::to_string(this->fFactory->fSROffset) +
+                             "] = sample_rate;");
             compiler.CompileBlock(this->fFactory->fInitBlock, tabs + 1, out);
         }
 
@@ -937,8 +955,10 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
         {
             FBCCPPCompiler<T> compiler;
             compiler.AddBlock();
-            compiler.AddInst("if (count == 0) return; // Beware: compiled loop don't work with an index of 0");
-            compiler.AddInst("fIntHeap[" + std::to_string(this->fFactory->fCountOffset) + "] = count;");
+            compiler.AddInst(
+                "if (count == 0) return; // Beware: compiled loop don't work with an index of 0");
+            compiler.AddInst("fIntHeap[" + std::to_string(this->fFactory->fCountOffset) +
+                             "] = count;");
             if (control_block) {
                 control_block->write(&std::cout);
                 compiler.CompileBlock(control_block, tabs + 1, out, false);

@@ -31,11 +31,10 @@
  * @tparam N
  */
 template <typename N>
-class schedule
-{
+class schedule {
    private:
     std::vector<N>   fElements;  // ordered set of elements
-    std::map<N, int> fOrder;     // order of each element (starting at 1, 0 indicates not in schedule)
+    std::map<N, int> fOrder;  // order of each element (starting at 1, 0 indicates not in schedule)
 
    public:
     // number of elements in the schedule
@@ -66,7 +65,9 @@ class schedule
     // append all the elements of a schedule
     schedule& append(const schedule<N>& S)
     {
-        for (const N& n : S.elements()) append(n);
+        for (const N& n : S.elements()) {
+            append(n);
+        }
         return *this;
     }
 };
@@ -116,7 +117,9 @@ inline schedule<N> dfschedule(const digraph<N>& G)
         }
     };
 
-    for (const auto& n : roots(G)) dfvisit(n);
+    for (const auto& n : roots(G)) {
+        dfvisit(n);
+    }
 
     return S;
 }
@@ -136,7 +139,9 @@ inline schedule<N> bfschedule(const digraph<N>& G)
     schedule<N>                 S;
 
     for (uint64_t i = 0; i < P.size(); i++) {
-        for (const N& n : P[i]) S.append(n);
+        for (const N& n : P[i]) {
+            S.append(n);
+        }
     }
     return S;
 }

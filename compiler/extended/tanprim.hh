@@ -40,8 +40,8 @@ class TanPrim : public xtended {
     virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == 1);
-        interval     i = args[0]->getInterval();
-        interval     r = gAlgebra.Tan(i);
+        interval i = args[0]->getInterval();
+        interval r = gAlgebra.Tan(i);
         // The check can be improved to ensure that no infinity is in the range
         /*
          if (i.isValid()) {
@@ -65,7 +65,8 @@ class TanPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -73,7 +74,8 @@ class TanPrim : public xtended {
         return generateFun(container, subst("tan$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -81,15 +83,16 @@ class TanPrim : public xtended {
         return subst("tan$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("\\tan\\left($0\\right)", args[0]);
     }
-    
-    Tree diff(const std::vector<Tree> &args) override
+
+    Tree diff(const std::vector<Tree>& args) override
     {
         // (tan(x))' = sec^2(x) = 1 / cos^2(x)
         // TODO: handle division by zero

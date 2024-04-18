@@ -22,9 +22,9 @@
 #ifndef _JAX_CODE_CONTAINER_H
 #define _JAX_CODE_CONTAINER_H
 
-#include "jax_instructions.hh"
 #include "code_container.hh"
 #include "dsp_factory.hh"
+#include "jax_instructions.hh"
 #include "omp_code_container.hh"
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
@@ -36,10 +36,10 @@
 class JAXCodeContainer : public virtual CodeContainer {
    protected:
     static JAXInstVisitor* gJAXVisitor;
-    std::ostream* fOut;
+    std::ostream*          fOut;
 
     virtual void produceClass();
-        
+
     // Not used
     virtual void produceInternal() {}
 
@@ -48,38 +48,29 @@ class JAXCodeContainer : public virtual CodeContainer {
     virtual void generateSR();
 
    public:
-    JAXCodeContainer()
-    {}
+    JAXCodeContainer() {}
     JAXCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    
+
     virtual ~JAXCodeContainer()
     {
         // fCodeProducer is a 'Garbageable'
     }
-    
+
     virtual dsp_factory_base* produceFactory();
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
 
     static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs,
                                           std::ostream* dst = new std::stringstream());
-
 };
 
 class JAXScalarCodeContainer : public JAXCodeContainer {
    protected:
-   
    public:
-    JAXScalarCodeContainer()
-    {}
-    JAXScalarCodeContainer(const std::string& name,
-                         int numInputs,
-                         int numOutputs,
-                         std::ostream* out,
-                         int sub_container_type);
-    virtual ~JAXScalarCodeContainer()
-    {}
-
+    JAXScalarCodeContainer() {}
+    JAXScalarCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                           std::ostream* out, int sub_container_type);
+    virtual ~JAXScalarCodeContainer() {}
 };
 
 #endif

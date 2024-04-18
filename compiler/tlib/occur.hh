@@ -34,7 +34,7 @@ class Occur : public virtual Garbageable {
     Tree fKey;  // specific property key
 
    public:
-    Occur(Tree root);     // count the occurrences of each subtree of root
+    Occur(Tree root);      // count the occurrences of each subtree of root
     int getCount(Tree t);  // return the number of occurrences of t in root
 
    private:

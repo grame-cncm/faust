@@ -41,13 +41,16 @@
 
 class ScalarCompiler : public Compiler {
    protected:
-    property<std::string>                          fCompileProperty;
-    property<std::string>                          fSoundfileVariableProperty;  // variable associated to a soundfile
-    property<std::string>                          fVectorProperty;
-    property<std::pair<std::string, std::string> > fStaticInitProperty;    // property added to solve 20101208 kjetil bug
-    property<std::pair<std::string, std::string> > fInstanceInitProperty;  // property added to solve 20101208 kjetil bug
+    property<std::string> fCompileProperty;
+    property<std::string> fSoundfileVariableProperty;  // variable associated to a soundfile
+    property<std::string> fVectorProperty;
+    property<std::pair<std::string, std::string> >
+        fStaticInitProperty;  // property added to solve 20101208 kjetil bug
+    property<std::pair<std::string, std::string> >
+        fInstanceInitProperty;  // property added to solve 20101208 kjetil bug
 
-    std::map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
+    std::map<Tree, Tree>
+        fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
 
     static std::map<std::string, int>  fIDCounters;
     Tree                               fSharingKey;
@@ -58,11 +61,16 @@ class ScalarCompiler : public Compiler {
 
    public:
     ScalarCompiler(const std::string& name, const std::string& super, int numInputs, int numOutputs)
-        : Compiler(name, super, numInputs, numOutputs, false), fSharingKey(nullptr), fOccMarkup(nullptr), fMaxIota(-1)
+        : Compiler(name, super, numInputs, numOutputs, false),
+          fSharingKey(nullptr),
+          fOccMarkup(nullptr),
+          fMaxIota(-1)
     {
     }
 
-    ScalarCompiler(Klass* k) : Compiler(k), fSharingKey(nullptr), fOccMarkup(nullptr), fMaxIota(-1) {}
+    ScalarCompiler(Klass* k) : Compiler(k), fSharingKey(nullptr), fOccMarkup(nullptr), fMaxIota(-1)
+    {
+    }
 
     virtual void compileMultiSignal(Tree lsig);
     virtual void compileSingleSignal(Tree lsig);
@@ -136,9 +144,12 @@ class ScalarCompiler : public Compiler {
     std::string generateFConst(Tree sig, const std::string& file, const std::string& name);
     std::string generateFVar(Tree sig, const std::string& file, const std::string& name);
 
-    virtual std::string generateDelayVec(Tree sig, const std::string& exp, const std::string& ctype, const std::string& vname, int mxd, int count);
-    std::string         generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype, const std::string& vname, int mxd, int count);
-    virtual std::string generateDelayLine(DelayType dt, const std::string& ctype, const std::string& vname, int mxd, int count, bool mono,
+    virtual std::string generateDelayVec(Tree sig, const std::string& exp, const std::string& ctype,
+                                         const std::string& vname, int mxd, int count);
+    std::string generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype,
+                                       const std::string& vname, int mxd, int count);
+    virtual std::string generateDelayLine(DelayType dt, const std::string& ctype,
+                                          const std::string& vname, int mxd, int count, bool mono,
                                           const std::string& exp, const std::string& ccs);
 
     void getTypedNames(::Type t, const std::string& prefix, std::string& ctype, std::string& vname);

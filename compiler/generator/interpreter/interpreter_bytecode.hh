@@ -58,8 +58,9 @@ struct FBCBasicInstruction : public FBCInstruction {
     FBCBlockInstruction<REAL>* fBranch1;
     FBCBlockInstruction<REAL>* fBranch2;
 
-    FBCBasicInstruction(Opcode opcode, const std::string& name, int val_int, REAL val_real, int off1, int off2,
-                        FBCBlockInstruction<REAL>* branch1, FBCBlockInstruction<REAL>* branch2)
+    FBCBasicInstruction(Opcode opcode, const std::string& name, int val_int, REAL val_real,
+                        int off1, int off2, FBCBlockInstruction<REAL>* branch1,
+                        FBCBlockInstruction<REAL>* branch2)
         : fName(name),
           fOpcode(opcode),
           fIntValue(val_int),
@@ -95,7 +96,8 @@ struct FBCBasicInstruction : public FBCInstruction {
     {
     }
 
-    FBCBasicInstruction(Opcode opcode, const std::string& name, int val_int, REAL val_real, int off1, int off2)
+    FBCBasicInstruction(Opcode opcode, const std::string& name, int val_int, REAL val_real,
+                        int off1, int off2)
         : fName(name),
           fOpcode(opcode),
           fIntValue(val_int),
@@ -106,7 +108,7 @@ struct FBCBasicInstruction : public FBCInstruction {
           fBranch2(nullptr)
     {
     }
-    
+
     FBCBasicInstruction(Opcode opcode, const std::string& name)
         : fName(name),
           fOpcode(opcode),
@@ -118,7 +120,7 @@ struct FBCBasicInstruction : public FBCInstruction {
           fBranch2(nullptr)
     {
     }
-    
+
     FBCBasicInstruction(Opcode opcode)
         : fName(""),
           fOpcode(opcode),
@@ -143,7 +145,10 @@ struct FBCBasicInstruction : public FBCInstruction {
     {
     }
 
-    FBCBlockInstruction<REAL>* getBranch1() { return (fOpcode == kCondBranch) ? nullptr : fBranch1; }
+    FBCBlockInstruction<REAL>* getBranch1()
+    {
+        return (fOpcode == kCondBranch) ? nullptr : fBranch1;
+    }
     FBCBlockInstruction<REAL>* getBranch2() { return fBranch2; }
 
     virtual ~FBCBasicInstruction()
@@ -154,23 +159,25 @@ struct FBCBasicInstruction : public FBCInstruction {
 
     int size()
     {
-        int branches =
-            std::max(((getBranch1()) ? getBranch1()->size() : 0), ((getBranch2()) ? getBranch2()->size() : 0));
+        int branches = std::max(((getBranch1()) ? getBranch1()->size() : 0),
+                                ((getBranch2()) ? getBranch2()->size() : 0));
         return (branches > 0) ? branches : 1;
     }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false,
+                       bool recurse = true)
     {
         if (small) {
-            *out << "o " << fOpcode << " k "
-                 << " i " << fIntValue << " r " << fRealValue << " o " << fOffset1 << " o " << fOffset2;
+            *out << "o " << fOpcode << " k " << " i " << fIntValue << " r " << fRealValue << " o "
+                 << fOffset1 << " o " << fOffset2;
             if (fName != "") {
                 *out << " n " << fName;
             }
             *out << std::endl;
         } else {
-            *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " int " << fIntValue << " real "
-                 << fRealValue << " offset1 " << fOffset1 << " offset2 " << fOffset2;
+            *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " int "
+                 << fIntValue << " real " << fRealValue << " offset1 " << fOffset1 << " offset2 "
+                 << fOffset2;
             if (fName != "") {
                 *out << " name " << fName;
             }
@@ -187,9 +194,10 @@ struct FBCBasicInstruction : public FBCInstruction {
 
     virtual FBCBasicInstruction<REAL>* copy()
     {
-        return new FBCBasicInstruction<REAL>(fOpcode, fName, fIntValue, fRealValue, fOffset1, fOffset2,
-                                            ((getBranch1()) ? getBranch1()->copy() : nullptr),
-                                            ((getBranch2()) ? getBranch2()->copy() : nullptr));
+        return new FBCBasicInstruction<REAL>(fOpcode, fName, fIntValue, fRealValue, fOffset1,
+                                             fOffset2,
+                                             ((getBranch1()) ? getBranch1()->copy() : nullptr),
+                                             ((getBranch2()) ? getBranch2()->copy() : nullptr));
     }
 };
 
@@ -212,17 +220,20 @@ struct FIRBlockStoreRealInstruction : public FBCBasicInstruction<REAL> {
 
     virtual FIRBlockStoreRealInstruction<REAL>* copy()
     {
-        return new FIRBlockStoreRealInstruction<REAL>(this->fOpcode, this->fOffset1, this->fOffset2, this->fNumTable);
+        return new FIRBlockStoreRealInstruction<REAL>(this->fOpcode, this->fOffset1, this->fOffset2,
+                                                      this->fNumTable);
     }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false,
+                       bool recurse = true)
     {
         if (small) {
-            *out << "o " << this->fOpcode << " k "
-                 << " o " << this->fOffset1 << " o " << this->fOffset2 << " s " << this->fNumTable.size() << std::endl;
+            *out << "o " << this->fOpcode << " k " << " o " << this->fOffset1 << " o "
+                 << this->fOffset2 << " s " << this->fNumTable.size() << std::endl;
         } else {
-            *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 "
-                 << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size();
+            *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode]
+                 << " offset1 " << this->fOffset1 << " offset2 " << this->fOffset2 << " size "
+                 << this->fNumTable.size();
             if (this->fName != "") {
                 *out << " name " << this->fName;
             }
@@ -254,17 +265,20 @@ struct FIRBlockStoreIntInstruction : public FBCBasicInstruction<REAL> {
 
     virtual FIRBlockStoreIntInstruction<REAL>* copy()
     {
-        return new FIRBlockStoreIntInstruction<REAL>(this->fOpcode, this->fOffset1, this->fOffset2, this->fNumTable);
+        return new FIRBlockStoreIntInstruction<REAL>(this->fOpcode, this->fOffset1, this->fOffset2,
+                                                     this->fNumTable);
     }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false,
+                       bool recurse = true)
     {
         if (small) {
-            *out << "o " << this->fOpcode << " k "
-                 << " o " << this->fOffset1 << " o " << this->fOffset2 << " s " << this->fNumTable.size() << std::endl;
+            *out << "o " << this->fOpcode << " k " << " o " << this->fOffset1 << " o "
+                 << this->fOffset2 << " s " << this->fNumTable.size() << std::endl;
         } else {
-            *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 "
-                 << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size();
+            *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode]
+                 << " offset1 " << this->fOffset1 << " offset2 " << this->fOffset2 << " size "
+                 << this->fNumTable.size();
             if (this->fName != "") {
                 *out << " name " << this->fName;
             }
@@ -289,8 +303,9 @@ struct FIRUserInterfaceInstruction : public FBCInstruction {
     REAL        fMax;
     REAL        fStep;
 
-    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, const std::string& key,
-                                const std::string& value, REAL init, REAL min, REAL max, REAL step)
+    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label,
+                                const std::string& key, const std::string& value, REAL init,
+                                REAL min, REAL max, REAL step)
         : fOpcode(opcode),
           fOffset(offset),
           fLabel(label),
@@ -303,27 +318,59 @@ struct FIRUserInterfaceInstruction : public FBCInstruction {
     {
     }
 
-    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, REAL init, REAL min, REAL max, REAL step)
-        : fOpcode(opcode), fOffset(offset), fLabel(label), fInit(init), fMin(min), fMax(max), fStep(step)
+    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, REAL init,
+                                REAL min, REAL max, REAL step)
+        : fOpcode(opcode),
+          fOffset(offset),
+          fLabel(label),
+          fInit(init),
+          fMin(min),
+          fMax(max),
+          fStep(step)
     {
     }
 
     FIRUserInterfaceInstruction(Opcode opcode)
-        : fOpcode(opcode), fOffset(-1), fLabel(""), fKey(""), fValue(""), fInit(0), fMin(0), fMax(0), fStep(0)
+        : fOpcode(opcode),
+          fOffset(-1),
+          fLabel(""),
+          fKey(""),
+          fValue(""),
+          fInit(0),
+          fMin(0),
+          fMax(0),
+          fStep(0)
     {
     }
 
     FIRUserInterfaceInstruction(Opcode opcode, const std::string& label)
-        : fOpcode(opcode), fOffset(-1), fLabel(label), fKey(""), fValue(""), fInit(0), fMin(0), fMax(0), fStep(0)
+        : fOpcode(opcode),
+          fOffset(-1),
+          fLabel(label),
+          fKey(""),
+          fValue(""),
+          fInit(0),
+          fMin(0),
+          fMax(0),
+          fStep(0)
     {
     }
 
     FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label)
-        : fOpcode(opcode), fOffset(offset), fLabel(label), fKey(""), fValue(""), fInit(0), fMin(0), fMax(0), fStep(0)
+        : fOpcode(opcode),
+          fOffset(offset),
+          fLabel(label),
+          fKey(""),
+          fValue(""),
+          fInit(0),
+          fMin(0),
+          fMax(0),
+          fStep(0)
     {
     }
 
-    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, REAL min, REAL max)
+    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, REAL min,
+                                REAL max)
         : fOpcode(opcode),
           fOffset(offset),
           fLabel(label),
@@ -336,28 +383,48 @@ struct FIRUserInterfaceInstruction : public FBCInstruction {
     {
     }
 
-    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& key, const std::string& value)
-        : fOpcode(opcode), fOffset(offset), fLabel(""), fKey(key), fValue(value), fInit(0), fMin(0), fMax(0), fStep(0)
+    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& key,
+                                const std::string& value)
+        : fOpcode(opcode),
+          fOffset(offset),
+          fLabel(""),
+          fKey(key),
+          fValue(value),
+          fInit(0),
+          fMin(0),
+          fMax(0),
+          fStep(0)
     {
     }
-    
-    FIRUserInterfaceInstruction(Opcode opcode, const std::string& label, const std::string& key, const std::string& value)
-    : fOpcode(opcode), fOffset(-1), fLabel(label), fKey(key), fValue(value), fInit(0), fMin(0), fMax(0), fStep(0)
+
+    FIRUserInterfaceInstruction(Opcode opcode, const std::string& label, const std::string& key,
+                                const std::string& value)
+        : fOpcode(opcode),
+          fOffset(-1),
+          fLabel(label),
+          fKey(key),
+          fValue(value),
+          fInit(0),
+          fMin(0),
+          fMax(0),
+          fStep(0)
     {
     }
 
     virtual ~FIRUserInterfaceInstruction() {}
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false,
+                       bool recurse = true)
     {
         if (small) {
-            *out << "o " << fOpcode << " k "
-                 << " o " << fOffset << " l " << quote1(fLabel) << " k " << quote1(fKey) << " v " << quote1(fValue)
-                 << " i " << fInit << " m " << fMin << " m " << fMax << " s " << fStep << std::endl;
+            *out << "o " << fOpcode << " k " << " o " << fOffset << " l " << quote1(fLabel) << " k "
+                 << quote1(fKey) << " v " << quote1(fValue) << " i " << fInit << " m " << fMin
+                 << " m " << fMax << " s " << fStep << std::endl;
         } else {
-            *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " offset " << fOffset << " label "
-                 << quote1(fLabel) << " key " << quote1(fKey) << " value " << quote1(fValue) << " init " << fInit
-                 << " min " << fMin << " max " << fMax << " step " << fStep << std::endl;
+            *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " offset "
+                 << fOffset << " label " << quote1(fLabel) << " key " << quote1(fKey) << " value "
+                 << quote1(fValue) << " init " << fInit << " min " << fMin << " max " << fMax
+                 << " step " << fStep << std::endl;
         }
     }
 };
@@ -366,18 +433,19 @@ struct FIRMetaInstruction : public FBCInstruction {
     std::string fKey;
     std::string fValue;
 
-    FIRMetaInstruction(const std::string& key, const std::string& value) : fKey(key), fValue(value) {}
+    FIRMetaInstruction(const std::string& key, const std::string& value) : fKey(key), fValue(value)
+    {
+    }
 
     virtual ~FIRMetaInstruction() {}
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false,
+                       bool recurse = true)
     {
         if (small) {
-            *out << "m"
-                 << " k " << quote1(fKey) << " v " << quote1(fValue) << std::endl;
+            *out << "m" << " k " << quote1(fKey) << " v " << quote1(fValue) << std::endl;
         } else {
-            *out << "meta"
-                 << " key " << quote1(fKey) << " value " << quote1(fValue) << std::endl;
+            *out << "meta" << " key " << quote1(fKey) << " value " << quote1(fValue) << std::endl;
         }
     }
 };
@@ -402,10 +470,13 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
 
     void push(FIRUserInterfaceInstruction<REAL>* inst)
     {
-        if (inst) fInstructions.push_back(inst);
+        if (inst) {
+            fInstructions.push_back(inst);
+        }
     }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false,
+                       bool recurse = true)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         for (const auto& it : fInstructions) {
@@ -455,11 +526,11 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
     void freezeDefaultValues(std::map<int, REAL>& real_map)
     {
         for (const auto& it : fInstructions) {
-            if (it->fOpcode == FBCInstruction::kAddButton
-                || it->fOpcode == FBCInstruction::kAddCheckButton
-                || it->fOpcode == FBCInstruction::kAddHorizontalSlider
-                || it->fOpcode == FBCInstruction::kAddVerticalSlider
-                || it->fOpcode == FBCInstruction::kAddNumEntry) {
+            if (it->fOpcode == FBCInstruction::kAddButton ||
+                it->fOpcode == FBCInstruction::kAddCheckButton ||
+                it->fOpcode == FBCInstruction::kAddHorizontalSlider ||
+                it->fOpcode == FBCInstruction::kAddVerticalSlider ||
+                it->fOpcode == FBCInstruction::kAddNumEntry) {
                 real_map[it->fOffset] = it->fInit;
             }
         }
@@ -503,10 +574,13 @@ struct FIRMetaBlockInstruction : public FBCInstruction {
 
     void push(FIRMetaInstruction* inst)
     {
-        if (inst) fInstructions.push_back(inst);
+        if (inst) {
+            fInstructions.push_back(inst);
+        }
     }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false,
+                       bool recurse = true)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         for (const auto& it : fInstructions) {
@@ -527,14 +601,13 @@ struct FBCBlockInstruction : public FBCInstruction {
     }
 
     // Check block coherency
-    void check()
-    {
-        faustassert(fInstructions.back()->fOpcode == FBCInstruction::kReturn);
-    }
-  
+    void check() { faustassert(fInstructions.back()->fOpcode == FBCInstruction::kReturn); }
+
     void push(FBCBasicInstruction<REAL>* inst)
     {
-        if (inst) fInstructions.push_back(inst);
+        if (inst) {
+            fInstructions.push_back(inst);
+        }
     }
 
     void merge(FBCBlockInstruction<REAL>* block)
@@ -546,7 +619,8 @@ struct FBCBlockInstruction : public FBCInstruction {
         }
     }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false,
+                       bool recurse = true)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         for (const auto& it : fInstructions) {
@@ -562,7 +636,8 @@ struct FBCBlockInstruction : public FBCInstruction {
         for (const auto& it : fInstructions) {
             it->stackMove(tmp_int_index, tmp_real_index);
             it->write(&std::cout);
-            std::cout << "int_stack_index " << tmp_int_index << " real_stack_index " << tmp_real_index << std::endl;
+            std::cout << "int_stack_index " << tmp_int_index << " real_stack_index "
+                      << tmp_real_index << std::endl;
             faustassert(tmp_int_index >= 0 && tmp_real_index >= 0);
             int_index  = std::max(int_index, tmp_int_index);
             real_index = std::max(real_index, tmp_real_index);

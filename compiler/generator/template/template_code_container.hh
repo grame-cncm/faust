@@ -22,9 +22,9 @@
 #ifndef _TEMPLATE_CODE_CONTAINER_H
 #define _TEMPLATE_CODE_CONTAINER_H
 
-#include "template_instructions.hh"
 #include "code_container.hh"
 #include "dsp_factory.hh"
+#include "template_instructions.hh"
 #include "vec_code_container.hh"
 
 #ifdef WIN32
@@ -35,26 +35,26 @@
 class TemplateCodeContainer : public virtual CodeContainer {
    protected:
     static TemplateInstVisitor* gTemplateVisitor;
-    std::ostream* fOut;
+    std::ostream*               fOut;
 
     virtual void produceClass();
-    
+
     void produceMetadata(int tabs);
-    
+
     virtual void produceInternal();
-   
+
    public:
-    TemplateCodeContainer()
-    {}
-    TemplateCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    
+    TemplateCodeContainer() {}
+    TemplateCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                          std::ostream* out);
+
     virtual ~TemplateCodeContainer()
     {
         // fCodeProducer is a 'Garbageable', so nothing to delete
     }
-    
+
     virtual void generateCompute(int tab) = 0;
-    
+
     virtual dsp_factory_base* produceFactory();
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
@@ -66,31 +66,24 @@ class TemplateCodeContainer : public virtual CodeContainer {
 // Used in -scalar (= default) mode
 class TemplateScalarCodeContainer : public TemplateCodeContainer {
    protected:
-  
    public:
-    TemplateScalarCodeContainer()
-    {}
-    TemplateScalarCodeContainer(const std::string& name,
-                             int numInputs,
-                             int numOutputs,
-                             std::ostream* out,
-                             int sub_container_type);
-    virtual ~TemplateScalarCodeContainer()
-    {}
+    TemplateScalarCodeContainer() {}
+    TemplateScalarCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                                std::ostream* out, int sub_container_type);
+    virtual ~TemplateScalarCodeContainer() {}
 
     void generateCompute(int n);
 };
 
 // Used in -vec mode
 class TemplateVectorCodeContainer : public VectorCodeContainer, public TemplateCodeContainer {
-    protected:
-        
-    public:
-      TemplateVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-      virtual ~TemplateVectorCodeContainer()
-      {}
-        
-      void generateCompute(int tab);
+   protected:
+   public:
+    TemplateVectorCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                                std::ostream* out);
+    virtual ~TemplateVectorCodeContainer() {}
+
+    void generateCompute(int tab);
 };
 
 #endif

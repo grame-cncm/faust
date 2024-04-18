@@ -33,14 +33,10 @@
 //----------------------------------------------------------------------
 
 class SignalVisitor : public TreeTraversal {
-  
    public:
     SignalVisitor() = default;
-    SignalVisitor(Tree L)
-    {
-        visitRoot(L);
-    }
-    
+    SignalVisitor(Tree L) { visitRoot(L); }
+
     void visitRoot(Tree L)
     {
         while (!isNil(L)) {
@@ -50,8 +46,6 @@ class SignalVisitor : public TreeTraversal {
     }
 
    protected:
-    
-    bool fVisitGen{false}; // wether to visit gen signal for tables
+    bool         fVisitGen{false};  // wether to visit gen signal for tables
     virtual void visit(Tree t) override;
-   
 };

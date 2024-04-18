@@ -50,9 +50,12 @@ void interval_algebra::testAcosh()
 {
     analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, 0), acosh, &interval_algebra::Acosh);
     analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -5), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -10), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -15), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -20), acosh, &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -10), acosh,
+                       &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -15), acosh,
+                       &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -20), acosh,
+                       &interval_algebra::Acosh);
 
     /* analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, 0), acosh, &interval_algebra::Acosh);
     analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, -5), acosh, &interval_algebra::Acosh);

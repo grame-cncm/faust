@@ -20,20 +20,21 @@
  ************************************************************************/
 
 #include "rust_code_container.hh"
+#include "Text.hh"
 #include "exception.hh"
 #include "floats.hh"
 #include "global.hh"
-#include "Text.hh"
 
 using namespace std;
 
 /*
  Rust backend description:
 
- - 'usize' type has to be used for all array access: cast index as 'usize' only when using it (load/store arrays)
+ - 'usize' type has to be used for all array access: cast index as 'usize' only when using it
+ (load/store arrays)
  - TODO: local stack variables (shared computation) are normally non-mutable
- - inputN/outputN local buffer variables in 'compute' are not created at all: they are replaced directly in the code
- with inputs[N]/outputs[N] (done in instructions_compiler.cpp)
+ - inputN/outputN local buffer variables in 'compute' are not created at all: they are replaced
+ directly in the code with inputs[N]/outputs[N] (done in instructions_compiler.cpp)
  - BoolOpcode BinOps always casted to integer
  - 'delete' for SubContainers is not generated
  - add 'kMutable' and 'kReference' address access type
@@ -45,7 +46,8 @@ map<string, bool> RustInstVisitor::gFunctionSymbolTable;
 dsp_factory_base* RustCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        fKlassName, "", "",
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
         "");
 }
 
@@ -59,7 +61,8 @@ CodeContainer* RustCodeContainer::createVectorContainer(const string& name, int 
     return new RustVectorCodeContainer(name, 0, 1, fOut);
 }
 
-CodeContainer* RustCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+CodeContainer* RustCodeContainer::createContainer(const string& name, int numInputs, int numOutputs,
+                                                  ostream* dst)
 {
     CodeContainer* container;
 
@@ -133,10 +136,12 @@ void RustCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
-        *fOut << "fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[i32]) {", counter);
+        *fOut << "fn fill" << fKlassName
+              << subst("(&mut self, $0: i32, table: &mut[i32]) {", counter);
     } else {
         tab(n + 1, *fOut);
-        *fOut << "fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[$1]) {", counter, ifloat());
+        *fOut << "fn fill" << fKlassName
+              << subst("(&mut self, $0: i32, table: &mut[$1]) {", counter, ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
@@ -178,7 +183,6 @@ void RustCodeContainer::produceClass()
     // Missing math functions
     // See: https://users.rust-lang.org/t/analog-of-c-std-remainder/59670
     if (gGlobal->gFloatSize == 1) {
- 
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
         *fOut << "use std::os::raw::{c_float};";
@@ -209,14 +213,13 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-        
+
         /*
         tab(n, *fOut);
         *fOut << "fn remainder_f32(a: f32, b: f32) -> f32 { let n = (a/b).round(); a - b*n }";
         tab(n, *fOut);
         */
     } else if (gGlobal->gFloatSize == 2) {
-   
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
         *fOut << "use std::os::raw::{c_double};";
@@ -247,22 +250,21 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-        
+
         /*
         tab(n, *fOut);
         *fOut << "fn remainder_f64(a: f64, b: f64) -> f64 { let n = (a/b).round(); a - b*n }";
         tab(n, *fOut);
         */
     }
-    
-    
+
     tab(n, *fOut);
     *fOut << "#[cfg_attr(feature = \"default-boxed\", derive(default_boxed::DefaultBoxed))]";
     if (gGlobal->gReprC) {
         tab(n, *fOut);
         *fOut << "#[repr(C)]";
     }
-    
+
     tab(n, *fOut);
     *fOut << "pub struct " << fKlassName << " {";
     tab(n + 1, *fOut);
@@ -406,7 +408,8 @@ void RustCodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "}";
 
-    // Pre-pass of user interface instructions to determine parameter lookup table (field name => index)
+    // Pre-pass of user interface instructions to determine parameter lookup table (field name =>
+    // index)
     UserInterfaceParameterMapping parameterMappingVisitor;
     fUserInterfaceInstructions->accept(&parameterMappingVisitor);
     auto parameterLookup = parameterMappingVisitor.getParameterLookup();
@@ -450,23 +453,22 @@ void RustCodeContainer::produceMetadata(int n)
     tab(n, *fOut);
     *fOut << "fn metadata(&self, m: &mut dyn Meta) { ";
 
-    // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
+    // We do not want to accumulate metadata from all hierachical levels, so the upper level only is
+    // kept
     for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first != tree("author")) {
             tab(n + 1, *fOut);
             *fOut << "m.declare(\"" << *(i.first) << "\", r" << **(i.second.begin()) << ");";
         } else {
-            // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become
-            // "contributor"
+            // But the "author" meta data is accumulated, the upper level becomes the main author
+            // and sub-levels become "contributor"
             for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
                 if (j == i.second.begin()) {
                     tab(n + 1, *fOut);
                     *fOut << "m.declare(\"" << *(i.first) << "\", r" << **j << ");";
                 } else {
                     tab(n + 1, *fOut);
-                    *fOut << "m.declare(\""
-                          << "contributor"
-                          << "\", r" << **j << ");";
+                    *fOut << "m.declare(\"" << "contributor" << "\", r" << **j << ");";
                 }
             }
         }
@@ -476,12 +478,15 @@ void RustCodeContainer::produceMetadata(int n)
     *fOut << "}" << endl;
 }
 
-void RustCodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod,
-                                             FunTyped::FunAttribute funtype, TextInstVisitor* producer)
+void RustCodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj,
+                                             bool ismethod, FunTyped::FunAttribute funtype,
+                                             TextInstVisitor* producer)
 {
     producer->Tab(tabs);
-    generateGetInputs(subst("get_num_inputs$0", classname), obj, false, funtype)->accept(&fCodeProducer);
-    generateGetOutputs(subst("get_num_outputs$0", classname), obj, false, funtype)->accept(&fCodeProducer);
+    generateGetInputs(subst("get_num_inputs$0", classname), obj, false, funtype)
+        ->accept(&fCodeProducer);
+    generateGetOutputs(subst("get_num_outputs$0", classname), obj, false, funtype)
+        ->accept(&fCodeProducer);
 }
 
 void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> parameterLookup)
@@ -526,8 +531,8 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
 }
 
 // Scalar
-RustScalarCodeContainer::RustScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
-                                                 int sub_container_type)
+RustScalarCodeContainer::RustScalarCodeContainer(const string& name, int numInputs, int numOutputs,
+                                                 std::ostream* out, int sub_container_type)
     : RustCodeContainer(name, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;
@@ -539,7 +544,8 @@ void RustScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {",
+                   fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -565,8 +571,10 @@ void RustScalarCodeContainer::generateCompute(int n)
 }
 
 // Vector
-RustVectorCodeContainer::RustVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
-    : VectorCodeContainer(numInputs, numOutputs), RustCodeContainer(name, numInputs, numOutputs, out)
+RustVectorCodeContainer::RustVectorCodeContainer(const string& name, int numInputs, int numOutputs,
+                                                 std::ostream* out)
+    : VectorCodeContainer(numInputs, numOutputs),
+      RustCodeContainer(name, numInputs, numOutputs, out)
 {
 }
 
@@ -584,7 +592,8 @@ void RustVectorCodeContainer::generateCompute(int n)
     *fOut << "#[allow(unused_mut)]";
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {",
+                   fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -604,9 +613,9 @@ BlockInst* RustVectorCodeContainer::generateDAGLoopVariant0(const string& counte
     BlockInst* block_res = InstBuilder::genBlockInst();
 
     // declare vsize on top of the function
-    auto vsize_decl = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("vsize", Address::kConst),
-                                                     InstBuilder::genBasicTyped(Typed::kInt32),
-                                                     InstBuilder::genInt32NumInst(gGlobal->gVecSize));
+    auto vsize_decl = InstBuilder::genDeclareVarInst(
+        InstBuilder::genNamedAddress("vsize", Address::kConst),
+        InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     fComputeBlockInstructions->pushFrontInst(vsize_decl);
 
     block_res->pushBackInst(InstBuilder::genLabelInst("/* Main loop */"));
@@ -614,16 +623,18 @@ BlockInst* RustVectorCodeContainer::generateDAGLoopVariant0(const string& counte
 
     // TODO(rust) use usize where needed instead of casting everywhere
     // Generates the loop DAG
-    generateDAGLoop(loop_code,
-                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("output0.len() as i32", Address::kStack)));
+    generateDAGLoop(loop_code, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(
+                                   "output0.len() as i32", Address::kStack)));
 
     std::vector<NamedAddress*> iterators;
     iterators.reserve(fNumInputs + fNumOutputs);
     for (int i = 0; i < fNumInputs; ++i) {
-        iterators.push_back(InstBuilder::genNamedAddress("inputs" + std::to_string(i), Address::kStack));
+        iterators.push_back(
+            InstBuilder::genNamedAddress("inputs" + std::to_string(i), Address::kStack));
     }
     for (int i = 0; i < fNumOutputs; ++i) {
-        iterators.push_back(InstBuilder::genNamedAddress("outputs" + std::to_string(i), Address::kStack));
+        iterators.push_back(
+            InstBuilder::genNamedAddress("outputs" + std::to_string(i), Address::kStack));
     }
 
     // Generates the DAG enclosing loop
@@ -635,8 +646,10 @@ BlockInst* RustVectorCodeContainer::generateDAGLoopVariant0(const string& counte
 }
 
 // OpenMP
-RustOpenMPCodeContainer::RustOpenMPCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
-    : OpenMPCodeContainer(numInputs, numOutputs), RustCodeContainer(name, numInputs, numOutputs, out)
+RustOpenMPCodeContainer::RustOpenMPCodeContainer(const string& name, int numInputs, int numOutputs,
+                                                 std::ostream* out)
+    : OpenMPCodeContainer(numInputs, numOutputs),
+      RustCodeContainer(name, numInputs, numOutputs, out)
 {
 }
 
@@ -650,7 +663,8 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     // Compute declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {",
+                   fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -665,9 +679,10 @@ void RustOpenMPCodeContainer::generateCompute(int n)
 }
 
 // Works stealing scheduler
-RustWorkStealingCodeContainer::RustWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs,
-                                                             std::ostream* out)
-    : WSSCodeContainer(numInputs, numOutputs, "dsp"), RustCodeContainer(name, numInputs, numOutputs, out)
+RustWorkStealingCodeContainer::RustWorkStealingCodeContainer(const string& name, int numInputs,
+                                                             int numOutputs, std::ostream* out)
+    : WSSCodeContainer(numInputs, numOutputs, "dsp"),
+      RustCodeContainer(name, numInputs, numOutputs, out)
 {
 }
 
@@ -695,7 +710,8 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
     // Compute "compute" declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {",
+                   fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 

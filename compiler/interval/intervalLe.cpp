@@ -42,8 +42,11 @@ void interval_algebra::testLe()
     check("test algebra Le", Le(interval(2, 5), interval(0, 1)), interval(0));
     check("test algebra Le", Le(interval(-1, 1), interval(0, 10)), interval(0, 1));*/
 
-    analyzeBinaryMethod(10, 200, "Le", interval(-1, 1, 0), interval(-1, 1, 0), myLe, &interval_algebra::Le);
-    analyzeBinaryMethod(10, 200, "Le", interval(-10, 10, 0), interval(-10, 10, 0), myLe, &interval_algebra::Le);
-    analyzeBinaryMethod(10, 2000, "Le", interval(-10, 10), interval(-10, 10), myLe, &interval_algebra::Le);
+    analyzeBinaryMethod(10, 200, "Le", interval(-1, 1, 0), interval(-1, 1, 0), myLe,
+                        &interval_algebra::Le);
+    analyzeBinaryMethod(10, 200, "Le", interval(-10, 10, 0), interval(-10, 10, 0), myLe,
+                        &interval_algebra::Le);
+    analyzeBinaryMethod(10, 2000, "Le", interval(-10, 10), interval(-10, 10), myLe,
+                        &interval_algebra::Le);
 }
 }  // namespace itv

@@ -86,11 +86,15 @@ void printSignal(Tree sig, FILE* out, int prec)
 
     else if (isSigBinOp(sig, &i, x, y)) {
         int pri = gBinOpTable[i]->fPriority;
-        if (prec > pri) fputs("(", out);
+        if (prec > pri) {
+            fputs("(", out);
+        }
         printSignal(x, out, pri);
         fputs(gBinOpTable[i]->fName, out);
         printSignal(y, out, pri);
-        if (prec > pri) fputs(")", out);
+        if (prec > pri) {
+            fputs(")", out);
+        }
     } else if (isSigDelay1(sig, x)) {
         fputs("mem(", out);
         printSignal(x, out, 0);
@@ -120,11 +124,15 @@ void printSignal(Tree sig, FILE* out, int prec)
         printSignal(y, out, 0);
         fputs(")", out);
     } else if (isSigDelay(sig, x, y)) {
-        if (prec > 4) fputs("(", out);
+        if (prec > 4) {
+            fputs("(", out);
+        }
         printSignal(x, out, 4);
         fputs("@", out);
         printSignal(y, out, 4);
-        if (prec > 4) fputs(")", out);
+        if (prec > 4) {
+            fputs(")", out);
+        }
     }
 
     else if (isProj(sig, &i, x)) {
@@ -201,7 +209,7 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs("int(", out);
         printSignal(x, out, 0);
         fputs(")", out);
-    }else if (isSigBitCast(sig, x)) {
+    } else if (isSigBitCast(sig, x)) {
         fputs("bit(", out);
         printSignal(x, out, 0);
         fputs(")", out);

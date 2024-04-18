@@ -25,27 +25,24 @@
 
 #include <string>
 
-#include "faust/export.h"
-#include "signals.hh"
 #include "dsp_factory.hh"
+#include "faust/export.h"
 #include "global.hh"
+#include "instructions.hh"
 #include "labels.hh"
 #include "normalform.hh"
-#include "instructions.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
-#include "xtended.hh"
 #include "propagate.hh"
+#include "signals.hh"
 #include "sigtyperules.hh"
+#include "xtended.hh"
 
 using namespace std;
 
 // Implemented in libcode.cpp
-LIBFAUST_API Tree DSPToBoxes(const string& name_app,
-                             const string& dsp_content,
-                             int argc, const char* argv[],
-                             int* inputs, int* outputs,
-                             string& error_msg);
+LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, int argc,
+                             const char* argv[], int* inputs, int* outputs, string& error_msg);
 
 // ===============
 // Signal C++ API
@@ -65,18 +62,16 @@ extern "C" LIBFAUST_API void destroyLibContext()
 }
 
 // MUST match definition in libfaust-signal.h
-#define low  std::numeric_limits<double>::lowest()
+#define low std::numeric_limits<double>::lowest()
 #define high std::numeric_limits<double>::max()
 
 struct Interval {
-    double fLo{low};  //< minimal value
-    double fHi{high}; //< maximal value
-    int    fLSB{-24}; //< lsb in bits
-    
-    Interval(double lo, double hi, int lsb):fLo(lo), fHi(hi), fLSB(lsb)
-    {}
-    Interval(int lsb):fLSB(lsb)
-    {}
+    double fLo{low};   //< minimal value
+    double fHi{high};  //< maximal value
+    int    fLSB{-24};  //< lsb in bits
+
+    Interval(double lo, double hi, int lsb) : fLo(lo), fHi(hi), fLSB(lsb) {}
+    Interval(int lsb) : fLSB(lsb) {}
 };
 
 LIBFAUST_API Interval getSigInterval(Tree sig)
@@ -87,13 +82,12 @@ LIBFAUST_API Interval getSigInterval(Tree sig)
 
 LIBFAUST_API void setSigInterval(Tree sig, Interval& inter)
 {
-    Type ty = getSigType(sig);
+    Type     ty  = getSigType(sig);
     interval it1 = ty->getInterval();
     // If the inter argument has low/high range (the defaults), then it1 low/high values are kept,
     // otherwise use the given ones
-    interval it2 ((inter.fLo != low) ? inter.fLo : it1.lo(),
-                 (inter.fHi != high) ? inter.fHi : it1.hi(),
-                 inter.fLSB);
+    interval it2((inter.fLo != low) ? inter.fLo : it1.lo(),
+                 (inter.fHi != high) ? inter.fHi : it1.hi(), inter.fLSB);
     ty->setInterval(it2);
     setSigType(sig, ty);
 }
@@ -113,9 +107,8 @@ LIBFAUST_API unsigned int xtendedArity(Tree tree)
 }
 
 LIBFAUST_API string createSourceFromSignals(const string& name_app, tvec signals,
-                                         const string& lang,
-                                         int argc, const char* argv[],
-                                         string& error_msg)
+                                            const string& lang, int argc, const char* argv[],
+                                            string& error_msg)
 {
     int         argc1 = 0;
     const char* argv1[64];
@@ -124,13 +117,13 @@ LIBFAUST_API string createSourceFromSignals(const string& name_app, tvec signals
     argv1[argc1++] = lang.c_str();
     argv1[argc1++] = "-o";
     argv1[argc1++] = "string";
-    
+
     // Copy arguments
     for (int i = 0; i < argc; i++) {
         argv1[argc1++] = argv[i];
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
-    
+
     dsp_factory_base* factory = createFactory(name_app, signals, argc1, argv1, error_msg);
     if (factory) {
         // Print the textual class
@@ -152,14 +145,19 @@ typedef vector<SType> svec;
 
 typedef std::vector<std::string> nvec;
 
-LIBFAUST_API Signal sigFFun(SType rtype, nvec names, svec atypes, const std::string& incfile, const std::string& libfile, tvec largs)
+LIBFAUST_API Signal sigFFun(SType rtype, nvec names, svec atypes, const std::string& incfile,
+                            const std::string& libfile, tvec largs)
 {
     Tree atypes1 = gGlobal->nil;
-    for (const auto& it : atypes) atypes1 = cons(tree(it), atypes1);
-    
+    for (const auto& it : atypes) {
+        atypes1 = cons(tree(it), atypes1);
+    }
+
     Tree names1 = gGlobal->nil;
-    for (const auto& it : names) names1 = cons(tree(it), names1);
-    
+    for (const auto& it : names) {
+        names1 = cons(tree(it), names1);
+    }
+
     Tree signature = cons(tree(rtype), cons(names1, atypes1));
     return sigFFun(ffunction(signature, tree(incfile), tree(libfile)), listConvert(largs));
 }
@@ -236,7 +234,7 @@ LIBFAUST_API Tree sigSelfN(int i)
 
 LIBFAUST_API tvec sigRecursionN(const tvec& ins)
 {
-    Tree out = rec(listConvert(ins));
+    Tree    out = rec(listConvert(ins));
     siglist outs(ins.size());
     // projection number
     int p = 0;
@@ -261,13 +259,15 @@ LIBFAUST_API tvec sigRecursionN(const tvec& ins)
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 static Tree* list2array(tvec list)
 {
     if (list.size() > 0) {
-        Tree* res = (Tree*)malloc(sizeof(Tree) * (list.size() + 1));
+        Tree*  res = (Tree*)malloc(sizeof(Tree) * (list.size() + 1));
         size_t i;
-        for (i = 0; i < list.size(); i++) res[i] = list[i];
+        for (i = 0; i < list.size(); i++) {
+            res[i] = list[i];
+        }
         res[i] = nullptr;
         return res;
     } else {
@@ -314,7 +314,7 @@ LIBFAUST_API Tree CsigDelay(Tree t0, Tree del)
 {
     return sigDelay(t0, del);
 }
-    
+
 LIBFAUST_API Tree CsigDelay1(Tree t0)
 {
     return sigDelay1(t0);
@@ -380,30 +380,30 @@ LIBFAUST_API Tree CsigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
     return sigSelect3(selector, s1, s2, s3);
 }
-    
-LIBFAUST_API Signal CsigFFun(SType rtype, const char** names, SType* atypes, const char* incfile, const char* libfile, Signal* largs)
+
+LIBFAUST_API Signal CsigFFun(SType rtype, const char** names, SType* atypes, const char* incfile,
+                             const char* libfile, Signal* largs)
 {
     svec atypes1;
-    int i = 0;
+    int  i = 0;
     while (atypes[i]) {
         atypes1.push_back(atypes[i]);
         i++;
     }
     nvec names1;
-    int j = 0;
+    int  j = 0;
     while (names[j]) {
         names1.push_back(names[j]);
         j++;
     }
     tvec largs1;
-    int k = 0;
+    int  k = 0;
     while (largs[k]) {
         largs1.push_back(largs[k]);
         k++;
     }
     return sigFFun(rtype, names1, atypes1, incfile, libfile, largs1);
 }
-    
 
 LIBFAUST_API Tree CsigFConst(SType type, const char* name, const char* file)
 {
@@ -704,7 +704,7 @@ LIBFAUST_API bool CisSigRDTbl(Tree t, Tree* tbl_aux, Tree* ri_aux)
     Tree tbl, ri;
     if (isSigRDTbl(t, tbl, ri)) {
         *tbl_aux = tbl;
-        *ri_aux = ri;
+        *ri_aux  = ri;
         return true;
     } else {
         return false;
@@ -715,9 +715,9 @@ LIBFAUST_API bool CisSigWRTbl(Tree t, Tree* size_aux, Tree* gen_aux, Tree* wi_au
     Tree size, gen, wi, ws;
     if (isSigWRTbl(t, size, gen, wi, ws)) {
         *size_aux = size;
-        *gen_aux = gen;
-        *wi_aux = wi;
-        *ws_aux = ws;
+        *gen_aux  = gen;
+        *wi_aux   = wi;
+        *ws_aux   = ws;
         return true;
     } else {
         return false;
@@ -744,7 +744,8 @@ LIBFAUST_API bool CisSigDocConstantTbl(Tree t, Tree* n_aux, Tree* sig_aux)
         return false;
     }
 }
-LIBFAUST_API bool CisSigDocWriteTbl(Tree t, Tree* n_aux, Tree* sig_aux, Tree* widx_aux, Tree* wsig_aux)
+LIBFAUST_API bool CisSigDocWriteTbl(Tree t, Tree* n_aux, Tree* sig_aux, Tree* widx_aux,
+                                    Tree* wsig_aux)
 {
     Tree n, sig, widx, wsig;
     if (isSigDocWriteTbl(t, n, sig, widx, wsig)) {
@@ -930,7 +931,8 @@ LIBFAUST_API bool CisSigWaveform(Tree s)
     return isSigWaveform(s);
 }
 
-LIBFAUST_API bool CisSigHSlider(Tree s, Tree* lbl_aux, Tree* init_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+LIBFAUST_API bool CisSigHSlider(Tree s, Tree* lbl_aux, Tree* init_aux, Tree* min_aux, Tree* max_aux,
+                                Tree* step_aux)
 {
     Tree lbl, init, min, max, step;
     if (isSigHSlider(s, lbl, init, min, max, step)) {
@@ -944,7 +946,8 @@ LIBFAUST_API bool CisSigHSlider(Tree s, Tree* lbl_aux, Tree* init_aux, Tree* min
         return false;
     }
 }
-LIBFAUST_API bool CisSigVSlider(Tree s, Tree* lbl_aux, Tree* init_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+LIBFAUST_API bool CisSigVSlider(Tree s, Tree* lbl_aux, Tree* init_aux, Tree* min_aux, Tree* max_aux,
+                                Tree* step_aux)
 {
     Tree lbl, init, min, max, step;
     if (isSigVSlider(s, lbl, init, min, max, step)) {
@@ -958,7 +961,8 @@ LIBFAUST_API bool CisSigVSlider(Tree s, Tree* lbl_aux, Tree* init_aux, Tree* min
         return false;
     }
 }
-LIBFAUST_API bool CisSigNumEntry(Tree s, Tree* lbl_aux, Tree* init_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+LIBFAUST_API bool CisSigNumEntry(Tree s, Tree* lbl_aux, Tree* init_aux, Tree* min_aux,
+                                 Tree* max_aux, Tree* step_aux)
 {
     Tree lbl, init, min, max, step;
     if (isSigNumEntry(s, lbl, init, min, max, step)) {
@@ -1067,7 +1071,8 @@ LIBFAUST_API bool CisSigSoundfileRate(Tree s, Tree* sf_aux, Tree* part_aux)
         return false;
     }
 }
-LIBFAUST_API bool CisSigSoundfileBuffer(Tree s, Tree* sf_aux, Tree* chan_aux, Tree* part_aux, Tree* ridx_aux)
+LIBFAUST_API bool CisSigSoundfileBuffer(Tree s, Tree* sf_aux, Tree* chan_aux, Tree* part_aux,
+                                        Tree* ridx_aux)
 {
     Tree sf, chan, part, ridx;
     if (isSigSoundfileBuffer(s, sf, chan, part, ridx)) {
@@ -1097,15 +1102,13 @@ LIBFAUST_API Tree* CsimplifyToNormalForm2(Tree* siglist)
     tvec outputs = simplifyToNormalForm2(inputs);
     return list2array(outputs);
 }
-    
-LIBFAUST_API char* CcreateSourceFromSignals(const char* name_app, Signal* osigs,
-                                        const char* lang,
-                                        int argc, const char* argv[],
-                                        char* error_msg)
+
+LIBFAUST_API char* CcreateSourceFromSignals(const char* name_app, Signal* osigs, const char* lang,
+                                            int argc, const char* argv[], char* error_msg)
 {
     string error_msg_aux;
-    tvec inputs;
-    int  in = 0;
+    tvec   inputs;
+    int    in = 0;
     while (osigs[in]) {
         inputs.push_back(osigs[in]);
         in++;
@@ -1118,7 +1121,7 @@ LIBFAUST_API char* CcreateSourceFromSignals(const char* name_app, Signal* osigs,
         return nullptr;
     }
 }
-    
+
 #ifdef __cplusplus
 }
 #endif
@@ -1131,33 +1134,35 @@ static void* boxesToSignalsAux2(void* arg)
 {
     CallContext* context = static_cast<CallContext*>(arg);
     try {
-        Tree outputs = boxPropagateSig(gGlobal->nil, context->fTree, makeSigInputList(context->fNumInputs));
+        Tree outputs =
+            boxPropagateSig(gGlobal->nil, context->fTree, makeSigInputList(context->fNumInputs));
         context->fTree = simplifyToNormalForm(outputs);
         return nullptr;
     } catch (faustexception& e) {
-        context->fTree = nullptr;
+        context->fTree         = nullptr;
         gGlobal->gErrorMessage = e.Message();
         return nullptr;
     }
 }
 
-// Can generate faustexception, used in createDSPFactoryFromBoxes and createInterpreterDSPFactoryFromBoxes
+// Can generate faustexception, used in createDSPFactoryFromBoxes and
+// createInterpreterDSPFactoryFromBoxes
 tvec boxesToSignalsAux(Tree box)
 {
     // Cleanup all variables and reset gGlobal state
     DeclareVarInst::cleanup();
     gGlobal->reset();
-    
+
     int numInputs, numOutputs;
     if (!getBoxType(box, &numInputs, &numOutputs)) {
         stringstream error;
         error << "ERROR during the evaluation of process : " << boxpp(box) << endl;
         throw faustexception(error.str());
     }
-    
+
     // Threaded call
     CallContext context;
-    context.fTree = box;
+    context.fTree      = box;
     context.fNumInputs = numInputs;
     callFun(boxesToSignalsAux2, &context);
     if (context.fTree) {
@@ -1177,11 +1182,8 @@ LIBFAUST_API tvec boxesToSignals(Tree box, string& error_msg)
     }
 }
 
-LIBFAUST_API string createSourceFromBoxes(const string& name_app,
-                                        Tree box,
-                                        const string& lang,
-                                        int argc, const char* argv[],
-                                        string& error_msg)
+LIBFAUST_API string createSourceFromBoxes(const string& name_app, Tree box, const string& lang,
+                                          int argc, const char* argv[], string& error_msg)
 {
     try {
         tvec signals = boxesToSignalsAux(box);
@@ -1241,14 +1243,19 @@ LIBFAUST_API Tree boxSelect3()
     return boxPrim4(sigSelect3);
 }
 
-LIBFAUST_API Tree boxFFun(SType rtype, nvec names, svec atypes, const string& incfile, const string& libfile)
+LIBFAUST_API Tree boxFFun(SType rtype, nvec names, svec atypes, const string& incfile,
+                          const string& libfile)
 {
     Tree atypes1 = gGlobal->nil;
-    for (const auto& it : atypes) atypes1 = cons(tree(it), atypes1);
-    
+    for (const auto& it : atypes) {
+        atypes1 = cons(tree(it), atypes1);
+    }
+
     Tree names1 = gGlobal->nil;
-    for (const auto& it : names) names1 = cons(tree(it), names1);
-    
+    for (const auto& it : names) {
+        names1 = cons(tree(it), names1);
+    }
+
     Tree signature = cons(tree(rtype), cons(names1, atypes1));
     return boxFFun(ffunction(signature, tree(incfile), tree(libfile)));
 }
@@ -1265,8 +1272,9 @@ LIBFAUST_API Tree boxFVar(SType type, const string& name, const string& incfile)
 
 LIBFAUST_API Tree boxBinOp(SOperator op)
 {
-    static sigFun fun[] = {sigAdd, sigSub, sigMul, sigDiv, sigRem, sigLeftShift, sigLRightShift, sigARightShift, sigGT,
-                           sigLT,  sigGE,  sigLE,  sigEQ,  sigNE,  sigAND,       sigOR,          sigXOR};
+    static sigFun fun[] = {sigAdd,         sigSub,         sigMul, sigDiv, sigRem, sigLeftShift,
+                           sigLRightShift, sigARightShift, sigGT,  sigLT,  sigGE,  sigLE,
+                           sigEQ,          sigNE,          sigAND, sigOR,  sigXOR};
     faustassert(op >= kAdd && op <= kXOR);
     return boxPrim2(fun[op]);
 }
@@ -1800,7 +1808,8 @@ LIBFAUST_API Tree boxAttach(Tree s1, Tree s2)
 extern "C" {
 #endif
 
-LIBFAUST_API Tree CDSPToBoxes(const char* name_app, const char* dsp_content, int argc, const char* argv[], int* inputs, int* outputs, char* error_msg)
+LIBFAUST_API Tree CDSPToBoxes(const char* name_app, const char* dsp_content, int argc,
+                              const char* argv[], int* inputs, int* outputs, char* error_msg)
 {
     string error_msg_aux;
     Tree   box = DSPToBoxes(name_app, dsp_content, argc, argv, inputs, outputs, error_msg_aux);
@@ -1821,18 +1830,18 @@ LIBFAUST_API Tree* CboxesToSignals(Tree box, char* error_msg)
     if (signals.size() > 0) {
         Tree*  res = (Tree*)malloc(sizeof(Tree) * (signals.size() + 1));
         size_t i;
-        for (i = 0; i < signals.size(); i++) res[i] = signals[i];
+        for (i = 0; i < signals.size(); i++) {
+            res[i] = signals[i];
+        }
         res[i] = nullptr;
         return res;
     } else {
         return nullptr;
     }
 }
-    
-LIBFAUST_API char* CcreateSourceFromBoxes(const char* name_app, Tree box,
-                                        const char* lang,
-                                        int argc, const char* argv[],
-                                        char* error_msg)
+
+LIBFAUST_API char* CcreateSourceFromBoxes(const char* name_app, Tree box, const char* lang,
+                                          int argc, const char* argv[], char* error_msg)
 {
     string error_msg_aux;
     string source = createSourceFromBoxes(name_app, box, lang, argc, argv, error_msg_aux);
@@ -1944,17 +1953,18 @@ LIBFAUST_API Tree CboxSelect3()
 {
     return boxSelect3();
 }
-    
-LIBFAUST_API Tree CboxFFun(SType rtype, const char** names, SType* atypes, const char* incfile, const char* libfile)
+
+LIBFAUST_API Tree CboxFFun(SType rtype, const char** names, SType* atypes, const char* incfile,
+                           const char* libfile)
 {
     svec atypes1;
-    int i = 0;
+    int  i = 0;
     while (atypes[i]) {
         atypes1.push_back(atypes[i]);
         i++;
     }
     nvec names1;
-    int j = 0;
+    int  j = 0;
     while (names[j]) {
         names1.push_back(names[j]);
         j++;
@@ -2178,17 +2188,17 @@ LIBFAUST_API Tree CboxHBargraph(const char* label, Tree min, Tree max)
 {
     return boxHBargraph(label, min, max);
 }
-    
+
 LIBFAUST_API Tree CboxVGroup(const char* label, Tree group)
 {
     return boxVGroup(label, group);
 }
-    
+
 LIBFAUST_API Tree CboxHGroup(const char* label, Tree group)
 {
     return boxHGroup(label, group);
 }
-    
+
 LIBFAUST_API Tree CboxTGroup(const char* label, Tree group)
 {
     return boxTGroup(label, group);
@@ -2218,7 +2228,7 @@ LIBFAUST_API bool CisBoxAccess(Tree t, Tree* exp_aux, Tree* id_aux)
     Tree exp, id;
     if (isBoxAccess(t, exp, id)) {
         *exp_aux = exp;
-        *id_aux = id;
+        *id_aux  = id;
         return true;
     } else {
         return false;
@@ -2351,21 +2361,22 @@ LIBFAUST_API bool CisBoxHGroup(Tree t, Tree* lbl_aux, Tree* x_aux)
     Tree lbl, x;
     if (isBoxHGroup(t, lbl, x)) {
         *lbl_aux = lbl;
-        *x_aux = x;
+        *x_aux   = x;
         return true;
     } else {
         return false;
     }
 }
 
-LIBFAUST_API bool CisBoxHSlider(Tree t, Tree* lbl_aux, Tree* cur_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+LIBFAUST_API bool CisBoxHSlider(Tree t, Tree* lbl_aux, Tree* cur_aux, Tree* min_aux, Tree* max_aux,
+                                Tree* step_aux)
 {
     Tree lbl, cur, min, max, step;
     if (isBoxHSlider(t, lbl, cur, min, max, step)) {
-        *lbl_aux = lbl;
-        *cur_aux = cur;
-        *min_aux = min;
-        *max_aux = max;
+        *lbl_aux  = lbl;
+        *cur_aux  = cur;
+        *min_aux  = min;
+        *max_aux  = max;
         *step_aux = step;
         return true;
     } else {
@@ -2473,7 +2484,7 @@ LIBFAUST_API bool CisBoxMetadata(Tree t, Tree* exp_aux, Tree* mdlist_aux)
 {
     Tree exp, mdlist;
     if (isBoxMetadata(t, exp, mdlist)) {
-        *exp_aux = exp;
+        *exp_aux    = exp;
         *mdlist_aux = mdlist;
         return true;
     } else {
@@ -2481,14 +2492,15 @@ LIBFAUST_API bool CisBoxMetadata(Tree t, Tree* exp_aux, Tree* mdlist_aux)
     }
 }
 
-LIBFAUST_API bool CisBoxNumEntry(Tree t, Tree* lbl_aux, Tree* cur_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+LIBFAUST_API bool CisBoxNumEntry(Tree t, Tree* lbl_aux, Tree* cur_aux, Tree* min_aux, Tree* max_aux,
+                                 Tree* step_aux)
 {
     Tree lbl, cur, min, max, step;
     if (isBoxNumEntry(t, lbl, cur, min, max, step)) {
-        *lbl_aux = lbl;
-        *cur_aux = cur;
-        *min_aux = min;
-        *max_aux = max;
+        *lbl_aux  = lbl;
+        *cur_aux  = cur;
+        *min_aux  = min;
+        *max_aux  = max;
         *step_aux = step;
         return true;
     } else {
@@ -2601,7 +2613,7 @@ LIBFAUST_API bool CisBoxSoundfile(Tree t, Tree* label_aux, Tree* chan_aux)
     Tree label, chan;
     if (isBoxSoundfile(t, label, chan)) {
         *label_aux = label;
-        *chan_aux = chan;
+        *chan_aux  = chan;
         return true;
     } else {
         return false;
@@ -2637,7 +2649,7 @@ LIBFAUST_API bool CisBoxTGroup(Tree t, Tree* lbl_aux, Tree* x_aux)
     Tree lbl, x;
     if (isBoxTGroup(t, lbl, x)) {
         *lbl_aux = lbl;
-        *x_aux = x;
+        *x_aux   = x;
         return true;
     } else {
         return false;
@@ -2662,21 +2674,22 @@ LIBFAUST_API bool CisBoxVGroup(Tree t, Tree* lbl_aux, Tree* x_aux)
     Tree lbl, x;
     if (isBoxVGroup(t, lbl, x)) {
         *lbl_aux = lbl;
-        *x_aux = x;
+        *x_aux   = x;
         return true;
     } else {
         return false;
     }
 }
 
-LIBFAUST_API bool CisBoxVSlider(Tree t, Tree* lbl_aux, Tree* cur_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+LIBFAUST_API bool CisBoxVSlider(Tree t, Tree* lbl_aux, Tree* cur_aux, Tree* min_aux, Tree* max_aux,
+                                Tree* step_aux)
 {
     Tree lbl, cur, min, max, step;
     if (isBoxVSlider(t, lbl, cur, min, max, step)) {
-        *lbl_aux = lbl;
-        *cur_aux = cur;
-        *min_aux = min;
-        *max_aux = max;
+        *lbl_aux  = lbl;
+        *cur_aux  = cur;
+        *min_aux  = min;
+        *max_aux  = max;
         *step_aux = step;
         return true;
     } else {
@@ -2882,7 +2895,7 @@ LIBFAUST_API Tree CboxRintAux(Tree x)
 {
     return CboxSeq(x, CboxRint());
 }
-    
+
 LIBFAUST_API Tree CboxRoundAux(Tree x)
 {
     return CboxSeq(x, CboxRound());

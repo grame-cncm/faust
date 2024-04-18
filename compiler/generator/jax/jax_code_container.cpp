@@ -33,9 +33,10 @@ using namespace std;
 
  - Whereas a normal code container would generate a "compute" method, we generate
    a one-sample loop "tick" method. Our hard-coded "compute" method __call__ is implemented
-   in an architecture file. It uses JAX's scan function in conjunction with the generated tick function.
- - Inside "__call__" and before using "scan", we setup the arrays, soundfiles, user interface parameters,
-   and other state variables.
+   in an architecture file. It uses JAX's scan function in conjunction with the generated tick
+ function.
+ - Inside "__call__" and before using "scan", we setup the arrays, soundfiles, user interface
+ parameters, and other state variables.
  - One tricky part of JAX is modifying arrays in-place:
    https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.ndarray.at.html
    Whereas C++ would look like
@@ -44,16 +45,17 @@ using namespace std;
    `state["fRec1"] = state["fRec1"].at[0].set(fTemp0)`
    Also, this at-and-set operation is slow, so we only use it inside the tick method.
    This is why in all other places (like initializing sound files which are arrays),
-   we use numpy arrays instead of jnp arrays. It's best to just look at the generated code and notice
-   how the jnp prefix is used differently than the np prefix.
- - In order to simplify global array typing, subcontainers are actually merged in the main DSP structure:
+   we use numpy arrays instead of jnp arrays. It's best to just look at the generated code and
+ notice how the jnp prefix is used differently than the np prefix.
+ - In order to simplify global array typing, subcontainers are actually merged in the main DSP
+ structure:
     - so 'mergeSubContainers' is used
     - global variables are added in the DSP structure
-    - the JAXInitFieldsVisitor class does initialisation for waveforms. This makes it easy to use numpy
-      instead of jax when initializing arrays (good for speed). We also use fUseNumpy in this decision making.
-      We convert the numpy arrays to jax numpy before they're used in the tick method.
-    - the fGlobalDeclarationInstructions contains global functions and variables. It is "manually" used
-      to generate global functions and move global variables declaration at DSP structure level.
+    - the JAXInitFieldsVisitor class does initialisation for waveforms. This makes it easy to use
+ numpy instead of jax when initializing arrays (good for speed). We also use fUseNumpy in this
+ decision making. We convert the numpy arrays to jax numpy before they're used in the tick method.
+    - the fGlobalDeclarationInstructions contains global functions and variables. It is "manually"
+ used to generate global functions and move global variables declaration at DSP structure level.
 */
 
 map<string, bool> JAXInstVisitor::gFunctionSymbolTable;
@@ -62,16 +64,18 @@ dsp_factory_base* JAXCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        "");
 }
 
-JAXCodeContainer::JAXCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
+JAXCodeContainer::JAXCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                                   std::ostream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
     fKlassName = name;
-    fOut = out;
-    
+    fOut       = out;
+
     // Allocate one static visitor to be shared by main module and sub containers
     if (!gGlobal->gJAXVisitor) {
         gGlobal->gJAXVisitor = new JAXInstVisitor(out, name);
@@ -83,7 +87,8 @@ CodeContainer* JAXCodeContainer::createScalarContainer(const string& name, int s
     return new JAXScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
 }
 
-CodeContainer* JAXCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+CodeContainer* JAXCodeContainer::createContainer(const string& name, int numInputs, int numOutputs,
+                                                 ostream* dst)
 {
     CodeContainer* container;
 
@@ -132,10 +137,9 @@ inline string flattenJSONforPython(const string& src)
 void JAXCodeContainer::produceClass()
 {
     int n = 0;
-    
+
     // Print header
-    *fOut << "\"\"\"" << endl
-          << "Code generated with Faust version " << FAUSTVERSION << endl;
+    *fOut << "\"\"\"" << endl << "Code generated with Faust version " << FAUSTVERSION << endl;
     *fOut << "Compilation options: ";
     stringstream stream;
     gGlobal->printCompilationOptions(stream);
@@ -146,7 +150,9 @@ void JAXCodeContainer::produceClass()
 
     if (gGlobal->gFloatSize == 2) {
         tab(n, *fOut);
-        *fOut << "# enable double precision: https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#double-64bit-precision";
+        *fOut << "# enable double precision: "
+                 "https://jax.readthedocs.io/en/latest/notebooks/"
+                 "Common_Gotchas_in_JAX.html#double-64bit-precision";
         tab(n, *fOut);
         *fOut << "from jax.config import config";
         tab(n, *fOut);
@@ -179,7 +185,7 @@ void JAXCodeContainer::produceClass()
     // Functions
     tab(n, *fOut);
     gGlobal->gJAXVisitor->Tab(n);
- 
+
     *fOut << "class " << fKlassName << "(nn.Module):";
     tab(n + 1, *fOut);
 
@@ -196,7 +202,7 @@ void JAXCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     produceInfoFunctions(n + 1, "", "self", false, FunTyped::kDefault, gGlobal->gJAXVisitor);
-    
+
     *fOut << "def initialize(self, x, T):";
     {
         tab(n + 2, *fOut);
@@ -232,9 +238,9 @@ void JAXCodeContainer::produceClass()
         tab(n + 1, *fOut);
     }
     back(1, *fOut);
-    
+
     // JSON generation
-    tab(n+1, *fOut);
+    tab(n + 1, *fOut);
     *fOut << "def getJSON(self):";
     {
         string json;
@@ -260,10 +266,10 @@ void JAXCodeContainer::produceClass()
     generateUserInterface(gGlobal->gJAXVisitor);
     tab(n + 2, *fOut);
     *fOut << "return state";
-    
+
     // Compute
     tab(n + 1, *fOut);
-    generateCompute(n+1);
+    generateCompute(n + 1);
     tab(n, *fOut);
 }
 
@@ -295,13 +301,13 @@ void JAXCodeContainer::generateSR()
     if (!fGeneratedSR) {
         pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
     }
-    pushPreInitMethod(
-        InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("self.sample_rate")));
+    pushPreInitMethod(InstBuilder::genStoreStructVar(
+        "fSampleRate", InstBuilder::genLoadFunArgsVar("self.sample_rate")));
 }
 
 // Scalar
-JAXScalarCodeContainer::JAXScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
-                                                   int sub_container_type)
+JAXScalarCodeContainer::JAXScalarCodeContainer(const string& name, int numInputs, int numOutputs,
+                                               std::ostream* out, int sub_container_type)
     : JAXCodeContainer(name, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;

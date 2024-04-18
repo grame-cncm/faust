@@ -33,8 +33,8 @@
 #pragma warning(disable : 4800)
 #endif
 
-#include "faust/export.h"
 #include "faust/dsp/dsp.h"
+#include "faust/export.h"
 
 #include "exception.hh"
 
@@ -61,7 +61,9 @@ class faust_smartable {
     //! removeReference delete the object when refCount is zero
     void removeReference()
     {
-        if (--refCount == 0) delete this;
+        if (--refCount == 0) {
+            delete this;
+        }
     }
 
    protected:
@@ -94,24 +96,32 @@ class faust_smartptr {
     //! build a smart pointer from a class pointer
     faust_smartptr(T* rawptr) : fSmartPtr(rawptr)
     {
-        if (fSmartPtr) fSmartPtr->addReference();
+        if (fSmartPtr) {
+            fSmartPtr->addReference();
+        }
     }
     //! build a smart pointer from an convertible class reference
     template <class T2>
     faust_smartptr(const faust_smartptr<T2>& ptr) : fSmartPtr((T*)ptr)
     {
-        if (fSmartPtr) fSmartPtr->addReference();
+        if (fSmartPtr) {
+            fSmartPtr->addReference();
+        }
     }
     //! build a smart pointer from another smart pointer reference
     faust_smartptr(const faust_smartptr& ptr) : fSmartPtr((T*)ptr)
     {
-        if (fSmartPtr) fSmartPtr->addReference();
+        if (fSmartPtr) {
+            fSmartPtr->addReference();
+        }
     }
 
     //! the smart pointer destructor: simply removes one reference count
     ~faust_smartptr()
     {
-        if (fSmartPtr) fSmartPtr->removeReference();
+        if (fSmartPtr) {
+            fSmartPtr->removeReference();
+        }
     }
 
     //! cast operator to retrieve the actual class pointer
@@ -147,9 +157,13 @@ class faust_smartptr {
         // check first that pointers differ
         if (fSmartPtr != p_) {
             // increments the ref count of the new pointer if not null
-            if (p_ != 0) p_->addReference();
+            if (p_ != 0) {
+                p_->addReference();
+            }
             // decrements the ref count of the old pointer if not null
-            if (fSmartPtr != 0) fSmartPtr->removeReference();
+            if (fSmartPtr != 0) {
+                fSmartPtr->removeReference();
+            }
             // and finally stores the new actual pointer
             fSmartPtr = p_;
         }
@@ -196,7 +210,10 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
         return false;
     }
 
-    void setFactory(T factory) { this->insert(std::pair<T, std::list<dsp*> >(factory, std::list<dsp*>())); }
+    void setFactory(T factory)
+    {
+        this->insert(std::pair<T, std::list<dsp*> >(factory, std::list<dsp*>()));
+    }
 
     bool addDSP(T factory, dsp* dsp)
     {
@@ -292,11 +309,13 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
     }
 };
 
-// Compute SHA1 key from name_app, dsp_content and compilations arguments, and returns the dsp_content
-std::string sha1FromDSP(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& sha_key);
+// Compute SHA1 key from name_app, dsp_content and compilations arguments, and returns the
+// dsp_content
+std::string sha1FromDSP(const std::string& name_app, const std::string& dsp_content, int argc,
+                        const char* argv[], std::string& sha_key);
 
 class CTree;
-typedef CTree* Tree;
+typedef CTree*            Tree;
 typedef std::vector<Tree> tvec;
 
 tvec boxesToSignalsAux(Tree box);
@@ -305,16 +324,18 @@ tvec boxesToSignalsAux(Tree box);
 extern "C" {
 #endif
 
-LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
-                                      char* error_msg);
+LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[],
+                                            char* sha_key, char* error_msg);
 
-LIBFAUST_API const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
-                                        char* sha_key, char* error_msg);
+LIBFAUST_API const char* expandCDSPFromString(const char* name_app, const char* dsp_content,
+                                              int argc, const char* argv[], char* sha_key,
+                                              char* error_msg);
 
-LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[],
+                                            char* error_msg);
 
-LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
-                                        char* error_msg);
+LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content,
+                                              int argc, const char* argv[], char* error_msg);
 
 #ifdef __cplusplus
 }
@@ -328,8 +349,8 @@ LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* 
 #ifdef _MSC_VER
 #define PRE_PACKED_STRUCTURE __pragma(pack(push, 1))
 #define POST_PACKED_STRUCTURE \
-;                         \
-__pragma(pack(pop))
+    ;                         \
+    __pragma(pack(pop))
 #else
 #define PRE_PACKED_STRUCTURE
 #define POST_PACKED_STRUCTURE __attribute__((__packed__))
@@ -338,41 +359,41 @@ __pragma(pack(pop))
 PRE_PACKED_STRUCTURE
 struct Soundfile {
     enum { kBuffers, kLength, kSR, kOffset };
-    double** fBuffers; // use the largest size to cover 'float' and 'double' cases
-    int* fLength;      // length of each part
-    int* fSR;          // sample rate of each part
-    int* fOffset;      // offset of each part in the global buffer
-    int fChannels;     // max number of channels of all concatenated files
-    int fParts;        // the total number of loaded parts
-    bool fIsDouble;    // keep the sample format (float or double)
-    
+    double** fBuffers;   // use the largest size to cover 'float' and 'double' cases
+    int*     fLength;    // length of each part
+    int*     fSR;        // sample rate of each part
+    int*     fOffset;    // offset of each part in the global buffer
+    int      fChannels;  // max number of channels of all concatenated files
+    int      fParts;     // the total number of loaded parts
+    bool     fIsDouble;  // keep the sample format (float or double)
+
     Soundfile(int max_chan)
     {
         fBuffers = new double*[max_chan];
         fLength  = new int[MAX_SOUNDFILE_PARTS];
         fSR      = new int[MAX_SOUNDFILE_PARTS];
         fOffset  = new int[MAX_SOUNDFILE_PARTS];
-        
+
         for (int part = 0; part < MAX_SOUNDFILE_PARTS; part++) {
             fLength[part] = BUFFER_SIZE;
             fSR[part]     = SAMPLE_RATE;
             fOffset[part] = 0;
         }
-        
+
         // Allocate 1 channel
-        fChannels = 1;
-        fParts = 0;
+        fChannels   = 1;
+        fParts      = 0;
         fBuffers[0] = new double[BUFFER_SIZE];
         faustassert(fBuffers[0]);
         fIsDouble = true;
         memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(double));
-        
+
         // Share the same buffer for all other channels so that we have max_chan channels available
         for (int chan = fChannels; chan < max_chan; chan++) {
             fBuffers[chan] = fBuffers[0];
         }
     }
-    
+
     ~Soundfile()
     {
         // Free the real channels only
@@ -384,7 +405,7 @@ struct Soundfile {
         delete[] fSR;
         delete[] fOffset;
     }
-    
+
 } POST_PACKED_STRUCTURE;
 
 #endif

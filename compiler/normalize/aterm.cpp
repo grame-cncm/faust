@@ -28,7 +28,8 @@ using namespace std;
 typedef map<Tree, mterm> SM;
 
 aterm::aterm()
-{}
+{
+}
 
 /**
  * Create a aterm from a tree expression
@@ -126,23 +127,26 @@ Tree aterm::normalizedTree() const
     // store positive and negative terms by order and sign
     // positive terms are stored in P[]
     // negative terms are inverted (made positive) and stored in N[]
-    // terms sorted by order: to better enable the sharing of expensive expressions (like signal over control.etc)
+    // terms sorted by order: to better enable the sharing of expensive expressions (like signal
+    // over control.etc)
     Tree P[4], N[4];
-    
+
     // prepare
-    for (int order = 0; order < 4; order++) P[order] = N[order] = tree(0);
+    for (int order = 0; order < 4; order++) {
+        P[order] = N[order] = tree(0);
+    }
 
     // sum by order and sign
     for (const auto& p : fSig2MTerms) {
         const mterm& m = p.second;
         if (m.isNegative()) {
-            Tree t          = m.normalizedTree(false, true); // not in signatureMode
-            int  order      = getSigOrder(t);
-            N[order]        = simplifyingAdd(N[order], t);
+            Tree t     = m.normalizedTree(false, true);  // not in signatureMode
+            int  order = getSigOrder(t);
+            N[order]   = simplifyingAdd(N[order], t);
         } else {
-            Tree t          = m.normalizedTree();
-            int  order      = getSigOrder(t);
-            P[order]        = simplifyingAdd(P[order], t);
+            Tree t     = m.normalizedTree();
+            int  order = getSigOrder(t);
+            P[order]   = simplifyingAdd(P[order], t);
         }
     }
 
@@ -164,7 +168,7 @@ Tree aterm::normalizedTree() const
     if (!signe) {
         SUM = sigBinOp(kMul, sigInt(-1), SUM);
     }
-    
+
 #ifdef TRACE
     cerr << __LINE__ << ":" << __FUNCTION__ << "(" << *this << ") ---> " << ppsig(SUM) << endl;
 #endif
@@ -291,8 +295,8 @@ mterm aterm::greatestDivisor() const
     for (auto p1 = fSig2MTerms.begin(); p1 != fSig2MTerms.end(); p1++) {
         for (auto p2 = std::next(p1); p2 != fSig2MTerms.end(); p2++) {
             mterm g = gcd(p1->second, p2->second);
-            // cerr << "TRYING " << g << " of complexity " << g.complexity() << " (max complexity so far " <<
-            // maxComplexity << ")" << endl;
+            // cerr << "TRYING " << g << " of complexity " << g.complexity() << " (max complexity so
+            // far " << maxComplexity << ")" << endl;
             int complexity = g.complexity();
             if (complexity > maxComplexity) {
                 maxComplexity = complexity;

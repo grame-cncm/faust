@@ -21,6 +21,7 @@
 
 #include "propagate.hh"
 #include "Text.hh"
+#include "aterm.hh"
 #include "exception.hh"
 #include "floats.hh"
 #include "global.hh"
@@ -31,7 +32,6 @@
 #include "prim2.hh"
 #include "simplify.hh"
 #include "xtended.hh"
-#include "aterm.hh"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -81,7 +81,9 @@ static siglist split(const siglist& inputs, int nbus)
 static siglist makeSigProjList(Tree t, int n)
 {
     siglist l(n);
-    for (int i = 0; i < n; i++) l[i] = sigDelay0(sigProj(i, t));
+    for (int i = 0; i < n; i++) {
+        l[i] = sigDelay0(sigProj(i, t));
+    }
     return l;
 }
 
@@ -89,7 +91,9 @@ static siglist makeSigProjList(Tree t, int n)
 static siglist makeMemSigProjList(Tree t, int n)
 {
     siglist l(n);
-    for (int i = 0; i < n; i++) l[i] = sigDelay1(sigProj(i, t));
+    for (int i = 0; i < n; i++) {
+        l[i] = sigDelay1(sigProj(i, t));
+    }
     return l;
 }
 
@@ -103,7 +107,9 @@ static inline siglist makeList(Tree t)
 static siglist listRange(const siglist& l, int i, int j)
 {
     siglist r(j - i);
-    for (int x = i; x < j; x++) r[x - i] = l[x];
+    for (int x = i; x < j; x++) {
+        r[x - i] = l[x];
+    }
     return r;
 }
 
@@ -113,8 +119,12 @@ static siglist listConcat(const siglist& a, const siglist& b)
     int     n2 = (int)b.size();
     siglist r(n1 + n2);
 
-    for (int x = 0; x < n1; x++) r[x] = a[x];
-    for (int x = 0; x < n2; x++) r[x + n1] = b[x];
+    for (int x = 0; x < n1; x++) {
+        r[x] = a[x];
+    }
+    for (int x = 0; x < n2; x++) {
+        r[x + n1] = b[x];
+    }
     return r;
 }
 
@@ -135,7 +145,9 @@ static siglist listLift(const siglist& l)
     int     n = (int)l.size();
     siglist r(n);
 
-    for (int i = 0; i < n; i++) r[i] = lift(l[i]);
+    for (int i = 0; i < n; i++) {
+        r[i] = lift(l[i]);
+    }
     return r;
 }
 
@@ -200,8 +212,8 @@ static bool isIntTree(Tree l, vector<int>& v)
 
     } else {
         stringstream error;
-        error << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l)
-              << endl;
+        error << "ERROR : file " << __FILE__ << ':' << __LINE__
+              << ", not a valid list of numbers : " << boxpp(l) << endl;
         throw faustexception(error.str());
     }
 }
@@ -291,7 +303,8 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxSymbolic(box, slot, body)) {
         faustassert(lsig.size() > 0);
-        return propagate(pushEnv(slot, lsig[0], slotenv), path, body, listRange(lsig, 1, (int)lsig.size()));
+        return propagate(pushEnv(slot, lsig[0], slotenv), path, body,
+                         listRange(lsig, 1, (int)lsig.size()));
     }
 
     // Primitives
@@ -435,7 +448,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         int in1, out1, in2, out2;
         getBoxType(t1, &in1, &out1);
         getBoxType(t2, &in2, &out2);
-        
+
         // Connection coherency is checked in evaluateBlockDiagram
         faustassert(out1 == in2);
         return propagate(slotenv, path, t2, propagate(slotenv, path, t1, lsig));
@@ -477,7 +490,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         int in1, out1, in2, out2;
         getBoxType(t1, &in1, &out1);
         getBoxType(t2, &in2, &out2);
-        
+
         // The environment must also be lifted
         Tree slotenv2 = lift(slotenv);
 
@@ -518,7 +531,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         // ins, outs, route are casted to int in realeval
         if (isBoxInt(t1, &ins) && isBoxInt(t2, &outs) && isIntTree(t3, route)) {
             // initialize output signals
-            for (int i1 = 0; i1 < outs; i1++) outsigs.push_back(sigInt(0));
+            for (int i1 = 0; i1 < outs; i1++) {
+                outsigs.push_back(sigInt(0));
+            }
 
             // route propagation
             size_t m = route.size() - 1;
@@ -538,13 +553,13 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
         } else {
             stringstream error;
-            error << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(box)
-                  << endl;
+            error << "ERROR : file " << __FILE__ << ':' << __LINE__
+                  << ", invalid route expression : " << boxpp(box) << endl;
             throw faustexception(error.str());
         }
     }
-    cerr << "ASSERT : file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box)
-         << endl;
+    cerr << "ASSERT : file " << __FILE__ << ':' << __LINE__
+         << ", unrecognised box expression : " << boxpp(box) << endl;
     faustassert(false);
 
     return siglist();
@@ -573,8 +588,8 @@ siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         setPropagateProperty(args, result);
     }
     // cerr << "propagate in " << boxpp(box) << endl;
-    // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
-    // cerr << endl;
+    // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) <<
+    // endl; } cerr << endl;
     return result;
 }
 
@@ -582,7 +597,9 @@ siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 siglist makeSigInputList(int n)
 {
     siglist l(n);
-    for (int i = 0; i < n; i++) l[i] = sigInput(i);
+    for (int i = 0; i < n; i++) {
+        l[i] = sigInput(i);
+    }
     return l;
 }
 /**

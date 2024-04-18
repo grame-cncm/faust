@@ -35,15 +35,18 @@ using namespace std;
 //----------------------------------------------------------------------
 
 // TO COMPLETE
-static const char* binopname[] = {"add", "sub", "mul", "div", "%", "<<", ">>", "ge", "le", "geq", "leq", "==", "!=", "&", "|", "^"};
+static const char* binopname[] = {"add", "sub", "mul", "div", "%",  "<<", ">>", "ge",
+                                  "le",  "geq", "leq", "==",  "!=", "&",  "|",  "^"};
 
 void Signal2Elementary::sig2Elementary(Tree L, ofstream& fout)
 {
     fOut << "[";
     while (!isNil(L)) {
-        self(hd(L)); // comment
+        self(hd(L));  // comment
         L = tl(L);
-        if (!isNil(L)) fOut << ", ";
+        if (!isNil(L)) {
+            fOut << ", ";
+        }
     }
     fOut << "]";
     fout << fOut.str();
@@ -53,8 +56,9 @@ void Signal2Elementary::visit(Tree sig)
 {
     int    i;
     double r;
-    Tree   size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
-    
+    Tree   size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name,
+        file, sf;
+
     if (getUserData(sig)) {
         for (Tree b : sig->branches()) {
             self(b);
@@ -93,7 +97,7 @@ void Signal2Elementary::visit(Tree sig)
         fOut << ")";
         return;
     }
-    
+
     // Foreign functions
     else if (isSigFFun(sig, ff, largs)) {
         mapself(largs);
@@ -103,7 +107,7 @@ void Signal2Elementary::visit(Tree sig)
     } else if (isSigFVar(sig, type, name, file)) {
         return;
     }
-    
+
     // Tables
     else if (isSigWRTbl(sig, size, gen, wi, ws)) {
         self(size);
@@ -119,7 +123,7 @@ void Signal2Elementary::visit(Tree sig)
         self(ri);
         return;
     }
-    
+
     // Doc
     else if (isSigDocConstantTbl(sig, x, y)) {
         self(x);
@@ -136,7 +140,7 @@ void Signal2Elementary::visit(Tree sig)
         self(y);
         return;
     }
-    
+
     // Select2 (and Select3 expressed with Select2)
     else if (isSigSelect2(sig, sel, x, y)) {
         self(sel);
@@ -144,7 +148,7 @@ void Signal2Elementary::visit(Tree sig)
         self(y);
         return;
     }
-    
+
     // Table sigGen
     else if (isSigGen(sig, x)) {
         if (fVisitGen) {
@@ -154,7 +158,7 @@ void Signal2Elementary::visit(Tree sig)
             return;
         }
     }
-    
+
     // Recursive signals
     else if (isProj(sig, &i, x)) {
         self(x);
@@ -163,7 +167,7 @@ void Signal2Elementary::visit(Tree sig)
         mapself(le);
         return;
     }
-    
+
     // Int and Float Cast
     else if (isSigIntCast(sig, x)) {
         self(x);
@@ -175,7 +179,7 @@ void Signal2Elementary::visit(Tree sig)
         self(x);
         return;
     }
-    
+
     // UI
     else if (isSigButton(sig, label)) {
         return;
@@ -197,7 +201,7 @@ void Signal2Elementary::visit(Tree sig)
         self(x), self(y), self(z);
         return;
     }
-    
+
     // Soundfile length, rate, buffer
     else if (isSigSoundfile(sig, label)) {
         return;
@@ -211,7 +215,7 @@ void Signal2Elementary::visit(Tree sig)
         self(sf), self(x), self(y), self(z);
         return;
     }
-    
+
     // Attach, Enable, Control
     else if (isSigAttach(sig, x, y)) {
         self(x), self(y);
@@ -223,7 +227,7 @@ void Signal2Elementary::visit(Tree sig)
         self(x), self(y);
         return;
     }
-    
+
     else if (isNil(sig)) {
         // now nil can appear in table write instructions
         return;

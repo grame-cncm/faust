@@ -90,7 +90,7 @@ char* basename(const char* fullpath);
     } while (0)
 #endif
 
-//#define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
+// #define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
 #define FAUST_PATH_MAX 1024
 
 #if !defined(__MINGW32__)

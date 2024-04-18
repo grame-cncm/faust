@@ -28,7 +28,9 @@ static void tab1(int n, ostream& fout)
 {
     fout << "  \\n\"  \\\n";
     fout << "\"";
-    while (n--) fout << '\t';
+    while (n--) {
+        fout << '\t';
+    }
 }
 
 void CPPGPUCodeContainer::prepareFIR(void)
@@ -105,15 +107,11 @@ void CPPOpenCLCodeContainer::produceInternal()
 
     // Memory methods (as globals)
     tab(n, *fOut);
-    *fOut << fKlassName << "* "
-          << "new" << fKlassName << "() { "
-          << "return (" << fKlassName << "*) new " << fKlassName << "()"
-          << "; }";
+    *fOut << fKlassName << "* " << "new" << fKlassName << "() { " << "return (" << fKlassName
+          << "*) new " << fKlassName << "()" << "; }";
 
     tab(n, *fOut);
-    *fOut << "void "
-          << "delete" << fKlassName << "(" << fKlassName << "* dsp) { "
-          << "delete dsp"
+    *fOut << "void " << "delete" << fKlassName << "(" << fKlassName << "* dsp) { " << "delete dsp"
           << "; }";
     tab(n, *fOut);
 }
@@ -123,9 +121,11 @@ void CPPOpenCLCodeContainer::produceClass()
     int n = 0;
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
-    // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
+    // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init
+    // function
     pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
-    pushPreInitMethod(InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
+    pushPreInitMethod(InstBuilder::genStoreStructVar(
+        "fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
@@ -154,8 +154,7 @@ void CPPOpenCLCodeContainer::produceClass()
     tab1(n, *fGPUOut);
     *fGPUOut << "#ifndef " << xfloat();
     tab1(n, *fGPUOut);
-    *fGPUOut << "#define " << xfloat() << " "
-             << "float";
+    *fGPUOut << "#define " << xfloat() << " " << "float";
     tab1(n, *fGPUOut);
     *fGPUOut << "#endif  ";
 
@@ -179,7 +178,8 @@ void CPPOpenCLCodeContainer::produceClass()
 
     // Generate instanceInit kernel
     if (fInitInstructions->fCode.size() > 0) {
-        *fGPUOut << "__kernel void instanceInitKernel(__global faustdsp* dsp, __global faustcontrol* control, __global "
+        *fGPUOut << "__kernel void instanceInitKernel(__global faustdsp* dsp, __global "
+                    "faustcontrol* control, __global "
                     "int sample_rate) {";
         tab1(n + 1, *fGPUOut);
         fKernelCodeProducer->Tab(n + 1);
@@ -283,11 +283,14 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n + 2, *fOut);
     *fOut << "cl_ulong start, end;";
     tab(n + 2, *fOut);
-    *fOut << "clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);";
+    *fOut << "clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, "
+             "NULL);";
     tab(n + 2, *fOut);
-    *fOut << "clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);";
+    *fOut << "clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, "
+             "NULL);";
     tab(n + 2, *fOut);
-    *fOut << "return (double)1.0e-6 * (end - start); // Convert nanoseconds to milliseconds on return";
+    *fOut << "return (double)1.0e-6 * (end - start); // Convert nanoseconds to milliseconds on "
+             "return";
     tab(n + 1, *fOut);
     *fOut << "}" << endl;
 
@@ -325,7 +328,8 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n + 3, *fOut);
     *fOut << "size_t global, local;";
     tab(n + 3, *fOut);
-    *fOut << "err = clGetKernelWorkGroupInfo(dsp->fComputeKernel, dsp->fDeviceID, CL_KERNEL_WORK_GROUP_SIZE, "
+    *fOut << "err = clGetKernelWorkGroupInfo(dsp->fComputeKernel, dsp->fDeviceID, "
+             "CL_KERNEL_WORK_GROUP_SIZE, "
              "sizeof(local), &local, NULL);";
     tab(n + 3, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
@@ -342,7 +346,8 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n + 3, *fOut);
         *fOut << "global = local = 32;";
         tab(n + 3, *fOut);
-        *fOut << "err = clEnqueueNDRangeKernel(dsp->fCommands, dsp->fComputeKernel, 1, NULL, &global, &local, 0, NULL, "
+        *fOut << "err = clEnqueueNDRangeKernel(dsp->fCommands, dsp->fComputeKernel, 1, NULL, "
+                 "&global, &local, 0, NULL, "
                  "&dsp_execution);";
         tab(n + 3, *fOut);
         *fOut << "if (err != CL_SUCCESS) {";
@@ -353,7 +358,8 @@ void CPPOpenCLCodeContainer::produceClass()
     } else {
         // Only one kernel
         tab(n + 3, *fOut);
-        *fOut << "err = clEnqueueTask(dsp->fCommands, dsp->fComputeKernel, 0, NULL, &dsp_execution);";
+        *fOut
+            << "err = clEnqueueTask(dsp->fCommands, dsp->fComputeKernel, 0, NULL, &dsp_execution);";
         tab(n + 3, *fOut);
         *fOut << "if (err != CL_SUCCESS) {";
         tab(n + 4, *fOut);
@@ -370,7 +376,8 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n + 4, *fOut);
     *fOut << "int val = strtol(getenv(\"OCL_GPU_LOAD\"), NULL, 10);";
     tab(n + 4, *fOut);
-    *fOut << "int gpu_load = 100 * executionTime(dsp_execution) * double(dsp->fSampleRate) / (double(dsp->fCount) * "
+    *fOut << "int gpu_load = 100 * executionTime(dsp_execution) * double(dsp->fSampleRate) / "
+             "(double(dsp->fCount) * "
              "1000);";
     tab(n + 4, *fOut);
     *fOut << "if (gpu_load > val) {";
@@ -414,7 +421,8 @@ void CPPOpenCLCodeContainer::produceClass()
 
     // Creates device
     tab(n + 2, *fOut);
-    *fOut << "err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 0, NULL, &num_devices);";
+    *fOut << "err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 0, NULL, "
+             "&num_devices);";
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
     tab(n + 3, *fOut);
@@ -437,7 +445,8 @@ void CPPOpenCLCodeContainer::produceClass()
     *fOut << "fDevicesTable = new cl_device_id[num_devices];";
 
     tab(n + 2, *fOut);
-    *fOut << "err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, num_devices, fDevicesTable, "
+    *fOut << "err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, "
+             "num_devices, fDevicesTable, "
              "NULL);";
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
@@ -449,7 +458,8 @@ void CPPOpenCLCodeContainer::produceClass()
     *fOut << "}";
 
     tab(n + 2, *fOut);
-    *fOut << "fDeviceID = fDevicesTable[(getenv(\"OCL_GPU_DEVICE\") ? strtol(getenv(\"OCL_GPU_DEVICE\"), NULL, 10) : "
+    *fOut << "fDeviceID = fDevicesTable[(getenv(\"OCL_GPU_DEVICE\") ? "
+             "strtol(getenv(\"OCL_GPU_DEVICE\"), NULL, 10) : "
              "0)];";
 
     // Print device name
@@ -471,7 +481,8 @@ void CPPOpenCLCodeContainer::produceClass()
 
     // Creates context
     tab(n + 2, *fOut);
-    *fOut << "fContext = clCreateContext(0, 1, &fDeviceID, clLogMessagesToStdoutAPPLE, NULL, &err);";
+    *fOut
+        << "fContext = clCreateContext(0, 1, &fDeviceID, clLogMessagesToStdoutAPPLE, NULL, &err);";
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
     tab(n + 3, *fOut);
@@ -483,7 +494,8 @@ void CPPOpenCLCodeContainer::produceClass()
 
     // Creates a command queue
     tab(n + 2, *fOut);
-    *fOut << "fCommands = clCreateCommandQueue(fContext, fDeviceID, CL_QUEUE_PROFILING_ENABLE, &err);";
+    *fOut << "fCommands = clCreateCommandQueue(fContext, fDeviceID, CL_QUEUE_PROFILING_ENABLE, "
+             "&err);";
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
     tab(n + 3, *fOut);
@@ -495,12 +507,13 @@ void CPPOpenCLCodeContainer::produceClass()
 
     // Creates the compute program from the source buffer
     tab(n + 2, *fOut);
-    *fOut << "fProgram = clCreateProgramWithSource(fContext, 1, (const char**)&KernelSource, NULL, &err);";
+    *fOut << "fProgram = clCreateProgramWithSource(fContext, 1, (const char**)&KernelSource, NULL, "
+             "&err);";
 
     /*
     tab(n+2, *fOut); *fOut << "program_src = load_program_source(\"tmp.cl\");";
-    tab(n+2, *fOut); *fOut << "fProgram = clCreateProgramWithSource(fContext, 1, (const char**)&program_src, NULL,
-    &err);";
+    tab(n+2, *fOut); *fOut << "fProgram = clCreateProgramWithSource(fContext, 1, (const
+    char**)&program_src, NULL, &err);";
     */
 
     tab(n + 2, *fOut);
@@ -552,12 +565,14 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n + 2, *fOut);
     *fOut << "size_t local;";
     tab(n + 2, *fOut);
-    *fOut << "err = clGetKernelWorkGroupInfo(fComputeKernel, fDeviceID, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), "
+    *fOut << "err = clGetKernelWorkGroupInfo(fComputeKernel, fDeviceID, CL_KERNEL_WORK_GROUP_SIZE, "
+             "sizeof(local), "
              "&local, NULL);";
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
     tab(n + 3, *fOut);
-    *fOut << "std::cerr << \"clGetKernelWorkGroupInfo CL_KERNEL_WORK_GROUP_SIZE err = \" << err << endl;";
+    *fOut << "std::cerr << \"clGetKernelWorkGroupInfo CL_KERNEL_WORK_GROUP_SIZE err = \" << err << "
+             "endl;";
     tab(n + 2, *fOut);
     *fOut << "} else {";
     tab(n + 3, *fOut);
@@ -568,12 +583,14 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n + 2, *fOut);
     *fOut << "cl_ulong local_mem;";
     tab(n + 2, *fOut);
-    *fOut << "err = clGetKernelWorkGroupInfo(fComputeKernel, fDeviceID, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(local_mem), "
+    *fOut << "err = clGetKernelWorkGroupInfo(fComputeKernel, fDeviceID, CL_KERNEL_LOCAL_MEM_SIZE, "
+             "sizeof(local_mem), "
              "&local_mem, NULL);";
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
     tab(n + 3, *fOut);
-    *fOut << "std::cerr << \"clGetKernelWorkGroupInfo CL_KERNEL_LOCAL_MEM_SIZE err = \" << err << endl;";
+    *fOut << "std::cerr << \"clGetKernelWorkGroupInfo CL_KERNEL_LOCAL_MEM_SIZE err = \" << err << "
+             "endl;";
     tab(n + 2, *fOut);
     *fOut << "} else {";
     tab(n + 3, *fOut);
@@ -589,7 +606,8 @@ void CPPOpenCLCodeContainer::produceClass()
         *fOut << subst("fHostInputs[i] = new $0[sizeof($0) * 8192];", xfloat());
         tab(n + 3, *fOut);
         *fOut << subst(
-            "fDeviceInputs[i] = clCreateBuffer(fContext, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, "
+            "fDeviceInputs[i] = clCreateBuffer(fContext, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, "
+            "sizeof($0) * 8192, "
             "fHostInputs[i], &err);",
             xfloat());
         tab(n + 3, *fOut);
@@ -612,7 +630,8 @@ void CPPOpenCLCodeContainer::produceClass()
         *fOut << subst("fHostOutputs[i] = new $0[sizeof($0) * 8192];", xfloat());
         tab(n + 3, *fOut);
         *fOut << subst(
-            "fDeviceOutputs[i] = clCreateBuffer(fContext, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, "
+            "fDeviceOutputs[i] = clCreateBuffer(fContext, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, "
+            "sizeof($0) * 8192, "
             "fHostOutputs[i], &err);",
             xfloat());
 
@@ -641,7 +660,8 @@ void CPPOpenCLCodeContainer::produceClass()
     *fOut << "}";
 
     tab(n + 2, *fOut);
-    *fOut << "fDeviceControl = clCreateBuffer(fContext, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(faustcontrol), "
+    *fOut << "fDeviceControl = clCreateBuffer(fContext, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, "
+             "sizeof(faustcontrol), "
              "fHostControl, &err);";
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
@@ -654,7 +674,8 @@ void CPPOpenCLCodeContainer::produceClass()
 
     // Allocate DSP on GPU
     tab(n + 2, *fOut);
-    *fOut << "fDeviceDSP = clCreateBuffer(fContext, CL_MEM_READ_WRITE, sizeof(faustdsp), NULL, &err);";
+    *fOut << "fDeviceDSP = clCreateBuffer(fContext, CL_MEM_READ_WRITE, sizeof(faustdsp), NULL, "
+             "&err);";
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
     tab(n + 3, *fOut);
@@ -679,7 +700,8 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n + 2, *fOut);
         *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
         tab(n + 3, *fOut);
-        *fOut << "err |= clSetKernelArg(fComputeKernel, " << fNumInputs << "+i+1, sizeof(cl_mem), &fDeviceOutputs[i]);";
+        *fOut << "err |= clSetKernelArg(fComputeKernel, " << fNumInputs
+              << "+i+1, sizeof(cl_mem), &fDeviceOutputs[i]);";
         tab(n + 2, *fOut);
         *fOut << "}";
     }
@@ -717,12 +739,14 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n + 2, *fOut);
     *fOut << "cl_build_status build_status;";
     tab(n + 2, *fOut);
-    *fOut << "err = clGetProgramBuildInfo(fProgram, fDeviceID, CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), "
+    *fOut << "err = clGetProgramBuildInfo(fProgram, fDeviceID, CL_PROGRAM_BUILD_STATUS, "
+             "sizeof(cl_build_status), "
              "&build_status, NULL);";
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
     tab(n + 3, *fOut);
-    *fOut << "std::cerr << \"clGetProgramBuildInfo CL_PROGRAM_BUILD_STATUS err = \" << err << endl;";
+    *fOut
+        << "std::cerr << \"clGetProgramBuildInfo CL_PROGRAM_BUILD_STATUS err = \" << err << endl;";
     tab(n + 3, *fOut);
     *fOut << "goto error;";
     tab(n + 2, *fOut);
@@ -733,7 +757,8 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n + 2, *fOut);
     *fOut << "size_t ret_val_size;";
     tab(n + 2, *fOut);
-    *fOut << "err = clGetProgramBuildInfo(fProgram, fDeviceID, CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);";
+    *fOut << "err = clGetProgramBuildInfo(fProgram, fDeviceID, CL_PROGRAM_BUILD_LOG, 0, NULL, "
+             "&ret_val_size);";
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
     tab(n + 3, *fOut);
@@ -746,7 +771,8 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n + 2, *fOut);
     *fOut << "char build_log1[ret_val_size + 1];";
     tab(n + 2, *fOut);
-    *fOut << "err = clGetProgramBuildInfo(fProgram, fDeviceID, CL_PROGRAM_BUILD_LOG, ret_val_size, build_log1, NULL);";
+    *fOut << "err = clGetProgramBuildInfo(fProgram, fDeviceID, CL_PROGRAM_BUILD_LOG, ret_val_size, "
+             "build_log1, NULL);";
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
     tab(n + 3, *fOut);
@@ -1051,20 +1077,22 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     // generateLocalOutputs(loop_code);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst*       init1 = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst*       init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
-    Values min_fun_args;
+    ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
+    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
+    Values     min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
-    ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
-    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genInt32Typed(), init3);
+    ValueInst*      init3 = InstBuilder::genFunCallInst("min", min_fun_args);
+    DeclareVarInst* count_dec =
+        InstBuilder::genDecStackVar("count", InstBuilder::genInt32Typed(), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
     Values args;
     args.push_back(InstBuilder::genInt32NumInst(0));
-    loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genInt32Typed(),
-                                                        InstBuilder::genFunCallInst("get_global_id", args)));
+    loop_code->pushBackInst(
+        InstBuilder::genDecStackVar("tasknum", InstBuilder::genInt32Typed(),
+                                    InstBuilder::genFunCallInst("get_global_id", args)));
 
     // Generate DAG
     for (int l = int(dag.size() - 1); l >= 0; l--) {
@@ -1090,12 +1118,15 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     }
 
     // Generates the DAG enclosing loop
-    DeclareVarInst* loop_init =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
-    ValueInst*    loop_end       = InstBuilder::genLessThan(loop_init->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_init->store(InstBuilder::genAdd(loop_init->load(), gGlobal->gVecSize));
+    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(),
+                                                           InstBuilder::genInt32NumInst(0));
+    ValueInst*      loop_end =
+        InstBuilder::genLessThan(loop_init->load(), InstBuilder::genLoadFunArgsVar(counter));
+    StoreVarInst* loop_increment =
+        loop_init->store(InstBuilder::genAdd(loop_init->load(), gGlobal->gVecSize));
 
-    StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
+    StatementInst* loop =
+        InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
     // Generates the final loop
     loop->accept(fKernelCodeProducer);
@@ -1172,15 +1203,11 @@ void CPPCUDACodeContainer::produceInternal()
 
     // Memory methods (as globals)
     tab(n, *fOut);
-    *fOut << fKlassName << "* "
-          << "new" << fKlassName << "() { "
-          << "return (" << fKlassName << "*) new " << fKlassName << "()"
-          << "; }";
+    *fOut << fKlassName << "* " << "new" << fKlassName << "() { " << "return (" << fKlassName
+          << "*) new " << fKlassName << "()" << "; }";
 
     tab(n, *fOut);
-    *fOut << "void "
-          << "delete" << fKlassName << "(" << fKlassName << "* dsp) { "
-          << "delete dsp"
+    *fOut << "void " << "delete" << fKlassName << "(" << fKlassName << "* dsp) { " << "delete dsp"
           << "; }";
     tab(n, *fOut);
 }
@@ -1188,7 +1215,8 @@ void CPPCUDACodeContainer::produceInternal()
 void CPPCUDACodeContainer::generateInstanceInitKernelGlue(int n)
 {
     tab(n, *fGPUOut);
-    *fGPUOut << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int sample_rate) {";
+    *fGPUOut
+        << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int sample_rate) {";
     tab(n + 1, *fGPUOut);
     *fGPUOut << "dim3 block(1);";
     tab(n + 1, *fGPUOut);
@@ -1247,9 +1275,11 @@ void CPPCUDACodeContainer::produceClass()
     int n = 0;
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
-    // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
+    // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init
+    // function
     pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
-    pushPreInitMethod(InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
+    pushPreInitMethod(InstBuilder::genStoreStructVar(
+        "fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
@@ -1276,8 +1306,7 @@ void CPPCUDACodeContainer::produceClass()
     tab(n, *fGPUOut);
     *fGPUOut << "#ifndef " << xfloat();
     tab(n, *fGPUOut);
-    *fGPUOut << "#define " << xfloat() << " "
-             << "float";
+    *fGPUOut << "#define " << xfloat() << " " << "float";
     tab(n, *fGPUOut);
     *fGPUOut << "#endif  ";
 
@@ -1302,7 +1331,8 @@ void CPPCUDACodeContainer::produceClass()
 
     // Generate instanceInit kernel
     if (fInitInstructions->fCode.size() > 0) {
-        *fGPUOut << "__global__ void instanceInitKernel(faustdsp* dsp, faustcontrol* control, int sample_rate) {";
+        *fGPUOut << "__global__ void instanceInitKernel(faustdsp* dsp, faustcontrol* control, int "
+                    "sample_rate) {";
         tab(n + 1, *fGPUOut);
         fKernelCodeProducer->Tab(n + 1);
         fInitInstructions->accept(fKernelCodeProducer);
@@ -1429,7 +1459,8 @@ void CPPCUDACodeContainer::produceClass()
     tab(n + 2, *fOut);
     *fOut << "if (cudaResult != cudaSuccess) {";
     tab(n + 3, *fOut);
-    *fOut << "std::cerr << \"Cannot set device properties cudaDeviceMapHost err = \" << cudaResult << endl;";
+    *fOut << "std::cerr << \"Cannot set device properties cudaDeviceMapHost err = \" << cudaResult "
+             "<< endl;";
     tab(n + 2, *fOut);
     *fOut << "}";
 
@@ -1459,10 +1490,11 @@ void CPPCUDACodeContainer::produceClass()
     }
     if (fNumOutputs > 0) {
         for (int i = 0; i < fNumOutputs; i++) {
-            if (i == fNumOutputs - 1)
+            if (i == fNumOutputs - 1) {
                 *fOut << "dsp->fDeviceOutputs[" << i << "]";
-            else
+            } else {
                 *fOut << "dsp->fDeviceOutputs[" << i << "], ";
+            }
         }
     }
     *fOut << ", dsp->fDeviceDSP, dsp->fDeviceControl);";
@@ -1473,9 +1505,10 @@ void CPPCUDACodeContainer::produceClass()
     tab(n + 3, *fOut);
     *fOut << "dsp->fRunThread->Wait();";
     /*
-    tab(n+3, *fOut); *fOut << "if (getenv(\"OCL_GPU_LOAD\") && strtol(getenv(\"OCL_GPU_LOAD\"), NULL, 10)) {";
-        tab(n+4, *fOut); *fOut << "cout << \"Execution time = \" << 100 * executionTime(dsp_execution) *
-    double(dsp->fSampleRate) / (double(dsp->fCount) * 1000) << \"%\" << endl;"; tab(n+3, *fOut); *fOut << "}" << endl;
+    tab(n+3, *fOut); *fOut << "if (getenv(\"OCL_GPU_LOAD\") && strtol(getenv(\"OCL_GPU_LOAD\"),
+    NULL, 10)) {"; tab(n+4, *fOut); *fOut << "cout << \"Execution time = \" << 100 *
+    executionTime(dsp_execution) * double(dsp->fSampleRate) / (double(dsp->fCount) * 1000) << \"%\"
+    << endl;"; tab(n+3, *fOut); *fOut << "}" << endl;
     */
 
     tab(n + 2, *fOut);
@@ -1622,7 +1655,8 @@ void CPPCUDACodeContainer::produceClass()
     tab(n + 2, *fOut);
     *fOut << "if (cudaResult != cudaSuccess) {";
     tab(n + 3, *fOut);
-    *fOut << "std::cerr << \"Cannot set device properties cudaDeviceMapHost err = \" << cudaResult << endl;";
+    *fOut << "std::cerr << \"Cannot set device properties cudaDeviceMapHost err = \" << cudaResult "
+             "<< endl;";
     tab(n + 3, *fOut);
     *fOut << "goto error;";
     tab(n + 2, *fOut);
@@ -1646,7 +1680,8 @@ void CPPCUDACodeContainer::produceClass()
         tab(n + 3, *fOut);
         *fOut << "}";
         tab(n + 3, *fOut);
-        *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceInputs[i], (void *)fHostInputs[i], 0);";
+        *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceInputs[i], (void "
+                 "*)fHostInputs[i], 0);";
         tab(n + 3, *fOut);
         *fOut << "if (cudaResult != cudaSuccess) {";
         tab(n + 4, *fOut);
@@ -1677,7 +1712,8 @@ void CPPCUDACodeContainer::produceClass()
         tab(n + 3, *fOut);
         *fOut << "}";
         tab(n + 3, *fOut);
-        *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceOutputs[i], (void *)fHostOutputs[i], 0);";
+        *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceOutputs[i], (void "
+                 "*)fHostOutputs[i], 0);";
         tab(n + 3, *fOut);
         *fOut << "if (cudaResult != cudaSuccess) {";
         tab(n + 4, *fOut);
@@ -1692,7 +1728,8 @@ void CPPCUDACodeContainer::produceClass()
 
     // Allocate control on CPU, map it on GPU
     tab(n + 2, *fOut);
-    *fOut << "cudaResult = cudaHostAlloc((void **)&fHostControl, sizeof(faustcontrol), cudaHostAllocMapped);";
+    *fOut << "cudaResult = cudaHostAlloc((void **)&fHostControl, sizeof(faustcontrol), "
+             "cudaHostAllocMapped);";
     tab(n + 2, *fOut);
     *fOut << "if (cudaResult != cudaSuccess) {";
     tab(n + 3, *fOut);
@@ -1703,7 +1740,8 @@ void CPPCUDACodeContainer::produceClass()
     *fOut << "}";
 
     tab(n + 2, *fOut);
-    *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceControl, (void *)fHostControl, 0);";
+    *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceControl, (void "
+             "*)fHostControl, 0);";
     tab(n + 2, *fOut);
     *fOut << "if (cudaResult != cudaSuccess) {";
     tab(n + 3, *fOut);
@@ -1986,13 +2024,15 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     // generateLocalOutputs(loop_code);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst*       init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs));
-    ValueInst*       init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
-    Values min_fun_args;
+    ValueInst* init1 =
+        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs));
+    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
+    Values     min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
-    ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
-    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genInt32Typed(), init3);
+    ValueInst*      init3 = InstBuilder::genFunCallInst("min", min_fun_args);
+    DeclareVarInst* count_dec =
+        InstBuilder::genDecStackVar("count", InstBuilder::genInt32Typed(), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
@@ -2005,11 +2045,13 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
         InstBuilder::genFunCallInst("get_global_id", args)));
     */
 
-    loop_code->pushBackInst(InstBuilder::genLabelInst("int tasknum = blockDim.x * blockIdx.x + threadIdx.x;"));
+    loop_code->pushBackInst(
+        InstBuilder::genLabelInst("int tasknum = blockDim.x * blockIdx.x + threadIdx.x;"));
 
     // Generate DAG
     for (int l = (int)dag.size() - 1; l >= 0; l--) {
-        ValueInst* switch_cond = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack));
+        ValueInst* switch_cond =
+            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack));
         ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 
         if (dag[l].size() > 1) {
@@ -2031,14 +2073,17 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     }
 
     // Generates the DAG enclosing loop
-    DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(),
+                                                           InstBuilder::genInt32NumInst(0));
 
     ValueInst* loop_end = InstBuilder::genLessThan(
-        loop_decl->load(), InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs)));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gGlobal->gVecSize));
+        loop_decl->load(),
+        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs)));
+    StoreVarInst* loop_increment =
+        loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gGlobal->gVecSize));
 
-    StatementInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);
+    StatementInst* loop =
+        InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);
 
     // Generates the final loop
     loop->accept(fKernelCodeProducer);
@@ -2051,7 +2096,8 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 void CPPCUDAVectorCodeContainer::generateInstanceInitKernelGlue(int n)
 {
     tab(n, *fGPUOut);
-    *fGPUOut << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int sample_rate) {";
+    *fGPUOut
+        << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int sample_rate) {";
     tab(n + 1, *fGPUOut);
     *fGPUOut << "dim3 block(16);";
     tab(n + 1, *fGPUOut);

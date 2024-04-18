@@ -36,7 +36,7 @@ class ExpPrim : public xtended {
     virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == arity());
-        Type t = args[0];
+        Type     t = args[0];
         interval i = t->getInterval();
         return castInterval(floatCast(t), gAlgebra.Exp(i));
     }
@@ -51,7 +51,7 @@ class ExpPrim : public xtended {
     {
         num n;
         faustassert(args.size() == arity());
-    
+
         // exp(log(sig)) ==> sig
         xtended* xt = (xtended*)getUserData(args[0]);
         if (xt == gGlobal->gLogPrim) {
@@ -63,7 +63,8 @@ class ExpPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -71,7 +72,8 @@ class ExpPrim : public xtended {
         return generateFun(container, subst("exp$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -79,15 +81,16 @@ class ExpPrim : public xtended {
         return subst("exp$1($0)", args[0], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("e^{$0}", args[0]);
     }
-    
-    Tree diff(const std::vector<Tree> &args) override
+
+    Tree diff(const std::vector<Tree>& args) override
     {
         // (e^x)' = e^x
         return sigExp(args[0]);

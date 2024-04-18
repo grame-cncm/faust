@@ -46,8 +46,12 @@ schema* makeEnlargedSchema(schema* s, double width)
 enlargedSchema::enlargedSchema(schema* s, double width)
     : schema(s->inputs(), s->outputs(), width, s->height()), fSchema(s)
 {
-    for (unsigned int i = 0; i < inputs(); i++) fInputPoint.push_back(point(0, 0));
-    for (unsigned int i = 0; i < outputs(); i++) fOutputPoint.push_back(point(0, 0));
+    for (unsigned int i = 0; i < inputs(); i++) {
+        fInputPoint.push_back(point(0, 0));
+    }
+    for (unsigned int i = 0; i < outputs(); i++) {
+        fOutputPoint.push_back(point(0, 0));
+    }
 }
 
 /**

@@ -54,7 +54,9 @@ class TreeTraversal : public Garbageable {
 
     virtual void self(Tree t)
     {
-        if (fTrace) traceEnter(t);
+        if (fTrace) {
+            traceEnter(t);
+        }
         fIndent++;
         // First visit
         if (!fVisited.count(t)) {
@@ -64,7 +66,9 @@ class TreeTraversal : public Garbageable {
         // Keep visit counter
         fVisited[t]++;
         fIndent--;
-        if (fTrace) traceExit(t);
+        if (fTrace) {
+            traceExit(t);
+        }
     };
     void mapself(Tree lt);
 
@@ -84,6 +88,8 @@ class TreeTraversal : public Garbageable {
 
 inline std::ostream& operator<<(std::ostream& out, const TreeTraversal& pp)
 {
-    for (const auto& it : pp.fVisited) { out << "key: " << it.first << " count: " << it.second << std::endl; }
+    for (const auto& it : pp.fVisited) {
+        out << "key: " << it.first << " count: " << it.second << std::endl;
+    }
     return out;
 }

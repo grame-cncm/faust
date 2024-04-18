@@ -22,8 +22,8 @@
 #ifndef _CODEBOX_CODE_CONTAINER_H
 #define _CODEBOX_CODE_CONTAINER_H
 
-#include "codebox_instructions.hh"
 #include "code_container.hh"
+#include "codebox_instructions.hh"
 #include "dsp_factory.hh"
 
 #ifdef WIN32
@@ -34,27 +34,25 @@
 class CodeboxCodeContainer : public virtual CodeContainer {
    protected:
     static CodeboxInstVisitor* gCodeboxVisitor;
-    std::ostream* fOut;
-    CodeboxBargraphVisitor fBargraph;
-    
+    std::ostream*              fOut;
+    CodeboxBargraphVisitor     fBargraph;
+
     // Not used since subcontainers are inlined
-    virtual void produceInternal()
-    {};
+    virtual void produceInternal() {};
 
     virtual void produceClass();
-   
+
    public:
-    CodeboxCodeContainer()
-    {}
+    CodeboxCodeContainer() {}
     CodeboxCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    
+
     virtual ~CodeboxCodeContainer()
     {
         // fCodeProducer is a 'Garbageable', so nothing to delete
     }
-    
+
     virtual void generateCompute(int tab) = 0;
-    
+
     virtual dsp_factory_base* produceFactory();
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
@@ -66,17 +64,11 @@ class CodeboxCodeContainer : public virtual CodeContainer {
 // Used in -scalar (= default) mode
 class CodeboxScalarCodeContainer : public CodeboxCodeContainer {
    protected:
-  
    public:
-    CodeboxScalarCodeContainer()
-    {}
-    CodeboxScalarCodeContainer(const std::string& name,
-                             int numInputs,
-                             int numOutputs,
-                             std::ostream* out,
-                             int sub_container_type);
-    virtual ~CodeboxScalarCodeContainer()
-    {}
+    CodeboxScalarCodeContainer() {}
+    CodeboxScalarCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                               std::ostream* out, int sub_container_type);
+    virtual ~CodeboxScalarCodeContainer() {}
 
     void generateCompute(int n);
 };

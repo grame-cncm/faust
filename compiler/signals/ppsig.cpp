@@ -31,7 +31,8 @@
 
 using namespace std;
 
-ppsig::ppsig(Tree s, int max_size) : fSig(s), fEnv(gGlobal->nil), fPriority(0), fHideRecursion(false), fMaxSize(max_size)
+ppsig::ppsig(Tree s, int max_size)
+    : fSig(s), fEnv(gGlobal->nil), fPriority(0), fHideRecursion(false), fMaxSize(max_size)
 {
 }
 
@@ -57,23 +58,28 @@ ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x) const
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ',' << ppsig(y, fEnv, 0, fMaxSize) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ','
+                << ppsig(y, fEnv, 0, fMaxSize) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ',' << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ','
+                << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ',' << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ','
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ','
+                << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ','
                 << ppsig(zz, fEnv, 0, fMaxSize) << ')';
 }
 
-ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2, Tree z3) const
+ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2,
+                         Tree z3) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ',' << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ','
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ','
+                << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ','
                 << ppsig(z2, fEnv, 0, fMaxSize) << ',' << ppsig(z3, fEnv, 0, fMaxSize) << ')';
 }
 
@@ -84,19 +90,23 @@ ostream& ppsig::printui(ostream& fout, const string& funame, Tree label) const
     return fout << ')';
 }
 
-ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree lo, Tree hi, Tree step) const
+ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree lo, Tree hi,
+                        Tree step) const
 {
     fout << funame << '(';
     printlabel(fout, label);
-    return fout << ',' << ppsig(lo, fEnv, 0, fMaxSize) << ',' << ppsig(hi, fEnv, 0, fMaxSize) << ',' << ppsig(step, fEnv, 0, fMaxSize) << ')';
+    return fout << ',' << ppsig(lo, fEnv, 0, fMaxSize) << ',' << ppsig(hi, fEnv, 0, fMaxSize) << ','
+                << ppsig(step, fEnv, 0, fMaxSize) << ')';
 }
 
-ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const
+ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi,
+                        Tree step) const
 {
     fout << funame << '(';
     printlabel(fout, label);
-    return fout << ',' << ppsig(cur, fEnv, 0, fMaxSize) << ',' << ppsig(lo, fEnv, 0, fMaxSize) << ',' << ppsig(hi, fEnv, 0, fMaxSize) << ','
-                << ppsig(step, fEnv, 0, fMaxSize) << ')';
+    return fout << ',' << ppsig(cur, fEnv, 0, fMaxSize) << ',' << ppsig(lo, fEnv, 0, fMaxSize)
+                << ',' << ppsig(hi, fEnv, 0, fMaxSize) << ',' << ppsig(step, fEnv, 0, fMaxSize)
+                << ')';
 }
 
 ostream& ppsig::printout(ostream& fout, int i, Tree x) const
@@ -333,17 +343,19 @@ ostream& ppsig::print(ostream& fout) const
     return fout;
 }
 
-#define SIG_INSERT_ID(exp)                                                                                          \
-    if (gGlobal->gSignalTable.find(fSig) == gGlobal->gSignalTable.end()) {                                          \
-        stringstream s;                                                                                             \
-        (exp);                                                                                                      \
-        gGlobal->gSignalTable[fSig] = make_pair(gGlobal->gSignalCounter, s.str());                                  \
-        gGlobal->gSignalTrace.push_back("ID_" + std::to_string(gGlobal->gSignalCounter) + " = " + s.str() + ";\n"); \
-        gGlobal->gSignalCounter++;                                                                                  \
-    }                                                                                                               \
+#define SIG_INSERT_ID(exp)                                                                        \
+    if (gGlobal->gSignalTable.find(fSig) == gGlobal->gSignalTable.end()) {                        \
+        stringstream s;                                                                           \
+        (exp);                                                                                    \
+        gGlobal->gSignalTable[fSig] = make_pair(gGlobal->gSignalCounter, s.str());                \
+        gGlobal->gSignalTrace.push_back("ID_" + std::to_string(gGlobal->gSignalCounter) + " = " + \
+                                        s.str() + ";\n");                                         \
+        gGlobal->gSignalCounter++;                                                                \
+    }                                                                                             \
     fout << "ID_" << gGlobal->gSignalTable[fSig].first;
 
-ostream& ppsigShared::printinfix(ostream& fout, const string& opname, int priority, Tree x, Tree y) const
+ostream& ppsigShared::printinfix(ostream& fout, const string& opname, int priority, Tree x,
+                                 Tree y) const
 {
     if (fPriority > priority) {
         fout << "(";
@@ -367,17 +379,22 @@ ostream& ppsigShared::printfun(ostream& fout, const string& funame, Tree x, Tree
 
 ostream& ppsigShared::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z) const
 {
-    return fout << funame << '(' << ppsigShared(x, fEnv) << ',' << ppsigShared(y, fEnv) << ',' << ppsigShared(z, fEnv) << ')';
+    return fout << funame << '(' << ppsigShared(x, fEnv) << ',' << ppsigShared(y, fEnv) << ','
+                << ppsigShared(z, fEnv) << ')';
 }
 
-ostream& ppsigShared::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const
+ostream& ppsigShared::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z,
+                               Tree zz) const
 {
-    return fout << funame << '(' << ppsigShared(x, fEnv) << ',' << ppsigShared(y, fEnv) << ',' << ppsigShared(z, fEnv) << ',' << ppsigShared(zz, fEnv) << ')';
+    return fout << funame << '(' << ppsigShared(x, fEnv) << ',' << ppsigShared(y, fEnv) << ','
+                << ppsigShared(z, fEnv) << ',' << ppsigShared(zz, fEnv) << ')';
 }
 
-ostream& ppsigShared::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2, Tree z3) const
+ostream& ppsigShared::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2,
+                               Tree z3) const
 {
-    return fout << funame << '(' << ppsigShared(x, fEnv) << ',' << ppsigShared(y, fEnv) << ',' << ppsigShared(z, fEnv) << ',' << ppsigShared(z2, fEnv) << ','
+    return fout << funame << '(' << ppsigShared(x, fEnv) << ',' << ppsigShared(y, fEnv) << ','
+                << ppsigShared(z, fEnv) << ',' << ppsigShared(z2, fEnv) << ','
                 << ppsigShared(z3, fEnv) << ')';
 }
 
@@ -388,18 +405,22 @@ ostream& ppsigShared::printui(ostream& fout, const string& funame, Tree label) c
     return fout << ')';
 }
 
-ostream& ppsigShared::printui(ostream& fout, const string& funame, Tree label, Tree lo, Tree hi, Tree step) const
+ostream& ppsigShared::printui(ostream& fout, const string& funame, Tree label, Tree lo, Tree hi,
+                              Tree step) const
 {
     fout << funame << '(';
     printlabel(fout, label);
-    return fout << ',' << ppsigShared(lo, fEnv) << ',' << ppsigShared(hi, fEnv) << ',' << ppsigShared(step, fEnv) << ')';
+    return fout << ',' << ppsigShared(lo, fEnv) << ',' << ppsigShared(hi, fEnv) << ','
+                << ppsigShared(step, fEnv) << ')';
 }
 
-ostream& ppsigShared::printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const
+ostream& ppsigShared::printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo,
+                              Tree hi, Tree step) const
 {
     fout << funame << '(';
     printlabel(fout, label);
-    return fout << ',' << ppsigShared(cur, fEnv) << ',' << ppsigShared(lo, fEnv) << ',' << ppsigShared(hi, fEnv) << ',' << ppsigShared(step, fEnv) << ')';
+    return fout << ',' << ppsigShared(cur, fEnv) << ',' << ppsigShared(lo, fEnv) << ','
+                << ppsigShared(hi, fEnv) << ',' << ppsigShared(step, fEnv) << ')';
 }
 
 ostream& ppsigShared::printout(ostream& fout, int i, Tree x) const

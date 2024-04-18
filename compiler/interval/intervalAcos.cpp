@@ -36,8 +36,8 @@ interval interval_algebra::Acos(const interval& x)
     }
 
     double v = 0;  // value at which the min slope is attained, zero if it is present
-    int sign = 1;  // whether we compute the difference between f(x) and f(x+ε) or f(x-ε), chosing the point that lies
-                   // in the interval
+    int sign = 1;  // whether we compute the difference between f(x) and f(x+ε) or f(x-ε), chosing
+                   // the point that lies in the interval
     if (not i.has(0))  // if zero is not present, it's the bound closer to zero
     {
         v    = minValAbs(i);

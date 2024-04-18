@@ -29,8 +29,8 @@
  */
 
 class recSchema : public schema {
-    schema*       fSchema1;
-    schema*       fSchema2;
+    schema*            fSchema1;
+    schema*            fSchema2;
     std::vector<point> fInputPoint;
     std::vector<point> fOutputPoint;
 
@@ -47,7 +47,8 @@ class recSchema : public schema {
     recSchema(schema* s1, schema* s2, double width);
     void drawDelaySign(device& dev, double x, double y, double size);
 
-    void collectFeedback(collector& c, const point& src, const point& dst, double dx, const point& out);
+    void collectFeedback(collector& c, const point& src, const point& dst, double dx,
+                         const point& out);
     void collectFeedfront(collector& c, const point& src, const point& dst, double dx);
 };
 

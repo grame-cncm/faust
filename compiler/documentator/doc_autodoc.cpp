@@ -106,8 +106,9 @@ void declareAutoDoc()
 
     /** Autodoc's "body", with equation and diagram of process, and notice and listing. */
 
-    string autoPresentationTxt = "\n\\bigskip \\\\ " + gGlobal->gDocAutodocStringMap["thisdoc"] + " \\\\ ";
-    autodoc                    = cons(docTxt(autoPresentationTxt.c_str()), autodoc);
+    string autoPresentationTxt =
+        "\n\\bigskip \\\\ " + gGlobal->gDocAutodocStringMap["thisdoc"] + " \\\\ ";
+    autodoc = cons(docTxt(autoPresentationTxt.c_str()), autodoc);
 
     string autoEquationTxt = "\n" + gGlobal->gDocAutodocStringMap["autoeqntitle"] + "\n\n";
     autoEquationTxt += gGlobal->gDocAutodocStringMap["autoeqntext"] + "\n";

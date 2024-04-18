@@ -22,9 +22,9 @@
 #ifndef _FBC_EXECUTOR_H
 #define _FBC_EXECUTOR_H
 
+#include "dsp_aux.hh"
 #include "faust/gui/CGlue.h"
 #include "interpreter_bytecode.hh"
-#include "dsp_aux.hh"
 
 typedef std::map<std::string, Soundfile*> soundTable;
 
@@ -33,32 +33,32 @@ typedef std::map<std::string, Soundfile*> soundTable;
  */
 template <class REAL>
 class FBCExecutor {
-    
-    protected:
-        
-        soundTable fSoundTable;
+   protected:
+    soundTable fSoundTable;
 
-    public:
-    
-        virtual ~FBCExecutor() {}
-      
-        virtual void executeBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UIInterface* glue) {};
-        virtual void executeBlock(FBCBlockInstruction<REAL>* block) {};
-    
-        // Possibly compile (when using LLVM or MIR)
-        virtual void compileBlock(FBCBlockInstruction<REAL>* block) {}
+   public:
+    virtual ~FBCExecutor() {}
 
-        virtual void setIntValue(int offset, int value) {}
-        virtual int  getIntValue(int offset) { return -1; }
+    virtual void executeBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block,
+                                           UIInterface*                            glue) {};
+    virtual void executeBlock(FBCBlockInstruction<REAL>* block) {};
 
-        virtual void setInput(int offset, REAL* buffer) {}
-        virtual void setOutput(int offset, REAL* buffer) {}
+    // Possibly compile (when using LLVM or MIR)
+    virtual void compileBlock(FBCBlockInstruction<REAL>* block) {}
 
-        virtual void updateInputControls() {}
-        virtual void updateOutputControls() {}
+    virtual void setIntValue(int offset, int value) {}
+    virtual int  getIntValue(int offset) { return -1; }
 
-        virtual void dumpMemory(std::vector<FBCBlockInstruction<REAL>*> blocks, const std::string& name, const std::string& filename) {}
- 
+    virtual void setInput(int offset, REAL* buffer) {}
+    virtual void setOutput(int offset, REAL* buffer) {}
+
+    virtual void updateInputControls() {}
+    virtual void updateOutputControls() {}
+
+    virtual void dumpMemory(std::vector<FBCBlockInstruction<REAL>*> blocks, const std::string& name,
+                            const std::string& filename)
+    {
+    }
 };
 
 /*
@@ -66,30 +66,27 @@ class FBCExecutor {
  */
 template <class REAL>
 class FBCExecuteFun {
-    
-    protected:
-    
-        soundTable& fSoundTable;
-    
-    public:
-    
-        FBCExecuteFun() {}
-        // The FBC block used in the 'compute' function.
-        FBCExecuteFun(FBCBlockInstruction<REAL>* fbc_block, soundTable& sound_table)
-        :fSoundTable(sound_table)
-        {}
-        virtual ~FBCExecuteFun() {}
-       
-        /*
-         * The function to be executed each cycle.
-         *
-         * @param int_heap - the integer heap
-         * @param real_heap - the REAL heap
-         * @param inputs - the audio inputs
-         * @param outputs - the audio outputs
-         */
-        virtual void execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs) {}
-    
+   protected:
+    soundTable& fSoundTable;
+
+   public:
+    FBCExecuteFun() {}
+    // The FBC block used in the 'compute' function.
+    FBCExecuteFun(FBCBlockInstruction<REAL>* fbc_block, soundTable& sound_table)
+        : fSoundTable(sound_table)
+    {
+    }
+    virtual ~FBCExecuteFun() {}
+
+    /*
+     * The function to be executed each cycle.
+     *
+     * @param int_heap - the integer heap
+     * @param real_heap - the REAL heap
+     * @param inputs - the audio inputs
+     * @param outputs - the audio outputs
+     */
+    virtual void execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs) {}
 };
 
 #endif

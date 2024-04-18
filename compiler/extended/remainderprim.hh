@@ -42,11 +42,13 @@ class RemainderPrim : public xtended {
         interval j = args[1]->getInterval();
         if (j.isValid() && gGlobal->gMathExceptions && j.hasZero()) {
             std::stringstream error;
-            error << "WARNING : potential division by zero in remainder(" << i << ", " << j << ")" << std::endl;
+            error << "WARNING : potential division by zero in remainder(" << i << ", " << j << ")"
+                  << std::endl;
             gWarningMessages.push_back(error.str());
         }
 
-        return castInterval(floatCast(args[0] | args[1]), gAlgebra.Remainder(i));  // temporary rule !!!
+        return castInterval(floatCast(args[0] | args[1]),
+                            gAlgebra.Remainder(i));  // temporary rule !!!
     }
 
     virtual int inferSigOrder(const std::vector<int>& args) override
@@ -61,23 +63,25 @@ class RemainderPrim : public xtended {
         faustassert(args.size() == arity());
         if (isZero(args[1])) {
             std::stringstream error;
-            error << "ERROR : remainder by 0 in remainder(" << ppsig(args[0], MAX_ERROR_SIZE) << ", " << ppsig(args[1], MAX_ERROR_SIZE) << ")" << std::endl;
+            error << "ERROR : remainder by 0 in remainder(" << ppsig(args[0], MAX_ERROR_SIZE)
+                  << ", " << ppsig(args[1], MAX_ERROR_SIZE) << ")" << std::endl;
             throw faustexception(error.str());
         } else if (isNum(args[0], n) && isNum(args[1], m)) {
             return tree(remainder(double(n), double(m)));
         } else {
             if (gGlobal->gMathApprox) {
                 // res = x - (y * T(int(0.5f + x / y)));
-                return sigSub(
-                    args[0],
-                    sigBinOp(kMul, args[1], sigFloatCast(sigIntCast(sigAdd(sigReal(0.5), sigDiv(args[0], args[1]))))));
+                return sigSub(args[0], sigBinOp(kMul, args[1],
+                                                sigFloatCast(sigIntCast(sigAdd(
+                                                    sigReal(0.5), sigDiv(args[0], args[1]))))));
             } else {
                 return tree(symbol(), args[0], args[1]);
             }
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -85,7 +89,8 @@ class RemainderPrim : public xtended {
         return generateFun(container, subst("remainder$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -93,15 +98,16 @@ class RemainderPrim : public xtended {
         return subst("remainder$2($0,$1)", args[0], args[1], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         return subst("$0\\pmod{$1}", args[0], args[1]);  // Same as fmodprim.cpp.
     }
-    
-    Tree diff(const std::vector<Tree> &args) override
+
+    Tree diff(const std::vector<Tree>& args) override
     {
         // remainder(f, g) = f - g * round(f / g)
         // (remainder(f, g))' = f' - g' * round(f / g), cos(pi * f / g) != 0

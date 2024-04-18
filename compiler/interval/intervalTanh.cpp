@@ -33,7 +33,8 @@ interval interval_algebra::Tanh(const interval& x)
         return interval::empty();
     }
 
-    // value at which the lowest slope is attained: bound of the interval with the highest absolute value
+    // value at which the lowest slope is attained: bound of the interval with the highest absolute
+    // value
     double v    = maxValAbs(x);
     int    sign = signMaxValAbs(x);
 

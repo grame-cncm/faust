@@ -35,8 +35,8 @@
 #define SHA1HANDSOFF
 
 typedef struct {
-    uint32_t state[5];
-    uint32_t count[2];
+    uint32_t      state[5];
+    uint32_t      count[2];
     unsigned char buffer[64];
 } SHA1_CTX;
 
@@ -45,35 +45,47 @@ typedef struct {
 /* blk0() and blk() perform the initial expand. */
 /* I got the idea of expanding during the round function from SSLeay */
 #if BYTE_ORDER == LITTLE_ENDIAN
-#define blk0(i) (block->l[i] = (rol(block->l[i],24)&0xFF00FF00) \
-    |(rol(block->l[i],8)&0x00FF00FF))
+#define blk0(i) \
+    (block->l[i] = (rol(block->l[i], 24) & 0xFF00FF00) | (rol(block->l[i], 8) & 0x00FF00FF))
 #elif BYTE_ORDER == BIG_ENDIAN
 #define blk0(i) block->l[i]
 #else
 #error "Endianness not defined!"
 #endif
-#define blk(i) (block->l[i&15] = rol(block->l[(i+13)&15]^block->l[(i+8)&15] \
-    ^block->l[(i+2)&15]^block->l[i&15],1))
+#define blk(i)                                                                 \
+    (block->l[i & 15] = rol(block->l[(i + 13) & 15] ^ block->l[(i + 8) & 15] ^ \
+                                block->l[(i + 2) & 15] ^ block->l[i & 15],     \
+                            1))
 
 /* (R0+R1), R2, R3, R4 are the different operations used in SHA1 */
-#define R0(v,w,x,y,z,i) z+=((w&(x^y))^y)+blk0(i)+0x5A827999+rol(v,5);w=rol(w,30);
-#define R1(v,w,x,y,z,i) z+=((w&(x^y))^y)+blk(i)+0x5A827999+rol(v,5);w=rol(w,30);
-#define R2(v,w,x,y,z,i) z+=(w^x^y)+blk(i)+0x6ED9EBA1+rol(v,5);w=rol(w,30);
-#define R3(v,w,x,y,z,i) z+=(((w|x)&y)|(w&x))+blk(i)+0x8F1BBCDC+rol(v,5);w=rol(w,30);
-#define R4(v,w,x,y,z,i) z+=(w^x^y)+blk(i)+0xCA62C1D6+rol(v,5);w=rol(w,30);
+#define R0(v, w, x, y, z, i)                                     \
+    z += ((w & (x ^ y)) ^ y) + blk0(i) + 0x5A827999 + rol(v, 5); \
+    w = rol(w, 30);
+#define R1(v, w, x, y, z, i)                                    \
+    z += ((w & (x ^ y)) ^ y) + blk(i) + 0x5A827999 + rol(v, 5); \
+    w = rol(w, 30);
+#define R2(v, w, x, y, z, i)                            \
+    z += (w ^ x ^ y) + blk(i) + 0x6ED9EBA1 + rol(v, 5); \
+    w = rol(w, 30);
+#define R3(v, w, x, y, z, i)                                          \
+    z += (((w | x) & y) | (w & x)) + blk(i) + 0x8F1BBCDC + rol(v, 5); \
+    w = rol(w, 30);
+#define R4(v, w, x, y, z, i)                            \
+    z += (w ^ x ^ y) + blk(i) + 0xCA62C1D6 + rol(v, 5); \
+    w = rol(w, 30);
 
 /* Hash a single 512-bit block. This is the core of the algorithm. */
 inline void SHA1Transform(uint32_t state[5], const unsigned char buffer[64])
 {
     uint32_t a, b, c, d, e;
-    
+
     typedef union {
         unsigned char c[64];
-        uint32_t l[16];
+        uint32_t      l[16];
     } CHAR64LONG16;
-    
+
 #ifdef SHA1HANDSOFF
-    CHAR64LONG16 block[1];      /* use array to appear as a pointer */
+    CHAR64LONG16 block[1]; /* use array to appear as a pointer */
     memcpy(block, buffer, 64);
 #else
     /* The following had better never be used because it causes the
@@ -200,7 +212,7 @@ inline void SHA1Update(SHA1_CTX* context, const unsigned char* data, uint32_t le
 {
     uint32_t i;
     uint32_t j;
-    
+
     j = context->count[0];
     if ((context->count[0] += len << 3) < j) {
         context->count[1]++;
@@ -223,11 +235,11 @@ inline void SHA1Update(SHA1_CTX* context, const unsigned char* data, uint32_t le
 /* Add padding and return the message digest. */
 void SHA1Final(unsigned char digest[20], SHA1_CTX* context)
 {
-    unsigned i;
+    unsigned      i;
     unsigned char finalcount[8];
     unsigned char c;
-    
-#if 0    /* untested "improvement" by DHR */
+
+#if 0 /* untested "improvement" by DHR */
     /* Convert context->count to a sequence of bytes
      * in finalcount.  Second element first, but
      * big-endian order within element.
@@ -244,7 +256,8 @@ void SHA1Final(unsigned char digest[20], SHA1_CTX* context)
     }
 #else
     for (i = 0; i < 8; i++) {
-        finalcount[i] = (unsigned char) ((context->count[(i >= 4 ? 0 : 1)] >> ((3 - (i & 3)) * 8)) & 255);      /* Endian independent */
+        finalcount[i] = (unsigned char)((context->count[(i >= 4 ? 0 : 1)] >> ((3 - (i & 3)) * 8)) &
+                                        255); /* Endian independent */
     }
 #endif
     c = 0200;
@@ -255,8 +268,7 @@ void SHA1Final(unsigned char digest[20], SHA1_CTX* context)
     }
     SHA1Update(context, finalcount, 8); /* Should cause a SHA1Transform() */
     for (i = 0; i < 20; i++) {
-        digest[i] = (unsigned char)
-        ((context->state[i >> 2] >> ((3 - (i & 3)) * 8)) & 255);
+        digest[i] = (unsigned char)((context->state[i >> 2] >> ((3 - (i & 3)) * 8)) & 255);
     }
     /* Wipe variables */
     memset(context, '\0', sizeof(*context));
@@ -277,13 +289,13 @@ inline void SHA1(char* hash_out, const char* str, unsigned int len)
 
 LIBFAUST_API std::string generateSHA1(const std::string& data)
 {
-    SHA1_CTX ctx;
+    SHA1_CTX      ctx;
     unsigned char obuf[20] = {0};
-     
+
     SHA1Init(&ctx);
     SHA1Update(&ctx, (unsigned char const*)data.c_str(), data.size());
     SHA1Final(obuf, &ctx);
-    
+
     std::string sha_key;
     for (int i = 0; i < 20; i++) {
         const char* H  = "0123456789ABCDEF";
@@ -292,7 +304,7 @@ LIBFAUST_API std::string generateSHA1(const std::string& data)
         sha_key += c1;
         sha_key += c2;
     }
-    
+
     return sha_key;
 }
 
@@ -300,9 +312,9 @@ LIBFAUST_API std::string generateSHA1(const std::string& data)
 
 extern "C" FAUST_API void generateCSHA1(const char* data, char* sha_key)
 {
-    SHA1_CTX ctx;
+    SHA1_CTX      ctx;
     unsigned char obuf[20] = {0};
-    
+
     SHA1Init(&ctx);
     SHA1Update(&ctx, (unsigned char const*)data, strlen(data));
     SHA1Final(obuf, &ctx);

@@ -26,7 +26,7 @@
 #include "tlib.hh"
 
 namespace PM {
-    
+
 struct Automaton;
 
 /* Create a pattern matching automaton from the given list of rules. */
@@ -39,12 +39,12 @@ Automaton* make_pattern_matcher(Tree R);
    reached. Result will be -1 to indicate a matching failure, and C will be
    set to nil if no final state has been reached yet. */
 
-int apply_pattern_matcher(Automaton*           A,   // automaton
+int apply_pattern_matcher(Automaton*         A,   // automaton
                           int                s,   // start state
                           Tree               X,   // arg to be matched
                           Tree&              C,   // output closure (if any)
                           std::vector<Tree>& E);  // modified output environments
 
-}
+}  // namespace PM
 
 #endif

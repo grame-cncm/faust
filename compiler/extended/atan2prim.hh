@@ -36,14 +36,17 @@ class Atan2Prim : public xtended {
     virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == 2);
-        Type t = args[0];
-        Type u = args[1];
+        Type     t = args[0];
+        Type     u = args[1];
         interval i = t->getInterval();
         interval j = u->getInterval();
         return castInterval(floatCast(t | u), gAlgebra.Atan2(i, j));
     }
 
-    virtual int inferSigOrder(const std::vector<int>& args) override { return std::max(args[0], args[1]); } 
+    virtual int inferSigOrder(const std::vector<int>& args) override
+    {
+        return std::max(args[0], args[1]);
+    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -56,7 +59,8 @@ class Atan2Prim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -64,7 +68,8 @@ class Atan2Prim : public xtended {
         return generateFun(container, subst("atan2$0", isuffix()), args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -72,7 +77,8 @@ class Atan2Prim : public xtended {
         return subst("atan2$2($0,$1)", args[0], args[1], isuffix());
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

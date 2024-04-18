@@ -33,7 +33,7 @@ class VectorCodeContainer : public virtual CodeContainer {
 
     // Code generated with -lv 0 option
     virtual BlockInst* generateDAGLoopVariant0(const std::string& counter);
-    
+
     // Code generated with -lv 1 option
     BlockInst* generateDAGLoopVariant1(const std::string& counter);
 

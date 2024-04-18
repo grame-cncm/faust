@@ -47,7 +47,9 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
         tab(fTab, *fOut);
         *fOut << inst->fAddress->getName() << ": ";
         ZeroInitializer(fOut, inst->fType);
-        if (inst->fAddress->getAccess() & Address::kStruct) *fOut << ",";
+        if (inst->fAddress->getAccess() & Address::kStruct) {
+            *fOut << ",";
+        }
     }
 
     // Generate zero initialisation code for simple int/real scalar and arrays types
@@ -105,26 +107,26 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["max_i"] = "std::cmp::max";
 
         // Float version
-        fMathLibTable["fabsf"]      = "F32::abs";
-        fMathLibTable["acosf"]      = "F32::acos";
-        fMathLibTable["asinf"]      = "F32::asin";
-        fMathLibTable["atanf"]      = "F32::atan";
-        fMathLibTable["atan2f"]     = "F32::atan2";
-        fMathLibTable["ceilf"]      = "F32::ceil";
-        fMathLibTable["cosf"]       = "F32::cos";
-        fMathLibTable["expf"]       = "F32::exp";
-        fMathLibTable["floorf"]     = "F32::floor";
-        fMathLibTable["fmodf"]      = "F32::rem";
-        fMathLibTable["logf"]       = "F32::log";
-        fMathLibTable["log10f"]     = "F32::log10";
-        fMathLibTable["max_f"]      = "F32::max";
-        fMathLibTable["min_f"]      = "F32::min";
-        fMathLibTable["powf"]       = "F32::powf";
-    
+        fMathLibTable["fabsf"]  = "F32::abs";
+        fMathLibTable["acosf"]  = "F32::acos";
+        fMathLibTable["asinf"]  = "F32::asin";
+        fMathLibTable["atanf"]  = "F32::atan";
+        fMathLibTable["atan2f"] = "F32::atan2";
+        fMathLibTable["ceilf"]  = "F32::ceil";
+        fMathLibTable["cosf"]   = "F32::cos";
+        fMathLibTable["expf"]   = "F32::exp";
+        fMathLibTable["floorf"] = "F32::floor";
+        fMathLibTable["fmodf"]  = "F32::rem";
+        fMathLibTable["logf"]   = "F32::log";
+        fMathLibTable["log10f"] = "F32::log10";
+        fMathLibTable["max_f"]  = "F32::max";
+        fMathLibTable["min_f"]  = "F32::min";
+        fMathLibTable["powf"]   = "F32::powf";
+
         // Add 2 missing math functions
         fMathLibTable["remainderf"] = "remainder_f32";
-        fMathLibTable["rintf"]  = "rint_f32";
-    
+        fMathLibTable["rintf"]      = "rint_f32";
+
         fMathLibTable["roundf"] = "F32::round";
         fMathLibTable["sinf"]   = "F32::sin";
         fMathLibTable["sqrtf"]  = "F32::sqrt";
@@ -143,26 +145,26 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["copysignf"] = "F32::copysign";
 
         // Double version
-        fMathLibTable["fabs"]      = "F64::abs";
-        fMathLibTable["acos"]      = "F64::acos";
-        fMathLibTable["asin"]      = "F64::asin";
-        fMathLibTable["atan"]      = "F64::atan";
-        fMathLibTable["atan2"]     = "F64::atan2";
-        fMathLibTable["ceil"]      = "F64::ceil";
-        fMathLibTable["cos"]       = "F64::cos";
-        fMathLibTable["exp"]       = "F64::exp";
-        fMathLibTable["floor"]     = "F64::floor";
-        fMathLibTable["fmod"]      = "F64::rem";
-        fMathLibTable["log"]       = "F64::log";
-        fMathLibTable["log10"]     = "F64::log10";
-        fMathLibTable["max_"]      = "F64::max";
-        fMathLibTable["min_"]      = "F64::min";
-        fMathLibTable["pow"]       = "F64::powf";
-    
+        fMathLibTable["fabs"]  = "F64::abs";
+        fMathLibTable["acos"]  = "F64::acos";
+        fMathLibTable["asin"]  = "F64::asin";
+        fMathLibTable["atan"]  = "F64::atan";
+        fMathLibTable["atan2"] = "F64::atan2";
+        fMathLibTable["ceil"]  = "F64::ceil";
+        fMathLibTable["cos"]   = "F64::cos";
+        fMathLibTable["exp"]   = "F64::exp";
+        fMathLibTable["floor"] = "F64::floor";
+        fMathLibTable["fmod"]  = "F64::rem";
+        fMathLibTable["log"]   = "F64::log";
+        fMathLibTable["log10"] = "F64::log10";
+        fMathLibTable["max_"]  = "F64::max";
+        fMathLibTable["min_"]  = "F64::min";
+        fMathLibTable["pow"]   = "F64::powf";
+
         // Add 2 missing math functions
         fMathLibTable["remainder"] = "remainder_f64";
-        fMathLibTable["rint"]  = "rint_f64";
-    
+        fMathLibTable["rint"]      = "rint_f64";
+
         fMathLibTable["round"] = "F64::round";
         fMathLibTable["sin"]   = "F64::sin";
         fMathLibTable["sqrt"]  = "F64::sqrt";
@@ -192,7 +194,8 @@ class RustInstVisitor : public TextInstVisitor {
     {
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
             *fOut << "static mut ";
-        } else if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
+        } else if (inst->fAddress->getAccess() & Address::kStack ||
+                   inst->fAddress->getAccess() & Address::kLoop) {
             *fOut << "let mut ";
         } else if (inst->getAccess() & Address::kConst) {
             *fOut << "const ";
@@ -233,7 +236,9 @@ class RustInstVisitor : public TextInstVisitor {
         */
 
         // Don't generate if no channels
-        if (inst->fChannels == 0) return;
+        if (inst->fChannels == 0) {
+            return;
+        }
 
         std::string name = inst->fBufferName2;
 
@@ -257,15 +262,17 @@ class RustInstVisitor : public TextInstVisitor {
             tab(fTab, *fOut);
             *fOut << "let " << name << i << " = " << name << i << "[..count as usize]";
             if (inst->fMutable) {
-                if (inst->fChunk)
+                if (inst->fChunk) {
                     *fOut << ".chunks_mut(vsize as usize);";
-                else
+                } else {
                     *fOut << ".iter_mut();";
+                }
             } else {
-                if (inst->fChunk)
+                if (inst->fChunk) {
                     *fOut << ".chunks(vsize as usize);";
-                else
+                } else {
                     *fOut << ".iter();";
+                }
             }
         }
 
@@ -349,13 +356,15 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(NamedAddress* named)
     {
         if (named->getAccess() & Address::kStruct) {
-            if (named->getAccess() & Address::kReference && named->getAccess() & Address::kMutable) {
+            if (named->getAccess() & Address::kReference &&
+                named->getAccess() & Address::kMutable) {
                 *fOut << "&mut self.";
             } else {
                 *fOut << "self.";
             }
         } else if (named->getAccess() & Address::kStaticStruct) {
-            if (named->getAccess() & Address::kReference && named->getAccess() & Address::kMutable) {
+            if (named->getAccess() & Address::kReference &&
+                named->getAccess() & Address::kMutable) {
                 *fOut << "&mut ";
             }
         }
@@ -372,9 +381,13 @@ class RustInstVisitor : public TextInstVisitor {
         } else {
             // Array index expression casted to 'usize' type
             *fOut << "[";
-            if (!indexed->getIndex()->isSimpleValue()) *fOut << "(";
+            if (!indexed->getIndex()->isSimpleValue()) {
+                *fOut << "(";
+            }
             indexed->getIndex()->accept(this);
-            if (!indexed->getIndex()->isSimpleValue()) *fOut << ")";
+            if (!indexed->getIndex()->isSimpleValue()) {
+                *fOut << ")";
+            }
             *fOut << " as usize]";
         }
     }
@@ -456,7 +469,8 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << "(";
             TextInstVisitor::visit(inst);
             *fOut << ") as " << fTypeManager->generateType(InstBuilder::genInt32Typed());
-        } else if (isIntType(type1) && fWrappingOpTable.find(inst->fOpcode) != fWrappingOpTable.end()) {
+        } else if (isIntType(type1) &&
+                   fWrappingOpTable.find(inst->fOpcode) != fWrappingOpTable.end()) {
             // Special case for integer add, sub and mul:
             // Overflowing is an error by default in Rust, but should wrap in Faust
             // Use their wrapping equivalent instead
@@ -481,15 +495,20 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(::CastInst* inst)
     {
         bool needParentheses = dynamic_cast<CastInst*>(inst->fInst) == nullptr;
-        if (needParentheses) *fOut << "(";
+        if (needParentheses) {
+            *fOut << "(";
+        }
         inst->fInst->accept(this);
-        if (needParentheses) *fOut << ")";
+        if (needParentheses) {
+            *fOut << ")";
+        }
 
         // Cannot cast a boolean to a float directly, we must transition by an int
         auto binop = dynamic_cast<BinopInst*>(inst->fInst);
         if (binop && isBoolOpcode(binop->fOpcode) && inst->fType->getType() == Typed::kFloat) {
             *fOut << " as u32 as " << fTypeManager->generateType(inst->fType);
-        } else if (binop && isBoolOpcode(binop->fOpcode) && inst->fType->getType() == Typed::kDouble) {
+        } else if (binop && isBoolOpcode(binop->fOpcode) &&
+                   inst->fType->getType() == Typed::kDouble) {
             *fOut << " as u64 as " << fTypeManager->generateType(inst->fType);
         } else {
             *fOut << " as " << fTypeManager->generateType(inst->fType);
@@ -580,7 +599,9 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(ForLoopInst* inst)
     {
         // Don't generate empty loops...
-        if (inst->fCode->size() == 0) return;
+        if (inst->fCode->size() == 0) {
+            return;
+        }
 
         auto        init = dynamic_cast<DeclareVarInst*>(inst->fInit);
         std::string name;
@@ -594,7 +615,8 @@ class RustInstVisitor : public TextInstVisitor {
             value     = init->fValue;
         }
 
-        auto increment      = dynamic_cast<BinopInst*>(dynamic_cast<StoreVarInst*>(inst->fIncrement)->fValue)->fInst2;
+        auto increment =
+            dynamic_cast<BinopInst*>(dynamic_cast<StoreVarInst*>(inst->fIncrement)->fValue)->fInst2;
         bool increment_by_1 = false;
         if (auto num = dynamic_cast<Int32NumInst*>(increment)) {
             increment_by_1 = num->fNum == 1;
@@ -603,14 +625,17 @@ class RustInstVisitor : public TextInstVisitor {
         auto end = dynamic_cast<BinopInst*>(inst->fEnd);
 
         *fOut << "for " << name << " in ";
-        if (!increment_by_1) *fOut << "(";
+        if (!increment_by_1) {
+            *fOut << "(";
+        }
         value->accept(this);
-        if (end->fOpcode == kLT)
+        if (end->fOpcode == kLT) {
             *fOut << "..";
-        else if (end->fOpcode == kLE)
+        } else if (end->fOpcode == kLE) {
             *fOut << "..=";
-        else
+        } else {
             throw faustexception("Unhandled opcode");
+        }
         end->fInst2->accept(this);
 
         // Increment
@@ -631,7 +656,9 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(SimpleForLoopInst* inst)
     {
         // Don't generate empty loops...
-        if (inst->fCode->size() == 0) return;
+        if (inst->fCode->size() == 0) {
+            return;
+        }
 
         *fOut << "for " << inst->getName() << " in ";
         if (inst->fReverse) {
@@ -658,7 +685,9 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(IteratorForLoopInst* inst)
     {
         // Don't generate empty loops...
-        if (inst->fCode->size() == 0) return;
+        if (inst->fCode->size() == 0) {
+            return;
+        }
 
         *fOut << "let zipped_iterators = ";
         for (std::size_t i = 0; i < inst->fIterators.size(); ++i) {
@@ -790,9 +819,10 @@ class RustUIInstVisitor : public TextInstVisitor {
    public:
     using TextInstVisitor::visit;
 
-    RustUIInstVisitor(std::ostream* out, const std::string& structname, std::map<std::string, int> parameterLookup,
-                      int tab = 0)
-        : TextInstVisitor(out, ".", new RustStringTypeManager(xfloat(), "&"), tab), fParameterLookup{parameterLookup}
+    RustUIInstVisitor(std::ostream* out, const std::string& structname,
+                      std::map<std::string, int> parameterLookup, int tab = 0)
+        : TextInstVisitor(out, ".", new RustStringTypeManager(xfloat(), "&"), tab),
+          fParameterLookup{parameterLookup}
     {
     }
 
@@ -802,10 +832,11 @@ class RustUIInstVisitor : public TextInstVisitor {
     {
         // Special case
         if (inst->fZone == "0") {
-            *fOut << "ui_interface.declare(None, " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+            *fOut << "ui_interface.declare(None, " << quote(inst->fKey) << ", "
+                  << quote(inst->fValue) << ")";
         } else {
-            *fOut << "ui_interface.declare(Some(ParamIndex(" << getParameterIndex(inst->fZone) << ")), "
-                  << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+            *fOut << "ui_interface.declare(Some(ParamIndex(" << getParameterIndex(inst->fZone)
+                  << ")), " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
         }
         EndLine();
     }
@@ -860,9 +891,10 @@ class RustUIInstVisitor : public TextInstVisitor {
                 name = "ui_interface.add_num_entry";
                 break;
         }
-        *fOut << name << "(" << quote(inst->fLabel) << ", "
-              << "ParamIndex(" << getParameterIndex(inst->fZone) << "), " << checkReal(inst->fInit) << ", "
-              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+        *fOut << name << "(" << quote(inst->fLabel) << ", " << "ParamIndex("
+              << getParameterIndex(inst->fZone) << "), " << checkReal(inst->fInit) << ", "
+              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", "
+              << checkReal(inst->fStep) << ")";
         EndLine();
     }
 
@@ -877,8 +909,9 @@ class RustUIInstVisitor : public TextInstVisitor {
                 name = "ui_interface.add_vertical_bargraph";
                 break;
         }
-        *fOut << name << "(" << quote(inst->fLabel) << ", ParamIndex(" << getParameterIndex(inst->fZone) << "), "
-              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+        *fOut << name << "(" << quote(inst->fLabel) << ", ParamIndex("
+              << getParameterIndex(inst->fZone) << "), " << checkReal(inst->fMin) << ", "
+              << checkReal(inst->fMax) << ")";
         EndLine();
     }
 

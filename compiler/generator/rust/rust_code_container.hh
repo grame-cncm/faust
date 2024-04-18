@@ -57,8 +57,9 @@ class RustCodeContainer : public virtual CodeContainer {
     virtual void              generateCompute(int tab) = 0;
     void                      produceInternal();
     virtual dsp_factory_base* produceFactory();
-    virtual void produceInfoFunctions(int tabs, const std::string& classname, const std::string& obj, bool ismethod,
-                                      FunTyped::FunAttribute funtype, TextInstVisitor* producer);
+    virtual void              produceInfoFunctions(int tabs, const std::string& classname,
+                                                   const std::string& obj, bool ismethod,
+                                                   FunTyped::FunAttribute funtype, TextInstVisitor* producer);
     virtual void produceParameterGetterSetter(int tabs, std::map<std::string, int> parameterLookup);
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
@@ -73,8 +74,8 @@ class RustCodeContainer : public virtual CodeContainer {
 class RustScalarCodeContainer : public RustCodeContainer {
    protected:
    public:
-    RustScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
-                            int sub_container_type);
+    RustScalarCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                            std::ostream* out, int sub_container_type);
     virtual ~RustScalarCodeContainer() {}
 
     void generateCompute(int tab);
@@ -85,7 +86,8 @@ class RustScalarCodeContainer : public RustCodeContainer {
 class RustVectorCodeContainer : public VectorCodeContainer, public RustCodeContainer {
    protected:
    public:
-    RustVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
+    RustVectorCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                            std::ostream* out);
     virtual ~RustVectorCodeContainer() {}
 
     void       generateCompute(int n) override;
@@ -97,7 +99,8 @@ class RustVectorCodeContainer : public VectorCodeContainer, public RustCodeConta
 class RustOpenMPCodeContainer : public OpenMPCodeContainer, public RustCodeContainer {
    protected:
    public:
-    RustOpenMPCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
+    RustOpenMPCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                            std::ostream* out);
     virtual ~RustOpenMPCodeContainer() {}
 
     void generateCompute(int tab);
@@ -108,7 +111,8 @@ class RustOpenMPCodeContainer : public OpenMPCodeContainer, public RustCodeConta
 class RustWorkStealingCodeContainer : public WSSCodeContainer, public RustCodeContainer {
    protected:
    public:
-    RustWorkStealingCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
+    RustWorkStealingCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                                  std::ostream* out);
     virtual ~RustWorkStealingCodeContainer() {}
 
     void generateCompute(int tab);

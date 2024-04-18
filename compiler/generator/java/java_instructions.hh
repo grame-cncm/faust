@@ -33,7 +33,7 @@ class JAVAInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static std::map<std::string, bool>   gFunctionSymbolTable;
+    static std::map<std::string, bool>        gFunctionSymbolTable;
     static std::map<std::string, std::string> gMathLibTable;
 
     TypingVisitor fTypingVisitor;
@@ -143,8 +143,8 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
-        *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" << inst->fValue
-              << "\")";
+        *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \""
+              << inst->fValue << "\")";
         EndLine();
     }
 
@@ -198,9 +198,9 @@ class JAVAInstVisitor : public TextInstVisitor {
                 name = "ui_interface.addNumEntry(";
                 break;
         }
-        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fInit)
-              << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep)
-              << ")";
+        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", "
+              << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
+              << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
         EndLine();
     }
 
@@ -215,11 +215,11 @@ class JAVAInstVisitor : public TextInstVisitor {
                 name = "ui_interface.addVerticalBargraph(";
                 break;
         }
-        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fMin)
-              << ", " << checkReal(inst->fMax) << ")";
+        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", "
+              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
         EndLine();
     }
-    
+
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
@@ -241,8 +241,8 @@ class JAVAInstVisitor : public TextInstVisitor {
                 *fOut << type << " " << inst->fAddress->getName() << "[] = ";
                 inst->fValue->accept(this);
             } else {
-                *fOut << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize
-                      << "]";
+                *fOut << type << " " << inst->fAddress->getName() << "[] = new " << type << "["
+                      << array_typed->fSize << "]";
             }
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
@@ -264,7 +264,8 @@ class JAVAInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable[inst->fName] = true;
         }
 
-        // Do not declare Math library functions, they are defined in java.lang.Math and used in a polymorphic way.
+        // Do not declare Math library functions, they are defined in java.lang.Math and used in a
+        // polymorphic way.
         if (gMathLibTable.find(inst->fName) != gMathLibTable.end()) {
             return;
         }
@@ -433,7 +434,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                     *fOut << ")?1:0)";
                     break;
                 default:
-                    std::cerr << "visitor.fCurType " <<  fTypingVisitor.fCurType << std::endl;
+                    std::cerr << "visitor.fCurType " << fTypingVisitor.fCurType << std::endl;
                     faustassert(false);
                     break;
             }
@@ -466,8 +467,9 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(FunCallInst* inst)
     {
-        std::string fun_name =
-            (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;
+        std::string fun_name = (gMathLibTable.find(inst->fName) != gMathLibTable.end())
+                                   ? gMathLibTable[inst->fName]
+                                   : inst->fName;
         generateFunCall(inst, fun_name);
     }
 

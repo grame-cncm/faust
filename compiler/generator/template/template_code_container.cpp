@@ -34,23 +34,26 @@ dsp_factory_base* TemplateCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        "");
 }
 
-TemplateCodeContainer::TemplateCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
+TemplateCodeContainer::TemplateCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                                             std::ostream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
     fKlassName = name;
-    fOut = out;
-    
+    fOut       = out;
+
     // Allocate one static visitor to be shared by main module and sub containers
     if (!gGlobal->gTemplateVisitor) {
         gGlobal->gTemplateVisitor = new TemplateInstVisitor(out, name);
     }
 }
 
-CodeContainer* TemplateCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+CodeContainer* TemplateCodeContainer::createScalarContainer(const string& name,
+                                                            int           sub_container_type)
 {
     return new TemplateScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
 }
@@ -61,7 +64,8 @@ CodeContainer* TemplateCodeContainer::createScalarContainer(const string& name, 
     and TemplateWorkStealingCodeContainer classes would have to be implemented
     and activated.
 */
-CodeContainer* TemplateCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+CodeContainer* TemplateCodeContainer::createContainer(const string& name, int numInputs,
+                                                      int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -87,7 +91,8 @@ CodeContainer* TemplateCodeContainer::createContainer(const string& name, int nu
 
 // Used for subcontainers if 'inlining sub containers' model is not used
 void TemplateCodeContainer::produceInternal()
-{}
+{
+}
 
 /*
  Given as an example of what a real backend would have to do: add or remove FIR visiting code etc.
@@ -96,11 +101,11 @@ void TemplateCodeContainer::produceClass()
 {
     int n = 0;
     *fOut << "TemplateCodeContainer::produceClass\n";
-    
+
     // Print header
-    
+
     // Possibly missing mathematical functions
-    
+
     // Possibly merge sub containers (with an empty 'produceInternal' method)
     // mergeSubContainers();
 
@@ -113,7 +118,7 @@ void TemplateCodeContainer::produceClass()
         }
     }
     */
-    
+
     // Fields
     /*
     generateDeclarations(gGlobal->gTemplateVisitor);
@@ -124,7 +129,7 @@ void TemplateCodeContainer::produceClass()
         }
     }
     */
-    
+
     /*
     TemplateInitFieldsVisitor initializer(fOut, n + 2);
     generateDeclarations(&initializer);
@@ -135,39 +140,42 @@ void TemplateCodeContainer::produceClass()
         }
     }
     */
-    
+
     // Print metadata declaration
     // produceMetadata(n);
 
     // getSampleRate
-    // generateGetSampleRate("getSampleRate", "dsp", false, false)->accept(gGlobal->gTemplateVisitor);
-  
+    // generateGetSampleRate("getSampleRate", "dsp", false,
+    // false)->accept(gGlobal->gTemplateVisitor);
+
     // Info functions: getNumInputs/getNumOuputs
-    
+
     // classInit
     // TODO if mergeSubContainers() is used
-    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and
+    // 'fill' function call
     // inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gTemplateVisitor);
-    
+
     // instanceResetUserInterface
     // generateResetUserInterface(gGlobal->gTemplateVisitor);
-    
+
     // instanceClear
     // generateClear(gGlobal->gTemplateVisitor);
-  
+
     // instanceConstants
     // TODO if mergeSubContainers() is used
-    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and
+    // 'fill' function call
     // inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gTemplateVisitor);
 
     // instanceInit
     // TODO
-    
+
     // init
     // TODO
-    
+
     // buildUserInterface
-    
+
     // TODO
     // Compute
     generateCompute(n);
@@ -179,10 +187,9 @@ void TemplateCodeContainer::produceMetadata(int tabs)
 }
 
 // Scalar
-TemplateScalarCodeContainer::TemplateScalarCodeContainer(const string& name,
-                                                    int numInputs, int numOutputs,
-                                                    std::ostream* out,
-                                                    int sub_container_type)
+TemplateScalarCodeContainer::TemplateScalarCodeContainer(const string& name, int numInputs,
+                                                         int numOutputs, std::ostream* out,
+                                                         int sub_container_type)
     : TemplateCodeContainer(name, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;
@@ -192,7 +199,7 @@ TemplateScalarCodeContainer::TemplateScalarCodeContainer(const string& name,
 void TemplateScalarCodeContainer::generateCompute(int n)
 {
     *fOut << "TemplateScalarCodeContainer::generateCompute\n";
-    
+
     // Generates declarations
     // TODO
 
@@ -209,22 +216,23 @@ void TemplateScalarCodeContainer::generateCompute(int n)
 }
 
 // Vector
-TemplateVectorCodeContainer::TemplateVectorCodeContainer(const string& name,
-                                                    int numInputs, int numOutputs,
-                                                    std::ostream* out)
-    : VectorCodeContainer(numInputs, numOutputs), TemplateCodeContainer(name, numInputs, numOutputs, out)
-{}
+TemplateVectorCodeContainer::TemplateVectorCodeContainer(const string& name, int numInputs,
+                                                         int numOutputs, std::ostream* out)
+    : VectorCodeContainer(numInputs, numOutputs),
+      TemplateCodeContainer(name, numInputs, numOutputs, out)
+{
+}
 
 // Given as an example of what a real backend would have to implement.
 void TemplateVectorCodeContainer::generateCompute(int n)
 {
     *fOut << "TemplateVectorCodeContainer::generateCompute\n";
-    
+
     // Possibly generate separated functions
-    
+
     // Generates declarations
-    
+
     // Generates local variables declaration and setup
-    
+
     // Generates the DSP loop
 }

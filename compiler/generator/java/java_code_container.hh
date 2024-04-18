@@ -30,10 +30,11 @@ class JAVACodeContainer : public virtual CodeContainer {
    protected:
     JAVAInstVisitor fCodeProducer;
     std::ostream*   fOut;
-    std::string    fSuperKlassName;
+    std::string     fSuperKlassName;
 
    public:
-    JAVACodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out)
+    JAVACodeContainer(const std::string& name, const std::string& super, int numInputs,
+                      int numOutputs, std::ostream* out)
         : fCodeProducer(out), fOut(out), fSuperKlassName(super)
     {
         initialize(numInputs, numOutputs);
@@ -51,13 +52,16 @@ class JAVACodeContainer : public virtual CodeContainer {
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
 
-    static CodeContainer* createContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* dst = new std::stringstream());
+    static CodeContainer* createContainer(const std::string& name, const std::string& super,
+                                          int numInputs, int numOutputs,
+                                          std::ostream* dst = new std::stringstream());
 };
 
 class JAVAScalarCodeContainer : public JAVACodeContainer {
    protected:
    public:
-    JAVAScalarCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
+    JAVAScalarCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                            int numOutputs, std::ostream* out, int sub_container_type);
     virtual ~JAVAScalarCodeContainer();
 
     void generateCompute(int tab);

@@ -37,8 +37,10 @@ using namespace std;
 LIBFAUST_API Tree sigWriteReadTable(Tree size, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
     /*
-     rwtable are parsed as boxPrim5, so do not have a special treatment in eval/propagate. So we do here:
-     - the size argument is supposed to be known at compile time, it will be simplified in 'simplify'
+     rwtable are parsed as boxPrim5, so do not have a special treatment in eval/propagate. So we do
+     here:
+     - the size argument is supposed to be known at compile time, it will be simplified in
+     'simplify'
      - rwtable is using a fully filled sigWRTbl signal
      */
     return sigRDTbl(sigWRTbl(size, sigGen(init), widx, wsig), ridx);
@@ -47,8 +49,10 @@ LIBFAUST_API Tree sigWriteReadTable(Tree size, Tree init, Tree widx, Tree wsig, 
 LIBFAUST_API Tree sigReadOnlyTable(Tree size, Tree init, Tree ridx)
 {
     /*
-     rtable are parsed as boxPrim3, so do not have a special treatment in eval/propagate. So we do here:
-     - the size argument is supposed to be known at compile time, it will be simplified in 'simplify'
+     rtable are parsed as boxPrim3, so do not have a special treatment in eval/propagate. So we do
+     here:
+     - the size argument is supposed to be known at compile time, it will be simplified in
+     'simplify'
      - rdtable is using a 'degenerated' sigWRTbl signal with NIL 'wi' and 'ws' parameters
      */
     return sigRDTbl(sigWRTbl(size, sigGen(init)), ridx);
@@ -64,7 +68,8 @@ LIBFAUST_API Tree sigRem(Tree x, Tree y)
 {
     if (isZero(y)) {
         stringstream error;
-        error << "ERROR : % by 0 in " << ppsig(x, MAX_ERROR_SIZE) << " % " << ppsig(y, MAX_ERROR_SIZE) << endl;
+        error << "ERROR : % by 0 in " << ppsig(x, MAX_ERROR_SIZE) << " % "
+              << ppsig(y, MAX_ERROR_SIZE) << endl;
         throw faustexception(error.str());
     }
     return sigBinOp(kRem, x, y);
@@ -234,7 +239,8 @@ LIBFAUST_API bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
 // "select3" expressed with "select2"
 LIBFAUST_API Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
-    return sigSelect2(sigBinOp(kEQ, selector, sigInt(0)), sigSelect2(sigBinOp(kEQ, selector, sigInt(1)), s3, s2), s1);
+    return sigSelect2(sigBinOp(kEQ, selector, sigInt(0)),
+                      sigSelect2(sigBinOp(kEQ, selector, sigInt(1)), s3, s2), s1);
 }
 
 Tree sigAssertBounds(Tree s1, Tree s2, Tree s3)
@@ -344,8 +350,12 @@ LIBFAUST_API Tree sigIntCast(Tree t)
     int    i;
     double x;
 
-    if (isInt(n, &i)) return t;
-    if (isDouble(n, &x)) return tree(int(x));
+    if (isInt(n, &i)) {
+        return t;
+    }
+    if (isDouble(n, &x)) {
+        return tree(int(x));
+    }
 
     return tree(gGlobal->SIGINTCAST, t);
 }
@@ -361,8 +371,12 @@ LIBFAUST_API Tree sigFloatCast(Tree t)
     int    i;
     double x;
 
-    if (isInt(n, &i)) return tree(double(i));
-    if (isDouble(n, &x)) return t;
+    if (isInt(n, &i)) {
+        return tree(double(i));
+    }
+    if (isDouble(n, &x)) {
+        return t;
+    }
 
     return tree(gGlobal->SIGFLOATCAST, t);
 }
@@ -796,7 +810,8 @@ Tree divExtendedNums(Tree a, Tree b)
 {
     // cerr.flags(ios::showpoint); cerr << "divExtendeNums " << *a << "/" << *b << " -> " << endl;
     Tree r = tree(divExtendedNode(a->node(), b->node()));
-    // cerr.flags(ios::showpoint); cerr << "divExtendeNums " << *a << "/" << *b << " -> " << *r << endl;
+    // cerr.flags(ios::showpoint); cerr << "divExtendeNums " << *a << "/" << *b << " -> " << *r <<
+    // endl;
     return r;
 }
 
@@ -940,7 +955,8 @@ bool verySimple(Tree exp)
     double r;
     Tree   type, name, file;
 
-    return isSigInt(exp, &i) || isSigReal(exp, &r) || isSigInput(exp, &i) || isSigFConst(exp, type, name, file);
+    return isSigInt(exp, &i) || isSigReal(exp, &r) || isSigInput(exp, &i) ||
+           isSigFConst(exp, type, name, file);
 }
 
 /*****************************************************************************
@@ -977,7 +993,9 @@ Tree listConvert(const siglist& a)
     int  n = (int)a.size();
     Tree t = gGlobal->nil;
 
-    while (n--) t = cons(a[n], t);
+    while (n--) {
+        t = cons(a[n], t);
+    }
     return t;
 }
 

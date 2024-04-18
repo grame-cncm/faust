@@ -87,7 +87,8 @@ void endTiming(const char* msg)
             gTimingLog->flush();
         } else {
             tab(gTimingIndex, cerr);
-            cerr << "end " << msg << " (duration : " << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << ")\n";
+            cerr << "end " << msg
+                 << " (duration : " << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << ")\n";
         }
     }
 }

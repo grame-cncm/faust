@@ -62,20 +62,26 @@ void printDocNotice(const string& faustversion, ostream& docout)
 
         /* Presentations. */
         docout << "\t\\item " << gGlobal->gDocAutodocStringMap["autontctext"] << endl;
-        if (gGlobal->gDocNoticeFlagMap["faustapply"])
+        if (gGlobal->gDocNoticeFlagMap["faustapply"]) {
             docout << "\t\\item " << gGlobal->gDocNoticeStringMap["faustapply"] << endl;
-        if (gGlobal->gDocNoticeFlagMap["faustpresentation"])
+        }
+        if (gGlobal->gDocNoticeFlagMap["faustpresentation"]) {
             docout << "\t\\item " << gGlobal->gDocNoticeStringMap["faustpresentation"] << endl;
-        if (gGlobal->gDocNoticeFlagMap["causality"])
+        }
+        if (gGlobal->gDocNoticeFlagMap["causality"]) {
             docout << "\t\\item " << gGlobal->gDocNoticeStringMap["causality"] << endl;
-        if (gGlobal->gDocNoticeFlagMap["blockdiagrams"])
+        }
+        if (gGlobal->gDocNoticeFlagMap["blockdiagrams"]) {
             docout << "\t\\item " << gGlobal->gDocNoticeStringMap["blockdiagrams"] << endl;
+        }
 
         /* Naming conventions of variables and functions. */
-        if (gGlobal->gDocNoticeFlagMap["foreignfun"])
+        if (gGlobal->gDocNoticeFlagMap["foreignfun"]) {
             docout << "\t\\item " << gGlobal->gDocNoticeStringMap["foreignfun"] << endl;
-        if (gGlobal->gDocNoticeFlagMap["intcast"])
+        }
+        if (gGlobal->gDocNoticeFlagMap["intcast"]) {
             docout << "\t\\item " << gGlobal->gDocNoticeStringMap["intcast"] << endl;
+        }
 
         /* Integer arithmetic into a tabular environment. */
         if (gGlobal->gDocNoticeFlagMap["intplus"] || gGlobal->gDocNoticeFlagMap["intminus"] ||
@@ -93,27 +99,36 @@ void printDocNotice(const string& faustversion, ostream& docout)
             docout << "\t\t\\hline " << endl;
             docout << "\t\t" << gGlobal->gDocNoticeStringMap["optabtitle"] << endl;
             docout << "\t\t\\hline " << endl;
-            if (gGlobal->gDocNoticeFlagMap["intplus"])
+            if (gGlobal->gDocNoticeFlagMap["intplus"]) {
                 docout << "\t\t" << gGlobal->gDocNoticeStringMap["intplus"] << endl;
-            if (gGlobal->gDocNoticeFlagMap["intminus"])
+            }
+            if (gGlobal->gDocNoticeFlagMap["intminus"]) {
                 docout << "\t\t" << gGlobal->gDocNoticeStringMap["intminus"] << endl;
-            if (gGlobal->gDocNoticeFlagMap["intmult"])
+            }
+            if (gGlobal->gDocNoticeFlagMap["intmult"]) {
                 docout << "\t\t" << gGlobal->gDocNoticeStringMap["intmult"] << endl;
-            if (gGlobal->gDocNoticeFlagMap["intdiv"])
+            }
+            if (gGlobal->gDocNoticeFlagMap["intdiv"]) {
                 docout << "\t\t" << gGlobal->gDocNoticeStringMap["intdiv"] << endl;
-            if (gGlobal->gDocNoticeFlagMap["intand"])
+            }
+            if (gGlobal->gDocNoticeFlagMap["intand"]) {
                 docout << "\t\t" << gGlobal->gDocNoticeStringMap["intand"] << endl;
-            if (gGlobal->gDocNoticeFlagMap["intor"]) docout << "\t\t" << gGlobal->gDocNoticeStringMap["intor"] << endl;
-            if (gGlobal->gDocNoticeFlagMap["intxor"])
+            }
+            if (gGlobal->gDocNoticeFlagMap["intor"]) {
+                docout << "\t\t" << gGlobal->gDocNoticeStringMap["intor"] << endl;
+            }
+            if (gGlobal->gDocNoticeFlagMap["intxor"]) {
                 docout << "\t\t" << gGlobal->gDocNoticeStringMap["intxor"] << endl;
+            }
             docout << "\t\t\\hline " << endl;
             docout << "\t\\end{tabular} " << endl;
             docout << "\t\\end{center}" << endl;
             docout << "\t\t" << gGlobal->gDocNoticeStringMap["integerops"] << endl;
         }
 
-        if (gGlobal->gDocNoticeFlagMap["faustdocdir"])
+        if (gGlobal->gDocNoticeFlagMap["faustdocdir"]) {
             docout << "\t\\item " << gGlobal->gDocNoticeStringMap["faustdocdir"] << endl;
+        }
 
         docout << "\\end{itemize}" << endl << endl;
     }
@@ -169,7 +184,8 @@ static void initDocNoticeKeySet()
  */
 static void initDocNoticeFlagMap()
 {
-    for (set<string>::iterator it = gGlobal->gDocNoticeKeySet.begin(); it != gGlobal->gDocNoticeKeySet.end(); ++it) {
+    for (set<string>::iterator it = gGlobal->gDocNoticeKeySet.begin();
+         it != gGlobal->gDocNoticeKeySet.end(); ++it) {
         gGlobal->gDocNoticeFlagMap[*it] = false;
     }
     gGlobal->gDocNoticeFlagMap["faustpresentation"] = true;

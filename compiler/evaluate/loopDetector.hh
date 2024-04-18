@@ -34,10 +34,10 @@
 
 class loopDetector : public virtual Garbageable {
    private:
-    const int    fBuffersize;
-    const int    fCheckperiod;
+    const int         fBuffersize;
+    const int         fCheckperiod;
     std::vector<Tree> fBuffer;
-    int          fPhase;
+    int               fPhase;
 
    public:
     loopDetector(int buffersize, int checkperiod)
@@ -59,7 +59,10 @@ class stackOverflowDetector {
     void* fFirstStackAddress;
 
    public:
-    stackOverflowDetector(long size) : fMaxStackSize(size), fFirstCall(true), fFirstStackAddress(nullptr) {}
+    stackOverflowDetector(long size)
+        : fMaxStackSize(size), fFirstCall(true), fFirstStackAddress(nullptr)
+    {
+    }
 
     void detect();
 };

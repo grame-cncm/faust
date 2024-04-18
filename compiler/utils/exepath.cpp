@@ -44,10 +44,14 @@ using namespace std;
 // removes the exe name from a path (similar to dirname)
 string exepath::dirup(const string& path)
 {
-    if (path.empty()) return path;
+    if (path.empty()) {
+        return path;
+    }
     size_t len = path.length();
     size_t pos = path.rfind(kPSEP, len - 2);
-    if (pos == string::npos) return "";
+    if (pos == string::npos) {
+        return "";
+    }
     string out = path.substr(0, pos);
     return out == "." ? "" : out;
 }
@@ -57,7 +61,7 @@ string exepath::dirup(const string& path)
 // recursively removes expressions like /a_name/.. from a path
 string exepath::stripPath(const string& path)
 {
-    regex e("/[^/]*/\\.\\.");  // matches sequence like /path/..
+    regex  e("/[^/]*/\\.\\.");  // matches sequence like /path/..
     string stripped = regex_replace(path, e, string(""));
     return (stripped == path) ? path : stripPath(stripped);
 }
@@ -106,9 +110,13 @@ static std::string exec(const string& cmd)
     std::array<char, FILENAME_MAX> buffer;
     std::string                    result;
     std::shared_ptr<FILE>          pipe(popen(cmd.c_str(), "r"), pclose);
-    if (!pipe) return "";
+    if (!pipe) {
+        return "";
+    }
     while (!feof(pipe.get())) {
-        if (fgets(buffer.data(), FILENAME_MAX, pipe.get()) != nullptr) result += buffer.data();
+        if (fgets(buffer.data(), FILENAME_MAX, pipe.get()) != nullptr) {
+            result += buffer.data();
+        }
     }
     return result;
 }
@@ -122,7 +130,9 @@ static string GetCurrentWorkingDir()
 //-----------------------------------------------------------------
 string exepath::relative2absolute(const string& path)
 {
-    if (path[0] == kPSEP) return path;
+    if (path[0] == kPSEP) {
+        return path;
+    }
 
     string pwd = GetCurrentWorkingDir();
     // the next line removes the form "./"
@@ -147,8 +157,12 @@ string exepath::get(const string& argv0)
         stringstream cmd;
         cmd << "which " << argv0;
         which = exec(cmd.str());
-        if (which.empty()) return "";
-        if (which.back() == '\n') which.pop_back();
+        if (which.empty()) {
+            return "";
+        }
+        if (which.back() == '\n') {
+            which.pop_back();
+        }
     }
     string target = resolvelink(which);
     if (!target.empty()) {

@@ -28,8 +28,7 @@
 //===========================================================
 
 template <typename N>
-class Tarjan
-{
+class Tarjan {
     // Additional information associated to each node
     // during the visit
     struct tarjanAux {
@@ -186,10 +185,11 @@ inline digraph<digraph<N>> graph2dag(const digraph<N>& g)
 template <typename N>
 inline digraph<digraph<N>> graph2dag2(const digraph<N>& g)
 {
-    Tarjan<N>                                        T(g);  // the partition of g
-    std::map<N, digraph<N>>                          M;     // std::mapping between nodes and supernodes
-    digraph<digraph<N>>                              sg;    // the resulting supergraph
-    std::map<std::pair<digraph<N>, digraph<N>>, int> CC;    // count of destinations between supernodes
+    Tarjan<N>               T(g);  // the partition of g
+    std::map<N, digraph<N>> M;     // std::mapping between nodes and supernodes
+    digraph<digraph<N>>     sg;    // the resulting supergraph
+    std::map<std::pair<digraph<N>, digraph<N>>, int>
+        CC;  // count of destinations between supernodes
 
     // build the graph of supernodes
 
@@ -310,7 +310,8 @@ inline std::vector<N> serialize(const digraph<N>& G)
     // V : std::set of already visited nodes
     // S : serialized std::vector of nodes
     //------------------------------------------------------------------------
-    using Visitfun = std::function<void(const digraph<N>&, const N&, std::set<N>&, std::vector<N>&)>;
+    using Visitfun =
+        std::function<void(const digraph<N>&, const N&, std::set<N>&, std::vector<N>&)>;
     Visitfun visit = [&visit](const digraph<N>& g, const N& n, std::set<N>& V, std::vector<N>& S) {
         if (V.find(n) == V.end()) {
             V.insert(n);
@@ -422,7 +423,8 @@ inline digraph<N> mapconnections(const digraph<N>&                              
  * @param R resulting graph of right nodes
  */
 template <typename N>
-void splitgraph(const digraph<N>& G, std::function<bool(const N&)> left, digraph<N>& L, digraph<N>& R)
+void splitgraph(const digraph<N>& G, std::function<bool(const N&)> left, digraph<N>& L,
+                digraph<N>& R)
 {
     for (auto n : G.nodes()) {
         if (left(n)) {
@@ -527,7 +529,9 @@ inline digraph<N> chain(const digraph<N>& g, bool strict)
     const digraph<N> h = reverse(g);
     digraph<N>       r;
     for (const auto& n : g.nodes()) {
-        if (!strict) r.add(n);
+        if (!strict) {
+            r.add(n);
+        }
         if (g.destinations(n).size() == 1) {
             for (const auto& m : g.destinations(n)) {
                 if (h.destinations(m.first).size() == 1) {
@@ -550,7 +554,9 @@ inline std::vector<N> roots(const digraph<N>& G)
     }
     std::vector<N> V;
     for (const N& n : G.nodes()) {
-        if (R[n] == 0) V.push_back(n);
+        if (R[n] == 0) {
+            V.push_back(n);
+        }
     }
     return V;
 }
@@ -662,7 +668,8 @@ inline std::ostream& dotfile(std::ostream& file, const digraph<N>& g, bool clust
             std::stringstream sm;
             sm << '"' << c.first << '"';
             hascnx = true;
-            file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << c.second << "\"];" << std::endl;
+            file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << c.second << "\"];"
+                 << std::endl;
         }
         if (!hascnx) {
             file << "\t" << sn.str() << ";" << std::endl;
@@ -673,13 +680,11 @@ inline std::ostream& dotfile(std::ostream& file, const digraph<N>& g, bool clust
         Tarjan<N> T(g);
         int       ccount = 0;  // cluster count
         for (const auto& s : T.partition()) {
-            file << "\t"
-                 << "subgraph cluster" << ccount++ << " { " << std::endl;
+            file << "\t" << "subgraph cluster" << ccount++ << " { " << std::endl;
             for (const N& n : s) {
                 file << "\t\t" << '"' << n << '"' << ";" << std::endl;
             }
-            file << "\t"
-                 << "}" << std::endl;
+            file << "\t" << "}" << std::endl;
         }
     }
 

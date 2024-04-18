@@ -152,7 +152,8 @@ Occurrences* OccMarkup::retrieve(Tree t)
 void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 {
 #ifdef TRACE
-    std::cerr << "incOcc(variability:" << v << ", r:" << r << ", delay:" << d << "; " << t << ":" << ppsig(t, 10) << ")" << std::endl;
+    std::cerr << "incOcc(variability:" << v << ", r:" << r << ", delay:" << d << "; " << t << ":"
+              << ppsig(t, 10) << ")" << std::endl;
 #endif
     // Check if we have already visited this tree
     Occurrences* occ        = getOcc(t);

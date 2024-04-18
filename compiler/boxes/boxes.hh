@@ -394,7 +394,8 @@ LIBFAUST_API bool isBoxCase(Tree s, Tree& rules);
 
 Tree boxPatternMatcher(PM::Automaton* a, int state, Tree env, Tree origRules, Tree revParamList);
 bool isBoxPatternMatcher(Tree s);
-bool isBoxPatternMatcher(Tree s, PM::Automaton*& a, int& state, Tree& env, Tree& origRules, Tree& revParamList);
+bool isBoxPatternMatcher(Tree s, PM::Automaton*& a, int& state, Tree& env, Tree& origRules,
+                         Tree& revParamList);
 
 // wrap an id into a pattern variable
 Tree boxPatternVar(Tree id);

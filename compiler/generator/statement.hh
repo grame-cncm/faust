@@ -28,16 +28,18 @@
 
 class Statement {
    private:
-    const bool fHasCondition;
+    const bool        fHasCondition;
     const std::string fCondition;
     const std::string fCode;
 
    public:
     Statement(const std::string& condition, const std::string& code)
-    : fHasCondition(true), fCondition(condition), fCode(code) {}
+        : fHasCondition(true), fCondition(condition), fCode(code)
+    {
+    }
 
-    bool  hasCondition() { return fHasCondition; }
-    bool  hasCondition(const std::string& cond) { return (fCondition == cond); }
+    bool               hasCondition() { return fHasCondition; }
+    bool               hasCondition(const std::string& cond) { return (fCondition == cond); }
     const std::string& condition() { return fCondition; }
     const std::string& code() { return fCode; }
 };

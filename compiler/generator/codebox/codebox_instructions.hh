@@ -24,12 +24,15 @@
 
 #include <string>
 
-#include "text_instructions.hh"
-#include "struct_manager.hh"
 #include "json_instructions.hh"
+#include "struct_manager.hh"
+#include "text_instructions.hh"
 
 // Variable identifier cannot end by a number, so add a suffix
-inline std::string codeboxVarName(const std::string& name) { return name + "_cb"; }
+inline std::string codeboxVarName(const std::string& name)
+{
+    return name + "_cb";
+}
 
 // When testing, for rnbo_dsp class to properly decode controllers
 inline std::string buildButtonLabel(AddButtonInst::ButtonType type, const std::string& label)
@@ -37,9 +40,9 @@ inline std::string buildButtonLabel(AddButtonInst::ButtonType type, const std::s
     if (gGlobal->gOutputLang == "codebox-test") {
         switch (type) {
             case AddButtonInst::kDefaultButton:
-                return("RB_button_" + label);
+                return ("RB_button_" + label);
             case AddButtonInst::kCheckButton:
-                return("RB_checkbox_" + label);
+                return ("RB_checkbox_" + label);
             default:
                 faustassert(false);
                 break;
@@ -54,11 +57,11 @@ inline std::string buildSliderLabel(AddSliderInst::SliderType type, const std::s
     if (gGlobal->gOutputLang == "codebox-test") {
         switch (type) {
             case AddSliderInst::kHorizontal:
-                return("RB_hslider_" + label);
+                return ("RB_hslider_" + label);
             case AddSliderInst::kVertical:
-                return("RB_vslider_" + label);
+                return ("RB_vslider_" + label);
             case AddSliderInst::kNumEntry:
-                return("RB_nentry_" + label);
+                return ("RB_nentry_" + label);
             default:
                 faustassert(false);
                 break;
@@ -67,21 +70,21 @@ inline std::string buildSliderLabel(AddSliderInst::SliderType type, const std::s
     return isdigit(label[0]) ? ("cb_" + label) : label;
 }
 
-// Visitor used to fill the 'update' function and associate control labels with their parameter names
-// (using 2 passes, one to build shortname, the second to use them)
+// Visitor used to fill the 'update' function and associate control labels with their parameter
+// names (using 2 passes, one to build shortname, the second to use them)
 struct CodeboxUpdateParamsVisitor : public ShortnameInstVisitor {
     std::ostream* fOut;
     int           fTab;
-    
+
     CodeboxUpdateParamsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
-    
-     void print(const std::string& shortname, const std::string& zone)
+
+    void print(const std::string& shortname, const std::string& zone)
     {
-        *fOut << "fUpdated = int(fUpdated) | (" << shortname << " != "
-              << codeboxVarName(zone) << "); " << codeboxVarName(zone) << " = " << shortname << ";";
+        *fOut << "fUpdated = int(fUpdated) | (" << shortname << " != " << codeboxVarName(zone)
+              << "); " << codeboxVarName(zone) << " = " << shortname << ";";
         tab(fTab, *fOut);
     }
-    
+
     void visit(AddButtonInst* inst) override
     {
         if (hasShortname()) {
@@ -90,7 +93,7 @@ struct CodeboxUpdateParamsVisitor : public ShortnameInstVisitor {
             ShortnameInstVisitor::visit(inst);
         }
     }
-    
+
     void visit(AddSliderInst* inst) override
     {
         if (hasShortname()) {
@@ -99,18 +102,16 @@ struct CodeboxUpdateParamsVisitor : public ShortnameInstVisitor {
             ShortnameInstVisitor::visit(inst);
         }
     }
-    
 };
 
-// Visitor used to create 'update' function prototype by printing the list of shortnames, used as parameters
-// (using 2 passes, one to build shortname, the second to use them)
+// Visitor used to create 'update' function prototype by printing the list of shortnames, used as
+// parameters (using 2 passes, one to build shortname, the second to use them)
 struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
-
     std::vector<std::string> fUILabels;
-    std::ostream* fOut;
-    
+    std::ostream*            fOut;
+
     CodeboxLabelsVisitor(std::ostream* out) : fOut(out) {}
-     
+
     void visit(AddButtonInst* inst) override
     {
         if (hasShortname()) {
@@ -119,7 +120,7 @@ struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
             ShortnameInstVisitor::visit(inst);
         }
     }
-    
+
     void visit(AddSliderInst* inst) override
     {
         if (hasShortname()) {
@@ -128,25 +129,29 @@ struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
             ShortnameInstVisitor::visit(inst);
         }
     }
- 
+
     void visit(AddSoundfileInst* inst) override
     {
         throw(faustexception("ERROR : Soundfile is not available in Codebox\n"));
     }
-    
+
     void printArgs()
     {
         for (size_t i = 0; i < fUILabels.size(); i++) {
             *fOut << fUILabels[i];
-            if (i < fUILabels.size() - 1) *fOut << ",";
+            if (i < fUILabels.size() - 1) {
+                *fOut << ",";
+            }
         }
     }
-    
+
     void printArgsCall()
     {
         for (size_t i = 0; i < fUILabels.size(); i++) {
             *fOut << fUILabels[i];
-            if (i < fUILabels.size() - 1) *fOut << ",";
+            if (i < fUILabels.size() - 1) {
+                *fOut << ",";
+            }
         }
     }
 };
@@ -155,12 +160,12 @@ struct CodeboxLabelsVisitor : public ShortnameInstVisitor {
 struct CodeboxInitArraysVisitor : public DispatchVisitor {
     std::ostream* fOut;
     int           fTab;
-    
+
     // The name of the currently generated array
-    std::string   fCurArray;
-    
+    std::string fCurArray;
+
     CodeboxInitArraysVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
-    
+
     virtual void visit(DeclareVarInst* inst) override
     {
         // Keep the array name
@@ -169,7 +174,7 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
             inst->fValue->accept(this);
         }
     }
-      
+
     // Needed for waveforms
     virtual void visit(Int32ArrayNumInst* inst) override
     {
@@ -178,7 +183,7 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
             tab(fTab, *fOut);
         }
     }
-    
+
     virtual void visit(FloatArrayNumInst* inst) override
     {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
@@ -186,7 +191,7 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
             tab(fTab, *fOut);
         }
     }
-    
+
     virtual void visit(DoubleArrayNumInst* inst) override
     {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
@@ -194,14 +199,12 @@ struct CodeboxInitArraysVisitor : public DispatchVisitor {
             tab(fTab, *fOut);
         }
     }
-    
 };
 
 // Visitor to keep bargraph variables
 struct CodeboxBargraphVisitor : public DispatchVisitor {
-
     std::vector<std::string> fVariables;
-    
+
     virtual void visit(DeclareVarInst* inst) override
     {
         std::string name = inst->fAddress->getName();
@@ -211,18 +214,19 @@ struct CodeboxBargraphVisitor : public DispatchVisitor {
     }
 };
 
-// Visitor used to generate @params with shortnames (using 2 passes, one to build shortname, the second to use them)
+// Visitor used to generate @params with shortnames (using 2 passes, one to build shortname, the
+// second to use them)
 struct CodeboxParamsVisitor : public ShortnameInstVisitor {
-
     std::ostream* fOut;
     int           fTab;
-   
+
     CodeboxParamsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
 
     virtual void visit(AddButtonInst* inst) override
     {
         if (hasShortname()) {
-            *fOut << "@param({min: 0., max: 1.}) " << buildButtonLabel(inst->fType, buildShortname(inst->fLabel)) << " = 0.;";
+            *fOut << "@param({min: 0., max: 1.}) "
+                  << buildButtonLabel(inst->fType, buildShortname(inst->fLabel)) << " = 0.;";
             tab(fTab, *fOut);
         } else {
             ShortnameInstVisitor::visit(inst);
@@ -232,29 +236,27 @@ struct CodeboxParamsVisitor : public ShortnameInstVisitor {
     virtual void visit(AddSliderInst* inst) override
     {
         if (hasShortname()) {
-            *fOut << "@param({min: " << checkReal(inst->fMin) << ", max: "
-            << checkReal(inst->fMax) << "}) "
-            << buildSliderLabel(inst->fType, buildShortname(inst->fLabel)) << " = " << checkReal(inst->fInit) << ";";
+            *fOut << "@param({min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
+                  << "}) " << buildSliderLabel(inst->fType, buildShortname(inst->fLabel)) << " = "
+                  << checkReal(inst->fInit) << ";";
             tab(fTab, *fOut);
         } else {
             ShortnameInstVisitor::visit(inst);
         }
     }
-
 };
 
 class CodeboxInstVisitor : public TextInstVisitor {
    private:
-    
     /*
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
     static std::map<std::string, bool> gFunctionSymbolTable;
-    
+
     // Polymorphic math functions
     std::map<std::string, std::string> gPolyMathLibTable;
-    
+
    public:
     using TextInstVisitor::visit;
 
@@ -263,19 +265,19 @@ class CodeboxInstVisitor : public TextInstVisitor {
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
-        
+
         gFunctionSymbolTable["max_i"] = true;
         gFunctionSymbolTable["min_i"] = true;
-        
+
         gFunctionSymbolTable["max_f"] = true;
         gFunctionSymbolTable["min_f"] = true;
-        
+
         gFunctionSymbolTable["max_"] = true;
         gFunctionSymbolTable["min_"] = true;
-        
+
         gFunctionSymbolTable["max_l"] = true;
         gFunctionSymbolTable["min_l"] = true;
-        
+
         // Float version
         gFunctionSymbolTable["fabsf"]      = true;
         gFunctionSymbolTable["acosf"]      = true;
@@ -297,7 +299,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinf"]       = true;
         gFunctionSymbolTable["sqrtf"]      = true;
         gFunctionSymbolTable["tanf"]       = true;
-        
+
         // Hyperbolic
         gFunctionSymbolTable["acoshf"] = false;
         gFunctionSymbolTable["asinhf"] = false;
@@ -305,7 +307,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["coshf"]  = false;
         gFunctionSymbolTable["sinhf"]  = false;
         gFunctionSymbolTable["tanhf"]  = false;
-        
+
         // Double version
         gFunctionSymbolTable["fabs"]      = true;
         gFunctionSymbolTable["acos"]      = true;
@@ -327,7 +329,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
-        
+
         // Hyperbolic
         gFunctionSymbolTable["acosh"] = true;
         gFunctionSymbolTable["asinh"] = true;
@@ -335,7 +337,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["coshf"] = true;
         gFunctionSymbolTable["sinh"]  = true;
         gFunctionSymbolTable["tanh"]  = true;
-        
+
         // Quad version
         gFunctionSymbolTable["fabsl"]      = false;
         gFunctionSymbolTable["acosl"]      = false;
@@ -357,7 +359,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinl"]       = false;
         gFunctionSymbolTable["sqrtl"]      = false;
         gFunctionSymbolTable["tanl"]       = false;
-        
+
         // Hyperbolic
         gFunctionSymbolTable["acoshl"] = true;
         gFunctionSymbolTable["asinhl"] = true;
@@ -365,27 +367,27 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["coshl"]  = true;
         gFunctionSymbolTable["sinhl"]  = true;
         gFunctionSymbolTable["tanhl"]  = true;
-        
+
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "abs";
         gPolyMathLibTable["max_i"] = "max";
         gPolyMathLibTable["min_i"] = "min";
-        
+
         // Polymath mapping float version
         gPolyMathLibTable["max_f"] = "max";
         gPolyMathLibTable["min_f"] = "min";
-        
-        gPolyMathLibTable["fabsf"]      = "abs";
-        gPolyMathLibTable["acosf"]      = "acos";
-        gPolyMathLibTable["asinf"]      = "asin";
-        gPolyMathLibTable["atanf"]      = "atan";
-        gPolyMathLibTable["atan2f"]     = "atan";
-        gPolyMathLibTable["ceilf"]      = "ceil";
-        gPolyMathLibTable["cosf"]       = "cos";
-        gPolyMathLibTable["expf"]       = "exp";
-        gPolyMathLibTable["exp2f"]      = "exp2";
-        gPolyMathLibTable["exp10f"]     = "exp10";
-        gPolyMathLibTable["floorf"]     = "floor";
+
+        gPolyMathLibTable["fabsf"]  = "abs";
+        gPolyMathLibTable["acosf"]  = "acos";
+        gPolyMathLibTable["asinf"]  = "asin";
+        gPolyMathLibTable["atanf"]  = "atan";
+        gPolyMathLibTable["atan2f"] = "atan";
+        gPolyMathLibTable["ceilf"]  = "ceil";
+        gPolyMathLibTable["cosf"]   = "cos";
+        gPolyMathLibTable["expf"]   = "exp";
+        gPolyMathLibTable["exp2f"]  = "exp2";
+        gPolyMathLibTable["exp10f"] = "exp10";
+        gPolyMathLibTable["floorf"] = "floor";
         // fmodf is not there
         gPolyMathLibTable["fmodf"]      = "safemod";
         gPolyMathLibTable["logf"]       = "log";
@@ -398,34 +400,34 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sqrtf"]      = "sqrt";
         gPolyMathLibTable["tanf"]       = "tan";
-        
+
         // Hyperbolic
-        gPolyMathLibTable["acoshf"]     = "acosh";
-        gPolyMathLibTable["asinhf"]     = "asinh";
-        gPolyMathLibTable["atanhf"]     = "atanh";
-        gPolyMathLibTable["coshf"]      = "cosh";
-        gPolyMathLibTable["sinhf"]      = "sinh";
-        gPolyMathLibTable["tanhf"]      = "tanh";
-         
-        gPolyMathLibTable["isnanf"]     = "isnan";
-        //gPolyMathLibTable["isinff"]     = "isinf";
-        //gPolyMathLibTable["copysignf"]  = "copysign";
-        
+        gPolyMathLibTable["acoshf"] = "acosh";
+        gPolyMathLibTable["asinhf"] = "asinh";
+        gPolyMathLibTable["atanhf"] = "atanh";
+        gPolyMathLibTable["coshf"]  = "cosh";
+        gPolyMathLibTable["sinhf"]  = "sinh";
+        gPolyMathLibTable["tanhf"]  = "tanh";
+
+        gPolyMathLibTable["isnanf"] = "isnan";
+        // gPolyMathLibTable["isinff"]     = "isinf";
+        // gPolyMathLibTable["copysignf"]  = "copysign";
+
         // Polymath mapping double version
         gPolyMathLibTable["max_"] = "max";
         gPolyMathLibTable["min_"] = "min";
-        
-        gPolyMathLibTable["fabs"]      = "abs";
-        gPolyMathLibTable["acos"]      = "acos";
-        gPolyMathLibTable["asin"]      = "asin";
-        gPolyMathLibTable["atan"]      = "atan";
-        gPolyMathLibTable["atan2"]     = "atan";
-        gPolyMathLibTable["ceil"]      = "ceil";
-        gPolyMathLibTable["cos"]       = "cos";
-        gPolyMathLibTable["exp"]       = "exp";
-        gPolyMathLibTable["exp2"]      = "exp2";
-        gPolyMathLibTable["exp10"]     = "exp10";
-        gPolyMathLibTable["floor"]     = "floor";
+
+        gPolyMathLibTable["fabs"]  = "abs";
+        gPolyMathLibTable["acos"]  = "acos";
+        gPolyMathLibTable["asin"]  = "asin";
+        gPolyMathLibTable["atan"]  = "atan";
+        gPolyMathLibTable["atan2"] = "atan";
+        gPolyMathLibTable["ceil"]  = "ceil";
+        gPolyMathLibTable["cos"]   = "cos";
+        gPolyMathLibTable["exp"]   = "exp";
+        gPolyMathLibTable["exp2"]  = "exp2";
+        gPolyMathLibTable["exp10"] = "exp10";
+        gPolyMathLibTable["floor"] = "floor";
         // fmod is not there
         gPolyMathLibTable["fmod"]      = "safemod";
         gPolyMathLibTable["log"]       = "log";
@@ -438,40 +440,40 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sqrt"]      = "sqrt";
         gPolyMathLibTable["tan"]       = "tan";
-        
+
         // Hyperbolic
-        gPolyMathLibTable["acosh"]     = "acosh";
-        gPolyMathLibTable["asinh"]     = "asinh";
-        gPolyMathLibTable["atanh"]     = "atanh";
-        gPolyMathLibTable["cosh"]      = "cosh";
-        gPolyMathLibTable["sinh"]      = "sinh";
-        gPolyMathLibTable["tanh"]      = "tanh";
-         
-        gPolyMathLibTable["isnan"]     = "isnan";
-        //gPolyMathLibTable["isinf"]     = "isinf";
-        //gPolyMathLibTable["copysign"]  = "copysign";
+        gPolyMathLibTable["acosh"] = "acosh";
+        gPolyMathLibTable["asinh"] = "asinh";
+        gPolyMathLibTable["atanh"] = "atanh";
+        gPolyMathLibTable["cosh"]  = "cosh";
+        gPolyMathLibTable["sinh"]  = "sinh";
+        gPolyMathLibTable["tanh"]  = "tanh";
+
+        gPolyMathLibTable["isnan"] = "isnan";
+        // gPolyMathLibTable["isinf"]     = "isinf";
+        // gPolyMathLibTable["copysign"]  = "copysign";
     }
 
     virtual ~CodeboxInstVisitor() {}
 
-    virtual void visit(AddMetaDeclareInst* inst)
-    {}
+    virtual void visit(AddMetaDeclareInst* inst) {}
 
     virtual void visit(AddSoundfileInst* inst)
     {
         throw(faustexception("ERROR : Soundfile is not available in Codebox\n"));
     }
-    
+
     virtual void visit(DeclareVarInst* inst)
     {
         // inputXX/outputXX are generated as local variables at the begining of 'compute'
-        if (startWith(inst->fAddress->getName(), "input") || startWith(inst->fAddress->getName(), "output")) {
+        if (startWith(inst->fAddress->getName(), "input") ||
+            startWith(inst->fAddress->getName(), "output")) {
             return;
         }
         // Struct variables should persist across the codebox lifetime
         if (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct()) {
             *fOut << "@state ";
-        // Stack variables need a 'let'
+            // Stack variables need a 'let'
         } else if (inst->fAddress->isStack() || inst->fAddress->isLoop()) {
             *fOut << "let ";
         }
@@ -480,24 +482,21 @@ class CodeboxInstVisitor : public TextInstVisitor {
         if (inst->fValue && inst->fType->isBasicTyped()) {
             *fOut << " = ";
             inst->fValue->accept(this);
-        // @state with a type have to be initialized
-        } else if (inst->fType->isBasicTyped() && (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct())) {
+            // @state with a type have to be initialized
+        } else if (inst->fType->isBasicTyped() &&
+                   (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct())) {
             *fOut << " = 0";
         }
         EndLine();
     }
-    
+
     // Empty here and done in CodeboxInitArraysVisitor
-    virtual void visit(Int32ArrayNumInst* inst)
-    {}
-    virtual void visit(FloatArrayNumInst* inst)
-    {}
-    virtual void visit(DoubleArrayNumInst* inst)
-    {}
-    
-    virtual void visit(DropInst* inst)
-    {}
-    
+    virtual void visit(Int32ArrayNumInst* inst) {}
+    virtual void visit(FloatArrayNumInst* inst) {}
+    virtual void visit(DoubleArrayNumInst* inst) {}
+
+    virtual void visit(DropInst* inst) {}
+
     virtual void visit(DeclareFunInst* inst)
     {
         // Already generated
@@ -506,13 +505,13 @@ class CodeboxInstVisitor : public TextInstVisitor {
         } else {
             gFunctionSymbolTable[inst->fName] = true;
         }
-        
+
         *fOut << "function " << inst->fName;
         generateFunDefArgs(inst);
         *fOut << " ";
         generateFunDefBody(inst);
     }
-     
+
     virtual void visit(NamedAddress* named)
     {
         // On the fly renaming
@@ -523,7 +522,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
             *fOut << codeboxVarName(named->fName);
         }
     }
-   
+
     virtual void visit(::CastInst* inst)
     {
         if (isIntType(inst->fType->getType())) {
@@ -535,22 +534,23 @@ class CodeboxInstVisitor : public TextInstVisitor {
             inst->fInst->accept(this);
         }
     }
-    
+
     // Simply multiply the value by -1 here
     virtual void visit(MinusInst* inst)
     {
         Typed::VarType type = TypingVisitor::getType(inst->fInst);
         InstBuilder::genMul(InstBuilder::genTypedNum(type, -1.), inst->fInst)->accept(this);
     }
-    
+
     virtual void visit(BinopInst* inst)
     {
         Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
         Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
-    
-        // Some special cases for integers 
+
+        // Some special cases for integers
         if (isInt32Type(type1) && isInt32Type(type2)) {
-            static std::map<int, std::string> iop = { {kRem, "imod("}, {kAdd, "iadd("}, {kMul, "imul("} };
+            static std::map<int, std::string> iop = {
+                {kRem, "imod("}, {kAdd, "iadd("}, {kMul, "imul("}};
             if (iop.find(inst->fOpcode) != iop.end()) {
                 *fOut << iop[inst->fOpcode];
                 inst->fInst1->accept(this);
@@ -560,8 +560,9 @@ class CodeboxInstVisitor : public TextInstVisitor {
                 return;
             }
         }
-    
-        // Operator precedence is possibly not like C/C++, so for simplicity, we keep the fully parenthesized version
+
+        // Operator precedence is possibly not like C/C++, so for simplicity, we keep the fully
+        // parenthesized version
         *fOut << "(";
         inst->fInst1->accept(this);
         *fOut << " ";
@@ -570,19 +571,20 @@ class CodeboxInstVisitor : public TextInstVisitor {
         inst->fInst2->accept(this);
         *fOut << ")";
     }
-    
+
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {
-        std::string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
+        std::string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end())
+                               ? gPolyMathLibTable[inst->fName]
+                               : inst->fName;
         *fOut << name << "(";
         // Compile parameters
         generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
         *fOut << ")";
     }
-    
+
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
 #endif
-

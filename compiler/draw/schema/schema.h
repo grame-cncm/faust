@@ -44,14 +44,15 @@ struct point : public virtual Garbageable {
 
     bool operator<(const point& p) const
     {
-        if (x < p.x)
+        if (x < p.x) {
             return true;
-        else if (x > p.x)
+        } else if (x > p.x) {
             return false;
-        else if (y < p.y)
+        } else if (y < p.y) {
             return true;
-        else
+        } else {
             return false;
+        }
     }
 };
 
@@ -61,19 +62,23 @@ struct trait : public virtual Garbageable {
     bool  hasRealInput;
     bool  hasRealOutput;
 
-    trait(const point& p1, const point& p2) : start(p1), end(p2), hasRealInput(false), hasRealOutput(false) {}
+    trait(const point& p1, const point& p2)
+        : start(p1), end(p2), hasRealInput(false), hasRealOutput(false)
+    {
+    }
     void draw(device& dev) const { dev.trait(start.x, start.y, end.x, end.y); }
 
     bool operator<(const trait& t) const
     {
-        if (start < t.start)
+        if (start < t.start) {
             return true;
-        else if (t.start < start)
+        } else if (t.start < start) {
             return false;
-        else if (end < t.end)
+        } else if (end < t.end) {
             return true;
-        else
+        } else {
             return false;
+        }
     }
 };
 
@@ -156,8 +161,8 @@ class schema : public virtual Garbageable {
 
 // various functions to create schemas
 
-schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const std::string& name, const std::string& color,
-                        const std::string& link);
+schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const std::string& name,
+                        const std::string& color, const std::string& link);
 schema* makeCableSchema(unsigned int n = 1);
 schema* makeInverterSchema(const std::string& color);
 schema* makeCutSchema();

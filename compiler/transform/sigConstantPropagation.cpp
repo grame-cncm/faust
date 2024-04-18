@@ -83,20 +83,27 @@ Tree SignalConstantPropagation::transformation(Tree sig)
         Node n1 = v1->node();
         Node n2 = v2->node();
 
-        if (isNum(n1) && isNum(n2))
+        if (isNum(n1) && isNum(n2)) {
             return tree(op->compute(n1, n2));
-        else if (op->isLeftNeutral(n1))
+        } else if (op->isLeftNeutral(n1)) {
             return v2;
-        else if (op->isLeftAbsorbing(n1))
+        } else if (op->isLeftAbsorbing(n1)) {
             return v1;
-        else if (op->isRightNeutral(n2))
+        } else if (op->isRightNeutral(n2)) {
             return v1;
-        else if (op->isRightAbsorbing(n2))
+        } else if (op->isRightAbsorbing(n2)) {
             return v2;
-        else if (t1 == t2) {
-            if ((opnum == kAND) || (opnum == kOR)) return t1;
-            if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) return sigInt(1);
-            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) || (opnum == kXOR)) return sigInt(0);
+        } else if (t1 == t2) {
+            if ((opnum == kAND) || (opnum == kOR)) {
+                return t1;
+            }
+            if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) {
+                return sigInt(1);
+            }
+            if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) ||
+                (opnum == kXOR)) {
+                return sigInt(0);
+            }
         }
         return sigBinOp(opnum, v1, v2);
 
@@ -107,10 +114,16 @@ Tree SignalConstantPropagation::transformation(Tree sig)
 
         Node n1 = v1->node();
 
-        if (isZero(n1)) return v2;
-        if (isNum(n1)) return v3;
+        if (isZero(n1)) {
+            return v2;
+        }
+        if (isNum(n1)) {
+            return v3;
+        }
 
-        if (v2 == v3) return v2;
+        if (v2 == v3) {
+            return v2;
+        }
 
         return sigSelect2(v1, v2, v3);
 
@@ -139,6 +152,8 @@ Tree SignalConstantPropagation::transformation(Tree sig)
 Tree constantPropagation(Tree sig, bool trace)
 {
     SignalConstantPropagation SK;
-    if (trace) SK.trace(true, "ConstProp");
+    if (trace) {
+        SK.trace(true, "ConstProp");
+    }
     return SK.mapself(sig);
 }

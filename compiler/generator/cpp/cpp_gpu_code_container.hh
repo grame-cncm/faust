@@ -29,34 +29,25 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
     void prepareFIR(void);
 
    protected:
-   
     // To access control inside fControl field
     struct UIInstVisitor : public CPPInstVisitor {
         UIInstVisitor(std::ostream* out, int tab) : CPPInstVisitor(out, tab) {}
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
-            *fOut << "interface->declare("
-                  << "&fHostControl->" << inst->fZone << ", "
-                  << "\"" << inst->fKey << "\""
-                  << ", "
-                  << "\"" << inst->fValue << "\""
-                  << ")";
+            *fOut << "interface->declare(" << "&fHostControl->" << inst->fZone << ", " << "\""
+                  << inst->fKey << "\"" << ", " << "\"" << inst->fValue << "\"" << ")";
             EndLine();
         }
 
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "interface->addButton("
-                      << "\"" << inst->fLabel << "\""
-                      << ","
+                *fOut << "interface->addButton(" << "\"" << inst->fLabel << "\"" << ","
                       << "&fHostControl->" << inst->fZone << ")";
                 EndLine();
             } else {
-                *fOut << "interface->addCheckButton("
-                      << "\"" << inst->fLabel << "\""
-                      << ","
+                *fOut << "interface->addCheckButton(" << "\"" << inst->fLabel << "\"" << ","
                       << "&fHostControl->" << inst->fZone << ")";
                 EndLine();
             }
@@ -76,10 +67,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                     name = "interface->addNumEntry";
                     break;
             }
-            *fOut << name << "("
-                  << "\"" << inst->fLabel << "\""
-                  << ", "
-                  << "&fHostControl->" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin)
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->"
+                  << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin)
                   << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
@@ -95,10 +84,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                     name = "interface->addVerticalBargraph";
                     break;
             }
-            *fOut << name << "("
-                  << "\"" << inst->fLabel << "\""
-                  << ", "
-                  << "&fHostControl->" << inst->fZone << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax)
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->"
+                  << inst->fZone << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax)
                   << ")";
             EndLine();
         }
@@ -150,13 +137,15 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
             if (named) {
                 if (named->getAccess() == Address::kStruct) {
-                    *fOut << (isControl(named->getName()) ? "control->" : "dsp->") << named->getName();
+                    *fOut << (isControl(named->getName()) ? "control->" : "dsp->")
+                          << named->getName();
                 } else {
                     *fOut << named->getName();
                 }
             } else {
                 if (indexed->getAccess() == Address::kStruct) {
-                    *fOut << (isControl(indexed->getName()) ? "control->" : "dsp->") << indexed->getName() << "[";
+                    *fOut << (isControl(indexed->getName()) ? "control->" : "dsp->")
+                          << indexed->getName() << "[";
                 } else {
                     *fOut << indexed->getName() << "[";
                 }
@@ -177,13 +166,15 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
             if (named) {
                 if (named->getAccess() == Address::kStruct) {
-                    *fOut << (isControl(named->getName()) ? "&control->" : "&dsp->") << named->getName();
+                    *fOut << (isControl(named->getName()) ? "&control->" : "&dsp->")
+                          << named->getName();
                 } else {
                     *fOut << "&" << named->getName();
                 }
             } else {
                 if (indexed->getAccess() == Address::kStruct) {
-                    *fOut << (isControl(indexed->getName()) ? "&control->" : "&dsp->") << indexed->getName() << "[";
+                    *fOut << (isControl(indexed->getName()) ? "&control->" : "&dsp->")
+                          << indexed->getName() << "[";
                 } else {
                     *fOut << "&" << indexed->getName() << "[";
                 }
@@ -204,13 +195,15 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
             if (named) {
                 if (named->getAccess() == Address::kStruct) {
-                    *fOut << (isControl(named->getName()) ? "control->" : "dsp->") << named->getName() << " = ";
+                    *fOut << (isControl(named->getName()) ? "control->" : "dsp->")
+                          << named->getName() << " = ";
                 } else {
                     *fOut << named->getName() << " = ";
                 }
             } else {
                 if (indexed->getAccess() == Address::kStruct) {
-                    *fOut << (isControl(indexed->getName()) ? "control->" : "dsp->") << indexed->getName() << "[";
+                    *fOut << (isControl(indexed->getName()) ? "control->" : "dsp->")
+                          << indexed->getName() << "[";
                 } else {
                     *fOut << indexed->getName() << "[";
                 }
@@ -228,25 +221,31 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 // Compile object arg
                 (*it)->accept(this);
                 *fOut << "->"
-                      << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName]
-                                                                                     : inst->fName)
+                      << ((fFunctionTable.find(inst->fName) != fFunctionTable.end())
+                              ? fFunctionTable[inst->fName]
+                              : inst->fName)
                       << "(";
                 size_t size = inst->fArgs.size() - 1, i = 0;
                 for (ValuesIt it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
                     // Compile argument
                     (*it1)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
+                    if (i < size - 1) {
+                        *fOut << ", ";
+                    }
                 }
                 *fOut << ")";
             } else {
-                *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName]
-                                                                                     : inst->fName)
+                *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end())
+                              ? fFunctionTable[inst->fName]
+                              : inst->fName)
                       << "(";
                 size_t size = inst->fArgs.size(), i = 0;
                 for (ValuesIt it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
                     // Compile argument
                     (*it)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
+                    if (i < size - 1) {
+                        *fOut << ", ";
+                    }
                 }
                 *fOut << ")";
             }
@@ -264,7 +263,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
     std::ostream*      fGPUOut;
 
    public:
-    CPPGPUCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out)
+    CPPGPUCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                        int numOutputs, std::ostream* out)
         : CPPCodeContainer(name, super, numInputs, numOutputs, out)
     {
         fNumInputs  = numInputs;
@@ -282,7 +282,9 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         {
             fout << "  \\n\"  \\\n";
             fout << "\"";
-            while (n--) fout << '\t';
+            while (n--) {
+                fout << '\t';
+            }
         }
 
         OpenCLKernelInstVisitor(std::ostream* out, int tab) : KernelInstVisitor(out, tab)
@@ -317,7 +319,9 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         {
             fout << "  \\n\"  \\\n";
             fout << "\"";
-            while (n--) fout << '\t';
+            while (n--) {
+                fout << '\t';
+            }
         }
 
         ControlOpenCLInstVisitor(std::ostream* out, int tab) : ControlInstVisitor(out, tab) {}
@@ -330,7 +334,9 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         {
             fout << "  \\n\"  \\\n";
             fout << "\"";
-            while (n--) fout << '\t';
+            while (n--) {
+                fout << '\t';
+            }
         }
 
         DSPOpenCLInstVisitor(std::ostream* out, int tab) : DSPInstVisitor(out, tab) {}
@@ -345,7 +351,9 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         {
             fout << "  \\n\"  \\\n";
             fout << "\"";
-            while (n--) fout << '\t';
+            while (n--) {
+                fout << '\t';
+            }
         }
 
         BlockKernelInstVisitor(std::ostream* out, int tab) : KernelInstVisitor(out, tab) {}
@@ -354,7 +362,8 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         {
             /*
             if (inst->fAddress->getAccess() & Address::kGlobal) {
-                if (gGlobal->gSymbolGlobalsTable.find(inst->fAddress->getName()) == gGlobal->gSymbolGlobalsTable.end())
+                if (gGlobal->gSymbolGlobalsTable.find(inst->fAddress->getName()) ==
+            gGlobal->gSymbolGlobalsTable.end())
                 {
                     // If global is not defined
                     gGlobal->gSymbolGlobalsTable[inst->fAddress->getName()] = 1;
@@ -386,7 +395,8 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
     };
 
    public:
-    CPPOpenCLCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out)
+    CPPOpenCLCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                           int numOutputs, std::ostream* out)
         : CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
     {
         fGPUOut             = new std::ostringstream();
@@ -403,8 +413,8 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
 
 class CPPOpenCLVectorCodeContainer : public CPPOpenCLCodeContainer {
    public:
-    CPPOpenCLVectorCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs,
-                                 std::ostream* out)
+    CPPOpenCLVectorCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                                 int numOutputs, std::ostream* out)
         : CPPOpenCLCodeContainer(name, super, numInputs, numOutputs, out)
     {
     }
@@ -448,14 +458,15 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
     };
 
    public:
-    CPPCUDACodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out)
+    CPPCUDACodeContainer(const std::string& name, const std::string& super, int numInputs,
+                         int numOutputs, std::ostream* out)
         : CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
     {
-        std::string filename     = gGlobal->gOutputFile + ".cu";
-        fGPUOut             = new std::ofstream(filename.c_str());
-        fKernelCodeProducer = new CUDAKernelInstVisitor(fGPUOut, 0);
-        fNumInputs          = numInputs;
-        fNumOutputs         = numOutputs;
+        std::string filename = gGlobal->gOutputFile + ".cu";
+        fGPUOut              = new std::ofstream(filename.c_str());
+        fKernelCodeProducer  = new CUDAKernelInstVisitor(fGPUOut, 0);
+        fNumInputs           = numInputs;
+        fNumOutputs          = numOutputs;
     }
     virtual ~CPPCUDACodeContainer() { delete fGPUOut; }
 
@@ -471,8 +482,8 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 class CPPCUDAVectorCodeContainer : public CPPCUDACodeContainer {
    protected:
    public:
-    CPPCUDAVectorCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs,
-                               std::ostream* out)
+    CPPCUDAVectorCodeContainer(const std::string& name, const std::string& super, int numInputs,
+                               int numOutputs, std::ostream* out)
         : CPPCUDACodeContainer(name, super, numInputs, numOutputs, out)
     {
     }

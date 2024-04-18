@@ -56,7 +56,9 @@ static string substitution(const string& model, const vector<string>& args)
             }
         }
     }
-    if (i == ilast) result += model[i];
+    if (i == ilast) {
+        result += model[i];
+    }
     return result;
 }
 
@@ -94,7 +96,8 @@ string subst(const string& model, const string& a0, const string& a1, const stri
     return substitution(model, args);
 }
 
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3)
+string subst(const string& model, const string& a0, const string& a1, const string& a2,
+             const string& a3)
 {
     vector<string> args(10);
     args[0] = a0;
@@ -104,8 +107,8 @@ string subst(const string& model, const string& a0, const string& a1, const stri
     return substitution(model, args);
 }
 
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4)
+string subst(const string& model, const string& a0, const string& a1, const string& a2,
+             const string& a3, const string& a4)
 {
     vector<string> args(10);
     args[0] = a0;
@@ -116,8 +119,8 @@ string subst(const string& model, const string& a0, const string& a1, const stri
     return substitution(model, args);
 }
 
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4, const string& a5)
+string subst(const string& model, const string& a0, const string& a1, const string& a2,
+             const string& a3, const string& a4, const string& a5)
 {
     vector<string> args(10);
     args[0] = a0;
@@ -129,8 +132,8 @@ string subst(const string& model, const string& a0, const string& a1, const stri
     return substitution(model, args);
 }
 
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4, const string& a5, const string& a6)
+string subst(const string& model, const string& a0, const string& a1, const string& a2,
+             const string& a3, const string& a4, const string& a5, const string& a6)
 {
     vector<string> args(10);
     args[0] = a0;
@@ -285,7 +288,7 @@ string TAux(long double n)
     char  c[512];
     char* endp;
     int   p = 1;
-    
+
     if (gGlobal->gFloatSize == 1) {
         float v = (float)n;
         do {
@@ -312,7 +315,7 @@ string TAux(long double n)
         cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
         faustassert(false);
     }
-    
+
     ensureFloat(c);
     return string(c);
 }
@@ -321,7 +324,6 @@ string T(long double n)
 {
     return addSuffix(TAux(n));
 }
-
 
 /**
  * remove quotes from a string
@@ -347,7 +349,9 @@ string quote(const string& s)
 void tab(int n, ostream& fout)
 {
     fout << '\n';
-    while (n--) fout << '\t';
+    while (n--) {
+        fout << '\t';
+    }
 }
 
 void back(int n, ostream& fout)
@@ -425,7 +429,9 @@ string replaceCharList(const string& str, const vector<char>& ch1, char ch2)
     auto   end = ch1.end();
     string res = str;
     for (size_t i = 0; i < str.length(); ++i) {
-        if (std::find(beg, end, str[i]) != end) res[i] = ch2;
+        if (std::find(beg, end, str[i]) != end) {
+            res[i] = ch2;
+        }
     }
     return res;
 }
@@ -435,7 +441,9 @@ vector<string> tokenizeString(const string& str, char sep)
     vector<string> res;
     istringstream  is(str);
     string         token;
-    while (getline(is, token, sep)) res.push_back(token);
+    while (getline(is, token, sep)) {
+        res.push_back(token);
+    }
     return res;
 }
 

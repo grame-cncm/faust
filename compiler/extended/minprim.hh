@@ -79,14 +79,15 @@ class MinPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types) override
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         /*
-         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval
-         [O..inf] !
+         04/25/22 : this optimisation cannot be done because interval computation is buggy: like
+         no.noise interval [O..inf] !
          */
 
         /*
@@ -107,7 +108,8 @@ class MinPrim : public xtended {
         return generateFun(container, fun_name, args, result, types);
     }
 
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -143,8 +145,9 @@ class MinPrim : public xtended {
                 faustassert(b0 == kBool);  // first is boolean, cast to int
                 return subst("min(int($0), $1)", args[0], args[1], icast());
             } else {
-                // both are booleans, theoretically no need to cast, but we still do it to be sure 'true' is actually
-                // '1' and 'false' is actually '0' (which is not the case if compiled in SSE mode)
+                // both are booleans, theoretically no need to cast, but we still do it to be sure
+                // 'true' is actually '1' and 'false' is actually '0' (which is not the case if
+                // compiled in SSE mode)
                 faustassert(b0 == kBool);
                 faustassert(b1 == kBool);
                 return subst("min(int($0), int($1))", args[0], args[1]);
@@ -152,7 +155,8 @@ class MinPrim : public xtended {
         }
     }
 
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types) override
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
+                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -160,8 +164,8 @@ class MinPrim : public xtended {
         ::Type t = inferSigType(types);
         return subst("\\min\\left( $0, $1 \\right)", args[0], args[1]);
     }
-    
-    Tree diff(const std::vector<Tree> &args) override
+
+    Tree diff(const std::vector<Tree>& args) override
     {
         /*                /
          *                | f', f < g

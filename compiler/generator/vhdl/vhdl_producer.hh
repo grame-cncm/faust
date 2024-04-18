@@ -20,12 +20,12 @@ This program is distributed in the hope that it will be useful,
  ************************************************************************/
 
 #pragma once
-#include "vhdl_code_container.hh"
-#include "signalVisitor.hh"
-#include "global.hh"
-#include "sigtyperules.hh"
 #include <fstream>
 #include <optional>
+#include "global.hh"
+#include "signalVisitor.hh"
+#include "sigtyperules.hh"
+#include "vhdl_code_container.hh"
 
 typedef std::vector<int> Retiming;
 // Target sample rate in kHz
@@ -34,27 +34,34 @@ const float FPGA_SAMPLE_RATE = 44.1;
 const float MASTER_CLOCK_FREQUENCY = 667000;
 
 /**
- * A wrapper around signals, with additional information such as propagation delay of pipeline stages
+ * A wrapper around signals, with additional information such as propagation delay of pipeline
+ * stages
  */
 struct Vertex {
     static int input_counter;
     static int output_counter;
-    Tree signal;
-    size_t node_hash;
-    int nature;
+    Tree       signal;
+    size_t     node_hash;
+    int        nature;
 
     int propagation_delay = 1;
-    int pipeline_stages = 0;
+    int pipeline_stages   = 0;
 
     bool recursive;
 
     Vertex(const Tree& signal)
-        : signal(signal), node_hash(signal->hashkey()), nature(getCertifiedSigType(signal)->nature()), propagation_delay(1), pipeline_stages(0), recursive(false) {};
+        : signal(signal),
+          node_hash(signal->hashkey()),
+          nature(getCertifiedSigType(signal)->nature()),
+          propagation_delay(1),
+          pipeline_stages(0),
+          recursive(false){};
 
     // Creates an output/input node from another signal
     // This node can be a recursive output if it is linked to a Proj signal
-    Vertex(const Tree& signal, bool is_input): Vertex(signal) {
-        int i;
+    Vertex(const Tree& signal, bool is_input) : Vertex(signal)
+    {
+        int  i;
         Tree group;
         if (!isProj(signal, &i, group)) {
             i = is_input ? input_counter++ : output_counter++;
@@ -64,33 +71,22 @@ struct Vertex {
         this->signal = is_input ? sigInput(i) : sigOutput(i, signal);
     }
 
-    bool is_output() const
-    {
-        return signal->node() == gGlobal->SIGOUTPUT;
-    }
-    bool is_input() const {
-        return signal->node() == gGlobal->SIGINPUT;
-    }
-    bool is_recursive() const {
-        return recursive;
-    }
+    bool is_output() const { return signal->node() == gGlobal->SIGOUTPUT; }
+    bool is_input() const { return signal->node() == gGlobal->SIGINPUT; }
+    bool is_recursive() const { return recursive; }
 
-    int get_nature() const {
-        return nature;
-    }
+    int get_nature() const { return nature; }
 };
 
-template<>
+template <>
 struct std::hash<Vertex> {
-    std::size_t operator()(Vertex const& v) const noexcept
-    {
-        return v.node_hash;
-    }
+    std::size_t operator()(Vertex const& v) const noexcept { return v.node_hash; }
 };
 
 /**
- * Structure holding information about connections between vertices, notably the number of registers between them.
- * It also keeps intermediate results in memory, such as the highest critical path weight/delay
+ * Structure holding information about connections between vertices, notably the number of registers
+ * between them. It also keeps intermediate results in memory, such as the highest critical path
+ * weight/delay
  */
 struct Edge {
     int target;
@@ -99,23 +95,30 @@ struct Edge {
     int critical_path_weight;
     int critical_path_delay;
 
-    Edge(int target_id, int register_count, int origin_delay): target(target_id), register_count(register_count), critical_path_weight(register_count), critical_path_delay(-origin_delay) {}
+    Edge(int target_id, int register_count, int origin_delay)
+        : target(target_id),
+          register_count(register_count),
+          critical_path_weight(register_count),
+          critical_path_delay(-origin_delay)
+    {
+    }
 };
 
 /**
  * Used to make the creation of a graph from the depth-first traversal of the signal tree clearer.
  */
 struct VisitInfo {
-    int vertex_index;
+    int  vertex_index;
     bool is_recursive = false;
 
-    static VisitInfo make_recursive(int vertex_index) {
+    static VisitInfo make_recursive(int vertex_index)
+    {
         VisitInfo info(vertex_index);
         info.is_recursive = true;
         return info;
     }
 
-    VisitInfo(int vertex_index): vertex_index(vertex_index) {}
+    VisitInfo(int vertex_index) : vertex_index(vertex_index) {}
 };
 
 //-------------------------VhdlProducer---------------------------------
@@ -123,24 +126,24 @@ struct VisitInfo {
 //----------------------------------------------------------------------
 class VhdlProducer : public SignalVisitor {
     // Graph
-    std::vector<Vertex> _vertices;
+    std::vector<Vertex>            _vertices;
     std::vector<std::vector<Edge>> _edges;
 
     // Used to create the graph from a signal tree
     std::stack<VisitInfo> _visit_stack;
-    std::stack<int> _virtual_io_stack;
+    std::stack<int>       _virtual_io_stack;
 
     // General IP information
     std::string _name;
-    int _inputs_count;
-    int _outputs_count;
+    int         _inputs_count;
+    int         _outputs_count;
 
     /** Visits the signal tree recursively to transform it into a weighted graph */
     virtual void visit(Tree signal) override;
 
    public:
     VhdlProducer(Tree signal, const std::string& name, int numInputs, int numOutputs)
-    : _name(name), _inputs_count(numInputs), _outputs_count(numOutputs)
+        : _name(name), _inputs_count(numInputs), _outputs_count(numOutputs)
     {
         // Convert the input signal to a weighted circuit graph
         visitRoot(signal);
@@ -149,7 +152,8 @@ class VhdlProducer : public SignalVisitor {
         if (!gGlobal->gVHDLComponentsFile.empty()) {
             std::ifstream components_file(gGlobal->gVHDLComponentsFile);
             if (!components_file) {
-                std::cerr << "ASSERT : failed to read file : " << gGlobal->gVHDLComponentsFile << std::endl;
+                std::cerr << "ASSERT : failed to read file : " << gGlobal->gVHDLComponentsFile
+                          << std::endl;
                 faustassert(false);
             }
             parseCustomComponents(components_file);
@@ -207,26 +211,28 @@ class VhdlProducer : public SignalVisitor {
      * W[i][j] = minimum weight (i.e registers count) from i to j -> critical path
      * D[i][j] = maximum propagation delay along the critical path from i to j
      */
-     void computeWeightDelayInformation();
+    void computeWeightDelayInformation();
 
-     /** Given a clock period c, returns a retiming of the circuit with clock period
-      * less than c if it exists
-      */
-     std::optional<Retiming> findRetiming(int target_clock_period);
+    /** Given a clock period c, returns a retiming of the circuit with clock period
+     * less than c if it exists
+     */
+    std::optional<Retiming> findRetiming(int target_clock_period);
 
-     /** Applies a given retiming to the circuit, assuming said retiming is legal */
-     void applyRetiming(const Retiming& retiming);
+    /** Applies a given retiming to the circuit, assuming said retiming is legal */
+    void applyRetiming(const Retiming& retiming);
 
     /**
      * HELPER FUNCTIONS
      */
     /** Computes the maximum number of cycles necessary to access a given vertex.
-     * It is equivalent to the longest path along the graph, weighted by registers and pipeline stages.
-     * This is useful to propagate signals like ap_start in the actual circuit along a series of registers.
+     * It is equivalent to the longest path along the graph, weighted by registers and pipeline
+     * stages. This is useful to propagate signals like ap_start in the actual circuit along a
+     * series of registers.
      */
     int cyclesFromInput(int vertex) const;
 
-    std::optional<int> searchNode(const size_t hash) const {
+    std::optional<int> searchNode(const size_t hash) const
+    {
         for (size_t v = 0; v < _vertices.size(); ++v) {
             if (_vertices[v].node_hash == hash) {
                 return std::optional<int>(v);
@@ -236,7 +242,8 @@ class VhdlProducer : public SignalVisitor {
         return std::nullopt;
     }
 
-    std::vector<int> incomingEdges(int vertex_id, const std::vector<std::vector<Edge>>& edges) const {
+    std::vector<int> incomingEdges(int vertex_id, const std::vector<std::vector<Edge>>& edges) const
+    {
         std::vector<int> incoming;
         for (size_t v = 0; v < edges.size(); ++v) {
             for (auto edge : edges[v]) {
@@ -248,11 +255,13 @@ class VhdlProducer : public SignalVisitor {
         return incoming;
     }
 
-    std::vector<std::vector<Edge>> transposedGraph() const {
+    std::vector<std::vector<Edge>> transposedGraph() const
+    {
         std::vector<std::vector<Edge>> transposed(_edges.size(), std::vector<Edge>());
         for (size_t v = 0; v < _edges.size(); ++v) {
             for (auto edge : _edges[v]) {
-                transposed[edge.target].push_back(Edge(v, edge.register_count, edge.critical_path_delay));
+                transposed[edge.target].push_back(
+                    Edge(v, edge.register_count, edge.critical_path_delay));
             }
         }
         return transposed;
@@ -271,18 +280,20 @@ class VhdlProducer : public SignalVisitor {
     /** Overrides the TreeTraversal::self method to handle recursion */
     virtual void self(Tree t) override
     {
-        if (fTrace) traceEnter(t);
+        if (fTrace) {
+            traceEnter(t);
+        }
         fIndent++;
         if (!fVisited.count(t)) {
             fVisited[t] = 0;
             visit(t);
         } else {
-            int vertex_id = _vertices.size();
+            int  vertex_id   = _vertices.size();
             auto existing_id = searchNode(t->hashkey());
             // If the signal was already seen before and our subtree goes to a recursive output,
             // we add the corresponding recursive input to this node.
             if (existing_id.has_value() && !_virtual_io_stack.empty()) {
-                vertex_id = _visit_stack.top().vertex_index;
+                vertex_id            = _visit_stack.top().vertex_index;
                 int virtual_input_id = _virtual_io_stack.top();
                 _edges[virtual_input_id].push_back(Edge(vertex_id, 0, 0));
             }
@@ -291,6 +302,8 @@ class VhdlProducer : public SignalVisitor {
         // Keep visit counter
         fVisited[t]++;
         fIndent--;
-        if (fTrace) traceExit(t);
+        if (fTrace) {
+            traceExit(t);
+        }
     }
 };

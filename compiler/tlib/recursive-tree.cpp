@@ -24,9 +24,9 @@
 #include <stdlib.h>
 
 #include "exception.hh"
+#include "faust/export.h"
 #include "global.hh"
 #include "tlib.hh"
-#include "faust/export.h"
 
 using namespace std;
 
@@ -34,7 +34,7 @@ using namespace std;
 static Tree calcDeBruijn2Sym(Tree t);
 static Tree substitute(Tree t, int n, Tree id);
 static Tree calcsubstitute(Tree t, int level, Tree id);
-Tree liftn(Tree t, int threshold);
+Tree        liftn(Tree t, int threshold);
 static Tree calcliftn(Tree t, int threshold);
 
 // Tree	NOVAR = tree("NOVAR");
@@ -57,7 +57,8 @@ bool isRec(Tree t, Tree& body)
 Tree ref(int level)
 {
     faustassert(level > 0);
-    return tree(gGlobal->DEBRUIJNREF, tree(level));  // reference to enclosing recursive tree starting from 1
+    return tree(gGlobal->DEBRUIJNREF,
+                tree(level));  // reference to enclosing recursive tree starting from 1
 }
 
 bool isRef(Tree t, int& level)
@@ -129,7 +130,9 @@ int CTree::calcTreeAperture(const Node& n, const tvec& br)
         tvec::const_iterator b  = br.begin();
         tvec::const_iterator z  = br.end();
         while (b != z) {
-            if ((*b)->aperture() > rc) rc = (*b)->aperture();
+            if ((*b)->aperture() > rc) {
+                rc = (*b)->aperture();
+            }
             ++b;
         }
         return rc;
@@ -191,7 +194,7 @@ static Tree calcliftn(Tree t, int threshold)
         return rec(liftn(u, threshold + 1));
 
     } else {
-        int n1 = t->arity();
+        int  n1 = t->arity();
         tvec br(n1);
         for (int i = 0; i < n1; i++) {
             br[i] = liftn(t->branch(i), threshold);
@@ -264,10 +267,14 @@ static Tree calcsubstitute(Tree t, int level, Tree id)
         // fprintf(stderr, "aperture %d < level %d !!\n", t->aperture(), level);
         return t;
     }
-    if (isRef(t, l)) return (l == level) ? id : t;
-    if (isRec(t, body)) return rec(substitute(body, level + 1, id));
+    if (isRef(t, l)) {
+        return (l == level) ? id : t;
+    }
+    if (isRec(t, body)) {
+        return rec(substitute(body, level + 1, id));
+    }
 
-    int ar = t->arity();
+    int  ar = t->arity();
     tvec br(ar);
     for (int i = 0; i < ar; i++) {
         br[i] = substitute(t->branch(i), level, id);

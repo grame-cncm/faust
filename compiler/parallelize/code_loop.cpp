@@ -26,31 +26,35 @@
 #include <vector>
 
 #include "code_loop.hh"
+#include "fir_to_fir.hh"
 #include "floats.hh"
 #include "global.hh"
-#include "fir_to_fir.hh"
 
 using namespace std;
 
 ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_in_bytes)
 {
-    DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
-    ValueInst*    loop_end;
-    StoreVarInst* loop_increment;
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(),
+                                                           InstBuilder::genInt32NumInst(0));
+    ValueInst*      loop_end;
+    StoreVarInst*   loop_increment;
 
     if (loop_var_in_bytes) {
         loop_end = InstBuilder::genLessThan(
-            loop_decl->load(), InstBuilder::genMul(InstBuilder::genInt32NumInst((int)pow(2, gGlobal->gFloatSize + 1)),
-                                                   InstBuilder::genLoadFunArgsVar(counter)));
-        loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), (int)pow(2, gGlobal->gFloatSize + 1)));
+            loop_decl->load(),
+            InstBuilder::genMul(InstBuilder::genInt32NumInst((int)pow(2, gGlobal->gFloatSize + 1)),
+                                InstBuilder::genLoadFunArgsVar(counter)));
+        loop_increment = loop_decl->store(
+            InstBuilder::genAdd(loop_decl->load(), (int)pow(2, gGlobal->gFloatSize + 1)));
     } else {
-        loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
+        loop_end =
+            InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
         loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
     }
 
-    BlockInst* block = generateOneSample();
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block, fIsRecursive);
+    BlockInst*   block = generateOneSample();
+    ForLoopInst* loop =
+        InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block, fIsRecursive);
 
     BasicCloneVisitor cloner;
     return static_cast<ForLoopInst*>(loop->clone(&cloner));
@@ -62,8 +66,9 @@ SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
     ValueInst* upper_bound = InstBuilder::genLoadFunArgsVar(counter);
     ValueInst* lower_bound = InstBuilder::genInt32NumInst(0);
 
-    BlockInst* block = generateOneSample();
-    SimpleForLoopInst* loop = InstBuilder::genSimpleForLoopInst(fLoopIndex, upper_bound, lower_bound, false, block);
+    BlockInst*         block = generateOneSample();
+    SimpleForLoopInst* loop =
+        InstBuilder::genSimpleForLoopInst(fLoopIndex, upper_bound, lower_bound, false, block);
 
     BasicCloneVisitor cloner;
     return static_cast<SimpleForLoopInst*>(loop->clone(&cloner));
@@ -76,8 +81,8 @@ IteratorForLoopInst* CodeLoop::generateSimpleScalarLoop(const std::vector<string
         iterators1.push_back(InstBuilder::genNamedAddress(it, Address::kStack));
     }
 
-    BlockInst* block = generateOneSample();
-    IteratorForLoopInst* loop = InstBuilder::genIteratorForLoopInst(iterators1, false, block);
+    BlockInst*           block = generateOneSample();
+    IteratorForLoopInst* loop  = InstBuilder::genIteratorForLoopInst(iterators1, false, block);
 
     BasicCloneVisitor cloner;
     return static_cast<IteratorForLoopInst*>(loop->clone(&cloner));
@@ -118,8 +123,8 @@ void CodeLoop::generateDAGScalarLoop(BlockInst* block, LoadVarInst* count, bool 
 
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
-        DeclareVarInst* loop_decl =
-            InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
+        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(
+            fLoopIndex, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
         ValueInst*    loop_end       = InstBuilder::genLessThan(loop_decl->load(), count);
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
@@ -131,7 +136,8 @@ void CodeLoop::generateDAGScalarLoop(BlockInst* block, LoadVarInst* count, bool 
         BlockInst* block1 = InstBuilder::genBlockInst();
         pushBlock(fComputeInst, block1);
 
-        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block1, fIsRecursive);
+        ForLoopInst* loop =
+            InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block1, fIsRecursive);
         block->pushBackInst(loop);
     }
 
@@ -164,7 +170,9 @@ bool CodeLoop::isEmpty()
 bool CodeLoop::hasRecDependencyIn(Tree S)
 {
     CodeLoop* l = this;
-    while (l && isNil(setIntersection(l->fRecSymbolSet, S))) l = l->fEnclosingLoop;
+    while (l && isNil(setIntersection(l->fRecSymbolSet, S))) {
+        l = l->fEnclosingLoop;
+    }
     return l != 0;
 }
 
@@ -180,12 +188,16 @@ void CodeLoop::absorb(CodeLoop* l)
     fRecSymbolSet = setUnion(fRecSymbolSet, l->fRecSymbolSet);
 
     // update loop dependencies by adding those from the absorbed loop
-    fBackwardLoopDependencies.insert(l->fBackwardLoopDependencies.begin(), l->fBackwardLoopDependencies.end());
+    fBackwardLoopDependencies.insert(l->fBackwardLoopDependencies.begin(),
+                                     l->fBackwardLoopDependencies.end());
 
     // add the line of code of the absorbed loop
-    fPreInst->fCode.insert(fPreInst->fCode.end(), l->fPreInst->fCode.begin(), l->fPreInst->fCode.end());
-    fComputeInst->fCode.insert(fComputeInst->fCode.end(), l->fComputeInst->fCode.begin(), l->fComputeInst->fCode.end());
-    fPostInst->fCode.insert(fPostInst->fCode.begin(), l->fPostInst->fCode.begin(), l->fPostInst->fCode.end());
+    fPreInst->fCode.insert(fPreInst->fCode.end(), l->fPreInst->fCode.begin(),
+                           l->fPreInst->fCode.end());
+    fComputeInst->fCode.insert(fComputeInst->fCode.end(), l->fComputeInst->fCode.begin(),
+                               l->fComputeInst->fCode.end());
+    fPostInst->fCode.insert(fPostInst->fCode.begin(), l->fPostInst->fCode.begin(),
+                            l->fPostInst->fCode.end());
 
     // copy loop index
     fLoopIndex = l->fLoopIndex;
@@ -228,8 +240,8 @@ void CodeLoop::resetOrder(CodeLoop* l, set<CodeLoop*>& visited)
     if (visited.find(l) == visited.end()) {
         visited.insert(l);
         l->fOrder = -1;
-        for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
-             p++) {
+        for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin();
+             p != l->fBackwardLoopDependencies.end(); p++) {
             resetOrder(*p, visited);
         }
     }
@@ -271,7 +283,8 @@ void CodeLoop::computeUseCount(CodeLoop* l)
 {
     l->fUseCount++;
     if (l->fUseCount == 1) {
-        for (lclset::iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
+        for (lclset::iterator p = l->fBackwardLoopDependencies.begin();
+             p != l->fBackwardLoopDependencies.end(); p++) {
             computeUseCount(*p);
         }
     }
@@ -297,8 +310,8 @@ void CodeLoop::groupSeqLoops(CodeLoop* l, set<CodeLoop*>& visited)
             }
             return;
         } else if (n > 1) {
-            for (lclset::iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
-                 p++) {
+            for (lclset::iterator p = l->fBackwardLoopDependencies.begin();
+                 p != l->fBackwardLoopDependencies.end(); p++) {
                 groupSeqLoops(*p, visited);
             }
         }

@@ -44,7 +44,8 @@ void BoxIdentity::traceEnter(Tree t)
 void BoxIdentity::traceExit(Tree t, Tree r)
 {
     tab(fIndent, cerr);
-    cerr << fMessage << ": " << boxpp(t, MAX_ERROR_SIZE) << " => " << boxpp(r, MAX_ERROR_SIZE) << endl;
+    cerr << fMessage << ": " << boxpp(t, MAX_ERROR_SIZE) << " => " << boxpp(r, MAX_ERROR_SIZE)
+         << endl;
 }
 
 Tree BoxIdentity::transformation(Tree box)

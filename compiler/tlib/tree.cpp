@@ -89,12 +89,12 @@ using namespace std;
 #pragma warning(disable : 4800)
 #endif
 
-#define ERROR(s, t)                     \
-{                                       \
-    stringstream error;                 \
-    error << s << *t << endl;           \
-    throw faustexception(error.str());  \
-}
+#define ERROR(s, t)                        \
+    {                                      \
+        stringstream error;                \
+        error << s << *t << endl;          \
+        throw faustexception(error.str()); \
+    }
 
 Tree         CTree::gHashTable[kHashTableSize];
 bool         CTree::gDetails       = false;
@@ -159,7 +159,9 @@ size_t CTree::calcTreeHash(const Node& n, const tvec& br)
 Tree CTree::make(const Node& n, int ar, Tree* tbl)
 {
     tvec br(ar);
-    for (int i = 0; i < ar; i++) br[i] = tbl[i];
+    for (int i = 0; i < ar; i++) {
+        br[i] = tbl[i];
+    }
     return CTree::make(n, br);
 }
 
@@ -216,8 +218,8 @@ void CTree::control()
 void CTree::init()
 {
     gSerialCounter = 0;
-    gVisitTime = 0;
-    gDetails = false;
+    gVisitTime     = 0;
+    gDetails       = false;
     memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
 }
 

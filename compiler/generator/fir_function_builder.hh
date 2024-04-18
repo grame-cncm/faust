@@ -83,12 +83,12 @@ struct Loop2FunctionBuider : public DispatchVisitor {
     std::list<std::string>                     fAddedVarTable;
 
     // Function definition creation
-    Names fArgsTypeList;
-    DeclareFunInst*   fFunctionDef;
+    Names           fArgsTypeList;
+    DeclareFunInst* fFunctionDef;
 
     // Function call creation
-    Values fArgsValueList;
-    DropInst*        fFunctionCall;
+    Values    fArgsValueList;
+    DropInst* fFunctionCall;
 
     void createParameter(Address* address)
     {
@@ -102,12 +102,13 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                         // Be sure variable is defined
                         // cerr << "createParameter kStack " << name << endl;
-                        faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
+                        faustassert(gGlobal->gVarTypeTable.find(name) !=
+                                    gGlobal->gVarTypeTable.end());
 
                         // Local in the enclosing context, becomes a fun parameter
                         BasicCloneVisitor cloner;
-                        fArgsTypeList.push_back(
-                            InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
+                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(
+                            name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
                         // It becomes a value in the fun-call argument list
                         fArgsValueList.push_back(InstBuilder::genLoadStackVar(name));
@@ -133,8 +134,8 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                     // Parameter in the enclosing function, becomes a fun parameter
                     BasicCloneVisitor cloner;
-                    fArgsTypeList.push_back(
-                        InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
+                    fArgsTypeList.push_back(InstBuilder::genNamedTyped(
+                        name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
                     // It becomes a value in the fun-call argument list : keep it's kFunArgs status
                     fArgsValueList.push_back(InstBuilder::genLoadFunArgsVar(name));
@@ -198,7 +199,8 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
             virtual Address* visit(NamedAddress* address)
             {
-                if (find(fAddedVarTable.begin(), fAddedVarTable.end(), address->fName) != fAddedVarTable.end()) {
+                if (find(fAddedVarTable.begin(), fAddedVarTable.end(), address->fName) !=
+                    fAddedVarTable.end()) {
                     return InstBuilder::genNamedAddress(address->fName, Address::kFunArgs);
                 } else {
                     return BasicCloneVisitor::visit(address);
@@ -215,7 +217,8 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
         // Add "dsp" arg in function prototype and in parameter list
         if (add_object) {
-            fArgsTypeList.push_front(InstBuilder::genNamedTyped("dsp", InstBuilder::genBasicTyped(Typed::kObj_ptr)));
+            fArgsTypeList.push_front(
+                InstBuilder::genNamedTyped("dsp", InstBuilder::genBasicTyped(Typed::kObj_ptr)));
             fArgsValueList.push_front(InstBuilder::genLoadFunArgsVar("dsp"));
         }
 
@@ -223,7 +226,8 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         fFunctionDef = InstBuilder::genVoidFunction(fun_name, fArgsTypeList, function_code);
 
         // Create function call
-        fFunctionCall = InstBuilder::genDropInst(InstBuilder::genFunCallInst(fun_name, fArgsValueList));
+        fFunctionCall =
+            InstBuilder::genDropInst(InstBuilder::genFunCallInst(fun_name, fArgsValueList));
     }
 };
 
@@ -311,7 +315,8 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         } else if (int1) {
             return (int1->fNum > 0) ? inst->fThen->clone(this) : inst->fElse->clone(this);
         } else {
-            return InstBuilder::genSelect2Inst(val1, inst->fThen->clone(this), inst->fElse->clone(this));
+            return InstBuilder::genSelect2Inst(val1, inst->fThen->clone(this),
+                                               inst->fElse->clone(this));
         }
     }
 
@@ -320,7 +325,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         ValueInst*    val1   = inst->fValue->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
         Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
-        std::string  name   = inst->fAddress->getName();
+        std::string   name   = inst->fAddress->getName();
 
         if (float1) {
             // float1->dump();
@@ -333,7 +338,8 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             return InstBuilder::genDropInst();
         } else {
             BasicCloneVisitor cloner;
-            return InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), val1);
+            return InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner),
+                                                  inst->fType->clone(&cloner), val1);
         }
     }
 
@@ -353,7 +359,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         ValueInst*    val1   = inst->fValue->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
         Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
-        std::string  name   = inst->fAddress->getName();
+        std::string   name   = inst->fAddress->getName();
 
         if (float1) {
             // float1->dump();

@@ -31,7 +31,8 @@ class PSDev : public device {
     PSDev(const char*, double, double);
     ~PSDev();
     void rect(double, double, double, double, const char*, const char*);
-    void triangle(double x, double y, double l, double h, const char* color, const char* link, bool leftright);
+    void triangle(double x, double y, double l, double h, const char* color, const char* link,
+                  bool leftright);
     void rond(double, double, double);
     void carre(double, double, double);
     void fleche(double, double, double, int);
