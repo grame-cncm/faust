@@ -39,7 +39,6 @@
 #endif
 #include "faust/gui/meta.h"
 #include "faust/audio/dummy-audio.h"
-#include "faust/dsp/one-sample-dsp.h"
 #ifdef FIXED_POINT
 #include "faust/dsp/fixed-point.h"
 #endif

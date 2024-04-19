@@ -29,7 +29,6 @@
 #include <math.h>
 
 #include "faust/gui/UI.h"
-#include "faust/dsp/one-sample-dsp.h"
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
 

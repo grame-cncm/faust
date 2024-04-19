@@ -37,7 +37,6 @@
 #include <list>
 
 #include "faust/dsp/timed-dsp.h"
-#include "faust/dsp/one-sample-dsp.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/PrintUI.h"
 #include "faust/misc.h"
