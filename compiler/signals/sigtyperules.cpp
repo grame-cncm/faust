@@ -27,6 +27,7 @@
 
 #include "exception.hh"
 #include "global.hh"
+#include "interval_def.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
@@ -151,10 +152,10 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
         default:
             cerr << "ASSERT : unrecognized opcode : " << opcode << endl;
             faustassert(false);
-            return {};
+            return itv::empty();
     }
 
-    return interval();
+    return itv::empty();
 }
 
 // Uncomment to activate type inferrence tracing
@@ -188,8 +189,8 @@ static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef,
     vector<Type> newTuplet;
     TupletType   newRecType;
     TupletType   oldRecType;
-    interval     newI;
-    interval     oldI;
+    interval     newI(NAN, NAN);
+    interval     oldI(NAN, NAN);
 
     const int n = vdef.size();
 
@@ -248,8 +249,8 @@ void typeAnnotation(Tree sig, bool causality)
     vector<Type> newTuplet;
     TupletType   newRecType;
     TupletType   oldRecType;
-    interval     newI;
-    interval     oldI;
+    interval     newI(NAN, NAN);
+    interval     oldI(NAN, NAN);
 
     // cerr << "Symlist " << *sl << endl;
     for (Tree l = sl; isList(l); l = tl(l)) {
@@ -741,7 +742,7 @@ static Type inferSigType(Tree sig, Tree env)
         Type     t2 = T(max, env);
         Type     t3 = T(cur, env);
         interval i3 = t3->getInterval();
-        interval iEnd;
+        interval iEnd(NAN, NAN);
         constSig2double(min);
         if (i3.isValid()) {
             iEnd = interval(std::max(i3.lo(), constSig2double(min)),
@@ -828,12 +829,9 @@ static Type inferWriteTableType(Type tbl, Type wi, Type ws)
     int vec = wi->vectorability() | ws->vectorability();
     // Interval is the reunion of tbl (and its init signal) and ws
     interval i = itv::reunion(tbl->getInterval(), ws->getInterval());
-    TRACE(cerr << gGlobal->TABBER << "infering write table type : n="
-               << "NR"[n] << ", v="
-               << "KB?S"[v] << ", c="
-               << "CI?E"[c] << ", vec="
-               << "VS?TS"[vec] << ", b="
-               << "N?B"[b] << ", i=" << i << endl);
+    TRACE(cerr << gGlobal->TABBER << "infering write table type : n=" << "NR"[n]
+               << ", v=" << "KB?S"[v] << ", c=" << "CI?E"[c] << ", vec=" << "VS?TS"[vec]
+               << ", b=" << "N?B"[b] << ", i=" << i << endl);
     Type tbltype = makeTableType(tt->content(), n, v, c, vec, b, i);
     TRACE(cerr << gGlobal->TABBER << "infering write table type : result = " << tbltype << endl);
     return tbltype;
