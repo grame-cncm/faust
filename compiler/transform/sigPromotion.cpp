@@ -59,9 +59,9 @@ string SignalTypePrinter::print()
 
 void SignalTypePrinter::visit(Tree sig)
 {
-    stringstream res;
-    res << "Sig = " << ppsig(sig, MAX_ERROR_SIZE) << ", " << getCertifiedSigType(sig) << endl;
-    fPrinted.push_back(res.str());
+    stringstream type;
+    type << "Type = " << getCertifiedSigType(sig) << endl;
+    fPrinted.push_back(type.str());
 
     // Default case and recursion
     SignalVisitor::visit(sig);
@@ -536,7 +536,7 @@ Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size_aux, Tree 
         throw faustexception(error.str());
     }
     Type     ty = getSigType(ri);
-    interval ri_i;
+    interval ri_i(NAN, NAN);
     // The tree may not be properly typed because of a inner safeSigRDTbl/safeSigWRTbl call
     if (ty) {
         ri_i = ty->getInterval();
@@ -567,7 +567,7 @@ Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree size_aux, Tree gen, Tree 
         throw faustexception(error.str());
     }
     Type     ty = getSigType(wi);
-    interval wi_i;
+    interval wi_i(NAN, NAN);
     // The tree may not be properly typed because of a inner safeSigRDTbl/safeSigWRTbl call
     if (ty) {
         wi_i = ty->getInterval();
@@ -837,8 +837,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isSigDelay1(sig, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Mem: "
-                      << "\t" << ppsig(sig) << "\tx: " << ppsig(x) << "\n";
+            std::cout << "Mem: " << "\t" << ppsig(sig) << "\tx: " << ppsig(x) << "\n";
         }
         // Derivative of a single sample delay wrt. any parameter is the delayed
         // differentiated signal.
@@ -848,8 +847,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isSigDelay(sig, x, y)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Delay: "
-                      << "\tx: " << ppsig(x) << "\t@y: " << ppsig(y) << "\n";
+            std::cout << "Delay: " << "\tx: " << ppsig(x) << "\t@y: " << ppsig(y) << "\n";
         }
 
         // Don't differentiate zero delay.
@@ -883,8 +881,8 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isProj(sig, &i, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Projection: "
-                      << "\tsig: " << ppsig(sig) << "\ti: " << i << "\tx: " << ppsig(x) << "\n";
+            std::cout << "Projection: " << "\tsig: " << ppsig(sig) << "\ti: " << i
+                      << "\tx: " << ppsig(x) << "\n";
         }
 
         // cf. propagate.cpp:504
@@ -894,8 +892,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isRec(sig, var, body)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Recursion: "
-                      << "\tsig: " << ppsig(sig) << "\tvar: " << extractName(var)
+            std::cout << "Recursion: " << "\tsig: " << ppsig(sig) << "\tvar: " << extractName(var)
                       << "\tbody: " << ppsig(body) << "\n";
         }
 

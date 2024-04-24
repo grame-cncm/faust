@@ -288,5 +288,4 @@ Tree signalUIPromote(Tree sig);
 Tree signalUIFreezePromote(Tree sig);
 Tree signalFTZPromote(Tree sig);
 Tree signalAutoDifferentiate(Tree sig);
-
 #endif

@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 #include <cstdlib>
+#include <string>
 #include "property.hh"
 #include "tree.hh"
 
@@ -45,10 +46,15 @@ class TreeTransform : public Garbageable {
     std::string fMessage;  // trace message
 
    public:
-    TreeTransform() : fTrace(false), fIndent(0), fMessage("TreeTransform") {}
+    TreeTransform(int indentation = 0)
+        : fTrace(false), fIndent(indentation), fMessage("TreeTransform")
+    {
+    }
 
     Tree self(Tree t);
     Tree mapself(Tree lt);
+
+    int getIndentation() { return fIndent; }
 
     // recursive signals transformation
     virtual Tree selfRec(Tree t);
@@ -60,10 +66,19 @@ class TreeTransform : public Garbageable {
         fTrace   = b;
         fMessage = m;
     }
+    void trace(bool b, const std::string& m, int identation)
+    {
+        fTrace   = b;
+        fMessage = m;
+        fIndent  = identation;
+    }
+    void traceMsg(std::string msg);
+    void traceMsg(std::string msg, Tree t);
 
    protected:
-    virtual Tree transformation(Tree) = 0;   // the tranformation to implement
-    virtual void traceEnter(Tree t);         // called when entering a transformation
+    virtual Tree transformation(Tree) = 0;  // the tranformation to implement
+    virtual Tree postprocess(Tree);   // modify a tree after the transformation of its children
+    virtual void traceEnter(Tree t);  // called when entering a transformation
     virtual void traceExit(Tree t, Tree r);  // called when exiting a transformation
 };
 

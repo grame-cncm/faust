@@ -45,7 +45,7 @@ Tree TreeTransform::self(Tree t)
     fIndent++;
     Tree r;
     if (!fResult.get(t, r)) {
-        r = transformation(t);
+        r = postprocess(transformation(t));
         fResult.set(t, r);
     }
     fIndent--;
@@ -53,6 +53,22 @@ Tree TreeTransform::self(Tree t)
         traceExit(t, r);
     }
     return r;
+}
+
+void TreeTransform::traceMsg(std::string msg)
+{
+    if (fTrace) {
+        tab(fIndent, cerr);
+        cerr << msg << endl;
+    }
+}
+
+void TreeTransform::traceMsg(std::string msg, Tree t)
+{
+    if (fTrace) {
+        tab(fIndent, cerr);
+        cerr << msg << ": " << *t << endl;
+    }
 }
 
 void TreeTransform::traceEnter(Tree t)
@@ -72,7 +88,10 @@ Tree TreeTransform::mapself(Tree lt)
     if (isNil(lt)) {
         return lt;
     } else {
-        return cons(self(hd(lt)), mapself(tl(lt)));
+        Tree e = hd(lt);
+        Tree f = self(e);
+        // std::cerr << "e: " << *e << " f: " << *f << std::endl;
+        return cons(f, mapself(tl(lt)));
     }
 }
 
@@ -90,4 +109,10 @@ Tree TreeTransform::mapselfRec(Tree lt)
     } else {
         return cons(selfRec(hd(lt)), mapselfRec(tl(lt)));
     }
+}
+
+// This second pass is used to modify a tree after the transformation of its children
+Tree TreeTransform::postprocess(Tree t)
+{
+    return t;
 }

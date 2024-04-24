@@ -43,8 +43,8 @@ class TreeTraversal : public Garbageable {
     std::string fMessage;       // trace message
 
     virtual void visit(Tree) = 0;     // the visit to implement
-    void         traceEnter(Tree t);  // called when entering a visit
-    void         traceExit(Tree t);   // called when exiting a visit
+    virtual void traceEnter(Tree t);  // called when entering a visit
+    virtual void traceExit(Tree t);   // called when exiting a visit
 
    public:
     explicit TreeTraversal(const std::string& msg = "TreeTraversal") : fMessage(msg) {}
