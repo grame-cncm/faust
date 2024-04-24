@@ -38,6 +38,7 @@ ppsig::ppsig(Tree s, int max_size)
 
 ostream& ppsig::printinfix(ostream& fout, const string& opname, int priority, Tree x, Tree y) const
 {
+#if 0
     if (fPriority > priority) {
         fout << "(";
     }
@@ -46,6 +47,8 @@ ostream& ppsig::printinfix(ostream& fout, const string& opname, int priority, Tr
         fout << ")";
     }
     return fout;
+#endif
+    return printfun(fout, opname, x, y);
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x) const
@@ -152,13 +155,14 @@ ostream& ppsig::printff(ostream& fout, Tree ff, Tree largs) const
 
 ostream& ppsig::printDelay(ostream& fout, Tree exp, Tree delay) const
 {
-    int d;
+    // int d;
 
-    if (isSigInt(delay, &d) && (d == 1)) {
-        fout << ppsig(exp, fEnv, 8, fMaxSize) << "'";
-    } else {
-        printinfix(fout, "@", 8, exp, delay);
-    }
+    // if (isSigInt(delay, &d) && (d == 1)) {
+    //     fout << ppsig(exp, fEnv, 8, fMaxSize) << "'";
+    // } else {
+    //     printinfix(fout, "@", 8, exp, delay);
+    // }
+    printfun(fout, "Delay", exp, delay);
     return fout;
 }
 
@@ -248,7 +252,7 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else if (isSigDelay1(fSig, x)) {
-        fout << ppsig(x, fEnv, 9, fMaxSize) << "'";
+        printDelay(fout, x, sigInt(1));
     } else if (isSigDelay(fSig, x, y)) {
         printDelay(fout, x, y);
     } else if (isSigPrefix(fSig, x, y)) {
@@ -269,12 +273,12 @@ ostream& ppsig::print(ostream& fout) const
             printfun(fout, "TABLE", w, x);
         } else {
             // rwtable
-            printfun(fout, "write(TABLE", w, x);
-            fout << "," << ppsig(y, fEnv, 0, fMaxSize);
-            fout << "," << ppsig(z, fEnv, 0, fMaxSize) << ")";
+            printfun(fout, "write( TABLE", w, x);
+            fout << "; " << ppsig(y, fEnv, 0, fMaxSize);
+            fout << "; " << ppsig(z, fEnv, 0, fMaxSize) << " )";
         }
     } else if (isSigRDTbl(fSig, x, y)) {
-        printfun(fout, "read", x, y);
+        printfun(fout, "READTABLE", x, y);
     } else if (isSigGen(fSig, x)) {
         fout << ppsig(x, fEnv, fPriority, fMaxSize);
     }
@@ -531,7 +535,7 @@ ostream& ppsigShared::print(ostream& fout) const
     }
 
     else if (isSigDelay1(fSig, x)) {
-        SIG_INSERT_ID(s << ppsigShared(x, fEnv, 9) << "'");
+        SIG_INSERT_ID(printDelay(s, x, sigInt(1)));
     } else if (isSigDelay(fSig, x, y)) {
         SIG_INSERT_ID(printDelay(s, x, y));
     } else if (isSigPrefix(fSig, x, y)) {

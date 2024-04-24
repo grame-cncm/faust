@@ -49,12 +49,9 @@ AudioType::AudioType(int n, int v, int c, int vec, int b, interval i, res r)
       fRes(r),
       fCode(0)
 {
-    TRACE(cerr << gGlobal->TABBER << "Building audioType : n="
-               << "NR"[n] << ", v="
-               << "KB?S"[v] << ", c="
-               << "CI?E"[c] << ", vec="
-               << "VS?TS"[vec] << ", b="
-               << "N?B"[b] << ", i=" << i << endl);
+    TRACE(cerr << gGlobal->TABBER << "Building audioType : n=" << "NR"[n] << ", v=" << "KB?S"[v]
+               << ", c=" << "CI?E"[c] << ", vec=" << "VS?TS"[vec] << ", b=" << "N?B"[b]
+               << ", i=" << i << endl);
 }  ///< constructs an abstract audio type
 
 bool SimpleType::isMaximal()
@@ -203,26 +200,14 @@ bool operator==(const Type& t1, const Type& t2)
     }
 
     if ((st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2))) {
-        /*
-        return (st1->nature() == st2->nature()) && (st1->variability() == st2->variability()) &&
-               (st1->computability() == st2->computability()) && (st1->vectorability() ==
-        st2->vectorability()) && (st1->boolean() == st2->boolean()) && (st1->getInterval().lo() ==
-        st2->getInterval().lo()) && (st1->getInterval().hi() == st2->getInterval().hi()) &&
-               (st1->getInterval().isValid() == st2->getInterval().isValid()) &&
-               st1->getRes().valid == st2->getRes().valid && st1->getRes().index ==
-        st2->getRes().index;
-        */
-
+        // we need to ignore fix point resolution, because it never converges
         return (st1->nature() == st2->nature()) && (st1->variability() == st2->variability()) &&
                (st1->computability() == st2->computability()) &&
                (st1->vectorability() == st2->vectorability()) &&
                (st1->boolean() == st2->boolean()) &&
                (st1->getInterval().lo() == st2->getInterval().lo()) &&
-               (st1->getInterval().hi() == st2->getInterval().hi()) &&
-               (st1->getInterval().isValid() == st2->getInterval().isValid()) &&
-               st1->getRes().valid == st2->getRes().valid;
+               (st1->getInterval().hi() == st2->getInterval().hi());
     }
-
     if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) {
         return tt1->content() == tt2->content();
     }

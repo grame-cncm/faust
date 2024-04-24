@@ -58,6 +58,7 @@ set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended
 	${SRCDIR}/FaustAlgebra
 	${SRCDIR}/DirectedGraph
+	${SRCDIR}/interval
 	${SRCDIR}/generator
 	${SRCDIR}/generator/dlang
 	${SRCDIR}/generator/csharp
