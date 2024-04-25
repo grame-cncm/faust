@@ -163,6 +163,11 @@ inline std::ostream& operator<<(std::ostream& dst, const interval& i)
 // set operations
 //-------------------------------------------------------------------------
 
+inline interval empty() noexcept
+{
+    return {NAN, NAN, 0};
+}
+
 inline interval intersection(const interval& i, const interval& j)
 {
     if (i.isEmpty()) {
@@ -175,7 +180,7 @@ inline interval intersection(const interval& i, const interval& j)
         int    p = std::min(i.lsb(),
                             j.lsb());  // precision of the intersection should be the finest of the two
         if (l > h) {
-            return {};
+            return empty();
         } else {
             return {l, h, p};
         }
@@ -216,10 +221,6 @@ inline interval singleton(double x)
     return {x, x, precision};
 }
 
-inline interval empty() noexcept
-{
-    return {NAN, NAN, 0};
-}
 //-------------------------------------------------------------------------
 // predicates
 //-------------------------------------------------------------------------
@@ -232,7 +233,7 @@ inline bool operator==(const interval& i, const interval& j)
 
 inline bool operator<=(const interval& i, const interval& j)
 {
-    return reunion(i, j) == j;
+    return (i.lo() >= j.lo()) && (i.hi() <= j.hi());
 }
 
 // additional predicates

@@ -110,10 +110,25 @@ interval interval_algebra::iPow(const interval& x, const interval& y)
 
 interval interval_algebra::Pow(const interval& x, const interval& y)
 {
-    if (x.lo() > 0) {
-        return fPow(x, y);
+    interval z  = empty();
+    interval xp = intersection(x, interval{nexttoward(0.0, 1.0), HUGE_VAL, 0});
+    interval xn = intersection(x, interval{-HUGE_VAL, nexttoward(0.0, -1.0), 0});
+
+    if (y.hasZero()) {
+        // x^0 = 1
+        z = reunion(z, interval(1, 1, 0));
     }
-    return iPow(x, y);
+    if (x.hasZero()) {
+        // 0^y = 0
+        z = reunion(z, interval(0, 0, 0));
+    }
+    if (!xp.isEmpty()) {
+        z = reunion(z, fPow(xp, y));
+    }
+    if (!xn.isEmpty()) {
+        z = reunion(z, iPow(xn, y));
+    }
+    return z;
 }
 
 static double myfPow(double x, double y)

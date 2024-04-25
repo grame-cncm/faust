@@ -312,6 +312,7 @@ struct global {
 
     bool gCausality;  // FIXME: global used as a parameter of typeAnnotation when true trigs
                       // causality errors (negative delay)
+    int gSTEP;        // counter for unique compilation step number
 
     // Properties
     Tree BOXTYPEPROP;
