@@ -32,6 +32,7 @@
 #include <sstream>
 #include <vector>
 
+#include "Schedule.hh"
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
@@ -42,12 +43,17 @@
 #include "prim2.hh"
 #include "recursivness.hh"
 #include "sharing.hh"
+#include "sigDependenciesGraph.hh"
+#include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
+#include "sigRecursiveDependencies.hh"
 #include "sigToGraph.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "timing.hh"
 #include "xtended.hh"
+
+#undef TRACE
 
 // Old delays are supposed to work while new delays are in progress
 #define OLDDELAY 0
@@ -107,7 +113,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         throw faustexception("Dump signal type finished...\n");
     }
     // No more table privatisation
-    Tree L2 = L1;
+    Tree L2 = newConstantPropagation(L1);
 
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
@@ -383,6 +389,23 @@ bool ScalarCompiler::getVectorNameProperty(Tree sig, string& vecname)
 }
 
 /**
+ * Make sure sig has a vector name property, if not use the one passed in parameter.
+ * @param a name in case not already named
+ * @param sig the signal expression.
+ * @return the vector name associated with sig
+ */
+
+std::string ScalarCompiler::ensureVectorNameProperty(const std::string altname, Tree sig)
+{
+    std::string vecname;
+    if (!getVectorNameProperty(sig, vecname)) {
+        vecname = altname;
+        setVectorNameProperty(sig, vecname);
+    }
+    return vecname;
+}
+
+/**
  * Compile a signal
  * @param sig the signal expression to compile.
  * @return the C code translation of sig as a string
@@ -394,14 +417,26 @@ string ScalarCompiler::CS(Tree sig)
     string code;
 
     if (!getCompiledExpression(sig, code)) {
-        // not compiled yet
-        /*
-         if (getRecursivness(sig) != contextRecursivness.get()) {
-            contextRecursivness.set(getRecursivness(sig));
-         }
-         */
+// not compiled yet
+/*
+ if (getRecursivness(sig) != contextRecursivness.get()) {
+    contextRecursivness.set(getRecursivness(sig));
+ }
+ */
+#ifdef TRACE
+        int step = gGlobal->gSTEP;
+        std::cerr << "\n"
+                  << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
+                  << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
+#endif
         code = generateCode(sig);
         setCompiledExpression(sig, code);
+
+#ifdef TRACE
+        std::cerr << "\n"
+                  << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
+                  << "\t: ============> " << code << std::endl;
+#endif
     }
     return code;
 }
@@ -426,10 +461,54 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
     }
 
+    // force a specific compilation order
+    auto G = immediateGraph(L);
+    auto S = dfschedule(G);
+    // register the compilation order S for debug purposes
+    {
+        int jj = 0;
+        for (auto& s : S.elements()) {
+            int  pnum;
+            Tree rg;
+            fScheduleOrder[s] = ++jj;
+#if 0
+            if (isProj(s, &pnum, rg)) {
+                if (isSignalRecursive(s)) {
+                    // std::cerr << jj << " proj " << pnum << " of " << *rg << " is recursive"
+                    //<< std::endl;
+                } else {
+                    std::cerr << jj << " proj " << pnum << " of " << *rg
+                              << " is NOT recursive and could be simplified: "
+                              /*<< ppsig(getProjDefinition(s))*/
+                              << std::endl;
+                }
+            }
+#endif
+        }
+    }
+
+#ifdef TRACE
+    std::cerr << "\nBEFORE COMPILING" << std::endl;
+    std::cerr << G << std::endl;
+    std::cerr << S << std::endl;
+
+    std::cerr << "\nCOMPILE SCHEDULE" << std::endl;
+#endif
+    // gGlobal->gSTEP = 0;
+    for (auto& s : S.elements()) {
+        if (isNil(s)) {
+            std::cerr << "NOT SUPPOSED TO HAPPEN: We have a Nil in the schedule !" << std::endl;
+            faustassert(false);
+        }
+        int lSTEP = gGlobal->gSTEP;  // conveninient for debug
+        CS(s);
+        gGlobal->gSTEP++;
+    }
+
     for (int i = 0; isList(L); L = tl(L), i++) {
-        Tree sig = hd(L);
+        Tree s = hd(L);
         fClass->addExecCode(Statement("", subst("output$0[i] = $2($1);  // Zone Exec Code", T(i),
-                                                generateCacheCode(sig, CS(sig)), xcast())));
+                                                generateCacheCode(s, CS(s)), xcast())));
     }
 
     generateMetaData();
@@ -455,6 +534,38 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
 {
     // contextor recursivness(0);
     sig = prepare2(sig);  // optimize and annotate expression
+
+#ifdef TRACE
+    std::cerr << "\nSTART COMPILING SINGLE SIGNAL: " << ppsig(sig, 20) << std::endl;
+#endif
+    // force a specific compilation order
+    auto G = immediateGraph(cons(sig, gGlobal->nil));
+    auto S = dfschedule(G);
+#ifdef TRACE
+    std::cerr << "\nBEFORE COMPILING SINGLE SIGNAL" << std::endl;
+    std::cerr << G << std::endl;
+    std::cerr << S << std::endl;
+#endif
+    // register the compilation order S for debug purposes
+    {
+        int jj = 1000;
+        for (auto& s : S.elements()) {
+            fScheduleOrder[s] += ++jj;
+        }
+    }
+#ifdef TRACE
+    std::cerr << "\nCOMPILE SINGLE SIGNAL SCHEDULE" << std::endl;
+#endif
+    for (auto& s : S.elements()) {
+        if (isNil(s)) {
+            std::cerr << "NOT SUPPOSED TO HAPPEN: We have a Nil in the schedule !" << std::endl;
+            faustassert(false);
+        }
+        int lSTEP = gGlobal->gSTEP;  // convenient for debug
+        CS(s);
+        gGlobal->gSTEP++;
+    }
+
     fClass->addExecCode(Statement("", subst("output[i] = $0;", CS(sig))));
     generateUserInterfaceTree(fUITree.prepareUserInterfaceTree(), true);
     generateMacroInterfaceTree("", fUITree.prepareUserInterfaceTree());
@@ -476,12 +587,6 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
 
 string ScalarCompiler::generateCode(Tree sig)
 {
-#if 0
-    fprintf(stderr, "CALL generateCode(");
-    printSignal(sig, stderr);
-    fprintf(stderr, ")\n");
-#endif
-
     int     i;
     int64_t i64;
     double  r;
@@ -548,17 +653,17 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigCheckbox(sig, label)) {
         return generateCheckbox(sig, label);
     } else if (isSigVSlider(sig, label, c, x, y, z)) {
-        return generateVSlider(sig, label, c);
+        return generateVSlider(sig, label, c, x, y, z);
     } else if (isSigHSlider(sig, label, c, x, y, z)) {
-        return generateHSlider(sig, label, c);
+        return generateHSlider(sig, label, c, x, y, z);
     } else if (isSigNumEntry(sig, label, c, x, y, z)) {
-        return generateNumEntry(sig, label, c);
+        return generateNumEntry(sig, label, c, x, y, z);
     }
 
     else if (isSigVBargraph(sig, label, x, y, z)) {
-        return generateVBargraph(sig, label, CS(z));
+        return generateVBargraph(sig, label, x, y, CS(z));
     } else if (isSigHBargraph(sig, label, x, y, z)) {
-        return generateHBargraph(sig, label, CS(z));
+        return generateHBargraph(sig, label, x, y, CS(z));
     }
 
     else if (isSigSoundfile(sig, label)) {
@@ -583,8 +688,7 @@ string ScalarCompiler::generateCode(Tree sig)
     }
     /* we should not have any control at this stage */
     else {
-        cerr << "ASSERT : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE)
-             << endl;
+        cerr << "ASSERT : when compiling, unrecognized signal : " << *sig << endl;
         faustassert(false);
     }
     return "error in generated code";
@@ -817,24 +921,29 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
             // The variable is used in compute (kBlock or kSamp), so define is as a field in the DSP
             // struct
             if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
-                fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
-                fClass->addInitCode(subst("$0 = $1;", vname, exp));
+                fClass->addDeclCode(subst("$0 \t$1; // step: $2", ctype, vname, T(gGlobal->gSTEP)));
+                fClass->addInitCode(subst("$0 = $1; // step: $2", vname, exp, T(gGlobal->gSTEP)));
             } else {
                 // Otherwise it can stay as a local variable
-                fClass->addInitCode(subst("$0 \t$1 = $2;", ctype, vname, exp));
+                // fClass->addInitCode(subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp,
+                // T(gGlobal->gSTEP))); FIX Bug const ???
+                fClass->addDeclCode(subst("$0 \t$1; // step: $2", ctype, vname, T(gGlobal->gSTEP)));
+                fClass->addInitCode(subst("$0 = $1; // step: $2", vname, exp, T(gGlobal->gSTEP)));
             }
             break;
 
         case kBlock:
             getTypedNames(t, "Slow", ctype, vname);
             fClass->addFirstPrivateDecl(vname);
-            fClass->addZone2(subst("$0 \t$1 = $2;", ctype, vname, exp));
+            fClass->addZone2(
+                subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP)));
             break;
 
         case kSamp:
             getTypedNames(t, "Temp", ctype, vname);
             if (getConditionCode(sig) == "") {
-                fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", ctype, vname, exp)));
+                fClass->addExecCode(Statement(
+                    "", subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP))));
             } else {
                 getTypedNames(t, "TempPerm", ctype, vname_perm);
                 // need to be preserved because of new enable and control primitives
@@ -890,6 +999,7 @@ string ScalarCompiler::generateButton(Tree sig, Tree path)
     fClass->addInitUICode(subst("$0 = 0.0;", varname));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
+    // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
@@ -900,40 +1010,45 @@ string ScalarCompiler::generateCheckbox(Tree sig, Tree path)
     fClass->addInitUICode(subst("$0 = 0.0;", varname));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
+    // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur)
+string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2double(cur))));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
+    // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur)
+string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2double(cur))));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
+    // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur)
+string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min, Tree max,
+                                        Tree step)
 {
     string varname = getFreshID("fentry");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2double(cur))));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
+    // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateVBargraph(Tree sig, Tree path, const string& exp)
+string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -954,10 +1069,11 @@ string ScalarCompiler::generateVBargraph(Tree sig, Tree path, const string& exp)
             break;
     }
 
+    // return varname;
     return generateCacheCode(sig, varname);
 }
 
-string ScalarCompiler::generateHBargraph(Tree sig, Tree path, const string& exp)
+string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -978,6 +1094,7 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, const string& exp)
             break;
     }
 
+    // return varname;
     return generateCacheCode(sig, varname);
 }
 
@@ -1002,7 +1119,7 @@ string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
 }
 
 /*****************************************************************************
- TABLES
+                                TABLES
  *****************************************************************************/
 
 /*----------------------------------------------------------------------------
@@ -1051,7 +1168,6 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 
     // Already compiled but check if we need to add declarations
     faustassert(isSigGen(content, g));
-
     pair<string, string> kvnames;
     if (!fInstanceInitProperty.get(g, kvnames)) {
         // Not declared here, we add a declaration
@@ -1133,27 +1249,20 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 string ScalarCompiler::generateWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws)
 {
     string tblName = generateTable(sig, size, gen);
-
-    /*
-     // TODO
-     Tree id, size, content;
-     if (isSigTable(tbl, id, size, content)) {
-        // The type of the allocated table has to take the type of the WRTbl
-        // (which is the union of the 'init signal' and the 'input signal')
-        setSigType(content, getCertifiedSigType(sig));
-     }
-     */
+    // std::cerr << "wi = " << *wi << " ws = " << *ws << "\n";
+    std::string swi = CS(wi);
+    std::string sws = CS(ws);
 
     switch (getCertifiedSigType(sig)->variability()) {
         case kKonst:
-            fClass->addInitCode(subst("$0[$1] = $2;", tblName, CS(wi), CS(ws)));
+            fClass->addInitCode(subst("$0[$1] = $2;", tblName, swi, sws));
             break;
         case kBlock:
-            fClass->addZone2(subst("$0[$1] = $2;", tblName, CS(wi), CS(ws)));
+            fClass->addZone2(subst("$0[$1] = $2;", tblName, swi, sws));
             break;
         default:
             fClass->addExecCode(
-                Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(wi), CS(ws))));
+                Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, swi, sws)));
             break;
     }
 
@@ -1168,6 +1277,11 @@ string ScalarCompiler::generateWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tre
 string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
 {
     // Test the special case of a read only table that can be compiled as a static member
+    Occurrences* o = fOccMarkup->retrieve(sig);
+#ifdef TRACE
+    std::cerr << "generateRDTbl : " << sig << "; mxd=" << o->getMaxDelay()
+              << "; delay count=" << o->getDelayCount() << "\n";
+#endif
     Tree size, gen;
     if (isSigWRTbl(tbl, size, gen)) {
         // rdtable
@@ -1175,7 +1289,10 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
         if (!getCompiledExpression(tbl, tblname)) {
             tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, gen));
         }
-        return generateCacheCode(sig, subst("$0[$1]", tblname, CS(ri)));
+        std::string ricode = CS(ri);
+        std::string instr  = subst("$0[$1]", tblname, ricode);
+        std::string result = generateCacheCode(sig, instr);
+        return result;
     } else {
         // rwtable
         return generateCacheCode(sig, subst("$0[$1]", CS(tbl), CS(ri)));
@@ -1191,16 +1308,45 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
  */
 string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
 {
-    string vname;
+    string pname, ctype;
     Tree   var, le;
 
-    if (!getVectorNameProperty(sig, vname)) {
-        faustassert(isRec(r, var, le));
-        generateRec(r, var, le);
-        faustassert(getVectorNameProperty(sig, vname));
-    }
-    return "[[UNUSED EXP]]";  // make sure the resulting expression is never used in the generated
-                              // code
+    // if (!getVectorNameProperty(sig, vname)) {
+    //     faustassert(isRec(r, var, le));
+    //     // generateRec(r, var, le);
+    //     // faustassert(getVectorNameProperty(sig, vname));
+    //     std::string ctype;
+    //     Type        ty = getCertifiedSigType(sig);
+    //     getTypedNames(ty, "Reec", ctype, vname);
+    //     setVectorNameProperty(sig, vname);
+    //     int  delay = fOccMarkup->retrieve(sig)->getMaxDelay();
+    //     int  count = fOccMarkup->retrieve(sig)->getDelayCount();
+    //     bool mono  = isSigSimpleRec(sig);
+    //     Tree def   = nth(le, i);
+    //     fClass->addDeclCode(subst("// Recursion delay $0 is of type $1", vname,
+    //     nameDelayType(analyzeDelayType(sig)))); fClass->addDeclCode(subst("// While its
+    //     definition is of type $0", nameDelayType(analyzeDelayType(def))));
+    //     generateDelayLine(analyzeDelayType(sig), ctype, vname, delay, count, mono, CS(def),
+    //     getConditionCode(def));
+    // }
+
+    Type ty = getCertifiedSigType(sig);
+    getTypedNames(ty, "Riiic", ctype, pname);
+    string vecname = ensureVectorNameProperty(pname, sig);
+    int    delay   = fOccMarkup->retrieve(sig)->getMaxDelay();
+    int    count   = fOccMarkup->retrieve(sig)->getDelayCount();
+    bool   mono    = isSigSimpleRec(sig);
+
+    faustassert(isRec(r, var, le));
+    Tree def = nth(le, i);
+    fClass->addDeclCode(subst("// Recursion delay $0 is of type $1", vecname,
+                              nameDelayType(analyzeDelayType(sig))));
+    fClass->addDeclCode(
+        subst("// While its definition is of type $0", nameDelayType(analyzeDelayType(def))));
+    std::string dl0 = generateDelayLine(analyzeDelayType(sig), ctype, vecname, delay, count, mono,
+                                        CS(def), getConditionCode(def));
+
+    return dl0;
 }
 
 /**
@@ -1285,6 +1431,8 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
  */
 void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
 {
+    faustassert(false);
+
     int N = len(le);
 
     vector<bool>   used(N);
@@ -1463,43 +1611,49 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
         return generateCacheCode(sig, subst("$0[$1]", vecname, generateIotaCache(idx)));
     }
 #else
-    string    code = CS(exp);  // ensure exp is compiled to have a vector name
-    int       mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
-    DelayType dt   = analyzeDelayType(exp);
-    string    vecname;
-    if (getVectorNameProperty(exp, vecname)) {
-        switch (dt) {
-            case DelayType::kNotADelay:
-                faustexception("Try to compile has a delay something that is not a delay");
-                return "";
+    // FIX: We don't compile the delayed signal anymore. This is done by the general scheduling.
+    // But we make sure the delayed signal has a vector name.
 
-            case DelayType::kZeroDelay:
-                return vecname;
+    // string    code = CS(exp);  // ensure exp is compiled to have a vector name
+    std::string ctype, pname;
+    getTypedNames(getCertifiedSigType(sig), "Veeec", ctype, pname);
+    string    vecname = ensureVectorNameProperty(pname, exp);
+    int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
+    DelayType dt      = analyzeDelayType(exp);
+#ifdef TRACE
+    std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
+              << fScheduleOrder[exp] << " -- " << exp << " :: " << ppsig(exp, 10) << std::endl;
+#endif
+    std::string result;
+    switch (dt) {
+        case DelayType::kNotADelay:
+            faustexception("Try to compile has a delay something that is not a delay");
+            result = "";
+            break;
 
-            case DelayType::kMonoDelay:
-                return vecname;
+        case DelayType::kZeroDelay:
+            result = vecname;
+            break;
 
-            case DelayType::kSingleDelay:
-            case DelayType::kCopyDelay:
-            case DelayType::kDenseDelay:
-                return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
+        case DelayType::kMonoDelay:
+            result = vecname;
+            break;
 
-            case DelayType::kMaskRingDelay:
-            case DelayType::kSelectRingDelay:
-                int         N   = pow2limit(mxd + 1);
-                std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
-                return generateCacheCode(sig, subst("$0[$1]", vecname, generateIotaCache(idx)));
-        }
-    } else {
-        if (mxd == 0) {
-            // cerr << "it is a pure zero delay : " << code << endl;
-            return code;
-        } else {
-            cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
-            faustassert(false);
-            return "";
-        }
+        case DelayType::kSingleDelay:
+        case DelayType::kCopyDelay:
+        case DelayType::kDenseDelay:
+            result = subst("$0[$1]", vecname, CS(delay));
+            break;
+
+        case DelayType::kMaskRingDelay:
+        case DelayType::kSelectRingDelay:
+            int         N   = pow2limit(mxd + 1);
+            std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
+            result          = subst("$0[$1]", vecname, generateIotaCache(idx));
+            break;
     }
+    return generateCacheCode(sig, result);
+
 #endif
 }
 
@@ -1533,17 +1687,19 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
     fClass->addZone3Post(g.copyLocalToGlobal());
 */
 string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype,
-                                              const string& vname, int mxd, int count)
+                                              const string& pname, int mxd, int count)
 {
     faustassert(mxd > 0);
 
-    bool mono = isSigSimpleRec(sig);
+    // We make sure to use the vector name associated with signal, or we provide one
+    std::string vecname = ensureVectorNameProperty(pname, sig);
+    bool        mono    = isSigSimpleRec(sig);
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
     string    ccs = getConditionCode(sig);
     DelayType dt  = analyzeDelayType(sig);
     // fClass->addDeclCode(subst("// Normal delay $0 is of type $1", vname, nameDelayType(dt)));
-    string access = generateDelayLine(dt, ctype, vname, mxd, count, mono, exp, ccs);
-    setVectorNameProperty(sig, vname);
+    string access = generateDelayLine(dt, ctype, vecname, mxd, count, mono, exp, ccs);
+    // setVectorNameProperty(sig, vname);
     return access;
 #if 0
 #if OLDDELAY
@@ -1753,11 +1909,13 @@ void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
     // computes C type and unique name for the waveform
     string ctype;
     getTypedNames(getCertifiedSigType(sig), "Wave", ctype, vname);
+
     size = sig->arity();
 
     // Converts waveform into a string : "{a,b,c,...}"
     stringstream content;
-    char         sep = '{';
+
+    char sep = '{';
     for (int i = 0; i < size; i++) {
         content << sep << ppsig(sig->branch(i));
         sep = ',';
