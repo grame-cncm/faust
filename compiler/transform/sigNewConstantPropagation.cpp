@@ -50,6 +50,14 @@ Tree SigNewConstantPropagation::transformation(Tree sig)
         } else {
             res = sigReal(I.lo());
         }
+        Tree exp;
+        // We want to keep the sigGen indication, we don't want
+        // sigGen(2) to be replaced by 2
+        if (isSigGen(sig, exp)) {
+            res = sigGen(res);
+            // std::cerr << "Special sigGen case " << ppsig(sig) << " ===> " << ppsig(res) <<
+            // std::endl;
+        }
     } else {
         res = SignalIdentity::transformation(sig);
     }
