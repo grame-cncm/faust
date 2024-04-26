@@ -861,9 +861,10 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     dst << printFloat();
     dst << "-ftz " << gFTZMode << " ";
     if (gVectorSwitch) {
-        dst << "-vec " << "-lv " << gVectorLoopVariant << " " << "-vs " << gVecSize << " "
-            << ((gFunTaskSwitch) ? "-fun " : "") << ((gGroupTaskSwitch) ? "-g " : "")
-            << ((gDeepFirstSwitch) ? "-dfs " : "");
+        dst << "-vec "
+            << "-lv " << gVectorLoopVariant << " "
+            << "-vs " << gVecSize << " " << ((gFunTaskSwitch) ? "-fun " : "")
+            << ((gGroupTaskSwitch) ? "-g " : "") << ((gDeepFirstSwitch) ? "-dfs " : "");
     }
 
     // Add 'compile_options' metadata

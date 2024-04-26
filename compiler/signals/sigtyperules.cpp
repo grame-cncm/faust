@@ -829,9 +829,12 @@ static Type inferWriteTableType(Type tbl, Type wi, Type ws)
     int vec = wi->vectorability() | ws->vectorability();
     // Interval is the reunion of tbl (and its init signal) and ws
     interval i = itv::reunion(tbl->getInterval(), ws->getInterval());
-    TRACE(cerr << gGlobal->TABBER << "infering write table type : n=" << "NR"[n]
-               << ", v=" << "KB?S"[v] << ", c=" << "CI?E"[c] << ", vec=" << "VS?TS"[vec]
-               << ", b=" << "N?B"[b] << ", i=" << i << endl);
+    TRACE(cerr << gGlobal->TABBER << "infering write table type : n="
+               << "NR"[n] << ", v="
+               << "KB?S"[v] << ", c="
+               << "CI?E"[c] << ", vec="
+               << "VS?TS"[vec] << ", b="
+               << "N?B"[b] << ", i=" << i << endl);
     Type tbltype = makeTableType(tt->content(), n, v, c, vec, b, i);
     TRACE(cerr << gGlobal->TABBER << "infering write table type : result = " << tbltype << endl);
     return tbltype;

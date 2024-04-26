@@ -426,16 +426,16 @@ string ScalarCompiler::CS(Tree sig)
 #ifdef TRACE
         int step = gGlobal->gSTEP;
         std::cerr << "\n"
-                  << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
-                  << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
+                  << step << " [order: " << fScheduleOrder[sig] << "] "
+                  << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
 #endif
         code = generateCode(sig);
         setCompiledExpression(sig, code);
 
 #ifdef TRACE
         std::cerr << "\n"
-                  << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
-                  << "\t: ============> " << code << std::endl;
+                  << step << " [order: " << fScheduleOrder[sig] << "] "
+                  << "::" << sig << "\t: ============> " << code << std::endl;
 #endif
     }
     return code;

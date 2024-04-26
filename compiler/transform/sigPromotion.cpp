@@ -837,7 +837,8 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isSigDelay1(sig, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Mem: " << "\t" << ppsig(sig) << "\tx: " << ppsig(x) << "\n";
+            std::cout << "Mem: "
+                      << "\t" << ppsig(sig) << "\tx: " << ppsig(x) << "\n";
         }
         // Derivative of a single sample delay wrt. any parameter is the delayed
         // differentiated signal.
@@ -847,7 +848,8 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isSigDelay(sig, x, y)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Delay: " << "\tx: " << ppsig(x) << "\t@y: " << ppsig(y) << "\n";
+            std::cout << "Delay: "
+                      << "\tx: " << ppsig(x) << "\t@y: " << ppsig(y) << "\n";
         }
 
         // Don't differentiate zero delay.
@@ -881,8 +883,8 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isProj(sig, &i, x)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Projection: " << "\tsig: " << ppsig(sig) << "\ti: " << i
-                      << "\tx: " << ppsig(x) << "\n";
+            std::cout << "Projection: "
+                      << "\tsig: " << ppsig(sig) << "\ti: " << i << "\tx: " << ppsig(x) << "\n";
         }
 
         // cf. propagate.cpp:504
@@ -892,7 +894,8 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
     else if (isRec(sig, var, body)) {
         if (gGlobal->gDetailsSwitch) {
             tab(fIndent, cout);
-            std::cout << "Recursion: " << "\tsig: " << ppsig(sig) << "\tvar: " << extractName(var)
+            std::cout << "Recursion: "
+                      << "\tsig: " << ppsig(sig) << "\tvar: " << extractName(var)
                       << "\tbody: " << ppsig(body) << "\n";
         }
 

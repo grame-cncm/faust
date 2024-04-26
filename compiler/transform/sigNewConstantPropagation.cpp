@@ -28,8 +28,9 @@ static void explainInterval(Tree sig)
         Type Ty = getSigType(s);
         if (Ty.pointee() == nullptr) {
             std::cerr << "\n"
-                      << ++i << "@" << s << " : " << "NOTYPE" << "; sig = " << ppsig(s, 10)
-                      << std::endl;
+                      << ++i << "@" << s << " : "
+                      << "NOTYPE"
+                      << "; sig = " << ppsig(s, 10) << std::endl;
         } else {
             std::cerr << "\n"
                       << ++i << "@" << s << " : " << Ty->getInterval() << "; sig = " << ppsig(s, 10)

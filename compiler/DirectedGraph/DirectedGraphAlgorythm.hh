@@ -680,11 +680,13 @@ inline std::ostream& dotfile(std::ostream& file, const digraph<N>& g, bool clust
         Tarjan<N> T(g);
         int       ccount = 0;  // cluster count
         for (const auto& s : T.partition()) {
-            file << "\t" << "subgraph cluster" << ccount++ << " { " << std::endl;
+            file << "\t"
+                 << "subgraph cluster" << ccount++ << " { " << std::endl;
             for (const N& n : s) {
                 file << "\t\t" << '"' << n << '"' << ";" << std::endl;
             }
-            file << "\t" << "}" << std::endl;
+            file << "\t"
+                 << "}" << std::endl;
         }
     }
 

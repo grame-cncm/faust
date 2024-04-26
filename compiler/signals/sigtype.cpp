@@ -49,9 +49,12 @@ AudioType::AudioType(int n, int v, int c, int vec, int b, interval i, res r)
       fRes(r),
       fCode(0)
 {
-    TRACE(cerr << gGlobal->TABBER << "Building audioType : n=" << "NR"[n] << ", v=" << "KB?S"[v]
-               << ", c=" << "CI?E"[c] << ", vec=" << "VS?TS"[vec] << ", b=" << "N?B"[b]
-               << ", i=" << i << endl);
+    TRACE(cerr << gGlobal->TABBER << "Building audioType : n="
+               << "NR"[n] << ", v="
+               << "KB?S"[v] << ", c="
+               << "CI?E"[c] << ", vec="
+               << "VS?TS"[vec] << ", b="
+               << "N?B"[b] << ", i=" << i << endl);
 }  ///< constructs an abstract audio type
 
 bool SimpleType::isMaximal()
