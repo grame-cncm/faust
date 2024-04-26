@@ -269,18 +269,19 @@ ostream& ppsig::print(ostream& fout) const
 
     if (isSigWRTbl(fSig, w, x, y, z)) {
         if (y == gGlobal->nil) {
-            // rdtable
-            printfun(fout, "TABLE", w, x);
+            // readonly table
+            printfun(fout, "WRTbl2p", w, x);
         } else {
             // rwtable
-            printfun(fout, "write( TABLE", w, x);
+            fout << "sigWRTbl4p(" << ppsig(w, fEnv, 0, fMaxSize);
+            fout << "; " << ppsig(x, fEnv, 0, fMaxSize);
             fout << "; " << ppsig(y, fEnv, 0, fMaxSize);
             fout << "; " << ppsig(z, fEnv, 0, fMaxSize) << " )";
         }
     } else if (isSigRDTbl(fSig, x, y)) {
-        printfun(fout, "READTABLE", x, y);
+        printfun(fout, "sigRDTbl", x, y);
     } else if (isSigGen(fSig, x)) {
-        fout << ppsig(x, fEnv, fPriority, fMaxSize);
+        fout << "sigGen(" << ppsig(x, fEnv, fPriority, fMaxSize) << ")";
     }
 
     else if (isSigDocConstantTbl(fSig, x, y)) {
