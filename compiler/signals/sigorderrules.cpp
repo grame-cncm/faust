@@ -264,6 +264,14 @@ static int inferSigOrder(Tree sig)
         return 3;
     }
 
+    else if (isSigFIR(sig)) {
+        return 3;
+    }
+
+    else if (isSigIIR(sig)) {
+        return 3;
+    }
+
     else if (isList(sig)) {
         int r1 = 0;
         while (isList(sig)) {

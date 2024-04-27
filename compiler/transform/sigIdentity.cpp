@@ -129,6 +129,29 @@ Tree SignalIdentity::transformation(Tree sig)
         }
     }
 
+    // FIR and IIR
+    else if (isSigFIR(sig)) {
+        tvec c = sig->branches();
+        for (int i = 0; i < c.size(); i++) {
+            c[i] = self(c[i]);
+        }
+        return sigFIR(c);
+    } else if (isSigIIR(sig)) {
+        tvec c = sig->branches();
+        for (int i = 1; i < c.size(); i++) {
+            c[i] = self(c[i]);
+        }
+        return sigFIR(c);
+    }
+
+    else if (isSigGen(sig, x)) {
+        if (fVisitGen) {
+            return sigGen(self(x));
+        } else {
+            return sig;
+        }
+    }
+
     // recursive signals
     else if (isProj(sig, &i, x)) {
         return sigProj(i, self(x));

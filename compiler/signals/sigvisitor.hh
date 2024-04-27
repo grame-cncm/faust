@@ -88,6 +88,10 @@ struct sigvisitor {
     // Selectors
     virtual void visitSelect2(Tree sig, Tree sel, Tree s1, Tree s2) = 0;
 
+    // FIR and IIR
+    virtual void visitFIR(Tree sig) = 0;
+    virtual void visitIIR(Tree sig) = 0;
+
     // Tuples
     virtual void visitTuple(Tree sig, int mod, Tree ls)        = 0;
     virtual void visitTupleAccess(Tree sig, Tree ts, Tree idx) = 0;
@@ -179,6 +183,21 @@ struct fullvisitor : sigvisitor {
         visit(sel);
         visit(s1);
         visit(s2);
+    }
+
+    // FIR and IIR
+    virtual void visitFIR(Tree sig)
+    {
+        for (Tree t : sig->branches()) {
+            visit(t);
+        }
+    }
+
+    virtual void visitIIR(Tree sig)
+    {
+        for (Tree t : sig->branches()) {
+            visit(t);
+        }
     }
 
     // Tuples

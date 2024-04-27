@@ -219,6 +219,28 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs(")", out);
     }
 
+    // FIR and IIR
+    else if (isSigFIR(sig)) {
+        fputs("FIR", out);
+        char sep = '(';
+        for (Tree b : sig->branches()) {
+            fputc(sep, out);
+            printSignal(b, out, 0);
+            sep = ',';
+        }
+        fputs(")", out);
+    } else if (isSigIIR(sig)) {
+        fputs("IIR", out);
+        char sep = '(';
+        for (Tree b : sig->branches()) {
+            fputc(sep, out);
+            printSignal(b, out, 0);
+            sep = ',';
+        }
+        fputs(")", out);
+
+    }
+
     else if (isList(sig)) {
         char sep = '{';
         do {

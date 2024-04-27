@@ -83,6 +83,54 @@ ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tr
                 << ppsig(z2, fEnv, 0, fMaxSize) << ',' << ppsig(z3, fEnv, 0, fMaxSize) << ')';
 }
 
+ostream& ppsig::printfun(ostream& fout, const string& funame, const tvec& args) const
+{
+    fout << funame;
+    char sep = '(';
+    for (auto arg : args) {
+        fout << sep << ' ' << ppsig(arg, fEnv, 0, fMaxSize);
+        sep = ',';
+    }
+    return fout << " )";
+}
+
+ostream& ppsig::printfir(ostream& fout, const tvec& args) const
+{
+    fout << "FIR";
+    std::string sep = "[";
+    for (auto arg : args) {
+        int  p;
+        Tree g, vaaar, le;
+
+        if (isProj(arg, &p, g) && isRec(g, vaaar, le)) {
+            fout << sep << ' ' << *vaaar << '_' << p;
+        } else {
+            fout << sep << ppsig(arg, fEnv, 0, fMaxSize);
+        }
+        sep = "; ";
+    }
+    return fout << "]";
+}
+
+ostream& ppsig::printiir(ostream& fout, const tvec& args) const
+{
+    fout << "IIR";
+    std::string sep = "[";
+    int         p;
+    Tree        g, vaaar, le;
+    for (auto arg : args) {
+        if (isProj(arg, &p, g) && isRec(g, vaaar, le)) {
+            fout << sep << ' ' << *vaaar << '_' << p;
+        } else if (isNil(arg)) {
+            fout << sep << "VOID";
+        } else {
+            fout << sep << ppsig(arg, fEnv, 0, fMaxSize);
+        }
+        sep = "; ";
+    }
+    return fout << "]";
+}
+
 ostream& ppsig::printui(ostream& fout, const string& funame, Tree label) const
 {
     fout << funame << '(';
