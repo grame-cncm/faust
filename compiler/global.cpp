@@ -370,6 +370,8 @@ global::global()
     SIGSOUNDFILEBUFFER = symbol("SigSoundfileBuffer");
     SIGTUPLE           = symbol("SigTuple");
     SIGTUPLEACCESS     = symbol("SigTupleAccess");
+    SIGFIR             = symbol("SigFIR");
+    SIGIIR             = symbol("SigIIR");
     SIMPLETYPE         = symbol("SimpleType");
     TABLETYPE          = symbol("TableType");
     TUPLETTYPE         = symbol("TupletType");
@@ -433,6 +435,7 @@ void global::reset()
     gDeepFirstSwitch   = false;
     gVecSize           = 32;
     gVectorLoopVariant = 0;
+    gVectorFIRIIRs     = false;
 
     gOpenMPSwitch    = false;
     gOpenMPLoop      = false;
@@ -1297,6 +1300,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-vec", "--vectorize")) {
             gVectorSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-fir", "--fir-iir")) {
+            gVectorFIRIIRs = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-scal", "--scalar")) {
@@ -2241,15 +2248,14 @@ string global::printHelp()
             "instead of compiling "
             "a dsp file."
          << endl;
-    sstr << tab << "-scal       --scalar                    generate non-vectorized code (default)."
+    sstr << tab << "-scal   --scalar                 generate non-vectorized code (default)."
          << endl;
     sstr << tab
          << "-inpl       --in-place                  generates code working when input and output "
             "buffers are the same "
             "(scalar mode only)."
          << endl;
-    sstr << tab << "-vec        --vectorize                 generate easier to vectorize code."
-         << endl;
+    sstr << tab << "-vec    --vectorize              generate easier to vectorize code." << endl;
     sstr << tab
          << "-vs <n>     --vec-size <n>              size of the vector (default 32 samples)."
          << endl;
@@ -2257,6 +2263,8 @@ string global::printHelp()
          << "-lv <n>     --loop-variant <n>          [0:fastest, fixed vector size and a remaining "
             "loop (default), "
             "1:simple, variable vector size, 2:fixed, fixed vector size]."
+         << endl;
+    sstr << tab << "-fir        --fir-iir                   reconstruct FIRs and IIRs internally"
          << endl;
     sstr << tab
          << "-omp        --openmp                    generate OpenMP pragmas, activates "

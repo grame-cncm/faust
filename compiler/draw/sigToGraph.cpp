@@ -273,8 +273,14 @@ static string sigLabel(Tree sig)
 #endif
     else if (isSigAttach(sig, x, y)) {
         fout << "attach";
-    }
-
+    } 
+    
+    else if (isSigFIR(sig)) {
+        fout << "FIR";
+    } else if (isSigIIR(sig)) {
+        fout << "IIR";
+    } 
+    
     else if (isSigAssertBounds(sig, x, y, z)) {
         fout << "assertbounds";
     }
