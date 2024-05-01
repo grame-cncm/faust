@@ -201,7 +201,7 @@ class OSCUI : public GUI
         void endBundle()     { fCtrl->endBundle(); }
     
         // To be called by updateAllGuis
-        virtual void update()
+        virtual void updateAll()
         {
             endBundle();
         }
