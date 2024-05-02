@@ -60,7 +60,7 @@ using namespace std;
 
  Soundfile management:
 
- - the Soundfile* pointers are moved first in the DSP Struct
+ - the Soundfile* pointers are moved first in the DSP struct
  - the pointers are allocated in wasm memory and filled on JS side. The Soundfile structure memory
  layout has to be reproduced in a "flat way" in wasm memory. The JSON description is used to know
  the number of soundfiles and to fill them.

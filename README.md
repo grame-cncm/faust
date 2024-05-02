@@ -103,7 +103,7 @@ The [Online Faust IDE](https://faustide.grame.fr)  is a zero-conf tool that prov
 
 ### FaustLive
 
-[FaustLive](https://github.com/grame-cncm/faustlive) is a program that was designed to facilitate the prototyping of Faust codes. It embeds the LLVM on-the-fly compiler of Faust2 allowing you to very rapidly compile Faust codes on your computer. Binaries and installation packages of FaustLive are available for [Linux, Windows and OSX](https://github.com/grame-cncm/faustlive/releases).
+[FaustLive](https://github.com/grame-cncm/faustlive) is a program that was designed to facilitate the prototyping of Faust codes. It embeds the LLVM powered dynamic libfaust compiler allowing you to very rapidly compile Faust codes on your computer. Binaries and installation packages of FaustLive are available for [Linux, Windows and OSX](https://github.com/grame-cncm/faustlive/releases).
 
 ### `faust2...` Scripts and Programs
 
