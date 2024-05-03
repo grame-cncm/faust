@@ -301,13 +301,15 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     builder.setMCPU((cpu == "") ? sys::getHostCPUName() : StringRef(cpu));
     TargetOptions targetOptions;
 
-    // -fastmath is activated at IR level, and has to be setup at JIT level also
-    targetOptions.AllowFPOpFusion       = FPOpFusion::Fast;
-    targetOptions.UnsafeFPMath          = true;
-    targetOptions.NoInfsFPMath          = true;
-    targetOptions.NoNaNsFPMath          = true;
-    targetOptions.GuaranteedTailCallOpt = true;
-    targetOptions.NoTrappingFPMath      = true;
+    if (!gGlobal->isOpt("FAUST_LLVM_NO_FM")) {
+        // -fastmath is activated at IR level, and has to be setup at JIT level also
+        targetOptions.AllowFPOpFusion       = FPOpFusion::Fast;
+        targetOptions.UnsafeFPMath          = true;
+        targetOptions.NoInfsFPMath          = true;
+        targetOptions.NoNaNsFPMath          = true;
+        targetOptions.GuaranteedTailCallOpt = true;
+        targetOptions.NoTrappingFPMath      = true;
+    }
 
 #if LLVM_VERSION_MAJOR >= 9
     targetOptions.NoSignedZerosFPMath = true;

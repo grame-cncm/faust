@@ -79,14 +79,17 @@ void LLVMCodeContainer::init(const string& name, int numInputs, int numOutputs, 
     fContext   = context;
     fBuilder   = new IRBuilder<>(*fContext);
 
-    // Set "-fast-math"
-    FastMathFlags FMF;
+    if (!gGlobal->isOpt("FAUST_LLVM_NO_FM")) {
+        // Set "-fast-math"
+        FastMathFlags FMF;
 #if LLVM_VERSION_MAJOR >= 8
-    FMF.setFast();  // has replaced the following function
+        FMF.setFast();  // has replaced the following function
 #else
-    FMF.setUnsafeAlgebra();
+        FMF.setUnsafeAlgebra();
 #endif
-    fBuilder->setFastMathFlags(FMF);
+        fBuilder->setFastMathFlags(FMF);
+    }
+
     fModule->setTargetTriple(sys::getDefaultTargetTriple());
 }
 

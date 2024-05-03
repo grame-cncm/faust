@@ -217,7 +217,7 @@ static Tree simplification(Tree sig)
             }
         }
 
-        return (global::isOpt("SIG_NO_NORM") ? sig : normalizeAddTerm(sig));
+        return (global::isOpt("FAUST_SIG_NO_NORM") ? sig : normalizeAddTerm(sig));
 
     } else if (isSigDelay1(sig, t1)) {
         return normalizeDelay1Term(t1);

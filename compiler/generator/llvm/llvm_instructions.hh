@@ -1416,8 +1416,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             LLVMValue value = fBuilder->CreateBinOp(
                 (llvm::Instruction::BinaryOps)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
             llvm::Instruction* inst = llvm::cast<llvm::Instruction>(value);
-            inst->setMetadata(llvm::LLVMContext::MD_fpmath, fBuilder->getDefaultFPMathTag());
-            inst->setFastMathFlags(fBuilder->getFastMathFlags());
+            if (!gGlobal->isOpt("FAUST_LLVM_NO_FM")) {
+                inst->setMetadata(llvm::LLVMContext::MD_fpmath, fBuilder->getDefaultFPMathTag());
+                inst->setFastMathFlags(fBuilder->getFastMathFlags());
+            }
             return inst;
         }
     }
