@@ -37,22 +37,27 @@ class SigDependenciesGraph : public SignalVisitor {
  */
 void SigDependenciesGraph::visit(Tree t)
 {
-    int  i;
-    Tree w, x, y, tbl, ri;
-    Tree size, gen, wi, ws;
 #ifdef TRACE
     std::cerr << "Visiting: " << t << " : " << ppsig(t, 10) << "\n";
 #endif
+
     fGraph.add(t);
-    if (isProj(t, &i, w)) {
-        // The immediate dependency of a projection is
-        // its definition
-        Tree id, le;
-        faustassert(isRec(w, id, le));
-        Tree d = nth(le, i);
-        fGraph.add(t, d, 0);
-        self(d);
-    } else if (isSigDelay(t, x, y)) {
+
+    {
+        Tree w;
+        if (int i; isProj(t, &i, w)) {
+            // The immediate dependency of a projection is
+            // its definition
+            Tree id, le;
+            faustassert(isRec(w, id, le));
+            Tree d = nth(le, i);
+            fGraph.add(t, d, 0);
+            self(d);
+            return;
+        }
+    }
+
+    if (Tree x, y; isSigDelay(t, x, y)) {
         // We place x in the graph only if:
         // - we want the full graph
         // - or the dependency to x is immediate
@@ -68,7 +73,10 @@ void SigDependenciesGraph::visit(Tree t)
         fGraph.add(t, y, 0);
         self(x);
         self(y);
-    } else if (isSigDelay1(t, x)) {
+        return;
+    }
+
+    if (Tree x; isSigDelay1(t, x)) {
         faustassert(false);
         // We place x in the graph only if:
         // - we want the full graph
@@ -80,9 +88,56 @@ void SigDependenciesGraph::visit(Tree t)
             fGraph.add(t, x, 1);
         }
         self(x);
-    } else if (isSigRDTbl(t, tbl, ri)) {
-        // special case for tables. We can't compile the content without knowing the context
+        return;
+    }
 
+    if (tvec V; isSigFIR(t, V)) {
+        faustassert(V.size() >= 2);
+
+        Tree x = V[0];
+        for (unsigned int i = 1; i < V.size(); i++) {
+            // the FIR depends on all non zero coefficients
+            if (!isZero(V[i])) {
+                fGraph.add(t, V[i], 0);
+                if (fFullGraph || (i == 1)) {
+                    // and on x if fullgraph or immediate
+                    fGraph.add(t, x, i - 1);
+                }
+            }
+        }
+        for (auto s : V) {
+            if (!isZero(s)) {
+                self(s);
+            }
+        }
+        return;
+    }
+
+    if (tvec V; isSigIIR(t, V)) {
+        // t = IIR[nil,0,C1,c2,...]
+        faustassert(V.size() >= 3);
+
+        for (unsigned int i = 2; i < V.size(); i++) {
+            // the FIR depends on all non zero coefficients
+            if (!isZero(V[i])) {
+                fGraph.add(t, V[i], 0);
+                if (fFullGraph) {
+                    // if full graph compute the recursive dependecies
+                    fGraph.add(t, t, i - 1);
+                }
+            }
+        }
+        for (auto s : V) {
+            if (!isNil(s) && !isZero(s)) {
+                self(s);
+            }
+        }
+        return;
+    }
+
+    if (Tree tbl, ri; isSigRDTbl(t, tbl, ri)) {
+        // special case for tables. We can't compile the content without knowing the context
+        Tree size, gen, wi, ws;
         if (isSigWRTbl(tbl, size, gen)) {
             fGraph.add(t, ri, 0);
             self(ri);
@@ -97,24 +152,29 @@ void SigDependenciesGraph::visit(Tree t)
             // not supposed to happen
             faustassert(false);
         }
-    } else if (isSigWRTbl(t, size, gen, wi, ws)) {
+        return;
+    }
+
+    if (Tree size, gen, wi, ws; isSigWRTbl(t, size, gen, wi, ws)) {
         // not supposed to happen
         faustassert(false);
+        return;
+    }
+
+    // general case
+    tvec subs;
+    int  n = getSubSignals(t, subs, false);
+    if (n == 0) {
+        // A signal without dependencies
+        fGraph.add(t);
     } else {
-        tvec subs;
-        int  n = getSubSignals(t, subs, false);
-        if (n == 0) {
-            // A signal without dependencies
-            fGraph.add(t);
-        } else {
-            // A signal with dependencies
-            for (auto s : subs) {
-                fGraph.add(t, s, 0);
-            }
-            // We visit the dependencies
-            for (auto s : subs) {
-                self(s);
-            }
+        // A signal with dependencies
+        for (auto s : subs) {
+            fGraph.add(t, s, 0);
+        }
+        // We visit the dependencies
+        for (auto s : subs) {
+            self(s);
         }
     }
 }
