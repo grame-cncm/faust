@@ -237,7 +237,7 @@ int main(int argc, char* argv[])
     bool control = true;
     
     if (isopt(argv, "-help") || isopt(argv, "-h")) {
-        cout << argv[0] << " [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
+        cout << argv[0] << " [--sample-rate <val>] [--buffer <val>] [--nvoices <val>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
         exit(1);
     }
     
@@ -253,7 +253,7 @@ int main(int argc, char* argv[])
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
      
-    long srate = (long)lopt(argv, "--frequency", -1);
+    long srate = (long)lopt(argv, "--sample-rate", -1);
     int fpb = lopt(argv, "--buffer", 512);
     bool is_virtual = lopt(argv, "--virtual-midi", false);
     

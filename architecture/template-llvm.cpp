@@ -66,7 +66,7 @@ using namespace std;
  Note that the resulting binary keeps its own control options, like:
  
  ./faust2cagtk-llvm -h
- ./faust2cagtk-llvm [--frequency <val>] [--buffer <val>] [--nvoices <val>]
+ ./faust2cagtk-llvm [--sample-rate <val>] [--buffer <val>] [--nvoices <val>]
     [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]
  
 So ./faust2cagtk-llvm --nvoices 16 starts the program with 16 voices.

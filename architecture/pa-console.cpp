@@ -123,11 +123,11 @@ int main(int argc, char* argv[])
     FUI finterface;
     
     if (isopt(argv, "-h")) {
-        cout << argv[0] << " [--frequency <val>] [--buffer <val>] [--nvoices <num>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
+        cout << argv[0] << " [--sample-rate <val>] [--buffer <val>] [--nvoices <num>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
         exit(1);
     }
 
-    long srate = (long)lopt(argv, "--frequency", 44100);
+    long srate = (long)lopt(argv, "--sample-rate", 44100);
     int fpb = lopt(argv, "--buffer", 128);
     bool is_virtual = lopt(argv, "--virtual-midi", false);
      
