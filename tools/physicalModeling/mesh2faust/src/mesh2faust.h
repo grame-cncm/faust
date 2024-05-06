@@ -9,12 +9,12 @@ class TetMesh;
 
 namespace m2f {
 
-// Defaults to aluminum.
+// Defaults to steel.
 struct MaterialProperties {
-    double youngModulus{70E9};
-    double poissonRatio{0.35};
-    double density{2700};
-    double alpha{0}, beta{0}; // Rayleigh damping coefficients
+    double youngModulus{2E11};
+    double poissonRatio{0.29};
+    double density{7850};
+    double alpha{5}, beta{3E-8}; // Rayleigh damping coefficients
 };
 
 struct CommonArguments {

@@ -66,8 +66,8 @@ int main(int argc, char **argv) {
                     return 0;
                 }
             } else if (strcmp(argv[currentArg], "--material") == 0) {
-                currentArg++;
-                for (int i = 0; i < 3; i++) {
+                for (int i = 0; i < 5; i++) {
+                    currentArg++;
                     if (currentArg > (argc - 1)) {
                         cout << "Not enough parameter properties!\n";
                         return 0;
@@ -77,13 +77,14 @@ int main(int argc, char **argv) {
                         if (i == 0) materialProperties.youngModulus = value;
                         else if (i == 1) materialProperties.poissonRatio = value;
                         else if (i == 2) materialProperties.density = value;
+                        else if (i == 3) materialProperties.alpha = value;
+                        else if (i == 4) materialProperties.beta = value;
                     } else {
                         cout << "Wrong material parameter: " << argv[currentArg] << "\n";
                         return 0;
                     }
-                    if (i < 2)
-                    currentArg++;
                 }
+                currentArg--;
             } else if (strcmp(argv[currentArg], "--expos") == 0) {
                 currentArg++;
                 while (strtod(argv[currentArg], NULL) != 0) {
