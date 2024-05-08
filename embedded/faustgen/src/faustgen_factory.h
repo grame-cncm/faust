@@ -40,7 +40,13 @@
 // FAUSTFLOAT is mandatory defined as double 
 #define FAUSTFLOAT double
 
+// Possibly compile with Interp backend
+//#define INTERP_BACKEND
+
 #include <faust/dsp/llvm-dsp.h>
+#ifdef INTERP_BACKEND
+#include <faust/dsp/interpreter-dsp.h>
+#endif
 #include <faust/gui/SoundUI.h>
 
 #include "maxcpp5.h"
@@ -83,7 +89,7 @@ class faustgen_factory {
         enum sampleFormat { kFloat, kDouble, kNone };
         
         std::set<faustgen*> fInstances; // Set of all DSP
-        llvm_dsp_factory* fDSPfactory;  // Pointer to the LLVM Faust factory
+        dsp_factory* fDSPfactory;       // Pointer to the LLVM Faust factory
         SoundUI* fSoundUI;              // Generic Soundfile interface
         
         long fSourceCodeSize;           // Length of source code string
@@ -134,8 +140,8 @@ class faustgen_factory {
         faustgen_factory(const std::string& name);
         ~faustgen_factory();
         
-        llvm_dsp_factory* create_factory_from_bitcode();
-        llvm_dsp_factory* create_factory_from_sourcecode();
+        dsp_factory* create_factory_from_bitcode();
+        dsp_factory* create_factory_from_sourcecode();
         ::dsp* create_dsp_aux();
         
         void free_dsp_factory();

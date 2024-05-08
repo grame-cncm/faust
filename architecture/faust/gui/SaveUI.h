@@ -100,6 +100,13 @@ class SaveUI : public GenericUI {
                 it.second.fCurrent = *it.second.fZone;
             }
         }
+    
+        void load()
+        {
+            for (auto& it : fName2Zone) {
+                *it.second.fZone = it.second.fCurrent;
+            }
+        }
 };
 
 /*

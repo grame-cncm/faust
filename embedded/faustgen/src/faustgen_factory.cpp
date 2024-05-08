@@ -274,18 +274,26 @@ void faustgen_factory::free_dsp_factory()
         for (const auto& it : fInstances) {
             it->free_dsp();
         }
-        deleteDSPFactory(fDSPfactory);
+    #ifdef INTERP_BACKEND
+        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fDSPfactory));
+    #else
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(fDSPfactory));
+    #endif
         fDSPfactory = nullptr;
     }
     unlock_ui();
     unlock_audio();
 }
 
-llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
+dsp_factory* faustgen_factory::create_factory_from_bitcode()
 {
     // Alternate model using machine code
     string error_msg;
-    llvm_dsp_factory* factory = readDSPFactoryFromMachine(*fBitCode, getTarget(), error_msg);
+#ifdef INTERP_BACKEND
+    dsp_factory* factory = readInterpreterDSPFactoryFromBitcode(*fBitCode, error_msg);
+#else
+    dsp_factory* factory = readDSPFactoryFromMachine(*fBitCode, getTarget(), error_msg);
+#endif
     if (factory) {
         // Reset fSoundUI with the new factory getIncludePathnames
         delete fSoundUI;
@@ -302,7 +310,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
     return factory;
 }
 
-llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
+dsp_factory* faustgen_factory::create_factory_from_sourcecode()
 {
     char name_app[64];
     snprintf(name_app, 64, "faustgen-%d", fFaustNumber);
@@ -328,9 +336,12 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     if (!generateAuxFilesFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, error_msg)) {
         post("Generate SVG error : %s", error_msg.c_str());
     }
-    
-    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error_msg, fOptLevel);
-    
+#ifdef INTERP_BACKEND
+    dsp_factory* factory = createInterpreterDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, error_msg);
+#else
+    dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error_msg, fOptLevel);
+#endif
+
     if (factory) {
         // Reset fSoundUI with the new factory getIncludePathnames
         delete fSoundUI;
@@ -420,7 +431,12 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
     
     // Otherwise creates default DSP keeping the same input/output number
+#ifdef INTERP_BACKEND
+    fDSPfactory = createInterpreterDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, error);
+#else
     fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, 0);
+#endif
+    
     dsp = create_dsp_instance();
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
     
@@ -639,7 +655,11 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     // Write bitcode
     if (fDSPfactory) {
         // Alternate model using machine code
-        string machinecode = writeDSPFactoryToMachine(fDSPfactory, getTarget());
+    #ifdef INTERP_BACKEND
+        string machinecode = writeInterpreterDSPFactoryToBitcode(static_cast<interpreter_dsp_factory*>(fDSPfactory));
+    #else
+        string machinecode = writeDSPFactoryToMachine(static_cast<llvm_dsp_factory*>(fDSPfactory), getTarget());
+    #endif
         dictionary_appendlong(d, gensym("machinecode_size"), machinecode.size());
         dictionary_appendstring(d, gensym("machinecode"), machinecode.c_str());
     }
@@ -689,8 +709,12 @@ void faustgen_factory::display_svg()
         post("SVG diagram not available, recompile to produce it");
         
         // Force recompilation to produce it
-        llvm_dsp_factory* factory = create_factory_from_sourcecode();
-        deleteDSPFactory(factory);
+        dsp_factory* factory = create_factory_from_sourcecode();
+    #ifdef INTERP_BACKEND
+        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
+    #else
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+    #endif
         
         // Open the SVG diagram file inside a web browser
         open_svg();

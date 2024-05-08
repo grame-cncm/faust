@@ -585,7 +585,14 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
 
 inline void faustgen::init(double samplerate)
 {
+    // Save internal state
+    fSavedUI->save();
+    
+    // Init with defaults
     fDSP->init(samplerate);
+    
+    // Load internal state
+    fSavedUI->load();
 }
 
 // Display source code
