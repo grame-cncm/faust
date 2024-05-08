@@ -6,7 +6,7 @@ The **faust2max6/faust2msp** tools transform a Faust DSP program into a compiled
 
 **faust2max6** is used with the following options: 
 
-`faust2max6 [-opt native|generic] [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-us <factor>] [-ds <factor>] [-filter <filter>] [-universal] [-nopatch] [-nopost] [-soundfile/-soundfile-static] [additional Faust options (-vec -vs 8...)] <file.dsp>` 
+`faust2max6 [-osc] [-midi] [-soundfile/-soundfile-static] [-opt native|generic] [-nvoices <num>] [-us <factor>] [-ds <factor>] [-filter <filter>] [-effect <effect.dsp>] [-mc] [-native] [-universal] [-nopatch] [-nopost] [additional Faust options (-vec -vs 8...)] <file.dsp>` 
 
 By default it will create the *file~.mxo* external along with a *file.maxpat* patch file and a *ui.js* helper file, that will load the external and automatically create a User Interface (with sliders, buttons...) ready to control it. To be fully functional, the object still has to be connected to audio inputs/outputs or other elements in the patch. **Double-click** on the object allow to display its controls with their **range**, **label**, **shortname** and **complete path**. Note that  *-double* compilation mode is used by default in **faust2max6**.
 
@@ -20,9 +20,17 @@ process = os.sawtooth(freq) * gain;
 ```
 can be started with the following `@freq 700` and `@gain 0.6` attributes to configure parameters at creation time. Note that labels containing whitespace (like "freq Hz") cannot be used as attributes, they will have to be renamed.
 
-Depending of the number of audio inputs and outputs described in the DSP source code, the compiled .xmo/.xme object has:
-- N inlets, the first one being the message control one and a regular audio inlet, an all other audio inlets
+#### Regular or multi-channels inputs/outputs
+
+By default, and depending of the number of audio inputs and outputs described in the DSP source code, the compiled .xmo/.xme object has:
+- N inlets, the first one being an audio inlet combined with the message control inlet, and all other audio inlets
 - M outlets, audio outs from 1 to M-1 (or 2 if MIDI outlet is created)
+- an output messages outlet 
+- the right most outlet is used to send MIDI messages if MIDI metadata are used in the DSP UI items, and is only created when the `-midi` option is used
+
+If compiled with the `-mc` option, the compiled .xmo/.xme object has: 
+- one multi-channels audio inlet combined with the message control inlet
+- one multi-channels audio outlet
 - an output messages outlet 
 - the right most outlet is used to send MIDI messages if MIDI metadata are used in the DSP UI items, and is only created when the `-midi` option is used
 

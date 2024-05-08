@@ -45,6 +45,7 @@ class dsp_adapter : public decorator_dsp {
         int fHWInputs;
         int fHWOutputs;
         int fBufferSize;
+        bool fDelete;
     
         void adaptBuffers(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
@@ -58,19 +59,20 @@ class dsp_adapter : public decorator_dsp {
     
     public:
     
-        dsp_adapter(dsp* dsp, int hw_inputs, int hw_outputs, int buffer_size):decorator_dsp(dsp)
+        dsp_adapter(dsp* dsp, int hw_inputs, int hw_outputs, int buffer_size, bool to_delete = true):decorator_dsp(dsp)
         {
             fHWInputs = hw_inputs;
             fHWOutputs = hw_outputs;
             fBufferSize = buffer_size;
+            fDelete = to_delete;
             
-            fAdaptedInputs = new FAUSTFLOAT*[dsp->getNumInputs()];
+            fAdaptedInputs = new FAUSTFLOAT*[std::max(dsp->getNumInputs(), hw_inputs)];
             for (int i = 0; i < dsp->getNumInputs() - fHWInputs; i++) {
                 fAdaptedInputs[i + fHWInputs] = new FAUSTFLOAT[buffer_size];
                 memset(fAdaptedInputs[i + fHWInputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }
             
-            fAdaptedOutputs = new FAUSTFLOAT*[dsp->getNumOutputs()];
+            fAdaptedOutputs = new FAUSTFLOAT*[std::max(dsp->getNumOutputs(), hw_outputs)];
             for (int i = 0; i < dsp->getNumOutputs() - fHWOutputs; i++) {
                 fAdaptedOutputs[i + fHWOutputs] = new FAUSTFLOAT[buffer_size];
                 memset(fAdaptedOutputs[i + fHWOutputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
@@ -88,6 +90,9 @@ class dsp_adapter : public decorator_dsp {
                 delete [] fAdaptedOutputs[i + fHWOutputs];
             }
             delete [] fAdaptedOutputs;
+        
+            // Decorator should not delete the decorated fDSP
+            if (!fDelete) fDSP = nullptr;
         }
     
         virtual int getNumInputs() { return fHWInputs; }
