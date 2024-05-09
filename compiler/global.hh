@@ -143,6 +143,7 @@ struct global {
     bool gLocalCausalityCheck;  // -lcc option, when true trigs local causality errors (negative
                                 // delay)
     bool gGraphSwitch;          // -tg option
+    bool gTopoSwitch;           // -gt --graph-topology option
     bool gDrawPSSwitch;         // -ps option
     bool gDrawSVGSwitch;        // -svg option
     int  gFPGAMemory;           // -fpga-mem option: FPGA block RAM max size
