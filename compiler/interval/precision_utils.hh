@@ -42,7 +42,7 @@ int lsb_number(double x)
 {
     int precision = -24;
 
-    while (floor(x * pow(2, -precision - 1)) == x * pow(2, -precision - 1) and x != 0) {
+    while (floor(x * pow(2, -precision - 1)) == x * pow(2, -precision - 1) && (x != 0)) {
         precision++;
     }
 

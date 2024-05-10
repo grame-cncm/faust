@@ -39,7 +39,7 @@ interval interval_algebra::Tanh(const interval& x)
     int    sign = signMaxValAbs(x);
 
     int precision = exactPrecisionUnary(tanh, v, sign * pow(2, x.lsb()));
-    if (precision == INT_MIN or taylor_lsb) {
+    if ((precision == INT_MIN) || taylor_lsb) {
         precision = floor(x.lsb() - 2 * (double)log2(cosh(v)));
     }
 

@@ -36,7 +36,7 @@ interval interval_algebra::Log10(const interval& x)
     int precision = exactPrecisionUnary(
         log10, x.hi(),
         -pow(2, x.lsb()));  // -pow because we take the FP number right before the higher bound
-    if (precision == INT_MIN or taylor_lsb) {
+    if ((precision == INT_MIN) || taylor_lsb) {
         precision = floor(x.lsb() - (double)log2(abs(x.hi())) - log2(log(10)));
     }
 

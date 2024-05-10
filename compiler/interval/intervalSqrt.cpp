@@ -41,7 +41,7 @@ interval interval_algebra::Sqrt(const interval& x)
 
     // lowest slope at the highest bound of the interval
     int precision = exactPrecisionUnary(sqrt, i.hi(), -pow(2, i.lsb()));
-    if (precision == INT_MIN or taylor_lsb) {
+    if ((precision == INT_MIN) || taylor_lsb) {
         if (i.hi() == 0) {
             precision = floor(i.lsb() / 2);
         } else {

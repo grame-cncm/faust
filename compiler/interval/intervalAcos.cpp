@@ -38,14 +38,14 @@ interval interval_algebra::Acos(const interval& x)
     double v = 0;  // value at which the min slope is attained, zero if it is present
     int sign = 1;  // whether we compute the difference between f(x) and f(x+ε) or f(x-ε), chosing
                    // the point that lies in the interval
-    if (not i.has(0)) {  // if zero is not present, it's the bound closer to zero
+    if (!i.has(0)) {  // if zero is not present, it's the bound closer to zero
         v    = minValAbs(i);
         sign = signMinValAbs(i);
     }
 
     int precision = exactPrecisionUnary(acos, v, sign * pow(2, i.lsb()));
 
-    if (precision == INT_MIN or taylor_lsb) {
+    if ((precision == INT_MIN) || taylor_lsb) {
         precision = floor(i.lsb() - (double)log2(1 - v * v) / 2);
     }
 

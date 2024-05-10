@@ -41,7 +41,7 @@ interval interval_algebra::Add(const interval& x, const interval& y)
         return empty();
     }
 
-    if (x.lsb() >= 0 and y.lsb() >= 0) {  // if both intervals are integers
+    if ((x.lsb() >= 0) && (y.lsb() >= 0)) {  // if both intervals are integers
         // if we're dealing with integers the interval has to wrap around 0
         const int xlo = (int)x.lo();
         const int xhi = (int)x.hi();
@@ -49,22 +49,22 @@ interval interval_algebra::Add(const interval& x, const interval& y)
         const int yhi = (int)y.hi();
 
         // detect wrapping
-        /* if (std::abs((double)xhi + (double)yhi) >= (double) INT_MAX
-            or std::abs((double)xhi + (double)yhi) <= (double) INT_MIN
-            or std::abs((double)xlo + (double)ylo) >= (double) INT_MAX
-            or std::abs((double)xlo + (double)ylo) <= (double) INT_MIN)
+        /* if (std::abs((double)xhi + (double)yhi) >= (double)INT_MAX
+            || std::abs((double)xhi + (double)yhi) <= (double)INT_MIN
+            || std::abs((double)xlo + (double)ylo) >= (double)INT_MAX
+            || std::abs((double)xlo + (double)ylo) <= (double)INT_MIN)
             return {(double) INT_MIN, (double) INT_MAX, std::min(x.lsb(), y.lsb())};*/
 
         double lo = x.lo() + y.lo();
         double hi = x.hi() + y.hi();
 
         // if there is a discontinuity by the lower end of integers
-        if (lo <= (double)INT_MIN - 1 and hi >= (double)INT_MIN) {
+        if ((lo <= (double)INT_MIN - 1) && (hi >= (double)INT_MIN)) {
             return {(double)INT_MIN, (double)INT_MAX, std::min(x.lsb(), y.lsb())};
         }
 
         // if there is a discontinuity by the higher end of integers
-        if (lo <= (double)INT_MAX and hi >= (double)INT_MAX + 1) {
+        if ((lo <= (double)INT_MAX) && (hi >= (double)INT_MAX + 1)) {
             return {(double)INT_MIN, (double)INT_MAX, std::min(x.lsb(), y.lsb())};
         }
 

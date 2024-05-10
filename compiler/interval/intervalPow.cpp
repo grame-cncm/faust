@@ -42,7 +42,7 @@ static interval ipow(const interval& x, int k)
     // explicit expression because passing an anonymous function to exactPrecisionUnary is
     // complicated
     int precision = x.lsb() * k;  // if x contains 0: finest precision is attained in 0
-    if (not x.hasZero()) {
+    if (!x.hasZero()) {
         double v    = minValAbs(x);
         int    sign = signMinValAbs(x);
         int    p1   = k * (int)log2(abs(v));

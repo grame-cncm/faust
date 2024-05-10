@@ -32,9 +32,8 @@ interval interval_algebra::HSlider(const interval& name, const interval& init, c
     int lsb =
         std::min(step.lsb(), lo.lsb());  // the precision of the lower bound and that of the step
     if (step.lo() > 0) {                 // if we don't have negative or zero steps
-        lsb = std::min(
-            lsb,
-            (int)log2(step.lo()));  // and that associated to the smallest value the step can take
+        // and that associated to the smallest value the step can take
+        lsb = std::min(lsb, (int)log2(step.lo()));
     }
 
     return {lo.lo(), hi.hi(), lsb};

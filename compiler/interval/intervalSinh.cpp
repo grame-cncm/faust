@@ -36,13 +36,13 @@ interval interval_algebra::Sinh(const interval& x)
     int    sign = 1;
 
     // if zero is not included, lowest slope is at the boundary of lowest absolute value
-    if (not x.hasZero()) {
+    if (!x.hasZero()) {
         v    = minValAbs(x);
         sign = signMinValAbs(x);
     }
 
     int precision = exactPrecisionUnary(sinh, v, sign * pow(2, x.lsb()));
-    if (precision == INT_MIN or taylor_lsb) {
+    if ((precision == INT_MIN) || taylor_lsb) {
         precision = floor(x.lsb() + log2(cosh(v)));
     }
 

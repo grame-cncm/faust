@@ -549,8 +549,12 @@ void DAGInstructionsCompiler::generateDlineLoop(BasicTyped* ctype, const string&
     BasicTyped* typed = ctype;
 
     // -lv 2 uses -vs value
-    ValueInst* vsize = (gGlobal->gVectorLoopVariant == 2) ? FIRIndex(gGlobal->gVecSize)
-                                                          : IB::genLoadLoopVar("vsize");
+    ValueInst* vsize = nullptr;
+    if (gGlobal->gVectorLoopVariant == 2) {
+        vsize = FIRIndex(gGlobal->gVecSize);
+    } else {
+        vsize = IB::genLoadLoopVar("vsize");
+    }
 
     if (delay < gGlobal->gMaxCopyDelay) {
         // Implementation of a copy based delayline
@@ -656,8 +660,13 @@ ValueInst* DAGInstructionsCompiler::generateWaveform(Tree sig)
 
     string idx = subst("$0_idx", vname);
     // -lv 2 uses -vs value
-    ValueInst* vsize  = (gGlobal->gVectorLoopVariant == 2) ? FIRIndex(gGlobal->gVecSize)
-                                                           : IB::genLoadLoopVar("vsize");
+    ValueInst* vsize = nullptr;
+    if (gGlobal->gVectorLoopVariant == 2) {
+        vsize = FIRIndex(gGlobal->gVecSize);
+    } else {
+        vsize = IB::genLoadLoopVar("vsize");
+    }
+    
     FIRIndex   index1 = (FIRIndex(IB::genLoadStructVar(idx)) + vsize) % size;
     pushPostComputeDSPMethod(IB::genStoreStructVar(idx, index1));
     FIRIndex index2 = (FIRIndex(IB::genLoadStructVar(idx)) + getCurrentLoopIndex()) % size;

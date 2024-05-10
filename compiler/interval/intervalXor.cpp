@@ -52,10 +52,10 @@ interval interval_algebra::Xor(const interval& x, const interval& y)
 
     // if both intervals are singletons, the lsb is the least significant bit of the only element of
     // the interval
-    if (x0 == x1 and y0 == y1) {
+    if ((x0 == x1) && (y0 == y1)) {
         int v     = x0 ^ y0;
         precision = 0;
-        while ((v & 1) == 0 and v != 0) {  // while we encounter zeroes at the lower end of v
+        while (((v & 1) == 0) && (v != 0)) {  // while we encounter zeroes at the lower end of v
             v = v / 2;
             precision++;
         }

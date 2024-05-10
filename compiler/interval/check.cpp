@@ -238,7 +238,7 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
 
         measurements.insert(y);
 
-        if (!std::isnan(y)) {
+        if (!std::isnan(static_cast<double>(y))) {
             if (y < y0) {
                 y0 = y;
             }
@@ -285,7 +285,7 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
         }
         itv::interval Z = (A.*mp)(X);
 
-        if (Z >= Y and Z.lsb() <= Y.lsb()) {
+        if ((Z >= Y) && (Z.lsb() <= Y.lsb())) {
             double precision = (Z.size() == 0) ? 1 : Y.size() / Z.size();
             std::cout << "\033[32m"
                       << "OK    " << e << ": " << title << "(" << X << ") = \n"
@@ -329,7 +329,7 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
 
         // store output values in order to measure the output precision
         std::set<double> measurements;
-        if (Dx.lsb() < 0 or Dy.lsb() < 0) {  // if we're not doing an integer operation
+        if ((Dx.lsb() < 0) || (Dy.lsb() < 0)) {  // if we're not doing an integer operation
 
             // X: random input interval X < Dx
             double        x0 = truncate(rdx(generator), Dx.lsb());
@@ -398,9 +398,9 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
             itv::interval Zc        = (A.*bm)(X, Y);  // the computed Z
             double        precision = (Zm.size() == Zc.size()) ? 1 : Zm.size() / Zc.size();
 
-            if (Zc >= Zm and Zc.lsb() <= Zm.lsb()) {
+            if ((Zc >= Zm) && (Zc.lsb() <= Zm.lsb())) {
                 std::string color = "\033[32m";
-                if (precision < 0.8 or Zm.lsb() - Zc.lsb() >= 10) {
+                if ((precision < 0.8) || (Zm.lsb() - Zc.lsb() >= 10)) {
                     color = "\033[36m";  // cyan instead of green if approximation is technically
                                          // correct but of poor quality
                 }
@@ -462,7 +462,7 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
 
                 measurements.insert(z);
 
-                if (!std::isnan(pre_z)) {
+                if (!std::isnan(static_cast<double>(pre_z))) {
                     if (z < zlo) {
                         zlo = pre_z;
                     }
@@ -487,10 +487,10 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
             itv::interval Zc        = (A.*bm)(X, Y);  // the computed Z
             double        precision = (Zm.size() == Zc.size()) ? 1 : Zm.size() / Zc.size();
 
-            if (Zc >= Zm and Zc.lsb() <= Zm.lsb()) {
+            if ((Zc >= Zm) && (Zc.lsb() <= Zm.lsb())) {
                 std::string color = "\033[32m";
                 // cyan instead of green if approximation is technically correct but of poor quality
-                if (precision < 0.8 or Zm.lsb() - Zc.lsb() >= 10) {
+                if ((precision < 0.8) || (Zm.lsb() - Zc.lsb() >= 10)) {
                     color = "\033[36m";
                 }
                 std::cout << color << "OK    " << e << ": " << title << "(" << X << ",\t" << Y

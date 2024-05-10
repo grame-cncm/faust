@@ -38,7 +38,7 @@ interval interval_algebra::Abs(const interval& x)
     }
 
     // integer overflowing
-    if (x.lsb() >= 0 and x.lo() <= (double)INT_MIN) {
+    if ((x.lsb() >= 0) && (x.lo() <= (double)INT_MIN)) {
         double lo = (x.hi() >= 0) ? 0 : std::min(std::abs(x.hi()), (double)INT_MAX);
         return {lo, (double)INT_MAX, x.lsb()};
     }

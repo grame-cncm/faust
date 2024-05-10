@@ -114,7 +114,7 @@ class interval {
     // position of the most significant bit of the value, without taking the sign bit into account
     int msb() const
     {
-        if (fLo == 0 and fHi == 0) {
+        if ((fLo == 0) && (fHi == 0)) {
             return 0;
         }
 
@@ -209,10 +209,10 @@ inline interval singleton(double x)
     }
 
     /* int precision = lsb;
-
-    while (floor(x * pow(2, -precision - 1)) == x * pow(2, -precision - 1) and x != 0) {
+    while (floor(x * pow(2, -precision - 1)) == x * pow(2, -precision - 1) && x != 0) {
         precision++;
-    }*/
+    }
+    */
 
     int m = std::floor(std::log2(std::abs(x)));
 

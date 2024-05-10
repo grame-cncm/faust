@@ -39,7 +39,7 @@ interval interval_algebra::Acosh(const interval& x)
     // we thus compute the gap between f(hi) and f(hi-ε), to remain in the interval
     int precision = exactPrecisionUnary(acosh, x.hi(), -pow(2, x.lsb()));
 
-    if (precision == INT_MIN or taylor_lsb) {
+    if ((precision == INT_MIN) || taylor_lsb) {
         precision = floor(x.lsb() - (double)log2(x.hi() * x.hi() - 1) / 2);
     }
 

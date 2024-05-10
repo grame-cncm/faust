@@ -39,7 +39,7 @@ interval interval_algebra::Sin(const interval& x)
     }
 
     int precision = exactPrecisionUnary(sin, 0.5, pow(2, x.lsb()));
-    if (precision == INT_MIN or taylor_lsb) {
+    if ((precision == INT_MIN) || taylor_lsb) {
         precision =
             2 * x.lsb() - 1;  // if x.lsb() is so small that the automatic computation doesn't work
     }
@@ -75,8 +75,8 @@ interval interval_algebra::Sin(const interval& x)
     // precision if we don't hit the half integers
     if (i.hi() < M_PI_2) {
         v = x.hi();
-    } else if ((i.lo() > M_PI_2 and i.hi() < 3 * M_PI_2) or
-               (i.lo() > 3 * M_PI_2 and i.hi() < 2.5 * M_PI)) {
+    } else if (((i.lo() > M_PI_2) && (i.hi() < 3 * M_PI_2)) ||
+               ((i.lo() > 3 * M_PI_2) && (i.hi() < 2.5 * M_PI))) {
         double delta_hi = ceil(i.hi() / M_PI + 0.5) - i.hi() / M_PI;
         double delta_lo = i.lo() / M_PI - floor(i.lo() / M_PI - 0.5);
         if (delta_lo > delta_hi) {  // if i.hi is closer to its higher half-integer than i.lo() to
@@ -88,7 +88,7 @@ interval interval_algebra::Sin(const interval& x)
     }
 
     precision = exactPrecisionUnary(sin, v, pow(2, x.lsb()));
-    if (precision == INT_MIN or taylor_lsb) {
+    if ((precision == INT_MIN) || taylor_lsb) {
         if (v != 0.5 * M_PI) {
             precision =
                 x.lsb() +

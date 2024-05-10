@@ -46,7 +46,7 @@ interval interval_algebra::Atan2(const interval& y, const interval& x)
     // atan2(y, x) = atan(y/x) + constant: precision is that of y/x compounded with that of atan
     // cf https://en.wikipedia.org/wiki/Atan2#Definition_and_computation
 
-    if (y.lo() <= 0 and x.hasZero()) {  // if we intersect the Ox- axis
+    if ((y.lo() <= 0) && x.hasZero()) {  // if we intersect the Ox- axis
         /* interval yp = {0, y.hi(), y.lsb()}; // positive part of y
         interval yn = {y.lo(), 0, y.lsb()}; // negative part of y*/
 

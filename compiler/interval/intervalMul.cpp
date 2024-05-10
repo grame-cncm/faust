@@ -53,7 +53,7 @@ interval interval_algebra::Mul(const interval& x, const interval& y)
     double lo = min4(a, b, c, d);
     double hi = max4(a, b, c, d);
 
-    if (x.lsb() >= 0 and y.lsb() >= 0) {  // operation between integers
+    if ((x.lsb() >= 0) && (y.lsb() >= 0)) {  // operation between integers
         // if the quotient of an INT limit by an interval limit is below a limit of the other
         // interval ie, if there is something big enough in the other interval to make the interval
         // limit go beyond an INT limit
@@ -68,8 +68,8 @@ interval interval_algebra::Mul(const interval& x, const interval& y)
 
         return Sub(Mod(Add(z, shift), m), shift);*/
 
-        /* if ((lo <= (double)INT_MIN - 1 and hi >= (double)INT_MIN) // discontinuity at the lower
-        end or (lo <= (double)INT_MAX and hi >= (double)INT_MAX+1))
+        /* if ((lo <= (double)INT_MIN - 1 && hi >= (double)INT_MIN) // discontinuity at the lower
+        end or (lo <= (double)INT_MAX && hi >= (double)INT_MAX+1))
         {
             return {(double)INT_MIN, (double)INT_MAX, std::min(x.lsb(), y.lsb())};
         }

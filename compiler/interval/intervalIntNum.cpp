@@ -30,9 +30,10 @@ interval interval_algebra::IntNum(int x)
                     // why should _,16:*:sin have a different output precision than _,15:*:sin ?
                     // shaving a couple extra bits is not worth the later consequences
 
-    while (floor(x * pow(2, -lsb - 1)) == x * pow(2, -lsb - 1) and x != 0) {
+    while (floor(x * pow(2, -lsb - 1)) == x * pow(2, -lsb - 1) && x != 0) {
         lsb++;
-    }*/
+    }
+    */
 
     int lsb = 0;
     return {double(x), double(x), lsb};

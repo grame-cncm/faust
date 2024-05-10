@@ -149,7 +149,7 @@ interval interval_algebra::And(const interval& x, const interval& y)
 
     if (x0 == x1) {
         int v = x0;                      // only element of interval x
-        while ((v & 1) == 0 and v != 0)  // while we encounter zeroes at the lower end of v
+        while ((v & 1) == 0 && v != 0)  // while we encounter zeroes at the lower end of v
         {
             v = v / 2;
             precisionx++;
@@ -160,7 +160,7 @@ interval interval_algebra::And(const interval& x, const interval& y)
 
     if (y0 == y1) {
         int v = y0;                      // only element of interval y
-        while ((v & 1) == 0 and v != 0)  // while we encounter zeroes at the lower end of v
+        while ((v & 1) == 0 && v != 0)  // while we encounter zeroes at the lower end of v
         {
             v = v / 2;
             precisiony++;

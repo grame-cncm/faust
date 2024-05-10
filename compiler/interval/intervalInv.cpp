@@ -50,7 +50,7 @@ interval interval_algebra::Inv(const interval& x)
     }
 
     int precision = exactPrecisionUnary(inv, v, sign * pow(2, x.lsb()));
-    if (precision == INT_MIN or taylor_lsb) {
+    if ((precision == INT_MIN) || taylor_lsb) {
         precision = floor(x.lsb() - 2 * log2(abs(v)));  // 1/(x+u) - 1/x = -u/x^2 + o(u)
     }
 

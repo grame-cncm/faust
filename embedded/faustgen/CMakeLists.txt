@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4.0)
+cmake_minimum_required(VERSION 3.6.0)
 project (faustgen)
 set (VERSION "1.70")
 
@@ -41,9 +41,9 @@ if (NOT DEFINED FAUST)
 endif()
 message (STATUS "Using Faust as ${FAUST}")
 execute_process (COMMAND ${FAUST} --includedir OUTPUT_VARIABLE FINC)
-string ( STRIP ${FINC} FAUSTINC )
+string ( STRIP "${FINC}" FAUSTINC )
 execute_process (COMMAND ${FAUST} --libdir OUTPUT_VARIABLE FLIB)
-string ( STRIP ${FLIB} FAUSTLIB )
+string ( STRIP "${FLIB}" FAUSTLIB )
 
 message (STATUS "Using Faust libraries from ${FAUSTLIB}")
 endif()
