@@ -167,7 +167,6 @@ typedef struct faust
 {
     t_pxobject m_ob;
     t_atom *m_seen, *m_want;
-    map<string, vector<t_object*> > m_output_table;
     short m_where;
     bool m_mute;
     void** m_args;
@@ -383,33 +382,6 @@ void faust_create_jsui(t_faust* x)
             t_atom json;
             atom_setsym(&json, gensym(x->m_json));
             object_method_typed(obj, gensym("anything"), 1, &json, 0);
-        }
-    }
-        
-    // Keep all outputs to be notified in update_outputs
-    x->m_output_table.clear();
-    for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
-        obj = jbox_get_object(box);
-        t_symbol* scriptingname = jbox_get_varname(obj); // scripting name
-        // Keep control outputs
-        if (scriptingname && x->m_dspUI->isOutputValue(scriptingname->s_name)) {
-            x->m_output_table[scriptingname->s_name].push_back(obj);
-        }
-    }
-}
-
-/*--------------------------------------------------------------------------*/
-void faust_update_outputs(t_faust* x)
-{
-    for (const auto& it1 : x->m_output_table) {
-        bool new_val = false;
-        FAUSTFLOAT value = x->m_dspUI->getOutputValue(it1.first, new_val);
-        if (new_val) {
-            t_atom at_value;
-            atom_setfloat(&at_value, value);
-            for (const auto& it2 : it1.second) {
-                object_method_typed(it2, gensym("float"), 1, &at_value, 0);
-            }
         }
     }
 }
@@ -724,7 +696,6 @@ void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, dou
                 x->m_dsp->compute(sampleframes, reinterpret_cast<FAUSTFLOAT**>(ins), reinterpret_cast<FAUSTFLOAT**>(outs));
             #endif
             }
-            // faust_update_outputs(x);
             // Use the right outlet to output messages
             faust_dump_outputs(x);
         }
