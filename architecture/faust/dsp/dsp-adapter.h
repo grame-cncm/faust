@@ -66,13 +66,13 @@ class dsp_adapter : public decorator_dsp {
             fBufferSize = buffer_size;
             fDelete = to_delete;
             
-            fAdaptedInputs = new FAUSTFLOAT*[std::max(dsp->getNumInputs(), hw_inputs)];
+            fAdaptedInputs = new FAUSTFLOAT*[std::max<int>(dsp->getNumInputs(), hw_inputs)];
             for (int i = 0; i < dsp->getNumInputs() - fHWInputs; i++) {
                 fAdaptedInputs[i + fHWInputs] = new FAUSTFLOAT[buffer_size];
                 memset(fAdaptedInputs[i + fHWInputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }
             
-            fAdaptedOutputs = new FAUSTFLOAT*[std::max(dsp->getNumOutputs(), hw_outputs)];
+            fAdaptedOutputs = new FAUSTFLOAT*[std::max<int>(dsp->getNumOutputs(), hw_outputs)];
             for (int i = 0; i < dsp->getNumOutputs() - fHWOutputs; i++) {
                 fAdaptedOutputs[i + fHWOutputs] = new FAUSTFLOAT[buffer_size];
                 memset(fAdaptedOutputs[i + fHWOutputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
