@@ -823,10 +823,10 @@ void CScalarCodeContainer1::generateComputeAux(int n)
     // Generates declaration
     *fOut << "void computeBlock" << fKlassName << "(" << fKlassName
           << subst(
-                 "* dsp, $0 inputs[FAUST_INPUTS][BLOCK_SIZE], $0 "
-                 "outputs[FAUST_OUTPUTS][BLOCK_SIZE], int* RESTRICT iControl, $0* RESTRICT "
+                 "* dsp, $0 inputs[FAUST_INPUTS][$1], $0 "
+                 "outputs[FAUST_OUTPUTS][$1], int* RESTRICT iControl, $0* RESTRICT "
                  "fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {",
-                 xfloat());
+                 xfloat(), std::to_string(gGlobal->gVecSize));
 
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
@@ -892,10 +892,10 @@ void CVectorCodeContainer1::generateComputeAux(int n)
     // Generates declaration
     *fOut << "void computeBlock" << fKlassName << "(" << fKlassName
           << subst(
-                 "* dsp, $0 inputs[FAUST_INPUTS][BLOCK_SIZE], $0 "
-                 "outputs[FAUST_OUTPUTS][BLOCK_SIZE], int* RESTRICT iControl, $0* RESTRICT "
+                 "* dsp, $0 inputs[FAUST_INPUTS][$1], $0 "
+                 "outputs[FAUST_OUTPUTS][$1], int* RESTRICT iControl, $0* RESTRICT "
                  "fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {",
-                 xfloat());
+                 xfloat(), std::to_string(gGlobal->gVecSize));
 
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
