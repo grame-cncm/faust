@@ -49,6 +49,7 @@
 #ifdef INTERP_BACKEND
 #include <faust/dsp/interpreter-dsp.h>
 #endif
+#include <faust/dsp/dsp-adapter.h>
 #include <faust/gui/SoundUI.h>
 
 #include "maxcpp5.h"
