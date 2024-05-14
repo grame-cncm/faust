@@ -419,7 +419,7 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth,
             dsp_resize((t_pxobject*)this, siginlets);
             m_siginlets = siginlets;
             
-            // Delete the m_control_outlet at 'm_sigoutlets' index
+            // Delete the m_control_outlet at 'm_sigoutlets+1' index
             outlet_delete(outlet_nth((t_object*)this, m_sigoutlets+1));
             
             // Delete the m_control_outlet at 'm_sigoutlets' index
@@ -493,7 +493,7 @@ template<typename T> void MspCpp5<T>::internal_dsp_64(MspCpp5<T>* x,
                                                       long maxvectorsize,
                                                       long flags) {
     T* self = (T*)x;
-    long inputs = (long)object_method(dsp64, gensym("getnuminputchannels"), x, 0);
+    long inputs = (self->m_is_mc) ? (long)object_method(dsp64, gensym("getnuminputchannels"), x, 0) : -1;
     self->m_samplerate = samplerate;
     ((self)->*(self->m_init))(samplerate, inputs, maxvectorsize);
     
