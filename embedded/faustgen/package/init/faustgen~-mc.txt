@@ -1,0 +1,1 @@
+max objectfile mc.faustgen~ faustgen~;

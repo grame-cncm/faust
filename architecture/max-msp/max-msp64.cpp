@@ -646,7 +646,7 @@ void faust_mute(t_faust* obj, t_symbol* s, short ac, t_atom* at)
 
 /*--------------------------------------------------------------------------*/
 #ifdef MC_VERSION
-long faust_multichanneloutputs(t_faust *x, long outletindex)
+long faust_multichanneloutputs(t_faust* x, long outletindex)
 {
     return (outletindex == 0) ? x->m_Outputs : 0;
 }
@@ -713,8 +713,7 @@ void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, dou
 
 /*--------------------------------------------------------------------------*/
 void faust_dsp64(t_faust* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
-{
-    object_method(dsp64, gensym("dsp_add64"), x, faust_perform64, 0, NULL);
+{ 
 #ifdef MC_VERSION
     // We need to know the real number of inputs to adapt faust_perform64
     long inputs = (long)object_method(dsp64, gensym("getnuminputchannels"), x, 0);
@@ -722,6 +721,7 @@ void faust_dsp64(t_faust* x, t_object* dsp64, short* count, double samplerate, l
     // x->m_mc_dsp will not delete the x->m_dsp object
     x->m_mc_dsp = new dsp_adapter(x->m_dsp, inputs, x->m_Outputs, maxvectorsize, false);
 #endif
+    object_method(dsp64, gensym("dsp_add64"), x, faust_perform64, 0, NULL);
 }
 
 /*--------------------------------------------------------------------------*/

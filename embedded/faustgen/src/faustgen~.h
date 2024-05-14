@@ -57,8 +57,6 @@
 #include "jgraphics.h"
 #include "ext_drag.h"
 
-#define FAUSTGEN_VERSION "1.70"
-
 #include "faustgen_factory.h"
 
 //====================
@@ -80,7 +78,8 @@ class faustgen : public MspCpp5<faustgen> {
         OSCUI* fOSCUI;                  // OSC UI
         SaveUI* fSavedUI;               // Save/load current value, reset to init value
     
-        ::dsp* fDSP;                    // LLVM Faust dsp
+        ::dsp* fDSP;                    // JIT compiled Faust dsp
+        ::dsp* fMCDSP;                  // Multi-channels adapted
         t_object* fEditor;              // Text editor object
         bool fMute;                     // DSP mute state
         static t_jrgba gDefaultColor;   // Color of the object to be used when restoring default color
@@ -154,6 +153,8 @@ class faustgen : public MspCpp5<faustgen> {
         void librarypath(long inlet, t_symbol* s);
         
         void mute(long inlet, long mute);
+    
+        long multichanneloutputs(long outletindex);
         
         // Called when saving the Max patcher, this function saves the necessary
         // data inside the json file (faust sourcecode)
@@ -173,7 +174,7 @@ class faustgen : public MspCpp5<faustgen> {
         void perform(int vs, t_sample** inputs, long numins, t_sample** outputs, long numouts);
     
         // Callback given to setupIO
-        void init(double samplerate);
+        void init(double samplerate, long inputs, long maxvectorsize);
     
 };
 

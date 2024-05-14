@@ -73,6 +73,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     m_sigoutlets = 0;
     
     fDSP = nullptr;
+    fMCDSP = nullptr;
     fDSPUI = nullptr;
     fMidiUI = nullptr;
     fOSCUI = nullptr;
@@ -80,6 +81,9 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     fDSPfactory = nullptr;
     fEditor = nullptr;
     fMute = false;
+   
+    // sym can be "faustgen~" or "mc.faustgen~"
+    m_is_mc = (string(sym->s_name) == "mc.faustgen~");
     
     int i;
     t_atom* ap;
@@ -141,23 +145,37 @@ void faustgen::assist(void* b, long msg, long a, char* dst)
     fDSPfactory->lock_audio();
     fDSPfactory->lock_ui();
     {
-        if (msg == ASSIST_INLET) {
-            if (a == 0) {
-                if (fDSP->getNumInputs() == 0) {
-                    snprintf(dst, 512, "(messages)");
+        if (m_is_mc) {
+            if (msg == ASSIST_INLET) {
+                snprintf(dst, 512, "(messages/multi-channel signal) : Audio Input %ld", (a+1));
+            } else if (msg == ASSIST_OUTLET) {
+                if (a == 0) {
+                    snprintf(dst, 512, "(multi-channel signal) : Audio Output %ld", (a+1));
+                } else if (a == 1) {
+                    snprintf(dst, 512, "(list) : [path, cur|init, min, max]*");
                 } else {
-                    snprintf(dst, 512, "(messages/signal) : Audio Input %ld", (a+1));
+                    snprintf(dst, 512, "(int) : raw MIDI bytes*");
                 }
-            } else if (a < fDSP->getNumInputs()) {
-                snprintf(dst, 512, "(signal) : Audio Input %ld", (a+1));
             }
-        } else if (msg == ASSIST_OUTLET) {
-            if (a < fDSP->getNumOutputs()) {
-                snprintf(dst, 512, "(signal) : Audio Output %ld", (a+1));
-            } else if (a == fDSP->getNumOutputs()) {
-                snprintf(dst, 512, "(list) : [path, cur|init, min, max]*");
-            } else {
-                snprintf(dst, 512, "(int) : raw MIDI bytes*");
+        } else {
+            if (msg == ASSIST_INLET) {
+                if (a == 0) {
+                    if (fDSP->getNumInputs() == 0) {
+                        snprintf(dst, 512, "(messages)");
+                    } else {
+                        snprintf(dst, 512, "(messages/signal) : Audio Input %ld", (a+1));
+                    }
+                } else if (a < fDSP->getNumInputs()) {
+                    snprintf(dst, 512, "(signal) : Audio Input %ld", (a+1));
+                }
+            } else if (msg == ASSIST_OUTLET) {
+                if (a < fDSP->getNumOutputs()) {
+                    snprintf(dst, 512, "(signal) : Audio Output %ld", (a+1));
+                } else if (a == fDSP->getNumOutputs()) {
+                    snprintf(dst, 512, "(list) : [path, cur|init, min, max]*");
+                } else {
+                    snprintf(dst, 512, "(int) : raw MIDI bytes*");
+                }
             }
         }
     }
@@ -573,7 +591,11 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
     if (!fMute && fDSPfactory->try_lock_audio()) {
         // Has to be tested again when the lock has been taken...
         if (fDSP) {
-            fDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
+            if (m_is_mc) {
+                fMCDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
+            } else {
+                fDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
+            }
             // Use the right outlet to output messages
             dump_outputs();
             // Done for fMidiUI and fOSCUI
@@ -583,7 +605,7 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
     }
 }
 
-inline void faustgen::init(double samplerate)
+inline void faustgen::init(double samplerate, long inputs, long maxvectorsize)
 {
     // Save internal state
     fSavedUI->save();
@@ -593,6 +615,13 @@ inline void faustgen::init(double samplerate)
     
     // Load internal state
     fSavedUI->load();
+    
+    // We need to know the real number of inputs to adapt perform
+    if (m_is_mc) {
+        delete fMCDSP;
+        // fMCDSP will not delete the fDSP object
+        fMCDSP = new dsp_adapter(fDSP, inputs, fDSP->getNumOutputs(), maxvectorsize, false);
+    }
 }
 
 // Display source code
@@ -813,6 +842,15 @@ void faustgen::mute(long inlet, long mute)
     fMute = mute;
 }
 
+long faustgen::multichanneloutputs(long outletindex)
+{
+    if (m_is_mc) {
+        return (outletindex == 0) ? fDSP->getNumOutputs() : 0;
+    } else {
+        return 1;
+    }
+}
+
 extern "C" void ext_main(void* r)
 {
 #ifdef WIN32
@@ -823,9 +861,13 @@ extern "C" void ext_main(void* r)
     
     common_symbols_init();
     
-    // Creates an instance of Faustgen
-    t_class * mclass = faustgen::makeMaxClass("faustgen~");
-    post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
+    // Creates as class for Faustgen
+    faustgen::makeMaxClass("faustgen~");
+        
+    // Creates as class for multi-channels Faustgen
+    faustgen::makeMaxClass("mc.faustgen~");
+    
+    post("faustgen~/mc.faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
     post("LLVM powered Faust embedded compiler v%s", getCLibFaustVersion());
     post("Copyright (c) 2012-2024 Grame");
     
@@ -852,6 +894,9 @@ extern "C" void ext_main(void* r)
     
     // Process the "osc" message
     REGISTER_METHOD_GIMME(faustgen, osc);
+    
+    // Process the "multichanneloutputs" message
+    REGISTER_METHOD_MULTICHANNELOUPUTS(faustgen, multichanneloutputs);
     
     // Register inside Max the necessary methods
     REGISTER_METHOD_DEFSYM(faustgen, read);

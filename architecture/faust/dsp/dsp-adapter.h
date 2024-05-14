@@ -44,6 +44,9 @@ class dsp_adapter : public decorator_dsp {
         FAUSTFLOAT** fAdaptedOutputs;
         int fHWInputs;
         int fHWOutputs;
+        int fDSPInputs;
+        int fDSPOutputs;
+    
         int fBufferSize;
         bool fDelete;
     
@@ -63,6 +66,8 @@ class dsp_adapter : public decorator_dsp {
         {
             fHWInputs = hw_inputs;
             fHWOutputs = hw_outputs;
+            fDSPInputs = dsp->getNumInputs();
+            fDSPOutputs = dsp->getNumOutputs();
             fBufferSize = buffer_size;
             fDelete = to_delete;
             
@@ -81,12 +86,12 @@ class dsp_adapter : public decorator_dsp {
     
         virtual ~dsp_adapter()
         {
-            for (int i = 0; i < fDSP->getNumInputs() - fHWInputs; i++) {
+            for (int i = 0; i < fDSPInputs - fHWInputs; i++) {
                 delete [] fAdaptedInputs[i + fHWInputs];
             }
             delete [] fAdaptedInputs;
             
-            for (int i = 0; i < fDSP->getNumOutputs() - fHWOutputs; i++) {
+            for (int i = 0; i < fDSPOutputs - fHWOutputs; i++) {
                 delete [] fAdaptedOutputs[i + fHWOutputs];
             }
             delete [] fAdaptedOutputs;
