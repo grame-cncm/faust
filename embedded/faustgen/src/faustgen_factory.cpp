@@ -74,12 +74,6 @@ struct FaustPluginMeta : public Meta
     }
 };
 
-static const char* getCodeSize()
-{
-    int tmp;
-    return (sizeof(&tmp) == 8) ? "64 bits" : "32 bits";
-}
-
 #ifdef __APPLE__
 
 #include <CoreFoundation/CoreFoundation.h>
@@ -347,10 +341,10 @@ dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         delete fSoundUI;
         fSoundUI = new SoundUI(factory->getIncludePathnames(), -1, nullptr, true);
         /*
-         std::vector<std::string> sound_directories = factory->getIncludePathnames();
-         for (int i = 0; i < sound_directories.size(); i++) {
+        std::vector<std::string> sound_directories = factory->getIncludePathnames();
+        for (int i = 0; i < sound_directories.size(); i++) {
             post("sound_directories %d %s", i, sound_directories[i].c_str());
-         }
+        }
         */
         return factory;
     } else {
@@ -721,27 +715,18 @@ void faustgen_factory::display_svg()
     }
 }
 
-bool faustgen_factory::open_file(const char* file)
-{
-    char command[512];
-#ifdef WIN32
-    snprintf(command, 512, "start \"\" \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
-#else
-    snprintf(command, 512, "open \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
-#endif
-    post(command);
-    return (system(command) == 0);
-}
-
 bool faustgen_factory::open_file(const char* appl, const char* file)
 {
     char command[512];
-#ifdef WIN32
-    snprintf(command, 512, "start \"\" %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);
-#else
-    snprintf(command, 512, "open -a %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);
-#endif
-    return (system(command) == 0);
+    for (const auto& it : fLibraryPath) {
+    #ifdef WIN32
+        snprintf(command, 512, "start \"\" %s \"%s%s\"", appl, it.c_str(), file);
+    #else
+        snprintf(command, 512, "open -a %s \"%s%s\"", appl, it.c_str(), file);
+    #endif
+        if (system(command) == 0) return true;
+    }
+    return false;
 }
 
 void faustgen_factory::display_documentation()
@@ -762,9 +747,7 @@ void faustgen_factory::display_libraries_aux(const char* lib)
     int i = 0;
     
     while ((appl = TEXT_APPL_LIST[i++]) && (strcmp(appl, "") != 0)) {
-        if (open_file(appl, lib)) {
-            break;
-        }
+        if (open_file(appl, lib)) break;
     }
 }
 
@@ -772,91 +755,52 @@ void faustgen_factory::display_libraries()
 {
     // Open the libraries
 #ifdef WIN32
-    open_file(FAUST_PDF_LIBRARY);
-    open_file("all.lib");
-    open_file("aanl.lib");
-    open_file("analyzers.lib");
-    open_file("basics.lib");
-    open_file("compressors.lib");
-    open_file("delays.lib");
-    open_file("demos.lib");
-    open_file("double.lib");
-    open_file("dx7.lib");
-    open_file("envelopes.lib");
-    open_file("filters.lib");
-    open_file("fds.lib");
-    open_file("hoa.lib");
-    open_file("instruments.lib");
-    open_file("interpolators.lib");
-    open_file("maths.lib");
-    open_file("maxmsp.lib");
-    open_file("mi.lib");
-    open_file("misceffects.lib");
-    open_file("noises.lib");
-    open_file("oscillators.lib");
-    open_file("phaflangers.lib");
-    open_file("physmodels.lib");
-    open_file("platform.lib");
-    open_file("quantizers.lib");
-    open_file("reducemaps.lib");
-    open_file("reverbs.lib");
-    open_file("routes.lib");
-    open_file("runtime.lib");
-    open_file("sf.lib");
-    open_file("signals.lib");
-    open_file("soundfiles.lib");
-    open_file("spats.lib");
-    open_file("stdfaust.lib");
-    open_file("synths.lib");
-    open_file("tonestacks.lib");
-    open_file("tubes.lib");
-    open_file("vaeffects.lib");
-    open_file("version.lib");
-    open_file("wdmodels.lib");
-    open_file("webaudio.lib");
+    #define OPEN_FILE open_file
+    OPEN_FILE(FAUST_PDF_LIBRARY);
 #else
-    display_libraries_aux("all.lib");
-    display_libraries_aux("aanl.lib");
-    display_libraries_aux("analyzers.lib");
-    display_libraries_aux("basics.lib");
-    display_libraries_aux("compressors.lib");
-    display_libraries_aux("delays.lib");
-    display_libraries_aux("demos.lib");
-    display_libraries_aux("double.lib");
-    display_libraries_aux("dx7.lib");
-    display_libraries_aux("envelopes.lib");
-    display_libraries_aux("filters.lib");
-    display_libraries_aux("fds.lib");
-    display_libraries_aux("hoa.lib");
-    display_libraries_aux("instruments.lib");
-    display_libraries_aux("interpolators.lib");
-    display_libraries_aux("maths.lib");
-    display_libraries_aux("maxmsp.lib");
-    display_libraries_aux("mi.lib");
-    display_libraries_aux("misceffects.lib");
-    display_libraries_aux("noises.lib");
-    display_libraries_aux("oscillators.lib");
-    display_libraries_aux("phaflangers.lib");
-    display_libraries_aux("physmodels.lib");
-    display_libraries_aux("platform.lib");
-    display_libraries_aux("quantizers.lib");
-    display_libraries_aux("reducemaps.lib");
-    display_libraries_aux("reverbs.lib");
-    display_libraries_aux("routes.lib");
-    display_libraries_aux("runtime.lib");
-    display_libraries_aux("sf.lib");
-    display_libraries_aux("signals.lib");
-    display_libraries_aux("soundfiles.lib");
-    display_libraries_aux("spats.lib");
-    display_libraries_aux("stdfaust.lib");
-    display_libraries_aux("synths.lib");
-    display_libraries_aux("tonestacks.lib");
-    display_libraries_aux("tubes.lib");
-    display_libraries_aux("vaeffects.lib");
-    display_libraries_aux("version.lib");
-    display_libraries_aux("wdmodels.lib");
-    display_libraries_aux("webaudio.lib");
+    #define OPEN_FILE display_libraries_aux
 #endif
+    OPEN_FILE("all.lib");
+    OPEN_FILE("aanl.lib");
+    OPEN_FILE("analyzers.lib");
+    OPEN_FILE("basics.lib");
+    OPEN_FILE("compressors.lib");
+    OPEN_FILE("delays.lib");
+    OPEN_FILE("demos.lib");
+    OPEN_FILE("double.lib");
+    OPEN_FILE("dx7.lib");
+    OPEN_FILE("envelopes.lib");
+    OPEN_FILE("filters.lib");
+    OPEN_FILE("fds.lib");
+    OPEN_FILE("hoa.lib");
+    OPEN_FILE("instruments.lib");
+    OPEN_FILE("interpolators.lib");
+    OPEN_FILE("maths.lib");
+    OPEN_FILE("maxmsp.lib");
+    OPEN_FILE("mi.lib");
+    OPEN_FILE("misceffects.lib");
+    OPEN_FILE("noises.lib");
+    OPEN_FILE("oscillators.lib");
+    OPEN_FILE("phaflangers.lib");
+    OPEN_FILE("physmodels.lib");
+    OPEN_FILE("platform.lib");
+    OPEN_FILE("quantizers.lib");
+    OPEN_FILE("reducemaps.lib");
+    OPEN_FILE("reverbs.lib");
+    OPEN_FILE("routes.lib");
+    OPEN_FILE("runtime.lib");
+    OPEN_FILE("sf.lib");
+    OPEN_FILE("signals.lib");
+    OPEN_FILE("soundfiles.lib");
+    OPEN_FILE("spats.lib");
+    OPEN_FILE("stdfaust.lib");
+    OPEN_FILE("synths.lib");
+    OPEN_FILE("tonestacks.lib");
+    OPEN_FILE("tubes.lib");
+    OPEN_FILE("vaeffects.lib");
+    OPEN_FILE("version.lib");
+    OPEN_FILE("wdmodels.lib");
+    OPEN_FILE("webaudio.lib");
 }
 
 void faustgen_factory::update_sourcecode(int size, char* source_code)

@@ -41,12 +41,6 @@ std::map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-static const char* getCodeSize()
-{
-    int tmp;
-    return (sizeof(&tmp) == 8) ? "64 bits" : "32 bits";
-}
-
 //====================
 // Faust DSP Instance
 //====================
@@ -85,13 +79,13 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     // sym can be "faustgen~" or "mc.faustgen~"
     m_is_mc = (string(sym->s_name) == "mc.faustgen~");
     
+    fMidiHandler.startMidi();
+    
+    // Allocate factory with a given "name"
     int i;
     t_atom* ap;
     bool res = false;
     
-    fMidiHandler.startMidi();
-    
-    // Allocate factory with a given "name"
     for (i = 0, ap = argv; i < ac; i++, ap++) {
         if (atom_gettype(ap) == A_SYM) {
             res = allocate_factory(atom_getsym(ap)->s_name);
@@ -203,6 +197,9 @@ void faustgen::free_dsp()
     
     delete fDSP;
     fDSP = nullptr;
+    
+    delete fMCDSP;
+    fMCDSP = nullptr;
 }
 
 t_dictionary* faustgen::json_reader(const char* jsontext)
@@ -521,7 +518,11 @@ void faustgen::dblclick(long inlet)
             
         case 1:
             // Open the text editor to allow the user to input Faust sourcecode
-            display_dsp_source();
+            if (m_is_mc && sys_getdspobjdspstate((t_object*)&m_ob)) {
+                post("WARNING : in multichannels mode, the editor cannot be safely used while running !");
+            } else {
+                display_dsp_source();
+            }
             break;
             
         case 2:
@@ -592,6 +593,10 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
         // Has to be tested again when the lock has been taken...
         if (fDSP) {
             if (m_is_mc) {
+                // Not RT but simpler...
+                if (!fMCDSP) {
+                    fMCDSP = new dsp_adapter(fDSP, numins, fDSP->getNumOutputs(), 4096, false);
+                }
                 fMCDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
             } else {
                 fDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
@@ -605,8 +610,10 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
     }
 }
 
-inline void faustgen::init(double samplerate, long inputs, long maxvectorsize)
+inline void faustgen::init(double samplerate)
 {
+    std::cout << "faustgen::init\n";
+    
     // Save internal state
     fSavedUI->save();
     
@@ -615,13 +622,6 @@ inline void faustgen::init(double samplerate, long inputs, long maxvectorsize)
     
     // Load internal state
     fSavedUI->load();
-    
-    // We need to know the real number of inputs to adapt perform
-    if (m_is_mc) {
-        delete fMCDSP;
-        // fMCDSP will not delete the fDSP object
-        fMCDSP = new dsp_adapter(fDSP, inputs, fDSP->getNumOutputs(), maxvectorsize, false);
-    }
 }
 
 // Display source code
@@ -762,6 +762,9 @@ void faustgen::set_dirty()
     jpatcher_set_dirty(mypatcher, 1);
 }
 
+/**
+ * Search the adc/dac object in the patcher.
+ */
 t_pxobject* faustgen::check_dac()
 {
     t_object *patcher, *box, *obj;
@@ -773,7 +776,11 @@ t_pxobject* faustgen::check_dac()
             if ((object_classname(obj) == gensym("dac~"))
                 || (object_classname(obj) == gensym("ezdac~"))
                 || (object_classname(obj) == gensym("ezadc~"))
-                || (object_classname(obj) == gensym("adc~"))) {
+                || (object_classname(obj) == gensym("adc~"))
+                || (object_classname(obj) == gensym("mc.dac~"))
+                || (object_classname(obj) == gensym("mc.ezdac~"))
+                || (object_classname(obj) == gensym("mc.ezadc~"))
+                || (object_classname(obj) == gensym("mc.adc~"))) {
                 return (t_pxobject*)box;
             }
         }
@@ -796,34 +803,12 @@ void faustgen::create_jsui()
             object_method_typed(obj, gensym("anything"), 1, &json, 0);
         }
     }
-    
-    // Keep all outputs to be notified in update_outputs
-    fOutputTable.clear();
-    for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
-        obj = jbox_get_object(box);
-        t_symbol* scriptingname = jbox_get_varname(obj); // scripting name
-        // Keep control outputs
-        if (scriptingname && fDSPUI->isOutputValue(scriptingname->s_name)) {
-            fOutputTable[scriptingname->s_name].push_back(obj);
-        }
-    }
 }
-
-void faustgen::update_outputs()
-{
-    for (const auto& it1 : fOutputTable) {
-        bool new_val = false;
-        FAUSTFLOAT value = fDSPUI->getOutputValue(it1.first, new_val);
-        if (new_val) {
-            t_atom at_value;
-            atom_setfloat(&at_value, value);
-            for (const auto& it2 : it1.second) {
-                object_method_typed(it2, gensym("float"), 1, &at_value, 0);
-            }
-        }
-    }
-}
-
+/**
+ * Allows to start/stop the ADC/DAC in the patcher.
+ *
+ * mess : "start" or "stop" message
+ */
 void faustgen::dsp_status(const char* mess)
 {
     t_pxobject* dac = nullptr;
@@ -837,16 +822,28 @@ void faustgen::dsp_status(const char* mess)
     }
 }
 
+/**
+ * Set the object mute state.
+ *
+ * mute : 0|1
+ */
 void faustgen::mute(long inlet, long mute)
 {
     fMute = mute;
 }
 
+/**
+ * Called to get the number of outputs.
+ *
+ * outletindex : the outlet index starting from 0
+ */
 long faustgen::multichanneloutputs(long outletindex)
 {
     if (m_is_mc) {
+        std::cout << "faustgen::multichanneloutputs MC " << outletindex << std::endl;
         return (outletindex == 0) ? fDSP->getNumOutputs() : 0;
     } else {
+        std::cout << "faustgen::multichanneloutputs DEFAULT " << outletindex << std::endl;
         return 1;
     }
 }

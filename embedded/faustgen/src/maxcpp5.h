@@ -240,7 +240,7 @@ class MspCpp5 : public MaxCppBase<T> {
 public:
     
     typedef void (T::*maxmethodperform)(int vs, t_sample** inputs, long numins, t_sample** outputs, long numouts);
-    typedef void (T::*maxmethodinit)(double samplerate, long inputs, long maxvectorsize);
+    typedef void (T::*maxmethodinit)(double samplerate);
 
     t_pxobject m_ob;
     unsigned int m_siginlets, m_sigoutlets;
@@ -493,9 +493,8 @@ template<typename T> void MspCpp5<T>::internal_dsp_64(MspCpp5<T>* x,
                                                       long maxvectorsize,
                                                       long flags) {
     T* self = (T*)x;
-    long inputs = (self->m_is_mc) ? (long)object_method(dsp64, gensym("getnuminputchannels"), x, 0) : -1;
     self->m_samplerate = samplerate;
-    ((self)->*(self->m_init))(samplerate, inputs, maxvectorsize);
+    ((self)->*(self->m_init))(samplerate);
     
     object_method(dsp64, gensym("dsp_add64"), x, MspCpp5<T>::internal_perform_64, 0, NULL);
 }

@@ -105,7 +105,6 @@ class faustgen : public MspCpp5<faustgen> {
         void dsp_status(const char* mess);
         t_pxobject* check_dac();
         void create_jsui();
-        void update_outputs();
         
         bool allocate_factory(const std::string& effect_name);
         
@@ -174,7 +173,7 @@ class faustgen : public MspCpp5<faustgen> {
         void perform(int vs, t_sample** inputs, long numins, t_sample** outputs, long numouts);
     
         // Callback given to setupIO
-        void init(double samplerate, long inputs, long maxvectorsize);
+        void init(double samplerate);
     
 };
 

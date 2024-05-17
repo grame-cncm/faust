@@ -126,7 +126,6 @@ class faustgen_factory {
         int m_siginlets;
         int m_sigoutlets;
         
-        bool open_file(const char* file);
         bool open_file(const char* appl, const char* file);
         
         void add_library_path(const std::string& library_path);
@@ -207,5 +206,11 @@ class faustgen_factory {
         
         static std::map<std::string, faustgen_factory*> gFactoryMap;
 };
+
+inline const char* getCodeSize()
+{
+    int tmp;
+    return (sizeof(&tmp) == 8) ? "64 bits" : "32 bits";
+}
 
 #endif
