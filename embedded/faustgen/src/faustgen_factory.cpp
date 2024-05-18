@@ -715,6 +715,20 @@ void faustgen_factory::display_svg()
     }
 }
 
+bool faustgen_factory::open_file(const char* file)
+{
+    char command[512];
+    for (const auto& it : fLibraryPath) {
+    #ifdef WIN32
+        snprintf(command, 512, "start \"\" \"%s%s\"", it.c_str(), file);
+    #else
+        snprintf(command, 512, "open \"%s%s\"", it.c_str(), file);
+    #endif
+        if (system(command) == 0) return true;
+    }
+    return false;
+}
+
 bool faustgen_factory::open_file(const char* appl, const char* file)
 {
     char command[512];

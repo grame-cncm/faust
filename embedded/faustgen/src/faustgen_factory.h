@@ -126,6 +126,7 @@ class faustgen_factory {
         int m_siginlets;
         int m_sigoutlets;
         
+        bool open_file(const char* file);
         bool open_file(const char* appl, const char* file);
         
         void add_library_path(const std::string& library_path);
