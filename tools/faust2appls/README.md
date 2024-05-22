@@ -50,6 +50,8 @@ You can use 'sudo make install' to install them.
 
 * `faust2sc.py <file.dsp>` : create a SuperCollider plugin including class files and help files for the input file. This is a python rewrite of `faust2supercollider` and `faust2sc`. 
 
+* `faust2stratus <file.dsp>` : create a Chaos Audio Stratus pedal effect for each input file
+
 * `faust2supercollider <file.dsp>` : create a SuperCollider plugin for each input file
 
 * `faust2vst <file.dsp>` : create a VST plugin for each input file
