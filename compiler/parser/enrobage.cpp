@@ -35,6 +35,34 @@
 
 using namespace std;
 
+#ifdef EMCC
+    static FILE* file_open(const char* filename)
+    {
+        // Try to open the file, assuming it is already in the wasm File System
+        FILE* file = nullptr;
+        if (file = fopen(filename, "r")) return file;
+    
+        // Otherwise load it using fetch, write it in the wasm File System
+        EM_ASM({ let dsp_code = "";
+            try {
+                const response = await fetch(Module.UTF8ToString($0));
+                if (response.ok) {
+                    dsp_code = await response.text();
+                    FS.writeFileSync($0, dsp_code);
+                } else {
+                    console.log("ERROR : cannot load ", $0);
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        }, filename);
+        // and load it again
+        return fopen(filename, "r");
+    }
+#else
+    static FILE* file_open(const char* filename) { return fopen(filename, "r"); }
+#endif
+
 /**
  * Returns true is a line is blank (contains only white caracters)
  */
@@ -198,7 +226,7 @@ static string removeSpaces(const string& line)
 static bool checkFile(const char* filename)
 {
     // Otherwise tries to open as a regular file
-    FILE* f = fopen(filename, "r");
+    FILE* f = file_open(filename);
     if (f) {
         fclose(f);
         return true;
@@ -222,7 +250,7 @@ static FILE* fopenAt(string& fullpath, const char* dir, const char* filename)
     char* olddir = getcwd(olddirbuffer, FAUST_PATH_MAX);
 
     if (chdir(dir) == 0) {
-        FILE* f      = fopen(filename, "r");
+        FILE* f      = file_open(filename);
         char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
         if (!newdir) {
             fclose(f);
@@ -331,7 +359,7 @@ FILE* fopenSearch(const char* filename, string& fullpath)
     FILE* f;
 
     // tries to open file with its filename
-    if ((f = fopen(filename, "r"))) {
+    if ((f = file_open(filename))) {
         buildFullPathname(fullpath, filename);
         // enrich the supplied directories paths with the directory containing the loaded file,
         // so that local files relative to this added directory can then be loaded
