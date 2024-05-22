@@ -1,0 +1,300 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs for the Chaos Stratus pedal #
+#                                                                   #
+#####################################################################
+
+#-------------------------------------------------------------------
+#
+# Various default variables
+#
+ARCHFILE=${STRATUS_ARCH:-stratus.cpp}
+STRATUS_EFFECTS_DIR=${STRATUS_EFFECTS_DIR:-/opt/update/sftp/firmware/effects}
+STRATUS_ADDR=${STRATUS_ADDR:-stratus.local}
+STRATUS_USER=${STRATUS_USER:-root}
+HOSTNAME="$(hostname)"
+STRATUS_GCCFLAGS="-fPIC -shared -O3 -march=armv7-a -mtune=cortex-a8 -mfloat-abi=hard -mfpu=neon" # These may cause problems -ftree-vectorize -ffast-math
+CPPCOMPILE=true
+TMP_DIR=$(mktemp -d)
+
+##
+## Install cleanup routine
+##
+for sig in SIGTERM ERR EXIT; do trap "_term $sig" $sig; done
+_term() {
+  trap "" SIGTERM ERR EXIT
+  # Close the SSH tunnel:
+  [[ "$SSH_CFG" && "$SSH_SOCKET" ]] && ssh -F "$SSH_CFG" -S "$SSH_SOCKET" -O exit "$STRATUS_ADDR" >/dev/null 2>&1
+  rm -rf $TMP_DIR
+  exit 0
+}
+
+#-------------------------------------------------------------------
+#
+# Is there a local compiler
+#
+: ${CXX:=g++}
+which "$CXX" > /dev/null && LOCAL_CPPCOMPILE=true
+
+#-------------------------------------------------------------------
+#
+# Bring in the Faust environment and the usage utilities
+#
+. faustpath
+. usage.sh
+
+#-------------------------------------------------------------------
+#
+# Are we connected to the Stratus pedal
+#
+STRATUS_CONNECTED=
+
+#-------------------------------------------------------------------
+#
+# Connect to the pedal (actually, just set up the SSH config so
+# only ask for the root password once)
+#
+connectStratus() {
+	[[ "$STRATUS_CONNECTED" == "true" ]] && return 0
+
+	SSH_CFG=$TMP_DIR/ssh-cfg
+	SSH_SOCKET=$TMP_DIR/ssh-socket
+
+	# Create a temporary SSH config file:
+	cat > "$SSH_CFG" <<ENDCFG
+Host *
+	    ControlMaster auto
+        ControlPath $SSH_SOCKET
+ENDCFG
+
+	# Open an SSH tunnel:
+	ssh -F "$SSH_CFG" -f -N -l $STRATUS_USER $STRATUS_ADDR || { echo "Unable to connect to the Stratus pedal at $STRATUS_ADDR"; exit 1; }
+	STRATUS_CONNECTED=true
+}
+
+#-------------------------------------------------------------------
+#
+# Build and install on the Stratus
+#
+buildOnStratus() {
+	connectStratus || { echo "Stratus not connected"; exit 1; }
+
+	local EFFECT_CPP="$1"
+	local EFFECT_CPP_NAME=$(basename $EFFECT_CPP)
+	local EFFECT_SO="$2"
+	local EFFECT_SO_NAME=$(basename $EFFECT_SO)
+	local EFFECT_ID="$3"
+	local EFFECT_VERSION="$4"
+	local BACKUP_SUFFIX=$(date +%Y-%m-%dT%H-%M-%S)
+
+	# Upload the CPP file:
+	scp -F "$SSH_CFG" "${EFFECT_CPP}" "$STRATUS_USER@$STRATUS_ADDR:/tmp" || { echo "Copy of $EFFECT_CPP to Stratus failsed"; exit 1; }
+
+	# Build the effect:
+	ssh -F "$SSH_CFG" "$STRATUS_USER@$STRATUS_ADDR" -T <<ENDSSH
+cd /tmp
+echo "COMPILING: ${EFFECT_CPP_NAME}"
+echo "  $g++ options  : $CXXFLAGS $STRATUS_GCCFLAGS /tmp/$EFFECT_CPP_NAME -o /tmp/$EFFECT_SO_NAME"
+g++ $CXXFLAGS $STRATUS_GCCFLAGS "/tmp/$EFFECT_CPP_NAME" -o "/tmp/$EFFECT_SO_NAME" || { echo "Build of $EFFECT_CPP_NAME on Stratus failed"; exit 1; }
+if [[ "${EFFECT_ID}" ]]; then
+	EFFECT_PATH="${STRATUS_EFFECTS_DIR}/${EFFECT_ID}"
+	echo "INSTALLING EFFECT AS: \${EFFECT_PATH}.so"
+	[[ -e "\${EFFECT_PATH}.so" ]] && cp "\${EFFECT_PATH}.so" "/tmp/${EFFECT_SO_NAME}.so.${BACKUP_SUFFIX}"
+	chown update:sftponly "/tmp/$EFFECT_SO_NAME"
+	cp -p "/tmp/$EFFECT_SO_NAME" "\${EFFECT_PATH}.so"
+	[[ "$EFFECT_VERSION" ]] && echo -n "$EFFECT_VERSION" > "\${EFFECT_PATH}.txt" && chown update:sftponly "\${EFFECT_PATH}.txt"
+else
+	echo "Not installing $EFFECT_SO_NAME - no effect ID found, or install not requested"
+fi
+echo Build of $EFFECT_CPP_NAME succeeded
+ENDSSH
+RC=$?
+
+	# Download so
+	scp -F "$SSH_CFG" "$STRATUS_USER@$STRATUS_ADDR:/tmp/$EFFECT_SO_NAME" "${EFFECT_SO}"
+	return $RC
+}
+
+#-------------------------------------------------------------------
+#
+# Build locally (which might still be the Stratus)!
+#
+localCompile() {
+	local EFFECT_CPP="$1"
+	local EFFECT_SO="$2"
+	local EFFECT_ID="$3"
+	local EFFECT_VERSION="$4"
+	local BACKUP_SUFFIX=$(date +%Y-%m-%dT%H-%M-%S)
+
+    (
+		echo "  $CXX options  : $CXXFLAGS $LOCAL_GCCFLAGS $EFFECT_CPP -o $EFFECT_SO"
+
+       	$CXX $CXXFLAGS $LOCAL_GCCFLAGS "$EFFECT_CPP" -o "$EFFECT_SO"
+		RC=$?
+       	if [[ $RC -eq 0 && $(uname) == Darwin ]]; then
+           	codesign --sign - --deep --force "$EFFECT_SO"
+			RC=$?
+       	fi
+		exit $RC
+    ) > /dev/null || exit
+
+	if [[ "$STRATUSINSTALL" == "true" && "$HOSTNAME" == "stratus" && "$EFFECT_ID" ]]; then
+		# Install the effect if it has a stratusId global declaration
+		SO_FILE="${STRATUS_EFFECTS_DIR}/${EFFECT_ID}.so"
+		VER_FILE="${STRATUS_EFFECTS_DIR}/${EFFECT_ID}.txt"
+		BACKUP_SUFFIX=$(date +%Y-%m-%dT%H-%M-%S)
+		[[ -f "${SO_FILE}" ]] && cp "$SO_FILE" /tmp/${EFFECT_ID}.so.${BACKUP_SUFFIX}
+		chown update:sftponly "/tmp/$EFFECT_SO"
+		cp -p "$EFFECT_SO" "${SO_FILE}" || { echo "failed to install $EFFECT_SO as $SO_FILE"; exit 1; }
+		echo "Effect $EFFECT_SO installed as $SO_FILE"
+		if [[ "$STRATUS_VERSION" ]]; then
+			[[ -f "${VER_FILE}" ]] && cp "$VER_FILE" /$HOME/${EFFECT_ID}.txt.${BACKUP_SUFFIX}
+			echo -n "$STRATUS_VERSION" > "$VER_FILE"
+			chown update:sftponly "VER_FILE"
+			echo "Effect $EFFECT_SO version set to $STRATUS_VERSION"
+		else
+			echo "Unable to set version of $SO_FILE - no version declaration found in the DSP file"
+		fi
+	else
+		[[ "$HOSTNAME" == "stratus" ]] && echo "NOT installing effect $EFFECT_SO into Stratus effect folder $STRATUS_EFFECTS_DIR"
+	fi
+	echo "$EFFECT_SO successfully built"
+	return 0
+}
+
+#-------------------------------------------------------------------
+#
+# Standard help
+#
+echoHelp() 
+{
+    usage faust2stratus "[options] [Faust options] <file.dsp>"
+    platform "Chaos Audio Stratus"
+    echo "Compiles Faust programs for the Chaos Audio Stratus pedal"
+    option "-nocppc" "Do not compile the generated CPP source files"
+    option "-stratusinstall" "Builds the CPP code locally, then builds and installs the effect library on the Stratus pedal"
+    option "Faust options"
+    exit
+}
+
+#-------------------------------------------------------------------
+#
+# Initial sniff test
+#
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
+#-------------------------------------------------------------------
+#
+# OK, we're off! - set up local CPP compile options
+#
+LOCAL_GCCFLAGS="-fPIC -shared -O3"
+
+#-------------------------------------------------------------------
+#
+# Supporting various compile platforms - but, obviously, the first is the most important
+#
+if [ "$(uname -m)" = armv7l ]; then        # for the Stratus
+	LOCAL_GCCFLAGS=" $STRATUS_GCC_FLAGS"
+elif [ "$(uname -s)" = Darwin ]; then      # for macOS
+    if [[ $(sysctl -n machdep.cpu.brand_string) =~ "Apple" ]]; then
+		true
+    else
+        # Intel
+        LOCAL_GCCFLAGS+=" -march=native"
+    fi
+else                                        # for Linux (Intel)
+    LOCAL_GCCFLAGS+=" -march=native"
+fi
+
+#-------------------------------------------------------------------
+#
+# Pick out the Faust and Stratus options
+#
+OPTIONS="-scn FaustDSP -light -nvi"
+STRATUSCLASS=dsp
+while [[ "$1" ]]; do
+	opt=$1
+	shift
+    if [[ "$opt" =~ ^--?"help"$ || $opt == "-h" ]]; then
+        echoHelp
+	elif [[ "$opt" =~ ^--?"stratusc"$ ]]; then
+		# Ignore obsolete option
+		true
+	elif [[ "$opt" =~ ^--?"stratusinstall"$ ]]; then
+		STRATUSINSTALL="true"
+	elif [[ "$opt" =~ ^--?"nocppc"$ ]]; then
+		CPPCOMPILE="false"
+	elif [[ "$opt" =~ ^--?"stratusclass"$ ]]; then
+		STRATUSCLASS=${1:-dsp}
+		shift
+	elif [[ "$opt" =~ ^--?"a"$ ]]; then
+	#
+	# Used to test other versions of the Stratus arch file!
+	#
+		ARCHFILE=${1:-stratus.cpp}
+		shift
+	elif [[ -f "$opt" && ${opt: -4} == ".dsp" ]]; then
+        FILES="$FILES $opt"
+    else
+        OPTIONS="$OPTIONS $opt"
+    fi
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files using faust and $CXX
+#
+MYPWD=$PWD
+for f in $FILES; do
+	EFFECT=$(realpath "$f")
+
+	EFFECT_DIR="$(dirname "$EFFECT")"
+	cd $EFFECT_DIR
+	EFFECT_FILENAME="$(basename "$EFFECT")"
+	EFFECT_STEM="${EFFECT_FILENAME%%.*}"
+	EFFECT_CPP="$EFFECT_DIR/$EFFECT_STEM.cpp"
+	EFFECT_SO="$EFFECT_DIR/$EFFECT_STEM.so"
+    
+	# compile faust to c++
+	echo "Building effect $EFFECT:" >&2
+	echo "  Faust options: -i -a $ARCHFILE $OPTIONS $EFFECT -o $EFFECT_CPP"
+
+    faust -i -a $ARCHFILE $OPTIONS "$EFFECT" -o "$EFFECT_CPP" || exit
+
+	if [[ "$CPPCOMPILE" == true ]]; then
+
+		if [[ "$STRATUSINSTALL" == true ]]; then
+			EFFECT_ID=$(sed -n 's/\s*declare\s\s*stratusId\s\s*"\([0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}\)";/\1/p' "${EFFECT}")
+			EFFECT_VERSION=$(sed -n 's/\s*declare\s\s*version\s\s*"\([^"]*\)";/\1/p' "${EFFECT}")
+		fi
+
+		#
+		# We are supposed to compile - but what is our context?
+		#
+
+		#
+		# If we are on the Stratus, or we are NOT supposed to install, then it's simply a local compile
+		#
+		if [[ "$HOSTNAME" == "stratus" || "$STRATUSINSTALL" != "true" ]]; then
+			if [[ "$LOCAL_CPPCOMPILE" == "true" ]]; then
+				localCompile "$EFFECT_CPP" "$EFFECT_SO" "$EFFECT_ID" "$EFFECT_VERSION" || { echo "Local build failed"; exit 1; }
+			else 
+				echo "NOT CPP compiling $EFFECT_CPP (no CPP compiler found)"
+			fi
+		else
+			#
+			# We are not on the Stratus and we are expected to install - so we BUILD on the stratus
+			#
+			buildOnStratus "$EFFECT_CPP" "$EFFECT_SO" "$EFFECT_ID" "$EFFECT_VERSION" || { echo "Install to stratus failed"; exit 1; }
+		fi
+	else
+		echo "NOT CPP compiling $EFFECT_CPP (-nocppc specified)"
+	fi
+	cd $MYPWD
+done
+
