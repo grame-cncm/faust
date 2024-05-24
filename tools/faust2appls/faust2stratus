@@ -106,7 +106,8 @@ if [[ "${EFFECT_ID}" ]]; then
     cp -p "/tmp/$EFFECT_SO_NAME" "\${EFFECT_PATH}.so"
     [[ "$EFFECT_VERSION" ]] && echo -n "$EFFECT_VERSION" > "\${EFFECT_PATH}.txt" && chown update:sftponly "\${EFFECT_PATH}.txt"
 else
-    echo "Not installing $EFFECT_SO_NAME - no effect ID found, or install not requested"
+
+    echo "Not installing $EFFECT_SO_NAME - no effect ID found"
 fi
 echo Build of $EFFECT_CPP_NAME succeeded
 ENDSSH
@@ -121,7 +122,7 @@ RC=$?
 #
 # Build locally (which might still be the Stratus)!
 #
-localCompile() {
+buildLocal() {
     local EFFECT_CPP="$1"
     local EFFECT_SO="$2"
     local EFFECT_ID="$3"
@@ -170,12 +171,15 @@ localCompile() {
 #
 echoHelp() 
 {
-    usage faust2stratus "[options] [Faust options] <file.dsp>"
-    platform "Chaos Audio Stratus"
+    usage faust2stratus "[options] [Faust options] <file.dsp> ..."
+    platform "Chaos Audio Stratus pedal"
     echo "Compiles Faust programs for the Chaos Audio Stratus pedal"
+    echo "Can be used build and install multiple different effects in one go"
     option "-nocppc" "Do not compile the generated CPP source files"
     option "-stratusinstall" "Builds the CPP code locally, then builds and installs the effect library on the Stratus pedal"
     option "Faust options"
+    echo   "      the script uses '-i -scn FaustDSP -light -nvi'"
+    echo   "      -O and/or -o can be used, otherwise all output is in the same folder as the corresponding input"
     exit
 }
 
@@ -216,7 +220,7 @@ fi
 #
 # Pick out the Faust and Stratus options
 #
-OPTIONS="-scn FaustDSP -light -nvi"
+OPTIONS="-i -scn FaustDSP -light -nvi"
 STRATUSCLASS=dsp
 while [[ "$1" ]]; do
     opt=$1
@@ -224,21 +228,27 @@ while [[ "$1" ]]; do
     if [[ "$opt" =~ ^--?"help"$ || $opt == "-h" ]]; then
         echoHelp
     elif [[ "$opt" =~ ^--?"stratusc"$ ]]; then
-        # Ignore obsolete option
-        true
+    	# Ignore obsolete option
+    	true
     elif [[ "$opt" =~ ^--?"stratusinstall"$ ]]; then
-        STRATUSINSTALL="true"
+    	STRATUSINSTALL="true"
     elif [[ "$opt" =~ ^--?"nocppc"$ ]]; then
-        CPPCOMPILE="false"
+    	CPPCOMPILE="false"
     elif [[ "$opt" =~ ^--?"stratusclass"$ ]]; then
-        STRATUSCLASS=${1:-dsp}
-        shift
+    	STRATUSCLASS=${1:-dsp}
+    	shift
+    elif [[ "$opt" =~ ^--?"o"$ ]]; then
+    	OUTPUT_FILE=${1:-}
+    	shift
+    elif [[ "$opt" =~ ^--?"O"$ ]]; then
+    	OUTPUT_DIR=${1:-}
+    	shift
     elif [[ "$opt" =~ ^--?"a"$ ]]; then
     #
     # Used to test other versions of the Stratus arch file!
     #
-        ARCHFILE=${1:-stratus.cpp}
-        shift
+    	ARCHFILE=${1:-stratus.cpp}
+    	shift
     elif [[ -f "$opt" && ${opt: -4} == ".dsp" ]]; then
         FILES="$FILES $opt"
     else
@@ -249,52 +259,64 @@ done
 #-------------------------------------------------------------------
 # compile the *.dsp files using faust and $CXX
 #
-MYPWD=$PWD
+
+#
+# OUTPUT_DIR is -O, or the dirname of -o, or (eventually) where the input comes from
+#
+OUTPUT_DIR=${OUTPUT_DIR:-${OUTPUT_FILE:+$(dirname $(realpath ${OUTPUT_FILE}))}}
+OUTPUT_FILE=${OUTPUT_FILE:+$(basename ${OUTPUT_FILE})}
+
 for f in $FILES; do
+
     EFFECT=$(realpath "$f")
 
-    EFFECT_DIR="$(dirname "$EFFECT")"
-    cd $EFFECT_DIR
-    EFFECT_FILENAME="$(basename "$EFFECT")"
-    EFFECT_STEM="${EFFECT_FILENAME%%.*}"
-    EFFECT_CPP="$EFFECT_DIR/$EFFECT_STEM.cpp"
-    EFFECT_SO="$EFFECT_DIR/$EFFECT_STEM.so"
+    EFFECT_OUPUT_DIR=${OUTPUT_DIR:-$(dirname "$EFFECT")}
+
+    # Derive the various output file names based on -o (first only) or the input file name
+    EFFECT_FILENAME="${OUTPUT_FILE:-$(basename ${EFFECT})}"
+    OUTPUT_FILE_STEM="${EFFECT_FILENAME%%.*}"
+
+    # -o, if presented, is interpreted as the Faust compiler output file name (first only)
+    EFFECT_CPP="$EFFECT_OUPUT_DIR/${OUTPUT_FILE:-${OUTPUT_FILE_STEM}.cpp}"
+    # The SO file name is based on the output file stem wherever that came from
+    EFFECT_SO="$EFFECT_OUPUT_DIR/${OUTPUT_FILE_STEM}.so"
+
+    # In a multi-file build, the "-o" option can only apply to the first DSP file
+    OUTPUT_FILE=""
     
     # compile faust to c++
     echo "Building effect $EFFECT:" >&2
-    echo "  Faust options: -i -a $ARCHFILE $OPTIONS $EFFECT -o $EFFECT_CPP"
+    echo "  Faust options: -a $ARCHFILE $OPTIONS $EFFECT -o $EFFECT_CPP"
 
-    faust -i -a $ARCHFILE $OPTIONS "$EFFECT" -o "$EFFECT_CPP" || exit
+    faust -a $ARCHFILE $OPTIONS "$EFFECT" -o "$EFFECT_CPP" || exit
 
     if [[ "$CPPCOMPILE" == true ]]; then
+    	if [[ "$STRATUSINSTALL" == true ]]; then
+    		EFFECT_ID=$(sed -n 's/^\s*declare\s\s*stratusId\s\s*"\([0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}\)";/\1/p' "${EFFECT}")
+    		EFFECT_VERSION=$(sed -n 's/^\s*declare\s\s*version\s\s*"\([^"]*\)";/\1/p' "${EFFECT}")
+    	fi
 
-        if [[ "$STRATUSINSTALL" == true ]]; then
-            EFFECT_ID=$(sed -n 's/\s*declare\s\s*stratusId\s\s*"\([0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}\)";/\1/p' "${EFFECT}")
-            EFFECT_VERSION=$(sed -n 's/\s*declare\s\s*version\s\s*"\([^"]*\)";/\1/p' "${EFFECT}")
-        fi
+    	#
+    	# We are supposed to compile - but what is our context?
+    	#
 
-        #
-        # We are supposed to compile - but what is our context?
-        #
-
-        #
-        # If we are on the Stratus, or we are NOT supposed to install, then it's simply a local compile
-        #
-        if [[ "$HOSTNAME" == "stratus" || "$STRATUSINSTALL" != "true" ]]; then
-            if [[ "$LOCAL_CPPCOMPILE" == "true" ]]; then
-                localCompile "$EFFECT_CPP" "$EFFECT_SO" "$EFFECT_ID" "$EFFECT_VERSION" || { echo "Local build failed"; exit 1; }
-            else 
-                echo "NOT CPP compiling $EFFECT_CPP (no CPP compiler found)"
-            fi
-        else
-            #
-            # We are not on the Stratus and we are expected to install - so we BUILD on the stratus
-            #
-            buildOnStratus "$EFFECT_CPP" "$EFFECT_SO" "$EFFECT_ID" "$EFFECT_VERSION" || { echo "Install to stratus failed"; exit 1; }
-        fi
+    	#
+    	# If we are on the Stratus, or we are NOT supposed to install, then it's simply a local compile
+    	#
+    	if [[ "$HOSTNAME" == "stratus" || "$STRATUSINSTALL" != "true" ]]; then
+    		if [[ "$LOCAL_CPPCOMPILE" == "true" ]]; then
+    			buildLocal "$EFFECT_CPP" "$EFFECT_SO" "$EFFECT_ID" "$EFFECT_VERSION" || { echo "Local build failed"; exit 1; }
+    		else 
+    			echo "NOT CPP compiling $EFFECT_CPP (no CPP compiler found)"
+    		fi
+    	else
+    		#
+    		# We are not on the Stratus and we are expected to install - so we BUILD on the stratus
+    		#
+    		buildOnStratus "$EFFECT_CPP" "$EFFECT_SO" "$EFFECT_ID" "$EFFECT_VERSION" || { echo "Install to stratus failed"; exit 1; }
+    	fi
     else
-        echo "NOT CPP compiling $EFFECT_CPP (-nocppc specified)"
+    	echo "NOT CPP compiling $EFFECT_CPP (-nocppc specified)"
     fi
-    cd $MYPWD
-done
 
+done
