@@ -444,7 +444,7 @@ install (
 )
 
 # install folders
-set (ARCHSRC android api AU audiokit autodiff comparator daisy esp32 iOS jax juce julia cmajor max-msp nodejs osclib sam smartKeyboard svgplot teensy unity rust vcvrack webaudio)
+set (ARCHSRC android api AU audiokit autodiff chaos-stratus cmajor comparator daisy esp32 iOS jax juce julia max-msp nodejs osclib sam smartKeyboard svgplot teensy unity rust vcvrack webaudio)
 foreach (dir ${ARCHSRC})
 	set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()
