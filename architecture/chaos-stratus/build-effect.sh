@@ -7,7 +7,7 @@ _term() {
   exit 0
 }
 
-MY_PATH=$(dirname $(realpath $0))
+MY_PATH=$(cd $(dirname $0); pwd
 . ${MY_PATH}/_pedal-tools.sh
 
 EFFECT_CPP=${1:-${EFFECT_CPP:?first argument must be the CPP file path}}
