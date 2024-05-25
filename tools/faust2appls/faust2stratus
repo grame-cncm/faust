@@ -45,7 +45,8 @@ echoHelp()
     echo "Compiles Faust programs for the Chaos Audio Stratus pedal"
     echo "Can be used build and install multiple different effects in one go"
     option "-nocppc" "Do not compile the generated CPP source files"
-    option "-stratusinstall" "Builds the CPP code locally, then builds and installs the effect library on the Stratus pedal"
+    option "-stratusbuild" "Generates the CPP code locally, then builds the effect library on the Stratus pedal"
+    option "-stratusinstall" "Generates the CPP code locally, then builds and installs the effect library on the Stratus pedal"
     option "Faust options"
     echo   "      the script uses '-i -scn FaustDSP -light -nvi'"
     echo   "      -O and/or -o can be used, otherwise all output is in the same folder as the corresponding input"
@@ -76,7 +77,10 @@ while [[ "$1" ]]; do
     elif [[ "${opt}" =~ ^--?"stratusc"$ ]]; then
         # Ignore obsolete option
         true
+    elif [[ "${opt}" =~ ^--?"stratusbuild"$ ]]; then
+        STRATUSBUILD="true"
     elif [[ "${opt}" =~ ^--?"stratusinstall"$ ]]; then
+        STRATUSBUILD="true"
         STRATUSINSTALL="true"
     elif [[ "${opt}" =~ ^--?"nocppc"$ ]]; then
         CPPCOMPILE="false"
@@ -150,16 +154,21 @@ for f in ${FILES}; do
         #
 
         #
-        # If we are on the Stratus, or we are NOT supposed to install, then it's simply a local compile
+        # If we are on the Stratus, or we are NOT supposed to build on the stratus, then it's simply a local compile
         #
-        if [[ "${HOSTNAME}" == "stratus" || "${STRATUSINSTALL}" != "true" ]]; then
+        if [[ "${HOSTNAME}" == "stratus" || "${STRATUSBUILD}" != "true" ]]; then
             buildLocal "${EFFECT_CPP}" "${EFFECT_SO}" || { echo "Local build failed"; exit 1; }
             if [[ "${HOSTNAME}" == "stratus" && "${STRATUSINSTALL}" == "true" ]]; then
                 installLocal "${EFFECT_SO}" "${EFFECT_ID}" "${EFFECT_VERSION}" || { echo "Install on stratus failed"; exit 1; }
             fi
         else
+            #
+            # If we are not on the Stratus, and we are supposed to at least build on the stratus, then do that
+            #
             buildOnStratus "${EFFECT_CPP}" "${EFFECT_SO}" || { echo "Build on stratus failed"; exit 1; }
-            installOnStratus "${EFFECT_SO}" "${EFFECT_ID}" "${EFFECT_VERSION}" || { echo "Install on stratus failed"; exit 1; }
+            if [[ "${STRATUSINSTALL}" == "true" ]]; then
+                installOnStratus "${EFFECT_SO}" "${EFFECT_ID}" "${EFFECT_VERSION}" || { echo "Install on stratus failed"; exit 1; }
+            fi
         fi
     else
         echo "NOT CPP compiling ${EFFECT_CPP} (-nocppc specified)"
