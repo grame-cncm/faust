@@ -53,7 +53,8 @@ typedef unsigned int Uint;
 
 #define NAME_KEY "name"
 #define STRATUS_ID_KEY "stratusId"
-#define VERSION_KEY "version"
+#define OLD_VERSION_KEY "version"
+#define NEW_VERSION_KEY "stratusVersion"
 //using namespace std;
 //
 // Our implementation of the Faust Meta interface
@@ -70,7 +71,12 @@ class Meta
                 effectName.assign(value);
             } else if (strcmp(key,STRATUS_ID_KEY) == 0) {
                 effectId.assign(value);
-            } else if (strcmp(key,VERSION_KEY) == 0) {
+            } else if (strcmp(key,NEW_VERSION_KEY) == 0) {
+                version.assign(value);
+            } else if (strcmp(key,OLD_VERSION_KEY) == 0 && version.empty()) {
+                //
+                // Support original version key. That clashes with Faust's version key
+                //
                 version.assign(value);
             }
         }
