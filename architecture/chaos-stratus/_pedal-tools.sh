@@ -120,6 +120,7 @@ $(typeset -f setEnv)
 $(typeset -f buildLocal)
 setEnv
 buildLocal "${EFFECT_CPP_NAME}" "${EFFECT_SO_NAME}" || { echo "failed to build ${EFFECT_SO_NAME}"; exit 1; }
+chown "$(id -u):$(id -g)" "${EFFECT_SO_NAME}"
 ENDSSH
     [[ $? == 0 ]] || return 1
 
@@ -139,8 +140,8 @@ buildWithDocker() {
 
     echo "COMPILING: ${EFFECT_CPP_NAME} for pedal using docker"
     echo "  c++ ${CXXFLAGS} ${STRATUS_GCC_FLAGS} /tmp/src/${EFFECT_CPP_NAME} -o /tmp/tgt/${EFFECT_SO_NAME}"
-    docker run -t --rm -v ${EFFECT_CPP_DIR}:/tmp/src -v ${EFFECT_SO_DIR}:/tmp/tgt bassmanitram/chaos-stratus-effect-build:latest \
-        c++ ${CXXFLAGS} ${STRATUS_GCC_FLAGS} /tmp/src/${EFFECT_CPP_NAME} -o "/tmp/tgt/${EFFECT_SO_NAME}"
+    docker run -t --rm -v ${EFFECT_CPP_DIR}:/tmp/src -v ${EFFECT_SO_DIR}:/tmp/tgt bassmanitram/chaos-stratus-effect-build:latest /bin/bash -c \
+        "c++ ${CXXFLAGS} ${STRATUS_GCC_FLAGS} /tmp/src/${EFFECT_CPP_NAME} -o /tmp/tgt/${EFFECT_SO_NAME} && chown $(id -u):$(id -g) /tmp/tgt/${EFFECT_SO_NAME}"
 }
 
 #
