@@ -127,6 +127,23 @@ ENDSSH
 }
 
 #
+# Building for the pedal in the builder docker image - the fastest way to do it
+#
+buildWithDocker() {
+    local EFFECT_CPP="$1"
+    local EFFECT_CPP_NAME=$(basename ${EFFECT_CPP})
+    local EFFECT_CPP_DIR=$(dirname ${EFFECT_CPP})
+    local EFFECT_SO="$2"
+    local EFFECT_SO_NAME=$(basename ${EFFECT_SO})
+    local EFFECT_SO_DIR=$(dirname ${EFFECT_SO})
+
+    echo "COMPILING: ${EFFECT_CPP_NAME} for pedal using docker"
+    echo "  c++ ${CXXFLAGS} ${STRATUS_GCC_FLAGS} /tmp/src/${EFFECT_CPP_NAME} -o /tmp/tgt/${EFFECT_SO_NAME}"
+    docker run -t --rm -v ${EFFECT_CPP_DIR}:/tmp/src -v ${EFFECT_SO_DIR}:/tmp/tgt bassmanitram/chaos-stratus-effect-build:latest \
+        c++ ${CXXFLAGS} ${STRATUS_GCC_FLAGS} /tmp/src/${EFFECT_CPP_NAME} -o "/tmp/tgt/${EFFECT_SO_NAME}"
+}
+
+#
 # Basic install of an effect onto the pedal
 #
 installLocal() {
@@ -165,7 +182,7 @@ installOnStratus() {
     connectStratus || { echo "Stratus not connected"; exit 1; }
 
     scp -F "${SSH_CFG}" "${EFFECT_SO}" "${STRATUS_USER}@${STRATUS_ADDR}:/tmp/${EFFECT_SO_NAME}" > /dev/null || return 1
-
+    echo "INSTALLING: ${EFFECT_SO_NAME} on pedal as ${EFFECT_ID}"
     ssh -F "${SSH_CFG}" root@stratus.local -T <<ENDSSH
 cd /tmp
 $(typeset -f setEnv)

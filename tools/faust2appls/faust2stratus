@@ -13,6 +13,8 @@ ARCHFILE=${STRATUS_ARCH:-chaos-stratus/stratus.cpp}
 HOSTNAME="$(hostname)"
 CPPCOMPILE=true
 export TMPDIR=$(mktemp -d)
+PEDAL_BUILD="buildOnStratus"
+which docker > /dev/null && PEDAL_BUILD="buildWithDocker"
 
 ##
 ## Install cleanup routine
@@ -45,6 +47,7 @@ echoHelp()
     echo "Compiles Faust programs for the Chaos Audio Stratus pedal"
     echo "Can be used build and install multiple different effects in one go"
     option "-nocppc" "Do not compile the generated CPP source files"
+    option "-nodocker" "Do not use docker for pedal builds even if it is available"
     option "-stratusbuild" "Generates the CPP code locally, then builds the effect library on the Stratus pedal"
     option "-stratusinstall" "Generates the CPP code locally, then builds and installs the effect library on the Stratus pedal"
     option "Faust options"
@@ -84,6 +87,8 @@ while [[ "$1" ]]; do
         STRATUSINSTALL="true"
     elif [[ "${opt}" =~ ^--?"nocppc"$ ]]; then
         CPPCOMPILE="false"
+    elif [[ "${opt}" =~ ^--?"nodocker"$ ]]; then
+        PEDAL_BUILD="buildOnStratus"
     elif [[ "${opt}" =~ ^--?"stratusclass"$ ]]; then
         STRATUSCLASS=${1:-dsp}
         shift
@@ -113,12 +118,12 @@ done
 #
 # OUTPUT_DIR is -O, or the dirname of -o, or (eventually) where the input comes from
 #
-OUTPUT_DIR=${OUTPUT_DIR:-${OUTPUT_FILE:+$(dirname "$([[ ! "$OUTPUT_FILE" =~ ^/ ]] && echo "$PWD/")$OUTPUT_FILE")}}
+OUTPUT_DIR=${OUTPUT_DIR:-${OUTPUT_FILE:+$(dirname "$([[ ! "${OUTPUT_FILE}" =~ ^/ ]] && echo "${PWD}/")${OUTPUT_FILE}")}}
 OUTPUT_FILE=${OUTPUT_FILE:+$(basename ${OUTPUT_FILE})}
 
 for f in ${FILES}; do
 
-    EFFECT="$([[ ! "$f" =~ ^/ ]] && echo "$PWD/")$f"
+    EFFECT="$([[ ! "${f}" =~ ^/ ]] && echo "${PWD}/")${f}"
 
     EFFECT_OUPUT_DIR=${OUTPUT_DIR:-$(dirname "${EFFECT}")}
 
@@ -165,7 +170,7 @@ for f in ${FILES}; do
             #
             # If we are not on the Stratus, and we are supposed to at least build on the stratus, then do that
             #
-            buildOnStratus "${EFFECT_CPP}" "${EFFECT_SO}" || { echo "Build on stratus failed"; exit 1; }
+            ${PEDAL_BUILD} "${EFFECT_CPP}" "${EFFECT_SO}" || { echo "Build for stratus failed"; exit 1; }
             if [[ "${STRATUSINSTALL}" == "true" ]]; then
                 installOnStratus "${EFFECT_SO}" "${EFFECT_ID}" "${EFFECT_VERSION}" || { echo "Install on stratus failed"; exit 1; }
             fi
