@@ -113,12 +113,12 @@ done
 #
 # OUTPUT_DIR is -O, or the dirname of -o, or (eventually) where the input comes from
 #
-OUTPUT_DIR=${OUTPUT_DIR:-${OUTPUT_FILE:+$(dirname $(realpath ${OUTPUT_FILE}))}}
+OUTPUT_DIR=${OUTPUT_DIR:-${OUTPUT_FILE:+$(dirname "$([[ ! "$OUTPUT_FILE" =~ ^/ ]] && echo "$PWD/")$OUTPUT_FILE")}}
 OUTPUT_FILE=${OUTPUT_FILE:+$(basename ${OUTPUT_FILE})}
 
 for f in ${FILES}; do
 
-    EFFECT=$(realpath "${f}")
+    EFFECT="$([[ ! "$f" =~ ^/ ]] && echo "$PWD/")$f"
 
     EFFECT_OUPUT_DIR=${OUTPUT_DIR:-$(dirname "${EFFECT}")}
 
