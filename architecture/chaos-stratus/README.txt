@@ -27,7 +27,8 @@ TL;DR FOR INSTALLING DIRECTLY ON THE PEDAL
 ------------------------------------------
 * Ensure that you have "SCP" and "SSH" available on your standard computer
   This Quora response gives a good summary of the available tools that provide
-  these features: https://qr.ae/pscvvo.
+  these features: https://qr.ae/pscvvo. There are even browser extensions that
+  provide these features: e.g. https://chromewebstore.google.com/detail/secure-shell/iodihamcpbpeioajjeobimgagajmlibd
 
   When setting up sessions with your pedal:
 
@@ -37,8 +38,8 @@ TL;DR FOR INSTALLING DIRECTLY ON THE PEDAL
     developer program
 
 * Connect your pedal to your computer via USB
-* Copy the installer zip file to the pedal using SCP. Place it in the folder
-  "/root"
+* Copy the installer zip file to the pedal using SCP or SFTP. Place it in the 
+  folder "/root"
 * Start an SSH terminal session with your pedal
 * Run the following commands in that session:
 
