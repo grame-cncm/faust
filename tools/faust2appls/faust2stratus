@@ -106,6 +106,8 @@ while [[ "$1" ]]; do
         shift
     elif [[ -f "${opt}" && ${opt: -4} == ".dsp" ]]; then
         FILES="${FILES} ${opt}"
+    elif [[ -f "${opt}" && ${opt: -4} == ".cpp" ]]; then
+        CPPFILES="${CPPFILES} ${opt}"
     else
         OPTIONS="${OPTIONS} ${opt}"
     fi
@@ -179,3 +181,43 @@ for f in ${FILES}; do
         echo "NOT CPP compiling ${EFFECT_CPP} (-nocppc specified)"
     fi
 done
+
+#
+# And now the CPP files - i.e. those that were manually massaged!
+#
+if [[ "${CPPCOMPILE}" == true ]]; then
+    for f in ${CPPFILES}; do
+        EFFECT_CPP=$f
+        if [[ "${STRATUSINSTALL}" == true ]]; then
+            setIDandVersion "${EFFECT}"
+            if [[ -z "${EFFECT_ID}" ]]; then
+                echo "Unable to find 'stratusId' in the effect metadata - install not possible"
+                STRATUSINSTALL=""
+            fi
+        fi
+
+        #
+        # We are supposed to compile - but what is our context?
+        #
+
+        #
+        # If we are on the Stratus, or we are NOT supposed to build on the stratus, then it's simply a local compile
+        #
+        if [[ "${HOSTNAME}" == "stratus" || "${STRATUSBUILD}" != "true" ]]; then
+            buildLocal "${EFFECT_CPP}" "${EFFECT_SO}" || { echo "Local build failed"; exit 1; }
+            if [[ "${HOSTNAME}" == "stratus" && "${STRATUSINSTALL}" == "true" ]]; then
+                installLocal "${EFFECT_SO}" "${EFFECT_ID}" "${EFFECT_VERSION}" || { echo "Install on stratus failed"; exit 1; }
+            fi
+        else
+            #
+            # If we are not on the Stratus, and we are supposed to at least build on the stratus, then do that
+            #
+            ${PEDAL_BUILD} "${EFFECT_CPP}" "${EFFECT_SO}" || { echo "Build for stratus failed"; exit 1; }
+            if [[ "${STRATUSINSTALL}" == "true" ]]; then
+                installOnStratus "${EFFECT_SO}" "${EFFECT_ID}" "${EFFECT_VERSION}" || { echo "Install on stratus failed"; exit 1; }
+            fi
+        fi
+    done
+else
+    [[ "$CPPFILES" ]] && echo "NOT CPP compiling ${CPPFILES} (-nocppc specified)"
+fi
