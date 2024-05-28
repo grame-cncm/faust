@@ -1,10 +1,19 @@
 #-------------------------------------------------------------------
+
 #
-# Connect to the pedal (actually, just set up the SSH config so
-# only ask for the root password once)
+# We check the standard markers that hint that this is being run on the pedal
 #
+isOnStratus() {
+    if [ "$(uname -nm)" == "stratus armv7l" ]; then 
+        ON_STRATUS="true"
+    else
+        unset ON_STRATUS
+    fi
+}
+
 setEnv() {
     TMPDIR=${TMPDIR:-${TMP:-/tmp}}
+    isOnStratus
     STRATUS_EFFECTS_DIR=${STRATUS_EFFECTS_DIR:-/opt/update/sftp/firmware/effects}
     STRATUS_ADDR=${STRATUS_ADDR:-stratus.local}
     STRATUS_USER=${STRATUS_USER:-root}
@@ -22,7 +31,7 @@ setEnv() {
     #
     # Supporting various compile platforms - but, obviously, the first is the most important
     #
-    if [ "$(uname -m)" = armv7l ]; then        # for the Stratus
+    if [ "$ON_STRATUS" ]; then        # for the Stratus
         LOCAL_GCCFLAGS=" ${STRATUS_GCC_FLAGS}"
     elif [ "$(uname -s)" = Darwin ]; then      # for macOS
         if [[ $(sysctl -n machdep.cpu.brand_string) =~ "Apple" ]]; then
@@ -203,7 +212,16 @@ ENDSSH
 # the new one is missing.
 #
 setIDandVersion() {
-    local EFFECT_DSP="${1:?setIDandVersion: First argument must be a DSP file}"
+    local EFFECT_SRC="${1:?setIDandVersion: First argument must be a DSP or CPP file}"
+    if [[ "${EFFECT_SRC}" =~ ".cpp"$ ]]; then
+        _id_version_cpp "${EFFECT_SRC}"
+    elif [[ "${EFFECT_SRC}" =~ ".dsp"$ ]]; then
+        _id_version_dsp "${EFFECT_SRC}"
+    fi
+}
+
+_id_version_dsp() {
+    EFFECT_DSP="$1"
     EDE=${EFFECT_DSP}.EXPANDED
     faust ${EFFECT_DSP} -e -o ${EDE}
     EFFECT_ID=$(sed -n 's/^\s*declare\s\s*stratusId\s\s*"\([0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}\)";/\1/p' "${EDE}")
@@ -215,4 +233,13 @@ setIDandVersion() {
         EFFECT_VERSION=${EFFECT_VERSIONS[1]}
     fi
     rm ${EDE}
+}
+
+_id_version_cpp() {
+    EFFECT_CPP="$1"
+    EFFECT_ID=$(sed -n 's/.*declare(\s*"stratusId"\s*,\s*"\([0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}\)"\s*);.*/\1/p' "${EFFECT_CPP}")
+    EFFECT_VERSION=$(sed -n 's/.*declare(\s*"stratusVersion"\s*,\s*"\([^"]*\)"\s*);.*/\1/p' "${EFFECT_CPP}")
+    #
+    # It's unsafe to get "version" from the c++ code
+    #
 }
