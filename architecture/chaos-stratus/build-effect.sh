@@ -7,24 +7,14 @@ _term() {
   exit 0
 }
 
-MY_PATH=$(cd $(dirname $0); pwd
+MY_PATH=$(cd $(dirname $0); pwd)
 . ${MY_PATH}/_pedal-tools.sh
 
 if [[ "$1" == "-nodocker" ]]; then
+  NO_DOCKER="$1"
   shift
-else
-  which docker > /dev/null && DOCKER="true"
-fi
-
-if [[ "$ON_STRATUS" ]]; then
-  PEDAL_BUILD="buildLocal"
-elif [[ "$DOCKER" ]]  
-  PEDAL_BUILD="buildWithDocker"
-else
-  PEDAL_BUILD="buildOnStratus"
 fi
 
 EFFECT_CPP=${1:-${EFFECT_CPP:?first argument must be the CPP file path}}
 EFFECT_SO=${2:-${EFFECT_SO:?second argument must be the SO file path}}
-
-${PEDAL_BUILD} "${EFFECT_CPP}" "${EFFECT_SO}"
+pedalBuild $NO_DOCKER "${EFFECT_CPP}" "${EFFECT_SO}"
