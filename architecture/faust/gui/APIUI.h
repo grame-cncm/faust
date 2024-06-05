@@ -30,6 +30,7 @@ architecture section is not modified.
 #include <vector>
 #include <stdio.h>
 #include <map>
+#include <cstring>
 
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
