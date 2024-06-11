@@ -243,8 +243,29 @@ struct dsp_aux {
             fDriver->init(fNameApp, fDSP);
             fDSP->buildUserInterface(&fParams);
     #if SOUNDFILE
+            
+            // Analyse 'soundfiles' metadata to extract the list of URLs.
+            struct SoundfilesMeta : Meta
+            {
+                vector<string> fURLs;
+                
+                void declare(const char* key, const char* value)
+                {
+                    if (string(key) == "soundfiles") {
+                        stringstream ss(value);
+                        string item;
+                        // Use getline with ';' as the delimiter to split the string
+                        while (getline(ss, item, ';')) { fURLs.push_back(item); }
+                    }
+                }
+              
+            };
+            
             // Use bundle path
-            fSoundInterface = new SoundUI(SoundUI::getBinaryPath());
+            SoundfilesMeta sf;
+            fDSP->metadata(&sf);
+            sf.fURLs.push_back(SoundUI::getBinaryPath());
+            fSoundInterface = new SoundUI(sf.fURLs);
             fDSP->buildUserInterface(fSoundInterface);
     #endif
             return true;

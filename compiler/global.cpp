@@ -472,8 +472,7 @@ void global::reset()
 
     gInputString = "";
     gInputFiles.clear();
-    gMetaDataSet.clear();
-
+  
     // Backend configuration : default values
     gAllowForeignFunction = true;
     gAllowForeignConstant = true;

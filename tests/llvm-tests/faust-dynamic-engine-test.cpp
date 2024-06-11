@@ -36,7 +36,7 @@ using namespace std;
 void test1()
 {
     // Create an osc DSP using a code string
-    const char* code = "import(\"stdfaust.lib\"); process = os.osc(500);";
+    const char* code = "import(\"stdfaust.lib\"); declare soundfiles \"https://url1;https://url2;https://url3\"; process = os.osc(500);";
     dsp* DSP = createDsp("Test1", code, 0, NULL, "", -1);
     if (!DSP) {
         printf("ERROR in createDsp : %s", getLastError());
@@ -64,9 +64,9 @@ void test2()
         char error_msg[4096];
     
         // Create an osc DSP using a code string
-        Box osc = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(500);", 0, nullptr, &inputs, &outputs, error_msg);
+        Box osc = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); declare soundfiles \"https://url1;https://url2;https://url3\"; process = os.osc(500);", 0, nullptr, &inputs, &outputs, error_msg);
         if (!osc) {
-            printf("ERROR in CDSPToBoxes : %s\n", error_msg);
+            printf("ERROR in CDSPToBoxes : %s", error_msg);
             destroyLibContext();
             return;
         }
@@ -104,9 +104,10 @@ void test3()
         char error_msg[4096];
         
         // Create an osc DSP using a code string
-        Box osc = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(500);", 0, nullptr, &inputs, &outputs, error_msg);
+        Box osc = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); declare soundfiles \"https://url1;https://url2;https://url3\"; process = os.osc(500);", 0, nullptr, &inputs, &outputs, error_msg);
+    
         if (!osc) {
-            printf("ERROR in CDSPToBoxes : %s\n", error_msg);
+            printf("ERROR in CDSPToBoxes : %s", error_msg);
             destroyLibContext();
             return;
         }
