@@ -243,12 +243,10 @@ struct dsp_aux {
             fDriver->init(fNameApp, fDSP);
             fDSP->buildUserInterface(&fParams);
     #if SOUNDFILE
-            
             // Analyse 'soundfiles' metadata to extract the list of URLs.
             struct SoundfilesMeta : Meta
             {
                 vector<string> fURLs;
-                
                 void declare(const char* key, const char* value)
                 {
                     if (string(key) == "soundfiles") {
@@ -258,7 +256,6 @@ struct dsp_aux {
                         while (getline(ss, item, ';')) { fURLs.push_back(item); }
                     }
                 }
-              
             };
             
             // Use bundle path
