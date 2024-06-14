@@ -440,11 +440,11 @@ class APIUI : public PathBuilder, public Meta, public UI
          * @param p - the UI parameter index
          * @param key - the UI parameter index
          *
-         * @return the param metadata value associate to the key
+         * @return the param metadata value associate to the key or nullptr if the key is not found
          */
         const char* getMetadata(int p, const char* key)
         {
-            return (fMetaData[uint(p)].find(key) != fMetaData[uint(p)].end()) ? fMetaData[uint(p)][key].c_str() : "";
+            return (fMetaData[uint(p)].find(key) != fMetaData[uint(p)].end()) ? fMetaData[uint(p)][key].c_str() : nullptr;
         }
     
         /**
