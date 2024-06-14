@@ -28,9 +28,11 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <memory>
 
+#include "faust/dsp/dsp.h"
 #include "faust/gui/SimpleParser.h"
 #include "faust/gui/DecoratorUI.h"
 
@@ -211,6 +213,38 @@ class SoundUI : public SoundUIInterface
         #endif
             return bundle_path_str;
         }
+    
+        /**
+         * Decode the "declare soundfiles "url1;url2;...;urlN"; metadata and return the list of paths.
+         *
+         * @param dsp - the DSP.
+         *
+         * @return the list of paths.
+         */
+       
+        static std::vector<std::string> getSoundfilePaths(dsp* dsp)
+        {
+            // Analyse 'soundfiles' metadata to extract the list of URLs.
+            struct SoundfilesMeta : Meta
+            {
+                std::vector<std::string> fURL;
+                void declare(const char* key, const char* value)
+                {
+                    if (std::string(key) == "soundfiles") {
+                        std::stringstream ss(value);
+                        std::string item;
+                        // Use getline with ';' as the delimiter to split the string
+                        while (getline(ss, item, ';')) { fURL.push_back(item); }
+                    }
+                }
+            };
+            
+            // Use bundle path
+            SoundfilesMeta sf;
+            dsp->metadata(&sf);
+            return sf.fURL;
+        };
+
 };
 
 #endif
