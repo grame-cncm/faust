@@ -53,7 +53,7 @@ with {
 
 amount = hslider("[0]Amount[style:knob]", 0., 0., 1., .001);
 rate = hslider("[1]Rate[style:knob][unit:Hz][scale:log]", 1., .05, 90., .001);
-phase = hslider("[2]Phase[style:knob][unit:°]", 180., 0., 360., 15) : si.smoo;
+phase = hslider("[2]Phase[style:knob][unit:deg]", 180., 0., 360., 15) : si.smoo;
 shape = hslider("[3]Shape[style:knob]", 0., 0., 1., 0.001) : si.smoo;
 
 process = hgroup("Auto Pan", autopan(amount, rate, phase, shape));
