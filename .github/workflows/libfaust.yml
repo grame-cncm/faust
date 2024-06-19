@@ -219,7 +219,7 @@ jobs:
       run: brew install pkg-config ncurses gtk+ liblo lame flac libogg libtool libvorbis opus mpg123
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
         version: '5.15.2'
         host: 'mac'
