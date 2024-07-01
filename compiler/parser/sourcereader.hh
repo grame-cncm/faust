@@ -27,6 +27,8 @@
 #include <set>
 #include <vector>
 
+#include "PackageManager.hh"
+
 Tree formatDefinitions(Tree rldef);
 Tree checkRulelist (Tree lrules);
 void declareMetadata(Tree key, Tree value);
@@ -43,7 +45,8 @@ class SourceReader
     
         std::map<std::string, Tree> fFileCache;
         std::vector<std::string> fFilePathnames;
-    
+        PackageManager pm; 
+
         Tree parseLocal(const char* fname);
         Tree expandRec(Tree ldef, std::set<std::string>& visited, Tree lresult);
         bool cached(std::string fname);

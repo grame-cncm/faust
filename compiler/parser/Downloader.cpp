@@ -1,0 +1,97 @@
+#include "Downloader.hh"
+#include "../errors/exception.hh"
+#include <filesystem>
+#include <curl/curl.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+
+Downloader::Downloader(){
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    handle = curl_easy_init();
+}
+
+size_t Downloader::write_data_file(void* ptr, size_t size, size_t nmemb, void* userData) {
+
+    std::ofstream* file = static_cast<std::ofstream*>(userData);
+
+    if (!file->is_open()) {
+        throw faustexception("Internal Error: Couldn't Download Package");
+    }
+
+    file->write(static_cast<char*>(ptr), size * nmemb);
+
+    return size * nmemb;
+}
+
+size_t Downloader::write_data(void* ptr, size_t size, size_t nmemb, void* userData) {
+
+    std::string* data = static_cast<std::string*>(userData);
+    data->append(static_cast<char*>(ptr), size * nmemb);
+
+    return size * nmemb;
+}
+
+
+void Downloader::download(const std::string url,const std::string& savePath)
+{
+
+    std::ofstream file(savePath, std::ios::binary);
+
+    if (!file.is_open()) {
+        throw faustexception("Can't open file: " + savePath);
+    }
+
+    curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, &Downloader::write_data_file);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, &file);
+
+    CURLcode res = curl_easy_perform(handle);
+    file.close();
+
+    if (res != CURLE_OK) {
+        std::filesystem::remove(savePath); 
+        throw faustexception("Download failed: " + std::string(curl_easy_strerror(res)));
+    }
+
+    long http_code = 0;
+    curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &http_code);
+
+
+    if (std::to_string(http_code)[0] != '2'){
+        std::filesystem::remove(savePath);  
+        throw faustexception("Unsuccessful download: HTTP code " + std::to_string(http_code));
+    }
+
+}
+
+void Downloader::download(const std::string url,char** buffer)
+{
+    std::string data;
+    curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, &Downloader::write_data);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, &data);
+
+    CURLcode res = curl_easy_perform(handle);
+
+    if (res != CURLE_OK) {
+        throw faustexception("Download failed: " + std::string(curl_easy_strerror(res)));
+    }
+
+    long http_code = 0;
+    curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &http_code);
+
+    if (std::to_string(http_code)[0] != '2'){
+        throw faustexception("Unsuccessful download: HTTP code " + std::to_string(http_code));
+    }
+
+    *buffer = new char[data.size() + 1];
+    std::copy(data.begin(), data.end(), *buffer);
+    (*buffer)[data.size()] = '\0';
+}
+
+
+Downloader::~Downloader(){
+    curl_easy_cleanup(handle);
+    curl_global_cleanup();   
+}
