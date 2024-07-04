@@ -1,8 +1,10 @@
 #include "PackageManager.hh"
 #include <cstdlib>
+#include <iostream>
 #include <filesystem>
 #include "PkgUrl.hh"
 #include "Downloader.hh"
+#include "../errors/exception.hh"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -72,11 +74,11 @@ std::string PackageManager::install(std::string pkgUrl){
     try{
         downloader.download(remoteUrl, pkgPath.string());
     }
-    catch(const std::exception& e){
+    catch(const faustexception& e){
 
         pkgPath = pkgPath.parent_path();
-
-        while(pkgPath.empty()){
+    
+        while(fs::is_empty(pkgPath) && fs::exists(pkgPath)){
             fs::remove(pkgPath);
             pkgPath = pkgPath.parent_path();
         }

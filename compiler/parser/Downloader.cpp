@@ -57,12 +57,10 @@ void Downloader::download(const std::string url,const std::string& savePath)
     long http_code = 0;
     curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &http_code);
 
-
     if (std::to_string(http_code)[0] != '2'){
         std::filesystem::remove(savePath);  
         throw faustexception("Unsuccessful download: HTTP code " + std::to_string(http_code));
     }
-
 }
 
 void Downloader::download(const std::string url,char** buffer)
