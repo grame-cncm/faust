@@ -135,6 +135,10 @@ struct global {
     bool        gSimpleNames;          // -sn option
     bool        gSimplifyDiagrams;     // -sd option
     bool        gPrintFileListSwitch;  // -flist option
+   
+    bool        gPrintPackageListSwitch; // -plist option
+    bool        gPkgOnlySwitch;        // --pkg-only option
+
     bool        gInlineArchSwitch;     // -i option
     bool        gUIMacroSwitch;        // -uim option
     int         gDumpNorm;             // -norm option

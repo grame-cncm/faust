@@ -62,6 +62,7 @@ int FAUSTlex_destroy(void);
 void FAUSTrestart(FILE* new_file);
 struct yy_buffer_state* FAUST_scan_string(const char* yy_str); // In principle YY_BUFFER_STATE
 
+bool isPkg;
 int FAUSTerr;
 extern int FAUSTdebug;
 extern FILE* FAUSTin;
@@ -197,6 +198,14 @@ static Tree addFunctionMetadata(Tree ldef, FunMDSet& M)
 
 void SourceReader::checkName()
 {
+
+    if(!isPkg && gGlobal->gMasterDocument != FAUSTfilename && gGlobal->gPkgOnlySwitch ){
+        stringstream error;
+        error << "ERROR : [file " << FAUSTfilename << " : " << FAUSTlineno << "] : package only mode is enabled, but the dependency is not a package" << endl;
+        throw faustexception(error.str());
+    }
+
+
     if (gGlobal->gMasterDocument == FAUSTfilename) {
         Tree name = tree("name");
         if (gGlobal->gMetaDataSet.find(name) == gGlobal->gMetaDataSet.end()) {
@@ -223,6 +232,7 @@ Tree SourceReader::parseFile(const char* pkgLoc)
     FAUSTlineno = 1;
     FAUSTfilename = pkgLoc;
     string fileName;
+    isPkg = false;
 
     if(isURL(FAUSTfilename))
     {
@@ -236,13 +246,16 @@ Tree SourceReader::parseFile(const char* pkgLoc)
     else if(PkgUrl::isPKgUrl(FAUSTfilename))
     {        
         fileName = pm.install(std::string(FAUSTfilename));
+        pPackageLists.push_back(FAUSTfilename);
         FAUSTfilename = fileName.c_str();
+        isPkg = true;
     }
     else if(isFILE(FAUSTfilename))
     {
         FAUSTfilename = &FAUSTfilename[7]; // skip 'file://'
     }
-    
+
+
     string fullpath1;
     FILE* tmp_file = FAUSTin = fopenSearch(FAUSTfilename, fullpath1); 
         
@@ -333,6 +346,7 @@ vector<string> SourceReader::listSrcFiles()
     return fFilePathnames;
 }
 
+
 /**
  * Return a vector of pathnames representing the list
  * of all the source files that have been required
@@ -345,6 +359,17 @@ vector<string> SourceReader::listLibraryFiles()
     if (tmp.size() > 0) tmp.erase(tmp.begin());
     return tmp;
 }
+
+/**
+ * Return a vector of pathnames representing the list
+ * of all the packages that have been required
+ * to evaluate process
+ */
+
+vector<string> SourceReader::listPackages(){
+    return pPackageLists;
+}
+
 
 /**
  * Return the list of definitions where all imports have been expanded.
@@ -482,3 +507,6 @@ void declareDoc(Tree t)
 {
 	gGlobal->gDocVector.push_back(t);
 }
+
+
+

@@ -454,6 +454,7 @@ void global::reset()
     gFixedPointLSB  = 0;
 
     gPrintFileListSwitch = false;
+    gPkgOnlySwitch       = false;
     gInlineArchSwitch    = false;
 
     gDSPStruct  = false;
@@ -1135,7 +1136,7 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-lang", "--language") && (i + 1 < argc)) {
             gOutputLang = argv[i + 1];
             i += 2;
-
+        
         } else if (isCmd(argv[i], "-v", "--version")) {
             gVersionSwitch = true;
             i += 1;
@@ -1414,11 +1415,15 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-flist", "--file-list")) {
             gPrintFileListSwitch = true;
             i += 1;
-
+        } else if (isCmd(argv[i], "-plist", "--package-list")){
+            gPrintPackageListSwitch = true;
+            i += 1;
+        } else if(isCmd(argv[i], "-po", "--pkg-only")){
+            gPkgOnlySwitch = true;
+            i += 1;
         } else if (isCmd(argv[i], "-norm", "--normalized-form")) {
             gDumpNorm = 0;
             i += 1;
-
         } else if (isCmd(argv[i], "-norm1", "--normalized-form1")) {
             gDumpNorm = 1;
             i += 1;

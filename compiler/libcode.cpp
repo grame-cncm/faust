@@ -308,6 +308,22 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 
     endTiming("evaluation");
 
+    if (gGlobal->gPrintPackageListSwitch){
+        cout << "---------------------------\n";
+        cout << "List of Package Dependencies :\n";
+        cout << "---------------------------\n";
+        
+        // print the package used to evaluate process
+        vector<string> packages = gGlobal->gReader.listPackages();
+
+        for (size_t i = 0; i < packages.size(); i++) {
+            cout << packages[i] << endl;
+        }
+
+        cout << "---------------------------\n";
+        cout << endl;
+    }
+
     if (gGlobal->gPrintFileListSwitch) {
         cout << "---------------------------\n";
         cout << "List of file dependencies :\n";
