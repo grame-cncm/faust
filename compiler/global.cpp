@@ -130,6 +130,9 @@ extern const char* FAUSTfilename;
 list<Garbageable*> global::gObjectTable;
 bool               global::gHeapCleanup = false;
 
+// Just after gObjectTable initialisation for FaustAlgebra constructor to correctly work
+itv::interval_algebra gAlgebra;
+
 global::global()
     : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
