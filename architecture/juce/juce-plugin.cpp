@@ -553,19 +553,19 @@ juce::AudioProcessor::BusesProperties FaustPlugInAudioProcessor::getBusesPropert
 {
     if (juce::PluginHostType::getPluginLoadedAs() == wrapperType_Standalone) {
         if (FAUST_INPUTS == 0) {
-            return BusesProperties().withOutput("Output", juce::AudioChannelSet::discreteChannels(std::min<int>(2, FAUST_OUTPUTS)), true);
+            return BusesProperties().withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(std::min<int>(2, FAUST_OUTPUTS)), true);
         } else {
             return BusesProperties()
-            .withInput("Input", juce::AudioChannelSet::discreteChannels(std::min<int>(2, FAUST_INPUTS)), true)
-            .withOutput("Output", juce::AudioChannelSet::discreteChannels(std::min<int>(2, FAUST_OUTPUTS)), true);
+            .withInput("Input", juce::AudioChannelSet::canonicalChannelSet(std::min<int>(2, FAUST_INPUTS)), true)
+            .withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(std::min<int>(2, FAUST_OUTPUTS)), true);
         }
     } else {
         if (FAUST_INPUTS == 0) {
-            return BusesProperties().withOutput("Output", juce::AudioChannelSet::discreteChannels(FAUST_OUTPUTS), true);
+            return BusesProperties().withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(FAUST_OUTPUTS), true);
         } else {
             return BusesProperties()
-            .withInput("Input", juce::AudioChannelSet::discreteChannels(FAUST_INPUTS), true)
-            .withOutput("Output", juce::AudioChannelSet::discreteChannels(FAUST_OUTPUTS), true);
+            .withInput("Input", juce::AudioChannelSet::canonicalChannelSet(FAUST_INPUTS), true)
+            .withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(FAUST_OUTPUTS), true);
         }
     }
 }
