@@ -374,36 +374,48 @@ static t_int *faust_perform(t_int *w)
         float d = 1.0f/x->n_xfade, f = (x->xfade--)*d;
         d = d/n;
         x->dsp->compute(n, x->inputs, x->buf);
-        if (x->active)
-            if (x->n_in == x->n_out)
+        if (x->active) {
+            if (x->n_in == x->n_out) {
                 /* xfade inputs -> buf */
-                for (int j = 0; j < n; j++, f -= d)
-                    for (int i = 0; i < x->n_out; i++)
+                for (int j = 0; j < n; j++, f -= d) {
+                    for (int i = 0; i < x->n_out; i++) {
                         x->outputs[i][j] = f*x->inputs[i][j]+(1.0f-f)*x->buf[i][j];
-            else
+                    }
+                }
+            } else {
                 /* xfade 0 -> buf */
-                for (int j = 0; j < n; j++, f -= d)
-                    for (int i = 0; i < x->n_out; i++)
+                for (int j = 0; j < n; j++, f -= d) {
+                    for (int i = 0; i < x->n_out; i++) {
                         x->outputs[i][j] = (1.0f-f)*x->buf[i][j];
-            else
-                if (x->n_in == x->n_out)
-                    /* xfade buf -> inputs */
-                    for (int j = 0; j < n; j++, f -= d)
-                        for (int i = 0; i < x->n_out; i++)
-                            x->outputs[i][j] = f*x->buf[i][j]+(1.0f-f)*x->inputs[i][j];
-                else
-                    /* xfade buf -> 0 */
-                    for (int j = 0; j < n; j++, f -= d)
-                        for (int i = 0; i < x->n_out; i++)
-                            x->outputs[i][j] = f*x->buf[i][j];
+                    }
+                }
+            }
+        } else {
+            if (x->n_in == x->n_out) {
+                /* xfade buf -> inputs */
+                for (int j = 0; j < n; j++, f -= d) {
+                    for (int i = 0; i < x->n_out; i++) {
+                        x->outputs[i][j] = f*x->buf[i][j]+(1.0f-f)*x->inputs[i][j];
+                    }
+                }
+            } else {
+                /* xfade buf -> 0 */
+                for (int j = 0; j < n; j++, f -= d) {
+                    for (int i = 0; i < x->n_out; i++) {
+                        x->outputs[i][j] = f*x->buf[i][j];
+                    }
+                }
+            }
+        }
     } else if (x->active) {
         x->dsp->compute(n, x->inputs, x->buf);
         copy_samples(x->n_out, n, x->outputs, x->buf);
     } else if (x->n_in == x->n_out) {
         copy_samples(x->n_out, n, x->buf, x->inputs);
         copy_samples(x->n_out, n, x->outputs, x->buf);
-    } else
+    } else {
         zero_samples(x->n_out, n, x->outputs);
+    }
     return (w+3);
 }
 
