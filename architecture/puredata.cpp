@@ -554,7 +554,7 @@ static void faust_any(t_faust *x, t_symbol *s, int argc, t_atom *argv)
     if (!x->dsp) return;
     PdUI *ui = x->ui;
     if (s == &s_bang) {
-        for (int i = 0; i < ui->nelems; i++)
+        for (int i = 0; i < ui->nelems; i++) {
             if (ui->elems[i].label && ui->elems[i].zone) {
                 t_atom args[6];
                 t_symbol *_s;
@@ -591,10 +591,11 @@ static void faust_any(t_faust *x, t_symbol *s, int argc, t_atom *argv)
                 SETFLOAT(&args[5], ui->elems[i].step);
                 outlet_anything(x->out, _s, 6, args);
             }
+        }
     } else {
         const char *label = s->s_name;
         int count = 0;
-        for (int i = 0; i < ui->nelems; i++)
+        for (int i = 0; i < ui->nelems; i++) {
             if (ui->elems[i].label &&
                 pathcmp(ui->elems[i].label, label) == 0) {
                 if (argc == 0) {
@@ -613,6 +614,7 @@ static void faust_any(t_faust *x, t_symbol *s, int argc, t_atom *argv)
                     pd_error(x, "[faust] %s: bad control argument: %s",
                              x->label->c_str(), label);
             }
+        }
         if (count == 0 && strcmp(label, "active") == 0) {
             if (argc == 0) {
                 t_atom arg;
