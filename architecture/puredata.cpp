@@ -604,9 +604,7 @@ static void faust_any(t_faust *x, t_symbol *s, int argc, t_atom *argv)
                         outlet_anything(x->out, gensym(ui->elems[i].label), 1, &arg);
                     }
                     ++count;
-                } else if (argc == 1 &&
-                           (argv[0].a_type == A_FLOAT ||
-                            argv[0].a_type == A_DEFFLOAT) &&
+                } else if (argc == 1 && argv[0].a_type == A_FLOAT &&
                            ui->elems[i].zone) {
                     float f = atom_getfloat(argv);
                     *ui->elems[i].zone = f;
@@ -620,9 +618,7 @@ static void faust_any(t_faust *x, t_symbol *s, int argc, t_atom *argv)
                 t_atom arg;
                 SETFLOAT(&arg, (float)x->active);
                 outlet_anything(x->out, gensym((char*)"active"), 1, &arg);
-            } else if (argc == 1 &&
-                       (argv[0].a_type == A_FLOAT ||
-                        argv[0].a_type == A_DEFFLOAT)) {
+            } else if (argc == 1 && argv[0].a_type == A_FLOAT) {
                 float f = atom_getfloat(argv);
                 x->active = f != 0;
                 x->xfade = x->n_xfade;
@@ -668,11 +664,12 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
         } else break;
     }
     // sr|id
-    for (int i = 0; i < argc; i++)
-        if (argv[i].a_type == A_FLOAT || argv[i].a_type == A_DEFFLOAT)
+    for (int i = 0; i < argc; i++) {
+        if (argv[i].a_type == A_FLOAT)
             sr = (int)argv[i].a_w.w_float;
-        else if (argv[i].a_type == A_SYMBOL || argv[i].a_type == A_DEFSYMBOL)
+        else if (argv[i].a_type == A_SYMBOL)
             id = argv[i].a_w.w_symbol;
+    }
     x->rate = sr; // NB: keep -1, see faust_dsp()
     if (sr <= 0) sr = 44100;
     x->xfade = 0;
