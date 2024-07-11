@@ -451,8 +451,8 @@ static t_int *faust_perform(t_int *w)
 static void faust_dsp(t_faust *x, t_signal **sp)
 {
     int n = sp[0]->s_n, sr = (int)sp[0]->s_sr;
-    if (x->rate <= 0) {
-        /* default sample rate is whatever Pd tells us */
+    if (sr != x->rate) {
+        /* update sample rate */
         PdUI *ui = x->ui;
         float *z = NULL;
         if (ui->nelems > 0 &&
@@ -659,14 +659,17 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
         } else break;
     }
     // sr|id
+    // NB: we keep this code for backwards compatibility.
+    // 'sr' doesn't really do anything because faust_dsp() will
+    // always update the DSP to the actual samplerate.
     for (int i = 0; i < argc; i++) {
         if (argv[i].a_type == A_FLOAT)
             sr = (int)argv[i].a_w.w_float;
         else if (argv[i].a_type == A_SYMBOL)
             id = argv[i].a_w.w_symbol;
     }
-    x->rate = sr; // NB: keep -1, see faust_dsp()
     if (sr <= 0) sr = 44100;
+    x->rate = sr;
     x->xfade = 0;
     x->n_xfade = (int)(sr*XFADE_TIME/64);
     x->inputs = x->outputs = x->buf = NULL;
