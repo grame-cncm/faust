@@ -490,13 +490,6 @@ static void faust_dsp(t_faust *x, t_signal **sp)
             if (x->buf[i])
                 free(x->buf[i]);
             x->buf[i] = (t_sample*)malloc(n*sizeof(t_sample));
-            if (x->buf[i] == NULL) {
-                for (int j = 0; j < i; j++)
-                    free(x->buf[j]);
-                free(x->buf);
-                x->buf = NULL;
-                break;
-            }
         }
     }
 
@@ -681,7 +674,6 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
     x->label = new std::string(sym(mydsp) "~");
     x->dsp = new mydsp();
     x->ui = new PdUI(sym(mydsp), id?id->s_name:NULL);
-    if (!x->dsp || !x->ui || !x->label) goto error;
     if (id) {
         *x->label += " ";
         *x->label += id->s_name;
@@ -696,9 +688,6 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
         for (int i = 0; i < x->n_out; i++)
             x->buf[i] = NULL;
     }
-    if ((x->n_in > 0 && x->inputs == NULL) ||
-        (x->n_out > 0 && (x->outputs == NULL || x->buf == NULL)))
-        goto error;
     x->dsp->init(sr);
     x->dsp->buildUserInterface(x->ui);
     if (x->multi) {
@@ -712,11 +701,6 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
             outlet_new(&x->x_obj, &s_signal);
     }
     x->out = outlet_new(&x->x_obj, 0);
-    return (void *)x;
-error:
-    faust_free(x);
-    x->dsp = NULL; x->ui = NULL;
-    x->inputs = x->outputs = x->buf = NULL;
     return (void *)x;
 }
 
