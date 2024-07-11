@@ -753,8 +753,9 @@ extern "C" void faust_setup(mydsp)
     s_nentry = gensym((char*)"nentry");
     s_vbargraph = gensym((char*)"vbargraph");
     s_hbargraph = gensym((char*)"hbargraph");
+    /* force initialization of mydsp */
+    mydsp dsp;
     /* give some indication that we're loaded and ready to go */
-    mydsp dsp = mydsp();
     post("[faust] %s: %d inputs, %d outputs", sym(mydsp) "~",
          dsp.getNumInputs(), dsp.getNumOutputs());
 }
