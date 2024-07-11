@@ -317,13 +317,33 @@ void PdUI::run() {}
 #include <string>
 #include "m_pd.h"
 
+// for dlsym() resp. GetProcAddress()
+#ifdef _WIN32
+# include <windows.h>
+#else
+# include <dlfcn.h>
+#endif
+
 #define sym(name) xsym(name)
 #define xsym(name) #name
 #define faust_setup(name) xfaust_setup(name)
 #define xfaust_setup(name) name ## _tilde_setup(void)
+#define classname(x) class_getname(*(t_pd *)x)
 
 // time for "active" toggle xfades in secs
 #define XFADE_TIME 0.1f
+
+#ifdef CLASS_MULTICHANNEL
+# define HAVE_MULTICHANNEL
+#else
+# pragma message("building without multi-channel support; requires Pd 0.54 or later")
+# define CLASS_MULTICHANNEL 0
+#endif
+
+// function pointer to signal_setmultiout API function;
+// NULL if the runtime Pd version has no multichannel support.
+using t_signal_setmultiout = void (*)(t_signal **, int);
+static t_signal_setmultiout g_signal_setmultiout;
 
 static t_class *faust_class;
 
@@ -337,8 +357,17 @@ struct t_faust {
     mydsp *dsp;
     PdUI *ui;
     std::string *label;
-    int active, xfade, n_xfade, rate, n_in, n_out;
-    t_sample **inputs, **outputs, **buf;
+    bool active;
+    bool multi;
+    int xfade;
+    int n_xfade;
+    int rate;
+    int n_in;
+    int n_out;
+    t_sample **inputs;
+    t_sample **outputs;
+    t_sample **buf;
+    t_sample *dummy;
     t_outlet *out;
     t_sample f;
 };
@@ -446,13 +475,20 @@ static void faust_dsp(t_faust *x, t_signal **sp)
     }
     if (n > 0)
         x->n_xfade = (int)(x->rate*XFADE_TIME/n);
-    dsp_add(faust_perform, 2, x, n);
-    for (int i = 0; i < x->n_in; i++)
-        x->inputs[i] = sp[i+1]->s_vec;
-    for (int i = 0; i < x->n_out; i++)
-        x->outputs[i] = sp[x->n_in+i+1]->s_vec;
-    if (x->buf != NULL)
+
+    if (x->multi && x->n_in > 0) {
+        /* dummy buffer for missing input channels in multichannel mode */
+        if (x->dummy)
+            free(x->dummy);
+        x->dummy = (t_sample*)malloc(n*sizeof(t_sample));
+        memset(x->dummy, 0, n*sizeof(t_sample)); /* silence! */
+    }
+
+    if (x->buf != NULL) {
+        /* temporary output buffers */
         for (int i = 0; i < x->n_out; i++) {
+            if (x->buf[i])
+                free(x->buf[i]);
             x->buf[i] = (t_sample*)malloc(n*sizeof(t_sample));
             if (x->buf[i] == NULL) {
                 for (int j = 0; j < i; j++)
@@ -462,6 +498,42 @@ static void faust_dsp(t_faust *x, t_signal **sp)
                 break;
             }
         }
+    }
+
+#ifdef HAVE_MULTICHANNEL
+    /* NB: 's_nchans' only exists if PD_HAVE_MULTICHANNEL is defined */
+    if (g_signal_setmultiout) {
+        /* first set up output signals. NB: since this is a multi-channel
+         * class, we need to call signal_setmultiout() on all outputs
+         * - even in single-channel mode! */
+        if (x->multi) {
+            g_signal_setmultiout(&sp[2], x->n_out);
+        } else {
+            for (int i = 0; i < x->n_out; ++i) {
+                g_signal_setmultiout(&sp[x->n_in+i+1], 1);
+            }
+        }
+    }
+    /* now we can store the input and output signals */
+    if (x->multi) {
+        for (int i = 0; i < x->n_in; i++) {
+            if (i < sp[1]->s_nchans)
+                x->inputs[i] = sp[1]->s_vec + (i*n);
+            else
+                x->inputs[i] = x->dummy;
+        }
+        for (int i = 0; i < x->n_out; i++)
+            x->outputs[i] = sp[2]->s_vec + (i*n);
+    } else
+#endif
+    {
+        for (int i = 0; i < x->n_in; i++)
+            x->inputs[i] = sp[i+1]->s_vec;
+        for (int i = 0; i < x->n_out; i++)
+            x->outputs[i] = sp[x->n_in+i+1]->s_vec;
+    }
+
+    dsp_add(faust_perform, 2, x, (t_int)n);
 }
 
 static int pathcmp(const char *s, const char *t)
@@ -552,7 +624,7 @@ static void faust_any(t_faust *x, t_symbol *s, int argc, t_atom *argv)
                        (argv[0].a_type == A_FLOAT ||
                         argv[0].a_type == A_DEFFLOAT)) {
                 float f = atom_getfloat(argv);
-                x->active = (int)f;
+                x->active = f != 0;
                 x->xfade = x->n_xfade;
             }
         }
@@ -571,6 +643,7 @@ static void faust_free(t_faust *x)
             if (x->buf[i]) free(x->buf[i]);
         free(x->buf);
     }
+    if (x->dummy) free(x->dummy);
 }
 
 static void *faust_new(t_symbol *s, int argc, t_atom *argv)
@@ -578,16 +651,34 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
     t_faust *x = (t_faust*)pd_new(faust_class);
     int sr = -1;
     t_symbol *id = NULL;
-    x->active = 1;
+    x->active = true;
+    x->multi = false;
+    // flags
+    while (argc && (argv->a_type == A_SYMBOL)) {
+        const char *flag = argv->a_w.w_symbol->s_name;
+        if (*flag == '-') {
+            if (!strcmp(flag, "-m")) {
+                x->multi = true;
+                argc--; argv++;
+            } else {
+                pd_error(x, "%s: ignore unknown flag '%s",
+                    classname(x), flag);
+            }
+            argc--; argv++;
+        } else break;
+    }
+    // sr|id
     for (int i = 0; i < argc; i++)
         if (argv[i].a_type == A_FLOAT || argv[i].a_type == A_DEFFLOAT)
             sr = (int)argv[i].a_w.w_float;
         else if (argv[i].a_type == A_SYMBOL || argv[i].a_type == A_DEFSYMBOL)
             id = argv[i].a_w.w_symbol;
-    x->rate = sr;
+    x->rate = sr; // NB: keep -1, see faust_dsp()
     if (sr <= 0) sr = 44100;
-    x->xfade = 0; x->n_xfade = (int)(sr*XFADE_TIME/64);
+    x->xfade = 0;
+    x->n_xfade = (int)(sr*XFADE_TIME/64);
     x->inputs = x->outputs = x->buf = NULL;
+    x->dummy = NULL;
     x->label = new std::string(sym(mydsp) "~");
     x->dsp = new mydsp();
     x->ui = new PdUI(sym(mydsp), id?id->s_name:NULL);
@@ -603,19 +694,25 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
     if (x->n_out > 0) {
         x->outputs = (t_sample**)malloc(x->n_out*sizeof(t_sample*));
         x->buf = (t_sample**)malloc(x->n_out*sizeof(t_sample*));
+        for (int i = 0; i < x->n_out; i++)
+            x->buf[i] = NULL;
     }
     if ((x->n_in > 0 && x->inputs == NULL) ||
         (x->n_out > 0 && (x->outputs == NULL || x->buf == NULL)))
         goto error;
-    for (int i = 0; i < x->n_out; i++)
-        x->buf[i] = NULL;
     x->dsp->init(sr);
     x->dsp->buildUserInterface(x->ui);
-    for (int i = 0; i < x->n_in; i++)
+    if (x->multi) {
+        // only create a single (multi-channel) signal inlet and outlet
         inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_signal, &s_signal);
-    x->out = outlet_new(&x->x_obj, 0);
-    for (int i = 0; i < x->n_out; i++)
         outlet_new(&x->x_obj, &s_signal);
+    } else {
+        for (int i = 0; i < x->n_in; i++)
+            inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_signal, &s_signal);
+        for (int i = 0; i < x->n_out; i++)
+            outlet_new(&x->x_obj, &s_signal);
+    }
+    x->out = outlet_new(&x->x_obj, 0);
     return (void *)x;
 error:
     faust_free(x);
@@ -626,11 +723,29 @@ error:
 
 extern "C" void faust_setup(mydsp)
 {
+#ifdef HAVE_MULTICHANNEL
+    // runtime check for multichannel support:
+#ifdef _WIN32
+    // get a handle to the module containing the Pd API functions.
+    // NB: GetModuleHandle("pd.dll") does not cover all cases.
+    HMODULE module;
+    int moduleflags = GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                      GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT;
+    if (GetModuleHandleEx(moduleflags, (LPCSTR)&pd_typedmess, &module)) {
+        g_signal_setmultiout = (t_signal_setmultiout)(void *)GetProcAddress(
+            module, "signal_setmultiout");
+    }
+#else
+    // search recursively, starting from the main program
+    g_signal_setmultiout = (t_signal_setmultiout)dlsym(
+        dlopen(nullptr, RTLD_NOW), "signal_setmultiout");
+#endif
+#endif // HAVE_MULTICHANNEL
+
     t_symbol *s = gensym(sym(mydsp) "~");
-    faust_class =
-    class_new(s, (t_newmethod)faust_new, (t_method)faust_free,
-              sizeof(t_faust), CLASS_DEFAULT,
-              A_GIMME, A_NULL);
+    int classflags = g_signal_setmultiout ? CLASS_MULTICHANNEL : 0;
+    faust_class = class_new(s, (t_newmethod)faust_new, (t_method)faust_free,
+        sizeof(t_faust), classflags, A_GIMME, A_NULL);
     class_addmethod(faust_class, (t_method)faust_dsp, gensym((char*)"dsp"), A_NULL);
     class_addanything(faust_class, faust_any);
     class_addmethod(faust_class, nullfn, &s_signal, A_NULL);
