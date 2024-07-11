@@ -44,6 +44,7 @@ svg 	:= $(dspsrc:.dsp=.dsp-svg) $(synsrc:.syn=.syn-svg)
 xml 	:= $(dspsrc:.dsp=.dsp.xml) $(synsrc:.syn=.syn.xml)
 pd 	:= $(dspsrc:.dsp=.pd) $(synsrc:.syn=.pd)
 
+ARCH     = ../../../../architecture/puredata.cpp
 #faust2pd = faust2pd
 faust2pd = ../../faust2pd
 
@@ -70,10 +71,10 @@ realclean: distclean
 	faust -svg $< -o /dev/null >/dev/null
 
 %.cpp: %.dsp
-	faust $(VEC) -a puredata.cpp $< -o $@
+	faust $(VEC) -a $(ARCH) $< -o $@
 
 %.cpp: %.syn
-	faust $(VEC) -a puredata.cpp $< -o $@
+	faust $(VEC) -a $(ARCH) $< -o $@
 
 %.dsp.xml: %.dsp
 	faust -xml $< -o /dev/null
