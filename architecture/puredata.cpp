@@ -25,6 +25,7 @@
  Please note that this is to be compiled as a shared library, which is
  then loaded dynamically by Pd as an external. */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
@@ -495,30 +496,30 @@ static void faust_dsp(t_faust *x, t_signal **sp)
          * class, we need to call signal_setmultiout() on all outputs
          * - even in single-channel mode! */
         if (x->multi) {
-            g_signal_setmultiout(&sp[2], x->n_out);
+            g_signal_setmultiout(&sp[1], x->n_out);
         } else {
             for (int i = 0; i < x->n_out; ++i) {
-                g_signal_setmultiout(&sp[x->n_in+i+1], 1);
+                g_signal_setmultiout(&sp[x->n_in+i], 1);
             }
         }
     }
     /* now we can store the input and output signals */
     if (x->multi) {
         for (int i = 0; i < x->n_in; i++) {
-            if (i < sp[1]->s_nchans)
-                x->inputs[i] = sp[1]->s_vec + (i*n);
+            if (i < sp[0]->s_nchans)
+                x->inputs[i] = sp[0]->s_vec + (i*n);
             else
                 x->inputs[i] = x->dummy;
         }
         for (int i = 0; i < x->n_out; i++)
-            x->outputs[i] = sp[2]->s_vec + (i*n);
+            x->outputs[i] = sp[1]->s_vec + (i*n);
     } else
 #endif
     {
         for (int i = 0; i < x->n_in; i++)
-            x->inputs[i] = sp[i+1]->s_vec;
+            x->inputs[i] = sp[i]->s_vec;
         for (int i = 0; i < x->n_out; i++)
-            x->outputs[i] = sp[x->n_in+i+1]->s_vec;
+            x->outputs[i] = sp[x->n_in+i]->s_vec;
     }
 
     dsp_add(faust_perform, 2, x, (t_int)n);
@@ -678,6 +679,7 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
     }
     x->n_in = x->dsp->getNumInputs();
     x->n_out = x->dsp->getNumOutputs();
+    assert((x->n_in + x->n_out) > 0); /* there must be at least one signal */
     if (x->n_in > 0)
         x->inputs = (t_sample**)malloc(x->n_in*sizeof(t_sample*));
     if (x->n_out > 0) {
@@ -729,7 +731,6 @@ extern "C" void faust_setup(mydsp)
         sizeof(t_faust), classflags, A_GIMME, A_NULL);
     class_addmethod(faust_class, (t_method)faust_dsp, gensym((char*)"dsp"), A_NULL);
     class_addanything(faust_class, faust_any);
-    class_addmethod(faust_class, nullfn, &s_signal, A_NULL);
     s_button = gensym((char*)"button");
     s_checkbox = gensym((char*)"checkbox");
     s_vslider = gensym((char*)"vslider");
