@@ -318,6 +318,17 @@ void PdUI::run() {}
 #include <string>
 #include "m_pd.h"
 
+// For some reason, the first inlet has always been
+// reserved for messages, so the input signals (if any)
+// would only start at the *second* inlet.
+// This is not very idiomatic as the first inlet can
+// be a signal inlet and still take messages.
+// If MESSAGE_INLET is 0, the first inlet becomes a
+// signal inlet; otherwise, you get the old behavior.
+#ifndef MESSAGE_INLET
+#define MESSAGE_INLET 1
+#endif
+
 // for dlsym() resp. GetProcAddress()
 #ifdef _WIN32
 # include <windows.h>
@@ -691,11 +702,19 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
     x->dsp->init(sr);
     x->dsp->buildUserInterface(x->ui);
     if (x->multi) {
-        // only create a single (multi-channel) signal inlet and outlet
+        /* only create a single (multi-channel) signal inlet and outlet;
+         * NB: if MESSAGE_INLET is 0, we already have a signal inlet! */
+    #if MESSAGE_INLET
         inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_signal, &s_signal);
+    #endif
         outlet_new(&x->x_obj, &s_signal);
     } else {
+    #if MESSAGE_INLET
         for (int i = 0; i < x->n_in; i++)
+    #else
+        /* we already have a signal inlet */
+        for (int i = 1; i < x->n_in; i++)
+    #endif
             inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_signal, &s_signal);
         for (int i = 0; i < x->n_out; i++)
             outlet_new(&x->x_obj, &s_signal);
@@ -730,6 +749,10 @@ extern "C" void faust_setup(mydsp)
     faust_class = class_new(s, (t_newmethod)faust_new, (t_method)faust_free,
         sizeof(t_faust), classflags, A_GIMME, A_NULL);
     class_addmethod(faust_class, (t_method)faust_dsp, gensym((char*)"dsp"), A_NULL);
+#if !MESSAGE_INLET
+    /* the first inlet is a signal inlet */
+    CLASS_MAINSIGNALIN(faust_class, t_faust, f);
+#endif
     class_addanything(faust_class, faust_any);
     s_button = gensym((char*)"button");
     s_checkbox = gensym((char*)"checkbox");
