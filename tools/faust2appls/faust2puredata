@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to puredata                 #
-#               (c) Grame, 2009-2014                                #
+#               (c) Grame, 2009-2024                                #
 #                                                                   #
 #####################################################################
 
@@ -16,6 +16,8 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 COMPILE=yes
 ARCHFILE=$FAUSTARCH/puredata.cpp
 
+MI="1"
+
 echoHelp()
 {
     usage faust2puredata "[options] [Faust options] <file.dsp>"
@@ -25,6 +27,7 @@ echoHelp()
     option -arch32 "compile a 32 bits architecture."
     option -arch64 "compile a 64 bits architecture."
     option -poly "generates a polyphonic self-contained DSP."
+    option -msi "message and signal first inlet."
     option -tosource "skip the C++ compiling step and only generate the C++ source file."
     option "Faust options"
     exit
@@ -54,6 +57,8 @@ for p in $@; do
         F2PDPOLY="-n 8"
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"
+    elif [ $p = "-msi" ]; then
+        MI="0"
     elif [ $p = "-tosource" ]; then
         COMPILE=no
     elif [ ${p:0:1} = "-" ]; then
@@ -111,11 +116,11 @@ for p in $FILES; do
         if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
             # universal binaries produced on M1
             if [ $(uname -p) == arm ]; then
-                $CXX -arch arm64 $CXXFLAGS  $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.arm64 $CXX_SOURCE || exit
-                $CXX -arch x86_64 $CXXFLAGS $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.x86_64 $CXX_SOURCE || exit
+                $CXX -arch arm64 $CXXFLAGS  $FAUSTTOOLSFLAGS -DMESSAGE_INLET=$MI $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.arm64 $CXX_SOURCE || exit
+                $CXX -arch x86_64 $CXXFLAGS $FAUSTTOOLSFLAGS -DMESSAGE_INLET=$MI $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.x86_64 $CXX_SOURCE || exit
                 $LIPO -create "${f%.dsp}.arm64" "${f%.dsp}.x86_64" -output "${f%.dsp}$EXT" || exit
             else
-                $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o "${f%.dsp}$EXT" $CXX_SOURCE || exit
+                $CXX $CXXFLAGS $FAUSTTOOLSFLAGS -DMESSAGE_INLET=$MI $OMP $LIB -Dmydsp=${f%.dsp} -o "${f%.dsp}$EXT" $CXX_SOURCE || exit
             fi
             if which codesign > /dev/null; then
                 codesign --sign - --deep --force "${f%.dsp}$EXT"
