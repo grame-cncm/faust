@@ -349,11 +349,6 @@ static t_class *faust_class;
 
 struct t_faust {
     t_object x_obj;
-#ifdef __MINGW32__
-    /* This seems to be necessary as some as yet undetermined Pd routine seems
-     to write past the end of x_obj on Windows. */
-    int fence; /* dummy field (not used) */
-#endif
     mydsp *dsp;
     PdUI *ui;
     std::string *label;
