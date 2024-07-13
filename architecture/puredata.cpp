@@ -2,6 +2,7 @@
  ************************************************************************
  FAUST Architecture File
  Copyright (C) 2006-2011 Albert Graef <Dr.Graef@t-online.de>
+ Copyright (C) 2024 Christof Ressi <christof.ressi@gmx.at>
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as
@@ -20,10 +21,13 @@
  ************************************************************************
  ************************************************************************/
 
-/* Pd architecture file, written by Albert Graef <Dr.Graef@t-online.de>.
+/*
+ Pd architecture file, written by Albert Graef <Dr.Graef@t-online.de>
+ and Christof Ressi <christof.ressi@gmx.at>.
  This was derived from minimal.cpp included in the Faust distribution.
  Please note that this is to be compiled as a shared library, which is
- then loaded dynamically by Pd as an external. */
+ then loaded dynamically by Pd as an external.
+ */
 
 #include <assert.h>
 #include <stdlib.h>

@@ -27,7 +27,7 @@ echoHelp()
     option -arch32 "compile a 32 bits architecture."
     option -arch64 "compile a 64 bits architecture."
     option -poly "generates a polyphonic self-contained DSP."
-    option -msi "message and signal first inlet."
+    option -msi "use a first inlet handing messages and signal."
     option -tosource "skip the C++ compiling step and only generate the C++ source file."
     option "Faust options"
     exit
@@ -69,7 +69,7 @@ for p in $@; do
         OPTIONS="$OPTIONS $p"
     fi
 done
-
+        
 #-------------------------------------------------------------------
 # Check darwin specifics
 #
@@ -129,15 +129,19 @@ for p in $FILES; do
             $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT $CXX_SOURCE || exit
         fi
         if [ $(which faust2pd) ]; then
-            faust2pd -s $F2PDPOLY $f.xml
+            if [ "$MI" == "1" ]; then
+                faust2pd -s $F2PDPOLY $f.xml
+            else
+                echo "WARNING : -msi cannot yet be used with faust2pd"
+            fi
         fi
         ) > /dev/null || exit
-
+     
         rm -rf "$SRCDIR/${f%.dsp}$EXT"
         cp "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
         # collects all the files produced
         OUTPUTS="$OUTPUTS$SRCDIR/${f%.dsp}$EXT;"
-        if [ $(which faust2pd)  ]; then
+        if [[ $(which faust2pd) && "$MI" == "1" ]]; then
             cp "$TMP/${f%.dsp}.pd" "$SRCDIR/${f%.dsp}.pd"
             OUTPUTS="$OUTPUTS$SRCDIR/${f%.dsp}.pd;"
         fi
