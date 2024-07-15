@@ -324,13 +324,19 @@ void PdUI::run() {}
 
 // For some reason, the first inlet has always been
 // reserved for messages, so the input signals (if any)
-// would only start at the *second* inlet.
-// This is not very idiomatic as the first inlet can
-// be a signal inlet and still take messages.
-// If MESSAGE_INLET is 0, the first inlet becomes a
-// signal inlet; otherwise, you get the old behavior.
-#ifndef MESSAGE_INLET
-#define MESSAGE_INLET 1
+// would only start at the *second* inlet. This is not
+// very idiomatic as the first inlet can be a signal inlet
+// and still take messages. Also, the message outlet
+// comes before the signal outlet(s), which isn't very
+// idiomatic either.
+// If NEWIO is 1, incoming messages go to the first signal
+// inlet and the message outlet comes last;
+// if NEWIO is 0, you get the old behavior.
+//
+// NOTE: NEWIO=1 is not compatible yet with the faust2pd
+// program which generates the UI wrapper.
+#ifndef NEWIO
+#define NEWIO 0
 #endif
 
 // for dlsym() resp. GetProcAddress()
@@ -705,25 +711,32 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
     }
     x->dsp->init(sr);
     x->dsp->buildUserInterface(x->ui);
+#if !NEWIO
+    /* the message outlet comes first! */
+    x->out = outlet_new(&x->x_obj, 0);
+#endif
     if (x->multi) {
         /* only create a single (multi-channel) signal inlet and outlet;
-         * NB: if MESSAGE_INLET is 0, we already have a signal inlet! */
-    #if MESSAGE_INLET
+         * NB: if NEWIO is 1, we already have a signal inlet! */
+    #if !NEWIO
         inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_signal, &s_signal);
     #endif
         outlet_new(&x->x_obj, &s_signal);
     } else {
-    #if MESSAGE_INLET
-        for (int i = 0; i < x->n_in; i++)
-    #else
+    #if NEWIO
         /* we already have a signal inlet */
         for (int i = 1; i < x->n_in; i++)
+    #else
+        for (int i = 0; i < x->n_in; i++)
     #endif
             inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_signal, &s_signal);
         for (int i = 0; i < x->n_out; i++)
             outlet_new(&x->x_obj, &s_signal);
     }
+#if NEWIO
+    /* the message outlet comes last! */
     x->out = outlet_new(&x->x_obj, 0);
+#endif
     return (void *)x;
 }
 
@@ -753,7 +766,7 @@ extern "C" void faust_setup(mydsp)
     faust_class = class_new(s, (t_newmethod)faust_new, (t_method)faust_free,
         sizeof(t_faust), classflags, A_GIMME, A_NULL);
     class_addmethod(faust_class, (t_method)faust_dsp, gensym((char*)"dsp"), A_NULL);
-#if !MESSAGE_INLET
+#if NEWIO
     /* the first inlet is a signal inlet */
     CLASS_MAINSIGNALIN(faust_class, t_faust, f);
 #endif
