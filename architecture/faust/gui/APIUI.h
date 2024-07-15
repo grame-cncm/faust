@@ -53,7 +53,7 @@ class APIUI : public PathBuilder, public Meta, public UI
             std::string fLabel;
             std::string fShortname;
             std::string fPath;
-            ValueConverter* fConversion;
+            ValueConverter* fConverter;
             FAUSTFLOAT* fZone;
             FAUSTFLOAT fInit;
             FAUSTFLOAT fMin;
@@ -64,14 +64,14 @@ class APIUI : public PathBuilder, public Meta, public UI
             Item(const std::string& label,
                  const std::string& short_name,
                  const std::string& path,
-                 ValueConverter* conversion,
+                 ValueConverter* converter,
                  FAUSTFLOAT* zone,
                  FAUSTFLOAT init,
                  FAUSTFLOAT min,
                  FAUSTFLOAT max,
                  FAUSTFLOAT step,
                  ItemType item_type)
-            :fLabel(label), fShortname(short_name), fPath(path), fConversion(conversion),
+            :fLabel(label), fShortname(short_name), fPath(path), fConverter(converter),
             fZone(zone), fInit(init), fMin(min), fMax(max), fStep(step), fItemType(item_type)
             {}
         };
@@ -262,7 +262,7 @@ class APIUI : public PathBuilder, public Meta, public UI
 
         virtual ~APIUI()
         {
-            for (const auto& it : fItems) delete it.fConversion;
+            for (const auto& it : fItems) delete it.fConverter;
             for (int i = 0; i < 3; i++) {
                 for (const auto& it : fAcc[i]) delete it;
                 for (const auto& it : fGyr[i]) delete it;
@@ -545,11 +545,43 @@ class APIUI : public PathBuilder, public Meta, public UI
             }
         }
 
-        double getParamRatio(int p) { return fItems[uint(p)].fConversion->faust2ui(*fItems[uint(p)].fZone); }
-        void setParamRatio(int p, double r) { *fItems[uint(p)].fZone = FAUSTFLOAT(fItems[uint(p)].fConversion->ui2faust(r)); }
+        /**
+         * Get the param value as a ratio normalized in [0,1] range, taking the scale (linear/log/exp) mapping in account.
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the ratio in [0,1] range.
+         */
+        double getParamRatio(int p) { return fItems[uint(p)].fConverter->faust2ui(*fItems[uint(p)].fZone); }
+    
+        /**
+         * Set the param value as a ratio normalized in [0,1] range, taking the scale (linear/log/exp) mapping in account.
+         *
+         * @param p - the UI parameter index
+         * @param r - the ratio in [0,1] range
+         *
+         */
+        void setParamRatio(int p, double r) { *fItems[uint(p)].fZone = FAUSTFLOAT(fItems[uint(p)].fConverter->ui2faust(r)); }
 
-        double value2ratio(int p, double r)    { return fItems[uint(p)].fConversion->faust2ui(r); }
-        double ratio2value(int p, double r)    { return fItems[uint(p)].fConversion->ui2faust(r); }
+        /**
+         * Convert the param value in a ratio normalized in [0,1] range, taking the scale (linear/log/exp) mapping in account.
+         *
+         * @param p - the UI parameter index
+         * @param v - the UI parameter value
+         *
+         * @return the ratio in [0,1] range.
+         */
+        double value2ratio(int p, double v)    { return fItems[uint(p)].fConverter->faust2ui(v); }
+    
+        /**
+         * Convert the ratio normalized in [0,1] range in the param value, taking the scale (linear/log/exp) mapping in account.
+         *
+         * @param p - the UI parameter index
+         * @param r - the ratio in [0,1] range
+         *
+         * @return the UI parameter value.
+         */
+        double ratio2value(int p, double r)    { return fItems[uint(p)].fConverter->ui2faust(r); }
 
         /**
          * Return the control type (kAcc, kGyr, or -1) for a given parameter.

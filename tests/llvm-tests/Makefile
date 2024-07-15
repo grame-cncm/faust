@@ -24,6 +24,9 @@ faust-dynamic-engine-test: faust-dynamic-engine-test.cpp $(LIB)/libfaust.a
 llvm-test: llvm-test.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 llvm-test.cpp -I$(INC) -L$(LIB) -L$(LIB_OPT) $(LIB)/libfaust.a -lpthread `llvm-config --ldflags --libs all --system-libs` $(LDFLAGS) -o llvm-test
 
+llvm-apiui-test: llvm-apiui-test.cpp $(LIB)/libfaust.a
+	$(CXX) -std=c++11 -O3 llvm-apiui-test.cpp -I$(INC) -L$(LIB) -L$(LIB_OPT) $(LIB)/libfaust.a -lpthread `llvm-config --ldflags --libs all --system-libs` $(LDFLAGS) -o llvm-apiui-test
+
 # To test the LLVM backend with dynamic libfaust on Apple M1 and Rosetta
 llvm-test-x86: llvm-test.cpp 
 	$(CXX) -arch x86_64 -std=c++11 -O3 llvm-test.cpp -I$(INC) -L$(LIB) -L$(LIB_OPT) -lfaust -lpthread -DJIT_TARGET="\"x86_64-apple-darwin\"" -o llvm-test
