@@ -60,6 +60,8 @@ set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/DirectedGraph
 	${SRCDIR}/interval
 	${SRCDIR}/generator
+	${SRCDIR}/generator/c
+	${SRCDIR}/generator/cpp
 	${SRCDIR}/generator/dlang
 	${SRCDIR}/generator/csharp
 	${SRCDIR}/generator/fir
