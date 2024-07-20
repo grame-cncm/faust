@@ -28,7 +28,7 @@ mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir)
 TOOLSOPTIONS := -std=c++14 -O3 -I../../architecture
 LIB ?= ../../build/lib/libfaust.a
 MACHINE_LIB ?= ../../build/lib/libfaustmachine.a
-LLVM_LIB ?= `llvm-config --ldflags --libs all --system-libs`
+LLVM_LIB ?= `llvm-config --link-static --ldflags --libs all --system-libs`
 SRCDIR := tools
 
 all:

@@ -110,10 +110,10 @@ macro (llvm_config)
     string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
     execute_process (COMMAND ${LLVM_CONFIG} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
     string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
-    execute_process (COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
+    execute_process (COMMAND ${LLVM_CONFIG} --libs --link-static OUTPUT_VARIABLE LLVM_LIBS_TMP)
     string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS_TMP2 )
     string ( REPLACE "C:\\Program Files\\LLVM\\lib\\" "" LLVM_LIBS ${LLVM_LIBS_TMP2})
-    execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
+    execute_process (COMMAND ${LLVM_CONFIG} --link-static --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
     string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
     # on ubuntu, expecting to find "-lz -lpthread -ledit -lcurses -lm"
     # on macos, expecting to find "-lm -lcurses -lxml2"
