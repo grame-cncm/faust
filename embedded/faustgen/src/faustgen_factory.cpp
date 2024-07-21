@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2012-2023 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2012-2024 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -348,13 +348,6 @@ dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         */
         return factory;
     } else {
-        // Update all instances
-        for (const auto& it : fInstances) {
-            //it->hilight_on();
-        }
-        if (fInstances.begin() != fInstances.end()) {
-            (*fInstances.begin())->hilight_error(error_msg);
-        }
         post("Invalid Faust code or compile options : %s", error_msg.c_str());
         return 0;
     }
@@ -821,11 +814,6 @@ void faustgen_factory::update_sourcecode(int size, char* source_code)
 {
     // Recompile only if text has been changed
     if (strcmp(source_code, *fSourceCode) != 0) {
-        
-        // Update all instances
-        for (const auto& it : fInstances) {
-            //it->hilight_off();
-        }
         
         // Delete the existing Faust module
         free_dsp_factory();

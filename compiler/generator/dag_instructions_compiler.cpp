@@ -666,8 +666,8 @@ ValueInst* DAGInstructionsCompiler::generateWaveform(Tree sig)
     } else {
         vsize = IB::genLoadLoopVar("vsize");
     }
-    
-    FIRIndex   index1 = (FIRIndex(IB::genLoadStructVar(idx)) + vsize) % size;
+
+    FIRIndex index1 = (FIRIndex(IB::genLoadStructVar(idx)) + vsize) % size;
     pushPostComputeDSPMethod(IB::genStoreStructVar(idx, index1));
     FIRIndex index2 = (FIRIndex(IB::genLoadStructVar(idx)) + getCurrentLoopIndex()) % size;
     return generateCacheCode(sig, IB::genLoadArrayStaticStructVar(vname, index2));
