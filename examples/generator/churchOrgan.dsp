@@ -1,7 +1,7 @@
 declare name "churchOrgan";
 declare author "Remi Chapelle";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0")
 
 f = hslider("[00]freq[unit:Hz]",440,50,1000,0.1);
 g = hslider("[01]gain",1,0,1,0.01);
