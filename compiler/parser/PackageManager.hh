@@ -10,9 +10,12 @@ class PackageManager{
 private:
     fs::path registryPath;
     std::string registryUrl;
+    std::string branch;
     Downloader downloader;
 
     void config();
+
+    std::string registryUrlTransform(std::string& url);
 
 public:
     PackageManager();

@@ -5,6 +5,8 @@
 #include "PkgUrl.hh"
 #include "Downloader.hh"
 #include "../errors/exception.hh"
+#include "../utils/url.hpp"
+
 
 #ifdef _WIN32
 #include <windows.h>
@@ -22,15 +24,40 @@
 #endif
 
 
+#define DEFAULT_REGISTRY_URL "https://github.com/shehab299/Registry"
+#define DEFAULT_BRANCH "main";
+
 
 PackageManager::PackageManager(){
     config();
 }
 
+std::string PackageManager::registryUrlTransform(std::string& url){
+
+    Url u(url);
+
+    try
+    {
+        if(u.host() == "github.com"){
+            u.scheme("https");
+            u.host("raw.githubusercontent.com");
+            u.path(u.path() + "/" + this->branch);
+        }
+    }
+    catch(const std::exception& e)
+    {
+        throw faustexception("The Registry Url Provided Is Not Valid");
+    }
+
+    return u.str();
+}
+
+
 void PackageManager::config()
 {
     char* registryPath = getenv("FAUST_REGISTRY_PATH");
     char* registryUrl = getenv("FAUST_REGISTRY_URL");
+    char* branch = getenv("FAUST_REGISTRY_BRANCH");
 
     if(!registryPath)
     {
@@ -44,14 +71,26 @@ void PackageManager::config()
 
     if(!registryUrl)
     {
-        this->registryUrl = "https://raw.githubusercontent.com/shehab299/Registry/main";
+        this->registryUrl =  DEFAULT_REGISTRY_URL;
         setenv("FAUST_REGISTRY_URL", this->registryUrl.c_str(), 1);
     }
     else
     {
-        this->registryUrl = getenv("FAUST_REGISTRY_URL");
+        this->registryUrl = registryUrl;
     }
+
+    if(!branch)
+    {
+        this->branch = DEFAULT_BRANCH;
+        setenv("FAUST_REGISTRY_BRANCH", this->branch.c_str(), 1);
+    }
+    else
+    {
+        this->branch = branch;
+    }
+
 }
+
     
 void PackageManager::install(std::string url, char** buffer){
     downloader.download(url,buffer);
@@ -63,7 +102,7 @@ std::string PackageManager::install(std::string pkgUrl){
 
     fs::path path;
     fs::path pkgPath = path = this->registryPath / pkg.getPath();
-    std::string remoteUrl = this->registryUrl + "/" + pkg.getPath();      
+    std::string remoteUrl = registryUrlTransform(this->registryUrl) + "/" + pkg.getPath();      
 
     if(fs::exists(pkgPath)){
         return pkgPath.string();
