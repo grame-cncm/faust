@@ -1926,6 +1926,7 @@ void global::parseSourceFiles()
     if (!gInjectFlag && gInputFiles.begin() == gInputFiles.end()) {
         throw faustexception("ERROR : no files specified; for help type \"faust --help\"\n");
     }
+    
     for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
         if (s == gInputFiles.begin()) {
             gMasterDocument = *s;
@@ -2398,6 +2399,15 @@ string global::printHelp()
          << "-flist      --file-list                 print file list (including libraries) used to "
             "eval process."
          << endl;
+    sstr << tab
+         << "-plist      --package-list              print packages list handled by pkgManager module used "
+            "to eval process."
+         << endl;
+
+    sstr << tab
+         << "-po         --pkg-only                  Only compiles if the dsp code depends on faust packages"
+         << endl;
+    
     sstr << tab
          << "-tg         --task-graph                print the internal task graph in dot format."
          << endl;

@@ -579,6 +579,7 @@ Tree importFile(Tree filename)
 {
     return tree(gGlobal->IMPORTFILE, filename);
 }
+
 bool isImportFile(Tree s, Tree& filename)
 {
     return isTree(s, gGlobal->IMPORTFILE, filename);
