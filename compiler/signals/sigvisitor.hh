@@ -88,6 +88,9 @@ struct sigvisitor {
     // Selectors
     virtual void visitSelect2(Tree sig, Tree sel, Tree s1, Tree s2) = 0;
 
+    // Registers for FPGA retiming
+    virtual void visitRegister(Tree sig, Tree s1) = 0;
+
     // Tuples
     virtual void visitTuple(Tree sig, int mod, Tree ls)        = 0;
     virtual void visitTupleAccess(Tree sig, Tree ts, Tree idx) = 0;

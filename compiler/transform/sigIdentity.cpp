@@ -198,6 +198,10 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigHighest(self(x));
     }
 
+    else if (isSigRegister(sig, x)) {
+        return sigRegister(self(x));
+    }
+
     else {
         cerr << "ASSERT : unrecognized signal : " << *sig << endl;
         faustassert(false);

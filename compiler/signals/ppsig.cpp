@@ -338,6 +338,10 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "control", x, y);
     }
 
+    else if (isSigRegister(fSig, x)) {
+        printfun(fout, "register", x);
+    }
+
     else {
         // cerr << "[[" << *fSig << "]]";
     }
@@ -611,6 +615,10 @@ ostream& ppsigShared::print(ostream& fout) const
         SIG_INSERT_ID(printfun(s, "enable", x, y));
     } else if (isSigControl(fSig, x, y)) {
         SIG_INSERT_ID(printfun(s, "control", x, y));
+    }
+
+    else if (isSigRegister(fSig, x)) {
+        SIG_INSERT_ID(printfun(s, "register", x));
     }
 
     else {

@@ -1039,6 +1039,17 @@ LIBFAUST_API bool CisSigControl(Tree s, Tree* s0_aux, Tree* s1_aux)
     }
 }
 
+LIBFAUST_API bool CisSigRegister(Tree s, Tree* x_aux)
+{
+    Tree x;
+    if (isSigRegister(s, x)) {
+        *x_aux = x;
+        return true;
+    } else {
+        return false;
+    }
+}
+
 LIBFAUST_API bool CisSigSoundfile(Tree s, Tree* label_aux)
 {
     Tree label;

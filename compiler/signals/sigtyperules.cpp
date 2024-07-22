@@ -765,6 +765,10 @@ static Type inferSigType(Tree sig, Tree env)
         // change this part   ^^^^^ once there are interval bounds depending on signal type
     }
 
+    else if (isSigRegister(sig, s1)) {
+        return T(s1, env);
+    }
+
     // unrecognized signal here
     cerr << "ASSERT : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
     faustassert(false);

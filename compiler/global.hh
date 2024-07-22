@@ -124,6 +124,7 @@ struct global {
     // compilation options
     bool        gDetailsSwitch;   // -d option
     bool        gDrawSignals;     // -sg option
+    bool        gDrawRetiming;    // -rg option
     bool        gDrawRouteFrame;  // -drf option
     bool        gShadowBlur;      // -blur option, note: svg2pdf doesn't like the blur filter
     bool        gScaledSVG;       // -sc option, to draw scaled SVG files
@@ -482,6 +483,7 @@ struct global {
     Sym SIGSOUNDFILELENGTH;
     Sym SIGSOUNDFILERATE;
     Sym SIGSOUNDFILEBUFFER;
+    Sym SIGREGISTER;  // for FPGA Retiming
     Sym SIGTUPLE;
     Sym SIGTUPLEACCESS;
 
