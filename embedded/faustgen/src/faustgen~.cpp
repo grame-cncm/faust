@@ -664,6 +664,11 @@ void faustgen::display_libraries()
     fDSPfactory->display_libraries();
 }
 
+void faustgen::hilight_error(const string& error)
+{
+    object_error_obtrusive((t_object*)&m_ob, (char*)error.c_str());
+}
+
 void faustgen::init_controllers()
 {
     // Initialize User Interface (here connnection with controls)

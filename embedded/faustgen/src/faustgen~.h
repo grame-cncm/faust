@@ -122,6 +122,8 @@ class faustgen : public MspCpp5<faustgen> {
         faustgen(t_symbol* sym, long ac, t_atom* av);
         
         void update_sourcecode();
+    
+        void hilight_error(const std::string& error);
         
         // Called upon deleting the object inside the patcher
         ~faustgen();

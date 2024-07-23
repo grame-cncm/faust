@@ -97,9 +97,14 @@ static string getTarget()
 
 // Returns the serial number as a CFString.
 // It is the caller's responsibility to release the returned CFString when done with it.
+
+#if (MAC_OS_X_VERSION_MAX_ALLOWED < 120000) // Before macOS 12 Monterey
+    #define kIOMainPortDefault kIOMasterPortDefault
+#endif
+
 static string getSerialNumber()
 {
-    io_service_t platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"));
+    io_service_t platformExpert = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"));
     
     if (platformExpert) {
         CFTypeRef serialNumberAsCFString =
@@ -348,6 +353,10 @@ dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         */
         return factory;
     } else {
+        // Hilight the error in the patch window
+        if (fInstances.begin() != fInstances.end()) {
+            (*fInstances.begin())->hilight_error(error_msg);
+        }
         post("Invalid Faust code or compile options : %s", error_msg.c_str());
         return 0;
     }
