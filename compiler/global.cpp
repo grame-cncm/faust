@@ -2409,7 +2409,7 @@ string global::printHelp()
          << "-sg         --signal-graph              print the internal signal graph in dot format."
          << endl;
     sstr << tab
-         << "-rg         --retiming-graph              print the internal signal graph after "
+         << "-rg         --retiming-graph            print the internal signal graph after "
             "retiming in dot format."
          << endl;
     sstr << tab

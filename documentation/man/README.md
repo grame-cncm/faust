@@ -1,4 +1,4 @@
-% man(1) Version 2.74.9 (16-July-2024) | Faust man page
+% man(1) Version 2.75.0 (25-July-2024) | Faust man page
 
 NAME
 ====
@@ -213,6 +213,8 @@ Debug options:
   **-tg**         **--task-graph**                print the internal task graph in dot format.
 
   **-sg**         **--signal-graph**              print the internal signal graph in dot format.
+
+  **-rg**         **--retiming-graph**            print the internal signal graph after retiming in dot format.
 
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
 
