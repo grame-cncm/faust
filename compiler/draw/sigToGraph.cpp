@@ -287,6 +287,10 @@ static string sigLabel(Tree sig)
         fout << "highest";
     }
 
+    else if (isSigRegister(sig, x)) {
+        fout << "register";  // for FPGA Retiming
+    }
+
     else {
         stringstream error;
         error << "ERROR : sigToGraph.cpp, unrecognized signal : " << *sig << endl;

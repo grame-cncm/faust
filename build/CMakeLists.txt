@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.74.6)
+set (VERSION 2.75.0)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -62,6 +62,8 @@ set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/DirectedGraph
 	${SRCDIR}/interval
 	${SRCDIR}/generator
+	${SRCDIR}/generator/c
+	${SRCDIR}/generator/cpp
 	${SRCDIR}/generator/dlang
 	${SRCDIR}/generator/csharp
 	${SRCDIR}/generator/fir
@@ -113,6 +115,7 @@ if (INCLUDE_LLVM )
 
 	message(STATUS "LLVM_VERSION: ${LLVM_VERSION}")
 	message(STATUS "LLVM_LIBS: ${LLVM_LIBS}")
+	message(STATUS "LLVM_SYS_LIBS: ${LLVM_SYS_LIBS}")
 	message(STATUS "LLVM_LIB_DIR: ${LLVM_LIB_DIR}")
 	message(STATUS "LLVM_INCLUDE_DIRS: ${LLVM_INCLUDE_DIRS}")
 	message(STATUS "LLVM_DEFINITIONS: ${LLVM_DEFINITIONS}")

@@ -895,6 +895,19 @@ LIBFAUST_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part,
 {
     return isTree(s, gGlobal->SIGSOUNDFILEBUFFER, sf, chan, part, ridx);
 }
+
+// for FPGA Retiming
+
+LIBFAUST_API Tree sigRegister(Tree s)
+{
+    return tree(gGlobal->SIGREGISTER, s);
+}
+
+LIBFAUST_API bool isSigRegister(Tree s, Tree& x)
+{
+    return isTree(s, gGlobal->SIGREGISTER, x);
+}
+
 /*****************************************************************************
                              Matrix extension
 *****************************************************************************/

@@ -47,6 +47,7 @@
 #include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigRecursiveDependencies.hh"
+#include "sigRetiming.hh"
 #include "sigToGraph.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
@@ -140,6 +141,11 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("prepare");
 
     if (gGlobal->gDrawSignals) {
+        if (gGlobal->gDrawRetiming) {
+            Tree     L3 = sigRetiming(L2);
+            ofstream dotfile(subst("$0-rtsig.dot", gGlobal->makeDrawPath()).c_str());
+            sigToGraph(L3, dotfile);
+        }
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
         sigToGraph(L2, dotfile);
     }

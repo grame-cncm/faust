@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2012-2023 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2012-2024 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -662,22 +662,6 @@ void faustgen::display_documentation()
 void faustgen::display_libraries()
 {
     fDSPfactory->display_libraries();
-}
-
-void faustgen::hilight_on()
-{
-    t_jrgba color;
-    jrgba_set(&color, 1.0, 0.0, 0.0, 1.0);
-    t_object* box;
-    object_obex_lookup((t_object*)&m_ob, gensym("#B"), &box);
-    jbox_set_color(box, &color);
-}
-
-void faustgen::hilight_off()
-{
-    t_object* box;
-    object_obex_lookup((t_object*)&m_ob, gensym("#B"), &box);
-    jbox_set_color(box, &gDefaultColor);
 }
 
 void faustgen::hilight_error(const string& error)

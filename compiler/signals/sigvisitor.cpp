@@ -194,6 +194,9 @@ void sigvisitor::visit(Tree sig)
         visitList(sig);
     }
 
+    else if (isSigRegister(sig, s1)) {
+        visitRegister(sig, s1);
+    }
     //----------------------------
 
     else if (isSigTuple(sig, &i, ls)) {

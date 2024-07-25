@@ -33,6 +33,7 @@
 #include "recursivness.hh"
 #include "sharing.hh"
 #include "sigPromotion.hh"
+#include "sigRetiming.hh"
 #include "sigToGraph.hh"
 #include "signal2Elementary.hh"
 #include "signalVisitor.hh"
@@ -131,6 +132,16 @@ Tree InstructionsCompiler::prepare(Tree LS)
     endTiming("prepare");
 
     if (gGlobal->gDrawSignals) {
+        if (gGlobal->gDrawRetiming) {
+            startTiming("retiming");
+            Tree L3 = sigRetiming(L2);
+            endTiming("retiming");
+            startTiming("retimed type annotation");
+            typeAnnotation(L3, true);
+            endTiming("retimed type annotation");
+            ofstream dotfile(subst("$0-rtsig.dot", gGlobal->makeDrawPath()).c_str());
+            sigToGraph(L3, dotfile);
+        }
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
         sigToGraph(L2, dotfile);
     }

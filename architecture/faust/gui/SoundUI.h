@@ -33,6 +33,7 @@
 #include <memory>
 
 #include "faust/dsp/dsp.h"
+#include "faust/gui/meta.h"
 #include "faust/gui/SimpleParser.h"
 #include "faust/gui/DecoratorUI.h"
 

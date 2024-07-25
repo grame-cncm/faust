@@ -6,7 +6,7 @@ faustgen~/mc.faustgen~
 
 [Faust](https://faust.grame.fr) (Functional Audio Stream) is a functional programming language for sound synthesis and audio processing with a strong focus on the design of synthesizers, musical instruments, audio effects, etc. Faust targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards, and is distributed with a [huge library](https://faustlibraries.grame.fr) of various DSP algorithms.
 
-**faustgen~/mc.faustgen~** is a Max external prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. It is based on the [libfaust](https://faust.grame.fr) library (the embeddable version of the Faust compiler) and on [LLVM](http://llvm.org). The DSP code can be edited in an embedded editor and will be JIT compiled in native code using LLVM when the editor is closed. For faster reloading, the compiled code is saved in the patch and re-loaded when the patch is opened again. The **faustgen~** external contains all standard Faust libraries, but additional ones can be used by adding the `-I <pathname>` option in the `compileoptions` message, or using the `librarypath`message.
+**faustgen~/mc.faustgen~** is a Max external prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. It is based on the [libfaust](https://faust.grame.fr) library (the embeddable version of the Faust compiler) and on [LLVM](http://llvm.org). The DSP code can be edited in an embedded editor and will be JIT compiled in native code using LLVM when the editor is closed. For faster reloading, the compiled code is saved in the patch and re-loaded when the patch is opened again. The **faustgen~/mc.faustgen~** external contains all standard Faust libraries, but additional ones can be used by adding the `-I <pathname>` option in the `compileoptions` message, or using the `librarypath` message.
 
 The DSP code can describe generator or effects, and can run in polyphonic mode, when following the [polyphonic convention](https://faustdoc.grame.fr/manual/midi/#midi-polyphony-support) to define instruments.  
 
@@ -21,19 +21,29 @@ A new **faustgen~** object will be created with a default DSP program (a stereo 
 
 ### Creating multi-channels model
 
-For  multi-channels support, a **mc.faustgen~** object can be created with a default DSP program (a stereo in/out passthrough). Two different ways of creating objects are available:
+For multi-channels support, a **mc.faustgen~** object can be created with a default DSP program (a stereo in/out passthrough). Two different ways of creating objects are available:
 
 - using **mc.faustgen~** object without a specific name let's you define the DSP program only for this instance, with a default name factory ID
 - using **mc.faustgen~ name** allows to specify a name for this instance, and share the *same Faust code with all objects with this name*. If you load another patch with a same faustgen~ name, you'll keep the current code. Be carefull, if you change the name you loose your previous code (so copy it before)
 
-### Using
+### Using standard model
 
 Depending of the number of audio inputs and outputs described in the DSP source code, the **faustgen~** object has:
 
-- N inlets, the first one being the *message control one* and a regular audio inlet, an all other audio inlets only
+- N inlets, the first one being the *message control inlet* and a regular audio inlet, an all other audio inlets only
 - M outlets, audio outs from 1 to M-2
 - an output messages outlet (see later)
 - the right most outlet is used to send MIDI messages if MIDI metadata are used in the DSP UI items
+
+### Using multi-channels model
+
+Depending of the number of audio inputs and outputs described in the DSP source code, the **mc.faustgen~** object has:
+
+- one inlet being the *message control inlet* combined with a multi-channels audio inlet
+- three outlets:
+    - one multi-channels audio inlet
+    - an output messages outlet (see later)
+    - the right most outlet is used to send MIDI messages if MIDI metadata are used in the DSP UI items
 
 When double-clicking on it, the **faustgen~/mc.faustgen~** object opens several menu items:
 

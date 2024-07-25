@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2012-2023 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2012-2024 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -97,9 +97,14 @@ static string getTarget()
 
 // Returns the serial number as a CFString.
 // It is the caller's responsibility to release the returned CFString when done with it.
+
+#if (MAC_OS_X_VERSION_MAX_ALLOWED < 120000) // Before macOS 12 Monterey
+    #define kIOMainPortDefault kIOMasterPortDefault
+#endif
+
 static string getSerialNumber()
 {
-    io_service_t platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"));
+    io_service_t platformExpert = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"));
     
     if (platformExpert) {
         CFTypeRef serialNumberAsCFString =
@@ -348,10 +353,7 @@ dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         */
         return factory;
     } else {
-        // Update all instances
-        for (const auto& it : fInstances) {
-            //it->hilight_on();
-        }
+        // Hilight the error in the patch window
         if (fInstances.begin() != fInstances.end()) {
             (*fInstances.begin())->hilight_error(error_msg);
         }
@@ -821,11 +823,6 @@ void faustgen_factory::update_sourcecode(int size, char* source_code)
 {
     // Recompile only if text has been changed
     if (strcmp(source_code, *fSourceCode) != 0) {
-        
-        // Update all instances
-        for (const auto& it : fInstances) {
-            //it->hilight_off();
-        }
         
         // Delete the existing Faust module
         free_dsp_factory();

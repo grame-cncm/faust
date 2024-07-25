@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <iostream>
 #include <string>
 
@@ -141,7 +142,9 @@ class interval {
         if (isEmpty()) {
             return "[]";
         } else {
-            return '[' + std::to_string(fLo) + ',' + std::to_string(fHi) + ']';
+            char buffer[64];
+            snprintf(buffer, 63, "[%g, %g]", fLo, fHi);
+            return std::string(buffer);
         }
     }
 };

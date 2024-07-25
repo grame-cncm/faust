@@ -130,6 +130,9 @@ extern const char* FAUSTfilename;
 list<Garbageable*> global::gObjectTable;
 bool               global::gHeapCleanup = false;
 
+// Just after gObjectTable initialisation for FaustAlgebra constructor to correctly work
+itv::interval_algebra gAlgebra;
+
 global::global()
     : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
@@ -368,6 +371,7 @@ global::global()
     SIGSOUNDFILELENGTH = symbol("SigSoundfileLength");
     SIGSOUNDFILERATE   = symbol("SigSoundfileRate");
     SIGSOUNDFILEBUFFER = symbol("SigSoundfileBuffer");
+    SIGREGISTER        = symbol("SigRegister");  // for FPGA Retiming
     SIGTUPLE           = symbol("SigTuple");
     SIGTUPLEACCESS     = symbol("SigTupleAccess");
     SIMPLETYPE         = symbol("SimpleType");
@@ -416,6 +420,7 @@ void global::reset()
 
     gDetailsSwitch    = false;
     gDrawSignals      = false;
+    gDrawRetiming     = false;
     gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
     gScaledSVG        = false;
@@ -473,7 +478,7 @@ void global::reset()
 
     gInputString = "";
     gInputFiles.clear();
-  
+
     // Backend configuration : default values
     gAllowForeignFunction = true;
     gAllowForeignConstant = true;
@@ -1204,6 +1209,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-sg", "--signal-graph")) {
             gDrawSignals = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-rg", "--retiming-graph")) {
+            gDrawRetiming = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-drf", "--draw-route-frame")) {
@@ -2413,6 +2422,10 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-sg         --signal-graph              print the internal signal graph in dot format."
+         << endl;
+    sstr << tab
+         << "-rg         --retiming-graph            print the internal signal graph after "
+            "retiming in dot format."
          << endl;
     sstr << tab
          << "-norm       --normalized-form           print signals in normalized form and exit."

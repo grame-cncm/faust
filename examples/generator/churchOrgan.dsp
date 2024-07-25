@@ -3,6 +3,7 @@ declare author "Remi Chapelle";
 
 import("pkg:faust/faust/stdfaust.lib@1.0.0")
 
+// GUI
 f = hslider("[00]freq[unit:Hz]",440,50,1000,0.1);
 g = hslider("[01]gain",1,0,1,0.01);
 t = button("[10]gate") : si.smoo;
@@ -14,12 +15,12 @@ p0 = hslider("[02]gain fundamental",1,0,1,0.01);
 psub = hslider("[07]gain lower octave",1,0,1,0.01);
 nog = hslider("[08]noise gain",0.01,0,1,0.001);
 pg = hslider("[09]gain preset",1,0,1,0.01);
-r = dm.zita_light; //reverb
 
-//Instrument
+// Reverb
+r = dm.zita_light;
 
-orgue =
-    os.osc(f)          *p0
+// Instrument
+orgue = os.osc(f)       *p0
         + os.osc(f*2)   *p8
         + os.osc(f*0.5) *psub*0.5
         + os.osc(f*1.5) *p5*0.3

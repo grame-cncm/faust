@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2012-2023 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2012-2024 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -122,9 +122,7 @@ class faustgen : public MspCpp5<faustgen> {
         faustgen(t_symbol* sym, long ac, t_atom* av);
         
         void update_sourcecode();
-        
-        void hilight_on();
-        void hilight_off();
+    
         void hilight_error(const std::string& error);
         
         // Called upon deleting the object inside the patcher
