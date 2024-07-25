@@ -106,7 +106,7 @@ namespace FaustUtilities_MODEL {
                 item.label = "";
             }
             Rect rect = GUILayoutUtility.GetRect(18, 18, "TextField");
-            EditorGUI.ProgressBar(rect, (value - item.min) / (item.max - item.min), item.label); // The range of the toolbar is between 0 an d1 so the values need to be normalize
+            EditorGUI.ProgressBar(rect, (value - item.min) / (item.max - item.min), item.label); // The range of the toolbar is between 0 and 1 so the values need to be normalize
             Repaint(); // Updates the bargraph value
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
