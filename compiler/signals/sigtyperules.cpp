@@ -765,7 +765,7 @@ static Type inferSigType(Tree sig, Tree env)
         // change this part   ^^^^^ once there are interval bounds depending on signal type
     }
 
-    else if (isSigRegister(sig, s1)) {
+    else if (isSigRegister(sig, &i, s1)) {
         return T(s1, env);
     }
 

@@ -287,8 +287,8 @@ static string sigLabel(Tree sig)
         fout << "highest";
     }
 
-    else if (isSigRegister(sig, x)) {
-        fout << "register";  // for FPGA Retiming
+    else if (isSigRegister(sig, &i, x)) {
+        fout << "register " << i;  // for FPGA Retiming
     }
 
     else {
