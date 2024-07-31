@@ -204,29 +204,32 @@ void CPPCodeContainer::produceInternal()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
 
-    *fOut << "class " << fKlassName << " {";
-    tab(n + 1, *fOut);
-
     if (gGlobal->gUIMacroSwitch) {
-        tab(n, *fOut);
-        *fOut << "  public:";
+        *fOut << "struct " << fKlassName << " {";
     } else {
-        tab(n, *fOut);
-        *fOut << "  private:";
+        *fOut << "class " << fKlassName << " {";
     }
     tab(n + 1, *fOut);
-    tab(n + 1, *fOut);
 
+    if (!gGlobal->gUIMacroSwitch) {
+        tab(n, *fOut);
+        *fOut << "  private:";
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+    }
+    
     // Fields
     fCodeProducer->Tab(n + 1);
     generateDeclarations(fCodeProducer);
 
-    tab(n, *fOut);
-    *fOut << "  public:";
+    if (!gGlobal->gUIMacroSwitch) {
+        tab(n, *fOut);
+        *fOut << "  public:";
+        tab(n + 1, *fOut);
+    }
 
     tab(n + 1, *fOut);
-    tab(n + 1, *fOut);
-
+ 
     // fKlassName used in method naming for subclasses
     produceInfoFunctions(n + 1, fKlassName, "dsp", true, FunTyped::kDefault, fCodeProducer);
 
@@ -325,22 +328,27 @@ void CPPCodeContainer::produceClass()
     generateGlobalDeclarations(fCodeProducer);
 
     tab(n, *fOut);
-    if (fSuperKlassName != "") {
-        *fOut << "class " << fKlassName << genFinal() << " : public " << fSuperKlassName << " {";
+    if (gGlobal->gUIMacroSwitch) {
+        if (fSuperKlassName != "") {
+            *fOut << "struct " << fKlassName << genFinal() << " : public " << fSuperKlassName << " {";
+        } else {
+            *fOut << "struct " << fKlassName << genFinal() << " {";
+        }
     } else {
-        *fOut << "class " << fKlassName << genFinal() << " {";
+        if (fSuperKlassName != "") {
+            *fOut << "class " << fKlassName << genFinal() << " : public " << fSuperKlassName << " {";
+        } else {
+            *fOut << "class " << fKlassName << genFinal() << " {";
+        }
     }
     tab(n + 1, *fOut);
 
-    if (gGlobal->gUIMacroSwitch) {
-        tab(n, *fOut);
-        *fOut << " public:";
-    } else {
+    if (!gGlobal->gUIMacroSwitch) {
         tab(n, *fOut);
         *fOut << " private:";
+        tab(n + 1, *fOut);
     }
-    tab(n + 1, *fOut);
-
+  
     // Fields
     fCodeProducer->Tab(n + 1);
     tab(n + 1, *fOut);
@@ -360,8 +368,10 @@ void CPPCodeContainer::produceClass()
     generateAllocateFun(n);
     generateDestroyFun(n);
 
-    tab(n, *fOut);
-    *fOut << " public:";
+    if (!gGlobal->gUIMacroSwitch) {
+        tab(n, *fOut);
+        *fOut << " public:";
+    }
 
     if (gGlobal->gMemoryManager == 0 || gGlobal->gMemoryManager == 1) {
         tab(n + 1, *fOut);
