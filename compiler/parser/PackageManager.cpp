@@ -8,6 +8,8 @@
 #include "../utils/url.hpp"
 
 
+namespace fs = std::filesystem;
+
 #ifdef _WIN32
 #include <windows.h>
 #define setenv(name, value, overwrite) _putenv_s(name, value)

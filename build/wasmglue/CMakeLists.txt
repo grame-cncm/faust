@@ -22,12 +22,12 @@ endif()
 
 if (WORKLET)
 message(STATUS "Compile wasm glue library for worklet")
-set (WASM_COMPILE_FLAGS "-O3 -DAUDIO_WORKLET")
+set (WASM_COMPILE_FLAGS "-std=c++20 -O3 -DAUDIO_WORKLET ")
 set (WASM_LINK_FLAGS_EXTRA "-s WASM_ASYNC_COMPILATION=0 -s SINGLE_FILE=1 -s ASSERTIONS=0")
 set (LIB_NAME "libfaust-worklet-glue")
 else()
 message(STATUS "Compile wasm glue library")
-set (WASM_COMPILE_FLAGS "-O3")
+set (WASM_COMPILE_FLAGS "-O3 -std=c++20")
 set (WASM_LINK_FLAGS_EXTRA "-s ASSERTIONS=1")
 set (LIB_NAME "libfaust-glue")
 endif()
@@ -53,7 +53,7 @@ set (FAUST_INC ${SRCDIR}
 # emscripten support
 set (WASM_EXPORTED "\"['FS']\"")
 set (LIBSNDFILE "${ROOT}/build/wasmglue/libsndfile.a ${ROOT}/build/wasmglue/libogg.a ${ROOT}/build/wasmglue/libvorbis.a ${ROOT}/build/wasmglue/libvorbisenc.a ${ROOT}/build/wasmglue/libFLAC.a")
-set (WASM_LINK_FLAGS "--bind --memory-init-file 0 -s LINKABLE=0 -s DYNAMIC_EXECUTION=0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 -s ASSERTIONS=0 -s ALLOW_MEMORY_GROWTH=1 -s STACK_SIZE=5MB -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_RUNTIME_METHODS=${WASM_EXPORTED} ${LIBSNDFILE} ${WASM_LINK_FLAGS_EXTRA}")
+set (WASM_LINK_FLAGS "--bind --memory-init-file 0 -s LINKABLE=0 -s DYNAMIC_EXECUTION=0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s STACK_SIZE=8MB -s MODULARIZE=1 -s ASSERTIONS=0 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_RUNTIME_METHODS=${WASM_EXPORTED} ${LIBSNDFILE} ${WASM_LINK_FLAGS_EXTRA}")
  
 ####################################
 # Add the different targets

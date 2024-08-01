@@ -287,6 +287,7 @@ if (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC 
 	set (INCLUDE_EMCC off)
 	set (INCLUDE_WASM_GLUE off)
 endif()
+
 if (INCLUDE_EMCC)
 	add_subdirectory (emcc)
 endif()

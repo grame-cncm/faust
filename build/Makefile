@@ -77,7 +77,7 @@ BUILDOPT ?= --config Release
 BACKENDS ?= $(shell [ -f $(BCACHE) ] && (grep BACKENDS $(BCACHE) | cut -d= -f2) || echo regular.cmake)
 TARGETS  ?= $(shell [ -f $(TCACHE) ] && (grep TARGETS $(TCACHE) | cut -d= -f2) || echo regular.cmake)
 LIBSDIR  ?= $(shell [ -f $(LCACHE) ] && (grep LIBSDIR $(LCACHE) | cut -d= -f2) || echo lib)
-EMCC 	 ?= emcc
+EMCC 	 ?= emcc 
 
 #===============================================================
 ifeq ($(GENERATOR), Xcode)
@@ -331,6 +331,7 @@ cmake: $(FAUSTDIR)
 #===============================================================
 WASMFS := wasm-filesystem
 WASMLIBDIR := share/faust
+
 wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
 	mkdir -p $(WASMFS)/$(WASMLIBDIR) && cp ../libraries/*.lib ../libraries/old/*.lib $(WASMFS)/$(WASMLIBDIR)

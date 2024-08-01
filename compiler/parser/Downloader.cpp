@@ -1,15 +1,17 @@
 #include "Downloader.hh"
 #include "../errors/exception.hh"
 #include <filesystem>
-#include <curl/curl.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 
-Downloader::Downloader(){
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-    handle = curl_easy_init();
-}
+
+
+
+
+#ifndef EMCC
+#include <curl/curl.h>
 
 size_t Downloader::write_data_file(void* ptr, size_t size, size_t nmemb, void* userData) {
 
@@ -31,6 +33,7 @@ size_t Downloader::write_data(void* ptr, size_t size, size_t nmemb, void* userDa
 
     return size * nmemb;
 }
+
 
 
 void Downloader::download(const std::string url,const std::string& savePath)
@@ -88,8 +91,88 @@ void Downloader::download(const std::string url,char** buffer)
     (*buffer)[data.size()] = '\0';
 }
 
+Downloader::Downloader(){
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    handle = curl_easy_init();
+}
 
 Downloader::~Downloader(){
     curl_easy_cleanup(handle);
     curl_global_cleanup();   
 }
+
+
+#endif
+
+#ifdef EMCC
+
+#include <emscripten.h>
+
+Downloader::Downloader(){
+}
+
+Downloader::~Downloader(){
+}
+
+
+
+
+EM_JS(char*, downloadFile, (const char* url), {
+    var dsp_code = "";
+
+    try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', UTF8ToString(url), false);
+        xhr.send(null);
+
+        if (xhr.status == 200) {
+            dsp_code = xhr.responseText;   
+        }
+    } catch (error) {
+        console.log(error);
+    }
+
+    return allocate(intArrayFromString(dsp_code), 'i8', ALLOC_STACK);
+});
+
+
+
+void Downloader::download(const std::string url,const std::string& savePath){
+
+    std::ofstream file(savePath, std::ios::binary);
+
+    if (!file.is_open()) {
+        throw faustexception("Can't open file: " + savePath);
+    }
+
+    char* buffer = (char*) downloadFile(url.c_str());
+
+    if(strlen(buffer) == 0){
+        std::filesystem::remove(savePath); 
+        throw faustexception("Couldn't download file: " + url);
+    }
+
+    try{
+        file << buffer;
+        file.close();
+    }catch(const std::exception& e){
+        std::filesystem::remove(savePath); 
+        throw faustexception("Couldn't download file: " + url);
+    }
+}
+
+
+void Downloader::download(const std::string url,char** buffer){
+
+    *buffer = (char*) downloadFile(url.c_str());
+
+    if(strlen(*buffer) == 0){
+        std::stringstream error;
+        error << "ERROR : unable to access URL '" << url << "'" << std::endl;
+        throw faustexception(error.str());
+    }
+}
+#endif
+
+
+
