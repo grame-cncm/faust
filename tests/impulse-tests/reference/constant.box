@@ -1,9 +1,9 @@
-declare version "2.68.5";
+declare version "2.75.2";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/constant.dsp -o reference/constant.box";
 declare basics_lib_name "Faust Basic Element Library";
 declare basics_lib_version "0.1";
 declare compilation_options "-single -scal -e t1.dsp -o t1_exp.dsp";
-declare filename "t1.dsp";
+declare filename "constant.dsp";
 declare library_path "/Users/letz/Developpements/faust/t1.dsp";
 declare maths_lib_author "GRAME";
 declare maths_lib_copyright "GRAME";

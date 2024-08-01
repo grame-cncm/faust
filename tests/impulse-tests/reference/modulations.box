@@ -1,4 +1,4 @@
-declare version "2.68.5";
+declare version "2.75.2";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/modulations.dsp -o reference/modulations.box";
 declare author "ER";
 declare basics_lib_name "Faust Basic Element Library";
@@ -19,7 +19,7 @@ declare instruments_lib_copyright "Romain Michon";
 declare instruments_lib_licence "STK-4.3";
 declare instruments_lib_name "Faust-STK Tools Library";
 declare instruments_lib_version "1.0";
-declare library_path "/Documents/faustwebsite-github/modules-worklet/Modulations.dsp";
+declare library_path "/usr/local/share/faust/signals.lib";
 declare maths_lib_author "GRAME";
 declare maths_lib_copyright "GRAME";
 declare maths_lib_license "LGPL with exception";

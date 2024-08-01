@@ -81,18 +81,20 @@ help:
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
 	@echo "Specific targets:"
-	@echo " 'travis'            : tests subset for travis"
-	@echo " 'web'               : call the wast/wasm targets"
-	@echo " 'reference'         : builds the reference files"
-	@echo " 'reference-box'     : builds the reference box files"
-	@echo " 'reference-signal'  : builds the reference signal files"
-	@echo " 'reference-type'    : builds the reference signal type files"
-	@echo " 'test-box'          : test box creation intermediate step"
-	@echo " 'test-signal'       : test signal creation intermediate step"
-	@echo " 'test-type'         : test signal typing intermediate step"
-	@echo " 'bench'             : benchmark using faustbench-llvm and faustbench"
-	@echo " 'interp-tracer'     : use interp-tracer tool"
-	@echo " 'tools'             : builds binary tools used by the tests"
+	@echo " 'travis'                 : tests subset for travis"
+	@echo " 'web'                    : call the wast/wasm targets"
+	@echo " 'reference'              : builds the reference files"
+	@echo " 'reference-box'          : builds the reference box files"
+	@echo " 'reference-signal'       : builds the reference signal files"
+	@echo " 'reference-signal-wn'    : builds the reference signal files without normalisation (FAUST_OPT=FAUST_SIG_NO_NORM)"
+	@echo " 'reference-type'         : builds the reference signal type files"
+	@echo " 'test-box'               : test box creation intermediate step"
+	@echo " 'test-signal'            : test signal creation intermediate step"
+	@echo " 'test-signal-wn'         : test signal creation intermediate step without normalisation (FAUST_OPT=FAUST_SIG_NO_NORM)"
+	@echo " 'test-type'              : test signal typing intermediate step"
+	@echo " 'bench'                  : benchmark using faustbench-llvm and faustbench"
+	@echo " 'interp-tracer'          : test using the interp-tracer tool"
+	@echo " 'tools'                  : builds binary tools used by the tests"
 	
 	@echo
 	@echo "Experimental targets:"
@@ -408,10 +410,17 @@ reference:
 	$(MAKE) -f Make.ref
 
 reference-box:
+	cd reference && rm *.box
 	$(MAKE) -f Make.ref reference-box FAUSTOPTIONS="-I dsp"
 	
+reference-signal-wn:
+	cd reference && rm *.sig
+	export FAUST_OPT=FAUST_SIG_NO_NORM; $(MAKE) -f Make.ref reference-signal FAUSTOPTIONS="-I dsp"
+
 reference-signal:
+	cd reference && rm *.sig
 	$(MAKE) -f Make.ref reference-signal FAUSTOPTIONS="-I dsp"
+
 
 reference-type:
 	$(MAKE) -f Make.ref reference-type FAUSTOPTIONS="-I dsp"
@@ -427,9 +436,12 @@ clean:
 test-box:
 	cd dsp && ./box-script *.dsp
 
+test-signal-wn:
+	export FAUST_OPT=FAUST_SIG_NO_NORM; cd dsp && ./sig-script *.dsp
+	
 test-signal:
 	cd dsp && ./sig-script *.dsp
-	
+
 #########################################################################
 # Testing signal type
 
