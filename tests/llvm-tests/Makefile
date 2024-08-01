@@ -26,6 +26,9 @@ faust-dynamic-engine-test: faust-dynamic-engine-test.cpp $(LIB)/libfaust.a
 llvm-test: llvm-test.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 llvm-test.cpp -I$(INC) -L$(LIB) -L$(LIB_OPT) $(LIB)/libfaust.a -lpthread $(LLVM) $(LDFLAGS) -o llvm-test
 
+llvm-test-poly: llvm-test-poly.cpp $(LIB)/libfaust.a
+	$(CXX) -std=c++11 -O3 llvm-test-poly.cpp -I$(INC) -L$(LIB) -L$(LIB_OPT) $(LIB)/libfaust.a `pkg-config --cflags --libs jack gtk+-2.0` -lpthread $(LLVM) $(LDFLAGS) -o llvm-test-poly
+
 llvm-apiui-test: llvm-apiui-test.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 llvm-apiui-test.cpp -I$(INC) -L$(LIB) -L$(LIB_OPT) $(LIB)/libfaust.a -lpthread $(LLVM) $(LDFLAGS) -o llvm-apiui-test
 
@@ -46,12 +49,28 @@ llvm-algebra-test: llvm-algebra-test.cpp $(LIB)/libfaust.a
 install: 
 	([ -e llvm-test ]) && cp llvm-test $(prefix)/bin
 
+# Testing
+
 test: llvm-test
 	./llvm-test foo.dsp
-	
+
 test-c: llvm-test-c
 	./llvm-test-c foo.dsp
 
+test-algebra :llvm-algebra-test
+	./llvm-algebra-test
+
+test-poly: llvm-test-poly
+	./llvm-test-poly organ.dsp
+	./llvm-test-poly organ-effect.dsp
+
 clean:
-	rm -f llvm-test llvm-test-c llvm-algebra-test faust-dynamic-engine-test
+	rm -f llvm-test llvm-test-poly llvm-test-c llvm-algebra-test faust-dynamic-engine-test
 	
+help:
+	@echo "Available targets:"
+	@echo "  test-algebra - test the DSP algebra API"
+	@echo "  test         - test the factory/instance API"
+	@echo "  test-c       - test the factory/instance API in C"
+	@echo "  test-poly    - test the polyphonic factory/instance API, then with a gloabl effect"
+	@echo "  help         - Display this help message"

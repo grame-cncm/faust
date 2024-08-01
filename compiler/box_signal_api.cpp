@@ -1042,7 +1042,8 @@ LIBFAUST_API bool CisSigControl(Tree s, Tree* s0_aux, Tree* s1_aux)
 LIBFAUST_API bool CisSigRegister(Tree s, Tree* x_aux)
 {
     Tree x;
-    if (isSigRegister(s, x)) {
+    int  i;
+    if (isSigRegister(s, &i, x)) {
         *x_aux = x;
         return true;
     } else {

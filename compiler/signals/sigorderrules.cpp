@@ -264,7 +264,7 @@ static int inferSigOrder(Tree sig)
         return 3;
     }
 
-    else if (isSigRegister(sig, s1)) {
+    else if (isSigRegister(sig, &i, s1)) {
         return O(s1);
     }
 

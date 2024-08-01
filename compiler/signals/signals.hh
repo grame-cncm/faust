@@ -326,8 +326,8 @@ LIBFAUST_API bool isSigSoundfileRate(Tree s, Tree& sf, Tree& part);
 LIBFAUST_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part, Tree& ridx);
 
 // for FPGA Retiming
-LIBFAUST_API Tree sigRegister(Tree s);
-LIBFAUST_API bool isSigRegister(Tree s, Tree& x);
+LIBFAUST_API Tree sigRegister(int n, Tree s);
+LIBFAUST_API bool isSigRegister(Tree s, int* n, Tree& x);
 
 /*****************************************************************************
                              Matrix extension

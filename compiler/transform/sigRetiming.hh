@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler, boxIdentity source code
-    Copyright (C) 2024 INRIA
+    FAUST compiler / Retiming transformation
+    Copyright (C) 2024-2024 INRIA
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by

@@ -228,7 +228,7 @@ void Signal2Elementary::visit(Tree sig)
         return;
     }
 
-    else if (isSigRegister(sig, x)) {
+    else if (isSigRegister(sig, &i, x)) {
         self(x);
         return;
     }

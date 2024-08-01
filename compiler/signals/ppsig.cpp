@@ -338,8 +338,8 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "control", x, y);
     }
 
-    else if (isSigRegister(fSig, x)) {
-        printfun(fout, "register", x);
+    else if (isSigRegister(fSig, &i, x)) {
+        printfun(fout, "register", sigInt(i), x);
     }
 
     else {
@@ -617,8 +617,8 @@ ostream& ppsigShared::print(ostream& fout) const
         SIG_INSERT_ID(printfun(s, "control", x, y));
     }
 
-    else if (isSigRegister(fSig, x)) {
-        SIG_INSERT_ID(printfun(s, "register", x));
+    else if (isSigRegister(fSig, &i, x)) {
+        SIG_INSERT_ID(printfun(s, "register", sigInt(i), x));
     }
 
     else {

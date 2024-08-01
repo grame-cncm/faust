@@ -235,7 +235,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         return 1;
     }
 
-    else if (isSigRegister(sig, x)) {
+    else if (isSigRegister(sig, &i, x)) {
         vsigs.push_back(x);
         return 1;
     }
