@@ -230,11 +230,23 @@ architecture section is not modified.
 #include "mydspx86_64.h"
 #endif
 
+#ifdef apple_m1
+#include "mydspapple_m1.h"
+#endif
+
+#ifdef apple_m2
+#include "mydspapple_m2.h"
+#endif
+
+#ifdef apple_m3
+#include "mydspapple_m3.h"
+#endif
+
 // Always included
 #include "mydspgeneric.h"
 
 // For 'llvm::sys::getHostCPUName' function
-#include <llvm/Support/Host.h>
+#include <llvm/TargetParser/Host.h>
 #include <llvm/ADT/StringRef.h>
 
 /*
@@ -655,6 +667,30 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("x86-64")) {
                 std::cout << "Allocate for x86-64" << std::endl;
                 fDSP = createmydspx86_64();
+                goto adapter;
+            }
+        #endif
+        
+        #ifdef apple_m1
+            if (!fDSP && is_cpu("apple-m1")) {
+                std::cout << "Allocate for apple-m1" << std::endl;
+                fDSP = createmydspapple_m1();
+                goto adapter;
+            }
+        #endif
+        
+        #ifdef apple_m2
+            if (!fDSP && is_cpu("apple-m1")) {
+                std::cout << "Allocate for apple-m2" << std::endl;
+                fDSP = createmydspapple_m2();
+                goto adapter;
+            }
+        #endif
+                
+        #ifdef apple_m3
+            if (!fDSP && is_cpu("apple-m3")) {
+                std::cout << "Allocate for apple-m3" << std::endl;
+                fDSP = createmydspapple_m3();
                 goto adapter;
             }
         #endif

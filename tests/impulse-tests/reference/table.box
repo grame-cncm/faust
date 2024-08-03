@@ -1,4 +1,4 @@
-declare version "2.68.5";
+declare version "2.75.2";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/table.dsp -o reference/table.box";
 declare compilation_options "-single -scal -e table.dsp -o table.dsp";
 declare filename "table.dsp";
@@ -11,7 +11,7 @@ declare filters_lib_iir_license "MIT-style STK-4.3 license";
 declare filters_lib_lowpass0_highpass1 "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare filters_lib_name "Faust Filters Library";
 declare filters_lib_version "0.3";
-declare library_path "/Documents/faust-github-faust2/tests/impulse-tests/dsp/table.dsp";
+declare library_path "/usr/local/share/faust/maths.lib";
 declare maths_lib_author "GRAME";
 declare maths_lib_copyright "GRAME";
 declare maths_lib_license "LGPL with exception";
