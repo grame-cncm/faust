@@ -132,7 +132,7 @@ EM_JS(char*, downloadFile, (const char* url), {
         console.log(error);
     }
 
-    return allocate(intArrayFromString(dsp_code), 'i8', ALLOC_STACK);
+    return allocate(intArrayFromString(dsp_code), ALLOC_STACK);
 });
 
 
