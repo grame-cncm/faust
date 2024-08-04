@@ -121,19 +121,34 @@ EM_JS(char*, downloadFile, (const char* url), {
     var dsp_code = "";
 
     try {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', UTF8ToString(url), false);
-        xhr.send(null);
+        if (typeof window !== 'undefined' && typeof window.XMLHttpRequest !== 'undefined') {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', UTF8ToString(url), false);
+            xhr.send(null);
 
-        if (xhr.status == 200) {
-            dsp_code = xhr.responseText;   
+            if (xhr.status >= 200 && xhr.status < 300) {
+                dsp_code = xhr.responseText;   
+            } else {
+                console.error('Request failed with status:', xhr.status);
+            }
+        } else if (typeof process != 'undefined'  && process.versions != null && process.versions.node != null) {
+            var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', UTF8ToString(url), false);
+            xhr.send(null);if 
+            if (xhr.status >= 200 && xhr.status < 300) {
+                dsp_code = xhr.responseText;
+            } else {
+                console.error('Request failed with status:', xhr.status);
+            }
         }
     } catch (error) {
-        console.log(error);
+        console.log('Error:', error);
     }
 
     return allocate(intArrayFromString(dsp_code), ALLOC_STACK);
 });
+
 
 
 
