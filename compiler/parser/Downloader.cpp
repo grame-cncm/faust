@@ -135,7 +135,7 @@ EM_JS(char*, downloadFile, (const char* url), {
             var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
             var xhr = new XMLHttpRequest();
             xhr.open('GET', UTF8ToString(url), false);
-            xhr.send(null);if 
+            xhr.send(null);
             if (xhr.status >= 200 && xhr.status < 300) {
                 dsp_code = xhr.responseText;
             } else {
