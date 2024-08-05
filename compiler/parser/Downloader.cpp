@@ -116,32 +116,17 @@ Downloader::~Downloader(){
 
 
 
+EM_ASYNC_JS(char*, downloadFile, (const char* url), {
 
-EM_JS(char*, downloadFile, (const char* url), {
     var dsp_code = "";
 
     try {
-        if (typeof window !== 'undefined' && typeof window.XMLHttpRequest !== 'undefined') {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', UTF8ToString(url), false);
-            xhr.send(null);
+          const response = await fetch(UTF8ToString(url));
 
-            if (xhr.status >= 200 && xhr.status < 300) {
-                dsp_code = xhr.responseText;   
-            } else {
-                console.error('Request failed with status:', xhr.status);
-            }
-        } else if (typeof process != 'undefined'  && process.versions != null && process.versions.node != null) {
-            var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', UTF8ToString(url), false);
-            xhr.send(null);
-            if (xhr.status >= 200 && xhr.status < 300) {
-                dsp_code = xhr.responseText;
-            } else {
-                console.error('Request failed with status:', xhr.status);
-            }
-        }
+          if(response.ok) {
+              dsp_code = await response.text();
+          } 
+
     } catch (error) {
         console.log('Error:', error);
     }
