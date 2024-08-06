@@ -116,33 +116,34 @@ Downloader::~Downloader(){
 
 
 
-EM_ASYNC_JS(char*, downloadFile, (const char* url), {
-
+EM_JS(char*, downloadFile, (const char* url), {
     var dsp_code = "";
 
     try {
-        const response = await fetch(UTF8ToString(url));
+        if (typeof window !== 'undefined' && typeof window.XMLHttpRequest !== 'undefined') {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', UTF8ToString(url), false);
+            xhr.send(null);
 
-        console.log(response);
-
-        if(response.ok) {
-            dsp_code = await response.text();
-
-            console.log(dsp_code);
-        } 
-
-
-
-        
-
-
-
+            if (xhr.status >= 200 && xhr.status < 300) {
+                dsp_code = xhr.responseText;   
+            } 
+        } else if (typeof process != 'undefined'  && process.versions != null && process.versions.node != null) {
+            var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', UTF8ToString(url), false);
+            xhr.send(null); 
+            if (xhr.status >= 200 && xhr.status < 300) {
+                dsp_code = xhr.responseText;
+            } 
+        }
     } catch (error) {
         console.log('Error:', error);
     }
 
     return allocate(intArrayFromString(dsp_code), ALLOC_STACK);
 });
+
 
 
 
