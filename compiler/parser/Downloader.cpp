@@ -121,11 +121,21 @@ EM_ASYNC_JS(char*, downloadFile, (const char* url), {
     var dsp_code = "";
 
     try {
-          const response = await fetch(UTF8ToString(url));
+        const response = await fetch(UTF8ToString(url));
 
-          if(response.ok) {
-              dsp_code = await response.text();
-          } 
+        console.log(response);
+
+        if(response.ok) {
+            dsp_code = await response.text();
+
+            console.log(dsp_code);
+        } 
+
+
+
+        
+
+
 
     } catch (error) {
         console.log('Error:', error);
