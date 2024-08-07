@@ -96,7 +96,7 @@ typedef std::vector<Tree>    tvec;
  *
  * Means are also provided to do maximal sharing on recursive trees. The idea is to start from
  * a deBruijn representation and progressively build a classical representation such that
- * alpha-equivalent recursive CTrees are necesseraly identical (and therefore shared).
+ * alpha-equivalent recursive CTrees are necessarily identical (and therefore shared).
  *
  * WARNING : in the current implementation CTrees are allocated but never deleted.
  **/
@@ -185,7 +185,7 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     {
         plist::iterator i = fProperties.find(key);
         if (i == fProperties.end()) {
-            return 0;
+            return nullptr;
         } else {
             return i->second;
         }
@@ -197,8 +197,7 @@ class LIBFAUST_API CTree : public virtual Garbageable {
 // To build trees
 inline Tree tree(const Node& n)
 {
-    Tree br[1];
-    return CTree::make(n, 0, br);
+    return CTree::make(n, 0, nullptr);
 }
 inline Tree tree(const Node& n, const Tree& a)
 {

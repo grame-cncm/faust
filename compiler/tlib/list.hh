@@ -25,7 +25,7 @@
                         Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
 This file contains several extensions to the tree library :
-    - lists : based on a operations like cons, hd , tl, ...
+    - lists : based on a operations like cons, hd, tl, ...
     - environments : list of associations (key value)
     - property list : used to annotate trees
 
@@ -37,7 +37,7 @@ This file contains several extensions to the tree library :
     -----
 
     nil					= predefined empty list
-    cons (x,l)			= create a nex list of head x and tail l
+    cons (x,l)			= create a new list of head x and tail l
     hd(cons(x,l)) 		= x,
     tl (cons(x,l)) 		= l
     nth(l,i)			= ith element of l (or nil)
@@ -69,8 +69,8 @@ This file contains several extensions to the tree library :
 
     An 'environment' is a stack of pairs (key x value) used to keep track of lexical bindings
 
-    pushEnv (key, val, env) -> env' create a new environment
-    searchEnv (key,&v,env) -> bool  search for key in env and set v accordingly
+    pushEnv(key, val, env) -> env' create a new environment
+    searchEnv(key,&v,env) -> bool  search for key in env and set v accordingly
 
     search(k1,&v, push(k2,x,env)) 	= true and v is set to x if k1 == k2
                                     = search(k1,&v,env) if k1 != k2
@@ -81,9 +81,9 @@ This file contains several extensions to the tree library :
     can be used to manage a property list (pl). A property list is a list of pairs
     key x value, with three basic operations :
 
-    setProperty (t, key, val) -> t		add the association (key x val) to the pl of t
-    getProperty (t, key, &val) -> bool	search the pp of t for the value associated to key
-    remProperty (t, key) -> t			remove any association (key x ?) from the pl of t
+    setProperty(t, key, val) -> t		add the association (key x val) to the pl of t
+    getProperty(t, key, &val) -> bool	search the pp of t for the value associated to key
+    remProperty(t, key) -> t			remove any association (key x ?) from the pl of t
 
  Warning :
  ---------
@@ -159,7 +159,7 @@ Tree reverseall(Tree l);
 // operations
 Tree rconcat(Tree l1, Tree l2);
 Tree concat(Tree l1, Tree l2);
-Tree lrange(Tree l, int i, int j);  // de i a j exclu
+Tree lrange(Tree l, int i, int j);  // from i to j excluded
 
 // mapping
 Tree lmap(tfun f, Tree l);

@@ -37,9 +37,9 @@ This file contains several extensions to the tree library :
     -----
 
     nil                 = predefined empty list
-    cons (x,l)          = create a nex list of head x and tail l
+    cons(x,l)           = create a new list of head x and tail l
     hd(cons(x,l))       = x,
-    tl (cons(x,l))      = l
+    tl(cons(x,l))       = l
     nth(l,i)            = ith element of l (or nil)
     replace(l,i,e)      = a copy of l where the ith element is e
     len(l)              = number of elements of l
@@ -81,9 +81,9 @@ This file contains several extensions to the tree library :
     can be used to manage a property list (pl). A property list is a list of pairs
     key x value, with three basic operations :
 
-    setProperty (t, key, val) -> t  add the association (key x val) to the pl of t
-    getProperty (t, key, &val) ->   bool search the pp of t for the value associated to key
-    remProperty (t, key) -> t       remove any association (key x ?) from the pl of t
+    setProperty(t, key, val) -> t  add the association (key x val) to the pl of t
+    getProperty(t, key, &val) ->   bool search the pp of t for the value associated to key
+    remProperty(t, key) -> t       remove any association (key x ?) from the pl of t
 
  Warning :
  ---------
@@ -432,50 +432,50 @@ bool searchEnv(Tree key, Tree& v, Tree env)
 
 static bool findKey (Tree pl, Tree key, Tree& val)
 {
-	if (isNil(pl)) 				return false;
-	if (left(hd(pl)) == key) 	{ val= right(hd(pl)); return true; }
-	/*  left(hd(pl)) != key	*/	return findKey (tl(pl), key, val); 
+    if (isNil(pl))                return false;
+    if (left(hd(pl)) == key)      { val = right(hd(pl)); return true; }
+    /*  left(hd(pl)) != key    */ return findKey(tl(pl), key, val);
 }
 
 static Tree updateKey (Tree pl, Tree key, Tree val)
 {
-	if (isNil(pl)) 				return cons ( cons(key,val), gGlobal->nil );
-	if (left(hd(pl)) == key) 	return cons ( cons(key,val), tl(pl) );
-	/*  left(hd(pl)) != key	*/	return cons ( hd(pl), updateKey( tl(pl), key, val ));
+    if (isNil(pl))                return cons(cons(key,val), gGlobal->nil);
+    if (left(hd(pl)) == key)      return cons(cons(key,val), tl(pl));
+    /*  left(hd(pl)) != key    */ return cons(hd(pl), updateKey(tl(pl), key, val));
 }
 
-static Tree removeKey (Tree pl, Tree key)
+static Tree removeKey(Tree pl, Tree key)
 {
-	if (isNil(pl)) 				return gGlobal->nil;
-	if (left(hd(pl)) == key) 	return tl(pl);
-	/*  left(hd(pl)) != key	*/	return cons (hd(pl), removeKey(tl(pl), key));
+    if (isNil(pl))                return gGlobal->nil;
+    if (left(hd(pl)) == key)      return tl(pl);
+    /*  left(hd(pl)) != key    */ return cons(hd(pl), removeKey(tl(pl), key));
 }
 
 #endif
 
 #if 0
-void setProperty (Tree t, Tree key, Tree val)
+void setProperty(Tree t, Tree key, Tree val)
 {
-	CTree* pl = t->attribut();
-	if (pl) t->attribut(updateKey(pl, key, val)); 
-	else 	t->attribut(updateKey(gGlobal->nil, key, val));
+    CTree* pl = t->attribut();
+    if (pl) t->attribut(updateKey(pl, key, val)); 
+    else t->attribut(updateKey(gGlobal->nil, key, val));
 }
 
-void remProperty (Tree t, Tree key)
+void remProperty(Tree t, Tree key)
 {
-	CTree* pl = t->attribut();
-	if (pl) t->attribut(removeKey(pl, key));
+    CTree* pl = t->attribut();
+    if (pl) t->attribut(removeKey(pl, key));
 }
 
-bool getProperty (Tree t, Tree key, Tree& val)
+bool getProperty(Tree t, Tree key, Tree& val)
 {
-	CTree* pl = t->attribut();
-	if (pl) return findKey(pl, key, val);
-	else 	return false;
+    CTree* pl = t->attribut();
+    if (pl) return findKey(pl, key, val);
+    else return false;
 }
 
 #else
-// nouvelle implementation
+// new implementation
 void setProperty(Tree t, Tree key, Tree val)
 {
     t->setProperty(key, val);
@@ -531,10 +531,10 @@ Tree tmap(Tree key, tfun f, Tree t)
 }
 
 //------------------------------------------------------------------------------
-// substitute :remplace toutes les occurences de 'id' par 'val' dans 't'
+// substitute: replaces all occurrences of 'id' with 'val' in 't'
 //------------------------------------------------------------------------------
 
-// genere une clef unique propre � cette substitution
+// generates a unique key specific to this substitution
 static Tree substkey(Tree t, Tree id, Tree val)
 {
     char name[256];
@@ -543,9 +543,8 @@ static Tree substkey(Tree t, Tree id, Tree val)
     return tree(unique(name));
 }
 
-// realise la substitution proprement dite tout en mettant a jour la propriete
-// pour ne pas avoir a la calculer deux fois
-
+// performs the actual substitution while updating the property
+// to avoid having to calculate it twice
 static Tree subst(Tree t, Tree propkey, Tree id, Tree val)
 {
     Tree p;
@@ -575,7 +574,7 @@ static Tree subst(Tree t, Tree propkey, Tree id, Tree val)
     }
 }
 
-// remplace toutes les occurences de 'id' par 'val' dans 't'
+// remplace all  occurences of 'id' with 'val' in 't'
 Tree substitute(Tree t, Tree id, Tree val)
 {
     return subst(t, substkey(t, id, val), id, val);

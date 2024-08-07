@@ -37,7 +37,7 @@ using namespace std;
 
 Symbol* Symbol::gSymbolTable[kHashTableSize];
 
-map<const char*, unsigned int> Symbol::gPrefixCounters;
+map<string, size_t> Symbol::gPrefixCounters;
 
 /**
  * Search the hash table for the symbol of name \p str or returns a new one.
@@ -45,18 +45,7 @@ map<const char*, unsigned int> Symbol::gPrefixCounters;
  * \return a symbol of name str
  */
 
-Symbol* Symbol::get(const string& str)
-{
-    return Symbol::get(str.c_str());
-}
-
-/**
- * Search the hash table for the symbol of name \p str or returns a new one.
- * \param str the name of the symbol
- * \return a symbol of name str
- */
-
-Symbol* Symbol::get(const char* rawstr)
+Symbol* Symbol::get(const string& rawstr)
 {
     // ---replaces control characters with white spaces---
     string str = rawstr;
@@ -64,14 +53,14 @@ Symbol* Symbol::get(const char* rawstr)
         char c = rawstr[i];
         str[i] = (c >= 0 && c < 32) ? 32 : c;
     }
-    unsigned int hsh  = calcHashKey(str.c_str());
-    int          bckt = hsh % kHashTableSize;
-    Symbol*      item = gSymbolTable[bckt];
+    size_t  hsh  = calcHashKey(str);
+    int     bckt = hsh % kHashTableSize;
+    Symbol* item = gSymbolTable[bckt];
 
-    while (item && !item->equiv(hsh, str.c_str())) {
+    while (item && !item->equiv(hsh, str)) {
         item = item->fNext;
     }
-    Symbol* r = item ? item : gSymbolTable[bckt] = new Symbol(str, hsh, gSymbolTable[bckt]);
+    Symbol* r = item ? item : (gSymbolTable[bckt] = new Symbol(str, hsh, gSymbolTable[bckt]));
 
     return r;
 }
@@ -82,16 +71,16 @@ Symbol* Symbol::get(const char* rawstr)
  * \return true if the string is NOT in the table (it is a new string)
  */
 
-bool Symbol::isnew(const char* str)
+bool Symbol::isnew(const string& str)
 {
-    unsigned int hsh  = calcHashKey(str);
-    int          bckt = hsh % kHashTableSize;
-    Symbol*      item = gSymbolTable[bckt];
+    size_t  hsh  = calcHashKey(str);
+    int     bckt = hsh % kHashTableSize;
+    Symbol* item = gSymbolTable[bckt];
 
     while (item && !item->equiv(hsh, str)) {
         item = item->fNext;
     }
-    return item == 0;
+    return item == nullptr;
 }
 
 /**
@@ -99,12 +88,12 @@ bool Symbol::isnew(const char* str)
  * order to make it unique. \param str the prefix of the name \return a symbol of name \p prefix++n
  */
 
-Symbol* Symbol::prefix(const char* str)
+Symbol* Symbol::prefix(const string& str)
 {
-    char name[256];
+    string name;
 
     for (int n = 0; n < 10000; n++) {
-        snprintf(name, 256, "%s%d", str, gPrefixCounters[str]++);
+        name = str + std::to_string(gPrefixCounters[str]++);
         if (isnew(name)) {
             return get(name);
         }
@@ -123,9 +112,9 @@ Symbol* Symbol::prefix(const char* str)
  * \return \p true if the name of the symbol and \p str are the same
  */
 
-bool Symbol::equiv(unsigned int hash, const char* str) const
+bool Symbol::equiv(size_t hash, const string& str) const
 {
-    return (fHash == hash) && (strcmp(fName.c_str(), str) == 0);
+    return (fHash == hash) && (fName == str);
 }
 
 /**
@@ -134,14 +123,14 @@ bool Symbol::equiv(unsigned int hash, const char* str) const
  * \return a 32-bits hash key
  */
 
-unsigned int Symbol::calcHashKey(const char* str)
+std::size_t Symbol::calcHashKey(const std::string& str)
 {
-    unsigned int h = 0;
-
-    while (*str) {
-        h = (h << 1) ^ (h >> 20) ^ (*str++);
+    std::size_t hk = 0;
+    for (char c : str) {
+        // Taken from by boost::hash_combine
+        hk =  hk ^ (static_cast<std::size_t>(c) + 0x9e3779b9 + (hk << 6) + (hk >> 2));
     }
-    return h;
+    return hk;
 }
 
 /**
@@ -152,7 +141,7 @@ unsigned int Symbol::calcHashKey(const char* str)
  * \param nxt a pointer to the next symbol in the hash table entry
  */
 
-Symbol::Symbol(const string& str, unsigned int hsh, Symbol* nxt)
+Symbol::Symbol(const string& str, size_t hsh, Symbol* nxt)
 {
     fName = str;
     fHash = hsh;

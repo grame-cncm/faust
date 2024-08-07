@@ -145,13 +145,10 @@ bool CTree::equiv(const Node& n, const tvec& br) const
 
 size_t CTree::calcTreeHash(const Node& n, const tvec& br)
 {
-    size_t               hk = size_t(n.getPointer());
-    tvec::const_iterator b  = br.begin();
-    tvec::const_iterator z  = br.end();
-
-    while (b != z) {
-        hk = (hk << 1) ^ (hk >> 20) ^ ((*b)->fHashKey);
-        ++b;
+    size_t hk = std::hash<void*>()(n.getPointer());
+    for (const auto& ptr : br) {
+        // Taken from by boost::hash_combine
+        hk = hk ^ (ptr->fHashKey + 0x9e3779b9 + (hk << 6) + (hk >> 2));
     }
     return hk;
 }
@@ -360,7 +357,7 @@ LIBFAUST_API void* getUserData(Tree t)
     if (isSym(t->node(), &s)) {
         return getUserData(s);
     } else {
-        return 0;
+        return nullptr;
     }
 }
 

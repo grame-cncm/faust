@@ -423,6 +423,7 @@ reference-signal:
 
 
 reference-type:
+	cd reference && rm *.type
 	$(MAKE) -f Make.ref reference-type FAUSTOPTIONS="-I dsp"
 
 tools: filesCompare impulsellvm impulseinterp impulseinterp1 
