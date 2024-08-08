@@ -217,7 +217,7 @@ void CPPCodeContainer::produceInternal()
         tab(n + 1, *fOut);
         tab(n + 1, *fOut);
     }
-    
+
     // Fields
     fCodeProducer->Tab(n + 1);
     generateDeclarations(fCodeProducer);
@@ -229,7 +229,7 @@ void CPPCodeContainer::produceInternal()
     }
 
     tab(n + 1, *fOut);
- 
+
     // fKlassName used in method naming for subclasses
     produceInfoFunctions(n + 1, fKlassName, "dsp", true, FunTyped::kDefault, fCodeProducer);
 
@@ -330,13 +330,15 @@ void CPPCodeContainer::produceClass()
     tab(n, *fOut);
     if (gGlobal->gUIMacroSwitch) {
         if (fSuperKlassName != "") {
-            *fOut << "struct " << fKlassName << genFinal() << " : public " << fSuperKlassName << " {";
+            *fOut << "struct " << fKlassName << genFinal() << " : public " << fSuperKlassName
+                  << " {";
         } else {
             *fOut << "struct " << fKlassName << genFinal() << " {";
         }
     } else {
         if (fSuperKlassName != "") {
-            *fOut << "class " << fKlassName << genFinal() << " : public " << fSuperKlassName << " {";
+            *fOut << "class " << fKlassName << genFinal() << " : public " << fSuperKlassName
+                  << " {";
         } else {
             *fOut << "class " << fKlassName << genFinal() << " {";
         }
@@ -348,7 +350,7 @@ void CPPCodeContainer::produceClass()
         *fOut << " private:";
         tab(n + 1, *fOut);
     }
-  
+
     // Fields
     fCodeProducer->Tab(n + 1);
     tab(n + 1, *fOut);

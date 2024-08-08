@@ -100,7 +100,7 @@ inline Tree unquote(char* str)
 %}
 
 %union {
-    CTree*     exp;
+    CTreeBase*     exp;
     char* str;
     std::string* cppstr;
     bool b;

@@ -456,20 +456,20 @@ static Tree removeKey(Tree pl, Tree key)
 #if 0
 void setProperty(Tree t, Tree key, Tree val)
 {
-    CTree* pl = t->attribut();
-    if (pl) t->attribut(updateKey(pl, key, val)); 
+    Tree pl = t->attribut();
+    if (pl) t->attribut(updateKey(pl, key, val));
     else t->attribut(updateKey(gGlobal->nil, key, val));
 }
 
 void remProperty(Tree t, Tree key)
 {
-    CTree* pl = t->attribut();
+    Tree pl = t->attribut();
     if (pl) t->attribut(removeKey(pl, key));
 }
 
 bool getProperty(Tree t, Tree key, Tree& val)
 {
-    CTree* pl = t->attribut();
+    Tree pl = t->attribut();
     if (pl) return findKey(pl, key, val);
     else return false;
 }
@@ -483,7 +483,7 @@ void setProperty(Tree t, Tree key, Tree val)
 
 bool getProperty(Tree t, Tree key, Tree& val)
 {
-    CTree* pl = t->getProperty(key);
+    Tree pl = t->getProperty(key);
     if (pl) {
         val = pl;
         return true;

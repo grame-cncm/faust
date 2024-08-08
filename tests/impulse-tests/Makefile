@@ -419,8 +419,7 @@ reference-signal-wn:
 
 reference-signal:
 	cd reference && rm *.sig
-	$(MAKE) -f Make.ref reference-signal FAUSTOPTIONS="-I dsp"
-
+	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-signal FAUSTOPTIONS="-I dsp"
 
 reference-type:
 	cd reference && rm *.type
@@ -441,7 +440,7 @@ test-signal-wn:
 	export FAUST_OPT=FAUST_SIG_NO_NORM; cd dsp && ./sig-script *.dsp
 	
 test-signal:
-	cd dsp && ./sig-script *.dsp
+	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./sig-script *.dsp
 
 #########################################################################
 # Testing signal type

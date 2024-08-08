@@ -136,7 +136,11 @@ itv::interval_algebra gAlgebra;
 global::global()
     : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
-    CTree::init();
+    if (global::isDebug("FAUST_DTREE")) {
+        CDTree::init();
+    } else {
+        CTree::init();
+    }
     Symbol::init();
 
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
@@ -992,6 +996,9 @@ Typed::VarType global::getVarType(const string& name)
 
 global::~global()
 {
+    if (global::isDebug("FAUST_DTREE")) {
+        CDTree::cleanup();
+    }
     Garbageable::cleanup();
     BasicTyped::cleanup();
     DeclareVarInst::cleanup();
@@ -2455,6 +2462,21 @@ string global::printHelp()
     sstr << tab
          << "-pathslist  --pathslist                 print the architectures and dsp library paths."
          << endl;
+
+    sstr << endl << "Environment variables:" << line;
+    sstr << tab << "FAUST_DEBUG = FAUST_LLVM1               print LLVM IR before optimisation."
+         << endl;
+    sstr << tab << "FAUST_DEBUG = FAUST_LLVM2               print LLVM IR after optimisation."
+         << endl;
+    sstr << tab
+         << "FAUST_DEBUG = FAUST_LLVM_NO_FM          deactivate fast-math optimisation in LLVM IR."
+         << endl;
+    sstr << tab
+         << "FAUST_DEBUG = FAUST_DTREE               consecutive Tree pointer allocation to "
+            "guaranty "
+            "deterministic compilation."
+         << endl;
+    sstr << tab << "FAUST_OPT   = FAUST_SIG_NO_NORM         deactivate signal normalisation." << endl;
 
     sstr << endl << "Example:" << line;
     sstr << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp" << endl;

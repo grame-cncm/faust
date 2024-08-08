@@ -32,12 +32,12 @@
 
 using namespace std;
 
-const char* prim0name(CTree* (*ptr)())
+const char* prim0name(Tree (*ptr)())
 {
     return "prim0???";
 }
 
-const char* prim1name(CTree* (*ptr)(CTree*))
+const char* prim1name(Tree (*ptr)(Tree))
 {
     if (ptr == sigDelay1) {
         return "mem";
@@ -57,7 +57,7 @@ const char* prim1name(CTree* (*ptr)(CTree*))
     return "prim1???";
 }
 
-const char* prim2name(CTree* (*ptr)(CTree*, CTree*))
+const char* prim2name(Tree (*ptr)(Tree, Tree))
 {
     if (ptr == sigAdd) {
         return "+";
@@ -133,7 +133,7 @@ const char* prim2name(CTree* (*ptr)(CTree*, CTree*))
     return "prim2???";
 }
 
-const char* prim3name(CTree* (*ptr)(CTree*, CTree*, CTree*))
+const char* prim3name(Tree (*ptr)(Tree, Tree, Tree))
 {
     if (ptr == sigReadOnlyTable) {
         return "rdtable";
@@ -147,7 +147,7 @@ const char* prim3name(CTree* (*ptr)(CTree*, CTree*, CTree*))
     return "prim3???";
 }
 
-const char* prim4name(CTree* (*ptr)(CTree*, CTree*, CTree*, CTree*))
+const char* prim4name(Tree (*ptr)(Tree, Tree, Tree, Tree))
 {
     if (ptr == sigSelect3) {
         return "select3";
@@ -155,7 +155,7 @@ const char* prim4name(CTree* (*ptr)(CTree*, CTree*, CTree*, CTree*))
     return "prim4???";
 }
 
-const char* prim5name(CTree* (*ptr)(CTree*, CTree*, CTree*, CTree*, CTree*))
+const char* prim5name(Tree (*ptr)(Tree, Tree, Tree, Tree, Tree))
 {
     if (ptr == sigWriteReadTable) {
         return "rwtable";

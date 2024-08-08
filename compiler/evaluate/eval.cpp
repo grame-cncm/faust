@@ -253,7 +253,7 @@ static Tree real_a2sb(Tree exp)
                 modified = true;
             }
         }
-        Tree r = (modified) ? CTree::make(exp->node(), B) : exp;
+        Tree r = (modified) ? tree(exp->node(), B) : exp;
         return r;
     }
 }

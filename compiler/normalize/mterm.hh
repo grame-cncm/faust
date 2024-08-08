@@ -41,7 +41,7 @@
  */
 
 struct CompareTree {
-    bool operator()(Tree t1, Tree t2) const { return t1->serial() < t2->serial(); }
+    bool operator()(Tree t1, Tree t2) const { return t1 < t2; }
 };
 
 class mterm : public virtual Garbageable {

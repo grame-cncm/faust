@@ -128,7 +128,7 @@ std::size_t Symbol::calcHashKey(const std::string& str)
     std::size_t hk = 0;
     for (char c : str) {
         // Taken from by boost::hash_combine
-        hk =  hk ^ (static_cast<std::size_t>(c) + 0x9e3779b9 + (hk << 6) + (hk >> 2));
+        hk = hk ^ (static_cast<std::size_t>(c) + 0x9e3779b9 + (hk << 6) + (hk >> 2));
     }
     return hk;
 }

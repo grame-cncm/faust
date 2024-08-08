@@ -46,8 +46,8 @@ class Occur;
 class AudioType;
 typedef P<AudioType> Type;
 
-class CTree;
-typedef CTree* Tree;
+class CTreeBase;
+typedef CTreeBase* Tree;
 
 class Symbol;
 typedef Symbol* Sym;

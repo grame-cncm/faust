@@ -324,7 +324,7 @@
 typedef union YYSTYPE
 #line 102 "faustparser.y"
 {
-    CTree*     exp;
+    CTreeBase*     exp;
     char* str;
     std::string* cppstr;
     bool b;
