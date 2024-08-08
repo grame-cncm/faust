@@ -64,8 +64,7 @@ re.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ <: _,!,_,!,!,_,!,_ : +,+
     };
 */
 
-declare compilation_options    "-single -scal -e Modulations.dsp -o Modulations_exp.dsp";
-declare library_path "/Documents/faustwebsite-github/modules-worklet/Modulations.dsp";
+declare compilation_options    "-single -scal -e modulations.dsp -o modulations_exp.dsp";
 declare library_path "/usr/local/share/faust/stdfaust.lib";
 declare library_path "/usr/local/share/faust/oscillators.lib";
 declare library_path "/usr/local/share/faust/signals.lib";
@@ -87,7 +86,7 @@ declare envelopes_lib_copyright "GRAME";
 declare envelopes_lib_license "LGPL with exception";
 declare envelopes_lib_name "Faust Envelope Library";
 declare envelopes_lib_version "0.0";
-declare filename "Modulations";
+declare filename "modulations.dsp";
 declare filters_lib_name "Faust Filters Library";
 declare filters_lib_version "0.0";
 declare instruments_lib_author "Romain Michon (rmichon@ccrma.stanford.edu)";
@@ -100,7 +99,7 @@ declare maths_lib_copyright "GRAME";
 declare maths_lib_license "LGPL with exception";
 declare maths_lib_name "Faust Math Library";
 declare maths_lib_version "2.1";
-declare name "Modulations";
+declare name "modulations";
 declare oscillators_lib_name "Faust Oscillator Library";
 declare oscillators_lib_version "0.0";
 declare reverbs_lib_name "Faust Reverb Library";

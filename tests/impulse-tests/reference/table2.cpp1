@@ -1,0 +1,287 @@
+/* ------------------------------------------------------------
+name: "table2"
+Code generated with Faust 2.75.2 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+class mydspSIG0 {
+	
+  private:
+	
+	int iRec0[2];
+	
+  public:
+	
+	int getNumInputsmydspSIG0() {
+		return 0;
+	}
+	int getNumOutputsmydspSIG0() {
+		return 1;
+	}
+	
+	void instanceInitmydspSIG0(int sample_rate) {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			iRec0[l0] = 0;
+		}
+	}
+	
+	void fillmydspSIG0(int count, int* table) {
+		for (int i1 = 0; i1 < count; i1 = i1 + 1) {
+			iRec0[0] = iRec0[1] + 1;
+			table[i1] = iRec0[0];
+			iRec0[1] = iRec0[0];
+		}
+	}
+
+};
+
+static mydspSIG0* newmydspSIG0() { return (mydspSIG0*)new mydspSIG0(); }
+static void deletemydspSIG0(mydspSIG0* dsp) { delete dsp; }
+
+class mydspSIG1 {
+	
+  private:
+	
+	float fRec2[2];
+	
+  public:
+	
+	int getNumInputsmydspSIG1() {
+		return 0;
+	}
+	int getNumOutputsmydspSIG1() {
+		return 1;
+	}
+	
+	void instanceInitmydspSIG1(int sample_rate) {
+		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
+			fRec2[l2] = 0.0f;
+		}
+	}
+	
+	void fillmydspSIG1(int count, float* table) {
+		for (int i2 = 0; i2 < count; i2 = i2 + 1) {
+			fRec2[0] = fRec2[1] + 0.1f;
+			table[i2] = fRec2[0];
+			fRec2[1] = fRec2[0];
+		}
+	}
+
+};
+
+static mydspSIG1* newmydspSIG1() { return (mydspSIG1*)new mydspSIG1(); }
+static void deletemydspSIG1(mydspSIG1* dsp) { delete dsp; }
+
+const static int imydspSIG2Wave0[7] = {1,2,3,7,4,8,1};
+class mydspSIG2 {
+	
+  private:
+	
+	int imydspSIG2Wave0_idx;
+	
+  public:
+	
+	int getNumInputsmydspSIG2() {
+		return 0;
+	}
+	int getNumOutputsmydspSIG2() {
+		return 1;
+	}
+	
+	void instanceInitmydspSIG2(int sample_rate) {
+		imydspSIG2Wave0_idx = 0;
+	}
+	
+	void fillmydspSIG2(int count, int* table) {
+		for (int i3 = 0; i3 < count; i3 = i3 + 1) {
+			table[i3] = imydspSIG2Wave0[imydspSIG2Wave0_idx];
+			imydspSIG2Wave0_idx = (1 + imydspSIG2Wave0_idx) % 7;
+		}
+	}
+
+};
+
+static mydspSIG2* newmydspSIG2() { return (mydspSIG2*)new mydspSIG2(); }
+static void deletemydspSIG2(mydspSIG2* dsp) { delete dsp; }
+
+const static float fmydspSIG3Wave0[7] = {1.4f,2.1f,3.8f,7.12f,4.9f,8.9f,1.2f};
+class mydspSIG3 {
+	
+  private:
+	
+	int fmydspSIG3Wave0_idx;
+	
+  public:
+	
+	int getNumInputsmydspSIG3() {
+		return 0;
+	}
+	int getNumOutputsmydspSIG3() {
+		return 1;
+	}
+	
+	void instanceInitmydspSIG3(int sample_rate) {
+		fmydspSIG3Wave0_idx = 0;
+	}
+	
+	void fillmydspSIG3(int count, float* table) {
+		for (int i4 = 0; i4 < count; i4 = i4 + 1) {
+			table[i4] = fmydspSIG3Wave0[fmydspSIG3Wave0_idx];
+			fmydspSIG3Wave0_idx = (1 + fmydspSIG3Wave0_idx) % 7;
+		}
+	}
+
+};
+
+static mydspSIG3* newmydspSIG3() { return (mydspSIG3*)new mydspSIG3(); }
+static void deletemydspSIG3(mydspSIG3* dsp) { delete dsp; }
+
+const static int imydspWave0[7] = {1,2,3,7,4,8,1};
+const static float fmydspWave1[7] = {1.4f,2.1f,3.8f,7.12f,4.9f,8.9f,1.2f};
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int itbl0[10];
+	int iRec1[2];
+	float ftbl1[7];
+	float fRec3[2];
+	int itbl2[10];
+	int imydspWave0_idx;
+	float ftbl3[7];
+	int fmydspWave1_idx;
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "table2.dsp");
+		m->declare("name", "table2");
+	}
+
+	virtual int getNumInputs() {
+		return 0;
+	}
+	virtual int getNumOutputs() {
+		return 4;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		mydspSIG0* sig0 = newmydspSIG0();
+		sig0->instanceInitmydspSIG0(sample_rate);
+		sig0->fillmydspSIG0(10, itbl0);
+		mydspSIG1* sig1 = newmydspSIG1();
+		sig1->instanceInitmydspSIG1(sample_rate);
+		sig1->fillmydspSIG1(7, ftbl1);
+		mydspSIG2* sig2 = newmydspSIG2();
+		sig2->instanceInitmydspSIG2(sample_rate);
+		sig2->fillmydspSIG2(10, itbl2);
+		imydspWave0_idx = 0;
+		mydspSIG3* sig3 = newmydspSIG3();
+		sig3->instanceInitmydspSIG3(sample_rate);
+		sig3->fillmydspSIG3(7, ftbl3);
+		fmydspWave1_idx = 0;
+		deletemydspSIG0(sig0);
+		deletemydspSIG1(sig1);
+		deletemydspSIG2(sig2);
+		deletemydspSIG3(sig3);
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			iRec1[l1] = 0;
+		}
+		for (int l3 = 0; l3 < 2; l3 = l3 + 1) {
+			fRec3[l3] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("table2");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		FAUSTFLOAT* output2 = outputs[2];
+		FAUSTFLOAT* output3 = outputs[3];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			iRec1[0] = iRec1[1] + 1;
+			itbl0[(iRec1[0] + 1) % 10] = 2 * iRec1[0];
+			output0[i0] = FAUSTFLOAT(itbl0[(iRec1[0] + 2) % 10]);
+			fRec3[0] = fRec3[1] + 0.1f;
+			ftbl1[int(std::fmod(fRec3[0] + 1.0f, 7.0f))] = 1.24f * fRec3[0];
+			output1[i0] = FAUSTFLOAT(ftbl1[int(std::fmod(fRec3[0] + 2.0f, 7.0f))]);
+			int iTemp0 = imydspWave0[imydspWave0_idx];
+			itbl2[(iTemp0 + 1) % 10] = int(1.24f * float(iTemp0));
+			output2[i0] = FAUSTFLOAT(itbl2[(iTemp0 + 2) % 10]);
+			float fTemp1 = fmydspWave1[fmydspWave1_idx];
+			ftbl3[int(std::fmod(fTemp1 + 1.0f, 7.0f))] = 1.24f * fTemp1;
+			output3[i0] = FAUSTFLOAT(ftbl3[int(std::fmod(fTemp1 + 2.0f, 7.0f))]);
+			iRec1[1] = iRec1[0];
+			fRec3[1] = fRec3[0];
+			imydspWave0_idx = (1 + imydspWave0_idx) % 7;
+			fmydspWave1_idx = (1 + fmydspWave1_idx) % 7;
+		}
+	}
+
+};
+
+#endif

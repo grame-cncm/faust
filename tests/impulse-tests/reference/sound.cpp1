@@ -1,0 +1,142 @@
+/* ------------------------------------------------------------
+name: "sound"
+Code generated with Faust 2.75.2 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	Soundfile* fSoundfile0;
+	int iRec0[2];
+	int fSampleRate;
+	
+	void allocate() {
+		fSoundfile0 = 0;
+	}
+	
+ public:
+	mydsp() {
+		allocate();
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "sound.dsp");
+		m->declare("name", "sound");
+	}
+
+	virtual int getNumInputs() {
+		return 0;
+	}
+	virtual int getNumOutputs() {
+		return 4;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	
+	virtual void instanceResetUserInterface() {
+		if (uintptr_t(fSoundfile0) == 0) {
+			fSoundfile0 = defaultsound;
+		}
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			iRec0[l0] = 0;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("sound");
+		ui_interface->addSoundfile("son", "{'sound1';'sound2'}", &fSoundfile0);
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		FAUSTFLOAT* output2 = outputs[2];
+		FAUSTFLOAT* output3 = outputs[3];
+		Soundfile* fSoundfile0ca = fSoundfile0;
+		int* fSoundfile0ca_le0 = fSoundfile0ca->fLength;
+		int iSlow0 = fSoundfile0ca_le0[0] + -1;
+		int* fSoundfile0ca_of0 = fSoundfile0ca->fOffset;
+		float** fSoundfile0ca_bu0 = static_cast<float**>(fSoundfile0ca->fBuffers);
+		float* fSoundfile0ca_bu_ch0 = fSoundfile0ca_bu0[0];
+		int* fSoundfile0ca_of1 = fSoundfile0ca->fOffset;
+		float** fSoundfile0ca_bu1 = static_cast<float**>(fSoundfile0ca->fBuffers);
+		float* fSoundfile0ca_bu_ch1 = fSoundfile0ca_bu1[1];
+		int* fSoundfile0ca_of2 = fSoundfile0ca->fOffset;
+		float** fSoundfile0ca_bu2 = static_cast<float**>(fSoundfile0ca->fBuffers);
+		float* fSoundfile0ca_bu_ch2 = fSoundfile0ca_bu2[2];
+		int* fSoundfile0ca_of3 = fSoundfile0ca->fOffset;
+		float** fSoundfile0ca_bu3 = static_cast<float**>(fSoundfile0ca->fBuffers);
+		float* fSoundfile0ca_bu_ch3 = fSoundfile0ca_bu3[3];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			iRec0[0] = iRec0[1] + 1;
+			int iTemp0 = std::max<int>(0, std::min<int>(iRec0[0], iSlow0));
+			output0[i0] = FAUSTFLOAT(fSoundfile0ca_bu_ch0[fSoundfile0ca_of0[0] + iTemp0]);
+			output1[i0] = FAUSTFLOAT(fSoundfile0ca_bu_ch1[fSoundfile0ca_of1[0] + iTemp0]);
+			output2[i0] = FAUSTFLOAT(fSoundfile0ca_bu_ch2[fSoundfile0ca_of2[0] + iTemp0]);
+			output3[i0] = FAUSTFLOAT(fSoundfile0ca_bu_ch3[fSoundfile0ca_of3[0] + iTemp0]);
+			iRec0[1] = iRec0[0];
+		}
+		fSoundfile0 = fSoundfile0ca;
+	}
+
+};
+
+#endif

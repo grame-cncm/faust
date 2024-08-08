@@ -1,0 +1,145 @@
+/* ------------------------------------------------------------
+name: "pow"
+Code generated with Faust 2.75.2 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+const static float fmydspWave0[4] = {0.1f,0.56f,1.3f,8.9f};
+static float mydsp_faustpower2_f(float value) {
+	return value * value;
+}
+static int mydsp_faustpower2_i(int value) {
+	return value * value;
+}
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int fmydspWave0_idx;
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "pow.dsp");
+		m->declare("name", "pow");
+	}
+
+	virtual int getNumInputs() {
+		return 0;
+	}
+	virtual int getNumOutputs() {
+		return 14;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fmydspWave0_idx = 0;
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("pow");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		FAUSTFLOAT* output2 = outputs[2];
+		FAUSTFLOAT* output3 = outputs[3];
+		FAUSTFLOAT* output4 = outputs[4];
+		FAUSTFLOAT* output5 = outputs[5];
+		FAUSTFLOAT* output6 = outputs[6];
+		FAUSTFLOAT* output7 = outputs[7];
+		FAUSTFLOAT* output8 = outputs[8];
+		FAUSTFLOAT* output9 = outputs[9];
+		FAUSTFLOAT* output10 = outputs[10];
+		FAUSTFLOAT* output11 = outputs[11];
+		FAUSTFLOAT* output12 = outputs[12];
+		FAUSTFLOAT* output13 = outputs[13];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			float fTemp0 = fmydspWave0[fmydspWave0_idx];
+			float fTemp1 = std::sqrt(3.0f * fTemp0);
+			output0[i0] = FAUSTFLOAT(fTemp1);
+			output1[i0] = FAUSTFLOAT(std::sqrt(fTemp1));
+			float fTemp2 = 4.0f * fTemp0;
+			output2[i0] = FAUSTFLOAT(std::pow(fTemp2, 0.125f));
+			output3[i0] = FAUSTFLOAT(std::pow(fTemp2, 0.0625f));
+			float fTemp3 = mydsp_faustpower2_f(5.0f * fTemp0);
+			output4[i0] = FAUSTFLOAT(fTemp3);
+			output5[i0] = FAUSTFLOAT(fTemp3);
+			int iTemp4 = int(6.0f * fTemp0);
+			output6[i0] = FAUSTFLOAT(mydsp_faustpower2_i(iTemp4));
+			output7[i0] = FAUSTFLOAT(mydsp_faustpower2_f(float(iTemp4)));
+			float fTemp5 = 7.0f * fTemp0;
+			output8[i0] = FAUSTFLOAT(std::pow(fTemp5, 2.0001f));
+			output9[i0] = FAUSTFLOAT(mydsp_faustpower2_f(fTemp5));
+			output10[i0] = FAUSTFLOAT(1.0f);
+			output11[i0] = FAUSTFLOAT(8.0f * fTemp0);
+			output12[i0] = FAUSTFLOAT(1.0f);
+			output13[i0] = FAUSTFLOAT(9.0f * fTemp0);
+			fmydspWave0_idx = (1 + fmydspWave0_idx) % 4;
+		}
+	}
+
+};
+
+#endif

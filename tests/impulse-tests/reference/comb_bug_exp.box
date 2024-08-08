@@ -18,7 +18,7 @@ declare filters_lib_fb_fcomb_copyright "Copyright (C) 2003-2019 by Julius O. Smi
 declare filters_lib_fb_fcomb_license "MIT-style STK-4.3 license";
 declare filters_lib_lowpass0_highpass1 "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare filters_lib_name "Faust Filters Library";
-declare library_path "/Documents/Recherche/Expressive E/CombFilter/comb_bug.dsp";
+declare library_path "/usr/local/share/faust/noises.lib";
 declare maths_lib_author "GRAME";
 declare maths_lib_copyright "GRAME";
 declare maths_lib_license "LGPL with exception";

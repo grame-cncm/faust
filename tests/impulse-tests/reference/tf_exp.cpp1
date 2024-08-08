@@ -1,0 +1,233 @@
+/* ------------------------------------------------------------
+name: "tf_exp"
+Code generated with Faust 2.75.2 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+static float mydsp_faustpower2_f(float value) {
+	return value * value;
+}
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int fSampleRate;
+	float fConst0;
+	float fConst1;
+	float fConst2;
+	float fConst3;
+	float fConst4;
+	float fConst5;
+	float fConst6;
+	float fConst7;
+	int iVec0[2];
+	float fVec1[2];
+	float fRec2[2];
+	float fConst8;
+	float fConst9;
+	float fConst10;
+	float fRec1[3];
+	float fConst11;
+	float fConst12;
+	float fConst13;
+	float fConst14;
+	float fConst15;
+	float fConst16;
+	float fConst17;
+	float fConst18;
+	float fRec0[3];
+	float fConst19;
+	float fConst20;
+	float fRec6[2];
+	float fRec5[3];
+	float fVec2[2];
+	float fRec4[2];
+	float fConst21;
+	float fRec3[3];
+	float fConst22;
+	float fRec8[2];
+	float fRec7[3];
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "tf_exp.dsp");
+		m->declare("name", "tf_exp");
+	}
+
+	virtual int getNumInputs() {
+		return 0;
+	}
+	virtual int getNumOutputs() {
+		return 1;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+		fConst1 = std::tan(3553.1414f / fConst0);
+		fConst2 = mydsp_faustpower2_f(fConst1);
+		fConst3 = 1.0f / fConst1;
+		fConst4 = (fConst3 + 1.0f) / fConst1 + 1.0f;
+		fConst5 = 1.0f / (fConst2 * fConst4);
+		fConst6 = 1.0f / (fConst3 + 1.0f);
+		fConst7 = 1.0f - fConst3;
+		fConst8 = 1.0f / fConst4;
+		fConst9 = (fConst3 + -1.0f) / fConst1 + 1.0f;
+		fConst10 = 2.0f * (1.0f - 1.0f / fConst2);
+		fConst11 = std::tan(1776.5707f / fConst0);
+		fConst12 = 1.0f / fConst11;
+		fConst13 = fConst12 + 1.0f;
+		fConst14 = 1.0f / (fConst13 / fConst11 + 1.0f);
+		fConst15 = 1.0f - fConst12;
+		fConst16 = 1.0f - fConst15 / fConst11;
+		fConst17 = 1.0f / mydsp_faustpower2_f(fConst11);
+		fConst18 = 2.0f * (1.0f - fConst17);
+		fConst19 = 1.0f / ((fConst12 + 1.0f) / fConst11 + 1.0f);
+		fConst20 = 1.0f / fConst13;
+		fConst21 = (fConst12 + -1.0f) / fConst11 + 1.0f;
+		fConst22 = 1.0f / (fConst11 * fConst4);
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			iVec0[l0] = 0;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fVec1[l1] = 0.0f;
+		}
+		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
+			fRec2[l2] = 0.0f;
+		}
+		for (int l3 = 0; l3 < 3; l3 = l3 + 1) {
+			fRec1[l3] = 0.0f;
+		}
+		for (int l4 = 0; l4 < 3; l4 = l4 + 1) {
+			fRec0[l4] = 0.0f;
+		}
+		for (int l5 = 0; l5 < 2; l5 = l5 + 1) {
+			fRec6[l5] = 0.0f;
+		}
+		for (int l6 = 0; l6 < 3; l6 = l6 + 1) {
+			fRec5[l6] = 0.0f;
+		}
+		for (int l7 = 0; l7 < 2; l7 = l7 + 1) {
+			fVec2[l7] = 0.0f;
+		}
+		for (int l8 = 0; l8 < 2; l8 = l8 + 1) {
+			fRec4[l8] = 0.0f;
+		}
+		for (int l9 = 0; l9 < 3; l9 = l9 + 1) {
+			fRec3[l9] = 0.0f;
+		}
+		for (int l10 = 0; l10 < 2; l10 = l10 + 1) {
+			fRec8[l10] = 0.0f;
+		}
+		for (int l11 = 0; l11 < 3; l11 = l11 + 1) {
+			fRec7[l11] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("tf_exp");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* output0 = outputs[0];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			iVec0[0] = 1;
+			float fTemp0 = float(1 - iVec0[1]);
+			fVec1[0] = fTemp0;
+			fRec2[0] = -(fConst6 * (fConst7 * fRec2[1] - fConst3 * (fTemp0 - fVec1[1])));
+			fRec1[0] = fRec2[0] - fConst8 * (fConst9 * fRec1[2] + fConst10 * fRec1[1]);
+			float fTemp1 = fConst18 * fRec0[1];
+			fRec0[0] = fConst5 * (fRec1[2] + (fRec1[0] - 2.0f * fRec1[1])) - fConst14 * (fConst16 * fRec0[2] + fTemp1);
+			fRec6[0] = -(fConst6 * (fConst7 * fRec6[1] - (fTemp0 + fVec1[1])));
+			fRec5[0] = fRec6[0] - fConst8 * (fConst9 * fRec5[2] + fConst10 * fRec5[1]);
+			float fTemp2 = fRec5[2] + fRec5[0] + 2.0f * fRec5[1];
+			fVec2[0] = fTemp2;
+			fRec4[0] = -(fConst20 * (fConst15 * fRec4[1] - fConst8 * (fTemp2 + fVec2[1])));
+			fRec3[0] = fRec4[0] - fConst19 * (fConst21 * fRec3[2] + fConst18 * fRec3[1]);
+			fRec8[0] = -(fConst20 * (fConst15 * fRec8[1] - fConst22 * (fTemp2 - fVec2[1])));
+			fRec7[0] = fRec8[0] - fConst19 * (fConst21 * fRec7[2] + fConst18 * fRec7[1]);
+			output0[i0] = FAUSTFLOAT(fRec0[2] + fConst14 * (fTemp1 + fConst16 * fRec0[0]) + fConst19 * (fRec3[2] + fRec3[0] + 2.0f * fRec3[1] + fConst17 * (fRec7[0] + fRec7[2] - 2.0f * fRec7[1])));
+			iVec0[1] = iVec0[0];
+			fVec1[1] = fVec1[0];
+			fRec2[1] = fRec2[0];
+			fRec1[2] = fRec1[1];
+			fRec1[1] = fRec1[0];
+			fRec0[2] = fRec0[1];
+			fRec0[1] = fRec0[0];
+			fRec6[1] = fRec6[0];
+			fRec5[2] = fRec5[1];
+			fRec5[1] = fRec5[0];
+			fVec2[1] = fVec2[0];
+			fRec4[1] = fRec4[0];
+			fRec3[2] = fRec3[1];
+			fRec3[1] = fRec3[0];
+			fRec8[1] = fRec8[0];
+			fRec7[2] = fRec7[1];
+			fRec7[1] = fRec7[0];
+		}
+	}
+
+};
+
+#endif

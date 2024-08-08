@@ -1,0 +1,249 @@
+/* ------------------------------------------------------------
+name: "comb_bug"
+Code generated with Faust 2.75.2 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	FAUSTFLOAT fHslider0;
+	FAUSTFLOAT fHslider1;
+	int iRec2[2];
+	int fSampleRate;
+	float fConst0;
+	FAUSTFLOAT fHslider2;
+	FAUSTFLOAT fButton0;
+	float fVec0[2];
+	int iRec3[2];
+	FAUSTFLOAT fHslider3;
+	float fConst1;
+	float fRec4[2];
+	float fConst2;
+	int iRec5[2];
+	int IOTA0;
+	float fVec1[2048];
+	float fConst3;
+	float fConst4;
+	FAUSTFLOAT fHslider4;
+	float fRec6[2];
+	float fConst5;
+	float fConst6;
+	float fRec0[2];
+	FAUSTFLOAT fHslider5;
+	float fRec7[2];
+	float fVec2[2];
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("basics_lib_name", "Faust Basic Element Library");
+		m->declare("basics_lib_version", "0.1");
+		m->declare("compilation_options", "-single -scal -e comb_bug.dsp -o comb_bug_exp.dsp");
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("delays_lib_name", "Faust Delay Library");
+		m->declare("delays_lib_version", "0.1");
+		m->declare("envelopes_lib_adsr_author", "Yann Orlarey");
+		m->declare("envelopes_lib_ar_author", "Yann Orlarey, Stéphane Letz");
+		m->declare("envelopes_lib_author", "GRAME");
+		m->declare("envelopes_lib_copyright", "GRAME");
+		m->declare("envelopes_lib_license", "LGPL with exception");
+		m->declare("envelopes_lib_name", "Faust Envelope Library");
+		m->declare("envelopes_lib_version", "0.0");
+		m->declare("filename", "comb_bug.dsp");
+		m->declare("filters_lib_fb_fcomb_author", "Julius O. Smith III");
+		m->declare("filters_lib_fb_fcomb_copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters_lib_fb_fcomb_license", "MIT-style STK-4.3 license");
+		m->declare("filters_lib_lowpass0_highpass1", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters_lib_name", "Faust Filters Library");
+		m->declare("library_path", "/Documents/Recherche/Expressive E/CombFilter/comb_bug.dsp");
+		m->declare("maths_lib_author", "GRAME");
+		m->declare("maths_lib_copyright", "GRAME");
+		m->declare("maths_lib_license", "LGPL with exception");
+		m->declare("maths_lib_name", "Faust Math Library");
+		m->declare("maths_lib_version", "2.1");
+		m->declare("name", "comb_bug");
+		m->declare("noises_lib_name", "Faust Noise Generator Library");
+		m->declare("noises_lib_version", "0.0");
+		m->declare("signals_lib_name", "Faust Signal Routing Library");
+		m->declare("signals_lib_version", "0.0");
+	}
+
+	virtual int getNumInputs() {
+		return 0;
+	}
+	virtual int getNumOutputs() {
+		return 2;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+		fConst1 = 1.0f / std::max<float>(1.0f, 0.1f * fConst0);
+		fConst2 = 1.0f / std::max<float>(1.0f, 0.01f * fConst0);
+		fConst3 = std::exp(-(1e+03f / fConst0));
+		fConst4 = 1.0f - fConst3;
+		fConst5 = 0.9993265f * fConst0;
+		fConst6 = 1.0006735f * fConst0;
+	}
+	
+	virtual void instanceResetUserInterface() {
+		fHslider0 = FAUSTFLOAT(0.999f);
+		fHslider1 = FAUSTFLOAT(127.0f);
+		fHslider2 = FAUSTFLOAT(0.95f);
+		fButton0 = FAUSTFLOAT(0.0f);
+		fHslider3 = FAUSTFLOAT(0.95f);
+		fHslider4 = FAUSTFLOAT(2e+02f);
+		fHslider5 = FAUSTFLOAT(0.8f);
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			iRec2[l0] = 0;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fVec0[l1] = 0.0f;
+		}
+		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
+			iRec3[l2] = 0;
+		}
+		for (int l3 = 0; l3 < 2; l3 = l3 + 1) {
+			fRec4[l3] = 0.0f;
+		}
+		for (int l4 = 0; l4 < 2; l4 = l4 + 1) {
+			iRec5[l4] = 0;
+		}
+		IOTA0 = 0;
+		for (int l5 = 0; l5 < 2048; l5 = l5 + 1) {
+			fVec1[l5] = 0.0f;
+		}
+		for (int l6 = 0; l6 < 2; l6 = l6 + 1) {
+			fRec6[l6] = 0.0f;
+		}
+		for (int l7 = 0; l7 < 2; l7 = l7 + 1) {
+			fRec0[l7] = 0.0f;
+		}
+		for (int l8 = 0; l8 < 2; l8 = l8 + 1) {
+			fRec7[l8] = 0.0f;
+		}
+		for (int l9 = 0; l9 < 2; l9 = l9 + 1) {
+			fVec2[l9] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("comb_bug");
+		ui_interface->addHorizontalSlider("comb_res", &fHslider0, FAUSTFLOAT(0.999f), FAUSTFLOAT(-0.999f), FAUSTFLOAT(0.999f), FAUSTFLOAT(0.01f));
+		ui_interface->addHorizontalSlider("env_a", &fHslider2, FAUSTFLOAT(0.95f), FAUSTFLOAT(0.001f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.01f));
+		ui_interface->addHorizontalSlider("env_r", &fHslider3, FAUSTFLOAT(0.95f), FAUSTFLOAT(0.001f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.01f));
+		ui_interface->addHorizontalSlider("freq", &fHslider4, FAUSTFLOAT(2e+02f), FAUSTFLOAT(2e+02f), FAUSTFLOAT(8e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->addHorizontalSlider("gain", &fHslider5, FAUSTFLOAT(0.8f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.01f));
+		ui_interface->addButton("gate", &fButton0);
+		ui_interface->addHorizontalSlider("vitesse", &fHslider1, FAUSTFLOAT(127.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(127.0f), FAUSTFLOAT(1.0f));
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		float fSlow0 = float(fHslider0);
+		float fSlow1 = 3.6666243e-12f * float(fHslider1);
+		float fSlow2 = std::max<float>(1.0f, fConst0 * float(fHslider2));
+		float fSlow3 = 1.0f / fSlow2;
+		float fSlow4 = float(fButton0);
+		float fSlow5 = 1.0f / std::max<float>(1.0f, fConst0 * float(fHslider3));
+		int iSlow6 = fSlow4 == 0.0f;
+		float fSlow7 = fConst4 * float(fHslider4);
+		float fSlow8 = 0.001f * float(fHslider5);
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			iRec2[0] = 1103515245 * iRec2[1] + 12345;
+			fVec0[0] = fSlow4;
+			iRec3[0] = (iRec3[1] + (iRec3[1] > 0)) * (fSlow4 <= fVec0[1]) + (fSlow4 > fVec0[1]);
+			float fTemp0 = float(iRec3[0]);
+			fRec4[0] = fSlow4 + fRec4[1] * float(fVec0[1] >= fSlow4);
+			iRec5[0] = iSlow6 * (iRec5[1] + 1);
+			float fTemp1 = fSlow0 * fRec0[1] + fSlow1 * float(iRec2[0]) * std::max<float>(0.0f, std::min<float>(fSlow3 * fTemp0, fSlow5 * (fSlow2 - fTemp0) + 1.0f)) * std::max<float>(0.0f, std::min<float>(fConst1 * fRec4[0], 1.0f) - fConst2 * float(iRec5[0]));
+			fVec1[IOTA0 & 2047] = fTemp1;
+			fRec6[0] = fSlow7 + fConst3 * fRec6[1];
+			float fTemp2 = fConst0 / fRec6[0];
+			float fTemp3 = fTemp2 - std::floor(fTemp2);
+			float fTemp4 = ((fTemp3 <= 0.06f) ? fConst6 / fRec6[0] : ((fTemp3 >= 0.95f) ? fConst5 / fRec6[0] : fTemp2));
+			float fTemp5 = fTemp4 + -1.0f;
+			int iTemp6 = int(fTemp5);
+			float fTemp7 = std::floor(fTemp5);
+			fRec0[0] = fVec1[(IOTA0 - std::min<int>(1025, std::max<int>(0, iTemp6))) & 2047] * (fTemp7 + (2.0f - fTemp4)) + (fTemp4 + (-1.0f - fTemp7)) * fVec1[(IOTA0 - std::min<int>(1025, std::max<int>(0, iTemp6 + 1))) & 2047];
+			float fRec1 = fTemp1;
+			fRec7[0] = fSlow8 + 0.999f * fRec7[1];
+			fVec2[0] = fRec1 * fRec7[0];
+			float fTemp8 = 0.3f * fVec2[1];
+			output0[i0] = FAUSTFLOAT(fTemp8);
+			output1[i0] = FAUSTFLOAT(fTemp8);
+			iRec2[1] = iRec2[0];
+			fVec0[1] = fVec0[0];
+			iRec3[1] = iRec3[0];
+			fRec4[1] = fRec4[0];
+			iRec5[1] = iRec5[0];
+			IOTA0 = IOTA0 + 1;
+			fRec6[1] = fRec6[0];
+			fRec0[1] = fRec0[0];
+			fRec7[1] = fRec7[0];
+			fVec2[1] = fVec2[0];
+		}
+	}
+
+};
+
+#endif

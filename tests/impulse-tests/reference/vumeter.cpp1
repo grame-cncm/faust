@@ -1,0 +1,153 @@
+/* ------------------------------------------------------------
+author: "Grame"
+copyright: "(c)GRAME 2006"
+license: "BSD"
+name: "vumeter"
+version: "1.0"
+Code generated with Faust 2.75.2 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int fSampleRate;
+	float fConst0;
+	float fRec0[2];
+	FAUSTFLOAT fHbargraph0;
+	float fRec1[2];
+	FAUSTFLOAT fHbargraph1;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "vumeter.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "vumeter");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() {
+		return 2;
+	}
+	virtual int getNumOutputs() {
+		return 2;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = 1.0f / std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			fRec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fRec1[l1] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("vumeter");
+		ui_interface->declare(&fHbargraph0, "2", "");
+		ui_interface->declare(&fHbargraph0, "unit", "dB");
+		ui_interface->addHorizontalBargraph("hbargraph0", &fHbargraph0, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->declare(&fHbargraph1, "2", "");
+		ui_interface->declare(&fHbargraph1, "unit", "dB");
+		ui_interface->addHorizontalBargraph("hbargraph1", &fHbargraph1, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* input1 = inputs[1];
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			float fTemp0 = float(input0[i0]);
+			fRec0[0] = std::max<float>(fRec0[1] - fConst0, std::fabs(fTemp0));
+			fHbargraph0 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec0[0])));
+			output0[i0] = FAUSTFLOAT(fTemp0);
+			float fTemp1 = float(input1[i0]);
+			fRec1[0] = std::max<float>(fRec1[1] - fConst0, std::fabs(fTemp1));
+			fHbargraph1 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec1[0])));
+			output1[i0] = FAUSTFLOAT(fTemp1);
+			fRec0[1] = fRec0[0];
+			fRec1[1] = fRec1[0];
+		}
+	}
+
+};
+
+#endif

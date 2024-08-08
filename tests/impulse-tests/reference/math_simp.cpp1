@@ -1,0 +1,187 @@
+/* ------------------------------------------------------------
+name: "math_simp"
+Code generated with Faust 2.75.2 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	float fVec0[11];
+	int fSampleRate;
+	float fConst0;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "math_simp.dsp");
+		m->declare("name", "math_simp");
+	}
+
+	virtual int getNumInputs() {
+		return 3;
+	}
+	virtual int getNumOutputs() {
+		return 32;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 11; l0 = l0 + 1) {
+			fVec0[l0] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("math_simp");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* input1 = inputs[1];
+		FAUSTFLOAT* input2 = inputs[2];
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		FAUSTFLOAT* output2 = outputs[2];
+		FAUSTFLOAT* output3 = outputs[3];
+		FAUSTFLOAT* output4 = outputs[4];
+		FAUSTFLOAT* output5 = outputs[5];
+		FAUSTFLOAT* output6 = outputs[6];
+		FAUSTFLOAT* output7 = outputs[7];
+		FAUSTFLOAT* output8 = outputs[8];
+		FAUSTFLOAT* output9 = outputs[9];
+		FAUSTFLOAT* output10 = outputs[10];
+		FAUSTFLOAT* output11 = outputs[11];
+		FAUSTFLOAT* output12 = outputs[12];
+		FAUSTFLOAT* output13 = outputs[13];
+		FAUSTFLOAT* output14 = outputs[14];
+		FAUSTFLOAT* output15 = outputs[15];
+		FAUSTFLOAT* output16 = outputs[16];
+		FAUSTFLOAT* output17 = outputs[17];
+		FAUSTFLOAT* output18 = outputs[18];
+		FAUSTFLOAT* output19 = outputs[19];
+		FAUSTFLOAT* output20 = outputs[20];
+		FAUSTFLOAT* output21 = outputs[21];
+		FAUSTFLOAT* output22 = outputs[22];
+		FAUSTFLOAT* output23 = outputs[23];
+		FAUSTFLOAT* output24 = outputs[24];
+		FAUSTFLOAT* output25 = outputs[25];
+		FAUSTFLOAT* output26 = outputs[26];
+		FAUSTFLOAT* output27 = outputs[27];
+		FAUSTFLOAT* output28 = outputs[28];
+		FAUSTFLOAT* output29 = outputs[29];
+		FAUSTFLOAT* output30 = outputs[30];
+		FAUSTFLOAT* output31 = outputs[31];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			float fTemp0 = float(input0[i0]);
+			fVec0[0] = fTemp0;
+			output0[i0] = FAUSTFLOAT(-fTemp0);
+			output1[i0] = FAUSTFLOAT(-fTemp0);
+			output2[i0] = FAUSTFLOAT(-fTemp0);
+			output3[i0] = FAUSTFLOAT(fTemp0);
+			float fTemp1 = float(input1[i0]);
+			float fTemp2 = fTemp0 - fTemp1;
+			output4[i0] = FAUSTFLOAT(fTemp2);
+			float fTemp3 = fTemp1 - fTemp0;
+			output5[i0] = FAUSTFLOAT(fTemp3);
+			output6[i0] = FAUSTFLOAT(fTemp2);
+			float fTemp4 = fTemp0 - (fTemp1 + float(input2[i0]));
+			output7[i0] = FAUSTFLOAT(fTemp4);
+			output8[i0] = FAUSTFLOAT(fTemp4);
+			output9[i0] = FAUSTFLOAT(3.0f * fTemp3);
+			output10[i0] = FAUSTFLOAT(fTemp1 + 3.0f * fTemp2 - fTemp0);
+			output11[i0] = FAUSTFLOAT(4.0f * std::fabs(fTemp3));
+			output12[i0] = FAUSTFLOAT(-fConst0);
+			float fTemp5 = fConst0 * fTemp0;
+			output13[i0] = FAUSTFLOAT(-fTemp5);
+			output14[i0] = FAUSTFLOAT(fTemp0);
+			output15[i0] = FAUSTFLOAT(-fTemp0);
+			output16[i0] = FAUSTFLOAT(-fConst0);
+			output17[i0] = FAUSTFLOAT(-fTemp5);
+			output18[i0] = FAUSTFLOAT(fTemp5);
+			output19[i0] = FAUSTFLOAT(-fConst0);
+			output20[i0] = FAUSTFLOAT(-fTemp5);
+			output21[i0] = FAUSTFLOAT(fConst0);
+			float fTemp6 = fTemp0 + fTemp1;
+			output22[i0] = FAUSTFLOAT(-fTemp6);
+			output23[i0] = FAUSTFLOAT(-fTemp6);
+			output24[i0] = FAUSTFLOAT(-fVec0[10]);
+			output25[i0] = FAUSTFLOAT(-fVec0[10]);
+			float fTemp7 = 3.0f * fVec0[1];
+			output26[i0] = FAUSTFLOAT(fTemp7);
+			output27[i0] = FAUSTFLOAT(3.0f * fVec0[2]);
+			output28[i0] = FAUSTFLOAT(fTemp7);
+			output29[i0] = FAUSTFLOAT(4.0f * fVec0[2]);
+			output30[i0] = FAUSTFLOAT(-(fConst0 * fVec0[1]));
+			output31[i0] = FAUSTFLOAT(-(fConst0 * fVec0[2]));
+			for (int j0 = 10; j0 > 0; j0 = j0 - 1) {
+				fVec0[j0] = fVec0[j0 - 1];
+			}
+		}
+	}
+
+};
+
+#endif

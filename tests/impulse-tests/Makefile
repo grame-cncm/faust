@@ -88,10 +88,12 @@ help:
 	@echo " 'reference-signal'       : builds the reference signal files"
 	@echo " 'reference-signal-wn'    : builds the reference signal files without normalisation (FAUST_OPT=FAUST_SIG_NO_NORM)"
 	@echo " 'reference-type'         : builds the reference signal type files"
+	@echo " 'reference-cpp'          : builds the reference C++ files"
 	@echo " 'test-box'               : test box creation intermediate step"
 	@echo " 'test-signal'            : test signal creation intermediate step"
 	@echo " 'test-signal-wn'         : test signal creation intermediate step without normalisation (FAUST_OPT=FAUST_SIG_NO_NORM)"
 	@echo " 'test-type'              : test signal typing intermediate step"
+	@echo " 'test-cpp'               : test C++ generation step"
 	@echo " 'bench'                  : benchmark using faustbench-llvm and faustbench"
 	@echo " 'interp-tracer'          : test using the interp-tracer tool"
 	@echo " 'tools'                  : builds binary tools used by the tests"
@@ -410,20 +412,24 @@ reference:
 	$(MAKE) -f Make.ref
 
 reference-box:
-	cd reference && rm *.box
-	$(MAKE) -f Make.ref reference-box FAUSTOPTIONS="-I dsp"
+	cd reference && rm -f *.box
+	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-box FAUSTOPTIONS="-I dsp"
 	
 reference-signal-wn:
-	cd reference && rm *.sig
+	cd reference && rm -f *.sig
 	export FAUST_OPT=FAUST_SIG_NO_NORM; $(MAKE) -f Make.ref reference-signal FAUSTOPTIONS="-I dsp"
 
 reference-signal:
-	cd reference && rm *.sig
+	cd reference && rm -f *.sig
 	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-signal FAUSTOPTIONS="-I dsp"
 
 reference-type:
-	cd reference && rm *.type
-	$(MAKE) -f Make.ref reference-type FAUSTOPTIONS="-I dsp"
+	cd reference && rm -f *.type
+	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-type FAUSTOPTIONS="-I dsp"
+
+reference-cpp:
+	cd reference && rm -f *.cpp1
+	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-cpp FAUSTOPTIONS="-I dsp"
 
 tools: filesCompare impulsellvm impulseinterp impulseinterp1 
 
@@ -431,10 +437,10 @@ clean:
 	rm -f filesCompare impulsellvm impulseinterp impulseinterp1
 
 #########################################################################
-# Testing Box and Signal creation intermediate steps
+# Testing Box, Signal, Type and C++ creation steps
 
 test-box:
-	cd dsp && ./box-script *.dsp
+	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./box-script *.dsp
 
 test-signal-wn:
 	export FAUST_OPT=FAUST_SIG_NO_NORM; cd dsp && ./sig-script *.dsp
@@ -442,11 +448,11 @@ test-signal-wn:
 test-signal:
 	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./sig-script *.dsp
 
-#########################################################################
-# Testing signal type
+test-cpp:
+	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./cpp-script *.dsp
 
 test-type:
-	cd dsp && ./type-script *.dsp
+	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./type-script *.dsp
 
 #########################################################################
 # Benchmark using faustbench-llvm and faustbench

@@ -1,0 +1,424 @@
+/* ------------------------------------------------------------
+author: "Grame"
+copyright: "(c)GRAME 2006"
+license: "BSD"
+name: "matrix"
+version: "1.0"
+Code generated with Faust 2.75.2 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	FAUSTFLOAT fVslider0;
+	FAUSTFLOAT fVslider1;
+	FAUSTFLOAT fVslider2;
+	FAUSTFLOAT fVslider3;
+	FAUSTFLOAT fVslider4;
+	FAUSTFLOAT fVslider5;
+	FAUSTFLOAT fVslider6;
+	FAUSTFLOAT fVslider7;
+	FAUSTFLOAT fVslider8;
+	FAUSTFLOAT fVslider9;
+	FAUSTFLOAT fVslider10;
+	FAUSTFLOAT fVslider11;
+	FAUSTFLOAT fVslider12;
+	FAUSTFLOAT fVslider13;
+	FAUSTFLOAT fVslider14;
+	FAUSTFLOAT fVslider15;
+	FAUSTFLOAT fVslider16;
+	FAUSTFLOAT fVslider17;
+	FAUSTFLOAT fVslider18;
+	FAUSTFLOAT fVslider19;
+	FAUSTFLOAT fVslider20;
+	FAUSTFLOAT fVslider21;
+	FAUSTFLOAT fVslider22;
+	FAUSTFLOAT fVslider23;
+	FAUSTFLOAT fVslider24;
+	FAUSTFLOAT fVslider25;
+	FAUSTFLOAT fVslider26;
+	FAUSTFLOAT fVslider27;
+	FAUSTFLOAT fVslider28;
+	FAUSTFLOAT fVslider29;
+	FAUSTFLOAT fVslider30;
+	FAUSTFLOAT fVslider31;
+	FAUSTFLOAT fVslider32;
+	FAUSTFLOAT fVslider33;
+	FAUSTFLOAT fVslider34;
+	FAUSTFLOAT fVslider35;
+	FAUSTFLOAT fVslider36;
+	FAUSTFLOAT fVslider37;
+	FAUSTFLOAT fVslider38;
+	FAUSTFLOAT fVslider39;
+	FAUSTFLOAT fVslider40;
+	FAUSTFLOAT fVslider41;
+	FAUSTFLOAT fVslider42;
+	FAUSTFLOAT fVslider43;
+	FAUSTFLOAT fVslider44;
+	FAUSTFLOAT fVslider45;
+	FAUSTFLOAT fVslider46;
+	FAUSTFLOAT fVslider47;
+	FAUSTFLOAT fVslider48;
+	FAUSTFLOAT fVslider49;
+	FAUSTFLOAT fVslider50;
+	FAUSTFLOAT fVslider51;
+	FAUSTFLOAT fVslider52;
+	FAUSTFLOAT fVslider53;
+	FAUSTFLOAT fVslider54;
+	FAUSTFLOAT fVslider55;
+	FAUSTFLOAT fVslider56;
+	FAUSTFLOAT fVslider57;
+	FAUSTFLOAT fVslider58;
+	FAUSTFLOAT fVslider59;
+	FAUSTFLOAT fVslider60;
+	FAUSTFLOAT fVslider61;
+	FAUSTFLOAT fVslider62;
+	FAUSTFLOAT fVslider63;
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "matrix.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "matrix");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() {
+		return 8;
+	}
+	virtual int getNumOutputs() {
+		return 8;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	
+	virtual void instanceResetUserInterface() {
+		fVslider0 = FAUSTFLOAT(-1e+01f);
+		fVslider1 = FAUSTFLOAT(-1e+01f);
+		fVslider2 = FAUSTFLOAT(-1e+01f);
+		fVslider3 = FAUSTFLOAT(-1e+01f);
+		fVslider4 = FAUSTFLOAT(-1e+01f);
+		fVslider5 = FAUSTFLOAT(-1e+01f);
+		fVslider6 = FAUSTFLOAT(-1e+01f);
+		fVslider7 = FAUSTFLOAT(-1e+01f);
+		fVslider8 = FAUSTFLOAT(-1e+01f);
+		fVslider9 = FAUSTFLOAT(-1e+01f);
+		fVslider10 = FAUSTFLOAT(-1e+01f);
+		fVslider11 = FAUSTFLOAT(-1e+01f);
+		fVslider12 = FAUSTFLOAT(-1e+01f);
+		fVslider13 = FAUSTFLOAT(-1e+01f);
+		fVslider14 = FAUSTFLOAT(-1e+01f);
+		fVslider15 = FAUSTFLOAT(-1e+01f);
+		fVslider16 = FAUSTFLOAT(-1e+01f);
+		fVslider17 = FAUSTFLOAT(-1e+01f);
+		fVslider18 = FAUSTFLOAT(-1e+01f);
+		fVslider19 = FAUSTFLOAT(-1e+01f);
+		fVslider20 = FAUSTFLOAT(-1e+01f);
+		fVslider21 = FAUSTFLOAT(-1e+01f);
+		fVslider22 = FAUSTFLOAT(-1e+01f);
+		fVslider23 = FAUSTFLOAT(-1e+01f);
+		fVslider24 = FAUSTFLOAT(-1e+01f);
+		fVslider25 = FAUSTFLOAT(-1e+01f);
+		fVslider26 = FAUSTFLOAT(-1e+01f);
+		fVslider27 = FAUSTFLOAT(-1e+01f);
+		fVslider28 = FAUSTFLOAT(-1e+01f);
+		fVslider29 = FAUSTFLOAT(-1e+01f);
+		fVslider30 = FAUSTFLOAT(-1e+01f);
+		fVslider31 = FAUSTFLOAT(-1e+01f);
+		fVslider32 = FAUSTFLOAT(-1e+01f);
+		fVslider33 = FAUSTFLOAT(-1e+01f);
+		fVslider34 = FAUSTFLOAT(-1e+01f);
+		fVslider35 = FAUSTFLOAT(-1e+01f);
+		fVslider36 = FAUSTFLOAT(-1e+01f);
+		fVslider37 = FAUSTFLOAT(-1e+01f);
+		fVslider38 = FAUSTFLOAT(-1e+01f);
+		fVslider39 = FAUSTFLOAT(-1e+01f);
+		fVslider40 = FAUSTFLOAT(-1e+01f);
+		fVslider41 = FAUSTFLOAT(-1e+01f);
+		fVslider42 = FAUSTFLOAT(-1e+01f);
+		fVslider43 = FAUSTFLOAT(-1e+01f);
+		fVslider44 = FAUSTFLOAT(-1e+01f);
+		fVslider45 = FAUSTFLOAT(-1e+01f);
+		fVslider46 = FAUSTFLOAT(-1e+01f);
+		fVslider47 = FAUSTFLOAT(-1e+01f);
+		fVslider48 = FAUSTFLOAT(-1e+01f);
+		fVslider49 = FAUSTFLOAT(-1e+01f);
+		fVslider50 = FAUSTFLOAT(-1e+01f);
+		fVslider51 = FAUSTFLOAT(-1e+01f);
+		fVslider52 = FAUSTFLOAT(-1e+01f);
+		fVslider53 = FAUSTFLOAT(-1e+01f);
+		fVslider54 = FAUSTFLOAT(-1e+01f);
+		fVslider55 = FAUSTFLOAT(-1e+01f);
+		fVslider56 = FAUSTFLOAT(-1e+01f);
+		fVslider57 = FAUSTFLOAT(-1e+01f);
+		fVslider58 = FAUSTFLOAT(-1e+01f);
+		fVslider59 = FAUSTFLOAT(-1e+01f);
+		fVslider60 = FAUSTFLOAT(-1e+01f);
+		fVslider61 = FAUSTFLOAT(-1e+01f);
+		fVslider62 = FAUSTFLOAT(-1e+01f);
+		fVslider63 = FAUSTFLOAT(-1e+01f);
+	}
+	
+	virtual void instanceClear() {
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openTabBox("Matrix 8 x 8");
+		ui_interface->openHorizontalBox("Output 0");
+		ui_interface->addVerticalSlider("Input 0", &fVslider0, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 1", &fVslider1, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 2", &fVslider2, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 3", &fVslider3, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 4", &fVslider4, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 5", &fVslider5, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 6", &fVslider6, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 7", &fVslider7, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 1");
+		ui_interface->addVerticalSlider("Input 0", &fVslider8, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 1", &fVslider9, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 2", &fVslider10, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 3", &fVslider11, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 4", &fVslider12, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 5", &fVslider13, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 6", &fVslider14, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 7", &fVslider15, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 2");
+		ui_interface->addVerticalSlider("Input 0", &fVslider16, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 1", &fVslider17, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 2", &fVslider18, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 3", &fVslider19, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 4", &fVslider20, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 5", &fVslider21, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 6", &fVslider22, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 7", &fVslider23, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 3");
+		ui_interface->addVerticalSlider("Input 0", &fVslider24, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 1", &fVslider25, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 2", &fVslider26, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 3", &fVslider27, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 4", &fVslider28, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 5", &fVslider29, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 6", &fVslider30, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 7", &fVslider31, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 4");
+		ui_interface->addVerticalSlider("Input 0", &fVslider32, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 1", &fVslider33, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 2", &fVslider34, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 3", &fVslider35, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 4", &fVslider36, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 5", &fVslider37, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 6", &fVslider38, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 7", &fVslider39, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 5");
+		ui_interface->addVerticalSlider("Input 0", &fVslider40, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 1", &fVslider41, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 2", &fVslider42, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 3", &fVslider43, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 4", &fVslider44, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 5", &fVslider45, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 6", &fVslider46, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 7", &fVslider47, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 6");
+		ui_interface->addVerticalSlider("Input 0", &fVslider48, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 1", &fVslider49, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 2", &fVslider50, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 3", &fVslider51, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 4", &fVslider52, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 5", &fVslider53, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 6", &fVslider54, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 7", &fVslider55, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 7");
+		ui_interface->addVerticalSlider("Input 0", &fVslider56, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 1", &fVslider57, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 2", &fVslider58, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 3", &fVslider59, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 4", &fVslider60, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 5", &fVslider61, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 6", &fVslider62, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("Input 7", &fVslider63, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* input1 = inputs[1];
+		FAUSTFLOAT* input2 = inputs[2];
+		FAUSTFLOAT* input3 = inputs[3];
+		FAUSTFLOAT* input4 = inputs[4];
+		FAUSTFLOAT* input5 = inputs[5];
+		FAUSTFLOAT* input6 = inputs[6];
+		FAUSTFLOAT* input7 = inputs[7];
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		FAUSTFLOAT* output2 = outputs[2];
+		FAUSTFLOAT* output3 = outputs[3];
+		FAUSTFLOAT* output4 = outputs[4];
+		FAUSTFLOAT* output5 = outputs[5];
+		FAUSTFLOAT* output6 = outputs[6];
+		FAUSTFLOAT* output7 = outputs[7];
+		float fSlow0 = std::pow(1e+01f, 0.05f * float(fVslider0));
+		float fSlow1 = std::pow(1e+01f, 0.05f * float(fVslider1));
+		float fSlow2 = std::pow(1e+01f, 0.05f * float(fVslider2));
+		float fSlow3 = std::pow(1e+01f, 0.05f * float(fVslider3));
+		float fSlow4 = std::pow(1e+01f, 0.05f * float(fVslider4));
+		float fSlow5 = std::pow(1e+01f, 0.05f * float(fVslider5));
+		float fSlow6 = std::pow(1e+01f, 0.05f * float(fVslider6));
+		float fSlow7 = std::pow(1e+01f, 0.05f * float(fVslider7));
+		float fSlow8 = std::pow(1e+01f, 0.05f * float(fVslider8));
+		float fSlow9 = std::pow(1e+01f, 0.05f * float(fVslider9));
+		float fSlow10 = std::pow(1e+01f, 0.05f * float(fVslider10));
+		float fSlow11 = std::pow(1e+01f, 0.05f * float(fVslider11));
+		float fSlow12 = std::pow(1e+01f, 0.05f * float(fVslider12));
+		float fSlow13 = std::pow(1e+01f, 0.05f * float(fVslider13));
+		float fSlow14 = std::pow(1e+01f, 0.05f * float(fVslider14));
+		float fSlow15 = std::pow(1e+01f, 0.05f * float(fVslider15));
+		float fSlow16 = std::pow(1e+01f, 0.05f * float(fVslider16));
+		float fSlow17 = std::pow(1e+01f, 0.05f * float(fVslider17));
+		float fSlow18 = std::pow(1e+01f, 0.05f * float(fVslider18));
+		float fSlow19 = std::pow(1e+01f, 0.05f * float(fVslider19));
+		float fSlow20 = std::pow(1e+01f, 0.05f * float(fVslider20));
+		float fSlow21 = std::pow(1e+01f, 0.05f * float(fVslider21));
+		float fSlow22 = std::pow(1e+01f, 0.05f * float(fVslider22));
+		float fSlow23 = std::pow(1e+01f, 0.05f * float(fVslider23));
+		float fSlow24 = std::pow(1e+01f, 0.05f * float(fVslider24));
+		float fSlow25 = std::pow(1e+01f, 0.05f * float(fVslider25));
+		float fSlow26 = std::pow(1e+01f, 0.05f * float(fVslider26));
+		float fSlow27 = std::pow(1e+01f, 0.05f * float(fVslider27));
+		float fSlow28 = std::pow(1e+01f, 0.05f * float(fVslider28));
+		float fSlow29 = std::pow(1e+01f, 0.05f * float(fVslider29));
+		float fSlow30 = std::pow(1e+01f, 0.05f * float(fVslider30));
+		float fSlow31 = std::pow(1e+01f, 0.05f * float(fVslider31));
+		float fSlow32 = std::pow(1e+01f, 0.05f * float(fVslider32));
+		float fSlow33 = std::pow(1e+01f, 0.05f * float(fVslider33));
+		float fSlow34 = std::pow(1e+01f, 0.05f * float(fVslider34));
+		float fSlow35 = std::pow(1e+01f, 0.05f * float(fVslider35));
+		float fSlow36 = std::pow(1e+01f, 0.05f * float(fVslider36));
+		float fSlow37 = std::pow(1e+01f, 0.05f * float(fVslider37));
+		float fSlow38 = std::pow(1e+01f, 0.05f * float(fVslider38));
+		float fSlow39 = std::pow(1e+01f, 0.05f * float(fVslider39));
+		float fSlow40 = std::pow(1e+01f, 0.05f * float(fVslider40));
+		float fSlow41 = std::pow(1e+01f, 0.05f * float(fVslider41));
+		float fSlow42 = std::pow(1e+01f, 0.05f * float(fVslider42));
+		float fSlow43 = std::pow(1e+01f, 0.05f * float(fVslider43));
+		float fSlow44 = std::pow(1e+01f, 0.05f * float(fVslider44));
+		float fSlow45 = std::pow(1e+01f, 0.05f * float(fVslider45));
+		float fSlow46 = std::pow(1e+01f, 0.05f * float(fVslider46));
+		float fSlow47 = std::pow(1e+01f, 0.05f * float(fVslider47));
+		float fSlow48 = std::pow(1e+01f, 0.05f * float(fVslider48));
+		float fSlow49 = std::pow(1e+01f, 0.05f * float(fVslider49));
+		float fSlow50 = std::pow(1e+01f, 0.05f * float(fVslider50));
+		float fSlow51 = std::pow(1e+01f, 0.05f * float(fVslider51));
+		float fSlow52 = std::pow(1e+01f, 0.05f * float(fVslider52));
+		float fSlow53 = std::pow(1e+01f, 0.05f * float(fVslider53));
+		float fSlow54 = std::pow(1e+01f, 0.05f * float(fVslider54));
+		float fSlow55 = std::pow(1e+01f, 0.05f * float(fVslider55));
+		float fSlow56 = std::pow(1e+01f, 0.05f * float(fVslider56));
+		float fSlow57 = std::pow(1e+01f, 0.05f * float(fVslider57));
+		float fSlow58 = std::pow(1e+01f, 0.05f * float(fVslider58));
+		float fSlow59 = std::pow(1e+01f, 0.05f * float(fVslider59));
+		float fSlow60 = std::pow(1e+01f, 0.05f * float(fVslider60));
+		float fSlow61 = std::pow(1e+01f, 0.05f * float(fVslider61));
+		float fSlow62 = std::pow(1e+01f, 0.05f * float(fVslider62));
+		float fSlow63 = std::pow(1e+01f, 0.05f * float(fVslider63));
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			float fTemp0 = float(input0[i0]);
+			float fTemp1 = float(input1[i0]);
+			float fTemp2 = float(input2[i0]);
+			float fTemp3 = float(input3[i0]);
+			float fTemp4 = float(input4[i0]);
+			float fTemp5 = float(input5[i0]);
+			float fTemp6 = float(input6[i0]);
+			float fTemp7 = float(input7[i0]);
+			output0[i0] = FAUSTFLOAT(fSlow0 * fTemp0 + fSlow1 * fTemp1 + fSlow2 * fTemp2 + fSlow3 * fTemp3 + fSlow4 * fTemp4 + fSlow5 * fTemp5 + fSlow6 * fTemp6 + fSlow7 * fTemp7);
+			output1[i0] = FAUSTFLOAT(fSlow8 * fTemp0 + fSlow9 * fTemp1 + fSlow10 * fTemp2 + fSlow11 * fTemp3 + fSlow12 * fTemp4 + fSlow13 * fTemp5 + fSlow14 * fTemp6 + fSlow15 * fTemp7);
+			output2[i0] = FAUSTFLOAT(fSlow16 * fTemp0 + fSlow17 * fTemp1 + fSlow18 * fTemp2 + fSlow19 * fTemp3 + fSlow20 * fTemp4 + fSlow21 * fTemp5 + fSlow22 * fTemp6 + fSlow23 * fTemp7);
+			output3[i0] = FAUSTFLOAT(fSlow24 * fTemp0 + fSlow25 * fTemp1 + fSlow26 * fTemp2 + fSlow27 * fTemp3 + fSlow28 * fTemp4 + fSlow29 * fTemp5 + fSlow30 * fTemp6 + fSlow31 * fTemp7);
+			output4[i0] = FAUSTFLOAT(fSlow32 * fTemp0 + fSlow33 * fTemp1 + fSlow34 * fTemp2 + fSlow35 * fTemp3 + fSlow36 * fTemp4 + fSlow37 * fTemp5 + fSlow38 * fTemp6 + fSlow39 * fTemp7);
+			output5[i0] = FAUSTFLOAT(fSlow40 * fTemp0 + fSlow41 * fTemp1 + fSlow42 * fTemp2 + fSlow43 * fTemp3 + fSlow44 * fTemp4 + fSlow45 * fTemp5 + fSlow46 * fTemp6 + fSlow47 * fTemp7);
+			output6[i0] = FAUSTFLOAT(fSlow48 * fTemp0 + fSlow49 * fTemp1 + fSlow50 * fTemp2 + fSlow51 * fTemp3 + fSlow52 * fTemp4 + fSlow53 * fTemp5 + fSlow54 * fTemp6 + fSlow55 * fTemp7);
+			output7[i0] = FAUSTFLOAT(fSlow56 * fTemp0 + fSlow57 * fTemp1 + fSlow58 * fTemp2 + fSlow59 * fTemp3 + fSlow60 * fTemp4 + fSlow61 * fTemp5 + fSlow62 * fTemp6 + fSlow63 * fTemp7);
+		}
+	}
+
+};
+
+#endif

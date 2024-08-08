@@ -1,0 +1,531 @@
+/* ------------------------------------------------------------
+name: "priority1"
+Code generated with Faust 2.75.2 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	float fRec0[2];
+	float fRec1[2];
+	float fRec2[2];
+	float fRec3[2];
+	float fRec4[2];
+	float fRec5[2];
+	float fRec6[2];
+	float fRec7[2];
+	float fRec8[2];
+	float fRec9[2];
+	float fRec10[2];
+	float fRec11[2];
+	float fRec12[2];
+	float fRec13[2];
+	float fRec14[2];
+	float fRec15[2];
+	float fRec16[2];
+	float fRec17[2];
+	float fRec18[2];
+	float fRec19[2];
+	float fRec20[2];
+	float fRec21[2];
+	float fRec22[2];
+	float fRec23[2];
+	float fRec24[2];
+	float fRec25[2];
+	float fRec26[2];
+	float fRec27[2];
+	float fRec28[2];
+	float fRec29[2];
+	float fRec30[2];
+	float fRec31[2];
+	float fRec32[2];
+	float fRec33[2];
+	float fRec34[2];
+	float fRec35[2];
+	float fRec36[2];
+	float fRec37[2];
+	float fRec38[2];
+	float fRec39[2];
+	float fRec40[2];
+	float fRec41[2];
+	float fRec42[2];
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "priority1.dsp");
+		m->declare("name", "priority1");
+	}
+
+	virtual int getNumInputs() {
+		return 110;
+	}
+	virtual int getNumOutputs() {
+		return 31;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			fRec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fRec1[l1] = 0.0f;
+		}
+		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
+			fRec2[l2] = 0.0f;
+		}
+		for (int l3 = 0; l3 < 2; l3 = l3 + 1) {
+			fRec3[l3] = 0.0f;
+		}
+		for (int l4 = 0; l4 < 2; l4 = l4 + 1) {
+			fRec4[l4] = 0.0f;
+		}
+		for (int l5 = 0; l5 < 2; l5 = l5 + 1) {
+			fRec5[l5] = 0.0f;
+		}
+		for (int l6 = 0; l6 < 2; l6 = l6 + 1) {
+			fRec6[l6] = 0.0f;
+		}
+		for (int l7 = 0; l7 < 2; l7 = l7 + 1) {
+			fRec7[l7] = 0.0f;
+		}
+		for (int l8 = 0; l8 < 2; l8 = l8 + 1) {
+			fRec8[l8] = 0.0f;
+		}
+		for (int l9 = 0; l9 < 2; l9 = l9 + 1) {
+			fRec9[l9] = 0.0f;
+		}
+		for (int l10 = 0; l10 < 2; l10 = l10 + 1) {
+			fRec10[l10] = 0.0f;
+		}
+		for (int l11 = 0; l11 < 2; l11 = l11 + 1) {
+			fRec11[l11] = 0.0f;
+		}
+		for (int l12 = 0; l12 < 2; l12 = l12 + 1) {
+			fRec12[l12] = 0.0f;
+		}
+		for (int l13 = 0; l13 < 2; l13 = l13 + 1) {
+			fRec13[l13] = 0.0f;
+		}
+		for (int l14 = 0; l14 < 2; l14 = l14 + 1) {
+			fRec14[l14] = 0.0f;
+		}
+		for (int l15 = 0; l15 < 2; l15 = l15 + 1) {
+			fRec15[l15] = 0.0f;
+		}
+		for (int l16 = 0; l16 < 2; l16 = l16 + 1) {
+			fRec16[l16] = 0.0f;
+		}
+		for (int l17 = 0; l17 < 2; l17 = l17 + 1) {
+			fRec17[l17] = 0.0f;
+		}
+		for (int l18 = 0; l18 < 2; l18 = l18 + 1) {
+			fRec18[l18] = 0.0f;
+		}
+		for (int l19 = 0; l19 < 2; l19 = l19 + 1) {
+			fRec19[l19] = 0.0f;
+		}
+		for (int l20 = 0; l20 < 2; l20 = l20 + 1) {
+			fRec20[l20] = 0.0f;
+		}
+		for (int l21 = 0; l21 < 2; l21 = l21 + 1) {
+			fRec21[l21] = 0.0f;
+		}
+		for (int l22 = 0; l22 < 2; l22 = l22 + 1) {
+			fRec22[l22] = 0.0f;
+		}
+		for (int l23 = 0; l23 < 2; l23 = l23 + 1) {
+			fRec23[l23] = 0.0f;
+		}
+		for (int l24 = 0; l24 < 2; l24 = l24 + 1) {
+			fRec24[l24] = 0.0f;
+		}
+		for (int l25 = 0; l25 < 2; l25 = l25 + 1) {
+			fRec25[l25] = 0.0f;
+		}
+		for (int l26 = 0; l26 < 2; l26 = l26 + 1) {
+			fRec26[l26] = 0.0f;
+		}
+		for (int l27 = 0; l27 < 2; l27 = l27 + 1) {
+			fRec27[l27] = 0.0f;
+		}
+		for (int l28 = 0; l28 < 2; l28 = l28 + 1) {
+			fRec28[l28] = 0.0f;
+		}
+		for (int l29 = 0; l29 < 2; l29 = l29 + 1) {
+			fRec29[l29] = 0.0f;
+		}
+		for (int l30 = 0; l30 < 2; l30 = l30 + 1) {
+			fRec30[l30] = 0.0f;
+		}
+		for (int l31 = 0; l31 < 2; l31 = l31 + 1) {
+			fRec31[l31] = 0.0f;
+		}
+		for (int l32 = 0; l32 < 2; l32 = l32 + 1) {
+			fRec32[l32] = 0.0f;
+		}
+		for (int l33 = 0; l33 < 2; l33 = l33 + 1) {
+			fRec33[l33] = 0.0f;
+		}
+		for (int l34 = 0; l34 < 2; l34 = l34 + 1) {
+			fRec34[l34] = 0.0f;
+		}
+		for (int l35 = 0; l35 < 2; l35 = l35 + 1) {
+			fRec35[l35] = 0.0f;
+		}
+		for (int l36 = 0; l36 < 2; l36 = l36 + 1) {
+			fRec36[l36] = 0.0f;
+		}
+		for (int l37 = 0; l37 < 2; l37 = l37 + 1) {
+			fRec37[l37] = 0.0f;
+		}
+		for (int l38 = 0; l38 < 2; l38 = l38 + 1) {
+			fRec38[l38] = 0.0f;
+		}
+		for (int l39 = 0; l39 < 2; l39 = l39 + 1) {
+			fRec39[l39] = 0.0f;
+		}
+		for (int l40 = 0; l40 < 2; l40 = l40 + 1) {
+			fRec40[l40] = 0.0f;
+		}
+		for (int l41 = 0; l41 < 2; l41 = l41 + 1) {
+			fRec41[l41] = 0.0f;
+		}
+		for (int l42 = 0; l42 < 2; l42 = l42 + 1) {
+			fRec42[l42] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("priority1");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* input1 = inputs[1];
+		FAUSTFLOAT* input2 = inputs[2];
+		FAUSTFLOAT* input3 = inputs[3];
+		FAUSTFLOAT* input4 = inputs[4];
+		FAUSTFLOAT* input5 = inputs[5];
+		FAUSTFLOAT* input6 = inputs[6];
+		FAUSTFLOAT* input7 = inputs[7];
+		FAUSTFLOAT* input8 = inputs[8];
+		FAUSTFLOAT* input9 = inputs[9];
+		FAUSTFLOAT* input10 = inputs[10];
+		FAUSTFLOAT* input11 = inputs[11];
+		FAUSTFLOAT* input12 = inputs[12];
+		FAUSTFLOAT* input13 = inputs[13];
+		FAUSTFLOAT* input14 = inputs[14];
+		FAUSTFLOAT* input15 = inputs[15];
+		FAUSTFLOAT* input16 = inputs[16];
+		FAUSTFLOAT* input17 = inputs[17];
+		FAUSTFLOAT* input18 = inputs[18];
+		FAUSTFLOAT* input19 = inputs[19];
+		FAUSTFLOAT* input20 = inputs[20];
+		FAUSTFLOAT* input21 = inputs[21];
+		FAUSTFLOAT* input22 = inputs[22];
+		FAUSTFLOAT* input23 = inputs[23];
+		FAUSTFLOAT* input24 = inputs[24];
+		FAUSTFLOAT* input25 = inputs[25];
+		FAUSTFLOAT* input26 = inputs[26];
+		FAUSTFLOAT* input27 = inputs[27];
+		FAUSTFLOAT* input28 = inputs[28];
+		FAUSTFLOAT* input29 = inputs[29];
+		FAUSTFLOAT* input30 = inputs[30];
+		FAUSTFLOAT* input31 = inputs[31];
+		FAUSTFLOAT* input32 = inputs[32];
+		FAUSTFLOAT* input33 = inputs[33];
+		FAUSTFLOAT* input34 = inputs[34];
+		FAUSTFLOAT* input35 = inputs[35];
+		FAUSTFLOAT* input36 = inputs[36];
+		FAUSTFLOAT* input37 = inputs[37];
+		FAUSTFLOAT* input38 = inputs[38];
+		FAUSTFLOAT* input39 = inputs[39];
+		FAUSTFLOAT* input40 = inputs[40];
+		FAUSTFLOAT* input41 = inputs[41];
+		FAUSTFLOAT* input42 = inputs[42];
+		FAUSTFLOAT* input43 = inputs[43];
+		FAUSTFLOAT* input44 = inputs[44];
+		FAUSTFLOAT* input45 = inputs[45];
+		FAUSTFLOAT* input46 = inputs[46];
+		FAUSTFLOAT* input47 = inputs[47];
+		FAUSTFLOAT* input48 = inputs[48];
+		FAUSTFLOAT* input49 = inputs[49];
+		FAUSTFLOAT* input50 = inputs[50];
+		FAUSTFLOAT* input51 = inputs[51];
+		FAUSTFLOAT* input52 = inputs[52];
+		FAUSTFLOAT* input53 = inputs[53];
+		FAUSTFLOAT* input54 = inputs[54];
+		FAUSTFLOAT* input55 = inputs[55];
+		FAUSTFLOAT* input56 = inputs[56];
+		FAUSTFLOAT* input57 = inputs[57];
+		FAUSTFLOAT* input58 = inputs[58];
+		FAUSTFLOAT* input59 = inputs[59];
+		FAUSTFLOAT* input60 = inputs[60];
+		FAUSTFLOAT* input61 = inputs[61];
+		FAUSTFLOAT* input62 = inputs[62];
+		FAUSTFLOAT* input63 = inputs[63];
+		FAUSTFLOAT* input64 = inputs[64];
+		FAUSTFLOAT* input65 = inputs[65];
+		FAUSTFLOAT* input66 = inputs[66];
+		FAUSTFLOAT* input67 = inputs[67];
+		FAUSTFLOAT* input68 = inputs[68];
+		FAUSTFLOAT* input69 = inputs[69];
+		FAUSTFLOAT* input70 = inputs[70];
+		FAUSTFLOAT* input71 = inputs[71];
+		FAUSTFLOAT* input72 = inputs[72];
+		FAUSTFLOAT* input73 = inputs[73];
+		FAUSTFLOAT* input74 = inputs[74];
+		FAUSTFLOAT* input75 = inputs[75];
+		FAUSTFLOAT* input76 = inputs[76];
+		FAUSTFLOAT* input77 = inputs[77];
+		FAUSTFLOAT* input78 = inputs[78];
+		FAUSTFLOAT* input79 = inputs[79];
+		FAUSTFLOAT* input80 = inputs[80];
+		FAUSTFLOAT* input81 = inputs[81];
+		FAUSTFLOAT* input82 = inputs[82];
+		FAUSTFLOAT* input83 = inputs[83];
+		FAUSTFLOAT* input84 = inputs[84];
+		FAUSTFLOAT* input85 = inputs[85];
+		FAUSTFLOAT* input86 = inputs[86];
+		FAUSTFLOAT* input87 = inputs[87];
+		FAUSTFLOAT* input88 = inputs[88];
+		FAUSTFLOAT* input89 = inputs[89];
+		FAUSTFLOAT* input90 = inputs[90];
+		FAUSTFLOAT* input91 = inputs[91];
+		FAUSTFLOAT* input92 = inputs[92];
+		FAUSTFLOAT* input93 = inputs[93];
+		FAUSTFLOAT* input94 = inputs[94];
+		FAUSTFLOAT* input95 = inputs[95];
+		FAUSTFLOAT* input96 = inputs[96];
+		FAUSTFLOAT* input97 = inputs[97];
+		FAUSTFLOAT* input98 = inputs[98];
+		FAUSTFLOAT* input99 = inputs[99];
+		FAUSTFLOAT* input100 = inputs[100];
+		FAUSTFLOAT* input101 = inputs[101];
+		FAUSTFLOAT* input102 = inputs[102];
+		FAUSTFLOAT* input103 = inputs[103];
+		FAUSTFLOAT* input104 = inputs[104];
+		FAUSTFLOAT* input105 = inputs[105];
+		FAUSTFLOAT* input106 = inputs[106];
+		FAUSTFLOAT* input107 = inputs[107];
+		FAUSTFLOAT* input108 = inputs[108];
+		FAUSTFLOAT* input109 = inputs[109];
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		FAUSTFLOAT* output2 = outputs[2];
+		FAUSTFLOAT* output3 = outputs[3];
+		FAUSTFLOAT* output4 = outputs[4];
+		FAUSTFLOAT* output5 = outputs[5];
+		FAUSTFLOAT* output6 = outputs[6];
+		FAUSTFLOAT* output7 = outputs[7];
+		FAUSTFLOAT* output8 = outputs[8];
+		FAUSTFLOAT* output9 = outputs[9];
+		FAUSTFLOAT* output10 = outputs[10];
+		FAUSTFLOAT* output11 = outputs[11];
+		FAUSTFLOAT* output12 = outputs[12];
+		FAUSTFLOAT* output13 = outputs[13];
+		FAUSTFLOAT* output14 = outputs[14];
+		FAUSTFLOAT* output15 = outputs[15];
+		FAUSTFLOAT* output16 = outputs[16];
+		FAUSTFLOAT* output17 = outputs[17];
+		FAUSTFLOAT* output18 = outputs[18];
+		FAUSTFLOAT* output19 = outputs[19];
+		FAUSTFLOAT* output20 = outputs[20];
+		FAUSTFLOAT* output21 = outputs[21];
+		FAUSTFLOAT* output22 = outputs[22];
+		FAUSTFLOAT* output23 = outputs[23];
+		FAUSTFLOAT* output24 = outputs[24];
+		FAUSTFLOAT* output25 = outputs[25];
+		FAUSTFLOAT* output26 = outputs[26];
+		FAUSTFLOAT* output27 = outputs[27];
+		FAUSTFLOAT* output28 = outputs[28];
+		FAUSTFLOAT* output29 = outputs[29];
+		FAUSTFLOAT* output30 = outputs[30];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			fRec0[0] = 1.05f * float(input0[i0]) + 0.9f * fRec0[1];
+			fRec1[0] = 1.05f * float(input1[i0]) + 0.9f * fRec1[1];
+			fRec2[0] = 1.05f * float(input2[i0]) + 0.9f * fRec2[1];
+			output0[i0] = FAUSTFLOAT(fRec0[0] * fRec1[0] * fRec2[0]);
+			fRec3[0] = 1.05f * float(input3[i0]) + 0.9f * fRec3[1];
+			fRec4[0] = 1.05f * float(input4[i0]) + 0.9f * fRec4[1];
+			fRec5[0] = 1.05f * float(input5[i0]) + 0.9f * fRec5[1];
+			output1[i0] = FAUSTFLOAT(fRec3[0] * fRec4[0] * fRec5[0]);
+			fRec6[0] = 1.05f * float(input6[i0]) + 0.9f * fRec6[1];
+			fRec7[0] = 1.05f * float(input7[i0]) + 0.9f * fRec7[1];
+			fRec8[0] = 1.05f * float(input8[i0]) + 0.9f * fRec8[1];
+			output2[i0] = FAUSTFLOAT(fRec6[0] * fRec7[0] * fRec8[0]);
+			fRec9[0] = 1.05f * float(input9[i0]) + 0.9f * fRec9[1];
+			fRec10[0] = 1.05f * float(input10[i0]) + 0.9f * fRec10[1];
+			fRec11[0] = 1.05f * float(input11[i0]) + 0.9f * fRec11[1];
+			output3[i0] = FAUSTFLOAT(fRec9[0] * fRec10[0] + fRec11[0]);
+			fRec12[0] = 1.05f * float(input12[i0]) + 0.9f * fRec12[1];
+			fRec13[0] = 1.05f * float(input13[i0]) + 0.9f * fRec13[1];
+			fRec14[0] = 1.05f * float(input14[i0]) + 0.9f * fRec14[1];
+			output4[i0] = FAUSTFLOAT(fRec12[0] * fRec13[0] + fRec14[0]);
+			fRec15[0] = 1.05f * float(input15[i0]) + 0.9f * fRec15[1];
+			fRec16[0] = 1.05f * float(input16[i0]) + 0.9f * fRec16[1];
+			fRec17[0] = 1.05f * float(input17[i0]) + 0.9f * fRec17[1];
+			output5[i0] = FAUSTFLOAT(fRec15[0] * (fRec16[0] + fRec17[0]));
+			fRec18[0] = 0.1f * float(int(3.5f * float(input18[i0])) * int(3.5f * float(input19[i0])) % (int(float(input20[i0])) + 3)) + 0.9f * fRec18[1];
+			output6[i0] = FAUSTFLOAT(fRec18[0]);
+			fRec19[0] = 0.1f * float(int(3.5f * float(input21[i0])) * int(3.5f * float(input22[i0])) % (int(float(input23[i0])) + 3)) + 0.9f * fRec19[1];
+			output7[i0] = FAUSTFLOAT(fRec19[0]);
+			fRec20[0] = 0.1f * float(int(3.5f * float(input24[i0])) * (int(3.5f * float(input25[i0])) % (int(float(input26[i0])) + 3))) + 0.9f * fRec20[1];
+			output8[i0] = FAUSTFLOAT(fRec20[0]);
+			fRec21[0] = 0.1f * float((int(3.5f * float(input27[i0])) << int(3.5f * float(input28[i0]))) >> (int(float(input29[i0])) + 3)) + 0.9f * fRec21[1];
+			output9[i0] = FAUSTFLOAT(fRec21[0]);
+			fRec22[0] = 0.1f * float((int(3.5f * float(input30[i0])) << int(3.5f * float(input31[i0]))) >> (int(float(input32[i0])) + 3)) + 0.9f * fRec22[1];
+			output10[i0] = FAUSTFLOAT(fRec22[0]);
+			fRec23[0] = 0.1f * float(int(3.5f * float(input33[i0])) << (int(3.5f * float(input34[i0])) >> (int(float(input35[i0])) + 3))) + 0.9f * fRec23[1];
+			output11[i0] = FAUSTFLOAT(fRec23[0]);
+			fRec24[0] = 0.1f * float((int(3.5f * float(input36[i0])) << int(3.5f * float(input37[i0]))) <= (int(float(input38[i0])) + 3)) + 0.9f * fRec24[1];
+			output12[i0] = FAUSTFLOAT(fRec24[0]);
+			fRec25[0] = 0.1f * float((int(3.5f * float(input39[i0])) << int(3.5f * float(input40[i0]))) <= (int(float(input41[i0])) + 3)) + 0.9f * fRec25[1];
+			output13[i0] = FAUSTFLOAT(fRec25[0]);
+			fRec26[0] = 0.1f * float(int(3.5f * float(input42[i0])) << (int(3.5f * float(input43[i0])) <= (int(float(input44[i0])) + 3))) + 0.9f * fRec26[1];
+			output14[i0] = FAUSTFLOAT(fRec26[0]);
+			fRec27[0] = 0.1f * float((int(3.5f * float(input45[i0])) < int(3.5f * float(input46[i0]))) <= (int(float(input47[i0])) + 3)) + 0.9f * fRec27[1];
+			output15[i0] = FAUSTFLOAT(fRec27[0]);
+			fRec28[0] = 0.1f * float((int(3.5f * float(input48[i0])) < int(3.5f * float(input49[i0]))) <= (int(float(input50[i0])) + 3)) + 0.9f * fRec28[1];
+			output16[i0] = FAUSTFLOAT(fRec28[0]);
+			fRec29[0] = 0.1f * float(int(3.5f * float(input51[i0])) < (int(3.5f * float(input52[i0])) <= (int(float(input53[i0])) + 3))) + 0.9f * fRec29[1];
+			output17[i0] = FAUSTFLOAT(fRec29[0]);
+			fRec30[0] = 0.1f * float((int(3.5f * float(input54[i0])) == int(3.5f * float(input55[i0]))) != (int(float(input56[i0])) + 3)) + 0.9f * fRec30[1];
+			output18[i0] = FAUSTFLOAT(fRec30[0]);
+			fRec31[0] = 0.1f * float((int(3.5f * float(input57[i0])) == int(3.5f * float(input58[i0]))) != (int(float(input59[i0])) + 3)) + 0.9f * fRec31[1];
+			output19[i0] = FAUSTFLOAT(fRec31[0]);
+			fRec32[0] = 0.1f * float(int(3.5f * float(input60[i0])) == (int(3.5f * float(input61[i0])) != (int(float(input62[i0])) + 3))) + 0.9f * fRec32[1];
+			output20[i0] = FAUSTFLOAT(fRec32[0]);
+			fRec33[0] = 0.1f * float((int(3.5f * float(input63[i0])) & int(3.5f * float(input64[i0]))) | (int(float(input65[i0])) + 3)) + 0.9f * fRec33[1];
+			output21[i0] = FAUSTFLOAT(fRec33[0]);
+			fRec34[0] = 0.1f * float((int(3.5f * float(input66[i0])) & int(3.5f * float(input67[i0]))) ^ int(float(input68[i0])) + 3) + 0.9f * fRec34[1];
+			output22[i0] = FAUSTFLOAT(fRec34[0]);
+			fRec35[0] = 0.1f * float((int(3.5f * float(input69[i0])) & int(3.5f * float(input70[i0]))) | (int(float(input71[i0])) + 3)) + 0.9f * fRec35[1];
+			output23[i0] = FAUSTFLOAT(fRec35[0]);
+			fRec36[0] = 0.1f * float((int(3.5f * float(input72[i0])) & int(3.5f * float(input73[i0]))) ^ int(float(input74[i0])) + 3) + 0.9f * fRec36[1];
+			output24[i0] = FAUSTFLOAT(fRec36[0]);
+			fRec37[0] = 0.1f * float(int(3.5f * float(input75[i0])) & (int(3.5f * float(input76[i0])) | (int(float(input77[i0])) + 3))) + 0.9f * fRec37[1];
+			output25[i0] = FAUSTFLOAT(fRec37[0]);
+			fRec38[0] = 0.1f * float(int(3.5f * float(input78[i0])) & (int(3.5f * float(input79[i0])) ^ int(float(input80[i0])) + 3)) + 0.9f * fRec38[1];
+			output26[i0] = FAUSTFLOAT(fRec38[0]);
+			fRec39[0] = 0.1f * float((int(float(input82[i0])) + int(3.5f * float(input81[i0])) + (3 - int(3.5f * float(input83[i0])))) | (int(float(input84[i0])) + 3)) + 0.9f * fRec39[1];
+			output27[i0] = FAUSTFLOAT(fRec39[0]);
+			fRec40[0] = 0.1f * float((((int(std::fmod(float((int(float(input86[i0])) + 3) * int(3.5f * float(input85[i0]))) / float(int(3.5f * float(input87[i0]))), float(int(float(input88[i0])) + 3))) & int(3.5f * float(input89[i0]))) ^ int(float(input90[i0])) + 3) << int(3.5f * float(input91[i0]))) >> (int(float(input92[i0])) + 3)) + 0.9f * fRec40[1];
+			output28[i0] = FAUSTFLOAT(fRec40[0]);
+			fRec41[0] = 0.1f * float((int(3.5f * float(input93[i0])) <= (int(float(input94[i0])) + 3)) >= ((int(float(input96[i0])) + int(3.5f * float(input95[i0])) + (3 - int(3.5f * float(input97[i0])))) | (int(float(input98[i0])) + 3))) + 0.9f * fRec41[1];
+			output29[i0] = FAUSTFLOAT(fRec41[0]);
+			fRec42[0] = 0.1f * float((int(float(input99[i0])) + int(3.5f * float(input100[i0])) - int(float(input101[i0]))) | ((((int(std::fmod(float((int(float(input103[i0])) + 3) * int(3.5f * float(input102[i0]))) / float(int(3.5f * float(input104[i0]))), float(int(float(input105[i0])) + 3))) & int(3.5f * float(input106[i0]))) ^ int(float(input107[i0])) + 3) << int(3.5f * float(input108[i0]))) >> (int(float(input109[i0])) + 3))) + 0.9f * fRec42[1];
+			output30[i0] = FAUSTFLOAT(fRec42[0]);
+			fRec0[1] = fRec0[0];
+			fRec1[1] = fRec1[0];
+			fRec2[1] = fRec2[0];
+			fRec3[1] = fRec3[0];
+			fRec4[1] = fRec4[0];
+			fRec5[1] = fRec5[0];
+			fRec6[1] = fRec6[0];
+			fRec7[1] = fRec7[0];
+			fRec8[1] = fRec8[0];
+			fRec9[1] = fRec9[0];
+			fRec10[1] = fRec10[0];
+			fRec11[1] = fRec11[0];
+			fRec12[1] = fRec12[0];
+			fRec13[1] = fRec13[0];
+			fRec14[1] = fRec14[0];
+			fRec15[1] = fRec15[0];
+			fRec16[1] = fRec16[0];
+			fRec17[1] = fRec17[0];
+			fRec18[1] = fRec18[0];
+			fRec19[1] = fRec19[0];
+			fRec20[1] = fRec20[0];
+			fRec21[1] = fRec21[0];
+			fRec22[1] = fRec22[0];
+			fRec23[1] = fRec23[0];
+			fRec24[1] = fRec24[0];
+			fRec25[1] = fRec25[0];
+			fRec26[1] = fRec26[0];
+			fRec27[1] = fRec27[0];
+			fRec28[1] = fRec28[0];
+			fRec29[1] = fRec29[0];
+			fRec30[1] = fRec30[0];
+			fRec31[1] = fRec31[0];
+			fRec32[1] = fRec32[0];
+			fRec33[1] = fRec33[0];
+			fRec34[1] = fRec34[0];
+			fRec35[1] = fRec35[0];
+			fRec36[1] = fRec36[0];
+			fRec37[1] = fRec37[0];
+			fRec38[1] = fRec38[0];
+			fRec39[1] = fRec39[0];
+			fRec40[1] = fRec40[0];
+			fRec41[1] = fRec41[0];
+			fRec42[1] = fRec42[0];
+		}
+	}
+
+};
+
+#endif

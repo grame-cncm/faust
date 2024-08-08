@@ -1,0 +1,119 @@
+/* ------------------------------------------------------------
+name: "par_fir_32"
+Code generated with Faust 2.75.2 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int IOTA0;
+	float fVec0[32];
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "par_fir_32.dsp");
+		m->declare("filters.lib/fir:author", "Julius O. Smith III");
+		m->declare("filters.lib/fir:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/fir:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/lowpass0_highpass1", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/name", "Faust Filters Library");
+		m->declare("filters.lib/version", "1.3.0");
+		m->declare("name", "par_fir_32");
+	}
+
+	virtual int getNumInputs() {
+		return 1;
+	}
+	virtual int getNumOutputs() {
+		return 1;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+		IOTA0 = 0;
+		for (int l0 = 0; l0 < 32; l0 = l0 + 1) {
+			fVec0[l0] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("par_fir_32");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* output0 = outputs[0];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			float fTemp0 = float(input0[i0]);
+			fVec0[IOTA0 & 31] = fTemp0;
+			output0[i0] = FAUSTFLOAT(fTemp0 + 0.5f * fVec0[(IOTA0 - 1) & 31] + 0.33333334f * fVec0[(IOTA0 - 2) & 31] + 0.25f * fVec0[(IOTA0 - 3) & 31] + 0.2f * fVec0[(IOTA0 - 4) & 31] + 0.16666667f * fVec0[(IOTA0 - 5) & 31] + 0.14285715f * fVec0[(IOTA0 - 6) & 31] + 0.125f * fVec0[(IOTA0 - 7) & 31] + 0.11111111f * fVec0[(IOTA0 - 8) & 31] + 0.1f * fVec0[(IOTA0 - 9) & 31] + 0.09090909f * fVec0[(IOTA0 - 10) & 31] + 0.083333336f * fVec0[(IOTA0 - 11) & 31] + 0.07692308f * fVec0[(IOTA0 - 12) & 31] + 0.071428575f * fVec0[(IOTA0 - 13) & 31] + 0.06666667f * fVec0[(IOTA0 - 14) & 31] + 0.0625f * fVec0[(IOTA0 - 15) & 31] + 0.05882353f * fVec0[(IOTA0 - 16) & 31] + 0.055555556f * fVec0[(IOTA0 - 17) & 31] + 0.05263158f * fVec0[(IOTA0 - 18) & 31] + 0.05f * fVec0[(IOTA0 - 19) & 31] + 0.04761905f * fVec0[(IOTA0 - 20) & 31] + 0.045454547f * fVec0[(IOTA0 - 21) & 31] + 0.04347826f * fVec0[(IOTA0 - 22) & 31] + 0.041666668f * fVec0[(IOTA0 - 23) & 31] + 0.04f * fVec0[(IOTA0 - 24) & 31] + 0.03846154f * fVec0[(IOTA0 - 25) & 31] + 0.037037037f * fVec0[(IOTA0 - 26) & 31] + 0.035714287f * fVec0[(IOTA0 - 27) & 31] + 0.03448276f * fVec0[(IOTA0 - 28) & 31] + 0.033333335f * fVec0[(IOTA0 - 29) & 31] + 0.032258064f * fVec0[(IOTA0 - 30) & 31] + 0.03125f * fVec0[(IOTA0 - 31) & 31]);
+			IOTA0 = IOTA0 + 1;
+		}
+	}
+
+};
+
+#endif
