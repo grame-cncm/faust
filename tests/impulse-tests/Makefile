@@ -427,6 +427,10 @@ reference-signal:
 reference-type:
 	cd reference && rm -f *.type
 	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-type FAUSTOPTIONS="-I dsp"
+	
+reference-fir:
+	cd reference && rm -f *.fir
+	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-fir FAUSTOPTIONS="-I dsp"
 
 reference-cpp:
 	cd reference && rm -f *.cpp1
@@ -449,11 +453,15 @@ test-signal-wn:
 test-signal:
 	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./sig-script *.dsp
 
+test-type:
+	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./type-script *.dsp
+
+test-fir:
+	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./fir-script *.dsp
+
 test-cpp:
 	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./cpp-script *.dsp
 
-test-type:
-	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./type-script *.dsp
 
 #########################################################################
 # Benchmark using faustbench-llvm and faustbench

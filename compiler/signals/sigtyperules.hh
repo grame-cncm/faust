@@ -36,7 +36,7 @@
  *signal term
  *
  * TypeAnnotation must be called first to annotate a signal or a list of signals, before being able
- *to call getCertifiedType on any subterms. GetCertifiedType will produce an error if a term was not
+ *to call getCertifiedSigType on any subterms. GetCertifiedSigType will produce an error if a term was not
  * previously annotated.
  *
  **/
