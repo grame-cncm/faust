@@ -191,13 +191,14 @@ class LIBFAUST_API CTreeBase {
     }
 };
 
-// Garbageable Tree: all Trees are desallocted at the end of the compilation
+// Garbageable tree: all trees are deallocated at the end of the compilation
 class LIBFAUST_API CTree : public CTreeBase, public virtual Garbageable {
    public:
     CTree(size_t hk, const Node& n, const tvec& br) : CTreeBase(hk, n, br) {}
 };
 
-// Deterministic allocation with successive pointers, all Trees are desallocted using cleanup
+// Deterministic allocation using pointers with successive addresses, all trees are deallocated
+// using cleanup.
 class LIBFAUST_API CDTree : public CTreeBase {
    private:
     static const int         kBlockSize = 1024;
@@ -211,7 +212,7 @@ class LIBFAUST_API CDTree : public CTreeBase {
 
     void* operator new(size_t size)
     {
-        // Allocate a new block and fill the table with consecutive pointers
+        // Allocate a new block and fill the table with successive addresses
         if (gSerialCounter % kBlockSize == 0) {
             Tree new_block = nullptr;
             // Possibly try several times...
@@ -235,39 +236,39 @@ class LIBFAUST_API CDTree : public CTreeBase {
 };
 
 //---------------------------------API---------------------------------------
-
 // To build trees
+
 inline Tree tree(const Node& n)
 {
     return CTreeBase::make(n, 0, nullptr);
 }
+
 inline Tree tree(const Node& n, const Tree& a)
 {
-    Tree br[] = {a};
-    return CTreeBase::make(n, 1, br);
+    return CTreeBase::make(n, {a});
 }
+
 inline Tree tree(const Node& n, const Tree& a, const Tree& b)
 {
-    Tree br[] = {a, b};
-    return CTreeBase::make(n, 2, br);
+    return CTreeBase::make(n, {a, b});
 }
+
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c)
 {
-    Tree br[] = {a, b, c};
-    return CTreeBase::make(n, 3, br);
+    return CTreeBase::make(n, {a, b, c});
 }
+
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d)
 {
-    Tree br[] = {a, b, c, d};
-    return CTreeBase::make(n, 4, br);
+    return CTreeBase::make(n, {a, b, c, d});
 }
 
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d,
                  const Tree& e)
 {
-    Tree br[] = {a, b, c, d, e};
-    return CTreeBase::make(n, 5, br);
+    return CTreeBase::make(n, {a, b, c, d, e});
 }
+
 inline Tree tree(const Node& n, const tvec& br)
 {
     return CTreeBase::make(n, br);

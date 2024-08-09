@@ -2476,7 +2476,8 @@ string global::printHelp()
             "guaranty "
             "deterministic compilation."
          << endl;
-    sstr << tab << "FAUST_OPT   = FAUST_SIG_NO_NORM         deactivate signal normalisation." << endl;
+    sstr << tab << "FAUST_OPT   = FAUST_SIG_NO_NORM         deactivate signal normalisation."
+         << endl;
 
     sstr << endl << "Example:" << line;
     sstr << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp" << endl;

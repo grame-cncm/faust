@@ -103,7 +103,8 @@ help:
 	@echo " 'quad'    : check quad output with the cpp and c backends in scalar, vec, openmp and sched modes"
 	@echo
 	@echo "NOTE1: when running make with option '-j', you should also use '-i' (see the README.md file)"
-	@echo "NOTE2: An experimental FIR checker can be activated for all backends testing using 'export FAUST_DEBUG=FIR_CHECKER'."
+	@echo "NOTE2: an experimental FIR checker can be activated for all backends testing using 'export FAUST_DEBUG=FIR_CHECKER'."
+	@echo "NOTE3: on macOS ARM, 'make universal' can be used to build a x86_64/arm64 target. Then 'arch -x86_64 /bin/bash' allows to launch targets in x86_64 mode."
 	@echo
 
 #########################################################################

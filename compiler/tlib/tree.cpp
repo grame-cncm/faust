@@ -128,7 +128,7 @@ CTreeBase::~CTreeBase()
     /*
      Remove the tree from the hash table is not needed
      since all pointers are either managed using the Garbageable model
-     or with CDTree "consecutive pointers" allocation model.
+     or with CDTree "successive pointers" allocation model.
      */
 }
 
@@ -150,10 +150,7 @@ size_t CTreeBase::calcTreeHash(const Node& n, const tvec& br)
 
 Tree CTreeBase::make(const Node& n, int ar, Tree* tbl)
 {
-    tvec br(ar);
-    for (int i = 0; i < ar; i++) {
-        br[i] = tbl[i];
-    }
+    vector<Tree> br(tbl, tbl + ar);
     return CTreeBase::make(n, br);
 }
 
@@ -236,6 +233,7 @@ void CDTree::cleanup()
     for (const auto& it : gAllocatedBlocks) {
         delete[] it;
     }
+    gAllocatedBlocks.clear();
 }
 
 // if t has a node of type int, return it, or float, return casted to int, otherwise error
