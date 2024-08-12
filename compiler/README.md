@@ -1,4 +1,4 @@
-% man(1) Version 2.75.2 (28-July-2024) | Faust man page
+% man(1) Version 2.75.3 (12-August-2024) | Faust man page
 
 NAME
 ====
@@ -243,6 +243,20 @@ Information options:
   **-dspdir**     **--dspdir**                    print directory containing the Faust dsp libraries.
 
   **-pathslist**  **--pathslist**                 print the architectures and dsp library paths.
+
+
+Environment variables:
+---------------------------------------
+
+  FAUST_DEBUG = FAUST_LLVM1               print LLVM IR before optimisation.
+
+  FAUST_DEBUG = FAUST_LLVM2               print LLVM IR after optimisation.
+
+  FAUST_DEBUG = FAUST_LLVM_NO_FM          deactivate fast**-math** optimisation in LLVM IR.
+
+  FAUST_DEBUG = FAUST_DTREE               successive Tree pointer allocation to guaranty deterministic compilation.
+
+  FAUST_OPT   = FAUST_SIG_NO_NORM         deactivate signal normalisation.
 
 
 Example:

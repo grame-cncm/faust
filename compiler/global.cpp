@@ -2472,7 +2472,7 @@ string global::printHelp()
          << "FAUST_DEBUG = FAUST_LLVM_NO_FM          deactivate fast-math optimisation in LLVM IR."
          << endl;
     sstr << tab
-         << "FAUST_DEBUG = FAUST_DTREE               consecutive Tree pointer allocation to "
+         << "FAUST_DEBUG = FAUST_DTREE               successive Tree pointer allocation to "
             "guaranty "
             "deterministic compilation."
          << endl;
