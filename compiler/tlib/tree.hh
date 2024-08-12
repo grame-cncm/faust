@@ -201,9 +201,8 @@ class LIBFAUST_API CTree : public CTreeBase, public virtual Garbageable {
 // using cleanup.
 class LIBFAUST_API CDTree : public CTreeBase {
    private:
-    static const int         kBlockSize = 1024;
+    static int               kBlockSize;
     static Tree              gAllocatedBlock;
-    static Tree              gAllocatedTable[kBlockSize];
     static std::vector<Tree> gAllocatedBlocks;
 
    public:
@@ -220,13 +219,9 @@ class LIBFAUST_API CDTree : public CTreeBase {
                 new_block = new CDTree[kBlockSize];
                 gAllocatedBlocks.push_back(new_block);
             } while (new_block < gAllocatedBlock);
-            // Then prepare the pointers
             gAllocatedBlock = new_block;
-            for (int id = 0; id < kBlockSize; id++) {
-                gAllocatedTable[id] = &gAllocatedBlock[id];
-            }
         }
-        return gAllocatedTable[gSerialCounter % kBlockSize];
+        return &gAllocatedBlock[gSerialCounter % kBlockSize];
     }
 
     void operator delete(void* ptr) {}

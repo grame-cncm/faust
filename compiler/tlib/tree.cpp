@@ -102,8 +102,8 @@ bool         CTreeBase::gDetails       = false;
 unsigned int CTreeBase::gVisitTime     = 0;
 size_t       CTreeBase::gSerialCounter = 0;
 
+int               CDTree::kBlockSize      = global::getDebug("FAUST_DTREE_SIZE") ?: 1024;
 Tree              CDTree::gAllocatedBlock = nullptr;
-Tree              CDTree::gAllocatedTable[kBlockSize];
 std::vector<Tree> CDTree::gAllocatedBlocks;
 
 // Constructor : add the tree to the hash table

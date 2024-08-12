@@ -219,8 +219,7 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
              << " bytes" << endl;
         *dst << "Total heap size = " << heap_counter3.fSizeBytes + total_heap_size << " bytes"
              << endl;
-        *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes"
-             << endl;
+        *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes" << endl;
 
         *dst << endl << "======= Variable access in Control ==========" << endl << endl;
         {
@@ -240,7 +239,7 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
                      << endl;
             }
         }
-        
+
         *dst << endl << "======= Variable access in compute control ==========" << endl << endl;
         {
             StructInstVisitor struct_visitor;

@@ -1103,11 +1103,18 @@ bool global::isDebug(const string& debug_val)
     return debug_var == debug_val;
 }
 
+int global::getDebug(const string& debug_var)
+{
+    string debug_val = (getenv(debug_var.c_str())) ? string(getenv(debug_var.c_str())) : "0";
+    return std::stoi(debug_val);
+}
+
 bool global::isOpt(const string& opt_val)
 {
     string opt_var = (getenv("FAUST_OPT")) ? string(getenv("FAUST_OPT")) : "";
     return opt_var == opt_val;
 }
+
 
 /****************************************************************
  Command line tools and arguments
@@ -2464,19 +2471,23 @@ string global::printHelp()
          << endl;
 
     sstr << endl << "Environment variables:" << line;
-    sstr << tab << "FAUST_DEBUG = FAUST_LLVM1               print LLVM IR before optimisation."
+    sstr << tab << "FAUST_DEBUG      = FAUST_LLVM1          print LLVM IR before optimisation."
          << endl;
-    sstr << tab << "FAUST_DEBUG = FAUST_LLVM2               print LLVM IR after optimisation."
-         << endl;
-    sstr << tab
-         << "FAUST_DEBUG = FAUST_LLVM_NO_FM          deactivate fast-math optimisation in LLVM IR."
+    sstr << tab << "FAUST_DEBUG      = FAUST_LLVM2          print LLVM IR after optimisation."
          << endl;
     sstr << tab
-         << "FAUST_DEBUG = FAUST_DTREE               successive Tree pointer allocation to "
+         << "FAUST_DEBUG      = FAUST_LLVM_NO_FM     deactivate fast-math optimisation in LLVM IR."
+         << endl;
+    sstr << tab
+         << "FAUST_DEBUG      = FAUST_DTREE          successive tree pointer allocation to "
             "guaranty "
             "deterministic compilation."
          << endl;
-    sstr << tab << "FAUST_OPT   = FAUST_SIG_NO_NORM         deactivate signal normalisation."
+    sstr << tab
+         << "FAUST_DTREE_SIZE = <num>                to set the size of each array of successive "
+            "tree pointers in FAUST_DTREE mode."
+         << endl;
+    sstr << tab << "FAUST_OPT        = FAUST_SIG_NO_NORM    deactivate signal normalisation."
          << endl;
 
     sstr << endl << "Example:" << line;

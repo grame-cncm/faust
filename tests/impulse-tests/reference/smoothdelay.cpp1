@@ -4,7 +4,7 @@ copyright: "Grame"
 license: "STK-4.3"
 name: "SmoothDelay"
 version: "1.0"
-Code generated with Faust 2.75.2 (https://faust.grame.fr)
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
 Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 ------------------------------------------------------------ */
 
