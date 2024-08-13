@@ -1,0 +1,157 @@
+/* ------------------------------------------------------------
+name: "prefix"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	float pfPerm0;
+	float fVec0[2];
+	float pfPerm1;
+	float fVec1[2];
+	float pfPerm2;
+	float pfPerm3;
+	float fVec2[2];
+	float pfPerm4;
+	float fVec3[2];
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "prefix.dsp");
+		m->declare("name", "prefix");
+	}
+
+	virtual int getNumInputs() {
+		return 2;
+	}
+	virtual int getNumOutputs() {
+		return 5;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		pfPerm0 = 0.5f;
+		pfPerm1 = 0.31f;
+		pfPerm2 = 0.7f;
+		pfPerm3 = 0.32f;
+		pfPerm4 = 0.35f;
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			fVec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fVec1[l1] = 0.0f;
+		}
+		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
+			fVec2[l2] = 0.0f;
+		}
+		for (int l3 = 0; l3 < 2; l3 = l3 + 1) {
+			fVec3[l3] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("prefix");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* input1 = inputs[1];
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		FAUSTFLOAT* output2 = outputs[2];
+		FAUSTFLOAT* output3 = outputs[3];
+		FAUSTFLOAT* output4 = outputs[4];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			float pfTemp0 = pfPerm0;
+			fVec0[0] = 0.8f;
+			pfPerm0 = 0.8f;
+			output0[i0] = FAUSTFLOAT(pfTemp0);
+			float pfTemp1 = pfPerm1;
+			fVec1[0] = float(input0[i0]);
+			pfPerm1 = float(input0[i0]);
+			output1[i0] = FAUSTFLOAT(pfTemp1);
+			float pfTemp2 = pfPerm2;
+			float pfTemp3 = pfPerm3;
+			fVec2[0] = float(input1[i0]);
+			pfPerm3 = float(input1[i0]);
+			pfPerm2 = pfTemp3;
+			output2[i0] = FAUSTFLOAT(pfTemp2);
+			float pfTemp4 = pfPerm4;
+			fVec3[0] = 0.9f;
+			pfPerm4 = 0.9f;
+			output3[i0] = FAUSTFLOAT(pfTemp4);
+			output4[i0] = FAUSTFLOAT(pfTemp4);
+			fVec0[1] = fVec0[0];
+			fVec1[1] = fVec1[0];
+			fVec2[1] = fVec2[0];
+			fVec3[1] = fVec3[0];
+		}
+	}
+
+};
+
+#endif

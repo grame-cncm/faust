@@ -1,0 +1,146 @@
+/* ------------------------------------------------------------
+name: "waveform2"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+const static int imydspSIG0Wave0[7] = {10,20,30,40,50,60,70};
+class mydspSIG0 {
+	
+  private:
+	
+	int imydspSIG0Wave0_idx;
+	
+  public:
+	
+	int getNumInputsmydspSIG0() {
+		return 0;
+	}
+	int getNumOutputsmydspSIG0() {
+		return 1;
+	}
+	
+	void instanceInitmydspSIG0(int sample_rate) {
+		imydspSIG0Wave0_idx = 0;
+	}
+	
+	void fillmydspSIG0(int count, int* table) {
+		for (int i1 = 0; i1 < count; i1 = i1 + 1) {
+			table[i1] = imydspSIG0Wave0[imydspSIG0Wave0_idx];
+			imydspSIG0Wave0_idx = (1 + imydspSIG0Wave0_idx) % 7;
+		}
+	}
+
+};
+
+static mydspSIG0* newmydspSIG0() { return (mydspSIG0*)new mydspSIG0(); }
+static void deletemydspSIG0(mydspSIG0* dsp) { delete dsp; }
+
+static int itbl0mydspSIG0[7];
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int iRec0[2];
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "waveform2.dsp");
+		m->declare("name", "waveform2");
+	}
+
+	virtual int getNumInputs() {
+		return 0;
+	}
+	virtual int getNumOutputs() {
+		return 1;
+	}
+	
+	static void classInit(int sample_rate) {
+		mydspSIG0* sig0 = newmydspSIG0();
+		sig0->instanceInitmydspSIG0(sample_rate);
+		sig0->fillmydspSIG0(7, itbl0mydspSIG0);
+		deletemydspSIG0(sig0);
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			iRec0[l0] = 0;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("waveform2");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* output0 = outputs[0];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			iRec0[0] = (iRec0[1] + 3) % 7;
+			output0[i0] = FAUSTFLOAT(itbl0mydspSIG0[std::min<int>(6, std::max<int>(0, iRec0[0]))]);
+			iRec0[1] = iRec0[0];
+		}
+	}
+
+};
+
+#endif

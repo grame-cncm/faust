@@ -1,0 +1,534 @@
+/* ------------------------------------------------------------
+author: "Grame"
+copyright: "(c)GRAME 2006"
+license: "BSD"
+name: "mixer"
+version: "1.0"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int fSampleRate;
+	float fConst0;
+	FAUSTFLOAT fVslider0;
+	float fRec1[2];
+	FAUSTFLOAT fEntry0;
+	FAUSTFLOAT fCheckbox0;
+	FAUSTFLOAT fVslider1;
+	float fRec3[2];
+	float fRec2[2];
+	FAUSTFLOAT fVbargraph0;
+	FAUSTFLOAT fEntry1;
+	FAUSTFLOAT fCheckbox1;
+	FAUSTFLOAT fVslider2;
+	float fRec5[2];
+	float fRec4[2];
+	FAUSTFLOAT fVbargraph1;
+	FAUSTFLOAT fEntry2;
+	FAUSTFLOAT fCheckbox2;
+	FAUSTFLOAT fVslider3;
+	float fRec7[2];
+	float fRec6[2];
+	FAUSTFLOAT fVbargraph2;
+	FAUSTFLOAT fEntry3;
+	FAUSTFLOAT fCheckbox3;
+	FAUSTFLOAT fVslider4;
+	float fRec9[2];
+	float fRec8[2];
+	FAUSTFLOAT fVbargraph3;
+	FAUSTFLOAT fEntry4;
+	FAUSTFLOAT fCheckbox4;
+	FAUSTFLOAT fVslider5;
+	float fRec11[2];
+	float fRec10[2];
+	FAUSTFLOAT fVbargraph4;
+	FAUSTFLOAT fEntry5;
+	FAUSTFLOAT fCheckbox5;
+	FAUSTFLOAT fVslider6;
+	float fRec13[2];
+	float fRec12[2];
+	FAUSTFLOAT fVbargraph5;
+	FAUSTFLOAT fEntry6;
+	FAUSTFLOAT fCheckbox6;
+	FAUSTFLOAT fVslider7;
+	float fRec15[2];
+	float fRec14[2];
+	FAUSTFLOAT fVbargraph6;
+	FAUSTFLOAT fEntry7;
+	FAUSTFLOAT fCheckbox7;
+	FAUSTFLOAT fVslider8;
+	float fRec17[2];
+	float fRec16[2];
+	FAUSTFLOAT fVbargraph7;
+	float fRec0[2];
+	FAUSTFLOAT fVbargraph8;
+	float fRec18[2];
+	FAUSTFLOAT fVbargraph9;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "mixer.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "mixer");
+		m->declare("panpot.dsp/author", "Grame");
+		m->declare("panpot.dsp/copyright", "(c)GRAME 2006");
+		m->declare("panpot.dsp/license", "BSD");
+		m->declare("panpot.dsp/name", "panpot");
+		m->declare("panpot.dsp/version", "1.0");
+		m->declare("version", "1.0");
+		m->declare("volume.dsp/author", "Grame");
+		m->declare("volume.dsp/copyright", "(c)GRAME 2006");
+		m->declare("volume.dsp/license", "BSD");
+		m->declare("volume.dsp/name", "volume");
+		m->declare("volume.dsp/version", "1.0");
+		m->declare("vumeter.dsp/author", "Grame");
+		m->declare("vumeter.dsp/copyright", "(c)GRAME 2006");
+		m->declare("vumeter.dsp/license", "BSD");
+		m->declare("vumeter.dsp/name", "vumeter");
+		m->declare("vumeter.dsp/version", "1.0");
+	}
+
+	virtual int getNumInputs() {
+		return 8;
+	}
+	virtual int getNumOutputs() {
+		return 2;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = 1.0f / std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+	}
+	
+	virtual void instanceResetUserInterface() {
+		fVslider0 = FAUSTFLOAT(0.0f);
+		fEntry0 = FAUSTFLOAT(0.0f);
+		fCheckbox0 = FAUSTFLOAT(0.0f);
+		fVslider1 = FAUSTFLOAT(0.0f);
+		fEntry1 = FAUSTFLOAT(0.0f);
+		fCheckbox1 = FAUSTFLOAT(0.0f);
+		fVslider2 = FAUSTFLOAT(0.0f);
+		fEntry2 = FAUSTFLOAT(0.0f);
+		fCheckbox2 = FAUSTFLOAT(0.0f);
+		fVslider3 = FAUSTFLOAT(0.0f);
+		fEntry3 = FAUSTFLOAT(0.0f);
+		fCheckbox3 = FAUSTFLOAT(0.0f);
+		fVslider4 = FAUSTFLOAT(0.0f);
+		fEntry4 = FAUSTFLOAT(0.0f);
+		fCheckbox4 = FAUSTFLOAT(0.0f);
+		fVslider5 = FAUSTFLOAT(0.0f);
+		fEntry5 = FAUSTFLOAT(0.0f);
+		fCheckbox5 = FAUSTFLOAT(0.0f);
+		fVslider6 = FAUSTFLOAT(0.0f);
+		fEntry6 = FAUSTFLOAT(0.0f);
+		fCheckbox6 = FAUSTFLOAT(0.0f);
+		fVslider7 = FAUSTFLOAT(0.0f);
+		fEntry7 = FAUSTFLOAT(0.0f);
+		fCheckbox7 = FAUSTFLOAT(0.0f);
+		fVslider8 = FAUSTFLOAT(0.0f);
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			fRec1[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fRec3[l1] = 0.0f;
+		}
+		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
+			fRec2[l2] = 0.0f;
+		}
+		for (int l3 = 0; l3 < 2; l3 = l3 + 1) {
+			fRec5[l3] = 0.0f;
+		}
+		for (int l4 = 0; l4 < 2; l4 = l4 + 1) {
+			fRec4[l4] = 0.0f;
+		}
+		for (int l5 = 0; l5 < 2; l5 = l5 + 1) {
+			fRec7[l5] = 0.0f;
+		}
+		for (int l6 = 0; l6 < 2; l6 = l6 + 1) {
+			fRec6[l6] = 0.0f;
+		}
+		for (int l7 = 0; l7 < 2; l7 = l7 + 1) {
+			fRec9[l7] = 0.0f;
+		}
+		for (int l8 = 0; l8 < 2; l8 = l8 + 1) {
+			fRec8[l8] = 0.0f;
+		}
+		for (int l9 = 0; l9 < 2; l9 = l9 + 1) {
+			fRec11[l9] = 0.0f;
+		}
+		for (int l10 = 0; l10 < 2; l10 = l10 + 1) {
+			fRec10[l10] = 0.0f;
+		}
+		for (int l11 = 0; l11 < 2; l11 = l11 + 1) {
+			fRec13[l11] = 0.0f;
+		}
+		for (int l12 = 0; l12 < 2; l12 = l12 + 1) {
+			fRec12[l12] = 0.0f;
+		}
+		for (int l13 = 0; l13 < 2; l13 = l13 + 1) {
+			fRec15[l13] = 0.0f;
+		}
+		for (int l14 = 0; l14 < 2; l14 = l14 + 1) {
+			fRec14[l14] = 0.0f;
+		}
+		for (int l15 = 0; l15 < 2; l15 = l15 + 1) {
+			fRec17[l15] = 0.0f;
+		}
+		for (int l16 = 0; l16 < 2; l16 = l16 + 1) {
+			fRec16[l16] = 0.0f;
+		}
+		for (int l17 = 0; l17 < 2; l17 = l17 + 1) {
+			fRec0[l17] = 0.0f;
+		}
+		for (int l18 = 0; l18 < 2; l18 = l18 + 1) {
+			fRec18[l18] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openHorizontalBox("mixer");
+		ui_interface->openVerticalBox("Ch 0");
+		ui_interface->declare(&fEntry0, "1", "");
+		ui_interface->declare(&fEntry0, "style", "knob");
+		ui_interface->addNumEntry("pan", &fEntry0, FAUSTFLOAT(0.0f), FAUSTFLOAT(-9e+01f), FAUSTFLOAT(9e+01f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fVslider1, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fVslider1, FAUSTFLOAT(0.0f), FAUSTFLOAT(-7e+01f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->declare(&fVbargraph0, "2", "");
+		ui_interface->declare(&fVbargraph0, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph0", &fVbargraph0, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fCheckbox0);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 1");
+		ui_interface->declare(&fEntry1, "1", "");
+		ui_interface->declare(&fEntry1, "style", "knob");
+		ui_interface->addNumEntry("pan", &fEntry1, FAUSTFLOAT(0.0f), FAUSTFLOAT(-9e+01f), FAUSTFLOAT(9e+01f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fVslider2, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fVslider2, FAUSTFLOAT(0.0f), FAUSTFLOAT(-7e+01f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->declare(&fVbargraph1, "2", "");
+		ui_interface->declare(&fVbargraph1, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph1", &fVbargraph1, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fCheckbox1);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 2");
+		ui_interface->declare(&fEntry2, "1", "");
+		ui_interface->declare(&fEntry2, "style", "knob");
+		ui_interface->addNumEntry("pan", &fEntry2, FAUSTFLOAT(0.0f), FAUSTFLOAT(-9e+01f), FAUSTFLOAT(9e+01f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fVslider3, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fVslider3, FAUSTFLOAT(0.0f), FAUSTFLOAT(-7e+01f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->declare(&fVbargraph2, "2", "");
+		ui_interface->declare(&fVbargraph2, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph2", &fVbargraph2, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fCheckbox2);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 3");
+		ui_interface->declare(&fEntry3, "1", "");
+		ui_interface->declare(&fEntry3, "style", "knob");
+		ui_interface->addNumEntry("pan", &fEntry3, FAUSTFLOAT(0.0f), FAUSTFLOAT(-9e+01f), FAUSTFLOAT(9e+01f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fVslider4, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fVslider4, FAUSTFLOAT(0.0f), FAUSTFLOAT(-7e+01f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->declare(&fVbargraph3, "2", "");
+		ui_interface->declare(&fVbargraph3, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph3", &fVbargraph3, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fCheckbox3);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 4");
+		ui_interface->declare(&fEntry4, "1", "");
+		ui_interface->declare(&fEntry4, "style", "knob");
+		ui_interface->addNumEntry("pan", &fEntry4, FAUSTFLOAT(0.0f), FAUSTFLOAT(-9e+01f), FAUSTFLOAT(9e+01f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fVslider5, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fVslider5, FAUSTFLOAT(0.0f), FAUSTFLOAT(-7e+01f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->declare(&fVbargraph4, "2", "");
+		ui_interface->declare(&fVbargraph4, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph4", &fVbargraph4, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fCheckbox4);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 5");
+		ui_interface->declare(&fEntry5, "1", "");
+		ui_interface->declare(&fEntry5, "style", "knob");
+		ui_interface->addNumEntry("pan", &fEntry5, FAUSTFLOAT(0.0f), FAUSTFLOAT(-9e+01f), FAUSTFLOAT(9e+01f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fVslider6, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fVslider6, FAUSTFLOAT(0.0f), FAUSTFLOAT(-7e+01f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->declare(&fVbargraph5, "2", "");
+		ui_interface->declare(&fVbargraph5, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph5", &fVbargraph5, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fCheckbox5);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 6");
+		ui_interface->declare(&fEntry6, "1", "");
+		ui_interface->declare(&fEntry6, "style", "knob");
+		ui_interface->addNumEntry("pan", &fEntry6, FAUSTFLOAT(0.0f), FAUSTFLOAT(-9e+01f), FAUSTFLOAT(9e+01f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fVslider7, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fVslider7, FAUSTFLOAT(0.0f), FAUSTFLOAT(-7e+01f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->declare(&fVbargraph6, "2", "");
+		ui_interface->declare(&fVbargraph6, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph6", &fVbargraph6, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fCheckbox6);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 7");
+		ui_interface->declare(&fEntry7, "1", "");
+		ui_interface->declare(&fEntry7, "style", "knob");
+		ui_interface->addNumEntry("pan", &fEntry7, FAUSTFLOAT(0.0f), FAUSTFLOAT(-9e+01f), FAUSTFLOAT(9e+01f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fVslider8, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fVslider8, FAUSTFLOAT(0.0f), FAUSTFLOAT(-7e+01f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->declare(&fVbargraph7, "2", "");
+		ui_interface->declare(&fVbargraph7, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph7", &fVbargraph7, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fCheckbox7);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("stereo out");
+		ui_interface->openVerticalBox("L");
+		ui_interface->declare(&fVbargraph8, "2", "");
+		ui_interface->declare(&fVbargraph8, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph8", &fVbargraph8, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("R");
+		ui_interface->declare(&fVbargraph9, "2", "");
+		ui_interface->declare(&fVbargraph9, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph9", &fVbargraph9, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(5.0f));
+		ui_interface->closeBox();
+		ui_interface->declare(&fVslider0, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fVslider0, FAUSTFLOAT(0.0f), FAUSTFLOAT(-7e+01f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* input1 = inputs[1];
+		FAUSTFLOAT* input2 = inputs[2];
+		FAUSTFLOAT* input3 = inputs[3];
+		FAUSTFLOAT* input4 = inputs[4];
+		FAUSTFLOAT* input5 = inputs[5];
+		FAUSTFLOAT* input6 = inputs[6];
+		FAUSTFLOAT* input7 = inputs[7];
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		float fSlow0 = 0.001f * std::pow(1e+01f, 0.05f * float(fVslider0));
+		float fSlow1 = float(fEntry0) + -9e+01f;
+		float fSlow2 = 0.0055555557f * fSlow1;
+		float fSlow3 = std::sqrt(-fSlow2);
+		float fSlow4 = 1.0f - float(fCheckbox0);
+		float fSlow5 = 0.001f * std::pow(1e+01f, 0.05f * float(fVslider1));
+		float fSlow6 = float(fEntry1) + -9e+01f;
+		float fSlow7 = 0.0055555557f * fSlow6;
+		float fSlow8 = std::sqrt(-fSlow7);
+		float fSlow9 = 1.0f - float(fCheckbox1);
+		float fSlow10 = 0.001f * std::pow(1e+01f, 0.05f * float(fVslider2));
+		float fSlow11 = float(fEntry2) + -9e+01f;
+		float fSlow12 = 0.0055555557f * fSlow11;
+		float fSlow13 = std::sqrt(-fSlow12);
+		float fSlow14 = 1.0f - float(fCheckbox2);
+		float fSlow15 = 0.001f * std::pow(1e+01f, 0.05f * float(fVslider3));
+		float fSlow16 = float(fEntry3) + -9e+01f;
+		float fSlow17 = 0.0055555557f * fSlow16;
+		float fSlow18 = std::sqrt(-fSlow17);
+		float fSlow19 = 1.0f - float(fCheckbox3);
+		float fSlow20 = 0.001f * std::pow(1e+01f, 0.05f * float(fVslider4));
+		float fSlow21 = float(fEntry4) + -9e+01f;
+		float fSlow22 = 0.0055555557f * fSlow21;
+		float fSlow23 = std::sqrt(-fSlow22);
+		float fSlow24 = 1.0f - float(fCheckbox4);
+		float fSlow25 = 0.001f * std::pow(1e+01f, 0.05f * float(fVslider5));
+		float fSlow26 = float(fEntry5) + -9e+01f;
+		float fSlow27 = 0.0055555557f * fSlow26;
+		float fSlow28 = std::sqrt(-fSlow27);
+		float fSlow29 = 1.0f - float(fCheckbox5);
+		float fSlow30 = 0.001f * std::pow(1e+01f, 0.05f * float(fVslider6));
+		float fSlow31 = float(fEntry6) + -9e+01f;
+		float fSlow32 = 0.0055555557f * fSlow31;
+		float fSlow33 = std::sqrt(-fSlow32);
+		float fSlow34 = 1.0f - float(fCheckbox6);
+		float fSlow35 = 0.001f * std::pow(1e+01f, 0.05f * float(fVslider7));
+		float fSlow36 = float(fEntry7) + -9e+01f;
+		float fSlow37 = 0.0055555557f * fSlow36;
+		float fSlow38 = std::sqrt(-fSlow37);
+		float fSlow39 = 1.0f - float(fCheckbox7);
+		float fSlow40 = 0.001f * std::pow(1e+01f, 0.05f * float(fVslider8));
+		float fSlow41 = std::sqrt(-0.0055555557f * fSlow1);
+		float fSlow42 = std::sqrt(-0.0055555557f * fSlow6);
+		float fSlow43 = std::sqrt(-0.0055555557f * fSlow11);
+		float fSlow44 = std::sqrt(-0.0055555557f * fSlow16);
+		float fSlow45 = std::sqrt(-0.0055555557f * fSlow21);
+		float fSlow46 = std::sqrt(-0.0055555557f * fSlow26);
+		float fSlow47 = std::sqrt(-0.0055555557f * fSlow31);
+		float fSlow48 = std::sqrt(-0.0055555557f * fSlow36);
+		float fSlow49 = std::sqrt(fSlow2 + 1.0f);
+		float fSlow50 = std::sqrt(fSlow7 + 1.0f);
+		float fSlow51 = std::sqrt(fSlow12 + 1.0f);
+		float fSlow52 = std::sqrt(fSlow17 + 1.0f);
+		float fSlow53 = std::sqrt(fSlow22 + 1.0f);
+		float fSlow54 = std::sqrt(fSlow27 + 1.0f);
+		float fSlow55 = std::sqrt(fSlow32 + 1.0f);
+		float fSlow56 = std::sqrt(fSlow37 + 1.0f);
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			fRec1[0] = fSlow0 + 0.999f * fRec1[1];
+			fRec3[0] = fSlow5 + 0.999f * fRec3[1];
+			float fTemp0 = fSlow4 * float(input0[i0]) * fRec3[0];
+			fRec2[0] = std::max<float>(fRec2[1] - fConst0, std::fabs(fTemp0));
+			fVbargraph0 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec2[0])));
+			float fTemp1 = fTemp0;
+			fRec5[0] = fSlow10 + 0.999f * fRec5[1];
+			float fTemp2 = fSlow9 * float(input1[i0]) * fRec5[0];
+			fRec4[0] = std::max<float>(fRec4[1] - fConst0, std::fabs(fTemp2));
+			fVbargraph1 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec4[0])));
+			float fTemp3 = fTemp2;
+			fRec7[0] = fSlow15 + 0.999f * fRec7[1];
+			float fTemp4 = fSlow14 * float(input2[i0]) * fRec7[0];
+			fRec6[0] = std::max<float>(fRec6[1] - fConst0, std::fabs(fTemp4));
+			fVbargraph2 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec6[0])));
+			float fTemp5 = fTemp4;
+			fRec9[0] = fSlow20 + 0.999f * fRec9[1];
+			float fTemp6 = fSlow19 * float(input3[i0]) * fRec9[0];
+			fRec8[0] = std::max<float>(fRec8[1] - fConst0, std::fabs(fTemp6));
+			fVbargraph3 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec8[0])));
+			float fTemp7 = fTemp6;
+			fRec11[0] = fSlow25 + 0.999f * fRec11[1];
+			float fTemp8 = fSlow24 * float(input4[i0]) * fRec11[0];
+			fRec10[0] = std::max<float>(fRec10[1] - fConst0, std::fabs(fTemp8));
+			fVbargraph4 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec10[0])));
+			float fTemp9 = fTemp8;
+			fRec13[0] = fSlow30 + 0.999f * fRec13[1];
+			float fTemp10 = fSlow29 * float(input5[i0]) * fRec13[0];
+			fRec12[0] = std::max<float>(fRec12[1] - fConst0, std::fabs(fTemp10));
+			fVbargraph5 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec12[0])));
+			float fTemp11 = fTemp10;
+			fRec15[0] = fSlow35 + 0.999f * fRec15[1];
+			float fTemp12 = fSlow34 * float(input6[i0]) * fRec15[0];
+			fRec14[0] = std::max<float>(fRec14[1] - fConst0, std::fabs(fTemp12));
+			fVbargraph6 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec14[0])));
+			float fTemp13 = fTemp12;
+			fRec17[0] = fSlow40 + 0.999f * fRec17[1];
+			float fTemp14 = fSlow39 * float(input7[i0]) * fRec17[0];
+			fRec16[0] = std::max<float>(fRec16[1] - fConst0, std::fabs(fTemp14));
+			fVbargraph7 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec16[0])));
+			float fTemp15 = fTemp14;
+			fRec0[0] = std::max<float>(fRec0[1] - fConst0, std::fabs(fRec1[0] * (fSlow3 * fTemp1 + fSlow8 * fTemp3 + fSlow13 * fTemp5 + fSlow18 * fTemp7 + fSlow23 * fTemp9 + fSlow28 * fTemp11 + fSlow33 * fTemp13 + fSlow38 * fTemp15)));
+			fVbargraph8 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec0[0])));
+			output0[i0] = FAUSTFLOAT(fRec1[0] * (fSlow41 * fTemp1 + fSlow42 * fTemp3 + fSlow43 * fTemp5 + fSlow44 * fTemp7 + fSlow45 * fTemp9 + fSlow46 * fTemp11 + fSlow47 * fTemp13 + fSlow48 * fTemp15));
+			float fTemp16 = fRec1[0] * (fSlow49 * fTemp1 + fSlow50 * fTemp3 + fSlow51 * fTemp5 + fSlow52 * fTemp7 + fSlow53 * fTemp9 + fSlow54 * fTemp11 + fSlow55 * fTemp13 + fSlow56 * fTemp15);
+			fRec18[0] = std::max<float>(fRec18[1] - fConst0, std::fabs(fTemp16));
+			fVbargraph9 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(0.00031622776f, fRec18[0])));
+			output1[i0] = FAUSTFLOAT(fTemp16);
+			fRec1[1] = fRec1[0];
+			fRec3[1] = fRec3[0];
+			fRec2[1] = fRec2[0];
+			fRec5[1] = fRec5[0];
+			fRec4[1] = fRec4[0];
+			fRec7[1] = fRec7[0];
+			fRec6[1] = fRec6[0];
+			fRec9[1] = fRec9[0];
+			fRec8[1] = fRec8[0];
+			fRec11[1] = fRec11[0];
+			fRec10[1] = fRec10[0];
+			fRec13[1] = fRec13[0];
+			fRec12[1] = fRec12[0];
+			fRec15[1] = fRec15[0];
+			fRec14[1] = fRec14[0];
+			fRec17[1] = fRec17[0];
+			fRec16[1] = fRec16[0];
+			fRec0[1] = fRec0[0];
+			fRec18[1] = fRec18[0];
+		}
+	}
+
+};
+
+#endif

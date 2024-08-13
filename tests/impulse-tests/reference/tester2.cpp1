@@ -1,0 +1,244 @@
+/* ------------------------------------------------------------
+author: "Grame"
+copyright: "(c)GRAME 2014"
+license: "BSD"
+name: "StereoAudioTester"
+version: "1.0"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+class mydspSIG0 {
+	
+  private:
+	
+	int iRec2[2];
+	
+  public:
+	
+	int getNumInputsmydspSIG0() {
+		return 0;
+	}
+	int getNumOutputsmydspSIG0() {
+		return 1;
+	}
+	
+	void instanceInitmydspSIG0(int sample_rate) {
+		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
+			iRec2[l2] = 0;
+		}
+	}
+	
+	void fillmydspSIG0(int count, float* table) {
+		for (int i1 = 0; i1 < count; i1 = i1 + 1) {
+			iRec2[0] = iRec2[1] + 1;
+			table[i1] = std::sin(9.58738e-05f * float(iRec2[0] + -1));
+			iRec2[1] = iRec2[0];
+		}
+	}
+
+};
+
+static mydspSIG0* newmydspSIG0() { return (mydspSIG0*)new mydspSIG0(); }
+static void deletemydspSIG0(mydspSIG0* dsp) { delete dsp; }
+
+static float ftbl0mydspSIG0[65537];
+
+class mydsp : public dsp {
+	
+ private:
+	
+	FAUSTFLOAT fHslider0;
+	float fRec0[2];
+	FAUSTFLOAT fHslider1;
+	float fRec1[2];
+	FAUSTFLOAT fHslider2;
+	int fSampleRate;
+	float fConst0;
+	FAUSTFLOAT fHslider3;
+	float fRec3[2];
+	int iRec5[2];
+	float fVec0[3];
+	float fRec4[3];
+	float fRec6[2];
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("copyright", "(c)GRAME 2014");
+		m->declare("filename", "tester2.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "StereoAudioTester");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() {
+		return 0;
+	}
+	virtual int getNumOutputs() {
+		return 2;
+	}
+	
+	static void classInit(int sample_rate) {
+		mydspSIG0* sig0 = newmydspSIG0();
+		sig0->instanceInitmydspSIG0(sample_rate);
+		sig0->fillmydspSIG0(65537, ftbl0mydspSIG0);
+		deletemydspSIG0(sig0);
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = 1.0f / std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+	}
+	
+	virtual void instanceResetUserInterface() {
+		fHslider0 = FAUSTFLOAT(-31.9968f);
+		fHslider1 = FAUSTFLOAT(1.0f);
+		fHslider2 = FAUSTFLOAT(0.0f);
+		fHslider3 = FAUSTFLOAT(3043.0f);
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			fRec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fRec1[l1] = 0.0f;
+		}
+		for (int l3 = 0; l3 < 2; l3 = l3 + 1) {
+			fRec3[l3] = 0.0f;
+		}
+		for (int l4 = 0; l4 < 2; l4 = l4 + 1) {
+			iRec5[l4] = 0;
+		}
+		for (int l5 = 0; l5 < 3; l5 = l5 + 1) {
+			fVec0[l5] = 0.0f;
+		}
+		for (int l6 = 0; l6 < 3; l6 = l6 + 1) {
+			fRec4[l6] = 0.0f;
+		}
+		for (int l7 = 0; l7 < 2; l7 = l7 + 1) {
+			fRec6[l7] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("Stereo Audio Tester");
+		ui_interface->declare(&fHslider3, "1", "");
+		ui_interface->declare(&fHslider3, "scale", "log");
+		ui_interface->declare(&fHslider3, "unit", "Hz");
+		ui_interface->addHorizontalSlider("freq", &fHslider3, FAUSTFLOAT(3043.0f), FAUSTFLOAT(4e+01f), FAUSTFLOAT(2e+04f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fHslider0, "2", "");
+		ui_interface->declare(&fHslider0, "unit", "dB");
+		ui_interface->addHorizontalSlider("volume", &fHslider0, FAUSTFLOAT(-31.9968f), FAUSTFLOAT(-96.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fHslider2, "3", "");
+		ui_interface->declare(&fHslider2, "style", "menu{'white noise':0;'pink noise':1;'sine':2}");
+		ui_interface->addHorizontalSlider("signal", &fHslider2, FAUSTFLOAT(0.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(2.0f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fHslider1, "4", "");
+		ui_interface->declare(&fHslider1, "style", "radio{'none':0;'left':1;'right':2;'both':3}");
+		ui_interface->addHorizontalSlider("channel", &fHslider1, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(3.0f), FAUSTFLOAT(1.0f));
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		float fSlow0 = 0.001f * std::pow(1e+01f, 0.05f * float(fHslider0));
+		int iSlow1 = int(float(fHslider1));
+		float fSlow2 = float((iSlow1 & 1) != 0);
+		int iSlow3 = int(float(fHslider2));
+		int iSlow4 = iSlow3 == 0;
+		int iSlow5 = iSlow3 == 1;
+		float fSlow6 = fConst0 * float(fHslider3);
+		float fSlow7 = float((iSlow1 & 2) != 0);
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			fRec0[0] = fSlow0 + 0.999f * fRec0[1];
+			fRec1[0] = ((fRec1[1] < fSlow2) ? std::min<float>(fRec1[1] + 0.00022675737f, fSlow2) : std::max<float>(fRec1[1] + -0.00022675737f, fSlow2));
+			fRec3[0] = fSlow6 + (fRec3[1] - std::floor(fSlow6 + fRec3[1]));
+			float fTemp0 = 65536.0f * fRec3[0];
+			int iTemp1 = int(fTemp0);
+			float fTemp2 = ftbl0mydspSIG0[std::max<int>(0, std::min<int>(iTemp1, 65536))];
+			iRec5[0] = 1103515245 * iRec5[1] + 12345;
+			float fTemp3 = float(iRec5[0]);
+			fVec0[0] = fTemp3;
+			fRec4[0] = 6.906783e-12f * fVec0[2] + 1.8011608f * fRec4[1] + 2.308528e-11f * fTemp3 - (0.8025774f * fRec4[2] + 2.936265e-11f * fVec0[1]);
+			float fTemp4 = ((iSlow4) ? 4.656613e-10f * fTemp3 : ((iSlow5) ? fRec4[0] : fTemp2 + (fTemp0 - std::floor(fTemp0)) * (ftbl0mydspSIG0[std::max<int>(0, std::min<int>(iTemp1 + 1, 65536))] - fTemp2)));
+			output0[i0] = FAUSTFLOAT(fRec0[0] * fRec1[0] * fTemp4);
+			fRec6[0] = ((fRec6[1] < fSlow7) ? std::min<float>(fRec6[1] + 0.00022675737f, fSlow7) : std::max<float>(fRec6[1] + -0.00022675737f, fSlow7));
+			output1[i0] = FAUSTFLOAT(fRec0[0] * fRec6[0] * fTemp4);
+			fRec0[1] = fRec0[0];
+			fRec1[1] = fRec1[0];
+			fRec3[1] = fRec3[0];
+			iRec5[1] = iRec5[0];
+			fVec0[2] = fVec0[1];
+			fVec0[1] = fVec0[0];
+			fRec4[2] = fRec4[1];
+			fRec4[1] = fRec4[0];
+			fRec6[1] = fRec6[0];
+		}
+	}
+
+};
+
+#endif

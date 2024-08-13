@@ -25,7 +25,7 @@
                         Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
 This file contains several extensions to the tree library :
-    - lists : based on a operations like cons, hd , tl, ...
+    - lists : based on a operations like cons, hd, tl, ...
     - environments : list of associations (key value)
     - property list : used to annotate trees
 
@@ -36,43 +36,43 @@ This file contains several extensions to the tree library :
     List :
     -----
 
-    nil					= predefined empty list
-    cons (x,l)			= create a nex list of head x and tail l
-    hd(cons(x,l)) 		= x,
-    tl (cons(x,l)) 		= l
-    nth(l,i)			= ith element of l (or nil)
-    replace(l,i,e)		= a copy of l where the ith element is e
-    len(l)				= number of elements of l
-    isNil(nil) 			= true (false otherwise)
-    isList(cons(x,l)) 	= true (false otherwise)
-    list(a,b,..)		= cons(a, list(b,...))
+    nil                = predefined empty list
+    cons(x,l)          = create a new list of head x and tail l
+    hd(cons(x,l))      = x,
+    tl(cons(x,l))      = l
+    nth(l,i)           = ith element of l (or nil)
+    replace(l,i,e)     = a copy of l where the ith element is e
+    len(l)             = number of elements of l
+    isNil(nil)         = true (false otherwise)
+    isList(cons(x,l))  = true (false otherwise)
+    list(a,b,..)       = cons(a, list(b,...))
 
-    lmap(f, cons(x,l))	= cons(f(x), lmap(f,l))
-    reverse([a,b,..,z])	= [z,..,b,a]
-    reverseall([a,b,..,z])	= [ra(z),..,ra(b),ra(a)] where ra is reverseall
+    lmap(f, cons(x,l))     = cons(f(x), lmap(f,l))
+    reverse([a,b,..,z])    = [z,..,b,a]
+    reverseall([a,b,..,z]) = [ra(z),..,ra(b),ra(a)] where ra is reverseall
 
     Set :
     -----
     (Sets are implemented as ordered lists of elements without duplication)
 
-    isElement(e,s)			= true if e is an element of set s, false otherwise
-    addElement(e,s)			= s U {e}
-    remElement(e,s)			= s - {e}
-    singleton(e)			= {e}
-    list2set(l)				= convert a list into a set
-    setUnion(s1,s2)			= s1 U s2
-    setIntersection(s1,s2)	= s1 intersection s2
-    setDifference(s1,s2)	= s1 - s2
+    isElement(e,s)         = true if e is an element of set s, false otherwise
+    addElement(e,s)        = s U {e}
+    remElement(e,s)        = s - {e}
+    singleton(e)           = {e}
+    list2set(l)            = convert a list into a set
+    setUnion(s1,s2)        = s1 U s2
+    setIntersection(s1,s2) = s1 intersection s2
+    setDifference(s1,s2)   = s1 - s2
 
     Environment :
     -------------
 
     An 'environment' is a stack of pairs (key x value) used to keep track of lexical bindings
 
-    pushEnv (key, val, env) -> env' create a new environment
-    searchEnv (key,&v,env) -> bool  search for key in env and set v accordingly
+    pushEnv(key, val, env) -> env' create a new environment
+    searchEnv(key,&v,env) -> bool  search for key in env and set v accordingly
 
-    search(k1,&v, push(k2,x,env)) 	= true and v is set to x if k1 == k2
+    search(k1,&v, push(k2,x,env))   = true and v is set to x if k1 == k2
                                     = search(k1,&v,env) if k1 != k2
     Property list :
     ---------------
@@ -81,9 +81,9 @@ This file contains several extensions to the tree library :
     can be used to manage a property list (pl). A property list is a list of pairs
     key x value, with three basic operations :
 
-    setProperty (t, key, val) -> t		add the association (key x val) to the pl of t
-    getProperty (t, key, &val) -> bool	search the pp of t for the value associated to key
-    remProperty (t, key) -> t			remove any association (key x ?) from the pl of t
+    setProperty(t, key, val) -> t       add the association (key x val) to the pl of t
+    getProperty(t, key, &val) -> bool   search the pp of t for the value associated to key
+    remProperty(t, key) -> t            remove any association (key x ?) from the pl of t
 
  Warning :
  ---------
@@ -159,7 +159,7 @@ Tree reverseall(Tree l);
 // operations
 Tree rconcat(Tree l1, Tree l2);
 Tree concat(Tree l1, Tree l2);
-Tree lrange(Tree l, int i, int j);  // de i a j exclu
+Tree lrange(Tree l, int i, int j);  // from i to j excluded
 
 // mapping
 Tree lmap(tfun f, Tree l);
@@ -176,7 +176,7 @@ Tree setDifference(Tree l1, Tree l2);
 
 // Pairs
 
-// inline Tree pair (Tree t1, Tree t2) { return cons(t1,t2);  }
+// inline Tree pair (Tree t1, Tree t2) { return cons(t1,t2); }
 inline Tree left(Tree t)
 {
     return t->branch(0);
@@ -187,7 +187,7 @@ inline Tree right(Tree t)
 }
 
 // Environment : stack of pairs key value)
-// Tree 	pushEnv (Tree key, Tree val, Tree env=gGlobal->nil);
+// Tree pushEnv(Tree key, Tree val, Tree env=gGlobal->nil);
 Tree pushEnv(Tree key, Tree val, Tree env);
 bool searchEnv(Tree key, Tree& v, Tree env);
 

@@ -1,0 +1,202 @@
+/* ------------------------------------------------------------
+name: "osc_enable"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+class mydspSIG0 {
+	
+  private:
+	
+	int iRec0[2];
+	
+  public:
+	
+	int getNumInputsmydspSIG0() {
+		return 0;
+	}
+	int getNumOutputsmydspSIG0() {
+		return 1;
+	}
+	
+	void instanceInitmydspSIG0(int sample_rate) {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			iRec0[l0] = 0;
+		}
+	}
+	
+	void fillmydspSIG0(int count, float* table) {
+		for (int i1 = 0; i1 < count; i1 = i1 + 1) {
+			iRec0[0] = iRec0[1] + 1;
+			table[i1] = std::sin(9.58738e-05f * float(iRec0[0] + -1));
+			iRec0[1] = iRec0[0];
+		}
+	}
+
+};
+
+static mydspSIG0* newmydspSIG0() { return (mydspSIG0*)new mydspSIG0(); }
+static void deletemydspSIG0(mydspSIG0* dsp) { delete dsp; }
+
+const static float fmydspWave0[13] = {1.0f,0.5f,0.0f,0.0f,0.0f,0.0f,-0.5f,-1.0f,-0.5f,0.0f,0.0f,0.0f,0.0f};
+static float ftbl0mydspSIG0[65536];
+static float mydsp_faustpower2_f(float value) {
+	return value * value;
+}
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int fmydspWave0_idx;
+	int fSampleRate;
+	float fConst0;
+	float fRec1[2];
+	float fTempPerm0;
+	float fTempPerm1;
+	float fTempPerm2;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "osc_enable.dsp");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "osc_enable");
+	}
+
+	virtual int getNumInputs() {
+		return 0;
+	}
+	virtual int getNumOutputs() {
+		return 5;
+	}
+	
+	static void classInit(int sample_rate) {
+		mydspSIG0* sig0 = newmydspSIG0();
+		sig0->instanceInitmydspSIG0(sample_rate);
+		sig0->fillmydspSIG0(65536, ftbl0mydspSIG0);
+		deletemydspSIG0(sig0);
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fmydspWave0_idx = 0;
+		fConst0 = 4e+02f / std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fRec1[l1] = 0.0f;
+		}
+		fTempPerm0 = 0.0f;
+		fTempPerm1 = 0.0f;
+		fTempPerm2 = 0.0f;
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("osc_enable");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		FAUSTFLOAT* output2 = outputs[2];
+		FAUSTFLOAT* output3 = outputs[3];
+		FAUSTFLOAT* output4 = outputs[4];
+		float fTemp2 = fTempPerm0;
+		float fTemp3 = fTempPerm1;
+		float fTemp4 = fTempPerm2;
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			float fTemp0 = fmydspWave0[fmydspWave0_idx];
+			output0[i0] = FAUSTFLOAT(fTemp0);
+			int iTemp1 = fTemp0 != 0.0f;
+			if (iTemp1) {
+				fRec1[0] = fConst0 + (fRec1[1] - std::floor(fConst0 + fRec1[1]));
+				fTemp2 = ftbl0mydspSIG0[std::max<int>(0, std::min<int>(int(65536.0f * fRec1[0]), 65535))];
+			}
+			output1[i0] = FAUSTFLOAT(fTemp2);
+			if (iTemp1) {
+				fTemp3 = fTemp0 * fTemp2;
+			}
+			output2[i0] = FAUSTFLOAT(fTemp3);
+			output3[i0] = FAUSTFLOAT(fTemp0);
+			if (iTemp1) {
+				fTemp4 = mydsp_faustpower2_f(fTemp0);
+			}
+			output4[i0] = FAUSTFLOAT(fTemp4);
+			fmydspWave0_idx = (1 + fmydspWave0_idx) % 13;
+			if (iTemp1) {
+				fRec1[1] = fRec1[0];
+			}
+		}
+		fTempPerm0 = fTemp2;
+		fTempPerm1 = fTemp3;
+		fTempPerm2 = fTemp4;
+	}
+
+};
+
+#endif

@@ -1,0 +1,383 @@
+/* ------------------------------------------------------------
+name: "math"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+/* link with : "" */
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+static float mydsp_faustpower3_f(float value) {
+	return value * value * value;
+}
+static int mydsp_faustpower3_i(int value) {
+	return value * value * value;
+}
+
+class mydsp : public dsp {
+	
+ private:
+	
+	float fVec0[2];
+	int iVec1[2];
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "math.dsp");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("name", "math");
+	}
+
+	virtual int getNumInputs() {
+		return 104;
+	}
+	virtual int getNumOutputs() {
+		return 76;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			fVec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			iVec1[l1] = 0;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("math");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* input1 = inputs[1];
+		FAUSTFLOAT* input2 = inputs[2];
+		FAUSTFLOAT* input3 = inputs[3];
+		FAUSTFLOAT* input4 = inputs[4];
+		FAUSTFLOAT* input5 = inputs[5];
+		FAUSTFLOAT* input6 = inputs[6];
+		FAUSTFLOAT* input7 = inputs[7];
+		FAUSTFLOAT* input8 = inputs[8];
+		FAUSTFLOAT* input9 = inputs[9];
+		FAUSTFLOAT* input10 = inputs[10];
+		FAUSTFLOAT* input11 = inputs[11];
+		FAUSTFLOAT* input12 = inputs[12];
+		FAUSTFLOAT* input13 = inputs[13];
+		FAUSTFLOAT* input14 = inputs[14];
+		FAUSTFLOAT* input15 = inputs[15];
+		FAUSTFLOAT* input16 = inputs[16];
+		FAUSTFLOAT* input17 = inputs[17];
+		FAUSTFLOAT* input18 = inputs[18];
+		FAUSTFLOAT* input19 = inputs[19];
+		FAUSTFLOAT* input20 = inputs[20];
+		FAUSTFLOAT* input21 = inputs[21];
+		FAUSTFLOAT* input22 = inputs[22];
+		FAUSTFLOAT* input23 = inputs[23];
+		FAUSTFLOAT* input24 = inputs[24];
+		FAUSTFLOAT* input25 = inputs[25];
+		FAUSTFLOAT* input26 = inputs[26];
+		FAUSTFLOAT* input27 = inputs[27];
+		FAUSTFLOAT* input28 = inputs[28];
+		FAUSTFLOAT* input29 = inputs[29];
+		FAUSTFLOAT* input30 = inputs[30];
+		FAUSTFLOAT* input31 = inputs[31];
+		FAUSTFLOAT* input32 = inputs[32];
+		FAUSTFLOAT* input33 = inputs[33];
+		FAUSTFLOAT* input34 = inputs[34];
+		FAUSTFLOAT* input35 = inputs[35];
+		FAUSTFLOAT* input36 = inputs[36];
+		FAUSTFLOAT* input37 = inputs[37];
+		FAUSTFLOAT* input38 = inputs[38];
+		FAUSTFLOAT* input39 = inputs[39];
+		FAUSTFLOAT* input40 = inputs[40];
+		FAUSTFLOAT* input41 = inputs[41];
+		FAUSTFLOAT* input42 = inputs[42];
+		FAUSTFLOAT* input43 = inputs[43];
+		FAUSTFLOAT* input44 = inputs[44];
+		FAUSTFLOAT* input45 = inputs[45];
+		FAUSTFLOAT* input46 = inputs[46];
+		FAUSTFLOAT* input47 = inputs[47];
+		FAUSTFLOAT* input48 = inputs[48];
+		FAUSTFLOAT* input49 = inputs[49];
+		FAUSTFLOAT* input50 = inputs[50];
+		FAUSTFLOAT* input51 = inputs[51];
+		FAUSTFLOAT* input52 = inputs[52];
+		FAUSTFLOAT* input53 = inputs[53];
+		FAUSTFLOAT* input54 = inputs[54];
+		FAUSTFLOAT* input55 = inputs[55];
+		FAUSTFLOAT* input56 = inputs[56];
+		FAUSTFLOAT* input57 = inputs[57];
+		FAUSTFLOAT* input58 = inputs[58];
+		FAUSTFLOAT* input59 = inputs[59];
+		FAUSTFLOAT* input60 = inputs[60];
+		FAUSTFLOAT* input61 = inputs[61];
+		FAUSTFLOAT* input62 = inputs[62];
+		FAUSTFLOAT* input63 = inputs[63];
+		FAUSTFLOAT* input64 = inputs[64];
+		FAUSTFLOAT* input65 = inputs[65];
+		FAUSTFLOAT* input66 = inputs[66];
+		FAUSTFLOAT* input67 = inputs[67];
+		FAUSTFLOAT* input68 = inputs[68];
+		FAUSTFLOAT* input69 = inputs[69];
+		FAUSTFLOAT* input70 = inputs[70];
+		FAUSTFLOAT* input71 = inputs[71];
+		FAUSTFLOAT* input72 = inputs[72];
+		FAUSTFLOAT* input73 = inputs[73];
+		FAUSTFLOAT* input74 = inputs[74];
+		FAUSTFLOAT* input75 = inputs[75];
+		FAUSTFLOAT* input76 = inputs[76];
+		FAUSTFLOAT* input77 = inputs[77];
+		FAUSTFLOAT* input78 = inputs[78];
+		FAUSTFLOAT* input79 = inputs[79];
+		FAUSTFLOAT* input80 = inputs[80];
+		FAUSTFLOAT* input81 = inputs[81];
+		FAUSTFLOAT* input82 = inputs[82];
+		FAUSTFLOAT* input83 = inputs[83];
+		FAUSTFLOAT* input84 = inputs[84];
+		FAUSTFLOAT* input85 = inputs[85];
+		FAUSTFLOAT* input86 = inputs[86];
+		FAUSTFLOAT* input87 = inputs[87];
+		FAUSTFLOAT* input88 = inputs[88];
+		FAUSTFLOAT* input89 = inputs[89];
+		FAUSTFLOAT* input90 = inputs[90];
+		FAUSTFLOAT* input91 = inputs[91];
+		FAUSTFLOAT* input92 = inputs[92];
+		FAUSTFLOAT* input93 = inputs[93];
+		FAUSTFLOAT* input94 = inputs[94];
+		FAUSTFLOAT* input95 = inputs[95];
+		FAUSTFLOAT* input96 = inputs[96];
+		FAUSTFLOAT* input97 = inputs[97];
+		FAUSTFLOAT* input98 = inputs[98];
+		FAUSTFLOAT* input99 = inputs[99];
+		FAUSTFLOAT* input100 = inputs[100];
+		FAUSTFLOAT* input101 = inputs[101];
+		FAUSTFLOAT* input102 = inputs[102];
+		FAUSTFLOAT* input103 = inputs[103];
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		FAUSTFLOAT* output2 = outputs[2];
+		FAUSTFLOAT* output3 = outputs[3];
+		FAUSTFLOAT* output4 = outputs[4];
+		FAUSTFLOAT* output5 = outputs[5];
+		FAUSTFLOAT* output6 = outputs[6];
+		FAUSTFLOAT* output7 = outputs[7];
+		FAUSTFLOAT* output8 = outputs[8];
+		FAUSTFLOAT* output9 = outputs[9];
+		FAUSTFLOAT* output10 = outputs[10];
+		FAUSTFLOAT* output11 = outputs[11];
+		FAUSTFLOAT* output12 = outputs[12];
+		FAUSTFLOAT* output13 = outputs[13];
+		FAUSTFLOAT* output14 = outputs[14];
+		FAUSTFLOAT* output15 = outputs[15];
+		FAUSTFLOAT* output16 = outputs[16];
+		FAUSTFLOAT* output17 = outputs[17];
+		FAUSTFLOAT* output18 = outputs[18];
+		FAUSTFLOAT* output19 = outputs[19];
+		FAUSTFLOAT* output20 = outputs[20];
+		FAUSTFLOAT* output21 = outputs[21];
+		FAUSTFLOAT* output22 = outputs[22];
+		FAUSTFLOAT* output23 = outputs[23];
+		FAUSTFLOAT* output24 = outputs[24];
+		FAUSTFLOAT* output25 = outputs[25];
+		FAUSTFLOAT* output26 = outputs[26];
+		FAUSTFLOAT* output27 = outputs[27];
+		FAUSTFLOAT* output28 = outputs[28];
+		FAUSTFLOAT* output29 = outputs[29];
+		FAUSTFLOAT* output30 = outputs[30];
+		FAUSTFLOAT* output31 = outputs[31];
+		FAUSTFLOAT* output32 = outputs[32];
+		FAUSTFLOAT* output33 = outputs[33];
+		FAUSTFLOAT* output34 = outputs[34];
+		FAUSTFLOAT* output35 = outputs[35];
+		FAUSTFLOAT* output36 = outputs[36];
+		FAUSTFLOAT* output37 = outputs[37];
+		FAUSTFLOAT* output38 = outputs[38];
+		FAUSTFLOAT* output39 = outputs[39];
+		FAUSTFLOAT* output40 = outputs[40];
+		FAUSTFLOAT* output41 = outputs[41];
+		FAUSTFLOAT* output42 = outputs[42];
+		FAUSTFLOAT* output43 = outputs[43];
+		FAUSTFLOAT* output44 = outputs[44];
+		FAUSTFLOAT* output45 = outputs[45];
+		FAUSTFLOAT* output46 = outputs[46];
+		FAUSTFLOAT* output47 = outputs[47];
+		FAUSTFLOAT* output48 = outputs[48];
+		FAUSTFLOAT* output49 = outputs[49];
+		FAUSTFLOAT* output50 = outputs[50];
+		FAUSTFLOAT* output51 = outputs[51];
+		FAUSTFLOAT* output52 = outputs[52];
+		FAUSTFLOAT* output53 = outputs[53];
+		FAUSTFLOAT* output54 = outputs[54];
+		FAUSTFLOAT* output55 = outputs[55];
+		FAUSTFLOAT* output56 = outputs[56];
+		FAUSTFLOAT* output57 = outputs[57];
+		FAUSTFLOAT* output58 = outputs[58];
+		FAUSTFLOAT* output59 = outputs[59];
+		FAUSTFLOAT* output60 = outputs[60];
+		FAUSTFLOAT* output61 = outputs[61];
+		FAUSTFLOAT* output62 = outputs[62];
+		FAUSTFLOAT* output63 = outputs[63];
+		FAUSTFLOAT* output64 = outputs[64];
+		FAUSTFLOAT* output65 = outputs[65];
+		FAUSTFLOAT* output66 = outputs[66];
+		FAUSTFLOAT* output67 = outputs[67];
+		FAUSTFLOAT* output68 = outputs[68];
+		FAUSTFLOAT* output69 = outputs[69];
+		FAUSTFLOAT* output70 = outputs[70];
+		FAUSTFLOAT* output71 = outputs[71];
+		FAUSTFLOAT* output72 = outputs[72];
+		FAUSTFLOAT* output73 = outputs[73];
+		FAUSTFLOAT* output74 = outputs[74];
+		FAUSTFLOAT* output75 = outputs[75];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			fVec0[0] = 2.0f;
+			output0[i0] = FAUSTFLOAT(std::pow(fVec0[1], 3e+01f));
+			iVec1[0] = 2;
+			output1[i0] = FAUSTFLOAT(int(std::pow(float(iVec1[1]), float(30))));
+			output2[i0] = FAUSTFLOAT(1.0737418e+09f);
+			output3[i0] = FAUSTFLOAT(1073741824);
+			output4[i0] = FAUSTFLOAT(std::isnan(float(input0[i0])));
+			output5[i0] = FAUSTFLOAT(std::isinf(float(input1[i0])));
+			output6[i0] = FAUSTFLOAT(copysignf(float(input2[i0]), float(input3[i0])));
+			output7[i0] = FAUSTFLOAT(int(float(input4[i0])) >> int(float(input5[i0])));
+			output8[i0] = FAUSTFLOAT(int(float(input6[i0])) << int(float(input7[i0])));
+			output9[i0] = FAUSTFLOAT(int(10.5f * float(input8[i0])) % 3);
+			output10[i0] = FAUSTFLOAT(std::fmod(10.5f * float(input9[i0]), 3.0f));
+			output11[i0] = FAUSTFLOAT(int(float(input10[i0])) & int(float(input11[i0])));
+			output12[i0] = FAUSTFLOAT(int(3.5f * float(input12[i0])) & int(2.4f * float(input13[i0])));
+			output13[i0] = FAUSTFLOAT(int(3.5f * float(input14[i0])) & int(2.4f * float(input15[i0])));
+			output14[i0] = FAUSTFLOAT(2.4f * float(int(3.5f * float(input16[i0])) & int(float(input17[i0]))));
+			output15[i0] = FAUSTFLOAT(int(3.5f * float(input18[i0])) | int(2.4f * float(input19[i0])));
+			output16[i0] = FAUSTFLOAT(int(3.5f * float(input20[i0])) | int(2.4f * float(input21[i0])));
+			output17[i0] = FAUSTFLOAT(int(3.5f * float(input22[i0])) ^ int(2.4f * float(input23[i0])));
+			output18[i0] = FAUSTFLOAT(int(3.5f * float(input24[i0])) ^ int(2.4f * float(input25[i0])));
+			output19[i0] = FAUSTFLOAT(int(std::pow(float(int(3.5f * float(input26[i0]))), float(int(2.4f * float(input27[i0]))))));
+			output20[i0] = FAUSTFLOAT(2.4f * float(input28[i0]) * std::pow(3.5f, float(input29[i0])));
+			output21[i0] = FAUSTFLOAT(int(3.5f * float(input30[i0])) > int(2.4f * float(input31[i0])));
+			output22[i0] = FAUSTFLOAT((3.5f * float(input32[i0])) > float(int(2.4f * float(input33[i0]))));
+			output23[i0] = FAUSTFLOAT((3.5f * float(input34[i0])) > (2.4f * float(input35[i0])));
+			output24[i0] = FAUSTFLOAT(int(3.5f * float(input36[i0])) >= int(2.4f * float(input37[i0])));
+			output25[i0] = FAUSTFLOAT((3.5f * float(input38[i0])) >= (2.4f * float(input39[i0])));
+			output26[i0] = FAUSTFLOAT(int(3.5f * float(input40[i0])) < int(2.4f * float(input41[i0])));
+			output27[i0] = FAUSTFLOAT((3.5f * float(input42[i0])) < (2.4f * float(input43[i0])));
+			output28[i0] = FAUSTFLOAT(int(3.5f * float(input44[i0])) <= int(2.4f * float(input45[i0])));
+			output29[i0] = FAUSTFLOAT((3.5f * float(input46[i0])) <= (2.4f * float(input47[i0])));
+			output30[i0] = FAUSTFLOAT(int(3.5f * float(input48[i0])) == int(2.4f * float(input49[i0])));
+			output31[i0] = FAUSTFLOAT((3.5f * float(input50[i0])) == (2.4f * float(input51[i0])));
+			output32[i0] = FAUSTFLOAT(int(3.5f * float(input52[i0])) != int(2.4f * float(input53[i0])));
+			output33[i0] = FAUSTFLOAT((3.5f * float(input54[i0])) != (2.4f * float(input55[i0])));
+			output34[i0] = FAUSTFLOAT(std::abs(int(4.4f * float(input56[i0]))));
+			output35[i0] = FAUSTFLOAT(std::abs(int(-4.4f * float(input57[i0]))));
+			output36[i0] = FAUSTFLOAT(std::fabs(4.4f * float(input58[i0])));
+			output37[i0] = FAUSTFLOAT(std::fabs(-4.4f * float(input59[i0])));
+			output38[i0] = FAUSTFLOAT(std::acos(0.5f * float(input60[i0])));
+			output39[i0] = FAUSTFLOAT(std::acos(float(int(0.5f * float(input61[i0])))));
+			output40[i0] = FAUSTFLOAT(std::asin(0.5f * float(input62[i0])));
+			output41[i0] = FAUSTFLOAT(std::atan(0.5f * float(input63[i0])));
+			output42[i0] = FAUSTFLOAT(std::atan2(0.5f * float(input64[i0]), 4.0f));
+			output43[i0] = FAUSTFLOAT(std::atan2(float(int(0.5f * float(input65[i0]))), 4.0f));
+			output44[i0] = FAUSTFLOAT(std::atan2(float(int(0.5f * float(input66[i0]))), 4.0f));
+			output45[i0] = FAUSTFLOAT(std::ceil(1.3f * float(input67[i0])));
+			output46[i0] = FAUSTFLOAT(std::cos(0.3f * float(input68[i0])));
+			output47[i0] = FAUSTFLOAT(std::exp(0.5f * float(input69[i0])));
+			output48[i0] = FAUSTFLOAT(std::floor(6.5f * float(input70[i0])));
+			output49[i0] = FAUSTFLOAT(std::fmod(9.2f * float(input71[i0]), 2.0f));
+			output50[i0] = FAUSTFLOAT(std::log(0.5f * (float(input72[i0]) + 1.0f)));
+			output51[i0] = FAUSTFLOAT(std::log10(0.5f * (float(input73[i0]) + 1.0f)));
+			output52[i0] = FAUSTFLOAT(std::max<float>(0.5f * float(input74[i0]), 0.4f * float(input75[i0])));
+			output53[i0] = FAUSTFLOAT(std::min<float>(0.5f * float(input76[i0]), 0.4f * float(input77[i0])));
+			output54[i0] = FAUSTFLOAT(std::max<float>(0.5f * float(input78[i0]), float(int(0.4f * float(input79[i0])))));
+			output55[i0] = FAUSTFLOAT(std::min<float>(0.5f * float(input80[i0]), float(int(0.4f * float(input81[i0])))));
+			output56[i0] = FAUSTFLOAT(std::max<int>(int(3.5f * float(input82[i0])), int(2.4f * float(input83[i0]))));
+			output57[i0] = FAUSTFLOAT(std::min<int>(int(3.5f * float(input84[i0])), int(2.4f * float(input85[i0]))));
+			output58[i0] = FAUSTFLOAT(std::pow(0.5f * float(input86[i0]), 0.3f));
+			output59[i0] = FAUSTFLOAT(std::pow(float(int(0.5f * float(input87[i0]))), 0.3f));
+			output60[i0] = FAUSTFLOAT(mydsp_faustpower3_f(0.5f * float(input88[i0])));
+			output61[i0] = FAUSTFLOAT(mydsp_faustpower3_i(int(0.5f * float(input89[i0]))));
+			output62[i0] = FAUSTFLOAT(mydsp_faustpower3_i(int(0.5f * float(input90[i0]))));
+			output63[i0] = FAUSTFLOAT(std::pow(1e+01f, 3.0f * float(input91[i0])));
+			output64[i0] = FAUSTFLOAT(std::remainder(9.2f * float(input92[i0]), 2.0f));
+			output65[i0] = FAUSTFLOAT(std::rint(1.5f * float(input93[i0])));
+			output66[i0] = FAUSTFLOAT(std::round(1.5f * float(input94[i0])));
+			output67[i0] = FAUSTFLOAT(std::sin(0.3f * float(input95[i0])));
+			output68[i0] = FAUSTFLOAT(std::sqrt(0.3f * float(input96[i0])));
+			output69[i0] = FAUSTFLOAT(std::tan(0.3f * float(input97[i0])));
+			output70[i0] = FAUSTFLOAT(acoshf(0.3f * float(input98[i0]) + 1e+01f));
+			output71[i0] = FAUSTFLOAT(asinhf(0.3f * float(input99[i0]) + 1e+01f));
+			output72[i0] = FAUSTFLOAT(atanhf(0.3f * float(input100[i0]) + 0.5f));
+			output73[i0] = FAUSTFLOAT(coshf(0.3f * float(input101[i0]) + 1e+01f));
+			output74[i0] = FAUSTFLOAT(sinhf(0.3f * float(input102[i0]) + 1e+01f));
+			output75[i0] = FAUSTFLOAT(tanhf(0.3f * float(input103[i0]) + 1e+01f));
+			fVec0[1] = fVec0[0];
+			iVec1[1] = iVec1[0];
+		}
+	}
+
+};
+
+#endif

@@ -46,8 +46,8 @@ class Occur;
 class AudioType;
 typedef P<AudioType> Type;
 
-class CTree;
-typedef CTree* Tree;
+class CTreeBase;
+typedef CTreeBase* Tree;
 
 class Symbol;
 typedef Symbol* Sym;
@@ -686,11 +686,14 @@ struct global {
 
     int audioSampleSize();
 
-    // Allows to test if a given debug environment variable is set
+    // Allows to test if a debug environment variable is set
     static bool isDebug(const std::string& debug_val);
 
-    // Allows to test if a given optimisation environment variable is set
-    static bool isOpt(const std::string& debug_val);
+    // Get the value of a debug environment variable
+    static int getDebug(const std::string& debug_var);
+
+    // Allows to test if an optimisation environment variable is set
+    static bool isOpt(const std::string& opt_val);
 
     bool processCmdline(int argc, const char* argv[]);
     void initDocumentNames();

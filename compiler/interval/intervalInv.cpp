@@ -46,7 +46,7 @@ interval interval_algebra::Inv(const interval& x)
     // we can take the max number to be an integer bound
     // and this one will give a finite precision, unlike a floating-point infinity
     if (std::isinf(v)) {
-        sign == -1 ? v = INT_MAX : v = INT_MIN;
+        v = (sign == -1) ? INT_MAX : INT_MIN;
     }
 
     int precision = exactPrecisionUnary(inv, v, sign * pow(2, x.lsb()));

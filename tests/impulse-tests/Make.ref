@@ -27,6 +27,8 @@ reffiles := $(patsubst dsp/%.dsp, $(refdir)/%.ir, $(dspfiles))
 boxfiles := $(patsubst dsp/%.dsp, $(refdir)/%.box, $(dspfiles))
 sigfiles := $(patsubst dsp/%.dsp, $(refdir)/%.sig, $(dspfiles))
 typefiles := $(patsubst dsp/%.dsp, $(refdir)/%.type, $(dspfiles))
+firfiles := $(patsubst dsp/%.dsp, $(refdir)/%.fir, $(dspfiles))
+cppfiles := $(patsubst dsp/%.dsp, $(refdir)/%.cpp1, $(dspfiles))
 
 listintermediate = $(dspfiles:dsp/%.dsp=$1/%) $(dspfiles:dsp/%.dsp=$1/%.cpp) $(dspfiles:dsp/%.dsp=$1/vec/%) $(dspfiles:dsp/%.dsp=$1/vec/%.cpp) $(dspfiles:dsp/%.dsp=$1/sched/%) $(dspfiles:dsp/%.dsp=$1/sched/%.cpp) 
 
@@ -45,6 +47,10 @@ reference-box: $(boxfiles)
 reference-signal: $(sigfiles) 
 
 reference-type: $(typefiles)
+
+reference-fir: $(firfiles)
+
+reference-cpp: $(cppfiles)
 
 help:
 	@echo "-------- FAUST impulse tests --------"
@@ -81,6 +87,14 @@ $(refdir)/%.sig: dsp/%.dsp
 # rules for reference-type
 $(refdir)/%.type: dsp/%.dsp
 	$(FAUST) $(FAUSTOPTIONS) -norm2 $<  > $@ ; echo $<
+
+# rules for reference-fir
+$(refdir)/%.fir: dsp/%.dsp
+	$(FAUST) -lang fir $(FAUSTOPTIONS) $<  > $@ ; echo $<
+
+# rules for reference-cpp
+$(refdir)/%.cpp1: dsp/%.dsp
+	$(FAUST) $(FAUSTOPTIONS) $<  > $@ ; echo $<
 
 # rules for reference
 $(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir $(refdir)/sched/%.ir dsp/%.dsp dsp/%.cpp 

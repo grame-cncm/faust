@@ -36,7 +36,6 @@ process = source : de.fdelay(524288, del) : *(os.oscp(0, phase)) *(factor);
 */
 
 declare compilation_options    "-single -scal -e grain3.dsp -o grain3.dsp";
-declare library_path "/Documents/faust-github-faust2/tests/impulse-tests/dsp/grain3.dsp";
 declare library_path "/usr/local/share/faust/stdfaust.lib";
 declare library_path "/usr/local/share/faust/delays.lib";
 declare library_path "/usr/local/share/faust/noises.lib";

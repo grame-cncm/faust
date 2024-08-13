@@ -1,4 +1,4 @@
-declare version "2.75.2";
+declare version "2.75.3";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/bells.dsp -o reference/bells.box";
 declare filename "bells.dsp";
 declare name "bells";

@@ -1,0 +1,194 @@
+/* ------------------------------------------------------------
+name: "reverb_tester"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	FAUSTFLOAT fButton0;
+	float fVec0[2];
+	FAUSTFLOAT fButton1;
+	float fVec1[2];
+	FAUSTFLOAT fCheckbox0;
+	int iRec1[2];
+	float fRec0[4];
+	FAUSTFLOAT fButton2;
+	float fVec2[2];
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("effect.lib/name", "Faust Audio Effect Library");
+		m->declare("filename", "reverb_tester.dsp");
+		m->declare("filter.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("filter.lib/copyright", "Julius O. Smith III");
+		m->declare("filter.lib/license", "STK-4.3");
+		m->declare("filter.lib/name", "Faust Filter Library");
+		m->declare("filter.lib/reference", "https://ccrma.stanford.edu/~jos/filters/");
+		m->declare("filter.lib/version", "1.29");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "reverb_tester");
+		m->declare("oscillator.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("oscillator.lib/copyright", "Julius O. Smith III");
+		m->declare("oscillator.lib/license", "STK-4.3");
+		m->declare("oscillator.lib/name", "Faust Oscillator Library");
+		m->declare("oscillator.lib/version", "1.11");
+	}
+
+	virtual int getNumInputs() {
+		return 2;
+	}
+	virtual int getNumOutputs() {
+		return 2;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	
+	virtual void instanceResetUserInterface() {
+		fButton0 = FAUSTFLOAT(0.0f);
+		fButton1 = FAUSTFLOAT(0.0f);
+		fCheckbox0 = FAUSTFLOAT(0.0f);
+		fButton2 = FAUSTFLOAT(0.0f);
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			fVec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fVec1[l1] = 0.0f;
+		}
+		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
+			iRec1[l2] = 0;
+		}
+		for (int l3 = 0; l3 < 4; l3 = l3 + 1) {
+			fRec0[l3] = 0.0f;
+		}
+		for (int l4 = 0; l4 < 2; l4 = l4 + 1) {
+			fVec2[l4] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openHorizontalBox("Stereo Reverb Tester");
+		ui_interface->declare(0, "1", "");
+		ui_interface->openVerticalBox("Input Config");
+		ui_interface->declare(&fCheckbox0, "2", "");
+		ui_interface->declare(&fCheckbox0, "tooltip", "Pink Noise (or 1/f noise) is Constant-Q Noise (useful for adjusting the EQ sections)");
+		ui_interface->addCheckButton("Pink Noise", &fCheckbox0);
+		ui_interface->closeBox();
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("Impulse Selection");
+		ui_interface->declare(&fButton0, "1", "");
+		ui_interface->declare(&fButton0, "tooltip", "Send impulse into LEFT channel");
+		ui_interface->addButton("Left", &fButton0);
+		ui_interface->declare(&fButton1, "2", "");
+		ui_interface->declare(&fButton1, "tooltip", "Send impulse into LEFT and RIGHT channels");
+		ui_interface->addButton("Center", &fButton1);
+		ui_interface->declare(&fButton2, "3", "");
+		ui_interface->declare(&fButton2, "tooltip", "Send impulse into RIGHT channel");
+		ui_interface->addButton("Right", &fButton2);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* input1 = inputs[1];
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		float fSlow0 = float(fButton0);
+		float fSlow1 = float(fButton1);
+		float fSlow2 = 0.1f * float(fCheckbox0);
+		float fSlow3 = float(fButton2);
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			fVec0[0] = fSlow0;
+			fVec1[0] = fSlow1;
+			int iTemp0 = (fSlow1 - fVec1[1]) > 0.0f;
+			iRec1[0] = 1103515245 * iRec1[1] + 12345;
+			fRec0[0] = 0.5221894f * fRec0[3] + 4.656613e-10f * float(iRec1[0]) + 2.494956f * fRec0[1] - 2.0172658f * fRec0[2];
+			float fTemp1 = fSlow2 * (0.049922034f * fRec0[0] + 0.0506127f * fRec0[2] - (0.095993534f * fRec0[1] + 0.004408786f * fRec0[3]));
+			output0[i0] = FAUSTFLOAT(float(((fSlow0 - fVec0[1]) > 0.0f) + iTemp0) + fTemp1);
+			fVec2[0] = fSlow3;
+			output1[i0] = FAUSTFLOAT(fTemp1 + float(iTemp0 + ((fSlow3 - fVec2[1]) > 0.0f)));
+			fVec0[1] = fVec0[0];
+			fVec1[1] = fVec1[0];
+			iRec1[1] = iRec1[0];
+			for (int j0 = 3; j0 > 0; j0 = j0 - 1) {
+				fRec0[j0] = fRec0[j0 - 1];
+			}
+			fVec2[1] = fVec2[0];
+		}
+	}
+
+};
+
+#endif

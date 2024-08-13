@@ -14,5 +14,5 @@ ID_5 = letrec(W0 = (ID_4));
 ID_6 = proj0(ID_5);
 ID_7 = ID_6@0;
 ID_8 = length(ID_0,0);
-ID_9 = ID_8-1;
+ID_9 = ID_8+-1;
 SIG = (ID_12, ID_13, ID_14, ID_15);

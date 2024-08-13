@@ -1,0 +1,153 @@
+/* ------------------------------------------------------------
+name: "constant"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int fSampleRate;
+	float fConst0;
+	float fConst1;
+	int iConst2;
+	int iConst3;
+	float fVec0[2];
+	int iConst4;
+	float fVec1[3];
+	int iConst5;
+	float fVec2[5];
+	int iConst6;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("basics_lib_name", "Faust Basic Element Library");
+		m->declare("basics_lib_version", "0.1");
+		m->declare("compilation_options", "-single -scal -e t1.dsp -o t1_exp.dsp");
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "constant.dsp");
+		m->declare("library_path", "/usr/local/share/faust/stdfaust.lib");
+		m->declare("maths_lib_author", "GRAME");
+		m->declare("maths_lib_copyright", "GRAME");
+		m->declare("maths_lib_license", "LGPL with exception");
+		m->declare("maths_lib_name", "Faust Math Library");
+		m->declare("maths_lib_version", "2.3");
+		m->declare("name", "constant");
+		m->declare("platform_lib_name", "Generic Platform Library");
+		m->declare("platform_lib_version", "0.1");
+	}
+
+	virtual int getNumInputs() {
+		return 1;
+	}
+	virtual int getNumOutputs() {
+		return 1;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+		fConst1 = 1.0f / fConst0;
+		iConst2 = fConst0 == 0.0f;
+		iConst3 = int(std::floor(fConst0)) % 2;
+		iConst4 = int(std::floor(0.5f * fConst0)) % 2;
+		iConst5 = int(std::floor(0.25f * fConst0)) % 2;
+		iConst6 = iConst3 + 2 * iConst4;
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			fVec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 3; l1 = l1 + 1) {
+			fVec1[l1] = 0.0f;
+		}
+		for (int l2 = 0; l2 < 5; l2 = l2 + 1) {
+			fVec2[l2] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("constant");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* output0 = outputs[0];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			float fTemp0 = float(input0[i0]);
+			fVec0[0] = fTemp0;
+			float fTemp1 = fTemp0 + fVec0[1];
+			fVec1[0] = fTemp1;
+			fVec2[0] = fTemp1 + fVec1[2];
+			output0[i0] = FAUSTFLOAT(fConst1 * (((iConst2) ? fTemp0 : ((iConst3) ? fTemp0 : 0.0f)) + ((iConst4) ? fVec1[iConst3] : 0.0f) + ((iConst5) ? fVec2[iConst6] : 0.0f)));
+			fVec0[1] = fVec0[0];
+			fVec1[2] = fVec1[1];
+			fVec1[1] = fVec1[0];
+			for (int j0 = 4; j0 > 0; j0 = j0 - 1) {
+				fVec2[j0] = fVec2[j0 - 1];
+			}
+		}
+	}
+
+};
+
+#endif

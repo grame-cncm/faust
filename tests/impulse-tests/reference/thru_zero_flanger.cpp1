@@ -1,0 +1,271 @@
+/* ------------------------------------------------------------
+author: "Oli Larkin (contact@olilarkin.co.uk)"
+copyright: "Oliver Larkin"
+name: "Thru Zero Flanger"
+version: "0.1"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+class mydspSIG0 {
+	
+  private:
+	
+	int iRec2[2];
+	
+  public:
+	
+	int getNumInputsmydspSIG0() {
+		return 0;
+	}
+	int getNumOutputsmydspSIG0() {
+		return 1;
+	}
+	
+	void instanceInitmydspSIG0(int sample_rate) {
+		for (int l3 = 0; l3 < 2; l3 = l3 + 1) {
+			iRec2[l3] = 0;
+		}
+	}
+	
+	void fillmydspSIG0(int count, float* table) {
+		for (int i1 = 0; i1 < count; i1 = i1 + 1) {
+			iRec2[0] = iRec2[1] + 1;
+			float fTemp8 = float(iRec2[0] + -1);
+			float fTemp9 = 0.001953125f * fTemp8;
+			float fTemp10 = 0.00390625f * fTemp8;
+			table[i1] = 2.0f * (float((0.0f <= fTemp9) & (fTemp9 <= 0.5f)) * (fTemp10 + -0.5f) + float((0.5f < fTemp9) & (fTemp9 <= 1.0f)) * (1.5f - fTemp10));
+			iRec2[1] = iRec2[0];
+		}
+	}
+
+};
+
+static mydspSIG0* newmydspSIG0() { return (mydspSIG0*)new mydspSIG0(); }
+static void deletemydspSIG0(mydspSIG0* dsp) { delete dsp; }
+
+static float ftbl0mydspSIG0[513];
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int IOTA0;
+	float fVec0[4096];
+	int fSampleRate;
+	float fConst0;
+	float fConst1;
+	float fConst2;
+	float fConst3;
+	FAUSTFLOAT fHslider0;
+	float fRec0[2];
+	float fConst4;
+	FAUSTFLOAT fHslider1;
+	float fRec1[2];
+	float fConst5;
+	FAUSTFLOAT fHslider2;
+	float fRec3[2];
+	float fVec1[4096];
+	float fConst6;
+	FAUSTFLOAT fHslider3;
+	float fRec4[2];
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("author", "Oli Larkin (contact@olilarkin.co.uk)");
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("copyright", "Oliver Larkin");
+		m->declare("description", "Stereo Thru Zero Flanger - warning can ZERO the sound!");
+		m->declare("effect.lib/name", "Faust Audio Effect Library");
+		m->declare("filename", "thru_zero_flanger.dsp");
+		m->declare("filter.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("filter.lib/copyright", "Julius O. Smith III");
+		m->declare("filter.lib/license", "STK-4.3");
+		m->declare("filter.lib/name", "Faust Filter Library");
+		m->declare("filter.lib/reference", "https://ccrma.stanford.edu/~jos/filters/");
+		m->declare("filter.lib/version", "1.29");
+		m->declare("licence", "GPL");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "Thru Zero Flanger");
+		m->declare("version", "0.1");
+	}
+
+	virtual int getNumInputs() {
+		return 2;
+	}
+	virtual int getNumOutputs() {
+		return 2;
+	}
+	
+	static void classInit(int sample_rate) {
+		mydspSIG0* sig0 = newmydspSIG0();
+		sig0->instanceInitmydspSIG0(sample_rate);
+		sig0->fillmydspSIG0(513, ftbl0mydspSIG0);
+		deletemydspSIG0(sig0);
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+		fConst1 = 0.001f * fConst0;
+		fConst2 = std::exp(-(2e+02f / fConst0));
+		fConst3 = 1.0f - fConst2;
+		fConst4 = 0.01f * fConst3;
+		fConst5 = 1.0f / fConst0;
+		fConst6 = 0.5f * fConst3;
+	}
+	
+	virtual void instanceResetUserInterface() {
+		fHslider0 = FAUSTFLOAT(1e+01f);
+		fHslider1 = FAUSTFLOAT(2e+01f);
+		fHslider2 = FAUSTFLOAT(0.1f);
+		fHslider3 = FAUSTFLOAT(0.0f);
+	}
+	
+	virtual void instanceClear() {
+		IOTA0 = 0;
+		for (int l0 = 0; l0 < 4096; l0 = l0 + 1) {
+			fVec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fRec0[l1] = 0.0f;
+		}
+		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
+			fRec1[l2] = 0.0f;
+		}
+		for (int l4 = 0; l4 < 2; l4 = l4 + 1) {
+			fRec3[l4] = 0.0f;
+		}
+		for (int l5 = 0; l5 < 4096; l5 = l5 + 1) {
+			fVec1[l5] = 0.0f;
+		}
+		for (int l6 = 0; l6 < 2; l6 = l6 + 1) {
+			fRec4[l6] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("Thru Zero Flanger");
+		ui_interface->declare(&fHslider0, "OWL", "PARAMETER_B");
+		ui_interface->declare(&fHslider0, "unit", "ms");
+		ui_interface->addHorizontalSlider("Delay", &fHslider0, FAUSTFLOAT(1e+01f), FAUSTFLOAT(0.5f), FAUSTFLOAT(2e+01f), FAUSTFLOAT(0.01f));
+		ui_interface->declare(&fHslider1, "OWL", "PARAMETER_D");
+		ui_interface->declare(&fHslider1, "unit", "%");
+		ui_interface->addHorizontalSlider("Depth", &fHslider1, FAUSTFLOAT(2e+01f), FAUSTFLOAT(3.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fHslider3, "OWL", "PARAMETER_C");
+		ui_interface->addHorizontalSlider("L-R Offset", &fHslider3, FAUSTFLOAT(0.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.001f));
+		ui_interface->declare(&fHslider2, "OWL", "PARAMETER_A");
+		ui_interface->declare(&fHslider2, "unit", "hz");
+		ui_interface->addHorizontalSlider("Rate", &fHslider2, FAUSTFLOAT(0.1f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.001f));
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* input1 = inputs[1];
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		float fSlow0 = fConst3 * float(fHslider0);
+		float fSlow1 = fConst4 * float(fHslider1);
+		float fSlow2 = fConst5 * float(fHslider2);
+		float fSlow3 = fConst6 * float(fHslider3);
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			float fTemp0 = float(input0[i0]);
+			fVec0[IOTA0 & 4095] = fTemp0;
+			fRec0[0] = fSlow0 + fConst2 * fRec0[1];
+			float fTemp1 = fConst1 * fRec0[0];
+			int iTemp2 = int(fTemp1);
+			int iTemp3 = iTemp2 & 4095;
+			float fTemp4 = float(iTemp2);
+			float fTemp5 = fTemp4 + (1.0f - fTemp1);
+			float fTemp6 = fTemp1 - fTemp4;
+			int iTemp7 = (iTemp2 + 1) & 4095;
+			fRec1[0] = fSlow1 + fConst2 * fRec1[1];
+			fRec3[0] = fSlow2 + (fRec3[1] - std::floor(fSlow2 + fRec3[1]));
+			float fTemp11 = 512.0f * std::fmod(fRec3[0], 1.0f);
+			int iTemp12 = int(fTemp11);
+			float fTemp13 = ftbl0mydspSIG0[std::max<int>(0, std::min<int>(iTemp12, 512))];
+			float fTemp14 = fConst1 * fRec0[0] * (fRec1[0] * (fTemp13 + (fTemp11 - std::floor(fTemp11)) * (ftbl0mydspSIG0[std::max<int>(0, std::min<int>(iTemp12 + 1, 512))] - fTemp13)) + 1.0f);
+			int iTemp15 = int(fTemp14);
+			float fTemp16 = float(iTemp15);
+			output0[i0] = FAUSTFLOAT(fVec0[(IOTA0 - iTemp3) & 4095] * fTemp5 + fTemp6 * fVec0[(IOTA0 - iTemp7) & 4095] - (fVec0[(IOTA0 - (iTemp15 & 4095)) & 4095] * (fTemp16 + (1.0f - fTemp14)) + (fTemp14 - fTemp16) * fVec0[(IOTA0 - ((iTemp15 + 1) & 4095)) & 4095]));
+			float fTemp17 = float(input1[i0]);
+			fVec1[IOTA0 & 4095] = fTemp17;
+			fRec4[0] = fSlow3 + fConst2 * fRec4[1];
+			float fTemp18 = 512.0f * std::fmod(fRec3[0] + fRec4[0], 1.0f);
+			int iTemp19 = int(fTemp18);
+			float fTemp20 = ftbl0mydspSIG0[std::max<int>(0, std::min<int>(iTemp19, 512))];
+			float fTemp21 = fConst1 * fRec0[0] * (fRec1[0] * (fTemp20 + (fTemp18 - std::floor(fTemp18)) * (ftbl0mydspSIG0[std::max<int>(0, std::min<int>(iTemp19 + 1, 512))] - fTemp20)) + 1.0f);
+			int iTemp22 = int(fTemp21);
+			float fTemp23 = float(iTemp22);
+			output1[i0] = FAUSTFLOAT(fTemp5 * fVec1[(IOTA0 - iTemp3) & 4095] + fTemp6 * fVec1[(IOTA0 - iTemp7) & 4095] - (fVec1[(IOTA0 - (iTemp22 & 4095)) & 4095] * (fTemp23 + (1.0f - fTemp21)) + (fTemp21 - fTemp23) * fVec1[(IOTA0 - ((iTemp22 + 1) & 4095)) & 4095]));
+			IOTA0 = IOTA0 + 1;
+			fRec0[1] = fRec0[0];
+			fRec1[1] = fRec1[0];
+			fRec3[1] = fRec3[0];
+			fRec4[1] = fRec4[0];
+		}
+	}
+
+};
+
+#endif

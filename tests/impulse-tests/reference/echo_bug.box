@@ -1,4 +1,4 @@
-declare version "2.75.2";
+declare version "2.75.3";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/echo_bug.dsp -o reference/echo_bug.box";
 declare analyzers_lib_name "Faust Analyzer Library";
 declare analyzers_lib_version "0.0";
@@ -20,7 +20,7 @@ declare filters_lib_version "0.0";
 declare hoa_lib_author "Pierre Guillot";
 declare hoa_lib_copyright "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8";
 declare hoa_lib_name "High Order Ambisonics library";
-declare library_path "/Documents/faust-github-faust2/tests/impulse-tests/dsp/echo_bug.dsp";
+declare library_path "/usr/local/share/faust/sf.lib";
 declare maths_lib_author "GRAME";
 declare maths_lib_copyright "GRAME";
 declare maths_lib_license "LGPL with exception";

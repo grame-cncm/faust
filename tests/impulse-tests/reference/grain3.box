@@ -1,4 +1,4 @@
-declare version "2.75.2";
+declare version "2.75.3";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/grain3.dsp -o reference/grain3.box";
 declare basics_lib_name "Faust Basic Element Library";
 declare basics_lib_version "0.1";
@@ -6,7 +6,7 @@ declare compilation_options "-single -scal -e grain3.dsp -o grain3.dsp";
 declare delays_lib_name "Faust Delay Library";
 declare delays_lib_version "0.1";
 declare filename "grain3.dsp";
-declare library_path "/usr/local/share/faust/noises.lib";
+declare library_path "/usr/local/share/faust/stdfaust.lib";
 declare maths_lib_author "GRAME";
 declare maths_lib_copyright "GRAME";
 declare maths_lib_license "LGPL with exception";

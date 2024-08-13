@@ -37,13 +37,13 @@
  */
 
 #ifdef _MSC_VER
-typedef void CTree;
+typedef void CTreeBase;
 #else
-typedef struct {} CTree;
+typedef struct {} CTreeBase;
 #endif
 
-typedef CTree* Signal;
-typedef CTree* Box;
+typedef CTreeBase* Signal;
+typedef CTreeBase* Box;
 
 enum SType { kSInt, kSReal };
 

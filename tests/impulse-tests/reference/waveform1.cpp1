@@ -1,0 +1,109 @@
+/* ------------------------------------------------------------
+name: "waveform1"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+const static float fmydspWave0[10] = {0.1f,0.123f,0.142567f,0.15263739f,0.568453f,0.1f,0.123f,0.142567f,0.15263739f,0.568453f};
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int fmydspWave0_idx;
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "waveform1.dsp");
+		m->declare("name", "waveform1");
+	}
+
+	virtual int getNumInputs() {
+		return 0;
+	}
+	virtual int getNumOutputs() {
+		return 2;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fmydspWave0_idx = 0;
+	}
+	
+	virtual void instanceResetUserInterface() {
+	}
+	
+	virtual void instanceClear() {
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("waveform1");
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			output0[i0] = FAUSTFLOAT(10);
+			output1[i0] = FAUSTFLOAT(fmydspWave0[fmydspWave0_idx]);
+			fmydspWave0_idx = (1 + fmydspWave0_idx) % 10;
+		}
+	}
+
+};
+
+#endif

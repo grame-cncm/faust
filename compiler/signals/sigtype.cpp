@@ -409,7 +409,7 @@ static Tree codeSimpleType(SimpleType* st)
 
     elems.push_back(tree(st->getRes().valid));
     elems.push_back(tree(st->getRes().index));
-    return CTree::make(gGlobal->SIMPLETYPE, elems);
+    return tree(gGlobal->SIMPLETYPE, elems);
 }
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i)

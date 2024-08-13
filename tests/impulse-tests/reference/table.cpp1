@@ -1,0 +1,188 @@
+/* ------------------------------------------------------------
+name: "table"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+class mydspSIG0 {
+	
+  private:
+	
+	int iRec1[2];
+	float fRec0[4];
+	
+  public:
+	
+	int getNumInputsmydspSIG0() {
+		return 0;
+	}
+	int getNumOutputsmydspSIG0() {
+		return 1;
+	}
+	
+	void instanceInitmydspSIG0(int sample_rate) {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			iRec1[l0] = 0;
+		}
+		for (int l1 = 0; l1 < 4; l1 = l1 + 1) {
+			fRec0[l1] = 0.0f;
+		}
+	}
+	
+	void fillmydspSIG0(int count, float* table) {
+		for (int i1 = 0; i1 < count; i1 = i1 + 1) {
+			iRec1[0] = 1103515245 * iRec1[1] + 12345;
+			fRec0[0] = 0.5221894f * fRec0[3] + 4.656613e-10f * float(iRec1[0]) + 2.494956f * fRec0[1] - 2.0172658f * fRec0[2];
+			table[i1] = 0.049922034f * fRec0[0] + 0.0506127f * fRec0[2] - (0.095993534f * fRec0[1] + 0.004408786f * fRec0[3]);
+			iRec1[1] = iRec1[0];
+			for (int j0 = 3; j0 > 0; j0 = j0 - 1) {
+				fRec0[j0] = fRec0[j0 - 1];
+			}
+		}
+	}
+
+};
+
+static mydspSIG0* newmydspSIG0() { return (mydspSIG0*)new mydspSIG0(); }
+static void deletemydspSIG0(mydspSIG0* dsp) { delete dsp; }
+
+static float ftbl0mydspSIG0[65536];
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int fSampleRate;
+	float fConst0;
+	FAUSTFLOAT fHslider0;
+	float fRec2[2];
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compilation_options", "-single -scal -e table.dsp -o table.dsp");
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "table.dsp");
+		m->declare("filters_lib_fir_author", "Julius O. Smith III");
+		m->declare("filters_lib_fir_copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters_lib_fir_license", "MIT-style STK-4.3 license");
+		m->declare("filters_lib_iir_author", "Julius O. Smith III");
+		m->declare("filters_lib_iir_copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters_lib_iir_license", "MIT-style STK-4.3 license");
+		m->declare("filters_lib_lowpass0_highpass1", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters_lib_name", "Faust Filters Library");
+		m->declare("filters_lib_version", "0.3");
+		m->declare("library_path", "/usr/local/share/faust/stdfaust.lib");
+		m->declare("maths_lib_author", "GRAME");
+		m->declare("maths_lib_copyright", "GRAME");
+		m->declare("maths_lib_license", "LGPL with exception");
+		m->declare("maths_lib_name", "Faust Math Library");
+		m->declare("maths_lib_version", "2.3");
+		m->declare("name", "table");
+		m->declare("noises_lib_name", "Faust Noise Generator Library");
+		m->declare("noises_lib_version", "0.0");
+		m->declare("oscillators_lib_name", "Faust Oscillator Library");
+		m->declare("oscillators_lib_version", "0.1");
+		m->declare("platform_lib_name", "Generic Platform Library");
+		m->declare("platform_lib_version", "0.1");
+	}
+
+	virtual int getNumInputs() {
+		return 0;
+	}
+	virtual int getNumOutputs() {
+		return 2;
+	}
+	
+	static void classInit(int sample_rate) {
+		mydspSIG0* sig0 = newmydspSIG0();
+		sig0->instanceInitmydspSIG0(sample_rate);
+		sig0->fillmydspSIG0(65536, ftbl0mydspSIG0);
+		deletemydspSIG0(sig0);
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = 1.0f / std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+	}
+	
+	virtual void instanceResetUserInterface() {
+		fHslider0 = FAUSTFLOAT(4.4e+02f);
+	}
+	
+	virtual void instanceClear() {
+		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
+			fRec2[l2] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("table");
+		ui_interface->addHorizontalSlider("freq", &fHslider0, FAUSTFLOAT(4.4e+02f), FAUSTFLOAT(5e+01f), FAUSTFLOAT(2e+03f), FAUSTFLOAT(0.01f));
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		float fSlow0 = fConst0 * float(fHslider0);
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			fRec2[0] = fSlow0 + (fRec2[1] - std::floor(fSlow0 + fRec2[1]));
+			float fTemp0 = ftbl0mydspSIG0[std::max<int>(0, std::min<int>(int(65536.0f * fRec2[0]), 65535))];
+			output0[i0] = FAUSTFLOAT(fTemp0);
+			output1[i0] = FAUSTFLOAT(fTemp0);
+			fRec2[1] = fRec2[0];
+		}
+	}
+
+};
+
+#endif

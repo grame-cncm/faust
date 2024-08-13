@@ -1,0 +1,3967 @@
+/* ------------------------------------------------------------
+name: "spectral_level"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+static float mydsp_faustpower2_f(float value) {
+	return value * value;
+}
+
+class mydsp : public dsp {
+	
+ private:
+	
+	FAUSTFLOAT fHslider0;
+	FAUSTFLOAT fHslider1;
+	int fSampleRate;
+	float fConst0;
+	float fConst1;
+	float fConst2;
+	float fConst3;
+	float fConst4;
+	float fConst5;
+	float fConst6;
+	float fConst7;
+	float fConst8;
+	float fConst9;
+	float fConst10;
+	float fConst11;
+	float fConst12;
+	float fConst13;
+	float fConst14;
+	float fConst15;
+	float fConst16;
+	float fRec3[3];
+	float fConst17;
+	float fConst18;
+	float fConst19;
+	float fRec2[3];
+	float fConst20;
+	float fConst21;
+	float fConst22;
+	float fRec1[3];
+	float fConst23;
+	float fRec0[2];
+	FAUSTFLOAT fVbargraph0;
+	float fConst24;
+	float fConst25;
+	float fConst26;
+	float fConst27;
+	float fConst28;
+	float fConst29;
+	float fConst30;
+	float fConst31;
+	float fConst32;
+	float fConst33;
+	float fConst34;
+	float fConst35;
+	float fConst36;
+	float fConst37;
+	float fConst38;
+	float fConst39;
+	float fConst40;
+	float fConst41;
+	float fConst42;
+	float fConst43;
+	float fConst44;
+	float fRec10[3];
+	float fConst45;
+	float fConst46;
+	float fConst47;
+	float fRec9[3];
+	float fConst48;
+	float fConst49;
+	float fConst50;
+	float fRec8[3];
+	float fConst51;
+	float fConst52;
+	float fConst53;
+	float fConst54;
+	float fRec7[3];
+	float fConst55;
+	float fConst56;
+	float fConst57;
+	float fRec6[3];
+	float fConst58;
+	float fConst59;
+	float fConst60;
+	float fRec5[3];
+	float fConst61;
+	float fRec4[2];
+	FAUSTFLOAT fVbargraph1;
+	float fConst62;
+	float fConst63;
+	float fConst64;
+	float fConst65;
+	float fConst66;
+	float fConst67;
+	float fConst68;
+	float fConst69;
+	float fConst70;
+	float fConst71;
+	float fConst72;
+	float fConst73;
+	float fConst74;
+	float fConst75;
+	float fConst76;
+	float fConst77;
+	float fConst78;
+	float fConst79;
+	float fConst80;
+	float fConst81;
+	float fConst82;
+	float fRec17[3];
+	float fConst83;
+	float fConst84;
+	float fConst85;
+	float fRec16[3];
+	float fConst86;
+	float fConst87;
+	float fConst88;
+	float fRec15[3];
+	float fConst89;
+	float fConst90;
+	float fConst91;
+	float fConst92;
+	float fRec14[3];
+	float fConst93;
+	float fConst94;
+	float fConst95;
+	float fRec13[3];
+	float fConst96;
+	float fConst97;
+	float fConst98;
+	float fRec12[3];
+	float fConst99;
+	float fRec11[2];
+	FAUSTFLOAT fVbargraph2;
+	float fConst100;
+	float fConst101;
+	float fConst102;
+	float fConst103;
+	float fConst104;
+	float fConst105;
+	float fConst106;
+	float fConst107;
+	float fConst108;
+	float fConst109;
+	float fConst110;
+	float fConst111;
+	float fConst112;
+	float fConst113;
+	float fConst114;
+	float fConst115;
+	float fConst116;
+	float fConst117;
+	float fConst118;
+	float fConst119;
+	float fConst120;
+	float fRec24[3];
+	float fConst121;
+	float fConst122;
+	float fConst123;
+	float fRec23[3];
+	float fConst124;
+	float fConst125;
+	float fConst126;
+	float fRec22[3];
+	float fConst127;
+	float fConst128;
+	float fConst129;
+	float fConst130;
+	float fRec21[3];
+	float fConst131;
+	float fConst132;
+	float fConst133;
+	float fRec20[3];
+	float fConst134;
+	float fConst135;
+	float fConst136;
+	float fRec19[3];
+	float fConst137;
+	float fRec18[2];
+	FAUSTFLOAT fVbargraph3;
+	float fConst138;
+	float fConst139;
+	float fConst140;
+	float fConst141;
+	float fConst142;
+	float fConst143;
+	float fConst144;
+	float fConst145;
+	float fConst146;
+	float fConst147;
+	float fConst148;
+	float fConst149;
+	float fConst150;
+	float fConst151;
+	float fConst152;
+	float fConst153;
+	float fConst154;
+	float fConst155;
+	float fConst156;
+	float fConst157;
+	float fConst158;
+	float fRec31[3];
+	float fConst159;
+	float fConst160;
+	float fConst161;
+	float fRec30[3];
+	float fConst162;
+	float fConst163;
+	float fConst164;
+	float fRec29[3];
+	float fConst165;
+	float fConst166;
+	float fConst167;
+	float fConst168;
+	float fRec28[3];
+	float fConst169;
+	float fConst170;
+	float fConst171;
+	float fRec27[3];
+	float fConst172;
+	float fConst173;
+	float fConst174;
+	float fRec26[3];
+	float fConst175;
+	float fRec25[2];
+	FAUSTFLOAT fVbargraph4;
+	float fConst176;
+	float fConst177;
+	float fConst178;
+	float fConst179;
+	float fConst180;
+	float fConst181;
+	float fConst182;
+	float fConst183;
+	float fConst184;
+	float fConst185;
+	float fConst186;
+	float fConst187;
+	float fConst188;
+	float fConst189;
+	float fConst190;
+	float fConst191;
+	float fConst192;
+	float fConst193;
+	float fConst194;
+	float fConst195;
+	float fConst196;
+	float fRec38[3];
+	float fConst197;
+	float fConst198;
+	float fConst199;
+	float fRec37[3];
+	float fConst200;
+	float fConst201;
+	float fConst202;
+	float fRec36[3];
+	float fConst203;
+	float fConst204;
+	float fConst205;
+	float fConst206;
+	float fRec35[3];
+	float fConst207;
+	float fConst208;
+	float fConst209;
+	float fRec34[3];
+	float fConst210;
+	float fConst211;
+	float fConst212;
+	float fRec33[3];
+	float fConst213;
+	float fRec32[2];
+	FAUSTFLOAT fVbargraph5;
+	float fConst214;
+	float fConst215;
+	float fConst216;
+	float fConst217;
+	float fConst218;
+	float fConst219;
+	float fConst220;
+	float fConst221;
+	float fConst222;
+	float fConst223;
+	float fConst224;
+	float fConst225;
+	float fConst226;
+	float fConst227;
+	float fConst228;
+	float fConst229;
+	float fConst230;
+	float fConst231;
+	float fConst232;
+	float fConst233;
+	float fConst234;
+	float fRec45[3];
+	float fConst235;
+	float fConst236;
+	float fConst237;
+	float fRec44[3];
+	float fConst238;
+	float fConst239;
+	float fConst240;
+	float fRec43[3];
+	float fConst241;
+	float fConst242;
+	float fConst243;
+	float fConst244;
+	float fRec42[3];
+	float fConst245;
+	float fConst246;
+	float fConst247;
+	float fRec41[3];
+	float fConst248;
+	float fConst249;
+	float fConst250;
+	float fRec40[3];
+	float fConst251;
+	float fRec39[2];
+	FAUSTFLOAT fVbargraph6;
+	float fConst252;
+	float fConst253;
+	float fConst254;
+	float fConst255;
+	float fConst256;
+	float fConst257;
+	float fConst258;
+	float fConst259;
+	float fConst260;
+	float fConst261;
+	float fConst262;
+	float fConst263;
+	float fConst264;
+	float fConst265;
+	float fConst266;
+	float fConst267;
+	float fConst268;
+	float fConst269;
+	float fConst270;
+	float fConst271;
+	float fConst272;
+	float fRec52[3];
+	float fConst273;
+	float fConst274;
+	float fConst275;
+	float fRec51[3];
+	float fConst276;
+	float fConst277;
+	float fConst278;
+	float fRec50[3];
+	float fConst279;
+	float fConst280;
+	float fConst281;
+	float fConst282;
+	float fRec49[3];
+	float fConst283;
+	float fConst284;
+	float fConst285;
+	float fRec48[3];
+	float fConst286;
+	float fConst287;
+	float fConst288;
+	float fRec47[3];
+	float fConst289;
+	float fRec46[2];
+	FAUSTFLOAT fVbargraph7;
+	float fConst290;
+	float fConst291;
+	float fConst292;
+	float fConst293;
+	float fConst294;
+	float fConst295;
+	float fConst296;
+	float fConst297;
+	float fConst298;
+	float fConst299;
+	float fConst300;
+	float fConst301;
+	float fConst302;
+	float fConst303;
+	float fConst304;
+	float fConst305;
+	float fConst306;
+	float fConst307;
+	float fConst308;
+	float fConst309;
+	float fConst310;
+	float fRec59[3];
+	float fConst311;
+	float fConst312;
+	float fConst313;
+	float fRec58[3];
+	float fConst314;
+	float fConst315;
+	float fConst316;
+	float fRec57[3];
+	float fConst317;
+	float fConst318;
+	float fConst319;
+	float fConst320;
+	float fRec56[3];
+	float fConst321;
+	float fConst322;
+	float fConst323;
+	float fRec55[3];
+	float fConst324;
+	float fConst325;
+	float fConst326;
+	float fRec54[3];
+	float fConst327;
+	float fRec53[2];
+	FAUSTFLOAT fVbargraph8;
+	float fConst328;
+	float fConst329;
+	float fConst330;
+	float fConst331;
+	float fConst332;
+	float fConst333;
+	float fConst334;
+	float fConst335;
+	float fConst336;
+	float fConst337;
+	float fConst338;
+	float fConst339;
+	float fConst340;
+	float fConst341;
+	float fConst342;
+	float fConst343;
+	float fConst344;
+	float fConst345;
+	float fConst346;
+	float fConst347;
+	float fConst348;
+	float fRec66[3];
+	float fConst349;
+	float fConst350;
+	float fConst351;
+	float fRec65[3];
+	float fConst352;
+	float fConst353;
+	float fConst354;
+	float fRec64[3];
+	float fConst355;
+	float fConst356;
+	float fConst357;
+	float fConst358;
+	float fRec63[3];
+	float fConst359;
+	float fConst360;
+	float fConst361;
+	float fRec62[3];
+	float fConst362;
+	float fConst363;
+	float fConst364;
+	float fRec61[3];
+	float fConst365;
+	float fRec60[2];
+	FAUSTFLOAT fVbargraph9;
+	float fConst366;
+	float fConst367;
+	float fConst368;
+	float fConst369;
+	float fConst370;
+	float fConst371;
+	float fConst372;
+	float fConst373;
+	float fConst374;
+	float fConst375;
+	float fConst376;
+	float fConst377;
+	float fConst378;
+	float fConst379;
+	float fConst380;
+	float fConst381;
+	float fConst382;
+	float fConst383;
+	float fConst384;
+	float fConst385;
+	float fConst386;
+	float fRec73[3];
+	float fConst387;
+	float fConst388;
+	float fConst389;
+	float fRec72[3];
+	float fConst390;
+	float fConst391;
+	float fConst392;
+	float fRec71[3];
+	float fConst393;
+	float fConst394;
+	float fConst395;
+	float fConst396;
+	float fRec70[3];
+	float fConst397;
+	float fConst398;
+	float fConst399;
+	float fRec69[3];
+	float fConst400;
+	float fConst401;
+	float fConst402;
+	float fRec68[3];
+	float fConst403;
+	float fRec67[2];
+	FAUSTFLOAT fVbargraph10;
+	float fConst404;
+	float fConst405;
+	float fConst406;
+	float fConst407;
+	float fConst408;
+	float fConst409;
+	float fConst410;
+	float fConst411;
+	float fConst412;
+	float fConst413;
+	float fConst414;
+	float fConst415;
+	float fConst416;
+	float fConst417;
+	float fConst418;
+	float fConst419;
+	float fConst420;
+	float fConst421;
+	float fConst422;
+	float fConst423;
+	float fConst424;
+	float fRec80[3];
+	float fConst425;
+	float fConst426;
+	float fConst427;
+	float fRec79[3];
+	float fConst428;
+	float fConst429;
+	float fConst430;
+	float fRec78[3];
+	float fConst431;
+	float fConst432;
+	float fConst433;
+	float fConst434;
+	float fRec77[3];
+	float fConst435;
+	float fConst436;
+	float fConst437;
+	float fRec76[3];
+	float fConst438;
+	float fConst439;
+	float fConst440;
+	float fRec75[3];
+	float fConst441;
+	float fRec74[2];
+	FAUSTFLOAT fVbargraph11;
+	float fConst442;
+	float fConst443;
+	float fConst444;
+	float fConst445;
+	float fConst446;
+	float fConst447;
+	float fConst448;
+	float fConst449;
+	float fConst450;
+	float fConst451;
+	float fConst452;
+	float fConst453;
+	float fConst454;
+	float fConst455;
+	float fConst456;
+	float fConst457;
+	float fConst458;
+	float fConst459;
+	float fConst460;
+	float fConst461;
+	float fConst462;
+	float fRec87[3];
+	float fConst463;
+	float fConst464;
+	float fConst465;
+	float fRec86[3];
+	float fConst466;
+	float fConst467;
+	float fConst468;
+	float fRec85[3];
+	float fConst469;
+	float fConst470;
+	float fConst471;
+	float fConst472;
+	float fRec84[3];
+	float fConst473;
+	float fConst474;
+	float fConst475;
+	float fRec83[3];
+	float fConst476;
+	float fConst477;
+	float fConst478;
+	float fRec82[3];
+	float fConst479;
+	float fRec81[2];
+	FAUSTFLOAT fVbargraph12;
+	float fConst480;
+	float fConst481;
+	float fConst482;
+	float fConst483;
+	float fConst484;
+	float fConst485;
+	float fConst486;
+	float fConst487;
+	float fConst488;
+	float fConst489;
+	float fConst490;
+	float fConst491;
+	float fConst492;
+	float fConst493;
+	float fConst494;
+	float fConst495;
+	float fConst496;
+	float fConst497;
+	float fConst498;
+	float fConst499;
+	float fConst500;
+	float fRec94[3];
+	float fConst501;
+	float fConst502;
+	float fConst503;
+	float fRec93[3];
+	float fConst504;
+	float fConst505;
+	float fConst506;
+	float fRec92[3];
+	float fConst507;
+	float fConst508;
+	float fConst509;
+	float fConst510;
+	float fRec91[3];
+	float fConst511;
+	float fConst512;
+	float fConst513;
+	float fRec90[3];
+	float fConst514;
+	float fConst515;
+	float fConst516;
+	float fRec89[3];
+	float fConst517;
+	float fRec88[2];
+	FAUSTFLOAT fVbargraph13;
+	float fConst518;
+	float fConst519;
+	float fConst520;
+	float fConst521;
+	float fConst522;
+	float fConst523;
+	float fConst524;
+	float fConst525;
+	float fConst526;
+	float fConst527;
+	float fConst528;
+	float fConst529;
+	float fConst530;
+	float fConst531;
+	float fConst532;
+	float fConst533;
+	float fConst534;
+	float fConst535;
+	float fConst536;
+	float fConst537;
+	float fConst538;
+	float fRec101[3];
+	float fConst539;
+	float fConst540;
+	float fConst541;
+	float fRec100[3];
+	float fConst542;
+	float fConst543;
+	float fConst544;
+	float fRec99[3];
+	float fConst545;
+	float fConst546;
+	float fConst547;
+	float fConst548;
+	float fRec98[3];
+	float fConst549;
+	float fConst550;
+	float fConst551;
+	float fRec97[3];
+	float fConst552;
+	float fConst553;
+	float fConst554;
+	float fRec96[3];
+	float fConst555;
+	float fRec95[2];
+	FAUSTFLOAT fVbargraph14;
+	float fConst556;
+	float fConst557;
+	float fConst558;
+	float fConst559;
+	float fConst560;
+	float fConst561;
+	float fConst562;
+	float fConst563;
+	float fConst564;
+	float fConst565;
+	float fConst566;
+	float fConst567;
+	float fConst568;
+	float fConst569;
+	float fConst570;
+	float fConst571;
+	float fConst572;
+	float fConst573;
+	float fConst574;
+	float fConst575;
+	float fConst576;
+	float fRec108[3];
+	float fConst577;
+	float fConst578;
+	float fConst579;
+	float fRec107[3];
+	float fConst580;
+	float fConst581;
+	float fConst582;
+	float fRec106[3];
+	float fConst583;
+	float fConst584;
+	float fConst585;
+	float fConst586;
+	float fRec105[3];
+	float fConst587;
+	float fConst588;
+	float fConst589;
+	float fRec104[3];
+	float fConst590;
+	float fConst591;
+	float fConst592;
+	float fRec103[3];
+	float fConst593;
+	float fRec102[2];
+	FAUSTFLOAT fVbargraph15;
+	float fConst594;
+	float fConst595;
+	float fConst596;
+	float fConst597;
+	float fConst598;
+	float fConst599;
+	float fConst600;
+	float fConst601;
+	float fConst602;
+	float fConst603;
+	float fConst604;
+	float fConst605;
+	float fConst606;
+	float fConst607;
+	float fConst608;
+	float fConst609;
+	float fConst610;
+	float fConst611;
+	float fConst612;
+	float fConst613;
+	float fConst614;
+	float fRec115[3];
+	float fConst615;
+	float fConst616;
+	float fConst617;
+	float fRec114[3];
+	float fConst618;
+	float fConst619;
+	float fConst620;
+	float fRec113[3];
+	float fConst621;
+	float fConst622;
+	float fConst623;
+	float fConst624;
+	float fRec112[3];
+	float fConst625;
+	float fConst626;
+	float fConst627;
+	float fRec111[3];
+	float fConst628;
+	float fConst629;
+	float fConst630;
+	float fRec110[3];
+	float fConst631;
+	float fRec109[2];
+	FAUSTFLOAT fVbargraph16;
+	float fConst632;
+	float fConst633;
+	float fConst634;
+	float fConst635;
+	float fConst636;
+	float fConst637;
+	float fConst638;
+	float fConst639;
+	float fConst640;
+	float fConst641;
+	float fConst642;
+	float fConst643;
+	float fConst644;
+	float fConst645;
+	float fConst646;
+	float fConst647;
+	float fConst648;
+	float fConst649;
+	float fConst650;
+	float fConst651;
+	float fConst652;
+	float fRec122[3];
+	float fConst653;
+	float fConst654;
+	float fConst655;
+	float fRec121[3];
+	float fConst656;
+	float fConst657;
+	float fConst658;
+	float fRec120[3];
+	float fConst659;
+	float fConst660;
+	float fConst661;
+	float fConst662;
+	float fRec119[3];
+	float fConst663;
+	float fConst664;
+	float fConst665;
+	float fRec118[3];
+	float fConst666;
+	float fConst667;
+	float fConst668;
+	float fRec117[3];
+	float fConst669;
+	float fRec116[2];
+	FAUSTFLOAT fVbargraph17;
+	float fConst670;
+	float fConst671;
+	float fConst672;
+	float fConst673;
+	float fConst674;
+	float fConst675;
+	float fConst676;
+	float fConst677;
+	float fConst678;
+	float fConst679;
+	float fConst680;
+	float fConst681;
+	float fConst682;
+	float fConst683;
+	float fConst684;
+	float fConst685;
+	float fConst686;
+	float fConst687;
+	float fConst688;
+	float fConst689;
+	float fConst690;
+	float fRec129[3];
+	float fConst691;
+	float fConst692;
+	float fConst693;
+	float fRec128[3];
+	float fConst694;
+	float fConst695;
+	float fConst696;
+	float fRec127[3];
+	float fConst697;
+	float fConst698;
+	float fConst699;
+	float fConst700;
+	float fRec126[3];
+	float fConst701;
+	float fConst702;
+	float fConst703;
+	float fRec125[3];
+	float fConst704;
+	float fConst705;
+	float fConst706;
+	float fRec124[3];
+	float fConst707;
+	float fRec123[2];
+	FAUSTFLOAT fVbargraph18;
+	float fConst708;
+	float fConst709;
+	float fConst710;
+	float fConst711;
+	float fConst712;
+	float fConst713;
+	float fConst714;
+	float fConst715;
+	float fConst716;
+	float fConst717;
+	float fConst718;
+	float fConst719;
+	float fConst720;
+	float fConst721;
+	float fConst722;
+	float fConst723;
+	float fConst724;
+	float fConst725;
+	float fConst726;
+	float fConst727;
+	float fConst728;
+	float fRec136[3];
+	float fConst729;
+	float fConst730;
+	float fConst731;
+	float fRec135[3];
+	float fConst732;
+	float fConst733;
+	float fConst734;
+	float fRec134[3];
+	float fConst735;
+	float fConst736;
+	float fConst737;
+	float fConst738;
+	float fRec133[3];
+	float fConst739;
+	float fConst740;
+	float fConst741;
+	float fRec132[3];
+	float fConst742;
+	float fConst743;
+	float fConst744;
+	float fRec131[3];
+	float fConst745;
+	float fRec130[2];
+	FAUSTFLOAT fVbargraph19;
+	float fConst746;
+	float fConst747;
+	float fConst748;
+	float fConst749;
+	float fConst750;
+	float fConst751;
+	float fConst752;
+	float fConst753;
+	float fConst754;
+	float fConst755;
+	float fConst756;
+	float fConst757;
+	float fConst758;
+	float fConst759;
+	float fConst760;
+	float fConst761;
+	float fConst762;
+	float fConst763;
+	float fConst764;
+	float fConst765;
+	float fConst766;
+	float fRec143[3];
+	float fConst767;
+	float fConst768;
+	float fConst769;
+	float fRec142[3];
+	float fConst770;
+	float fConst771;
+	float fConst772;
+	float fRec141[3];
+	float fConst773;
+	float fConst774;
+	float fConst775;
+	float fConst776;
+	float fRec140[3];
+	float fConst777;
+	float fConst778;
+	float fConst779;
+	float fRec139[3];
+	float fConst780;
+	float fConst781;
+	float fConst782;
+	float fRec138[3];
+	float fConst783;
+	float fRec137[2];
+	FAUSTFLOAT fVbargraph20;
+	float fConst784;
+	float fConst785;
+	float fConst786;
+	float fConst787;
+	float fConst788;
+	float fConst789;
+	float fConst790;
+	float fConst791;
+	float fConst792;
+	float fConst793;
+	float fConst794;
+	float fConst795;
+	float fConst796;
+	float fConst797;
+	float fConst798;
+	float fConst799;
+	float fConst800;
+	float fConst801;
+	float fConst802;
+	float fConst803;
+	float fConst804;
+	float fRec150[3];
+	float fConst805;
+	float fConst806;
+	float fConst807;
+	float fRec149[3];
+	float fConst808;
+	float fConst809;
+	float fConst810;
+	float fRec148[3];
+	float fConst811;
+	float fConst812;
+	float fConst813;
+	float fConst814;
+	float fRec147[3];
+	float fConst815;
+	float fConst816;
+	float fConst817;
+	float fRec146[3];
+	float fConst818;
+	float fConst819;
+	float fConst820;
+	float fRec145[3];
+	float fConst821;
+	float fRec144[2];
+	FAUSTFLOAT fVbargraph21;
+	float fConst822;
+	float fConst823;
+	float fConst824;
+	float fConst825;
+	float fConst826;
+	float fConst827;
+	float fConst828;
+	float fConst829;
+	float fConst830;
+	float fConst831;
+	float fConst832;
+	float fConst833;
+	float fConst834;
+	float fConst835;
+	float fConst836;
+	float fConst837;
+	float fConst838;
+	float fConst839;
+	float fConst840;
+	float fConst841;
+	float fConst842;
+	float fRec157[3];
+	float fConst843;
+	float fConst844;
+	float fConst845;
+	float fRec156[3];
+	float fConst846;
+	float fConst847;
+	float fConst848;
+	float fRec155[3];
+	float fConst849;
+	float fConst850;
+	float fConst851;
+	float fConst852;
+	float fRec154[3];
+	float fConst853;
+	float fConst854;
+	float fConst855;
+	float fRec153[3];
+	float fConst856;
+	float fConst857;
+	float fConst858;
+	float fRec152[3];
+	float fConst859;
+	float fRec151[2];
+	FAUSTFLOAT fVbargraph22;
+	float fConst860;
+	float fConst861;
+	float fConst862;
+	float fConst863;
+	float fConst864;
+	float fConst865;
+	float fConst866;
+	float fConst867;
+	float fConst868;
+	float fConst869;
+	float fConst870;
+	float fConst871;
+	float fConst872;
+	float fConst873;
+	float fConst874;
+	float fConst875;
+	float fConst876;
+	float fConst877;
+	float fConst878;
+	float fConst879;
+	float fConst880;
+	float fRec164[3];
+	float fConst881;
+	float fConst882;
+	float fConst883;
+	float fRec163[3];
+	float fConst884;
+	float fConst885;
+	float fConst886;
+	float fRec162[3];
+	float fConst887;
+	float fConst888;
+	float fConst889;
+	float fConst890;
+	float fRec161[3];
+	float fConst891;
+	float fConst892;
+	float fConst893;
+	float fRec160[3];
+	float fConst894;
+	float fConst895;
+	float fConst896;
+	float fRec159[3];
+	float fConst897;
+	float fRec158[2];
+	FAUSTFLOAT fVbargraph23;
+	float fConst898;
+	float fConst899;
+	float fConst900;
+	float fConst901;
+	float fConst902;
+	float fConst903;
+	float fConst904;
+	float fConst905;
+	float fConst906;
+	float fConst907;
+	float fConst908;
+	float fConst909;
+	float fConst910;
+	float fConst911;
+	float fConst912;
+	float fConst913;
+	float fConst914;
+	float fConst915;
+	float fConst916;
+	float fConst917;
+	float fConst918;
+	float fRec171[3];
+	float fConst919;
+	float fConst920;
+	float fConst921;
+	float fRec170[3];
+	float fConst922;
+	float fConst923;
+	float fConst924;
+	float fRec169[3];
+	float fConst925;
+	float fConst926;
+	float fConst927;
+	float fConst928;
+	float fRec168[3];
+	float fConst929;
+	float fConst930;
+	float fConst931;
+	float fRec167[3];
+	float fConst932;
+	float fConst933;
+	float fConst934;
+	float fRec166[3];
+	float fConst935;
+	float fRec165[2];
+	FAUSTFLOAT fVbargraph24;
+	float fConst936;
+	float fConst937;
+	float fConst938;
+	float fConst939;
+	float fConst940;
+	float fConst941;
+	float fConst942;
+	float fConst943;
+	float fConst944;
+	float fConst945;
+	float fConst946;
+	float fConst947;
+	float fConst948;
+	float fConst949;
+	float fConst950;
+	float fConst951;
+	float fConst952;
+	float fConst953;
+	float fConst954;
+	float fConst955;
+	float fConst956;
+	float fRec178[3];
+	float fConst957;
+	float fConst958;
+	float fConst959;
+	float fRec177[3];
+	float fConst960;
+	float fConst961;
+	float fConst962;
+	float fRec176[3];
+	float fConst963;
+	float fConst964;
+	float fConst965;
+	float fConst966;
+	float fRec175[3];
+	float fConst967;
+	float fConst968;
+	float fConst969;
+	float fRec174[3];
+	float fConst970;
+	float fConst971;
+	float fConst972;
+	float fRec173[3];
+	float fConst973;
+	float fRec172[2];
+	FAUSTFLOAT fVbargraph25;
+	float fConst974;
+	float fConst975;
+	float fConst976;
+	float fConst977;
+	float fConst978;
+	float fConst979;
+	float fConst980;
+	float fConst981;
+	float fConst982;
+	float fConst983;
+	float fConst984;
+	float fConst985;
+	float fConst986;
+	float fConst987;
+	float fConst988;
+	float fConst989;
+	float fConst990;
+	float fConst991;
+	float fConst992;
+	float fConst993;
+	float fConst994;
+	float fRec185[3];
+	float fConst995;
+	float fConst996;
+	float fConst997;
+	float fRec184[3];
+	float fConst998;
+	float fConst999;
+	float fConst1000;
+	float fRec183[3];
+	float fConst1001;
+	float fConst1002;
+	float fConst1003;
+	float fConst1004;
+	float fRec182[3];
+	float fConst1005;
+	float fConst1006;
+	float fConst1007;
+	float fRec181[3];
+	float fConst1008;
+	float fConst1009;
+	float fConst1010;
+	float fRec180[3];
+	float fConst1011;
+	float fRec179[2];
+	FAUSTFLOAT fVbargraph26;
+	float fConst1012;
+	float fConst1013;
+	float fConst1014;
+	float fConst1015;
+	float fConst1016;
+	float fConst1017;
+	float fConst1018;
+	float fConst1019;
+	float fConst1020;
+	float fConst1021;
+	float fConst1022;
+	float fConst1023;
+	float fConst1024;
+	float fConst1025;
+	float fConst1026;
+	float fConst1027;
+	float fConst1028;
+	float fConst1029;
+	float fConst1030;
+	float fConst1031;
+	float fConst1032;
+	float fRec192[3];
+	float fConst1033;
+	float fConst1034;
+	float fConst1035;
+	float fRec191[3];
+	float fConst1036;
+	float fConst1037;
+	float fConst1038;
+	float fRec190[3];
+	float fConst1039;
+	float fConst1040;
+	float fConst1041;
+	float fConst1042;
+	float fRec189[3];
+	float fConst1043;
+	float fConst1044;
+	float fConst1045;
+	float fRec188[3];
+	float fConst1046;
+	float fConst1047;
+	float fConst1048;
+	float fRec187[3];
+	float fConst1049;
+	float fRec186[2];
+	FAUSTFLOAT fVbargraph27;
+	float fConst1050;
+	float fConst1051;
+	float fConst1052;
+	float fConst1053;
+	float fConst1054;
+	float fConst1055;
+	float fConst1056;
+	float fConst1057;
+	float fConst1058;
+	float fConst1059;
+	float fConst1060;
+	float fConst1061;
+	float fConst1062;
+	float fConst1063;
+	float fConst1064;
+	float fConst1065;
+	float fConst1066;
+	float fConst1067;
+	float fConst1068;
+	float fConst1069;
+	float fConst1070;
+	float fRec199[3];
+	float fConst1071;
+	float fConst1072;
+	float fConst1073;
+	float fRec198[3];
+	float fConst1074;
+	float fConst1075;
+	float fConst1076;
+	float fRec197[3];
+	float fConst1077;
+	float fConst1078;
+	float fConst1079;
+	float fConst1080;
+	float fRec196[3];
+	float fConst1081;
+	float fConst1082;
+	float fConst1083;
+	float fRec195[3];
+	float fConst1084;
+	float fConst1085;
+	float fConst1086;
+	float fRec194[3];
+	float fConst1087;
+	float fRec193[2];
+	FAUSTFLOAT fVbargraph28;
+	float fConst1088;
+	float fConst1089;
+	float fConst1090;
+	float fConst1091;
+	float fConst1092;
+	float fConst1093;
+	float fConst1094;
+	float fConst1095;
+	float fConst1096;
+	float fRec203[3];
+	float fConst1097;
+	float fConst1098;
+	float fConst1099;
+	float fRec202[3];
+	float fConst1100;
+	float fConst1101;
+	float fConst1102;
+	float fRec201[3];
+	float fConst1103;
+	float fRec200[2];
+	FAUSTFLOAT fVbargraph29;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "spectral_level.dsp");
+		m->declare("filter.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("filter.lib/copyright", "Julius O. Smith III");
+		m->declare("filter.lib/license", "STK-4.3");
+		m->declare("filter.lib/name", "Faust Filter Library");
+		m->declare("filter.lib/reference", "https://ccrma.stanford.edu/~jos/filters/");
+		m->declare("filter.lib/version", "1.29");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "spectral_level");
+	}
+
+	virtual int getNumInputs() {
+		return 1;
+	}
+	virtual int getNumOutputs() {
+		return 2;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+		fConst1 = 1e+03f / fConst0;
+		fConst2 = std::tan(50265.484f / fConst0);
+		fConst3 = 1.0f / fConst2;
+		fConst4 = 1.0f / ((fConst3 + 0.15748216f) / fConst2 + 0.9351402f);
+		fConst5 = mydsp_faustpower2_f(fConst2);
+		fConst6 = 50.06381f / fConst5;
+		fConst7 = fConst6 + 0.9351402f;
+		fConst8 = 1.0f / ((fConst3 + 0.74313045f) / fConst2 + 1.4500711f);
+		fConst9 = 11.0520525f / fConst5;
+		fConst10 = fConst9 + 1.4500711f;
+		fConst11 = 1.0f / ((fConst3 + 3.1897273f) / fConst2 + 4.0767817f);
+		fConst12 = 0.0017661728f / fConst5;
+		fConst13 = fConst12 + 0.0004076782f;
+		fConst14 = (fConst3 + -3.1897273f) / fConst2 + 4.0767817f;
+		fConst15 = 1.0f / fConst5;
+		fConst16 = 2.0f * (4.0767817f - fConst15);
+		fConst17 = 2.0f * (0.0004076782f - fConst12);
+		fConst18 = (fConst3 + -0.74313045f) / fConst2 + 1.4500711f;
+		fConst19 = 2.0f * (1.4500711f - fConst15);
+		fConst20 = 2.0f * (1.4500711f - fConst9);
+		fConst21 = (fConst3 + -0.15748216f) / fConst2 + 0.9351402f;
+		fConst22 = 2.0f * (0.9351402f - fConst15);
+		fConst23 = 2.0f * (0.9351402f - fConst6);
+		fConst24 = std::tan(39895.74f / fConst0);
+		fConst25 = 1.0f / fConst24;
+		fConst26 = 1.0f / ((fConst25 + 0.15748216f) / fConst24 + 0.9351402f);
+		fConst27 = mydsp_faustpower2_f(fConst24);
+		fConst28 = 50.06381f / fConst27;
+		fConst29 = fConst28 + 0.9351402f;
+		fConst30 = 1.0f / ((fConst25 + 0.74313045f) / fConst24 + 1.4500711f);
+		fConst31 = 11.0520525f / fConst27;
+		fConst32 = fConst31 + 1.4500711f;
+		fConst33 = 1.0f / ((fConst25 + 3.1897273f) / fConst24 + 4.0767817f);
+		fConst34 = 0.0017661728f / fConst27;
+		fConst35 = fConst34 + 0.0004076782f;
+		fConst36 = 1.0f / ((fConst3 + 0.16840488f) / fConst2 + 1.0693583f);
+		fConst37 = fConst15 + 53.53615f;
+		fConst38 = 1.0f / ((fConst3 + 0.51247865f) / fConst2 + 0.6896214f);
+		fConst39 = fConst15 + 7.6217313f;
+		fConst40 = 1.0f / ((fConst3 + 0.78241307f) / fConst2 + 0.2452915f);
+		fConst41 = 0.0001f / fConst5;
+		fConst42 = fConst41 + 0.0004332272f;
+		fConst43 = (fConst3 + -0.78241307f) / fConst2 + 0.2452915f;
+		fConst44 = 2.0f * (0.2452915f - fConst15);
+		fConst45 = 2.0f * (0.0004332272f - fConst41);
+		fConst46 = (fConst3 + -0.51247865f) / fConst2 + 0.6896214f;
+		fConst47 = 2.0f * (0.6896214f - fConst15);
+		fConst48 = 2.0f * (7.6217313f - fConst15);
+		fConst49 = (fConst3 + -0.16840488f) / fConst2 + 1.0693583f;
+		fConst50 = 2.0f * (1.0693583f - fConst15);
+		fConst51 = 2.0f * (53.53615f - fConst15);
+		fConst52 = (fConst25 + -3.1897273f) / fConst24 + 4.0767817f;
+		fConst53 = 1.0f / fConst27;
+		fConst54 = 2.0f * (4.0767817f - fConst53);
+		fConst55 = 2.0f * (0.0004076782f - fConst34);
+		fConst56 = (fConst25 + -0.74313045f) / fConst24 + 1.4500711f;
+		fConst57 = 2.0f * (1.4500711f - fConst53);
+		fConst58 = 2.0f * (1.4500711f - fConst31);
+		fConst59 = (fConst25 + -0.15748216f) / fConst24 + 0.9351402f;
+		fConst60 = 2.0f * (0.9351402f - fConst53);
+		fConst61 = 2.0f * (0.9351402f - fConst28);
+		fConst62 = std::tan(31665.27f / fConst0);
+		fConst63 = 1.0f / fConst62;
+		fConst64 = 1.0f / ((fConst63 + 0.15748216f) / fConst62 + 0.9351402f);
+		fConst65 = mydsp_faustpower2_f(fConst62);
+		fConst66 = 50.06381f / fConst65;
+		fConst67 = fConst66 + 0.9351402f;
+		fConst68 = 1.0f / ((fConst63 + 0.74313045f) / fConst62 + 1.4500711f);
+		fConst69 = 11.0520525f / fConst65;
+		fConst70 = fConst69 + 1.4500711f;
+		fConst71 = 1.0f / ((fConst63 + 3.1897273f) / fConst62 + 4.0767817f);
+		fConst72 = 0.0017661728f / fConst65;
+		fConst73 = fConst72 + 0.0004076782f;
+		fConst74 = 1.0f / ((fConst25 + 0.16840488f) / fConst24 + 1.0693583f);
+		fConst75 = fConst53 + 53.53615f;
+		fConst76 = 1.0f / ((fConst25 + 0.51247865f) / fConst24 + 0.6896214f);
+		fConst77 = fConst53 + 7.6217313f;
+		fConst78 = 1.0f / ((fConst25 + 0.78241307f) / fConst24 + 0.2452915f);
+		fConst79 = 0.0001f / fConst27;
+		fConst80 = fConst79 + 0.0004332272f;
+		fConst81 = (fConst25 + -0.78241307f) / fConst24 + 0.2452915f;
+		fConst82 = 2.0f * (0.2452915f - fConst53);
+		fConst83 = 2.0f * (0.0004332272f - fConst79);
+		fConst84 = (fConst25 + -0.51247865f) / fConst24 + 0.6896214f;
+		fConst85 = 2.0f * (0.6896214f - fConst53);
+		fConst86 = 2.0f * (7.6217313f - fConst53);
+		fConst87 = (fConst25 + -0.16840488f) / fConst24 + 1.0693583f;
+		fConst88 = 2.0f * (1.0693583f - fConst53);
+		fConst89 = 2.0f * (53.53615f - fConst53);
+		fConst90 = (fConst63 + -3.1897273f) / fConst62 + 4.0767817f;
+		fConst91 = 1.0f / fConst65;
+		fConst92 = 2.0f * (4.0767817f - fConst91);
+		fConst93 = 2.0f * (0.0004076782f - fConst72);
+		fConst94 = (fConst63 + -0.74313045f) / fConst62 + 1.4500711f;
+		fConst95 = 2.0f * (1.4500711f - fConst91);
+		fConst96 = 2.0f * (1.4500711f - fConst69);
+		fConst97 = (fConst63 + -0.15748216f) / fConst62 + 0.9351402f;
+		fConst98 = 2.0f * (0.9351402f - fConst91);
+		fConst99 = 2.0f * (0.9351402f - fConst66);
+		fConst100 = std::tan(25132.742f / fConst0);
+		fConst101 = 1.0f / fConst100;
+		fConst102 = 1.0f / ((fConst101 + 0.15748216f) / fConst100 + 0.9351402f);
+		fConst103 = mydsp_faustpower2_f(fConst100);
+		fConst104 = 50.06381f / fConst103;
+		fConst105 = fConst104 + 0.9351402f;
+		fConst106 = 1.0f / ((fConst101 + 0.74313045f) / fConst100 + 1.4500711f);
+		fConst107 = 11.0520525f / fConst103;
+		fConst108 = fConst107 + 1.4500711f;
+		fConst109 = 1.0f / ((fConst101 + 3.1897273f) / fConst100 + 4.0767817f);
+		fConst110 = 0.0017661728f / fConst103;
+		fConst111 = fConst110 + 0.0004076782f;
+		fConst112 = 1.0f / ((fConst63 + 0.16840488f) / fConst62 + 1.0693583f);
+		fConst113 = fConst91 + 53.53615f;
+		fConst114 = 1.0f / ((fConst63 + 0.51247865f) / fConst62 + 0.6896214f);
+		fConst115 = fConst91 + 7.6217313f;
+		fConst116 = 1.0f / ((fConst63 + 0.78241307f) / fConst62 + 0.2452915f);
+		fConst117 = 0.0001f / fConst65;
+		fConst118 = fConst117 + 0.0004332272f;
+		fConst119 = (fConst63 + -0.78241307f) / fConst62 + 0.2452915f;
+		fConst120 = 2.0f * (0.2452915f - fConst91);
+		fConst121 = 2.0f * (0.0004332272f - fConst117);
+		fConst122 = (fConst63 + -0.51247865f) / fConst62 + 0.6896214f;
+		fConst123 = 2.0f * (0.6896214f - fConst91);
+		fConst124 = 2.0f * (7.6217313f - fConst91);
+		fConst125 = (fConst63 + -0.16840488f) / fConst62 + 1.0693583f;
+		fConst126 = 2.0f * (1.0693583f - fConst91);
+		fConst127 = 2.0f * (53.53615f - fConst91);
+		fConst128 = (fConst101 + -3.1897273f) / fConst100 + 4.0767817f;
+		fConst129 = 1.0f / fConst103;
+		fConst130 = 2.0f * (4.0767817f - fConst129);
+		fConst131 = 2.0f * (0.0004076782f - fConst110);
+		fConst132 = (fConst101 + -0.74313045f) / fConst100 + 1.4500711f;
+		fConst133 = 2.0f * (1.4500711f - fConst129);
+		fConst134 = 2.0f * (1.4500711f - fConst107);
+		fConst135 = (fConst101 + -0.15748216f) / fConst100 + 0.9351402f;
+		fConst136 = 2.0f * (0.9351402f - fConst129);
+		fConst137 = 2.0f * (0.9351402f - fConst104);
+		fConst138 = std::tan(19947.87f / fConst0);
+		fConst139 = 1.0f / fConst138;
+		fConst140 = 1.0f / ((fConst139 + 0.15748216f) / fConst138 + 0.9351402f);
+		fConst141 = mydsp_faustpower2_f(fConst138);
+		fConst142 = 50.06381f / fConst141;
+		fConst143 = fConst142 + 0.9351402f;
+		fConst144 = 1.0f / ((fConst139 + 0.74313045f) / fConst138 + 1.4500711f);
+		fConst145 = 11.0520525f / fConst141;
+		fConst146 = fConst145 + 1.4500711f;
+		fConst147 = 1.0f / ((fConst139 + 3.1897273f) / fConst138 + 4.0767817f);
+		fConst148 = 0.0017661728f / fConst141;
+		fConst149 = fConst148 + 0.0004076782f;
+		fConst150 = 1.0f / ((fConst101 + 0.16840488f) / fConst100 + 1.0693583f);
+		fConst151 = fConst129 + 53.53615f;
+		fConst152 = 1.0f / ((fConst101 + 0.51247865f) / fConst100 + 0.6896214f);
+		fConst153 = fConst129 + 7.6217313f;
+		fConst154 = 1.0f / ((fConst101 + 0.78241307f) / fConst100 + 0.2452915f);
+		fConst155 = 0.0001f / fConst103;
+		fConst156 = fConst155 + 0.0004332272f;
+		fConst157 = (fConst101 + -0.78241307f) / fConst100 + 0.2452915f;
+		fConst158 = 2.0f * (0.2452915f - fConst129);
+		fConst159 = 2.0f * (0.0004332272f - fConst155);
+		fConst160 = (fConst101 + -0.51247865f) / fConst100 + 0.6896214f;
+		fConst161 = 2.0f * (0.6896214f - fConst129);
+		fConst162 = 2.0f * (7.6217313f - fConst129);
+		fConst163 = (fConst101 + -0.16840488f) / fConst100 + 1.0693583f;
+		fConst164 = 2.0f * (1.0693583f - fConst129);
+		fConst165 = 2.0f * (53.53615f - fConst129);
+		fConst166 = (fConst139 + -3.1897273f) / fConst138 + 4.0767817f;
+		fConst167 = 1.0f / fConst141;
+		fConst168 = 2.0f * (4.0767817f - fConst167);
+		fConst169 = 2.0f * (0.0004076782f - fConst148);
+		fConst170 = (fConst139 + -0.74313045f) / fConst138 + 1.4500711f;
+		fConst171 = 2.0f * (1.4500711f - fConst167);
+		fConst172 = 2.0f * (1.4500711f - fConst145);
+		fConst173 = (fConst139 + -0.15748216f) / fConst138 + 0.9351402f;
+		fConst174 = 2.0f * (0.9351402f - fConst167);
+		fConst175 = 2.0f * (0.9351402f - fConst142);
+		fConst176 = std::tan(15832.635f / fConst0);
+		fConst177 = 1.0f / fConst176;
+		fConst178 = 1.0f / ((fConst177 + 0.15748216f) / fConst176 + 0.9351402f);
+		fConst179 = mydsp_faustpower2_f(fConst176);
+		fConst180 = 50.06381f / fConst179;
+		fConst181 = fConst180 + 0.9351402f;
+		fConst182 = 1.0f / ((fConst177 + 0.74313045f) / fConst176 + 1.4500711f);
+		fConst183 = 11.0520525f / fConst179;
+		fConst184 = fConst183 + 1.4500711f;
+		fConst185 = 1.0f / ((fConst177 + 3.1897273f) / fConst176 + 4.0767817f);
+		fConst186 = 0.0017661728f / fConst179;
+		fConst187 = fConst186 + 0.0004076782f;
+		fConst188 = 1.0f / ((fConst139 + 0.16840488f) / fConst138 + 1.0693583f);
+		fConst189 = fConst167 + 53.53615f;
+		fConst190 = 1.0f / ((fConst139 + 0.51247865f) / fConst138 + 0.6896214f);
+		fConst191 = fConst167 + 7.6217313f;
+		fConst192 = 1.0f / ((fConst139 + 0.78241307f) / fConst138 + 0.2452915f);
+		fConst193 = 0.0001f / fConst141;
+		fConst194 = fConst193 + 0.0004332272f;
+		fConst195 = (fConst139 + -0.78241307f) / fConst138 + 0.2452915f;
+		fConst196 = 2.0f * (0.2452915f - fConst167);
+		fConst197 = 2.0f * (0.0004332272f - fConst193);
+		fConst198 = (fConst139 + -0.51247865f) / fConst138 + 0.6896214f;
+		fConst199 = 2.0f * (0.6896214f - fConst167);
+		fConst200 = 2.0f * (7.6217313f - fConst167);
+		fConst201 = (fConst139 + -0.16840488f) / fConst138 + 1.0693583f;
+		fConst202 = 2.0f * (1.0693583f - fConst167);
+		fConst203 = 2.0f * (53.53615f - fConst167);
+		fConst204 = (fConst177 + -3.1897273f) / fConst176 + 4.0767817f;
+		fConst205 = 1.0f / fConst179;
+		fConst206 = 2.0f * (4.0767817f - fConst205);
+		fConst207 = 2.0f * (0.0004076782f - fConst186);
+		fConst208 = (fConst177 + -0.74313045f) / fConst176 + 1.4500711f;
+		fConst209 = 2.0f * (1.4500711f - fConst205);
+		fConst210 = 2.0f * (1.4500711f - fConst183);
+		fConst211 = (fConst177 + -0.15748216f) / fConst176 + 0.9351402f;
+		fConst212 = 2.0f * (0.9351402f - fConst205);
+		fConst213 = 2.0f * (0.9351402f - fConst180);
+		fConst214 = std::tan(12566.371f / fConst0);
+		fConst215 = 1.0f / fConst214;
+		fConst216 = 1.0f / ((fConst215 + 0.15748216f) / fConst214 + 0.9351402f);
+		fConst217 = mydsp_faustpower2_f(fConst214);
+		fConst218 = 50.06381f / fConst217;
+		fConst219 = fConst218 + 0.9351402f;
+		fConst220 = 1.0f / ((fConst215 + 0.74313045f) / fConst214 + 1.4500711f);
+		fConst221 = 11.0520525f / fConst217;
+		fConst222 = fConst221 + 1.4500711f;
+		fConst223 = 1.0f / ((fConst215 + 3.1897273f) / fConst214 + 4.0767817f);
+		fConst224 = 0.0017661728f / fConst217;
+		fConst225 = fConst224 + 0.0004076782f;
+		fConst226 = 1.0f / ((fConst177 + 0.16840488f) / fConst176 + 1.0693583f);
+		fConst227 = fConst205 + 53.53615f;
+		fConst228 = 1.0f / ((fConst177 + 0.51247865f) / fConst176 + 0.6896214f);
+		fConst229 = fConst205 + 7.6217313f;
+		fConst230 = 1.0f / ((fConst177 + 0.78241307f) / fConst176 + 0.2452915f);
+		fConst231 = 0.0001f / fConst179;
+		fConst232 = fConst231 + 0.0004332272f;
+		fConst233 = (fConst177 + -0.78241307f) / fConst176 + 0.2452915f;
+		fConst234 = 2.0f * (0.2452915f - fConst205);
+		fConst235 = 2.0f * (0.0004332272f - fConst231);
+		fConst236 = (fConst177 + -0.51247865f) / fConst176 + 0.6896214f;
+		fConst237 = 2.0f * (0.6896214f - fConst205);
+		fConst238 = 2.0f * (7.6217313f - fConst205);
+		fConst239 = (fConst177 + -0.16840488f) / fConst176 + 1.0693583f;
+		fConst240 = 2.0f * (1.0693583f - fConst205);
+		fConst241 = 2.0f * (53.53615f - fConst205);
+		fConst242 = (fConst215 + -3.1897273f) / fConst214 + 4.0767817f;
+		fConst243 = 1.0f / fConst217;
+		fConst244 = 2.0f * (4.0767817f - fConst243);
+		fConst245 = 2.0f * (0.0004076782f - fConst224);
+		fConst246 = (fConst215 + -0.74313045f) / fConst214 + 1.4500711f;
+		fConst247 = 2.0f * (1.4500711f - fConst243);
+		fConst248 = 2.0f * (1.4500711f - fConst221);
+		fConst249 = (fConst215 + -0.15748216f) / fConst214 + 0.9351402f;
+		fConst250 = 2.0f * (0.9351402f - fConst243);
+		fConst251 = 2.0f * (0.9351402f - fConst218);
+		fConst252 = std::tan(9973.935f / fConst0);
+		fConst253 = 1.0f / fConst252;
+		fConst254 = 1.0f / ((fConst253 + 0.15748216f) / fConst252 + 0.9351402f);
+		fConst255 = mydsp_faustpower2_f(fConst252);
+		fConst256 = 50.06381f / fConst255;
+		fConst257 = fConst256 + 0.9351402f;
+		fConst258 = 1.0f / ((fConst253 + 0.74313045f) / fConst252 + 1.4500711f);
+		fConst259 = 11.0520525f / fConst255;
+		fConst260 = fConst259 + 1.4500711f;
+		fConst261 = 1.0f / ((fConst253 + 3.1897273f) / fConst252 + 4.0767817f);
+		fConst262 = 0.0017661728f / fConst255;
+		fConst263 = fConst262 + 0.0004076782f;
+		fConst264 = 1.0f / ((fConst215 + 0.16840488f) / fConst214 + 1.0693583f);
+		fConst265 = fConst243 + 53.53615f;
+		fConst266 = 1.0f / ((fConst215 + 0.51247865f) / fConst214 + 0.6896214f);
+		fConst267 = fConst243 + 7.6217313f;
+		fConst268 = 1.0f / ((fConst215 + 0.78241307f) / fConst214 + 0.2452915f);
+		fConst269 = 0.0001f / fConst217;
+		fConst270 = fConst269 + 0.0004332272f;
+		fConst271 = (fConst215 + -0.78241307f) / fConst214 + 0.2452915f;
+		fConst272 = 2.0f * (0.2452915f - fConst243);
+		fConst273 = 2.0f * (0.0004332272f - fConst269);
+		fConst274 = (fConst215 + -0.51247865f) / fConst214 + 0.6896214f;
+		fConst275 = 2.0f * (0.6896214f - fConst243);
+		fConst276 = 2.0f * (7.6217313f - fConst243);
+		fConst277 = (fConst215 + -0.16840488f) / fConst214 + 1.0693583f;
+		fConst278 = 2.0f * (1.0693583f - fConst243);
+		fConst279 = 2.0f * (53.53615f - fConst243);
+		fConst280 = (fConst253 + -3.1897273f) / fConst252 + 4.0767817f;
+		fConst281 = 1.0f / fConst255;
+		fConst282 = 2.0f * (4.0767817f - fConst281);
+		fConst283 = 2.0f * (0.0004076782f - fConst262);
+		fConst284 = (fConst253 + -0.74313045f) / fConst252 + 1.4500711f;
+		fConst285 = 2.0f * (1.4500711f - fConst281);
+		fConst286 = 2.0f * (1.4500711f - fConst259);
+		fConst287 = (fConst253 + -0.15748216f) / fConst252 + 0.9351402f;
+		fConst288 = 2.0f * (0.9351402f - fConst281);
+		fConst289 = 2.0f * (0.9351402f - fConst256);
+		fConst290 = std::tan(7916.3174f / fConst0);
+		fConst291 = 1.0f / fConst290;
+		fConst292 = 1.0f / ((fConst291 + 0.15748216f) / fConst290 + 0.9351402f);
+		fConst293 = mydsp_faustpower2_f(fConst290);
+		fConst294 = 50.06381f / fConst293;
+		fConst295 = fConst294 + 0.9351402f;
+		fConst296 = 1.0f / ((fConst291 + 0.74313045f) / fConst290 + 1.4500711f);
+		fConst297 = 11.0520525f / fConst293;
+		fConst298 = fConst297 + 1.4500711f;
+		fConst299 = 1.0f / ((fConst291 + 3.1897273f) / fConst290 + 4.0767817f);
+		fConst300 = 0.0017661728f / fConst293;
+		fConst301 = fConst300 + 0.0004076782f;
+		fConst302 = 1.0f / ((fConst253 + 0.16840488f) / fConst252 + 1.0693583f);
+		fConst303 = fConst281 + 53.53615f;
+		fConst304 = 1.0f / ((fConst253 + 0.51247865f) / fConst252 + 0.6896214f);
+		fConst305 = fConst281 + 7.6217313f;
+		fConst306 = 1.0f / ((fConst253 + 0.78241307f) / fConst252 + 0.2452915f);
+		fConst307 = 0.0001f / fConst255;
+		fConst308 = fConst307 + 0.0004332272f;
+		fConst309 = (fConst253 + -0.78241307f) / fConst252 + 0.2452915f;
+		fConst310 = 2.0f * (0.2452915f - fConst281);
+		fConst311 = 2.0f * (0.0004332272f - fConst307);
+		fConst312 = (fConst253 + -0.51247865f) / fConst252 + 0.6896214f;
+		fConst313 = 2.0f * (0.6896214f - fConst281);
+		fConst314 = 2.0f * (7.6217313f - fConst281);
+		fConst315 = (fConst253 + -0.16840488f) / fConst252 + 1.0693583f;
+		fConst316 = 2.0f * (1.0693583f - fConst281);
+		fConst317 = 2.0f * (53.53615f - fConst281);
+		fConst318 = (fConst291 + -3.1897273f) / fConst290 + 4.0767817f;
+		fConst319 = 1.0f / fConst293;
+		fConst320 = 2.0f * (4.0767817f - fConst319);
+		fConst321 = 2.0f * (0.0004076782f - fConst300);
+		fConst322 = (fConst291 + -0.74313045f) / fConst290 + 1.4500711f;
+		fConst323 = 2.0f * (1.4500711f - fConst319);
+		fConst324 = 2.0f * (1.4500711f - fConst297);
+		fConst325 = (fConst291 + -0.15748216f) / fConst290 + 0.9351402f;
+		fConst326 = 2.0f * (0.9351402f - fConst319);
+		fConst327 = 2.0f * (0.9351402f - fConst294);
+		fConst328 = std::tan(6283.1855f / fConst0);
+		fConst329 = 1.0f / fConst328;
+		fConst330 = 1.0f / ((fConst329 + 0.15748216f) / fConst328 + 0.9351402f);
+		fConst331 = mydsp_faustpower2_f(fConst328);
+		fConst332 = 50.06381f / fConst331;
+		fConst333 = fConst332 + 0.9351402f;
+		fConst334 = 1.0f / ((fConst329 + 0.74313045f) / fConst328 + 1.4500711f);
+		fConst335 = 11.0520525f / fConst331;
+		fConst336 = fConst335 + 1.4500711f;
+		fConst337 = 1.0f / ((fConst329 + 3.1897273f) / fConst328 + 4.0767817f);
+		fConst338 = 0.0017661728f / fConst331;
+		fConst339 = fConst338 + 0.0004076782f;
+		fConst340 = 1.0f / ((fConst291 + 0.16840488f) / fConst290 + 1.0693583f);
+		fConst341 = fConst319 + 53.53615f;
+		fConst342 = 1.0f / ((fConst291 + 0.51247865f) / fConst290 + 0.6896214f);
+		fConst343 = fConst319 + 7.6217313f;
+		fConst344 = 1.0f / ((fConst291 + 0.78241307f) / fConst290 + 0.2452915f);
+		fConst345 = 0.0001f / fConst293;
+		fConst346 = fConst345 + 0.0004332272f;
+		fConst347 = (fConst291 + -0.78241307f) / fConst290 + 0.2452915f;
+		fConst348 = 2.0f * (0.2452915f - fConst319);
+		fConst349 = 2.0f * (0.0004332272f - fConst345);
+		fConst350 = (fConst291 + -0.51247865f) / fConst290 + 0.6896214f;
+		fConst351 = 2.0f * (0.6896214f - fConst319);
+		fConst352 = 2.0f * (7.6217313f - fConst319);
+		fConst353 = (fConst291 + -0.16840488f) / fConst290 + 1.0693583f;
+		fConst354 = 2.0f * (1.0693583f - fConst319);
+		fConst355 = 2.0f * (53.53615f - fConst319);
+		fConst356 = (fConst329 + -3.1897273f) / fConst328 + 4.0767817f;
+		fConst357 = 1.0f / fConst331;
+		fConst358 = 2.0f * (4.0767817f - fConst357);
+		fConst359 = 2.0f * (0.0004076782f - fConst338);
+		fConst360 = (fConst329 + -0.74313045f) / fConst328 + 1.4500711f;
+		fConst361 = 2.0f * (1.4500711f - fConst357);
+		fConst362 = 2.0f * (1.4500711f - fConst335);
+		fConst363 = (fConst329 + -0.15748216f) / fConst328 + 0.9351402f;
+		fConst364 = 2.0f * (0.9351402f - fConst357);
+		fConst365 = 2.0f * (0.9351402f - fConst332);
+		fConst366 = std::tan(4986.9673f / fConst0);
+		fConst367 = 1.0f / fConst366;
+		fConst368 = 1.0f / ((fConst367 + 0.15748216f) / fConst366 + 0.9351402f);
+		fConst369 = mydsp_faustpower2_f(fConst366);
+		fConst370 = 50.06381f / fConst369;
+		fConst371 = fConst370 + 0.9351402f;
+		fConst372 = 1.0f / ((fConst367 + 0.74313045f) / fConst366 + 1.4500711f);
+		fConst373 = 11.0520525f / fConst369;
+		fConst374 = fConst373 + 1.4500711f;
+		fConst375 = 1.0f / ((fConst367 + 3.1897273f) / fConst366 + 4.0767817f);
+		fConst376 = 0.0017661728f / fConst369;
+		fConst377 = fConst376 + 0.0004076782f;
+		fConst378 = 1.0f / ((fConst329 + 0.16840488f) / fConst328 + 1.0693583f);
+		fConst379 = fConst357 + 53.53615f;
+		fConst380 = 1.0f / ((fConst329 + 0.51247865f) / fConst328 + 0.6896214f);
+		fConst381 = fConst357 + 7.6217313f;
+		fConst382 = 1.0f / ((fConst329 + 0.78241307f) / fConst328 + 0.2452915f);
+		fConst383 = 0.0001f / fConst331;
+		fConst384 = fConst383 + 0.0004332272f;
+		fConst385 = (fConst329 + -0.78241307f) / fConst328 + 0.2452915f;
+		fConst386 = 2.0f * (0.2452915f - fConst357);
+		fConst387 = 2.0f * (0.0004332272f - fConst383);
+		fConst388 = (fConst329 + -0.51247865f) / fConst328 + 0.6896214f;
+		fConst389 = 2.0f * (0.6896214f - fConst357);
+		fConst390 = 2.0f * (7.6217313f - fConst357);
+		fConst391 = (fConst329 + -0.16840488f) / fConst328 + 1.0693583f;
+		fConst392 = 2.0f * (1.0693583f - fConst357);
+		fConst393 = 2.0f * (53.53615f - fConst357);
+		fConst394 = (fConst367 + -3.1897273f) / fConst366 + 4.0767817f;
+		fConst395 = 1.0f / fConst369;
+		fConst396 = 2.0f * (4.0767817f - fConst395);
+		fConst397 = 2.0f * (0.0004076782f - fConst376);
+		fConst398 = (fConst367 + -0.74313045f) / fConst366 + 1.4500711f;
+		fConst399 = 2.0f * (1.4500711f - fConst395);
+		fConst400 = 2.0f * (1.4500711f - fConst373);
+		fConst401 = (fConst367 + -0.15748216f) / fConst366 + 0.9351402f;
+		fConst402 = 2.0f * (0.9351402f - fConst395);
+		fConst403 = 2.0f * (0.9351402f - fConst370);
+		fConst404 = std::tan(3958.1587f / fConst0);
+		fConst405 = 1.0f / fConst404;
+		fConst406 = 1.0f / ((fConst405 + 0.15748216f) / fConst404 + 0.9351402f);
+		fConst407 = mydsp_faustpower2_f(fConst404);
+		fConst408 = 50.06381f / fConst407;
+		fConst409 = fConst408 + 0.9351402f;
+		fConst410 = 1.0f / ((fConst405 + 0.74313045f) / fConst404 + 1.4500711f);
+		fConst411 = 11.0520525f / fConst407;
+		fConst412 = fConst411 + 1.4500711f;
+		fConst413 = 1.0f / ((fConst405 + 3.1897273f) / fConst404 + 4.0767817f);
+		fConst414 = 0.0017661728f / fConst407;
+		fConst415 = fConst414 + 0.0004076782f;
+		fConst416 = 1.0f / ((fConst367 + 0.16840488f) / fConst366 + 1.0693583f);
+		fConst417 = fConst395 + 53.53615f;
+		fConst418 = 1.0f / ((fConst367 + 0.51247865f) / fConst366 + 0.6896214f);
+		fConst419 = fConst395 + 7.6217313f;
+		fConst420 = 1.0f / ((fConst367 + 0.78241307f) / fConst366 + 0.2452915f);
+		fConst421 = 0.0001f / fConst369;
+		fConst422 = fConst421 + 0.0004332272f;
+		fConst423 = (fConst367 + -0.78241307f) / fConst366 + 0.2452915f;
+		fConst424 = 2.0f * (0.2452915f - fConst395);
+		fConst425 = 2.0f * (0.0004332272f - fConst421);
+		fConst426 = (fConst367 + -0.51247865f) / fConst366 + 0.6896214f;
+		fConst427 = 2.0f * (0.6896214f - fConst395);
+		fConst428 = 2.0f * (7.6217313f - fConst395);
+		fConst429 = (fConst367 + -0.16840488f) / fConst366 + 1.0693583f;
+		fConst430 = 2.0f * (1.0693583f - fConst395);
+		fConst431 = 2.0f * (53.53615f - fConst395);
+		fConst432 = (fConst405 + -3.1897273f) / fConst404 + 4.0767817f;
+		fConst433 = 1.0f / fConst407;
+		fConst434 = 2.0f * (4.0767817f - fConst433);
+		fConst435 = 2.0f * (0.0004076782f - fConst414);
+		fConst436 = (fConst405 + -0.74313045f) / fConst404 + 1.4500711f;
+		fConst437 = 2.0f * (1.4500711f - fConst433);
+		fConst438 = 2.0f * (1.4500711f - fConst411);
+		fConst439 = (fConst405 + -0.15748216f) / fConst404 + 0.9351402f;
+		fConst440 = 2.0f * (0.9351402f - fConst433);
+		fConst441 = 2.0f * (0.9351402f - fConst408);
+		fConst442 = std::tan(3141.5928f / fConst0);
+		fConst443 = 1.0f / fConst442;
+		fConst444 = 1.0f / ((fConst443 + 0.15748216f) / fConst442 + 0.9351402f);
+		fConst445 = mydsp_faustpower2_f(fConst442);
+		fConst446 = 50.06381f / fConst445;
+		fConst447 = fConst446 + 0.9351402f;
+		fConst448 = 1.0f / ((fConst443 + 0.74313045f) / fConst442 + 1.4500711f);
+		fConst449 = 11.0520525f / fConst445;
+		fConst450 = fConst449 + 1.4500711f;
+		fConst451 = 1.0f / ((fConst443 + 3.1897273f) / fConst442 + 4.0767817f);
+		fConst452 = 0.0017661728f / fConst445;
+		fConst453 = fConst452 + 0.0004076782f;
+		fConst454 = 1.0f / ((fConst405 + 0.16840488f) / fConst404 + 1.0693583f);
+		fConst455 = fConst433 + 53.53615f;
+		fConst456 = 1.0f / ((fConst405 + 0.51247865f) / fConst404 + 0.6896214f);
+		fConst457 = fConst433 + 7.6217313f;
+		fConst458 = 1.0f / ((fConst405 + 0.78241307f) / fConst404 + 0.2452915f);
+		fConst459 = 0.0001f / fConst407;
+		fConst460 = fConst459 + 0.0004332272f;
+		fConst461 = (fConst405 + -0.78241307f) / fConst404 + 0.2452915f;
+		fConst462 = 2.0f * (0.2452915f - fConst433);
+		fConst463 = 2.0f * (0.0004332272f - fConst459);
+		fConst464 = (fConst405 + -0.51247865f) / fConst404 + 0.6896214f;
+		fConst465 = 2.0f * (0.6896214f - fConst433);
+		fConst466 = 2.0f * (7.6217313f - fConst433);
+		fConst467 = (fConst405 + -0.16840488f) / fConst404 + 1.0693583f;
+		fConst468 = 2.0f * (1.0693583f - fConst433);
+		fConst469 = 2.0f * (53.53615f - fConst433);
+		fConst470 = (fConst443 + -3.1897273f) / fConst442 + 4.0767817f;
+		fConst471 = 1.0f / fConst445;
+		fConst472 = 2.0f * (4.0767817f - fConst471);
+		fConst473 = 2.0f * (0.0004076782f - fConst452);
+		fConst474 = (fConst443 + -0.74313045f) / fConst442 + 1.4500711f;
+		fConst475 = 2.0f * (1.4500711f - fConst471);
+		fConst476 = 2.0f * (1.4500711f - fConst449);
+		fConst477 = (fConst443 + -0.15748216f) / fConst442 + 0.9351402f;
+		fConst478 = 2.0f * (0.9351402f - fConst471);
+		fConst479 = 2.0f * (0.9351402f - fConst446);
+		fConst480 = std::tan(2493.4836f / fConst0);
+		fConst481 = 1.0f / fConst480;
+		fConst482 = 1.0f / ((fConst481 + 0.15748216f) / fConst480 + 0.9351402f);
+		fConst483 = mydsp_faustpower2_f(fConst480);
+		fConst484 = 50.06381f / fConst483;
+		fConst485 = fConst484 + 0.9351402f;
+		fConst486 = 1.0f / ((fConst481 + 0.74313045f) / fConst480 + 1.4500711f);
+		fConst487 = 11.0520525f / fConst483;
+		fConst488 = fConst487 + 1.4500711f;
+		fConst489 = 1.0f / ((fConst481 + 3.1897273f) / fConst480 + 4.0767817f);
+		fConst490 = 0.0017661728f / fConst483;
+		fConst491 = fConst490 + 0.0004076782f;
+		fConst492 = 1.0f / ((fConst443 + 0.16840488f) / fConst442 + 1.0693583f);
+		fConst493 = fConst471 + 53.53615f;
+		fConst494 = 1.0f / ((fConst443 + 0.51247865f) / fConst442 + 0.6896214f);
+		fConst495 = fConst471 + 7.6217313f;
+		fConst496 = 1.0f / ((fConst443 + 0.78241307f) / fConst442 + 0.2452915f);
+		fConst497 = 0.0001f / fConst445;
+		fConst498 = fConst497 + 0.0004332272f;
+		fConst499 = (fConst443 + -0.78241307f) / fConst442 + 0.2452915f;
+		fConst500 = 2.0f * (0.2452915f - fConst471);
+		fConst501 = 2.0f * (0.0004332272f - fConst497);
+		fConst502 = (fConst443 + -0.51247865f) / fConst442 + 0.6896214f;
+		fConst503 = 2.0f * (0.6896214f - fConst471);
+		fConst504 = 2.0f * (7.6217313f - fConst471);
+		fConst505 = (fConst443 + -0.16840488f) / fConst442 + 1.0693583f;
+		fConst506 = 2.0f * (1.0693583f - fConst471);
+		fConst507 = 2.0f * (53.53615f - fConst471);
+		fConst508 = (fConst481 + -3.1897273f) / fConst480 + 4.0767817f;
+		fConst509 = 1.0f / fConst483;
+		fConst510 = 2.0f * (4.0767817f - fConst509);
+		fConst511 = 2.0f * (0.0004076782f - fConst490);
+		fConst512 = (fConst481 + -0.74313045f) / fConst480 + 1.4500711f;
+		fConst513 = 2.0f * (1.4500711f - fConst509);
+		fConst514 = 2.0f * (1.4500711f - fConst487);
+		fConst515 = (fConst481 + -0.15748216f) / fConst480 + 0.9351402f;
+		fConst516 = 2.0f * (0.9351402f - fConst509);
+		fConst517 = 2.0f * (0.9351402f - fConst484);
+		fConst518 = std::tan(1979.0793f / fConst0);
+		fConst519 = 1.0f / fConst518;
+		fConst520 = 1.0f / ((fConst519 + 0.15748216f) / fConst518 + 0.9351402f);
+		fConst521 = mydsp_faustpower2_f(fConst518);
+		fConst522 = 50.06381f / fConst521;
+		fConst523 = fConst522 + 0.9351402f;
+		fConst524 = 1.0f / ((fConst519 + 0.74313045f) / fConst518 + 1.4500711f);
+		fConst525 = 11.0520525f / fConst521;
+		fConst526 = fConst525 + 1.4500711f;
+		fConst527 = 1.0f / ((fConst519 + 3.1897273f) / fConst518 + 4.0767817f);
+		fConst528 = 0.0017661728f / fConst521;
+		fConst529 = fConst528 + 0.0004076782f;
+		fConst530 = 1.0f / ((fConst481 + 0.16840488f) / fConst480 + 1.0693583f);
+		fConst531 = fConst509 + 53.53615f;
+		fConst532 = 1.0f / ((fConst481 + 0.51247865f) / fConst480 + 0.6896214f);
+		fConst533 = fConst509 + 7.6217313f;
+		fConst534 = 1.0f / ((fConst481 + 0.78241307f) / fConst480 + 0.2452915f);
+		fConst535 = 0.0001f / fConst483;
+		fConst536 = fConst535 + 0.0004332272f;
+		fConst537 = (fConst481 + -0.78241307f) / fConst480 + 0.2452915f;
+		fConst538 = 2.0f * (0.2452915f - fConst509);
+		fConst539 = 2.0f * (0.0004332272f - fConst535);
+		fConst540 = (fConst481 + -0.51247865f) / fConst480 + 0.6896214f;
+		fConst541 = 2.0f * (0.6896214f - fConst509);
+		fConst542 = 2.0f * (7.6217313f - fConst509);
+		fConst543 = (fConst481 + -0.16840488f) / fConst480 + 1.0693583f;
+		fConst544 = 2.0f * (1.0693583f - fConst509);
+		fConst545 = 2.0f * (53.53615f - fConst509);
+		fConst546 = (fConst519 + -3.1897273f) / fConst518 + 4.0767817f;
+		fConst547 = 1.0f / fConst521;
+		fConst548 = 2.0f * (4.0767817f - fConst547);
+		fConst549 = 2.0f * (0.0004076782f - fConst528);
+		fConst550 = (fConst519 + -0.74313045f) / fConst518 + 1.4500711f;
+		fConst551 = 2.0f * (1.4500711f - fConst547);
+		fConst552 = 2.0f * (1.4500711f - fConst525);
+		fConst553 = (fConst519 + -0.15748216f) / fConst518 + 0.9351402f;
+		fConst554 = 2.0f * (0.9351402f - fConst547);
+		fConst555 = 2.0f * (0.9351402f - fConst522);
+		fConst556 = std::tan(1570.7964f / fConst0);
+		fConst557 = 1.0f / fConst556;
+		fConst558 = 1.0f / ((fConst557 + 0.15748216f) / fConst556 + 0.9351402f);
+		fConst559 = mydsp_faustpower2_f(fConst556);
+		fConst560 = 50.06381f / fConst559;
+		fConst561 = fConst560 + 0.9351402f;
+		fConst562 = 1.0f / ((fConst557 + 0.74313045f) / fConst556 + 1.4500711f);
+		fConst563 = 11.0520525f / fConst559;
+		fConst564 = fConst563 + 1.4500711f;
+		fConst565 = 1.0f / ((fConst557 + 3.1897273f) / fConst556 + 4.0767817f);
+		fConst566 = 0.0017661728f / fConst559;
+		fConst567 = fConst566 + 0.0004076782f;
+		fConst568 = 1.0f / ((fConst519 + 0.16840488f) / fConst518 + 1.0693583f);
+		fConst569 = fConst547 + 53.53615f;
+		fConst570 = 1.0f / ((fConst519 + 0.51247865f) / fConst518 + 0.6896214f);
+		fConst571 = fConst547 + 7.6217313f;
+		fConst572 = 1.0f / ((fConst519 + 0.78241307f) / fConst518 + 0.2452915f);
+		fConst573 = 0.0001f / fConst521;
+		fConst574 = fConst573 + 0.0004332272f;
+		fConst575 = (fConst519 + -0.78241307f) / fConst518 + 0.2452915f;
+		fConst576 = 2.0f * (0.2452915f - fConst547);
+		fConst577 = 2.0f * (0.0004332272f - fConst573);
+		fConst578 = (fConst519 + -0.51247865f) / fConst518 + 0.6896214f;
+		fConst579 = 2.0f * (0.6896214f - fConst547);
+		fConst580 = 2.0f * (7.6217313f - fConst547);
+		fConst581 = (fConst519 + -0.16840488f) / fConst518 + 1.0693583f;
+		fConst582 = 2.0f * (1.0693583f - fConst547);
+		fConst583 = 2.0f * (53.53615f - fConst547);
+		fConst584 = (fConst557 + -3.1897273f) / fConst556 + 4.0767817f;
+		fConst585 = 1.0f / fConst559;
+		fConst586 = 2.0f * (4.0767817f - fConst585);
+		fConst587 = 2.0f * (0.0004076782f - fConst566);
+		fConst588 = (fConst557 + -0.74313045f) / fConst556 + 1.4500711f;
+		fConst589 = 2.0f * (1.4500711f - fConst585);
+		fConst590 = 2.0f * (1.4500711f - fConst563);
+		fConst591 = (fConst557 + -0.15748216f) / fConst556 + 0.9351402f;
+		fConst592 = 2.0f * (0.9351402f - fConst585);
+		fConst593 = 2.0f * (0.9351402f - fConst560);
+		fConst594 = std::tan(1246.7418f / fConst0);
+		fConst595 = 1.0f / fConst594;
+		fConst596 = 1.0f / ((fConst595 + 0.15748216f) / fConst594 + 0.9351402f);
+		fConst597 = mydsp_faustpower2_f(fConst594);
+		fConst598 = 50.06381f / fConst597;
+		fConst599 = fConst598 + 0.9351402f;
+		fConst600 = 1.0f / ((fConst595 + 0.74313045f) / fConst594 + 1.4500711f);
+		fConst601 = 11.0520525f / fConst597;
+		fConst602 = fConst601 + 1.4500711f;
+		fConst603 = 1.0f / ((fConst595 + 3.1897273f) / fConst594 + 4.0767817f);
+		fConst604 = 0.0017661728f / fConst597;
+		fConst605 = fConst604 + 0.0004076782f;
+		fConst606 = 1.0f / ((fConst557 + 0.16840488f) / fConst556 + 1.0693583f);
+		fConst607 = fConst585 + 53.53615f;
+		fConst608 = 1.0f / ((fConst557 + 0.51247865f) / fConst556 + 0.6896214f);
+		fConst609 = fConst585 + 7.6217313f;
+		fConst610 = 1.0f / ((fConst557 + 0.78241307f) / fConst556 + 0.2452915f);
+		fConst611 = 0.0001f / fConst559;
+		fConst612 = fConst611 + 0.0004332272f;
+		fConst613 = (fConst557 + -0.78241307f) / fConst556 + 0.2452915f;
+		fConst614 = 2.0f * (0.2452915f - fConst585);
+		fConst615 = 2.0f * (0.0004332272f - fConst611);
+		fConst616 = (fConst557 + -0.51247865f) / fConst556 + 0.6896214f;
+		fConst617 = 2.0f * (0.6896214f - fConst585);
+		fConst618 = 2.0f * (7.6217313f - fConst585);
+		fConst619 = (fConst557 + -0.16840488f) / fConst556 + 1.0693583f;
+		fConst620 = 2.0f * (1.0693583f - fConst585);
+		fConst621 = 2.0f * (53.53615f - fConst585);
+		fConst622 = (fConst595 + -3.1897273f) / fConst594 + 4.0767817f;
+		fConst623 = 1.0f / fConst597;
+		fConst624 = 2.0f * (4.0767817f - fConst623);
+		fConst625 = 2.0f * (0.0004076782f - fConst604);
+		fConst626 = (fConst595 + -0.74313045f) / fConst594 + 1.4500711f;
+		fConst627 = 2.0f * (1.4500711f - fConst623);
+		fConst628 = 2.0f * (1.4500711f - fConst601);
+		fConst629 = (fConst595 + -0.15748216f) / fConst594 + 0.9351402f;
+		fConst630 = 2.0f * (0.9351402f - fConst623);
+		fConst631 = 2.0f * (0.9351402f - fConst598);
+		fConst632 = std::tan(989.5397f / fConst0);
+		fConst633 = 1.0f / fConst632;
+		fConst634 = 1.0f / ((fConst633 + 0.15748216f) / fConst632 + 0.9351402f);
+		fConst635 = mydsp_faustpower2_f(fConst632);
+		fConst636 = 50.06381f / fConst635;
+		fConst637 = fConst636 + 0.9351402f;
+		fConst638 = 1.0f / ((fConst633 + 0.74313045f) / fConst632 + 1.4500711f);
+		fConst639 = 11.0520525f / fConst635;
+		fConst640 = fConst639 + 1.4500711f;
+		fConst641 = 1.0f / ((fConst633 + 3.1897273f) / fConst632 + 4.0767817f);
+		fConst642 = 0.0017661728f / fConst635;
+		fConst643 = fConst642 + 0.0004076782f;
+		fConst644 = 1.0f / ((fConst595 + 0.16840488f) / fConst594 + 1.0693583f);
+		fConst645 = fConst623 + 53.53615f;
+		fConst646 = 1.0f / ((fConst595 + 0.51247865f) / fConst594 + 0.6896214f);
+		fConst647 = fConst623 + 7.6217313f;
+		fConst648 = 1.0f / ((fConst595 + 0.78241307f) / fConst594 + 0.2452915f);
+		fConst649 = 0.0001f / fConst597;
+		fConst650 = fConst649 + 0.0004332272f;
+		fConst651 = (fConst595 + -0.78241307f) / fConst594 + 0.2452915f;
+		fConst652 = 2.0f * (0.2452915f - fConst623);
+		fConst653 = 2.0f * (0.0004332272f - fConst649);
+		fConst654 = (fConst595 + -0.51247865f) / fConst594 + 0.6896214f;
+		fConst655 = 2.0f * (0.6896214f - fConst623);
+		fConst656 = 2.0f * (7.6217313f - fConst623);
+		fConst657 = (fConst595 + -0.16840488f) / fConst594 + 1.0693583f;
+		fConst658 = 2.0f * (1.0693583f - fConst623);
+		fConst659 = 2.0f * (53.53615f - fConst623);
+		fConst660 = (fConst633 + -3.1897273f) / fConst632 + 4.0767817f;
+		fConst661 = 1.0f / fConst635;
+		fConst662 = 2.0f * (4.0767817f - fConst661);
+		fConst663 = 2.0f * (0.0004076782f - fConst642);
+		fConst664 = (fConst633 + -0.74313045f) / fConst632 + 1.4500711f;
+		fConst665 = 2.0f * (1.4500711f - fConst661);
+		fConst666 = 2.0f * (1.4500711f - fConst639);
+		fConst667 = (fConst633 + -0.15748216f) / fConst632 + 0.9351402f;
+		fConst668 = 2.0f * (0.9351402f - fConst661);
+		fConst669 = 2.0f * (0.9351402f - fConst636);
+		fConst670 = std::tan(785.3982f / fConst0);
+		fConst671 = 1.0f / fConst670;
+		fConst672 = 1.0f / ((fConst671 + 0.15748216f) / fConst670 + 0.9351402f);
+		fConst673 = mydsp_faustpower2_f(fConst670);
+		fConst674 = 50.06381f / fConst673;
+		fConst675 = fConst674 + 0.9351402f;
+		fConst676 = 1.0f / ((fConst671 + 0.74313045f) / fConst670 + 1.4500711f);
+		fConst677 = 11.0520525f / fConst673;
+		fConst678 = fConst677 + 1.4500711f;
+		fConst679 = 1.0f / ((fConst671 + 3.1897273f) / fConst670 + 4.0767817f);
+		fConst680 = 0.0017661728f / fConst673;
+		fConst681 = fConst680 + 0.0004076782f;
+		fConst682 = 1.0f / ((fConst633 + 0.16840488f) / fConst632 + 1.0693583f);
+		fConst683 = fConst661 + 53.53615f;
+		fConst684 = 1.0f / ((fConst633 + 0.51247865f) / fConst632 + 0.6896214f);
+		fConst685 = fConst661 + 7.6217313f;
+		fConst686 = 1.0f / ((fConst633 + 0.78241307f) / fConst632 + 0.2452915f);
+		fConst687 = 0.0001f / fConst635;
+		fConst688 = fConst687 + 0.0004332272f;
+		fConst689 = (fConst633 + -0.78241307f) / fConst632 + 0.2452915f;
+		fConst690 = 2.0f * (0.2452915f - fConst661);
+		fConst691 = 2.0f * (0.0004332272f - fConst687);
+		fConst692 = (fConst633 + -0.51247865f) / fConst632 + 0.6896214f;
+		fConst693 = 2.0f * (0.6896214f - fConst661);
+		fConst694 = 2.0f * (7.6217313f - fConst661);
+		fConst695 = (fConst633 + -0.16840488f) / fConst632 + 1.0693583f;
+		fConst696 = 2.0f * (1.0693583f - fConst661);
+		fConst697 = 2.0f * (53.53615f - fConst661);
+		fConst698 = (fConst671 + -3.1897273f) / fConst670 + 4.0767817f;
+		fConst699 = 1.0f / fConst673;
+		fConst700 = 2.0f * (4.0767817f - fConst699);
+		fConst701 = 2.0f * (0.0004076782f - fConst680);
+		fConst702 = (fConst671 + -0.74313045f) / fConst670 + 1.4500711f;
+		fConst703 = 2.0f * (1.4500711f - fConst699);
+		fConst704 = 2.0f * (1.4500711f - fConst677);
+		fConst705 = (fConst671 + -0.15748216f) / fConst670 + 0.9351402f;
+		fConst706 = 2.0f * (0.9351402f - fConst699);
+		fConst707 = 2.0f * (0.9351402f - fConst674);
+		fConst708 = std::tan(623.3709f / fConst0);
+		fConst709 = 1.0f / fConst708;
+		fConst710 = 1.0f / ((fConst709 + 0.15748216f) / fConst708 + 0.9351402f);
+		fConst711 = mydsp_faustpower2_f(fConst708);
+		fConst712 = 50.06381f / fConst711;
+		fConst713 = fConst712 + 0.9351402f;
+		fConst714 = 1.0f / ((fConst709 + 0.74313045f) / fConst708 + 1.4500711f);
+		fConst715 = 11.0520525f / fConst711;
+		fConst716 = fConst715 + 1.4500711f;
+		fConst717 = 1.0f / ((fConst709 + 3.1897273f) / fConst708 + 4.0767817f);
+		fConst718 = 0.0017661728f / fConst711;
+		fConst719 = fConst718 + 0.0004076782f;
+		fConst720 = 1.0f / ((fConst671 + 0.16840488f) / fConst670 + 1.0693583f);
+		fConst721 = fConst699 + 53.53615f;
+		fConst722 = 1.0f / ((fConst671 + 0.51247865f) / fConst670 + 0.6896214f);
+		fConst723 = fConst699 + 7.6217313f;
+		fConst724 = 1.0f / ((fConst671 + 0.78241307f) / fConst670 + 0.2452915f);
+		fConst725 = 0.0001f / fConst673;
+		fConst726 = fConst725 + 0.0004332272f;
+		fConst727 = (fConst671 + -0.78241307f) / fConst670 + 0.2452915f;
+		fConst728 = 2.0f * (0.2452915f - fConst699);
+		fConst729 = 2.0f * (0.0004332272f - fConst725);
+		fConst730 = (fConst671 + -0.51247865f) / fConst670 + 0.6896214f;
+		fConst731 = 2.0f * (0.6896214f - fConst699);
+		fConst732 = 2.0f * (7.6217313f - fConst699);
+		fConst733 = (fConst671 + -0.16840488f) / fConst670 + 1.0693583f;
+		fConst734 = 2.0f * (1.0693583f - fConst699);
+		fConst735 = 2.0f * (53.53615f - fConst699);
+		fConst736 = (fConst709 + -3.1897273f) / fConst708 + 4.0767817f;
+		fConst737 = 1.0f / fConst711;
+		fConst738 = 2.0f * (4.0767817f - fConst737);
+		fConst739 = 2.0f * (0.0004076782f - fConst718);
+		fConst740 = (fConst709 + -0.74313045f) / fConst708 + 1.4500711f;
+		fConst741 = 2.0f * (1.4500711f - fConst737);
+		fConst742 = 2.0f * (1.4500711f - fConst715);
+		fConst743 = (fConst709 + -0.15748216f) / fConst708 + 0.9351402f;
+		fConst744 = 2.0f * (0.9351402f - fConst737);
+		fConst745 = 2.0f * (0.9351402f - fConst712);
+		fConst746 = std::tan(494.76984f / fConst0);
+		fConst747 = 1.0f / fConst746;
+		fConst748 = 1.0f / ((fConst747 + 0.15748216f) / fConst746 + 0.9351402f);
+		fConst749 = mydsp_faustpower2_f(fConst746);
+		fConst750 = 50.06381f / fConst749;
+		fConst751 = fConst750 + 0.9351402f;
+		fConst752 = 1.0f / ((fConst747 + 0.74313045f) / fConst746 + 1.4500711f);
+		fConst753 = 11.0520525f / fConst749;
+		fConst754 = fConst753 + 1.4500711f;
+		fConst755 = 1.0f / ((fConst747 + 3.1897273f) / fConst746 + 4.0767817f);
+		fConst756 = 0.0017661728f / fConst749;
+		fConst757 = fConst756 + 0.0004076782f;
+		fConst758 = 1.0f / ((fConst709 + 0.16840488f) / fConst708 + 1.0693583f);
+		fConst759 = fConst737 + 53.53615f;
+		fConst760 = 1.0f / ((fConst709 + 0.51247865f) / fConst708 + 0.6896214f);
+		fConst761 = fConst737 + 7.6217313f;
+		fConst762 = 1.0f / ((fConst709 + 0.78241307f) / fConst708 + 0.2452915f);
+		fConst763 = 0.0001f / fConst711;
+		fConst764 = fConst763 + 0.0004332272f;
+		fConst765 = (fConst709 + -0.78241307f) / fConst708 + 0.2452915f;
+		fConst766 = 2.0f * (0.2452915f - fConst737);
+		fConst767 = 2.0f * (0.0004332272f - fConst763);
+		fConst768 = (fConst709 + -0.51247865f) / fConst708 + 0.6896214f;
+		fConst769 = 2.0f * (0.6896214f - fConst737);
+		fConst770 = 2.0f * (7.6217313f - fConst737);
+		fConst771 = (fConst709 + -0.16840488f) / fConst708 + 1.0693583f;
+		fConst772 = 2.0f * (1.0693583f - fConst737);
+		fConst773 = 2.0f * (53.53615f - fConst737);
+		fConst774 = (fConst747 + -3.1897273f) / fConst746 + 4.0767817f;
+		fConst775 = 1.0f / fConst749;
+		fConst776 = 2.0f * (4.0767817f - fConst775);
+		fConst777 = 2.0f * (0.0004076782f - fConst756);
+		fConst778 = (fConst747 + -0.74313045f) / fConst746 + 1.4500711f;
+		fConst779 = 2.0f * (1.4500711f - fConst775);
+		fConst780 = 2.0f * (1.4500711f - fConst753);
+		fConst781 = (fConst747 + -0.15748216f) / fConst746 + 0.9351402f;
+		fConst782 = 2.0f * (0.9351402f - fConst775);
+		fConst783 = 2.0f * (0.9351402f - fConst750);
+		fConst784 = std::tan(392.6991f / fConst0);
+		fConst785 = 1.0f / fConst784;
+		fConst786 = 1.0f / ((fConst785 + 0.15748216f) / fConst784 + 0.9351402f);
+		fConst787 = mydsp_faustpower2_f(fConst784);
+		fConst788 = 50.06381f / fConst787;
+		fConst789 = fConst788 + 0.9351402f;
+		fConst790 = 1.0f / ((fConst785 + 0.74313045f) / fConst784 + 1.4500711f);
+		fConst791 = 11.0520525f / fConst787;
+		fConst792 = fConst791 + 1.4500711f;
+		fConst793 = 1.0f / ((fConst785 + 3.1897273f) / fConst784 + 4.0767817f);
+		fConst794 = 0.0017661728f / fConst787;
+		fConst795 = fConst794 + 0.0004076782f;
+		fConst796 = 1.0f / ((fConst747 + 0.16840488f) / fConst746 + 1.0693583f);
+		fConst797 = fConst775 + 53.53615f;
+		fConst798 = 1.0f / ((fConst747 + 0.51247865f) / fConst746 + 0.6896214f);
+		fConst799 = fConst775 + 7.6217313f;
+		fConst800 = 1.0f / ((fConst747 + 0.78241307f) / fConst746 + 0.2452915f);
+		fConst801 = 0.0001f / fConst749;
+		fConst802 = fConst801 + 0.0004332272f;
+		fConst803 = (fConst747 + -0.78241307f) / fConst746 + 0.2452915f;
+		fConst804 = 2.0f * (0.2452915f - fConst775);
+		fConst805 = 2.0f * (0.0004332272f - fConst801);
+		fConst806 = (fConst747 + -0.51247865f) / fConst746 + 0.6896214f;
+		fConst807 = 2.0f * (0.6896214f - fConst775);
+		fConst808 = 2.0f * (7.6217313f - fConst775);
+		fConst809 = (fConst747 + -0.16840488f) / fConst746 + 1.0693583f;
+		fConst810 = 2.0f * (1.0693583f - fConst775);
+		fConst811 = 2.0f * (53.53615f - fConst775);
+		fConst812 = (fConst785 + -3.1897273f) / fConst784 + 4.0767817f;
+		fConst813 = 1.0f / fConst787;
+		fConst814 = 2.0f * (4.0767817f - fConst813);
+		fConst815 = 2.0f * (0.0004076782f - fConst794);
+		fConst816 = (fConst785 + -0.74313045f) / fConst784 + 1.4500711f;
+		fConst817 = 2.0f * (1.4500711f - fConst813);
+		fConst818 = 2.0f * (1.4500711f - fConst791);
+		fConst819 = (fConst785 + -0.15748216f) / fConst784 + 0.9351402f;
+		fConst820 = 2.0f * (0.9351402f - fConst813);
+		fConst821 = 2.0f * (0.9351402f - fConst788);
+		fConst822 = std::tan(311.68546f / fConst0);
+		fConst823 = 1.0f / fConst822;
+		fConst824 = 1.0f / ((fConst823 + 0.15748216f) / fConst822 + 0.9351402f);
+		fConst825 = mydsp_faustpower2_f(fConst822);
+		fConst826 = 50.06381f / fConst825;
+		fConst827 = fConst826 + 0.9351402f;
+		fConst828 = 1.0f / ((fConst823 + 0.74313045f) / fConst822 + 1.4500711f);
+		fConst829 = 11.0520525f / fConst825;
+		fConst830 = fConst829 + 1.4500711f;
+		fConst831 = 1.0f / ((fConst823 + 3.1897273f) / fConst822 + 4.0767817f);
+		fConst832 = 0.0017661728f / fConst825;
+		fConst833 = fConst832 + 0.0004076782f;
+		fConst834 = 1.0f / ((fConst785 + 0.16840488f) / fConst784 + 1.0693583f);
+		fConst835 = fConst813 + 53.53615f;
+		fConst836 = 1.0f / ((fConst785 + 0.51247865f) / fConst784 + 0.6896214f);
+		fConst837 = fConst813 + 7.6217313f;
+		fConst838 = 1.0f / ((fConst785 + 0.78241307f) / fConst784 + 0.2452915f);
+		fConst839 = 0.0001f / fConst787;
+		fConst840 = fConst839 + 0.0004332272f;
+		fConst841 = (fConst785 + -0.78241307f) / fConst784 + 0.2452915f;
+		fConst842 = 2.0f * (0.2452915f - fConst813);
+		fConst843 = 2.0f * (0.0004332272f - fConst839);
+		fConst844 = (fConst785 + -0.51247865f) / fConst784 + 0.6896214f;
+		fConst845 = 2.0f * (0.6896214f - fConst813);
+		fConst846 = 2.0f * (7.6217313f - fConst813);
+		fConst847 = (fConst785 + -0.16840488f) / fConst784 + 1.0693583f;
+		fConst848 = 2.0f * (1.0693583f - fConst813);
+		fConst849 = 2.0f * (53.53615f - fConst813);
+		fConst850 = (fConst823 + -3.1897273f) / fConst822 + 4.0767817f;
+		fConst851 = 1.0f / fConst825;
+		fConst852 = 2.0f * (4.0767817f - fConst851);
+		fConst853 = 2.0f * (0.0004076782f - fConst832);
+		fConst854 = (fConst823 + -0.74313045f) / fConst822 + 1.4500711f;
+		fConst855 = 2.0f * (1.4500711f - fConst851);
+		fConst856 = 2.0f * (1.4500711f - fConst829);
+		fConst857 = (fConst823 + -0.15748216f) / fConst822 + 0.9351402f;
+		fConst858 = 2.0f * (0.9351402f - fConst851);
+		fConst859 = 2.0f * (0.9351402f - fConst826);
+		fConst860 = std::tan(247.38492f / fConst0);
+		fConst861 = 1.0f / fConst860;
+		fConst862 = 1.0f / ((fConst861 + 0.15748216f) / fConst860 + 0.9351402f);
+		fConst863 = mydsp_faustpower2_f(fConst860);
+		fConst864 = 50.06381f / fConst863;
+		fConst865 = fConst864 + 0.9351402f;
+		fConst866 = 1.0f / ((fConst861 + 0.74313045f) / fConst860 + 1.4500711f);
+		fConst867 = 11.0520525f / fConst863;
+		fConst868 = fConst867 + 1.4500711f;
+		fConst869 = 1.0f / ((fConst861 + 3.1897273f) / fConst860 + 4.0767817f);
+		fConst870 = 0.0017661728f / fConst863;
+		fConst871 = fConst870 + 0.0004076782f;
+		fConst872 = 1.0f / ((fConst823 + 0.16840488f) / fConst822 + 1.0693583f);
+		fConst873 = fConst851 + 53.53615f;
+		fConst874 = 1.0f / ((fConst823 + 0.51247865f) / fConst822 + 0.6896214f);
+		fConst875 = fConst851 + 7.6217313f;
+		fConst876 = 1.0f / ((fConst823 + 0.78241307f) / fConst822 + 0.2452915f);
+		fConst877 = 0.0001f / fConst825;
+		fConst878 = fConst877 + 0.0004332272f;
+		fConst879 = (fConst823 + -0.78241307f) / fConst822 + 0.2452915f;
+		fConst880 = 2.0f * (0.2452915f - fConst851);
+		fConst881 = 2.0f * (0.0004332272f - fConst877);
+		fConst882 = (fConst823 + -0.51247865f) / fConst822 + 0.6896214f;
+		fConst883 = 2.0f * (0.6896214f - fConst851);
+		fConst884 = 2.0f * (7.6217313f - fConst851);
+		fConst885 = (fConst823 + -0.16840488f) / fConst822 + 1.0693583f;
+		fConst886 = 2.0f * (1.0693583f - fConst851);
+		fConst887 = 2.0f * (53.53615f - fConst851);
+		fConst888 = (fConst861 + -3.1897273f) / fConst860 + 4.0767817f;
+		fConst889 = 1.0f / fConst863;
+		fConst890 = 2.0f * (4.0767817f - fConst889);
+		fConst891 = 2.0f * (0.0004076782f - fConst870);
+		fConst892 = (fConst861 + -0.74313045f) / fConst860 + 1.4500711f;
+		fConst893 = 2.0f * (1.4500711f - fConst889);
+		fConst894 = 2.0f * (1.4500711f - fConst867);
+		fConst895 = (fConst861 + -0.15748216f) / fConst860 + 0.9351402f;
+		fConst896 = 2.0f * (0.9351402f - fConst889);
+		fConst897 = 2.0f * (0.9351402f - fConst864);
+		fConst898 = std::tan(196.34955f / fConst0);
+		fConst899 = 1.0f / fConst898;
+		fConst900 = 1.0f / ((fConst899 + 0.15748216f) / fConst898 + 0.9351402f);
+		fConst901 = mydsp_faustpower2_f(fConst898);
+		fConst902 = 50.06381f / fConst901;
+		fConst903 = fConst902 + 0.9351402f;
+		fConst904 = 1.0f / ((fConst899 + 0.74313045f) / fConst898 + 1.4500711f);
+		fConst905 = 11.0520525f / fConst901;
+		fConst906 = fConst905 + 1.4500711f;
+		fConst907 = 1.0f / ((fConst899 + 3.1897273f) / fConst898 + 4.0767817f);
+		fConst908 = 0.0017661728f / fConst901;
+		fConst909 = fConst908 + 0.0004076782f;
+		fConst910 = 1.0f / ((fConst861 + 0.16840488f) / fConst860 + 1.0693583f);
+		fConst911 = fConst889 + 53.53615f;
+		fConst912 = 1.0f / ((fConst861 + 0.51247865f) / fConst860 + 0.6896214f);
+		fConst913 = fConst889 + 7.6217313f;
+		fConst914 = 1.0f / ((fConst861 + 0.78241307f) / fConst860 + 0.2452915f);
+		fConst915 = 0.0001f / fConst863;
+		fConst916 = fConst915 + 0.0004332272f;
+		fConst917 = (fConst861 + -0.78241307f) / fConst860 + 0.2452915f;
+		fConst918 = 2.0f * (0.2452915f - fConst889);
+		fConst919 = 2.0f * (0.0004332272f - fConst915);
+		fConst920 = (fConst861 + -0.51247865f) / fConst860 + 0.6896214f;
+		fConst921 = 2.0f * (0.6896214f - fConst889);
+		fConst922 = 2.0f * (7.6217313f - fConst889);
+		fConst923 = (fConst861 + -0.16840488f) / fConst860 + 1.0693583f;
+		fConst924 = 2.0f * (1.0693583f - fConst889);
+		fConst925 = 2.0f * (53.53615f - fConst889);
+		fConst926 = (fConst899 + -3.1897273f) / fConst898 + 4.0767817f;
+		fConst927 = 1.0f / fConst901;
+		fConst928 = 2.0f * (4.0767817f - fConst927);
+		fConst929 = 2.0f * (0.0004076782f - fConst908);
+		fConst930 = (fConst899 + -0.74313045f) / fConst898 + 1.4500711f;
+		fConst931 = 2.0f * (1.4500711f - fConst927);
+		fConst932 = 2.0f * (1.4500711f - fConst905);
+		fConst933 = (fConst899 + -0.15748216f) / fConst898 + 0.9351402f;
+		fConst934 = 2.0f * (0.9351402f - fConst927);
+		fConst935 = 2.0f * (0.9351402f - fConst902);
+		fConst936 = std::tan(155.84273f / fConst0);
+		fConst937 = 1.0f / fConst936;
+		fConst938 = 1.0f / ((fConst937 + 0.15748216f) / fConst936 + 0.9351402f);
+		fConst939 = mydsp_faustpower2_f(fConst936);
+		fConst940 = 50.06381f / fConst939;
+		fConst941 = fConst940 + 0.9351402f;
+		fConst942 = 1.0f / ((fConst937 + 0.74313045f) / fConst936 + 1.4500711f);
+		fConst943 = 11.0520525f / fConst939;
+		fConst944 = fConst943 + 1.4500711f;
+		fConst945 = 1.0f / ((fConst937 + 3.1897273f) / fConst936 + 4.0767817f);
+		fConst946 = 0.0017661728f / fConst939;
+		fConst947 = fConst946 + 0.0004076782f;
+		fConst948 = 1.0f / ((fConst899 + 0.16840488f) / fConst898 + 1.0693583f);
+		fConst949 = fConst927 + 53.53615f;
+		fConst950 = 1.0f / ((fConst899 + 0.51247865f) / fConst898 + 0.6896214f);
+		fConst951 = fConst927 + 7.6217313f;
+		fConst952 = 1.0f / ((fConst899 + 0.78241307f) / fConst898 + 0.2452915f);
+		fConst953 = 0.0001f / fConst901;
+		fConst954 = fConst953 + 0.0004332272f;
+		fConst955 = (fConst899 + -0.78241307f) / fConst898 + 0.2452915f;
+		fConst956 = 2.0f * (0.2452915f - fConst927);
+		fConst957 = 2.0f * (0.0004332272f - fConst953);
+		fConst958 = (fConst899 + -0.51247865f) / fConst898 + 0.6896214f;
+		fConst959 = 2.0f * (0.6896214f - fConst927);
+		fConst960 = 2.0f * (7.6217313f - fConst927);
+		fConst961 = (fConst899 + -0.16840488f) / fConst898 + 1.0693583f;
+		fConst962 = 2.0f * (1.0693583f - fConst927);
+		fConst963 = 2.0f * (53.53615f - fConst927);
+		fConst964 = (fConst937 + -3.1897273f) / fConst936 + 4.0767817f;
+		fConst965 = 1.0f / fConst939;
+		fConst966 = 2.0f * (4.0767817f - fConst965);
+		fConst967 = 2.0f * (0.0004076782f - fConst946);
+		fConst968 = (fConst937 + -0.74313045f) / fConst936 + 1.4500711f;
+		fConst969 = 2.0f * (1.4500711f - fConst965);
+		fConst970 = 2.0f * (1.4500711f - fConst943);
+		fConst971 = (fConst937 + -0.15748216f) / fConst936 + 0.9351402f;
+		fConst972 = 2.0f * (0.9351402f - fConst965);
+		fConst973 = 2.0f * (0.9351402f - fConst940);
+		fConst974 = std::tan(123.69246f / fConst0);
+		fConst975 = 1.0f / fConst974;
+		fConst976 = 1.0f / ((fConst975 + 0.15748216f) / fConst974 + 0.9351402f);
+		fConst977 = mydsp_faustpower2_f(fConst974);
+		fConst978 = 50.06381f / fConst977;
+		fConst979 = fConst978 + 0.9351402f;
+		fConst980 = 1.0f / ((fConst975 + 0.74313045f) / fConst974 + 1.4500711f);
+		fConst981 = 11.0520525f / fConst977;
+		fConst982 = fConst981 + 1.4500711f;
+		fConst983 = 1.0f / ((fConst975 + 3.1897273f) / fConst974 + 4.0767817f);
+		fConst984 = 0.0017661728f / fConst977;
+		fConst985 = fConst984 + 0.0004076782f;
+		fConst986 = 1.0f / ((fConst937 + 0.16840488f) / fConst936 + 1.0693583f);
+		fConst987 = fConst965 + 53.53615f;
+		fConst988 = 1.0f / ((fConst937 + 0.51247865f) / fConst936 + 0.6896214f);
+		fConst989 = fConst965 + 7.6217313f;
+		fConst990 = 1.0f / ((fConst937 + 0.78241307f) / fConst936 + 0.2452915f);
+		fConst991 = 0.0001f / fConst939;
+		fConst992 = fConst991 + 0.0004332272f;
+		fConst993 = (fConst937 + -0.78241307f) / fConst936 + 0.2452915f;
+		fConst994 = 2.0f * (0.2452915f - fConst965);
+		fConst995 = 2.0f * (0.0004332272f - fConst991);
+		fConst996 = (fConst937 + -0.51247865f) / fConst936 + 0.6896214f;
+		fConst997 = 2.0f * (0.6896214f - fConst965);
+		fConst998 = 2.0f * (7.6217313f - fConst965);
+		fConst999 = (fConst937 + -0.16840488f) / fConst936 + 1.0693583f;
+		fConst1000 = 2.0f * (1.0693583f - fConst965);
+		fConst1001 = 2.0f * (53.53615f - fConst965);
+		fConst1002 = (fConst975 + -3.1897273f) / fConst974 + 4.0767817f;
+		fConst1003 = 1.0f / fConst977;
+		fConst1004 = 2.0f * (4.0767817f - fConst1003);
+		fConst1005 = 2.0f * (0.0004076782f - fConst984);
+		fConst1006 = (fConst975 + -0.74313045f) / fConst974 + 1.4500711f;
+		fConst1007 = 2.0f * (1.4500711f - fConst1003);
+		fConst1008 = 2.0f * (1.4500711f - fConst981);
+		fConst1009 = (fConst975 + -0.15748216f) / fConst974 + 0.9351402f;
+		fConst1010 = 2.0f * (0.9351402f - fConst1003);
+		fConst1011 = 2.0f * (0.9351402f - fConst978);
+		fConst1012 = std::tan(98.174774f / fConst0);
+		fConst1013 = 1.0f / fConst1012;
+		fConst1014 = 1.0f / ((fConst1013 + 0.15748216f) / fConst1012 + 0.9351402f);
+		fConst1015 = mydsp_faustpower2_f(fConst1012);
+		fConst1016 = 50.06381f / fConst1015;
+		fConst1017 = fConst1016 + 0.9351402f;
+		fConst1018 = 1.0f / ((fConst1013 + 0.74313045f) / fConst1012 + 1.4500711f);
+		fConst1019 = 11.0520525f / fConst1015;
+		fConst1020 = fConst1019 + 1.4500711f;
+		fConst1021 = 1.0f / ((fConst1013 + 3.1897273f) / fConst1012 + 4.0767817f);
+		fConst1022 = 0.0017661728f / fConst1015;
+		fConst1023 = fConst1022 + 0.0004076782f;
+		fConst1024 = 1.0f / ((fConst975 + 0.16840488f) / fConst974 + 1.0693583f);
+		fConst1025 = fConst1003 + 53.53615f;
+		fConst1026 = 1.0f / ((fConst975 + 0.51247865f) / fConst974 + 0.6896214f);
+		fConst1027 = fConst1003 + 7.6217313f;
+		fConst1028 = 1.0f / ((fConst975 + 0.78241307f) / fConst974 + 0.2452915f);
+		fConst1029 = 0.0001f / fConst977;
+		fConst1030 = fConst1029 + 0.0004332272f;
+		fConst1031 = (fConst975 + -0.78241307f) / fConst974 + 0.2452915f;
+		fConst1032 = 2.0f * (0.2452915f - fConst1003);
+		fConst1033 = 2.0f * (0.0004332272f - fConst1029);
+		fConst1034 = (fConst975 + -0.51247865f) / fConst974 + 0.6896214f;
+		fConst1035 = 2.0f * (0.6896214f - fConst1003);
+		fConst1036 = 2.0f * (7.6217313f - fConst1003);
+		fConst1037 = (fConst975 + -0.16840488f) / fConst974 + 1.0693583f;
+		fConst1038 = 2.0f * (1.0693583f - fConst1003);
+		fConst1039 = 2.0f * (53.53615f - fConst1003);
+		fConst1040 = (fConst1013 + -3.1897273f) / fConst1012 + 4.0767817f;
+		fConst1041 = 1.0f / fConst1015;
+		fConst1042 = 2.0f * (4.0767817f - fConst1041);
+		fConst1043 = 2.0f * (0.0004076782f - fConst1022);
+		fConst1044 = (fConst1013 + -0.74313045f) / fConst1012 + 1.4500711f;
+		fConst1045 = 2.0f * (1.4500711f - fConst1041);
+		fConst1046 = 2.0f * (1.4500711f - fConst1019);
+		fConst1047 = (fConst1013 + -0.15748216f) / fConst1012 + 0.9351402f;
+		fConst1048 = 2.0f * (0.9351402f - fConst1041);
+		fConst1049 = 2.0f * (0.9351402f - fConst1016);
+		fConst1050 = std::tan(77.921364f / fConst0);
+		fConst1051 = 1.0f / fConst1050;
+		fConst1052 = 1.0f / ((fConst1051 + 0.15748216f) / fConst1050 + 0.9351402f);
+		fConst1053 = mydsp_faustpower2_f(fConst1050);
+		fConst1054 = 50.06381f / fConst1053;
+		fConst1055 = fConst1054 + 0.9351402f;
+		fConst1056 = 1.0f / ((fConst1051 + 0.74313045f) / fConst1050 + 1.4500711f);
+		fConst1057 = 11.0520525f / fConst1053;
+		fConst1058 = fConst1057 + 1.4500711f;
+		fConst1059 = 1.0f / ((fConst1051 + 3.1897273f) / fConst1050 + 4.0767817f);
+		fConst1060 = 0.0017661728f / fConst1053;
+		fConst1061 = fConst1060 + 0.0004076782f;
+		fConst1062 = 1.0f / ((fConst1013 + 0.16840488f) / fConst1012 + 1.0693583f);
+		fConst1063 = fConst1041 + 53.53615f;
+		fConst1064 = 1.0f / ((fConst1013 + 0.51247865f) / fConst1012 + 0.6896214f);
+		fConst1065 = fConst1041 + 7.6217313f;
+		fConst1066 = 1.0f / ((fConst1013 + 0.78241307f) / fConst1012 + 0.2452915f);
+		fConst1067 = 0.0001f / fConst1015;
+		fConst1068 = fConst1067 + 0.0004332272f;
+		fConst1069 = (fConst1013 + -0.78241307f) / fConst1012 + 0.2452915f;
+		fConst1070 = 2.0f * (0.2452915f - fConst1041);
+		fConst1071 = 2.0f * (0.0004332272f - fConst1067);
+		fConst1072 = (fConst1013 + -0.51247865f) / fConst1012 + 0.6896214f;
+		fConst1073 = 2.0f * (0.6896214f - fConst1041);
+		fConst1074 = 2.0f * (7.6217313f - fConst1041);
+		fConst1075 = (fConst1013 + -0.16840488f) / fConst1012 + 1.0693583f;
+		fConst1076 = 2.0f * (1.0693583f - fConst1041);
+		fConst1077 = 2.0f * (53.53615f - fConst1041);
+		fConst1078 = (fConst1051 + -3.1897273f) / fConst1050 + 4.0767817f;
+		fConst1079 = 1.0f / fConst1053;
+		fConst1080 = 2.0f * (4.0767817f - fConst1079);
+		fConst1081 = 2.0f * (0.0004076782f - fConst1060);
+		fConst1082 = (fConst1051 + -0.74313045f) / fConst1050 + 1.4500711f;
+		fConst1083 = 2.0f * (1.4500711f - fConst1079);
+		fConst1084 = 2.0f * (1.4500711f - fConst1057);
+		fConst1085 = (fConst1051 + -0.15748216f) / fConst1050 + 0.9351402f;
+		fConst1086 = 2.0f * (0.9351402f - fConst1079);
+		fConst1087 = 2.0f * (0.9351402f - fConst1054);
+		fConst1088 = 1.0f / ((fConst1051 + 0.16840488f) / fConst1050 + 1.0693583f);
+		fConst1089 = fConst1079 + 53.53615f;
+		fConst1090 = 1.0f / ((fConst1051 + 0.51247865f) / fConst1050 + 0.6896214f);
+		fConst1091 = fConst1079 + 7.6217313f;
+		fConst1092 = 1.0f / ((fConst1051 + 0.78241307f) / fConst1050 + 0.2452915f);
+		fConst1093 = 0.0001f / fConst1053;
+		fConst1094 = fConst1093 + 0.0004332272f;
+		fConst1095 = (fConst1051 + -0.78241307f) / fConst1050 + 0.2452915f;
+		fConst1096 = 2.0f * (0.2452915f - fConst1079);
+		fConst1097 = 2.0f * (0.0004332272f - fConst1093);
+		fConst1098 = (fConst1051 + -0.51247865f) / fConst1050 + 0.6896214f;
+		fConst1099 = 2.0f * (0.6896214f - fConst1079);
+		fConst1100 = 2.0f * (7.6217313f - fConst1079);
+		fConst1101 = (fConst1051 + -0.16840488f) / fConst1050 + 1.0693583f;
+		fConst1102 = 2.0f * (1.0693583f - fConst1079);
+		fConst1103 = 2.0f * (53.53615f - fConst1079);
+	}
+	
+	virtual void instanceResetUserInterface() {
+		fHslider0 = FAUSTFLOAT(5e+01f);
+		fHslider1 = FAUSTFLOAT(1e+02f);
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 3; l0 = l0 + 1) {
+			fRec3[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 3; l1 = l1 + 1) {
+			fRec2[l1] = 0.0f;
+		}
+		for (int l2 = 0; l2 < 3; l2 = l2 + 1) {
+			fRec1[l2] = 0.0f;
+		}
+		for (int l3 = 0; l3 < 2; l3 = l3 + 1) {
+			fRec0[l3] = 0.0f;
+		}
+		for (int l4 = 0; l4 < 3; l4 = l4 + 1) {
+			fRec10[l4] = 0.0f;
+		}
+		for (int l5 = 0; l5 < 3; l5 = l5 + 1) {
+			fRec9[l5] = 0.0f;
+		}
+		for (int l6 = 0; l6 < 3; l6 = l6 + 1) {
+			fRec8[l6] = 0.0f;
+		}
+		for (int l7 = 0; l7 < 3; l7 = l7 + 1) {
+			fRec7[l7] = 0.0f;
+		}
+		for (int l8 = 0; l8 < 3; l8 = l8 + 1) {
+			fRec6[l8] = 0.0f;
+		}
+		for (int l9 = 0; l9 < 3; l9 = l9 + 1) {
+			fRec5[l9] = 0.0f;
+		}
+		for (int l10 = 0; l10 < 2; l10 = l10 + 1) {
+			fRec4[l10] = 0.0f;
+		}
+		for (int l11 = 0; l11 < 3; l11 = l11 + 1) {
+			fRec17[l11] = 0.0f;
+		}
+		for (int l12 = 0; l12 < 3; l12 = l12 + 1) {
+			fRec16[l12] = 0.0f;
+		}
+		for (int l13 = 0; l13 < 3; l13 = l13 + 1) {
+			fRec15[l13] = 0.0f;
+		}
+		for (int l14 = 0; l14 < 3; l14 = l14 + 1) {
+			fRec14[l14] = 0.0f;
+		}
+		for (int l15 = 0; l15 < 3; l15 = l15 + 1) {
+			fRec13[l15] = 0.0f;
+		}
+		for (int l16 = 0; l16 < 3; l16 = l16 + 1) {
+			fRec12[l16] = 0.0f;
+		}
+		for (int l17 = 0; l17 < 2; l17 = l17 + 1) {
+			fRec11[l17] = 0.0f;
+		}
+		for (int l18 = 0; l18 < 3; l18 = l18 + 1) {
+			fRec24[l18] = 0.0f;
+		}
+		for (int l19 = 0; l19 < 3; l19 = l19 + 1) {
+			fRec23[l19] = 0.0f;
+		}
+		for (int l20 = 0; l20 < 3; l20 = l20 + 1) {
+			fRec22[l20] = 0.0f;
+		}
+		for (int l21 = 0; l21 < 3; l21 = l21 + 1) {
+			fRec21[l21] = 0.0f;
+		}
+		for (int l22 = 0; l22 < 3; l22 = l22 + 1) {
+			fRec20[l22] = 0.0f;
+		}
+		for (int l23 = 0; l23 < 3; l23 = l23 + 1) {
+			fRec19[l23] = 0.0f;
+		}
+		for (int l24 = 0; l24 < 2; l24 = l24 + 1) {
+			fRec18[l24] = 0.0f;
+		}
+		for (int l25 = 0; l25 < 3; l25 = l25 + 1) {
+			fRec31[l25] = 0.0f;
+		}
+		for (int l26 = 0; l26 < 3; l26 = l26 + 1) {
+			fRec30[l26] = 0.0f;
+		}
+		for (int l27 = 0; l27 < 3; l27 = l27 + 1) {
+			fRec29[l27] = 0.0f;
+		}
+		for (int l28 = 0; l28 < 3; l28 = l28 + 1) {
+			fRec28[l28] = 0.0f;
+		}
+		for (int l29 = 0; l29 < 3; l29 = l29 + 1) {
+			fRec27[l29] = 0.0f;
+		}
+		for (int l30 = 0; l30 < 3; l30 = l30 + 1) {
+			fRec26[l30] = 0.0f;
+		}
+		for (int l31 = 0; l31 < 2; l31 = l31 + 1) {
+			fRec25[l31] = 0.0f;
+		}
+		for (int l32 = 0; l32 < 3; l32 = l32 + 1) {
+			fRec38[l32] = 0.0f;
+		}
+		for (int l33 = 0; l33 < 3; l33 = l33 + 1) {
+			fRec37[l33] = 0.0f;
+		}
+		for (int l34 = 0; l34 < 3; l34 = l34 + 1) {
+			fRec36[l34] = 0.0f;
+		}
+		for (int l35 = 0; l35 < 3; l35 = l35 + 1) {
+			fRec35[l35] = 0.0f;
+		}
+		for (int l36 = 0; l36 < 3; l36 = l36 + 1) {
+			fRec34[l36] = 0.0f;
+		}
+		for (int l37 = 0; l37 < 3; l37 = l37 + 1) {
+			fRec33[l37] = 0.0f;
+		}
+		for (int l38 = 0; l38 < 2; l38 = l38 + 1) {
+			fRec32[l38] = 0.0f;
+		}
+		for (int l39 = 0; l39 < 3; l39 = l39 + 1) {
+			fRec45[l39] = 0.0f;
+		}
+		for (int l40 = 0; l40 < 3; l40 = l40 + 1) {
+			fRec44[l40] = 0.0f;
+		}
+		for (int l41 = 0; l41 < 3; l41 = l41 + 1) {
+			fRec43[l41] = 0.0f;
+		}
+		for (int l42 = 0; l42 < 3; l42 = l42 + 1) {
+			fRec42[l42] = 0.0f;
+		}
+		for (int l43 = 0; l43 < 3; l43 = l43 + 1) {
+			fRec41[l43] = 0.0f;
+		}
+		for (int l44 = 0; l44 < 3; l44 = l44 + 1) {
+			fRec40[l44] = 0.0f;
+		}
+		for (int l45 = 0; l45 < 2; l45 = l45 + 1) {
+			fRec39[l45] = 0.0f;
+		}
+		for (int l46 = 0; l46 < 3; l46 = l46 + 1) {
+			fRec52[l46] = 0.0f;
+		}
+		for (int l47 = 0; l47 < 3; l47 = l47 + 1) {
+			fRec51[l47] = 0.0f;
+		}
+		for (int l48 = 0; l48 < 3; l48 = l48 + 1) {
+			fRec50[l48] = 0.0f;
+		}
+		for (int l49 = 0; l49 < 3; l49 = l49 + 1) {
+			fRec49[l49] = 0.0f;
+		}
+		for (int l50 = 0; l50 < 3; l50 = l50 + 1) {
+			fRec48[l50] = 0.0f;
+		}
+		for (int l51 = 0; l51 < 3; l51 = l51 + 1) {
+			fRec47[l51] = 0.0f;
+		}
+		for (int l52 = 0; l52 < 2; l52 = l52 + 1) {
+			fRec46[l52] = 0.0f;
+		}
+		for (int l53 = 0; l53 < 3; l53 = l53 + 1) {
+			fRec59[l53] = 0.0f;
+		}
+		for (int l54 = 0; l54 < 3; l54 = l54 + 1) {
+			fRec58[l54] = 0.0f;
+		}
+		for (int l55 = 0; l55 < 3; l55 = l55 + 1) {
+			fRec57[l55] = 0.0f;
+		}
+		for (int l56 = 0; l56 < 3; l56 = l56 + 1) {
+			fRec56[l56] = 0.0f;
+		}
+		for (int l57 = 0; l57 < 3; l57 = l57 + 1) {
+			fRec55[l57] = 0.0f;
+		}
+		for (int l58 = 0; l58 < 3; l58 = l58 + 1) {
+			fRec54[l58] = 0.0f;
+		}
+		for (int l59 = 0; l59 < 2; l59 = l59 + 1) {
+			fRec53[l59] = 0.0f;
+		}
+		for (int l60 = 0; l60 < 3; l60 = l60 + 1) {
+			fRec66[l60] = 0.0f;
+		}
+		for (int l61 = 0; l61 < 3; l61 = l61 + 1) {
+			fRec65[l61] = 0.0f;
+		}
+		for (int l62 = 0; l62 < 3; l62 = l62 + 1) {
+			fRec64[l62] = 0.0f;
+		}
+		for (int l63 = 0; l63 < 3; l63 = l63 + 1) {
+			fRec63[l63] = 0.0f;
+		}
+		for (int l64 = 0; l64 < 3; l64 = l64 + 1) {
+			fRec62[l64] = 0.0f;
+		}
+		for (int l65 = 0; l65 < 3; l65 = l65 + 1) {
+			fRec61[l65] = 0.0f;
+		}
+		for (int l66 = 0; l66 < 2; l66 = l66 + 1) {
+			fRec60[l66] = 0.0f;
+		}
+		for (int l67 = 0; l67 < 3; l67 = l67 + 1) {
+			fRec73[l67] = 0.0f;
+		}
+		for (int l68 = 0; l68 < 3; l68 = l68 + 1) {
+			fRec72[l68] = 0.0f;
+		}
+		for (int l69 = 0; l69 < 3; l69 = l69 + 1) {
+			fRec71[l69] = 0.0f;
+		}
+		for (int l70 = 0; l70 < 3; l70 = l70 + 1) {
+			fRec70[l70] = 0.0f;
+		}
+		for (int l71 = 0; l71 < 3; l71 = l71 + 1) {
+			fRec69[l71] = 0.0f;
+		}
+		for (int l72 = 0; l72 < 3; l72 = l72 + 1) {
+			fRec68[l72] = 0.0f;
+		}
+		for (int l73 = 0; l73 < 2; l73 = l73 + 1) {
+			fRec67[l73] = 0.0f;
+		}
+		for (int l74 = 0; l74 < 3; l74 = l74 + 1) {
+			fRec80[l74] = 0.0f;
+		}
+		for (int l75 = 0; l75 < 3; l75 = l75 + 1) {
+			fRec79[l75] = 0.0f;
+		}
+		for (int l76 = 0; l76 < 3; l76 = l76 + 1) {
+			fRec78[l76] = 0.0f;
+		}
+		for (int l77 = 0; l77 < 3; l77 = l77 + 1) {
+			fRec77[l77] = 0.0f;
+		}
+		for (int l78 = 0; l78 < 3; l78 = l78 + 1) {
+			fRec76[l78] = 0.0f;
+		}
+		for (int l79 = 0; l79 < 3; l79 = l79 + 1) {
+			fRec75[l79] = 0.0f;
+		}
+		for (int l80 = 0; l80 < 2; l80 = l80 + 1) {
+			fRec74[l80] = 0.0f;
+		}
+		for (int l81 = 0; l81 < 3; l81 = l81 + 1) {
+			fRec87[l81] = 0.0f;
+		}
+		for (int l82 = 0; l82 < 3; l82 = l82 + 1) {
+			fRec86[l82] = 0.0f;
+		}
+		for (int l83 = 0; l83 < 3; l83 = l83 + 1) {
+			fRec85[l83] = 0.0f;
+		}
+		for (int l84 = 0; l84 < 3; l84 = l84 + 1) {
+			fRec84[l84] = 0.0f;
+		}
+		for (int l85 = 0; l85 < 3; l85 = l85 + 1) {
+			fRec83[l85] = 0.0f;
+		}
+		for (int l86 = 0; l86 < 3; l86 = l86 + 1) {
+			fRec82[l86] = 0.0f;
+		}
+		for (int l87 = 0; l87 < 2; l87 = l87 + 1) {
+			fRec81[l87] = 0.0f;
+		}
+		for (int l88 = 0; l88 < 3; l88 = l88 + 1) {
+			fRec94[l88] = 0.0f;
+		}
+		for (int l89 = 0; l89 < 3; l89 = l89 + 1) {
+			fRec93[l89] = 0.0f;
+		}
+		for (int l90 = 0; l90 < 3; l90 = l90 + 1) {
+			fRec92[l90] = 0.0f;
+		}
+		for (int l91 = 0; l91 < 3; l91 = l91 + 1) {
+			fRec91[l91] = 0.0f;
+		}
+		for (int l92 = 0; l92 < 3; l92 = l92 + 1) {
+			fRec90[l92] = 0.0f;
+		}
+		for (int l93 = 0; l93 < 3; l93 = l93 + 1) {
+			fRec89[l93] = 0.0f;
+		}
+		for (int l94 = 0; l94 < 2; l94 = l94 + 1) {
+			fRec88[l94] = 0.0f;
+		}
+		for (int l95 = 0; l95 < 3; l95 = l95 + 1) {
+			fRec101[l95] = 0.0f;
+		}
+		for (int l96 = 0; l96 < 3; l96 = l96 + 1) {
+			fRec100[l96] = 0.0f;
+		}
+		for (int l97 = 0; l97 < 3; l97 = l97 + 1) {
+			fRec99[l97] = 0.0f;
+		}
+		for (int l98 = 0; l98 < 3; l98 = l98 + 1) {
+			fRec98[l98] = 0.0f;
+		}
+		for (int l99 = 0; l99 < 3; l99 = l99 + 1) {
+			fRec97[l99] = 0.0f;
+		}
+		for (int l100 = 0; l100 < 3; l100 = l100 + 1) {
+			fRec96[l100] = 0.0f;
+		}
+		for (int l101 = 0; l101 < 2; l101 = l101 + 1) {
+			fRec95[l101] = 0.0f;
+		}
+		for (int l102 = 0; l102 < 3; l102 = l102 + 1) {
+			fRec108[l102] = 0.0f;
+		}
+		for (int l103 = 0; l103 < 3; l103 = l103 + 1) {
+			fRec107[l103] = 0.0f;
+		}
+		for (int l104 = 0; l104 < 3; l104 = l104 + 1) {
+			fRec106[l104] = 0.0f;
+		}
+		for (int l105 = 0; l105 < 3; l105 = l105 + 1) {
+			fRec105[l105] = 0.0f;
+		}
+		for (int l106 = 0; l106 < 3; l106 = l106 + 1) {
+			fRec104[l106] = 0.0f;
+		}
+		for (int l107 = 0; l107 < 3; l107 = l107 + 1) {
+			fRec103[l107] = 0.0f;
+		}
+		for (int l108 = 0; l108 < 2; l108 = l108 + 1) {
+			fRec102[l108] = 0.0f;
+		}
+		for (int l109 = 0; l109 < 3; l109 = l109 + 1) {
+			fRec115[l109] = 0.0f;
+		}
+		for (int l110 = 0; l110 < 3; l110 = l110 + 1) {
+			fRec114[l110] = 0.0f;
+		}
+		for (int l111 = 0; l111 < 3; l111 = l111 + 1) {
+			fRec113[l111] = 0.0f;
+		}
+		for (int l112 = 0; l112 < 3; l112 = l112 + 1) {
+			fRec112[l112] = 0.0f;
+		}
+		for (int l113 = 0; l113 < 3; l113 = l113 + 1) {
+			fRec111[l113] = 0.0f;
+		}
+		for (int l114 = 0; l114 < 3; l114 = l114 + 1) {
+			fRec110[l114] = 0.0f;
+		}
+		for (int l115 = 0; l115 < 2; l115 = l115 + 1) {
+			fRec109[l115] = 0.0f;
+		}
+		for (int l116 = 0; l116 < 3; l116 = l116 + 1) {
+			fRec122[l116] = 0.0f;
+		}
+		for (int l117 = 0; l117 < 3; l117 = l117 + 1) {
+			fRec121[l117] = 0.0f;
+		}
+		for (int l118 = 0; l118 < 3; l118 = l118 + 1) {
+			fRec120[l118] = 0.0f;
+		}
+		for (int l119 = 0; l119 < 3; l119 = l119 + 1) {
+			fRec119[l119] = 0.0f;
+		}
+		for (int l120 = 0; l120 < 3; l120 = l120 + 1) {
+			fRec118[l120] = 0.0f;
+		}
+		for (int l121 = 0; l121 < 3; l121 = l121 + 1) {
+			fRec117[l121] = 0.0f;
+		}
+		for (int l122 = 0; l122 < 2; l122 = l122 + 1) {
+			fRec116[l122] = 0.0f;
+		}
+		for (int l123 = 0; l123 < 3; l123 = l123 + 1) {
+			fRec129[l123] = 0.0f;
+		}
+		for (int l124 = 0; l124 < 3; l124 = l124 + 1) {
+			fRec128[l124] = 0.0f;
+		}
+		for (int l125 = 0; l125 < 3; l125 = l125 + 1) {
+			fRec127[l125] = 0.0f;
+		}
+		for (int l126 = 0; l126 < 3; l126 = l126 + 1) {
+			fRec126[l126] = 0.0f;
+		}
+		for (int l127 = 0; l127 < 3; l127 = l127 + 1) {
+			fRec125[l127] = 0.0f;
+		}
+		for (int l128 = 0; l128 < 3; l128 = l128 + 1) {
+			fRec124[l128] = 0.0f;
+		}
+		for (int l129 = 0; l129 < 2; l129 = l129 + 1) {
+			fRec123[l129] = 0.0f;
+		}
+		for (int l130 = 0; l130 < 3; l130 = l130 + 1) {
+			fRec136[l130] = 0.0f;
+		}
+		for (int l131 = 0; l131 < 3; l131 = l131 + 1) {
+			fRec135[l131] = 0.0f;
+		}
+		for (int l132 = 0; l132 < 3; l132 = l132 + 1) {
+			fRec134[l132] = 0.0f;
+		}
+		for (int l133 = 0; l133 < 3; l133 = l133 + 1) {
+			fRec133[l133] = 0.0f;
+		}
+		for (int l134 = 0; l134 < 3; l134 = l134 + 1) {
+			fRec132[l134] = 0.0f;
+		}
+		for (int l135 = 0; l135 < 3; l135 = l135 + 1) {
+			fRec131[l135] = 0.0f;
+		}
+		for (int l136 = 0; l136 < 2; l136 = l136 + 1) {
+			fRec130[l136] = 0.0f;
+		}
+		for (int l137 = 0; l137 < 3; l137 = l137 + 1) {
+			fRec143[l137] = 0.0f;
+		}
+		for (int l138 = 0; l138 < 3; l138 = l138 + 1) {
+			fRec142[l138] = 0.0f;
+		}
+		for (int l139 = 0; l139 < 3; l139 = l139 + 1) {
+			fRec141[l139] = 0.0f;
+		}
+		for (int l140 = 0; l140 < 3; l140 = l140 + 1) {
+			fRec140[l140] = 0.0f;
+		}
+		for (int l141 = 0; l141 < 3; l141 = l141 + 1) {
+			fRec139[l141] = 0.0f;
+		}
+		for (int l142 = 0; l142 < 3; l142 = l142 + 1) {
+			fRec138[l142] = 0.0f;
+		}
+		for (int l143 = 0; l143 < 2; l143 = l143 + 1) {
+			fRec137[l143] = 0.0f;
+		}
+		for (int l144 = 0; l144 < 3; l144 = l144 + 1) {
+			fRec150[l144] = 0.0f;
+		}
+		for (int l145 = 0; l145 < 3; l145 = l145 + 1) {
+			fRec149[l145] = 0.0f;
+		}
+		for (int l146 = 0; l146 < 3; l146 = l146 + 1) {
+			fRec148[l146] = 0.0f;
+		}
+		for (int l147 = 0; l147 < 3; l147 = l147 + 1) {
+			fRec147[l147] = 0.0f;
+		}
+		for (int l148 = 0; l148 < 3; l148 = l148 + 1) {
+			fRec146[l148] = 0.0f;
+		}
+		for (int l149 = 0; l149 < 3; l149 = l149 + 1) {
+			fRec145[l149] = 0.0f;
+		}
+		for (int l150 = 0; l150 < 2; l150 = l150 + 1) {
+			fRec144[l150] = 0.0f;
+		}
+		for (int l151 = 0; l151 < 3; l151 = l151 + 1) {
+			fRec157[l151] = 0.0f;
+		}
+		for (int l152 = 0; l152 < 3; l152 = l152 + 1) {
+			fRec156[l152] = 0.0f;
+		}
+		for (int l153 = 0; l153 < 3; l153 = l153 + 1) {
+			fRec155[l153] = 0.0f;
+		}
+		for (int l154 = 0; l154 < 3; l154 = l154 + 1) {
+			fRec154[l154] = 0.0f;
+		}
+		for (int l155 = 0; l155 < 3; l155 = l155 + 1) {
+			fRec153[l155] = 0.0f;
+		}
+		for (int l156 = 0; l156 < 3; l156 = l156 + 1) {
+			fRec152[l156] = 0.0f;
+		}
+		for (int l157 = 0; l157 < 2; l157 = l157 + 1) {
+			fRec151[l157] = 0.0f;
+		}
+		for (int l158 = 0; l158 < 3; l158 = l158 + 1) {
+			fRec164[l158] = 0.0f;
+		}
+		for (int l159 = 0; l159 < 3; l159 = l159 + 1) {
+			fRec163[l159] = 0.0f;
+		}
+		for (int l160 = 0; l160 < 3; l160 = l160 + 1) {
+			fRec162[l160] = 0.0f;
+		}
+		for (int l161 = 0; l161 < 3; l161 = l161 + 1) {
+			fRec161[l161] = 0.0f;
+		}
+		for (int l162 = 0; l162 < 3; l162 = l162 + 1) {
+			fRec160[l162] = 0.0f;
+		}
+		for (int l163 = 0; l163 < 3; l163 = l163 + 1) {
+			fRec159[l163] = 0.0f;
+		}
+		for (int l164 = 0; l164 < 2; l164 = l164 + 1) {
+			fRec158[l164] = 0.0f;
+		}
+		for (int l165 = 0; l165 < 3; l165 = l165 + 1) {
+			fRec171[l165] = 0.0f;
+		}
+		for (int l166 = 0; l166 < 3; l166 = l166 + 1) {
+			fRec170[l166] = 0.0f;
+		}
+		for (int l167 = 0; l167 < 3; l167 = l167 + 1) {
+			fRec169[l167] = 0.0f;
+		}
+		for (int l168 = 0; l168 < 3; l168 = l168 + 1) {
+			fRec168[l168] = 0.0f;
+		}
+		for (int l169 = 0; l169 < 3; l169 = l169 + 1) {
+			fRec167[l169] = 0.0f;
+		}
+		for (int l170 = 0; l170 < 3; l170 = l170 + 1) {
+			fRec166[l170] = 0.0f;
+		}
+		for (int l171 = 0; l171 < 2; l171 = l171 + 1) {
+			fRec165[l171] = 0.0f;
+		}
+		for (int l172 = 0; l172 < 3; l172 = l172 + 1) {
+			fRec178[l172] = 0.0f;
+		}
+		for (int l173 = 0; l173 < 3; l173 = l173 + 1) {
+			fRec177[l173] = 0.0f;
+		}
+		for (int l174 = 0; l174 < 3; l174 = l174 + 1) {
+			fRec176[l174] = 0.0f;
+		}
+		for (int l175 = 0; l175 < 3; l175 = l175 + 1) {
+			fRec175[l175] = 0.0f;
+		}
+		for (int l176 = 0; l176 < 3; l176 = l176 + 1) {
+			fRec174[l176] = 0.0f;
+		}
+		for (int l177 = 0; l177 < 3; l177 = l177 + 1) {
+			fRec173[l177] = 0.0f;
+		}
+		for (int l178 = 0; l178 < 2; l178 = l178 + 1) {
+			fRec172[l178] = 0.0f;
+		}
+		for (int l179 = 0; l179 < 3; l179 = l179 + 1) {
+			fRec185[l179] = 0.0f;
+		}
+		for (int l180 = 0; l180 < 3; l180 = l180 + 1) {
+			fRec184[l180] = 0.0f;
+		}
+		for (int l181 = 0; l181 < 3; l181 = l181 + 1) {
+			fRec183[l181] = 0.0f;
+		}
+		for (int l182 = 0; l182 < 3; l182 = l182 + 1) {
+			fRec182[l182] = 0.0f;
+		}
+		for (int l183 = 0; l183 < 3; l183 = l183 + 1) {
+			fRec181[l183] = 0.0f;
+		}
+		for (int l184 = 0; l184 < 3; l184 = l184 + 1) {
+			fRec180[l184] = 0.0f;
+		}
+		for (int l185 = 0; l185 < 2; l185 = l185 + 1) {
+			fRec179[l185] = 0.0f;
+		}
+		for (int l186 = 0; l186 < 3; l186 = l186 + 1) {
+			fRec192[l186] = 0.0f;
+		}
+		for (int l187 = 0; l187 < 3; l187 = l187 + 1) {
+			fRec191[l187] = 0.0f;
+		}
+		for (int l188 = 0; l188 < 3; l188 = l188 + 1) {
+			fRec190[l188] = 0.0f;
+		}
+		for (int l189 = 0; l189 < 3; l189 = l189 + 1) {
+			fRec189[l189] = 0.0f;
+		}
+		for (int l190 = 0; l190 < 3; l190 = l190 + 1) {
+			fRec188[l190] = 0.0f;
+		}
+		for (int l191 = 0; l191 < 3; l191 = l191 + 1) {
+			fRec187[l191] = 0.0f;
+		}
+		for (int l192 = 0; l192 < 2; l192 = l192 + 1) {
+			fRec186[l192] = 0.0f;
+		}
+		for (int l193 = 0; l193 < 3; l193 = l193 + 1) {
+			fRec199[l193] = 0.0f;
+		}
+		for (int l194 = 0; l194 < 3; l194 = l194 + 1) {
+			fRec198[l194] = 0.0f;
+		}
+		for (int l195 = 0; l195 < 3; l195 = l195 + 1) {
+			fRec197[l195] = 0.0f;
+		}
+		for (int l196 = 0; l196 < 3; l196 = l196 + 1) {
+			fRec196[l196] = 0.0f;
+		}
+		for (int l197 = 0; l197 < 3; l197 = l197 + 1) {
+			fRec195[l197] = 0.0f;
+		}
+		for (int l198 = 0; l198 < 3; l198 = l198 + 1) {
+			fRec194[l198] = 0.0f;
+		}
+		for (int l199 = 0; l199 < 2; l199 = l199 + 1) {
+			fRec193[l199] = 0.0f;
+		}
+		for (int l200 = 0; l200 < 3; l200 = l200 + 1) {
+			fRec203[l200] = 0.0f;
+		}
+		for (int l201 = 0; l201 < 3; l201 = l201 + 1) {
+			fRec202[l201] = 0.0f;
+		}
+		for (int l202 = 0; l202 < 3; l202 = l202 + 1) {
+			fRec201[l202] = 0.0f;
+		}
+		for (int l203 = 0; l203 < 2; l203 = l203 + 1) {
+			fRec200[l203] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("spectral_level");
+		ui_interface->declare(0, "0", "");
+		ui_interface->declare(0, "tooltip", "See Faust's filter.lib for documentation and references");
+		ui_interface->openHorizontalBox("CONSTANT-Q SPECTRUM ANALYZER (6E), 30 bands spanning LP, 9 octaves below 16000 Hz, HP");
+		ui_interface->declare(&fVbargraph29, "0", "");
+		ui_interface->declare(&fVbargraph29, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph29, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph0", &fVbargraph29, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph28, "1", "");
+		ui_interface->declare(&fVbargraph28, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph28, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph1", &fVbargraph28, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph27, "2", "");
+		ui_interface->declare(&fVbargraph27, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph27, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph2", &fVbargraph27, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph26, "3", "");
+		ui_interface->declare(&fVbargraph26, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph26, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph3", &fVbargraph26, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph25, "4", "");
+		ui_interface->declare(&fVbargraph25, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph25, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph4", &fVbargraph25, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph24, "5", "");
+		ui_interface->declare(&fVbargraph24, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph24, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph5", &fVbargraph24, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph23, "6", "");
+		ui_interface->declare(&fVbargraph23, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph23, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph6", &fVbargraph23, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph22, "7", "");
+		ui_interface->declare(&fVbargraph22, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph22, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph7", &fVbargraph22, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph21, "8", "");
+		ui_interface->declare(&fVbargraph21, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph21, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph8", &fVbargraph21, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph20, "9", "");
+		ui_interface->declare(&fVbargraph20, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph20, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph9", &fVbargraph20, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph19, "10", "");
+		ui_interface->declare(&fVbargraph19, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph19, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph10", &fVbargraph19, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph18, "11", "");
+		ui_interface->declare(&fVbargraph18, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph18, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph11", &fVbargraph18, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph17, "12", "");
+		ui_interface->declare(&fVbargraph17, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph17, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph12", &fVbargraph17, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph16, "13", "");
+		ui_interface->declare(&fVbargraph16, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph16, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph13", &fVbargraph16, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph15, "14", "");
+		ui_interface->declare(&fVbargraph15, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph15, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph14", &fVbargraph15, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph14, "15", "");
+		ui_interface->declare(&fVbargraph14, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph14, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph15", &fVbargraph14, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph13, "16", "");
+		ui_interface->declare(&fVbargraph13, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph13, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph16", &fVbargraph13, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph12, "17", "");
+		ui_interface->declare(&fVbargraph12, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph12, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph17", &fVbargraph12, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph11, "18", "");
+		ui_interface->declare(&fVbargraph11, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph11, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph18", &fVbargraph11, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph10, "19", "");
+		ui_interface->declare(&fVbargraph10, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph10, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph19", &fVbargraph10, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph9, "20", "");
+		ui_interface->declare(&fVbargraph9, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph9, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph20", &fVbargraph9, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph8, "21", "");
+		ui_interface->declare(&fVbargraph8, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph8, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph21", &fVbargraph8, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph7, "22", "");
+		ui_interface->declare(&fVbargraph7, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph7, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph22", &fVbargraph7, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph6, "23", "");
+		ui_interface->declare(&fVbargraph6, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph6, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph23", &fVbargraph6, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph5, "24", "");
+		ui_interface->declare(&fVbargraph5, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph5, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph24", &fVbargraph5, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph4, "25", "");
+		ui_interface->declare(&fVbargraph4, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph4, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph25", &fVbargraph4, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph3, "26", "");
+		ui_interface->declare(&fVbargraph3, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph3, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph26", &fVbargraph3, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph2, "27", "");
+		ui_interface->declare(&fVbargraph2, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph2, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph27", &fVbargraph2, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph1, "28", "");
+		ui_interface->declare(&fVbargraph1, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph1, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph28", &fVbargraph1, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->declare(&fVbargraph0, "29", "");
+		ui_interface->declare(&fVbargraph0, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fVbargraph0, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph29", &fVbargraph0, FAUSTFLOAT(-5e+01f), FAUSTFLOAT(1e+01f));
+		ui_interface->closeBox();
+		ui_interface->declare(0, "1", "");
+		ui_interface->openHorizontalBox("SPECTRUM ANALYZER CONTROLS");
+		ui_interface->declare(&fHslider1, "0", "");
+		ui_interface->declare(&fHslider1, "scale", "log");
+		ui_interface->declare(&fHslider1, "tooltip", "band-level averaging time in milliseconds");
+		ui_interface->declare(&fHslider1, "unit", "ms");
+		ui_interface->addHorizontalSlider("Level Averaging Time", &fHslider1, FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f), FAUSTFLOAT(1e+04f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fHslider0, "1", "");
+		ui_interface->declare(&fHslider0, "tooltip", "Level offset in decibels");
+		ui_interface->declare(&fHslider0, "unit", "dB");
+		ui_interface->addHorizontalSlider("Level dB Offset", &fHslider0, FAUSTFLOAT(5e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* output0 = outputs[0];
+		FAUSTFLOAT* output1 = outputs[1];
+		float fSlow0 = float(fHslider0);
+		float fSlow1 = float(fHslider1);
+		float fSlow2 = (((0.001f * fSlow1) > 0.0f) ? std::exp(-(fConst1 / fSlow1)) : 0.0f);
+		float fSlow3 = 1.0f - fSlow2;
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			float fTemp0 = float(input0[i0]);
+			fRec3[0] = fTemp0 - fConst11 * (fConst14 * fRec3[2] + fConst16 * fRec3[1]);
+			fRec2[0] = fConst11 * (fConst13 * fRec3[0] + fConst17 * fRec3[1] + fConst13 * fRec3[2]) - fConst8 * (fConst18 * fRec2[2] + fConst19 * fRec2[1]);
+			fRec1[0] = fConst8 * (fConst10 * fRec2[0] + fConst20 * fRec2[1] + fConst10 * fRec2[2]) - fConst4 * (fConst21 * fRec1[2] + fConst22 * fRec1[1]);
+			fRec0[0] = fRec0[1] * fSlow2 + std::fabs(fConst4 * (fConst7 * fRec1[0] + fConst23 * fRec1[1] + fConst7 * fRec1[2])) * fSlow3;
+			fVbargraph0 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec0[0]));
+			fRec10[0] = fTemp0 - fConst40 * (fConst43 * fRec10[2] + fConst44 * fRec10[1]);
+			fRec9[0] = fConst40 * (fConst42 * fRec10[0] + fConst45 * fRec10[1] + fConst42 * fRec10[2]) - fConst38 * (fConst46 * fRec9[2] + fConst47 * fRec9[1]);
+			fRec8[0] = fConst38 * (fConst39 * fRec9[0] + fConst48 * fRec9[1] + fConst39 * fRec9[2]) - fConst36 * (fConst49 * fRec8[2] + fConst50 * fRec8[1]);
+			float fTemp1 = fConst36 * (fConst37 * fRec8[0] + fConst51 * fRec8[1] + fConst37 * fRec8[2]);
+			fRec7[0] = fTemp1 - fConst33 * (fConst52 * fRec7[2] + fConst54 * fRec7[1]);
+			fRec6[0] = fConst33 * (fConst35 * fRec7[0] + fConst55 * fRec7[1] + fConst35 * fRec7[2]) - fConst30 * (fConst56 * fRec6[2] + fConst57 * fRec6[1]);
+			fRec5[0] = fConst30 * (fConst32 * fRec6[0] + fConst58 * fRec6[1] + fConst32 * fRec6[2]) - fConst26 * (fConst59 * fRec5[2] + fConst60 * fRec5[1]);
+			fRec4[0] = fSlow2 * fRec4[1] + fSlow3 * std::fabs(fConst26 * (fConst29 * fRec5[0] + fConst61 * fRec5[1] + fConst29 * fRec5[2]));
+			fVbargraph1 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec4[0]));
+			fRec17[0] = fTemp1 - fConst78 * (fConst81 * fRec17[2] + fConst82 * fRec17[1]);
+			fRec16[0] = fConst78 * (fConst80 * fRec17[0] + fConst83 * fRec17[1] + fConst80 * fRec17[2]) - fConst76 * (fConst84 * fRec16[2] + fConst85 * fRec16[1]);
+			fRec15[0] = fConst76 * (fConst77 * fRec16[0] + fConst86 * fRec16[1] + fConst77 * fRec16[2]) - fConst74 * (fConst87 * fRec15[2] + fConst88 * fRec15[1]);
+			float fTemp2 = fConst74 * (fConst75 * fRec15[0] + fConst89 * fRec15[1] + fConst75 * fRec15[2]);
+			fRec14[0] = fTemp2 - fConst71 * (fConst90 * fRec14[2] + fConst92 * fRec14[1]);
+			fRec13[0] = fConst71 * (fConst73 * fRec14[0] + fConst93 * fRec14[1] + fConst73 * fRec14[2]) - fConst68 * (fConst94 * fRec13[2] + fConst95 * fRec13[1]);
+			fRec12[0] = fConst68 * (fConst70 * fRec13[0] + fConst96 * fRec13[1] + fConst70 * fRec13[2]) - fConst64 * (fConst97 * fRec12[2] + fConst98 * fRec12[1]);
+			fRec11[0] = fSlow2 * fRec11[1] + fSlow3 * std::fabs(fConst64 * (fConst67 * fRec12[0] + fConst99 * fRec12[1] + fConst67 * fRec12[2]));
+			fVbargraph2 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec11[0]));
+			fRec24[0] = fTemp2 - fConst116 * (fConst119 * fRec24[2] + fConst120 * fRec24[1]);
+			fRec23[0] = fConst116 * (fConst118 * fRec24[0] + fConst121 * fRec24[1] + fConst118 * fRec24[2]) - fConst114 * (fConst122 * fRec23[2] + fConst123 * fRec23[1]);
+			fRec22[0] = fConst114 * (fConst115 * fRec23[0] + fConst124 * fRec23[1] + fConst115 * fRec23[2]) - fConst112 * (fConst125 * fRec22[2] + fConst126 * fRec22[1]);
+			float fTemp3 = fConst112 * (fConst113 * fRec22[0] + fConst127 * fRec22[1] + fConst113 * fRec22[2]);
+			fRec21[0] = fTemp3 - fConst109 * (fConst128 * fRec21[2] + fConst130 * fRec21[1]);
+			fRec20[0] = fConst109 * (fConst111 * fRec21[0] + fConst131 * fRec21[1] + fConst111 * fRec21[2]) - fConst106 * (fConst132 * fRec20[2] + fConst133 * fRec20[1]);
+			fRec19[0] = fConst106 * (fConst108 * fRec20[0] + fConst134 * fRec20[1] + fConst108 * fRec20[2]) - fConst102 * (fConst135 * fRec19[2] + fConst136 * fRec19[1]);
+			fRec18[0] = fSlow2 * fRec18[1] + fSlow3 * std::fabs(fConst102 * (fConst105 * fRec19[0] + fConst137 * fRec19[1] + fConst105 * fRec19[2]));
+			fVbargraph3 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec18[0]));
+			fRec31[0] = fTemp3 - fConst154 * (fConst157 * fRec31[2] + fConst158 * fRec31[1]);
+			fRec30[0] = fConst154 * (fConst156 * fRec31[0] + fConst159 * fRec31[1] + fConst156 * fRec31[2]) - fConst152 * (fConst160 * fRec30[2] + fConst161 * fRec30[1]);
+			fRec29[0] = fConst152 * (fConst153 * fRec30[0] + fConst162 * fRec30[1] + fConst153 * fRec30[2]) - fConst150 * (fConst163 * fRec29[2] + fConst164 * fRec29[1]);
+			float fTemp4 = fConst150 * (fConst151 * fRec29[0] + fConst165 * fRec29[1] + fConst151 * fRec29[2]);
+			fRec28[0] = fTemp4 - fConst147 * (fConst166 * fRec28[2] + fConst168 * fRec28[1]);
+			fRec27[0] = fConst147 * (fConst149 * fRec28[0] + fConst169 * fRec28[1] + fConst149 * fRec28[2]) - fConst144 * (fConst170 * fRec27[2] + fConst171 * fRec27[1]);
+			fRec26[0] = fConst144 * (fConst146 * fRec27[0] + fConst172 * fRec27[1] + fConst146 * fRec27[2]) - fConst140 * (fConst173 * fRec26[2] + fConst174 * fRec26[1]);
+			fRec25[0] = fSlow2 * fRec25[1] + fSlow3 * std::fabs(fConst140 * (fConst143 * fRec26[0] + fConst175 * fRec26[1] + fConst143 * fRec26[2]));
+			fVbargraph4 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec25[0]));
+			fRec38[0] = fTemp4 - fConst192 * (fConst195 * fRec38[2] + fConst196 * fRec38[1]);
+			fRec37[0] = fConst192 * (fConst194 * fRec38[0] + fConst197 * fRec38[1] + fConst194 * fRec38[2]) - fConst190 * (fConst198 * fRec37[2] + fConst199 * fRec37[1]);
+			fRec36[0] = fConst190 * (fConst191 * fRec37[0] + fConst200 * fRec37[1] + fConst191 * fRec37[2]) - fConst188 * (fConst201 * fRec36[2] + fConst202 * fRec36[1]);
+			float fTemp5 = fConst188 * (fConst189 * fRec36[0] + fConst203 * fRec36[1] + fConst189 * fRec36[2]);
+			fRec35[0] = fTemp5 - fConst185 * (fConst204 * fRec35[2] + fConst206 * fRec35[1]);
+			fRec34[0] = fConst185 * (fConst187 * fRec35[0] + fConst207 * fRec35[1] + fConst187 * fRec35[2]) - fConst182 * (fConst208 * fRec34[2] + fConst209 * fRec34[1]);
+			fRec33[0] = fConst182 * (fConst184 * fRec34[0] + fConst210 * fRec34[1] + fConst184 * fRec34[2]) - fConst178 * (fConst211 * fRec33[2] + fConst212 * fRec33[1]);
+			fRec32[0] = fSlow2 * fRec32[1] + fSlow3 * std::fabs(fConst178 * (fConst181 * fRec33[0] + fConst213 * fRec33[1] + fConst181 * fRec33[2]));
+			fVbargraph5 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec32[0]));
+			fRec45[0] = fTemp5 - fConst230 * (fConst233 * fRec45[2] + fConst234 * fRec45[1]);
+			fRec44[0] = fConst230 * (fConst232 * fRec45[0] + fConst235 * fRec45[1] + fConst232 * fRec45[2]) - fConst228 * (fConst236 * fRec44[2] + fConst237 * fRec44[1]);
+			fRec43[0] = fConst228 * (fConst229 * fRec44[0] + fConst238 * fRec44[1] + fConst229 * fRec44[2]) - fConst226 * (fConst239 * fRec43[2] + fConst240 * fRec43[1]);
+			float fTemp6 = fConst226 * (fConst227 * fRec43[0] + fConst241 * fRec43[1] + fConst227 * fRec43[2]);
+			fRec42[0] = fTemp6 - fConst223 * (fConst242 * fRec42[2] + fConst244 * fRec42[1]);
+			fRec41[0] = fConst223 * (fConst225 * fRec42[0] + fConst245 * fRec42[1] + fConst225 * fRec42[2]) - fConst220 * (fConst246 * fRec41[2] + fConst247 * fRec41[1]);
+			fRec40[0] = fConst220 * (fConst222 * fRec41[0] + fConst248 * fRec41[1] + fConst222 * fRec41[2]) - fConst216 * (fConst249 * fRec40[2] + fConst250 * fRec40[1]);
+			fRec39[0] = fSlow2 * fRec39[1] + fSlow3 * std::fabs(fConst216 * (fConst219 * fRec40[0] + fConst251 * fRec40[1] + fConst219 * fRec40[2]));
+			fVbargraph6 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec39[0]));
+			fRec52[0] = fTemp6 - fConst268 * (fConst271 * fRec52[2] + fConst272 * fRec52[1]);
+			fRec51[0] = fConst268 * (fConst270 * fRec52[0] + fConst273 * fRec52[1] + fConst270 * fRec52[2]) - fConst266 * (fConst274 * fRec51[2] + fConst275 * fRec51[1]);
+			fRec50[0] = fConst266 * (fConst267 * fRec51[0] + fConst276 * fRec51[1] + fConst267 * fRec51[2]) - fConst264 * (fConst277 * fRec50[2] + fConst278 * fRec50[1]);
+			float fTemp7 = fConst264 * (fConst265 * fRec50[0] + fConst279 * fRec50[1] + fConst265 * fRec50[2]);
+			fRec49[0] = fTemp7 - fConst261 * (fConst280 * fRec49[2] + fConst282 * fRec49[1]);
+			fRec48[0] = fConst261 * (fConst263 * fRec49[0] + fConst283 * fRec49[1] + fConst263 * fRec49[2]) - fConst258 * (fConst284 * fRec48[2] + fConst285 * fRec48[1]);
+			fRec47[0] = fConst258 * (fConst260 * fRec48[0] + fConst286 * fRec48[1] + fConst260 * fRec48[2]) - fConst254 * (fConst287 * fRec47[2] + fConst288 * fRec47[1]);
+			fRec46[0] = fSlow2 * fRec46[1] + fSlow3 * std::fabs(fConst254 * (fConst257 * fRec47[0] + fConst289 * fRec47[1] + fConst257 * fRec47[2]));
+			fVbargraph7 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec46[0]));
+			fRec59[0] = fTemp7 - fConst306 * (fConst309 * fRec59[2] + fConst310 * fRec59[1]);
+			fRec58[0] = fConst306 * (fConst308 * fRec59[0] + fConst311 * fRec59[1] + fConst308 * fRec59[2]) - fConst304 * (fConst312 * fRec58[2] + fConst313 * fRec58[1]);
+			fRec57[0] = fConst304 * (fConst305 * fRec58[0] + fConst314 * fRec58[1] + fConst305 * fRec58[2]) - fConst302 * (fConst315 * fRec57[2] + fConst316 * fRec57[1]);
+			float fTemp8 = fConst302 * (fConst303 * fRec57[0] + fConst317 * fRec57[1] + fConst303 * fRec57[2]);
+			fRec56[0] = fTemp8 - fConst299 * (fConst318 * fRec56[2] + fConst320 * fRec56[1]);
+			fRec55[0] = fConst299 * (fConst301 * fRec56[0] + fConst321 * fRec56[1] + fConst301 * fRec56[2]) - fConst296 * (fConst322 * fRec55[2] + fConst323 * fRec55[1]);
+			fRec54[0] = fConst296 * (fConst298 * fRec55[0] + fConst324 * fRec55[1] + fConst298 * fRec55[2]) - fConst292 * (fConst325 * fRec54[2] + fConst326 * fRec54[1]);
+			fRec53[0] = fSlow2 * fRec53[1] + fSlow3 * std::fabs(fConst292 * (fConst295 * fRec54[0] + fConst327 * fRec54[1] + fConst295 * fRec54[2]));
+			fVbargraph8 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec53[0]));
+			fRec66[0] = fTemp8 - fConst344 * (fConst347 * fRec66[2] + fConst348 * fRec66[1]);
+			fRec65[0] = fConst344 * (fConst346 * fRec66[0] + fConst349 * fRec66[1] + fConst346 * fRec66[2]) - fConst342 * (fConst350 * fRec65[2] + fConst351 * fRec65[1]);
+			fRec64[0] = fConst342 * (fConst343 * fRec65[0] + fConst352 * fRec65[1] + fConst343 * fRec65[2]) - fConst340 * (fConst353 * fRec64[2] + fConst354 * fRec64[1]);
+			float fTemp9 = fConst340 * (fConst341 * fRec64[0] + fConst355 * fRec64[1] + fConst341 * fRec64[2]);
+			fRec63[0] = fTemp9 - fConst337 * (fConst356 * fRec63[2] + fConst358 * fRec63[1]);
+			fRec62[0] = fConst337 * (fConst339 * fRec63[0] + fConst359 * fRec63[1] + fConst339 * fRec63[2]) - fConst334 * (fConst360 * fRec62[2] + fConst361 * fRec62[1]);
+			fRec61[0] = fConst334 * (fConst336 * fRec62[0] + fConst362 * fRec62[1] + fConst336 * fRec62[2]) - fConst330 * (fConst363 * fRec61[2] + fConst364 * fRec61[1]);
+			fRec60[0] = fSlow2 * fRec60[1] + fSlow3 * std::fabs(fConst330 * (fConst333 * fRec61[0] + fConst365 * fRec61[1] + fConst333 * fRec61[2]));
+			fVbargraph9 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec60[0]));
+			fRec73[0] = fTemp9 - fConst382 * (fConst385 * fRec73[2] + fConst386 * fRec73[1]);
+			fRec72[0] = fConst382 * (fConst384 * fRec73[0] + fConst387 * fRec73[1] + fConst384 * fRec73[2]) - fConst380 * (fConst388 * fRec72[2] + fConst389 * fRec72[1]);
+			fRec71[0] = fConst380 * (fConst381 * fRec72[0] + fConst390 * fRec72[1] + fConst381 * fRec72[2]) - fConst378 * (fConst391 * fRec71[2] + fConst392 * fRec71[1]);
+			float fTemp10 = fConst378 * (fConst379 * fRec71[0] + fConst393 * fRec71[1] + fConst379 * fRec71[2]);
+			fRec70[0] = fTemp10 - fConst375 * (fConst394 * fRec70[2] + fConst396 * fRec70[1]);
+			fRec69[0] = fConst375 * (fConst377 * fRec70[0] + fConst397 * fRec70[1] + fConst377 * fRec70[2]) - fConst372 * (fConst398 * fRec69[2] + fConst399 * fRec69[1]);
+			fRec68[0] = fConst372 * (fConst374 * fRec69[0] + fConst400 * fRec69[1] + fConst374 * fRec69[2]) - fConst368 * (fConst401 * fRec68[2] + fConst402 * fRec68[1]);
+			fRec67[0] = fSlow2 * fRec67[1] + fSlow3 * std::fabs(fConst368 * (fConst371 * fRec68[0] + fConst403 * fRec68[1] + fConst371 * fRec68[2]));
+			fVbargraph10 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec67[0]));
+			fRec80[0] = fTemp10 - fConst420 * (fConst423 * fRec80[2] + fConst424 * fRec80[1]);
+			fRec79[0] = fConst420 * (fConst422 * fRec80[0] + fConst425 * fRec80[1] + fConst422 * fRec80[2]) - fConst418 * (fConst426 * fRec79[2] + fConst427 * fRec79[1]);
+			fRec78[0] = fConst418 * (fConst419 * fRec79[0] + fConst428 * fRec79[1] + fConst419 * fRec79[2]) - fConst416 * (fConst429 * fRec78[2] + fConst430 * fRec78[1]);
+			float fTemp11 = fConst416 * (fConst417 * fRec78[0] + fConst431 * fRec78[1] + fConst417 * fRec78[2]);
+			fRec77[0] = fTemp11 - fConst413 * (fConst432 * fRec77[2] + fConst434 * fRec77[1]);
+			fRec76[0] = fConst413 * (fConst415 * fRec77[0] + fConst435 * fRec77[1] + fConst415 * fRec77[2]) - fConst410 * (fConst436 * fRec76[2] + fConst437 * fRec76[1]);
+			fRec75[0] = fConst410 * (fConst412 * fRec76[0] + fConst438 * fRec76[1] + fConst412 * fRec76[2]) - fConst406 * (fConst439 * fRec75[2] + fConst440 * fRec75[1]);
+			fRec74[0] = fSlow2 * fRec74[1] + fSlow3 * std::fabs(fConst406 * (fConst409 * fRec75[0] + fConst441 * fRec75[1] + fConst409 * fRec75[2]));
+			fVbargraph11 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec74[0]));
+			fRec87[0] = fTemp11 - fConst458 * (fConst461 * fRec87[2] + fConst462 * fRec87[1]);
+			fRec86[0] = fConst458 * (fConst460 * fRec87[0] + fConst463 * fRec87[1] + fConst460 * fRec87[2]) - fConst456 * (fConst464 * fRec86[2] + fConst465 * fRec86[1]);
+			fRec85[0] = fConst456 * (fConst457 * fRec86[0] + fConst466 * fRec86[1] + fConst457 * fRec86[2]) - fConst454 * (fConst467 * fRec85[2] + fConst468 * fRec85[1]);
+			float fTemp12 = fConst454 * (fConst455 * fRec85[0] + fConst469 * fRec85[1] + fConst455 * fRec85[2]);
+			fRec84[0] = fTemp12 - fConst451 * (fConst470 * fRec84[2] + fConst472 * fRec84[1]);
+			fRec83[0] = fConst451 * (fConst453 * fRec84[0] + fConst473 * fRec84[1] + fConst453 * fRec84[2]) - fConst448 * (fConst474 * fRec83[2] + fConst475 * fRec83[1]);
+			fRec82[0] = fConst448 * (fConst450 * fRec83[0] + fConst476 * fRec83[1] + fConst450 * fRec83[2]) - fConst444 * (fConst477 * fRec82[2] + fConst478 * fRec82[1]);
+			fRec81[0] = fSlow2 * fRec81[1] + fSlow3 * std::fabs(fConst444 * (fConst447 * fRec82[0] + fConst479 * fRec82[1] + fConst447 * fRec82[2]));
+			fVbargraph12 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec81[0]));
+			fRec94[0] = fTemp12 - fConst496 * (fConst499 * fRec94[2] + fConst500 * fRec94[1]);
+			fRec93[0] = fConst496 * (fConst498 * fRec94[0] + fConst501 * fRec94[1] + fConst498 * fRec94[2]) - fConst494 * (fConst502 * fRec93[2] + fConst503 * fRec93[1]);
+			fRec92[0] = fConst494 * (fConst495 * fRec93[0] + fConst504 * fRec93[1] + fConst495 * fRec93[2]) - fConst492 * (fConst505 * fRec92[2] + fConst506 * fRec92[1]);
+			float fTemp13 = fConst492 * (fConst493 * fRec92[0] + fConst507 * fRec92[1] + fConst493 * fRec92[2]);
+			fRec91[0] = fTemp13 - fConst489 * (fConst508 * fRec91[2] + fConst510 * fRec91[1]);
+			fRec90[0] = fConst489 * (fConst491 * fRec91[0] + fConst511 * fRec91[1] + fConst491 * fRec91[2]) - fConst486 * (fConst512 * fRec90[2] + fConst513 * fRec90[1]);
+			fRec89[0] = fConst486 * (fConst488 * fRec90[0] + fConst514 * fRec90[1] + fConst488 * fRec90[2]) - fConst482 * (fConst515 * fRec89[2] + fConst516 * fRec89[1]);
+			fRec88[0] = fSlow2 * fRec88[1] + fSlow3 * std::fabs(fConst482 * (fConst485 * fRec89[0] + fConst517 * fRec89[1] + fConst485 * fRec89[2]));
+			fVbargraph13 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec88[0]));
+			fRec101[0] = fTemp13 - fConst534 * (fConst537 * fRec101[2] + fConst538 * fRec101[1]);
+			fRec100[0] = fConst534 * (fConst536 * fRec101[0] + fConst539 * fRec101[1] + fConst536 * fRec101[2]) - fConst532 * (fConst540 * fRec100[2] + fConst541 * fRec100[1]);
+			fRec99[0] = fConst532 * (fConst533 * fRec100[0] + fConst542 * fRec100[1] + fConst533 * fRec100[2]) - fConst530 * (fConst543 * fRec99[2] + fConst544 * fRec99[1]);
+			float fTemp14 = fConst530 * (fConst531 * fRec99[0] + fConst545 * fRec99[1] + fConst531 * fRec99[2]);
+			fRec98[0] = fTemp14 - fConst527 * (fConst546 * fRec98[2] + fConst548 * fRec98[1]);
+			fRec97[0] = fConst527 * (fConst529 * fRec98[0] + fConst549 * fRec98[1] + fConst529 * fRec98[2]) - fConst524 * (fConst550 * fRec97[2] + fConst551 * fRec97[1]);
+			fRec96[0] = fConst524 * (fConst526 * fRec97[0] + fConst552 * fRec97[1] + fConst526 * fRec97[2]) - fConst520 * (fConst553 * fRec96[2] + fConst554 * fRec96[1]);
+			fRec95[0] = fSlow2 * fRec95[1] + fSlow3 * std::fabs(fConst520 * (fConst523 * fRec96[0] + fConst555 * fRec96[1] + fConst523 * fRec96[2]));
+			fVbargraph14 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec95[0]));
+			fRec108[0] = fTemp14 - fConst572 * (fConst575 * fRec108[2] + fConst576 * fRec108[1]);
+			fRec107[0] = fConst572 * (fConst574 * fRec108[0] + fConst577 * fRec108[1] + fConst574 * fRec108[2]) - fConst570 * (fConst578 * fRec107[2] + fConst579 * fRec107[1]);
+			fRec106[0] = fConst570 * (fConst571 * fRec107[0] + fConst580 * fRec107[1] + fConst571 * fRec107[2]) - fConst568 * (fConst581 * fRec106[2] + fConst582 * fRec106[1]);
+			float fTemp15 = fConst568 * (fConst569 * fRec106[0] + fConst583 * fRec106[1] + fConst569 * fRec106[2]);
+			fRec105[0] = fTemp15 - fConst565 * (fConst584 * fRec105[2] + fConst586 * fRec105[1]);
+			fRec104[0] = fConst565 * (fConst567 * fRec105[0] + fConst587 * fRec105[1] + fConst567 * fRec105[2]) - fConst562 * (fConst588 * fRec104[2] + fConst589 * fRec104[1]);
+			fRec103[0] = fConst562 * (fConst564 * fRec104[0] + fConst590 * fRec104[1] + fConst564 * fRec104[2]) - fConst558 * (fConst591 * fRec103[2] + fConst592 * fRec103[1]);
+			fRec102[0] = fSlow2 * fRec102[1] + fSlow3 * std::fabs(fConst558 * (fConst561 * fRec103[0] + fConst593 * fRec103[1] + fConst561 * fRec103[2]));
+			fVbargraph15 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec102[0]));
+			fRec115[0] = fTemp15 - fConst610 * (fConst613 * fRec115[2] + fConst614 * fRec115[1]);
+			fRec114[0] = fConst610 * (fConst612 * fRec115[0] + fConst615 * fRec115[1] + fConst612 * fRec115[2]) - fConst608 * (fConst616 * fRec114[2] + fConst617 * fRec114[1]);
+			fRec113[0] = fConst608 * (fConst609 * fRec114[0] + fConst618 * fRec114[1] + fConst609 * fRec114[2]) - fConst606 * (fConst619 * fRec113[2] + fConst620 * fRec113[1]);
+			float fTemp16 = fConst606 * (fConst607 * fRec113[0] + fConst621 * fRec113[1] + fConst607 * fRec113[2]);
+			fRec112[0] = fTemp16 - fConst603 * (fConst622 * fRec112[2] + fConst624 * fRec112[1]);
+			fRec111[0] = fConst603 * (fConst605 * fRec112[0] + fConst625 * fRec112[1] + fConst605 * fRec112[2]) - fConst600 * (fConst626 * fRec111[2] + fConst627 * fRec111[1]);
+			fRec110[0] = fConst600 * (fConst602 * fRec111[0] + fConst628 * fRec111[1] + fConst602 * fRec111[2]) - fConst596 * (fConst629 * fRec110[2] + fConst630 * fRec110[1]);
+			fRec109[0] = fSlow2 * fRec109[1] + fSlow3 * std::fabs(fConst596 * (fConst599 * fRec110[0] + fConst631 * fRec110[1] + fConst599 * fRec110[2]));
+			fVbargraph16 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec109[0]));
+			fRec122[0] = fTemp16 - fConst648 * (fConst651 * fRec122[2] + fConst652 * fRec122[1]);
+			fRec121[0] = fConst648 * (fConst650 * fRec122[0] + fConst653 * fRec122[1] + fConst650 * fRec122[2]) - fConst646 * (fConst654 * fRec121[2] + fConst655 * fRec121[1]);
+			fRec120[0] = fConst646 * (fConst647 * fRec121[0] + fConst656 * fRec121[1] + fConst647 * fRec121[2]) - fConst644 * (fConst657 * fRec120[2] + fConst658 * fRec120[1]);
+			float fTemp17 = fConst644 * (fConst645 * fRec120[0] + fConst659 * fRec120[1] + fConst645 * fRec120[2]);
+			fRec119[0] = fTemp17 - fConst641 * (fConst660 * fRec119[2] + fConst662 * fRec119[1]);
+			fRec118[0] = fConst641 * (fConst643 * fRec119[0] + fConst663 * fRec119[1] + fConst643 * fRec119[2]) - fConst638 * (fConst664 * fRec118[2] + fConst665 * fRec118[1]);
+			fRec117[0] = fConst638 * (fConst640 * fRec118[0] + fConst666 * fRec118[1] + fConst640 * fRec118[2]) - fConst634 * (fConst667 * fRec117[2] + fConst668 * fRec117[1]);
+			fRec116[0] = fSlow2 * fRec116[1] + fSlow3 * std::fabs(fConst634 * (fConst637 * fRec117[0] + fConst669 * fRec117[1] + fConst637 * fRec117[2]));
+			fVbargraph17 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec116[0]));
+			fRec129[0] = fTemp17 - fConst686 * (fConst689 * fRec129[2] + fConst690 * fRec129[1]);
+			fRec128[0] = fConst686 * (fConst688 * fRec129[0] + fConst691 * fRec129[1] + fConst688 * fRec129[2]) - fConst684 * (fConst692 * fRec128[2] + fConst693 * fRec128[1]);
+			fRec127[0] = fConst684 * (fConst685 * fRec128[0] + fConst694 * fRec128[1] + fConst685 * fRec128[2]) - fConst682 * (fConst695 * fRec127[2] + fConst696 * fRec127[1]);
+			float fTemp18 = fConst682 * (fConst683 * fRec127[0] + fConst697 * fRec127[1] + fConst683 * fRec127[2]);
+			fRec126[0] = fTemp18 - fConst679 * (fConst698 * fRec126[2] + fConst700 * fRec126[1]);
+			fRec125[0] = fConst679 * (fConst681 * fRec126[0] + fConst701 * fRec126[1] + fConst681 * fRec126[2]) - fConst676 * (fConst702 * fRec125[2] + fConst703 * fRec125[1]);
+			fRec124[0] = fConst676 * (fConst678 * fRec125[0] + fConst704 * fRec125[1] + fConst678 * fRec125[2]) - fConst672 * (fConst705 * fRec124[2] + fConst706 * fRec124[1]);
+			fRec123[0] = fSlow2 * fRec123[1] + fSlow3 * std::fabs(fConst672 * (fConst675 * fRec124[0] + fConst707 * fRec124[1] + fConst675 * fRec124[2]));
+			fVbargraph18 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec123[0]));
+			fRec136[0] = fTemp18 - fConst724 * (fConst727 * fRec136[2] + fConst728 * fRec136[1]);
+			fRec135[0] = fConst724 * (fConst726 * fRec136[0] + fConst729 * fRec136[1] + fConst726 * fRec136[2]) - fConst722 * (fConst730 * fRec135[2] + fConst731 * fRec135[1]);
+			fRec134[0] = fConst722 * (fConst723 * fRec135[0] + fConst732 * fRec135[1] + fConst723 * fRec135[2]) - fConst720 * (fConst733 * fRec134[2] + fConst734 * fRec134[1]);
+			float fTemp19 = fConst720 * (fConst721 * fRec134[0] + fConst735 * fRec134[1] + fConst721 * fRec134[2]);
+			fRec133[0] = fTemp19 - fConst717 * (fConst736 * fRec133[2] + fConst738 * fRec133[1]);
+			fRec132[0] = fConst717 * (fConst719 * fRec133[0] + fConst739 * fRec133[1] + fConst719 * fRec133[2]) - fConst714 * (fConst740 * fRec132[2] + fConst741 * fRec132[1]);
+			fRec131[0] = fConst714 * (fConst716 * fRec132[0] + fConst742 * fRec132[1] + fConst716 * fRec132[2]) - fConst710 * (fConst743 * fRec131[2] + fConst744 * fRec131[1]);
+			fRec130[0] = fSlow2 * fRec130[1] + fSlow3 * std::fabs(fConst710 * (fConst713 * fRec131[0] + fConst745 * fRec131[1] + fConst713 * fRec131[2]));
+			fVbargraph19 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec130[0]));
+			fRec143[0] = fTemp19 - fConst762 * (fConst765 * fRec143[2] + fConst766 * fRec143[1]);
+			fRec142[0] = fConst762 * (fConst764 * fRec143[0] + fConst767 * fRec143[1] + fConst764 * fRec143[2]) - fConst760 * (fConst768 * fRec142[2] + fConst769 * fRec142[1]);
+			fRec141[0] = fConst760 * (fConst761 * fRec142[0] + fConst770 * fRec142[1] + fConst761 * fRec142[2]) - fConst758 * (fConst771 * fRec141[2] + fConst772 * fRec141[1]);
+			float fTemp20 = fConst758 * (fConst759 * fRec141[0] + fConst773 * fRec141[1] + fConst759 * fRec141[2]);
+			fRec140[0] = fTemp20 - fConst755 * (fConst774 * fRec140[2] + fConst776 * fRec140[1]);
+			fRec139[0] = fConst755 * (fConst757 * fRec140[0] + fConst777 * fRec140[1] + fConst757 * fRec140[2]) - fConst752 * (fConst778 * fRec139[2] + fConst779 * fRec139[1]);
+			fRec138[0] = fConst752 * (fConst754 * fRec139[0] + fConst780 * fRec139[1] + fConst754 * fRec139[2]) - fConst748 * (fConst781 * fRec138[2] + fConst782 * fRec138[1]);
+			fRec137[0] = fSlow2 * fRec137[1] + fSlow3 * std::fabs(fConst748 * (fConst751 * fRec138[0] + fConst783 * fRec138[1] + fConst751 * fRec138[2]));
+			fVbargraph20 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec137[0]));
+			fRec150[0] = fTemp20 - fConst800 * (fConst803 * fRec150[2] + fConst804 * fRec150[1]);
+			fRec149[0] = fConst800 * (fConst802 * fRec150[0] + fConst805 * fRec150[1] + fConst802 * fRec150[2]) - fConst798 * (fConst806 * fRec149[2] + fConst807 * fRec149[1]);
+			fRec148[0] = fConst798 * (fConst799 * fRec149[0] + fConst808 * fRec149[1] + fConst799 * fRec149[2]) - fConst796 * (fConst809 * fRec148[2] + fConst810 * fRec148[1]);
+			float fTemp21 = fConst796 * (fConst797 * fRec148[0] + fConst811 * fRec148[1] + fConst797 * fRec148[2]);
+			fRec147[0] = fTemp21 - fConst793 * (fConst812 * fRec147[2] + fConst814 * fRec147[1]);
+			fRec146[0] = fConst793 * (fConst795 * fRec147[0] + fConst815 * fRec147[1] + fConst795 * fRec147[2]) - fConst790 * (fConst816 * fRec146[2] + fConst817 * fRec146[1]);
+			fRec145[0] = fConst790 * (fConst792 * fRec146[0] + fConst818 * fRec146[1] + fConst792 * fRec146[2]) - fConst786 * (fConst819 * fRec145[2] + fConst820 * fRec145[1]);
+			fRec144[0] = fSlow2 * fRec144[1] + fSlow3 * std::fabs(fConst786 * (fConst789 * fRec145[0] + fConst821 * fRec145[1] + fConst789 * fRec145[2]));
+			fVbargraph21 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec144[0]));
+			fRec157[0] = fTemp21 - fConst838 * (fConst841 * fRec157[2] + fConst842 * fRec157[1]);
+			fRec156[0] = fConst838 * (fConst840 * fRec157[0] + fConst843 * fRec157[1] + fConst840 * fRec157[2]) - fConst836 * (fConst844 * fRec156[2] + fConst845 * fRec156[1]);
+			fRec155[0] = fConst836 * (fConst837 * fRec156[0] + fConst846 * fRec156[1] + fConst837 * fRec156[2]) - fConst834 * (fConst847 * fRec155[2] + fConst848 * fRec155[1]);
+			float fTemp22 = fConst834 * (fConst835 * fRec155[0] + fConst849 * fRec155[1] + fConst835 * fRec155[2]);
+			fRec154[0] = fTemp22 - fConst831 * (fConst850 * fRec154[2] + fConst852 * fRec154[1]);
+			fRec153[0] = fConst831 * (fConst833 * fRec154[0] + fConst853 * fRec154[1] + fConst833 * fRec154[2]) - fConst828 * (fConst854 * fRec153[2] + fConst855 * fRec153[1]);
+			fRec152[0] = fConst828 * (fConst830 * fRec153[0] + fConst856 * fRec153[1] + fConst830 * fRec153[2]) - fConst824 * (fConst857 * fRec152[2] + fConst858 * fRec152[1]);
+			fRec151[0] = fSlow2 * fRec151[1] + fSlow3 * std::fabs(fConst824 * (fConst827 * fRec152[0] + fConst859 * fRec152[1] + fConst827 * fRec152[2]));
+			fVbargraph22 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec151[0]));
+			fRec164[0] = fTemp22 - fConst876 * (fConst879 * fRec164[2] + fConst880 * fRec164[1]);
+			fRec163[0] = fConst876 * (fConst878 * fRec164[0] + fConst881 * fRec164[1] + fConst878 * fRec164[2]) - fConst874 * (fConst882 * fRec163[2] + fConst883 * fRec163[1]);
+			fRec162[0] = fConst874 * (fConst875 * fRec163[0] + fConst884 * fRec163[1] + fConst875 * fRec163[2]) - fConst872 * (fConst885 * fRec162[2] + fConst886 * fRec162[1]);
+			float fTemp23 = fConst872 * (fConst873 * fRec162[0] + fConst887 * fRec162[1] + fConst873 * fRec162[2]);
+			fRec161[0] = fTemp23 - fConst869 * (fConst888 * fRec161[2] + fConst890 * fRec161[1]);
+			fRec160[0] = fConst869 * (fConst871 * fRec161[0] + fConst891 * fRec161[1] + fConst871 * fRec161[2]) - fConst866 * (fConst892 * fRec160[2] + fConst893 * fRec160[1]);
+			fRec159[0] = fConst866 * (fConst868 * fRec160[0] + fConst894 * fRec160[1] + fConst868 * fRec160[2]) - fConst862 * (fConst895 * fRec159[2] + fConst896 * fRec159[1]);
+			fRec158[0] = fSlow2 * fRec158[1] + fSlow3 * std::fabs(fConst862 * (fConst865 * fRec159[0] + fConst897 * fRec159[1] + fConst865 * fRec159[2]));
+			fVbargraph23 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec158[0]));
+			fRec171[0] = fTemp23 - fConst914 * (fConst917 * fRec171[2] + fConst918 * fRec171[1]);
+			fRec170[0] = fConst914 * (fConst916 * fRec171[0] + fConst919 * fRec171[1] + fConst916 * fRec171[2]) - fConst912 * (fConst920 * fRec170[2] + fConst921 * fRec170[1]);
+			fRec169[0] = fConst912 * (fConst913 * fRec170[0] + fConst922 * fRec170[1] + fConst913 * fRec170[2]) - fConst910 * (fConst923 * fRec169[2] + fConst924 * fRec169[1]);
+			float fTemp24 = fConst910 * (fConst911 * fRec169[0] + fConst925 * fRec169[1] + fConst911 * fRec169[2]);
+			fRec168[0] = fTemp24 - fConst907 * (fConst926 * fRec168[2] + fConst928 * fRec168[1]);
+			fRec167[0] = fConst907 * (fConst909 * fRec168[0] + fConst929 * fRec168[1] + fConst909 * fRec168[2]) - fConst904 * (fConst930 * fRec167[2] + fConst931 * fRec167[1]);
+			fRec166[0] = fConst904 * (fConst906 * fRec167[0] + fConst932 * fRec167[1] + fConst906 * fRec167[2]) - fConst900 * (fConst933 * fRec166[2] + fConst934 * fRec166[1]);
+			fRec165[0] = fSlow2 * fRec165[1] + fSlow3 * std::fabs(fConst900 * (fConst903 * fRec166[0] + fConst935 * fRec166[1] + fConst903 * fRec166[2]));
+			fVbargraph24 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec165[0]));
+			fRec178[0] = fTemp24 - fConst952 * (fConst955 * fRec178[2] + fConst956 * fRec178[1]);
+			fRec177[0] = fConst952 * (fConst954 * fRec178[0] + fConst957 * fRec178[1] + fConst954 * fRec178[2]) - fConst950 * (fConst958 * fRec177[2] + fConst959 * fRec177[1]);
+			fRec176[0] = fConst950 * (fConst951 * fRec177[0] + fConst960 * fRec177[1] + fConst951 * fRec177[2]) - fConst948 * (fConst961 * fRec176[2] + fConst962 * fRec176[1]);
+			float fTemp25 = fConst948 * (fConst949 * fRec176[0] + fConst963 * fRec176[1] + fConst949 * fRec176[2]);
+			fRec175[0] = fTemp25 - fConst945 * (fConst964 * fRec175[2] + fConst966 * fRec175[1]);
+			fRec174[0] = fConst945 * (fConst947 * fRec175[0] + fConst967 * fRec175[1] + fConst947 * fRec175[2]) - fConst942 * (fConst968 * fRec174[2] + fConst969 * fRec174[1]);
+			fRec173[0] = fConst942 * (fConst944 * fRec174[0] + fConst970 * fRec174[1] + fConst944 * fRec174[2]) - fConst938 * (fConst971 * fRec173[2] + fConst972 * fRec173[1]);
+			fRec172[0] = fSlow2 * fRec172[1] + fSlow3 * std::fabs(fConst938 * (fConst941 * fRec173[0] + fConst973 * fRec173[1] + fConst941 * fRec173[2]));
+			fVbargraph25 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec172[0]));
+			fRec185[0] = fTemp25 - fConst990 * (fConst993 * fRec185[2] + fConst994 * fRec185[1]);
+			fRec184[0] = fConst990 * (fConst992 * fRec185[0] + fConst995 * fRec185[1] + fConst992 * fRec185[2]) - fConst988 * (fConst996 * fRec184[2] + fConst997 * fRec184[1]);
+			fRec183[0] = fConst988 * (fConst989 * fRec184[0] + fConst998 * fRec184[1] + fConst989 * fRec184[2]) - fConst986 * (fConst999 * fRec183[2] + fConst1000 * fRec183[1]);
+			float fTemp26 = fConst986 * (fConst987 * fRec183[0] + fConst1001 * fRec183[1] + fConst987 * fRec183[2]);
+			fRec182[0] = fTemp26 - fConst983 * (fConst1002 * fRec182[2] + fConst1004 * fRec182[1]);
+			fRec181[0] = fConst983 * (fConst985 * fRec182[0] + fConst1005 * fRec182[1] + fConst985 * fRec182[2]) - fConst980 * (fConst1006 * fRec181[2] + fConst1007 * fRec181[1]);
+			fRec180[0] = fConst980 * (fConst982 * fRec181[0] + fConst1008 * fRec181[1] + fConst982 * fRec181[2]) - fConst976 * (fConst1009 * fRec180[2] + fConst1010 * fRec180[1]);
+			fRec179[0] = fSlow2 * fRec179[1] + fSlow3 * std::fabs(fConst976 * (fConst979 * fRec180[0] + fConst1011 * fRec180[1] + fConst979 * fRec180[2]));
+			fVbargraph26 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec179[0]));
+			fRec192[0] = fTemp26 - fConst1028 * (fConst1031 * fRec192[2] + fConst1032 * fRec192[1]);
+			fRec191[0] = fConst1028 * (fConst1030 * fRec192[0] + fConst1033 * fRec192[1] + fConst1030 * fRec192[2]) - fConst1026 * (fConst1034 * fRec191[2] + fConst1035 * fRec191[1]);
+			fRec190[0] = fConst1026 * (fConst1027 * fRec191[0] + fConst1036 * fRec191[1] + fConst1027 * fRec191[2]) - fConst1024 * (fConst1037 * fRec190[2] + fConst1038 * fRec190[1]);
+			float fTemp27 = fConst1024 * (fConst1025 * fRec190[0] + fConst1039 * fRec190[1] + fConst1025 * fRec190[2]);
+			fRec189[0] = fTemp27 - fConst1021 * (fConst1040 * fRec189[2] + fConst1042 * fRec189[1]);
+			fRec188[0] = fConst1021 * (fConst1023 * fRec189[0] + fConst1043 * fRec189[1] + fConst1023 * fRec189[2]) - fConst1018 * (fConst1044 * fRec188[2] + fConst1045 * fRec188[1]);
+			fRec187[0] = fConst1018 * (fConst1020 * fRec188[0] + fConst1046 * fRec188[1] + fConst1020 * fRec188[2]) - fConst1014 * (fConst1047 * fRec187[2] + fConst1048 * fRec187[1]);
+			fRec186[0] = fSlow2 * fRec186[1] + fSlow3 * std::fabs(fConst1014 * (fConst1017 * fRec187[0] + fConst1049 * fRec187[1] + fConst1017 * fRec187[2]));
+			fVbargraph27 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec186[0]));
+			fRec199[0] = fTemp27 - fConst1066 * (fConst1069 * fRec199[2] + fConst1070 * fRec199[1]);
+			fRec198[0] = fConst1066 * (fConst1068 * fRec199[0] + fConst1071 * fRec199[1] + fConst1068 * fRec199[2]) - fConst1064 * (fConst1072 * fRec198[2] + fConst1073 * fRec198[1]);
+			fRec197[0] = fConst1064 * (fConst1065 * fRec198[0] + fConst1074 * fRec198[1] + fConst1065 * fRec198[2]) - fConst1062 * (fConst1075 * fRec197[2] + fConst1076 * fRec197[1]);
+			float fTemp28 = fConst1062 * (fConst1063 * fRec197[0] + fConst1077 * fRec197[1] + fConst1063 * fRec197[2]);
+			fRec196[0] = fTemp28 - fConst1059 * (fConst1078 * fRec196[2] + fConst1080 * fRec196[1]);
+			fRec195[0] = fConst1059 * (fConst1061 * fRec196[0] + fConst1081 * fRec196[1] + fConst1061 * fRec196[2]) - fConst1056 * (fConst1082 * fRec195[2] + fConst1083 * fRec195[1]);
+			fRec194[0] = fConst1056 * (fConst1058 * fRec195[0] + fConst1084 * fRec195[1] + fConst1058 * fRec195[2]) - fConst1052 * (fConst1085 * fRec194[2] + fConst1086 * fRec194[1]);
+			fRec193[0] = fSlow2 * fRec193[1] + fSlow3 * std::fabs(fConst1052 * (fConst1055 * fRec194[0] + fConst1087 * fRec194[1] + fConst1055 * fRec194[2]));
+			fVbargraph28 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec193[0]));
+			fRec203[0] = fTemp28 - fConst1092 * (fConst1095 * fRec203[2] + fConst1096 * fRec203[1]);
+			fRec202[0] = fConst1092 * (fConst1094 * fRec203[0] + fConst1097 * fRec203[1] + fConst1094 * fRec203[2]) - fConst1090 * (fConst1098 * fRec202[2] + fConst1099 * fRec202[1]);
+			fRec201[0] = fConst1090 * (fConst1091 * fRec202[0] + fConst1100 * fRec202[1] + fConst1091 * fRec202[2]) - fConst1088 * (fConst1101 * fRec201[2] + fConst1102 * fRec201[1]);
+			fRec200[0] = fSlow2 * fRec200[1] + fSlow3 * std::fabs(fConst1088 * (fConst1089 * fRec201[0] + fConst1103 * fRec201[1] + fConst1089 * fRec201[2]));
+			fVbargraph29 = FAUSTFLOAT(fSlow0 + 2e+01f * std::log10(fRec200[0]));
+			float fTemp29 = fTemp0;
+			output0[i0] = FAUSTFLOAT(fTemp29);
+			output1[i0] = FAUSTFLOAT(fTemp29);
+			fRec3[2] = fRec3[1];
+			fRec3[1] = fRec3[0];
+			fRec2[2] = fRec2[1];
+			fRec2[1] = fRec2[0];
+			fRec1[2] = fRec1[1];
+			fRec1[1] = fRec1[0];
+			fRec0[1] = fRec0[0];
+			fRec10[2] = fRec10[1];
+			fRec10[1] = fRec10[0];
+			fRec9[2] = fRec9[1];
+			fRec9[1] = fRec9[0];
+			fRec8[2] = fRec8[1];
+			fRec8[1] = fRec8[0];
+			fRec7[2] = fRec7[1];
+			fRec7[1] = fRec7[0];
+			fRec6[2] = fRec6[1];
+			fRec6[1] = fRec6[0];
+			fRec5[2] = fRec5[1];
+			fRec5[1] = fRec5[0];
+			fRec4[1] = fRec4[0];
+			fRec17[2] = fRec17[1];
+			fRec17[1] = fRec17[0];
+			fRec16[2] = fRec16[1];
+			fRec16[1] = fRec16[0];
+			fRec15[2] = fRec15[1];
+			fRec15[1] = fRec15[0];
+			fRec14[2] = fRec14[1];
+			fRec14[1] = fRec14[0];
+			fRec13[2] = fRec13[1];
+			fRec13[1] = fRec13[0];
+			fRec12[2] = fRec12[1];
+			fRec12[1] = fRec12[0];
+			fRec11[1] = fRec11[0];
+			fRec24[2] = fRec24[1];
+			fRec24[1] = fRec24[0];
+			fRec23[2] = fRec23[1];
+			fRec23[1] = fRec23[0];
+			fRec22[2] = fRec22[1];
+			fRec22[1] = fRec22[0];
+			fRec21[2] = fRec21[1];
+			fRec21[1] = fRec21[0];
+			fRec20[2] = fRec20[1];
+			fRec20[1] = fRec20[0];
+			fRec19[2] = fRec19[1];
+			fRec19[1] = fRec19[0];
+			fRec18[1] = fRec18[0];
+			fRec31[2] = fRec31[1];
+			fRec31[1] = fRec31[0];
+			fRec30[2] = fRec30[1];
+			fRec30[1] = fRec30[0];
+			fRec29[2] = fRec29[1];
+			fRec29[1] = fRec29[0];
+			fRec28[2] = fRec28[1];
+			fRec28[1] = fRec28[0];
+			fRec27[2] = fRec27[1];
+			fRec27[1] = fRec27[0];
+			fRec26[2] = fRec26[1];
+			fRec26[1] = fRec26[0];
+			fRec25[1] = fRec25[0];
+			fRec38[2] = fRec38[1];
+			fRec38[1] = fRec38[0];
+			fRec37[2] = fRec37[1];
+			fRec37[1] = fRec37[0];
+			fRec36[2] = fRec36[1];
+			fRec36[1] = fRec36[0];
+			fRec35[2] = fRec35[1];
+			fRec35[1] = fRec35[0];
+			fRec34[2] = fRec34[1];
+			fRec34[1] = fRec34[0];
+			fRec33[2] = fRec33[1];
+			fRec33[1] = fRec33[0];
+			fRec32[1] = fRec32[0];
+			fRec45[2] = fRec45[1];
+			fRec45[1] = fRec45[0];
+			fRec44[2] = fRec44[1];
+			fRec44[1] = fRec44[0];
+			fRec43[2] = fRec43[1];
+			fRec43[1] = fRec43[0];
+			fRec42[2] = fRec42[1];
+			fRec42[1] = fRec42[0];
+			fRec41[2] = fRec41[1];
+			fRec41[1] = fRec41[0];
+			fRec40[2] = fRec40[1];
+			fRec40[1] = fRec40[0];
+			fRec39[1] = fRec39[0];
+			fRec52[2] = fRec52[1];
+			fRec52[1] = fRec52[0];
+			fRec51[2] = fRec51[1];
+			fRec51[1] = fRec51[0];
+			fRec50[2] = fRec50[1];
+			fRec50[1] = fRec50[0];
+			fRec49[2] = fRec49[1];
+			fRec49[1] = fRec49[0];
+			fRec48[2] = fRec48[1];
+			fRec48[1] = fRec48[0];
+			fRec47[2] = fRec47[1];
+			fRec47[1] = fRec47[0];
+			fRec46[1] = fRec46[0];
+			fRec59[2] = fRec59[1];
+			fRec59[1] = fRec59[0];
+			fRec58[2] = fRec58[1];
+			fRec58[1] = fRec58[0];
+			fRec57[2] = fRec57[1];
+			fRec57[1] = fRec57[0];
+			fRec56[2] = fRec56[1];
+			fRec56[1] = fRec56[0];
+			fRec55[2] = fRec55[1];
+			fRec55[1] = fRec55[0];
+			fRec54[2] = fRec54[1];
+			fRec54[1] = fRec54[0];
+			fRec53[1] = fRec53[0];
+			fRec66[2] = fRec66[1];
+			fRec66[1] = fRec66[0];
+			fRec65[2] = fRec65[1];
+			fRec65[1] = fRec65[0];
+			fRec64[2] = fRec64[1];
+			fRec64[1] = fRec64[0];
+			fRec63[2] = fRec63[1];
+			fRec63[1] = fRec63[0];
+			fRec62[2] = fRec62[1];
+			fRec62[1] = fRec62[0];
+			fRec61[2] = fRec61[1];
+			fRec61[1] = fRec61[0];
+			fRec60[1] = fRec60[0];
+			fRec73[2] = fRec73[1];
+			fRec73[1] = fRec73[0];
+			fRec72[2] = fRec72[1];
+			fRec72[1] = fRec72[0];
+			fRec71[2] = fRec71[1];
+			fRec71[1] = fRec71[0];
+			fRec70[2] = fRec70[1];
+			fRec70[1] = fRec70[0];
+			fRec69[2] = fRec69[1];
+			fRec69[1] = fRec69[0];
+			fRec68[2] = fRec68[1];
+			fRec68[1] = fRec68[0];
+			fRec67[1] = fRec67[0];
+			fRec80[2] = fRec80[1];
+			fRec80[1] = fRec80[0];
+			fRec79[2] = fRec79[1];
+			fRec79[1] = fRec79[0];
+			fRec78[2] = fRec78[1];
+			fRec78[1] = fRec78[0];
+			fRec77[2] = fRec77[1];
+			fRec77[1] = fRec77[0];
+			fRec76[2] = fRec76[1];
+			fRec76[1] = fRec76[0];
+			fRec75[2] = fRec75[1];
+			fRec75[1] = fRec75[0];
+			fRec74[1] = fRec74[0];
+			fRec87[2] = fRec87[1];
+			fRec87[1] = fRec87[0];
+			fRec86[2] = fRec86[1];
+			fRec86[1] = fRec86[0];
+			fRec85[2] = fRec85[1];
+			fRec85[1] = fRec85[0];
+			fRec84[2] = fRec84[1];
+			fRec84[1] = fRec84[0];
+			fRec83[2] = fRec83[1];
+			fRec83[1] = fRec83[0];
+			fRec82[2] = fRec82[1];
+			fRec82[1] = fRec82[0];
+			fRec81[1] = fRec81[0];
+			fRec94[2] = fRec94[1];
+			fRec94[1] = fRec94[0];
+			fRec93[2] = fRec93[1];
+			fRec93[1] = fRec93[0];
+			fRec92[2] = fRec92[1];
+			fRec92[1] = fRec92[0];
+			fRec91[2] = fRec91[1];
+			fRec91[1] = fRec91[0];
+			fRec90[2] = fRec90[1];
+			fRec90[1] = fRec90[0];
+			fRec89[2] = fRec89[1];
+			fRec89[1] = fRec89[0];
+			fRec88[1] = fRec88[0];
+			fRec101[2] = fRec101[1];
+			fRec101[1] = fRec101[0];
+			fRec100[2] = fRec100[1];
+			fRec100[1] = fRec100[0];
+			fRec99[2] = fRec99[1];
+			fRec99[1] = fRec99[0];
+			fRec98[2] = fRec98[1];
+			fRec98[1] = fRec98[0];
+			fRec97[2] = fRec97[1];
+			fRec97[1] = fRec97[0];
+			fRec96[2] = fRec96[1];
+			fRec96[1] = fRec96[0];
+			fRec95[1] = fRec95[0];
+			fRec108[2] = fRec108[1];
+			fRec108[1] = fRec108[0];
+			fRec107[2] = fRec107[1];
+			fRec107[1] = fRec107[0];
+			fRec106[2] = fRec106[1];
+			fRec106[1] = fRec106[0];
+			fRec105[2] = fRec105[1];
+			fRec105[1] = fRec105[0];
+			fRec104[2] = fRec104[1];
+			fRec104[1] = fRec104[0];
+			fRec103[2] = fRec103[1];
+			fRec103[1] = fRec103[0];
+			fRec102[1] = fRec102[0];
+			fRec115[2] = fRec115[1];
+			fRec115[1] = fRec115[0];
+			fRec114[2] = fRec114[1];
+			fRec114[1] = fRec114[0];
+			fRec113[2] = fRec113[1];
+			fRec113[1] = fRec113[0];
+			fRec112[2] = fRec112[1];
+			fRec112[1] = fRec112[0];
+			fRec111[2] = fRec111[1];
+			fRec111[1] = fRec111[0];
+			fRec110[2] = fRec110[1];
+			fRec110[1] = fRec110[0];
+			fRec109[1] = fRec109[0];
+			fRec122[2] = fRec122[1];
+			fRec122[1] = fRec122[0];
+			fRec121[2] = fRec121[1];
+			fRec121[1] = fRec121[0];
+			fRec120[2] = fRec120[1];
+			fRec120[1] = fRec120[0];
+			fRec119[2] = fRec119[1];
+			fRec119[1] = fRec119[0];
+			fRec118[2] = fRec118[1];
+			fRec118[1] = fRec118[0];
+			fRec117[2] = fRec117[1];
+			fRec117[1] = fRec117[0];
+			fRec116[1] = fRec116[0];
+			fRec129[2] = fRec129[1];
+			fRec129[1] = fRec129[0];
+			fRec128[2] = fRec128[1];
+			fRec128[1] = fRec128[0];
+			fRec127[2] = fRec127[1];
+			fRec127[1] = fRec127[0];
+			fRec126[2] = fRec126[1];
+			fRec126[1] = fRec126[0];
+			fRec125[2] = fRec125[1];
+			fRec125[1] = fRec125[0];
+			fRec124[2] = fRec124[1];
+			fRec124[1] = fRec124[0];
+			fRec123[1] = fRec123[0];
+			fRec136[2] = fRec136[1];
+			fRec136[1] = fRec136[0];
+			fRec135[2] = fRec135[1];
+			fRec135[1] = fRec135[0];
+			fRec134[2] = fRec134[1];
+			fRec134[1] = fRec134[0];
+			fRec133[2] = fRec133[1];
+			fRec133[1] = fRec133[0];
+			fRec132[2] = fRec132[1];
+			fRec132[1] = fRec132[0];
+			fRec131[2] = fRec131[1];
+			fRec131[1] = fRec131[0];
+			fRec130[1] = fRec130[0];
+			fRec143[2] = fRec143[1];
+			fRec143[1] = fRec143[0];
+			fRec142[2] = fRec142[1];
+			fRec142[1] = fRec142[0];
+			fRec141[2] = fRec141[1];
+			fRec141[1] = fRec141[0];
+			fRec140[2] = fRec140[1];
+			fRec140[1] = fRec140[0];
+			fRec139[2] = fRec139[1];
+			fRec139[1] = fRec139[0];
+			fRec138[2] = fRec138[1];
+			fRec138[1] = fRec138[0];
+			fRec137[1] = fRec137[0];
+			fRec150[2] = fRec150[1];
+			fRec150[1] = fRec150[0];
+			fRec149[2] = fRec149[1];
+			fRec149[1] = fRec149[0];
+			fRec148[2] = fRec148[1];
+			fRec148[1] = fRec148[0];
+			fRec147[2] = fRec147[1];
+			fRec147[1] = fRec147[0];
+			fRec146[2] = fRec146[1];
+			fRec146[1] = fRec146[0];
+			fRec145[2] = fRec145[1];
+			fRec145[1] = fRec145[0];
+			fRec144[1] = fRec144[0];
+			fRec157[2] = fRec157[1];
+			fRec157[1] = fRec157[0];
+			fRec156[2] = fRec156[1];
+			fRec156[1] = fRec156[0];
+			fRec155[2] = fRec155[1];
+			fRec155[1] = fRec155[0];
+			fRec154[2] = fRec154[1];
+			fRec154[1] = fRec154[0];
+			fRec153[2] = fRec153[1];
+			fRec153[1] = fRec153[0];
+			fRec152[2] = fRec152[1];
+			fRec152[1] = fRec152[0];
+			fRec151[1] = fRec151[0];
+			fRec164[2] = fRec164[1];
+			fRec164[1] = fRec164[0];
+			fRec163[2] = fRec163[1];
+			fRec163[1] = fRec163[0];
+			fRec162[2] = fRec162[1];
+			fRec162[1] = fRec162[0];
+			fRec161[2] = fRec161[1];
+			fRec161[1] = fRec161[0];
+			fRec160[2] = fRec160[1];
+			fRec160[1] = fRec160[0];
+			fRec159[2] = fRec159[1];
+			fRec159[1] = fRec159[0];
+			fRec158[1] = fRec158[0];
+			fRec171[2] = fRec171[1];
+			fRec171[1] = fRec171[0];
+			fRec170[2] = fRec170[1];
+			fRec170[1] = fRec170[0];
+			fRec169[2] = fRec169[1];
+			fRec169[1] = fRec169[0];
+			fRec168[2] = fRec168[1];
+			fRec168[1] = fRec168[0];
+			fRec167[2] = fRec167[1];
+			fRec167[1] = fRec167[0];
+			fRec166[2] = fRec166[1];
+			fRec166[1] = fRec166[0];
+			fRec165[1] = fRec165[0];
+			fRec178[2] = fRec178[1];
+			fRec178[1] = fRec178[0];
+			fRec177[2] = fRec177[1];
+			fRec177[1] = fRec177[0];
+			fRec176[2] = fRec176[1];
+			fRec176[1] = fRec176[0];
+			fRec175[2] = fRec175[1];
+			fRec175[1] = fRec175[0];
+			fRec174[2] = fRec174[1];
+			fRec174[1] = fRec174[0];
+			fRec173[2] = fRec173[1];
+			fRec173[1] = fRec173[0];
+			fRec172[1] = fRec172[0];
+			fRec185[2] = fRec185[1];
+			fRec185[1] = fRec185[0];
+			fRec184[2] = fRec184[1];
+			fRec184[1] = fRec184[0];
+			fRec183[2] = fRec183[1];
+			fRec183[1] = fRec183[0];
+			fRec182[2] = fRec182[1];
+			fRec182[1] = fRec182[0];
+			fRec181[2] = fRec181[1];
+			fRec181[1] = fRec181[0];
+			fRec180[2] = fRec180[1];
+			fRec180[1] = fRec180[0];
+			fRec179[1] = fRec179[0];
+			fRec192[2] = fRec192[1];
+			fRec192[1] = fRec192[0];
+			fRec191[2] = fRec191[1];
+			fRec191[1] = fRec191[0];
+			fRec190[2] = fRec190[1];
+			fRec190[1] = fRec190[0];
+			fRec189[2] = fRec189[1];
+			fRec189[1] = fRec189[0];
+			fRec188[2] = fRec188[1];
+			fRec188[1] = fRec188[0];
+			fRec187[2] = fRec187[1];
+			fRec187[1] = fRec187[0];
+			fRec186[1] = fRec186[0];
+			fRec199[2] = fRec199[1];
+			fRec199[1] = fRec199[0];
+			fRec198[2] = fRec198[1];
+			fRec198[1] = fRec198[0];
+			fRec197[2] = fRec197[1];
+			fRec197[1] = fRec197[0];
+			fRec196[2] = fRec196[1];
+			fRec196[1] = fRec196[0];
+			fRec195[2] = fRec195[1];
+			fRec195[1] = fRec195[0];
+			fRec194[2] = fRec194[1];
+			fRec194[1] = fRec194[0];
+			fRec193[1] = fRec193[0];
+			fRec203[2] = fRec203[1];
+			fRec203[1] = fRec203[0];
+			fRec202[2] = fRec202[1];
+			fRec202[1] = fRec202[0];
+			fRec201[2] = fRec201[1];
+			fRec201[1] = fRec201[0];
+			fRec200[1] = fRec200[0];
+		}
+	}
+
+};
+
+#endif

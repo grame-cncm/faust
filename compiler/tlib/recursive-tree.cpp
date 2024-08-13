@@ -109,7 +109,7 @@ bool isRef(Tree t, Tree& v)
 // Symbolic references count as zero which means that a tree with aperture
 // 0 has no free deBruijn references.
 
-int CTree::calcTreeAperture(const Node& n, const tvec& br)
+int CTreeBase::calcTreeAperture(const Node& n, const tvec& br)
 {
     int x;
     if (n == gGlobal->DEBRUIJNREF) {
@@ -199,7 +199,7 @@ static Tree calcliftn(Tree t, int threshold)
         for (int i = 0; i < n1; i++) {
             br[i] = liftn(t->branch(i), threshold);
         }
-        return CTree::make(t->node(), br);
+        return tree(t->node(), br);
     }
 }
 
@@ -242,7 +242,7 @@ static Tree calcDeBruijn2Sym(Tree t)
         for (int i1 = 0; i1 < a; i1++) {
             br[i1] = deBruijn2Sym(t->branch(i1));
         }
-        return CTree::make(t->node(), br);
+        return tree(t->node(), br);
     }
 }
 
@@ -279,5 +279,5 @@ static Tree calcsubstitute(Tree t, int level, Tree id)
     for (int i = 0; i < ar; i++) {
         br[i] = substitute(t->branch(i), level, id);
     }
-    return CTree::make(t->node(), br);
+    return tree(t->node(), br);
 }

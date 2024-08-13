@@ -1,5 +1,4 @@
 declare compilation_options    "-single -scal -e table.dsp -o table.dsp";
-declare library_path "/Documents/faust-github-faust2/tests/impulse-tests/dsp/table.dsp";
 declare library_path "/usr/local/share/faust/stdfaust.lib";
 declare library_path "/usr/local/share/faust/noises.lib";
 declare library_path "/usr/local/share/faust/filters.lib";

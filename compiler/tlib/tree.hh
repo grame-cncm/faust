@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2024 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -33,10 +33,10 @@
  *
  * <b>Useful conversions :</b>
  *
- * \li int          tree2int (t)   : if t has a node of type int, return it otherwise error
- * \li float        tree2double (t) : if t has a node of type double, return it otherwise error
- * \li const char*  tree2str (t)   : if t has a node of type symbol, return its name otherwise error
- * \li void*        tree2ptr (t)   : if t has a node of type ptr, return it otherwise error
+ * \li int         tree2int (t)    : if t has a node of type int, return it otherwise error
+ * \li float       tree2double (t) : if t has a node of type double, return it otherwise error
+ * \li const char  tree2str (t)    : if t has a node of type symbol, return its name otherwise error
+ * \li void        tree2ptr (t)    : if t has a node of type ptr, return it otherwise error
  *
  * <b>Pattern matching :</b>
  *
@@ -79,8 +79,8 @@
 
 //---------------------------------API---------------------------------------
 
-class CTree;
-typedef CTree* Tree;
+class CTreeBase;
+typedef CTreeBase* Tree;
 
 typedef std::map<Tree, Tree> plist;
 typedef std::vector<Tree>    tvec;
@@ -96,23 +96,22 @@ typedef std::vector<Tree>    tvec;
  *
  * Means are also provided to do maximal sharing on recursive trees. The idea is to start from
  * a deBruijn representation and progressively build a classical representation such that
- * alpha-equivalent recursive CTrees are necesseraly identical (and therefore shared).
+ * alpha-equivalent recursive CTrees are necessarily identical (and therefore shared).
  *
- * WARNING : in the current implementation CTrees are allocated but never deleted.
  **/
 
-class LIBFAUST_API CTree : public virtual Garbageable {
-   private:
+class LIBFAUST_API CTreeBase {
+   protected:
     static const int kHashTableSize = 400009;     ///< size of the hash table (prime number)
     static size_t    gSerialCounter;              ///< the serial number counter
     static Tree      gHashTable[kHashTableSize];  ///< hash table used for "hash consing"
 
    public:
-    static bool gDetails;  ///< Ctree::print() print with more details when true
+    static bool gDetails;  ///< CTreeBase::print() print with more details when true
     static unsigned int
         gVisitTime;  ///< Should be incremented for each new visit to keep track of visited tree
 
-   private:
+   protected:
     // fields
     Tree         fNext;        ///< next tree in the same hashtable entry
     Node         fNode;        ///< the node content of the tree
@@ -124,8 +123,12 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     unsigned int fVisitTime;   ///< keep track of visits
     tvec         fBranch;      ///< the subtrees
 
-    CTree(size_t hk, const Node& n,
-          const tvec& br);  ///< construction is private, uses tree::make instead
+    CTreeBase()
+        : fNext(nullptr), fType(nullptr), fHashKey(0), fSerial(0), fAperture(0), fVisitTime(0)
+    {
+    }
+    CTreeBase(size_t hk, const Node& n,
+              const tvec& br);  ///< construction is private, uses tree::make instead
 
     bool          equiv(const Node& n,
                         const tvec& br) const;  ///< used to check if an equivalent tree already exists
@@ -135,7 +138,7 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     static int calcTreeAperture(const Node& n, const tvec& br);  ///< compute how open is a tree
 
    public:
-    virtual ~CTree();
+    virtual ~CTreeBase();
 
     static Tree make(const Node& n, int ar,
                      Tree br[]);  ///< return a new tree or an existing equivalent one
@@ -184,52 +187,86 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     Tree getProperty(Tree key)
     {
         plist::iterator i = fProperties.find(key);
-        if (i == fProperties.end()) {
-            return 0;
-        } else {
-            return i->second;
-        }
+        return (i == fProperties.end()) ? nullptr : i->second;
     }
 };
 
-//---------------------------------API---------------------------------------
+// Garbageable tree: all trees are deallocated at the end of the compilation
+class LIBFAUST_API CTree : public CTreeBase, public virtual Garbageable {
+   public:
+    CTree(size_t hk, const Node& n, const tvec& br) : CTreeBase(hk, n, br) {}
+};
 
+// Deterministic allocation using pointers with successive addresses, all trees are deallocated
+// using cleanup.
+class LIBFAUST_API CDTree : public CTreeBase {
+   private:
+    static int               kBlockSize;
+    static Tree              gAllocatedBlock;
+    static std::vector<Tree> gAllocatedBlocks;
+
+   public:
+    CDTree() : CTreeBase() {}
+    CDTree(size_t hk, const Node& n, const tvec& br) : CTreeBase(hk, n, br) {}
+
+    void* operator new(size_t size)
+    {
+        // Allocate a new block and fill the table with successive addresses
+        if (gSerialCounter % kBlockSize == 0) {
+            Tree new_block = nullptr;
+            // Possibly try several times...
+            do {
+                new_block = new CDTree[kBlockSize];
+                gAllocatedBlocks.push_back(new_block);
+            } while (new_block < gAllocatedBlock);
+            gAllocatedBlock = new_block;
+        }
+        return &gAllocatedBlock[gSerialCounter % kBlockSize];
+    }
+
+    void operator delete(void* ptr) {}
+
+    static void init();
+    static void cleanup();
+};
+
+//---------------------------------API---------------------------------------
 // To build trees
+
 inline Tree tree(const Node& n)
 {
-    Tree br[1];
-    return CTree::make(n, 0, br);
+    return CTreeBase::make(n, 0, nullptr);
 }
+
 inline Tree tree(const Node& n, const Tree& a)
 {
-    Tree br[] = {a};
-    return CTree::make(n, 1, br);
+    return CTreeBase::make(n, {a});
 }
+
 inline Tree tree(const Node& n, const Tree& a, const Tree& b)
 {
-    Tree br[] = {a, b};
-    return CTree::make(n, 2, br);
+    return CTreeBase::make(n, {a, b});
 }
+
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c)
 {
-    Tree br[] = {a, b, c};
-    return CTree::make(n, 3, br);
+    return CTreeBase::make(n, {a, b, c});
 }
+
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d)
 {
-    Tree br[] = {a, b, c, d};
-    return CTree::make(n, 4, br);
+    return CTreeBase::make(n, {a, b, c, d});
 }
 
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d,
                  const Tree& e)
 {
-    Tree br[] = {a, b, c, d, e};
-    return CTree::make(n, 5, br);
+    return CTreeBase::make(n, {a, b, c, d, e});
 }
+
 inline Tree tree(const Node& n, const tvec& br)
 {
-    return CTree::make(n, br);
+    return CTreeBase::make(n, br);
 }
 
 // Useful conversions
@@ -252,7 +289,7 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e);
 
 // Printing
-inline std::ostream& operator<<(std::ostream& s, const CTree& t)
+inline std::ostream& operator<<(std::ostream& s, const CTreeBase& t)
 {
     return t.print(s);
 }

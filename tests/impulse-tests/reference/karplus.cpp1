@@ -1,0 +1,181 @@
+/* ------------------------------------------------------------
+author: "Grame"
+copyright: "(c)GRAME 2006"
+license: "BSD"
+name: "karplus"
+version: "1.0"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	FAUSTFLOAT fHslider0;
+	FAUSTFLOAT fHslider1;
+	int iRec1[2];
+	FAUSTFLOAT fButton0;
+	float fVec0[2];
+	FAUSTFLOAT fHslider2;
+	float fRec2[2];
+	int IOTA0;
+	float fVec1[512];
+	FAUSTFLOAT fHslider3;
+	float fRec0[3];
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "karplus.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "karplus");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() {
+		return 0;
+	}
+	virtual int getNumOutputs() {
+		return 1;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	
+	virtual void instanceResetUserInterface() {
+		fHslider0 = FAUSTFLOAT(0.0f);
+		fHslider1 = FAUSTFLOAT(0.5f);
+		fButton0 = FAUSTFLOAT(0.0f);
+		fHslider2 = FAUSTFLOAT(327.023f);
+		fHslider3 = FAUSTFLOAT(271.994f);
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			iRec1[l0] = 0;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fVec0[l1] = 0.0f;
+		}
+		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
+			fRec2[l2] = 0.0f;
+		}
+		IOTA0 = 0;
+		for (int l3 = 0; l3 < 512; l3 = l3 + 1) {
+			fVec1[l3] = 0.0f;
+		}
+		for (int l4 = 0; l4 < 3; l4 = l4 + 1) {
+			fRec0[l4] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("karplus");
+		ui_interface->openVerticalBox("excitator");
+		ui_interface->declare(&fHslider2, "unit", "f");
+		ui_interface->addHorizontalSlider("excitation", &fHslider2, FAUSTFLOAT(327.023f), FAUSTFLOAT(2.0f), FAUSTFLOAT(512.0f), FAUSTFLOAT(1.0f));
+		ui_interface->addButton("play", &fButton0);
+		ui_interface->closeBox();
+		ui_interface->addHorizontalSlider("level", &fHslider1, FAUSTFLOAT(0.5f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.01f));
+		ui_interface->openVerticalBox("resonator");
+		ui_interface->addHorizontalSlider("attenuation", &fHslider0, FAUSTFLOAT(0.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.01f));
+		ui_interface->declare(&fHslider3, "unit", "f");
+		ui_interface->addHorizontalSlider("duration", &fHslider3, FAUSTFLOAT(271.994f), FAUSTFLOAT(2.0f), FAUSTFLOAT(512.0f), FAUSTFLOAT(1.0f));
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* output0 = outputs[0];
+		float fSlow0 = 0.5f * (1.0f - float(fHslider0));
+		float fSlow1 = 4.656613e-10f * float(fHslider1);
+		float fSlow2 = float(fButton0);
+		float fSlow3 = 1.0f / float(fHslider2);
+		int iSlow4 = int(float(fHslider3) + -1.5f) & 4095;
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			iRec1[0] = 1103515245 * iRec1[1] + 12345;
+			fVec0[0] = fSlow2;
+			fRec2[0] = fRec2[1] + float((fSlow2 - fVec0[1]) > 0.0f) - fSlow3 * float(fRec2[1] > 0.0f);
+			fVec1[IOTA0 & 511] = fSlow0 * (fRec0[1] + fRec0[2]) + fSlow1 * float(iRec1[0]) * float(fRec2[0] > 0.0f);
+			fRec0[0] = fVec1[(IOTA0 - iSlow4) & 511];
+			output0[i0] = FAUSTFLOAT(fRec0[0]);
+			iRec1[1] = iRec1[0];
+			fVec0[1] = fVec0[0];
+			fRec2[1] = fRec2[0];
+			IOTA0 = IOTA0 + 1;
+			fRec0[2] = fRec0[1];
+			fRec0[1] = fRec0[0];
+		}
+	}
+
+};
+
+#endif

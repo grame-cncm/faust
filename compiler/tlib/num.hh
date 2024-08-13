@@ -29,14 +29,14 @@ this header file.
 
  API:
  ----
-    num(10);				: num with int content
-    num(3.14159);			: num with double content
+    num(10);      : num with int content
+    num(3.14159); : num with double content
 
-    num op num				: op is any C binary operator
+    num op num    op is any C binary operator
 
-    type(num)				: 0 = int, 1 = double
-    int(num);				: int content of num or conversion
-    double(num);				: double content of num or conversion
+    type(num)     : 0 = int, 1 = double
+    int(num);     : int content of num or conversion
+    double(num);  : double content of num or conversion
 
  History :
  ---------
@@ -54,8 +54,8 @@ this header file.
 
 //-------------------------------------------------------------------------
 // Class num = (type x (int + double))
-//		type 0 -> int
-//		type 1 -> double
+//        type 0 -> int
+//        type 1 -> double
 //-------------------------------------------------------------------------
 
 class num : public virtual Garbageable {

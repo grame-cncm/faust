@@ -56,14 +56,14 @@ extern "C" {
     
 #ifndef CTree_DEFINED
 #ifdef _MSC_VER
-    typedef void CTree;
+    typedef void CTreeBase;
 #else
-    typedef struct {} CTree;
+    typedef struct {} CTreeBase;
 #endif
 #endif
     
-    typedef CTree* Box;
-    typedef CTree* Signal;
+    typedef CTreeBase* Box;
+    typedef CTreeBase* Signal;
     
     /**
      * @brief Opaque structure representing a DSP object.

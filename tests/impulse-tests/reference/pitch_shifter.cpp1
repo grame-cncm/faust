@@ -1,0 +1,156 @@
+/* ------------------------------------------------------------
+author: "Grame"
+copyright: "(c)GRAME 2006"
+license: "BSD"
+name: "pitch-shifter"
+version: "1.0"
+Code generated with Faust 2.75.3 (https://faust.grame.fr)
+Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int IOTA0;
+	float fVec0[65536];
+	FAUSTFLOAT fHslider0;
+	FAUSTFLOAT fHslider1;
+	float fRec0[2];
+	FAUSTFLOAT fHslider2;
+	int fSampleRate;
+	
+ public:
+	mydsp() {
+	}
+	
+	void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "pitch_shifter.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "pitch-shifter");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() {
+		return 1;
+	}
+	virtual int getNumOutputs() {
+		return 1;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	
+	virtual void instanceResetUserInterface() {
+		fHslider0 = FAUSTFLOAT(1e+03f);
+		fHslider1 = FAUSTFLOAT(0.0f);
+		fHslider2 = FAUSTFLOAT(1e+01f);
+	}
+	
+	virtual void instanceClear() {
+		IOTA0 = 0;
+		for (int l0 = 0; l0 < 65536; l0 = l0 + 1) {
+			fVec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fRec0[l1] = 0.0f;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("Pitch Shifter");
+		ui_interface->addHorizontalSlider("shift (semitones)", &fHslider1, FAUSTFLOAT(0.0f), FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addHorizontalSlider("window (samples)", &fHslider0, FAUSTFLOAT(1e+03f), FAUSTFLOAT(5e+01f), FAUSTFLOAT(1e+04f), FAUSTFLOAT(1.0f));
+		ui_interface->addHorizontalSlider("xfade (samples)", &fHslider2, FAUSTFLOAT(1e+01f), FAUSTFLOAT(1.0f), FAUSTFLOAT(1e+04f), FAUSTFLOAT(1.0f));
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* output0 = outputs[0];
+		float fSlow0 = float(fHslider0);
+		float fSlow1 = std::pow(2.0f, 0.083333336f * float(fHslider1));
+		float fSlow2 = 1.0f / float(fHslider2);
+		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+			float fTemp0 = float(input0[i0]);
+			fVec0[IOTA0 & 65535] = fTemp0;
+			fRec0[0] = std::fmod(fSlow0 + (fRec0[1] + 1.0f - fSlow1), fSlow0);
+			int iTemp1 = int(fRec0[0]);
+			float fTemp2 = float(iTemp1);
+			float fTemp3 = 1.0f - fRec0[0];
+			float fTemp4 = std::min<float>(fSlow2 * fRec0[0], 1.0f);
+			int iTemp5 = int(fSlow0 + fRec0[0]);
+			float fTemp6 = float(iTemp5);
+			output0[i0] = FAUSTFLOAT((fVec0[(IOTA0 - (iTemp1 & 65535)) & 65535] * (fTemp2 + fTemp3) + (fRec0[0] - fTemp2) * fVec0[(IOTA0 - ((iTemp1 + 1) & 65535)) & 65535]) * fTemp4 + (fVec0[(IOTA0 - (iTemp5 & 65535)) & 65535] * (fTemp6 + fTemp3 - fSlow0) + (fSlow0 + (fRec0[0] - fTemp6)) * fVec0[(IOTA0 - ((iTemp5 + 1) & 65535)) & 65535]) * (1.0f - fTemp4));
+			IOTA0 = IOTA0 + 1;
+			fRec0[1] = fRec0[0];
+		}
+	}
+
+};
+
+#endif
