@@ -1,5 +1,5 @@
 // tosc.dsp - test simple oscillator + MIDI bindings
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 process = g * a * os.oscrs(f*b) <: _,_;
 a = hslider("gain [midi:ctrl 7]",1,0,1,0.001);
 f = hslider("freq",392.0,200.0,450.0,0.01);

@@ -2,8 +2,8 @@
 // MIDI controlled 16 channel volume control in db
 //-----------------------------------------------
 
-import("stdfaust.lib");
-import("layout.dsp"); 
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
+import("layout.lib"); 
 
 channel01 = v01(vslider("Volume-01 [midi:ctrl 1] [tooltip CC-1]", 0, -70, +4, 0.1) : ba.db2linear : si.smoo);
 channel02 = v02(vslider("Volume-02 [midi:ctrl 2] [tooltip CC-2]", 0, -70, +4, 0.1) : ba.db2linear : si.smoo);

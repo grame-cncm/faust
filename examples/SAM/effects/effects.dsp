@@ -1,7 +1,7 @@
 // All effects used by minimoog.dsp
 
-import("stdfaust.lib");
-import("layout2.dsp");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
+import("layout2.lib");
 
 process = _,_ : +
 	: component("echo.dsp")

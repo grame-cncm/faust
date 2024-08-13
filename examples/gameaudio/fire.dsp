@@ -1,4 +1,4 @@
-import("pkg:faust/faust/stdfaust.lib@1.0.0")
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 //----------------------------`fire`---------------------------
 // fire(is_wet) : produces burning fire sound

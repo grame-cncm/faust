@@ -54,7 +54,7 @@ void Downloader::download(const std::string url,const std::string& savePath)
 
     if (res != CURLE_OK) {
         std::filesystem::remove(savePath); 
-        throw faustexception("Download failed: " + std::string(curl_easy_strerror(res)));
+        throw faustexception("Download failed: " + std::string(curl_easy_strerror(res)) + "\n");
     }
 
     long http_code = 0;
@@ -62,7 +62,7 @@ void Downloader::download(const std::string url,const std::string& savePath)
 
     if (std::to_string(http_code)[0] != '2'){
         std::filesystem::remove(savePath);  
-        throw faustexception("Unsuccessful download: HTTP code " + std::to_string(http_code));
+        throw faustexception("Unsuccessful download: HTTP code " + std::to_string(http_code) + "\n");
     }
 }
 
@@ -76,14 +76,14 @@ void Downloader::download(const std::string url,char** buffer)
     CURLcode res = curl_easy_perform(handle);
 
     if (res != CURLE_OK) {
-        throw faustexception("Download failed: " + std::string(curl_easy_strerror(res)));
+        throw faustexception("Download failed: " + std::string(curl_easy_strerror(res)) + "\n");
     }
 
     long http_code = 0;
     curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &http_code);
 
     if (std::to_string(http_code)[0] != '2'){
-        throw faustexception("Unsuccessful download: HTTP code " + std::to_string(http_code));
+        throw faustexception("Unsuccessful download: HTTP code " + std::to_string(http_code) + "\n");
     }
 
     *buffer = new char[data.size() + 1];

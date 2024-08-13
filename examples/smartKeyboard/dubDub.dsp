@@ -28,7 +28,7 @@
 
 declare name "dubDub";
 
-import("pkg:faust/faust/stdfaust.lib@1.0.0")
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 //========================= Smart Keyboard Configuration =================================
 // (1 keyboards with 1 key configured as a pad.

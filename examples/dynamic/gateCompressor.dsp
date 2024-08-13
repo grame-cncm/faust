@@ -1,6 +1,6 @@
 declare name "gateCompressor";
 
-import("pkg:faust/faust/stdfaust.lib@1.0.0")
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process =  
     vgroup("[1]", dm.sawtooth_demo) <:

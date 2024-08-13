@@ -1,6 +1,6 @@
 // All effects used by minimoog.dsp
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process = _,_ : +
 	: component_echo
@@ -144,7 +144,7 @@ chorus_mono(dmax,curdel,rate,sigma,do2,voices)
 
 component_freeverb = environment {
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 declare name        "freeverb";
 declare version     "1.0";

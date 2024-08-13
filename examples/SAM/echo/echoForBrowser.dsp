@@ -1,6 +1,6 @@
 // imported by echo.dsp and echomt.dsp
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 echo_group(x) = x; // Let layout2.dsp lay us out
    knobs_group(x) = ekg(x);

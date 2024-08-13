@@ -1,6 +1,6 @@
 declare name "phaserFlangerLab";
 
-import("pkg:faust/faust/stdfaust.lib@1.0.0")
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 fx_stack = 
  vgroup("[1]", dm.sawtooth_demo) <:

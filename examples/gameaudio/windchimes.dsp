@@ -1,4 +1,4 @@
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 //-------------------------`windchimes`-----------------------
 // windchimes(wind) : simulates five windchimes in the wind

@@ -2,7 +2,7 @@
 
 declare name "spectralTiltLab";
 
-import("pkg:faust/faust/stdfaust.lib@1.0.0")
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 N = 10; // Number of pole-zero pairs to use
 
