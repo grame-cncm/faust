@@ -117,7 +117,13 @@ std::string PackageManager::install(std::string pkgUrl){
     }
     catch(const faustexception& e){
 
-        std::cout << "Couldn't download Library " << pkg.getLibraryName() << " Of Version " << pkg.getVersion() << std::endl;
+        std::cerr << "Couldn't download library " 
+                  << pkg.getLibraryName() 
+                  << " of version " 
+                  << pkg.getVersion()
+                  << " by author "
+                  << pkg.getAuthor() 
+                  << std::endl;
 
         pkgPath = pkgPath.parent_path();
     
