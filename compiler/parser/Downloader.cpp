@@ -121,7 +121,7 @@ EM_JS(char*, downloadFile, (const char* url), {
 
     try {
         if (typeof window !== 'undefined' && typeof window.XMLHttpRequest !== 'undefined') {
-            var xhr = new XMLHttpRequest();
+            var xhr = new window.XMLHttpRequest();
             xhr.open('GET', UTF8ToString(url), false);
             xhr.send(null);
 
