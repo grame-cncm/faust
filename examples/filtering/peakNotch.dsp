@@ -3,7 +3,7 @@
 
 declare name "peakNotch"; 
 
-import("maxmsp.lib");
+import("pkg:faust/faust/maxmsp.lib@1.1.0");
 
 G = hslider("Gain [unit: lin]", 1, 0, 8, 0.01);
 F = hslider("Freq", 1000, 100, 10000, 1);

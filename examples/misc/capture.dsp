@@ -9,7 +9,7 @@ declare copyright   "(c)GRAME 2006";
 //        playback the recorded sound in loop
 //-------------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 B = button("Capture");    // Capture sound while pressed
 I = int(B);               // convert button signal from float to integer

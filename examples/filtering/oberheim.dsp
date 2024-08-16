@@ -2,7 +2,7 @@ declare name "oberheimBSF";
 declare description "Demonstration of the Oberheim generic multi-outputs Filter";
 declare author "Eric Tarr, GRAME";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 Q = hslider("Q",1,0.5,10,0.01);
 normFreq = hslider("freq",0.5,0,1,0.001):si.smoo;

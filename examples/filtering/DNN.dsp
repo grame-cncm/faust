@@ -4,7 +4,7 @@ declare name    "DNN";
 declare author  "JOS";
 declare license "STK-4.3";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 layerSizes = (8,5,8); // autoencoder with 8 in & out, 5-state hidden layer
 w(m,n,k) = m*100+n*10+k; // placeholder weights: m=layer, n=fromNode, k=destNode

@@ -11,7 +11,7 @@ declare copyright 	"(c)GRAME 2007";
 // 				A 1 second quadriphonic Echo
 //-----------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process = vgroup("stereo echo", multi(ef.echo1s, 4))
 	with { 

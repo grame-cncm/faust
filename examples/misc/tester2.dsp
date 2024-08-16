@@ -9,7 +9,7 @@ declare copyright "(c)GRAME 2014";
 // noise, pink) on a stereo channel
 //-----------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 pink = f : (+ ~ g) with {
     f(x) = 0.04957526213389*x - 0.06305581334498*x' + 0.01483220320740*x'';

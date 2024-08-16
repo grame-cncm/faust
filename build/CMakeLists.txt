@@ -24,6 +24,8 @@ set (LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/${LIBSDIR})
 
 set (CMAKE_CXX_STANDARD 17)
 
+find_package(CURL REQUIRED)
+
 #######################################
 # Output options
 option ( UNIVERSAL           "Compiles and combines x86_64 and arm64 architectures [MacOS]" off )
@@ -209,6 +211,7 @@ if (INCLUDE_EXECUTABLE)
     endif()
     target_include_directories (faust PRIVATE ${FAUST_INC} ${LLVM_INCLUDE_DIRS})
     target_link_libraries (faust PRIVATE ${FAUST_LIBS})
+    target_link_libraries(faust PUBLIC ${CURL_LIBRARIES})
     scan_backends (faust COMPILER)
     set_target_properties(faust PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
     set_target_properties(faust PROPERTIES COMPILE_FLAGS -DFAUST_EXE)
@@ -306,6 +309,7 @@ if (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC 
     set (INCLUDE_EMCC off)
     set (INCLUDE_WASM_GLUE off)
 endif()
+
 if (INCLUDE_EMCC)
     add_subdirectory (emcc)
 endif()

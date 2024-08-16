@@ -50,7 +50,7 @@ declare interface "SmartKeyboard{
 	'Keyboard 0 - Send Numbered Y':'1'
 }";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 // parameters
 x0 = hslider("x0",0.5,0,1,0.01) : si.smoo;

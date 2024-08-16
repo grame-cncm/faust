@@ -1,6 +1,6 @@
 declare name "virtualAnalogLab";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process = 
  vgroup("[1]", dm.virtual_analog_oscillator_demo) : 

@@ -4,7 +4,7 @@ declare author    "Grame";
 declare license   "BSD";
 declare copyright "(c)GRAME 2006-2020";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 //-------------------------------------------------
 // Simple 8x2 mixer

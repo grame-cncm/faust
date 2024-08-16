@@ -18,7 +18,7 @@
 // MIT Licence: https://opensource.org/licenses/MIT
 //########################################################################################
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 declare interface "SmartKeyboard{
 	'Number of Keyboards':'1',

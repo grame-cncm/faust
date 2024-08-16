@@ -8,7 +8,7 @@ declare copyright 	"(c)GRAME 2006";
 // Simple vumeter
 //-------------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process = hmeter(0), hmeter(1)
 with {

@@ -8,7 +8,7 @@ declare copyright 	"(c)GRAME 2006";
 // 			Volume control in dB
 //-----------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 gain = vslider("[1]", 0, -70, +4, 0.1) : ba.db2linear : si.smoo;
 

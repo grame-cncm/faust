@@ -48,7 +48,7 @@ declare interface "SmartKeyboard{
 	'Keyboard 1 - Key 0 - Label':'Low'
 }";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 // standard parameters
 gate = button("gate");

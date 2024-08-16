@@ -40,7 +40,7 @@ declare interface "SmartKeyboard{
 	'Keyboard 0 - Key 1 - Label':'Mod Freq'
 }";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 f = hslider("freq",300,50,2000,0.01);
 bend = ba.semi2ratio(hslider("bend[midi:pitchwheel]",0,-2,2,0.001)) : si.polySmooth(gate,0.999,1);

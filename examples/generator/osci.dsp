@@ -9,7 +9,7 @@ declare copyright 	"(c)GRAME 2009";
 //		(with linear interpolation)
 //-----------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 vol = hslider("volume [unit:dB]", 0, -96, 0, 0.1) : ba.db2linear : si.smoo ;
 freq = hslider("freq [unit:Hz]", 1000, 20, 24000, 1);

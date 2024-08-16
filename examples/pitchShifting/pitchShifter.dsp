@@ -8,7 +8,7 @@ declare copyright 	"(c)GRAME 2006";
  // Very simple real time pitch shifter
  //--------------------------------------
  
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 pitchshifter = vgroup("Pitch Shifter", ef.transpose(
 									hslider("window (samples)", 1000, 50, 10000, 1),

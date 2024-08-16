@@ -29,11 +29,11 @@ declare author      "Guitarix project (http://guitarix.sourceforge.net/)";
 declare copyright   "Guitarix project";
 declare license     "LGPL";
 
-ba = library("basics.lib");
-si = library("signals.lib");
+ba = library("pkg:faust/faust/basics.lib@1.19.1");
+si = library("pkg:faust/faust/signals.lib@1.6.0");
 
-import("tubes.lib");
-import("tonestacks.lib");
+import("pkg:faust/faust/tubes.lib@1.0.0");
+import("pkg:faust/faust/tonestacks.lib@1.28.0");
 
 process = preamp; 
 

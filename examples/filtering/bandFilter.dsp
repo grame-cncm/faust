@@ -7,7 +7,7 @@ declare author 		"Grame";
 declare license 	"BSD";
 declare copyright 	"(c)GRAME 2006";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 //---------------------second order filter--------------------------
 // filter(Q,F,G)

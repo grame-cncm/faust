@@ -3,6 +3,6 @@ declare version "0.0";
 declare author "JOS, revised by RM";
 declare description "Demonstrates mth_octave_spectral_level in a standalone GUI.";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process = dm.spectral_level_demo;

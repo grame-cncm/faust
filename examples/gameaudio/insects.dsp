@@ -1,4 +1,4 @@
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 //---------------------------`cricket`-------------------------
 // cricket(f1, f2, trig) : produces a cricket chirp,

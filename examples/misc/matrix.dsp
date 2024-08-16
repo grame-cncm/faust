@@ -8,7 +8,7 @@ declare copyright "(c)GRAME 2006";
 // Audio Matrix : N inputs x M outputs
 //-----------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 Fader(in)    = ba.db2linear(vslider("Input %in", -10, -96, 4, 0.1));
 Mixer(N,out) = hgroup("Output %out", par(in, N, *(Fader(in)) ) :> _ );

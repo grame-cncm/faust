@@ -10,7 +10,7 @@ declare copyright "(c)GRAME 2006";
 // of 8 loudspeakers
 //-----------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 // TODO: this should be rewritten with the pink noise function of noises.lib
 pink = f : (+ ~ g) with {

@@ -3,7 +3,7 @@
 
 declare name "notch";
 
-import("maxmsp.lib");
+import("pkg:faust/faust/maxmsp.lib@1.1.0");
 
 G = hslider("Gain [unit:dB]", 0, -10, 10, 0.1);
 F = hslider("Freq", 1000, 100, 10000, 1);

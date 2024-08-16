@@ -1,7 +1,7 @@
 declare name "parametricEqLab";
 declare description "Demonstrate the Parametric Equalizer sections on test signals with spectrum analysis display";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process =
   vgroup("[1]", dm.sawtooth_demo) :

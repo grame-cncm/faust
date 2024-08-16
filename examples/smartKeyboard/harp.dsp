@@ -28,7 +28,7 @@
 
 declare name "harp";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 //========================= Smart Keyboard Configuration ================================= 
 // (8 keyboards with 16 keys configured as a pitch matrix.

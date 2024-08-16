@@ -43,7 +43,7 @@ declare interface "SmartKeyboard{
 	'Keyboard 1 - Key 4 - Label':'O-'
 }";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 // SMARTKEYBOARD PARAMS
 kb0k0status = hslider("kb0k0status",0,0,1,1) : min(1) : int;

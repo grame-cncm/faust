@@ -47,6 +47,9 @@
 #include "exception.hh"
 #include "global.hh"
 #include "Text.hh"
+#include "PkgUrl.hh"
+
+
 
 using namespace std;
 
@@ -59,6 +62,7 @@ int FAUSTlex_destroy(void);
 void FAUSTrestart(FILE* new_file);
 struct yy_buffer_state* FAUST_scan_string(const char* yy_str); // In principle YY_BUFFER_STATE
 
+bool isPkg;
 int FAUSTerr;
 extern int FAUSTdebug;
 extern FILE* FAUSTin;
@@ -194,6 +198,14 @@ static Tree addFunctionMetadata(Tree ldef, FunMDSet& M)
 
 void SourceReader::checkName()
 {
+
+    if(!isPkg && gGlobal->gMasterDocument != FAUSTfilename && gGlobal->gPkgOnlySwitch ){
+        stringstream error;
+        error << "ERROR : [file " << FAUSTfilename << " : " << FAUSTlineno << "] : package only mode is enabled, but the dependency is not a package" << endl;
+        throw faustexception(error.str());
+    }
+
+
     if (gGlobal->gMasterDocument == FAUSTfilename) {
         Tree name = tree("name");
         if (gGlobal->gMetaDataSet.find(name) == gGlobal->gMetaDataSet.end()) {
@@ -214,86 +226,47 @@ void SourceReader::checkName()
 inline bool isURL(const char* name) { return (strstr(name, "http://") != 0) || (strstr(name, "https://") != 0); }
 inline bool isFILE(const char* name) { return strstr(name, "file://") != 0; }
 
-Tree SourceReader::parseFile(const char* fname)
+Tree SourceReader::parseFile(const char* pkgLoc)
 {
     FAUSTerr = 0;
     FAUSTlineno = 1;
-    FAUSTfilename = fname;
- 
-    // We are requested to parse an URL file
-    if (isURL(FAUSTfilename)) {
-        char* buffer = nullptr;
-    #ifdef EMCC
-        // Call JS code to load URL
-        buffer = (char*)EM_ASM_INT({
-            var dsp_code = "";
-            try {
-                var xmlhttp = new XMLHttpRequest();
-                xmlhttp.open("GET", Module.UTF8ToString($0), false);
-                xmlhttp.send();
-                if (xmlhttp.status == 200) {
-                    dsp_code = xmlhttp.responseText;
-                }
-            } catch(e) {
-                console.log(e);
-            }
-            return allocate(intArrayFromString(dsp_code), 'i8', ALLOC_STACK);
-        }, FAUSTfilename);
+    FAUSTfilename = pkgLoc;
+    string fileName;
+    isPkg = false;
 
-        Tree res = nullptr;
-        if (strlen(buffer) == 0) {
-            stringstream error;
-            error << "ERROR : unable to access URL '" << fname << "'" << endl;
-            throw faustexception(error.str());
-        } else {
-            FAUST_scan_string(buffer);
-            res = parseLocal(FAUSTfilename);
-        }
-    #else
-        // Otherwise use http URL fetch code
-        if (http_fetch(FAUSTfilename, &buffer) == -1) {
-            stringstream error;
-            error << "ERROR : unable to access URL '" << fname << "' : " << http_strerror() << endl;
-            throw faustexception(error.str());
-        }
+    if(isURL(FAUSTfilename))
+    {
+        char* buffer = nullptr;
+        pm.install(string(FAUSTfilename), &buffer);
         FAUST_scan_string(buffer);
         Tree res = parseLocal(FAUSTfilename);
-        // 'http_fetch' result must be deallocated
         free(buffer);
-    #endif
         return res;
+    }
+    else if(PkgUrl::isPKgUrl(FAUSTfilename))
+    {        
+        fileName = pm.install(std::string(FAUSTfilename));
+        pPackageLists.push_back(FAUSTfilename);
+        FAUSTfilename = fileName.c_str();
+        isPkg = true;
+    }
+    else if(isFILE(FAUSTfilename))
+    {
+        FAUSTfilename = &FAUSTfilename[7]; // skip 'file://'
+    }
 
-    } else {
 
-        // Test for local url
-        if (isFILE(FAUSTfilename)) {
-            FAUSTfilename = &FAUSTfilename[7]; // skip 'file://'
-        }
+    string fullpath1;
+    FILE* tmp_file = FAUSTin = fopenSearch(FAUSTfilename, fullpath1); 
         
-        // Try to open local file
-        string fullpath1;
-        FILE* tmp_file = FAUSTin = fopenSearch(FAUSTfilename, fullpath1); // Keep file to properly close it
-        if (FAUSTin) {
-            Tree res = parseLocal(fullpath1.c_str());
-            fclose(tmp_file);
-            return res;
-        } else {
-        #ifdef EMCC
-            // Try to open with the complete URL
-            Tree res = nullptr;
-            for (size_t i = 0; i < gGlobal->gImportDirList.size(); i++) {
-                if (isURL(gGlobal->gImportDirList[i].c_str())) {
-                    // Keep the created filename in the global state, so that the 'FAUSTfilename'
-                    // global variable always points to a valid string
-                    gGlobal->gImportFilename = gGlobal->gImportDirList[i] + fname;
-                    if ((res = parseFile(gGlobal->gImportFilename.c_str()))) return res;
-                }
-            }
-        #endif
-            stringstream error;
-            error << "ERROR : unable to open file " << FAUSTfilename << endl;
-            throw faustexception(error.str());
-        }
+    if (FAUSTin) {
+        Tree res = parseLocal(fullpath1.c_str());
+        fclose(tmp_file);
+        return res;
+    }else{
+        stringstream error;
+        error << "ERROR : unable to open file " << FAUSTfilename << endl;
+        throw faustexception(error.str());
     }
 }
 
@@ -373,6 +346,7 @@ vector<string> SourceReader::listSrcFiles()
     return fFilePathnames;
 }
 
+
 /**
  * Return a vector of pathnames representing the list
  * of all the source files that have been required
@@ -385,6 +359,17 @@ vector<string> SourceReader::listLibraryFiles()
     if (tmp.size() > 0) tmp.erase(tmp.begin());
     return tmp;
 }
+
+/**
+ * Return a vector of pathnames representing the list
+ * of all the packages that have been required
+ * to evaluate process
+ */
+
+vector<string> SourceReader::listPackages(){
+    return pPackageLists;
+}
+
 
 /**
  * Return the list of definitions where all imports have been expanded.
@@ -522,3 +507,6 @@ void declareDoc(Tree t)
 {
 	gGlobal->gDocVector.push_back(t);
 }
+
+
+

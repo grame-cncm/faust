@@ -14,7 +14,7 @@ declare copyright 	"(c)GRAME 2006";
 //	page 53 	: second order shelving filter design
 //------------------------------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 //------------------- low-frequency shelving cut (table 2.3) --------------------
 

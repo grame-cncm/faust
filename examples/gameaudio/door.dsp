@@ -23,7 +23,7 @@
 //
 //------------------------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 stickslip(force) = metro : timer : *(1000) : min(100) : /(100) :
                    sqrt <: (+(0.1) : sqrt), (vline) : (*)

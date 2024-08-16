@@ -1,4 +1,4 @@
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 // These are now in separate upstairs directories:
 // echo = echog(component("echo.dsp"));     // ../echo/echo.dsp

@@ -12,7 +12,7 @@
 //  - 1 craft sensor for the 1 octave keyboard and some control touch
 //  - 1 square sensor for the control of the 2 Filter parameters cut off frequency & Q
 //
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 // Sensor Configuration //////////////////////////////////////////////////
 declare trill_mappings "{ 'SQUARE' : {'0' : 40 } ; 'CRAFT' : {'0' : 48} }";             //i2c address for each trill sensor
 declare trill_settings "{ 'CRAFT_0' : { 'prescaler' : 4 ; 'threshold' : 0.015 }}";      //sensibility settings for the crafts sensors

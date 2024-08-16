@@ -26,7 +26,7 @@
 // * `shape`: turning `shape` up pushes the waveforms to their
 //    upper and lower limits, "hardening" their shape
 //------------------------------------------------------------
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 autopan(amount, rate, phase, shape) = _*gainLeft, _*gainRight
 with {

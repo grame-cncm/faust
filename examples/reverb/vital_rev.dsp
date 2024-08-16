@@ -3,6 +3,6 @@ declare version "0.1";
 declare author "David Braun";
 declare description "Vital demo application.";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process = dm.vital_rev_demo;	

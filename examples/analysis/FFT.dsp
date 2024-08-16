@@ -4,7 +4,7 @@ declare name	"FFT"; // Faust Fourier Transform :-)
 declare author	"JOS";
 declare license "STK-4.3";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 N=32; // FFT size (power of 2)
 // Number of frequency bins (including dc and SR/2) is N/2+1

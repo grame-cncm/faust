@@ -10,7 +10,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process = _, _ , (pathClock : compteurUpReset: rampePlayer, _) : routageIO : rec_play_table , rec_play_table;
 

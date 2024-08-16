@@ -5,6 +5,6 @@ declare exciter_version "1.0";
 declare exciter_license "MIT License (MIT)";
 declare description "Psychoacoustic harmonic exciter, with GUI";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process = dm.exciter;

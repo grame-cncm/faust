@@ -10,6 +10,6 @@ declare copyright 	"(c)GRAME 2006";
 // 				A Simple Echo
 //-----------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process = vgroup("echo-simple", ef.echo1s);

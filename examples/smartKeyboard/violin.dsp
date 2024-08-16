@@ -54,7 +54,7 @@ declare interface "SmartKeyboard{
 	'Keyboard 4 - Static Mode':'1'
 }";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 // SMARTKEYBOARD PARAMS
 kbfreq(0) = hslider("kb0freq",220,20,10000,0.01);

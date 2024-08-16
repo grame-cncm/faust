@@ -1,4 +1,4 @@
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 //------------------------`rain_on_window`--------------------
 // rain_on_window : produces a sound of raindrops on a glass

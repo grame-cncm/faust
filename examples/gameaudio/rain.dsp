@@ -14,7 +14,7 @@
 //
 //----------------------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 rain(density,level) = no.multinoise(2) : par(i, 2, drop) : par(i, 2, *(level))
 	with {

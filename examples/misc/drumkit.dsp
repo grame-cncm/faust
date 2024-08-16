@@ -4,7 +4,7 @@
 //    drum machine
 //-------------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 drumkit(gate, ks, ss, hs) = k_seq, s_seq, h_seq :> /(3)
     with {

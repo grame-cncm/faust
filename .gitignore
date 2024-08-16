@@ -43,3 +43,6 @@ tests/impulse-tests/ir
 .idea/
 ### Pyenv
 .python-version
+
+## filesystem 
+build/wasm-filesystem

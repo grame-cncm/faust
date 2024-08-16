@@ -29,7 +29,7 @@
 
 declare name "turenas";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 //========================= Smart Keyboard Configuration =================================
 // (10 keyboards with 18 keys each configured as a pitch matrix.

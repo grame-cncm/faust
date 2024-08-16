@@ -124,3 +124,4 @@ mmg(x) = hgroup("",x); // Minimoog + Effects
     keys(x) = kg(hgroup("[1] [tooltip:Keys]", x));
       gg(x) = keys(hgroup("[0] [tooltip: Gates]",x));
       // leave slot 1 open for sustain (below)
+

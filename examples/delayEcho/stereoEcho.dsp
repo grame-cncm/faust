@@ -11,6 +11,6 @@ declare copyright 	"(c)GRAME 2007";
 // 				A 1 second Stereo Echo
 //-----------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process = vgroup("stereo echo", (ef.echo1s, ef.echo1s));

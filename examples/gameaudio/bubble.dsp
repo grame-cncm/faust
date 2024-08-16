@@ -3,7 +3,7 @@ declare description "Production of a water drop bubble sound.";
 declare license "MIT";
 declare copyright "(c) 2017: Yann Orlarey, GRAME";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 //---------------------------`bubble`--------------------------
 // bubble(f0, trig) : produces a water drop bubble sound

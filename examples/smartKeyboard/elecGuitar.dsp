@@ -47,7 +47,7 @@ declare interface "SmartKeyboard{
 	'Rounding Mode':'2'
 }";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 // standard parameters
 f = hslider("freq",300,50,2000,0.01);

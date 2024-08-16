@@ -26,7 +26,7 @@ process = vgroup("Granulator", environment {
     - Head = Irregular occurrences 
     */
 
-    import("stdfaust.lib");
+    import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
     process = hgroup("Granulator", *(excitation : ampf));
 

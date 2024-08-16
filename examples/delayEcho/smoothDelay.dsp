@@ -12,7 +12,7 @@ declare license "STK-4.3";
 //  click and doesn't transpose when the delay time is changed
 //-------------------------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 process = par(i, 2, voice)
 	with { 

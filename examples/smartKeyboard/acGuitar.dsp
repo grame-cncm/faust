@@ -61,7 +61,7 @@ declare interface "SmartKeyboard{
     'Keyboard 6 - Key 5 - Label':'S5'
 }";
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 // SMARTKEYBOARD PARAMS
 kbfreq(0) = hslider("kb0freq",164.8,20,10000,0.01);

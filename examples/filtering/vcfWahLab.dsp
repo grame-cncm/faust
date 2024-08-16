@@ -1,4 +1,4 @@
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 declare description "Demonstrate competing variable-lowpass-filter effects on test signals with spectrum analysis display";
 
 declare name "vcfWahLab";

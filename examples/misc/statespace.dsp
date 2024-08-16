@@ -8,7 +8,7 @@ declare copyright 	"(c) Julius O. Smith III, 2020";
 // General Linear State-Space Model Example
 //-----------------------------------------------
 
-import("stdfaust.lib");
+import("pkg:faust/faust/stdfaust.lib@1.0.0");
 
 p = 2; // number of inputs
 q = 3; // number of outputs
