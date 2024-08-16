@@ -102,7 +102,7 @@ bool         CTreeBase::gDetails       = false;
 unsigned int CTreeBase::gVisitTime     = 0;
 size_t       CTreeBase::gSerialCounter = 0;
 
-int               CDTree::kBlockSize      = global::getDebug("FAUST_DTREE_SIZE") ?: 1024;
+int               CDTree::kBlockSize;
 Tree              CDTree::gAllocatedBlock = nullptr;
 std::vector<Tree> CDTree::gAllocatedBlocks;
 
@@ -221,6 +221,7 @@ void CTreeBase::init()
 
 void CDTree::init()
 {
+    kBlockSize      = global::getDebug("FAUST_DTREE_SIZE", 1024);
     gAllocatedBlock = nullptr;
     gSerialCounter  = 0;
     gVisitTime      = 0;

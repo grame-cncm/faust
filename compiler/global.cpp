@@ -1103,10 +1103,13 @@ bool global::isDebug(const string& debug_val)
     return debug_var == debug_val;
 }
 
-int global::getDebug(const string& debug_var)
+int global::getDebug(const string& debug_var, int def_val)
 {
-    string debug_val = (getenv(debug_var.c_str())) ? string(getenv(debug_var.c_str())) : "0";
-    return std::stoi(debug_val);
+    if (getenv(debug_var.c_str())) {
+        return std::stoi(getenv(debug_var.c_str()));
+    } else {
+        return def_val;
+    }
 }
 
 bool global::isOpt(const string& opt_val)
@@ -1114,7 +1117,6 @@ bool global::isOpt(const string& opt_val)
     string opt_var = (getenv("FAUST_OPT")) ? string(getenv("FAUST_OPT")) : "";
     return opt_var == opt_val;
 }
-
 
 /****************************************************************
  Command line tools and arguments

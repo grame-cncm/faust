@@ -686,7 +686,7 @@ struct global {
     static bool isDebug(const std::string& debug_val);
 
     // Get the value of a debug environment variable
-    static int getDebug(const std::string& debug_var);
+    static int getDebug(const std::string& debug_var, int def_val);
 
     // Allows to test if an optimisation environment variable is set
     static bool isOpt(const std::string& opt_val);

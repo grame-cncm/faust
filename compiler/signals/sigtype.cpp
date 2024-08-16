@@ -303,7 +303,7 @@ Type checkKonst(Type t)
 
 Type checkInit(Type t)
 {
-    // check that t is a known at init time
+    // check that t is known at init time
     if (t->computability() > kInit) {
         stringstream error;
         error << "ERROR : checkInit failed for type " << t << endl;

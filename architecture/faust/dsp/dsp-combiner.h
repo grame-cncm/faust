@@ -769,7 +769,7 @@ static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2,
  * Create a DSP Crossfader
  *
  * This method creates a DSP Crossfader, which allows you to crossfade between two DSP modules.
- * The crossfade parameter (as a slider) controls the mix between the two modules' outputs.
+ * The crossfade parameter (as a slider) controls the mix between the two modules outputs.
  * When Crossfade = 1, the first DSP only is computed, when Crossfade = 0,
  * the second DSP only is computed, otherwise both DSPs are computed and mixed.
  *
