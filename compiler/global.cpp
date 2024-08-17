@@ -1152,7 +1152,7 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-lang", "--language") && (i + 1 < argc)) {
             gOutputLang = argv[i + 1];
             i += 2;
-        
+
         } else if (isCmd(argv[i], "-v", "--version")) {
             gVersionSwitch = true;
             i += 1;
@@ -1439,10 +1439,10 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-flist", "--file-list")) {
             gPrintFileListSwitch = true;
             i += 1;
-        } else if (isCmd(argv[i], "-plist", "--package-list")){
+        } else if (isCmd(argv[i], "-plist", "--package-list")) {
             gPrintPackageListSwitch = true;
             i += 1;
-        } else if(isCmd(argv[i], "-po", "--pkg-only")){
+        } else if (isCmd(argv[i], "-po", "--pkg-only")) {
             gPkgOnlySwitch = true;
             i += 1;
         } else if (isCmd(argv[i], "-norm", "--normalized-form")) {
@@ -1967,7 +1967,7 @@ void global::parseSourceFiles()
     if (!gInjectFlag && gInputFiles.begin() == gInputFiles.end()) {
         throw faustexception("ERROR : no files specified; for help type \"faust --help\"\n");
     }
-    
+
     for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
         if (s == gInputFiles.begin()) {
             gMasterDocument = *s;
@@ -2449,14 +2449,16 @@ string global::printHelp()
             "eval process."
          << endl;
     sstr << tab
-         << "-plist      --package-list              print packages list handled by pkgManager module used "
+         << "-plist      --package-list              print packages list handled by pkgManager "
+            "module used "
             "to eval process."
          << endl;
 
     sstr << tab
-         << "-po         --pkg-only                  Only compiles if the dsp code depends on faust packages"
+         << "-po         --pkg-only                  Only compiles if the dsp code depends on "
+            "faust packages"
          << endl;
-    
+
     sstr << tab
          << "-tg         --task-graph                print the internal task graph in dot format."
          << endl;
