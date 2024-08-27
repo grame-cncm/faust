@@ -640,9 +640,7 @@ static Type inferSigType(Tree sig, Tree env)
     }
 
     else if (isSigSoundfile(sig, l)) {
-        // computability should be kExec if the soundfile can be changed at runtime with the GUI
-        // (which is not implemented yet), so kInit for now
-        return makeSimpleType(kInt, kBlock, kInit, kVect, kNum, interval(0, INT32_MAX));
+        return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, INT32_MAX));
     }
 
     else if (isSigSoundfileLength(sig, sf, part)) {
@@ -650,9 +648,7 @@ static Type inferSigType(Tree sig, Tree env)
         Type t2 = T(part, env);
         checkPartInterval(sig, t2);
         int c = std::max(int(kBlock), t2->variability());
-        // computability should be kExec if the soundfile can be changed at runtime with the GUI
-        // (which is not implemented yet), so kInit for now
-        return makeSimpleType(kInt, c, kInit, kVect, kNum, interval(0, INT32_MAX));
+        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, INT32_MAX));
     }
 
     else if (isSigSoundfileRate(sig, sf, part)) {
@@ -660,9 +656,7 @@ static Type inferSigType(Tree sig, Tree env)
         Type t2 = T(part, env);
         checkPartInterval(sig, t2);
         int c = std::max(int(kBlock), t2->variability());
-        // computability should be kExec if the soundfile can be changed at runtime with the GUI
-        // (which is not implemented yet), so kInit for now
-        return makeSimpleType(kInt, c, kInit, kVect, kNum, interval(0, INT32_MAX));
+        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, INT32_MAX));
     }
 
     else if (isSigSoundfileBuffer(sig, sf, x, part, z)) {
@@ -671,9 +665,7 @@ static Type inferSigType(Tree sig, Tree env)
         Type tp = T(part, env);
         T(z, env);
         checkPartInterval(sig, tp);
-        // computability should be kExec if the soundfile can be changed at runtime with the GUI
-        // (which is not implemented yet), so kInit for now
-        return makeSimpleType(kReal, kSamp, kInit, kVect, kNum, interval(-1, 1));
+        return makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
     }
 
     else if (isSigAttach(sig, s1, s2)) {
