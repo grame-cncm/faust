@@ -2386,6 +2386,12 @@ string global::printHelp()
          << "-ni <n>     --narrowing-iterations <n>  number of iterations before stopping "
             "narrowing in signal bounding."
          << endl;
+    
+    sstr << tab
+         << "-po         --pkg-only                  only compiles if the dsp code depends on "
+            "Faust packages."
+         << endl;
+
 #endif
 #ifndef EMCC
     sstr << endl << "Block diagram options:" << line;
@@ -2452,11 +2458,6 @@ string global::printHelp()
          << "-plist      --package-list              print packages list handled by pkgManager "
             "module used "
             "to eval process."
-         << endl;
-
-    sstr << tab
-         << "-po         --pkg-only                  Only compiles if the dsp code depends on "
-            "faust packages"
          << endl;
 
     sstr << tab
