@@ -26,8 +26,8 @@
 #include <cctype>
 #include <climits>
 
-#include "enrobage.hh"
 #include "compatibility.hh"
+#include "enrobage.hh"
 #include "exception.hh"
 #include "garbageable.hh"
 #include "global.hh"
@@ -41,7 +41,9 @@ using namespace std;
 static bool isBlank(const string& s)
 {
     for (size_t i = 0; i < s.size(); i++) {
-        if (s[i] != ' ' && s[i] != '\t') return false;
+        if (s[i] != ' ' && s[i] != '\t') {
+            return false;
+        }
     }
     return true;
 }
@@ -52,8 +54,12 @@ static bool isBlank(const string& s)
  */
 static bool wordBoundaries(const string& str, string::size_type pos, string::size_type len)
 {
-    if ((pos > 0) && (isalnum(str[pos - 1]) || (str[pos - 1] == '_'))) return false;
-    if ((pos + len < str.length()) && (isalnum(str[pos + len]) || (str[pos + len] == '_'))) return false;
+    if ((pos > 0) && (isalnum(str[pos - 1]) || (str[pos - 1] == '_'))) {
+        return false;
+    }
+    if ((pos + len < str.length()) && (isalnum(str[pos + len]) || (str[pos + len] == '_'))) {
+        return false;
+    }
     return true;
 }
 
@@ -61,7 +67,8 @@ static bool wordBoundaries(const string& str, string::size_type pos, string::siz
  * Replace every occurrence of oldstr by newstr inside str. str is modified
  * and returned as reference for convenience.
  */
-static string& replaceOccurrences(string& str, const string& oldstr, const string& newstr, bool force)
+static string& replaceOccurrences(string& str, const string& oldstr, const string& newstr,
+                                  bool force)
 {
     string::size_type l1 = oldstr.length();
     string::size_type l2 = newstr.length();
@@ -69,11 +76,13 @@ static string& replaceOccurrences(string& str, const string& oldstr, const strin
     string::size_type pos = str.find(oldstr);
     while (pos != string::npos) {
         if (force || wordBoundaries(str, pos, l1)) {
-            // cerr << "'" << str << "'@" << pos << " replace '" << oldstr << "' by '" << newstr << "'" << endl;
+            // cerr << "'" << str << "'@" << pos << " replace '" << oldstr << "' by '" << newstr <<
+            // "'" << endl;
             str.replace(pos, l1, newstr);
             pos = str.find(oldstr, pos + l2);
         } else {
-            // cerr << "'" << str << "'@" << pos << " DON'T REPLACE '" << oldstr << "' by '" << newstr << "'" << endl;
+            // cerr << "'" << str << "'@" << pos << " DON'T REPLACE '" << oldstr << "' by '" <<
+            // newstr << "'" << endl;
             pos = str.find(oldstr, pos + l1);
         }
     }
@@ -98,30 +107,31 @@ static string& replaceClassName(string& str)
  * architecture files
  */
 class myparser {
-    
    private:
-    
     string str;
     size_t N;
     size_t p;
 
    public:
-    
     myparser(const string& s) : str(s), N(s.length()), p(0) {}
-    
+
     bool skip()
     {
-        while (p < N && isspace(str[p])) p++;
+        while (p < N && isspace(str[p])) {
+            p++;
+        }
         return true;
     }
-    
+
     bool parse(const string& s)
     {
         bool f;
-        if ((f = (p == str.find(s, p)))) p += s.length();
+        if ((f = (p == str.find(s, p)))) {
+            p += s.length();
+        }
         return f;
     }
-    
+
     bool filename(string& fname)
     {
         size_t saved = p;
@@ -129,7 +139,9 @@ class myparser {
             char c = str[p++];
             if ((c == '<') | (c == '"')) {
                 fname = "";
-                while (p < N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
+                while (p < N && (str[p] != '>') && (str[p] != '"')) {
+                    fname += str[p++];
+                }
                 p++;
                 return true;
             }
@@ -149,7 +161,7 @@ static bool isFaustInclude(const string& line, string& fname)
     if (P.skip() && P.parse("#include") && P.skip() && P.filename(fname)) {
         myparser Q(fname);
         return Q.parse("faust/");
-    // Julia case
+        // Julia case
     } else if (P.skip() && P.parse("include(") && P.skip() && P.filename(fname)) {
         myparser Q(fname);
         return Q.parse("/usr/local/share/faust/julia");
@@ -179,17 +191,19 @@ static string removeSpaces(const string& line)
 {
     string res;
     for (char c : line) {
-        if (c != ' ') res.push_back(c);
+        if (c != ' ') {
+            res.push_back(c);
+        }
     }
     return res;
 }
 
-#define TRY_OPEN(filename)           \
-    unique_ptr<ifstream> f = unique_ptr<ifstream>(new ifstream());    \
-    f->open(filename, ifstream::in); \
-    err = chdir(old);                \
-    if (f->is_open())                \
-        return f;                    \
+#define TRY_OPEN(filename)                                         \
+    unique_ptr<ifstream> f = unique_ptr<ifstream>(new ifstream()); \
+    f->open(filename, ifstream::in);                               \
+    err = chdir(old);                                              \
+    if (f->is_open())                                              \
+        return f;
 
 /**
  * Check if an URL exists.
@@ -204,7 +218,8 @@ static bool checkFile(const char* filename)
         return true;
     } else {
         stringstream error;
-        error << "ERROR : cannot open file '" << ((filename) ? filename : "null") << "' : " << strerror(errno) << endl;
+        error << "ERROR : cannot open file '" << ((filename) ? filename : "null")
+              << "' : " << strerror(errno) << endl;
         throw faustexception(error.str());
     }
 }
@@ -268,10 +283,14 @@ static FILE* fopenAt(string& fullpath, const string& dir, const char* filename)
 static bool isAbsolutePathname(const string& filename)
 {
     // test windows absolute pathname "x:xxxxxx"
-    if (filename.size() > 1 && filename[1] == ':') return true;
+    if (filename.size() > 1 && filename[1] == ':') {
+        return true;
+    }
 
     // test unix absolute pathname "/xxxxxx"
-    if (filename.size() > 0 && filename[0] == '/') return true;
+    if (filename.size() > 0 && filename[0] == '/') {
+        return true;
+    }
 
     return false;
 }
@@ -311,14 +330,14 @@ unique_ptr<ifstream> openArchStream(const char* filename)
     char  buffer[FAUST_PATH_MAX];
     char* old = getcwd(buffer, FAUST_PATH_MAX);
     int   err;
-    
+
     TRY_OPEN(filename);
     for (string dirname : gGlobal->gArchitectureDirList) {
         if ((err = chdir(dirname.c_str())) == 0) {
             TRY_OPEN(filename);
         }
     }
-    
+
     return nullptr;
 }
 
@@ -338,7 +357,7 @@ FILE* fopenSearch(const char* filename, string& fullpath)
         gGlobal->gImportDirList.push_back(fileDirname(fullpath));
         return f;
     }
- 
+
     // otherwise search file in user supplied directories paths
     for (string dirname : gGlobal->gImportDirList) {
         if ((f = fopenAt(fullpath, dirname, filename))) {
@@ -380,7 +399,9 @@ const char* fileBasename(const char* name)
 {
 #if defined(HAVE_DOS_BASED_FILE_SYSTEM)
     /* Skip over the disk name in MSDOS pathnames. */
-    if (isalpha(name[0]) && name[1] == ':') name += 2;
+    if (isalpha(name[0]) && name[1] == ':') {
+        name += 2;
+    }
 #endif
     const char* base;
     for (base = name; *name; name++) {
@@ -399,7 +420,7 @@ string fileDirname(const string& name)
 {
     const char*        base = fileBasename(name.c_str());
     const unsigned int size = base - name.c_str();
-    string            dirname;
+    string             dirname;
 
     if (size == 0) {
         dirname += '.';
@@ -425,7 +446,7 @@ string stripEnd(const string& name, const string& ext)
 bool checkURL(const char* filename)
 {
     char* fileBuf = nullptr;
-    
+
     // Tries to open as an URL for a local file
     if (strstr(filename, "file://") != 0) {
         // Tries to open as a regular file after removing 'file://'
@@ -456,25 +477,29 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
 {
     string         line;
     vector<string> H;
-    
+
     // skip blank lines
-    while (getline(src, line) && isBlank(line)) dst << line << endl;
-    
+    while (getline(src, line) && isBlank(line)) {
+        dst << line << endl;
+    }
+
     // first non blank should start a comment
     if (line.find("/*") == string::npos) {
         dst << line << endl;
         return;
     }
-    
+
     // copy the header into H
     bool remove = false;
     H.push_back(line);
-    
+
     while (getline(src, line) && line.find("*/") == string::npos) {
         H.push_back(line);
-        if (line.find(exceptiontag) != string::npos) remove = true;
+        if (line.find(exceptiontag) != string::npos) {
+            remove = true;
+        }
     }
-    
+
     // copy the header unless explicitely granted to remove it
     if (!remove) {
         // copy the header

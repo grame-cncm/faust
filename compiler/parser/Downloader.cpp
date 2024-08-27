@@ -1,48 +1,74 @@
+/************************************************************************
+ ************************************************************************
+ FAUST compiler
+ Copyright (C) 2003-2024 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
+/************************************************************************
+ * @author Shehab Khaled (Shehab299@outlook.com)
+ ***********************************************************************/
+
 #include "Downloader.hh"
-#include "../errors/exception.hh"
+#include "exception.hh"
+#include <algorithm>
 #include <filesystem>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
-
-
-
-
 
 #ifndef EMCC
 #include <curl/curl.h>
 
-size_t Downloader::write_data_file(void* ptr, size_t size, size_t nmemb, void* userData) {
+using namespace std;
 
-    std::ofstream* file = static_cast<std::ofstream*>(userData);
+inline string lower(string str)
+{
+    transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+}
 
+size_t Downloader::write_data_file(void* ptr, size_t size, size_t nmemb, void* userData)
+{
+    ofstream* file = static_cast<ofstream*>(userData);
     if (!file->is_open()) {
-        throw faustexception("Internal Error: Couldn't Download Package");
+        throw faustexception("ERROR : couldn't download package");
     }
 
     file->write(static_cast<char*>(ptr), size * nmemb);
-
     return size * nmemb;
 }
 
-size_t Downloader::write_data(void* ptr, size_t size, size_t nmemb, void* userData) {
-
-    std::string* data = static_cast<std::string*>(userData);
+size_t Downloader::write_data(void* ptr, size_t size, size_t nmemb, void* userData)
+{
+    string* data = static_cast<string*>(userData);
     data->append(static_cast<char*>(ptr), size * nmemb);
 
     return size * nmemb;
 }
 
-
-
-void Downloader::download(const std::string url,const std::string& savePath)
+void Downloader::download(const string& url, const string& savePath)
 {
-
-    std::ofstream file(savePath, std::ios::binary);
+    ofstream file(savePath, ios::binary);
+    locale loc;
 
     if (!file.is_open()) {
-        throw faustexception("Can't open file: " + savePath);
+        throw faustexception("ERROR : can't open file: " + savePath);
     }
 
     curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
@@ -53,22 +79,24 @@ void Downloader::download(const std::string url,const std::string& savePath)
     file.close();
 
     if (res != CURLE_OK) {
-        std::filesystem::remove(savePath); 
-        throw faustexception("Download failed: " + std::string(curl_easy_strerror(res)) + "\n");
+        filesystem::remove(savePath);
+        string str = string(curl_easy_strerror(res));
+        throw faustexception("ERROR : download failed : " + lower(str) + "\n");
     }
 
     long http_code = 0;
     curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &http_code);
 
-    if (std::to_string(http_code)[0] != '2'){
-        std::filesystem::remove(savePath);  
-        throw faustexception("Unsuccessful download: HTTP code " + std::to_string(http_code) + "\n");
+    if (to_string(http_code)[0] != '2') {
+        filesystem::remove(savePath);
+        throw faustexception("ERROR : unsuccessful download : HTTP code " +
+                             to_string(http_code) + "\n");
     }
 }
 
-void Downloader::download(const std::string url,char** buffer)
+void Downloader::download(const string& url, char** buffer)
 {
-    std::string data;
+    string data;
     curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, &Downloader::write_data);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, &data);
@@ -76,31 +104,34 @@ void Downloader::download(const std::string url,char** buffer)
     CURLcode res = curl_easy_perform(handle);
 
     if (res != CURLE_OK) {
-        throw faustexception("Download failed: " + std::string(curl_easy_strerror(res)) + "\n");
+        string str = string(curl_easy_strerror(res));
+        throw faustexception("ERROR : download failed : " + lower(str) + "\n");
     }
 
     long http_code = 0;
     curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &http_code);
 
-    if (std::to_string(http_code)[0] != '2'){
-        throw faustexception("Unsuccessful download: HTTP code " + std::to_string(http_code) + "\n");
+    if (to_string(http_code)[0] != '2') {
+        throw faustexception("ERROR : unsuccessful download : HTTP code " +
+                             to_string(http_code) + "\n");
     }
 
     *buffer = new char[data.size() + 1];
-    std::copy(data.begin(), data.end(), *buffer);
+    copy(data.begin(), data.end(), *buffer);
     (*buffer)[data.size()] = '\0';
 }
 
-Downloader::Downloader(){
+Downloader::Downloader()
+{
     curl_global_init(CURL_GLOBAL_DEFAULT);
     handle = curl_easy_init();
 }
 
-Downloader::~Downloader(){
+Downloader::~Downloader()
+{
     curl_easy_cleanup(handle);
-    curl_global_cleanup();   
+    curl_global_cleanup();
 }
-
 
 #endif
 
@@ -108,34 +139,35 @@ Downloader::~Downloader(){
 
 #include <emscripten.h>
 
-Downloader::Downloader(){
+Downloader::Downloader()
+{
 }
 
-Downloader::~Downloader(){
+Downloader::~Downloader()
+{
 }
-
-
 
 EM_JS(char*, downloadFile, (const char* url), {
     var dsp_code = "";
 
     try {
-        if (typeof window !== 'undefined' && typeof window.XMLHttpRequest !== 'undefined') {
+        if (typeof window != = 'undefined' && typeof window.XMLHttpRequest != = 'undefined') {
             var xhr = new window.XMLHttpRequest();
             xhr.open('GET', UTF8ToString(url), false);
             xhr.send(null);
 
             if (xhr.status >= 200 && xhr.status < 300) {
-                dsp_code = xhr.responseText;   
-            } 
-        } else if (typeof process != 'undefined'  && process.versions != null && process.versions.node != null) {
+                dsp_code = xhr.responseText;
+            }
+        } else if (typeof process != 'undefined' && process.versions != null &&
+                   process.versions.node != null) {
             var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
-            var xhr = new XMLHttpRequest();
+            var xhr            = new XMLHttpRequest();
             xhr.open('GET', UTF8ToString(url), false);
-            xhr.send(null); 
+            xhr.send(null);
             if (xhr.status >= 200 && xhr.status < 300) {
                 dsp_code = xhr.responseText;
-            } 
+            }
         }
     } catch (error) {
         console.log('Error:', error);
@@ -144,46 +176,39 @@ EM_JS(char*, downloadFile, (const char* url), {
     return allocate(intArrayFromString(dsp_code), ALLOC_STACK);
 });
 
-
-
-
-
-void Downloader::download(const std::string url,const std::string& savePath){
-
-    std::ofstream file(savePath, std::ios::binary);
+void Downloader::download(const string& url, const string& savePath)
+{
+    ofstream file(savePath, ios::binary);
 
     if (!file.is_open()) {
-        throw faustexception("Can't open file: " + savePath);
+        throw faustexception("ERROR : can't open file : " + savePath);
     }
 
-    char* buffer = (char*) downloadFile(url.c_str());
+    char* buffer = (char*)downloadFile(url.c_str());
 
-    if(strlen(buffer) == 0){
-        std::filesystem::remove(savePath); 
-        throw faustexception("Couldn't download file: " + url);
+    if (strlen(buffer) == 0) {
+        filesystem::remove(savePath);
+        throw faustexception("ERROR : couldn't download file : " + url);
     }
 
-    try{
+    try {
         file << buffer;
         file.close();
-    }catch(const std::exception& e){
-        std::filesystem::remove(savePath); 
-        throw faustexception("Couldn't download file: " + url);
+    } catch (const exception& e) {
+        filesystem::remove(savePath);
+        throw faustexception("ERROR : couldn't download file : " + url);
     }
 }
 
+void Downloader::download(const string& url, char** buffer)
+{
+    *buffer = (char*)downloadFile(url.c_str());
 
-void Downloader::download(const std::string url,char** buffer){
-
-    *buffer = (char*) downloadFile(url.c_str());
-
-    if(strlen(*buffer) == 0){
-        std::stringstream error;
-        error << "ERROR : unable to access URL '" << url << "'" << std::endl;
+    if (strlen(*buffer) == 0) {
+        stringstream error;
+        error << "ERROR : unable to access URL '" << url << "'" << endl;
         throw faustexception(error.str());
     }
 }
+
 #endif
-
-
-

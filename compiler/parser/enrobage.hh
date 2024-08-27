@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,10 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
-#include <string>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <string>
 
 void streamCopyLicense(std::istream& src, std::ostream& dst, const std::string& exceptiontag);
 void streamCopyUntil(std::istream& src, std::ostream& dst, const std::string& until);
@@ -33,10 +33,11 @@ std::unique_ptr<std::ifstream> openArchStream(const char* filename);
 FILE* fopenSearch(const char* filename, std::string& fullpath);
 
 bool checkURL(const char* filename);
-		
-const char* fileBasename(const char* name);         // returns a pointer on the basename part of name
 
-std::string fileDirname(const std::string& name);   // allocate a string containing the dirname of name
+const char* fileBasename(const char* name);  // returns a pointer on the basename part of name
+
+std::string fileDirname(
+    const std::string& name);  // allocate a string containing the dirname of name
 
 std::string stripEnd(const std::string& name, const std::string& ext);
 

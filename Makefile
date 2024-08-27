@@ -186,6 +186,7 @@ doc: $(wildcard compiler/*.cpp) $(wildcard compiler/*/*.cpp) $(wildcard compiler
 format :
 	find compiler -path compiler/parser -prune -o -iname '*.cpp' -execdir clang-format -i -style=file {} \;
 	find compiler -path compiler/parser -prune -o -iname '*.hh' -execdir clang-format -i -style=file {} \;
+	find compiler -path compiler/parser -prune -o -iname '*.hpp' -execdir clang-format -i -style=file {} \;
 	find compiler -path compiler/parser -prune -o -iname '*.h' -execdir clang-format -i -style=file {} \;
 
 # the target 'lib' can be used to init and update the libraries submodule

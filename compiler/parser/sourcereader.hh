@@ -22,53 +22,48 @@
 #ifndef __SOURCEREADER__
 #define __SOURCEREADER__
 
-#include "boxes.hh"
-#include <string>
 #include <set>
+#include <string>
 #include <vector>
+#include "boxes.hh"
 
 #include "PackageManager.hh"
 
 Tree formatDefinitions(Tree rldef);
-Tree checkRulelist (Tree lrules);
+Tree checkRulelist(Tree lrules);
 void declareMetadata(Tree key, Tree value);
 void declareDefinitionMetadata(Tree id, Tree key, Tree value);
 void declareDoc(Tree t);
 
 /**
  * Helper class used for additional DSP of library files needed in the parsing process.
-*/
-class SourceReader 
-{
-    
-    private:
-    
-        std::map<std::string, Tree> fFileCache;
-        std::vector<std::string> fFilePathnames;
-        std::vector<std::string> pPackageLists;
-        PackageManager pm; 
+ */
+class SourceReader {
+   private:
+    std::map<std::string, Tree> fFileCache;
+    std::vector<std::string>    fFilePathnames;
+    std::vector<std::string>    pPackageLists;
+    PackageManager              pm;
 
-        Tree parseLocal(const char* fname);
-        Tree expandRec(Tree ldef, std::set<std::string>& visited, Tree lresult);
-        bool cached(std::string fname);
-        Tree parseFile(const char* fname);
-        Tree parseString(const char* fname);
-        void checkName();
-        void checkDependency();
-        
-    public:
-    
-        void init()
-        {
-            fFileCache.clear();
-            fFilePathnames.clear();
-        }
-        Tree getList(const char* fname);
-        Tree expandList(Tree ldef);
-        std::vector<std::string> listSrcFiles();
-        std::vector<std::string> listLibraryFiles();
-        std::vector<std::string> listPackages();
+    Tree parseLocal(const char* fname);
+    Tree expandRec(Tree ldef, std::set<std::string>& visited, Tree lresult);
+    bool cached(std::string fname);
+    Tree parseFile(const char* fname);
+    Tree parseString(const char* fname);
+    void checkName();
+    void checkDependency();
 
+   public:
+    void init()
+    {
+        fFileCache.clear();
+        fFilePathnames.clear();
+    }
+    Tree                     getList(const char* fname);
+    Tree                     expandList(Tree ldef);
+    std::vector<std::string> listSrcFiles();
+    std::vector<std::string> listLibraryFiles();
+    std::vector<std::string> listPackages();
 };
 
-#endif 
+#endif

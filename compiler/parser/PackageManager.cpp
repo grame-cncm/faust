@@ -1,11 +1,38 @@
+/************************************************************************
+ ************************************************************************
+ FAUST compiler
+ Copyright (C) 2003-2024 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
+/************************************************************************
+ * @author Shehab Khaled (Shehab299@outlook.com)
+ ***********************************************************************/
+
 #include "PackageManager.hh"
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
-#include "../errors/exception.hh"
-#include "../utils/url.hpp"
 #include "Downloader.hh"
 #include "PkgUrl.hh"
+#include "exception.hh"
+#include "url.hpp"
+
+using namespace std;
 
 namespace fs = std::filesystem;
 
@@ -16,13 +43,13 @@ namespace fs = std::filesystem;
 
 // Define default registry paths based on the operating system
 #if defined(_WIN32) || defined(_WIN64)
-#define DEFAULT_REGISTRY_PATH (std::filesystem::path(std::getenv("APPDATA")) / "Faust" / "Registry")
-#define DEFAULT_HOME_PATH (std::filesystem::path(std::getenv("USERPROFILE")))
+#define DEFAULT_REGISTRY_PATH (filesystem::path(getenv("APPDATA")) / "Faust" / "Registry")
+#define DEFAULT_HOME_PATH (filesystem::path(getenv("USERPROFILE")))
 #elif defined(__APPLE__) && defined(__MACH__)
 #define DEFAULT_REGISTRY_PATH \
-    (std::filesystem::path(std::getenv("HOME")) / "Library" / "Faust" / "Registry")
+    (filesystem::path(getenv("HOME")) / "Library" / "Faust" / "Registry")
 #else
-#define DEFAULT_REGISTRY_PATH (std::filesystem::path(std::getenv("HOME")) / ".faust" / "Registry")
+#define DEFAULT_REGISTRY_PATH (filesystem::path(getenv("HOME")) / ".faust" / "Registry")
 #endif
 
 #define DEFAULT_REGISTRY_URL "https://github.com/grame-cncm/faustregistry"
@@ -33,7 +60,7 @@ PackageManager::PackageManager()
     config();
 }
 
-std::string PackageManager::registryUrlTransform(std::string& url)
+string PackageManager::registryUrlTransform(const string& url)
 {
     Url u(url);
 
@@ -41,9 +68,9 @@ std::string PackageManager::registryUrlTransform(std::string& url)
         if (u.host() == "github.com") {
             u.scheme("https");
             u.host("raw.githubusercontent.com");
-            u.path(u.path() + "/" + this->branch);
+            u.path(u.path() + "/" + branch);
         }
-    } catch (const std::exception& e) {
+    } catch (const exception& e) {
         throw faustexception("The Registry Url Provided Is Not Valid");
     }
 
@@ -52,44 +79,44 @@ std::string PackageManager::registryUrlTransform(std::string& url)
 
 void PackageManager::config()
 {
-    char* registryPath = getenv("FAUST_REGISTRY_PATH");
-    char* registryUrl  = getenv("FAUST_REGISTRY_URL");
-    char* branch       = getenv("FAUST_REGISTRY_BRANCH");
+    char* registryPathAux = getenv("FAUST_REGISTRY_PATH");
+    char* registryUrlAux  = getenv("FAUST_REGISTRY_URL");
+    char* branchAux       = getenv("FAUST_REGISTRY_BRANCH");
 
-    if (!registryPath) {
-        this->registryPath = DEFAULT_REGISTRY_PATH;
-        setenv("FAUST_REGISTRY_PATH", this->registryPath.c_str(), 1);
+    if (!registryPathAux) {
+        registryPath = DEFAULT_REGISTRY_PATH;
+        setenv("FAUST_REGISTRY_PATH", registryPath.c_str(), 1);
     } else {
-        this->registryPath = fs::path(registryPath);
+        registryPath = fs::path(registryPathAux);
     }
 
-    if (!registryUrl) {
-        this->registryUrl = DEFAULT_REGISTRY_URL;
-        setenv("FAUST_REGISTRY_URL", this->registryUrl.c_str(), 1);
+    if (!registryUrlAux) {
+        registryUrl = DEFAULT_REGISTRY_URL;
+        setenv("FAUST_REGISTRY_URL", registryUrl.c_str(), 1);
     } else {
-        this->registryUrl = registryUrl;
+        registryUrl = registryUrlAux;
     }
 
-    if (!branch) {
-        this->branch = DEFAULT_BRANCH;
-        setenv("FAUST_REGISTRY_BRANCH", this->branch.c_str(), 1);
+    if (!branchAux) {
+        branch = DEFAULT_BRANCH;
+        setenv("FAUST_REGISTRY_BRANCH", branch.c_str(), 1);
     } else {
-        this->branch = branch;
+        branch = branchAux;
     }
 }
 
-void PackageManager::install(std::string url, char** buffer)
+void PackageManager::install(const string& url, char** buffer)
 {
     downloader.download(url, buffer);
 }
 
-std::string PackageManager::install(std::string pkgUrl)
+string PackageManager::install(const string& pkgUrl)
 {
     PkgUrl pkg(pkgUrl);
 
     fs::path    path;
-    fs::path    pkgPath = path = this->registryPath / pkg.getPath();
-    std::string remoteUrl      = registryUrlTransform(this->registryUrl) + "/" + pkg.getPath();
+    fs::path    pkgPath = path = registryPath / pkg.getPath();
+    string remoteUrl    = registryUrlTransform(registryUrl) + "/" + pkg.getPath();
 
     if (fs::exists(pkgPath)) {
         return pkgPath.string();
@@ -100,17 +127,17 @@ std::string PackageManager::install(std::string pkgUrl)
     try {
         downloader.download(remoteUrl, pkgPath.string());
     } catch (const faustexception& e) {
-        std::cerr << "Couldn't download library " << pkg.getLibraryName() << " of version "
-                  << pkg.getVersion() << " by author " << pkg.getAuthor() << std::endl;
+        stringstream error;
+        error << "ERROR : couldn't download library " << pkg.getLibraryName() << " of version "
+              << pkg.getVersion() << " by author " << pkg.getAuthor() << endl;
 
         pkgPath = pkgPath.parent_path();
-
         while (fs::is_empty(pkgPath) && fs::exists(pkgPath)) {
             fs::remove(pkgPath);
             pkgPath = pkgPath.parent_path();
         }
 
-        throw e;
+        throw faustexception(error.str());
     }
 
     return path.string();

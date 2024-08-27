@@ -1,60 +1,91 @@
+/************************************************************************
+ ************************************************************************
+ FAUST compiler
+ Copyright (C) 2003-2024 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
+/************************************************************************
+ * @author Shehab Khaled (Shehab299@outlook.com)
+ ***********************************************************************/
+
 #include "PkgUrl.hh"
 #include <regex>
-#include "../errors/exception.hh"
+#include "exception.hh"
 
-PkgUrl::PkgUrl(std::string url)
+using namespace std;
+
+PkgUrl::PkgUrl(const string& url)
 {
     parse(url);
 }
 
-void PkgUrl::parse(std::string url)
+void PkgUrl::parse(const string& url)
 {
+    using namespace regex_constants;
 
-    using namespace std::regex_constants; 
+    regex pattern(
+        "^pkg:faust(?:/([_a-zA-Z]\\w*))?/"
+        "([_a-zA-Z]\\w*.lib)@((?:\\d+)(?:\\.(?:\\d+)(?:\\.(?:\\d+))?)?)$",
+        icase | ECMAScript);
 
-    std::regex pattern("^pkg:faust(?:/([_a-zA-Z]\\w*))?/([_a-zA-Z]\\w*.lib)@((?:\\d+)(?:\\.(?:\\d+)(?:\\.(?:\\d+))?)?)$", icase | ECMAScript); 
+    smatch locater_parts;
 
-    std::smatch locater_parts;
-    
-    if(!std::regex_search(url,locater_parts,pattern))
-        throw faustexception("Package URL Not Is Valid");
+    if (!regex_search(url, locater_parts, pattern)) {
+        throw faustexception("ERROR : package URL is not valid");
+    }
 
-    this->author = locater_parts[1].str();
-    this->libName = locater_parts[2].str();
-    this->version = locater_parts[3].str();
+    author  = locater_parts[1].str();
+    libName = locater_parts[2].str();
+    version = locater_parts[3].str();
 }
 
-std::string PkgUrl::getAuthor() const{
-    return this->author;
-}
-
-
-bool PkgUrl::isPKgUrl(std::string url)
+string PkgUrl::getAuthor() const
 {
-    using namespace std::regex_constants; 
-
-    std::regex pattern("^pkg:faust(?:/([_a-zA-Z]\\w*))?/([_a-zA-Z]\\w*.lib)@((?:\\d+)(?:\\.(?:\\d+)(?:\\.(?:\\d+))?)?)$", icase | ECMAScript); 
-
-    return std::regex_search(url,pattern);
+    return author;
 }
 
+bool PkgUrl::isPKgUrl(const string& url)
+{
+    using namespace regex_constants;
 
+    regex pattern(
+        "^pkg:faust(?:/([_a-zA-Z]\\w*))?/"
+        "([_a-zA-Z]\\w*.lib)@((?:\\d+)(?:\\.(?:\\d+)(?:\\.(?:\\d+))?)?)$",
+        icase | ECMAScript);
 
-
-std::string PkgUrl::getLibraryName() const{
-    return this->libName;
+    return regex_search(url, pattern);
 }
 
-
-std::string PkgUrl::getVersion() const {
-    return this->version;
+string PkgUrl::getLibraryName() const
+{
+    return libName;
 }
 
-std::string PkgUrl::getPath() const {
+string PkgUrl::getVersion() const
+{
+    return version;
+}
 
-    std::string path = "";
+string PkgUrl::getPath() const
+{
+    string path = "";
 
-    if(!author.empty()){
+    if (!author.empty()) {
         path += author + "/";
     }
 
