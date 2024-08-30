@@ -98,8 +98,8 @@ Tree SigNewConstantPropagation::transformation(Tree sig)
  */
 Tree SigNewConstantPropagation::postprocess(Tree sig)
 {
-    int  opnum, projnum;
-    Tree t1, t2, rg, var, le;
+    int  opnum;
+    Tree t1, t2;
 
     if (isSigBinOp(sig, &opnum, t1, t2)) {
         BinOp* op = gBinOpTable[opnum];

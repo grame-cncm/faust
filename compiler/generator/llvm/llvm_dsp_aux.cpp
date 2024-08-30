@@ -96,15 +96,17 @@ dsp_factory_table<SDsp_factory> llvm_dsp_factory_aux::gLLVMFactoryTable;
 // Set of externally defined functions, to be linked with the LLVM module
 set<string> llvm_dsp_factory_aux::gForeignFunctions;
 
-uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function)
+uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function, bool strict)
 {
     uint64_t fun = fJIT->getFunctionAddress(function);
     if (fun) {
         return fun;
-    } else {
+    } else if (strict) {
         stringstream error;
         error << "ERROR : loadOptimize failed for '" << function << "'\n";
         throw faustexception(error.str());
+    } else {
+        return 0;
     }
 }
 
@@ -204,6 +206,7 @@ void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
     fInstanceConstants = nullptr;
     fInstanceClear     = nullptr;
     fClassInit         = nullptr;
+    fStaticInit        = nullptr;
     fCompute           = nullptr;
     // By default
     fClassName   = "mydsp";
@@ -267,7 +270,8 @@ bool llvm_dsp_factory_aux::initJITAux()
     fDestroy           = (destroyDspFun)loadOptimize("destroy" + fClassName);
     fInstanceConstants = (instanceConstantsFun)loadOptimize("instanceConstants" + fClassName);
     fInstanceClear     = (instanceClearFun)loadOptimize("instanceClear" + fClassName);
-    fClassInit         = (classInitFun)loadOptimize("classInit" + fClassName);
+    fClassInit         = (classInitFun)loadOptimize("classInit" + fClassName, false);
+    fStaticInit        = (staticInitFun)loadOptimize("staticInit" + fClassName, false);
     fCompute           = (computeFun)loadOptimize("compute" + fClassName);
     fGetJSON           = (getJSONFun)loadOptimize("getJSON" + fClassName);
 
@@ -397,11 +401,16 @@ void llvm_dsp::init(int sample_rate)
 
 void llvm_dsp::classInit(int sample_rate)
 {
-    fFactory->getFactory()->fClassInit(sample_rate);
+    if (fFactory->getFactory()->fClassInit) {
+        fFactory->getFactory()->fClassInit(sample_rate);
+    }
 }
 
 void llvm_dsp::instanceInit(int sample_rate)
 {
+    if (fFactory->getFactory()->fStaticInit) {
+        fFactory->getFactory()->fStaticInit(fDSP, sample_rate);
+    }
     instanceConstants(sample_rate);
     instanceResetUserInterface();
     instanceClear();

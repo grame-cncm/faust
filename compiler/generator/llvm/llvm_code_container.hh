@@ -55,15 +55,10 @@ class LLVMCodeContainer : public virtual CodeContainer {
     template <typename REAL>
     void generateGetJSON()
     {
-        LLVMPtrType  string_ptr = llvm::PointerType::get(fBuilder->getInt8Ty(), 0);
-        LLVMVecTypes getJSON_args;
-#if LLVM_VERSION_MAJOR >= 16
-        llvm::FunctionType* getJSON_type =
-            llvm::FunctionType::get(string_ptr, llvm::ArrayRef<LLVMType>(getJSON_args), false);
-#else
+        LLVMPtrType         string_ptr = llvm::PointerType::get(fBuilder->getInt8Ty(), 0);
+        LLVMVecTypes        getJSON_args;
         llvm::FunctionType* getJSON_type =
             llvm::FunctionType::get(string_ptr, makeArrayRef(getJSON_args), false);
-#endif
         LLVMFun getJSON = llvm::Function::Create(getJSON_type, llvm::GlobalValue::ExternalLinkage,
                                                  "getJSON" + fKlassName, fModule);
 
@@ -111,6 +106,8 @@ class LLVMCodeContainer : public virtual CodeContainer {
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
 
     static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs);
+
+    DeclareFunInst* generateStaticInitFun(const std::string& name, bool isstatic);
 };
 
 class LLVMScalarCodeContainer : public LLVMCodeContainer {

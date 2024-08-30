@@ -974,6 +974,9 @@ static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>&
             }
         }
     }
+
+    // Possibly generate JSON
+    gContainer->generateJSONFile();
 }
 
 #ifdef OCPP_BUILD

@@ -296,6 +296,7 @@ wast:
 llvm:
 	export FAUST_OPT=FAUST_LLVM_NO_FM; \
 	$(MAKE) -f Make.llvm outdir=llvm/double               FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.llvm outdir=llvm/double/it            FAUSTOPTIONS="-I dsp -it"
 	$(MAKE) -f Make.llvm outdir=llvm/double/ftz1          FAUSTOPTIONS="-I dsp -ftz 1"
 	$(MAKE) -f Make.llvm outdir=llvm/double/ftz2          FAUSTOPTIONS="-I dsp -ftz 2"
 	$(MAKE) -f Make.llvm outdir=llvm/double/ct            FAUSTOPTIONS="-I dsp -ct 0"

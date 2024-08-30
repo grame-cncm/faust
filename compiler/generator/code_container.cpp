@@ -477,9 +477,6 @@ void CodeContainer::processFIR(void)
         createMemoryLayout();
     }
 
-    // Possibly generate JSON
-    generateJSONFile();
-
     // Sort struct fields by size and type
     // 05/16/17 : deactivated since it slows down the code...
     /*
@@ -505,6 +502,15 @@ void CodeContainer::processFIR(void)
                                       fCurLoop->generateScalarLoop("count"));
         endTiming("FIR var checker");
     }
+
+#ifdef FIR_BUILD
+    if (global::isDebug("FIR_PRINTER")) {
+        stringstream   res;
+        FIRInstVisitor fir_visitor(&res);
+        flattenFIR()->accept(&fir_visitor);
+        std::cout << res.str();
+    }
+#endif
 }
 
 // Possibly rewrite arrays access using iZone/fZone
@@ -540,12 +546,15 @@ void CodeContainer::rewriteInZones()
 
 void CodeContainer::mergeSubContainers()
 {
+    BlockInst* sub_ui = new BlockInst();
+
     for (const auto& it : fSubContainers) {
         // Merge the subcontainer in the main one
         fExtGlobalDeclarationInstructions->merge(it->fExtGlobalDeclarationInstructions);
         fGlobalDeclarationInstructions->merge(it->fGlobalDeclarationInstructions);
         fDeclarationInstructions->merge(it->fDeclarationInstructions);
         fControlDeclarationInstructions->merge(it->fControlDeclarationInstructions);
+        sub_ui->merge(it->fUserInterfaceInstructions);
         // TO CHECK (used for waveform initialisation which has to be moved first...)
         fStaticInitInstructions->mergeFront(it->fStaticInitInstructions);
         // Then clear it
@@ -553,8 +562,12 @@ void CodeContainer::mergeSubContainers()
         it->fExtGlobalDeclarationInstructions->fCode.clear();
         it->fDeclarationInstructions->fCode.clear();
         it->fControlDeclarationInstructions->fCode.clear();
+        it->fUserInterfaceInstructions->fCode.clear();
         it->fStaticInitInstructions->fCode.clear();
     }
+
+    // Insert subcontainer UIs at the end of the top group, just before the last closeBox
+    fUserInterfaceInstructions->insert(fUserInterfaceInstructions->size() - 1, sub_ui);
 
     // Possibly rewrite access in iZone/fZone
     rewriteInZones();

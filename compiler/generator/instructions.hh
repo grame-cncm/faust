@@ -1016,6 +1016,13 @@ struct BlockInst : public StatementInst {
         }
     }
 
+    void insert(int index, BlockInst* inst)
+    {
+        auto it = fCode.begin();
+        std::advance(it, index);
+        fCode.insert(it, inst);
+    }
+
     int size() const { return int(fCode.size()); }
 
     bool       hasReturn() const;

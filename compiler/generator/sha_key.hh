@@ -324,9 +324,13 @@ extern "C" FAUST_API void generateCSHA1(const char* data, char* sha_key)
         const char* H  = "0123456789ABCDEF";
         char        c1 = H[(obuf[i] >> 4)];
         char        c2 = H[(obuf[i] & 15)];
-        sha_key += c1;
-        sha_key += c2;
+
+        *sha_key = c1;
+        sha_key++;
+        *sha_key = c2;
+        sha_key++;
     }
+    *sha_key = '\0';  // Null terminate the string
 }
 
 #endif

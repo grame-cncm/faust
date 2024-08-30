@@ -28,6 +28,7 @@
 #include "instructions_compiler.hh"
 #include "instructions_compiler1.hh"
 #include "instructions_compiler_jax.hh"
+#include "interpreter_code_container.hh"
 #include "normalform.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
@@ -428,6 +429,9 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
         C.compileSingleSignal(sig);
     } else if (gGlobal->gOutputLang == "jax") {
         InstructionsCompilerJAX C(container);
+        C.compileSingleSignal(sig);
+    } else if (gGlobal->gOutputLang == "interp") {
+        InterpreterInstructionsCompiler C(container);
         C.compileSingleSignal(sig);
     } else {
         // Special compiler for -fx mode

@@ -858,7 +858,7 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
      * Warning : pdflatex can't directly include SVG files !
      */
     char dgmid[MAXIDCHARS + 1];
-    sprintf(dgmid, "%02d", i);
+    snprintf(dgmid, sizeof(dgmid), "%02d", i);
     string thisdgmdir = subst("$0/svg-$1", svgTopDir, dgmid);
     // cerr << "Documentator : printDocDgm : drawSchema in '" << gCurrentDir << "/" << thisdgmdir <<
     // "'" << endl;
@@ -1026,7 +1026,7 @@ static char* legalFileName(const Tree t, int n, char* dst)
 static string calcNumberedName(const char* base, int i)
 {
     char nb[MAXIDCHARS + 1];
-    sprintf(nb, "%03d", i);
+    snprintf(nb, sizeof(nb), "%03d", i);
     return subst("$0$1", base, nb);
 }
 

@@ -639,6 +639,13 @@ class CodeContainer : public virtual Garbageable {
         return inst;
     }
 
+    StatementInst* pushPreUserInterfaceMethod(StatementInst* inst)
+    {
+        faustassert(inst);
+        fUserInterfaceInstructions->pushFrontInst(inst);
+        return inst;
+    }
+
     StatementInst* pushAllocateMethod(StatementInst* inst)
     {
         faustassert(inst);

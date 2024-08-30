@@ -111,6 +111,7 @@ typedef void (* buildUserInterfaceFun) (dsp_imp* dsp, UIGlue* ui);
 typedef int (* getSampleRateFun) (dsp_imp* dsp);
 typedef void (* initFun) (dsp_imp* dsp, int sample_rate);
 typedef void (* classInitFun) (int sample_rate);
+typedef void (* staticInitFun) (dsp_imp* dsp, int sample_rate);
 typedef void (* instanceInitFun) (dsp_imp* dsp, int sample_rate);
 typedef void (* instanceConstantsFun) (dsp_imp* dsp, int sample_rate);
 typedef void (* instanceResetUserInterfaceFun) (dsp_imp* dsp);

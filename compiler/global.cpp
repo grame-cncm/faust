@@ -1741,8 +1741,8 @@ bool global::processCmdline(int argc, const char* argv[])
     }
 
     // gInlinetable check
-    if (gInlineTable && (gOutputLang != "cpp" && gOutputLang != "c")) {
-        throw faustexception("ERROR : -it can only be used with 'cpp' and 'c' backends\n");
+    if (gInlineTable && (gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "llvm")) {
+        throw faustexception("ERROR : -it can only be used with 'cpp', 'c' and 'llvm' backends\n");
     }
 
     // gMemoryManager check
@@ -2507,6 +2507,7 @@ string global::printHelp()
          << endl;
     sstr << tab << "FAUST_DEBUG      = FAUST_LLVM2          print LLVM IR after optimisation."
          << endl;
+    sstr << tab << "FAUST_DEBUG      = FIR_PRINTER          print FIR after generation." << endl;
     sstr << tab
          << "FAUST_DEBUG      = FAUST_LLVM_NO_FM     deactivate fast-math optimisation in LLVM IR."
          << endl;
