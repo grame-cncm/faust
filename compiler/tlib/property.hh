@@ -32,7 +32,7 @@ class property : public virtual Garbageable {
     P* access(Tree t)
     {
         Tree d = t->getProperty(fKey);
-        return d ? (P*)(d->node().getPointer()) : 0;
+        return d ? (P*)(d->node().getPointer()) : nullptr;
     }
 
    public:
@@ -42,8 +42,7 @@ class property : public virtual Garbageable {
 
     void set(Tree t, const P& data)
     {
-        P* p = access(t);
-        if (p) {
+        if (P* p = access(t)) {
             *p = data;
         } else {
             t->setProperty(fKey, tree(Node((new GarbageablePtr<P>(data))->getPointer())));
@@ -52,8 +51,7 @@ class property : public virtual Garbageable {
 
     bool get(Tree t, P& data)
     {
-        P* p = access(t);
-        if (p) {
+        if (P* p = access(t)) {
             data = *p;
             return true;
         } else {
@@ -63,8 +61,7 @@ class property : public virtual Garbageable {
 
     void clear(Tree t)
     {
-        P* p = access(t);
-        if (p) {
+        if (P* p = access(t)) {
             delete p;
         }
         t->clearProperty(fKey);
@@ -84,8 +81,7 @@ class property<Tree> : public virtual Garbageable {
 
     bool get(Tree t, Tree& data)
     {
-        Tree d = t->getProperty(fKey);
-        if (d) {
+        if (Tree d = t->getProperty(fKey)) {
             data = d;
             return true;
         } else {
@@ -109,8 +105,7 @@ class property<int> : public virtual Garbageable {
 
     bool get(Tree t, int& i)
     {
-        Tree d = t->getProperty(fKey);
-        if (d) {
+        if (Tree d = t->getProperty(fKey)) {
             i = d->node().getInt();
             return true;
         } else {
@@ -134,8 +129,7 @@ class property<double> : public virtual Garbageable {
 
     bool get(Tree t, double& x)
     {
-        Tree d = t->getProperty(fKey);
-        if (d) {
+        if (Tree d = t->getProperty(fKey)) {
             x = d->node().getDouble();
             return true;
         } else {

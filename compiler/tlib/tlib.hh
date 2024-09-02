@@ -121,9 +121,9 @@ five elements : symbols, nodes, smartpointers, trees and lists :
 
     - Property list :
 
-    setProperty (t, key, val) -> t       add the association (key x val) to the pl of t
-    getProperty (t, key, &val) -> bool   search the pp of t for the value associated to key
-    remProperty (t, key) -> t            remove any association (key x ?) from the pl of t
+    setProperty(t, key, val) -> t       add the association (key x val) to the pl of t
+    getProperty(t, key, &val) -> bool   search the pp of t for the value associated to key
+    remProperty(t, key) -> t            remove any association (key x ?) from the pl of t
 
     5) Recursive trees
     ------------------
