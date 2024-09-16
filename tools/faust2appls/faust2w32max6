@@ -5,7 +5,7 @@
 #               Cross-compiles Faust programs to Max/MSP            #
 #                      from : Linux or OSX                          #
 #                        to : Windows 32                            #
-#                       (c) Grame, 2011                             #
+#                       (c) Grame, 2011-2024                        #
 #                                                                   #
 #####################################################################
 
@@ -21,6 +21,7 @@ EFFECT=""
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
+MC=""
 
 JSFILE_PATH="ui.js"
 
@@ -70,6 +71,8 @@ for p in $@; do
 
     if [ "$p" = -icc ]; then
         ignore=" "
+    elif [ $p = "-mc" ]; then
+         MC="-DMC_VERSION"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -106,7 +109,7 @@ for p in $FILES; do
         echo "DESCRIPTION 'Faust generated MAX plugin'"     >> ${f%.dsp}.def
         echo "EXPORTS     main"                             >> ${f%.dsp}.def
 
-        $CXX $CXXINCS $CXXFLAGS -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
+        $CXX $CXXINCS $CXXFLAGS $MC -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
         $DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static -o "${f%.dsp}$EXT"
         $STRIP "${f%.dsp}$EXT"
     ) > /dev/null || exit
