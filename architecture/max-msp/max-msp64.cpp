@@ -151,6 +151,13 @@ using namespace std;
 #include "faust/gui/mspUI.h"
 #include "faust/dsp/poly-dsp.h"
 
+#ifdef MC_VERSION
+// For older Max/MSP SDK versions
+#ifndef Z_MC_INLETS
+#define Z_MC_INLETS 32
+#endif
+#endif
+
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
