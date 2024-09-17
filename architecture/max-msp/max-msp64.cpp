@@ -717,7 +717,7 @@ void faust_dsp64(t_faust* x, t_object* dsp64, short* count, double samplerate, l
 {
 #ifdef MC_VERSION
     // We need to know the real number of inputs to adapt faust_perform64
-    long inputs = (long)object_method(dsp64, gensym("getnuminputchannels"), x, 0);
+    intptr_t inputs = (intptr_t)object_method(dsp64, gensym("getnuminputchannels"), x, 0);
     delete x->m_mc_dsp;
     // x->m_mc_dsp will not delete the x->m_dsp object
     x->m_mc_dsp = new dsp_adapter(x->m_dsp, inputs, x->m_Outputs, maxvectorsize, false);
