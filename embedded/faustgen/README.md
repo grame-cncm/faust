@@ -105,7 +105,7 @@ On Windows, cmake assumes that the libsndfile library is installed in `C:/Progra
 
 ### Version number
 
-Manually raise the version number in `src/faustgen~.h`, `CMakeLists.txt`, `changelog.txt`, `package/help/faustgen~.maxhelp`, `Info.plist`, `../../build/MakeRelease.bat` and `../../.github/workflows/libfaust.yml` files.
+Manually raise the version number in `src/faustgen_factory.h`, `CMakeLists.txt`, `changelog.txt`, `package/help/faustgen~.maxhelp`, `Info.plist`, `../../build/MakeRelease.bat` and `../../.github/workflows/libfaust.yml` files.
 
 ### Compiling
 

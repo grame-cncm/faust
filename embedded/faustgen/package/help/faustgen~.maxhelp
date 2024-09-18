@@ -110,7 +110,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 0,
 									"patching_rect" : [ 7.0, 61.0, 250.0, 20.0 ],
-									"text" : "Faust as a Max/MSP external : version 1.70"
+									"text" : "Faust as a Max/MSP external : version 1.72"
 								}
 
 							}
@@ -358,7 +358,7 @@
 									"sourcecode_size" : 108,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184868716192",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -750,7 +750,7 @@
 									"sourcecode_size" : 189,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184868739232",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -799,7 +799,7 @@
 									"sourcecode_size" : 106,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184828599056",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -900,7 +900,7 @@
 									"sourcecode_size" : 189,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184916347184",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -961,7 +961,7 @@
 									"sourcecode_size" : 185,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184869438656",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -1042,7 +1042,7 @@
 									"sourcecode_size" : 122,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184868515136",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -1193,7 +1193,7 @@
 									"sourcecode_size" : 106,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184869501600",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -1751,7 +1751,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 0,
 									"patching_rect" : [ 7.0, 61.0, 250.0, 20.0 ],
-									"text" : "Faust as a Max/MSP external : version 1.70"
+									"text" : "Faust as a Max/MSP external : version 1.72"
 								}
 
 							}
@@ -2498,7 +2498,7 @@
 									"sourcecode_size" : 682,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184916213632",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -3229,7 +3229,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 0,
 									"patching_rect" : [ 7.0, 63.0, 250.0, 20.0 ],
-									"text" : "Faust as a Max/MSP external : version 1.70"
+									"text" : "Faust as a Max/MSP external : version 1.72"
 								}
 
 							}
@@ -3790,7 +3790,7 @@
 									"sourcecode_size" : 391,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184869587872",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -4217,7 +4217,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 0,
 									"patching_rect" : [ 7.0, 61.0, 250.0, 20.0 ],
-									"text" : "Faust as a Max/MSP external : version 1.70"
+									"text" : "Faust as a Max/MSP external : version 1.72"
 								}
 
 							}
@@ -4682,7 +4682,7 @@
 									"sourcecode_size" : 241,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184916356800",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -4861,7 +4861,7 @@
 									"sourcecode_size" : 176,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184868535344",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -4899,7 +4899,7 @@
 									"sourcecode_size" : 176,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184829010256",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -5052,7 +5052,7 @@
 									"sourcecode_size" : 254,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184868559552",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -5105,7 +5105,7 @@
 									"sourcecode_size" : 175,
 									"text" : "faustgen~ plus",
 									"varname" : "faustgen-140184919052224",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -5128,7 +5128,7 @@
 									"sourcecode_size" : 175,
 									"text" : "faustgen~ plus",
 									"varname" : "faustgen-140184919399200",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -5181,7 +5181,7 @@
 									"sourcecode_size" : 176,
 									"text" : "faustgen~",
 									"varname" : "faustgen-140184919402512",
-									"version" : "1.70"
+									"version" : "1.72"
 								}
 
 							}
@@ -5207,7 +5207,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 0,
 									"patching_rect" : [ 7.0, 61.0, 250.0, 20.0 ],
-									"text" : "Faust as a Max/MSP external : version 1.70"
+									"text" : "Faust as a Max/MSP external : version 1.72"
 								}
 
 							}

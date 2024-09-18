@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.6.0)
 project (faustgen)
-set (VERSION "1.71")
+set (VERSION "1.72")
 
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 

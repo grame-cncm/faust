@@ -7,6 +7,11 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2024
 
 ----------------------------------------------------
+Version 1.72 - 18/09/2024
+
+- distribution with Faust 2.75.7. 
+
+----------------------------------------------------
 Version 1.71 - 14/05/2024
 
 - distribution with Faust 2.74.3. Add the multichannels mode 
