@@ -46,10 +46,15 @@
 //--------------------------------------------------
 // simple types quality
 
-// kAny is a kind of 'wildcard' type and is only used with ffunction (no signal with never have this type).
-// Therefore kAny is not supposed to be used with a | operation, so kAny = 2 coding can be used.
+// kAny is a kind of 'wildcard' type and is only used with ffunction (no signal with never have this
+// type). Therefore kAny is not supposed to be used with a | operation, so kAny = 2 coding can be
+// used.
 
-enum Nature { kInt = 0, kReal = 1, kAny = 2 };  ///< nature : integer, floating point or 'any' values
+enum Nature {
+    kInt  = 0,
+    kReal = 1,
+    kAny  = 2
+};  ///< nature : integer, floating point or 'any' values
 enum Boolean {
     kNum  = 0,
     kBool = 1
