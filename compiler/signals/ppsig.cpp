@@ -269,7 +269,7 @@ ostream& ppsig::print(ostream& fout) const
 
     if (isSigWRTbl(fSig, w, x, y, z)) {
         if (y == gGlobal->nil) {
-            // readonly table
+            // rtable
             printfun(fout, "WRTbl2p", w, x);
         } else {
             // rwtable
@@ -556,11 +556,17 @@ ostream& ppsigShared::print(ostream& fout) const
     }
 
     if (isSigWRTbl(fSig, w, x, y, z)) {
-        SIG_INSERT_ID(printfun(s, "write", w, x, y, z));
+        if (y == gGlobal->nil) {
+            // rdtable
+            SIG_INSERT_ID(printfun(s, "WRTbl2p", w, x));
+        } else {
+            // rwtable
+            SIG_INSERT_ID(printfun(s, "sigWRTbl4p", w, x, y, z));
+        }
     } else if (isSigRDTbl(fSig, x, y)) {
-        SIG_INSERT_ID(printfun(s, "read", x, y));
+        SIG_INSERT_ID(printfun(s, "sigRDTbl", x, y));
     } else if (isSigGen(fSig, x)) {
-        SIG_INSERT_ID(s << ppsigShared(x, fEnv, fPriority));
+        SIG_INSERT_ID(s << "sigGen(" << ppsigShared(x, fEnv, fPriority) << ")");
     }
 
     else if (isSigDocConstantTbl(fSig, x, y)) {

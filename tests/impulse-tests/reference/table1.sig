@@ -1,9 +1,9 @@
 // Size = 13
-ID_0 = waveform{...};
-ID_1 = write(8,ID_0,,);
-ID_10 = read(ID_1,ID_9);
-ID_11 = write(8,ID_0,ID_9,waveform{...});
-ID_12 = read(ID_11,ID_9);
+ID_0 = sigGen(waveform{...});
+ID_1 = WRTbl2p(8,ID_0);
+ID_10 = sigRDTbl(ID_1,ID_9);
+ID_11 = sigWRTbl4p(8,ID_0,ID_9,waveform{...});
+ID_12 = sigRDTbl(ID_11,ID_9);
 ID_2 = W0;
 ID_3 = proj0(ID_2);
 ID_4 = ID_3';
