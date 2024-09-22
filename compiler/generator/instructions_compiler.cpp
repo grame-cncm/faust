@@ -888,7 +888,8 @@ ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string&
 {
     // Check access (handling 'fFullCount' as a special case)
     if ((name != fFullCount && !gGlobal->gAllowForeignVar) ||
-        (name == fFullCount && (gGlobal->gOneSample || gGlobal->gOneSampleControl))) {
+        (name == fFullCount &&
+         (gGlobal->gOneSample || gGlobal->gOneSampleControl || gGlobal->gExtControl))) {
         stringstream error;
         error << "ERROR : accessing foreign variable '" << name << "'"
               << " is not allowed in this compilation mode" << endl;

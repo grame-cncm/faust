@@ -479,7 +479,8 @@ static void compileCodebox(Tree signals, int numInputs, int numOutputs, ostream*
 
     // "one sample control" model by default;
     gGlobal->gOneSampleControl = true;
-    gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when y in an
+    // Standard pow function will be used in pow(x,y) when y in an integer
+    gGlobal->gNeedManualPow = false;
 
     gContainer =
         CodeboxCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
@@ -725,8 +726,8 @@ static void compileCmajor(Tree signals, int numInputs, int numOutputs, ostream* 
 
     // "one sample control" model by default;
     gGlobal->gOneSampleControl = true;
-    gGlobal->gNeedManualPow =
-        false;  // Standard pow function will be used in pow(x,y) when y in an integer
+    // Standard pow function will be used in pow(x,y) when y in an integer
+    gGlobal->gNeedManualPow = false;
 
     gContainer =
         CmajorCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
