@@ -35,7 +35,7 @@ class juceaudio : public audio, private juce::AudioAppComponent {
     
     private:
         
-        dsp* fDSP;
+        ::dsp* fDSP;
     
         void prepareToPlay(int, double) override
         {
@@ -81,7 +81,7 @@ class juceaudio : public audio, private juce::AudioAppComponent {
             shutdownAudio();
         }
         
-        bool init(const char* name, dsp* dsp) override
+        bool init(const char* name, ::dsp* dsp) override
         {
             fDSP = dsp;
             return true;

@@ -36,7 +36,7 @@
 /**
  * Faust wrapped RNBO DSP
  */
-class rnbo_dsp : public dsp {
+class rnbo_dsp : public ::dsp {
    private:
     RNBO::CoreObject                                                     fDSP;
     FAUSTFLOAT*                                                          fInputsZoneMap;

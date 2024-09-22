@@ -55,7 +55,7 @@ class portaudio : public audio {
     
     protected:
         
-        dsp* fDsp;
+        ::dsp* fDSP;
         PaStream* fAudioStream;
         long fSampleRate;
         long fBufferSize;
@@ -81,19 +81,19 @@ class portaudio : public audio {
             AVOIDDENORMALS;
             
             // Cleanup hardware outputs that are not used by DSP
-            for (int i = fDsp->getNumOutputs(); i < fDevNumOutChans; i++) {
+            for (int i = fDSP->getNumOutputs(); i < fDevNumOutChans; i++) {
                 memset(obuf[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
             }
             
             // Process samples
-            fDsp->compute(current_time * 1000000., frames, ibuf, obuf);
+            fDSP->compute(current_time * 1000000., frames, ibuf, obuf);
             return paContinue;
         }
         
     public:
         
         portaudio(long srate, long bsize) : 
-                fDsp(0), fAudioStream(0),
+                fDSP(nullptr), fAudioStream(nullptr),
                 fSampleRate(srate), fBufferSize(bsize), 
                 fDevNumInChans(0), fDevNumOutChans(0) {}
                 
@@ -109,7 +109,7 @@ class portaudio : public audio {
             Pa_Terminate();
         }
         
-        virtual bool init(const char* name, dsp* DSP)
+        virtual bool init(const char* name, ::dsp* DSP)
         {
             if (init(name, DSP->getNumInputs(), DSP->getNumOutputs())) {
                 setDsp(DSP);
@@ -182,17 +182,17 @@ class portaudio : public audio {
             return true;
         }
         
-        void setDsp(dsp* DSP)
+        void setDsp(::dsp* DSP)
         {
-            fDsp = DSP;
-            if (fDsp->getNumInputs() > fDevNumInChans || fDsp->getNumOutputs() > fDevNumOutChans) {
+            fDSP = DSP;
+            if (fDSP->getNumInputs() > fDevNumInChans || fDSP->getNumOutputs() > fDevNumOutChans) {
                 printf("DSP has %d inputs and %d outputs, physical inputs = %d physical outputs = %d \n", 
-                       fDsp->getNumInputs(), fDsp->getNumOutputs(), 
+                       fDSP->getNumInputs(), fDSP->getNumOutputs(),
                        fDevNumInChans, fDevNumOutChans);
-                fDsp = new dsp_adapter(fDsp, fDevNumInChans, fDevNumOutChans, fBufferSize);
+                fDSP = new dsp_adapter(fDSP, fDevNumInChans, fDevNumOutChans, fBufferSize);
             }
             
-            fDsp->init(fSampleRate);
+            fDSP->init(fSampleRate);
         }
         
         virtual bool start() 

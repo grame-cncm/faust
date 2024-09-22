@@ -592,13 +592,13 @@ static void* __run(void* ptr);
 class alsaaudio : public audio
 {
     AudioInterface* fAudio;
-    dsp*            fDSP;
+    ::dsp*          fDSP;
     pthread_t       fAudioThread;
     bool            fRunning;
 
  public:
 
-    alsaaudio(int argc, char* argv[], dsp* DSP) : fDSP(DSP), fRunning(false)
+    alsaaudio(int argc, char* argv[], ::dsp* DSP) : fDSP(DSP), fRunning(false)
     {
         if (isopt(argv, "-help") || isopt(argv, "-h")) {
             std::cout << "prog [--device|-d <device> (default \"hw:0\")] [--frequency|-f <f> (default 44100)] [--buffer|-b <bs> (default 512)] [--periods|-p <n> (default 2)]\n";
@@ -612,7 +612,7 @@ class alsaaudio : public audio
             .outputs(DSP->getNumOutputs()));
     }
     
-    alsaaudio(int srate, int bsize) : fDSP(0), fRunning(false)
+    alsaaudio(int srate, int bsize) : fDSP(nullptr), fRunning(false)
     {
         fAudio = new AudioInterface(AudioParam().cardName("hw:0")
                                     .frequency(srate)
@@ -622,7 +622,7 @@ class alsaaudio : public audio
 
     virtual ~alsaaudio() { stop(); delete fAudio; }
 
-    virtual bool init(const char* /*name*/, dsp* DSP)
+    virtual bool init(const char* /*name*/, ::dsp* DSP)
     {
         fDSP = DSP;
         fAudio->inputs(DSP->getNumInputs());

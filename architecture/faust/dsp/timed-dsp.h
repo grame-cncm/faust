@@ -217,7 +217,7 @@ class timed_dsp : public decorator_dsp {
 
     public:
 
-        timed_dsp(dsp* dsp):decorator_dsp(dsp), fDateUsec(0), fOffsetUsec(0), fFirstCallback(true)
+        timed_dsp(::dsp* dsp):decorator_dsp(dsp), fDateUsec(0), fOffsetUsec(0), fFirstCallback(true)
         {
             fInputsSlice = new FAUSTFLOAT*[dsp->getNumInputs()];
             fOutputsSlice = new FAUSTFLOAT*[dsp->getNumOutputs()];

@@ -56,7 +56,7 @@ class audio {
          *
          * @return true is sucessful, false in case of driver failure.
          **/
-        virtual bool init(const char* name, dsp* dsp) = 0;
+        virtual bool init(const char* name, ::dsp* dsp) = 0;
     
         /**
          * Start audio processing.

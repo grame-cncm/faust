@@ -42,7 +42,7 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
         float** fNIOutputs;
         int fSampleRate;
         int fBufferSize;
-        dsp* fDSP;
+        ::dsp* fDSP;
     
     public:
     
@@ -91,7 +91,7 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
             }
         }
     
-        bool init(const char* name, dsp* dsp)
+        bool init(const char* name, ::dsp* dsp)
         {
             fDSP = dsp;
             //fStream.printDeviceList();

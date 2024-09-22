@@ -142,7 +142,7 @@ class FAUST_API dsp {
          *
          * @return a copy of the instance on success, otherwise a null pointer.
          */
-        virtual dsp* clone() = 0;
+        virtual ::dsp* clone() = 0;
     
         /**
          * Trigger the Meta* m parameter with instance specific calls to 'declare' (key, value) metadata.
@@ -203,15 +203,15 @@ class FAUST_API dsp {
  * Generic DSP decorator.
  */
 
-class FAUST_API decorator_dsp : public dsp {
+class FAUST_API decorator_dsp : public ::dsp {
 
     protected:
 
-        dsp* fDSP;
+        ::dsp* fDSP;
 
     public:
 
-        decorator_dsp(dsp* dsp = nullptr):fDSP(dsp) {}
+        decorator_dsp(::dsp* dsp = nullptr):fDSP(dsp) {}
         virtual ~decorator_dsp() { delete fDSP; }
 
         virtual int getNumInputs() { return fDSP->getNumInputs(); }
@@ -269,7 +269,7 @@ class FAUST_API dsp_factory {
         virtual std::vector<std::string> getWarningMessages() = 0;
     
         /* Create a new DSP instance, to be deleted with C++ 'delete' */
-        virtual dsp* createDSPInstance() = 0;
+        virtual ::dsp* createDSPInstance() = 0;
     
         /* Static tables initialization, possibly implemened in sub-classes*/
         virtual void classInit(int sample_rate) {};

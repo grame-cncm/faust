@@ -62,7 +62,7 @@ class dsp_adapter : public decorator_dsp {
     
     public:
     
-        dsp_adapter(dsp* dsp, int hw_inputs, int hw_outputs, int buffer_size, bool to_delete = true):decorator_dsp(dsp)
+        dsp_adapter(::dsp* dsp, int hw_inputs, int hw_outputs, int buffer_size, bool to_delete = true):decorator_dsp(dsp)
         {
             fHWInputs = hw_inputs;
             fHWOutputs = hw_outputs;
@@ -147,7 +147,7 @@ class dsp_sample_adapter : public decorator_dsp {
     
     public:
     
-        dsp_sample_adapter(dsp* dsp):decorator_dsp(dsp)
+        dsp_sample_adapter(::dsp* dsp):decorator_dsp(dsp)
         {
             fAdaptedInputs = new REAL_INT*[dsp->getNumInputs()];
             for (int i = 0; i < dsp->getNumInputs(); i++) {
@@ -434,7 +434,7 @@ struct LowPass6e : public Filter<fVslider0, fVslider1> {
 };
 
 // A "si.bus(N)" like hard-coded class
-struct dsp_bus : public dsp {
+struct dsp_bus : public ::dsp {
     
     int fChannels;
     int fSampleRate;
@@ -466,7 +466,7 @@ struct dsp_bus : public dsp {
     virtual void instanceResetUserInterface() {}
     virtual void instanceClear() {}
     
-    virtual dsp* clone() { return new dsp_bus(fChannels); }
+    virtual ::dsp* clone() { return new dsp_bus(fChannels); }
     
     virtual void metadata(Meta* m) {}
     
@@ -497,7 +497,7 @@ class sr_sampler : public decorator_dsp {
     
     public:
     
-        sr_sampler(dsp* dsp):decorator_dsp(dsp)
+        sr_sampler(::dsp* dsp):decorator_dsp(dsp)
         {
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
                 fInputLowPass.push_back(FILTER());
@@ -652,7 +652,7 @@ class dsp_up_sampler : public sr_sampler<FILTER> {
 
 // Create a UP/DS + Filter adapted DSP
 template <typename REAL>
-dsp* createSRAdapter(dsp* DSP, std::string& error, int ds = 0, int us = 0, int filter = 0)
+dsp* createSRAdapter(::dsp* DSP, std::string& error, int ds = 0, int us = 0, int filter = 0)
 {
     if (ds >= 2) {
         switch (filter) {

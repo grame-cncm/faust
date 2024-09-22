@@ -46,7 +46,7 @@ architecture section is not modified.
 /**
 * Faust wrapped C++ Cmajor DSP
 */
-class cmajor_cpp_dsp : public dsp {
+class cmajor_cpp_dsp : public ::dsp {
     
     private:
 

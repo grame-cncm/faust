@@ -36,7 +36,7 @@ architecture section is not modified.
  * Faust wrapped YSFX DSP
  */
 template <class REAL>
-class ysfx_dsp : public dsp {
+class ysfx_dsp : public ::dsp {
     
     private:
     

@@ -47,7 +47,7 @@ class dsp_compute_mix : public decorator_dsp {
     
     public:
     
-        dsp_compute_mix(dsp* dsp) : decorator_dsp(dsp)
+        dsp_compute_mix(::dsp* dsp) : decorator_dsp(dsp)
         {}
     
         virtual void computeAdding(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -83,7 +83,7 @@ class dsp_compute_inpl : public decorator_dsp {
     
     public:
     
-        dsp_compute_inpl(dsp* dsp) : decorator_dsp(dsp)
+        dsp_compute_inpl(::dsp* dsp) : decorator_dsp(dsp)
         {}
     
         virtual void computeReplacing(int count, FAUSTFLOAT** buffers)
@@ -141,7 +141,7 @@ class dsp_compute_inpl_mix : public decorator_dsp {
     
     public:
     
-        dsp_compute_inpl_mix(dsp* dsp) : decorator_dsp(dsp)
+        dsp_compute_inpl_mix(::dsp* dsp) : decorator_dsp(dsp)
         {
             MyMeta my_meta = MyMeta(dsp->getNumInputs());
             dsp->metadata(&my_meta);

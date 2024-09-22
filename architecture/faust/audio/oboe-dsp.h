@@ -42,7 +42,7 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
     
     protected:
     
-        dsp* fDSP;
+        ::dsp* fDSP;
     
         int32_t fSampleRate;
         int32_t fBufferSize;
@@ -218,7 +218,7 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
    public:
     
         oboeaudio(long srate):
-        fDSP(NULL),
+        fDSP(nullptr),
         fSampleRate(srate),
         fBufferSize(512),
         fCPUTableIndex(0),
@@ -232,7 +232,7 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
             releaseAudioChannels();
         }
     
-        virtual bool init(const char* name, dsp* DSP)
+        virtual bool init(const char* name, ::dsp* DSP)
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "init");
             fDSP = DSP;

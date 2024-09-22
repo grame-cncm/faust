@@ -226,7 +226,7 @@ class TCoreAudioRenderer
         bool fIsInJackDevice;
         bool fIsOutJackDevice;
         
-        dsp* fDSP;
+        ::dsp* fDSP;
     
         audio* fAudio;
 
@@ -1012,9 +1012,9 @@ class TCoreAudioRenderer
             fBufferSize(0),fSampleRate(0),
             fIsInJackDevice(false),
             fIsOutJackDevice(false),
-            fDSP(0),
+            fDSP(nullptr),
             fAudio(audio),
-            fInputData(0),
+            fInputData(nullptr),
             fDeviceID(0),fAUHAL(0),
             fState(false)
         {}
@@ -1471,7 +1471,7 @@ class TCoreAudioRenderer
             }
         }
     
-        void setDsp(dsp* DSP)
+        void setDsp(::dsp* DSP)
         {
             fDSP = DSP;
         }
@@ -1501,7 +1501,7 @@ class coreaudio : public audio {
         coreaudio(int bsize) : fAudioDevice(this), fSampleRate(-1), fBufferSize(bsize) {}
         virtual ~coreaudio() { fAudioDevice.Close(); }
 
-        virtual bool init(const char* /*name*/, dsp* DSP) 
+        virtual bool init(const char* /*name*/, ::dsp* DSP)
         {
             if (fAudioDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
                 printf("Cannot open CoreAudio device\n");

@@ -51,7 +51,7 @@ class esp32audio : public audio {
         float** fInChannel;
         float** fOutChannel;
         TaskHandle_t fHandle;
-        dsp* fDSP;
+        ::dsp* fDSP;
         bool fRunning;
     
         template <int INPUTS, int OUTPUTS>

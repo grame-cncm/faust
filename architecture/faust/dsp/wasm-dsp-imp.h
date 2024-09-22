@@ -60,7 +60,7 @@ class LIFAUST_API wasm_dsp_factory_imp : public dsp_factory {
     
         std::vector<std::string> getIncludePathnames() { return fDecoder->getIncludePathnames(); }
     
-        virtual dsp* createDSPInstance() {}
+        virtual ::dsp* createDSPInstance() {}
     
         virtual void setMemoryManager(dsp_memory_manager* manager) {}
     
@@ -69,7 +69,7 @@ class LIFAUST_API wasm_dsp_factory_imp : public dsp_factory {
 
 // Generic wasm_dsp class that creates and use the JSON decoder, and manage DSP and audio memory.
 
-class LIFAUST_API wasm_dsp_imp : public dsp {
+class LIFAUST_API wasm_dsp_imp : public ::dsp {
     
     protected:
     

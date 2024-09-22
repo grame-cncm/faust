@@ -67,7 +67,7 @@ class dsp_me_checker : public decorator_dsp
     
     public:
     
-        dsp_me_checker(dsp* dsp, bool runtime = false)
+        dsp_me_checker(::dsp* dsp, bool runtime = false)
         :decorator_dsp(dsp),
         fFP_SUBNORMAL(0),
         fFP_INFINITE(0),

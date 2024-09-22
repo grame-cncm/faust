@@ -41,7 +41,7 @@ architecture section is not modified.
  * LibSndfile based player
  */
 
-class sound_base_player : public dsp {
+class sound_base_player : public ::dsp {
     
     protected:
         

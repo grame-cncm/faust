@@ -428,7 +428,7 @@ class measure_dsp_real : public decorator_dsp {
          * @param filter - filter type
          *
          */
-        measure_dsp_real(dsp* dsp,
+        measure_dsp_real(::dsp* dsp,
                         int buffer_size,
                         int count,
                         bool trace = true,
@@ -457,7 +457,7 @@ class measure_dsp_real : public decorator_dsp {
          * @param filter - filter type
          *
          */
-        measure_dsp_real(dsp* dsp,
+        measure_dsp_real(::dsp* dsp,
                         int buffer_size,
                         double duration_in_sec,
                         bool trace = true,

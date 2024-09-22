@@ -51,12 +51,12 @@ enum Layout { kVerticalGroup, kHorizontalGroup, kTabGroup };
  * This class serves as the base class for various DSP combiners that work with two DSP modules.
  * It provides common methods for building user interfaces, allocating and deleting channels, and more.
  */
-class dsp_binary_combiner : public dsp {
+class dsp_binary_combiner : public ::dsp {
 
     protected:
 
-        dsp* fDSP1;
-        dsp* fDSP2;
+        ::dsp* fDSP1;
+        ::dsp* fDSP2;
         int fBufferSize;
         Layout fLayout;
         std::string fLabel;
@@ -109,7 +109,7 @@ class dsp_binary_combiner : public dsp {
 
      public:
 
-        dsp_binary_combiner(dsp* dsp1, dsp* dsp2, int buffer_size, Layout layout, const std::string& label)
+        dsp_binary_combiner(::dsp* dsp1, ::dsp* dsp2, int buffer_size, Layout layout, const std::string& label)
         :fDSP1(dsp1), fDSP2(dsp2), fBufferSize(buffer_size), fLayout(layout), fLabel(label)
         {}
 
@@ -174,7 +174,7 @@ class dsp_sequencer : public dsp_binary_combiner {
 
     public:
 
-        dsp_sequencer(dsp* dsp1, dsp* dsp2,
+        dsp_sequencer(::dsp* dsp1, ::dsp* dsp2,
                       int buffer_size = 4096,
                       Layout layout = Layout::kTabGroup,
                       const std::string& label = "Sequencer")
@@ -227,7 +227,7 @@ class dsp_parallelizer : public dsp_binary_combiner {
 
     public:
 
-        dsp_parallelizer(dsp* dsp1, dsp* dsp2,
+        dsp_parallelizer(::dsp* dsp1, ::dsp* dsp2,
                      int buffer_size = 4096,
                      Layout layout = Layout::kTabGroup,
                      const std::string& label = "Parallelizer")
@@ -291,7 +291,7 @@ class dsp_splitter : public dsp_binary_combiner {
 
     public:
 
-        dsp_splitter(dsp* dsp1, dsp* dsp2,
+        dsp_splitter(::dsp* dsp1, ::dsp* dsp2,
                      int buffer_size = 4096,
                      Layout layout = Layout::kTabGroup,
                      const std::string& label = "Splitter")
@@ -315,7 +315,7 @@ class dsp_splitter : public dsp_binary_combiner {
             buildUserInterfaceAux(ui_interface);
         }
 
-        virtual dsp* clone()
+        virtual ::dsp* clone()
         {
             return new dsp_splitter(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout, fLabel);
         }
@@ -382,7 +382,7 @@ class dsp_merger : public dsp_binary_combiner {
             buildUserInterfaceAux(ui_interface);
         }
 
-        virtual dsp* clone()
+        virtual ::dsp* clone()
         {
             return new dsp_merger(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout, fLabel);
         }
@@ -425,7 +425,7 @@ class dsp_recursiver : public dsp_binary_combiner {
 
     public:
 
-        dsp_recursiver(dsp* dsp1, dsp* dsp2,
+        dsp_recursiver(::dsp* dsp1, ::dsp* dsp2,
                        Layout layout = Layout::kTabGroup,
                        const std::string& label = "Recursiver")
         :dsp_binary_combiner(dsp1, dsp2, 1, layout, label)
@@ -506,7 +506,7 @@ class dsp_crossfader: public dsp_binary_combiner {
     
     public:
     
-        dsp_crossfader(dsp* dsp1, dsp* dsp2,
+        dsp_crossfader(::dsp* dsp1, ::dsp* dsp2,
                        Layout layout = Layout::kTabGroup,
                        const std::string& label = "Crossfade")
         :dsp_binary_combiner(dsp1, dsp2, 4096, layout, label),fCrossfade(FAUSTFLOAT(0.5))
@@ -557,7 +557,7 @@ class dsp_crossfader: public dsp_binary_combiner {
             }
         }
     
-        virtual dsp* clone()
+        virtual ::dsp* clone()
         {
             return new dsp_crossfader(fDSP1->clone(), fDSP2->clone(), fLayout, fLabel);
         }
@@ -612,10 +612,10 @@ class dsp_crossfader: public dsp_binary_combiner {
  * @param label The label for the combiner (default: "Sequencer")
  * @return A pointer to the created DSP Sequencer, or nullptr if an error occurs
  */
-static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2,
-                               std::string& error,
-                               Layout layout = Layout::kTabGroup,
-                               const std::string& label = "Sequencer")
+static ::dsp* createDSPSequencer(::dsp* dsp1, ::dsp* dsp2,
+                                 std::string& error,
+                                 Layout layout = Layout::kTabGroup,
+                                 const std::string& label = "Sequencer")
 {
     if (dsp1->getNumOutputs() != dsp2->getNumInputs()) {
         std::stringstream error_aux;
@@ -642,10 +642,10 @@ static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2,
  * @param label The label for the combiner (default: "Parallelizer")
  * @return A pointer to the created DSP Parallelizer, or nullptr if an error occurs
  */
-static dsp* createDSPParallelizer(dsp* dsp1, dsp* dsp2,
-                                  std::string& error,
-                                  Layout layout = Layout::kTabGroup,
-                                  const std::string& label = "Parallelizer")
+static ::dsp* createDSPParallelizer(::dsp* dsp1, dsp* dsp2,
+                                    std::string& error,
+                                    Layout layout = Layout::kTabGroup,
+                                    const std::string& label = "Parallelizer")
 {
     return new dsp_parallelizer(dsp1, dsp2, 4096, layout, label);
 }
@@ -663,7 +663,7 @@ static dsp* createDSPParallelizer(dsp* dsp1, dsp* dsp2,
  * @param label The label for the combiner (default: "Splitter")
  * @return A pointer to the created DSP Splitter, or nullptr if an error occurs
  */
-static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error, Layout layout = Layout::kTabGroup, const std::string& label = "Splitter")
+static ::dsp* createDSPSplitter(::dsp* dsp1, ::dsp* dsp2, std::string& error, Layout layout = Layout::kTabGroup, const std::string& label = "Splitter")
 {
     if (dsp1->getNumOutputs() == 0) {
         error = "Connection error in dsp_splitter : the first expression has no outputs\n";
@@ -699,10 +699,10 @@ static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error, Layout l
  * @param label The label for the combiner (default: "Merger")
  * @return A pointer to the created DSP Merger, or nullptr if an error occurs
  */
-static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2,
-                            std::string& error,
-                            Layout layout = Layout::kTabGroup,
-                            const std::string& label = "Merger")
+static ::dsp* createDSPMerger(::dsp* dsp1, ::dsp* dsp2,
+                              std::string& error,
+                              Layout layout = Layout::kTabGroup,
+                              const std::string& label = "Merger")
 {
     if (dsp1->getNumOutputs() == 0) {
         error = "Connection error in dsp_merger : the first expression has no outputs\n";
@@ -738,10 +738,10 @@ static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2,
  * @param label The label for the combiner (default: "Recursiver")
  * @return A pointer to the created DSP Recursiver, or nullptr if an error occurs
  */
-static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2,
-                                std::string& error,
-                                Layout layout = Layout::kTabGroup,
-                                const std::string& label = "Recursiver")
+static ::dsp* createDSPRecursiver(::dsp* dsp1, ::dsp* dsp2,
+                                  std::string& error,
+                                  Layout layout = Layout::kTabGroup,
+                                  const std::string& label = "Recursiver")
 {
     if ((dsp2->getNumInputs() > dsp1->getNumOutputs()) || (dsp2->getNumOutputs() > dsp1->getNumInputs())) {
         std::stringstream error_aux;
@@ -780,10 +780,10 @@ static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2,
  * @param label The label for the crossfade slider (default: "Crossfade")
  * @return A pointer to the created DSP Crossfader, or nullptr if an error occurs
  */
-static dsp* createDSPCrossfader(dsp* dsp1, dsp* dsp2,
-                                std::string& error,
-                                Layout layout = Layout::kTabGroup,
-                                const std::string& label = "Crossfade")
+static ::dsp* createDSPCrossfader(::dsp* dsp1, ::dsp* dsp2,
+                                  std::string& error,
+                                  Layout layout = Layout::kTabGroup,
+                                  const std::string& label = "Crossfade")
 {
     if (dsp1->getNumInputs() != dsp2->getNumInputs()) {
         std::stringstream error_aux;
