@@ -7,29 +7,29 @@ project (faustemcc)
 option (WORKLET "Compile wasm glue library for worklet" off)
 
 set (CMAKE_OSX_DEPLOYMENT_TARGET "")
-set (CMAKE_OSX_SYSROOT 	"")
+set (CMAKE_OSX_SYSROOT "")
 set (CMAKE_CXX_COMPILER "emcc")
 set (CMAKE_CXX_LINK_FLAGS "")
 
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
-	message (WARNING "Compiling on M1")
-  	set (CMAKE_OSX_ARCHITECTURES " ")
+    message (WARNING "Compiling on M1")
+    set (CMAKE_OSX_ARCHITECTURES " ")
 endif()
 
 if (UNIVERSAL)
-message (WARNING "WASM do not support universal mode. Switch back to native mode before compiling")
+    message (WARNING "WASM do not support universal mode. Switch back to native mode before compiling")
 endif()
 
 if (WORKLET)
-message(STATUS "Compile wasm glue library for worklet")
-set (WASM_COMPILE_FLAGS "-O3 -DAUDIO_WORKLET")
-set (WASM_LINK_FLAGS_EXTRA "-s WASM_ASYNC_COMPILATION=0 -s SINGLE_FILE=1 -s ASSERTIONS=0")
-set (LIB_NAME "libfaust-worklet-glue")
+    message(STATUS "Compile wasm glue library for worklet")
+   set (WASM_COMPILE_FLAGS "-O3 -DAUDIO_WORKLET")
+    set (WASM_LINK_FLAGS_EXTRA "-s WASM_ASYNC_COMPILATION=0 -s SINGLE_FILE=1 -s ASSERTIONS=0")
+    set (LIB_NAME "libfaust-worklet-glue")
 else()
-message(STATUS "Compile wasm glue library")
-set (WASM_COMPILE_FLAGS "-O3")
-set (WASM_LINK_FLAGS_EXTRA "-s ASSERTIONS=1")
-set (LIB_NAME "libfaust-glue")
+    message(STATUS "Compile wasm glue library")
+    set (WASM_COMPILE_FLAGS "-O3")
+    set (WASM_LINK_FLAGS_EXTRA "-s ASSERTIONS=1")
+    set (LIB_NAME "libfaust-glue")
 endif()
 
 set (WGLUE wasmglue)
@@ -43,10 +43,10 @@ file (GLOB HH ${SRCDIR}/generator/wasm/wasm_dsp_aux.hh ${SRCDIR}/generator/expor
 ####################################
 # include directories
 set (FAUST_INC ${SRCDIR}
-	${SRCDIR}/errors 
-	${SRCDIR}/generator
-	${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
-	${SRCDIR}/../architecture /usr/local/include)
+${SRCDIR}/errors 
+${SRCDIR}/generator
+${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
+${SRCDIR}/../architecture /usr/local/include)
 
 
 ####################################
@@ -61,8 +61,8 @@ add_executable(${WGLUE} EXCLUDE_FROM_ALL ${SRC} ${HH})
 target_include_directories (${WGLUE} PRIVATE ${SRCDIR}/generator/wasm ${FAUST_INC})
 target_compile_definitions (${WGLUE} PRIVATE -DEMCC ${FAUST_DEFINITIONS})
 set_target_properties (${WGLUE} PROPERTIES
-		OUTPUT_NAME ${LIB_NAME}
-		LINK_FLAGS ${WASM_LINK_FLAGS}
-		COMPILE_FLAGS ${WASM_COMPILE_FLAGS}
-		RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}
-		SUFFIX ".js")
+OUTPUT_NAME ${LIB_NAME}
+LINK_FLAGS ${WASM_LINK_FLAGS}
+COMPILE_FLAGS ${WASM_COMPILE_FLAGS}
+RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}
+SUFFIX ".js")
