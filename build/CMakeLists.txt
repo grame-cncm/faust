@@ -39,6 +39,7 @@ option ( INCLUDE_EMCC    	"Include emcc targets"	on )
 option ( INCLUDE_WASM_GLUE  "Include wasm glue targets"	on )
 option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 option ( SELF_CONTAINED_LIBRARY	"Don't search system architecture files." off)
+option ( LINK_LLVM_STATIC "Link LLVM statically" off )
 
 #######################################
 # Check output options
@@ -117,6 +118,7 @@ if (INCLUDE_LLVM )
 	message(STATUS "LLVM_LIB_DIR: ${LLVM_LIB_DIR}")
 	message(STATUS "LLVM_INCLUDE_DIRS: ${LLVM_INCLUDE_DIRS}")
 	message(STATUS "LLVM_DEFINITIONS: ${LLVM_DEFINITIONS}")
+	message(STATUS "LINK_LLVM_STATIC: ${LINK_LLVM_STATIC}")
 
 	# the declarations below are redundant but necessary to cope with different cmake behaviors on different platforms
 	set (TMP ${SRCDIR}/generator/llvm)
