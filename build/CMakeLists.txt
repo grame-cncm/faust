@@ -39,7 +39,7 @@ option ( INCLUDE_EMCC        "Include emcc targets" on )
 option ( INCLUDE_WASM_GLUE   "Include wasm glue targets" on )
 option ( MSVC_STATIC         "Use static runtimes with MSVC" off)
 option ( SELF_CONTAINED_LIBRARY    "Don't search system architecture files." off)
-option ( LINK_LLVM_STATIC "Link LLVM statically" off )
+option ( LINK_LLVM_STATIC "Link LLVM statically" on )
 
 #######################################
 # Check output options
