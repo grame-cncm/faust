@@ -1,4 +1,4 @@
-% man(1) Version 2.75.8 (22-September-2024) | Faust man page
+% man(1) Version 2.75.9 (02-October-2024) | Faust man page
 
 NAME
 ====
@@ -217,6 +217,8 @@ Debug options:
   **-rg**         **--retiming-graph**            print the internal signal graph after retiming in dot format.
 
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
+
+  **-norm1**      **--normalized-form1**          print signals in normalized form with IDs for shared sub-expressions and exit.
 
   **-me**         **--math-exceptions**           check / for 0 as denominator and remainder, fmod, sqrt, log10, log, acos, asin functions domain.
 
