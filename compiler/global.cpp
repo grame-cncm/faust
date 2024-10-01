@@ -2432,6 +2432,9 @@ string global::printHelp()
          << "-norm       --normalized-form           print signals in normalized form and exit."
          << endl;
     sstr << tab
+         << "-norm1      --normalized-form1          print signals in normalized form with IDs for shared sub-expressions and exit."
+         << endl;
+    sstr << tab
          << "-me         --math-exceptions           check / for 0 as denominator and remainder, "
             "fmod, sqrt, log10, "
             "log, acos, asin functions domain."

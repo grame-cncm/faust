@@ -95,7 +95,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
         cout << ppsig(L1) << endl;
         throw faustexception("Dump normal form finished...\n");
     } else if (gGlobal->gDumpNorm == 1) {
-        ppsigShared(L1, cout, true);
+        ppsigShared(L1, cout, false);
         throw faustexception("Dump shared normal form finished...\n");
     } else if (gGlobal->gDumpNorm == 2) {
         // Print signal tree type
