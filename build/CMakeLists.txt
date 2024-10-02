@@ -40,6 +40,7 @@ option ( INCLUDE_WASM_GLUE   "Include wasm glue targets" on )
 option ( MSVC_STATIC         "Use static runtimes with MSVC" off)
 option ( SELF_CONTAINED_LIBRARY    "Don't search system architecture files." off)
 option ( LINK_LLVM_STATIC "Link LLVM statically" on )
+option ( NONDETERMINISM_LINT "Add compiler warning for nondeterminism" off)
 
 #######################################
 # Check output options
@@ -172,13 +173,20 @@ endif()
 
 ####################################
 # compiler dependent settings
+
+if (NONDETERMINISM_LINT)
+    # Add NodeMatcherPlugin as a submodule
+    add_subdirectory(../node-matcher-plugin node-matcher-plugin)
+    set (EXTRA_CXX_FLAGS "-fplugin=node-matcher-plugin/NodeMatcherPlugin.dylib -fplugin-arg-NodeMatcherPlugin-${CMAKE_CURRENT_SOURCE_DIR}/lint.query")
+endif()
+
 if (MSVC)
     set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVisualStudio)
 else()
     set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLIBDIR="${LIBSDIR}")
     #set(CMAKE_CXX_FLAGS_DEBUG "-g -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
-    set(CMAKE_CXX_FLAGS_DEBUG "-g -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")
+    set(CMAKE_CXX_FLAGS_DEBUG "${EXTRA_CXX_FLAGS} -g -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
+    set(CMAKE_CXX_FLAGS_RELEASE "${EXTRA_CXX_FLAGS} -O3 -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")
 endif()
 
 ####################################
@@ -186,6 +194,9 @@ endif()
 ####################################
 if (INCLUDE_EXECUTABLE)
     add_executable(faust ${SRC} ${HH})
+    if (NONDETERMINISM_LINT)
+        add_dependencies(faust NodeMatcherPlugin)
+    endif()
     target_compile_definitions (faust PRIVATE ${FAUST_DEFINITIONS})
     if(INCLUDE_LLVM)
         target_link_directories(faust PRIVATE "${LLVM_LIB_DIR}")
@@ -201,6 +212,9 @@ endif()
 # static faust library
 if (INCLUDE_STATIC)
     add_library(staticlib STATIC ${SRC} ${HH})
+    if (NONDETERMINISM_LINT)
+        add_dependencies(staticlib NodeMatcherPlugin)
+    endif()
     target_compile_definitions (staticlib PRIVATE ${FAUST_DEFINITIONS})
     if(INCLUDE_LLVM)
         target_link_directories(staticlib PRIVATE "${LLVM_LIB_DIR}")
@@ -239,6 +253,9 @@ endif()
 # dynamic faust library
 if (INCLUDE_DYNAMIC)
     add_library(dynamiclib SHARED ${SRC} ${HH})
+    if (NONDETERMINISM_LINT)
+        add_dependencies(dynamiclib NodeMatcherPlugin)
+    endif()
     target_compile_definitions (dynamiclib PRIVATE ${FAUST_DEFINITIONS})
     if(INCLUDE_LLVM)
         target_link_directories(dynamiclib PRIVATE "${LLVM_LIB_DIR}")

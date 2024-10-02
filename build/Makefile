@@ -66,8 +66,18 @@ ifeq ($(WORKLET), on)
 WORKLETOPT = "-DWORKLET=on"
 endif
 
-CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release $(WORKLETOPT)
-BUILDOPT ?= --config Release
+NONDETERMINISM_LINT ?= no
+NONDETERMINISM_LINT_OPT =
+CXX_COMPILER_OPT =
+ifeq ($(NONDETERMINISM_LINT), yes)
+NONDETERMINISM_LINT_OPT = "-DNONDETERMINISM_LINT=ON"
+CXX_COMPILER_OPT = "-DCMAKE_CXX_COMPILER=$(shell llvm-config --bindir)/clang++"
+endif
+
+RELEASE_TYPE ?= Release
+CMAKEOPT ?=
+BUILDOPT ?= --config $(RELEASE_TYPE)
+CMAKEOPTS = -DCMAKE_BUILD_TYPE=$(RELEASE_TYPE) $(WORKLETOPT) $(CMAKEOPT) $(NONDETERMINISM_LINT_OPT) $(CXX_COMPILER_OPT)
 
 #CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug $(WORKLETOPT)
 #BUILDOPT ?= --config Debug
@@ -136,7 +146,8 @@ help:
 	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
 	@echo "  LIBSDIR                     : the libraries destination directory, default: $(LIBSDIR)"
 	@echo "  GENERATOR=<a cmake generator>: see cmake -h. Default to '$(GENERATOR)'"
-	@echo "  CMAKEOPT=<cmake options>    : pass options to cmake for project generation."
+	@echo "  CMAKEOPT=<cmake options>    : pass extra options to cmake for project generation."
+	@echo "  RELEASE_TYPE                : cmake release type (defaults to Release)."
 	@echo "  BUILDOPT=<cmake options>    : pass options to cmake at build time (default to $(BUILDOPT))."
 	@echo "  BACKENDS=<backends file>    : see 'Backends' below"
 	@echo "  TARGETS=<targets file>      : see 'Targets' below"
@@ -320,7 +331,7 @@ silent: $(FAUSTDIR)
 	cd $(FAUSTDIR) && $(CMAKE) -DCMAKE_VERBOSE_MAKEFILE=OFF ..
 
 cmake: $(FAUSTDIR)
-	cd $(FAUSTDIR) && $(CMAKE) -C ../backends/$(BACKENDS) -C ../targets/$(TARGETS) $(CMAKEOPT) -DINCLUDE_LLVM=$(INCLUDE_LLVM) -DUSE_LLVM_CONFIG=$(USE_LLVM_CONFIG) -DLLVM_PACKAGE_VERSION=$(LLVM_PACKAGE_VERSION) -DLLVM_LIBS="$(LLVM_LIBS)" -DLLVM_LIB_DIR="$(LLVM_LIB_DIR)" -DLLVM_INCLUDE_DIRS="$(LLVM_INCLUDE_DIRS)" -DLLVM_DEFINITIONS="$(LLVM_DEFINITIONS)" -DLLVM_LD_FLAGS="$(LLVM_LD_FLAGS)" $(DEPLOYMENT) -DLIBSDIR=$(LIBSDIR) -DBUILD_HTTP_STATIC=$(BUILD_HTTP_STATIC) -G '$(GENERATOR)' ..
+	cd $(FAUSTDIR) && $(CMAKE) -C ../backends/$(BACKENDS) -C ../targets/$(TARGETS) $(CMAKEOPTS) -DCMAKE_BUILD_TYPE=$(RELEASE_TYPE) $(WORKLETOPT) -DINCLUDE_LLVM=$(INCLUDE_LLVM) -DUSE_LLVM_CONFIG=$(USE_LLVM_CONFIG) -DLLVM_PACKAGE_VERSION=$(LLVM_PACKAGE_VERSION) -DLLVM_LIBS="$(LLVM_LIBS)" -DLLVM_LIB_DIR="$(LLVM_LIB_DIR)" -DLLVM_INCLUDE_DIRS="$(LLVM_INCLUDE_DIRS)" -DLLVM_DEFINITIONS="$(LLVM_DEFINITIONS)" -DLLVM_LD_FLAGS="$(LLVM_LD_FLAGS)" $(DEPLOYMENT) -DLIBSDIR=$(LIBSDIR) -DBUILD_HTTP_STATIC=$(BUILD_HTTP_STATIC) -G '$(GENERATOR)' ..
 	@echo BACKENDS=$(BACKENDS) > $(BCACHE)
 	@echo TARGETS=$(TARGETS) > $(TCACHE)
 	@echo LIBSDIR=$(LIBSDIR) > $(LCACHE)
@@ -353,7 +364,7 @@ checkemcc:
 installLog := $(FAUSTDIR)/install_manifest.txt
 install:
 	if test -d ../.git; then git submodule update --init; fi
-	cd $(FAUSTDIR) && $(CMAKE) .. -DCMAKE_INSTALL_PREFIX=$(PREFIX) $(CMAKEOPT)
+	cd $(FAUSTDIR) && $(CMAKE) .. -DCMAKE_INSTALL_PREFIX=$(PREFIX) $(CMAKEOPTS)
 	$(CMAKE) --build $(FAUSTDIR) --target install
 
 uninstall: $(installLog)
