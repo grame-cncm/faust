@@ -802,13 +802,13 @@ void CodeContainer::printMacros(ostream& fout, int n)
             }
             fout << "#endif" << endl;
         } else if (gGlobal->gOutputLang == "rust") {
-            fout << "pub const FAUST_INPUTS: i32 = " << fNumInputs << ";";
+            fout << "pub const FAUST_INPUTS: usize = " << fNumInputs << ";";
             tab(n, fout);
-            fout << "pub const FAUST_OUTPUTS: i32 = " << fNumOutputs << ";";
+            fout << "pub const FAUST_OUTPUTS: usize = " << fNumOutputs << ";";
             tab(n, fout);
-            fout << "pub const FAUST_ACTIVES: i32 = " << fNumActives << ";";
+            fout << "pub const FAUST_ACTIVES: usize = " << fNumActives << ";";
             tab(n, fout);
-            fout << "pub const FAUST_PASSIVES: i32 = " << fNumPassives << ";";
+            fout << "pub const FAUST_PASSIVES: usize = " << fNumPassives << ";";
             tab(n, fout);
         } else {
             cerr << "ASSERT : incorrect backend : " << gGlobal->gOutputLang << endl;
