@@ -171,6 +171,9 @@ void RustCodeContainer::produceInternal()
 void RustCodeContainer::produceClass()
 {
     int n = 0;
+    tab(n, *fOut);
+    *fOut << "use std::convert::TryInto;";
+
 
     // Generate gub containers
     generateSubContainers();
@@ -189,9 +192,9 @@ void RustCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "// Conditionally compile the link attribute only on non-Windows platforms";
         tab(n + 1, *fOut);
-        *fOut << "#[cfg_attr(not(target_os=\"windows\"), link(name=\"m\"))]";
+        *fOut << "#[cfg_attr(not(target_os = \"windows\"), link(name = \"m\"))]";
         tab(n + 1, *fOut);
-        *fOut << "extern {";
+        *fOut << "extern \"C\" {";
         tab(n + 2, *fOut);
         *fOut << "pub fn remainderf(from: c_float, to: c_float) -> c_float;";
         tab(n + 2, *fOut);
@@ -275,6 +278,14 @@ void RustCodeContainer::produceClass()
 
     back(1, *fOut);
     *fOut << "}";
+    tab(n, *fOut);
+
+    tab(n, *fOut);
+    *fOut << "impl " << fKlassName << " {";
+    generateCompute(n + 1);
+    tab(n, *fOut);
+
+    *fOut << "}" << endl;
     tab(n, *fOut);
 
     tab(n, *fOut);
@@ -438,7 +449,7 @@ void RustCodeContainer::produceClass()
     produceParameterGetterSetter(n + 1, parameterLookup);
 
     // Compute
-    generateCompute(n + 1);
+    generateComputeInterface(n + 1);
 
     tab(n, *fOut);
     *fOut << "}" << endl;
@@ -532,6 +543,47 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     *fOut << "}";
 }
 
+void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut,int fNumInputs, int fNumOutputs)
+{
+
+    // Compute "compute" declaration
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "fn compute_arrays("
+          << "&mut self, " << fFullCount
+          << ": i32, inputs: &[&[" << ifloat() << "] ; " << fNumInputs << "]"
+          << ", outputs: &mut [&mut [" << ifloat() << "] ; " << fNumOutputs << "]) {";
+    tab(n + 1, *fOut);
+}
+
+void RustCodeContainer::generateComputeInterfaceHeader(int n, std::ostream* fOut,int fNumInputs, int fNumOutputs)
+{
+    // Compute "compute" declaration
+    *fOut << "fn compute("
+          << "&mut self, " << fFullCount
+          << ": i32, inputs: & [& [Self::T] ]"
+          << ", outputs: & mut[& mut[Self::T] ]) {";
+    tab(n + 1, *fOut);
+}
+
+void RustCodeContainer::generateComputeInterface(int n)
+{
+    // Generates declaration
+    tab(n, *fOut);
+    tab(n, *fOut);
+    generateComputeInterfaceHeader(n, fOut, fNumInputs, fNumOutputs);
+    tab(n + 1, *fOut);
+
+    *fOut << "let input_array = inputs.split_at("<<fNumInputs<<").0.try_into().expect(\"too few input buffers\");";
+    tab(n + 1, *fOut);
+    *fOut << "let output_array = outputs.split_at_mut("<<fNumOutputs<<").0.try_into().expect(\"too few output buffers\");";
+    tab(n + 1, *fOut);
+    *fOut << "self.compute_arrays(count, input_array, output_array);";
+    tab(n, *fOut);
+    *fOut << "}" << endl;
+}
+
+
 // Scalar
 RustScalarCodeContainer::RustScalarCodeContainer(const string& name, int numInputs, int numOutputs,
                                                  std::ostream* out, int sub_container_type)
@@ -545,9 +597,7 @@ void RustScalarCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {",
-                   fFullCount);
+    generateComputeHeader(n, fOut, fNumInputs, fNumOutputs);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -593,9 +643,7 @@ void RustVectorCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     *fOut << "#[allow(unused_mut)]";
     tab(n, *fOut);
-    *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {",
-                   fFullCount);
+    generateComputeHeader(n, fOut, fNumInputs, fNumOutputs);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -661,10 +709,7 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    tab(n, *fOut);
-    *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {",
-                   fFullCount);
+    generateComputeHeader(n, fOut, fNumInputs, fNumOutputs);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -706,12 +751,8 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
 
     tab(n, *fOut);
     *fOut << "}" << endl;
-
-    // Compute "compute" declaration
-    tab(n, *fOut);
-    *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {",
-                   fFullCount);
+    generateComputeHeader(n, fOut, fNumInputs, fNumOutputs);
+    
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
