@@ -107,6 +107,8 @@ class ppsigShared final : public ppsig {
                            Tree zz) const;
     std::ostream& printfun(std::ostream& fout, const std::string& funame, Tree x, Tree y, Tree z,
                            Tree z2, Tree z3) const;
+    std::ostream& printfun(std::ostream& fout, const std::string& funame,
+                                   const tvec& args) const;
     std::ostream& printout(std::ostream& fout, int i, Tree x) const;
     std::ostream& printlist(std::ostream& fout, Tree largs) const;
     std::ostream& printff(std::ostream& fout, Tree ff, Tree largs) const;
