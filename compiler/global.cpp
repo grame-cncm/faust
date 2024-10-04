@@ -1674,8 +1674,13 @@ bool global::processCmdline(int argc, const char* argv[])
     if (gOneSample && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "dlang" &&
         !startWith(gOutputLang, "cmajor") && gOutputLang != "fir") {
         throw faustexception(
-            "ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'cmajor' "
+            "ERROR : '-os' option can only be used with 'cpp', 'c', 'fir' or 'cmajor' "
             "backends\n");
+    }
+    
+    if (gExtControl && gOutputLang != "cpp" && gOutputLang != "c" &&  gOutputLang != "cmajor") {
+        throw faustexception("ERROR : '-ec' option can only be used with 'cpp', 'c' or 'cmajor' "
+                             "backends\n");
     }
 
     if (gOneSample && gVectorSwitch) {
