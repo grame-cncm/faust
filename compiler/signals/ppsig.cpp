@@ -476,6 +476,17 @@ ostream& ppsigShared::printfun(ostream& fout, const string& funame, Tree x, Tree
                 << ppsigShared(z3, fEnv) << ')';
 }
 
+ostream& ppsigShared::printfun(ostream& fout, const string& funame, const tvec& args) const
+{
+    fout << funame;
+    char sep = '(';
+    for (auto arg : args) {
+        fout << sep << ' ' << ppsigShared(arg, fEnv);
+        sep = ',';
+    }
+    return fout << " )";
+}
+
 ostream& ppsigShared::printui(ostream& fout, const string& funame, Tree label) const
 {
     fout << funame << '(';
@@ -687,7 +698,28 @@ ostream& ppsigShared::print(ostream& fout) const
     } else if (isSigSoundfileBuffer(fSig, sf, x, y, z)) {
         SIG_INSERT_ID(printfun(s, "buffer", sf, x, y, z));
     }
-
+    
+    else if (isSigFIR(fSig)) {
+        SIG_INSERT_ID(printfir(s, fSig->branches()));
+    } else if (isSigIIR(fSig)) {
+        SIG_INSERT_ID(printiir(s, fSig->branches()));
+    } else if (isSigSum(fSig)) {
+        SIG_INSERT_ID(printfun(s, "sum", fSig->branches()));
+    }
+    
+    else if (isSigTempVar(fSig, x)) {
+        SIG_INSERT_ID(printfun(s, "tempvar", x));
+    } else if (isSigPermVar(fSig, x)) {
+        SIG_INSERT_ID(printfun(s, "permvar", x));
+    } else if (isSigSeq(fSig, x, y)) {
+        SIG_INSERT_ID(printfun(s, "seq", x, y));
+    } else if (isSigOD(fSig)) {
+        SIG_INSERT_ID(printfun(s, "ondemand", fSig->branches()));
+    } else if (isSigClocked(fSig, x, y)) {
+        // printfun(fout, "clocked", y);
+        SIG_INSERT_ID(s << "clocked(" << ppsigShared(y, fEnv, fPriority) << ")");
+    }
+  
     else if (isSigAttach(fSig, x, y)) {
         SIG_INSERT_ID(printfun(s, "attach", x, y));
     } else if (isSigEnable(fSig, x, y)) {
@@ -698,6 +730,10 @@ ostream& ppsigShared::print(ostream& fout) const
 
     else if (isSigRegister(fSig, &i, x)) {
         SIG_INSERT_ID(printfun(s, "register", sigInt(i), x));
+    }
+    
+    else if (isNil(fSig)) {
+        fout << "NIL";
     }
 
     else {
