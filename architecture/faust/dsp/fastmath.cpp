@@ -32,9 +32,9 @@
 #endif
 
 #ifdef _WIN32
-#define EXPORT __declspec(dllexport) __attribute__((always_inline))
+#define EXPORT __declspec(dllexport) __attribute__((always_inline)) static
 #else
-#define EXPORT __attribute__((visibility("default"))) __attribute__((always_inline))
+#define EXPORT __attribute__((visibility("default"))) __attribute__((always_inline)) static
 #endif
 
 #ifdef __cplusplus
