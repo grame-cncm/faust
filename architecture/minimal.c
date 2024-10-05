@@ -77,10 +77,10 @@ int main(int argc, char* argv[])
     FAUSTFLOAT* inputs[getNumInputsmydsp(dsp)];
     FAUSTFLOAT* outputs[getNumOutputsmydsp(dsp)];
     for (int chan = 0; chan < getNumInputsmydsp(dsp); ++chan) {
-        inputs[chan] = malloc(sizeof(FAUSTFLOAT) * BUFFER_SIZE);
+        inputs[chan] = (FAUSTFLOAT*)malloc(sizeof(FAUSTFLOAT) * BUFFER_SIZE);
     }
     for (int chan = 0; chan < getNumOutputsmydsp(dsp); ++chan) {
-        outputs[chan] = malloc(sizeof(FAUSTFLOAT) * BUFFER_SIZE);
+        outputs[chan] = (FAUSTFLOAT*)malloc(sizeof(FAUSTFLOAT) * BUFFER_SIZE);
     }
     computemydsp(dsp, BUFFER_SIZE, inputs, outputs);
     

@@ -17787,19 +17787,14 @@ float fast_atan2f(float y, float x)
 
 /* fast log lookup table, precision 16, size 65536 */
 
-static uint32_t log_precision;
-static uint32_t pow_precision;
+/*
+static uint32_t log_precision = log2i(16);
+static uint32_t pow_precision = log2i(65536);
+*/
 
-// Initialize the precision values
-
-bool initialize_precisions()
-{
-    log_precision = log2i(16);
-    pow_precision = log2i(65536);
-    return true;
-}
-
-const bool init = initialize_precisions();
+// Done manually for the C compiler to work
+static uint32_t log_precision = 4;        // log2i(16) is 4
+static uint32_t pow_precision = 16;       // log2i(65536) is 16
 
 float fast_powf(float x, float y)
 {
@@ -17829,13 +17824,13 @@ float fast_logf(float x)
 float fast_log10f(float x)
 {
     // log10 (x) equals log (x) / log (10)
-    return icsi_log(x, log_table, log_precision) / (static_cast<float>(M_LN10));
+    return icsi_log(x, log_table, log_precision) / (float)(M_LN10);
 }
 
 float fast_log2f(float x)
 {
     // log2 (x) equals log (x) / log (2)
-    return icsi_log(x, log_table, log_precision) / (static_cast<float>(M_LN2));
+    return icsi_log(x, log_table, log_precision) / (float)(M_LN2);
 }
 
 // 'double' version: to improve
