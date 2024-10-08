@@ -280,12 +280,6 @@ class RustInstVisitor : public TextInstVisitor {
 
         // Only generates additional functions
         if (fMathLibTable.find(inst->fName) == fMathLibTable.end()) {
-            // Prototype
-            // Since functions are attached to a trait they must not be prefixed with "pub".
-            // In case we need a mechanism to attach functions to both traits and normal
-            // impls, we need a mechanism to forward the information whether to use "pub"
-            // or not. In the worst case, we have to prefix the name string like "pub fname",
-            // and handle the prefix here.
             *fOut << "fn " << inst->fName;
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
