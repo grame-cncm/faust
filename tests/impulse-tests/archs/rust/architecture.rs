@@ -58,19 +58,16 @@ pub struct Soundfile<'a> {
 pub trait FaustDsp {
     type T;
 
-    fn new() -> Self where Self: Sized;
     fn metadata(&self, m: &mut dyn Meta);
     fn get_sample_rate(&self) -> i32;
     fn get_num_inputs(&self) -> i32;
     fn get_num_outputs(&self) -> i32;
-    fn class_init(sample_rate: i32) where Self: Sized;
     fn instance_reset_params(&mut self);
     fn instance_clear(&mut self);
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
     fn init(&mut self, sample_rate: i32);
     fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>);
-    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized;
     fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
     fn set_param(&mut self, param: ParamIndex, value: Self::T);
     fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]);
@@ -244,4 +241,48 @@ fn main() {
     //run_dsp(new_dsp(), block_size, 1 * block_size, &mut output_file);
     //run_dsp(new_dsp(), block_size, 2 * block_size, &mut output_file);
     //run_dsp(new_dsp(), block_size, 3 * block_size, &mut output_file);
+}
+
+impl FaustDsp for mydsp {
+    type T = F64;
+
+    fn metadata(&self, m: &mut dyn Meta) {
+        self.metadata(m)
+    }
+    fn get_sample_rate(&self) -> i32 {
+        self.get_sample_rate()
+    }
+    fn get_num_inputs(&self) -> i32 {
+        self.get_num_inputs()
+    }
+    fn get_num_outputs(&self) -> i32 {
+        self.get_num_outputs()
+    }
+    fn instance_reset_params(&mut self) {
+        self.instance_reset_params()
+    }
+    fn instance_clear(&mut self) {
+        self.instance_clear()
+    }
+    fn instance_constants(&mut self, sample_rate: i32) {
+        self.instance_constants(sample_rate)
+    }
+    fn instance_init(&mut self, sample_rate: i32) {
+        self.instance_init(sample_rate)
+    }
+    fn init(&mut self, sample_rate: i32) {
+        self.init(sample_rate)
+    }
+    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {
+        self.build_user_interface(ui_interface)
+    }
+    fn get_param(&self, param: ParamIndex) -> Option<Self::T> {
+        self.get_param(param)
+    }
+    fn set_param(&mut self, param: ParamIndex, value: Self::T) {
+        self.set_param(param, value)
+    }
+    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {
+        self.compute(count, inputs, outputs)
+    }
 }
