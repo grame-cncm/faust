@@ -209,7 +209,7 @@ fn main() {
     dsp.init(44100);
 
     // Print UI
-    let mut printer = PrintUI::<f32>{ phantom: PhantomData };
+    let mut printer = PrintUI::<FaustFloat>{ phantom: PhantomData };
     dsp.build_user_interface(&mut printer);
 
     // Print Meta

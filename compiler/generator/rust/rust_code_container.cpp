@@ -122,7 +122,7 @@ void RustCodeContainer::produceInternal()
     // generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&fCodeProducer);
 
     tab(n + 1, *fOut);
-    *fOut << "fn instance_init" << fKlassName << "(&mut self, sample_rate: i32) {";
+    *fOut << "pub fn instance_init" << fKlassName << "(&mut self, sample_rate: i32) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -136,12 +136,12 @@ void RustCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
-        *fOut << "fn fill" << fKlassName
+        *fOut << "pub fn fill" << fKlassName
               << subst("(&mut self, $0: i32, table: &mut[i32]) {", counter);
     } else {
         tab(n + 1, *fOut);
-        *fOut << "fn fill" << fKlassName
-              << subst("(&mut self, $0: i32, table: &mut[$1]) {", counter, ifloat());
+        *fOut << "pub fn fill" << fKlassName
+              << subst("(&mut self, $0: i32, table: &mut[FaustFloat]) {", counter);
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
@@ -168,9 +168,71 @@ void RustCodeContainer::produceInternal()
     *fOut << "}";
 }
 
+void RustCodeContainer::produceFaustDspBlob()
+{
+*fOut <<
+"\
+impl FaustDsp for " << fKlassName << " {\n\
+    type T = FaustFloat;\n\
+    fn new() -> Self where Self: Sized {\n\
+        Self::new()\n\
+    }\n\
+    fn metadata(&self, m: &mut dyn Meta) {\n\
+        self.metadata(m)\n\
+    }\n\
+    fn get_sample_rate(&self) -> i32 {\n\
+        self.get_sample_rate()\n\
+    }\n\
+    fn get_num_inputs(&self) -> i32 {\n\
+        self.get_num_inputs()\n\
+    }\n\
+    fn get_num_outputs(&self) -> i32 {\n\
+        self.get_num_outputs()\n\
+    }\n\
+    fn class_init(sample_rate: i32) where Self: Sized {\n\
+        Self::class_init(sample_rate);\n\
+    }\n\
+    fn instance_reset_params(&mut self) {\n\
+        self.instance_reset_params()\n\
+    }\n\
+    fn instance_clear(&mut self) {\n\
+        self.instance_clear()\n\
+    }\n\
+    fn instance_constants(&mut self, sample_rate: i32) {\n\
+        self.instance_constants(sample_rate)\n\
+    }\n\
+    fn instance_init(&mut self, sample_rate: i32) {\n\
+        self.instance_init(sample_rate)\n\
+    }\n\
+    fn init(&mut self, sample_rate: i32) {\n\
+        self.init(sample_rate)\n\
+    }\n\
+    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {\n\
+        self.build_user_interface(ui_interface)\n\
+    }\n\
+    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized {\n\
+        Self::build_user_interface_static(ui_interface);\n\
+    }\n\
+    fn get_param(&self, param: ParamIndex) -> Option<Self::T> {\n\
+        self.get_param(param)\n\
+    }\n\
+    fn set_param(&mut self, param: ParamIndex, value: Self::T) {\n\
+        self.set_param(param, value)\n\
+    }\n\
+    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {\n\
+        self.compute(count, inputs, outputs)\n\
+    }\n\
+}\n\
+";
+
+}
+
 void RustCodeContainer::produceClass()
 {
     int n = 0;
+    tab(n, *fOut);
+    *fOut << "pub type FaustFloat = " << ifloat() << ";";
+
     tab(n, *fOut);
     *fOut << "use std::convert::TryInto;";
 
@@ -204,13 +266,13 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-        *fOut << "fn remainder_f32(from: f32, to: f32) -> f32 {";
+        *fOut << "pub fn remainder_f32(from: f32, to: f32) -> f32 {";
         tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::remainderf(from, to) }";
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-        *fOut << "fn rint_f32(val: f32) -> f32 {";
+        *fOut << "pub fn rint_f32(val: f32) -> f32 {";
         tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::rintf(val) }";
         tab(n, *fOut);
@@ -219,7 +281,7 @@ void RustCodeContainer::produceClass()
 
         /*
         tab(n, *fOut);
-        *fOut << "fn remainder_f32(a: f32, b: f32) -> f32 { let n = (a/b).round(); a - b*n }";
+        *fOut << "pub fn remainder_f32(a: f32, b: f32) -> f32 { let n = (a/b).round(); a - b*n }";
         tab(n, *fOut);
         */
     } else if (gGlobal->gFloatSize == 2) {
@@ -241,13 +303,13 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-        *fOut << "fn remainder_f64(from: f64, to: f64) -> f64 {";
+        *fOut << "pub fn remainder_f64(from: f64, to: f64) -> f64 {";
         tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::remainder(from, to) }";
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-        *fOut << "fn rint_f64(val: f64) -> f64 {";
+        *fOut << "pub fn rint_f64(val: f64) -> f64 {";
         tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::rint(val) }";
         tab(n, *fOut);
@@ -256,7 +318,7 @@ void RustCodeContainer::produceClass()
 
         /*
         tab(n, *fOut);
-        *fOut << "fn remainder_f64(a: f64, b: f64) -> f64 { let n = (a/b).round(); a - b*n }";
+        *fOut << "pub fn remainder_f64(a: f64, b: f64) -> f64 { let n = (a/b).round(); a - b*n }";
         tab(n, *fOut);
         */
     }
@@ -294,14 +356,6 @@ void RustCodeContainer::produceClass()
     *fOut << "impl " << fKlassName << " {";
     generateCompute(n + 1);
     tab(n, *fOut);
-    *fOut << "}" << endl;
-    tab(n, *fOut);
-
-    *fOut << "impl FaustDsp for " << fKlassName << " {";
-
-    // Associated type
-    tab(n + 1, *fOut);
-    *fOut << "type T = " << ifloat() << ";";
 
     // Memory methods
     tab(n + 2, *fOut);
@@ -326,7 +380,7 @@ void RustCodeContainer::produceClass()
         tab(n + 1, *fOut);
     }
 
-    *fOut << "fn new() -> " << fKlassName << " { ";
+    *fOut << "pub fn new() -> " << fKlassName << " { ";
     if (fAllocateInstructions->fCode.size() > 0) {
         tab(n + 2, *fOut);
         *fOut << "allocate" << fKlassName << "(dsp);";
@@ -364,7 +418,7 @@ void RustCodeContainer::produceClass()
     // generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&codeproducer2);
 
     tab(n + 1, *fOut);
-    *fOut << "fn class_init(sample_rate: i32) {";
+    *fOut << "pub fn class_init(sample_rate: i32) {";
     {
         tab(n + 2, *fOut);
         // Local visitor here to avoid DSP object type wrong generation
@@ -376,7 +430,7 @@ void RustCodeContainer::produceClass()
     *fOut << "}";
 
     tab(n + 1, *fOut);
-    *fOut << "fn instance_reset_params(&mut self) {";
+    *fOut << "pub fn instance_reset_params(&mut self) {";
     {
         tab(n + 2, *fOut);
         // Local visitor here to avoid DSP object type wrong generation
@@ -388,7 +442,7 @@ void RustCodeContainer::produceClass()
     *fOut << "}";
 
     tab(n + 1, *fOut);
-    *fOut << "fn instance_clear(&mut self) {";
+    *fOut << "pub fn instance_clear(&mut self) {";
     {
         tab(n + 2, *fOut);
         // Local visitor here to avoid DSP object type wrong generation
@@ -400,7 +454,7 @@ void RustCodeContainer::produceClass()
     *fOut << "}";
 
     tab(n + 1, *fOut);
-    *fOut << "fn instance_constants(&mut self, sample_rate: i32) {";
+    *fOut << "pub fn instance_constants(&mut self, sample_rate: i32) {";
     {
         tab(n + 2, *fOut);
         // Local visitor here to avoid DSP object type wrong generation
@@ -412,7 +466,7 @@ void RustCodeContainer::produceClass()
     *fOut << "}";
 
     tab(n + 1, *fOut);
-    *fOut << "fn instance_init(&mut self, sample_rate: i32) {";
+    *fOut << "pub fn instance_init(&mut self, sample_rate: i32) {";
     tab(n + 2, *fOut);
     *fOut << "self.instance_constants(sample_rate);";
     tab(n + 2, *fOut);
@@ -423,7 +477,7 @@ void RustCodeContainer::produceClass()
     *fOut << "}";
 
     tab(n + 1, *fOut);
-    *fOut << "fn init(&mut self, sample_rate: i32) {";
+    *fOut << "pub fn init(&mut self, sample_rate: i32) {";
     tab(n + 2, *fOut);
     *fOut << fKlassName << "::class_init(sample_rate);";
     tab(n + 2, *fOut);
@@ -440,7 +494,7 @@ void RustCodeContainer::produceClass()
     // User interface (non-static method)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {";
+    *fOut << "pub fn build_user_interface(&self, ui_interface: &mut dyn UI<FaustFloat>) {";
     tab(n + 2, *fOut);
     *fOut << "Self::build_user_interface_static(ui_interface);";
     tab(n + 1, *fOut);
@@ -449,7 +503,7 @@ void RustCodeContainer::produceClass()
     // User interface (static method)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) {";
+    *fOut << "pub fn build_user_interface_static(ui_interface: &mut dyn UI<FaustFloat>) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     RustUIInstVisitor uiCodeproducer(fOut, "", parameterLookup, n + 2);
@@ -466,14 +520,13 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "}" << endl;
     tab(n, *fOut);
-
-
+    produceFaustDspBlob();
 }
 
 void RustCodeContainer::produceMetadata(int n)
 {
     tab(n, *fOut);
-    *fOut << "fn metadata(&self, m: &mut dyn Meta) { ";
+    *fOut << "pub fn metadata(&self, m: &mut dyn Meta) { ";
 
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is
     // kept
@@ -518,7 +571,7 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     // Add `get_param`
     tab(tabs, *fOut);
     tab(tabs, *fOut);
-    *fOut << "fn get_param(&self, param: ParamIndex) -> Option<Self::T> {";
+    *fOut << "pub fn get_param(&self, param: ParamIndex) -> Option<FaustFloat> {";
     tab(tabs + 1, *fOut);
     *fOut << "match param.0 {";
     for (const auto& paramPair : parameterLookup) {
@@ -537,7 +590,7 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     // Add `set_param`
     tab(tabs, *fOut);
     tab(tabs, *fOut);
-    *fOut << "fn set_param(&mut self, param: ParamIndex, value: Self::T) {";
+    *fOut << "pub fn set_param(&mut self, param: ParamIndex, value: FaustFloat) {";
     tab(tabs + 1, *fOut);
     *fOut << "match param.0 {";
     for (const auto& paramPair : parameterLookup) {
@@ -558,19 +611,22 @@ void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut, int fNu
                                               int fNumOutputs)
 {
     // Compute "compute" declaration
-    *fOut << "fn compute_arrays("
-          << "&mut self, " << fFullCount << ": i32, inputs: &[&[" << ifloat() << "] ; "
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "pub fn compute_arrays("
+          << "&mut self, " << fFullCount << ": i32, inputs: &[&[FaustFloat] ; " 
           << fNumInputs << "]"
-          << ", outputs: &mut [&mut [" << ifloat() << "] ; " << fNumOutputs << "]) {";
+          << ", outputs: &mut [&mut [FaustFloat] ; " << fNumOutputs << "]) {";
+    tab(n + 1, *fOut);
 }
 
 void RustCodeContainer::generateComputeInterfaceHeader(int n, std::ostream* fOut, int fNumInputs,
                                                        int fNumOutputs)
 {
     // Compute "compute" declaration
-    *fOut << "fn compute("
-          << "&mut self, " << fFullCount << ": i32, inputs: & [& [Self::T] ]"
-          << ", outputs: & mut[& mut[Self::T] ]) {";
+    *fOut << "pub fn compute("
+          << "&mut self, " << fFullCount << ": i32, inputs: & [& [FaustFloat] ]"
+          << ", outputs: & mut[& mut[FaustFloat] ]) {";
     tab(n + 1, *fOut);
 }
 

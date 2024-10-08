@@ -286,7 +286,7 @@ class RustInstVisitor : public TextInstVisitor {
             // impls, we need a mechanism to forward the information whether to use "pub"
             // or not. In the worst case, we have to prefix the name string like "pub fname",
             // and handle the prefix here.
-            *fOut << "fn " << inst->fName;
+            *fOut << "pub fn " << inst->fName;
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
         }
