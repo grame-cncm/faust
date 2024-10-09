@@ -150,10 +150,10 @@ fn main() {
         let output0: &mut[f32] = &mut out_a_p;
         let output1: &mut[f32] = &mut out_b_p;
 
-        let inputs = &[input0, input1];
-        let outputs = &mut[output0, output1];
+        let inputs = vec![input0, input1];
+        let mut outputs = vec![output0, output1];
 
-        dsp.compute(in_a_p.len() as i32, inputs, outputs);
+        dsp.compute(in_a_p.len() as i32, inputs.as_slice(), outputs.as_mut_slice());
 
         j::JackControl::Continue
     };
