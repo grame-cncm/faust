@@ -141,7 +141,7 @@ void RustCodeContainer::produceInternal()
     } else {
         tab(n + 1, *fOut);
         *fOut << "pub fn fill" << fKlassName
-              << subst("(&mut self, $0: i32, table: &mut[$1]) {", counter, ifloat());
+              << subst("(&mut self, $0: i32, table: &mut[FaustFloat]) {", counter);
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
@@ -171,6 +171,9 @@ void RustCodeContainer::produceInternal()
 void RustCodeContainer::produceClass()
 {
     int n = 0;
+    tab(n, *fOut);
+    *fOut << "pub type FaustFloat = " << ifloat() << ";";
+
     tab(n, *fOut);
     *fOut << "use std::convert::TryInto;";
 
@@ -418,7 +421,7 @@ void RustCodeContainer::produceClass()
     // User interface (non-static method)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "pub fn build_user_interface(&self, ui_interface: &mut dyn UI<" << ifloat() << ">) {";
+    *fOut << "pub fn build_user_interface(&self, ui_interface: &mut dyn UI<FaustFloat>) {";
     tab(n + 2, *fOut);
     *fOut << "Self::build_user_interface_static(ui_interface);";
     tab(n + 1, *fOut);
@@ -427,7 +430,7 @@ void RustCodeContainer::produceClass()
     // User interface (static method)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "pub fn build_user_interface_static(ui_interface: &mut dyn UI<" << ifloat() << ">) {";
+    *fOut << "pub fn build_user_interface_static(ui_interface: &mut dyn UI<FaustFloat>) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     RustUIInstVisitor uiCodeproducer(fOut, "", parameterLookup, n + 2);
@@ -497,7 +500,7 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     // Add `get_param`
     tab(tabs, *fOut);
     tab(tabs, *fOut);
-    *fOut << "pub fn get_param(&self, param: ParamIndex) -> Option<" << ifloat() << "> {";
+    *fOut << "pub fn get_param(&self, param: ParamIndex) -> Option<FaustFloat> {";
     tab(tabs + 1, *fOut);
     *fOut << "match param.0 {";
     for (const auto& paramPair : parameterLookup) {
@@ -516,7 +519,7 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     // Add `set_param`
     tab(tabs, *fOut);
     tab(tabs, *fOut);
-    *fOut << "pub fn set_param(&mut self, param: ParamIndex, value: " << ifloat() << ") {";
+    *fOut << "pub fn set_param(&mut self, param: ParamIndex, value: FaustFloat) {";
     tab(tabs + 1, *fOut);
     *fOut << "match param.0 {";
     for (const auto& paramPair : parameterLookup) {
@@ -541,8 +544,8 @@ void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut,int fNum
     tab(n, *fOut);
     *fOut << "pub fn compute_arrays("
           << "&mut self, " << fFullCount
-          << ": i32, inputs: &[&[" << ifloat() << "] ; " << fNumInputs << "]"
-          << ", outputs: &mut [&mut [" << ifloat() << "] ; " << fNumOutputs << "]) {";
+          << ": i32, inputs: &[&[FaustFloat] ; " << fNumInputs << "]"
+          << ", outputs: &mut [&mut [FaustFloat] ; " << fNumOutputs << "]) {";
     tab(n + 1, *fOut);
 }
 
@@ -551,8 +554,8 @@ void RustCodeContainer::generateComputeInterfaceHeader(int n, std::ostream* fOut
     // Compute "compute" declaration
     *fOut << "pub fn compute("
           << "&mut self, " << fFullCount
-          << ": i32, inputs: & [& [" << ifloat() << "] ]"
-          << ", outputs: & mut[& mut[" << ifloat() << "] ]) {";
+          << ": i32, inputs: & [& [FaustFloat] ]"
+          << ", outputs: & mut[& mut[FaustFloat] ]) {";
     tab(n + 1, *fOut);
 }
 
