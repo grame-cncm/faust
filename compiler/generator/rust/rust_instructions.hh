@@ -267,7 +267,6 @@ class RustInstVisitor : public TextInstVisitor {
             }
         }
         tab(fTab, *fOut);
-
     }
 
     virtual void visit(DeclareFunInst* inst)

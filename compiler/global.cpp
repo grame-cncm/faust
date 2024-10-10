@@ -1677,10 +1677,11 @@ bool global::processCmdline(int argc, const char* argv[])
             "ERROR : '-os' option can only be used with 'cpp', 'c', 'fir' or 'cmajor' "
             "backends\n");
     }
-    
-    if (gExtControl && gOutputLang != "cpp" && gOutputLang != "c" &&  gOutputLang != "cmajor") {
-        throw faustexception("ERROR : '-ec' option can only be used with 'cpp', 'c' or 'cmajor' "
-                             "backends\n");
+
+    if (gExtControl && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "cmajor") {
+        throw faustexception(
+            "ERROR : '-ec' option can only be used with 'cpp', 'c' or 'cmajor' "
+            "backends\n");
     }
 
     if (gOneSample && gVectorSwitch) {
@@ -2437,7 +2438,8 @@ string global::printHelp()
          << "-norm       --normalized-form           print signals in normalized form and exit."
          << endl;
     sstr << tab
-         << "-norm1      --normalized-form1          print signals in normalized form with IDs for shared sub-expressions and exit."
+         << "-norm1      --normalized-form1          print signals in normalized form with IDs for "
+            "shared sub-expressions and exit."
          << endl;
     sstr << tab
          << "-me         --math-exceptions           check / for 0 as denominator and remainder, "
