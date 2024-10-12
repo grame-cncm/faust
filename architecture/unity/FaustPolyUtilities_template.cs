@@ -282,7 +282,7 @@ namespace FaustUtilities_MODEL {
 
         #if UNITY_EDITOR_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_WSA || UNITY_WSA_10_0
         const string _dllName = "PLUGNAME";
-        #elif UNITY_IOS
+        #elif UNITY_IOS || UNITY_VISIONOS
         const string _dllName = "__Internal";
         #elif UNITY_EDITOR || UNITY_ANDROID || UNITY_STANDALONE_LINUX
         const string _dllName = "PLUGINNAME";
@@ -457,8 +457,11 @@ namespace FaustUtilities_MODEL {
                             success = parseUI(ref fJSON, ref faustUI.ui, ref numitems);
                             break;
                         default:
-                            // Unknown items should be parsed
-                            success = parseDQString(ref fJSON, out value);
+                            // Parse DQString or Num
+                            var fJsonCache = fJSON;
+                            if (success = parseDQString(ref fJSON, out value)) continue;
+                            fJSON = fJsonCache;
+                            success = parseNum(ref fJSON,  out value);
                             break;
                         }
                     }
