@@ -91,7 +91,7 @@ remote : developer
 	$(MAKE) -C embedded/faustremote all
 
 debug :
-	$(MAKE) -C $(BUILDLOCATION) FAUSTDIR=faustdebug CMAKEOPT=-DCMAKE_BUILD_TYPE=Debug
+	$(MAKE) -C $(BUILDLOCATION) FAUSTDIR=faustdebug RELEASE_TYPE=Debug NONDETERMINISM_LINT=yes
 #	$(MAKE) -C compiler debug -f $(MAKEFILE) prefix=$(prefix)
 
 ioslib :
