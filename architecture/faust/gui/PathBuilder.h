@@ -199,14 +199,19 @@ class FAUST_API PathBuilder {
         virtual ~PathBuilder() {}
     
         // Return true for the first level of groups
-        bool pushLabel(const std::string& label) { fControlsLevel.push_back(label); return fControlsLevel.size() == 1; }
+        bool pushLabel(const std::string& label_aux)
+        {
+            std::string label = replaceCharList(label_aux, {'/'}, '_');
+            fControlsLevel.push_back(label); return fControlsLevel.size() == 1;
+        }
     
         // Return true for the last level of groups
         bool popLabel() { fControlsLevel.pop_back(); return fControlsLevel.size() == 0; }
     
         // Return a complete path built from a label
-        std::string buildPath(const std::string& label)
+        std::string buildPath(const std::string& label_aux)
         {
+            std::string label = replaceCharList(label_aux, {'/'}, '_');
             std::string res = "/";
             for (size_t i = 0; i < fControlsLevel.size(); i++) {
                 res = res + fControlsLevel[i] + "/";

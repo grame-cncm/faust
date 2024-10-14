@@ -233,6 +233,9 @@ void CmajorCodeContainer::produceClass()
     }
 
     fUIVisitor.Tab(n + 1);
+    // First pass to build shortnames
+    generateUserInterface(&fUIVisitor);
+    // Second pass to generate
     generateUserInterface(&fUIVisitor);
     *fOut << fUIVisitor.fOut.str();
     generateDeclarations(&fCodeProducer);
@@ -256,6 +259,9 @@ void CmajorCodeContainer::produceClass()
     if (fUserInterfaceInstructions->fCode.size() > 0) {
         tab(n + 1, *fOut);
         fCodeProducer.Tab(n + 1);
+        // First pass to build shortnames
+        generateUserInterface(&fCodeProducer);
+        // Second pass to generate
         generateUserInterface(&fCodeProducer);
     }
 

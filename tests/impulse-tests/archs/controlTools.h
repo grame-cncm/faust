@@ -236,7 +236,6 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
 
-
 //---------------------------------------------------------------------
 // Soundfile: has to be global to be share across multiple instances
 //----------------------------------------------------------------------
