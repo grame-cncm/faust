@@ -183,10 +183,10 @@ void RustCodeContainer::produceFaustDspBlob()
     *fOut << tab << tab << "self.get_sample_rate()" << endl;
     *fOut << tab << "}" << endl;
     *fOut << tab << "fn get_num_inputs(&self) -> i32 {" << endl;
-    *fOut << tab << tab << "self.get_num_inputs()" << endl;
+    *fOut << tab << tab << "FAUST_INPUTS as i32" << endl;
     *fOut << tab << "}" << endl;
     *fOut << tab << "fn get_num_outputs(&self) -> i32 {" << endl;
-    *fOut << tab << tab << "self.get_num_outputs()" << endl;
+    *fOut << tab << tab << "FAUST_OUTPUTS as i32" << endl;
     *fOut << tab << "}" << endl;
     *fOut << tab << "fn class_init(sample_rate: i32) where Self: Sized {" << endl;
     *fOut << tab << tab << "Self::class_init(sample_rate);" << endl;
@@ -398,10 +398,6 @@ void RustCodeContainer::produceClass()
     fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
     *fOut << "fn get_sample_rate(&self) -> i32 { self.fSampleRate as i32}";
-    tab(n + 1, *fOut);
-    *fOut << "fn get_num_inputs(&self) -> i32 { FAUST_INPUTS as i32}";
-    tab(n + 1, *fOut);
-    *fOut << "fn get_num_outputs(&self) -> i32 { FAUST_OUTPUTS as i32}";
     tab(n + 1, *fOut);
 
     // Inits
