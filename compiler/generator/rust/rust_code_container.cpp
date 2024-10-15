@@ -219,7 +219,7 @@ void RustCodeContainer::produceFaustDspBlob()
     *fOut << tab << tab << "self.set_param(param, value)" << endl;
     *fOut << tab << "}" << endl;
     *fOut << tab << "fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {" << endl;
-    *fOut << tab << tab << "self.compute(count, inputs, outputs)" << endl;
+    *fOut << tab << tab << "self.compute(count as usize, inputs, outputs)" << endl;
     *fOut << tab << "}" << endl;
     *fOut << "}" << endl;
 }
@@ -607,7 +607,7 @@ void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut, int fNu
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "pub fn compute_arrays("
-          << "&mut self, " << fFullCount << ": i32, inputs: &[&[FaustFloat] ; " 
+          << "&mut self, " << fFullCount << ": usize, inputs: &[&[FaustFloat] ; "
           << fNumInputs << "]"
           << ", outputs: &mut [&mut [FaustFloat] ; " << fNumOutputs << "]) {";
     tab(n + 1, *fOut);
@@ -618,7 +618,7 @@ void RustCodeContainer::generateComputeInterfaceHeader(int n, std::ostream* fOut
 {
     // Compute "compute" declaration
     *fOut << "pub fn compute("
-          << "&mut self, " << fFullCount << ": i32, inputs: & [& [FaustFloat] ]"
+          << "&mut self, " << fFullCount << ": usize, inputs: & [& [FaustFloat] ]"
           << ", outputs: & mut[& mut[FaustFloat] ]) {";
     tab(n + 1, *fOut);
 }
@@ -798,6 +798,7 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
     // Generates "computeThread" code
     // Note that users either have to adjust the trait in their architecture file.
     // Alternatively we would have to attach this method to the impl, not the trait.
+    // We moved the method back to the impl.
     tab(n, *fOut);
     *fOut << "pub fn compute_thread(" << fKlassName << "&mut self, num_thread: i32) {";
     tab(n + 1, *fOut);
