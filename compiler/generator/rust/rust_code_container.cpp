@@ -170,61 +170,58 @@ void RustCodeContainer::produceInternal()
 
 void RustCodeContainer::produceFaustDspBlob()
 {
-*fOut <<
-"\
-impl FaustDsp for " << fKlassName << " {\n\
-    type T = FaustFloat;\n\
-    fn new() -> Self where Self: Sized {\n\
-        Self::new()\n\
-    }\n\
-    fn metadata(&self, m: &mut dyn Meta) {\n\
-        self.metadata(m)\n\
-    }\n\
-    fn get_sample_rate(&self) -> i32 {\n\
-        self.get_sample_rate()\n\
-    }\n\
-    fn get_num_inputs(&self) -> i32 {\n\
-        self.get_num_inputs()\n\
-    }\n\
-    fn get_num_outputs(&self) -> i32 {\n\
-        self.get_num_outputs()\n\
-    }\n\
-    fn class_init(sample_rate: i32) where Self: Sized {\n\
-        Self::class_init(sample_rate);\n\
-    }\n\
-    fn instance_reset_params(&mut self) {\n\
-        self.instance_reset_params()\n\
-    }\n\
-    fn instance_clear(&mut self) {\n\
-        self.instance_clear()\n\
-    }\n\
-    fn instance_constants(&mut self, sample_rate: i32) {\n\
-        self.instance_constants(sample_rate)\n\
-    }\n\
-    fn instance_init(&mut self, sample_rate: i32) {\n\
-        self.instance_init(sample_rate)\n\
-    }\n\
-    fn init(&mut self, sample_rate: i32) {\n\
-        self.init(sample_rate)\n\
-    }\n\
-    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {\n\
-        self.build_user_interface(ui_interface)\n\
-    }\n\
-    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized {\n\
-        Self::build_user_interface_static(ui_interface);\n\
-    }\n\
-    fn get_param(&self, param: ParamIndex) -> Option<Self::T> {\n\
-        self.get_param(param)\n\
-    }\n\
-    fn set_param(&mut self, param: ParamIndex, value: Self::T) {\n\
-        self.set_param(param, value)\n\
-    }\n\
-    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {\n\
-        self.compute(count, inputs, outputs)\n\
-    }\n\
-}\n\
-";
-
+    const char*  tab  = "  ";
+    *fOut << "impl FaustDsp for " << fKlassName << " {" << endl;
+    *fOut << tab << "type T = FaustFloat;" << endl;
+    *fOut << tab << "fn new() -> Self where Self: Sized {" << endl;
+    *fOut << tab << tab << "Self::new()" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn metadata(&self, m: &mut dyn Meta) {" << endl;
+    *fOut << tab << tab << "self.metadata(m)" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn get_sample_rate(&self) -> i32 {" << endl;
+    *fOut << tab << tab << "self.get_sample_rate()" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn get_num_inputs(&self) -> i32 {" << endl;
+    *fOut << tab << tab << "self.get_num_inputs()" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn get_num_outputs(&self) -> i32 {" << endl;
+    *fOut << tab << tab << "self.get_num_outputs()" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn class_init(sample_rate: i32) where Self: Sized {" << endl;
+    *fOut << tab << tab << "Self::class_init(sample_rate);" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn instance_reset_params(&mut self) {" << endl;
+    *fOut << tab << tab << "self.instance_reset_params()" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn instance_clear(&mut self) {" << endl;
+    *fOut << tab << tab << "self.instance_clear()" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn instance_constants(&mut self, sample_rate: i32) {" << endl;
+    *fOut << tab << tab << "self.instance_constants(sample_rate)" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn instance_init(&mut self, sample_rate: i32) {" << endl;
+    *fOut << tab << tab << "self.instance_init(sample_rate)" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn init(&mut self, sample_rate: i32) {" << endl;
+    *fOut << tab << tab << "self.init(sample_rate)" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {" << endl;
+    *fOut << tab << tab << "self.build_user_interface(ui_interface)" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized {" << endl;
+    *fOut << tab << tab << "Self::build_user_interface_static(ui_interface);" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn get_param(&self, param: ParamIndex) -> Option<Self::T> {" << endl;
+    *fOut << tab << tab << "self.get_param(param)" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn set_param(&mut self, param: ParamIndex, value: Self::T) {" << endl;
+    *fOut << tab << tab << "self.set_param(param, value)" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << tab << "fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {" << endl;
+    *fOut << tab << tab << "self.compute(count, inputs, outputs)" << endl;
+    *fOut << tab << "}" << endl;
+    *fOut << "}" << endl;
 }
 
 void RustCodeContainer::produceClass()
