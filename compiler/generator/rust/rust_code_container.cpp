@@ -263,13 +263,13 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-        *fOut << "pub fn remainder_f32(from: f32, to: f32) -> f32 {";
+        *fOut << "fn remainder_f32(from: f32, to: f32) -> f32 {";
         tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::remainderf(from, to) }";
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-        *fOut << "pub fn rint_f32(val: f32) -> f32 {";
+        *fOut << "fn rint_f32(val: f32) -> f32 {";
         tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::rintf(val) }";
         tab(n, *fOut);
@@ -278,7 +278,7 @@ void RustCodeContainer::produceClass()
 
         /*
         tab(n, *fOut);
-        *fOut << "pub fn remainder_f32(a: f32, b: f32) -> f32 { let n = (a/b).round(); a - b*n }";
+        *fOut << "fn remainder_f32(a: f32, b: f32) -> f32 { let n = (a/b).round(); a - b*n }";
         tab(n, *fOut);
         */
     } else if (gGlobal->gFloatSize == 2) {
@@ -300,13 +300,13 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-        *fOut << "pub fn remainder_f64(from: f64, to: f64) -> f64 {";
+        *fOut << "fn remainder_f64(from: f64, to: f64) -> f64 {";
         tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::remainder(from, to) }";
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-        *fOut << "pub fn rint_f64(val: f64) -> f64 {";
+        *fOut << "fn rint_f64(val: f64) -> f64 {";
         tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::rint(val) }";
         tab(n, *fOut);
@@ -315,7 +315,7 @@ void RustCodeContainer::produceClass()
 
         /*
         tab(n, *fOut);
-        *fOut << "pub fn remainder_f64(a: f64, b: f64) -> f64 { let n = (a/b).round(); a - b*n }";
+        *fOut << "fn remainder_f64(a: f64, b: f64) -> f64 { let n = (a/b).round(); a - b*n }";
         tab(n, *fOut);
         */
     }
@@ -351,7 +351,6 @@ void RustCodeContainer::produceClass()
 
     tab(n, *fOut);
     *fOut << "impl " << fKlassName << " {";
-    generateCompute(n + 1);
     tab(n, *fOut);
 
     // Memory methods
@@ -512,6 +511,7 @@ void RustCodeContainer::produceClass()
     produceParameterGetterSetter(n + 1, parameterLookup);
 
     // Compute
+    generateCompute(n + 1);
     generateComputeInterface(n + 1);
 
     tab(n, *fOut);
