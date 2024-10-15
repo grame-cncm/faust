@@ -451,7 +451,9 @@ void global::reset()
     gGroupTaskSwitch = false;
     gFunTaskSwitch   = false;
 
-    gUIMacroSwitch = false;
+    gUIMacroSwitch     = false;
+    gRustNoTraitSwitch = false;
+
     gDumpNorm      = -1;
     gFTZMode       = 0;
     gRangeUI       = false;
@@ -1371,6 +1373,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gUIMacroSwitch = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-rnt", "--rust-no-faustdsp-trait")) {
+            gRustNoTraitSwitch = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-t", "--timeout") && (i + 1 < argc)) {
             gTimeout = std::atoi(argv[i + 1]);
             i += 2;
@@ -1661,6 +1667,10 @@ bool global::processCmdline(int argc, const char* argv[])
     // ========================
     // Check options coherency
     // ========================
+
+    if (gRustNoTraitSwitch && gOutputLang != "rust") {
+        throw faustexception("ERROR : '-rnt' option can only be used with rust\n");
+    }
 
     if (gInPlace && gVectorSwitch) {
         throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n");
@@ -2113,6 +2123,10 @@ string global::printHelp()
     sstr << tab
          << "-uim      --user-interface-macros       add user interface macro definitions to the "
             "output code."
+         << endl;
+    sstr << tab
+         << "-rnt      --rust-no-faustdsp-trait      (Rust only) Don't generate FaustDsp trait"
+         "implmentation."
          << endl;
     sstr << tab << "-xml                                    generate an XML description file."
          << endl;

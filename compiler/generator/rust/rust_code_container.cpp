@@ -402,7 +402,7 @@ void RustCodeContainer::produceClass()
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
-    *fOut << "fn get_sample_rate(&self) -> i32 { self.fSampleRate as i32}";
+    *fOut << "pub fn get_sample_rate(&self) -> i32 { self.fSampleRate as i32}";
     tab(n + 1, *fOut);
 
     // Inits
@@ -518,7 +518,9 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "}" << endl;
     tab(n, *fOut);
-    produceFaustDspBlob();
+    if (!gGlobal->gRustNoTraitSwitch) {
+        produceFaustDspBlob();
+    }
 }
 
 void RustCodeContainer::produceMetadata(int n)
