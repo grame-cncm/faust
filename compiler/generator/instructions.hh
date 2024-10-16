@@ -3354,7 +3354,8 @@ struct ZoneArray : public virtual Garbageable {
     // Associate a variable (scalar or array) with the correspondinf index in iZone/fZone
     std::map<std::string, int> fMap;
 
-    // Shared between iZone and fZone
+    // Shared between iZone and fZone, and progressively decremented when allocating in DSP
+    // until 0 with allocation moving then to external memory.
     static int gInternalMemorySize;
 
     static Typed::VarType getConstType(const std::string& name)
@@ -3380,7 +3381,7 @@ struct ZoneArray : public virtual Garbageable {
     {
         if (fMap.count(vname) == 0) {
             int size = dynamic_cast<ArrayTyped*>(type)->fSize;
-            if (size <= fDLThreshold && size <= gInternalMemorySize && !is_static) {
+            if ((size <= fDLThreshold || size <= gInternalMemorySize) && !is_static) {
                 gInternalMemorySize -= size;
                 return IB::genDeclareVarInst(IB::genNamedAddress(vname, Address::kStruct), type,
                                              exp);
