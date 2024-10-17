@@ -203,7 +203,7 @@ fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, outp
         }
 
         dsp.compute(
-            buffer_size as i32,
+            buffer_size,
             in_buffer.iter().map(|buffer| buffer.as_slice()).collect::<Vec<&[T]>>().as_slice(),
             out_buffer.iter_mut().map(|buffer| buffer.as_mut_slice()).collect::<Vec<&mut [T]>>().as_mut_slice(),
         );
