@@ -174,6 +174,7 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "use std::convert::TryInto;";
 
+
     // Generate gub containers
     generateSubContainers();
 
@@ -261,6 +262,16 @@ void RustCodeContainer::produceClass()
     }
 
     tab(n, *fOut);
+    *fOut << "pub const FAUST_INPUTS: usize = " << fNumInputs << ";";
+    tab(n, *fOut);
+    *fOut << "pub const FAUST_OUTPUTS: usize = " << fNumOutputs << ";";
+    tab(n, *fOut);
+    *fOut << "pub const FAUST_ACTIVES: usize = " << fNumActives << ";";
+    tab(n, *fOut);
+    *fOut << "pub const FAUST_PASSIVES: usize = " << fNumPassives << ";";
+    tab(n, *fOut);
+
+    tab(n, *fOut);
     *fOut << "#[cfg_attr(feature = \"default-boxed\", derive(default_boxed::DefaultBoxed))]";
     if (gGlobal->gReprC) {
         tab(n, *fOut);
@@ -335,9 +346,13 @@ void RustCodeContainer::produceClass()
     // Get sample rate method
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
-    generateGetSampleRate("get_sample_rate", "&self", false, false)->accept(&fCodeProducer);
-
-    produceInfoFunctions(n + 1, "", "&self", false, FunTyped::kDefault, &fCodeProducer);
+    tab(n + 1, *fOut);
+    *fOut << "fn get_sample_rate(&self) -> i32 { self.fSampleRate as i32}";
+    tab(n + 1, *fOut);
+    *fOut << "fn get_num_inputs(&self) -> i32 { FAUST_INPUTS as i32}";
+    tab(n + 1, *fOut);
+    *fOut << "fn get_num_outputs(&self) -> i32 { FAUST_OUTPUTS as i32}";
+    tab(n + 1, *fOut);
 
     // Inits
 
@@ -452,8 +467,7 @@ void RustCodeContainer::produceClass()
     *fOut << "}" << endl;
     tab(n, *fOut);
 
-    // Generate user interface macros if needed
-    printMacros(*fOut, n);
+
 }
 
 void RustCodeContainer::produceMetadata(int n)
