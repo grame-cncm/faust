@@ -715,6 +715,9 @@ class uiCheckButton : public uiComponent, private juce::Button::Listener
         {
             int x = 0;
             int y = (getHeight()-h)/2;
+        
+            // Be sure the cache is initialized with the proper default value
+            fCache = 0;
             
             fCheckButton.setButtonText(label);
             fCheckButton.setBounds(x, y, w, h);
@@ -726,15 +729,16 @@ class uiCheckButton : public uiComponent, private juce::Button::Listener
         /** Indicate to the FAUST module when the button is toggled or not. */
         void buttonClicked(juce::Button* button) override
         {
-            //std::cout << getName() << " : " << button->getToggleState() << std::endl;
             modifyZone(button->getToggleState());
         }
 
         void reflectZone() override
         {
             FAUSTFLOAT v = *fZone;
+            if (v != fCache) {
+                fCheckButton.triggerClick();
+            }
             fCache = v;
-            fCheckButton.triggerClick();
         }
 
         /** Set the good coordinates and size to the juce::ToggleButton widget, whenever the layout size changes. */
