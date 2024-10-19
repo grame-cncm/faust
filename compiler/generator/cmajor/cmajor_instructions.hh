@@ -51,7 +51,7 @@ struct CmajorInstUIVisitor : public ShortnameInstVisitor {
     }
 
     void Tab(int tab) { fTab = tab; }
-    
+
     // Add metadata to the output if available and clear the metadata container
     void addMeta()
     {
@@ -62,7 +62,7 @@ struct CmajorInstUIVisitor : public ShortnameInstVisitor {
         }
         fMetaAux.clear();
     }
-    
+
     // Retrieve the "cmajor" metadata if present
     std::string getCmajorMetadata() const
     {
@@ -230,7 +230,7 @@ class CmajorInstVisitor : public TextInstVisitor {
 
     inline std::string checkFloat(float val) { return (std::isinf(val)) ? "inf" : T(val); }
     inline std::string checkDouble(double val) { return (std::isinf(val)) ? "inf" : T(val); }
-   
+
     std::string getCmajorMetadata() const
     {
         for (const auto& meta : fMetaAux) {

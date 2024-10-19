@@ -170,7 +170,7 @@ void RustCodeContainer::produceInternal()
 
 void RustCodeContainer::produceFaustDspBlob()
 {
-    const char*  tab  = "  ";
+    const char* tab = "  ";
     *fOut << "impl FaustDsp for " << fKlassName << " {" << endl;
     *fOut << tab << "type T = FaustFloat;" << endl;
     *fOut << tab << "fn new() -> Self where Self: Sized {" << endl;
@@ -209,7 +209,10 @@ void RustCodeContainer::produceFaustDspBlob()
     *fOut << tab << "fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {" << endl;
     *fOut << tab << tab << "self.build_user_interface(ui_interface)" << endl;
     *fOut << tab << "}" << endl;
-    *fOut << tab << "fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized {" << endl;
+    *fOut
+        << tab
+        << "fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized {"
+        << endl;
     *fOut << tab << tab << "Self::build_user_interface_static(ui_interface);" << endl;
     *fOut << tab << "}" << endl;
     *fOut << tab << "fn get_param(&self, param: ParamIndex) -> Option<Self::T> {" << endl;
@@ -218,7 +221,10 @@ void RustCodeContainer::produceFaustDspBlob()
     *fOut << tab << "fn set_param(&mut self, param: ParamIndex, value: Self::T) {" << endl;
     *fOut << tab << tab << "self.set_param(param, value)" << endl;
     *fOut << tab << "}" << endl;
-    *fOut << tab << "fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {" << endl;
+    *fOut << tab
+          << "fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut "
+             "[Self::T]]) {"
+          << endl;
     *fOut << tab << tab << "self.compute(count as usize, inputs, outputs)" << endl;
     *fOut << tab << "}" << endl;
     *fOut << "}" << endl;
@@ -232,7 +238,6 @@ void RustCodeContainer::produceClass()
 
     tab(n, *fOut);
     *fOut << "use std::convert::TryInto;";
-
 
     // Generate gub containers
     generateSubContainers();
@@ -607,8 +612,8 @@ void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut, int fNu
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "pub fn compute_arrays("
-          << "&mut self, " << fFullCount << ": usize, inputs: &[&[FaustFloat] ; "
-          << fNumInputs << "]"
+          << "&mut self, " << fFullCount << ": usize, inputs: &[&[FaustFloat] ; " << fNumInputs
+          << "]"
           << ", outputs: &mut [&mut [FaustFloat] ; " << fNumOutputs << "]) {";
     tab(n + 1, *fOut);
 }

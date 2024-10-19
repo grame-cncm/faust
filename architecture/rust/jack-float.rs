@@ -153,7 +153,7 @@ fn main() {
         let inputs = &[input0, input1];
         let outputs = &mut[output0, output1];
 
-        dsp.compute(in_a_p.len() as i32, inputs, outputs);
+        dsp.compute(in_a_p.len() as usize, inputs, outputs);
 
         j::JackControl::Continue
     };

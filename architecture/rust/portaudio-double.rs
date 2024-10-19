@@ -179,7 +179,7 @@ fn run() -> Result<(), pa::Error> {
             let outputs_ref: &mut [&mut [f64]] = &mut outputs_f64;
     
             // Compute using f64 inputs and outputs
-            dsp.compute(frames as i32, inputs_ref, outputs_ref);
+            dsp.compute(frames as usize, inputs_ref, outputs_ref);
     
             let out_buffer: *mut *mut f32 = ::std::mem::transmute(out_buffer.get_unchecked_mut(0));
             out_buffr = ::std::slice::from_raw_parts_mut(out_buffer, CHANNELS as usize);
