@@ -170,7 +170,7 @@ void RustCodeContainer::produceInternal()
 
 void RustCodeContainer::produceFaustDspBlob()
 {
-    const char* tab = "  ";
+    const char* tab = "\t";
     *fOut << "impl FaustDsp for " << fKlassName << " {" << endl;
     *fOut << tab << "type T = FaustFloat;" << endl;
     *fOut << tab << "fn new() -> Self where Self: Sized {" << endl;
