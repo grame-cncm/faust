@@ -252,7 +252,7 @@ void RustCodeContainer::produceClass()
     if (gGlobal->gFloatSize == 1) {
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
-        *fOut << "use std::os::raw::{c_float};";
+        *fOut << "use std::os::raw::c_float;";
         tab(n + 1, *fOut);
         *fOut << "// Conditionally compile the link attribute only on non-Windows platforms";
         tab(n + 1, *fOut);
