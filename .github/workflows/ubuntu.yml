@@ -25,7 +25,7 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: ${{ matrix.rust }}
+        toolchain: stable
 
     - name: Run impulse tests (C++)
       run: cd tests/impulse-tests && make cpp
