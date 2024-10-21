@@ -2,7 +2,7 @@ name: Ubuntu
 
 on:
   push:
-    branches: 
+    branches:
         - '*'
   pull_request:
     branches: [ master-dev ]
@@ -16,8 +16,19 @@ jobs:
 
     - name: Install libmicrohttpd
       run: |
-        sudo apt-get update -qq 
+        sudo apt-get update -qq
         sudo apt-get install libmicrohttpd-dev
 
     - name: Build Faust
       run: make
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ matrix.rust }}
+
+    - name: Run impulse tests (C++)
+      run: cd tests/impulse-tests && make cpp
+
+    - name: Run impulse tests (Rust)
+      run: cd tests/impulse-tests && make rust
