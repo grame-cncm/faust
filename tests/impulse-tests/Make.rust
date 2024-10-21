@@ -70,6 +70,7 @@ all: ir/rust/noise.ir
 all: ir/rust/noiseabs.ir
 all: ir/rust/noisemetadata.ir
 all: ir/rust/notch.ir
+all: ir/rust/osc_enable.ir
 all: ir/rust/osc.ir
 all: ir/rust/osci.ir
 all: ir/rust/panpot.ir

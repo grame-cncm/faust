@@ -538,7 +538,7 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(IfInst* inst)
     {
-        *fOut << "(if ";
+        *fOut << "if ";
         inst->fCond->accept(this);
         *fOut << " != 0 {";
         tab(++fTab, *fOut);
@@ -552,7 +552,7 @@ class RustInstVisitor : public TextInstVisitor {
             back(1, *fOut);
             *fOut << "}";
         } else {
-            *fOut << "})";
+            *fOut << "}";
         }
         tab(fTab, *fOut);
     }
