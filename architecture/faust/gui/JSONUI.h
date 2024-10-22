@@ -78,7 +78,14 @@ struct InstComplexity {
 };
 
 // DSP or field name, type, size, size-in-bytes, reads, writes
-typedef std::tuple<std::string, std::string, int, int, int, int> MemoryLayoutItem;
+struct MemoryLayoutItem {
+    std::string name;
+    std::string type;
+    int size;
+    int size_bytes;
+    int read;
+    int write;
+};
 typedef std::vector<MemoryLayoutItem> MemoryLayoutType;
 typedef std::map<std::string, int> PathTableType;
 
@@ -509,12 +516,12 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                         // DSP or field name, type, size, size-in-bytes, reads, writes
                         MemoryLayoutItem item = fMemoryLayout[i];
                         tab(fTab + 1, JSON);
-                        JSON << "{ \"name\": \"" << std::get<0>(item) << "\", ";
-                        JSON << "\"type\": \"" << std::get<1>(item) << "\", ";
-                        JSON << "\"size\": " << std::get<2>(item) << ", ";
-                        JSON << "\"size_bytes\": " << std::get<3>(item) << ", ";
-                        JSON << "\"read\": " << std::get<4>(item) << ", ";
-                        JSON << "\"write\": " << std::get<5>(item) << " }";
+                        JSON << "{ \"name\": \"" << item.name << "\", ";
+                        JSON << "\"type\": \"" << item.type << "\", ";
+                        JSON << "\"size\": " << item.size << ", ";
+                        JSON << "\"size_bytes\": " << item.size_bytes << ", ";
+                        JSON << "\"read\": " << item.read << ", ";
+                        JSON << "\"write\": " << item.write << " }";
                         if (i < (fMemoryLayout.size() - 1)) JSON << ",";
                     }
                     tab(fTab, JSON);

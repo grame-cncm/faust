@@ -747,8 +747,8 @@ void CPPCodeContainer::produceClass()
         int ptr_count = 0;
         for (const auto& it : fMemoryLayout) {
             bool do_count = (gGlobal->gMemoryManager == 0)
-                                ? isPtr(get<1>(it))
-                                : (isPtr(get<1>(it)) || isControlOrZone(get<0>(it)));
+                                ? isPtr(it.type)
+                                : (isPtr(it.type) || isControlOrZone(it.name));
             if (do_count) {
                 ptr_count++;
             }
@@ -761,13 +761,13 @@ void CPPCodeContainer::produceClass()
             // DSP or field name, type, size, size-in-bytes, reads, write
             MemoryLayoutItem item   = fMemoryLayout[i];
             bool             do_gen = (gGlobal->gMemoryManager == 0)
-                                          ? isPtr(get<1>(item))
-                                          : (isPtr(get<1>(item)) || isControlOrZone(get<0>(item)));
+                                          ? isPtr(item.type)
+                                          : (isPtr(item.type) || isControlOrZone(item.name));
             if (do_gen) {
-                *fOut << "// " << get<0>(item);
+                *fOut << "// " << item.name;
                 tab(n + 2, *fOut);
-                *fOut << "fManager->info(" << get<3>(item) << ", " << get<4>(item) << ", "
-                      << get<5>(item) << ");";
+                *fOut << "fManager->info(" << item.size_bytes << ", " << item.read << ", "
+                      << item.write << ");";
                 tab(n + 2, *fOut);
             }
         }
@@ -785,15 +785,15 @@ void CPPCodeContainer::produceClass()
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
             // DSP or field name, type, size, sizeBytes, reads, writes
             MemoryLayoutItem item = fMemoryLayout[i];
-            bool do_gen = (gGlobal->gMemoryManager == 0) ? (isPtr(get<1>(item)) && get<2>(item) > 0)
-                                                         : isControlOrZone(get<0>(item));
+            bool do_gen = (gGlobal->gMemoryManager == 0) ? (isPtr(item.type) && item.size > 0)
+                                                         : isControlOrZone(item.name);
             if (do_gen) {
-                if (get<1>(item) == "kInt32_ptr") {
-                    *fOut << get<0>(item) << " = static_cast<int*>(fManager->allocate("
-                          << get<3>(item) << "));";
+                if (item.type == "kInt32_ptr") {
+                    *fOut << item.name << " = static_cast<int*>(fManager->allocate("
+                          << item.size_bytes << "));";
                 } else {
-                    *fOut << get<0>(item) << " = static_cast<" << ifloat()
-                          << "*>(fManager->allocate(" << get<3>(item) << "));";
+                    *fOut << item.name << " = static_cast<" << ifloat() << "*>(fManager->allocate("
+                          << item.size_bytes << "));";
                 }
                 tab(n + 2, *fOut);
             }
@@ -809,10 +809,10 @@ void CPPCodeContainer::produceClass()
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
             // DSP or field name, type, size, sizeBytes, reads, writes
             MemoryLayoutItem item = fMemoryLayout[i];
-            bool do_gen = (gGlobal->gMemoryManager == 0) ? (isPtr(get<1>(item)) && get<2>(item) > 0)
-                                                         : isControlOrZone(get<0>(item));
+            bool do_gen = (gGlobal->gMemoryManager == 0) ? (isPtr(item.type) && item.size > 0)
+                                                         : isControlOrZone(item.name);
             if (do_gen) {
-                *fOut << "fManager->destroy(" << get<0>(item) << ");";
+                *fOut << "fManager->destroy(" << item.name << ");";
                 tab(n + 2, *fOut);
             }
         }
