@@ -165,7 +165,7 @@ NSID     {ID}("::"{ID})*
 "soundfile"   return SOUNDFILE;
 
 "attach"      return ATTACH;
-"minput"	  return MODULATE;
+"minput"      return MODULATE;
 
 "acos"        return ACOS;
 "asin"        return ASIN;
@@ -217,7 +217,7 @@ NSID     {ID}("::"{ID})*
 
 "case"        return CASE;
 "=>"          return ARROW;
-"->"		  return LAPPLY;
+"->"          return LAPPLY;
 
 "assertbounds" return ASSERTBOUNDS;
 "lowest"       return LOWEST;

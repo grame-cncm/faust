@@ -59,7 +59,7 @@ static Tree traced_simplification(Tree sig)
     */
 #endif
     Tree r = simplification(sig);
-    faustassert(r != 0);
+    faustassert(r != nullptr);
 #ifdef TRACE
     cerr << --gGlobal->TABBER << "Simplification of : " << ppsig(sig, MAX_ERROR_SIZE)
          << " Returns : " << ppsig(r, MAX_ERROR_SIZE) << endl;
@@ -113,6 +113,8 @@ static Tree simplification(Tree sig)
         for (int i = 0; i < sig->arity(); i++) {
             args.push_back(sig->branch(i));
         }
+    
+        faustassert(args.size() == xt->arity());
 
         // to avoid negative power to further normalization
         if (xt != gGlobal->gPowPrim) {
@@ -326,7 +328,6 @@ static Tree simplification(Tree sig)
  */
 static Tree sigMap(Tree key, tfun f, Tree t)
 {
-    // printf("start sigMap\n");
     Tree p, id, body;
 
     if (getProperty(t, key, p)) {
@@ -335,12 +336,18 @@ static Tree sigMap(Tree key, tfun f, Tree t)
     } else if (isRec(t, id, body)) {
         setProperty(t, key, gGlobal->nil);  // avoid infinite loop
         return rec(id, sigMap(key, f, body));
-
+       
     } else {
         tvec br;
         int  n = t->arity();
+        bool has_label = isUIInputItem(t) || isUIOutputItem(t);
         for (int i = 0; i < n; i++) {
-            br.push_back(sigMap(key, f, t->branch(i)));
+            // Do not handle labels to avoid simplifying them when using reserved keyword
+            if (has_label && i == 0) {
+                br.push_back(t->branch(i));
+            } else {
+                br.push_back(sigMap(key, f, t->branch(i)));
+            }
         }
 
         Tree r1 = tree(t->node(), br);
@@ -362,7 +369,6 @@ static Tree sigMap(Tree key, tfun f, Tree t)
  */
 static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
 {
-    // printf("start sigMap\n");
     Tree p, id, body;
 
     if (getProperty(t, key, p)) {
@@ -370,7 +376,7 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
 
     } else if (isRec(t, id, body)) {
         faustassert(isRef(t, id));  // temporary control
-
+        
         Tree id2;
         if (searchEnv(id, id2, env)) {
             // already in the process of visiting this recursion
@@ -381,12 +387,18 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
             Tree body2 = sigMapRename(key, pushEnv(id, id2, env), f, body);
             return rec(id2, body2);
         }
-
+ 
     } else {
         tvec br;
         int  n = t->arity();
+        bool has_label = isUIInputItem(t) || isUIOutputItem(t);
         for (int i = 0; i < n; i++) {
-            br.push_back(sigMapRename(key, env, f, t->branch(i)));
+            // Do not handle labels to avoid simplifying them when using reserved keyword
+            if (has_label && i == 0) {
+                br.push_back(t->branch(i));
+            } else {
+                br.push_back(sigMap(key, f, t->branch(i)));
+            }
         }
 
         Tree r1 = tree(t->node(), br);

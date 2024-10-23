@@ -38,14 +38,6 @@ void yyerror(char* msg)
     throw faustexception(error.str());
 }
 
-//----------------------------------------------------------
-// unquote() : remove enclosing quotes and carriage return 
-// characters from string. Returns a Tree 
-//----------------------------------------------------------
-inline char replaceCR(char c)
-{
-    return (c!='\n') ? c : ' ';
-}
 
 //----------------------------------------------------------
 // A definition is accepted if the prefixset is empty or if
@@ -69,6 +61,15 @@ inline int str2int(const char* str)
         str++;
     }
     return result;
+}
+
+//----------------------------------------------------------
+// unquote() : remove enclosing quotes and carriage return 
+// characters from string. Returns a Tree 
+//----------------------------------------------------------
+inline char replaceCR(char c)
+{
+    return (c != '\n') ? c : ' ';
 }
 
 inline Tree unquote(char* str)

@@ -305,6 +305,9 @@ LIBFAUST_API bool isSigEnable(Tree s, Tree& x, Tree& y);
 Tree              sigControl(Tree x, Tree y);
 LIBFAUST_API bool isSigControl(Tree s, Tree& x, Tree& y);
 
+bool isUIInputItem(Tree x);
+bool isUIOutputItem(Tree x);
+
 /*****************************************************************************
                              Soundfiles (also UI elements)
 *****************************************************************************/
