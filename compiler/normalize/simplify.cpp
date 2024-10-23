@@ -397,7 +397,7 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
             if (has_label && i == 0) {
                 br.push_back(t->branch(i));
             } else {
-                br.push_back(sigMap(key, f, t->branch(i)));
+                br.push_back(sigMapRename(key, env, f, t->branch(i)));
             }
         }
 
