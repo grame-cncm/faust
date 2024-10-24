@@ -339,20 +339,18 @@ static Tree sigMap(Tree key, tfun f, Tree t)
        
     } else {
         tvec br;
-        int  n = t->arity();
-        bool has_label = isUIInputItem(t) || isUIOutputItem(t);
-        for (int i = 0; i < n; i++) {
+        int   n = t->arity();
+        int arg = 0;
+        if (isUIInputItem(t) || isUIOutputItem(t)) {
             // Do not handle labels to avoid simplifying them when using reserved keyword
-            if (has_label && i == 0) {
-                br.push_back(t->branch(i));
-            } else {
-                br.push_back(sigMap(key, f, t->branch(i)));
-            }
+            br.push_back(t->branch(arg));
+            arg++;
+        }
+        for (int i = arg; i < n; i++) {
+            br.push_back(sigMap(key, f, t->branch(i)));
         }
 
-        Tree r1 = tree(t->node(), br);
-
-        Tree r2 = f(r1);
+        Tree r2 = f(tree(t->node(), br));
         if (r2 == t) {
             setProperty(t, key, gGlobal->nil);
         } else {
@@ -390,20 +388,18 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
  
     } else {
         tvec br;
-        int  n = t->arity();
-        bool has_label = isUIInputItem(t) || isUIOutputItem(t);
-        for (int i = 0; i < n; i++) {
+        int   n = t->arity();
+        int arg = 0;
+        if (isUIInputItem(t) || isUIOutputItem(t)) {
             // Do not handle labels to avoid simplifying them when using reserved keyword
-            if (has_label && i == 0) {
-                br.push_back(t->branch(i));
-            } else {
-                br.push_back(sigMapRename(key, env, f, t->branch(i)));
-            }
+            br.push_back(t->branch(arg));
+            arg++;
+        }
+        for (int i = arg; i < n; i++) {
+            br.push_back(sigMapRename(key, env, f, t->branch(i)));
         }
 
-        Tree r1 = tree(t->node(), br);
-
-        Tree r2 = f(r1);
+        Tree r2 = f(tree(t->node(), br));
         if (r2 == t) {
             setProperty(t, key, gGlobal->nil);
         } else {
