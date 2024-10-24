@@ -1688,9 +1688,9 @@ bool global::processCmdline(int argc, const char* argv[])
             "backends\n");
     }
 
-    if (gExtControl && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "cmajor") {
+    if (gExtControl && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "cmajor" && gOutputLang != "rust") {
         throw faustexception(
-            "ERROR : '-ec' option can only be used with 'cpp', 'c' or 'cmajor' "
+            "ERROR : '-ec' option can only be used with 'cpp', 'c', 'cmajor' or 'rust' "
             "backends\n");
     }
 

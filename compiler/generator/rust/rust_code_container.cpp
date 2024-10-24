@@ -511,6 +511,17 @@ void RustCodeContainer::produceClass()
     // Parameter getter/setter
     produceParameterGetterSetter(n + 1, parameterLookup);
 
+    // Control
+    if (gGlobal->gExtControl) {
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+        *fOut << "pub fn control(&mut self) {";
+        tab(n + 2, *fOut);
+        generateControlDeclarations(&fCodeProducer);
+        back(1, *fOut);
+        *fOut << "}";
+    }
+
     // Compute
     generateCompute(n + 1);
     generateComputeInterface(n + 1);
