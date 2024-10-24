@@ -122,8 +122,9 @@ travis:
 #########################################################################
 # automatic github action test
 github_action:
-	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -a archs/rust/architecture_normal.rs"
-	$(MAKE) -f Make.rust outdir=rust/rnt CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -rnt -a archs/rust/architecture.rs"
+	$(MAKE) -f Make.rust outdir=rust/rnt CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -cm -a archs/rust/architecture_cm.rs"
+	$(MAKE) -f Make.rust outdir=rust/rnt CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -ec -rnt -a archs/rust/architecture_ecrnt.rs"
+	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -a archs/rust/architecture_trait.rs"
 	$(MAKE) -f Make.gcc outdir=cpp/double          lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I ../../libraries/ -I dsp -double"
 
 #########################################################################
@@ -369,10 +370,12 @@ interp1:
 #########################################################################
 # Rust backend
 rust:
-	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -rnt -a archs/rust/architecture.rs"
-	$(MAKE) -f Make.rust outdir=rust/fp FAUSTOPTIONS="-I ../../libraries/ -double -fp -a archs/rust/architecture_normal.rs"
-	$(MAKE) -f Make.rust outdir=rust/vec4 CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -vec -vs 4 -a archs/rust/architecture_normal.rs"
-	$(MAKE) -f Make.rust outdir=rust/vec32 FAUSTOPTIONS="-I ../../libraries/ -double -vec -vs 32 -a archs/rust/architecture_normal.rs"
+	$(MAKE) -f Make.rust outdir=rust/ec CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -cm -a archs/rust/architecture_cm.rs"
+	$(MAKE) -f Make.rust outdir=rust/ec CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -ec -rnt -a archs/rust/architecture_ecrnt.rs"
+	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -a archs/rust/architecture_trait.rs"
+	$(MAKE) -f Make.rust outdir=rust/fp FAUSTOPTIONS="-I ../../libraries/ -double -fp -a archs/rust/architecture_trait.rs"
+	$(MAKE) -f Make.rust outdir=rust/vec4 CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -vec -vs 4 -a archs/rust/architecture_trait.rs"
+	$(MAKE) -f Make.rust outdir=rust/vec32 FAUSTOPTIONS="-I ../../libraries/ -double -vec -vs 32 -a archs/rust/architecture_trait.rs"
 
 #########################################################################
 # Cmajor backend
