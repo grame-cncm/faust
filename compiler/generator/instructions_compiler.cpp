@@ -578,7 +578,15 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         string name;
         if (gGlobal->gOutputLang == "rust") {
             name = subst("*output$0", T(index));
-            pushComputeDSPMethod(IB::genStoreStackVar(name, res));
+            if (gGlobal->gComputeMix) {
+                // take the cpp code and remove the the loop
+                ValueInst* res1 = IB::genAdd(res, IB::genLoadStackVar(name));
+                pushComputeDSPMethod(IB::genStoreStackVar(name, res1));
+            } else {
+                pushComputeDSPMethod(IB::genStoreStackVar(name, res));
+            }
+
+
         } else if (gGlobal->gOutputLang == "jax") {
             res               = CS(sig);
             string result_var = "_result" + to_string(index);
