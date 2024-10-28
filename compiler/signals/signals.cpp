@@ -627,23 +627,39 @@ LIBFAUST_API bool isSigVBargraph(Tree s, Tree& lbl, Tree& min, Tree& max, Tree& 
 bool isUIInputItem(Tree sig)
 {
     Tree label, c, x, y, z;
-    if (isSigButton(sig, label)) return true;
-    if (isSigCheckbox(sig, label)) return true;
-    if (isSigVSlider(sig, label, c, x, y, z)) return true;
-    if (isSigHSlider(sig, label, c, x, y, z)) return true;
-    if (isSigNumEntry(sig, label, c, x, y, z)) return true;
-    if (isSigSoundfile(sig, label)) return true;
+    if (isSigButton(sig, label)) {
+        return true;
+    }
+    if (isSigCheckbox(sig, label)) {
+        return true;
+    }
+    if (isSigVSlider(sig, label, c, x, y, z)) {
+        return true;
+    }
+    if (isSigHSlider(sig, label, c, x, y, z)) {
+        return true;
+    }
+    if (isSigNumEntry(sig, label, c, x, y, z)) {
+        return true;
+    }
+    if (isSigSoundfile(sig, label)) {
+        return true;
+    }
     return false;
 }
 
 bool isUIOutputItem(Tree sig)
 {
     Tree label, c, x, y, z;
-    if (isSigVBargraph(sig, label, x, y, z)) return true;
-    if (isSigHBargraph(sig, label, x, y, z)) return true;
+    if (isSigVBargraph(sig, label, x, y, z)) {
+        return true;
+    }
+    if (isSigHBargraph(sig, label, x, y, z)) {
+        return true;
+    }
     return false;
 }
-       
+
 Tree sigAttach(Tree t0, Tree t1)
 {
     return tree(gGlobal->SIGATTACH, t0, t1);

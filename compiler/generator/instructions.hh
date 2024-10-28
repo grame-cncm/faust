@@ -3153,7 +3153,8 @@ struct IB {
 };
 
 /*
- * Syntactic sugar for index computationsw, wapper for ValueInst* with support for basic arithmetics.
+ * Syntactic sugar for index computationsw, wapper for ValueInst* with support for basic
+ * arithmetics.
  */
 
 class FIRIndex {

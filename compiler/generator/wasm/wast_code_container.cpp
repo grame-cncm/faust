@@ -290,12 +290,6 @@ void WASTCodeContainer::produceClass()
 
     gGlobal->gWASTVisitor->Tab(n + 1);
 
-    // TO REMOVE when 'soundfile' is implemented
-    {
-        // Generate UI: only to trigger exception when using 'soundfile' primitive
-        generateUserInterface(gGlobal->gWASTVisitor);
-    }
-
     // init
     generateInit("init", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
 

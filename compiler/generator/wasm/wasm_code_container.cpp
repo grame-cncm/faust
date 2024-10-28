@@ -292,12 +292,6 @@ void WASMCodeContainer::produceClass()
     int32_t functions_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Code);
     fBinaryOut << U32LEB(14);  // num functions
 
-    // TO REMOVE when 'soundfile' is implemented
-    {
-        // Generate UI: only to trigger exception when using 'soundfile' primitive
-        generateUserInterface(gGlobal->gWASMVisitor);
-    }
-
     // Internal functions in alphabetical order
 
     // 1) classInit
@@ -354,12 +348,6 @@ void WASMCodeContainer::produceClass()
     generateComputeFunctions(gGlobal->gWASMVisitor);
 
     gGlobal->gWASMVisitor->finishSection(functions_start);
-
-    // TO REMOVE when 'soundfile' is implemented
-    {
-        // Generate UI: only to trigger exception when using 'soundfile' primitive
-        generateUserInterface(gGlobal->gWASMVisitor);
-    }
 
     // JSON generation
     string json;
