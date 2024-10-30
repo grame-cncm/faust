@@ -84,19 +84,18 @@ Tree sigRetiming(Tree lsig, bool trace)
 
 static Tree addRegisters(Tree sig, int n)
 {
-    Tree x;
-    int  i;
+    int i;
 
     if (n == 0) {
         // no registers to add
         return sig;
     }
-    if (isSigRegister(sig, &i, x)) {
+    if (Tree x; isSigRegister(sig, &i, x)) {
         // we combine with existing registers
         return addRegisters(x, i + n);
     }
     // simple case, we add n registers
-    return sigRegister(n, x);
+    return sigRegister(n, sig);
 }
 
 /**
