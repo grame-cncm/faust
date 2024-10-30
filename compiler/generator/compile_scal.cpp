@@ -142,7 +142,12 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     if (gGlobal->gDrawSignals) {
         if (gGlobal->gDrawRetiming) {
-            Tree     L3 = sigRetiming(L2);
+            startTiming("retiming");
+            Tree L3 = sigRetiming(L2);
+            endTiming("retiming");
+            startTiming("retimed type annotation");
+            typeAnnotation(L3, true);
+            endTiming("retimed type annotation");
             ofstream dotfile(subst("$0-rtsig.dot", gGlobal->makeDrawPath()).c_str());
             sigToGraph(L3, dotfile);
         }
