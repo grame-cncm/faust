@@ -362,13 +362,10 @@ interp1:
 #########################################################################
 # Rust backend
 rust:
-	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double"
-	rm -rf ir/rust
-	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double -fp"
-	rm -rf ir/rust
-	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double -vec -vs 4"
-	rm -rf ir/rust
-	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double -vec -vs 32"
+	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -a archs/rust/architecture.rs"
+	$(MAKE) -f Make.rust outdir=rust/fp FAUSTOPTIONS="-I ../../libraries/ -double -fp -a archs/rust/architecture.rs"
+	$(MAKE) -f Make.rust outdir=rust/vec4 CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -vec -vs 4 -a archs/rust/architecture.rs"
+	$(MAKE) -f Make.rust outdir=rust/vec32 FAUSTOPTIONS="-I ../../libraries/ -double -vec -vs 32 -a archs/rust/architecture.rs"
 
 #########################################################################
 # Cmajor backend
