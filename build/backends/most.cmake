@@ -22,6 +22,7 @@ set ( JSFX_BACKEND  COMPILER STATIC DYNAMIC        CACHE STRING  "Include JSFX b
 set ( LLVM_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include LLVM backend"        FORCE )
 set ( OLDCPP_BACKEND COMPILER STATIC DYNAMIC        CACHE STRING  "Include old CPP backend"     FORCE )
 set ( RUST_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include Rust backend"        FORCE )
+set ( SDF3_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include SDF3 backend"      FORCE )
 # Template is deactivated 
 set ( TEMPLATE_BACKEND   OFF    CACHE STRING  "Include Template backend"    FORCE )
 set ( WASM_BACKEND   COMPILER STATIC DYNAMIC WASM   CACHE STRING  "Include WASM backend"        FORCE )

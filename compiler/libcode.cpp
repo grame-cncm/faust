@@ -138,6 +138,10 @@
 #include "vhdl/vhdl_producer.hh"
 #endif
 
+#ifdef SDF3_BUILD
+#include "sdf3/signal2SDF.hh"
+#endif
+
 using namespace std;
 
 /****************************************************************
@@ -872,6 +876,17 @@ static void compileVhdl(Tree signals, int numInputs, int numOutputs, ostream* ou
 #endif
 }
 
+static void compileSdf3(Tree signals, ostream* out)
+{
+#ifdef SDF3_BUILD
+    signals = simplifyToNormalForm(signals);
+    Signal2SDF V;
+    V.sigToSDF(signals, *out);
+#else
+    throw faustexception("ERROR : -lang sdf3 not supported since SDF3 backend is not built\n");
+#endif
+}
+
 static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>& enrobage,
                              unique_ptr<ostream>& dst)
 {
@@ -1082,6 +1097,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     } else if (startWith(gGlobal->gOutputLang, "vhdl")) {
         compileVhdl(signals, numInputs, numOutputs, gDst.get());
         // VHDL does not create a compiler, code is already generated here.
+        return;
+    } else if (startWith(gGlobal->gOutputLang, "sdf3")) {
+        compileSdf3(signals, gDst.get());
+        // SDF3 does not create a compiler, code is already generated here.
         return;
     } else {
         stringstream error;

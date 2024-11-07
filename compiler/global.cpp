@@ -1214,6 +1214,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gPrintXMLSwitch = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-sdf", "--sdf3xml")) {
+            gGlobal->gPrintSDFSwitch = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-json", "--json")) {
             gPrintJSONSwitch = true;
             i += 1;
@@ -2037,6 +2041,10 @@ static void enumBackends(ostream& out)
 
 #ifdef RUST_BUILD
     out << dspto << "Rust" << endl;
+#endif
+
+#ifdef SDF3_BUILD
+    out << dspto << "SDF3" << endl;
 #endif
 
 #ifdef TEMPLATE_BUILD
