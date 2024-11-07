@@ -32,7 +32,7 @@ class Signal2SDF : public TreeTraversal {
 
    public:
     Signal2SDF() = default;
-    void        self(Tree t);
+    void        self(Tree t) override;
     void        sigToSDF(Tree t, std::ostream& fout);
     std::string chAttr(Type t);
     void        mergeChannels(std::string ch1, std::string ch2);

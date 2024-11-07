@@ -882,6 +882,9 @@ static void compileSdf3(Tree signals, ostream* out)
     signals = simplifyToNormalForm(signals);
     Signal2SDF V;
     V.sigToSDF(signals, *out);
+    if (gUseCout) {
+        cout << dynamic_cast<ostringstream*>(out)->str();
+    }
 #else
     throw faustexception("ERROR : -lang sdf3 not supported since SDF3 backend is not built\n");
 #endif
