@@ -2131,7 +2131,7 @@ string global::printHelp()
          << "                                        'lang' should be c, cpp (default), cmajor, "
             "codebox, csharp, "
             "dlang, fir, interp, java, jax, jsfx, julia, llvm, "
-            "ocpp, rust, vhdl or wast/wasm."
+            "ocpp, rust, sdf3, vhdl or wast/wasm."
          << endl;
 #endif
     sstr << tab

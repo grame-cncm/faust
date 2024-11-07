@@ -12,29 +12,30 @@
 #include "tlib.hh"
 #include "tree.hh"
 
+using namespace std;
+
 /**
  * Draw a list of signals as a synchronous dataflow graph using
  * SDF3-compatible XML format
  */
 void Signal2SDF::sigToSDF(Tree L, ostream& fout)
 {
-    const std::string graphName = gGlobal->gMasterName;  // name of .dsp file
-    set<Tree>         alreadyDrawn;
+    const string graphName = gGlobal->gMasterName;  // name of .dsp file
+    set<Tree>    alreadyDrawn;
     while (!isNil(L)) {
         self(hd(L));
         // recLog(hd(L), alreadyDrawn);
         // add output node (and related ports/channels) to relevant lists
-        std::string outName("OUTPUT_" + std::to_string(outCount));
-        actorList.insert(pair<std::string, Actor>(outName, Actor(outName, outName)));
-        std::stringstream srcActor;
+        string outName("OUTPUT_" + std::to_string(outCount));
+        actorList.insert(pair<string, Actor>(outName, Actor(outName, outName)));
+        stringstream srcActor;
         srcActor << hd(L);
-        std::string chName("channel_" + std::to_string(chCount) +
-                           chAttr(getCertifiedSigType(hd(L))));
-        std::string srcPortName("in_" + chName);
-        std::string dstPortName("out_" + chName);
+        string chName("channel_" + std::to_string(chCount) + chAttr(getCertifiedSigType(hd(L))));
+        string srcPortName("in_" + chName);
+        string dstPortName("out_" + chName);
         actorList.at(srcActor.str()).addPort(Port(srcPortName, portType::out, 1));
         actorList.at(outName).addPort(Port(dstPortName, portType::in, 1));
-        chList.insert(pair<std::string, Channel>(
+        chList.insert(pair<string, Channel>(
             chName, Channel(chName, srcActor.str(), srcPortName, outName, dstPortName, 1, 0)));
         chCount++;
         outCount++;
@@ -51,11 +52,11 @@ void Signal2SDF::sigToSDF(Tree L, ostream& fout)
     fout << "    <sdf name='" << graphName << "' type='" << graphName << "'>" << endl;
     // Bypass REC actors for SDF
     for (auto& r : recActors) {
-        std::vector<std::string> inputActorNames = actorList.at(r).getInputSignalNames();
+        vector<string> inputActorNames = actorList.at(r).getInputSignalNames();
         bypassRec(r, inputActorNames);
         // remove bypassed channels
         for (auto& i : inputActorNames) {
-            std::string channelToRemove = channelNameFromActors(i, r);
+            string channelToRemove = channelNameFromActors(i, r);
             actorList.at(i).removePort(chList.at(channelToRemove).getSrcPort());
             chList.erase(chList.find(channelToRemove));
             updateArguments(r, i);
@@ -65,7 +66,7 @@ void Signal2SDF::sigToSDF(Tree L, ostream& fout)
     }
     // update names of binop actors to reflect order of input arguments
     for (auto& b : inputArgTrackedActors) {
-        std::string newName = actorList.at(b).getName();
+        string newName = actorList.at(b).getName();
         for (auto& arg : actorList.at(b).getInputSignalNames()) {
             newName += "_" + arg;
         }
@@ -81,14 +82,14 @@ void Signal2SDF::sigToSDF(Tree L, ostream& fout)
     // Write graph information (actor/channel names, ports)
     for (auto& a : actorList) {
         // add self loops
-        std::string srcPortName("in_R" + a.first);
-        std::string dstPortName("out_R" + a.first);
+        string srcPortName("in_R" + a.first);
+        string dstPortName("out_R" + a.first);
         a.second.addPort(Port(srcPortName, portType::out, 1));
         a.second.addPort(Port(dstPortName, portType::in, 1));
-        std::string chName("channel_" + a.first);
+        string chName("channel_" + a.first);
         chList.insert(
-            pair<std::string, Channel>(chName, Channel(chName, a.second.getName(), srcPortName,
-                                                       a.second.getName(), dstPortName, 1, 1)));
+            pair<string, Channel>(chName, Channel(chName, a.second.getName(), srcPortName,
+                                                  a.second.getName(), dstPortName, 1, 1)));
         a.second.writeToXML(fout);
     }
     for (auto& c : chList) {
@@ -118,10 +119,10 @@ static const char* binopname[] = {"add",      "diff",        "prod",     "div", 
  */
 void Signal2SDF::visit(Tree sig)
 {
-    int               i;
-    double            r;
-    std::vector<Tree> subsig;
-    Tree              c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
+    int          i;
+    double       r;
+    vector<Tree> subsig;
+    Tree         c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
 
     xtended* p = (xtended*)getUserData(sig);
     if (isList(sig)) {
@@ -216,7 +217,7 @@ void Signal2SDF::visit(Tree sig)
     //     return;
     // }
     else if (isSigWRTbl(sig, id, x, y, z)) {
-        std::stringstream fout;
+        stringstream fout;
         fout << "write: " << id;
         logActor(sig, fout.str());
         self(x);
@@ -273,7 +274,7 @@ void Signal2SDF::visit(Tree sig)
         self(x);
         return;
     } else if (isRec(sig, var, le)) {
-        std::stringstream fout;
+        stringstream fout;
         fout << "REC " << *var;
         logRecActor(sig, le, fout.str());
         self(le);
@@ -351,7 +352,7 @@ void Signal2SDF::visit(Tree sig)
         // now nil can appear in table write instructions
         return;
     } else {
-        std::stringstream error;
+        stringstream error;
         error << __FILE__ << ":" << __LINE__ << " ERROR : unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
     }
@@ -368,9 +369,9 @@ void Signal2SDF::self(Tree t)
 /**
  * Return string of signal type
  */
-std::string Signal2SDF::chAttr(Type t)
+string Signal2SDF::chAttr(Type t)
 {
-    std::string s;
+    string s;
 
     // nature
     switch (t->nature()) {
@@ -396,7 +397,7 @@ std::string Signal2SDF::chAttr(Type t)
 /**
  * Combine two channels in channel list
  */
-void Signal2SDF::mergeChannels(std::string ch1, std::string ch2)
+void Signal2SDF::mergeChannels(const string& ch1, const string& ch2)
 {
     chList.at(ch1).setDstActor(chList.at(ch2).getDstActor());
     chList.at(ch1).setDstPort(chList.at(ch2).getDstPort());
@@ -407,9 +408,9 @@ void Signal2SDF::mergeChannels(std::string ch1, std::string ch2)
 /**
  * Modify a channel to bypass the given REC actor
  */
-void Signal2SDF::bypassRec(std::string recActorName, std::vector<std::string> inputSignalNames)
+void Signal2SDF::bypassRec(const string& recActorName, vector<string>& inputSignalNames)
 {
-    std::vector<Port> outputPorts;
+    vector<Port> outputPorts;
     for (auto& p : actorList.at(recActorName).getPorts()) {
         if (p.getType() == "out") {
             outputPorts.push_back(p);
@@ -420,7 +421,7 @@ void Signal2SDF::bypassRec(std::string recActorName, std::vector<std::string> in
         inputSignalNames.size());  // rec signals must have matching input and output signal numbers
     // randomly assign inputs to outputs TODO figure out actual mapping of this
     for (size_t i = 0; i < outputPorts.size(); i++) {
-        std::string channelToMod = channelNameFromPort(outputPorts[i]);
+        string channelToMod = channelNameFromPort(outputPorts[i]);
         actorList.at(inputSignalNames[i]).addPort(outputPorts[i]);
         chList.at(channelToMod)
             .setSrcActor(
@@ -432,7 +433,7 @@ void Signal2SDF::bypassRec(std::string recActorName, std::vector<std::string> in
 /**
  * Identify channel name based on an input or output port
  */
-std::string Signal2SDF::channelNameFromPort(Port port)
+string Signal2SDF::channelNameFromPort(Port port)
 {
     for (auto& c : chList) {
         if (port.getType() == "in") {
@@ -451,7 +452,7 @@ std::string Signal2SDF::channelNameFromPort(Port port)
 /**
  * Identify name of channel between two actors
  */
-std::string Signal2SDF::channelNameFromActors(std::string srcActor, std::string dstActor)
+string Signal2SDF::channelNameFromActors(const string& srcActor, const string& dstActor)
 {
     for (auto& c : chList) {
         if (c.second.getSrcActor() == srcActor && c.second.getDstActor() == dstActor) {
@@ -464,10 +465,10 @@ std::string Signal2SDF::channelNameFromActors(std::string srcActor, std::string 
 /**
  * Update argument actor names of operators if they have changed
  */
-void Signal2SDF::updateArguments(std::string oldArg, std::string newArg)
+void Signal2SDF::updateArguments(const string& oldArg, const string& newArg)
 {
     for (auto& op : inputArgTrackedActors) {
-        std::vector<std::string> argNames = (actorList.at(op)).getInputSignalNames();
+        vector<string> argNames = (actorList.at(op)).getInputSignalNames();
         for (auto& arg : argNames) {
             if (oldArg == arg) {
                 (actorList.at(op)).replaceInputSignalName(oldArg, newArg);
@@ -482,8 +483,8 @@ void Signal2SDF::updateArguments(std::string oldArg, std::string newArg)
  */
 void Signal2SDF::addChannel(Tree sig)
 {
-    std::vector<Tree> subsig;
-    int               n = getSubSignals(sig, subsig);
+    vector<Tree> subsig;
+    int          n = getSubSignals(sig, subsig);
     if (n > 0) {
         if (n == 1 && isList(subsig[0])) {
             Tree id, body;
@@ -501,24 +502,23 @@ void Signal2SDF::addChannel(Tree sig)
         for (int i = 0; i < n; i++) {
             self(subsig[i]);
             // log channels and corresponding ports for the connected actors
-            std::string       chName("channel_" + std::to_string(chCount) +
-                                     chAttr(getCertifiedSigType(subsig[i])));
-            std::stringstream srcActor;
-            std::stringstream dstActor;
+            string       chName("channel_" + std::to_string(chCount) +
+                                chAttr(getCertifiedSigType(subsig[i])));
+            stringstream srcActor;
+            stringstream dstActor;
             srcActor << subsig[i];
             dstActor << sig;
-            std::string srcPortName("in_" + chName);
-            std::string dstPortName("out_" + chName);
+            string srcPortName("in_" + chName);
+            string dstPortName("out_" + chName);
             actorList.at(srcActor.str()).addPort(Port(srcPortName, portType::out, 1));
             actorList.at(dstActor.str()).addPort(Port(dstPortName, portType::in, 1));
-            chList.insert(pair<std::string, Channel>(
+            chList.insert(pair<string, Channel>(
                 chName,
                 Channel(chName, srcActor.str(), srcPortName, dstActor.str(), dstPortName, 1, 0)));
             Tree tId, tB;
             if (isRec(sig, tId,
                       tB)) {  // NOTE workaround to track missing input signals for rec actors
-                std::vector<std::string> recInputs =
-                    actorList.at(dstActor.str()).getInputSignalNames();
+                vector<string> recInputs = actorList.at(dstActor.str()).getInputSignalNames();
                 if (std::find(recInputs.begin(), recInputs.end(), srcActor.str()) ==
                     recInputs.end()) {
                     actorList.at(dstActor.str()).addInputSignalName(srcActor.str());
@@ -532,27 +532,27 @@ void Signal2SDF::addChannel(Tree sig)
 /**
  * Add the actor associated with sig to the actor list
  */
-void Signal2SDF::logActor(Tree sig, std::string type)
+void Signal2SDF::logActor(Tree sig, const string& type)
 {
-    std::stringstream actorName;  // get unique actor names from signal
+    stringstream actorName;  // get unique actor names from signal
     actorName << sig;
-    actorList.insert(pair<std::string, Actor>(actorName.str(), Actor(actorName.str(), type)));
+    actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     addChannel(sig);
 }
 
 /**
  * Add the actor associated with sig to the actor list
  */
-void Signal2SDF::logDelayActor(Tree sig, Tree x, Tree y, std::string type)
+void Signal2SDF::logDelayActor(Tree sig, Tree x, Tree y, const string& type)
 {
-    std::stringstream actorName;
-    std::stringstream arg1Name;
-    std::stringstream arg2Name;
-    int               i;
+    stringstream actorName;
+    stringstream arg1Name;
+    stringstream arg2Name;
+    int          i;
     actorName << sig;
     arg1Name << x;
     arg2Name << y;
-    actorList.insert(pair<std::string, Actor>(actorName.str(), Actor(actorName.str(), type)));
+    actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     // NOTE assume here that fixed delays will only have Int argument, might need to expand to
     // include Real values
     if (isSigInt(y, &i)) {  // fixed delay: track delay length to model later
@@ -570,13 +570,13 @@ void Signal2SDF::logDelayActor(Tree sig, Tree x, Tree y, std::string type)
  * Add the recursive actor associated with sig to the actor list
  * and recursive actor list
  */
-void Signal2SDF::logRecActor(Tree sig, Tree le, std::string type)
+void Signal2SDF::logRecActor(Tree sig, Tree le, const string& type)
 {
-    std::stringstream actorName;
-    std::stringstream inputSigName;
+    stringstream actorName;
+    stringstream inputSigName;
     actorName << sig;
     inputSigName << hd(le);
-    actorList.insert(pair<std::string, Actor>(actorName.str(), Actor(actorName.str(), type)));
+    actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     recActors.push_back(actorName.str());
     actorList.at(actorName.str()).addInputSignalName(inputSigName.str());
     addChannel(sig);
@@ -586,15 +586,15 @@ void Signal2SDF::logRecActor(Tree sig, Tree le, std::string type)
  * Add the binary actor associated with sig to the actor list
  * and track the orger of execution
  */
-void Signal2SDF::logBinopActor(Tree sig, Tree x, Tree y, std::string type)
+void Signal2SDF::logBinopActor(Tree sig, Tree x, Tree y, const string& type)
 {
-    std::stringstream actorName;
-    std::stringstream arg1Name;
-    std::stringstream arg2Name;
+    stringstream actorName;
+    stringstream arg1Name;
+    stringstream arg2Name;
     actorName << sig;
     arg1Name << x;
     arg2Name << y;
-    actorList.insert(pair<std::string, Actor>(actorName.str(), Actor(actorName.str(), type)));
+    actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     // track order of arguments for binary operators
     inputArgTrackedActors.push_back(actorName.str());
     actorList.at(actorName.str()).addInputSignalName(arg1Name.str());
@@ -614,7 +614,7 @@ void Signal2SDF::logUIActor(Tree sig, Tree init)
     } else if (isSigReal(init, &r)) {
         logActor(sig, std::to_string(r));
     } else {
-        std::stringstream error;
+        stringstream error;
         error << __FILE__ << ":" << __LINE__
               << " ERROR : init value for UI component not found : " << *sig << endl;
         throw faustexception(error.str());
@@ -625,15 +625,15 @@ void Signal2SDF::logUIActor(Tree sig, Tree init)
  * Add the power actor associated with sig to the actor list
  * and track the orger of execution - note that it denotes y^x
  */
-void Signal2SDF::logPowActor(Tree sig, Tree x, Tree y, std::string type)
+void Signal2SDF::logPowActor(Tree sig, Tree x, Tree y, const string& type)
 {
-    std::stringstream actorName;
-    std::stringstream arg1Name;
-    std::stringstream arg2Name;
+    stringstream actorName;
+    stringstream arg1Name;
+    stringstream arg2Name;
     actorName << sig;
     arg1Name << x;
     arg2Name << y;
-    actorList.insert(pair<std::string, Actor>(actorName.str(), Actor(actorName.str(), type)));
+    actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     // track order of arguments for binary operators
     inputArgTrackedActors.push_back(actorName.str());
     actorList.at(actorName.str()).addInputSignalName(arg1Name.str());
@@ -644,13 +644,13 @@ void Signal2SDF::logPowActor(Tree sig, Tree x, Tree y, std::string type)
 /**
  * Add the actor associated with sig to the actor list
  */
-void Signal2SDF::logCastActor(Tree sig, Tree x, std::string type)
+void Signal2SDF::logCastActor(Tree sig, Tree x, const string& type)
 {
-    std::stringstream actorName;  // get unique actor names from signal
-    std::stringstream argName;
+    stringstream actorName;  // get unique actor names from signal
+    stringstream argName;
     actorName << sig;
     argName << x;
-    actorList.insert(pair<std::string, Actor>(actorName.str(), Actor(actorName.str(), type)));
+    actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     inputArgTrackedActors.push_back(actorName.str());
     actorList.at(actorName.str()).addInputSignalName(argName.str());
     addChannel(sig);

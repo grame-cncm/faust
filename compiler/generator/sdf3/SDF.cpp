@@ -5,11 +5,13 @@
 #include <string>
 #include "signals.hh"
 
-Port::Port(std::string name, portType type, int rate) : name{name}, type{type}, execRate{rate}
+using namespace std;
+
+Port::Port(const string& name, portType type, int rate) : name{name}, type{type}, execRate{rate}
 {
 }
 
-void Port::setName(std::string name)
+void Port::setName(const string& name)
 {
     this->name = name;
 }
@@ -24,12 +26,12 @@ void Port::setRate(int rate)
     this->execRate = rate;
 }
 
-std::string Port::getName()
+string Port::getName()
 {
     return this->name;
 }
 
-std::string Port::getType()
+string Port::getType()
 {
     if (this->type == portType::in) {
         return "in";
@@ -45,33 +47,33 @@ int Port::getRate()
     return this->execRate;
 }
 
-Actor::Actor(std::string name, std::string type) : name{name}, type{type}
+Actor::Actor(const string& name, const string& type) : name{name}, type{type}
 {
     // this->ports = nullptr;
 }
 
-void Actor::setName(std::string name)
+void Actor::setName(const string& name)
 {
     this->name = name;
 }
 
-void Actor::setType(std::string type)
+void Actor::setType(const string& type)
 {
     this->type = type;
 }
 
-void Actor::setDelayInputSigName(std::string inputSig)
+void Actor::setDelayInputSigName(const string& inputSig)
 {
     this->delayInputSigName = inputSig;
 }
 
-void Actor::setArg(std::string argActorName, int value)
+void Actor::setArg(const string& argActorName, int value)
 {
     this->args.first  = argActorName;
     this->args.second = value;
 }
 
-void Actor::addInputSignalName(std::string name)
+void Actor::addInputSignalName(const string& name)
 {
     this->inputSignals.push_back(name);
 }
@@ -81,7 +83,7 @@ void Actor::addPort(Port newPort)
     this->ports.push_back(newPort);
 }
 
-void Actor::removePort(std::string portName)
+void Actor::removePort(const string& portName)
 {
     for (unsigned i = 0; i < this->ports.size(); i++) {
         if (this->ports[i].getName() == portName) {
@@ -90,135 +92,135 @@ void Actor::removePort(std::string portName)
     }
 }
 
-std::string Actor::getName()
+string Actor::getName()
 {
     return this->name;
 }
 
-std::string Actor::getType()
+string Actor::getType()
 {
     return this->type;
 }
 
-std::vector<Port> Actor::getPorts()
+vector<Port> Actor::getPorts()
 {
     return this->ports;
 }
 
-std::string Actor::getDelayInputSigName()
+string Actor::getDelayInputSigName()
 {
     return this->delayInputSigName;
 }
 
-std::pair<std::string, int> Actor::getArg()
+pair<string, int> Actor::getArg()
 {
     return this->args;
 }
 
-std::vector<std::string> Actor::getInputSignalNames()
+vector<string> Actor::getInputSignalNames()
 {
     return this->inputSignals;
 }
 
 // replace old signal name with new signal name (order must be retained)
-void Actor::replaceInputSignalName(std::string oldName, std::string newName)
+void Actor::replaceInputSignalName(const string& oldName, const string& newName)
 {
     std::replace(this->inputSignals.begin(), this->inputSignals.end(), oldName, newName);
 }
 
-void Actor::writeToXML(std::ostream& fout)
+void Actor::writeToXML(ostream& fout)
 {
     fout << "        <actor name='" << this->getName() << "' type='" << this->getType() << "'>"
-         << std::endl;
+         << endl;
     for (auto p : this->ports) {
         fout << "            <port type='" << p.getType() << "' name='" << p.getName() << "' rate='"
-             << p.getRate() << "'/>" << std::endl;
+             << p.getRate() << "'/>" << endl;
     }
-    fout << "        </actor>" << std::endl;
+    fout << "        </actor>" << endl;
 }
 
-void Actor::writePropertiesToXML(std::ostream& fout)
+void Actor::writePropertiesToXML(ostream& fout)
 {
-    fout << "        <actorProperties actor='" << this->getName() << "'>" << std::endl;
-    fout << "            <processor type='cluster_0' default='true'>" << std::endl;
-    fout << "                <executionTime time='1' />" << std::endl;
-    fout << "            </processor>" << std::endl;
-    fout << "        </actorProperties>" << std::endl;
+    fout << "        <actorProperties actor='" << this->getName() << "'>" << endl;
+    fout << "            <processor type='cluster_0' default='true'>" << endl;
+    fout << "                <executionTime time='1' />" << endl;
+    fout << "            </processor>" << endl;
+    fout << "        </actorProperties>" << endl;
 }
 
 void Actor::printInfo()
 {
-    std::cout << "Actor name, type: " << this->getName() << ", " << this->getType() << std::endl;
+    cout << "Actor name, type: " << this->getName() << ", " << this->getType() << endl;
     for (auto i : this->ports) {
-        std::cout << "\tPort: " << i.getName() << std::endl;
+        cout << "\tPort: " << i.getName() << endl;
     }
 }
 
-Channel::Channel(std::string name, std::string srcActor, std::string srcPort, std::string dstActor,
-                 std::string dstPort, int size, int initialTokens)
+Channel::Channel(const string& name, const string& srcActor, const string& srcPort,
+                 const string& dstActor, const string& dstPort, int size, int initialTokens)
     : name{name},
       srcActor{srcActor},
-      srcPort{srcPort},
       dstActor{dstActor},
+      srcPort{srcPort},
       dstPort{dstPort},
       size{size},
       initialTokens{initialTokens}
 {
 }
 
-Channel::Channel(std::string name, std::string srcActor, std::string srcPort, std::string dstActor,
-                 std::string dstPort)
+Channel::Channel(const string& name, const string& srcActor, const string& srcPort,
+                 const string& dstActor, const string& dstPort)
     : name{name},
       srcActor{srcActor},
-      srcPort{srcPort},
       dstActor{dstActor},
+      srcPort{srcPort},
       dstPort{dstPort},
       size{1},
       initialTokens{0}
 {
 }
 
-void Channel::setSrcActor(std::string srcActorName)
+void Channel::setSrcActor(const string& srcActorName)
 {
     this->srcActor = srcActorName;
 }
 
-void Channel::setDstActor(std::string dstActorName)
+void Channel::setDstActor(const string& dstActorName)
 {
     this->dstActor = dstActorName;
 }
 
-void Channel::setSrcPort(std::string srcPortName)
+void Channel::setSrcPort(const string& srcPortName)
 {
     this->srcPort = srcPortName;
 }
 
-void Channel::setDstPort(std::string dstPortName)
+void Channel::setDstPort(const string& dstPortName)
 {
     this->dstPort = dstPortName;
 }
 
-std::string Channel::getName()
+string Channel::getName()
 {
     return this->name;
 }
 
-std::string Channel::getSrcActor()
+string Channel::getSrcActor()
 {
     return this->srcActor;
 }
 
-std::string Channel::getDstActor()
+string Channel::getDstActor()
 {
     return this->dstActor;
 }
 
-std::string Channel::getSrcPort()
+string Channel::getSrcPort()
 {
     return this->srcPort;
 }
 
-std::string Channel::getDstPort()
+string Channel::getDstPort()
 {
     return this->dstPort;
 }
@@ -238,19 +240,19 @@ void Channel::setInitialTokens(int nTokens)
     this->initialTokens = nTokens;
 }
 
-void Channel::writeToXML(std::ostream& fout)
+void Channel::writeToXML(ostream& fout)
 {
     fout << "        <channel name='" << this->getName() << "' srcActor='" << this->getSrcActor()
          << "' srcPort='" << this->getSrcPort() << "' dstActor='" << this->getDstActor()
          << "' dstPort='" << this->getDstPort() << "' size='" << this->getSize()
-         << "' initialTokens='" << this->getInitialTokens() << "'/>" << std::endl;
+         << "' initialTokens='" << this->getInitialTokens() << "'/>" << endl;
 }
 
 void Channel::printInfo()
 {
-    std::cout << "Channel name: " << this->getName() << std::endl;
-    std::cout << "\tSource Port: " << this->getSrcPort() << std::endl;
-    std::cout << "\tDest Port: " << this->getDstPort() << std::endl;
-    std::cout << "\tSrcActor: " << this->getSrcActor() << std::endl;
-    std::cout << "\tDstActor: " << this->getDstActor() << std::endl;
+    cout << "Channel name: " << this->getName() << endl;
+    cout << "\tSource Port: " << this->getSrcPort() << endl;
+    cout << "\tDest Port: " << this->getDstPort() << endl;
+    cout << "\tSrcActor: " << this->getSrcActor() << endl;
+    cout << "\tDstActor: " << this->getDstActor() << endl;
 }

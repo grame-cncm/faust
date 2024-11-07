@@ -8,8 +8,8 @@ enum portType { in, out };
 
 class Port {
    public:
-    Port(std::string, portType, int);
-    void        setName(std::string);
+    Port(const std::string&, portType, int);
+    void        setName(const std::string&);
     void        setType(portType);
     void        setRate(int);
     std::string getName();
@@ -24,24 +24,24 @@ class Port {
 
 class Actor {
    public:
-    Actor(std::string, std::string);
-    void                        setName(std::string);
-    void                        setType(std::string);
+    Actor(const std::string&, const std::string&);
+    void                        setName(const std::string&);
+    void                        setType(const std::string&);
     void                        addPort(Port);
-    void                        removePort(std::string);
-    void                        setDelayInputSigName(std::string);
-    void                        setArg(std::string, int);
-    void                        addInputSignalName(std::string);
+    void                        removePort(const std::string&);
+    void                        setDelayInputSigName(const std::string&);
+    void                        setArg(const std::string&, int);
+    void                        addInputSignalName(const std::string&);
     std::string                 getName();
     std::string                 getType();
     std::vector<Port>           getPorts();
     std::string                 getDelayInputSigName();
     std::pair<std::string, int> getArg();
     std::vector<std::string>    getInputSignalNames();
-    void                        replaceInputSignalName(std::string oldName, std::string newName);
-    void                        writeToXML(std::ostream& fout);
-    void                        writePropertiesToXML(std::ostream& fout);
-    void                        printInfo();  // for debugging
+    void replaceInputSignalName(const std::string& oldName, const std::string& newName);
+    void writeToXML(std::ostream& fout);
+    void writePropertiesToXML(std::ostream& fout);
+    void printInfo();  // for debugging
 
    private:
     std::string       name;  // unique identifier for actor
@@ -56,14 +56,14 @@ class Actor {
 
 class Channel {
    public:
-    Channel(std::string name, std::string srcActor, std::string srcPort, std::string dstActor,
-            std::string dstPort, int size, int initialTokens);
-    Channel(std::string name, std::string srcActor, std::string srcPort, std::string dstActor,
-            std::string dstPort);
-    void        setSrcActor(std::string);
-    void        setDstActor(std::string);
-    void        setSrcPort(std::string);
-    void        setDstPort(std::string);
+    Channel(const std::string& name, const std::string& srcActor, const std::string& srcPort,
+            const std::string& dstActor, const std::string& dstPort, int size, int initialTokens);
+    Channel(const std::string& name, const std::string& srcActor, const std::string& srcPort,
+            const std::string& dstActor, const std::string& dstPort);
+    void        setSrcActor(const std::string&);
+    void        setDstActor(const std::string&);
+    void        setSrcPort(const std::string&);
+    void        setDstPort(const std::string&);
     std::string getName();
     std::string getSrcActor();
     std::string getDstActor();

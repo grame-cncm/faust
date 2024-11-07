@@ -113,7 +113,7 @@ static Tree simplification(Tree sig)
         for (int i = 0; i < sig->arity(); i++) {
             args.push_back(sig->branch(i));
         }
-    
+
         faustassert(args.size() == xt->arity());
 
         // to avoid negative power to further normalization
@@ -336,11 +336,11 @@ static Tree sigMap(Tree key, tfun f, Tree t)
     } else if (isRec(t, id, body)) {
         setProperty(t, key, gGlobal->nil);  // avoid infinite loop
         return rec(id, sigMap(key, f, body));
-       
+
     } else {
         tvec br;
-        int   n = t->arity();
-        int arg = 0;
+        int  n   = t->arity();
+        int  arg = 0;
         if (isUIInputItem(t) || isUIOutputItem(t)) {
             // Do not handle labels to avoid simplifying them when using reserved keyword
             br.push_back(t->branch(arg));
@@ -374,7 +374,7 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
 
     } else if (isRec(t, id, body)) {
         faustassert(isRef(t, id));  // temporary control
-        
+
         Tree id2;
         if (searchEnv(id, id2, env)) {
             // already in the process of visiting this recursion
@@ -385,11 +385,11 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
             Tree body2 = sigMapRename(key, pushEnv(id, id2, env), f, body);
             return rec(id2, body2);
         }
- 
+
     } else {
         tvec br;
-        int   n = t->arity();
-        int arg = 0;
+        int  n   = t->arity();
+        int  arg = 0;
         if (isUIInputItem(t) || isUIOutputItem(t)) {
             // Do not handle labels to avoid simplifying them when using reserved keyword
             br.push_back(t->branch(arg));
