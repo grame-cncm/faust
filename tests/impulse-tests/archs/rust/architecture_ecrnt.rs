@@ -16,6 +16,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ************************************************************************
 ************************************************************************/
 
+// this architecture file use vectors of vectors to test the compute interface
+
 #![allow(unused_parens)]
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
@@ -152,11 +154,11 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI {
     fn declare(&mut self, param: Option<ParamIndex>, key: &str, value: &str) {}
 }
 
-// Generated intrinsics:
-<<includeIntrinsic>>
+// // Generated intrinsics:
+// <<includeIntrinsic>>
 
-// Generated class:
-<<includeclass>>
+// // Generated class:
+// <<includeclass>>
 
 const SAMPLE_RATE: i32 = 44100;
 
@@ -211,19 +213,7 @@ fn run_dsp(
         }
 
         dsp.control();
-        dsp.compute(
-            buffer_size,
-            in_buffer
-                .iter()
-                .map(|buffer| buffer.as_slice())
-                .collect::<Vec<&[FaustFloat]>>()
-                .as_slice(),
-            out_buffer
-                .iter_mut()
-                .map(|buffer| buffer.as_mut_slice())
-                .collect::<Vec<&mut [FaustFloat]>>()
-                .as_mut_slice(),
-        );
+        dsp.compute(buffer_size, &in_buffer, &mut out_buffer);
 
         // handle outputs
         for j in 0..buffer_size {

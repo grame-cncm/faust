@@ -236,8 +236,6 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "pub type FaustFloat = " << ifloat() << ";";
 
-    tab(n, *fOut);
-    *fOut << "use std::convert::TryInto;";
 
     // Generate gub containers
     generateSubContainers();
@@ -527,7 +525,6 @@ void RustCodeContainer::produceClass()
         generateComputeFrame(n + 1);
     } else {
         generateCompute(n + 1);
-        generateComputeInterface(n + 1);
     }
 
     tab(n, *fOut);
@@ -627,18 +624,18 @@ void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut, int fNu
 {
     // Compute "compute" declaration
     tab(n, *fOut);
-    *fOut << "pub fn compute_arrays("
-          << "&mut self, " << fFullCount << ": usize, inputs: &[&[FaustFloat] ; " << fNumInputs
-          << "]"
-          << ", outputs: &mut [&mut [FaustFloat] ; " << fNumOutputs << "]) {";
-}
-
-void RustCodeContainer::generateComputeInterfaceHeader(int n, std::ostream* fOut, int fNumInputs,
-                                                       int fNumOutputs)
-{
-    *fOut << "pub fn compute("
-          << "&mut self, " << fFullCount << ": usize, inputs: & [& [FaustFloat] ]"
-          << ", outputs: & mut[& mut[FaustFloat] ]) {";
+    tab(n, *fOut);
+    *fOut << "pub fn compute(";
+    tab(n + 1, *fOut);
+    *fOut << "&mut self,";
+    tab(n + 1, *fOut);
+    *fOut << "count: usize,";
+    tab(n + 1, *fOut);
+    *fOut << "inputs: &[impl AsRef<[FaustFloat]>],";
+    tab(n + 1, *fOut);
+    *fOut << "outputs: &mut[impl AsMut<[FaustFloat]>],";
+    tab(n, *fOut);
+    *fOut << ") {";
     tab(n + 1, *fOut);
 }
 
@@ -683,23 +680,6 @@ void RustCodeContainer::generateComputeFrame(int n)
     tab(n, *fOut);
     *fOut << "}";
     tab(n, *fOut);
-}
-
-void RustCodeContainer::generateComputeInterface(int n)
-{
-    // Generates declaration
-    tab(n, *fOut);
-    generateComputeInterfaceHeader(n, fOut, fNumInputs, fNumOutputs);
-
-    *fOut << "let input_array = inputs.split_at(" << fNumInputs
-          << ").0.try_into().expect(\"too few input buffers\");";
-    tab(n + 1, *fOut);
-    *fOut << "let output_array = outputs.split_at_mut(" << fNumOutputs
-          << ").0.try_into().expect(\"too few output buffers\");";
-    tab(n + 1, *fOut);
-    *fOut << "self.compute_arrays(count, input_array, output_array);";
-    tab(n, *fOut);
-    *fOut << "}" << endl;
 }
 
 // Scalar

@@ -225,9 +225,9 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareBufferIterators* inst)
     {
         /* Generates an expression like:
-        let [outputs0, outputs1, ..] = outputs;
-        let outputs0 = outputs0[..count].iter_mut();
-        let outputs1 = outputs1[..count].iter_mut();
+        let [outputs0, outputs1, ..] = outputs.as_mut() else { panic!(\"wrong number of outputs\"); };";
+        let outputs0 = outputs0.as_mut[..count].iter_mut();
+        let outputs1 = outputs1.as_mut[..count].iter_mut();
         */
 
         // Don't generate if no channels or onesample mode
@@ -241,23 +241,29 @@ class RustInstVisitor : public TextInstVisitor {
         for (int i = 0; i < inst->fChannels; ++i) {
             *fOut << name << i << ", ";
         }
-        *fOut << "] = " << name << ";";
+        *fOut << ".. ] = " << name;
+        if (inst->fMutable) {
+                *fOut << ".as_mut() else { panic!(\"wrong number of outputs\"); };";
+        } else {
+                *fOut << ".as_ref() else { panic!(\"wrong number of inputs\"); };";
+        }
 
         // Build fixed size iterator variables
         for (int i = 0; i < inst->fChannels; ++i) {
             tab(fTab, *fOut);
-            *fOut << "let " << name << i << " = " << name << i << "[..count]";
+            *fOut << "let " << name << i << " = " << name << i;
+            ;
             if (inst->fMutable) {
                 if (inst->fChunk) {
-                    *fOut << ".chunks_mut(vsize as usize);";
+                    *fOut << ".as_mut()[..count].chunks_mut(vsize as usize);";
                 } else {
-                    *fOut << ".iter_mut();";
+                    *fOut << ".as_mut()[..count].iter_mut();";
                 }
             } else {
                 if (inst->fChunk) {
-                    *fOut << ".chunks(vsize as usize);";
+                    *fOut << ".as_ref()[..count].chunks(vsize as usize);";
                 } else {
-                    *fOut << ".iter();";
+                    *fOut << ".as_ref()[..count].iter();";
                 }
             }
         }

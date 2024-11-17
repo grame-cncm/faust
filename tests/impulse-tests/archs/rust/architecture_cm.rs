@@ -16,6 +16,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ************************************************************************
 ************************************************************************/
 
+// this architecture file uses arrays of arrays to test the interface of the compute functions
+
 #![allow(unused_parens)]
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
@@ -185,37 +187,33 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI {
 // // Generated class:
 // <<includeclass>>
 
-const SAMPLE_RATE: i32 = 44100;
-
-type Dsp64 = dyn FaustDsp<T = f64>;
-
-fn print_header(mut dsp: Box<Dsp64>, num_total_samples: usize, output_file: &mut File) {
-    dsp.init(SAMPLE_RATE);
+fn print_header(dsp: &impl FaustDsp<T = FaustFloat>, output_file: &mut File) {
     writeln!(output_file, "number_of_inputs  : {}", dsp.get_num_inputs()).unwrap();
     writeln!(output_file, "number_of_outputs : {}", dsp.get_num_outputs()).unwrap();
-    writeln!(output_file, "number_of_frames  : {}", num_total_samples).unwrap();
+    writeln!(output_file, "number_of_frames  : {}", NUM_TOTAL_SAMPLES).unwrap();
 }
 
-fn run_dsp(
-    mut dsp: Box<Dsp64>,
-    num_samples: usize,
-    line_num_offset: usize,
-    output_file: &mut File,
-) {
-    type T = <Dsp64 as FaustDsp>::T;
+const SAMPLE_RATE: i32 = 44100;
+const NUM_TOTAL_SAMPLES: usize = 60000;
+const BLOCK_SIZE: usize = NUM_TOTAL_SAMPLES / 4;
+const BUFFER_SIZE: usize = 64usize;
 
-    // Generation constants
-    let buffer_size = 64usize;
+fn main() {
+    // Open output file
+    let output_file_name = env::args()
+        .nth(1)
+        .expect("ERROR: Output file name expected.");
+    let mut output_file = File::create(output_file_name).expect("Cannot create output file");
 
+    let mut dsp = mydsp::default_boxed();
     // Init dsp
     dsp.init(SAMPLE_RATE);
 
-    let num_inputs = dsp.get_num_inputs() as usize;
-    let num_outputs = dsp.get_num_outputs() as usize;
+    print_header(&*dsp, &mut output_file);
 
     // Prepare buffers
-    let mut in_buffer = vec![vec![0 as T; buffer_size]; num_inputs];
-    let mut out_buffer = vec![vec![0 as T; buffer_size]; num_outputs];
+    let mut in_buffer = [[0.0 as FaustFloat; BUFFER_SIZE]; FAUST_INPUTS];
+    let mut out_buffer = [[0.0 as FaustFloat; BUFFER_SIZE]; FAUST_OUTPUTS];
 
     // Prepare UI
     let mut ui = ButtonUI {
@@ -226,16 +224,16 @@ fn run_dsp(
     // Compute
     let mut cycle = 0;
     let mut num_samples_written = 0;
-    while num_samples_written < num_samples {
-        let buffer_size = buffer_size.min(num_samples - num_samples_written);
+    while num_samples_written < BLOCK_SIZE {
+        let buffer_size = BUFFER_SIZE.min(BLOCK_SIZE - num_samples_written);
 
         // handle inputs
-        for c in 0..num_inputs {
-            for j in 0..buffer_size {
+        (0..FAUST_INPUTS).for_each(|c| {
+            (0..buffer_size).for_each(|j| {
                 let first_frame = num_samples_written == 0 && j == 0;
                 in_buffer[c][j] = if first_frame { 1.0 } else { 0.0 };
-            }
-        }
+            });
+        });
 
         // Set button state
         if cycle == 0 {
@@ -245,50 +243,22 @@ fn run_dsp(
         }
 
         // right now the cm flag is only tested for the case that is the buffer is zeroed every time
-        let i = in_buffer
-            .iter()
-            .map(|buffer| buffer.as_slice())
-            .collect::<Vec<&[T]>>();
-        let mut o = out_buffer
+        out_buffer
             .iter_mut()
-            .map(|buffer| {
-                buffer.iter_mut().for_each(|i| *i = 0.0);
-                buffer.as_mut_slice()
-            })
-            .collect::<Vec<&mut [T]>>();
+            .for_each(|mut buffer| buffer.iter_mut().for_each(|mut sample| *sample = 0.0));
 
-        dsp.compute(buffer_size as i32, i.as_slice(), o.as_mut_slice());
+        dsp.compute(buffer_size, &in_buffer, &mut out_buffer);
 
         // handle outputs
-        for j in 0..buffer_size {
-            write!(output_file, "{:6} :", num_samples_written + line_num_offset).unwrap();
-            for c in 0..num_outputs {
+        (0..buffer_size).for_each(|j| {
+            write!(output_file, "{:6} :", num_samples_written).unwrap();
+            (0..FAUST_OUTPUTS).for_each(|c| {
                 write!(output_file, " {:8.6}", out_buffer[c][j]).unwrap();
-            }
+            });
             writeln!(output_file).unwrap();
             num_samples_written += 1;
-        }
+        });
 
-        cycle = cycle + 1;
+        cycle += 1;
     }
-}
-
-fn new_dsp() -> Box<Dsp64> {
-    mydsp::default_boxed()
-}
-
-fn main() {
-    let num_total_samples = 60000;
-
-    let block_size = num_total_samples / 4;
-
-    // Open output file
-    let output_file_name = env::args()
-        .nth(1)
-        .expect("ERROR: Output file name expected.");
-    let mut output_file = File::create(output_file_name).expect("Cannot create output file");
-
-    print_header(new_dsp(), num_total_samples, &mut output_file);
-
-    run_dsp(mydsp::default_boxed(), block_size, 0, &mut output_file);
 }
