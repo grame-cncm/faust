@@ -122,10 +122,9 @@ travis:
 #########################################################################
 # automatic github action test
 github_action:
-	$(MAKE) -f Make.rust outdir=rust/osec CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -os -ec -rnt -a archs/rust/architecture_osecrnt.rs"
-	$(MAKE) -f Make.rust outdir=rust/os CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -os -rnt -a archs/rust/architecture_osrnt.rs"
 	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -a archs/rust/architecture_trait.rs"
-	$(MAKE) -f Make.gcc outdir=cpp/double/os lang=cpp arch=impulsearch7ter.cpp FAUSTOPTIONS="-I dsp -double -os"
+	$(MAKE) -f Make.rust outdir=rust/cm CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -cm -a archs/rust/architecture_cm.rs"
+	$(MAKE) -f Make.rust outdir=rust/ecrnt CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -ec -rnt -a archs/rust/architecture_ecrnt.rs"
 	$(MAKE) -f Make.gcc outdir=cpp/double lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I ../../libraries/ -I dsp -double"
 
 #########################################################################

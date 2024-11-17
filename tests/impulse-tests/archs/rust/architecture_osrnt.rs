@@ -29,12 +29,9 @@ extern crate libm;
 extern crate num_traits;
 /* extern crate fastfloat; */
 
-use std::env;
-use std::fs::File;
-use std::io::Write;
-
 use default_boxed::DefaultBoxed;
 use num_traits::{cast::FromPrimitive, float::Float};
+use std::{convert::TryInto, env, fs::File, io::Write};
 
 type F32 = f32;
 type F64 = f64;
