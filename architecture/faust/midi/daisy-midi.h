@@ -36,7 +36,7 @@ class daisy_midi : public midi_handler {
     private:
     
         daisy::MidiHandler<daisy::MidiUartTransport> fMidi;
-        daisy::MidiHandler<daisy::MidiUartTransport>::Config config;
+        daisy::MidiHandler<daisy::MidiUartTransport>::Config fConfig;
 
     public:
     
@@ -50,7 +50,7 @@ class daisy_midi : public midi_handler {
 
         bool startMidi()
         {
-            fMidi.Init(config);
+            fMidi.Init(fConfig);
             return true;
         }
 
