@@ -25,6 +25,10 @@ Other metadata:
 
 - `[scale:lin|log|exp]` metadata is implemented.
 
+## Bootloader configuration:
+
+Setup the board to utilize the manufacturer's bootloader, ensuring that the generated code fits within the board's memory. For detailed instructions on flashing the bootloader, please refer to: [Daisy Bootloader Getting Started Guide](https://electro-smith.github.io/libDaisy/md_doc_2md_2__a7___getting-_started-_daisy-_bootloader.html).
+
 ## DSP examples
 
 Here is a simple example showing how oscillators can be controlled by physical items and MIDI messages:
