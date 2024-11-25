@@ -148,7 +148,7 @@ typedef struct ControlZone {
 static ControlZone* newControl(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init,
                                FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 {
-    ControlZone* ctrl = (ControlZone*)calloc(sizeof(ControlZone), 1);
+    ControlZone* ctrl = (ControlZone*)calloc(1, sizeof(ControlZone));
     ctrl->fLabel = label;
     ctrl->fZone = zone;
     ctrl->fInit = init;
