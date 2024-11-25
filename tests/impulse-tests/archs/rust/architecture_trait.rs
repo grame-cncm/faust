@@ -29,11 +29,11 @@ extern crate libm;
 extern crate num_traits;
 /* extern crate fastfloat; */
 
+use num_traits::cast::FromPrimitive;
+use num_traits::float::Float;
 use std::env;
 use std::fs::File;
 use std::io::Write;
-
-use num_traits::{cast::FromPrimitive, float::Float};
 
 type F32 = f32;
 type F64 = f64;
@@ -289,10 +289,5 @@ fn main() {
 
     print_header(new_dsp(), num_total_samples, &mut output_file);
 
-    // Only test mono DSP for now
     run_dsp(new_dsp(), block_size, 0, &mut output_file);
-
-    //run_dsp(new_dsp(), block_size, 1 * block_size, &mut output_file);
-    //run_dsp(new_dsp(), block_size, 2 * block_size, &mut output_file);
-    //run_dsp(new_dsp(), block_size, 3 * block_size, &mut output_file);
 }

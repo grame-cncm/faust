@@ -30,8 +30,12 @@ extern crate num_traits;
 /* extern crate fastfloat; */
 
 use default_boxed::DefaultBoxed;
-use num_traits::{cast::FromPrimitive, float::Float};
-use std::{convert::TryInto, env, fs::File, io::Write};
+use num_traits::cast::FromPrimitive;
+use num_traits::float::Float;
+use std::convert::TryInto;
+use std::env;
+use std::fs::File;
+use std::io::Write;
 
 type F32 = f32;
 type F64 = f64;
@@ -150,10 +154,10 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI {
 }
 
 // Generated intrinsics:
-//<<includeIntrinsic>>
+<<includeIntrinsic>>
 
 // Generated class:
-//<<includeclass>>
+<<includeclass>>
 
 const SAMPLE_RATE: i32 = 44100;
 

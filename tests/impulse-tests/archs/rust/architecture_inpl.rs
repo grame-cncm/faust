@@ -32,7 +32,6 @@ extern crate num_traits;
 use default_boxed::DefaultBoxed;
 use num_traits::cast::FromPrimitive;
 use num_traits::float::Float;
-use std::convert::TryInto;
 use std::env;
 use std::fs::File;
 use std::io::Write;
@@ -161,8 +160,7 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI {
 
 const SAMPLE_RATE: i32 = 44100;
 
-fn print_header(mut dsp: Box<mydsp>, num_total_samples: usize, output_file: &mut File) {
-    dsp.init(SAMPLE_RATE);
+fn print_header(dsp: &Box<mydsp>, num_total_samples: usize, output_file: &mut File) {
     writeln!(output_file, "number_of_inputs  : {}", FAUST_INPUTS).unwrap();
     writeln!(output_file, "number_of_outputs : {}", FAUST_OUTPUTS).unwrap();
     writeln!(output_file, "number_of_frames  : {}", num_total_samples).unwrap();
@@ -181,8 +179,9 @@ fn run_dsp(
     dsp.init(SAMPLE_RATE);
 
     // Prepare buffers
-    let mut in_buffer = vec![vec![0 as FaustFloat; buffer_size]; FAUST_INPUTS];
-    let mut out_buffer = vec![vec![0 as FaustFloat; buffer_size]; FAUST_OUTPUTS];
+    //let mut in_buffer = vec![vec![0 as FaustFloat; buffer_size]; FAUST_INPUTS];
+    let mut buffers =
+        vec![vec![0 as FaustFloat; buffer_size]; std::cmp::max(FAUST_INPUTS, FAUST_OUTPUTS)];
 
     // Prepare UI
     let mut ui = ButtonUI {
@@ -197,10 +196,10 @@ fn run_dsp(
         let buffer_size = buffer_size.min(num_samples - num_samples_written);
 
         // handle inputs
-        for c in 0..FAUST_INPUTS {
-            for j in 0..buffer_size {
-                let first_frame = num_samples_written == 0 && j == 0;
-                in_buffer[c][j] = if first_frame { 1.0 } else { 0.0 };
+        for buffer in buffers.iter_mut() {
+            for (i, sample) in buffer.iter_mut().enumerate() {
+                let first_frame = num_samples_written == 0 && i == 0;
+                *sample = if first_frame { 1.0 } else { 0.0 };
             }
         }
 
@@ -211,35 +210,17 @@ fn run_dsp(
             ui.set_button_parameters_to(&mut dsp, 0.0);
         }
 
-        for i in 0..buffer_size {
-            dsp.frame(
-                in_buffer
-                    .iter()
-                    .map(|buffer| &buffer[i])
-                    .collect::<Vec<&FaustFloat>>()
-                    .split_at(FAUST_INPUTS)
-                    .0
-                    .try_into()
-                    .expect("too few input buffers"),
-                out_buffer
-                    .iter_mut()
-                    .map(|buffer| &mut buffer[i])
-                    .collect::<Vec<&mut FaustFloat>>()
-                    .split_at_mut(FAUST_OUTPUTS)
-                    .0
-                    .try_into()
-                    .expect("too few output buffers"),
-            );
-        }
+        dsp.compute(buffer_size, &mut buffers);
+
         // handle outputs
-        for j in 0..buffer_size {
+        (0..buffer_size).for_each(|j| {
             write!(output_file, "{:6} :", num_samples_written + line_num_offset).unwrap();
-            for c in 0..FAUST_OUTPUTS {
-                write!(output_file, " {:8.6}", out_buffer[c][j]).unwrap();
-            }
+            (0..FAUST_OUTPUTS).for_each(|c| {
+                write!(output_file, " {:8.6}", buffers[c][j]).unwrap();
+            });
             writeln!(output_file).unwrap();
             num_samples_written += 1;
-        }
+        });
 
         cycle = cycle + 1;
     }
@@ -256,7 +237,10 @@ fn main() {
         .expect("ERROR: Output file name expected.");
     let mut output_file = File::create(output_file_name).expect("Cannot create output file");
 
-    print_header(mydsp::default_boxed(), num_total_samples, &mut output_file);
+    let mut dsp = mydsp::default_boxed();
+    dsp.init(SAMPLE_RATE);
 
-    run_dsp(mydsp::default_boxed(), block_size, 0, &mut output_file);
+    print_header(&dsp, num_total_samples, &mut output_file);
+
+    run_dsp(dsp, block_size, 0, &mut output_file);
 }

@@ -523,6 +523,8 @@ void RustCodeContainer::produceClass()
     // Compute
     if (gGlobal->gOneSample) {
         generateComputeFrame(n + 1);
+    } else if (gGlobal->gInPlace){
+        generateComputeIO(n+1);
     } else {
         generateCompute(n + 1);
     }
@@ -619,8 +621,7 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     *fOut << "}";
 }
 
-void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut, int fNumInputs,
-                                              int fNumOutputs)
+void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut)
 {
     // Compute "compute" declaration
     tab(n, *fOut);
@@ -636,6 +637,15 @@ void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut, int fNu
     *fOut << "outputs: &mut[impl AsMut<[FaustFloat]>],";
     tab(n, *fOut);
     *fOut << ") {";
+    tab(n + 1, *fOut);
+}
+
+void RustCodeContainer::generateComputeIOHeader(int n, std::ostream* fOut)
+{
+    // Compute "compute" declaration
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "pub fn compute(&mut self, count: usize, mut ios: &mut [impl AsMut<[FaustFloat]>]) {";
     tab(n + 1, *fOut);
 }
 
@@ -694,7 +704,8 @@ void RustScalarCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    generateComputeHeader(n, fOut, fNumInputs, fNumOutputs);
+    tab(n, *fOut);
+    generateComputeHeader(n, fOut);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -707,6 +718,35 @@ void RustScalarCodeContainer::generateCompute(int n)
     }
     for (int i = 0; i < fNumOutputs; ++i) {
         iterators.push_back("outputs" + std::to_string(i));
+    }
+    IteratorForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(iterators);
+    loop->accept(&fCodeProducer);
+
+    // Currently for soundfile management
+    // and for temp vars
+    generatePostComputeBlock(&fCodeProducer);
+
+    tab(n, *fOut);
+    *fOut << "}" << endl;
+}
+
+void RustScalarCodeContainer::generateComputeIO(int n)
+{
+    // Generates declaration
+    tab(n, *fOut);
+    tab(n, *fOut);
+    generateComputeIOHeader(n, fOut);
+    tab(n + 1, *fOut);
+    fCodeProducer.Tab(n + 1);
+
+
+    generateComputeBlock(&fCodeProducer);
+
+    // Generates one single scalar loop
+    std::vector<std::string> iterators;
+    int num_buffers = max(fNumInputs,fNumOutputs);
+    for (int i = 0; i < num_buffers; ++i) {
+        iterators.push_back("ios" + std::to_string(i));
     }
     IteratorForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(iterators);
     loop->accept(&fCodeProducer);
@@ -740,7 +780,7 @@ void RustVectorCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     *fOut << "#[allow(unused_mut)]";
     tab(n, *fOut);
-    generateComputeHeader(n, fOut, fNumInputs, fNumOutputs);
+    generateComputeHeader(n, fOut);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -806,7 +846,7 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    generateComputeHeader(n, fOut, fNumInputs, fNumOutputs);
+    generateComputeHeader(n, fOut);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -849,7 +889,7 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
 
     tab(n, *fOut);
     *fOut << "}" << endl;
-    generateComputeHeader(n, fOut, fNumInputs, fNumOutputs);
+    generateComputeHeader(n, fOut);
 
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);

@@ -32,6 +32,7 @@ inline std::string makeNameSingular(const std::string& name)
     std::string result = name;
     result             = std::regex_replace(result, std::regex("inputs"), "input");
     result             = std::regex_replace(result, std::regex("outputs"), "output");
+    result             = std::regex_replace(result, std::regex("ios"), "io");
     return result;
 }
 
@@ -243,9 +244,13 @@ class RustInstVisitor : public TextInstVisitor {
         }
         *fOut << ".. ] = " << name;
         if (inst->fMutable) {
-                *fOut << ".as_mut() else { panic!(\"wrong number of outputs\"); };";
+            if (gGlobal->gInPlace){
+                *fOut << ".as_mut() else { panic!(\"wrong number of IO buffers\"); };";
+            } else {
+                *fOut << ".as_mut() else { panic!(\"wrong number of output buffers\"); };";
+            }
         } else {
-                *fOut << ".as_ref() else { panic!(\"wrong number of inputs\"); };";
+                *fOut << ".as_ref() else { panic!(\"wrong number of input buffers\"); };";
         }
 
         // Build fixed size iterator variables

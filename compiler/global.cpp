@@ -1672,6 +1672,10 @@ bool global::processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : '-rnt' option can only be used with rust\n");
     }
 
+    if (!gRustNoTraitSwitch && gInPlace && gOutputLang == "rust") {
+        throw faustexception("ERROR : for 'rust' the '-inpl' flag must be combined with '-rnt' flag\n");
+    }
+
     if (gInPlace && gVectorSwitch) {
         throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n");
     }
