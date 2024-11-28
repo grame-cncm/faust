@@ -2,7 +2,7 @@ name: Ubuntu
 
 on:
   push:
-    branches: 
+    branches:
         - '*'
   pull_request:
     branches: [ master-dev ]
@@ -13,11 +13,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
 
     - name: Install libmicrohttpd
       run: |
-        sudo apt-get update -qq 
+        sudo apt-get update -qq
         sudo apt-get install libmicrohttpd-dev
 
     - name: Build Faust
       run: make
+
+    - name: Copy c header to expected path by impulse test
+      run: |
+         mkdir -p architecture/faust/dsp/
+         cp compiler/generator/libfaust.h architecture/faust/dsp/
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+
+    - name: Run impulse tests (C++ and Rust)
+      run: cd tests/impulse-tests && make github_action
