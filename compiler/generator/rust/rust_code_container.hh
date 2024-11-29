@@ -57,6 +57,7 @@ class RustCodeContainer : public virtual CodeContainer {
     void         generateComputeHeader(int n, std::ostream* fOut, int fNumInputs, int fNumOutputs);
     void generateComputeInterfaceHeader(int n, std::ostream* fOut, int fNumInputs, int fNumOutputs);
     void generateComputeInterface(int tab);
+    void generateComputeFrame(int tab);
     virtual void              generateCompute(int tab) = 0;
     void                      produceInternal();
     void                      produceFaustDspBlob();

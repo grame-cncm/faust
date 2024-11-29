@@ -41,22 +41,30 @@ filesCompare:
 #########################################################################
 # rules
 
-ir/$(outdir)/sound.ir: dsp/sound.dsp 
+ir/$(outdir)/sound.ir: dsp/sound.dsp
 	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/sound.dsp -o archs/rust/src/bin/sound.rs > $@ 2>&1 || (echo "expected failure")
 	grep "ERROR : 'soundfile' primitive not yet supported for Rust" $@
 
-ir/rust/vec4/osc_enable.ir: dsp/osc_enable.dsp 
+ir/rust/osec/bs.ir: dsp/bs.dsp
+	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/bs.dsp -o archs/rust/src/bin/bs.rs > $@ 2>&1 || (echo "expected failure")
+	grep "ERROR : accessing foreign variable 'count' is not allowed in this compilation mode" $@
+
+ir/rust/os/bs.ir: dsp/bs.dsp
+	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/bs.dsp -o archs/rust/src/bin/bs.rs > $@ 2>&1 || (echo "expected failure")
+	grep "ERROR : accessing foreign variable 'count' is not allowed in this compilation mode" $@
+
+ir/rust/vec4/osc_enable.ir: dsp/osc_enable.dsp
 	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/osc_enable.dsp -o archs/rust/src/bin/osc_enable.rs > $@ 2>&1 || (echo "expected failure")
 	grep "ERROR : 'control/enable' can only be used in scalar mode" $@
 
-ir/rust/vec32/osc_enable.ir: dsp/osc_enable.dsp 
+ir/rust/vec32/osc_enable.ir: dsp/osc_enable.dsp
 	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/osc_enable.dsp -o archs/rust/src/bin/osc_enable.rs > $@ 2>&1 || (echo "expected failure")
 	grep "ERROR : 'control/enable' can only be used in scalar mode" $@
 
-ir/rust/vec4/prefix.ir: 
+ir/rust/vec4/prefix.ir:
 	echo "todo fix bug #1071 to test dsp/prefix.dsp"
 
-ir/rust/vec32/prefix.ir: 
+ir/rust/vec32/prefix.ir:
 	echo "todo fix bug #1071 to test dsp/prefix.dsp"
 
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir

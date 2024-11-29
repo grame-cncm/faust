@@ -225,17 +225,13 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareBufferIterators* inst)
     {
         /* Generates an expression like:
-        let (outputs0, outputs1) = if let [outputs0, outputs1, ..] = outputs {
-            let outputs0 = outputs0[..count as usize].iter_mut();
-            let outputs1 = outputs1[..count as usize].iter_mut();
-            (outputs0, outputs1)
-        } else {
-            panic!("wrong number of outputs");
-        };
+        let [outputs0, outputs1, ..] = outputs;
+        let outputs0 = outputs0[..count].iter_mut();
+        let outputs1 = outputs1[..count].iter_mut();
         */
 
-        // Don't generate if no channels
-        if (inst->fChannels == 0) {
+        // Don't generate if no channels or onesample mode
+        if (inst->fChannels == 0 || gGlobal->gOneSample) {
             return;
         }
 
@@ -248,10 +244,9 @@ class RustInstVisitor : public TextInstVisitor {
         *fOut << "] = " << name << ";";
 
         // Build fixed size iterator variables
-
         for (int i = 0; i < inst->fChannels; ++i) {
             tab(fTab, *fOut);
-            *fOut << "let " << name << i << " = " << name << i << "[..count as usize]";
+            *fOut << "let " << name << i << " = " << name << i << "[..count]";
             if (inst->fMutable) {
                 if (inst->fChunk) {
                     *fOut << ".chunks_mut(vsize as usize);";

@@ -523,8 +523,12 @@ void RustCodeContainer::produceClass()
     }
 
     // Compute
-    generateCompute(n + 1);
-    generateComputeInterface(n + 1);
+    if (gGlobal->gOneSample) {
+        generateComputeFrame(n + 1);
+    } else {
+        generateCompute(n + 1);
+        generateComputeInterface(n + 1);
+    }
 
     tab(n, *fOut);
     *fOut << "}" << endl;
@@ -632,11 +636,52 @@ void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut, int fNu
 void RustCodeContainer::generateComputeInterfaceHeader(int n, std::ostream* fOut, int fNumInputs,
                                                        int fNumOutputs)
 {
-    // Compute "compute" declaration
     *fOut << "pub fn compute("
           << "&mut self, " << fFullCount << ": usize, inputs: & [& [FaustFloat] ]"
           << ", outputs: & mut[& mut[FaustFloat] ]) {";
     tab(n + 1, *fOut);
+}
+
+void RustCodeContainer::generateComputeFrame(int n)
+{
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "pub fn compute_frame(&mut self, inputs: &[&FaustFloat], ";
+    *fOut << "outputs: &mut [&mut FaustFloat]) {";
+
+    for(int i = 0; i < fNumInputs; i++){
+        tab(n+1, *fOut);
+        *fOut << "let input"<< i <<" = inputs["<< i <<"];";
+    };
+
+    for(int i = 0; i < fNumOutputs; i++){
+        tab(n+1, *fOut);
+        *fOut << "let (nextoutput, outputs): (&mut [&mut f64], &mut [&mut f64]) = outputs.split_at_mut(1);";
+        tab(n+1, *fOut);
+        *fOut << "let output"<< i <<": &mut FaustFloat = nextoutput[0];";
+    };
+
+    fCodeProducer.Tab(n + 1);
+
+    tab(n+1, *fOut);
+    generateComputeBlock(&fCodeProducer);
+
+    tab(n+1, *fOut);
+    *fOut << "//generateOneSample";
+    tab(n+1, *fOut);
+    // Generates one sample computation
+    BlockInst* block = fCurLoop->generateOneSample();
+    block->accept(&fCodeProducer);
+
+    /*
+        // TODO : atomic switch
+        // Currently for soundfile management
+        // also for temp vars
+        */
+    generatePostComputeBlock(&fCodeProducer);
+    tab(n, *fOut);
+    *fOut << "}";
+    tab(n, *fOut);
 }
 
 void RustCodeContainer::generateComputeInterface(int n)
@@ -672,7 +717,7 @@ void RustScalarCodeContainer::generateCompute(int n)
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
-    // Generates local variables declaration and setup
+
     generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
@@ -687,9 +732,10 @@ void RustScalarCodeContainer::generateCompute(int n)
     loop->accept(&fCodeProducer);
 
     // Currently for soundfile management
+    // and for temp vars
     generatePostComputeBlock(&fCodeProducer);
 
-    back(1, *fOut);
+    tab(n, *fOut);
     *fOut << "}" << endl;
 }
 
