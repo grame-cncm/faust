@@ -454,10 +454,10 @@ void global::reset()
     gUIMacroSwitch     = false;
     gRustNoTraitSwitch = false;
 
-    gDumpNorm      = -1;
-    gFTZMode       = 0;
-    gRangeUI       = false;
-    gFreezeUI      = false;
+    gDumpNorm = -1;
+    gFTZMode  = 0;
+    gRangeUI  = false;
+    gFreezeUI = false;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -2125,8 +2125,8 @@ string global::printHelp()
             "output code."
          << endl;
     sstr << tab
-         << "-rnt      --rust-no-faustdsp-trait      (Rust only) Don't generate FaustDsp trait"
-         "implmentation."
+         << "-rnt      --rust-no-faustdsp-trait      (Rust only) Don't generate FaustDsp trait "
+            "implmentation."
          << endl;
     sstr << tab << "-xml                                    generate an XML description file."
          << endl;

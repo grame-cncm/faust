@@ -612,12 +612,10 @@ void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut, int fNu
 {
     // Compute "compute" declaration
     tab(n, *fOut);
-    tab(n, *fOut);
     *fOut << "pub fn compute_arrays("
           << "&mut self, " << fFullCount << ": usize, inputs: &[&[FaustFloat] ; " << fNumInputs
           << "]"
           << ", outputs: &mut [&mut [FaustFloat] ; " << fNumOutputs << "]) {";
-    tab(n + 1, *fOut);
 }
 
 void RustCodeContainer::generateComputeInterfaceHeader(int n, std::ostream* fOut, int fNumInputs,
@@ -633,7 +631,6 @@ void RustCodeContainer::generateComputeInterfaceHeader(int n, std::ostream* fOut
 void RustCodeContainer::generateComputeInterface(int n)
 {
     // Generates declaration
-    tab(n, *fOut);
     tab(n, *fOut);
     generateComputeInterfaceHeader(n, fOut, fNumInputs, fNumOutputs);
 
@@ -659,7 +656,6 @@ RustScalarCodeContainer::RustScalarCodeContainer(const string& name, int numInpu
 void RustScalarCodeContainer::generateCompute(int n)
 {
     // Generates declaration
-    tab(n, *fOut);
     tab(n, *fOut);
     generateComputeHeader(n, fOut, fNumInputs, fNumOutputs);
     tab(n + 1, *fOut);
