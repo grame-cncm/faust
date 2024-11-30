@@ -1684,7 +1684,7 @@ bool global::processCmdline(int argc, const char* argv[])
     if (gOneSample && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "dlang" &&
         !startWith(gOutputLang, "cmajor") && gOutputLang != "fir" && gOutputLang != "rust") {
         throw faustexception(
-            "ERROR : '-os' option can only be used with 'cpp', 'c', 'dlang',  'cmajor', 'fir' or 'rust'"
+            "ERROR : '-os' option can only be used with 'cpp', 'c', 'cmajor', 'dlang', 'fir' or 'rust'"
             "backends\n");
     }
 

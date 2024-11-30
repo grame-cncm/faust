@@ -646,7 +646,7 @@ void RustCodeContainer::generateComputeFrame(int n)
 {
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "pub fn compute_frame(&mut self, inputs: &[&FaustFloat], ";
+    *fOut << "pub fn frame(&mut self, inputs: &[&FaustFloat], ";
     *fOut << "outputs: &mut [&mut FaustFloat]) {";
 
     for(int i = 0; i < fNumInputs; i++){

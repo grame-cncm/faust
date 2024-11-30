@@ -32,7 +32,6 @@ all: filesCompare ir/$(outdir) $(call listfiles,$(outdir))
 ir/$(outdir):
 	mkdir -p ir/$(outdir)
 
-
 #########################################################################
 # tools
 filesCompare: 
@@ -50,6 +49,10 @@ ir/rust/osec/bs.ir: dsp/bs.dsp
 	grep "ERROR : accessing foreign variable 'count' is not allowed in this compilation mode" $@
 
 ir/rust/os/bs.ir: dsp/bs.dsp
+	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/bs.dsp -o archs/rust/src/bin/bs.rs > $@ 2>&1 || (echo "expected failure")
+	grep "ERROR : accessing foreign variable 'count' is not allowed in this compilation mode" $@
+
+ir/rust/ecrnt/bs.ir: dsp/bs.dsp
 	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/bs.dsp -o archs/rust/src/bin/bs.rs > $@ 2>&1 || (echo "expected failure")
 	grep "ERROR : accessing foreign variable 'count' is not allowed in this compilation mode" $@
 

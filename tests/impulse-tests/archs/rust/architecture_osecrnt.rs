@@ -212,7 +212,7 @@ fn run_dsp(
 
         dsp.control();
         for i in 0..buffer_size {
-            dsp.compute_frame(
+            dsp.frame(
                 in_buffer
                     .iter()
                     .map(|buffer| &buffer[i])
