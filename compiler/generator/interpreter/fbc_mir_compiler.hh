@@ -1102,12 +1102,12 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         MIR_link(fContext, MIR_set_interp_interface, importResolver);
 
         // Code generation
-        MIR_gen_init(fContext, 1);
+        MIR_gen_init(fContext);
 
         // Optimize the code (default = 2)
-        MIR_gen_set_optimize_level(fContext, 0, 3);
+        MIR_gen_set_optimize_level(fContext, 3);
 
-        fCompiledFun = (compiledFun)MIR_gen(fContext, 0, fCompute);
+        fCompiledFun = (compiledFun)MIR_gen(fContext, fCompute);
         MIR_gen_finish(fContext);
 
         // Print module
