@@ -1,4 +1,4 @@
-% man(1) Version 2.76.0 (08-November-2024) | Faust man page
+% man(1) Version 2.76.1 (08-December-2024) | Faust man page
 
 NAME
 ====
@@ -40,6 +40,8 @@ Output options:
   **-e**        **--export-dsp**                  export expanded DSP (with all included libraries).
 
   **-uim**      **--user-interface-macros**       add user interface macro definitions to the output code.
+
+  **-rnt**      **--rust-no-faustdsp-trait**      (Rust only) Don't generate FaustDsp trait implmentation.
 
   **-xml**                                    generate an XML description file.
 
