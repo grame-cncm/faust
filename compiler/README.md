@@ -1,4 +1,4 @@
-% man(1) Version 2.76.1 (08-December-2024) | Faust man page
+% man(1) Version 2.76.2 (08-December-2024) | Faust man page
 
 NAME
 ====
@@ -255,6 +255,8 @@ Environment variables:
   FAUST_DEBUG      = FAUST_LLVM1          print LLVM IR before optimisation.
 
   FAUST_DEBUG      = FAUST_LLVM2          print LLVM IR after optimisation.
+
+  FAUST_DEBUG      = FIR_PRINTER          print FIR after generation.
 
   FAUST_DEBUG      = FAUST_LLVM_NO_FM     deactivate fast**-math** optimisation in LLVM IR.
 
