@@ -649,26 +649,27 @@ void RustCodeContainer::generateComputeFrame(int n)
     *fOut << "pub fn frame(&mut self, inputs: &[&FaustFloat], ";
     *fOut << "outputs: &mut [&mut FaustFloat]) {";
 
-    for(int i = 0; i < fNumInputs; i++){
-        tab(n+1, *fOut);
-        *fOut << "let input"<< i <<" = inputs["<< i <<"];";
+    for (int i = 0; i < fNumInputs; i++) {
+        tab(n + 1, *fOut);
+        *fOut << "let input" << i << " = inputs[" << i << "];";
     };
 
-    for(int i = 0; i < fNumOutputs; i++){
-        tab(n+1, *fOut);
-        *fOut << "let (nextoutput, outputs): (&mut [&mut f64], &mut [&mut f64]) = outputs.split_at_mut(1);";
-        tab(n+1, *fOut);
-        *fOut << "let output"<< i <<": &mut FaustFloat = nextoutput[0];";
+    for (int i = 0; i < fNumOutputs; i++) {
+        tab(n + 1, *fOut);
+        *fOut << "let (nextoutput, outputs): (&mut [&mut f64], &mut [&mut f64]) = "
+                 "outputs.split_at_mut(1);";
+        tab(n + 1, *fOut);
+        *fOut << "let output" << i << ": &mut FaustFloat = nextoutput[0];";
     };
 
     fCodeProducer.Tab(n + 1);
 
-    tab(n+1, *fOut);
+    tab(n + 1, *fOut);
     generateComputeBlock(&fCodeProducer);
 
-    tab(n+1, *fOut);
+    tab(n + 1, *fOut);
     *fOut << "//generateOneSample";
-    tab(n+1, *fOut);
+    tab(n + 1, *fOut);
     // Generates one sample computation
     BlockInst* block = fCurLoop->generateOneSample();
     block->accept(&fCodeProducer);
@@ -716,7 +717,6 @@ void RustScalarCodeContainer::generateCompute(int n)
     generateComputeHeader(n, fOut, fNumInputs, fNumOutputs);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
-
 
     generateComputeBlock(&fCodeProducer);
 

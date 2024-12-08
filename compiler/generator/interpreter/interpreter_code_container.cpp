@@ -52,15 +52,15 @@ interpreted, the hot 'compute' function is compiled to native using LLVM machine
 slower that the pure LLVM backend
  - soundfile support:
     - Soundfile* pointers are kept in FBCExecutor::fSoundTable map
-    - this fSoundTable is filled in FBCInterpreter::executeBuildUserInterface when excuting
-FBCInstruction::kAddSoundfile, ` triggered by 'buildUserInterface', so has to be done at least once
+    - this fSoundTable is filled in FBCInterpreter::executeBuildUserInterface when executing
+FBCInstruction::kAddSoundfile, triggered by 'buildUserInterface', so has to be done at least once
 before calling DSP 'init'.
-    - the FBCInstruction::kLoadSoundFieldInt and FBCInstruction::kLoadSoundFieldReal FPC
+    - the FBCInstruction::kLoadSoundFieldInt and FBCInstruction::kLoadSoundFieldReal FBC
 instructions directly access the prepared fSoundTable in Interp mode. In Interp/[LLVM|MIR] they are
 compiled as access in a module global soundfile table built at construction time (see
 FBCLLVMCompiler/FBCMIRCompiler constructors).
 
- TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and
+TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and
 destroy time (after global memory allocation is implemented)
 */
 

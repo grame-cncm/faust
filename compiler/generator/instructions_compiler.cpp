@@ -586,7 +586,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                 pushComputeDSPMethod(IB::genStoreStackVar(name, res));
             }
 
-
         } else if (gGlobal->gOutputLang == "jax") {
             res               = CS(sig);
             string result_var = "_result" + to_string(index);

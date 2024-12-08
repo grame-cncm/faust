@@ -309,7 +309,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
     
         // -- active widgets
   
-        virtual void addGenericButton(const char* label, const char* name)
+        virtual void addGenericButton(const char* label, const char* type, const char* varname)
         {
             std::string path = buildPath(label);
             fFullPaths.push_back(path);
@@ -317,8 +317,9 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
-            tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
+            tab(fTab, fUI); fUI << "\"type\": \"" << type << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << varname << "\","; }
         
             // Generate 'shortname' entry
             tab(fTab, fUI); fUI << "\"shortname\": \"";
@@ -341,15 +342,25 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
 
         virtual void addButton(const char* label, REAL* zone)
         {
-            addGenericButton(label, "button");
+            addGenericButton(label, "button", nullptr);
+        }
+    
+        void addButtonVarname(const char* label, const char* varname, REAL* zone)
+        {
+            addGenericButton(label, "button", varname);
         }
     
         virtual void addCheckButton(const char* label, REAL* zone)
         {
-            addGenericButton(label, "checkbox");
+            addGenericButton(label, "checkbox", nullptr);
+        }
+    
+        void addCheckButtonVarname(const char* label, const char* varname, REAL* zone)
+        {
+            addGenericButton(label, "checkbox", varname);
         }
 
-        virtual void addGenericRange(const char* label, const char* name, REAL init, REAL min, REAL max, REAL step)
+        virtual void addGenericRange(const char* label, const char* type, const char* varname, REAL init, REAL min, REAL max, REAL step)
         {
             std::string path = buildPath(label);
             fFullPaths.push_back(path);
@@ -357,8 +368,9 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
-            tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
+            tab(fTab, fUI); fUI << "\"type\": \"" << type << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << varname << "\","; }
          
             // Generate 'shortname' entry
             tab(fTab, fUI); fUI << "\"shortname\": \"";
@@ -383,22 +395,37 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
     
         virtual void addVerticalSlider(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
         {
-            addGenericRange(label, "vslider", init, min, max, step);
+            addGenericRange(label, "vslider", nullptr, init, min, max, step);
+        }
+    
+        void addVerticalSliderVarname(const char* label, const char* varname, REAL* zone, REAL init, REAL min, REAL max, REAL step)
+        {
+            addGenericRange(label, "vslider", varname, init, min, max, step);
         }
     
         virtual void addHorizontalSlider(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
         {
-            addGenericRange(label, "hslider", init, min, max, step);
+            addGenericRange(label, "hslider", nullptr, init, min, max, step);
+        }
+    
+        void addHorizontalSliderVarname(const char* label, const char* varname, REAL* zone, REAL init, REAL min, REAL max, REAL step)
+        {
+            addGenericRange(label, "hslider", varname, init, min, max, step);
         }
     
         virtual void addNumEntry(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
         {
-            addGenericRange(label, "nentry", init, min, max, step);
+            addGenericRange(label, "nentry", nullptr, init, min, max, step);
+        }
+    
+        void addNumEntryVarname(const char* label, const char* varname, REAL* zone, REAL init, REAL min, REAL max, REAL step)
+        {
+            addGenericRange(label, "nentry", varname, init, min, max, step);
         }
 
         // -- passive widgets
     
-        virtual void addGenericBargraph(const char* label, const char* name, REAL min, REAL max) 
+        virtual void addGenericBargraph(const char* label, const char* type, const char* varname, REAL min, REAL max)
         {
             std::string path = buildPath(label);
             fFullPaths.push_back(path);
@@ -406,8 +433,9 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
-            tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
+            tab(fTab, fUI); fUI << "\"type\": \"" << type << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << varname << "\","; }
          
             // Generate 'shortname' entry
             tab(fTab, fUI); fUI << "\"shortname\": \"";
@@ -430,15 +458,25 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
 
         virtual void addHorizontalBargraph(const char* label, REAL* zone, REAL min, REAL max) 
         {
-            addGenericBargraph(label, "hbargraph", min, max);
+            addGenericBargraph(label, "hbargraph", nullptr, min, max);
+        }
+    
+        void addHorizontalBargraphVarname(const char* label, const char* varname, REAL* zone, REAL min, REAL max)
+        {
+            addGenericBargraph(label, "hbargraph", varname, min, max);
         }
     
         virtual void addVerticalBargraph(const char* label, REAL* zone, REAL min, REAL max)
         {
-            addGenericBargraph(label, "vbargraph", min, max);
+            addGenericBargraph(label, "vbargraph", nullptr, min, max);
         }
     
-        virtual void addSoundfile(const char* label, const char* url, Soundfile** zone)
+        void addVerticalBargraphVarname(const char* label, const char* varname, REAL* zone, REAL min, REAL max)
+        {
+            addGenericBargraph(label, "vbargraph", varname, min, max);
+        }
+    
+        virtual void addGenericSoundfile(const char* label, const char* varname, const char* url, Soundfile** zone)
         {
             std::string path = buildPath(label);
             
@@ -447,6 +485,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << "soundfile" << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
+            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << varname << "\","; }
             tab(fTab, fUI); fUI << "\"url\": \"" << url << "\"" << ",";
             tab(fTab, fUI); fUI << "\"address\": \"" << path << "\"" << ((fPathTable.size() > 0) ? "," : "");
             if (fPathTable.size() > 0) {
@@ -455,6 +494,16 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             fTab -= 1;
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';
+        }
+    
+        virtual void addSoundfile(const char* label, const char* url, Soundfile** zone)
+        {
+            addGenericSoundfile(label, nullptr, url, zone);
+        }
+    
+        void addSoundfileVarname(const char* label, const char* varname, const char* url, Soundfile** zone)
+        {
+            addGenericSoundfile(label, varname, url, zone);
         }
 
         // -- metadata declarations
@@ -674,21 +723,41 @@ struct FAUST_API JSONUI : public JSONUIReal<FAUSTFLOAT>, public UI {
     {
         JSONUIReal<FAUSTFLOAT>::addButton(label, zone);
     }
+    void addButtonVarname(const char* label, const char* varname, FAUSTFLOAT* zone)
+    {
+        JSONUIReal<FAUSTFLOAT>::addButtonVarname(label, varname, zone);
+    }
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
     {
         JSONUIReal<FAUSTFLOAT>::addCheckButton(label, zone);
+    }
+    void addCheckButtonVarname(const char* label, const char* varname, FAUSTFLOAT* zone)
+    {
+        JSONUIReal<FAUSTFLOAT>::addCheckButtonVarname(label, varname, zone);
     }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         JSONUIReal<FAUSTFLOAT>::addVerticalSlider(label, zone, init, min, max, step);
     }
+    void addVerticalSliderVarname(const char* label, const char* varname, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        JSONUIReal<FAUSTFLOAT>::addVerticalSliderVarname(label, varname, zone, init, min, max, step);
+    }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         JSONUIReal<FAUSTFLOAT>::addHorizontalSlider(label, zone, init, min, max, step);
     }
+    void addHorizontalSliderVarname(const char* label, const char* varname, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        JSONUIReal<FAUSTFLOAT>::addHorizontalSliderVarname(label, varname, zone, init, min, max, step);
+    }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         JSONUIReal<FAUSTFLOAT>::addNumEntry(label, zone, init, min, max, step);
+    }
+    void addNumEntryVarname(const char* label, const char* varname, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        JSONUIReal<FAUSTFLOAT>::addNumEntryVarname(label, varname, zone, init, min, max, step);
     }
     
     // -- passive widgets
@@ -697,16 +766,28 @@ struct FAUST_API JSONUI : public JSONUIReal<FAUSTFLOAT>, public UI {
     {
         JSONUIReal<FAUSTFLOAT>::addHorizontalBargraph(label, zone, min, max);
     }
+    void addHorizontalBargraphVarname(const char* label, const char* varname, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {
+        JSONUIReal<FAUSTFLOAT>::addHorizontalBargraphVarname(label, varname, zone, min, max);
+    }
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
         JSONUIReal<FAUSTFLOAT>::addVerticalBargraph(label, zone, min, max);
     }
+    void addVerticalBargraphVarname(const char* label, const char* varname, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {
+        JSONUIReal<FAUSTFLOAT>::addVerticalBargraphVarname(label, varname, zone, min, max);
+    }
     
     // -- soundfiles
     
-    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
+    virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
     {
-        JSONUIReal<FAUSTFLOAT>::addSoundfile(label, filename, sf_zone);
+        JSONUIReal<FAUSTFLOAT>::addSoundfile(label, url, sf_zone);
+    }
+    void addSoundfileVarname(const char* label, const char* varname, const char* url, Soundfile** sf_zone)
+    {
+        JSONUIReal<FAUSTFLOAT>::addSoundfileVarname(label, varname, url, sf_zone);
     }
     
     // -- metadata declarations
