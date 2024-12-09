@@ -547,10 +547,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             pushComputeBlockMethod(IB::genDeclareBufferIterators(
                 "*output", "outputs", fContainer->outputs(), type, true));
         } else if (gGlobal->gOutputLang == "rust" && gGlobal->gInPlace) {
-            // todo what if there are more inputs then outputs?
-            int ios = max(fContainer->outputs(),fContainer->inputs());
-            pushComputeBlockMethod(IB::genDeclareBufferIterators(
-                "*io", "ios", ios, type, true));
+            // TODO: what if there are more inputs than outputs?
+            int ios = max(fContainer->outputs(), fContainer->inputs());
+            pushComputeBlockMethod(IB::genDeclareBufferIterators("*io", "ios", ios, type, true));
         } else if (gGlobal->gOutputLang == "julia") {
             // special handling for Julia backend
             pushComputeBlockMethod(IB::genDeclareBufferIterators(
@@ -940,7 +939,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     // HACK for Rust backend
     if (gGlobal->gOutputLang == "rust" && !gGlobal->gInPlace) {
         res = IB::genLoadStackVar(subst("*input$0", T(idx)));
-    } else if (gGlobal->gOutputLang == "rust"&& gGlobal->gInPlace) {
+    } else if (gGlobal->gOutputLang == "rust" && gGlobal->gInPlace) {
         res = IB::genLoadStackVar(subst("*io$0", T(idx)));
     } else if (gGlobal->gOutputLang == "jax") {
         res = IB::genLoadArrayStackVar("inputs", IB::genInt32NumInst(idx));

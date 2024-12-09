@@ -226,9 +226,9 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareBufferIterators* inst)
     {
         /* Generates an expression like:
-        let [outputs0, outputs1, ..] = outputs.as_mut() else { panic!(\"wrong number of outputs\"); };";
-        let outputs0 = outputs0.as_mut[..count].iter_mut();
-        let outputs1 = outputs1.as_mut[..count].iter_mut();
+        let [outputs0, outputs1, ..] = outputs.as_mut() else { panic!(\"wrong number of outputs\");
+        };"; let outputs0 = outputs0.as_mut[..count].iter_mut(); let outputs1 =
+        outputs1.as_mut[..count].iter_mut();
         */
 
         // Don't generate if no channels or onesample mode
@@ -244,13 +244,13 @@ class RustInstVisitor : public TextInstVisitor {
         }
         *fOut << ".. ] = " << name;
         if (inst->fMutable) {
-            if (gGlobal->gInPlace){
+            if (gGlobal->gInPlace) {
                 *fOut << ".as_mut() else { panic!(\"wrong number of IO buffers\"); };";
             } else {
                 *fOut << ".as_mut() else { panic!(\"wrong number of output buffers\"); };";
             }
         } else {
-                *fOut << ".as_ref() else { panic!(\"wrong number of input buffers\"); };";
+            *fOut << ".as_ref() else { panic!(\"wrong number of input buffers\"); };";
         }
 
         // Build fixed size iterator variables

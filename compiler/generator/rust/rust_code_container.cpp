@@ -221,8 +221,7 @@ void RustCodeContainer::produceFaustDspBlob()
     *fOut << tab << "fn set_param(&mut self, param: ParamIndex, value: Self::T) {" << endl;
     *fOut << tab << tab << "self.set_param(param, value)" << endl;
     *fOut << tab << "}" << endl;
-    *fOut << tab
-          << "fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut "
+    *fOut << "fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut "
              "[Self::T]]) {"
           << endl;
     *fOut << tab << tab << "self.compute(count as usize, inputs, outputs)" << endl;
@@ -235,7 +234,6 @@ void RustCodeContainer::produceClass()
     int n = 0;
     tab(n, *fOut);
     *fOut << "pub type FaustFloat = " << ifloat() << ";";
-
 
     // Generate gub containers
     generateSubContainers();
@@ -354,8 +352,7 @@ void RustCodeContainer::produceClass()
 
     tab(n, *fOut);
     *fOut << "impl " << fKlassName << " {";
-    tab(n, *fOut);
-
+ 
     // Memory methods
     tab(n + 2, *fOut);
     if (fAllocateInstructions->fCode.size() > 0) {
@@ -397,7 +394,6 @@ void RustCodeContainer::produceClass()
     produceMetadata(n + 1);
 
     // Get sample rate method
-    tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
     *fOut << "pub fn get_sample_rate(&self) -> i32 { self.fSampleRate as i32}";
@@ -523,8 +519,8 @@ void RustCodeContainer::produceClass()
     // Compute
     if (gGlobal->gOneSample) {
         generateComputeFrame(n + 1);
-    } else if (gGlobal->gInPlace){
-        generateComputeIO(n+1);
+    } else if (gGlobal->gInPlace) {
+        generateComputeIO(n + 1);
     } else {
         generateCompute(n + 1);
     }
@@ -625,7 +621,6 @@ void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut)
 {
     // Compute "compute" declaration
     tab(n, *fOut);
-    tab(n, *fOut);
     *fOut << "pub fn compute(";
     tab(n + 1, *fOut);
     *fOut << "&mut self,";
@@ -643,7 +638,6 @@ void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut)
 void RustCodeContainer::generateComputeIOHeader(int n, std::ostream* fOut)
 {
     // Compute "compute" declaration
-    tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "pub fn compute(&mut self, count: usize, mut ios: &mut [impl AsMut<[FaustFloat]>]) {";
     tab(n + 1, *fOut);
@@ -704,7 +698,6 @@ void RustScalarCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    tab(n, *fOut);
     generateComputeHeader(n, fOut);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
@@ -734,17 +727,15 @@ void RustScalarCodeContainer::generateComputeIO(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    tab(n, *fOut);
     generateComputeIOHeader(n, fOut);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
-
 
     generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
     std::vector<std::string> iterators;
-    int num_buffers = max(fNumInputs,fNumOutputs);
+    int                      num_buffers = max(fNumInputs, fNumOutputs);
     for (int i = 0; i < num_buffers; ++i) {
         iterators.push_back("ios" + std::to_string(i));
     }

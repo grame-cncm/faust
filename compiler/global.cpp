@@ -1673,7 +1673,8 @@ bool global::processCmdline(int argc, const char* argv[])
     }
 
     if (!gRustNoTraitSwitch && gInPlace && gOutputLang == "rust") {
-        throw faustexception("ERROR : for 'rust' the '-inpl' flag must be combined with '-rnt' flag\n");
+        throw faustexception(
+            "ERROR : for 'rust' the '-inpl' flag must be combined with '-rnt' flag\n");
     }
 
     if (gInPlace && gVectorSwitch) {
