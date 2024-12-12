@@ -221,7 +221,8 @@ void RustCodeContainer::produceFaustDspBlob()
     *fOut << tab << "fn set_param(&mut self, param: ParamIndex, value: Self::T) {" << endl;
     *fOut << tab << tab << "self.set_param(param, value)" << endl;
     *fOut << tab << "}" << endl;
-    *fOut << "fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut "
+    *fOut << tab
+          << "fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut "
              "[Self::T]]) {"
           << endl;
     *fOut << tab << tab << "self.compute(count as usize, inputs, outputs)" << endl;
@@ -352,7 +353,7 @@ void RustCodeContainer::produceClass()
 
     tab(n, *fOut);
     *fOut << "impl " << fKlassName << " {";
- 
+
     // Memory methods
     tab(n + 2, *fOut);
     if (fAllocateInstructions->fCode.size() > 0) {
@@ -669,7 +670,7 @@ void RustCodeContainer::generateComputeFrame(int n)
     generateComputeBlock(&fCodeProducer);
 
     tab(n + 1, *fOut);
-    *fOut << "//generateOneSample";
+    *fOut << "// generateOneSample";
     tab(n + 1, *fOut);
     // Generates one sample computation
     BlockInst* block = fCurLoop->generateOneSample();
