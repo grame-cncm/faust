@@ -134,4 +134,18 @@ class AbsPrim : public xtended {
         return sigSelect2(sigEQ(args[0], sigReal(0.0)), sigReal(0.0),
                           sigDiv(args[0], sigAbs(args[0])));
     }
+
+    double compute(const std::vector<Node>& args) override
+    {
+        double f;
+        int    i;
+        if (isDouble(args[0], &f)) {
+            return fabs(f);
+        } else if (isInt(args[0], &i)) {
+            return abs(i);
+        } else {
+            faustassert(false);
+            return 0;
+        }
+    }
 };

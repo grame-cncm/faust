@@ -244,4 +244,9 @@ class PowPrim : public xtended {
             sigPow(args[0], sigSub(args[1], sigReal(1.0))),
             sigAdd(sigMul(args[1], args[2]), sigMul(sigLog(args[0]), sigMul(args[0], args[3]))));
     }
+
+    double compute(const std::vector<Node>& args) override
+    {
+        return pow(args[0].getDouble(), args[1].getDouble());
+    }
 };

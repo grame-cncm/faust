@@ -85,4 +85,9 @@ class Atan2Prim : public xtended {
 
         return subst("\\arctan\\frac{$0}{$1}", args[0], args[1]);
     }
+
+    double compute(const std::vector<Node>& args) override
+    {
+        return atan2(args[0].getDouble(), args[1].getDouble());
+    }
 };

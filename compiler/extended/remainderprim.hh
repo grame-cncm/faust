@@ -113,4 +113,9 @@ class RemainderPrim : public xtended {
         // (remainder(f, g))' = f' - g' * round(f / g), cos(pi * f / g) != 0
         return sigSub(args[2], sigMul(args[3], sigRint(sigDiv(args[0], args[1]))));
     }
+
+    double compute(const std::vector<Node>& args) override
+    {
+        return remainder(args[0].getDouble(), args[1].getDouble());
+    }
 };

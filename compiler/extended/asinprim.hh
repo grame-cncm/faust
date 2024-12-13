@@ -97,4 +97,6 @@ class AsinPrim : public xtended {
         // (asin(x))' = 1 / sqrt(1 - x^2), -1 < x < 1
         return sigDiv(sigReal(1.0), sigSqrt(sigSub(sigReal(1.0), sigPow(args[0], sigReal(2.0)))));
     }
+
+    double compute(const std::vector<Node>& args) override { return asin(args[0].getDouble()); }
 };

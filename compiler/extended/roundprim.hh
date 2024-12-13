@@ -95,4 +95,6 @@ class RoundPrim : public xtended {
         // (round(x))' = 0, cos(pi * x) != 0
         return getCertifiedSigType(args[0])->nature() == kInt ? sigInt(0) : sigReal(0.0);
     }
+
+    double compute(const std::vector<Node>& args) override { return round(args[0].getDouble()); }
 };

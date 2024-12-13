@@ -80,6 +80,8 @@ class xtended : public virtual Garbageable {
     virtual Tree        computeSigOutput(const std::vector<Tree>& args)  = 0;
     virtual bool        needCache()                                      = 0;
 
+    virtual double compute(const std::vector<Node>& args) { return -1.; };
+
     // Compute the derivative of a primitive with respect to its arguments.
     virtual Tree diff(const std::vector<Tree>& args)
     {

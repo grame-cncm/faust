@@ -99,4 +99,6 @@ class FloorPrim : public xtended {
         // (floor(x))' = 0, sin(pi * x) != 0
         return getCertifiedSigType(args[0])->nature() == kInt ? sigInt(0) : sigReal(0.0);
     }
+
+    double compute(const std::vector<Node>& args) override { return floor(args[0].getDouble()); }
 };

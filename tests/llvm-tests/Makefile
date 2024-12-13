@@ -14,6 +14,8 @@ else ifeq ($(system), Linux)
 LDFLAGS=-Wl,--export-dynamic
 endif
 
+MACOSLIBS := -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation
+
 LLVM := `llvm-config --link-static --ldflags --libs all --system-libs`
 
 prefix := $(DESTDIR)$(PREFIX)
@@ -45,6 +47,9 @@ llvm-test-c: llvm-test.c $(LIB)/libfaust.a
 
 llvm-algebra-test: llvm-algebra-test.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 llvm-algebra-test.cpp -I$(INC) -L$(LIB) -L$(LIB_OPT) $(LIB)/libfaust.a -lpthread $(LLVM) `pkg-config --cflags --libs gtk+-2.0` -o llvm-algebra-test
+
+test-signal: test-signal.cpp $(LIB)/libfaust.a
+	c++ -std=c++11 test-signal.cpp $(LIB)/libfaust.a $(LLVM) -L$(LIB_OPT) `pkg-config --cflags --libs gtk+-2.0` `pkg-config --cflags` $(MACOSLIBS) -o test-signal
 
 install: 
 	([ -e llvm-test ]) && cp llvm-test $(prefix)/bin
