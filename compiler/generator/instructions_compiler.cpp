@@ -1300,6 +1300,10 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, ValueI
     ValueInst*    val = (gGlobal->gFAUSTFLOAT2Internal) ? bg_in : IB::genCastFloatMacroInst(bg_in);
     StoreVarInst* res = IB::genStoreStructVar(varname, val);
 
+    string tempname;
+    BasicTyped*  ctype;
+    getTypedNames(t, "Temp", ctype, tempname);
+
     switch (t->variability()) {
         case kKonst:
             pushResetUIInstructions(res);
@@ -1307,19 +1311,22 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, ValueI
 
         case kBlock: {
             if (gGlobal->gExtControl) {
-                pushControlDeclare(res);
+                pushControlDeclare(IB::genDecStackVar(tempname, ctype, val));
+                pushControlDeclare(IB::genStoreStructVar(varname, IB::genLoadStackVar(tempname)));
             } else {
-                pushComputeBlockMethod(res);
+                pushComputeBlockMethod(IB::genDecStackVar(tempname, ctype, val));
+                pushComputeBlockMethod(IB::genStoreStructVar(varname, IB::genLoadStackVar(tempname)));
             }
             break;
         }
 
         case kSamp:
-            pushComputeDSPMethod(IB::genControlInst(getConditionCode(sig), res));
-            break;
+            // pushComputeBlockMethod(IB::genDecStackVar(tempname, ctype));//c
+            pushComputeBlockMethod(IB::genDecStackVar(tempname, ctype, IB::genLoadStructVar(varname)));//initialize for rust
+            pushComputeDSPMethod(IB::genControlInst(getConditionCode(sig), IB::genStoreStackVar(tempname, val)));
+            pushPostComputeBlockMethod(IB::genStoreStructVar(varname, IB::genLoadStackVar(tempname)));
+            return IB::genLoadStackVar(tempname);
     }
-
-    // generateCacheCode(sig, IB::genLoadStructVar(varname));
     return bg_in;
 }
 
