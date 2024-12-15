@@ -32,7 +32,6 @@
 #include "normalform.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
-#include "sharing.hh"
 #include "sigPromotion.hh"
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
@@ -120,9 +119,6 @@ Tree InstructionsCompiler::prepare(Tree LS)
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
 
-    startTiming("sharingAnalysis");
-    sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count
-    endTiming("sharingAnalysis");
 
     startTiming("occurrences analysis");
     delete fOccMarkup;
@@ -156,7 +152,6 @@ Tree InstructionsCompiler::prepare2(Tree L0)
 
     recursivnessAnnotation(L0);        // Annotate L0 with recursivness information
     typeAnnotation(L0, true);          // Annotate L0 with type information
-    sharingAnalysis(L0, fSharingKey);  // Annotate L0 with sharing count
 
     delete fOccMarkup;
     fOccMarkup = new OccMarkup();
@@ -1049,28 +1044,27 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 
     string       vname;
     BasicTyped*  ctype;
-    int          sharing = getSharingCount(sig, fSharingKey);
     Occurrences* o       = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // Check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        if (sharing > 1) {
+        if (o->hasMultiOccurrences()) {
             return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname,
                                     o->getMaxDelay());
         } else {
             return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
         }
 
-    } else if (sharing > 1 || (o->hasMultiOccurrences())) {
+    } else if (o->hasMultiOccurrences()) {
         return generateVariableStore(sig, exp);
 
-    } else if (sharing == 1) {
+    } else if (o->getOccurrencesSum() == 1) {
         return exp;
 
     } else {
-        cerr << "ASSERT : in sharing count (" << sharing << ") for " << *sig << endl;
+        cerr << "ASSERT : getOccurrencesSum (" << o->getOccurrencesSum() << ") for " << *sig << endl;
         faustassert(false);
         return IB::genNullValueInst();
     }

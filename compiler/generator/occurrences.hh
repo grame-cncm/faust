@@ -49,6 +49,7 @@ class Occurrences : public virtual Garbageable {
     int  getDelayCount() const;
     Tree getExecCondition() const;              ///< return the exec condition
     int  getOccurrence(int variability) const;  ///< return the number of occurrence by variability
+    int  getOccurrencesSum() const;  ///< return the number of occurrence by variability
 };
 
 /**
