@@ -1296,7 +1296,8 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, ValueI
     ::Type t = getCertifiedSigType(sig);
 
     // Cast to external float
-    ValueInst*    val = (gGlobal->gFAUSTFLOAT2Internal) ? exp : IB::genCastFloatMacroInst(exp);
+    ValueInst*    bg_in = generateCacheCode(sig,exp);
+    ValueInst*    val = (gGlobal->gFAUSTFLOAT2Internal) ? bg_in : IB::genCastFloatMacroInst(bg_in);
     StoreVarInst* res = IB::genStoreStructVar(varname, val);
 
     switch (t->variability()) {
@@ -1318,7 +1319,8 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, ValueI
             break;
     }
 
-    return generateCacheCode(sig, IB::genLoadStructVar(varname));
+    // generateCacheCode(sig, IB::genLoadStructVar(varname));
+    return bg_in;
 }
 
 ValueInst* InstructionsCompiler::generateVBargraph(Tree sig, Tree path, ValueInst* exp)
