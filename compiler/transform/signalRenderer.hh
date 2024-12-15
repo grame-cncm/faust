@@ -25,7 +25,12 @@
 #include <fstream>
 #include <map>
 #include <stack>
-#include <iterator> 
+#include <iterator>
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT double
+//#define FAUSTFLOAT float
+#endif
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
@@ -35,8 +40,6 @@
 #include "signalVisitor.hh"
 #include "sigtyperules.hh"
 #include "prim2.hh"
-
-#define FAUSTFLOAT float
 
 //-------------------------SignalRenderer-------------------------------
 // Render a list of signals.

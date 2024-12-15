@@ -36,7 +36,6 @@ There is no target `clean`: simply delete the `ir` folder or one of its subfolde
 
 - the C++ output can be generated. A set of references files can be created using `make reference-cpp`, then tested using `make test-cpp`.
 
-
 ### Checking the FIR
 
 An experimental FIR checker can be activated for all backends testing using `export FAUST_DEBUG=FIR_CHECKER`.
@@ -63,7 +62,7 @@ You should run `make tools` before first run of `tests.sh`.
 - install the python requirements: `pip install -r requirements.txt`
 - install [JAX](https://jax.readthedocs.io/en/latest/) and [Flax](https://flax.readthedocs.io/en/latest/). These are harder to install, so they're left out of `requirements.txt`
 
-### To do
+### TODO
 
 - add precision arg to `filesCompare` (for float and fastmath outputs)
 - check that all `test.sh` subscripts are based on the current development branch and don't require any installation

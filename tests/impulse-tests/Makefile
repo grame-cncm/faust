@@ -77,6 +77,7 @@ help:
 	@echo " 'jax'    : check double output with JAX backend and various options"
 	@echo " 'julia'  : check double output with Julia backend and various options"
 	@echo " 'jsfx'   : check double output with JSFX backend and various options"
+	@echo " 'signal' : check double output with signal interpreter"
 	@echo " 'me'     : check double outputs with the cpp backend in scalar with activated math exceptions"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
@@ -333,6 +334,12 @@ llvm1:
 	$(MAKE) -f Make.llvm1 outdir=llvm1/double/vec/gfun      FAUSTOPTIONS="-I dsp -double -vec -lv 1 -g -fun"
 	#$(MAKE) -f Make.llvm1 outdir=llvm1/double/sch          FAUSTOPTIONS="-I dsp -sch"
 
+
+#########################################################################
+# signal interpreter
+signal:
+	$(MAKE) -f Make.signal outdir=signal/double              FAUSTOPTIONS="-I dsp"
+
 #########################################################################
 # interp backend
 interp:
@@ -370,15 +377,15 @@ interp1:
 #########################################################################
 # Rust backend
 rust:
-	$(MAKE) -f Make.rust outdir=rust/inpl CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -inpl -rnt -a archs/rust/architecture_inpl.rs"
-	$(MAKE) -f Make.rust outdir=rust/osec CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -os -ec -rnt -a archs/rust/architecture_osecrnt.rs"
-	$(MAKE) -f Make.rust outdir=rust/os CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -os -rnt -a archs/rust/architecture_osrnt.rs"
-	$(MAKE) -f Make.rust outdir=rust/cm CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -cm -a archs/rust/architecture_cm.rs"
-	$(MAKE) -f Make.rust outdir=rust/ecrnt CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -ec -rnt -a archs/rust/architecture_ecrnt.rs"
-	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -a archs/rust/architecture_trait.rs"
-	$(MAKE) -f Make.rust outdir=rust/fp FAUSTOPTIONS="-I ../../libraries/ -double -fp -a archs/rust/architecture_trait.rs"
-	$(MAKE) -f Make.rust outdir=rust/vec4 CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -vec -vs 4 -a archs/rust/architecture_trait.rs"
-	$(MAKE) -f Make.rust outdir=rust/vec32 FAUSTOPTIONS="-I ../../libraries/ -double -vec -vs 32 -a archs/rust/architecture_trait.rs"
+	$(MAKE) -f Make.rust outdir=rust/inpl CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -inpl -rnt -a archs/rust/architecture_inpl.rs"
+	$(MAKE) -f Make.rust outdir=rust/osec CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -os -ec -rnt -a archs/rust/architecture_osecrnt.rs"
+	$(MAKE) -f Make.rust outdir=rust/os CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -os -rnt -a archs/rust/architecture_osrnt.rs"
+	$(MAKE) -f Make.rust outdir=rust/cm CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -cm -a archs/rust/architecture_cm.rs"
+	$(MAKE) -f Make.rust outdir=rust/ecrnt CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -ec -rnt -a archs/rust/architecture_ecrnt.rs"
+	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -a archs/rust/architecture_trait.rs"
+	$(MAKE) -f Make.rust outdir=rust/fp FAUSTOPTIONS="-I dsp -double -fp -a archs/rust/architecture_trait.rs"
+	$(MAKE) -f Make.rust outdir=rust/vec4 CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -vec -vs 4 -a archs/rust/architecture_trait.rs"
+	$(MAKE) -f Make.rust outdir=rust/vec32 FAUSTOPTIONS="-I dsp -double -vec -vs 32 -a archs/rust/architecture_trait.rs"
 
 #########################################################################
 # Cmajor backend
@@ -448,10 +455,10 @@ reference-cpp:
 	cd reference && rm -f *.cpp1
 	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-cpp FAUSTOPTIONS="-I dsp"
 
-tools: filesCompare impulsellvm impulseinterp impulseinterp1 
+tools: filesCompare impulsellvm impulseinterp impulseinterp1 impulsesignal
 
 clean:
-	rm -f filesCompare impulsellvm impulseinterp impulseinterp1
+	rm -f filesCompare impulsellvm impulseinterp impulseinterp1 impulsesignal
 
 #########################################################################
 # Testing Box, Signal, Type and C++ creation steps
@@ -504,6 +511,9 @@ impulseinterp2: $(SRCDIR)/impulseinterp1.cpp ./archs/controlTools.h $(LIB)
 
 impulsellvm: $(SRCDIR)/impulsellvm.cpp ./archs/controlTools.h $(LIB)
 	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -I/usr/local/include/ap_fixed -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsellvm
+
+impulsesignal: $(SRCDIR)/impulsesignal.cpp ./archs/controlTools.h $(LIB)
+	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -I/usr/local/include/ap_fixed -Iarchs $(SRCDIR)/impulsesignal.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsesignal
 
 #########################################################################
 # rules for mute tests

@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[])
 {
-    interpreter_dsp_factory* factory = NULL;
+    interpreter_dsp_factory* factory = nullptr;
     
     bool inpl = isopt(argv, "-inpl");
     int linenum = 0;

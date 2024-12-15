@@ -189,7 +189,6 @@ struct malloc_memory_manager_check : public dsp_memory_manager {
     }
 };
 
-
 struct malloc_memory_manager_check_dsp : public malloc_memory_manager {
     
     int fDSPSize = 0;
