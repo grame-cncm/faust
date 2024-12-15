@@ -75,12 +75,16 @@ Occurrences::Occurrences(int v, int r, Tree xc) : fXVariability(xVariability(v, 
     fExecCondition = xc;
 }
 
-Occurrences* Occurrences::incOccurrences(int v, int r, int d, Tree xc)
+Occurrences* Occurrences::incOccurrences(int v, int r, int d, Tree xc, bool is_not_attached)
 {
     int ctxt = xVariability(v, r);
     // assert (ctxt >= fXVariability);
     fOccurrences[ctxt] += 1;
-    fMultiOcc = fMultiOcc | (ctxt > fXVariability) | (fOccurrences[ctxt] > 1);
+    if (is_not_attached){
+        fMultiOcc = fMultiOcc | (fOccurrences[ctxt] > 1);
+    } else {
+        fMultiOcc = fMultiOcc | (ctxt > fXVariability) | (fOccurrences[ctxt] > 1);
+    }
     if (d == 0) {
         // cerr << "Occurence outside a delay " << endl;
         fOutDelayOcc = true;
@@ -156,7 +160,7 @@ Occurrences* OccMarkup::retrieve(Tree t)
 // xc : exec condition expression
 //------------------------------------------------------------------------------
 
-void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
+void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t, bool is_not_attached)
 {
     // Check if we have already visited this tree
     Occurrences* occ        = getOcc(t);
@@ -187,13 +191,17 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
             int  n = getSubSignals(t, br);
             if (n > 0 && !isSigGen(t)) {
                 for (int i = 0; i < n; i++) {
-                    incOcc(env, v0, r0, 0, c0, br[i]);
+                    if (t->node() == gGlobal->SIGATTACH && i==1){//count second not attached arm differently
+                        incOcc(env, v0, r0, 0, c0, br[i], true);
+                    } else {
+                        incOcc(env, v0, r0, 0, c0, br[i], is_not_attached);
+                    }
                 }
             }
         }
     }
 
-    occ->incOccurrences(v, r, d, xc);
+    occ->incOccurrences(v, r, d, xc, is_not_attached);
 
     if (!firstVisit) {
         // Special case for -1*y. Because the sharing of -1*y will be ignored

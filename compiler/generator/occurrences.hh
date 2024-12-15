@@ -40,7 +40,7 @@ class Occurrences : public virtual Garbageable {
    public:
     Occurrences(int v, int r, Tree xc);
     Occurrences* incOccurrences(int v, int r, int d,
-                                Tree xc);  ///< inc occurrences in context v,r,d,xc
+                                Tree xc, bool is_not_attached = false);  ///< inc occurrences in context v,r,d,xc
 
     bool hasMultiOccurrences() const;     ///< true if multiple occurrences or occ. in higher ctxt
     bool hasOutDelayOccurrences() const;  ///< true if has occurrences outside a a delay
@@ -62,7 +62,7 @@ class OccMarkup : public virtual Garbageable {
     std::map<Tree, Tree> fConditions;  ///< condition associated to each tree
 
     void         incOcc(Tree env, int v, int r, int d, Tree xc,
-                        Tree t);                    ///< inc the occurrence of t in context v,r
+                        Tree t, bool is_not_attached = false);                    ///< inc the occurrence of t in context v,r
     Occurrences* getOcc(Tree t);                    ///< get Occurrences property of t or null
     void         setOcc(Tree t, Occurrences* occ);  ///< set Occurrences property of t
 
