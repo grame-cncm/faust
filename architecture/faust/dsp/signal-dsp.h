@@ -221,7 +221,6 @@ LIBFAUST_API signal_dsp_factory* createSignalDSPFactoryFromString(const std::str
                                                                 int argc, const char* argv[],
                                                                 std::string& error_msg);
 
-
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer. 
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with C++ delete.
