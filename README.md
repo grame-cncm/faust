@@ -74,7 +74,7 @@ Or to synchronize the *faust2ck* folder only:
     git commit -m "Faust updated to the latest version of faust2ck."
     git push
     
-Or to synchronize the *py2max* folder only:
+Or to synchronize the *py2max* folder only (note that current used stable py2max version is v0.1.1):
 
     git submodule update --remote --merge architecture/max-msp/py2max
     git add architecture/max-msp/py2max 
