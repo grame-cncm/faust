@@ -983,7 +983,7 @@ static unique_ptr<ifstream> openArchFile(const string& filename)
 {
     unique_ptr<ifstream> file;
     getCurrentDir();  // Save the current directory.
-    // cerr << "Documentator : openArchFile : Opening input file  '" << filename << "'" << endl;
+    // cerr << "Documentator : openArchFile : Opening input file '" << filename << "'" << endl;
     if ((file = openArchStream(filename.c_str()))) {
         // cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
     } else {
@@ -997,7 +997,7 @@ static unique_ptr<ifstream> openArchFile(const string& filename)
 
 /**
  * Transform the definition name property of tree <t> into a
- * legal file name.  The resulting file name is stored in
+ * legal file name. The resulting file name is stored in
  * <dst> a table of at least <n> chars. Returns the <dst> pointer
  * for convenience.
  */

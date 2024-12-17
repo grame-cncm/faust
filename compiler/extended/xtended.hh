@@ -46,7 +46,7 @@ class CodeContainer;
 
 class xtended : public virtual Garbageable {
    private:
-    Symbol* fSymbol;  ///< the symbol the xtended is attached to
+    Sym fSymbol;  ///< the symbol the xtended is attached to
 
    public:
     xtended(const char* name) : fSymbol(::symbol(name)) { setUserData(fSymbol, (void*)this); }

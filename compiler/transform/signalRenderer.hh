@@ -23,13 +23,13 @@
 
 #include <cstdlib>
 #include <fstream>
+#include <iterator>
 #include <map>
 #include <stack>
-#include <iterator>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT double
-//#define FAUSTFLOAT float
+// #define FAUSTFLOAT float
 #endif
 
 #include "faust/dsp/dsp.h"
@@ -37,9 +37,9 @@
 
 #include "Text.hh"
 #include "ppsig.hh"
+#include "prim2.hh"
 #include "signalVisitor.hh"
 #include "sigtyperules.hh"
-#include "prim2.hh"
 
 //-------------------------SignalRenderer-------------------------------
 // Render a list of signals.
@@ -380,7 +380,6 @@ struct signal_dsp_aux : public signal_dsp {
 // External API
 
 struct signal_dsp_factory : public dsp_factory {
-    
     struct SignalChecker : public SignalVisitor {
         void visit(Tree sig)
         {
@@ -409,16 +408,18 @@ struct signal_dsp_factory : public dsp_factory {
         }
     };
 
-    Tree fOutputSig;
-    bool fIsDouble = false;
+    Tree        fOutputSig;
+    bool        fIsDouble = false;
     std::string fCompileOptions;
-    
+
     bool hasCompileOption(const std::string& option)
     {
         std::istringstream iss(fCompileOptions);
-        std::string token;
+        std::string        token;
         while (std::getline(iss, token, ' ')) {
-            if (token == option) return true;
+            if (token == option) {
+                return true;
+            }
         }
         return false;
     }
@@ -427,14 +428,14 @@ struct signal_dsp_factory : public dsp_factory {
     {
         SignalChecker checker;
         checker.visitRoot(fOutputSig);
-    
+
         std::ostringstream oss;
         std::copy(argv, argv + argc, std::ostream_iterator<std::string>(oss, " "));
-    
+
         // Get the resulting string and trim the trailing space
         fCompileOptions = oss.str();
         if (!fCompileOptions.empty()) {
-            fCompileOptions.pop_back(); // Remove the trailing space
+            fCompileOptions.pop_back();  // Remove the trailing space
         }
     }
     virtual ~signal_dsp_factory() {}

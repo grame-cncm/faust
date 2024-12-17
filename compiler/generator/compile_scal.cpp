@@ -250,7 +250,7 @@ string ScalarCompiler::or2code(Tree cs)
 string ScalarCompiler::getConditionCode(Tree sig)
 {
     Tree cc = fConditionProperty[sig];
-    if ((cc != 0) && (cc != gGlobal->nil)) {
+    if ((cc != nullptr) && (cc != gGlobal->nil)) {
         return CND2CODE(cc);
     } else {
         return "";

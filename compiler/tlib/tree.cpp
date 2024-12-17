@@ -148,7 +148,7 @@ size_t CTreeBase::calcTreeHash(const Node& n, const tvec& br)
     return hk;
 }
 
-Tree CTreeBase::make(const Node& n, int ar, Tree* tbl)
+Tree CTreeBase::make(const Node& n, int ar, Tree tbl[])
 {
     vector<Tree> br(tbl, tbl + ar);
     return CTreeBase::make(n, br);

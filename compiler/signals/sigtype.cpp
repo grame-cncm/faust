@@ -47,7 +47,7 @@ AudioType::AudioType(int n, int v, int c, int vec, int b, interval i, res r)
       fBoolean(b),
       fInterval(i),
       fRes(r),
-      fCode(0)
+      fCode(nullptr)
 {
     TRACE(cerr << gGlobal->TABBER << "Building audioType : n="
                << "NR"[n] << ", v="

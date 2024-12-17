@@ -35,7 +35,7 @@ using namespace std;
  * Hash table used to store the symbols.
  */
 
-Symbol* Symbol::gSymbolTable[kHashTableSize];
+Sym Symbol::gSymbolTable[kHashTableSize];
 
 map<string, size_t> Symbol::gPrefixCounters;
 
@@ -45,7 +45,7 @@ map<string, size_t> Symbol::gPrefixCounters;
  * \return a symbol of name str
  */
 
-Symbol* Symbol::get(const string& rawstr)
+Sym Symbol::get(const string& rawstr)
 {
     // ---replaces control characters with white spaces---
     string str = rawstr;
@@ -53,14 +53,14 @@ Symbol* Symbol::get(const string& rawstr)
         char c = rawstr[i];
         str[i] = (c >= 0 && c < 32) ? 32 : c;
     }
-    size_t  hsh  = calcHashKey(str);
-    int     bckt = hsh % kHashTableSize;
-    Symbol* item = gSymbolTable[bckt];
+    size_t hsh  = calcHashKey(str);
+    int    bckt = hsh % kHashTableSize;
+    Sym    item = gSymbolTable[bckt];
 
     while (item && !item->equiv(hsh, str)) {
         item = item->fNext;
     }
-    Symbol* r = item ? item : (gSymbolTable[bckt] = new Symbol(str, hsh, gSymbolTable[bckt]));
+    Sym r = item ? item : (gSymbolTable[bckt] = new Symbol(str, hsh, gSymbolTable[bckt]));
 
     return r;
 }
@@ -73,9 +73,9 @@ Symbol* Symbol::get(const string& rawstr)
 
 bool Symbol::isnew(const string& str)
 {
-    size_t  hsh  = calcHashKey(str);
-    int     bckt = hsh % kHashTableSize;
-    Symbol* item = gSymbolTable[bckt];
+    size_t hsh  = calcHashKey(str);
+    int    bckt = hsh % kHashTableSize;
+    Sym    item = gSymbolTable[bckt];
 
     while (item && !item->equiv(hsh, str)) {
         item = item->fNext;
@@ -88,7 +88,7 @@ bool Symbol::isnew(const string& str)
  * order to make it unique. \param str the prefix of the name \return a symbol of name \p prefix++n
  */
 
-Symbol* Symbol::prefix(const string& str)
+Sym Symbol::prefix(const string& str)
 {
     string name;
 
@@ -141,7 +141,7 @@ std::size_t Symbol::calcHashKey(const std::string& str)
  * \param nxt a pointer to the next symbol in the hash table entry
  */
 
-Symbol::Symbol(const string& str, size_t hsh, Symbol* nxt)
+Symbol::Symbol(const string& str, size_t hsh, Sym nxt)
 {
     fName = str;
     fHash = hsh;
@@ -161,5 +161,5 @@ ostream& Symbol::print(ostream& fout) const  ///< print a symbol on a stream
 void Symbol::init()
 {
     gPrefixCounters.clear();
-    memset(gSymbolTable, 0, sizeof(Symbol*) * kHashTableSize);
+    memset(gSymbolTable, 0, sizeof(Sym) * kHashTableSize);
 }

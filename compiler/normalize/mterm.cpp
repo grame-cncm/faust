@@ -292,7 +292,7 @@ const mterm& mterm::operator*=(const mterm& m)
 const mterm& mterm::operator/=(const mterm& m)
 {
     // cerr << "division en place : " << *this << " / " << m << endl;
-    if (m.fCoef == 0) {
+    if (m.fCoef == nullptr) {
         stringstream error;
         error << "ERROR : division by 0 in " << *this << " / " << m << endl;
         throw faustexception(error.str());
@@ -530,8 +530,8 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
             cerr << "B[0] == " << *B[0] << endl;
         }
         // in principle here zero order is empty because it corresponds to the numerical coef
-        faustassert(A[0] == 0);
-        faustassert(B[0] == 0);
+        faustassert(A[0] == nullptr);
+        faustassert(B[0] == nullptr);
 #endif
 
         // we only use a coeficient if it differs from 1 and if we are not in signature mode
@@ -564,7 +564,7 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
                 combineDivLeft(RR, B[order]);
             }
         }
-        if (RR == 0) {
+        if (RR == nullptr) {
             RR = tree(1);  // to check *******************
         }
 

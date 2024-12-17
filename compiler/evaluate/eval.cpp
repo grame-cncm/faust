@@ -1234,8 +1234,8 @@ static Tree applyList(Tree fun, Tree larg)
                 // return eval(body, nil, localValEnv);
                 return applyList(eval(body, gGlobal->nil, localValEnv), tl(larg));
             } else {
-                cerr << "wrong result from pattern matching (not a closure) : " << boxpp(result)
-                     << endl;
+                cerr << "ERROR : wrong result from pattern matching (not a closure) : "
+                     << boxpp(result) << endl;
                 return boxError();
             }
         }

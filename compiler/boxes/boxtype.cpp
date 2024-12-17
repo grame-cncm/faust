@@ -369,7 +369,8 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
 
     } else {
         stringstream error;
-        error << "boxType() internal error : unrecognized box expression " << boxpp(box) << endl;
+        error << "ERROR : boxType() internal error, unrecognized box expression : " << boxpp(box)
+              << endl;
         throw faustexception(error.str());
     }
     return true;

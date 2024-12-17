@@ -98,7 +98,7 @@ static Tree subtree(Tree X, int i, const Path& p)
 
 struct Rule : public virtual Garbageable {
     int  r;   // rule number
-    Tree id;  // matched variable (NULL if none)
+    Tree id;  // matched variable (nullptr if none)
     Path p;   // subterm path indicating where variable value is found
 
     Rule(int _r, Tree _id) : r(_r), id(_id), p(Path()) {}
@@ -126,7 +126,7 @@ struct State;
 /* transitions */
 
 struct Trans : public virtual Garbageable {
-    Tree   x;      // symbol or constant (NULL for variable)
+    Tree   x;      // symbol or constant (nullptr for variable)
     Node   n;      // operator symbol (if arity>0)
     int    arity;  // symbol arity
     State* state;  // successor state

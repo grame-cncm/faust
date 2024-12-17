@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#include "compatibility.hh"
 #include "signalRenderer.hh"
+#include "compatibility.hh"
 #include "xtended.hh"
 
 using namespace std;
@@ -82,7 +82,7 @@ void SignalRenderer<REAL>::visit(Tree sig)
     int     i, opt;
     int64_t i64;
     double  r;
-    Tree size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, type, name, file, sf;
+    Tree    size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, type, name, file, sf;
 
     xtended* xt = (xtended*)getUserData(sig);
     // Primitive elements
@@ -151,7 +151,7 @@ void SignalRenderer<REAL>::visit(Tree sig)
             faustassert(false);
         }
     }
-    
+
     // Tables
     else if (isSigWRTbl(sig, size, gen, wi, ws)) {
         // TODO

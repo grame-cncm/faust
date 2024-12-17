@@ -477,7 +477,7 @@ inline Tree unquote(char* str)
 typedef union YYSTYPE
 #line 103 "faustparser.y"
 {
-    CTreeBase*     exp;
+    Tree exp;
     char* str;
     std::string* cppstr;
     bool b;
