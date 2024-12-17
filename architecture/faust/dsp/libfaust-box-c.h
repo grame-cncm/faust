@@ -25,6 +25,8 @@
 #ifndef LIBFAUSTCOMMON_C_H
 #define LIBFAUSTCOMMON_C_H
 
+#include <stdbool.h>
+
 #include "faust/export.h"
 
 /*!
