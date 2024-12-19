@@ -1,4 +1,4 @@
-declare version "2.75.3";
+declare version "2.77.0";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/table.dsp -o reference/table.box";
 declare compilation_options "-single -scal -e table.dsp -o table.dsp";
 declare filename "table.dsp";

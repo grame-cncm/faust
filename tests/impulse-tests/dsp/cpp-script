@@ -1,6 +1,6 @@
 for f in $@
 do
   echo "Processing $f file..."
-  faust $f > ${f%.dsp}.cpp
+  faust -lang ocpp $f > ${f%.dsp}.cpp
   diff ${f%.dsp}.cpp ../reference/${f%.dsp}.cpp1 ; echo Done
 done

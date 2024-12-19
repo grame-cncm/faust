@@ -38,7 +38,7 @@ class CodeboxCodeContainer : public virtual CodeContainer {
     CodeboxBargraphVisitor     fBargraph;
 
     // Not used since subcontainers are inlined
-    virtual void produceInternal(){};
+    virtual void produceInternal() {};
 
     virtual void produceClass();
 

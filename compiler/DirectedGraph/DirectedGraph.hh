@@ -25,10 +25,10 @@
 // to represent the time dependency between computations.
 //===========================================================
 
-template <typename N>
+template <typename N, typename Comparator = std::less<N>>
 class digraph {
     using TWeights      = std::set<int>;
-    using TDestinations = std::map<N, TWeights>;
+    using TDestinations = std::map<N, TWeights, Comparator>;
 
     static inline const TWeights gEmptyWeights;
 
@@ -38,8 +38,8 @@ class digraph {
     // have integer values attached.
     class internalgraph {
        private:
-        std::set<N>                fNodes;        // {n1,n2,...}
-        std::map<N, TDestinations> fConnections;  // {(ni -{d1,d2,...}-> nj),...}
+        std::set<N, Comparator>                fNodes;        // {n1,n2,...}
+        std::map<N, TDestinations, Comparator> fConnections;  // {(ni -{d1,d2,...}-> nj),...}
 
        public:
 #if 0
@@ -70,10 +70,13 @@ class digraph {
         //----------------------------------------------------------------------
 
         // returns the set of nodes of the graph
-        [[nodiscard]] const std::set<N>& nodes() const { return fNodes; }
+        [[nodiscard]] const std::set<N, Comparator>& nodes() const { return fNodes; }
 
         // returns the set of nodes of the graph
-        [[nodiscard]] const std::map<N, TDestinations>& connections() const { return fConnections; }
+        [[nodiscard]] const std::map<N, TDestinations, Comparator>& connections() const
+        {
+            return fConnections;
+        }
 
         // Returns the destinations of node n in the graph
         [[nodiscard]] const TDestinations& destinations(const N& n) const
@@ -205,10 +208,10 @@ class digraph {
     //--------------------------------------------------------------------------
 
     // returns the set of nodes of the graph
-    [[nodiscard]] const std::set<N>& nodes() const { return fContent->nodes(); }
+    [[nodiscard]] const std::set<N, Comparator>& nodes() const { return fContent->nodes(); }
 
     // returns the set of nodes of the graph
-    [[nodiscard]] const std::map<N, TDestinations>& connections() const
+    [[nodiscard]] const std::map<N, TDestinations, Comparator>& connections() const
     {
         return fContent->connections();
     }

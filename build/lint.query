@@ -1,8 +1,8 @@
-# Check for a pointer comparison between CTreeBase* / Symbol*
+# Check for a pointer comparison between CTree* / Symbol*
 
 let hasTargetComparisonNoBind binaryOperator(
   hasAnyOperatorName("<", ">", "<=", ">="),
-  hasEitherOperand(hasType(hasUnqualifiedDesugaredType(pointerType(pointee(hasDeclaration(namedDecl(hasAnyName("CTreeBase", "Symbol"))))).bind("pointer-type"))))
+  hasEitherOperand(hasType(hasUnqualifiedDesugaredType(pointerType(pointee(hasDeclaration(namedDecl(hasAnyName("CTree", "Symbol"))))).bind("pointer-type"))))
 )
 
 # Or a function call to a function in the STL which has one of those pointer comparisons

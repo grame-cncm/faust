@@ -1,55 +1,35 @@
-/* ------------------------------------------------------------
-author: "Grame"
-copyright: "(c)GRAME 2006"
-license: "BSD"
-name: "volume"
-version: "1.0"
-Code generated with Faust 2.75.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
------------------------------------------------------------- */
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "volume"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+//----------------------------------------------------------
 
-#ifndef  __mydsp_H__
-#define  __mydsp_H__
-
+/* link with  */
+#include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
 
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
 
 #ifndef FAUSTCLASS 
 #define FAUSTCLASS mydsp
 #endif
 
-#ifdef __APPLE__ 
-#define exp10f __exp10f
-#define exp10 __exp10
-#endif
-
-#if defined(_WIN32)
-#define RESTRICT __restrict
-#else
-#define RESTRICT __restrict__
-#endif
-
-
 class mydsp : public dsp {
-	
- private:
-	
-	FAUSTFLOAT fVslider0;
-	float fRec0[2];
+  private:
+	FAUSTFLOAT 	fslider0;
+	// Recursion delay fVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Mono Delay
 	int fSampleRate;
-	
- public:
-	mydsp() {
-	}
-	
-	void metadata(Meta* m) { 
+
+  public:
+	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
-		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2006");
 		m->declare("filename", "volume.dsp");
 		m->declare("license", "BSD");
@@ -68,67 +48,56 @@ class mydsp : public dsp {
 		m->declare("version", "1.0");
 	}
 
-	virtual int getNumInputs() {
-		return 1;
-	}
-	virtual int getNumOutputs() {
-		return 1;
-	}
-	
+	virtual int getNumInputs() { return 1; }
+	virtual int getNumOutputs() { return 1; }
 	static void classInit(int sample_rate) {
 	}
-	
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
 	}
-	
 	virtual void instanceResetUserInterface() {
-		fVslider0 = FAUSTFLOAT(0.0f);
+		fslider0 = 0.0f;
 	}
-	
 	virtual void instanceClear() {
-		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
-			fRec0[l0] = 0.0f;
-		}
+		fVeeec0State = 0;
 	}
-	
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
 		instanceInit(sample_rate);
 	}
-	
 	virtual void instanceInit(int sample_rate) {
 		instanceConstants(sample_rate);
 		instanceResetUserInterface();
 		instanceClear();
 	}
-	
 	virtual mydsp* clone() {
 		return new mydsp();
 	}
-	
 	virtual int getSampleRate() {
 		return fSampleRate;
 	}
-	
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("volume");
-		ui_interface->declare(&fVslider0, "1", "");
-		ui_interface->addVerticalSlider("0x00", &fVslider0, FAUSTFLOAT(0.0f), FAUSTFLOAT(-7e+01f), FAUSTFLOAT(4.0f), FAUSTFLOAT(0.1f));
+		ui_interface->declare(&fslider0, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fslider0, 0.0f, -7e+01f, 4.0f, 0.1f);
 		ui_interface->closeBox();
 	}
-	
-	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
-		FAUSTFLOAT* input0 = inputs[0];
-		FAUSTFLOAT* output0 = outputs[0];
-		float fSlow0 = 0.001f * std::pow(1e+01f, 0.05f * float(fVslider0));
-		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			fRec0[0] = fSlow0 + 0.999f * fRec0[1];
-			output0[i0] = FAUSTFLOAT(float(input0[i0]) * fRec0[0]);
-			fRec0[1] = fRec0[0];
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = (0.001f * powf(1e+01f,(0.05f * float(fslider0)))); // step: 13
+		float 	fVeeec0;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			fVeeec0 = fVeeec0State;
+			for (int i=0; i<count; i++) {
+				fVeeec0 = (fSlow0 + (0.999f * fVeeec0));
+				output0[i] = (FAUSTFLOAT)(((float)input0[i] * fVeeec0));  // Zone Exec Code
+			}
+			fVeeec0State = fVeeec0;
 		}
 	}
-
 };
 
-#endif
+

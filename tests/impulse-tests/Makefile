@@ -319,6 +319,7 @@ llvm:
 #########################################################################
 # llvm backend in object code mode
 llvm1:
+	export FAUST_OPT=FAUST_LLVM_NO_FM; \
 	$(MAKE) -f Make.llvm1 outdir=llvm1/double               FAUSTOPTIONS="-I dsp -double"
 	$(MAKE) -f Make.llvm1 outdir=llvm1/double/inpl          FAUSTOPTIONS="-I dsp -double -inpl"
 	$(MAKE) -f Make.llvm1 outdir=llvm1/double/dlt0          FAUSTOPTIONS="-I dsp -double -dlt 0"
@@ -433,7 +434,7 @@ reference:
 
 reference-box:
 	cd reference && rm -f *.box
-	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-box FAUSTOPTIONS="-I dsp"
+	 $(MAKE) -f Make.ref reference-box FAUSTOPTIONS="-I dsp"
 	
 reference-signal-wn:
 	cd reference && rm -f *.sig
@@ -441,19 +442,19 @@ reference-signal-wn:
 
 reference-signal:
 	cd reference && rm -f *.sig
-	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-signal FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.ref reference-signal FAUSTOPTIONS="-I dsp"
 
 reference-type:
 	cd reference && rm -f *.type
-	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-type FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.ref reference-type FAUSTOPTIONS="-I dsp"
 	
 reference-fir:
 	cd reference && rm -f *.fir
-	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-fir FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.ref reference-fir FAUSTOPTIONS="-I dsp"
 
 reference-cpp:
 	cd reference && rm -f *.cpp1
-	export FAUST_DEBUG=FAUST_DTREE; $(MAKE) -f Make.ref reference-cpp FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.ref reference-cpp FAUSTOPTIONS="-I dsp"
 
 tools: filesCompare impulsellvm impulseinterp impulseinterp1 impulsesignal
 
@@ -464,23 +465,22 @@ clean:
 # Testing Box, Signal, Type and C++ creation steps
 
 test-box:
-	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./box-script *.dsp
+	cd dsp && ./box-script *.dsp
 
 test-signal-wn:
 	export FAUST_OPT=FAUST_SIG_NO_NORM; cd dsp && ./sig-script *.dsp
 	
 test-signal:
-	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./sig-script *.dsp
+	cd dsp && ./sig-script *.dsp
 
 test-type:
-	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./type-script *.dsp
+	 cd dsp && ./type-script *.dsp
 
 test-fir:
-	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./fir-script *.dsp
+	cd dsp && ./fir-script *.dsp
 
 test-cpp:
-	export FAUST_DEBUG=FAUST_DTREE; cd dsp && ./cpp-script *.dsp
-
+	cd dsp && ./cpp-script *.dsp
 
 #########################################################################
 # Benchmark using faustbench-llvm and faustbench

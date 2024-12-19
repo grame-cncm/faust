@@ -158,7 +158,7 @@ struct Trans : public virtual Garbageable {
     {
         return (arity < trans.arity)   ? 1
                : (arity > trans.arity) ? 0
-               : (arity == 0)          ? (x < trans.x)
+               : (arity == 0)          ? (x->serial() < trans.x->serial())
                                        : (n.getSym() < trans.n.getSym());
     }
 
@@ -460,7 +460,7 @@ static void merge_trans_cst(list<Trans>& trans, Tree x, State* state)
             if (x == x1) {
                 merge_state(t->state, state);
                 return;
-            } else if (x < x1) {
+            } else if (x->serial() < x1->serial()) {
                 break;
             }
         }

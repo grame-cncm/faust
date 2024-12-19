@@ -298,7 +298,7 @@ bool isElement(Tree e, Tree l)
         if (hd(l) == e) {
             return true;
         }
-        if (hd(l) > e) {
+        if (hd(l)->serial() > e->serial()) {
             return false;
         }
         l = tl(l);
@@ -309,7 +309,7 @@ bool isElement(Tree e, Tree l)
 Tree addElement(Tree e, Tree l)
 {
     if (isList(l)) {
-        if (e < hd(l)) {
+        if (e->serial() < hd(l)->serial()) {
             return cons(e, l);
         } else if (e == hd(l)) {
             return l;
@@ -324,7 +324,7 @@ Tree addElement(Tree e, Tree l)
 Tree remElement(Tree e, Tree l)
 {
     if (isList(l)) {
-        if (e < hd(l)) {
+        if (e->serial() < hd(l)->serial()) {
             return l;
         } else if (e == hd(l)) {
             return tl(l);
@@ -363,7 +363,7 @@ Tree setUnion(Tree A, Tree B)
     if (hd(A) == hd(B)) {
         return cons(hd(A), setUnion(tl(A), tl(B)));
     }
-    if (hd(A) < hd(B)) {
+    if (hd(A)->serial() < hd(B)->serial()) {
         return cons(hd(A), setUnion(tl(A), B));
     }
     /* hd(A) > hd(B) */ return cons(hd(B), setUnion(A, tl(B)));
@@ -380,7 +380,7 @@ Tree setIntersection(Tree A, Tree B)
     if (hd(A) == hd(B)) {
         return cons(hd(A), setIntersection(tl(A), tl(B)));
     }
-    if (hd(A) < hd(B)) {
+    if (hd(A)->serial() < hd(B)->serial()) {
         return setIntersection(tl(A), B);
     }
     /* (hd(A) > hd(B)*/ return setIntersection(A, tl(B));
@@ -397,7 +397,7 @@ Tree setDifference(Tree A, Tree B)
     if (hd(A) == hd(B)) {
         return setDifference(tl(A), tl(B));
     }
-    if (hd(A) < hd(B)) {
+    if (hd(A)->serial() < hd(B)->serial()) {
         return cons(hd(A), setDifference(tl(A), B));
     }
     /* (hd(A) > hd(B)*/ return setDifference(A, tl(B));

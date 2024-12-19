@@ -1,531 +1,584 @@
-/* ------------------------------------------------------------
-name: "priority1"
-Code generated with Faust 2.75.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
------------------------------------------------------------- */
+//----------------------------------------------------------
+// name: "priority1"
+//
+// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+//----------------------------------------------------------
 
-#ifndef  __mydsp_H__
-#define  __mydsp_H__
-
+/* link with  */
+#include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
 
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
 
 #ifndef FAUSTCLASS 
 #define FAUSTCLASS mydsp
 #endif
 
-#ifdef __APPLE__ 
-#define exp10f __exp10f
-#define exp10 __exp10
-#endif
-
-#if defined(_WIN32)
-#define RESTRICT __restrict
-#else
-#define RESTRICT __restrict__
-#endif
-
-
 class mydsp : public dsp {
-	
- private:
-	
-	float fRec0[2];
-	float fRec1[2];
-	float fRec2[2];
-	float fRec3[2];
-	float fRec4[2];
-	float fRec5[2];
-	float fRec6[2];
-	float fRec7[2];
-	float fRec8[2];
-	float fRec9[2];
-	float fRec10[2];
-	float fRec11[2];
-	float fRec12[2];
-	float fRec13[2];
-	float fRec14[2];
-	float fRec15[2];
-	float fRec16[2];
-	float fRec17[2];
-	float fRec18[2];
-	float fRec19[2];
-	float fRec20[2];
-	float fRec21[2];
-	float fRec22[2];
-	float fRec23[2];
-	float fRec24[2];
-	float fRec25[2];
-	float fRec26[2];
-	float fRec27[2];
-	float fRec28[2];
-	float fRec29[2];
-	float fRec30[2];
-	float fRec31[2];
-	float fRec32[2];
-	float fRec33[2];
-	float fRec34[2];
-	float fRec35[2];
-	float fRec36[2];
-	float fRec37[2];
-	float fRec38[2];
-	float fRec39[2];
-	float fRec40[2];
-	float fRec41[2];
-	float fRec42[2];
+  private:
+	// Recursion delay fVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Mono Delay
+	// Recursion delay fVeeec2 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2State; // Mono Delay
+	// Recursion delay fVeeec4 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec4State; // Mono Delay
+	// Recursion delay fVeeec6 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec6State; // Mono Delay
+	// Recursion delay fVeeec8 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec8State; // Mono Delay
+	// Recursion delay fVeeec10 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec10State; // Mono Delay
+	// Recursion delay fVeeec12 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec12State; // Mono Delay
+	// Recursion delay fVeeec14 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec14State; // Mono Delay
+	// Recursion delay fVeeec16 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec16State; // Mono Delay
+	// Recursion delay fVeeec18 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec18State; // Mono Delay
+	// Recursion delay fVeeec20 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec20State; // Mono Delay
+	// Recursion delay fVeeec22 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec22State; // Mono Delay
+	// Recursion delay fVeeec24 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec24State; // Mono Delay
+	// Recursion delay fVeeec26 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec26State; // Mono Delay
+	// Recursion delay fVeeec28 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec28State; // Mono Delay
+	// Recursion delay fVeeec30 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec30State; // Mono Delay
+	// Recursion delay fVeeec32 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec32State; // Mono Delay
+	// Recursion delay fVeeec34 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec34State; // Mono Delay
+	// Recursion delay fVeeec36 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec36State; // Mono Delay
+	// Recursion delay fVeeec38 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec38State; // Mono Delay
+	// Recursion delay fVeeec40 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec40State; // Mono Delay
+	// Recursion delay fVeeec42 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec42State; // Mono Delay
+	// Recursion delay fVeeec44 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec44State; // Mono Delay
+	// Recursion delay fVeeec46 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec46State; // Mono Delay
+	// Recursion delay fVeeec48 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec48State; // Mono Delay
+	// Recursion delay fVeeec50 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec50State; // Mono Delay
+	// Recursion delay fVeeec52 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec52State; // Mono Delay
+	// Recursion delay fVeeec54 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec54State; // Mono Delay
+	// Recursion delay fVeeec56 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec56State; // Mono Delay
+	// Recursion delay fVeeec58 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec58State; // Mono Delay
+	// Recursion delay fVeeec60 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec60State; // Mono Delay
+	// Recursion delay fVeeec62 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec62State; // Mono Delay
+	// Recursion delay fVeeec64 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec64State; // Mono Delay
+	// Recursion delay fVeeec66 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec66State; // Mono Delay
+	// Recursion delay fVeeec68 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec68State; // Mono Delay
+	// Recursion delay fVeeec70 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec70State; // Mono Delay
+	// Recursion delay fVeeec72 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec72State; // Mono Delay
+	// Recursion delay fVeeec74 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec74State; // Mono Delay
+	// Recursion delay fVeeec76 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec76State; // Mono Delay
+	// Recursion delay fVeeec78 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec78State; // Mono Delay
+	// Recursion delay fVeeec80 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec80State; // Mono Delay
+	// Recursion delay fVeeec82 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec82State; // Mono Delay
+	// Recursion delay fVeeec84 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec84State; // Mono Delay
 	int fSampleRate;
-	
- public:
-	mydsp() {
-	}
-	
-	void metadata(Meta* m) { 
-		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+
+  public:
+	virtual void metadata(Meta* m) { 
 		m->declare("filename", "priority1.dsp");
 		m->declare("name", "priority1");
 	}
 
-	virtual int getNumInputs() {
-		return 110;
-	}
-	virtual int getNumOutputs() {
-		return 31;
-	}
-	
+	virtual int getNumInputs() { return 110; }
+	virtual int getNumOutputs() { return 31; }
 	static void classInit(int sample_rate) {
 	}
-	
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
 	}
-	
 	virtual void instanceResetUserInterface() {
 	}
-	
 	virtual void instanceClear() {
-		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
-			fRec0[l0] = 0.0f;
-		}
-		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
-			fRec1[l1] = 0.0f;
-		}
-		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
-			fRec2[l2] = 0.0f;
-		}
-		for (int l3 = 0; l3 < 2; l3 = l3 + 1) {
-			fRec3[l3] = 0.0f;
-		}
-		for (int l4 = 0; l4 < 2; l4 = l4 + 1) {
-			fRec4[l4] = 0.0f;
-		}
-		for (int l5 = 0; l5 < 2; l5 = l5 + 1) {
-			fRec5[l5] = 0.0f;
-		}
-		for (int l6 = 0; l6 < 2; l6 = l6 + 1) {
-			fRec6[l6] = 0.0f;
-		}
-		for (int l7 = 0; l7 < 2; l7 = l7 + 1) {
-			fRec7[l7] = 0.0f;
-		}
-		for (int l8 = 0; l8 < 2; l8 = l8 + 1) {
-			fRec8[l8] = 0.0f;
-		}
-		for (int l9 = 0; l9 < 2; l9 = l9 + 1) {
-			fRec9[l9] = 0.0f;
-		}
-		for (int l10 = 0; l10 < 2; l10 = l10 + 1) {
-			fRec10[l10] = 0.0f;
-		}
-		for (int l11 = 0; l11 < 2; l11 = l11 + 1) {
-			fRec11[l11] = 0.0f;
-		}
-		for (int l12 = 0; l12 < 2; l12 = l12 + 1) {
-			fRec12[l12] = 0.0f;
-		}
-		for (int l13 = 0; l13 < 2; l13 = l13 + 1) {
-			fRec13[l13] = 0.0f;
-		}
-		for (int l14 = 0; l14 < 2; l14 = l14 + 1) {
-			fRec14[l14] = 0.0f;
-		}
-		for (int l15 = 0; l15 < 2; l15 = l15 + 1) {
-			fRec15[l15] = 0.0f;
-		}
-		for (int l16 = 0; l16 < 2; l16 = l16 + 1) {
-			fRec16[l16] = 0.0f;
-		}
-		for (int l17 = 0; l17 < 2; l17 = l17 + 1) {
-			fRec17[l17] = 0.0f;
-		}
-		for (int l18 = 0; l18 < 2; l18 = l18 + 1) {
-			fRec18[l18] = 0.0f;
-		}
-		for (int l19 = 0; l19 < 2; l19 = l19 + 1) {
-			fRec19[l19] = 0.0f;
-		}
-		for (int l20 = 0; l20 < 2; l20 = l20 + 1) {
-			fRec20[l20] = 0.0f;
-		}
-		for (int l21 = 0; l21 < 2; l21 = l21 + 1) {
-			fRec21[l21] = 0.0f;
-		}
-		for (int l22 = 0; l22 < 2; l22 = l22 + 1) {
-			fRec22[l22] = 0.0f;
-		}
-		for (int l23 = 0; l23 < 2; l23 = l23 + 1) {
-			fRec23[l23] = 0.0f;
-		}
-		for (int l24 = 0; l24 < 2; l24 = l24 + 1) {
-			fRec24[l24] = 0.0f;
-		}
-		for (int l25 = 0; l25 < 2; l25 = l25 + 1) {
-			fRec25[l25] = 0.0f;
-		}
-		for (int l26 = 0; l26 < 2; l26 = l26 + 1) {
-			fRec26[l26] = 0.0f;
-		}
-		for (int l27 = 0; l27 < 2; l27 = l27 + 1) {
-			fRec27[l27] = 0.0f;
-		}
-		for (int l28 = 0; l28 < 2; l28 = l28 + 1) {
-			fRec28[l28] = 0.0f;
-		}
-		for (int l29 = 0; l29 < 2; l29 = l29 + 1) {
-			fRec29[l29] = 0.0f;
-		}
-		for (int l30 = 0; l30 < 2; l30 = l30 + 1) {
-			fRec30[l30] = 0.0f;
-		}
-		for (int l31 = 0; l31 < 2; l31 = l31 + 1) {
-			fRec31[l31] = 0.0f;
-		}
-		for (int l32 = 0; l32 < 2; l32 = l32 + 1) {
-			fRec32[l32] = 0.0f;
-		}
-		for (int l33 = 0; l33 < 2; l33 = l33 + 1) {
-			fRec33[l33] = 0.0f;
-		}
-		for (int l34 = 0; l34 < 2; l34 = l34 + 1) {
-			fRec34[l34] = 0.0f;
-		}
-		for (int l35 = 0; l35 < 2; l35 = l35 + 1) {
-			fRec35[l35] = 0.0f;
-		}
-		for (int l36 = 0; l36 < 2; l36 = l36 + 1) {
-			fRec36[l36] = 0.0f;
-		}
-		for (int l37 = 0; l37 < 2; l37 = l37 + 1) {
-			fRec37[l37] = 0.0f;
-		}
-		for (int l38 = 0; l38 < 2; l38 = l38 + 1) {
-			fRec38[l38] = 0.0f;
-		}
-		for (int l39 = 0; l39 < 2; l39 = l39 + 1) {
-			fRec39[l39] = 0.0f;
-		}
-		for (int l40 = 0; l40 < 2; l40 = l40 + 1) {
-			fRec40[l40] = 0.0f;
-		}
-		for (int l41 = 0; l41 < 2; l41 = l41 + 1) {
-			fRec41[l41] = 0.0f;
-		}
-		for (int l42 = 0; l42 < 2; l42 = l42 + 1) {
-			fRec42[l42] = 0.0f;
-		}
+		fVeeec0State = 0;
+		fVeeec2State = 0;
+		fVeeec4State = 0;
+		fVeeec6State = 0;
+		fVeeec8State = 0;
+		fVeeec10State = 0;
+		fVeeec12State = 0;
+		fVeeec14State = 0;
+		fVeeec16State = 0;
+		fVeeec18State = 0;
+		fVeeec20State = 0;
+		fVeeec22State = 0;
+		fVeeec24State = 0;
+		fVeeec26State = 0;
+		fVeeec28State = 0;
+		fVeeec30State = 0;
+		fVeeec32State = 0;
+		fVeeec34State = 0;
+		fVeeec36State = 0;
+		fVeeec38State = 0;
+		fVeeec40State = 0;
+		fVeeec42State = 0;
+		fVeeec44State = 0;
+		fVeeec46State = 0;
+		fVeeec48State = 0;
+		fVeeec50State = 0;
+		fVeeec52State = 0;
+		fVeeec54State = 0;
+		fVeeec56State = 0;
+		fVeeec58State = 0;
+		fVeeec60State = 0;
+		fVeeec62State = 0;
+		fVeeec64State = 0;
+		fVeeec66State = 0;
+		fVeeec68State = 0;
+		fVeeec70State = 0;
+		fVeeec72State = 0;
+		fVeeec74State = 0;
+		fVeeec76State = 0;
+		fVeeec78State = 0;
+		fVeeec80State = 0;
+		fVeeec82State = 0;
+		fVeeec84State = 0;
 	}
-	
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
 		instanceInit(sample_rate);
 	}
-	
 	virtual void instanceInit(int sample_rate) {
 		instanceConstants(sample_rate);
 		instanceResetUserInterface();
 		instanceClear();
 	}
-	
 	virtual mydsp* clone() {
 		return new mydsp();
 	}
-	
 	virtual int getSampleRate() {
 		return fSampleRate;
 	}
-	
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("priority1");
 		ui_interface->closeBox();
 	}
-	
-	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
-		FAUSTFLOAT* input0 = inputs[0];
-		FAUSTFLOAT* input1 = inputs[1];
-		FAUSTFLOAT* input2 = inputs[2];
-		FAUSTFLOAT* input3 = inputs[3];
-		FAUSTFLOAT* input4 = inputs[4];
-		FAUSTFLOAT* input5 = inputs[5];
-		FAUSTFLOAT* input6 = inputs[6];
-		FAUSTFLOAT* input7 = inputs[7];
-		FAUSTFLOAT* input8 = inputs[8];
-		FAUSTFLOAT* input9 = inputs[9];
-		FAUSTFLOAT* input10 = inputs[10];
-		FAUSTFLOAT* input11 = inputs[11];
-		FAUSTFLOAT* input12 = inputs[12];
-		FAUSTFLOAT* input13 = inputs[13];
-		FAUSTFLOAT* input14 = inputs[14];
-		FAUSTFLOAT* input15 = inputs[15];
-		FAUSTFLOAT* input16 = inputs[16];
-		FAUSTFLOAT* input17 = inputs[17];
-		FAUSTFLOAT* input18 = inputs[18];
-		FAUSTFLOAT* input19 = inputs[19];
-		FAUSTFLOAT* input20 = inputs[20];
-		FAUSTFLOAT* input21 = inputs[21];
-		FAUSTFLOAT* input22 = inputs[22];
-		FAUSTFLOAT* input23 = inputs[23];
-		FAUSTFLOAT* input24 = inputs[24];
-		FAUSTFLOAT* input25 = inputs[25];
-		FAUSTFLOAT* input26 = inputs[26];
-		FAUSTFLOAT* input27 = inputs[27];
-		FAUSTFLOAT* input28 = inputs[28];
-		FAUSTFLOAT* input29 = inputs[29];
-		FAUSTFLOAT* input30 = inputs[30];
-		FAUSTFLOAT* input31 = inputs[31];
-		FAUSTFLOAT* input32 = inputs[32];
-		FAUSTFLOAT* input33 = inputs[33];
-		FAUSTFLOAT* input34 = inputs[34];
-		FAUSTFLOAT* input35 = inputs[35];
-		FAUSTFLOAT* input36 = inputs[36];
-		FAUSTFLOAT* input37 = inputs[37];
-		FAUSTFLOAT* input38 = inputs[38];
-		FAUSTFLOAT* input39 = inputs[39];
-		FAUSTFLOAT* input40 = inputs[40];
-		FAUSTFLOAT* input41 = inputs[41];
-		FAUSTFLOAT* input42 = inputs[42];
-		FAUSTFLOAT* input43 = inputs[43];
-		FAUSTFLOAT* input44 = inputs[44];
-		FAUSTFLOAT* input45 = inputs[45];
-		FAUSTFLOAT* input46 = inputs[46];
-		FAUSTFLOAT* input47 = inputs[47];
-		FAUSTFLOAT* input48 = inputs[48];
-		FAUSTFLOAT* input49 = inputs[49];
-		FAUSTFLOAT* input50 = inputs[50];
-		FAUSTFLOAT* input51 = inputs[51];
-		FAUSTFLOAT* input52 = inputs[52];
-		FAUSTFLOAT* input53 = inputs[53];
-		FAUSTFLOAT* input54 = inputs[54];
-		FAUSTFLOAT* input55 = inputs[55];
-		FAUSTFLOAT* input56 = inputs[56];
-		FAUSTFLOAT* input57 = inputs[57];
-		FAUSTFLOAT* input58 = inputs[58];
-		FAUSTFLOAT* input59 = inputs[59];
-		FAUSTFLOAT* input60 = inputs[60];
-		FAUSTFLOAT* input61 = inputs[61];
-		FAUSTFLOAT* input62 = inputs[62];
-		FAUSTFLOAT* input63 = inputs[63];
-		FAUSTFLOAT* input64 = inputs[64];
-		FAUSTFLOAT* input65 = inputs[65];
-		FAUSTFLOAT* input66 = inputs[66];
-		FAUSTFLOAT* input67 = inputs[67];
-		FAUSTFLOAT* input68 = inputs[68];
-		FAUSTFLOAT* input69 = inputs[69];
-		FAUSTFLOAT* input70 = inputs[70];
-		FAUSTFLOAT* input71 = inputs[71];
-		FAUSTFLOAT* input72 = inputs[72];
-		FAUSTFLOAT* input73 = inputs[73];
-		FAUSTFLOAT* input74 = inputs[74];
-		FAUSTFLOAT* input75 = inputs[75];
-		FAUSTFLOAT* input76 = inputs[76];
-		FAUSTFLOAT* input77 = inputs[77];
-		FAUSTFLOAT* input78 = inputs[78];
-		FAUSTFLOAT* input79 = inputs[79];
-		FAUSTFLOAT* input80 = inputs[80];
-		FAUSTFLOAT* input81 = inputs[81];
-		FAUSTFLOAT* input82 = inputs[82];
-		FAUSTFLOAT* input83 = inputs[83];
-		FAUSTFLOAT* input84 = inputs[84];
-		FAUSTFLOAT* input85 = inputs[85];
-		FAUSTFLOAT* input86 = inputs[86];
-		FAUSTFLOAT* input87 = inputs[87];
-		FAUSTFLOAT* input88 = inputs[88];
-		FAUSTFLOAT* input89 = inputs[89];
-		FAUSTFLOAT* input90 = inputs[90];
-		FAUSTFLOAT* input91 = inputs[91];
-		FAUSTFLOAT* input92 = inputs[92];
-		FAUSTFLOAT* input93 = inputs[93];
-		FAUSTFLOAT* input94 = inputs[94];
-		FAUSTFLOAT* input95 = inputs[95];
-		FAUSTFLOAT* input96 = inputs[96];
-		FAUSTFLOAT* input97 = inputs[97];
-		FAUSTFLOAT* input98 = inputs[98];
-		FAUSTFLOAT* input99 = inputs[99];
-		FAUSTFLOAT* input100 = inputs[100];
-		FAUSTFLOAT* input101 = inputs[101];
-		FAUSTFLOAT* input102 = inputs[102];
-		FAUSTFLOAT* input103 = inputs[103];
-		FAUSTFLOAT* input104 = inputs[104];
-		FAUSTFLOAT* input105 = inputs[105];
-		FAUSTFLOAT* input106 = inputs[106];
-		FAUSTFLOAT* input107 = inputs[107];
-		FAUSTFLOAT* input108 = inputs[108];
-		FAUSTFLOAT* input109 = inputs[109];
-		FAUSTFLOAT* output0 = outputs[0];
-		FAUSTFLOAT* output1 = outputs[1];
-		FAUSTFLOAT* output2 = outputs[2];
-		FAUSTFLOAT* output3 = outputs[3];
-		FAUSTFLOAT* output4 = outputs[4];
-		FAUSTFLOAT* output5 = outputs[5];
-		FAUSTFLOAT* output6 = outputs[6];
-		FAUSTFLOAT* output7 = outputs[7];
-		FAUSTFLOAT* output8 = outputs[8];
-		FAUSTFLOAT* output9 = outputs[9];
-		FAUSTFLOAT* output10 = outputs[10];
-		FAUSTFLOAT* output11 = outputs[11];
-		FAUSTFLOAT* output12 = outputs[12];
-		FAUSTFLOAT* output13 = outputs[13];
-		FAUSTFLOAT* output14 = outputs[14];
-		FAUSTFLOAT* output15 = outputs[15];
-		FAUSTFLOAT* output16 = outputs[16];
-		FAUSTFLOAT* output17 = outputs[17];
-		FAUSTFLOAT* output18 = outputs[18];
-		FAUSTFLOAT* output19 = outputs[19];
-		FAUSTFLOAT* output20 = outputs[20];
-		FAUSTFLOAT* output21 = outputs[21];
-		FAUSTFLOAT* output22 = outputs[22];
-		FAUSTFLOAT* output23 = outputs[23];
-		FAUSTFLOAT* output24 = outputs[24];
-		FAUSTFLOAT* output25 = outputs[25];
-		FAUSTFLOAT* output26 = outputs[26];
-		FAUSTFLOAT* output27 = outputs[27];
-		FAUSTFLOAT* output28 = outputs[28];
-		FAUSTFLOAT* output29 = outputs[29];
-		FAUSTFLOAT* output30 = outputs[30];
-		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			fRec0[0] = 1.05f * float(input0[i0]) + 0.9f * fRec0[1];
-			fRec1[0] = 1.05f * float(input1[i0]) + 0.9f * fRec1[1];
-			fRec2[0] = 1.05f * float(input2[i0]) + 0.9f * fRec2[1];
-			output0[i0] = FAUSTFLOAT(fRec0[0] * fRec1[0] * fRec2[0]);
-			fRec3[0] = 1.05f * float(input3[i0]) + 0.9f * fRec3[1];
-			fRec4[0] = 1.05f * float(input4[i0]) + 0.9f * fRec4[1];
-			fRec5[0] = 1.05f * float(input5[i0]) + 0.9f * fRec5[1];
-			output1[i0] = FAUSTFLOAT(fRec3[0] * fRec4[0] * fRec5[0]);
-			fRec6[0] = 1.05f * float(input6[i0]) + 0.9f * fRec6[1];
-			fRec7[0] = 1.05f * float(input7[i0]) + 0.9f * fRec7[1];
-			fRec8[0] = 1.05f * float(input8[i0]) + 0.9f * fRec8[1];
-			output2[i0] = FAUSTFLOAT(fRec6[0] * fRec7[0] * fRec8[0]);
-			fRec9[0] = 1.05f * float(input9[i0]) + 0.9f * fRec9[1];
-			fRec10[0] = 1.05f * float(input10[i0]) + 0.9f * fRec10[1];
-			fRec11[0] = 1.05f * float(input11[i0]) + 0.9f * fRec11[1];
-			output3[i0] = FAUSTFLOAT(fRec9[0] * fRec10[0] + fRec11[0]);
-			fRec12[0] = 1.05f * float(input12[i0]) + 0.9f * fRec12[1];
-			fRec13[0] = 1.05f * float(input13[i0]) + 0.9f * fRec13[1];
-			fRec14[0] = 1.05f * float(input14[i0]) + 0.9f * fRec14[1];
-			output4[i0] = FAUSTFLOAT(fRec12[0] * fRec13[0] + fRec14[0]);
-			fRec15[0] = 1.05f * float(input15[i0]) + 0.9f * fRec15[1];
-			fRec16[0] = 1.05f * float(input16[i0]) + 0.9f * fRec16[1];
-			fRec17[0] = 1.05f * float(input17[i0]) + 0.9f * fRec17[1];
-			output5[i0] = FAUSTFLOAT(fRec15[0] * (fRec16[0] + fRec17[0]));
-			fRec18[0] = 0.1f * float(int(3.5f * float(input18[i0])) * int(3.5f * float(input19[i0])) % (int(float(input20[i0])) + 3)) + 0.9f * fRec18[1];
-			output6[i0] = FAUSTFLOAT(fRec18[0]);
-			fRec19[0] = 0.1f * float(int(3.5f * float(input21[i0])) * int(3.5f * float(input22[i0])) % (int(float(input23[i0])) + 3)) + 0.9f * fRec19[1];
-			output7[i0] = FAUSTFLOAT(fRec19[0]);
-			fRec20[0] = 0.1f * float(int(3.5f * float(input24[i0])) * (int(3.5f * float(input25[i0])) % (int(float(input26[i0])) + 3))) + 0.9f * fRec20[1];
-			output8[i0] = FAUSTFLOAT(fRec20[0]);
-			fRec21[0] = 0.1f * float((int(3.5f * float(input27[i0])) << int(3.5f * float(input28[i0]))) >> (int(float(input29[i0])) + 3)) + 0.9f * fRec21[1];
-			output9[i0] = FAUSTFLOAT(fRec21[0]);
-			fRec22[0] = 0.1f * float((int(3.5f * float(input30[i0])) << int(3.5f * float(input31[i0]))) >> (int(float(input32[i0])) + 3)) + 0.9f * fRec22[1];
-			output10[i0] = FAUSTFLOAT(fRec22[0]);
-			fRec23[0] = 0.1f * float(int(3.5f * float(input33[i0])) << (int(3.5f * float(input34[i0])) >> (int(float(input35[i0])) + 3))) + 0.9f * fRec23[1];
-			output11[i0] = FAUSTFLOAT(fRec23[0]);
-			fRec24[0] = 0.1f * float((int(3.5f * float(input36[i0])) << int(3.5f * float(input37[i0]))) <= (int(float(input38[i0])) + 3)) + 0.9f * fRec24[1];
-			output12[i0] = FAUSTFLOAT(fRec24[0]);
-			fRec25[0] = 0.1f * float((int(3.5f * float(input39[i0])) << int(3.5f * float(input40[i0]))) <= (int(float(input41[i0])) + 3)) + 0.9f * fRec25[1];
-			output13[i0] = FAUSTFLOAT(fRec25[0]);
-			fRec26[0] = 0.1f * float(int(3.5f * float(input42[i0])) << (int(3.5f * float(input43[i0])) <= (int(float(input44[i0])) + 3))) + 0.9f * fRec26[1];
-			output14[i0] = FAUSTFLOAT(fRec26[0]);
-			fRec27[0] = 0.1f * float((int(3.5f * float(input45[i0])) < int(3.5f * float(input46[i0]))) <= (int(float(input47[i0])) + 3)) + 0.9f * fRec27[1];
-			output15[i0] = FAUSTFLOAT(fRec27[0]);
-			fRec28[0] = 0.1f * float((int(3.5f * float(input48[i0])) < int(3.5f * float(input49[i0]))) <= (int(float(input50[i0])) + 3)) + 0.9f * fRec28[1];
-			output16[i0] = FAUSTFLOAT(fRec28[0]);
-			fRec29[0] = 0.1f * float(int(3.5f * float(input51[i0])) < (int(3.5f * float(input52[i0])) <= (int(float(input53[i0])) + 3))) + 0.9f * fRec29[1];
-			output17[i0] = FAUSTFLOAT(fRec29[0]);
-			fRec30[0] = 0.1f * float((int(3.5f * float(input54[i0])) == int(3.5f * float(input55[i0]))) != (int(float(input56[i0])) + 3)) + 0.9f * fRec30[1];
-			output18[i0] = FAUSTFLOAT(fRec30[0]);
-			fRec31[0] = 0.1f * float((int(3.5f * float(input57[i0])) == int(3.5f * float(input58[i0]))) != (int(float(input59[i0])) + 3)) + 0.9f * fRec31[1];
-			output19[i0] = FAUSTFLOAT(fRec31[0]);
-			fRec32[0] = 0.1f * float(int(3.5f * float(input60[i0])) == (int(3.5f * float(input61[i0])) != (int(float(input62[i0])) + 3))) + 0.9f * fRec32[1];
-			output20[i0] = FAUSTFLOAT(fRec32[0]);
-			fRec33[0] = 0.1f * float((int(3.5f * float(input63[i0])) & int(3.5f * float(input64[i0]))) | (int(float(input65[i0])) + 3)) + 0.9f * fRec33[1];
-			output21[i0] = FAUSTFLOAT(fRec33[0]);
-			fRec34[0] = 0.1f * float((int(3.5f * float(input66[i0])) & int(3.5f * float(input67[i0]))) ^ int(float(input68[i0])) + 3) + 0.9f * fRec34[1];
-			output22[i0] = FAUSTFLOAT(fRec34[0]);
-			fRec35[0] = 0.1f * float((int(3.5f * float(input69[i0])) & int(3.5f * float(input70[i0]))) | (int(float(input71[i0])) + 3)) + 0.9f * fRec35[1];
-			output23[i0] = FAUSTFLOAT(fRec35[0]);
-			fRec36[0] = 0.1f * float((int(3.5f * float(input72[i0])) & int(3.5f * float(input73[i0]))) ^ int(float(input74[i0])) + 3) + 0.9f * fRec36[1];
-			output24[i0] = FAUSTFLOAT(fRec36[0]);
-			fRec37[0] = 0.1f * float(int(3.5f * float(input75[i0])) & (int(3.5f * float(input76[i0])) | (int(float(input77[i0])) + 3))) + 0.9f * fRec37[1];
-			output25[i0] = FAUSTFLOAT(fRec37[0]);
-			fRec38[0] = 0.1f * float(int(3.5f * float(input78[i0])) & (int(3.5f * float(input79[i0])) ^ int(float(input80[i0])) + 3)) + 0.9f * fRec38[1];
-			output26[i0] = FAUSTFLOAT(fRec38[0]);
-			fRec39[0] = 0.1f * float((int(float(input82[i0])) + int(3.5f * float(input81[i0])) + (3 - int(3.5f * float(input83[i0])))) | (int(float(input84[i0])) + 3)) + 0.9f * fRec39[1];
-			output27[i0] = FAUSTFLOAT(fRec39[0]);
-			fRec40[0] = 0.1f * float((((int(std::fmod(float((int(float(input86[i0])) + 3) * int(3.5f * float(input85[i0]))) / float(int(3.5f * float(input87[i0]))), float(int(float(input88[i0])) + 3))) & int(3.5f * float(input89[i0]))) ^ int(float(input90[i0])) + 3) << int(3.5f * float(input91[i0]))) >> (int(float(input92[i0])) + 3)) + 0.9f * fRec40[1];
-			output28[i0] = FAUSTFLOAT(fRec40[0]);
-			fRec41[0] = 0.1f * float((int(3.5f * float(input93[i0])) <= (int(float(input94[i0])) + 3)) >= ((int(float(input96[i0])) + int(3.5f * float(input95[i0])) + (3 - int(3.5f * float(input97[i0])))) | (int(float(input98[i0])) + 3))) + 0.9f * fRec41[1];
-			output29[i0] = FAUSTFLOAT(fRec41[0]);
-			fRec42[0] = 0.1f * float((int(float(input99[i0])) + int(3.5f * float(input100[i0])) - int(float(input101[i0]))) | ((((int(std::fmod(float((int(float(input103[i0])) + 3) * int(3.5f * float(input102[i0]))) / float(int(3.5f * float(input104[i0]))), float(int(float(input105[i0])) + 3))) & int(3.5f * float(input106[i0]))) ^ int(float(input107[i0])) + 3) << int(3.5f * float(input108[i0]))) >> (int(float(input109[i0])) + 3))) + 0.9f * fRec42[1];
-			output30[i0] = FAUSTFLOAT(fRec42[0]);
-			fRec0[1] = fRec0[0];
-			fRec1[1] = fRec1[0];
-			fRec2[1] = fRec2[0];
-			fRec3[1] = fRec3[0];
-			fRec4[1] = fRec4[0];
-			fRec5[1] = fRec5[0];
-			fRec6[1] = fRec6[0];
-			fRec7[1] = fRec7[0];
-			fRec8[1] = fRec8[0];
-			fRec9[1] = fRec9[0];
-			fRec10[1] = fRec10[0];
-			fRec11[1] = fRec11[0];
-			fRec12[1] = fRec12[0];
-			fRec13[1] = fRec13[0];
-			fRec14[1] = fRec14[0];
-			fRec15[1] = fRec15[0];
-			fRec16[1] = fRec16[0];
-			fRec17[1] = fRec17[0];
-			fRec18[1] = fRec18[0];
-			fRec19[1] = fRec19[0];
-			fRec20[1] = fRec20[0];
-			fRec21[1] = fRec21[0];
-			fRec22[1] = fRec22[0];
-			fRec23[1] = fRec23[0];
-			fRec24[1] = fRec24[0];
-			fRec25[1] = fRec25[0];
-			fRec26[1] = fRec26[0];
-			fRec27[1] = fRec27[0];
-			fRec28[1] = fRec28[0];
-			fRec29[1] = fRec29[0];
-			fRec30[1] = fRec30[0];
-			fRec31[1] = fRec31[0];
-			fRec32[1] = fRec32[0];
-			fRec33[1] = fRec33[0];
-			fRec34[1] = fRec34[0];
-			fRec35[1] = fRec35[0];
-			fRec36[1] = fRec36[0];
-			fRec37[1] = fRec37[0];
-			fRec38[1] = fRec38[0];
-			fRec39[1] = fRec39[0];
-			fRec40[1] = fRec40[0];
-			fRec41[1] = fRec41[0];
-			fRec42[1] = fRec42[0];
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fVeeec0;
+		float 	fVeeec2;
+		float 	fVeeec4;
+		float 	fVeeec6;
+		float 	fVeeec8;
+		float 	fVeeec10;
+		float 	fVeeec12;
+		float 	fVeeec14;
+		float 	fVeeec16;
+		float 	fVeeec18;
+		float 	fVeeec20;
+		float 	fVeeec22;
+		float 	fVeeec24;
+		float 	fVeeec26;
+		float 	fVeeec28;
+		float 	fVeeec30;
+		float 	fVeeec32;
+		float 	fVeeec34;
+		float 	fVeeec36;
+		float 	fVeeec38;
+		float 	fVeeec40;
+		float 	fVeeec42;
+		float 	fVeeec44;
+		float 	fVeeec46;
+		float 	fVeeec48;
+		float 	fVeeec50;
+		float 	fVeeec52;
+		float 	fVeeec54;
+		float 	fVeeec56;
+		float 	fVeeec58;
+		float 	fVeeec60;
+		float 	fVeeec62;
+		float 	fVeeec64;
+		float 	fVeeec66;
+		float 	fVeeec68;
+		float 	fVeeec70;
+		float 	fVeeec72;
+		float 	fVeeec74;
+		float 	fVeeec76;
+		float 	fVeeec78;
+		float 	fVeeec80;
+		float 	fVeeec82;
+		float 	fVeeec84;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
+			FAUSTFLOAT* input4 = &input[4][index]; // Zone 3
+			FAUSTFLOAT* input5 = &input[5][index]; // Zone 3
+			FAUSTFLOAT* input6 = &input[6][index]; // Zone 3
+			FAUSTFLOAT* input7 = &input[7][index]; // Zone 3
+			FAUSTFLOAT* input8 = &input[8][index]; // Zone 3
+			FAUSTFLOAT* input9 = &input[9][index]; // Zone 3
+			FAUSTFLOAT* input10 = &input[10][index]; // Zone 3
+			FAUSTFLOAT* input11 = &input[11][index]; // Zone 3
+			FAUSTFLOAT* input12 = &input[12][index]; // Zone 3
+			FAUSTFLOAT* input13 = &input[13][index]; // Zone 3
+			FAUSTFLOAT* input14 = &input[14][index]; // Zone 3
+			FAUSTFLOAT* input15 = &input[15][index]; // Zone 3
+			FAUSTFLOAT* input16 = &input[16][index]; // Zone 3
+			FAUSTFLOAT* input17 = &input[17][index]; // Zone 3
+			FAUSTFLOAT* input18 = &input[18][index]; // Zone 3
+			FAUSTFLOAT* input19 = &input[19][index]; // Zone 3
+			FAUSTFLOAT* input20 = &input[20][index]; // Zone 3
+			FAUSTFLOAT* input21 = &input[21][index]; // Zone 3
+			FAUSTFLOAT* input22 = &input[22][index]; // Zone 3
+			FAUSTFLOAT* input23 = &input[23][index]; // Zone 3
+			FAUSTFLOAT* input24 = &input[24][index]; // Zone 3
+			FAUSTFLOAT* input25 = &input[25][index]; // Zone 3
+			FAUSTFLOAT* input26 = &input[26][index]; // Zone 3
+			FAUSTFLOAT* input27 = &input[27][index]; // Zone 3
+			FAUSTFLOAT* input28 = &input[28][index]; // Zone 3
+			FAUSTFLOAT* input29 = &input[29][index]; // Zone 3
+			FAUSTFLOAT* input30 = &input[30][index]; // Zone 3
+			FAUSTFLOAT* input31 = &input[31][index]; // Zone 3
+			FAUSTFLOAT* input32 = &input[32][index]; // Zone 3
+			FAUSTFLOAT* input33 = &input[33][index]; // Zone 3
+			FAUSTFLOAT* input34 = &input[34][index]; // Zone 3
+			FAUSTFLOAT* input35 = &input[35][index]; // Zone 3
+			FAUSTFLOAT* input36 = &input[36][index]; // Zone 3
+			FAUSTFLOAT* input37 = &input[37][index]; // Zone 3
+			FAUSTFLOAT* input38 = &input[38][index]; // Zone 3
+			FAUSTFLOAT* input39 = &input[39][index]; // Zone 3
+			FAUSTFLOAT* input40 = &input[40][index]; // Zone 3
+			FAUSTFLOAT* input41 = &input[41][index]; // Zone 3
+			FAUSTFLOAT* input42 = &input[42][index]; // Zone 3
+			FAUSTFLOAT* input43 = &input[43][index]; // Zone 3
+			FAUSTFLOAT* input44 = &input[44][index]; // Zone 3
+			FAUSTFLOAT* input45 = &input[45][index]; // Zone 3
+			FAUSTFLOAT* input46 = &input[46][index]; // Zone 3
+			FAUSTFLOAT* input47 = &input[47][index]; // Zone 3
+			FAUSTFLOAT* input48 = &input[48][index]; // Zone 3
+			FAUSTFLOAT* input49 = &input[49][index]; // Zone 3
+			FAUSTFLOAT* input50 = &input[50][index]; // Zone 3
+			FAUSTFLOAT* input51 = &input[51][index]; // Zone 3
+			FAUSTFLOAT* input52 = &input[52][index]; // Zone 3
+			FAUSTFLOAT* input53 = &input[53][index]; // Zone 3
+			FAUSTFLOAT* input54 = &input[54][index]; // Zone 3
+			FAUSTFLOAT* input55 = &input[55][index]; // Zone 3
+			FAUSTFLOAT* input56 = &input[56][index]; // Zone 3
+			FAUSTFLOAT* input57 = &input[57][index]; // Zone 3
+			FAUSTFLOAT* input58 = &input[58][index]; // Zone 3
+			FAUSTFLOAT* input59 = &input[59][index]; // Zone 3
+			FAUSTFLOAT* input60 = &input[60][index]; // Zone 3
+			FAUSTFLOAT* input61 = &input[61][index]; // Zone 3
+			FAUSTFLOAT* input62 = &input[62][index]; // Zone 3
+			FAUSTFLOAT* input63 = &input[63][index]; // Zone 3
+			FAUSTFLOAT* input64 = &input[64][index]; // Zone 3
+			FAUSTFLOAT* input65 = &input[65][index]; // Zone 3
+			FAUSTFLOAT* input66 = &input[66][index]; // Zone 3
+			FAUSTFLOAT* input67 = &input[67][index]; // Zone 3
+			FAUSTFLOAT* input68 = &input[68][index]; // Zone 3
+			FAUSTFLOAT* input69 = &input[69][index]; // Zone 3
+			FAUSTFLOAT* input70 = &input[70][index]; // Zone 3
+			FAUSTFLOAT* input71 = &input[71][index]; // Zone 3
+			FAUSTFLOAT* input72 = &input[72][index]; // Zone 3
+			FAUSTFLOAT* input73 = &input[73][index]; // Zone 3
+			FAUSTFLOAT* input74 = &input[74][index]; // Zone 3
+			FAUSTFLOAT* input75 = &input[75][index]; // Zone 3
+			FAUSTFLOAT* input76 = &input[76][index]; // Zone 3
+			FAUSTFLOAT* input77 = &input[77][index]; // Zone 3
+			FAUSTFLOAT* input78 = &input[78][index]; // Zone 3
+			FAUSTFLOAT* input79 = &input[79][index]; // Zone 3
+			FAUSTFLOAT* input80 = &input[80][index]; // Zone 3
+			FAUSTFLOAT* input81 = &input[81][index]; // Zone 3
+			FAUSTFLOAT* input82 = &input[82][index]; // Zone 3
+			FAUSTFLOAT* input83 = &input[83][index]; // Zone 3
+			FAUSTFLOAT* input84 = &input[84][index]; // Zone 3
+			FAUSTFLOAT* input85 = &input[85][index]; // Zone 3
+			FAUSTFLOAT* input86 = &input[86][index]; // Zone 3
+			FAUSTFLOAT* input87 = &input[87][index]; // Zone 3
+			FAUSTFLOAT* input88 = &input[88][index]; // Zone 3
+			FAUSTFLOAT* input89 = &input[89][index]; // Zone 3
+			FAUSTFLOAT* input90 = &input[90][index]; // Zone 3
+			FAUSTFLOAT* input91 = &input[91][index]; // Zone 3
+			FAUSTFLOAT* input92 = &input[92][index]; // Zone 3
+			FAUSTFLOAT* input93 = &input[93][index]; // Zone 3
+			FAUSTFLOAT* input94 = &input[94][index]; // Zone 3
+			FAUSTFLOAT* input95 = &input[95][index]; // Zone 3
+			FAUSTFLOAT* input96 = &input[96][index]; // Zone 3
+			FAUSTFLOAT* input97 = &input[97][index]; // Zone 3
+			FAUSTFLOAT* input98 = &input[98][index]; // Zone 3
+			FAUSTFLOAT* input99 = &input[99][index]; // Zone 3
+			FAUSTFLOAT* input100 = &input[100][index]; // Zone 3
+			FAUSTFLOAT* input101 = &input[101][index]; // Zone 3
+			FAUSTFLOAT* input102 = &input[102][index]; // Zone 3
+			FAUSTFLOAT* input103 = &input[103][index]; // Zone 3
+			FAUSTFLOAT* input104 = &input[104][index]; // Zone 3
+			FAUSTFLOAT* input105 = &input[105][index]; // Zone 3
+			FAUSTFLOAT* input106 = &input[106][index]; // Zone 3
+			FAUSTFLOAT* input107 = &input[107][index]; // Zone 3
+			FAUSTFLOAT* input108 = &input[108][index]; // Zone 3
+			FAUSTFLOAT* input109 = &input[109][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+			FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
+			FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
+			FAUSTFLOAT* output10 = &output[10][index]; // Zone 3
+			FAUSTFLOAT* output11 = &output[11][index]; // Zone 3
+			FAUSTFLOAT* output12 = &output[12][index]; // Zone 3
+			FAUSTFLOAT* output13 = &output[13][index]; // Zone 3
+			FAUSTFLOAT* output14 = &output[14][index]; // Zone 3
+			FAUSTFLOAT* output15 = &output[15][index]; // Zone 3
+			FAUSTFLOAT* output16 = &output[16][index]; // Zone 3
+			FAUSTFLOAT* output17 = &output[17][index]; // Zone 3
+			FAUSTFLOAT* output18 = &output[18][index]; // Zone 3
+			FAUSTFLOAT* output19 = &output[19][index]; // Zone 3
+			FAUSTFLOAT* output20 = &output[20][index]; // Zone 3
+			FAUSTFLOAT* output21 = &output[21][index]; // Zone 3
+			FAUSTFLOAT* output22 = &output[22][index]; // Zone 3
+			FAUSTFLOAT* output23 = &output[23][index]; // Zone 3
+			FAUSTFLOAT* output24 = &output[24][index]; // Zone 3
+			FAUSTFLOAT* output25 = &output[25][index]; // Zone 3
+			FAUSTFLOAT* output26 = &output[26][index]; // Zone 3
+			FAUSTFLOAT* output27 = &output[27][index]; // Zone 3
+			FAUSTFLOAT* output28 = &output[28][index]; // Zone 3
+			FAUSTFLOAT* output29 = &output[29][index]; // Zone 3
+			FAUSTFLOAT* output30 = &output[30][index]; // Zone 3
+			fVeeec0 = fVeeec0State;
+			fVeeec2 = fVeeec2State;
+			fVeeec4 = fVeeec4State;
+			fVeeec6 = fVeeec6State;
+			fVeeec8 = fVeeec8State;
+			fVeeec10 = fVeeec10State;
+			fVeeec12 = fVeeec12State;
+			fVeeec14 = fVeeec14State;
+			fVeeec16 = fVeeec16State;
+			fVeeec18 = fVeeec18State;
+			fVeeec20 = fVeeec20State;
+			fVeeec22 = fVeeec22State;
+			fVeeec24 = fVeeec24State;
+			fVeeec26 = fVeeec26State;
+			fVeeec28 = fVeeec28State;
+			fVeeec30 = fVeeec30State;
+			fVeeec32 = fVeeec32State;
+			fVeeec34 = fVeeec34State;
+			fVeeec36 = fVeeec36State;
+			fVeeec38 = fVeeec38State;
+			fVeeec40 = fVeeec40State;
+			fVeeec42 = fVeeec42State;
+			fVeeec44 = fVeeec44State;
+			fVeeec46 = fVeeec46State;
+			fVeeec48 = fVeeec48State;
+			fVeeec50 = fVeeec50State;
+			fVeeec52 = fVeeec52State;
+			fVeeec54 = fVeeec54State;
+			fVeeec56 = fVeeec56State;
+			fVeeec58 = fVeeec58State;
+			fVeeec60 = fVeeec60State;
+			fVeeec62 = fVeeec62State;
+			fVeeec64 = fVeeec64State;
+			fVeeec66 = fVeeec66State;
+			fVeeec68 = fVeeec68State;
+			fVeeec70 = fVeeec70State;
+			fVeeec72 = fVeeec72State;
+			fVeeec74 = fVeeec74State;
+			fVeeec76 = fVeeec76State;
+			fVeeec78 = fVeeec78State;
+			fVeeec80 = fVeeec80State;
+			fVeeec82 = fVeeec82State;
+			fVeeec84 = fVeeec84State;
+			for (int i=0; i<count; i++) {
+				fVeeec0 = ((1.05f * (float)input0[i]) + (0.9f * fVeeec0));
+				fVeeec2 = ((1.05f * (float)input1[i]) + (0.9f * fVeeec2));
+				fVeeec4 = ((1.05f * (float)input2[i]) + (0.9f * fVeeec4));
+				fVeeec6 = ((1.05f * (float)input3[i]) + (0.9f * fVeeec6));
+				fVeeec8 = ((1.05f * (float)input4[i]) + (0.9f * fVeeec8));
+				fVeeec10 = ((1.05f * (float)input5[i]) + (0.9f * fVeeec10));
+				fVeeec12 = ((1.05f * (float)input9[i]) + (0.9f * fVeeec12));
+				fVeeec14 = ((1.05f * (float)input10[i]) + (0.9f * fVeeec14));
+				fVeeec16 = ((1.05f * (float)input11[i]) + (0.9f * fVeeec16));
+				fVeeec18 = ((1.05f * (float)input12[i]) + (0.9f * fVeeec18));
+				fVeeec20 = ((1.05f * (float)input13[i]) + (0.9f * fVeeec20));
+				fVeeec22 = ((1.05f * (float)input14[i]) + (0.9f * fVeeec22));
+				fVeeec24 = ((1.05f * (float)input15[i]) + (0.9f * fVeeec24));
+				fVeeec26 = ((1.05f * (float)input16[i]) + (0.9f * fVeeec26));
+				fVeeec28 = ((1.05f * (float)input17[i]) + (0.9f * fVeeec28));
+				fVeeec30 = ((0.1f * float(((int((3.5f * (float)input18[i])) * int((3.5f * (float)input19[i]))) % (int((float)input20[i]) + 3)))) + (0.9f * fVeeec30));
+				fVeeec32 = ((0.1f * float(((int((3.5f * (float)input21[i])) * int((3.5f * (float)input22[i]))) % (int((float)input23[i]) + 3)))) + (0.9f * fVeeec32));
+				fVeeec34 = ((0.1f * float((int((3.5f * (float)input24[i])) * (int((3.5f * (float)input25[i])) % (int((float)input26[i]) + 3))))) + (0.9f * fVeeec34));
+				fVeeec36 = ((0.1f * float(((int((3.5f * (float)input27[i])) << int((3.5f * (float)input28[i]))) >> (int((float)input29[i]) + 3)))) + (0.9f * fVeeec36));
+				fVeeec38 = ((0.1f * float(((int((3.5f * (float)input30[i])) << int((3.5f * (float)input31[i]))) >> (int((float)input32[i]) + 3)))) + (0.9f * fVeeec38));
+				fVeeec40 = ((0.1f * float(int((3.5f * (float)input33[i])))) + (0.9f * fVeeec40));
+				fVeeec42 = ((0.1f * float(((int((3.5f * (float)input36[i])) << int((3.5f * (float)input37[i]))) <= (int((float)input38[i]) + 3)))) + (0.9f * fVeeec42));
+				fVeeec44 = ((0.1f * float(((int((3.5f * (float)input39[i])) << int((3.5f * (float)input40[i]))) <= (int((float)input41[i]) + 3)))) + (0.9f * fVeeec44));
+				fVeeec46 = ((0.1f * float((int((3.5f * (float)input42[i])) << (int((3.5f * (float)input43[i])) <= (int((float)input44[i]) + 3))))) + (0.9f * fVeeec46));
+				fVeeec48 = (0.1f + (0.9f * fVeeec48));
+				fVeeec50 = (0.1f + (0.9f * fVeeec50));
+				fVeeec52 = ((0.1f * float((int((3.5f * (float)input51[i])) < (int((3.5f * (float)input52[i])) <= (int((float)input53[i]) + 3))))) + (0.9f * fVeeec52));
+				fVeeec54 = (0.1f + (0.9f * fVeeec54));
+				fVeeec56 = (0.1f + (0.9f * fVeeec56));
+				fVeeec58 = ((0.1f * float((int((3.5f * (float)input60[i])) == (int((3.5f * (float)input61[i])) != (int((float)input62[i]) + 3))))) + (0.9f * fVeeec58));
+				fVeeec60 = ((0.1f * float(((int((3.5f * (float)input63[i])) & int((3.5f * (float)input64[i]))) | (int((float)input65[i]) + 3)))) + (0.9f * fVeeec60));
+				fVeeec62 = ((0.1f * float(((int((3.5f * (float)input66[i])) & int((3.5f * (float)input67[i]))) ^ (int((float)input68[i]) + 3)))) + (0.9f * fVeeec62));
+				fVeeec64 = ((0.1f * float(((int((3.5f * (float)input69[i])) & int((3.5f * (float)input70[i]))) | (int((float)input71[i]) + 3)))) + (0.9f * fVeeec64));
+				fVeeec66 = ((0.1f * float(((int((3.5f * (float)input72[i])) & int((3.5f * (float)input73[i]))) ^ (int((float)input74[i]) + 3)))) + (0.9f * fVeeec66));
+				fVeeec68 = ((0.1f * float((int((3.5f * (float)input75[i])) & (int((3.5f * (float)input76[i])) | (int((float)input77[i]) + 3))))) + (0.9f * fVeeec68));
+				fVeeec70 = ((0.1f * float((int((3.5f * (float)input78[i])) & (int((3.5f * (float)input79[i])) ^ (int((float)input80[i]) + 3))))) + (0.9f * fVeeec70));
+				fVeeec72 = ((0.1f * float((((int((float)input82[i]) + int((3.5f * (float)input81[i]))) + (3 - int((3.5f * (float)input83[i])))) | (int((float)input84[i]) + 3)))) + (0.9f * fVeeec72));
+				fVeeec74 = ((0.1f * float(((((int(fmodf((float(((int((float)input86[i]) + 3) * int((3.5f * (float)input85[i])))) / float(int((3.5f * (float)input87[i])))),float((int((float)input88[i]) + 3)))) & int((3.5f * (float)input89[i]))) ^ (int((float)input90[i]) + 3)) << int((3.5f * (float)input91[i]))) >> (int((float)input92[i]) + 3)))) + (0.9f * fVeeec74));
+				fVeeec76 = ((0.1f * float(((int((3.5f * (float)input93[i])) <= (int((float)input94[i]) + 3)) >= (((int((float)input96[i]) + int((3.5f * (float)input95[i]))) + (3 - int((3.5f * (float)input97[i])))) | (int((float)input98[i]) + 3))))) + (0.9f * fVeeec76));
+				fVeeec78 = ((0.1f * float((((int((float)input99[i]) + int((3.5f * (float)input100[i]))) - int((float)input101[i])) | ((((int(fmodf((float(((int((float)input103[i]) + 3) * int((3.5f * (float)input102[i])))) / float(int((3.5f * (float)input104[i])))),float((int((float)input105[i]) + 3)))) & int((3.5f * (float)input106[i]))) ^ (int((float)input107[i]) + 3)) << int((3.5f * (float)input108[i]))) >> (int((float)input109[i]) + 3))))) + (0.9f * fVeeec78));
+				fVeeec80 = ((1.05f * (float)input8[i]) + (0.9f * fVeeec80));
+				fVeeec82 = ((1.05f * (float)input6[i]) + (0.9f * fVeeec82));
+				fVeeec84 = ((1.05f * (float)input7[i]) + (0.9f * fVeeec84));
+				output0[i] = (FAUSTFLOAT)(((fVeeec0 * fVeeec2) * fVeeec4));  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(((fVeeec6 * fVeeec8) * fVeeec10));  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(((fVeeec82 * fVeeec84) * fVeeec80));  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(((fVeeec12 * fVeeec14) + fVeeec16));  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)(((fVeeec18 * fVeeec20) + fVeeec22));  // Zone Exec Code
+				output5[i] = (FAUSTFLOAT)((fVeeec24 * (fVeeec26 + fVeeec28)));  // Zone Exec Code
+				output6[i] = (FAUSTFLOAT)(fVeeec30);  // Zone Exec Code
+				output7[i] = (FAUSTFLOAT)(fVeeec32);  // Zone Exec Code
+				output8[i] = (FAUSTFLOAT)(fVeeec34);  // Zone Exec Code
+				output9[i] = (FAUSTFLOAT)(fVeeec36);  // Zone Exec Code
+				output10[i] = (FAUSTFLOAT)(fVeeec38);  // Zone Exec Code
+				output11[i] = (FAUSTFLOAT)(fVeeec40);  // Zone Exec Code
+				output12[i] = (FAUSTFLOAT)(fVeeec42);  // Zone Exec Code
+				output13[i] = (FAUSTFLOAT)(fVeeec44);  // Zone Exec Code
+				output14[i] = (FAUSTFLOAT)(fVeeec46);  // Zone Exec Code
+				output15[i] = (FAUSTFLOAT)(fVeeec48);  // Zone Exec Code
+				output16[i] = (FAUSTFLOAT)(fVeeec50);  // Zone Exec Code
+				output17[i] = (FAUSTFLOAT)(fVeeec52);  // Zone Exec Code
+				output18[i] = (FAUSTFLOAT)(fVeeec54);  // Zone Exec Code
+				output19[i] = (FAUSTFLOAT)(fVeeec56);  // Zone Exec Code
+				output20[i] = (FAUSTFLOAT)(fVeeec58);  // Zone Exec Code
+				output21[i] = (FAUSTFLOAT)(fVeeec60);  // Zone Exec Code
+				output22[i] = (FAUSTFLOAT)(fVeeec62);  // Zone Exec Code
+				output23[i] = (FAUSTFLOAT)(fVeeec64);  // Zone Exec Code
+				output24[i] = (FAUSTFLOAT)(fVeeec66);  // Zone Exec Code
+				output25[i] = (FAUSTFLOAT)(fVeeec68);  // Zone Exec Code
+				output26[i] = (FAUSTFLOAT)(fVeeec70);  // Zone Exec Code
+				output27[i] = (FAUSTFLOAT)(fVeeec72);  // Zone Exec Code
+				output28[i] = (FAUSTFLOAT)(fVeeec74);  // Zone Exec Code
+				output29[i] = (FAUSTFLOAT)(fVeeec76);  // Zone Exec Code
+				output30[i] = (FAUSTFLOAT)(fVeeec78);  // Zone Exec Code
+			}
+			fVeeec0State = fVeeec0;
+			fVeeec2State = fVeeec2;
+			fVeeec4State = fVeeec4;
+			fVeeec6State = fVeeec6;
+			fVeeec8State = fVeeec8;
+			fVeeec10State = fVeeec10;
+			fVeeec12State = fVeeec12;
+			fVeeec14State = fVeeec14;
+			fVeeec16State = fVeeec16;
+			fVeeec18State = fVeeec18;
+			fVeeec20State = fVeeec20;
+			fVeeec22State = fVeeec22;
+			fVeeec24State = fVeeec24;
+			fVeeec26State = fVeeec26;
+			fVeeec28State = fVeeec28;
+			fVeeec30State = fVeeec30;
+			fVeeec32State = fVeeec32;
+			fVeeec34State = fVeeec34;
+			fVeeec36State = fVeeec36;
+			fVeeec38State = fVeeec38;
+			fVeeec40State = fVeeec40;
+			fVeeec42State = fVeeec42;
+			fVeeec44State = fVeeec44;
+			fVeeec46State = fVeeec46;
+			fVeeec48State = fVeeec48;
+			fVeeec50State = fVeeec50;
+			fVeeec52State = fVeeec52;
+			fVeeec54State = fVeeec54;
+			fVeeec56State = fVeeec56;
+			fVeeec58State = fVeeec58;
+			fVeeec60State = fVeeec60;
+			fVeeec62State = fVeeec62;
+			fVeeec64State = fVeeec64;
+			fVeeec66State = fVeeec66;
+			fVeeec68State = fVeeec68;
+			fVeeec70State = fVeeec70;
+			fVeeec72State = fVeeec72;
+			fVeeec74State = fVeeec74;
+			fVeeec76State = fVeeec76;
+			fVeeec78State = fVeeec78;
+			fVeeec80State = fVeeec80;
+			fVeeec82State = fVeeec82;
+			fVeeec84State = fVeeec84;
 		}
 	}
-
 };
 
-#endif
+

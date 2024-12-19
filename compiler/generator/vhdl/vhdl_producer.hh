@@ -55,7 +55,7 @@ struct Vertex {
           nature(getCertifiedSigType(signal)->nature()),
           propagation_delay(1),
           pipeline_stages(0),
-          recursive(false){};
+          recursive(false) {};
 
     // Creates an output/input node from another signal
     // This node can be a recursive output if it is linked to a Proj signal

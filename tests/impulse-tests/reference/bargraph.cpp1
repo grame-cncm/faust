@@ -1,161 +1,88 @@
-/* ------------------------------------------------------------
-name: "bargraph"
-Code generated with Faust 2.75.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
------------------------------------------------------------- */
+//----------------------------------------------------------
+// name: "bargraph"
+//
+// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+//----------------------------------------------------------
 
-#ifndef  __mydsp_H__
-#define  __mydsp_H__
-
+/* link with  */
+#include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
 
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
 
 #ifndef FAUSTCLASS 
 #define FAUSTCLASS mydsp
 #endif
 
-#ifdef __APPLE__ 
-#define exp10f __exp10f
-#define exp10 __exp10
-#endif
-
-#if defined(_WIN32)
-#define RESTRICT __restrict
-#else
-#define RESTRICT __restrict__
-#endif
-
-
 class mydsp : public dsp {
-	
- private:
-	
-	FAUSTFLOAT fVbargraph0;
-	FAUSTFLOAT fVbargraph1;
-	FAUSTFLOAT fVbargraph2;
-	FAUSTFLOAT fVbargraph3;
-	FAUSTFLOAT fVbargraph4;
-	FAUSTFLOAT fVbargraph5;
-	FAUSTFLOAT fVbargraph6;
-	FAUSTFLOAT fVbargraph7;
-	FAUSTFLOAT fVbargraph8;
-	FAUSTFLOAT fVbargraph9;
+  private:
 	int fSampleRate;
-	
- public:
-	mydsp() {
-	}
-	
-	void metadata(Meta* m) { 
-		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+
+  public:
+	virtual void metadata(Meta* m) { 
 		m->declare("filename", "bargraph.dsp");
 		m->declare("name", "bargraph");
 	}
 
-	virtual int getNumInputs() {
-		return 0;
-	}
-	virtual int getNumOutputs() {
-		return 10;
-	}
-	
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 10; }
 	static void classInit(int sample_rate) {
 	}
-	
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
 	}
-	
 	virtual void instanceResetUserInterface() {
 	}
-	
 	virtual void instanceClear() {
 	}
-	
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
 		instanceInit(sample_rate);
 	}
-	
 	virtual void instanceInit(int sample_rate) {
 		instanceConstants(sample_rate);
 		instanceResetUserInterface();
 		instanceClear();
 	}
-	
 	virtual mydsp* clone() {
 		return new mydsp();
 	}
-	
 	virtual int getSampleRate() {
 		return fSampleRate;
 	}
-	
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("bargraph");
-		ui_interface->addVerticalBargraph("bar0", &fVbargraph5, FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f));
-		ui_interface->addVerticalBargraph("bar1", &fVbargraph6, FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f));
-		ui_interface->addVerticalBargraph("bar2", &fVbargraph7, FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f));
-		ui_interface->addVerticalBargraph("bar3", &fVbargraph8, FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f));
-		ui_interface->addVerticalBargraph("bar4", &fVbargraph9, FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f));
-		ui_interface->addVerticalBargraph("foo0", &fVbargraph0, FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f));
-		ui_interface->addVerticalBargraph("foo1", &fVbargraph1, FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f));
-		ui_interface->addVerticalBargraph("foo2", &fVbargraph2, FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f));
-		ui_interface->addVerticalBargraph("foo3", &fVbargraph3, FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f));
-		ui_interface->addVerticalBargraph("foo4", &fVbargraph4, FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f));
 		ui_interface->closeBox();
 	}
-	
-	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
-		FAUSTFLOAT* output0 = outputs[0];
-		FAUSTFLOAT* output1 = outputs[1];
-		FAUSTFLOAT* output2 = outputs[2];
-		FAUSTFLOAT* output3 = outputs[3];
-		FAUSTFLOAT* output4 = outputs[4];
-		FAUSTFLOAT* output5 = outputs[5];
-		FAUSTFLOAT* output6 = outputs[6];
-		FAUSTFLOAT* output7 = outputs[7];
-		FAUSTFLOAT* output8 = outputs[8];
-		FAUSTFLOAT* output9 = outputs[9];
-		fVbargraph0 = FAUSTFLOAT(0.0f);
-		float fSlow0 = fVbargraph0;
-		fVbargraph1 = FAUSTFLOAT(1e+01f);
-		float fSlow1 = fVbargraph1;
-		fVbargraph2 = FAUSTFLOAT(2e+01f);
-		float fSlow2 = fVbargraph2;
-		fVbargraph3 = FAUSTFLOAT(3e+01f);
-		float fSlow3 = fVbargraph3;
-		fVbargraph4 = FAUSTFLOAT(4e+01f);
-		float fSlow4 = fVbargraph4;
-		fVbargraph5 = FAUSTFLOAT(0.0f);
-		float fSlow5 = fVbargraph5;
-		fVbargraph6 = FAUSTFLOAT(10.5f);
-		float fSlow6 = fVbargraph6;
-		fVbargraph7 = FAUSTFLOAT(21.0f);
-		float fSlow7 = fVbargraph7;
-		fVbargraph8 = FAUSTFLOAT(31.5f);
-		float fSlow8 = fVbargraph8;
-		fVbargraph9 = FAUSTFLOAT(42.0f);
-		float fSlow9 = fVbargraph9;
-		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			output0[i0] = FAUSTFLOAT(fSlow0);
-			output1[i0] = FAUSTFLOAT(fSlow1);
-			output2[i0] = FAUSTFLOAT(fSlow2);
-			output3[i0] = FAUSTFLOAT(fSlow3);
-			output4[i0] = FAUSTFLOAT(fSlow4);
-			output5[i0] = FAUSTFLOAT(fSlow5);
-			output6[i0] = FAUSTFLOAT(fSlow6);
-			output7[i0] = FAUSTFLOAT(fSlow7);
-			output8[i0] = FAUSTFLOAT(fSlow8);
-			output9[i0] = FAUSTFLOAT(fSlow9);
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+			FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
+			FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
+			for (int i=0; i<count; i++) {
+				output0[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(1e+01f);  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(2e+01f);  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(3e+01f);  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)(4e+01f);  // Zone Exec Code
+				output5[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
+				output6[i] = (FAUSTFLOAT)(10.5f);  // Zone Exec Code
+				output7[i] = (FAUSTFLOAT)(21.0f);  // Zone Exec Code
+				output8[i] = (FAUSTFLOAT)(31.5f);  // Zone Exec Code
+				output9[i] = (FAUSTFLOAT)(42.0f);  // Zone Exec Code
+			}
 		}
 	}
-
 };
 
-#endif
+

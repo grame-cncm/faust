@@ -984,7 +984,7 @@ static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>&
 static void printHeader(ostream& dst)
 {
     // defines the metadata we want to print as comments at the begin of in the C++ file
-    set<Tree> selectedKeys;
+    set<Tree, CTreeComparator> selectedKeys;
     selectedKeys.insert(tree("name"));
     selectedKeys.insert(tree("author"));
     selectedKeys.insert(tree("copyright"));

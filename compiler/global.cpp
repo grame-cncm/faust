@@ -136,11 +136,7 @@ itv::interval_algebra gAlgebra;
 global::global()
     : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
-    if (global::isDebug("FAUST_DTREE")) {
-        CDTree::init();
-    } else {
-        CTree::init();
-    }
+    CTree::init();
     Symbol::init();
 
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
@@ -998,9 +994,6 @@ Typed::VarType global::getVarType(const string& name)
 
 global::~global()
 {
-    if (global::isDebug("FAUST_DTREE")) {
-        CDTree::cleanup();
-    }
     Garbageable::cleanup();
     BasicTyped::cleanup();
     DeclareVarInst::cleanup();
@@ -2515,15 +2508,6 @@ string global::printHelp()
     sstr << tab << "FAUST_DEBUG      = FIR_PRINTER          print FIR after generation." << endl;
     sstr << tab
          << "FAUST_DEBUG      = FAUST_LLVM_NO_FM     deactivate fast-math optimisation in LLVM IR."
-         << endl;
-    sstr << tab
-         << "FAUST_DEBUG      = FAUST_DTREE          successive tree pointer allocation to "
-            "guaranty "
-            "deterministic compilation."
-         << endl;
-    sstr << tab
-         << "FAUST_DTREE_SIZE = <num>                to set the size of each array of successive "
-            "tree pointers in FAUST_DTREE mode."
          << endl;
     sstr << tab << "FAUST_OPT        = FAUST_SIG_NO_NORM    deactivate signal normalisation."
          << endl;

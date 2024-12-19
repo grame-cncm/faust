@@ -30,11 +30,12 @@
  *
  * @tparam N
  */
-template <typename N>
+template <typename N, typename Comparator = std::less<N>>
 class schedule {
    private:
-    std::vector<N>   fElements;  // ordered set of elements
-    std::map<N, int> fOrder;  // order of each element (starting at 1, 0 indicates not in schedule)
+    std::vector<N> fElements;  // ordered set of elements
+    std::map<N, int, Comparator>
+        fOrder;  // order of each element (starting at 1, 0 indicates not in schedule)
 
    public:
     // number of elements in the schedule
@@ -63,7 +64,7 @@ class schedule {
     }
 
     // append all the elements of a schedule
-    schedule& append(const schedule<N>& S)
+    schedule& append(const schedule<N, Comparator>& S)
     {
         for (const N& n : S.elements()) {
             append(n);
@@ -80,8 +81,8 @@ class schedule {
  * @param S the schedule
  * @return std::ostream& the output stream
  */
-template <typename N>
-inline std::ostream& operator<<(std::ostream& file, const schedule<N>& S)
+template <typename N, typename Comparator = std::less<N>>
+inline std::ostream& operator<<(std::ostream& file, const schedule<N, Comparator>& S)
 {
     std::string sep = "";
 
@@ -100,11 +101,11 @@ inline std::ostream& operator<<(std::ostream& file, const schedule<N>& S)
  * @param G the graph we want to schedule
  * @return schedule<N> the deep first schedule of G
  */
-template <typename N>
-inline schedule<N> dfschedule(const digraph<N>& G)
+template <typename N, typename Comparator = std::less<N>>
+inline schedule<N, Comparator> dfschedule(const digraph<N, Comparator>& G)
 {
-    schedule<N> S;
-    std::set<N> V;  // set of visited nodes
+    schedule<N, Comparator> S;
+    std::set<N, Comparator> V;  // set of visited nodes
 
     // recursive deep first visit (pseudo local function using a lambda)
     std::function<void(const N&)> dfvisit = [&](const N& n) {
@@ -132,11 +133,11 @@ inline schedule<N> dfschedule(const digraph<N>& G)
  * @return schedule<N> the breadth first schedule of G
  */
 
-template <typename N>
-inline schedule<N> bfschedule(const digraph<N>& G)
+template <typename N, typename Comparator = std::less<N>>
+inline schedule<N, Comparator> bfschedule(const digraph<N, Comparator>& G)
 {
     std::vector<std::vector<N>> P = parallelize(G);
-    schedule<N>                 S;
+    schedule<N, Comparator>     S;
 
     for (uint64_t i = 0; i < P.size(); i++) {
         for (const N& n : P[i]) {
@@ -157,8 +158,8 @@ inline schedule<N> bfschedule(const digraph<N>& G)
  * @param S
  * @return int
  */
-template <typename N>
-inline int schedulingcost(const digraph<N>& G, const schedule<N>& S)
+template <typename N, typename Comparator = std::less<N>>
+inline int schedulingcost(const digraph<N, Comparator>& G, const schedule<N, Comparator>& S)
 {
     int cost = 0;
     for (const N& n : G.nodes()) {
@@ -179,13 +180,13 @@ inline int schedulingcost(const digraph<N>& G, const schedule<N>& S)
  * @param G the graph we want to schedule
  * @return schedule<N> the deep first schedule of G
  */
-template <typename N>
-inline schedule<N> dfcyclesschedule(const digraph<N>& G)
+template <typename N, typename Comparator = std::less<N>>
+inline schedule<N, Comparator> dfcyclesschedule(const digraph<N, Comparator>& G)
 {
-    digraph<digraph<N>>  H  = graph2dag(G);
-    schedule<digraph<N>> SH = dfschedule(H);
-    schedule<N>          S;
-    for (const digraph<N>& n : SH.elements()) {
+    digraph<digraph<N, Comparator>>  H  = graph2dag(G);
+    schedule<digraph<N, Comparator>> SH = dfschedule(H);
+    schedule<N, Comparator>          S;
+    for (const digraph<N, Comparator>& n : SH.elements()) {
         S.append(dfschedule(cut(n, 1)));
     }
     return S;
@@ -198,13 +199,13 @@ inline schedule<N> dfcyclesschedule(const digraph<N>& G)
  * @param G the graph we want to schedule
  * @return schedule<N> the deep first schedule of G
  */
-template <typename N>
-inline schedule<N> bfcyclesschedule(const digraph<N>& G)
+template <typename N, typename Comparator = std::less<N>>
+inline schedule<N, Comparator> bfcyclesschedule(const digraph<N, Comparator>& G)
 {
-    digraph<digraph<N>>  H  = graph2dag(G);
-    schedule<digraph<N>> SH = bfschedule(H);
-    schedule<N>          S;
-    for (const digraph<N>& n : SH.elements()) {
+    digraph<digraph<N, Comparator>>  H  = graph2dag(G);
+    schedule<digraph<N, Comparator>> SH = bfschedule(H);
+    schedule<N, Comparator>          S;
+    for (const digraph<N, Comparator>& n : SH.elements()) {
         S.append(dfschedule(cut(n, 1)));
     }
     return S;

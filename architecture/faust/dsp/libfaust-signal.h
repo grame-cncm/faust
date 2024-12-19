@@ -40,12 +40,12 @@
 /**
  * Opaque types.
  */
-class LIBFAUST_API CTreeBase;
-typedef std::vector<CTreeBase*> tvec;
+class LIBFAUST_API CTree;
+typedef std::vector<CTree*> tvec;
 
-typedef CTreeBase* Signal;
-typedef CTreeBase* Box;
-typedef CTreeBase* Tree;
+typedef CTree* Signal;
+typedef CTree* Box;
+typedef CTree* Tree;
 
 typedef Tree (*prim0)();
 typedef Tree (*prim1)(Tree x);

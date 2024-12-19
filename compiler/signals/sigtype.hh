@@ -125,7 +125,7 @@ class AudioType : public virtual Garbageable {
     int vectorability() const
     {
         return fVectorability;
-    }                                         ///< returns when a signal can be vectorized
+    }  ///< returns when a signal can be vectorized
     int boolean() const { return fBoolean; }  ///< returns when a signal stands for a boolean value
 
     interval getInterval() const

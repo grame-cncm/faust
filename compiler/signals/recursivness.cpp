@@ -141,7 +141,7 @@ static int position(Tree env, Tree t, int p)
  * @param sig the signal to analyze
  * @return the set of symbols
  */
-static Tree symlistVisit(Tree sig, set<Tree>& visited)
+static Tree symlistVisit(Tree sig, set<Tree, CTreeComparator>& visited)
 {
     Tree S;
 
@@ -180,7 +180,7 @@ Tree symlist(Tree sig)
     Tree S;
 
     if (!gGlobal->gSymListProp->get(sig, S)) {
-        set<Tree> visited;
+        set<Tree, CTreeComparator> visited;
         S = symlistVisit(sig, visited);
         gGlobal->gSymListProp->set(sig, S);
     }

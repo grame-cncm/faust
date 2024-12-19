@@ -1,113 +1,84 @@
-/* ------------------------------------------------------------
-name: "bs"
-Code generated with Faust 2.75.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
------------------------------------------------------------- */
+//----------------------------------------------------------
+// name: "bs"
+//
+// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+//----------------------------------------------------------
 
-#ifndef  __mydsp_H__
-#define  __mydsp_H__
-
+/* link with  */
+#include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
 
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
-#include <math.h>
 
 #ifndef FAUSTCLASS 
 #define FAUSTCLASS mydsp
 #endif
 
-#ifdef __APPLE__ 
-#define exp10f __exp10f
-#define exp10 __exp10
-#endif
-
-#if defined(_WIN32)
-#define RESTRICT __restrict
-#else
-#define RESTRICT __restrict__
-#endif
-
-
 class mydsp : public dsp {
-	
- private:
-	
-	float fRec0[2];
+  private:
+	// Recursion delay fVeeec0 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Single Delay
 	int fSampleRate;
-	
- public:
-	mydsp() {
-	}
-	
-	void metadata(Meta* m) { 
-		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+
+  public:
+	virtual void metadata(Meta* m) { 
 		m->declare("filename", "bs.dsp");
 		m->declare("name", "bs");
 	}
 
-	virtual int getNumInputs() {
-		return 0;
-	}
-	virtual int getNumOutputs() {
-		return 1;
-	}
-	
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 1; }
 	static void classInit(int sample_rate) {
 	}
-	
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
 	}
-	
 	virtual void instanceResetUserInterface() {
 	}
-	
 	virtual void instanceClear() {
-		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
-			fRec0[l0] = 0.0f;
-		}
+		fVeeec0State = 0;
 	}
-	
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
 		instanceInit(sample_rate);
 	}
-	
 	virtual void instanceInit(int sample_rate) {
 		instanceConstants(sample_rate);
 		instanceResetUserInterface();
 		instanceClear();
 	}
-	
 	virtual mydsp* clone() {
 		return new mydsp();
 	}
-	
 	virtual int getSampleRate() {
 		return fSampleRate;
 	}
-	
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("bs");
 		ui_interface->closeBox();
 	}
-	
-	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
-		FAUSTFLOAT* output0 = outputs[0];
-		float fSlow0 = 1e+01f / float(count);
-		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			float fTemp0 = fSlow0 + fRec0[1];
-			float fTemp1 = fRec0[1] - fSlow0;
-			fRec0[0] = ((fTemp0 < 1e+01f) ? fTemp0 : ((fTemp1 > 1e+01f) ? fTemp1 : 1e+01f));
-			output0[i0] = FAUSTFLOAT(fRec0[0]);
-			fRec0[1] = fRec0[0];
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = (1e+01f / float(count)); // step: 5
+		float 	fVeeec0[2];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			fVeeec0[1] = fVeeec0State;
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = fVeeec0[1]; // step: 7
+				float 	fTemp1 = (fSlow0 + fTemp0); // step: 8
+				float 	fTemp2 = (fTemp0 - fSlow0); // step: 10
+				fVeeec0[0] = (((fTemp1 < 1e+01f)) ? fTemp1 : (((fTemp2 > 1e+01f)) ? fTemp2 : 1e+01f));
+				output0[i] = (FAUSTFLOAT)(fVeeec0[0]);  // Zone Exec Code
+				// post processing
+				fVeeec0[1] = fVeeec0[0];
+			}
+			fVeeec0State = fVeeec0[1];
 		}
 	}
-
 };
 
-#endif
+

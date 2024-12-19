@@ -1,64 +1,48 @@
-/* ------------------------------------------------------------
-author: "Grame"
-copyright: "(c)GRAME 2006"
-license: "BSD"
-name: "karplus"
-version: "1.0"
-Code generated with Faust 2.75.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
------------------------------------------------------------- */
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "karplus"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+//----------------------------------------------------------
 
-#ifndef  __mydsp_H__
-#define  __mydsp_H__
-
+/* link with  */
+#include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
 
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
 
 #ifndef FAUSTCLASS 
 #define FAUSTCLASS mydsp
 #endif
 
-#ifdef __APPLE__ 
-#define exp10f __exp10f
-#define exp10 __exp10
-#endif
-
-#if defined(_WIN32)
-#define RESTRICT __restrict
-#else
-#define RESTRICT __restrict__
-#endif
-
-
 class mydsp : public dsp {
-	
- private:
-	
-	FAUSTFLOAT fHslider0;
-	FAUSTFLOAT fHslider1;
-	int iRec1[2];
-	FAUSTFLOAT fButton0;
-	float fVec0[2];
-	FAUSTFLOAT fHslider2;
-	float fRec2[2];
-	int IOTA0;
-	float fVec1[512];
-	FAUSTFLOAT fHslider3;
-	float fRec0[3];
+  private:
+	FAUSTFLOAT 	fslider0;
+	FAUSTFLOAT 	fslider1;
+	// Recursion delay iVeeec2 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec2State; // Mono Delay
+	FAUSTFLOAT 	fslider2;
+	FAUSTFLOAT 	fbutton0;
+	float 	fVec0State; // Single Delay
+	// Recursion delay fVeeec4 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec4State; // Single Delay
+	float 	fVec1[512]; // Ring Delay
+	FAUSTFLOAT 	fslider3;
+	// Recursion delay fVeeec0 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State[2]; // Copy Delay
+	int 	IOTA;
 	int fSampleRate;
-	
- public:
-	mydsp() {
-	}
-	
-	void metadata(Meta* m) { 
+
+  public:
+	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
-		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2006");
 		m->declare("filename", "karplus.dsp");
 		m->declare("license", "BSD");
@@ -77,105 +61,101 @@ class mydsp : public dsp {
 		m->declare("version", "1.0");
 	}
 
-	virtual int getNumInputs() {
-		return 0;
-	}
-	virtual int getNumOutputs() {
-		return 1;
-	}
-	
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 1; }
 	static void classInit(int sample_rate) {
 	}
-	
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
 	}
-	
 	virtual void instanceResetUserInterface() {
-		fHslider0 = FAUSTFLOAT(0.0f);
-		fHslider1 = FAUSTFLOAT(0.5f);
-		fButton0 = FAUSTFLOAT(0.0f);
-		fHslider2 = FAUSTFLOAT(327.023f);
-		fHslider3 = FAUSTFLOAT(271.994f);
+		fslider0 = 0.0f;
+		fslider1 = 0.5f;
+		fslider2 = 327.023f;
+		fbutton0 = 0.0;
+		fslider3 = 271.994f;
 	}
-	
 	virtual void instanceClear() {
-		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
-			iRec1[l0] = 0;
-		}
-		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
-			fVec0[l1] = 0.0f;
-		}
-		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
-			fRec2[l2] = 0.0f;
-		}
-		IOTA0 = 0;
-		for (int l3 = 0; l3 < 512; l3 = l3 + 1) {
-			fVec1[l3] = 0.0f;
-		}
-		for (int l4 = 0; l4 < 3; l4 = l4 + 1) {
-			fRec0[l4] = 0.0f;
-		}
+		iVeeec2State = 0;
+		fVec0State = 0;
+		fVeeec4State = 0;
+		for (int i = 0; i < 512; i++) { fVec1[i] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec0State[j] = 0; }
+		IOTA = 0;
 	}
-	
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
 		instanceInit(sample_rate);
 	}
-	
 	virtual void instanceInit(int sample_rate) {
 		instanceConstants(sample_rate);
 		instanceResetUserInterface();
 		instanceClear();
 	}
-	
 	virtual mydsp* clone() {
 		return new mydsp();
 	}
-	
 	virtual int getSampleRate() {
 		return fSampleRate;
 	}
-	
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("karplus");
 		ui_interface->openVerticalBox("excitator");
-		ui_interface->declare(&fHslider2, "unit", "f");
-		ui_interface->addHorizontalSlider("excitation", &fHslider2, FAUSTFLOAT(327.023f), FAUSTFLOAT(2.0f), FAUSTFLOAT(512.0f), FAUSTFLOAT(1.0f));
-		ui_interface->addButton("play", &fButton0);
+		ui_interface->declare(&fslider2, "unit", "f");
+		ui_interface->addHorizontalSlider("excitation", &fslider2, 327.023f, 2.0f, 512.0f, 1.0f);
+		ui_interface->addButton("play", &fbutton0);
 		ui_interface->closeBox();
-		ui_interface->addHorizontalSlider("level", &fHslider1, FAUSTFLOAT(0.5f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.01f));
+		ui_interface->addHorizontalSlider("level", &fslider1, 0.5f, 0.0f, 1.0f, 0.01f);
 		ui_interface->openVerticalBox("resonator");
-		ui_interface->addHorizontalSlider("attenuation", &fHslider0, FAUSTFLOAT(0.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.01f));
-		ui_interface->declare(&fHslider3, "unit", "f");
-		ui_interface->addHorizontalSlider("duration", &fHslider3, FAUSTFLOAT(271.994f), FAUSTFLOAT(2.0f), FAUSTFLOAT(512.0f), FAUSTFLOAT(1.0f));
+		ui_interface->addHorizontalSlider("attenuation", &fslider0, 0.0f, 0.0f, 1.0f, 0.01f);
+		ui_interface->declare(&fslider3, "unit", "f");
+		ui_interface->addHorizontalSlider("duration", &fslider3, 271.994f, 2.0f, 512.0f, 1.0f);
 		ui_interface->closeBox();
 		ui_interface->closeBox();
 	}
-	
-	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
-		FAUSTFLOAT* output0 = outputs[0];
-		float fSlow0 = 0.5f * (1.0f - float(fHslider0));
-		float fSlow1 = 4.656613e-10f * float(fHslider1);
-		float fSlow2 = float(fButton0);
-		float fSlow3 = 1.0f / float(fHslider2);
-		int iSlow4 = int(float(fHslider3) + -1.5f) & 4095;
-		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			iRec1[0] = 1103515245 * iRec1[1] + 12345;
-			fVec0[0] = fSlow2;
-			fRec2[0] = fRec2[1] + float((fSlow2 - fVec0[1]) > 0.0f) - fSlow3 * float(fRec2[1] > 0.0f);
-			fVec1[IOTA0 & 511] = fSlow0 * (fRec0[1] + fRec0[2]) + fSlow1 * float(iRec1[0]) * float(fRec2[0] > 0.0f);
-			fRec0[0] = fVec1[(IOTA0 - iSlow4) & 511];
-			output0[i0] = FAUSTFLOAT(fRec0[0]);
-			iRec1[1] = iRec1[0];
-			fVec0[1] = fVec0[0];
-			fRec2[1] = fRec2[0];
-			IOTA0 = IOTA0 + 1;
-			fRec0[2] = fRec0[1];
-			fRec0[1] = fRec0[0];
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = (0.5f * (1.0f - float(fslider0))); // step: 11
+		float 	fSlow1 = (4.656613e-10f * float(fslider1)); // step: 15
+		int 	iVeeec2;
+		float 	fSlow2 = (1.0f / float(fslider2)); // step: 29
+		float 	fSlow3 = float(fbutton0); // step: 31
+		float 	fVec0[2];
+		float 	fVeeec4[2];
+		int 	iSlow4 = (int((float(fslider3) + -1.5f)) & 4095); // step: 50
+		float 	fVeeec0[3];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			iVeeec2 = iVeeec2State;
+			fVec0[1] = fVec0State;
+			fVeeec4[1] = fVeeec4State;
+			fVeeec0[1] = fVeeec0State[0];
+			fVeeec0[2] = fVeeec0State[1];
+			for (int i=0; i<count; i++) {
+				iVeeec2 = ((1103515245 * iVeeec2) + 12345);
+				float 	fTemp0 = fVeeec4[1]; // step: 25
+				fVec0[0] = fSlow3;
+				fVeeec4[0] = ((fTemp0 + float(((fSlow3 - fVec0[1]) > 0.0f))) - (fSlow2 * float((fTemp0 > 0.0f))));
+				int vIota0 = IOTA&511;
+				fVec1[vIota0] = ((fSlow0 * (fVeeec0[1] + fVeeec0[2])) + (fSlow1 * (float(iVeeec2) * float((fVeeec4[0] > 0.0f)))));
+				int vIota1 = (IOTA-iSlow4)&511;
+				fVeeec0[0] = fVec1[vIota1];
+				output0[i] = (FAUSTFLOAT)(fVeeec0[0]);  // Zone Exec Code
+				// post processing
+				IOTA = IOTA+1;
+				fVeeec0[2] = fVeeec0[1];
+				fVeeec0[1] = fVeeec0[0];
+				fVeeec4[1] = fVeeec4[0];
+				fVec0[1] = fVec0[0];
+			}
+			iVeeec2State = iVeeec2;
+			fVec0State = fVec0[1];
+			fVeeec4State = fVeeec4[1];
+			fVeeec0State[0] = fVeeec0[1];
+			fVeeec0State[1] = fVeeec0[2];
 		}
 	}
-
 };
 
-#endif
+

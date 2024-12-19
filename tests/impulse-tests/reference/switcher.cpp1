@@ -1,54 +1,32 @@
-/* ------------------------------------------------------------
-author: "Grame"
-copyright: "(c)GRAME 2007"
-license: "BSD"
-name: "switcher"
-version: "1.0"
-Code generated with Faust 2.75.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
------------------------------------------------------------- */
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2007"
+// license: "BSD"
+// name: "switcher"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+//----------------------------------------------------------
 
-#ifndef  __mydsp_H__
-#define  __mydsp_H__
-
+/* link with  */
+#include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
 
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
 
 #ifndef FAUSTCLASS 
 #define FAUSTCLASS mydsp
 #endif
 
-#ifdef __APPLE__ 
-#define exp10f __exp10f
-#define exp10 __exp10
-#endif
-
-#if defined(_WIN32)
-#define RESTRICT __restrict
-#else
-#define RESTRICT __restrict__
-#endif
-
-
 class mydsp : public dsp {
-	
- private:
-	
-	FAUSTFLOAT fHslider0;
+  private:
+	FAUSTFLOAT 	fslider0;
 	int fSampleRate;
-	
- public:
-	mydsp() {
-	}
-	
-	void metadata(Meta* m) { 
+
+  public:
+	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
-		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2007");
 		m->declare("filename", "switcher.dsp");
 		m->declare("license", "BSD");
@@ -56,67 +34,56 @@ class mydsp : public dsp {
 		m->declare("version", "1.0");
 	}
 
-	virtual int getNumInputs() {
-		return 4;
-	}
-	virtual int getNumOutputs() {
-		return 2;
-	}
-	
+	virtual int getNumInputs() { return 4; }
+	virtual int getNumOutputs() { return 2; }
 	static void classInit(int sample_rate) {
 	}
-	
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
 	}
-	
 	virtual void instanceResetUserInterface() {
-		fHslider0 = FAUSTFLOAT(0.0f);
+		fslider0 = 0.0f;
 	}
-	
 	virtual void instanceClear() {
 	}
-	
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
 		instanceInit(sample_rate);
 	}
-	
 	virtual void instanceInit(int sample_rate) {
 		instanceConstants(sample_rate);
 		instanceResetUserInterface();
 		instanceClear();
 	}
-	
 	virtual mydsp* clone() {
 		return new mydsp();
 	}
-	
 	virtual int getSampleRate() {
 		return fSampleRate;
 	}
-	
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("switcher");
-		ui_interface->addHorizontalSlider("source 0 <-> source 1", &fHslider0, FAUSTFLOAT(0.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(1.0f));
+		ui_interface->addHorizontalSlider("source 0 <-> source 1", &fslider0, 0.0f, 0.0f, 1.0f, 1.0f);
 		ui_interface->closeBox();
 	}
-	
-	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
-		FAUSTFLOAT* input0 = inputs[0];
-		FAUSTFLOAT* input1 = inputs[1];
-		FAUSTFLOAT* input2 = inputs[2];
-		FAUSTFLOAT* input3 = inputs[3];
-		FAUSTFLOAT* output0 = outputs[0];
-		FAUSTFLOAT* output1 = outputs[1];
-		float fSlow0 = float(fHslider0);
-		float fSlow1 = 1.0f - fSlow0;
-		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			output0[i0] = FAUSTFLOAT(fSlow0 * float(input2[i0]) + fSlow1 * float(input0[i0]));
-			output1[i0] = FAUSTFLOAT(fSlow0 * float(input3[i0]) + fSlow1 * float(input1[i0]));
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = float(fslider0); // step: 1
+		float 	fSlow1 = (1.0f - fSlow0); // step: 6
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			for (int i=0; i<count; i++) {
+				output0[i] = (FAUSTFLOAT)(((fSlow0 * (float)input2[i]) + (fSlow1 * (float)input0[i])));  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(((fSlow0 * (float)input3[i]) + (fSlow1 * (float)input1[i])));  // Zone Exec Code
+			}
 		}
 	}
-
 };
 
-#endif
+

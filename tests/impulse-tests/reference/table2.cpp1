@@ -1,287 +1,243 @@
-/* ------------------------------------------------------------
-name: "table2"
-Code generated with Faust 2.75.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
------------------------------------------------------------- */
+//----------------------------------------------------------
+// name: "table2"
+//
+// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+//----------------------------------------------------------
 
-#ifndef  __mydsp_H__
-#define  __mydsp_H__
-
+/* link with  */
+#include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
 
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
 
 #ifndef FAUSTCLASS 
 #define FAUSTCLASS mydsp
 #endif
 
-#ifdef __APPLE__ 
-#define exp10f __exp10f
-#define exp10 __exp10
-#endif
-
-#if defined(_WIN32)
-#define RESTRICT __restrict
-#else
-#define RESTRICT __restrict__
-#endif
-
-class mydspSIG0 {
-	
-  private:
-	
-	int iRec0[2];
-	
-  public:
-	
-	int getNumInputsmydspSIG0() {
-		return 0;
-	}
-	int getNumOutputsmydspSIG0() {
-		return 1;
-	}
-	
-	void instanceInitmydspSIG0(int sample_rate) {
-		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
-			iRec0[l0] = 0;
-		}
-	}
-	
-	void fillmydspSIG0(int count, int* table) {
-		for (int i1 = 0; i1 < count; i1 = i1 + 1) {
-			iRec0[0] = iRec0[1] + 1;
-			table[i1] = iRec0[0];
-			iRec0[1] = iRec0[0];
-		}
-	}
-
-};
-
-static mydspSIG0* newmydspSIG0() { return (mydspSIG0*)new mydspSIG0(); }
-static void deletemydspSIG0(mydspSIG0* dsp) { delete dsp; }
-
-class mydspSIG1 {
-	
-  private:
-	
-	float fRec2[2];
-	
-  public:
-	
-	int getNumInputsmydspSIG1() {
-		return 0;
-	}
-	int getNumOutputsmydspSIG1() {
-		return 1;
-	}
-	
-	void instanceInitmydspSIG1(int sample_rate) {
-		for (int l2 = 0; l2 < 2; l2 = l2 + 1) {
-			fRec2[l2] = 0.0f;
-		}
-	}
-	
-	void fillmydspSIG1(int count, float* table) {
-		for (int i2 = 0; i2 < count; i2 = i2 + 1) {
-			fRec2[0] = fRec2[1] + 0.1f;
-			table[i2] = fRec2[0];
-			fRec2[1] = fRec2[0];
-		}
-	}
-
-};
-
-static mydspSIG1* newmydspSIG1() { return (mydspSIG1*)new mydspSIG1(); }
-static void deletemydspSIG1(mydspSIG1* dsp) { delete dsp; }
-
-const static int imydspSIG2Wave0[7] = {1,2,3,7,4,8,1};
-class mydspSIG2 {
-	
-  private:
-	
-	int imydspSIG2Wave0_idx;
-	
-  public:
-	
-	int getNumInputsmydspSIG2() {
-		return 0;
-	}
-	int getNumOutputsmydspSIG2() {
-		return 1;
-	}
-	
-	void instanceInitmydspSIG2(int sample_rate) {
-		imydspSIG2Wave0_idx = 0;
-	}
-	
-	void fillmydspSIG2(int count, int* table) {
-		for (int i3 = 0; i3 < count; i3 = i3 + 1) {
-			table[i3] = imydspSIG2Wave0[imydspSIG2Wave0_idx];
-			imydspSIG2Wave0_idx = (1 + imydspSIG2Wave0_idx) % 7;
-		}
-	}
-
-};
-
-static mydspSIG2* newmydspSIG2() { return (mydspSIG2*)new mydspSIG2(); }
-static void deletemydspSIG2(mydspSIG2* dsp) { delete dsp; }
-
-const static float fmydspSIG3Wave0[7] = {1.4f,2.1f,3.8f,7.12f,4.9f,8.9f,1.2f};
-class mydspSIG3 {
-	
-  private:
-	
-	int fmydspSIG3Wave0_idx;
-	
-  public:
-	
-	int getNumInputsmydspSIG3() {
-		return 0;
-	}
-	int getNumOutputsmydspSIG3() {
-		return 1;
-	}
-	
-	void instanceInitmydspSIG3(int sample_rate) {
-		fmydspSIG3Wave0_idx = 0;
-	}
-	
-	void fillmydspSIG3(int count, float* table) {
-		for (int i4 = 0; i4 < count; i4 = i4 + 1) {
-			table[i4] = fmydspSIG3Wave0[fmydspSIG3Wave0_idx];
-			fmydspSIG3Wave0_idx = (1 + fmydspSIG3Wave0_idx) % 7;
-		}
-	}
-
-};
-
-static mydspSIG3* newmydspSIG3() { return (mydspSIG3*)new mydspSIG3(); }
-static void deletemydspSIG3(mydspSIG3* dsp) { delete dsp; }
-
-const static int imydspWave0[7] = {1,2,3,7,4,8,1};
-const static float fmydspWave1[7] = {1.4f,2.1f,3.8f,7.12f,4.9f,8.9f,1.2f};
-
 class mydsp : public dsp {
-	
- private:
-	
-	int itbl0[10];
-	int iRec1[2];
-	float ftbl1[7];
-	float fRec3[2];
-	int itbl2[10];
-	int imydspWave0_idx;
-	float ftbl3[7];
-	int fmydspWave1_idx;
+  private:
+	class SIG0 {
+	  private:
+		int fSampleRate;
+		// Recursion delay iVeeec2 is of type kMonoDelay
+		// While its definition is of type kZeroDelay
+		int 	iVeeec2State; // Mono Delay
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			iVeeec2State = 0;
+		}
+		void fill(int count, int output[]) {
+			int 	iVeeec2;
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = min(32, fullcount-index);
+				iVeeec2 = iVeeec2State;
+				for (int i=0; i<count; i++) {
+					iVeeec2 = (iVeeec2 + 1);
+					output[i] = iVeeec2;
+				}
+				iVeeec2State = iVeeec2;
+				output += 32;
+			}
+		}
+	};
+
+
+	class SIG1 {
+	  private:
+		int fSampleRate;
+		// Recursion delay fVeeec6 is of type kMonoDelay
+		// While its definition is of type kZeroDelay
+		float 	fVeeec6State; // Mono Delay
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			fVeeec6State = 0;
+		}
+		void fill(int count, float output[]) {
+			float 	fVeeec6;
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = min(32, fullcount-index);
+				fVeeec6 = fVeeec6State;
+				for (int i=0; i<count; i++) {
+					fVeeec6 = (fVeeec6 + 0.1f);
+					output[i] = fVeeec6;
+				}
+				fVeeec6State = fVeeec6;
+				output += 32;
+			}
+		}
+	};
+
+
+	class SIG2 {
+	  private:
+		int fSampleRate;
+		static int 	iWave1[7];
+		int 	idxiWave1;
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			idxiWave1 = 0;
+		}
+		void fill(int count, int output[]) {
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = min(32, fullcount-index);
+				for (int i=0; i<count; i++) {
+					output[i] = iWave1[idxiWave1];
+					// post processing
+					idxiWave1 = (idxiWave1 + 1) % 7;
+				}
+				output += 32;
+			}
+		}
+	};
+
+
+	class SIG3 {
+	  private:
+		int fSampleRate;
+		static float 	fWave3[7];
+		int 	idxfWave3;
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			idxfWave3 = 0;
+		}
+		void fill(int count, float output[]) {
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = min(32, fullcount-index);
+				for (int i=0; i<count; i++) {
+					output[i] = fWave3[idxfWave3];
+					// post processing
+					idxfWave3 = (idxfWave3 + 1) % 7;
+				}
+				output += 32;
+			}
+		}
+	};
+
+
+	// Recursion delay iVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec0State; // Mono Delay
+	int 	itbl0[10];
+	// Recursion delay fVeeec4 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec4State; // Mono Delay
+	float 	ftbl1[7];
+	static int 	iWave0[7];
+	int 	idxiWave0;
+	int 	itbl2[10];
+	static float 	fWave2[7];
+	int 	idxfWave2;
+	float 	ftbl3[7];
 	int fSampleRate;
-	
- public:
-	mydsp() {
-	}
-	
-	void metadata(Meta* m) { 
-		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+
+  public:
+	virtual void metadata(Meta* m) { 
 		m->declare("filename", "table2.dsp");
 		m->declare("name", "table2");
 	}
 
-	virtual int getNumInputs() {
-		return 0;
-	}
-	virtual int getNumOutputs() {
-		return 4;
-	}
-	
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 4; }
 	static void classInit(int sample_rate) {
 	}
-	
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		mydspSIG0* sig0 = newmydspSIG0();
-		sig0->instanceInitmydspSIG0(sample_rate);
-		sig0->fillmydspSIG0(10, itbl0);
-		mydspSIG1* sig1 = newmydspSIG1();
-		sig1->instanceInitmydspSIG1(sample_rate);
-		sig1->fillmydspSIG1(7, ftbl1);
-		mydspSIG2* sig2 = newmydspSIG2();
-		sig2->instanceInitmydspSIG2(sample_rate);
-		sig2->fillmydspSIG2(10, itbl2);
-		imydspWave0_idx = 0;
-		mydspSIG3* sig3 = newmydspSIG3();
-		sig3->instanceInitmydspSIG3(sample_rate);
-		sig3->fillmydspSIG3(7, ftbl3);
-		fmydspWave1_idx = 0;
-		deletemydspSIG0(sig0);
-		deletemydspSIG1(sig1);
-		deletemydspSIG2(sig2);
-		deletemydspSIG3(sig3);
+		SIG0 sig0;
+		sig0.init(sample_rate);
+		sig0.fill(10,itbl0);
+		SIG1 sig1;
+		sig1.init(sample_rate);
+		sig1.fill(7,ftbl1);
+		idxiWave0 = 0;
+		SIG2 sig2;
+		sig2.init(sample_rate);
+		sig2.fill(10,itbl2);
+		idxfWave2 = 0;
+		SIG3 sig3;
+		sig3.init(sample_rate);
+		sig3.fill(7,ftbl3);
 	}
-	
 	virtual void instanceResetUserInterface() {
 	}
-	
 	virtual void instanceClear() {
-		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
-			iRec1[l1] = 0;
-		}
-		for (int l3 = 0; l3 < 2; l3 = l3 + 1) {
-			fRec3[l3] = 0.0f;
-		}
+		iVeeec0State = 0;
+		fVeeec4State = 0;
 	}
-	
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
 		instanceInit(sample_rate);
 	}
-	
 	virtual void instanceInit(int sample_rate) {
 		instanceConstants(sample_rate);
 		instanceResetUserInterface();
 		instanceClear();
 	}
-	
 	virtual mydsp* clone() {
 		return new mydsp();
 	}
-	
 	virtual int getSampleRate() {
 		return fSampleRate;
 	}
-	
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("table2");
 		ui_interface->closeBox();
 	}
-	
-	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
-		FAUSTFLOAT* output0 = outputs[0];
-		FAUSTFLOAT* output1 = outputs[1];
-		FAUSTFLOAT* output2 = outputs[2];
-		FAUSTFLOAT* output3 = outputs[3];
-		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			iRec1[0] = iRec1[1] + 1;
-			itbl0[(iRec1[0] + 1) % 10] = 2 * iRec1[0];
-			output0[i0] = FAUSTFLOAT(itbl0[(iRec1[0] + 2) % 10]);
-			fRec3[0] = fRec3[1] + 0.1f;
-			ftbl1[int(std::fmod(fRec3[0] + 1.0f, 7.0f))] = 1.24f * fRec3[0];
-			output1[i0] = FAUSTFLOAT(ftbl1[int(std::fmod(fRec3[0] + 2.0f, 7.0f))]);
-			int iTemp0 = imydspWave0[imydspWave0_idx];
-			itbl2[(iTemp0 + 1) % 10] = int(1.24f * float(iTemp0));
-			output2[i0] = FAUSTFLOAT(itbl2[(iTemp0 + 2) % 10]);
-			float fTemp1 = fmydspWave1[fmydspWave1_idx];
-			ftbl3[int(std::fmod(fTemp1 + 1.0f, 7.0f))] = 1.24f * fTemp1;
-			output3[i0] = FAUSTFLOAT(ftbl3[int(std::fmod(fTemp1 + 2.0f, 7.0f))]);
-			iRec1[1] = iRec1[0];
-			fRec3[1] = fRec3[0];
-			imydspWave0_idx = (1 + imydspWave0_idx) % 7;
-			fmydspWave1_idx = (1 + fmydspWave1_idx) % 7;
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVeeec0;
+		float 	fVeeec4;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			iVeeec0 = iVeeec0State;
+			fVeeec4 = fVeeec4State;
+			for (int i=0; i<count; i++) {
+				iVeeec0 = (iVeeec0 + 1);
+				int 	iTemp0 = iVeeec0; // step: 7
+				itbl0[((iTemp0 + 1) % 10)] = (2 * iTemp0);
+				fVeeec4 = (fVeeec4 + 0.1f);
+				float 	fTemp1 = fVeeec4; // step: 26
+				ftbl1[int(fmodf((fTemp1 + 1.0f),7.0f))] = (1.24f * fTemp1);
+				int 	iTemp2 = iWave0[idxiWave0]; // step: 49
+				itbl2[((iTemp2 + 1) % 10)] = int((1.24f * float(iTemp2)));
+				float 	fTemp3 = fWave2[idxfWave2]; // step: 72
+				ftbl3[int(fmodf((fTemp3 + 1.0f),7.0f))] = (1.24f * fTemp3);
+				output0[i] = (FAUSTFLOAT)(itbl0[((iTemp0 + 2) % 10)]);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(ftbl1[int(fmodf((fTemp1 + 2.0f),7.0f))]);  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(itbl2[((iTemp2 + 2) % 10)]);  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(ftbl3[int(fmodf((fTemp3 + 2.0f),7.0f))]);  // Zone Exec Code
+				// post processing
+				idxfWave2 = (idxfWave2 + 1) % 7;
+				idxiWave0 = (idxiWave0 + 1) % 7;
+			}
+			iVeeec0State = iVeeec0;
+			fVeeec4State = fVeeec4;
 		}
 	}
-
 };
 
-#endif
+
+int 	mydsp::iWave0[7] = {1,2,3,7,4,8,1};
+int 	mydsp::SIG2::iWave1[7] = {1,2,3,7,4,8,1};
+float 	mydsp::fWave2[7] = {1.4f,2.1f,3.8f,7.12f,4.9f,8.9f,1.2f};
+float 	mydsp::SIG3::fWave3[7] = {1.4f,2.1f,3.8f,7.12f,4.9f,8.9f,1.2f};

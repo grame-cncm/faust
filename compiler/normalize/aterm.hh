@@ -42,7 +42,8 @@
  */
 
 class aterm : public virtual Garbageable {
-    std::map<Tree, mterm> fSig2MTerms;  ///< mapping between signatures and corresponding mterms
+    std::map<Tree, mterm, CTreeComparator>
+        fSig2MTerms;  ///< mapping between signatures and corresponding mterms
 
    public:
     aterm();        ///< create an empty aterm (equivalent to 0)

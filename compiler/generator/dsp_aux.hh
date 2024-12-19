@@ -314,8 +314,8 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
 std::string sha1FromDSP(const std::string& name_app, const std::string& dsp_content, int argc,
                         const char* argv[], std::string& sha_key);
 
-class CTreeBase;
-typedef CTreeBase*        Tree;
+class CTree;
+typedef CTree*            Tree;
 typedef std::vector<Tree> tvec;
 
 tvec boxesToSignalsAux(Tree box);

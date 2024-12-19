@@ -40,8 +40,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "global.hh"
 #include "ppsig.hh"
-
 #include "signals.hh"
 
 // Uncomment to activate type inferrence tracing
@@ -54,9 +54,6 @@
     }
 #endif
 
-// TODO place in global.hh
-static std::unordered_map<Tree, std::set<Tree>> gDependencies;
-
 /**
  * @brief Compute the set of dependencies of a signal
  *
@@ -64,16 +61,16 @@ static std::unordered_map<Tree, std::set<Tree>> gDependencies;
  * @param sig
  * @return std::set<Tree> set of dependencies of sig
  */
-static std::set<Tree> sigDependencies(std::vector<Tree>& underVisit, Tree sig)
+static std::set<Tree, CTreeComparator> sigDependencies(std::vector<Tree>& underVisit, Tree sig)
 {
     int  i;
     Tree rec, id, le;
-    if (gDependencies.count(sig)) {
+    if (gGlobal->gDependencies.count(sig)) {
         // 1) the dependencies of sig have already been computed
-        return gDependencies[sig];
+        return gGlobal->gDependencies[sig];
     } else if (isProj(sig, &i, rec)) {
         // 2) sig is a projection, its dependencies are itself and the dependecies of its definition
-        std::set<Tree> deps;
+        std::set<Tree, CTreeComparator> deps;
         if (std::find(underVisit.begin(), underVisit.end(), sig) == underVisit.end()) {
             // we mark the projection under visit and compute the dependencies of its definition
             underVisit.push_back(sig);
@@ -82,18 +79,18 @@ static std::set<Tree> sigDependencies(std::vector<Tree>& underVisit, Tree sig)
             underVisit.pop_back();
         }
         deps.insert(sig);  // insert the projection itself
-        gDependencies[sig] = deps;
+        gGlobal->gDependencies[sig] = deps;
         return deps;
 
     } else {
         // 3) sig is not a projection but is any other expression,
         // its dependencies are the dependencies of its branches
-        std::set<Tree> deps;
+        std::set<Tree, CTreeComparator> deps;
         for (Tree b : sig->branches()) {
-            std::set<Tree> depsb = sigDependencies(underVisit, b);
+            std::set<Tree, CTreeComparator> depsb = sigDependencies(underVisit, b);
             deps.insert(depsb.begin(), depsb.end());
         }
-        gDependencies[sig] = deps;
+        gGlobal->gDependencies[sig] = deps;
         return deps;
     }
 }
@@ -102,9 +99,9 @@ static std::set<Tree> sigDependencies(std::vector<Tree>& underVisit, Tree sig)
  * @brief compute the set of recursive dependencies of a signal
  *
  * @param sig
- * @return std::set<Tree>
+ * @return std::set<Tree, CTreeComparator>
  */
-std::set<Tree> signalDependencies(Tree sig)
+std::set<Tree, CTreeComparator> signalDependencies(Tree sig)
 {
     std::vector<Tree> underVisit;
     return sigDependencies(underVisit, sig);
@@ -120,8 +117,8 @@ std::set<Tree> signalDependencies(Tree sig)
  */
 bool isSignalRecursive(Tree proj)
 {
-    std::set<Tree> deps   = signalDependencies(getProjDefinition(proj));
-    bool           answer = deps.find(proj) != deps.end();
+    std::set<Tree, CTreeComparator> deps   = signalDependencies(getProjDefinition(proj));
+    bool                            answer = deps.find(proj) != deps.end();
 #if 0
     if (answer) {
         std::cerr << "\nSignal " << *proj << " is recursive. Its dependencies are: (";
@@ -150,8 +147,8 @@ bool isSignalRecursive(Tree proj)
  */
 bool isDependingOn(Tree sig, Tree proj)
 {
-    std::set<Tree> deps   = signalDependencies(sig);
-    bool           answer = deps.find(proj) != deps.end();
+    std::set<Tree, CTreeComparator> deps   = signalDependencies(sig);
+    bool                            answer = deps.find(proj) != deps.end();
     return answer;
 }
 
@@ -193,9 +190,9 @@ Tree getProjFinalDefinition(Tree proj)
  * @param msg a string prefix to the message
  * @param sig the signal we want to print the depedencies of
  */
-void printDependencies(std::string msg, Tree sig)
+void printDependencies(const std::string& msg, Tree sig)
 {
-    std::set<Tree> deps = signalDependencies(sig);
+    std::set<Tree, CTreeComparator> deps = signalDependencies(sig);
     std::cerr << msg << " dependencies of " << ppsig(sig, 20) << " are: (";
     for (Tree d : deps) {
         std::cerr << *d << " ";

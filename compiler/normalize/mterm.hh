@@ -40,13 +40,9 @@
  * k*x^n*y^m*... and its arithmetic.
  */
 
-struct CompareTree {
-    bool operator()(Tree t1, Tree t2) const { return t1 < t2; }
-};
-
 class mterm : public virtual Garbageable {
-    Tree                             fCoef;     ///< constant part of the term (usually 1 or -1)
-    std::map<Tree, int, CompareTree> fFactors;  ///< non constant terms and their power
+    Tree                                 fCoef;     ///< constant part of the term (usually 1 or -1)
+    std::map<Tree, int, CTreeComparator> fFactors;  ///< non constant terms and their power
 
    public:
     mterm();                ///< create a 0 mterm

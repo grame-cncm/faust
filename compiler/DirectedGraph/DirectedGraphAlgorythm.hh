@@ -27,7 +27,7 @@
 //===========================================================
 //===========================================================
 
-template <typename N>
+template <typename N, typename Comparator = std::less<N>>
 class Tarjan {
     // Additional information associated to each node
     // during the visit
@@ -38,12 +38,12 @@ class Tarjan {
         int  fNum2    = 0;
     };
 
-    const digraph<N>       fGraph;
-    int                    fGroup;
-    std::stack<N>          fStack;
-    std::map<N, tarjanAux> fAux;
-    std::set<std::set<N>>  fPartition;
-    int                    fCycleCount;
+    const digraph<N, Comparator>       fGraph;
+    int                                fGroup;
+    std::stack<N>                      fStack;
+    std::map<N, tarjanAux, Comparator> fAux;
+    std::set<std::set<N, Comparator>>  fPartition;
+    int                                fCycleCount;
 
     // visit a specific node n of the graph
     void visit(const N& v)
@@ -77,8 +77,8 @@ class Tarjan {
         if (x.fNum1 == x.fNum2) {
             // std::cout << "the node " << v << " is the root of a cycle" << std::endl;
 
-            std::set<N> cycle;
-            bool        finished = false;
+            std::set<N, Comparator> cycle;
+            bool                    finished = false;
             do {
                 const N& w = fStack.top();
                 fStack.pop();
@@ -95,7 +95,7 @@ class Tarjan {
     }
 
    public:
-    explicit Tarjan(const digraph<N>& g) : fGraph(g), fGroup(0), fCycleCount(0)
+    explicit Tarjan(const digraph<N, Comparator>& g) : fGraph(g), fGroup(0), fCycleCount(0)
     {
         for (const auto& n : fGraph.nodes()) {
             if (fAux.find(n) == fAux.end()) {
@@ -104,7 +104,7 @@ class Tarjan {
         }
     }
 
-    [[nodiscard]] const std::set<std::set<N>>& partition() const { return fPartition; }
+    [[nodiscard]] const std::set<std::set<N, Comparator>>& partition() const { return fPartition; }
 
     [[nodiscard]] int cycles() const { return fCycleCount; }
 };
@@ -116,10 +116,10 @@ class Tarjan {
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline int cycles(const digraph<N>& g)
+template <typename N, typename Comparator = std::less<N>>
+inline int cycles(const digraph<N, Comparator>& g)
 {
-    Tarjan<N> T(g);
+    Tarjan<N, Comparator> T(g);
     return T.cycles();
 }
 
@@ -132,12 +132,12 @@ inline int cycles(const digraph<N>& g)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline digraph<digraph<N>> graph2dag(const digraph<N>& g)
+template <typename N, typename Comparator = std::less<N>>
+inline digraph<digraph<N, Comparator>> graph2dag(const digraph<N, Comparator>& g)
 {
-    Tarjan<N>               T(g);  // the partition of g
-    std::map<N, digraph<N>> M;     // std::mapping between nodes and supernodes
-    digraph<digraph<N>>     sg;    // the resulting supergraph
+    Tarjan<N, Comparator>                           T(g);  // the partition of g
+    std::map<N, digraph<N, Comparator>, Comparator> M;  // std::mapping between nodes and supernodes
+    digraph<digraph<N, Comparator>>                 sg;  // the resulting supergraph
 
     // build the graph of supernodes
 
@@ -145,7 +145,7 @@ inline digraph<digraph<N>> graph2dag(const digraph<N>& g)
     // create also a std::mapping in order to retrieve the supernode a node
     /// belongs to.
     for (const auto& s : T.partition()) {
-        digraph<N> sn;                        // the supernode graph
+        digraph<N, Comparator> sn;            // the supernode graph
         for (const N& n : s) {                // for each node of a cycle
             M.insert(std::make_pair(n, sn));  // remember its supernode
             sn.add(n);                        // and add it to the super node
@@ -155,11 +155,11 @@ inline digraph<digraph<N>> graph2dag(const digraph<N>& g)
 
     // compute the destinations between the supernodes
     for (const auto& n1 : g.nodes()) {
-        digraph<N> sn1(M[n1]);
+        digraph<N, Comparator> sn1(M[n1]);
         for (const auto& c : g.destinations(n1)) {
-            const N&    n2  = c.first;
-            const auto& W12 = c.second;
-            digraph<N>  sn2(M[n2]);
+            const N&               n2  = c.first;
+            const auto&            W12 = c.second;
+            digraph<N, Comparator> sn2(M[n2]);
             if (sn1 == sn2) {
                 // the connection is inside the same supernode
                 sn1.add(n1, n2, W12);
@@ -182,13 +182,13 @@ inline digraph<digraph<N>> graph2dag(const digraph<N>& g)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline digraph<digraph<N>> graph2dag2(const digraph<N>& g)
+template <typename N, typename Comparator = std::less<N>>
+inline digraph<digraph<N, Comparator>> graph2dag2(const digraph<N, Comparator>& g)
 {
-    Tarjan<N>               T(g);  // the partition of g
-    std::map<N, digraph<N>> M;     // std::mapping between nodes and supernodes
-    digraph<digraph<N>>     sg;    // the resulting supergraph
-    std::map<std::pair<digraph<N>, digraph<N>>, int>
+    Tarjan<N, Comparator>                           T(g);  // the partition of g
+    std::map<N, digraph<N, Comparator>, Comparator> M;  // std::mapping between nodes and supernodes
+    digraph<digraph<N, Comparator>>                 sg;  // the resulting supergraph
+    std::map<std::pair<digraph<N, Comparator>, digraph<N, Comparator>>, int, Comparator>
         CC;  // count of destinations between supernodes
 
     // build the graph of supernodes
@@ -197,7 +197,7 @@ inline digraph<digraph<N>> graph2dag2(const digraph<N>& g)
     // create also a std::mapping in order to retrieve the supernode a node
     /// belongs to.
     for (const auto& s : T.partition()) {
-        digraph<N> sn;                        // the supernode graph
+        digraph<N, Comparator> sn;            // the supernode graph
         for (const N& n : s) {                // for each node of a cycle
             M.insert(std::make_pair(n, sn));  // remember its supernode
             sn.add(n);                        // and add it to the super node
@@ -207,9 +207,9 @@ inline digraph<digraph<N>> graph2dag2(const digraph<N>& g)
 
     // compute the number of destinations between the supernodes
     for (const auto& n1 : g.nodes()) {              // for each node n1
-        digraph<N> sn1(M[n1]);                      // retrieve the supernode
+        digraph<N, Comparator> sn1(M[n1]);          // retrieve the supernode
         for (const auto& c : g.destinations(n1)) {  // for each destination of n
-            digraph<N> sn2(M[c.first]);
+            digraph<N, Comparator> sn2(M[c.first]);
             if (sn1 == sn2) {
                 // the connection is inside the same supernode
                 sn1.add(n1, c.first, c.second);
@@ -237,17 +237,17 @@ inline digraph<digraph<N>> graph2dag2(const digraph<N>& g)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline std::vector<std::vector<N>> parallelize(const digraph<N>& g)
+template <typename N, typename Comparator = std::less<N>>
+inline std::vector<std::vector<N>> parallelize(const digraph<N, Comparator>& g)
 {
     //-----------------------------------------------------------
     // Find the level of a node n -> {m1,m2,...} such that
     //		level(n -> {})			= 0
     //		level(n -> {m1,m2,...})	= 1 + std::max(level(mi))
     //-----------------------------------------------------------
-    using Levelfun = std::function<int(const N&, std::map<N, int>&)>;
+    using Levelfun = std::function<int(const N&, std::map<N, int, Comparator>&)>;
 
-    Levelfun level = [&g, &level](const N& n1, std::map<N, int>& levelcache) -> int {
+    Levelfun level = [&g, &level](const N& n1, std::map<N, int, Comparator>& levelcache) -> int {
         auto p = levelcache.find(n1);
         if (p != levelcache.end()) {
             return p->second;
@@ -277,8 +277,8 @@ inline std::vector<std::vector<N>> parallelize(const digraph<N>& g)
     return v;
 }
 
-template <typename N>
-inline std::vector<std::vector<N>> rparallelize(const digraph<N>& G)
+template <typename N, typename Comparator = std::less<N>>
+inline std::vector<std::vector<N>> rparallelize(const digraph<N, Comparator>& G)
 {
     std::vector<std::vector<N>> P = parallelize(G);
     int                         i = 0;
@@ -300,8 +300,8 @@ inline std::vector<std::vector<N>> rparallelize(const digraph<N>& G)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline std::vector<N> serialize(const digraph<N>& G)
+template <typename N, typename Comparator = std::less<N>>
+inline std::vector<N> serialize(const digraph<N, Comparator>& G)
 {
     //------------------------------------------------------------------------
     // visit : a local std::function (simulated using a lambda) to visit a graph
@@ -310,9 +310,10 @@ inline std::vector<N> serialize(const digraph<N>& G)
     // V : std::set of already visited nodes
     // S : serialized std::vector of nodes
     //------------------------------------------------------------------------
-    using Visitfun =
-        std::function<void(const digraph<N>&, const N&, std::set<N>&, std::vector<N>&)>;
-    Visitfun visit = [&visit](const digraph<N>& g, const N& n, std::set<N>& V, std::vector<N>& S) {
+    using Visitfun = std::function<void(const digraph<N, Comparator>&, const N&,
+                                        std::set<N, Comparator>&, std::vector<N>&)>;
+    Visitfun visit = [&visit](const digraph<N, Comparator>& g, const N& n,
+                              std::set<N, Comparator>& V, std::vector<N>& S) {
         if (V.find(n) == V.end()) {
             V.insert(n);
             for (const auto& p : g.destinations(n)) {
@@ -322,8 +323,8 @@ inline std::vector<N> serialize(const digraph<N>& G)
         }
     };
 
-    std::vector<N> S;
-    std::set<N>    V;
+    std::vector<N>          S;
+    std::set<N, Comparator> V;
     for (const N& n : G.nodes()) {
         visit(G, n, V, S);
     }
@@ -332,16 +333,18 @@ inline std::vector<N> serialize(const digraph<N>& G)
 
 //===========================================================
 //===========================================================
-// std::mapgraph(foo) : transfoms a graph  by applying foo:N->M
+// std::mapgraph(foo) : transfoms a graph by applying foo:N->M
 // to each node of graph. The destinations are preserved.
 //===========================================================
 //===========================================================
 
-template <typename N, typename M>
-inline digraph<M> mapnodes(const digraph<N>& g, std::function<M(const N&)> foo)
+template <typename N, typename M, typename Comparator1 = std::less<N>,
+          typename Comparator2 = std::less<M>>
+inline digraph<M, Comparator2> mapnodes(const digraph<N, Comparator1>& g,
+                                        std::function<M(const N&)>     foo)
 {
-    digraph<M>     r;
-    std::map<N, M> cache;
+    digraph<M, Comparator2>                  r;
+    std::map<N, M, Comparator1, Comparator2> cache;
     // create a new graph with the transformed nodes
     for (const auto& n1 : g.nodes()) {
         M n2 = foo(n1);
@@ -366,10 +369,10 @@ inline digraph<M> mapnodes(const digraph<N>& g, std::function<M(const N&)> foo)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline digraph<N> reverse(const digraph<N>& g)
+template <typename N, typename Comparator = std::less<N>>
+inline digraph<N, Comparator> reverse(const digraph<N, Comparator>& g)
 {
-    digraph<N> r;
+    digraph<N, Comparator> r;
     // copy the destinations
     for (const auto& n : g.nodes()) {
         r.add(n);
@@ -390,11 +393,11 @@ inline digraph<N> reverse(const digraph<N>& g)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline digraph<N> mapconnections(const digraph<N>&                                             G,
+template <typename N, typename Comparator = std::less<N>>
+inline digraph<N, Comparator> mapconnections(const digraph<N, Comparator>&                                             G,
                                  std::function<bool(const N&, const N&, const std::set<int>&)> keep)
 {
-    digraph<N> R;
+    digraph<N, Comparator> R;
     for (const N& n : G.nodes()) {
         R.add(n);
         for (const auto& c : G.destinations(n)) {
@@ -422,9 +425,9 @@ inline digraph<N> mapconnections(const digraph<N>&                              
  * @param L resulting graph of left nodes
  * @param R resulting graph of right nodes
  */
-template <typename N>
-void splitgraph(const digraph<N>& G, std::function<bool(const N&)> left, digraph<N>& L,
-                digraph<N>& R)
+template <typename N, typename Comparator = std::less<N>>
+void splitgraph(const digraph<N, Comparator>& G, std::function<bool(const N&)> left,
+                digraph<N, Comparator>& L, digraph<N, Comparator>& R)
 {
     for (auto n : G.nodes()) {
         if (left(n)) {
@@ -459,14 +462,14 @@ void splitgraph(const digraph<N>& G, std::function<bool(const N&)> left, digraph
  * @param S the set of nodes to keep with their dependencies
  * @return the resulting subgraph
  */
-template <typename N>
-digraph<N> subgraph(const digraph<N>& G, const std::set<N>& S)
+template <typename N, typename Comparator = std::less<N>>
+digraph<N, Comparator> subgraph(const digraph<N, Comparator>& G, const std::set<N, Comparator>& S)
 {
-    digraph<N>  R;     // the (R)esulting graph
-    std::set<N> W{S};  // nodes (W)aiting to be processed
-    std::set<N> P;     // nodes already (P)rocessed
+    digraph<N, Comparator>  R;     // the (R)esulting graph
+    std::set<N, Comparator> W{S};  // nodes (W)aiting to be processed
+    std::set<N, Comparator> P;     // nodes already (P)rocessed
     while (!W.empty()) {
-        std::set<N> M;  // (M)ore nodes to process at next iteration
+        std::set<N, Comparator> M;  // (M)ore nodes to process at next iteration
         for (auto n : W) {
             R.add(n);     // add n to the resulting graph
             P.insert(n);  // mark n as processed
@@ -489,10 +492,10 @@ digraph<N> subgraph(const digraph<N>& G, const std::set<N>& S)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline digraph<N> cut(const digraph<N>& G, int dm)
+template <typename N, typename Comparator = std::less<N>>
+inline digraph<N, Comparator> cut(const digraph<N, Comparator>& G, int dm)
 {
-    digraph<N> R;
+    digraph<N, Comparator> R;
     for (const auto& n1 : G.nodes()) {
         R.add(n1);
         for (const auto& c : G.destinations(n1)) {
@@ -523,11 +526,11 @@ inline digraph<N> cut(const digraph<N>& G, int dm)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline digraph<N> chain(const digraph<N>& g, bool strict)
+template <typename N, typename Comparator = std::less<N>>
+inline digraph<N, Comparator> chain(const digraph<N, Comparator>& g, bool strict)
 {
-    const digraph<N> h = reverse(g);
-    digraph<N>       r;
+    const digraph<N, Comparator> h = reverse(g);
+    digraph<N, Comparator>       r;
     for (const auto& n : g.nodes()) {
         if (!strict) {
             r.add(n);
@@ -543,10 +546,10 @@ inline digraph<N> chain(const digraph<N>& g, bool strict)
     return r;
 }
 
-template <typename N>
-inline std::vector<N> roots(const digraph<N>& G)
+template <typename N, typename Comparator = std::less<N>>
+inline std::vector<N> roots(const digraph<N, Comparator>& G)
 {
-    std::map<N, int> R;
+    std::map<N, int, Comparator> R;
     for (const N& n : G.nodes()) {
         for (const auto& c : G.destinations(n)) {
             R[c.first]++;
@@ -561,8 +564,8 @@ inline std::vector<N> roots(const digraph<N>& G)
     return V;
 }
 
-template <typename N>
-inline std::vector<N> leaves(const digraph<N>& G)
+template <typename N, typename Comparator = std::less<N>>
+inline std::vector<N> leaves(const digraph<N, Comparator>& G)
 {
     std::vector<N> L;
     for (const N& n : G.nodes()) {
@@ -587,7 +590,7 @@ inline std::vector<N> leaves(const digraph<N>& G)
 //===========================================================
 //===========================================================
 
-template <typename N>
+template <typename N, typename Comparator = std::less<N>>
 inline std::ostream& operator<<(std::ostream& file, const std::list<N>& L)
 {
     std::string sep = "";
@@ -606,7 +609,7 @@ inline std::ostream& operator<<(std::ostream& file, const std::list<N>& L)
 //===========================================================
 //===========================================================
 
-template <typename N>
+template <typename N, typename Comparator = std::less<N>>
 inline std::ostream& operator<<(std::ostream& file, const std::vector<N>& V)
 {
     std::string sep = "";
@@ -625,7 +628,7 @@ inline std::ostream& operator<<(std::ostream& file, const std::vector<N>& V)
 //===========================================================
 //===========================================================
 
-template <typename N>
+template <typename N, typename Comparator = std::less<N>>
 inline std::ostream& operator<<(std::ostream& file, const std::set<N>& S)
 {
     std::string sep = "";
@@ -644,7 +647,8 @@ inline std::ostream& operator<<(std::ostream& file, const std::set<N>& S)
 //===========================================================
 //===========================================================
 
-template <typename N, typename M>
+template <typename N, typename M, typename Comparator1 = std::less<N>,
+          typename Comparator2 = std::less<N>>
 inline std::ostream& operator<<(std::ostream& file, const std::pair<N, M>& V)
 {
     return file << "std::pair{" << V.first << ", " << V.second << "}";
@@ -656,8 +660,9 @@ inline std::ostream& operator<<(std::ostream& file, const std::pair<N, M>& V)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline std::ostream& dotfile(std::ostream& file, const digraph<N>& g, bool clusters = false)
+template <typename N, typename Comparator = std::less<N>>
+inline std::ostream& dotfile(std::ostream& file, const digraph<N, Comparator>& g,
+                             bool clusters = false)
 {
     file << "digraph mygraph {" << std::endl;
     for (const N& n : g.nodes()) {
@@ -677,8 +682,8 @@ inline std::ostream& dotfile(std::ostream& file, const digraph<N>& g, bool clust
     }
 
     if (clusters) {
-        Tarjan<N> T(g);
-        int       ccount = 0;  // cluster count
+        Tarjan<N, Comparator> T(g);
+        int                   ccount = 0;  // cluster count
         for (const auto& s : T.partition()) {
             file << "\t"
                  << "subgraph cluster" << ccount++ << " { " << std::endl;
@@ -699,8 +704,8 @@ inline std::ostream& dotfile(std::ostream& file, const digraph<N>& g, bool clust
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline std::ostream& operator<<(std::ostream& file, const digraph<N>& g)
+template <typename N, typename Comparator = std::less<N>>
+inline std::ostream& operator<<(std::ostream& file, const digraph<N, Comparator>& g)
 {
     std::string sep = "";
 

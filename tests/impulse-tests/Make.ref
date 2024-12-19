@@ -94,7 +94,7 @@ $(refdir)/%.fir: dsp/%.dsp
 
 # rules for reference-cpp
 $(refdir)/%.cpp1: dsp/%.dsp
-	$(FAUST) $(FAUSTOPTIONS) $<  > $@ ; echo $<
+	$(FAUST) -lang ocpp $(FAUSTOPTIONS) $<  > $@ ; echo $<
 
 # rules for reference
 $(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir $(refdir)/sched/%.ir dsp/%.dsp dsp/%.cpp 

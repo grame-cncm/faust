@@ -9,7 +9,7 @@
  * @param L list of signals
  * @return digraph<Tree>
  */
-digraph<Tree> immediateGraph(Tree L);
+digraph<Tree, CTreeComparator> immediateGraph(Tree L);
 
 /**
  * @brief Compute the full Graph of a list of signals
@@ -17,7 +17,7 @@ digraph<Tree> immediateGraph(Tree L);
  * @param L list of signals
  * @return digraph<Tree>
  */
-digraph<Tree> fullGraph(Tree L);
+digraph<Tree, CTreeComparator> fullGraph(Tree L);
 
 /**
  * @brief Compute in which order the list of signals L should be compiled

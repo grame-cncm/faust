@@ -40,8 +40,8 @@ struct FaustWasm {
 
 class libFaustWasm {
    public:
-    libFaustWasm(){};
-    virtual ~libFaustWasm(){};
+    libFaustWasm() {};
+    virtual ~libFaustWasm() {};
 
     std::string version() { return ::getCLibFaustVersion(); }
 

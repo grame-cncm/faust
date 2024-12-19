@@ -79,11 +79,10 @@
 
 //---------------------------------API---------------------------------------
 
-class CTreeBase;
-typedef CTreeBase* Tree;
+class CTree;
+typedef CTree* Tree;
 
-typedef std::map<Tree, Tree> plist;
-typedef std::vector<Tree>    tvec;
+typedef std::vector<Tree> tvec;
 
 /**
  * A CTree = (Node x [CTree]) is the association of a content Node and a list of subtrees
@@ -100,16 +99,25 @@ typedef std::vector<Tree>    tvec;
  *
  **/
 
-class LIBFAUST_API CTreeBase {
+class LIBFAUST_API CTree : public virtual Garbageable {
    protected:
     static const int kHashTableSize = 400009;     ///< size of the hash table (prime number)
     static size_t    gSerialCounter;              ///< the serial number counter
     static Tree      gHashTable[kHashTableSize];  ///< hash table used for "hash consing"
 
    public:
-    static bool gDetails;  ///< CTreeBase::print() print with more details when true
+    static bool gDetails;  ///< CTree::print() print with more details when true
     static unsigned int
         gVisitTime;  ///< Should be incremented for each new visit to keep track of visited tree
+
+    struct TreeComparator {
+        bool operator()(const Tree& lhs, const Tree& rhs) const
+        {
+            return lhs->serial() < rhs->serial();
+        }
+    };
+
+    typedef std::map<Tree, Tree, TreeComparator> plist;
 
    protected:
     // fields
@@ -123,12 +131,11 @@ class LIBFAUST_API CTreeBase {
     unsigned int fVisitTime;   ///< keep track of visits
     tvec         fBranch;      ///< the subtrees
 
-    CTreeBase()
-        : fNext(nullptr), fType(nullptr), fHashKey(0), fSerial(0), fAperture(0), fVisitTime(0)
+    CTree() : fNext(nullptr), fType(nullptr), fHashKey(0), fSerial(0), fAperture(0), fVisitTime(0)
     {
     }
-    CTreeBase(size_t hk, const Node& n,
-              const tvec& br);  ///< construction is private, uses tree::make instead
+    CTree(size_t hk, const Node& n,
+          const tvec& br);  ///< construction is private, uses tree::make instead
 
     bool          equiv(const Node& n,
                         const tvec& br) const;  ///< used to check if an equivalent tree already exists
@@ -138,7 +145,7 @@ class LIBFAUST_API CTreeBase {
     static int calcTreeAperture(const Node& n, const tvec& br);  ///< compute how open is a tree
 
    public:
-    virtual ~CTreeBase();
+    virtual ~CTree();
 
     static Tree make(const Node& n, int ar,
                      Tree br[]);  ///< return a new tree or an existing equivalent one
@@ -191,82 +198,45 @@ class LIBFAUST_API CTreeBase {
     }
 };
 
-// Garbageable tree: all trees are deallocated at the end of the compilation
-class LIBFAUST_API CTree : public CTreeBase, public virtual Garbageable {
-   public:
-    CTree(size_t hk, const Node& n, const tvec& br) : CTreeBase(hk, n, br) {}
-};
-
-// Deterministic allocation using pointers with successive addresses, all trees are deallocated
-// using cleanup.
-class LIBFAUST_API CDTree : public CTreeBase {
-   private:
-    static int               kBlockSize;
-    static Tree              gAllocatedBlock;
-    static std::vector<Tree> gAllocatedBlocks;
-
-   public:
-    CDTree() : CTreeBase() {}
-    CDTree(size_t hk, const Node& n, const tvec& br) : CTreeBase(hk, n, br) {}
-
-    void* operator new(size_t size)
-    {
-        // Allocate a new block and fill the table with successive addresses
-        if (gSerialCounter % kBlockSize == 0) {
-            Tree new_block = nullptr;
-            // Possibly try several times...
-            do {
-                new_block = new CDTree[kBlockSize];
-                gAllocatedBlocks.push_back(new_block);
-            } while (new_block < gAllocatedBlock);
-            gAllocatedBlock = new_block;
-        }
-        return &gAllocatedBlock[gSerialCounter % kBlockSize];
-    }
-
-    void operator delete(void* ptr) {}
-
-    static void init();
-    static void cleanup();
-};
+using CTreeComparator = CTree::TreeComparator;
 
 //---------------------------------API---------------------------------------
 // To build trees
 
 inline Tree tree(const Node& n)
 {
-    return CTreeBase::make(n, 0, nullptr);
+    return CTree::make(n, 0, nullptr);
 }
 
 inline Tree tree(const Node& n, const Tree& a)
 {
-    return CTreeBase::make(n, {a});
+    return CTree::make(n, {a});
 }
 
 inline Tree tree(const Node& n, const Tree& a, const Tree& b)
 {
-    return CTreeBase::make(n, {a, b});
+    return CTree::make(n, {a, b});
 }
 
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c)
 {
-    return CTreeBase::make(n, {a, b, c});
+    return CTree::make(n, {a, b, c});
 }
 
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d)
 {
-    return CTreeBase::make(n, {a, b, c, d});
+    return CTree::make(n, {a, b, c, d});
 }
 
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d,
                  const Tree& e)
 {
-    return CTreeBase::make(n, {a, b, c, d, e});
+    return CTree::make(n, {a, b, c, d, e});
 }
 
 inline Tree tree(const Node& n, const tvec& br)
 {
-    return CTreeBase::make(n, br);
+    return CTree::make(n, br);
 }
 
 // Useful conversions
@@ -289,7 +259,7 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e);
 
 // Printing
-inline std::ostream& operator<<(std::ostream& s, const CTreeBase& t)
+inline std::ostream& operator<<(std::ostream& s, const CTree& t)
 {
     return t.print(s);
 }

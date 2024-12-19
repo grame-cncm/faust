@@ -176,7 +176,7 @@ class CodeContainer : public virtual Garbageable {
     void printHeader(std::ostream& dst)
     {
         // defines the metadata we want to print as comments at the begin of in the file
-        std::set<Tree> selectedKeys;
+        std::set<Tree, CTreeComparator> selectedKeys;
         selectedKeys.insert(tree("name"));
         selectedKeys.insert(tree("author"));
         selectedKeys.insert(tree("copyright"));
@@ -280,9 +280,9 @@ class CodeContainer : public virtual Garbageable {
 
     void setLoopProperty(Tree sig, CodeLoop* l);   ///< Store the loop used to compute a signal
     bool getLoopProperty(Tree sig, CodeLoop*& l);  ///< Returns the loop used to compute a signal
-    void listAllLoopProperties(
-        Tree            sig, std::set<CodeLoop*>&,
-        std::set<Tree>& visited);  ///< Returns all the loop used to compute a signal
+    void listAllLoopProperties(Tree sig, std::set<CodeLoop*>&,
+                               std::set<Tree, CTreeComparator>&
+                                   visited);  ///< Returns all the loop used to compute a signal
 
     void printGraphDotFormat(std::ostream& fout);
 

@@ -75,7 +75,7 @@ extern const char* FAUSTfilename;
 
 static bool standardArgList(Tree args)
 {
-	map<Tree,int> L;
+	map<Tree, int, CTreeComparator> L;
 	while (isList(args)) {
 		if (!isBoxIdent(hd(args))) return false;
 		if (++L[hd(args)] > 1) return false;
@@ -434,8 +434,8 @@ Tree SourceReader::expandRec(Tree ldef, set<string>& visited, Tree lresult)
 
 Tree formatDefinitions(Tree rldef)
 {
-    map<Tree, list<Tree> > dic;
-    map<Tree, list<Tree> >::iterator p;
+    map<Tree, list<Tree>, CTreeComparator> dic;
+    map<Tree, list<Tree> , CTreeComparator>::iterator p;
     Tree ldef2 = gGlobal->nil;
     Tree file;
 

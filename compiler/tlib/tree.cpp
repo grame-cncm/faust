@@ -97,17 +97,13 @@ using namespace std;
         throw faustexception(error.str()); \
     }
 
-Tree         CTreeBase::gHashTable[kHashTableSize];
-bool         CTreeBase::gDetails       = false;
-unsigned int CTreeBase::gVisitTime     = 0;
-size_t       CTreeBase::gSerialCounter = 0;
-
-int               CDTree::kBlockSize;
-Tree              CDTree::gAllocatedBlock = nullptr;
-std::vector<Tree> CDTree::gAllocatedBlocks;
+Tree         CTree::gHashTable[kHashTableSize];
+bool         CTree::gDetails       = false;
+unsigned int CTree::gVisitTime     = 0;
+size_t       CTree::gSerialCounter = 0;
 
 // Constructor : add the tree to the hash table
-CTreeBase::CTreeBase(size_t hk, const Node& n, const tvec& br)
+CTree::CTree(size_t hk, const Node& n, const tvec& br)
     : fNode(n),
       fType(0),
       fHashKey(hk),
@@ -123,7 +119,7 @@ CTreeBase::CTreeBase(size_t hk, const Node& n, const tvec& br)
 }
 
 // Destructor
-CTreeBase::~CTreeBase()
+CTree::~CTree()
 {
     /*
      Remove the tree from the hash table is not needed
@@ -133,12 +129,12 @@ CTreeBase::~CTreeBase()
 }
 
 // equivalence
-bool CTreeBase::equiv(const Node& n, const tvec& br) const
+bool CTree::equiv(const Node& n, const tvec& br) const
 {
     return (fNode == n) && (fBranch == br);
 }
 
-size_t CTreeBase::calcTreeHash(const Node& n, const tvec& br)
+size_t CTree::calcTreeHash(const Node& n, const tvec& br)
 {
     size_t hk = std::hash<void*>()(n.getPointer());
     for (const auto& ptr : br) {
@@ -148,13 +144,13 @@ size_t CTreeBase::calcTreeHash(const Node& n, const tvec& br)
     return hk;
 }
 
-Tree CTreeBase::make(const Node& n, int ar, Tree tbl[])
+Tree CTree::make(const Node& n, int ar, Tree tbl[])
 {
     vector<Tree> br(tbl, tbl + ar);
-    return CTreeBase::make(n, br);
+    return CTree::make(n, br);
 }
 
-Tree CTreeBase::make(const Node& n, const tvec& br)
+Tree CTree::make(const Node& n, const tvec& br)
 {
     size_t hk = calcTreeHash(n, br);
     Tree   t  = gHashTable[hk % kHashTableSize];
@@ -165,14 +161,12 @@ Tree CTreeBase::make(const Node& n, const tvec& br)
 
     if (t) {
         return t;
-    } else if (global::isDebug("FAUST_DTREE")) {
-        return new CDTree(hk, n, br);
     } else {
         return new CTree(hk, n, br);
     }
 }
 
-ostream& CTreeBase::print(ostream& fout) const
+ostream& CTree::print(ostream& fout) const
 {
     if (gDetails) {
         // print the adresse of the tree
@@ -193,7 +187,7 @@ ostream& CTreeBase::print(ostream& fout) const
     return fout;
 }
 
-void CTreeBase::control()
+void CTree::control()
 {
     printf("\ngHashTable Content :\n\n");
     for (int i = 0; i < kHashTableSize; i++) {
@@ -211,30 +205,12 @@ void CTreeBase::control()
     printf("\nEnd gHashTable\n");
 }
 
-void CTreeBase::init()
+void CTree::init()
 {
     gSerialCounter = 0;
     gVisitTime     = 0;
     gDetails       = false;
     memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
-}
-
-void CDTree::init()
-{
-    kBlockSize      = global::getDebug("FAUST_DTREE_SIZE", 1024);
-    gAllocatedBlock = nullptr;
-    gSerialCounter  = 0;
-    gVisitTime      = 0;
-    gDetails        = false;
-    memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
-}
-
-void CDTree::cleanup()
-{
-    for (const auto& it : gAllocatedBlocks) {
-        delete[] it;
-    }
-    gAllocatedBlocks.clear();
 }
 
 // if t has a node of type int, return it, or float, return casted to int, otherwise error
@@ -382,7 +358,7 @@ LIBFAUST_API void* getUserData(Tree t)
  * export the properties of a CTree as two vectors, one for the keys
  * and one for the associated values
  */
-void CTreeBase::exportProperties(vector<Tree>& keys, vector<Tree>& values)
+void CTree::exportProperties(vector<Tree>& keys, vector<Tree>& values)
 {
     for (const auto& it : fProperties) {
         keys.push_back(it.first);

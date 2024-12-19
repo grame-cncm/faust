@@ -1,62 +1,38 @@
-/* ------------------------------------------------------------
-name: "constant"
-Code generated with Faust 2.75.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
------------------------------------------------------------- */
+//----------------------------------------------------------
+// name: "constant"
+//
+// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+//----------------------------------------------------------
 
-#ifndef  __mydsp_H__
-#define  __mydsp_H__
-
+/* link with  */
+#include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
 
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
-#include <math.h>
 
 #ifndef FAUSTCLASS 
 #define FAUSTCLASS mydsp
 #endif
 
-#ifdef __APPLE__ 
-#define exp10f __exp10f
-#define exp10 __exp10
-#endif
-
-#if defined(_WIN32)
-#define RESTRICT __restrict
-#else
-#define RESTRICT __restrict__
-#endif
-
-
 class mydsp : public dsp {
-	
- private:
-	
+  private:
+	float 	fConst0; // step: 6
+	float 	fConst1; // step: 7
+	int 	iConst2; // step: 14
+	float 	fVec0State; // Single Delay
+	float 	fVec1State[2]; // Copy Delay
+	float 	fVec2State[4]; // Copy Delay
+	int 	iConst3; // step: 23
+	int 	iConst4; // step: 28
+	int 	iConst5; // step: 30
 	int fSampleRate;
-	float fConst0;
-	float fConst1;
-	int iConst2;
-	int iConst3;
-	float fVec0[2];
-	int iConst4;
-	float fVec1[3];
-	int iConst5;
-	float fVec2[5];
-	int iConst6;
-	
- public:
-	mydsp() {
-	}
-	
-	void metadata(Meta* m) { 
+
+  public:
+	virtual void metadata(Meta* m) { 
 		m->declare("basics_lib_name", "Faust Basic Element Library");
 		m->declare("basics_lib_version", "0.1");
 		m->declare("compilation_options", "-single -scal -e t1.dsp -o t1_exp.dsp");
-		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "constant.dsp");
 		m->declare("library_path", "/usr/local/share/faust/stdfaust.lib");
 		m->declare("maths_lib_author", "GRAME");
@@ -69,85 +45,86 @@ class mydsp : public dsp {
 		m->declare("platform_lib_version", "0.1");
 	}
 
-	virtual int getNumInputs() {
-		return 1;
-	}
-	virtual int getNumOutputs() {
-		return 1;
-	}
-	
+	virtual int getNumInputs() { return 1; }
+	virtual int getNumOutputs() { return 1; }
 	static void classInit(int sample_rate) {
 	}
-	
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
-		fConst1 = 1.0f / fConst0;
-		iConst2 = fConst0 == 0.0f;
-		iConst3 = int(std::floor(fConst0)) % 2;
-		iConst4 = int(std::floor(0.5f * fConst0)) % 2;
-		iConst5 = int(std::floor(0.25f * fConst0)) % 2;
-		iConst6 = iConst3 + 2 * iConst4;
+		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 6
+		fConst1 = (1.0f / fConst0); // step: 7
+		iConst2 = (int(floorf((0.25f * fConst0))) % 2); // step: 14
+		iConst3 = (int(floorf(fConst0)) % 2); // step: 23
+		iConst4 = (int(floorf((0.5f * fConst0))) % 2); // step: 28
+		iConst5 = (iConst3 + (2 * iConst4)); // step: 30
 	}
-	
 	virtual void instanceResetUserInterface() {
 	}
-	
 	virtual void instanceClear() {
-		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
-			fVec0[l0] = 0.0f;
-		}
-		for (int l1 = 0; l1 < 3; l1 = l1 + 1) {
-			fVec1[l1] = 0.0f;
-		}
-		for (int l2 = 0; l2 < 5; l2 = l2 + 1) {
-			fVec2[l2] = 0.0f;
-		}
+		fVec0State = 0;
+		for (int j = 0; j < 2; j++) { fVec1State[j] = 0; }
+		for (int j = 0; j < 4; j++) { fVec2State[j] = 0; }
 	}
-	
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
 		instanceInit(sample_rate);
 	}
-	
 	virtual void instanceInit(int sample_rate) {
 		instanceConstants(sample_rate);
 		instanceResetUserInterface();
 		instanceClear();
 	}
-	
 	virtual mydsp* clone() {
 		return new mydsp();
 	}
-	
 	virtual int getSampleRate() {
 		return fSampleRate;
 	}
-	
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("constant");
 		ui_interface->closeBox();
 	}
-	
-	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
-		FAUSTFLOAT* input0 = inputs[0];
-		FAUSTFLOAT* output0 = outputs[0];
-		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			float fTemp0 = float(input0[i0]);
-			fVec0[0] = fTemp0;
-			float fTemp1 = fTemp0 + fVec0[1];
-			fVec1[0] = fTemp1;
-			fVec2[0] = fTemp1 + fVec1[2];
-			output0[i0] = FAUSTFLOAT(fConst1 * (((iConst2) ? fTemp0 : ((iConst3) ? fTemp0 : 0.0f)) + ((iConst4) ? fVec1[iConst3] : 0.0f) + ((iConst5) ? fVec2[iConst6] : 0.0f)));
-			fVec0[1] = fVec0[0];
-			fVec1[2] = fVec1[1];
-			fVec1[1] = fVec1[0];
-			for (int j0 = 4; j0 > 0; j0 = j0 - 1) {
-				fVec2[j0] = fVec2[j0 - 1];
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fVec0[2];
+		float 	fVec1[3];
+		float 	fVec2[5];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			fVec0[1] = fVec0State;
+			fVec1[1] = fVec1State[0];
+			fVec1[2] = fVec1State[1];
+			fVec2[1] = fVec2State[0];
+			fVec2[2] = fVec2State[1];
+			fVec2[3] = fVec2State[2];
+			fVec2[4] = fVec2State[3];
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = (float)input0[i]; // step: 15
+				fVec0[0] = fTemp0;
+				float 	fTemp1 = (fVec0[0] + fVec0[1]); // step: 18
+				fVec1[0] = fTemp1;
+				fVec2[0] = (fVec1[0] + fVec1[2]);
+				output0[i] = (FAUSTFLOAT)((fConst1 * ((((0) ? fVec0[0] : ((iConst3) ? fVec0[0] : 0.0f)) + ((iConst4) ? fVec1[iConst3] : 0.0f)) + ((iConst2) ? fVec2[iConst5] : 0.0f))));  // Zone Exec Code
+				// post processing
+				fVec2[4] = fVec2[3];
+				fVec2[3] = fVec2[2];
+				fVec2[2] = fVec2[1];
+				fVec2[1] = fVec2[0];
+				fVec1[2] = fVec1[1];
+				fVec1[1] = fVec1[0];
+				fVec0[1] = fVec0[0];
 			}
+			fVec0State = fVec0[1];
+			fVec1State[0] = fVec1[1];
+			fVec1State[1] = fVec1[2];
+			fVec2State[0] = fVec2[1];
+			fVec2State[1] = fVec2[2];
+			fVec2State[2] = fVec2[3];
+			fVec2State[3] = fVec2[4];
 		}
 	}
-
 };
 
-#endif
+

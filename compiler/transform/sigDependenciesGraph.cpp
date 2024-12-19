@@ -11,8 +11,8 @@
  */
 class SigDependenciesGraph : public SignalVisitor {
    protected:
-    digraph<Tree> fGraph;
-    bool          fFullGraph;
+    digraph<Tree, CTreeComparator> fGraph;
+    bool                           fFullGraph;
 
    public:
     SigDependenciesGraph(bool full) : SignalVisitor(), fFullGraph(full)
@@ -21,7 +21,7 @@ class SigDependenciesGraph : public SignalVisitor {
         fMessage = "SigDependenciesGraph";
     }
 
-    digraph<Tree> getGraph() { return fGraph; }
+    digraph<Tree, CTreeComparator> getGraph() { return fGraph; }
 
    protected:
     void visit(Tree t) override;
@@ -124,9 +124,9 @@ void SigDependenciesGraph::visit(Tree t)
  * of a list of signals
  *
  * @param L list of signals
- * @return digraph<Tree>
+ * @return digraph<Tree, CTreeComparator>
  */
-digraph<Tree> immediateGraph(Tree L)
+digraph<Tree, CTreeComparator> immediateGraph(Tree L)
 {
     SigDependenciesGraph g(false);
     g.mapself(L);
@@ -137,9 +137,9 @@ digraph<Tree> immediateGraph(Tree L)
  * @brief Compute the full Graph (all dependencies) of a list of signals
  *
  * @param L list of signals
- * @return digraph<Tree>
+ * @return digraph<Tree, CTreeComparator>
  */
-digraph<Tree> fullGraph(Tree L)
+digraph<Tree, CTreeComparator> fullGraph(Tree L)
 {
     SigDependenciesGraph g(true);
     g.mapself(L);
@@ -154,6 +154,6 @@ digraph<Tree> fullGraph(Tree L)
  */
 std::vector<Tree> compilationOrder(Tree L)
 {
-    digraph<Tree> G = immediateGraph(L);
+    digraph<Tree, CTreeComparator> G = immediateGraph(L);
     return serialize(G);
 }

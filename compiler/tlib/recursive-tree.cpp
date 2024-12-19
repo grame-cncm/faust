@@ -109,7 +109,7 @@ bool isRef(Tree t, Tree& v)
 // Symbolic references count as zero which means that a tree with aperture
 // 0 has no free deBruijn references.
 
-int CTreeBase::calcTreeAperture(const Node& n, const tvec& br)
+int CTree::calcTreeAperture(const Node& n, const tvec& br)
 {
     int x;
     if (n == gGlobal->DEBRUIJNREF) {

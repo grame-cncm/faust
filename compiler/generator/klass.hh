@@ -136,9 +136,9 @@ class Klass {
 
     void setLoopProperty(Tree sig, Loop* l);   ///< Store the loop used to compute a signal
     bool getLoopProperty(Tree sig, Loop*& l);  ///< Returns the loop used to compute a signal
-    void listAllLoopProperties(
-        Tree            sig, std::set<Loop*>&,
-        std::set<Tree>& visited);  ///< Returns all the loop used to compute a signal
+    void listAllLoopProperties(Tree sig, std::set<Loop*>&,
+                               std::set<Tree, CTreeComparator>&
+                                   visited);  ///< Returns all the loop used to compute a signal
 
     const std::string& getClassName() const
     {

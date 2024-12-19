@@ -1,58 +1,42 @@
-/* ------------------------------------------------------------
-name: "delays"
-Code generated with Faust 2.75.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
------------------------------------------------------------- */
+//----------------------------------------------------------
+// name: "delays"
+//
+// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+//----------------------------------------------------------
 
-#ifndef  __mydsp_H__
-#define  __mydsp_H__
-
+/* link with  */
+#include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
 
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
 
 #ifndef FAUSTCLASS 
 #define FAUSTCLASS mydsp
 #endif
 
-#ifdef __APPLE__ 
-#define exp10f __exp10f
-#define exp10 __exp10
-#endif
-
-#if defined(_WIN32)
-#define RESTRICT __restrict
-#else
-#define RESTRICT __restrict__
-#endif
-
-
 class mydsp : public dsp {
-	
- private:
-	
-	int IOTA0;
-	float fVec0[1024];
-	FAUSTFLOAT fEntry0;
-	float fRec0[2];
-	float fVec1[2048];
-	FAUSTFLOAT fEntry1;
-	float fRec1[2];
-	float fVec2[4096];
-	FAUSTFLOAT fEntry2;
-	float fRec2[2];
+  private:
+	float 	fVec0[4096]; // Ring Delay
+	float 	fVec1[1024]; // Ring Delay
+	FAUSTFLOAT 	fentry0;
+	// Recursion delay fVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Mono Delay
+	float 	fVec2[2048]; // Ring Delay
+	FAUSTFLOAT 	fentry1;
+	// Recursion delay fVeeec3 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec3State; // Mono Delay
+	FAUSTFLOAT 	fentry2;
+	// Recursion delay fVeeec6 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec6State; // Mono Delay
+	int 	IOTA;
 	int fSampleRate;
-	
- public:
-	mydsp() {
-	}
-	
-	void metadata(Meta* m) { 
-		m->declare("compile_options", "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+
+  public:
+	virtual void metadata(Meta* m) { 
 		m->declare("filename", "delays.dsp");
 		m->declare("math.lib/author", "GRAME");
 		m->declare("math.lib/copyright", "GRAME");
@@ -68,102 +52,92 @@ class mydsp : public dsp {
 		m->declare("name", "delays");
 	}
 
-	virtual int getNumInputs() {
-		return 3;
-	}
-	virtual int getNumOutputs() {
-		return 3;
-	}
-	
+	virtual int getNumInputs() { return 3; }
+	virtual int getNumOutputs() { return 3; }
 	static void classInit(int sample_rate) {
 	}
-	
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
 	}
-	
 	virtual void instanceResetUserInterface() {
-		fEntry0 = FAUSTFLOAT(2e+02f);
-		fEntry1 = FAUSTFLOAT(2e+02f);
-		fEntry2 = FAUSTFLOAT(4e+02f);
+		fentry0 = 2e+02f;
+		fentry1 = 2e+02f;
+		fentry2 = 4e+02f;
 	}
-	
 	virtual void instanceClear() {
-		IOTA0 = 0;
-		for (int l0 = 0; l0 < 1024; l0 = l0 + 1) {
-			fVec0[l0] = 0.0f;
-		}
-		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
-			fRec0[l1] = 0.0f;
-		}
-		for (int l2 = 0; l2 < 2048; l2 = l2 + 1) {
-			fVec1[l2] = 0.0f;
-		}
-		for (int l3 = 0; l3 < 2; l3 = l3 + 1) {
-			fRec1[l3] = 0.0f;
-		}
-		for (int l4 = 0; l4 < 4096; l4 = l4 + 1) {
-			fVec2[l4] = 0.0f;
-		}
-		for (int l5 = 0; l5 < 2; l5 = l5 + 1) {
-			fRec2[l5] = 0.0f;
-		}
+		for (int i = 0; i < 4096; i++) { fVec0[i] = 0; }
+		for (int i = 0; i < 1024; i++) { fVec1[i] = 0; }
+		fVeeec0State = 0;
+		for (int i = 0; i < 2048; i++) { fVec2[i] = 0; }
+		fVeeec3State = 0;
+		fVeeec6State = 0;
+		IOTA = 2;
 	}
-	
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
 		instanceInit(sample_rate);
 	}
-	
 	virtual void instanceInit(int sample_rate) {
 		instanceConstants(sample_rate);
 		instanceResetUserInterface();
 		instanceClear();
 	}
-	
 	virtual mydsp* clone() {
 		return new mydsp();
 	}
-	
 	virtual int getSampleRate() {
 		return fSampleRate;
 	}
-	
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("delays");
-		ui_interface->addNumEntry("d1", &fEntry0, FAUSTFLOAT(2e+02f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+03f), FAUSTFLOAT(1.0f));
-		ui_interface->addNumEntry("d2", &fEntry1, FAUSTFLOAT(2e+02f), FAUSTFLOAT(0.0f), FAUSTFLOAT(2e+03f), FAUSTFLOAT(1.0f));
-		ui_interface->addNumEntry("d3", &fEntry2, FAUSTFLOAT(4e+02f), FAUSTFLOAT(2e+02f), FAUSTFLOAT(3e+03f), FAUSTFLOAT(1.0f));
+		ui_interface->addNumEntry("d1", &fentry0, 2e+02f, 0.0f, 1e+03f, 1.0f);
+		ui_interface->addNumEntry("d2", &fentry1, 2e+02f, 0.0f, 2e+03f, 1.0f);
+		ui_interface->addNumEntry("d3", &fentry2, 4e+02f, 2e+02f, 3e+03f, 1.0f);
 		ui_interface->closeBox();
 	}
-	
-	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
-		FAUSTFLOAT* input0 = inputs[0];
-		FAUSTFLOAT* input1 = inputs[1];
-		FAUSTFLOAT* input2 = inputs[2];
-		FAUSTFLOAT* output0 = outputs[0];
-		FAUSTFLOAT* output1 = outputs[1];
-		FAUSTFLOAT* output2 = outputs[2];
-		int iSlow0 = int(float(fEntry0));
-		int iSlow1 = int(float(fEntry1));
-		int iSlow2 = int(float(fEntry2));
-		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			fVec0[IOTA0 & 1023] = float(input0[i0]);
-			fRec0[0] = 0.999f * fRec0[1] + 0.001f * fVec0[(IOTA0 - iSlow0) & 1023];
-			output0[i0] = FAUSTFLOAT(fRec0[0]);
-			fVec1[IOTA0 & 2047] = float(input1[i0]);
-			fRec1[0] = 0.999f * fRec1[1] + 0.001f * fVec1[(IOTA0 - iSlow1) & 2047];
-			output1[i0] = FAUSTFLOAT(fRec1[0]);
-			fVec2[IOTA0 & 4095] = float(input2[i0]);
-			fRec2[0] = 0.999f * fRec2[1] + 0.001f * fVec2[(IOTA0 - iSlow2) & 4095];
-			output2[i0] = FAUSTFLOAT(fRec2[0]);
-			IOTA0 = IOTA0 + 1;
-			fRec0[1] = fRec0[0];
-			fRec1[1] = fRec1[0];
-			fRec2[1] = fRec2[0];
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iSlow0 = int(float(fentry0)); // step: 10
+		float 	fVeeec0;
+		int 	iSlow1 = int(float(fentry1)); // step: 20
+		float 	fVeeec3;
+		int 	iSlow2 = int(float(fentry2)); // step: 29
+		float 	fVeeec6;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			fVeeec0 = fVeeec0State;
+			fVeeec3 = fVeeec3State;
+			fVeeec6 = fVeeec6State;
+			for (int i=0; i<count; i++) {
+				int vIota0 = IOTA&4095;
+				fVec0[vIota0] = (float)input2[i];
+				int vIota1 = IOTA&1023;
+				fVec1[vIota1] = (float)input0[i];
+				int vIota2 = (IOTA-iSlow0)&1023;
+				fVeeec0 = ((0.999f * fVeeec0) + (0.001f * fVec1[vIota2]));
+				int vIota3 = IOTA&2047;
+				fVec2[vIota3] = (float)input1[i];
+				int vIota4 = (IOTA-iSlow1)&2047;
+				fVeeec3 = ((0.999f * fVeeec3) + (0.001f * fVec2[vIota4]));
+				int vIota5 = (IOTA-iSlow2)&4095;
+				fVeeec6 = ((0.999f * fVeeec6) + (0.001f * fVec0[vIota5]));
+				output0[i] = (FAUSTFLOAT)(fVeeec0);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(fVeeec3);  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(fVeeec6);  // Zone Exec Code
+				// post processing
+				IOTA = IOTA+1;
+			}
+			fVeeec0State = fVeeec0;
+			fVeeec3State = fVeeec3;
+			fVeeec6State = fVeeec6;
 		}
 	}
-
 };
 
-#endif
+
