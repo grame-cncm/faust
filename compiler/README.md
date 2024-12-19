@@ -1,4 +1,4 @@
-% man(1) Version 2.77.0 (15-December-2024) | Faust man page
+% man(1) Version 2.77.1 (19-December-2024) | Faust man page
 
 NAME
 ====
@@ -259,10 +259,6 @@ Environment variables:
   FAUST_DEBUG      = FIR_PRINTER          print FIR after generation.
 
   FAUST_DEBUG      = FAUST_LLVM_NO_FM     deactivate fast**-math** optimisation in LLVM IR.
-
-  FAUST_DEBUG      = FAUST_DTREE          successive tree pointer allocation to guaranty deterministic compilation.
-
-  FAUST_DTREE_SIZE = \<num>                to set the size of each array of successive tree pointers in FAUST_DTREE mode.
 
   FAUST_OPT        = FAUST_SIG_NO_NORM    deactivate signal normalisation.
 
