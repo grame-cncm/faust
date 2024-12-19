@@ -527,6 +527,7 @@ static void compileCPP(Tree signals, int numInputs, int numOutputs, ostream* out
 static void compileOCPP(Tree signals, int numInputs, int numOutputs)
 {
 #ifdef OCPP_BUILD
+    gGlobal->gEnableFlag = false;  // enable not supported in current `-lang ocpp` backend
     if (gGlobal->gSchedulerSwitch) {
         gOldComp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
                                          numOutputs);
