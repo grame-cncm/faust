@@ -175,9 +175,15 @@ endif()
 # compiler dependent settings
 
 if (NONDETERMINISM_LINT)
+    if(APPLE)
+        set (PLUGIN_EXT "dylib")
+    else()
+        set (PLUGIN_EXT "so")
+    endif()
+
+    set (EXTRA_CXX_FLAGS "-fplugin=node-matcher-plugin/NodeMatcherPlugin.${PLUGIN_EXT} -fplugin-arg-NodeMatcherPlugin-${CMAKE_CURRENT_SOURCE_DIR}/lint.query")
     # Add NodeMatcherPlugin as a submodule
     add_subdirectory(../node-matcher-plugin node-matcher-plugin)
-    set (EXTRA_CXX_FLAGS "-fplugin=node-matcher-plugin/NodeMatcherPlugin.dylib -fplugin-arg-NodeMatcherPlugin-${CMAKE_CURRENT_SOURCE_DIR}/lint.query")
 endif()
 
 if (MSVC)
