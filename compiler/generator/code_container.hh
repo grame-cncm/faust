@@ -641,15 +641,15 @@ class CodeContainer : public virtual Garbageable {
 
     BlockInst* removeEmptyGroupsAux(BlockInst* ui, bool& remove)
     {
-        bool remove_tmp = false;
-        BlockInst* res = IB::genBlockInst();
+        bool       remove_tmp = false;
+        BlockInst* res        = IB::genBlockInst();
 
         auto it = ui->fCode.begin();
         while (it != ui->fCode.end()) {
             // Check if current item is OpenboxInst and the next item is CloseboxInst
             if (dynamic_cast<OpenboxInst*>(*it) && dynamic_cast<CloseboxInst*>(*std::next(it))) {
                 // If they are consecutive, skip both
-                it = std::next(it, 2);  // Move iterator forward by 2
+                it         = std::next(it, 2);  // Move iterator forward by 2
                 remove_tmp = true;
             } else {
                 // Otherwise, add the current item to the result
@@ -660,11 +660,11 @@ class CodeContainer : public virtual Garbageable {
         remove = remove_tmp;
         return res;
     }
-    
+
     BlockInst* removeEmptyGroups(BlockInst* ui)
     {
-        bool removed = false;
-        BlockInst* ui_tmp = ui;
+        bool       removed = false;
+        BlockInst* ui_tmp  = ui;
         do {
             ui_tmp = removeEmptyGroupsAux(ui_tmp, removed);
         } while (removed);

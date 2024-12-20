@@ -128,6 +128,22 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     std::map<int, int64_t> fRealStats;
 
+    // Freeze values
+    void freezeValues(std::map<int, int>& int_map, std::map<int, REAL>& real_map)
+    {
+        std::cout << "freezeValues Int " << std::endl;
+        for (const auto& it1 : int_map) {
+            std::cout << "offset " << it1.first << " value " << it1.second << std::endl;
+            fIntHeap[it1.first] = it1.second;
+        }
+
+        std::cout << "freezeValues Real" << std::endl;
+        for (const auto& it2 : real_map) {
+            std::cout << "offset " << it2.first << " value " << it2.second << std::endl;
+            fRealHeap[it2.first] = it2.second;
+        }
+    }
+
     /*
      Keeps the latest TRACE_STACK_SIZE executed instructions, to be displayed when an error occurs.
      */

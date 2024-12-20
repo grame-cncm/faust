@@ -59,7 +59,7 @@
  *
  * @param underVisit, stack of projections under visit (prevent infinite loops)
  * @param sig
- * @return std::set<Tree> set of dependencies of sig
+ * @return std::set<Tree, CTreeComparator> set of dependencies of sig
  */
 static std::set<Tree, CTreeComparator> sigDependencies(std::vector<Tree>& underVisit, Tree sig)
 {

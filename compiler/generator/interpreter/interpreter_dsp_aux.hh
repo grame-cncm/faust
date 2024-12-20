@@ -546,22 +546,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual ~interpreter_dsp_aux() { delete fFBCExecutor; }
 
-    // Freeze values
-    void freezeValues(std::map<int, int>& int_map, std::map<int, REAL>& real_map)
-    {
-        std::cout << "freezeValues Int " << std::endl;
-        for (const auto& it1 : int_map) {
-            std::cout << "offset " << it1.first << " value " << it1.second << std::endl;
-            this->fIntHeap[it1.first] = it1.second;
-        }
-
-        std::cout << "freezeValues Real" << std::endl;
-        for (const auto& it2 : real_map) {
-            std::cout << "offset " << it2.first << " value " << it2.second << std::endl;
-            this->fRealHeap[it2.first] = it2.second;
-        }
-    }
-
     virtual void metadata(Meta* meta) { fFactory->metadata(meta); }
 
     virtual void metadata(MetaGlue* meta) { fFactory->metadata(meta); }
