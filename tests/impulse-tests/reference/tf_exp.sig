@@ -1,4 +1,4 @@
-// Size = 183
+// Size = 184
 ID_0 = float(fSamplingFreq);
 ID_1 = max(1.0f, ID_0);
 ID_2 = min(1.92e+05f, ID_1);
@@ -174,12 +174,13 @@ ID_171 = ID_89*ID_170;
 ID_172 = ID_163-ID_171;
 ID_173 = letrec(W3 = (ID_172));
 ID_174 = proj0(ID_173);
-ID_175 = ID_174@0;
-ID_176 = ID_175+ID_166;
+ID_175 = ID_174@2;
+ID_176 = ID_174@0;
 ID_177 = 2.0f*ID_168;
-ID_178 = (ID_176-ID_177);
-ID_179 = ID_70*ID_178;
-ID_180 = (ID_149+ID_179);
-ID_181 = ID_89*ID_180;
-ID_182 = ID_85+ID_181;
-SIG = (ID_182);
+ID_178 = ID_176-ID_177;
+ID_179 = (ID_175+ID_178);
+ID_180 = ID_70*ID_179;
+ID_181 = (ID_149+ID_180);
+ID_182 = ID_89*ID_181;
+ID_183 = ID_85+ID_182;
+SIG = (ID_183);

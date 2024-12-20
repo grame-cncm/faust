@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "zita_rev1"
 //
-// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -590,18 +590,18 @@ class mydsp : public dsp {
 		float 	fVeeec0[2];
 		float 	fSlow79 = (0.001f * powf(1e+01f,(0.05f * float(fslider5)))); // step: 707
 		float 	fVeeec82;
-		float 	fSlow80 = (0.001f * float(fslider6)); // step: 714
+		float 	fSlow80 = (0.001f * float(fslider6)); // step: 715
 		float 	fVeeec84;
-		float 	fSlow81 = float(fslider7); // step: 724
-		float 	fSlow82 = powf(1e+01f,(0.05f * float(fslider8))); // step: 729
-		float 	fSlow83 = (fConst2 * (fSlow81 / sqrtf(max(0.0f, fSlow82)))); // step: 733
-		float 	fSlow84 = ((1.0f - fSlow83) / (fSlow83 + 1.0f)); // step: 736
-		float 	fSlow85 = (cosf((fConst2 * fSlow81)) * (fSlow84 + 1.0f)); // step: 738
-		float 	fSlow86 = float(fslider9); // step: 743
-		float 	fSlow87 = powf(1e+01f,(0.05f * float(fslider10))); // step: 748
-		float 	fSlow88 = (fConst2 * (fSlow86 / sqrtf(max(0.0f, fSlow87)))); // step: 752
-		float 	fSlow89 = ((1.0f - fSlow88) / (fSlow88 + 1.0f)); // step: 755
-		float 	fSlow90 = (cosf((fConst2 * fSlow86)) * (fSlow89 + 1.0f)); // step: 757
+		float 	fSlow81 = float(fslider7); // step: 721
+		float 	fSlow82 = powf(1e+01f,(0.05f * float(fslider8))); // step: 726
+		float 	fSlow83 = (fConst2 * (fSlow81 / sqrtf(max(0.0f, fSlow82)))); // step: 730
+		float 	fSlow84 = ((1.0f - fSlow83) / (fSlow83 + 1.0f)); // step: 733
+		float 	fSlow85 = (cosf((fConst2 * fSlow81)) * (fSlow84 + 1.0f)); // step: 735
+		float 	fSlow86 = float(fslider9); // step: 740
+		float 	fSlow87 = powf(1e+01f,(0.05f * float(fslider10))); // step: 745
+		float 	fSlow88 = (fConst2 * (fSlow86 / sqrtf(max(0.0f, fSlow87)))); // step: 749
+		float 	fSlow89 = ((1.0f - fSlow88) / (fSlow88 + 1.0f)); // step: 752
+		float 	fSlow90 = (cosf((fConst2 * fSlow86)) * (fSlow89 + 1.0f)); // step: 754
 		float 	fVeeec34[3];
 		float 	fVeeec51[3];
 		float 	fVeeec88[3];
@@ -789,40 +789,38 @@ class mydsp : public dsp {
 				fVeeec82 = (fSlow79 + (0.999f * fVeeec82));
 				float 	fTemp43 = fVeeec82; // step: 710
 				fVeeec84 = (fSlow80 + (0.999f * fVeeec84));
-				float 	fTemp44 = (fVeeec84 + 1.0f); // step: 718
-				float 	fTemp45 = (1.0f - (0.5f * fTemp44)); // step: 720
-				float 	fTemp46 = (fSlow85 * fVeeec86[1]); // step: 739
-				float 	fTemp47 = fVeeec86[2]; // step: 740
-				float 	fTemp48 = (fSlow90 * fVeeec88[1]); // step: 758
-				float 	fTemp49 = fVeeec88[2]; // step: 759
+				float 	fTemp44 = (fVeeec84 + 1.0f); // step: 719
+				float 	fTemp45 = (fSlow85 * fVeeec86[1]); // step: 736
+				float 	fTemp46 = fVeeec86[2]; // step: 737
+				float 	fTemp47 = (fSlow90 * fVeeec88[1]); // step: 755
+				float 	fTemp48 = fVeeec88[2]; // step: 756
 				fVeeec34[0] = ((fTemp4 + (fTemp5 + (fTemp6 + (fTemp7 + fTemp37)))) - (fTemp0 + (fTemp1 + (fTemp2 + (fTemp3 + (fTemp12 + (fTemp15 + (fTemp21 + fTemp18))))))));
-				float 	fTemp50 = fVeeec34[0]; // step: 775
+				float 	fTemp49 = fVeeec34[0]; // step: 772
 				fVeeec51[0] = ((fTemp2 + (fTemp3 + (fTemp6 + (fTemp7 + (fTemp18 + (fTemp21 + fTemp36)))))) - (fTemp0 + (fTemp1 + (fTemp4 + (fTemp5 + (fTemp12 + (fTemp15 + fTemp42)))))));
-				float 	fTemp51 = fVeeec51[0]; // step: 790
-				float 	fTemp52 = (0.37f * (fTemp50 + fTemp51)); // step: 792
-				float 	fTemp53 = (fTemp52 + fTemp48); // step: 793
-				fVeeec88[0] = (fTemp53 - (fSlow89 * fTemp49));
-				float 	fTemp54 = (fSlow89 * fVeeec88[0]); // step: 797
-				float 	fTemp55 = (fTemp54 + (fTemp52 + fTemp49)); // step: 799
-				float 	fTemp56 = (fSlow87 * ((fTemp49 + fTemp54) - fTemp53)); // step: 803
-				fVeeec86[0] = (((0.5f * ((fTemp55 - fTemp48) + fTemp56)) + fTemp46) - (fSlow84 * fTemp47));
-				float 	fTemp57 = (fTemp47 + (fSlow84 * fVeeec86[0])); // step: 811
-				float 	fTemp58 = (0.5f * ((fTemp55 + fTemp56) - fTemp48)); // step: 814
-				float 	fTemp59 = (fSlow85 * fVeeec94[1]); // step: 827
-				float 	fTemp60 = fVeeec94[2]; // step: 828
-				float 	fTemp61 = (fSlow90 * fVeeec96[1]); // step: 831
-				float 	fTemp62 = fVeeec96[2]; // step: 832
-				float 	fTemp63 = (0.37f * (fTemp50 - fTemp51)); // step: 835
-				float 	fTemp64 = (fTemp63 + fTemp61); // step: 836
-				fVeeec96[0] = (fTemp64 - (fSlow89 * fTemp62));
-				float 	fTemp65 = (fSlow89 * fVeeec96[0]); // step: 840
-				float 	fTemp66 = (fTemp65 + (fTemp63 + fTemp62)); // step: 842
-				float 	fTemp67 = (fSlow87 * ((fTemp62 + fTemp65) - fTemp64)); // step: 846
-				fVeeec94[0] = (((0.5f * ((fTemp66 - fTemp61) + fTemp67)) + fTemp59) - (fSlow84 * fTemp60));
-				float 	fTemp68 = (fTemp60 + (fSlow84 * fVeeec94[0])); // step: 854
-				float 	fTemp69 = (0.5f * ((fTemp66 + fTemp67) - fTemp61)); // step: 857
-				output0[i] = (FAUSTFLOAT)((fTemp43 * ((fVec8[vIota0] * fTemp45) + (0.25f * (fTemp44 * (((fTemp57 + fTemp58) + (fSlow82 * (fTemp57 - (fTemp46 + fTemp58)))) - fTemp46))))));  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)((fTemp43 * ((fVec0[vIota0] * fTemp45) + (0.25f * (fTemp44 * (((fTemp68 + fTemp69) + (fSlow82 * (fTemp68 - (fTemp59 + fTemp69)))) - fTemp59))))));  // Zone Exec Code
+				float 	fTemp50 = fVeeec51[0]; // step: 787
+				float 	fTemp51 = (0.37f * (fTemp49 + fTemp50)); // step: 789
+				float 	fTemp52 = (fTemp51 + fTemp47); // step: 790
+				fVeeec88[0] = (fTemp52 - (fSlow89 * fTemp48));
+				float 	fTemp53 = (fSlow89 * fVeeec88[0]); // step: 794
+				float 	fTemp54 = (0.5f * (((fTemp53 + (fTemp51 + fTemp48)) - fTemp47) + (fSlow87 * ((fTemp48 + fTemp53) - fTemp52)))); // step: 802
+				float 	fTemp55 = (fTemp54 + fTemp45); // step: 803
+				fVeeec86[0] = (fTemp55 - (fSlow84 * fTemp46));
+				float 	fTemp56 = (fSlow84 * fVeeec86[0]); // step: 807
+				float 	fTemp57 = (1.0f - (0.5f * fTemp44)); // step: 818
+				float 	fTemp58 = (fSlow85 * fVeeec94[1]); // step: 823
+				float 	fTemp59 = fVeeec94[2]; // step: 824
+				float 	fTemp60 = (fSlow90 * fVeeec96[1]); // step: 827
+				float 	fTemp61 = fVeeec96[2]; // step: 828
+				float 	fTemp62 = (0.37f * (fTemp49 - fTemp50)); // step: 831
+				float 	fTemp63 = (fTemp62 + fTemp60); // step: 832
+				fVeeec96[0] = (fTemp63 - (fSlow89 * fTemp61));
+				float 	fTemp64 = (fSlow89 * fVeeec96[0]); // step: 836
+				float 	fTemp65 = (0.5f * (((fTemp64 + (fTemp62 + fTemp61)) - fTemp60) + (fSlow87 * ((fTemp61 + fTemp64) - fTemp63)))); // step: 844
+				float 	fTemp66 = (fTemp65 + fTemp58); // step: 845
+				fVeeec94[0] = (fTemp66 - (fSlow84 * fTemp59));
+				float 	fTemp67 = (fSlow84 * fVeeec94[0]); // step: 849
+				output0[i] = (FAUSTFLOAT)((fTemp43 * ((0.25f * (fTemp44 * (((fTemp56 + (fTemp54 + fTemp46)) - fTemp45) + (fSlow82 * ((fTemp46 + fTemp56) - fTemp55))))) + (fVec8[vIota0] * fTemp57))));  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)((fTemp43 * ((0.25f * (fTemp44 * (((fTemp67 + (fTemp65 + fTemp59)) - fTemp58) + (fSlow82 * ((fTemp59 + fTemp67) - fTemp66))))) + (fVec0[vIota0] * fTemp57))));  // Zone Exec Code
 				// post processing
 				IOTA = IOTA+1;
 				fVeeec94[2] = fVeeec94[1];

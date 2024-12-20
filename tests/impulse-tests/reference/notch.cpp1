@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "notch"
 //
-// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -87,8 +87,8 @@ class mydsp : public dsp {
 		float 	fSlow0 = (fConst0 * max(0.0f, float(fslider1))); // step: 16
 		float 	fSlow1 = (0.5f * (sinf(fSlow0) / max(0.001f, float(fslider0)))); // step: 19
 		float 	fSlow2 = (1.0f / (fSlow1 + 1.0f)); // step: 21
-		float 	fSlow3 = (2.0f * cosf(fSlow0)); // step: 24
-		float 	fSlow4 = (1.0f - fSlow1); // step: 30
+		float 	fSlow3 = (1.0f - fSlow1); // step: 26
+		float 	fSlow4 = (2.0f * cosf(fSlow0)); // step: 30
 		float 	fVeeec0[3];
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
@@ -98,10 +98,10 @@ class mydsp : public dsp {
 			fVeeec0[1] = fVeeec0State[0];
 			fVeeec0[2] = fVeeec0State[1];
 			for (int i=0; i<count; i++) {
-				float 	fTemp0 = (fSlow3 * fVeeec0[1]); // step: 27
-				float 	fTemp1 = fVeeec0[2]; // step: 32
-				fVeeec0[0] = ((float)input0[i] - (fSlow2 * ((fSlow4 * fTemp1) - fTemp0)));
-				output0[i] = (FAUSTFLOAT)((fSlow2 * ((fVeeec0[0] + fTemp1) - fTemp0)));  // Zone Exec Code
+				float 	fTemp0 = fVeeec0[2]; // step: 23
+				float 	fTemp1 = (fSlow4 * fVeeec0[1]); // step: 33
+				fVeeec0[0] = ((float)input0[i] - (fSlow2 * ((fSlow3 * fTemp0) - fTemp1)));
+				output0[i] = (FAUSTFLOAT)((fSlow2 * (fTemp0 + (fVeeec0[0] - fTemp1))));  // Zone Exec Code
 				// post processing
 				fVeeec0[2] = fVeeec0[1];
 				fVeeec0[1] = fVeeec0[0];

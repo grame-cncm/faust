@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "LPF"
 //
-// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -104,7 +104,7 @@ class mydsp : public dsp {
 				float 	fTemp0 = fVeeec0[1]; // step: 25
 				float 	fTemp1 = fVeeec0[2]; // step: 31
 				fVeeec0[0] = ((float)input0[i] - (fSlow5 * ((fSlow6 * fTemp1) - (fSlow7 * fTemp0))));
-				output0[i] = (FAUSTFLOAT)((fSlow4 * (fTemp0 + (0.5f * (fVeeec0[0] + fTemp1)))));  // Zone Exec Code
+				output0[i] = (FAUSTFLOAT)((fSlow4 * ((fTemp0 + (0.5f * fVeeec0[0])) + (0.5f * fTemp1))));  // Zone Exec Code
 				// post processing
 				fVeeec0[2] = fVeeec0[1];
 				fVeeec0[1] = fVeeec0[0];

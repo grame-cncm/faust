@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "math"
 //
-// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with : "" */
@@ -303,9 +303,9 @@ class mydsp : public dsp {
 				output32[i] = (FAUSTFLOAT)((int((3.5f * (float)input52[i])) != int((2.4f * (float)input53[i]))));  // Zone Exec Code
 				output33[i] = (FAUSTFLOAT)(((3.5f * (float)input54[i]) != (2.4f * (float)input55[i])));  // Zone Exec Code
 				output34[i] = (FAUSTFLOAT)(abs(int((4.4f * (float)input56[i]))));  // Zone Exec Code
-				output35[i] = (FAUSTFLOAT)(abs(int((-4.4f * (float)input57[i]))));  // Zone Exec Code
+				output35[i] = (FAUSTFLOAT)(abs(int(-(4.4f * (float)input57[i]))));  // Zone Exec Code
 				output36[i] = (FAUSTFLOAT)(fabsf((4.4f * (float)input58[i])));  // Zone Exec Code
-				output37[i] = (FAUSTFLOAT)(fabsf((-4.4f * (float)input59[i])));  // Zone Exec Code
+				output37[i] = (FAUSTFLOAT)(fabsf(-(4.4f * (float)input59[i])));  // Zone Exec Code
 				output38[i] = (FAUSTFLOAT)(acosf((0.5f * (float)input60[i])));  // Zone Exec Code
 				output39[i] = (FAUSTFLOAT)(1.5707964f);  // Zone Exec Code
 				output40[i] = (FAUSTFLOAT)(asinf((0.5f * (float)input62[i])));  // Zone Exec Code

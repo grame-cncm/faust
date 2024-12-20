@@ -102,7 +102,7 @@ EndBlockInst
 
 ======= Compute DSP begin ==========
 
-Instructions complexity : Load = 17 Store = 5 Binop = 11 [ { Int(+) = 1 } { Int(<) = 1 } { Real(*) = 5 } { Real(+) = 2 } { Real(-) = 2 } ] Mathop = 0 Numbers = 13 Declare = 1 Cast = 2 Select = 0 Loop = 1
+Instructions complexity : Load = 17 Store = 5 Binop = 12 [ { Int(+) = 1 } { Int(<) = 1 } { Real(*) = 6 } { Real(+) = 2 } { Real(-) = 2 } ] Mathop = 0 Numbers = 14 Declare = 1 Cast = 2 Select = 0 Loop = 1
 
 ForLoopInst 
 	DeclareVarInst("int", i0, kLoop, Int32(0))
@@ -110,7 +110,7 @@ ForLoopInst
 	StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 	BlockInst 
 		StoreVarInst(Address(fRec0, kStruct)[Int32(0)], BinopInst("-", CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])), BinopInst("*", LoadVarInst(Address(fSlow5, kStack)), BinopInst("-", BinopInst("*", LoadVarInst(Address(fSlow6, kStack)), LoadVarInst(Address(fRec0, kStruct)[Int32(2)])), BinopInst("*", LoadVarInst(Address(fSlow7, kStack)), LoadVarInst(Address(fRec0, kStruct)[Int32(1)]))))))
-		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", LoadVarInst(Address(fSlow4, kStack)), BinopInst("+", LoadVarInst(Address(fRec0, kStruct)[Int32(1)]), BinopInst("*", Float(0.5f), BinopInst("+", LoadVarInst(Address(fRec0, kStruct)[Int32(0)]), LoadVarInst(Address(fRec0, kStruct)[Int32(2)])))))))
+		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", LoadVarInst(Address(fSlow4, kStack)), BinopInst("+", BinopInst("+", LoadVarInst(Address(fRec0, kStruct)[Int32(1)]), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec0, kStruct)[Int32(0)]))), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec0, kStruct)[Int32(2)]))))))
 		StoreVarInst(Address(fRec0, kStruct)[Int32(2)], LoadVarInst(Address(fRec0, kStruct)[Int32(1)]))
 		StoreVarInst(Address(fRec0, kStruct)[Int32(1)], LoadVarInst(Address(fRec0, kStruct)[Int32(0)]))
 	EndBlockInst
@@ -172,7 +172,7 @@ BlockInst
 		StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 		BlockInst 
 			StoreVarInst(Address(fRec0, kStruct)[Int32(0)], BinopInst("-", CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])), BinopInst("*", LoadVarInst(Address(fSlow5, kStack)), BinopInst("-", BinopInst("*", LoadVarInst(Address(fSlow6, kStack)), LoadVarInst(Address(fRec0, kStruct)[Int32(2)])), BinopInst("*", LoadVarInst(Address(fSlow7, kStack)), LoadVarInst(Address(fRec0, kStruct)[Int32(1)]))))))
-			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", LoadVarInst(Address(fSlow4, kStack)), BinopInst("+", LoadVarInst(Address(fRec0, kStruct)[Int32(1)]), BinopInst("*", Float(0.5f), BinopInst("+", LoadVarInst(Address(fRec0, kStruct)[Int32(0)]), LoadVarInst(Address(fRec0, kStruct)[Int32(2)])))))))
+			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", LoadVarInst(Address(fSlow4, kStack)), BinopInst("+", BinopInst("+", LoadVarInst(Address(fRec0, kStruct)[Int32(1)]), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec0, kStruct)[Int32(0)]))), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec0, kStruct)[Int32(2)]))))))
 			StoreVarInst(Address(fRec0, kStruct)[Int32(2)], LoadVarInst(Address(fRec0, kStruct)[Int32(1)]))
 			StoreVarInst(Address(fRec0, kStruct)[Int32(1)], LoadVarInst(Address(fRec0, kStruct)[Int32(0)]))
 		EndBlockInst

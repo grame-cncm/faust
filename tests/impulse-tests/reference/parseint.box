@@ -1,4 +1,4 @@
-declare version "2.77.0";
+declare version "2.77.2";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/parseint.dsp -o reference/parseint.box";
 declare filename "parseint.dsp";
 declare name "parseint";

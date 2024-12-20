@@ -5,7 +5,7 @@
 // name: "lowcut"
 // version: "1.0"
 //
-// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -92,20 +92,17 @@ class mydsp : public dsp {
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		float 	fSlow0 = tanf((fConst0 * float(fslider0))); // step: 11
-		float 	fSlow1 = float(fslider1); // step: 15
-		float 	fSlow2 = powf(1e+01f,(-0.05f * fSlow1)); // step: 17
-		float 	fSlow3 = (1.0f / ((fSlow0 * (sqrtf((2.0f * fSlow2)) + (fSlow0 * fSlow2))) + 1.0f)); // step: 24
-		float 	fSlow4 = ((fSlow0 * (fSlow0 + -1.4142135f)) + 1.0f); // step: 30
-		float 	fSlow5 = powf(1e+01f,-(0.05f * fSlow1)); // step: 38
-		float 	fSlow6 = sqrtf((2.0f * fSlow5)); // step: 40
-		float 	fSlow7 = (fSlow0 * fSlow5); // step: 41
-		float 	fSlow8 = (1.0f / ((fSlow0 * (fSlow6 + fSlow7)) + 1.0f)); // step: 45
-		float 	fSlow9 = (1.0f - (fSlow0 * (fSlow6 - fSlow7))); // step: 48
-		float 	fSlow10 = powf(fSlow0,2.0f); // step: 52
-		float 	fSlow11 = (2.0f * ((fSlow10 * fSlow5) + -1.0f)); // step: 55
+		float 	fSlow1 = powf(1e+01f,-(0.05f * float(fslider1))); // step: 19
+		float 	fSlow2 = sqrtf((2.0f * fSlow1)); // step: 21
+		float 	fSlow3 = (fSlow0 * fSlow1); // step: 22
+		float 	fSlow4 = (1.0f / ((fSlow0 * (fSlow2 + fSlow3)) + 1.0f)); // step: 26
+		float 	fSlow5 = ((fSlow0 * (fSlow0 + -1.4142135f)) + 1.0f); // step: 32
+		float 	fSlow6 = (1.0f - (fSlow0 * (fSlow2 - fSlow3))); // step: 38
+		float 	fSlow7 = powf(fSlow0,2.0f); // step: 42
+		float 	fSlow8 = (2.0f * ((fSlow7 * fSlow1) + -1.0f)); // step: 45
 		float 	fVeeec0[3];
-		float 	fSlow12 = ((fSlow0 * (fSlow0 + 1.4142135f)) + 1.0f); // step: 65
-		float 	fSlow13 = (2.0f * (fSlow10 + -1.0f)); // step: 68
+		float 	fSlow9 = ((fSlow0 * (fSlow0 + 1.4142135f)) + 1.0f); // step: 55
+		float 	fSlow10 = (2.0f * (fSlow7 + -1.0f)); // step: 58
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
 			int count = min(32, fullcount-index);
@@ -114,10 +111,10 @@ class mydsp : public dsp {
 			fVeeec0[1] = fVeeec0State[0];
 			fVeeec0[2] = fVeeec0State[1];
 			for (int i=0; i<count; i++) {
-				float 	fTemp0 = fVeeec0[2]; // step: 26
-				float 	fTemp1 = fVeeec0[1]; // step: 51
-				fVeeec0[0] = ((float)input0[i] - (fSlow8 * ((fSlow9 * fTemp0) + (fSlow11 * fTemp1))));
-				output0[i] = (FAUSTFLOAT)((fSlow3 * (((fSlow12 * fVeeec0[0]) + (fSlow13 * fTemp1)) + (fSlow4 * fTemp0))));  // Zone Exec Code
+				float 	fTemp0 = fVeeec0[2]; // step: 28
+				float 	fTemp1 = fVeeec0[1]; // step: 41
+				fVeeec0[0] = ((float)input0[i] - (fSlow4 * ((fSlow6 * fTemp0) + (fSlow8 * fTemp1))));
+				output0[i] = (FAUSTFLOAT)((fSlow4 * (((fSlow9 * fVeeec0[0]) + (fSlow10 * fTemp1)) + (fSlow5 * fTemp0))));  // Zone Exec Code
 				// post processing
 				fVeeec0[2] = fVeeec0[1];
 				fVeeec0[1] = fVeeec0[0];

@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "math_simp"
 //
-// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -18,7 +18,7 @@
 class mydsp : public dsp {
   private:
 	float 	fVec0State[10]; // Copy Delay
-	float 	fConst0; // step: 15
+	float 	fConst0; // step: 16
 	int fSampleRate;
 
   public:
@@ -33,7 +33,7 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 15
+		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 16
 	}
 	virtual void instanceResetUserInterface() {
 	}
@@ -112,16 +112,16 @@ class mydsp : public dsp {
 			for (int i=0; i<count; i++) {
 				float 	fTemp0 = (float)input0[i]; // step: 2
 				fVec0[0] = fTemp0;
-				float 	fTemp1 = (float)input1[i]; // step: 4
-				float 	fTemp2 = (fVec0[0] + fTemp1); // step: 5
-				float 	fTemp3 = fVec0[10]; // step: 8
-				float 	fTemp4 = (fVec0[0] - (fTemp1 + (float)input2[i])); // step: 19
-				float 	fTemp5 = (fTemp1 - fVec0[0]); // step: 20
-				float 	fTemp6 = (fVec0[0] - fTemp1); // step: 23
-				float 	fTemp7 = fVec0[1]; // step: 31
-				float 	fTemp8 = (3.0f * fTemp7); // step: 32
-				float 	fTemp9 = fVec0[2]; // step: 34
-				float 	fTemp10 = (fConst0 * fVec0[0]); // step: 37
+				float 	fTemp1 = (float)input1[i]; // step: 5
+				float 	fTemp2 = (fVec0[0] + fTemp1); // step: 6
+				float 	fTemp3 = fVec0[10]; // step: 9
+				float 	fTemp4 = (fVec0[0] - (fTemp1 + (float)input2[i])); // step: 20
+				float 	fTemp5 = (fTemp1 - fVec0[0]); // step: 21
+				float 	fTemp6 = (fVec0[0] - fTemp1); // step: 24
+				float 	fTemp7 = fVec0[1]; // step: 32
+				float 	fTemp8 = (3.0f * fTemp7); // step: 33
+				float 	fTemp9 = fVec0[2]; // step: 35
+				float 	fTemp10 = (fConst0 * fVec0[0]); // step: 38
 				output0[i] = (FAUSTFLOAT)(-fVec0[0]);  // Zone Exec Code
 				output1[i] = (FAUSTFLOAT)(-fVec0[0]);  // Zone Exec Code
 				output2[i] = (FAUSTFLOAT)(-fVec0[0]);  // Zone Exec Code
@@ -136,7 +136,7 @@ class mydsp : public dsp {
 				output11[i] = (FAUSTFLOAT)((4.0f * fabsf(fTemp5)));  // Zone Exec Code
 				output12[i] = (FAUSTFLOAT)(-fConst0);  // Zone Exec Code
 				output13[i] = (FAUSTFLOAT)(-fTemp10);  // Zone Exec Code
-				output14[i] = (FAUSTFLOAT)(fVec0[0]);  // Zone Exec Code
+				output14[i] = (FAUSTFLOAT)(-(-fVec0[0]));  // Zone Exec Code
 				output15[i] = (FAUSTFLOAT)(-fVec0[0]);  // Zone Exec Code
 				output16[i] = (FAUSTFLOAT)(-fConst0);  // Zone Exec Code
 				output17[i] = (FAUSTFLOAT)(-fTemp10);  // Zone Exec Code

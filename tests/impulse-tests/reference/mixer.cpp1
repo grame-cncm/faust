@@ -5,7 +5,7 @@
 // name: "mixer"
 // version: "1.0"
 //
-// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -360,76 +360,60 @@ class mydsp : public dsp {
 		float 	fSlow2 = (0.001f * powf(1e+01f,(0.05f * float(fslider1)))); // step: 37
 		float 	fVeeec4;
 		float 	fVeeec3;
-		float 	fSlow3 = (float(fentry0) + -9e+01f); // step: 54
-		float 	fSlow4 = (0.0055555557f * fSlow3); // step: 56
-		float 	fSlow5 = sqrtf((fSlow4 + 1.0f)); // step: 58
-		float 	fSlow6 = (1.0f - float(fcheckbox1)); // step: 63
-		float 	fSlow7 = (0.001f * powf(1e+01f,(0.05f * float(fslider2)))); // step: 70
+		float 	fSlow3 = (0.0055555557f * (float(fentry0) + -9e+01f)); // step: 56
+		float 	fSlow4 = sqrtf((fSlow3 + 1.0f)); // step: 58
+		float 	fSlow5 = (1.0f - float(fcheckbox1)); // step: 63
+		float 	fSlow6 = (0.001f * powf(1e+01f,(0.05f * float(fslider2)))); // step: 70
 		float 	fVeeec8;
 		float 	fVeeec7;
-		float 	fSlow8 = (float(fentry1) + -9e+01f); // step: 86
-		float 	fSlow9 = (0.0055555557f * fSlow8); // step: 87
-		float 	fSlow10 = sqrtf((fSlow9 + 1.0f)); // step: 89
-		float 	fSlow11 = (1.0f - float(fcheckbox2)); // step: 95
-		float 	fSlow12 = (0.001f * powf(1e+01f,(0.05f * float(fslider3)))); // step: 102
+		float 	fSlow7 = (0.0055555557f * (float(fentry1) + -9e+01f)); // step: 87
+		float 	fSlow8 = sqrtf((fSlow7 + 1.0f)); // step: 89
+		float 	fSlow9 = (1.0f - float(fcheckbox2)); // step: 95
+		float 	fSlow10 = (0.001f * powf(1e+01f,(0.05f * float(fslider3)))); // step: 102
 		float 	fVeeec12;
 		float 	fVeeec11;
-		float 	fSlow13 = (float(fentry2) + -9e+01f); // step: 118
-		float 	fSlow14 = (0.0055555557f * fSlow13); // step: 119
-		float 	fSlow15 = sqrtf((fSlow14 + 1.0f)); // step: 121
-		float 	fSlow16 = (1.0f - float(fcheckbox3)); // step: 127
-		float 	fSlow17 = (0.001f * powf(1e+01f,(0.05f * float(fslider4)))); // step: 134
+		float 	fSlow11 = (0.0055555557f * (float(fentry2) + -9e+01f)); // step: 119
+		float 	fSlow12 = sqrtf((fSlow11 + 1.0f)); // step: 121
+		float 	fSlow13 = (1.0f - float(fcheckbox3)); // step: 127
+		float 	fSlow14 = (0.001f * powf(1e+01f,(0.05f * float(fslider4)))); // step: 134
 		float 	fVeeec16;
 		float 	fVeeec15;
-		float 	fSlow18 = (float(fentry3) + -9e+01f); // step: 150
-		float 	fSlow19 = (0.0055555557f * fSlow18); // step: 151
-		float 	fSlow20 = sqrtf((fSlow19 + 1.0f)); // step: 153
-		float 	fSlow21 = (1.0f - float(fcheckbox4)); // step: 159
-		float 	fSlow22 = (0.001f * powf(1e+01f,(0.05f * float(fslider5)))); // step: 166
+		float 	fSlow15 = (0.0055555557f * (float(fentry3) + -9e+01f)); // step: 151
+		float 	fSlow16 = sqrtf((fSlow15 + 1.0f)); // step: 153
+		float 	fSlow17 = (1.0f - float(fcheckbox4)); // step: 159
+		float 	fSlow18 = (0.001f * powf(1e+01f,(0.05f * float(fslider5)))); // step: 166
 		float 	fVeeec20;
 		float 	fVeeec19;
-		float 	fSlow23 = (float(fentry4) + -9e+01f); // step: 182
-		float 	fSlow24 = (0.0055555557f * fSlow23); // step: 183
-		float 	fSlow25 = sqrtf((fSlow24 + 1.0f)); // step: 185
-		float 	fSlow26 = (1.0f - float(fcheckbox5)); // step: 191
-		float 	fSlow27 = (0.001f * powf(1e+01f,(0.05f * float(fslider6)))); // step: 198
+		float 	fSlow19 = (0.0055555557f * (float(fentry4) + -9e+01f)); // step: 183
+		float 	fSlow20 = sqrtf((fSlow19 + 1.0f)); // step: 185
+		float 	fSlow21 = (1.0f - float(fcheckbox5)); // step: 191
+		float 	fSlow22 = (0.001f * powf(1e+01f,(0.05f * float(fslider6)))); // step: 198
 		float 	fVeeec24;
 		float 	fVeeec23;
-		float 	fSlow28 = (float(fentry5) + -9e+01f); // step: 214
-		float 	fSlow29 = (0.0055555557f * fSlow28); // step: 215
-		float 	fSlow30 = sqrtf((fSlow29 + 1.0f)); // step: 217
-		float 	fSlow31 = (1.0f - float(fcheckbox6)); // step: 223
-		float 	fSlow32 = (0.001f * powf(1e+01f,(0.05f * float(fslider7)))); // step: 230
+		float 	fSlow23 = (0.0055555557f * (float(fentry5) + -9e+01f)); // step: 215
+		float 	fSlow24 = sqrtf((fSlow23 + 1.0f)); // step: 217
+		float 	fSlow25 = (1.0f - float(fcheckbox6)); // step: 223
+		float 	fSlow26 = (0.001f * powf(1e+01f,(0.05f * float(fslider7)))); // step: 230
 		float 	fVeeec28;
 		float 	fVeeec27;
-		float 	fSlow33 = (float(fentry6) + -9e+01f); // step: 246
-		float 	fSlow34 = (0.0055555557f * fSlow33); // step: 247
-		float 	fSlow35 = sqrtf((fSlow34 + 1.0f)); // step: 249
-		float 	fSlow36 = (1.0f - float(fcheckbox7)); // step: 255
-		float 	fSlow37 = (0.001f * powf(1e+01f,(0.05f * float(fslider8)))); // step: 262
+		float 	fSlow27 = (0.0055555557f * (float(fentry6) + -9e+01f)); // step: 247
+		float 	fSlow28 = sqrtf((fSlow27 + 1.0f)); // step: 249
+		float 	fSlow29 = (1.0f - float(fcheckbox7)); // step: 255
+		float 	fSlow30 = (0.001f * powf(1e+01f,(0.05f * float(fslider8)))); // step: 262
 		float 	fVeeec32;
 		float 	fVeeec31;
-		float 	fSlow38 = (float(fentry7) + -9e+01f); // step: 278
-		float 	fSlow39 = (0.0055555557f * fSlow38); // step: 279
-		float 	fSlow40 = sqrtf((fSlow39 + 1.0f)); // step: 281
+		float 	fSlow31 = (0.0055555557f * (float(fentry7) + -9e+01f)); // step: 279
+		float 	fSlow32 = sqrtf((fSlow31 + 1.0f)); // step: 281
 		float 	fVeeec0;
-		float 	fSlow41 = sqrtf(-fSlow4); // step: 298
-		float 	fSlow42 = sqrtf(-fSlow9); // step: 301
-		float 	fSlow43 = sqrtf(-fSlow14); // step: 305
-		float 	fSlow44 = sqrtf(-fSlow19); // step: 309
-		float 	fSlow45 = sqrtf(-fSlow24); // step: 313
-		float 	fSlow46 = sqrtf(-fSlow29); // step: 317
-		float 	fSlow47 = sqrtf(-fSlow34); // step: 321
-		float 	fSlow48 = sqrtf(-fSlow39); // step: 325
+		float 	fSlow33 = sqrtf(-fSlow3); // step: 298
+		float 	fSlow34 = sqrtf(-fSlow7); // step: 301
+		float 	fSlow35 = sqrtf(-fSlow11); // step: 305
+		float 	fSlow36 = sqrtf(-fSlow15); // step: 309
+		float 	fSlow37 = sqrtf(-fSlow19); // step: 313
+		float 	fSlow38 = sqrtf(-fSlow23); // step: 317
+		float 	fSlow39 = sqrtf(-fSlow27); // step: 321
+		float 	fSlow40 = sqrtf(-fSlow31); // step: 325
 		float 	fVeeec36;
-		float 	fSlow49 = sqrtf((-0.0055555557f * fSlow3)); // step: 339
-		float 	fSlow50 = sqrtf((-0.0055555557f * fSlow8)); // step: 342
-		float 	fSlow51 = sqrtf((-0.0055555557f * fSlow13)); // step: 346
-		float 	fSlow52 = sqrtf((-0.0055555557f * fSlow18)); // step: 350
-		float 	fSlow53 = sqrtf((-0.0055555557f * fSlow23)); // step: 354
-		float 	fSlow54 = sqrtf((-0.0055555557f * fSlow28)); // step: 358
-		float 	fSlow55 = sqrtf((-0.0055555557f * fSlow33)); // step: 362
-		float 	fSlow56 = sqrtf((-0.0055555557f * fSlow38)); // step: 366
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
 			int count = min(32, fullcount-index);
@@ -470,47 +454,48 @@ class mydsp : public dsp {
 				fVeeec3 = max((fVeeec3 - fConst0), fabsf(fTemp1));
 				fbargraph0 = (2e+01f * log10f(max(0.00031622776f, fVeeec3)));
 				float 	fTemp2 = fTemp1; // step: 51
-				fVeeec8 = (fSlow7 + (0.999f * fVeeec8));
-				float 	fTemp3 = (fSlow6 * ((float)input1[i] * fVeeec8)); // step: 75
+				fVeeec8 = (fSlow6 + (0.999f * fVeeec8));
+				float 	fTemp3 = (fSlow5 * ((float)input1[i] * fVeeec8)); // step: 75
 				fVeeec7 = max((fVeeec7 - fConst0), fabsf(fTemp3));
 				fbargraph1 = (2e+01f * log10f(max(0.00031622776f, fVeeec7)));
 				float 	fTemp4 = fTemp3; // step: 84
-				fVeeec12 = (fSlow12 + (0.999f * fVeeec12));
-				float 	fTemp5 = (fSlow11 * ((float)input2[i] * fVeeec12)); // step: 107
+				fVeeec12 = (fSlow10 + (0.999f * fVeeec12));
+				float 	fTemp5 = (fSlow9 * ((float)input2[i] * fVeeec12)); // step: 107
 				fVeeec11 = max((fVeeec11 - fConst0), fabsf(fTemp5));
 				fbargraph2 = (2e+01f * log10f(max(0.00031622776f, fVeeec11)));
 				float 	fTemp6 = fTemp5; // step: 116
-				fVeeec16 = (fSlow17 + (0.999f * fVeeec16));
-				float 	fTemp7 = (fSlow16 * ((float)input3[i] * fVeeec16)); // step: 139
+				fVeeec16 = (fSlow14 + (0.999f * fVeeec16));
+				float 	fTemp7 = (fSlow13 * ((float)input3[i] * fVeeec16)); // step: 139
 				fVeeec15 = max((fVeeec15 - fConst0), fabsf(fTemp7));
 				fbargraph3 = (2e+01f * log10f(max(0.00031622776f, fVeeec15)));
 				float 	fTemp8 = fTemp7; // step: 148
-				fVeeec20 = (fSlow22 + (0.999f * fVeeec20));
-				float 	fTemp9 = (fSlow21 * ((float)input4[i] * fVeeec20)); // step: 171
+				fVeeec20 = (fSlow18 + (0.999f * fVeeec20));
+				float 	fTemp9 = (fSlow17 * ((float)input4[i] * fVeeec20)); // step: 171
 				fVeeec19 = max((fVeeec19 - fConst0), fabsf(fTemp9));
 				fbargraph4 = (2e+01f * log10f(max(0.00031622776f, fVeeec19)));
 				float 	fTemp10 = fTemp9; // step: 180
-				fVeeec24 = (fSlow27 + (0.999f * fVeeec24));
-				float 	fTemp11 = (fSlow26 * ((float)input5[i] * fVeeec24)); // step: 203
+				fVeeec24 = (fSlow22 + (0.999f * fVeeec24));
+				float 	fTemp11 = (fSlow21 * ((float)input5[i] * fVeeec24)); // step: 203
 				fVeeec23 = max((fVeeec23 - fConst0), fabsf(fTemp11));
 				fbargraph5 = (2e+01f * log10f(max(0.00031622776f, fVeeec23)));
 				float 	fTemp12 = fTemp11; // step: 212
-				fVeeec28 = (fSlow32 + (0.999f * fVeeec28));
-				float 	fTemp13 = (fSlow31 * ((float)input6[i] * fVeeec28)); // step: 235
+				fVeeec28 = (fSlow26 + (0.999f * fVeeec28));
+				float 	fTemp13 = (fSlow25 * ((float)input6[i] * fVeeec28)); // step: 235
 				fVeeec27 = max((fVeeec27 - fConst0), fabsf(fTemp13));
 				fbargraph6 = (2e+01f * log10f(max(0.00031622776f, fVeeec27)));
 				float 	fTemp14 = fTemp13; // step: 244
-				fVeeec32 = (fSlow37 + (0.999f * fVeeec32));
-				float 	fTemp15 = (fSlow36 * ((float)input7[i] * fVeeec32)); // step: 267
+				fVeeec32 = (fSlow30 + (0.999f * fVeeec32));
+				float 	fTemp15 = (fSlow29 * ((float)input7[i] * fVeeec32)); // step: 267
 				fVeeec31 = max((fVeeec31 - fConst0), fabsf(fTemp15));
 				fbargraph7 = (2e+01f * log10f(max(0.00031622776f, fVeeec31)));
 				float 	fTemp16 = fTemp15; // step: 276
-				float 	fTemp17 = (fTemp0 * ((((((((fSlow5 * fTemp2) + (fSlow10 * fTemp4)) + (fSlow15 * fTemp6)) + (fSlow20 * fTemp8)) + (fSlow25 * fTemp10)) + (fSlow30 * fTemp12)) + (fSlow35 * fTemp14)) + (fSlow40 * fTemp16))); // step: 284
+				float 	fTemp17 = (fTemp0 * ((((((((fSlow4 * fTemp2) + (fSlow8 * fTemp4)) + (fSlow12 * fTemp6)) + (fSlow16 * fTemp8)) + (fSlow20 * fTemp10)) + (fSlow24 * fTemp12)) + (fSlow28 * fTemp14)) + (fSlow32 * fTemp16))); // step: 284
 				fVeeec0 = max((fVeeec0 - fConst0), fabsf(fTemp17));
 				fbargraph8 = (2e+01f * log10f(max(0.00031622776f, fVeeec0)));
-				fVeeec36 = max((fVeeec36 - fConst0), fabsf((fTemp0 * ((((((((fSlow41 * fTemp2) + (fSlow42 * fTemp4)) + (fSlow43 * fTemp6)) + (fSlow44 * fTemp8)) + (fSlow45 * fTemp10)) + (fSlow46 * fTemp12)) + (fSlow47 * fTemp14)) + (fSlow48 * fTemp16)))));
+				float 	fTemp18 = (fTemp0 * ((((((((fSlow33 * fTemp2) + (fSlow34 * fTemp4)) + (fSlow35 * fTemp6)) + (fSlow36 * fTemp8)) + (fSlow37 * fTemp10)) + (fSlow38 * fTemp12)) + (fSlow39 * fTemp14)) + (fSlow40 * fTemp16))); // step: 328
+				fVeeec36 = max((fVeeec36 - fConst0), fabsf(fTemp18));
 				fbargraph9 = (2e+01f * log10f(max(0.00031622776f, fVeeec36)));
-				output0[i] = (FAUSTFLOAT)((fTemp0 * ((((((((fSlow49 * fTemp2) + (fSlow50 * fTemp4)) + (fSlow51 * fTemp6)) + (fSlow52 * fTemp8)) + (fSlow53 * fTemp10)) + (fSlow54 * fTemp12)) + (fSlow55 * fTemp14)) + (fSlow56 * fTemp16))));  // Zone Exec Code
+				output0[i] = (FAUSTFLOAT)(fTemp18);  // Zone Exec Code
 				output1[i] = (FAUSTFLOAT)(fTemp17);  // Zone Exec Code
 			}
 			fVeeec1State = fVeeec1;

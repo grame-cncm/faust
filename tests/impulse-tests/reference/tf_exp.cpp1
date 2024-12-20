@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "tf_exp"
 //
-// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -63,7 +63,7 @@ class mydsp : public dsp {
 	// Recursion delay fVeeec10 is of type kCopyDelay
 	// While its definition is of type kZeroDelay
 	float 	fVeeec10State[2]; // Copy Delay
-	float 	fConst22; // step: 144
+	float 	fConst22; // step: 143
 	// Recursion delay fVeeec22 is of type kMonoDelay
 	// While its definition is of type kZeroDelay
 	float 	fVeeec22State; // Mono Delay
@@ -106,7 +106,7 @@ class mydsp : public dsp {
 		fConst19 = (1.0f / (((fConst2 + 1.0f) / fConst1) + 1.0f)); // step: 91
 		fConst20 = (1.0f / fConst3); // step: 93
 		fConst21 = (((fConst2 + -1.0f) / fConst1) + 1.0f); // step: 126
-		fConst22 = (1.0f / (fConst1 * fConst9)); // step: 144
+		fConst22 = (1.0f / (fConst1 * fConst9)); // step: 143
 	}
 	virtual void instanceResetUserInterface() {
 	}
@@ -200,11 +200,11 @@ class mydsp : public dsp {
 				fVeeec11 = -(fConst20 * ((fConst15 * fVeeec11) - (fConst10 * (fVec2[0] + fTemp10))));
 				float 	fTemp11 = fVeeec10[1]; // step: 128
 				fVeeec10[0] = (fVeeec11 - (fConst19 * ((fConst21 * fTemp6) + (fConst18 * fTemp11))));
-				float 	fTemp12 = fVeeec21[1]; // step: 138
+				float 	fTemp12 = fVeeec21[2]; // step: 138
 				fVeeec22 = -(fConst20 * ((fConst15 * fVeeec22) - (fConst22 * (fVec2[0] - fTemp10))));
-				float 	fTemp13 = fVeeec21[2]; // step: 151
-				fVeeec21[0] = (fVeeec22 - (fConst19 * ((fConst21 * fTemp13) + (fConst18 * fTemp12))));
-				output0[i] = (FAUSTFLOAT)(((fTemp0 + (fConst4 * (fTemp5 + (fConst16 * fVeeec0[0])))) + (fConst19 * ((fTemp6 + (fVeeec10[0] + (2.0f * fTemp11))) + (fConst17 * ((fVeeec21[0] + fTemp13) - (2.0f * fTemp12)))))));  // Zone Exec Code
+				float 	fTemp13 = fVeeec21[1]; // step: 151
+				fVeeec21[0] = (fVeeec22 - (fConst19 * ((fConst21 * fTemp12) + (fConst18 * fTemp13))));
+				output0[i] = (FAUSTFLOAT)(((fTemp0 + (fConst4 * (fTemp5 + (fConst16 * fVeeec0[0])))) + (fConst19 * ((fTemp6 + (fVeeec10[0] + (2.0f * fTemp11))) + (fConst17 * (fTemp12 + (fVeeec21[0] - (2.0f * fTemp13))))))));  // Zone Exec Code
 				// post processing
 				fVeeec21[2] = fVeeec21[1];
 				fVeeec21[1] = fVeeec21[0];

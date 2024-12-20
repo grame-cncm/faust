@@ -1,4 +1,4 @@
-// Size = 36
+// Size = 37
 ID_0 = float(fSamplingFreq);
 ID_1 = max(1.0f, ID_0);
 ID_2 = min(1.92e+05f, ID_1);
@@ -31,8 +31,9 @@ ID_28 = letrec(W0 = (ID_27));
 ID_29 = proj0(ID_28);
 ID_30 = ID_29';
 ID_31 = ID_29@0;
-ID_32 = (ID_31+ID_20);
-ID_33 = 0.5f*ID_32;
-ID_34 = (ID_30+ID_33);
-ID_35 = ID_15*ID_34;
-SIG = (ID_35);
+ID_32 = 0.5f*ID_31;
+ID_33 = ID_30+ID_32;
+ID_34 = 0.5f*ID_20;
+ID_35 = (ID_33+ID_34);
+ID_36 = ID_15*ID_35;
+SIG = (ID_36);

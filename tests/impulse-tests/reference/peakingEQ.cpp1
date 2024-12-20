@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "peakingEQ"
 //
-// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -99,7 +99,7 @@ class mydsp : public dsp {
 		float 	fVeeec0[3];
 		float 	fSlow8 = (0.5f * ((fSlow1 * fSlow3) / fSlow2)); // step: 47
 		float 	fSlow9 = (fSlow8 + 1.0f); // step: 48
-		float 	fSlow10 = (1.0f - fSlow8); // step: 50
+		float 	fSlow10 = (1.0f - fSlow8); // step: 51
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
 			int count = min(32, fullcount-index);
@@ -111,7 +111,7 @@ class mydsp : public dsp {
 				float 	fTemp0 = (fSlow6 * fVeeec0[1]); // step: 33
 				float 	fTemp1 = fVeeec0[2]; // step: 38
 				fVeeec0[0] = ((float)input0[i] - (fSlow5 * ((fSlow7 * fTemp1) - fTemp0)));
-				output0[i] = (FAUSTFLOAT)((fSlow5 * (((fSlow9 * fVeeec0[0]) + (fSlow10 * fTemp1)) - fTemp0)));  // Zone Exec Code
+				output0[i] = (FAUSTFLOAT)((fSlow5 * (((fSlow9 * fVeeec0[0]) - fTemp0) + (fSlow10 * fTemp1))));  // Zone Exec Code
 				// post processing
 				fVeeec0[2] = fVeeec0[1];
 				fVeeec0[1] = fVeeec0[0];

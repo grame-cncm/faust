@@ -5,7 +5,7 @@
 // name: "multibandfilter"
 // version: "1.0"
 //
-// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -274,12 +274,12 @@ class mydsp : public dsp {
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		float 	fSlow0 = tanf((fConst0 * float(fentry0))); // step: 11
 		float 	fSlow1 = float(fentry1); // step: 12
-		float 	fSlow2 = float(fslider0); // step: 15
-		float 	fSlow3 = (1.0f / ((fSlow0 * (fSlow0 + (powf(1e+01f,(-0.05f * fSlow2)) / fSlow1))) + 1.0f)); // step: 22
-		float 	fSlow4 = (1.0f / fSlow1); // step: 25
-		float 	fSlow5 = (1.0f - (fSlow0 * (fSlow4 - fSlow0))); // step: 28
-		float 	fSlow6 = tanf((fConst0 * float(fentry2))); // step: 33
-		float 	fSlow7 = float(fentry3); // step: 34
+		float 	fSlow2 = (powf(1e+01f,-(0.05f * float(fslider0))) / fSlow1); // step: 20
+		float 	fSlow3 = (1.0f / ((fSlow0 * (fSlow0 + fSlow2)) + 1.0f)); // step: 24
+		float 	fSlow4 = (1.0f / fSlow1); // step: 27
+		float 	fSlow5 = (1.0f - (fSlow0 * (fSlow4 - fSlow0))); // step: 30
+		float 	fSlow6 = tanf((fConst0 * float(fentry2))); // step: 35
+		float 	fSlow7 = float(fentry3); // step: 36
 		float 	fSlow8 = (powf(1e+01f,-(0.05f * float(fslider1))) / fSlow7); // step: 41
 		float 	fSlow9 = (1.0f / ((fSlow6 * (fSlow6 + fSlow8)) + 1.0f)); // step: 45
 		float 	fSlow10 = (1.0f / fSlow7); // step: 47
@@ -368,12 +368,10 @@ class mydsp : public dsp {
 		float 	fSlow85 = (2.0f * (powf(fSlow6,2.0f) + -1.0f)); // step: 382
 		float 	fVeeec1[3];
 		float 	fSlow86 = ((fSlow6 * (fSlow6 + fSlow10)) + 1.0f); // step: 391
-		float 	fSlow87 = (powf(1e+01f,-(0.05f * fSlow2)) / fSlow1); // step: 399
-		float 	fSlow88 = (1.0f / ((fSlow0 * (fSlow0 + fSlow87)) + 1.0f)); // step: 403
-		float 	fSlow89 = ((fSlow0 * (fSlow0 - fSlow87)) + 1.0f); // step: 406
-		float 	fSlow90 = (2.0f * (powf(fSlow0,2.0f) + -1.0f)); // step: 411
+		float 	fSlow87 = ((fSlow0 * (fSlow0 - fSlow2)) + 1.0f); // step: 398
+		float 	fSlow88 = (2.0f * (powf(fSlow0,2.0f) + -1.0f)); // step: 403
 		float 	fVeeec0[3];
-		float 	fSlow91 = ((fSlow0 * (fSlow0 + fSlow4)) + 1.0f); // step: 420
+		float 	fSlow89 = ((fSlow0 * (fSlow0 + fSlow4)) + 1.0f); // step: 412
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
 			int count = min(32, fullcount-index);
@@ -400,7 +398,7 @@ class mydsp : public dsp {
 			fVeeec0[1] = fVeeec0State[0];
 			fVeeec0[2] = fVeeec0State[1];
 			for (int i=0; i<count; i++) {
-				float 	fTemp0 = fVeeec0[2]; // step: 24
+				float 	fTemp0 = fVeeec0[2]; // step: 26
 				float 	fTemp1 = fVeeec1[2]; // step: 46
 				float 	fTemp2 = fVeeec2[2]; // step: 65
 				float 	fTemp3 = fVeeec3[2]; // step: 84
@@ -428,9 +426,9 @@ class mydsp : public dsp {
 				fVeeec2[0] = ((fSlow21 * ((fTemp16 + (fSlow80 * fVeeec3[0])) + (fSlow23 * fTemp3))) - (fSlow15 * ((fSlow81 * fTemp2) + fTemp17)));
 				float 	fTemp18 = (fSlow85 * fVeeec1[1]); // step: 383
 				fVeeec1[0] = ((fSlow15 * ((fTemp17 + (fSlow83 * fVeeec2[0])) + (fSlow17 * fTemp2))) - (fSlow9 * ((fSlow84 * fTemp1) + fTemp18)));
-				float 	fTemp19 = (fSlow90 * fVeeec0[1]); // step: 412
-				fVeeec0[0] = ((fSlow9 * ((fTemp18 + (fSlow86 * fVeeec1[0])) + (fSlow11 * fTemp1))) - (fSlow88 * ((fSlow89 * fTemp0) + fTemp19)));
-				output0[i] = (FAUSTFLOAT)((fSlow3 * ((fTemp19 + (fSlow91 * fVeeec0[0])) + (fSlow5 * fTemp0))));  // Zone Exec Code
+				float 	fTemp19 = (fSlow88 * fVeeec0[1]); // step: 404
+				fVeeec0[0] = ((fSlow9 * ((fTemp18 + (fSlow86 * fVeeec1[0])) + (fSlow11 * fTemp1))) - (fSlow3 * ((fSlow87 * fTemp0) + fTemp19)));
+				output0[i] = (FAUSTFLOAT)((fSlow3 * ((fTemp19 + (fSlow89 * fVeeec0[0])) + (fSlow5 * fTemp0))));  // Zone Exec Code
 				// post processing
 				fVeeec0[2] = fVeeec0[1];
 				fVeeec0[1] = fVeeec0[0];

@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "HPF"
 //
-// Code generated with Faust 2.77.0 (https://faust.grame.fr)
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -89,10 +89,10 @@ class mydsp : public dsp {
 		float 	fSlow2 = (1.0f / (fSlow1 + 1.0f)); // step: 21
 		float 	fSlow3 = cosf(fSlow0); // step: 25
 		float 	fSlow4 = (-1.0f - fSlow3); // step: 26
-		float 	fSlow5 = (0.5f * (fSlow3 + 1.0f)); // step: 29
-		float 	fSlow6 = (1.0f - fSlow1); // step: 32
-		float 	fSlow7 = (2.0f * fSlow3); // step: 37
+		float 	fSlow5 = (1.0f - fSlow1); // step: 30
+		float 	fSlow6 = (2.0f * fSlow3); // step: 35
 		float 	fVeeec0[3];
+		float 	fSlow7 = (0.5f * (fSlow3 + 1.0f)); // step: 43
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
 			int count = min(32, fullcount-index);
@@ -102,9 +102,9 @@ class mydsp : public dsp {
 			fVeeec0[2] = fVeeec0State[1];
 			for (int i=0; i<count; i++) {
 				float 	fTemp0 = fVeeec0[1]; // step: 23
-				float 	fTemp1 = fVeeec0[2]; // step: 34
-				fVeeec0[0] = ((float)input0[i] - (fSlow2 * ((fSlow6 * fTemp1) - (fSlow7 * fTemp0))));
-				output0[i] = (FAUSTFLOAT)((fSlow2 * ((fSlow4 * fTemp0) + (fSlow5 * (fVeeec0[0] + fTemp1)))));  // Zone Exec Code
+				float 	fTemp1 = fVeeec0[2]; // step: 32
+				fVeeec0[0] = ((float)input0[i] - (fSlow2 * ((fSlow5 * fTemp1) - (fSlow6 * fTemp0))));
+				output0[i] = (FAUSTFLOAT)((fSlow2 * (((fSlow4 * fTemp0) + (fSlow7 * fVeeec0[0])) + (fSlow7 * fTemp1))));  // Zone Exec Code
 				// post processing
 				fVeeec0[2] = fVeeec0[1];
 				fVeeec0[1] = fVeeec0[0];
