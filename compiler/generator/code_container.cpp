@@ -567,8 +567,12 @@ void CodeContainer::mergeSubContainers()
         it->fStaticInitInstructions->fCode.clear();
     }
 
-    // Insert subcontainer UIs at the end of the top group, just before the last closeBox
-    fUserInterfaceInstructions->insert(fUserInterfaceInstructions->size() - 1, sub_ui);
+    /*
+     Insert subcontainer UIs at the end of the top group, just before the last closeBox
+     and remove empty groups.
+    */
+    fUserInterfaceInstructions->insert(fUserInterfaceInstructions->size() - 1,
+                                       removeEmptyGroups(sub_ui));
 
     // Possibly rewrite access in iZone/fZone
     rewriteInZones();
