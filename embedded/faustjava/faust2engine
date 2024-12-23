@@ -15,7 +15,7 @@ done
 
 # Compilation and link of the libraries
 
-g++ -dynamiclib -I/System/Library/Frameworks/JavaVM.framework/Headers -lz -lncurses -o libFaust.jnilib libfaust_ext.cpp Faust_wrap.cxx -L /usr/local/lib -lfaust `llvm-config --ldflags --libs all`
+g++ -dynamiclib -I/System/Library/Frameworks/JavaVM.framework/Headers -lz -lncurses -o libFaust.jnilib libfaust_ext.cpp Faust_wrap.cxx -L /usr/local/lib -lfaust `llvm-config --link-static --ldflags --libs all --system-libs`
 
 g++ -dynamiclib -I/System/Library/Frameworks/JavaVM.framework/Headers -lz -lncurses -DLLVM_DSP -o libFaustEngine.jnilib ../../architecture/faust/dsp/faust-dynamic-engine.cpp FaustEngine_wrap.cxx -framework CoreAudio -framework AudioUnit -framework CoreServices -L /usr/local/lib -lfaust -ljack `llvm-config --ldflags --libs all`
 
