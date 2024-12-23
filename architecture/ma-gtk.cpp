@@ -5,11 +5,11 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/******************* BEGIN ca-gtk.cpp ****************/
+/******************* BEGIN ma-gtk.cpp ****************/
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2021-2024 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2024 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -38,6 +38,10 @@
 #include <string>
 #include <list>
 
+// To force correct include
+#define MINIAUDIO_IMPLEMENTATION
+#include "faust/miniaudio.h"
+
 #include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/dsp-adapter.h"
@@ -46,7 +50,8 @@
 #include "faust/gui/PresetUI.h"
 #include "faust/gui/GTKUI.h"
 #include "faust/misc.h"
-#include "faust/audio/coreaudio-dsp.h"
+#include "faust/audio/miniaudio-dsp.h"
+
 #ifdef FIXED_POINT
 #include "faust/dsp/fixed-point.h"
 #endif
@@ -60,8 +65,8 @@
 #endif
 
 #ifdef SOUNDFILE
+#define MINIAUDIO_READER
 #include "faust/gui/SoundUI.h"
-#include "faust/dsp/dsp-tools.h"
 #endif
 
 // Always include this file, otherwise -nvoices only mode does not compile....
@@ -222,7 +227,8 @@ int main(int argc, char* argv[])
 #ifdef SOUNDFILE
     {
         // Init default DSP to get the SR
-        coreaudio audio(srate, fpb);
+        //coreaudio audio(srate, fpb);
+        miniaudio audio(srate, fpb);
         default_dsp def_dsp;
         if (!audio.init(name, &def_dsp)) {
             cerr << "Unable to init audio" << endl;
@@ -235,7 +241,8 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(&soundinterface);
 #endif
     
-    coreaudio audio(srate, fpb);
+    //coreaudio audio(srate, fpb);
+    miniaudio audio(srate, fpb);
     if (!audio.init(name, DSP)) {
         cerr << "Unable to init audio" << endl;
         exit(1);
@@ -289,5 +296,5 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-/******************** END ca-gtk.cpp ****************/
+/******************** END ma-gtk.cpp ****************/
 

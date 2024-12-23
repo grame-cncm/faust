@@ -383,7 +383,7 @@ install (
     PATTERN "*.o" EXCLUDE
 )
 install (
-    FILES ${ARCHINC}/misc.h ${ARCHINC}/sound-file.h ${ARCHINC}/export.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
+    FILES ${ARCHINC}/miniaudio.h ${ARCHINC}/misc.h ${ARCHINC}/sound-file.h ${ARCHINC}/export.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 install (

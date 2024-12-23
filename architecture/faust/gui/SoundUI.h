@@ -1,6 +1,6 @@
 /************************** BEGIN SoundUI.h **************************
  FAUST Architecture File
- Copyright (C) 2003-2022 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2024 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -56,6 +56,9 @@ static Esp32Reader gReader;
 #elif defined(MEMORY_READER)
 #include "faust/gui/MemoryReader.h"
 static MemoryReader gReader;
+#elif defined(MINIAUDIO_READER)
+#include "faust/gui/MiniaudioReader.h"
+static MiniaudioReader gReader;
 #else
 #include "faust/gui/LibsndfileReader.h"
 static LibsndfileReader gReader;
@@ -222,7 +225,6 @@ class SoundUI : public SoundUIInterface
          *
          * @return the list of paths.
          */
-       
         static std::vector<std::string> getSoundfilePaths(dsp* dsp)
         {
             // Analyse 'soundfiles' metadata to extract the list of URLs.
