@@ -18,7 +18,6 @@ endif
 FASTMATH = $(INC)/faust/dsp/fastmath.cpp
 LIBS 	:= $(LIB)/libfaust.a
 LIB_FLAGS := /opt/local/lib
-FASTMATH = $(shell $(FAUST) -includedir)/faust/dsp/fastmath.cpp
 ifndef LLVM
 LLVM	:= `llvm-config --link-static --ldflags --libs all --system-libs`
 endif

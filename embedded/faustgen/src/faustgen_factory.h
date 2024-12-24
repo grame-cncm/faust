@@ -45,9 +45,10 @@
 // Possibly compile with Interp backend
 //#define INTERP_BACKEND
 
-#include <faust/dsp/llvm-dsp.h>
 #ifdef INTERP_BACKEND
 #include <faust/dsp/interpreter-dsp.h>
+#else
+#include <faust/dsp/llvm-dsp.h>
 #endif
 #include <faust/dsp/dsp-adapter.h>
 #include <faust/gui/SoundUI.h>

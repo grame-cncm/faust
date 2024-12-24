@@ -57,11 +57,11 @@
 #include "jgraphics.h"
 #include "ext_drag.h"
 
-#include "faustgen_factory.h"
-
 //====================
 // Faust DSP Instance
 //====================
+
+class faustgen_factory;
 
 class faustgen : public MspCpp5<faustgen> {
     

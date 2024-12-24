@@ -32,8 +32,6 @@
 #include "faustgen_factory.h"
 #include "faustgen~.h"
 
-#define LLVM_DSP
-
 #include <faust/dsp/libfaust.h>
 #include <faust/dsp/poly-dsp.h>
 

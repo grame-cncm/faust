@@ -155,14 +155,14 @@ jobs:
       matrix:
         include:
           - name: arm64
-            os: macos-12
+            os: macos-14
             llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-macos10.15-arm64.zip
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
             HOST: aarch64-apple-darwin
             ENABLE_MPEG: OFF
           - name: x64
-            os: macos-12
+            os: macos-13
             llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-macos10.15-x86_64.zip
             ARCHS: "-arch x86_64"
             CMAKE_OSX_ARCHITECTURES: x86_64
@@ -178,7 +178,7 @@ jobs:
 
     - name: Build libmicrohttpd
       run: |
-        curl -L https://mirrors.sarata.com/gnu/libmicrohttpd/libmicrohttpd-0.9.76.tar.gz -o libmicrohttpd-0.9.76.tar.gz
+        curl -L https://mirror.cyberbits.eu/gnu/libmicrohttpd/libmicrohttpd-0.9.76.tar.gz -o libmicrohttpd-0.9.76.tar.gz
         tar -xvf libmicrohttpd-0.9.76.tar.gz
         mv libmicrohttpd-0.9.76 libmicrohttpd
         cd libmicrohttpd
@@ -193,10 +193,9 @@ jobs:
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
       # todo: should we bother with brew update?
-      # todo: add mpg123 so that faustgen and other projects can decode mp3
       run: |
         brew update
-        PACKAGES=(ncurses gtk+ liblo lame flac libogg libtool libvorbis opus)
+        PACKAGES=(ncurses gtk+ liblo lame flac libogg libtool libvorbis opus mpg123)
         DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' ' '))
         PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
         export HOMEBREW_NO_INSTALL_CLEANUP=1
@@ -205,7 +204,7 @@ jobs:
         for PACKAGE in "${PACKAGES[@]}"
         do
           echo "Fetching bottle: $PACKAGE"
-          response=$(brew fetch --bottle-tag=arm64_monterey $PACKAGE 2>&1)
+          response=$(brew fetch --bottle-tag=arm64_ventura $PACKAGE 2>&1)
           package_path=$(echo $response | sed -n 's/.*\:\ \(.*\.tar\.gz\).*/\1/p')
           package_path=$(echo "$package_path" | xargs)
           echo "Package Path: $package_path"

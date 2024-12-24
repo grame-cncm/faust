@@ -258,8 +258,6 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size, bool auto_connec
     // JUCE audio device has its own sample rate and buffer size
     fprintf(stderr, "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n");
     audio* driver = new juceaudio();
-#elif DUMMY_DRIVER
-    audio* driver = new dummyaudio(sample_rate, buffer_size);
 #elif ESP32_DRIVER
     audio* driver = new esp32audio(sample_rate, buffer_size);
 #elif DUMMY_DRIVER

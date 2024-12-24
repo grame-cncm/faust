@@ -29,6 +29,7 @@
 #include <Carbon/Carbon.h>
 #endif
 
+#include "faustgen_factory.h"
 #include "faustgen~.h"
 
 using namespace std;
