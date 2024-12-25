@@ -182,11 +182,11 @@ void RustCodeContainer::produceFaustDspBlob()
     *fOut << tab << "fn get_sample_rate(&self) -> i32 {" << endl;
     *fOut << tab << tab << "self.get_sample_rate()" << endl;
     *fOut << tab << "}" << endl;
-    *fOut << tab << "fn get_num_inputs(&self) -> i32 {" << endl;
-    *fOut << tab << tab << "FAUST_INPUTS as i32" << endl;
+    *fOut << tab << "fn get_num_inputs(&self) -> usize {" << endl;
+    *fOut << tab << tab << "FAUST_INPUTS" << endl;
     *fOut << tab << "}" << endl;
-    *fOut << tab << "fn get_num_outputs(&self) -> i32 {" << endl;
-    *fOut << tab << tab << "FAUST_OUTPUTS as i32" << endl;
+    *fOut << tab << "fn get_num_outputs(&self) -> usize {" << endl;
+    *fOut << tab << tab << "FAUST_OUTPUTS" << endl;
     *fOut << tab << "}" << endl;
     *fOut << tab << "fn class_init(sample_rate: i32) where Self: Sized {" << endl;
     *fOut << tab << tab << "Self::class_init(sample_rate);" << endl;
@@ -221,11 +221,13 @@ void RustCodeContainer::produceFaustDspBlob()
     *fOut << tab << "fn set_param(&mut self, param: ParamIndex, value: Self::T) {" << endl;
     *fOut << tab << tab << "self.set_param(param, value)" << endl;
     *fOut << tab << "}" << endl;
-    *fOut << tab
-          << "fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut "
-             "[Self::T]]) {"
-          << endl;
-    *fOut << tab << tab << "self.compute(count as usize, inputs, outputs)" << endl;
+    *fOut << tab << "fn compute(" << endl;
+    *fOut << tab << "&mut self," << endl;
+    *fOut << tab << "count: usize," << endl;
+    *fOut << tab << "inputs: &[impl AsRef<[Self::T]>]," << endl;
+    *fOut << tab << "outputs: &mut [impl AsMut<[Self::T]>]," << endl;
+    *fOut << tab << ") {" << endl;
+    *fOut << tab << tab << "self.compute(count, inputs, outputs)" << endl;
     *fOut << tab << "}" << endl;
     *fOut << "}" << endl;
 }

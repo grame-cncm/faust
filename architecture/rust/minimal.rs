@@ -61,8 +61,8 @@ pub trait FaustDsp {
     fn new() -> Self where Self: Sized;
     fn metadata(&self, m: &mut dyn Meta);
     fn get_sample_rate(&self) -> i32;
-    fn get_num_inputs(&self) -> i32;
-    fn get_num_outputs(&self) -> i32;
+    fn get_num_inputs(&self) -> usize;
+    fn get_num_outputs(&self) -> usize;
     fn class_init(sample_rate: i32) where Self: Sized;
     fn instance_reset_params(&mut self);
     fn instance_clear(&mut self);
@@ -73,7 +73,12 @@ pub trait FaustDsp {
     fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized;
     fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
     fn set_param(&mut self, param: ParamIndex, value: Self::T);
-    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]);
+    fn compute(
+        &mut self,
+        count: usize,
+        inputs: &[impl AsRef<[Self::T]>],
+        outputs: &mut [impl AsMut<[Self::T]>],
+    );
 }
 
 pub trait Meta {

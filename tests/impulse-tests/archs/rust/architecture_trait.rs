@@ -62,8 +62,8 @@ pub trait FaustDsp {
         Self: Sized;
     fn metadata(&self, m: &mut dyn Meta);
     fn get_sample_rate(&self) -> i32;
-    fn get_num_inputs(&self) -> i32;
-    fn get_num_outputs(&self) -> i32;
+    fn get_num_inputs(&self) -> usize;
+    fn get_num_outputs(&self) -> usize;
     fn class_init(sample_rate: i32)
     where
         Self: Sized;
@@ -78,7 +78,12 @@ pub trait FaustDsp {
         Self: Sized;
     fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
     fn set_param(&mut self, param: ParamIndex, value: Self::T);
-    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]);
+    fn compute(
+        &mut self,
+        count: usize,
+        inputs: &[impl AsRef<[Self::T]>],
+        outputs: &mut [impl AsMut<[Self::T]>],
+    );
 }
 
 pub trait Meta {
@@ -129,7 +134,7 @@ pub struct ButtonUI {
 }
 
 impl ButtonUI {
-    fn set_button_parameters_to(&self, dsp: &mut dyn FaustDsp<T = f64>, value: f64) {
+    fn set_button_parameters_to(&self, dsp: &mut impl FaustDsp<T = f64>, value: f64) {
         for button_param in &self.all_button_params {
             dsp.set_param(*button_param, value);
         }
@@ -186,9 +191,7 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI {
 
 const SAMPLE_RATE: i32 = 44100;
 
-type Dsp64 = dyn FaustDsp<T = f64>;
-
-fn print_header(mut dsp: Box<Dsp64>, num_total_samples: usize, output_file: &mut File) {
+fn print_header(mut dsp: Box<impl FaustDsp<T = f64>>, num_total_samples: usize, output_file: &mut File) {
     dsp.init(SAMPLE_RATE);
     writeln!(output_file, "number_of_inputs  : {}", dsp.get_num_inputs()).unwrap();
     writeln!(output_file, "number_of_outputs : {}", dsp.get_num_outputs()).unwrap();
@@ -196,13 +199,13 @@ fn print_header(mut dsp: Box<Dsp64>, num_total_samples: usize, output_file: &mut
 }
 
 fn run_dsp(
-    mut dsp: Box<Dsp64>,
+    mut dsp: Box<impl FaustDsp<T = f64>>,
     num_samples: usize,
     line_num_offset: usize,
     output_file: &mut File,
 ) {
-    type T = <Dsp64 as FaustDsp>::T;
-
+    type T = f64;
+    
     // Generation constants
     let buffer_size = 64usize;
 
@@ -244,7 +247,7 @@ fn run_dsp(
         }
 
         dsp.compute(
-            buffer_size as i32,
+            buffer_size,
             in_buffer
                 .iter()
                 .map(|buffer| buffer.as_slice())
@@ -271,7 +274,7 @@ fn run_dsp(
     }
 }
 
-fn new_dsp() -> Box<Dsp64> {
+fn new_dsp() -> Box<impl FaustDsp<T = f64>> {
     use default_boxed::DefaultBoxed;
     mydsp::default_boxed()
 }
