@@ -34,19 +34,9 @@
 
 #include "daisysp.h"
 
-#ifdef PATCH
-#include "daisy_patch.h"
-#elif defined POD
-#include "daisy_pod.h"
-#elif defined PATCHSM
-#include "daisy_patch_sm.h"
-#else
-#include "daisy_seed.h"
-#endif
-
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
-#include "faust/gui/DaisyControlUI.h"
+#include "faust/gui/HothouseControlUI.h"
 #include "faust/dsp/dsp.h"
 
 #ifdef MIDICTRL
@@ -56,6 +46,7 @@
 
 using namespace daisysp;
 using namespace std;
+using clevelandmusicco::Hothouse;
 
 /******************************************************************************
  *******************************************************************************
@@ -81,17 +72,14 @@ using namespace std;
 #include "faust/dsp/poly-dsp.h"
 #endif
 
-#ifdef PATCH
-static daisy::DaisyPatch hw;
-#elif defined POD
-static daisy::DaisyPod hw; 
-#elif defined PATCHSM
-static daisy::patch_sm::DaisyPatchSM hw; 
-#else
-static daisy::DaisySeed hw;
-#endif
+static Hothouse hw;
+Led led1;
+Led led2;
 
-static DaisyControlUI* control_UI = nullptr;
+bool led1IsOn = false;
+bool led2IsOn = false;
+
+static HothouseControlUI* control_UI = nullptr;
 static dsp* DSP = nullptr;
 
 #ifdef MIDICTRL
@@ -101,6 +89,12 @@ ztimedmap GUI::gTimedZoneMap;
 
 static void AudioCallback(daisy::AudioHandle::InputBuffer in, daisy::AudioHandle::OutputBuffer out, size_t count)
 {
+    hw.ProcessAllControls();
+
+    // todo: this only makes sense if the footswtiches are checkboxes.
+    led1IsOn ^= hw.switches[Hothouse::Switches::FOOTSWITCH_1].RisingEdge();
+    led2IsOn ^= hw.switches[Hothouse::Switches::FOOTSWITCH_2].RisingEdge();
+
     // Update controllers
     control_UI->update();
     
@@ -125,29 +119,24 @@ int main(void)
     DSP = new mydsp();
 #endif
     
-    // set buffer-size
     hw.SetAudioBlockSize(MY_BUFFER_SIZE);
+    hw.SetAudioSampleRate(MY_SAMPLE_RATE);
+    float sample_rate = hw.AudioSampleRate();
     
     // init Faust DSP
-    DSP->init(MY_SAMPLE_RATE);
+    DSP->init(int(sample_rate));
     
-    // setup controllers
-#if (defined PATCH) || (defined POD)
-    control_UI = new DaisyControlUI(&hw.seed, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
+    // initialize UI
+    control_UI = new HothouseControlUI(&hw);
     DSP->buildUserInterface(control_UI);
+
+    // The right footswitch LED
+    led1.Init(hw.seed.GetPin(Hothouse::Led::LED_1), led1IsOn);
+    led2.Init(hw.seed.GetPin(Hothouse::Led::LED_2), led2IsOn);
+
     hw.StartAdc();
-#elif defined (PATCHSM)
-    control_UI = new DaisyControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
-    DSP->buildUserInterface(control_UI);
-#else
-    //initialize UI for seed
-    control_UI = new DaisyControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
-    DSP->buildUserInterface(control_UI);
-    // start ADC
-    hw.adc.Start();
-#endif
-    // define and start callback
     hw.StartAudio(AudioCallback);
+
 #ifdef MIDICTRL
     daisy_midi midi_handler;
     MidiUI midi_interface(&midi_handler);
@@ -160,6 +149,12 @@ int main(void)
     #ifdef MIDICTRL
         midi_handler.processMidi();
     #endif
+        hw.DelayMs(6);
+        led1.Set(led1IsOn ? 1.0f : 0.0f);
+        led2.Set(led2IsOn ? 1.0f : 0.0f);
+        led1.Update();
+        led2.Update();
+        hw.CheckResetToBootloader();
     }
 }
 
