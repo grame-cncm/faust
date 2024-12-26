@@ -21,7 +21,6 @@
 
 #include <limits.h>
 #include <cstdint>
-#include <thread>
 
 #include "absprim.hh"
 #include "acosprim.hh"
@@ -2660,14 +2659,29 @@ void Garbageable::operator delete[](void* ptr)
     free(ptr);
 }
 
-// Threaded calls API
+/*
+    Threaded calls API: the compilation code is executed in a separate
+    thread so that the stack size can be raised to MAX_STACK_SIZE.
+ */
 void callFun(threaded_fun fun, void* arg)
 {
 #if defined(EMCC)
     // No thread support in JavaScript
     fun(arg);
+#elif defined(_WIN32)
+    DWORD  id;
+    HANDLE thread = CreateThread(NULL, MAX_STACK_SIZE, LPTHREAD_START_ROUTINE(fun), arg, 0, &id);
+    faustassert(thread != NULL);
+    WaitForSingleObject(thread, INFINITE);
 #else
-    std::thread tr(fun, arg);
-    tr.join();
+    pthread_t      thread;
+    pthread_attr_t attr;
+    faustassert(pthread_attr_init(&attr) == 0);
+    faustassert(pthread_attr_setstacksize(&attr, MAX_STACK_SIZE) == 0);
+    faustassert(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) == 0);
+    faustassert(pthread_create(&thread, &attr, fun, arg) == 0);
+    faustassert(pthread_join(thread, nullptr) == 0);
+    faustassert(pthread_attr_destroy(&attr) == 0);
 #endif
 }
+
