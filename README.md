@@ -2,11 +2,6 @@
 
 ## Grame, Centre National de Creation Musicale: <https://www.grame.fr>
 
-<!-- 
-master : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master)](https://travis-ci.org/grame-cncm/faust)
-master-dev : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev)](https://travis-ci.org/grame-cncm/faust)![C/C++ CI](https://github.com/grame-cncm/faust/workflows/C/C++%20CI/badge.svg)
- -->
-
 Build status: [![Ubuntu](https://github.com/grame-cncm/faust/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/grame-cncm/faust/actions/workflows/ubuntu.yml) [![MacOS](https://github.com/grame-cncm/faust/actions/workflows/macos.yml/badge.svg)](https://github.com/grame-cncm/faust/actions/workflows/macos.yml) [![Windows](https://github.com/grame-cncm/faust/actions/workflows/windows.yml/badge.svg)](https://github.com/grame-cncm/faust/actions/workflows/windows.yml)
 
 ## Introduction
@@ -51,7 +46,7 @@ This is an overview of the content of the top-level folders of the Faust distrib
 	tools/                 : additional easy-to-use scripts (faust2...) to produce binaries and plugins
 	windows/               : Windows related resources
 
-## Libraries and additional dependancies
+## Libraries and additional dependencies
 
 Faust libraries are now in a [separated project](https://github.com/grame-cncm/faustlibraries) and included as a git submodule. 
 
@@ -112,7 +107,7 @@ The [Online Faust Editor](https://fausteditor.grame.fr) is a zero-conf tool that
 
 ### Online Faust IDE
 
-The [Online Faust IDE](https://faustide.grame.fr)  is a zero-conf tool that provides all the compilation services, including binaries generation for all the supported platforms and architectures, but also various utilities for signal processing development.
+The [Online Faust IDE](https://faustide.grame.fr) is a zero-conf tool that provides all the compilation services, including binaries generation for all the supported platforms and architectures, but also various utilities for signal processing development.
 
 ### Faust Playground
 

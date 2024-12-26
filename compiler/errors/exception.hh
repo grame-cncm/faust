@@ -25,6 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <stdexcept>
 #ifndef WIN32
 #include <unistd.h>
+#include <alloca.h>
 #else
 // #include <io.h>
 #endif
@@ -58,7 +59,7 @@ class faustexception : public std::runtime_error {
 inline void stacktrace(std::stringstream& str, int val)
 {
 #if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID) && !defined(ALPINE)
-    void*  callstack[512];
+    void** callstack = (void**)alloca(val * sizeof(void*));
     int    frames = backtrace(callstack, val);
     char** strs   = backtrace_symbols(callstack, frames);
     str << "====== stack trace start ======\n";

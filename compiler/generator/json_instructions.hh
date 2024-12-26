@@ -70,7 +70,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
         // Two bargraph can have the same path (WARNING)
         if (fOuputsPathSet.find(path) != fOuputsPathSet.end()) {
             std::stringstream error;
-            error << "WARNING : bargraph path '" + path + "' is already used";
+            error << "WARNING : bargraph path '" + path + "' is already used\n";
             gWarningMessages.push_back(error.str());
         }
         fOuputsPathSet.insert(path);

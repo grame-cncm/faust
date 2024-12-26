@@ -328,11 +328,7 @@ dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         argv[i++] = (char*)it.c_str();
     }
     argv[fCompileOptions.size()] = 0;  // NULL terminated argv
-    
-    // Generate SVG file
-    if (!generateAuxFilesFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, error_msg)) {
-        post("Generate SVG error : %s", error_msg.c_str());
-    }
+  
 #ifdef INTERP_BACKEND
     dsp_factory* factory = createInterpreterDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, error_msg);
 #else
