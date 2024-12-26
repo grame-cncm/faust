@@ -2,8 +2,8 @@
 
 #####################################################################
 #                                                                   #
-#                    faust2daisy generator                          #
-#                       (c) Grame, 2020                             #
+#                    faust2hothouse generator                       #
+#                       (c) Grame, 2024                             #
 #                                                                   #
 #####################################################################
 
@@ -13,7 +13,7 @@
 
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
-ARCHFILE=$FAUSTARCH/daisy/ex_faust.cpp
+ARCHFILE=$FAUSTARCH/hothouse/ex_faust.cpp
 
 # exit if a command fails
 set -e
@@ -22,26 +22,18 @@ set -e
 NVOICES=0
 MIDI=false
 POLY=""
-PATCH=false
-POD=false
-PATCHSM=false
-USE_SDRAM=false
-SR=44100
-BS=16
+SR=48000
+BS=48
 SOURCE=false
 
 echoHelp ()
 {
-    echo "faust2daisy [-patch] [-midi] [-nvoices <num>] [-sr <num>] [-bs <num>] [-source] [Faust options (-vec -vs 8...)] <file.dsp>"
-    echo "Compiles Faust programs to Daisy boards (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/daisy)"
+    echo "faust2hothouse [-midi] [-nvoices <num>] [-sr <num>] [-bs <num>] [-source] [Faust options (-vec -vs 8...)] <file.dsp>"
+    echo "Compiles Faust programs to Hothouse Pedals, which use Daisy Seeds (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/hothouse)"
     option
-    option -patch "to compile for 4 ins/outs Patch (knob[1,2,3,4])"
-    option -pod "to compile for 2 ins/outs Pod (knob[1,3])"
-    option -patchsm "to compile for the Pod.init eurorack module"
-    option -sdram "to compile using SDRAM for long delay lines/tables etc."
     options -midi
     option "-nvoices <num>"
-    option "-sr <num>"
+    option "-sr <num> (48000 or 96000)"
     option "-bs <num>"
     option -source
     option "Faust options"
@@ -72,16 +64,6 @@ do
     # -midi
     elif [ $p = "-midi" ]; then
         MIDI=true
-    #patch
-    elif [ $p = "-patch" ]; then
-        PATCH=true
-    elif [ $p = "-pod" ]; then
-        POD=true
-    elif [ $p = "-patchsm" ]; then
-        PATCHSM=true
-    # -sdram
-    elif [ $p = "-sdram" ]; then
-        USE_SDRAM=true
     # -sr
     elif [ $p = "-sr" ]; then
         shift
@@ -118,21 +100,8 @@ for p in $FILE; do
     mkdir "$SRCDIR/$dspName"
 
     # compile faust to c++
-    cp -r $FAUSTARCH/daisy/Makefile "$SRCDIR/$dspName/"
+    cp -r $FAUSTARCH/hothouse/Makefile "$SRCDIR/$dspName/"
     faust -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
-
-    # for PATCH support
-    if [ $PATCH == true ]; then
-        echo "#define PATCH" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
-    fi
-    # for POD support
-    if [ $POD == true ]; then
-        echo "#define POD" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
-    fi
-    # for PODSM support
-    if [ $PATCHSM == true ]; then
-        echo "#define PATCHSM" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
-    fi
 
     # for MIDI
     if [ $MIDI == true ]; then
@@ -140,7 +109,14 @@ for p in $FILE; do
     fi
 
     # for Sample Rate
-    echo "#define MY_SAMPLE_RATE $SR" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    if [ "$SR" == "96000" ]; then
+        echo "#define MY_SAMPLE_RATE SaiHandle::Config::SampleRate::SAI_96KHZ" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    elif [ "$SR" == "48000" ]; then
+        echo "#define MY_SAMPLE_RATE SaiHandle::Config::SampleRate::SAI_48KHZ" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    else
+        echo "Unallowed sample rate: $SR"
+        exit
+    fi
 
     # for Buffer Size
     echo "#define MY_BUFFER_SIZE $BS" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
@@ -151,9 +127,7 @@ for p in $FILE; do
         echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
 
-    if [ $USE_SDRAM == true ]; then
-        python3 "$FAUSTARCH/daisy/faust_sdram_converter.py" "$SRCDIR/$dspName/ex_faust.cpp"
-    fi
+    python3 "$FAUSTARCH/daisy/faust_sdram_converter.py" "$SRCDIR/$dspName/ex_faust.cpp"
 
     # compile and install plugin or keep the source folder
     if [ $SOURCE == false ]; then
