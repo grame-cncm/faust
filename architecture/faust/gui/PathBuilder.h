@@ -30,6 +30,7 @@
 #include <map>
 #include <string>
 #include <algorithm>
+#include <iostream> //for debugging
 
 #include "faust/export.h"
 
@@ -44,7 +45,9 @@ class FAUST_API PathBuilder {
     
         std::vector<std::string> fControlsLevel;
         std::vector<std::string> fFullPaths;
+        std::vector<std::tuple<std::string,std::string>> fFullPathsNew;
         std::map<std::string, std::string> fFull2Short;  // filled by computeShortNames()
+        std::map<std::string, std::string> fVarname2Short;  // filled by computeShortNamesNew()
     
         /**
          * @brief check if a character is acceptable for an ID
@@ -128,10 +131,11 @@ class FAUST_API PathBuilder {
         }
     
         void addFullPath(const std::string& label) { fFullPaths.push_back(buildPath(label)); }
-    
+        void addFullPathNew(const std::string& label,const std::string& varname); 
         /**
          * @brief Compute the mapping between full path and short names
          */
+        void computeShortNamesNew();
         void computeShortNames()
         {
             std::vector<std::string>           uniquePaths;  // all full paths transformed but made unique with a prefix
@@ -225,7 +229,10 @@ class FAUST_API PathBuilder {
         {
             return (hasShortname()) ? fFull2Short[buildPath(label)] : "";
         }
-    
+
+        // Assuming shortnames have been built, return the shortname from a label
+        std::string buildShortnameNew(const std::string& varname);
+
         bool hasShortname() { return fFull2Short.size() > 0; }
     
 };

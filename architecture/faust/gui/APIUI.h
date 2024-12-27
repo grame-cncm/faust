@@ -281,7 +281,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         {
             if (popLabel()) {
                 // Shortnames can be computed when all fullnames are known
-                computeShortNames();
+                computeShortNamesNew();
                 // Fill 'shortname' field for each item
                 for (const auto& it : fFull2Short) {
                     int index = getParamIndex(it.first.c_str());

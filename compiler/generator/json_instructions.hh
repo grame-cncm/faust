@@ -200,15 +200,15 @@ struct ShortnameInstVisitor : public DispatchVisitor, public PathBuilder {
     {
         if (popLabel()) {
             // Shortnames can be computed when all fullnames are known
-            computeShortNames();
+            computeShortNamesNew();
         }
     }
 
-    virtual void visit(AddButtonInst* inst) override { addFullPath(inst->fLabel); }
+    virtual void visit(AddButtonInst* inst) override { addFullPath(inst->fLabel); addFullPathNew(inst->fLabel,inst->fZone); }
 
-    virtual void visit(AddSliderInst* inst) override { addFullPath(inst->fLabel); }
+    virtual void visit(AddSliderInst* inst) override { addFullPath(inst->fLabel); addFullPathNew(inst->fLabel,inst->fZone); }
 
-    virtual void visit(AddBargraphInst* inst) override { addFullPath(inst->fLabel); }
+    virtual void visit(AddBargraphInst* inst) override { addFullPath(inst->fLabel); addFullPathNew(inst->fLabel,inst->fZone); }
 };
 
 #endif
