@@ -790,16 +790,16 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
                 int item = 1;
 
                 // Go through all the Menu's items.
-                for (int i = 0; i < names.size(); i++) {
+                for (size_t i = 0; i < names.size(); i++) {
                     double v = values[i];
                     if ((v >= lo) && (v <= hi)) {
                         // It is a valid value : add corresponding menu item
-                        // item astrating at 1 because index 0 is reserved for a non-defined item.
+                        // item is starting at 1 because index 0 is reserved for a non-defined item.
                         fComboBox.addItem(juce::String(names[i].c_str()), item++);
                         fValues.push_back(v);
 
                         // Check if this item is a good candidate to represent the current value
-                        double delta = fabs(cur-v);
+                        double delta = fabs(cur - v);
                         if (delta < mindelta) {
                             mindelta = delta;
                             defaultitem = fComboBox.getNumItems();
@@ -808,7 +808,7 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
                 }
                 // check the best candidate to represent the current value
                 if (defaultitem > -1) {
-                    fComboBox.setSelectedItemIndex(defaultitem);
+                    fComboBox.setSelectedItemIndex(defaultitem - 1);
                 }
             }
 
@@ -832,15 +832,15 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
             int defaultitem = -1;
             double mindelta = FLT_MAX;
 
-            for (unsigned int i = 0; i < fValues.size(); i++) {
-                double delta = fabs(fValues[i]-v);
+            for (size_t i = 0; i < fValues.size(); i++) {
+                double delta = fabs(fValues[i] - v);
                 if (delta < mindelta) {
                     mindelta = delta;
-                    defaultitem = i;
+                    defaultitem = int(i);
                 }
             }
             if (defaultitem > -1) {
-                fComboBox.setSelectedItemIndex(defaultitem);
+                fComboBox.setSelectedItemIndex(defaultitem - 1);
             }
         }
 
@@ -894,7 +894,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
             juce::ToggleButton* defaultbutton = 0;
             double mindelta = FLT_MAX;
 
-            for (int i = 0; i < names.size(); i++) {
+            for (size_t i = 0; i < names.size(); i++) {
                 double v = values[i];
                 if ((v >= lo) && (v <= hi)) {
 
@@ -930,11 +930,11 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
             int defaultitem = -1;
             double mindelta = FLT_MAX;
 
-            for (unsigned int i = 0; i < fValues.size(); i++) {
+            for (size_t i = 0; i < fValues.size(); i++) {
                 double delta = fabs(fValues[i]-v);
                 if (delta < mindelta) {
                     mindelta = delta;
-                    defaultitem = i;
+                    defaultitem = int(i);
                 }
             }
             if (defaultitem > -1) {
@@ -948,12 +948,12 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
             int width, height;
             fIsVertical ? (height = (getHeight() - kNameHeight) / fButtons.size()) : (width = getWidth() / fButtons.size());
 
-            for (int i = 0; i < fButtons.size(); i++) {
+            for (size_t i = 0; i < fButtons.size(); i++) {
                 if (fIsVertical) {
-                    fButtons.operator[](i)->setBounds(0, i * height + kNameHeight, getWidth(), height);
+                    fButtons.operator[](int(i))->setBounds(0, int(i) * height + kNameHeight, getWidth(), height);
                 } else {
                     // kNameHeight pixels offset for the title
-                    fButtons.operator[](i)->setBounds(i * width, kNameHeight, width, getHeight() - kNameHeight);
+                    fButtons.operator[](int(i))->setBounds(int(i) * width, kNameHeight, width, getHeight() - kNameHeight);
                 }
             }
         }
@@ -1877,7 +1877,7 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
             // and not just n checkButtons :
             // TODO : check currently unused checkButtonWidth...
             int checkButtonWidth = 0;
-            for (int i = 0; i < names.size(); i++) {
+            for (size_t i = 0; i < names.size(); i++) {
                 // Checking the maximum of horizontal space needed to display the radio buttons
                 checkButtonWidth = juce::jmax(juce::Font().getStringWidth(juce::String(names[i])) + 15, checkButtonWidth);
             }

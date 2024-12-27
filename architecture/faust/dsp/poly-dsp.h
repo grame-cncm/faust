@@ -635,7 +635,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             // Looks for the first available voice
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 if (fVoiceTable[i]->fCurNote == kFreeVoice) {
-                    return allocVoice(i, kActiveVoice);
+                    return allocVoice(int(i), kActiveVoice);
                 }
             }
 
