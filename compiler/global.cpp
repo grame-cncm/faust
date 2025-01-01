@@ -2079,7 +2079,7 @@ string global::printVersion()
 #ifdef LLVM_BUILD
     sstr << "Build with LLVM version " << LLVM_VERSION << "\n";
 #endif
-    sstr << "Copyright (C) 2002-2024, GRAME - Centre National de Creation Musicale. All rights "
+    sstr << "Copyright (C) 2002-2025, GRAME - Centre National de Creation Musicale. All rights "
             "reserved. \n";
     return sstr.str();
 }
