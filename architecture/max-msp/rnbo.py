@@ -1363,7 +1363,7 @@ def create_rnbo_patch(
 
     # Faust generated patch comment
     patcher.add_comment(
-        "Faust generated RNBO patch, Copyright (c) 2023-2024 Grame",
+        "Faust generated RNBO patch, Copyright (c) 2023-2025 Grame",
         patching_rect=[50.0, 10.0, 350.0, 100.0],
         fontsize=16,
     )
