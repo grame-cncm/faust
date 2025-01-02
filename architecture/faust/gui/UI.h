@@ -81,6 +81,10 @@ struct FAUST_API UIReal {
 struct FAUST_API UI : public UIReal<FAUSTFLOAT> {
     UI() {}
     virtual ~UI() {}
+#ifdef DAISY
+    virtual bool isSoundUI() const { return false; }
+    virtual bool isMidiInterface() const { return false; }
+#endif
 };
 
 #endif
