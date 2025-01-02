@@ -17,6 +17,7 @@ Most major Faust targets are supported:
 * JACK
 * PortAudio
 * RTAudio
+* Miniaudio
 * openFrameworks
 * JUCE
 * Teensy
@@ -34,7 +35,6 @@ The various options of `faust2api` can be displayed at any point by running:
 
 `faust2api` is part of the [Faust distribution](https://github.com/grame-cncm/faust). To use it, Faust must be properly installed on your system (read the Faust README in the previous link to get more information on how to do that).
 
-
 Common options for all platforms:
 
 - `-opt native|generic`: to activate the best compilation options for the native or generic CPU.
@@ -45,13 +45,11 @@ Common options for all platforms:
 - `-nozip` : prevents generated files to be put in a zip file.
 - `-target <target>`: sets a name of the target folder or the zip file. Defaults to "dsp-faust"
 
-
-Options supported by iOS, CoreAudio, ALSA, JACK, PortAudio, openFrameworks and JUCE:
+Options supported by iOS, CoreAudio, ALSA, JACK, PortAudio, RTAudio, Miniaudio, openFrameworks and JUCE:
 
 - `midi`: add built-in RtMidi support to the API.
 - `osc`: add built-in OSC support to the API.
 - `soundfile`: add built-in Soundfile support to the API.
-
 
 ### Android Support
 
@@ -128,6 +126,17 @@ To turn a Faust code into an RTAudio API, just run the following command:
 
 ```
 faust2api -rtaudio yourFaustCode.dsp
+```
+
+The `-midi` option can be used to add RtMidi support to the API.
+The `-osc` option can be used to add OSC support to the API.
+
+### Miniaudio Support
+
+To turn a Faust code into an Miniaudio API, just run the following command:
+
+```
+faust2api -miniaudio yourFaustCode.dsp
 ```
 
 The `-midi` option can be used to add RtMidi support to the API.
