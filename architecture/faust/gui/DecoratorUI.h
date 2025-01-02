@@ -40,7 +40,7 @@ class FAUST_API GenericUI : public UI
         virtual ~GenericUI() {}
 
 #ifdef DAISY
-        virtual bool isSoundUI() const override { return true;
+        virtual bool isSoundUI() const override { return true; }
 #endif
         
         // -- widget's layouts
