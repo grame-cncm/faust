@@ -812,6 +812,10 @@ class MidiUI : public GUI, public midi, public midi_interface, public MetaDataUI
             // TODO: use shared_ptr based implementation
             if (fDelete) delete fMidiHandler;
         }
+
+#ifdef DAISY
+        virtual bool isMidiInterface() const override { return true; }
+#endif
     
         bool run() { return fMidiHandler->startMidi(); }
         void stop() { fMidiHandler->stopMidi(); }
