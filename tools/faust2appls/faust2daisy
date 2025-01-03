@@ -145,8 +145,8 @@ for p in $FILE; do
     # for Buffer Size
     echo "#define MY_BUFFER_SIZE $BS" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
 
-    # for DAISY preprocessor flag (to avoid dynamic casts since libdaisy is compiled with -fno-rtti flag)
-    echo "#define DAISY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    # for DAISY_NO_RTTI preprocessor flag (to avoid dynamic casts since libdaisy is compiled with -fno-rtti flag)
+    echo "#define DAISY_NO_RTTI" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
 
     # for POLY
     if [ "$NVOICES" -gt "0" ]; then

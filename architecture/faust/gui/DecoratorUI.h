@@ -39,7 +39,7 @@ class FAUST_API GenericUI : public UI
         GenericUI() {}
         virtual ~GenericUI() {}
 
-#ifdef DAISY
+#ifdef DAISY_NO_RTTI
         virtual bool isSoundUI() const override { return true; }
 #endif
         
