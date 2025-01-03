@@ -398,7 +398,7 @@ struct dsp_voice_group {
             ui_interface->closeBox();
 
             // If not grouped, also add individual voices UI
-#ifdef DAISY
+#ifdef DAISY_NO_RTTI
             if (!fGroupControl || ui_interface->isSoundUI()) {
 #else
             if (!fGroupControl || dynamic_cast<SoundUIInterface*>(ui_interface)) {
@@ -761,7 +761,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         void buildUserInterface(UI* ui_interface)
         {
             // MidiUI ui_interface contains the midi_handler connected to the MIDI driver
-            #ifdef DAISY
+            #ifdef DAISY_NO_RTTI
             if (ui_interface->isMidiInterface()) {
                 fMidiHandler = reinterpret_cast<midi_interface*>(ui_interface);
                 fMidiHandler->addMidiIn(this);

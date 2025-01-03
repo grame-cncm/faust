@@ -813,7 +813,7 @@ class MidiUI : public GUI, public midi, public midi_interface, public MetaDataUI
             if (fDelete) delete fMidiHandler;
         }
 
-#ifdef DAISY
+#ifdef DAISY_NO_RTTI
         virtual bool isMidiInterface() const override { return true; }
 #endif
     
