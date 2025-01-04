@@ -2173,7 +2173,7 @@ LIBFAUST_API Tree CboxButton(const char* label)
 
 LIBFAUST_API Tree CboxCheckbox(const char* label)
 {
-    return boxButton(label);
+    return boxCheckbox(label);
 }
 
 LIBFAUST_API Tree CboxVSlider(const char* label, Tree init, Tree min, Tree max, Tree step)
