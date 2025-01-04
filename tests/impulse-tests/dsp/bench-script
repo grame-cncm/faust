@@ -6,4 +6,5 @@ do
   echo $f >> Faustbench.csv
   faustbench-llvm -single -double $f
   faustbench -single -double $f
+  faustbench -lang ocpp -single -double $f
 done

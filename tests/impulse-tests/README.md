@@ -36,6 +36,10 @@ There is no target `clean`: simply delete the `ir` folder or one of its subfolde
 
 - the C++ output can be generated. A set of references files can be created using `make reference-cpp`, then tested using `make test-cpp`.
 
+### Testing CPU performance
+
+- `make bench` test CPU performance using the LLVM backend, C++ backend and old C++ backend. 
+
 ### Checking the FIR
 
 An experimental FIR checker can be activated for all backends testing using `export FAUST_DEBUG=FIR_CHECKER`.
