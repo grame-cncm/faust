@@ -194,6 +194,8 @@ elseif(NOT ANDROID)
     set (FAUST_LIBS -lpthread ${FAUST_LIBS})
 endif()
 
+message(STATUS "FAUST_LIBS: ${FAUST_LIBS}")
+
 ####################################
 # compiler dependent settings
 
