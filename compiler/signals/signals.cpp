@@ -650,7 +650,7 @@ bool isUIInputItem(Tree sig)
 
 bool isUIOutputItem(Tree sig)
 {
-    Tree label, c, x, y, z;
+    Tree label, x, y, z;
     if (isSigVBargraph(sig, label, x, y, z)) {
         return true;
     }

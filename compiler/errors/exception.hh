@@ -24,8 +24,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <sstream>
 #include <stdexcept>
 #ifndef WIN32
-#include <unistd.h>
 #include <alloca.h>
+#include <unistd.h>
 #else
 // #include <io.h>
 #endif
@@ -60,8 +60,8 @@ inline void stacktrace(std::stringstream& str, int val)
 {
 #if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID) && !defined(ALPINE)
     void** callstack = (void**)alloca(val * sizeof(void*));
-    int    frames = backtrace(callstack, val);
-    char** strs   = backtrace_symbols(callstack, frames);
+    int    frames    = backtrace(callstack, val);
+    char** strs      = backtrace_symbols(callstack, frames);
     str << "====== stack trace start ======\n";
     for (int i = 0; i < frames; ++i) {
         str << strs[i] << "\n";

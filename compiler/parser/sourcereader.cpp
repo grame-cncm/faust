@@ -245,14 +245,14 @@ Tree SourceReader::parseFile(const char* pkgLoc)
 
     if (isURL(FAUSTfilename)) {
         char* buffer = nullptr;
-        pm.install(FAUSTfilename, &buffer);
+        fPackageManager.install(FAUSTfilename, &buffer);
         FAUST_scan_string(buffer);
         Tree res = parseLocal(FAUSTfilename);
         free(buffer);
         return res;
     } else if (PkgUrl::isPKgUrl(FAUSTfilename)) {
-        fileName = pm.install(FAUSTfilename);
-        pPackageLists.push_back(FAUSTfilename);
+        fileName = fPackageManager.install(FAUSTfilename);
+        fPackageLists.push_back(FAUSTfilename);
         FAUSTfilename = fileName.c_str();
         isPkg         = true;
     } else if (isFILE(FAUSTfilename)) {
@@ -372,7 +372,7 @@ vector<string> SourceReader::listLibraryFiles()
 
 vector<string> SourceReader::listPackages()
 {
-    return pPackageLists;
+    return fPackageLists;
 }
 
 /**

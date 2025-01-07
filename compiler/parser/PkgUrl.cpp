@@ -49,14 +49,24 @@ void PkgUrl::parse(const string& url)
         throw faustexception("ERROR : package URL is not valid");
     }
 
-    author  = locater_parts[1].str();
-    libName = locater_parts[2].str();
-    version = locater_parts[3].str();
+    fVersion  = locater_parts[1].str();
+    fLibName = locater_parts[2].str();
+    fVersion = locater_parts[3].str();
 }
 
 string PkgUrl::getAuthor() const
 {
-    return author;
+    return fAuthor;
+}
+
+string PkgUrl::getLibraryName() const
+{
+    return fLibName;
+}
+
+string PkgUrl::getVersion() const
+{
+    return fVersion;
 }
 
 bool PkgUrl::isPKgUrl(const string& url)
@@ -71,27 +81,17 @@ bool PkgUrl::isPKgUrl(const string& url)
     return regex_search(url, pattern);
 }
 
-string PkgUrl::getLibraryName() const
-{
-    return libName;
-}
-
-string PkgUrl::getVersion() const
-{
-    return version;
-}
-
 string PkgUrl::getPath() const
 {
     string path = "";
 
-    if (!author.empty()) {
-        path += author + "/";
+    if (!fAuthor.empty()) {
+        path += fAuthor + "/";
     }
 
-    path += libName + "/";
-    path += version + "/";
-    path += libName;
+    path += fLibName + "/";
+    path += fVersion + "/";
+    path += fLibName;
 
     return path;
 }

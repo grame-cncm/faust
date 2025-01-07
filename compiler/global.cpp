@@ -2386,7 +2386,7 @@ string global::printHelp()
          << "-ni <n>     --narrowing-iterations <n>  number of iterations before stopping "
             "narrowing in signal bounding."
          << endl;
-    
+
     sstr << tab
          << "-po         --pkg-only                  only compiles if the dsp code depends on "
             "Faust packages."
@@ -2702,4 +2702,3 @@ void callFun(threaded_fun fun, void* arg)
     faustassert(pthread_attr_destroy(&attr) == 0);
 #endif
 }
-

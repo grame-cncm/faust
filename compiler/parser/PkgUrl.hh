@@ -29,9 +29,9 @@
 
 class PkgUrl {
    private:
-    std::string version;
-    std::string author;
-    std::string libName;
+    std::string fVersion;
+    std::string fAuthor;
+    std::string fLibName;
 
     void parse(const std::string&);
 

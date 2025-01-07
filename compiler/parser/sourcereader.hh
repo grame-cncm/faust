@@ -42,8 +42,8 @@ class SourceReader {
    private:
     std::map<std::string, Tree> fFileCache;
     std::vector<std::string>    fFilePathnames;
-    std::vector<std::string>    pPackageLists;
-    PackageManager              pm;
+    std::vector<std::string>    fPackageLists;
+    PackageManager              fPackageManager;
 
     Tree parseLocal(const char* fname);
     Tree expandRec(Tree ldef, std::set<std::string>& visited, Tree lresult);
