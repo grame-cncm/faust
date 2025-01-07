@@ -1668,62 +1668,62 @@ YY_RULE_SETUP
 case 29:
 YY_RULE_SETUP
 #line 77 "faustlexer.l"
-return INT;
+return INTVAL;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 79 "faustlexer.l"
-return FLOAT;
+return FLOATVAL;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 80 "faustlexer.l"
-return FLOAT;
+return FLOATVAL;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
 #line 81 "faustlexer.l"
-return FLOAT;
+return FLOATVAL;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
 #line 82 "faustlexer.l"
-return FLOAT;
+return FLOATVAL;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
 #line 83 "faustlexer.l"
-return FLOAT;
+return FLOATVAL;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
 #line 84 "faustlexer.l"
-return FLOAT;
+return FLOATVAL;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
 #line 85 "faustlexer.l"
-return FLOAT;
+return FLOATVAL;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
 #line 86 "faustlexer.l"
-return FLOAT;
+return FLOATVAL;
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
 #line 87 "faustlexer.l"
-return FLOAT;
+return FLOATVAL;
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
 #line 88 "faustlexer.l"
-return FLOAT;
+return FLOATVAL;
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
 #line 89 "faustlexer.l"
-return FLOAT;
+return FLOATVAL;
 	YY_BREAK
 case 41:
 YY_RULE_SETUP

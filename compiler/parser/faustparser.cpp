@@ -146,8 +146,8 @@
      RWTBL = 327,
      SELECT2 = 328,
      SELECT3 = 329,
-     INT = 330,
-     FLOAT = 331,
+     INTVAL = 330,
+     FLOATVAL = 331,
      MODULATE = 332,
      LAMBDA = 333,
      WIRE = 334,
@@ -286,8 +286,8 @@
 #define RWTBL 327
 #define SELECT2 328
 #define SELECT3 329
-#define INT 330
-#define FLOAT 331
+#define INTVAL 330
+#define FLOATVAL 331
 #define MODULATE 332
 #define LAMBDA 333
 #define WIRE 334
@@ -941,7 +941,7 @@ static const char *const yytname[] =
   "VBARGRAPH", "SOUNDFILE", "ATTACH", "ACOS", "ASIN", "ATAN", "ATAN2",
   "COS", "SIN", "TAN", "EXP", "LOG", "LOG10", "POWFUN", "SQRT", "ABS",
   "MIN", "MAX", "FMOD", "REMAINDER", "FLOOR", "CEIL", "RINT", "ROUND",
-  "RDTBL", "RWTBL", "SELECT2", "SELECT3", "INT", "FLOAT", "MODULATE",
+  "RDTBL", "RWTBL", "SELECT2", "SELECT3", "INTVAL", "FLOATVAL", "MODULATE",
   "LAMBDA", "WIRE", "CUT", "ENDDEF", "VIRG", "LPAR", "RPAR", "LBRAQ",
   "RBRAQ", "LCROC", "RCROC", "WHERE", "DEF", "LAPPLY", "IMPORT",
   "COMPONENT", "LIBRARY", "ENVIRONMENT", "WAVEFORM", "ROUTE", "ENABLE",

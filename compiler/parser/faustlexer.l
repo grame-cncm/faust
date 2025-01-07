@@ -74,19 +74,19 @@ NSID     {ID}("::"{ID})*
 <lst>"/>"                       { BEGIN(doc);     return ELST; }
 
 
-{DIGIT}+            return INT;
+{DIGIT}+            return INTVAL;
 
-{DIGIT}+"f"                             return FLOAT;
-{DIGIT}+"."{DIGIT}*                     return FLOAT;
-{DIGIT}+"."{DIGIT}*"f"                  return FLOAT;
-{DIGIT}+"."{DIGIT}*e[-+]?{DIGIT}+       return FLOAT;
-{DIGIT}+"."{DIGIT}*e[-+]?{DIGIT}+"f"    return FLOAT;
-{DIGIT}+e[-+]?{DIGIT}+                  return FLOAT;
-{DIGIT}+e[-+]?{DIGIT}+"f"               return FLOAT;
-"."{DIGIT}+                             return FLOAT;
-"."{DIGIT}+"f"                          return FLOAT;
-"."{DIGIT}+e[-+]?{DIGIT}+               return FLOAT;
-"."{DIGIT}+e[-+]?{DIGIT}+"f"            return FLOAT;
+{DIGIT}+"f"                             return FLOATVAL;
+{DIGIT}+"."{DIGIT}*                     return FLOATVAL;
+{DIGIT}+"."{DIGIT}*"f"                  return FLOATVAL;
+{DIGIT}+"."{DIGIT}*e[-+]?{DIGIT}+       return FLOATVAL;
+{DIGIT}+"."{DIGIT}*e[-+]?{DIGIT}+"f"    return FLOATVAL;
+{DIGIT}+e[-+]?{DIGIT}+                  return FLOATVAL;
+{DIGIT}+e[-+]?{DIGIT}+"f"               return FLOATVAL;
+"."{DIGIT}+                             return FLOATVAL;
+"."{DIGIT}+"f"                          return FLOATVAL;
+"."{DIGIT}+e[-+]?{DIGIT}+               return FLOATVAL;
+"."{DIGIT}+e[-+]?{DIGIT}+"f"            return FLOATVAL;
 
 ":"           return SEQ;
 ","           return PAR;

@@ -190,8 +190,8 @@ inline Tree unquote(char* str)
 %token SELECT2
 %token SELECT3
 
-%token INT
-%token FLOAT
+%token INTVAL
+%token FLOATVAL
 
 %token MODULATE
 %token LAMBDA
@@ -371,7 +371,7 @@ variantlist     : /*empty*/                         { $$ = 0; }
                 | variantlist variant               { $$ = $1 | $2;}
                 ;
 
-variant            : FLOATMODE                      { $$ = 1;}
+variant         : FLOATMODE                      { $$ = 1;}
                 | DOUBLEMODE                        { $$ = 2;}
                 | QUADMODE                          { $$ = 4;}
                 | FIXEDPOINTMODE                    { $$ = 8;}
@@ -389,12 +389,12 @@ vallist         : number                              { gGlobal->gWaveForm.push_
                 | vallist PAR number                  { gGlobal->gWaveForm.push_back($3); }
                 ;
 
-number          : INT                           { $$ = boxInt(str2int(FAUSTtext)); }
-                | FLOAT                         { $$ = boxReal(atof(FAUSTtext)); }
-                | ADD INT                       { $$ = boxInt(str2int(FAUSTtext)); }
-                | ADD FLOAT                     { $$ = boxReal(atof(FAUSTtext)); }
-                | SUB INT                       { $$ = boxInt(-str2int(FAUSTtext)); }
-                | SUB FLOAT                     { $$ = boxReal(-atof(FAUSTtext)); }                
+number          : INTVAL                        { $$ = boxInt(str2int(FAUSTtext)); }
+                | FLOATVAL                      { $$ = boxReal(atof(FAUSTtext)); }
+                | ADD INTVAL                    { $$ = boxInt(str2int(FAUSTtext)); }
+                | ADD FLOATVAL                  { $$ = boxReal(atof(FAUSTtext)); }
+                | SUB INTVAL                    { $$ = boxInt(-str2int(FAUSTtext)); }
+                | SUB FLOATVAL                  { $$ = boxReal(-atof(FAUSTtext)); }                
                 ;
                             
 statement       : IMPORT LPAR uqstring RPAR ENDDEF           { $$ = importFile($3); }
@@ -516,14 +516,14 @@ infixexp        : infixexp ADD infixexp     { $$ = boxSeq(boxPar($1,$3),boxAdd()
                 | primitive                        { $$ = $1; }
                 ;
 
-primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)); }
-                | FLOAT                         { $$ = boxReal(atof(FAUSTtext)); }
+primitive       : INTVAL                        { $$ = boxInt(str2int(FAUSTtext)); }
+                | FLOATVAL                      { $$ = boxReal(atof(FAUSTtext)); }
 
-                | ADD INT                       { $$ = boxInt (str2int(FAUSTtext)); }
-                | ADD FLOAT                     { $$ = boxReal(atof(FAUSTtext)); }
+                | ADD INTVAL                    { $$ = boxInt (str2int(FAUSTtext)); }
+                | ADD FLOATVAL                  { $$ = boxReal(atof(FAUSTtext)); }
 
-                | SUB INT                       { $$ = boxInt ( -str2int(FAUSTtext) ); }
-                | SUB FLOAT                     { $$ = boxReal( -atof(FAUSTtext) ); }
+                | SUB INTVAL                    { $$ = boxInt ( -str2int(FAUSTtext) ); }
+                | SUB FLOATVAL                  { $$ = boxReal( -atof(FAUSTtext) ); }
 
                 | WIRE                          { $$ = boxWire(); }
                 | CUT                           { $$ = boxCut(); }
