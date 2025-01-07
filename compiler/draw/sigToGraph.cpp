@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #include <iostream>
+#include <regex>
 #include <set>
 #include <sstream>
 #include <string>
@@ -297,5 +298,5 @@ static string sigLabel(Tree sig)
         throw faustexception(error.str());
     }
 
-    return fout.str();
+    return std::regex_replace(fout.str(), std::regex("\""), "\\\"");
 }
