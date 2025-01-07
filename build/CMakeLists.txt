@@ -26,6 +26,7 @@ set (CMAKE_CXX_STANDARD 17)
 
 if (WIN32 OR MSYS)
     set (CURL_INCLUDE_DIR "D:/a/faust/faust/libcurl/include")
+    set (CURL_LIBRARY "D:/a/faust/faust/libcurl/lib/libcurl.a")
     set (CURL_LIBRARIES "D:/a/faust/faust/libcurl/lib/libcurl.a")
 endif()
 
