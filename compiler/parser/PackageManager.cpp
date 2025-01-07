@@ -68,7 +68,7 @@ string PackageManager::registryUrlTransform(const string& url)
         if (u.host() == "github.com") {
             u.scheme("https");
             u.host("raw.githubusercontent.com");
-            u.path(u.path() + "/" + branch);
+            u.path(u.path() + "/" + fBranch);
         }
     } catch (const exception& e) {
         throw faustexception("The Registry Url Provided Is Not Valid");
@@ -84,30 +84,33 @@ void PackageManager::config()
     char* branchAux       = getenv("FAUST_REGISTRY_BRANCH");
 
     if (!registryPathAux) {
-        registryPath = DEFAULT_REGISTRY_PATH;
-        setenv("FAUST_REGISTRY_PATH", registryPath.c_str(), 1);
+        fRegistryPath = DEFAULT_REGISTRY_PATH;
+        string registry_path_str = fRegistryPath.string();
+        setenv("FAUST_REGISTRY_PATH", registry_path_str.c_str(), 1);
     } else {
-        registryPath = fs::path(registryPathAux);
+        fRegistryPath = fs::path(registryPathAux);
     }
 
     if (!registryUrlAux) {
-        registryUrl = DEFAULT_REGISTRY_URL;
-        setenv("FAUST_REGISTRY_URL", registryUrl.c_str(), 1);
+        fRegistryUrl = DEFAULT_REGISTRY_URL;
+        string registry_url_str = fRegistryPath.string();
+        setenv("FAUST_REGISTRY_URL", registry_url_str.c_str(), 1);
     } else {
-        registryUrl = registryUrlAux;
+        fRegistryUrl = registryUrlAux;
     }
 
     if (!branchAux) {
-        branch = DEFAULT_BRANCH;
-        setenv("FAUST_REGISTRY_BRANCH", branch.c_str(), 1);
+        fBranch = DEFAULT_BRANCH;
+        string branch_str = fRegistryPath.string();
+        setenv("FAUST_REGISTRY_BRANCH", branch_str.c_str(), 1);
     } else {
-        branch = branchAux;
+        fBranch = branchAux;
     }
 }
 
 void PackageManager::install(const string& url, char** buffer)
 {
-    downloader.download(url, buffer);
+    fDownloader.download(url, buffer);
 }
 
 string PackageManager::install(const string& pkgUrl)
@@ -115,8 +118,8 @@ string PackageManager::install(const string& pkgUrl)
     PkgUrl pkg(pkgUrl);
 
     fs::path    path;
-    fs::path    pkgPath = path = registryPath / pkg.getPath();
-    string remoteUrl    = registryUrlTransform(registryUrl) + "/" + pkg.getPath();
+    fs::path    pkgPath = path = fRegistryPath / pkg.getPath();
+    string remoteUrl    = registryUrlTransform(fRegistryUrl) + "/" + pkg.getPath();
 
     if (fs::exists(pkgPath)) {
         return pkgPath.string();
@@ -125,7 +128,7 @@ string PackageManager::install(const string& pkgUrl)
     fs::create_directories(pkgPath.parent_path());
 
     try {
-        downloader.download(remoteUrl, pkgPath.string());
+        fDownloader.download(remoteUrl, pkgPath.string());
     } catch (const faustexception& e) {
         stringstream error;
         error << "ERROR : couldn't download library " << pkg.getLibraryName() << " of version "

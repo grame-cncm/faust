@@ -32,10 +32,10 @@ namespace fs = std::filesystem;
 
 class PackageManager {
    private:
-    fs::path    registryPath;
-    std::string registryUrl;
-    std::string branch;
-    Downloader  downloader;
+    fs::path    fRegistryPath;
+    std::string fRegistryUrl;
+    std::string fBranch;
+    Downloader  fDownloader;
 
     void        config();
     std::string registryUrlTransform(const std::string& url);

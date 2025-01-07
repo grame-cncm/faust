@@ -33,7 +33,7 @@ int FAUSTlex();
 void yyerror(char* msg) 
 {
     std::stringstream error;
-    error << FAUSTfilename << " : " << FAUSTlineno << " : ERROR : " << msg << endl;
+    error << FAUSTfilename << " : " << FAUSTlineno << " : ERROR : " << msg << std::endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }
@@ -416,7 +416,7 @@ docelem         : doctxt                                    { $$ = docTxt($1->c_
                 | docmtd                                    { $$ = docMtd($1); }
                 ;
 
-doctxt          : /* empty */                              { $$ = new string(); }
+doctxt          : /* empty */                              { $$ = new std::string(); }
                 | doctxt DOCCHAR                           { $$ = &($1->append(FAUSTtext)); }
                 ;
 

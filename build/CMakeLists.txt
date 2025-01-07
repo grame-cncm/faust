@@ -24,7 +24,16 @@ set (LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/${LIBSDIR})
 
 set (CMAKE_CXX_STANDARD 17)
 
+if (WIN32 OR MSYS)
+    #set (CURL_INCLUDE_DIR "C:/Program Files/libcurl/include")
+    set (CURL_INCLUDE_DIR "D:/a/faust/faust/libcurl/include")
+    set (CURL_LIBRARY "D:/a/faust/faust/libcurl/lib/libcurl.a")
+endif()
+
 find_package(CURL REQUIRED)
+
+message(STATUS "CURL_INCLUDE_DIR: ${CURL_INCLUDE_DIR}")
+message(STATUS "CURL_LIBRARY: ${CURL_LIBRARY}")
 
 #######################################
 # Output options
@@ -78,7 +87,19 @@ set (FAUST_INC ${SRCDIR}
     ${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
     ${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
     ${SRCDIR}/draw/device ${SRCDIR}/draw/schema
-    ${SRCDIR}/../architecture /usr/local/include)
+    ${SRCDIR}/../architecture /usr/local/include ${CURL_INCLUDE_DIR})
+
+message(STATUS "FAUST_INC: ${FAUST_INC}")
+
+if(EXISTS "${CURL_INCLUDE_DIR}")
+    file(GLOB CURL_HEADER_FILES "${CURL_INCLUDE_DIR}/*")
+    message(STATUS "Contents of ${CURL_INCLUDE_DIR}/:")
+    foreach(FILE ${CURL_HEADER_FILES})
+        message(STATUS "  ${FILE}")
+    endforeach()
+else()
+    message(FATAL_ERROR "${CURL_INCLUDE_DIR}/ directory does not exist")
+endif()
 
 ####################################
 # LLVM
@@ -163,7 +184,7 @@ if(APPLE)
         endif()
         link_directories(/opt/local/lib)
     endif()
-elseif(WIN32 OR MSYS)
+elseif (WIN32 OR MSYS)
     if (NOT MSVC)
         set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__)
     endif()

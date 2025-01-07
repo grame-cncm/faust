@@ -388,7 +388,7 @@ int FAUSTlex();
 void yyerror(char* msg) 
 {
     std::stringstream error;
-    error << FAUSTfilename << " : " << FAUSTlineno << " : ERROR : " << msg << endl;
+    error << FAUSTfilename << " : " << FAUSTlineno << " : ERROR : " << msg << std::endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }
@@ -2397,7 +2397,7 @@ yyreduce:
 
   case 36:
 #line 419 "faustparser.y"
-    { (yyval.cppstr) = new string(); ;}
+    { (yyval.cppstr) = new std::string(); ;}
     break;
 
   case 37:

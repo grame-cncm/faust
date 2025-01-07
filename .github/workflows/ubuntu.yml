@@ -20,6 +20,7 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install libmicrohttpd-dev
+        sudo apt-get install libcurl4-openssl-dev
 
     - name: Build Faust
       run: make

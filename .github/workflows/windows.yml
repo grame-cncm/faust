@@ -3,7 +3,7 @@ name: Windows
 on:
   push:
     branches:
-        - '*'
+      - '*'  
   pull_request:
     branches: [ master-dev ]
 
@@ -19,11 +19,25 @@ jobs:
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1
-  
-    - name: Get latest CMake and ninja
+
+    - name: Get latest CMake and Ninja
       uses: lukka/get-cmake@latest
 
-    - name: Build Faust
+    - name: Install libcurl Development Package
+      run: |
+        curl -LO https://curl.se/windows/dl-8.11.1_3/curl-8.11.1_3-win64-mingw.zip
+        mkdir libcurl
+        tar -xf curl-8.11.1_3-win64-mingw.zip -C libcurl --strip-components=1
+        echo "CURL_INCLUDE_DIR=${{ github.workspace }}/libcurl/include" >> $GITHUB_ENV
+        echo "CURL_LIBRARY=${{ github.workspace }}/libcurl/lib/libcurl.a" >> $GITHUB_ENV
+        echo "${{ github.workspace }}/libcurl/bin" >> $GITHUB_PATH
+        curl --version 
+        echo "::notice title=CURL Paths::"
+        echo "<CURL_INCLUDE_DIR>${{ github.workspace }}/libcurl/include</CURL_INCLUDE_DIR>"
+        echo "<CURL_LIBRARY>${{ github.workspace }}/libcurl/lib/libcurl.a</CURL_LIBRARY>"
+  
+    - name: Build Faust with CMake
       run: |
         make -C build cmake BACKENDS=regular.cmake TARGETS=win-ci.cmake
         make -C build
+        
