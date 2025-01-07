@@ -9,8 +9,8 @@ int Vertex::output_counter = 0;
 typedef std::vector<int> Retiming;
 
 // Constants to make the creation of input/output vertices easier to follow
-const bool INPUT  = true;
-const bool OUTPUT = false;
+static const bool INPUT_VAL  = true;
+static const bool OUTPUT_VAL = false;
 
 /**
  * Transforms a given tree-representation of a signal to an equivalent signal DAG representation.
@@ -31,8 +31,8 @@ void VhdlProducer::visit(Tree signal)
         _virtual_io_stack.push(vertex_id + 1);
 
         // Creating two vertices, an output and an input, that are linked.
-        addVertex(Vertex(signal, OUTPUT));
-        addVertex(Vertex(signal, INPUT));
+        addVertex(Vertex(signal, OUTPUT_VAL));
+        addVertex(Vertex(signal, INPUT_VAL));
 
         // Then visiting the projected value.
         self(x);
@@ -73,7 +73,7 @@ void VhdlProducer::visit(Tree signal)
             // we need to create an explicit output node with `MASTER_CLOCK_FREQUENCY /
             // FPGA_SAMPLE_RATE` registers.
             int output_id = _vertices.size();
-            addVertex(Vertex(signal, OUTPUT));
+            addVertex(Vertex(signal, OUTPUT_VAL));
             _edges[vertex_id].push_back(
                 Edge(output_id, static_cast<int>(MASTER_CLOCK_FREQUENCY / FPGA_SAMPLE_RATE),
                      _vertices[vertex_id].propagation_delay));
