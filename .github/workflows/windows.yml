@@ -38,7 +38,7 @@ jobs:
   
     - name: Build Faust with CMake
       run: |
-        cd faustdir
+        cd build/faustdir
         cmake .. BACKENDS=regular.cmake TARGETS=win-ci.cmake -DCMAKE_VERBOSE_MAKEFILE=on
         make 
         # make -C build cmake BACKENDS=regular.cmake TARGETS=win-ci.cmake -DCMAKE_VERBOSE_MAKEFILE=on
