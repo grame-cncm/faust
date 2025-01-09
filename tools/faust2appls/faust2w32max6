@@ -5,7 +5,7 @@
 #               Cross-compiles Faust programs to Max/MSP            #
 #                      from : Linux or OSX                          #
 #                        to : Windows 32                            #
-#                       (c) Grame, 2011-2024                        #
+#                       (c) Grame, 2011-2025                        #
 #                                                                   #
 #####################################################################
 
@@ -43,7 +43,7 @@ fi
 : ${MINGWPREFIX="i686-w64-mingw32-"}
 CXX="${MINGWPREFIX}g++"
 (which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
-DLLWRAP="${MINGWPREFIX}dllwrap --target=i686-w64-mingw32"
+DLLWRAP="${MINGWPREFIX}dllwrap --target=i686-w64-mingw32 --dynamicbase --enable-auto-image-base"
 STRIP="${MINGWPREFIX}strip"
 
 #-----------------------------------------------------------------------------
@@ -111,7 +111,8 @@ for p in $FILES; do
 
         $CXX $CXXINCS $CXXFLAGS $MC -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
         $DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static -o "${f%.dsp}$EXT"
-        $STRIP "${f%.dsp}$EXT"
+        # Read: https://beta.cycling74.com/t/error-998-loading-external-generated-with-faust2max6-on-windows/3327/10
+        # $STRIP "${f%.dsp}$EXT"
     ) > /dev/null || exit
 
     cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"
