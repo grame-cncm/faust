@@ -43,7 +43,7 @@ fi
 : ${MINGWPREFIX="x86_64-w64-mingw32-"}
 CXX="${MINGWPREFIX}g++"
 (which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
-DLLWRAP="${MINGWPREFIX}dllwrap --target=x86_64-w64-mingw32 --dynamicbase --enable-auto-image-base"
+DLLWRAP="${MINGWPREFIX}dllwrap --target=x86_64-w64-mingw32 -Wl,--dynamicbase -Wl,--enable-auto-image-base"
 STRIP="${MINGWPREFIX}strip"
 
 #-----------------------------------------------------------------------------

@@ -51,7 +51,7 @@ class LIBFAUST_API signal_dsp : public dsp {
     
     private:
     
-        // signal_dsp objects are allocated using llvm_dsp_factory::createDSPInstance();
+        // signal_dsp objects are allocated using signal_dsp_factory::createDSPInstance();
         signal_dsp() {}
     
     public:

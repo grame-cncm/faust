@@ -28,8 +28,6 @@
 #include <assert.h>
 
 #include "faust/audio/audio.h"
-#include "faust/dsp/dsp-adapter.h"
-#include "faust/dsp/dsp-tools.h"
 
 #define MINIAUDIO_IMPLEMENTATION
 #define MA_NO_DECODING
