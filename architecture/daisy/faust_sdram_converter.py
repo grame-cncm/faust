@@ -1,7 +1,9 @@
 """
 In order to use long delay lines and tables on Daisy devices, it's necessary
 to put some buffers in SDRAM. Right now, the Faust backend system doesn't do
-this automatically for us, so we do it via Python.
+this automatically for us, so we do it via Python. A better approach would
+be to use a custom memory manager:
+https://faustdoc.grame.fr/manual/architectures/#custom-memory-manager
 
 Before the script, our C++ code might look like this
 
@@ -116,7 +118,7 @@ def process_faust_cpp(input_text, debug=True, threshold=1000):
 
     # Add static declarations before class
     static_decl_text = '\n'.join(static_declarations) + '\n\n'
-    input_text = input_text.replace('class mydsp', static_decl_text + 'class mydsp')
+    input_text = input_text.replace('class mydsp :', static_decl_text + 'class mydsp :')
 
     # Update or add constructor
     constructor_match = re.search(r'mydsp\(\)\s*{', modified_content)
