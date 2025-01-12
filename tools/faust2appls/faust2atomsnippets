@@ -42,6 +42,7 @@ import sys
 import re
 import getopt
 
+
 # Outdent a comment line by n characters in
 # order to remove the prefix "//   "
 def outdent(line, n):
@@ -50,73 +51,83 @@ def outdent(line, n):
     else:
         return line[n:]
 
+
 # Match the 2-characters prefix of a library.
 # We want to extract "no" from "...prefix is `no`..."
 def matchPrefixName(line):
-    return re.search(r'^.*prefix is .(..).*', line)
+    return re.search(r"^.*prefix is .(..).*", line)
+
 
 # Match the first line of a title
 # of type "//#### Title ####
 # at least 3 * are needed
 def matchBeginTitle(line):
-    return re.search(r'^\s*//#{3,}\s*([^#]+)#{3,}', line)
+    return re.search(r"^\s*//#{3,}\s*([^#]+)#{3,}", line)
+
 
 # Match the last line of a title
 # of type "//#######"
 # or a blank line
 def matchEndTitle(line):
-    return re.search(r'^\s*((//#{3,})|(\s*))$', line)
+    return re.search(r"^\s*((//#{3,})|(\s*))$", line)
 
 
 # Match the first line of a section
 # of type "//==== Section ===="
 # at least 3 = are needed
 def matchBeginSection(line):
-    return re.search(r'^\s*//={3,}\s*([^=]+)={3,}', line)
+    return re.search(r"^\s*//={3,}\s*([^=]+)={3,}", line)
+
 
 # Match the last line of a section
 # of type "//======="
 # or a blank line
 def matchEndSection(line):
-    return re.search(r'^\s*((//={3,})|(\s*))$', line)
+    return re.search(r"^\s*((//={3,})|(\s*))$", line)
 
-# Match the first line of a comment
-# of type "//--- foo(x,y) ----"
+
+# Match the first line of a comment and return the function name
+# of type "//--- (aa).foo(x,y) ----"
 # at least 3 - are needed
 def matchBeginComment(line):
-    return re.search(r'^\s*//-{3,}\s*`([^-`]+)`-{3,}', line)
+    # return re.search(r"^\s*//-{3,}\s*`([^-`]+)`-{3,}", line)
+    return re.search(r"^\s*//-{3,}\s*`(?:\([a-z]{2}\.\))?([^-`]+)`-{3,}", line)
+
 
 # Match the last line of a comment
 # of type "//-----------------"
 # or a blank line
 def matchEndComment(line):
-    return re.search(r'^\s*((//-{3,})|(\s*))$', line)
+    return re.search(r"^\s*((//-{3,})|(\s*))$", line)
+
 
 # Compute the indentation of a line,
 # that is the position of the first word character
 # after "//   "
 def indentation(line):
-    matchComment = re.search(r'(^\s*//\s*\w)', line)
+    matchComment = re.search(r"(^\s*//\s*\w)", line)
     if matchComment:
-        return len(matchComment.group(1))-1
+        return len(matchComment.group(1)) - 1
     else:
         return 0
 
+
 # Indicates if a line is a comment
 def isComment(line):
-    matchComment = re.search(r'^\s*//', line)
+    matchComment = re.search(r"^\s*//", line)
     if matchComment:
         return 1
     else:
         return 0
 
+
 #
 # THE PROGRAM STARTS HERE
 #
-tabsize = 4             # tabsize used for expanding tabs
-mode = 0             # 0: in code; 1: in md-comment
-idt = 0             # indentation retained to outdent comment lines
-simplified = 0         # 0: full mode; 1: body only
+tabsize = 4  # tabsize used for expanding tabs
+mode = 0  # 0: in code; 1: in md-comment
+idt = 0  # indentation retained to outdent comment lines
+simplified = 0  # 0: full mode; 1: body only
 libprefix = "xx"  #
 
 # Analyze command line arguments
@@ -129,15 +140,15 @@ except getopt.error as e:
     print("usage: %s [-s] [-t tabsize] *.lib > faust-library.cson" % (sys.argv[0],))
     sys.exit(1)
 for optname, optvalue in opts:
-    if optname == '-t':
+    if optname == "-t":
         tabsize = int(optvalue)
-    if optname == '-s':
+    if optname == "-s":
         simplified = 1
 
 # Process all the files and print the documentation on the standard output
 if simplified:
     sys.stdout.write("let gFaustLibSnippets = ")
-    sep = '['
+    sep = "["
 else:
     print("'.source.faust':")
 
@@ -153,17 +164,15 @@ for file in args:
                     # we are closing a md-comment
                     mode = 0
             else:
-                if mode == 0:     # we are in code
+                if mode == 0:  # we are in code
                     matchComment = matchBeginComment(line)
                     matchSection = matchBeginSection(line)
                     matchTitle = matchBeginTitle(line)
                     if matchComment:
                         foo = matchComment.group(1)
                         if simplified:
-                            sys.stdout.write("%s '%s.%s'" % (sep,
-                                                             libprefix,
-                                                             foo))
-                            sep = ','
+                            sys.stdout.write("%s '%s.%s'" % (sep, libprefix, foo))
+                            sep = ","
                         else:
                             print("\t'%s':" % (foo,))
                             print("\t\t'prefix': '%s'" % (foo,))
