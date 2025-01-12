@@ -63,7 +63,37 @@ def find_arrays_in_class(class_content):
         })
     return arrays
 
+def find_static_arrays(content):
+    """Find static array declarations outside the class"""
+    static_pattern = r'static\s+(float|FAUSTFLOAT)\s+(\w+)\s*\[(\d+)\]\s*;'
+    arrays = []
+    for match in re.finditer(static_pattern, content):
+        type_name, var_name, size_str = match.groups()
+        if 'DSY_SDRAM_BSS' not in match.group(0):  # Skip if already modified
+            arrays.append({
+                'type': type_name,
+                'name': var_name,
+                'size': int(size_str),
+                'original': match.group(0)
+            })
+    return arrays
+
 def process_faust_cpp(input_text, debug=True, threshold=1000):
+    # First handle static arrays outside the class
+    static_arrays = find_static_arrays(input_text)
+
+    if debug and static_arrays:
+        print("\nDebug: Found static arrays outside class:")
+        debug_print_arrays(static_arrays)
+
+    # Modify static array declarations
+    for arr in static_arrays:
+        if arr['size'] > threshold:
+            old_decl = arr['original']
+            new_decl = f'static {arr["type"]} DSY_SDRAM_BSS {arr["name"]}[{arr["size"]}];'
+            input_text = input_text.replace(old_decl, new_decl)
+            if debug:
+                print(f"Modified static array: {arr['name']}")
 
     # Find the complete mydsp class
     class_match = re.search(
@@ -88,7 +118,7 @@ def process_faust_cpp(input_text, debug=True, threshold=1000):
     
     if not large_arrays:
         if debug:
-            print("No large arrays found to modify")
+            print("No large arrays found to modify in class")
         return input_text
 
     # Prepare modifications
@@ -117,34 +147,36 @@ def process_faust_cpp(input_text, debug=True, threshold=1000):
         )
 
     # Add static declarations before class
-    static_decl_text = '\n'.join(static_declarations) + '\n\n'
-    input_text = input_text.replace('class mydsp :', static_decl_text + 'class mydsp :')
+    if static_declarations:
+        static_decl_text = '\n'.join(static_declarations) + '\n\n'
+        input_text = input_text.replace('class mydsp :', static_decl_text + 'class mydsp :')
 
-    # Update or add constructor
-    constructor_match = re.search(r'mydsp\(\)\s*{', modified_content)
-    if constructor_match:
-        # Update existing constructor
-        modified_content = modified_content.replace(
-            'mydsp() {',
-            f'mydsp() : {", ".join(constructor_inits)} {{'
-        )
-    else:
-        # Add new constructor after class opening
-        constructor_text = f'\n    public:\n    mydsp() : {", ".join(constructor_inits)} {{\n    }}\n'
-        modified_content = re.sub(
-            r'{(\s*private:)?',
-            f'{{\n{constructor_text}\n    private:',
-            modified_content,
-            count=1
-        )
+    # Update or add constructor if we have initializations to add
+    if constructor_inits:
+        constructor_match = re.search(r'mydsp\(\)\s*{', modified_content)
+        if constructor_match:
+            # Update existing constructor
+            modified_content = modified_content.replace(
+                'mydsp() {',
+                f'mydsp() : {", ".join(constructor_inits)} {{'
+            )
+        else:
+            # Add new constructor after class opening
+            constructor_text = f'\n    public:\n    mydsp() : {", ".join(constructor_inits)} {{\n    }}\n'
+            modified_content = re.sub(
+                r'{(\s*private:)?',
+                f'{{\n{constructor_text}\n    private:',
+                modified_content,
+                count=1
+            )
 
-    # Replace the entire class content
-    input_text = re.sub(
-        r'class\s+mydsp\s*:\s*public\s+dsp\s*{.*?};',
-        f'class mydsp : public dsp {{{modified_content}}};',
-        input_text,
-        flags=re.DOTALL
-    )
+        # Replace the entire class content
+        input_text = re.sub(
+            r'class\s+mydsp\s*:\s*public\s+dsp\s*{.*?};',
+            f'class mydsp : public dsp {{{modified_content}}};',
+            input_text,
+            flags=re.DOTALL
+        )
 
     return input_text
 
