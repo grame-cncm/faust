@@ -203,7 +203,7 @@ def main():
     # Write to output file
     # output_file = input_file.rsplit('.', 1)[0] + '_sdram.cpp'
     output_file = input_file
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w', encoding='utf-8') as f:
         f.write(output_text)
     
     if debug:
