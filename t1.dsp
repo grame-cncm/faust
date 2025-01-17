@@ -96,6 +96,10 @@ w2 = mem <: _, mem :> _;
 w3 = _,_ <: *(0.1),*(0.2), (mem:*(0.3)), (mem:*(0.4)) :> _,_;
 
 mfir(N,T) = par(n,N,_) <: par(t,T, par(n,N, @(t):*(1/(1+n+t)))) :> par(n,N,_);
+ 
+pfir(N,T) = _ <: mfir(N,T) :> _;
+
+pf1 = pfir(10,4);
 
 w4 = mfir(1,4);
 w5 = mfir(5,10);
