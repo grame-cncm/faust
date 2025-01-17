@@ -1776,7 +1776,8 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
         case DelayType::kSelectRingDelay:
             int         N   = pow2limit(mxd + 1);
             std::string idx = subst("(IOTA-$0)&$1", delayidx, T(N - 1));
-            result          = subst("$0[$1]", vecname, idx);  // idx can't be cashed as it depends of loop variable ii
+            result          = subst("$0[$1]", vecname,
+                                    idx);  // idx can't be cashed as it depends of loop variable ii
             break;
     }
     // return generateCacheCode(sig, result);
@@ -2082,7 +2083,7 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         fClass->addExecCode(Statement("", subst("$0 \t$1 = 0;", ftype, facc)));
 
         // Code for the accumulation loop
-        std::string accloop = subst("for (int ii = 0; ii < $0; ii++) { $1 = fma($2[ii], $3, $1); }",
+        std::string accloop = subst("for (int ii = 0; ii < $0; ii++) { $1 += $2[ii] * $3; }",
                                     T(int(coefs.size() - 1)), facc, ctable, idxaccess);
         fClass->addExecCode(Statement("", accloop));
 
