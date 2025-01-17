@@ -599,8 +599,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             //     << std::endl;
             int n, m;
             getBoxType(t1, &n, &m);
-            // because the cicuit is never activated, its n outputs will remain zero
-            return siglist(n, sigInt(0));
+            // because the cicuit is never activated, its m outputs will remain zero
+            return siglist(m, sigInt(0));
         }
         if (isOne(H)) {
             // std::cerr << "If the clock signal is one, we don't need an if" << std::endl;
