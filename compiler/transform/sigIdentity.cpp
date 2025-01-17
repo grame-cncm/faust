@@ -161,9 +161,9 @@ Tree SignalIdentity::transformation(Tree sig)
     }
 
     else if (isSigSeq(sig, x, y)) {
-        std::cerr << "identity sigSeq " << ppsig(sig) << std::endl;
+        // std::cerr << "identity sigSeq " << ppsig(sig) << std::endl;
         Tree x2 = self(x);
-        std::cerr << "identity sigSeq x2 " << ppsig(x2) << std::endl;
+        // std::cerr << "identity sigSeq x2 " << ppsig(x2) << std::endl;
         faustassert(!isZero(x2));
         return sigSeq(x2, self(y));
     }

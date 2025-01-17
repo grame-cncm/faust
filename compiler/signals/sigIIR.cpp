@@ -56,7 +56,7 @@ if Ci constant, then (Ci@d)*(Vi@(d+k)) = Ci*(Vi@(d+k)) PROOF t<d+k : Vi@(d+k) = 
 #include "recursivness.hh"
 #include "sharing.hh"
 
-#define TRACE 0
+#define TRACE 1
 // We use nil to indicate that a recursive expression is not representable by an IIR
 bool hasNonValidArgs(Tree sig)
 {

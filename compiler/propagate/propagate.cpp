@@ -93,6 +93,7 @@ static siglist makeMemSigProjList(Tree clockenv, Tree t, int n)
     siglist l(n);
     for (int i = 0; i < n; i++) {
         l[i] = sigClocked(clockenv, sigDelay1(sigProj(i, t)));  // To be verified
+        // l[i] = sigDelay1(sigProj(i, t));  // To be verified
     }
     return l;
 }
@@ -594,19 +595,19 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         }
         // The resulting ondemand signal with all the information
         Tree od = sigOD(W);
-        std::cerr << "od = " << ppsig(od) << std::endl;
+        // std::cerr << "od = " << ppsig(od) << std::endl;
 
         // Finally, we create the output signals making shure that od is computed first
         // using sigSeq(od, y)
         siglist Y2;
         for (Tree y : Y1) {
             Tree y2 = sigSeq(od, sigClocked(H, y));
-            std::cerr << "y2 = " << ppsig(y2) << std::endl;
+            // std::cerr << "y2 = " << ppsig(y2) << std::endl;
             Y2.push_back(y2);
         }
-        for (Tree s : Y2) {
-            std::cerr << "DEBUG Y2 = " << ppsig(s) << std::endl;
-        }
+        // for (Tree s : Y2) {
+        //     std::cerr << "DEBUG Y2 = " << ppsig(s) << std::endl;
+        // }
         return Y2;
     }
 

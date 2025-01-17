@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include "ppsig.hh"
 #include "sigFIR.hh"
 #include "sigIIR.hh"
@@ -19,158 +20,11 @@
 //----------------------------------------------------------------------
 // IIR part
 //----------------------------------------------------------------------
-Tree proj2IIR(int indentation, Tree rt);
-
-//----------------------------------------------------------------------
-// IIRevealer : reveal IIR structures
-//----------------------------------------------------------------------
-
-class IIRRevealer : public SignalIdentity {
-   protected:
-    Tree transformation(Tree L);
-};
-
-Tree IIRRevealer::transformation(Tree sig)
-{
-    Tree rgroup, var, le;
-    int  p;
-
-    if (isProj(sig, &p, rgroup) && isRec(rgroup, var, le)) {
-        traceMsg("We have a recursive projection", sig);
-        // we have a candidate for an IIR
-        if (!isNil(le)) {
-            Tree iir = proj2IIR(getIndentation(), sig);
-            if (isNil(iir)) {
-                return SignalIdentity::transformation(sig);
-            } else {
-                tvec coef;
-                faustassert(isSigIIR(iir, coef));
-                coef[0] = gGlobal->nil;  // anonymize the recursive projection
-                for (unsigned int i = 1; i < coef.size(); i++) {
-                    coef[i] = self(coef[i]);
-                }
-                return sigIIR(coef);
-            }
-        } else {
-            traceMsg("We have a recursive projection, but definitions are nil", sig);
-            return sig;  // SignalIdentity::transformation(sig);
-        }
-    } else {
-        return SignalIdentity::transformation(sig);
-    }
-}
-
-//----------------------------------------------------------------------
-// Projection2IIR : reveal IIR structure of a recursive projection
-//----------------------------------------------------------------------
-
-class Projection2IIR : public SignalIdentity {
-   protected:
-    Tree fRecProj;  // Wi, the recursive projection
-
-   public:
-    Projection2IIR(Tree recgroup, int recindex)
-        : SignalIdentity(), fRecProj(sigProj(recindex, recgroup))
-    {
-    }
-
-   protected:
-    virtual Tree transformation(Tree t);
-    virtual Tree postprocess(Tree L);
-};
-
-// We intercept recursive projections to avoid visiting their definition
-Tree Projection2IIR::transformation(Tree sig)
-{
-    Tree x, var, ldef;
-    int  i;
-    if (isProj(sig, &i, x) && isRec(x, var, ldef)) {
-        traceMsg("WARNING: we are transforming a projection", sig);
-        traceMsg("with list of definitions", ldef);
-        return sig;
-    }
-    return SignalIdentity::transformation(sig);
-}
-
-// IIR structure [v,x,c1,c2,...] ==> v = x +c1*v@1 + c2*v@2 + ...
-Tree Projection2IIR::postprocess(Tree sig)
-{
-    Tree x, y;
-    int  d;
-
-    if (hasNonValidArgs(sig)) {
-        traceMsg("WARNING: We have non valid arguments in", sig);
-        return gGlobal->nil;
-
-    } else if (tvec coef; isSigFIR(sig, coef)) {
-        traceMsg("FIR in Projection2IIR::postprocess", sig);
-        if (tvec coef2; isSigIIR(coef[0], coef2) && (coef2[0] == fRecProj)) {
-            traceMsg("We have a concerned IIR inside a FIR ", sig);
-            return embeddedIIR(fRecProj, sig);
-        } else {
-            traceMsg("We have an unrelated IIR inside a FIR ", sig);
-            return sig;  // unrelated FIR, stay FIR
-        }
-
-    } else if (isProj(sig, &d, x)) {
-        return proj2SigIIR(fRecProj, sig);
-
-    } else if (isSigDelay(sig, x, y)) {
-        return delaySigIIR(fRecProj, x, y);
-
-    } else if (isSigAdd(sig, x, y)) {
-        return addSigIIR(fRecProj, x, y);
-
-    } else if (isSigSub(sig, x, y)) {
-        return subSigIIR(fRecProj, x, y);
-
-    } else if (isSigMul(sig, x, y)) {
-        return mulSigIIR(fRecProj, x, y);
-
-    } else if (isSigDiv(sig, x, y)) {
-        return divSigIIR(fRecProj, x, y);
-
-    } else if (hasConcernedIIRArgs(fRecProj, sig)) {
-        // the only valid combinations of IIRs are the ones above.
-        // Therefore sig can't be represented by an IIR
-        return gGlobal->nil;
-
-    } else {
-        return sig;
-    }
-}
-#if 0
-// Internal API
-Tree proj2IIR(int indentation, Tree rt)
-{
-    int  i;
-    Tree x, var, le;
-
-    faustassert(isProj(rt, &i, x));
-    faustassert(isRec(x, var, le));
-    Tree              def = nth(le, i);
-    Projection2IIR    R(x, i);
-    std::stringstream ss(std::stringstream::out | std::stringstream::in);
-    ss << "proj2IIR[" << *var << '_' << i << "]";
-    R.trace(TRACE, ss.str(), indentation);
-
-    // std::cerr << "def: " << *def << "\n";
-    // std::cerr << "def: " << ppsig(def) << "\n";
-    Tree result = R.self(def);
-    // std::cerr << "result: " << ppsig(result) << "\n";
-
-    if (result == def) {
-        // we where not able to transform the definition into an IIR
-        return gGlobal->nil;
-    }
-    return result;
-}
-#endif
 
 /**
- * @brief Transform a FIR and an input signal into an IIR
+ * @brief Transform a FIR on a rec variable and an input signal into an IIR
  *
- * @param fcs: [W,c0,c1,...,cn]
+ * @param fir: [W,c0,c1,...,cn]
  * @param input signal: x
  * @return IIR [W,x,c0,c1,...,cn]
  */
@@ -196,7 +50,45 @@ static Tree sigNeg(Tree sig)
     return simplify(sigMul(sigInt(-1), sig));
 }
 
-#if 1
+/**
+ * @brief indicate if x and/or y are clocked and return the clock and the unclocked signals
+ * Trig an exception if x and y have different clocks
+ *
+ * @param x a potentially clocked signal
+ * @param y a potentially clocked signal
+ * @return std::tuple<bool, Tree, Tree, Tree> = (clocked, clock, unclocked x, unclocked y)
+ */
+static std::tuple<bool, Tree, Tree, Tree> unclock(Tree x, Tree y)
+{
+    Tree clock, clockx, x1, clocky, y1;
+    bool clockedx = false;
+    bool clockedy = false;
+    bool clocked  = false;
+
+    if (isSigClocked(x, clockx, x1)) {
+        clockedx = true;
+        clocked  = true;
+        clock    = clockx;
+    } else {
+        x1 = x;
+    }
+
+    if (isSigClocked(y, clocky, y1)) {
+        clockedy = true;
+        clocked  = true;
+        clock    = clocky;
+    } else {
+        y1 = y;
+    }
+
+    // if the two signals are clocked, they must be clocked by the same clock
+    if (clockedx & clockedy) {
+        faustassert(clockx == clocky);
+    }
+
+    return std::make_tuple(clocked, clock, x1, y1);
+}
+
 /**
  * @brief Check if a recursive projection is a FIR that can
  * be transformed into an IIR
@@ -205,44 +97,59 @@ static Tree sigNeg(Tree sig)
  * @param proj: proj(i,rec(var,le))
  * @return an IIR or nil
  */
-Tree proj2IIR(int indentation, Tree proj)
+static Tree proj2IIR(int indentation, Tree proj)
 {
     int  i;
-    Tree rg, var, le, x, y;
+    Tree rg, var, le, x0, y0;
 
     faustassert(isProj(proj, &i, rg));
     faustassert(isRec(rg, var, le));
     Tree def = nth(le, i);
-    // for (int j = 0; j < indentation; j++) {
-    //     std::cerr << "\t";
-    // }
-    // std::cerr << "proj2IIR: " << ppsig(def) << "\n";
-    if (isSigAdd(def, x, y)) {
-        if (tvec cy; isSigFIR(y, cy) && cy[0] == proj) {
-            if (!isDependingOn(x, proj)) {
-                return makeIIR(y, x);
+    // std::cerr << std::string(indentation, '\t') << "proj2IIR: " << ppsig(def) << "\n";
+    if (isSigAdd(def, x0, y0)) {
+        auto [clocked, clock, x1, y1] = unclock(x0, y0);
+
+        if (tvec cy; isSigFIR(y1, cy) && cy[0] == proj) {
+            if (!isDependingOn(x1, proj)) {
+                if (clocked) {
+                    return makeIIR(y1, sigClocked(clock, x1));
+                }
+                return makeIIR(y1, x1);
             } else {
                 return gGlobal->nil;
             }
-        } else if (tvec cx; isSigFIR(x, cx) && cx[0] == proj) {
-            if (!isDependingOn(y, proj)) {
-                return makeIIR(x, y);
+        } else if (tvec cx; isSigFIR(x1, cx) && cx[0] == proj) {
+            if (!isDependingOn(y1, proj)) {
+                if (clocked) {
+                    return makeIIR(x1, sigClocked(clock, y1));
+                }
+                return makeIIR(x1, y1);
             } else {
                 return gGlobal->nil;
             }
         } else {
             return gGlobal->nil;
         }
-    } else if (isSigSub(def, x, y)) {
-        if (tvec cy; isSigFIR(y, cy) && cy[0] == proj) {
-            if (!isDependingOn(x, proj)) {
-                return makeIIR(negSigFIR(y), x);
+    }
+
+    else if (isSigSub(def, x0, y0)) {
+        auto [clocked, clock, x1, y1] = unclock(x0, y0);
+
+        if (tvec cy; isSigFIR(y1, cy) && cy[0] == proj) {
+            if (!isDependingOn(x1, proj)) {
+                if (clocked) {
+                    return makeIIR(negSigFIR(y1), sigClocked(clock, x1));
+                }
+                return makeIIR(negSigFIR(y1), x1);
             } else {
                 return gGlobal->nil;
             }
-        } else if (tvec cx; isSigFIR(x, cx) && cx[0] == proj) {
-            if (!isDependingOn(y, proj)) {
-                return makeIIR(x, sigNeg(y));
+        } else if (tvec cx; isSigFIR(x1, cx) && cx[0] == proj) {
+            if (!isDependingOn(y1, proj)) {
+                if (clocked) {
+                    return makeIIR(x1, sigClocked(clock, sigNeg(y1)));
+                }
+                return makeIIR(x1, sigNeg(y1));
             } else {
                 return gGlobal->nil;
             }
@@ -253,14 +160,52 @@ Tree proj2IIR(int indentation, Tree proj)
         return gGlobal->nil;
     }
 }
-#endif
+
+//----------------------------------------------------------------------
+// IIRevealer : reveal IIR structures
+//----------------------------------------------------------------------
+
+class IIRRevealer : public SignalIdentity {
+   protected:
+    Tree transformation(Tree L);
+};
+
+Tree IIRRevealer::transformation(Tree sig)
+{
+    Tree rgroup, var, le;
+    int  p;
+
+    if (isProj(sig, &p, rgroup) && isRec(rgroup, var, le)) {
+        traceMsg("T1 We have a recursive projection", sig);
+        // we have a candidate for an IIR
+        if (!isNil(le)) {
+            Tree iir = proj2IIR(getIndentation(), sig);
+            if (isNil(iir)) {
+                return SignalIdentity::transformation(sig);
+            } else {
+                tvec coef;
+                faustassert(isSigIIR(iir, coef));
+                coef[0] = gGlobal->nil;  // anonymize the recursive projection
+                for (unsigned int i = 1; i < coef.size(); i++) {
+                    coef[i] = self(coef[i]);
+                }
+                return sigIIR(coef);
+            }
+        } else {
+            traceMsg("T2 We have a recursive projection, but definitions are nil", sig);
+            return sig;  // SignalIdentity::transformation(sig);
+        }
+    } else {
+        return SignalIdentity::transformation(sig);
+    }
+}
 
 // External API
 
 Tree revealIIR(Tree L1)
 {
     IIRRevealer R;
-    R.trace(TRACE, "revealIIR");
+    R.trace(TRACE, "NEW revealIIR");
     Tree L2 = R.mapself(L1);
     return L2;
 }
