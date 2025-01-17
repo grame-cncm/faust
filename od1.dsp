@@ -11,7 +11,7 @@ t5 = _ <: (button("play1"),_:ondemand(@(1))), (button("play1"),_:ondemand(@(1)))
 gen = 1 : +~_;
 t6 = gen;
 t7 = button("play"):ondemand(gen); // OK
-t8 = gen,t7; // NON, pas de distinction entre gen et ondemand (gen)
+t8 = gen,t7; // OK desormais // NON, pas de distinction entre gen et ondemand (gen)
 
 t9 = button("play"), 1 : ondemand(+~_); // OK en mode fir
 t10 = gen, t9;
@@ -97,3 +97,38 @@ c1 = 1:! <: 0;
 c2 = 1:! :> 0;
 c3 = 1:! : 0;
 c4 = (! <: 0), (! :> 0), (! : 0);
+
+
+// pb avec select2
+// Test logical operators
+
+land = int(_*12345) & int(_*67895);
+lor = int(_*12345) | int(_*67895);
+lxor = int(_*12345) xor int(_*67895);
+
+sel1 = land, lor, lxor, select2(land, 100, 200), select2(lor, 10, 20), select2(lxor, 1, 2);
+
+sel2 = ondemand(sel1)(button("play1")),
+		ondemand(sel1)(button("play2"));
+
+// Realise le même test que impulse-tests make ondemand
+tester(C) = bus(inputs(C)) <: vgroup("groupA", ondemand(C)(checkbox("ondemand1")!=1.0)),
+							vgroup("groupB", ondemand(C)(checkbox("ondemand2")==1.0)) 
+						 :> bus(outputs(C)) with {bus(n) = par(i,n,_);};
+
+tt1 = tester(_);
+tt2 = tester(@(2));
+sel3 = tester(sel1);
+
+
+// version simplifiée de sel1
+
+simp1 = land, select2(land, 100, 200);
+simp2 = tester(simp1);
+
+// BUG ceci ne marche pas avec la version !!!
+x0 = ondemand(*)(button("play"));
+x2 = ondemand(*)(button("play1")), ondemand(*)(button("play2"));
+x1 = tester(*);
+
+
