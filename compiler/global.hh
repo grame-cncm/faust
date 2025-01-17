@@ -163,6 +163,7 @@ struct global {
     int  gVecSize;            // -vs option
     int  gVectorLoopVariant;  // -lv [0|1] option
     bool gVectorFIRIIRs;      // -fir option
+    int  gFirLoopSize;        // -fls --fir-loop-size option
     bool gOpenMPSwitch;       // -omp option
     bool gOpenMPLoop;         // -pl option
     bool gSchedulerSwitch;    // -sch option

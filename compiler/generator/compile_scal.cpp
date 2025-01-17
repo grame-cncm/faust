@@ -1730,6 +1730,60 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, int delay)
 }
 
 /**
+ * Generate code for accessing a delayed signal when using an index in a loop
+ */
+string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
+{
+    // FIX: We don't compile the delayed signal anymore. This is done by the general scheduling.
+    // But we make sure the delayed signal has a vector name.
+
+    // string    code = CS(exp);  // ensure exp is compiled to have a vector name
+    std::string ctype, pname;
+    getTypedNames(getCertifiedSigType(sig), "Vec", ctype, pname);
+    string    vecname = ensureVectorNameProperty(pname, exp);
+    int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
+    DelayType dt      = analyzeDelayType(exp);
+#ifdef TRACE
+    std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
+              << fScheduleOrder[exp] << " -exp- " << exp << " :: " << ppsig(exp, 10) << '\n'
+              << "Within FIR at step " << fScheduleOrder[sig] << " -sig- " << sig
+              << " :: " << ppsig(sig, 10) << '\n'
+              << " and with delay " << delay << '\n';
+#endif
+    std::string result;
+    switch (dt) {
+        case DelayType::kNotADelay:
+            faustexception("Try to compile something that is not an indexable delay");
+            result = "";
+            break;
+
+        case DelayType::kZeroDelay:
+            faustexception("Try to compile something that is not an indexable delay");
+            result = vecname;
+            break;
+
+        case DelayType::kMonoDelay:
+            faustexception("Try to compile something that is not an indexable delay");
+            break;
+
+        case DelayType::kSingleDelay:
+        case DelayType::kCopyDelay:
+        case DelayType::kDenseDelay:
+            result = subst("$0[$1]", vecname, delayidx);
+            break;
+
+        case DelayType::kMaskRingDelay:
+        case DelayType::kSelectRingDelay:
+            int         N   = pow2limit(mxd + 1);
+            std::string idx = subst("(IOTA-$0)&$1", delayidx, T(N - 1));
+            result          = subst("$0[$1]", vecname, generateIotaCache(idx));
+            break;
+    }
+    // return generateCacheCode(sig, result);
+    return result;
+}
+
+/**
  * Generate code for the delay mechanism. The generated code depend of the
  * maximum delay attached to exp and the "less temporaries" switch
  */
@@ -1929,27 +1983,108 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
     faustassert(coefs.size() > 2);
 
-    std::ostringstream oss;
-    string             sep = "";
-    Tree               exp = coefs[0];  // The input signal of the FIR
+    if (coefs.size() < gGlobal->gFirLoopSize) {
+        std::ostringstream oss;
+        string             sep = "";
+        Tree               exp = coefs[0];  // The input signal of the FIR
 
-    // build the FIR expression
-    oss << '(';
-    for (unsigned int i = 1; i < coefs.size(); ++i) {
-        if (isZero(coefs[i])) {
-            continue;
+        // build the FIR expression
+        oss << '(';
+        for (unsigned int i = 1; i < coefs.size(); ++i) {
+            if (isZero(coefs[i])) {
+                continue;
+            }
+            string access = generateDelayAccess(sig, exp, i - 1);
+            if (isOne(coefs[i])) {
+                oss << sep << access;
+            } else {
+                oss << sep << "(" << CS(coefs[i]) << ") * " << access;
+            }
+            sep = " + ";
         }
-        string access = generateDelayAccess(sig, exp, i - 1);
-        if (isOne(coefs[i])) {
-            oss << sep << access;
-        } else {
-            oss << sep << "(" << CS(coefs[i]) << ") * " << access;
+        oss << ')' << " /*FIR expression*/";
+
+        return generateCacheCode(sig, oss.str());
+
+    } else {
+        // tous les coefs sont connus à la compilation et on peut declarer un tableau de constantes
+        // statiques certains coefs sont connus à l'initialisation et on peut declarer un tableau
+        // remplis dans la méthode init certains coefficients sont des controles et on peut déclarer
+        // un tableau en début de compute certains coefficients sont des signaux et on doit déclarer
+        // le tableau dans la boucle d'échantillons
+
+        // 1) THE COEFFICIENT TABLE
+
+        Type tc;  // Common type for all coefficients
+        for (unsigned int i = 1; i < coefs.size(); ++i) {
+            Type t = getCertifiedSigType(coefs[i]);
+            if (i == 1) {
+                tc = t;
+            } else {
+                tc = tc | t;
+            }
         }
-        sep = " + ";
+
+        // identifier for the coef table
+        std::string ctype, ctable;
+        getTypedNames(tc, "Coefs", ctype, ctable);
+
+        // Expression for the coefficients
+        std::ostringstream coefInitStream;
+        coefInitStream << "{";
+        for (unsigned int i = 1; i < coefs.size(); ++i) {
+            if (i > 1) {
+                coefInitStream << ", ";
+            }
+            coefInitStream << CS(coefs[i]);
+        }
+        coefInitStream << "}";
+        std::string coefInit = coefInitStream.str();
+
+        // Declaration of the coefficient table
+        std::string csize      = T(int(coefs.size() - 1));
+        std::string ctabledecl = subst("const $0 \t$1[$2] = $3;", ctype, ctable, csize, coefInit);
+        switch (tc->variability()) {
+            case kKonst:
+                if (tc->computability() == kComp) {
+                    fClass->addDeclCode(ctabledecl);
+                } else {
+                    // special case for constant coefficients that can only be computed at init time
+                    fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, ctable, csize));
+                    fClass->addInitCode(subst("$1[$2] = $3;", ctype, ctable, csize, coefInit));
+                }
+                break;
+            case kBlock:
+                fClass->addZone2(ctabledecl);
+                break;
+            case kSamp:
+                fClass->addExecCode(Statement("", ctabledecl));
+                break;
+            default:
+                faustassert(false);
+        }
+
+        // 2) THE FIR ACCUMULATION
+
+        Tree        exp = coefs[0];  // The input signal of the FIR
+        std::string idxaccess =
+            generateDelayAccess(sig, exp, "ii");  // indexed access to the input signal
+
+        // Type of the FIR itself (potentially different from the common type of the coefficients)
+        Type        ty = getCertifiedSigType(sig);
+        std::string ftype, facc;
+        getTypedNames(ty, "Acc", ftype, facc);
+
+        // Declaration of the FIR accumulation
+        fClass->addExecCode(Statement("", subst("$0 \t$1 = 0;", ftype, facc)));
+
+        // Code for the accumulation loop
+        std::string accloop = subst("for (int ii = 0; ii < $0; ii++) { $1 = fma($2[ii], $3, $1); }",
+                                    T(int(coefs.size() - 1)), facc, ctable, idxaccess);
+        fClass->addExecCode(Statement("", accloop));
+
+        return generateCacheCode(sig, facc);
     }
-    oss << ')' << " /*FIR expression*/";
-
-    return generateCacheCode(sig, oss.str());
 }
 
 string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)

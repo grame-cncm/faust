@@ -442,6 +442,7 @@ void global::reset()
     gVecSize           = 32;
     gVectorLoopVariant = 0;
     gVectorFIRIIRs     = false;
+    gFirLoopSize       = 4;  // FIR/IIR size for creating a loop
 
     gOpenMPSwitch    = false;
     gOpenMPLoop      = false;
@@ -867,6 +868,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     dst << "-mfs " << gMaxFIRSize << " ";
     dst << "-mdd " << gMaxDenseDelay << " ";
     dst << "-mdy " << gMinDensity << " ";
+    dst << "-fls " << gFirLoopSize << " ";
     if (gUIMacroSwitch) {
         dst << "-uim ";
     }
@@ -1335,6 +1337,10 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-fir", "--fir-iir")) {
             gVectorFIRIIRs = true;
             i += 1;
+
+        } else if (isCmd(argv[i], "-fls", "--fir-loop-size") && (i + 1 < argc)) {
+            gFirLoopSize = std::atoi(argv[i + 1]);
+            i += 2;
 
         } else if (isCmd(argv[i], "-scal", "--scalar")) {
             gVectorSwitch = false;
