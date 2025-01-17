@@ -471,7 +471,7 @@ int pow2limit(int x, int def)
 
 bool isVarName(const std::string& name)
 {
-    if (name.empty() || !std::isalpha(name[0]) && name[0] != '_') {
+    if (name.empty() || (!std::isalpha(name[0]) && (name[0] != '_'))) {
         return false;
     }
 

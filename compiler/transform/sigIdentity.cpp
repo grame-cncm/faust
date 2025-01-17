@@ -160,13 +160,13 @@ Tree SignalIdentity::transformation(Tree sig)
     // FIR and IIR
     else if (isSigFIR(sig)) {
         tvec c = sig->branches();
-        for (int i = 0; i < c.size(); i++) {
+        for (unsigned int i = 0; i < c.size(); i++) {
             c[i] = self(c[i]);
         }
         return sigFIR(c);
     } else if (isSigIIR(sig)) {
         tvec c = sig->branches();
-        for (int i = 1; i < c.size(); i++) {
+        for (unsigned int i = 1; i < c.size(); i++) {
             c[i] = self(c[i]);
         }
         return sigIIR(c);
@@ -174,7 +174,7 @@ Tree SignalIdentity::transformation(Tree sig)
 
     else if (isSigSum(sig)) {
         tvec c = sig->branches();
-        for (int i = 0; i < c.size(); i++) {
+        for (unsigned int i = 0; i < c.size(); i++) {
             c[i] = self(c[i]);
         }
         return sigSum(c);

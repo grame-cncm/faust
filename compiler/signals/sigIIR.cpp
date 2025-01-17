@@ -439,8 +439,8 @@ Tree embeddedIIR(Tree rt, Tree fir)
     // if (TRACE) std::cerr << "fir : " << ppsig(fir) << "\n";
     // if (TRACE) std::cerr << "iir : " << ppsig(cfir[0]) << "\n";
 
-    Tree iir = cfir[0];
-    Tree x   = ciir[1];  // partie non recursive
+    // Tree iir = cfir[0];
+    Tree x = ciir[1];  // partie non recursive
     // application du FIR sur x -> fx;
     tvec coef1 = cfir;
     coef1[0]   = x;
