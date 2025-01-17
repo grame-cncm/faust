@@ -699,7 +699,7 @@ static std::pair<Tree, Tree> splitMulSig(Tree sig)
  * @param sig the signal to add to M (addition, substraction, FIR or other)
  */
 
-static void combine(std::map<Tree, Tree>& M, bool subflag, Tree sig)
+void combine(std::map<Tree, Tree>& M, bool subflag, Tree sig)
 {
     if (Tree x, y; isSigAdd(sig, x, y)) {
         // if sig is an addition we combine its two subtrees with M

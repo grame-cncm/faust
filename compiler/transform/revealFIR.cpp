@@ -39,27 +39,133 @@ Tree FIRRevealer::transformation(Tree sig)
     }
 }
 
+// isFirElem((x@d)*c) -> <x, d, c> with d integer constant
+std::optional<std::tuple<Tree, int, Tree>> isFirElem(Tree s)
+{
+    if (Tree x, d; isSigDelay(s, x, d)) {
+        if (int i; isSigInt(d, &i)) {
+            return std::make_tuple(x, i, sigInt(1));
+        }
+        return std::nullopt;
+    }
+
+    if (Tree m, c, x, d; isSigMul(s, m, c) && isSigDelay(m, x, d)) {
+        if (int i; isSigInt(d, &i)) {
+            return std::make_tuple(x, i, c);
+        }
+        return std::nullopt;
+    }
+
+    if (Tree m, c, x, d; isSigMul(s, c, m) && isSigDelay(m, x, d)) {
+        if (int i; isSigInt(d, &i)) {
+            return std::make_tuple(x, i, c);
+        }
+        return std::nullopt;
+    }
+
+    return std::nullopt;
+}
+
 Tree FIRRevealer::postprocess(Tree sig)
 {
-    Tree x, y, h;
-    tvec V;
-    if (isSigClocked(sig, h, x) && isSigFIR(x, V)) {
-        V[0] = sigClocked(h, V[0]);
-        return sigFIR(V);
-    } else if (isSigDelay(sig, x, y) && isSigIIR(x) && isZero(y)) {
-        return x;
-    } else if (isSigDelay(sig, x, y) && isZero(x)) {
-        return x;
-    } else if (isSigDelay(sig, x, y)) {
-        return delaySigFIR(x, y);
-    } else if (isSigAdd(sig, x, y)) {
-        return combineFIRs(x, y, false);
-    } else if (isSigSub(sig, x, y)) {
-        return combineFIRs(x, y, true);
-    } else if (isSigMul(sig, x, y)) {
-        return mulSigFIR(x, y);
-    } else if (isSigDiv(sig, x, y)) {
-        return divSigFIR(x, y);
+    if (tvec subs; isSigSum(sig, subs)) {
+        std::map<Tree, std::map<int, Tree>> M;  // Map of all FIRs collected
+        std::vector<Tree>                   L;  // vector of non-FIR elements
+        // We collect all FIRs in M and non-FIR elements in L
+        std::cerr << "\n\nWe have the sum: " << ppsig(sig) << "\n";
+        std::cerr << "We have a sum of " << subs.size() << " elements\n";
+        for (Tree s : subs) {
+            if (auto elem = isFirElem(s)) {
+                std::cerr << "We have a FIR element: " << ppsig(s) << "\n";
+                auto [x, d, c] = *elem;
+                if (M.find(x) == M.end()) {
+                    M[x] = {{d, c}};
+                } else if (M[x].find(d) == M[x].end()) {
+                    M[x][d] = c;
+                } else {
+                    M[x][d] = sigAdd(M[x][d], c);
+                }
+            } else {
+                std::cerr << "We have a non-FIR element: " << ppsig(s) << "\n";
+                L.push_back(s);
+            }
+        }
+        std::cerr << "We have " << M.size() << " FIRs and " << L.size() << " non-FIR elements\n";
+        // We check if non-FIR elements in L are input signals of FIRs in M
+        std::vector<Tree> L2;
+        for (Tree s : L) {
+            if (M.find(s) != M.end()) {
+                // s is an input signal of a FIR in M
+                if (M[s].find(0) != M[s].end()) {
+                    M[s][0] = sigAdd(M[s][0], sigInt(1));
+                } else {
+                    M[s][0] = sigInt(1);
+                }
+            } else {
+                // s is not an input signal of a FIR in M
+                // check if it can be decomposed into an input signal and a coefficient
+                if (Tree x, y; isSigMul(s, x, y)) {
+                    if (M.find(x) != M.end()) {
+                        // x is an input signal of a FIR in M
+                        std::cerr << "We have a FIR input: " << ppsig(x) << " with coef "
+                                  << ppsig(y) << "\n";
+                        if (M[x].find(0) != M[x].end()) {
+                            M[x][0] = sigAdd(M[x][0], y);
+                        } else {
+                            M[x][0] = y;
+                        }
+                    } else if (M.find(y) != M.end()) {
+                        // y is an input signal of a FIR in M
+                        std::cerr << "We have a FIR input: " << ppsig(y) << " with coef "
+                                  << ppsig(x) << "\n";
+                        if (M[y].find(0) != M[y].end()) {
+                            M[y][0] = sigAdd(M[y][0], x);
+                        } else {
+                            M[y][0] = x;
+                        }
+                    } else {
+                        L2.push_back(s);
+                    }
+                } else {
+                    L2.push_back(s);
+                }
+            }
+        }
+        std::cerr << "We have " << L2.size() << " non-FIR elements after processing\n";
+        // combine all FIRs in M and non-FIR elements in L2
+        tvec V;
+        for (auto [x, D] : M) {
+            std::cerr << "We have a FIR with input " << ppsig(x) << " and " << D.size()
+                      << " delays\n";
+            int maxd = 0;
+            for (auto [d, c] : D) {
+                if (d > maxd) {
+                    maxd = d;
+                }
+            }
+            tvec v2(maxd + 2, sigInt(0));
+            v2[0] = x;
+            for (auto [d, c] : D) {
+                v2[d + 1] = c;
+            }
+
+            Tree f = sigFIR(v2);
+            std::cerr << "We have a FIR: " << ppsig(f) << "\n";
+            V.push_back(f);
+        }
+        for (Tree s : L2) {
+            V.push_back(s);
+        }
+
+        Tree res;
+        if (V.size() == 1) {
+            res = V[0];
+        } else {
+            res = sigSum(V);
+        }
+        std::cerr << "We have " << V.size() << " elements in the final sum\n";
+        std::cerr << "The final sum is: " << ppsig(res) << "\n";
+        return res;
     } else {
         return sig;
     }

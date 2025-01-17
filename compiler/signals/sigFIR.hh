@@ -109,5 +109,8 @@ void normalizeFIRCoefs(tvec& V);
 // For an addition
 Tree combineFIRs(Tree x, Tree y, bool subflag);
 
+// combine FIRs according to their input signal
+void combine(std::map<Tree, Tree>& M, bool subflag, Tree sig);
+
 // internal tests for FIR reconstruction
 void testFIR();

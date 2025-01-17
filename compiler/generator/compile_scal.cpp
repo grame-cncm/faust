@@ -122,6 +122,10 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("newConstantPropagation");
     Tree L2a = newConstantPropagation(L1, false);
     endTiming("newConstantPropagation");
+    startTiming("Sum revealer");
+    L2a = revealSum(L2a);
+    endTiming("Sum revealer");
+
     Tree L2;
     // detect FIRs and IIRs if required
     if (gGlobal->gReconstructFIRIIRs) {
