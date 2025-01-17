@@ -93,6 +93,9 @@ Tree FIRFactorizer::postprocess(Tree sig)
         Tree factor;
         tvec newCoef;
         if (hasCommonCoef(coef, factor, newCoef)) {
+            if (isOne(factor)) {
+                return sigFIR(newCoef);
+            }
             return sigMul(factor, sigFIR(newCoef));
         }
     }
