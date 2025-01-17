@@ -56,7 +56,7 @@
 #include "timing.hh"
 #include "xtended.hh"
 
-#undef TRACE
+#define TRACE
 
 // Old delays are supposed to work while new delays are in progress
 #define OLDDELAY 0
@@ -116,7 +116,20 @@ Tree ScalarCompiler::prepare(Tree LS)
         throw faustexception("Dump signal type finished...\n");
     }
     // No more table privatisation
-    Tree L2 = newConstantPropagation(L1);
+    Tree L2a = newConstantPropagation(L1);
+    Tree L2;
+    // detect FIRs and IIRs if required
+    if (gGlobal->gVectorFIRIIRs) {
+        startTiming("FIR revealer");
+        Tree L2b = revealFIR(L2a);
+        endTiming("FIR revealer");
+        startTiming("IIR revealer");
+        // Tree L2c = revealIIR(L2b);
+        endTiming("IIR revealer");
+        L2 = L2b;
+    } else {
+        L2 = L2a;
+    }
 
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
@@ -157,11 +170,11 @@ Tree ScalarCompiler::prepare(Tree LS)
         sigToGraph(L2, dotfile);
     }
 
-    // experimental
-    Tree L3 = revealFIR(L2);  // pas de problème d'annotation
-    // std::cerr << "FIR Revealer  of " << ppsig(L2) << " ==> " << ppsig(L3) << std::endl;
-    Tree L4 = revealIIR(L3);  // pas de problème d'annotation
-    // std::cerr << "IIR Revealer  of " << ppsig(L3) << " ==> " << ppsig(L4) << std::endl;
+    // // experimental
+    // Tree L3 = revealFIR(L2);  // pas de problème d'annotation
+    // // std::cerr << "FIR Revealer  of " << ppsig(L2) << " ==> " << ppsig(L3) << std::endl;
+    // Tree L4 = revealIIR(L3);  // pas de problème d'annotation
+    // // std::cerr << "IIR Revealer  of " << ppsig(L3) << " ==> " << ppsig(L4) << std::endl;
 
     return L2;
 }
@@ -713,6 +726,12 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigAssertBounds(sig, x, y, z)) {
         /* no debug option for the moment */
         return generateCode(z);
+    }
+
+    else if (tvec coefs; isSigFIR(sig, coefs)) {
+        return generateFIR(sig, coefs);
+    } else if (isSigIIR(sig, coefs)) {
+        return generateIIR(sig, coefs);
     }
     /* we should not have any control at this stage */
     else {
@@ -1598,47 +1617,6 @@ string ScalarCompiler::generateXtended(Tree sig)
  */
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
-#if OLDDELAY
-    // cerr << "ScalarCompiler::generateDelayAccess sig = " << *sig << endl;
-    // cerr << "ScalarCompiler::generateDelayAccess exp = " << *exp << endl;
-    // cerr << "ScalarCompiler::generateDelayAccess del = " << *delay << endl;
-
-    string code  = CS(exp);  // ensure exp is compiled to have a vector name
-    int    mxd   = fOccMarkup->retrieve(exp)->getMaxDelay();
-    int    count = fOccMarkup->retrieve(exp)->getDelayCount();
-    bool   mono  = isSigSimpleRec(exp);
-    string vecname;
-
-    if (!getVectorNameProperty(exp, vecname)) {
-        if (mxd == 0) {
-            // cerr << "it is a pure zero delay : " << code << endl;
-            return code;
-        } else {
-            cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
-            faustassert(false);
-        }
-    }
-
-    if (mono || mxd == 0) {
-        // not a real vector name but a scalar name
-        return vecname;
-
-    } else if (mxd <= count * gGlobal->gMaxCopyDelay) {
-        return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
-#if 0 
-        int d;
-        if (isSigInt(delay, &d)) {
-            return subst("$0[$1]", vecname, CS(delay));
-        } else {
-            return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
-        }
-#endif
-    } else {
-        int         N   = pow2limit(mxd + 1);
-        std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
-        return generateCacheCode(sig, subst("$0[$1]", vecname, generateIotaCache(idx)));
-    }
-#else
     // FIX: We don't compile the delayed signal anymore. This is done by the general scheduling.
     // But we make sure the delayed signal has a vector name.
 
@@ -1681,8 +1659,6 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
             break;
     }
     return generateCacheCode(sig, result);
-
-#endif
 }
 
 /**
@@ -1700,20 +1676,6 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
     }
 }
 
-/**
- * Generate code for the delay mechanism without using temporary variables
- */
-
-/*
-    DlCodeGen g(ctype, vname, gGlobal->gVecSize, mxd);
-    fClass->addDeclCode(g.globalDeclare());
-    fClass->addClearCode(g.globalInit());
-    fClass->addZone2(g.localDeclare());
-    fClass->addZone3(g.pointerSetup());
-    fClass->addZone3(g.copyGlobalToLocal());
-    fClass->addPostCode(Statement(ccs, g.advance()));
-    fClass->addZone3Post(g.copyLocalToGlobal());
-*/
 string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype,
                                               const string& pname, int mxd, int count)
 {
@@ -1729,38 +1691,6 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
     string access = generateDelayLine(dt, ctype, vecname, mxd, count, mono, exp, ccs);
     // setVectorNameProperty(sig, vname);
     return access;
-#if 0
-#if OLDDELAY
-    if (mono) {
-        return vname;
-    } else if (mxd <= count * gGlobal->gMaxCopyDelay) {
-        return subst("$0[0]", vname);
-    } else {
-        int         N   = pow2limit(mxd + 1);
-        std::string idx = subst("IOTA&$0", T(N - 1));
-        return subst("$0[$1]", vname, generateIotaCache(idx));
-    }
-#else
-    switch (dt) {
-        case DelayType::kZeroDelay:
-            return vname;
-
-        case DelayType::kMonoDelay:
-            return vname;
-
-        case DelayType::kSingleDelay:
-        case DelayType::kCopyDelay:
-        case DelayType::kDenseDelay:
-            return subst("$0[0]", vname);
-
-        case DelayType::kMaskRingDelay:
-        case DelayType::kSelectRingDelay:
-            int         N   = pow2limit(mxd + 1);
-            std::string idx = subst("IOTA&$0", T(N - 1));
-            return subst("$0[$1]", vname, generateIotaCache(idx));
-    }
-#endif
-#endif
 }
 
 /**
@@ -1771,50 +1701,6 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
                                          int mxd, int count, bool mono, const string& exp,
                                          const string& ccs)
 {
-#if OLDDELAY
-    if (mxd == 0) {
-        cerr << "MXD==0 :  " << vname << " := " << exp << endl;
-        // no need for a real vector
-        if (ccs == "") {
-            fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2;", ctype, vname, exp)));
-        } else {
-            fClass->addZone2(subst("$0 \t$1 = 0;", ctype, vname));
-            fClass->addExecCode(Statement(ccs, subst("\t$0 = $1;", vname, exp)));
-        }
-
-    } else if (mono || (mxd <= count * gGlobal->gMaxCopyDelay)) {
-        // Generate code for short or dense delay lines
-        DlCodeGen g(ctype, vname, gGlobal->gVecSize, mxd, mono);
-        fClass->addDeclCode(g.globalDeclare());
-        fClass->addClearCode(g.globalInit());
-        fClass->addZone2(g.localDeclare());
-        fClass->addZone3(g.pointerSetup());
-        fClass->addZone3(g.copyGlobalToLocal());
-        if (mono) {
-            fClass->addExecCode(Statement(ccs, subst("$0 = $1;", vname, exp)));
-        } else {
-            fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
-        }
-        fClass->addPostCode(Statement(ccs, g.advance()));
-        fClass->addZone3Post(g.copyLocalToGlobal());
-
-    } else {
-        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int N = pow2limit(mxd + 1);
-
-        // we need an iota index
-        fMaxIota = 0;
-
-        // declare and init
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-
-        // execute
-        std::string idx = subst("IOTA&$0", T(N - 1));
-        fClass->addExecCode(
-            Statement(ccs, subst("$0[$1] = $2;", vname, generateIotaCache(idx), exp)));
-    }
-#else
     switch (dt) {
         case DelayType::kNotADelay:
             faustexception("Try to compile has a delay something that is not a delay");
@@ -1907,7 +1793,6 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addExecCode(Statement(ccs, subst("$0[$1] = $2;", vname, cacheidx, exp)));
             return subst("$0[$1]", vname, cacheidx);
     }
-#endif
 }
 
 /**
@@ -1968,4 +1853,115 @@ string ScalarCompiler::generateWaveform(Tree sig)
     fClass->addPostCode(
         Statement(getConditionCode(sig), subst("idx$0 = (idx$0 + 1) % $1;", vname, T(size))));
     return generateCacheCode(sig, subst("$0[idx$0]", vname));
+}
+
+string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
+{
+    faustassert(coefs.size() > 2);
+
+    std::ostringstream oss;
+    string             sep = "";
+    Tree               exp = coefs[0];  // The input signal of the FIR
+
+    // build the FIR expression
+    oss << '(';
+    for (unsigned int i = 1; i < coefs.size(); ++i) {
+        if (isZero(coefs[i])) {
+            continue;
+        }
+        string access = generateDelayAccess(sig, exp, sigInt(i - 1));
+        if (isOne(coefs[i])) {
+            oss << sep << access;
+        } else {
+            oss << sep << "(" << CS(coefs[i]) << ") * " << access;
+        }
+        sep = " + ";
+    }
+    oss << ')' << " /*FIR expression*/";
+
+    return generateCacheCode(sig, oss.str());
+}
+
+string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
+{
+    // IIR[-,X,0,b,c,...]
+    // idx 0,1,2,3,4,....
+    // for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+    //     fRec0[IOTA0 & 1] = float(input0[i0]) + 0.5f * fRec0[(IOTA0 - 1) & 1];
+    //     output0[i0]      = FAUSTFLOAT(fRec0[IOTA0 & 1]);
+    //     IOTA0            = IOTA0 + 1;
+    // }
+    string ctype;
+    string dlname;
+    // getTypedNames(getCertifiedSigType(sig), "IIR", ctype, dlname);
+    getTypedNames(getCertifiedSigType(sig), "Rec", ctype, dlname);
+    setVectorNameProperty(sig, dlname);
+
+    Occurrences* o     = fOccMarkup->retrieve(sig);
+    int          dmax  = o->getMaxDelay();
+    int          ncoef = coefs.size() - 3;
+    int          delay = std::max(dmax, ncoef);
+
+    string ccs = getConditionCode(sig);
+
+    string expr;
+    string result;
+    if (delay < gGlobal->gMaxCopyDelay) {
+        expr   = generateIIRSmallExpression(dlname, sig, coefs);
+        result = subst("$0[0]", dlname);
+    } else {
+        int N = pow2limit(delay + 1);
+
+        expr   = generateIIRBigExpression(dlname, delay, sig, coefs);
+        result = subst("$0[IOTA & $1]", dlname, T(N - 1));
+    }
+    // generateDelayLine(ctype, dlname, delay, expr, ccs);
+
+    return "IIRNOTIMPLEMENTED";
+}
+
+string ScalarCompiler::generateIIRSmallExpression(const string& dlname, Tree sig, const tvec& coefs)
+{
+    std::ostringstream oss;
+    oss << CS(coefs[1]);  // the input signal
+
+    for (int unsigned i = 3; i < coefs.size(); i++) {
+        if (isZero(coefs[i])) {
+            continue;
+        }
+        string idx = "[" + to_string(i - 2) + "]";
+        if (isOne(coefs[i])) {
+            oss << " + " << dlname << idx;
+        } else {
+            oss << " + "
+                << "(" << CS(coefs[i]) << ") * " << dlname << idx;
+        }
+    }
+    oss << "/*IIR small expression*/";
+
+    return oss.str();
+}
+
+string ScalarCompiler::generateIIRBigExpression(const string& dlname, int mxd, Tree sig,
+                                                const tvec& coefs)
+{
+    int N = pow2limit(mxd + 1);
+
+    std::ostringstream oss;
+    oss << CS(coefs[1]);  // the input signal
+
+    for (int i = 2; i < int(coefs.size()); ++i) {
+        if (isZero(coefs[i])) {
+            continue;
+        }
+        string idx = subst("$0[(IOTA-$2)&$1]", dlname, T(N - 1), T(i - 2));
+        if (isOne(coefs[i])) {
+            oss << " + " << idx;
+        } else {
+            oss << " + "
+                << "(" << CS(coefs[i]) << ") * " << idx;
+        }
+    }
+    oss << "/*IIR big expression*/";
+    return oss.str();
 }
