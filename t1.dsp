@@ -21,7 +21,7 @@ ex2 = _ <: par(i, 10, @(i)*(i/100+0.1)) :> _; // un simple fir
 ex3 = _ <: par(i, 20, @(i)*(i/100+0.1)) :> _; // un simple fir
 
 m2 = ex2,ex2 : -;
-m3 = par(i,6,ex2) :> _;
+m3 = par(i,6,ex2) :> _; 
 
 ex4 = +~ex2;
 
@@ -154,8 +154,142 @@ xx2 = fir(6) : + ~ (_ <: _, (mem:*(-0.11)) :> _); // OK
 xx5 = (_<:*(0.13),mem:>_) : + ~ *(0.13); // FAIL
 xx6 = (_<:*(0.13),mem:>_) : + ~ *(0.14); // OK
 
+FIR(lc) = _ <: rec(0,lc) :> _ 
+with { 
+	rec(n,(c,lc)) = (@(n):*(c)), rec(n+1,lc);
+	rec(n,c) = @(n):*(c); 
+};
+
+// tentatives de simplifier le pb avec f1 pas assez optimisé
+
+db0 = _ <: _,FIR((0.5, 0.7)) :> _; 
+db1 = +~(*(0.59)) <: _,FIR((0.5, 0.7)) :> _; 
 
 
 
+IIR(lc) = + ~ FIR(lc);
 
+ii1 = IIR((0.01)); // peut utiliser des variables plutôt qu'un tableau
+ii2 = IIR((0.01, 0.02)); // peut utiliser des variables plutôt qu'un tableau
+ii3 = IIR((0.01, 0.02, 0.03)); // peut utiliser des variables plutôt qu'un tableau
+ii4 = ii3:@(int(button("dt"))); // doit utiliser un tableau
+ii5 = ii3:@(1); // peut utiliser des variables plutôt qu'un tableau
+
+
+// test les performances de la permutation IIR/FIR
+inv1 = FIR((0.1, -0.1, 0.2)) : IIR((0.3, -0.25, -0.05));
+inv2 = IIR((0.3, -0.25, -0.05)) : FIR((0.1, -0.1, 0.2)) ;
+
+minv1 = inv1,inv1,inv1;
+minv2 = inv2,inv2,inv2;
+
+m5v1 = par(i,5,inv1);
+m5v2 = par(i,5,inv2);
+
+m6v1 = par(i,6,inv1);
+m6v2 = par(i,6,inv2);
+
+m8v1 = par(i,8,inv1);
+m8v2 = par(i,8,inv2);
+
+//  ./build/bin/faust -t 0 -lang ocpp t1.dsp -fir -ff -sg -irt 5 -fls 5 -pn m8v1 -o m8v1irt5fls5.cpp
+//  CXX=clang++-mp-18 fcbenchtool m8v1irt5fls5.cpp cl18 
+
+// ./build/bin/faust -t 0 -lang ocpp t1.dsp -sg -pn m8v2 -o m8v2.cpp     
+
+q1 = + ~ *(0.13);
+q4 = q1, q1, q1, q1;
+
+q(n,m) = par(i, n, seq(j, m, q1));
+
+// même quantité de travail
+q18 = q(1,8);
+q24 = q(2,4);
+q42 = q(4,2);
+q81 = q(8,1);
+
+q14 = q(1,4);
+q22 = q(2,2);
+q41 = q(4,1);
+
+q116 = q(1,16);
+q28 = q(2,8);
+q44 = q(4,4);
+q82 = q(8,2);
+q161 = q(16,1);
+
+// IIR order 2
+qq1 = + ~ (_ <: *(0.13), (mem:*(0.17)) :> _);
+
+qq(n,m) = par(i, n, seq(j, m, qq1));
+
+// même quantité de travail
+qq18 = qq(1,8);
+qq24 = qq(2,4);
+qq42 = qq(4,2);
+qq81 = qq(8,1);
+
+qq14 = qq(1,4);
+qq22 = qq(2,2);
+qq41 = qq(4,1);
+
+qq116 = qq(1,16);
+qq28 = qq(2,8);
+qq44 = qq(4,4);
+qq82 = qq(8,2);
+qq161 = qq(16,1);
+
+/*
+fcexplorer.py t1.dsp -lang "ocpp" -fir "" -ff "" -pn "qq14 qq22 qq41  qq18 qq24 qq42 qq81  qq116 qq28 qq44 qq82 qq161"
+for f in t1_*_qq*.cpp; do fcbenchtool $f; done 
+mv t1_*.cpp tcode/
+for f in t1_*_qq*; do sudo ./$f; done 
+*/
+
+
+
+// notch filter
+nn1 = library("filters.lib").notchw(100,1000);
+nn(n,m) = par(i, n, seq(j, m, nn1));
+
+// même quantité de travail
+nn18 = nn(1,8);
+nn24 = nn(2,4);
+nn42 = nn(4,2);
+nn81 = nn(8,1);
+
+nn14 = nn(1,4);
+nn22 = nn(2,2);
+nn41 = nn(4,1);
+
+nn116 = nn(1,16);
+nn28 = nn(2,8);
+nn44 = nn(4,4);
+nn82 = nn(8,2);
+nn161 = nn(16,1);
+
+/*
+fcexplorer.py t1.dsp -lang "ocpp" -fir "" -ff "" -fls "3 6" -pn "nn14 nn22 nn41  nn18 nn24 nn42 nn81  nn116 nn28 nn44 nn82 nn161"
+fcexplorer.py t1.dsp -lang "ocpp" -fir "" -fls "1 3 6" -pn "nn14 nn22 nn41  nn18 nn24 nn42 nn81  nn116 nn28 nn44 nn82 nn161"
+for f in t1_*_nn*.cpp; do fcbenchtool $f; done 
+mv t1_*.cpp tcode/
+for f in t1_*_nn*; do sudo ./$f; done 
+*/
+
+/* 
+
+with masterdev
+
+fcexplorer.py t1.dsp -lang "cpp" -mcd "0 4 8 16" -vec "" -pn "nn14 nn22 nn41  nn18 nn24 nn42 nn81  nn116 nn28 nn44 nn82 nn161"
+
+fcexplorer.py t1.dsp -lang "cpp" -mcd "0 4 8 16" -vec ""  -pn "qq14 qq22 qq41  qq18 qq24 qq42 qq81  qq116 qq28 qq44 qq82 qq161"
+*/
+
+// mfir(chans, taps)
+mf1_800 = mfir(1,800);
+mf2_400 = mfir(2,400);
+mf4_200 = mfir(4,200);
+mf8_100 = mfir(8,100);
+
+mf1_2000 = mfir(1,2000);
 
