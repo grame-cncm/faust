@@ -195,8 +195,11 @@ void SigDependenciesGraph::visit(Tree t)
     }
 
     if (Tree x, y; isSigSeq(t, x, y)) {
-        fGraph.add(t, x, 0);
+        // Indicate a dependency to x (typically an ondemand).
+        fGraph.add(t, y, 0);
+        fGraph.add(y, x, 0);  // we need x to compile y
         self(x);
+        self(y);
         return;
     }
 
@@ -215,6 +218,13 @@ void SigDependenciesGraph::visit(Tree t)
             }
             self(s);
         }
+        return;
+    }
+
+    if (Tree c, y; isSigClocked(t, c, y)) {
+        // the clock c is here to differentiate various version of y for delays
+        fGraph.add(t, y, 0);
+        self(y);
         return;
     }
 

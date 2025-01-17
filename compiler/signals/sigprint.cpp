@@ -273,6 +273,12 @@ void printSignal(Tree sig, FILE* out, int prec)
             sep = ',';
         }  // TODO, improve printing separate H, ins and outs
         fputs(")", out);
+    } else if (isSigClocked(sig, x, y)) {
+        fputs("clocked(", out);
+        // printSignal(x, out, 0);
+        // fputs(",", out);
+        printSignal(y, out, 0);
+        fputs(")", out);
     }
 
     else if (isSigRegister(sig, &i, x)) {

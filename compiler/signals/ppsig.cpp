@@ -394,6 +394,9 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "seq", x, y);
     } else if (isSigOD(fSig)) {
         printfun(fout, "ondemand", fSig->branches());
+    } else if (isSigClocked(fSig, x, y)) {
+        // printfun(fout, "clocked", y);
+        return fout << "clocked" << '(' << x << ", " << ppsig(y, fEnv, 0, fMaxSize) << ')';
     }
 
     else if (isSigAttach(fSig, x, y)) {

@@ -310,9 +310,11 @@ static string sigLabel(Tree sig)
         fout << "seq";
     } else if (isSigOD(sig)) {
         fout << "ondemand";
+    } else if (isSigClocked(sig)) {
+        fout << "clocked";
     }
 
-        else if (isSigAssertBounds(sig, x, y, z)) {
+    else if (isSigAssertBounds(sig, x, y, z)) {
         fout << "assertbounds";
     }
 
@@ -326,6 +328,10 @@ static string sigLabel(Tree sig)
 
     else if (isSigRegister(sig, &i, x)) {
         fout << "register " << i;  // for FPGA Retiming
+    }
+
+    else if (isNil(sig)) {
+        fout << "nil";
     }
 
     else {

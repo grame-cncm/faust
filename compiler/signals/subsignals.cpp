@@ -251,6 +251,10 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         // inputs and outputs
         vsigs = sig->branches();
         return int(vsigs.size());
+    } else if (isSigClocked(sig, x, y)) {
+        // vsigs.push_back(x); // The clock context x is not a signal
+        vsigs.push_back(y);
+        return 1;
     }
 
     else if (isSigAttach(sig, x, y)) {

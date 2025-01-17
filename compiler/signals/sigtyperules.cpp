@@ -772,6 +772,9 @@ static Type inferSigType(Tree sig, Tree env)
         T(x, env);
         return T(y, env);
 
+    } else if (Tree h, y; isSigClocked(sig, h, y)) {
+        return T(y, env);
+
     } else if (tvec subs; isSigOD(sig, subs)) {
         // aAn OD block don't have a proper type,
         // but we need to type its subsignals

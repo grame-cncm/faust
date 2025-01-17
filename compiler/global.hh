@@ -512,6 +512,7 @@ struct global {
     Sym SIGPERMVAR;
     Sym SIGSEQ;
     Sym SIGOD;
+    Sym SIGCLOCKED;
 
     // Types
     Sym SIMPLETYPE;

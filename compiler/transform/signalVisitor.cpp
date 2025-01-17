@@ -238,7 +238,8 @@ void SignalVisitor::visit(Tree sig)
         self(x);
         return;
     } else if (isSigSeq(sig, x, y)) {
-        self(x), self(y);
+        self(x);
+        self(y);
         return;
     } else if (isSigOD(sig)) {
         for (Tree b : sig->branches()) {
@@ -247,6 +248,10 @@ void SignalVisitor::visit(Tree sig)
             }
             self(b);
         }
+        return;
+    } else if (isSigClocked(sig, x, y)) {
+        // self(x); // Do we need to visit the clock signal?
+        self(y);
         return;
     }
 

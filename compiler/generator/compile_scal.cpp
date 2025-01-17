@@ -780,6 +780,8 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateCacheCode(sig, CS(y));
     } else if (tvec w; isSigOD(sig, w)) {
         return generateOD(sig, w);
+    } else if (Tree x, y; isSigClocked(sig, x, y)) {
+        return generateCacheCode(sig, CS(y));
     }
 
     /* we should not have any control at this stage */

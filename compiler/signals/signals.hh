@@ -366,6 +366,10 @@ LIBFAUST_API Tree sigOD(tvec& sigsubs);
 LIBFAUST_API bool isSigOD(Tree s);
 LIBFAUST_API bool isSigOD(Tree s, tvec& sigsubs);
 
+LIBFAUST_API Tree sigClocked(Tree h, Tree y);
+LIBFAUST_API bool isSigClocked(Tree s);
+LIBFAUST_API bool isSigClocked(Tree s, Tree& h, Tree& y);
+
 /*****************************************************************************
                              Matrix extension
 *****************************************************************************/

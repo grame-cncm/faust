@@ -382,6 +382,7 @@ global::global()
     SIGPERMVAR         = symbol("SigPermVar");
     SIGSEQ             = symbol("SigSeq");
     SIGOD              = symbol("SigOD");
+    SIGCLOCKED         = symbol("SigClocked");
     SIMPLETYPE         = symbol("SimpleType");
     TABLETYPE          = symbol("TableType");
     TUPLETTYPE         = symbol("TupletType");

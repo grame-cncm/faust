@@ -288,10 +288,10 @@ static int inferSigOrder(Tree sig)
         return 3;  // to be checked
     } else if (tvec subs; isSigOD(sig, subs)) {
         return 3;  // to be checked
-    }
-
-    else if (isSigRegister(sig, &i, s1)) {
-        return O(s1);
+    } else if (Tree x, y; isSigSeq(sig, x, y)) {
+        return 3;  // to be checked
+    } else if (isSigClocked(sig, x, y)) {
+        return 3;
     }
 
     else if (isList(sig)) {

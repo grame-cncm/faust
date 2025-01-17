@@ -209,7 +209,11 @@ void sigvisitor::visit(Tree sig)
         visitSeq(sig, s1, s2);
     } else if (isSigOD(sig)) {
         visitOD(sig);
-    } else if (isList(sig)) {
+    } else if (isSigClocked(sig, s1, s2)) {
+        visitClocked(sig, s1, s2);
+    } 
+    
+    else if (isList(sig)) {
         visitList(sig);
     }
 

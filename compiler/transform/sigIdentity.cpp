@@ -180,6 +180,10 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigOD(w2);
     }
 
+    else if (isSigClocked(sig, x, y)) {
+        return sigClocked(x, self(y));  // do we need to transform the clock signal ?
+    }
+
     else if (isSigGen(sig, x)) {
         if (fVisitGen) {
             return sigGen(self(x));
