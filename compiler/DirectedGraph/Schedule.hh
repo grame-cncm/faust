@@ -196,11 +196,11 @@ inline schedule<N> spschedule(const digraph<N>& G)
 template <typename N, typename Comparator = std::less<N>>
 inline int schedulingcost(const digraph<N, Comparator>& G, const schedule<N, Comparator>& S)
 {
-    int cost = 0;
+    unsigned int cost = 0;
     for (const N& n : G.nodes()) {
-        int t1 = S.order(n);
+        unsigned int t1 = S.order(n);
         for (const auto& c : G.destinations(n)) {
-            int t0 = S.order(c.first);
+            unsigned int t0 = S.order(c.first);
             // assert(t1 > t0);
             cost += (t1 - t0) * (t1 - t0);  // We may have loops
         }
