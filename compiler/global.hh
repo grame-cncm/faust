@@ -178,6 +178,7 @@ struct global {
     int  gMinDensity;              // -mdy threshold
     int  gMinCopyLoop;             // -mcl threshold
     int  gIIRRingThreshold;        // -irt <threshold> threshold for IIR ring delay
+    bool gFactorizeFIRIIRs;        // -ff option, when possible factorize FIR/IIRs coefficients
     int  gFloatSize;               // -single/double/quad/fx option (1 for 'float', 2
                                    // for 'double', 3 for 'quad', 4 for 'fixed-point')
     int  gFixedPointSize;          // -fx-size (-1 by default = not used)

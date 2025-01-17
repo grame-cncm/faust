@@ -444,6 +444,7 @@ void global::reset()
     gMinDensity         = 33;     // [-mdy n]: dense/iota delay line density threshold
     gMaxDenseDelay      = 1024;   // [-mdd n]: Maximal delay to choose a dense representation
     gIIRRingThreshold   = 4;      // [-irt n]: Minimal delay to use a ring buffer for IIR
+    gFactorizeFIRIIRs   = false;  // [-ff]: Factorize FIRs and IIRs
     gVectorSwitch       = false;
     gDeepFirstSwitch    = false;
     gVecSize            = 128;
@@ -871,6 +872,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gReconstructFIRIIRs) {
         dst << "-fir ";
+    }
+    if (gFactorizeFIRIIRs) {
+        dst << "-ff ";
     }
     dst << "-mcl " << gMinCopyLoop << " ";
     dst << "-mcd " << gMaxCopyDelay << " ";
@@ -1361,6 +1365,62 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-fir", "--fir-iir")) {
             gReconstructFIRIIRs = true;
             i += 1;
+
+        } else if (isCmd(argv[i], "-ff", "--factorize-fir-iir")) {
+            gFactorizeFIRIIRs = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-cm", "--compute-mix")) {
+            gComputeMix = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-it", "--inline-table")) {
+            gInlineTable = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-rui", "--range-ui")) {
+            gRangeUI = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-nvi", "--no-virtual")) {
+            gNoVirtual = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-fp", "--full-parentheses")) {
+            gFullParentheses = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-cir", "--check-int-range")) {
+            gCheckIntRange = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-ec", "--ext-control")) {
+            gExtControl = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-mapp", "--math-approx")) {
+            gMathApprox = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-me", "--math-exceptions")) {
+            gMathExceptions = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-fm", "--fast-math-lib") && (i + 1 < argc)) {
+            gFastMathLib = argv[i + 1];
+            i += 2;
+
+        } else if (isCmd(argv[i], "-cn", "--class-name") && (i + 1 < argc)) {
+            gClassName = argv[i + 1];
+            i += 2;
+
+        } else if (isCmd(argv[i], "-scn", "--super-class-name") && (i + 1 < argc)) {
+            gSuperClassName = argv[i + 1];
+            i += 2;
+
+        } else if (isCmd(argv[i], "-pn", "--process-name") && (i + 1 < argc)) {
+            gProcessName = argv[i + 1];
+            i += 2;
 
         } else if (isCmd(argv[i], "-fls", "--fir-loop-size") && (i + 1 < argc)) {
             gFirLoopSize = std::atoi(argv[i + 1]);
