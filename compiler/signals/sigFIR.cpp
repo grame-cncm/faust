@@ -41,6 +41,7 @@
 #include "occurrences.hh"
 #include "recursivness.hh"
 #include "sharing.hh"
+#include "sigorderrules.hh"
 
 //-------------------------------------------------------------------------
 // Create a FIR form a signal with a fixed delay
@@ -609,6 +610,147 @@ Tree simplifyFIR(Tree sig)
         // not a FIR, no simplification to do
         return sig;
     }
+}
+
+//-------------------------------------------------------------------------
+// Split X -> (A,B) such that X = A*B
+//
+// -----------------
+// K -> (1,K)
+//
+// X -> (A,B)    Y -> (C,D)
+// ------------------------
+// X*Y -> (AC,BD)
+//
+// X -> (A,B)    Y -> (C,D)
+// ------------------------
+// X/Y -> (A/C,B/D)
+//
+// -----------------
+// S -> (S,1)
+//
+
+/**
+ * @brief Split a signal into two signals <coef,sig2> such that sig = coef*sig2
+ * and order(coef) < 3
+ *
+ * @param sig the signal to split
+ * @return std::pair<Tree, Tree> the pair <coef,sig2>
+ */
+static std::pair<Tree, Tree> splitMulSig(Tree sig)
+{
+    if (getSigOrder(sig) < 3) {
+        // sig is already a pure coef
+        return {sig, sigInt(1)};
+    }
+
+    if (Tree x, y; isSigMul(sig, x, y)) {
+        // sig is a multiplication
+        auto [a, b] = splitMulSig(x);
+        auto [c, d] = splitMulSig(y);
+        return {simplify(sigMul(a, c)), simplify(sigMul(b, d))};
+    }
+
+    if (Tree x, y; isSigDiv(sig, x, y)) {
+        // sig is a division
+        auto [a, b] = splitMulSig(x);
+        auto [c, d] = splitMulSig(y);
+        return {simplify(sigDiv(a, c)), simplify(sigDiv(b, d))};
+    }
+    // sig is a pure signal
+    return {sigInt(1), sig};
+}
+
+/**
+ * @brief add sig to the appropriate entry in M.
+ *
+ * @param M contains the various FIRs collected so far
+ * @param subflag when true we do a subtraction instead of an addition
+ * @param sig the signal to add to M (addition, substraction, FIR or other)
+ */
+
+static void combine(std::map<Tree, Tree>& M, bool subflag, Tree sig)
+{
+    if (Tree x, y; isSigAdd(sig, x, y)) {
+        // if sig is an addition we combine its two subtrees with M
+        combine(M, subflag, x);
+        combine(M, subflag, y);
+        return;
+    }
+
+    if (Tree x, y; isSigSub(sig, x, y)) {
+        // if sig is a substraction we combine its two subtrees with M
+        combine(M, subflag, x);
+        combine(M, !subflag, y);  // but we invert the subflag for y
+        return;
+    }
+
+    if (tvec coefs; isSigFIR(sig, coefs)) {
+        // if sig is a FIR we combine it with the appropriate entry of M
+        Tree key = coefs[0];
+        Tree val = (subflag) ? negSigFIR(sig) : sig;
+        if (M.find(key) == M.end()) {
+            M[key] = val;
+        } else {
+            M[key] = addSigFIR(M[key], val);
+        }
+        return;
+    }
+
+    if (getSigOrder(sig) == 3) {
+        // sig is a signal with order 3, we split it into a coef and a signal
+        auto [coef, key] = splitMulSig(sig);
+        tvec coefs       = {key, coef};
+        Tree fir         = sigFIR(coefs);
+
+        Tree val = (subflag) ? negSigFIR(fir) : fir;
+        if (M.find(key) == M.end()) {
+            M[key] = val;
+        } else {
+            M[key] = addSigFIR(M[key], val);
+        }
+        return;
+    }
+
+    // sig is a coefficient
+    Tree key = gGlobal->nil;
+    if (M.find(key) == M.end()) {
+        M[key] = (subflag) ? sigNeg(sig) : sig;
+    } else {
+        M[key] = (subflag) ? simplify(sigSub(M[key], sig)) : simplify(sigAdd(M[key], sig));
+    }
+}
+
+/**
+ * @brief combine the FIRs contained in x and y
+ *
+ * @param x
+ * @param y
+ * @return Tree
+ */
+Tree combineFIRs(Tree x, Tree y, bool subflag)
+{
+    std::map<Tree, Tree> M;
+    combine(M, subflag, x);
+    combine(M, subflag, y);
+    // Add together all the terms collected in M
+    bool init = true;
+    Tree result;
+    for (auto t : M) {
+        Tree term = t.second;
+        if (tvec coefs; isSigFIR(term, coefs) && (coefs.size() == 2)) {
+            std::cerr << "if the term is a FIR with only one non-zero coefficient we simplify it"
+                      << std::endl;
+            term = sigMul(coefs[1], coefs[0]);
+        }
+        if (init) {
+            result = term;
+            init   = false;
+        } else {
+            result = sigAdd(result, term);
+        }
+    }
+    return result;
 }
 
 void testFIR()

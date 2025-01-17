@@ -106,5 +106,8 @@ bool haveComplementaryCoefs(const tvec& V1, const tvec& V2);
 // remove trailing zero coefficients
 void normalizeFIRCoefs(tvec& V);
 
+// For an addition
+Tree combineFIRs(Tree x, Tree y, bool subflag);
+
 // internal tests for FIR reconstruction
 void testFIR();

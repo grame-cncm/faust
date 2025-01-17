@@ -49,9 +49,11 @@ Tree FIRRevealer::postprocess(Tree sig)
     } else if (isSigDelay(sig, x, y)) {
         return delaySigFIR(x, y);
     } else if (isSigAdd(sig, x, y)) {
-        return smartAddSigFIR(x, y);
+        // return smartAddSigFIR(x, y);
+        return combineFIRs(x, y, false);
     } else if (isSigSub(sig, x, y)) {
-        return smartAddSigFIR(x, negSigFIR(y));
+        // return smartAddSigFIR(x, negSigFIR(y));
+        return combineFIRs(x, y, true);
     } else if (isSigMul(sig, x, y)) {
         return mulSigFIR(x, y);
     } else if (isSigDiv(sig, x, y)) {
