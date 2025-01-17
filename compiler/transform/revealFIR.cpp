@@ -9,7 +9,7 @@
 #include "sigIIR.hh"
 #include "sigIdentity.hh"
 
-#define TRACE false
+#define TRACE true
 
 // Transform a signal expression by revealing FIR structures
 
