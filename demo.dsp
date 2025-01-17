@@ -21,6 +21,11 @@ f1 = fir(2);
 f2 = fir(4);
 f3 = fir(8);
 f4 = fir(16);
+f5 = fir(32);
+f6 = fir(64);
+f7 = fir(128);
+f8 = fir(256);
+
 
 // faust -lang ocpp demo.dsp -pn f2 
 // faust -lang ocpp demo.dsp -pn f2 -mcd 0
@@ -146,3 +151,5 @@ cf1 = cfir(2); // OK
 cf2 = cfir(4); // OK
 cf3 = cfir(8); // OK
 cf4 = cfir(16); // OK
+
+process = f4;
