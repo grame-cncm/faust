@@ -44,7 +44,7 @@
 #include "smartpointer.hh"
 #include "sourcereader.hh"
 
-class Occur;
+// class Occur;
 
 class AudioType;
 typedef P<AudioType> Type;
@@ -564,7 +564,7 @@ struct global {
     std::map<std::string, int> gIDCounters;
 
     // Internal state during drawing
-    Occur*                          gOccurrences;
+    // Occur*                          gOccurrences;
     bool                            gFoldingFlag;     // true with complex block-diagrams
     std::stack<Tree>                gPendingExp;      // Expressions that need to be drawn
     std::set<Tree, CTreeComparator> gDrawnExp;        // Expressions drawn or scheduled so far

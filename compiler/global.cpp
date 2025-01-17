@@ -43,7 +43,7 @@
 #include "logprim.hh"
 #include "maxprim.hh"
 #include "minprim.hh"
-#include "occur.hh"
+// #include "occur.hh"
 #include "powprim.hh"
 #include "remainderprim.hh"
 #include "rintprim.hh"
@@ -555,7 +555,7 @@ void global::reset()
     gLocalCausalityCheck = false;
     gCausality           = false;
 
-    gOccurrences = nullptr;
+    //gOccurrences = nullptr;
     gFoldingFlag = false;
     gDevSuffix   = nullptr;
 
