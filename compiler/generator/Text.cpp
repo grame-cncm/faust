@@ -156,6 +156,11 @@ string T(int n)
     return std::to_string(n);
 }
 
+string T(size_t n)
+{
+    return std::to_string(n);
+}
+
 string T(int64_t n)
 {
     return std::to_string(n);

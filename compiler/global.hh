@@ -173,6 +173,7 @@ struct global {
     bool gReconstructFIRIIRs;      // -fir option
     int  gFirLoopSize;             // -fls --fir-loop-size option
     int  gMaxFIRSize;              // -mfs threshold
+    int  gHLSUnrollFactor;         // -huf emit HLS unroll pragma if > 0
     bool gUseDenseDelay;           // -udd --use-dense-delay option
     int  gMaxDenseDelay;           // -mdd threshold
     int  gMinDensity;              // -mdy threshold

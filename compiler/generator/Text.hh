@@ -60,6 +60,7 @@ std::string T(double n);
 std::string TAux(long double n);
 std::string T(long double n);
 std::string T(int64_t n);
+std::string T(size_t n);
 std::string T(void* x);
 
 // Add and remove quotes of a std::string

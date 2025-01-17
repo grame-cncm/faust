@@ -444,6 +444,7 @@ void global::reset()
 
     gReconstructFIRIIRs = false;  // [-fir]  : Reconstruct FIRs and IIRs
     gMaxFIRSize         = 1024;   // [-mfs n]: Maximal number of coefficients for a FIR
+    gHLSUnrollFactor    = 0;      // [-huf n]: when > 0 generate: `#pragma HLS unroll factor=n`
     gFirLoopSize        = 4;      // [-fls n]: inline/loop computation of FIR/IIR values
     gMaxCopyDelay       = 9;      // [-mcd n]: copy/iota-dense delay line
     gMinCopyLoop        = 4;      // [-mcl n]: inline/loop samples copy
@@ -888,6 +889,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     dst << "-mcl " << gMinCopyLoop << " ";
     dst << "-mcd " << gMaxCopyDelay << " ";
     dst << "-mfs " << gMaxFIRSize << " ";
+    dst << "-huf " << gHLSUnrollFactor << " ";
     dst << "-irt " << gIIRRingThreshold << " ";
     dst << "-fls " << gFirLoopSize << " ";
     dst << "-udd " << gUseDenseDelay << " ";
@@ -1330,6 +1332,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-mfs", "--max-fir-size") && (i + 1 < argc)) {
             gMaxFIRSize = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-huf", "--hls-unroll-factor") && (i + 1 < argc)) {
+            gHLSUnrollFactor = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-irt", "--iir-ring-threshold") && (i + 1 < argc)) {
