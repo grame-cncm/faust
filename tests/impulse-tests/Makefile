@@ -221,7 +221,7 @@ ocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
 
 fir:
-	$(MAKE) -f Make.gcc outdir=ocpp/doublefir          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -fir"
+	$(MAKE) -f Make.gcc outdir=ocpp/doublefir          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -fls 100"
 
 extra:
 	$(MAKE) -f Make.gcc outdir=ocpp/double/mcd0     lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mcd 0"
