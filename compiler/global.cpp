@@ -316,6 +316,7 @@ global::global()
     BOXPATVAR        = symbol("BoxPatVar");
     BOXINPUTS        = symbol("BoxInputs");
     BOXOUTPUTS       = symbol("BoxOutputs");
+    BOXONDEMAND      = symbol("BoxOndemand");
     BOXSOUNDFILE     = symbol("boxSoundfile");
     BOXMETADATA      = symbol("boxMetadata");
 

@@ -558,6 +558,12 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
             throw faustexception(error.str());
         }
     }
+
+    else if (isBoxOndemand(box, t1)) {
+        std::cerr << "WARNING : ondemand propagation not implemented yet" << std::endl;
+        exit(1);
+    }
+
     cerr << "ASSERT : file " << __FILE__ << ':' << __LINE__
          << ", unrecognised box expression : " << boxpp(box) << endl;
     faustassert(false);
