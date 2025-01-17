@@ -483,14 +483,18 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     L = prepare(L);  // optimize, share and annotate expression
 
     for (int i = 0; i < fClass->inputs(); i++) {
-        fClass->addZone3(subst("$1* input$0 = &input[$0][index]; // Zone 3", T(i), xfloat()));
-        // Deactivated for now
-        // if (gGlobal->gInPlace) {
-        //     CS(sigInput(i));
-        // }
+        if (fClass->getComputeByBlock()) {
+            fClass->addZone3(subst("$1* input$0 = &input[$0][index]; // Zone 3", T(i), xfloat()));
+        } else {
+            fClass->addZone3(subst("$1* input$0 = input[$0]; // Zone 3", T(i), xfloat()));
+        }
     }
     for (int i = 0; i < fClass->outputs(); i++) {
-        fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
+        if (fClass->getComputeByBlock()) {
+            fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
+        } else {
+            fClass->addZone3(subst("$1* output$0 = output[$0]; // Zone 3", T(i), xfloat()));
+        }
     }
 
     auto H = fullGraph(L);
@@ -1748,7 +1752,7 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
               << fScheduleOrder[exp] << " -exp- " << exp << " :: " << ppsig(exp, 10) << '\n'
               << "Within FIR at step " << fScheduleOrder[sig] << " -sig- " << sig
               << " :: " << ppsig(sig, 10) << '\n'
-              << " and with delay " << delay << '\n';
+              << " and with delay " << delayidx << '\n';
 #endif
     std::string result;
     switch (dt) {
@@ -1894,6 +1898,7 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
 
         case DelayType::kDenseDelay:
 #if 1
+            fClass->setComputeByBlock(true);
             // version normale
             fClass->addDeclCode(subst("$0 \t$1State[$2]; // Dense Delay", ctype, vname, T(mxd)));
             fClass->addClearCode(
@@ -2026,6 +2031,8 @@ string ScalarCompiler::generateWaveform(Tree sig)
 string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
     faustassert(coefs.size() > 2);
+    std::cerr << gGlobal->gSTEP << " generateFIR: " << sig << " [" << coefs.size() << ']'
+              << std::endl;
 
     if (coefs.size() < gGlobal->gFirLoopSize) {
         std::ostringstream oss;
@@ -2152,6 +2159,9 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
 
     std::string vname, ctype;
     getTypedNames(ty, "IIR", ctype, vname);
+
+    std::cerr << gGlobal->gSTEP << " generateIIR: " << vname << " [" << coefs.size() << ']'
+              << std::endl;
 
     // Build the IIR expressions X + C1*Y(t-1) + C2*Y(t-2) + ...
     std::ostringstream oss;

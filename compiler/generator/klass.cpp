@@ -1046,9 +1046,28 @@ void Klass::printComputeMethod(int n, ostream& fout)
                 throw faustexception(error.str());
             }
         }
-    } else {
+    } else if (fComputeByBlock) {
         printComputeMethodScalarBlock(n, fout);
+    } else {
+        printComputeMethodScalar(n, fout);
     }
+}
+
+void Klass::printComputeMethodScalar(int n, ostream& fout)
+{
+    tab(n + 1, fout);
+    fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
+    printlines(n + 2, fZone1Code, fout);
+    printlines(n + 2, fZone2Code, fout);
+    printlines(n + 2, fZone2bCode, fout);
+
+    printlines(n + 2, fZone3Code, fout);
+    printLoopGraphScalar(n + 2, fout);
+    printlines(n + 2, fZone3Post, fout);
+
+    printlines(n + 2, fZone4Code, fout);
+    tab(n + 1, fout);
+    fout << "}";
 }
 
 void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
