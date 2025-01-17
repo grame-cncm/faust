@@ -62,11 +62,20 @@ Tree makeSigFIR(Tree sig, int d)
 // Create a FIR from a delayed signal if the delay is constant
 Tree delaySigFIR(Tree s1, Tree s2)
 {
-    int d;
-    if (isSigInt(s2, &d) && (d <= gGlobal->gMaxFIRSize)) {
+    if (int d; isSigInt(s2, &d) && (d >= 0) && (d <= gGlobal->gMaxFIRSize)) {
         if (d > 0) {
-            tvec V1;
-            if (isSigFIR(s1, V1)) {
+            if (tvec V1; isSigFIR(s1, V1)) {
+                tvec VR;
+                VR.push_back(V1[0]);
+                for (int i = 0; i < d; i++) {
+                    VR.push_back(sigInt(0));
+                }
+                for (unsigned int i = 1; i < V1.size(); i++) {
+                    VR.push_back(V1[i]);
+                }
+                return sigFIR(VR);
+            } else if (Tree ck, f; isSigClocked(s1, ck, f) && isSigFIR(f)) {
+                tvec V1 = f->branches();
                 tvec VR;
                 VR.push_back(V1[0]);
                 for (int i = 0; i < d; i++) {

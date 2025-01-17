@@ -66,6 +66,10 @@ std::optional<std::tuple<Tree, int, Tree>> isFirElem(Tree s)
     return std::nullopt;
 }
 
+/* FIR pattern matching rules
+    - x@d -> FIR(x, C[0], C[1],..C[d]) if d is a constant and d > 0 with C[i] = 0 for i != d and C[d] = 1
+    - x@d*c -> FIR(x, C[0], C[1],..C[d]) if d is a constant and d > 0 with C[i] = 0 for i != d and C[d] = c
+*/
 Tree FIRRevealer::postprocess(Tree sig)
 {
     if (tvec subs; isSigSum(sig, subs)) {
@@ -168,11 +172,8 @@ Tree FIRRevealer::postprocess(Tree sig)
         return res;
     }
 
-    if (Tree ck, h, f, d; isSigDelay(sig, ck, d) && isSigClocked(ck, h, f) && isSigFIR(f)) {
-        return delaySigFIR(f, d);
-    }
 
-    if (Tree f, d; isSigDelay(sig, f, d) && isSigFIR(f)) {
+    if (Tree f, d; isSigDelay(sig, f, d)) {
         return delaySigFIR(f, d);
     }
 
