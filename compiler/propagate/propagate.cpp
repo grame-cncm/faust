@@ -345,6 +345,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
                 // If gEnableFlag is false we replace control by identity function
                 return makeList(lsig[0]);
             }
+        } else if (p2 == &sigDelay) {
+            return makeList(sigDelay(sigClocked(clockenv, lsig[0]), lsig[1]));
+
         } else {
             num n, m;
             if (isNum(lsig[0], n) && isNum(lsig[1], m)) {
@@ -570,7 +573,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             X2.push_back(sigTempVar(lsig[i]));
         }
         // We propagate into prop(X2,t1) -> Y0
-        siglist Y0 = propagate(clockenv, slotenv, path, t1, X2);
+        siglist Y0 = propagate(cons(H, clockenv), slotenv, path, t1, X2);
 
         // We store the output signals into perm variables
         siglist Y1;
