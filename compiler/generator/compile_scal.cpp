@@ -738,9 +738,9 @@ string ScalarCompiler::generateCode(Tree sig)
     }
 
     else if (isSigVBargraph(sig, label, x, y, z)) {
-        return generateVBargraph(sig, label, x, y, CS(z));
+        return generateBargraph(sig, label, x, y, z);
     } else if (isSigHBargraph(sig, label, x, y, z)) {
-        return generateHBargraph(sig, label, x, y, CS(z));
+        return generateBargraph(sig, label, x, y, z);
     }
 
     else if (isSigSoundfile(sig, label)) {
@@ -1164,54 +1164,35 @@ string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min,
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
+string ScalarCompiler::generateBargraph(Tree sig, Tree path, Tree min, Tree max, Tree exp)
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    Type t = getCertifiedSigType(sig);
-    switch (t->variability()) {
-        case kKonst:
-            fClass->addInitUICode(subst("$0 = $1;", varname, exp));
-            break;
-
-        case kBlock:
-            fClass->addZone2(subst("$0 = $1;", varname, exp));
-            break;
-
-        case kSamp:
-            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", varname, exp)));
-            break;
+    Type t = getCertifiedSigType(exp);
+    if (t->variability() == kKonst) {
+        string res = CS(exp);
+        fClass->addInitUICode(subst("$0 = $1;", varname, res));
+        return res;
     }
 
-    // return varname;
-    return generateCacheCode(sig, varname);
-}
-
-string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
-{
-    string varname = getFreshID("fbargraph");
-    fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-
-    Type t = getCertifiedSigType(sig);
-    switch (t->variability()) {
-        case kKonst:
-            fClass->addInitUICode(subst("$0 = $1;", varname, exp));
-            break;
-
-        case kBlock:
-            fClass->addZone2(subst("$0 = $1;", varname, exp));
-            break;
-
-        case kSamp:
-            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", varname, exp)));
-            break;
+    if (t->variability() == kBlock) {
+        string res = generateCacheCode(sig, CS(exp));
+        fClass->addZone4(subst("$0 = $1;", varname, res));
+        return res;
     }
 
-    // return varname;
-    return generateCacheCode(sig, varname);
+    // t->variability() == kSamp. We need somehow to downsample the signal
+    // using a slow variable
+    string slowvar, ctype;
+    getTypedNames(t, "Slow", ctype, slowvar);  // This is going to be used as cache
+
+    fClass->addZone2(subst("$0 \t$1;", ctype, slowvar));
+    fClass->addExecCode(Statement("", subst("$0 = $1;", slowvar, CS(exp))));
+    fClass->addZone4(subst("$0 = $1;", varname, slowvar));
+
+    return slowvar;
 }
 
 /*****************************************************************************
@@ -1478,11 +1459,12 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
 }
 
 /**
- * @brief Check if sig is a simple recursive signal that can be expressed using a single variable
+ * @brief Check if sig is a simple recursive signal that can be expressed using a single
+ * variable
  *
  * @param sig the signal to analyse, typically proj(i,X)
- * @return true if sig is of type x = f(x') and x' is used only once. In this case the same variable
- * can be used both for x and x'
+ * @return true if sig is of type x = f(x') and x' is used only once. In this case the same
+ * variable can be used both for x and x'
  * @return false
  */
 bool ScalarCompiler::isSigSimpleRec(Tree sig)
@@ -1559,7 +1541,8 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
     }
     int dnsty = (100 * count) / mxd;
     // std::cerr << "Analyze delay type for sig " << sig << " with mxd=" << mxd
-    //           << ", delays count=" << occ->getDelayCount() << " and density=" << dnsty << "\n";
+    //           << ", delays count=" << occ->getDelayCount() << " and density=" << dnsty <<
+    //           "\n";
     // std::cerr << "gUseDenseDelay=" << gGlobal->gUseDenseDelay
     //           << " gMaxDenseDelay=" << gGlobal->gMaxDenseDelay
     //           << " gMinDensity=" << gGlobal->gMinDensity << "\n";
@@ -1838,7 +1821,8 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
     string ccs = getConditionCode(sig);
     // DelayType dt  = analyzeDelayType(sig);
-    //  fClass->addDeclCode(subst("// Normal delay $0 is of type $1", vname, nameDelayType(dt)));
+    //  fClass->addDeclCode(subst("// Normal delay $0 is of type $1", vname,
+    //  nameDelayType(dt)));
     string access = generateDelayLine(sig, ctype, vecname, mxd, count, mono, exp, ccs);
     // setVectorNameProperty(sig, vname);
     return access;
@@ -1974,7 +1958,8 @@ string ScalarCompiler::generateDelayLine(Tree sig, const string& ctype, const st
             Tree clock;
             faustassert(hasClock(sig, clock));
             std::string iotaname = declareRetriveIotaName(clock);
-            // std::cerr << "Use of ring buffer " << vname << " with sig = " << sig << std::endl;
+            // std::cerr << "Use of ring buffer " << vname << " with sig = " << sig <<
+            // std::endl;
 
             // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
             int N = pow2limit(mxd + 1);
@@ -2093,11 +2078,11 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         return generateCacheCode(sig, oss.str());
 
     } else {
-        // tous les coefs sont connus à la compilation et on peut declarer un tableau de constantes
-        // statiques certains coefs sont connus à l'initialisation et on peut declarer un tableau
-        // remplis dans la méthode init certains coefficients sont des controles et on peut déclarer
-        // un tableau en début de compute certains coefficients sont des signaux et on doit déclarer
-        // le tableau dans la boucle d'échantillons
+        // tous les coefs sont connus à la compilation et on peut declarer un tableau de
+        // constantes statiques certains coefs sont connus à l'initialisation et on peut
+        // declarer un tableau remplis dans la méthode init certains coefficients sont des
+        // controles et on peut déclarer un tableau en début de compute certains coefficients
+        // sont des signaux et on doit déclarer le tableau dans la boucle d'échantillons
 
         // 1) THE COEFFICIENT TABLE
 
@@ -2141,7 +2126,8 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
                 if (tc->computability() == kComp) {
                     fClass->addDeclCode(ctabledecl);
                 } else {
-                    // special case for constant coefficients that can only be computed at init time
+                    // special case for constant coefficients that can only be computed at init
+                    // time
                     fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, ctable, csize));
                     fClass->addInitCode(
                         subst("const $0 \t$1tmp[$2] = $3;", ctype, ctable, csize, coefInit));
@@ -2165,7 +2151,8 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         std::string idxaccess =
             generateDelayAccess(sig, exp, "ii");  // indexed access to the input signal
 
-        // Type of the FIR itself (potentially different from the common type of the coefficients)
+        // Type of the FIR itself (potentially different from the common type of the
+        // coefficients)
         Type        ty = getCertifiedSigType(sig);
         std::string ftype, facc;
         getTypedNames(ty, "Acc", ftype, facc);

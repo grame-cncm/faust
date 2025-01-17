@@ -140,8 +140,7 @@ class ScalarCompiler : public Compiler {
     std::string generateHSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
     std::string generateNumEntry(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
 
-    std::string generateVBargraph(Tree sig, Tree label, Tree min, Tree max, const std::string& exp);
-    std::string generateHBargraph(Tree sig, Tree label, Tree min, Tree max, const std::string& exp);
+    std::string generateBargraph(Tree sig, Tree label, Tree min, Tree max, Tree exp);
     std::string generateSoundfile(Tree sig, Tree path);
 
     std::string generateNumber(Tree sig, const std::string& exp);

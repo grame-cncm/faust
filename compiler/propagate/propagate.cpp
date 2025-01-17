@@ -431,12 +431,19 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
     else if (isBoxVBargraph(box, label, min, max)) {
         faustassert(lsig.size() == 1);
-        return makeList(sigVBargraph(normalizePath(cons(label, path)), min, max, lsig[0]));
+        // we add a clock signal so that we know, when we compile a bargraph,
+        // if it occurs in an ondemand
+        return makeList(sigVBargraph(normalizePath(cons(label, path)), min, max,
+                                     sigClocked(clockenv, lsig[0])));
+        // makeList(sigDelay1(sigClocked(clockenv, lsig[0])))
     }
 
     else if (isBoxHBargraph(box, label, min, max)) {
         faustassert(lsig.size() == 1);
-        return makeList(sigHBargraph(normalizePath(cons(label, path)), min, max, lsig[0]));
+        // we add a clock signal so that we know, when we compile a bargraph,
+        // if it occurs in an ondemand
+        return makeList(sigHBargraph(normalizePath(cons(label, path)), min, max,
+                                     sigClocked(clockenv, lsig[0])));
     }
 
     else if (isBoxSoundfile(box, label, chan)) {
