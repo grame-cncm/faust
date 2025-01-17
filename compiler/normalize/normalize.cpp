@@ -35,7 +35,7 @@
 #include "tlib.hh"
 
 using namespace std;
-#undef TRACE
+#define TRACE
 
 /**
  * Compute the Add-Normal form of a term t.

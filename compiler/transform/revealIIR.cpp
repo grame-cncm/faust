@@ -14,7 +14,7 @@
 #include "Schedule.hh"
 #include "sigRecursiveDependencies.hh"
 
-#define TRACE false
+#define TRACE true
 
 //----------------------------------------------------------------------
 // IIR part

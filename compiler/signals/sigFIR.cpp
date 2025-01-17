@@ -44,7 +44,7 @@
 #include "sigorderrules.hh"
 
 //-------------------------------------------------------------------------
-// Create a FIR form a signal with a fixed delay
+// Create an elementary FIR from a signal with a fixed delay
 // S@d --> makeSigFIR(S,d) --> sigFIR([S, 0, 0, ..., 1])
 // The vector V as d+2 elements: the signal itself, d zeros and a one.
 Tree makeSigFIR(Tree sig, int d)
@@ -98,6 +98,7 @@ static Tree sigNeg(Tree sig)
 // Negate a FIR
 Tree negSigFIR(Tree sig)
 {
+    // -FIR[X,C0,C1,...] -> FIR[X,-C0,-C1,...]
     if (tvec V; isSigFIR(sig, V)) {
         for (unsigned int i = 1; i < V.size(); i++) {
             V[i] = sigNeg(V[i]);
@@ -105,10 +106,12 @@ Tree negSigFIR(Tree sig)
         return sigFIR(V);
     }
 
+    // -(X+Y) -> -X+-Y
     if (Tree x, y; isSigAdd(sig, x, y)) {
         return addSigFIR(negSigFIR(x), negSigFIR(y));
     }
 
+    // -(X-Y) -> -X+Y
     if (Tree x, y; isSigSub(sig, x, y)) {
         return addSigFIR(negSigFIR(x), y);
     }
