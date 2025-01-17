@@ -449,7 +449,7 @@ void global::reset()
     gMaxCopyDelay       = 9;      // [-mcd n]: copy/iota-dense delay line
     gMinCopyLoop        = 4;      // [-mcl n]: inline/loop samples copy
     gUseDenseDelay      = 1;      // [-udd 0/1]: Use dense delay representation instead of IOTA
-    gMinDensity         = 33;     // [-mdy n]: dense/iota delay line density threshold
+    gMinDensity         = 90;     // [-mdy n]: dense/iota delay line density threshold
     gMaxCacheDelay      = 8;      // [-mca n]: Maximal delay to use a cache delay line
     gMaxDenseDelay      = 1024;   // [-mdd n]: Maximal delay to choose a dense representation
     gIIRRingThreshold   = 4;      // [-irt n]: Minimal delay to use a ring buffer for IIR

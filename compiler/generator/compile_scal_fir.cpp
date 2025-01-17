@@ -35,19 +35,55 @@
 
 using namespace std;
 
+// Compute the 'density' of a FIR filter given its coefficients.
+// It is the ratio of non zero coefficients over the total number of coefficients.
+// The total number of coefficients is the size of the array minus the position of the first
+// non zero coefficient.
+static float computeDensity(const tvec& coefs)
+{
+    // analyze the coefficients
+    unsigned int fnz = 0;  // first non zero coefficient
+    for (unsigned int i = 1; i < coefs.size(); ++i) {
+        if (!isZero(coefs[i])) {
+            fnz = i;
+            break;
+        }
+    }
+    unsigned int cnz = 0;  // count of non zero coefficients
+    for (unsigned int i = fnz; i < coefs.size(); ++i) {
+        if (!isZero(coefs[i])) {
+            cnz++;
+        }
+    }
+    faustassert(cnz > 0);
+    float density = float(cnz) / float(coefs.size() - fnz);
+    std::cerr << gGlobal->gSTEP << " generateFIR: "
+              << " coefs.size()=" << coefs.size() << " density=" << density << " cnz=" << cnz
+              << " fnz=" << fnz << std::endl;
+    return density;
+}
+
 string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
     faustassert(coefs.size() > 1);
-    // std::cerr << gGlobal->gSTEP << " generateFIR: " << ppsig(sig) << std::endl;
+    float density = computeDensity(coefs);
     if (coefs.size() == 2) {
         // special case for a simple gain
         return generateCacheCode(sig, subst("($0) * ($1)", CS(coefs[1]), CS(coefs[0])));
     }
-    if (int(coefs.size()) - 1 < gGlobal->gFirLoopSize) {
-        // we don't use a loop for small FIR filters
+    bool r1 = density * 100 < gGlobal->gMinDensity;
+    bool r2 = int(coefs.size()) - 1 < gGlobal->gFirLoopSize;
+    if (r1 || r2) {
+        // we don't use a loop for small or low density FIR filters
         std::ostringstream oss;
         string             sep = "";
         Tree               exp = coefs[0];  // The input signal of the FIR
+
+        // build the comment explaining this choice
+        std::string comment = " /* ";
+        comment += r1 ? "low-density " : "";
+        comment += r2 ? "small " : "";
+        comment += "FIR filter */";
 
         // build the FIR expression
         oss << '(';
@@ -65,10 +101,9 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
             }
             sep = " + ";
         }
-        oss << ')' << " /* Non Loop FIR expression */";
+        oss << ')' << comment;
 
         return generateCacheCode(sig, oss.str());
-
     } else {
         // tous les coefs sont connus à la compilation et on peut declarer un tableau de
         // constantes statiques certains coefs sont connus à l'initialisation et on peut
