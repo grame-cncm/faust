@@ -180,12 +180,11 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     if (gGlobal->gDrawSignals) {
         if (gGlobal->gDrawRetiming) {
-            startTiming("retiming");
-            Tree L3 = sigRetiming(L2);
-            endTiming("retiming");
-            startTiming("retimed type annotation");
-            typeAnnotation(L3, true);
-            endTiming("retimed type annotation");
+            Tree L3 = sigRetiming(L2, false);
+            conditionAnnotation(L3);
+            recursivnessAnnotation(L3);
+            typeAnnotation(L3, false);
+
             ofstream dotfile(subst("$0-rtsig.dot", gGlobal->makeDrawPath()).c_str());
             sigToGraph(L3, dotfile);
         }
@@ -774,16 +773,16 @@ string ScalarCompiler::generateCode(Tree sig)
     }
 
     // compile ondemand
-    else if (Tree x; isSigTempVar(sig, x)) {
+    else if (isSigTempVar(sig, x)) {
         return generateTempVar(sig, x);
-    } else if (Tree x; isSigPermVar(sig, x)) {
+    } else if (isSigPermVar(sig, x)) {
         return generatePermVar(sig, x);
-    } else if (Tree x, y; isSigSeq(sig, x, y)) {
+    } else if (isSigSeq(sig, x, y)) {
         (void)CS(x);
         return generateCacheCode(sig, CS(y));
     } else if (tvec w; isSigOD(sig, w)) {
         return generateOD(sig, w);
-    } else if (Tree x, y; isSigClocked(sig, x, y)) {
+    } else if (isSigClocked(sig, x, y)) {
         return generateCacheCode(sig, CS(y));
     }
 
@@ -1027,7 +1026,7 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
     Occurrences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
-    if (isNumber(exp)) {
+    if (isNumber(exp) || isVarName(exp)) {
         // std::cerr << "Number in generateVariableStore " << exp << std::endl;
         return exp;
     }
@@ -1525,7 +1524,7 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
     if (tvec coefs; isSigIIR(sig, coefs)) {
         // std::cerr << "Analyze delay type for IIR sig " << sig << " with " << coefs.size() - 3
         //           << " real coefs \n";
-        if (coefs.size() - 3 >= gGlobal->gIIRRingThreshold) {
+        if (int(coefs.size()) - 3 >= gGlobal->gIIRRingThreshold) {
             // std::cerr << "We use MaskRingDelay !\n";
             return DelayType::kMaskRingDelay;
         }
@@ -2026,7 +2025,7 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
     faustassert(coefs.size() > 2);
     // std::cerr << gGlobal->gSTEP << " generateFIR: " << ppsig(sig) << std::endl;
 
-    if (coefs.size() < gGlobal->gFirLoopSize) {
+    if (int(coefs.size()) < gGlobal->gFirLoopSize) {
         // we don't use a loop for small FIR filters
         std::ostringstream oss;
         string             sep = "";
@@ -2084,7 +2083,7 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
             if (i > 1) {
                 coefInitStream << ", ";
             }
-            if (!isZero(coefs[i]) && (i < mnzc)) {
+            if (!isZero(coefs[i]) && (int(i) < mnzc)) {
                 // first non zero coef
                 mnzc = i;
             }
