@@ -158,7 +158,9 @@ Tree SignalRetimer::transformation(Tree sig)
         return sig;
     } else if (isSigInput(sig, &i)) {
         fTiming[sig] = 0;
-        return sig;
+        Tree res     = sigRegister(1, sig);
+        fTiming[res] = 1;
+        return res;
     } else if (isSigOutput(sig, &i, x)) {
         Tree x2      = self(x);
         Tree res     = sigOutput(i, x2);
