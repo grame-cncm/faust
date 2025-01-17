@@ -444,6 +444,7 @@ void global::reset()
     gMinDensity         = 33;     // [-mdy n]: dense/iota delay line density threshold
     gMaxDenseDelay      = 1024;   // [-mdd n]: Maximal delay to choose a dense representation
     gIIRRingThreshold   = 4;      // [-irt n]: Minimal delay to use a ring buffer for IIR
+    gSchedulingStrategy = 0;      // [-ss n]: Scheduling strategy (default: 0 = deepfirst)
     gFactorizeFIRIIRs   = false;  // [-ff]: Factorize FIRs and IIRs
     gVectorSwitch       = false;
     gDeepFirstSwitch    = false;
@@ -884,6 +885,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     dst << "-udd " << gUseDenseDelay << " ";
     dst << "-mdd " << gMaxDenseDelay << " ";
     dst << "-mdy " << gMinDensity << " ";
+    dst << "-ss " << gSchedulingStrategy << " ";
 
     if (gUIMacroSwitch) {
         dst << "-uim ";
@@ -1335,6 +1337,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-dlt", "-delay-line-threshold") && (i + 1 < argc)) {
             gMaskDelayLineThreshold = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ss", "--scheduling-strategy") && (i + 1 < argc)) {
+            gSchedulingStrategy = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mem", "--memory-manager") ||
@@ -2356,6 +2362,7 @@ string global::printHelp()
             "delay <n> and a "
             "select based ring buffers above (default INT_MAX samples)."
          << endl;
+    sstr << tab << "-ss <n>    --scheduling-strategy <n>  0=deep first, 1=breadth first" << endl;
 #endif
 #ifndef EMCC
     sstr

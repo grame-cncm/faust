@@ -516,12 +516,18 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         std::cerr << "Print siglist full graph topology : " << topology(H) << '\n';
     }
 
-    // force a specific compilation order
+    // Compute the dependency graph
     auto G = immediateGraph(L);
     if (gGlobal->gTopoSwitch) {
         std::cerr << "Print siglist inst graph topology : " << topology(G) << '\n';
     }
-    auto S = dfschedule(G);
+    // force a specific compilation order
+    schedule<Tree> S;
+    if (gGlobal->gSchedulingStrategy == 0) {
+        S = dfschedule(G);
+    } else {
+        S = bfschedule(G);
+    }
     // register the compilation order S for debug purposes
     {
         int jj = 0;

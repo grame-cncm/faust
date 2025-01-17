@@ -226,6 +226,9 @@ fir:
 ffir:
 	$(MAKE) -f Make.gcc outdir=ocpp/doubleffir          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -fls 100 -mcd 128"
 
+bfirst:
+	$(MAKE) -f Make.gcc outdir=ocpp/doublebfirst          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -ss 1 -fls 100 -mcd 128"
+
 extra:
 	$(MAKE) -f Make.gcc outdir=ocpp/double/mcd0     lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mcd 0"
 	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/lv0  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
