@@ -72,15 +72,14 @@ Occurrences* Occurrences::incOccurrences(int v, int r, int d, Tree xc)
     // assert (ctxt >= fXVariability);
     fOccurrences[ctxt] += 1;
     fMultiOcc = fMultiOcc | (ctxt > fXVariability) | (fOccurrences[ctxt] > 1);
+
     if (d == 0) {
         // cerr << "Occurence outside a delay " << endl;
         fOutDelayOcc = true;
-    }
-    // we have a delay occurrence
-    fCountDelay++;
-
-    if (d > fMaxDelay) {
-        fMaxDelay = d;
+    } else {
+        // we have a delay occurrence
+        fCountDelay++;
+        fMaxDelay = std::max(fMaxDelay, d);
     }
 
     // check if used in different execution conditions
@@ -114,6 +113,29 @@ int Occurrences::getDelayCount() const
 Tree Occurrences::getExecCondition() const
 {
     return fExecCondition;
+}
+
+std::ostream& operator<<(std::ostream& os, const Occurrences& occ)
+{
+    os << "Occurrences: {" << std::endl;
+    os << "  X Variability: " << occ.fXVariability << std::endl;
+    os << "  Occurrences: [";
+    for (int i = 0; i < 4; ++i) {
+        os << occ.fOccurrences[i];
+        if (i < 3) {
+            os << ", ";
+        }
+    }
+    os << "]" << std::endl;
+    os << "  Multi-Occurrences: " << (occ.fMultiOcc ? "true" : "false") << std::endl;
+    os << "  Out Delay Occurrences: " << (occ.fOutDelayOcc ? "true" : "false") << std::endl;
+    os << "  Min Delay: " << occ.fMinDelay << std::endl;
+    os << "  Max Delay: " << occ.fMaxDelay << std::endl;
+    os << "  Delay Count: " << occ.fCountDelay << std::endl;
+    os << "  Exec Condition: " << occ.getExecCondition() << std::endl;
+    os << "}";
+
+    return os;
 }
 
 //----------------------------------------------------
@@ -150,6 +172,7 @@ Occurrences* OccMarkup::retrieve(Tree t)
 
 void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 {
+    //    std::cerr << "incOcc " << v << ", " << r << ", " << d << " for tree " << *t << std::endl;
     // Check if we have already visited this tree
     Occurrences* occ        = getOcc(t);
     bool         firstVisit = (occ == 0);
@@ -227,6 +250,7 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
             incOcc(env, v, r, d, xc, y);
         }
     }
+    //    std::cerr << "Occurences for tree " << *t << " are " << *retrieve(t) << std::endl;
 }
 
 Occurrences* OccMarkup::getOcc(Tree t)

@@ -49,6 +49,8 @@ class Occurrences : public virtual Garbageable {
     int  getDelayCount() const;
     Tree getExecCondition() const;              ///< return the exec condition
     int  getOccurrence(int variability) const;  ///< return the number of occurrence by variability
+
+    friend std::ostream& operator<<(std::ostream& os, const Occurrences& occ);
 };
 
 /**

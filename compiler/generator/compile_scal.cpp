@@ -1532,6 +1532,8 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
     faustassert(occ != nullptr);
     int mxd   = occ->getMaxDelay();
     int count = occ->getDelayCount();
+    // std::cerr << "analyze delay type count: " << count << ", delay:" << mxd << " for signal "
+    //           << ppsig(sig) << std::endl;
 
     if (mxd == 0) {
         return DelayType::kZeroDelay;
@@ -1540,10 +1542,13 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
         // check for special mono delay case
         int  i;
         Tree x, var, le;
-        if (count == 1 && isProj(sig, &i, x) && isRec(x, var, le) && (len(le) == 1)) {
+        // YO DISABLE
+        if (count == -1 && isProj(sig, &i, x) && isRec(x, var, le) && (len(le) == 1)) {
             // potential simple recursion if sig@1 is used only once
+            // std::cerr << "Potential mono delay " << ppsig(sig) << std::endl;
             Tree f = sigDelay(sig, sigInt(1));  // check if it is a delay
             if (fOccMarkup->retrieve(f) && !fOccMarkup->retrieve(f)->hasMultiOccurrences()) {
+                // std::cerr << "Real mono delay " << ppsig(sig) << std::endl;
                 return DelayType::kMonoDelay;
             }
         }
