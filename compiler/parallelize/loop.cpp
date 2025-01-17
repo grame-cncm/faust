@@ -164,9 +164,9 @@ void Loop::addPostCode(const Statement& stmt)
 {
     cerr << this << "->addPostCode " << stmt.code() << endl;
     if (fIFstack.size() > 0) {
-        fIFstack.top().fPostCode.push_back(stmt);
+        fIFstack.top().fPostCode.push_front(stmt);
     } else {
-        fPostCode.push_back(stmt);
+        fPostCode.push_front(stmt);
     }
 }
 
