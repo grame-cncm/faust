@@ -64,6 +64,8 @@ t20 = t19:@(2);
 // avec de vrais exemples
 f1 = fi.lowpass(3,1000);
 f2 = fi.lowpass(5,1000);
+f3 = fi.notchw(100,1000);
+f33 = f3:f3;
 
 d0b = _ <: @(100) , @(200);
 d0c = +~_;
@@ -101,4 +103,42 @@ w6 = mfir(1,10);
 
 w7 = + ~ mfir(1,4);
 w8 = + ~ mfir(1,8);
+
+ww1 = w4:w7;
+ww2 = w7:w4;
+
+ww3 = w7:w8;
+ww4 = w8:w7;
+
+ww5 = + ~ mfir(1,2) : mfir(1,3);
+ww6 = mfir(1,2) : + ~ mfir(1,2);
+ww7 = mfir(1,2) : +~*(0.75); // OK
+ww8 = mfir(1,2) : +~(_ <: *(0.75), (mem:*(-0.1)) :> _); // OK
+ww9 = mfir(1,2) : +~(_ <: *(0.75), (*(-0.1):mem) :> _); // OK
+
+fir(N) = _ <: par(n,N, @(n):*(1/(1+n^2))):>_;
+
+ww10 = fir(4) : + ~ (_ <: *(0.75), (*(-0.1):mem) :> _); // FAIL
+ww11 = fir(2) : + ~ (_ <: *(0.75), (mem:*(-0.1)) :> _); // OK
+ww12 = fir(3) : + ~ (_ <: *(0.75), (*(-0.1):mem) :> _); // OK
+ww13 = fir(4) : + ~ (_ <: *(0.75), (*(-0.1):mem) :> _); // FAIL
+ww14 = fir(4) : + ~ (_ <: *(0.75), (mem:*(-0.1)) :> _); // FAIL
+ww15 = fir(4) : + ~ (_ <: *(0.75), mem :> _); // OK
+ww16 = fir(4) : + ~ (_ <: _, (mem:*(-0.1)) :> _); // FAIL
+ww17 = fir(3) : + ~ (_ <: _, (mem:*(-0.1)) :> _); // OK
+ww18 = fir(3) : + ~ (_ <: _, (mem:*(2)) :> _); // OK
+ww19 = fir(4) : + ~ (_ <: _, (mem:*(2)) :> _); // OK
+ww20 = fir(4) : + ~ (_ <: _, (mem:*(-2)) :> _); // OK
+
+xx1 = fir(6) : + ~ (_ <: _, (mem:*(-0.1)) :> _); // FAIL
+xx2 = fir(6) : + ~ (_ <: _, (mem:*(-0.11)) :> _); // OK
+
+// Le probleme semble venir de la factorisation entre la partie FIR et la partie IIR
+xx5 = (_<:*(0.13),mem:>_) : + ~ *(0.13); // FAIL
+xx6 = (_<:*(0.13),mem:>_) : + ~ *(0.14); // OK
+
+
+
+
+
 
