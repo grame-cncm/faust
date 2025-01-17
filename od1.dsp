@@ -1,4 +1,6 @@
 import("music.lib");
+import("stdfaust.lib");
+
 
 // Tests pour ondemand
 t1 = button("play") : ondemand(1); // OK
@@ -132,3 +134,20 @@ x2 = ondemand(*)(button("play1")), ondemand(*)(button("play2"));
 x1 = tester(*);
 
 
+sh = ondemand(_);
+
+// Bug SL 24/10/2024
+bg0 = os.osc(500);
+bg1 = ondemand(os.osc(500));
+bg2 = _ <: ondemand(os.osc(500)), ondemand(os.osc(600)); // BUG SL 24/10/2024
+
+bg3 = os.phasor_imp(500,0,0);
+bg4 = ondemand(os.phasor_imp(500,0,0));
+bg5 = _ <: ondemand(os.phasor_imp(500,0,0)), ondemand(os.phasor_imp(600,0,0)); // VERSION SIMPLIFIEE BUG SL 24/10/2024
+bg6 = ondemand(os.phasor_imp(500,0,0))(button("play1")), 
+	ondemand(os.phasor_imp(600,0,0))(button("play2")); // VERSION SIMPLIFIEE BUG SL 24/10/2024
+bg7 = ondemand(os.phasor_imp(500,0,0))(button("play1")), 
+	ondemand(os.phasor_imp(600,0,0))(button("play1")); // VERSION SIMPLIFIEE BUG SL 24/10/2024
+
+bg8 = ondemand(+(1)~_)(button("play1")), 
+	ondemand(+(2)~_)(button("play1")); // VERSION SIMPLIFIEE BUG SL 24/10/2024
