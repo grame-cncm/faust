@@ -58,7 +58,7 @@
 #include "timing.hh"
 #include "xtended.hh"
 
-#define TRACE
+#undef TRACE
 
 // Old delays are supposed to work while new delays are in progress
 #define OLDDELAY 0
@@ -1721,10 +1721,10 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
     std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
               << fScheduleOrder[exp] << " -- " << exp << " :: " << ppsig(exp, 10) << std::endl;
 #endif
-    // if (fScheduleOrder[exp] == 0) {
-    //     // We are in an ondemand context, we need to compile the delayed signal
-    //     (void)CS(exp);
-    // }
+    if (fScheduleOrder[exp] == 0) {
+        // We are in an ondemand context, we need to compile the delayed signal
+        (void)CS(exp);
+    }
     std::string result;
     switch (dt) {
         case DelayType::kNotADelay:
