@@ -1776,7 +1776,7 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
         case DelayType::kSelectRingDelay:
             int         N   = pow2limit(mxd + 1);
             std::string idx = subst("(IOTA-$0)&$1", delayidx, T(N - 1));
-            result          = subst("$0[$1]", vecname, generateIotaCache(idx));
+            result          = subst("$0[$1]", vecname, idx);  // idx can't be cashed as it depends of loop variable ii
             break;
     }
     // return generateCacheCode(sig, result);
@@ -2051,7 +2051,10 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
                 } else {
                     // special case for constant coefficients that can only be computed at init time
                     fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, ctable, csize));
-                    fClass->addInitCode(subst("$1[$2] = $3;", ctype, ctable, csize, coefInit));
+                    fClass->addInitCode(
+                        subst("const $0 \t$1tmp[$2] = $3;", ctype, ctable, csize, coefInit));
+                    fClass->addInitCode(
+                        subst("for (int i = 0; i < $0; i++) { $1[i] = $1tmp[i]; }", csize, ctable));
                 }
                 break;
             case kBlock:
