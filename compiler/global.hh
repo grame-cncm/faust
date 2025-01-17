@@ -2,6 +2,7 @@
  ************************************************************************
  FAUST compiler
  Copyright (C) 2003-2022 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2023-2024, INRIA
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -160,6 +161,7 @@ struct global {
     bool gDeepFirstSwitch;    // -dfs option
     int  gVecSize;            // -vs option
     int  gVectorLoopVariant;  // -lv [0|1] option
+    bool gVectorFIRIIRs;      // -fir option
     bool gOpenMPSwitch;       // -omp option
     bool gOpenMPLoop;         // -pl option
     bool gSchedulerSwitch;    // -sch option
@@ -493,6 +495,8 @@ struct global {
     Sym SIGREGISTER;  // for FPGA Retiming
     Sym SIGTUPLE;
     Sym SIGTUPLEACCESS;
+    Sym SIGFIR;
+    Sym SIGIIR;
 
     // Types
     Sym SIMPLETYPE;
