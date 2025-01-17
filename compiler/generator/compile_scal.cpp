@@ -116,7 +116,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         throw faustexception("Dump signal type finished...\n");
     }
     // No more table privatisation
-    Tree L2a = newConstantPropagation(L1);
+    Tree L2a = newConstantPropagation(L1, false);
     Tree L2;
     // detect FIRs and IIRs if required
     if (gGlobal->gReconstructFIRIIRs) {
@@ -1459,10 +1459,10 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
 {
     Occurrences* occ = fOccMarkup->retrieve(sig);
     if (tvec coefs; isSigIIR(sig, coefs)) {
-        std::cerr << "Analyze delay type for IIR sig " << sig << " with " << coefs.size() - 3
-                  << " real coefs \n";
+        // std::cerr << "Analyze delay type for IIR sig " << sig << " with " << coefs.size() - 3
+        //           << " real coefs \n";
         if (coefs.size() - 3 >= gGlobal->gIIRRingThreshold) {
-            std::cerr << "We use MaskRingDelay !\n";
+            // std::cerr << "We use MaskRingDelay !\n";
             return DelayType::kMaskRingDelay;
         }
     }
@@ -1490,21 +1490,21 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
         return DelayType::kCopyDelay;
     }
     int dnsty = (100 * count) / mxd;
-    std::cerr << "Analyze delay type for sig " << sig << " with mxd=" << mxd
-              << ", delays count=" << occ->getDelayCount() << " and density=" << dnsty << "\n";
-    std::cerr << "gUseDenseDelay=" << gGlobal->gUseDenseDelay
-              << " gMaxDenseDelay=" << gGlobal->gMaxDenseDelay
-              << " gMinDensity=" << gGlobal->gMinDensity << "\n";
+    // std::cerr << "Analyze delay type for sig " << sig << " with mxd=" << mxd
+    //           << ", delays count=" << occ->getDelayCount() << " and density=" << dnsty << "\n";
+    // std::cerr << "gUseDenseDelay=" << gGlobal->gUseDenseDelay
+    //           << " gMaxDenseDelay=" << gGlobal->gMaxDenseDelay
+    //           << " gMinDensity=" << gGlobal->gMinDensity << "\n";
     if ((gGlobal->gUseDenseDelay != 0) && (mxd <= gGlobal->gMaxDenseDelay) &&
         (dnsty >= gGlobal->gMinDensity)) {
-        std::cerr << "We use DenseDelay !\n";
+        // std::cerr << "We use DenseDelay !\n";
         return DelayType::kDenseDelay;
     }
     if (mxd <= gGlobal->gMaskDelayLineThreshold) {
-        std::cerr << "We use MaskRingDelay !\n";
+        // std::cerr << "We use MaskRingDelay !\n";
         return DelayType::kMaskRingDelay;
     }
-    std::cerr << "We use SelectRingDelay !\n";
+    // std::cerr << "We use SelectRingDelay !\n";
     return DelayType::kSelectRingDelay;
 }
 
@@ -2048,8 +2048,8 @@ string ScalarCompiler::generateWaveform(Tree sig)
 string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
     faustassert(coefs.size() > 2);
-    std::cerr << gGlobal->gSTEP << " generateFIR: " << sig << " [" << coefs.size() << ']'
-              << std::endl;
+    // std::cerr << gGlobal->gSTEP << " generateFIR: " << sig << " [" << coefs.size() << ']'
+    //           << std::endl;
 
     if (coefs.size() < gGlobal->gFirLoopSize) {
         std::ostringstream oss;
@@ -2178,8 +2178,8 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
     std::string vname, ctype;
     getTypedNames(ty, "IIR", ctype, vname);
 
-    std::cerr << gGlobal->gSTEP << " generateIIR: " << vname << " [" << coefs.size() << ']'
-              << std::endl;
+    // std::cerr << gGlobal->gSTEP << " generateIIR: " << vname << " [" << coefs.size() << ']'
+    //           << std::endl;
 
     // Build the IIR expressions X + C1*Y(t-1) + C2*Y(t-2) + ...
     std::ostringstream oss;

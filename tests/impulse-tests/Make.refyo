@@ -27,10 +27,8 @@ reffiles := $(patsubst dsp/%.dsp, $(refdir)/%.ir, $(dspfiles))
 boxfiles := $(patsubst dsp/%.dsp, $(refdir)/%.box, $(dspfiles))
 sigfiles := $(patsubst dsp/%.dsp, $(refdir)/%.sig, $(dspfiles))
 typefiles := $(patsubst dsp/%.dsp, $(refdir)/%.type, $(dspfiles))
-firfiles := $(patsubst dsp/%.dsp, $(refdir)/%.fir, $(dspfiles))
-cppfiles := $(patsubst dsp/%.dsp, $(refdir)/%.cpp1, $(dspfiles))
 
-listintermediate = $(dspfiles:dsp/%.dsp=$1/%) $(dspfiles:dsp/%.dsp=$1/%.cpp) $(dspfiles:dsp/%.dsp=$1/vec/%) $(dspfiles:dsp/%.dsp=$1/vec/%.cpp) $(dspfiles:dsp/%.dsp=$1/sched/%) $(dspfiles:dsp/%.dsp=$1/sched/%.cpp) 
+listintermediate = $(dspfiles:dsp/%.dsp=$1/%) $(dspfiles:dsp/%.dsp=$1/%.cpp) $(dspfiles:dsp/%.dsp=$1/vec/%) $(dspfiles:dsp/%.dsp=$1/vec/%.cpp) 
 
 .INTERMEDIATE: $(call listintermediate, $(refdir))
 
@@ -48,15 +46,11 @@ reference-signal: $(sigfiles)
 
 reference-type: $(typefiles)
 
-reference-fir: $(firfiles)
-
-reference-cpp: $(cppfiles)
-
 help:
 	@echo "-------- FAUST impulse tests --------"
 	@echo "Available targets are:"
 	@echo " 'reference' (default): compiles all the dsp found in the dsp folder"
-	@echo "             using the $(arch) architecture in scalar, vec and sched modes,"
+	@echo "             using the $(arch) architecture in scalar, vec modes,"
 	@echo "             then launch the output application to generate impulse response files,"
 	@echo "             which are then checked against each other using filesCompare"
 
@@ -67,8 +61,6 @@ test:
 # output directories
 $(refdir)/vec:
 	mkdir -p $(refdir)/vec
-$(refdir)/sched:
-	mkdir -p $(refdir)/sched
 
 #########################################################################
 # tools
@@ -88,28 +80,16 @@ $(refdir)/%.sig: dsp/%.dsp
 $(refdir)/%.type: dsp/%.dsp
 	$(FAUST) $(FAUSTOPTIONS) -norm2 $<  > $@ ; echo $<
 
-# rules for reference-fir
-$(refdir)/%.fir: dsp/%.dsp
-	$(FAUST) -lang fir $(FAUSTOPTIONS) $<  > $@ ; echo $<
-
-# rules for reference-cpp
-$(refdir)/%.cpp1: dsp/%.dsp
-	$(FAUST) -lang ocpp $(FAUSTOPTIONS) $<  > $@ ; echo $<
-
 # rules for reference
-$(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir $(refdir)/sched/%.ir dsp/%.dsp dsp/%.cpp 
+$(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir dsp/%.dsp dsp/%.cpp 
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$< -n 60000 > $@
 	$(COMPARE) $@ $(refdir)/vec/$(notdir $@) 
-	#$(COMPARE) $@ $(refdir)/sched/$(notdir $@) 1e-02
 
 $(refdir)/vec/%.ir: dsp/vec/% dsp/%.dsp dsp/vec/%.cpp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$< -n 60000 > $@
 
-$(refdir)/sched/%.ir: dsp/sched/% dsp/%.dsp dsp/sched/%.cpp
-	@[ -d $(@D) ] || mkdir -p $(@D)
-	$< -n 60000 > $@
 
 # Specific rule to test 'enable/control' primitives that currently only work in scalar mode
 dsp/osc_enable.cpp : dsp/osc_enable.dsp
@@ -126,32 +106,11 @@ dsp/vec/%.cpp : dsp/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$(FAUST) -double -vec -i -a $(arch) $<  -o $@
 
-# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
-dsp/sched/osc_enable.cpp : dsp/osc_enable.dsp
-	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang ocpp -double -i -a $(arch) $<  -o $@
-	
-# Specific rule to test 'soundfile' primitive that does not work yet in sch mode
-dsp/sched/sound.cpp : dsp/sound.dsp
-	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -double -i -a $(arch) $<  -o $@
-
-# Specific rule to test the use of 'bs' that does not work yet in sch mode
-dsp/sched/bs.cpp : dsp/bs.dsp
-	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -double -i -a $(arch) $<  -o $@
-
-dsp/sched/%.cpp : dsp/%.dsp
-	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -double -sch -i -a $(arch) $<  -o $@
 
 dsp/% : dsp/%.cpp
 	$(CXX) $(GCCOPTIONS) $<  -o $@
 	
 dsp/vec/% : dsp/vec/%.cpp
-	$(CXX) $(GCCOPTIONS) $<  -o $@
-	
-dsp/sched/% : dsp/sched/%.cpp
 	$(CXX) $(GCCOPTIONS) $<  -o $@
 
 

@@ -92,41 +92,77 @@ void SigDependenciesGraph::visit(Tree t)
     }
 
     if (tvec V; isSigFIR(t, V)) {
+        // Structure: FIR[X,C0,C1,C2,...]
+        // Semantics: T = C0.X + C1.X@1 + C2.X@2 + ...
+        // Immediate dependencies are X (if C0!=0) and the Ci != 0
+        // The full depenecies also include X
+
+        // Check well formed FIR
         faustassert(V.size() >= 2);
 
-        Tree x = V[0];
+        // All non-zero coefs are immediate dependencies
+        int dmin = INT32_MAX;  // the minimum delay
         for (unsigned int i = 1; i < V.size(); i++) {
-            // the FIR depends on all non zero coefficients
             if (!isZero(V[i])) {
+                // All non-zero coefs are immediate dependencies
                 fGraph.add(t, V[i], 0);
-                if (fFullGraph || (i == 1)) {
-                    // and on x if fullgraph or immediate
-                    fGraph.add(t, x, i - 1);
-                }
+                // the first non-zero coef determines the delay of the input signal of the FIR
+                dmin = std::min(dmin, int(i - 1));
             }
         }
+
+        // Check we have a valid FIR with at least one non-zero coef
+        faustassert(dmin<INT32_MAX);
+
+        // Is the input signal of the FIR an immediate dependency?
+        if (fFullGraph || (dmin == 0)) {
+            fGraph.add(t, V[0], dmin);
+        }
+
+        // Compute the dependencies of the sub expressions
         for (auto s : V) {
             if (!isZero(s)) {
                 self(s);
             }
         }
+
         return;
     }
 
     if (tvec V; isSigIIR(t, V)) {
-        // t = IIR[nil,0,C1,c2,...]
-        faustassert(V.size() >= 3);
+        // Structure: IIR[nil,X,C0,C1,c2,...] with C0=0
+        // Semantics: T = X + C0.T@0 + c1.T@1 + c2.T@2 + ...
+        // Immediate dependencies are X and the Ci != 0
+        // Full dependencies include T->T@i
 
+        // Check well formed IIR
+        faustassert(V.size() >= 3);
+        faustassert(isZero(V[2]));
+
+        // Compute the minimal dependency to itself (the first Ci != 0)
+        int dmin = INT32_MAX;  // the minimum delay
         for (unsigned int i = 2; i < V.size(); i++) {
-            // the FIR depends on all non zero coefficients
             if (!isZero(V[i])) {
+                // All non-zero coefs are immediate dependencies
                 fGraph.add(t, V[i], 0);
-                if (fFullGraph) {
-                    // if full graph compute the recursive dependecies
-                    fGraph.add(t, t, i - 1);
-                }
+                // the first non-zero coef determines the delay of the input signal of the FIR
+                dmin = std::min(dmin, int(i - 2));
             }
         }
+
+        // Check we have a valid IIR
+        faustassert(dmin > 0);
+        faustassert(dmin < INT32_MAX);
+
+        // Add the input signal has an immediate dependency
+        fGraph.add(t, V[1], 0); 
+
+        // If full graph request, add the recursive dependencies to itself
+        if (fFullGraph) {
+            fGraph.add(t, t, dmin);
+        }
+
+        // Compute the dependencies of the sub expressions
         for (auto s : V) {
             if (!isNil(s) && !isZero(s)) {
                 self(s);
