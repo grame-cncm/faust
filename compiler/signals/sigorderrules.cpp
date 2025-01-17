@@ -280,6 +280,16 @@ static int inferSigOrder(Tree sig)
         return r1;
     }
 
+    else if (Tree x; isSigTempVar(sig, x)) {
+        return 3;  // to be checked
+    } else if (Tree x; isSigPermVar(sig, x)) {
+        return 3;  // to be checked
+    } else if (Tree x, y; isSigSeq(sig, x, y)) {
+        return 3;  // to be checked
+    } else if (tvec subs; isSigOD(sig, subs)) {
+        return 3;  // to be checked
+    }
+
     else if (isSigRegister(sig, &i, s1)) {
         return O(s1);
     }

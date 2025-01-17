@@ -152,6 +152,29 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigSum(c);
     }
 
+    else if (isSigTempVar(sig, x)) {
+        return sigTempVar(self(x));
+    }
+
+    else if (isSigPermVar(sig, x)) {
+        return sigPermVar(self(x));
+    }
+
+    else if (isSigSeq(sig, x, y)) {
+        return sigSeq(self(x), self(y));
+    }
+
+    else if (isSigOD(sig)) {
+        tvec c = sig->branches();
+        for (int i = 1; i < c.size(); i++) {
+            if (c[i] == gGlobal->nil) {
+                continue;
+            }
+            c[i] = self(c[i]);
+        }
+        return sigOD(c);
+    }
+
     else if (isSigGen(sig, x)) {
         if (fVisitGen) {
             return sigGen(self(x));

@@ -386,6 +386,16 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "sum", fSig->branches());
     }
 
+    else if (isSigTempVar(fSig, x)) {
+        fout << "tempvar" << x;
+    } else if (isSigPermVar(fSig, x)) {
+        fout << "permvar" << x;
+    } else if (isSigSeq(fSig, x, y)) {
+        printfun(fout, "seq", x, y);
+    } else if (isSigOD(fSig)) {
+        printfun(fout, "ondemand", fSig->branches());
+    }
+
     else if (isSigAttach(fSig, x, y)) {
         printfun(fout, "attach", x, y);
     } else if (isSigEnable(fSig, x, y)) {

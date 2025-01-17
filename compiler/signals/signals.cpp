@@ -1013,6 +1013,71 @@ LIBFAUST_API bool isSigSum(Tree s, tvec& sigs)
     }
 }
 
+LIBFAUST_API Tree sigTempVar(Tree s)
+{
+    return tree(gGlobal->SIGTEMPVAR, s);
+}
+
+LIBFAUST_API bool isSigTempVar(Tree s)
+{
+    return isTree(s, gGlobal->SIGTEMPVAR);
+}
+
+LIBFAUST_API bool isSigTempVar(Tree s, Tree& x)
+{
+    return isTree(s, gGlobal->SIGTEMPVAR, x);
+}
+
+LIBFAUST_API Tree sigPermVar(Tree s)
+{
+    return tree(gGlobal->SIGPERMVAR, s);
+}
+
+LIBFAUST_API bool isSigPermVar(Tree s)
+{
+    return isTree(s, gGlobal->SIGPERMVAR);
+}
+
+LIBFAUST_API bool isSigPermVar(Tree s, Tree& x)
+{
+    return isTree(s, gGlobal->SIGPERMVAR, x);
+}
+
+LIBFAUST_API Tree sigSeq(Tree x, Tree y)
+{
+    return tree(gGlobal->SIGSEQ, x, y);
+}
+
+LIBFAUST_API bool isSigSeq(Tree s)
+{
+    return isTree(s, gGlobal->SIGSEQ);
+}
+
+LIBFAUST_API bool isSigSeq(Tree s, Tree& x, Tree& y)
+{
+    return isTree(s, gGlobal->SIGSEQ, x, y);
+}
+
+LIBFAUST_API Tree sigOD(tvec& sigsubs)
+{
+    return tree(gGlobal->SIGOD, sigsubs);
+}
+
+LIBFAUST_API bool isSigOD(Tree s)
+{
+    return isTree(s, gGlobal->SIGOD);
+}
+
+LIBFAUST_API bool isSigOD(Tree s, tvec& sigsubs)
+{
+    if (isTree(s, gGlobal->SIGOD)) {
+        sigsubs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
 // for FPGA Retiming
 
 LIBFAUST_API Tree sigRegister(int n, Tree s)

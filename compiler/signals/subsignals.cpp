@@ -235,6 +235,24 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         return int(vsigs.size());
     }
 
+    else if (isSigTempVar(sig, x)) {
+        vsigs.push_back(x);
+        return 1;
+    } else if (isSigPermVar(sig, x)) {
+        vsigs.push_back(x);
+        return 1;
+    } else if (isSigSeq(sig, x, y)) {
+        vsigs.push_back(x);
+        vsigs.push_back(y);
+        return 2;
+    } else if (isSigOD(sig)) {
+        // TODO: check if this is correct
+        // becasue of nil used to separate
+        // inputs and outputs
+        vsigs = sig->branches();
+        return int(vsigs.size());
+    }
+
     else if (isSigAttach(sig, x, y)) {
         vsigs.push_back(x);
         vsigs.push_back(y);

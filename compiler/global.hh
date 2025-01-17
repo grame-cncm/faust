@@ -506,6 +506,11 @@ struct global {
     Sym SIGFIR;
     Sym SIGIIR;
     Sym SIGSUM;
+    // Ondemand
+    Sym SIGTEMPVAR;
+    Sym SIGPERMVAR;
+    Sym SIGSEQ;
+    Sym SIGOD;
 
     // Types
     Sym SIMPLETYPE;

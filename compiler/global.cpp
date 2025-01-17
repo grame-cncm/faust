@@ -377,6 +377,10 @@ global::global()
     SIGFIR             = symbol("SigFIR");
     SIGIIR             = symbol("SigIIR");
     SIGSUM             = symbol("SigSum");
+    SIGTEMPVAR         = symbol("SigTempVar");
+    SIGPERMVAR         = symbol("SigPermVar");
+    SIGSEQ             = symbol("SigSeq");
+    SIGOD              = symbol("SigOD");
     SIMPLETYPE         = symbol("SimpleType");
     TABLETYPE          = symbol("TableType");
     TUPLETTYPE         = symbol("TupletType");

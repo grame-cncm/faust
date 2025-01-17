@@ -302,7 +302,17 @@ static string sigLabel(Tree sig)
         fout << "sum";
     }
 
-    else if (isSigAssertBounds(sig, x, y, z)) {
+    else if (isSigTempVar(sig)) {
+        fout << "tempvar";
+    } else if (isSigPermVar(sig)) {
+        fout << "permvar";
+    } else if (isSigSeq(sig, x, y)) {
+        fout << "seq";
+    } else if (isSigOD(sig)) {
+        fout << "ondemand";
+    }
+
+        else if (isSigAssertBounds(sig, x, y, z)) {
         fout << "assertbounds";
     }
 

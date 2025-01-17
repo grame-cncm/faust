@@ -760,6 +760,30 @@ static Type inferSigType(Tree sig, Tree env)
         return t;
     }
 
+    // OnDemand types
+    else if (Tree x; isSigTempVar(sig, x)) {
+        return T(x, env);
+
+    } else if (Tree x; isSigPermVar(sig, x)) {
+        Type t1 = T(x, env);
+        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
+
+    } else if (Tree x, y; isSigSeq(sig, x, y)) {
+        T(x, env);
+        return T(y, env);
+
+    } else if (tvec subs; isSigOD(sig, subs)) {
+        // aAn OD block don't have a proper type,
+        // but we need to type its subsignals
+        for (size_t ii = 0; ii < subs.size(); ii++) {
+            if (subs[ii] != gGlobal->nil) {
+                T(subs[ii], env);
+            }
+        }
+        // we lack a bottom type !
+        return makeSimpleType(kReal, kSamp, kExec, kScal, kNum, interval(0, 0));
+    }
+
     else if (isNil(sig)) {
         Type t = new TupletType();
         return t;

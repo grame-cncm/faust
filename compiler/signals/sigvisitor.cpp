@@ -201,7 +201,15 @@ void sigvisitor::visit(Tree sig)
         visitSum(sig);
     }
 
-    else if (isList(sig)) {
+    else if (isSigTempVar(sig, s1)) {
+        visitTempVar(sig, s1);
+    } else if (isSigPermVar(sig, s1)) {
+        visitPermVar(sig, s1);
+    } else if (isSigSeq(sig, s1, s2)) {
+        visitSeq(sig, s1, s2);
+    } else if (isSigOD(sig)) {
+        visitOD(sig);
+    } else if (isList(sig)) {
         visitList(sig);
     }
 

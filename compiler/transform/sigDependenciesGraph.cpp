@@ -182,6 +182,42 @@ void SigDependenciesGraph::visit(Tree t)
         return;
     }
 
+    if (Tree x; isSigTempVar(t, x)) {
+        fGraph.add(t, x, 0);
+        self(x);
+        return;
+    }
+
+    if (Tree x; isSigPermVar(t, x)) {
+        fGraph.add(t, x, 0);
+        self(x);
+        return;
+    }
+
+    if (Tree x, y; isSigSeq(t, x, y)) {
+        fGraph.add(t, x, 0);
+        self(x);
+        return;
+    }
+
+    if (tvec V; isSigOD(t, V)) {
+        // V = H,X1,...,NIL,Y1,...
+        // immediate dependencies are H,X1,...
+        for (auto s : V) {
+            if (s == gGlobal->nil) {
+                break;
+            }
+            fGraph.add(t, s, 0);
+        }
+        for (auto s : V) {
+            if (s == gGlobal->nil) {
+                break;
+            }
+            self(s);
+        }
+        return;
+    }
+
     if (Tree tbl, ri; isSigRDTbl(t, tbl, ri)) {
         // special case for tables. We can't compile the content without knowing the context
         Tree size, gen, wi, ws;

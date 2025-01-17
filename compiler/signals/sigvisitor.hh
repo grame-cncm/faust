@@ -93,6 +93,12 @@ struct sigvisitor {
     virtual void visitIIR(Tree sig) = 0;
     virtual void visitSum(Tree sig) = 0;
 
+    // Ondemand related signals
+    virtual void visitTempVar(Tree sig, Tree s1)      = 0;
+    virtual void visitPermVar(Tree sig, Tree s1)      = 0;
+    virtual void visitSeq(Tree sig, Tree s1, Tree s2) = 0;
+    virtual void visitOD(Tree sig)                    = 0;
+
     // Registers for FPGA retiming
     virtual void visitRegister(Tree sig, int n, Tree s1) = 0;
 

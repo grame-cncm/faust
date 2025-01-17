@@ -231,6 +231,25 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
+    else if (isSigTempVar(sig, x)) {
+        self(x);
+        return;
+    } else if (isSigPermVar(sig, x)) {
+        self(x);
+        return;
+    } else if (isSigSeq(sig, x, y)) {
+        self(x), self(y);
+        return;
+    } else if (isSigOD(sig)) {
+        for (Tree b : sig->branches()) {
+            if (b == gGlobal->nil) {
+                continue;
+            }
+            self(b);
+        }
+        return;
+    }
+
     else if (isSigRegister(sig, &i, x)) {
         self(x);
         return;

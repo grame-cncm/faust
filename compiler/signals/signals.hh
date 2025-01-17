@@ -350,6 +350,22 @@ LIBFAUST_API Tree sigSum(tvec& sigsubs);
 LIBFAUST_API bool isSigSum(Tree s);
 LIBFAUST_API bool isSigSum(Tree s, tvec& sigsubs);
 
+LIBFAUST_API Tree sigTempVar(Tree s);
+LIBFAUST_API bool isSigTempVar(Tree s);
+LIBFAUST_API bool isSigTempVar(Tree s, Tree& x);
+
+LIBFAUST_API Tree sigPermVar(Tree s);
+LIBFAUST_API bool isSigPermVar(Tree s);
+LIBFAUST_API bool isSigPermVar(Tree s, Tree& x);
+
+LIBFAUST_API Tree sigSeq(Tree x, Tree y);
+LIBFAUST_API bool isSigSeq(Tree s);
+LIBFAUST_API bool isSigSeq(Tree s, Tree& x, Tree& y);
+
+LIBFAUST_API Tree sigOD(tvec& sigsubs);
+LIBFAUST_API bool isSigOD(Tree s);
+LIBFAUST_API bool isSigOD(Tree s, tvec& sigsubs);
+
 /*****************************************************************************
                              Matrix extension
 *****************************************************************************/
