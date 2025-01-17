@@ -601,7 +601,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // using sigSeq(od, y)
         siglist Y2;
         for (Tree y : Y1) {
-            Tree y2 = sigSeq(od, sigClocked(H, y));
+            Tree y2 = sigSeq(od, sigClocked(clockenv, y));
             // std::cerr << "y2 = " << ppsig(y2) << std::endl;
             Y2.push_back(y2);
         }
