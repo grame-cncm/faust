@@ -12,7 +12,7 @@
 #include "Schedule.hh"
 #include "sigRecursiveDependencies.hh"
 
-#define TRACE true
+#define TRACE false
 
 //----------------------------------------------------------------------
 // IIR part
@@ -187,13 +187,13 @@ static Tree makeIIR(Tree fir, Tree in)
         coef2.push_back(coef1[i]);
     }
     Tree iir = sigIIR(coef2);
-    std::cerr << "makeIIR1: " << *iir << "\n";
-    std::cerr << "makeIIR2: " << ppsig(iir) << "\n";
+    // std::cerr << "makeIIR1: " << *iir << "\n";
+    // std::cerr << "makeIIR2: " << ppsig(iir) << "\n";
     return iir;
 }
 #if 1
 /**
- * @brief Check if a recursive projection is a FIR that can 
+ * @brief Check if a recursive projection is a FIR that can
  * be transformed into an IIR
  *
  * @param indentation

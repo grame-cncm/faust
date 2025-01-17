@@ -9,7 +9,7 @@
 #include "sigIIR.hh"
 #include "sigIdentity.hh"
 
-#define TRACE true
+#define TRACE false
 
 // Transform a signal expression by revealing FIR structures
 
@@ -49,10 +49,8 @@ Tree FIRRevealer::postprocess(Tree sig)
     } else if (isSigDelay(sig, x, y)) {
         return delaySigFIR(x, y);
     } else if (isSigAdd(sig, x, y)) {
-        // return smartAddSigFIR(x, y);
         return combineFIRs(x, y, false);
     } else if (isSigSub(sig, x, y)) {
-        // return smartAddSigFIR(x, negSigFIR(y));
         return combineFIRs(x, y, true);
     } else if (isSigMul(sig, x, y)) {
         return mulSigFIR(x, y);

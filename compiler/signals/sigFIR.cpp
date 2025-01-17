@@ -63,7 +63,7 @@ Tree makeSigFIR(Tree sig, int d)
 Tree delaySigFIR(Tree s1, Tree s2)
 {
     int d;
-    if (isSigInt(s2, &d) && (d < 10)) {
+    if (isSigInt(s2, &d) && (d <= gGlobal->gMaxFIRSize)) {
         if (d > 0) {
             tvec V1;
             if (isSigFIR(s1, V1)) {
@@ -728,20 +728,30 @@ static void combine(std::map<Tree, Tree>& M, bool subflag, Tree sig)
  * @param y
  * @return Tree
  */
+
+/**
+ * @brief combine the FIRs contained in x and y
+ *
+ * @param x is added
+ * @param y is added or substracted according to subflag
+ * @param subflag indicates to substract y
+ * @return Tree the resulting expression with all the FIRs combined
+ */
 Tree combineFIRs(Tree x, Tree y, bool subflag)
 {
-    std::map<Tree, Tree> M;
-    combine(M, subflag, x);
-    combine(M, subflag, y);
-    // Add together all the terms collected in M
+    std::map<Tree, Tree> M;  // Map of all FIRs collected
+
+    combine(M, false, x);    // We add x to M
+    combine(M, subflag, y);  // We add or substract y to M
+
+    // Add together all the FIRs collected in M
     bool init = true;
     Tree result;
     for (auto t : M) {
         Tree term = t.second;
         if (tvec coefs; isSigFIR(term, coefs) && (coefs.size() == 2)) {
-            std::cerr << "if the term is a FIR with only one non-zero coefficient we simplify it"
-                      << std::endl;
-            term = sigMul(coefs[1], coefs[0]);
+            // if the term is a FIR with only one non-zero coefficient we simplify it"
+            term = simplify(sigMul(coefs[1], coefs[0]));
         }
         if (init) {
             result = term;
