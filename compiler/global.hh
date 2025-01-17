@@ -171,6 +171,7 @@ struct global {
     bool gGroupTaskSwitch;    // -g option
     bool gFunTaskSwitch;      // -fun option
     int  gMaxCopyDelay;       // -mcd threshold
+    int  gMaxFIRSize;         // -mfs threshold
     int  gMaxDenseDelay;      // -mdd threshold
     int  gMinDensity;         // -mdy threshold
     int  gFloatSize;  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad',

@@ -433,6 +433,7 @@ void global::reset()
     gSimpleNames      = false;
     gSimplifyDiagrams = false;
     gMaxCopyDelay     = 16;    // Maximal delay too choose a copy representation
+    gMaxFIRSize       = 64;    // Maximal number of coefficients for a FIR
     gMaxDenseDelay    = 1024;  // Maximal delay too choose a dense representation
     gMinDensity       = 33;    // Minimal density d/100 to choose a dense representation
 
@@ -863,6 +864,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
     }
     dst << "-mcd " << gMaxCopyDelay << " ";
+    dst << "-mfs " << gMaxFIRSize << " ";
     dst << "-mdd " << gMaxDenseDelay << " ";
     dst << "-mdy " << gMinDensity << " ";
     if (gUIMacroSwitch) {
@@ -1287,6 +1289,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i + 1 < argc)) {
             gMaxCopyDelay = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-mfs", "--max-fir-size") && (i + 1 < argc)) {
+            gMaxFIRSize = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mdd", "--max-dense-delay") && (i + 1 < argc)) {
