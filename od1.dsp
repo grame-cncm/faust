@@ -75,6 +75,7 @@ r3 = _ <: r25,r26,r27:>_;
 
 w1 = waveform{1.1,2.2,3.3};
 w2 = ondemand(w1)(button("play1"));
+w3 =  ondemand(w1)(button("play1")),ondemand(w1)(button("play2")); // TODO: right now we will have two identical waveforms, this is correct but not optimal !
 
 // tests avec phasor.dsp qui ne marche pas
 
@@ -173,5 +174,7 @@ s6 = os.osc(500);
 
 s7 = ondemand(os.osc(500))(0);
 
+// combined ondemand
+l1 = ondemand(ondemand(os.osc(500))(button("play1")))(button("play2"));
 
-
+l2 = ondemand(ondemand(os.osc(500))(button("play1")@1))(button("play2"));
