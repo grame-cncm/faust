@@ -376,6 +376,7 @@ global::global()
     SIGTUPLEACCESS     = symbol("SigTupleAccess");
     SIGFIR             = symbol("SigFIR");
     SIGIIR             = symbol("SigIIR");
+    SIGSUM             = symbol("SigSum");
     SIMPLETYPE         = symbol("SimpleType");
     TABLETYPE          = symbol("TableType");
     TUPLETTYPE         = symbol("TupletType");

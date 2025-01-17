@@ -197,6 +197,10 @@ void sigvisitor::visit(Tree sig)
         visitIIR(sig);
     }
 
+    else if (isSigSum(sig)) {
+        visitSum(sig);
+    }
+
     else if (isList(sig)) {
         visitList(sig);
     }

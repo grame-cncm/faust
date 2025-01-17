@@ -112,7 +112,7 @@ void SigDependenciesGraph::visit(Tree t)
         }
 
         // Check we have a valid FIR with at least one non-zero coef
-        faustassert(dmin<INT32_MAX);
+        faustassert(dmin < INT32_MAX);
 
         // Is the input signal of the FIR an immediate dependency?
         if (fFullGraph || (dmin == 0)) {
@@ -155,7 +155,7 @@ void SigDependenciesGraph::visit(Tree t)
         faustassert(dmin < INT32_MAX);
 
         // Add the input signal has an immediate dependency
-        fGraph.add(t, V[1], 0); 
+        fGraph.add(t, V[1], 0);
 
         // If full graph request, add the recursive dependencies to itself
         if (fFullGraph) {
@@ -167,6 +167,17 @@ void SigDependenciesGraph::visit(Tree t)
             if (!isNil(s) && !isZero(s)) {
                 self(s);
             }
+        }
+        return;
+    }
+
+    if (tvec V; isSigSum(t, V)) {
+        // We only have immediate dependencies
+        for (auto s : V) {
+            fGraph.add(t, s, 0);
+        }
+        for (auto s : V) {
+            self(s);
         }
         return;
     }

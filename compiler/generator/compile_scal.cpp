@@ -45,6 +45,7 @@
 #include "recursivness.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
+#include "revealSum.hh"
 #include "sharing.hh"
 #include "sigDependenciesGraph.hh"
 #include "sigNewConstantPropagation.hh"
@@ -132,7 +133,12 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("FIR/IIR factorizer");
             Tree L2d = factorizeFIRIIRs(L2);
             endTiming("FIR/IIR factorizer");
-            L2 = L2d;
+
+            startTiming("Sum revealer");
+            Tree L2e = revealSum(L2d);
+            endTiming("Sum revealer");
+
+            L2 = L2e;
         }
     } else {
         L2 = L2a;
@@ -760,7 +766,10 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateFIR(sig, coefs);
     } else if (isSigIIR(sig, coefs)) {
         return generateIIR(sig, coefs);
+    } else if (tvec subs; isSigSum(sig, subs)) {
+        return generateSum(sig, subs);
     }
+
     /* we should not have any control at this stage */
     else {
         cerr << "ASSERT : when compiling, unrecognized signal : " << *sig << endl;
@@ -2286,3 +2295,29 @@ string ScalarCompiler::generateIIRBigExpression(const string& dlname, int mxd, T
     return oss.str();
 }
 #endif
+
+string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
+{
+    faustassert(subs.size() > 1);
+    // std::cerr << gGlobal->gSTEP << " generateSum: " << ppsig(sig) << std::endl;
+
+    // Build the sum expression
+    std::ostringstream oss;
+    string             sep   = "";
+    int                terms = 0;
+
+    oss << '(';
+    for (unsigned int i = 0; i < subs.size(); ++i) {
+        if (!isZero(subs[i])) {
+            oss << sep << CS(subs[i]);
+            terms++;
+            sep = " + ";
+        }
+    }
+    if (terms == 0) {
+        oss << "0";
+    }
+    oss << " /* Sum */)";
+
+    return generateCacheCode(sig, oss.str());
+}

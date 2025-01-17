@@ -750,6 +750,16 @@ static Type inferSigType(Tree sig, Tree env)
         return inferIIRType(sig, env);
     }
 
+    else if (tvec subs; isSigSum(sig, subs)) {
+        faustassert(!subs.empty());
+        Type t = T(subs[0], env);
+        for (size_t ii = 1; ii < subs.size(); ii++) {
+            Type u = T(subs[ii], env);
+            t      = castInterval(t | u, arithmetic(kAdd, t->getInterval(), u->getInterval()));
+        }
+        return t;
+    }
+
     else if (isNil(sig)) {
         Type t = new TupletType();
         return t;

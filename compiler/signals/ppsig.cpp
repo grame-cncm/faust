@@ -382,6 +382,8 @@ ostream& ppsig::print(ostream& fout) const
         printfir(fout, fSig->branches());
     } else if (isSigIIR(fSig)) {
         printiir(fout, fSig->branches());
+    } else if (isSigSum(fSig)) {
+        printfun(fout, "sum", fSig->branches());
     }
 
     else if (isSigAttach(fSig, x, y)) {

@@ -239,6 +239,15 @@ void printSignal(Tree sig, FILE* out, int prec)
         }
         fputs(")", out);
 
+    } else if (isSigSum(sig)) {
+        fputs("sum(", out);
+        char sep = '{';
+        for (Tree b : sig->branches()) {
+            fputc(sep, out);
+            printSignal(b, out, 0);
+            sep = ',';
+        }
+        fputs(")", out);
     }
 
     else if (isSigRegister(sig, &i, x)) {

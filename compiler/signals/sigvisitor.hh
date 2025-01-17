@@ -91,6 +91,7 @@ struct sigvisitor {
     // FIR and IIR
     virtual void visitFIR(Tree sig) = 0;
     virtual void visitIIR(Tree sig) = 0;
+    virtual void visitSum(Tree sig) = 0;
 
     // Registers for FPGA retiming
     virtual void visitRegister(Tree sig, int n, Tree s1) = 0;
@@ -197,6 +198,13 @@ struct fullvisitor : sigvisitor {
     }
 
     virtual void visitIIR(Tree sig)
+    {
+        for (Tree t : sig->branches()) {
+            visit(t);
+        }
+    }
+
+    virtual void visitSum(Tree sig)
     {
         for (Tree t : sig->branches()) {
             visit(t);

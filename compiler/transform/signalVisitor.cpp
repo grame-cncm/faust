@@ -224,6 +224,13 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
+    else if (tvec subs; isSigSum(sig, subs)) {
+        for (Tree s : subs) {
+            self(s);
+        }
+        return;
+    }
+
     else if (isSigRegister(sig, &i, x)) {
         self(x);
         return;

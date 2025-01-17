@@ -298,6 +298,8 @@ static string sigLabel(Tree sig)
         fout << "FIR";
     } else if (isSigIIR(sig)) {
         fout << "IIR";
+    } else if (isSigSum(sig)) {
+        fout << "sum";
     }
 
     else if (isSigAssertBounds(sig, x, y, z)) {

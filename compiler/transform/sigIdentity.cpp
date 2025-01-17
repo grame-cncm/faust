@@ -144,6 +144,14 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigIIR(c);
     }
 
+    else if (isSigSum(sig)) {
+        tvec c = sig->branches();
+        for (int i = 1; i < c.size(); i++) {
+            c[i] = self(c[i]);
+        }
+        return sigSum(c);
+    }
+
     else if (isSigGen(sig, x)) {
         if (fVisitGen) {
             return sigGen(self(x));

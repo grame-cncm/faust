@@ -230,6 +230,11 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         return int(vsigs.size());
     }
 
+    else if (isSigSum(sig)) {
+        vsigs = sig->branches();
+        return int(vsigs.size());
+    }
+
     else if (isSigAttach(sig, x, y)) {
         vsigs.push_back(x);
         vsigs.push_back(y);

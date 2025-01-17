@@ -505,6 +505,7 @@ struct global {
     Sym SIGTUPLEACCESS;
     Sym SIGFIR;
     Sym SIGIIR;
+    Sym SIGSUM;
 
     // Types
     Sym SIMPLETYPE;

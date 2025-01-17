@@ -346,6 +346,10 @@ LIBFAUST_API bool isSigIIR(Tree s);
 LIBFAUST_API bool isSigIIR(Tree s, Tree c0);  // true if s is a IIR on signal c0
 LIBFAUST_API bool isSigIIR(Tree s, tvec& sigcoefs);
 
+LIBFAUST_API Tree sigSum(tvec& sigsubs);
+LIBFAUST_API bool isSigSum(Tree s);
+LIBFAUST_API bool isSigSum(Tree s, tvec& sigsubs);
+
 /*****************************************************************************
                              Matrix extension
 *****************************************************************************/

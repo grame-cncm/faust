@@ -991,6 +991,27 @@ LIBFAUST_API bool isSigIIR(Tree s, tvec& sigcoefs)
     }
 }
 
+// SUM
+
+LIBFAUST_API Tree sigSum(tvec& sigs)
+{
+    return tree(gGlobal->SIGSUM, sigs);
+}
+
+LIBFAUST_API bool isSigSum(Tree s)
+{
+    return isTree(s, gGlobal->SIGSUM);
+}
+
+LIBFAUST_API bool isSigSum(Tree s, tvec& sigs)
+{
+    if (isTree(s, gGlobal->SIGSUM)) {
+        sigs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
 
 // for FPGA Retiming
 

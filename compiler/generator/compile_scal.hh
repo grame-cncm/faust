@@ -151,6 +151,7 @@ class ScalarCompiler : public Compiler {
     std::string generateFIRBigExpression(const std::string& vecname, int mxd, Tree sig,
                                          const tvec& coefs);
     std::string generateIIR(Tree sig, const tvec& coefs);
+    std::string generateSum(Tree sig, const tvec& coefs);
     // std::string generateIIRSmallExpression(const std::string& vecname, Tree sig, const tvec&
     // coefs); std::string generateIIRBigExpression(const std::string& vecname, int mxd, Tree sig,
     //                                      const tvec& coefs);
