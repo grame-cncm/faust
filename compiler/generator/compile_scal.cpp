@@ -1879,6 +1879,19 @@ string ScalarCompiler::generateDelayLine(Tree sig, const string& ctype, const st
             return subst("$0[0]", vname);
 
         case DelayType::kCopyDelay:
+            if (mxd > gGlobal->gMaxCacheDelay) {
+                // We don't use a cache for large copy delays because anyway
+                // they wont fit in registers
+                fClass->addDeclCode(
+                    subst("$0 \t$1[$2]; // NoCache Copy Delay", ctype, vname, T(mxd + 1)));
+                fClass->addClearCode(
+                    subst("for (int j = 0; j < $0; j++) { $1[j] = 0; }", T(mxd + 1), vname));
+                fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+                fClass->addPostCode(Statement(
+                    "", subst("for (int j = $0; j > 0; j--) { $1[j] = $1[j-1]; }", T(mxd), vname)));
+
+                return subst("$0[0]", vname);
+            }
             fClass->addDeclCode(subst("$0 \t$1State[$2]; // Copy Delay", ctype, vname, T(mxd)));
             fClass->addClearCode(
                 subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd), vname));
@@ -2059,7 +2072,7 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         // special case for a simple gain
         return generateCacheCode(sig, subst("($0) * ($1)", CS(coefs[1]), CS(coefs[0])));
     }
-    if (int(coefs.size()) < gGlobal->gFirLoopSize) {
+    if (int(coefs.size()) - 1 < gGlobal->gFirLoopSize) {
         // we don't use a loop for small FIR filters
         std::ostringstream oss;
         string             sep = "";

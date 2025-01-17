@@ -449,6 +449,7 @@ void global::reset()
     gMinCopyLoop        = 4;      // [-mcl n]: inline/loop samples copy
     gUseDenseDelay      = 1;      // [-udd 0/1]: Use dense delay representation instead of IOTA
     gMinDensity         = 33;     // [-mdy n]: dense/iota delay line density threshold
+    gMaxCacheDelay      = 8;      // [-mca n]: Maximal delay to use a cache delay line
     gMaxDenseDelay      = 1024;   // [-mdd n]: Maximal delay to choose a dense representation
     gIIRRingThreshold   = 4;      // [-irt n]: Minimal delay to use a ring buffer for IIR
     gSchedulingStrategy = 0;      // [-ss n]: Scheduling strategy (default: 0 = deepfirst)
@@ -555,7 +556,7 @@ void global::reset()
     gLocalCausalityCheck = false;
     gCausality           = false;
 
-    //gOccurrences = nullptr;
+    // gOccurrences = nullptr;
     gFoldingFlag = false;
     gDevSuffix   = nullptr;
 
@@ -892,6 +893,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     dst << "-udd " << gUseDenseDelay << " ";
     dst << "-mdd " << gMaxDenseDelay << " ";
     dst << "-mdy " << gMinDensity << " ";
+    dst << "-mca " << gMaxCacheDelay << " ";
     dst << "-ss " << gSchedulingStrategy << " ";
 
     if (gUIMacroSwitch) {
@@ -1340,6 +1342,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-mdy", "--min-density") && (i + 1 < argc)) {
             gMinDensity = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-mca", "--max-cache-delay") && (i + 1 < argc)) {
+            gMaxCacheDelay = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-dlt", "-delay-line-threshold") && (i + 1 < argc)) {

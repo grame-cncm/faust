@@ -176,6 +176,7 @@ struct global {
     bool gUseDenseDelay;           // -udd --use-dense-delay option
     int  gMaxDenseDelay;           // -mdd threshold
     int  gMinDensity;              // -mdy threshold
+    int  gMaxCacheDelay;           // -mca <threshold> threshold for cache delay
     int  gMinCopyLoop;             // -mcl threshold
     int  gIIRRingThreshold;        // -irt <threshold> threshold for IIR ring delay
     bool gFactorizeFIRIIRs;        // -ff option, when possible factorize FIR/IIRs coefficients
