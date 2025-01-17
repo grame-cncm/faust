@@ -30,6 +30,7 @@
 #include "ppbox.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
+#include "sigvisitor.hh"
 #include "simplify.hh"
 #include "xtended.hh"
 
@@ -372,7 +373,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
     else if (isBoxPrim3(box, &p3)) {
         faustassert(lsig.size() == 3);
         if (p3 == sigReadOnlyTable) {
-            Tree sig = sigReadOnlyTable(lsig[0], lsig[1], sigClocked(clockenv, lsig[2]));
+            Tree sig = sigReadOnlyTable(unclockSignal(lsig[0]), unclockSignal(lsig[1]),
+                                        sigClocked(clockenv, lsig[2]));
             // std::cout << "sigReadOnlyTable : " << ppsig(sig) << std::endl;
             return makeList(sig);
         }
@@ -389,7 +391,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             Tree sig =
                 sigWriteReadTable(lsig[0], lsig[1], sigClocked(clockenv, lsig[2]),
                                   sigClocked(clockenv, lsig[3]), sigClocked(clockenv, lsig[4]));
-            std::cout << "sigWriteReadTable : " << ppsig(sig) << std::endl;
+            // std::cout << "sigWriteReadTable : " << ppsig(sig) << std::endl;
             return makeList(sig);
         }
         return makeList(p5(lsig[0], lsig[1], lsig[2], lsig[3], lsig[4]));
@@ -588,8 +590,17 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // Propagate lsig into the ondemand version of circuit t1
 
         // 1/ The first signal is the clock signal
-        Tree H         = lsig[0];
-        Tree clockenv2 = cons(H, clockenv);  // the clock environment inside the ondemand circuit
+        Tree H = lsig[0];
+#if 0
+        // The clock environment inside the ondemand circuit
+        Tree clockenv2 = cons(H, clockenv);
+#else
+        // The clock environment inside the ondemand circuit
+        // we also use the address of the ondemand circuit
+        // for more privacy
+        Tree addr      = boxPrim0((prim0)box);
+        Tree clockenv2 = cons(H, cons(addr, clockenv));
+#endif
 
         // 2/ We compute X1 the inputs of the ondemand using temporary variables
         siglist X1;
