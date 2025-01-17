@@ -1,3 +1,5 @@
+import("music.lib");
+
 // Tests pour ondemand
 t1 = button("play") : ondemand(1); // OK
 t2 = button("play"),_ : ondemand(@(1)); // OK
@@ -42,3 +44,50 @@ t16 = fir(5); // FIR OK
 t16b= button("play"),_:ondemand(fir(5));
 t17 = +~fir(5); // IIR ?
 
+// bug avec echo_bug.dsp
+// mauvais partage d'une expression commune entre deux ondemand
+
+// t18 reproduit bien le problème !
+t18 = _ <: 
+		ondemand(*(0.5):+~*(0.1))(button("play1")), 
+		ondemand(*(0.5):+~*(0.1))(button("play2")); 
+
+C = +(1)~_;
+t19 = C, ondemand(C)(button("play1"));
+
+t20 = _ <: +~_, ondemand(+~_)(button("play1")), ondemand(+~_)(button("play2"));
+t21 = ondemand(*(0.5):+~*(0.1))(button("play1"));
+
+t22 = ondemand(\(x,y).(x^2+y^2))(button("play1"));
+t22b = ondemand(\(x,y).(x^2+y^2))(button("play2"));
+
+// incorrect car le calcul n'est pas dupliqué
+t23 = _,_ <: t22,t22b;
+
+f1 = fir(25);
+r25 = +~fir(25);
+r26 = +~fir(26);
+r27 = +~fir(27);
+
+r3 = _ <: r25,r26,r27:>_;
+
+w1 = waveform{1.1,2.2,3.3};
+w2 = ondemand(w1)(button("play1"));
+
+// tests avec phasor.dsp qui ne marche pas
+
+
+phasor_imp(freq, reset, phase) = (select2(prefix(1, clk), +(inc), phase) : decimal) ~ _
+with {
+    clk = reset>0;
+    inc = freq/SR;
+};
+
+phas1 = phasor_imp(700, reset, phase), reset, phase
+with {  
+    reset = waveform {0., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0} : !,_;
+    phase = waveform {0.1, 0.8, 0.9, 0.2} : !,_;
+};
+
+phas2 = ondemand(phas1)(button("play1")),
+		ondemand(phas1)(button("play2"));
