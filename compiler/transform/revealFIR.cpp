@@ -8,6 +8,7 @@
 #include "sigFIR.hh"
 #include "sigIIR.hh"
 #include "sigIdentity.hh"
+#include "sigRecursiveDependencies.hh"
 #include "sigorderrules.hh"
 
 #define TRACE false
@@ -104,6 +105,15 @@ static void collectSigSumElements(tvec& L, Tree sig)
 
 Tree FIRRevealer::postprocess(Tree sig)
 {
+    std::cerr << "postprocess: " << ppsig(sig) << "\n";
+
+    if (Tree ck, f; isSigClocked(sig, ck, f) && isSigFIR(f)) {
+        std::cerr << "Rule 0: pass clock inside fir\n";
+        tvec V = f->branches();
+        V[0]   = sigClocked(ck, V[0]);
+        return sigFIR(V);
+    }
+
     if (Tree f, d; isSigDelay(sig, f, d)) {
         std::cerr << "Rule 1\n";
         return delaySigFIR(f, d);

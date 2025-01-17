@@ -17,6 +17,7 @@
 
 #define TRACE true
 
+#if 0
 //----------------------------------------------------------------------
 // IIR part
 //----------------------------------------------------------------------
@@ -148,44 +149,57 @@ static Tree proj2IIR(int indentation, Tree proj)
     Tree def = nth(le, i);
     return recdef2IIR(indentation, proj, def);
 }
-
+#endif
 //----------------------------------------------------------------------
 // IIRevealer : reveal IIR structures
 //----------------------------------------------------------------------
 
 class IIRRevealer : public SignalIdentity {
    protected:
-    Tree transformation(Tree L);
+    Tree postprocess(Tree L) override;
 };
 
-Tree IIRRevealer::transformation(Tree sig)
+Tree IIRRevealer::postprocess(Tree sig)
 {
-    Tree rgroup, var, le;
-    int  p;
+    int p;
 
-    if (isProj(sig, &p, rgroup) && isRec(rgroup, var, le)) {
-        traceMsg("T1 We have a recursive projection", sig);
-        // we have a candidate for an IIR
-        if (!isNil(le)) {
-            Tree iir = proj2IIR(getIndentation(), sig);
-            if (isNil(iir)) {
-                return SignalIdentity::transformation(sig);
+    if (Tree rgroup, var, le; isProj(sig, &p, rgroup) && isRec(rgroup, var, le) && !isNil(le)) {
+        // we have a candidate for an IIR; ajouter une seul definition ???
+        Tree def = nth(le, p);
+        std::cerr << "def: " << *def << "\n";
+        faustassert(isSigSum(def));
+        std::vector<Tree> R, D, L;
+        // We analyze the various terms of the sum
+        for (Tree f : def->branches()) {
+            // FIR[CLK(h,w), 0, c1, c2, ...]
+            if (Tree h, w; isSigFIR(f) && isSigClocked(f->branch(0), h, w) && (w == sig)) {
+                R.push_back(f);
+            } else if (isDependingOn(f, sig)) {
+                D.push_back(f);
             } else {
-                tvec coef;
-                faustassert(isSigIIR(iir, coef));
-                coef[0] = gGlobal->nil;  // anonymize the recursive projection
-                for (unsigned int i = 1; i < coef.size(); i++) {
-                    coef[i] = self(coef[i]);
-                }
-                return sigIIR(coef);
+                L.push_back(f);
             }
-        } else {
-            traceMsg("T2 We have a recursive projection, but definitions are nil", sig);
-            return sig;  // SignalIdentity::transformation(sig);
         }
-    } else {
-        return SignalIdentity::transformation(sig);
+        if ((R.size() == 1) && (D.size() == 0) && (L.size() > 0)) {
+            // we have a candidate for an IIR
+            std::cerr << "we have a candidate1 for an IIRA!\n";
+            tvec coef1, coef2;
+            Tree ck, w;
+            faustassert(isSigFIR(R[0], coef1));
+            faustassert(isSigClocked(coef1[0], ck, w));
+            Tree in = (L.size() == 1) ? L[0] : sigSum(L);
+            coef2.push_back(gGlobal->nil);
+            coef2.push_back(sigClocked(ck, in));
+            for (unsigned int i = 1; i < coef1.size(); i++) {
+                coef2.push_back(coef1[i]);
+            }
+            Tree iir = sigIIR(coef2);
+            std::cerr << "makeIIRA1: " << *iir << "\n";
+            std::cerr << "makeIIRA2: " << ppsig(iir) << "\n";
+            return iir;
+        }
     }
+    return sig;
 }
 
 // External API

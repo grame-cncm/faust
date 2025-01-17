@@ -59,7 +59,7 @@
 #include "timing.hh"
 #include "xtended.hh"
 
-#undef TRACE
+#define TRACE
 
 // Old delays are supposed to work while new delays are in progress
 #define OLDDELAY 0
@@ -141,11 +141,12 @@ Tree ScalarCompiler::prepare(Tree LS)
             Tree L2d = factorizeFIRIIRs(L2);
             endTiming("FIR/IIR factorizer");
 
-            startTiming("Sum revealer");
-            Tree L2e = revealSum(L2d);
-            endTiming("Sum revealer");
+            // startTiming("Sum revealer");
+            // Tree L2e = revealSum(L2d);
+            // endTiming("Sum revealer");
 
-            L2 = L2e;
+            // L2 = L2e;
+            L2 = L2d;
         }
     } else {
         L2 = L2a;
