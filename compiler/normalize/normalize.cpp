@@ -25,7 +25,6 @@
 
 #include "aterm.hh"
 #include "exception.hh"
-#include "mterm.hh"
 #include "normalize.hh"
 #include "ppsig.hh"
 #include "signals.hh"

@@ -90,7 +90,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
 
     // Needed before 'simplify' (see sigPromotion.hh)
     startTiming("Cast and Promotion");
-    Tree L2 = signalPromote(L1);
+    Tree L2 = signalPromote(L1, true);
     endTiming("Cast and Promotion");
 
     // Simplify by executing every computable operation
@@ -104,7 +104,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     endTiming("L3 typeAnnotation");
 
     startTiming("Cast and Promotion");
-    Tree L4 = signalPromote(L3);
+    Tree L4 = signalPromote(L3, true);
     endTiming("Cast and Promotion");
 
     startTiming("L4 typeAnnotation");

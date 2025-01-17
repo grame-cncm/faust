@@ -51,7 +51,8 @@ static Tree traced_simplification(Tree sig)
 {
     faustassert(sig);
 #ifdef TRACE
-    cerr << ++gGlobal->TABBER << "Start simplification of : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+    cerr << ++gGlobal->TABBER << "Start simplification of : " << /*ppsig(sig, MAX_ERROR_SIZE)*/ *sig
+         << endl;
     /*
     fprintf(stderr, "\nStart simplification of : ");
     printSignal(sig, stderr);
@@ -61,8 +62,8 @@ static Tree traced_simplification(Tree sig)
     Tree r = simplification(sig);
     faustassert(r != nullptr);
 #ifdef TRACE
-    cerr << --gGlobal->TABBER << "Simplification of : " << ppsig(sig, MAX_ERROR_SIZE)
-         << " Returns : " << ppsig(r, MAX_ERROR_SIZE) << endl;
+    cerr << --gGlobal->TABBER << "Simplification of : " << /*ppsig(sig, MAX_ERROR_SIZE)*/ *sig
+         << " Returns : " << /*ppsig(r, MAX_ERROR_SIZE)*/ *r << endl;
     /*
     fprintf(stderr, "Simplification of : ");
     printSignal(sig, stderr);
@@ -348,8 +349,10 @@ static Tree sigMap(Tree key, tfun f, Tree t)
 
         Tree r2 = f(tree(t->node(), br));
         if (r2 == t) {
+            // std::cerr << key << "sigMap: unchanged " << *t << std::endl;
             setProperty(t, key, gGlobal->nil);
         } else {
+            // std::cerr << key << "sigMap: changed " << *t << "  ===>  " << *r2 << std::endl;
             setProperty(t, key, r2);
         }
         return r2;

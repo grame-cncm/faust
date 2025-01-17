@@ -997,7 +997,7 @@ Tree signalPromote(Tree sig, bool trace)
 
     SignalPromotion SP;
     if (trace) {
-        SP.trace(true, "Cast");
+        SP.trace(false, "Cast");
     }
     return SP.mapself(sig);
 }

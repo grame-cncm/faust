@@ -219,7 +219,8 @@ static int inferSigOrder(Tree sig)
     }
 
     else if (isSigAttach(sig, s1, s2)) {
-        return std::max(1, O(s1));  // at least a constant
+        // return std::max(1, O(s1));  // at least a constant
+        return std::max(1, std::max(O(s1), O(s2)));  // at least a constant
     }
 
     else if (isRec(sig, var, body)) {
