@@ -80,7 +80,7 @@ BUILDOPT ?= --config $(RELEASE_TYPE)
 CMAKEOPTS = -DCMAKE_BUILD_TYPE=$(RELEASE_TYPE) $(WORKLETOPT) $(CMAKEOPT) $(NONDETERMINISM_LINT_OPT) $(CXX_COMPILER_OPT)
 
 CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug $(WORKLETOPT)
-BUILDOPT ?= --config Debug
+BUILDOPT ?= --config Debug -j 6
 
 #===============================================================
 # options

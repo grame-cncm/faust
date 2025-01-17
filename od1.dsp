@@ -173,6 +173,9 @@ s5 = ondemand(os.osc(500))(1);
 s6 = os.osc(500);
 
 s7 = ondemand(os.osc(500))(0);
+s8 = ondemand(os.osc(500))(0.0);
+s9 = ondemand(os.osc(500))(0.1);
+s10 = ondemand(os.osc(500))(9.1);
 
 // combined ondemand
 l1 = ondemand(ondemand(os.osc(500))(button("play1")))(button("play2"));

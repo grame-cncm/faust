@@ -592,8 +592,20 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 1/ The first signal is the clock signal
         Tree H = lsig[0];
 
+        // We check if the clock signal is a constant
+        bool h0 = false;  // clock signal is zero constant
+        bool h1 = false;  // clock signal is non-zero constant
+
+        if (double f; isSigReal(H, &f)) {
+            h0 = int(f) == 0;
+            h1 = int(f) != 0;
+        } else if (int n; isSigInt(H, &n)) {
+            h0 = n == 0;
+            h1 = n != 0;
+        }
+
         // 2/ We check for trivial cases where we don't need the ondemand circuit
-        if (isZero(H)) {
+        if (h0) {
             // std::cerr
             //     << "If the clock signal is zero, we don't need to compute the ondemand circuit"
             //     << std::endl;
@@ -602,7 +614,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             // because the cicuit is never activated, its m outputs will remain zero
             return siglist(m, sigInt(0));
         }
-        if (isOne(H)) {
+        if (h1) {
             // std::cerr << "If the clock signal is one, we don't need an if" << std::endl;
             return propagate(clockenv, slotenv, path, t1, {lsig.begin() + 1, lsig.end()});
         }
