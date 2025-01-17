@@ -118,7 +118,9 @@ Tree ScalarCompiler::prepare(Tree LS)
         throw faustexception("Dump signal type finished...\n");
     }
     // No more table privatisation
+    startTiming("newConstantPropagation");
     Tree L2a = newConstantPropagation(L1, false);
+    endTiming("newConstantPropagation");
     Tree L2;
     // detect FIRs and IIRs if required
     if (gGlobal->gReconstructFIRIIRs) {
