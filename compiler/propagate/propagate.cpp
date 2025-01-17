@@ -317,6 +317,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
     else if (isBoxPrim1(box, &p1)) {
         faustassert(lsig.size() == 1);
+        if (p1 == &sigDelay1) {
+            return makeList(sigDelay1(sigClocked(clockenv, lsig[0])));
+        }
         num n;
         if (isNum(lsig[0], n)) {
             return makeList(simplify(p1(lsig[0])));
