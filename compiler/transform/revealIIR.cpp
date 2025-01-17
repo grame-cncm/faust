@@ -12,7 +12,7 @@
 #include "Schedule.hh"
 #include "sigRecursiveDependencies.hh"
 
-#define TRACE false
+#define TRACE true
 
 //----------------------------------------------------------------------
 // IIR part
@@ -226,12 +226,8 @@ Tree proj2IIR(int indentation, Tree proj)
 
 Tree revealIIR(Tree L1)
 {
-    /*
     IIRRevealer R;
     R.trace(TRACE, "revealIIR");
     Tree L2 = R.mapself(L1);
     return L2;
-    */
-
-    return L1;
 }

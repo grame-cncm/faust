@@ -124,9 +124,9 @@ Tree ScalarCompiler::prepare(Tree LS)
         Tree L2b = revealFIR(L2a);
         endTiming("FIR revealer");
         startTiming("IIR revealer");
-        // Tree L2c = revealIIR(L2b);
+        Tree L2c = revealIIR(L2b);
         endTiming("IIR revealer");
-        L2 = L2b;
+        L2 = L2c;
     } else {
         L2 = L2a;
     }
@@ -458,16 +458,16 @@ string ScalarCompiler::CS(Tree sig)
 #ifdef TRACE
         int step = gGlobal->gSTEP;
         std::cerr << "\n"
-                  << step << " [order: " << fScheduleOrder[sig] << "] "
-                  << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
+                  << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
+                  << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
 #endif
         code = generateCode(sig);
         setCompiledExpression(sig, code);
 
 #ifdef TRACE
         std::cerr << "\n"
-                  << step << " [order: " << fScheduleOrder[sig] << "] "
-                  << "::" << sig << "\t: ============> " << code << std::endl;
+                  << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
+                  << "\t: ============> " << code << std::endl;
 #endif
     }
     return code;
@@ -1961,32 +1961,37 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
     //     output0[i0]      = FAUSTFLOAT(fRec0[IOTA0 & 1]);
     //     IOTA0            = IOTA0 + 1;
     // }
-    string ctype;
-    string dlname;
-    // getTypedNames(getCertifiedSigType(sig), "IIR", ctype, dlname);
-    getTypedNames(getCertifiedSigType(sig), "Rec", ctype, dlname);
-    setVectorNameProperty(sig, dlname);
 
-    Occurrences* o     = fOccMarkup->retrieve(sig);
-    int          dmax  = o->getMaxDelay();
-    int          ncoef = coefs.size() - 3;
-    int          delay = std::max(dmax, ncoef);
+    faustassert(coefs.size() > 2);
 
-    string ccs = getConditionCode(sig);
+    std::ostringstream oss;
 
-    string expr;
-    string result;
-    if (delay < gGlobal->gMaxCopyDelay) {
-        expr   = generateIIRSmallExpression(dlname, sig, coefs);
-        result = subst("$0[0]", dlname);
-    } else {
-        int N = pow2limit(delay + 1);
+    // access to the current value of the delay line
+    std::string a0 = generateDelayAccess(sig, sig, 0);
+    std::cerr << "IIR destination : " << a0 << '\n';
 
-        expr   = generateIIRBigExpression(dlname, delay, sig, coefs);
-        result = subst("$0[IOTA & $1]", dlname, T(N - 1));
+    // build the IIR expression
+    oss << a0 << " = " << CS(coefs[1]);
+
+    for (unsigned int i = 3; i < coefs.size(); ++i) {
+        if (isZero(coefs[i])) {
+            continue;
+        }
+        string access = generateDelayAccess(sig, sig, i - 2);
+        if (isOne(coefs[i])) {
+            oss << " + " << access;
+        } else {
+            oss << " + " << "(" << CS(coefs[i]) << ") * " << access;
+        }
     }
+    oss << ';' << " /* IIR expression */";
 
-    return "IIRNOTIMPLEMENTED";
+    std::cerr << "IIR statement : " << oss.str() << '\n';
+
+    fClass->addExecCode(Statement("", oss.str()));
+
+    // return the current value
+    return a0;
 }
 
 string ScalarCompiler::generateIIRSmallExpression(const string& dlname, Tree sig, const tvec& coefs)
@@ -2002,8 +2007,7 @@ string ScalarCompiler::generateIIRSmallExpression(const string& dlname, Tree sig
         if (isOne(coefs[i])) {
             oss << " + " << dlname << idx;
         } else {
-            oss << " + "
-                << "(" << CS(coefs[i]) << ") * " << dlname << idx;
+            oss << " + " << "(" << CS(coefs[i]) << ") * " << dlname << idx;
         }
     }
     oss << "/*IIR small expression*/";
@@ -2027,8 +2031,7 @@ string ScalarCompiler::generateIIRBigExpression(const string& dlname, int mxd, T
         if (isOne(coefs[i])) {
             oss << " + " << idx;
         } else {
-            oss << " + "
-                << "(" << CS(coefs[i]) << ") * " << idx;
+            oss << " + " << "(" << CS(coefs[i]) << ") * " << idx;
         }
     }
     oss << "/*IIR big expression*/";
