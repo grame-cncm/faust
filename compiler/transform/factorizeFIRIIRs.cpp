@@ -32,7 +32,7 @@ bool FIRFactorizer::hasCommonCoef(const tvec& C, Tree& commonfactor, tvec& newC)
     Tree                factor    = gGlobal->nil;
     int                 nbfactors = 0;
     int                 maxocc    = 0;
-    for (int i = 1; i < C.size(); i++) {
+    for (unsigned int i = 1; i < C.size(); i++) {
         Tree c = C[i];
         // we analyze all non zero factors
         if (!isZero(c)) {
