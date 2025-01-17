@@ -2090,9 +2090,10 @@ string ScalarCompiler::generateWaveform(Tree sig)
 string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
     faustassert(coefs.size() > 2);
-    // std::cerr << gGlobal->gSTEP << " generateFIR: " << ppsig(sig) << std::endl;
+    std::cerr << gGlobal->gSTEP << " generateFIR: " << ppsig(sig) << std::endl;
 
     if (coefs.size() < gGlobal->gFirLoopSize) {
+        // we don't use a loop for small FIR filters
         std::ostringstream oss;
         string             sep = "";
         Tree               exp = coefs[0];  // The input signal of the FIR
@@ -2141,11 +2142,17 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         getTypedNames(tc, "Coefs", ctype, ctable);
 
         // Expression for the coefficients
+        int mnzc = 1 << 20;  // minimum non zero coef
+
         std::ostringstream coefInitStream;
         coefInitStream << "{";
         for (unsigned int i = 1; i < coefs.size(); ++i) {
             if (i > 1) {
                 coefInitStream << ", ";
+            }
+            if (!isZero(coefs[i]) && (i < mnzc)) {
+                // first non zero coef
+                mnzc = i;
             }
             coefInitStream << CS(coefs[i]);
         }
@@ -2194,8 +2201,8 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 
         // Code for the accumulation loop
         std::string accloop = subst(
-            "for (int ii = 0; ii < $0; ii++) { $1 += $2[ii] * $3; } /* Loop based FIR acc. */",
-            T(int(coefs.size() - 1)), facc, ctable, idxaccess);
+            "for (int ii = $4; ii < $0; ii++) { $1 += $2[ii] * $3; } /* Loop based FIR acc. */",
+            T(int(coefs.size() - 1)), facc, ctable, idxaccess, T(mnzc - 1));
         fClass->addExecCode(Statement("", accloop));
 
         return generateCacheCode(sig, facc);

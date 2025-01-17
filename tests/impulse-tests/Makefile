@@ -235,6 +235,9 @@ sch2:
 sch3:
 	$(MAKE) -f Make.gcc outdir=ocpp/doubleschd3          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -ss 3 -fls 100 -mcd 128"
 
+sch3b:
+	$(MAKE) -f Make.gcc outdir=ocpp/doubleschd3b          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -ss 3 -fls 1 -mcd 128"
+
 irt:
 	$(MAKE) -f Make.gcc outdir=ocpp/doublesirt          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -ss 3 -fls 100 -mcd 128 -irt 1000"
 
