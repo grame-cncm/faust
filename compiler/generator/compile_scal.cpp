@@ -2083,7 +2083,11 @@ void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
 
     char sep = '{';
     for (int i = 0; i < size; i++) {
-        content << sep << ppsig(sig->branch(i));
+        Tree v = sig->branch(i);
+        if (Tree h, x; i == 0 && isSigClocked(v, h, x)) {
+            v = x;  // remove the clock around the first element
+        }
+        content << sep << ppsig(v);
         sep = ',';
     }
     content << '}';

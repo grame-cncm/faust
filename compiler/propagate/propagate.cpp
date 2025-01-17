@@ -265,7 +265,11 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
     else if (isBoxWaveform(box)) {
         faustassert(lsig.size() == 0);
-        const tvec br = box->branches();
+        tvec br = box->branches();
+        // ONDEMAND: We make sure that the waveform is only for
+        // the current time reference by adding a clock signal
+        // to the first value (it's enough)
+        br[0]   = sigClocked(clockenv, br[0]);  // Make sure 
         return listConcat(makeList(sigInt(int(br.size()))), makeList(sigWaveform(br)));
     }
 
@@ -351,6 +355,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             }
         } else if (p2 == &sigDelay) {
             return makeList(sigDelay(sigClocked(clockenv, lsig[0]), lsig[1]));
+
+        } else if (p2 == &sigPrefix) {
+            return makeList(sigPrefix(lsig[0], sigClocked(clockenv, lsig[1])));
 
         } else {
             num n, m;
@@ -569,16 +576,16 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // Propagate lsig into the ondemand version of circuit t1
 
         // The first signal is the clock signal
-        Tree H = lsig[0];
+        Tree H         = lsig[0];
+        Tree clockenv2 = cons(H, clockenv);  // the clock environment inside the ondemand circuit
 
         // The rest is propagated into t1, but via tempopary variables
         siglist X2;
         for (unsigned int i = 1; i < lsig.size(); i++) {
-            X2.push_back(sigTempVar(lsig[i]));
+            X2.push_back(sigClocked(clockenv2, sigTempVar(lsig[i])));
         }
-        // We propagate X2 intside t1 -> Y0
-        Tree    clockenv2 = cons(H, clockenv);  // the clock environment inside the ondemand circuit
-        siglist Y0        = propagate(clockenv2, slotenv, path, t1, X2);
+        // We propagate X2 inside circuit t1 -> Y0
+        siglist Y0 = propagate(clockenv2, slotenv, path, t1, X2);
 
         // We store the sigclocked output signals into perm variables
         siglist Y1;

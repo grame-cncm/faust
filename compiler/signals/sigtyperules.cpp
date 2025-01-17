@@ -1040,15 +1040,26 @@ static Type inferFVarType(Tree type)
  *  - the waveform is known at compile time
  *  - it can be vectorized because all values are known
  *  - knum ???
- *  - the resulting interval is the reunion of all values intervals
+ *  - the resulting interval is the reunion of all values
+ *    intervals
+ *  - ONDEMAND: The first value of the waveform is now
+ *    sigClocked so that the sample production is in the right
+ *    time reference.
  */
 static Type inferWaveformType(Tree wfsig, Tree env)
 {
     // start with the first item interval
-    Tree     v      = wfsig->branch(0);
-    bool     iflag1 = isInt(v->node());
-    int      n      = wfsig->arity();
-    interval res    = (iflag1) ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2double(v));
+    Tree v = wfsig->branch(0);
+    T(v, env);
+    // remove possible clock signal on the first item
+    // TODO: all this could be simplified !
+    if (Tree h, x; isSigClocked(v, h, x)) {
+        v = x;
+    }
+    bool iflag1 = isInt(v->node());
+
+    int      n   = wfsig->arity();
+    interval res = (iflag1) ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2double(v));
     T(v, env);
 
     // loop for remaining items
