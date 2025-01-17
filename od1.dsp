@@ -151,3 +151,27 @@ bg7 = ondemand(os.phasor_imp(500,0,0))(button("play1")),
 
 bg8 = ondemand(+(1)~_)(button("play1")), 
 	ondemand(+(2)~_)(button("play1")); // VERSION SIMPLIFIEE BUG SL 24/10/2024
+
+bg9 = ondemand(+(3)~_)(button("play1")), 
+	ondemand(+(3)~_)(button("play1")); // VERSION SIMPLIFIEE BUG SL 24/10/2024
+
+
+// constantes dans onddemand
+
+k1 = 1 : ondemand(_)(button("play"));
+k2 = 2 : ondemand(_)(button("play"));
+k3 = 3.1415 : ondemand(_)(button("play"));
+
+// Simplification of ondemand
+s1 = ondemand(1)(1);
+s2 = ondemand(_)(1);
+s3 = ondemand(@(1))(1);
+s4 = ondemand(@(1))(0);
+
+s5 = ondemand(os.osc(500))(1);
+s6 = os.osc(500);
+
+s7 = ondemand(os.osc(500))(0);
+
+
+
