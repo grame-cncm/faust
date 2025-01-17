@@ -24,6 +24,7 @@
 #include "global.hh"
 
 using namespace std;
+#undef TRACE
 
 /**
  * Print a list of lines.
@@ -136,7 +137,9 @@ bool Loop::isEmpty()
  */
 void Loop::addPreCode(const Statement& stmt)
 {
+#ifdef TRACE
     cerr << this << "->addExecCode " << stmt.code() << endl;
+#endif
     if (fIFstack.size() > 0) {
         fIFstack.top().fPreCode.push_back(stmt);
     } else {
@@ -149,7 +152,9 @@ void Loop::addPreCode(const Statement& stmt)
  */
 void Loop::addExecCode(const Statement& stmt)
 {
+#ifdef TRACE
     cerr << this << "->addExecCode " << stmt.code() << endl;
+#endif
     if (fIFstack.size() > 0) {
         fIFstack.top().fExecCode.push_back(stmt);
     } else {
@@ -162,7 +167,9 @@ void Loop::addExecCode(const Statement& stmt)
  */
 void Loop::addPostCode(const Statement& stmt)
 {
+#ifdef TRACE
     cerr << this << "->addPostCode " << stmt.code() << endl;
+#endif
     if (fIFstack.size() > 0) {
         fIFstack.top().fPostCode.push_front(stmt);
     } else {
