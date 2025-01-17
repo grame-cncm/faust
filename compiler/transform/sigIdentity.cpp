@@ -49,6 +49,34 @@ void SignalIdentity::traceExit(Tree t, Tree r)
          << endl;
 }
 
+void SignalIdentity::myTraceEnter(Tree t)
+{
+    if (fTrace) {
+        tab(fIndent, cerr);
+        cerr << fMessage << " ENTER: " << ppsig(t, MAX_ERROR_SIZE) << endl;
+        fIndent++;
+    }
+}
+
+void SignalIdentity::myTraceContinue(Tree t, Tree w)
+{
+    if (fTrace) {
+        tab(fIndent - 1, cerr);
+        cerr << fMessage << " CONT : " << ppsig(t, MAX_ERROR_SIZE) << " --> "
+             << ppsig(w, MAX_ERROR_SIZE) << endl;
+    }
+}
+
+void SignalIdentity::myTraceExit(Tree t, Tree w, Tree r)
+{
+    if (fTrace) {
+        fIndent--;
+        tab(fIndent, cerr);
+        cerr << fMessage << " EXIT : " << ppsig(t, MAX_ERROR_SIZE) << " --> "
+             << ppsig(w, MAX_ERROR_SIZE) << " ==> " << ppsig(r, MAX_ERROR_SIZE) << endl;
+    }
+}
+
 Tree SignalIdentity::transformation(Tree sig)
 {
     int     i;

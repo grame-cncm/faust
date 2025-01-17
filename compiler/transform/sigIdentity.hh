@@ -41,6 +41,10 @@ class SignalIdentity : public TreeTransform {
     virtual Tree transformation(Tree t);
     virtual void traceEnter(Tree t);
     virtual void traceExit(Tree t, Tree r);
+    // new trace system
+    virtual void myTraceEnter(Tree t);
+    virtual void myTraceContinue(Tree t, Tree w);
+    virtual void myTraceExit(Tree t, Tree w, Tree r);
 };
 
 #endif

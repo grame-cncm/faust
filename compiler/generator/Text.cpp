@@ -348,6 +348,7 @@ string quote(const string& s)
  */
 void tab(int n, ostream& fout)
 {
+    faustassert(n >= 0);
     fout << '\n';
     while (n--) {
         fout << '\t';
