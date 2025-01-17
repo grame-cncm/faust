@@ -371,6 +371,11 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
     else if (isBoxPrim3(box, &p3)) {
         faustassert(lsig.size() == 3);
+        if (p3 == sigReadOnlyTable) {
+            Tree sig = sigReadOnlyTable(lsig[0], lsig[1], sigClocked(clockenv, lsig[2]));
+            // std::cout << "sigReadOnlyTable : " << ppsig(sig) << std::endl;
+            return makeList(sig);
+        }
         return makeList(p3(lsig[0], lsig[1], lsig[2]));
     }
 
@@ -380,6 +385,13 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
     }
 
     else if (isBoxPrim5(box, &p5)) {
+        if (p5 == sigWriteReadTable) {
+            Tree sig =
+                sigWriteReadTable(lsig[0], lsig[1], sigClocked(clockenv, lsig[2]),
+                                  sigClocked(clockenv, lsig[3]), sigClocked(clockenv, lsig[4]));
+            std::cout << "sigWriteReadTable : " << ppsig(sig) << std::endl;
+            return makeList(sig);
+        }
         return makeList(p5(lsig[0], lsig[1], lsig[2], lsig[3], lsig[4]));
     }
 

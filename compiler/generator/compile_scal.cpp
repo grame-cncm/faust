@@ -1047,14 +1047,15 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
             getTypedNames(t, "Slow", ctype, vname);
             fClass->addFirstPrivateDecl(vname);
             fClass->addZone2(
-                subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP)));
+                subst("$0 \t$1 = $2; // Zone 2, step: $3", ctype, vname, exp, T(gGlobal->gSTEP)));
             break;
 
         case kSamp:
             getTypedNames(t, "Temp", ctype, vname);
             if (getConditionCode(sig) == "") {
+                fClass->addZone2(subst("$0 \t$1; // step: $2", ctype, vname, T(gGlobal->gSTEP)));
                 fClass->addExecCode(Statement(
-                    "", subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP))));
+                    "", subst("$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP))));
             } else {
                 getTypedNames(t, "TempPerm", ctype, vname_perm);
                 // need to be preserved because of new enable and control primitives
@@ -1730,7 +1731,7 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
     std::string result;
     switch (dt) {
         case DelayType::kNotADelay:
-            faustexception("Try to compile has a delay something that is not a delay");
+            throw faustexception("Try to compile has a delay something that is not a delay");
             result = "";
             break;
 
