@@ -458,16 +458,16 @@ string ScalarCompiler::CS(Tree sig)
 #ifdef TRACE
         int step = gGlobal->gSTEP;
         std::cerr << "\n"
-                  << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
-                  << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
+                  << step << " [order: " << fScheduleOrder[sig] << "] "
+                  << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
 #endif
         code = generateCode(sig);
         setCompiledExpression(sig, code);
 
 #ifdef TRACE
         std::cerr << "\n"
-                  << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
-                  << "\t: ============> " << code << std::endl;
+                  << step << " [order: " << fScheduleOrder[sig] << "] "
+                  << "::" << sig << "\t: ============> " << code << std::endl;
 #endif
     }
     return code;
@@ -1962,17 +1962,18 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
     //     IOTA0            = IOTA0 + 1;
     // }
 
+    Type         ty = getCertifiedSigType(sig);
+    Occurrences* o  = fOccMarkup->retrieve(sig);
+
+    faustassert(o);
     faustassert(coefs.size() > 2);
 
+    std::string vname, ctype;
+    getTypedNames(ty, "IIR", ctype, vname);
+
+    // Build the IIR expressions X + C1*Y(t-1) + C2*Y(t-2) + ...
     std::ostringstream oss;
-
-    // access to the current value of the delay line
-    std::string a0 = generateDelayAccess(sig, sig, 0);
-    std::cerr << "IIR destination : " << a0 << '\n';
-
-    // build the IIR expression
-    oss << a0 << " = " << CS(coefs[1]);
-
+    oss << CS(coefs[1]);  // the input signal X
     for (unsigned int i = 3; i < coefs.size(); ++i) {
         if (isZero(coefs[i])) {
             continue;
@@ -1981,17 +1982,16 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
         if (isOne(coefs[i])) {
             oss << " + " << access;
         } else {
-            oss << " + " << "(" << CS(coefs[i]) << ") * " << access;
+            oss << " + "
+                << "(" << CS(coefs[i]) << ") * " << access;
         }
     }
-    oss << ';' << " /* IIR expression */";
+    std::string exp = oss.str();
 
-    std::cerr << "IIR statement : " << oss.str() << '\n';
-
-    fClass->addExecCode(Statement("", oss.str()));
-
+    // generate the delay line
+    std::string Y0 = generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
     // return the current value
-    return a0;
+    return Y0;
 }
 
 string ScalarCompiler::generateIIRSmallExpression(const string& dlname, Tree sig, const tvec& coefs)
@@ -2007,7 +2007,8 @@ string ScalarCompiler::generateIIRSmallExpression(const string& dlname, Tree sig
         if (isOne(coefs[i])) {
             oss << " + " << dlname << idx;
         } else {
-            oss << " + " << "(" << CS(coefs[i]) << ") * " << dlname << idx;
+            oss << " + "
+                << "(" << CS(coefs[i]) << ") * " << dlname << idx;
         }
     }
     oss << "/*IIR small expression*/";
@@ -2031,7 +2032,8 @@ string ScalarCompiler::generateIIRBigExpression(const string& dlname, int mxd, T
         if (isOne(coefs[i])) {
             oss << " + " << idx;
         } else {
-            oss << " + " << "(" << CS(coefs[i]) << ") * " << idx;
+            oss << " + "
+                << "(" << CS(coefs[i]) << ") * " << idx;
         }
     }
     oss << "/*IIR big expression*/";

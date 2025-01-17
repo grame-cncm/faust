@@ -59,6 +59,9 @@ Tree addSigFIR(Tree s1, Tree s2);
 // Subtract two FIRs, or sigSub(s1,s2) if s1 and s2 are not compatible FIRs
 Tree subSigFIR(Tree s1, Tree s2);
 
+// If it is a FIR, invert the coefficients
+Tree negSigFIR(Tree s1);
+
 // Multiply a FIR by a signal
 Tree mulSigFIR(Tree s1, Tree s2);
 
@@ -74,6 +77,10 @@ Tree promotionSigFIR(Tree sig);
 // Convert a FIR back to a combination of Delays
 // (usefull to compute types ans intervals)
 Tree convertFIR2Sig(Tree sig);
+
+// Try to combine the FIRs of t1 and t2 and
+// returns the resulting signal
+Tree smartAddSigFIR(Tree t1, Tree t2);
 
 //-------------------------------------------------------------------------
 // FIR predicates

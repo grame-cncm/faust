@@ -95,7 +95,7 @@ static Tree sigNeg(Tree sig)
 
 //-------------------------------------------------------------------------
 // Negate a FIR
-static Tree negSigFIR(Tree sig)
+Tree negSigFIR(Tree sig)
 {
     tvec V;
     if (isSigFIR(sig, V)) {
@@ -237,25 +237,6 @@ Tree addSigFIR(Tree s1, Tree s2)
             }
             // Still a real FIR
             return sigFIR(V);
-#if 0
-        } else if (haveEquivCoefs(V1, V2)) {
-            // CASE 1.2: [S1, C0, C1, ...] + [S2, C0, C1, ...]= [S1+S2, C0, C1, ...]
-
-            tvec V;
-            V.push_back(sigAdd(V1[0], V2[0]));
-            for (unsigned int i = 1; i < V1.size(); i++) {
-                V.push_back(V1[i]);
-            }
-            return sigFIR(V);
-        } else if (haveComplementaryCoefs(V1, V2)) {
-            // CASE 1.3: [S1, C0, C1, ...] + [S2, -C0, -C1, ...]= [S1-S2, C0, C1, ...]
-            tvec V;
-            V.push_back(sigSub(V1[0], V2[0]));
-            for (unsigned int i = 1; i < V1.size(); i++) {
-                V.push_back(V1[i]);
-            }
-            return sigFIR(V);
-#endif
         } else {
             // Two uncompatible FIRs
             return sigAdd(s1, s2);
@@ -272,6 +253,95 @@ Tree addSigFIR(Tree s1, Tree s2)
         // CASE 4: Not two FIRs
         return simplify(sigAdd(s1, s2));
     }
+}
+
+//-------------------------------------------------------------------------
+// Try to add two FIRs if:
+// a) they applies to the same signal, in this case the coefficients are added together;
+// b) if the two FIRs are applied to two different signals, but have the same coefficients,
+// in this case the two signals are added,
+// c) if the two have complementary coefficients, in this case the two signals are subtracted.
+// return a sigFIR if it succeeded, or a nullptr
+Tree TryAddSigFIR(Tree s1, Tree s2)
+{
+    tvec V1, V2;
+    Tree r;
+
+    // std::cerr << "TryAddSigFIR(" << ppsig(s1) << ", " << ppsig(s2) << ")\n";
+
+    if (isSigFIR(s1, V1) && isSigFIR(s2, V2)) {
+        // CASE 1: two FIRs
+        if (V1[0] == V2[0]) {
+            // CASE 1.1: [S, C0, C1, ...] + [S, D0, D1, ...]= [S, C0+D0, C1+D1, ...]
+            tvec V;
+            V.push_back(V1[0]);
+            unsigned int minsize = std::min(V1.size(), V2.size());
+            for (unsigned int i = 1; i < minsize; i++) {
+                V.push_back(simplify(sigAdd(V1[i], V2[i])));
+            }
+            for (unsigned int i = minsize; i < V1.size(); i++) {
+                V.push_back(V1[i]);
+            }  // V1 longuer
+            for (unsigned int i = minsize; i < V2.size(); i++) {
+                V.push_back(V2[i]);
+            }  // V2 longuer
+
+            normalizeFIRCoefs(V);  // TODO : simplify coefs, normalize
+            if (V.size() == 1) {
+                // All coefficients are zero, return the zero signal !
+                return sigInt(0);
+            } else if (V.size() == 2) {
+                // Only one non zero coefficient, not a FIR anymore !
+                return sigMul(V[1], V[0]);
+            }
+            // Still a real FIR
+            return sigFIR(V);
+        } else {
+            // Two uncompatible FIRs
+            return gGlobal->nil;
+        }
+    } else if (isSigFIR(s1, V1) && isDivisibleBy(s2, V1[0], r)) {
+        // CASE 2: [S, C0, C1, ...] + S*R = [S, C0+R, C1, ...]
+        V1[1] = simplify(sigAdd(V1[1], r));
+        return sigFIR(V1);
+    } else if (isSigFIR(s2, V2) && isDivisibleBy(s1, V2[0], r)) {
+        // CASE 3: S*R + [S, C0, C1, ...] = [S, C0+R, C1, ...]
+        V2[1] = simplify(sigAdd(V2[1], r));
+        return sigFIR(V2);
+    } else {
+        // CASE 4: Not two FIRs
+        return gGlobal->nil;
+    }
+}
+
+Tree smartAddSigFIR(Tree t1, Tree t2)
+{
+    std::cerr << "smartAddSigFIR(" << ppsig(t1) << ", " << ppsig(t2) << ")\n";
+    // traverse add/sub trees
+    if (Tree a, b; isSigAdd(t1, a, b)) {
+        Tree c = smartAddSigFIR(smartAddSigFIR(a, t2), b);
+        // std::cerr << "smartAddSigFIR(" << ppsig(t1) << ", " << ppsig(t2) << ") ==> " << ppsig(c)
+        // << "\n";
+        return c;
+    }
+
+    if (Tree a, b; isSigAdd(t2, a, b)) {
+        Tree c = smartAddSigFIR(smartAddSigFIR(t1, a), b);
+        // std::cerr << "smartAddSigFIR(" << ppsig(t1) << ", " << ppsig(t2) << ") ==> " <<
+        // ppsig(c) << "\n";
+        return c;
+    }
+
+    // not add terms, try compatible FIRs
+    Tree t3 = TryAddSigFIR(t1, t2);
+    if (t3 != gGlobal->nil) {
+        return t3;
+    }
+    // nothing we can do, simple add
+    Tree c = sigAdd(t1, t2);
+    // std::cerr << "smartAddSigFIR(" << ppsig(t1) << ", " << ppsig(t2) << ") ==> " << ppsig(c) <<
+    // "\n";
+    return c;
 }
 
 // Promote the signal or the coefficients of a FIR if needed

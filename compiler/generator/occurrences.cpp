@@ -189,11 +189,19 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 
         } else if (isSigIIR(t, V)) {
             // an IIR is computed at kSamp
+            // IIR[_,X,C0,C1,C2,...] -> Y(t) = X(t) + C0*Y(t-0) + C1*Y(t-1) + ...
+            //     0 1  2  3  4
             faustassert(v0 == kSamp);
-            faustassert(V.size() > 2);  // Otherwise not a proper FIR
-            for (unsigned int i = 1; i < V.size(); i++) {
-                incOcc(env, kSamp, r0, 0, c0,
-                       V[i]);  // increment of the input signal and the coefficient
+            faustassert(V.size() >= 4);  // IIR[_,X,C0,C1] Otherwise not a proper FIR
+
+            // increment occurences of the input signal
+            incOcc(env, kSamp, r0, 0, c0, V[1]);
+
+            for (unsigned int i = 3; i < V.size(); i++) {
+                // increment the coefficient i
+                incOcc(env, kSamp, r0, 0, c0, V[i]);
+                // but also the IIR itself with appropriate delay
+                incOcc(env, kSamp, r0, i - 2, c0, t);
             }
 
         } else {

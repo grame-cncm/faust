@@ -49,9 +49,9 @@ Tree FIRRevealer::postprocess(Tree sig)
     } else if (isSigDelay(sig, x, y)) {
         return delaySigFIR(x, y);
     } else if (isSigAdd(sig, x, y)) {
-        return addSigFIR(x, y);
+        return smartAddSigFIR(x, y);
     } else if (isSigSub(sig, x, y)) {
-        return subSigFIR(x, y);
+        return smartAddSigFIR(x, negSigFIR(y));
     } else if (isSigMul(sig, x, y)) {
         return mulSigFIR(x, y);
     } else if (isSigDiv(sig, x, y)) {

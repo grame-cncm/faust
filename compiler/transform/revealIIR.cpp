@@ -192,6 +192,14 @@ static Tree makeIIR(Tree fir, Tree in)
     return iir;
 }
 #if 1
+/**
+ * @brief Check if a recursive projection is a FIR that can 
+ * be transformed into an IIR
+ *
+ * @param indentation
+ * @param proj: proj(i,rec(var,le))
+ * @return an IIR or nil
+ */
 Tree proj2IIR(int indentation, Tree proj)
 {
     int  i;
