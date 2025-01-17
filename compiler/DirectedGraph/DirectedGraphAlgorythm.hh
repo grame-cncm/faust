@@ -576,6 +576,104 @@ inline std::vector<N> leaves(const digraph<N, Comparator>& G)
     return L;
 }
 
+/**
+ * @brief compute the critical path of a graph
+ *
+ * @param G
+ * @return std::vector<N>
+ */
+template <typename N>
+inline std::vector<N> criticalpath(const digraph<N>& G, const N& n)
+{
+    std::vector<N> P;
+    for (const auto& c : G.destinations(n)) {
+        std::vector<N> Q = criticalpath(G, c.first);
+        if (Q.size() > P.size()) {
+            P = Q;
+        }
+    }
+    P.push_back(n);
+    return P;
+}
+
+/**
+ * @brief interleave two lists
+ *
+ * @param list1: (A,B,C,...)
+ * @param list2: (U,W)
+ * @return (A,U,B,W,C,...)
+ */
+template <typename N>
+static std::list<N> interleave(std::list<N>& list1, std::list<N>& list2)
+{
+    std::list<N> result;
+
+    // Iterators for both lists
+    auto it1 = list1.begin();
+    auto it2 = list2.begin();
+
+    // Traverse both lists
+    while (it1 != list1.end() && it2 != list2.end()) {
+        result.push_back(*it1);
+        result.push_back(*it2);
+        ++it1;
+        ++it2;
+    }
+
+    // Append remaining elements of list1
+    while (it1 != list1.end()) {
+        result.push_back(*it1);
+        ++it1;
+    }
+
+    // Append remaining elements of list2
+    while (it2 != list2.end()) {
+        result.push_back(*it2);
+        ++it2;
+    }
+
+    return result;
+}
+
+/**
+ * @brief recursive scheduling of a node of a DAG
+ *
+ * @tparam N
+ * @param G a DAG
+ * @param n a node of G
+ * @return std::list<N> scheduling with duplicates
+ */
+template <typename N>
+inline std::list<N> recschedulenode(const digraph<N>& G, const N& n)
+{
+    std::list<N> P;
+    for (const auto& c : G.destinations(n)) {
+        std::list<N> Q = recschedulenode(G, c.first);
+        P              = interleave(P, Q);
+    }
+    P.push_front(n);
+    return P;
+}
+
+/**
+ * @brief recursive scheduling of the roots of a DAG
+ *
+ * @tparam N
+ * @param G a DAG
+ * @return std::list<N> scheduling with duplicates
+ */
+template <typename N>
+inline std::list<N> recschedule(const digraph<N>& G)
+{
+    std::list<N> P;
+    for (const N& n : roots(G)) {
+        std::list<N> Q = recschedulenode(G, n);
+        P              = interleave(P, Q);
+    }
+    return P;
+}
+
+
 /*******************************************************************************
 ********************************************************************************
 
@@ -685,11 +783,13 @@ inline std::ostream& dotfile(std::ostream& file, const digraph<N, Comparator>& g
         Tarjan<N, Comparator> T(g);
         int                   ccount = 0;  // cluster count
         for (const auto& s : T.partition()) {
-            file << "\t" << "subgraph cluster" << ccount << " { " << '\n';
+            file << "\t"
+                 << "subgraph cluster" << ccount << " { " << '\n';
             for (const N& n : s) {
                 file << "\t\t" << '"' << n << '"' << ";" << '\n';
             }
-            file << "\t" << "}" << '\n';
+            file << "\t"
+                 << "}" << '\n';
             ccount++;
         }
     }

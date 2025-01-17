@@ -12,11 +12,13 @@
  ******************************************************************************/
 
 #pragma once
+#include <algorithm>  // for std::find
 #include <cassert>
 #include <functional>
 #include <iostream>
 #include <list>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -70,6 +72,16 @@ class schedule {
             append(n);
         }
         return *this;
+    }
+
+    // A schedule in reverse order
+    schedule reverse() const
+    {
+        schedule<N> S;
+        for (auto it = fElements.rbegin(); it != fElements.rend(); ++it) {
+            S.append(*it);
+        }
+        return S;
     }
 };
 
@@ -148,6 +160,29 @@ inline schedule<N, Comparator> bfschedule(const digraph<N, Comparator>& G)
 }
 
 /**
+ * @brief special schedule for a DAG
+ *
+ * @tparam N
+ * @param G
+ * @return schedule<N>
+ */
+template <typename N>
+inline schedule<N> spschedule(const digraph<N>& G)
+{
+    std::set<N> V;  // already scheduled nodes
+    schedule<N> S;  // the final schedule
+
+    std::list<N> L = recschedule(G);  // schedule list with duplicated
+    for (auto it = L.rbegin(); it != L.rend(); ++it) {
+        if (!V.contains(*it)) {
+            S.append(*it);
+            V.insert(*it);
+        }
+    }
+    return S;
+}
+
+/**
  * @brief The 'cost' of a scheduling. The scheduling time distance
  * between the nodes and its dependencies. This should be an indication
  * of how hot the cache is kept by this scheduling. The less the cost
@@ -167,7 +202,7 @@ inline int schedulingcost(const digraph<N, Comparator>& G, const schedule<N, Com
         for (const auto& c : G.destinations(n)) {
             int t0 = S.order(c.first);
             // assert(t1 > t0);
-            cost += std::abs(t1 - t0);  // We may have loops
+            cost += (t1 - t0) * (t1 - t0);  // We may have loops
         }
     }
     return cost;
@@ -209,4 +244,25 @@ inline schedule<N, Comparator> bfcyclesschedule(const digraph<N, Comparator>& G)
         S.append(dfschedule(cut(n, 1)));
     }
     return S;
+}
+
+/**
+ * @brief reverse breadth first schedule for a DAG
+ *
+ * @tparam N
+ * @param G
+ * @return schedule<N>
+ */
+template <typename N>
+inline schedule<N> rbschedule(const digraph<N>& G)
+{
+    std::vector<std::vector<N>> P = parallelize(reverse(G));
+    schedule<N>                 S;
+
+    for (uint64_t i = 0; i < P.size(); i++) {
+        for (const N& n : P[i]) {
+            S.append(n);
+        }
+    }
+    return S.reverse();
 }

@@ -521,14 +521,27 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     if (gGlobal->gTopoSwitch) {
         std::cerr << "Print siglist inst graph topology : " << topology(G) << '\n';
     }
-    // force a specific compilation order
+    // Force a specific scheduling (i.e. compilation order)
     schedule<Tree> S;
-    if (gGlobal->gSchedulingStrategy == 0) {
-        S = dfschedule(G);
-    } else {
-        S = bfschedule(G);
+    switch (gGlobal->gSchedulingStrategy) {
+        case 0:
+            S = dfschedule(G);
+            break;
+        case 1:
+            S = bfschedule(G);
+            break;
+        case 2:
+            S = spschedule(G);
+            break;
+        case 3:
+        default:
+            S = rbschedule(G);
+            break;
     }
-    // register the compilation order S for debug purposes
+    std::cerr << "Scheduling strategy : " << gGlobal->gSchedulingStrategy
+              << " cost: " << schedulingcost(G, S) << '\n';
+
+    // Register the compilation order S for debug purposes
     {
         int jj = 0;
         for (auto& s : S.elements()) {
