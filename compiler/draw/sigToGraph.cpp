@@ -310,8 +310,8 @@ static string sigLabel(Tree sig)
         fout << "seq";
     } else if (isSigOD(sig)) {
         fout << "ondemand";
-    } else if (isSigClocked(sig)) {
-        fout << "clocked";
+    } else if (isSigClocked(sig, x, y)) {
+        fout << "clocked:" << x;
     }
 
     else if (isSigAssertBounds(sig, x, y, z)) {
