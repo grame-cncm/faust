@@ -220,6 +220,15 @@ cpp4:
 ocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
 
+ondemand:
+	$(MAKE) -f Make.od outdir=ocpp/doubleondemand          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
+
+ondemandfir:
+	$(MAKE) -f Make.od outdir=ocpp/doubleondemandfir          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -fls 100 -mcd 128"
+
+ondemandffir:
+	$(MAKE) -f Make.od outdir=ocpp/doubleondemandffir          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -fls 100 -mcd 128"
+
 fir:
 	$(MAKE) -f Make.gcc outdir=ocpp/doublefir          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -fls 100 -mcd 128"
 
