@@ -164,6 +164,7 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 
         // We mark the subtrees of t
         Tree x, y;
+        tvec V;
         if (isSigDelay(t, x, y)) {
             Type g2 = getCertifiedSigType(y);
             int  d2 = checkDelayInterval(g2);
@@ -173,6 +174,28 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         } else if (isSigPrefix(t, y, x)) {
             incOcc(env, v0, r0, 1, c0, x);
             incOcc(env, v0, r0, 0, c0, y);
+
+        } else if (isSigFIR(t, V)) {
+            // a FIR is computed at kSamp
+            faustassert(v0 == kSamp);
+            faustassert(V.size() > 2);  // Otherwise not a proper FIR
+            for (unsigned int i = 1; i < V.size(); i++) {
+                incOcc(env, kSamp, r0, 0, c0, V[i]);  // increment the occurences of the coefficient
+                if (!isZero(V[i])) {
+                    incOcc(env, kSamp, r0, i - 1, c0,
+                           V[0]);  // increment the delayed occurences of the signal}
+                }
+            }
+
+        } else if (isSigIIR(t, V)) {
+            // an IIR is computed at kSamp
+            faustassert(v0 == kSamp);
+            faustassert(V.size() > 2);  // Otherwise not a proper FIR
+            for (unsigned int i = 1; i < V.size(); i++) {
+                incOcc(env, kSamp, r0, 0, c0,
+                       V[i]);  // increment of the input signal and the coefficient
+            }
+
         } else {
             tvec br;
             int  n = getSubSignals(t, br);

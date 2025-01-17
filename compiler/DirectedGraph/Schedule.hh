@@ -55,7 +55,7 @@ class schedule {
     schedule& append(const N& n)
     {
         if (fOrder[n] > 0) {
-            std::cerr << "WARNING, already scheduled" << std::endl;
+            std::cerr << "WARNING, already scheduled" << '\n';
         } else {
             fElements.push_back(n);
             fOrder[n] = int(fElements.size());
@@ -109,7 +109,7 @@ inline schedule<N, Comparator> dfschedule(const digraph<N, Comparator>& G)
 
     // recursive deep first visit (pseudo local function using a lambda)
     std::function<void(const N&)> dfvisit = [&](const N& n) {
-        if (V.find(n) == V.end()) {
+        if (!V.contains(n)) {
             V.insert(n);
             for (const auto& p : G.destinations(n)) {
                 dfvisit(p.first);

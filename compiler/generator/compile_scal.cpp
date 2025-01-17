@@ -42,6 +42,8 @@
 #include "ppsig.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
+#include "revealFIR.hh"
+#include "revealIIR.hh"
 #include "sharing.hh"
 #include "sigDependenciesGraph.hh"
 #include "sigNewConstantPropagation.hh"
@@ -154,6 +156,12 @@ Tree ScalarCompiler::prepare(Tree LS)
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
         sigToGraph(L2, dotfile);
     }
+
+    // experimental
+    Tree L3 = revealFIR(L2);  // pas de problème d'annotation
+    // std::cerr << "FIR Revealer  of " << ppsig(L2) << " ==> " << ppsig(L3) << std::endl;
+    Tree L4 = revealIIR(L3);  // pas de problème d'annotation
+    // std::cerr << "IIR Revealer  of " << ppsig(L3) << " ==> " << ppsig(L4) << std::endl;
 
     return L2;
 }
@@ -472,8 +480,12 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
     }
 
+    auto H = fullGraph(L);
+    std::cerr << "Print siglist full graph topology : " << topology(H) << '\n';
+
     // force a specific compilation order
     auto G = immediateGraph(L);
+    std::cerr << "Print siglist inst graph topology : " << topology(G) << '\n';
     auto S = dfschedule(G);
     // register the compilation order S for debug purposes
     {
@@ -549,8 +561,13 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
 #ifdef TRACE
     std::cerr << "\nSTART COMPILING SINGLE SIGNAL: " << ppsig(sig, 20) << std::endl;
 #endif
+    auto H = fullGraph(cons(sig, gGlobal->nil));
+    std::cerr << "Print singlesig full graph topology : " << topology(H) << '\n';
+
     // force a specific compilation order
     auto G = immediateGraph(cons(sig, gGlobal->nil));
+    std::cerr << "Print singlesig inst graph topology : " << topology(G) << '\n';
+
     auto S = dfschedule(G);
 #ifdef TRACE
     std::cerr << "\nBEFORE COMPILING SINGLE SIGNAL" << std::endl;
