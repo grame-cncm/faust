@@ -610,8 +610,7 @@ void normalizeFIRCoefs(tvec& V)
 // Simplify a FIR by removing trailing zeros and degenerated cases
 Tree simplifyFIR(Tree sig)
 {
-    tvec V;
-    if (isSigFIR(sig, V)) {
+    if (tvec V; isSigFIR(sig, V)) {
         // Degenerated cases, not a proper FIR
         if (V.size() < 2) {
             return sigInt(0);
@@ -634,10 +633,10 @@ Tree simplifyFIR(Tree sig)
             // all coefficients are zero
             return sigInt(0);
         }
-        if (lnz == 1) {
-            // not a real FIR
-            return simplify(sigMul(V[0], V[1]));
-        }
+        // if (lnz == 1) {
+        //     // not a real FIR
+        //     return simplify(sigMul(V[0], V[1]));
+        // }
         if (lnz < V.size() - 1) {
             // remove trailing zeros
             V.resize(lnz + 1);

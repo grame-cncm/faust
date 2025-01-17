@@ -2052,7 +2052,7 @@ string ScalarCompiler::generateWaveform(Tree sig)
 
 string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
-    faustassert(coefs.size() > 2);
+    faustassert(coefs.size() > 1);
     // std::cerr << gGlobal->gSTEP << " generateFIR: " << ppsig(sig) << std::endl;
 
     if (int(coefs.size()) < gGlobal->gFirLoopSize) {

@@ -8,6 +8,7 @@
 #include "sigFIR.hh"
 #include "sigIIR.hh"
 #include "sigIdentity.hh"
+#include "sigorderrules.hh"
 
 #define TRACE false
 
@@ -65,11 +66,190 @@ std::optional<std::tuple<Tree, int, Tree>> isFirElem(Tree s)
 
     return std::nullopt;
 }
+// multiply a sigSum sum by a signal c
+static Tree mulSigSum(Tree sum, Tree c)
+{
+    tvec subs;
+    for (Tree s : sum->branches()) {
+        subs.push_back(mulSigFIR(s, c));
+    }
+    return sigSum(subs);
+}
+
+/**
+ * @brief Collect recursively all the elements of a sum
+ *
+ * @param L
+ * @param sig
+ */
+static void collectSigSumElements(tvec& L, Tree sig)
+{
+    if (isSigSum(sig)) {
+        for (Tree s : sig->branches()) {
+            collectSigSumElements(L, s);
+        }
+    } else {
+        L.push_back(sig);
+    }
+}
 
 /* FIR pattern matching rules
-    - x@d -> FIR(x, C[0], C[1],..C[d]) if d is a constant and d > 0 with C[i] = 0 for i != d and C[d] = 1
-    - x@d*c -> FIR(x, C[0], C[1],..C[d]) if d is a constant and d > 0 with C[i] = 0 for i != d and C[d] = c
+    - x@d -> FIR(x, C[0], C[1],..C[d]) if d is a constant and d > 0 with C[i] = 0 for i != d and
+   C[d] = 1
+    - x@d*c -> FIR(x, C[0], C[1],..C[d]) if d is a constant and d > 0 with C[i] = 0 for i != d and
+   C[d] = c
+    - SUM(...,FIR(x,C), FIR(x,C'),...) -> SUM(...,FIR(x, C+C'),...)
+    - SUM(...,FIR(x,C), x*a, ...) -> SUM(...,FIR(x, C+a),...)
 */
+
+Tree FIRRevealer::postprocess(Tree sig)
+{
+    if (Tree f, d; isSigDelay(sig, f, d)) {
+        std::cerr << "Rule 1\n";
+        return delaySigFIR(f, d);
+    }
+
+    if (Tree ck, h, f, c; isSigMul(sig, ck, c) && isSigClocked(ck, h, f) && isSigFIR(f)) {
+        std::cerr << "Rule 6\n";
+        return mulSigFIR(f, c);
+    }
+
+    if (Tree ck, h, f, c; isSigMul(sig, c, ck) && isSigClocked(ck, h, f) && isSigFIR(f)) {
+        std::cerr << "Rule 7\n";
+        return mulSigFIR(f, c);
+    }
+
+    if (Tree x, y, u, v, h, f; isSigMul(sig, x, y) && isSigMul(y, u, v) && isSigClocked(v, h, f)) {
+        std::cerr << "Rule 8\n";
+        return sigMul(sigMul(x, u), v);
+    }
+
+    if (Tree x, y, u, v, h, f; isSigMul(sig, x, y) && isSigMul(y, v, u) && isSigClocked(v, h, f)) {
+        std::cerr << "Rule 9\n";
+        return sigMul(sigMul(x, u), v);
+    }
+
+    if (Tree x, y, u, v, h, f; isSigMul(sig, y, x) && isSigMul(y, u, v) && isSigClocked(v, h, f)) {
+        std::cerr << "Rule 10\n";
+        return sigMul(sigMul(x, u), v);
+    }
+
+    if (Tree x, y, u, v, h, f; isSigMul(sig, y, x) && isSigMul(y, v, u) && isSigClocked(v, h, f)) {
+        std::cerr << "Rule 11\n";
+        return sigMul(sigMul(x, u), v);
+    }
+
+    if (Tree sum, c; isSigMul(sig, sum, c) && isSigSum(sum)) {
+        std::cerr << "Rule 12\n";
+        return mulSigSum(sum, c);
+    }
+
+    if (Tree sum, c; isSigMul(sig, c, sum) && isSigSum(sum)) {
+        std::cerr << "Rule 13\n";
+        return mulSigSum(sum, c);
+    }
+
+    if (Tree f, c; isSigMul(sig, f, c) && isSigFIR(f)) {
+        std::cerr << "Rule 14\n";
+        return mulSigFIR(f, c);
+    }
+
+    if (Tree f, c; isSigMul(sig, c, f) && isSigFIR(f)) {
+        std::cerr << "Rule 15\n";
+        return mulSigFIR(f, c);
+    }
+
+    if (Tree ck, h, f, c; isSigDiv(sig, ck, c) && isSigClocked(ck, h, f) && isSigFIR(f)) {
+        std::cerr << "Rule 16\n";
+        return divSigFIR(f, c);
+    }
+
+    if (Tree f, c; isSigDiv(sig, f, c) && isSigFIR(f)) {
+        std::cerr << "Rule 17\n";
+        return divSigFIR(f, c);
+    }
+
+    if (Tree x, y; isSigMul(sig, x, y) && (getSigOrder(x) < 3) && isSigFIR(y)) {
+        std::cerr << "Rule 2\n";
+        return mulSigFIR(y, x);
+    }
+
+    if (Tree x, y; isSigMul(sig, y, x) && (getSigOrder(x) < 3) && isSigFIR(y)) {
+        std::cerr << "Rule 3\n";
+        return mulSigFIR(y, x);
+    }
+
+    if (Tree x, y; isSigMul(sig, x, y) && (getSigOrder(x) < 3) && (getSigOrder(y) == 3)) {
+        std::cerr << "Rule 4\n";
+        tvec v{y, x};
+        return sigFIR(v);
+    }
+
+    if (Tree x, y; isSigMul(sig, y, x) && (getSigOrder(x) < 3) && (getSigOrder(y) == 3)) {
+        std::cerr << "Rule 5\n";
+        tvec v{y, x};
+        return sigFIR(v);
+    }
+
+    if (isSigSum(sig)) {
+        std::cerr << "\nWe have a sum: " << ppsig(sig) << "\n";
+        tvec subs;
+        collectSigSumElements(subs, sig);
+        std::map<Tree, Tree> M;
+        std::vector<Tree>    L;
+        // 1 - combine FIRs and collect non-FIR elements
+        for (Tree f : subs) {
+            if (tvec coefs; isSigFIR(f, coefs)) {
+                Tree x = coefs[0];  // the input signal of the FIR
+                if (M.find(x) == M.end()) {
+                    M[x] = f;  // add a new fir association
+                } else {
+                    M[x] = addSigFIR(M[x], f);  // combine FIRs with the same input signal
+                }
+                std::cerr << "We have a new FIR association: " << ppsig(x) << " -> " << ppsig(M[x])
+                          << "\n";
+            } else {
+                std::cerr << "We have a non-FIR element: " << ppsig(f) << "\n";
+                L.push_back(f);  // collect non-FIR elements
+            }
+        }
+        // 2 - check for non-FIR elements that are input signals of collected FIRs
+        std::vector<Tree> L2;
+        for (Tree f : L) {
+            if (M.find(f) != M.end()) {
+                M[f] = addSigFIR(M[f], f);
+            } else if (Tree x, y; isSigMul(f, x, y)) {
+                if (M.find(x) != M.end()) {
+                    M[x] = addSigFIR(M[x], f);
+                } else if (M.find(y) != M.end()) {
+                    M[y] = addSigFIR(M[y], f);
+                } else {
+                    L2.push_back(f);
+                }
+            } else {
+                L2.push_back(f);
+            }
+        }
+
+        // combine all FIRs in M and non-FIR elements in L2
+        std::vector<Tree> V;
+        for (auto [x, f] : M) {
+            V.push_back(f);  // add FIRs to the final sum
+        }
+        for (Tree f : L2) {
+            V.push_back(f);
+        }
+        if (V.size() == 1) {
+            return V[0];
+        } else {
+            return sigSum(V);
+        }
+    }
+
+    return sig;
+}
+
+#if 0
 Tree FIRRevealer::postprocess(Tree sig)
 {
     if (tvec subs; isSigSum(sig, subs)) {
@@ -203,6 +383,7 @@ Tree FIRRevealer::postprocess(Tree sig)
 
     return sig;
 }
+#endif
 
 // External API
 
