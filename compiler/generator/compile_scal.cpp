@@ -1711,121 +1711,26 @@ string ScalarCompiler::generateXtended(Tree sig)
  *****************************************************************************/
 
 /**
- * Generate code for accessing a delayed signal. The generated code depend of
- * the maximum delay attached to exp.
+ * Generate code for accessing a delayed signal when using a signal delay
  */
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
-    // FIX: We don't compile the delayed signal anymore. This is done by the general scheduling.
-    // But we make sure the delayed signal has a vector name.
-
-    // string    code = CS(exp);  // ensure exp is compiled to have a vector name
-    std::string ctype, pname;
-    getTypedNames(getCertifiedSigType(sig), "Vec", ctype, pname);
-    string    vecname = ensureVectorNameProperty(pname, exp);
-    int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
-    DelayType dt      = analyzeDelayType(exp);
-#ifdef TRACE
-    std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
-              << fScheduleOrder[exp] << " -- " << exp << " :: " << ppsig(exp, 10) << std::endl;
-#endif
-    // if (fScheduleOrder[exp] == 0) {
-    //     // We are in an ondemand context, we need to compile the delayed signal
-    //     (void)CS(exp);
-    // }
-    std::string result;
-    switch (dt) {
-        case DelayType::kNotADelay:
-            throw faustexception("Try to compile has a delay something that is not a delay");
-            result = "";
-            break;
-
-        case DelayType::kZeroDelay:
-            result = vecname;
-            break;
-
-        case DelayType::kMonoDelay:
-            result = vecname;
-            break;
-
-        case DelayType::kSingleDelay:
-        case DelayType::kCopyDelay:
-        case DelayType::kDenseDelay:
-            result = subst("$0[$1]", vecname, CS(delay));
-            break;
-
-        case DelayType::kMaskRingDelay:
-        case DelayType::kSelectRingDelay:
-            int N  = pow2limit(mxd + 1);
-            result = subst("$0[($0idx-$1)&$2]", vecname, CS(delay), T(N - 1));
-            break;
-    }
-    return generateCacheCode(sig, result);
+    return generateCacheCode(sig, generateDelayAccess(sig, exp, CS(delay)));
 }
 
 /**
- * Generate code for accessing a delayed signal. The generated code depend of
- * the maximum delay attached to exp.
+ * Generate code for accessing a delayed signal when using a numerical delay
  */
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, int delay)
 {
-    // FIX: We don't compile the delayed signal anymore. This is done by the general scheduling.
-    // But we make sure the delayed signal has a vector name.
-
-    // string    code = CS(exp);  // ensure exp is compiled to have a vector name
-    std::string ctype, pname;
-    getTypedNames(getCertifiedSigType(sig), "Vec", ctype, pname);
-    string    vecname = ensureVectorNameProperty(pname, exp);
-    int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
-    DelayType dt      = analyzeDelayType(exp);
-#ifdef TRACE
-    std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
-              << fScheduleOrder[exp] << " -exp- " << exp << " :: " << ppsig(exp, 10) << '\n'
-              << "Within FIR at step " << fScheduleOrder[sig] << " -sig- " << sig
-              << " :: " << ppsig(sig, 10) << '\n'
-              << " and with delay " << delay << '\n';
-#endif
-    std::string result;
-    switch (dt) {
-        case DelayType::kNotADelay:
-            faustexception("Try to compile has a delay something that is not a delay");
-            result = "";
-            break;
-
-        case DelayType::kZeroDelay:
-            result = vecname;
-            break;
-
-        case DelayType::kMonoDelay:
-            result = vecname;
-            break;
-
-        case DelayType::kSingleDelay:
-        case DelayType::kCopyDelay:
-        case DelayType::kDenseDelay:
-            result = subst("$0[$1]", vecname, T(delay));
-            break;
-
-        case DelayType::kMaskRingDelay:
-        case DelayType::kSelectRingDelay:
-            int N = pow2limit(mxd + 1);
-            // std::string idx = subst("(IOTA-$0)&$1", T(delay), T(N - 1));
-            result = subst("$0[($0idx-$1)&$2]", vecname, T(delay), T(N - 1));
-            break;
-    }
-    // return generateCacheCode(sig, result);
-    return result;
+    return generateDelayAccess(sig, exp, T(delay));
 }
 
 /**
- * Generate code for accessing a delayed signal when using an index in a loop
+ * Generate code for accessing a delayed signal when using a string as index
  */
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
 {
-    // FIX: We don't compile the delayed signal anymore. This is done by the general scheduling.
-    // But we make sure the delayed signal has a vector name.
-
-    // string    code = CS(exp);  // ensure exp is compiled to have a vector name
     std::string ctype, pname;
     getTypedNames(getCertifiedSigType(sig), "Vec", ctype, pname);
     string    vecname = ensureVectorNameProperty(pname, exp);
@@ -1841,17 +1746,16 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
     std::string result;
     switch (dt) {
         case DelayType::kNotADelay:
-            faustexception("Try to compile something that is not an indexable delay");
+            throw faustexception("Try to compile something that is not an indexable delay");
             result = "";
             break;
 
         case DelayType::kZeroDelay:
-            faustexception("Try to compile something that is not an indexable delay");
             result = vecname;
             break;
 
         case DelayType::kMonoDelay:
-            faustexception("Try to compile something that is not an indexable delay");
+            result = vecname;
             break;
 
         case DelayType::kSingleDelay:
@@ -1868,7 +1772,6 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
                            T(N - 1));  // idx can't be cashed as it depends of loop variable ii
             break;
     }
-    // return generateCacheCode(sig, result);
     return result;
 }
 
