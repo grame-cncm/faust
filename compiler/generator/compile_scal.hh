@@ -103,7 +103,8 @@ class ScalarCompiler : public Compiler {
 
     // code generation
     std::string         generateXtended(Tree sig);
-    virtual std::string generateDelayAccess(Tree sig, Tree arg, Tree size);
+    virtual std::string generateDelayAccess(Tree sig, Tree arg, Tree delay);
+    std::string         generateDelayAccess(Tree sig, Tree arg, int delay);
     std::string         generatePrefix(Tree sig, Tree x, Tree e);
     std::string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 

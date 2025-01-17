@@ -750,6 +750,8 @@ string ScalarCompiler::generateNumber(Tree sig, const string& exp)
     string       ctype, vname;
     Occurrences* o = fOccMarkup->retrieve(sig);
 
+    faustassert(o != nullptr);
+
     // check for number occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
@@ -1662,6 +1664,56 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 }
 
 /**
+ * Generate code for accessing a delayed signal. The generated code depend of
+ * the maximum delay attached to exp.
+ */
+string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, int delay)
+{
+    // FIX: We don't compile the delayed signal anymore. This is done by the general scheduling.
+    // But we make sure the delayed signal has a vector name.
+
+    // string    code = CS(exp);  // ensure exp is compiled to have a vector name
+    std::string ctype, pname;
+    getTypedNames(getCertifiedSigType(sig), "Veeec", ctype, pname);
+    string    vecname = ensureVectorNameProperty(pname, exp);
+    int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
+    DelayType dt      = analyzeDelayType(exp);
+#ifdef TRACE
+    std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
+              << fScheduleOrder[exp] << " -- " << exp << " :: " << ppsig(exp, 10) << std::endl;
+#endif
+    std::string result;
+    switch (dt) {
+        case DelayType::kNotADelay:
+            faustexception("Try to compile has a delay something that is not a delay");
+            result = "";
+            break;
+
+        case DelayType::kZeroDelay:
+            result = vecname;
+            break;
+
+        case DelayType::kMonoDelay:
+            result = vecname;
+            break;
+
+        case DelayType::kSingleDelay:
+        case DelayType::kCopyDelay:
+        case DelayType::kDenseDelay:
+            result = subst("$0[$1]", vecname, T(delay));
+            break;
+
+        case DelayType::kMaskRingDelay:
+        case DelayType::kSelectRingDelay:
+            int         N   = pow2limit(mxd + 1);
+            std::string idx = subst("(IOTA-$0)&$1", T(delay), T(N - 1));
+            result          = subst("$0[$1]", vecname, generateIotaCache(idx));
+            break;
+    }
+    return generateCacheCode(sig, result);
+}
+
+/**
  * Generate code for the delay mechanism. The generated code depend of the
  * maximum delay attached to exp and the "less temporaries" switch
  */
@@ -1869,7 +1921,7 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         if (isZero(coefs[i])) {
             continue;
         }
-        string access = generateDelayAccess(sig, exp, sigInt(i - 1));
+        string access = generateDelayAccess(sig, exp, i - 1);
         if (isOne(coefs[i])) {
             oss << sep << access;
         } else {
