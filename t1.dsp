@@ -303,3 +303,24 @@ mf1_4000 = mfir(1,4000);
 h1 = FIR((1,0,0,1));
 h2 = FIR((0,0,0,0,1,0,0,1));
 h3 = FIR((0,0,0,0,1,0,0,0,0,1));
+
+// miir: multiple notches in parallel
+
+nw(n) = _ <: par(i, n, library("filters.lib").notchw(d,(i+1)*2*d)) :> _ with { d = 10000/n; };
+
+// même quantité de travail
+nw1 = nw(1);
+nw2 = nw(2);
+nw4 = nw(4);
+nw8 = nw(8);
+nw16 = nw(16);
+nw32 = nw(32);
+nw64 = nw(64);
+nw128 = nw(128);
+nw256 = nw(256);
+nw512 = nw(512);
+nw1024 = nw(1024);
+
+// fcexplorer.py t1.dsp -lang "ocpp" -fir "" -mdd "10000" -mfs "10000" -pn "nw1 nw2 nw4 nw8 nw16 nw32 nw64 nw128"
+// fcexplorer.py t1.dsp -lang "cpp" -mcd "0 4 8 16" -vec ""  -pn "nw1 nw2 nw4 nw8 nw16 nw32 nw64 nw128"
+// for f in t1*nw*.cpp; do fcbenchtool $f; done 
