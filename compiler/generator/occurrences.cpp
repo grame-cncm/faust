@@ -178,7 +178,7 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         } else if (isSigFIR(t, V)) {
             // a FIR is computed at kSamp
             faustassert(v0 == kSamp);
-            faustassert(V.size() > 2);  // Otherwise not a proper FIR
+            faustassert(V.size() >= 2);  // Otherwise not a proper FIR
             for (unsigned int i = 1; i < V.size(); i++) {
                 incOcc(env, kSamp, r0, 0, c0, V[i]);  // increment the occurences of the coefficient
                 if (!isZero(V[i])) {
