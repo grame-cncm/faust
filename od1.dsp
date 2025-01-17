@@ -91,3 +91,9 @@ with {
 
 phas2 = ondemand(phas1)(button("play1")),
 		ondemand(phas1)(button("play2"));
+
+// test new connexions
+c1 = 1:! <: 0;
+c2 = 1:! :> 0;
+c3 = 1:! : 0;
+c4 = (! <: 0), (! :> 0), (! : 0);
