@@ -585,7 +585,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
         // We create on ondemand signal that contain all the information
         tvec W;
-        W.push_back(H);      // the clok signal
+        W.push_back(H);      // the clock signal
         for (Tree s : X2) {  // the input signals in temp variables
             W.push_back(s);
         }
