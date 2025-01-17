@@ -40,7 +40,7 @@ Tree FIRRevealer::transformation(Tree sig)
         return SignalIdentity::transformation(sig);
     }
 }
-
+#if 0
 // isFirElem((x@d)*c) -> <x, d, c> with d integer constant
 std::optional<std::tuple<Tree, int, Tree>> isFirElem(Tree s)
 {
@@ -67,6 +67,8 @@ std::optional<std::tuple<Tree, int, Tree>> isFirElem(Tree s)
 
     return std::nullopt;
 }
+#endif
+
 // multiply a sigSum sum by a signal c
 static Tree mulSigSum(Tree sum, Tree c)
 {

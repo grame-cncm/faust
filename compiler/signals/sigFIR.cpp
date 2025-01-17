@@ -89,6 +89,17 @@ Tree delaySigFIR(Tree s1, Tree s2)
                 return makeSigFIR(s1, d);
             }
         } else {
+            // For some reason it is useful to have a clock around a rec with a delay of zero
+            int j;
+            if (Tree rg, var, le; isProj(s1, &j, rg) && isRec(rg, var, le)) {
+                // std::cerr << "#### delaySigFIR: delay is zero for rec: " << ppsig(s1) <<
+                // std::endl;
+                if (Tree ck; hasClock(nth(le, j), ck)) {
+                    // std::cerr << "#### delaySigFIR: rec has a clock: " << ppsig(ck) << std::endl;
+                    return sigClocked(ck, s1);
+                }
+            }
+
             return s1;
         }
     } else {
