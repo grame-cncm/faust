@@ -432,14 +432,15 @@ void global::reset()
     gMaxNameSize      = 40;
     gSimpleNames      = false;
     gSimplifyDiagrams = false;
-    gMaxCopyDelay     = 16;    // Maximal delay too choose a copy representation
-    gMaxFIRSize       = 64;    // Maximal number of coefficients for a FIR
-    gMaxDenseDelay    = 1024;  // Maximal delay too choose a dense representation
+    gMaxCopyDelay     = 9;     // Maximal delay to choose a copy representation
+    gMaxFIRSize       = 1024;  // Maximal number of coefficients for a FIR
+    gMaxDenseDelay    = 1024;  // Maximal delay to choose a dense representation
     gMinDensity       = 33;    // Minimal density d/100 to choose a dense representation
+    gMinCopyLoop      = 4;     // Minimal number of coefficients to use a loop for copy
 
     gVectorSwitch      = false;
     gDeepFirstSwitch   = false;
-    gVecSize           = 32;
+    gVecSize           = 128;
     gVectorLoopVariant = 0;
     gVectorFIRIIRs     = false;
     gFirLoopSize       = 4;  // FIR/IIR size for creating a loop
@@ -864,6 +865,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gOpenMPSwitch) {
         dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
     }
+    dst << "-mcl " << gMinCopyLoop << " ";
     dst << "-mcd " << gMaxCopyDelay << " ";
     dst << "-mfs " << gMaxFIRSize << " ";
     dst << "-mdd " << gMaxDenseDelay << " ";
@@ -1291,6 +1293,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i + 1 < argc)) {
             gMaxCopyDelay = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-mcl", "--min-copy-loop") && (i + 1 < argc)) {
+            gMinCopyLoop = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mfs", "--max-fir-size") && (i + 1 < argc)) {
@@ -2254,6 +2260,7 @@ string global::printHelp()
             "(ocpp only) "
             "or a ring buffer (defaut 16 samples)."
          << endl;
+    sstr << tab << "-mls <n>    --min-loop-samples <n>      loop instead of expanded copy " << endl;
     sstr << tab
          << "-mdd <n>    --max-dense-delay <n>       use a dense delay up to max delay <n> (if "
             "enough density) and a "

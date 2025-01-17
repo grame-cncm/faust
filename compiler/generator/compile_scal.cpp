@@ -1865,22 +1865,36 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addClearCode(
                 subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd), vname));
             fClass->addZone2(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-            for (int j = 0; j < mxd; j++) {
-                fClass->addZone3(subst("$0[$1] = $0State[$2];", vname, T(j + 1), T(j)));
-            }
-            fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
-            for (int j = 0; j < mxd; j++) {
-                // warning ; line stacked in reverse order !!!
-                fClass->addPostCode(
-                    Statement("", subst("$0[$1] = $0[$2];", vname, T(j + 1), T(j))));
-            }
-            for (int j = 0; j < mxd; j++) {
-                fClass->addZone3Post(subst("$0State[$1] = $0[$2];", vname, T(j), T(j + 1)));
+            if (mxd < gGlobal->gMinCopyLoop) {
+                // Unroll sample copy loops
+                for (int j = 0; j < mxd; j++) {
+                    fClass->addZone3(subst("$0[$1] = $0State[$2];", vname, T(j + 1), T(j)));
+                }
+                fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+                for (int j = 0; j < mxd; j++) {
+                    // warning ; line stacked in reverse order !!!
+                    fClass->addPostCode(
+                        Statement("", subst("$0[$1] = $0[$2];", vname, T(j + 1), T(j))));
+                }
+                for (int j = 0; j < mxd; j++) {
+                    fClass->addZone3Post(subst("$0State[$1] = $0[$2];", vname, T(j), T(j + 1)));
+                }
+
+            } else {
+                // Use sample copy loops
+                fClass->addZone3(
+                    subst("for (int j = 0; j < $0; j++) { $1[j+1] = $1State[j]; }", T(mxd), vname));
+                fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+                fClass->addPostCode(Statement(
+                    "", subst("for (int j = $0; j > 0; j--) { $1[j] = $1[j-1]; }", T(mxd), vname)));
+                fClass->addZone3Post(
+                    subst("for (int j = 0; j < $0; j++) { $1State[j] = $1[j+1]; }", T(mxd), vname));
             }
             return subst("$0[0]", vname);
 
         case DelayType::kDenseDelay:
-
+#if 1
+            // version normale
             fClass->addDeclCode(subst("$0 \t$1State[$2]; // Dense Delay", ctype, vname, T(mxd)));
             fClass->addClearCode(
                 subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd), vname));
@@ -1895,6 +1909,35 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addZone3Post(
                 subst("for (int j = 0; j < $0; j++) { $1State[j] = $1[j+1]; }", T(mxd), vname));
             return subst("$0[0]", vname);
+#else
+            // version optimisée par rebouclage directe dans le vecteur (environ 1% de gain)
+            fClass->addDeclCode(subst("$0 \t$1State[$2]; // Dense Delay", ctype, vname, T(mxd)));
+            fClass->addClearCode(
+                subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd), vname));
+            fClass->addZone2(
+                subst("$0 \t$1Cache[$2+$3];", ctype, vname, T(gGlobal->gVecSize), T(mxd)));
+            fClass->addZone2(subst("for (int j = 0; j < $0; j++) {$1Cache[j + $2] = $1State[j];}",
+                                   T(mxd), vname, T(gGlobal->gVecSize)));
+            fClass->addZone3(
+                subst("$0* \t$1 = $1Cache + $2 - 1;", ctype, vname, T(gGlobal->gVecSize)));
+            fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+            fClass->addPostCode(Statement("", subst("--$0;", vname)));
+            if (mxd < gGlobal->gMinCopyLoop) {
+                for (int j = mxd - 1; j >= 0; j--) {
+                    fClass->addZone3Post(
+                        subst("$0Cache[$1] = $0Cache[$2];", vname, T(j + gGlobal->gVecSize), T(j)));
+                }
+            } else {
+                fClass->addZone3Post(
+                    subst("for (int j = $0-1; j >= 0; j--) { $1Cache[j+$2] = $1Cache[j]; }", T(mxd),
+                          vname, T(gGlobal->gVecSize)));
+            }
+            fClass->addZone4(subst("for (int j = 0; j < $0; j++) { $1State[j] = $1Cache[j+$2]; }",
+                                   T(mxd), vname, T(gGlobal->gVecSize)));
+
+            return subst("$0[0]", vname);
+
+#endif
 
         case DelayType::kMaskRingDelay:
         case DelayType::kSelectRingDelay:
