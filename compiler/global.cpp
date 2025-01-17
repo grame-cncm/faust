@@ -435,15 +435,15 @@ void global::reset()
 
     // new compilation options related to FIRs, IIRs and delaylines
 
-    gReconstructFIRIIRs = false;  // Choose to reconstruct FIRs and IIRs
-    gMaxFIRSize         = 1024;   // Maximal number of coefficients for a FIR
-    gFirLoopSize        = 4;      // Choose inline under this value or loop to compute the FIR/IIR
-    gMaxCopyDelay       = 9;      // Implement delays by copy under this value, IOTA/Dense otherwise
-    gMinCopyLoop        = 4;      // When copying delays use inline under this value or loop
-    gUseDenseDelay      = 1;      // Use dense delay representation instead of IOTA
-    gMinDensity         = 33;     // Minimal density d/100 to choose a dense representation
-    gMaxDenseDelay      = 1024;   // Maximal delay to choose a dense representation
-    gIIRRingThreshold   = 4;      // Minimal delay to use a ring buffer for IIR
+    gReconstructFIRIIRs = false;  // [-fir]  : Reconstruct FIRs and IIRs
+    gMaxFIRSize         = 1024;   // [-mfs n]: Maximal number of coefficients for a FIR
+    gFirLoopSize        = 4;      // [-fls n]: inline/loop computation of FIR/IIR values
+    gMaxCopyDelay       = 9;      // [-mcd n]: copy/iota-dense delay line
+    gMinCopyLoop        = 4;      // [-mcl n]: inline/loop samples copy
+    gUseDenseDelay      = 1;      // [-udd 0/1]: Use dense delay representation instead of IOTA
+    gMinDensity         = 33;     // [-mdy n]: dense/iota delay line density threshold
+    gMaxDenseDelay      = 1024;   // [-mdd n]: Maximal delay to choose a dense representation
+    gIIRRingThreshold   = 4;      // [-irt n]: Minimal delay to use a ring buffer for IIR
     gVectorSwitch       = false;
     gDeepFirstSwitch    = false;
     gVecSize            = 128;
