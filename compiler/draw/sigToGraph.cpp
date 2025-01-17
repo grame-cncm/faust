@@ -73,7 +73,7 @@ void sigToGraph(Tree L, ostream& fout)
 static void recdraw(Tree sig, set<Tree, CTreeComparator>& drawn, ostream& fout)
 {
     // cerr << ++gGlobal->TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
-    tvec subsig;
+    tvec subsig, coefs;
     int  n;
 
     if (drawn.count(sig) == 0) {
@@ -83,6 +83,24 @@ static void recdraw(Tree sig, set<Tree, CTreeComparator>& drawn, ostream& fout)
                 recdraw(hd(sig), drawn, fout);
                 sig = tl(sig);
             } while (isList(sig));
+        } else if (isSigFIR(sig, coefs)) {
+            fout << 'S' << sig << "[label=\"" << sigLabel(sig) << '(' << coefs.size() - 1 << ')'
+                 << "\"" << nodeattr(getCertifiedSigType(sig)) << "];" << endl;
+            // we only draw the input signal
+            Tree x = coefs[0];
+            recdraw(x, drawn, fout);
+            fout << 'S' << x << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(x))
+                 << "];" << endl;
+
+        } else if (isSigIIR(sig, coefs)) {
+            fout << 'S' << sig << "[label=\"" << sigLabel(sig) << '(' << coefs.size() - 2 << ')'
+                 << "\"" << nodeattr(getCertifiedSigType(sig)) << "];" << endl;
+            // we only draw the input signal
+            Tree x = coefs[1];
+            recdraw(x, drawn, fout);
+            fout << 'S' << x << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(x))
+                 << "];" << endl;
+
         } else {
             // draw the node
             fout << 'S' << sig << "[label=\"" << sigLabel(sig) << "\""
@@ -142,9 +160,9 @@ static string edgeattr(Type t)
 {
     string sout(commonAttr(t));
     sout += " label =\"";
-    sout += t->getInterval().to_string();
-    sout += ", ";
-    sout += t->getRes().toString();
+    // sout += t->getInterval().to_string();
+    // sout += ", ";
+    // sout += t->getRes().toString();
     sout += "\"";
     return sout;
 }
@@ -274,14 +292,14 @@ static string sigLabel(Tree sig)
 #endif
     else if (isSigAttach(sig, x, y)) {
         fout << "attach";
-    } 
-    
+    }
+
     else if (isSigFIR(sig)) {
         fout << "FIR";
     } else if (isSigIIR(sig)) {
         fout << "IIR";
-    } 
-    
+    }
+
     else if (isSigAssertBounds(sig, x, y, z)) {
         fout << "assertbounds";
     }
