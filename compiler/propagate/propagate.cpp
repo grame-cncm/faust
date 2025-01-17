@@ -189,7 +189,7 @@ static bool getPropagateProperty(Tree args, siglist& lsig)
  * @param lsig the list of input signals to propagate
  * @return the resulting list of output signals
  */
-static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig);
+static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglist& lsig);
 
 // Collect the leaf numbers of tree l into vector v.
 // return true if l is a number or a parallel tree of numbers.
@@ -227,7 +227,7 @@ static bool isIntTree(Tree l, vector<int>& v)
  * @param lsig the list of input signals to propagate
  * @return the resulting list of output signals
  */
-static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
+static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
     int    i;
     double r;
@@ -303,7 +303,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxSymbolic(box, slot, body)) {
         faustassert(lsig.size() > 0);
-        return propagate(pushEnv(slot, lsig[0], slotenv), path, body,
+        return propagate(clockenv, pushEnv(slot, lsig[0], slotenv), path, body,
                          listRange(lsig, 1, (int)lsig.size()));
     }
 
@@ -431,15 +431,15 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     // User Interface Groups
 
     else if (isBoxVGroup(box, label, t1)) {
-        return propagate(slotenv, cons(cons(tree(0), label), path), t1, lsig);
+        return propagate(clockenv, slotenv, cons(cons(tree(0), label), path), t1, lsig);
     }
 
     else if (isBoxHGroup(box, label, t1)) {
-        return propagate(slotenv, cons(cons(tree(1), label), path), t1, lsig);
+        return propagate(clockenv, slotenv, cons(cons(tree(1), label), path), t1, lsig);
     }
 
     else if (isBoxTGroup(box, label, t1)) {
-        return propagate(slotenv, cons(cons(tree(2), label), path), t1, lsig);
+        return propagate(clockenv, slotenv, cons(cons(tree(2), label), path), t1, lsig);
     }
 
     // Block Diagram Composition Algebra
@@ -451,7 +451,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
         // Connection coherency is checked in evaluateBlockDiagram
         faustassert(out1 == in2);
-        return propagate(slotenv, path, t2, propagate(slotenv, path, t1, lsig));
+        return propagate(clockenv, slotenv, path, t2, propagate(clockenv, slotenv, path, t1, lsig));
     }
 
     else if (isBoxPar(box, t1, t2)) {
@@ -460,8 +460,8 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t2, &in2, &out2);
 
         // No restriction in connection
-        return listConcat(propagate(slotenv, path, t1, listRange(lsig, 0, in1)),
-                          propagate(slotenv, path, t2, listRange(lsig, in1, in1 + in2)));
+        return listConcat(propagate(clockenv, slotenv, path, t1, listRange(lsig, 0, in1)),
+                          propagate(clockenv, slotenv, path, t2, listRange(lsig, in1, in1 + in2)));
     }
 
     else if (isBoxSplit(box, t1, t2)) {
@@ -470,9 +470,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t2, &in2, &out2);
 
         // Connection coherency is checked in evaluateBlockDiagram
-        siglist l1 = propagate(slotenv, path, t1, lsig);
+        siglist l1 = propagate(clockenv, slotenv, path, t1, lsig);
         siglist l2 = split(l1, in2);
-        return propagate(slotenv, path, t2, l2);
+        return propagate(clockenv, slotenv, path, t2, l2);
     }
 
     else if (isBoxMerge(box, t1, t2)) {
@@ -481,9 +481,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t2, &in2, &out2);
 
         // Connection coherency is checked in evaluateBlockDiagram
-        siglist l1 = propagate(slotenv, path, t1, lsig);
+        siglist l1 = propagate(clockenv, slotenv, path, t1, lsig);
         siglist l2 = mix(l1, in2);
-        return propagate(slotenv, path, t2, l2);
+        return propagate(clockenv, slotenv, path, t2, l2);
     }
 
     else if (isBoxRec(box, t1, t2)) {
@@ -496,8 +496,8 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
         // Connection coherency is checked in evaluateBlockDiagram
         siglist l0 = makeMemSigProjList(ref(1), in2);
-        siglist l1 = propagate(slotenv2, path, t2, l0);
-        siglist l2 = propagate(slotenv2, path, t1, listConcat(l1, listLift(lsig)));
+        siglist l1 = propagate(clockenv, slotenv2, path, t2, l0);
+        siglist l2 = propagate(clockenv, slotenv2, path, t1, listConcat(l1, listLift(lsig)));
         Tree    g  = rec(listConvert(l2));
 
         // Compute output list of recursive signals
@@ -570,7 +570,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
             X2.push_back(sigTempVar(lsig[i]));
         }
         // We propagate into prop(X2,t1) -> Y0
-        siglist Y0 = propagate(slotenv, path, t1, X2);
+        siglist Y0 = propagate(clockenv, slotenv, path, t1, X2);
 
         // We store the output signals into perm variables
         siglist Y1;
@@ -620,6 +620,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 /**
  * Propagate a list of signals into a block diagram. Do memoization.
  *
+ * @param clockenv surronnding ondemand clock
  * @param slotenv environment associating slots and signals
  * @param path user interface group path
  * @param box the block diagram
@@ -627,12 +628,12 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
  * @return the resulting list of output signals
  */
 
-siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
+siglist propagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
-    Tree    args = tree(gGlobal->PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig));
+    Tree args = tree(gGlobal->PROPAGATEPROPERTY, clockenv, slotenv, path, box, listConvert(lsig));
     siglist result;
     if (!getPropagateProperty(args, result)) {
-        result = realPropagate(slotenv, path, box, lsig);
+        result = realPropagate(clockenv, slotenv, path, box, lsig);
         setPropagateProperty(args, result);
     }
     // cerr << "propagate in " << boxpp(box) << endl;
@@ -661,5 +662,5 @@ siglist makeSigInputList(int n)
 
 Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig)
 {
-    return listConvert(propagate(gGlobal->nil, path, box, lsig));
+    return listConvert(propagate(gGlobal->nil, gGlobal->nil, path, box, lsig));
 }
