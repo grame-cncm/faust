@@ -37,6 +37,7 @@
 #include "compile.hh"
 #include "compile_scal.hh"
 #include "dlcodegen.hh"
+#include "factorizeFIRIIRs.hh"
 #include "floats.hh"
 #include "normalform.hh"
 #include "ppsig.hh"
@@ -127,6 +128,12 @@ Tree ScalarCompiler::prepare(Tree LS)
         Tree L2c = revealIIR(L2b);
         endTiming("IIR revealer");
         L2 = L2c;
+        if (gGlobal->gFactorizeFIRIIRs) {
+            startTiming("FIR/IIR factorizer");
+            Tree L2d = factorizeFIRIIRs(L2);
+            endTiming("FIR/IIR factorizer");
+            L2 = L2d;
+        }
     } else {
         L2 = L2a;
     }
@@ -152,6 +159,13 @@ Tree ScalarCompiler::prepare(Tree LS)
     fOccMarkup = new OccMarkup(fConditionProperty);
     fOccMarkup->mark(L2);  // Annotate L2 with occurrences analysis
     endTiming("occurrences analysis");
+
+    // Stage to test that SignalIdentity is working correctly
+    startTiming("consistence analysis");
+    SignalIdentity SI;
+    Tree           Lx = SI.mapself(L2);
+    faustassert(Lx == L2);
+    endTiming("consistence analysis");
 
     endTiming("prepare");
 

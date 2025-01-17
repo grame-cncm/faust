@@ -3,7 +3,7 @@
 #include "sigIdentity.hh"
 #include "signals.hh"
 
-#define TRACE true
+#define TRACE false
 
 //---------------Private implementation-----------------
 
@@ -15,9 +15,45 @@ class FIRIIRFactorizer : public SignalIdentity {
     bool hasCommonCoef(const tvec& C, Tree& factor, tvec& newC);
 };
 
-bool FIRIIRFactorizer::hasCommonCoef(const tvec& C, Tree& factor, tvec& newC)
+bool FIRIIRFactorizer::hasCommonCoef(const tvec& C, Tree& commonfactor, tvec& newC)
 {
-    // not implemented yet
+    // compute the most common factor and its number of occurrences
+    std::map<Tree, int> coefMap;
+    Tree                factor    = gGlobal->nil;
+    int                 nbfactors = 0;
+    int                 maxCoef   = 0;
+    for (int i = 1; i < C.size(); i++) {
+        Tree c = C[i];
+        // we analyze all non zero factors
+        if (!isZero(c)) {
+            nbfactors++;
+            if (coefMap.find(c) == coefMap.end()) {
+                coefMap[c] = 1;
+            } else {
+                coefMap[c]++;
+            }
+            if (coefMap[c] > maxCoef) {
+                maxCoef = coefMap[c];
+                factor  = c;
+            }
+        }
+    }
+    // std::cerr << "factor: " << ppsig(factor) << " count: " << maxCoef << " nbfactors: " <<
+    // nbfactors
+    //           << std::endl;
+    // Case 1: the common factor is equal to all nz coefficients
+    if (maxCoef == nbfactors) {
+        for (Tree c : C) {
+            if (c == factor) {
+                newC.push_back(sigInt(1));
+            } else {
+                newC.push_back(c);
+            }
+        }
+        commonfactor = factor;
+        return true;
+    }
+
     return false;
 }
 
@@ -41,7 +77,9 @@ Tree FIRIIRFactorizer::transformation(Tree sig)
 
 Tree FIRIIRFactorizer::postprocess(Tree sig)
 {
+    // std::cerr << "Postprocess: " << ppsig(sig) << std::endl;
     if (tvec coef; isSigFIR(sig, coef)) {
+        // std::cerr << "factorizeFIRIIRs: FIR " << ppsig(sig) << std::endl;
         Tree factor;
         tvec newCoef;
         if (hasCommonCoef(coef, factor, newCoef)) {
@@ -64,9 +102,8 @@ Tree factorizeFIRIIRs(Tree L1)
     // F.trace(TRACE, "fractorizeFIRIIRs");
     // Tree L2 = F.mapself(L1);
     // return L2;
-    SignalIdentity F;
+    FIRIIRFactorizer F;
     F.trace(TRACE, "factorizeFIRIIRs");
     Tree L2 = F.mapself(L1);
-    faustassert(L1 == L2);
     return L2;
 }
