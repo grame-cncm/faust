@@ -378,6 +378,12 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "buffer", sf, x, y, z);
     }
 
+    else if (isSigFIR(fSig)) {
+        printfir(fout, fSig->branches());
+    } else if (isSigIIR(fSig)) {
+        printiir(fout, fSig->branches());
+    }
+
     else if (isSigAttach(fSig, x, y)) {
         printfun(fout, "attach", x, y);
     } else if (isSigEnable(fSig, x, y)) {
