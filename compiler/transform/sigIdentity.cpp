@@ -141,7 +141,7 @@ Tree SignalIdentity::transformation(Tree sig)
         for (int i = 1; i < c.size(); i++) {
             c[i] = self(c[i]);
         }
-        return sigFIR(c);
+        return sigIIR(c);
     }
 
     else if (isSigGen(sig, x)) {
