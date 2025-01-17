@@ -15,7 +15,7 @@
 #include "Schedule.hh"
 #include "sigRecursiveDependencies.hh"
 
-#define TRACE true
+#define TRACE false
 
 //----------------------------------------------------------------------
 // IIR part
@@ -91,74 +91,62 @@ static std::tuple<bool, Tree, Tree, Tree> unclock(Tree x, Tree y)
 
 /**
  * @brief Check if a recursive projection is a FIR that can
- * be transformed into an IIR
+ * be transformed into an IIR:
+ *
+ * def(Wi) = x + c1*Wi@1 + c2*Wi@2 + ...
+ * def(Wi) = x + FIR[Wi, 0, c1, c2, ...]
+ * IIR[nil, x, 0, c1, c2, ...]
+ * (assuming, x doesn't depend on Wi)
  *
  * @param indentation
  * @param proj: proj(i,rec(var,le))
  * @return an IIR or nil
  */
+static Tree recdef2IIR(int indentation, Tree proj, Tree def)
+{
+    // std::cerr << std::string(indentation, '\t') << "proj2IIR: " << ppsig(def) << "\n";
+    if (Tree x, y; isSigAdd(def, x, y)) {
+        if (tvec cy; isSigFIR(y, cy) && !isDependingOn(x, proj)) {
+            if (Tree h, p; isSigClocked(cy[0], h, p) && p == proj) {
+                return makeIIR(y, sigClocked(h, x));
+            } else {
+                return gGlobal->nil;
+            }
+        }
+        if (tvec cx; isSigFIR(x, cx) && !isDependingOn(y, proj)) {
+            if (Tree h, p; isSigClocked(cx[0], h, p) && p == proj) {
+                return makeIIR(x, sigClocked(h, y));
+            } else {
+                return gGlobal->nil;
+            }
+        }
+        return gGlobal->nil;
+    }
+
+    if (Tree x, y; isSigSub(def, x, y)) {
+        // We don't handle this case directly, we transform it into an addition
+        if (isSigFIR(y)) {
+            return recdef2IIR(indentation, proj, sigAdd(x, negSigFIR(y)));
+        }
+        if (isSigFIR(x)) {
+            return recdef2IIR(indentation, proj, sigAdd(x, sigNeg(y)));
+        }
+        return gGlobal->nil;
+    }
+
+    // the recursive definition can't be transformed into an IIR
+    return gGlobal->nil;
+}
+
 static Tree proj2IIR(int indentation, Tree proj)
 {
     int  i;
-    Tree rg, var, le, x0, y0;
+    Tree rg, var, le;
 
     faustassert(isProj(proj, &i, rg));
     faustassert(isRec(rg, var, le));
     Tree def = nth(le, i);
-    // std::cerr << std::string(indentation, '\t') << "proj2IIR: " << ppsig(def) << "\n";
-    if (isSigAdd(def, x0, y0)) {
-        auto [clocked, clock, x1, y1] = unclock(x0, y0);
-
-        if (tvec cy; isSigFIR(y1, cy) && cy[0] == proj) {
-            if (!isDependingOn(x1, proj)) {
-                if (clocked) {
-                    return makeIIR(y1, sigClocked(clock, x1));
-                }
-                return makeIIR(y1, x1);
-            } else {
-                return gGlobal->nil;
-            }
-        } else if (tvec cx; isSigFIR(x1, cx) && cx[0] == proj) {
-            if (!isDependingOn(y1, proj)) {
-                if (clocked) {
-                    return makeIIR(x1, sigClocked(clock, y1));
-                }
-                return makeIIR(x1, y1);
-            } else {
-                return gGlobal->nil;
-            }
-        } else {
-            return gGlobal->nil;
-        }
-    }
-
-    else if (isSigSub(def, x0, y0)) {
-        auto [clocked, clock, x1, y1] = unclock(x0, y0);
-
-        if (tvec cy; isSigFIR(y1, cy) && cy[0] == proj) {
-            if (!isDependingOn(x1, proj)) {
-                if (clocked) {
-                    return makeIIR(negSigFIR(y1), sigClocked(clock, x1));
-                }
-                return makeIIR(negSigFIR(y1), x1);
-            } else {
-                return gGlobal->nil;
-            }
-        } else if (tvec cx; isSigFIR(x1, cx) && cx[0] == proj) {
-            if (!isDependingOn(y1, proj)) {
-                if (clocked) {
-                    return makeIIR(x1, sigClocked(clock, sigNeg(y1)));
-                }
-                return makeIIR(x1, sigNeg(y1));
-            } else {
-                return gGlobal->nil;
-            }
-        } else {
-            return gGlobal->nil;
-        }
-    } else {
-        return gGlobal->nil;
-    }
+    return recdef2IIR(indentation, proj, def);
 }
 
 //----------------------------------------------------------------------

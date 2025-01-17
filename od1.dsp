@@ -38,6 +38,7 @@ t15 = button("play1") : ondemand(button("play2") : ondemand(+(1)~_));
 // Verifier les FIR
 fir(n) = _ <: par(i,n, @(i)/(3+i)) :> _;
 
-t16 = fir(3); // FIR OK
-t17 = +~fir(3); // IIR ?
+t16 = fir(5); // FIR OK
+t16b= button("play"),_:ondemand(fir(5));
+t17 = +~fir(5); // IIR ?
 

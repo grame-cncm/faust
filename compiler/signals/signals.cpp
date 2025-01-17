@@ -1078,11 +1078,6 @@ LIBFAUST_API bool isSigOD(Tree s, tvec& sigsubs)
     }
 }
 
-LIBFAUST_API Tree sigClocked(Tree h, Tree y)
-{
-    return tree(gGlobal->SIGCLOCKED, h, y);
-}
-
 LIBFAUST_API bool isSigClocked(Tree s)
 {
     return isTree(s, gGlobal->SIGCLOCKED);
@@ -1091,6 +1086,16 @@ LIBFAUST_API bool isSigClocked(Tree s)
 LIBFAUST_API bool isSigClocked(Tree s, Tree& h, Tree& y)
 {
     return isTree(s, gGlobal->SIGCLOCKED, h, y);
+}
+
+LIBFAUST_API Tree sigClocked(Tree h, Tree y)
+{
+    if (Tree h2, z; isSigClocked(y, h2, z) && (h == h2)) {
+        // y is already annotated with the clock h
+        return y;
+    } else {
+        return tree(gGlobal->SIGCLOCKED, h, y);
+    }
 }
 
 // for FPGA Retiming
