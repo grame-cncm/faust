@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "Schedule.hh"
+#include "Text.hh"
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
@@ -1026,6 +1027,10 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
     Occurrences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
+    if (isNumber(exp)) {
+        // std::cerr << "Number in generateVariableStore " << exp << std::endl;
+        return exp;
+    }
     switch (t->variability()) {
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
