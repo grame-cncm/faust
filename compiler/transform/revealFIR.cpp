@@ -166,9 +166,41 @@ Tree FIRRevealer::postprocess(Tree sig)
         std::cerr << "We have " << V.size() << " elements in the final sum\n";
         std::cerr << "The final sum is: " << ppsig(res) << "\n";
         return res;
-    } else {
-        return sig;
     }
+
+    if (Tree ck, h, f, d; isSigDelay(sig, ck, d) && isSigClocked(ck, h, f) && isSigFIR(f)) {
+        return delaySigFIR(f, d);
+    }
+
+    if (Tree f, d; isSigDelay(sig, f, d) && isSigFIR(f)) {
+        return delaySigFIR(f, d);
+    }
+
+    if (Tree ck, h, f, c; isSigMul(sig, ck, c) && isSigClocked(ck, h, f) && isSigFIR(f)) {
+        return mulSigFIR(f, c);
+    }
+
+    if (Tree ck, h, f, c; isSigMul(sig, c, ck) && isSigClocked(ck, h, f) && isSigFIR(f)) {
+        return mulSigFIR(f, c);
+    }
+
+    if (Tree f, c; isSigMul(sig, f, c) && isSigFIR(f)) {
+        return mulSigFIR(f, c);
+    }
+
+    if (Tree f, c; isSigMul(sig, c, f) && isSigFIR(f)) {
+        return mulSigFIR(f, c);
+    }
+
+    if (Tree ck, h, f, c; isSigDiv(sig, ck, c) && isSigClocked(ck, h, f) && isSigFIR(f)) {
+        return divSigFIR(f, c);
+    }
+
+    if (Tree f, c; isSigDiv(sig, f, c) && isSigFIR(f)) {
+        return divSigFIR(f, c);
+    }
+
+    return sig;
 }
 
 // External API
