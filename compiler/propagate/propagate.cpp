@@ -88,11 +88,11 @@ static siglist makeSigProjList(Tree t, int n)
 }
 
 //! build a list of n mem projections of a recursive group
-static siglist makeMemSigProjList(Tree t, int n)
+static siglist makeMemSigProjList(Tree clockenv, Tree t, int n)
 {
     siglist l(n);
     for (int i = 0; i < n; i++) {
-        l[i] = sigDelay1(sigProj(i, t));
+        l[i] = sigClocked(clockenv, sigDelay1(sigProj(i, t)));  // To be verified
     }
     return l;
 }
@@ -498,7 +498,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         Tree slotenv2 = lift(slotenv);
 
         // Connection coherency is checked in evaluateBlockDiagram
-        siglist l0 = makeMemSigProjList(ref(1), in2);
+        siglist l0 = makeMemSigProjList(clockenv, ref(1), in2);
         siglist l1 = propagate(clockenv, slotenv2, path, t2, l0);
         siglist l2 = propagate(clockenv, slotenv2, path, t1, listConcat(l1, listLift(lsig)));
         Tree    g  = rec(listConvert(l2));
