@@ -195,6 +195,9 @@ class Klass {
     void addExecCode(const Statement& stmt) { fTopLoop->addExecCode(stmt); }
     void addPostCode(const Statement& stmt) { fTopLoop->addPostCode(stmt); }
 
+    void openIFblock(const std::string& cond) { fTopLoop->openIFblock(cond); }
+    void closeIFblock() { fTopLoop->closeIFblock(); }
+
     void setComputeByBlock(bool b) { fComputeByBlock = b; }
     bool getComputeByBlock() { return fComputeByBlock; }
 

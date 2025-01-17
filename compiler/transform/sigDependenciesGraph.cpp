@@ -194,12 +194,20 @@ void SigDependenciesGraph::visit(Tree t)
         return;
     }
 
+    // if (Tree x, y; isSigSeq(t, x, y)) {
+    //     // Indicate a dependency to x (typically an ondemand).
+    //     fGraph.add(t, y, 0);
+    //     fGraph.add(y, x, 0);  // we need x to compile y
+    //     self(x);
+    //     self(y);
+    //     return;
+    // }
+
     if (Tree x, y; isSigSeq(t, x, y)) {
         // Indicate a dependency to x (typically an ondemand).
-        fGraph.add(t, y, 0);
-        fGraph.add(y, x, 0);  // we need x to compile y
+        // Because y is a result of x, no need to add a dependency to y
+        fGraph.add(t, x, 0);
         self(x);
-        self(y);
         return;
     }
 

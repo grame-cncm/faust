@@ -562,7 +562,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         }
 
     } else if (isBoxOndemand(box, t1)) {
-        // Propagate lsig into the ondemand version of t1
+        // Propagate lsig into the ondemand version of circuit t1
 
         // The first signal is the clock signal
         Tree H = lsig[0];
@@ -572,13 +572,14 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         for (unsigned int i = 1; i < lsig.size(); i++) {
             X2.push_back(sigTempVar(lsig[i]));
         }
-        // We propagate into prop(X2,t1) -> Y0
-        siglist Y0 = propagate(cons(H, clockenv), slotenv, path, t1, X2);
+        // We propagate X2 intside t1 -> Y0
+        Tree    clockenv2 = cons(H, clockenv);  // the clock environment inside the ondemand circuit
+        siglist Y0        = propagate(clockenv2, slotenv, path, t1, X2);
 
-        // We store the output signals into perm variables
+        // We store the sigclocked output signals into perm variables
         siglist Y1;
         for (unsigned int i = 0; i < Y0.size(); i++) {
-            Y1.push_back(sigPermVar(Y0[i]));
+            Y1.push_back(sigPermVar(sigClocked(clockenv2, Y0[i])));
         }
 
         // We create on ondemand signal that contain all the information
@@ -591,7 +592,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         for (Tree s : Y1) {
             W.push_back(s);
         }
-        // We create an ondemand signal that contains all the information
+        // The resulting ondemand signal with all the information
         Tree od = sigOD(W);
         std::cerr << "od = " << ppsig(od) << std::endl;
 
@@ -599,9 +600,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // using sigSeq(od, y)
         siglist Y2;
         for (Tree y : Y1) {
-            Tree y2 = sigSeq(od, y);
+            Tree y2 = sigSeq(od, sigClocked(H, y));
             std::cerr << "y2 = " << ppsig(y2) << std::endl;
-            Y2.push_back(sigSeq(od, y));
+            Y2.push_back(y2);
         }
         for (Tree s : Y2) {
             std::cerr << "DEBUG Y2 = " << ppsig(s) << std::endl;

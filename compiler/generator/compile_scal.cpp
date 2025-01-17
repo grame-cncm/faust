@@ -58,7 +58,7 @@
 #include "timing.hh"
 #include "xtended.hh"
 
-#undef TRACE
+#define TRACE
 
 // Old delays are supposed to work while new delays are in progress
 #define OLDDELAY 0
@@ -1721,6 +1721,10 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
     std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
               << fScheduleOrder[exp] << " -- " << exp << " :: " << ppsig(exp, 10) << std::endl;
 #endif
+    // if (fScheduleOrder[exp] == 0) {
+    //     // We are in an ondemand context, we need to compile the delayed signal
+    //     (void)CS(exp);
+    // }
     std::string result;
     switch (dt) {
         case DelayType::kNotADelay:
@@ -2403,7 +2407,8 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
 
     std::cerr << "opening if statement" << std::endl;
     // 3/ We the compile the clock signal and open an if statement
-    fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
+    // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
+    fClass->openIFblock(CS(clock));
 
     // 4/ We compile the output signals conditionnally inside the if statement
     for (Tree x : outputs) {
@@ -2411,7 +2416,7 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
     }
 
     // 5/ We close the if statement
-    fClass->addExecCode(Statement("", "}"));
+    fClass->closeIFblock();
     std::cerr << "closing if statement" << std::endl;
 
     // 6/ There is no compiled expression
