@@ -2048,8 +2048,7 @@ string ScalarCompiler::generateWaveform(Tree sig)
 string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
     faustassert(coefs.size() > 2);
-    // std::cerr << gGlobal->gSTEP << " generateFIR: " << sig << " [" << coefs.size() << ']'
-    //           << std::endl;
+    // std::cerr << gGlobal->gSTEP << " generateFIR: " << ppsig(sig) << std::endl;
 
     if (coefs.size() < gGlobal->gFirLoopSize) {
         std::ostringstream oss;
@@ -2178,8 +2177,7 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
     std::string vname, ctype;
     getTypedNames(ty, "IIR", ctype, vname);
 
-    // std::cerr << gGlobal->gSTEP << " generateIIR: " << vname << " [" << coefs.size() << ']'
-    //           << std::endl;
+    // std::cerr << gGlobal->gSTEP << " generateIIR: " << ppsig(sig) << std::endl;
 
     // Build the IIR expressions X + C1*Y(t-1) + C2*Y(t-2) + ...
     std::ostringstream oss;

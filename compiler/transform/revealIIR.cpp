@@ -66,16 +66,11 @@ Tree IIRRevealer::transformation(Tree sig)
 
 class Projection2IIR : public SignalIdentity {
    protected:
-    Tree fRecGroup;  // W, the recursive group
-    int  fRecIndex;  // i, index in the recursive group
-    Tree fRecProj;   // Wi, the recursive projection
+    Tree fRecProj;  // Wi, the recursive projection
 
    public:
     Projection2IIR(Tree recgroup, int recindex)
-        : SignalIdentity(),
-          fRecGroup(recgroup),
-          fRecIndex(recindex),
-          fRecProj(sigProj(recindex, recgroup))
+        : SignalIdentity(), fRecProj(sigProj(recindex, recgroup))
     {
     }
 
@@ -218,6 +213,10 @@ Tree proj2IIR(int indentation, Tree proj)
     faustassert(isProj(proj, &i, rg));
     faustassert(isRec(rg, var, le));
     Tree def = nth(le, i);
+    // for (int j = 0; j < indentation; j++) {
+    //     std::cerr << "\t";
+    // }
+    // std::cerr << "proj2IIR: " << ppsig(def) << "\n";
     if (isSigAdd(def, x, y)) {
         if (tvec cy; isSigFIR(y, cy) && cy[0] == proj) {
             if (!isDependingOn(x, proj)) {

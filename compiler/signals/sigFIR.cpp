@@ -460,7 +460,20 @@ Tree mulSigFIR(Tree s1, Tree s2)
         return negSigFIR(s2);
     } else if (isMinusOne(s2)) {
         return negSigFIR(s1);
-    } else {
+    }
+    // AJOUT YO
+    else if (Tree x, y; isSigAdd(s1, x, y) && isSigFIR(x) && isSigFIR(y)) {
+        return addSigFIR(mulSigFIR(x, s2), mulSigFIR(y, s2));
+    } else if (Tree x, y; isSigAdd(s2, x, y) && isSigFIR(x) && isSigFIR(y)) {
+        return addSigFIR(mulSigFIR(s1, x), mulSigFIR(s1, y));
+    } else if (Tree x, y; isSigSub(s1, x, y) && isSigFIR(x) && isSigFIR(y)) {
+        return subSigFIR(mulSigFIR(x, s2), mulSigFIR(y, s2));
+    } else if (Tree x, y; isSigSub(s2, x, y) && isSigFIR(x) && isSigFIR(y)) {
+        return subSigFIR(mulSigFIR(s1, x), mulSigFIR(s1, y));
+
+    }
+    // FIN AJOUT YO
+    else {
         // CASE 3: Not a FIR
 
         Tree sr = simplify(sigMul(s1, s2));
