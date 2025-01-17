@@ -146,7 +146,7 @@ Tree SignalIdentity::transformation(Tree sig)
 
     else if (isSigSum(sig)) {
         tvec c = sig->branches();
-        for (int i = 1; i < c.size(); i++) {  // pourquoi 1 ???
+        for (int i = 0; i < c.size(); i++) {
             c[i] = self(c[i]);
         }
         return sigSum(c);
