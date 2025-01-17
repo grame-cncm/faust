@@ -613,6 +613,8 @@ LIBFAUST_API bool isSigHBargraph(Tree s, Tree& lbl, Tree& min, Tree& max, Tree& 
 
 LIBFAUST_API Tree sigVBargraph(Tree lbl, Tree min, Tree max, Tree x)
 {
+    std::cerr << "\nlabel " << *lbl << std::endl;
+    std::cerr << "content " << ppsig(x) << std::endl;
     return tree(gGlobal->SIGVBARGRAPH, lbl, min, max, x);
 }
 bool isSigVBargraph(Tree s)
