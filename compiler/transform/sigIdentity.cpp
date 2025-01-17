@@ -146,7 +146,7 @@ Tree SignalIdentity::transformation(Tree sig)
 
     else if (isSigSum(sig)) {
         tvec c = sig->branches();
-        for (int i = 1; i < c.size(); i++) {
+        for (int i = 1; i < c.size(); i++) {  // pourquoi 1 ???
             c[i] = self(c[i]);
         }
         return sigSum(c);
@@ -161,18 +161,23 @@ Tree SignalIdentity::transformation(Tree sig)
     }
 
     else if (isSigSeq(sig, x, y)) {
-        return sigSeq(self(x), self(y));
+        std::cerr << "identity sigSeq " << ppsig(sig) << std::endl;
+        Tree x2 = self(x);
+        std::cerr << "identity sigSeq x2 " << ppsig(x2) << std::endl;
+        faustassert(!isZero(x2));
+        return sigSeq(x2, self(y));
     }
 
-    else if (isSigOD(sig)) {
-        tvec c = sig->branches();
-        for (int i = 1; i < c.size(); i++) {
-            if (c[i] == gGlobal->nil) {
-                continue;
+    else if (tvec w1; isSigOD(sig, w1)) {
+        tvec w2;
+        for (Tree s : w1) {
+            if (s == gGlobal->nil) {
+                w2.push_back(gGlobal->nil);
+            } else {
+                w2.push_back(self(s));
             }
-            c[i] = self(c[i]);
         }
-        return sigOD(c);
+        return sigOD(w2);
     }
 
     else if (isSigGen(sig, x)) {

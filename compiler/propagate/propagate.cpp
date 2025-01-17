@@ -557,11 +557,53 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
                   << ", invalid route expression : " << boxpp(box) << endl;
             throw faustexception(error.str());
         }
-    }
 
-    else if (isBoxOndemand(box, t1)) {
-        std::cerr << "WARNING : ondemand propagation not implemented yet" << std::endl;
-        exit(1);
+    } else if (isBoxOndemand(box, t1)) {
+        // Propagate lsig into the ondemand version of t1
+
+        // The first signal is the clock signal
+        Tree H = lsig[0];
+
+        // The rest is propagated into t1, but via tempopary variables
+        siglist X2;
+        for (unsigned int i = 1; i < lsig.size(); i++) {
+            X2.push_back(sigTempVar(lsig[i]));
+        }
+        // We propagate into prop(X2,t1) -> Y0
+        siglist Y0 = propagate(slotenv, path, t1, X2);
+
+        // We store the output signals into perm variables
+        siglist Y1;
+        for (unsigned int i = 0; i < Y0.size(); i++) {
+            Y1.push_back(sigPermVar(Y0[i]));
+        }
+
+        // We create on ondemand signal that contain all the information
+        tvec W;
+        W.push_back(H);      // the clok signal
+        for (Tree s : X2) {  // the input signals in temp variables
+            W.push_back(s);
+        }
+        W.push_back(gGlobal->nil);  // the output signals in perm variables
+        for (Tree s : Y1) {
+            W.push_back(s);
+        }
+        // We create an ondemand signal that contains all the information
+        Tree od = sigOD(W);
+        std::cerr << "od = " << ppsig(od) << std::endl;
+
+        // Finally, we create the output signals making shure that od is computed first
+        // using sigSeq(od, y)
+        siglist Y2;
+        for (Tree y : Y1) {
+            Tree y2 = sigSeq(od, y);
+            std::cerr << "y2 = " << ppsig(y2) << std::endl;
+            Y2.push_back(sigSeq(od, y));
+        }
+        for (Tree s : Y2) {
+            std::cerr << "DEBUG Y2 = " << ppsig(s) << std::endl;
+        }
+        return Y2;
     }
 
     cerr << "ASSERT : file " << __FILE__ << ':' << __LINE__

@@ -770,6 +770,18 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateSum(sig, subs);
     }
 
+    // compile ondemand
+    else if (Tree x; isSigTempVar(sig, x)) {
+        return generateTempVar(sig, x);
+    } else if (Tree x; isSigPermVar(sig, x)) {
+        return generatePermVar(sig, x);
+    } else if (Tree x, y; isSigSeq(sig, x, y)) {
+        (void)CS(x);
+        return generateCacheCode(sig, CS(y));
+    } else if (tvec w; isSigOD(sig, w)) {
+        return generateOD(sig, w);
+    }
+
     /* we should not have any control at this stage */
     else {
         cerr << "ASSERT : when compiling, unrecognized signal : " << *sig << endl;
@@ -2331,4 +2343,75 @@ string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
     oss << " /* Sum */)";
 
     return generateCacheCode(sig, oss.str());
+}
+
+// Ondemand: generate a local variable for the input signal of an ondemand circuit
+string ScalarCompiler::generateTempVar(Tree sig, Tree x)
+{
+    return generateVariableStore(sig, CS(x));
+}
+
+// Ondemand: generate a permanent variable to store the
+// last computed value of x
+string ScalarCompiler::generatePermVar(Tree sig, Tree x)
+{
+    string       name, ctype;
+    Occurrences* o = fOccMarkup->retrieve(sig);
+    faustassert(o);
+    // compute a perm var name
+    getTypedNames(getCertifiedSigType(sig), "PermVar", ctype, name);
+    // assign it to sig unless it has already a name
+    std::string pvname = ensureVectorNameProperty(name, sig);
+    // declare the perm var as a class field
+    fClass->addDeclCode(subst("$0 \t$1; // Perm Var", ctype, pvname));
+    // initialize it to 0
+    fClass->addClearCode(subst("$0 = 0;", pvname));
+    // store the value of x in the perm var
+    fClass->addExecCode(Statement("", subst("$0 = $1;", pvname, CS(x))));
+    return pvname;
+}
+
+// Ondemand: generate the code of the ondemand cicuit
+// - first the input signals are computed
+// - then the output signals in an if (clock) statement
+string ScalarCompiler::generateOD(Tree sig, const tvec& w)
+{
+    // 1/ We extract the clock, the inputs and the outputs signals
+    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    tvec inputs, outputs;
+    bool inmode = true;
+    for (unsigned int i = 1; i < w.size(); i++) {
+        if (w[i] == gGlobal->nil) {
+            inmode = false;
+            continue;
+        }
+        if (inmode) {
+            inputs.push_back(w[i]);
+        } else {
+            outputs.push_back(w[i]);
+        }
+    }
+
+    // 2/ We compile the input signals unconditionnally
+    for (Tree x : inputs) {
+        CS(x);
+    }
+
+    std::cerr << "opening if statement" << std::endl;
+    // 3/ We the compile the clock signal and open an if statement
+    fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
+
+    // 4/ We compile the output signals conditionnally inside the if statement
+    for (Tree x : outputs) {
+        CS(x);
+    }
+
+    // 5/ We close the if statement
+    fClass->addExecCode(Statement("", "}"));
+    std::cerr << "closing if statement" << std::endl;
+
+    // 6/ There is no compiled expression
+    return "OD not used directly";
 }

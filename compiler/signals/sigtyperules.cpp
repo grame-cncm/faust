@@ -780,8 +780,9 @@ static Type inferSigType(Tree sig, Tree env)
                 T(subs[ii], env);
             }
         }
-        // we lack a bottom type !
-        return makeSimpleType(kReal, kSamp, kExec, kScal, kNum, interval(0, 0));
+        // we lack a bottom type ! But is must NOT be a constant type, otherwise it will be
+        // optimmized by the constant propagation phase
+        return makeSimpleType(kReal, kSamp, kExec, kScal, kNum, interval(-1, 1));
     }
 
     else if (isNil(sig)) {

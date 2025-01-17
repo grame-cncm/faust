@@ -387,9 +387,9 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else if (isSigTempVar(fSig, x)) {
-        fout << "tempvar" << x;
+        printfun(fout, "tempvar", x);
     } else if (isSigPermVar(fSig, x)) {
-        fout << "permvar" << x;
+        printfun(fout, "permvar", x);
     } else if (isSigSeq(fSig, x, y)) {
         printfun(fout, "seq", x, y);
     } else if (isSigOD(fSig)) {
@@ -406,6 +406,10 @@ ostream& ppsig::print(ostream& fout) const
 
     else if (isSigRegister(fSig, &i, x)) {
         printfun(fout, "register", sigInt(i), x);
+    }
+
+    else if (isNil(fSig)) {
+        fout << "NIL";
     }
 
     else {
