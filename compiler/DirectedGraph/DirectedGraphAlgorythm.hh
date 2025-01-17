@@ -260,7 +260,7 @@ inline std::vector<std::vector<N>> parallelize(const digraph<N, Comparator>& g)
         }
     };
 
-    std::map<N, int> levelcache;
+    std::map<N, int, Comparator> levelcache;
     // compute the level of each node in the graph
     int l = -1;
     for (const N& n : g.nodes()) {
@@ -582,8 +582,8 @@ inline std::vector<N> leaves(const digraph<N, Comparator>& G)
  * @param G
  * @return std::vector<N>
  */
-template <typename N>
-inline std::vector<N> criticalpath(const digraph<N>& G, const N& n)
+template <typename N, typename Comparator = std::less<N>>
+inline std::vector<N> criticalpath(const digraph<N, Comparator>& G, const N& n)
 {
     std::vector<N> P;
     for (const auto& c : G.destinations(n)) {
@@ -643,8 +643,8 @@ static std::list<N> interleave(std::list<N>& list1, std::list<N>& list2)
  * @param n a node of G
  * @return std::list<N> scheduling with duplicates
  */
-template <typename N>
-inline std::list<N> recschedulenode(const digraph<N>& G, const N& n)
+template <typename N, typename Comparator = std::less<N>>
+inline std::list<N> recschedulenode(const digraph<N, Comparator>& G, const N& n)
 {
     std::list<N> P;
     for (const auto& c : G.destinations(n)) {
@@ -662,8 +662,8 @@ inline std::list<N> recschedulenode(const digraph<N>& G, const N& n)
  * @param G a DAG
  * @return std::list<N> scheduling with duplicates
  */
-template <typename N>
-inline std::list<N> recschedule(const digraph<N>& G)
+template <typename N, typename Comparator = std::less<N>>
+inline std::list<N> recschedule(const digraph<N, Comparator>& G)
 {
     std::list<N> P;
     for (const N& n : roots(G)) {
@@ -672,7 +672,6 @@ inline std::list<N> recschedule(const digraph<N>& G)
     }
     return P;
 }
-
 
 /*******************************************************************************
 ********************************************************************************
@@ -848,8 +847,8 @@ inline std::ostream& operator<<(std::ostream& file, const digraph<N, Comparator>
  * @param g graph we want to analyze
  * @return std::vector<int> [n, a, c, l0, l1, ...]
  */
-template <typename N>
-inline std::vector<int> topology(const digraph<N>& g)
+template <typename N, typename Comparator = std::less<N>>
+inline std::vector<int> topology(const digraph<N, Comparator>& g)
 {
     std::vector<int> v;
     int              n = 0;

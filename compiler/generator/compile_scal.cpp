@@ -535,7 +535,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         std::cerr << "Print siglist inst graph topology : " << topology(G) << '\n';
     }
     // Force a specific scheduling (i.e. compilation order)
-    schedule<Tree> S;
+    schedule<Tree, CTreeComparator> S;
     switch (gGlobal->gSchedulingStrategy) {
         case 0:
             S = dfschedule(G);

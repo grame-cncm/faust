@@ -77,7 +77,7 @@ class schedule {
     // A schedule in reverse order
     schedule reverse() const
     {
-        schedule<N> S;
+        schedule<N, Comparator> S;
         for (auto it = fElements.rbegin(); it != fElements.rend(); ++it) {
             S.append(*it);
         }
@@ -166,11 +166,11 @@ inline schedule<N, Comparator> bfschedule(const digraph<N, Comparator>& G)
  * @param G
  * @return schedule<N>
  */
-template <typename N>
-inline schedule<N> spschedule(const digraph<N>& G)
+template <typename N, typename Comparator = std::less<N>>
+inline schedule<N, Comparator> spschedule(const digraph<N, Comparator>& G)
 {
-    std::set<N> V;  // already scheduled nodes
-    schedule<N> S;  // the final schedule
+    std::set<N>             V;  // already scheduled nodes
+    schedule<N, Comparator> S;  // the final schedule
 
     std::list<N> L = recschedule(G);  // schedule list with duplicated
     for (auto it = L.rbegin(); it != L.rend(); ++it) {
@@ -253,11 +253,11 @@ inline schedule<N, Comparator> bfcyclesschedule(const digraph<N, Comparator>& G)
  * @param G
  * @return schedule<N>
  */
-template <typename N>
-inline schedule<N> rbschedule(const digraph<N>& G)
+template <typename N, typename Comparator = std::less<N>>
+inline schedule<N, Comparator> rbschedule(const digraph<N, Comparator>& G)
 {
     std::vector<std::vector<N>> P = parallelize(reverse(G));
-    schedule<N>                 S;
+    schedule<N, Comparator>     S;
 
     for (uint64_t i = 0; i < P.size(); i++) {
         for (const N& n : P[i]) {

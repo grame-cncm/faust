@@ -13,7 +13,7 @@ class SigDependenciesGraph : public SignalVisitor {
    protected:
     digraph<Tree, CTreeComparator> fGraph;
     bool                           fFullGraph;
-    bool          fLimitOndemand = false;  // don't go beyond tempvar signals
+    bool                           fLimitOndemand = false;  // don't go beyond tempvar signals
 
    public:
     SigDependenciesGraph(bool full, bool limit)
@@ -304,22 +304,6 @@ digraph<Tree, CTreeComparator> immediateGraph(Tree L)
  * of a list of signals and not going beyond tempvar signals
  *
  * @param L list of signals
- * @return digraph<Tree>
- */
-digraph<Tree> ondemandGraph(const tvec& signals)
-{
-    SigDependenciesGraph g(false, true);
-    for (Tree s : signals) {
-        g.self(s);
-    }
-    return g.getGraph();
-}
-
-/**
- * @brief Compute the immediate Graph (containing only immediate dependencies)
- * of a list of signals and not going beyond tempvar signals
- *
- * @param L list of signals
  * @return digraph<Tree, CTreeComparator>
  */
 digraph<Tree, CTreeComparator> ondemandGraph(const tvec& signals)
@@ -364,6 +348,6 @@ std::vector<Tree> compilationOrder(Tree L)
  */
 std::vector<Tree> ondemandCompilationOrder(const tvec& signals)
 {
-    digraph<Tree> G = ondemandGraph(signals);
+    digraph<Tree, CTreeComparator> G = ondemandGraph(signals);
     return serialize(G);
 }
