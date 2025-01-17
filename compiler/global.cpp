@@ -2341,9 +2341,15 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-mcd <n>    --max-copy-delay <n>        use a copy delay up to max delay <n> and a "
-            "dense delay above "
-            "(ocpp only) "
-            "or a ring buffer (defaut 16 samples)."
+            "dense delay (ocpp only) or a ring buffer above (defaut 16 samples)."
+         << endl;
+    sstr << tab
+         << "-udd <0|1>  --use-dense-delay <0|1>     allow use of dense delay instead of short "
+            "ring buffers (default 1)"
+         << endl;
+    sstr << tab
+         << "-mcl <n>    --max-copy-loop <n>         when using a copy delay, threshold to switch "
+            "from an inline to a loop based copy of the samples (defaut 4 samples)."
          << endl;
     sstr << tab << "-mls <n>    --min-loop-samples <n>      loop instead of expanded copy " << endl;
     sstr << tab
@@ -2354,16 +2360,14 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-mdy <n>    --min-density <n>           minimal density (100*number of delays/max "
-            "delay) to use a dense "
-            "delays "
-            "(ocpp only, default 33)."
+            "delay) to use a dense  delays (ocpp only, default 33)."
          << endl;
     sstr << tab
          << "-dlt <n>    --delay-line-threshold <n>  use a mask-based ring buffer delays up to max "
             "delay <n> and a "
             "select based ring buffers above (default INT_MAX samples)."
          << endl;
-    sstr << tab << "-ss <n>    --scheduling-strategy <n>  0=deep first, 1=breadth first" << endl;
+    sstr << tab << "-ss <n>     --scheduling-strategy <n>   0=deep first, 1=breadth first" << endl;
 #endif
 #ifndef EMCC
     sstr
@@ -2406,14 +2410,15 @@ string global::printHelp()
             "instead of compiling "
             "a dsp file."
          << endl;
-    sstr << tab << "-scal   --scalar                 generate non-vectorized code (default)."
+    sstr << tab << "-scal   --scalar                        generate non-vectorized code (default)."
          << endl;
     sstr << tab
          << "-inpl       --in-place                  generates code working when input and output "
             "buffers are the same "
             "(scalar mode only)."
          << endl;
-    sstr << tab << "-vec    --vectorize              generate easier to vectorize code." << endl;
+    sstr << tab << "-vec    --vectorize                     generate easier to vectorize code."
+         << endl;
     sstr << tab
          << "-vs <n>     --vec-size <n>              size of the vector (default 32 samples)."
          << endl;
@@ -2422,12 +2427,28 @@ string global::printHelp()
             "loop (default), "
             "1:simple, variable vector size, 2:fixed, fixed vector size]."
          << endl;
-    sstr << tab << "-fir        --fir-iir                   reconstruct FIRs and IIRs internally"
+    sstr << tab
+         << "-fir        --fir-iir                   activate the reconstruction of FIRs and IIRs "
+            "internally"
+         << endl;
+    sstr
+        << tab
+        << "-ff         --factorize-fir-iir         find common factor in FIRs or IIRs coefficients"
+        << endl;
+    sstr << tab
+         << "-mfs <n>    --max-fir-size <n>          maximum size threshold to reconstruct a FIR. "
+            "Keep as individual delays otherwise (default 1024)"
          << endl;
     sstr << tab
-         << "-fls        --fir-loop-size             size threshold to implement FIRs using a "
-            "loop"
+         << "-fls <n>    --fir-loop-size <n>         size threshold to start implementing FIRs "
+            "using a loop instead of unrolled (default 4)"
          << endl;
+
+    sstr << tab
+         << "-irt <n>    --iir-ring-threshold <n>    size threshold to start implementing IIRs "
+            "using ring buffers instead of copying (default 4)"
+         << endl;
+
     sstr << tab
          << "-omp        --openmp                    generate OpenMP pragmas, activates "
             "--vectorize option."
