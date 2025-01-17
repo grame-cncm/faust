@@ -1092,6 +1092,14 @@ LIBFAUST_API bool isSigClocked(Tree s, Tree& clock, Tree& y)
 
 LIBFAUST_API Tree sigClocked(Tree clock, Tree y)
 {
+    if (tvec args; isSigFIR(y, args)) {
+        args[0] = sigClocked(clock, args[0]);
+        return sigFIR(args);
+    }
+    if (tvec args; isSigIIR(y, args)) {
+        args[1] = sigClocked(clock, args[1]);
+        return sigIIR(args);
+    }
     if (Tree h2, z; isSigClocked(y, h2, z)) {
         if (clock == h2) {
             // y is already annotated with the clock h

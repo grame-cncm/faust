@@ -2055,7 +2055,10 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
     faustassert(coefs.size() > 1);
     // std::cerr << gGlobal->gSTEP << " generateFIR: " << ppsig(sig) << std::endl;
-
+    if (coefs.size() == 2) {
+        // special case for a simple gain
+        return generateCacheCode(sig, subst("($0) * ($1)", CS(coefs[1]), CS(coefs[0])));
+    }
     if (int(coefs.size()) < gGlobal->gFirLoopSize) {
         // we don't use a loop for small FIR filters
         std::ostringstream oss;
@@ -2103,7 +2106,7 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 
         // identifier for the coef table
         std::string ctype, ctable;
-        getTypedNames(tc, "Coefs", ctype, ctable);
+        getTypedNames(tc, "FIRCoefs", ctype, ctable);
 
         // Expression for the coefficients
         int mnzc = 1 << 20;  // minimum non zero coef

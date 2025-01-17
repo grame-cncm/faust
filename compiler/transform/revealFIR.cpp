@@ -11,7 +11,7 @@
 #include "sigRecursiveDependencies.hh"
 #include "sigorderrules.hh"
 
-#define TRACE false
+#define TRACE true
 
 // Transform a signal expression by revealing FIR structures
 
@@ -105,8 +105,8 @@ static void collectSigSumElements(tvec& L, Tree sig)
 
 Tree FIRRevealer::postprocess(Tree sig)
 {
-    std::cerr << "postprocess: " << ppsig(sig) << "\n";
-
+    //std::cerr << "postprocess: " << ppsig(sig) << "\n";
+ 
     if (Tree ck, f; isSigClocked(sig, ck, f) && isSigFIR(f)) {
         std::cerr << "Rule 0: pass clock inside fir\n";
         tvec V = f->branches();

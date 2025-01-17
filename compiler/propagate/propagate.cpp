@@ -730,7 +730,7 @@ siglist makeSigInputList(int n)
 {
     siglist l(n);
     for (int i = 0; i < n; i++) {
-        l[i] = sigInput(i);
+        l[i] = sigClocked(gGlobal->nil, sigInput(i));
     }
     return l;
 }
