@@ -178,3 +178,10 @@ s7 = ondemand(os.osc(500))(0);
 l1 = ondemand(ondemand(os.osc(500))(button("play1")))(button("play2"));
 
 l2 = ondemand(ondemand(os.osc(500))(button("play1")@1))(button("play2"));
+
+
+// new tests SL 28/10/2024
+y0 = (1 : ondemand(os.osc(500)));  // OK
+y1 = (0 : ondemand(os.osc(500)));  // assert
+y2 = (0,0) : (ondemand(os.osc(500), ondemand(os.osc(600))));  // code incorrect
+y3 = (0 : ondemand(os.osc(500))), (0 : ondemand(os.osc(600)));  // assert
