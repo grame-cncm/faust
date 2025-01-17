@@ -1721,10 +1721,10 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
     std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
               << fScheduleOrder[exp] << " -- " << exp << " :: " << ppsig(exp, 10) << std::endl;
 #endif
-    if (fScheduleOrder[exp] == 0) {
-        // We are in an ondemand context, we need to compile the delayed signal
-        (void)CS(exp);
-    }
+    // if (fScheduleOrder[exp] == 0) {
+    //     // We are in an ondemand context, we need to compile the delayed signal
+    //     (void)CS(exp);
+    // }
     std::string result;
     switch (dt) {
         case DelayType::kNotADelay:
@@ -2386,7 +2386,8 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
     // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
     faustassert(w.size() > 2);
     Tree clock = w[0];
-    tvec inputs, outputs;
+    tvec inputs;   // the input signals (comming from outiside)
+    tvec outputs;  // the output signa outputs;
     bool inmode = true;
     for (unsigned int i = 1; i < w.size(); i++) {
         if (w[i] == gGlobal->nil) {
@@ -2406,19 +2407,24 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
     }
 
     std::cerr << "opening if statement" << std::endl;
+
     // 3/ We the compile the clock signal and open an if statement
     // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
     fClass->openIFblock(CS(clock));
 
-    // 4/ We compile the output signals conditionnally inside the if statement
-    for (Tree x : outputs) {
+    // 4/ compute the scheduling of the output signals of the ondemand circuit
+    std::vector<Tree> V = ondemandCompilationOrder(outputs);
+
+    // 5/ We compile the output signals conditionnally inside the if statement
+    for (Tree x : V) {
         CS(x);
     }
 
-    // 5/ We close the if statement
+    // 6/ We close the if statement
     fClass->closeIFblock();
+
     std::cerr << "closing if statement" << std::endl;
 
-    // 6/ There is no compiled expression
+    // 7/ There is no compiled expression
     return "OD not used directly";
 }

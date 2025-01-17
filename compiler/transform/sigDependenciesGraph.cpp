@@ -13,9 +13,11 @@ class SigDependenciesGraph : public SignalVisitor {
    protected:
     digraph<Tree, CTreeComparator> fGraph;
     bool                           fFullGraph;
+    bool          fLimitOndemand = false;  // don't go beyond tempvar signals
 
    public:
-    SigDependenciesGraph(bool full) : SignalVisitor(), fFullGraph(full)
+    SigDependenciesGraph(bool full, bool limit)
+        : SignalVisitor(), fFullGraph(full), fLimitOndemand(limit)
     {
         fTrace   = false;
         fMessage = "SigDependenciesGraph";
@@ -184,7 +186,10 @@ void SigDependenciesGraph::visit(Tree t)
 
     if (Tree x; isSigTempVar(t, x)) {
         fGraph.add(t, x, 0);
-        self(x);
+        if (!fLimitOndemand) {
+            // We go beyond tempvar signals if we are not in ondemand mode
+            self(x);
+        }
         return;
     }
 
@@ -289,8 +294,40 @@ void SigDependenciesGraph::visit(Tree t)
  */
 digraph<Tree, CTreeComparator> immediateGraph(Tree L)
 {
-    SigDependenciesGraph g(false);
+    SigDependenciesGraph g(false, false);
     g.mapself(L);
+    return g.getGraph();
+}
+
+/**
+ * @brief Compute the immediate Graph (containing only immediate dependencies)
+ * of a list of signals and not going beyond tempvar signals
+ *
+ * @param L list of signals
+ * @return digraph<Tree>
+ */
+digraph<Tree> ondemandGraph(const tvec& signals)
+{
+    SigDependenciesGraph g(false, true);
+    for (Tree s : signals) {
+        g.self(s);
+    }
+    return g.getGraph();
+}
+
+/**
+ * @brief Compute the immediate Graph (containing only immediate dependencies)
+ * of a list of signals and not going beyond tempvar signals
+ *
+ * @param L list of signals
+ * @return digraph<Tree, CTreeComparator>
+ */
+digraph<Tree, CTreeComparator> ondemandGraph(const tvec& signals)
+{
+    SigDependenciesGraph g(false, true);
+    for (Tree s : signals) {
+        g.self(s);
+    }
     return g.getGraph();
 }
 
@@ -302,7 +339,7 @@ digraph<Tree, CTreeComparator> immediateGraph(Tree L)
  */
 digraph<Tree, CTreeComparator> fullGraph(Tree L)
 {
-    SigDependenciesGraph g(true);
+    SigDependenciesGraph g(true, false);
     g.mapself(L);
     return g.getGraph();
 }
@@ -316,5 +353,17 @@ digraph<Tree, CTreeComparator> fullGraph(Tree L)
 std::vector<Tree> compilationOrder(Tree L)
 {
     digraph<Tree, CTreeComparator> G = immediateGraph(L);
+    return serialize(G);
+}
+
+/**
+ * @brief Compute in which order the list of signals L should be compiled
+ *
+ * @param L a list of signals
+ * @return std::vector<Tree> The first element of the vector is the first signal to compile
+ */
+std::vector<Tree> ondemandCompilationOrder(const tvec& signals)
+{
+    digraph<Tree> G = ondemandGraph(signals);
     return serialize(G);
 }
