@@ -941,7 +941,7 @@ LIBFAUST_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part,
 
 // FIR
 
-LIBFAUST_API Tree sigFIR(tvec& sigcoefs)
+LIBFAUST_API Tree sigFIR(const tvec& sigcoefs)
 {
     return tree(gGlobal->SIGFIR, sigcoefs);
 }
@@ -968,7 +968,7 @@ LIBFAUST_API bool isSigFIR(Tree s, tvec& sigcoefs)
 
 // IIR
 
-LIBFAUST_API Tree sigIIR(tvec& sigcoefs)
+LIBFAUST_API Tree sigIIR(const tvec& sigcoefs)
 {
     return tree(gGlobal->SIGIIR, sigcoefs);
 }
@@ -995,7 +995,7 @@ LIBFAUST_API bool isSigIIR(Tree s, tvec& sigcoefs)
 
 // SUM
 
-LIBFAUST_API Tree sigSum(tvec& sigs)
+LIBFAUST_API Tree sigSum(const tvec& sigs)
 {
     return tree(gGlobal->SIGSUM, sigs);
 }
@@ -1060,7 +1060,7 @@ LIBFAUST_API bool isSigSeq(Tree s, Tree& x, Tree& y)
     return isTree(s, gGlobal->SIGSEQ, x, y);
 }
 
-LIBFAUST_API Tree sigOD(tvec& sigsubs)
+LIBFAUST_API Tree sigOD(const tvec& sigsubs)
 {
     return tree(gGlobal->SIGOD, sigsubs);
 }
@@ -1136,6 +1136,14 @@ LIBFAUST_API bool hasClock(Tree sig, Tree& clock)
     if (Tree x, y; isSigMul(sig, x, y)) {
         return hasClock(x, clock) || hasClock(y, clock);
     }
+    if (tvec args; isSigSum(sig, args)) {
+        for (Tree a : args) {
+            if (hasClock(a, clock)) {
+                return true;
+            }
+        }
+    }
+
     return false;
 }
 

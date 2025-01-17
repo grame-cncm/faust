@@ -336,17 +336,17 @@ LIBFAUST_API bool isSigRegister(Tree s, int* n, Tree& x);
 /*****************************************************************************
                              FIR and IIR
 *****************************************************************************/
-LIBFAUST_API Tree sigFIR(tvec& sigcoefs);
+LIBFAUST_API Tree sigFIR(const tvec& sigcoefs);
 LIBFAUST_API bool isSigFIR(Tree s);
 LIBFAUST_API bool isSigFIR(Tree s, Tree c0);  // true if s is a FIR on signal c0
 LIBFAUST_API bool isSigFIR(Tree s, tvec& sigcoefs);
 
-LIBFAUST_API Tree sigIIR(tvec& sigcoefs);
+LIBFAUST_API Tree sigIIR(const tvec& sigcoefs);
 LIBFAUST_API bool isSigIIR(Tree s);
 LIBFAUST_API bool isSigIIR(Tree s, Tree c0);  // true if s is a IIR on signal c0
 LIBFAUST_API bool isSigIIR(Tree s, tvec& sigcoefs);
 
-LIBFAUST_API Tree sigSum(tvec& sigsubs);
+LIBFAUST_API Tree sigSum(const tvec& sigsubs);
 LIBFAUST_API bool isSigSum(Tree s);
 LIBFAUST_API bool isSigSum(Tree s, tvec& sigsubs);
 
@@ -362,7 +362,7 @@ LIBFAUST_API Tree sigSeq(Tree x, Tree y);
 LIBFAUST_API bool isSigSeq(Tree s);
 LIBFAUST_API bool isSigSeq(Tree s, Tree& x, Tree& y);
 
-LIBFAUST_API Tree sigOD(tvec& sigsubs);
+LIBFAUST_API Tree sigOD(const tvec& sigsubs);
 LIBFAUST_API bool isSigOD(Tree s);
 LIBFAUST_API bool isSigOD(Tree s, tvec& sigsubs);
 
