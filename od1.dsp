@@ -27,8 +27,7 @@ t11 = _ <: 	+~_,
 // Ca semble correct là aussi
 t12 = 1:t11;
 
-// t13: Verifier que les deux integrateurs sont bien distingués
-// Là c'est incorrect, il ne genere qu'un seul circuit d'intégration !
+// t13: Verifier que les deux integrateurs sont bien distingués: OK
 t13 = +(1)~_, (button("play") : ondemand(+(1)~_));
 
 // t14: Verifier que les deux integrateurs sont bien distingués
@@ -44,12 +43,13 @@ fir(n) = _ <: par(i,n, @(i)/(3+i)) :> _;
 
 t16 = fir(5); // FIR OK
 t16b= button("play"),_:ondemand(fir(5));
-t17 = +~fir(5); // IIR ?
+t17 = +~fir(5); // IIR 
+t17b= button("play"),_:ondemand(t17);
 
 // bug avec echo_bug.dsp
 // mauvais partage d'une expression commune entre deux ondemand
 
-// t18 reproduit bien le problème !
+// OK désormais // t18 reproduit bien le problème !
 t18 = _ <: 
 		ondemand(*(0.5):+~*(0.1))(button("play1")), 
 		ondemand(*(0.5):+~*(0.1))(button("play2")); 
