@@ -211,6 +211,19 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
+    // FIR and IIR
+    else if (tvec fircoefs; isSigFIR(sig, fircoefs)) {
+        for (Tree coef : fircoefs) {
+            self(coef);
+        }
+        return;
+    } else if (tvec iircoefs; isSigIIR(sig, iircoefs)) {
+        for (Tree coef : iircoefs) {
+            self(coef);
+        }
+        return;
+    }
+
     else if (isSigRegister(sig, &i, x)) {
         self(x);
         return;
