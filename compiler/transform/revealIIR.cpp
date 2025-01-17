@@ -15,7 +15,7 @@
 #include "Schedule.hh"
 #include "sigRecursiveDependencies.hh"
 
-#define TRACE true
+#define TRACE false
 
 #if 0
 //----------------------------------------------------------------------
@@ -166,37 +166,38 @@ Tree IIRRevealer::postprocess(Tree sig)
     if (Tree rgroup, var, le; isProj(sig, &p, rgroup) && isRec(rgroup, var, le) && !isNil(le)) {
         // we have a candidate for an IIR; ajouter une seul definition ???
         Tree def = nth(le, p);
-        std::cerr << "def: " << *def << "\n";
-        faustassert(isSigSum(def));
-        std::vector<Tree> R, D, L;
-        // We analyze the various terms of the sum
-        for (Tree f : def->branches()) {
-            // FIR[CLK(h,w), 0, c1, c2, ...]
-            if (Tree h, w; isSigFIR(f) && isSigClocked(f->branch(0), h, w) && (w == sig)) {
-                R.push_back(f);
-            } else if (isDependingOn(f, sig)) {
-                D.push_back(f);
-            } else {
-                L.push_back(f);
+        // std::cerr << "def: " << *def << "\n";
+        if (isSigSum(def)) {
+            std::vector<Tree> R, D, L;
+            // We analyze the various terms of the sum
+            for (Tree f : def->branches()) {
+                // FIR[CLK(h,w), 0, c1, c2, ...]
+                if (Tree h, w; isSigFIR(f) && isSigClocked(f->branch(0), h, w) && (w == sig)) {
+                    R.push_back(f);
+                } else if (isDependingOn(f, sig)) {
+                    D.push_back(f);
+                } else {
+                    L.push_back(f);
+                }
             }
-        }
-        if ((R.size() == 1) && (D.size() == 0) && (L.size() > 0)) {
-            // we have a candidate for an IIR
-            std::cerr << "we have a candidate1 for an IIRA!\n";
-            tvec coef1, coef2;
-            Tree ck, w;
-            faustassert(isSigFIR(R[0], coef1));
-            faustassert(isSigClocked(coef1[0], ck, w));
-            Tree in = (L.size() == 1) ? L[0] : sigSum(L);
-            coef2.push_back(gGlobal->nil);
-            coef2.push_back(sigClocked(ck, in));
-            for (unsigned int i = 1; i < coef1.size(); i++) {
-                coef2.push_back(coef1[i]);
+            if ((R.size() == 1) && (D.size() == 0) && (L.size() > 0)) {
+                // we have a candidate for an IIR
+                // std::cerr << "we have a candidate1 for an IIRA!\n";
+                tvec coef1, coef2;
+                Tree ck, w;
+                faustassert(isSigFIR(R[0], coef1));
+                faustassert(isSigClocked(coef1[0], ck, w));
+                Tree in = (L.size() == 1) ? L[0] : sigSum(L);
+                coef2.push_back(gGlobal->nil);
+                coef2.push_back(sigClocked(ck, in));
+                for (unsigned int i = 1; i < coef1.size(); i++) {
+                    coef2.push_back(coef1[i]);
+                }
+                Tree iir = sigIIR(coef2);
+                // std::cerr << "makeIIRA1: " << *iir << "\n";
+                // std::cerr << "makeIIRA2: " << ppsig(iir) << "\n";
+                return iir;
             }
-            Tree iir = sigIIR(coef2);
-            std::cerr << "makeIIRA1: " << *iir << "\n";
-            std::cerr << "makeIIRA2: " << ppsig(iir) << "\n";
-            return iir;
         }
     }
     return sig;

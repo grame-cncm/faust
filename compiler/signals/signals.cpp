@@ -1133,6 +1133,9 @@ LIBFAUST_API bool hasClock(Tree sig, Tree& clock)
     if (tvec args; isSigIIR(sig, args)) {
         return hasClock(args[1], clock);
     }
+    if (Tree x, y; isSigMul(sig, x, y)) {
+        return hasClock(x, clock) || hasClock(y, clock);
+    }
     return false;
 }
 

@@ -6,9 +6,22 @@ import("stdfaust.lib");
 
 //process = + ~ (_ <: @(3)*2, @(4) : + : *(13));
 
+fi2 = _ <: *(0.1), (mem:*(0.2)) :> _;
+smoo1 = *(0.1);
+smoo2 = +~*(0.1);
+smoo3 = +~(fi2);
+smoo4 = fi2 : smoo1;
+smoo5 = fi2 : smoo2;
+smoo6 = fi2 : smoo3;
+smoo7 = *(0.1) : +~*(0.9);
+smoo8 = +~*(0.9) : *(0.1);
+
 ex1 = @(1);
 ex2 = _ <: par(i, 10, @(i)*(i/100+0.1)) :> _; // un simple fir
 ex3 = _ <: par(i, 20, @(i)*(i/100+0.1)) :> _; // un simple fir
+
+m2 = ex2,ex2 : -;
+m3 = par(i,6,ex2) :> _;
 
 ex4 = +~ex2;
 

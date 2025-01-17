@@ -59,7 +59,7 @@
 #include "timing.hh"
 #include "xtended.hh"
 
-#define TRACE
+#undef TRACE
 
 // Old delays are supposed to work while new delays are in progress
 #define OLDDELAY 0
