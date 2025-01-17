@@ -173,19 +173,35 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     } else if (isSigCheckbox(sig, label)) {
         return 0;
     } else if (isSigVSlider(sig, label, c, x, y, z)) {
-        return 0;
+        vsigs.push_back(c);
+        vsigs.push_back(x);
+        vsigs.push_back(y);
+        vsigs.push_back(z);
+        return 4;
     } else if (isSigHSlider(sig, label, c, x, y, z)) {
-        return 0;
+        vsigs.push_back(c);
+        vsigs.push_back(x);
+        vsigs.push_back(y);
+        vsigs.push_back(z);
+        return 4;
     } else if (isSigNumEntry(sig, label, c, x, y, z)) {
-        return 0;
+        vsigs.push_back(c);
+        vsigs.push_back(x);
+        vsigs.push_back(y);
+        vsigs.push_back(z);
+        return 4;
     }
 
     else if (isSigVBargraph(sig, label, x, y, z)) {
+        vsigs.push_back(x);
+        vsigs.push_back(y);
         vsigs.push_back(z);
-        return 1;
+        return 3;
     } else if (isSigHBargraph(sig, label, x, y, z)) {
+        vsigs.push_back(x);
+        vsigs.push_back(y);
         vsigs.push_back(z);
-        return 1;
+        return 3;
     }
 
     else if (isSigSoundfile(sig, label)) {
@@ -204,6 +220,14 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         vsigs.push_back(y);
         vsigs.push_back(z);
         return 4;
+    }
+
+    else if (isSigFIR(sig)) {
+        vsigs = sig->branches();
+        return int(vsigs.size());
+    } else if (isSigIIR(sig)) {
+        vsigs = sig->branches();
+        return int(vsigs.size());
     }
 
     else if (isSigAttach(sig, x, y)) {

@@ -2,6 +2,7 @@
  ************************************************************************
     FAUST compiler
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2023-2024 INRIA
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -188,6 +189,12 @@ void sigvisitor::visit(Tree sig)
 
     else if (isSigSelect2(sig, sel, s1, s2)) {
         visitSelect2(sig, sel, s1, s2);
+    }
+
+    else if (isSigFIR(sig)) {
+        visitFIR(sig);
+    } else if (isSigIIR(sig)) {
+        visitIIR(sig);
     }
 
     else if (isList(sig)) {
