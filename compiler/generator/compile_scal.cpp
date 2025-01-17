@@ -2078,8 +2078,10 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
             string access = generateDelayAccess(sig, exp, i - 1);
             if (isOne(coefs[i])) {
                 oss << sep << access;
+            } else if (Tree x, y; isSigAdd(coefs[i], x, y) || isSigSub(coefs[i], x, y)) {
+                oss << sep << '(' << CS(coefs[i]) << ") * " << access;
             } else {
-                oss << sep << "(" << CS(coefs[i]) << ") * " << access;
+                oss << sep << CS(coefs[i]) << " * " << access;
             }
             sep = " + ";
         }

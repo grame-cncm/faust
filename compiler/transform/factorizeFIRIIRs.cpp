@@ -7,42 +7,52 @@
 
 //---------------Private implementation-----------------
 
-// Transform FIRs and IIRs by factorizing common coefficients when possible
-class FIRIIRFactorizer : public SignalIdentity {
+// Transform FIRs by factorizing common coefficients when possible
+class FIRFactorizer : public SignalIdentity {
    protected:
     Tree transformation(Tree sig);
     Tree postprocess(Tree L);
     bool hasCommonCoef(const tvec& C, Tree& factor, tvec& newC);
 };
 
-bool FIRIIRFactorizer::hasCommonCoef(const tvec& C, Tree& commonfactor, tvec& newC)
+/**
+ * @brief Determine if the coefficients C of a FIR can be factorized. If thats possible, it returns
+ * the new factorized coefficients and the common factor.
+ *
+ * @param C the vector of coefficients
+ * @param commonfactor the common factor if factorisation is possible
+ * @param newC the new vector of coefficients if factorization is possible
+ * @return true, factorization is possible
+ * @return false, factorization is not possible
+ */
+bool FIRFactorizer::hasCommonCoef(const tvec& C, Tree& commonfactor, tvec& newC)
 {
     // compute the most common factor and its number of occurrences
-    std::map<Tree, int> coefMap;
+    std::map<Tree, int> coefOcc;
     Tree                factor    = gGlobal->nil;
     int                 nbfactors = 0;
-    int                 maxCoef   = 0;
+    int                 maxocc    = 0;
     for (int i = 1; i < C.size(); i++) {
         Tree c = C[i];
         // we analyze all non zero factors
         if (!isZero(c)) {
             nbfactors++;
-            if (coefMap.find(c) == coefMap.end()) {
-                coefMap[c] = 1;
+            if (coefOcc.find(c) == coefOcc.end()) {
+                coefOcc[c] = 1;
             } else {
-                coefMap[c]++;
+                coefOcc[c]++;
             }
-            if (coefMap[c] > maxCoef) {
-                maxCoef = coefMap[c];
-                factor  = c;
+            if (coefOcc[c] > maxocc) {
+                maxocc = coefOcc[c];
+                factor = c;
             }
         }
     }
-    // std::cerr << "factor: " << ppsig(factor) << " count: " << maxCoef << " nbfactors: " <<
+    // std::cerr << "factor: " << ppsig(factor) << " count: " << maxocc << " nbfactors: " <<
     // nbfactors
     //           << std::endl;
     // Case 1: the common factor is equal to all nz coefficients
-    if (maxCoef == nbfactors) {
+    if (maxocc == nbfactors) {
         for (Tree c : C) {
             if (c == factor) {
                 newC.push_back(sigInt(1));
@@ -57,7 +67,7 @@ bool FIRIIRFactorizer::hasCommonCoef(const tvec& C, Tree& commonfactor, tvec& ne
     return false;
 }
 
-Tree FIRIIRFactorizer::transformation(Tree sig)
+Tree FIRFactorizer::transformation(Tree sig)
 {
     Tree var, le;
     if (isRec(sig, var, le)) {
@@ -75,7 +85,7 @@ Tree FIRIIRFactorizer::transformation(Tree sig)
     }
 }
 
-Tree FIRIIRFactorizer::postprocess(Tree sig)
+Tree FIRFactorizer::postprocess(Tree sig)
 {
     // std::cerr << "Postprocess: " << ppsig(sig) << std::endl;
     if (tvec coef; isSigFIR(sig, coef)) {
@@ -98,12 +108,8 @@ Tree FIRIIRFactorizer::postprocess(Tree sig)
  */
 Tree factorizeFIRIIRs(Tree L1)
 {
-    // FIRIIRFactorizer F;
-    // F.trace(TRACE, "fractorizeFIRIIRs");
-    // Tree L2 = F.mapself(L1);
-    // return L2;
-    FIRIIRFactorizer F;
-    F.trace(TRACE, "factorizeFIRIIRs");
+    FIRFactorizer F;
+    F.trace(TRACE, "factorizeFIRs");
     Tree L2 = F.mapself(L1);
     return L2;
 }
