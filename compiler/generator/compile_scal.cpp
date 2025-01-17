@@ -1748,9 +1748,8 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 
         case DelayType::kMaskRingDelay:
         case DelayType::kSelectRingDelay:
-            int         N   = pow2limit(mxd + 1);
-            std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
-            result          = subst("$0[$1]", vecname, generateIotaCache(idx));
+            int N  = pow2limit(mxd + 1);
+            result = subst("$0[($0idx-$1)&$2]", vecname, CS(delay), T(N - 1));
             break;
     }
     return generateCacheCode(sig, result);
@@ -1801,9 +1800,9 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, int delay)
 
         case DelayType::kMaskRingDelay:
         case DelayType::kSelectRingDelay:
-            int         N   = pow2limit(mxd + 1);
-            std::string idx = subst("(IOTA-$0)&$1", T(delay), T(N - 1));
-            result          = subst("$0[$1]", vecname, generateIotaCache(idx));
+            int N = pow2limit(mxd + 1);
+            // std::string idx = subst("(IOTA-$0)&$1", T(delay), T(N - 1));
+            result = subst("$0[($0idx-$1)&$2]", vecname, T(delay), T(N - 1));
             break;
     }
     // return generateCacheCode(sig, result);
@@ -1855,10 +1854,10 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
 
         case DelayType::kMaskRingDelay:
         case DelayType::kSelectRingDelay:
-            int         N   = pow2limit(mxd + 1);
-            std::string idx = subst("(IOTA-$0)&$1", delayidx, T(N - 1));
-            result          = subst("$0[$1]", vecname,
-                                    idx);  // idx can't be cashed as it depends of loop variable ii
+            int N = pow2limit(mxd + 1);
+            // std::string idx = subst("(IOTA-$0)&$1", delayidx, T(N - 1));
+            result = subst("$0[($0idx-$1)&$2]", vecname, delayidx,
+                           T(N - 1));  // idx can't be cashed as it depends of loop variable ii
             break;
     }
     // return generateCacheCode(sig, result);
@@ -2028,18 +2027,20 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             int N = pow2limit(mxd + 1);
 
             // we need an iota index
-            fMaxIota++;
+            // fMaxIota++;
             // std::cerr << "MaxIota increased" << std::endl;
 
             // declare and init
+            fClass->addDeclCode(subst("int \t$0idx; // Ring Index", vname));
             fClass->addDeclCode(subst("$0 \t$1[$2]; // Ring Delay", ctype, vname, T(N)));
             fClass->addClearCode(subst("for (int i = 0; i < $1; i++) { $0[i] = 0; }", vname, T(N)));
+            fClass->addClearCode(subst("$0idx = 0;", vname));
 
             // execute
-            std::string idx      = subst("IOTA&$0", T(N - 1));
-            std::string cacheidx = generateIotaCache(idx);
-            fClass->addExecCode(Statement(ccs, subst("$0[$1] = $2;", vname, cacheidx, exp)));
-            return subst("$0[$1]", vname, cacheidx);
+            fClass->addExecCode(Statement(ccs, subst("$0[$0idx] = $1;", vname, exp)));
+            // increase index
+            fClass->addPostCode(Statement("", subst("$0idx = ($0idx + 1) & $1;", vname, T(N - 1))));
+            return subst("$0[$0idx]", vname);
     }
     faustassertaux(false, __FILE__, __LINE__);
     return "[[IMPOSSIBLE]]";
