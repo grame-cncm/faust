@@ -3,9 +3,11 @@
 #include <sstream>
 #include <string>
 #include "ppsig.hh"
+#include "sigFIR.hh"
 #include "sigIIR.hh"
 #include "sigIdentity.hh"
 #include "signals.hh"
+#include "simplify.hh"
 
 #include "DirectedGraph.hh"
 #include "DirectedGraphAlgorythm.hh"
@@ -191,6 +193,14 @@ static Tree makeIIR(Tree fir, Tree in)
     // std::cerr << "makeIIR2: " << ppsig(iir) << "\n";
     return iir;
 }
+
+//-------------------------------------------------------------------------
+// Negate a signal: S -> -S
+static Tree sigNeg(Tree sig)
+{
+    return simplify(sigMul(sigInt(-1), sig));
+}
+
 #if 1
 /**
  * @brief Check if a recursive projection is a FIR that can
@@ -218,6 +228,22 @@ Tree proj2IIR(int indentation, Tree proj)
         } else if (tvec cx; isSigFIR(x, cx) && cx[0] == proj) {
             if (!isDependingOn(y, proj)) {
                 return makeIIR(x, y);
+            } else {
+                return gGlobal->nil;
+            }
+        } else {
+            return gGlobal->nil;
+        }
+    } else if (isSigSub(def, x, y)) {
+        if (tvec cy; isSigFIR(y, cy) && cy[0] == proj) {
+            if (!isDependingOn(x, proj)) {
+                return makeIIR(negSigFIR(y), x);
+            } else {
+                return gGlobal->nil;
+            }
+        } else if (tvec cx; isSigFIR(x, cx) && cx[0] == proj) {
+            if (!isDependingOn(y, proj)) {
+                return makeIIR(x, sigNeg(y));
             } else {
                 return gGlobal->nil;
             }

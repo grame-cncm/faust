@@ -76,10 +76,11 @@ Occurrences* Occurrences::incOccurrences(int v, int r, int d, Tree xc)
         // cerr << "Occurence outside a delay " << endl;
         fOutDelayOcc = true;
     }
+    // we have a delay occurrence
+    fCountDelay++;
+
     if (d > fMaxDelay) {
-        // cerr << "Max delay : " << fMaxDelay << " <- " << d << endl;
         fMaxDelay = d;
-        fCountDelay++;
     }
 
     // check if used in different execution conditions

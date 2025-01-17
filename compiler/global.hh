@@ -158,29 +158,31 @@ struct global {
     bool gExportDSP;            // -e option
 
     // code generation options
-    bool gVectorSwitch;       // -vec option
-    bool gDeepFirstSwitch;    // -dfs option
-    int  gVecSize;            // -vs option
-    int  gVectorLoopVariant;  // -lv [0|1] option
-    bool gVectorFIRIIRs;      // -fir option
-    int  gFirLoopSize;        // -fls --fir-loop-size option
-    bool gOpenMPSwitch;       // -omp option
-    bool gOpenMPLoop;         // -pl option
-    bool gSchedulerSwitch;    // -sch option
-    bool gOpenCLSwitch;       // -ocl option
-    bool gCUDASwitch;         // -cuda option
-    bool gGroupTaskSwitch;    // -g option
-    bool gFunTaskSwitch;      // -fun option
-    int  gMaxCopyDelay;       // -mcd threshold
-    int  gMaxFIRSize;         // -mfs threshold
-    int  gMaxDenseDelay;      // -mdd threshold
-    int  gMinDensity;         // -mdy threshold
-    int  gMinCopyLoop;        // -mcl threshold
-    int  gFloatSize;          // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3
-                              // for 'quad', 4 for 'fixed-point')
-    int  gFixedPointSize;     // -fx-size (-1 by default = not used)
-    int  gFixedPointMSB;      // max value of MSB in -fx mode
-    int  gFixedPointLSB;      // min value of LSB in -fx mode
+    bool gVectorSwitch;            // -vec option
+    bool gDeepFirstSwitch;         // -dfs option
+    int  gVecSize;                 // -vs option
+    int  gVectorLoopVariant;       // -lv [0|1] option
+    bool gOpenMPSwitch;            // -omp option
+    bool gOpenMPLoop;              // -pl option
+    bool gSchedulerSwitch;         // -sch option
+    bool gOpenCLSwitch;            // -ocl option
+    bool gCUDASwitch;              // -cuda option
+    bool gGroupTaskSwitch;         // -g option
+    bool gFunTaskSwitch;           // -fun option
+    int  gMaxCopyDelay;            // -mcd threshold
+    bool gReconstructFIRIIRs;      // -fir option
+    int  gFirLoopSize;             // -fls --fir-loop-size option
+    int  gMaxFIRSize;              // -mfs threshold
+    bool gUseDenseDelay;           // -udd --use-dense-delay option
+    int  gMaxDenseDelay;           // -mdd threshold
+    int  gMinDensity;              // -mdy threshold
+    int  gMinCopyLoop;             // -mcl threshold
+    int  gIIRRingThreshold;        // -irt <threshold> threshold for IIR ring delay
+    int  gFloatSize;               // -single/double/quad/fx option (1 for 'float', 2
+                                   // for 'double', 3 for 'quad', 4 for 'fixed-point')
+    int  gFixedPointSize;          // -fx-size (-1 by default = not used)
+    int  gFixedPointMSB;           // max value of MSB in -fx mode
+    int  gFixedPointLSB;           // min value of LSB in -fx mode
     int  gMaskDelayLineThreshold;  // -dlt <num> power-of-two and mask delay-lines treshold
     bool gEnableFlag;              // -es option (0/1: 0 by default)
     bool gNoVirtual;  // -nvi option, when compiled with the C++ backend, does not add the 'virtual'

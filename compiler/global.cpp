@@ -432,18 +432,22 @@ void global::reset()
     gMaxNameSize      = 40;
     gSimpleNames      = false;
     gSimplifyDiagrams = false;
-    gMaxCopyDelay     = 9;     // Maximal delay to choose a copy representation
-    gMaxFIRSize       = 1024;  // Maximal number of coefficients for a FIR
-    gMaxDenseDelay    = 1024;  // Maximal delay to choose a dense representation
-    gMinDensity       = 33;    // Minimal density d/100 to choose a dense representation
-    gMinCopyLoop      = 4;     // Minimal number of coefficients to use a loop for copy
 
-    gVectorSwitch      = false;
-    gDeepFirstSwitch   = false;
-    gVecSize           = 128;
-    gVectorLoopVariant = 0;
-    gVectorFIRIIRs     = false;
-    gFirLoopSize       = 4;  // FIR/IIR size for creating a loop
+    // new compilation options related to FIRs, IIRs and delaylines
+
+    gReconstructFIRIIRs = false;  // Choose to reconstruct FIRs and IIRs
+    gMaxFIRSize         = 1024;   // Maximal number of coefficients for a FIR
+    gFirLoopSize        = 4;      // Choose inline under this value or loop to compute the FIR/IIR
+    gMaxCopyDelay       = 9;      // Implement delays by copy under this value, IOTA/Dense otherwise
+    gMinCopyLoop        = 4;      // When copying delays use inline under this value or loop
+    gUseDenseDelay      = 1;      // Use dense delay representation instead of IOTA
+    gMinDensity         = 33;     // Minimal density d/100 to choose a dense representation
+    gMaxDenseDelay      = 1024;   // Maximal delay to choose a dense representation
+    gIIRRingThreshold   = 4;      // Minimal delay to use a ring buffer for IIR
+    gVectorSwitch       = false;
+    gDeepFirstSwitch    = false;
+    gVecSize            = 128;
+    gVectorLoopVariant  = 0;
 
     gOpenMPSwitch    = false;
     gOpenMPLoop      = false;
@@ -865,12 +869,18 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gOpenMPSwitch) {
         dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
     }
+    if (gReconstructFIRIIRs) {
+        dst << "-fir ";
+    }
     dst << "-mcl " << gMinCopyLoop << " ";
     dst << "-mcd " << gMaxCopyDelay << " ";
     dst << "-mfs " << gMaxFIRSize << " ";
+    dst << "-irt " << gIIRRingThreshold << " ";
+    dst << "-fls " << gFirLoopSize << " ";
+    dst << "-udd " << gUseDenseDelay << " ";
     dst << "-mdd " << gMaxDenseDelay << " ";
     dst << "-mdy " << gMinDensity << " ";
-    dst << "-fls " << gFirLoopSize << " ";
+
     if (gUIMacroSwitch) {
         dst << "-uim ";
     }
@@ -1295,12 +1305,20 @@ bool global::processCmdline(int argc, const char* argv[])
             gMaxCopyDelay = std::atoi(argv[i + 1]);
             i += 2;
 
+        } else if (isCmd(argv[i], "-udd", "--use-dense-delay") && (i + 1 < argc)) {
+            gUseDenseDelay = std::atoi(argv[i + 1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-mcl", "--min-copy-loop") && (i + 1 < argc)) {
             gMinCopyLoop = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mfs", "--max-fir-size") && (i + 1 < argc)) {
             gMaxFIRSize = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-irt", "--iir-ring-threshold") && (i + 1 < argc)) {
+            gIIRRingThreshold = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mdd", "--max-dense-delay") && (i + 1 < argc)) {
@@ -1341,7 +1359,7 @@ bool global::processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-fir", "--fir-iir")) {
-            gVectorFIRIIRs = true;
+            gReconstructFIRIIRs = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-fls", "--fir-loop-size") && (i + 1 < argc)) {

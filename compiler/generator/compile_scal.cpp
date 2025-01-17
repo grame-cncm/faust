@@ -119,7 +119,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     Tree L2a = newConstantPropagation(L1);
     Tree L2;
     // detect FIRs and IIRs if required
-    if (gGlobal->gVectorFIRIIRs) {
+    if (gGlobal->gReconstructFIRIIRs) {
         startTiming("FIR revealer");
         Tree L2b = revealFIR(L2a);
         endTiming("FIR revealer");
@@ -1458,6 +1458,14 @@ bool ScalarCompiler::isSigSimpleRec(Tree sig)
 DelayType ScalarCompiler::analyzeDelayType(Tree sig)
 {
     Occurrences* occ = fOccMarkup->retrieve(sig);
+    if (tvec coefs; isSigIIR(sig, coefs)) {
+        std::cerr << "Analyze delay type for IIR sig " << sig << " with " << coefs.size() - 3
+                  << " real coefs \n";
+        if (coefs.size() - 3 >= gGlobal->gIIRRingThreshold) {
+            std::cerr << "We use MaskRingDelay !\n";
+            return DelayType::kMaskRingDelay;
+        }
+    }
     faustassert(occ != nullptr);
     int mxd   = occ->getMaxDelay();
     int count = occ->getDelayCount();
@@ -1482,12 +1490,21 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
         return DelayType::kCopyDelay;
     }
     int dnsty = (100 * count) / mxd;
-    if ((mxd <= gGlobal->gMaxDenseDelay) && (dnsty >= gGlobal->gMinDensity)) {
+    std::cerr << "Analyze delay type for sig " << sig << " with mxd=" << mxd
+              << ", delays count=" << occ->getDelayCount() << " and density=" << dnsty << "\n";
+    std::cerr << "gUseDenseDelay=" << gGlobal->gUseDenseDelay
+              << " gMaxDenseDelay=" << gGlobal->gMaxDenseDelay
+              << " gMinDensity=" << gGlobal->gMinDensity << "\n";
+    if ((gGlobal->gUseDenseDelay != 0) && (mxd <= gGlobal->gMaxDenseDelay) &&
+        (dnsty >= gGlobal->gMinDensity)) {
+        std::cerr << "We use DenseDelay !\n";
         return DelayType::kDenseDelay;
     }
     if (mxd <= gGlobal->gMaskDelayLineThreshold) {
+        std::cerr << "We use MaskRingDelay !\n";
         return DelayType::kMaskRingDelay;
     }
+    std::cerr << "We use SelectRingDelay !\n";
     return DelayType::kSelectRingDelay;
 }
 
@@ -2053,7 +2070,7 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
             }
             sep = " + ";
         }
-        oss << ')' << " /*FIR expression*/";
+        oss << ')' << " /* Non Loop FIR expression */";
 
         return generateCacheCode(sig, oss.str());
 
@@ -2133,8 +2150,9 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         fClass->addExecCode(Statement("", subst("$0 \t$1 = 0;", ftype, facc)));
 
         // Code for the accumulation loop
-        std::string accloop = subst("for (int ii = 0; ii < $0; ii++) { $1 += $2[ii] * $3; }",
-                                    T(int(coefs.size() - 1)), facc, ctable, idxaccess);
+        std::string accloop = subst(
+            "for (int ii = 0; ii < $0; ii++) { $1 += $2[ii] * $3; } /* Loop based FIR acc. */",
+            T(int(coefs.size() - 1)), facc, ctable, idxaccess);
         fClass->addExecCode(Statement("", accloop));
 
         return generateCacheCode(sig, facc);
@@ -2166,7 +2184,10 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
     // Build the IIR expressions X + C1*Y(t-1) + C2*Y(t-2) + ...
     std::ostringstream oss;
     oss << CS(coefs[1]);  // the input signal X
-    for (unsigned int i = 3; i < coefs.size(); ++i) {
+
+    // Invert the order of computation has it seems faster
+    // for (unsigned int i = 3; i < coefs.size(); ++i) {
+    for (unsigned int i = coefs.size() - 1; i >= 3; i--) {
         if (isZero(coefs[i])) {
             continue;
         }
@@ -2185,7 +2206,7 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
     // return the current value
     return Y0;
 }
-
+#if 0
 string ScalarCompiler::generateIIRSmallExpression(const string& dlname, Tree sig, const tvec& coefs)
 {
     std::ostringstream oss;
@@ -2231,3 +2252,4 @@ string ScalarCompiler::generateIIRBigExpression(const string& dlname, int mxd, T
     oss << "/*IIR big expression*/";
     return oss.str();
 }
+#endif

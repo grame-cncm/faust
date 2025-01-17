@@ -98,15 +98,22 @@ static Tree sigNeg(Tree sig)
 // Negate a FIR
 Tree negSigFIR(Tree sig)
 {
-    tvec V;
-    if (isSigFIR(sig, V)) {
+    if (tvec V; isSigFIR(sig, V)) {
         for (unsigned int i = 1; i < V.size(); i++) {
             V[i] = sigNeg(V[i]);
         }
         return sigFIR(V);
-    } else {
-        return sigNeg(sig);
     }
+
+    if (Tree x, y; isSigAdd(sig, x, y)) {
+        return addSigFIR(negSigFIR(x), negSigFIR(y));
+    }
+
+    if (Tree x, y; isSigSub(sig, x, y)) {
+        return addSigFIR(negSigFIR(x), y);
+    }
+
+    return sigNeg(sig);
 }
 
 //-------------------------------------------------------------------------
@@ -446,10 +453,17 @@ Tree mulSigFIR(Tree s1, Tree s2)
         }
     } else if (isSigFIR(s2, V)) {
         return mulSigFIR(s2, s1);
+    } else if (isMinusOne(s1)) {
+        return negSigFIR(s2);
+    } else if (isMinusOne(s2)) {
+        return negSigFIR(s1);
     } else {
         // CASE 3: Not a FIR
 
-        return simplify(sigMul(s1, s2));
+        Tree sr = simplify(sigMul(s1, s2));
+        // std::cerr << "NOT A FIR : mulSigFIR(" << ppsig(s1) << ", " << ppsig(s2) << ") ==> "
+        //           << ppsig(sr) << "\n";
+        return sr;
     }
 }
 
