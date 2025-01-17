@@ -587,7 +587,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         }
 
     } else if (isBoxOndemand(box, t1)) {
-        // Propagate lsig into the ondemand version of circuit t1
+        // std::cerr << "we are in ONDEMAND" << std::endl;
+        //  Propagate lsig into the ondemand version of circuit t1
 
         // 1/ The first signal is the clock signal
         Tree H = lsig[0];
@@ -661,8 +662,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // using sigSeq(od, y)
         siglist Y2;
         for (Tree y : Y1) {
-            Tree y2 = sigSeq(od, sigClocked(clockenv, y));
-            // std::cerr << "y2 = " << ppsig(y2) << std::endl;
+            Tree y2 = sigSeq(od, y);
+            // Tree y2 = sigSeq(od, sigClocked(clockenv, y));
+            //  std::cerr << "y2 = " << ppsig(y2) << std::endl;
             Y2.push_back(y2);
         }
 
@@ -696,7 +698,7 @@ siglist propagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglis
     Tree args = tree(gGlobal->PROPAGATEPROPERTY, clockenv, slotenv, path, box, listConvert(lsig));
     siglist result;
     if (!getPropagateProperty(args, result)) {
-        // cerr << "propagate in " << clockenv << " into " << boxpp(box) << endl;
+        // cerr << "propagate within clock " << *clockenv << " into " << boxpp(box) << endl;
         // for (int i = 0; i < lsig.size(); i++) {
         //     cerr << " -> signal " << i << " : " << *(lsig[i]) << endl;
         // }
@@ -704,7 +706,7 @@ siglist propagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglis
 
         result = realPropagate(clockenv, slotenv, path, box, lsig);
         setPropagateProperty(args, result);
-        // cerr << "propagate in " << clockenv << " into " << boxpp(box) << endl;
+        // cerr << "propagate within clock " << *clockenv << " into " << boxpp(box) << endl;
         // for (int i = 0; i < result.size(); i++) {
         //     cerr << " -> result " << i << " : " << *(result[i]) << endl;
         // }

@@ -44,6 +44,7 @@ class ScalarCompiler : public Compiler {
     property<std::string> fCompileProperty;
     property<std::string> fSoundfileVariableProperty;  // variable associated to a soundfile
     property<std::string> fVectorProperty;
+    property<std::string> fIotaProperty;  // IOTA associated to a specific ondemand clock signal
     property<std::pair<std::string, std::string> >
         fStaticInitProperty;  // property added to solve 20101208 kjetil bug
     property<std::pair<std::string, std::string> >
@@ -106,6 +107,7 @@ class ScalarCompiler : public Compiler {
     virtual std::string generateDelayAccess(Tree sig, Tree arg, Tree delay);
     std::string         generateDelayAccess(Tree sig, Tree arg, int delay);
     std::string         generateDelayAccess(Tree sig, Tree arg, std::string delayidx);
+    std::string         declareRetriveIotaName(Tree clock);
     std::string         generatePrefix(Tree sig, Tree x, Tree e);
     std::string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 
@@ -167,7 +169,7 @@ class ScalarCompiler : public Compiler {
                                          const std::string& vname, int mxd, int count);
     std::string generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype,
                                        const std::string& vname, int mxd, int count);
-    virtual std::string generateDelayLine(DelayType dt, const std::string& ctype,
+    virtual std::string generateDelayLine(Tree sig, const std::string& ctype,
                                           const std::string& vname, int mxd, int count, bool mono,
                                           const std::string& exp, const std::string& ccs);
 

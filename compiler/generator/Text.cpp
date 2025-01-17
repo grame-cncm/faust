@@ -161,6 +161,13 @@ string T(int64_t n)
     return std::to_string(n);
 }
 
+string T(void* x)
+{
+    std::ostringstream oss;
+    oss << x;  // Cast to void* for a standard representation
+    return oss.str();
+}
+
 /**
  * If needed add a trailing '.0' to the
  * the textual representation of a floating point number

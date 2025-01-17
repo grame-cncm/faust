@@ -1460,8 +1460,8 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
                                   nameDelayType(analyzeDelayType(sig))));
         fClass->addDeclCode(
             subst("// While its definition is of type $0", nameDelayType(analyzeDelayType(def))));
-        std::string dl0 = generateDelayLine(analyzeDelayType(sig), ctype, vecname, delay, count,
-                                            mono, CS(def), getConditionCode(def));
+        std::string dl0 = generateDelayLine(sig, ctype, vecname, delay, count, mono, CS(def),
+                                            getConditionCode(def));
         return dl0;
     }
     if (ty->variability() == kBlock) {
@@ -1525,7 +1525,7 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
         // std::cerr << "Analyze delay type for IIR sig " << sig << " with " << coefs.size() - 3
         //           << " real coefs \n";
         if (int(coefs.size()) - 3 >= gGlobal->gIIRRingThreshold) {
-            // std::cerr << "We use MaskRingDelay !\n";
+            // std::cerr << "We use MaskRingDelay for " << ppsig(sig) << std::endl;
             return DelayType::kMaskRingDelay;
         }
     }
@@ -1564,10 +1564,16 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
         return DelayType::kDenseDelay;
     }
     if (mxd <= gGlobal->gMaskDelayLineThreshold) {
-        // std::cerr << "We use MaskRingDelay !\n";
+        Tree clock;
+        if (!hasClock(sig, clock)) {
+            std::cerr << "ERROR, not the expected signal with a clock " << ppsig(sig) << std::endl;
+        }
+        faustassert(hasClock(sig, clock));
+        // std::cerr << "We use MaskRingDelay in clock env: " << clock << ", for sig: " << sig
+        //           << std::endl;
         return DelayType::kMaskRingDelay;
     }
-    // std::cerr << "We use SelectRingDelay !\n";
+    // std::cerr << "We use SelectRingDelay for " << ppsig(sig) << std::endl;
     return DelayType::kSelectRingDelay;
 }
 
@@ -1615,8 +1621,8 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
                                       nameDelayType(analyzeDelayType(exp[i]))));
             fClass->addDeclCode(subst("// While its definition is of type $0",
                                       nameDelayType(analyzeDelayType(def))));
-            generateDelayLine(analyzeDelayType(exp[i]), ctype[i], vname[i], delay[i], count[i],
-                              mono[i], CS(def), getConditionCode(def));
+            generateDelayLine(exp[i], ctype[i], vname[i], delay[i], count[i], mono[i], CS(def),
+                              getConditionCode(def));
         }
     }
 }
@@ -1726,6 +1732,29 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, int delay)
 }
 
 /**
+ * @brief Declare or retrieve the IOTA name associated to a specific ondemand clock environment
+ *
+ * @param clock signal
+ * @return string
+ */
+string ScalarCompiler::declareRetriveIotaName(Tree clock)
+{
+    // std::cerr << "declareRetriveIotaName(" << *clock << ")" << endl;
+    if (std::string iotaname; fIotaProperty.get(clock, iotaname)) {
+        return iotaname;
+    }
+
+    std::string newiotaname = getFreshID("IOTA");
+    fIotaProperty.set(clock, newiotaname);
+    fClass->addDeclCode(subst("int \t$0; // IOTA for clock: $1", newiotaname, T(clock)));
+    fClass->addInitCode(subst("$0 = 0; // init IOTA for clock: $1", newiotaname, T(clock)));
+    fClass->addPostCode(
+        Statement("", subst("++$0; // inc IOTA for clock: $1", newiotaname, T(clock))));
+
+    return newiotaname;
+}
+
+/**
  * Generate code for accessing a delayed signal when using a string as index
  */
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
@@ -1765,9 +1794,13 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
 
         case DelayType::kMaskRingDelay:
         case DelayType::kSelectRingDelay:
-            int N = pow2limit(mxd + 1);
+            int  N = pow2limit(mxd + 1);
+            Tree clock;
+            faustassert(hasClock(exp, clock));
+            std::string iotaname = declareRetriveIotaName(clock);
+            // std::cerr << "iotaname : " << iotaname << std::endl;
             // std::string idx = subst("(IOTA-$0)&$1", delayidx, T(N - 1));
-            result = subst("$0[($0idx-$1)&$2]", vecname, delayidx,
+            result = subst("$0[($1-$2)&$3]", vecname, iotaname, delayidx,
                            T(N - 1));  // idx can't be cashed as it depends of loop variable ii
             break;
     }
@@ -1798,10 +1831,10 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
     std::string vecname = ensureVectorNameProperty(pname, sig);
     bool        mono    = isSigSimpleRec(sig);
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
-    string    ccs = getConditionCode(sig);
-    DelayType dt  = analyzeDelayType(sig);
-    // fClass->addDeclCode(subst("// Normal delay $0 is of type $1", vname, nameDelayType(dt)));
-    string access = generateDelayLine(dt, ctype, vecname, mxd, count, mono, exp, ccs);
+    string ccs = getConditionCode(sig);
+    // DelayType dt  = analyzeDelayType(sig);
+    //  fClass->addDeclCode(subst("// Normal delay $0 is of type $1", vname, nameDelayType(dt)));
+    string access = generateDelayLine(sig, ctype, vecname, mxd, count, mono, exp, ccs);
     // setVectorNameProperty(sig, vname);
     return access;
 }
@@ -1810,10 +1843,11 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
  * Generate code for the delay mechanism without using temporary variables
  */
 
-string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, const string& vname,
+string ScalarCompiler::generateDelayLine(Tree sig, const string& ctype, const string& vname,
                                          int mxd, int count, bool mono, const string& exp,
                                          const string& ccs)
 {
+    DelayType dt = analyzeDelayType(sig);
     switch (dt) {
         case DelayType::kNotADelay:
             faustexception("Try to compile has a delay something that is not a delay");
@@ -1932,6 +1966,10 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
 
         case DelayType::kMaskRingDelay:
         case DelayType::kSelectRingDelay:
+            Tree clock;
+            faustassert(hasClock(sig, clock));
+            std::string iotaname = declareRetriveIotaName(clock);
+            // std::cerr << "Use of ring buffer " << vname << " with sig = " << sig << std::endl;
 
             // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
             int N = pow2limit(mxd + 1);
@@ -1940,17 +1978,15 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             // fMaxIota++;
             // std::cerr << "MaxIota increased" << std::endl;
 
-            // declare and init
-            fClass->addDeclCode(subst("int \t$0idx; // Ring Index", vname));
+            // declare and init the delay line
             fClass->addDeclCode(subst("$0 \t$1[$2]; // Ring Delay", ctype, vname, T(N)));
-            fClass->addClearCode(subst("for (int i = 0; i < $1; i++) { $0[i] = 0; }", vname, T(N)));
-            fClass->addClearCode(subst("$0idx = 0;", vname));
+            fClass->addClearCode(subst("for (int i = 1; i < $1; i++) { $0[i] = 0; }", vname, T(N)));
+            fClass->addClearCode(subst("$0[0] = -1;  // detect unintialized", vname));
 
             // execute
-            fClass->addExecCode(Statement(ccs, subst("$0[$0idx] = $1;", vname, exp)));
-            // increase index
-            fClass->addPostCode(Statement("", subst("$0idx = ($0idx + 1) & $1;", vname, T(N - 1))));
-            return subst("$0[$0idx]", vname);
+            fClass->addExecCode(
+                Statement(ccs, subst("$0[$1&$2] = $3;", vname, iotaname, T(N - 1), exp)));
+            return subst("$0[$1&$2]", vname, iotaname, T(N - 1));
     }
     faustassertaux(false, __FILE__, __LINE__);
     return "[[IMPOSSIBLE]]";
@@ -2321,7 +2357,7 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
         CS(x);
     }
 
-    std::cerr << "opening if statement" << std::endl;
+    // std::cerr << "opening if statement" << std::endl;
 
     // 3/ We the compile the clock signal and open an if statement
     // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
@@ -2338,7 +2374,7 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
     // 6/ We close the if statement
     fClass->closeIFblock();
 
-    std::cerr << "closing if statement" << std::endl;
+    // std::cerr << "closing if statement" << std::endl;
 
     // 7/ There is no compiled expression
     return "OD not used directly";

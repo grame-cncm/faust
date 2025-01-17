@@ -1083,19 +1083,47 @@ LIBFAUST_API bool isSigClocked(Tree s)
     return isTree(s, gGlobal->SIGCLOCKED);
 }
 
-LIBFAUST_API bool isSigClocked(Tree s, Tree& h, Tree& y)
+LIBFAUST_API bool isSigClocked(Tree s, Tree& clock, Tree& y)
 {
-    return isTree(s, gGlobal->SIGCLOCKED, h, y);
+    return isTree(s, gGlobal->SIGCLOCKED, clock, y);
 }
 
-LIBFAUST_API Tree sigClocked(Tree h, Tree y)
+LIBFAUST_API Tree sigClocked(Tree clock, Tree y)
 {
-    if (Tree h2, z; isSigClocked(y, h2, z) && (h == h2)) {
-        // y is already annotated with the clock h
-        return y;
+    if (Tree h2, z; isSigClocked(y, h2, z)) {
+        if (clock == h2) {
+            // y is already annotated with the clock h
+            return y;
+        } else {
+            std::cerr << "We have a problem of clocks, new clock : " << *clock
+                      << " is different form existing clock " << *h2 << std::endl;
+            faustassert(false);
+        }
     } else {
-        return tree(gGlobal->SIGCLOCKED, h, y);
+        // std::cerr << "sigClocked(" << *clock << ", " << ppsig(y) << ")" << std::endl;
+        return tree(gGlobal->SIGCLOCKED, clock, y);
     }
+}
+
+/**
+ * @brief Search for clock signal
+ *
+ * @param s
+ * @param clock
+ * @return LIBFAUST_API
+ */
+LIBFAUST_API bool hasClock(Tree sig, Tree& clock)
+{
+    if (Tree exp; isSigClocked(sig, clock, exp)) {
+        return true;
+    }
+    if (tvec args; isSigFIR(sig, args)) {
+        return hasClock(args[0], clock);
+    }
+    if (tvec args; isSigIIR(sig, args)) {
+        return hasClock(args[1], clock);
+    }
+    return false;
 }
 
 // for FPGA Retiming
