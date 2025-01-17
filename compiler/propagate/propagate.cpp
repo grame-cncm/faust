@@ -269,7 +269,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // ONDEMAND: We make sure that the waveform is only for
         // the current time reference by adding a clock signal
         // to the first value (it's enough)
-        br[0]   = sigClocked(clockenv, br[0]);  // Make sure 
+        br[0] = sigClocked(clockenv, br[0]);  // Make sure
         return listConcat(makeList(sigInt(int(br.size()))), makeList(sigWaveform(br)));
     }
 
@@ -575,31 +575,36 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
     } else if (isBoxOndemand(box, t1)) {
         // Propagate lsig into the ondemand version of circuit t1
 
-        // The first signal is the clock signal
+        // 1/ The first signal is the clock signal
         Tree H         = lsig[0];
         Tree clockenv2 = cons(H, clockenv);  // the clock environment inside the ondemand circuit
 
-        // The rest is propagated into t1, but via tempopary variables
-        siglist X2;
+        // 2/ We compute X1 the inputs of the ondemand using temporary variables
+        siglist X1;
         for (unsigned int i = 1; i < lsig.size(); i++) {
-            X2.push_back(sigClocked(clockenv2, sigTempVar(lsig[i])));
+            X1.push_back(sigTempVar(lsig[i]));
         }
-        // We propagate X2 inside circuit t1 -> Y0
+
+        // 3/ We propagate X2, the clocked version of X1, into the ondemand circuit -> Y0
+        siglist X2;
+        for (Tree s : X1) {
+            X2.push_back(sigClocked(clockenv2, s));
+        }
         siglist Y0 = propagate(clockenv2, slotenv, path, t1, X2);
 
-        // We store the sigclocked output signals into perm variables
+        // 4/ We store the Y0 output signals into perm variables -> Y1
         siglist Y1;
         for (unsigned int i = 0; i < Y0.size(); i++) {
             Y1.push_back(sigPermVar(sigClocked(clockenv2, Y0[i])));
         }
 
-        // We create on ondemand signal that contain all the information
+        // We create on ondemand signal that contain all the information : OD = (H, X1, NIL, Y1)
         tvec W;
         W.push_back(H);      // the clock signal
-        for (Tree s : X2) {  // the input signals in temp variables
+        for (Tree s : X1) {  // the input signals are X1
             W.push_back(s);
         }
-        W.push_back(gGlobal->nil);  // the output signals in perm variables
+        W.push_back(gGlobal->nil);  // the output signals are Y1
         for (Tree s : Y1) {
             W.push_back(s);
         }
@@ -648,8 +653,19 @@ siglist propagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglis
     Tree args = tree(gGlobal->PROPAGATEPROPERTY, clockenv, slotenv, path, box, listConvert(lsig));
     siglist result;
     if (!getPropagateProperty(args, result)) {
+        // cerr << "propagate in " << clockenv << " into " << boxpp(box) << endl;
+        // for (int i = 0; i < lsig.size(); i++) {
+        //     cerr << " -> signal " << i << " : " << *(lsig[i]) << endl;
+        // }
+        // cerr << endl;
+
         result = realPropagate(clockenv, slotenv, path, box, lsig);
         setPropagateProperty(args, result);
+        // cerr << "propagate in " << clockenv << " into " << boxpp(box) << endl;
+        // for (int i = 0; i < result.size(); i++) {
+        //     cerr << " -> result " << i << " : " << *(result[i]) << endl;
+        // }
+        // cerr << endl;
     }
     // cerr << "propagate in " << boxpp(box) << endl;
     // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) <<
