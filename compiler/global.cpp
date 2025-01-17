@@ -2332,6 +2332,10 @@ string global::printHelp()
     sstr << tab << "-fir        --fir-iir                   reconstruct FIRs and IIRs internally"
          << endl;
     sstr << tab
+         << "-fls        --fir-loop-size             size threshold to implement FIRs using a "
+            "loop"
+         << endl;
+    sstr << tab
          << "-omp        --openmp                    generate OpenMP pragmas, activates "
             "--vectorize option."
          << endl;
