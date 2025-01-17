@@ -200,6 +200,8 @@ extern int FAUSTdebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
+#line 103 "faustparser.y"
+
     Tree exp;
     char* str;
     std::string* cppstr;
