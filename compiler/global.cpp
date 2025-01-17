@@ -588,6 +588,7 @@ void global::reset()
     gDspDirSwitch      = false;
     gPathListSwitch    = false;
     gGraphSwitch       = false;
+    gTopoSwitch        = false;
     gDrawPSSwitch      = false;
     gDrawSVGSwitch     = false;
     gVHDLTrace         = false;
@@ -1218,6 +1219,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-tg", "--task-graph")) {
             gGraphSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-gt", "--graph-topology")) {
+            gTopoSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-sg", "--signal-graph")) {
