@@ -26,11 +26,11 @@
 #include <string.h>
 #include <list>
 #include <map>
+#include <memory>
 #include <set>
 #include <stack>
 #include <unordered_map>
 #include <vector>
-#include <memory>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -622,7 +622,7 @@ struct global {
     // Source file injection
     bool        gInjectFlag;
     std::string gInjectFile;
-  
+
     int gTimeout;  // Time out to abort compiler (in seconds)
 
     // Garbage collection

@@ -2684,4 +2684,3 @@ void callFun(threaded_fun fun, void* arg)
     faustassert(pthread_attr_destroy(&attr) == 0);
 #endif
 }
-
