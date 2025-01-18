@@ -319,8 +319,8 @@ static void printLatexHeader(istream& latexheader, const string& faustversion, o
 static void printDocMetadata(const Tree expr, ostream& docout)
 {
     if (gGlobal->gMetaDataSet.count(expr)) {
-        string                     sep  = "";
-        set<Tree, CTreeComparator> mset = gGlobal->gMetaDataSet[expr];
+        string    sep  = "";
+        set<Tree> mset = gGlobal->gMetaDataSet[expr];
         for (set<Tree>::iterator j = mset.begin(); j != mset.end(); j++) {
             docout << sep << unquote(tree2str(*j));
             sep = ", ";

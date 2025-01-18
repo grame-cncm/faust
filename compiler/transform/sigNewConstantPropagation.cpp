@@ -40,9 +40,9 @@ class SigNewConstantPropagation final : public SignalIdentity {
 };
 static void explainInterval(Tree sig)
 {
-    digraph<Tree, CTreeComparator>  G = fullGraph(list1(sig));
-    schedule<Tree, CTreeComparator> S = dfcyclesschedule(G);
-    int                             i = 0;
+    digraph<Tree>  G = fullGraph(list1(sig));
+    schedule<Tree> S = dfcyclesschedule(G);
+    int            i = 0;
     std::cerr << "\n\n EXPLAIN INTERVAL: " << getCertifiedSigType(sig)->getInterval()
               << " FOR SIGNAL " << sig << " = " << ppsig(sig, 10) << std::endl;
     for (Tree s : S.elements()) {

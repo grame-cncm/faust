@@ -84,6 +84,17 @@ typedef CTree* Tree;
 
 typedef std::vector<Tree> tvec;
 
+namespace std {
+
+// The std::less <CTree*>comparison function is redefined to provide an unique and stable ordering
+// for all CTree instances and so maintain determinism.
+template <>
+struct less<CTree*> {
+    bool operator()(const CTree* lhs, const CTree* rhs) const;
+};
+
+} 
+
 /**
  * A CTree = (Node x [CTree]) is the association of a content Node and a list of subtrees
  * called branches. In order to maximize the sharing of trees, hashconsing techniques are used.
@@ -107,17 +118,10 @@ class LIBFAUST_API CTree : public virtual Garbageable {
 
    public:
     static bool gDetails;  ///< CTree::print() print with more details when true
-    static unsigned int
-        gVisitTime;  ///< Should be incremented for each new visit to keep track of visited tree
+    ///< Should be incremented for each new visit to keep track of visited tree
+    static unsigned int gVisitTime;
 
-    struct TreeComparator {
-        bool operator()(const Tree& lhs, const Tree& rhs) const
-        {
-            return lhs->serial() < rhs->serial();
-        }
-    };
-
-    typedef std::map<Tree, Tree, TreeComparator> plist;
+    typedef std::map<Tree, Tree> plist;
 
    protected:
     // fields
@@ -134,11 +138,12 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     CTree() : fNext(nullptr), fType(nullptr), fHashKey(0), fSerial(0), fAperture(0), fVisitTime(0)
     {
     }
-    CTree(size_t hk, const Node& n,
-          const tvec& br);  ///< construction is private, uses tree::make instead
+    ///< construction is private, uses tree::make instead
+    CTree(size_t hk, const Node& n, const tvec& br);
 
-    bool          equiv(const Node& n,
-                        const tvec& br) const;  ///< used to check if an equivalent tree already exists
+    ///< used to check if an equivalent tree already exists
+    bool equiv(const Node& n, const tvec& br) const;
+
     static size_t calcTreeHash(
         const Node& n,
         const tvec& br);  ///< compute the hash key of a tree according to its node and branches
@@ -198,7 +203,14 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     }
 };
 
-using CTreeComparator = CTree::TreeComparator;
+// The comparison function relies on lhs->serial() which provides an unique and stable ordering
+// for all CTree instances and so maintain determinism.
+namespace std {
+inline bool less<CTree*>::operator()(const CTree* lhs, const CTree* rhs) const
+{
+    return lhs->serial() < rhs->serial();
+}
+};
 
 //---------------------------------API---------------------------------------
 // To build trees

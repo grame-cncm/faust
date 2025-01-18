@@ -42,7 +42,7 @@
  * @param sig
  * @return std::set<Tree>
  */
-std::set<Tree, CTreeComparator> signalDependencies(Tree sig);
+std::set<Tree> signalDependencies(Tree sig);
 
 /**
  * @brief true if signal is a recursive projection that depends on itself, false otherwise

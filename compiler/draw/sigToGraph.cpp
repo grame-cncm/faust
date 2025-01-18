@@ -38,7 +38,7 @@
 
 using namespace std;
 
-static void   recdraw(Tree sig, set<Tree, CTreeComparator>& drawn, ostream& fout);
+static void   recdraw(Tree sig, set<Tree>& drawn, ostream& fout);
 static string nodeattr(Type t);
 static string edgeattr(Type t);
 static string sigLabel(Tree sig);
@@ -48,7 +48,7 @@ static string sigLabel(Tree sig);
  */
 void sigToGraph(Tree L, ostream& fout)
 {
-    set<Tree, CTreeComparator> alreadyDrawn;
+    set<Tree> alreadyDrawn;
 
     fout << "strict digraph loopgraph {\n"
          << "    rankdir=LR; node [fontsize=10];" << endl;
@@ -70,7 +70,7 @@ void sigToGraph(Tree L, ostream& fout)
 /**
  * Draw recursively a signal
  */
-static void recdraw(Tree sig, set<Tree, CTreeComparator>& drawn, ostream& fout)
+static void recdraw(Tree sig, set<Tree>& drawn, ostream& fout)
 {
     // cerr << ++gGlobal->TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
     tvec subsig;

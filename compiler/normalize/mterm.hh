@@ -41,8 +41,8 @@
  */
 
 class mterm : public virtual Garbageable {
-    Tree                                 fCoef;     ///< constant part of the term (usually 1 or -1)
-    std::map<Tree, int, CTreeComparator> fFactors;  ///< non constant terms and their power
+    Tree                fCoef;     ///< constant part of the term (usually 1 or -1)
+    std::map<Tree, int> fFactors;  ///< non constant terms and their power
 
    public:
     mterm();                ///< create a 0 mterm

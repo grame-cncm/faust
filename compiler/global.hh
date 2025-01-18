@@ -82,9 +82,8 @@ struct comp_str {
     bool operator()(Tree s1, Tree s2) const { return (strcmp(tree2str(s1), tree2str(s2)) < 0); }
 };
 
-typedef std::map<Tree, std::set<Tree, CTreeComparator>, comp_str> MetaDataSet;
-typedef std::map<Tree, std::set<Tree, CTreeComparator>, CTreeComparator>
-    FunMDSet;  // foo -> {(file/foo/key,value)...}
+typedef std::map<Tree, std::set<Tree>, comp_str> MetaDataSet;
+typedef std::map<Tree, std::set<Tree>>           FunMDSet;  // foo -> {(file/foo/key,value)...}
 
 // Global outside of the global context
 extern std::vector<std::string> gWarningMessages;
@@ -256,7 +255,7 @@ struct global {
     bool gLstMdocTagsSwitch;      // mdoc listing management
     bool gLstDistributedSwitch;   // mdoc listing management
 
-    std::unordered_map<Tree, std::set<Tree, CTreeComparator>> gDependencies;
+    std::unordered_map<Tree, std::set<Tree>> gDependencies;
 
     bool gAutoDifferentiate;
 
@@ -292,8 +291,8 @@ struct global {
     // Tree is used to identify the same nodes during Box tree traversal,
     // but gBoxCounter is then used to generate unique IDs
 
-    std::map<Tree, std::pair<int, std::string>, CTreeComparator> gBoxTable;
-    int                                                          gBoxCounter;
+    std::map<Tree, std::pair<int, std::string>> gBoxTable;
+    int                                         gBoxCounter;
     // To keep the box tree traversing trace
     std::vector<std::string> gBoxTrace;
 
@@ -302,8 +301,8 @@ struct global {
     // ------------
     // Tree is used to identify the same nodes during Signal tree traversal,
     // but gSignalCounter is then used to generate unique IDs
-    std::map<Tree, std::pair<int, std::string>, CTreeComparator> gSignalTable;
-    int                                                          gSignalCounter;
+    std::map<Tree, std::pair<int, std::string>> gSignalTable;
+    int                                         gSignalCounter;
     // To keep the signal tree traversing trace
     std::vector<std::string> gSignalTrace;
 
@@ -544,15 +543,14 @@ struct global {
     std::map<std::string, int> gIDCounters;
 
     // Internal state during drawing
-    Occur*                          gOccurrences;
-    bool                            gFoldingFlag;     // true with complex block-diagrams
-    std::stack<Tree>                gPendingExp;      // Expressions that need to be drawn
-    std::set<Tree, CTreeComparator> gDrawnExp;        // Expressions drawn or scheduled so far
-    const char*                     gDevSuffix;       // .svg or .ps used to choose output device
-    std::string                     gSchemaFileName;  // name of schema file beeing generated
-    Tree                            gInverter[6];
-    std::map<Tree, std::string, CTreeComparator>
-        gBackLink;  // link to enclosing file for sub schema
+    Occur*                      gOccurrences;
+    bool                        gFoldingFlag;     // true with complex block-diagrams
+    std::stack<Tree>            gPendingExp;      // Expressions that need to be drawn
+    std::set<Tree>              gDrawnExp;        // Expressions drawn or scheduled so far
+    const char*                 gDevSuffix;       // .svg or .ps used to choose output device
+    std::string                 gSchemaFileName;  // name of schema file beeing generated
+    Tree                        gInverter[6];
+    std::map<Tree, std::string> gBackLink;  // link to enclosing file for sub schema
 
     // FIR
     std::map<Typed::VarType, BasicTyped*>

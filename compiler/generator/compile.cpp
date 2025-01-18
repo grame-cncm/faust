@@ -128,7 +128,7 @@ static string wdel(const string& s)
 void Compiler::generateMetaData()
 {
     // Add global metadata
-    for (map<Tree, set<Tree, CTreeComparator>>::iterator i = gGlobal->gMetaDataSet.begin();
+    for (map<Tree, set<Tree>>::iterator i = gGlobal->gMetaDataSet.begin();
          i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             stringstream str1, str2;
@@ -138,8 +138,7 @@ void Compiler::generateMetaData()
             string res2 = unquote(str2.str());
             fJSON.declare(res1.c_str(), res2.c_str());
         } else {
-            for (set<Tree, CTreeComparator>::iterator j = i->second.begin(); j != i->second.end();
-                 j++) {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
                 if (j == i->second.begin()) {
                     stringstream str1, str2;
                     str1 << *(i->first);
