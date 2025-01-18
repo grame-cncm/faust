@@ -49,7 +49,7 @@ class InstructionsCompiler : public virtual Garbageable {
     property<std::pair<std::string, std::string>> fInstanceInitProperty;
     property<std::string>                         fTableProperty;
 
-    std::map<Tree, Tree, CTreeComparator>
+    std::map<Tree, Tree>
         fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
 
     Tree       fSharingKey;

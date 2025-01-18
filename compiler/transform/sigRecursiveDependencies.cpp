@@ -59,9 +59,9 @@
  *
  * @param underVisit, stack of projections under visit (prevent infinite loops)
  * @param sig
- * @return std::set<Tree, CTreeComparator> set of dependencies of sig
+ * @return std::set<Tree> set of dependencies of sig
  */
-static std::set<Tree, CTreeComparator> sigDependencies(std::vector<Tree>& underVisit, Tree sig)
+static std::set<Tree> sigDependencies(std::vector<Tree>& underVisit, Tree sig)
 {
     int  i;
     Tree rec, id, le;
@@ -70,7 +70,7 @@ static std::set<Tree, CTreeComparator> sigDependencies(std::vector<Tree>& underV
         return gGlobal->gDependencies[sig];
     } else if (isProj(sig, &i, rec)) {
         // 2) sig is a projection, its dependencies are itself and the dependecies of its definition
-        std::set<Tree, CTreeComparator> deps;
+        std::set<Tree> deps;
         if (std::find(underVisit.begin(), underVisit.end(), sig) == underVisit.end()) {
             // we mark the projection under visit and compute the dependencies of its definition
             underVisit.push_back(sig);
@@ -85,9 +85,9 @@ static std::set<Tree, CTreeComparator> sigDependencies(std::vector<Tree>& underV
     } else {
         // 3) sig is not a projection but is any other expression,
         // its dependencies are the dependencies of its branches
-        std::set<Tree, CTreeComparator> deps;
+        std::set<Tree> deps;
         for (Tree b : sig->branches()) {
-            std::set<Tree, CTreeComparator> depsb = sigDependencies(underVisit, b);
+            std::set<Tree> depsb = sigDependencies(underVisit, b);
             deps.insert(depsb.begin(), depsb.end());
         }
         gGlobal->gDependencies[sig] = deps;
@@ -99,9 +99,9 @@ static std::set<Tree, CTreeComparator> sigDependencies(std::vector<Tree>& underV
  * @brief compute the set of recursive dependencies of a signal
  *
  * @param sig
- * @return std::set<Tree, CTreeComparator>
+ * @return std::set<Tree>
  */
-std::set<Tree, CTreeComparator> signalDependencies(Tree sig)
+std::set<Tree> signalDependencies(Tree sig)
 {
     std::vector<Tree> underVisit;
     return sigDependencies(underVisit, sig);
@@ -117,8 +117,8 @@ std::set<Tree, CTreeComparator> signalDependencies(Tree sig)
  */
 bool isSignalRecursive(Tree proj)
 {
-    std::set<Tree, CTreeComparator> deps   = signalDependencies(getProjDefinition(proj));
-    bool                            answer = deps.find(proj) != deps.end();
+    std::set<Tree> deps   = signalDependencies(getProjDefinition(proj));
+    bool           answer = deps.find(proj) != deps.end();
 #if 0
     if (answer) {
         std::cerr << "\nSignal " << *proj << " is recursive. Its dependencies are: (";
@@ -147,8 +147,8 @@ bool isSignalRecursive(Tree proj)
  */
 bool isDependingOn(Tree sig, Tree proj)
 {
-    std::set<Tree, CTreeComparator> deps   = signalDependencies(sig);
-    bool                            answer = deps.find(proj) != deps.end();
+    std::set<Tree> deps   = signalDependencies(sig);
+    bool           answer = deps.find(proj) != deps.end();
     return answer;
 }
 
@@ -192,7 +192,7 @@ Tree getProjFinalDefinition(Tree proj)
  */
 void printDependencies(const std::string& msg, Tree sig)
 {
-    std::set<Tree, CTreeComparator> deps = signalDependencies(sig);
+    std::set<Tree> deps = signalDependencies(sig);
     std::cerr << msg << " dependencies of " << ppsig(sig, 20) << " are: (";
     for (Tree d : deps) {
         std::cerr << *d << " ";

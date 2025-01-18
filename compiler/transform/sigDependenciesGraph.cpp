@@ -11,9 +11,9 @@
  */
 class SigDependenciesGraph : public SignalVisitor {
    protected:
-    digraph<Tree, CTreeComparator> fGraph;
-    bool                           fFullGraph;
-    bool                           fLimitOndemand = false;  // don't go beyond tempvar signals
+    digraph<Tree> fGraph;
+    bool          fFullGraph;
+    bool          fLimitOndemand = false;  // don't go beyond tempvar signals
 
    public:
     SigDependenciesGraph(bool full, bool limit)
@@ -23,7 +23,7 @@ class SigDependenciesGraph : public SignalVisitor {
         fMessage = "SigDependenciesGraph";
     }
 
-    digraph<Tree, CTreeComparator> getGraph() { return fGraph; }
+    digraph<Tree> getGraph() { return fGraph; }
 
    protected:
     void visit(Tree t) override;
@@ -290,9 +290,9 @@ void SigDependenciesGraph::visit(Tree t)
  * of a list of signals
  *
  * @param L list of signals
- * @return digraph<Tree, CTreeComparator>
+ * @return digraph<Tree>
  */
-digraph<Tree, CTreeComparator> immediateGraph(Tree L)
+digraph<Tree> immediateGraph(Tree L)
 {
     SigDependenciesGraph g(false, false);
     g.mapself(L);
@@ -304,9 +304,9 @@ digraph<Tree, CTreeComparator> immediateGraph(Tree L)
  * of a list of signals and not going beyond tempvar signals
  *
  * @param L list of signals
- * @return digraph<Tree, CTreeComparator>
+ * @return digraph<Tree>
  */
-digraph<Tree, CTreeComparator> ondemandGraph(const tvec& signals)
+digraph<Tree> ondemandGraph(const tvec& signals)
 {
     SigDependenciesGraph g(false, true);
     for (Tree s : signals) {
@@ -319,9 +319,9 @@ digraph<Tree, CTreeComparator> ondemandGraph(const tvec& signals)
  * @brief Compute the full Graph (all dependencies) of a list of signals
  *
  * @param L list of signals
- * @return digraph<Tree, CTreeComparator>
+ * @return digraph<Tree>
  */
-digraph<Tree, CTreeComparator> fullGraph(Tree L)
+digraph<Tree> fullGraph(Tree L)
 {
     SigDependenciesGraph g(true, false);
     g.mapself(L);
@@ -336,7 +336,7 @@ digraph<Tree, CTreeComparator> fullGraph(Tree L)
  */
 std::vector<Tree> compilationOrder(Tree L)
 {
-    digraph<Tree, CTreeComparator> G = immediateGraph(L);
+    digraph<Tree> G = immediateGraph(L);
     return serialize(G);
 }
 
@@ -348,6 +348,6 @@ std::vector<Tree> compilationOrder(Tree L)
  */
 std::vector<Tree> ondemandCompilationOrder(const tvec& signals)
 {
-    digraph<Tree, CTreeComparator> G = ondemandGraph(signals);
+    digraph<Tree> G = ondemandGraph(signals);
     return serialize(G);
 }

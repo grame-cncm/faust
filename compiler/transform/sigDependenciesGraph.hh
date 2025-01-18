@@ -10,7 +10,7 @@
  * @param L list of signals
  * @return digraph<Tree>
  */
-digraph<Tree, CTreeComparator> immediateGraph(Tree L);
+digraph<Tree> immediateGraph(Tree L);
 
 /**
  * @brief Compute the ondemand Graph, containing only immediate dependencies
@@ -18,7 +18,7 @@ digraph<Tree, CTreeComparator> immediateGraph(Tree L);
  * @param L list of signals
  * @return digraph<Tree>
  */
-digraph<Tree, CTreeComparator> ondemandGraph(const tvec& V);
+digraph<Tree> ondemandGraph(const tvec& V);
 
 /**
  * @brief Compute the full Graph of a list of signals including immediate and time dependencies
@@ -26,7 +26,7 @@ digraph<Tree, CTreeComparator> ondemandGraph(const tvec& V);
  * @param L list of signals
  * @return digraph<Tree>
  */
-digraph<Tree, CTreeComparator> fullGraph(Tree L);
+digraph<Tree> fullGraph(Tree L);
 
 /**
  * @brief Compute in which order the list of signals L should be compiled

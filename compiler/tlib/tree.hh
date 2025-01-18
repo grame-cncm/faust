@@ -99,6 +99,14 @@ typedef std::vector<Tree> tvec;
  *
  **/
 
+class CTree;
+namespace std {
+template <>
+struct less<CTree*> {
+    bool operator()(const CTree* lhs, const CTree* rhs) const;
+};
+}  // namespace std
+
 class LIBFAUST_API CTree : public virtual Garbageable {
    protected:
     static const int kHashTableSize = 400009;     ///< size of the hash table (prime number)
@@ -110,14 +118,14 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     static unsigned int
         gVisitTime;  ///< Should be incremented for each new visit to keep track of visited tree
 
-    struct TreeComparator {
-        bool operator()(const Tree& lhs, const Tree& rhs) const
-        {
-            return lhs->serial() < rhs->serial();
-        }
-    };
+    // struct TreeComparator {
+    //     bool operator()(const Tree& lhs, const Tree& rhs) const
+    //     {
+    //         return lhs->serial() < rhs->serial();
+    //     }
+    // };
 
-    typedef std::map<Tree, Tree, TreeComparator> plist;
+    typedef std::map<Tree, Tree> plist;
 
    protected:
     // fields
@@ -198,7 +206,9 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     }
 };
 
-using CTreeComparator = CTree::TreeComparator;
+// Spécialisation de std::less pour CTree*. In order to have a deterministic compiler we need
+// all maps to be based on serial() order
+// using CTreeComparator = CTree::TreeComparator;
 
 //---------------------------------API---------------------------------------
 // To build trees
@@ -338,5 +348,12 @@ inline std::ostream& operator<<(std::ostream& s, Tabber& t)
 {
     return t.print(s);
 }
+
+namespace std {
+inline bool less<CTree*>::operator()(const CTree* lhs, const CTree* rhs) const
+{
+    return lhs->serial() < rhs->serial();
+}
+};  // namespace std
 
 #endif

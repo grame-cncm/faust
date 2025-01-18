@@ -120,11 +120,11 @@ struct SignalRenderer : public SignalVisitor {
      * @tparam REAL
      */
     struct SignalBuilder : public SignalVisitor {
-        std::map<Tree, DelayedSig<int>, CTreeComparator>&  fIntDelays;
-        std::map<Tree, DelayedSig<REAL>, CTreeComparator>& fRealDelays;
-        std::map<Tree, inputControl, CTreeComparator>&     fInputControls;
-        std::map<Tree, outputControl, CTreeComparator>&    fOutputControls;
-        int&                                               fNumInputs;
+        std::map<Tree, DelayedSig<int>>&  fIntDelays;
+        std::map<Tree, DelayedSig<REAL>>& fRealDelays;
+        std::map<Tree, inputControl>&     fInputControls;
+        std::map<Tree, outputControl>&    fOutputControls;
+        int&                              fNumInputs;
 
         void allocateDelayLine(Tree x, Tree y)
         {
@@ -150,10 +150,10 @@ struct SignalRenderer : public SignalVisitor {
             }
         }
 
-        SignalBuilder(std::map<Tree, DelayedSig<int>, CTreeComparator>&  int_delays,
-                      std::map<Tree, DelayedSig<REAL>, CTreeComparator>& real_delays,
-                      std::map<Tree, inputControl, CTreeComparator>&     inputs_control,
-                      std::map<Tree, outputControl, CTreeComparator>& outputs_control, int& inputs)
+        SignalBuilder(std::map<Tree, DelayedSig<int>>&  int_delays,
+                      std::map<Tree, DelayedSig<REAL>>& real_delays,
+                      std::map<Tree, inputControl>&     inputs_control,
+                      std::map<Tree, outputControl>& outputs_control, int& inputs)
             : fIntDelays(int_delays),
               fRealDelays(real_delays),
               fInputControls(inputs_control),
@@ -245,18 +245,18 @@ struct SignalRenderer : public SignalVisitor {
         }
     }
 
-    bool             fVisitGen{false};  // wether to visit gen signal for tables
-    std::stack<Node> fValueStack;
-    std::map<Tree, DelayedSig<int>, CTreeComparator>  fIntDelays;
-    std::map<Tree, DelayedSig<REAL>, CTreeComparator> fRealDelays;
-    std::map<Tree, inputControl, CTreeComparator>     fInputControls;
-    std::map<Tree, outputControl, CTreeComparator>    fOutputControls;
-    int                                               fNumInputs  = 0;
-    int                                               fSampleRate = -1;
-    int                                               fSample     = 0;
-    int                                               fIOTA       = 0;
-    FAUSTFLOAT**                                      fInputs     = nullptr;
-    Tree                                              fOutputSig;
+    bool                             fVisitGen{false};  // wether to visit gen signal for tables
+    std::stack<Node>                 fValueStack;
+    std::map<Tree, DelayedSig<int>>  fIntDelays;
+    std::map<Tree, DelayedSig<REAL>> fRealDelays;
+    std::map<Tree, inputControl>     fInputControls;
+    std::map<Tree, outputControl>    fOutputControls;
+    int                              fNumInputs  = 0;
+    int                              fSampleRate = -1;
+    int                              fSample     = 0;
+    int                              fIOTA       = 0;
+    FAUSTFLOAT**                     fInputs     = nullptr;
+    Tree                             fOutputSig;
 
     void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
@@ -472,7 +472,7 @@ struct signal_dsp_factory : public dsp_factory {
     }
 
     /* Static tables initialization, possibly implemened in sub-classes*/
-    virtual void classInit(int sample_rate) {};
+    virtual void classInit(int sample_rate){};
 
     /* Set a custom memory manager to be used when creating instances */
     virtual void setMemoryManager(dsp_memory_manager* manager) {}

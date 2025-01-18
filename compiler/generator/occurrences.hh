@@ -58,9 +58,9 @@ class Occurrences : public virtual Garbageable {
  * second om.mark(root) then om.retrieve(subtree)
  */
 class OccMarkup : public virtual Garbageable {
-    Tree                                  fRootTree;    ///< occurrences computed within this tree
-    Tree                                  fPropKey;     ///< key used to store occurrences property
-    std::map<Tree, Tree, CTreeComparator> fConditions;  ///< condition associated to each tree
+    Tree                 fRootTree;    ///< occurrences computed within this tree
+    Tree                 fPropKey;     ///< key used to store occurrences property
+    std::map<Tree, Tree> fConditions;  ///< condition associated to each tree
 
     void         incOcc(Tree env, int v, int r, int d, Tree xc,
                         Tree t);                    ///< inc the occurrence of t in context v,r
@@ -69,7 +69,7 @@ class OccMarkup : public virtual Garbageable {
 
    public:
     OccMarkup() : fRootTree(nullptr), fPropKey(nullptr) {}
-    OccMarkup(std::map<Tree, Tree, CTreeComparator> conditions)
+    OccMarkup(std::map<Tree, Tree> conditions)
         : fRootTree(nullptr), fPropKey(nullptr), fConditions(conditions)
     {
     }

@@ -321,7 +321,7 @@ void ScalarCompiler::conditionStatistics(Tree l)
 
 void ScalarCompiler::conditionStatistics(Tree l)
 {
-    map<Tree, int, CTreeComparator>
+    map<Tree, int>
         fConditionStatistics;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
     for (const auto& p : fConditionProperty) {
         for (Tree lc = p.second; !isNil(lc); lc = tl(lc)) {
@@ -535,7 +535,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         std::cerr << "Print siglist inst graph topology : " << topology(G) << '\n';
     }
     // Force a specific scheduling (i.e. compilation order)
-    schedule<Tree, CTreeComparator> S;
+    schedule<Tree> S;
     switch (gGlobal->gSchedulingStrategy) {
         case 0:
             S = dfschedule(G);
@@ -1739,10 +1739,9 @@ string ScalarCompiler::declareRetriveIotaName(Tree clock)
 
     std::string newiotaname = getFreshID("IOTA");
     fIotaProperty.set(clock, newiotaname);
-    fClass->addDeclCode(subst("int \t$0; // IOTA for clock: $1", newiotaname, T(clock)));
-    fClass->addInitCode(subst("$0 = 0; // init IOTA for clock: $1", newiotaname, T(clock)));
-    fClass->addPostCode(
-        Statement("", subst("++$0; // inc IOTA for clock: $1", newiotaname, T(clock))));
+    fClass->addDeclCode(subst("int \t$0;", newiotaname));
+    fClass->addInitCode(subst("$0 = 0;", newiotaname));
+    fClass->addPostCode(Statement("", subst("++$0;", newiotaname)));
 
     return newiotaname;
 }
