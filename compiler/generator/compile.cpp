@@ -81,7 +81,8 @@ Compiler::Compiler(const string& name, const string& super, int numInputs, int n
       fDescription(0),
       fJSON(numInputs, numOutputs)
 {
-    fClass->addIncludeFile("<math.h>");
+    fClass->addIncludeFile("<cmath>");
+    fClass->addIncludeFile("<algorithm>");
 }
 
 Compiler::Compiler(Klass* k)
