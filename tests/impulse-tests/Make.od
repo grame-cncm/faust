@@ -1,0 +1,179 @@
+#
+# Makefile for testing the Faust compiler output
+# for f in ../dsp/*.dsp; do echo "process = ondemand(component(\"$f\"))(checkbox(\"ondemand\")!=1.0);" > `basename $f`; done       
+# for f in ../dsp/*.dsp; do echo "C = component(\"$f\"); D = ondemand(C); bus(n) = par(i,n,_); process = bus(inputs(C)) <: D(checkbox(\"ondemand1\")!=1.0), D(checkbox(\"ondemand2\")==1.0) :> bus(outputs(C));" > `basename $f`; done  
+# for f in ../dsp/*.dsp; do echo "C = component(\"$f\"); D = ondemand(C); bus(n) = par(i,n,_); process = bus(inputs(C)) <: vgroup(\"groupA\", D(checkbox(\"ondemand1\")!=1.0)),vgroup(\"groupB\", D(checkbox(\"ondemand2\")==1.0)) :> bus(outputs(C));" > `basename $f`; done 
+#
+
+system := $(shell uname -s)
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+ifeq ($(system), MINGW)
+ FAUST ?= ../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
+else
+ FAUST ?= ../../build/bin/faust
+ COMPARE := ./filesCompare
+endif
+MAKE ?= make
+
+GCCOPTIONS := -O3 -I../../architecture -I/usr/local/include/ap_fixed -Iarchs -pthread -std=c++11
+outdir ?= cpp/double
+lang ?= cpp
+ext  ?= cpp
+arch ?= impulsearch.cpp
+precision ?=		# filesCompare precision (empty by default)
+FAUSTOPTIONS := -double
+ifeq ($(lang), c)
+#	CXX = gcc
+	ext = c
+endif
+
+.PHONY: test 
+#.DELETE_ON_ERROR:
+
+dspfiles := $(wildcard od/*.dsp)
+
+listfiles = $(dspfiles:od/%.dsp=ir/$1/%.ir) 
+listintermediate = $(dspfiles:od/%.dsp=ir/$1/%) $(dspfiles:od/%.dsp=ir/$1/%.cpp) 
+
+TOOLSOPTIONS := -std=c++11 -O3 -I../../architecture
+LIB    ?= ../../build/lib/libfaust.a
+SRCDIR := tools
+
+all: filesCompare ir/$(outdir) $(call listfiles,$(outdir))
+
+test:
+#	$(file > faustoptions.txt, "some text")
+	@echo $(call listwebfiles,$(asmjsdir))
+
+help:
+	@echo "-------- FAUST impulse response tests --------"
+	@echo "Available targets are:"
+	@echo " 'all' (default): generate ir for all the dsp files using the given options"
+	@echo
+	@echo "Options:"
+	@echo " 'outdir' 	   : define the output directory (default to '$(outdir)')"
+	@echo " 'lang'         : used for faust -lang option (default to '$(lang)')"
+	@echo " 'arch'         : used for faust -a option (default to '$(arch)')"
+	@echo " 'FAUSTOPTIONS' : define additional faust options (default to $(FAUSTOPTIONS))"
+	@echo " 'precision'    : define filesCompare expected precision (empty by default)"
+
+#########################################################################
+# output directories
+ir/$(outdir):
+	mkdir -p ir/$(outdir)
+
+filesCompare:
+	$(MAKE) filesCompare
+
+#########################################################################
+# precision issues 
+
+ir/$(lang)/float/omp/zita_rev1.ir:			precision=0.00001
+ir/$(lang)/float/omp/virtual_analog_oscillators.ir: precision=0.00004
+ir/$(lang)/float/omp/thru_zero_flanger.ir: 	precision=0.002
+ir/$(lang)/float/omp/tester2.ir:			precision=0.000003
+ir/$(lang)/float/omp/tester.ir:				precision=0.00008
+ir/$(lang)/float/omp/spectral_tilt.ir:		precision=0.003
+ir/$(lang)/float/omp/phaser_flanger.ir:		precision=0.005
+ir/$(lang)/float/omp/parametric_eq.ir:		precision=0.015
+ir/$(lang)/float/omp/osci.ir:				precision=0.005
+ir/$(lang)/float/omp/osc.ir:				precision=0.002
+ir/$(lang)/float/omp/lowcut.ir:				precision=0.000005
+ir/$(lang)/float/omp/lfboost.ir:			precision=0.000005
+ir/$(lang)/float/omp/cubic_distortion.ir:	precision=0.03
+ir/$(lang)/float/omp/comb_delay2.ir:		precision=0.065
+ir/$(lang)/float/omp/comb_delay1.ir:		precision=0.065
+ir/$(lang)/float/omp/carre_volterra.ir:		precision=0.002
+
+ir/$(lang)/float/sched/zita_rev1.ir:		precision=0.00001
+ir/$(lang)/float/sched/virtual_analog_oscillators.ir: precision=0.00004
+ir/$(lang)/float/sched/thru_zero_flanger.ir: precision=0.002
+ir/$(lang)/float/sched/tester2.ir:			precision=0.000003
+ir/$(lang)/float/sched/tester.ir:			precision=0.00008
+ir/$(lang)/float/sched/spectral_tilt.ir:	precision=0.003
+ir/$(lang)/float/sched/phaser_flanger.ir:	precision=0.005
+ir/$(lang)/float/sched/parametric_eq.ir:	precision=0.015
+ir/$(lang)/float/sched/osci.ir:				precision=0.005
+ir/$(lang)/float/sched/osc.ir:				precision=0.002
+ir/$(lang)/float/sched/lowcut.ir:			precision=0.000005
+ir/$(lang)/float/sched/lfboost.ir:			precision=0.000005
+ir/$(lang)/float/sched/cubic_distortion.ir:	precision=0.03
+ir/$(lang)/float/sched/comb_delay2.ir:		precision=0.065
+ir/$(lang)/float/sched/comb_delay1.ir:		precision=0.065
+ir/$(lang)/float/sched/carre_volterra.ir:	precision=0.002
+
+ir/$(lang)/float/vec/zita_rev1.ir:			precision=0.00001
+ir/$(lang)/float/vec/virtual_analog_oscillators.ir: precision=0.00004
+ir/$(lang)/float/vec/thru_zero_flanger.ir:	precision=0.002
+ir/$(lang)/float/vec/tester2.ir:			precision=0.000003
+ir/$(lang)/float/vec/tester.ir:				precision=0.00008
+ir/$(lang)/float/vec/spectral_tilt.ir:		precision=0.003
+ir/$(lang)/float/vec/phaser_flanger.ir:		precision=0.005
+ir/$(lang)/float/vec/parametric_eq.ir:		precision=0.015
+ir/$(lang)/float/vec/osci.ir:				precision=0.005
+ir/$(lang)/float/vec/osc.ir:				precision=0.002
+ir/$(lang)/float/vec/lowcut.ir:				precision=0.000005
+ir/$(lang)/float/vec/lfboost.ir:			precision=0.000005
+ir/$(lang)/float/vec/cubic_distortion.ir:	precision=0.03
+ir/$(lang)/float/vec/comb_delay2.ir:		precision=0.065
+ir/$(lang)/float/vec/comb_delay1.ir:		precision=0.065
+ir/$(lang)/float/vec/carre_volterra.ir:		precision=0.002
+ 
+ir/$(lang)/float/zita_rev1.ir:				precision=0.00001
+ir/$(lang)/float/virtual_analog_oscillators.ir: precision=0.00004
+ir/$(lang)/float/thru_zero_flanger.ir:		precision=0.002
+ir/$(lang)/float/tester2.ir:				precision=0.000003
+ir/$(lang)/float/tester.ir:					precision=0.00008
+ir/$(lang)/float/spectral_tilt.ir:			precision=0.003
+ir/$(lang)/float/phaser_flanger.ir:			precision=0.005
+ir/$(lang)/float/parametric_eq.ir:			precision=0.015
+ir/$(lang)/float/osci.ir:					precision=0.005
+ir/$(lang)/float/osc.ir:					precision=0.002
+ir/$(lang)/float/lowcut.ir:					precision=1e-05
+ir/$(lang)/float/lfboost.ir:				precision=5e-05
+ir/$(lang)/float/cubic_distortion.ir:		precision=0.03
+ir/$(lang)/float/comb_delay2.ir:			precision=0.065
+ir/$(lang)/float/comb_delay1.ir:			precision=0.065
+ir/$(lang)/float/carre_volterra.ir: 		precision=0.0015
+
+ir/c/double/sched/parametric_eq.ir:		precision=0.004
+ir/cpp/double/sched/parametric_eq.ir: 	precision=0.04
+
+#########################################################################
+# rules 
+ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
+	$< -n 60000 > $@
+	$(COMPARE) $@ reference/$(notdir $@) $(precision)
+	
+ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
+	$(CXX) $(GCCOPTIONS) $< -o $@
+
+# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
+ir/$(outdir)/control.cpp : od/control.dsp
+	@echo "Can only be tested in scalar mode"
+	$(FAUST) -lang $(lang) -double -i -A ../../architecture -a archs/$(arch) $< -o $@
+
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode, used for 'cpp', 'c' and 'travis'
+ir/$(outdir)/osc_enable.$(ext) : od/osc_enable.dsp
+	@echo "Can only be tested in scalar mode"
+	$(FAUST) -lang $(lang) -double -i -A ../../architecture -a archs/$(arch) $< -o $@
+
+# Three rules for -c1 (= -os) mode
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+ir/c1/double/osc_enable.c : od/osc_enable.dsp
+	@echo "Can only be tested in scalar mode"
+	$(FAUST) -lang $(lang) -double -os -i -A ../../architecture -a archs/$(arch) $< -o $@
+
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+ir/c1/double/dlt0/osc_enable.c : od/osc_enable.dsp
+	@echo "Can only be tested in scalar mode"
+	$(FAUST) -lang $(lang) -double -os -i -A ../../architecture -a archs/$(arch) $< -o $@
+
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+ir/c1/double/dlt256/osc_enable.c : od/osc_enable.dsp
+	@echo "Can only be tested in scalar mode"
+	$(FAUST) -lang $(lang) -double -os -i -A ../../architecture -a archs/$(arch) $< -o $@
+
+ir/$(outdir)/%.$(ext) : od/%.dsp
+	$(FAUST) -lang $(lang) $(FAUSTOPTIONS) -i -A ../../architecture -a archs/$(arch) $< -o $@
