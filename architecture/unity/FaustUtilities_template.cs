@@ -582,6 +582,11 @@ namespace FaustUtilities_MODEL {
                                         uiItems[numItems].url = value.ToString();
                                     }
                                     break;
+                                case "varname":
+                                    if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
+                                        uiItems[numItems].varname = value.ToString();
+                                    }
+                                    break;
                                 case "meta":
                                     uiItems[numItems].meta = new List < Meta > ();
                                     if (!parseItemMetaData(ref s, uiItems[numItems].meta)) {
@@ -642,6 +647,7 @@ namespace FaustUtilities_MODEL {
         public string shortname;
         public string address;
         public string url;
+        public string varname;
         public List < Meta > meta;
         public List < Group > items;
         public float init;
