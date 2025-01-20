@@ -219,6 +219,68 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs(")", out);
     }
 
+    // FIR and IIR
+    else if (isSigFIR(sig)) {
+        fputs("FIR", out);
+        char sep = '(';
+        for (Tree b : sig->branches()) {
+            fputc(sep, out);
+            printSignal(b, out, 0);
+            sep = ',';
+        }
+        fputs(")", out);
+    } else if (isSigIIR(sig)) {
+        fputs("IIR", out);
+        char sep = '(';
+        for (Tree b : sig->branches()) {
+            fputc(sep, out);
+            printSignal(b, out, 0);
+            sep = ',';
+        }
+        fputs(")", out);
+
+    } else if (isSigSum(sig)) {
+        fputs("sum(", out);
+        char sep = '{';
+        for (Tree b : sig->branches()) {
+            fputc(sep, out);
+            printSignal(b, out, 0);
+            sep = ',';
+        }
+        fputs(")", out);
+    }
+
+    else if (isSigTempVar(sig, x)) {
+        fputs("tempvar(", out);
+        printSignal(x, out, 0);
+        fputs(")", out);
+    } else if (isSigPermVar(sig, x)) {
+        fputs("permvar(", out);
+        printSignal(x, out, 0);
+        fputs(")", out);
+    } else if (isSigSeq(sig, x, y)) {
+        fputs("seq(", out);
+        printSignal(x, out, 0);
+        fputs(",", out);
+        printSignal(y, out, 0);
+        fputs(")", out);
+    } else if (isSigOD(sig)) {
+        fputs("ondemand(", out);
+        char sep = '{';
+        for (Tree b : sig->branches()) {
+            fputc(sep, out);
+            printSignal(b, out, 0);
+            sep = ',';
+        }  // TODO, improve printing separate H, ins and outs
+        fputs(")", out);
+    } else if (isSigClocked(sig, x, y)) {
+        fputs("clocked(", out);
+        // printSignal(x, out, 0);
+        // fputs(",", out);
+        printSignal(y, out, 0);
+        fputs(")", out);
+    }
+
     else if (isSigRegister(sig, &i, x)) {
         fputs("register(", out);
         fprintf(out, "%d, ", i);

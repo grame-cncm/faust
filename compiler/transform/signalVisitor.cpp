@@ -211,6 +211,50 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
+    // FIR and IIR
+    else if (tvec fircoefs; isSigFIR(sig, fircoefs)) {
+        for (Tree coef : fircoefs) {
+            self(coef);
+        }
+        return;
+    } else if (tvec iircoefs; isSigIIR(sig, iircoefs)) {
+        for (Tree coef : iircoefs) {
+            self(coef);
+        }
+        return;
+    }
+
+    else if (tvec subs; isSigSum(sig, subs)) {
+        for (Tree s : subs) {
+            self(s);
+        }
+        return;
+    }
+
+    else if (isSigTempVar(sig, x)) {
+        self(x);
+        return;
+    } else if (isSigPermVar(sig, x)) {
+        self(x);
+        return;
+    } else if (isSigSeq(sig, x, y)) {
+        self(x);
+        self(y);
+        return;
+    } else if (isSigOD(sig)) {
+        for (Tree b : sig->branches()) {
+            if (b == gGlobal->nil) {
+                continue;
+            }
+            self(b);
+        }
+        return;
+    } else if (isSigClocked(sig, x, y)) {
+        // self(x); // Do we need to visit the clock signal?
+        self(y);
+        return;
+    }
+
     else if (isSigRegister(sig, &i, x)) {
         self(x);
         return;
