@@ -1661,8 +1661,9 @@ bool global::processCmdline(int argc, const char* argv[])
     // Check options coherency
     // ========================
 
-    if (gRustNoTraitSwitch && gOutputLang != "rust") {
-        throw faustexception("ERROR : '-rnt' option can only be used with rust\n");
+   if (option_i && targetLang == "rust") {
+    std::cerr << "Warning: The -i flag has no effect when compiling to Rust." << std::endl;
+    option_i = false; // Disable the flag for Rust
     }
 
     if (!gRustNoTraitSwitch && gInPlace && gOutputLang == "rust") {
