@@ -49,6 +49,6 @@ Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig);
  * @param lsig the list of input signals to propagate
  * @return the resulting list of output signals
  */
-siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig);
+siglist propagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglist& lsig);
 
 #endif
