@@ -471,9 +471,9 @@ digraph<N> subgraph(const digraph<N>& G, const std::set<N>& S)
             R.add(n);     // add n to the resulting graph
             P.insert(n);  // mark n as processed
             for (const auto& a : G.destinations(n)) {
-                R.add(n, a.first, a.second);  // add its adjacent nodes
-                if (!P.contains(a.first)) {   // is it new ?
-                    M.insert(a.first);        // we will have to process it
+                R.add(n, a.first, a.second);       // add its adjacent nodes
+                if (P.find(a.first) == P.end()) {  // is it new ?
+                    M.insert(a.first);             // we will have to process it
                 }
             }
         }
@@ -669,7 +669,6 @@ inline std::list<N> recschedule(const digraph<N>& G)
     }
     return P;
 }
-
 
 /*******************************************************************************
 ********************************************************************************
