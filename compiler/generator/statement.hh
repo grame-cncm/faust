@@ -31,6 +31,7 @@ class Statement {
     const bool        fHasCondition;
     const std::string fCondition;
     const std::string fCode;
+    int               fIdent = 0;
 
    public:
     Statement(const std::string& condition, const std::string& code)
@@ -38,10 +39,21 @@ class Statement {
     {
     }
 
-    bool               hasCondition() { return fHasCondition; }
-    bool               hasCondition(const std::string& cond) { return (fCondition == cond); }
-    const std::string& condition() { return fCondition; }
-    const std::string& code() { return fCode; }
+    Statement indent() const
+    {
+        Statement res = *this;
+        res.fIdent++;
+        return res;
+    }
+
+    bool        hasCondition() const { return fHasCondition; }
+    bool        hasCondition(const std::string& cond) const { return (fCondition == cond); }
+    std::string condition() const { return fCondition; }
+    std::string code() const
+    {
+        std::string tabs(fIdent, '\t');
+        return tabs + fCode;
+    }
 };
 
 #endif  // STATEMENT_H
