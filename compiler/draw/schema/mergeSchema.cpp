@@ -128,12 +128,12 @@ void mergeSchema::collectTraits(collector& c)
     fSchema2->collectTraits(c);
 
     unsigned int r = fSchema2->inputs();
-    faustassert(r > 0);
-
-    // draw the connections between them
-    for (unsigned int i = 0; i < fSchema1->outputs(); i++) {
-        point p = fSchema1->outputPoint(i);
-        point q = fSchema2->inputPoint(i % r);
-        c.addTrait(trait(p, q));
+    if (r > 0) {
+        // draw the connections between them
+        for (unsigned int i = 0; i < fSchema1->outputs(); i++) {
+            point p = fSchema1->outputPoint(i);
+            point q = fSchema2->inputPoint(i % r);
+            c.addTrait(trait(p, q));
+        }
     }
 }

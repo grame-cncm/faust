@@ -62,6 +62,9 @@ static void explainInterval(Tree sig)
 
 Tree SigNewConstantPropagation::transformation(Tree sig)
 {
+    if (Tree h, x; isSigClocked(sig, h, x)) {
+        return sigClocked(h, self(x));
+    }
     Type     tt = getCertifiedSigType(sig);
     interval I  = tt->getInterval();
 
@@ -69,8 +72,16 @@ Tree SigNewConstantPropagation::transformation(Tree sig)
     if (I.isconst()) {
         if (tt->nature() == kInt) {
             res = sigInt(int(I.lo()));
+            // if ((res != sig)) {
+            //     std::cerr << "\n\nInteger Constant propagation: " << ppsig(sig, 10) << " ==> "
+            //               << ppsig(res, 10) << std::endl;
+            // }
         } else {
             res = sigReal(I.lo());
+            // if ((res != sig)) {
+            //     std::cerr << "\n\nFloat Constant propagation: " << ppsig(sig, 10) << " ==> "
+            //               << ppsig(res, 10) << std::endl;
+            // }
         }
         Tree exp;
         // We want to keep the sigGen indication, we don't want
@@ -83,10 +94,6 @@ Tree SigNewConstantPropagation::transformation(Tree sig)
     } else {
         res = SignalIdentity::transformation(sig);
     }
-    // if (res != sig) {
-    //     std::cerr << "\n\nConstant propagation: " << ppsig(sig, 10) << " ==> " << ppsig(res, 10)
-    //     << std::endl; explainInterval(sig);
-    // }
     return res;
 }
 
