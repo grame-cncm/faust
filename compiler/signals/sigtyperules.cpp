@@ -70,6 +70,8 @@ static Type inferDocConstantTblType(Type size, Type init);
 static Type inferDocWriteTblType(Type size, Type init, Type widx, Type wsig);
 static Type inferDocAccessTblType(Type tbl, Type ridx);
 static Type inferWaveformType(Tree lv, Tree env);
+static Type inferFIRType(Tree sig, Tree env);
+static Type inferIIRType(Tree sig, Tree env);
 
 /**
  * Convert a constant signal into a double using its bounds (not very safe).
@@ -740,6 +742,52 @@ static Type inferSigType(Tree sig, Tree env)
                               itv::reunion(st1->getInterval(), st2->getInterval()));
     }
 
+    else if (isSigFIR(sig)) {
+        return inferFIRType(sig, env);
+    }
+
+    else if (isSigIIR(sig)) {
+        return inferIIRType(sig, env);
+    }
+
+    else if (tvec subs; isSigSum(sig, subs)) {
+        faustassert(!subs.empty());
+        Type t = T(subs[0], env);
+        for (size_t ii = 1; ii < subs.size(); ii++) {
+            Type u = T(subs[ii], env);
+            t      = castInterval(t | u, arithmetic(kAdd, t->getInterval(), u->getInterval()));
+        }
+        return t;
+    }
+
+    // OnDemand types
+    else if (Tree x; isSigTempVar(sig, x)) {
+        return T(x, env);
+
+    } else if (Tree x; isSigPermVar(sig, x)) {
+        Type t1 = T(x, env);
+        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
+
+    } else if (Tree x, y; isSigSeq(sig, x, y)) {
+        T(x, env);
+        return T(y, env);
+
+    } else if (Tree h, y; isSigClocked(sig, h, y)) {
+        return T(y, env);
+
+    } else if (tvec subs; isSigOD(sig, subs)) {
+        // aAn OD block don't have a proper type,
+        // but we need to type its subsignals
+        for (size_t ii = 0; ii < subs.size(); ii++) {
+            if (subs[ii] != gGlobal->nil) {
+                T(subs[ii], env);
+            }
+        }
+        // we lack a bottom type ! But is must NOT be a constant type, otherwise it will be
+        // optimmized by the constant propagation phase
+        return makeSimpleType(kReal, kSamp, kExec, kScal, kNum, interval(-1, 1));
+    }
+
     else if (isNil(sig)) {
         Type t = new TupletType();
         return t;
@@ -992,15 +1040,26 @@ static Type inferFVarType(Tree type)
  *  - the waveform is known at compile time
  *  - it can be vectorized because all values are known
  *  - knum ???
- *  - the resulting interval is the reunion of all values intervals
+ *  - the resulting interval is the reunion of all values
+ *    intervals
+ *  - ONDEMAND: The first value of the waveform is now
+ *    sigClocked so that the sample production is in the right
+ *    time reference.
  */
 static Type inferWaveformType(Tree wfsig, Tree env)
 {
     // start with the first item interval
-    Tree     v      = wfsig->branch(0);
-    bool     iflag1 = isInt(v->node());
-    int      n      = wfsig->arity();
-    interval res    = (iflag1) ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2double(v));
+    Tree v = wfsig->branch(0);
+    T(v, env);
+    // remove possible clock signal on the first item
+    // TODO: all this could be simplified !
+    if (Tree h, x; isSigClocked(v, h, x)) {
+        v = x;
+    }
+    bool iflag1 = isInt(v->node());
+
+    int      n   = wfsig->arity();
+    interval res = (iflag1) ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2double(v));
     T(v, env);
 
     // loop for remaining items
@@ -1029,4 +1088,75 @@ static Type inferXType(Tree sig, Tree env)
         vt.push_back(T(sig->branch(i), env));
     }
     return p->inferSigType(vt);
+}
+
+static Type inferFIRType(Tree sig, Tree env)
+{
+    // we assume a normal FIR with at least a Ci != 0 (i>0)
+    tvec         coef;
+    vector<Type> vt;
+
+    faustassert(isSigFIR(sig, coef));
+
+    for (Tree b : coef) {
+        vt.push_back(T(b, env));
+    }
+
+    int                 nature        = vt[0]->nature();  //= kInt;
+    const int           variability   = kSamp;            // because we have delays
+    const int           computability = kExec;
+    int                 vectorability = kVect;
+    const int           booleanity    = kNum;
+    const itv::interval X             = vt[0]->getInterval();
+    const itv::interval XZ            = reunion(X, interval(0, 0));
+    itv::interval       R             = gAlgebra.Mul(X, vt[1]->getInterval());
+    for (unsigned int i = 1; i < vt.size(); i++) {
+        nature        = nature | vt[i]->nature();
+        vectorability = vectorability | vt[i]->vectorability();
+        R             = gAlgebra.Add(R, gAlgebra.Mul(XZ, vt[i]->getInterval()));
+    }
+    return makeSimpleType(nature, variability, computability, vectorability, booleanity, R);
+}
+
+static Type inferIIRType(Tree sig, Tree env)
+{
+    // we assume a normal IIR with at least a Ci != 0 (i>0)
+    // IIR[W,X,0,C1,C2,...,Cn] we assume a normal IIR Cn != 0
+    //     0,1,2,3 ,4...
+    tvec coef;
+    faustassert(isSigIIR(sig, coef) && (coef.size() >= 4) && isNil(coef[0]) && isZero(coef[2]));
+
+    // We ignore we visit
+    Type         tx = T(coef[1], env);  // this is the input signal X
+    Type         t0 = T(coef[2], env);  // this is C0, zero and ignored
+    vector<Type> ct;                    // vector of coefficient types starting from C1..Cn
+    for (unsigned int i = 3; i < coef.size(); i++) {
+        ct.push_back(T(coef[i], env));
+    }
+
+    int           nature        = tx->nature();
+    const int     variability   = kSamp;  // because we have delays
+    int           computability = tx->computability();
+    const int     vectorability = kScal;  // because we are recursive
+    const int     booleanity    = kNum;   // probably not a boolean value
+    itv::interval S(0);                   // sum of absolute values of coefficient intervals
+
+    for (Type t : ct) {
+        nature        = nature | t->nature();
+        computability = computability | t->computability();
+        S             = gAlgebra.Add(S, gAlgebra.Abs(t->getInterval()));
+    }
+
+    // We compute the interval of the resulting signal W = X*(1/(1-g))
+    // where g = Sum(|Ci|) < 1
+    itv::interval R;
+    if (S.hi() < 1) {
+        double        g  = 1.0 / (1.0 - S.hi());
+        itv::interval AX = gAlgebra.Abs(tx->getInterval());
+        double        m  = AX.hi() * g;
+        R                = itv::interval(-m, m);
+    } else {
+        // We keep R very large
+    }
+    return makeSimpleType(nature, variability, computability, vectorability, booleanity, R);
 }

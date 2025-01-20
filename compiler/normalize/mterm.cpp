@@ -26,6 +26,7 @@
 #include "signals.hh"
 #include "xtended.hh"
 
+#undef TRACE
 using namespace std;
 
 typedef map<Tree, int> MP;

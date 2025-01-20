@@ -31,6 +31,7 @@
 
 ***********************************************************************/
 
+#include <iostream>
 #include <list>
 #include <map>
 #include <set>
@@ -39,6 +40,17 @@
 
 #include "statement.hh"
 #include "tlib.hh"
+
+struct IFblock {
+    std::string          fCond;      ///< condition of the IF block
+    std::list<Statement> fPreCode;   ///< code to execute at the begin of the loop
+    std::list<Statement> fExecCode;  ///< code to execute in the loop
+    std::list<Statement> fPostCode;  ///< code to execute at the end of the loop
+
+    void addPreCode(const Statement& str);   ///< add a line of C++ code pre code
+    void addExecCode(const Statement& str);  ///< add a line of C++ code
+    void addPostCode(const Statement& str);  ///< add a line of C++ post code
+};
 
 /*
  * Loops are lines of code that correspond to a recursive expression or a vector expression.
@@ -55,6 +67,7 @@ struct Loop {
     std::list<Statement> fPreCode;              ///< code to execute at the begin of the loop
     std::list<Statement> fExecCode;             ///< code to execute in the loop
     std::list<Statement> fPostCode;             ///< code to execute at the end of the loop
+    std::stack<IFblock>  fIFstack;              ///< stack of IF blocks
     // for topological sort
     int fOrder;  ///< used during topological sort
     int fIndex;  ///< used during scheduler mode code generation
@@ -72,9 +85,13 @@ struct Loop {
     bool hasRecDependencyIn(
         Tree S);  ///< returns true is this loop or its ancestors define a symbol in S
 
-    void addPreCode(const Statement& str);           ///< add a line of C++ code pre code
-    void addExecCode(const Statement& str);          ///< add a line of C++ code
-    void addPostCode(const Statement& str);          ///< add a line of C++ post code
+    void addPreCode(const Statement& str);   ///< add a line of C++ code pre code
+    void addExecCode(const Statement& str);  ///< add a line of C++ code
+    void addPostCode(const Statement& str);  ///< add a line of C++ post code
+
+    void openIFblock(const std::string& cond);  ///< open an IF block
+    void closeIFblock();                        ///< close an IF block
+
     void println(int n, std::ostream& fout);         ///< print the loop
     void printParLoopln(int n, std::ostream& fout);  ///< print the loop with a #pragma omp loop
 

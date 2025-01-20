@@ -36,23 +36,74 @@ using namespace std;
 // should not call itself recursively directly, but exclusively via `self(t)`
 // (or `mapself(lt)` for a list).
 //------------------------------------------------------------------------------
-
+#if 0
 Tree TreeTransform::self(Tree t)
 {
     if (fTrace) {
         traceEnter(t);
     }
     fIndent++;
-    Tree r;
+    Tree r, w;
     if (!fResult.get(t, r)) {
-        r = postprocess(transformation(t));
-        fResult.set(t, r);
+        w = transformation(t);
+        fIndent--;
+        if (fTrace) {
+            traceExit(t, w);
+        }
+        if (fTrace) {
+            traceEnter(w);
+        }
+        fIndent++;
+        r = postprocess(w);
+        fResult.set(w, r);
     }
     fIndent--;
     if (fTrace) {
         traceExit(t, r);
     }
     return r;
+}
+#endif
+
+Tree TreeTransform::self(Tree t)
+{
+    Tree r;
+    if (!fResult.get(t, r)) {
+        myTraceEnter(t);
+        Tree w = transformation(t);
+        myTraceContinue(t, w);
+        r = postprocess(w);
+        myTraceExit(t, w, r);
+        fResult.set(t, r);
+    }
+    return r;
+}
+
+void TreeTransform::myTraceEnter(Tree t)
+{
+    if (fTrace) {
+        tab(fIndent, cerr);
+        cerr << fMessage << ": " << *t << endl;
+        fIndent++;
+    }
+}
+
+void TreeTransform::myTraceContinue(Tree t, Tree w)
+{
+    if (fTrace) {
+        faustassert(fIndent > 0);
+        tab(fIndent - 1, cerr);
+        cerr << fMessage << ": " << *t << " ==> " << *w << endl;
+    }
+}
+
+void TreeTransform::myTraceExit(Tree t, Tree w, Tree r)
+{
+    if (fTrace) {
+        fIndent--;
+        tab(fIndent, cerr);
+        cerr << fMessage << ": " << *t << " ==> " << *w << " ==> " << *r << endl;
+    }
 }
 
 void TreeTransform::traceMsg(std::string msg)

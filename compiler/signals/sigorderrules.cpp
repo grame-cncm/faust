@@ -219,7 +219,8 @@ static int inferSigOrder(Tree sig)
     }
 
     else if (isSigAttach(sig, s1, s2)) {
-        return std::max(1, O(s1));  // at least a constant
+        // return std::max(1, O(s1));  // at least a constant
+        return std::max(1, std::max(O(s1), O(s2)));  // at least a constant
     }
 
     else if (isRec(sig, var, body)) {
@@ -264,8 +265,34 @@ static int inferSigOrder(Tree sig)
         return 3;
     }
 
-    else if (isSigRegister(sig, &i, s1)) {
-        return O(s1);
+    else if (isSigFIR(sig)) {
+        return 3;
+    }
+
+    else if (isSigIIR(sig)) {
+        return 3;
+    }
+
+    else if (tvec subs; isSigSum(sig, subs)) {
+        int r1 = 0;
+        for (auto& sub : subs) {
+            r1 = std::max(r1, O(sub));
+        }
+        return r1;
+    }
+
+    else if (Tree x; isSigTempVar(sig, x)) {
+        return 3;  // to be checked
+    } else if (Tree x; isSigPermVar(sig, x)) {
+        return 3;  // to be checked
+    } else if (Tree x, y; isSigSeq(sig, x, y)) {
+        return 3;  // to be checked
+    } else if (tvec subs; isSigOD(sig, subs)) {
+        return 3;  // to be checked
+    } else if (Tree x, y; isSigSeq(sig, x, y)) {
+        return 3;  // to be checked
+    } else if (isSigClocked(sig, x, y)) {
+        return 3;
     }
 
     else if (isList(sig)) {

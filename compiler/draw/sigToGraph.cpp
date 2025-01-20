@@ -51,7 +51,7 @@ void sigToGraph(Tree L, ostream& fout)
     set<Tree> alreadyDrawn;
 
     fout << "strict digraph loopgraph {\n"
-         << "    rankdir=LR; node [fontsize=10];" << endl;
+         << "    rankdir=BT; node [fontsize=10];" << endl;
     int out = 0;
     while (isList(L)) {
         recdraw(hd(L), alreadyDrawn, fout);
@@ -73,7 +73,7 @@ void sigToGraph(Tree L, ostream& fout)
 static void recdraw(Tree sig, set<Tree>& drawn, ostream& fout)
 {
     // cerr << ++gGlobal->TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
-    tvec subsig;
+    tvec subsig, coefs;
     int  n;
 
     if (drawn.count(sig) == 0) {
@@ -83,6 +83,24 @@ static void recdraw(Tree sig, set<Tree>& drawn, ostream& fout)
                 recdraw(hd(sig), drawn, fout);
                 sig = tl(sig);
             } while (isList(sig));
+        } else if (isSigFIR(sig, coefs)) {
+            fout << 'S' << sig << "[label=\"" << sigLabel(sig) << '(' << coefs.size() - 1 << ')'
+                 << "\"" << nodeattr(getCertifiedSigType(sig)) << "];" << endl;
+            // we only draw the input signal
+            Tree x = coefs[0];
+            recdraw(x, drawn, fout);
+            fout << 'S' << x << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(x))
+                 << "];" << endl;
+
+        } else if (isSigIIR(sig, coefs)) {
+            fout << 'S' << sig << "[label=\"" << sigLabel(sig) << '(' << coefs.size() - 2 << ')'
+                 << "\"" << nodeattr(getCertifiedSigType(sig)) << "];" << endl;
+            // we only draw the input signal
+            Tree x = coefs[1];
+            recdraw(x, drawn, fout);
+            fout << 'S' << x << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(x))
+                 << "];" << endl;
+
         } else {
             // draw the node
             fout << 'S' << sig << "[label=\"" << sigLabel(sig) << "\""
@@ -142,9 +160,9 @@ static string edgeattr(Type t)
 {
     string sout(commonAttr(t));
     sout += " label =\"";
-    sout += t->getInterval().to_string();
-    sout += ", ";
-    sout += t->getRes().toString();
+    // sout += t->getInterval().to_string();
+    // sout += ", ";
+    // sout += t->getRes().toString();
     sout += "\"";
     return sout;
 }
@@ -276,6 +294,26 @@ static string sigLabel(Tree sig)
         fout << "attach";
     }
 
+    else if (isSigFIR(sig)) {
+        fout << "FIR";
+    } else if (isSigIIR(sig)) {
+        fout << "IIR";
+    } else if (isSigSum(sig)) {
+        fout << "sum";
+    }
+
+    else if (isSigTempVar(sig)) {
+        fout << "tempvar";
+    } else if (isSigPermVar(sig)) {
+        fout << "permvar";
+    } else if (isSigSeq(sig, x, y)) {
+        fout << "seq";
+    } else if (isSigOD(sig)) {
+        fout << "ondemand";
+    } else if (isSigClocked(sig, x, y)) {
+        fout << "clocked:" << x;
+    }
+
     else if (isSigAssertBounds(sig, x, y, z)) {
         fout << "assertbounds";
     }
@@ -290,6 +328,10 @@ static string sigLabel(Tree sig)
 
     else if (isSigRegister(sig, &i, x)) {
         fout << "register " << i;  // for FPGA Retiming
+    }
+
+    else if (isNil(sig)) {
+        fout << "nil";
     }
 
     else {

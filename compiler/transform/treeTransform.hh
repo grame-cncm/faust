@@ -80,6 +80,10 @@ class TreeTransform : public Garbageable {
     virtual Tree postprocess(Tree);   // modify a tree after the transformation of its children
     virtual void traceEnter(Tree t);  // called when entering a transformation
     virtual void traceExit(Tree t, Tree r);  // called when exiting a transformation
+    // new trace system
+    virtual void myTraceEnter(Tree t);
+    virtual void myTraceContinue(Tree t, Tree w);
+    virtual void myTraceExit(Tree t, Tree w, Tree r);
 };
 
 #endif

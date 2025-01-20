@@ -619,6 +619,9 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
             throw faustexception(error.str());
         }
 
+    } else if (isBoxOndemand(exp, body)) {
+        return boxOndemand(eval(body, visited, localValEnv));
+
     } else if (isBoxSlot(exp)) {
         return exp;
 
