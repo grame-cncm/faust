@@ -49,6 +49,34 @@ void SignalIdentity::traceExit(Tree t, Tree r)
          << endl;
 }
 
+void SignalIdentity::myTraceEnter(Tree t)
+{
+    if (fTrace) {
+        tab(fIndent, cerr);
+        cerr << fMessage << " ENTER: " << ppsig(t, MAX_ERROR_SIZE) << endl;
+        fIndent++;
+    }
+}
+
+void SignalIdentity::myTraceContinue(Tree t, Tree w)
+{
+    if (fTrace) {
+        tab(fIndent - 1, cerr);
+        cerr << fMessage << " CONT : " << ppsig(t, MAX_ERROR_SIZE) << " --> "
+             << ppsig(w, MAX_ERROR_SIZE) << endl;
+    }
+}
+
+void SignalIdentity::myTraceExit(Tree t, Tree w, Tree r)
+{
+    if (fTrace) {
+        fIndent--;
+        tab(fIndent, cerr);
+        cerr << fMessage << " EXIT : " << ppsig(t, MAX_ERROR_SIZE) << " --> "
+             << ppsig(w, MAX_ERROR_SIZE) << " ==> " << ppsig(r, MAX_ERROR_SIZE) << endl;
+    }
+}
+
 Tree SignalIdentity::transformation(Tree sig)
 {
     int     i;
@@ -121,6 +149,69 @@ Tree SignalIdentity::transformation(Tree sig)
     }
 
     // Table sigGen
+    else if (isSigGen(sig, x)) {
+        if (fVisitGen) {
+            return sigGen(self(x));
+        } else {
+            return sig;
+        }
+    }
+
+    // FIR and IIR
+    else if (isSigFIR(sig)) {
+        tvec c = sig->branches();
+        for (unsigned int i = 0; i < c.size(); i++) {
+            c[i] = self(c[i]);
+        }
+        return sigFIR(c);
+    } else if (isSigIIR(sig)) {
+        tvec c = sig->branches();
+        for (unsigned int i = 1; i < c.size(); i++) {
+            c[i] = self(c[i]);
+        }
+        return sigIIR(c);
+    }
+
+    else if (isSigSum(sig)) {
+        tvec c = sig->branches();
+        for (unsigned int i = 0; i < c.size(); i++) {
+            c[i] = self(c[i]);
+        }
+        return sigSum(c);
+    }
+
+    else if (isSigTempVar(sig, x)) {
+        return sigTempVar(self(x));
+    }
+
+    else if (isSigPermVar(sig, x)) {
+        return sigPermVar(self(x));
+    }
+
+    else if (isSigSeq(sig, x, y)) {
+        // std::cerr << "identity sigSeq " << ppsig(sig) << std::endl;
+        Tree x2 = self(x);
+        // std::cerr << "identity sigSeq x2 " << ppsig(x2) << std::endl;
+        faustassert(!isZero(x2));
+        return sigSeq(x2, self(y));
+    }
+
+    else if (tvec w1; isSigOD(sig, w1)) {
+        tvec w2;
+        for (Tree s : w1) {
+            if (s == gGlobal->nil) {
+                w2.push_back(gGlobal->nil);
+            } else {
+                w2.push_back(self(s));
+            }
+        }
+        return sigOD(w2);
+    }
+
+    else if (isSigClocked(sig, x, y)) {
+        return sigClocked(x, self(y));  // do we need to transform the clock signal ?
+    }
+
     else if (isSigGen(sig, x)) {
         if (fVisitGen) {
             return sigGen(self(x));

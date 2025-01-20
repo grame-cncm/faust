@@ -472,7 +472,7 @@ struct signal_dsp_factory : public dsp_factory {
     }
 
     /* Static tables initialization, possibly implemened in sub-classes*/
-    virtual void classInit(int sample_rate) {};
+    virtual void classInit(int sample_rate){};
 
     /* Set a custom memory manager to be used when creating instances */
     virtual void setMemoryManager(dsp_memory_manager* manager) {}
