@@ -318,13 +318,13 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
             return false;
         }
 
-        if ((v == 0) || (x == 0) || (x % v != 0)) {
+        if ((v == x) || ((v != 0) && (x % v == 0))) {
+            *inum = u;
+            *onum = y;
+        } else {
             throw faustexception((computeTypeErrorMessage(a, b, v, x, "<:", "split composition",
                                                           " must be a divisor of ")));
         }
-
-        *inum = u;
-        *onum = y;
 
     } else if (isBoxMerge(box, a, b)) {
         int u, v, x, y;
@@ -335,13 +335,13 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
             return false;
         }
 
-        if ((v == 0) || (x == 0) || (v % x != 0)) {
+        if ((v == x) || ((x != 0) && (v % x == 0))) {
+            *inum = u;
+            *onum = y;
+        } else {
             throw faustexception(computeTypeErrorMessage(a, b, v, x, ":>", "merge composition",
                                                          " must be a multiple of "));
         }
-
-        *inum = u;
-        *onum = y;
 
     } else if (isBoxRec(box, a, b)) {
         int u, v, x, y;
@@ -366,6 +366,16 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
 
     } else if (isBoxRoute(box, ins, outs, lroutes)) {
         return isBoxInt(ins, inum) && isBoxInt(outs, onum);
+
+    } else if (isBoxOndemand(box, a)) {
+        int u, v;
+        if (getBoxType(a, &u, &v)) {
+            *inum = u + 1;
+            *onum = v;
+            return true;
+        } else {
+            return false;
+        }
 
     } else {
         stringstream error;

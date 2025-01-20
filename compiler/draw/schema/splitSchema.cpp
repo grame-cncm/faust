@@ -107,7 +107,7 @@ void splitSchema::draw(device& dev)
     fSchema2->draw(dev);
 
     unsigned int r = fSchema1->outputs();
-    faustassert(r > 0);
+    // faustassert(r > 0);
 #if 0
     // draw the connections between them
     for (unsigned int i=0; i<fSchema2->inputs(); i++) {
@@ -132,12 +132,12 @@ void splitSchema::collectTraits(collector& c)
     fSchema2->collectTraits(c);
 
     unsigned int r = fSchema1->outputs();
-    faustassert(r > 0);
-
-    // draw the connections between them
-    for (unsigned int i = 0; i < fSchema2->inputs(); i++) {
-        point p = fSchema1->outputPoint(i % r);
-        point q = fSchema2->inputPoint(i);
-        c.addTrait(trait(point(p.x, p.y), point(q.x, q.y)));
+    if (r > 0) {
+        // draw the connections between them
+        for (unsigned int i = 0; i < fSchema2->inputs(); i++) {
+            point p = fSchema1->outputPoint(i % r);
+            point q = fSchema2->inputPoint(i);
+            c.addTrait(trait(point(p.x, p.y), point(q.x, q.y)));
+        }
     }
 }

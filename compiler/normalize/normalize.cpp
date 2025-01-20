@@ -25,7 +25,6 @@
 
 #include "aterm.hh"
 #include "exception.hh"
-#include "mterm.hh"
 #include "normalize.hh"
 #include "ppsig.hh"
 #include "signals.hh"
@@ -96,46 +95,82 @@ Tree normalizeDelay1Term(Tree s)
  * \param d the value of the delay
  * \return the normalized term
  */
+Tree normalizeDelayTerm(Tree s, Tree d);
+
+// remove the clock surronding a signal
+static Tree unclock(Tree s)
+{
+    if (Tree clk, ss; isSigClocked(s, clk, ss)) {
+        return unclock(ss);
+    }
+    return s;
+}
+
+Tree clockNormalizeDelayTerm(Tree clock, Tree s, Tree d)
+{
+    // s@0 => s
+    if (isZero(d)) {
+        Tree r;
+        int  i;
+        if (isProj(s, &i, r)) {
+            return sigDelay(sigClocked(clock, s), d);  // TO BE CHECKED !
+        } else {
+            return sigClocked(clock, s);
+        }
+    }
+
+    // 0@d => 0
+    if (isZero(s)) {
+        return sigClocked(clock, s);
+    }
+
+    // (k*s)@d => k*(s@d)
+    if (Tree x, y; isSigMul(s, x, y)) {
+        x = unclock(x);
+        y = unclock(y);
+
+        if (getSigOrder(x) < 2) {
+            return /*simplify*/ (sigMul(x, clockNormalizeDelayTerm(clock, y, d)));
+        } else if (getSigOrder(y) < 2) {
+            return /*simplify*/ (sigMul(y, clockNormalizeDelayTerm(clock, x, d)));
+        } else {
+            return sigDelay(sigClocked(clock, s), d);
+        }
+    }
+
+    // (s/k)@d => (s@d)/k
+    if (Tree x, y; isSigDiv(s, x, y)) {
+        x = unclock(x);
+        y = unclock(y);
+
+        if (getSigOrder(y) < 2) {
+            return /*simplify*/ (sigDiv(clockNormalizeDelayTerm(clock, x, d), y));
+        } else {
+            return sigDelay(sigClocked(clock, s), d);
+        }
+    }
+
+    // (x@n)@m => x@(n+m) when n is constant
+    if (Tree x, y; isSigDelay(s, x, y)) {
+        x = unclock(x);
+        y = unclock(y);
+        if (getSigOrder(y) < 2) {
+            return clockNormalizeDelayTerm(clock, x, simplify(sigAdd(d, y)));
+        } else {
+            return sigDelay(sigClocked(clock, s), d);
+        }
+    }
+
+    return sigDelay(sigClocked(clock, s), d);
+}
+
 Tree normalizeDelayTerm(Tree s, Tree d)
 {
-    Tree x, y, r;
-    int  i;
-
-    if (isZero(d)) {
-        if (isProj(s, &i, r)) {
-            return sigDelay(s, d);
-        } else {
-            return s;
-        }
-
-    } else if (isZero(s)) {
-        return s;
-
-    } else if (isSigMul(s, x, y)) {
-        if (getSigOrder(x) < 2) {
-            return /*simplify*/ (sigMul(x, normalizeDelayTerm(y, d)));
-        } else if (getSigOrder(y) < 2) {
-            return /*simplify*/ (sigMul(y, normalizeDelayTerm(x, d)));
-        } else {
-            return sigDelay(s, d);
-        }
-
-    } else if (isSigDiv(s, x, y)) {
-        if (getSigOrder(y) < 2) {
-            return /*simplify*/ (sigDiv(normalizeDelayTerm(x, d), y));
-        } else {
-            return sigDelay(s, d);
-        }
-
-    } else if (isSigDelay(s, x, y)) {
-        if (getSigOrder(y) < 2) {
-            // (x@n)@m = x@(n+m) when n is constant
-            return normalizeDelayTerm(x, simplify(sigAdd(d, y)));
-        } else {
-            return sigDelay(s, d);
-        }
-
-    } else {
-        return sigDelay(s, d);
+    if (Tree clk, ss; isSigClocked(s, clk, ss)) {
+        // std::cerr << "ENTER We have : " << ppsig(s) << "@" << ppsig(d) << "\n";
+        Tree res = clockNormalizeDelayTerm(clk, unclock(s), unclock(d));
+        return res;
     }
+
+    return sigDelay(s, d);
 }
