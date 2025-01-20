@@ -604,9 +604,24 @@ namespace FaustUtilities_MODEL {
                                         uiItems[numItems].label = value.ToString();
                                     }
                                     break;
+                                case "shortname":
+                                    if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
+                                        uiItems[numItems].shortname = value.ToString();
+                                    }
+                                    break;
                                 case "address":
                                     if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
                                         uiItems[numItems].address = value.ToString();
+                                    }
+                                    break;
+                                case "url":
+                                    if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
+                                        uiItems[numItems].url = value.ToString();
+                                    }
+                                    break;
+                                case "varname":
+                                    if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
+                                        uiItems[numItems].varname = value.ToString();
                                     }
                                     break;
                                 case "meta":
@@ -667,13 +682,16 @@ namespace FaustUtilities_MODEL {
     public class Group {
         public string type;
         public string label;
+        public string shortname;
+        public string address;
+        public string url;
+        public string varname;
         public List < Meta > meta;
         public List < Group > items;
-        public string address;
         public float init;
         public float min;
         public float max;
-        public float step;
+        public float step;     
         public int numparam;
         public bool groupstate = true;
 
