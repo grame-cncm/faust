@@ -25,6 +25,7 @@
 #include <string.h>
 #include <cstdint>
 
+#include <charconv>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -59,6 +60,8 @@ std::string T(double n);
 std::string TAux(long double n);
 std::string T(long double n);
 std::string T(int64_t n);
+std::string T(size_t n);
+std::string T(void* x);
 
 // Add and remove quotes of a std::string
 std::string unquote(const std::string& s);
@@ -330,5 +333,8 @@ inline bool isTable(const std::string& name)
 {
     return startWith(name, "itbl") || startWith(name, "ftbl");
 }
+
+bool isVarName(const std::string& name);
+bool isNumber(const std::string& s);
 
 #endif
