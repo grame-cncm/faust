@@ -1046,9 +1046,28 @@ void Klass::printComputeMethod(int n, ostream& fout)
                 throw faustexception(error.str());
             }
         }
-    } else {
+    } else if (fComputeByBlock) {
         printComputeMethodScalarBlock(n, fout);
+    } else {
+        printComputeMethodScalar(n, fout);
     }
+}
+
+void Klass::printComputeMethodScalar(int n, ostream& fout)
+{
+    tab(n + 1, fout);
+    fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
+    printlines(n + 2, fZone1Code, fout);
+    printlines(n + 2, fZone2Code, fout);
+    printlines(n + 2, fZone2bCode, fout);
+
+    printlines(n + 2, fZone3Code, fout);
+    printLoopGraphScalar(n + 2, fout);
+    printlines(n + 2, fZone3Post, fout);
+
+    printlines(n + 2, fZone4Code, fout);
+    tab(n + 1, fout);
+    fout << "}";
 }
 
 void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
@@ -1064,7 +1083,7 @@ void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
     tab(n + 2, fout);
     fout << "for (int index = 0; index < fullcount; index += " << gGlobal->gVecSize << ") {";
     tab(n + 3, fout);
-    fout << "int count = min(" << gGlobal->gVecSize << ", fullcount-index);";
+    fout << "int count = std::min(" << gGlobal->gVecSize << ", fullcount-index);";
     printlines(n + 3, fZone3Code, fout);
     printLoopGraphScalar(n + 3, fout);
     printlines(n + 3, fZone3Post, fout);
@@ -1143,7 +1162,7 @@ void Klass::printComputeMethodVectorSimple(int n, ostream& fout)
     tab(n + 2, fout);
     fout << "for (int index = 0; index < fullcount; index += " << gGlobal->gVecSize << ") {";
     tab(n + 3, fout);
-    fout << "int count = min(" << gGlobal->gVecSize << ", fullcount-index);";
+    fout << "int count = std::min(" << gGlobal->gVecSize << ", fullcount-index);";
     printlines(n + 3, fZone3Code, fout);
     printLoopGraphVector(n + 3, fout);
     tab(n + 2, fout);
@@ -1236,7 +1255,7 @@ void Klass::printComputeMethodOpenMP(int n, ostream& fout)
     tab(n + 3, fout);
     fout << "for (int index = 0; index < fullcount; index += " << gGlobal->gVecSize << ") {";
     tab(n + 4, fout);
-    fout << "int count = min (" << gGlobal->gVecSize << ", fullcount-index);";
+    fout << "int count = std::min (" << gGlobal->gVecSize << ", fullcount-index);";
 
     printlines(n + 4, fZone3Code, fout);
     printLoopGraphOpenMP(n + 4, fout);
@@ -1345,7 +1364,7 @@ void Klass::printComputeMethodScheduler(int n, ostream& fout)
     fout << "for (fIndex = 0; fIndex < fullcount; fIndex += " << gGlobal->gVecSize << ") {";
 
     tab(n + 3, fout);
-    fout << "fCount = min (" << gGlobal->gVecSize << ", fullcount-fIndex);";
+    fout << "fCount = std::min (" << gGlobal->gVecSize << ", fullcount-fIndex);";
     tab(n + 3, fout);
     fout << "TaskQueue::Init();";
     printlines(n + 3, fZone2cCode, fout);
@@ -1481,7 +1500,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
     tab(n + 2, fout);
     fout << "for (int index = 0; index < fullcount; index += " << gGlobal->gVecSize << ") {";
     tab(n + 3, fout);
-    fout << "int count = min(" << gGlobal->gVecSize << ", fullcount-index);";
+    fout << "int count = std::min(" << gGlobal->gVecSize << ", fullcount-index);";
 
     printlines(n + 3, fZone3Code, fout);
     printLoopGraphInternal(n + 3, fout);
@@ -1549,7 +1568,7 @@ void SigFloatGenKlass::println(int n, ostream& fout)
     tab(n + 2, fout);
     fout << "for (int index = 0; index < fullcount; index += " << gGlobal->gVecSize << ") {";
     tab(n + 3, fout);
-    fout << "int count = min(" << gGlobal->gVecSize << ", fullcount-index);";
+    fout << "int count = std::min(" << gGlobal->gVecSize << ", fullcount-index);";
 
     printlines(n + 3, fZone3Code, fout);
     printLoopGraphInternal(n + 3, fout);

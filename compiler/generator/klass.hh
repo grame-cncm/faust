@@ -58,6 +58,7 @@ class Klass {
     int         fNumOutputs;
     int         fNumActives;   ///< number of active controls in the UI (sliders, buttons, etc.)
     int         fNumPassives;  ///< number of passive widgets in the UI (bargraphs, etc.)
+    bool        fComputeByBlock{false};  ///< true if a compute method by block is needed
 
     std::set<std::string> fIncludeFileSet;
     std::set<std::string> fLibrarySet;
@@ -194,9 +195,16 @@ class Klass {
     void addExecCode(const Statement& stmt) { fTopLoop->addExecCode(stmt); }
     void addPostCode(const Statement& stmt) { fTopLoop->addPostCode(stmt); }
 
+    void openIFblock(const std::string& cond) { fTopLoop->openIFblock(cond); }
+    void closeIFblock() { fTopLoop->closeIFblock(); }
+
+    void setComputeByBlock(bool b) { fComputeByBlock = b; }
+    bool getComputeByBlock() { return fComputeByBlock; }
+
     virtual void println(int n, std::ostream& fout);
 
     virtual void printComputeMethod(int n, std::ostream& fout);
+    virtual void printComputeMethodScalar(int n, std::ostream& fout);
     virtual void printComputeMethodScalarBlock(int n, std::ostream& fout);
     virtual void printComputeMethodVectorFaster(int n, std::ostream& fout);
     virtual void printComputeMethodVectorSimple(int n, std::ostream& fout);
