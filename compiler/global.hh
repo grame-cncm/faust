@@ -2,6 +2,7 @@
  ************************************************************************
  FAUST compiler
  Copyright (C) 2003-2022 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2023-2024, INRIA
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +44,7 @@
 #include "smartpointer.hh"
 #include "sourcereader.hh"
 
-class Occur;
+// class Occur;
 
 class AudioType;
 typedef P<AudioType> Type;
@@ -147,6 +148,7 @@ struct global {
     bool gLocalCausalityCheck;  // -lcc option, when true trigs local causality errors (negative
                                 // delay)
     bool gGraphSwitch;          // -tg option
+    bool gTopoSwitch;           // -gt --graph-topology option
     bool gDrawPSSwitch;         // -ps option
     bool gDrawSVGSwitch;        // -svg option
     int  gFPGAMemory;           // -fpga-mem option: FPGA block RAM max size
@@ -158,22 +160,32 @@ struct global {
     bool gExportDSP;            // -e option
 
     // code generation options
-    bool gVectorSwitch;       // -vec option
-    bool gDeepFirstSwitch;    // -dfs option
-    int  gVecSize;            // -vs option
-    int  gVectorLoopVariant;  // -lv [0|1] option
-    bool gOpenMPSwitch;       // -omp option
-    bool gOpenMPLoop;         // -pl option
-    bool gSchedulerSwitch;    // -sch option
-    bool gOpenCLSwitch;       // -ocl option
-    bool gCUDASwitch;         // -cuda option
-    bool gGroupTaskSwitch;    // -g option
-    bool gFunTaskSwitch;      // -fun option
-    int  gMaxCopyDelay;       // -mcd threshold
-    int  gMaxDenseDelay;      // -mdd threshold
-    int  gMinDensity;         // -mdy threshold
-    int  gFloatSize;  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad',
-                      // 4 for 'fixed-point')
+    bool gVectorSwitch;            // -vec option
+    bool gDeepFirstSwitch;         // -dfs option
+    int  gVecSize;                 // -vs option
+    int  gVectorLoopVariant;       // -lv [0|1] option
+    bool gOpenMPSwitch;            // -omp option
+    bool gOpenMPLoop;              // -pl option
+    bool gSchedulerSwitch;         // -sch option
+    bool gOpenCLSwitch;            // -ocl option
+    bool gCUDASwitch;              // -cuda option
+    bool gGroupTaskSwitch;         // -g option
+    bool gFunTaskSwitch;           // -fun option
+    int  gMaxCopyDelay;            // -mcd threshold
+    bool gReconstructFIRIIRs;      // -fir option
+    int  gFirLoopSize;             // -fls --fir-loop-size option
+    int  gMaxFIRSize;              // -mfs threshold
+    int  gHLSUnrollFactor;         // -huf emit HLS unroll pragma if > 0
+    bool gUseDenseDelay;           // -udd --use-dense-delay option
+    int  gMaxDenseDelay;           // -mdd threshold
+    int  gMinDensity;              // -mdy threshold
+    int  gMaxCacheDelay;           // -mca <threshold> threshold for cache delay
+    int  gMinCopyLoop;             // -mcl threshold
+    int  gIIRRingThreshold;        // -irt <threshold> threshold for IIR ring delay
+    bool gFactorizeFIRIIRs;        // -ff option, when possible factorize FIR/IIRs coefficients
+    int  gSchedulingStrategy;      // -ss <strategy> scheduling strategy
+    int  gFloatSize;               // -single/double/quad/fx option (1 for 'float', 2
+                                   // for 'double', 3 for 'quad', 4 for 'fixed-point')
     int  gFixedPointSize;          // -fx-size (-1 by default = not used)
     int  gFixedPointMSB;           // max value of MSB in -fx mode
     int  gFixedPointLSB;           // min value of LSB in -fx mode
@@ -421,6 +433,7 @@ struct global {
     Sym BOXPATVAR;
     Sym BOXINPUTS;
     Sym BOXOUTPUTS;
+    Sym BOXONDEMAND;
     Sym BOXSOUNDFILE;
     Sym BOXMETADATA;
     Sym DOCEQN;
@@ -494,6 +507,15 @@ struct global {
     Sym SIGREGISTER;  // for FPGA Retiming
     Sym SIGTUPLE;
     Sym SIGTUPLEACCESS;
+    Sym SIGFIR;
+    Sym SIGIIR;
+    Sym SIGSUM;
+    // Ondemand
+    Sym SIGTEMPVAR;
+    Sym SIGPERMVAR;
+    Sym SIGSEQ;
+    Sym SIGOD;
+    Sym SIGCLOCKED;
 
     // Types
     Sym SIMPLETYPE;
@@ -545,7 +567,7 @@ struct global {
     std::map<std::string, int> gIDCounters;
 
     // Internal state during drawing
-    Occur*                      gOccurrences;
+    // Occur*                          gOccurrences;
     bool                        gFoldingFlag;     // true with complex block-diagrams
     std::stack<Tree>            gPendingExp;      // Expressions that need to be drawn
     std::set<Tree>              gDrawnExp;        // Expressions drawn or scheduled so far
