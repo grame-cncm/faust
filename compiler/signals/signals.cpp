@@ -2,6 +2,7 @@
  ************************************************************************
     FAUST compiler
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2023-2024 INRIA
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -612,6 +613,8 @@ LIBFAUST_API bool isSigHBargraph(Tree s, Tree& lbl, Tree& min, Tree& max, Tree& 
 
 LIBFAUST_API Tree sigVBargraph(Tree lbl, Tree min, Tree max, Tree x)
 {
+    // std::cerr << "\nlabel " << *lbl << std::endl;
+    // std::cerr << "content " << ppsig(x) << std::endl;
     return tree(gGlobal->SIGVBARGRAPH, lbl, min, max, x);
 }
 bool isSigVBargraph(Tree s)
@@ -930,6 +933,218 @@ LIBFAUST_API bool isSigSoundfileRate(Tree s, Tree& sf, Tree& part)
 LIBFAUST_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part, Tree& ridx)
 {
     return isTree(s, gGlobal->SIGSOUNDFILEBUFFER, sf, chan, part, ridx);
+}
+
+/*****************************************************************************
+                             FIR and IIR
+*****************************************************************************/
+
+// FIR
+
+LIBFAUST_API Tree sigFIR(const tvec& sigcoefs)
+{
+    return tree(gGlobal->SIGFIR, sigcoefs);
+}
+
+LIBFAUST_API bool isSigFIR(Tree s)
+{
+    return isTree(s, gGlobal->SIGFIR);
+}
+
+LIBFAUST_API bool isSigFIR(Tree s, Tree c0)
+{
+    return isTree(s, gGlobal->SIGFIR) && (s->branch(0) == c0);
+}
+
+LIBFAUST_API bool isSigFIR(Tree s, tvec& sigcoefs)
+{
+    if (isTree(s, gGlobal->SIGFIR)) {
+        sigcoefs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// IIR
+
+LIBFAUST_API Tree sigIIR(const tvec& sigcoefs)
+{
+    return tree(gGlobal->SIGIIR, sigcoefs);
+}
+
+LIBFAUST_API bool isSigIIR(Tree s)
+{
+    return isTree(s, gGlobal->SIGIIR);
+}
+
+LIBFAUST_API bool isSigIIR(Tree s, Tree c0)
+{
+    return isTree(s, gGlobal->SIGIIR) && (s->branch(0) == c0);
+}
+
+LIBFAUST_API bool isSigIIR(Tree s, tvec& sigcoefs)
+{
+    if (isTree(s, gGlobal->SIGIIR)) {
+        sigcoefs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// SUM
+
+LIBFAUST_API Tree sigSum(const tvec& sigs)
+{
+    return tree(gGlobal->SIGSUM, sigs);
+}
+
+LIBFAUST_API bool isSigSum(Tree s)
+{
+    return isTree(s, gGlobal->SIGSUM);
+}
+
+LIBFAUST_API bool isSigSum(Tree s, tvec& sigs)
+{
+    if (isTree(s, gGlobal->SIGSUM)) {
+        sigs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API Tree sigTempVar(Tree s)
+{
+    return tree(gGlobal->SIGTEMPVAR, s);
+}
+
+LIBFAUST_API bool isSigTempVar(Tree s)
+{
+    return isTree(s, gGlobal->SIGTEMPVAR);
+}
+
+LIBFAUST_API bool isSigTempVar(Tree s, Tree& x)
+{
+    return isTree(s, gGlobal->SIGTEMPVAR, x);
+}
+
+LIBFAUST_API Tree sigPermVar(Tree s)
+{
+    return tree(gGlobal->SIGPERMVAR, s);
+}
+
+LIBFAUST_API bool isSigPermVar(Tree s)
+{
+    return isTree(s, gGlobal->SIGPERMVAR);
+}
+
+LIBFAUST_API bool isSigPermVar(Tree s, Tree& x)
+{
+    return isTree(s, gGlobal->SIGPERMVAR, x);
+}
+
+LIBFAUST_API Tree sigSeq(Tree x, Tree y)
+{
+    return tree(gGlobal->SIGSEQ, x, y);
+}
+
+LIBFAUST_API bool isSigSeq(Tree s)
+{
+    return isTree(s, gGlobal->SIGSEQ);
+}
+
+LIBFAUST_API bool isSigSeq(Tree s, Tree& x, Tree& y)
+{
+    return isTree(s, gGlobal->SIGSEQ, x, y);
+}
+
+LIBFAUST_API Tree sigOD(const tvec& sigsubs)
+{
+    return tree(gGlobal->SIGOD, sigsubs);
+}
+
+LIBFAUST_API bool isSigOD(Tree s)
+{
+    return isTree(s, gGlobal->SIGOD);
+}
+
+LIBFAUST_API bool isSigOD(Tree s, tvec& sigsubs)
+{
+    if (isTree(s, gGlobal->SIGOD)) {
+        sigsubs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool isSigClocked(Tree s)
+{
+    return isTree(s, gGlobal->SIGCLOCKED);
+}
+
+LIBFAUST_API bool isSigClocked(Tree s, Tree& clock, Tree& y)
+{
+    return isTree(s, gGlobal->SIGCLOCKED, clock, y);
+}
+
+LIBFAUST_API Tree sigClocked(Tree clock, Tree y)
+{
+    if (tvec args; isSigFIR(y, args)) {
+        args[0] = sigClocked(clock, args[0]);
+        return sigFIR(args);
+    }
+    if (tvec args; isSigIIR(y, args)) {
+        args[1] = sigClocked(clock, args[1]);
+        return sigIIR(args);
+    }
+    if (Tree h2, z; isSigClocked(y, h2, z)) {
+        if (clock == h2) {
+            // y is already annotated with the clock h
+            return y;
+        } else {
+            std::cerr << "We have a problem of clocks, new clock : " << *clock
+                      << " is different form existing clock " << *h2 << std::endl;
+            faustassert(false);
+        }
+    } else {
+        // std::cerr << "sigClocked(" << *clock << ", " << ppsig(y) << ")" << std::endl;
+        return tree(gGlobal->SIGCLOCKED, clock, y);
+    }
+}
+
+/**
+ * @brief Search for clock signal
+ *
+ * @param s
+ * @param clock
+ * @return LIBFAUST_API
+ */
+LIBFAUST_API bool hasClock(Tree sig, Tree& clock)
+{
+    if (Tree exp; isSigClocked(sig, clock, exp)) {
+        return true;
+    }
+    if (tvec args; isSigFIR(sig, args)) {
+        return hasClock(args[0], clock);
+    }
+    if (tvec args; isSigIIR(sig, args)) {
+        return hasClock(args[1], clock);
+    }
+    if (Tree x, y; isSigMul(sig, x, y)) {
+        return hasClock(x, clock) || hasClock(y, clock);
+    }
+    if (tvec args; isSigSum(sig, args)) {
+        for (Tree a : args) {
+            if (hasClock(a, clock)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 // for FPGA Retiming

@@ -2,6 +2,7 @@
  ************************************************************************
     FAUST compiler
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2023-2024 INRIA
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -64,7 +65,7 @@ void typeAnnotation(Tree sig, bool causality);
 ::Type getSigType(Tree sig);
 
 /**
- * Retrieve the type annotation of sig
+ * Set the type annotation of sig
  * @param sig the signal we want to know the type
  */
 void setSigType(Tree sig, ::Type);

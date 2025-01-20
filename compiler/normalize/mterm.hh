@@ -28,7 +28,6 @@
 
 #include "exception.hh"
 #include "garbageable.hh"
-#include "normalize.hh"
 #include "signals.hh"
 #include "sigorderrules.hh"
 #include "sigprint.hh"

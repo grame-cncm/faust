@@ -34,7 +34,7 @@ class Occurrences : public virtual Garbageable {
     bool      fOutDelayOcc;     ///< True when exp has at least one occ. outside a delay
     int       fMinDelay;        ///< Minimal fix delay usage
     int       fMaxDelay;        ///< Maximal fix delay usage
-    int       fCountDelay;      ///< number of times this sig occurs delay
+    int       fCountDelay;      ///< number of times this signal occurs delayed
     Tree      fExecCondition;   ///< When this expression must be computed
 
    public:
@@ -49,6 +49,8 @@ class Occurrences : public virtual Garbageable {
     int  getDelayCount() const;
     Tree getExecCondition() const;              ///< return the exec condition
     int  getOccurrence(int variability) const;  ///< return the number of occurrence by variability
+
+    friend std::ostream& operator<<(std::ostream& os, const Occurrences& occ);
 };
 
 /**

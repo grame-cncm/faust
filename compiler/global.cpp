@@ -43,7 +43,7 @@
 #include "logprim.hh"
 #include "maxprim.hh"
 #include "minprim.hh"
-#include "occur.hh"
+// #include "occur.hh"
 #include "powprim.hh"
 #include "remainderprim.hh"
 #include "rintprim.hh"
@@ -316,6 +316,7 @@ global::global()
     BOXPATVAR        = symbol("BoxPatVar");
     BOXINPUTS        = symbol("BoxInputs");
     BOXOUTPUTS       = symbol("BoxOutputs");
+    BOXONDEMAND      = symbol("BoxOndemand");
     BOXSOUNDFILE     = symbol("boxSoundfile");
     BOXMETADATA      = symbol("boxMetadata");
 
@@ -374,6 +375,14 @@ global::global()
     SIGREGISTER        = symbol("SigRegister");  // for FPGA Retiming
     SIGTUPLE           = symbol("SigTuple");
     SIGTUPLEACCESS     = symbol("SigTupleAccess");
+    SIGFIR             = symbol("SigFIR");
+    SIGIIR             = symbol("SigIIR");
+    SIGSUM             = symbol("SigSum");
+    SIGTEMPVAR         = symbol("SigTempVar");
+    SIGPERMVAR         = symbol("SigPermVar");
+    SIGSEQ             = symbol("SigSeq");
+    SIGOD              = symbol("SigOD");
+    SIGCLOCKED         = symbol("SigClocked");
     SIMPLETYPE         = symbol("SimpleType");
     TABLETYPE          = symbol("TableType");
     TUPLETTYPE         = symbol("TupletType");
@@ -430,14 +439,26 @@ void global::reset()
     gMaxNameSize      = 40;
     gSimpleNames      = false;
     gSimplifyDiagrams = false;
-    gMaxCopyDelay     = 16;    // Maximal delay too choose a copy representation
-    gMaxDenseDelay    = 1024;  // Maximal delay too choose a dense representation
-    gMinDensity       = 33;    // Minimal density d/100 to choose a dense representation
 
-    gVectorSwitch      = false;
-    gDeepFirstSwitch   = false;
-    gVecSize           = 32;
-    gVectorLoopVariant = 0;
+    // new compilation options related to FIRs, IIRs and delaylines
+
+    gReconstructFIRIIRs = false;  // [-fir]  : Reconstruct FIRs and IIRs
+    gMaxFIRSize         = 1024;   // [-mfs n]: Maximal number of coefficients for a FIR
+    gHLSUnrollFactor    = 0;      // [-huf n]: when > 0 generate: `#pragma HLS unroll factor=n`
+    gFirLoopSize        = 4;      // [-fls n]: inline/loop computation of FIR/IIR values
+    gMaxCopyDelay       = 9;      // [-mcd n]: copy/iota-dense delay line
+    gMinCopyLoop        = 4;      // [-mcl n]: inline/loop samples copy
+    gUseDenseDelay      = 1;      // [-udd 0/1]: Use dense delay representation instead of IOTA
+    gMinDensity         = 90;     // [-mdy n]: dense/iota delay line density threshold
+    gMaxCacheDelay      = 8;      // [-mca n]: Maximal delay to use a cache delay line
+    gMaxDenseDelay      = 1024;   // [-mdd n]: Maximal delay to choose a dense representation
+    gIIRRingThreshold   = 4;      // [-irt n]: Minimal delay to use a ring buffer for IIR
+    gSchedulingStrategy = 0;      // [-ss n]: Scheduling strategy (default: 0 = deepfirst)
+    gFactorizeFIRIIRs   = false;  // [-ff]: Factorize FIRs and IIRs
+    gVectorSwitch       = false;
+    gDeepFirstSwitch    = false;
+    gVecSize            = 128;
+    gVectorLoopVariant  = 0;
 
     gOpenMPSwitch    = false;
     gOpenMPLoop      = false;
@@ -537,7 +558,7 @@ void global::reset()
     gLocalCausalityCheck = false;
     gCausality           = false;
 
-    gOccurrences = nullptr;
+    // gOccurrences = nullptr;
     gFoldingFlag = false;
     gDevSuffix   = nullptr;
 
@@ -586,6 +607,7 @@ void global::reset()
     gDspDirSwitch      = false;
     gPathListSwitch    = false;
     gGraphSwitch       = false;
+    gTopoSwitch        = false;
     gDrawPSSwitch      = false;
     gDrawSVGSwitch     = false;
     gVHDLTrace         = false;
@@ -859,9 +881,24 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gOpenMPSwitch) {
         dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
     }
+    if (gReconstructFIRIIRs) {
+        dst << "-fir ";
+    }
+    if (gFactorizeFIRIIRs) {
+        dst << "-ff ";
+    }
+    dst << "-mcl " << gMinCopyLoop << " ";
     dst << "-mcd " << gMaxCopyDelay << " ";
+    dst << "-mfs " << gMaxFIRSize << " ";
+    dst << "-huf " << gHLSUnrollFactor << " ";
+    dst << "-irt " << gIIRRingThreshold << " ";
+    dst << "-fls " << gFirLoopSize << " ";
+    dst << "-udd " << gUseDenseDelay << " ";
     dst << "-mdd " << gMaxDenseDelay << " ";
     dst << "-mdy " << gMinDensity << " ";
+    dst << "-mca " << gMaxCacheDelay << " ";
+    dst << "-ss " << gSchedulingStrategy << " ";
+
     if (gUIMacroSwitch) {
         dst << "-uim ";
     }
@@ -1218,6 +1255,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gGraphSwitch = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-gt", "--graph-topology")) {
+            gTopoSwitch = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-sg", "--signal-graph")) {
             gDrawSignals = true;
             i += 1;
@@ -1282,6 +1323,26 @@ bool global::processCmdline(int argc, const char* argv[])
             gMaxCopyDelay = std::atoi(argv[i + 1]);
             i += 2;
 
+        } else if (isCmd(argv[i], "-udd", "--use-dense-delay") && (i + 1 < argc)) {
+            gUseDenseDelay = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-mcl", "--min-copy-loop") && (i + 1 < argc)) {
+            gMinCopyLoop = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-mfs", "--max-fir-size") && (i + 1 < argc)) {
+            gMaxFIRSize = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-huf", "--hls-unroll-factor") && (i + 1 < argc)) {
+            gHLSUnrollFactor = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-irt", "--iir-ring-threshold") && (i + 1 < argc)) {
+            gIIRRingThreshold = std::atoi(argv[i + 1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-mdd", "--max-dense-delay") && (i + 1 < argc)) {
             gMaxDenseDelay = std::atoi(argv[i + 1]);
             i += 2;
@@ -1290,8 +1351,16 @@ bool global::processCmdline(int argc, const char* argv[])
             gMinDensity = std::atoi(argv[i + 1]);
             i += 2;
 
+        } else if (isCmd(argv[i], "-mca", "--max-cache-delay") && (i + 1 < argc)) {
+            gMaxCacheDelay = std::atoi(argv[i + 1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-dlt", "-delay-line-threshold") && (i + 1 < argc)) {
             gMaskDelayLineThreshold = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ss", "--scheduling-strategy") && (i + 1 < argc)) {
+            gSchedulingStrategy = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mem", "--memory-manager") ||
@@ -1318,6 +1387,70 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-vec", "--vectorize")) {
             gVectorSwitch = true;
             i += 1;
+
+        } else if (isCmd(argv[i], "-fir", "--fir-iir")) {
+            gReconstructFIRIIRs = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-ff", "--factorize-fir-iir")) {
+            gFactorizeFIRIIRs = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-cm", "--compute-mix")) {
+            gComputeMix = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-it", "--inline-table")) {
+            gInlineTable = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-rui", "--range-ui")) {
+            gRangeUI = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-nvi", "--no-virtual")) {
+            gNoVirtual = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-fp", "--full-parentheses")) {
+            gFullParentheses = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-cir", "--check-int-range")) {
+            gCheckIntRange = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-ec", "--ext-control")) {
+            gExtControl = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-mapp", "--math-approx")) {
+            gMathApprox = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-me", "--math-exceptions")) {
+            gMathExceptions = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-fm", "--fast-math-lib") && (i + 1 < argc)) {
+            gFastMathLib = argv[i + 1];
+            i += 2;
+
+        } else if (isCmd(argv[i], "-cn", "--class-name") && (i + 1 < argc)) {
+            gClassName = argv[i + 1];
+            i += 2;
+
+        } else if (isCmd(argv[i], "-scn", "--super-class-name") && (i + 1 < argc)) {
+            gSuperClassName = argv[i + 1];
+            i += 2;
+
+        } else if (isCmd(argv[i], "-pn", "--process-name") && (i + 1 < argc)) {
+            gProcessName = argv[i + 1];
+            i += 2;
+
+        } else if (isCmd(argv[i], "-fls", "--fir-loop-size") && (i + 1 < argc)) {
+            gFirLoopSize = std::atoi(argv[i + 1]);
+            i += 2;
 
         } else if (isCmd(argv[i], "-scal", "--scalar")) {
             gVectorSwitch = false;
@@ -2231,10 +2364,17 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-mcd <n>    --max-copy-delay <n>        use a copy delay up to max delay <n> and a "
-            "dense delay above "
-            "(ocpp only) "
-            "or a ring buffer (defaut 16 samples)."
+            "dense delay (ocpp only) or a ring buffer above (defaut 16 samples)."
          << endl;
+    sstr << tab
+         << "-udd <0|1>  --use-dense-delay <0|1>     allow use of dense delay instead of short "
+            "ring buffers (default 1)"
+         << endl;
+    sstr << tab
+         << "-mcl <n>    --max-copy-loop <n>         when using a copy delay, threshold to switch "
+            "from an inline to a loop based copy of the samples (defaut 4 samples)."
+         << endl;
+    sstr << tab << "-mls <n>    --min-loop-samples <n>      loop instead of expanded copy " << endl;
     sstr << tab
          << "-mdd <n>    --max-dense-delay <n>       use a dense delay up to max delay <n> (if "
             "enough density) and a "
@@ -2243,15 +2383,14 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-mdy <n>    --min-density <n>           minimal density (100*number of delays/max "
-            "delay) to use a dense "
-            "delays "
-            "(ocpp only, default 33)."
+            "delay) to use a dense  delays (ocpp only, default 33)."
          << endl;
     sstr << tab
          << "-dlt <n>    --delay-line-threshold <n>  use a mask-based ring buffer delays up to max "
             "delay <n> and a "
             "select based ring buffers above (default INT_MAX samples)."
          << endl;
+    sstr << tab << "-ss <n>     --scheduling-strategy <n>   0=deep first, 1=breadth first" << endl;
 #endif
 #ifndef EMCC
     sstr
@@ -2294,14 +2433,14 @@ string global::printHelp()
             "instead of compiling "
             "a dsp file."
          << endl;
-    sstr << tab << "-scal       --scalar                    generate non-vectorized code (default)."
+    sstr << tab << "-scal   --scalar                        generate non-vectorized code (default)."
          << endl;
     sstr << tab
          << "-inpl       --in-place                  generates code working when input and output "
             "buffers are the same "
             "(scalar mode only)."
          << endl;
-    sstr << tab << "-vec        --vectorize                 generate easier to vectorize code."
+    sstr << tab << "-vec    --vectorize                     generate easier to vectorize code."
          << endl;
     sstr << tab
          << "-vs <n>     --vec-size <n>              size of the vector (default 32 samples)."
@@ -2311,6 +2450,28 @@ string global::printHelp()
             "loop (default), "
             "1:simple, variable vector size, 2:fixed, fixed vector size]."
          << endl;
+    sstr << tab
+         << "-fir        --fir-iir                   activate the reconstruction of FIRs and IIRs "
+            "internally"
+         << endl;
+    sstr
+        << tab
+        << "-ff         --factorize-fir-iir         find common factor in FIRs or IIRs coefficients"
+        << endl;
+    sstr << tab
+         << "-mfs <n>    --max-fir-size <n>          maximum size threshold to reconstruct a FIR. "
+            "Keep as individual delays otherwise (default 1024)"
+         << endl;
+    sstr << tab
+         << "-fls <n>    --fir-loop-size <n>         size threshold to start implementing FIRs "
+            "using a loop instead of unrolled (default 4)"
+         << endl;
+
+    sstr << tab
+         << "-irt <n>    --iir-ring-threshold <n>    size threshold to start implementing IIRs "
+            "using ring buffers instead of copying (default 4)"
+         << endl;
+
     sstr << tab
          << "-omp        --openmp                    generate OpenMP pragmas, activates "
             "--vectorize option."

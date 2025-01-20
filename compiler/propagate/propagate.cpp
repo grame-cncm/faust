@@ -30,6 +30,7 @@
 #include "ppbox.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
+#include "sigvisitor.hh"
 #include "simplify.hh"
 #include "xtended.hh"
 
@@ -88,11 +89,12 @@ static siglist makeSigProjList(Tree t, int n)
 }
 
 //! build a list of n mem projections of a recursive group
-static siglist makeMemSigProjList(Tree t, int n)
+static siglist makeMemSigProjList(Tree clockenv, Tree t, int n)
 {
     siglist l(n);
     for (int i = 0; i < n; i++) {
-        l[i] = sigDelay1(sigProj(i, t));
+        l[i] = sigClocked(clockenv, sigDelay1(sigProj(i, t)));  // To be verified
+        // l[i] = sigDelay1(sigProj(i, t));  // To be verified
     }
     return l;
 }
@@ -189,7 +191,7 @@ static bool getPropagateProperty(Tree args, siglist& lsig)
  * @param lsig the list of input signals to propagate
  * @return the resulting list of output signals
  */
-static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig);
+static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglist& lsig);
 
 // Collect the leaf numbers of tree l into vector v.
 // return true if l is a number or a parallel tree of numbers.
@@ -227,7 +229,7 @@ static bool isIntTree(Tree l, vector<int>& v)
  * @param lsig the list of input signals to propagate
  * @return the resulting list of output signals
  */
-static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
+static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
     int    i;
     double r;
@@ -264,7 +266,11 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxWaveform(box)) {
         faustassert(lsig.size() == 0);
-        const tvec br = box->branches();
+        tvec br = box->branches();
+        // ONDEMAND: We make sure that the waveform is only for
+        // the current time reference by adding a clock signal
+        // to the first value (it's enough)
+        br[0] = sigClocked(clockenv, br[0]);  // Make sure
         return listConcat(makeList(sigInt(int(br.size()))), makeList(sigWaveform(br)));
     }
 
@@ -303,7 +309,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxSymbolic(box, slot, body)) {
         faustassert(lsig.size() > 0);
-        return propagate(pushEnv(slot, lsig[0], slotenv), path, body,
+        return propagate(clockenv, pushEnv(slot, lsig[0], slotenv), path, body,
                          listRange(lsig, 1, (int)lsig.size()));
     }
 
@@ -316,6 +322,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxPrim1(box, &p1)) {
         faustassert(lsig.size() == 1);
+        if (p1 == &sigDelay1) {
+            return makeList(sigDelay1(sigClocked(clockenv, lsig[0])));
+        }
         num n;
         if (isNum(lsig[0], n)) {
             return makeList(simplify(p1(lsig[0])));
@@ -345,6 +354,12 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
                 // If gEnableFlag is false we replace control by identity function
                 return makeList(lsig[0]);
             }
+        } else if (p2 == &sigDelay) {
+            return makeList(sigDelay(sigClocked(clockenv, lsig[0]), lsig[1]));
+
+        } else if (p2 == &sigPrefix) {
+            return makeList(sigPrefix(lsig[0], sigClocked(clockenv, lsig[1])));
+
         } else {
             num n, m;
             if (isNum(lsig[0], n) && isNum(lsig[1], m)) {
@@ -357,6 +372,12 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxPrim3(box, &p3)) {
         faustassert(lsig.size() == 3);
+        if (p3 == sigReadOnlyTable) {
+            Tree sig = sigReadOnlyTable(unclockSignal(lsig[0]), unclockSignal(lsig[1]),
+                                        sigClocked(clockenv, lsig[2]));
+            // std::cout << "sigReadOnlyTable : " << ppsig(sig) << std::endl;
+            return makeList(sig);
+        }
         return makeList(p3(lsig[0], lsig[1], lsig[2]));
     }
 
@@ -366,6 +387,13 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     }
 
     else if (isBoxPrim5(box, &p5)) {
+        if (p5 == sigWriteReadTable) {
+            Tree sig =
+                sigWriteReadTable(lsig[0], lsig[1], sigClocked(clockenv, lsig[2]),
+                                  sigClocked(clockenv, lsig[3]), sigClocked(clockenv, lsig[4]));
+            // std::cout << "sigWriteReadTable : " << ppsig(sig) << std::endl;
+            return makeList(sig);
+        }
         return makeList(p5(lsig[0], lsig[1], lsig[2], lsig[3], lsig[4]));
     }
 
@@ -403,12 +431,19 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxVBargraph(box, label, min, max)) {
         faustassert(lsig.size() == 1);
-        return makeList(sigVBargraph(normalizePath(cons(label, path)), min, max, lsig[0]));
+        // we add a clock signal so that we know, when we compile a bargraph,
+        // if it occurs in an ondemand
+        return makeList(sigVBargraph(normalizePath(cons(label, path)), min, max,
+                                     sigClocked(clockenv, lsig[0])));
+        // makeList(sigDelay1(sigClocked(clockenv, lsig[0])))
     }
 
     else if (isBoxHBargraph(box, label, min, max)) {
         faustassert(lsig.size() == 1);
-        return makeList(sigHBargraph(normalizePath(cons(label, path)), min, max, lsig[0]));
+        // we add a clock signal so that we know, when we compile a bargraph,
+        // if it occurs in an ondemand
+        return makeList(sigHBargraph(normalizePath(cons(label, path)), min, max,
+                                     sigClocked(clockenv, lsig[0])));
     }
 
     else if (isBoxSoundfile(box, label, chan)) {
@@ -431,15 +466,15 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     // User Interface Groups
 
     else if (isBoxVGroup(box, label, t1)) {
-        return propagate(slotenv, cons(cons(tree(0), label), path), t1, lsig);
+        return propagate(clockenv, slotenv, cons(cons(tree(0), label), path), t1, lsig);
     }
 
     else if (isBoxHGroup(box, label, t1)) {
-        return propagate(slotenv, cons(cons(tree(1), label), path), t1, lsig);
+        return propagate(clockenv, slotenv, cons(cons(tree(1), label), path), t1, lsig);
     }
 
     else if (isBoxTGroup(box, label, t1)) {
-        return propagate(slotenv, cons(cons(tree(2), label), path), t1, lsig);
+        return propagate(clockenv, slotenv, cons(cons(tree(2), label), path), t1, lsig);
     }
 
     // Block Diagram Composition Algebra
@@ -451,7 +486,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
         // Connection coherency is checked in evaluateBlockDiagram
         faustassert(out1 == in2);
-        return propagate(slotenv, path, t2, propagate(slotenv, path, t1, lsig));
+        return propagate(clockenv, slotenv, path, t2, propagate(clockenv, slotenv, path, t1, lsig));
     }
 
     else if (isBoxPar(box, t1, t2)) {
@@ -460,8 +495,8 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t2, &in2, &out2);
 
         // No restriction in connection
-        return listConcat(propagate(slotenv, path, t1, listRange(lsig, 0, in1)),
-                          propagate(slotenv, path, t2, listRange(lsig, in1, in1 + in2)));
+        return listConcat(propagate(clockenv, slotenv, path, t1, listRange(lsig, 0, in1)),
+                          propagate(clockenv, slotenv, path, t2, listRange(lsig, in1, in1 + in2)));
     }
 
     else if (isBoxSplit(box, t1, t2)) {
@@ -470,9 +505,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t2, &in2, &out2);
 
         // Connection coherency is checked in evaluateBlockDiagram
-        siglist l1 = propagate(slotenv, path, t1, lsig);
+        siglist l1 = propagate(clockenv, slotenv, path, t1, lsig);
         siglist l2 = split(l1, in2);
-        return propagate(slotenv, path, t2, l2);
+        return propagate(clockenv, slotenv, path, t2, l2);
     }
 
     else if (isBoxMerge(box, t1, t2)) {
@@ -481,9 +516,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t2, &in2, &out2);
 
         // Connection coherency is checked in evaluateBlockDiagram
-        siglist l1 = propagate(slotenv, path, t1, lsig);
+        siglist l1 = propagate(clockenv, slotenv, path, t1, lsig);
         siglist l2 = mix(l1, in2);
-        return propagate(slotenv, path, t2, l2);
+        return propagate(clockenv, slotenv, path, t2, l2);
     }
 
     else if (isBoxRec(box, t1, t2)) {
@@ -495,9 +530,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         Tree slotenv2 = lift(slotenv);
 
         // Connection coherency is checked in evaluateBlockDiagram
-        siglist l0 = makeMemSigProjList(ref(1), in2);
-        siglist l1 = propagate(slotenv2, path, t2, l0);
-        siglist l2 = propagate(slotenv2, path, t1, listConcat(l1, listLift(lsig)));
+        siglist l0 = makeMemSigProjList(clockenv, ref(1), in2);
+        siglist l1 = propagate(clockenv, slotenv2, path, t2, l0);
+        siglist l2 = propagate(clockenv, slotenv2, path, t1, listConcat(l1, listLift(lsig)));
         Tree    g  = rec(listConvert(l2));
 
         // Compute output list of recursive signals
@@ -557,7 +592,92 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
                   << ", invalid route expression : " << boxpp(box) << endl;
             throw faustexception(error.str());
         }
+
+    } else if (isBoxOndemand(box, t1)) {
+        // std::cerr << "we are in ONDEMAND" << std::endl;
+        //  Propagate lsig into the ondemand version of circuit t1
+
+        // 1/ The first signal is the clock signal
+        Tree H = lsig[0];
+
+        // We check if the clock signal is a constant
+        bool h0 = false;  // clock signal is zero constant
+        bool h1 = false;  // clock signal is non-zero constant
+
+        if (double f; isSigReal(H, &f)) {
+            h0 = int(f) == 0;
+            h1 = int(f) != 0;
+        } else if (int n; isSigInt(H, &n)) {
+            h0 = n == 0;
+            h1 = n != 0;
+        }
+
+        // 2/ We check for trivial cases where we don't need the ondemand circuit
+        if (h0) {
+            // std::cerr
+            //     << "If the clock signal is zero, we don't need to compute the ondemand circuit"
+            //     << std::endl;
+            int n, m;
+            getBoxType(t1, &n, &m);
+            // because the cicuit is never activated, its m outputs will remain zero
+            return siglist(m, sigInt(0));
+        }
+        if (h1) {
+            // std::cerr << "If the clock signal is one, we don't need an if" << std::endl;
+            return propagate(clockenv, slotenv, path, t1, {lsig.begin() + 1, lsig.end()});
+        }
+
+        // 3/ We compute the clock environment inside the ondemand by combining the clock, the
+        // address of the circuit, and the current clock environment
+        Tree addr      = boxPrim0((prim0)box);
+        Tree clockenv2 = cons(H, cons(addr, clockenv));
+
+        // 4/ We compute X1 the inputs of the ondemand using temporary variables
+        siglist X1;
+        for (unsigned int i = 1; i < lsig.size(); i++) {
+            X1.push_back(sigTempVar(lsig[i]));
+        }
+
+        // 5/ We propagate X2, the clocked version of X1, into the ondemand circuit -> Y0
+        siglist X2;
+        for (Tree s : X1) {
+            X2.push_back(sigClocked(clockenv2, s));
+        }
+        siglist Y0 = propagate(clockenv2, slotenv, path, t1, X2);
+
+        // 6/ We store the Y0 output signals into perm variables -> Y1
+        siglist Y1;
+        for (unsigned int i = 0; i < Y0.size(); i++) {
+            Y1.push_back(sigPermVar(sigClocked(clockenv2, Y0[i])));
+        }
+
+        // 7/ We create on ondemand signal that contain all the information : OD = (H, X1, NIL, Y1)
+        tvec W;
+        W.push_back(H);      // the clock signal
+        for (Tree s : X1) {  // the input signals are X1
+            W.push_back(s);
+        }
+        W.push_back(gGlobal->nil);  // the output signals are Y1
+        for (Tree s : Y1) {
+            W.push_back(s);
+        }
+        // The resulting ondemand signal with all the information
+        Tree od = sigOD(W);
+        // std::cerr << "od = " << ppsig(od) << std::endl;
+
+        // 8/ Finally, we create the output signals making shure that od is computed first
+        // using sigSeq(od, y)
+        siglist Y2;
+        for (Tree y : Y1) {
+            Tree y2 = sigSeq(od, y);
+            // Tree y2 = sigSeq(od, sigClocked(clockenv, y));
+            //  std::cerr << "y2 = " << ppsig(y2) << std::endl;
+            Y2.push_back(y2);
+        }
+
+        return Y2;
     }
+
     cerr << "ASSERT : file " << __FILE__ << ':' << __LINE__
          << ", unrecognised box expression : " << boxpp(box) << endl;
     faustassert(false);
@@ -572,6 +692,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 /**
  * Propagate a list of signals into a block diagram. Do memoization.
  *
+ * @param clockenv surronnding ondemand clock
  * @param slotenv environment associating slots and signals
  * @param path user interface group path
  * @param box the block diagram
@@ -579,13 +700,24 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
  * @return the resulting list of output signals
  */
 
-siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
+siglist propagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
-    Tree    args = tree(gGlobal->PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig));
+    Tree args = tree(gGlobal->PROPAGATEPROPERTY, clockenv, slotenv, path, box, listConvert(lsig));
     siglist result;
     if (!getPropagateProperty(args, result)) {
-        result = realPropagate(slotenv, path, box, lsig);
+        // cerr << "propagate within clock " << *clockenv << " into " << boxpp(box) << endl;
+        // for (int i = 0; i < lsig.size(); i++) {
+        //     cerr << " -> signal " << i << " : " << *(lsig[i]) << endl;
+        // }
+        // cerr << endl;
+
+        result = realPropagate(clockenv, slotenv, path, box, lsig);
         setPropagateProperty(args, result);
+        // cerr << "propagate within clock " << *clockenv << " into " << boxpp(box) << endl;
+        // for (int i = 0; i < result.size(); i++) {
+        //     cerr << " -> result " << i << " : " << *(result[i]) << endl;
+        // }
+        // cerr << endl;
     }
     // cerr << "propagate in " << boxpp(box) << endl;
     // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) <<
@@ -598,7 +730,7 @@ siglist makeSigInputList(int n)
 {
     siglist l(n);
     for (int i = 0; i < n; i++) {
-        l[i] = sigInput(i);
+        l[i] = sigClocked(gGlobal->nil, sigInput(i));
     }
     return l;
 }
@@ -613,5 +745,5 @@ siglist makeSigInputList(int n)
 
 Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig)
 {
-    return listConvert(propagate(gGlobal->nil, path, box, lsig));
+    return listConvert(propagate(gGlobal->nil, gGlobal->nil, path, box, lsig));
 }

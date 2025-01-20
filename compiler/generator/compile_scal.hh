@@ -44,6 +44,7 @@ class ScalarCompiler : public Compiler {
     property<std::string> fCompileProperty;
     property<std::string> fSoundfileVariableProperty;  // variable associated to a soundfile
     property<std::string> fVectorProperty;
+    property<std::string> fIotaProperty;  // IOTA associated to a specific ondemand clock signal
     property<std::pair<std::string, std::string> >
         fStaticInitProperty;  // property added to solve 20101208 kjetil bug
     property<std::pair<std::string, std::string> >
@@ -103,7 +104,10 @@ class ScalarCompiler : public Compiler {
 
     // code generation
     std::string         generateXtended(Tree sig);
-    virtual std::string generateDelayAccess(Tree sig, Tree arg, Tree size);
+    virtual std::string generateDelayAccess(Tree sig, Tree arg, Tree delay);
+    std::string         generateDelayAccess(Tree sig, Tree arg, int delay);
+    std::string         generateDelayAccess(Tree sig, Tree arg, std::string delayidx);
+    std::string         declareRetriveIotaName(Tree clock);
     std::string         generatePrefix(Tree sig, Tree x, Tree e);
     std::string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 
@@ -136,19 +140,35 @@ class ScalarCompiler : public Compiler {
     std::string generateHSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
     std::string generateNumEntry(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
 
-    std::string generateVBargraph(Tree sig, Tree label, Tree min, Tree max, const std::string& exp);
-    std::string generateHBargraph(Tree sig, Tree label, Tree min, Tree max, const std::string& exp);
+    std::string generateBargraph(Tree sig, Tree label, Tree min, Tree max, Tree exp);
     std::string generateSoundfile(Tree sig, Tree path);
 
     std::string generateNumber(Tree sig, const std::string& exp);
     std::string generateFConst(Tree sig, const std::string& file, const std::string& name);
     std::string generateFVar(Tree sig, const std::string& file, const std::string& name);
 
+    std::string generateFIR(Tree sig, const tvec& coefs);
+    std::string generateFIRSmallExpression(const std::string& vecname, Tree sig, const tvec& coefs);
+    std::string generateFIRBigExpression(const std::string& vecname, int mxd, Tree sig,
+                                         const tvec& coefs);
+    std::string generateIIR(Tree sig, const tvec& coefs);
+    std::string generateSum(Tree sig, const tvec& coefs);
+
+    // ondemand related
+    std::string generateTempVar(Tree sig, Tree x);
+    std::string generatePermVar(Tree sig, Tree x);
+    std::string generateOD(Tree sig, const tvec& w);
+
+    // std::string generateIIRSmallExpression(const
+    // std::string& vecname, Tree sig, const tvec&
+    // coefs); std::string generateIIRBigExpression(const std::string& vecname, int mxd, Tree sig,
+    //                                      const tvec& coefs);
+
     virtual std::string generateDelayVec(Tree sig, const std::string& exp, const std::string& ctype,
                                          const std::string& vname, int mxd, int count);
     std::string generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype,
                                        const std::string& vname, int mxd, int count);
-    virtual std::string generateDelayLine(DelayType dt, const std::string& ctype,
+    virtual std::string generateDelayLine(Tree sig, const std::string& ctype,
                                           const std::string& vname, int mxd, int count, bool mono,
                                           const std::string& exp, const std::string& ccs);
 

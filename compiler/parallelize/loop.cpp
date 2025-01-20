@@ -24,6 +24,7 @@
 #include "global.hh"
 
 using namespace std;
+#undef TRACE
 
 /**
  * Print a list of lines.
@@ -136,8 +137,14 @@ bool Loop::isEmpty()
  */
 void Loop::addPreCode(const Statement& stmt)
 {
-    // cerr << this << "->addExecCode " << str << endl;
-    fPreCode.push_back(stmt);
+#ifdef TRACE
+    cerr << this << "->addExecCode " << stmt.code() << endl;
+#endif
+    if (fIFstack.size() > 0) {
+        fIFstack.top().fPreCode.push_back(stmt);
+    } else {
+        fPreCode.push_back(stmt);
+    }
 }
 
 /**
@@ -145,8 +152,14 @@ void Loop::addPreCode(const Statement& stmt)
  */
 void Loop::addExecCode(const Statement& stmt)
 {
-    // cerr << this << "->addExecCode " << str << endl;
-    fExecCode.push_back(stmt);
+#ifdef TRACE
+    cerr << this << "->addExecCode " << stmt.code() << endl;
+#endif
+    if (fIFstack.size() > 0) {
+        fIFstack.top().fExecCode.push_back(stmt);
+    } else {
+        fExecCode.push_back(stmt);
+    }
 }
 
 /**
@@ -154,8 +167,45 @@ void Loop::addExecCode(const Statement& stmt)
  */
 void Loop::addPostCode(const Statement& stmt)
 {
-    // cerr << this << "->addPostCode " << str << endl;
-    fPostCode.push_front(stmt);
+#ifdef TRACE
+    cerr << this << "->addPostCode " << stmt.code() << endl;
+#endif
+    if (fIFstack.size() > 0) {
+        fIFstack.top().fPostCode.push_front(stmt);
+    } else {
+        fPostCode.push_front(stmt);
+    }
+}
+
+/**
+ * Open a new IF block.
+ * @param cond the condition of the IF block
+ */
+void Loop::openIFblock(const string& cond)
+{
+    IFblock b;
+    b.fCond = cond;
+    fIFstack.push(b);
+}
+
+/**
+ * Close the current/top IF block.
+ */
+void Loop::closeIFblock()
+{
+    IFblock b = fIFstack.top();
+    fIFstack.pop();
+    addExecCode(Statement("", subst("if ($0) {", b.fCond)));
+    for (Statement s : b.fPreCode) {
+        addExecCode(s.indent());
+    }
+    for (Statement s : b.fExecCode) {
+        addExecCode(s.indent());
+    }
+    for (Statement s : b.fPostCode) {
+        addExecCode(s.indent());
+    }
+    addExecCode(Statement("", "}"));
 }
 
 /**

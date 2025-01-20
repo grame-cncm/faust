@@ -294,6 +294,20 @@ LIBFAUST_API bool isBoxOutputs(Tree t, Tree& x)
 }
 
 /*****************************************************************************
+                        On Demand Boxes
+*****************************************************************************/
+
+Tree boxOndemand(Tree x)
+{
+    return tree(gGlobal->BOXONDEMAND, x);
+}
+
+LIBFAUST_API bool isBoxOndemand(Tree t, Tree& x)
+{
+    return isTree(t, gGlobal->BOXONDEMAND, x);
+}
+
+/*****************************************************************************
                               Lambda-Calculus of Boxes
 *****************************************************************************/
 

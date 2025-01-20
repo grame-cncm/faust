@@ -55,6 +55,7 @@
 #include "names.hh"
 #include "occur.hh"
 #include "occurrences.hh"
+#include "ondemandSchema.h"
 #include "ppbox.hh"
 #include "prim2.hh"
 #include "property.hh"
@@ -236,7 +237,7 @@ static void writeSchemaFile(Tree bd)
 
     char temp[1024];
 
-    gGlobal->gOccurrences = new Occur(bd);
+    // gGlobal->gOccurrences = new Occur(bd);
     getBoxType(bd, &ins, &outs);
 
     bool hasname = getDefNameProperty(bd, id);
@@ -528,6 +529,10 @@ static schema* generateInsideSchema(Tree t)
                   << ", invalid route expression : " << boxpp(t) << endl;
             throw faustexception(error.str());
         }
+
+    } else if (isBoxOndemand(t, a)) {
+        return makeOndemandSchema(generateDiagramSchema(a));
+
     } else {
         stringstream error;
         error << "ERROR in generateInsideSchema, box expression not recognized : ";

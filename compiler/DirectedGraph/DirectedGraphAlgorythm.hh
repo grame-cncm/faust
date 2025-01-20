@@ -98,7 +98,7 @@ class Tarjan {
     explicit Tarjan(const digraph<N>& g) : fGraph(g)
     {
         for (const auto& n : fGraph.nodes()) {
-            if (fAux.find(n) == fAux.end()) {
+            if (!fAux.contains(n)) {
                 visit(n);
             }
         }

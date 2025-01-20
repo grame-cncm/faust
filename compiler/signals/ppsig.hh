@@ -62,6 +62,12 @@ class ppsig : public virtual Garbageable {
                                    Tree z, Tree zz) const;
     virtual std::ostream& printfun(std::ostream& fout, const std::string& funame, Tree x, Tree y,
                                    Tree z, Tree z2, Tree z3) const;
+    virtual std::ostream& printfun(std::ostream& fout, const std::string& funame,
+                                   const tvec& args) const;
+
+    virtual std::ostream& printfir(std::ostream& fout, const tvec& args) const;
+    virtual std::ostream& printiir(std::ostream& fout, const tvec& args) const;
+
     virtual std::ostream& printout(std::ostream& fout, int i, Tree x) const;
     virtual std::ostream& printlist(std::ostream& fout, Tree largs) const;
     virtual std::ostream& printff(std::ostream& fout, Tree ff, Tree largs) const;

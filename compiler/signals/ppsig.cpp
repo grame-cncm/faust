@@ -83,6 +83,54 @@ ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tr
                 << ppsig(z2, fEnv, 0, fMaxSize) << ',' << ppsig(z3, fEnv, 0, fMaxSize) << ')';
 }
 
+ostream& ppsig::printfun(ostream& fout, const string& funame, const tvec& args) const
+{
+    fout << funame;
+    char sep = '(';
+    for (auto arg : args) {
+        fout << sep << ' ' << ppsig(arg, fEnv, 0, fMaxSize);
+        sep = ',';
+    }
+    return fout << " )";
+}
+
+ostream& ppsig::printfir(ostream& fout, const tvec& args) const
+{
+    fout << "FIR";
+    std::string sep = "[";
+    for (auto arg : args) {
+        int  p;
+        Tree g, vaaar, le;
+
+        if (isProj(arg, &p, g) && isRec(g, vaaar, le)) {
+            fout << sep << ' ' << *vaaar << '_' << p;
+        } else {
+            fout << sep << ppsig(arg, fEnv, 0, fMaxSize);
+        }
+        sep = "; ";
+    }
+    return fout << "]";
+}
+
+ostream& ppsig::printiir(ostream& fout, const tvec& args) const
+{
+    fout << "IIR";
+    std::string sep = "[";
+    int         p;
+    Tree        g, vaaar, le;
+    for (auto arg : args) {
+        if (isProj(arg, &p, g) && isRec(g, vaaar, le)) {
+            fout << sep << ' ' << *vaaar << '_' << p;
+        } else if (isNil(arg)) {
+            fout << sep << "VOID";
+        } else {
+            fout << sep << ppsig(arg, fEnv, 0, fMaxSize);
+        }
+        sep = "; ";
+    }
+    return fout << "]";
+}
+
 ostream& ppsig::printui(ostream& fout, const string& funame, Tree label) const
 {
     fout << funame << '(';
@@ -330,6 +378,27 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "buffer", sf, x, y, z);
     }
 
+    else if (isSigFIR(fSig)) {
+        printfir(fout, fSig->branches());
+    } else if (isSigIIR(fSig)) {
+        printiir(fout, fSig->branches());
+    } else if (isSigSum(fSig)) {
+        printfun(fout, "sum", fSig->branches());
+    }
+
+    else if (isSigTempVar(fSig, x)) {
+        printfun(fout, "tempvar", x);
+    } else if (isSigPermVar(fSig, x)) {
+        printfun(fout, "permvar", x);
+    } else if (isSigSeq(fSig, x, y)) {
+        printfun(fout, "seq", x, y);
+    } else if (isSigOD(fSig)) {
+        printfun(fout, "ondemand", fSig->branches());
+    } else if (isSigClocked(fSig, x, y)) {
+        // printfun(fout, "clocked", y);
+        return fout << "clocked" << '(' << x << ", " << ppsig(y, fEnv, 0, fMaxSize) << ')';
+    }
+
     else if (isSigAttach(fSig, x, y)) {
         printfun(fout, "attach", x, y);
     } else if (isSigEnable(fSig, x, y)) {
@@ -340,6 +409,10 @@ ostream& ppsig::print(ostream& fout) const
 
     else if (isSigRegister(fSig, &i, x)) {
         printfun(fout, "register", sigInt(i), x);
+    }
+
+    else if (isNil(fSig)) {
+        fout << "NIL";
     }
 
     else {
