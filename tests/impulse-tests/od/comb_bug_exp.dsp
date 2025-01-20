@@ -1,0 +1,1 @@
+C = component("../dsp/comb_bug_exp.dsp"); D = ondemand(C); bus(n) = par(i,n,_); process = bus(inputs(C)) <: vgroup("groupA", D(checkbox("ondemand1")!=1.0)),vgroup("groupB", D(checkbox("ondemand2")==1.0)) :> bus(outputs(C));
