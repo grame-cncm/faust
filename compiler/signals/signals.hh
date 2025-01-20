@@ -2,6 +2,7 @@
  ************************************************************************
     FAUST compiler
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2023-2024 INRIA
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -331,6 +332,44 @@ LIBFAUST_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part,
 // for FPGA Retiming
 LIBFAUST_API Tree sigRegister(int n, Tree s);
 LIBFAUST_API bool isSigRegister(Tree s, int* n, Tree& x);
+
+/*****************************************************************************
+                             FIR and IIR
+*****************************************************************************/
+LIBFAUST_API Tree sigFIR(const tvec& sigcoefs);
+LIBFAUST_API bool isSigFIR(Tree s);
+LIBFAUST_API bool isSigFIR(Tree s, Tree c0);  // true if s is a FIR on signal c0
+LIBFAUST_API bool isSigFIR(Tree s, tvec& sigcoefs);
+
+LIBFAUST_API Tree sigIIR(const tvec& sigcoefs);
+LIBFAUST_API bool isSigIIR(Tree s);
+LIBFAUST_API bool isSigIIR(Tree s, Tree c0);  // true if s is a IIR on signal c0
+LIBFAUST_API bool isSigIIR(Tree s, tvec& sigcoefs);
+
+LIBFAUST_API Tree sigSum(const tvec& sigsubs);
+LIBFAUST_API bool isSigSum(Tree s);
+LIBFAUST_API bool isSigSum(Tree s, tvec& sigsubs);
+
+LIBFAUST_API Tree sigTempVar(Tree s);
+LIBFAUST_API bool isSigTempVar(Tree s);
+LIBFAUST_API bool isSigTempVar(Tree s, Tree& x);
+
+LIBFAUST_API Tree sigPermVar(Tree s);
+LIBFAUST_API bool isSigPermVar(Tree s);
+LIBFAUST_API bool isSigPermVar(Tree s, Tree& x);
+
+LIBFAUST_API Tree sigSeq(Tree x, Tree y);
+LIBFAUST_API bool isSigSeq(Tree s);
+LIBFAUST_API bool isSigSeq(Tree s, Tree& x, Tree& y);
+
+LIBFAUST_API Tree sigOD(const tvec& sigsubs);
+LIBFAUST_API bool isSigOD(Tree s);
+LIBFAUST_API bool isSigOD(Tree s, tvec& sigsubs);
+
+LIBFAUST_API Tree sigClocked(Tree h, Tree y);
+LIBFAUST_API bool isSigClocked(Tree s);
+LIBFAUST_API bool isSigClocked(Tree s, Tree& h, Tree& y);
+LIBFAUST_API bool hasClock(Tree s, Tree& clock);
 
 /*****************************************************************************
                              Matrix extension

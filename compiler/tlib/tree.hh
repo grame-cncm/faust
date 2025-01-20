@@ -93,7 +93,7 @@ struct less<CTree*> {
     bool operator()(const CTree* lhs, const CTree* rhs) const;
 };
 
-} 
+}  // namespace std
 
 /**
  * A CTree = (Node x [CTree]) is the association of a content Node and a list of subtrees
@@ -210,7 +210,7 @@ inline bool less<CTree*>::operator()(const CTree* lhs, const CTree* rhs) const
 {
     return lhs->serial() < rhs->serial();
 }
-};
+};  // namespace std
 
 //---------------------------------API---------------------------------------
 // To build trees

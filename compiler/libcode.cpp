@@ -1007,6 +1007,9 @@ static void printHeader(ostream& dst)
 
     dst << "//" << endl;
     dst << "// Code generated with Faust " << FAUSTVERSION << " (https://faust.grame.fr)" << endl;
+    stringstream stream;
+    gGlobal->printCompilationOptions(stream);
+    dst << "// Compiler options: " << stream.str() << endl;
     dst << "//----------------------------------------------------------" << endl << endl;
 }
 
