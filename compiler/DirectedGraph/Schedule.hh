@@ -173,7 +173,7 @@ inline schedule<N> spschedule(const digraph<N>& G)
 
     std::list<N> L = recschedule(G);  // schedule list with duplicated
     for (auto it = L.rbegin(); it != L.rend(); ++it) {
-        if (!V.contains(*it)) {
+        if (V.find(*it) == V.end()) {
             S.append(*it);
             V.insert(*it);
         }
