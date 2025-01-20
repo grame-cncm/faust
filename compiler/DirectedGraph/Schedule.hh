@@ -120,7 +120,7 @@ inline schedule<N> dfschedule(const digraph<N>& G)
 
     // recursive deep first visit (pseudo local function using a lambda)
     std::function<void(const N&)> dfvisit = [&](const N& n) {
-        if (!V.contains(n)) {
+        if (V.find(n) == V.end()) {
             V.insert(n);
             for (const auto& p : G.destinations(n)) {
                 dfvisit(p.first);
