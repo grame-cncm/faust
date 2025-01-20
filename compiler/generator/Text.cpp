@@ -156,9 +156,21 @@ string T(int n)
     return std::to_string(n);
 }
 
+string T(size_t n)
+{
+    return std::to_string(n);
+}
+
 string T(int64_t n)
 {
     return std::to_string(n);
+}
+
+string T(void* x)
+{
+    std::ostringstream oss;
+    oss << x;  // Cast to void* for a standard representation
+    return oss.str();
 }
 
 /**
@@ -348,6 +360,7 @@ string quote(const string& s)
  */
 void tab(int n, ostream& fout)
 {
+    faustassert(n >= 0);
     fout << '\n';
     while (n--) {
         fout << '\t';
@@ -459,4 +472,130 @@ int pow2limit(int x, int def)
         n = 2 * n;
     }
     return n;
+}
+
+bool isVarName(const std::string& name)
+{
+    if (name.empty() || (!std::isalpha(name[0]) && (name[0] != '_'))) {
+        return false;
+    }
+
+    for (char c : name) {
+        if (!std::isalnum(c) && c != '_') {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool isNumber(const std::string& s)
+{
+    enum State {
+        START,
+        SIGN,
+        INTEGER,
+        DECIMAL_POINT,
+        FRACTION,
+        EXPONENT,
+        EXPONENT_SIGN,
+        EXPONENT_DIGIT,
+        SUFFIX
+    };
+    State state = START;
+
+    for (size_t i = 0; i < s.size(); ++i) {
+        char ch = s[i];
+
+        switch (state) {
+            case START:
+                if (ch == '+' || ch == '-') {
+                    state = SIGN;
+                } else if (isdigit(ch)) {
+                    state = INTEGER;
+                } else if (ch == '.') {
+                    state = DECIMAL_POINT;
+                } else {
+                    return false;  // Invalid start character
+                }
+                break;
+
+            case SIGN:
+                if (isdigit(ch)) {
+                    state = INTEGER;
+                } else if (ch == '.') {
+                    state = DECIMAL_POINT;
+                } else {
+                    return false;  // Sign must be followed by digit or decimal point
+                }
+                break;
+
+            case INTEGER:
+                if (isdigit(ch)) {
+                    // Stay in INTEGER state
+                } else if (ch == '.') {
+                    state = DECIMAL_POINT;
+                } else if (ch == 'e' || ch == 'E') {
+                    state = EXPONENT;
+                } else if (ch == 'f' || ch == 'F' || ch == 'l' || ch == 'L') {
+                    state = SUFFIX;
+                } else {
+                    return false;  // Invalid character after integer part
+                }
+                break;
+
+            case DECIMAL_POINT:
+                if (isdigit(ch)) {
+                    state = FRACTION;
+                } else {
+                    return false;  // Decimal point must be followed by a digit
+                }
+                break;
+
+            case FRACTION:
+                if (isdigit(ch)) {
+                    // Stay in FRACTION state
+                } else if (ch == 'e' || ch == 'E') {
+                    state = EXPONENT;
+                } else if (ch == 'f' || ch == 'F' || ch == 'l' || ch == 'L') {
+                    state = SUFFIX;
+                } else {
+                    return false;  // Invalid character after fraction part
+                }
+                break;
+
+            case EXPONENT:
+                if (ch == '+' || ch == '-') {
+                    state = EXPONENT_SIGN;
+                } else if (isdigit(ch)) {
+                    state = EXPONENT_DIGIT;
+                } else {
+                    return false;  // Exponent must be followed by sign or digit
+                }
+                break;
+
+            case EXPONENT_SIGN:
+                if (isdigit(ch)) {
+                    state = EXPONENT_DIGIT;
+                } else {
+                    return false;  // Exponent sign must be followed by digit
+                }
+                break;
+
+            case EXPONENT_DIGIT:
+                if (isdigit(ch)) {
+                    // Stay in EXPONENT_DIGIT state
+                } else if (ch == 'f' || ch == 'F' || ch == 'l' || ch == 'L') {
+                    state = SUFFIX;
+                } else {
+                    return false;  // Invalid character after exponent part
+                }
+                break;
+
+            case SUFFIX:
+                return false;  // Suffix must be the last character
+        }
+    }
+
+    // Valid end states
+    return state == INTEGER || state == FRACTION || state == EXPONENT_DIGIT || state == SUFFIX;
 }
