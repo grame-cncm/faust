@@ -86,7 +86,7 @@ typedef std::vector<Tree> tvec;
 
 namespace std {
 
-// The std::less <CTree*>comparison function is redefined to provide an unique and stable ordering
+// The std::less <CTree*> comparison function is redefined to provide an unique and stable ordering
 // for all CTree instances and so maintain determinism.
 template <>
 struct less<CTree*> {
