@@ -5,10 +5,13 @@
 // name: "echo"
 // version: "1.0"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
+#include <algorithm>
+#include <cmath>
 #include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -22,17 +25,18 @@
 class mydsp : public dsp {
   private:
 	FAUSTFLOAT 	fslider0;
-	float 	fConst0; // step: 14
 	FAUSTFLOAT 	fslider1;
-	// Recursion delay fVeeec0 is of type kMaskRingDelay
+	float 	fConst0KI; // step: 23
+	int 	IOTA0;
+	// Recursion delay fRec0SE is of type kZeroDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec0[131072]; // Ring Delay
-	int 	IOTA;
+	float 	fVec0SE[131072]; // Ring Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2006");
 		m->declare("filename", "echo.dsp");
 		m->declare("license", "BSD");
@@ -57,15 +61,16 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = (0.001f * min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 14
+		fConst0KI = (0.001f * std::min(1.92e+05f, std::max(1.0f, float(fSampleRate)))); // step: 23
+		IOTA0 = 0;
 	}
 	virtual void instanceResetUserInterface() {
-		fslider0 = 8.1f;
-		fslider1 = 98.4f;
+		fslider0 = 98.4f;
+		fslider1 = 8.1f;
 	}
 	virtual void instanceClear() {
-		for (int i = 0; i < 131072; i++) { fVeeec0[i] = 0; }
-		IOTA = 0;
+		for (int i = 1; i < 131072; i++) { fVec0SE[i] = 0; }
+		fVec0SE[0] = -1;  // detect unintialized
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -85,28 +90,22 @@ class mydsp : public dsp {
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("echo-simple");
 		ui_interface->openVerticalBox("echo 1000");
-		ui_interface->addHorizontalSlider("feedback", &fslider1, 98.4f, 0.0f, 1e+02f, 0.1f);
-		ui_interface->addHorizontalSlider("millisecond", &fslider0, 8.1f, 0.0f, 1e+03f, 0.1f);
+		ui_interface->addHorizontalSlider("feedback", &fslider0, 98.4f, 0.0f, 1e+02f, 0.1f);
+		ui_interface->addHorizontalSlider("millisecond", &fslider1, 8.1f, 0.0f, 1e+03f, 0.1f);
 		ui_interface->closeBox();
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int 	iSlow0 = (((int((fConst0 * float(fslider0))) + -1) & 65535) + 1); // step: 19
-		float 	fSlow1 = (0.01f * float(fslider1)); // step: 23
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			for (int i=0; i<count; i++) {
-				int vIota0 = (IOTA-iSlow0)&131071;
-				int vIota1 = IOTA&131071;
-				fVeeec0[vIota1] = ((float)input0[i] + (fSlow1 * fVeeec0[vIota0]));
-				int vIota2 = (IOTA-0)&131071;
-				output0[i] = (FAUSTFLOAT)(fVeeec0[vIota2]);  // Zone Exec Code
-				// post processing
-				IOTA = IOTA+1;
-			}
+		float 	fSlow0BE = (0.01f * float(fslider0)); // Zone 2, step: 9
+		int 	iSlow1BE = (((int((fConst0KI * float(fslider1))) + -1 /* Sum */) & 65535) + 1 /* Sum */); // Zone 2, step: 28
+		FAUSTFLOAT* input0 = input[0]; // Zone 3
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		for (int i=0; i<count; i++) {
+			float 	fRec0SE = ((float)input0[i] + (fSlow0BE * fVec0SE[(IOTA0-iSlow1BE)&131071]) /* Sum */); // Zero delay
+			fVec0SE[IOTA0&131071] = fRec0SE;
+			output0[i] = (FAUSTFLOAT)(fRec0SE);  // Zone Exec Code
+			// post processing
+			++IOTA0;
 		}
 	}
 };

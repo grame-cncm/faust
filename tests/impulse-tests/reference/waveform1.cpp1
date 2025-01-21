@@ -1,11 +1,13 @@
 //----------------------------------------------------------
 // name: "waveform1"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
-#include <math.h>
+#include <algorithm>
+#include <cmath>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -17,12 +19,13 @@
 
 class mydsp : public dsp {
   private:
-	static float 	fWave0[10];
-	int 	idxfWave0;
+	static float 	fWave0SC[10];
+	int 	idxfWave0SC;
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("filename", "waveform1.dsp");
 		m->declare("name", "waveform1");
 	}
@@ -33,7 +36,7 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		idxfWave0 = 0;
+		idxfWave0SC = 0;
 	}
 	virtual void instanceResetUserInterface() {
 	}
@@ -59,20 +62,16 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			for (int i=0; i<count; i++) {
-				output0[i] = (FAUSTFLOAT)(10);  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(fWave0[idxfWave0]);  // Zone Exec Code
-				// post processing
-				idxfWave0 = (idxfWave0 + 1) % 10;
-			}
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		FAUSTFLOAT* output1 = output[1]; // Zone 3
+		for (int i=0; i<count; i++) {
+			output0[i] = (FAUSTFLOAT)(10);  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(fWave0SC[idxfWave0SC]);  // Zone Exec Code
+			// post processing
+			idxfWave0SC = (idxfWave0SC + 1) % 10;
 		}
 	}
 };
 
 
-float 	mydsp::fWave0[10] = {0.1f,0.123f,0.142567f,0.15263739f,0.568453f,0.1f,0.123f,0.142567f,0.15263739f,0.568453f};
+float 	mydsp::fWave0SC[10] = {0.1f,0.123f,0.142567f,0.15263739f,0.568453f,0.1f,0.123f,0.142567f,0.15263739f,0.568453f};

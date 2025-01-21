@@ -5,11 +5,13 @@
 // name: "NoiseMD"
 // version: "1.1"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
-#include <math.h>
+#include <algorithm>
+#include <cmath>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -21,16 +23,17 @@
 
 class mydsp : public dsp {
   private:
-	// Recursion delay iVeeec0 is of type kMonoDelay
-	// While its definition is of type kZeroDelay
-	int 	iVeeec0State; // Mono Delay
 	FAUSTFLOAT 	fslider0;
+	// Recursion delay iVec0SI is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	int 	iVec0SIState; // Single Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
 		m->declare("contributor", "Yghe");
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2009");
 		m->declare("filename", "noisemetadata.dsp");
 		m->declare("license", "BSD");
@@ -49,7 +52,7 @@ class mydsp : public dsp {
 		fslider0 = 0.0697f;
 	}
 	virtual void instanceClear() {
-		iVeeec0State = 0;
+		iVec0SIState = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -73,19 +76,17 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int 	iVeeec0;
-		float 	fSlow0 = (4.656613e-10f * float(fslider0)); // step: 13
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			iVeeec0 = iVeeec0State;
-			for (int i=0; i<count; i++) {
-				iVeeec0 = ((1103515245 * iVeeec0) + 12345);
-				output0[i] = (FAUSTFLOAT)((fSlow0 * float(iVeeec0)));  // Zone Exec Code
-			}
-			iVeeec0State = iVeeec0;
+		float 	fSlow0BE = (4.656613e-10f * float(fslider0)); // Zone 2, step: 7
+		int 	iVec0SI[2];
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		iVec0SI[1] = iVec0SIState;
+		for (int i=0; i<count; i++) {
+			iVec0SI[0] = ((1103515245 * iVec0SI[1]) + 12345 /* Sum */);
+			output0[i] = (FAUSTFLOAT)((fSlow0BE * float(iVec0SI[0])));  // Zone Exec Code
+			// post processing
+			iVec0SI[1] = iVec0SI[0];
 		}
+		iVec0SIState = iVec0SI[1];
 	}
 };
 

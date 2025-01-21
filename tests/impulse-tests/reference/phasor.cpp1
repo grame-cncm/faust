@@ -1,10 +1,13 @@
 //----------------------------------------------------------
 // name: "phasor"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
+#include <algorithm>
+#include <cmath>
 #include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -17,20 +20,21 @@
 
 class mydsp : public dsp {
   private:
-	static float 	fWave0[4];
-	int 	idxfWave0;
-	static float 	fWave1[11];
-	int 	idxfWave1;
-	int 	iVec0State; // Single Delay
+	static float 	fWave0SC[4];
+	int 	idxfWave0SC;
+	static float 	fWave1SC[11];
+	int 	idxfWave1SC;
+	int 	iVec0SCState; // Single Delay
 	int 	pfPerm0;
-	float 	fConst0; // step: 19
-	// Recursion delay fVeeec0 is of type kMonoDelay
+	float 	fConst0KI; // step: 22
+	// Recursion delay fVec1SI is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec0State; // Mono Delay
+	float 	fVec1SIState; // Single Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("filename", "phasor.dsp");
 		m->declare("math.lib/author", "GRAME");
 		m->declare("math.lib/copyright", "GRAME");
@@ -52,16 +56,16 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		idxfWave0 = 0;
-		idxfWave1 = 0;
+		idxfWave0SC = 0;
+		idxfWave1SC = 0;
 		pfPerm0 = 1;
-		fConst0 = (7e+02f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 19
+		fConst0KI = (7e+02f / std::min(1.92e+05f, std::max(1.0f, float(fSampleRate)))); // step: 22
 	}
 	virtual void instanceResetUserInterface() {
 	}
 	virtual void instanceClear() {
-		iVec0State = 0;
-		fVeeec0State = 0;
+		iVec0SCState = 0;
+		fVec1SIState = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -83,38 +87,38 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int 	iVec0[2];
-		float 	fVeeec0;
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
-			iVec0[1] = iVec0State;
-			fVeeec0 = fVeeec0State;
-			for (int i=0; i<count; i++) {
-				float 	fTemp0 = fWave0[idxfWave0]; // step: 6
-				float 	fTemp1 = fWave1[idxfWave1]; // step: 10
-				iVec0[0] = (fTemp1 > 0.0f);
-				int 	pfTemp0 = pfPerm0;
-				pfPerm0 = iVec0[0];
-				float 	fTemp2 = ((pfTemp0) ? fTemp0 : (fConst0 + fVeeec0)); // step: 22
-				fVeeec0 = (fTemp2 - floorf(fTemp2));
-				output0[i] = (FAUSTFLOAT)(fVeeec0);  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(fTemp1);  // Zone Exec Code
-				output2[i] = (FAUSTFLOAT)(fTemp0);  // Zone Exec Code
-				// post processing
-				iVec0[1] = iVec0[0];
-				idxfWave1 = (idxfWave1 + 1) % 11;
-				idxfWave0 = (idxfWave0 + 1) % 4;
-			}
-			iVec0State = iVec0[1];
-			fVeeec0State = fVeeec0;
+		float 	fTemp0SC; // step: 7
+		float 	fTemp1SC; // step: 12
+		int 	iVec0SC[2];
+		float 	fTemp2SI; // step: 26
+		float 	fVec1SI[2];
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		FAUSTFLOAT* output1 = output[1]; // Zone 3
+		FAUSTFLOAT* output2 = output[2]; // Zone 3
+		iVec0SC[1] = iVec0SCState;
+		fVec1SI[1] = fVec1SIState;
+		for (int i=0; i<count; i++) {
+			fTemp0SC = fWave0SC[idxfWave0SC]; // step: 7
+			fTemp1SC = fWave1SC[idxfWave1SC]; // step: 12
+			iVec0SC[0] = (fTemp1SC > 0.0f);
+			int 	pfTemp0 = pfPerm0;
+			pfPerm0 = iVec0SC[0];
+			fTemp2SI = ((pfTemp0) ? fTemp0SC : (fConst0KI + fVec1SI[1] /* Sum */)); // step: 26
+			fVec1SI[0] = (fTemp2SI + -floorf(fTemp2SI) /* Sum */);
+			output0[i] = (FAUSTFLOAT)(fVec1SI[0]);  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(fTemp1SC);  // Zone Exec Code
+			output2[i] = (FAUSTFLOAT)(fTemp0SC);  // Zone Exec Code
+			// post processing
+			fVec1SI[1] = fVec1SI[0];
+			iVec0SC[1] = iVec0SC[0];
+			idxfWave1SC = (idxfWave1SC + 1) % 11;
+			idxfWave0SC = (idxfWave0SC + 1) % 4;
 		}
+		iVec0SCState = iVec0SC[1];
+		fVec1SIState = fVec1SI[1];
 	}
 };
 
 
-float 	mydsp::fWave0[4] = {0.1f,0.8f,0.9f,0.2f};
-float 	mydsp::fWave1[11] = {0.0f,0.0f,0.0f,0.0f,1.0f,1.0f,0.0f,0.0f,0.0f,0.0f,0};
+float 	mydsp::fWave0SC[4] = {0.1f,0.8f,0.9f,0.2f};
+float 	mydsp::fWave1SC[11] = {0.0f,0.0f,0.0f,0.0f,1.0f,1.0f,0.0f,0.0f,0.0f,0.0f,0};

@@ -5,11 +5,13 @@
 // name: "karplus32"
 // version: "1.0"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
-#include <math.h>
+#include <algorithm>
+#include <cmath>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -21,155 +23,188 @@
 
 class mydsp : public dsp {
   private:
+	FAUSTFLOAT 	fbutton0;
+	float 	fVec0BEState; // Single Delay
 	FAUSTFLOAT 	fslider0;
 	FAUSTFLOAT 	fslider1;
+	// Recursion delay iVec3SI is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	int 	iVec3SIState; // Single Delay
 	FAUSTFLOAT 	fslider2;
-	// Recursion delay iVeeec2 is of type kMonoDelay
+	// Recursion delay fVec5SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	int 	iVeeec2State; // Mono Delay
+	float 	fVec5SEState; // Single Delay
+	int 	IOTA0;
+	float 	fVec8SE[512]; // Ring Delay
 	FAUSTFLOAT 	fslider3;
-	FAUSTFLOAT 	fbutton0;
-	float 	fVec0State; // Single Delay
-	// Recursion delay fVeeec4 is of type kSingleDelay
+	// Recursion delay fVec1SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec4State; // Single Delay
-	float 	fVec1[512]; // Ring Delay
+	float 	fVec1SEState; // Single Delay
+	float 	fVec2SEState[2]; // Copy Delay
+	float 	fVec13SE[2048]; // Ring Delay
 	FAUSTFLOAT 	fslider4;
-	// Recursion delay fVeeec0 is of type kCopyDelay
+	// Recursion delay fVec11SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec0State[2]; // Copy Delay
+	float 	fVec11SEState; // Single Delay
+	float 	fVec12SEState[2]; // Copy Delay
+	float 	fVec18SE[4096]; // Ring Delay
+	// Recursion delay fVec16SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec16SEState; // Single Delay
+	float 	fVec17SEState[2]; // Copy Delay
+	float 	fVec23SE[4096]; // Ring Delay
+	// Recursion delay fVec21SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec21SEState; // Single Delay
+	float 	fVec22SEState[2]; // Copy Delay
+	float 	fVec28SE[4096]; // Ring Delay
+	// Recursion delay fVec26SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec26SEState; // Single Delay
+	float 	fVec27SEState[2]; // Copy Delay
+	float 	fVec33SE[4096]; // Ring Delay
+	// Recursion delay fVec31SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec31SEState; // Single Delay
+	float 	fVec32SEState[2]; // Copy Delay
+	float 	fVec38SE[4096]; // Ring Delay
+	// Recursion delay fVec36SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec36SEState; // Single Delay
+	float 	fVec37SEState[2]; // Copy Delay
+	float 	fVec43SE[4096]; // Ring Delay
+	// Recursion delay fVec41SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec41SEState; // Single Delay
+	float 	fVec42SEState[2]; // Copy Delay
+	float 	fVec48SE[4096]; // Ring Delay
+	// Recursion delay fVec46SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec46SEState; // Single Delay
+	float 	fVec47SEState[2]; // Copy Delay
+	float 	fVec53SE[4096]; // Ring Delay
+	// Recursion delay fVec51SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec51SEState; // Single Delay
+	float 	fVec52SEState[2]; // Copy Delay
+	float 	fVec58SE[4096]; // Ring Delay
+	// Recursion delay fVec56SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec56SEState; // Single Delay
+	float 	fVec57SEState[2]; // Copy Delay
+	float 	fVec63SE[4096]; // Ring Delay
+	// Recursion delay fVec61SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec61SEState; // Single Delay
+	float 	fVec62SEState[2]; // Copy Delay
+	float 	fVec68SE[4096]; // Ring Delay
+	// Recursion delay fVec66SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec66SEState; // Single Delay
+	float 	fVec67SEState[2]; // Copy Delay
+	float 	fVec73SE[4096]; // Ring Delay
+	// Recursion delay fVec71SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec71SEState; // Single Delay
+	float 	fVec72SEState[2]; // Copy Delay
+	float 	fVec78SE[4096]; // Ring Delay
+	// Recursion delay fVec76SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec76SEState; // Single Delay
+	float 	fVec77SEState[2]; // Copy Delay
+	float 	fVec83SE[4096]; // Ring Delay
+	// Recursion delay fVec81SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec81SEState; // Single Delay
+	float 	fVec82SEState[2]; // Copy Delay
 	FAUSTFLOAT 	fslider5;
-	float 	fVec2[2048]; // Ring Delay
 	FAUSTFLOAT 	fslider6;
-	// Recursion delay fVeeec9 is of type kCopyDelay
+	float 	fVec104SE[1024]; // Ring Delay
+	// Recursion delay fVec102SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec9State[2]; // Copy Delay
-	float 	fVec3[4096]; // Ring Delay
-	// Recursion delay fVeeec13 is of type kCopyDelay
+	float 	fVec102SEState; // Single Delay
+	float 	fVec103SEState[2]; // Copy Delay
+	float 	fVec109SE[2048]; // Ring Delay
+	// Recursion delay fVec107SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec13State[2]; // Copy Delay
-	float 	fVec4[4096]; // Ring Delay
-	// Recursion delay fVeeec17 is of type kCopyDelay
+	float 	fVec107SEState; // Single Delay
+	float 	fVec108SEState[2]; // Copy Delay
+	float 	fVec114SE[4096]; // Ring Delay
+	// Recursion delay fVec112SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec17State[2]; // Copy Delay
-	float 	fVec5[4096]; // Ring Delay
-	// Recursion delay fVeeec21 is of type kCopyDelay
+	float 	fVec112SEState; // Single Delay
+	float 	fVec113SEState[2]; // Copy Delay
+	float 	fVec119SE[4096]; // Ring Delay
+	// Recursion delay fVec117SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec21State[2]; // Copy Delay
-	float 	fVec6[4096]; // Ring Delay
-	// Recursion delay fVeeec25 is of type kCopyDelay
+	float 	fVec117SEState; // Single Delay
+	float 	fVec118SEState[2]; // Copy Delay
+	float 	fVec124SE[4096]; // Ring Delay
+	// Recursion delay fVec122SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec25State[2]; // Copy Delay
-	float 	fVec7[4096]; // Ring Delay
-	// Recursion delay fVeeec29 is of type kCopyDelay
+	float 	fVec122SEState; // Single Delay
+	float 	fVec123SEState[2]; // Copy Delay
+	float 	fVec129SE[4096]; // Ring Delay
+	// Recursion delay fVec127SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec29State[2]; // Copy Delay
-	float 	fVec8[4096]; // Ring Delay
-	// Recursion delay fVeeec33 is of type kCopyDelay
+	float 	fVec127SEState; // Single Delay
+	float 	fVec128SEState[2]; // Copy Delay
+	float 	fVec134SE[4096]; // Ring Delay
+	// Recursion delay fVec132SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec33State[2]; // Copy Delay
-	float 	fVec9[4096]; // Ring Delay
-	// Recursion delay fVeeec37 is of type kCopyDelay
+	float 	fVec132SEState; // Single Delay
+	float 	fVec133SEState[2]; // Copy Delay
+	float 	fVec139SE[4096]; // Ring Delay
+	// Recursion delay fVec137SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec37State[2]; // Copy Delay
-	float 	fVec10[4096]; // Ring Delay
-	// Recursion delay fVeeec41 is of type kCopyDelay
+	float 	fVec137SEState; // Single Delay
+	float 	fVec138SEState[2]; // Copy Delay
+	float 	fVec144SE[4096]; // Ring Delay
+	// Recursion delay fVec142SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec41State[2]; // Copy Delay
-	float 	fVec11[4096]; // Ring Delay
-	// Recursion delay fVeeec45 is of type kCopyDelay
+	float 	fVec142SEState; // Single Delay
+	float 	fVec143SEState[2]; // Copy Delay
+	float 	fVec149SE[4096]; // Ring Delay
+	// Recursion delay fVec147SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec45State[2]; // Copy Delay
-	float 	fVec12[4096]; // Ring Delay
-	// Recursion delay fVeeec49 is of type kCopyDelay
+	float 	fVec147SEState; // Single Delay
+	float 	fVec148SEState[2]; // Copy Delay
+	float 	fVec154SE[4096]; // Ring Delay
+	// Recursion delay fVec152SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec49State[2]; // Copy Delay
-	float 	fVec13[4096]; // Ring Delay
-	// Recursion delay fVeeec53 is of type kCopyDelay
+	float 	fVec152SEState; // Single Delay
+	float 	fVec153SEState[2]; // Copy Delay
+	float 	fVec159SE[4096]; // Ring Delay
+	// Recursion delay fVec157SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec53State[2]; // Copy Delay
-	float 	fVec14[4096]; // Ring Delay
-	// Recursion delay fVeeec57 is of type kCopyDelay
+	float 	fVec157SEState; // Single Delay
+	float 	fVec158SEState[2]; // Copy Delay
+	float 	fVec164SE[4096]; // Ring Delay
+	// Recursion delay fVec162SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec57State[2]; // Copy Delay
-	float 	fVec15[4096]; // Ring Delay
-	// Recursion delay fVeeec61 is of type kCopyDelay
+	float 	fVec162SEState; // Single Delay
+	float 	fVec163SEState[2]; // Copy Delay
+	float 	fVec169SE[4096]; // Ring Delay
+	// Recursion delay fVec167SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec61State[2]; // Copy Delay
-	float 	fVec16[4096]; // Ring Delay
-	// Recursion delay fVeeec65 is of type kCopyDelay
+	float 	fVec167SEState; // Single Delay
+	float 	fVec168SEState[2]; // Copy Delay
+	float 	fVec174SE[4096]; // Ring Delay
+	// Recursion delay fVec172SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec65State[2]; // Copy Delay
-	float 	fVec17[1024]; // Ring Delay
-	// Recursion delay fVeeec69 is of type kCopyDelay
+	float 	fVec172SEState; // Single Delay
+	float 	fVec173SEState[2]; // Copy Delay
+	float 	fVec179SE[4096]; // Ring Delay
+	// Recursion delay fVec177SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec69State[2]; // Copy Delay
-	float 	fVec18[2048]; // Ring Delay
-	// Recursion delay fVeeec73 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec73State[2]; // Copy Delay
-	float 	fVec19[4096]; // Ring Delay
-	// Recursion delay fVeeec77 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec77State[2]; // Copy Delay
-	float 	fVec20[4096]; // Ring Delay
-	// Recursion delay fVeeec81 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec81State[2]; // Copy Delay
-	float 	fVec21[4096]; // Ring Delay
-	// Recursion delay fVeeec85 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec85State[2]; // Copy Delay
-	float 	fVec22[4096]; // Ring Delay
-	// Recursion delay fVeeec89 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec89State[2]; // Copy Delay
-	float 	fVec23[4096]; // Ring Delay
-	// Recursion delay fVeeec93 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec93State[2]; // Copy Delay
-	float 	fVec24[4096]; // Ring Delay
-	// Recursion delay fVeeec97 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec97State[2]; // Copy Delay
-	float 	fVec25[4096]; // Ring Delay
-	// Recursion delay fVeeec101 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec101State[2]; // Copy Delay
-	float 	fVec26[4096]; // Ring Delay
-	// Recursion delay fVeeec105 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec105State[2]; // Copy Delay
-	float 	fVec27[4096]; // Ring Delay
-	// Recursion delay fVeeec109 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec109State[2]; // Copy Delay
-	float 	fVec28[4096]; // Ring Delay
-	// Recursion delay fVeeec113 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec113State[2]; // Copy Delay
-	float 	fVec29[4096]; // Ring Delay
-	// Recursion delay fVeeec117 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec117State[2]; // Copy Delay
-	float 	fVec30[4096]; // Ring Delay
-	// Recursion delay fVeeec121 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec121State[2]; // Copy Delay
-	float 	fVec31[4096]; // Ring Delay
-	// Recursion delay fVeeec125 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec125State[2]; // Copy Delay
-	float 	fVec32[4096]; // Ring Delay
-	// Recursion delay fVeeec129 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec129State[2]; // Copy Delay
-	int 	IOTA;
+	float 	fVec177SEState; // Single Delay
+	float 	fVec178SEState[2]; // Copy Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2006");
 		m->declare("filename", "karplus32.dsp");
 		m->declare("license", "BSD");
@@ -194,86 +229,150 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
+		IOTA0 = 0;
 	}
 	virtual void instanceResetUserInterface() {
-		fslider0 = 0.4866f;
-		fslider1 = 0.0f;
-		fslider2 = 0.5f;
-		fslider3 = 128.0f;
 		fbutton0 = 0.0;
-		fslider4 = 128.0f;
-		fslider5 = 14.0f;
-		fslider6 = 37.9904f;
+		fslider0 = 0.0f;
+		fslider1 = 0.5f;
+		fslider2 = 128.0f;
+		fslider3 = 128.0f;
+		fslider4 = 37.9904f;
+		fslider5 = 0.4866f;
+		fslider6 = 14.0f;
 	}
 	virtual void instanceClear() {
-		iVeeec2State = 0;
-		fVec0State = 0;
-		fVeeec4State = 0;
-		for (int i = 0; i < 512; i++) { fVec1[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec0State[j] = 0; }
-		for (int i = 0; i < 2048; i++) { fVec2[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec9State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec3[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec13State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec4[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec17State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec5[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec21State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec6[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec25State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec7[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec29State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec8[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec33State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec9[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec37State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec10[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec41State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec11[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec45State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec12[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec49State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec13[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec53State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec14[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec57State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec15[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec61State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec16[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec65State[j] = 0; }
-		for (int i = 0; i < 1024; i++) { fVec17[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec69State[j] = 0; }
-		for (int i = 0; i < 2048; i++) { fVec18[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec73State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec19[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec77State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec20[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec81State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec21[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec85State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec22[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec89State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec23[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec93State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec24[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec97State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec25[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec101State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec26[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec105State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec27[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec109State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec28[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec113State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec29[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec117State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec30[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec121State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec31[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec125State[j] = 0; }
-		for (int i = 0; i < 4096; i++) { fVec32[i] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec129State[j] = 0; }
-		IOTA = 31;
+		fVec0BEState = 0;
+		iVec3SIState = 0;
+		fVec5SEState = 0;
+		for (int i = 1; i < 512; i++) { fVec8SE[i] = 0; }
+		fVec8SE[0] = -1;  // detect unintialized
+		fVec1SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec2SEState[j] = 0; }
+		for (int i = 1; i < 2048; i++) { fVec13SE[i] = 0; }
+		fVec13SE[0] = -1;  // detect unintialized
+		fVec11SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec12SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec18SE[i] = 0; }
+		fVec18SE[0] = -1;  // detect unintialized
+		fVec16SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec17SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec23SE[i] = 0; }
+		fVec23SE[0] = -1;  // detect unintialized
+		fVec21SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec22SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec28SE[i] = 0; }
+		fVec28SE[0] = -1;  // detect unintialized
+		fVec26SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec27SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec33SE[i] = 0; }
+		fVec33SE[0] = -1;  // detect unintialized
+		fVec31SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec32SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec38SE[i] = 0; }
+		fVec38SE[0] = -1;  // detect unintialized
+		fVec36SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec37SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec43SE[i] = 0; }
+		fVec43SE[0] = -1;  // detect unintialized
+		fVec41SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec42SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec48SE[i] = 0; }
+		fVec48SE[0] = -1;  // detect unintialized
+		fVec46SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec47SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec53SE[i] = 0; }
+		fVec53SE[0] = -1;  // detect unintialized
+		fVec51SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec52SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec58SE[i] = 0; }
+		fVec58SE[0] = -1;  // detect unintialized
+		fVec56SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec57SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec63SE[i] = 0; }
+		fVec63SE[0] = -1;  // detect unintialized
+		fVec61SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec62SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec68SE[i] = 0; }
+		fVec68SE[0] = -1;  // detect unintialized
+		fVec66SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec67SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec73SE[i] = 0; }
+		fVec73SE[0] = -1;  // detect unintialized
+		fVec71SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec72SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec78SE[i] = 0; }
+		fVec78SE[0] = -1;  // detect unintialized
+		fVec76SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec77SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec83SE[i] = 0; }
+		fVec83SE[0] = -1;  // detect unintialized
+		fVec81SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec82SEState[j] = 0; }
+		for (int i = 1; i < 1024; i++) { fVec104SE[i] = 0; }
+		fVec104SE[0] = -1;  // detect unintialized
+		fVec102SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec103SEState[j] = 0; }
+		for (int i = 1; i < 2048; i++) { fVec109SE[i] = 0; }
+		fVec109SE[0] = -1;  // detect unintialized
+		fVec107SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec108SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec114SE[i] = 0; }
+		fVec114SE[0] = -1;  // detect unintialized
+		fVec112SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec113SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec119SE[i] = 0; }
+		fVec119SE[0] = -1;  // detect unintialized
+		fVec117SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec118SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec124SE[i] = 0; }
+		fVec124SE[0] = -1;  // detect unintialized
+		fVec122SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec123SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec129SE[i] = 0; }
+		fVec129SE[0] = -1;  // detect unintialized
+		fVec127SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec128SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec134SE[i] = 0; }
+		fVec134SE[0] = -1;  // detect unintialized
+		fVec132SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec133SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec139SE[i] = 0; }
+		fVec139SE[0] = -1;  // detect unintialized
+		fVec137SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec138SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec144SE[i] = 0; }
+		fVec144SE[0] = -1;  // detect unintialized
+		fVec142SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec143SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec149SE[i] = 0; }
+		fVec149SE[0] = -1;  // detect unintialized
+		fVec147SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec148SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec154SE[i] = 0; }
+		fVec154SE[0] = -1;  // detect unintialized
+		fVec152SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec153SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec159SE[i] = 0; }
+		fVec159SE[0] = -1;  // detect unintialized
+		fVec157SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec158SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec164SE[i] = 0; }
+		fVec164SE[0] = -1;  // detect unintialized
+		fVec162SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec163SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec169SE[i] = 0; }
+		fVec169SE[0] = -1;  // detect unintialized
+		fVec167SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec168SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec174SE[i] = 0; }
+		fVec174SE[0] = -1;  // detect unintialized
+		fVec172SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec173SEState[j] = 0; }
+		for (int i = 1; i < 4096; i++) { fVec179SE[i] = 0; }
+		fVec179SE[0] = -1;  // detect unintialized
+		fVec177SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec178SEState[j] = 0; }
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -293,446 +392,569 @@ class mydsp : public dsp {
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("karplus32");
 		ui_interface->openVerticalBox("excitator");
-		ui_interface->addHorizontalSlider("excitation (samples)", &fslider3, 128.0f, 2.0f, 512.0f, 1.0f);
+		ui_interface->addHorizontalSlider("excitation (samples)", &fslider2, 128.0f, 2.0f, 512.0f, 1.0f);
 		ui_interface->addButton("play", &fbutton0);
 		ui_interface->closeBox();
 		ui_interface->openVerticalBox("noise generator");
-		ui_interface->addHorizontalSlider("level", &fslider2, 0.5f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addHorizontalSlider("level", &fslider1, 0.5f, 0.0f, 1.0f, 0.1f);
 		ui_interface->closeBox();
-		ui_interface->addHorizontalSlider("output volume", &fslider0, 0.4866f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addHorizontalSlider("output volume", &fslider5, 0.4866f, 0.0f, 1.0f, 0.1f);
 		ui_interface->openVerticalBox("resonator x32");
-		ui_interface->addHorizontalSlider("attenuation", &fslider1, 0.0f, 0.0f, 1.0f, 0.01f);
-		ui_interface->addHorizontalSlider("detune", &fslider6, 37.9904f, 0.0f, 512.0f, 1.0f);
-		ui_interface->addHorizontalSlider("duration (samples)", &fslider4, 128.0f, 2.0f, 512.0f, 1.0f);
-		ui_interface->addHorizontalSlider("polyphony", &fslider5, 14.0f, 0.0f, 32.0f, 1.0f);
+		ui_interface->addHorizontalSlider("attenuation", &fslider0, 0.0f, 0.0f, 1.0f, 0.01f);
+		ui_interface->addHorizontalSlider("detune", &fslider4, 37.9904f, 0.0f, 512.0f, 1.0f);
+		ui_interface->addHorizontalSlider("duration (samples)", &fslider3, 128.0f, 2.0f, 512.0f, 1.0f);
+		ui_interface->addHorizontalSlider("polyphony", &fslider6, 14.0f, 0.0f, 32.0f, 1.0f);
 		ui_interface->closeBox();
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = float(fslider0); // step: 1
-		float 	fSlow1 = (0.5f * (1.0f - float(fslider1))); // step: 12
-		float 	fSlow2 = (4.656613e-10f * float(fslider2)); // step: 16
-		int 	iVeeec2;
-		float 	fSlow3 = (1.0f / float(fslider3)); // step: 31
-		float 	fSlow4 = float(fbutton0); // step: 33
-		float 	fVec0[2];
-		float 	fVeeec4[2];
-		float 	fSlow5 = float(fslider4); // step: 50
-		int 	iSlow6 = (int((fSlow5 + -1.5f)) & 4095); // step: 53
-		float 	fVeeec0[3];
-		float 	fSlow7 = float(fslider5); // step: 57
-		float 	fSlow8 = float((fSlow7 > 0.0f)); // step: 59
-		float 	fSlow9 = float(fslider6); // step: 67
-		int 	iSlow10 = (int(((fSlow5 + (2.0f * fSlow9)) + -1.5f)) & 4095); // step: 72
-		float 	fVeeec9[3];
-		float 	fSlow11 = float((fSlow7 > 2.0f)); // step: 77
-		int 	iSlow12 = (int(((fSlow5 + (4.0f * fSlow9)) + -1.5f)) & 4095); // step: 90
-		float 	fVeeec13[3];
-		float 	fSlow13 = float((fSlow7 > 4.0f)); // step: 95
-		int 	iSlow14 = (int(((fSlow5 + (6.0f * fSlow9)) + -1.5f)) & 4095); // step: 108
-		float 	fVeeec17[3];
-		float 	fSlow15 = float((fSlow7 > 6.0f)); // step: 113
-		int 	iSlow16 = (int(((fSlow5 + (8.0f * fSlow9)) + -1.5f)) & 4095); // step: 126
-		float 	fVeeec21[3];
-		float 	fSlow17 = float((fSlow7 > 8.0f)); // step: 131
-		int 	iSlow18 = (int(((fSlow5 + (1e+01f * fSlow9)) + -1.5f)) & 4095); // step: 144
-		float 	fVeeec25[3];
-		float 	fSlow19 = float((fSlow7 > 1e+01f)); // step: 149
-		int 	iSlow20 = (int(((fSlow5 + (12.0f * fSlow9)) + -1.5f)) & 4095); // step: 162
-		float 	fVeeec29[3];
-		float 	fSlow21 = float((fSlow7 > 12.0f)); // step: 167
-		int 	iSlow22 = (int(((fSlow5 + (14.0f * fSlow9)) + -1.5f)) & 4095); // step: 180
-		float 	fVeeec33[3];
-		float 	fSlow23 = float((fSlow7 > 14.0f)); // step: 185
-		int 	iSlow24 = (int(((fSlow5 + (16.0f * fSlow9)) + -1.5f)) & 4095); // step: 198
-		float 	fVeeec37[3];
-		float 	fSlow25 = float((fSlow7 > 16.0f)); // step: 203
-		int 	iSlow26 = (int(((fSlow5 + (18.0f * fSlow9)) + -1.5f)) & 4095); // step: 216
-		float 	fVeeec41[3];
-		float 	fSlow27 = float((fSlow7 > 18.0f)); // step: 221
-		int 	iSlow28 = (int(((fSlow5 + (2e+01f * fSlow9)) + -1.5f)) & 4095); // step: 234
-		float 	fVeeec45[3];
-		float 	fSlow29 = float((fSlow7 > 2e+01f)); // step: 239
-		int 	iSlow30 = (int(((fSlow5 + (22.0f * fSlow9)) + -1.5f)) & 4095); // step: 252
-		float 	fVeeec49[3];
-		float 	fSlow31 = float((fSlow7 > 22.0f)); // step: 257
-		int 	iSlow32 = (int(((fSlow5 + (24.0f * fSlow9)) + -1.5f)) & 4095); // step: 270
-		float 	fVeeec53[3];
-		float 	fSlow33 = float((fSlow7 > 24.0f)); // step: 275
-		int 	iSlow34 = (int(((fSlow5 + (26.0f * fSlow9)) + -1.5f)) & 4095); // step: 288
-		float 	fVeeec57[3];
-		float 	fSlow35 = float((fSlow7 > 26.0f)); // step: 293
-		int 	iSlow36 = (int(((fSlow5 + (28.0f * fSlow9)) + -1.5f)) & 4095); // step: 306
-		float 	fVeeec61[3];
-		float 	fSlow37 = float((fSlow7 > 28.0f)); // step: 311
-		int 	iSlow38 = (int(((fSlow5 + (3e+01f * fSlow9)) + -1.5f)) & 4095); // step: 324
-		float 	fVeeec65[3];
-		float 	fSlow39 = float((fSlow7 > 3e+01f)); // step: 329
-		int 	iSlow40 = (int(((fSlow5 + fSlow9) + -1.5f)) & 4095); // step: 341
-		float 	fVeeec69[3];
-		float 	fSlow41 = float((fSlow7 > 1.0f)); // step: 346
-		int 	iSlow42 = (int(((fSlow5 + (3.0f * fSlow9)) + -1.5f)) & 4095); // step: 358
-		float 	fVeeec73[3];
-		float 	fSlow43 = float((fSlow7 > 3.0f)); // step: 363
-		int 	iSlow44 = (int(((fSlow5 + (5.0f * fSlow9)) + -1.5f)) & 4095); // step: 376
-		float 	fVeeec77[3];
-		float 	fSlow45 = float((fSlow7 > 5.0f)); // step: 381
-		int 	iSlow46 = (int(((fSlow5 + (7.0f * fSlow9)) + -1.5f)) & 4095); // step: 394
-		float 	fVeeec81[3];
-		float 	fSlow47 = float((fSlow7 > 7.0f)); // step: 399
-		int 	iSlow48 = (int(((fSlow5 + (9.0f * fSlow9)) + -1.5f)) & 4095); // step: 412
-		float 	fVeeec85[3];
-		float 	fSlow49 = float((fSlow7 > 9.0f)); // step: 417
-		int 	iSlow50 = (int(((fSlow5 + (11.0f * fSlow9)) + -1.5f)) & 4095); // step: 430
-		float 	fVeeec89[3];
-		float 	fSlow51 = float((fSlow7 > 11.0f)); // step: 435
-		int 	iSlow52 = (int(((fSlow5 + (13.0f * fSlow9)) + -1.5f)) & 4095); // step: 448
-		float 	fVeeec93[3];
-		float 	fSlow53 = float((fSlow7 > 13.0f)); // step: 453
-		int 	iSlow54 = (int(((fSlow5 + (15.0f * fSlow9)) + -1.5f)) & 4095); // step: 466
-		float 	fVeeec97[3];
-		float 	fSlow55 = float((fSlow7 > 15.0f)); // step: 471
-		int 	iSlow56 = (int(((fSlow5 + (17.0f * fSlow9)) + -1.5f)) & 4095); // step: 484
-		float 	fVeeec101[3];
-		float 	fSlow57 = float((fSlow7 > 17.0f)); // step: 489
-		int 	iSlow58 = (int(((fSlow5 + (19.0f * fSlow9)) + -1.5f)) & 4095); // step: 502
-		float 	fVeeec105[3];
-		float 	fSlow59 = float((fSlow7 > 19.0f)); // step: 507
-		int 	iSlow60 = (int(((fSlow5 + (21.0f * fSlow9)) + -1.5f)) & 4095); // step: 520
-		float 	fVeeec109[3];
-		float 	fSlow61 = float((fSlow7 > 21.0f)); // step: 525
-		int 	iSlow62 = (int(((fSlow5 + (23.0f * fSlow9)) + -1.5f)) & 4095); // step: 538
-		float 	fVeeec113[3];
-		float 	fSlow63 = float((fSlow7 > 23.0f)); // step: 543
-		int 	iSlow64 = (int(((fSlow5 + (25.0f * fSlow9)) + -1.5f)) & 4095); // step: 556
-		float 	fVeeec117[3];
-		float 	fSlow65 = float((fSlow7 > 25.0f)); // step: 561
-		int 	iSlow66 = (int(((fSlow5 + (27.0f * fSlow9)) + -1.5f)) & 4095); // step: 574
-		float 	fVeeec121[3];
-		float 	fSlow67 = float((fSlow7 > 27.0f)); // step: 579
-		int 	iSlow68 = (int(((fSlow5 + (29.0f * fSlow9)) + -1.5f)) & 4095); // step: 592
-		float 	fVeeec125[3];
-		float 	fSlow69 = float((fSlow7 > 29.0f)); // step: 597
-		int 	iSlow70 = (int(((fSlow5 + (31.0f * fSlow9)) + -1.5f)) & 4095); // step: 610
-		float 	fVeeec129[3];
-		float 	fSlow71 = float((fSlow7 > 31.0f)); // step: 615
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			iVeeec2 = iVeeec2State;
-			fVec0[1] = fVec0State;
-			fVeeec4[1] = fVeeec4State;
-			fVeeec0[1] = fVeeec0State[0];
-			fVeeec0[2] = fVeeec0State[1];
-			fVeeec9[1] = fVeeec9State[0];
-			fVeeec9[2] = fVeeec9State[1];
-			fVeeec13[1] = fVeeec13State[0];
-			fVeeec13[2] = fVeeec13State[1];
-			fVeeec17[1] = fVeeec17State[0];
-			fVeeec17[2] = fVeeec17State[1];
-			fVeeec21[1] = fVeeec21State[0];
-			fVeeec21[2] = fVeeec21State[1];
-			fVeeec25[1] = fVeeec25State[0];
-			fVeeec25[2] = fVeeec25State[1];
-			fVeeec29[1] = fVeeec29State[0];
-			fVeeec29[2] = fVeeec29State[1];
-			fVeeec33[1] = fVeeec33State[0];
-			fVeeec33[2] = fVeeec33State[1];
-			fVeeec37[1] = fVeeec37State[0];
-			fVeeec37[2] = fVeeec37State[1];
-			fVeeec41[1] = fVeeec41State[0];
-			fVeeec41[2] = fVeeec41State[1];
-			fVeeec45[1] = fVeeec45State[0];
-			fVeeec45[2] = fVeeec45State[1];
-			fVeeec49[1] = fVeeec49State[0];
-			fVeeec49[2] = fVeeec49State[1];
-			fVeeec53[1] = fVeeec53State[0];
-			fVeeec53[2] = fVeeec53State[1];
-			fVeeec57[1] = fVeeec57State[0];
-			fVeeec57[2] = fVeeec57State[1];
-			fVeeec61[1] = fVeeec61State[0];
-			fVeeec61[2] = fVeeec61State[1];
-			fVeeec65[1] = fVeeec65State[0];
-			fVeeec65[2] = fVeeec65State[1];
-			fVeeec69[1] = fVeeec69State[0];
-			fVeeec69[2] = fVeeec69State[1];
-			fVeeec73[1] = fVeeec73State[0];
-			fVeeec73[2] = fVeeec73State[1];
-			fVeeec77[1] = fVeeec77State[0];
-			fVeeec77[2] = fVeeec77State[1];
-			fVeeec81[1] = fVeeec81State[0];
-			fVeeec81[2] = fVeeec81State[1];
-			fVeeec85[1] = fVeeec85State[0];
-			fVeeec85[2] = fVeeec85State[1];
-			fVeeec89[1] = fVeeec89State[0];
-			fVeeec89[2] = fVeeec89State[1];
-			fVeeec93[1] = fVeeec93State[0];
-			fVeeec93[2] = fVeeec93State[1];
-			fVeeec97[1] = fVeeec97State[0];
-			fVeeec97[2] = fVeeec97State[1];
-			fVeeec101[1] = fVeeec101State[0];
-			fVeeec101[2] = fVeeec101State[1];
-			fVeeec105[1] = fVeeec105State[0];
-			fVeeec105[2] = fVeeec105State[1];
-			fVeeec109[1] = fVeeec109State[0];
-			fVeeec109[2] = fVeeec109State[1];
-			fVeeec113[1] = fVeeec113State[0];
-			fVeeec113[2] = fVeeec113State[1];
-			fVeeec117[1] = fVeeec117State[0];
-			fVeeec117[2] = fVeeec117State[1];
-			fVeeec121[1] = fVeeec121State[0];
-			fVeeec121[2] = fVeeec121State[1];
-			fVeeec125[1] = fVeeec125State[0];
-			fVeeec125[2] = fVeeec125State[1];
-			fVeeec129[1] = fVeeec129State[0];
-			fVeeec129[2] = fVeeec129State[1];
-			for (int i=0; i<count; i++) {
-				iVeeec2 = ((1103515245 * iVeeec2) + 12345);
-				float 	fTemp0 = fVeeec4[1]; // step: 27
-				fVec0[0] = fSlow4;
-				fVeeec4[0] = ((fTemp0 + float(((fSlow4 - fVec0[1]) > 0.0f))) - (fSlow3 * float((fTemp0 > 0.0f))));
-				float 	fTemp1 = (fSlow2 * (float(iVeeec2) * (float((fVeeec4[0] > 0.0f)) + 1.5258789e-05f))); // step: 46
-				int vIota0 = IOTA&511;
-				fVec1[vIota0] = ((fSlow1 * (fVeeec0[1] + fVeeec0[2])) + fTemp1);
-				int vIota1 = (IOTA-iSlow6)&511;
-				fVeeec0[0] = fVec1[vIota1];
-				int vIota2 = IOTA&2047;
-				fVec2[vIota2] = (fTemp1 + (fSlow1 * (fVeeec9[1] + fVeeec9[2])));
-				int vIota3 = (IOTA-iSlow10)&2047;
-				fVeeec9[0] = fVec2[vIota3];
-				int vIota4 = IOTA&4095;
-				fVec3[vIota4] = (fTemp1 + (fSlow1 * (fVeeec13[1] + fVeeec13[2])));
-				int vIota5 = (IOTA-iSlow12)&4095;
-				fVeeec13[0] = fVec3[vIota5];
-				fVec4[vIota4] = (fTemp1 + (fSlow1 * (fVeeec17[1] + fVeeec17[2])));
-				int vIota6 = (IOTA-iSlow14)&4095;
-				fVeeec17[0] = fVec4[vIota6];
-				fVec5[vIota4] = (fTemp1 + (fSlow1 * (fVeeec21[1] + fVeeec21[2])));
-				int vIota7 = (IOTA-iSlow16)&4095;
-				fVeeec21[0] = fVec5[vIota7];
-				fVec6[vIota4] = (fTemp1 + (fSlow1 * (fVeeec25[1] + fVeeec25[2])));
-				int vIota8 = (IOTA-iSlow18)&4095;
-				fVeeec25[0] = fVec6[vIota8];
-				fVec7[vIota4] = (fTemp1 + (fSlow1 * (fVeeec29[1] + fVeeec29[2])));
-				int vIota9 = (IOTA-iSlow20)&4095;
-				fVeeec29[0] = fVec7[vIota9];
-				fVec8[vIota4] = (fTemp1 + (fSlow1 * (fVeeec33[1] + fVeeec33[2])));
-				int vIota10 = (IOTA-iSlow22)&4095;
-				fVeeec33[0] = fVec8[vIota10];
-				fVec9[vIota4] = (fTemp1 + (fSlow1 * (fVeeec37[1] + fVeeec37[2])));
-				int vIota11 = (IOTA-iSlow24)&4095;
-				fVeeec37[0] = fVec9[vIota11];
-				fVec10[vIota4] = (fTemp1 + (fSlow1 * (fVeeec41[1] + fVeeec41[2])));
-				int vIota12 = (IOTA-iSlow26)&4095;
-				fVeeec41[0] = fVec10[vIota12];
-				fVec11[vIota4] = (fTemp1 + (fSlow1 * (fVeeec45[1] + fVeeec45[2])));
-				int vIota13 = (IOTA-iSlow28)&4095;
-				fVeeec45[0] = fVec11[vIota13];
-				fVec12[vIota4] = (fTemp1 + (fSlow1 * (fVeeec49[1] + fVeeec49[2])));
-				int vIota14 = (IOTA-iSlow30)&4095;
-				fVeeec49[0] = fVec12[vIota14];
-				fVec13[vIota4] = (fTemp1 + (fSlow1 * (fVeeec53[1] + fVeeec53[2])));
-				int vIota15 = (IOTA-iSlow32)&4095;
-				fVeeec53[0] = fVec13[vIota15];
-				fVec14[vIota4] = (fTemp1 + (fSlow1 * (fVeeec57[1] + fVeeec57[2])));
-				int vIota16 = (IOTA-iSlow34)&4095;
-				fVeeec57[0] = fVec14[vIota16];
-				fVec15[vIota4] = (fTemp1 + (fSlow1 * (fVeeec61[1] + fVeeec61[2])));
-				int vIota17 = (IOTA-iSlow36)&4095;
-				fVeeec61[0] = fVec15[vIota17];
-				fVec16[vIota4] = (fTemp1 + (fSlow1 * (fVeeec65[1] + fVeeec65[2])));
-				int vIota18 = (IOTA-iSlow38)&4095;
-				fVeeec65[0] = fVec16[vIota18];
-				int vIota19 = IOTA&1023;
-				fVec17[vIota19] = (fTemp1 + (fSlow1 * (fVeeec69[1] + fVeeec69[2])));
-				int vIota20 = (IOTA-iSlow40)&1023;
-				fVeeec69[0] = fVec17[vIota20];
-				fVec18[vIota2] = (fTemp1 + (fSlow1 * (fVeeec73[1] + fVeeec73[2])));
-				int vIota21 = (IOTA-iSlow42)&2047;
-				fVeeec73[0] = fVec18[vIota21];
-				fVec19[vIota4] = (fTemp1 + (fSlow1 * (fVeeec77[1] + fVeeec77[2])));
-				int vIota22 = (IOTA-iSlow44)&4095;
-				fVeeec77[0] = fVec19[vIota22];
-				fVec20[vIota4] = (fTemp1 + (fSlow1 * (fVeeec81[1] + fVeeec81[2])));
-				int vIota23 = (IOTA-iSlow46)&4095;
-				fVeeec81[0] = fVec20[vIota23];
-				fVec21[vIota4] = (fTemp1 + (fSlow1 * (fVeeec85[1] + fVeeec85[2])));
-				int vIota24 = (IOTA-iSlow48)&4095;
-				fVeeec85[0] = fVec21[vIota24];
-				fVec22[vIota4] = (fTemp1 + (fSlow1 * (fVeeec89[1] + fVeeec89[2])));
-				int vIota25 = (IOTA-iSlow50)&4095;
-				fVeeec89[0] = fVec22[vIota25];
-				fVec23[vIota4] = (fTemp1 + (fSlow1 * (fVeeec93[1] + fVeeec93[2])));
-				int vIota26 = (IOTA-iSlow52)&4095;
-				fVeeec93[0] = fVec23[vIota26];
-				fVec24[vIota4] = (fTemp1 + (fSlow1 * (fVeeec97[1] + fVeeec97[2])));
-				int vIota27 = (IOTA-iSlow54)&4095;
-				fVeeec97[0] = fVec24[vIota27];
-				fVec25[vIota4] = (fTemp1 + (fSlow1 * (fVeeec101[1] + fVeeec101[2])));
-				int vIota28 = (IOTA-iSlow56)&4095;
-				fVeeec101[0] = fVec25[vIota28];
-				fVec26[vIota4] = (fTemp1 + (fSlow1 * (fVeeec105[1] + fVeeec105[2])));
-				int vIota29 = (IOTA-iSlow58)&4095;
-				fVeeec105[0] = fVec26[vIota29];
-				fVec27[vIota4] = (fTemp1 + (fSlow1 * (fVeeec109[1] + fVeeec109[2])));
-				int vIota30 = (IOTA-iSlow60)&4095;
-				fVeeec109[0] = fVec27[vIota30];
-				fVec28[vIota4] = (fTemp1 + (fSlow1 * (fVeeec113[1] + fVeeec113[2])));
-				int vIota31 = (IOTA-iSlow62)&4095;
-				fVeeec113[0] = fVec28[vIota31];
-				fVec29[vIota4] = (fTemp1 + (fSlow1 * (fVeeec117[1] + fVeeec117[2])));
-				int vIota32 = (IOTA-iSlow64)&4095;
-				fVeeec117[0] = fVec29[vIota32];
-				fVec30[vIota4] = (fTemp1 + (fSlow1 * (fVeeec121[1] + fVeeec121[2])));
-				int vIota33 = (IOTA-iSlow66)&4095;
-				fVeeec121[0] = fVec30[vIota33];
-				fVec31[vIota4] = (fTemp1 + (fSlow1 * (fVeeec125[1] + fVeeec125[2])));
-				int vIota34 = (IOTA-iSlow68)&4095;
-				fVeeec125[0] = fVec31[vIota34];
-				fVec32[vIota4] = (fTemp1 + (fSlow1 * (fVeeec129[1] + fVeeec129[2])));
-				int vIota35 = (IOTA-iSlow70)&4095;
-				fVeeec129[0] = fVec32[vIota35];
-				output0[i] = (FAUSTFLOAT)((fSlow0 * ((((((((((((((((fSlow8 * fVeeec0[0]) + (fSlow11 * fVeeec9[0])) + (fSlow13 * fVeeec13[0])) + (fSlow15 * fVeeec17[0])) + (fSlow17 * fVeeec21[0])) + (fSlow19 * fVeeec25[0])) + (fSlow21 * fVeeec29[0])) + (fSlow23 * fVeeec33[0])) + (fSlow25 * fVeeec37[0])) + (fSlow27 * fVeeec41[0])) + (fSlow29 * fVeeec45[0])) + (fSlow31 * fVeeec49[0])) + (fSlow33 * fVeeec53[0])) + (fSlow35 * fVeeec57[0])) + (fSlow37 * fVeeec61[0])) + (fSlow39 * fVeeec65[0]))));  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)((fSlow0 * ((((((((((((((((fSlow41 * fVeeec69[0]) + (fSlow43 * fVeeec73[0])) + (fSlow45 * fVeeec77[0])) + (fSlow47 * fVeeec81[0])) + (fSlow49 * fVeeec85[0])) + (fSlow51 * fVeeec89[0])) + (fSlow53 * fVeeec93[0])) + (fSlow55 * fVeeec97[0])) + (fSlow57 * fVeeec101[0])) + (fSlow59 * fVeeec105[0])) + (fSlow61 * fVeeec109[0])) + (fSlow63 * fVeeec113[0])) + (fSlow65 * fVeeec117[0])) + (fSlow67 * fVeeec121[0])) + (fSlow69 * fVeeec125[0])) + (fSlow71 * fVeeec129[0]))));  // Zone Exec Code
-				// post processing
-				IOTA = IOTA+1;
-				fVeeec129[2] = fVeeec129[1];
-				fVeeec129[1] = fVeeec129[0];
-				fVeeec125[2] = fVeeec125[1];
-				fVeeec125[1] = fVeeec125[0];
-				fVeeec121[2] = fVeeec121[1];
-				fVeeec121[1] = fVeeec121[0];
-				fVeeec117[2] = fVeeec117[1];
-				fVeeec117[1] = fVeeec117[0];
-				fVeeec113[2] = fVeeec113[1];
-				fVeeec113[1] = fVeeec113[0];
-				fVeeec109[2] = fVeeec109[1];
-				fVeeec109[1] = fVeeec109[0];
-				fVeeec105[2] = fVeeec105[1];
-				fVeeec105[1] = fVeeec105[0];
-				fVeeec101[2] = fVeeec101[1];
-				fVeeec101[1] = fVeeec101[0];
-				fVeeec97[2] = fVeeec97[1];
-				fVeeec97[1] = fVeeec97[0];
-				fVeeec93[2] = fVeeec93[1];
-				fVeeec93[1] = fVeeec93[0];
-				fVeeec89[2] = fVeeec89[1];
-				fVeeec89[1] = fVeeec89[0];
-				fVeeec85[2] = fVeeec85[1];
-				fVeeec85[1] = fVeeec85[0];
-				fVeeec81[2] = fVeeec81[1];
-				fVeeec81[1] = fVeeec81[0];
-				fVeeec77[2] = fVeeec77[1];
-				fVeeec77[1] = fVeeec77[0];
-				fVeeec73[2] = fVeeec73[1];
-				fVeeec73[1] = fVeeec73[0];
-				fVeeec69[2] = fVeeec69[1];
-				fVeeec69[1] = fVeeec69[0];
-				fVeeec65[2] = fVeeec65[1];
-				fVeeec65[1] = fVeeec65[0];
-				fVeeec61[2] = fVeeec61[1];
-				fVeeec61[1] = fVeeec61[0];
-				fVeeec57[2] = fVeeec57[1];
-				fVeeec57[1] = fVeeec57[0];
-				fVeeec53[2] = fVeeec53[1];
-				fVeeec53[1] = fVeeec53[0];
-				fVeeec49[2] = fVeeec49[1];
-				fVeeec49[1] = fVeeec49[0];
-				fVeeec45[2] = fVeeec45[1];
-				fVeeec45[1] = fVeeec45[0];
-				fVeeec41[2] = fVeeec41[1];
-				fVeeec41[1] = fVeeec41[0];
-				fVeeec37[2] = fVeeec37[1];
-				fVeeec37[1] = fVeeec37[0];
-				fVeeec33[2] = fVeeec33[1];
-				fVeeec33[1] = fVeeec33[0];
-				fVeeec29[2] = fVeeec29[1];
-				fVeeec29[1] = fVeeec29[0];
-				fVeeec25[2] = fVeeec25[1];
-				fVeeec25[1] = fVeeec25[0];
-				fVeeec21[2] = fVeeec21[1];
-				fVeeec21[1] = fVeeec21[0];
-				fVeeec17[2] = fVeeec17[1];
-				fVeeec17[1] = fVeeec17[0];
-				fVeeec13[2] = fVeeec13[1];
-				fVeeec13[1] = fVeeec13[0];
-				fVeeec9[2] = fVeeec9[1];
-				fVeeec9[1] = fVeeec9[0];
-				fVeeec0[2] = fVeeec0[1];
-				fVeeec0[1] = fVeeec0[0];
-				fVeeec4[1] = fVeeec4[0];
-				fVec0[1] = fVec0[0];
-			}
-			iVeeec2State = iVeeec2;
-			fVec0State = fVec0[1];
-			fVeeec4State = fVeeec4[1];
-			fVeeec0State[0] = fVeeec0[1];
-			fVeeec0State[1] = fVeeec0[2];
-			fVeeec9State[0] = fVeeec9[1];
-			fVeeec9State[1] = fVeeec9[2];
-			fVeeec13State[0] = fVeeec13[1];
-			fVeeec13State[1] = fVeeec13[2];
-			fVeeec17State[0] = fVeeec17[1];
-			fVeeec17State[1] = fVeeec17[2];
-			fVeeec21State[0] = fVeeec21[1];
-			fVeeec21State[1] = fVeeec21[2];
-			fVeeec25State[0] = fVeeec25[1];
-			fVeeec25State[1] = fVeeec25[2];
-			fVeeec29State[0] = fVeeec29[1];
-			fVeeec29State[1] = fVeeec29[2];
-			fVeeec33State[0] = fVeeec33[1];
-			fVeeec33State[1] = fVeeec33[2];
-			fVeeec37State[0] = fVeeec37[1];
-			fVeeec37State[1] = fVeeec37[2];
-			fVeeec41State[0] = fVeeec41[1];
-			fVeeec41State[1] = fVeeec41[2];
-			fVeeec45State[0] = fVeeec45[1];
-			fVeeec45State[1] = fVeeec45[2];
-			fVeeec49State[0] = fVeeec49[1];
-			fVeeec49State[1] = fVeeec49[2];
-			fVeeec53State[0] = fVeeec53[1];
-			fVeeec53State[1] = fVeeec53[2];
-			fVeeec57State[0] = fVeeec57[1];
-			fVeeec57State[1] = fVeeec57[2];
-			fVeeec61State[0] = fVeeec61[1];
-			fVeeec61State[1] = fVeeec61[2];
-			fVeeec65State[0] = fVeeec65[1];
-			fVeeec65State[1] = fVeeec65[2];
-			fVeeec69State[0] = fVeeec69[1];
-			fVeeec69State[1] = fVeeec69[2];
-			fVeeec73State[0] = fVeeec73[1];
-			fVeeec73State[1] = fVeeec73[2];
-			fVeeec77State[0] = fVeeec77[1];
-			fVeeec77State[1] = fVeeec77[2];
-			fVeeec81State[0] = fVeeec81[1];
-			fVeeec81State[1] = fVeeec81[2];
-			fVeeec85State[0] = fVeeec85[1];
-			fVeeec85State[1] = fVeeec85[2];
-			fVeeec89State[0] = fVeeec89[1];
-			fVeeec89State[1] = fVeeec89[2];
-			fVeeec93State[0] = fVeeec93[1];
-			fVeeec93State[1] = fVeeec93[2];
-			fVeeec97State[0] = fVeeec97[1];
-			fVeeec97State[1] = fVeeec97[2];
-			fVeeec101State[0] = fVeeec101[1];
-			fVeeec101State[1] = fVeeec101[2];
-			fVeeec105State[0] = fVeeec105[1];
-			fVeeec105State[1] = fVeeec105[2];
-			fVeeec109State[0] = fVeeec109[1];
-			fVeeec109State[1] = fVeeec109[2];
-			fVeeec113State[0] = fVeeec113[1];
-			fVeeec113State[1] = fVeeec113[2];
-			fVeeec117State[0] = fVeeec117[1];
-			fVeeec117State[1] = fVeeec117[2];
-			fVeeec121State[0] = fVeeec121[1];
-			fVeeec121State[1] = fVeeec121[2];
-			fVeeec125State[0] = fVeeec125[1];
-			fVeeec125State[1] = fVeeec125[2];
-			fVeeec129State[0] = fVeeec129[1];
-			fVeeec129State[1] = fVeeec129[2];
+		float 	fSlow0BE = float(fbutton0); // Zone 2, step: 1
+		float 	fVec0BE[2];
+		float 	fSlow1BE = (0.5f * (1.0f + -float(fslider0) /* Sum */)); // Zone 2, step: 11
+		float 	fSlow2BE = (4.656613e-10f * float(fslider1)); // Zone 2, step: 22
+		int 	iVec3SI[2];
+		float 	fTemp0SE; // step: 35
+		float 	fSlow3BE = (1.0f / float(fslider2)); // Zone 2, step: 45
+		float 	fVec5SE[2];
+		float 	fTemp1SE; // step: 57
+		float 	fSlow4BE = float(fslider3); // Zone 2, step: 62
+		int 	iSlow5BE = (int((fSlow4BE + -1.5f /* Sum */)) & 4095); // Zone 2, step: 65
+		float 	fVec1SE[2];
+		float 	fVec2SE[3];
+		float 	fSlow6BE = float(fslider4); // Zone 2, step: 77
+		int 	iSlow7BE = (int((fSlow4BE + (2.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 81
+		float 	fVec11SE[2];
+		float 	fVec12SE[3];
+		int 	iSlow8BE = (int((fSlow4BE + (4.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 96
+		float 	fVec16SE[2];
+		float 	fVec17SE[3];
+		int 	iSlow9BE = (int((fSlow4BE + (6.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 111
+		float 	fVec21SE[2];
+		float 	fVec22SE[3];
+		int 	iSlow10BE = (int((fSlow4BE + (8.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 126
+		float 	fVec26SE[2];
+		float 	fVec27SE[3];
+		int 	iSlow11BE = (int((fSlow4BE + (1e+01f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 141
+		float 	fVec31SE[2];
+		float 	fVec32SE[3];
+		int 	iSlow12BE = (int((fSlow4BE + (12.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 156
+		float 	fVec36SE[2];
+		float 	fVec37SE[3];
+		int 	iSlow13BE = (int((fSlow4BE + (14.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 171
+		float 	fVec41SE[2];
+		float 	fVec42SE[3];
+		int 	iSlow14BE = (int((fSlow4BE + (16.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 186
+		float 	fVec46SE[2];
+		float 	fVec47SE[3];
+		int 	iSlow15BE = (int((fSlow4BE + (18.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 201
+		float 	fVec51SE[2];
+		float 	fVec52SE[3];
+		int 	iSlow16BE = (int((fSlow4BE + (2e+01f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 216
+		float 	fVec56SE[2];
+		float 	fVec57SE[3];
+		int 	iSlow17BE = (int((fSlow4BE + (22.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 231
+		float 	fVec61SE[2];
+		float 	fVec62SE[3];
+		int 	iSlow18BE = (int((fSlow4BE + (24.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 246
+		float 	fVec66SE[2];
+		float 	fVec67SE[3];
+		int 	iSlow19BE = (int((fSlow4BE + (26.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 261
+		float 	fVec71SE[2];
+		float 	fVec72SE[3];
+		int 	iSlow20BE = (int((fSlow4BE + (28.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 276
+		float 	fVec76SE[2];
+		float 	fVec77SE[3];
+		int 	iSlow21BE = (int((fSlow4BE + (3e+01f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 291
+		float 	fVec81SE[2];
+		float 	fVec82SE[3];
+		float 	fSlow22BE = float(fslider5); // Zone 2, step: 296
+		float 	fSlow23BE = float(fslider6); // Zone 2, step: 298
+		float 	fSlow24BE = float((fSlow23BE > 0.0f)); // Zone 2, step: 300
+		float 	fSlow25BE = float((fSlow23BE > 2.0f)); // Zone 2, step: 304
+		float 	fSlow26BE = float((fSlow23BE > 4.0f)); // Zone 2, step: 308
+		float 	fSlow27BE = float((fSlow23BE > 6.0f)); // Zone 2, step: 312
+		float 	fSlow28BE = float((fSlow23BE > 8.0f)); // Zone 2, step: 316
+		float 	fSlow29BE = float((fSlow23BE > 1e+01f)); // Zone 2, step: 320
+		float 	fSlow30BE = float((fSlow23BE > 12.0f)); // Zone 2, step: 324
+		float 	fSlow31BE = float((fSlow23BE > 14.0f)); // Zone 2, step: 328
+		float 	fSlow32BE = float((fSlow23BE > 16.0f)); // Zone 2, step: 332
+		float 	fSlow33BE = float((fSlow23BE > 18.0f)); // Zone 2, step: 336
+		float 	fSlow34BE = float((fSlow23BE > 2e+01f)); // Zone 2, step: 340
+		float 	fSlow35BE = float((fSlow23BE > 22.0f)); // Zone 2, step: 344
+		float 	fSlow36BE = float((fSlow23BE > 24.0f)); // Zone 2, step: 348
+		float 	fSlow37BE = float((fSlow23BE > 26.0f)); // Zone 2, step: 352
+		float 	fSlow38BE = float((fSlow23BE > 28.0f)); // Zone 2, step: 356
+		float 	fSlow39BE = float((fSlow23BE > 3e+01f)); // Zone 2, step: 360
+		int 	iSlow40BE = (int((fSlow4BE + fSlow6BE + -1.5f /* Sum */)) & 4095); // Zone 2, step: 374
+		float 	fVec102SE[2];
+		float 	fVec103SE[3];
+		int 	iSlow41BE = (int((fSlow4BE + (3.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 389
+		float 	fVec107SE[2];
+		float 	fVec108SE[3];
+		int 	iSlow42BE = (int((fSlow4BE + (5.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 404
+		float 	fVec112SE[2];
+		float 	fVec113SE[3];
+		int 	iSlow43BE = (int((fSlow4BE + (7.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 419
+		float 	fVec117SE[2];
+		float 	fVec118SE[3];
+		int 	iSlow44BE = (int((fSlow4BE + (9.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 434
+		float 	fVec122SE[2];
+		float 	fVec123SE[3];
+		int 	iSlow45BE = (int((fSlow4BE + (11.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 449
+		float 	fVec127SE[2];
+		float 	fVec128SE[3];
+		int 	iSlow46BE = (int((fSlow4BE + (13.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 464
+		float 	fVec132SE[2];
+		float 	fVec133SE[3];
+		int 	iSlow47BE = (int((fSlow4BE + (15.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 479
+		float 	fVec137SE[2];
+		float 	fVec138SE[3];
+		int 	iSlow48BE = (int((fSlow4BE + (17.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 494
+		float 	fVec142SE[2];
+		float 	fVec143SE[3];
+		int 	iSlow49BE = (int((fSlow4BE + (19.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 509
+		float 	fVec147SE[2];
+		float 	fVec148SE[3];
+		int 	iSlow50BE = (int((fSlow4BE + (21.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 524
+		float 	fVec152SE[2];
+		float 	fVec153SE[3];
+		int 	iSlow51BE = (int((fSlow4BE + (23.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 539
+		float 	fVec157SE[2];
+		float 	fVec158SE[3];
+		int 	iSlow52BE = (int((fSlow4BE + (25.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 554
+		float 	fVec162SE[2];
+		float 	fVec163SE[3];
+		int 	iSlow53BE = (int((fSlow4BE + (27.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 569
+		float 	fVec167SE[2];
+		float 	fVec168SE[3];
+		int 	iSlow54BE = (int((fSlow4BE + (29.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 584
+		float 	fVec172SE[2];
+		float 	fVec173SE[3];
+		int 	iSlow55BE = (int((fSlow4BE + (31.0f * fSlow6BE) + -1.5f /* Sum */)) & 4095); // Zone 2, step: 599
+		float 	fVec177SE[2];
+		float 	fVec178SE[3];
+		float 	fSlow56BE = float((fSlow23BE > 1.0f)); // Zone 2, step: 604
+		float 	fSlow57BE = float((fSlow23BE > 3.0f)); // Zone 2, step: 608
+		float 	fSlow58BE = float((fSlow23BE > 5.0f)); // Zone 2, step: 612
+		float 	fSlow59BE = float((fSlow23BE > 7.0f)); // Zone 2, step: 616
+		float 	fSlow60BE = float((fSlow23BE > 9.0f)); // Zone 2, step: 620
+		float 	fSlow61BE = float((fSlow23BE > 11.0f)); // Zone 2, step: 624
+		float 	fSlow62BE = float((fSlow23BE > 13.0f)); // Zone 2, step: 628
+		float 	fSlow63BE = float((fSlow23BE > 15.0f)); // Zone 2, step: 632
+		float 	fSlow64BE = float((fSlow23BE > 17.0f)); // Zone 2, step: 636
+		float 	fSlow65BE = float((fSlow23BE > 19.0f)); // Zone 2, step: 640
+		float 	fSlow66BE = float((fSlow23BE > 21.0f)); // Zone 2, step: 644
+		float 	fSlow67BE = float((fSlow23BE > 23.0f)); // Zone 2, step: 648
+		float 	fSlow68BE = float((fSlow23BE > 25.0f)); // Zone 2, step: 652
+		float 	fSlow69BE = float((fSlow23BE > 27.0f)); // Zone 2, step: 656
+		float 	fSlow70BE = float((fSlow23BE > 29.0f)); // Zone 2, step: 660
+		float 	fSlow71BE = float((fSlow23BE > 31.0f)); // Zone 2, step: 664
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		FAUSTFLOAT* output1 = output[1]; // Zone 3
+		fVec0BE[1] = fVec0BEState;
+		iVec3SI[1] = iVec3SIState;
+		fVec5SE[1] = fVec5SEState;
+		fVec1SE[1] = fVec1SEState;
+		fVec2SE[1] = fVec2SEState[0];
+		fVec2SE[2] = fVec2SEState[1];
+		fVec11SE[1] = fVec11SEState;
+		fVec12SE[1] = fVec12SEState[0];
+		fVec12SE[2] = fVec12SEState[1];
+		fVec16SE[1] = fVec16SEState;
+		fVec17SE[1] = fVec17SEState[0];
+		fVec17SE[2] = fVec17SEState[1];
+		fVec21SE[1] = fVec21SEState;
+		fVec22SE[1] = fVec22SEState[0];
+		fVec22SE[2] = fVec22SEState[1];
+		fVec26SE[1] = fVec26SEState;
+		fVec27SE[1] = fVec27SEState[0];
+		fVec27SE[2] = fVec27SEState[1];
+		fVec31SE[1] = fVec31SEState;
+		fVec32SE[1] = fVec32SEState[0];
+		fVec32SE[2] = fVec32SEState[1];
+		fVec36SE[1] = fVec36SEState;
+		fVec37SE[1] = fVec37SEState[0];
+		fVec37SE[2] = fVec37SEState[1];
+		fVec41SE[1] = fVec41SEState;
+		fVec42SE[1] = fVec42SEState[0];
+		fVec42SE[2] = fVec42SEState[1];
+		fVec46SE[1] = fVec46SEState;
+		fVec47SE[1] = fVec47SEState[0];
+		fVec47SE[2] = fVec47SEState[1];
+		fVec51SE[1] = fVec51SEState;
+		fVec52SE[1] = fVec52SEState[0];
+		fVec52SE[2] = fVec52SEState[1];
+		fVec56SE[1] = fVec56SEState;
+		fVec57SE[1] = fVec57SEState[0];
+		fVec57SE[2] = fVec57SEState[1];
+		fVec61SE[1] = fVec61SEState;
+		fVec62SE[1] = fVec62SEState[0];
+		fVec62SE[2] = fVec62SEState[1];
+		fVec66SE[1] = fVec66SEState;
+		fVec67SE[1] = fVec67SEState[0];
+		fVec67SE[2] = fVec67SEState[1];
+		fVec71SE[1] = fVec71SEState;
+		fVec72SE[1] = fVec72SEState[0];
+		fVec72SE[2] = fVec72SEState[1];
+		fVec76SE[1] = fVec76SEState;
+		fVec77SE[1] = fVec77SEState[0];
+		fVec77SE[2] = fVec77SEState[1];
+		fVec81SE[1] = fVec81SEState;
+		fVec82SE[1] = fVec82SEState[0];
+		fVec82SE[2] = fVec82SEState[1];
+		fVec102SE[1] = fVec102SEState;
+		fVec103SE[1] = fVec103SEState[0];
+		fVec103SE[2] = fVec103SEState[1];
+		fVec107SE[1] = fVec107SEState;
+		fVec108SE[1] = fVec108SEState[0];
+		fVec108SE[2] = fVec108SEState[1];
+		fVec112SE[1] = fVec112SEState;
+		fVec113SE[1] = fVec113SEState[0];
+		fVec113SE[2] = fVec113SEState[1];
+		fVec117SE[1] = fVec117SEState;
+		fVec118SE[1] = fVec118SEState[0];
+		fVec118SE[2] = fVec118SEState[1];
+		fVec122SE[1] = fVec122SEState;
+		fVec123SE[1] = fVec123SEState[0];
+		fVec123SE[2] = fVec123SEState[1];
+		fVec127SE[1] = fVec127SEState;
+		fVec128SE[1] = fVec128SEState[0];
+		fVec128SE[2] = fVec128SEState[1];
+		fVec132SE[1] = fVec132SEState;
+		fVec133SE[1] = fVec133SEState[0];
+		fVec133SE[2] = fVec133SEState[1];
+		fVec137SE[1] = fVec137SEState;
+		fVec138SE[1] = fVec138SEState[0];
+		fVec138SE[2] = fVec138SEState[1];
+		fVec142SE[1] = fVec142SEState;
+		fVec143SE[1] = fVec143SEState[0];
+		fVec143SE[2] = fVec143SEState[1];
+		fVec147SE[1] = fVec147SEState;
+		fVec148SE[1] = fVec148SEState[0];
+		fVec148SE[2] = fVec148SEState[1];
+		fVec152SE[1] = fVec152SEState;
+		fVec153SE[1] = fVec153SEState[0];
+		fVec153SE[2] = fVec153SEState[1];
+		fVec157SE[1] = fVec157SEState;
+		fVec158SE[1] = fVec158SEState[0];
+		fVec158SE[2] = fVec158SEState[1];
+		fVec162SE[1] = fVec162SEState;
+		fVec163SE[1] = fVec163SEState[0];
+		fVec163SE[2] = fVec163SEState[1];
+		fVec167SE[1] = fVec167SEState;
+		fVec168SE[1] = fVec168SEState[0];
+		fVec168SE[2] = fVec168SEState[1];
+		fVec172SE[1] = fVec172SEState;
+		fVec173SE[1] = fVec173SEState[0];
+		fVec173SE[2] = fVec173SEState[1];
+		fVec177SE[1] = fVec177SEState;
+		fVec178SE[1] = fVec178SEState[0];
+		fVec178SE[2] = fVec178SEState[1];
+		for (int i=0; i<count; i++) {
+			fVec0BE[0] = fSlow0BE;
+			iVec3SI[0] = ((1103515245 * iVec3SI[1]) + 12345 /* Sum */);
+			fTemp0SE = fVec5SE[1]; // step: 35
+			fVec5SE[0] = (fTemp0SE + float(((fSlow0BE + -fVec0BE[1] /* Sum */) > 0.0f)) + -(fSlow3BE * float((fTemp0SE > 0.0f))) /* Sum */);
+			fTemp1SE = (fSlow2BE * (float(iVec3SI[0]) * (float((fVec5SE[0] > 0.0f)) + 1.5258789e-05f /* Sum */))); // step: 57
+			fVec8SE[IOTA0&511] = ((fSlow1BE * (fVec1SE[1] + fVec2SE[2] /* Sum */)) + fTemp1SE /* Sum */);
+			fVec1SE[0] = fVec8SE[(IOTA0-iSlow5BE)&511];
+			fVec2SE[0] = fVec1SE[0];
+			fVec13SE[IOTA0&2047] = (fTemp1SE + (fSlow1BE * (fVec11SE[1] + fVec12SE[2] /* Sum */)) /* Sum */);
+			fVec11SE[0] = fVec13SE[(IOTA0-iSlow7BE)&2047];
+			fVec12SE[0] = fVec11SE[0];
+			fVec18SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec16SE[1] + fVec17SE[2] /* Sum */)) /* Sum */);
+			fVec16SE[0] = fVec18SE[(IOTA0-iSlow8BE)&4095];
+			fVec17SE[0] = fVec16SE[0];
+			fVec23SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec21SE[1] + fVec22SE[2] /* Sum */)) /* Sum */);
+			fVec21SE[0] = fVec23SE[(IOTA0-iSlow9BE)&4095];
+			fVec22SE[0] = fVec21SE[0];
+			fVec28SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec26SE[1] + fVec27SE[2] /* Sum */)) /* Sum */);
+			fVec26SE[0] = fVec28SE[(IOTA0-iSlow10BE)&4095];
+			fVec27SE[0] = fVec26SE[0];
+			fVec33SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec31SE[1] + fVec32SE[2] /* Sum */)) /* Sum */);
+			fVec31SE[0] = fVec33SE[(IOTA0-iSlow11BE)&4095];
+			fVec32SE[0] = fVec31SE[0];
+			fVec38SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec36SE[1] + fVec37SE[2] /* Sum */)) /* Sum */);
+			fVec36SE[0] = fVec38SE[(IOTA0-iSlow12BE)&4095];
+			fVec37SE[0] = fVec36SE[0];
+			fVec43SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec41SE[1] + fVec42SE[2] /* Sum */)) /* Sum */);
+			fVec41SE[0] = fVec43SE[(IOTA0-iSlow13BE)&4095];
+			fVec42SE[0] = fVec41SE[0];
+			fVec48SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec46SE[1] + fVec47SE[2] /* Sum */)) /* Sum */);
+			fVec46SE[0] = fVec48SE[(IOTA0-iSlow14BE)&4095];
+			fVec47SE[0] = fVec46SE[0];
+			fVec53SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec51SE[1] + fVec52SE[2] /* Sum */)) /* Sum */);
+			fVec51SE[0] = fVec53SE[(IOTA0-iSlow15BE)&4095];
+			fVec52SE[0] = fVec51SE[0];
+			fVec58SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec56SE[1] + fVec57SE[2] /* Sum */)) /* Sum */);
+			fVec56SE[0] = fVec58SE[(IOTA0-iSlow16BE)&4095];
+			fVec57SE[0] = fVec56SE[0];
+			fVec63SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec61SE[1] + fVec62SE[2] /* Sum */)) /* Sum */);
+			fVec61SE[0] = fVec63SE[(IOTA0-iSlow17BE)&4095];
+			fVec62SE[0] = fVec61SE[0];
+			fVec68SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec66SE[1] + fVec67SE[2] /* Sum */)) /* Sum */);
+			fVec66SE[0] = fVec68SE[(IOTA0-iSlow18BE)&4095];
+			fVec67SE[0] = fVec66SE[0];
+			fVec73SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec71SE[1] + fVec72SE[2] /* Sum */)) /* Sum */);
+			fVec71SE[0] = fVec73SE[(IOTA0-iSlow19BE)&4095];
+			fVec72SE[0] = fVec71SE[0];
+			fVec78SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec76SE[1] + fVec77SE[2] /* Sum */)) /* Sum */);
+			fVec76SE[0] = fVec78SE[(IOTA0-iSlow20BE)&4095];
+			fVec77SE[0] = fVec76SE[0];
+			fVec83SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec81SE[1] + fVec82SE[2] /* Sum */)) /* Sum */);
+			fVec81SE[0] = fVec83SE[(IOTA0-iSlow21BE)&4095];
+			fVec82SE[0] = fVec81SE[0];
+			fVec104SE[IOTA0&1023] = (fTemp1SE + (fSlow1BE * (fVec102SE[1] + fVec103SE[2] /* Sum */)) /* Sum */);
+			fVec102SE[0] = fVec104SE[(IOTA0-iSlow40BE)&1023];
+			fVec103SE[0] = fVec102SE[0];
+			fVec109SE[IOTA0&2047] = (fTemp1SE + (fSlow1BE * (fVec107SE[1] + fVec108SE[2] /* Sum */)) /* Sum */);
+			fVec107SE[0] = fVec109SE[(IOTA0-iSlow41BE)&2047];
+			fVec108SE[0] = fVec107SE[0];
+			fVec114SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec112SE[1] + fVec113SE[2] /* Sum */)) /* Sum */);
+			fVec112SE[0] = fVec114SE[(IOTA0-iSlow42BE)&4095];
+			fVec113SE[0] = fVec112SE[0];
+			fVec119SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec117SE[1] + fVec118SE[2] /* Sum */)) /* Sum */);
+			fVec117SE[0] = fVec119SE[(IOTA0-iSlow43BE)&4095];
+			fVec118SE[0] = fVec117SE[0];
+			fVec124SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec122SE[1] + fVec123SE[2] /* Sum */)) /* Sum */);
+			fVec122SE[0] = fVec124SE[(IOTA0-iSlow44BE)&4095];
+			fVec123SE[0] = fVec122SE[0];
+			fVec129SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec127SE[1] + fVec128SE[2] /* Sum */)) /* Sum */);
+			fVec127SE[0] = fVec129SE[(IOTA0-iSlow45BE)&4095];
+			fVec128SE[0] = fVec127SE[0];
+			fVec134SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec132SE[1] + fVec133SE[2] /* Sum */)) /* Sum */);
+			fVec132SE[0] = fVec134SE[(IOTA0-iSlow46BE)&4095];
+			fVec133SE[0] = fVec132SE[0];
+			fVec139SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec137SE[1] + fVec138SE[2] /* Sum */)) /* Sum */);
+			fVec137SE[0] = fVec139SE[(IOTA0-iSlow47BE)&4095];
+			fVec138SE[0] = fVec137SE[0];
+			fVec144SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec142SE[1] + fVec143SE[2] /* Sum */)) /* Sum */);
+			fVec142SE[0] = fVec144SE[(IOTA0-iSlow48BE)&4095];
+			fVec143SE[0] = fVec142SE[0];
+			fVec149SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec147SE[1] + fVec148SE[2] /* Sum */)) /* Sum */);
+			fVec147SE[0] = fVec149SE[(IOTA0-iSlow49BE)&4095];
+			fVec148SE[0] = fVec147SE[0];
+			fVec154SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec152SE[1] + fVec153SE[2] /* Sum */)) /* Sum */);
+			fVec152SE[0] = fVec154SE[(IOTA0-iSlow50BE)&4095];
+			fVec153SE[0] = fVec152SE[0];
+			fVec159SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec157SE[1] + fVec158SE[2] /* Sum */)) /* Sum */);
+			fVec157SE[0] = fVec159SE[(IOTA0-iSlow51BE)&4095];
+			fVec158SE[0] = fVec157SE[0];
+			fVec164SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec162SE[1] + fVec163SE[2] /* Sum */)) /* Sum */);
+			fVec162SE[0] = fVec164SE[(IOTA0-iSlow52BE)&4095];
+			fVec163SE[0] = fVec162SE[0];
+			fVec169SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec167SE[1] + fVec168SE[2] /* Sum */)) /* Sum */);
+			fVec167SE[0] = fVec169SE[(IOTA0-iSlow53BE)&4095];
+			fVec168SE[0] = fVec167SE[0];
+			fVec174SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec172SE[1] + fVec173SE[2] /* Sum */)) /* Sum */);
+			fVec172SE[0] = fVec174SE[(IOTA0-iSlow54BE)&4095];
+			fVec173SE[0] = fVec172SE[0];
+			fVec179SE[IOTA0&4095] = (fTemp1SE + (fSlow1BE * (fVec177SE[1] + fVec178SE[2] /* Sum */)) /* Sum */);
+			fVec177SE[0] = fVec179SE[(IOTA0-iSlow55BE)&4095];
+			fVec178SE[0] = fVec177SE[0];
+			output0[i] = (FAUSTFLOAT)((fSlow22BE * ((fSlow24BE * fVec1SE[0]) + (fSlow25BE * fVec11SE[0]) + (fSlow26BE * fVec16SE[0]) + (fSlow27BE * fVec21SE[0]) + (fSlow28BE * fVec26SE[0]) + (fSlow29BE * fVec31SE[0]) + (fSlow30BE * fVec36SE[0]) + (fSlow31BE * fVec41SE[0]) + (fSlow32BE * fVec46SE[0]) + (fSlow33BE * fVec51SE[0]) + (fSlow34BE * fVec56SE[0]) + (fSlow35BE * fVec61SE[0]) + (fSlow36BE * fVec66SE[0]) + (fSlow37BE * fVec71SE[0]) + (fSlow38BE * fVec76SE[0]) + (fSlow39BE * fVec81SE[0]) /* Sum */)));  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)((fSlow22BE * ((fSlow56BE * fVec102SE[0]) + (fSlow57BE * fVec107SE[0]) + (fSlow58BE * fVec112SE[0]) + (fSlow59BE * fVec117SE[0]) + (fSlow60BE * fVec122SE[0]) + (fSlow61BE * fVec127SE[0]) + (fSlow62BE * fVec132SE[0]) + (fSlow63BE * fVec137SE[0]) + (fSlow64BE * fVec142SE[0]) + (fSlow65BE * fVec147SE[0]) + (fSlow66BE * fVec152SE[0]) + (fSlow67BE * fVec157SE[0]) + (fSlow68BE * fVec162SE[0]) + (fSlow69BE * fVec167SE[0]) + (fSlow70BE * fVec172SE[0]) + (fSlow71BE * fVec177SE[0]) /* Sum */)));  // Zone Exec Code
+			// post processing
+			fVec178SE[2] = fVec178SE[1];
+			fVec178SE[1] = fVec178SE[0];
+			fVec177SE[1] = fVec177SE[0];
+			fVec173SE[2] = fVec173SE[1];
+			fVec173SE[1] = fVec173SE[0];
+			fVec172SE[1] = fVec172SE[0];
+			fVec168SE[2] = fVec168SE[1];
+			fVec168SE[1] = fVec168SE[0];
+			fVec167SE[1] = fVec167SE[0];
+			fVec163SE[2] = fVec163SE[1];
+			fVec163SE[1] = fVec163SE[0];
+			fVec162SE[1] = fVec162SE[0];
+			fVec158SE[2] = fVec158SE[1];
+			fVec158SE[1] = fVec158SE[0];
+			fVec157SE[1] = fVec157SE[0];
+			fVec153SE[2] = fVec153SE[1];
+			fVec153SE[1] = fVec153SE[0];
+			fVec152SE[1] = fVec152SE[0];
+			fVec148SE[2] = fVec148SE[1];
+			fVec148SE[1] = fVec148SE[0];
+			fVec147SE[1] = fVec147SE[0];
+			fVec143SE[2] = fVec143SE[1];
+			fVec143SE[1] = fVec143SE[0];
+			fVec142SE[1] = fVec142SE[0];
+			fVec138SE[2] = fVec138SE[1];
+			fVec138SE[1] = fVec138SE[0];
+			fVec137SE[1] = fVec137SE[0];
+			fVec133SE[2] = fVec133SE[1];
+			fVec133SE[1] = fVec133SE[0];
+			fVec132SE[1] = fVec132SE[0];
+			fVec128SE[2] = fVec128SE[1];
+			fVec128SE[1] = fVec128SE[0];
+			fVec127SE[1] = fVec127SE[0];
+			fVec123SE[2] = fVec123SE[1];
+			fVec123SE[1] = fVec123SE[0];
+			fVec122SE[1] = fVec122SE[0];
+			fVec118SE[2] = fVec118SE[1];
+			fVec118SE[1] = fVec118SE[0];
+			fVec117SE[1] = fVec117SE[0];
+			fVec113SE[2] = fVec113SE[1];
+			fVec113SE[1] = fVec113SE[0];
+			fVec112SE[1] = fVec112SE[0];
+			fVec108SE[2] = fVec108SE[1];
+			fVec108SE[1] = fVec108SE[0];
+			fVec107SE[1] = fVec107SE[0];
+			fVec103SE[2] = fVec103SE[1];
+			fVec103SE[1] = fVec103SE[0];
+			fVec102SE[1] = fVec102SE[0];
+			fVec82SE[2] = fVec82SE[1];
+			fVec82SE[1] = fVec82SE[0];
+			fVec81SE[1] = fVec81SE[0];
+			fVec77SE[2] = fVec77SE[1];
+			fVec77SE[1] = fVec77SE[0];
+			fVec76SE[1] = fVec76SE[0];
+			fVec72SE[2] = fVec72SE[1];
+			fVec72SE[1] = fVec72SE[0];
+			fVec71SE[1] = fVec71SE[0];
+			fVec67SE[2] = fVec67SE[1];
+			fVec67SE[1] = fVec67SE[0];
+			fVec66SE[1] = fVec66SE[0];
+			fVec62SE[2] = fVec62SE[1];
+			fVec62SE[1] = fVec62SE[0];
+			fVec61SE[1] = fVec61SE[0];
+			fVec57SE[2] = fVec57SE[1];
+			fVec57SE[1] = fVec57SE[0];
+			fVec56SE[1] = fVec56SE[0];
+			fVec52SE[2] = fVec52SE[1];
+			fVec52SE[1] = fVec52SE[0];
+			fVec51SE[1] = fVec51SE[0];
+			fVec47SE[2] = fVec47SE[1];
+			fVec47SE[1] = fVec47SE[0];
+			fVec46SE[1] = fVec46SE[0];
+			fVec42SE[2] = fVec42SE[1];
+			fVec42SE[1] = fVec42SE[0];
+			fVec41SE[1] = fVec41SE[0];
+			fVec37SE[2] = fVec37SE[1];
+			fVec37SE[1] = fVec37SE[0];
+			fVec36SE[1] = fVec36SE[0];
+			fVec32SE[2] = fVec32SE[1];
+			fVec32SE[1] = fVec32SE[0];
+			fVec31SE[1] = fVec31SE[0];
+			fVec27SE[2] = fVec27SE[1];
+			fVec27SE[1] = fVec27SE[0];
+			fVec26SE[1] = fVec26SE[0];
+			fVec22SE[2] = fVec22SE[1];
+			fVec22SE[1] = fVec22SE[0];
+			fVec21SE[1] = fVec21SE[0];
+			fVec17SE[2] = fVec17SE[1];
+			fVec17SE[1] = fVec17SE[0];
+			fVec16SE[1] = fVec16SE[0];
+			fVec12SE[2] = fVec12SE[1];
+			fVec12SE[1] = fVec12SE[0];
+			fVec11SE[1] = fVec11SE[0];
+			fVec2SE[2] = fVec2SE[1];
+			fVec2SE[1] = fVec2SE[0];
+			fVec1SE[1] = fVec1SE[0];
+			++IOTA0;
+			fVec5SE[1] = fVec5SE[0];
+			iVec3SI[1] = iVec3SI[0];
+			fVec0BE[1] = fVec0BE[0];
 		}
+		fVec0BEState = fVec0BE[1];
+		iVec3SIState = iVec3SI[1];
+		fVec5SEState = fVec5SE[1];
+		fVec1SEState = fVec1SE[1];
+		fVec2SEState[0] = fVec2SE[1];
+		fVec2SEState[1] = fVec2SE[2];
+		fVec11SEState = fVec11SE[1];
+		fVec12SEState[0] = fVec12SE[1];
+		fVec12SEState[1] = fVec12SE[2];
+		fVec16SEState = fVec16SE[1];
+		fVec17SEState[0] = fVec17SE[1];
+		fVec17SEState[1] = fVec17SE[2];
+		fVec21SEState = fVec21SE[1];
+		fVec22SEState[0] = fVec22SE[1];
+		fVec22SEState[1] = fVec22SE[2];
+		fVec26SEState = fVec26SE[1];
+		fVec27SEState[0] = fVec27SE[1];
+		fVec27SEState[1] = fVec27SE[2];
+		fVec31SEState = fVec31SE[1];
+		fVec32SEState[0] = fVec32SE[1];
+		fVec32SEState[1] = fVec32SE[2];
+		fVec36SEState = fVec36SE[1];
+		fVec37SEState[0] = fVec37SE[1];
+		fVec37SEState[1] = fVec37SE[2];
+		fVec41SEState = fVec41SE[1];
+		fVec42SEState[0] = fVec42SE[1];
+		fVec42SEState[1] = fVec42SE[2];
+		fVec46SEState = fVec46SE[1];
+		fVec47SEState[0] = fVec47SE[1];
+		fVec47SEState[1] = fVec47SE[2];
+		fVec51SEState = fVec51SE[1];
+		fVec52SEState[0] = fVec52SE[1];
+		fVec52SEState[1] = fVec52SE[2];
+		fVec56SEState = fVec56SE[1];
+		fVec57SEState[0] = fVec57SE[1];
+		fVec57SEState[1] = fVec57SE[2];
+		fVec61SEState = fVec61SE[1];
+		fVec62SEState[0] = fVec62SE[1];
+		fVec62SEState[1] = fVec62SE[2];
+		fVec66SEState = fVec66SE[1];
+		fVec67SEState[0] = fVec67SE[1];
+		fVec67SEState[1] = fVec67SE[2];
+		fVec71SEState = fVec71SE[1];
+		fVec72SEState[0] = fVec72SE[1];
+		fVec72SEState[1] = fVec72SE[2];
+		fVec76SEState = fVec76SE[1];
+		fVec77SEState[0] = fVec77SE[1];
+		fVec77SEState[1] = fVec77SE[2];
+		fVec81SEState = fVec81SE[1];
+		fVec82SEState[0] = fVec82SE[1];
+		fVec82SEState[1] = fVec82SE[2];
+		fVec102SEState = fVec102SE[1];
+		fVec103SEState[0] = fVec103SE[1];
+		fVec103SEState[1] = fVec103SE[2];
+		fVec107SEState = fVec107SE[1];
+		fVec108SEState[0] = fVec108SE[1];
+		fVec108SEState[1] = fVec108SE[2];
+		fVec112SEState = fVec112SE[1];
+		fVec113SEState[0] = fVec113SE[1];
+		fVec113SEState[1] = fVec113SE[2];
+		fVec117SEState = fVec117SE[1];
+		fVec118SEState[0] = fVec118SE[1];
+		fVec118SEState[1] = fVec118SE[2];
+		fVec122SEState = fVec122SE[1];
+		fVec123SEState[0] = fVec123SE[1];
+		fVec123SEState[1] = fVec123SE[2];
+		fVec127SEState = fVec127SE[1];
+		fVec128SEState[0] = fVec128SE[1];
+		fVec128SEState[1] = fVec128SE[2];
+		fVec132SEState = fVec132SE[1];
+		fVec133SEState[0] = fVec133SE[1];
+		fVec133SEState[1] = fVec133SE[2];
+		fVec137SEState = fVec137SE[1];
+		fVec138SEState[0] = fVec138SE[1];
+		fVec138SEState[1] = fVec138SE[2];
+		fVec142SEState = fVec142SE[1];
+		fVec143SEState[0] = fVec143SE[1];
+		fVec143SEState[1] = fVec143SE[2];
+		fVec147SEState = fVec147SE[1];
+		fVec148SEState[0] = fVec148SE[1];
+		fVec148SEState[1] = fVec148SE[2];
+		fVec152SEState = fVec152SE[1];
+		fVec153SEState[0] = fVec153SE[1];
+		fVec153SEState[1] = fVec153SE[2];
+		fVec157SEState = fVec157SE[1];
+		fVec158SEState[0] = fVec158SE[1];
+		fVec158SEState[1] = fVec158SE[2];
+		fVec162SEState = fVec162SE[1];
+		fVec163SEState[0] = fVec163SE[1];
+		fVec163SEState[1] = fVec163SE[2];
+		fVec167SEState = fVec167SE[1];
+		fVec168SEState[0] = fVec168SE[1];
+		fVec168SEState[1] = fVec168SE[2];
+		fVec172SEState = fVec172SE[1];
+		fVec173SEState[0] = fVec173SE[1];
+		fVec173SEState[1] = fVec173SE[2];
+		fVec177SEState = fVec177SE[1];
+		fVec178SEState[0] = fVec178SE[1];
+		fVec178SEState[1] = fVec178SE[2];
 	}
 };
 

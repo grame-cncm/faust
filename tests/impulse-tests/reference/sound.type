@@ -1,4 +1,4 @@
-Size = 19
+Size = 20
 Type = NBIVN interval(-1,2.14748e+09,-24)
 Type = NBIVN interval(0,2.14748e+09,-24)
 Type = NBIVN interval(0,2.14748e+09,-24)
@@ -9,6 +9,7 @@ Type = NKCVN interval(2,2,0)
 Type = NKCVN interval(3,3,0)
 Type = NSISN interval(-1,2.14748e+09,-24)
 Type = NSISN interval(0,2.14748e+09,-24)
+Type = NSISN interval(0,inf,-24)
 Type = NSISN interval(0,inf,-24)
 Type = NSISN interval(0,inf,-24)
 Type = NSISN interval(0,inf,-24)

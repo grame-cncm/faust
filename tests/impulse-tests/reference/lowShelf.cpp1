@@ -1,10 +1,13 @@
 //----------------------------------------------------------
 // name: "lowShelf"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
+#include <algorithm>
+#include <cmath>
 #include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -20,14 +23,16 @@ class mydsp : public dsp {
 	FAUSTFLOAT 	fslider0;
 	FAUSTFLOAT 	fslider1;
 	FAUSTFLOAT 	fslider2;
-	float 	fConst0; // step: 20
-	// Recursion delay fVeeec0 is of type kCopyDelay
+	float 	fConst0KI; // step: 29
+	// Recursion delay fVec0SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec0State[2]; // Copy Delay
+	float 	fVec0SEState; // Single Delay
+	float 	fVec1SEState[2]; // Copy Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("filename", "lowShelf.dsp");
 		m->declare("math.lib/author", "GRAME");
 		m->declare("math.lib/copyright", "GRAME");
@@ -54,7 +59,7 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = (6.2831855f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 20
+		fConst0KI = (6.2831855f / std::min(1.92e+05f, std::max(1.0f, float(fSampleRate)))); // step: 29
 	}
 	virtual void instanceResetUserInterface() {
 		fslider0 = 0.0f;
@@ -62,7 +67,8 @@ class mydsp : public dsp {
 		fslider2 = 1e+03f;
 	}
 	virtual void instanceClear() {
-		for (int j = 0; j < 2; j++) { fVeeec0State[j] = 0; }
+		fVec0SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec1SEState[j] = 0; }
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -88,41 +94,43 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = powf(1e+01f,(0.025f * float(fslider0))); // step: 5
-		float 	fSlow1 = (fConst0 * max(0.0f, float(fslider2))); // step: 21
-		float 	fSlow2 = ((sqrtf(fSlow0) * sinf(fSlow1)) / max(0.001f, float(fslider1))); // step: 24
-		float 	fSlow3 = cosf(fSlow1); // step: 27
-		float 	fSlow4 = ((fSlow0 + -1.0f) * fSlow3); // step: 28
-		float 	fSlow5 = (fSlow0 + fSlow4); // step: 29
-		float 	fSlow6 = ((fSlow2 + fSlow5) + 1.0f); // step: 31
-		float 	fSlow7 = (fSlow0 / fSlow6); // step: 32
-		float 	fSlow8 = (1.0f / fSlow6); // step: 35
-		float 	fSlow9 = (fSlow5 + (1.0f - fSlow2)); // step: 37
-		float 	fSlow10 = ((fSlow0 + 1.0f) * fSlow3); // step: 43
-		float 	fSlow11 = (2.0f * ((fSlow0 + fSlow10) + -1.0f)); // step: 46
-		float 	fVeeec0[3];
-		float 	fSlow12 = ((fSlow0 + fSlow2) + (1.0f - fSlow4)); // step: 57
-		float 	fSlow13 = (2.0f * (fSlow0 + (-1.0f - fSlow10))); // step: 61
-		float 	fSlow14 = (fSlow0 + (1.0f - (fSlow4 + fSlow2))); // step: 66
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			fVeeec0[1] = fVeeec0State[0];
-			fVeeec0[2] = fVeeec0State[1];
-			for (int i=0; i<count; i++) {
-				float 	fTemp0 = fVeeec0[2]; // step: 39
-				float 	fTemp1 = fVeeec0[1]; // step: 48
-				fVeeec0[0] = ((float)input0[i] - (fSlow8 * ((fSlow9 * fTemp0) - (fSlow11 * fTemp1))));
-				output0[i] = (FAUSTFLOAT)((fSlow7 * (((fSlow12 * fVeeec0[0]) + (fSlow13 * fTemp1)) + (fSlow14 * fTemp0))));  // Zone Exec Code
-				// post processing
-				fVeeec0[2] = fVeeec0[1];
-				fVeeec0[1] = fVeeec0[0];
-			}
-			fVeeec0State[0] = fVeeec0[1];
-			fVeeec0State[1] = fVeeec0[2];
+		float 	fSlow0BE = powf(1e+01f,(0.025f * float(fslider0))); // Zone 2, step: 12
+		float 	fSlow1BE = (fConst0KI * std::max(0.0f, float(fslider2))); // Zone 2, step: 30
+		float 	fSlow2BE = ((sqrtf(fSlow0BE) * sinf(fSlow1BE)) / std::max(0.001f, float(fslider1))); // Zone 2, step: 33
+		float 	fSlow3BE = cosf(fSlow1BE); // Zone 2, step: 34
+		float 	fSlow4BE = (fSlow0BE + -1.0f /* Sum */); // Zone 2, step: 36
+		float 	fSlow5BE = (fSlow3BE * fSlow4BE); // Zone 2, step: 37
+		float 	fSlow6BE = (1.0f / (fSlow2BE + fSlow0BE + fSlow5BE + 1.0f /* Sum */)); // Zone 2, step: 39
+		float 	fSlow7BE = (fSlow3BE * (fSlow0BE + 1.0f /* Sum */)); // Zone 2, step: 45
+		float 	fSlow8BE = (2.0f * (fSlow0BE + fSlow7BE + -1.0f /* Sum */)); // Zone 2, step: 47
+		float 	fTemp0SE; // step: 51
+		float 	fSlow9BE = (fSlow0BE + fSlow5BE + 1.0f + -fSlow2BE /* Sum */); // Zone 2, step: 53
+		float 	fVec0SE[2];
+		float 	fTemp1SE; // step: 60
+		float 	fVec1SE[3];
+		float 	fSlow10BE = (fSlow0BE / (fSlow2BE + fSlow0BE + (fSlow4BE * fSlow3BE) + 1.0f /* Sum */)); // Zone 2, step: 63
+		float 	fSlow11BE = (fSlow0BE + fSlow2BE + 1.0f + -fSlow5BE /* Sum */); // Zone 2, step: 65
+		float 	fSlow12BE = (2.0f * (fSlow0BE + -1.0f + -fSlow7BE /* Sum */)); // Zone 2, step: 71
+		float 	fSlow13BE = (fSlow0BE + 1.0f + -fSlow5BE + -fSlow2BE /* Sum */); // Zone 2, step: 74
+		FAUSTFLOAT* input0 = input[0]; // Zone 3
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		fVec0SE[1] = fVec0SEState;
+		fVec1SE[1] = fVec1SEState[0];
+		fVec1SE[2] = fVec1SEState[1];
+		for (int i=0; i<count; i++) {
+			fTemp0SE = fVec1SE[2]; // step: 51
+			fVec0SE[0] = ((float)input0[i] + -(fSlow6BE * ((fSlow9BE * fTemp0SE) + -(fSlow8BE * fVec0SE[1]) /* Sum */)) /* Sum */);
+			fTemp1SE = fVec0SE[0]; // step: 60
+			fVec1SE[0] = fTemp1SE;
+			output0[i] = (FAUSTFLOAT)((fSlow10BE * ((fSlow11BE * fVec0SE[0]) + (fSlow12BE * fVec1SE[1]) + (fSlow13BE * fTemp0SE) /* Sum */)));  // Zone Exec Code
+			// post processing
+			fVec1SE[2] = fVec1SE[1];
+			fVec1SE[1] = fVec1SE[0];
+			fVec0SE[1] = fVec0SE[0];
 		}
+		fVec0SEState = fVec0SE[1];
+		fVec1SEState[0] = fVec1SE[1];
+		fVec1SEState[1] = fVec1SE[2];
 	}
 };
 

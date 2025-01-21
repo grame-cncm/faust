@@ -1,11 +1,13 @@
 //----------------------------------------------------------
 // name: "sound"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
-#include <math.h>
+#include <algorithm>
+#include <cmath>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -18,13 +20,14 @@
 class mydsp : public dsp {
   private:
 	Soundfile* 	fSoundfile0;
-	// Recursion delay iVeeec0 is of type kMonoDelay
+	// Recursion delay iVec0SI is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	int 	iVeeec0State; // Mono Delay
+	int 	iVec0SIState; // Single Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("filename", "sound.dsp");
 		m->declare("name", "sound");
 	}
@@ -40,7 +43,7 @@ class mydsp : public dsp {
 		if (uintptr_t(fSoundfile0) == 0) fSoundfile0 = defaultsound;
 	}
 	virtual void instanceClear() {
-		iVeeec0State = 0;
+		iVec0SIState = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -64,26 +67,25 @@ class mydsp : public dsp {
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		Soundfile* fSoundfile0cache = fSoundfile0;
-		int 	iVeeec0;
-		int 	iSlow0 = (fSoundfile0cache->fLength[0] + -1); // step: 10
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
-			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
-			iVeeec0 = iVeeec0State;
-			for (int i=0; i<count; i++) {
-				iVeeec0 = (iVeeec0 + 1);
-				int 	iTemp0 = max(0, min(iVeeec0, iSlow0)); // step: 12
-				output0[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[0][fSoundfile0cache->fOffset[0]+iTemp0]);  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[1][fSoundfile0cache->fOffset[0]+iTemp0]);  // Zone Exec Code
-				output2[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[2][fSoundfile0cache->fOffset[0]+iTemp0]);  // Zone Exec Code
-				output3[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[3][fSoundfile0cache->fOffset[0]+iTemp0]);  // Zone Exec Code
-			}
-			iVeeec0State = iVeeec0;
+		int 	iVec0SI[2];
+		int 	iSlow0BI = (fSoundfile0cache->fLength[0] + -1 /* Sum */); // Zone 2, step: 11
+		int 	iTemp0SI; // step: 13
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		FAUSTFLOAT* output1 = output[1]; // Zone 3
+		FAUSTFLOAT* output2 = output[2]; // Zone 3
+		FAUSTFLOAT* output3 = output[3]; // Zone 3
+		iVec0SI[1] = iVec0SIState;
+		for (int i=0; i<count; i++) {
+			iVec0SI[0] = (iVec0SI[1] + 1 /* Sum */);
+			iTemp0SI = std::max(0, std::min(iVec0SI[0], iSlow0BI)); // step: 13
+			output0[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[0][fSoundfile0cache->fOffset[0]+iTemp0SI]);  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[1][fSoundfile0cache->fOffset[0]+iTemp0SI]);  // Zone Exec Code
+			output2[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[2][fSoundfile0cache->fOffset[0]+iTemp0SI]);  // Zone Exec Code
+			output3[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[3][fSoundfile0cache->fOffset[0]+iTemp0SI]);  // Zone Exec Code
+			// post processing
+			iVec0SI[1] = iVec0SI[0];
 		}
+		iVec0SIState = iVec0SI[1];
 		fSoundfile0 = fSoundfile0cache;
 	}
 };

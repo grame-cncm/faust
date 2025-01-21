@@ -4,11 +4,13 @@
 // name: "Faust Midi Tester"
 // version: "1.0"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
-#include <math.h>
+#include <algorithm>
+#include <cmath>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -25,6 +27,7 @@ class mydsp : public dsp {
   public:
 	virtual void metadata(Meta* m) { 
 		m->declare("author", "Vincent Rateau, GRAME");
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("filename", "midi_tester.dsp");
 		m->declare("license", "GPL v3");
 		m->declare("name", "Faust Midi Tester");
@@ -63,14 +66,10 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			for (int i=0; i<count; i++) {
-				output0[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
-			}
+		FAUSTFLOAT* input0 = input[0]; // Zone 3
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		for (int i=0; i<count; i++) {
+			output0[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
 		}
 	}
 };

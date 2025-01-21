@@ -1,10 +1,13 @@
 //----------------------------------------------------------
 // name: "BPF"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
+#include <algorithm>
+#include <cmath>
 #include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -18,15 +21,17 @@
 class mydsp : public dsp {
   private:
 	FAUSTFLOAT 	fslider0;
-	float 	fConst0; // step: 12
 	FAUSTFLOAT 	fslider1;
-	// Recursion delay fVeeec0 is of type kCopyDelay
+	float 	fConst0KI; // step: 22
+	// Recursion delay fVec0SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec0State[2]; // Copy Delay
+	float 	fVec0SEState; // Single Delay
+	float 	fVec1SEState[2]; // Copy Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("filename", "BPF.dsp");
 		m->declare("math.lib/author", "GRAME");
 		m->declare("math.lib/copyright", "GRAME");
@@ -53,14 +58,15 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = (6.2831855f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 12
+		fConst0KI = (6.2831855f / std::min(1.92e+05f, std::max(1.0f, float(fSampleRate)))); // step: 22
 	}
 	virtual void instanceResetUserInterface() {
-		fslider0 = 1e+03f;
-		fslider1 = 1.0f;
+		fslider0 = 1.0f;
+		fslider1 = 1e+03f;
 	}
 	virtual void instanceClear() {
-		for (int j = 0; j < 2; j++) { fVeeec0State[j] = 0; }
+		fVec0SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec1SEState[j] = 0; }
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -79,39 +85,41 @@ class mydsp : public dsp {
 	}
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("BPF");
-		ui_interface->addHorizontalSlider("Freq", &fslider0, 1e+03f, 1e+02f, 1e+04f, 1.0f);
-		ui_interface->addHorizontalSlider("Q", &fslider1, 1.0f, 0.01f, 1e+02f, 0.01f);
+		ui_interface->addHorizontalSlider("Freq", &fslider1, 1e+03f, 1e+02f, 1e+04f, 1.0f);
+		ui_interface->addHorizontalSlider("Q", &fslider0, 1.0f, 0.01f, 1e+02f, 0.01f);
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = (fConst0 * max(0.0f, float(fslider0))); // step: 13
-		float 	fSlow1 = sinf(fSlow0); // step: 14
-		float 	fSlow2 = max(0.001f, float(fslider1)); // step: 17
-		float 	fSlow3 = (0.5f * (fSlow1 / fSlow2)); // step: 19
-		float 	fSlow4 = (fSlow3 + 1.0f); // step: 20
-		float 	fSlow5 = (0.5f * (fSlow1 / (fSlow2 * fSlow4))); // step: 23
-		float 	fSlow6 = (1.0f / fSlow4); // step: 26
-		float 	fSlow7 = (1.0f - fSlow3); // step: 27
-		float 	fSlow8 = (2.0f * cosf(fSlow0)); // step: 33
-		float 	fVeeec0[3];
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			fVeeec0[1] = fVeeec0State[0];
-			fVeeec0[2] = fVeeec0State[1];
-			for (int i=0; i<count; i++) {
-				float 	fTemp0 = fVeeec0[2]; // step: 29
-				fVeeec0[0] = ((float)input0[i] - (fSlow6 * ((fSlow7 * fTemp0) - (fSlow8 * fVeeec0[1]))));
-				output0[i] = (FAUSTFLOAT)((fSlow5 * (fVeeec0[0] - fTemp0)));  // Zone Exec Code
-				// post processing
-				fVeeec0[2] = fVeeec0[1];
-				fVeeec0[1] = fVeeec0[0];
-			}
-			fVeeec0State[0] = fVeeec0[1];
-			fVeeec0State[1] = fVeeec0[2];
+		float 	fSlow0BE = std::max(0.001f, float(fslider0)); // Zone 2, step: 10
+		float 	fSlow1BE = (fConst0KI * std::max(0.0f, float(fslider1))); // Zone 2, step: 23
+		float 	fSlow2BE = sinf(fSlow1BE); // Zone 2, step: 24
+		float 	fSlow3BE = (0.5f * (fSlow2BE / fSlow0BE)); // Zone 2, step: 26
+		float 	fSlow4BE = (fSlow3BE + 1.0f /* Sum */); // Zone 2, step: 27
+		float 	fSlow5BE = (1.0f / fSlow4BE); // Zone 2, step: 28
+		float 	fSlow6BE = (2.0f * cosf(fSlow1BE)); // Zone 2, step: 31
+		float 	fTemp0SE; // step: 38
+		float 	fSlow7BE = (1.0f + -fSlow3BE /* Sum */); // Zone 2, step: 40
+		float 	fVec0SE[2];
+		float 	fVec1SE[3];
+		float 	fSlow8BE = (0.5f * (fSlow2BE / (fSlow0BE * fSlow4BE))); // Zone 2, step: 50
+		FAUSTFLOAT* input0 = input[0]; // Zone 3
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		fVec0SE[1] = fVec0SEState;
+		fVec1SE[1] = fVec1SEState[0];
+		fVec1SE[2] = fVec1SEState[1];
+		for (int i=0; i<count; i++) {
+			fTemp0SE = fVec1SE[2]; // step: 38
+			fVec0SE[0] = ((float)input0[i] + -(fSlow5BE * ((fSlow7BE * fTemp0SE) + -(fSlow6BE * fVec0SE[1]) /* Sum */)) /* Sum */);
+			fVec1SE[0] = fVec0SE[0];
+			output0[i] = (FAUSTFLOAT)((fSlow8BE * (fVec0SE[0] + -fTemp0SE /* Sum */)));  // Zone Exec Code
+			// post processing
+			fVec1SE[2] = fVec1SE[1];
+			fVec1SE[1] = fVec1SE[0];
+			fVec0SE[1] = fVec0SE[0];
 		}
+		fVec0SEState = fVec0SE[1];
+		fVec1SEState[0] = fVec1SE[1];
+		fVec1SEState[1] = fVec1SE[2];
 	}
 };
 

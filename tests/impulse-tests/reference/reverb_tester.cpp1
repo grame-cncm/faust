@@ -1,11 +1,13 @@
 //----------------------------------------------------------
 // name: "reverb_tester"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
-#include <math.h>
+#include <algorithm>
+#include <cmath>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -18,22 +20,24 @@
 class mydsp : public dsp {
   private:
 	FAUSTFLOAT 	fbutton0;
-	float 	fVec0State; // Single Delay
+	float 	fVec0BEState; // Single Delay
 	FAUSTFLOAT 	fbutton1;
-	float 	fVec1State; // Single Delay
-	FAUSTFLOAT 	fcheckbox0;
-	// Recursion delay iVeeec4 is of type kMonoDelay
-	// While its definition is of type kZeroDelay
-	int 	iVeeec4State; // Mono Delay
-	// Recursion delay fVeeec2 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec2State[3]; // Copy Delay
+	float 	fVec1BEState; // Single Delay
 	FAUSTFLOAT 	fbutton2;
-	float 	fVec2State; // Single Delay
+	float 	fVec2BEState; // Single Delay
+	// Recursion delay iVec4SI is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	int 	iVec4SIState; // Single Delay
+	// Recursion delay fVec6SI is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVec6SIState; // Single Delay
+	float 	fVec3SIState[3]; // Copy Delay
+	FAUSTFLOAT 	fcheckbox0;
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("effect.lib/name", "Faust Audio Effect Library");
 		m->declare("filename", "reverb_tester.dsp");
 		m->declare("filter.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
@@ -71,15 +75,16 @@ class mydsp : public dsp {
 	virtual void instanceResetUserInterface() {
 		fbutton0 = 0.0;
 		fbutton1 = 0.0;
-		fcheckbox0 = 0.0;
 		fbutton2 = 0.0;
+		fcheckbox0 = 0.0;
 	}
 	virtual void instanceClear() {
-		fVec0State = 0;
-		fVec1State = 0;
-		iVeeec4State = 0;
-		for (int j = 0; j < 3; j++) { fVeeec2State[j] = 0; }
-		fVec2State = 0;
+		fVec0BEState = 0;
+		fVec1BEState = 0;
+		fVec2BEState = 0;
+		iVec4SIState = 0;
+		fVec6SIState = 0;
+		for (int j = 0; j < 3; j++) { fVec3SIState[j] = 0; }
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -119,58 +124,65 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = float(fbutton0); // step: 2
-		float 	fVec0[2];
-		float 	fSlow1 = float(fbutton1); // step: 7
-		float 	fVec1[2];
-		float 	fSlow2 = (0.1f * float(fcheckbox0)); // step: 15
-		int 	iVeeec4;
-		float 	fVeeec2[4];
-		float 	fSlow3 = float(fbutton2); // step: 56
-		float 	fVec2[2];
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			fVec0[1] = fVec0State;
-			fVec1[1] = fVec1State;
-			iVeeec4 = iVeeec4State;
-			fVeeec2[1] = fVeeec2State[0];
-			fVeeec2[2] = fVeeec2State[1];
-			fVeeec2[3] = fVeeec2State[2];
-			fVec2[1] = fVec2State;
-			for (int i=0; i<count; i++) {
-				fVec0[0] = fSlow0;
-				fVec1[0] = fSlow1;
-				int 	iTemp0 = ((fSlow1 - fVec1[1]) > 0.0f); // step: 10
-				float 	fTemp1 = fVeeec2[2]; // step: 20
-				float 	fTemp2 = fVeeec2[3]; // step: 23
-				iVeeec4 = ((1103515245 * iVeeec4) + 12345);
-				float 	fTemp3 = fVeeec2[1]; // step: 36
-				fVeeec2[0] = (((0.5221894f * fTemp2) + ((4.656613e-10f * float(iVeeec4)) + (2.494956f * fTemp3))) - (2.0172658f * fTemp1));
-				float 	fTemp4 = (fSlow2 * (((0.049922034f * fVeeec2[0]) + (0.0506127f * fTemp1)) - ((0.095993534f * fTemp3) + (0.004408786f * fTemp2)))); // step: 54
-				fVec2[0] = fSlow3;
-				output0[i] = (FAUSTFLOAT)((float((((fSlow0 - fVec0[1]) > 0.0f) + iTemp0)) + fTemp4));  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)((fTemp4 + float((iTemp0 + ((fSlow3 - fVec2[1]) > 0.0f)))));  // Zone Exec Code
-				// post processing
-				fVec2[1] = fVec2[0];
-				fVeeec2[3] = fVeeec2[2];
-				fVeeec2[2] = fVeeec2[1];
-				fVeeec2[1] = fVeeec2[0];
-				fVec1[1] = fVec1[0];
-				fVec0[1] = fVec0[0];
-			}
-			fVec0State = fVec0[1];
-			fVec1State = fVec1[1];
-			iVeeec4State = iVeeec4;
-			fVeeec2State[0] = fVeeec2[1];
-			fVeeec2State[1] = fVeeec2[2];
-			fVeeec2State[2] = fVeeec2[3];
-			fVec2State = fVec2[1];
+		float 	fSlow0BE = float(fbutton0); // Zone 2, step: 1
+		float 	fVec0BE[2];
+		float 	fSlow1BE = float(fbutton1); // Zone 2, step: 3
+		float 	fVec1BE[2];
+		float 	fSlow2BE = float(fbutton2); // Zone 2, step: 5
+		float 	fVec2BE[2];
+		float 	fTemp0SI; // step: 9
+		int 	iVec4SI[2];
+		float 	fTemp1SI; // step: 30
+		float 	fVec6SI[2];
+		float 	fTemp2SI; // step: 34
+		float 	fVec3SI[4];
+		int 	iTemp3SE; // step: 44
+		float 	fSlow3BE = (0.1f * float(fcheckbox0)); // Zone 2, step: 49
+		float 	fTemp4SE; // step: 61
+		FAUSTFLOAT* input0 = input[0]; // Zone 3
+		FAUSTFLOAT* input1 = input[1]; // Zone 3
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		FAUSTFLOAT* output1 = output[1]; // Zone 3
+		fVec0BE[1] = fVec0BEState;
+		fVec1BE[1] = fVec1BEState;
+		fVec2BE[1] = fVec2BEState;
+		iVec4SI[1] = iVec4SIState;
+		fVec6SI[1] = fVec6SIState;
+		fVec3SI[1] = fVec3SIState[0];
+		fVec3SI[2] = fVec3SIState[1];
+		fVec3SI[3] = fVec3SIState[2];
+		for (int i=0; i<count; i++) {
+			fVec0BE[0] = fSlow0BE;
+			fVec1BE[0] = fSlow1BE;
+			fVec2BE[0] = fSlow2BE;
+			fTemp0SI = fVec3SI[3]; // step: 9
+			iVec4SI[0] = ((1103515245 * iVec4SI[1]) + 12345 /* Sum */);
+			fTemp1SI = fVec3SI[2]; // step: 30
+			fVec6SI[0] = ((0.5221894f * fTemp0SI) + (4.656613e-10f * float(iVec4SI[0])) + (2.494956f * fVec6SI[1]) + (-2.0172658f * fTemp1SI) /* Sum */);
+			fTemp2SI = fVec6SI[0]; // step: 34
+			fVec3SI[0] = fTemp2SI;
+			iTemp3SE = ((fSlow1BE + -fVec1BE[1] /* Sum */) > 0.0f); // step: 44
+			fTemp4SE = (fSlow3BE * ((0.049922034f * fVec6SI[0]) + (0.0506127f * fTemp1SI) + (-0.095993534f * fVec3SI[1]) + (-0.004408786f * fTemp0SI) /* Sum */)); // step: 61
+			output0[i] = (FAUSTFLOAT)((float((((fSlow0BE + -fVec0BE[1] /* Sum */) > 0.0f) + iTemp3SE /* Sum */)) + fTemp4SE /* Sum */));  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)((fTemp4SE + float((iTemp3SE + ((fSlow2BE + -fVec2BE[1] /* Sum */) > 0.0f) /* Sum */)) /* Sum */));  // Zone Exec Code
+			// post processing
+			fVec3SI[3] = fVec3SI[2];
+			fVec3SI[2] = fVec3SI[1];
+			fVec3SI[1] = fVec3SI[0];
+			fVec6SI[1] = fVec6SI[0];
+			iVec4SI[1] = iVec4SI[0];
+			fVec2BE[1] = fVec2BE[0];
+			fVec1BE[1] = fVec1BE[0];
+			fVec0BE[1] = fVec0BE[0];
 		}
+		fVec0BEState = fVec0BE[1];
+		fVec1BEState = fVec1BE[1];
+		fVec2BEState = fVec2BE[1];
+		iVec4SIState = iVec4SI[1];
+		fVec6SIState = fVec6SI[1];
+		fVec3SIState[0] = fVec3SI[1];
+		fVec3SIState[1] = fVec3SI[2];
+		fVec3SIState[2] = fVec3SI[3];
 	}
 };
 

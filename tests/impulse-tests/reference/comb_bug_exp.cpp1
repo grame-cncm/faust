@@ -1,10 +1,13 @@
 //----------------------------------------------------------
 // name: "comb_bug"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
+#include <algorithm>
+#include <cmath>
 #include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -17,47 +20,47 @@
 
 class mydsp : public dsp {
   private:
+	FAUSTFLOAT 	fbutton0;
+	float 	fVec0BEState; // Single Delay
 	FAUSTFLOAT 	fslider0;
 	FAUSTFLOAT 	fslider1;
-	// Recursion delay iVeeec1 is of type kMonoDelay
+	// Recursion delay iVec2SI is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	int 	iVeeec1State; // Mono Delay
-	FAUSTFLOAT 	fbutton0;
-	float 	fVec0State; // Single Delay
-	// Recursion delay iVeeec3 is of type kSingleDelay
-	// While its definition is of type kZeroDelay
-	int 	iVeeec3State; // Single Delay
+	int 	iVec2SIState; // Single Delay
 	FAUSTFLOAT 	fslider2;
-	float 	fConst0; // step: 36
+	float 	fConst0KI; // step: 34
+	// Recursion delay iVec5SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	int 	iVec5SEState; // Single Delay
 	FAUSTFLOAT 	fslider3;
-	// Recursion delay fVeeec6 is of type kMonoDelay
+	float 	fConst1KI; // step: 66
+	// Recursion delay fVec7SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec6State; // Mono Delay
-	float 	fConst1; // step: 61
-	// Recursion delay iVeeec8 is of type kMonoDelay
+	float 	fVec7SEState; // Single Delay
+	float 	fConst2KI; // step: 79
+	// Recursion delay iVec9SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	int 	iVeeec8State; // Mono Delay
-	float 	fConst2; // step: 74
-	float 	fVec1[2048]; // Ring Delay
+	int 	iVec9SEState; // Single Delay
+	int 	IOTA0;
+	float 	fVec11SE[2048]; // Ring Delay
 	FAUSTFLOAT 	fslider4;
-	float 	fConst3; // step: 88
-	float 	fConst4; // step: 89
-	// Recursion delay fVeeec10 is of type kMonoDelay
+	float 	fConst3KI; // step: 105
+	float 	fConst4KI; // step: 107
+	// Recursion delay fVec12SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec10State; // Mono Delay
-	float 	fConst5; // step: 103
-	float 	fConst6; // step: 107
-	// Recursion delay fVeeec0 is of type kSingleDelay
+	float 	fVec12SEState; // Single Delay
+	float 	fConst5KI; // step: 122
+	float 	fConst6KI; // step: 126
+	// Recursion delay fVec1SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec0State; // Single Delay
-	// Recursion delay fRiiic6 is of type kZeroDelay
-	// While its definition is of type kMaskRingDelay
+	float 	fVec1SEState; // Single Delay
+	// Recursion delay fRec6SE is of type kZeroDelay
+	// While its definition is of type kZeroDelay
 	FAUSTFLOAT 	fslider5;
-	// Recursion delay fVeeec15 is of type kMonoDelay
+	// Recursion delay fVec17SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec15State; // Mono Delay
-	float 	fVec2State; // Single Delay
-	int 	IOTA;
+	float 	fVec17SEState; // Single Delay
+	float 	fVec19SEState; // Single Delay
 	int fSampleRate;
 
   public:
@@ -65,6 +68,7 @@ class mydsp : public dsp {
 		m->declare("basics_lib_name", "Faust Basic Element Library");
 		m->declare("basics_lib_version", "0.1");
 		m->declare("compilation_options", "-single -scal -e comb_bug.dsp -o comb_bug_exp.dsp");
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("delays_lib_name", "Faust Delay Library");
 		m->declare("delays_lib_version", "0.1");
 		m->declare("envelopes_lib_adsr_author", "Yann Orlarey");
@@ -99,35 +103,36 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 36
-		fConst1 = (1.0f / max(1.0f, (0.1f * fConst0))); // step: 61
-		fConst2 = (1.0f / max(1.0f, (0.01f * fConst0))); // step: 74
-		fConst3 = expf(-(1e+03f / fConst0)); // step: 88
-		fConst4 = (1.0f - fConst3); // step: 89
-		fConst5 = (0.9993265f * fConst0); // step: 103
-		fConst6 = (1.0006735f * fConst0); // step: 107
+		fConst0KI = std::min(1.92e+05f, std::max(1.0f, float(fSampleRate))); // step: 34
+		fConst1KI = (1.0f / std::max(1.0f, (0.1f * fConst0KI))); // step: 66
+		fConst2KI = (1.0f / std::max(1.0f, (0.01f * fConst0KI))); // step: 79
+		IOTA0 = 0;
+		fConst3KI = expf(-(1e+03f / fConst0KI)); // step: 105
+		fConst4KI = (1.0f + -fConst3KI /* Sum */); // step: 107
+		fConst5KI = (0.9993265f * fConst0KI); // step: 122
+		fConst6KI = (1.0006735f * fConst0KI); // step: 126
 	}
 	virtual void instanceResetUserInterface() {
+		fbutton0 = 0.0;
 		fslider0 = 0.999f;
 		fslider1 = 127.0f;
-		fbutton0 = 0.0;
 		fslider2 = 0.95f;
 		fslider3 = 0.95f;
 		fslider4 = 2e+02f;
 		fslider5 = 0.8f;
 	}
 	virtual void instanceClear() {
-		iVeeec1State = 0;
-		fVec0State = 0;
-		iVeeec3State = 0;
-		fVeeec6State = 0;
-		iVeeec8State = 0;
-		for (int i = 0; i < 2048; i++) { fVec1[i] = 0; }
-		fVeeec10State = 0;
-		fVeeec0State = 0;
-		fVeeec15State = 0;
-		fVec2State = 0;
-		IOTA = 0;
+		fVec0BEState = 0;
+		iVec2SIState = 0;
+		iVec5SEState = 0;
+		fVec7SEState = 0;
+		iVec9SEState = 0;
+		for (int i = 1; i < 2048; i++) { fVec11SE[i] = 0; }
+		fVec11SE[0] = -1;  // detect unintialized
+		fVec12SEState = 0;
+		fVec1SEState = 0;
+		fVec17SEState = 0;
+		fVec19SEState = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -156,84 +161,94 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = float(fslider0); // step: 1
-		float 	fSlow1 = (3.6666243e-12f * float(fslider1)); // step: 7
-		int 	iVeeec1;
-		float 	fSlow2 = float(fbutton0); // step: 21
-		float 	fVec0[2];
-		int 	iVeeec3[2];
-		float 	fSlow3 = max(1.0f, (fConst0 * float(fslider2))); // step: 38
-		float 	fSlow4 = (1.0f / fSlow3); // step: 39
-		float 	fSlow5 = (1.0f / max(1.0f, (fConst0 * float(fslider3)))); // step: 44
-		float 	fVeeec6;
-		int 	iSlow6 = (fSlow2 == 0.0f); // step: 64
-		int 	iVeeec8;
-		float 	fSlow7 = (fConst4 * float(fslider4)); // step: 90
-		float 	fVeeec10;
-		float 	fVeeec0[2];
-		float 	fSlow8 = (0.001f * float(fslider5)); // step: 136
-		float 	fVeeec15;
-		float 	fVec2[2];
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			iVeeec1 = iVeeec1State;
-			fVec0[1] = fVec0State;
-			iVeeec3[1] = iVeeec3State;
-			fVeeec6 = fVeeec6State;
-			iVeeec8 = iVeeec8State;
-			fVeeec10 = fVeeec10State;
-			fVeeec0[1] = fVeeec0State;
-			fVeeec15 = fVeeec15State;
-			fVec2[1] = fVec2State;
-			for (int i=0; i<count; i++) {
-				iVeeec1 = ((1103515245 * iVeeec1) + 12345);
-				int 	iTemp0 = iVeeec3[1]; // step: 18
-				fVec0[0] = fSlow2;
-				float 	fTemp1 = fVec0[1]; // step: 22
-				iVeeec3[0] = (((iTemp0 + (iTemp0 > 0)) * (fSlow2 <= fTemp1)) + (fSlow2 > fTemp1));
-				float 	fTemp2 = float(iVeeec3[0]); // step: 29
-				fVeeec6 = (fSlow2 + (fVeeec6 * float((fTemp1 >= fSlow2))));
-				iVeeec8 = (iSlow6 * (iVeeec8 + 1));
-				float 	fTemp3 = ((fSlow0 * fVeeec0[1]) + (fSlow1 * ((float(iVeeec1) * max(0.0f, min((fSlow4 * fTemp2), ((fSlow5 * (fSlow3 - fTemp2)) + 1.0f)))) * max(0.0f, (min((fConst1 * fVeeec6), 1.0f) - (fConst2 * float(iVeeec8))))))); // step: 80
-				int vIota0 = IOTA&2047;
-				fVec1[vIota0] = fTemp3;
-				fVeeec10 = (fSlow7 + (fConst3 * fVeeec10));
-				float 	fTemp4 = fVeeec10; // step: 95
-				float 	fTemp5 = (fConst0 / fTemp4); // step: 96
-				float 	fTemp6 = (fTemp5 - floorf(fTemp5)); // step: 98
-				float 	fTemp7 = (((fTemp6 <= 0.06f)) ? (fConst6 / fTemp4) : (((fTemp6 >= 0.95f)) ? (fConst5 / fTemp4) : fTemp5)); // step: 109
-				float 	fTemp8 = (fTemp7 + -1.0f); // step: 110
-				int 	iTemp9 = int(fTemp8); // step: 111
-				int vIota1 = (IOTA-min(1025, max(0, iTemp9)))&2047;
-				float 	fTemp10 = floorf(fTemp8); // step: 115
-				int vIota2 = (IOTA-min(1025, max(0, (iTemp9 + 1))))&2047;
-				fVeeec0[0] = ((fVec1[vIota1] * (fTemp10 + (2.0f - fTemp7))) + ((fTemp7 + (-1.0f - fTemp10)) * fVec1[vIota2]));
-				float 	fRiiic6 = fVec1[vIota0]; // Zero delay
-				fVeeec15 = (fSlow8 + (0.999f * fVeeec15));
-				fVec2[0] = (fRiiic6 * fVeeec15);
-				float 	fTemp11 = (0.3f * fVec2[1]); // step: 143
-				output0[i] = (FAUSTFLOAT)(fTemp11);  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(fTemp11);  // Zone Exec Code
-				// post processing
-				IOTA = IOTA+1;
-				fVec2[1] = fVec2[0];
-				fVeeec0[1] = fVeeec0[0];
-				iVeeec3[1] = iVeeec3[0];
-				fVec0[1] = fVec0[0];
-			}
-			iVeeec1State = iVeeec1;
-			fVec0State = fVec0[1];
-			iVeeec3State = iVeeec3[1];
-			fVeeec6State = fVeeec6;
-			iVeeec8State = iVeeec8;
-			fVeeec10State = fVeeec10;
-			fVeeec0State = fVeeec0[1];
-			fVeeec15State = fVeeec15;
-			fVec2State = fVec2[1];
+		float 	fSlow0BE = float(fbutton0); // Zone 2, step: 1
+		float 	fVec0BE[2];
+		float 	fSlow1BE = float(fslider0); // Zone 2, step: 6
+		float 	fSlow2BE = (3.6666243e-12f * float(fslider1)); // Zone 2, step: 16
+		int 	iVec2SI[2];
+		float 	fSlow3BE = std::max(1.0f, (fConst0KI * float(fslider2))); // Zone 2, step: 36
+		float 	fSlow4BE = (1.0f / fSlow3BE); // Zone 2, step: 37
+		float 	fTemp0SE; // step: 38
+		int 	iTemp1SE; // step: 42
+		int 	iVec5SE[2];
+		float 	fTemp2SE; // step: 49
+		float 	fSlow5BE = (1.0f / std::max(1.0f, (fConst0KI * float(fslider3)))); // Zone 2, step: 54
+		float 	fVec7SE[2];
+		int 	iSlow6BE = (fSlow0BE == 0.0f); // Zone 2, step: 80
+		int 	iVec9SE[2];
+		float 	fTemp3SE; // step: 94
+		float 	fSlow7BE = (fConst4KI * float(fslider4)); // Zone 2, step: 108
+		float 	fVec12SE[2];
+		float 	fTemp4SE; // step: 114
+		float 	fTemp5SE; // step: 115
+		float 	fTemp6SE; // step: 118
+		float 	fTemp7SE; // step: 128
+		float 	fTemp8SE; // step: 129
+		int 	iTemp9SE; // step: 130
+		float 	fTemp10SE; // step: 135
+		float 	fVec1SE[2];
+		float 	fSlow8BE = (0.001f * float(fslider5)); // Zone 2, step: 153
+		float 	fVec17SE[2];
+		float 	fVec19SE[2];
+		float 	fTemp11SE; // step: 164
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		FAUSTFLOAT* output1 = output[1]; // Zone 3
+		fVec0BE[1] = fVec0BEState;
+		iVec2SI[1] = iVec2SIState;
+		iVec5SE[1] = iVec5SEState;
+		fVec7SE[1] = fVec7SEState;
+		iVec9SE[1] = iVec9SEState;
+		fVec12SE[1] = fVec12SEState;
+		fVec1SE[1] = fVec1SEState;
+		fVec17SE[1] = fVec17SEState;
+		fVec19SE[1] = fVec19SEState;
+		for (int i=0; i<count; i++) {
+			fVec0BE[0] = fSlow0BE;
+			iVec2SI[0] = ((1103515245 * iVec2SI[1]) + 12345 /* Sum */);
+			fTemp0SE = fVec0BE[1]; // step: 38
+			iTemp1SE = iVec5SE[1]; // step: 42
+			iVec5SE[0] = (((fSlow0BE <= fTemp0SE) * (iTemp1SE + (iTemp1SE > 0) /* Sum */)) + (fSlow0BE > fTemp0SE) /* Sum */);
+			fTemp2SE = float(iVec5SE[0]); // step: 49
+			fVec7SE[0] = (fSlow0BE + (fVec7SE[1] * float((fTemp0SE >= fSlow0BE))) /* Sum */);
+			iVec9SE[0] = (iSlow6BE * (iVec9SE[1] + 1 /* Sum */));
+			fTemp3SE = ((fSlow1BE * fVec1SE[1]) + (fSlow2BE * ((float(iVec2SI[0]) * std::max(0.0f, std::min((fSlow4BE * fTemp2SE), ((fSlow5BE * (fSlow3BE + -fTemp2SE /* Sum */)) + 1.0f /* Sum */)))) * std::max(0.0f, (std::min((fConst1KI * fVec7SE[0]), 1.0f) + -(fConst2KI * float(iVec9SE[0])) /* Sum */)))) /* Sum */); // step: 94
+			fVec11SE[IOTA0&2047] = fTemp3SE;
+			fVec12SE[0] = (fSlow7BE + (fConst3KI * fVec12SE[1]) /* Sum */);
+			fTemp4SE = fVec12SE[0]; // step: 114
+			fTemp5SE = (fConst0KI / fTemp4SE); // step: 115
+			fTemp6SE = (fTemp5SE + -floorf(fTemp5SE) /* Sum */); // step: 118
+			fTemp7SE = (((fTemp6SE <= 0.06f)) ? (fConst6KI / fTemp4SE) : (((fTemp6SE >= 0.95f)) ? (fConst5KI / fTemp4SE) : fTemp5SE)); // step: 128
+			fTemp8SE = (fTemp7SE + -1.0f /* Sum */); // step: 129
+			iTemp9SE = int(fTemp8SE); // step: 130
+			fTemp10SE = floorf(fTemp8SE); // step: 135
+			fVec1SE[0] = ((fVec11SE[(IOTA0-std::min(1025, std::max(0, iTemp9SE)))&2047] * (fTemp10SE + 2.0f + -fTemp7SE /* Sum */)) + ((fTemp7SE + -1.0f + -fTemp10SE /* Sum */) * fVec11SE[(IOTA0-std::min(1025, std::max(0, (iTemp9SE + 1 /* Sum */))))&2047]) /* Sum */);
+			float 	fRec6SE = fTemp3SE; // Zero delay
+			fVec17SE[0] = (fSlow8BE + (0.999f * fVec17SE[1]) /* Sum */);
+			fVec19SE[0] = (fRec6SE * fVec17SE[0]);
+			fTemp11SE = (0.3f * fVec19SE[1]); // step: 164
+			output0[i] = (FAUSTFLOAT)(fTemp11SE);  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(fTemp11SE);  // Zone Exec Code
+			// post processing
+			fVec19SE[1] = fVec19SE[0];
+			fVec17SE[1] = fVec17SE[0];
+			fVec1SE[1] = fVec1SE[0];
+			fVec12SE[1] = fVec12SE[0];
+			++IOTA0;
+			iVec9SE[1] = iVec9SE[0];
+			fVec7SE[1] = fVec7SE[0];
+			iVec5SE[1] = iVec5SE[0];
+			iVec2SI[1] = iVec2SI[0];
+			fVec0BE[1] = fVec0BE[0];
 		}
+		fVec0BEState = fVec0BE[1];
+		iVec2SIState = iVec2SI[1];
+		iVec5SEState = iVec5SE[1];
+		fVec7SEState = fVec7SE[1];
+		iVec9SEState = iVec9SE[1];
+		fVec12SEState = fVec12SE[1];
+		fVec1SEState = fVec1SE[1];
+		fVec17SEState = fVec17SE[1];
+		fVec19SEState = fVec19SE[1];
 	}
 };
 

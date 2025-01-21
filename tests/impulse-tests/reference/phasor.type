@@ -1,7 +1,8 @@
-Size = 23
+Size = 25
 Type = NKCVN interval(0,0,0)
 Type = NKCVN interval(1,1,0)
 Type = NKIVN interval(-1.79769e+308,1.79769e+308,-24)
+Type = NSCS? interval(0,1,0)
 Type = NSCS? interval(0,1,0)
 Type = NSCS? interval(0,1,0)
 Type = RKCVN interval(0,0,0)
@@ -15,6 +16,7 @@ Type = RKIVN interval(1,192000,-32)
 Type = RSCSN interval(0,1,-32)
 Type = RSCSN interval(0.1,0.9,-36)
 Type = RSISN interval(-inf,inf,-1)
+Type = RSISN interval(-inf,inf,-24)
 Type = RSISN interval(-inf,inf,-24)
 Type = RSISN interval(-inf,inf,-24)
 Type = RSISN interval(-inf,inf,-24)

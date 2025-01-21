@@ -1,11 +1,13 @@
 //----------------------------------------------------------
 // name: "delays"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
-#include <math.h>
+#include <algorithm>
+#include <cmath>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -17,26 +19,27 @@
 
 class mydsp : public dsp {
   private:
-	float 	fVec0[4096]; // Ring Delay
-	float 	fVec1[1024]; // Ring Delay
+	int 	IOTA0;
+	float 	fVec0SE[4096]; // Ring Delay
+	float 	fVec1SE[1024]; // Ring Delay
 	FAUSTFLOAT 	fentry0;
-	// Recursion delay fVeeec0 is of type kMonoDelay
+	// Recursion delay fVec3SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec0State; // Mono Delay
-	float 	fVec2[2048]; // Ring Delay
+	float 	fVec3SEState; // Single Delay
+	float 	fVec5SE[2048]; // Ring Delay
 	FAUSTFLOAT 	fentry1;
-	// Recursion delay fVeeec3 is of type kMonoDelay
+	// Recursion delay fVec7SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec3State; // Mono Delay
+	float 	fVec7SEState; // Single Delay
 	FAUSTFLOAT 	fentry2;
-	// Recursion delay fVeeec6 is of type kMonoDelay
+	// Recursion delay fVec10SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec6State; // Mono Delay
-	int 	IOTA;
+	float 	fVec10SEState; // Single Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("filename", "delays.dsp");
 		m->declare("math.lib/author", "GRAME");
 		m->declare("math.lib/copyright", "GRAME");
@@ -58,6 +61,7 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
+		IOTA0 = 0;
 	}
 	virtual void instanceResetUserInterface() {
 		fentry0 = 2e+02f;
@@ -65,13 +69,15 @@ class mydsp : public dsp {
 		fentry2 = 4e+02f;
 	}
 	virtual void instanceClear() {
-		for (int i = 0; i < 4096; i++) { fVec0[i] = 0; }
-		for (int i = 0; i < 1024; i++) { fVec1[i] = 0; }
-		fVeeec0State = 0;
-		for (int i = 0; i < 2048; i++) { fVec2[i] = 0; }
-		fVeeec3State = 0;
-		fVeeec6State = 0;
-		IOTA = 2;
+		for (int i = 1; i < 4096; i++) { fVec0SE[i] = 0; }
+		fVec0SE[0] = -1;  // detect unintialized
+		for (int i = 1; i < 1024; i++) { fVec1SE[i] = 0; }
+		fVec1SE[0] = -1;  // detect unintialized
+		fVec3SEState = 0;
+		for (int i = 1; i < 2048; i++) { fVec5SE[i] = 0; }
+		fVec5SE[0] = -1;  // detect unintialized
+		fVec7SEState = 0;
+		fVec10SEState = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -96,47 +102,40 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int 	iSlow0 = int(float(fentry0)); // step: 10
-		float 	fVeeec0;
-		int 	iSlow1 = int(float(fentry1)); // step: 20
-		float 	fVeeec3;
-		int 	iSlow2 = int(float(fentry2)); // step: 29
-		float 	fVeeec6;
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
-			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
-			fVeeec0 = fVeeec0State;
-			fVeeec3 = fVeeec3State;
-			fVeeec6 = fVeeec6State;
-			for (int i=0; i<count; i++) {
-				int vIota0 = IOTA&4095;
-				fVec0[vIota0] = (float)input2[i];
-				int vIota1 = IOTA&1023;
-				fVec1[vIota1] = (float)input0[i];
-				int vIota2 = (IOTA-iSlow0)&1023;
-				fVeeec0 = ((0.999f * fVeeec0) + (0.001f * fVec1[vIota2]));
-				int vIota3 = IOTA&2047;
-				fVec2[vIota3] = (float)input1[i];
-				int vIota4 = (IOTA-iSlow1)&2047;
-				fVeeec3 = ((0.999f * fVeeec3) + (0.001f * fVec2[vIota4]));
-				int vIota5 = (IOTA-iSlow2)&4095;
-				fVeeec6 = ((0.999f * fVeeec6) + (0.001f * fVec0[vIota5]));
-				output0[i] = (FAUSTFLOAT)(fVeeec0);  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(fVeeec3);  // Zone Exec Code
-				output2[i] = (FAUSTFLOAT)(fVeeec6);  // Zone Exec Code
-				// post processing
-				IOTA = IOTA+1;
-			}
-			fVeeec0State = fVeeec0;
-			fVeeec3State = fVeeec3;
-			fVeeec6State = fVeeec6;
+		int 	iSlow0BE = int(float(fentry0)); // Zone 2, step: 12
+		float 	fVec3SE[2];
+		int 	iSlow1BE = int(float(fentry1)); // Zone 2, step: 27
+		float 	fVec7SE[2];
+		int 	iSlow2BE = int(float(fentry2)); // Zone 2, step: 39
+		float 	fVec10SE[2];
+		FAUSTFLOAT* input0 = input[0]; // Zone 3
+		FAUSTFLOAT* input1 = input[1]; // Zone 3
+		FAUSTFLOAT* input2 = input[2]; // Zone 3
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		FAUSTFLOAT* output1 = output[1]; // Zone 3
+		FAUSTFLOAT* output2 = output[2]; // Zone 3
+		fVec3SE[1] = fVec3SEState;
+		fVec7SE[1] = fVec7SEState;
+		fVec10SE[1] = fVec10SEState;
+		for (int i=0; i<count; i++) {
+			fVec0SE[IOTA0&4095] = (float)input2[i];
+			fVec1SE[IOTA0&1023] = (float)input0[i];
+			fVec3SE[0] = ((0.999f * fVec3SE[1]) + (0.001f * fVec1SE[(IOTA0-iSlow0BE)&1023]) /* Sum */);
+			fVec5SE[IOTA0&2047] = (float)input1[i];
+			fVec7SE[0] = ((0.999f * fVec7SE[1]) + (0.001f * fVec5SE[(IOTA0-iSlow1BE)&2047]) /* Sum */);
+			fVec10SE[0] = ((0.999f * fVec10SE[1]) + (0.001f * fVec0SE[(IOTA0-iSlow2BE)&4095]) /* Sum */);
+			output0[i] = (FAUSTFLOAT)(fVec3SE[0]);  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(fVec7SE[0]);  // Zone Exec Code
+			output2[i] = (FAUSTFLOAT)(fVec10SE[0]);  // Zone Exec Code
+			// post processing
+			fVec10SE[1] = fVec10SE[0];
+			fVec7SE[1] = fVec7SE[0];
+			fVec3SE[1] = fVec3SE[0];
+			++IOTA0;
 		}
+		fVec3SEState = fVec3SE[1];
+		fVec7SEState = fVec7SE[1];
+		fVec10SEState = fVec10SE[1];
 	}
 };
 
