@@ -488,29 +488,36 @@ void CodeContainer::processFIR(void)
     fDeclarationInstructions->fCode.sort(sortSoundfiles);
 
     // Check FIR code
-    if (global::isDebug("FIR_CHECKER")) {
-        startTiming("FIR checker");
-        FIRChecker fir_checker;
+
+    // Type in assert mode to stop at first failure
+    if (global::isDebug("FIR_CHECKER_TYPE_ASSERT")) {
+        startTiming("FIR type checker assert");
+        FIRTypeChecker fir_checker(true);
         flattenFIR()->accept(&fir_checker);
-        endTiming("FIR checker");
+        endTiming("FIR type checker assert");
+    }
+    // Type to debug all occurences
+    if (global::hasDebug("FIR_CHECKER_TYPE")) {
+        startTiming("FIR type checker");
+        FIRTypeChecker fir_checker;
+        flattenFIR()->accept(&fir_checker);
+        endTiming("FIR type checker");
     }
 
-    if (global::isDebug("FIR_VAR_CHECKER")) {
-        startTiming("FIR var checker");
+    // Variable in assert mode to stop at first failure
+    if (global::isDebug("FIR_CHECKER_VAR_ASSERT")) {
+        startTiming("FIR variable checker assert");
         // Check variable scope in 'compute'
-        FIRVarChecker fir_var_checker(fComputeBlockInstructions,
-                                      fCurLoop->generateScalarLoop("count"));
-        endTiming("FIR var checker");
+        FIRVarChecker fir_var_checker(flattenFIR(), true);
+        endTiming("FIR variable checker assert");
     }
-
-#ifdef FIR_BUILD
-    if (global::isDebug("FIR_PRINTER")) {
-        stringstream   res;
-        FIRInstVisitor fir_visitor(&res);
-        flattenFIR()->accept(&fir_visitor);
-        std::cout << res.str();
+    // Variable to debug all occurences
+    if (global::hasDebug("FIR_CHECKER_VAR")) {
+        startTiming("FIR variable checker");
+        // Check variable scope in 'compute'
+        FIRVarChecker fir_var_checker(flattenFIR());
+        endTiming("FIR variable checker");
     }
-#endif
 }
 
 // Possibly rewrite arrays access using iZone/fZone
