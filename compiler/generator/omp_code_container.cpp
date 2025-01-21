@@ -70,7 +70,7 @@ void OpenMPCodeContainer::generateLocalOutputs(BlockInst* loop_code, const strin
 }
 
 // LabelInst are used to add OMP directive in the code
-StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
+BlockInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
 {
     BlockInst* result_code = IB::genBlockInst();
     string     index       = "index";

@@ -33,6 +33,8 @@
 #include "prim2.hh"
 #include "recursivness.hh"
 #include "sharing.hh"
+#include "sigDependenciesGraph.hh"
+#include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
@@ -44,6 +46,8 @@
 #include "xtended.hh"
 
 using namespace std;
+
+// #define TRACE 1
 
 ostream* Printable::fOut = &cout;
 
@@ -90,6 +94,8 @@ Tree InstructionsCompiler::prepare(Tree LS)
      */
     if (gGlobal->gBool2Int) {
         L1 = signalBool2IntPromote(L1);
+        // Needed because of use of newConstantPropagation later on
+        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     }
 
     if (gGlobal->gDumpNorm == 0) {
@@ -106,7 +112,34 @@ Tree InstructionsCompiler::prepare(Tree LS)
     }
 
     // No more table privatisation
-    Tree L2 = L1;
+    Tree L2a = newConstantPropagation(L1, false);
+    Tree L2  = L2a;
+
+    /*
+     // detect FIRs and IIRs if required
+     if (gGlobal->gReconstructFIRIIRs) {
+         startTiming("FIR revealer");
+         Tree L2b = revealFIR(L2a);
+         endTiming("FIR revealer");
+         startTiming("IIR revealer");
+         Tree L2c = revealIIR(L2b);
+         endTiming("IIR revealer");
+         L2 = L2c;
+         if (gGlobal->gFactorizeFIRIIRs) {
+             startTiming("FIR/IIR factorizer");
+             Tree L2d = factorizeFIRIIRs(L2);
+             endTiming("FIR/IIR factorizer");
+
+             startTiming("Sum revealer");
+             Tree L2e = revealSum(L2d);
+             endTiming("Sum revealer");
+
+             L2 = L2e;
+         }
+     } else {
+        L2 = L2a;
+     }
+     */
 
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
@@ -130,16 +163,22 @@ Tree InstructionsCompiler::prepare(Tree LS)
     fOccMarkup->mark(L2);  // Annotate L2 with occurrences analysis
     endTiming("occurrences analysis");
 
+    // Stage to test that SignalIdentity is working correctly
+    startTiming("consistence analysis");
+    SignalIdentity SI;
+    Tree           Lx = SI.mapself(L2);
+    faustassert(Lx == L2);
+    endTiming("consistence analysis");
+
     endTiming("prepare");
 
     if (gGlobal->gDrawSignals) {
         if (gGlobal->gDrawRetiming) {
-            startTiming("retiming");
-            Tree L3 = sigRetiming(L2);
-            endTiming("retiming");
-            startTiming("retimed type annotation");
-            typeAnnotation(L3, true);
-            endTiming("retimed type annotation");
+            Tree L3 = sigRetiming(L2, false);
+            conditionAnnotation(L3);
+            recursivnessAnnotation(L3);
+            typeAnnotation(L3, false);
+
             ofstream dotfile(subst("$0-rtsig.dot", gGlobal->makeDrawPath()).c_str());
             sigToGraph(L3, dotfile);
         }
@@ -389,6 +428,23 @@ bool InstructionsCompiler::getVectorNameProperty(Tree sig, string& vname)
     return fVectorProperty.get(sig, vname);
 }
 
+/**
+ * Make sure sig has a vector name property, if not use the one passed in parameter.
+ * @param a name in case not already named
+ * @param sig the signal expression.
+ * @return the vector name associated with sig
+ */
+
+std::string InstructionsCompiler::ensureVectorNameProperty(const std::string& altname, Tree sig)
+{
+    std::string vecname;
+    if (!getVectorNameProperty(sig, vecname)) {
+        vecname = altname;
+        setVectorNameProperty(sig, vecname);
+    }
+    return vecname;
+}
+
 void InstructionsCompiler::setTableNameProperty(Tree sig, const string& name)
 {
     faustassert(name.size() > 0);
@@ -493,9 +549,42 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     L = prepare(L);  // Optimize, share and annotate expression
 
-    // Compile inputs when gInPlace (force caching for in-place transformations)
-    if (gGlobal->gInPlace) {
-        InputCompiler(L, this);
+    auto H = fullGraph(L);
+    if (gGlobal->gTopoSwitch) {
+        std::cerr << "Print siglist full graph topology : " << topology(H) << '\n';
+    }
+
+    // Compute the dependency graph
+    auto G = immediateGraph(L);
+    if (gGlobal->gTopoSwitch) {
+        std::cerr << "Print siglist inst graph topology : " << topology(G) << '\n';
+    }
+    // Force a specific scheduling (i.e. compilation order)
+    schedule<Tree> S;
+    switch (gGlobal->gSchedulingStrategy) {
+        case 0:
+            S = dfschedule(G);
+            break;
+        case 1:
+            S = bfschedule(G);
+            break;
+        case 2:
+            S = spschedule(G);
+            break;
+        case 3:
+        default:
+            S = rbschedule(G);
+            break;
+    }
+    std::cerr << "Scheduling strategy : " << gGlobal->gSchedulingStrategy
+              << " cost: " << schedulingcost(G, S) << '\n';
+
+    // Register the compilation order S for debug purposes
+    {
+        int jj = 0;
+        for (auto& s : S.elements()) {
+            fScheduleOrder[s] = ++jj;
+        }
     }
 
 #ifdef LLVM_DEBUG
@@ -572,6 +661,28 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                 }
             }
         }
+    }
+
+#ifdef TRACE
+    std::cerr << "\nBEFORE COMPILING" << std::endl;
+    std::cerr << G << std::endl;
+    std::cerr << S << std::endl;
+
+    std::cerr << "\nCOMPILE SCHEDULE" << std::endl;
+#endif
+    // gGlobal->gSTEP = 0;
+    for (auto& s : S.elements()) {
+        if (isNil(s)) {
+            std::cerr << "NOT SUPPOSED TO HAPPEN: We have a Nil in the schedule !" << std::endl;
+            faustassert(false);
+        }
+        CS(s);
+        gGlobal->gSTEP++;
+    }
+
+    // Compile inputs when gInPlace (force caching for in-place transformations)
+    if (gGlobal->gInPlace) {
+        InputCompiler(L, this);
     }
 
     // These two vars are only used for JAX
@@ -661,9 +772,48 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
 void InstructionsCompiler::compileSingleSignal(Tree sig)
 {
-    sig         = prepare2(sig);  // Optimize and annotate expression
-    string name = fContainer->getTableName();
+    sig = prepare2(sig);  // Optimize and annotate expression
 
+#ifdef TRACE
+    std::cerr << "\nSTART COMPILING SINGLE SIGNAL: " << ppsig(sig, 20) << std::endl;
+#endif
+    auto H = fullGraph(cons(sig, gGlobal->nil));
+    if (gGlobal->gTopoSwitch) {
+        std::cerr << "Print singlesig full graph topology : " << topology(H) << '\n';
+    }
+
+    // force a specific compilation order
+    auto G = immediateGraph(cons(sig, gGlobal->nil));
+    if (gGlobal->gTopoSwitch) {
+        std::cerr << "Print singlesig inst graph topology : " << topology(G) << '\n';
+    }
+
+    auto S = dfschedule(G);
+#ifdef TRACE
+    std::cerr << "\nBEFORE COMPILING SINGLE SIGNAL" << std::endl;
+    std::cerr << G << std::endl;
+    std::cerr << S << std::endl;
+#endif
+    // register the compilation order S for debug purposes
+    {
+        int jj = 1000;
+        for (auto& s : S.elements()) {
+            fScheduleOrder[s] += ++jj;
+        }
+    }
+#ifdef TRACE
+    std::cerr << "\nCOMPILE SINGLE SIGNAL SCHEDULE" << std::endl;
+#endif
+    for (auto& s : S.elements()) {
+        if (isNil(s)) {
+            std::cerr << "NOT SUPPOSED TO HAPPEN: We have a Nil in the schedule !" << std::endl;
+            faustassert(false);
+        }
+        CS(s);
+        gGlobal->gSTEP++;
+    }
+
+    string name = fContainer->getTableName();
     pushComputeDSPMethod(IB::genStoreArrayFunArgsVar(name, getCurrentLoopIndex(), CS(sig)));
 
     Tree ui = fUITree.prepareUserInterfaceTree();
@@ -691,11 +841,6 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     printSignal(sig, stderr);
     fprintf(stderr, ")\n");
 #endif
-
-    ValueInst* code;
-    if (getCompiledExpression(sig, code)) {
-        return code;
-    }
 
     int     i;
     int64_t i64;
@@ -792,6 +937,28 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         /* no debug option for the moment */
         return generateCode(z);
         /* we should not have any control at this stage*/
+
+    } else if (tvec coefs; isSigFIR(sig, coefs)) {
+        return generateFIR(sig, coefs);
+    } else if (isSigIIR(sig, coefs)) {
+        return generateIIR(sig, coefs);
+    } else if (tvec subs; isSigSum(sig, subs)) {
+        return generateSum(sig, subs);
+    }
+
+    // compile ondemand
+    else if (isSigTempVar(sig, x)) {
+        return generateTempVar(sig, x);
+    } else if (isSigPermVar(sig, x)) {
+        return generatePermVar(sig, x);
+    } else if (isSigSeq(sig, x, y)) {
+        (void)CS(x);
+        return generateCacheCode(sig, CS(y));
+    } else if (tvec w; isSigOD(sig, w)) {
+        return generateOD(sig, w);
+    } else if (isSigClocked(sig, x, y)) {
+        return generateCacheCode(sig, CS(y));
+
     } else {
         cerr << "ASSERT : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE)
              << endl;
@@ -813,7 +980,8 @@ ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)
         BasicTyped* ctype;
         string      vname;
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        generateDelayVec(sig, IB::genInt32NumInst(num), ctype, vname, o->getMaxDelay());
+        generateDelayVec(sig, IB::genInt32NumInst(num), ctype, vname, o->getMaxDelay(),
+                         o->getDelayCount());
     }
 
     // No cache for numbers
@@ -829,7 +997,8 @@ ValueInst* InstructionsCompiler::generateInt64Number(Tree sig, int64_t num)
         BasicTyped* ctype;
         string      vname;
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        generateDelayVec(sig, IB::genInt64NumInst(num), ctype, vname, o->getMaxDelay());
+        generateDelayVec(sig, IB::genInt64NumInst(num), ctype, vname, o->getMaxDelay(),
+                         o->getDelayCount());
     }
 
     // No cache for numbers
@@ -846,7 +1015,8 @@ ValueInst* InstructionsCompiler::generateRealNumber(Tree sig, double num)
     if (o->getMaxDelay() > 0) {
         string vname;
         getTypedNames(getCertifiedSigType(sig), "Vec", btype, vname);
-        generateDelayVec(sig, IB::genRealNumInst(ctype, num), btype, vname, o->getMaxDelay());
+        generateDelayVec(sig, IB::genRealNumInst(ctype, num), btype, vname, o->getMaxDelay(),
+                         o->getDelayCount());
     }
 
     // No cache for numbers
@@ -887,7 +1057,7 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         generateDelayVec(
             sig, (name == "fSampleRate") ? IB::genLoadStructVar(name) : IB::genLoadGlobalVar(name),
-            ctype, vname, o->getMaxDelay());
+            ctype, vname, o->getMaxDelay(), o->getDelayCount());
     }
 
     // Special case for 'fSampleRate' parameter of the class
@@ -1014,6 +1184,7 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
  CACHE CODE
  *****************************************************************************/
 
+/*
 void InstructionsCompiler::getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype,
                                          string& vname)
 {
@@ -1037,6 +1208,37 @@ void InstructionsCompiler::getTypedNames(::Type t, const string& prefix, BasicTy
         vname = subst("f$0", gGlobal->getFreshID(prefix));
     }
 }
+*/
+
+void InstructionsCompiler::getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype,
+                                         string& vname)
+{
+    std::string typedescr = "VC";
+    typedescr[0]          = "KB?S"[t->variability()];
+    typedescr[1]          = "CI?E"[t->computability()];
+    if (t->nature() == kInt) {
+        ctype = Typed::kInt32;
+        vname = subst("i$0$1", gGlobal->getFreshID(prefix), typedescr.c_str());
+    } else {
+        ctype = itfloat();
+        vname = subst("f$0$1", gGlobal->getFreshID(prefix), typedescr.c_str());
+    }
+}
+
+void InstructionsCompiler::getTypedNames(::Type t, const string& prefix, BasicTyped*& ctype,
+                                         string& vname)
+{
+    std::string typedescr = "VC";
+    typedescr[0]          = "KB?S"[t->variability()];
+    typedescr[1]          = "CI?E"[t->computability()];
+    if (t->nature() == kInt) {
+        ctype = IB::genBasicTyped(Typed::kInt32);
+        vname = subst("i$0$1", gGlobal->getFreshID(prefix), typedescr.c_str());
+    } else {
+        ctype = genFloatType(t);
+        vname = subst("f$0$1", gGlobal->getFreshID(prefix), typedescr.c_str());
+    }
+}
 
 ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 {
@@ -1057,9 +1259,9 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         if (sharing > 1) {
             return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname,
-                                    o->getMaxDelay());
+                                    o->getMaxDelay(), o->getDelayCount());
         } else {
-            return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+            return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
         }
 
     } else if (sharing > 1 || (o->hasMultiOccurrences())) {
@@ -1093,7 +1295,7 @@ ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname,
-                                o->getMaxDelay());
+                                o->getMaxDelay(), o->getDelayCount());
     } else {
         return generateVariableStore(sig, exp);
     }
@@ -1824,6 +2026,8 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
 /**
  * Generate code for a projection of a group of mutually recursive definitions
  */
+
+/*
 ValueInst* InstructionsCompiler::generateRecProj(Tree sig, Tree r, int i)
 {
     string     vname;
@@ -1839,12 +2043,162 @@ ValueInst* InstructionsCompiler::generateRecProj(Tree sig, Tree r, int i)
     }
     return res;
 }
+*/
+
+ValueInst* InstructionsCompiler::generateRecProj(Tree sig, Tree r, int i)
+{
+    string      pname;
+    BasicTyped* ctype;
+    Tree        var, le;
+    Type        ty = getCertifiedSigType(sig);
+    getTypedNames(ty, "Rec", ctype, pname);
+    string vecname = ensureVectorNameProperty(pname, sig);
+    int    delay   = fOccMarkup->retrieve(sig)->getMaxDelay();
+    int    count   = fOccMarkup->retrieve(sig)->getDelayCount();
+    bool   mono    = isSigSimpleRec(sig);
+
+    faustassert(isRec(r, var, le));
+    Tree def = nth(le, i);
+    if (true && ty->variability() == kSamp) {  // TODO
+        pushDeclare(IB::genLabelInst(subst("// Recursion delay $0 is of type $1", vecname,
+                                           nameDelayType(analyzeDelayType(sig)))));
+        pushDeclare(IB::genLabelInst(
+            subst("// While its definition is of type $0", nameDelayType(analyzeDelayType(def)))));
+
+        ValueInst* dl0 = generateDelayLine(sig, ctype, vecname, delay, count, mono, CS(def),
+                                           getConditionCode(def));
+        return dl0;
+    }
+    if (ty->variability() == kBlock) {
+        // TODO
+        /*
+         if (gGlobal->gExtControl) {}
+         */
+        pushComputeBlockMethod(IB::genDecStackVar(vecname, ctype, CS(def)));
+        return IB::genLoadStackVar(vecname);
+    }
+    if (ty->variability() == kKonst) {
+        pushDeclare(IB::genDecStructVar(vecname, ctype));
+        pushInitMethod(IB::genStoreStructVar(vecname, CS(def)));
+        return IB::genLoadStructVar(vecname);
+    }
+
+    faustassert(false);
+    return IB::genNullValueInst();
+}
+
+/**
+ * @brief Check if sig is a simple recursive signal that can be expressed using a single variable
+ *
+ * @param sig the signal to analyse, typically proj(i,X)
+ * @return true if sig is of type x = f(x') and x' is used only once. In this case the same variable
+ * can be used both for x and x'
+ * @return false
+ */
+bool InstructionsCompiler::isSigSimpleRec(Tree sig)
+{
+    int  i;
+    Tree x;
+
+    // sig is a recursive projection
+    if (isProj(sig, &i, x)) {
+        Tree var, le;
+        // the recursive group contains only one recursive signal
+        if (isRec(x, var, le) && (len(le) == 1)) {
+            int mxd   = fOccMarkup->retrieve(sig)->getMaxDelay();
+            int count = fOccMarkup->retrieve(sig)->getDelayCount();
+            // The maximum delay of sig is 1 and the delay count is 1
+            if ((mxd == 1) && (count == 1)) {
+                // sig@1 has only a single occurence (therefore in the definition of sig)
+                Tree f = sigDelay(sig, sigInt(1));  // check if it is a delay
+                if (fOccMarkup->retrieve(f)) {
+                    // this projection is used
+                    return !fOccMarkup->retrieve(f)->hasMultiOccurrences();
+                }
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * @brief indicate best delay implementation type for a signal according to its max delay and
+ * various compilation options
+ *
+ * @param sig
+ * @return DelayType
+ */
+DelayType InstructionsCompiler::analyzeDelayType(Tree sig)
+{
+    Occurrences* occ = fOccMarkup->retrieve(sig);
+    if (tvec coefs; isSigIIR(sig, coefs)) {
+        // std::cerr << "Analyze delay type for IIR sig " << sig << " with " << coefs.size() - 3
+        //           << " real coefs \n";
+        if (int(coefs.size()) - 3 >= gGlobal->gIIRRingThreshold) {
+            // std::cerr << "We use MaskRingDelay for " << ppsig(sig) << std::endl;
+            return DelayType::kMaskRingDelay;
+        }
+    }
+    faustassert(occ != nullptr);
+    int mxd   = occ->getMaxDelay();
+    int count = occ->getDelayCount();
+
+    if (mxd == 0) {
+        return DelayType::kZeroDelay;
+    }
+    if (mxd == 1) {
+        // check for special mono delay case
+        int  i;
+        Tree x, var, le;
+        // YO DISABLE
+        if (count == -1 && isProj(sig, &i, x) && isRec(x, var, le) && (len(le) == 1)) {
+            // potential simple recursion if sig@1 is used only once
+            // std::cerr << "Potential mono delay " << ppsig(sig) << std::endl;
+            Tree f = sigDelay(sig, sigInt(1));  // check if it is a delay
+            if (fOccMarkup->retrieve(f) && !fOccMarkup->retrieve(f)->hasMultiOccurrences()) {
+                return DelayType::kMonoDelay;
+            }
+        }
+        return DelayType::kSingleDelay;
+    }
+    if (mxd <= gGlobal->gMaxCopyDelay) {
+        return DelayType::kCopyDelay;
+    }
+    int dnsty = (100 * count) / mxd;
+    // std::cerr << "Analyze delay type for sig " << sig << " with mxd=" << mxd
+    //           << ", delays count=" << occ->getDelayCount() << " and density=" << dnsty << "\n";
+    // std::cerr << "gUseDenseDelay=" << gGlobal->gUseDenseDelay
+    //           << " gMaxDenseDelay=" << gGlobal->gMaxDenseDelay
+    //           << " gMinDensity=" << gGlobal->gMinDensity << "\n";
+    if ((gGlobal->gUseDenseDelay != 0) && (mxd <= gGlobal->gMaxDenseDelay) &&
+        (dnsty >= gGlobal->gMinDensity)) {
+        // std::cerr << "We use DenseDelay !\n";
+        return DelayType::kDenseDelay;
+    }
+    if (mxd <= gGlobal->gMaskDelayLineThreshold) {
+        Tree clock;
+        if (!hasClock(sig, clock)) {
+            std::cerr << "ERROR, not the expected signal with a clock " << ppsig(sig) << std::endl;
+        }
+        faustassert(hasClock(sig, clock));
+        // std::cerr << "We use MaskRingDelay in clock env: " << clock << ", for sig: " << sig
+        //           << std::endl;
+        return DelayType::kMaskRingDelay;
+    }
+    // std::cerr << "We use SelectRingDelay for " << ppsig(sig) << std::endl;
+    return DelayType::kSelectRingDelay;
+}
 
 /**
  * Generate code for a group of mutually recursive definitions
  */
 ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int index)
 {
+    // TODO
+    faustassert(false);
+    return IB::genNullValueInst();
+
+    /*
     int N = len(le);
 
     ValueInst*          res = nullptr;
@@ -1884,6 +2238,7 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
     }
 
     return res;
+    */
 }
 
 /*****************************************************************************
@@ -2033,21 +2388,133 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
  * Generate code for accessing a delayed signal. The generated code depend of
  * the maximum delay attached to exp.
  */
+
+/**
+ * Generate code for accessing a delayed signal when using a signal delay
+ */
 ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
-    ValueInst* code = CS(exp);  // Ensure exp is compiled to have a vector name
-    int        mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
-    string     vname;
+    return generateCacheCode(sig, generateDelayAccess(sig, exp, CS(delay)));
+}
 
-    if (!getVectorNameProperty(exp, vname)) {
-        if (mxd == 0) {
-            // cerr << "it is a pure zero delay : " << code << endl;
-            return code;
-        } else {
-            cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
-            faustassert(false);
-        }
+/**
+ * Generate code for accessing a delayed signal when using a numerical delay
+ */
+ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, int delay)
+{
+    return generateDelayAccess(sig, exp, IB::genInt32NumInst(delay));
+}
+
+/**
+ * @brief Declare or retrieve the IOTA name associated to a specific ondemand clock environment
+ *
+ * @param clock signal
+ * @return string
+ */
+string InstructionsCompiler::declareRetrieveIotaName(Tree clock)
+{
+    // std::cerr << "declareRetrieveIotaName(" << *clock << ")" << endl;
+    if (string iotaname; fIotaProperty.get(clock, iotaname)) {
+        return iotaname;
     }
+
+    std::string newiotaname = gGlobal->getFreshID("IOTA");
+    fIotaProperty.set(clock, newiotaname);
+
+    pushDeclare(IB::genDecStructVar(newiotaname, IB::genInt32Typed()));
+    pushClearMethod(IB::genStoreStructVar(newiotaname, IB::genInt32NumInst(0)));
+
+    FIRIndex value = FIRIndex(IB::genLoadStructVar(newiotaname)) + 1;
+    pushPostComputeDSPMethod(IB::genStoreStructVar(newiotaname, value));
+
+    return newiotaname;
+}
+
+ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, ValueInst* delayidx)
+{
+    Typed::VarType ctype;
+    string         pname;
+    getTypedNames(getCertifiedSigType(sig), "Vec", ctype, pname);
+    string    vecname = ensureVectorNameProperty(pname, exp);
+    int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
+    DelayType dt      = analyzeDelayType(exp);
+#ifdef TRACE
+    std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
+              << fScheduleOrder[exp] << " -exp- " << exp << " :: " << ppsig(exp, 10) << '\n'
+              << "Within FIR at step " << fScheduleOrder[sig] << " -sig- " << sig
+              << " :: " << ppsig(sig, 10) << '\n'
+              << " and with delay " << delayidx << '\n';
+#endif
+    ValueInst* result;
+    switch (dt) {
+        case DelayType::kNotADelay:
+            throw faustexception(
+                "ERROR : try to compile something that is not an indexable delay\n");
+            result = IB::genNullValueInst();
+            break;
+
+        case DelayType::kZeroDelay:
+            result = IB::genLoadStackVar(vecname);
+            break;
+
+        case DelayType::kMonoDelay:
+            result = IB::genLoadStackVar(vecname);
+            break;
+
+            /*
+             case DelayType::kSingleDelay:
+             case DelayType::kCopyDelay:
+             case DelayType::kDenseDelay:   // Moved in last model for now
+             result = IB::genLoadArrayStackVar(vecname, delayidx);
+             break;
+             */
+
+            // 3 cases moved here
+        case DelayType::kSingleDelay:
+        case DelayType::kCopyDelay:
+        case DelayType::kDenseDelay:
+
+        case DelayType::kMaskRingDelay:
+        case DelayType::kSelectRingDelay:
+            int  N = pow2limit(mxd + 1);
+            Tree clock;
+            faustassert(hasClock(exp, clock));
+            std::string iotaname = declareRetrieveIotaName(clock);
+
+            // result = subst("$0[($1-$2)&$3]", vecname, iotaname, delayidx,
+            //          T(N - 1));  // idx can't be cashed as it depends of loop variable ii
+            // TODO : gGlobal->gMaskDelayLineThreshold handling
+
+            FIRIndex index =
+                (FIRIndex(IB::genLoadStructVar(iotaname)) - delayidx) & FIRIndex(N - 1);
+            result = IB::genLoadArrayStructVar(vecname, index);
+            break;
+    }
+    return result;
+}
+
+/*
+ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
+{
+    // ValueInst* code = CS(exp);  // Ensure exp is compiled to have a vector name
+    // int        mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
+    // string     vname;
+
+    Typed::VarType ctype;
+    string pname;
+    getTypedNames(getCertifiedSigType(sig), "Vec", ctype, pname);
+    string    vname = ensureVectorNameProperty(pname, exp);
+    int       mxd   = fOccMarkup->retrieve(exp)->getMaxDelay();
+
+    // if (!getVectorNameProperty(exp, vname)) {
+    //     if (mxd == 0) {
+    // cerr << "it is a pure zero delay : " << code << endl;
+    //           return code;
+    //     } else {
+    //         cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
+    //         faustassert(false);
+    //     }
+    // }
 
     if (mxd == 0) {
         // not a real vector name but a scalar name
@@ -2066,7 +2533,7 @@ ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree de
             ensureIotaCode();
 
             FIRIndex value2 =
-                (FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) - CS(delay)) & FIRIndex(N - 1);
+            (FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) - CS(delay)) & FIRIndex(N - 1);
             return generateCacheCode(sig, IB::genLoadArrayStructVar(vname, value2));
         } else {
             string ridx_name = gGlobal->getFreshID(vname + "_ridx_tmp");
@@ -2078,22 +2545,53 @@ ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree de
             // dline[((ridx < 0) ? ridx + delay : ridx)];
             FIRIndex ridx1 = FIRIndex(IB::genLoadStackVar(ridx_name));
             FIRIndex ridx2 =
-                FIRIndex(IB::genSelect2Inst(ridx1 < 0, ridx1 + FIRIndex(mxd + 1), ridx1));
+            FIRIndex(IB::genSelect2Inst(ridx1 < 0, ridx1 + FIRIndex(mxd + 1), ridx1));
             return generateCacheCode(sig, IB::genLoadArrayStructVar(vname, ridx2));
         }
     }
 }
+*/
 
 /**
  * Generate code for the delay mechanism. The generated code depends of the
  * maximum delay attached to exp and the "less temporaries" switch.
  */
+/*
 ValueInst* InstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype,
                                                   const string& vname, int mxd)
 {
     setVectorNameProperty(sig, vname);
     Address::AccessType access;
     return generateDelayLine(exp, ctype, vname, mxd, access, getConditionCode(sig));
+}
+*/
+
+ValueInst* InstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype,
+                                                  const string& vname, int mxd, int count)
+{
+    ValueInst* s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd, count);
+    if (getCertifiedSigType(sig)->variability() < kSamp) {
+        return exp;
+    } else {
+        return s;
+    }
+}
+
+ValueInst* InstructionsCompiler::generateDelayVecNoTemp(Tree sig, ValueInst* exp, BasicTyped* ctype,
+                                                        const string& pname, int mxd, int count)
+{
+    faustassert(mxd > 0);
+
+    // We make sure to use the vector name associated with signal, or we provide one
+    std::string vecname = ensureVectorNameProperty(pname, sig);
+    bool        mono    = isSigSimpleRec(sig);
+    // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
+    ValueInst* ccs = getConditionCode(sig);
+    // DelayType  dt  = analyzeDelayType(sig);
+    //  fClass->addDeclCode(subst("// Normal delay $0 is of type $1", vname, nameDelayType(dt)));
+    ValueInst* access = generateDelayLine(sig, ctype, vecname, mxd, count, mono, exp, ccs);
+    // setVectorNameProperty(sig, vname);
+    return access;
 }
 
 StatementInst* InstructionsCompiler::generateInitArray(const string& vname, BasicTyped* ctype,
@@ -2118,7 +2616,9 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Basi
     return loop;
 }
 
-StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int delay)
+// for (int i = delay; i>0; i--) vname[i] = vname[i-1];
+StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int delay,
+                                                        Address::AccessType access)
 {
     if (gGlobal->gUseMemmove) {
         /*
@@ -2135,8 +2635,8 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
 
         // Return funcall
         Values args;
-        args.push_back(IB::genLoadArrayStructVarAddress(vname, IB::genInt32NumInst(0)));
-        args.push_back(IB::genLoadArrayStructVarAddress(vname, IB::genInt32NumInst(1)));
+        args.push_back(IB::genLoadArrayVarAddress(vname, IB::genInt32NumInst(0), access));
+        args.push_back(IB::genLoadArrayVarAddress(vname, IB::genInt32NumInst(1), access));
         args.push_back(IB::genInt32NumInst(delay * ifloatsize()));
         return IB::genDropInst(IB::genFunCallInst("memmove", args));
 
@@ -2152,9 +2652,9 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
 
         ForLoopInst* loop        = IB::genForLoopInst(loop_decl, loop_end, loop_inc);
         ValueInst*   load_value2 = IB::genSub(loop_decl->load(), IB::genInt32NumInst(1));
-        ValueInst*   load_value3 = IB::genLoadArrayStructVar(vname, load_value2);
+        ValueInst*   load_value3 = IB::genLoadArrayVar(vname, access, load_value2);
 
-        loop->pushFrontInst(IB::genStoreArrayStructVar(vname, loop_decl->load(), load_value3));
+        loop->pushFrontInst(IB::genStoreArrayVar(vname, access, loop_decl->load(), load_value3));
         return loop;
     }
 }
@@ -2184,108 +2684,335 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to,
     return loop;
 }
 
-ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, BasicTyped* ctype,
-                                                   const string& vname, int mxd,
-                                                   Address::AccessType& access, ValueInst* ccs)
+// for (int j = 0; j < size; j++) { v1[j+1] = v2[j]; }
+StatementInst* InstructionsCompiler::generateMove1Array(const std::string& v1,
+                                                        const std::string& v2, int size)
 {
-    if (mxd == 0) {
-        // Generate scalar use
-        if (dynamic_cast<NullValueInst*>(ccs)) {
-            pushComputeDSPMethod(IB::genDecStackVar(vname, ctype, exp));
-        } else {
-            pushPreComputeDSPMethod(IB::genDecStackVar(vname, ctype, IB::genTypedZero(ctype)));
-            pushComputeDSPMethod(IB::genControlInst(ccs, IB::genStoreStackVar(vname, exp)));
-        }
+    string index = gGlobal->getFreshID("j");
 
-    } else if (mxd < gGlobal->gMaxCopyDelay) {
-        // Generates table init
-        pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
+    // Generates init table loop
+    DeclareVarInst* loop_decl =
+        IB::genDecLoopVar(index, IB::genInt32Typed(), IB::genInt32NumInst(0));
+    ValueInst*    loop_end = IB::genLessThan(loop_decl->load(), IB::genInt32NumInst(size));
+    StoreVarInst* loop_inc = loop_decl->store(IB::genAdd(loop_decl->load(), 1));
 
-        // Generate table use
-        pushComputeDSPMethod(IB::genControlInst(
-            ccs, IB::genStoreArrayStructVar(vname, IB::genInt32NumInst(0), exp)));
+    ForLoopInst* loop = IB::genForLoopInst(loop_decl, loop_end, loop_inc);
 
-        // Generates post processing copy code to update delay values
-        if (mxd == 1) {
-            pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 0, 1)));
-        } else if (mxd == 2) {
-            pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 1, 2)));
-            pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 0, 1)));
-        } else {
-            pushPostComputeDSPMethod(IB::genControlInst(ccs, generateShiftArray(vname, mxd)));
-        }
+    loop->pushFrontInst(
+        IB::genStoreArrayStackVar(v1, FIRIndex(FIRIndex(loop_decl->load()) + 1),
+                                  IB::genLoadArrayStructVar(v2, loop_decl->load())));
+    return loop;
+}
 
-    } else {
-        if (mxd < gGlobal->gMaskDelayLineThreshold) {
-            int N = pow2limit(mxd + 1);
-            ensureIotaCode();
+// for (int j = 0; j < size; j++) { v1[j] = v2[j+1]; }
+StatementInst* InstructionsCompiler::generateMove2Array(const std::string& v1,
+                                                        const std::string& v2, int size)
+{
+    string index = gGlobal->getFreshID("j");
 
-            // Generates table init
-            pushClearMethod(generateInitArray(vname, ctype, N));
+    // Generates init table loop
+    DeclareVarInst* loop_decl =
+        IB::genDecLoopVar(index, IB::genInt32Typed(), IB::genInt32NumInst(0));
+    ValueInst*    loop_end = IB::genLessThan(loop_decl->load(), IB::genInt32NumInst(size));
+    StoreVarInst* loop_inc = loop_decl->store(IB::genAdd(loop_decl->load(), 1));
 
-            // Generate table use
-            if (gGlobal->gComputeIOTA) {  // Ensure IOTA base fixed delays are computed once
-                if (fIOTATable.find(N) == fIOTATable.end()) {
-                    string   iota_name = subst("i$0", gGlobal->getFreshID(fCurrentIOTA + "_temp"));
-                    FIRIndex value2 =
-                        FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
+    ForLoopInst* loop = IB::genForLoopInst(loop_decl, loop_end, loop_inc);
 
-                    pushPreComputeDSPMethod(
-                        IB::genDecStackVar(iota_name, Typed::kInt32, IB::genInt32NumInst(0)));
-                    pushComputeDSPMethod(
-                        IB::genControlInst(ccs, IB::genStoreStackVar(iota_name, value2)));
+    loop->pushFrontInst(IB::genStoreArrayStructVar(
+        v1, loop_decl->load(),
+        IB::genLoadArrayStackVar(v2, FIRIndex(FIRIndex(loop_decl->load()) + 1))));
+    return loop;
+}
 
-                    fIOTATable[N] = iota_name;
-                }
+ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype,
+                                                   const std::string& vname, int mxd, int count,
+                                                   bool mono, ValueInst* exp, ValueInst* ccs)
+{
+    DelayType dt = analyzeDelayType(sig);
+    switch (dt) {
+        case DelayType::kNotADelay:
+            throw faustexception(
+                "ERROR : try to compile has a delay something that is not a delay\n");
+            return IB::genNullValueInst();
 
-                pushComputeDSPMethod(IB::genControlInst(
-                    ccs,
-                    IB::genStoreArrayStructVar(vname, IB::genLoadStackVar(fIOTATable[N]), exp)));
-
+        case DelayType::kZeroDelay:
+            // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
+            // no need for a real vector
+            if (dynamic_cast<NullValueInst*>(ccs)) {
+                pushComputeDSPMethod(IB::genDecStackVar(vname, ctype, exp));
             } else {
-                FIRIndex value2 = FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
-                pushComputeDSPMethod(
-                    IB::genControlInst(ccs, IB::genStoreArrayStructVar(vname, value2, exp)));
+                pushPreComputeDSPMethod(IB::genDecStackVar(vname, ctype, IB::genTypedZero(ctype)));
+                pushComputeDSPMethod(IB::genControlInst(ccs, IB::genStoreStackVar(vname, exp)));
             }
-        } else {
-            // 'select' based delay
-            string widx_tmp_name = vname + "_widx_tmp";
-            string widx_name     = vname + "_widx";
+            return IB::genLoadStackVar(vname);
 
-            // Generates table write index
-            pushDeclare(IB::genDecStructVar(widx_name, IB::genInt32Typed()));
-            pushInitMethod(IB::genStoreStructVar(widx_name, IB::genInt32NumInst(0)));
-
-            // Generates table init
-            pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
-
-            // int w = widx;
-            pushComputeDSPMethod(IB::genControlInst(
-                ccs,
-                IB::genDecStackVar(widx_tmp_name, Typed::kInt32, IB::genLoadStructVar(widx_name))));
-
-            // dline[w] = v;
-            pushComputeDSPMethod(IB::genControlInst(
-                ccs, IB::genStoreArrayStructVar(vname, IB::genLoadStackVar(widx_tmp_name), exp)));
-
-            // w = w + 1;
-            FIRIndex widx_tmp1 = FIRIndex(IB::genLoadStackVar(widx_tmp_name));
-            pushPostComputeDSPMethod(
-                IB::genControlInst(ccs, IB::genStoreStackVar(widx_tmp_name, widx_tmp1 + 1)));
-
-            // w = ((w == delay) ? 0 : w);
-            FIRIndex widx_tmp2 = FIRIndex(IB::genLoadStackVar(widx_tmp_name));
-            pushPostComputeDSPMethod(IB::genControlInst(
-                ccs, IB::genStoreStackVar(widx_tmp_name,
-                                          IB::genSelect2Inst(widx_tmp2 == FIRIndex(mxd + 1),
-                                                             FIRIndex(0), widx_tmp2))));
-            // *widx = w
-            pushPostComputeDSPMethod(IB::genControlInst(
-                ccs, IB::genStoreStructVar(widx_name, IB::genLoadStackVar(widx_tmp_name))));
+        case DelayType::kMonoDelay: {
+            string vname_perm = vname + "State";
+            pushDeclare(IB::genLabelInst("// Mono Delay"));
+            pushDeclare(IB::genDecStructVar(vname_perm, ctype));
+            pushClearMethod(IB::genStoreStructVar(vname_perm, IB::genTypedZero(ctype)));
+            pushComputeBlockMethod(IB::genDecStackVar(vname, ctype));
+            pushComputeBlockMethod(IB::genStoreStackVar(vname, IB::genLoadStructVar(vname_perm)));
+            pushComputeDSPMethod(IB::genControlInst(ccs, IB::genStoreStackVar(vname, exp)));
+            pushPostComputeBlockMethod(
+                IB::genStoreStackVar(vname_perm, IB::genLoadStackVar(vname)));
+            return IB::genLoadStackVar(vname);
         }
-    }
 
-    return exp;
+            /*
+             case DelayType::kSingleDelay: {
+             string vname_perm = vname + "State";
+             pushDeclare(IB::genLabelInst("// Single Delay"));
+             pushDeclare(IB::genDecStructVar(vname_perm, ctype));
+             pushClearMethod(IB::genStoreStructVar(vname_perm, IB::genTypedZero(ctype)));
+             pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, mxd + 1));
+             pushComputeBlockMethod(IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
+             IB::genLoadStructVar(vname_perm)));
+             pushComputeDSPMethod(IB::genControlInst(
+             ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
+             pushPostComputeDSPMethod(
+             IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
+             IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0))));
+             pushPostComputeBlockMethod(IB::genStoreStructVar(
+             vname_perm, IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(1))));
+             return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
+             }
+             */
+
+            /*
+             case DelayType::kCopyDelay: {
+             string vname_perm = vname + "State";
+             pushDeclare(IB::genLabelInst("// Copy Delay"));
+
+             // Generates table init
+             pushClearMethod(generateInitArray(vname_perm, ctype, mxd));
+
+             // Declare local array
+             pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, mxd + 1));
+
+             if (mxd < gGlobal->gMinCopyLoop) {
+             // Unroll sample copy loops
+             for (int j = 0; j < mxd; j++) {
+             pushComputeBlockMethod(IB::genStoreArrayStackVar(
+             vname, IB::genInt32NumInst(j + 1),
+             IB::genLoadArrayStructVar(vname_perm, IB::genInt32NumInst(j))));
+             }
+             pushComputeDSPMethod(IB::genControlInst(
+             ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
+             pushPostComputeDSPMethod(IB::genLabelInst("// post processing"));
+             for (int j = mxd-1; j >= 0; j--) {
+             // warning ; line stacked in reverse order !!!
+             pushPostComputeDSPMethod(IB::genStoreArrayStackVar(
+             vname, IB::genInt32NumInst(j + 1), IB::genLoadArrayStackVar(vname,
+             IB::genInt32NumInst(j))));
+             }
+
+             for (int j = 0; j < mxd; j++) {
+             pushPostComputeBlockMethod(IB::genStoreArrayStructVar(
+             vname_perm, IB::genInt32NumInst(j),
+             IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(j + 1))));
+             }
+
+             } else {
+             // Use sample copy loops
+             pushComputeBlockMethod(generateMove1Array(vname, vname_perm, mxd));
+             pushComputeDSPMethod(IB::genControlInst(
+             ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
+             pushPostComputeDSPMethod(generateShiftArray(vname, mxd, Address::kStack));
+             pushPostComputeBlockMethod(generateMove2Array(vname_perm, vname, mxd));
+             }
+
+             return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
+             }
+             */
+
+            /*
+             case DelayType::kDenseDelay: {  // Moved in last model for now
+
+             #if 1
+             // version normale
+             string vname_perm = vname + "State";
+             string vname_local = vname + "Cache";
+             pushDeclare(IB::genLabelInst("// Dense Delay"));
+
+             // Generates table init
+             pushClearMethod(generateInitArray(vname_perm, ctype, mxd));
+             pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, gGlobal->gVecSize + mxd));
+             pushComputeBlockMethod(IB::genDecStackVar(vname, IB::genArrayTyped(ctype, 0),
+             FIRIndex(IB::genLoadStackVar(vname_local)) + (gGlobal->gVecSize - 1)));
+             // Use sample copy loops
+             pushComputeBlockMethod(generateMove1Array(vname, vname_perm, mxd));
+             pushComputeDSPMethod(IB::genControlInst(ccs, IB::genStoreArrayStackVar(vname,
+             IB::genInt32NumInst(0), exp)));
+
+             // TODO
+
+             pushPostComputeBlockMethod(generateMove2Array(vname, vname_perm, mxd));
+             return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
+             }
+             #else
+
+             // version optimisée par rebouclage directe dans le vecteur (environ 1% de gain)
+             fClass->addDeclCode(subst("$0 \t$1State[$2]; // Dense Delay", ctype, vname, T(mxd)));
+             fClass->addClearCode(
+             subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd),
+             vname)); fClass->addZone2( subst("$0 \t$1Cache[$2+$3];", ctype, vname,
+             T(gGlobal->gVecSize), T(mxd))); fClass->addZone2(subst("for (int j = 0; j < $0; j++)
+             {$1Cache[j + $2] = $1State[j];}", T(mxd), vname, T(gGlobal->gVecSize)));
+             fClass->addZone3(
+             subst("$0* \t$1 = $1Cache + $2 - 1;", ctype, vname,
+             T(gGlobal->gVecSize))); fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname,
+             exp))); fClass->addPostCode(Statement("", subst("--$0;", vname))); if (mxd <
+             gGlobal->gMinCopyLoop) { for (int j = mxd - 1; j >= 0; j--) { fClass->addZone3Post(
+             subst("$0Cache[$1] = $0Cache[$2];", vname, T(j +
+             gGlobal->gVecSize), T(j)));
+             }
+             } else {
+             fClass->addZone3Post(
+             subst("for (int j = $0-1; j >= 0; j--) { $1Cache[j+$2] =
+             $1Cache[j]; }", T(mxd), vname, T(gGlobal->gVecSize)));
+             }
+             fClass->addZone4(subst("for (int j = 0; j < $0; j++) { $1State[j] = $1Cache[j+$2]; }",
+             T(mxd), vname, T(gGlobal->gVecSize)));
+
+             return subst("$0[0]", vname);
+
+             #endif
+             */
+
+            // 3 cases moved here
+        case DelayType::kSingleDelay:
+        case DelayType::kCopyDelay:
+        case DelayType::kDenseDelay:
+
+        case DelayType::kMaskRingDelay:
+        case DelayType::kSelectRingDelay:
+            Tree clock;
+            faustassert(hasClock(sig, clock));
+            std::string iotaname = declareRetrieveIotaName(clock);
+            // std::cerr << "Use of ring buffer " << vname << " with sig = " << sig << std::endl;
+
+            // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+            int N = pow2limit(mxd + 1);
+
+            // declare and init the delay line
+            pushDeclare(IB::genLabelInst("// Ring Delay"));
+            pushClearMethod(generateInitArray(vname, ctype, N));
+            pushDeclare(IB::genLabelInst("// detect unintialized"));
+            pushClearMethod(
+                IB::genStoreArrayStructVar(vname, FIRIndex(0), IB::genInt32NumInst(-1)));
+
+            // execute
+            pushComputeDSPMethod(IB::genControlInst(
+                ccs, IB::genStoreArrayStructVar(
+                         vname, FIRIndex(IB::genLoadStructVar(iotaname)) & FIRIndex(N - 1), exp)));
+
+            return IB::genLoadArrayStructVar(
+                vname, FIRIndex(IB::genLoadStructVar(iotaname)) & FIRIndex(N - 1));
+    }
+    faustassertaux(false, __FILE__, __LINE__);
+    return IB::genNullValueInst();
+
+    /*
+     if (mxd == 0) {
+     // Generate scalar use
+     if (dynamic_cast<NullValueInst*>(ccs)) {
+     pushComputeDSPMethod(IB::genDecStackVar(vname, ctype, exp));
+     } else {
+     pushPreComputeDSPMethod(IB::genDecStackVar(vname, ctype, IB::genTypedZero(ctype)));
+     pushComputeDSPMethod(IB::genControlInst(ccs, IB::genStoreStackVar(vname, exp)));
+     }
+
+     } else if (mxd < gGlobal->gMaxCopyDelay) {
+     // Generates table init
+     pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
+
+     // Generate table use
+     pushComputeDSPMethod(IB::genControlInst(
+     ccs, IB::genStoreArrayStructVar(vname, IB::genInt32NumInst(0), exp)));
+
+     // Generates post processing copy code to update delay values
+     if (mxd == 1) {
+     pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 0, 1)));
+     } else if (mxd == 2) {
+     pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 1, 2)));
+     pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 0, 1)));
+     } else {
+     pushPostComputeDSPMethod(IB::genControlInst(ccs, generateShiftArray(vname, mxd)));
+     }
+
+     } else {
+     if (mxd < gGlobal->gMaskDelayLineThreshold) {
+     int N = pow2limit(mxd + 1);
+     ensureIotaCode();
+
+     // Generates table init
+     pushClearMethod(generateInitArray(vname, ctype, N));
+
+     // Generate table use
+     if (gGlobal->gComputeIOTA) {  // Ensure IOTA base fixed delays are computed once
+     if (fIOTATable.find(N) == fIOTATable.end()) {
+     string   iota_name = subst("i$0", gGlobal->getFreshID(fCurrentIOTA + "_temp"));
+     FIRIndex value2 =
+     FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
+
+     pushPreComputeDSPMethod(
+     IB::genDecStackVar(iota_name, Typed::kInt32, IB::genInt32NumInst(0)));
+     pushComputeDSPMethod(
+     IB::genControlInst(ccs, IB::genStoreStackVar(iota_name, value2)));
+
+     fIOTATable[N] = iota_name;
+     }
+
+     pushComputeDSPMethod(IB::genControlInst(
+     ccs,
+     IB::genStoreArrayStructVar(vname, IB::genLoadStackVar(fIOTATable[N]), exp)));
+
+     } else {
+     FIRIndex value2 = FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
+     pushComputeDSPMethod(
+     IB::genControlInst(ccs, IB::genStoreArrayStructVar(vname, value2, exp)));
+     }
+     } else {
+     // 'select' based delay
+     string widx_tmp_name = vname + "_widx_tmp";
+     string widx_name     = vname + "_widx";
+
+     // Generates table write index
+     pushDeclare(IB::genDecStructVar(widx_name, IB::genInt32Typed()));
+     pushInitMethod(IB::genStoreStructVar(widx_name, IB::genInt32NumInst(0)));
+
+     // Generates table init
+     pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
+
+     // int w = widx;
+     pushComputeDSPMethod(IB::genControlInst(
+     ccs,
+     IB::genDecStackVar(widx_tmp_name, Typed::kInt32, IB::genLoadStructVar(widx_name))));
+
+     // dline[w] = v;
+     pushComputeDSPMethod(IB::genControlInst(
+     ccs, IB::genStoreArrayStructVar(vname, IB::genLoadStackVar(widx_tmp_name), exp)));
+
+     // w = w + 1;
+     FIRIndex widx_tmp1 = FIRIndex(IB::genLoadStackVar(widx_tmp_name));
+     pushPostComputeDSPMethod(
+     IB::genControlInst(ccs, IB::genStoreStackVar(widx_tmp_name, widx_tmp1 + 1)));
+
+     // w = ((w == delay) ? 0 : w);
+     FIRIndex widx_tmp2 = FIRIndex(IB::genLoadStackVar(widx_tmp_name));
+     pushPostComputeDSPMethod(IB::genControlInst(
+     ccs, IB::genStoreStackVar(widx_tmp_name,
+     IB::genSelect2Inst(widx_tmp2 == FIRIndex(mxd + 1),
+     FIRIndex(0), widx_tmp2))));
+     // *widx = w
+     pushPostComputeDSPMethod(IB::genControlInst(
+     ccs, IB::genStoreStructVar(widx_name, IB::genLoadStackVar(widx_tmp_name))));
+     }
+     }
+
+     return exp;
+     */
 }
 
 /**
@@ -2346,13 +3073,14 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(num_array);
         faustassert(int_array);
         for (int k = 0; k < size; k++) {
-            if (isSigInt(sig->branch(k), &i)) {
+            Tree h, x, br = isSigClocked(sig->branch(k), h, x) ? x : sig->branch(k);
+            if (isSigInt(br, &i)) {
                 if (gGlobal->gMemoryManager >= 1) {
                     setIntValue(k, i);
                 } else {
                     int_array->setValue(k, i);
                 }
-            } else if (isSigReal(sig->branch(k), &r)) {
+            } else if (isSigReal(br, &r)) {
                 if (gGlobal->gMemoryManager >= 1) {
                     setIntValue(k, int(r));
                 } else {
@@ -2364,13 +3092,14 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
         faustassert(float_array);
         for (int k = 0; k < size; k++) {
-            if (isSigInt(sig->branch(k), &i)) {
+            Tree h, x, br = isSigClocked(sig->branch(k), h, x) ? x : sig->branch(k);
+            if (isSigInt(br, &i)) {
                 if (gGlobal->gMemoryManager >= 1) {
                     setFloatValue(k, float(i));
                 } else {
                     float_array->setValue(k, float(i));
                 }
-            } else if (isSigReal(sig->branch(k), &r)) {
+            } else if (isSigReal(br, &r)) {
                 if (gGlobal->gMemoryManager >= 1) {
                     setFloatValue(k, float(r));
                 } else {
@@ -2382,13 +3111,14 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
         faustassert(double_array);
         for (int k = 0; k < size; k++) {
-            if (isSigInt(sig->branch(k), &i)) {
+            Tree h, x, br = isSigClocked(sig->branch(k), h, x) ? x : sig->branch(k);
+            if (isSigInt(br, &i)) {
                 if (gGlobal->gMemoryManager >= 1) {
                     setFloatValue(k, double(i));
                 } else {
                     double_array->setValue(k, double(i));
                 }
-            } else if (isSigReal(sig->branch(k), &r)) {
+            } else if (isSigReal(br, &r)) {
                 if (gGlobal->gMemoryManager >= 1) {
                     setFloatValue(k, r);
                 } else {
@@ -2400,13 +3130,14 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         QuadArrayNumInst* quad_array = dynamic_cast<QuadArrayNumInst*>(num_array);
         faustassert(quad_array);
         for (int k = 0; k < size; k++) {
-            if (isSigInt(sig->branch(k), &i)) {
+            Tree h, x, br = isSigClocked(sig->branch(k), h, x) ? x : sig->branch(k);
+            if (isSigInt(br, &i)) {
                 if (gGlobal->gMemoryManager >= 1) {
                     setDoubleValue(k, (long double)i);
                 } else {
                     quad_array->setValue(k, (long double)i);
                 }
-            } else if (isSigReal(sig->branch(k), &r)) {
+            } else if (isSigReal(br, &r)) {
                 if (gGlobal->gMemoryManager >= 1) {
                     setDoubleValue(k, r);
                 } else {
@@ -2418,13 +3149,14 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         FixedPointArrayNumInst* fx_array = dynamic_cast<FixedPointArrayNumInst*>(num_array);
         faustassert(fx_array);
         for (int k = 0; k < size; k++) {
-            if (isSigInt(sig->branch(k), &i)) {
+            Tree h, x, br = isSigClocked(sig->branch(k), h, x) ? x : sig->branch(k);
+            if (isSigInt(br, &i)) {
                 if (gGlobal->gMemoryManager >= 1) {
                     setFloatValue(k, double(i));
                 } else {
                     fx_array->setValue(k, double(i));
                 }
-            } else if (isSigReal(sig->branch(k), &r)) {
+            } else if (isSigReal(br, &r)) {
                 if (gGlobal->gMemoryManager >= 1) {
                     setFloatValue(k, r);
                 } else {
@@ -2461,6 +3193,104 @@ ValueInst* InstructionsCompiler::generateWaveform(Tree sig)
         IB::genControlInst(getConditionCode(sig), IB::genStoreStructVar(idx, index)));
     return generateCacheCode(sig,
                              IB::genLoadArrayStaticStructVar(vname, IB::genLoadStructVar(idx)));
+}
+
+ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& coefs)
+{
+    faustassert(false);
+    return IB::genNullValueInst();
+}
+
+ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& coefs)
+{
+    faustassert(false);
+    return IB::genNullValueInst();
+}
+
+ValueInst* InstructionsCompiler::generateSum(Tree sig, const tvec& subs)
+{
+    faustassert(false);
+    return IB::genNullValueInst();
+}
+
+// Ondemand: generate a local variable for the input signal of an ondemand circuit
+ValueInst* InstructionsCompiler::generateTempVar(Tree sig, Tree x)
+{
+    return generateVariableStore(sig, CS(x));
+}
+
+// Ondemand: generate a permanent variable to store the
+// last computed value of x
+ValueInst* InstructionsCompiler::generatePermVar(Tree sig, Tree x)
+{
+    string         name;
+    Typed::VarType ctype;
+    Occurrences*   o = fOccMarkup->retrieve(sig);
+    faustassert(o);
+    // compute a perm var name
+    getTypedNames(getCertifiedSigType(sig), "PermVar", ctype, name);
+    // assign it to sig unless it has already a name
+    std::string pvname = ensureVectorNameProperty(name, sig);
+    // declare the perm var as a class field
+    pushDeclare(IB::genLabelInst("// Perm Var"));
+    pushDeclare(IB::genDecStructVar(pvname, ctype));
+    // initialize it to 0
+    pushInitMethod(IB::genStoreStructVar(pvname, IB::genInt32NumInst(0)));
+    // store the value of x in the perm var
+    pushComputeDSPMethod(IB::genStoreStructVar(pvname, CS(x)));
+    return IB::genLoadStructVar(pvname);
+}
+
+// Ondemand: generate the code of the ondemand circuit
+// - first the input signals are computed
+// - then the output signals in an if (clock) statement
+ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
+{
+    // 1/ We extract the clock, the inputs and the outputs signals
+    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    tvec inputs;   // the input signals (comming from outiside)
+    tvec outputs;  // the output signa outputs;
+    bool inmode = true;
+    for (unsigned int i = 1; i < w.size(); i++) {
+        if (w[i] == gGlobal->nil) {
+            inmode = false;
+            continue;
+        }
+        if (inmode) {
+            inputs.push_back(w[i]);
+        } else {
+            outputs.push_back(w[i]);
+        }
+    }
+
+    // 2/ We compile the input signals unconditionnally
+    for (Tree x : inputs) {
+        CS(x);
+    }
+
+    std::cout << "opening if statement" << std::endl;
+
+    // 3/ We the compile the clock signal and open an if statement
+    // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
+    fContainer->getCurLoop()->openIFblock(CS(clock));
+
+    // 4/ compute the scheduling of the output signals of the ondemand circuit
+    std::vector<Tree> V = ondemandCompilationOrder(outputs);
+
+    // 5/ We compile the output signals conditionnally inside the if statement
+    for (Tree x : V) {
+        CS(x);
+    }
+
+    // 6/ We close the if statement
+    fContainer->getCurLoop()->closeIFblock();
+
+    std::cout << "closing if statement" << std::endl;
+
+    // 7/ There is no compiled expression
+    return IB::genNullValueInst();
 }
 
 //================================= BUILD USER INTERFACE METHOD =================================
@@ -2890,6 +3720,10 @@ ValueInst* InstructionsFXCompiler::generateAttach(Tree sig, Tree x, Tree y)
  */
 ValueInst* InstructionsFXCompiler::generateRec(Tree sig, Tree var, Tree le, int index)
 {
+    faustassert(false);
+    return IB::genNullValueInst();
+
+    /*
     int N = len(le);
 
     ValueInst*          res = nullptr;
@@ -2933,4 +3767,5 @@ ValueInst* InstructionsFXCompiler::generateRec(Tree sig, Tree var, Tree le, int 
     }
 
     return res;
+    */
 }
