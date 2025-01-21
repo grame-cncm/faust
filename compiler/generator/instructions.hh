@@ -2787,6 +2787,12 @@ struct IB {
             genIndexedAddress(genNamedAddress(vname, Address::kStruct), index));
     }
 
+    static LoadVarAddressInst* genLoadArrayVarAddress(const std::string& vname, ValueInst* index,
+                                                      Address::AccessType access)
+    {
+        return genLoadVarAddressInst(genIndexedAddress(genNamedAddress(vname, access), index));
+    }
+
     static StoreVarInst* genStoreStructVar(const std::string& vname, ValueInst* exp)
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kStruct), exp);
