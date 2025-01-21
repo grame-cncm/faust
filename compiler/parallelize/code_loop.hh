@@ -25,6 +25,7 @@
 #include <list>
 #include <map>
 #include <set>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -59,6 +60,25 @@ class CodeLoop;
 typedef std::set<CodeLoop*> lclset;
 typedef std::vector<lclset> lclgraph;
 
+struct CodeIFblock {
+    ValueInst* fCond;         ///< condition of the IF block
+    BlockInst* fPreInst;      ///< code to execute at the begin of the loop
+    BlockInst* fComputeInst;  ///< code to execute in the loop
+    BlockInst* fPostInst;     ///< code to execute at the end of the loop
+
+    void pushPreComputeDSPMethod(StatementInst* inst);   ///< add a pre code statement
+    void pushComputeDSPMethod(StatementInst* inst);      ///< add a statement
+    void pushPostComputeDSPMethod(StatementInst* inst);  ///< add a post code statement
+
+    CodeIFblock()
+        : fCond(nullptr),
+          fPreInst(new BlockInst()),
+          fComputeInst(new BlockInst()),
+          fPostInst(new BlockInst())
+    {
+    }
+};
+
 class CodeLoop : public virtual Garbageable {
     friend class CodeContainer;
 
@@ -75,6 +95,8 @@ class CodeLoop : public virtual Garbageable {
     BlockInst* fPostInst;
 
     std::string fLoopIndex;
+
+    std::stack<CodeIFblock> fIFstack;  //< stack of IF code blocks
 
     int                  fUseCount;    ///< how many loops depend on this one
     std::list<CodeLoop*> fExtraLoops;  ///< extra loops that where in sequences
@@ -135,17 +157,29 @@ class CodeLoop : public virtual Garbageable {
 
     StatementInst* pushPreComputeDSPMethod(StatementInst* inst)
     {
-        fPreInst->pushBackInst(inst);
+        if (fIFstack.size() > 0) {
+            fIFstack.top().fPreInst->pushBackInst(inst);
+        } else {
+            fPreInst->pushBackInst(inst);
+        }
         return inst;
     }
     StatementInst* pushComputeDSPMethod(StatementInst* inst)
     {
-        fComputeInst->pushBackInst(inst);
+        if (fIFstack.size() > 0) {
+            fIFstack.top().fComputeInst->pushBackInst(inst);
+        } else {
+            fComputeInst->pushBackInst(inst);
+        }
         return inst;
     }
     StatementInst* pushPostComputeDSPMethod(StatementInst* inst)
     {
-        fPostInst->pushBackInst(inst);
+        if (fIFstack.size() > 0) {
+            fIFstack.top().fPostInst->pushBackInst(inst);
+        } else {
+            fPostInst->pushBackInst(inst);
+        }
         return inst;
     }
 
@@ -184,6 +218,31 @@ class CodeLoop : public virtual Garbageable {
 
     bool hasRecDependencyIn(Tree S);  ///< returns true is this loop has recursive dependencies
     void addBackwardDependency(CodeLoop* ls) { fBackwardLoopDependencies.insert(ls); }
+
+    /**
+     * Open a new IF block.
+     * @param cond the condition of the IF block
+     */
+    void openIFblock(ValueInst* cond)
+    {
+        CodeIFblock b;
+        b.fCond = cond;
+        fIFstack.push(b);
+    }
+
+    /**
+     * Close the current/top IF block.
+     */
+    void closeIFblock()
+    {
+        CodeIFblock b = fIFstack.top();
+        fIFstack.pop();
+        BlockInst* then_block = new BlockInst();
+        then_block->pushBackInst(b.fPreInst);
+        then_block->pushBackInst(b.fComputeInst);
+        then_block->pushBackInst(b.fPostInst);
+        pushComputeDSPMethod(IB::genIfInst(b.fCond, then_block));
+    }
 
     static void sortGraph(CodeLoop* root, lclgraph& V);
     static void computeUseCount(CodeLoop* l);

@@ -36,7 +36,9 @@ class DAGInstructionsCompilerRust : public DAGInstructionsCompiler {
    private:
     virtual StatementInst* generateInitArray(const std::string& vname, BasicTyped* ctype,
                                              int delay) override;
-    virtual StatementInst* generateShiftArray(const std::string& vname, int delay) override;
+    virtual StatementInst* generateShiftArray(
+        const std::string& vname, int delay,
+        Address::AccessType access = Address::kStruct) override;
     virtual StatementInst* generateCopyArray(const std::string& vname_to,
                                              const std::string& vname_from, int size) override;
 };

@@ -51,11 +51,23 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     virtual ValueInst* generateInput(Tree sig, int idx) override;
 
     virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree size) override;
-    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype,
+
+    // TODO
+    /*
+     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype,
                                         const std::string& vname, int mxd) override;
+
+     virtual ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype,
+                                        const std::string& vname, int mxd,
+                                        Address::AccessType& access, ValueInst* ccs) override;
+     */
+
+    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype,
+                                        const std::string& vname, int mxd);
+
     virtual ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype,
                                          const std::string& vname, int mxd,
-                                         Address::AccessType& access, ValueInst* ccs) override;
+                                         Address::AccessType& access, ValueInst* ccs);
 
     StatementInst* generateCopyBackArray(const std::string& vname_to, const std::string& vname_from,
                                          ValueInst* vec_size, int size);
