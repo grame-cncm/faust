@@ -5,11 +5,13 @@
 // name: "switcher"
 // version: "1.0"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
-#include <math.h>
+#include <algorithm>
+#include <cmath>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -27,6 +29,7 @@ class mydsp : public dsp {
   public:
 	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2007");
 		m->declare("filename", "switcher.dsp");
 		m->declare("license", "BSD");
@@ -67,21 +70,17 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = float(fslider0); // step: 1
-		float 	fSlow1 = (1.0f - fSlow0); // step: 6
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
-			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
-			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			for (int i=0; i<count; i++) {
-				output0[i] = (FAUSTFLOAT)(((fSlow0 * (float)input2[i]) + (fSlow1 * (float)input0[i])));  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(((fSlow0 * (float)input3[i]) + (fSlow1 * (float)input1[i])));  // Zone Exec Code
-			}
+		float 	fSlow0BE = float(fslider0); // Zone 2, step: 3
+		float 	fSlow1BE = (1.0f + -fSlow0BE /* Sum */); // Zone 2, step: 11
+		FAUSTFLOAT* input0 = input[0]; // Zone 3
+		FAUSTFLOAT* input1 = input[1]; // Zone 3
+		FAUSTFLOAT* input2 = input[2]; // Zone 3
+		FAUSTFLOAT* input3 = input[3]; // Zone 3
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		FAUSTFLOAT* output1 = output[1]; // Zone 3
+		for (int i=0; i<count; i++) {
+			output0[i] = (FAUSTFLOAT)(((fSlow0BE * (float)input2[i]) + (fSlow1BE * (float)input0[i]) /* Sum */));  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(((fSlow0BE * (float)input3[i]) + (fSlow1BE * (float)input1[i]) /* Sum */));  // Zone Exec Code
 		}
 	}
 };
