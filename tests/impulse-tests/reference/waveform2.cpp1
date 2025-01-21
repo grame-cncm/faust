@@ -1,11 +1,13 @@
 //----------------------------------------------------------
 // name: "waveform2"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
-#include <math.h>
+#include <algorithm>
+#include <cmath>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -20,38 +22,39 @@ class mydsp : public dsp {
 	class SIG0 {
 	  private:
 		int fSampleRate;
-		static int 	iWave0[7];
-		int 	idxiWave0;
+		static int 	iWave0SC[7];
+		int 	idxiWave0SC;
 	  public:
 		int getNumInputs() { return 0; }
 		int getNumOutputs() { return 1; }
 		void init(int sample_rate) {
 			fSampleRate = sample_rate;
-			idxiWave0 = 0;
+			idxiWave0SC = 0;
 		}
 		void fill(int count, int output[]) {
 			int fullcount = count;
-			for (int index = 0; index < fullcount; index += 32) {
-				int count = min(32, fullcount-index);
+			for (int index = 0; index < fullcount; index += 128) {
+				int count = std::min(128, fullcount-index);
 				for (int i=0; i<count; i++) {
-					output[i] = iWave0[idxiWave0];
+					output[i] = iWave0SC[idxiWave0SC];
 					// post processing
-					idxiWave0 = (idxiWave0 + 1) % 7;
+					idxiWave0SC = (idxiWave0SC + 1) % 7;
 				}
-				output += 32;
+				output += 128;
 			}
 		}
 	};
 
 
-	// Recursion delay iVeeec0 is of type kMonoDelay
+	// Recursion delay iVec0SI is of type kSingleDelay
 	// While its definition is of type kZeroDelay
-	int 	iVeeec0State; // Mono Delay
-	static int 	itbl0[7];
+	int 	iVec0SIState; // Single Delay
+	static int 	itbl0SC[7];
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("filename", "waveform2.dsp");
 		m->declare("name", "waveform2");
 	}
@@ -61,7 +64,7 @@ class mydsp : public dsp {
 	static void classInit(int sample_rate) {
 		SIG0 sig0;
 		sig0.init(sample_rate);
-		sig0.fill(7,itbl0);
+		sig0.fill(7,itbl0SC);
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
@@ -69,7 +72,7 @@ class mydsp : public dsp {
 	virtual void instanceResetUserInterface() {
 	}
 	virtual void instanceClear() {
-		iVeeec0State = 0;
+		iVec0SIState = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -91,21 +94,19 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int 	iVeeec0;
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			iVeeec0 = iVeeec0State;
-			for (int i=0; i<count; i++) {
-				iVeeec0 = ((iVeeec0 + 3) % 7);
-				output0[i] = (FAUSTFLOAT)(itbl0[min(6, max(0, iVeeec0))]);  // Zone Exec Code
-			}
-			iVeeec0State = iVeeec0;
+		int 	iVec0SI[2];
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		iVec0SI[1] = iVec0SIState;
+		for (int i=0; i<count; i++) {
+			iVec0SI[0] = ((iVec0SI[1] + 3 /* Sum */) % 7);
+			output0[i] = (FAUSTFLOAT)(itbl0SC[std::min(6, std::max(0, iVec0SI[0]))]);  // Zone Exec Code
+			// post processing
+			iVec0SI[1] = iVec0SI[0];
 		}
+		iVec0SIState = iVec0SI[1];
 	}
 };
 
 
-int 	mydsp::SIG0::iWave0[7] = {10,20,30,40,50,60,70};
-int 	mydsp::itbl0[7];
+int 	mydsp::SIG0::iWave0SC[7] = {10,20,30,40,50,60,70};
+int 	mydsp::itbl0SC[7];
