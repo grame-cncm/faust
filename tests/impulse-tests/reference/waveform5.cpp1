@@ -1,11 +1,13 @@
 //----------------------------------------------------------
 // name: "waveform5"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
-#include <math.h>
+#include <algorithm>
+#include <cmath>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -20,36 +22,37 @@ class mydsp : public dsp {
 	class SIG0 {
 	  private:
 		int fSampleRate;
-		static int 	iWave0[5];
-		int 	idxiWave0;
+		static int 	iWave0SC[5];
+		int 	idxiWave0SC;
 	  public:
 		int getNumInputs() { return 0; }
 		int getNumOutputs() { return 1; }
 		void init(int sample_rate) {
 			fSampleRate = sample_rate;
-			idxiWave0 = 0;
+			idxiWave0SC = 0;
 		}
 		void fill(int count, int output[]) {
 			int fullcount = count;
-			for (int index = 0; index < fullcount; index += 32) {
-				int count = min(32, fullcount-index);
+			for (int index = 0; index < fullcount; index += 128) {
+				int count = std::min(128, fullcount-index);
 				for (int i=0; i<count; i++) {
-					output[i] = iWave0[idxiWave0];
+					output[i] = iWave0SC[idxiWave0SC];
 					// post processing
-					idxiWave0 = (idxiWave0 + 1) % 5;
+					idxiWave0SC = (idxiWave0SC + 1) % 5;
 				}
-				output += 32;
+				output += 128;
 			}
 		}
 	};
 
 
 	FAUSTFLOAT 	fslider0;
-	static int 	itbl0[5];
+	static int 	itbl0SC[5];
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("filename", "waveform5.dsp");
 		m->declare("name", "waveform5");
 	}
@@ -59,7 +62,7 @@ class mydsp : public dsp {
 	static void classInit(int sample_rate) {
 		SIG0 sig0;
 		sig0.init(sample_rate);
-		sig0.fill(5,itbl0);
+		sig0.fill(5,itbl0SC);
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
@@ -90,22 +93,18 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int 	iSlow0 = itbl0[int((4.0f * float(fslider0)))]; // step: 12
-		float 	fSlow1 = sinf(float(iSlow0)); // step: 14
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			for (int i=0; i<count; i++) {
-				output0[i] = (FAUSTFLOAT)(((float)input0[i] * fSlow1));  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(iSlow0);  // Zone Exec Code
-			}
+		int 	iSlow0BE = itbl0SC[int((4.0f * float(fslider0)))]; // Zone 2, step: 17
+		float 	fSlow1BE = sinf(float(iSlow0BE)); // Zone 2, step: 19
+		FAUSTFLOAT* input0 = input[0]; // Zone 3
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		FAUSTFLOAT* output1 = output[1]; // Zone 3
+		for (int i=0; i<count; i++) {
+			output0[i] = (FAUSTFLOAT)(((float)input0[i] * fSlow1BE));  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(iSlow0BE);  // Zone Exec Code
 		}
 	}
 };
 
 
-int 	mydsp::SIG0::iWave0[5] = {10,20,30,40,50};
-int 	mydsp::itbl0[5];
+int 	mydsp::SIG0::iWave0SC[5] = {10,20,30,40,50};
+int 	mydsp::itbl0SC[5];

@@ -1,4 +1,4 @@
-declare version "2.77.2";
+declare version "2.78.4";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/spectral_tilt.dsp -o reference/spectral_tilt.box";
 declare library_path0 "/Users/letz/Developpements/faust/tests/impulse-tests/dsp/oscillator.lib";
 declare library_path1 "/Users/letz/Developpements/faust/tests/impulse-tests/dsp/music.lib";
@@ -87,7 +87,7 @@ ID_50 = ID_46 : ID_49;
 ID_51 = ID_24 : ID_50;
 ID_52 = \(x44).((2,\(x6).(x6,(x6 : floor) : -)~(_,((2e+01f,(x44 : abs) : max),(1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /) : +) : *),1 : - : \(x45).(((x45,x45 : *),x45 : *),x45 : -) : (\(x46).((x46,(x46 : mem) : -),(2.0f,((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min : float),(2e+01f,(x44 : abs) : max) : /) : /) : /) : \(x46).((x46,(x46 : mem) : -),(2.0f,((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min : float),(2e+01f,(x44 : abs) : max) : /) : /) : /)),6 : / : _,(1,2 : @) : *), \(x47).((2,\(x6).(x6,(x6 : floor) : -)~(_,((2e+01f,(x47 : abs) : max),(1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /) : +) : *),1 : - : \(x48).((x48,x48 : *),((x48,x48 : *),2.0f : -) : *) : (\(x49).((x49,(x49 : mem) : -),(2.0f,((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min : float),(2e+01f,(x47 : abs) : max) : /) : /) : /) : \(x49).((x49,(x49 : mem) : -),(2.0f,((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min : float),(2e+01f,(x47 : abs) : max) : /) : /) : /) : \(x49).((x49,(x49 : mem) : -),(2.0f,((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min : float),(2e+01f,(x47 : abs) : max) : /) : /) : /)),24 : / : _,(1,3 : @) : *);
 ID_53 = \(x41).((2,\(x6).(x6,(x6 : floor) : -)~(_,((2e+01f,(x41 : abs) : max),(1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /) : +) : *),1 : - : \(x42).(x42,x42 : *) : \(x43).((x43,(x43 : mem) : -),(2.0f,((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min : float),(2e+01f,(x41 : abs) : max) : /) : /) : /),2 : / : _,(1,1 : @) : *), ID_52;
-ID_54 = \(x39).((2,\(x6).(x6,(x6 : floor) : -)~(_,((2e+01f,(x39 : abs) : max),(1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /) : +) : *),1 : - : \(x40).(x40) : _ : _,1 : *), ID_53;
+ID_54 = \(x39).((2,\(x6).(x6,(x6 : floor) : -)~(_,((2e+01f,(x39 : abs) : max),(1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /) : +) : *),1 : - : \(x40).(x40) : _ : _,(1,0 : @) : *), ID_53;
 ID_55 = _, _;
 ID_56 = nentry("[6] Saw Order [tooltip: Order of sawtootn aliasing suppression]", 2.0f, 1.0f, 4.0f, 1.0f);
 ID_57 = hgroup("[1]", ID_56);

@@ -5,11 +5,13 @@
 // name: "matrix"
 // version: "1.0"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
-#include <math.h>
+#include <algorithm>
+#include <cmath>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -90,6 +92,7 @@ class mydsp : public dsp {
   public:
 	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2006");
 		m->declare("filename", "matrix.dsp");
 		m->declare("license", "BSD");
@@ -283,107 +286,111 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = powf(1e+01f,(0.05f * float(fslider0))); // step: 6
-		float 	fSlow1 = powf(1e+01f,(0.05f * float(fslider1))); // step: 11
-		float 	fSlow2 = powf(1e+01f,(0.05f * float(fslider2))); // step: 17
-		float 	fSlow3 = powf(1e+01f,(0.05f * float(fslider3))); // step: 23
-		float 	fSlow4 = powf(1e+01f,(0.05f * float(fslider4))); // step: 29
-		float 	fSlow5 = powf(1e+01f,(0.05f * float(fslider5))); // step: 35
-		float 	fSlow6 = powf(1e+01f,(0.05f * float(fslider6))); // step: 41
-		float 	fSlow7 = powf(1e+01f,(0.05f * float(fslider7))); // step: 47
-		float 	fSlow8 = powf(1e+01f,(0.05f * float(fslider8))); // step: 52
-		float 	fSlow9 = powf(1e+01f,(0.05f * float(fslider9))); // step: 56
-		float 	fSlow10 = powf(1e+01f,(0.05f * float(fslider10))); // step: 61
-		float 	fSlow11 = powf(1e+01f,(0.05f * float(fslider11))); // step: 66
-		float 	fSlow12 = powf(1e+01f,(0.05f * float(fslider12))); // step: 71
-		float 	fSlow13 = powf(1e+01f,(0.05f * float(fslider13))); // step: 76
-		float 	fSlow14 = powf(1e+01f,(0.05f * float(fslider14))); // step: 81
-		float 	fSlow15 = powf(1e+01f,(0.05f * float(fslider15))); // step: 86
-		float 	fSlow16 = powf(1e+01f,(0.05f * float(fslider16))); // step: 91
-		float 	fSlow17 = powf(1e+01f,(0.05f * float(fslider17))); // step: 95
-		float 	fSlow18 = powf(1e+01f,(0.05f * float(fslider18))); // step: 100
-		float 	fSlow19 = powf(1e+01f,(0.05f * float(fslider19))); // step: 105
-		float 	fSlow20 = powf(1e+01f,(0.05f * float(fslider20))); // step: 110
-		float 	fSlow21 = powf(1e+01f,(0.05f * float(fslider21))); // step: 115
-		float 	fSlow22 = powf(1e+01f,(0.05f * float(fslider22))); // step: 120
-		float 	fSlow23 = powf(1e+01f,(0.05f * float(fslider23))); // step: 125
-		float 	fSlow24 = powf(1e+01f,(0.05f * float(fslider24))); // step: 130
-		float 	fSlow25 = powf(1e+01f,(0.05f * float(fslider25))); // step: 134
-		float 	fSlow26 = powf(1e+01f,(0.05f * float(fslider26))); // step: 139
-		float 	fSlow27 = powf(1e+01f,(0.05f * float(fslider27))); // step: 144
-		float 	fSlow28 = powf(1e+01f,(0.05f * float(fslider28))); // step: 149
-		float 	fSlow29 = powf(1e+01f,(0.05f * float(fslider29))); // step: 154
-		float 	fSlow30 = powf(1e+01f,(0.05f * float(fslider30))); // step: 159
-		float 	fSlow31 = powf(1e+01f,(0.05f * float(fslider31))); // step: 164
-		float 	fSlow32 = powf(1e+01f,(0.05f * float(fslider32))); // step: 169
-		float 	fSlow33 = powf(1e+01f,(0.05f * float(fslider33))); // step: 173
-		float 	fSlow34 = powf(1e+01f,(0.05f * float(fslider34))); // step: 178
-		float 	fSlow35 = powf(1e+01f,(0.05f * float(fslider35))); // step: 183
-		float 	fSlow36 = powf(1e+01f,(0.05f * float(fslider36))); // step: 188
-		float 	fSlow37 = powf(1e+01f,(0.05f * float(fslider37))); // step: 193
-		float 	fSlow38 = powf(1e+01f,(0.05f * float(fslider38))); // step: 198
-		float 	fSlow39 = powf(1e+01f,(0.05f * float(fslider39))); // step: 203
-		float 	fSlow40 = powf(1e+01f,(0.05f * float(fslider40))); // step: 208
-		float 	fSlow41 = powf(1e+01f,(0.05f * float(fslider41))); // step: 212
-		float 	fSlow42 = powf(1e+01f,(0.05f * float(fslider42))); // step: 217
-		float 	fSlow43 = powf(1e+01f,(0.05f * float(fslider43))); // step: 222
-		float 	fSlow44 = powf(1e+01f,(0.05f * float(fslider44))); // step: 227
-		float 	fSlow45 = powf(1e+01f,(0.05f * float(fslider45))); // step: 232
-		float 	fSlow46 = powf(1e+01f,(0.05f * float(fslider46))); // step: 237
-		float 	fSlow47 = powf(1e+01f,(0.05f * float(fslider47))); // step: 242
-		float 	fSlow48 = powf(1e+01f,(0.05f * float(fslider48))); // step: 247
-		float 	fSlow49 = powf(1e+01f,(0.05f * float(fslider49))); // step: 251
-		float 	fSlow50 = powf(1e+01f,(0.05f * float(fslider50))); // step: 256
-		float 	fSlow51 = powf(1e+01f,(0.05f * float(fslider51))); // step: 261
-		float 	fSlow52 = powf(1e+01f,(0.05f * float(fslider52))); // step: 266
-		float 	fSlow53 = powf(1e+01f,(0.05f * float(fslider53))); // step: 271
-		float 	fSlow54 = powf(1e+01f,(0.05f * float(fslider54))); // step: 276
-		float 	fSlow55 = powf(1e+01f,(0.05f * float(fslider55))); // step: 281
-		float 	fSlow56 = powf(1e+01f,(0.05f * float(fslider56))); // step: 286
-		float 	fSlow57 = powf(1e+01f,(0.05f * float(fslider57))); // step: 290
-		float 	fSlow58 = powf(1e+01f,(0.05f * float(fslider58))); // step: 295
-		float 	fSlow59 = powf(1e+01f,(0.05f * float(fslider59))); // step: 300
-		float 	fSlow60 = powf(1e+01f,(0.05f * float(fslider60))); // step: 305
-		float 	fSlow61 = powf(1e+01f,(0.05f * float(fslider61))); // step: 310
-		float 	fSlow62 = powf(1e+01f,(0.05f * float(fslider62))); // step: 315
-		float 	fSlow63 = powf(1e+01f,(0.05f * float(fslider63))); // step: 320
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
-			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
-			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
-			FAUSTFLOAT* input4 = &input[4][index]; // Zone 3
-			FAUSTFLOAT* input5 = &input[5][index]; // Zone 3
-			FAUSTFLOAT* input6 = &input[6][index]; // Zone 3
-			FAUSTFLOAT* input7 = &input[7][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
-			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
-			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
-			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
-			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
-			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
-			for (int i=0; i<count; i++) {
-				float 	fTemp0 = (float)input0[i]; // step: 1
-				float 	fTemp1 = (float)input1[i]; // step: 8
-				float 	fTemp2 = (float)input2[i]; // step: 14
-				float 	fTemp3 = (float)input3[i]; // step: 20
-				float 	fTemp4 = (float)input4[i]; // step: 26
-				float 	fTemp5 = (float)input5[i]; // step: 32
-				float 	fTemp6 = (float)input6[i]; // step: 38
-				float 	fTemp7 = (float)input7[i]; // step: 44
-				output0[i] = (FAUSTFLOAT)(((((((((fSlow0 * fTemp0) + (fSlow1 * fTemp1)) + (fSlow2 * fTemp2)) + (fSlow3 * fTemp3)) + (fSlow4 * fTemp4)) + (fSlow5 * fTemp5)) + (fSlow6 * fTemp6)) + (fSlow7 * fTemp7)));  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(((((((((fSlow8 * fTemp0) + (fSlow9 * fTemp1)) + (fSlow10 * fTemp2)) + (fSlow11 * fTemp3)) + (fSlow12 * fTemp4)) + (fSlow13 * fTemp5)) + (fSlow14 * fTemp6)) + (fSlow15 * fTemp7)));  // Zone Exec Code
-				output2[i] = (FAUSTFLOAT)(((((((((fSlow16 * fTemp0) + (fSlow17 * fTemp1)) + (fSlow18 * fTemp2)) + (fSlow19 * fTemp3)) + (fSlow20 * fTemp4)) + (fSlow21 * fTemp5)) + (fSlow22 * fTemp6)) + (fSlow23 * fTemp7)));  // Zone Exec Code
-				output3[i] = (FAUSTFLOAT)(((((((((fSlow24 * fTemp0) + (fSlow25 * fTemp1)) + (fSlow26 * fTemp2)) + (fSlow27 * fTemp3)) + (fSlow28 * fTemp4)) + (fSlow29 * fTemp5)) + (fSlow30 * fTemp6)) + (fSlow31 * fTemp7)));  // Zone Exec Code
-				output4[i] = (FAUSTFLOAT)(((((((((fSlow32 * fTemp0) + (fSlow33 * fTemp1)) + (fSlow34 * fTemp2)) + (fSlow35 * fTemp3)) + (fSlow36 * fTemp4)) + (fSlow37 * fTemp5)) + (fSlow38 * fTemp6)) + (fSlow39 * fTemp7)));  // Zone Exec Code
-				output5[i] = (FAUSTFLOAT)(((((((((fSlow40 * fTemp0) + (fSlow41 * fTemp1)) + (fSlow42 * fTemp2)) + (fSlow43 * fTemp3)) + (fSlow44 * fTemp4)) + (fSlow45 * fTemp5)) + (fSlow46 * fTemp6)) + (fSlow47 * fTemp7)));  // Zone Exec Code
-				output6[i] = (FAUSTFLOAT)(((((((((fSlow48 * fTemp0) + (fSlow49 * fTemp1)) + (fSlow50 * fTemp2)) + (fSlow51 * fTemp3)) + (fSlow52 * fTemp4)) + (fSlow53 * fTemp5)) + (fSlow54 * fTemp6)) + (fSlow55 * fTemp7)));  // Zone Exec Code
-				output7[i] = (FAUSTFLOAT)(((((((((fSlow56 * fTemp0) + (fSlow57 * fTemp1)) + (fSlow58 * fTemp2)) + (fSlow59 * fTemp3)) + (fSlow60 * fTemp4)) + (fSlow61 * fTemp5)) + (fSlow62 * fTemp6)) + (fSlow63 * fTemp7)));  // Zone Exec Code
-			}
+		float 	fTemp0SE; // step: 2
+		float 	fSlow0BE = powf(1e+01f,(0.05f * float(fslider0))); // Zone 2, step: 11
+		float 	fTemp1SE; // step: 14
+		float 	fSlow1BE = powf(1e+01f,(0.05f * float(fslider1))); // Zone 2, step: 17
+		float 	fTemp2SE; // step: 20
+		float 	fSlow2BE = powf(1e+01f,(0.05f * float(fslider2))); // Zone 2, step: 23
+		float 	fTemp3SE; // step: 26
+		float 	fSlow3BE = powf(1e+01f,(0.05f * float(fslider3))); // Zone 2, step: 29
+		float 	fTemp4SE; // step: 32
+		float 	fSlow4BE = powf(1e+01f,(0.05f * float(fslider4))); // Zone 2, step: 35
+		float 	fTemp5SE; // step: 38
+		float 	fSlow5BE = powf(1e+01f,(0.05f * float(fslider5))); // Zone 2, step: 41
+		float 	fTemp6SE; // step: 44
+		float 	fSlow6BE = powf(1e+01f,(0.05f * float(fslider6))); // Zone 2, step: 47
+		float 	fTemp7SE; // step: 50
+		float 	fSlow7BE = powf(1e+01f,(0.05f * float(fslider7))); // Zone 2, step: 53
+		float 	fSlow8BE = powf(1e+01f,(0.05f * float(fslider8))); // Zone 2, step: 58
+		float 	fSlow9BE = powf(1e+01f,(0.05f * float(fslider9))); // Zone 2, step: 62
+		float 	fSlow10BE = powf(1e+01f,(0.05f * float(fslider10))); // Zone 2, step: 66
+		float 	fSlow11BE = powf(1e+01f,(0.05f * float(fslider11))); // Zone 2, step: 70
+		float 	fSlow12BE = powf(1e+01f,(0.05f * float(fslider12))); // Zone 2, step: 74
+		float 	fSlow13BE = powf(1e+01f,(0.05f * float(fslider13))); // Zone 2, step: 78
+		float 	fSlow14BE = powf(1e+01f,(0.05f * float(fslider14))); // Zone 2, step: 82
+		float 	fSlow15BE = powf(1e+01f,(0.05f * float(fslider15))); // Zone 2, step: 86
+		float 	fSlow16BE = powf(1e+01f,(0.05f * float(fslider16))); // Zone 2, step: 91
+		float 	fSlow17BE = powf(1e+01f,(0.05f * float(fslider17))); // Zone 2, step: 95
+		float 	fSlow18BE = powf(1e+01f,(0.05f * float(fslider18))); // Zone 2, step: 99
+		float 	fSlow19BE = powf(1e+01f,(0.05f * float(fslider19))); // Zone 2, step: 103
+		float 	fSlow20BE = powf(1e+01f,(0.05f * float(fslider20))); // Zone 2, step: 107
+		float 	fSlow21BE = powf(1e+01f,(0.05f * float(fslider21))); // Zone 2, step: 111
+		float 	fSlow22BE = powf(1e+01f,(0.05f * float(fslider22))); // Zone 2, step: 115
+		float 	fSlow23BE = powf(1e+01f,(0.05f * float(fslider23))); // Zone 2, step: 119
+		float 	fSlow24BE = powf(1e+01f,(0.05f * float(fslider24))); // Zone 2, step: 124
+		float 	fSlow25BE = powf(1e+01f,(0.05f * float(fslider25))); // Zone 2, step: 128
+		float 	fSlow26BE = powf(1e+01f,(0.05f * float(fslider26))); // Zone 2, step: 132
+		float 	fSlow27BE = powf(1e+01f,(0.05f * float(fslider27))); // Zone 2, step: 136
+		float 	fSlow28BE = powf(1e+01f,(0.05f * float(fslider28))); // Zone 2, step: 140
+		float 	fSlow29BE = powf(1e+01f,(0.05f * float(fslider29))); // Zone 2, step: 144
+		float 	fSlow30BE = powf(1e+01f,(0.05f * float(fslider30))); // Zone 2, step: 148
+		float 	fSlow31BE = powf(1e+01f,(0.05f * float(fslider31))); // Zone 2, step: 152
+		float 	fSlow32BE = powf(1e+01f,(0.05f * float(fslider32))); // Zone 2, step: 157
+		float 	fSlow33BE = powf(1e+01f,(0.05f * float(fslider33))); // Zone 2, step: 161
+		float 	fSlow34BE = powf(1e+01f,(0.05f * float(fslider34))); // Zone 2, step: 165
+		float 	fSlow35BE = powf(1e+01f,(0.05f * float(fslider35))); // Zone 2, step: 169
+		float 	fSlow36BE = powf(1e+01f,(0.05f * float(fslider36))); // Zone 2, step: 173
+		float 	fSlow37BE = powf(1e+01f,(0.05f * float(fslider37))); // Zone 2, step: 177
+		float 	fSlow38BE = powf(1e+01f,(0.05f * float(fslider38))); // Zone 2, step: 181
+		float 	fSlow39BE = powf(1e+01f,(0.05f * float(fslider39))); // Zone 2, step: 185
+		float 	fSlow40BE = powf(1e+01f,(0.05f * float(fslider40))); // Zone 2, step: 190
+		float 	fSlow41BE = powf(1e+01f,(0.05f * float(fslider41))); // Zone 2, step: 194
+		float 	fSlow42BE = powf(1e+01f,(0.05f * float(fslider42))); // Zone 2, step: 198
+		float 	fSlow43BE = powf(1e+01f,(0.05f * float(fslider43))); // Zone 2, step: 202
+		float 	fSlow44BE = powf(1e+01f,(0.05f * float(fslider44))); // Zone 2, step: 206
+		float 	fSlow45BE = powf(1e+01f,(0.05f * float(fslider45))); // Zone 2, step: 210
+		float 	fSlow46BE = powf(1e+01f,(0.05f * float(fslider46))); // Zone 2, step: 214
+		float 	fSlow47BE = powf(1e+01f,(0.05f * float(fslider47))); // Zone 2, step: 218
+		float 	fSlow48BE = powf(1e+01f,(0.05f * float(fslider48))); // Zone 2, step: 223
+		float 	fSlow49BE = powf(1e+01f,(0.05f * float(fslider49))); // Zone 2, step: 227
+		float 	fSlow50BE = powf(1e+01f,(0.05f * float(fslider50))); // Zone 2, step: 231
+		float 	fSlow51BE = powf(1e+01f,(0.05f * float(fslider51))); // Zone 2, step: 235
+		float 	fSlow52BE = powf(1e+01f,(0.05f * float(fslider52))); // Zone 2, step: 239
+		float 	fSlow53BE = powf(1e+01f,(0.05f * float(fslider53))); // Zone 2, step: 243
+		float 	fSlow54BE = powf(1e+01f,(0.05f * float(fslider54))); // Zone 2, step: 247
+		float 	fSlow55BE = powf(1e+01f,(0.05f * float(fslider55))); // Zone 2, step: 251
+		float 	fSlow56BE = powf(1e+01f,(0.05f * float(fslider56))); // Zone 2, step: 256
+		float 	fSlow57BE = powf(1e+01f,(0.05f * float(fslider57))); // Zone 2, step: 260
+		float 	fSlow58BE = powf(1e+01f,(0.05f * float(fslider58))); // Zone 2, step: 264
+		float 	fSlow59BE = powf(1e+01f,(0.05f * float(fslider59))); // Zone 2, step: 268
+		float 	fSlow60BE = powf(1e+01f,(0.05f * float(fslider60))); // Zone 2, step: 272
+		float 	fSlow61BE = powf(1e+01f,(0.05f * float(fslider61))); // Zone 2, step: 276
+		float 	fSlow62BE = powf(1e+01f,(0.05f * float(fslider62))); // Zone 2, step: 280
+		float 	fSlow63BE = powf(1e+01f,(0.05f * float(fslider63))); // Zone 2, step: 284
+		FAUSTFLOAT* input0 = input[0]; // Zone 3
+		FAUSTFLOAT* input1 = input[1]; // Zone 3
+		FAUSTFLOAT* input2 = input[2]; // Zone 3
+		FAUSTFLOAT* input3 = input[3]; // Zone 3
+		FAUSTFLOAT* input4 = input[4]; // Zone 3
+		FAUSTFLOAT* input5 = input[5]; // Zone 3
+		FAUSTFLOAT* input6 = input[6]; // Zone 3
+		FAUSTFLOAT* input7 = input[7]; // Zone 3
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		FAUSTFLOAT* output1 = output[1]; // Zone 3
+		FAUSTFLOAT* output2 = output[2]; // Zone 3
+		FAUSTFLOAT* output3 = output[3]; // Zone 3
+		FAUSTFLOAT* output4 = output[4]; // Zone 3
+		FAUSTFLOAT* output5 = output[5]; // Zone 3
+		FAUSTFLOAT* output6 = output[6]; // Zone 3
+		FAUSTFLOAT* output7 = output[7]; // Zone 3
+		for (int i=0; i<count; i++) {
+			fTemp0SE = (float)input0[i]; // step: 2
+			fTemp1SE = (float)input1[i]; // step: 14
+			fTemp2SE = (float)input2[i]; // step: 20
+			fTemp3SE = (float)input3[i]; // step: 26
+			fTemp4SE = (float)input4[i]; // step: 32
+			fTemp5SE = (float)input5[i]; // step: 38
+			fTemp6SE = (float)input6[i]; // step: 44
+			fTemp7SE = (float)input7[i]; // step: 50
+			output0[i] = (FAUSTFLOAT)(((fSlow0BE * fTemp0SE) + (fSlow1BE * fTemp1SE) + (fSlow2BE * fTemp2SE) + (fSlow3BE * fTemp3SE) + (fSlow4BE * fTemp4SE) + (fSlow5BE * fTemp5SE) + (fSlow6BE * fTemp6SE) + (fSlow7BE * fTemp7SE) /* Sum */));  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(((fSlow8BE * fTemp0SE) + (fSlow9BE * fTemp1SE) + (fSlow10BE * fTemp2SE) + (fSlow11BE * fTemp3SE) + (fSlow12BE * fTemp4SE) + (fSlow13BE * fTemp5SE) + (fSlow14BE * fTemp6SE) + (fSlow15BE * fTemp7SE) /* Sum */));  // Zone Exec Code
+			output2[i] = (FAUSTFLOAT)(((fSlow16BE * fTemp0SE) + (fSlow17BE * fTemp1SE) + (fSlow18BE * fTemp2SE) + (fSlow19BE * fTemp3SE) + (fSlow20BE * fTemp4SE) + (fSlow21BE * fTemp5SE) + (fSlow22BE * fTemp6SE) + (fSlow23BE * fTemp7SE) /* Sum */));  // Zone Exec Code
+			output3[i] = (FAUSTFLOAT)(((fSlow24BE * fTemp0SE) + (fSlow25BE * fTemp1SE) + (fSlow26BE * fTemp2SE) + (fSlow27BE * fTemp3SE) + (fSlow28BE * fTemp4SE) + (fSlow29BE * fTemp5SE) + (fSlow30BE * fTemp6SE) + (fSlow31BE * fTemp7SE) /* Sum */));  // Zone Exec Code
+			output4[i] = (FAUSTFLOAT)(((fSlow32BE * fTemp0SE) + (fSlow33BE * fTemp1SE) + (fSlow34BE * fTemp2SE) + (fSlow35BE * fTemp3SE) + (fSlow36BE * fTemp4SE) + (fSlow37BE * fTemp5SE) + (fSlow38BE * fTemp6SE) + (fSlow39BE * fTemp7SE) /* Sum */));  // Zone Exec Code
+			output5[i] = (FAUSTFLOAT)(((fSlow40BE * fTemp0SE) + (fSlow41BE * fTemp1SE) + (fSlow42BE * fTemp2SE) + (fSlow43BE * fTemp3SE) + (fSlow44BE * fTemp4SE) + (fSlow45BE * fTemp5SE) + (fSlow46BE * fTemp6SE) + (fSlow47BE * fTemp7SE) /* Sum */));  // Zone Exec Code
+			output6[i] = (FAUSTFLOAT)(((fSlow48BE * fTemp0SE) + (fSlow49BE * fTemp1SE) + (fSlow50BE * fTemp2SE) + (fSlow51BE * fTemp3SE) + (fSlow52BE * fTemp4SE) + (fSlow53BE * fTemp5SE) + (fSlow54BE * fTemp6SE) + (fSlow55BE * fTemp7SE) /* Sum */));  // Zone Exec Code
+			output7[i] = (FAUSTFLOAT)(((fSlow56BE * fTemp0SE) + (fSlow57BE * fTemp1SE) + (fSlow58BE * fTemp2SE) + (fSlow59BE * fTemp3SE) + (fSlow60BE * fTemp4SE) + (fSlow61BE * fTemp5SE) + (fSlow62BE * fTemp6SE) + (fSlow63BE * fTemp7SE) /* Sum */));  // Zone Exec Code
 		}
 	}
 };
