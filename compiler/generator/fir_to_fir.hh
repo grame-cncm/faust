@@ -614,8 +614,12 @@ struct CastRemover : public BasicCloneVisitor {
     }
 };
 
-// FIR checker
-struct FIRChecker : public DispatchVisitor {
+// FIR type checker
+struct FIRTypeChecker : public DispatchVisitor {
+    bool fAssert;
+
+    FIRTypeChecker(bool assert = false) : fAssert(assert) {}
+
     virtual void visit(BinopInst* inst)
     {
         Typed::VarType a1_type = TypingVisitor::getType(inst->fInst1);
@@ -630,21 +634,25 @@ struct FIRChecker : public DispatchVisitor {
             }
         }
         // Fail
-        dump2FIR(inst);
-        std::cerr << "ASSERT : FIRChecker in BinopInst";
+        std::cerr << "WARNING : FIRTypeChecker in BinopInst";
         std::cerr << " a1_type = " << Typed::gTypeString[a1_type];
         std::cerr << " a2_type = " << Typed::gTypeString[a2_type] << std::endl;
-        faustassert(false);
+        dump2FIR(inst);
+        if (fAssert) {
+            faustassert(false);
+        }
     }
 
     virtual void visit(Select2Inst* inst)
     {
         Typed::VarType cond_type = TypingVisitor::getType(inst->fCond);
         if (!(isIntType(cond_type) || isBoolType(cond_type))) {
-            dump2FIR(inst);
-            std::cerr << "ASSERT : FIRChecker in Select2Inst";
+            std::cerr << "WARNING : FIRTypeChecker in Select2Inst";
             std::cerr << " cond_type = " << Typed::gTypeString[cond_type] << std::endl;
-            faustassert(false);
+            dump2FIR(inst);
+            if (fAssert) {
+                faustassert(false);
+            }
         }
     }
 
@@ -655,55 +663,68 @@ struct FIRChecker : public DispatchVisitor {
 
         if (isInt32Type(cast_type)) {
             if (isInt32Type(val_type)) {
-                dump2FIR(inst);
-                std::cerr << "ASSERT : FIRChecker in CastInst Int";
+                std::cerr << "WARNING : FIRTypeChecker in CastInst Int";
                 std::cerr << " value_type = " << Typed::gTypeString[val_type];
                 std::cerr << " cast_type = " << Typed::gTypeString[cast_type] << std::endl;
-                faustassert(false);
+                dump2FIR(inst);
+                if (fAssert) {
+                    faustassert(false);
+                }
             }
         } else if (isFloatType(cast_type)) {
             if (isFloatType(val_type)) {
-                dump2FIR(inst);
-                std::cerr << "ASSERT : FIRChecker in CastInst Float";
+                std::cerr << "WARNING : FIRTypeChecker in CastInst Float";
                 std::cerr << " val_type = " << Typed::gTypeString[val_type];
                 std::cerr << " cast_type = " << Typed::gTypeString[cast_type] << std::endl;
-                faustassert(false);
+                dump2FIR(inst);
+                if (fAssert) {
+                    faustassert(false);
+                }
             }
         } else if (isDoubleType(cast_type)) {
             if (isDoubleType(val_type)) {
-                dump2FIR(inst);
-                std::cerr << "ASSERT : FIRChecker in CastInst Double";
+                std::cerr << "WARNING : FIRTypeChecker in CastInst Double";
                 std::cerr << " val_type = " << Typed::gTypeString[val_type];
                 std::cerr << " cast_type = " << Typed::gTypeString[cast_type] << std::endl;
-                faustassert(false);
+                dump2FIR(inst);
+                if (fAssert) {
+                    faustassert(false);
+                }
             }
         }
     }
 };
 
-// Check variable access
+// Check variable scope access
 struct FIRVarChecker : public DispatchVisitor {
-    std::map<std::string, Address::AccessType> fAccessTable;
+    using VariableScope = std::map<std::string, Address::AccessType>;
+    std::stack<VariableScope> fStackVariable;
+    VariableScope             fStructVariable;
+    bool                      fAssert;
 
-    FIRVarChecker(BlockInst* control, ForLoopInst* loop)
-    {
-        control->accept(this);
-        loop->accept(this);
-    }
+    FIRVarChecker(BlockInst* block, bool assert = false);
 
-    virtual void visit(DeclareVarInst* inst)
-    {
-        fAccessTable[inst->getName()] = inst->fAddress->getAccess();
-    }
+    bool isInScope(NamedAddress* address);
 
-    void visit(NamedAddress* address)
-    {
-        // Error if a non declared kStack variable is used in the code
-        if (address->isStack() && fAccessTable.count(address->getName()) == 0) {
-            dump2FIR(address);
-            faustassert(false);
-        }
-    }
+    void pushScope() { fStackVariable.push(VariableScope()); }
+
+    void popScope() { fStackVariable.pop(); }
+
+    void visit(DeclareVarInst* inst);
+
+    void visit(IfInst* inst);
+
+    void visit(ForLoopInst* inst);
+
+    void visit(SimpleForLoopInst* inst);
+
+    void visit(IteratorForLoopInst* inst);
+
+    void visit(WhileLoopInst* inst);
+
+    void visit(SwitchInst* inst);
+
+    void visit(NamedAddress* address);
 };
 
 /*

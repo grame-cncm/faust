@@ -42,7 +42,8 @@ StatementInst* InstructionsCompiler1::generateInitArray(const string& vname, Bas
     return loop;
 }
 
-StatementInst* InstructionsCompiler1::generateShiftArray(const string& vname, int delay)
+StatementInst* InstructionsCompiler1::generateShiftArray(const string& vname, int delay,
+                                                         Address::AccessType access)
 {
     string index = gGlobal->getFreshID("j");
 
@@ -52,9 +53,9 @@ StatementInst* InstructionsCompiler1::generateShiftArray(const string& vname, in
     SimpleForLoopInst* loop        = IB::genSimpleForLoopInst(index, upperBound, lowerBound, true);
     LoadVarInst*       loadVarInst = IB::genLoadVarInst(IB::genNamedAddress(index, Address::kLoop));
     ValueInst*         load_value2 = IB::genSub(loadVarInst, IB::genInt32NumInst(1));
-    ValueInst*         load_value3 = IB::genLoadArrayStructVar(vname, load_value2);
+    ValueInst*         load_value3 = IB::genLoadArrayVar(vname, access, load_value2);
 
-    loop->pushFrontInst(IB::genStoreArrayStructVar(vname, loadVarInst, load_value3));
+    loop->pushFrontInst(IB::genStoreArrayVar(vname, access, loadVarInst, load_value3));
     return loop;
 }
 
