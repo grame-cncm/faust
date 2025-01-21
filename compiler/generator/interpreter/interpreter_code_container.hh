@@ -91,9 +91,10 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
     InterpreterInstructionsCompiler(CodeContainer* container) : InstructionsCompiler(container) {}
 
    protected:
-    StatementInst* generateShiftArray(const std::string& vname, int delay) override
+    StatementInst* generateShiftArray(const std::string& vname, int delay,
+                                      Address::AccessType access = Address::kStruct) override
     {
-        return IB::genShiftArrayVarInst(IB::genNamedAddress(vname, Address::kStruct), delay);
+        return IB::genShiftArrayVarInst(IB::genNamedAddress(vname, access), delay);
     }
 
     ValueInst* generateSoundfile(Tree sig, Tree path) override

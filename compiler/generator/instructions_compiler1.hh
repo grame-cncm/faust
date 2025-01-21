@@ -33,7 +33,8 @@ class InstructionsCompiler1 : public InstructionsCompiler {
    private:
     StatementInst* generateInitArray(const std::string& vname, BasicTyped* ctype,
                                      int delay) override;
-    StatementInst* generateShiftArray(const std::string& vname, int delay) override;
+    StatementInst* generateShiftArray(const std::string& vname, int delay,
+                                      Address::AccessType access = Address::kStruct) override;
     StatementInst* generateCopyArray(const std::string& vname_to, const std::string& vname_from,
                                      int size) override;
 };
