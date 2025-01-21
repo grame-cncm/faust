@@ -695,7 +695,7 @@ struct global {
 
     void setVarType(const std::string& name, Typed::VarType type);
 
-    inline bool startWith(const std::string& str, const std::string& prefix)
+    inline static bool startWith(const std::string& str, const std::string& prefix)
     {
         return (str.substr(0, prefix.size()) == prefix);
     }
@@ -712,6 +712,7 @@ struct global {
 
     // Allows to test if a debug environment variable is set
     static bool isDebug(const std::string& debug_val);
+    static bool hasDebug(const std::string& debug_val);
 
     // Get the value of a debug environment variable
     static int getDebug(const std::string& debug_var, int def_val);
@@ -762,5 +763,27 @@ struct CallContext {
     Tree         fTree       = nullptr;  // Used for in/out
     std::string  fRes        = "";       // Used for out
 };
+
+enum class DelayType {
+    kNotADelay = 0,
+    kZeroDelay,    // delay = 0
+    kMonoDelay,    // 1 sample delay where 1 single variable can be used (the delay appears once in
+                   // the expression)
+    kSingleDelay,  // 1 sample delay where the delay appears several times in the expression, so a
+                   // buffer of size 2 is used
+    kCopyDelay,    // longer delay with a cache
+    kDenseDelay,   // longer delay with a cache, only when the read density is high enough
+    kMaskRingDelay,   // sparse delay without cache, using wrapping index (based on a power-of-two
+                      // size and a mask)
+    kSelectRingDelay  // sparse delay without cache, using wrapping index (based on an if/select)
+};
+
+inline std::string nameDelayType(DelayType dt)
+{
+    static std::string delayTypeName[] = {"kNotADelay",     "kZeroDelay",      "kMonoDelay",
+                                          "kSingleDelay",   "kCopyDelay",      "kDenseDelay",
+                                          "kMaskRingDelay", "kSelectRingDelay"};
+    return delayTypeName[int(dt)];
+}
 
 #endif

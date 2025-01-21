@@ -88,7 +88,8 @@ StatementInst* DAGInstructionsCompilerRust::generateInitArray(const string& vnam
     return IB::genVoidFunCallInst("fill", args, true);
 }
 
-StatementInst* DAGInstructionsCompilerRust::generateShiftArray(const string& vname, int delay)
+StatementInst* DAGInstructionsCompilerRust::generateShiftArray(const string& vname, int delay,
+                                                               Address::AccessType access)
 {
     string index = gGlobal->getFreshID("j");
 
