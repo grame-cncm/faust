@@ -97,6 +97,8 @@ class TextInstVisitor : public InstVisitor {
         tab(fTab, *fOut);
     }
 
+    virtual void visit(NullValueInst* inst) { faustassert(false); }
+
     virtual void visit(DeclareVarInst* inst) { faustassert(false); }
 
     virtual void visit(RetInst* inst) { visitAux(inst, true); }
