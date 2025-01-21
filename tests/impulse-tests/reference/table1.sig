@@ -1,15 +1,19 @@
-// Size = 13
+// Size = 17
 ID_0 = sigGen(waveform{...});
 ID_1 = WRTbl2p(8,ID_0);
 ID_2 = W0;
 ID_3 = proj0(ID_2);
 ID_4 = ID_3';
-ID_5 = ID_4+1;
-ID_6 = letrec(W0 = (ID_5));
-ID_7 = proj0(ID_6);
-ID_8 = ID_7@0;
-ID_9 = ID_8%8;
-ID_10 = sigRDTbl(ID_1,ID_9);
-ID_11 = sigWRTbl4p(8,ID_0,ID_9,waveform{...});
-ID_12 = sigRDTbl(ID_11,ID_9);
-SIG = (ID_10, ID_12);
+ID_5 = clocked(ID_4);
+ID_6 = ID_5+1;
+ID_7 = letrec(W0 = (ID_6));
+ID_8 = proj0(ID_7);
+ID_9 = ID_8@0;
+ID_10 = ID_9%8;
+ID_11 = clocked(ID_10);
+ID_12 = sigRDTbl(ID_1,ID_11);
+ID_13 = sigGen(waveform{...});
+ID_14 = clocked(waveform{...});
+ID_15 = sigWRTbl4p(8,ID_13,ID_11,ID_14);
+ID_16 = sigRDTbl(ID_15,ID_11);
+SIG = (ID_12, ID_16);

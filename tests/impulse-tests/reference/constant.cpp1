@@ -1,10 +1,13 @@
 //----------------------------------------------------------
 // name: "constant"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
 /* link with  */
+#include <algorithm>
+#include <cmath>
 #include <math.h>
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -17,15 +20,15 @@
 
 class mydsp : public dsp {
   private:
-	float 	fConst0; // step: 6
-	float 	fConst1; // step: 7
-	int 	iConst2; // step: 14
-	float 	fVec0State; // Single Delay
-	float 	fVec1State[2]; // Copy Delay
-	float 	fVec2State[4]; // Copy Delay
-	int 	iConst3; // step: 23
-	int 	iConst4; // step: 28
-	int 	iConst5; // step: 30
+	float 	fConst0KI; // step: 6
+	float 	fConst1KI; // step: 7
+	float 	fVec0SEState; // Single Delay
+	int 	iConst2KI; // step: 15
+	int 	iConst3KI; // step: 22
+	float 	fVec2SEState[2]; // Copy Delay
+	int 	iConst4KI; // step: 33
+	float 	fVec5SEState[4]; // Copy Delay
+	int 	iConst5KI; // step: 38
 	int fSampleRate;
 
   public:
@@ -33,6 +36,7 @@ class mydsp : public dsp {
 		m->declare("basics_lib_name", "Faust Basic Element Library");
 		m->declare("basics_lib_version", "0.1");
 		m->declare("compilation_options", "-single -scal -e t1.dsp -o t1_exp.dsp");
+		m->declare("compile_options", "-lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0");
 		m->declare("filename", "constant.dsp");
 		m->declare("library_path", "/usr/local/share/faust/stdfaust.lib");
 		m->declare("maths_lib_author", "GRAME");
@@ -51,19 +55,19 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 6
-		fConst1 = (1.0f / fConst0); // step: 7
-		iConst2 = (int(floorf((0.25f * fConst0))) % 2); // step: 14
-		iConst3 = (int(floorf(fConst0)) % 2); // step: 23
-		iConst4 = (int(floorf((0.5f * fConst0))) % 2); // step: 28
-		iConst5 = (iConst3 + (2 * iConst4)); // step: 30
+		fConst0KI = std::min(1.92e+05f, std::max(1.0f, float(fSampleRate))); // step: 6
+		fConst1KI = (1.0f / fConst0KI); // step: 7
+		iConst2KI = (int(floorf(fConst0KI)) % 2); // step: 15
+		iConst3KI = (int(floorf((0.5f * fConst0KI))) % 2); // step: 22
+		iConst4KI = (int(floorf((0.25f * fConst0KI))) % 2); // step: 33
+		iConst5KI = (iConst2KI + (2 * iConst3KI) /* Sum */); // step: 38
 	}
 	virtual void instanceResetUserInterface() {
 	}
 	virtual void instanceClear() {
-		fVec0State = 0;
-		for (int j = 0; j < 2; j++) { fVec1State[j] = 0; }
-		for (int j = 0; j < 4; j++) { fVec2State[j] = 0; }
+		fVec0SEState = 0;
+		for (int j = 0; j < 2; j++) { fVec2SEState[j] = 0; }
+		for (int j = 0; j < 4; j++) { fVec5SEState[j] = 0; }
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -85,45 +89,36 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fVec0[2];
-		float 	fVec1[3];
-		float 	fVec2[5];
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			fVec0[1] = fVec0State;
-			fVec1[1] = fVec1State[0];
-			fVec1[2] = fVec1State[1];
-			fVec2[1] = fVec2State[0];
-			fVec2[2] = fVec2State[1];
-			fVec2[3] = fVec2State[2];
-			fVec2[4] = fVec2State[3];
-			for (int i=0; i<count; i++) {
-				float 	fTemp0 = (float)input0[i]; // step: 15
-				fVec0[0] = fTemp0;
-				float 	fTemp1 = (fVec0[0] + fVec0[1]); // step: 18
-				fVec1[0] = fTemp1;
-				fVec2[0] = (fVec1[0] + fVec1[2]);
-				output0[i] = (FAUSTFLOAT)((fConst1 * ((((0) ? fVec0[0] : ((iConst3) ? fVec0[0] : 0.0f)) + ((iConst4) ? fVec1[iConst3] : 0.0f)) + ((iConst2) ? fVec2[iConst5] : 0.0f))));  // Zone Exec Code
-				// post processing
-				fVec2[4] = fVec2[3];
-				fVec2[3] = fVec2[2];
-				fVec2[2] = fVec2[1];
-				fVec2[1] = fVec2[0];
-				fVec1[2] = fVec1[1];
-				fVec1[1] = fVec1[0];
-				fVec0[1] = fVec0[0];
-			}
-			fVec0State = fVec0[1];
-			fVec1State[0] = fVec1[1];
-			fVec1State[1] = fVec1[2];
-			fVec2State[0] = fVec2[1];
-			fVec2State[1] = fVec2[2];
-			fVec2State[2] = fVec2[3];
-			fVec2State[3] = fVec2[4];
+		float 	fTemp0SE; // step: 10
+		float 	fVec0SE[2];
+		float 	fTemp1SE; // step: 24
+		float 	fTemp2SE; // step: 26
+		float 	fVec2SE[3];
+		float 	fVec5SE[5];
+		FAUSTFLOAT* input0 = input[0]; // Zone 3
+		FAUSTFLOAT* output0 = output[0]; // Zone 3
+		fVec0SE[1] = fVec0SEState;
+		fVec2SE[1] = fVec2SEState[0];
+		fVec2SE[2] = fVec2SEState[1];
+		for (int j = 0; j < 4; j++) { fVec5SE[j+1] = fVec5SEState[j]; }
+		for (int i=0; i<count; i++) {
+			fTemp0SE = (float)input0[i]; // step: 10
+			fVec0SE[0] = fTemp0SE;
+			fTemp1SE = fVec0SE[1]; // step: 24
+			fTemp2SE = (fVec0SE[0] + fTemp1SE /* Sum */); // step: 26
+			fVec2SE[0] = fTemp2SE;
+			fVec5SE[0] = (fVec0SE[0] + fTemp1SE + fVec2SE[2] /* Sum */);
+			output0[i] = (FAUSTFLOAT)((fConst1KI * (((0) ? fVec0SE[0] : ((iConst2KI) ? fVec0SE[0] : 0.0f)) + ((iConst3KI) ? fVec2SE[iConst2KI] : 0.0f) + ((iConst4KI) ? fVec5SE[iConst5KI] : 0.0f) /* Sum */)));  // Zone Exec Code
+			// post processing
+			for (int j = 4; j > 0; j--) { fVec5SE[j] = fVec5SE[j-1]; }
+			fVec2SE[2] = fVec2SE[1];
+			fVec2SE[1] = fVec2SE[0];
+			fVec0SE[1] = fVec0SE[0];
 		}
+		fVec0SEState = fVec0SE[1];
+		fVec2SEState[0] = fVec2SE[1];
+		fVec2SEState[1] = fVec2SE[2];
+		for (int j = 0; j < 4; j++) { fVec5SEState[j] = fVec5SE[j+1]; }
 	}
 };
 
