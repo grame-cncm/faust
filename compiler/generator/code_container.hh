@@ -488,6 +488,9 @@ class CodeContainer : public virtual Garbageable {
     ValueInst* pushFunction(const std::string& name, Typed::VarType result,
                             std::vector<Typed::VarType>& types, const Values& args);
 
+    void openIFblock(ValueInst* cond) { fCurLoop->openIFblock(cond); }
+    void closeIFblock() { fCurLoop->closeIFblock(); }
+
     void generateExtGlobalDeclarations(InstVisitor* visitor)
     {
         if (fExtGlobalDeclarationInstructions->fCode.size() > 0) {
