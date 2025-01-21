@@ -25,7 +25,8 @@
 
 using namespace std;
 
-StatementInst* InstructionsCompilerJAX::generateShiftArray(const string& vname, int delay)
+StatementInst* InstructionsCompilerJAX::generateShiftArray(const string& vname, int delay,
+                                                           Address::AccessType access)
 {
     Values truncated_args;
     truncated_args.push_back(IB::genLoadArrayStructVar(vname));

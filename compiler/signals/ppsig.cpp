@@ -698,7 +698,7 @@ ostream& ppsigShared::print(ostream& fout) const
     } else if (isSigSoundfileBuffer(fSig, sf, x, y, z)) {
         SIG_INSERT_ID(printfun(s, "buffer", sf, x, y, z));
     }
-    
+
     else if (isSigFIR(fSig)) {
         SIG_INSERT_ID(printfir(s, fSig->branches()));
     } else if (isSigIIR(fSig)) {
@@ -706,7 +706,7 @@ ostream& ppsigShared::print(ostream& fout) const
     } else if (isSigSum(fSig)) {
         SIG_INSERT_ID(printfun(s, "sum", fSig->branches()));
     }
-    
+
     else if (isSigTempVar(fSig, x)) {
         SIG_INSERT_ID(printfun(s, "tempvar", x));
     } else if (isSigPermVar(fSig, x)) {
@@ -719,7 +719,7 @@ ostream& ppsigShared::print(ostream& fout) const
         // printfun(fout, "clocked", y);
         SIG_INSERT_ID(s << "clocked(" << ppsigShared(y, fEnv, fPriority) << ")");
     }
-  
+
     else if (isSigAttach(fSig, x, y)) {
         SIG_INSERT_ID(printfun(s, "attach", x, y));
     } else if (isSigEnable(fSig, x, y)) {
@@ -731,7 +731,7 @@ ostream& ppsigShared::print(ostream& fout) const
     else if (isSigRegister(fSig, &i, x)) {
         SIG_INSERT_ID(printfun(s, "register", sigInt(i), x));
     }
-    
+
     else if (isNil(fSig)) {
         fout << "NIL";
     }

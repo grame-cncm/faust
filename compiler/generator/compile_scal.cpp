@@ -1843,7 +1843,8 @@ string ScalarCompiler::generateDelayLine(Tree sig, const string& ctype, const st
     DelayType dt = analyzeDelayType(sig);
     switch (dt) {
         case DelayType::kNotADelay:
-            faustexception("Try to compile has a delay something that is not a delay");
+            throw faustexception(
+                "ERROR : try to compile has a delay something that is not a delay\n");
             return "";
 
         case DelayType::kZeroDelay:

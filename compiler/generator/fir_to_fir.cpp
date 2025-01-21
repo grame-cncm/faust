@@ -267,3 +267,151 @@ StatementInst* ControlExpander::visit(BlockInst* inst)
 
     return cloned;
 }
+
+FIRVarChecker::FIRVarChecker(BlockInst* block, bool assert) : fAssert(assert)
+{
+    // Scope for block
+    pushScope();
+    block->accept(this);
+    // End of block scope
+    popScope();
+}
+
+void FIRVarChecker::visit(DeclareVarInst* inst)
+{
+    if (inst->fAddress->isStack() || inst->fAddress->isLoop()) {
+        // Put in scope
+        fStackVariable.top()[inst->getName()] = inst->fAddress->getAccess();
+    } else if (inst->fAddress->isStruct()) {
+        // Put in DSP struct
+        fStructVariable[inst->getName()] = inst->fAddress->getAccess();
+    }
+    DispatchVisitor::visit(inst);
+}
+
+void FIRVarChecker::visit(IfInst* inst)
+{
+    // Scope for cond
+    pushScope();
+    inst->fCond->accept(this);
+    // End of scope
+    popScope();
+
+    // Scope for then branch
+    pushScope();
+    inst->fThen->accept(this);
+    // End of scope
+    popScope();
+
+    // Scope for else branch
+    pushScope();
+    inst->fElse->accept(this);
+    // End of scope
+    popScope();
+}
+
+void FIRVarChecker::visit(ForLoopInst* inst)
+{
+    // Scope for loop var
+    pushScope();
+    inst->fInit->accept(this);
+    inst->fEnd->accept(this);
+    inst->fIncrement->accept(this);
+    inst->fCode->accept(this);
+    // End of loop var scope
+    popScope();
+}
+
+void FIRVarChecker::visit(SimpleForLoopInst* inst)
+{
+    // Scope for loop var
+    pushScope();
+    inst->fInit->accept(this);
+    inst->fUpperBound->accept(this);
+    inst->fLowerBound->accept(this);
+    inst->fCode->accept(this);
+    // End of loop var scope
+    popScope();
+}
+
+void FIRVarChecker::visit(IteratorForLoopInst* inst)
+{
+    // Scope for loop var
+    pushScope();
+    for (const auto& it : inst->fIterators) {
+        it->accept(this);
+    }
+    inst->fCode->accept(this);
+    // End of loop var scope
+    popScope();
+}
+
+void FIRVarChecker::visit(WhileLoopInst* inst)
+{
+    // Scope for loop var
+    pushScope();
+    inst->fCond->accept(this);
+    inst->fCode->accept(this);
+    // End of loop var scope
+    popScope();
+}
+
+void FIRVarChecker::visit(SwitchInst* inst)
+{
+    // Scope for cond
+    pushScope();
+    inst->fCond->accept(this);
+    // End of scope
+    popScope();
+
+    for (const auto& it : inst->fCode) {
+        // Scope for case
+        pushScope();
+        (it.second)->accept(this);
+        // End of scope
+        popScope();
+    }
+}
+
+bool FIRVarChecker::isInScope(NamedAddress* address)
+{
+    // Try to locate the variable in the stack of scope
+    std::stack<VariableScope> tempStack = fStackVariable;  // Copy of the stack to iterate
+
+    // Traverse the copied stack from top to bottom
+    while (!tempStack.empty()) {
+        VariableScope scope = tempStack.top();
+        tempStack.pop();
+        if (scope.count(address->getName()) > 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void FIRVarChecker::visit(NamedAddress* address)
+{
+    if (address->isStruct() && (fStructVariable.count(address->getName()) == 0)) {
+        std::cerr << "WARNING : FIRVarChecker in NamedAddress : struct variable not declared\n";
+        dump2FIR(address);
+        if (fAssert) {
+            faustassert(false);
+        }
+    } else if (address->isStack() || address->isLoop()) {
+        if (!isInScope(address)) {
+            if (fStructVariable.count(address->getName()) > 0) {
+                std::cerr << "WARNING : FIRVarChecker in NamedAddress : different access\n";
+                dump2FIR(address);
+                if (fAssert) {
+                    faustassert(false);
+                }
+            } else {
+                std::cerr << "WARNING : FIRVarChecker in NamedAddress : not in scope\n";
+                dump2FIR(address);
+                if (fAssert) {
+                    faustassert(false);
+                }
+            }
+        }
+    }
+}

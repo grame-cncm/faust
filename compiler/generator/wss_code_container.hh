@@ -67,6 +67,8 @@ class WSSCodeContainer : public virtual CodeContainer {
         : fObjName(objName), fComputeThreadBlockInstructions(IB::genBlockInst())
     {
         initialize(numInputs, numOutputs);
+        fThreadLoopBlock                = IB::genBlockInst();
+        fComputeThreadBlockInstructions = IB::genBlockInst();
     }
 };
 

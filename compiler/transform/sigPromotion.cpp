@@ -405,6 +405,20 @@ Tree SignalPromotion::transformation(Tree sig)
         return sigBitCast(self(x));
     } else if (isSigFloatCast(sig, x)) {
         return smartFloatCast(getCertifiedSigType(x), self(x));
+        // Ondemand
+    } else if (tvec w1; isSigOD(sig, w1)) {
+        tvec w2;
+        for (size_t i = 0; i < w1.size(); i++) {
+            // Clock has to be casted to Int
+            if (i == 0) {
+                w2.push_back(smartIntCast(getCertifiedSigType(w1[i]), self(w1[i])));
+            } else if (w1[i] == gGlobal->nil) {
+                w2.push_back(gGlobal->nil);
+            } else {
+                w2.push_back(self(w1[i]));
+            }
+        }
+        return sigOD(w2);
     }
 
     // Tables
