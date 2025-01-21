@@ -30,10 +30,16 @@ class InstructionsCompilerJAX : public InstructionsCompiler {
    public:
     InstructionsCompilerJAX(CodeContainer* container) : InstructionsCompiler(container) {}
 
-    StatementInst* generateShiftArray(const std::string& vname, int delay) override;
+    StatementInst* generateShiftArray(const std::string& vname, int delay,
+                                      Address::AccessType access = Address::kStruct) override;
+
+    /*
+     ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype, const std::string& vname,
+     int mxd, Address::AccessType& access, ValueInst* ccs) override;
+     */
 
     ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype, const std::string& vname,
-                                 int mxd, Address::AccessType& access, ValueInst* ccs) override;
+                                 int mxd, Address::AccessType& access, ValueInst* ccs);
 
     ValueInst* generateSoundfile(Tree sig, Tree path) override;
 };

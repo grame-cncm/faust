@@ -315,6 +315,12 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual ~JuliaInstVisitor() {}
 
+    virtual void visit(LabelInst* inst)
+    {
+        *fOut << "# ";
+        TextInstVisitor::visit(inst);
+    }
+
     virtual void visit(AddMetaDeclareInst* inst)
     {
         // Special case
