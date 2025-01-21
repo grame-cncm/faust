@@ -1,18 +1,20 @@
-// Size = 16
+// Size = 18
 ID_0 = waveform{...}>0.0f;
-ID_1 = prefix(1,ID_0);
-ID_2 = float(fSamplingFreq);
-ID_3 = max(1.0f, ID_2);
-ID_4 = min(1.92e+05f, ID_3);
-ID_5 = 7e+02f/ID_4;
-ID_6 = W0;
-ID_7 = proj0(ID_6);
-ID_8 = ID_7';
-ID_9 = ID_5+ID_8;
-ID_10 = select2(ID_1,ID_9,waveform{...});
-ID_11 = floor(ID_10);
-ID_12 = ID_10-ID_11;
-ID_13 = letrec(W0 = (ID_12));
-ID_14 = proj0(ID_13);
-ID_15 = ID_14@0;
-SIG = (ID_15, waveform{...}, waveform{...});
+ID_1 = clocked(ID_0);
+ID_2 = prefix(1,ID_1);
+ID_3 = float(fSamplingFreq);
+ID_4 = max(1.0f, ID_3);
+ID_5 = min(1.92e+05f, ID_4);
+ID_6 = 7e+02f/ID_5;
+ID_7 = W0;
+ID_8 = proj0(ID_7);
+ID_9 = ID_8';
+ID_10 = clocked(ID_9);
+ID_11 = ID_6+ID_10;
+ID_12 = select2(ID_2,ID_11,waveform{...});
+ID_13 = floor(ID_12);
+ID_14 = ID_12-ID_13;
+ID_15 = letrec(W0 = (ID_14));
+ID_16 = proj0(ID_15);
+ID_17 = ID_16@0;
+SIG = (ID_17, waveform{...}, waveform{...});
