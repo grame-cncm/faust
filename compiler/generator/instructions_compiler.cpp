@@ -32,6 +32,9 @@
 #include "normalform.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
+#include "revealFIR.hh"
+#include "revealIIR.hh"
+#include "revealSum.hh"
 #include "sharing.hh"
 #include "sigDependenciesGraph.hh"
 #include "sigNewConstantPropagation.hh"
@@ -112,34 +115,40 @@ Tree InstructionsCompiler::prepare(Tree LS)
     }
 
     // No more table privatisation
+    startTiming("newConstantPropagation");
     Tree L2a = newConstantPropagation(L1, false);
-    Tree L2  = L2a;
+    endTiming("newConstantPropagation");
+    startTiming("Sum revealer");
+    L2a = revealSum(L2a);
+    endTiming("Sum revealer");
 
+    Tree L2 = L2a;
     /*
-     // detect FIRs and IIRs if required
-     if (gGlobal->gReconstructFIRIIRs) {
-         startTiming("FIR revealer");
-         Tree L2b = revealFIR(L2a);
-         endTiming("FIR revealer");
-         startTiming("IIR revealer");
-         Tree L2c = revealIIR(L2b);
-         endTiming("IIR revealer");
-         L2 = L2c;
-         if (gGlobal->gFactorizeFIRIIRs) {
-             startTiming("FIR/IIR factorizer");
-             Tree L2d = factorizeFIRIIRs(L2);
-             endTiming("FIR/IIR factorizer");
+    // detect FIRs and IIRs if required
+    if (gGlobal->gReconstructFIRIIRs) {
+        startTiming("FIR revealer");
+        Tree L2b = revealFIR(L2a);
+        endTiming("FIR revealer");
+        startTiming("IIR revealer");
+        Tree L2c = revealIIR(L2b);
+        endTiming("IIR revealer");
+        L2 = L2c;
+        if (gGlobal->gFactorizeFIRIIRs) {
+            startTiming("FIR/IIR factorizer");
+            Tree L2d = factorizeFIRIIRs(L2);
+            endTiming("FIR/IIR factorizer");
 
-             startTiming("Sum revealer");
-             Tree L2e = revealSum(L2d);
-             endTiming("Sum revealer");
+            // startTiming("Sum revealer");
+            // Tree L2e = revealSum(L2d);
+            // endTiming("Sum revealer");
 
-             L2 = L2e;
-         }
-     } else {
+            // L2 = L2e;
+            L2 = L2d;
+        }
+    } else {
         L2 = L2a;
-     }
-     */
+    }
+    */
 
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
@@ -2897,9 +2906,12 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype,
             // declare and init the delay line
             pushDeclare(IB::genLabelInst("// Ring Delay"));
             pushClearMethod(generateInitArray(vname, ctype, N));
+            
+            /*
             pushDeclare(IB::genLabelInst("// detect unintialized"));
             pushClearMethod(
                 IB::genStoreArrayStructVar(vname, FIRIndex(0), IB::genInt32NumInst(-1)));
+            */
 
             // execute
             pushComputeDSPMethod(IB::genControlInst(
@@ -3235,8 +3247,17 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& coefs)
 
 ValueInst* InstructionsCompiler::generateSum(Tree sig, const tvec& subs)
 {
-    faustassert(false);
-    return IB::genNullValueInst();
+    faustassert(subs.size() > 1);
+    // std::cerr << gGlobal->gSTEP << " generateSum: " << ppsig(sig) << std::endl;
+    
+    // Add the first 2 values
+    ValueInst* add = IB::genAdd(CS(subs[0]), CS(subs[1]));
+    // Add the remaining values
+    for (size_t i = 2; i < subs.size(); ++i) {
+        add = IB::genAdd(add, CS(subs[i]));
+    }
+    
+    return generateCacheCode(sig, add);
 }
 
 // Ondemand: generate a local variable for the input signal of an ondemand circuit
