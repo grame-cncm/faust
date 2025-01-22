@@ -115,7 +115,8 @@ Tree ScalarCompiler::prepare(Tree LS)
         throw faustexception("Dump shared normal form finished...\n");
     } else if (gGlobal->gDumpNorm == 2) {
         // Print signal tree type
-        SignalTypePrinter printer(L1);
+        SignalTypePrinter types(L1);
+        std::cout << types.print();
         throw faustexception("Dump signal type finished...\n");
     }
     // No more table privatisation
