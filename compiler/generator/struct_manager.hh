@@ -264,7 +264,7 @@ struct StructInstVisitor : public DispatchVisitor {
     void visit(DeclareVarInst* inst)
     {
         std::string name = inst->getName();
-
+   
         bool        is_struct   = inst->fAddress->isStruct() || inst->fAddress->isStaticStruct();
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
 
@@ -280,9 +280,6 @@ struct StructInstVisitor : public DispatchVisitor {
                 } else {
                     fStructRealOffset += array_typed->getSizeBytes();
                 }
-            } else {
-                // Should never happen...
-                faustassert(false);
             }
         } else {
             if (is_struct) {
