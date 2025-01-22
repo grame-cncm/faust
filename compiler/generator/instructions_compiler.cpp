@@ -2461,16 +2461,18 @@ ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, ValueIn
             result = IB::genLoadStackVar(vecname);
             break;
 
+        case DelayType::kSingleDelay:
+            result = IB::genLoadArrayStackVar(vecname, delayidx);
+            break;
+
             /*
-             case DelayType::kSingleDelay:
              case DelayType::kCopyDelay:
              case DelayType::kDenseDelay:   // Moved in last model for now
              result = IB::genLoadArrayStackVar(vecname, delayidx);
              break;
              */
 
-            // 3 cases moved here
-        case DelayType::kSingleDelay:
+        // 2 cases moved here
         case DelayType::kCopyDelay:
         case DelayType::kDenseDelay:
 
@@ -2759,25 +2761,23 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype,
             return IB::genLoadStackVar(vname);
         }
 
-            /*
-             case DelayType::kSingleDelay: {
-             string vname_perm = vname + "State";
-             pushDeclare(IB::genLabelInst("// Single Delay"));
-             pushDeclare(IB::genDecStructVar(vname_perm, ctype));
-             pushClearMethod(IB::genStoreStructVar(vname_perm, IB::genTypedZero(ctype)));
-             pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, mxd + 1));
-             pushComputeBlockMethod(IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
-             IB::genLoadStructVar(vname_perm)));
-             pushComputeDSPMethod(IB::genControlInst(
-             ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
-             pushPostComputeDSPMethod(
-             IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
-             IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0))));
-             pushPostComputeBlockMethod(IB::genStoreStructVar(
-             vname_perm, IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(1))));
-             return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
-             }
-             */
+        case DelayType::kSingleDelay: {
+            string vname_perm = vname + "State";
+            pushDeclare(IB::genLabelInst("// Single Delay"));
+            pushDeclare(IB::genDecStructVar(vname_perm, ctype));
+            pushClearMethod(IB::genStoreStructVar(vname_perm, IB::genTypedZero(ctype)));
+            pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, mxd + 1));
+            pushComputeBlockMethod(IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
+                                                             IB::genLoadStructVar(vname_perm)));
+            pushComputeDSPMethod(IB::genControlInst(
+                ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
+            pushPostComputeDSPMethod(
+                IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
+                                          IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0))));
+            pushPostComputeBlockMethod(IB::genStoreStructVar(
+                vname_perm, IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(1))));
+            return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
+        }
 
             /*
              case DelayType::kCopyDelay: {
@@ -2880,8 +2880,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype,
              #endif
              */
 
-            // 3 cases moved here
-        case DelayType::kSingleDelay:
+            // 2 cases moved here
         case DelayType::kCopyDelay:
         case DelayType::kDenseDelay:
 
