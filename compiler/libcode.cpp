@@ -481,8 +481,8 @@ static void compileCodebox(Tree signals, int numInputs, int numOutputs, ostream*
     // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
 
-    // "one sample control" model by default;
-    gGlobal->gOneSampleControl = true;
+    // "one sample inputs/outputs" model by default
+    gGlobal->gOneSampleIO = true;
     // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gNeedManualPow = false;
 
@@ -729,8 +729,8 @@ static void compileCmajor(Tree signals, int numInputs, int numOutputs, ostream* 
     // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
 
-    // "one sample control" model by default;
-    gGlobal->gOneSampleControl = true;
+    // "one sample inputs/outputs" model by default
+    gGlobal->gOneSampleIO = true;
     // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gNeedManualPow = false;
 

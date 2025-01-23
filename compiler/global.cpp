@@ -498,7 +498,7 @@ void global::reset()
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
-    gOneSampleControl     = false;
+    gOneSampleIO          = false;
     gExtControl           = false;
     gInlineTable          = false;
     gComputeMix           = false;

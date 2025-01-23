@@ -178,7 +178,7 @@ struct global {
     bool gEnableFlag;              // -es option (0/1: 0 by default)
     bool gNoVirtual;  // -nvi option, when compiled with the C++ backend, does not add the 'virtual'
                       // keyword
-    int  gMemoryManager;  // -mem option
+    int  gMemoryManager;  // -memX options
     bool gRangeUI;   // -rui option, whether to generate code to limit vslider/hslider/nentry values
                      // in [min..max] range
     bool gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init
@@ -229,9 +229,8 @@ struct global {
     bool gNeedManualPow;     // If manual pow(x, y) generation when y is an integer is needed
     bool gRemoveVarAddress;  // If use of variable addresses (like &foo or &foo[n]) have to be
                              // removed
-    int  gOneSample;         // -osX options, generate one sample computation
-    bool gOneSampleControl;  // -osX options, generate one sample computation control structure in
-                             // DSP module
+    bool gOneSample;         // -os option, generate one sample computation
+    bool gOneSampleIO;       // generate one sample computation inputs/outputs access
     int  gExtControl;        // separated 'control' and 'compute' functions
     bool gInlineTable;  // -it option, only in -cpp backend, to inline rdtable/rwtable code in the
                         // main class.

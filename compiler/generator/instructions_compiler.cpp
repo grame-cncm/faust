@@ -524,7 +524,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                 "input", "inputs", fContainer->inputs(), ptr_type, false));
         } else if (gGlobal->gOutputLang != "jax") {
             // "input" and "inputs" used as a name convention
-            if (gGlobal->gOneSampleControl) {
+            if (gGlobal->gOneSampleIO) {
                 for (int index = 0; index < fContainer->inputs(); index++) {
                     string name = subst("input$0", T(index));
                     pushDeclare(IB::genDecStructVar(name, type));
@@ -556,7 +556,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                 "output", "outputs", fContainer->outputs(), ptr_type, true));
         } else if (gGlobal->gOutputLang != "jax") {
             // "output" and "outputs" used as a name convention
-            if (gGlobal->gOneSampleControl) {
+            if (gGlobal->gOneSampleIO) {
                 for (int index = 0; index < fContainer->outputs(); index++) {
                     string name = subst("output$0", T(index));
                     pushDeclare(IB::genDecStructVar(name, type));
@@ -606,7 +606,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             return_string     = return_string + sep + result_var;
             sep               = ",";
             pushComputeDSPMethod(IB::genStoreStackVar(result_var, res));
-        } else if (gGlobal->gOneSampleControl) {
+        } else if (gGlobal->gOneSampleIO) {
             name = subst("output$0", T(index));
             if (gGlobal->gComputeMix) {
                 ValueInst* res1 = IB::genAdd(res, IB::genLoadStackVar(name));
@@ -909,8 +909,7 @@ ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string&
 {
     // Check access (handling 'fFullCount' as a special case)
     if ((name != fFullCount && !gGlobal->gAllowForeignVar) ||
-        (name == fFullCount &&
-         (gGlobal->gOneSample || gGlobal->gOneSampleControl || gGlobal->gExtControl))) {
+        (name == fFullCount && (gGlobal->gOneSample || gGlobal->gExtControl))) {
         stringstream error;
         error << "ERROR : accessing foreign variable '" << name << "'"
               << " is not allowed in this compilation mode" << endl;
@@ -943,7 +942,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
         res = IB::genLoadStackVar(subst("*io$0", T(idx)));
     } else if (gGlobal->gOutputLang == "jax") {
         res = IB::genLoadArrayStackVar("inputs", IB::genInt32NumInst(idx));
-    } else if (gGlobal->gOneSampleControl) {
+    } else if (gGlobal->gOneSampleIO) {
         res = IB::genLoadStructVar(subst("input$0", T(idx)));
     } else if (gGlobal->gOneSample) {
         res = IB::genLoadArrayStackVar("inputs", IB::genInt32NumInst(idx));
@@ -1725,20 +1724,6 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     args1.push_back(signame);
     args1.push_back(IB::genLoadFunArgsVar("sample_rate"));
     pushStaticInitMethod(IB::genVoidFunCallInst("instanceInit" + tablename, args1, true));
-
-    if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
-        Values alloc_args;
-        alloc_args.push_back(IB::genLoadStaticStructVar("fManager"));
-        alloc_args.push_back(IB::genInt32NumInst(size * ctype->getSizeBytes()));
-        pushStaticInitMethod(IB::genStoreStaticStructVar(
-            vname, IB::genCastInst(IB::genFunCallInst("allocate", alloc_args, true),
-                                   IB::genArrayTyped(ctype, 0))));
-
-        Values destroy_args;
-        destroy_args.push_back(IB::genLoadStaticStructVar("fManager"));
-        destroy_args.push_back(IB::genLoadStaticStructVar(vname));
-        pushStaticDestroyMethod(IB::genVoidFunCallInst("destroy", destroy_args, true));
-    }
 
     // Fill the table
     Values args2;

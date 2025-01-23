@@ -29,6 +29,8 @@ using namespace std;
 
  - sub-containers are compiled as 'struct' with associated functions
  - classInit is a Processor method for now (waiting for the Cmajor external model to be ready)
+ - gExtControl is used, 'control' function is generated as well as 'main' function
+ - in gOneSampleIO mode, inputXX/outputXX are added in the DSP struct.
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
  - the 'fillXXX' function needs to generate the actual size of the table argument type. This is done
  using the TableSizeVisitor class.
