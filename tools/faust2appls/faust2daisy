@@ -118,8 +118,8 @@ for p in $FILE; do
     mkdir "$SRCDIR/$dspName"
 
     # compile faust to c++
-    cp -r $FAUSTARCH/daisy/Makefile "$SRCDIR/$dspName/"
-    faust -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+    cp -r "$FAUSTARCH/daisy/Makefile" "$SRCDIR/$dspName/"
+    faust -i -a "$ARCHFILE" $OPTIONS "$f" -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
 
     # for PATCH support
     if [ $PATCH == true ]; then
