@@ -100,8 +100,8 @@ for p in $FILE; do
     mkdir "$SRCDIR/$dspName"
 
     # compile faust to c++
-    cp -r $FAUSTARCH/hothouse/Makefile "$SRCDIR/$dspName/"
-    faust -i -a "$ARCHFILE" $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+    cp -r "$FAUSTARCH/hothouse/Makefile" "$SRCDIR/$dspName/"
+    faust -i -a "$ARCHFILE" $OPTIONS "$f" -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
 
     # for MIDI
     if [ $MIDI == true ]; then
@@ -131,7 +131,7 @@ for p in $FILE; do
 
     # compile and install plugin or keep the source folder
     if [ $SOURCE == false ]; then
-        read -p "Press ENTER when Daisy is in DFU mode"
+        read -p "Press ENTER when Hothouse Pedal is in DFU mode"
         ( cd "$SRCDIR/$dspName" && make && make program-dfu ) > /dev/null || exit
         rm -rf "$SRCDIR/$dspName"
         echo "Success !"

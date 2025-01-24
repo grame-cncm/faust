@@ -170,6 +170,7 @@ class HothouseControlUI : public GenericUI
     
         std::string fKey, fValue, fScale;
         double toggleLow, toggleMid, toggleHigh;
+        bool togglesAreSet = false;
         
         void InitKnob(Hothouse::Knob k, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, const std::string& scale)
         {
@@ -186,6 +187,11 @@ class HothouseControlUI : public GenericUI
 
         void InitToggleSwitch(Hothouse::Toggleswitch tsw, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
+            if (!togglesAreSet) {
+                toggleLow = (double)min;
+                toggleHigh = (double)max;
+                toggleMid = 0.5*(toggleLow+toggleHigh);
+            }
             std::unique_ptr<ValueConverter> converter = std::make_unique<DiscreteValueConverter>(toggleLow, toggleMid, toggleHigh);
             fItems.push_back(std::make_unique<ToggleSwitchZone>(fHothouse, zone, converter, tsw));
         }
@@ -213,7 +219,6 @@ class HothouseControlUI : public GenericUI
                 }
             }
             fValue = fKey = fScale = "";
-            toggleLow = toggleMid = toggleHigh = 0.0;
         }
     
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
@@ -226,7 +231,6 @@ class HothouseControlUI : public GenericUI
                 }
             }
             fValue = fKey = fScale = "";
-            toggleLow = toggleMid = toggleHigh = 0.0;
         }
     
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -264,7 +268,7 @@ class HothouseControlUI : public GenericUI
                 }
             }
             fValue = fKey = fScale = "";
-            toggleLow = toggleMid = toggleHigh = 0.0;
+            togglesAreSet = false;
         }
     
         // -- metadata declarations
@@ -286,14 +290,11 @@ class HothouseControlUI : public GenericUI
                 std::vector<std::string> names;
                 std::vector<double> values;
                 parseMenuList(val, names, values);
-                if (values.size() > 0) {
-                    toggleLow = values.at(0);
-                }
-                if (values.size() > 1) {
-                    toggleMid = values.at(1);
-                }
                 if (values.size() > 2) {
+                    toggleLow = values.at(0);
+                    toggleMid = values.at(1);
                     toggleHigh = values.at(2);
+                    togglesAreSet = true;
                 }
             }
         }
