@@ -101,7 +101,7 @@ for p in $FILE; do
 
     # compile faust to c++
     cp -r $FAUSTARCH/hothouse/Makefile "$SRCDIR/$dspName/"
-    faust -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+    faust -i -a "$ARCHFILE" $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
 
     # for MIDI
     if [ $MIDI == true ]; then
