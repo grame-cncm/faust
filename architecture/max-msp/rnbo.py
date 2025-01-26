@@ -1490,7 +1490,7 @@ def load_files_create_rnbo_patch(
         with open(effect_codebox_path) as codebox_file:
             effect_codebox_code = codebox_file.read()
 
-        with open(effect_json_path) as json_file:
+        with open(effect_json_path, encoding="utf-8") as json_file:
             json_data = json.load(json_file)
             effect_items_info_list = extract_items_info(json_data)
             # print(effect_items_info_list)

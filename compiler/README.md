@@ -1,4 +1,4 @@
-% man(1) Version 2.78.5 (21-January-2025) | Faust man page
+% man(1) Version 2.78.6 (26-January-2025) | Faust man page
 
 NAME
 ====
@@ -98,19 +98,14 @@ Code generation options:
 
   **-pn** \<name>  **--process-name** \<name>       specify the name of the dsp entry-point instead of process.
 
-  **-mcd** \<n>    **--max-copy-delay** \<n>        use a copy delay up to max delay \<n> and a dense delay (ocpp only) or a ring buffer above (defaut 16 samples).
+  **-mcd** \<n>    **--max-copy-delay** \<n>        use a copy delay up to max delay \<n> and a dense delay above (ocpp only) or a ring buffer (defaut 16 samples).
 
-  **-udd** \<0|1>  **--use-dense-delay** \<0|1>     allow use of dense delay instead of short ring buffers (default 1)
-  **-mcl** \<n>    **--max-copy-loop** \<n>         when using a copy delay, threshold to switch from an inline to a loop based copy of the samples (defaut 4 samples).
-
-  **-mls** \<n>    **--min-loop-samples** \<n>      loop instead of expanded copy 
   **-mdd** \<n>    **--max-dense-delay** \<n>       use a dense delay up to max delay \<n> (if enough density) and a ring buffer delay above (ocpp only, default 1024).
 
-  **-mdy** \<n>    **--min-density** \<n>           minimal density (100*number of delays/max delay) to use a dense  delays (ocpp only, default 33).
+  **-mdy** \<n>    **--min-density** \<n>           minimal density (100*number of delays/max delay) to use a dense delays (ocpp only, default 33).
 
   **-dlt** \<n>    **--delay-line-threshold** \<n>  use a mask-based ring buffer delays up to max delay \<n> and a select based ring buffers above (default INT_MAX samples).
 
-  **-ss** \<n>     **--scheduling-strategy** \<n>   0=deep first, 1=breadth first
   **-mem**        **--memory-manager**            allocations done using a custom memory manager.
 
   **-mem1**       **--memory-manager1**           allocations done using a custom memory manager, using the iControl/fControl and iZone/fZone model.
@@ -127,21 +122,16 @@ Code generation options:
 
   **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compiling a dsp file.
 
-  **-scal**   **--scalar**                        generate non-vectorized code (default).
+  **-scal**       **--scalar**                    generate non-vectorized code (default).
 
   **-inpl**       **--in-place**                  generates code working when input and output buffers are the same (scalar mode only).
 
-  **-vec**    **--vectorize**                     generate easier to vectorize code.
+  **-vec**        **--vectorize**                 generate easier to vectorize code.
 
   **-vs** \<n>     **--vec-size** \<n>              size of the vector (default 32 samples).
 
   **-lv** \<n>     **--loop-variant** \<n>          [0:fastest, fixed vector size and a remaining loop (default), 1:simple, variable vector size, 2:fixed, fixed vector size].
 
-  **-fir**        **--fir-iir**                   activate the reconstruction of FIRs and IIRs internally
-  **-ff**         **--factorize-fir-iir**         find common factor in FIRs or IIRs coefficients
-  **-mfs** \<n>    **--max-fir-size** \<n>          maximum size threshold to reconstruct a FIR. Keep as individual delays otherwise (default 1024)
-  **-fls** \<n>    **--fir-loop-size** \<n>         size threshold to start implementing FIRs using a loop instead of unrolled (default 4)
-  **-irt** \<n>    **--iir-ring-threshold** \<n>    size threshold to start implementing IIRs using ring buffers instead of copying (default 4)
   **-omp**        **--openmp**                    generate OpenMP pragmas, activates --vectorize option.
 
   **-pl**         **--par-loop**                  generate parallel loops in --openmp mode.
