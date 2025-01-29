@@ -388,7 +388,7 @@ int FAUSTlex();
 void yyerror(char* msg) 
 {
     std::stringstream error;
-    error << FAUSTfilename << " : " << FAUSTlineno << " : ERROR : " << msg << endl;
+    error << FAUSTfilename << ":" << FAUSTlineno << " : ERROR : " << msg << endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }
