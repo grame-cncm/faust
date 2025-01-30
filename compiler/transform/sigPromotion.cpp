@@ -1151,3 +1151,9 @@ Tree signalAutoDifferentiate(Tree sig)
         return sig;
     }
 }
+
+LIBFAUST_API bool hasClock(Tree sig, Tree& clock)
+{
+    SignalClockChecker clock_checker(sig, clock);
+    return clock_checker.fHasClock;
+}
