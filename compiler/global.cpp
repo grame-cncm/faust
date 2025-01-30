@@ -1141,7 +1141,7 @@ bool global::isDebug(const string& debug_val)
 bool global::hasDebug(const string& debug_val)
 {
     string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
-    return startWith(debug_val, debug_var);
+    return startWith(debug_var, debug_val);
 }
 
 int global::getDebug(const string& debug_var, int def_val)
