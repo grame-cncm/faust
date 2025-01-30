@@ -1122,6 +1122,7 @@ LIBFAUST_API Tree sigClocked(Tree clock, Tree y)
  * @param clock
  * @return LIBFAUST_API
  */
+/*
 LIBFAUST_API bool hasClock(Tree sig, Tree& clock)
 {
     if (Tree exp; isSigClocked(sig, clock, exp)) {
@@ -1146,6 +1147,7 @@ LIBFAUST_API bool hasClock(Tree sig, Tree& clock)
 
     return false;
 }
+*/
 
 // for FPGA Retiming
 
