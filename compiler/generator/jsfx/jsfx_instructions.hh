@@ -1067,7 +1067,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     // The structure correspond to a "DSP" class representing the Faust code.
     // This class can be instanciated in MIDI polyphonic context.
     // The reason of the many conditionals in this method is that JSFX code structure is not object
-    // oriented by default. Moreover, some variables like fSlow iSlow had to be put in the class
+    // oriented by default. Moreover, some variables like fSlow and iSlow have to be put in the class
     // (altough it is not the case in C++ backend for example). In C++, these variables are declared
     // and defined in the compute method of DSP class, just above the audio loop. In JSFX, scopes
     // are handled differently (the @block section is called once for each instances, and the
