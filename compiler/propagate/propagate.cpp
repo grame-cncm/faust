@@ -373,8 +373,11 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
     else if (isBoxPrim3(box, &p3)) {
         faustassert(lsig.size() == 3);
         if (p3 == sigReadOnlyTable) {
+            /*
             Tree sig = sigReadOnlyTable(unclockSignal(lsig[0]), unclockSignal(lsig[1]),
                                         sigClocked(clockenv, lsig[2]));
+            */
+            Tree sig = sigReadOnlyTable(lsig[0], lsig[1], sigClocked(clockenv, lsig[2]));
             // std::cout << "sigReadOnlyTable : " << ppsig(sig) << std::endl;
             return makeList(sig);
         }
