@@ -653,11 +653,8 @@ bool isUIInputItem(Tree sig)
 
 bool isUIOutputItem(Tree sig)
 {
-    Tree label, c, x, y, z;
-    if (isSigVBargraph(sig, label, x, y, z)) {
-        return true;
-    }
-    if (isSigHBargraph(sig, label, x, y, z)) {
+    if (Tree label, x, y, z;
+        isSigVBargraph(sig, label, x, y, z) || isSigHBargraph(sig, label, x, y, z)) {
         return true;
     }
     return false;
@@ -1101,14 +1098,12 @@ LIBFAUST_API Tree sigClocked(Tree clock, Tree y)
         return sigIIR(args);
     }
     if (Tree h2, z; isSigClocked(y, h2, z)) {
-        if (clock == h2) {
-            // y is already annotated with the clock h
-            return y;
-        } else {
+        if (clock != h2) {
             std::cerr << "We have a problem of clocks, new clock : " << *clock
                       << " is different form existing clock " << *h2 << std::endl;
             faustassert(false);
         }
+        return y;
     } else {
         // std::cerr << "sigClocked(" << *clock << ", " << ppsig(y) << ")" << std::endl;
         return tree(gGlobal->SIGCLOCKED, clock, y);
@@ -1144,6 +1139,7 @@ LIBFAUST_API bool hasClock(Tree sig, Tree& clock)
         }
     }
 
+    // std::cerr << "hasClock(" << ppsig(sig) << ") failed" << std::endl;
     return false;
 }
 

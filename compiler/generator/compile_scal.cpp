@@ -66,6 +66,47 @@
 
 using namespace std;
 
+//------------------------------------------------------------------------
+
+struct SignalClockChecker final : public SignalVisitor {
+    Tree& fClock;
+    bool  fHasClock = false;
+
+    void visit(Tree sig) override
+    {
+        // std::cerr << "fHasClock: " << ppsig(sig) << std::endl;
+
+        if (Tree exp; isSigClocked(sig, fClock, exp)) {
+            fHasClock |= true;
+            return;
+        } else if (tvec args; isSigFIR(sig, args)) {
+            self(args[0]);
+            return;
+        } else if (tvec args; isSigIIR(sig, args)) {
+            self(args[1]);
+            return;
+        } else {
+            // Default case and recursion
+            SignalVisitor::visit(sig);
+        }
+    }
+
+    SignalClockChecker(Tree L, Tree& clock) : fClock(clock)
+    {
+        // std::cerr << "SignalClockChecker: " << ppsig(L) << std::endl;
+        self(L);
+    }
+};
+
+static void checkDeepClock(Tree sig)
+{
+    Tree               clock;
+    SignalClockChecker clock_checker(sig, clock);
+    if (!clock_checker.fHasClock) {
+        std::cerr << "No clock found in signal: " << ppsig(sig) << std::endl;
+    }
+}
+
 static Klass* signal2klass(Klass* parent, const string& name, Tree sig)
 {
     Type t = getCertifiedSigType(sig);  //, NULLENV);
@@ -1779,13 +1820,20 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
             break;
 
         case DelayType::kSingleDelay:
+            checkDeepClock(exp);
+
         case DelayType::kCopyDelay:
+            checkDeepClock(exp);
+
         case DelayType::kDenseDelay:
+            checkDeepClock(exp);
             result = subst("$0[$1]", vecname, delayidx);
             break;
 
         case DelayType::kMaskRingDelay:
         case DelayType::kSelectRingDelay:
+            checkDeepClock(exp);
+
             int  N = pow2limit(mxd + 1);
             Tree clock;
             faustassert(hasClock(exp, clock));

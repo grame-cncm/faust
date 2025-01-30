@@ -311,7 +311,7 @@ static string sigLabel(Tree sig)
     } else if (isSigOD(sig)) {
         fout << "ondemand";
     } else if (isSigClocked(sig, x, y)) {
-        fout << "clocked:" << x;
+        fout << "clocked:" << x->serial();
     }
 
     else if (isSigAssertBounds(sig, x, y, z)) {

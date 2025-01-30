@@ -910,7 +910,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
             //                d = rec(var, sigDelay1(sigProj(0, sig)));
             d = rec(var, deBruijn2Sym(listConvert(l)));
         } else {
-            auto myvar(tree(unique("W")));
+            auto myvar(tree(unique("WD")));
             // first visit
             rec(var, gGlobal->nil);  // to avoid infinite recursions
             d = rec(myvar, mapselfRec(body));
