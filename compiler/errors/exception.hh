@@ -30,7 +30,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 // #include <io.h>
 #endif
 
-#if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID) && !defined(ALPINE)
+#ifdef __GLIBC__
 #include <execinfo.h>
 #endif
 
@@ -58,7 +58,7 @@ class faustexception : public std::runtime_error {
 
 inline void stacktrace(std::stringstream& str, int val)
 {
-#if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID) && !defined(ALPINE)
+#ifdef __GLIBC__
     void** callstack = (void**)alloca(val * sizeof(void*));
     int    frames    = backtrace(callstack, val);
     char** strs      = backtrace_symbols(callstack, frames);
