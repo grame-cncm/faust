@@ -74,6 +74,32 @@ class SignalChecker final : public SignalVisitor {
     }
 };
 
+/*
+ Check if a signal has a clock.
+*/
+struct SignalClockChecker final : public SignalVisitor {
+    Tree& fClock;
+    bool fHasClock;
+    
+    void visit(Tree sig) override
+    {
+        if (fHasClock) {
+            return;
+        } else if (Tree exp; isSigClocked(sig, fClock, exp)) {
+            fHasClock = true;
+        } else {
+            SignalVisitor::visit(sig);
+        }
+    }
+    
+    SignalClockChecker(Tree L, Tree& clock) : fClock(clock), fHasClock(false)
+    {
+        self(L);
+    }
+};
+
+bool hasClock(Tree sig, Tree& clock);
+
 //-------------------------SignalPromotion------------------------------
 // Adds explicit int or float cast when needed. This is needed prior
 // to any optimisations to avoid to scramble int and float expressions.
