@@ -76,7 +76,7 @@ class TreeTransform : public Garbageable {
     void traceMsg(std::string msg, Tree t);
 
    protected:
-    virtual Tree transformation(Tree) = 0;  // the tranformation to implement
+    virtual Tree transformation(Tree) = 0;  // the transformation to implement
     virtual Tree postprocess(Tree);   // modify a tree after the transformation of its children
     virtual void traceEnter(Tree t);  // called when entering a transformation
     virtual void traceExit(Tree t, Tree r);  // called when exiting a transformation
