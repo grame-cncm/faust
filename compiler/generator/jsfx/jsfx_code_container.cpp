@@ -286,9 +286,13 @@ void JSFXCodeContainer::produceClass()
     StructInstVisitor struct_visitor;
     fDeclarationInstructions->accept(&struct_visitor);
     for (const auto& it : fDeclarationInstructions->fCode) {
-        auto desc = struct_visitor.getMemoryDesc(it->getName());
-        class_decl += "dsp." + it->getName() + " = " + std::to_string(total_size) + ";\n";
-        total_size += desc.fSize;
+        Typed::VarType type;
+        // Check the field name
+        if (struct_visitor.hasField(it->getName(), type)) {
+            auto desc = struct_visitor.getMemoryDesc(it->getName());
+            class_decl += "dsp." + it->getName() + " = " + std::to_string(total_size) + ";\n";
+            total_size += desc.fSize;
+        }
     }
     for (const auto& it : fComputeBlockInstructions->fCode) {
         string name = it->getName();
@@ -370,7 +374,7 @@ void JSFXCodeContainer::produceMetadata(int tabs)
     //  * Description fields are parsed to be translated in JSFX description fields
     //  * MIDI metadata like ["midi:on"] is used to activate MIDI, while ["nvoices:N"] indicates the
     //  polyphonic number of voices
-    // Note that ["nvoices:1"] is useful to create a monophonic instrument that can respond to midi
+    // Note that ["nvoices:1"] is useful to create a monophonic instrument that can respond to MIDI
     // key numbers
     for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first == tree("options")) {
@@ -426,7 +430,6 @@ JSFXScalarCodeContainer::JSFXScalarCodeContainer(const string& name, int numInpu
     fSubContainerType = sub_container_type;
 }
 
-// Given as an example of what a real backend would have to implement.
 void JSFXScalarCodeContainer::generateCompute(int n)
 {
     // The control function is called from @slider section (every time a slider is moved)
@@ -485,7 +488,7 @@ void JSFXScalarCodeContainer::generateCompute(int n)
 
     // @sample section is the audio loop.
     // Note that the @sample code represents 1 sample computation (it is internally called several
-    // times per vector to match vector size) It will process all internal computations for each
+    // times per vector to match vector size). It will process all internal computations for each
     // voice and push the output results in the object output variables
     tab(n, *fOut);
     *fOut << "@sample";

@@ -47,7 +47,7 @@ Tree unclockSignal(Tree sig)
 
     // symbolic recursion not supposed to happen here
     if (Tree var, body; isRec(sig, var, body)) {
-        std::cerr << "symbolic recursion not supposed to happen here" << std::endl;
+        std::cerr << "ASSERT : symbolic recursion not supposed to happen here\n";
         faustassert(false);
     }
 

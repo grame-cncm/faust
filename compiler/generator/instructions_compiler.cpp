@@ -699,7 +699,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     // gGlobal->gSTEP = 0;
     for (auto& s : S.elements()) {
         if (isNil(s)) {
-            std::cerr << "NOT SUPPOSED TO HAPPEN: We have a Nil in the schedule !" << std::endl;
+            std::cerr << "ASSERT : we have a Nil in the schedule\n";
             faustassert(false);
         }
         CS(s);
@@ -832,7 +832,7 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
 #endif
     for (auto& s : S.elements()) {
         if (isNil(s)) {
-            std::cerr << "NOT SUPPOSED TO HAPPEN: We have a Nil in the schedule !" << std::endl;
+            std::cerr << "ASSERT : we have a Nil in the schedule\n";
             faustassert(false);
         }
         CS(s);
@@ -2204,7 +2204,7 @@ DelayType InstructionsCompiler::analyzeDelayType(Tree sig)
     if (mxd <= gGlobal->gMaskDelayLineThreshold) {
         Tree clock;
         if (!hasClock(sig, clock)) {
-            std::cerr << "ERROR, not the expected signal with a clock " << ppsig(sig) << std::endl;
+            std::cerr << "ASSERT : not the expected signal with a clock " << ppsig(sig) << std::endl;
         }
         faustassert(hasClock(sig, clock));
         // std::cerr << "We use MaskRingDelay in clock env: " << clock << ", for sig: " << sig
@@ -2487,18 +2487,16 @@ ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, ValueIn
             result = IB::genLoadStackVar(vecname);
             break;
 
-        case DelayType::kSingleDelay:
-            result = IB::genLoadArrayStackVar(vecname, delayidx);
-            break;
-
             /*
+             case DelayType::kSingleDelay:
              case DelayType::kCopyDelay:
              case DelayType::kDenseDelay:   // Moved in last model for now
              result = IB::genLoadArrayStackVar(vecname, delayidx);
              break;
              */
 
-        // 2 cases moved here
+        // 3 cases moved here
+        case DelayType::kSingleDelay:
         case DelayType::kCopyDelay:
         case DelayType::kDenseDelay:
 
@@ -2787,6 +2785,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype,
             return IB::genLoadStackVar(vname);
         }
 
+        /*
         case DelayType::kSingleDelay: {
             string vname_perm = vname + "State";
             pushDeclare(IB::genLabelInst("// Single Delay"));
@@ -2804,6 +2803,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype,
                 vname_perm, IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(1))));
             return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
         }
+        */
 
             /*
              case DelayType::kCopyDelay: {
@@ -2906,7 +2906,8 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype,
              #endif
              */
 
-            // 2 cases moved here
+        // 3 cases moved here
+        case DelayType::kSingleDelay:
         case DelayType::kCopyDelay:
         case DelayType::kDenseDelay:
 
@@ -2923,7 +2924,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype,
             // declare and init the delay line
             pushDeclare(IB::genLabelInst("// Ring Delay"));
             pushClearMethod(generateInitArray(vname, ctype, N));
-            
+
             /*
             pushDeclare(IB::genLabelInst("// detect unintialized"));
             pushClearMethod(
@@ -3266,14 +3267,14 @@ ValueInst* InstructionsCompiler::generateSum(Tree sig, const tvec& subs)
 {
     faustassert(subs.size() > 1);
     // std::cerr << gGlobal->gSTEP << " generateSum: " << ppsig(sig) << std::endl;
-    
+
     // Add the first 2 values
     ValueInst* add = IB::genAdd(CS(subs[0]), CS(subs[1]));
     // Add the remaining values
     for (size_t i = 2; i < subs.size(); ++i) {
         add = IB::genAdd(add, CS(subs[i]));
     }
-    
+
     return generateCacheCode(sig, add);
 }
 
