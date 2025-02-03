@@ -1802,7 +1802,7 @@ bool global::processCmdline(int argc, const char* argv[])
             err++;
         }
     }
-
+    
     // ========================
     // Adjust related options
     // ========================
@@ -1813,6 +1813,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
     if (gMemoryManager >= 1) {
         gWaveformInDSP = true;
+    }
+    
+    if (gVectorSwitch) {
+        throw faustexception("ERROR : '-vec' is not yet supported with 'ondemand' primitive\n");
     }
 
     // ========================
