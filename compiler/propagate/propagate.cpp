@@ -668,7 +668,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         Tree od = sigOD(W);
         // std::cerr << "od = " << ppsig(od) << std::endl;
 
-        // 8/ Finally, we create the output signals making shure that od is computed first
+        // 8/ Finally, we create the output signals making sure that od is computed first
         // using sigSeq(od, y)
         siglist Y2;
         for (Tree y : Y1) {
