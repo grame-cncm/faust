@@ -1305,7 +1305,7 @@ bool global::processCmdline(int argc, const char* argv[])
             i += 2;
 
         } else if (isCmd(argv[i], "-style", "--svgstyle")) {
-            gGlobal->gStyleFile = argv[i + 1];
+            gStyleFile = argv[i + 1];
             i += 2;
 
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
@@ -1783,7 +1783,7 @@ bool global::processCmdline(int argc, const char* argv[])
             err++;
         }
     }
-
+    
     // ========================
     // Adjust related options
     // ========================
@@ -1793,7 +1793,11 @@ bool global::processCmdline(int argc, const char* argv[])
     }
 
     if (gMemoryManager >= 1) {
-        gGlobal->gWaveformInDSP = true;
+        gWaveformInDSP = true;
+    }
+    
+    if (gVectorSwitch) {
+        throw faustexception("ERROR : '-vec' is not yet supported with 'ondemand' primitive\n");
     }
 
     // ========================
