@@ -449,8 +449,8 @@ void global::reset()
     gHLSUnrollFactor    = 0;      // [-huf n]: when > 0 generate: `#pragma HLS unroll factor=n`
     gFirLoopSize        = 4;      // [-fls n]: inline/loop computation of FIR/IIR values
     gMaxCopyDelay       = 9;      // [-mcd n]: copy/iota-dense delay line
-    gMinCopyLoop        = 4;      // [-mcl n]: inline/loop samples copy
     gUseDenseDelay      = 1;      // [-udd 0/1]: Use dense delay representation instead of IOTA
+    gMinCopyLoop        = 4;      // [-mcl n]: inline/loop samples copy
     gMinDensity         = 90;     // [-mdy n]: dense/iota delay line density threshold
     gMaxCacheDelay      = 8;      // [-mca n]: Maximal delay to use a cache delay line
     gMaxDenseDelay      = 1024;   // [-mdd n]: Maximal delay to choose a dense representation
@@ -1802,7 +1802,7 @@ bool global::processCmdline(int argc, const char* argv[])
             err++;
         }
     }
-    
+
     // ========================
     // Adjust related options
     // ========================
@@ -1814,7 +1814,7 @@ bool global::processCmdline(int argc, const char* argv[])
     if (gMemoryManager >= 1) {
         gWaveformInDSP = true;
     }
-    
+
     if (gVectorSwitch) {
         throw faustexception("ERROR : '-vec' is not yet supported with 'ondemand' primitive\n");
     }
@@ -2387,7 +2387,7 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-mcd <n>    --max-copy-delay <n>        use a copy delay up to max delay <n> and a "
-            "dense delay (ocpp only) or a ring buffer above (defaut 16 samples)."
+            "dense delay (ocpp only) or a ring buffer above (default 9 samples)."
          << endl;
     sstr << tab
          << "-udd <0|1>  --use-dense-delay <0|1>     allow use of dense delay instead of short "
@@ -2395,9 +2395,8 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-mcl <n>    --max-copy-loop <n>         when using a copy delay, threshold to switch "
-            "from an inline to a loop based copy of the samples (defaut 4 samples)."
+            "from an inline to a loop based copy of the samples (default 4 samples)."
          << endl;
-    sstr << tab << "-mls <n>    --min-loop-samples <n>      loop instead of expanded copy " << endl;
     sstr << tab
          << "-mdd <n>    --max-dense-delay <n>       use a dense delay up to max delay <n> (if "
             "enough density) and a "
@@ -2405,8 +2404,12 @@ string global::printHelp()
             "buffer delay above (ocpp only, default 1024)."
          << endl;
     sstr << tab
+         << "-mca <n>    --max-cache-delay <n>       maximal delay to use a cache delay line (ocpp "
+            "only, default 8)."
+         << endl;
+    sstr << tab
          << "-mdy <n>    --min-density <n>           minimal density (100*number of delays/max "
-            "delay) to use a dense  delays (ocpp only, default 33)."
+            "delay) to use a dense delays (ocpp only, default 90)."
          << endl;
     sstr << tab
          << "-dlt <n>    --delay-line-threshold <n>  use a mask-based ring buffer delays up to max "
@@ -2456,14 +2459,14 @@ string global::printHelp()
             "instead of compiling "
             "a dsp file."
          << endl;
-    sstr << tab << "-scal   --scalar                        generate non-vectorized code (default)."
+    sstr << tab << "-scal       --scalar                    generate non-vectorized code (default)."
          << endl;
     sstr << tab
          << "-inpl       --in-place                  generates code working when input and output "
             "buffers are the same "
             "(scalar mode only)."
          << endl;
-    sstr << tab << "-vec    --vectorize                     generate easier to vectorize code."
+    sstr << tab << "-vec        --vectorize                 generate easier to vectorize code."
          << endl;
     sstr << tab
          << "-vs <n>     --vec-size <n>              size of the vector (default 32 samples)."
