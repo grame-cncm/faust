@@ -2126,8 +2126,8 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
     // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
     faustassert(w.size() > 2);
     Tree clock = w[0];
-    tvec inputs;   // the input signals (comming from outiside)
-    tvec outputs;  // the output signa outputs;
+    tvec inputs;   // the input signals (coming from outside)
+    tvec outputs;  // the output signals;
     bool inmode = true;
     for (unsigned int i = 1; i < w.size(); i++) {
         if (w[i] == gGlobal->nil) {
@@ -2148,11 +2148,11 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
 
     // std::cerr << "opening if statement" << std::endl;
 
-    // 3/ We the compile the clock signal and open an if statement
+    // 3/ We then compile the clock signal and open an if statement
     // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
     fClass->openIFblock(CS(clock));
 
-    // 4/ compute the scheduling of the output signals of the ondemand circuit
+    // 4/ Compute the scheduling of the output signals of the ondemand circuit
     std::vector<Tree> V = ondemandCompilationOrder(outputs);
 
     // 5/ We compile the output signals conditionnally inside the if statement
