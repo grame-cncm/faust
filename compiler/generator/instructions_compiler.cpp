@@ -2204,7 +2204,8 @@ DelayType InstructionsCompiler::analyzeDelayType(Tree sig)
     if (mxd <= gGlobal->gMaskDelayLineThreshold) {
         Tree clock;
         if (!hasClock(sig, clock)) {
-            std::cerr << "ASSERT : not the expected signal with a clock " << ppsig(sig) << std::endl;
+            std::cerr << "ASSERT : not the expected signal with a clock " << ppsig(sig)
+                      << std::endl;
         }
         faustassert(hasClock(sig, clock));
         // std::cerr << "We use MaskRingDelay in clock env: " << clock << ", for sig: " << sig
@@ -2785,25 +2786,25 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype,
             return IB::genLoadStackVar(vname);
         }
 
-        /*
-        case DelayType::kSingleDelay: {
-            string vname_perm = vname + "State";
-            pushDeclare(IB::genLabelInst("// Single Delay"));
-            pushDeclare(IB::genDecStructVar(vname_perm, ctype));
-            pushClearMethod(IB::genStoreStructVar(vname_perm, IB::genTypedZero(ctype)));
-            pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, mxd + 1));
-            pushComputeBlockMethod(IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
-                                                             IB::genLoadStructVar(vname_perm)));
-            pushComputeDSPMethod(IB::genControlInst(
-                ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
-            pushPostComputeDSPMethod(
-                IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
-                                          IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0))));
-            pushPostComputeBlockMethod(IB::genStoreStructVar(
-                vname_perm, IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(1))));
-            return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
-        }
-        */
+            /*
+            case DelayType::kSingleDelay: {
+                string vname_perm = vname + "State";
+                pushDeclare(IB::genLabelInst("// Single Delay"));
+                pushDeclare(IB::genDecStructVar(vname_perm, ctype));
+                pushClearMethod(IB::genStoreStructVar(vname_perm, IB::genTypedZero(ctype)));
+                pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, mxd + 1));
+                pushComputeBlockMethod(IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
+                                                                 IB::genLoadStructVar(vname_perm)));
+                pushComputeDSPMethod(IB::genControlInst(
+                    ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
+                pushPostComputeDSPMethod(
+                    IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
+                                              IB::genLoadArrayStackVar(vname,
+            IB::genInt32NumInst(0)))); pushPostComputeBlockMethod(IB::genStoreStructVar( vname_perm,
+            IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(1)))); return
+            IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
+            }
+            */
 
             /*
              case DelayType::kCopyDelay: {
@@ -3315,8 +3316,8 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
     // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
     faustassert(w.size() > 2);
     Tree clock = w[0];
-    tvec inputs;   // the input signals (comming from outiside)
-    tvec outputs;  // the output signa outputs;
+    tvec inputs;   // the input signals (coming from outside)
+    tvec outputs;  // the output signals;
     bool inmode = true;
     for (unsigned int i = 1; i < w.size(); i++) {
         if (w[i] == gGlobal->nil) {
@@ -3337,11 +3338,11 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
 
     std::cout << "opening if statement" << std::endl;
 
-    // 3/ We the compile the clock signal and open an if statement
+    // 3/ We then compile the clock signal and open an if statement
     // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
     fContainer->getCurLoop()->openIFblock(CS(clock));
 
-    // 4/ compute the scheduling of the output signals of the ondemand circuit
+    // 4/ Compute the scheduling of the output signals of the ondemand circuit
     std::vector<Tree> V = ondemandCompilationOrder(outputs);
 
     // 5/ We compile the output signals conditionnally inside the if statement
