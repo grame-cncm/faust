@@ -79,8 +79,8 @@ class SignalChecker final : public SignalVisitor {
 */
 struct SignalClockChecker final : public SignalVisitor {
     Tree& fClock;
-    bool fHasClock;
-    
+    bool  fHasClock;
+
     void visit(Tree sig) override
     {
         if (fHasClock) {
@@ -91,11 +91,8 @@ struct SignalClockChecker final : public SignalVisitor {
             SignalVisitor::visit(sig);
         }
     }
-    
-    SignalClockChecker(Tree L, Tree& clock) : fClock(clock), fHasClock(false)
-    {
-        self(L);
-    }
+
+    SignalClockChecker(Tree L, Tree& clock) : fClock(clock), fHasClock(false) { self(L); }
 };
 
 bool hasClock(Tree sig, Tree& clock);
