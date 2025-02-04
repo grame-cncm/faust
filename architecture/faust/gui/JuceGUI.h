@@ -818,8 +818,7 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
         /** Indicate to the FAUST module when the selected items is changed. */
         void comboBoxChanged (juce::ComboBox* cb) override
         {
-            //std::cout << getName( )<< " : " << cb->getSelectedId() - 1 << std::endl;
-            // -1 because of the starting item  at 1 at the initialization
+            // -1 because of the starting item at 1 at the initialization, and protect against out of range access.
             modifyZone(fValues[cb->getSelectedId() - 1]);
         }
 
