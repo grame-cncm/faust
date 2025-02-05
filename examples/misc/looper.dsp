@@ -13,7 +13,6 @@
 // ```
 // looper(sound) : si.bus(2);
 // ```
-//
 // Where:
 //
 // * `sound`: the input sound file.
@@ -22,7 +21,7 @@
 //
 // ```
 // sound = soundfile("sound[url:{'loop.wav'}]",2);
-// looper(sound) : si.bus(2);
+// looper(sound) : si.bus(outputs(sound));
 // ```
 //------------------------------------------------------------
 
@@ -74,7 +73,6 @@ with {
 };
 
 declare soundfiles "https://raw.githubusercontent.com/sletz/faust-sampler/main";
-
 sound = soundfile("sound[url:{'violon.wav'}]", 2);
 
 process = looper(sound);
