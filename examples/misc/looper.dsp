@@ -48,7 +48,7 @@ with {
     length = (0, 0) : sf : (_, si.block(outputs(sf) - 1));  
     
     // Current playback position within the loop
-    loop_reader = min_loop_pos + (index % loop_length)
+    loop_reader = min_loop_pos + (index % max(ma.EPSILON, loop_length))
     with {
        
         // Minimum loop position
