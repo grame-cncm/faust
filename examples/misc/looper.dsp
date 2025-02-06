@@ -33,16 +33,18 @@ declare author    "Grame";
 declare license   "BSD";
 declare copyright "(c)GRAME 2025";
 
-looper(sf) = (0, loop_reader) : sf : !, !, attach(_,pos), si.bus(outputs(sf)-3)
+// Play button state is used to control loop_reader index increment and actual output signal generation.
+
+looper(sf) = (0, play * loop_reader) : sf : !, !, attach(_,pos), si.bus(outputs(sf)-3)
 with {
    
     // User controls
     play = checkbox("h:Controls/[3]Play/Stop");    // Checkbox to start/stop playback
     reverse = checkbox("h:Controls/[4]Reverse");   // Checkbox to play in reverse
    
-    // Loop start and end positions (scaled to the sound file length)
-    loop_start = length * hslider("[1]Loop_start", 0, 0, 1, 0.01);
-    loop_end = length * hslider("[2]Loop_end", 1, 0, 1, 0.01);
+    // Loop start and end positions with smothing (scaled to the sound file length) 
+    loop_start = length * hslider("[1]Loop_start", 0, 0, 1, 0.01) : si.smoo;
+    loop_end = length * hslider("[2]Loop_end", 1, 0, 1, 0.01) : si.smoo;
 
     // Sound file length
     length = (0, 0) : sf : (_, si.block(outputs(sf) - 1));  
