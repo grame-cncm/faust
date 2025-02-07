@@ -10,11 +10,11 @@
 // #### Usage
 //
 // ```
-// _ : inlooper(duration) : _;
+// _ : inlooper(length) : _;
 // ```
 // Where:
 //
-// * `duration`: the loop duration in samples (constant numerical expression). 
+// * `length`: the loop duration in samples (constant numerical expression). 
 //
 //------------------------------------------------------------
 
@@ -26,7 +26,7 @@ declare author    "Grame";
 declare license   "BSD";
 declare copyright "(c)GRAME 2025";
 
-inlooper(duration) = attach(rwtable(duration, 0.0, rec_index, _, loop_index), pos)
+inlooper(length) = attach(rwtable(length, 0.0, rec_index, _, loop_index), pos)
 with {
    
     // User controls
@@ -36,11 +36,11 @@ with {
     reverse = checkbox("h:Controls/[6]Reverse");             // Checkbox to play in reverse
     
     // Loop start and end positions with smoothing (scaled to the captured input length) 
-    loop_start = duration * hslider("[1]Loop_start", 0, 0, 1, 0.01) : si.smoo;
-    loop_end = duration * hslider("[2]Loop_end", 1, 0, 1, 0.01) : si.smoo;
+    loop_start = length * hslider("[1]Loop_start", 0, 0, 1, 0.01) : si.smoo;
+    loop_end = length * hslider("[2]Loop_end", 1, 0, 1, 0.01) : si.smoo;
 
     // Index counter that tracks recording position
-    rec_index = (+(1) : %(duration)) ~ *(record);
+    rec_index = (+(1) : %(length)) ~ *(record);
 
     // Current playback position within the loop
     loop_index = min_loop_pos + (index % max(ma.EPSILON, loop_length))
@@ -58,20 +58,20 @@ with {
         // Index counter that tracks playback position
         index = windex
         letrec {
-            'windex = ba.if(windex < 0, windex + duration,  // Wrap around if index goes negative
-                      ba.if(windex > duration, 0,           // Wrap around if index exceeds length
-                      windex + play * read_speed));         // Update index based on play state and direction
+            'windex = ba.if(windex < 0, windex + length,  // Wrap around if index goes negative
+                      ba.if(windex > length, 0,           // Wrap around if index exceeds length
+                      windex + play * read_speed));       // Update index based on play state and direction
         };
 
     };
   
     // Display playback position as a horizontal bar graph
-    pos = (loop_index / duration) : hbargraph("[7]Position", 0, 1);
+    pos = (loop_index / length) : hbargraph("[7]Position", 0, 1);
     
 };
 
-process = inlooper(MAX_DURATION)
+process = inlooper(MAX_LENGTH)
 with {
-    MAX_DURATION = 5 * 44100; // 5 seconds at 44100 Hz, has to be a constant
+    MAX_LENGTH = 5 * 44100; // 5 seconds at 44100 Hz, has to be a constant
 };
 
