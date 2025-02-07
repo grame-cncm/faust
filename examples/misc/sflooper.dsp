@@ -1,8 +1,8 @@
-//--------------------------looper----------------------------
+//--------------------------sflooper----------------------------
 //
-// # Looper
+// # sflooper
 //
-// A simple looper that allows playback, reversing, and looping within a sound file. 
+// A simple looper that allows playback, reversing, and looping with speed control within a sound file. 
 // It automatically adapts to the number of channels in the input sound file and wraps around 
 // when the end of the sound file is reached. 
 // The loop start and end positions, as well as the playback direction can be controlled.
@@ -11,7 +11,7 @@
 // #### Usage
 //
 // ```
-// looper(sound) : si.bus(2);
+// sflooper(sound) : si.bus(outputs(sound)-2);
 // ```
 // Where:
 //
@@ -21,7 +21,7 @@
 //
 // ```
 // sound = soundfile("sound[url:{'loop.wav'}]",2);
-// looper(sound) : si.bus(outputs(sound));
+// sflooper(sound);
 // ```
 //------------------------------------------------------------
 
@@ -35,14 +35,15 @@ declare copyright "(c)GRAME 2025";
 
 // Play button state is used to control loop_reader index increment and actual output signal generation.
 
-looper(sf) = (0, play * loop_reader) : sf : !, !, attach(_,pos), si.bus(outputs(sf)-3)
+sflooper(sf) = (0, play * loop_index) : sf : !, !, attach(_,pos), si.bus(outputs(sf)-3)
 with {
    
     // User controls
-    play = checkbox("h:Controls/[3]Play/Stop");    // Checkbox to start/stop playback
-    reverse = checkbox("h:Controls/[4]Reverse");   // Checkbox to play in reverse
+    speed = hslider("h:Controls/[3]Speed", 1, 0.2, 5, 0.01); // Slider to control playback speed
+    play = checkbox("h:Controls/[4]Play/Stop");              // Checkbox to start/stop playback
+    reverse = checkbox("h:Controls/[5]Reverse");             // Checkbox to play in reverse
    
-    // Loop start and end positions with smothing (scaled to the sound file length) 
+    // Loop start and end positions with smoothing (scaled to the sound file length) 
     loop_start = length * hslider("[1]Loop_start", 0, 0, 1, 0.01) : si.smoo;
     loop_end = length * hslider("[2]Loop_end", 1, 0, 1, 0.01) : si.smoo;
 
@@ -50,7 +51,7 @@ with {
     length = (0, 0) : sf : (_, si.block(outputs(sf) - 1));  
     
     // Current playback position within the loop
-    loop_reader = min_loop_pos + (index % max(ma.EPSILON, loop_length))
+    loop_index = min_loop_pos + (index % max(ma.EPSILON, loop_length))
     with {
        
         // Minimum loop position
@@ -59,23 +60,26 @@ with {
         // Loop duration
         loop_length = abs(loop_end - loop_start);
 
+        // Playback speed with direction
+        read_speed = speed * ba.if(reverse, -1, 1);
+
         // Index counter that tracks playback position
         index = windex
         letrec {
-            'windex = ba.if(windex < 0, windex + length,         // Wrap around if index goes negative
-                      ba.if(windex > length, 0,                  // Wrap around if index exceeds length
-                      windex + play * ba.if(reverse, -1, 1)));   // Update index based on play state and direction
+            'windex = ba.if(windex < 0, windex + length,  // Wrap around if index goes negative
+                      ba.if(windex > length, 0,           // Wrap around if index exceeds length
+                      windex + play * read_speed));       // Update index based on play state and direction
         };
 
     };
   
     // Display playback position as a horizontal bar graph
-    pos = (loop_reader / length) : hbargraph("[5]Position", 0, 1);
+    pos = (loop_index / length) : hbargraph("[6]Position", 0, 1);
     
 };
 
 declare soundfiles "https://raw.githubusercontent.com/sletz/faust-sampler/main";
 sound = soundfile("sound[url:{'violon.wav'}]", 2);
 
-process = looper(sound);
+process = sflooper(sound);
 

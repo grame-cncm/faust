@@ -260,7 +260,7 @@ LIBFAUST_API tvec sigRecursionN(const tvec& ins)
 extern "C" {
 #endif
 
-static Tree* list2array(tvec list)
+static Tree* list2array(const tvec& list)
 {
     if (list.size() > 0) {
         Tree*  res = (Tree*)malloc(sizeof(Tree) * (list.size() + 1));
