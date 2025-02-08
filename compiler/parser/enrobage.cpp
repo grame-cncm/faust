@@ -142,7 +142,12 @@ class myparser {
 /**
  * True if string s match '#include <faust/fname>' or include("/usr/local/share/faust/julia/fname")
  */
-static bool isFaustInclude(const string& line, string& fname)
+static bool isFaustInclude(const string& line, string& fname, const string& targetLang){
+
+if (targetLang == "rust") {
+        return false;
+
+}
 {
     myparser P(line);
     // C/C++ case
@@ -154,7 +159,7 @@ static bool isFaustInclude(const string& line, string& fname)
         myparser Q(fname);
         return Q.parse("/usr/local/share/faust/julia");
     } else {
-        return false;
+        return true;
     }
 }
 
