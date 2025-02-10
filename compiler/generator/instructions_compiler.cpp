@@ -32,6 +32,7 @@
 #include "normalform.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
+#include "factorizeFIRIIRs.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
@@ -123,7 +124,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     endTiming("Sum revealer");
 
     Tree L2 = L2a;
-    /*
+    
     // detect FIRs and IIRs if required
     if (gGlobal->gReconstructFIRIIRs) {
         startTiming("FIR revealer");
@@ -148,8 +149,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     } else {
         L2 = L2a;
     }
-    */
-
+ 
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
     endTiming("conditionAnnotation");
@@ -3236,14 +3236,238 @@ ValueInst* InstructionsCompiler::generateWaveform(Tree sig)
 
 ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
-    faustassert(false);
-    return IB::genNullValueInst();
+    faustassert(coefs.size() > 1);
+    float density = computeDensity(coefs);
+    if (coefs.size() == 2) {
+        // special case for a simple gain
+        return generateCacheCode(sig, IB::genMul(CS(coefs[1]), CS(coefs[0])));
+    }
+    bool r1 = density * 100 < gGlobal->gMinDensity;
+    bool r2 = int(coefs.size()) - 1 < gGlobal->gFirLoopSize;
+    if (r1 || r2) {
+        // we don't use a loop for small or low density FIR filters
+        ValueInst* fir_res = nullptr;
+        ValueInst* term    = nullptr;
+        Tree       exp     = coefs[0];  // The input signal of the FIR
+
+        // build the comment explaining this choice
+        string comment = " /* ";
+        comment += r1 ? "low-density " : "";
+        comment += r2 ? "small " : "";
+        comment += "FIR filter */";
+
+        // build the FIR expression
+        for (unsigned int i = 1; i < coefs.size(); ++i) {
+            if (isZero(coefs[i])) {
+                continue;
+            }
+            // Generate delayed access for a delay of (i-1) samples.
+            ValueInst* delayed = generateDelayAccess(sig, exp, i - 1);
+            // Multiply the coefficient by the delayed input.
+            if (isOne(coefs[i])) {
+                term = delayed;
+            } else {
+                term = IB::genMul(CS(coefs[i]), delayed);
+            }
+            // Accumulate the result.
+            fir_res = (fir_res) ? IB::genAdd(fir_res, term) : term;
+        }
+
+        return generateCacheCode(sig, fir_res);
+    } else {
+        // tous les coefs sont connus à la compilation et on peut declarer un tableau de
+        // constantes statiques certains coefs sont connus à l'initialisation et on peut
+        // declarer un tableau remplis dans la méthode init certains coefficients sont des
+        // controles et on peut déclarer un tableau en début de compute certains coefficients
+        // sont des signaux et on doit déclarer le tableau dans la boucle d'échantillons
+
+        // 1) THE COEFFICIENT TABLE
+
+        ::Type tc;  // Common type for all coefficients
+        for (unsigned int i = 1; i < coefs.size(); ++i) {
+            Type t = getCertifiedSigType(coefs[i]);
+            tc     = (i == 1) ? t : (tc | t);
+        }
+
+        // identifier for the coef table
+        string      ctable;
+        BasicTyped* ctype;
+        getTypedNames(tc, "FIRCoefs", ctype, ctable);
+
+        // Expression for the coefficients
+        int mnzc = 1 << 20;  // minimum non zero coef
+
+        // Build an array of coefficient values
+        // Values coef_values;
+        for (unsigned int i = 1; i < coefs.size(); i++) {
+            // coef_values.push_back(CS(coefs[i]));
+            if (!isZero(coefs[i]) && (int(i) < mnzc)) {
+                // first non zero coef
+                mnzc = i;
+            }
+        }
+
+        // 2) Build an array of coefficient values
+        ValueInst* coef_array = nullptr;
+        if (tc->nature() == kInt) {
+            vector<int> coef_values;
+            for (unsigned int c = 1; c < coefs.size(); c++) {
+                // We assume coefs are all real
+                int i;
+                isSigInt(coefs[c], &i);
+                coef_values.push_back(i);
+            }
+            coef_array = IB::genInt32ArrayNumInst(coef_values);
+        } else if (itfloat() == Typed::kFloat) {
+            vector<float> coef_values;
+            for (unsigned int c = 1; c < coefs.size(); c++) {
+                // We assume coefs are all real
+                double r;
+                isSigReal(coefs[c], &r);
+                coef_values.push_back(r);
+            }
+            coef_array = IB::genFloatArrayNumInst(coef_values);
+        } else if (itfloat() == Typed::kDouble) {
+            vector<double> coef_values;
+            for (unsigned int c = 1; c < coefs.size(); c++) {
+                // We assume coefs are all real
+                double r;
+                isSigReal(coefs[c], &r);
+                coef_values.push_back(r);
+            }
+            coef_array = IB::genDoubleArrayNumInst(coef_values);
+        } else {
+            faustassert(false);
+        }
+
+        // std::string csize      = T(int(coefs.size() - 1));
+        // std::string ctabledecl = subst("const $0 \t$1[$2] = $3;", ctype, ctable, csize,
+        // coefInit);
+
+        // Defined as a global static
+        pushGlobalDeclare(IB::genDecConstStaticStructVar(
+            ctable, IB::genArrayTyped(ctype, coefs.size() - 1), coef_array));
+
+        /*
+        switch (tc->variability()) {
+            case kKonst:
+                if (tc->computability() == kComp) {
+                    pushGlobalDeclare(IB::genDecConstStaticStructVar(ctable, ctype, coef_array));
+                } else {
+                    // special case for constant coefficients that can only be computed at init
+                    // time
+                    pushGlobalDeclare(IB::genDecConstStaticStructVar(ctable, ctype, coef_array));
+                    fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, ctable, csize));
+                    fClass->addInitCode(
+                        subst("const $0 \t$1tmp[$2] = $3;", ctype, ctable, csize, coefInit));
+                    fClass->addInitCode(
+                        subst("for (int i = 0; i < $0; i++) { $1[i] = $1tmp[i]; }", csize, ctable));
+                }
+                break;
+            case kBlock:
+                fClass->addZone2(ctabledecl);
+                break;
+            case kSamp:
+                fClass->addExecCode(Statement("", ctabledecl));
+                break;
+            default:
+                faustassert(false);
+        }
+        */
+
+        // 2) THE FIR ACCUMULATION
+
+        Tree            exp = coefs[0];  // The input signal of the FIR
+        DeclareVarInst* loop_var =
+            IB::genDecLoopVar("ii", IB::genInt32Typed(), IB::genInt32NumInst(mnzc - 1));
+        ValueInst* idxaccess =
+            generateDelayAccess(sig, exp, loop_var->load());  // indexed access to the input signal
+
+        // Type of the FIR itself (potentially different from the common type of the
+        // coefficients)
+        Type           ty = getCertifiedSigType(sig);
+        Typed::VarType ftype;
+        string         facc;
+        getTypedNames(ty, "Acc", ftype, facc);
+
+        // Declaration of the FIR accumulation
+        // fClass->addExecCode(Statement("", subst("$0 \t$1 = 0;", ftype, facc)));
+
+        // a) Create a loop variable "ii" of type int.
+        pushComputeDSPMethod(IB::genControlInst(
+            getConditionCode(sig), IB::genDecStackVar(facc, ftype, IB::genTypedZero(ftype))));
+
+        // if (mnzc > 1) {
+        // std::cerr << "FIR filter non-zero coef: " << mnzc - 1 << " to " << coefs.size() - 2
+        //   << "\n";
+        // }
+        // Code for the accumulation loop
+
+        // b) Create the loop condition: ii < (number of coefficients)
+        ValueInst* loop_cond =
+            IB::genLessThan(loop_var->load(), IB::genInt32NumInst((int)coefs.size() - 1));
+        // c) Define the loop increment: ii = ii + 1.
+        StoreVarInst* loop_inc =
+            loop_var->store(IB::genAdd(loop_var->load(), IB::genInt32NumInst(1)));
+        // d) Create the for-loop instruction.
+        ForLoopInst* for_loop = IB::genForLoopInst(loop_var, loop_cond, loop_inc);
+        BlockInst*   block    = IB::genBlockInst();
+        if (gGlobal->gHLSUnrollFactor > 0) {
+            block->pushBackInst(IB::genLabelInst(
+                subst("\t#pragma HLS unroll factor=$0", T(gGlobal->gHLSUnrollFactor))));
+        }
+        ValueInst*     coef_val  = IB::genLoadArrayStructVar(ctable, loop_var->load());
+        ValueInst*     prod_inst = IB::genMul(coef_val, idxaccess);
+        ValueInst*     new_acc   = IB::genAdd(IB::genLoadStackVar(facc), prod_inst);
+        StatementInst* store_acc = IB::genStoreStackVar(facc, new_acc);
+        block->pushBackInst(store_acc);
+        for_loop->pushFrontInst(IB::genControlInst(getConditionCode(sig), block));
+        pushComputeDSPMethod(for_loop);
+
+        return generateCacheCode(sig, IB::genLoadStackVar(facc));
+    }
 }
 
 ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& coefs)
 {
-    faustassert(false);
-    return IB::genNullValueInst();
+    // IIR[-,X,0,b,c,...]
+    // idx 0,1,2,3,4,....
+    // for (int i0 = 0; i0 < count; i0 = i0 + 1) {
+    //     fRec0[IOTA0 & 1] = float(input0[i0]) + 0.5f * fRec0[(IOTA0 - 1) & 1];
+    //     output0[i0]      = FAUSTFLOAT(fRec0[IOTA0 & 1]);
+    //     IOTA0            = IOTA0 + 1;
+    // }
+
+    Type         ty = getCertifiedSigType(sig);
+    Occurrences* o  = fOccMarkup->retrieve(sig);
+
+    faustassert(o);
+    faustassert(coefs.size() > 2);
+
+    string      vname;
+    BasicTyped* ctype;
+    getTypedNames(ty, "IIR", ctype, vname);
+
+    // Build the IIR expressions X + C1*Y(t-1) + C2*Y(t-2) + ..
+    ValueInst* term = CS(coefs[1]);  // the input signal X
+
+    // Invert the order of computation has it seems faster
+    for (unsigned int i = coefs.size() - 1; i >= 3; i--) {
+        if (isZero(coefs[i])) {
+            continue;
+        }
+        ValueInst* access = generateDelayAccess(sig, sig, IB::genInt32NumInst(i - 2));
+        if (isOne(coefs[i])) {
+            term = IB::genAdd(access, term);
+        } else {
+            term = IB::genAdd(term, IB::genMul(CS(coefs[i]), access));
+        }
+    }
+
+    // generate the delay line
+    ValueInst* Y0 = generateDelayVec(sig, term, ctype, vname, o->getMaxDelay(), o->getDelayCount());
+    // return the current value
+    return Y0;
 }
 
 ValueInst* InstructionsCompiler::generateSum(Tree sig, const tvec& subs)

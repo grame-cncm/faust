@@ -159,10 +159,9 @@ class ScalarCompiler : public Compiler {
     std::string generatePermVar(Tree sig, Tree x);
     std::string generateOD(Tree sig, const tvec& w);
 
-    // std::string generateIIRSmallExpression(const
-    // std::string& vecname, Tree sig, const tvec&
-    // coefs); std::string generateIIRBigExpression(const std::string& vecname, int mxd, Tree sig,
-    //                                      const tvec& coefs);
+    std::string generateIIRSmallExpression(const std::string& dlname, Tree sig, const tvec& coefs);
+    std::string generateIIRBigExpression(const std::string& dlname, int mxd, Tree sig,
+                                         const tvec& coefs);
 
     virtual std::string generateDelayVec(Tree sig, const std::string& exp, const std::string& ctype,
                                          const std::string& vname, int mxd, int count);
