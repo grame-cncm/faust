@@ -418,4 +418,12 @@ Tree listConvert(const siglist& a);
  */
 siglist treeConvert(Tree t);
 
+/**
+ * Compute the 'density' of a FIR filter given its coefficients.
+ * It is the ratio of non zero coefficients over the total number of coefficients.
+ * The total number of coefficients is the size of the array minus the position of the first
+ * non zero coefficient.
+ */
+float computeDensity(const tvec& coefs);
+
 #endif
