@@ -2423,16 +2423,36 @@ struct IB {
 
     // Numbers
     static Int32NumInst*      genInt32NumInst(int num) { return new Int32NumInst(num); }
-    static Int32ArrayNumInst* genInt32ArrayNumInst(int num) { return new Int32ArrayNumInst(num); }
+    static Int32ArrayNumInst* genInt32ArrayNumInst(int size) { return new Int32ArrayNumInst(size); }
+    static Int32ArrayNumInst* genInt32ArrayNumInst(const std::vector<int>& nums)
+    {
+        return new Int32ArrayNumInst(nums);
+    }
+
     static FloatNumInst*      genFloatNumInst(float num) { return new FloatNumInst(num); }
     static FloatArrayNumInst* genFloatArrayNumInst(int size) { return new FloatArrayNumInst(size); }
-    static DoubleNumInst*     genDoubleNumInst(double num) { return new DoubleNumInst(num); }
+    static FloatArrayNumInst* genFloatArrayNumInst(const std::vector<float>& nums)
+    {
+        return new FloatArrayNumInst(nums);
+    }
+
+    static DoubleNumInst*      genDoubleNumInst(double num) { return new DoubleNumInst(num); }
     static DoubleArrayNumInst* genDoubleArrayNumInst(int size)
     {
         return new DoubleArrayNumInst(size);
     }
-    static QuadNumInst*       genQuadNumInst(long double num) { return new QuadNumInst(num); }
-    static QuadArrayNumInst*  genQuadArrayNumInst(int size) { return new QuadArrayNumInst(size); }
+    static DoubleArrayNumInst* genDoubleArrayNumInst(const std::vector<double>& nums)
+    {
+        return new DoubleArrayNumInst(nums);
+    }
+
+    static QuadNumInst*      genQuadNumInst(long double num) { return new QuadNumInst(num); }
+    static QuadArrayNumInst* genQuadArrayNumInst(int size) { return new QuadArrayNumInst(size); }
+    static QuadArrayNumInst* genQuadArrayNumInst(const std::vector<long double>& nums)
+    {
+        return new QuadArrayNumInst(nums);
+    }
+
     static FixedPointNumInst* genFixedPointNumInst(double num)
     {
         return new FixedPointNumInst(num);
