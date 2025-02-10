@@ -1,4 +1,4 @@
-% man(1) Version 2.78.7 (04-February-2025) | Faust man page
+% man(1) Version 2.79.0 (10-February-2025) | Faust man page
 
 NAME
 ====
@@ -40,8 +40,6 @@ Output options:
   **-e**        **--export-dsp**                  export expanded DSP (with all included libraries).
 
   **-uim**      **--user-interface-macros**       add user interface macro definitions to the output code.
-
-  **-rnt**      **--rust-no-faustdsp-trait**      (Rust only) Don't generate FaustDsp trait implmentation.
 
   **-xml**                                    generate an XML description file.
 
@@ -168,6 +166,9 @@ Code generation options:
 
   **-ni** \<n>     **--narrowing-iterations** \<n>  number of iterations before stopping narrowing in signal bounding.
 
+  **-rnt**        **--rust-no-faustdsp-trait**    (Rust only) Don't generate FaustDsp trait implmentation.
+
+  **-rnlm**       **--rust-no-libm**              (Rust only) Don't generate FFI calls to libm
 
 Block diagram options:
 ---------------------------------------
