@@ -224,19 +224,24 @@ ocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
 
 ondemand:
-	$(MAKE) -f Make.od outdir=ocpp/doubleondemand          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.od outdir=ocpp/doubleondemand   lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.od outdir=cpp/doubleondemand    lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
 
 ondemandfir:
-	$(MAKE) -f Make.od outdir=ocpp/doubleondemandfir          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -fls 100 -mcd 128"
+	$(MAKE) -f Make.od outdir=ocpp/doubleondemandfir  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -fls 100 -mcd 128"
+	$(MAKE) -f Make.od outdir=cpp/doubleondemandfir   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -fls 100 -mcd 128"
 
 ondemandffir:
-	$(MAKE) -f Make.od outdir=ocpp/doubleondemandffir          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -fls 100 -mcd 128"
+	$(MAKE) -f Make.od outdir=ocpp/doubleondemandffir  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -fls 100 -mcd 128"
+	$(MAKE) -f Make.od outdir=cpp/doubleondemandffir   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -fls 100 -mcd 128"
 
 fir:
-	$(MAKE) -f Make.gcc outdir=ocpp/doublefir          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -fls 100 -mcd 128"
+	$(MAKE) -f Make.gcc outdir=ocpp/doublefir  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -fls 100 -mcd 128"
+	$(MAKE) -f Make.gcc outdir=cpp/doublefir   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -fls 100 -mcd 128"
 
 ffir:
-	$(MAKE) -f Make.gcc outdir=ocpp/doubleffir          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -fls 100 -mcd 128"
+	$(MAKE) -f Make.gcc outdir=ocpp/doubleffir lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -fls 100 -mcd 128"
+	$(MAKE) -f Make.gcc outdir=cpp/doubleffir  lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-t 0 -I dsp -double -fir -ff -fls 100 -mcd 128"
 
 vecocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/lv1  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
