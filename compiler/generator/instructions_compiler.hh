@@ -293,15 +293,17 @@ class InstructionsCompiler : public virtual Garbageable {
                                     const std::string& name);
 
     virtual ValueInst* generateFIR(Tree sig, const tvec& coefs);
-
-    /*
-     virtual ValueInst* generateFIRSmallExpression(const std::string& vecname, Tree sig, const tvec&
-     coefs); virtual ValueInst* generateFIRBigExpression(const std::string& vecname, int mxd, Tree
-     sig, const tvec& coefs);
-     */
-
     virtual ValueInst* generateIIR(Tree sig, const tvec& coefs);
     virtual ValueInst* generateSum(Tree sig, const tvec& coefs);
+
+    virtual ValueInst* generateFIRSmallExpression(const std::string& vecname, Tree sig,
+                                                  const tvec& coefs)
+    {
+    }
+    virtual ValueInst* generateFIRBigExpression(const std::string& vecname, int mxd, Tree sig,
+                                                const tvec& coefs)
+    {
+    }
 
     // ondemand related
     virtual ValueInst* generateTempVar(Tree sig, Tree x);
