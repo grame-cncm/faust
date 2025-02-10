@@ -141,6 +141,7 @@ struct global {
     bool        gInlineArchSwitch;     // -i option
     bool        gUIMacroSwitch;        // -uim option
     bool        gRustNoTraitSwitch;    // -rnt option
+    bool        gRustNoLibm;           // -rnlm option
     int         gDumpNorm;             // -norm option
     bool        gMathExceptions;       // -me option, whether to check math functions domains
     bool gLocalCausalityCheck;  // -lcc option, when true trigs local causality errors (negative

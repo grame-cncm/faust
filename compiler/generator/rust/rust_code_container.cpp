@@ -246,7 +246,7 @@ void RustCodeContainer::produceClass()
 
     // Missing math functions
     // See: https://users.rust-lang.org/t/analog-of-c-std-remainder/59670
-    if (gGlobal->gFloatSize == 1) {
+    if (gGlobal->gFloatSize == 1 && !gGlobal->gRustNoLibm) {
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
         *fOut << "use std::os::raw::c_float;";
@@ -283,7 +283,7 @@ void RustCodeContainer::produceClass()
         *fOut << "fn remainder_f32(a: f32, b: f32) -> f32 { let n = (a/b).round(); a - b*n }";
         tab(n, *fOut);
         */
-    } else if (gGlobal->gFloatSize == 2) {
+    } else if (gGlobal->gFloatSize == 2 && !gGlobal->gRustNoLibm) {
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
         *fOut << "use std::os::raw::{c_double};";

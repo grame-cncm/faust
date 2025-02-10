@@ -449,6 +449,7 @@ void global::reset()
 
     gUIMacroSwitch     = false;
     gRustNoTraitSwitch = false;
+    gRustNoLibm        = false;
 
     gDumpNorm = -1;
     gFTZMode  = 0;
@@ -1258,7 +1259,7 @@ bool global::processCmdline(int argc, const char* argv[])
             i += 2;
 
         } else if (isCmd(argv[i], "-style", "--svgstyle")) {
-            gGlobal->gStyleFile = argv[i + 1];
+            gStyleFile = argv[i + 1];
             i += 2;
 
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
@@ -1368,6 +1369,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-rnt", "--rust-no-faustdsp-trait")) {
             gRustNoTraitSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-rnlm", "--rust-no-libm")) {
+            gRustNoLibm = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-t", "--timeout") && (i + 1 < argc)) {
@@ -1654,7 +1659,7 @@ bool global::processCmdline(int argc, const char* argv[])
     }
 
     if (gMemoryManager >= 1) {
-        gGlobal->gWaveformInDSP = true;
+        gWaveformInDSP = true;
     }
 
     // ========================
@@ -1662,7 +1667,11 @@ bool global::processCmdline(int argc, const char* argv[])
     // ========================
 
     if (gRustNoTraitSwitch && gOutputLang != "rust") {
-        throw faustexception("ERROR : '-rnt' option can only be used with rust\n");
+        throw faustexception("ERROR : '-rnt' option can only be used with 'rust' backend\n");
+    }
+
+    if (gRustNoLibm && gOutputLang != "rust") {
+        throw faustexception("ERROR : '-rnlm' option can only be used with 'rust' backend\n");
     }
 
     if (!gRustNoTraitSwitch && gInPlace && gOutputLang == "rust") {
@@ -2124,10 +2133,6 @@ string global::printHelp()
          << "-uim      --user-interface-macros       add user interface macro definitions to the "
             "output code."
          << endl;
-    sstr << tab
-         << "-rnt      --rust-no-faustdsp-trait      (Rust only) Don't generate FaustDsp trait "
-            "implmentation."
-         << endl;
     sstr << tab << "-xml                                    generate an XML description file."
          << endl;
     sstr << tab << "-json                                   generate a JSON description file."
@@ -2380,6 +2385,14 @@ string global::printHelp()
          << "-ni <n>     --narrowing-iterations <n>  number of iterations before stopping "
             "narrowing in signal bounding."
          << endl;
+    sstr << tab
+         << "-rnt        --rust-no-faustdsp-trait    (Rust only) Don't generate FaustDsp trait "
+            "implmentation."
+         << endl;
+    sstr << tab
+         << "-rnlm       --rust-no-libm              (Rust only) Don't generate FFI calls to libm."
+         << endl;
+
 #endif
 #ifndef EMCC
     sstr << endl << "Block diagram options:" << line;
