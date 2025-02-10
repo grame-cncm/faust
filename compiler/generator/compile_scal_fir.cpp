@@ -35,34 +35,6 @@
 
 using namespace std;
 
-// Compute the 'density' of a FIR filter given its coefficients.
-// It is the ratio of non zero coefficients over the total number of coefficients.
-// The total number of coefficients is the size of the array minus the position of the first
-// non zero coefficient.
-static float computeDensity(const tvec& coefs)
-{
-    // analyze the coefficients
-    unsigned int fnz = 0;  // first non zero coefficient
-    for (unsigned int i = 1; i < coefs.size(); ++i) {
-        if (!isZero(coefs[i])) {
-            fnz = i;
-            break;
-        }
-    }
-    unsigned int cnz = 0;  // count of non zero coefficients
-    for (unsigned int i = fnz; i < coefs.size(); ++i) {
-        if (!isZero(coefs[i])) {
-            cnz++;
-        }
-    }
-    faustassert(cnz > 0);
-    float density = float(cnz) / float(coefs.size() - fnz);
-    std::cerr << gGlobal->gSTEP << " generateFIR: "
-              << " coefs.size()=" << coefs.size() << " density=" << density << " cnz=" << cnz
-              << " fnz=" << fnz << std::endl;
-    return density;
-}
-
 string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
     faustassert(coefs.size() > 1);
