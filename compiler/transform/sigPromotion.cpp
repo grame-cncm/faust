@@ -468,7 +468,7 @@ Tree SignalPromotion::transformation(Tree sig)
 
     // Waveform
     else if (isSigWaveform(sig)) {
-        int  n = sig->arity();
+        int n = sig->arity();
         // Remove clock signal on the first value
         Tree clock, first;
         faustassert(isSigClocked(sig->branch(0), clock, first));
@@ -491,8 +491,8 @@ Tree SignalPromotion::transformation(Tree sig)
             wf.push_back(sigClocked(clock, smartFloatCast(tx, first)));
             // Then remaining values
             for (int i = 1; i < n; i++) {
-                Tree v  = sig->branch(i);
-                tx = getCertifiedSigType(v);
+                Tree v = sig->branch(i);
+                tx     = getCertifiedSigType(v);
                 wf.push_back(smartFloatCast(tx, v));
             }
             return sigWaveform(wf);

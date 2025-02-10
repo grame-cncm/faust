@@ -663,7 +663,7 @@ void CodeContainer::createMemoryLayout()
             VariableSizeCounter struct_size(Address::kStruct);
             array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
 
-            // TODO: rework DSP site comptations with local arrays
+            // TODO: rework DSP side computations with local arrays
 
             fMemoryLayout.push_back(
                 MemoryLayoutItem{fKlassName, "kObj_ptr", 0,
