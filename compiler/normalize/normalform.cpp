@@ -137,7 +137,9 @@ static Tree simplifyToNormalFormAux(Tree LS)
     }
 
     // Check signal tree
+    startTiming("L4 signalChecker");
     SignalChecker checker(L4);
+    endTiming("L4 signalChecker");
     return L4;
 }
 

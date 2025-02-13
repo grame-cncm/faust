@@ -2315,16 +2315,16 @@ void InstructionsCompiler::ensureIotaCode()
 
 // In gMemoryManager >= 1 mode, all waveform values will be set in staticInit
 
-#define setIntValue(k, i) \
-    pushStaticInitMethod( \
+#define setIntValue(vname, k, i) \
+    pushStaticInitMethod(        \
         IB::genStoreArrayStaticStructVar(vname, IB::genInt32NumInst(k), IB::genInt32NumInst(i)));
 
-#define setFloatValue(k, i) \
-    pushStaticInitMethod(   \
+#define setFloatValue(vname, k, i) \
+    pushStaticInitMethod(          \
         IB::genStoreArrayStaticStructVar(vname, IB::genInt32NumInst(k), IB::genFloatNumInst(i)));
 
-#define setDoubleValue(k, i) \
-    pushStaticInitMethod(    \
+#define setDoubleValue(vname, k, i) \
+    pushStaticInitMethod(           \
         IB::genStoreArrayStaticStructVar(vname, IB::genInt32NumInst(k), IB::genDoubleNumInst(i)));
 
 void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
@@ -2341,99 +2341,85 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
     double r;
     int    i;
 
-    // A waveform can contain values of mixed Int or Real types
-    if (ctype == Typed::kInt32) {
-        Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(num_array);
-        faustassert(int_array);
-        for (int k = 0; k < size; k++) {
-            if (isSigInt(sig->branch(k), &i)) {
-                if (gGlobal->gMemoryManager >= 1) {
-                    setIntValue(k, i);
-                } else {
-                    int_array->setValue(k, i);
+    // A waveform contains values of the same type (see sigPromotion)
+    switch (ctype) {
+        case Typed::kInt32: {
+            Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(num_array);
+            faustassert(int_array);
+            if (gGlobal->gMemoryManager >= 1) {
+                for (int k = 0; k < size; k++) {
+                    isSigInt(sig->branch(k), &i);
+                    setIntValue(vname, k, i);
                 }
-            } else if (isSigReal(sig->branch(k), &r)) {
-                if (gGlobal->gMemoryManager >= 1) {
-                    setIntValue(k, int(r));
-                } else {
-                    int_array->setValue(k, int(r));
+            } else {
+                for (int k = 0; k < size; k++) {
+                    isSigInt(sig->branch(k), &i);
+                    int_array->setValue(k, i);
                 }
             }
         }
-    } else if (ctype == Typed::kFloat) {
-        FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
-        faustassert(float_array);
-        for (int k = 0; k < size; k++) {
-            if (isSigInt(sig->branch(k), &i)) {
-                if (gGlobal->gMemoryManager >= 1) {
-                    setFloatValue(k, float(i));
-                } else {
-                    float_array->setValue(k, float(i));
+        case Typed::kFloat: {
+            FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
+            faustassert(float_array);
+            if (gGlobal->gMemoryManager >= 1) {
+                for (int k = 0; k < size; k++) {
+                    isSigReal(sig->branch(k), &r);
+                    setFloatValue(vname, k, r);
                 }
-            } else if (isSigReal(sig->branch(k), &r)) {
-                if (gGlobal->gMemoryManager >= 1) {
-                    setFloatValue(k, float(r));
-                } else {
+            } else {
+                for (int k = 0; k < size; k++) {
+                    isSigReal(sig->branch(k), &r);
                     float_array->setValue(k, float(r));
                 }
             }
         }
-    } else if (ctype == Typed::kDouble) {
-        DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
-        faustassert(double_array);
-        for (int k = 0; k < size; k++) {
-            if (isSigInt(sig->branch(k), &i)) {
-                if (gGlobal->gMemoryManager >= 1) {
-                    setFloatValue(k, double(i));
-                } else {
-                    double_array->setValue(k, double(i));
+        case Typed::kDouble: {
+            DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
+            faustassert(double_array);
+            if (gGlobal->gMemoryManager >= 1) {
+                for (int k = 0; k < size; k++) {
+                    isSigReal(sig->branch(k), &r);
+                    setDoubleValue(vname, k, r);
                 }
-            } else if (isSigReal(sig->branch(k), &r)) {
-                if (gGlobal->gMemoryManager >= 1) {
-                    setFloatValue(k, r);
-                } else {
+            } else {
+                for (int k = 0; k < size; k++) {
+                    isSigReal(sig->branch(k), &r);
                     double_array->setValue(k, r);
                 }
             }
         }
-    } else if (ctype == Typed::kQuad) {
-        QuadArrayNumInst* quad_array = dynamic_cast<QuadArrayNumInst*>(num_array);
-        faustassert(quad_array);
-        for (int k = 0; k < size; k++) {
-            if (isSigInt(sig->branch(k), &i)) {
-                if (gGlobal->gMemoryManager >= 1) {
-                    setDoubleValue(k, (long double)i);
-                } else {
-                    quad_array->setValue(k, (long double)i);
+        case Typed::kQuad: {
+            QuadArrayNumInst* quad_array = dynamic_cast<QuadArrayNumInst*>(num_array);
+            faustassert(quad_array);
+            if (gGlobal->gMemoryManager >= 1) {
+                for (int k = 0; k < size; k++) {
+                    isSigReal(sig->branch(k), &r);
+                    setDoubleValue(vname, k, r);
                 }
-            } else if (isSigReal(sig->branch(k), &r)) {
-                if (gGlobal->gMemoryManager >= 1) {
-                    setDoubleValue(k, r);
-                } else {
-                    quad_array->setValue(k, r);
+            } else {
+                for (int k = 0; k < size; k++) {
+                    isSigReal(sig->branch(k), &r);
+                    quad_array->setValue(k, double(r));
                 }
             }
         }
-    } else if (ctype == Typed::kFixedPoint) {
-        FixedPointArrayNumInst* fx_array = dynamic_cast<FixedPointArrayNumInst*>(num_array);
-        faustassert(fx_array);
-        for (int k = 0; k < size; k++) {
-            if (isSigInt(sig->branch(k), &i)) {
-                if (gGlobal->gMemoryManager >= 1) {
-                    setFloatValue(k, double(i));
-                } else {
-                    fx_array->setValue(k, double(i));
+        case Typed::kFixedPoint: {
+            FixedPointArrayNumInst* fx_array = dynamic_cast<FixedPointArrayNumInst*>(num_array);
+            faustassert(fx_array);
+            if (gGlobal->gMemoryManager >= 1) {
+                for (int k = 0; k < size; k++) {
+                    isSigReal(sig->branch(k), &r);
+                    setDoubleValue(vname, k, r);
                 }
-            } else if (isSigReal(sig->branch(k), &r)) {
-                if (gGlobal->gMemoryManager >= 1) {
-                    setFloatValue(k, r);
-                } else {
-                    fx_array->setValue(k, r);
+            } else {
+                for (int k = 0; k < size; k++) {
+                    isSigReal(sig->branch(k), &r);
+                    fx_array->setValue(k, double(r));
                 }
             }
         }
-    } else {
-        faustassert(false);
+        default:
+            faustassert(false);
     }
 
     if (gGlobal->gWaveformInDSP) {
@@ -2463,7 +2449,7 @@ ValueInst* InstructionsCompiler::generateWaveform(Tree sig)
                              IB::genLoadArrayStaticStructVar(vname, IB::genLoadStructVar(idx)));
 }
 
-//================================= BUILD USER INTERFACE METHOD =================================
+//=============================== BUILD USER INTERFACE METHOD ===============================
 
 /**
  * Generate buildUserInterface corresponding to user interface element t
@@ -2474,8 +2460,8 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
 
     if (isUiFolder(t, label, elements)) {
         OpenboxInst::BoxType orient = static_cast<OpenboxInst::BoxType>(tree2int(left(label)));
-        // Empty labels will be renamed with a 0xABCD (address) that is ignored and not displayed by
-        // UI architectures
+        // Empty labels will be renamed with a 0xABCD (address) that is ignored and not
+        // displayed by UI architectures
         string str = tree2str(right(label));
 
         // extract metadata from group label str resulting in a simplifiedLabel
@@ -2493,8 +2479,8 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
                     IB::genAddMetaDeclareInst("0", rmWhiteSpaces(key), rmWhiteSpaces(j)));
             }
         }
-        // At rool level and if label is empty, use the name kept in "metadata" (either the one
-        // coded in 'declare name "XXX";' line, or the filename)
+        // At root level and if label is empty, use the name kept in "metadata" (either
+        // the one coded in 'declare name "XXX";' line, or the filename)
         string group = (root && (simplifiedLabel == ""))
                            ? unquote(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())))
                            : checkNullLabel(t, simplifiedLabel);
@@ -2608,8 +2594,7 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
     }
 }
 
-//==================================== USER INTERFACE MACROS ==================================
-
+//================================== USER INTERFACE MACROS ================================
 /**
  * Generate user interface macros corresponding
  * to user interface element t
@@ -2798,14 +2783,14 @@ ValueInst* InstructionsFXCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     return castFX(sig, InstructionsCompiler::generateFFun(sig, ff, largs));
 }
 
-ValueInst* InstructionsFXCompiler::generateFConst(Tree sig, Tree type, const string& file, const
-string& name)
+ValueInst* InstructionsFXCompiler::generateFConst(Tree sig, Tree type, const string&
+file, const string& name)
 {
     return castFX(sig, InstructionsCompiler::generateFConst(sig, type, file, name));
 }
 
-ValueInst* InstructionsFXCompiler::generateFVar(Tree sig, Tree type, const string& file, const
-string& name)
+ValueInst* InstructionsFXCompiler::generateFVar(Tree sig, Tree type, const string& file,
+const string& name)
 {
     return castFX(sig, InstructionsCompiler::generateFVar(sig, type, file, name));
 }
@@ -2862,19 +2847,20 @@ ValueInst* InstructionsFXCompiler::generateFloatCast(Tree sig, Tree x)
     return castFX(sig, InstructionsCompiler::generateFloatCast(sig, x));
 }
 
-ValueInst* InstructionsFXCompiler::generateButtonAux(Tree sig, Tree path, const string& name)
+ValueInst* InstructionsFXCompiler::generateButtonAux(Tree sig, Tree path, const string&
+name)
 {
     return castFX(sig, InstructionsCompiler::generateButtonAux(sig, path, name));
 }
 
-ValueInst* InstructionsFXCompiler::generateSliderAux(Tree sig, Tree path, Tree cur, const string&
-name)
+ValueInst* InstructionsFXCompiler::generateSliderAux(Tree sig, Tree path, Tree cur,
+const string& name)
 {
     return castFX(sig, InstructionsCompiler::generateSliderAux(sig, path, cur, name));
 }
 
-ValueInst* InstructionsFXCompiler::generateBargraphAux(Tree sig, Tree path, ValueInst* exp, const
-string& name)
+ValueInst* InstructionsFXCompiler::generateBargraphAux(Tree sig, Tree path, ValueInst*
+exp, const string& name)
 {
     return castFX(sig, InstructionsCompiler::generateBargraphAux(sig, path, exp, name));
 }

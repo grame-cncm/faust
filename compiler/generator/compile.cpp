@@ -189,7 +189,7 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
             }
         }
 
-        // At rool level and if label is empty, use the name kept in "metadata" (either the one
+        // At root level and if label is empty, use the name kept in "metadata" (either the one
         // coded in 'declare name "XXX";' line, or the filename)
         string group = (root && (simplifiedLabel == ""))
                            ? unquote(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())))

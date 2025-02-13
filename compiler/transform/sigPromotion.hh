@@ -54,8 +54,9 @@ class SignalTypePrinter final : public SignalVisitor {
  - for correct SigBinOp args typing
  - for proper SigIntCast and SigFloatCast use
  - for correct range in sliders (min < max and default in [min...max] range)
+ - for correct SigWaveform values typing
  - for use on control/enable (not available in -vec mode)
- - for proper simplication of sigLowest/sigHigest
+ - for proper simplication of SigLowest/SigHighest
 
  To be used on a type annotated signal.
 */
