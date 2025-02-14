@@ -468,10 +468,13 @@ Tree SignalPromotion::transformation(Tree sig)
 
     // Waveform
     else if (isSigWaveform(sig)) {
-        int  n     = sig->arity();
-        bool iflag = true;
+        int  n = sig->arity();
+        // Remove clock signal on the first value
+        Tree clock, first;
+        faustassert(isSigClocked(sig->branch(0), clock, first));
+        bool iflag = isInt(first->node());
         // Check if all values are kInt
-        for (int i = 0; i < n; i++) {
+        for (int i = 1; i < n; i++) {
             Tree v = sig->branch(i);
             if (!isInt(v->node())) {
                 iflag = false;
@@ -483,9 +486,13 @@ Tree SignalPromotion::transformation(Tree sig)
         } else {
             // Some values have to be casted
             tvec wf;
-            for (int i = 0; i < n; i++) {
+            // Special handling for first clocked value
+            Type tx = getCertifiedSigType(first);
+            wf.push_back(sigClocked(clock, smartFloatCast(tx, first)));
+            // Then remaining values
+            for (int i = 1; i < n; i++) {
                 Tree v  = sig->branch(i);
-                Type tx = getCertifiedSigType(v);
+                tx = getCertifiedSigType(v);
                 wf.push_back(smartFloatCast(tx, v));
             }
             return sigWaveform(wf);
