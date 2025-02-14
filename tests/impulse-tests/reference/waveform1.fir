@@ -20,14 +20,14 @@ EndBlockInst
 ======= Global declarations begin ==========
 
 BlockInst 
-	DeclareVarInst("float", fmydspWave0[10], kStaticStruct|kConst, FloatArrayNumInst{0.1f,0.123f,0.142567f,0.15263739f,0.568453f,0.1f,0.123f,0.142567f,0.15263739f,0.568453f})
+	DeclareVarInst("float", fmydspWave0SC[10], kStaticStruct|kConst, FloatArrayNumInst{0.1f,0.123f,0.142567f,0.15263739f,0.568453f,0.1f,0.123f,0.142567f,0.15263739f,0.568453f})
 EndBlockInst
 
 ======= Global declarations end ==========
 
 ======= DSP struct begin ==========
 
-DeclareStructTypeInst(StructType<"mydsp",("int", fmydspWave0_idx)("int", fSampleRate)>)
+DeclareStructTypeInst(StructType<"mydsp",("float", fConst0KC)("int", fmydspWave0SC_idx)("int", fSampleRate)>)
 
 ======= DSP struct end ==========
 
@@ -47,7 +47,8 @@ EndDeclare
 
 BlockInst 
 	StoreVarInst(Address(fSampleRate, kStruct), LoadVarInst(Address(sample_rate, kFunArgs)))
-	StoreVarInst(Address(fmydspWave0_idx, kStruct), Int32(0))
+	StoreVarInst(Address(fConst0KC, kStruct), Float(0.1f))
+	StoreVarInst(Address(fmydspWave0SC_idx, kStruct), Int32(0))
 EndBlockInst
 
 ======= Init end ==========
@@ -73,8 +74,8 @@ ForLoopInst
 	StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 	BlockInst 
 		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", Int32(10)))
-		StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fmydspWave0, kStaticStruct)[LoadVarInst(Address(fmydspWave0_idx, kStruct))])))
-		StoreVarInst(Address(fmydspWave0_idx, kStruct), BinopInst("%", BinopInst("+", Int32(1), LoadVarInst(Address(fmydspWave0_idx, kStruct))), Int32(10)))
+		StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fmydspWave0SC, kStaticStruct)[LoadVarInst(Address(fmydspWave0SC_idx, kStruct))])))
+		StoreVarInst(Address(fmydspWave0SC_idx, kStruct), BinopInst("%", BinopInst("+", Int32(1), LoadVarInst(Address(fmydspWave0SC_idx, kStruct))), Int32(10)))
 	EndBlockInst
 EndForLoopInst
 
@@ -91,12 +92,14 @@ EndBlockInst
 
 BlockInst 
 	========== Declaration part ==========
-	DeclareVarInst("float", fmydspWave0[10], kStaticStruct|kConst, FloatArrayNumInst{0.1f,0.123f,0.142567f,0.15263739f,0.568453f,0.1f,0.123f,0.142567f,0.15263739f,0.568453f})
-	DeclareVarInst("int", fmydspWave0_idx, kStruct)
+	DeclareVarInst("float", fmydspWave0SC[10], kStaticStruct|kConst, FloatArrayNumInst{0.1f,0.123f,0.142567f,0.15263739f,0.568453f,0.1f,0.123f,0.142567f,0.15263739f,0.568453f})
+	DeclareVarInst("float", fConst0KC, kStruct)
+	DeclareVarInst("int", fmydspWave0SC_idx, kStruct)
 	DeclareVarInst("int", fSampleRate, kStruct)
 	========== Init method ==========
 	StoreVarInst(Address(fSampleRate, kStruct), LoadVarInst(Address(sample_rate, kFunArgs)))
-	StoreVarInst(Address(fmydspWave0_idx, kStruct), Int32(0))
+	StoreVarInst(Address(fConst0KC, kStruct), Float(0.1f))
+	StoreVarInst(Address(fmydspWave0SC_idx, kStruct), Int32(0))
 	========== Static init method ==========
 	========== Subcontainers ==========
 	========== Control ==========
@@ -110,8 +113,8 @@ BlockInst
 		StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 		BlockInst 
 			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", Int32(10)))
-			StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fmydspWave0, kStaticStruct)[LoadVarInst(Address(fmydspWave0_idx, kStruct))])))
-			StoreVarInst(Address(fmydspWave0_idx, kStruct), BinopInst("%", BinopInst("+", Int32(1), LoadVarInst(Address(fmydspWave0_idx, kStruct))), Int32(10)))
+			StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fmydspWave0SC, kStaticStruct)[LoadVarInst(Address(fmydspWave0SC_idx, kStruct))])))
+			StoreVarInst(Address(fmydspWave0SC_idx, kStruct), BinopInst("%", BinopInst("+", Int32(1), LoadVarInst(Address(fmydspWave0SC_idx, kStruct))), Int32(10)))
 		EndBlockInst
 	EndForLoopInst
 	========== Post compute DSP ==========
@@ -123,21 +126,24 @@ EndBlockInst
 
 Heap size int = 8 bytes
 Heap size int* = 0 bytes
-Heap size real = 0 bytes
-Total heap size = 8 bytes
+Heap size real = 4 bytes
+Total heap size = 12 bytes
 Stack size in compute = 16 bytes
 
 ======= Variable access in Control ==========
 
-Field = fmydspWave0_idx size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+Field = fConst0KC size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+Field = fmydspWave0SC_idx size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 ======= Variable access in compute control ==========
 
-Field = fmydspWave0_idx size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+Field = fConst0KC size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+Field = fmydspWave0SC_idx size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 ======= Variable access in compute DSP ==========
 
-Field = fmydspWave0_idx size = 1 size_bytes = 4 read = 2 write = 1 ratio = 3
+Field = fConst0KC size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+Field = fmydspWave0SC_idx size = 1 size_bytes = 4 read = 2 write = 1 ratio = 3
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
