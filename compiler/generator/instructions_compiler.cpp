@@ -2342,84 +2342,79 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
     int    i;
 
     // A waveform contains values of the same type (see sigPromotion)
-    switch (ctype) {
-        case Typed::kInt32: {
-            Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(num_array);
-            faustassert(int_array);
-            if (gGlobal->gMemoryManager >= 1) {
-                for (int k = 0; k < size; k++) {
-                    isSigInt(sig->branch(k), &i);
-                    setIntValue(vname, k, i);
-                }
-            } else {
-                for (int k = 0; k < size; k++) {
-                    isSigInt(sig->branch(k), &i);
-                    int_array->setValue(k, i);
-                }
+    if (ctype == Typed::kInt32) {
+        Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(num_array);
+        faustassert(int_array);
+        if (gGlobal->gMemoryManager >= 1) {
+            for (int k = 0; k < size; k++) {
+                isSigInt(sig->branch(k), &i);
+                setIntValue(vname, k, i);
+            }
+        } else {
+            for (int k = 0; k < size; k++) {
+                isSigInt(sig->branch(k), &i);
+                int_array->setValue(k, i);
             }
         }
-        case Typed::kFloat: {
-            FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
-            faustassert(float_array);
-            if (gGlobal->gMemoryManager >= 1) {
-                for (int k = 0; k < size; k++) {
-                    isSigReal(sig->branch(k), &r);
-                    setFloatValue(vname, k, r);
-                }
-            } else {
-                for (int k = 0; k < size; k++) {
-                    isSigReal(sig->branch(k), &r);
-                    float_array->setValue(k, float(r));
-                }
+    } else if (ctype == Typed::kFloat) {
+        FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
+        faustassert(float_array);
+        if (gGlobal->gMemoryManager >= 1) {
+            for (int k = 0; k < size; k++) {
+                isSigReal(sig->branch(k), &r);
+                setFloatValue(vname, k, r);
+            }
+        } else {
+            for (int k = 0; k < size; k++) {
+                isSigReal(sig->branch(k), &r);
+                float_array->setValue(k, float(r));
             }
         }
-        case Typed::kDouble: {
-            DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
-            faustassert(double_array);
-            if (gGlobal->gMemoryManager >= 1) {
-                for (int k = 0; k < size; k++) {
-                    isSigReal(sig->branch(k), &r);
-                    setDoubleValue(vname, k, r);
-                }
-            } else {
-                for (int k = 0; k < size; k++) {
-                    isSigReal(sig->branch(k), &r);
-                    double_array->setValue(k, r);
-                }
+
+    } else if (ctype == Typed::kDouble) {
+        DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
+        faustassert(double_array);
+        if (gGlobal->gMemoryManager >= 1) {
+            for (int k = 0; k < size; k++) {
+                isSigReal(sig->branch(k), &r);
+                setDoubleValue(vname, k, r);
+            }
+        } else {
+            for (int k = 0; k < size; k++) {
+                isSigReal(sig->branch(k), &r);
+                double_array->setValue(k, r);
             }
         }
-        case Typed::kQuad: {
-            QuadArrayNumInst* quad_array = dynamic_cast<QuadArrayNumInst*>(num_array);
-            faustassert(quad_array);
-            if (gGlobal->gMemoryManager >= 1) {
-                for (int k = 0; k < size; k++) {
-                    isSigReal(sig->branch(k), &r);
-                    setDoubleValue(vname, k, r);
-                }
-            } else {
-                for (int k = 0; k < size; k++) {
-                    isSigReal(sig->branch(k), &r);
-                    quad_array->setValue(k, double(r));
-                }
+    } else if (ctype == Typed::kQuad) {
+        QuadArrayNumInst* quad_array = dynamic_cast<QuadArrayNumInst*>(num_array);
+        faustassert(quad_array);
+        if (gGlobal->gMemoryManager >= 1) {
+            for (int k = 0; k < size; k++) {
+                isSigReal(sig->branch(k), &r);
+                setDoubleValue(vname, k, r);
+            }
+        } else {
+            for (int k = 0; k < size; k++) {
+                isSigReal(sig->branch(k), &r);
+                quad_array->setValue(k, double(r));
             }
         }
-        case Typed::kFixedPoint: {
-            FixedPointArrayNumInst* fx_array = dynamic_cast<FixedPointArrayNumInst*>(num_array);
-            faustassert(fx_array);
-            if (gGlobal->gMemoryManager >= 1) {
-                for (int k = 0; k < size; k++) {
-                    isSigReal(sig->branch(k), &r);
-                    setDoubleValue(vname, k, r);
-                }
-            } else {
-                for (int k = 0; k < size; k++) {
-                    isSigReal(sig->branch(k), &r);
-                    fx_array->setValue(k, double(r));
-                }
+    } else if (ctype == Typed::kFixedPoint) {
+        FixedPointArrayNumInst* fx_array = dynamic_cast<FixedPointArrayNumInst*>(num_array);
+        faustassert(fx_array);
+        if (gGlobal->gMemoryManager >= 1) {
+            for (int k = 0; k < size; k++) {
+                isSigReal(sig->branch(k), &r);
+                setDoubleValue(vname, k, r);
+            }
+        } else {
+            for (int k = 0; k < size; k++) {
+                isSigReal(sig->branch(k), &r);
+                fx_array->setValue(k, double(r));
             }
         }
-        default:
-            faustassert(false);
+    } else {
+        faustassert(false);
     }
 
     if (gGlobal->gWaveformInDSP) {
