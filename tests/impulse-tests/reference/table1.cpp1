@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "table1"
 //
-// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Code generated with Faust 2.79.0 (https://faust.grame.fr)
 // Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
@@ -46,33 +46,6 @@ class mydsp : public dsp {
 	};
 
 
-	class SIG1 {
-	  private:
-		int fSampleRate;
-		static float 	fWave2SC[8];
-		int 	idxfWave2SC;
-	  public:
-		int getNumInputs() { return 0; }
-		int getNumOutputs() { return 1; }
-		void init(int sample_rate) {
-			fSampleRate = sample_rate;
-			idxfWave2SC = 0;
-		}
-		void fill(int count, float output[]) {
-			int fullcount = count;
-			for (int index = 0; index < fullcount; index += 128) {
-				int count = std::min(128, fullcount-index);
-				for (int i=0; i<count; i++) {
-					output[i] = fWave2SC[idxfWave2SC];
-					// post processing
-					idxfWave2SC = (idxfWave2SC + 1) % 8;
-				}
-				output += 128;
-			}
-		}
-	};
-
-
 	// Recursion delay iVec0SI is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	int 	iVec0SIState; // Single Delay
@@ -99,9 +72,9 @@ class mydsp : public dsp {
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
 		idxfWave1SC = 0;
-		SIG1 sig1;
-		sig1.init(sample_rate);
-		sig1.fill(8,ftbl1SC);
+		SIG0 sig0;
+		sig0.init(sample_rate);
+		sig0.fill(8,ftbl1SC);
 	}
 	virtual void instanceResetUserInterface() {
 	}
@@ -148,7 +121,6 @@ class mydsp : public dsp {
 };
 
 
-float 	mydsp::SIG0::fWave0SC[8] = {0,0.5f,1,0.5f,0,-0.5f,-1,-0.5f};
+float 	mydsp::SIG0::fWave0SC[8] = {0.0f,0.5f,1.0f,0.5f,0.0f,-0.5f,-1.0f,-0.5f};
 float 	mydsp::ftbl0SC[8];
-float 	mydsp::fWave1SC[8] = {10,10.5f,11,10.5f,10,-10.5f,-11,-10.5f};
-float 	mydsp::SIG1::fWave2SC[8] = {0,0.5f,1,0.5f,0,-0.5f,-1,-0.5f};
+float 	mydsp::fWave1SC[8] = {1e+01f,10.5f,11.0f,10.5f,1e+01f,-10.5f,-11.0f,-10.5f};

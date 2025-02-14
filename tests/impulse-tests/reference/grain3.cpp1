@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "grain3"
 //
-// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Code generated with Faust 2.79.0 (https://faust.grame.fr)
 // Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
@@ -106,9 +106,9 @@ class mydsp : public dsp {
 	// While its definition is of type kZeroDelay
 	float 	fVec9SEState; // Single Delay
 	static float 	ftbl0SI[65536];
-	float 	fConst3KI; // step: 99
+	float 	fConst3KI; // step: 100
 	static float 	ftbl1SI[65536];
-	float 	fConst4KI; // step: 116
+	float 	fConst4KI; // step: 118
 	int fSampleRate;
 
   public:
@@ -151,8 +151,8 @@ class mydsp : public dsp {
 		fConst1KI = (1e+03f / fConst0KI); // step: 10
 		IOTA0 = 0;
 		fConst2KI = (0.0005f * fConst0KI); // step: 63
-		fConst3KI = ftbl0SI[0]; // step: 99
-		fConst4KI = ftbl1SI[0]; // step: 116
+		fConst3KI = ftbl0SI[0]; // step: 100
+		fConst4KI = ftbl1SI[0]; // step: 118
 	}
 	virtual void instanceResetUserInterface() {
 		fslider0 = 1e+02f;
@@ -208,7 +208,7 @@ class mydsp : public dsp {
 		float 	fTemp5SE; // step: 68
 		int 	iTemp6SE; // step: 69
 		float 	fTemp7SE; // step: 73
-		float 	fTemp8SE; // step: 101
+		float 	fTemp8SE; // step: 102
 		FAUSTFLOAT* input0 = input[0]; // Zone 3
 		FAUSTFLOAT* output0 = output[0]; // Zone 3
 		fVec0SE[1] = fVec0SEState;
@@ -231,7 +231,7 @@ class mydsp : public dsp {
 			fTemp5SE = fVec9SE[0]; // step: 68
 			iTemp6SE = int(fTemp5SE); // step: 69
 			fTemp7SE = floorf(fTemp5SE); // step: 73
-			fTemp8SE = (3.1415927f * fTemp1SE); // step: 101
+			fTemp8SE = (3.1415927f * fTemp1SE); // step: 102
 			output0[i] = (FAUSTFLOAT)(((float(iVec4SE[0]) * ((fVec8SE[(IOTA0-std::min(524289, std::max(0, iTemp6SE)))&1048575] * (fTemp7SE + 1.0f + -fTemp5SE /* Sum */)) + ((fTemp5SE + -fTemp7SE /* Sum */) * fVec8SE[(IOTA0-std::min(524289, std::max(0, (iTemp6SE + 1 /* Sum */))))&1048575]) /* Sum */)) * ((fConst3KI * cosf(fTemp8SE)) + (fConst4KI * sinf(fTemp8SE)) /* Sum */)));  // Zone Exec Code
 			// post processing
 			fVec9SE[1] = fVec9SE[0];
