@@ -3081,12 +3081,12 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
     double r;
     int    i;
 
-        // A waveform contains values of the same type (see sigPromotion)
+    // A waveform contains values of the same type (see sigPromotion)
     if (ctype == Typed::kInt32) {
         Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(num_array);
         faustassert(int_array);
         if (gGlobal->gMemoryManager >= 1) {
-                // Unclock and use first value
+            // Unclock and use first value
             Tree h, first;
             isSigClocked(sig->branch(0), h, first);
             isSigInt(first, &i);
@@ -3096,7 +3096,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
                 setIntValue(vname, k, i);
             }
         } else {
-                // Unclock and use first value
+            // Unclock and use first value
             Tree h, first;
             isSigClocked(sig->branch(0), h, first);
             isSigInt(first, &i);
@@ -3110,7 +3110,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
         faustassert(float_array);
         if (gGlobal->gMemoryManager >= 1) {
-                // Unclock and use first value
+            // Unclock and use first value
             Tree h, first;
             isSigClocked(sig->branch(0), h, first);
             isSigReal(first, &r);
@@ -3120,23 +3120,22 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
                 setFloatValue(vname, k, r);
             }
         } else {
-                // Unclock and use first value
+            // Unclock and use first value
             Tree h, first;
             isSigClocked(sig->branch(0), h, first);
             isSigReal(first, &r);
-            float_array->setValue(0, i);
+            float_array->setValue(0, r);
             for (int k = 1; k < size; k++) {
                 isSigReal(sig->branch(k), &r);
                 float_array->setValue(k, float(r));
             }
         }
-        
+
     } else if (ctype == Typed::kDouble) {
-        
         DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
         faustassert(double_array);
         if (gGlobal->gMemoryManager >= 1) {
-                // Unclock and use first value
+            // Unclock and use first value
             Tree h, first;
             isSigClocked(sig->branch(0), h, first);
             isSigReal(first, &r);
@@ -3146,11 +3145,11 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
                 setDoubleValue(vname, k, r);
             }
         } else {
-                // Unclock and use first value
+            // Unclock and use first value
             Tree h, first;
             isSigClocked(sig->branch(0), h, first);
             isSigReal(first, &r);
-            double_array->setValue(0, i);
+            double_array->setValue(0, r);
             for (int k = 1; k < size; k++) {
                 isSigReal(sig->branch(k), &r);
                 double_array->setValue(k, r);
@@ -3160,7 +3159,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         QuadArrayNumInst* quad_array = dynamic_cast<QuadArrayNumInst*>(num_array);
         faustassert(quad_array);
         if (gGlobal->gMemoryManager >= 1) {
-                // Unclock and use first value
+            // Unclock and use first value
             Tree h, first;
             isSigClocked(sig->branch(0), h, first);
             isSigReal(first, &r);
@@ -3170,11 +3169,11 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
                 setDoubleValue(vname, k, r);
             }
         } else {
-                // Unclock and use first value
+            // Unclock and use first value
             Tree h, first;
             isSigClocked(sig->branch(0), h, first);
             isSigReal(first, &r);
-            quad_array->setValue(0, i);
+            quad_array->setValue(0, r);
             for (int k = 1; k < size; k++) {
                 isSigReal(sig->branch(k), &r);
                 quad_array->setValue(k, double(r));
@@ -3184,7 +3183,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         FixedPointArrayNumInst* fx_array = dynamic_cast<FixedPointArrayNumInst*>(num_array);
         faustassert(fx_array);
         if (gGlobal->gMemoryManager >= 1) {
-                // Unclock and use first value
+            // Unclock and use first value
             Tree h, first;
             isSigClocked(sig->branch(0), h, first);
             isSigReal(first, &r);
@@ -3194,11 +3193,11 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
                 setDoubleValue(vname, k, r);
             }
         } else {
-                // Unclock and use first value
+            // Unclock and use first value
             Tree h, first;
             isSigClocked(sig->branch(0), h, first);
             isSigReal(first, &r);
-            fx_array->setValue(0, i);
+            fx_array->setValue(0, r);
             for (int k = 0; k < size; k++) {
                 isSigReal(sig->branch(k), &r);
                 fx_array->setValue(k, double(r));
@@ -3207,7 +3206,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
     } else {
         faustassert(false);
     }
-    
+
     if (gGlobal->gWaveformInDSP) {
         // waveform are allocated in the DSP struct
         pushStaticInitMethod(IB::genDecStaticStructVar(vname, type, num_array));
