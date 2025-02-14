@@ -12,9 +12,9 @@ DeclareStructTypeInst(StructType<"Soundfile",("void*", fBuffers)("int*", fLength
 
 BlockInst 
 	OpenVerticalBox("Freeverb")
-	AddHorizontalSlider("Damp", fHslider2, 1.0f, 0.0f, 1.0f, 0.025f)
-	AddHorizontalSlider("RoomSize", fHslider1, 1.0f, 0.0f, 1.0f, 0.025f)
-	AddHorizontalSlider("Wet", fHslider0, 0.93f, 0.0f, 1.0f, 0.025f)
+	AddHorizontalSlider("Damp", fHslider1, 1.0f, 0.0f, 1.0f, 0.025f)
+	AddHorizontalSlider("RoomSize", fHslider0, 1.0f, 0.0f, 1.0f, 0.025f)
+	AddHorizontalSlider("Wet", fHslider2, 0.93f, 0.0f, 1.0f, 0.025f)
 	CloseboxInst
 EndBlockInst
 
@@ -22,7 +22,7 @@ EndBlockInst
 
 ======= DSP struct begin ==========
 
-DeclareStructTypeInst(StructType<"mydsp",("FAUSTFLOAT", fHslider0)("FAUSTFLOAT", fHslider1)("FAUSTFLOAT", fHslider2)("float[2]", fRec9)("int", IOTA0)("float[2048]", fVec0)("float[2]", fRec8)("float[2]", fRec11)("float[2048]", fVec1)("float[2]", fRec10)("float[2]", fRec13)("float[2048]", fVec2)("float[2]", fRec12)("float[2]", fRec15)("float[2048]", fVec3)("float[2]", fRec14)("float[2]", fRec17)("float[2048]", fVec4)("float[2]", fRec16)("float[2]", fRec19)("float[2048]", fVec5)("float[2]", fRec18)("float[2]", fRec21)("float[2048]", fVec6)("float[2]", fRec20)("float[2]", fRec23)("float[2048]", fVec7)("float[2]", fRec22)("float[1024]", fVec8)("float[2]", fRec6)("float[512]", fVec9)("float[2]", fRec4)("float[512]", fVec10)("float[2]", fRec2)("float[256]", fVec11)("float[2]", fRec0)("float[2]", fRec33)("float[2048]", fVec12)("float[2]", fRec32)("float[2]", fRec35)("float[2048]", fVec13)("float[2]", fRec34)("float[2]", fRec37)("float[2048]", fVec14)("float[2]", fRec36)("float[2]", fRec39)("float[2048]", fVec15)("float[2]", fRec38)("float[2]", fRec41)("float[2048]", fVec16)("float[2]", fRec40)("float[2]", fRec43)("float[2048]", fVec17)("float[2]", fRec42)("float[2]", fRec45)("float[2048]", fVec18)("float[2]", fRec44)("float[2]", fRec47)("float[2048]", fVec19)("float[2]", fRec46)("float[1024]", fVec20)("float[2]", fRec30)("float[512]", fVec21)("float[2]", fRec28)("float[512]", fVec22)("float[2]", fRec26)("float[256]", fVec23)("float[2]", fRec24)("int", fSampleRate)>)
+DeclareStructTypeInst(StructType<"mydsp",("FAUSTFLOAT", fHslider0)("FAUSTFLOAT", fHslider1)("int", IOTA0)("float[2]", fVec0SE)("float[2048]", fVec3SE)("float[2]", fVec4SE)("float[2048]", fVec7SE)("float[2]", fVec8SE)("float[2048]", fVec11SE)("float[2]", fVec12SE)("float[2048]", fVec15SE)("float[2]", fVec16SE)("float[2048]", fVec19SE)("float[2]", fVec20SE)("float[2048]", fVec23SE)("float[2]", fVec24SE)("float[2048]", fVec27SE)("float[2]", fVec28SE)("float[2048]", fVec31SE)("float[2]", fRec8SE)("float[2]", fVec1SE)("float[2]", fVec5SE)("float[2]", fVec9SE)("float[2]", fVec13SE)("float[2]", fVec17SE)("float[2]", fVec21SE)("float[2]", fVec25SE)("float[2]", fVec29SE)("float[1024]", fVec32SE)("float[2]", fRec17SE)("float[512]", fVec51SE)("float[2]", fRec19SE)("float[512]", fVec55SE)("float[2]", fRec21SE)("float[256]", fVec59SE)("FAUSTFLOAT", fHslider2)("float[2]", fVec64SE)("float[2048]", fVec67SE)("float[2]", fVec68SE)("float[2048]", fVec71SE)("float[2]", fVec72SE)("float[2048]", fVec75SE)("float[2]", fVec76SE)("float[2048]", fVec79SE)("float[2]", fVec80SE)("float[2048]", fVec83SE)("float[2]", fVec84SE)("float[2048]", fVec87SE)("float[2]", fVec88SE)("float[2048]", fVec91SE)("float[2]", fVec92SE)("float[2048]", fVec95SE)("float[2]", fRec32SE)("float[2]", fVec65SE)("float[2]", fVec69SE)("float[2]", fVec73SE)("float[2]", fVec77SE)("float[2]", fVec81SE)("float[2]", fVec85SE)("float[2]", fVec89SE)("float[2]", fVec93SE)("float[1024]", fVec96SE)("float[2]", fRec41SE)("float[512]", fVec115SE)("float[2]", fRec43SE)("float[512]", fVec119SE)("float[2]", fRec45SE)("float[256]", fVec123SE)("int", fSampleRate)>)
 
 ======= DSP struct end ==========
 
@@ -49,9 +49,9 @@ EndBlockInst
 ======= ResetUI begin ==========
 
 BlockInst 
-	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Double(0.93f)))
+	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Double(1.0f)))
 	StoreVarInst(Address(fHslider1, kStruct), CastInst("FAUSTFLOAT", Double(1.0f)))
-	StoreVarInst(Address(fHslider2, kStruct), CastInst("FAUSTFLOAT", Double(1.0f)))
+	StoreVarInst(Address(fHslider2, kStruct), CastInst("FAUSTFLOAT", Double(0.93f)))
 EndBlockInst
 
 ======= ResetUI end ==========
@@ -59,21 +59,21 @@ EndBlockInst
 ======= Clear begin ==========
 
 BlockInst 
+	StoreVarInst(Address(IOTA0, kStruct), Int32(0))
 	ForLoopInst 
 		DeclareVarInst("int", l0, kLoop, Int32(0))
 		BinopInst("<", LoadVarInst(Address(l0, kLoop)), Int32(2))
 		StoreVarInst(Address(l0, kLoop), BinopInst("+", LoadVarInst(Address(l0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec9, kStruct)[LoadVarInst(Address(l0, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec0SE, kStruct)[LoadVarInst(Address(l0, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
-	StoreVarInst(Address(IOTA0, kStruct), Int32(0))
 	ForLoopInst 
 		DeclareVarInst("int", l1, kLoop, Int32(0))
 		BinopInst("<", LoadVarInst(Address(l1, kLoop)), Int32(2048))
 		StoreVarInst(Address(l1, kLoop), BinopInst("+", LoadVarInst(Address(l1, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec0, kStruct)[LoadVarInst(Address(l1, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec3SE, kStruct)[LoadVarInst(Address(l1, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -81,31 +81,31 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l2, kLoop)), Int32(2))
 		StoreVarInst(Address(l2, kLoop), BinopInst("+", LoadVarInst(Address(l2, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec8, kStruct)[LoadVarInst(Address(l2, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec4SE, kStruct)[LoadVarInst(Address(l2, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l3, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l3, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l3, kLoop)), Int32(2048))
 		StoreVarInst(Address(l3, kLoop), BinopInst("+", LoadVarInst(Address(l3, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec11, kStruct)[LoadVarInst(Address(l3, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec7SE, kStruct)[LoadVarInst(Address(l3, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l4, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l4, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l4, kLoop)), Int32(2))
 		StoreVarInst(Address(l4, kLoop), BinopInst("+", LoadVarInst(Address(l4, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec1, kStruct)[LoadVarInst(Address(l4, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec8SE, kStruct)[LoadVarInst(Address(l4, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l5, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l5, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l5, kLoop)), Int32(2048))
 		StoreVarInst(Address(l5, kLoop), BinopInst("+", LoadVarInst(Address(l5, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec10, kStruct)[LoadVarInst(Address(l5, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec11SE, kStruct)[LoadVarInst(Address(l5, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -113,7 +113,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l6, kLoop)), Int32(2))
 		StoreVarInst(Address(l6, kLoop), BinopInst("+", LoadVarInst(Address(l6, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec13, kStruct)[LoadVarInst(Address(l6, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec12SE, kStruct)[LoadVarInst(Address(l6, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -121,7 +121,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l7, kLoop)), Int32(2048))
 		StoreVarInst(Address(l7, kLoop), BinopInst("+", LoadVarInst(Address(l7, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec2, kStruct)[LoadVarInst(Address(l7, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec15SE, kStruct)[LoadVarInst(Address(l7, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -129,31 +129,31 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l8, kLoop)), Int32(2))
 		StoreVarInst(Address(l8, kLoop), BinopInst("+", LoadVarInst(Address(l8, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec12, kStruct)[LoadVarInst(Address(l8, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec16SE, kStruct)[LoadVarInst(Address(l8, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l9, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l9, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l9, kLoop)), Int32(2048))
 		StoreVarInst(Address(l9, kLoop), BinopInst("+", LoadVarInst(Address(l9, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec15, kStruct)[LoadVarInst(Address(l9, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec19SE, kStruct)[LoadVarInst(Address(l9, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l10, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l10, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l10, kLoop)), Int32(2))
 		StoreVarInst(Address(l10, kLoop), BinopInst("+", LoadVarInst(Address(l10, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec3, kStruct)[LoadVarInst(Address(l10, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec20SE, kStruct)[LoadVarInst(Address(l10, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l11, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l11, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l11, kLoop)), Int32(2048))
 		StoreVarInst(Address(l11, kLoop), BinopInst("+", LoadVarInst(Address(l11, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec14, kStruct)[LoadVarInst(Address(l11, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec23SE, kStruct)[LoadVarInst(Address(l11, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -161,7 +161,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l12, kLoop)), Int32(2))
 		StoreVarInst(Address(l12, kLoop), BinopInst("+", LoadVarInst(Address(l12, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec17, kStruct)[LoadVarInst(Address(l12, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec24SE, kStruct)[LoadVarInst(Address(l12, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -169,7 +169,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l13, kLoop)), Int32(2048))
 		StoreVarInst(Address(l13, kLoop), BinopInst("+", LoadVarInst(Address(l13, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec4, kStruct)[LoadVarInst(Address(l13, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec27SE, kStruct)[LoadVarInst(Address(l13, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -177,23 +177,23 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l14, kLoop)), Int32(2))
 		StoreVarInst(Address(l14, kLoop), BinopInst("+", LoadVarInst(Address(l14, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec16, kStruct)[LoadVarInst(Address(l14, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec28SE, kStruct)[LoadVarInst(Address(l14, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l15, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l15, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l15, kLoop)), Int32(2048))
 		StoreVarInst(Address(l15, kLoop), BinopInst("+", LoadVarInst(Address(l15, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec19, kStruct)[LoadVarInst(Address(l15, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec31SE, kStruct)[LoadVarInst(Address(l15, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l16, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l16, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l16, kLoop)), Int32(2))
 		StoreVarInst(Address(l16, kLoop), BinopInst("+", LoadVarInst(Address(l16, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec5, kStruct)[LoadVarInst(Address(l16, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec8SE, kStruct)[LoadVarInst(Address(l16, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -201,7 +201,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l17, kLoop)), Int32(2))
 		StoreVarInst(Address(l17, kLoop), BinopInst("+", LoadVarInst(Address(l17, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec18, kStruct)[LoadVarInst(Address(l17, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec1SE, kStruct)[LoadVarInst(Address(l17, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -209,15 +209,15 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l18, kLoop)), Int32(2))
 		StoreVarInst(Address(l18, kLoop), BinopInst("+", LoadVarInst(Address(l18, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec21, kStruct)[LoadVarInst(Address(l18, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec5SE, kStruct)[LoadVarInst(Address(l18, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l19, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l19, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l19, kLoop)), Int32(2))
 		StoreVarInst(Address(l19, kLoop), BinopInst("+", LoadVarInst(Address(l19, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec6, kStruct)[LoadVarInst(Address(l19, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec9SE, kStruct)[LoadVarInst(Address(l19, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -225,7 +225,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l20, kLoop)), Int32(2))
 		StoreVarInst(Address(l20, kLoop), BinopInst("+", LoadVarInst(Address(l20, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec20, kStruct)[LoadVarInst(Address(l20, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec13SE, kStruct)[LoadVarInst(Address(l20, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -233,15 +233,15 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l21, kLoop)), Int32(2))
 		StoreVarInst(Address(l21, kLoop), BinopInst("+", LoadVarInst(Address(l21, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec23, kStruct)[LoadVarInst(Address(l21, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec17SE, kStruct)[LoadVarInst(Address(l21, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l22, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l22, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l22, kLoop)), Int32(2))
 		StoreVarInst(Address(l22, kLoop), BinopInst("+", LoadVarInst(Address(l22, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec7, kStruct)[LoadVarInst(Address(l22, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec21SE, kStruct)[LoadVarInst(Address(l22, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -249,71 +249,71 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l23, kLoop)), Int32(2))
 		StoreVarInst(Address(l23, kLoop), BinopInst("+", LoadVarInst(Address(l23, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec22, kStruct)[LoadVarInst(Address(l23, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec25SE, kStruct)[LoadVarInst(Address(l23, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l24, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l24, kLoop)), Int32(1024))
+		BinopInst("<", LoadVarInst(Address(l24, kLoop)), Int32(2))
 		StoreVarInst(Address(l24, kLoop), BinopInst("+", LoadVarInst(Address(l24, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec8, kStruct)[LoadVarInst(Address(l24, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec29SE, kStruct)[LoadVarInst(Address(l24, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l25, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l25, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l25, kLoop)), Int32(1024))
 		StoreVarInst(Address(l25, kLoop), BinopInst("+", LoadVarInst(Address(l25, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec6, kStruct)[LoadVarInst(Address(l25, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec32SE, kStruct)[LoadVarInst(Address(l25, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l26, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l26, kLoop)), Int32(512))
+		BinopInst("<", LoadVarInst(Address(l26, kLoop)), Int32(2))
 		StoreVarInst(Address(l26, kLoop), BinopInst("+", LoadVarInst(Address(l26, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec9, kStruct)[LoadVarInst(Address(l26, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec17SE, kStruct)[LoadVarInst(Address(l26, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l27, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l27, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l27, kLoop)), Int32(512))
 		StoreVarInst(Address(l27, kLoop), BinopInst("+", LoadVarInst(Address(l27, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec4, kStruct)[LoadVarInst(Address(l27, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec51SE, kStruct)[LoadVarInst(Address(l27, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l28, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l28, kLoop)), Int32(512))
+		BinopInst("<", LoadVarInst(Address(l28, kLoop)), Int32(2))
 		StoreVarInst(Address(l28, kLoop), BinopInst("+", LoadVarInst(Address(l28, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec10, kStruct)[LoadVarInst(Address(l28, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec19SE, kStruct)[LoadVarInst(Address(l28, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l29, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l29, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l29, kLoop)), Int32(512))
 		StoreVarInst(Address(l29, kLoop), BinopInst("+", LoadVarInst(Address(l29, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec2, kStruct)[LoadVarInst(Address(l29, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec55SE, kStruct)[LoadVarInst(Address(l29, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l30, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l30, kLoop)), Int32(256))
+		BinopInst("<", LoadVarInst(Address(l30, kLoop)), Int32(2))
 		StoreVarInst(Address(l30, kLoop), BinopInst("+", LoadVarInst(Address(l30, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec11, kStruct)[LoadVarInst(Address(l30, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec21SE, kStruct)[LoadVarInst(Address(l30, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l31, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l31, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l31, kLoop)), Int32(256))
 		StoreVarInst(Address(l31, kLoop), BinopInst("+", LoadVarInst(Address(l31, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec0, kStruct)[LoadVarInst(Address(l31, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec59SE, kStruct)[LoadVarInst(Address(l31, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -321,7 +321,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l32, kLoop)), Int32(2))
 		StoreVarInst(Address(l32, kLoop), BinopInst("+", LoadVarInst(Address(l32, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec33, kStruct)[LoadVarInst(Address(l32, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec64SE, kStruct)[LoadVarInst(Address(l32, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -329,7 +329,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l33, kLoop)), Int32(2048))
 		StoreVarInst(Address(l33, kLoop), BinopInst("+", LoadVarInst(Address(l33, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec12, kStruct)[LoadVarInst(Address(l33, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec67SE, kStruct)[LoadVarInst(Address(l33, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -337,31 +337,31 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l34, kLoop)), Int32(2))
 		StoreVarInst(Address(l34, kLoop), BinopInst("+", LoadVarInst(Address(l34, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec32, kStruct)[LoadVarInst(Address(l34, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec68SE, kStruct)[LoadVarInst(Address(l34, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l35, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l35, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l35, kLoop)), Int32(2048))
 		StoreVarInst(Address(l35, kLoop), BinopInst("+", LoadVarInst(Address(l35, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec35, kStruct)[LoadVarInst(Address(l35, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec71SE, kStruct)[LoadVarInst(Address(l35, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l36, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l36, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l36, kLoop)), Int32(2))
 		StoreVarInst(Address(l36, kLoop), BinopInst("+", LoadVarInst(Address(l36, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec13, kStruct)[LoadVarInst(Address(l36, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec72SE, kStruct)[LoadVarInst(Address(l36, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l37, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l37, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l37, kLoop)), Int32(2048))
 		StoreVarInst(Address(l37, kLoop), BinopInst("+", LoadVarInst(Address(l37, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec34, kStruct)[LoadVarInst(Address(l37, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec75SE, kStruct)[LoadVarInst(Address(l37, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -369,7 +369,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l38, kLoop)), Int32(2))
 		StoreVarInst(Address(l38, kLoop), BinopInst("+", LoadVarInst(Address(l38, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec37, kStruct)[LoadVarInst(Address(l38, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec76SE, kStruct)[LoadVarInst(Address(l38, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -377,7 +377,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l39, kLoop)), Int32(2048))
 		StoreVarInst(Address(l39, kLoop), BinopInst("+", LoadVarInst(Address(l39, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec14, kStruct)[LoadVarInst(Address(l39, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec79SE, kStruct)[LoadVarInst(Address(l39, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -385,31 +385,31 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l40, kLoop)), Int32(2))
 		StoreVarInst(Address(l40, kLoop), BinopInst("+", LoadVarInst(Address(l40, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec36, kStruct)[LoadVarInst(Address(l40, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec80SE, kStruct)[LoadVarInst(Address(l40, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l41, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l41, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l41, kLoop)), Int32(2048))
 		StoreVarInst(Address(l41, kLoop), BinopInst("+", LoadVarInst(Address(l41, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec39, kStruct)[LoadVarInst(Address(l41, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec83SE, kStruct)[LoadVarInst(Address(l41, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l42, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l42, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l42, kLoop)), Int32(2))
 		StoreVarInst(Address(l42, kLoop), BinopInst("+", LoadVarInst(Address(l42, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec15, kStruct)[LoadVarInst(Address(l42, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec84SE, kStruct)[LoadVarInst(Address(l42, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l43, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l43, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l43, kLoop)), Int32(2048))
 		StoreVarInst(Address(l43, kLoop), BinopInst("+", LoadVarInst(Address(l43, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec38, kStruct)[LoadVarInst(Address(l43, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec87SE, kStruct)[LoadVarInst(Address(l43, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -417,7 +417,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l44, kLoop)), Int32(2))
 		StoreVarInst(Address(l44, kLoop), BinopInst("+", LoadVarInst(Address(l44, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec41, kStruct)[LoadVarInst(Address(l44, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec88SE, kStruct)[LoadVarInst(Address(l44, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -425,7 +425,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l45, kLoop)), Int32(2048))
 		StoreVarInst(Address(l45, kLoop), BinopInst("+", LoadVarInst(Address(l45, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec16, kStruct)[LoadVarInst(Address(l45, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec91SE, kStruct)[LoadVarInst(Address(l45, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -433,23 +433,23 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l46, kLoop)), Int32(2))
 		StoreVarInst(Address(l46, kLoop), BinopInst("+", LoadVarInst(Address(l46, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec40, kStruct)[LoadVarInst(Address(l46, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec92SE, kStruct)[LoadVarInst(Address(l46, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l47, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l47, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l47, kLoop)), Int32(2048))
 		StoreVarInst(Address(l47, kLoop), BinopInst("+", LoadVarInst(Address(l47, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec43, kStruct)[LoadVarInst(Address(l47, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec95SE, kStruct)[LoadVarInst(Address(l47, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l48, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l48, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l48, kLoop)), Int32(2))
 		StoreVarInst(Address(l48, kLoop), BinopInst("+", LoadVarInst(Address(l48, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec17, kStruct)[LoadVarInst(Address(l48, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec32SE, kStruct)[LoadVarInst(Address(l48, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -457,7 +457,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l49, kLoop)), Int32(2))
 		StoreVarInst(Address(l49, kLoop), BinopInst("+", LoadVarInst(Address(l49, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec42, kStruct)[LoadVarInst(Address(l49, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec65SE, kStruct)[LoadVarInst(Address(l49, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -465,15 +465,15 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l50, kLoop)), Int32(2))
 		StoreVarInst(Address(l50, kLoop), BinopInst("+", LoadVarInst(Address(l50, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec45, kStruct)[LoadVarInst(Address(l50, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec69SE, kStruct)[LoadVarInst(Address(l50, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l51, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l51, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l51, kLoop)), Int32(2))
 		StoreVarInst(Address(l51, kLoop), BinopInst("+", LoadVarInst(Address(l51, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec18, kStruct)[LoadVarInst(Address(l51, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec73SE, kStruct)[LoadVarInst(Address(l51, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -481,7 +481,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l52, kLoop)), Int32(2))
 		StoreVarInst(Address(l52, kLoop), BinopInst("+", LoadVarInst(Address(l52, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec44, kStruct)[LoadVarInst(Address(l52, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec77SE, kStruct)[LoadVarInst(Address(l52, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -489,15 +489,15 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l53, kLoop)), Int32(2))
 		StoreVarInst(Address(l53, kLoop), BinopInst("+", LoadVarInst(Address(l53, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec47, kStruct)[LoadVarInst(Address(l53, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec81SE, kStruct)[LoadVarInst(Address(l53, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l54, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l54, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l54, kLoop)), Int32(2))
 		StoreVarInst(Address(l54, kLoop), BinopInst("+", LoadVarInst(Address(l54, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec19, kStruct)[LoadVarInst(Address(l54, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec85SE, kStruct)[LoadVarInst(Address(l54, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -505,71 +505,71 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l55, kLoop)), Int32(2))
 		StoreVarInst(Address(l55, kLoop), BinopInst("+", LoadVarInst(Address(l55, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec46, kStruct)[LoadVarInst(Address(l55, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec89SE, kStruct)[LoadVarInst(Address(l55, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l56, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l56, kLoop)), Int32(1024))
+		BinopInst("<", LoadVarInst(Address(l56, kLoop)), Int32(2))
 		StoreVarInst(Address(l56, kLoop), BinopInst("+", LoadVarInst(Address(l56, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec20, kStruct)[LoadVarInst(Address(l56, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec93SE, kStruct)[LoadVarInst(Address(l56, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l57, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l57, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l57, kLoop)), Int32(1024))
 		StoreVarInst(Address(l57, kLoop), BinopInst("+", LoadVarInst(Address(l57, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec30, kStruct)[LoadVarInst(Address(l57, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec96SE, kStruct)[LoadVarInst(Address(l57, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l58, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l58, kLoop)), Int32(512))
+		BinopInst("<", LoadVarInst(Address(l58, kLoop)), Int32(2))
 		StoreVarInst(Address(l58, kLoop), BinopInst("+", LoadVarInst(Address(l58, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec21, kStruct)[LoadVarInst(Address(l58, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec41SE, kStruct)[LoadVarInst(Address(l58, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l59, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l59, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l59, kLoop)), Int32(512))
 		StoreVarInst(Address(l59, kLoop), BinopInst("+", LoadVarInst(Address(l59, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec28, kStruct)[LoadVarInst(Address(l59, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec115SE, kStruct)[LoadVarInst(Address(l59, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l60, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l60, kLoop)), Int32(512))
+		BinopInst("<", LoadVarInst(Address(l60, kLoop)), Int32(2))
 		StoreVarInst(Address(l60, kLoop), BinopInst("+", LoadVarInst(Address(l60, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec22, kStruct)[LoadVarInst(Address(l60, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec43SE, kStruct)[LoadVarInst(Address(l60, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l61, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l61, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l61, kLoop)), Int32(512))
 		StoreVarInst(Address(l61, kLoop), BinopInst("+", LoadVarInst(Address(l61, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec26, kStruct)[LoadVarInst(Address(l61, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec119SE, kStruct)[LoadVarInst(Address(l61, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l62, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l62, kLoop)), Int32(256))
+		BinopInst("<", LoadVarInst(Address(l62, kLoop)), Int32(2))
 		StoreVarInst(Address(l62, kLoop), BinopInst("+", LoadVarInst(Address(l62, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec23, kStruct)[LoadVarInst(Address(l62, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec45SE, kStruct)[LoadVarInst(Address(l62, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l63, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l63, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l63, kLoop)), Int32(256))
 		StoreVarInst(Address(l63, kLoop), BinopInst("+", LoadVarInst(Address(l63, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec24, kStruct)[LoadVarInst(Address(l63, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec123SE, kStruct)[LoadVarInst(Address(l63, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 EndBlockInst
@@ -578,151 +578,139 @@ EndBlockInst
 
 ======= Compute control begin ==========
 
-Instructions complexity : Load = 9 Store = 0 Binop = 5 [ { Real(*) = 2 } { Real(+) = 1 } { Real(-) = 2 } ] Mathop = 0 Numbers = 9 Declare = 9 Cast = 3 Select = 0 Loop = 0
+Instructions complexity : Load = 9 Store = 0 Binop = 5 [ { Real(*) = 2 } { Real(+) = 3 } ] Mathop = 0 Numbers = 9 Declare = 9 Cast = 3 Select = 0 Loop = 0
 
 BlockInst 
 	DeclareVarInst("FAUSTFLOAT*", input0, kStack, LoadVarInst(Address(inputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", input1, kStack, LoadVarInst(Address(inputs, kFunArgs)[Int32(1)]))
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output1, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(1)]))
-	DeclareVarInst("float", fSlow0, kStack, CastInst("float", LoadVarInst(Address(fHslider0, kStruct))))
-	DeclareVarInst("float", fSlow1, kStack, BinopInst("+", BinopInst("*", Float(0.28f), CastInst("float", LoadVarInst(Address(fHslider1, kStruct)))), Float(0.7f)))
-	DeclareVarInst("float", fSlow2, kStack, BinopInst("*", Float(0.4f), CastInst("float", LoadVarInst(Address(fHslider2, kStruct)))))
-	DeclareVarInst("float", fSlow3, kStack, BinopInst("-", Float(1.0f), LoadVarInst(Address(fSlow2, kStack))))
-	DeclareVarInst("float", fSlow4, kStack, BinopInst("-", Float(1.0f), LoadVarInst(Address(fSlow0, kStack))))
+	DeclareVarInst("float", fSlow0BE, kStack, BinopInst("+", BinopInst("*", Float(0.28f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))), Float(0.7f)))
+	DeclareVarInst("float", fSlow1BE, kStack, BinopInst("*", Float(0.4f), CastInst("float", LoadVarInst(Address(fHslider1, kStruct)))))
+	DeclareVarInst("float", fSlow2BE, kStack, BinopInst("+", Float(1.0f), MinusInst(LoadVarInst(Address(fSlow1BE, kStack)))))
+	DeclareVarInst("float", fSlow3BE, kStack, CastInst("float", LoadVarInst(Address(fHslider2, kStruct))))
+	DeclareVarInst("float", fSlow4BE, kStack, BinopInst("+", Float(1.0f), MinusInst(LoadVarInst(Address(fSlow3BE, kStack)))))
 EndBlockInst
 
 ======= Compute control end ==========
 
 ======= Compute DSP begin ==========
 
-Instructions complexity : Load = 292 Store = 108 Binop = 201 [ { Int(&) = 48 } { Int(+) = 2 } { Int(-) = 24 } { Int(<) = 1 } { Real(*) = 61 } { Real(+) = 57 } { Real(-) = 8 } ] Mathop = 0 Numbers = 284 Declare = 14 Cast = 4 Select = 0 Loop = 1
+Instructions complexity : Load = 406 Store = 68 Binop = 367 [ { Int(&) = 160 } { Int(+) = 2 } { Int(-) = 64 } { Int(<) = 1 } { Real(*) = 61 } { Real(+) = 79 } ] Mathop = 0 Numbers = 236 Declare = 42 Cast = 4 Select = 0 Loop = 1
 
 ForLoopInst 
 	DeclareVarInst("int", i0, kLoop, Int32(0))
 	BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 	StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 	BlockInst 
-		StoreVarInst(Address(fRec9, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec9, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec8, kStruct)[Int32(1)]))))
-		DeclareVarInst("float", fTemp0, kStack, CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])))
-		DeclareVarInst("float", fTemp1, kStack, CastInst("float", LoadVarInst(Address(input1, kStack)[LoadVarInst(Address(i0, kLoop))])))
-		DeclareVarInst("float", fTemp2, kStack, BinopInst("*", Float(0.015f), BinopInst("+", LoadVarInst(Address(fTemp0, kStack)), LoadVarInst(Address(fTemp1, kStack)))))
-		StoreVarInst(Address(fVec0, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec9, kStruct)[Int32(0)])), LoadVarInst(Address(fTemp2, kStack))))
-		StoreVarInst(Address(fRec8, kStruct)[Int32(0)], LoadVarInst(Address(fVec0, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1116)), Int32(2047))]))
-		StoreVarInst(Address(fRec11, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec11, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec10, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec1, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec11, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec10, kStruct)[Int32(0)], LoadVarInst(Address(fVec1, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1188)), Int32(2047))]))
-		StoreVarInst(Address(fRec13, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec13, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec12, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec2, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec13, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec12, kStruct)[Int32(0)], LoadVarInst(Address(fVec2, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1277)), Int32(2047))]))
-		StoreVarInst(Address(fRec15, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec15, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec14, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec3, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec15, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec14, kStruct)[Int32(0)], LoadVarInst(Address(fVec3, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1356)), Int32(2047))]))
-		StoreVarInst(Address(fRec17, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec17, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec16, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec4, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec17, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec16, kStruct)[Int32(0)], LoadVarInst(Address(fVec4, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1422)), Int32(2047))]))
-		StoreVarInst(Address(fRec19, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec19, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec18, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec5, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec19, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec18, kStruct)[Int32(0)], LoadVarInst(Address(fVec5, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1491)), Int32(2047))]))
-		StoreVarInst(Address(fRec21, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec21, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec20, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec6, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec21, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec20, kStruct)[Int32(0)], LoadVarInst(Address(fVec6, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1557)), Int32(2047))]))
-		StoreVarInst(Address(fRec23, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec23, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec22, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec7, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec23, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec22, kStruct)[Int32(0)], LoadVarInst(Address(fVec7, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1617)), Int32(2047))]))
-		DeclareVarInst("float", fTemp3, kStack, BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fRec8, kStruct)[Int32(0)]), LoadVarInst(Address(fRec10, kStruct)[Int32(0)])), LoadVarInst(Address(fRec12, kStruct)[Int32(0)])), LoadVarInst(Address(fRec14, kStruct)[Int32(0)])), LoadVarInst(Address(fRec16, kStruct)[Int32(0)])), LoadVarInst(Address(fRec18, kStruct)[Int32(0)])), LoadVarInst(Address(fRec20, kStruct)[Int32(0)])), LoadVarInst(Address(fRec22, kStruct)[Int32(0)])))
-		StoreVarInst(Address(fVec8, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1023))], BinopInst("+", LoadVarInst(Address(fTemp3, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec6, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fRec6, kStruct)[Int32(0)], LoadVarInst(Address(fVec8, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(556)), Int32(1023))]))
-		DeclareVarInst("float", fRec7, kStack, BinopInst("-", LoadVarInst(Address(fRec6, kStruct)[Int32(1)]), LoadVarInst(Address(fTemp3, kStack))))
-		StoreVarInst(Address(fVec9, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fRec7, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec4, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fRec4, kStruct)[Int32(0)], LoadVarInst(Address(fVec9, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(441)), Int32(511))]))
-		DeclareVarInst("float", fRec5, kStack, BinopInst("-", LoadVarInst(Address(fRec4, kStruct)[Int32(1)]), LoadVarInst(Address(fRec7, kStack))))
-		StoreVarInst(Address(fVec10, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fRec5, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec2, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fRec2, kStruct)[Int32(0)], LoadVarInst(Address(fVec10, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(341)), Int32(511))]))
-		DeclareVarInst("float", fRec3, kStack, BinopInst("-", LoadVarInst(Address(fRec2, kStruct)[Int32(1)]), LoadVarInst(Address(fRec5, kStack))))
-		StoreVarInst(Address(fVec11, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(255))], BinopInst("+", LoadVarInst(Address(fRec3, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec0, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fRec0, kStruct)[Int32(0)], LoadVarInst(Address(fVec11, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(225)), Int32(255))]))
-		DeclareVarInst("float", fRec1, kStack, BinopInst("-", LoadVarInst(Address(fRec0, kStruct)[Int32(1)]), LoadVarInst(Address(fRec3, kStack))))
-		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow0, kStack)), LoadVarInst(Address(fRec1, kStack))), BinopInst("*", LoadVarInst(Address(fSlow4, kStack)), LoadVarInst(Address(fTemp0, kStack))))))
-		StoreVarInst(Address(fRec33, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec33, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec32, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec12, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec33, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec32, kStruct)[Int32(0)], LoadVarInst(Address(fVec12, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1139)), Int32(2047))]))
-		StoreVarInst(Address(fRec35, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec35, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec34, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec13, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec35, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec34, kStruct)[Int32(0)], LoadVarInst(Address(fVec13, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1211)), Int32(2047))]))
-		StoreVarInst(Address(fRec37, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec37, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec36, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec14, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec37, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec36, kStruct)[Int32(0)], LoadVarInst(Address(fVec14, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1300)), Int32(2047))]))
-		StoreVarInst(Address(fRec39, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec39, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec38, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec15, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec39, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec38, kStruct)[Int32(0)], LoadVarInst(Address(fVec15, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1379)), Int32(2047))]))
-		StoreVarInst(Address(fRec41, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec41, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec40, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec16, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec41, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec40, kStruct)[Int32(0)], LoadVarInst(Address(fVec16, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1445)), Int32(2047))]))
-		StoreVarInst(Address(fRec43, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec43, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec42, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec17, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec43, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec42, kStruct)[Int32(0)], LoadVarInst(Address(fVec17, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1514)), Int32(2047))]))
-		StoreVarInst(Address(fRec45, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec45, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec44, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec18, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec45, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec44, kStruct)[Int32(0)], LoadVarInst(Address(fVec18, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1580)), Int32(2047))]))
-		StoreVarInst(Address(fRec47, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec47, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec46, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fVec19, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec47, kStruct)[Int32(0)]))))
-		StoreVarInst(Address(fRec46, kStruct)[Int32(0)], LoadVarInst(Address(fVec19, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1640)), Int32(2047))]))
-		DeclareVarInst("float", fTemp4, kStack, BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fRec32, kStruct)[Int32(0)]), LoadVarInst(Address(fRec34, kStruct)[Int32(0)])), LoadVarInst(Address(fRec36, kStruct)[Int32(0)])), LoadVarInst(Address(fRec38, kStruct)[Int32(0)])), LoadVarInst(Address(fRec40, kStruct)[Int32(0)])), LoadVarInst(Address(fRec42, kStruct)[Int32(0)])), LoadVarInst(Address(fRec44, kStruct)[Int32(0)])), LoadVarInst(Address(fRec46, kStruct)[Int32(0)])))
-		StoreVarInst(Address(fVec20, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1023))], BinopInst("+", LoadVarInst(Address(fTemp4, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec30, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fRec30, kStruct)[Int32(0)], LoadVarInst(Address(fVec20, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(579)), Int32(1023))]))
-		DeclareVarInst("float", fRec31, kStack, BinopInst("-", LoadVarInst(Address(fRec30, kStruct)[Int32(1)]), LoadVarInst(Address(fTemp4, kStack))))
-		StoreVarInst(Address(fVec21, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fRec31, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec28, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fRec28, kStruct)[Int32(0)], LoadVarInst(Address(fVec21, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(464)), Int32(511))]))
-		DeclareVarInst("float", fRec29, kStack, BinopInst("-", LoadVarInst(Address(fRec28, kStruct)[Int32(1)]), LoadVarInst(Address(fRec31, kStack))))
-		StoreVarInst(Address(fVec22, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fRec29, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec26, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fRec26, kStruct)[Int32(0)], LoadVarInst(Address(fVec22, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(364)), Int32(511))]))
-		DeclareVarInst("float", fRec27, kStack, BinopInst("-", LoadVarInst(Address(fRec26, kStruct)[Int32(1)]), LoadVarInst(Address(fRec29, kStack))))
-		StoreVarInst(Address(fVec23, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(255))], BinopInst("+", LoadVarInst(Address(fRec27, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec24, kStruct)[Int32(1)]))))
-		StoreVarInst(Address(fRec24, kStruct)[Int32(0)], LoadVarInst(Address(fVec23, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(248)), Int32(255))]))
-		DeclareVarInst("float", fRec25, kStack, BinopInst("-", LoadVarInst(Address(fRec24, kStruct)[Int32(1)]), LoadVarInst(Address(fRec27, kStack))))
-		StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow0, kStack)), LoadVarInst(Address(fRec25, kStack))), BinopInst("*", LoadVarInst(Address(fSlow4, kStack)), LoadVarInst(Address(fTemp1, kStack))))))
-		StoreVarInst(Address(fRec9, kStruct)[Int32(1)], LoadVarInst(Address(fRec9, kStruct)[Int32(0)]))
+		StoreVarInst(Address(fVec0SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec0SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec1SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		DeclareVarInst("float", fTemp0SE, kStack, CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])))
+		DeclareVarInst("float", fTemp1SE, kStack, CastInst("float", LoadVarInst(Address(input1, kStack)[LoadVarInst(Address(i0, kLoop))])))
+		DeclareVarInst("float", fTemp2SE, kStack, BinopInst("*", Float(0.015f), BinopInst("+", LoadVarInst(Address(fTemp0SE, kStack)), LoadVarInst(Address(fTemp1SE, kStack)))))
+		StoreVarInst(Address(fVec3SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec0SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))])), LoadVarInst(Address(fTemp2SE, kStack))))
+		StoreVarInst(Address(fVec4SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec4SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec5SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec7SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec4SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec8SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec8SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec9SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec11SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec8SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec12SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec12SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec13SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec15SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec12SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec16SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec16SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec17SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec19SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec16SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec20SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec20SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec21SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec23SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec20SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec24SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec24SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec25SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec27SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec24SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec28SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec28SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec29SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec31SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec28SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fRec8SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec32SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(556)), Int32(1023))]))
+		StoreVarInst(Address(fVec1SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec3SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1116)), Int32(2047))]))
+		DeclareVarInst("float", fTemp3SE, kStack, LoadVarInst(Address(fVec1SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec5SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec7SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1188)), Int32(2047))]))
+		DeclareVarInst("float", fTemp4SE, kStack, LoadVarInst(Address(fVec5SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec9SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec11SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1277)), Int32(2047))]))
+		DeclareVarInst("float", fTemp5SE, kStack, LoadVarInst(Address(fVec9SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec13SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec15SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1356)), Int32(2047))]))
+		DeclareVarInst("float", fTemp6SE, kStack, LoadVarInst(Address(fVec13SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec17SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec19SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1422)), Int32(2047))]))
+		DeclareVarInst("float", fTemp7SE, kStack, LoadVarInst(Address(fVec17SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec21SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec23SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1491)), Int32(2047))]))
+		DeclareVarInst("float", fTemp8SE, kStack, LoadVarInst(Address(fVec21SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec25SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec27SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1557)), Int32(2047))]))
+		DeclareVarInst("float", fTemp9SE, kStack, LoadVarInst(Address(fVec25SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec29SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec31SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1617)), Int32(2047))]))
+		DeclareVarInst("float", fTemp10SE, kStack, LoadVarInst(Address(fVec29SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		DeclareVarInst("float", fTemp11SE, kStack, LoadVarInst(Address(fRec8SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+		StoreVarInst(Address(fVec32SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1023))], BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fTemp3SE, kStack)), LoadVarInst(Address(fTemp4SE, kStack))), LoadVarInst(Address(fTemp5SE, kStack))), LoadVarInst(Address(fTemp6SE, kStack))), LoadVarInst(Address(fTemp7SE, kStack))), LoadVarInst(Address(fTemp8SE, kStack))), LoadVarInst(Address(fTemp9SE, kStack))), LoadVarInst(Address(fTemp10SE, kStack))), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp11SE, kStack)))))
+		StoreVarInst(Address(fRec17SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec51SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(441)), Int32(511))]))
+		DeclareVarInst("float", fRec18SE, kStack, BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fTemp11SE, kStack)), MinusInst(LoadVarInst(Address(fTemp3SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp4SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp5SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp6SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp7SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp8SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp9SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp10SE, kStack)))))
+		DeclareVarInst("float", fTemp12SE, kStack, LoadVarInst(Address(fRec18SE, kStack)))
+		DeclareVarInst("float", fTemp13SE, kStack, LoadVarInst(Address(fRec17SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+		StoreVarInst(Address(fVec51SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fTemp12SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp13SE, kStack)))))
+		StoreVarInst(Address(fRec19SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec55SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(341)), Int32(511))]))
+		DeclareVarInst("float", fRec20SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp13SE, kStack)), MinusInst(LoadVarInst(Address(fTemp12SE, kStack)))))
+		DeclareVarInst("float", fTemp14SE, kStack, LoadVarInst(Address(fRec20SE, kStack)))
+		DeclareVarInst("float", fTemp15SE, kStack, LoadVarInst(Address(fRec19SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+		StoreVarInst(Address(fVec55SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fTemp14SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp15SE, kStack)))))
+		StoreVarInst(Address(fRec21SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec59SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(225)), Int32(255))]))
+		DeclareVarInst("float", fRec22SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp15SE, kStack)), MinusInst(LoadVarInst(Address(fTemp14SE, kStack)))))
+		DeclareVarInst("float", fTemp16SE, kStack, LoadVarInst(Address(fRec22SE, kStack)))
+		DeclareVarInst("float", fTemp17SE, kStack, LoadVarInst(Address(fRec21SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+		StoreVarInst(Address(fVec59SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(255))], BinopInst("+", LoadVarInst(Address(fTemp16SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp17SE, kStack)))))
+		DeclareVarInst("float", fRec23SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp17SE, kStack)), MinusInst(LoadVarInst(Address(fTemp16SE, kStack)))))
+		StoreVarInst(Address(fVec64SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec64SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec65SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec67SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec64SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec68SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec68SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec69SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec71SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec68SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec72SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec72SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec73SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec75SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec72SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec76SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec76SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec77SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec79SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec76SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec80SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec80SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec81SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec83SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec80SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec84SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec84SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec85SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec87SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec84SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec88SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec88SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec89SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec91SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec88SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fVec92SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec92SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec93SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+		StoreVarInst(Address(fVec95SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec92SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+		StoreVarInst(Address(fRec32SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec96SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(579)), Int32(1023))]))
+		StoreVarInst(Address(fVec65SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec67SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1139)), Int32(2047))]))
+		DeclareVarInst("float", fTemp18SE, kStack, LoadVarInst(Address(fVec65SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec69SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec71SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1211)), Int32(2047))]))
+		DeclareVarInst("float", fTemp19SE, kStack, LoadVarInst(Address(fVec69SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec73SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec75SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1300)), Int32(2047))]))
+		DeclareVarInst("float", fTemp20SE, kStack, LoadVarInst(Address(fVec73SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec77SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec79SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1379)), Int32(2047))]))
+		DeclareVarInst("float", fTemp21SE, kStack, LoadVarInst(Address(fVec77SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec81SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec83SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1445)), Int32(2047))]))
+		DeclareVarInst("float", fTemp22SE, kStack, LoadVarInst(Address(fVec81SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec85SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec87SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1514)), Int32(2047))]))
+		DeclareVarInst("float", fTemp23SE, kStack, LoadVarInst(Address(fVec85SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec89SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec91SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1580)), Int32(2047))]))
+		DeclareVarInst("float", fTemp24SE, kStack, LoadVarInst(Address(fVec89SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		StoreVarInst(Address(fVec93SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec95SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1640)), Int32(2047))]))
+		DeclareVarInst("float", fTemp25SE, kStack, LoadVarInst(Address(fVec93SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+		DeclareVarInst("float", fTemp26SE, kStack, LoadVarInst(Address(fRec32SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+		StoreVarInst(Address(fVec96SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1023))], BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fTemp18SE, kStack)), LoadVarInst(Address(fTemp19SE, kStack))), LoadVarInst(Address(fTemp20SE, kStack))), LoadVarInst(Address(fTemp21SE, kStack))), LoadVarInst(Address(fTemp22SE, kStack))), LoadVarInst(Address(fTemp23SE, kStack))), LoadVarInst(Address(fTemp24SE, kStack))), LoadVarInst(Address(fTemp25SE, kStack))), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp26SE, kStack)))))
+		StoreVarInst(Address(fRec41SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec115SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(464)), Int32(511))]))
+		DeclareVarInst("float", fRec42SE, kStack, BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fTemp26SE, kStack)), MinusInst(LoadVarInst(Address(fTemp18SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp19SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp20SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp21SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp22SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp23SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp24SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp25SE, kStack)))))
+		DeclareVarInst("float", fTemp27SE, kStack, LoadVarInst(Address(fRec42SE, kStack)))
+		DeclareVarInst("float", fTemp28SE, kStack, LoadVarInst(Address(fRec41SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+		StoreVarInst(Address(fVec115SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fTemp27SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp28SE, kStack)))))
+		StoreVarInst(Address(fRec43SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec119SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(364)), Int32(511))]))
+		DeclareVarInst("float", fRec44SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp28SE, kStack)), MinusInst(LoadVarInst(Address(fTemp27SE, kStack)))))
+		DeclareVarInst("float", fTemp29SE, kStack, LoadVarInst(Address(fRec44SE, kStack)))
+		DeclareVarInst("float", fTemp30SE, kStack, LoadVarInst(Address(fRec43SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+		StoreVarInst(Address(fVec119SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fTemp29SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp30SE, kStack)))))
+		StoreVarInst(Address(fRec45SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec123SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(248)), Int32(255))]))
+		DeclareVarInst("float", fRec46SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp30SE, kStack)), MinusInst(LoadVarInst(Address(fTemp29SE, kStack)))))
+		DeclareVarInst("float", fTemp31SE, kStack, LoadVarInst(Address(fRec46SE, kStack)))
+		DeclareVarInst("float", fTemp32SE, kStack, LoadVarInst(Address(fRec45SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+		StoreVarInst(Address(fVec123SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(255))], BinopInst("+", LoadVarInst(Address(fTemp31SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp32SE, kStack)))))
+		DeclareVarInst("float", fRec47SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp32SE, kStack)), MinusInst(LoadVarInst(Address(fTemp31SE, kStack)))))
+		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow3BE, kStack)), LoadVarInst(Address(fRec23SE, kStack))), BinopInst("*", LoadVarInst(Address(fSlow4BE, kStack)), LoadVarInst(Address(fTemp0SE, kStack))))))
+		StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow3BE, kStack)), LoadVarInst(Address(fRec47SE, kStack))), BinopInst("*", LoadVarInst(Address(fSlow4BE, kStack)), LoadVarInst(Address(fTemp1SE, kStack))))))
 		StoreVarInst(Address(IOTA0, kStruct), BinopInst("+", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)))
-		StoreVarInst(Address(fRec8, kStruct)[Int32(1)], LoadVarInst(Address(fRec8, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec11, kStruct)[Int32(1)], LoadVarInst(Address(fRec11, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec10, kStruct)[Int32(1)], LoadVarInst(Address(fRec10, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec13, kStruct)[Int32(1)], LoadVarInst(Address(fRec13, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec12, kStruct)[Int32(1)], LoadVarInst(Address(fRec12, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec15, kStruct)[Int32(1)], LoadVarInst(Address(fRec15, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec14, kStruct)[Int32(1)], LoadVarInst(Address(fRec14, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec17, kStruct)[Int32(1)], LoadVarInst(Address(fRec17, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec16, kStruct)[Int32(1)], LoadVarInst(Address(fRec16, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec19, kStruct)[Int32(1)], LoadVarInst(Address(fRec19, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec18, kStruct)[Int32(1)], LoadVarInst(Address(fRec18, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec21, kStruct)[Int32(1)], LoadVarInst(Address(fRec21, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec20, kStruct)[Int32(1)], LoadVarInst(Address(fRec20, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec23, kStruct)[Int32(1)], LoadVarInst(Address(fRec23, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec22, kStruct)[Int32(1)], LoadVarInst(Address(fRec22, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec6, kStruct)[Int32(1)], LoadVarInst(Address(fRec6, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec4, kStruct)[Int32(1)], LoadVarInst(Address(fRec4, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec2, kStruct)[Int32(1)], LoadVarInst(Address(fRec2, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec0, kStruct)[Int32(1)], LoadVarInst(Address(fRec0, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec33, kStruct)[Int32(1)], LoadVarInst(Address(fRec33, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec32, kStruct)[Int32(1)], LoadVarInst(Address(fRec32, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec35, kStruct)[Int32(1)], LoadVarInst(Address(fRec35, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec34, kStruct)[Int32(1)], LoadVarInst(Address(fRec34, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec37, kStruct)[Int32(1)], LoadVarInst(Address(fRec37, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec36, kStruct)[Int32(1)], LoadVarInst(Address(fRec36, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec39, kStruct)[Int32(1)], LoadVarInst(Address(fRec39, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec38, kStruct)[Int32(1)], LoadVarInst(Address(fRec38, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec41, kStruct)[Int32(1)], LoadVarInst(Address(fRec41, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec40, kStruct)[Int32(1)], LoadVarInst(Address(fRec40, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec43, kStruct)[Int32(1)], LoadVarInst(Address(fRec43, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec42, kStruct)[Int32(1)], LoadVarInst(Address(fRec42, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec45, kStruct)[Int32(1)], LoadVarInst(Address(fRec45, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec44, kStruct)[Int32(1)], LoadVarInst(Address(fRec44, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec47, kStruct)[Int32(1)], LoadVarInst(Address(fRec47, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec46, kStruct)[Int32(1)], LoadVarInst(Address(fRec46, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec30, kStruct)[Int32(1)], LoadVarInst(Address(fRec30, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec28, kStruct)[Int32(1)], LoadVarInst(Address(fRec28, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec26, kStruct)[Int32(1)], LoadVarInst(Address(fRec26, kStruct)[Int32(0)]))
-		StoreVarInst(Address(fRec24, kStruct)[Int32(1)], LoadVarInst(Address(fRec24, kStruct)[Int32(0)]))
 	EndBlockInst
 EndForLoopInst
 
@@ -741,93 +729,253 @@ BlockInst
 	========== Declaration part ==========
 	DeclareVarInst("FAUSTFLOAT", fHslider0, kStruct)
 	DeclareVarInst("FAUSTFLOAT", fHslider1, kStruct)
-	DeclareVarInst("FAUSTFLOAT", fHslider2, kStruct)
-	DeclareVarInst("float", fRec9[2], kStruct)
 	DeclareVarInst("int", IOTA0, kStruct)
-	DeclareVarInst("float", fVec0[2048], kStruct)
-	DeclareVarInst("float", fRec8[2], kStruct)
-	DeclareVarInst("float", fRec11[2], kStruct)
-	DeclareVarInst("float", fVec1[2048], kStruct)
-	DeclareVarInst("float", fRec10[2], kStruct)
-	DeclareVarInst("float", fRec13[2], kStruct)
-	DeclareVarInst("float", fVec2[2048], kStruct)
-	DeclareVarInst("float", fRec12[2], kStruct)
-	DeclareVarInst("float", fRec15[2], kStruct)
-	DeclareVarInst("float", fVec3[2048], kStruct)
-	DeclareVarInst("float", fRec14[2], kStruct)
-	DeclareVarInst("float", fRec17[2], kStruct)
-	DeclareVarInst("float", fVec4[2048], kStruct)
-	DeclareVarInst("float", fRec16[2], kStruct)
-	DeclareVarInst("float", fRec19[2], kStruct)
-	DeclareVarInst("float", fVec5[2048], kStruct)
-	DeclareVarInst("float", fRec18[2], kStruct)
-	DeclareVarInst("float", fRec21[2], kStruct)
-	DeclareVarInst("float", fVec6[2048], kStruct)
-	DeclareVarInst("float", fRec20[2], kStruct)
-	DeclareVarInst("float", fRec23[2], kStruct)
-	DeclareVarInst("float", fVec7[2048], kStruct)
-	DeclareVarInst("float", fRec22[2], kStruct)
-	DeclareVarInst("float", fVec8[1024], kStruct)
-	DeclareVarInst("float", fRec6[2], kStruct)
-	DeclareVarInst("float", fVec9[512], kStruct)
-	DeclareVarInst("float", fRec4[2], kStruct)
-	DeclareVarInst("float", fVec10[512], kStruct)
-	DeclareVarInst("float", fRec2[2], kStruct)
-	DeclareVarInst("float", fVec11[256], kStruct)
-	DeclareVarInst("float", fRec0[2], kStruct)
-	DeclareVarInst("float", fRec33[2], kStruct)
-	DeclareVarInst("float", fVec12[2048], kStruct)
-	DeclareVarInst("float", fRec32[2], kStruct)
-	DeclareVarInst("float", fRec35[2], kStruct)
-	DeclareVarInst("float", fVec13[2048], kStruct)
-	DeclareVarInst("float", fRec34[2], kStruct)
-	DeclareVarInst("float", fRec37[2], kStruct)
-	DeclareVarInst("float", fVec14[2048], kStruct)
-	DeclareVarInst("float", fRec36[2], kStruct)
-	DeclareVarInst("float", fRec39[2], kStruct)
-	DeclareVarInst("float", fVec15[2048], kStruct)
-	DeclareVarInst("float", fRec38[2], kStruct)
-	DeclareVarInst("float", fRec41[2], kStruct)
-	DeclareVarInst("float", fVec16[2048], kStruct)
-	DeclareVarInst("float", fRec40[2], kStruct)
-	DeclareVarInst("float", fRec43[2], kStruct)
-	DeclareVarInst("float", fVec17[2048], kStruct)
-	DeclareVarInst("float", fRec42[2], kStruct)
-	DeclareVarInst("float", fRec45[2], kStruct)
-	DeclareVarInst("float", fVec18[2048], kStruct)
-	DeclareVarInst("float", fRec44[2], kStruct)
-	DeclareVarInst("float", fRec47[2], kStruct)
-	DeclareVarInst("float", fVec19[2048], kStruct)
-	DeclareVarInst("float", fRec46[2], kStruct)
-	DeclareVarInst("float", fVec20[1024], kStruct)
-	DeclareVarInst("float", fRec30[2], kStruct)
-	DeclareVarInst("float", fVec21[512], kStruct)
-	DeclareVarInst("float", fRec28[2], kStruct)
-	DeclareVarInst("float", fVec22[512], kStruct)
-	DeclareVarInst("float", fRec26[2], kStruct)
-	DeclareVarInst("float", fVec23[256], kStruct)
-	DeclareVarInst("float", fRec24[2], kStruct)
+	// Recursion delay fVec0SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec0SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec3SE[2048], kStruct)
+	// Recursion delay fVec4SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec4SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec7SE[2048], kStruct)
+	// Recursion delay fVec8SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec8SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec11SE[2048], kStruct)
+	// Recursion delay fVec12SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec12SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec15SE[2048], kStruct)
+	// Recursion delay fVec16SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec16SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec19SE[2048], kStruct)
+	// Recursion delay fVec20SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec20SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec23SE[2048], kStruct)
+	// Recursion delay fVec24SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec24SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec27SE[2048], kStruct)
+	// Recursion delay fVec28SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec28SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec31SE[2048], kStruct)
+	// Recursion delay fRec8SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fRec8SE[2], kStruct)
+	// Recursion delay fVec1SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec1SE[2], kStruct)
+	// Recursion delay fVec5SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec5SE[2], kStruct)
+	// Recursion delay fVec9SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec9SE[2], kStruct)
+	// Recursion delay fVec13SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec13SE[2], kStruct)
+	// Recursion delay fVec17SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec17SE[2], kStruct)
+	// Recursion delay fVec21SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec21SE[2], kStruct)
+	// Recursion delay fVec25SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec25SE[2], kStruct)
+	// Recursion delay fVec29SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec29SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec32SE[1024], kStruct)
+	// Recursion delay fRec17SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fRec17SE[2], kStruct)
+	// Recursion delay fRec18SE is of type kZeroDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec51SE[512], kStruct)
+	// Recursion delay fRec19SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fRec19SE[2], kStruct)
+	// Recursion delay fRec20SE is of type kZeroDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec55SE[512], kStruct)
+	// Recursion delay fRec21SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fRec21SE[2], kStruct)
+	// Recursion delay fRec22SE is of type kZeroDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec59SE[256], kStruct)
+	DeclareVarInst("FAUSTFLOAT", fHslider2, kStruct)
+	// Recursion delay fRec23SE is of type kZeroDelay
+	// While its definition is of type kZeroDelay
+	// Recursion delay fVec64SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec64SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec67SE[2048], kStruct)
+	// Recursion delay fVec68SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec68SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec71SE[2048], kStruct)
+	// Recursion delay fVec72SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec72SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec75SE[2048], kStruct)
+	// Recursion delay fVec76SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec76SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec79SE[2048], kStruct)
+	// Recursion delay fVec80SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec80SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec83SE[2048], kStruct)
+	// Recursion delay fVec84SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec84SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec87SE[2048], kStruct)
+	// Recursion delay fVec88SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec88SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec91SE[2048], kStruct)
+	// Recursion delay fVec92SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec92SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec95SE[2048], kStruct)
+	// Recursion delay fRec32SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fRec32SE[2], kStruct)
+	// Recursion delay fVec65SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec65SE[2], kStruct)
+	// Recursion delay fVec69SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec69SE[2], kStruct)
+	// Recursion delay fVec73SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec73SE[2], kStruct)
+	// Recursion delay fVec77SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec77SE[2], kStruct)
+	// Recursion delay fVec81SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec81SE[2], kStruct)
+	// Recursion delay fVec85SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec85SE[2], kStruct)
+	// Recursion delay fVec89SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec89SE[2], kStruct)
+	// Recursion delay fVec93SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec93SE[2], kStruct)
+	// Ring Delay
+	DeclareVarInst("float", fVec96SE[1024], kStruct)
+	// Recursion delay fRec41SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fRec41SE[2], kStruct)
+	// Recursion delay fRec42SE is of type kZeroDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec115SE[512], kStruct)
+	// Recursion delay fRec43SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fRec43SE[2], kStruct)
+	// Recursion delay fRec44SE is of type kZeroDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec119SE[512], kStruct)
+	// Recursion delay fRec45SE is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fRec45SE[2], kStruct)
+	// Recursion delay fRec46SE is of type kZeroDelay
+	// While its definition is of type kZeroDelay
+	// Ring Delay
+	DeclareVarInst("float", fVec123SE[256], kStruct)
+	// Recursion delay fRec47SE is of type kZeroDelay
+	// While its definition is of type kZeroDelay
 	DeclareVarInst("int", fSampleRate, kStruct)
 	========== Init method ==========
 	StoreVarInst(Address(fSampleRate, kStruct), LoadVarInst(Address(sample_rate, kFunArgs)))
-	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Double(0.93f)))
+	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Double(1.0f)))
 	StoreVarInst(Address(fHslider1, kStruct), CastInst("FAUSTFLOAT", Double(1.0f)))
-	StoreVarInst(Address(fHslider2, kStruct), CastInst("FAUSTFLOAT", Double(1.0f)))
+	StoreVarInst(Address(fHslider2, kStruct), CastInst("FAUSTFLOAT", Double(0.93f)))
+	StoreVarInst(Address(IOTA0, kStruct), Int32(0))
 	ForLoopInst 
 		DeclareVarInst("int", l0, kLoop, Int32(0))
 		BinopInst("<", LoadVarInst(Address(l0, kLoop)), Int32(2))
 		StoreVarInst(Address(l0, kLoop), BinopInst("+", LoadVarInst(Address(l0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec9, kStruct)[LoadVarInst(Address(l0, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec0SE, kStruct)[LoadVarInst(Address(l0, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
-	StoreVarInst(Address(IOTA0, kStruct), Int32(0))
 	ForLoopInst 
 		DeclareVarInst("int", l1, kLoop, Int32(0))
 		BinopInst("<", LoadVarInst(Address(l1, kLoop)), Int32(2048))
 		StoreVarInst(Address(l1, kLoop), BinopInst("+", LoadVarInst(Address(l1, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec0, kStruct)[LoadVarInst(Address(l1, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec3SE, kStruct)[LoadVarInst(Address(l1, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -835,31 +983,31 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l2, kLoop)), Int32(2))
 		StoreVarInst(Address(l2, kLoop), BinopInst("+", LoadVarInst(Address(l2, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec8, kStruct)[LoadVarInst(Address(l2, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec4SE, kStruct)[LoadVarInst(Address(l2, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l3, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l3, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l3, kLoop)), Int32(2048))
 		StoreVarInst(Address(l3, kLoop), BinopInst("+", LoadVarInst(Address(l3, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec11, kStruct)[LoadVarInst(Address(l3, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec7SE, kStruct)[LoadVarInst(Address(l3, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l4, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l4, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l4, kLoop)), Int32(2))
 		StoreVarInst(Address(l4, kLoop), BinopInst("+", LoadVarInst(Address(l4, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec1, kStruct)[LoadVarInst(Address(l4, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec8SE, kStruct)[LoadVarInst(Address(l4, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l5, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l5, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l5, kLoop)), Int32(2048))
 		StoreVarInst(Address(l5, kLoop), BinopInst("+", LoadVarInst(Address(l5, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec10, kStruct)[LoadVarInst(Address(l5, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec11SE, kStruct)[LoadVarInst(Address(l5, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -867,7 +1015,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l6, kLoop)), Int32(2))
 		StoreVarInst(Address(l6, kLoop), BinopInst("+", LoadVarInst(Address(l6, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec13, kStruct)[LoadVarInst(Address(l6, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec12SE, kStruct)[LoadVarInst(Address(l6, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -875,7 +1023,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l7, kLoop)), Int32(2048))
 		StoreVarInst(Address(l7, kLoop), BinopInst("+", LoadVarInst(Address(l7, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec2, kStruct)[LoadVarInst(Address(l7, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec15SE, kStruct)[LoadVarInst(Address(l7, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -883,31 +1031,31 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l8, kLoop)), Int32(2))
 		StoreVarInst(Address(l8, kLoop), BinopInst("+", LoadVarInst(Address(l8, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec12, kStruct)[LoadVarInst(Address(l8, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec16SE, kStruct)[LoadVarInst(Address(l8, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l9, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l9, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l9, kLoop)), Int32(2048))
 		StoreVarInst(Address(l9, kLoop), BinopInst("+", LoadVarInst(Address(l9, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec15, kStruct)[LoadVarInst(Address(l9, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec19SE, kStruct)[LoadVarInst(Address(l9, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l10, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l10, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l10, kLoop)), Int32(2))
 		StoreVarInst(Address(l10, kLoop), BinopInst("+", LoadVarInst(Address(l10, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec3, kStruct)[LoadVarInst(Address(l10, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec20SE, kStruct)[LoadVarInst(Address(l10, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l11, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l11, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l11, kLoop)), Int32(2048))
 		StoreVarInst(Address(l11, kLoop), BinopInst("+", LoadVarInst(Address(l11, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec14, kStruct)[LoadVarInst(Address(l11, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec23SE, kStruct)[LoadVarInst(Address(l11, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -915,7 +1063,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l12, kLoop)), Int32(2))
 		StoreVarInst(Address(l12, kLoop), BinopInst("+", LoadVarInst(Address(l12, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec17, kStruct)[LoadVarInst(Address(l12, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec24SE, kStruct)[LoadVarInst(Address(l12, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -923,7 +1071,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l13, kLoop)), Int32(2048))
 		StoreVarInst(Address(l13, kLoop), BinopInst("+", LoadVarInst(Address(l13, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec4, kStruct)[LoadVarInst(Address(l13, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec27SE, kStruct)[LoadVarInst(Address(l13, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -931,23 +1079,23 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l14, kLoop)), Int32(2))
 		StoreVarInst(Address(l14, kLoop), BinopInst("+", LoadVarInst(Address(l14, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec16, kStruct)[LoadVarInst(Address(l14, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec28SE, kStruct)[LoadVarInst(Address(l14, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l15, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l15, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l15, kLoop)), Int32(2048))
 		StoreVarInst(Address(l15, kLoop), BinopInst("+", LoadVarInst(Address(l15, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec19, kStruct)[LoadVarInst(Address(l15, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec31SE, kStruct)[LoadVarInst(Address(l15, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l16, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l16, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l16, kLoop)), Int32(2))
 		StoreVarInst(Address(l16, kLoop), BinopInst("+", LoadVarInst(Address(l16, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec5, kStruct)[LoadVarInst(Address(l16, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec8SE, kStruct)[LoadVarInst(Address(l16, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -955,7 +1103,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l17, kLoop)), Int32(2))
 		StoreVarInst(Address(l17, kLoop), BinopInst("+", LoadVarInst(Address(l17, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec18, kStruct)[LoadVarInst(Address(l17, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec1SE, kStruct)[LoadVarInst(Address(l17, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -963,15 +1111,15 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l18, kLoop)), Int32(2))
 		StoreVarInst(Address(l18, kLoop), BinopInst("+", LoadVarInst(Address(l18, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec21, kStruct)[LoadVarInst(Address(l18, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec5SE, kStruct)[LoadVarInst(Address(l18, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l19, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l19, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l19, kLoop)), Int32(2))
 		StoreVarInst(Address(l19, kLoop), BinopInst("+", LoadVarInst(Address(l19, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec6, kStruct)[LoadVarInst(Address(l19, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec9SE, kStruct)[LoadVarInst(Address(l19, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -979,7 +1127,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l20, kLoop)), Int32(2))
 		StoreVarInst(Address(l20, kLoop), BinopInst("+", LoadVarInst(Address(l20, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec20, kStruct)[LoadVarInst(Address(l20, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec13SE, kStruct)[LoadVarInst(Address(l20, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -987,15 +1135,15 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l21, kLoop)), Int32(2))
 		StoreVarInst(Address(l21, kLoop), BinopInst("+", LoadVarInst(Address(l21, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec23, kStruct)[LoadVarInst(Address(l21, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec17SE, kStruct)[LoadVarInst(Address(l21, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l22, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l22, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l22, kLoop)), Int32(2))
 		StoreVarInst(Address(l22, kLoop), BinopInst("+", LoadVarInst(Address(l22, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec7, kStruct)[LoadVarInst(Address(l22, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec21SE, kStruct)[LoadVarInst(Address(l22, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1003,71 +1151,71 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l23, kLoop)), Int32(2))
 		StoreVarInst(Address(l23, kLoop), BinopInst("+", LoadVarInst(Address(l23, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec22, kStruct)[LoadVarInst(Address(l23, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec25SE, kStruct)[LoadVarInst(Address(l23, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l24, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l24, kLoop)), Int32(1024))
+		BinopInst("<", LoadVarInst(Address(l24, kLoop)), Int32(2))
 		StoreVarInst(Address(l24, kLoop), BinopInst("+", LoadVarInst(Address(l24, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec8, kStruct)[LoadVarInst(Address(l24, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec29SE, kStruct)[LoadVarInst(Address(l24, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l25, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l25, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l25, kLoop)), Int32(1024))
 		StoreVarInst(Address(l25, kLoop), BinopInst("+", LoadVarInst(Address(l25, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec6, kStruct)[LoadVarInst(Address(l25, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec32SE, kStruct)[LoadVarInst(Address(l25, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l26, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l26, kLoop)), Int32(512))
+		BinopInst("<", LoadVarInst(Address(l26, kLoop)), Int32(2))
 		StoreVarInst(Address(l26, kLoop), BinopInst("+", LoadVarInst(Address(l26, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec9, kStruct)[LoadVarInst(Address(l26, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec17SE, kStruct)[LoadVarInst(Address(l26, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l27, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l27, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l27, kLoop)), Int32(512))
 		StoreVarInst(Address(l27, kLoop), BinopInst("+", LoadVarInst(Address(l27, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec4, kStruct)[LoadVarInst(Address(l27, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec51SE, kStruct)[LoadVarInst(Address(l27, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l28, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l28, kLoop)), Int32(512))
+		BinopInst("<", LoadVarInst(Address(l28, kLoop)), Int32(2))
 		StoreVarInst(Address(l28, kLoop), BinopInst("+", LoadVarInst(Address(l28, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec10, kStruct)[LoadVarInst(Address(l28, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec19SE, kStruct)[LoadVarInst(Address(l28, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l29, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l29, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l29, kLoop)), Int32(512))
 		StoreVarInst(Address(l29, kLoop), BinopInst("+", LoadVarInst(Address(l29, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec2, kStruct)[LoadVarInst(Address(l29, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec55SE, kStruct)[LoadVarInst(Address(l29, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l30, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l30, kLoop)), Int32(256))
+		BinopInst("<", LoadVarInst(Address(l30, kLoop)), Int32(2))
 		StoreVarInst(Address(l30, kLoop), BinopInst("+", LoadVarInst(Address(l30, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec11, kStruct)[LoadVarInst(Address(l30, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec21SE, kStruct)[LoadVarInst(Address(l30, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l31, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l31, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l31, kLoop)), Int32(256))
 		StoreVarInst(Address(l31, kLoop), BinopInst("+", LoadVarInst(Address(l31, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec0, kStruct)[LoadVarInst(Address(l31, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec59SE, kStruct)[LoadVarInst(Address(l31, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1075,7 +1223,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l32, kLoop)), Int32(2))
 		StoreVarInst(Address(l32, kLoop), BinopInst("+", LoadVarInst(Address(l32, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec33, kStruct)[LoadVarInst(Address(l32, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec64SE, kStruct)[LoadVarInst(Address(l32, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1083,7 +1231,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l33, kLoop)), Int32(2048))
 		StoreVarInst(Address(l33, kLoop), BinopInst("+", LoadVarInst(Address(l33, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec12, kStruct)[LoadVarInst(Address(l33, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec67SE, kStruct)[LoadVarInst(Address(l33, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1091,31 +1239,31 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l34, kLoop)), Int32(2))
 		StoreVarInst(Address(l34, kLoop), BinopInst("+", LoadVarInst(Address(l34, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec32, kStruct)[LoadVarInst(Address(l34, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec68SE, kStruct)[LoadVarInst(Address(l34, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l35, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l35, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l35, kLoop)), Int32(2048))
 		StoreVarInst(Address(l35, kLoop), BinopInst("+", LoadVarInst(Address(l35, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec35, kStruct)[LoadVarInst(Address(l35, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec71SE, kStruct)[LoadVarInst(Address(l35, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l36, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l36, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l36, kLoop)), Int32(2))
 		StoreVarInst(Address(l36, kLoop), BinopInst("+", LoadVarInst(Address(l36, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec13, kStruct)[LoadVarInst(Address(l36, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec72SE, kStruct)[LoadVarInst(Address(l36, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l37, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l37, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l37, kLoop)), Int32(2048))
 		StoreVarInst(Address(l37, kLoop), BinopInst("+", LoadVarInst(Address(l37, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec34, kStruct)[LoadVarInst(Address(l37, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec75SE, kStruct)[LoadVarInst(Address(l37, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1123,7 +1271,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l38, kLoop)), Int32(2))
 		StoreVarInst(Address(l38, kLoop), BinopInst("+", LoadVarInst(Address(l38, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec37, kStruct)[LoadVarInst(Address(l38, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec76SE, kStruct)[LoadVarInst(Address(l38, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1131,7 +1279,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l39, kLoop)), Int32(2048))
 		StoreVarInst(Address(l39, kLoop), BinopInst("+", LoadVarInst(Address(l39, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec14, kStruct)[LoadVarInst(Address(l39, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec79SE, kStruct)[LoadVarInst(Address(l39, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1139,31 +1287,31 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l40, kLoop)), Int32(2))
 		StoreVarInst(Address(l40, kLoop), BinopInst("+", LoadVarInst(Address(l40, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec36, kStruct)[LoadVarInst(Address(l40, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec80SE, kStruct)[LoadVarInst(Address(l40, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l41, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l41, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l41, kLoop)), Int32(2048))
 		StoreVarInst(Address(l41, kLoop), BinopInst("+", LoadVarInst(Address(l41, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec39, kStruct)[LoadVarInst(Address(l41, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec83SE, kStruct)[LoadVarInst(Address(l41, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l42, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l42, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l42, kLoop)), Int32(2))
 		StoreVarInst(Address(l42, kLoop), BinopInst("+", LoadVarInst(Address(l42, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec15, kStruct)[LoadVarInst(Address(l42, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec84SE, kStruct)[LoadVarInst(Address(l42, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l43, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l43, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l43, kLoop)), Int32(2048))
 		StoreVarInst(Address(l43, kLoop), BinopInst("+", LoadVarInst(Address(l43, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec38, kStruct)[LoadVarInst(Address(l43, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec87SE, kStruct)[LoadVarInst(Address(l43, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1171,7 +1319,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l44, kLoop)), Int32(2))
 		StoreVarInst(Address(l44, kLoop), BinopInst("+", LoadVarInst(Address(l44, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec41, kStruct)[LoadVarInst(Address(l44, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec88SE, kStruct)[LoadVarInst(Address(l44, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1179,7 +1327,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l45, kLoop)), Int32(2048))
 		StoreVarInst(Address(l45, kLoop), BinopInst("+", LoadVarInst(Address(l45, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec16, kStruct)[LoadVarInst(Address(l45, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec91SE, kStruct)[LoadVarInst(Address(l45, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1187,23 +1335,23 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l46, kLoop)), Int32(2))
 		StoreVarInst(Address(l46, kLoop), BinopInst("+", LoadVarInst(Address(l46, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec40, kStruct)[LoadVarInst(Address(l46, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec92SE, kStruct)[LoadVarInst(Address(l46, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l47, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l47, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l47, kLoop)), Int32(2048))
 		StoreVarInst(Address(l47, kLoop), BinopInst("+", LoadVarInst(Address(l47, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec43, kStruct)[LoadVarInst(Address(l47, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec95SE, kStruct)[LoadVarInst(Address(l47, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l48, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l48, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l48, kLoop)), Int32(2))
 		StoreVarInst(Address(l48, kLoop), BinopInst("+", LoadVarInst(Address(l48, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec17, kStruct)[LoadVarInst(Address(l48, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec32SE, kStruct)[LoadVarInst(Address(l48, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1211,7 +1359,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l49, kLoop)), Int32(2))
 		StoreVarInst(Address(l49, kLoop), BinopInst("+", LoadVarInst(Address(l49, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec42, kStruct)[LoadVarInst(Address(l49, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec65SE, kStruct)[LoadVarInst(Address(l49, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1219,15 +1367,15 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l50, kLoop)), Int32(2))
 		StoreVarInst(Address(l50, kLoop), BinopInst("+", LoadVarInst(Address(l50, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec45, kStruct)[LoadVarInst(Address(l50, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec69SE, kStruct)[LoadVarInst(Address(l50, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l51, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l51, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l51, kLoop)), Int32(2))
 		StoreVarInst(Address(l51, kLoop), BinopInst("+", LoadVarInst(Address(l51, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec18, kStruct)[LoadVarInst(Address(l51, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec73SE, kStruct)[LoadVarInst(Address(l51, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1235,7 +1383,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l52, kLoop)), Int32(2))
 		StoreVarInst(Address(l52, kLoop), BinopInst("+", LoadVarInst(Address(l52, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec44, kStruct)[LoadVarInst(Address(l52, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec77SE, kStruct)[LoadVarInst(Address(l52, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1243,15 +1391,15 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l53, kLoop)), Int32(2))
 		StoreVarInst(Address(l53, kLoop), BinopInst("+", LoadVarInst(Address(l53, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec47, kStruct)[LoadVarInst(Address(l53, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec81SE, kStruct)[LoadVarInst(Address(l53, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l54, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l54, kLoop)), Int32(2048))
+		BinopInst("<", LoadVarInst(Address(l54, kLoop)), Int32(2))
 		StoreVarInst(Address(l54, kLoop), BinopInst("+", LoadVarInst(Address(l54, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec19, kStruct)[LoadVarInst(Address(l54, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec85SE, kStruct)[LoadVarInst(Address(l54, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
@@ -1259,71 +1407,71 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l55, kLoop)), Int32(2))
 		StoreVarInst(Address(l55, kLoop), BinopInst("+", LoadVarInst(Address(l55, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec46, kStruct)[LoadVarInst(Address(l55, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec89SE, kStruct)[LoadVarInst(Address(l55, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l56, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l56, kLoop)), Int32(1024))
+		BinopInst("<", LoadVarInst(Address(l56, kLoop)), Int32(2))
 		StoreVarInst(Address(l56, kLoop), BinopInst("+", LoadVarInst(Address(l56, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec20, kStruct)[LoadVarInst(Address(l56, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec93SE, kStruct)[LoadVarInst(Address(l56, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l57, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l57, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l57, kLoop)), Int32(1024))
 		StoreVarInst(Address(l57, kLoop), BinopInst("+", LoadVarInst(Address(l57, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec30, kStruct)[LoadVarInst(Address(l57, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec96SE, kStruct)[LoadVarInst(Address(l57, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l58, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l58, kLoop)), Int32(512))
+		BinopInst("<", LoadVarInst(Address(l58, kLoop)), Int32(2))
 		StoreVarInst(Address(l58, kLoop), BinopInst("+", LoadVarInst(Address(l58, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec21, kStruct)[LoadVarInst(Address(l58, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec41SE, kStruct)[LoadVarInst(Address(l58, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l59, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l59, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l59, kLoop)), Int32(512))
 		StoreVarInst(Address(l59, kLoop), BinopInst("+", LoadVarInst(Address(l59, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec28, kStruct)[LoadVarInst(Address(l59, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec115SE, kStruct)[LoadVarInst(Address(l59, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l60, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l60, kLoop)), Int32(512))
+		BinopInst("<", LoadVarInst(Address(l60, kLoop)), Int32(2))
 		StoreVarInst(Address(l60, kLoop), BinopInst("+", LoadVarInst(Address(l60, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec22, kStruct)[LoadVarInst(Address(l60, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec43SE, kStruct)[LoadVarInst(Address(l60, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l61, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l61, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l61, kLoop)), Int32(512))
 		StoreVarInst(Address(l61, kLoop), BinopInst("+", LoadVarInst(Address(l61, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec26, kStruct)[LoadVarInst(Address(l61, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec119SE, kStruct)[LoadVarInst(Address(l61, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l62, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l62, kLoop)), Int32(256))
+		BinopInst("<", LoadVarInst(Address(l62, kLoop)), Int32(2))
 		StoreVarInst(Address(l62, kLoop), BinopInst("+", LoadVarInst(Address(l62, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fVec23, kStruct)[LoadVarInst(Address(l62, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fRec45SE, kStruct)[LoadVarInst(Address(l62, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	ForLoopInst 
 		DeclareVarInst("int", l63, kLoop, Int32(0))
-		BinopInst("<", LoadVarInst(Address(l63, kLoop)), Int32(2))
+		BinopInst("<", LoadVarInst(Address(l63, kLoop)), Int32(256))
 		StoreVarInst(Address(l63, kLoop), BinopInst("+", LoadVarInst(Address(l63, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec24, kStruct)[LoadVarInst(Address(l63, kLoop))], Float(0.0f))
+			StoreVarInst(Address(fVec123SE, kStruct)[LoadVarInst(Address(l63, kLoop))], Float(0.0f))
 		EndBlockInst
 	EndForLoopInst
 	========== Static init method ==========
@@ -1334,137 +1482,125 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT*", input1, kStack, LoadVarInst(Address(inputs, kFunArgs)[Int32(1)]))
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output1, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(1)]))
-	DeclareVarInst("float", fSlow0, kStack, CastInst("float", LoadVarInst(Address(fHslider0, kStruct))))
-	DeclareVarInst("float", fSlow1, kStack, BinopInst("+", BinopInst("*", Float(0.28f), CastInst("float", LoadVarInst(Address(fHslider1, kStruct)))), Float(0.7f)))
-	DeclareVarInst("float", fSlow2, kStack, BinopInst("*", Float(0.4f), CastInst("float", LoadVarInst(Address(fHslider2, kStruct)))))
-	DeclareVarInst("float", fSlow3, kStack, BinopInst("-", Float(1.0f), LoadVarInst(Address(fSlow2, kStack))))
-	DeclareVarInst("float", fSlow4, kStack, BinopInst("-", Float(1.0f), LoadVarInst(Address(fSlow0, kStack))))
+	DeclareVarInst("float", fSlow0BE, kStack, BinopInst("+", BinopInst("*", Float(0.28f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))), Float(0.7f)))
+	DeclareVarInst("float", fSlow1BE, kStack, BinopInst("*", Float(0.4f), CastInst("float", LoadVarInst(Address(fHslider1, kStruct)))))
+	DeclareVarInst("float", fSlow2BE, kStack, BinopInst("+", Float(1.0f), MinusInst(LoadVarInst(Address(fSlow1BE, kStack)))))
+	DeclareVarInst("float", fSlow3BE, kStack, CastInst("float", LoadVarInst(Address(fHslider2, kStruct))))
+	DeclareVarInst("float", fSlow4BE, kStack, BinopInst("+", Float(1.0f), MinusInst(LoadVarInst(Address(fSlow3BE, kStack)))))
 	========== Compute DSP ==========
 	ForLoopInst 
 		DeclareVarInst("int", i0, kLoop, Int32(0))
 		BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 		StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(fRec9, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec9, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec8, kStruct)[Int32(1)]))))
-			DeclareVarInst("float", fTemp0, kStack, CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])))
-			DeclareVarInst("float", fTemp1, kStack, CastInst("float", LoadVarInst(Address(input1, kStack)[LoadVarInst(Address(i0, kLoop))])))
-			DeclareVarInst("float", fTemp2, kStack, BinopInst("*", Float(0.015f), BinopInst("+", LoadVarInst(Address(fTemp0, kStack)), LoadVarInst(Address(fTemp1, kStack)))))
-			StoreVarInst(Address(fVec0, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec9, kStruct)[Int32(0)])), LoadVarInst(Address(fTemp2, kStack))))
-			StoreVarInst(Address(fRec8, kStruct)[Int32(0)], LoadVarInst(Address(fVec0, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1116)), Int32(2047))]))
-			StoreVarInst(Address(fRec11, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec11, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec10, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec1, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec11, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec10, kStruct)[Int32(0)], LoadVarInst(Address(fVec1, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1188)), Int32(2047))]))
-			StoreVarInst(Address(fRec13, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec13, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec12, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec2, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec13, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec12, kStruct)[Int32(0)], LoadVarInst(Address(fVec2, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1277)), Int32(2047))]))
-			StoreVarInst(Address(fRec15, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec15, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec14, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec3, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec15, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec14, kStruct)[Int32(0)], LoadVarInst(Address(fVec3, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1356)), Int32(2047))]))
-			StoreVarInst(Address(fRec17, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec17, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec16, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec4, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec17, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec16, kStruct)[Int32(0)], LoadVarInst(Address(fVec4, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1422)), Int32(2047))]))
-			StoreVarInst(Address(fRec19, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec19, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec18, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec5, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec19, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec18, kStruct)[Int32(0)], LoadVarInst(Address(fVec5, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1491)), Int32(2047))]))
-			StoreVarInst(Address(fRec21, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec21, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec20, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec6, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec21, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec20, kStruct)[Int32(0)], LoadVarInst(Address(fVec6, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1557)), Int32(2047))]))
-			StoreVarInst(Address(fRec23, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec23, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec22, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec7, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec23, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec22, kStruct)[Int32(0)], LoadVarInst(Address(fVec7, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1617)), Int32(2047))]))
-			DeclareVarInst("float", fTemp3, kStack, BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fRec8, kStruct)[Int32(0)]), LoadVarInst(Address(fRec10, kStruct)[Int32(0)])), LoadVarInst(Address(fRec12, kStruct)[Int32(0)])), LoadVarInst(Address(fRec14, kStruct)[Int32(0)])), LoadVarInst(Address(fRec16, kStruct)[Int32(0)])), LoadVarInst(Address(fRec18, kStruct)[Int32(0)])), LoadVarInst(Address(fRec20, kStruct)[Int32(0)])), LoadVarInst(Address(fRec22, kStruct)[Int32(0)])))
-			StoreVarInst(Address(fVec8, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1023))], BinopInst("+", LoadVarInst(Address(fTemp3, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec6, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fRec6, kStruct)[Int32(0)], LoadVarInst(Address(fVec8, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(556)), Int32(1023))]))
-			DeclareVarInst("float", fRec7, kStack, BinopInst("-", LoadVarInst(Address(fRec6, kStruct)[Int32(1)]), LoadVarInst(Address(fTemp3, kStack))))
-			StoreVarInst(Address(fVec9, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fRec7, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec4, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fRec4, kStruct)[Int32(0)], LoadVarInst(Address(fVec9, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(441)), Int32(511))]))
-			DeclareVarInst("float", fRec5, kStack, BinopInst("-", LoadVarInst(Address(fRec4, kStruct)[Int32(1)]), LoadVarInst(Address(fRec7, kStack))))
-			StoreVarInst(Address(fVec10, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fRec5, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec2, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fRec2, kStruct)[Int32(0)], LoadVarInst(Address(fVec10, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(341)), Int32(511))]))
-			DeclareVarInst("float", fRec3, kStack, BinopInst("-", LoadVarInst(Address(fRec2, kStruct)[Int32(1)]), LoadVarInst(Address(fRec5, kStack))))
-			StoreVarInst(Address(fVec11, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(255))], BinopInst("+", LoadVarInst(Address(fRec3, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec0, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fRec0, kStruct)[Int32(0)], LoadVarInst(Address(fVec11, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(225)), Int32(255))]))
-			DeclareVarInst("float", fRec1, kStack, BinopInst("-", LoadVarInst(Address(fRec0, kStruct)[Int32(1)]), LoadVarInst(Address(fRec3, kStack))))
-			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow0, kStack)), LoadVarInst(Address(fRec1, kStack))), BinopInst("*", LoadVarInst(Address(fSlow4, kStack)), LoadVarInst(Address(fTemp0, kStack))))))
-			StoreVarInst(Address(fRec33, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec33, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec32, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec12, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec33, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec32, kStruct)[Int32(0)], LoadVarInst(Address(fVec12, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1139)), Int32(2047))]))
-			StoreVarInst(Address(fRec35, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec35, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec34, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec13, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec35, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec34, kStruct)[Int32(0)], LoadVarInst(Address(fVec13, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1211)), Int32(2047))]))
-			StoreVarInst(Address(fRec37, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec37, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec36, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec14, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec37, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec36, kStruct)[Int32(0)], LoadVarInst(Address(fVec14, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1300)), Int32(2047))]))
-			StoreVarInst(Address(fRec39, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec39, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec38, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec15, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec39, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec38, kStruct)[Int32(0)], LoadVarInst(Address(fVec15, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1379)), Int32(2047))]))
-			StoreVarInst(Address(fRec41, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec41, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec40, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec16, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec41, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec40, kStruct)[Int32(0)], LoadVarInst(Address(fVec16, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1445)), Int32(2047))]))
-			StoreVarInst(Address(fRec43, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec43, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec42, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec17, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec43, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec42, kStruct)[Int32(0)], LoadVarInst(Address(fVec17, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1514)), Int32(2047))]))
-			StoreVarInst(Address(fRec45, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec45, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec44, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec18, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec45, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec44, kStruct)[Int32(0)], LoadVarInst(Address(fVec18, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1580)), Int32(2047))]))
-			StoreVarInst(Address(fRec47, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow2, kStack)), LoadVarInst(Address(fRec47, kStruct)[Int32(1)])), BinopInst("*", LoadVarInst(Address(fSlow3, kStack)), LoadVarInst(Address(fRec46, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fVec19, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2, kStack)), BinopInst("*", LoadVarInst(Address(fSlow1, kStack)), LoadVarInst(Address(fRec47, kStruct)[Int32(0)]))))
-			StoreVarInst(Address(fRec46, kStruct)[Int32(0)], LoadVarInst(Address(fVec19, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1640)), Int32(2047))]))
-			DeclareVarInst("float", fTemp4, kStack, BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fRec32, kStruct)[Int32(0)]), LoadVarInst(Address(fRec34, kStruct)[Int32(0)])), LoadVarInst(Address(fRec36, kStruct)[Int32(0)])), LoadVarInst(Address(fRec38, kStruct)[Int32(0)])), LoadVarInst(Address(fRec40, kStruct)[Int32(0)])), LoadVarInst(Address(fRec42, kStruct)[Int32(0)])), LoadVarInst(Address(fRec44, kStruct)[Int32(0)])), LoadVarInst(Address(fRec46, kStruct)[Int32(0)])))
-			StoreVarInst(Address(fVec20, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1023))], BinopInst("+", LoadVarInst(Address(fTemp4, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec30, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fRec30, kStruct)[Int32(0)], LoadVarInst(Address(fVec20, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(579)), Int32(1023))]))
-			DeclareVarInst("float", fRec31, kStack, BinopInst("-", LoadVarInst(Address(fRec30, kStruct)[Int32(1)]), LoadVarInst(Address(fTemp4, kStack))))
-			StoreVarInst(Address(fVec21, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fRec31, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec28, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fRec28, kStruct)[Int32(0)], LoadVarInst(Address(fVec21, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(464)), Int32(511))]))
-			DeclareVarInst("float", fRec29, kStack, BinopInst("-", LoadVarInst(Address(fRec28, kStruct)[Int32(1)]), LoadVarInst(Address(fRec31, kStack))))
-			StoreVarInst(Address(fVec22, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fRec29, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec26, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fRec26, kStruct)[Int32(0)], LoadVarInst(Address(fVec22, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(364)), Int32(511))]))
-			DeclareVarInst("float", fRec27, kStack, BinopInst("-", LoadVarInst(Address(fRec26, kStruct)[Int32(1)]), LoadVarInst(Address(fRec29, kStack))))
-			StoreVarInst(Address(fVec23, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(255))], BinopInst("+", LoadVarInst(Address(fRec27, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fRec24, kStruct)[Int32(1)]))))
-			StoreVarInst(Address(fRec24, kStruct)[Int32(0)], LoadVarInst(Address(fVec23, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(248)), Int32(255))]))
-			DeclareVarInst("float", fRec25, kStack, BinopInst("-", LoadVarInst(Address(fRec24, kStruct)[Int32(1)]), LoadVarInst(Address(fRec27, kStack))))
-			StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow0, kStack)), LoadVarInst(Address(fRec25, kStack))), BinopInst("*", LoadVarInst(Address(fSlow4, kStack)), LoadVarInst(Address(fTemp1, kStack))))))
-			StoreVarInst(Address(fRec9, kStruct)[Int32(1)], LoadVarInst(Address(fRec9, kStruct)[Int32(0)]))
+			StoreVarInst(Address(fVec0SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec0SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec1SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			DeclareVarInst("float", fTemp0SE, kStack, CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])))
+			DeclareVarInst("float", fTemp1SE, kStack, CastInst("float", LoadVarInst(Address(input1, kStack)[LoadVarInst(Address(i0, kLoop))])))
+			DeclareVarInst("float", fTemp2SE, kStack, BinopInst("*", Float(0.015f), BinopInst("+", LoadVarInst(Address(fTemp0SE, kStack)), LoadVarInst(Address(fTemp1SE, kStack)))))
+			StoreVarInst(Address(fVec3SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec0SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))])), LoadVarInst(Address(fTemp2SE, kStack))))
+			StoreVarInst(Address(fVec4SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec4SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec5SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec7SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec4SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec8SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec8SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec9SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec11SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec8SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec12SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec12SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec13SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec15SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec12SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec16SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec16SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec17SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec19SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec16SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec20SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec20SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec21SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec23SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec20SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec24SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec24SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec25SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec27SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec24SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec28SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec28SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec29SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec31SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec28SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fRec8SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec32SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(556)), Int32(1023))]))
+			StoreVarInst(Address(fVec1SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec3SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1116)), Int32(2047))]))
+			DeclareVarInst("float", fTemp3SE, kStack, LoadVarInst(Address(fVec1SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec5SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec7SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1188)), Int32(2047))]))
+			DeclareVarInst("float", fTemp4SE, kStack, LoadVarInst(Address(fVec5SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec9SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec11SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1277)), Int32(2047))]))
+			DeclareVarInst("float", fTemp5SE, kStack, LoadVarInst(Address(fVec9SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec13SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec15SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1356)), Int32(2047))]))
+			DeclareVarInst("float", fTemp6SE, kStack, LoadVarInst(Address(fVec13SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec17SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec19SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1422)), Int32(2047))]))
+			DeclareVarInst("float", fTemp7SE, kStack, LoadVarInst(Address(fVec17SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec21SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec23SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1491)), Int32(2047))]))
+			DeclareVarInst("float", fTemp8SE, kStack, LoadVarInst(Address(fVec21SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec25SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec27SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1557)), Int32(2047))]))
+			DeclareVarInst("float", fTemp9SE, kStack, LoadVarInst(Address(fVec25SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec29SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec31SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1617)), Int32(2047))]))
+			DeclareVarInst("float", fTemp10SE, kStack, LoadVarInst(Address(fVec29SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			DeclareVarInst("float", fTemp11SE, kStack, LoadVarInst(Address(fRec8SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+			StoreVarInst(Address(fVec32SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1023))], BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fTemp3SE, kStack)), LoadVarInst(Address(fTemp4SE, kStack))), LoadVarInst(Address(fTemp5SE, kStack))), LoadVarInst(Address(fTemp6SE, kStack))), LoadVarInst(Address(fTemp7SE, kStack))), LoadVarInst(Address(fTemp8SE, kStack))), LoadVarInst(Address(fTemp9SE, kStack))), LoadVarInst(Address(fTemp10SE, kStack))), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp11SE, kStack)))))
+			StoreVarInst(Address(fRec17SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec51SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(441)), Int32(511))]))
+			DeclareVarInst("float", fRec18SE, kStack, BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fTemp11SE, kStack)), MinusInst(LoadVarInst(Address(fTemp3SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp4SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp5SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp6SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp7SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp8SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp9SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp10SE, kStack)))))
+			DeclareVarInst("float", fTemp12SE, kStack, LoadVarInst(Address(fRec18SE, kStack)))
+			DeclareVarInst("float", fTemp13SE, kStack, LoadVarInst(Address(fRec17SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+			StoreVarInst(Address(fVec51SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fTemp12SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp13SE, kStack)))))
+			StoreVarInst(Address(fRec19SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec55SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(341)), Int32(511))]))
+			DeclareVarInst("float", fRec20SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp13SE, kStack)), MinusInst(LoadVarInst(Address(fTemp12SE, kStack)))))
+			DeclareVarInst("float", fTemp14SE, kStack, LoadVarInst(Address(fRec20SE, kStack)))
+			DeclareVarInst("float", fTemp15SE, kStack, LoadVarInst(Address(fRec19SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+			StoreVarInst(Address(fVec55SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fTemp14SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp15SE, kStack)))))
+			StoreVarInst(Address(fRec21SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec59SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(225)), Int32(255))]))
+			DeclareVarInst("float", fRec22SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp15SE, kStack)), MinusInst(LoadVarInst(Address(fTemp14SE, kStack)))))
+			DeclareVarInst("float", fTemp16SE, kStack, LoadVarInst(Address(fRec22SE, kStack)))
+			DeclareVarInst("float", fTemp17SE, kStack, LoadVarInst(Address(fRec21SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+			StoreVarInst(Address(fVec59SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(255))], BinopInst("+", LoadVarInst(Address(fTemp16SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp17SE, kStack)))))
+			DeclareVarInst("float", fRec23SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp17SE, kStack)), MinusInst(LoadVarInst(Address(fTemp16SE, kStack)))))
+			StoreVarInst(Address(fVec64SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec64SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec65SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec67SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec64SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec68SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec68SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec69SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec71SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec68SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec72SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec72SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec73SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec75SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec72SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec76SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec76SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec77SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec79SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec76SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec80SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec80SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec81SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec83SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec80SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec84SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec84SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec85SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec87SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec84SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec88SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec88SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec89SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec91SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec88SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fVec92SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow1BE, kStack)), LoadVarInst(Address(fVec92SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))])), BinopInst("*", LoadVarInst(Address(fSlow2BE, kStack)), LoadVarInst(Address(fVec93SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))))
+			StoreVarInst(Address(fVec95SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(2047))], BinopInst("+", LoadVarInst(Address(fTemp2SE, kStack)), BinopInst("*", LoadVarInst(Address(fSlow0BE, kStack)), LoadVarInst(Address(fVec92SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))))
+			StoreVarInst(Address(fRec32SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec96SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(579)), Int32(1023))]))
+			StoreVarInst(Address(fVec65SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec67SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1139)), Int32(2047))]))
+			DeclareVarInst("float", fTemp18SE, kStack, LoadVarInst(Address(fVec65SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec69SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec71SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1211)), Int32(2047))]))
+			DeclareVarInst("float", fTemp19SE, kStack, LoadVarInst(Address(fVec69SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec73SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec75SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1300)), Int32(2047))]))
+			DeclareVarInst("float", fTemp20SE, kStack, LoadVarInst(Address(fVec73SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec77SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec79SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1379)), Int32(2047))]))
+			DeclareVarInst("float", fTemp21SE, kStack, LoadVarInst(Address(fVec77SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec81SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec83SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1445)), Int32(2047))]))
+			DeclareVarInst("float", fTemp22SE, kStack, LoadVarInst(Address(fVec81SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec85SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec87SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1514)), Int32(2047))]))
+			DeclareVarInst("float", fTemp23SE, kStack, LoadVarInst(Address(fVec85SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec89SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec91SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1580)), Int32(2047))]))
+			DeclareVarInst("float", fTemp24SE, kStack, LoadVarInst(Address(fVec89SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			StoreVarInst(Address(fVec93SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec95SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1640)), Int32(2047))]))
+			DeclareVarInst("float", fTemp25SE, kStack, LoadVarInst(Address(fVec93SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))]))
+			DeclareVarInst("float", fTemp26SE, kStack, LoadVarInst(Address(fRec32SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+			StoreVarInst(Address(fVec96SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1023))], BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fTemp18SE, kStack)), LoadVarInst(Address(fTemp19SE, kStack))), LoadVarInst(Address(fTemp20SE, kStack))), LoadVarInst(Address(fTemp21SE, kStack))), LoadVarInst(Address(fTemp22SE, kStack))), LoadVarInst(Address(fTemp23SE, kStack))), LoadVarInst(Address(fTemp24SE, kStack))), LoadVarInst(Address(fTemp25SE, kStack))), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp26SE, kStack)))))
+			StoreVarInst(Address(fRec41SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec115SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(464)), Int32(511))]))
+			DeclareVarInst("float", fRec42SE, kStack, BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", BinopInst("+", LoadVarInst(Address(fTemp26SE, kStack)), MinusInst(LoadVarInst(Address(fTemp18SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp19SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp20SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp21SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp22SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp23SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp24SE, kStack)))), MinusInst(LoadVarInst(Address(fTemp25SE, kStack)))))
+			DeclareVarInst("float", fTemp27SE, kStack, LoadVarInst(Address(fRec42SE, kStack)))
+			DeclareVarInst("float", fTemp28SE, kStack, LoadVarInst(Address(fRec41SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+			StoreVarInst(Address(fVec115SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fTemp27SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp28SE, kStack)))))
+			StoreVarInst(Address(fRec43SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec119SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(364)), Int32(511))]))
+			DeclareVarInst("float", fRec44SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp28SE, kStack)), MinusInst(LoadVarInst(Address(fTemp27SE, kStack)))))
+			DeclareVarInst("float", fTemp29SE, kStack, LoadVarInst(Address(fRec44SE, kStack)))
+			DeclareVarInst("float", fTemp30SE, kStack, LoadVarInst(Address(fRec43SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+			StoreVarInst(Address(fVec119SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(511))], BinopInst("+", LoadVarInst(Address(fTemp29SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp30SE, kStack)))))
+			StoreVarInst(Address(fRec45SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(1))], LoadVarInst(Address(fVec123SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(248)), Int32(255))]))
+			DeclareVarInst("float", fRec46SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp30SE, kStack)), MinusInst(LoadVarInst(Address(fTemp29SE, kStack)))))
+			DeclareVarInst("float", fTemp31SE, kStack, LoadVarInst(Address(fRec46SE, kStack)))
+			DeclareVarInst("float", fTemp32SE, kStack, LoadVarInst(Address(fRec45SE, kStruct)[BinopInst("&", BinopInst("-", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)), Int32(1))]))
+			StoreVarInst(Address(fVec123SE, kStruct)[BinopInst("&", LoadVarInst(Address(IOTA0, kStruct)), Int32(255))], BinopInst("+", LoadVarInst(Address(fTemp31SE, kStack)), BinopInst("*", Float(0.5f), LoadVarInst(Address(fTemp32SE, kStack)))))
+			DeclareVarInst("float", fRec47SE, kStack, BinopInst("+", LoadVarInst(Address(fTemp32SE, kStack)), MinusInst(LoadVarInst(Address(fTemp31SE, kStack)))))
+			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow3BE, kStack)), LoadVarInst(Address(fRec23SE, kStack))), BinopInst("*", LoadVarInst(Address(fSlow4BE, kStack)), LoadVarInst(Address(fTemp0SE, kStack))))))
+			StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("+", BinopInst("*", LoadVarInst(Address(fSlow3BE, kStack)), LoadVarInst(Address(fRec47SE, kStack))), BinopInst("*", LoadVarInst(Address(fSlow4BE, kStack)), LoadVarInst(Address(fTemp1SE, kStack))))))
 			StoreVarInst(Address(IOTA0, kStruct), BinopInst("+", LoadVarInst(Address(IOTA0, kStruct)), Int32(1)))
-			StoreVarInst(Address(fRec8, kStruct)[Int32(1)], LoadVarInst(Address(fRec8, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec11, kStruct)[Int32(1)], LoadVarInst(Address(fRec11, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec10, kStruct)[Int32(1)], LoadVarInst(Address(fRec10, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec13, kStruct)[Int32(1)], LoadVarInst(Address(fRec13, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec12, kStruct)[Int32(1)], LoadVarInst(Address(fRec12, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec15, kStruct)[Int32(1)], LoadVarInst(Address(fRec15, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec14, kStruct)[Int32(1)], LoadVarInst(Address(fRec14, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec17, kStruct)[Int32(1)], LoadVarInst(Address(fRec17, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec16, kStruct)[Int32(1)], LoadVarInst(Address(fRec16, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec19, kStruct)[Int32(1)], LoadVarInst(Address(fRec19, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec18, kStruct)[Int32(1)], LoadVarInst(Address(fRec18, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec21, kStruct)[Int32(1)], LoadVarInst(Address(fRec21, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec20, kStruct)[Int32(1)], LoadVarInst(Address(fRec20, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec23, kStruct)[Int32(1)], LoadVarInst(Address(fRec23, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec22, kStruct)[Int32(1)], LoadVarInst(Address(fRec22, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec6, kStruct)[Int32(1)], LoadVarInst(Address(fRec6, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec4, kStruct)[Int32(1)], LoadVarInst(Address(fRec4, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec2, kStruct)[Int32(1)], LoadVarInst(Address(fRec2, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec0, kStruct)[Int32(1)], LoadVarInst(Address(fRec0, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec33, kStruct)[Int32(1)], LoadVarInst(Address(fRec33, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec32, kStruct)[Int32(1)], LoadVarInst(Address(fRec32, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec35, kStruct)[Int32(1)], LoadVarInst(Address(fRec35, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec34, kStruct)[Int32(1)], LoadVarInst(Address(fRec34, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec37, kStruct)[Int32(1)], LoadVarInst(Address(fRec37, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec36, kStruct)[Int32(1)], LoadVarInst(Address(fRec36, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec39, kStruct)[Int32(1)], LoadVarInst(Address(fRec39, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec38, kStruct)[Int32(1)], LoadVarInst(Address(fRec38, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec41, kStruct)[Int32(1)], LoadVarInst(Address(fRec41, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec40, kStruct)[Int32(1)], LoadVarInst(Address(fRec40, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec43, kStruct)[Int32(1)], LoadVarInst(Address(fRec43, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec42, kStruct)[Int32(1)], LoadVarInst(Address(fRec42, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec45, kStruct)[Int32(1)], LoadVarInst(Address(fRec45, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec44, kStruct)[Int32(1)], LoadVarInst(Address(fRec44, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec47, kStruct)[Int32(1)], LoadVarInst(Address(fRec47, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec46, kStruct)[Int32(1)], LoadVarInst(Address(fRec46, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec30, kStruct)[Int32(1)], LoadVarInst(Address(fRec30, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec28, kStruct)[Int32(1)], LoadVarInst(Address(fRec28, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec26, kStruct)[Int32(1)], LoadVarInst(Address(fRec26, kStruct)[Int32(0)]))
-			StoreVarInst(Address(fRec24, kStruct)[Int32(1)], LoadVarInst(Address(fRec24, kStruct)[Int32(0)]))
 		EndBlockInst
 	EndForLoopInst
 	========== Post compute DSP ==========
@@ -1484,214 +1620,214 @@ Stack size in compute = 52 bytes
 
 Field = fHslider0 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider1 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
-Field = fHslider2 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
-Field = fRec9 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
 Field = IOTA0 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
-Field = fVec0 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec8 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec11 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec1 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec10 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec13 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec2 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec12 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec15 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec3 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec14 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec17 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec4 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec16 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec19 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec5 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec18 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec21 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec6 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec20 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec23 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec7 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec22 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec8 size = 1024 size_bytes = 4096 read = 0 write = 0 ratio = 0
-Field = fRec6 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec9 size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
-Field = fRec4 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec10 size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
-Field = fRec2 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec11 size = 256 size_bytes = 1024 read = 0 write = 0 ratio = 0
-Field = fRec0 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec33 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec12 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec32 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec35 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec13 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec34 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec37 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec14 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec36 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec39 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec15 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec38 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec41 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec16 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec40 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec43 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec17 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec42 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec45 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec18 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec44 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec47 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec19 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec46 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec20 size = 1024 size_bytes = 4096 read = 0 write = 0 ratio = 0
-Field = fRec30 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec21 size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
-Field = fRec28 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec22 size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
-Field = fRec26 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec23 size = 256 size_bytes = 1024 read = 0 write = 0 ratio = 0
-Field = fRec24 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec0SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec3SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec4SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec7SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec8SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec11SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec12SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec15SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec16SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec19SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec20SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec23SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec24SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec27SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec28SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec31SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fRec8SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec1SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec5SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec9SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec13SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec17SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec21SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec25SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec29SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec32SE size = 1024 size_bytes = 4096 read = 0 write = 0 ratio = 0
+Field = fRec17SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec51SE size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
+Field = fRec19SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec55SE size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
+Field = fRec21SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec59SE size = 256 size_bytes = 1024 read = 0 write = 0 ratio = 0
+Field = fHslider2 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+Field = fVec64SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec67SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec68SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec71SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec72SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec75SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec76SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec79SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec80SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec83SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec84SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec87SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec88SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec91SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec92SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec95SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fRec32SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec65SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec69SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec73SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec77SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec81SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec85SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec89SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec93SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec96SE size = 1024 size_bytes = 4096 read = 0 write = 0 ratio = 0
+Field = fRec41SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec115SE size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
+Field = fRec43SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec119SE size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
+Field = fRec45SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec123SE size = 256 size_bytes = 1024 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 ======= Variable access in compute control ==========
 
 Field = fHslider0 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fHslider1 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
-Field = fHslider2 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
-Field = fRec9 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
 Field = IOTA0 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
-Field = fVec0 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec8 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec11 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec1 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec10 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec13 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec2 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec12 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec15 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec3 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec14 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec17 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec4 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec16 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec19 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec5 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec18 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec21 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec6 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec20 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec23 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec7 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec22 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec8 size = 1024 size_bytes = 4096 read = 0 write = 0 ratio = 0
-Field = fRec6 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec9 size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
-Field = fRec4 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec10 size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
-Field = fRec2 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec11 size = 256 size_bytes = 1024 read = 0 write = 0 ratio = 0
-Field = fRec0 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec33 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec12 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec32 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec35 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec13 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec34 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec37 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec14 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec36 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec39 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec15 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec38 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec41 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec16 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec40 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec43 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec17 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec42 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec45 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec18 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec44 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fRec47 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec19 size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
-Field = fRec46 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec20 size = 1024 size_bytes = 4096 read = 0 write = 0 ratio = 0
-Field = fRec30 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec21 size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
-Field = fRec28 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec22 size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
-Field = fRec26 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = fVec23 size = 256 size_bytes = 1024 read = 0 write = 0 ratio = 0
-Field = fRec24 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec0SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec3SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec4SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec7SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec8SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec11SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec12SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec15SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec16SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec19SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec20SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec23SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec24SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec27SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec28SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec31SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fRec8SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec1SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec5SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec9SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec13SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec17SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec21SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec25SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec29SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec32SE size = 1024 size_bytes = 4096 read = 0 write = 0 ratio = 0
+Field = fRec17SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec51SE size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
+Field = fRec19SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec55SE size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
+Field = fRec21SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec59SE size = 256 size_bytes = 1024 read = 0 write = 0 ratio = 0
+Field = fHslider2 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
+Field = fVec64SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec67SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec68SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec71SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec72SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec75SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec76SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec79SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec80SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec83SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec84SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec87SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec88SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec91SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fVec92SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec95SE size = 2048 size_bytes = 8192 read = 0 write = 0 ratio = 0
+Field = fRec32SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec65SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec69SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec73SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec77SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec81SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec85SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec89SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec93SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec96SE size = 1024 size_bytes = 4096 read = 0 write = 0 ratio = 0
+Field = fRec41SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec115SE size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
+Field = fRec43SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec119SE size = 512 size_bytes = 2048 read = 0 write = 0 ratio = 0
+Field = fRec45SE size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = fVec123SE size = 256 size_bytes = 1024 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 ======= Variable access in compute DSP ==========
 
 Field = fHslider0 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider1 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+Field = IOTA0 size = 1 size_bytes = 4 read = 161 write = 1 ratio = 162
+Field = fVec0SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec3SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec4SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec7SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec8SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec11SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec12SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec15SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec16SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec19SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec20SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec23SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec24SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec27SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec28SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec31SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fRec8SE size = 2 size_bytes = 8 read = 1 write = 1 ratio = 1
+Field = fVec1SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec5SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec9SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec13SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec17SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec21SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec25SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec29SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec32SE size = 1024 size_bytes = 4096 read = 1 write = 1 ratio = 0.00195312
+Field = fRec17SE size = 2 size_bytes = 8 read = 1 write = 1 ratio = 1
+Field = fVec51SE size = 512 size_bytes = 2048 read = 1 write = 1 ratio = 0.00390625
+Field = fRec19SE size = 2 size_bytes = 8 read = 1 write = 1 ratio = 1
+Field = fVec55SE size = 512 size_bytes = 2048 read = 1 write = 1 ratio = 0.00390625
+Field = fRec21SE size = 2 size_bytes = 8 read = 1 write = 1 ratio = 1
+Field = fVec59SE size = 256 size_bytes = 1024 read = 1 write = 1 ratio = 0.0078125
 Field = fHslider2 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
-Field = fRec9 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = IOTA0 size = 1 size_bytes = 4 read = 49 write = 1 ratio = 50
-Field = fVec0 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec8 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec11 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec1 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec10 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec13 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec2 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec12 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec15 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec3 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec14 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec17 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec4 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec16 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec19 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec5 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec18 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec21 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec6 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec20 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec23 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec7 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec22 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec8 size = 1024 size_bytes = 4096 read = 1 write = 1 ratio = 0.00195312
-Field = fRec6 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec9 size = 512 size_bytes = 2048 read = 1 write = 1 ratio = 0.00390625
-Field = fRec4 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec10 size = 512 size_bytes = 2048 read = 1 write = 1 ratio = 0.00390625
-Field = fRec2 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec11 size = 256 size_bytes = 1024 read = 1 write = 1 ratio = 0.0078125
-Field = fRec0 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec33 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec12 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec32 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec35 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec13 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec34 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec37 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec14 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec36 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec39 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec15 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec38 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec41 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec16 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec40 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec43 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec17 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec42 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec45 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec18 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec44 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fRec47 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec19 size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
-Field = fRec46 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec20 size = 1024 size_bytes = 4096 read = 1 write = 1 ratio = 0.00195312
-Field = fRec30 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec21 size = 512 size_bytes = 2048 read = 1 write = 1 ratio = 0.00390625
-Field = fRec28 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec22 size = 512 size_bytes = 2048 read = 1 write = 1 ratio = 0.00390625
-Field = fRec26 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
-Field = fVec23 size = 256 size_bytes = 1024 read = 1 write = 1 ratio = 0.0078125
-Field = fRec24 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
+Field = fVec64SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec67SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec68SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec71SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec72SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec75SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec76SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec79SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec80SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec83SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec84SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec87SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec88SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec91SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fVec92SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec95SE size = 2048 size_bytes = 8192 read = 1 write = 1 ratio = 0.000976562
+Field = fRec32SE size = 2 size_bytes = 8 read = 1 write = 1 ratio = 1
+Field = fVec65SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec69SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec73SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec77SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec81SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec85SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec89SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec93SE size = 2 size_bytes = 8 read = 2 write = 1 ratio = 1.5
+Field = fVec96SE size = 1024 size_bytes = 4096 read = 1 write = 1 ratio = 0.00195312
+Field = fRec41SE size = 2 size_bytes = 8 read = 1 write = 1 ratio = 1
+Field = fVec115SE size = 512 size_bytes = 2048 read = 1 write = 1 ratio = 0.00390625
+Field = fRec43SE size = 2 size_bytes = 8 read = 1 write = 1 ratio = 1
+Field = fVec119SE size = 512 size_bytes = 2048 read = 1 write = 1 ratio = 0.00390625
+Field = fRec45SE size = 2 size_bytes = 8 read = 1 write = 1 ratio = 1
+Field = fVec123SE size = 256 size_bytes = 1024 read = 1 write = 1 ratio = 0.0078125
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
