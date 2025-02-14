@@ -2,7 +2,7 @@
 // name: "priority"
 // version: "2.44.4"
 //
-// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Code generated with Faust 2.79.0 (https://faust.grame.fr)
 // Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
@@ -25,35 +25,35 @@ class mydsp : public dsp {
 	  private:
 		int fSampleRate;
 		int 	iVec20KCState; // Single Delay
-		// Recursion delay iVec21SI is of type kSingleDelay
+		// Recursion delay iVec22SI is of type kSingleDelay
 		// While its definition is of type kZeroDelay
-		int 	iVec21SIState; // Single Delay
+		int 	iVec22SIState; // Single Delay
 	  public:
 		int getNumInputs() { return 0; }
 		int getNumOutputs() { return 1; }
 		void init(int sample_rate) {
 			fSampleRate = sample_rate;
 			iVec20KCState = 0;
-			iVec21SIState = 0;
+			iVec22SIState = 0;
 		}
 		void fill(int count, float output[]) {
 			int 	iVec20KC[2];
-			int 	iVec21SI[2];
+			int 	iVec22SI[2];
 			int fullcount = count;
 			for (int index = 0; index < fullcount; index += 128) {
 				int count = std::min(128, fullcount-index);
 				iVec20KC[1] = iVec20KCState;
-				iVec21SI[1] = iVec21SIState;
+				iVec22SI[1] = iVec22SIState;
 				for (int i=0; i<count; i++) {
 					iVec20KC[0] = 1;
-					iVec21SI[0] = ((iVec21SI[1] + iVec20KC[1]) % 65536);
-					output[i] = sinf((9.58738e-05f * float(iVec21SI[0])));
+					iVec22SI[0] = ((iVec20KC[1] + iVec22SI[1]) % 65536);
+					output[i] = sinf((9.58738e-05f * float(iVec22SI[0])));
 					// post processing
-					iVec21SI[1] = iVec21SI[0];
+					iVec22SI[1] = iVec22SI[0];
 					iVec20KC[1] = iVec20KC[0];
 				}
 				iVec20KCState = iVec20KC[1];
-				iVec21SIState = iVec21SI[1];
+				iVec22SIState = iVec22SI[1];
 				output += 128;
 			}
 		}

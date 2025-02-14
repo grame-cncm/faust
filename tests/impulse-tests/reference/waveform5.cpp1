@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "waveform5"
 //
-// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Code generated with Faust 2.79.0 (https://faust.grame.fr)
 // Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
@@ -93,8 +93,8 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int 	iSlow0BE = itbl0SC[int((4.0f * float(fslider0)))]; // Zone 2, step: 17
-		float 	fSlow1BE = sinf(float(iSlow0BE)); // Zone 2, step: 19
+		int 	iSlow0BE = itbl0SC[int((4.0f * float(fslider0)))]; // Zone 2, step: 18
+		float 	fSlow1BE = sinf(float(iSlow0BE)); // Zone 2, step: 20
 		FAUSTFLOAT* input0 = input[0]; // Zone 3
 		FAUSTFLOAT* output0 = output[0]; // Zone 3
 		FAUSTFLOAT* output1 = output[1]; // Zone 3
