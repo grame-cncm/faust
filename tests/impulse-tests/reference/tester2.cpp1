@@ -5,7 +5,7 @@
 // name: "StereoAudioTester"
 // version: "1.0"
 //
-// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Code generated with Faust 2.79.0 (https://faust.grame.fr)
 // Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
@@ -186,10 +186,10 @@ class mydsp : public dsp {
 		float 	fVec12SE[2];
 		float 	fTemp4SE; // step: 96
 		int 	iTemp5SE; // step: 97
-		float 	fTemp6SE; // step: 113
-		float 	fTemp7SE; // step: 130
-		float 	fSlow7BE = float(((iSlow1BE & 2) != 0)); // Zone 2, step: 134
-		float 	fTemp8SE; // step: 136
+		float 	fTemp6SE; // step: 114
+		float 	fTemp7SE; // step: 131
+		float 	fSlow7BE = float(((iSlow1BE & 2) != 0)); // Zone 2, step: 135
+		float 	fTemp8SE; // step: 137
 		float 	fVec17SE[2];
 		FAUSTFLOAT* output0 = output[0]; // Zone 3
 		FAUSTFLOAT* output1 = output[1]; // Zone 3
@@ -217,9 +217,9 @@ class mydsp : public dsp {
 			fVec12SE[0] = (fSlow6BE + fTemp3SE + -floorf((fSlow6BE + fTemp3SE /* Sum */)) /* Sum */);
 			fTemp4SE = (65536.0f * fVec12SE[0]); // step: 96
 			iTemp5SE = int(fTemp4SE); // step: 97
-			fTemp6SE = ftbl0SI[std::max(0, std::min(iTemp5SE, 65536))]; // step: 113
-			fTemp7SE = ((iSlow4BE) ? (4.656613e-10f * fTemp0SI) : ((iSlow5BE) ? fVec4SI[0] : (fTemp6SE + ((fTemp4SE + -floorf(fTemp4SE) /* Sum */) * (ftbl0SI[std::max(0, std::min((iTemp5SE + 1 /* Sum */), 65536))] + -fTemp6SE /* Sum */)) /* Sum */))); // step: 130
-			fTemp8SE = fVec17SE[1]; // step: 136
+			fTemp6SE = ftbl0SI[std::max(0, std::min(iTemp5SE, 65536))]; // step: 114
+			fTemp7SE = ((iSlow4BE) ? (4.656613e-10f * fTemp0SI) : ((iSlow5BE) ? fVec4SI[0] : (fTemp6SE + ((fTemp4SE + -floorf(fTemp4SE) /* Sum */) * (ftbl0SI[std::max(0, std::min((iTemp5SE + 1 /* Sum */), 65536))] + -fTemp6SE /* Sum */)) /* Sum */))); // step: 131
+			fTemp8SE = fVec17SE[1]; // step: 137
 			fVec17SE[0] = (((fTemp8SE < fSlow7BE)) ? std::min((fTemp8SE + 0.00022675737f /* Sum */), fSlow7BE) : std::max((fTemp8SE + -0.00022675737f /* Sum */), fSlow7BE));
 			output0[i] = (FAUSTFLOAT)(((fTemp1SE * fVec10SE[0]) * fTemp7SE));  // Zone Exec Code
 			output1[i] = (FAUSTFLOAT)(((fTemp1SE * fVec17SE[0]) * fTemp7SE));  // Zone Exec Code
