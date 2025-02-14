@@ -1,4 +1,4 @@
-declare version "2.78.4";
+declare version "2.79.0";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/freeverb.dsp -o reference/freeverb.box";
 declare author "Grame";
 declare copyright "(c) GRAME 2006";

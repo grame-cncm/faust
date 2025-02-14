@@ -5,7 +5,7 @@
 // name: "osci"
 // version: "1.0"
 //
-// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Code generated with Faust 2.79.0 (https://faust.grame.fr)
 // Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
@@ -140,7 +140,7 @@ class mydsp : public dsp {
 		float 	fVec2SE[2];
 		float 	fTemp1SE; // step: 43
 		int 	iTemp2SE; // step: 44
-		float 	fTemp3SE; // step: 60
+		float 	fTemp3SE; // step: 61
 		FAUSTFLOAT* output0 = output[0]; // Zone 3
 		fVec0SE[1] = fVec0SEState;
 		fVec2SE[1] = fVec2SEState;
@@ -150,7 +150,7 @@ class mydsp : public dsp {
 			fVec2SE[0] = (fSlow1BE + fTemp0SE + -floorf((fSlow1BE + fTemp0SE /* Sum */)) /* Sum */);
 			fTemp1SE = (65536.0f * fVec2SE[0]); // step: 43
 			iTemp2SE = int(fTemp1SE); // step: 44
-			fTemp3SE = ftbl0SI[std::max(0, std::min(iTemp2SE, 65536))]; // step: 60
+			fTemp3SE = ftbl0SI[std::max(0, std::min(iTemp2SE, 65536))]; // step: 61
 			output0[i] = (FAUSTFLOAT)((fVec0SE[0] * (fTemp3SE + ((fTemp1SE + -floorf(fTemp1SE) /* Sum */) * (ftbl0SI[std::max(0, std::min((iTemp2SE + 1 /* Sum */), 65536))] + -fTemp3SE /* Sum */)) /* Sum */)));  // Zone Exec Code
 			// post processing
 			fVec2SE[1] = fVec2SE[0];

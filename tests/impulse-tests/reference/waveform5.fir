@@ -11,14 +11,14 @@ DeclareStructTypeInst(StructType<"Soundfile",("void*", fBuffers)("int*", fLength
 ======= Global declarations begin ==========
 
 BlockInst 
-	DeclareVarInst("int", imydspSIG0Wave0[5], kStaticStruct|kConst, Int32ArrayNumInst{10,20,30,40,50})
+	DeclareVarInst("int", imydspSIG0Wave0SC[5], kStaticStruct|kConst, Int32ArrayNumInst{10,20,30,40,50})
 EndBlockInst
 
 ======= Global declarations end ==========
 
 ======= DSP struct begin ==========
 
-DeclareStructTypeInst(StructType<"mydspSIG0",("int", imydspSIG0Wave0_idx)>)
+DeclareStructTypeInst(StructType<"mydspSIG0",("int", iConst0KC)("int", imydspSIG0Wave0SC_idx)>)
 
 ======= DSP struct end ==========
 
@@ -37,7 +37,8 @@ EndDeclare
 ======= Init begin ==========
 
 BlockInst 
-	StoreVarInst(Address(imydspSIG0Wave0_idx, kStruct), Int32(0))
+	StoreVarInst(Address(iConst0KC, kStruct), Int32(10))
+	StoreVarInst(Address(imydspSIG0Wave0SC_idx, kStruct), Int32(0))
 EndBlockInst
 
 ======= Init end ==========
@@ -51,8 +52,8 @@ ForLoopInst
 	BinopInst("<", LoadVarInst(Address(i1, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 	StoreVarInst(Address(i1, kLoop), BinopInst("+", LoadVarInst(Address(i1, kLoop)), Int32(1)))
 	BlockInst 
-		StoreVarInst(Address(table, kFunArgs)[LoadVarInst(Address(i1, kLoop))], LoadVarInst(Address(imydspSIG0Wave0, kStaticStruct)[LoadVarInst(Address(imydspSIG0Wave0_idx, kStruct))]))
-		StoreVarInst(Address(imydspSIG0Wave0_idx, kStruct), BinopInst("%", BinopInst("+", Int32(1), LoadVarInst(Address(imydspSIG0Wave0_idx, kStruct))), Int32(5)))
+		StoreVarInst(Address(table, kFunArgs)[LoadVarInst(Address(i1, kLoop))], LoadVarInst(Address(imydspSIG0Wave0SC, kStaticStruct)[LoadVarInst(Address(imydspSIG0Wave0SC_idx, kStruct))]))
+		StoreVarInst(Address(imydspSIG0Wave0SC_idx, kStruct), BinopInst("%", BinopInst("+", Int32(1), LoadVarInst(Address(imydspSIG0Wave0SC_idx, kStruct))), Int32(5)))
 	EndBlockInst
 EndForLoopInst
 
@@ -73,7 +74,7 @@ EndBlockInst
 ======= Global declarations begin ==========
 
 BlockInst 
-	DeclareVarInst("int", itbl0mydspSIG0[5], kStaticStruct)
+	DeclareVarInst("int", itbl0SCmydspSIG0[5], kStaticStruct)
 	DeclareFunInst("float", "sinf", "float", dummy0)
 EndBlockInst
 
@@ -102,7 +103,7 @@ EndDeclare
 BlockInst 
 	DeclareVarInst("mydspSIG0", sig0, kStack, FunCallInst("newmydspSIG0"))
 	DropInst(MethodFunCallInst("instanceInitmydspSIG0", LoadVarInst(Address(sig0, kStack)), LoadVarInst(Address(sample_rate, kFunArgs))))
-	DropInst(MethodFunCallInst("fillmydspSIG0", LoadVarInst(Address(sig0, kStack)), Int32(5), LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct|kReference|kMutable))))
+	DropInst(MethodFunCallInst("fillmydspSIG0", LoadVarInst(Address(sig0, kStack)), Int32(5), LoadVarInst(Address(itbl0SCmydspSIG0, kStaticStruct|kReference|kMutable))))
 EndBlockInst
 BlockInst 
 	DropInst(FunCallInst("deletemydspSIG0", LoadVarInst(Address(sig0, kStack))))
@@ -134,8 +135,8 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT*", input0, kStack, LoadVarInst(Address(inputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output1, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(1)]))
-	DeclareVarInst("int", iSlow0, kStack, LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[CastInst("int", BinopInst("*", Float(4.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))]))
-	DeclareVarInst("float", fSlow1, kStack, FunCallInst("sinf", CastInst("float", LoadVarInst(Address(iSlow0, kStack)))))
+	DeclareVarInst("int", iSlow0BE, kStack, LoadVarInst(Address(itbl0SCmydspSIG0, kStaticStruct)[CastInst("int", BinopInst("*", Float(4.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))]))
+	DeclareVarInst("float", fSlow1BE, kStack, FunCallInst("sinf", CastInst("float", LoadVarInst(Address(iSlow0BE, kStack)))))
 EndBlockInst
 
 ======= Compute control end ==========
@@ -149,8 +150,8 @@ ForLoopInst
 	BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 	StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 	BlockInst 
-		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])), LoadVarInst(Address(fSlow1, kStack)))))
-		StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(iSlow0, kStack))))
+		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])), LoadVarInst(Address(fSlow1BE, kStack)))))
+		StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(iSlow0BE, kStack))))
 	EndBlockInst
 EndForLoopInst
 
@@ -167,7 +168,7 @@ EndBlockInst
 
 BlockInst 
 	========== Declaration part ==========
-	DeclareVarInst("int", itbl0mydspSIG0[5], kStaticStruct)
+	DeclareVarInst("int", itbl0SCmydspSIG0[5], kStaticStruct)
 	DeclareFunInst("float", "sinf", "float", dummy0)
 	DeclareVarInst("FAUSTFLOAT", fHslider0, kStruct)
 	DeclareVarInst("int", fSampleRate, kStruct)
@@ -177,14 +178,16 @@ BlockInst
 	========== Static init method ==========
 	DeclareVarInst("mydspSIG0", sig0, kStack, FunCallInst("newmydspSIG0"))
 	DropInst(MethodFunCallInst("instanceInitmydspSIG0", LoadVarInst(Address(sig0, kStack)), LoadVarInst(Address(sample_rate, kFunArgs))))
-	DropInst(MethodFunCallInst("fillmydspSIG0", LoadVarInst(Address(sig0, kStack)), Int32(5), LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct|kReference|kMutable))))
+	DropInst(MethodFunCallInst("fillmydspSIG0", LoadVarInst(Address(sig0, kStack)), Int32(5), LoadVarInst(Address(itbl0SCmydspSIG0, kStaticStruct|kReference|kMutable))))
 	DropInst(FunCallInst("deletemydspSIG0", LoadVarInst(Address(sig0, kStack))))
 	========== Subcontainers ==========
 	========== Declaration part ==========
-	DeclareVarInst("int", imydspSIG0Wave0[5], kStaticStruct|kConst, Int32ArrayNumInst{10,20,30,40,50})
-	DeclareVarInst("int", imydspSIG0Wave0_idx, kStruct)
+	DeclareVarInst("int", imydspSIG0Wave0SC[5], kStaticStruct|kConst, Int32ArrayNumInst{10,20,30,40,50})
+	DeclareVarInst("int", iConst0KC, kStruct)
+	DeclareVarInst("int", imydspSIG0Wave0SC_idx, kStruct)
 	========== Init method ==========
-	StoreVarInst(Address(imydspSIG0Wave0_idx, kStruct), Int32(0))
+	StoreVarInst(Address(iConst0KC, kStruct), Int32(10))
+	StoreVarInst(Address(imydspSIG0Wave0SC_idx, kStruct), Int32(0))
 	========== Static init method ==========
 	========== Subcontainers ==========
 	========== Control ==========
@@ -195,8 +198,8 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(i1, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 		StoreVarInst(Address(i1, kLoop), BinopInst("+", LoadVarInst(Address(i1, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(table, kFunArgs)[LoadVarInst(Address(i1, kLoop))], LoadVarInst(Address(imydspSIG0Wave0, kStaticStruct)[LoadVarInst(Address(imydspSIG0Wave0_idx, kStruct))]))
-			StoreVarInst(Address(imydspSIG0Wave0_idx, kStruct), BinopInst("%", BinopInst("+", Int32(1), LoadVarInst(Address(imydspSIG0Wave0_idx, kStruct))), Int32(5)))
+			StoreVarInst(Address(table, kFunArgs)[LoadVarInst(Address(i1, kLoop))], LoadVarInst(Address(imydspSIG0Wave0SC, kStaticStruct)[LoadVarInst(Address(imydspSIG0Wave0SC_idx, kStruct))]))
+			StoreVarInst(Address(imydspSIG0Wave0SC_idx, kStruct), BinopInst("%", BinopInst("+", Int32(1), LoadVarInst(Address(imydspSIG0Wave0SC_idx, kStruct))), Int32(5)))
 		EndBlockInst
 	EndForLoopInst
 	========== Post compute DSP ==========
@@ -205,16 +208,16 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT*", input0, kStack, LoadVarInst(Address(inputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output1, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(1)]))
-	DeclareVarInst("int", iSlow0, kStack, LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[CastInst("int", BinopInst("*", Float(4.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))]))
-	DeclareVarInst("float", fSlow1, kStack, FunCallInst("sinf", CastInst("float", LoadVarInst(Address(iSlow0, kStack)))))
+	DeclareVarInst("int", iSlow0BE, kStack, LoadVarInst(Address(itbl0SCmydspSIG0, kStaticStruct)[CastInst("int", BinopInst("*", Float(4.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))]))
+	DeclareVarInst("float", fSlow1BE, kStack, FunCallInst("sinf", CastInst("float", LoadVarInst(Address(iSlow0BE, kStack)))))
 	========== Compute DSP ==========
 	ForLoopInst 
 		DeclareVarInst("int", i0, kLoop, Int32(0))
 		BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 		StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])), LoadVarInst(Address(fSlow1, kStack)))))
-			StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(iSlow0, kStack))))
+			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])), LoadVarInst(Address(fSlow1BE, kStack)))))
+			StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(iSlow0BE, kStack))))
 		EndBlockInst
 	EndForLoopInst
 	========== Post compute DSP ==========
@@ -227,7 +230,7 @@ EndBlockInst
 Heap size int = 4 bytes
 Heap size int* = 0 bytes
 Heap size real = 4 bytes
-Total heap size = 12 bytes
+Total heap size = 16 bytes
 Stack size in compute = 32 bytes
 
 ======= Variable access in Control ==========

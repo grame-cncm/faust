@@ -4,7 +4,7 @@
 // name: "Thru Zero Flanger"
 // version: "0.1"
 //
-// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Code generated with Faust 2.79.0 (https://faust.grame.fr)
 // Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
@@ -38,18 +38,18 @@ class mydsp : public dsp {
 		}
 		void fill(int count, float output[]) {
 			int 	iVec9SI[2];
-			float 	fTemp14SI; // step: 90
-			float 	fTemp15SI; // step: 91
-			float 	fTemp16SI; // step: 99
+			float 	fTemp14SI; // step: 91
+			float 	fTemp15SI; // step: 92
+			float 	fTemp16SI; // step: 100
 			int fullcount = count;
 			for (int index = 0; index < fullcount; index += 128) {
 				int count = std::min(128, fullcount-index);
 				iVec9SI[1] = iVec9SIState;
 				for (int i=0; i<count; i++) {
 					iVec9SI[0] = (iVec9SI[1] + 1);
-					fTemp14SI = float((iVec9SI[0] + -1)); // step: 90
-					fTemp15SI = (0.001953125f * fTemp14SI); // step: 91
-					fTemp16SI = (0.00390625f * fTemp14SI); // step: 99
+					fTemp14SI = float((iVec9SI[0] + -1)); // step: 91
+					fTemp15SI = (0.001953125f * fTemp14SI); // step: 92
+					fTemp16SI = (0.00390625f * fTemp14SI); // step: 100
 					output[i] = (2.0f * ((float(((0.0f <= fTemp15SI) & (fTemp15SI <= 0.5f))) * (fTemp16SI + -0.5f)) + (float(((0.5f < fTemp15SI) & (fTemp15SI <= 1.0f))) * (1.5f - fTemp16SI))));
 					// post processing
 					iVec9SI[1] = iVec9SI[0];
@@ -84,7 +84,7 @@ class mydsp : public dsp {
 	static float 	ftbl0SI[513];
 	float 	fVec13SE[4096]; // Ring Delay
 	FAUSTFLOAT 	fslider3;
-	float 	fConst6KI; // step: 152
+	float 	fConst6KI; // step: 153
 	// Recursion delay fVec16SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec16SEState; // Single Delay
@@ -136,7 +136,7 @@ class mydsp : public dsp {
 		fConst3KI = (1.0f + -fConst2KI /* Sum */); // step: 24
 		fConst4KI = (0.01f * fConst3KI); // step: 50
 		fConst5KI = (1.0f / fConst0KI); // step: 63
-		fConst6KI = (0.5f * fConst3KI); // step: 152
+		fConst6KI = (0.5f * fConst3KI); // step: 153
 	}
 	virtual void instanceResetUserInterface() {
 		fslider0 = 1e+01f;
@@ -205,19 +205,19 @@ class mydsp : public dsp {
 		float 	fTemp11SE; // step: 72
 		float 	fTemp12SE; // step: 74
 		int 	iTemp13SE; // step: 75
-		float 	fTemp17SE; // step: 112
-		float 	fTemp18SE; // step: 128
-		int 	iTemp19SE; // step: 129
-		float 	fTemp20SE; // step: 132
-		float 	fTemp21SE; // step: 146
-		float 	fSlow3BE = (fConst6KI * float(fslider3)); // Zone 2, step: 153
+		float 	fTemp17SE; // step: 113
+		float 	fTemp18SE; // step: 129
+		int 	iTemp19SE; // step: 130
+		float 	fTemp20SE; // step: 133
+		float 	fTemp21SE; // step: 147
+		float 	fSlow3BE = (fConst6KI * float(fslider3)); // Zone 2, step: 154
 		float 	fVec16SE[2];
-		float 	fTemp22SE; // step: 162
-		int 	iTemp23SE; // step: 163
-		float 	fTemp24SE; // step: 167
-		float 	fTemp25SE; // step: 183
-		int 	iTemp26SE; // step: 184
-		float 	fTemp27SE; // step: 187
+		float 	fTemp22SE; // step: 163
+		int 	iTemp23SE; // step: 164
+		float 	fTemp24SE; // step: 168
+		float 	fTemp25SE; // step: 184
+		int 	iTemp26SE; // step: 185
+		float 	fTemp27SE; // step: 188
 		FAUSTFLOAT* input0 = input[0]; // Zone 3
 		FAUSTFLOAT* input1 = input[1]; // Zone 3
 		FAUSTFLOAT* output0 = output[0]; // Zone 3
@@ -245,19 +245,19 @@ class mydsp : public dsp {
 			fTemp11SE = fVec7SE[0]; // step: 72
 			fTemp12SE = (512.0f * fmodf(fTemp11SE,1.0f)); // step: 74
 			iTemp13SE = int(fTemp12SE); // step: 75
-			fTemp17SE = ftbl0SI[std::max(0, std::min(iTemp13SE, 512))]; // step: 112
-			fTemp18SE = (fConst1KI * (fTemp1SE * ((fTemp9SE * (fTemp17SE + ((fTemp12SE + -floorf(fTemp12SE) /* Sum */) * (ftbl0SI[std::max(0, std::min((iTemp13SE + 1 /* Sum */), 512))] + -fTemp17SE /* Sum */)) /* Sum */)) + 1.0f /* Sum */))); // step: 128
-			iTemp19SE = int(fTemp18SE); // step: 129
-			fTemp20SE = float(iTemp19SE); // step: 132
-			fTemp21SE = (float)input1[i]; // step: 146
+			fTemp17SE = ftbl0SI[std::max(0, std::min(iTemp13SE, 512))]; // step: 113
+			fTemp18SE = (fConst1KI * (fTemp1SE * ((fTemp9SE * (fTemp17SE + ((fTemp12SE + -floorf(fTemp12SE) /* Sum */) * (ftbl0SI[std::max(0, std::min((iTemp13SE + 1 /* Sum */), 512))] + -fTemp17SE /* Sum */)) /* Sum */)) + 1.0f /* Sum */))); // step: 129
+			iTemp19SE = int(fTemp18SE); // step: 130
+			fTemp20SE = float(iTemp19SE); // step: 133
+			fTemp21SE = (float)input1[i]; // step: 147
 			fVec13SE[IOTA0&4095] = fTemp21SE;
 			fVec16SE[0] = (fSlow3BE + (fConst2KI * fVec16SE[1]) /* Sum */);
-			fTemp22SE = (512.0f * fmodf((fTemp11SE + fVec16SE[0] /* Sum */),1.0f)); // step: 162
-			iTemp23SE = int(fTemp22SE); // step: 163
-			fTemp24SE = ftbl0SI[std::max(0, std::min(iTemp23SE, 512))]; // step: 167
-			fTemp25SE = (fConst1KI * (fTemp1SE * ((fTemp9SE * (fTemp24SE + ((fTemp22SE + -floorf(fTemp22SE) /* Sum */) * (ftbl0SI[std::max(0, std::min((iTemp23SE + 1 /* Sum */), 512))] + -fTemp24SE /* Sum */)) /* Sum */)) + 1.0f /* Sum */))); // step: 183
-			iTemp26SE = int(fTemp25SE); // step: 184
-			fTemp27SE = float(iTemp26SE); // step: 187
+			fTemp22SE = (512.0f * fmodf((fTemp11SE + fVec16SE[0] /* Sum */),1.0f)); // step: 163
+			iTemp23SE = int(fTemp22SE); // step: 164
+			fTemp24SE = ftbl0SI[std::max(0, std::min(iTemp23SE, 512))]; // step: 168
+			fTemp25SE = (fConst1KI * (fTemp1SE * ((fTemp9SE * (fTemp24SE + ((fTemp22SE + -floorf(fTemp22SE) /* Sum */) * (ftbl0SI[std::max(0, std::min((iTemp23SE + 1 /* Sum */), 512))] + -fTemp24SE /* Sum */)) /* Sum */)) + 1.0f /* Sum */))); // step: 184
+			iTemp26SE = int(fTemp25SE); // step: 185
+			fTemp27SE = float(iTemp26SE); // step: 188
 			output0[i] = (FAUSTFLOAT)(((fVec0SE[(IOTA0-iTemp4SE)&4095] * fTemp6SE) + (fTemp7SE * fVec0SE[(IOTA0-iTemp8SE)&4095]) + -(fVec0SE[(IOTA0-(iTemp19SE & 4095))&4095] * (fTemp20SE + 1.0f + -fTemp18SE /* Sum */)) + -((fTemp18SE + -fTemp20SE /* Sum */) * fVec0SE[(IOTA0-((iTemp19SE + 1 /* Sum */) & 4095))&4095]) /* Sum */));  // Zone Exec Code
 			output1[i] = (FAUSTFLOAT)(((fTemp6SE * fVec13SE[(IOTA0-iTemp4SE)&4095]) + (fTemp7SE * fVec13SE[(IOTA0-iTemp8SE)&4095]) + -(fVec13SE[(IOTA0-(iTemp26SE & 4095))&4095] * (fTemp27SE + 1.0f + -fTemp25SE /* Sum */)) + -((fTemp25SE + -fTemp27SE /* Sum */) * fVec13SE[(IOTA0-((iTemp26SE + 1 /* Sum */) & 4095))&4095]) /* Sum */));  // Zone Exec Code
 			// post processing

@@ -2,7 +2,7 @@
 // author: "ER"
 // name: "modulations"
 //
-// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Code generated with Faust 2.79.0 (https://faust.grame.fr)
 // Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
@@ -70,20 +70,20 @@ class mydsp : public dsp {
 	// While its definition is of type kZeroDelay
 	float 	fVec8SEState; // Single Delay
 	static float 	ftbl0SI[65536];
-	float 	fConst6KI; // step: 89
+	float 	fConst6KI; // step: 90
 	FAUSTFLOAT 	fslider1;
 	// Recursion delay fVec14SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec14SEState; // Single Delay
-	float 	fConst7KI; // step: 105
+	float 	fConst7KI; // step: 106
 	// Recursion delay fVec17SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec17SEState; // Single Delay
-	float 	fConst8KI; // step: 117
+	float 	fConst8KI; // step: 118
 	// Recursion delay fVec16SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec16SEState; // Single Delay
-	float 	fConst9KI; // step: 126
+	float 	fConst9KI; // step: 127
 	FAUSTFLOAT 	fslider2;
 	// Recursion delay fVec21SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
@@ -135,45 +135,45 @@ class mydsp : public dsp {
 	float 	fVec50SEState; // Single Delay
 	int 	IOTA0;
 	float 	fVec52SE[4096]; // Ring Delay
-	float 	fConst10KI; // step: 371
+	float 	fConst10KI; // step: 372
 	FAUSTFLOAT 	fslider8;
-	float 	fConst11KI; // step: 379
-	float 	fConst12KI; // step: 380
-	float 	fConst13KI; // step: 381
-	float 	fConst14KI; // step: 412
-	float 	fConst15KI; // step: 414
-	float 	fConst16KI; // step: 416
+	float 	fConst11KI; // step: 380
+	float 	fConst12KI; // step: 381
+	float 	fConst13KI; // step: 382
+	float 	fConst14KI; // step: 413
+	float 	fConst15KI; // step: 415
+	float 	fConst16KI; // step: 417
 	// Recursion delay fVec57SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec57SEState; // Single Delay
-	float 	fConst17KI; // step: 430
+	float 	fConst17KI; // step: 431
 	// Recursion delay fVec55SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec55SEState; // Single Delay
 	float 	fVec61SE[32768]; // Ring Delay
-	float 	fConst18KI; // step: 449
-	int 	iConst19KI; // step: 454
+	float 	fConst18KI; // step: 450
+	int 	iConst19KI; // step: 455
 	// Recursion delay fRec23SE is of type kZeroDelay
 	// While its definition is of type kZeroDelay
-	float 	fConst20KI; // step: 464
-	float 	fConst21KI; // step: 465
-	float 	fConst22KI; // step: 466
+	float 	fConst20KI; // step: 465
+	float 	fConst21KI; // step: 466
+	float 	fConst22KI; // step: 467
 	// Recursion delay fVec66SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec66SEState; // Single Delay
-	float 	fConst23KI; // step: 504
+	float 	fConst23KI; // step: 505
 	// Recursion delay fVec64SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec64SEState; // Single Delay
 	float 	fVec70SE[16384]; // Ring Delay
-	float 	fConst24KI; // step: 522
-	int 	iConst25KI; // step: 527
+	float 	fConst24KI; // step: 523
+	int 	iConst25KI; // step: 528
 	// Recursion delay fRec26SE is of type kZeroDelay
 	// While its definition is of type kZeroDelay
-	float 	fConst26KI; // step: 541
-	float 	fConst27KI; // step: 542
-	float 	fConst28KI; // step: 543
-	float 	fConst29KI; // step: 572
+	float 	fConst26KI; // step: 542
+	float 	fConst27KI; // step: 543
+	float 	fConst28KI; // step: 544
+	float 	fConst29KI; // step: 573
 	// Recursion delay fVec76SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec76SEState; // Single Delay
@@ -181,14 +181,14 @@ class mydsp : public dsp {
 	// While its definition is of type kZeroDelay
 	float 	fVec74SEState; // Single Delay
 	float 	fVec80SE[16384]; // Ring Delay
-	float 	fConst30KI; // step: 601
-	int 	iConst31KI; // step: 606
+	float 	fConst30KI; // step: 602
+	int 	iConst31KI; // step: 607
 	// Recursion delay fRec29SE is of type kZeroDelay
 	// While its definition is of type kZeroDelay
-	float 	fConst32KI; // step: 618
-	float 	fConst33KI; // step: 619
-	float 	fConst34KI; // step: 620
-	float 	fConst35KI; // step: 649
+	float 	fConst32KI; // step: 619
+	float 	fConst33KI; // step: 620
+	float 	fConst34KI; // step: 621
+	float 	fConst35KI; // step: 650
 	// Recursion delay fVec86SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec86SEState; // Single Delay
@@ -196,44 +196,44 @@ class mydsp : public dsp {
 	// While its definition is of type kZeroDelay
 	float 	fVec84SEState; // Single Delay
 	float 	fVec90SE[16384]; // Ring Delay
-	float 	fConst36KI; // step: 678
-	int 	iConst37KI; // step: 683
+	float 	fConst36KI; // step: 679
+	int 	iConst37KI; // step: 684
 	// Recursion delay fRec32SE is of type kZeroDelay
 	// While its definition is of type kZeroDelay
-	float 	fConst38KI; // step: 702
-	float 	fConst39KI; // step: 703
-	float 	fConst40KI; // step: 704
+	float 	fConst38KI; // step: 703
+	float 	fConst39KI; // step: 704
+	float 	fConst40KI; // step: 705
 	// Recursion delay fVec99SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec99SEState; // Single Delay
-	float 	fConst41KI; // step: 742
+	float 	fConst41KI; // step: 743
 	// Recursion delay fVec97SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec97SEState; // Single Delay
 	float 	fVec103SE[32768]; // Ring Delay
-	float 	fConst42KI; // step: 760
-	int 	iConst43KI; // step: 765
+	float 	fConst42KI; // step: 761
+	int 	iConst43KI; // step: 766
 	// Recursion delay fRec35SE is of type kZeroDelay
 	// While its definition is of type kZeroDelay
-	float 	fConst44KI; // step: 776
-	float 	fConst45KI; // step: 777
-	float 	fConst46KI; // step: 778
+	float 	fConst44KI; // step: 777
+	float 	fConst45KI; // step: 778
+	float 	fConst46KI; // step: 779
 	// Recursion delay fVec108SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec108SEState; // Single Delay
-	float 	fConst47KI; // step: 816
+	float 	fConst47KI; // step: 817
 	// Recursion delay fVec106SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec106SEState; // Single Delay
 	float 	fVec112SE[32768]; // Ring Delay
-	float 	fConst48KI; // step: 834
-	int 	iConst49KI; // step: 839
+	float 	fConst48KI; // step: 835
+	int 	iConst49KI; // step: 840
 	// Recursion delay fRec38SE is of type kZeroDelay
 	// While its definition is of type kZeroDelay
-	float 	fConst50KI; // step: 854
-	float 	fConst51KI; // step: 855
-	float 	fConst52KI; // step: 856
-	float 	fConst53KI; // step: 885
+	float 	fConst50KI; // step: 855
+	float 	fConst51KI; // step: 856
+	float 	fConst52KI; // step: 857
+	float 	fConst53KI; // step: 886
 	// Recursion delay fVec119SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec119SEState; // Single Delay
@@ -241,14 +241,14 @@ class mydsp : public dsp {
 	// While its definition is of type kZeroDelay
 	float 	fVec117SEState; // Single Delay
 	float 	fVec123SE[16384]; // Ring Delay
-	float 	fConst54KI; // step: 914
-	int 	iConst55KI; // step: 919
+	float 	fConst54KI; // step: 915
+	int 	iConst55KI; // step: 920
 	// Recursion delay fRec41SE is of type kZeroDelay
 	// While its definition is of type kZeroDelay
-	float 	fConst56KI; // step: 934
-	float 	fConst57KI; // step: 935
-	float 	fConst58KI; // step: 936
-	float 	fConst59KI; // step: 965
+	float 	fConst56KI; // step: 935
+	float 	fConst57KI; // step: 936
+	float 	fConst58KI; // step: 937
+	float 	fConst59KI; // step: 966
 	// Recursion delay fVec130SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec130SEState; // Single Delay
@@ -256,8 +256,8 @@ class mydsp : public dsp {
 	// While its definition is of type kZeroDelay
 	float 	fVec128SEState; // Single Delay
 	float 	fVec134SE[16384]; // Ring Delay
-	float 	fConst60KI; // step: 994
-	int 	iConst61KI; // step: 999
+	float 	fConst60KI; // step: 995
+	int 	iConst61KI; // step: 1000
 	// Recursion delay fRec44SE is of type kZeroDelay
 	// While its definition is of type kZeroDelay
 	// Recursion delay fVec98SE is of type kSingleDelay
@@ -364,7 +364,7 @@ class mydsp : public dsp {
 	float 	fVec45SEState; // Single Delay
 	float 	fVec46SEState; // Single Delay
 	float 	fVec211SE[2048]; // Ring Delay
-	int 	iConst62KI; // step: 1332
+	int 	iConst62KI; // step: 1333
 	// Recursion delay fVec96SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec96SEState; // Single Delay
@@ -374,7 +374,7 @@ class mydsp : public dsp {
 	float 	fVec56SEState; // Single Delay
 	float 	fVec58SEState[2]; // Copy Delay
 	float 	fVec215SE[4096]; // Ring Delay
-	int 	iConst63KI; // step: 1350
+	int 	iConst63KI; // step: 1351
 	// Recursion delay fVec54SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec54SEState; // Single Delay
@@ -384,7 +384,7 @@ class mydsp : public dsp {
 	float 	fVec65SEState; // Single Delay
 	float 	fVec67SEState[2]; // Copy Delay
 	float 	fVec219SE[4096]; // Ring Delay
-	int 	iConst64KI; // step: 1363
+	int 	iConst64KI; // step: 1364
 	// Recursion delay fVec72SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec72SEState; // Single Delay
@@ -394,7 +394,7 @@ class mydsp : public dsp {
 	float 	fVec107SEState; // Single Delay
 	float 	fVec109SEState[2]; // Copy Delay
 	float 	fVec223SE[4096]; // Ring Delay
-	int 	iConst65KI; // step: 1374
+	int 	iConst65KI; // step: 1375
 	// Recursion delay fVec114SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec114SEState; // Single Delay
@@ -404,7 +404,7 @@ class mydsp : public dsp {
 	float 	fVec75SEState; // Single Delay
 	float 	fVec77SEState[2]; // Copy Delay
 	float 	fVec227SE[2048]; // Ring Delay
-	int 	iConst66KI; // step: 1385
+	int 	iConst66KI; // step: 1386
 	// Recursion delay fVec82SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec82SEState; // Single Delay
@@ -414,7 +414,7 @@ class mydsp : public dsp {
 	float 	fVec118SEState; // Single Delay
 	float 	fVec120SEState[2]; // Copy Delay
 	float 	fVec231SE[4096]; // Ring Delay
-	int 	iConst67KI; // step: 1396
+	int 	iConst67KI; // step: 1397
 	// Recursion delay fVec125SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec125SEState; // Single Delay
@@ -424,7 +424,7 @@ class mydsp : public dsp {
 	float 	fVec129SEState; // Single Delay
 	float 	fVec131SEState[2]; // Copy Delay
 	float 	fVec235SE[4096]; // Ring Delay
-	int 	iConst68KI; // step: 1407
+	int 	iConst68KI; // step: 1408
 	// Recursion delay fVec136SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec136SEState; // Single Delay
@@ -434,7 +434,7 @@ class mydsp : public dsp {
 	float 	fVec85SEState; // Single Delay
 	float 	fVec87SEState[2]; // Copy Delay
 	float 	fVec239SE[2048]; // Ring Delay
-	int 	iConst69KI; // step: 1418
+	int 	iConst69KI; // step: 1419
 	// Recursion delay fVec92SE is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec92SEState; // Single Delay
@@ -501,71 +501,71 @@ class mydsp : public dsp {
 		fConst3KI = (1.0f / (fConst2KI + 1.0f /* Sum */)); // step: 28
 		fConst4KI = (1.0f + -fConst2KI /* Sum */); // step: 30
 		fConst5KI = (1.0f / fConst0KI); // step: 48
-		fConst6KI = (2.0f * fConst0KI); // step: 89
-		fConst7KI = (3.0f * fConst0KI); // step: 105
-		fConst8KI = (0.33333334f / fConst0KI); // step: 117
-		fConst9KI = (0.5f / fConst0KI); // step: 126
+		fConst6KI = (2.0f * fConst0KI); // step: 90
+		fConst7KI = (3.0f * fConst0KI); // step: 106
+		fConst8KI = (0.33333334f / fConst0KI); // step: 118
+		fConst9KI = (0.5f / fConst0KI); // step: 127
 		IOTA0 = 0;
-		fConst10KI = cosf((37699.113f / fConst0KI)); // step: 371
-		fConst11KI = floorf(((0.256891f * fConst0KI) + 0.5f /* Sum */)); // step: 379
-		fConst12KI = (fConst11KI / fConst0KI); // step: 380
-		fConst13KI = (3.4538777f * fConst12KI); // step: 381
-		fConst14KI = (1.0f / tanf((628.31854f / fConst0KI))); // step: 412
-		fConst15KI = (1.0f / (fConst14KI + 1.0f /* Sum */)); // step: 414
-		fConst16KI = (1.0f + -fConst14KI /* Sum */); // step: 416
-		fConst17KI = (2.3025851f * fConst12KI); // step: 430
-		fConst18KI = floorf(((0.027333f * fConst0KI) + 0.5f /* Sum */)); // step: 449
-		iConst19KI = int(std::min(16384.0f, std::max(0.0f, (fConst11KI + -fConst18KI /* Sum */)))); // step: 454
-		fConst20KI = floorf(((0.192303f * fConst0KI) + 0.5f /* Sum */)); // step: 464
-		fConst21KI = (fConst20KI / fConst0KI); // step: 465
-		fConst22KI = (3.4538777f * fConst21KI); // step: 466
-		fConst23KI = (2.3025851f * fConst21KI); // step: 504
-		fConst24KI = floorf(((0.029291f * fConst0KI) + 0.5f /* Sum */)); // step: 522
-		iConst25KI = int(std::min(8192.0f, std::max(0.0f, (fConst20KI + -fConst24KI /* Sum */)))); // step: 527
-		fConst26KI = floorf(((0.125f * fConst0KI) + 0.5f /* Sum */)); // step: 541
-		fConst27KI = (fConst26KI / fConst0KI); // step: 542
-		fConst28KI = (3.4538777f * fConst27KI); // step: 543
-		fConst29KI = (2.3025851f * fConst27KI); // step: 572
-		fConst30KI = floorf(((0.013458f * fConst0KI) + 0.5f /* Sum */)); // step: 601
-		iConst31KI = int(std::min(8192.0f, std::max(0.0f, (fConst26KI + -fConst30KI /* Sum */)))); // step: 606
-		fConst32KI = floorf(((0.153129f * fConst0KI) + 0.5f /* Sum */)); // step: 618
-		fConst33KI = (fConst32KI / fConst0KI); // step: 619
-		fConst34KI = (3.4538777f * fConst33KI); // step: 620
-		fConst35KI = (2.3025851f * fConst33KI); // step: 649
-		fConst36KI = floorf(((0.020346f * fConst0KI) + 0.5f /* Sum */)); // step: 678
-		iConst37KI = int(std::min(8192.0f, std::max(0.0f, (fConst32KI + -fConst36KI /* Sum */)))); // step: 683
-		fConst38KI = floorf(((0.219991f * fConst0KI) + 0.5f /* Sum */)); // step: 702
-		fConst39KI = (fConst38KI / fConst0KI); // step: 703
-		fConst40KI = (3.4538777f * fConst39KI); // step: 704
-		fConst41KI = (2.3025851f * fConst39KI); // step: 742
-		fConst42KI = floorf(((0.019123f * fConst0KI) + 0.5f /* Sum */)); // step: 760
-		iConst43KI = int(std::min(16384.0f, std::max(0.0f, (fConst38KI + -fConst42KI /* Sum */)))); // step: 765
-		fConst44KI = floorf(((0.210389f * fConst0KI) + 0.5f /* Sum */)); // step: 776
-		fConst45KI = (fConst44KI / fConst0KI); // step: 777
-		fConst46KI = (3.4538777f * fConst45KI); // step: 778
-		fConst47KI = (2.3025851f * fConst45KI); // step: 816
-		fConst48KI = floorf(((0.024421f * fConst0KI) + 0.5f /* Sum */)); // step: 834
-		iConst49KI = int(std::min(16384.0f, std::max(0.0f, (fConst44KI + -fConst48KI /* Sum */)))); // step: 839
-		fConst50KI = floorf(((0.127837f * fConst0KI) + 0.5f /* Sum */)); // step: 854
-		fConst51KI = (fConst50KI / fConst0KI); // step: 855
-		fConst52KI = (3.4538777f * fConst51KI); // step: 856
-		fConst53KI = (2.3025851f * fConst51KI); // step: 885
-		fConst54KI = floorf(((0.031604f * fConst0KI) + 0.5f /* Sum */)); // step: 914
-		iConst55KI = int(std::min(8192.0f, std::max(0.0f, (fConst50KI + -fConst54KI /* Sum */)))); // step: 919
-		fConst56KI = floorf(((0.174713f * fConst0KI) + 0.5f /* Sum */)); // step: 934
-		fConst57KI = (fConst56KI / fConst0KI); // step: 935
-		fConst58KI = (3.4538777f * fConst57KI); // step: 936
-		fConst59KI = (2.3025851f * fConst57KI); // step: 965
-		fConst60KI = floorf(((0.022904f * fConst0KI) + 0.5f /* Sum */)); // step: 994
-		iConst61KI = int(std::min(8192.0f, std::max(0.0f, (fConst56KI + -fConst60KI /* Sum */)))); // step: 999
-		iConst62KI = int(std::min(1024.0f, std::max(0.0f, (fConst42KI + -1.0f /* Sum */)))); // step: 1332
-		iConst63KI = int(std::min(2048.0f, std::max(0.0f, (fConst18KI + -1.0f /* Sum */)))); // step: 1350
-		iConst64KI = int(std::min(2048.0f, std::max(0.0f, (fConst24KI + -1.0f /* Sum */)))); // step: 1363
-		iConst65KI = int(std::min(2048.0f, std::max(0.0f, (fConst48KI + -1.0f /* Sum */)))); // step: 1374
-		iConst66KI = int(std::min(1024.0f, std::max(0.0f, (fConst30KI + -1.0f /* Sum */)))); // step: 1385
-		iConst67KI = int(std::min(2048.0f, std::max(0.0f, (fConst54KI + -1.0f /* Sum */)))); // step: 1396
-		iConst68KI = int(std::min(2048.0f, std::max(0.0f, (fConst60KI + -1.0f /* Sum */)))); // step: 1407
-		iConst69KI = int(std::min(1024.0f, std::max(0.0f, (fConst36KI + -1.0f /* Sum */)))); // step: 1418
+		fConst10KI = cosf((37699.113f / fConst0KI)); // step: 372
+		fConst11KI = floorf(((0.256891f * fConst0KI) + 0.5f /* Sum */)); // step: 380
+		fConst12KI = (fConst11KI / fConst0KI); // step: 381
+		fConst13KI = (3.4538777f * fConst12KI); // step: 382
+		fConst14KI = (1.0f / tanf((628.31854f / fConst0KI))); // step: 413
+		fConst15KI = (1.0f / (fConst14KI + 1.0f /* Sum */)); // step: 415
+		fConst16KI = (1.0f + -fConst14KI /* Sum */); // step: 417
+		fConst17KI = (2.3025851f * fConst12KI); // step: 431
+		fConst18KI = floorf(((0.027333f * fConst0KI) + 0.5f /* Sum */)); // step: 450
+		iConst19KI = int(std::min(16384.0f, std::max(0.0f, (fConst11KI + -fConst18KI /* Sum */)))); // step: 455
+		fConst20KI = floorf(((0.192303f * fConst0KI) + 0.5f /* Sum */)); // step: 465
+		fConst21KI = (fConst20KI / fConst0KI); // step: 466
+		fConst22KI = (3.4538777f * fConst21KI); // step: 467
+		fConst23KI = (2.3025851f * fConst21KI); // step: 505
+		fConst24KI = floorf(((0.029291f * fConst0KI) + 0.5f /* Sum */)); // step: 523
+		iConst25KI = int(std::min(8192.0f, std::max(0.0f, (fConst20KI + -fConst24KI /* Sum */)))); // step: 528
+		fConst26KI = floorf(((0.125f * fConst0KI) + 0.5f /* Sum */)); // step: 542
+		fConst27KI = (fConst26KI / fConst0KI); // step: 543
+		fConst28KI = (3.4538777f * fConst27KI); // step: 544
+		fConst29KI = (2.3025851f * fConst27KI); // step: 573
+		fConst30KI = floorf(((0.013458f * fConst0KI) + 0.5f /* Sum */)); // step: 602
+		iConst31KI = int(std::min(8192.0f, std::max(0.0f, (fConst26KI + -fConst30KI /* Sum */)))); // step: 607
+		fConst32KI = floorf(((0.153129f * fConst0KI) + 0.5f /* Sum */)); // step: 619
+		fConst33KI = (fConst32KI / fConst0KI); // step: 620
+		fConst34KI = (3.4538777f * fConst33KI); // step: 621
+		fConst35KI = (2.3025851f * fConst33KI); // step: 650
+		fConst36KI = floorf(((0.020346f * fConst0KI) + 0.5f /* Sum */)); // step: 679
+		iConst37KI = int(std::min(8192.0f, std::max(0.0f, (fConst32KI + -fConst36KI /* Sum */)))); // step: 684
+		fConst38KI = floorf(((0.219991f * fConst0KI) + 0.5f /* Sum */)); // step: 703
+		fConst39KI = (fConst38KI / fConst0KI); // step: 704
+		fConst40KI = (3.4538777f * fConst39KI); // step: 705
+		fConst41KI = (2.3025851f * fConst39KI); // step: 743
+		fConst42KI = floorf(((0.019123f * fConst0KI) + 0.5f /* Sum */)); // step: 761
+		iConst43KI = int(std::min(16384.0f, std::max(0.0f, (fConst38KI + -fConst42KI /* Sum */)))); // step: 766
+		fConst44KI = floorf(((0.210389f * fConst0KI) + 0.5f /* Sum */)); // step: 777
+		fConst45KI = (fConst44KI / fConst0KI); // step: 778
+		fConst46KI = (3.4538777f * fConst45KI); // step: 779
+		fConst47KI = (2.3025851f * fConst45KI); // step: 817
+		fConst48KI = floorf(((0.024421f * fConst0KI) + 0.5f /* Sum */)); // step: 835
+		iConst49KI = int(std::min(16384.0f, std::max(0.0f, (fConst44KI + -fConst48KI /* Sum */)))); // step: 840
+		fConst50KI = floorf(((0.127837f * fConst0KI) + 0.5f /* Sum */)); // step: 855
+		fConst51KI = (fConst50KI / fConst0KI); // step: 856
+		fConst52KI = (3.4538777f * fConst51KI); // step: 857
+		fConst53KI = (2.3025851f * fConst51KI); // step: 886
+		fConst54KI = floorf(((0.031604f * fConst0KI) + 0.5f /* Sum */)); // step: 915
+		iConst55KI = int(std::min(8192.0f, std::max(0.0f, (fConst50KI + -fConst54KI /* Sum */)))); // step: 920
+		fConst56KI = floorf(((0.174713f * fConst0KI) + 0.5f /* Sum */)); // step: 935
+		fConst57KI = (fConst56KI / fConst0KI); // step: 936
+		fConst58KI = (3.4538777f * fConst57KI); // step: 937
+		fConst59KI = (2.3025851f * fConst57KI); // step: 966
+		fConst60KI = floorf(((0.022904f * fConst0KI) + 0.5f /* Sum */)); // step: 995
+		iConst61KI = int(std::min(8192.0f, std::max(0.0f, (fConst56KI + -fConst60KI /* Sum */)))); // step: 1000
+		iConst62KI = int(std::min(1024.0f, std::max(0.0f, (fConst42KI + -1.0f /* Sum */)))); // step: 1333
+		iConst63KI = int(std::min(2048.0f, std::max(0.0f, (fConst18KI + -1.0f /* Sum */)))); // step: 1351
+		iConst64KI = int(std::min(2048.0f, std::max(0.0f, (fConst24KI + -1.0f /* Sum */)))); // step: 1364
+		iConst65KI = int(std::min(2048.0f, std::max(0.0f, (fConst48KI + -1.0f /* Sum */)))); // step: 1375
+		iConst66KI = int(std::min(1024.0f, std::max(0.0f, (fConst30KI + -1.0f /* Sum */)))); // step: 1386
+		iConst67KI = int(std::min(2048.0f, std::max(0.0f, (fConst54KI + -1.0f /* Sum */)))); // step: 1397
+		iConst68KI = int(std::min(2048.0f, std::max(0.0f, (fConst60KI + -1.0f /* Sum */)))); // step: 1408
+		iConst69KI = int(std::min(1024.0f, std::max(0.0f, (fConst36KI + -1.0f /* Sum */)))); // step: 1419
 	}
 	virtual void instanceResetUserInterface() {
 		fslider0 = 1.2e+03f;
@@ -801,225 +801,225 @@ class mydsp : public dsp {
 		float 	fVec9SE[2];
 		float 	fTemp6SE; // step: 62
 		float 	fVec8SE[2];
-		float 	fTemp7SE; // step: 87
-		float 	fSlow1BE = float(fslider1); // Zone 2, step: 90
-		int 	iSlow2BE = (fSlow1BE > 0.0f); // Zone 2, step: 91
-		int 	iSlow3BE = (iSlow2BE > 0); // Zone 2, step: 92
+		float 	fTemp7SE; // step: 88
+		float 	fSlow1BE = float(fslider1); // Zone 2, step: 91
+		int 	iSlow2BE = (fSlow1BE > 0.0f); // Zone 2, step: 92
+		int 	iSlow3BE = (iSlow2BE > 0); // Zone 2, step: 93
 		float 	fVec14SE[2];
-		float 	fTemp8SE; // step: 99
-		float 	fSlow4BE = float(iSlow2BE); // Zone 2, step: 103
-		int 	iSlow5BE = ((fSlow1BE == 0.0f) > 0); // Zone 2, step: 107
+		float 	fTemp8SE; // step: 100
+		float 	fSlow4BE = float(iSlow2BE); // Zone 2, step: 104
+		int 	iSlow5BE = ((fSlow1BE == 0.0f) > 0); // Zone 2, step: 108
 		float 	fVec17SE[2];
-		float 	fTemp9SE; // step: 114
-		float 	fSlow6BE = (fConst8KI * fSlow1BE); // Zone 2, step: 118
+		float 	fTemp9SE; // step: 115
+		float 	fSlow6BE = (fConst8KI * fSlow1BE); // Zone 2, step: 119
 		float 	fVec16SE[2];
-		float 	fTemp10SE; // step: 124
-		float 	fTemp11SE; // step: 131
-		float 	fTemp12SE; // step: 133
-		float 	fTemp13SE; // step: 135
-		float 	fTemp14SE; // step: 139
-		float 	fSlow7BE = (0.001f * float(fslider2)); // Zone 2, step: 143
+		float 	fTemp10SE; // step: 125
+		float 	fTemp11SE; // step: 132
+		float 	fTemp12SE; // step: 134
+		float 	fTemp13SE; // step: 136
+		float 	fTemp14SE; // step: 140
+		float 	fSlow7BE = (0.001f * float(fslider2)); // Zone 2, step: 144
 		float 	fVec21SE[2];
-		float 	fTemp15SE; // step: 150
+		float 	fTemp15SE; // step: 151
 		float 	fVec20SE[2];
-		float 	fTemp16SE; // step: 157
-		int 	iTemp17SE; // step: 158
-		float 	fTemp18SE; // step: 162
-		float 	fTemp19SE; // step: 174
-		float 	fTemp20SE; // step: 175
-		float 	fSlow8BE = float(fslider3); // Zone 2, step: 176
-		int 	iSlow9BE = (fSlow8BE > 0.0f); // Zone 2, step: 177
-		int 	iSlow10BE = (iSlow9BE > 0); // Zone 2, step: 178
+		float 	fTemp16SE; // step: 158
+		int 	iTemp17SE; // step: 159
+		float 	fTemp18SE; // step: 163
+		float 	fTemp19SE; // step: 175
+		float 	fTemp20SE; // step: 176
+		float 	fSlow8BE = float(fslider3); // Zone 2, step: 177
+		int 	iSlow9BE = (fSlow8BE > 0.0f); // Zone 2, step: 178
+		int 	iSlow10BE = (iSlow9BE > 0); // Zone 2, step: 179
 		float 	fVec24SE[2];
-		float 	fTemp21SE; // step: 185
-		float 	fSlow11BE = float(iSlow9BE); // Zone 2, step: 189
-		int 	iSlow12BE = ((fSlow8BE == 0.0f) > 0); // Zone 2, step: 191
+		float 	fTemp21SE; // step: 186
+		float 	fSlow11BE = float(iSlow9BE); // Zone 2, step: 190
+		int 	iSlow12BE = ((fSlow8BE == 0.0f) > 0); // Zone 2, step: 192
 		float 	fVec27SE[2];
-		float 	fTemp22SE; // step: 198
-		float 	fSlow13BE = (fConst8KI * fSlow8BE); // Zone 2, step: 200
+		float 	fTemp22SE; // step: 199
+		float 	fSlow13BE = (fConst8KI * fSlow8BE); // Zone 2, step: 201
 		float 	fVec26SE[2];
-		float 	fTemp23SE; // step: 206
-		float 	fTemp24SE; // step: 211
-		float 	fTemp25SE; // step: 213
-		float 	fTemp26SE; // step: 214
-		float 	fTemp27SE; // step: 216
-		float 	fTemp28SE; // step: 220
-		float 	fTemp29SI; // step: 222
-		float 	fTemp30SE; // step: 223
-		float 	fTemp31SE; // step: 224
-		float 	fSlow14BE = float(fslider4); // Zone 2, step: 226
-		int 	iSlow15BE = (fSlow14BE > 0.0f); // Zone 2, step: 227
-		int 	iSlow16BE = (iSlow15BE > 0); // Zone 2, step: 228
+		float 	fTemp23SE; // step: 207
+		float 	fTemp24SE; // step: 212
+		float 	fTemp25SE; // step: 214
+		float 	fTemp26SE; // step: 215
+		float 	fTemp27SE; // step: 217
+		float 	fTemp28SE; // step: 221
+		float 	fTemp29SI; // step: 223
+		float 	fTemp30SE; // step: 224
+		float 	fTemp31SE; // step: 225
+		float 	fSlow14BE = float(fslider4); // Zone 2, step: 227
+		int 	iSlow15BE = (fSlow14BE > 0.0f); // Zone 2, step: 228
+		int 	iSlow16BE = (iSlow15BE > 0); // Zone 2, step: 229
 		float 	fVec31SE[2];
-		float 	fTemp32SE; // step: 235
-		float 	fSlow17BE = float(iSlow15BE); // Zone 2, step: 239
-		int 	iSlow18BE = ((fSlow14BE == 0.0f) > 0); // Zone 2, step: 241
+		float 	fTemp32SE; // step: 236
+		float 	fSlow17BE = float(iSlow15BE); // Zone 2, step: 240
+		int 	iSlow18BE = ((fSlow14BE == 0.0f) > 0); // Zone 2, step: 242
 		float 	fVec34SE[2];
-		float 	fTemp33SE; // step: 248
-		float 	fSlow19BE = (fConst8KI * fSlow14BE); // Zone 2, step: 250
+		float 	fTemp33SE; // step: 249
+		float 	fSlow19BE = (fConst8KI * fSlow14BE); // Zone 2, step: 251
 		float 	fVec33SE[2];
-		float 	fTemp34SE; // step: 256
-		float 	fTemp35SE; // step: 261
-		float 	fTemp36SE; // step: 266
-		float 	fTemp37SE; // step: 267
-		float 	fTemp38SE; // step: 269
-		float 	fTemp39SE; // step: 275
-		float 	fSlow20BE = float(fslider5); // Zone 2, step: 277
-		int 	iSlow21BE = (fSlow20BE > 0.0f); // Zone 2, step: 278
-		int 	iSlow22BE = (iSlow21BE > 0); // Zone 2, step: 279
+		float 	fTemp34SE; // step: 257
+		float 	fTemp35SE; // step: 262
+		float 	fTemp36SE; // step: 267
+		float 	fTemp37SE; // step: 268
+		float 	fTemp38SE; // step: 270
+		float 	fTemp39SE; // step: 276
+		float 	fSlow20BE = float(fslider5); // Zone 2, step: 278
+		int 	iSlow21BE = (fSlow20BE > 0.0f); // Zone 2, step: 279
+		int 	iSlow22BE = (iSlow21BE > 0); // Zone 2, step: 280
 		float 	fVec39SE[2];
-		float 	fTemp40SE; // step: 286
-		float 	fSlow23BE = float(iSlow21BE); // Zone 2, step: 290
-		int 	iSlow24BE = ((fSlow20BE == 0.0f) > 0); // Zone 2, step: 292
+		float 	fTemp40SE; // step: 287
+		float 	fSlow23BE = float(iSlow21BE); // Zone 2, step: 291
+		int 	iSlow24BE = ((fSlow20BE == 0.0f) > 0); // Zone 2, step: 293
 		float 	fVec42SE[2];
-		float 	fTemp41SE; // step: 299
-		float 	fSlow25BE = (fConst8KI * fSlow20BE); // Zone 2, step: 301
+		float 	fTemp41SE; // step: 300
+		float 	fSlow25BE = (fConst8KI * fSlow20BE); // Zone 2, step: 302
 		float 	fVec41SE[2];
-		float 	fTemp42SE; // step: 307
-		float 	fTemp43SE; // step: 312
-		float 	fTemp44SE; // step: 315
-		float 	fTemp45SE; // step: 316
-		float 	fTemp46SE; // step: 322
-		float 	fTemp47SE; // step: 324
-		float 	fTemp48SE; // step: 326
-		float 	fTemp49SE; // step: 327
+		float 	fTemp42SE; // step: 308
+		float 	fTemp43SE; // step: 313
+		float 	fTemp44SE; // step: 316
+		float 	fTemp45SE; // step: 317
+		float 	fTemp46SE; // step: 323
+		float 	fTemp47SE; // step: 325
+		float 	fTemp48SE; // step: 327
+		float 	fTemp49SE; // step: 328
 		float 	fVec4SE[2];
-		float 	fSlow26BE = (0.001f * powf(float(fslider6),2.0f)); // Zone 2, step: 339
+		float 	fSlow26BE = (0.001f * powf(float(fslider6),2.0f)); // Zone 2, step: 340
 		float 	fVec48SE[2];
-		float 	fTemp50SE; // step: 346
-		float 	fSlow27BE = (0.001f * float(fslider7)); // Zone 2, step: 350
+		float 	fTemp50SE; // step: 347
+		float 	fSlow27BE = (0.001f * float(fslider7)); // Zone 2, step: 351
 		float 	fVec50SE[2];
-		float 	fTemp51SE; // step: 358
-		float 	fTemp52SE; // step: 361
-		float 	fTemp53SE; // step: 362
-		float 	fTemp54SE; // step: 365
-		float 	fSlow28BE = std::max(0.05f, std::min(2.0f, float(fslider8))); // Zone 2, step: 374
-		float 	fSlow29BE = expf(-(fConst13KI / fSlow28BE)); // Zone 2, step: 384
-		float 	fSlow30BE = powf(fSlow29BE,2.0f); // Zone 2, step: 385
-		float 	fSlow31BE = (1.0f + -(fConst10KI * fSlow30BE) /* Sum */); // Zone 2, step: 388
-		float 	fSlow32BE = (1.0f + -fSlow30BE /* Sum */); // Zone 2, step: 390
-		float 	fSlow33BE = (fSlow31BE / fSlow32BE); // Zone 2, step: 391
-		float 	fSlow34BE = sqrtf(std::max(0.0f, ((powf(fSlow31BE,2.0f) / powf(fSlow32BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 398
-		float 	fSlow35BE = (fSlow33BE + -fSlow34BE /* Sum */); // Zone 2, step: 400
-		float 	fSlow36BE = (fSlow29BE * (fSlow34BE + 1.0f + -fSlow33BE /* Sum */)); // Zone 2, step: 406
-		float 	fTemp55SE; // step: 408
+		float 	fTemp51SE; // step: 359
+		float 	fTemp52SE; // step: 362
+		float 	fTemp53SE; // step: 363
+		float 	fTemp54SE; // step: 366
+		float 	fSlow28BE = std::max(0.05f, std::min(2.0f, float(fslider8))); // Zone 2, step: 375
+		float 	fSlow29BE = expf(-(fConst13KI / fSlow28BE)); // Zone 2, step: 385
+		float 	fSlow30BE = powf(fSlow29BE,2.0f); // Zone 2, step: 386
+		float 	fSlow31BE = (1.0f + -(fConst10KI * fSlow30BE) /* Sum */); // Zone 2, step: 389
+		float 	fSlow32BE = (1.0f + -fSlow30BE /* Sum */); // Zone 2, step: 391
+		float 	fSlow33BE = (fSlow31BE / fSlow32BE); // Zone 2, step: 392
+		float 	fSlow34BE = sqrtf(std::max(0.0f, ((powf(fSlow31BE,2.0f) / powf(fSlow32BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 399
+		float 	fSlow35BE = (fSlow33BE + -fSlow34BE /* Sum */); // Zone 2, step: 401
+		float 	fSlow36BE = (fSlow29BE * (fSlow34BE + 1.0f + -fSlow33BE /* Sum */)); // Zone 2, step: 407
+		float 	fTemp55SE; // step: 409
 		float 	fVec57SE[2];
-		float 	fSlow37BE = ((expf(-(fConst17KI / fSlow28BE)) / fSlow29BE) + -1.0f /* Sum */); // Zone 2, step: 435
+		float 	fSlow37BE = ((expf(-(fConst17KI / fSlow28BE)) / fSlow29BE) + -1.0f /* Sum */); // Zone 2, step: 436
 		float 	fVec55SE[2];
-		float 	fTemp56SE; // step: 455
-		float 	fSlow38BE = expf(-(fConst22KI / fSlow28BE)); // Zone 2, step: 469
-		float 	fSlow39BE = powf(fSlow38BE,2.0f); // Zone 2, step: 470
-		float 	fSlow40BE = (1.0f + -(fConst10KI * fSlow39BE) /* Sum */); // Zone 2, step: 473
-		float 	fSlow41BE = (1.0f + -fSlow39BE /* Sum */); // Zone 2, step: 475
-		float 	fSlow42BE = (fSlow40BE / fSlow41BE); // Zone 2, step: 476
-		float 	fSlow43BE = sqrtf(std::max(0.0f, ((powf(fSlow40BE,2.0f) / powf(fSlow41BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 482
-		float 	fSlow44BE = (fSlow42BE + -fSlow43BE /* Sum */); // Zone 2, step: 484
-		float 	fSlow45BE = (fSlow38BE * (fSlow43BE + 1.0f + -fSlow42BE /* Sum */)); // Zone 2, step: 490
-		float 	fTemp57SE; // step: 492
+		float 	fTemp56SE; // step: 456
+		float 	fSlow38BE = expf(-(fConst22KI / fSlow28BE)); // Zone 2, step: 470
+		float 	fSlow39BE = powf(fSlow38BE,2.0f); // Zone 2, step: 471
+		float 	fSlow40BE = (1.0f + -(fConst10KI * fSlow39BE) /* Sum */); // Zone 2, step: 474
+		float 	fSlow41BE = (1.0f + -fSlow39BE /* Sum */); // Zone 2, step: 476
+		float 	fSlow42BE = (fSlow40BE / fSlow41BE); // Zone 2, step: 477
+		float 	fSlow43BE = sqrtf(std::max(0.0f, ((powf(fSlow40BE,2.0f) / powf(fSlow41BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 483
+		float 	fSlow44BE = (fSlow42BE + -fSlow43BE /* Sum */); // Zone 2, step: 485
+		float 	fSlow45BE = (fSlow38BE * (fSlow43BE + 1.0f + -fSlow42BE /* Sum */)); // Zone 2, step: 491
+		float 	fTemp57SE; // step: 493
 		float 	fVec66SE[2];
-		float 	fSlow46BE = ((expf(-(fConst23KI / fSlow28BE)) / fSlow38BE) + -1.0f /* Sum */); // Zone 2, step: 509
+		float 	fSlow46BE = ((expf(-(fConst23KI / fSlow28BE)) / fSlow38BE) + -1.0f /* Sum */); // Zone 2, step: 510
 		float 	fVec64SE[2];
-		float 	fTemp58SE; // step: 532
-		float 	fTemp59SE; // step: 537
-		float 	fSlow47BE = (fConst28KI / fSlow28BE); // Zone 2, step: 544
-		float 	fSlow48BE = powf(expf(-fSlow47BE),2.0f); // Zone 2, step: 547
-		float 	fSlow49BE = (1.0f + -(fConst10KI * fSlow48BE) /* Sum */); // Zone 2, step: 550
-		float 	fSlow50BE = (1.0f + -fSlow48BE /* Sum */); // Zone 2, step: 552
-		float 	fSlow51BE = (fSlow49BE / fSlow50BE); // Zone 2, step: 553
-		float 	fSlow52BE = sqrtf(std::max(0.0f, ((powf(fSlow49BE,2.0f) / powf(fSlow50BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 559
-		float 	fSlow53BE = (fSlow51BE + -fSlow52BE /* Sum */); // Zone 2, step: 561
-		float 	fSlow54BE = expf(-fSlow47BE); // Zone 2, step: 566
-		float 	fSlow55BE = (fSlow54BE * (fSlow52BE + 1.0f + -fSlow51BE /* Sum */)); // Zone 2, step: 569
-		float 	fTemp60SE; // step: 571
-		float 	fSlow56BE = ((expf(-(fConst29KI / fSlow28BE)) / fSlow54BE) + -1.0f /* Sum */); // Zone 2, step: 577
+		float 	fTemp58SE; // step: 533
+		float 	fTemp59SE; // step: 538
+		float 	fSlow47BE = (fConst28KI / fSlow28BE); // Zone 2, step: 545
+		float 	fSlow48BE = powf(expf(-fSlow47BE),2.0f); // Zone 2, step: 548
+		float 	fSlow49BE = (1.0f + -(fConst10KI * fSlow48BE) /* Sum */); // Zone 2, step: 551
+		float 	fSlow50BE = (1.0f + -fSlow48BE /* Sum */); // Zone 2, step: 553
+		float 	fSlow51BE = (fSlow49BE / fSlow50BE); // Zone 2, step: 554
+		float 	fSlow52BE = sqrtf(std::max(0.0f, ((powf(fSlow49BE,2.0f) / powf(fSlow50BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 560
+		float 	fSlow53BE = (fSlow51BE + -fSlow52BE /* Sum */); // Zone 2, step: 562
+		float 	fSlow54BE = expf(-fSlow47BE); // Zone 2, step: 567
+		float 	fSlow55BE = (fSlow54BE * (fSlow52BE + 1.0f + -fSlow51BE /* Sum */)); // Zone 2, step: 570
+		float 	fTemp60SE; // step: 572
+		float 	fSlow56BE = ((expf(-(fConst29KI / fSlow28BE)) / fSlow54BE) + -1.0f /* Sum */); // Zone 2, step: 578
 		float 	fVec76SE[2];
 		float 	fVec74SE[2];
-		float 	fTemp61SE; // step: 611
-		float 	fSlow57BE = (fConst34KI / fSlow28BE); // Zone 2, step: 621
-		float 	fSlow58BE = powf(expf(-fSlow57BE),2.0f); // Zone 2, step: 624
-		float 	fSlow59BE = (1.0f + -(fConst10KI * fSlow58BE) /* Sum */); // Zone 2, step: 627
-		float 	fSlow60BE = (1.0f + -fSlow58BE /* Sum */); // Zone 2, step: 629
-		float 	fSlow61BE = (fSlow59BE / fSlow60BE); // Zone 2, step: 630
-		float 	fSlow62BE = sqrtf(std::max(0.0f, ((powf(fSlow59BE,2.0f) / powf(fSlow60BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 636
-		float 	fSlow63BE = (fSlow61BE + -fSlow62BE /* Sum */); // Zone 2, step: 638
-		float 	fSlow64BE = expf(-fSlow57BE); // Zone 2, step: 643
-		float 	fSlow65BE = (fSlow64BE * (fSlow62BE + 1.0f + -fSlow61BE /* Sum */)); // Zone 2, step: 646
-		float 	fTemp62SE; // step: 648
-		float 	fSlow66BE = ((expf(-(fConst35KI / fSlow28BE)) / fSlow64BE) + -1.0f /* Sum */); // Zone 2, step: 654
+		float 	fTemp61SE; // step: 612
+		float 	fSlow57BE = (fConst34KI / fSlow28BE); // Zone 2, step: 622
+		float 	fSlow58BE = powf(expf(-fSlow57BE),2.0f); // Zone 2, step: 625
+		float 	fSlow59BE = (1.0f + -(fConst10KI * fSlow58BE) /* Sum */); // Zone 2, step: 628
+		float 	fSlow60BE = (1.0f + -fSlow58BE /* Sum */); // Zone 2, step: 630
+		float 	fSlow61BE = (fSlow59BE / fSlow60BE); // Zone 2, step: 631
+		float 	fSlow62BE = sqrtf(std::max(0.0f, ((powf(fSlow59BE,2.0f) / powf(fSlow60BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 637
+		float 	fSlow63BE = (fSlow61BE + -fSlow62BE /* Sum */); // Zone 2, step: 639
+		float 	fSlow64BE = expf(-fSlow57BE); // Zone 2, step: 644
+		float 	fSlow65BE = (fSlow64BE * (fSlow62BE + 1.0f + -fSlow61BE /* Sum */)); // Zone 2, step: 647
+		float 	fTemp62SE; // step: 649
+		float 	fSlow66BE = ((expf(-(fConst35KI / fSlow28BE)) / fSlow64BE) + -1.0f /* Sum */); // Zone 2, step: 655
 		float 	fVec86SE[2];
 		float 	fVec84SE[2];
-		float 	fTemp63SE; // step: 688
-		float 	fTemp64SE; // step: 692
-		float 	fTemp65SE; // step: 694
-		float 	fTemp66SE; // step: 697
-		float 	fSlow67BE = expf(-(fConst40KI / fSlow28BE)); // Zone 2, step: 707
-		float 	fSlow68BE = powf(fSlow67BE,2.0f); // Zone 2, step: 708
-		float 	fSlow69BE = (1.0f + -(fConst10KI * fSlow68BE) /* Sum */); // Zone 2, step: 711
-		float 	fSlow70BE = (1.0f + -fSlow68BE /* Sum */); // Zone 2, step: 713
-		float 	fSlow71BE = (fSlow69BE / fSlow70BE); // Zone 2, step: 714
-		float 	fSlow72BE = sqrtf(std::max(0.0f, ((powf(fSlow69BE,2.0f) / powf(fSlow70BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 720
-		float 	fSlow73BE = (fSlow71BE + -fSlow72BE /* Sum */); // Zone 2, step: 722
-		float 	fSlow74BE = (fSlow67BE * (fSlow72BE + 1.0f + -fSlow71BE /* Sum */)); // Zone 2, step: 728
-		float 	fTemp67SE; // step: 730
+		float 	fTemp63SE; // step: 689
+		float 	fTemp64SE; // step: 693
+		float 	fTemp65SE; // step: 695
+		float 	fTemp66SE; // step: 698
+		float 	fSlow67BE = expf(-(fConst40KI / fSlow28BE)); // Zone 2, step: 708
+		float 	fSlow68BE = powf(fSlow67BE,2.0f); // Zone 2, step: 709
+		float 	fSlow69BE = (1.0f + -(fConst10KI * fSlow68BE) /* Sum */); // Zone 2, step: 712
+		float 	fSlow70BE = (1.0f + -fSlow68BE /* Sum */); // Zone 2, step: 714
+		float 	fSlow71BE = (fSlow69BE / fSlow70BE); // Zone 2, step: 715
+		float 	fSlow72BE = sqrtf(std::max(0.0f, ((powf(fSlow69BE,2.0f) / powf(fSlow70BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 721
+		float 	fSlow73BE = (fSlow71BE + -fSlow72BE /* Sum */); // Zone 2, step: 723
+		float 	fSlow74BE = (fSlow67BE * (fSlow72BE + 1.0f + -fSlow71BE /* Sum */)); // Zone 2, step: 729
+		float 	fTemp67SE; // step: 731
 		float 	fVec99SE[2];
-		float 	fSlow75BE = ((expf(-(fConst41KI / fSlow28BE)) / fSlow67BE) + -1.0f /* Sum */); // Zone 2, step: 747
+		float 	fSlow75BE = ((expf(-(fConst41KI / fSlow28BE)) / fSlow67BE) + -1.0f /* Sum */); // Zone 2, step: 748
 		float 	fVec97SE[2];
-		float 	fTemp68SE; // step: 766
-		float 	fSlow76BE = expf(-(fConst46KI / fSlow28BE)); // Zone 2, step: 781
-		float 	fSlow77BE = powf(fSlow76BE,2.0f); // Zone 2, step: 782
-		float 	fSlow78BE = (1.0f + -(fConst10KI * fSlow77BE) /* Sum */); // Zone 2, step: 785
-		float 	fSlow79BE = (1.0f + -fSlow77BE /* Sum */); // Zone 2, step: 787
-		float 	fSlow80BE = (fSlow78BE / fSlow79BE); // Zone 2, step: 788
-		float 	fSlow81BE = sqrtf(std::max(0.0f, ((powf(fSlow78BE,2.0f) / powf(fSlow79BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 794
-		float 	fSlow82BE = (fSlow80BE + -fSlow81BE /* Sum */); // Zone 2, step: 796
-		float 	fSlow83BE = (fSlow76BE * (fSlow81BE + 1.0f + -fSlow80BE /* Sum */)); // Zone 2, step: 802
-		float 	fTemp69SE; // step: 804
+		float 	fTemp68SE; // step: 767
+		float 	fSlow76BE = expf(-(fConst46KI / fSlow28BE)); // Zone 2, step: 782
+		float 	fSlow77BE = powf(fSlow76BE,2.0f); // Zone 2, step: 783
+		float 	fSlow78BE = (1.0f + -(fConst10KI * fSlow77BE) /* Sum */); // Zone 2, step: 786
+		float 	fSlow79BE = (1.0f + -fSlow77BE /* Sum */); // Zone 2, step: 788
+		float 	fSlow80BE = (fSlow78BE / fSlow79BE); // Zone 2, step: 789
+		float 	fSlow81BE = sqrtf(std::max(0.0f, ((powf(fSlow78BE,2.0f) / powf(fSlow79BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 795
+		float 	fSlow82BE = (fSlow80BE + -fSlow81BE /* Sum */); // Zone 2, step: 797
+		float 	fSlow83BE = (fSlow76BE * (fSlow81BE + 1.0f + -fSlow80BE /* Sum */)); // Zone 2, step: 803
+		float 	fTemp69SE; // step: 805
 		float 	fVec108SE[2];
-		float 	fSlow84BE = ((expf(-(fConst47KI / fSlow28BE)) / fSlow76BE) + -1.0f /* Sum */); // Zone 2, step: 821
+		float 	fSlow84BE = ((expf(-(fConst47KI / fSlow28BE)) / fSlow76BE) + -1.0f /* Sum */); // Zone 2, step: 822
 		float 	fVec106SE[2];
-		float 	fTemp70SE; // step: 844
-		float 	fTemp71SE; // step: 849
-		float 	fSlow85BE = (fConst52KI / fSlow28BE); // Zone 2, step: 857
-		float 	fSlow86BE = powf(expf(-fSlow85BE),2.0f); // Zone 2, step: 860
-		float 	fSlow87BE = (1.0f + -(fConst10KI * fSlow86BE) /* Sum */); // Zone 2, step: 863
-		float 	fSlow88BE = (1.0f + -fSlow86BE /* Sum */); // Zone 2, step: 865
-		float 	fSlow89BE = (fSlow87BE / fSlow88BE); // Zone 2, step: 866
-		float 	fSlow90BE = sqrtf(std::max(0.0f, ((powf(fSlow87BE,2.0f) / powf(fSlow88BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 872
-		float 	fSlow91BE = (fSlow89BE + -fSlow90BE /* Sum */); // Zone 2, step: 874
-		float 	fSlow92BE = expf(-fSlow85BE); // Zone 2, step: 879
-		float 	fSlow93BE = (fSlow92BE * (fSlow90BE + 1.0f + -fSlow89BE /* Sum */)); // Zone 2, step: 882
-		float 	fTemp72SE; // step: 884
-		float 	fSlow94BE = ((expf(-(fConst53KI / fSlow28BE)) / fSlow92BE) + -1.0f /* Sum */); // Zone 2, step: 890
+		float 	fTemp70SE; // step: 845
+		float 	fTemp71SE; // step: 850
+		float 	fSlow85BE = (fConst52KI / fSlow28BE); // Zone 2, step: 858
+		float 	fSlow86BE = powf(expf(-fSlow85BE),2.0f); // Zone 2, step: 861
+		float 	fSlow87BE = (1.0f + -(fConst10KI * fSlow86BE) /* Sum */); // Zone 2, step: 864
+		float 	fSlow88BE = (1.0f + -fSlow86BE /* Sum */); // Zone 2, step: 866
+		float 	fSlow89BE = (fSlow87BE / fSlow88BE); // Zone 2, step: 867
+		float 	fSlow90BE = sqrtf(std::max(0.0f, ((powf(fSlow87BE,2.0f) / powf(fSlow88BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 873
+		float 	fSlow91BE = (fSlow89BE + -fSlow90BE /* Sum */); // Zone 2, step: 875
+		float 	fSlow92BE = expf(-fSlow85BE); // Zone 2, step: 880
+		float 	fSlow93BE = (fSlow92BE * (fSlow90BE + 1.0f + -fSlow89BE /* Sum */)); // Zone 2, step: 883
+		float 	fTemp72SE; // step: 885
+		float 	fSlow94BE = ((expf(-(fConst53KI / fSlow28BE)) / fSlow92BE) + -1.0f /* Sum */); // Zone 2, step: 891
 		float 	fVec119SE[2];
 		float 	fVec117SE[2];
-		float 	fTemp73SE; // step: 924
-		float 	fTemp74SE; // step: 929
-		float 	fSlow95BE = (fConst58KI / fSlow28BE); // Zone 2, step: 937
-		float 	fSlow96BE = powf(expf(-fSlow95BE),2.0f); // Zone 2, step: 940
-		float 	fSlow97BE = (1.0f + -(fConst10KI * fSlow96BE) /* Sum */); // Zone 2, step: 943
-		float 	fSlow98BE = (1.0f + -fSlow96BE /* Sum */); // Zone 2, step: 945
-		float 	fSlow99BE = (fSlow97BE / fSlow98BE); // Zone 2, step: 946
-		float 	fSlow100BE = sqrtf(std::max(0.0f, ((powf(fSlow97BE,2.0f) / powf(fSlow98BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 952
-		float 	fSlow101BE = (fSlow99BE + -fSlow100BE /* Sum */); // Zone 2, step: 954
-		float 	fSlow102BE = expf(-fSlow95BE); // Zone 2, step: 959
-		float 	fSlow103BE = (fSlow102BE * (fSlow100BE + 1.0f + -fSlow99BE /* Sum */)); // Zone 2, step: 962
-		float 	fTemp75SE; // step: 964
-		float 	fSlow104BE = ((expf(-(fConst59KI / fSlow28BE)) / fSlow102BE) + -1.0f /* Sum */); // Zone 2, step: 970
+		float 	fTemp73SE; // step: 925
+		float 	fTemp74SE; // step: 930
+		float 	fSlow95BE = (fConst58KI / fSlow28BE); // Zone 2, step: 938
+		float 	fSlow96BE = powf(expf(-fSlow95BE),2.0f); // Zone 2, step: 941
+		float 	fSlow97BE = (1.0f + -(fConst10KI * fSlow96BE) /* Sum */); // Zone 2, step: 944
+		float 	fSlow98BE = (1.0f + -fSlow96BE /* Sum */); // Zone 2, step: 946
+		float 	fSlow99BE = (fSlow97BE / fSlow98BE); // Zone 2, step: 947
+		float 	fSlow100BE = sqrtf(std::max(0.0f, ((powf(fSlow97BE,2.0f) / powf(fSlow98BE,2.0f)) + -1.0f /* Sum */))); // Zone 2, step: 953
+		float 	fSlow101BE = (fSlow99BE + -fSlow100BE /* Sum */); // Zone 2, step: 955
+		float 	fSlow102BE = expf(-fSlow95BE); // Zone 2, step: 960
+		float 	fSlow103BE = (fSlow102BE * (fSlow100BE + 1.0f + -fSlow99BE /* Sum */)); // Zone 2, step: 963
+		float 	fTemp75SE; // step: 965
+		float 	fSlow104BE = ((expf(-(fConst59KI / fSlow28BE)) / fSlow102BE) + -1.0f /* Sum */); // Zone 2, step: 971
 		float 	fVec130SE[2];
 		float 	fVec128SE[2];
-		float 	fTemp76SE; // step: 1004
+		float 	fTemp76SE; // step: 1005
 		float 	fVec98SE[2];
 		float 	fVec100SE[3];
-		float 	fTemp77SE; // step: 1014
-		float 	fTemp78SE; // step: 1015
-		float 	fTemp79SE; // step: 1021
-		float 	fTemp80SE; // step: 1027
-		float 	fTemp81SE; // step: 1033
-		float 	fTemp82SE; // step: 1039
-		float 	fTemp83SE; // step: 1045
+		float 	fTemp77SE; // step: 1015
+		float 	fTemp78SE; // step: 1016
+		float 	fTemp79SE; // step: 1022
+		float 	fTemp80SE; // step: 1028
+		float 	fTemp81SE; // step: 1034
+		float 	fTemp82SE; // step: 1040
+		float 	fTemp83SE; // step: 1046
 		float 	fVec144SE[2];
 		float 	fVec145SE[2];
-		float 	fTemp84SE; // step: 1054
+		float 	fTemp84SE; // step: 1055
 		float 	fVec143SE[2];
 		float 	fVec147SE[2];
 		float 	fVec142SE[2];
@@ -1030,16 +1030,16 @@ class mydsp : public dsp {
 		float 	fVec153SE[2];
 		float 	fVec139SE[2];
 		float 	fVec5SE[2];
-		float 	fTemp85SE; // step: 1087
-		float 	fTemp86SE; // step: 1088
-		float 	fTemp87SE; // step: 1094
-		float 	fTemp88SE; // step: 1100
-		float 	fTemp89SE; // step: 1106
-		float 	fTemp90SE; // step: 1112
-		float 	fTemp91SE; // step: 1118
+		float 	fTemp85SE; // step: 1088
+		float 	fTemp86SE; // step: 1089
+		float 	fTemp87SE; // step: 1095
+		float 	fTemp88SE; // step: 1101
+		float 	fTemp89SE; // step: 1107
+		float 	fTemp90SE; // step: 1113
+		float 	fTemp91SE; // step: 1119
 		float 	fVec161SE[2];
 		float 	fVec162SE[2];
-		float 	fTemp92SE; // step: 1127
+		float 	fTemp92SE; // step: 1128
 		float 	fVec160SE[2];
 		float 	fVec164SE[2];
 		float 	fVec159SE[2];
@@ -1050,21 +1050,21 @@ class mydsp : public dsp {
 		float 	fVec170SE[2];
 		float 	fVec156SE[2];
 		float 	fVec30SE[2];
-		float 	fTemp93SE; // step: 1161
-		float 	fTemp94SE; // step: 1162
-		float 	fTemp95SE; // step: 1163
+		float 	fTemp93SE; // step: 1162
+		float 	fTemp94SE; // step: 1163
+		float 	fTemp95SE; // step: 1164
 		float 	fVec173SE[2];
 		float 	fVec37SE[2];
-		float 	fTemp96SE; // step: 1171
-		float 	fTemp97SE; // step: 1172
-		float 	fTemp98SE; // step: 1178
-		float 	fTemp99SE; // step: 1184
-		float 	fTemp100SE; // step: 1190
-		float 	fTemp101SE; // step: 1196
-		float 	fTemp102SE; // step: 1202
+		float 	fTemp96SE; // step: 1172
+		float 	fTemp97SE; // step: 1173
+		float 	fTemp98SE; // step: 1179
+		float 	fTemp99SE; // step: 1185
+		float 	fTemp100SE; // step: 1191
+		float 	fTemp101SE; // step: 1197
+		float 	fTemp102SE; // step: 1203
 		float 	fVec181SE[2];
 		float 	fVec182SE[2];
-		float 	fTemp103SE; // step: 1211
+		float 	fTemp103SE; // step: 1212
 		float 	fVec180SE[2];
 		float 	fVec184SE[2];
 		float 	fVec179SE[2];
@@ -1075,17 +1075,17 @@ class mydsp : public dsp {
 		float 	fVec190SE[2];
 		float 	fVec176SE[2];
 		float 	fVec38SE[2];
-		float 	fTemp104SE; // step: 1247
-		float 	fTemp105SE; // step: 1252
-		float 	fTemp106SE; // step: 1253
-		float 	fTemp107SE; // step: 1259
-		float 	fTemp108SE; // step: 1265
-		float 	fTemp109SE; // step: 1271
-		float 	fTemp110SE; // step: 1277
-		float 	fTemp111SE; // step: 1283
+		float 	fTemp104SE; // step: 1248
+		float 	fTemp105SE; // step: 1253
+		float 	fTemp106SE; // step: 1254
+		float 	fTemp107SE; // step: 1260
+		float 	fTemp108SE; // step: 1266
+		float 	fTemp109SE; // step: 1272
+		float 	fTemp110SE; // step: 1278
+		float 	fTemp111SE; // step: 1284
 		float 	fVec198SE[2];
 		float 	fVec199SE[2];
-		float 	fTemp112SE; // step: 1292
+		float 	fTemp112SE; // step: 1293
 		float 	fVec197SE[2];
 		float 	fVec201SE[2];
 		float 	fVec196SE[2];
@@ -1127,12 +1127,12 @@ class mydsp : public dsp {
 		float 	fVec87SE[3];
 		float 	fVec92SE[2];
 		float 	fVec3SE[2];
-		float 	fSlow105BE = (0.001f * float(fslider9)); // Zone 2, step: 1425
+		float 	fSlow105BE = (0.001f * float(fslider9)); // Zone 2, step: 1426
 		float 	fVec242SE[2];
-		float 	fTemp113SE; // step: 1433
-		float 	fTemp114SE; // step: 1435
-		float 	fTemp115SE; // step: 1436
-		float 	fTemp116SE; // step: 1442
+		float 	fTemp113SE; // step: 1434
+		float 	fTemp114SE; // step: 1436
+		float 	fTemp115SE; // step: 1437
+		float 	fTemp116SE; // step: 1443
 		FAUSTFLOAT* output0 = output[0]; // Zone 3
 		FAUSTFLOAT* output1 = output[1]; // Zone 3
 		fVec6SI[1] = fVec6SIState;
@@ -1274,138 +1274,138 @@ class mydsp : public dsp {
 			fVec9SE[0] = (fSlow0BE + (0.999f * fVec9SE[1]) /* Sum */);
 			fTemp6SE = (fConst5KI * fVec9SE[0]); // step: 62
 			fVec8SE[0] = (fTemp5SE + fTemp6SE + -floorf((fTemp5SE + fTemp6SE /* Sum */)) /* Sum */);
-			fTemp7SE = (fTemp4SI * ftbl0SI[std::max(0, std::min(int((65536.0f * fVec8SE[0])), 65535))]); // step: 87
+			fTemp7SE = (fTemp4SI * ftbl0SI[std::max(0, std::min(int((65536.0f * fVec8SE[0])), 65535))]); // step: 88
 			fVec14SE[0] = ((iSlow3BE) ? 0.0f : std::min(fConst6KI, (fVec14SE[1] + 1.0f /* Sum */)));
-			fTemp8SE = fVec14SE[0]; // step: 99
+			fTemp8SE = fVec14SE[0]; // step: 100
 			fVec17SE[0] = ((iSlow5BE) ? 0.0f : std::min(fConst7KI, (fVec17SE[1] + 1.0f /* Sum */)));
-			fTemp9SE = fVec17SE[0]; // step: 114
+			fTemp9SE = fVec17SE[0]; // step: 115
 			fVec16SE[0] = ((iSlow2BE) ? (fSlow4BE * (((fTemp9SE < fConst7KI)) ? (fSlow6BE * fTemp9SE) : fSlow1BE)) : fVec16SE[1]);
-			fTemp10SE = fVec16SE[0]; // step: 124
-			fTemp11SE = (((fTemp8SE < fConst6KI)) ? (fTemp10SE * (1.0f + -(fConst9KI * fTemp8SE) /* Sum */)) : 0.0f); // step: 131
-			fTemp12SE = (3.1415927f * (fTemp7SE * fTemp11SE)); // step: 133
-			fTemp13SE = (fVec5SE[1] * cosf(fTemp12SE)); // step: 135
-			fTemp14SE = fVec20SE[1]; // step: 139
+			fTemp10SE = fVec16SE[0]; // step: 125
+			fTemp11SE = (((fTemp8SE < fConst6KI)) ? (fTemp10SE * (1.0f + -(fConst9KI * fTemp8SE) /* Sum */)) : 0.0f); // step: 132
+			fTemp12SE = (3.1415927f * (fTemp7SE * fTemp11SE)); // step: 134
+			fTemp13SE = (fVec5SE[1] * cosf(fTemp12SE)); // step: 136
+			fTemp14SE = fVec20SE[1]; // step: 140
 			fVec21SE[0] = (fSlow7BE + (0.999f * fVec21SE[1]) /* Sum */);
-			fTemp15SE = (fConst5KI * fVec21SE[0]); // step: 150
+			fTemp15SE = (fConst5KI * fVec21SE[0]); // step: 151
 			fVec20SE[0] = (fTemp14SE + fTemp15SE + -floorf((fTemp14SE + fTemp15SE /* Sum */)) /* Sum */);
-			fTemp16SE = (65536.0f * fVec20SE[0]); // step: 157
-			iTemp17SE = int(fTemp16SE); // step: 158
-			fTemp18SE = ftbl1SI[std::max(0, std::min(iTemp17SE, 65536))]; // step: 162
-			fTemp19SE = (fTemp18SE + ((fTemp16SE + -floorf(fTemp16SE) /* Sum */) * (ftbl1SI[std::max(0, std::min((iTemp17SE + 1 /* Sum */), 65536))] + -fTemp18SE /* Sum */)) /* Sum */); // step: 174
-			fTemp20SE = (fTemp4SI * fTemp19SE); // step: 175
+			fTemp16SE = (65536.0f * fVec20SE[0]); // step: 158
+			iTemp17SE = int(fTemp16SE); // step: 159
+			fTemp18SE = ftbl1SI[std::max(0, std::min(iTemp17SE, 65536))]; // step: 163
+			fTemp19SE = (fTemp18SE + ((fTemp16SE + -floorf(fTemp16SE) /* Sum */) * (ftbl1SI[std::max(0, std::min((iTemp17SE + 1 /* Sum */), 65536))] + -fTemp18SE /* Sum */)) /* Sum */); // step: 175
+			fTemp20SE = (fTemp4SI * fTemp19SE); // step: 176
 			fVec24SE[0] = ((iSlow10BE) ? 0.0f : std::min(fConst6KI, (fVec24SE[1] + 1.0f /* Sum */)));
-			fTemp21SE = fVec24SE[0]; // step: 185
+			fTemp21SE = fVec24SE[0]; // step: 186
 			fVec27SE[0] = ((iSlow12BE) ? 0.0f : std::min(fConst7KI, (fVec27SE[1] + 1.0f /* Sum */)));
-			fTemp22SE = fVec27SE[0]; // step: 198
+			fTemp22SE = fVec27SE[0]; // step: 199
 			fVec26SE[0] = ((iSlow9BE) ? (fSlow11BE * (((fTemp22SE < fConst7KI)) ? (fSlow13BE * fTemp22SE) : fSlow8BE)) : fVec26SE[1]);
-			fTemp23SE = fVec26SE[0]; // step: 206
-			fTemp24SE = (((fTemp21SE < fConst6KI)) ? (fTemp23SE * (1.0f + -(fConst9KI * fTemp21SE) /* Sum */)) : 0.0f); // step: 211
-			fTemp25SE = (3.1415927f * (fTemp20SE * fTemp24SE)); // step: 213
-			fTemp26SE = sinf(fTemp25SE); // step: 214
-			fTemp27SE = fVec30SE[1]; // step: 216
-			fTemp28SE = (fTemp4SI * ((fTemp19SE * fTemp26SE) + (fTemp27SE * cosf(fTemp25SE)) /* Sum */)); // step: 220
-			fTemp29SI = (1.0f + -fTemp4SI /* Sum */); // step: 222
-			fTemp30SE = (fTemp19SE * fTemp29SI); // step: 223
-			fTemp31SE = (fTemp28SE + fTemp30SE /* Sum */); // step: 224
+			fTemp23SE = fVec26SE[0]; // step: 207
+			fTemp24SE = (((fTemp21SE < fConst6KI)) ? (fTemp23SE * (1.0f + -(fConst9KI * fTemp21SE) /* Sum */)) : 0.0f); // step: 212
+			fTemp25SE = (3.1415927f * (fTemp20SE * fTemp24SE)); // step: 214
+			fTemp26SE = sinf(fTemp25SE); // step: 215
+			fTemp27SE = fVec30SE[1]; // step: 217
+			fTemp28SE = (fTemp4SI * ((fTemp19SE * fTemp26SE) + (fTemp27SE * cosf(fTemp25SE)) /* Sum */)); // step: 221
+			fTemp29SI = (1.0f + -fTemp4SI /* Sum */); // step: 223
+			fTemp30SE = (fTemp19SE * fTemp29SI); // step: 224
+			fTemp31SE = (fTemp28SE + fTemp30SE /* Sum */); // step: 225
 			fVec31SE[0] = ((iSlow16BE) ? 0.0f : std::min(fConst6KI, (fVec31SE[1] + 1.0f /* Sum */)));
-			fTemp32SE = fVec31SE[0]; // step: 235
+			fTemp32SE = fVec31SE[0]; // step: 236
 			fVec34SE[0] = ((iSlow18BE) ? 0.0f : std::min(fConst7KI, (fVec34SE[1] + 1.0f /* Sum */)));
-			fTemp33SE = fVec34SE[0]; // step: 248
+			fTemp33SE = fVec34SE[0]; // step: 249
 			fVec33SE[0] = ((iSlow15BE) ? (fSlow17BE * (((fTemp33SE < fConst7KI)) ? (fSlow19BE * fTemp33SE) : fSlow14BE)) : fVec33SE[1]);
-			fTemp34SE = fVec33SE[0]; // step: 256
-			fTemp35SE = (((fTemp32SE < fConst6KI)) ? (fTemp34SE * (1.0f + -(fConst9KI * fTemp32SE) /* Sum */)) : 0.0f); // step: 261
-			fTemp36SE = (1.5707964f * ((fTemp4SI * fTemp35SE) * (fTemp28SE + fTemp30SE + fVec37SE[1] /* Sum */))); // step: 266
-			fTemp37SE = sinf(fTemp36SE); // step: 267
-			fTemp38SE = fVec38SE[1]; // step: 269
-			fTemp39SE = ((fTemp4SI * ((fTemp31SE * fTemp37SE) + (fTemp38SE * cosf(fTemp36SE)) /* Sum */)) + (fTemp29SI * fTemp31SE) /* Sum */); // step: 275
+			fTemp34SE = fVec33SE[0]; // step: 257
+			fTemp35SE = (((fTemp32SE < fConst6KI)) ? (fTemp34SE * (1.0f + -(fConst9KI * fTemp32SE) /* Sum */)) : 0.0f); // step: 262
+			fTemp36SE = (1.5707964f * ((fTemp4SI * fTemp35SE) * (fTemp28SE + fTemp30SE + fVec37SE[1] /* Sum */))); // step: 267
+			fTemp37SE = sinf(fTemp36SE); // step: 268
+			fTemp38SE = fVec38SE[1]; // step: 270
+			fTemp39SE = ((fTemp4SI * ((fTemp31SE * fTemp37SE) + (fTemp38SE * cosf(fTemp36SE)) /* Sum */)) + (fTemp29SI * fTemp31SE) /* Sum */); // step: 276
 			fVec39SE[0] = ((iSlow22BE) ? 0.0f : std::min(fConst6KI, (fVec39SE[1] + 1.0f /* Sum */)));
-			fTemp40SE = fVec39SE[0]; // step: 286
+			fTemp40SE = fVec39SE[0]; // step: 287
 			fVec42SE[0] = ((iSlow24BE) ? 0.0f : std::min(fConst7KI, (fVec42SE[1] + 1.0f /* Sum */)));
-			fTemp41SE = fVec42SE[0]; // step: 299
+			fTemp41SE = fVec42SE[0]; // step: 300
 			fVec41SE[0] = ((iSlow21BE) ? (fSlow23BE * (((fTemp41SE < fConst7KI)) ? (fSlow25BE * fTemp41SE) : fSlow20BE)) : fVec41SE[1]);
-			fTemp42SE = fVec41SE[0]; // step: 307
-			fTemp43SE = (((fTemp40SE < fConst6KI)) ? (fTemp42SE * (1.0f + -(fConst9KI * fTemp40SE) /* Sum */)) : 0.0f); // step: 312
-			fTemp44SE = (3.1415927f * ((fTemp4SI * fTemp43SE) * powf(fTemp39SE,2.0f))); // step: 315
-			fTemp45SE = sinf(fTemp44SE); // step: 316
-			fTemp46SE = (fTemp4SI * ((fTemp39SE * fTemp45SE) + (fVec45SE[1] * cosf(fTemp44SE)) /* Sum */)); // step: 322
-			fTemp47SE = (fTemp29SI * fTemp39SE); // step: 324
-			fTemp48SE = sinf(fTemp12SE); // step: 326
-			fTemp49SE = (fTemp19SE * fTemp48SE); // step: 327
+			fTemp42SE = fVec41SE[0]; // step: 308
+			fTemp43SE = (((fTemp40SE < fConst6KI)) ? (fTemp42SE * (1.0f + -(fConst9KI * fTemp40SE) /* Sum */)) : 0.0f); // step: 313
+			fTemp44SE = (3.1415927f * ((fTemp4SI * fTemp43SE) * powf(fTemp39SE,2.0f))); // step: 316
+			fTemp45SE = sinf(fTemp44SE); // step: 317
+			fTemp46SE = (fTemp4SI * ((fTemp39SE * fTemp45SE) + (fVec45SE[1] * cosf(fTemp44SE)) /* Sum */)); // step: 323
+			fTemp47SE = (fTemp29SI * fTemp39SE); // step: 325
+			fTemp48SE = sinf(fTemp12SE); // step: 327
+			fTemp49SE = (fTemp19SE * fTemp48SE); // step: 328
 			fVec4SE[0] = -(fConst3KI * ((fConst4KI * fVec4SE[1]) + -fTemp13SE + -fTemp46SE + -fTemp47SE + -fTemp49SE + -fVec46SE[1] /* Sum */));
 			fVec48SE[0] = (fSlow26BE + (0.999f * fVec48SE[1]) /* Sum */);
-			fTemp50SE = (fVec4SE[0] * fVec48SE[0]); // step: 346
+			fTemp50SE = (fVec4SE[0] * fVec48SE[0]); // step: 347
 			fVec50SE[0] = (fSlow27BE + (0.999f * fVec50SE[1]) /* Sum */);
-			fTemp51SE = std::max(0.05f, std::min(1.0f, fVec50SE[0])); // step: 358
+			fTemp51SE = std::max(0.05f, std::min(1.0f, fVec50SE[0])); // step: 359
 			fVec52SE[IOTA0&4095] = (fTemp50SE * fTemp51SE);
-			fTemp52SE = fVec52SE[(IOTA0-iConst1KI)&4095]; // step: 361
-			fTemp53SE = (0.18f * fTemp52SE); // step: 362
-			fTemp54SE = fVec54SE[1]; // step: 365
-			fTemp55SE = fVec56SE[1]; // step: 408
+			fTemp52SE = fVec52SE[(IOTA0-iConst1KI)&4095]; // step: 362
+			fTemp53SE = (0.18f * fTemp52SE); // step: 363
+			fTemp54SE = fVec54SE[1]; // step: 366
+			fTemp55SE = fVec56SE[1]; // step: 409
 			fVec57SE[0] = -(fConst15KI * ((fConst16KI * fVec57SE[1]) + -fTemp55SE + -fVec58SE[2] /* Sum */));
 			fVec55SE[0] = ((fSlow35BE * fVec55SE[1]) + (fSlow36BE * (fTemp55SE + (fSlow37BE * fVec57SE[0]) /* Sum */)) /* Sum */);
 			fVec61SE[IOTA0&32767] = ((0.35355338f * fVec55SE[0]) + 1e-20f /* Sum */);
-			fTemp56SE = fVec61SE[(IOTA0-iConst19KI)&32767]; // step: 455
+			fTemp56SE = fVec61SE[(IOTA0-iConst19KI)&32767]; // step: 456
 			float 	fRec23SE = (0.6f * (fTemp53SE + (-0.6f * fTemp54SE) + -fTemp56SE /* Sum */)); // Zero delay
-			fTemp57SE = fVec65SE[1]; // step: 492
+			fTemp57SE = fVec65SE[1]; // step: 493
 			fVec66SE[0] = -(fConst15KI * ((fConst16KI * fVec66SE[1]) + -fTemp57SE + -fVec67SE[2] /* Sum */));
 			fVec64SE[0] = ((fSlow44BE * fVec64SE[1]) + (fSlow45BE * (fTemp57SE + (fSlow46BE * fVec66SE[0]) /* Sum */)) /* Sum */);
 			fVec70SE[IOTA0&16383] = ((0.35355338f * fVec64SE[0]) + 1e-20f /* Sum */);
-			fTemp58SE = (fVec70SE[(IOTA0-iConst25KI)&16383] + fTemp53SE + (0.6f * fVec72SE[1]) /* Sum */); // step: 532
+			fTemp58SE = (fVec70SE[(IOTA0-iConst25KI)&16383] + fTemp53SE + (0.6f * fVec72SE[1]) /* Sum */); // step: 533
 			float 	fRec26SE = (-0.6f * fTemp58SE); // Zero delay
-			fTemp59SE = (-0.18f * fTemp52SE); // step: 537
-			fTemp60SE = fVec75SE[1]; // step: 571
+			fTemp59SE = (-0.18f * fTemp52SE); // step: 538
+			fTemp60SE = fVec75SE[1]; // step: 572
 			fVec76SE[0] = -(fConst15KI * ((fConst16KI * fVec76SE[1]) + -fTemp60SE + -fVec77SE[2] /* Sum */));
 			fVec74SE[0] = ((fSlow53BE * fVec74SE[1]) + (fSlow55BE * (fTemp60SE + (fSlow56BE * fVec76SE[0]) /* Sum */)) /* Sum */);
 			fVec80SE[IOTA0&16383] = ((0.35355338f * fVec74SE[0]) + 1e-20f /* Sum */);
-			fTemp61SE = (fVec80SE[(IOTA0-iConst31KI)&16383] + fTemp59SE + (-0.6f * fVec82SE[1]) /* Sum */); // step: 611
+			fTemp61SE = (fVec80SE[(IOTA0-iConst31KI)&16383] + fTemp59SE + (-0.6f * fVec82SE[1]) /* Sum */); // step: 612
 			float 	fRec29SE = (0.6f * fTemp61SE); // Zero delay
-			fTemp62SE = fVec85SE[1]; // step: 648
+			fTemp62SE = fVec85SE[1]; // step: 649
 			fVec86SE[0] = -(fConst15KI * ((fConst16KI * fVec86SE[1]) + -fTemp62SE + -fVec87SE[2] /* Sum */));
 			fVec84SE[0] = ((fSlow63BE * fVec84SE[1]) + (fSlow65BE * (fTemp62SE + (fSlow66BE * fVec86SE[0]) /* Sum */)) /* Sum */);
 			fVec90SE[IOTA0&16383] = ((0.35355338f * fVec84SE[0]) + 1e-20f /* Sum */);
-			fTemp63SE = (fVec90SE[(IOTA0-iConst37KI)&16383] + fTemp53SE + (-0.6f * fVec92SE[1]) /* Sum */); // step: 688
+			fTemp63SE = (fVec90SE[(IOTA0-iConst37KI)&16383] + fTemp53SE + (-0.6f * fVec92SE[1]) /* Sum */); // step: 689
 			float 	fRec32SE = (0.6f * fTemp63SE); // Zero delay
-			fTemp64SE = fVec94SE[1]; // step: 692
-			fTemp65SE = fVec95SE[1]; // step: 694
-			fTemp66SE = fVec96SE[1]; // step: 697
-			fTemp67SE = fVec98SE[1]; // step: 730
+			fTemp64SE = fVec94SE[1]; // step: 693
+			fTemp65SE = fVec95SE[1]; // step: 695
+			fTemp66SE = fVec96SE[1]; // step: 698
+			fTemp67SE = fVec98SE[1]; // step: 731
 			fVec99SE[0] = -(fConst15KI * ((fConst16KI * fVec99SE[1]) + -fTemp67SE + -fVec100SE[2] /* Sum */));
 			fVec97SE[0] = ((fSlow73BE * fVec97SE[1]) + (fSlow74BE * (fTemp67SE + (fSlow75BE * fVec99SE[0]) /* Sum */)) /* Sum */);
 			fVec103SE[IOTA0&32767] = ((0.35355338f * fVec97SE[0]) + 1e-20f /* Sum */);
-			fTemp68SE = fVec103SE[(IOTA0-iConst43KI)&32767]; // step: 766
+			fTemp68SE = fVec103SE[(IOTA0-iConst43KI)&32767]; // step: 767
 			float 	fRec35SE = (0.6f * (fTemp53SE + (-0.6f * fTemp66SE) + -fTemp68SE /* Sum */)); // Zero delay
-			fTemp69SE = fVec107SE[1]; // step: 804
+			fTemp69SE = fVec107SE[1]; // step: 805
 			fVec108SE[0] = -(fConst15KI * ((fConst16KI * fVec108SE[1]) + -fTemp69SE + -fVec109SE[2] /* Sum */));
 			fVec106SE[0] = ((fSlow82BE * fVec106SE[1]) + (fSlow83BE * (fTemp69SE + (fSlow84BE * fVec108SE[0]) /* Sum */)) /* Sum */);
 			fVec112SE[IOTA0&32767] = ((0.35355338f * fVec106SE[0]) + 1e-20f /* Sum */);
-			fTemp70SE = (fVec112SE[(IOTA0-iConst49KI)&32767] + fTemp53SE + (0.6f * fVec114SE[1]) /* Sum */); // step: 844
+			fTemp70SE = (fVec112SE[(IOTA0-iConst49KI)&32767] + fTemp53SE + (0.6f * fVec114SE[1]) /* Sum */); // step: 845
 			float 	fRec38SE = (-0.6f * fTemp70SE); // Zero delay
-			fTemp71SE = fVec116SE[1]; // step: 849
-			fTemp72SE = fVec118SE[1]; // step: 884
+			fTemp71SE = fVec116SE[1]; // step: 850
+			fTemp72SE = fVec118SE[1]; // step: 885
 			fVec119SE[0] = -(fConst15KI * ((fConst16KI * fVec119SE[1]) + -fTemp72SE + -fVec120SE[2] /* Sum */));
 			fVec117SE[0] = ((fSlow91BE * fVec117SE[1]) + (fSlow93BE * (fTemp72SE + (fSlow94BE * fVec119SE[0]) /* Sum */)) /* Sum */);
 			fVec123SE[IOTA0&16383] = ((0.35355338f * fVec117SE[0]) + 1e-20f /* Sum */);
-			fTemp73SE = (fVec123SE[(IOTA0-iConst55KI)&16383] + fTemp59SE + (-0.6f * fVec125SE[1]) /* Sum */); // step: 924
+			fTemp73SE = (fVec123SE[(IOTA0-iConst55KI)&16383] + fTemp59SE + (-0.6f * fVec125SE[1]) /* Sum */); // step: 925
 			float 	fRec41SE = (0.6f * fTemp73SE); // Zero delay
-			fTemp74SE = fVec127SE[1]; // step: 929
-			fTemp75SE = fVec129SE[1]; // step: 964
+			fTemp74SE = fVec127SE[1]; // step: 930
+			fTemp75SE = fVec129SE[1]; // step: 965
 			fVec130SE[0] = -(fConst15KI * ((fConst16KI * fVec130SE[1]) + -fTemp75SE + -fVec131SE[2] /* Sum */));
 			fVec128SE[0] = ((fSlow101BE * fVec128SE[1]) + (fSlow103BE * (fTemp75SE + (fSlow104BE * fVec130SE[0]) /* Sum */)) /* Sum */);
 			fVec134SE[IOTA0&16383] = ((0.35355338f * fVec128SE[0]) + 1e-20f /* Sum */);
-			fTemp76SE = (fTemp53SE + fVec134SE[(IOTA0-iConst61KI)&16383] + (-0.6f * fVec136SE[1]) /* Sum */); // step: 1004
+			fTemp76SE = (fTemp53SE + fVec134SE[(IOTA0-iConst61KI)&16383] + (-0.6f * fVec136SE[1]) /* Sum */); // step: 1005
 			float 	fRec44SE = (0.6f * fTemp76SE); // Zero delay
 			fVec98SE[0] = (fTemp0SE + fTemp1SE + fTemp2SE + fTemp3SE + fRec23SE + fRec26SE + fRec32SE + fRec29SE + -fTemp64SE + -fTemp65SE + -fTemp71SE + -fTemp74SE + -fRec35SE + -fRec38SE + -fRec44SE + -fRec41SE /* Sum */);
 			fVec100SE[0] = fVec98SE[0];
-			fTemp77SE = (3.1415927f * (fTemp7SE * ((0) ? fTemp10SE : fTemp11SE))); // step: 1014
-			fTemp78SE = cosf(fTemp77SE); // step: 1015
-			fTemp79SE = ((fTemp19SE * fTemp78SE) + -(fVec139SE[1] * fTemp48SE) /* Sum */); // step: 1021
-			fTemp80SE = ((fTemp78SE * fTemp79SE) + -(fTemp48SE * fVec140SE[1]) /* Sum */); // step: 1027
-			fTemp81SE = ((fTemp78SE * fTemp80SE) + -(fTemp48SE * fVec141SE[1]) /* Sum */); // step: 1033
-			fTemp82SE = ((fTemp78SE * fTemp81SE) + -(fTemp48SE * fVec142SE[1]) /* Sum */); // step: 1039
-			fTemp83SE = ((fTemp78SE * fTemp82SE) + -(fTemp48SE * fVec143SE[1]) /* Sum */); // step: 1045
+			fTemp77SE = (3.1415927f * (fTemp7SE * ((0) ? fTemp10SE : fTemp11SE))); // step: 1015
+			fTemp78SE = cosf(fTemp77SE); // step: 1016
+			fTemp79SE = ((fTemp19SE * fTemp78SE) + -(fVec139SE[1] * fTemp48SE) /* Sum */); // step: 1022
+			fTemp80SE = ((fTemp78SE * fTemp79SE) + -(fTemp48SE * fVec140SE[1]) /* Sum */); // step: 1028
+			fTemp81SE = ((fTemp78SE * fTemp80SE) + -(fTemp48SE * fVec141SE[1]) /* Sum */); // step: 1034
+			fTemp82SE = ((fTemp78SE * fTemp81SE) + -(fTemp48SE * fVec142SE[1]) /* Sum */); // step: 1040
+			fTemp83SE = ((fTemp78SE * fTemp82SE) + -(fTemp48SE * fVec143SE[1]) /* Sum */); // step: 1046
 			fVec144SE[0] = ((fTemp78SE * fTemp83SE) + -(fTemp48SE * fVec144SE[1]) /* Sum */);
 			fVec145SE[0] = fVec144SE[0];
-			fTemp84SE = sinf(fTemp77SE); // step: 1054
+			fTemp84SE = sinf(fTemp77SE); // step: 1055
 			fVec143SE[0] = ((fTemp84SE * fTemp83SE) + (fTemp78SE * fVec145SE[1]) /* Sum */);
 			fVec147SE[0] = fVec143SE[0];
 			fVec142SE[0] = ((fTemp84SE * fTemp82SE) + (fTemp78SE * fVec147SE[1]) /* Sum */);
@@ -1416,16 +1416,16 @@ class mydsp : public dsp {
 			fVec153SE[0] = fVec140SE[0];
 			fVec139SE[0] = ((fTemp84SE * fTemp79SE) + (fTemp78SE * fVec153SE[1]) /* Sum */);
 			fVec5SE[0] = fVec139SE[0];
-			fTemp85SE = (3.1415927f * (fTemp20SE * ((0) ? fTemp23SE : fTemp24SE))); // step: 1087
-			fTemp86SE = cosf(fTemp85SE); // step: 1088
-			fTemp87SE = ((fTemp19SE * fTemp86SE) + -(fVec156SE[1] * fTemp26SE) /* Sum */); // step: 1094
-			fTemp88SE = ((fTemp86SE * fTemp87SE) + -(fTemp26SE * fVec157SE[1]) /* Sum */); // step: 1100
-			fTemp89SE = ((fTemp86SE * fTemp88SE) + -(fTemp26SE * fVec158SE[1]) /* Sum */); // step: 1106
-			fTemp90SE = ((fTemp86SE * fTemp89SE) + -(fTemp26SE * fVec159SE[1]) /* Sum */); // step: 1112
-			fTemp91SE = ((fTemp86SE * fTemp90SE) + -(fTemp26SE * fVec160SE[1]) /* Sum */); // step: 1118
+			fTemp85SE = (3.1415927f * (fTemp20SE * ((0) ? fTemp23SE : fTemp24SE))); // step: 1088
+			fTemp86SE = cosf(fTemp85SE); // step: 1089
+			fTemp87SE = ((fTemp19SE * fTemp86SE) + -(fVec156SE[1] * fTemp26SE) /* Sum */); // step: 1095
+			fTemp88SE = ((fTemp86SE * fTemp87SE) + -(fTemp26SE * fVec157SE[1]) /* Sum */); // step: 1101
+			fTemp89SE = ((fTemp86SE * fTemp88SE) + -(fTemp26SE * fVec158SE[1]) /* Sum */); // step: 1107
+			fTemp90SE = ((fTemp86SE * fTemp89SE) + -(fTemp26SE * fVec159SE[1]) /* Sum */); // step: 1113
+			fTemp91SE = ((fTemp86SE * fTemp90SE) + -(fTemp26SE * fVec160SE[1]) /* Sum */); // step: 1119
 			fVec161SE[0] = ((fTemp86SE * fTemp91SE) + -(fTemp26SE * fVec161SE[1]) /* Sum */);
 			fVec162SE[0] = fVec161SE[0];
-			fTemp92SE = sinf(fTemp85SE); // step: 1127
+			fTemp92SE = sinf(fTemp85SE); // step: 1128
 			fVec160SE[0] = ((fTemp92SE * fTemp91SE) + (fTemp86SE * fVec162SE[1]) /* Sum */);
 			fVec164SE[0] = fVec160SE[0];
 			fVec159SE[0] = ((fTemp92SE * fTemp90SE) + (fTemp86SE * fVec164SE[1]) /* Sum */);
@@ -1436,21 +1436,21 @@ class mydsp : public dsp {
 			fVec170SE[0] = fVec157SE[0];
 			fVec156SE[0] = ((fTemp92SE * fTemp87SE) + (fTemp86SE * fVec170SE[1]) /* Sum */);
 			fVec30SE[0] = fVec156SE[0];
-			fTemp93SE = (fTemp4SI * ((fTemp19SE * fTemp92SE) + (fTemp86SE * fTemp27SE) /* Sum */)); // step: 1161
-			fTemp94SE = (fTemp29SI * fTemp19SE); // step: 1162
-			fTemp95SE = (fTemp93SE + fTemp94SE /* Sum */); // step: 1163
+			fTemp93SE = (fTemp4SI * ((fTemp19SE * fTemp92SE) + (fTemp86SE * fTemp27SE) /* Sum */)); // step: 1162
+			fTemp94SE = (fTemp29SI * fTemp19SE); // step: 1163
+			fTemp95SE = (fTemp93SE + fTemp94SE /* Sum */); // step: 1164
 			fVec173SE[0] = fTemp95SE;
 			fVec37SE[0] = fTemp31SE;
-			fTemp96SE = (1.5707964f * ((fTemp4SI * ((0) ? fTemp34SE : fTemp35SE)) * (fTemp93SE + fTemp94SE + fVec173SE[1] /* Sum */))); // step: 1171
-			fTemp97SE = cosf(fTemp96SE); // step: 1172
-			fTemp98SE = ((fTemp95SE * fTemp97SE) + -(fVec176SE[1] * fTemp37SE) /* Sum */); // step: 1178
-			fTemp99SE = ((fTemp97SE * fTemp98SE) + -(fTemp37SE * fVec177SE[1]) /* Sum */); // step: 1184
-			fTemp100SE = ((fTemp97SE * fTemp99SE) + -(fTemp37SE * fVec178SE[1]) /* Sum */); // step: 1190
-			fTemp101SE = ((fTemp97SE * fTemp100SE) + -(fTemp37SE * fVec179SE[1]) /* Sum */); // step: 1196
-			fTemp102SE = ((fTemp97SE * fTemp101SE) + -(fTemp37SE * fVec180SE[1]) /* Sum */); // step: 1202
+			fTemp96SE = (1.5707964f * ((fTemp4SI * ((0) ? fTemp34SE : fTemp35SE)) * (fTemp93SE + fTemp94SE + fVec173SE[1] /* Sum */))); // step: 1172
+			fTemp97SE = cosf(fTemp96SE); // step: 1173
+			fTemp98SE = ((fTemp95SE * fTemp97SE) + -(fVec176SE[1] * fTemp37SE) /* Sum */); // step: 1179
+			fTemp99SE = ((fTemp97SE * fTemp98SE) + -(fTemp37SE * fVec177SE[1]) /* Sum */); // step: 1185
+			fTemp100SE = ((fTemp97SE * fTemp99SE) + -(fTemp37SE * fVec178SE[1]) /* Sum */); // step: 1191
+			fTemp101SE = ((fTemp97SE * fTemp100SE) + -(fTemp37SE * fVec179SE[1]) /* Sum */); // step: 1197
+			fTemp102SE = ((fTemp97SE * fTemp101SE) + -(fTemp37SE * fVec180SE[1]) /* Sum */); // step: 1203
 			fVec181SE[0] = ((fTemp97SE * fTemp102SE) + -(fTemp37SE * fVec181SE[1]) /* Sum */);
 			fVec182SE[0] = fVec181SE[0];
-			fTemp103SE = sinf(fTemp96SE); // step: 1211
+			fTemp103SE = sinf(fTemp96SE); // step: 1212
 			fVec180SE[0] = ((fTemp103SE * fTemp102SE) + (fTemp97SE * fVec182SE[1]) /* Sum */);
 			fVec184SE[0] = fVec180SE[0];
 			fVec179SE[0] = ((fTemp103SE * fTemp101SE) + (fTemp97SE * fVec184SE[1]) /* Sum */);
@@ -1461,17 +1461,17 @@ class mydsp : public dsp {
 			fVec190SE[0] = fVec177SE[0];
 			fVec176SE[0] = ((fTemp103SE * fTemp98SE) + (fTemp97SE * fVec190SE[1]) /* Sum */);
 			fVec38SE[0] = fVec176SE[0];
-			fTemp104SE = ((fTemp4SI * ((fTemp95SE * fTemp103SE) + (fTemp97SE * fTemp38SE) /* Sum */)) + (fTemp29SI * fTemp95SE) /* Sum */); // step: 1247
-			fTemp105SE = (3.1415927f * ((fTemp4SI * powf(fTemp104SE,2.0f)) * ((0) ? fTemp42SE : fTemp43SE))); // step: 1252
-			fTemp106SE = cosf(fTemp105SE); // step: 1253
-			fTemp107SE = ((fTemp104SE * fTemp106SE) + -(fVec193SE[1] * fTemp45SE) /* Sum */); // step: 1259
-			fTemp108SE = ((fTemp106SE * fTemp107SE) + -(fTemp45SE * fVec194SE[1]) /* Sum */); // step: 1265
-			fTemp109SE = ((fTemp106SE * fTemp108SE) + -(fTemp45SE * fVec195SE[1]) /* Sum */); // step: 1271
-			fTemp110SE = ((fTemp106SE * fTemp109SE) + -(fTemp45SE * fVec196SE[1]) /* Sum */); // step: 1277
-			fTemp111SE = ((fTemp106SE * fTemp110SE) + -(fTemp45SE * fVec197SE[1]) /* Sum */); // step: 1283
+			fTemp104SE = ((fTemp4SI * ((fTemp95SE * fTemp103SE) + (fTemp97SE * fTemp38SE) /* Sum */)) + (fTemp29SI * fTemp95SE) /* Sum */); // step: 1248
+			fTemp105SE = (3.1415927f * ((fTemp4SI * powf(fTemp104SE,2.0f)) * ((0) ? fTemp42SE : fTemp43SE))); // step: 1253
+			fTemp106SE = cosf(fTemp105SE); // step: 1254
+			fTemp107SE = ((fTemp104SE * fTemp106SE) + -(fVec193SE[1] * fTemp45SE) /* Sum */); // step: 1260
+			fTemp108SE = ((fTemp106SE * fTemp107SE) + -(fTemp45SE * fVec194SE[1]) /* Sum */); // step: 1266
+			fTemp109SE = ((fTemp106SE * fTemp108SE) + -(fTemp45SE * fVec195SE[1]) /* Sum */); // step: 1272
+			fTemp110SE = ((fTemp106SE * fTemp109SE) + -(fTemp45SE * fVec196SE[1]) /* Sum */); // step: 1278
+			fTemp111SE = ((fTemp106SE * fTemp110SE) + -(fTemp45SE * fVec197SE[1]) /* Sum */); // step: 1284
 			fVec198SE[0] = ((fTemp106SE * fTemp111SE) + -(fTemp45SE * fVec198SE[1]) /* Sum */);
 			fVec199SE[0] = fVec198SE[0];
-			fTemp112SE = sinf(fTemp105SE); // step: 1292
+			fTemp112SE = sinf(fTemp105SE); // step: 1293
 			fVec197SE[0] = ((fTemp112SE * fTemp111SE) + (fTemp106SE * fVec199SE[1]) /* Sum */);
 			fVec201SE[0] = fVec197SE[0];
 			fVec196SE[0] = ((fTemp112SE * fTemp110SE) + (fTemp106SE * fVec201SE[1]) /* Sum */);
@@ -1522,10 +1522,10 @@ class mydsp : public dsp {
 			fVec92SE[0] = fVec239SE[(IOTA0-iConst69KI)&2047];
 			fVec3SE[0] = fVec92SE[0];
 			fVec242SE[0] = (fSlow105BE + (0.999f * fVec242SE[1]) /* Sum */);
-			fTemp113SE = std::max(0.75f, std::min(4.0f, fVec242SE[0])); // step: 1433
-			fTemp114SE = fVec107SE[0]; // step: 1435
-			fTemp115SE = fVec118SE[0]; // step: 1436
-			fTemp116SE = (0.6f * (fTemp50SE * (1.0f + -fTemp51SE /* Sum */))); // step: 1442
+			fTemp113SE = std::max(0.75f, std::min(4.0f, fVec242SE[0])); // step: 1434
+			fTemp114SE = fVec107SE[0]; // step: 1436
+			fTemp115SE = fVec118SE[0]; // step: 1437
+			fTemp116SE = (0.6f * (fTemp50SE * (1.0f + -fTemp51SE /* Sum */))); // step: 1443
 			output0[i] = (FAUSTFLOAT)((fTemp113SE * ((0.37f * (fTemp114SE + fTemp115SE /* Sum */)) + fTemp116SE /* Sum */)));  // Zone Exec Code
 			output1[i] = (FAUSTFLOAT)((fTemp113SE * (fTemp116SE + (0.37f * (fTemp114SE + -fTemp115SE /* Sum */)) /* Sum */)));  // Zone Exec Code
 			// post processing

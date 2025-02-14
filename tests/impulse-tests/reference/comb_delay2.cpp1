@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "comb_delay2"
 //
-// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Code generated with Faust 2.79.0 (https://faust.grame.fr)
 // Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
@@ -60,7 +60,7 @@ class mydsp : public dsp {
 	static float 	ftbl0SI[65536];
 	int 	IOTA0;
 	float 	fVec4SI[128]; // Ring Delay
-	float 	fConst2KI; // step: 46
+	float 	fConst2KI; // step: 47
 	// Recursion delay fVec5SI is of type kSingleDelay
 	// While its definition is of type kZeroDelay
 	float 	fVec5SIState; // Single Delay
@@ -96,7 +96,7 @@ class mydsp : public dsp {
 		fConst0KI = std::min(1.92e+05f, std::max(1.0f, float(fSampleRate))); // step: 10
 		fConst1KI = (4.4e+02f / fConst0KI); // step: 11
 		IOTA0 = 0;
-		fConst2KI = (1e+03f / fConst0KI); // step: 46
+		fConst2KI = (1e+03f / fConst0KI); // step: 47
 	}
 	virtual void instanceResetUserInterface() {
 	}
@@ -128,7 +128,7 @@ class mydsp : public dsp {
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		float 	fTemp0SI; // step: 14
 		float 	fVec0SI[2];
-		float 	fTemp1SI; // step: 48
+		float 	fTemp1SI; // step: 49
 		float 	fVec5SI[2];
 		FAUSTFLOAT* output0 = output[0]; // Zone 3
 		fVec0SI[1] = fVec0SIState;
@@ -137,7 +137,7 @@ class mydsp : public dsp {
 			fTemp0SI = fVec0SI[1]; // step: 14
 			fVec0SI[0] = (fConst1KI + fTemp0SI + -floorf((fConst1KI + fTemp0SI /* Sum */)) /* Sum */);
 			fVec4SI[IOTA0&127] = ftbl0SI[std::max(0, std::min(int((65536.0f * fVec0SI[0])), 65535))];
-			fTemp1SI = fVec5SI[1]; // step: 48
+			fTemp1SI = fVec5SI[1]; // step: 49
 			fVec5SI[0] = (fConst2KI + fTemp1SI + -floorf((fConst2KI + fTemp1SI /* Sum */)) /* Sum */);
 			output0[i] = (FAUSTFLOAT)(fVec4SI[(IOTA0-(int(std::max(0.0f, std::min(1e+01f, (5.0f * (ftbl0SI[std::max(0, std::min(int((65536.0f * fVec5SI[0])), 65535))] + 1.0f /* Sum */))))) + 100 /* Sum */))&127]);  // Zone Exec Code
 			// post processing

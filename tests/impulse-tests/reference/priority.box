@@ -1,4 +1,4 @@
-declare version "2.78.4";
+declare version "2.79.0";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/priority.dsp -o reference/priority.box";
 declare basics_lib_counter_author "Stephane Letz";
 declare basics_lib_name "Faust Basic Element Library";

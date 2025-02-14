@@ -5,7 +5,7 @@
 // name: "tester"
 // version: "1.0"
 //
-// Code generated with Faust 2.78.4 (https://faust.grame.fr)
+// Code generated with Faust 2.79.0 (https://faust.grame.fr)
 // Compiler options: -lang ocpp -ct 1 -es 0 -mcl 4 -mcd 9 -mfs 1024 -huf 0 -irt 4 -fls 4 -udd 1 -mdd 1024 -mdy 90 -mca 8 -ss 0 -single -ftz 0 
 //----------------------------------------------------------
 
@@ -171,17 +171,17 @@ class mydsp : public dsp {
 		float 	fVec10SE[2];
 		float 	fTemp2SE; // step: 75
 		int 	iTemp3SE; // step: 76
-		float 	fTemp4SE; // step: 92
-		float 	fSlow4BE = (4.656613e-10f * float(fcheckbox0)); // Zone 2, step: 106
-		float 	fSlow5BE = (1e+01f * float(fcheckbox1)); // Zone 2, step: 109
-		float 	fTemp5SE; // step: 113
-		float 	fSlow6BE = float((fSlow0BE == 1.0f)); // Zone 2, step: 116
-		float 	fSlow7BE = float((fSlow0BE == 2.0f)); // Zone 2, step: 120
-		float 	fSlow8BE = float((fSlow0BE == 3.0f)); // Zone 2, step: 124
-		float 	fSlow9BE = float((fSlow0BE == 4.0f)); // Zone 2, step: 128
-		float 	fSlow10BE = float((fSlow0BE == 5.0f)); // Zone 2, step: 132
-		float 	fSlow11BE = float((fSlow0BE == 6.0f)); // Zone 2, step: 136
-		float 	fSlow12BE = float((fSlow0BE == 7.0f)); // Zone 2, step: 140
+		float 	fTemp4SE; // step: 93
+		float 	fSlow4BE = (4.656613e-10f * float(fcheckbox0)); // Zone 2, step: 107
+		float 	fSlow5BE = (1e+01f * float(fcheckbox1)); // Zone 2, step: 110
+		float 	fTemp5SE; // step: 114
+		float 	fSlow6BE = float((fSlow0BE == 1.0f)); // Zone 2, step: 117
+		float 	fSlow7BE = float((fSlow0BE == 2.0f)); // Zone 2, step: 121
+		float 	fSlow8BE = float((fSlow0BE == 3.0f)); // Zone 2, step: 125
+		float 	fSlow9BE = float((fSlow0BE == 4.0f)); // Zone 2, step: 129
+		float 	fSlow10BE = float((fSlow0BE == 5.0f)); // Zone 2, step: 133
+		float 	fSlow11BE = float((fSlow0BE == 6.0f)); // Zone 2, step: 137
+		float 	fSlow12BE = float((fSlow0BE == 7.0f)); // Zone 2, step: 141
 		FAUSTFLOAT* output0 = output[0]; // Zone 3
 		FAUSTFLOAT* output1 = output[1]; // Zone 3
 		FAUSTFLOAT* output2 = output[2]; // Zone 3
@@ -209,8 +209,8 @@ class mydsp : public dsp {
 			fVec10SE[0] = (fSlow3BE + fTemp1SE + -floorf((fSlow3BE + fTemp1SE /* Sum */)) /* Sum */);
 			fTemp2SE = (65536.0f * fVec10SE[0]); // step: 75
 			iTemp3SE = int(fTemp2SE); // step: 76
-			fTemp4SE = ftbl0SI[std::max(0, std::min(iTemp3SE, 65536))]; // step: 92
-			fTemp5SE = (fVec8SE[0] * (fTemp4SE + ((fTemp2SE + -floorf(fTemp2SE) /* Sum */) * (ftbl0SI[std::max(0, std::min((iTemp3SE + 1 /* Sum */), 65536))] + -fTemp4SE /* Sum */)) + (fSlow4BE * fTemp0SI) + (fSlow5BE * fVec4SI[0]) /* Sum */)); // step: 113
+			fTemp4SE = ftbl0SI[std::max(0, std::min(iTemp3SE, 65536))]; // step: 93
+			fTemp5SE = (fVec8SE[0] * (fTemp4SE + ((fTemp2SE + -floorf(fTemp2SE) /* Sum */) * (ftbl0SI[std::max(0, std::min((iTemp3SE + 1 /* Sum */), 65536))] + -fTemp4SE /* Sum */)) + (fSlow4BE * fTemp0SI) + (fSlow5BE * fVec4SI[0]) /* Sum */)); // step: 114
 			output0[i] = (FAUSTFLOAT)((fSlow1BE * fTemp5SE));  // Zone Exec Code
 			output1[i] = (FAUSTFLOAT)((fSlow6BE * fTemp5SE));  // Zone Exec Code
 			output2[i] = (FAUSTFLOAT)((fSlow7BE * fTemp5SE));  // Zone Exec Code
