@@ -85,10 +85,10 @@ class DocCompiler : public virtual Garbageable {
     void setVectorNameProperty(Tree sig, const std::string& vecname);
     bool getVectorNameProperty(Tree sig, std::string& vecname);
 
-    int  getSharingCount(Tree t);
-    void setSharingCount(Tree t, int count);
-    void sharingAnalysis(Tree t);
-    void sharingAnnotation(int vctxt, Tree t);
+   //  int  getSharingCount(Tree t);
+   //  void setSharingCount(Tree t, int count);
+   //  void sharingAnalysis(Tree t);
+   //  void sharingAnnotation(int vctxt, Tree t);
 
     bool isShortEnough(std::string& s, unsigned int max);
 
