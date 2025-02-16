@@ -1,4 +1,4 @@
-% man(1) Version 2.79.0 (10-February-2025) | Faust man page
+% man(1) Version 2.79.1 (16-February-2025) | Faust man page
 
 NAME
 ====
@@ -168,7 +168,8 @@ Code generation options:
 
   **-rnt**        **--rust-no-faustdsp-trait**    (Rust only) Don't generate FaustDsp trait implmentation.
 
-  **-rnlm**       **--rust-no-libm**              (Rust only) Don't generate FFI calls to libm
+  **-rnlm**       **--rust-no-libm**              (Rust only) Don't generate FFI calls to libm.
+
 
 Block diagram options:
 ---------------------------------------
