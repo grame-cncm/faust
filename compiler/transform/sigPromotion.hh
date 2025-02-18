@@ -34,6 +34,15 @@
 #include "sigtyperules.hh"
 
 /*
+ Update the SR value using US/DS information.
+ */
+struct SignalSampleRate final : public SignalIdentityNocache {
+    double fFactor;
+    SignalSampleRate() : fFactor(1.0) { fVisitGen = true; }
+    Tree transformation(Tree sig);
+};
+
+/*
  Print the type of a signal.
  To be used on a type annotated signal.
  */
@@ -312,4 +321,5 @@ Tree signalUIPromote(Tree sig);
 Tree signalUIFreezePromote(Tree sig);
 Tree signalFTZPromote(Tree sig);
 Tree signalAutoDifferentiate(Tree sig);
+Tree signalSampleRate(Tree sig);
 #endif

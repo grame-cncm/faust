@@ -41,6 +41,11 @@ static Tree simplifyToNormalFormAux(Tree LS)
     Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
 
+    // Update the SR value using US/DS information.
+    startTiming("L4 signalSampleRate");
+    L1 = signalSampleRate(L1);
+    endTiming("L4 signalSampleRate");
+
     // Annotate L1 with type information
     startTiming("L1 typeAnnotation");
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
@@ -140,6 +145,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     startTiming("L4 signalChecker");
     SignalChecker checker(L4);
     endTiming("L4 signalChecker");
+    //std::cout << ppsig(L4) << std::endl;
     return L4;
 }
 

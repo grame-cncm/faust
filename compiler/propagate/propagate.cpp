@@ -30,6 +30,7 @@
 #include "ppbox.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
+#include "sigIdentity.hh"
 #include "sigvisitor.hh"
 #include "simplify.hh"
 #include "xtended.hh"
@@ -598,7 +599,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
     } else if (isBoxOndemand(box, t1)) {
         // std::cerr << "we are in ONDEMAND" << std::endl;
-        //  Propagate lsig into the ondemand version of circuit t1
+        // Propagate lsig into the ondemand version of circuit t1
 
         // 1/ The first signal is the clock signal
         Tree H = lsig[0];
@@ -673,6 +674,137 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         siglist Y2;
         for (Tree y : Y1) {
             Tree y2 = sigSeq(od, y);
+            // Tree y2 = sigSeq(od, sigClocked(clockenv, y));
+            //  std::cerr << "y2 = " << ppsig(y2) << std::endl;
+            Y2.push_back(y2);
+        }
+
+        return Y2;
+
+    } else if (isBoxUpsampling(box, t1)) {
+        // std::cerr << "we are in UPSAMPLING" << std::endl;
+        // Propagate lsig into the upsampled version of circuit t1
+
+        // 1/ The first signal is the clock signal
+        Tree H = lsig[0];
+
+        int up_factor;
+        if (isSigInt(H, &up_factor)) {
+            if (up_factor <= 1) {
+                throw faustexception("ERROR : upsampling parameter must be an integer > 1\n");
+            }
+        } else {
+            throw faustexception("ERROR : upsampling parameter must be an integer\n");
+        }
+
+        // 3/ We compute the clock environment inside the upsampling by combining the clock, the
+        // address of the circuit, and the current clock environment
+        Tree addr      = boxPrim0((prim0)box);
+        Tree clockenv2 = cons(H, cons(addr, clockenv));
+
+        // 4/ We compute X1 the inputs of the ondemand using temporary variables
+        siglist X1;
+        for (unsigned int i = 1; i < lsig.size(); i++) {
+            X1.push_back(sigZeroPad(sigTempVar(lsig[i]), sigInt(up_factor)));
+        }
+
+        // 5/ We propagate X2, the clocked version of X1, into the upsampling circuit -> Y0
+        siglist X2;
+        for (Tree s : X1) {
+            X2.push_back(sigClocked(clockenv2, s));
+        }
+        siglist Y0 = propagate(clockenv2, slotenv, path, t1, X2);
+
+        // 6/ We store the Y0 output signals into perm variables -> Y1
+        siglist Y1;
+        for (unsigned int i = 0; i < Y0.size(); i++) {
+            Y1.push_back(sigPermVar(sigClocked(clockenv2, Y0[i])));
+        }
+
+        // 7/ We create on us signal that contain all the information : US = (H, X1, NIL, Y1)
+        tvec W;
+        W.push_back(H);      // the clock signal
+        for (Tree s : X1) {  // the input signals are X1
+            W.push_back(s);
+        }
+        W.push_back(gGlobal->nil);  // the output signals are Y1
+        for (Tree s : Y1) {
+            W.push_back(s);
+        }
+        // The resulting upsampled signal with all the information
+        Tree us = sigUS(W);
+        // std::cerr << "us = " << ppsig(us) << std::endl;
+
+        // 8/ Finally, we create the output signals making sure that us is computed first
+        // using sigSeq(us, y)
+        siglist Y2;
+        for (Tree y : Y1) {
+            Tree y2 = sigSeq(us, y);
+            // Tree y2 = sigSeq(us, sigClocked(clockenv, y));
+            //  std::cerr << "y2 = " << ppsig(y2) << std::endl;
+            Y2.push_back(y2);
+        }
+
+        return Y2;
+    } else if (isBoxDownsampling(box, t1)) {
+        // std::cerr << "we are in DOWNSAMPLING" << std::endl;
+        // Propagate lsig into the downsampled version of circuit t1
+
+        // 1/ The first signal is the clock signal
+        Tree H = lsig[0];
+
+        int ds_factor;
+        if (isSigInt(H, &ds_factor)) {
+            if (ds_factor <= 1) {
+                throw faustexception("ERROR : downsampling parameter must be an integer > 1\n");
+            }
+        } else {
+            throw faustexception("ERROR : downsampling parameter must be an integer\n");
+        }
+
+        // 3/ We compute the clock environment inside the downsampling by combining the clock, the
+        // address of the circuit, and the current clock environment
+        Tree addr      = boxPrim0((prim0)box);
+        Tree clockenv2 = cons(H, cons(addr, clockenv));
+
+        // 4/ We compute X1 the inputs of the downsampling using temporary variables
+        siglist X1;
+        for (unsigned int i = 1; i < lsig.size(); i++) {
+            X1.push_back(sigTempVar(lsig[i]));
+        }
+
+        // 5/ We propagate X2, the clocked version of X1, into the downsampling circuit -> Y0
+        siglist X2;
+        for (Tree s : X1) {
+            X2.push_back(sigClocked(clockenv2, sigDecimate(s, sigInt(ds_factor))));
+        }
+        siglist Y0 = propagate(clockenv2, slotenv, path, t1, X2);
+
+        // 6/ We store the Y0 output signals into perm variables -> Y1
+        siglist Y1;
+        for (unsigned int i = 0; i < Y0.size(); i++) {
+            Y1.push_back(sigPermVar(sigClocked(clockenv2, Y0[i])));
+        }
+
+        // 7/ We create on ds signal that contain all the information : DS = (H, X1, NIL, Y1)
+        tvec W;
+        W.push_back(H);      // the clock signal
+        for (Tree s : X1) {  // the input signals are X1
+            W.push_back(s);
+        }
+        W.push_back(gGlobal->nil);  // the output signals are Y1
+        for (Tree s : Y1) {
+            W.push_back(s);
+        }
+        // The resulting downsampled signal with all the information
+        Tree ds = sigDS(W);
+        // std::cerr << "ds = " << ppsig(ds) << std::endl;
+
+        // 8/ Finally, we create the output signals making sure that ds is computed first
+        // using sigSeq(ds, y)
+        siglist Y2;
+        for (Tree y : Y1) {
+            Tree y2 = sigSeq(ds, y);
             // Tree y2 = sigSeq(od, sigClocked(clockenv, y));
             //  std::cerr << "y2 = " << ppsig(y2) << std::endl;
             Y2.push_back(y2);

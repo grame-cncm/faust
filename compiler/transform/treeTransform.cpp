@@ -23,13 +23,13 @@
 #include <cstdlib>
 
 #include "Text.hh"
-#include "list.hh"
 #include "treeTransform.hh"
+#include "list.hh"
 
 using namespace std;
 
 //------------------------------------------------------------------------------
-// TreeTransform: Recursive transformation of a Tree with memoization
+// TreeTransformImp: Recursive transformation of a Tree with memoization
 //------------------------------------------------------------------------------
 // This is an abstract class. Derived class just have to implement the
 // `transformation(t)` or `selfRec(t)` methods. The `transformation(t)` method
@@ -37,104 +37,136 @@ using namespace std;
 // (or `mapself(lt)` for a list).
 //------------------------------------------------------------------------------
 #if 0
-Tree TreeTransform::self(Tree t)
+template <bool CACHE>
+Tree TreeTransformImp<CACHE>::self(Tree t)
 {
-    if (fTrace) {
-        traceEnter(t);
+    if (this->fTrace) {
+        this->traceEnter(t);
     }
-    fIndent++;
+    this->fIndent++;
     Tree r, w;
-    if (!fResult.get(t, r)) {
-        w = transformation(t);
-        fIndent--;
-        if (fTrace) {
-            traceExit(t, w);
+    if (CACHE) {
+        if (!this->fResult.get(t, r)) {
+            w = this->transformation(t);
+            this->fIndent--;
+            if (this->fTrace) {
+                this->traceExit(t, w);
+            }
+            if (this->fTrace) {
+                this->traceEnter(w);
+            }
+            this->fIndent++;
+            r = this->postprocess(w);
+            this->fResult.set(w, r);
         }
-        if (fTrace) {
-            traceEnter(w);
+    } else {
+        w = this->transformation(t);
+        this->fIndent--;
+        if (this->fTrace) {
+            this->traceExit(t, w);
         }
-        fIndent++;
-        r = postprocess(w);
-        fResult.set(w, r);
+        if (this->fTrace) {
+            this->traceEnter(w);
+        }
+        this->fIndent++;
+        r = this->postprocess(w);
+        this->fResult.set(w, r);
     }
-    fIndent--;
-    if (fTrace) {
-        traceExit(t, r);
+    this->fIndent--;
+    if (this->fTrace) {
+        this->traceExit(t, r);
     }
     return r;
 }
 #endif
 
-Tree TreeTransform::self(Tree t)
+template <bool CACHE>
+Tree TreeTransformImp<CACHE>::self(Tree t)
 {
     Tree r;
-    if (!fResult.get(t, r)) {
-        myTraceEnter(t);
-        Tree w = transformation(t);
-        myTraceContinue(t, w);
-        r = postprocess(w);
-        myTraceExit(t, w, r);
-        fResult.set(t, r);
+    if (CACHE) {
+        if (!this->fResult.get(t, r)) {
+            this->myTraceEnter(t);
+            Tree w = this->transformation(t);
+            this->myTraceContinue(t, w);
+            r = this->postprocess(w);
+            this->myTraceExit(t, w, r);
+            this->fResult.set(t, r);
+        }
+    } else {
+        this->myTraceEnter(t);
+        Tree w = this->transformation(t);
+        this->myTraceContinue(t, w);
+        r = this->postprocess(w);
+        this->myTraceExit(t, w, r);
     }
     return r;
 }
 
-void TreeTransform::myTraceEnter(Tree t)
+template <bool CACHE>
+void TreeTransformImp<CACHE>::myTraceEnter(Tree t)
 {
-    if (fTrace) {
+    if (this->fTrace) {
         tab(fIndent, cerr);
-        cerr << fMessage << ": " << *t << endl;
-        fIndent++;
+        cerr << this->fMessage << ": " << *t << endl;
+        this->fIndent++;
     }
 }
 
-void TreeTransform::myTraceContinue(Tree t, Tree w)
+template <bool CACHE>
+void TreeTransformImp<CACHE>::myTraceContinue(Tree t, Tree w)
 {
-    if (fTrace) {
+    if (this->fTrace) {
         faustassert(fIndent > 0);
-        tab(fIndent - 1, cerr);
-        cerr << fMessage << ": " << *t << " ==> " << *w << endl;
+        tab(this->fIndent - 1, cerr);
+        cerr << this->fMessage << ": " << *t << " ==> " << *w << endl;
     }
 }
 
-void TreeTransform::myTraceExit(Tree t, Tree w, Tree r)
+template <bool CACHE>
+void TreeTransformImp<CACHE>::myTraceExit(Tree t, Tree w, Tree r)
 {
-    if (fTrace) {
-        fIndent--;
-        tab(fIndent, cerr);
-        cerr << fMessage << ": " << *t << " ==> " << *w << " ==> " << *r << endl;
+    if (this->fTrace) {
+        this->fIndent--;
+        tab(this->fIndent, cerr);
+        cerr << this->fMessage << ": " << *t << " ==> " << *w << " ==> " << *r << endl;
     }
 }
 
-void TreeTransform::traceMsg(std::string msg)
+template <bool CACHE>
+void TreeTransformImp<CACHE>::traceMsg(std::string msg)
 {
-    if (fTrace) {
-        tab(fIndent, cerr);
+    if (this->fTrace) {
+        tab(this->fIndent, cerr);
         cerr << msg << endl;
     }
 }
 
-void TreeTransform::traceMsg(std::string msg, Tree t)
+template <bool CACHE>
+void TreeTransformImp<CACHE>::traceMsg(std::string msg, Tree t)
 {
-    if (fTrace) {
-        tab(fIndent, cerr);
+    if (this->fTrace) {
+        tab(this->fIndent, cerr);
         cerr << msg << ": " << *t << endl;
     }
 }
 
-void TreeTransform::traceEnter(Tree t)
+template <bool CACHE>
+void TreeTransformImp<CACHE>::traceEnter(Tree t)
 {
-    tab(fIndent, cerr);
-    cerr << fMessage << ": " << *t << endl;
+    tab(this->fIndent, cerr);
+    cerr << this->fMessage << ": " << *t << endl;
 }
 
-void TreeTransform::traceExit(Tree t, Tree r)
+template <bool CACHE>
+void TreeTransformImp<CACHE>::traceExit(Tree t, Tree r)
 {
-    tab(fIndent, cerr);
-    cerr << fMessage << ": " << *t << " ==> " << *r << endl;
+    tab(this->fIndent, cerr);
+    cerr << this->fMessage << ": " << *t << " ==> " << *r << endl;
 }
 
-Tree TreeTransform::mapself(Tree lt)
+template <bool CACHE>
+Tree TreeTransformImp<CACHE>::mapself(Tree lt)
 {
     if (isNil(lt)) {
         return lt;
@@ -142,28 +174,35 @@ Tree TreeTransform::mapself(Tree lt)
         Tree e = hd(lt);
         Tree f = self(e);
         // std::cerr << "e: " << *e << " f: " << *f << std::endl;
-        return cons(f, mapself(tl(lt)));
+        return cons(f, this->mapself(tl(lt)));
     }
 }
 
 // To be implemented by subclassess for a specific transformation on recursive signals
-Tree TreeTransform::selfRec(Tree t)
+template <bool CACHE>
+Tree TreeTransformImp<CACHE>::selfRec(Tree t)
 {
-    return self(t);
+    return this->self(t);
 }
 
 // Apply selfRec on all recursive signals in the group
-Tree TreeTransform::mapselfRec(Tree lt)
+template <bool CACHE>
+Tree TreeTransformImp<CACHE>::mapselfRec(Tree lt)
 {
     if (isNil(lt)) {
         return lt;
     } else {
-        return cons(selfRec(hd(lt)), mapselfRec(tl(lt)));
+        return cons(selfRec(hd(lt)), this->mapselfRec(tl(lt)));
     }
 }
 
 // This second pass is used to modify a tree after the transformation of its children
-Tree TreeTransform::postprocess(Tree t)
+template <bool CACHE>
+Tree TreeTransformImp<CACHE>::postprocess(Tree t)
 {
     return t;
 }
+
+// Explicit instanciation for CACHE = true and false
+template class TreeTransformImp<true>;
+template class TreeTransformImp<false>;

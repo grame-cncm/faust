@@ -37,7 +37,8 @@
 // (or `mapself(lt)` for a list).
 //------------------------------------------------------------------------------
 
-class TreeTransform : public Garbageable {
+template <bool CACHE>
+class TreeTransformImp : public Garbageable {
    protected:
     property<Tree> fResult;  // cache previously computed transformations
     // used when tracing
@@ -46,7 +47,7 @@ class TreeTransform : public Garbageable {
     std::string fMessage;  // trace message
 
    public:
-    TreeTransform(int indentation = 0)
+    TreeTransformImp(int indentation = 0)
         : fTrace(false), fIndent(indentation), fMessage("TreeTransform")
     {
     }
@@ -85,5 +86,7 @@ class TreeTransform : public Garbageable {
     virtual void myTraceContinue(Tree t, Tree w);
     virtual void myTraceExit(Tree t, Tree w, Tree r);
 };
+
+class TreeTransform : public TreeTransformImp<true> {};
 
 #endif

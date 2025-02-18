@@ -358,6 +358,14 @@ LIBFAUST_API Tree sigPermVar(Tree s);
 LIBFAUST_API bool isSigPermVar(Tree s);
 LIBFAUST_API bool isSigPermVar(Tree s, Tree& x);
 
+LIBFAUST_API Tree sigZeroPad(Tree s, Tree n);
+LIBFAUST_API bool isSigZeroPad(Tree s);
+LIBFAUST_API bool isSigZeroPad(Tree s, Tree& x, Tree& n);
+
+LIBFAUST_API Tree sigDecimate(Tree s, Tree n);
+LIBFAUST_API bool isSigDecimate(Tree s);
+LIBFAUST_API bool isSigDecimate(Tree s, Tree& x, Tree& n);
+
 LIBFAUST_API Tree sigSeq(Tree x, Tree y);
 LIBFAUST_API bool isSigSeq(Tree s);
 LIBFAUST_API bool isSigSeq(Tree s, Tree& x, Tree& y);
@@ -365,6 +373,14 @@ LIBFAUST_API bool isSigSeq(Tree s, Tree& x, Tree& y);
 LIBFAUST_API Tree sigOD(const tvec& sigsubs);
 LIBFAUST_API bool isSigOD(Tree s);
 LIBFAUST_API bool isSigOD(Tree s, tvec& sigsubs);
+
+LIBFAUST_API Tree sigUS(const tvec& sigsubs);
+LIBFAUST_API bool isSigUS(Tree s);
+LIBFAUST_API bool isSigUS(Tree s, tvec& sigsubs);
+
+LIBFAUST_API Tree sigDS(const tvec& sigsubs);
+LIBFAUST_API bool isSigDS(Tree s);
+LIBFAUST_API bool isSigDS(Tree s, tvec& sigsubs);
 
 LIBFAUST_API Tree sigClocked(Tree h, Tree y);
 LIBFAUST_API bool isSigClocked(Tree s);

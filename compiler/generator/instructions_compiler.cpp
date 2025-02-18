@@ -22,6 +22,7 @@
 #include <string>
 
 #include "Text.hh"
+#include "factorizeFIRIIRs.hh"
 #include "fir_to_fir.hh"
 #include "floats.hh"
 #include "instructions.hh"
@@ -32,7 +33,6 @@
 #include "normalform.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
-#include "factorizeFIRIIRs.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
@@ -124,7 +124,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     endTiming("Sum revealer");
 
     Tree L2 = L2a;
-    
+
     // detect FIRs and IIRs if required
     if (gGlobal->gReconstructFIRIIRs) {
         startTiming("FIR revealer");
@@ -149,7 +149,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     } else {
         L2 = L2a;
     }
- 
+
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
     endTiming("conditionAnnotation");
@@ -960,11 +960,19 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateTempVar(sig, x);
     } else if (isSigPermVar(sig, x)) {
         return generatePermVar(sig, x);
+    } else if (isSigZeroPad(sig, x, y)) {
+        return generateZeroPad(sig, x, y);
+    } else if (isSigDecimate(sig, x, y)) {
+        return generateDecimate(sig, x, y);
     } else if (isSigSeq(sig, x, y)) {
         (void)CS(x);
         return generateCacheCode(sig, CS(y));
     } else if (tvec w; isSigOD(sig, w)) {
         return generateOD(sig, w);
+    } else if (tvec w; isSigUS(sig, w)) {
+        return generateUS(sig, w);
+    } else if (tvec w; isSigDS(sig, w)) {
+        return generateDS(sig, w);
     } else if (isSigClocked(sig, x, y)) {
         return generateCacheCode(sig, CS(y));
 
@@ -1324,9 +1332,11 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
 
-            /* TODO: deactivated for now since getOccurrence fails in some cases
-            // The variable is used in compute (kBlock or kSamp), so define is as a field in the DSP
-            struct if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
+            // TODO: deactivated for now since getOccurrence fails in some cases
+            
+            // The variable is used in compute (kBlock or kSamp),
+            // so define is as a field in the DSP struct
+            if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
                 pushDeclare(IB::genDecStructVar(vname, ctype));
                 pushInitMethod(IB::genStoreStructVar(vname, exp));
                 return IB::genLoadStructVar(vname);
@@ -1335,13 +1345,13 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
                 pushInitMethod(IB::genDecStackVar(vname, ctype, exp));
                 return IB::genLoadStackVar(vname);
             }
-            */
-
+       
+            /*
             // Always put variables in DSP struct for now
             pushDeclare(IB::genDecStructVar(vname, ctype));
             pushInitMethod(IB::genStoreStructVar(vname, exp));
             return IB::genLoadStructVar(vname);
-
+            */
         case kBlock: {
             getTypedNames(t, "Slow", ctype, vname);
 
@@ -3507,10 +3517,32 @@ ValueInst* InstructionsCompiler::generatePermVar(Tree sig, Tree x)
     pushDeclare(IB::genLabelInst("// Perm Var"));
     pushDeclare(IB::genDecStructVar(pvname, ctype));
     // initialize it to 0
-    pushInitMethod(IB::genStoreStructVar(pvname, IB::genInt32NumInst(0)));
+    pushInitMethod(IB::genStoreStructVar(pvname, IB::genTypedZero(ctype)));
     // store the value of x in the perm var
     pushComputeDSPMethod(IB::genStoreStructVar(pvname, CS(x)));
     return IB::genLoadStructVar(pvname);
+}
+
+ValueInst* InstructionsCompiler::generateZeroPad(Tree sig, Tree x, Tree y)
+{
+    return IB::genSelect2Inst(
+        IB::genEqual(IB::genRem(getCurrentLoopIndex(), CS(y)), IB::genInt32NumInst(0)), CS(x),
+        IB::genTypedZero(genBasicFIRTyped(sig)));
+}
+
+ValueInst* InstructionsCompiler::generateDecimate(Tree sig, Tree x, Tree y)
+{
+    /*
+    faustassert(false);
+
+    IB::genIfInst(IB::genEqual(IB::genRem(getCurrentLoopIndex(), CS(y)),
+                               IB::genInt32NumInst(0)),
+                  CS(x));
+
+    return IB::genNullValueInst();
+    */
+
+    return CS(x);
 }
 
 // Ondemand: generate the code of the ondemand circuit
@@ -3560,6 +3592,114 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
     fContainer->getCurLoop()->closeIFblock();
 
     std::cout << "closing if statement" << std::endl;
+
+    // 7/ There is no compiled expression
+    return IB::genNullValueInst();
+}
+
+ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
+{
+    // 1/ We extract the clock, the inputs and the outputs signals
+    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    tvec inputs;   // the input signals (coming from outside)
+    tvec outputs;  // the output signals;
+    bool inmode = true;
+    for (unsigned int i = 1; i < w.size(); i++) {
+        if (w[i] == gGlobal->nil) {
+            inmode = false;
+            continue;
+        }
+        if (inmode) {
+            inputs.push_back(w[i]);
+        } else {
+            outputs.push_back(w[i]);
+        }
+    }
+
+    // 2/ We compile the input signals unconditionnally
+    for (Tree x : inputs) {
+        ValueInst* temp = CS(x);
+        dump2FIR(temp);
+    }
+
+    std::cout << "opening upsampling statement" << std::endl;
+
+    // 3/ We then compile the clock signal and open an us statement
+    fContainer->getCurLoop()->openUSblock(CS(clock));
+
+    // 4/ Compute the scheduling of the output signals of the us circuit
+    std::vector<Tree> V = ondemandCompilationOrder(outputs);
+
+    // 5/ We compile the output signals conditionnally inside the us statement
+    for (Tree x : V) {
+        CS(x);
+    }
+
+    // 6/ We close the if statement
+    fContainer->getCurLoop()->closeUSblock();
+
+    std::cout << "closing upsampling statement" << std::endl;
+
+    // 7/ There is no compiled expression
+    return IB::genNullValueInst();
+}
+
+ValueInst* InstructionsCompiler::generateDS(Tree sig, const tvec& w)
+{
+    // Create a class unique counter
+    if (fDSCounter == "") {
+        fDSCounter = "fDSCounter";
+        pushDeclare(IB::genDecStructVar(fDSCounter, IB::genInt32Typed()));
+        pushClearMethod(IB::genStoreStructVar(fDSCounter, IB::genInt32NumInst(0)));
+        
+        FIRIndex value = FIRIndex(IB::genLoadStructVar(fDSCounter)) + 1;
+        pushPostComputeDSPMethod(IB::genStoreStructVar(fDSCounter, value));
+    }
+    
+    // 1/ We extract the clock, the inputs and the outputs signals
+    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    tvec inputs;   // the input signals (coming from outside)
+    tvec outputs;  // the output signals;
+    bool inmode = true;
+    for (unsigned int i = 1; i < w.size(); i++) {
+        if (w[i] == gGlobal->nil) {
+            inmode = false;
+            continue;
+        }
+        if (inmode) {
+            inputs.push_back(w[i]);
+        } else {
+            outputs.push_back(w[i]);
+        }
+    }
+
+    // 2/ We compile the input signals unconditionnally
+    for (Tree x : inputs) {
+        CS(x);
+    }
+
+    std::cout << "opening downsampling statement" << std::endl;
+
+    // 3/ We then compile the clock signal and open an ds statement
+    // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
+    fContainer->getCurLoop()->openDSblock(CS(clock), fDSCounter);
+
+    // 4/ Compute the scheduling of the output signals of the ds circuit
+    std::vector<Tree> V = ondemandCompilationOrder(outputs);
+
+    // 5/ We compile the output signals conditionnally inside the ds statement
+    for (Tree x : V) {
+        CS(x);
+    }
+
+    // 6/ We close the if statement
+    fContainer->getCurLoop()->closeDSblock();
+
+    std::cout << "closing downsampling statement" << std::endl;
 
     // 7/ There is no compiled expression
     return IB::genNullValueInst();

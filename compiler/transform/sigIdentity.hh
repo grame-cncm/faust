@@ -32,9 +32,10 @@
 // that everything works, and as a pattern for real transformations.
 //----------------------------------------------------------------------
 
-class SignalIdentity : public TreeTransform {
+template <bool CACHE>
+class SignalIdentityImp : public TreeTransformImp<CACHE> {
    public:
-    SignalIdentity() : fVisitGen(false) {}
+    SignalIdentityImp() : fVisitGen(false) {}
 
    protected:
     bool         fVisitGen;
@@ -46,5 +47,8 @@ class SignalIdentity : public TreeTransform {
     virtual void myTraceContinue(Tree t, Tree w);
     virtual void myTraceExit(Tree t, Tree w, Tree r);
 };
+
+class SignalIdentity : public SignalIdentityImp<true> {};
+class SignalIdentityNocache : public SignalIdentityImp<false> {};
 
 #endif

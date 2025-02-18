@@ -56,6 +56,8 @@
 #include "occur.hh"
 #include "occurrences.hh"
 #include "ondemandSchema.h"
+#include "upsamplingSchema.h"
+#include "downsamplingSchema.h"
 #include "ppbox.hh"
 #include "prim2.hh"
 #include "property.hh"
@@ -532,6 +534,12 @@ static schema* generateInsideSchema(Tree t)
 
     } else if (isBoxOndemand(t, a)) {
         return makeOndemandSchema(generateDiagramSchema(a));
+
+    } else if (isBoxUpsampling(t, a)) {
+        return makeUpsamplingSchema(generateDiagramSchema(a));
+
+    } else if (isBoxDownsampling(t, a)) {
+        return makeDownsamplingSchema(generateDiagramSchema(a));
 
     } else {
         stringstream error;

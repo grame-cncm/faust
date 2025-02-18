@@ -34,6 +34,35 @@
 
 using namespace std;
 
+/*
+    Compute the factor to apply to the external SR value, following the UP/DS hierarchy.
+ */
+Tree SignalSampleRate::transformation(Tree sig)
+{
+    if (Tree type, name, file; isSigFConst(sig, type, name, file)) {
+        if (string(tree2str(name)) == "fSamplingFreq" && (fFactor != 1.0)) {
+            return sigMul(sig, sigReal(fFactor));
+        } else {
+            return sig;
+        }
+    } else if (tvec w; isSigUS(sig, w)) {
+        double factor = tree2double(w[0]);
+        fFactor *= factor;
+        Tree res = SignalIdentityNocache::transformation(sig);
+        fFactor /= factor;
+        return res;
+    } else if (tvec w; isSigDS(sig, w)) {
+        double factor = tree2double(w[0]);
+        fFactor /= factor;
+        Tree res = SignalIdentityNocache::transformation(sig);
+        fFactor *= factor;
+        return res;
+    } else {
+        // Other cases => identity transformation
+        return SignalIdentityNocache::transformation(sig);
+    }
+}
+
 SignalTypePrinter::SignalTypePrinter(Tree L)
 {
     // Check that the root tree is properly type annotated
@@ -1153,4 +1182,10 @@ LIBFAUST_API bool hasClock(Tree sig, Tree& clock)
 {
     SignalClockChecker clock_checker(sig, clock);
     return clock_checker.fHasClock;
+}
+
+Tree signalSampleRate(Tree sig)
+{
+    SignalSampleRate SR;
+    return SR.mapself(sig);
 }

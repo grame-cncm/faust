@@ -31,53 +31,59 @@
 
 using namespace std;
 
-//-------------------------SignalIdentity-------------------------------
+//-------------------------SignalIdentityImp-------------------------------
 // An identity transformation on signals. Can be used to test
 // that everything works, and as a pattern for real transformations.
 //----------------------------------------------------------------------
 
-void SignalIdentity::traceEnter(Tree t)
+template <bool CACHE>
+void SignalIdentityImp<CACHE>::traceEnter(Tree t)
 {
-    tab(fIndent, cerr);
-    cerr << fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << endl;
+    tab(this->fIndent, cerr);
+    cerr << this->fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << endl;
 }
 
-void SignalIdentity::traceExit(Tree t, Tree r)
+template <bool CACHE>
+void SignalIdentityImp<CACHE>::traceExit(Tree t, Tree r)
 {
-    tab(fIndent, cerr);
-    cerr << fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << " => " << ppsig(r, MAX_ERROR_SIZE)
+    tab(this->fIndent, cerr);
+    cerr << this->fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << " => " << ppsig(r, MAX_ERROR_SIZE)
          << endl;
 }
 
-void SignalIdentity::myTraceEnter(Tree t)
+template <bool CACHE>
+void SignalIdentityImp<CACHE>::myTraceEnter(Tree t)
 {
-    if (fTrace) {
-        tab(fIndent, cerr);
-        cerr << fMessage << " ENTER: " << ppsig(t, MAX_ERROR_SIZE) << endl;
-        fIndent++;
+    if (this->fTrace) {
+        tab(this->fIndent, cerr);
+        cerr << this->fMessage << " ENTER: " << ppsig(t, MAX_ERROR_SIZE) << endl;
+        this->fIndent++;
     }
 }
 
-void SignalIdentity::myTraceContinue(Tree t, Tree w)
+template <bool CACHE>
+void SignalIdentityImp<CACHE>::myTraceContinue(Tree t, Tree w)
 {
-    if (fTrace) {
-        tab(fIndent - 1, cerr);
-        cerr << fMessage << " CONT : " << ppsig(t, MAX_ERROR_SIZE) << " --> "
+    if (this->fTrace) {
+        tab(this->fIndent - 1, cerr);
+        cerr << this->fMessage << " CONT : " << ppsig(t, MAX_ERROR_SIZE) << " --> "
              << ppsig(w, MAX_ERROR_SIZE) << endl;
     }
 }
 
-void SignalIdentity::myTraceExit(Tree t, Tree w, Tree r)
+template <bool CACHE>
+void SignalIdentityImp<CACHE>::myTraceExit(Tree t, Tree w, Tree r)
 {
-    if (fTrace) {
-        fIndent--;
-        tab(fIndent, cerr);
-        cerr << fMessage << " EXIT : " << ppsig(t, MAX_ERROR_SIZE) << " --> "
+    if (this->fTrace) {
+        this->fIndent--;
+        tab(this->fIndent, cerr);
+        cerr << this->fMessage << " EXIT : " << ppsig(t, MAX_ERROR_SIZE) << " --> "
              << ppsig(w, MAX_ERROR_SIZE) << " ==> " << ppsig(r, MAX_ERROR_SIZE) << endl;
     }
 }
 
-Tree SignalIdentity::transformation(Tree sig)
+template <bool CACHE>
+Tree SignalIdentityImp<CACHE>::transformation(Tree sig)
 {
     int     i;
     int64_t i64;
@@ -87,7 +93,7 @@ Tree SignalIdentity::transformation(Tree sig)
     if (getUserData(sig)) {
         vector<Tree> newBranches;
         for (Tree b : sig->branches()) {
-            newBranches.push_back(self(b));
+            newBranches.push_back(this->self(b));
         }
         return tree(sig->node(), newBranches);
     } else if (isSigInt(sig, &i)) {
@@ -101,20 +107,20 @@ Tree SignalIdentity::transformation(Tree sig)
     } else if (isSigInput(sig, &i)) {
         return sig;
     } else if (isSigOutput(sig, &i, x)) {
-        return sigOutput(i, self(x));
+        return sigOutput(i, this->self(x));
     } else if (isSigDelay1(sig, x)) {
-        return sigDelay1(self(x));
+        return sigDelay1(this->self(x));
     } else if (isSigDelay(sig, x, y)) {
-        return sigDelay(self(x), self(y));
+        return sigDelay(this->self(x), this->self(y));
     } else if (isSigPrefix(sig, x, y)) {
-        return sigPrefix(self(x), self(y));
+        return sigPrefix(this->self(x), this->self(y));
     } else if (isSigBinOp(sig, &i, x, y)) {
-        return sigBinOp(i, self(x), self(y));
+        return sigBinOp(i, this->self(x), this->self(y));
     }
 
     // Foreign functions
     else if (isSigFFun(sig, ff, largs)) {
-        return sigFFun(ff, mapself(largs));
+        return sigFFun(ff, this->mapself(largs));
     } else if (isSigFConst(sig, type, name, file)) {
         return sig;
     } else if (isSigFVar(sig, type, name, file)) {
@@ -125,33 +131,33 @@ Tree SignalIdentity::transformation(Tree sig)
     else if (isSigWRTbl(sig, w, x, y, z)) {
         if (y == gGlobal->nil) {
             // rdtable
-            return sigWRTbl(self(w), self(x));
+            return sigWRTbl(this->self(w), this->self(x));
         } else {
             // rwtable
-            return sigWRTbl(self(w), self(x), self(y), self(z));
+            return sigWRTbl(this->self(w), this->self(x), this->self(y), this->self(z));
         }
     } else if (isSigRDTbl(sig, x, y)) {
-        return sigRDTbl(self(x), self(y));
+        return sigRDTbl(this->self(x), this->self(y));
     }
 
     // Doc
     else if (isSigDocConstantTbl(sig, x, y)) {
-        return sigDocConstantTbl(self(x), self(y));
+        return sigDocConstantTbl(this->self(x), this->self(y));
     } else if (isSigDocWriteTbl(sig, x, y, u, v)) {
-        return sigDocWriteTbl(self(x), self(y), self(u), self(v));
+        return sigDocWriteTbl(this->self(x), this->self(y), this->self(u), this->self(v));
     } else if (isSigDocAccessTbl(sig, x, y)) {
-        return sigDocAccessTbl(self(x), self(y));
+        return sigDocAccessTbl(this->self(x), this->self(y));
     }
 
     // Select2 and Select3
     else if (isSigSelect2(sig, sel, x, y)) {
-        return sigSelect2(self(sel), self(x), self(y));
+        return sigSelect2(this->self(sel), this->self(x), this->self(y));
     }
 
     // Table sigGen
     else if (isSigGen(sig, x)) {
         if (fVisitGen) {
-            return sigGen(self(x));
+            return sigGen(this->self(x));
         } else {
             return sig;
         }
@@ -161,13 +167,13 @@ Tree SignalIdentity::transformation(Tree sig)
     else if (isSigFIR(sig)) {
         tvec c = sig->branches();
         for (unsigned int i = 0; i < c.size(); i++) {
-            c[i] = self(c[i]);
+            c[i] = this->self(c[i]);
         }
         return sigFIR(c);
     } else if (isSigIIR(sig)) {
         tvec c = sig->branches();
         for (unsigned int i = 1; i < c.size(); i++) {
-            c[i] = self(c[i]);
+            c[i] = this->self(c[i]);
         }
         return sigIIR(c);
     }
@@ -175,25 +181,33 @@ Tree SignalIdentity::transformation(Tree sig)
     else if (isSigSum(sig)) {
         tvec c = sig->branches();
         for (unsigned int i = 0; i < c.size(); i++) {
-            c[i] = self(c[i]);
+            c[i] = this->self(c[i]);
         }
         return sigSum(c);
     }
 
     else if (isSigTempVar(sig, x)) {
-        return sigTempVar(self(x));
+        return sigTempVar(this->self(x));
     }
 
     else if (isSigPermVar(sig, x)) {
-        return sigPermVar(self(x));
+        return sigPermVar(this->self(x));
+    }
+
+    else if (isSigZeroPad(sig, x, y)) {
+        return sigZeroPad(this->self(x), this->self(y));
+    }
+
+    else if (isSigDecimate(sig, x, y)) {
+        return sigDecimate(this->self(x), this->self(y));
     }
 
     else if (isSigSeq(sig, x, y)) {
         // std::cerr << "identity sigSeq " << ppsig(sig) << std::endl;
-        Tree x2 = self(x);
+        Tree x2 = this->self(x);
         // std::cerr << "identity sigSeq x2 " << ppsig(x2) << std::endl;
         faustassert(!isZero(x2));
-        return sigSeq(x2, self(y));
+        return sigSeq(x2, this->self(y));
     }
 
     else if (tvec w1; isSigOD(sig, w1)) {
@@ -202,19 +216,43 @@ Tree SignalIdentity::transformation(Tree sig)
             if (s == gGlobal->nil) {
                 w2.push_back(gGlobal->nil);
             } else {
-                w2.push_back(self(s));
+                w2.push_back(this->self(s));
             }
         }
         return sigOD(w2);
     }
 
+    else if (tvec w1; isSigUS(sig, w1)) {
+        tvec w2;
+        for (Tree s : w1) {
+            if (s == gGlobal->nil) {
+                w2.push_back(gGlobal->nil);
+            } else {
+                w2.push_back(this->self(s));
+            }
+        }
+        return sigUS(w2);
+    }
+
+    else if (tvec w1; isSigDS(sig, w1)) {
+        tvec w2;
+        for (Tree s : w1) {
+            if (s == gGlobal->nil) {
+                w2.push_back(gGlobal->nil);
+            } else {
+                w2.push_back(this->self(s));
+            }
+        }
+        return sigDS(w2);
+    }
+
     else if (isSigClocked(sig, x, y)) {
-        return sigClocked(x, self(y));  // do we need to transform the clock signal ?
+        return sigClocked(x, this->self(y));  // do we need to transform the clock signal ?
     }
 
     else if (isSigGen(sig, x)) {
         if (fVisitGen) {
-            return sigGen(self(x));
+            return sigGen(this->self(x));
         } else {
             return sig;
         }
@@ -222,7 +260,7 @@ Tree SignalIdentity::transformation(Tree sig)
 
     // recursive signals
     else if (isProj(sig, &i, x)) {
-        return sigProj(i, self(x));
+        return sigProj(i, this->self(x));
     } else if (isRec(sig, var, le)) {
         if (isNil(le)) {
             // we are already visiting this recursive group
@@ -230,17 +268,17 @@ Tree SignalIdentity::transformation(Tree sig)
         } else {
             // first visit
             rec(var, gGlobal->nil);  // to avoid infinite recursions
-            return rec(var, mapselfRec(le));
+            return rec(var, this->mapselfRec(le));
         }
     }
 
     // Int and Float Cast
     else if (isSigIntCast(sig, x)) {
-        return sigIntCast(self(x));
+        return sigIntCast(this->self(x));
     } else if (isSigBitCast(sig, x)) {
-        return sigBitCast(self(x));
+        return sigBitCast(this->self(x));
     } else if (isSigFloatCast(sig, x)) {
-        return sigFloatCast(self(x));
+        return sigFloatCast(this->self(x));
     }
 
     // UI
@@ -249,53 +287,57 @@ Tree SignalIdentity::transformation(Tree sig)
     } else if (isSigCheckbox(sig, label)) {
         return sig;
     } else if (isSigVSlider(sig, label, c, x, y, z)) {
-        return sigVSlider(label, self(c), self(x), self(y), self(z));
+        return sigVSlider(label, this->self(c), this->self(x), this->self(y), this->self(z));
     } else if (isSigHSlider(sig, label, c, x, y, z)) {
-        return sigHSlider(label, self(c), self(x), self(y), self(z));
+        return sigHSlider(label, this->self(c), this->self(x), this->self(y), this->self(z));
     } else if (isSigNumEntry(sig, label, c, x, y, z)) {
-        return sigNumEntry(label, self(c), self(x), self(y), self(z));
+        return sigNumEntry(label, this->self(c), this->self(x), this->self(y), this->self(z));
     } else if (isSigVBargraph(sig, label, x, y, z)) {
-        return sigVBargraph(label, self(x), self(y), self(z));
+        return sigVBargraph(label, this->self(x), this->self(y), this->self(z));
     } else if (isSigHBargraph(sig, label, x, y, z)) {
-        return sigHBargraph(label, self(x), self(y), self(z));
+        return sigHBargraph(label, this->self(x), this->self(y), this->self(z));
     }
 
     // Soundfile length, rate, buffer
     else if (isSigSoundfile(sig, label)) {
         return sig;
     } else if (isSigSoundfileLength(sig, sf, x)) {
-        return sigSoundfileLength(self(sf), self(x));
+        return sigSoundfileLength(this->self(sf), this->self(x));
     } else if (isSigSoundfileRate(sig, sf, x)) {
-        return sigSoundfileRate(self(sf), self(x));
+        return sigSoundfileRate(this->self(sf), this->self(x));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
-        return sigSoundfileBuffer(self(sf), self(x), self(y), self(z));
+        return sigSoundfileBuffer(this->self(sf), this->self(x), this->self(y), this->self(z));
     }
 
     // Attach, Enable, Control
     else if (isSigAttach(sig, x, y)) {
-        return sigAttach(self(x), self(y));
+        return sigAttach(this->self(x), this->self(y));
     } else if (isSigEnable(sig, x, y)) {
-        return sigEnable(self(x), self(y));
+        return sigEnable(this->self(x), this->self(y));
     } else if (isSigControl(sig, x, y)) {
-        return sigControl(self(x), self(y));
+        return sigControl(this->self(x), this->self(y));
     }
 
     // Signal interval annotation
     else if (isSigAssertBounds(sig, x, y, z)) {
-        return sigAssertBounds(self(x), self(y), self(z));
+        return sigAssertBounds(this->self(x), this->self(y), this->self(z));
     } else if (isSigLowest(sig, x)) {
-        return sigLowest(self(x));
+        return sigLowest(this->self(x));
     } else if (isSigHighest(sig, x)) {
-        return sigHighest(self(x));
+        return sigHighest(this->self(x));
     }
 
     else if (isSigRegister(sig, &i, x)) {
-        return sigRegister(i, self(x));
+        return sigRegister(i, this->self(x));
     }
 
     else {
         cerr << "ASSERT : unrecognized signal : " << *sig << endl;
         faustassert(false);
     }
-    return 0;
+    return nullptr;
 }
+
+    // Explicit instanciation for CACHE = true and false
+template class SignalIdentityImp<true>;
+template class SignalIdentityImp<false>;

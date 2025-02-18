@@ -306,10 +306,18 @@ static string sigLabel(Tree sig)
         fout << "tempvar";
     } else if (isSigPermVar(sig)) {
         fout << "permvar";
+    } else if (isSigZeroPad(sig, x, y)) {
+        fout << "zeropad";
+    } else if (isSigDecimate(sig, x, y)) {
+        fout << "decimate";
     } else if (isSigSeq(sig, x, y)) {
         fout << "seq";
     } else if (isSigOD(sig)) {
         fout << "ondemand";
+    } else if (isSigUS(sig)) {
+        fout << "upsampling";
+    } else if (isSigDS(sig)) {
+        fout << "downsampling";
     } else if (isSigClocked(sig, x, y)) {
         fout << "clocked:" << x;
     }
@@ -317,11 +325,9 @@ static string sigLabel(Tree sig)
     else if (isSigAssertBounds(sig, x, y, z)) {
         fout << "assertbounds";
     }
-
     else if (isSigLowest(sig, x)) {
         fout << "lowest";
     }
-
     else if (isSigHighest(sig, x)) {
         fout << "highest";
     }
