@@ -101,6 +101,11 @@ void Actor::addInputSignalName(const string& name)
     this->inputSignals.push_back(name);
 }
 
+void Actor::addParameter(const std::string& paramName, const std::string& paramVal)
+{
+    this->params[paramName] = paramVal;
+}
+
 void Actor::addPort(Port newPort)
 {
     this->ports.push_back(newPort);
@@ -143,6 +148,11 @@ pair<string, int> Actor::getArg()
 vector<string> Actor::getInputSignalNames()
 {
     return this->inputSignals;
+}
+
+std::map<std::string, std::string> Actor::getParams()
+{
+    return this->params;
 }
 
 // replace old signal name with new signal name (order must be retained)

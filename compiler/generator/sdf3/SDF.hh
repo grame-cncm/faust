@@ -48,19 +48,21 @@ class Port {
 class Actor {
    public:
     Actor(const std::string&, const std::string&);
-    void                        setName(const std::string&);
-    void                        setType(const std::string&);
-    void                        addPort(Port);
-    void                        removePort(const std::string&);
-    void                        setDelayInputSigName(const std::string&);
-    void                        setArg(const std::string&, int);
-    void                        addInputSignalName(const std::string&);
-    std::string                 getName();
-    std::string                 getType();
-    std::vector<Port>           getPorts();
-    std::string                 getDelayInputSigName();
-    std::pair<std::string, int> getArg();
-    std::vector<std::string>    getInputSignalNames();
+    void              setName(const std::string&);
+    void              setType(const std::string&);
+    void              addPort(Port);
+    void              removePort(const std::string&);
+    void              setDelayInputSigName(const std::string&);
+    void              setArg(const std::string&, int);
+    void              addInputSignalName(const std::string&);
+    void              addParameter(const std::string& paramName, const std::string& paramVal);
+    std::string       getName();
+    std::string       getType();
+    std::vector<Port> getPorts();
+    std::string       getDelayInputSigName();
+    std::pair<std::string, int>        getArg();
+    std::vector<std::string>           getInputSignalNames();
+    std::map<std::string, std::string> getParams();
     void replaceInputSignalName(const std::string& oldName, const std::string& newName);
     void writeToXML(std::ostream& fout);
     void writePropertiesToXML(std::ostream& fout);
@@ -75,6 +77,8 @@ class Actor {
     std::pair<std::string, int> args;
     std::vector<std::string> inputSignals;  // track list of input signals for rec operator in order
                                             // to bypass it in SDF representation
+    std::map<std::string, std::string>
+        params;  // track parameters for given actor (i.e. init, min, max)
 };
 
 class Channel {
