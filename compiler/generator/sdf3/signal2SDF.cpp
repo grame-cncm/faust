@@ -28,6 +28,7 @@
 #include "Text.hh"
 #include "global.hh"
 #include "ppsig.hh"
+#include "prim2.hh"
 #include "property.hh"
 #include "signalVisitor.hh"
 #include "signals.hh"
@@ -92,6 +93,36 @@ void Signal2SDF::sigToSDF(Tree L, ostream& fout)
         string newName = actorList.at(b).getName();
         for (auto& arg : actorList.at(b).getInputSignalNames()) {
             newName += "_" + arg;
+        }
+        actorList.at(b).setName(newName);
+        for (auto& c : chList) {  // update actor name in channel list
+            if (c.second.getSrcActor() == b) {
+                chList.at(c.first).setSrcActor(newName);
+            } else if (c.second.getDstActor() == b) {
+                chList.at(c.first).setDstActor(newName);
+            }
+        }
+    }
+    // update names of UI actors to reflect their parameters
+    for (auto& b : uiActors) {
+        string newName = actorList.at(b).getName();
+        for (auto& [paramName, value] : actorList.at(b).getParams()) {
+            newName += "PARAM" + paramName + value;
+        }
+        actorList.at(b).setName(newName);
+        for (auto& c : chList) {  // update actor name in channel list
+            if (c.second.getSrcActor() == b) {
+                chList.at(c.first).setSrcActor(newName);
+            } else if (c.second.getDstActor() == b) {
+                chList.at(c.first).setDstActor(newName);
+            }
+        }
+    }
+    // update names of delay actors to reflect their parameters
+    for (auto& b : delayActors) {
+        string newName = actorList.at(b).getName();
+        for (auto& [paramName, value] : actorList.at(b).getParams()) {
+            newName += "PARAM" + paramName + value;
         }
         actorList.at(b).setName(newName);
         for (auto& c : chList) {  // update actor name in channel list
@@ -203,7 +234,7 @@ void Signal2SDF::visit(Tree sig)
         self(x);
         return;
     } else if (isSigDelay(sig, x, y)) {
-        logActor(sig, "delay");
+        logDelayActor(sig, x, y, "delay");
         self(x);
         self(y);
         return;
@@ -221,12 +252,14 @@ void Signal2SDF::visit(Tree sig)
 
     // Foreign functions
     else if (isSigFFun(sig, ff, largs)) {
+        logActor(sig, ffname(ff));
         mapself(largs);
         return;
     } else if (isSigFConst(sig, type, name, file)) {
         logActor(sig, tree2str(name));
         return;
     } else if (isSigFVar(sig, type, name, file)) {
+        logActor(sig, "fvar");
         return;
     }
 
@@ -323,24 +356,24 @@ void Signal2SDF::visit(Tree sig)
         logActor(sig, "checkbox");
         return;
     } else if (isSigVSlider(sig, label, c, x, y, z)) {
-        logActor(sig, "vslider");
+        logUISliderActor(sig, "vslider", c, x, y, z);
         // self(c), self(x), self(y), self(z);
         return;
     } else if (isSigHSlider(sig, label, c, x, y, z)) {
-        logActor(sig, "hslider");
+        logUISliderActor(sig, "hslider", c, x, y, z);
         // self(c), self(x), self(y), self(z);
         return;
     } else if (isSigNumEntry(sig, label, c, x, y, z)) {
-        logActor(sig, "nentry");
-        self(c), self(x), self(y), self(z);
+        logUISliderActor(sig, "nentry", c, x, y, z);
+        // self(c), self(x), self(y), self(z);
         return;
     } else if (isSigVBargraph(sig, label, x, y, z)) {
-        logActor(sig, "vbargraph");
-        self(x), self(y), self(z);
+        logUIGraphActor(sig, "vbargraph", x, y, z);
+        // self(x), self(y), self(z);
         return;
     } else if (isSigHBargraph(sig, label, x, y, z)) {
-        logActor(sig, "hbargraph");
-        self(x), self(y), self(z);
+        logUIGraphActor(sig, "hbargraph", x, y, z);
+        // self(x), self(y), self(z);
         return;
     }
 
@@ -364,9 +397,11 @@ void Signal2SDF::visit(Tree sig)
         self(x), self(y);
         return;
     } else if (isSigEnable(sig, x, y)) {
+        logActor(sig, "enable");
         self(x), self(y);
         return;
     } else if (isSigControl(sig, x, y)) {
+        logActor(sig, "control");
         self(x), self(y);
         return;
     }
@@ -449,7 +484,6 @@ void Signal2SDF::bypassRec(const string& recActorName, vector<string>& inputSign
         chList.at(channelToMod)
             .setSrcActor(
                 inputSignalNames[i]);  // connect output channel of REC to one of its input actors
-        chList.at(channelToMod).setInitialTokens(1);
     }
 }
 
@@ -564,28 +598,22 @@ void Signal2SDF::logActor(Tree sig, const string& type)
 }
 
 /**
- * Add the actor associated with sig to the actor list
+ * Add the delay actor associated with sig to the actor list and track range of delay values
  */
 void Signal2SDF::logDelayActor(Tree sig, Tree x, Tree y, const string& type)
 {
     stringstream actorName;
-    stringstream arg1Name;
-    stringstream arg2Name;
-    int          i;
     actorName << sig;
-    arg1Name << x;
-    arg2Name << y;
     actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
-    // NOTE assume here that fixed delays will only have Int argument, might need to expand to
-    // include Real values
-    if (isSigInt(y, &i)) {  // fixed delay: track delay length to model later
-        delayActors.push_back(actorName.str());
-        actorList.at(actorName.str()).setDelayInputSigName(arg1Name.str());
-        actorList.at(actorName.str()).setArg(arg2Name.str(), i);
-    } else {  // variable delay: leave alone; will resolve later
-        actorList.at(actorName.str()).addInputSignalName(arg1Name.str());
-        actorList.at(actorName.str()).addInputSignalName(arg2Name.str());
-    }
+    delayActors.push_back(actorName.str());
+
+    // delay sizes need to be integer values rather than floats/doubles
+    interval    delayRange = getCertifiedSigType(y)->getInterval();
+    std::string min        = std::to_string((int)delayRange.lo());
+    std::string max        = std::to_string((int)delayRange.hi());
+    actorList.at(actorName.str()).addParameter("min", min);
+    actorList.at(actorName.str()).addParameter("max", max);
+
     addChannel(sig);
 }
 
@@ -642,6 +670,75 @@ void Signal2SDF::logUIActor(Tree sig, Tree init)
               << " ERROR : init value for UI component not found : " << *sig << endl;
         throw faustexception(error.str());
     }
+}
+
+/**
+ * Log UI component with information of its init, min, max, and step values
+ */
+void Signal2SDF::logUISliderActor(Tree sig, const std::string& type, Tree init, Tree min, Tree max,
+                                  Tree step)
+{
+    std::map<std::string, Tree> parameters = {
+        {"init", init}, {"min", min}, {"max", max}, {"step", step}};
+    stringstream actorName;  // get unique actor names from signal
+    actorName << sig;
+    actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
+    uiActors.push_back(actorName.str());
+
+    for (auto const& [name, val] : parameters) {
+        int          i;
+        double       r;
+        stringstream paramVal;
+
+        if (isSigInt(val, &i)) {
+            paramVal << i;
+        } else if (isSigReal(val, &r)) {
+            paramVal << r;
+        } else {
+            stringstream error;
+            error << __FILE__ << ":" << __LINE__ << " ERROR : " << name
+                  << " value for UI component not found : " << *sig << endl;
+            throw faustexception(error.str());
+        }
+        actorList.at(actorName.str()).addParameter(name, paramVal.str());
+    }
+
+    addChannel(sig);
+}
+
+/**
+ * Log UI graph (vbar/hbargraph) component with information of its min, max, and t0 values
+ */
+void Signal2SDF::logUIGraphActor(Tree sig, const std::string& type, Tree min, Tree max, Tree t0)
+{
+    std::map<std::string, Tree> parameters = {
+        {"min", min}, {"max", max}
+        // {"tzero", t0} // NOTE excluded bargraph as it doesn't seem to relate to parameters
+    };
+    stringstream actorName;  // get unique actor names from signal
+    actorName << sig;
+    actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
+    uiActors.push_back(actorName.str());
+
+    for (auto const& [name, val] : parameters) {
+        int          i;
+        double       r;
+        stringstream paramVal;
+
+        if (isSigInt(val, &i)) {
+            paramVal << i;
+        } else if (isSigReal(val, &r)) {
+            paramVal << r;
+        } else {
+            stringstream error;
+            error << __FILE__ << ":" << __LINE__ << " ERROR : " << name
+                  << " value for UI component not found : " << *sig << endl;
+            throw faustexception(error.str());
+        }
+        actorList.at(actorName.str()).addParameter(name, paramVal.str());
+    }
+
+    addChannel(sig);
 }
 
 /**

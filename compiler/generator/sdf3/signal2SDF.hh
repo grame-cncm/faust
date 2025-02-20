@@ -48,6 +48,7 @@ class Signal2SDF : public TreeTraversal {
     std::vector<std::string>       delayActors;
     std::vector<std::string>       recActors;
     std::vector<std::string>       inputArgTrackedActors;
+    std::vector<std::string>       uiActors;
 
     void visit(Tree t) override;
 
@@ -67,6 +68,9 @@ class Signal2SDF : public TreeTraversal {
     void        logRecActor(Tree sig, Tree le, const std::string& type);
     void        logBinopActor(Tree sig, Tree x, Tree y, const std::string& type);
     void        logUIActor(Tree sig, Tree init);
+    void        logUISliderActor(Tree sig, const std::string& type, Tree init, Tree min, Tree max,
+                                 Tree step);
+    void        logUIGraphActor(Tree sig, const std::string& type, Tree min, Tree max, Tree t0);
     void        logPowActor(Tree sig, Tree x, Tree y, const std::string& type);
     void        logCastActor(Tree sig, Tree x, const std::string& type);
     bool        isSigPow(Tree sig, int* i, Tree& x, Tree& y);
