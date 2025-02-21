@@ -3100,12 +3100,46 @@ struct IB {
 
     static ValueInst* genMul(ValueInst* a1, ValueInst* a2)
     {
-        return isOne(a1) ? a2 : (isOne(a2) ? a1 : genBinopInst(kMul, a1, a2));
+        if (isOne(a1)) {
+            return a2;
+        } else if (isOne(a2)) {
+            return a1;
+        } else if (castInt32(a1) && castInt32(a2)) {
+            return genInt32NumInst(castInt32(a1)->fNum * castInt32(a2)->fNum);
+        } else if (castInt64(a1) && castInt64(a2)) {
+            return genInt64NumInst(castInt64(a1)->fNum * castInt64(a2)->fNum);
+        } else if (castFloat(a1) && castFloat(a2)) {
+            return genFloatNumInst(castFloat(a1)->fNum * castFloat(a2)->fNum);
+        } else if (castDouble(a1) && castDouble(a2)) {
+            return genDoubleNumInst(castDouble(a1)->fNum * castDouble(a2)->fNum);
+        } else if (castQuad(a1) && castQuad(a2)) {
+            return genQuadNumInst(castQuad(a1)->fNum * castQuad(a2)->fNum);
+        } else if (castFixed(a1) && castFixed(a2)) {
+            return genFixedPointNumInst(castFixed(a1)->fNum * castFixed(a2)->fNum);
+        } else {
+            return genBinopInst(kMul, a1, a2);
+        }
     }
 
     static ValueInst* genDiv(ValueInst* a1, ValueInst* a2)
     {
-        return isOne(a2) ? a1 : genBinopInst(kDiv, a1, a2);
+        if (isOne(a2)) {
+            return a1;
+        } else if (castInt32(a1) && castInt32(a2)) {
+            return genInt32NumInst(castInt32(a1)->fNum / castInt32(a2)->fNum);
+        } else if (castInt64(a1) && castInt64(a2)) {
+            return genInt64NumInst(castInt64(a1)->fNum / castInt64(a2)->fNum);
+        } else if (castFloat(a1) && castFloat(a2)) {
+            return genFloatNumInst(castFloat(a1)->fNum / castFloat(a2)->fNum);
+        } else if (castDouble(a1) && castDouble(a2)) {
+            return genDoubleNumInst(castDouble(a1)->fNum / castDouble(a2)->fNum);
+        } else if (castQuad(a1) && castQuad(a2)) {
+            return genQuadNumInst(castQuad(a1)->fNum / castQuad(a2)->fNum);
+        } else if (castFixed(a1) && castFixed(a2)) {
+            return genFixedPointNumInst(castFixed(a1)->fNum / castFixed(a2)->fNum);
+        } else {
+            return genBinopInst(kDiv, a1, a2);
+        }
     }
 
     static BinopInst* genRem(ValueInst* a1, ValueInst* a2) { return genBinopInst(kRem, a1, a2); }

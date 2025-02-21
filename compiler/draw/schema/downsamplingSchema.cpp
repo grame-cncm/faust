@@ -21,8 +21,8 @@
 
 #include <iostream>
 
-#include "exception.hh"
 #include "downsamplingSchema.h"
+#include "exception.hh"
 
 using namespace std;
 
@@ -31,8 +31,9 @@ const double downsamplingSchema::fTopMargin(
 const double downsamplingSchema::fHorMargin(10);  // left and right gap
 const double downsamplingSchema::fBotMargin(
     10);  // gap between the bottom and the bottom of the inside schema
-const double downsamplingSchema::fMinWidth(50);      // Minimal width of an downsampling block
-const string downsamplingSchema::fText("downsampling");  // Test to display, tipically "downsampling"
+const double downsamplingSchema::fMinWidth(50);  // Minimal width of an downsampling block
+const string downsamplingSchema::fText(
+    "downsampling");  // Test to display, tipically "downsampling"
 
 /**
  * Returns an enlarged schema, but only if really needed

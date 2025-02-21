@@ -48,6 +48,7 @@
 #include "compatibility.hh"
 #include "description.hh"
 #include "devLib.h"
+#include "downsamplingSchema.h"
 #include "drawschema.hh"
 #include "exception.hh"
 #include "files.hh"
@@ -56,13 +57,12 @@
 #include "occur.hh"
 #include "occurrences.hh"
 #include "ondemandSchema.h"
-#include "upsamplingSchema.h"
-#include "downsamplingSchema.h"
 #include "ppbox.hh"
 #include "prim2.hh"
 #include "property.hh"
 #include "routeSchema.h"
 #include "schema.h"
+#include "upsamplingSchema.h"
 #include "xtended.hh"
 
 #if 0

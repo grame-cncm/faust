@@ -31,7 +31,7 @@ const double upsamplingSchema::fTopMargin(
 const double upsamplingSchema::fHorMargin(10);  // left and right gap
 const double upsamplingSchema::fBotMargin(
     10);  // gap between the bottom and the bottom of the inside schema
-const double upsamplingSchema::fMinWidth(50);      // Minimal width of an upsampling block
+const double upsamplingSchema::fMinWidth(50);        // Minimal width of an upsampling block
 const string upsamplingSchema::fText("upsampling");  // Test to display, tipically "upsampling"
 
 /**

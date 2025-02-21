@@ -492,7 +492,7 @@ ostream& ppsigShared::printfun(ostream& fout, const string& funame, const tvec& 
         fout << sep << ppsigShared(arg, fEnv);
         sep = ',';
     }
-    return fout << ")";
+    return fout << ')';
 }
 
 ostream& ppsigShared::printui(ostream& fout, const string& funame, Tree label) const
@@ -523,11 +523,11 @@ ostream& ppsigShared::printui(ostream& fout, const string& funame, Tree label, T
 ostream& ppsigShared::printout(ostream& fout, int i, Tree x) const
 {
     if (fPriority > 0) {
-        fout << "(";
+        fout << '(';
     }
     fout << "OUT" << i << " = " << ppsigShared(x, fEnv, 0);
     if (fPriority > 0) {
-        fout << ")";
+        fout << ')';
     }
     return fout;
 }

@@ -357,6 +357,10 @@ void CodeLoop::closeUSblock()
     ForLoopInst* loop = IB::genForLoopInst(loop_decl, loop_end, loop_inc);
     loop->pushFrontInst(us_block);
     pushComputeDSPMethod(loop);
+    // Adjust fSRFactor
+    // fSRFactor = IB::genDiv(fSRFactor, b->fUSfactor);
+    // pushComputeDSPMethod(IB::genStoreStructVar("fIntSampleRate",
+    // IB::genDiv(IB::genLoadStructVar("fIntSampleRate"), b->fUSfactor)));
 }
 
 void CodeLoop::closeDSblock()
@@ -364,15 +368,21 @@ void CodeLoop::closeDSblock()
     CodeDSblock* b = dynamic_cast<CodeDSblock*>(fCodeStack.top());
     faustassert(b);
     fCodeStack.pop();
-    
+
     BlockInst* ds_block1 = new BlockInst();
     ds_block1->pushBackInst(b->fPreInst);
     ds_block1->pushBackInst(b->fComputeInst);
     ds_block1->pushBackInst(b->fPostInst);
-    
+
     BlockInst* ds_block2 = new BlockInst();
-    ds_block2->pushBackInst(IB::genIfInst(
-        IB::genEqual(IB::genRem(IB::genLoadStructVar(b->fDSCounter), b->fDSfactor), IB::genInt32NumInst(0)), ds_block1));
+    ds_block2->pushBackInst(
+        IB::genIfInst(IB::genEqual(IB::genRem(IB::genLoadStructVar(b->fDSCounter), b->fDSfactor),
+                                   IB::genInt32NumInst(0)),
+                      ds_block1));
 
     pushComputeDSPMethod(ds_block2);
+    // Adjust fSRFactor
+    // fSRFactor = IB::genMul(fSRFactor, b->fDSfactor);
+    // pushComputeDSPMethod(IB::genStoreStructVar("fIntSampleRate",
+    // IB::genMul(IB::genLoadStructVar("fIntSampleRate"), b->fDSfactor)));
 }

@@ -494,8 +494,13 @@ class CodeContainer : public virtual Garbageable {
     void openUSblock(ValueInst* us_factor) { fCurLoop->openUSblock(us_factor); }
     void closeUSblock() { fCurLoop->closeUSblock(); }
 
-    void openDSblock(ValueInst* ds_factor, const std::string& ds_counter) { fCurLoop->openDSblock(ds_factor, ds_counter); }
+    void openDSblock(ValueInst* ds_factor, const std::string& ds_counter)
+    {
+        fCurLoop->openDSblock(ds_factor, ds_counter);
+    }
     void closeDSblock() { fCurLoop->closeDSblock(); }
+
+    ValueInst* getSRFactor() { return fCurLoop->getSRFactor(); }
 
     void generateExtGlobalDeclarations(InstVisitor* visitor)
     {

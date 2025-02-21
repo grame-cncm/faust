@@ -389,14 +389,14 @@ bool InstructionsCompiler::getCompiledExpression(Tree sig, ValueType& cexp)
 }
 
 /**
- * Set the ValueType of a compiled expression is already compiled
+ * Set the ValueType of a compiled expression if already compiled
  * @param sig the signal expression to compile.
  * @param cexp the ValueType representing the compiled expression.
  * @return the cexp (for commodity)
  */
-ValueType InstructionsCompiler::setCompiledExpression(Tree sig, const ValueType& cexp)
+ValueInst* InstructionsCompiler::setCompiledExpression(Tree sig, const ValueType& cexp)
 {
-    ValueType old;
+    ValueInst* old;
     if (fCompileProperty.get(sig, old) && (old != cexp)) {
         // stringstream error;
         // error << "ERROR already a compiled expression attached : " << old << " replaced by " <<
@@ -845,7 +845,7 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
 
 ValueInst* InstructionsCompiler::generateCode(Tree sig)
 {
-#if 0
+#if 1
     fprintf(stderr, "CALL generateCode(");
     printSignal(sig, stderr);
     fprintf(stderr, ")\n");
@@ -1333,7 +1333,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             getTypedNames(t, "Const", ctype, vname);
 
             // TODO: deactivated for now since getOccurrence fails in some cases
-            
+
             // The variable is used in compute (kBlock or kSamp),
             // so define is as a field in the DSP struct
             if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
@@ -1345,7 +1345,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
                 pushInitMethod(IB::genDecStackVar(vname, ctype, exp));
                 return IB::genLoadStackVar(vname);
             }
-       
+
             /*
             // Always put variables in DSP struct for now
             pushDeclare(IB::genDecStructVar(vname, ctype));
@@ -3617,18 +3617,18 @@ ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
             outputs.push_back(w[i]);
         }
     }
-
-    // 2/ We compile the input signals unconditionnally
-    for (Tree x : inputs) {
-        ValueInst* temp = CS(x);
-        dump2FIR(temp);
-    }
-
+    
     std::cout << "opening upsampling statement" << std::endl;
-
-    // 3/ We then compile the clock signal and open an us statement
+    
+    // 2/ We  compile the clock signal and open an us statement
     fContainer->getCurLoop()->openUSblock(CS(clock));
 
+    // 3/ We then compile the input signals unconditionnally
+    for (Tree x : inputs) {
+        ValueInst* temp = CS(x);
+        //dump2FIR(temp);
+    }
+  
     // 4/ Compute the scheduling of the output signals of the us circuit
     std::vector<Tree> V = ondemandCompilationOrder(outputs);
 
@@ -3653,11 +3653,11 @@ ValueInst* InstructionsCompiler::generateDS(Tree sig, const tvec& w)
         fDSCounter = "fDSCounter";
         pushDeclare(IB::genDecStructVar(fDSCounter, IB::genInt32Typed()));
         pushClearMethod(IB::genStoreStructVar(fDSCounter, IB::genInt32NumInst(0)));
-        
+
         FIRIndex value = FIRIndex(IB::genLoadStructVar(fDSCounter)) + 1;
         pushPostComputeDSPMethod(IB::genStoreStructVar(fDSCounter, value));
     }
-    
+
     // 1/ We extract the clock, the inputs and the outputs signals
     // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
     faustassert(w.size() > 2);

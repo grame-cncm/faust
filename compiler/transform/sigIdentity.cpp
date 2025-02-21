@@ -338,6 +338,6 @@ Tree SignalIdentityImp<CACHE>::transformation(Tree sig)
     return nullptr;
 }
 
-    // Explicit instanciation for CACHE = true and false
+// Explicit instanciation for CACHE = true and false
 template class SignalIdentityImp<true>;
 template class SignalIdentityImp<false>;

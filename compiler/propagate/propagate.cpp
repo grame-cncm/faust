@@ -277,7 +277,19 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
     else if (isBoxFConst(box, type, name, file)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigFConst(type, name, file));
+        // Specific case for sampling rate (ma.SR)
+        string vname = string(tree2str(name));
+        if ((vname == "fSamplingFreq") || (vname == "fSamplingRate")) {
+            Tree clock = hd(clockenv);
+            Tree us_ds = hd(tl(clockenv));
+            if (us_ds == tree("Upsampling")) {
+                return makeList(sigMul(sigFConst(type, name, file), clock));
+            } else if (us_ds == tree("Downsampling")) {
+                return makeList(sigDiv(sigFConst(type, name, file), clock));
+            }
+        } else {
+            return makeList(sigFConst(type, name, file));
+        }
     }
 
     else if (isBoxFVar(box, type, name, file)) {
@@ -699,8 +711,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
         // 3/ We compute the clock environment inside the upsampling by combining the clock, the
         // address of the circuit, and the current clock environment
-        Tree addr      = boxPrim0((prim0)box);
-        Tree clockenv2 = cons(H, cons(addr, clockenv));
+        Tree addr = boxPrim0((prim0)box);
+        // Tree clockenv2 = cons(H, cons(addr, clockenv));
+        Tree clockenv2 = cons(H, cons(tree("Upsampling"), clockenv));
 
         // 4/ We compute X1 the inputs of the ondemand using temporary variables
         siglist X1;
@@ -764,8 +777,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
         // 3/ We compute the clock environment inside the downsampling by combining the clock, the
         // address of the circuit, and the current clock environment
-        Tree addr      = boxPrim0((prim0)box);
-        Tree clockenv2 = cons(H, cons(addr, clockenv));
+        Tree addr = boxPrim0((prim0)box);
+        // Tree clockenv2 = cons(H, cons(addr, clockenv));
+        Tree clockenv2 = cons(H, cons(tree("Downsampling"), clockenv));
 
         // 4/ We compute X1 the inputs of the downsampling using temporary variables
         siglist X1;

@@ -769,7 +769,8 @@ static Type inferSigType(Tree sig, Tree env)
         return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
 
     } else if (Tree x, y; isSigZeroPad(sig, x, y)) {
-        return T(x, env);
+        Type t1 = T(x, env);
+        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
 
     } else if (Tree x, y; isSigDecimate(sig, x, y)) {
         return T(x, env);

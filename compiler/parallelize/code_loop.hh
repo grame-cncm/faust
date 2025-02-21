@@ -88,10 +88,13 @@ struct CodeUSblock : public Codeblock {
 };
 
 struct CodeDSblock : public Codeblock {
-    ValueInst* fDSfactor;  ///< downsampling factor of the US block
+    ValueInst*  fDSfactor;  ///< downsampling factor of the US block
     std::string fDSCounter;
 
-    CodeDSblock(ValueInst* ds_factor, const std::string& ds_counter) : Codeblock(), fDSfactor(ds_factor), fDSCounter(ds_counter) {}
+    CodeDSblock(ValueInst* ds_factor, const std::string& ds_counter)
+        : Codeblock(), fDSfactor(ds_factor), fDSCounter(ds_counter)
+    {
+    }
 };
 
 class CodeLoop : public virtual Garbageable {
@@ -112,6 +115,8 @@ class CodeLoop : public virtual Garbageable {
     std::string fLoopIndex;
 
     std::stack<Codeblock*> fCodeStack;  //< stack of IF/US/DS code blocks
+
+    ValueInst* fSRFactor;
 
     int                  fUseCount;    ///< how many loops depend on this one
     std::list<CodeLoop*> fExtraLoops;  ///< extra loops that where in sequences
@@ -150,6 +155,7 @@ class CodeLoop : public virtual Garbageable {
           fComputeInst(new BlockInst()),
           fPostInst(new BlockInst()),
           fLoopIndex(index_name),
+          fSRFactor(IB::genInt32NumInst(1)),
           fUseCount(0)
     {
     }
@@ -166,6 +172,7 @@ class CodeLoop : public virtual Garbageable {
           fComputeInst(new BlockInst()),
           fPostInst(new BlockInst()),
           fLoopIndex(index_name),
+          fSRFactor(IB::genInt32NumInst(1)),
           fUseCount(0)
     {
     }
@@ -208,13 +215,14 @@ class CodeLoop : public virtual Garbageable {
     ValueInst* getLoopIndex()
     {
         if (fCodeStack.size() > 0) {
-            CodeUSblock* us_block = dynamic_cast<CodeUSblock*>(fCodeStack.top());
-            if (us_block) {
+            if (CodeUSblock* us_block = dynamic_cast<CodeUSblock*>(fCodeStack.top())) {
                 return IB::genLoadLoopVar(us_block->fLoopIndex);
             }
         }
         return IB::genLoadLoopVar(fLoopIndex);
     }
+
+    ValueInst* getSRFactor() { return fSRFactor; }
 
     ForLoopInst* generateScalarLoop(const std::string& counter, bool loop_var_in_bytes = false);
 
@@ -276,6 +284,10 @@ class CodeLoop : public virtual Garbageable {
     {
         CodeUSblock* b = new CodeUSblock(us_factor);
         fCodeStack.push(b);
+        // Adjust fSRFactor
+        // fSRFactor = IB::genMul(fSRFactor, us_factor);
+        // pushComputeDSPMethod(IB::genStoreStructVar("fIntSampleRate",
+        // IB::genMul(IB::genLoadStructVar("fIntSampleRate"), us_factor)));
     }
 
     /**
@@ -291,6 +303,10 @@ class CodeLoop : public virtual Garbageable {
     {
         CodeDSblock* b = new CodeDSblock(ds_factor, ds_counter);
         fCodeStack.push(b);
+        // Adjust fSRFactor
+        // fSRFactor = IB::genDiv(fSRFactor, ds_factor);
+        // pushComputeDSPMethod(IB::genStoreStructVar("fIntSampleRate",
+        // IB::genDiv(IB::genLoadStructVar("fIntSampleRate"), ds_factor)));
     }
 
     /**

@@ -324,11 +324,9 @@ static string sigLabel(Tree sig)
 
     else if (isSigAssertBounds(sig, x, y, z)) {
         fout << "assertbounds";
-    }
-    else if (isSigLowest(sig, x)) {
+    } else if (isSigLowest(sig, x)) {
         fout << "lowest";
-    }
-    else if (isSigHighest(sig, x)) {
+    } else if (isSigHighest(sig, x)) {
         fout << "highest";
     }
 
