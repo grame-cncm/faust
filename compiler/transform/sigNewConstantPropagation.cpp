@@ -63,8 +63,11 @@ static void explainInterval(Tree sig)
 Tree SigNewConstantPropagation::transformation(Tree sig)
 {
     if (Tree h, x; isSigClocked(sig, h, x)) {
-        return sigClocked(h, self(x));
+        return SignalIdentity::transformation(sig);
+    } else if (Tree x, y; isSigZeroPad(sig, x, y)) {
+        return SignalIdentity::transformation(sig);
     }
+    
     Type     tt = getCertifiedSigType(sig);
     interval I  = tt->getInterval();
 

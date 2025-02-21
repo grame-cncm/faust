@@ -768,6 +768,13 @@ static Type inferSigType(Tree sig, Tree env)
         Type t1 = T(x, env);
         return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
 
+    } else if (Tree x, y; isSigZeroPad(sig, x, y)) {
+        Type t1 = T(x, env);
+        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
+
+    } else if (Tree x, y; isSigDecimate(sig, x, y)) {
+        return T(x, env);
+
     } else if (Tree x, y; isSigSeq(sig, x, y)) {
         T(x, env);
         return T(y, env);
@@ -776,7 +783,7 @@ static Type inferSigType(Tree sig, Tree env)
         return T(y, env);
 
     } else if (tvec subs; isSigOD(sig, subs)) {
-        // aAn OD block don't have a proper type,
+        // an OD block don't have a proper type,
         // but we need to type its subsignals
         for (size_t ii = 0; ii < subs.size(); ii++) {
             if (subs[ii] != gGlobal->nil) {
@@ -784,7 +791,33 @@ static Type inferSigType(Tree sig, Tree env)
             }
         }
         // we lack a bottom type ! But is must NOT be a constant type, otherwise it will be
-        // optimmized by the constant propagation phase
+        // optimized by the constant propagation phase
+        return makeSimpleType(kReal, kSamp, kExec, kScal, kNum, interval(-1, 1));
+    }
+
+    else if (tvec subs; isSigUS(sig, subs)) {
+        // an US block don't have a proper type,
+        // but we need to type its subsignals
+        for (size_t ii = 0; ii < subs.size(); ii++) {
+            if (subs[ii] != gGlobal->nil) {
+                T(subs[ii], env);
+            }
+        }
+        // we lack a bottom type ! But is must NOT be a constant type, otherwise it will be
+        // optimized by the constant propagation phase
+        return makeSimpleType(kReal, kSamp, kExec, kScal, kNum, interval(-1, 1));
+    }
+
+    else if (tvec subs; isSigDS(sig, subs)) {
+        // an DS block don't have a proper type,
+        // but we need to type its subsignals
+        for (size_t ii = 0; ii < subs.size(); ii++) {
+            if (subs[ii] != gGlobal->nil) {
+                T(subs[ii], env);
+            }
+        }
+        // we lack a bottom type ! But is must NOT be a constant type, otherwise it will be
+        // optimized by the constant propagation phase
         return makeSimpleType(kReal, kSamp, kExec, kScal, kNum, interval(-1, 1));
     }
 
@@ -1042,7 +1075,7 @@ static Type inferFVarType(Tree type)
  *  - knum ???
  *  - the resulting interval is the reunion of all values
  *    intervals
- *  - ONDEMAND: The first value of the waveform is now
+ *  - ONDEMAND/UPSAMPLING/DOWNSAMPLING: The first value of the waveform is now
  *    sigClocked so that the sample production is in the right
  *    time reference.
  */
