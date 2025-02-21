@@ -216,7 +216,7 @@ void SigDependenciesGraph::visit(Tree t)
         return;
     }
 
-    if (tvec V; isSigOD(t, V)) {
+    if (tvec V; isSigOD(t, V) || isSigUS(t, V) || isSigDS(t, V)) {
         // V = H,X1,...,NIL,Y1,...
         // immediate dependencies are H,X1,...
         for (auto s : V) {

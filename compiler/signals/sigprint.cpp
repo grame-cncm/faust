@@ -258,6 +258,18 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs("permvar(", out);
         printSignal(x, out, 0);
         fputs(")", out);
+    } else if (isSigZeroPad(sig, x, y)) {
+        fputs("zeropad(", out);
+        printSignal(x, out, 0);
+        fputs(",", out);
+        printSignal(y, out, 0);
+        fputs(")", out);
+    } else if (isSigDecimate(sig, x, y)) {
+        fputs("decimate(", out);
+        printSignal(x, out, 0);
+        fputs(",", out);
+        printSignal(y, out, 0);
+        fputs(")", out);
     } else if (isSigSeq(sig, x, y)) {
         fputs("seq(", out);
         printSignal(x, out, 0);
@@ -266,6 +278,24 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs(")", out);
     } else if (isSigOD(sig)) {
         fputs("ondemand(", out);
+        char sep = '{';
+        for (Tree b : sig->branches()) {
+            fputc(sep, out);
+            printSignal(b, out, 0);
+            sep = ',';
+        }  // TODO, improve printing separate H, ins and outs
+        fputs(")", out);
+    } else if (isSigUS(sig)) {
+        fputs("upsampling(", out);
+        char sep = '{';
+        for (Tree b : sig->branches()) {
+            fputc(sep, out);
+            printSignal(b, out, 0);
+            sep = ',';
+        }  // TODO, improve printing separate H, ins and outs
+        fputs(")", out);
+    } else if (isSigDS(sig)) {
+        fputs("downsampling(", out);
         char sep = '{';
         for (Tree b : sig->branches()) {
             fputc(sep, out);

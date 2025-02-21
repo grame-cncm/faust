@@ -140,6 +140,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     startTiming("L4 signalChecker");
     SignalChecker checker(L4);
     endTiming("L4 signalChecker");
+    // std::cout << ppsig(L4) << std::endl;
     return L4;
 }
 

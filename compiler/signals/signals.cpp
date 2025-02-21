@@ -1045,6 +1045,36 @@ LIBFAUST_API bool isSigPermVar(Tree s, Tree& x)
     return isTree(s, gGlobal->SIGPERMVAR, x);
 }
 
+LIBFAUST_API Tree sigZeroPad(Tree x, Tree y)
+{
+    return tree(gGlobal->SIGZEROPAD, x, y);
+}
+
+LIBFAUST_API bool isSigZeroPad(Tree s)
+{
+    return isTree(s, gGlobal->SIGZEROPAD);
+}
+
+LIBFAUST_API bool isSigZeroPad(Tree s, Tree& x, Tree& y)
+{
+    return isTree(s, gGlobal->SIGZEROPAD, x, y);
+}
+
+LIBFAUST_API Tree sigDecimate(Tree x, Tree y)
+{
+    return tree(gGlobal->SIGDECIMATE, x, y);
+}
+
+LIBFAUST_API bool isSigDecimate(Tree s)
+{
+    return isTree(s, gGlobal->SIGDECIMATE);
+}
+
+LIBFAUST_API bool isSigDecimate(Tree s, Tree& x, Tree& y)
+{
+    return isTree(s, gGlobal->SIGDECIMATE, x, y);
+}
+
 LIBFAUST_API Tree sigSeq(Tree x, Tree y)
 {
     return tree(gGlobal->SIGSEQ, x, y);
@@ -1073,6 +1103,46 @@ LIBFAUST_API bool isSigOD(Tree s)
 LIBFAUST_API bool isSigOD(Tree s, tvec& sigsubs)
 {
     if (isTree(s, gGlobal->SIGOD)) {
+        sigsubs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API Tree sigUS(const tvec& sigsubs)
+{
+    return tree(gGlobal->SIGUS, sigsubs);
+}
+
+LIBFAUST_API bool isSigUS(Tree s)
+{
+    return isTree(s, gGlobal->SIGUS);
+}
+
+LIBFAUST_API bool isSigUS(Tree s, tvec& sigsubs)
+{
+    if (isTree(s, gGlobal->SIGUS)) {
+        sigsubs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API Tree sigDS(const tvec& sigsubs)
+{
+    return tree(gGlobal->SIGDS, sigsubs);
+}
+
+LIBFAUST_API bool isSigDS(Tree s)
+{
+    return isTree(s, gGlobal->SIGDS);
+}
+
+LIBFAUST_API bool isSigDS(Tree s, tvec& sigsubs)
+{
+    if (isTree(s, gGlobal->SIGDS)) {
         sigsubs = s->branches();
         return true;
     } else {

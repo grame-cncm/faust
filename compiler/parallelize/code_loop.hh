@@ -60,21 +60,39 @@ class CodeLoop;
 typedef std::set<CodeLoop*> lclset;
 typedef std::vector<lclset> lclgraph;
 
-struct CodeIFblock {
-    ValueInst* fCond;         ///< condition of the IF block
-    BlockInst* fPreInst;      ///< code to execute at the begin of the loop
+struct Codeblock : public virtual Garbageable {
+    BlockInst* fPreInst;      ///< code to execute at the begin
     BlockInst* fComputeInst;  ///< code to execute in the loop
-    BlockInst* fPostInst;     ///< code to execute at the end of the loop
+    BlockInst* fPostInst;     ///< code to execute at the end
+                              ///<
+    Codeblock()
+        : fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst())
+    {
+    }
+};
 
-    void pushPreComputeDSPMethod(StatementInst* inst);   ///< add a pre code statement
-    void pushComputeDSPMethod(StatementInst* inst);      ///< add a statement
-    void pushPostComputeDSPMethod(StatementInst* inst);  ///< add a post code statement
+struct CodeIFblock : public Codeblock {
+    ValueInst* fCond;  ///< condition of the IF block
 
-    CodeIFblock()
-        : fCond(nullptr),
-          fPreInst(new BlockInst()),
-          fComputeInst(new BlockInst()),
-          fPostInst(new BlockInst())
+    CodeIFblock(ValueInst* cond) : Codeblock(), fCond(cond) {}
+};
+
+struct CodeUSblock : public Codeblock {
+    ValueInst*  fUSfactor;  ///< upsampling factor of the US block
+    std::string fLoopIndex;
+
+    CodeUSblock(ValueInst* us_factor) : Codeblock(), fUSfactor(us_factor)
+    {
+        fLoopIndex = gGlobal->getFreshID("us");
+    }
+};
+
+struct CodeDSblock : public Codeblock {
+    ValueInst*  fDSfactor;  ///< downsampling factor of the US block
+    std::string fDSCounter;
+
+    CodeDSblock(ValueInst* ds_factor, const std::string& ds_counter)
+        : Codeblock(), fDSfactor(ds_factor), fDSCounter(ds_counter)
     {
     }
 };
@@ -96,7 +114,7 @@ class CodeLoop : public virtual Garbageable {
 
     std::string fLoopIndex;
 
-    std::stack<CodeIFblock> fIFstack;  //< stack of IF code blocks
+    std::stack<Codeblock*> fCodeStack;  //< stack of IF/US/DS code blocks
 
     int                  fUseCount;    ///< how many loops depend on this one
     std::list<CodeLoop*> fExtraLoops;  ///< extra loops that where in sequences
@@ -157,8 +175,8 @@ class CodeLoop : public virtual Garbageable {
 
     StatementInst* pushPreComputeDSPMethod(StatementInst* inst)
     {
-        if (fIFstack.size() > 0) {
-            fIFstack.top().fPreInst->pushBackInst(inst);
+        if (fCodeStack.size() > 0) {
+            fCodeStack.top()->fPreInst->pushBackInst(inst);
         } else {
             fPreInst->pushBackInst(inst);
         }
@@ -166,8 +184,8 @@ class CodeLoop : public virtual Garbageable {
     }
     StatementInst* pushComputeDSPMethod(StatementInst* inst)
     {
-        if (fIFstack.size() > 0) {
-            fIFstack.top().fComputeInst->pushBackInst(inst);
+        if (fCodeStack.size() > 0) {
+            fCodeStack.top()->fComputeInst->pushBackInst(inst);
         } else {
             fComputeInst->pushBackInst(inst);
         }
@@ -175,8 +193,8 @@ class CodeLoop : public virtual Garbageable {
     }
     StatementInst* pushPostComputeDSPMethod(StatementInst* inst)
     {
-        if (fIFstack.size() > 0) {
-            fIFstack.top().fPostInst->pushBackInst(inst);
+        if (fCodeStack.size() > 0) {
+            fCodeStack.top()->fPostInst->pushBackInst(inst);
         } else {
             fPostInst->pushBackInst(inst);
         }
@@ -190,7 +208,15 @@ class CodeLoop : public virtual Garbageable {
     std::set<CodeLoop*>& getForwardLoopDependencies() { return fForwardLoopDependencies; }
     std::set<CodeLoop*>& getBackwardLoopDependencies() { return fBackwardLoopDependencies; }
 
-    ValueInst* getLoopIndex() { return IB::genLoadLoopVar(fLoopIndex); }
+    ValueInst* getLoopIndex()
+    {
+        if (fCodeStack.size() > 0) {
+            if (CodeUSblock* us_block = dynamic_cast<CodeUSblock*>(fCodeStack.top())) {
+                return IB::genLoadLoopVar(us_block->fLoopIndex);
+            }
+        }
+        return IB::genLoadLoopVar(fLoopIndex);
+    }
 
     ForLoopInst* generateScalarLoop(const std::string& counter, bool loop_var_in_bytes = false);
 
@@ -225,9 +251,8 @@ class CodeLoop : public virtual Garbageable {
      */
     void openIFblock(ValueInst* cond)
     {
-        CodeIFblock b;
-        b.fCond = cond;
-        fIFstack.push(b);
+        CodeIFblock* b = new CodeIFblock(cond);
+        fCodeStack.push(b);
     }
 
     /**
@@ -235,14 +260,45 @@ class CodeLoop : public virtual Garbageable {
      */
     void closeIFblock()
     {
-        CodeIFblock b = fIFstack.top();
-        fIFstack.pop();
+        CodeIFblock* b = dynamic_cast<CodeIFblock*>(fCodeStack.top());
+        faustassert(b);
+        fCodeStack.pop();
         BlockInst* then_block = new BlockInst();
-        then_block->pushBackInst(b.fPreInst);
-        then_block->pushBackInst(b.fComputeInst);
-        then_block->pushBackInst(b.fPostInst);
-        pushComputeDSPMethod(IB::genIfInst(b.fCond, then_block));
+        then_block->pushBackInst(b->fPreInst);
+        then_block->pushBackInst(b->fComputeInst);
+        then_block->pushBackInst(b->fPostInst);
+        pushComputeDSPMethod(IB::genIfInst(b->fCond, then_block));
     }
+
+    /**
+     * Open a new US block.
+     * @param us_factor the upsampling factor of the US block
+     */
+    void openUSblock(ValueInst* us_factor)
+    {
+        CodeUSblock* b = new CodeUSblock(us_factor);
+        fCodeStack.push(b);
+    }
+
+    /**
+     * Close the current/top US block.
+     */
+    void closeUSblock();
+
+    /**
+     * Open a new DS block.
+     * @param us_factor the downsampling factor of the US block
+     */
+    void openDSblock(ValueInst* ds_factor, const std::string& ds_counter)
+    {
+        CodeDSblock* b = new CodeDSblock(ds_factor, ds_counter);
+        fCodeStack.push(b);
+    }
+
+    /**
+     * Close the current/top US block.
+     */
+    void closeDSblock();
 
     static void sortGraph(CodeLoop* root, lclgraph& V);
     static void computeUseCount(CodeLoop* l);
