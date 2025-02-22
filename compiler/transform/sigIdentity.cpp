@@ -187,11 +187,11 @@ Tree SignalIdentity::transformation(Tree sig)
     else if (isSigPermVar(sig, x)) {
         return sigPermVar(self(x));
     }
-    
+
     else if (isSigZeroPad(sig, x, y)) {
         return sigZeroPad(this->self(x), this->self(y));
     }
-    
+
     else if (isSigDecimate(sig, x, y)) {
         return sigDecimate(this->self(x), this->self(y));
     }
@@ -215,7 +215,7 @@ Tree SignalIdentity::transformation(Tree sig)
         }
         return sigOD(w2);
     }
-    
+
     else if (tvec w1; isSigUS(sig, w1)) {
         tvec w2;
         for (Tree s : w1) {
@@ -227,7 +227,7 @@ Tree SignalIdentity::transformation(Tree sig)
         }
         return sigUS(w2);
     }
-    
+
     else if (tvec w1; isSigDS(sig, w1)) {
         tvec w2;
         for (Tree s : w1) {

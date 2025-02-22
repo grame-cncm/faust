@@ -3525,9 +3525,9 @@ ValueInst* InstructionsCompiler::generatePermVar(Tree sig, Tree x)
 
 ValueInst* InstructionsCompiler::generateZeroPad(Tree sig, Tree x, Tree y)
 {
-    return IB::genSelect2Inst(
-        IB::genEqual(IB::genRem(getCurrentLoopIndex(), CS(y)), IB::genInt32NumInst(0)), CS(x),
-        IB::genTypedZero(genBasicFIRTyped(sig)));
+    return IB::genSelect2Inst(IB::genEqual(IB::genRem(getCurrentLoopIndex(), FIRIndex(CS(y)) - 1),
+                                           IB::genInt32NumInst(0)),
+                              CS(x), IB::genTypedZero(genBasicFIRTyped(sig)));
 }
 
 ValueInst* InstructionsCompiler::generateDecimate(Tree sig, Tree x, Tree y)
@@ -3617,18 +3617,18 @@ ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
             outputs.push_back(w[i]);
         }
     }
-    
+
     std::cout << "opening upsampling statement" << std::endl;
-    
+
     // 2/ We  compile the clock signal and open an us statement
     fContainer->getCurLoop()->openUSblock(CS(clock));
 
     // 3/ We then compile the input signals unconditionnally
     for (Tree x : inputs) {
         ValueInst* temp = CS(x);
-        //dump2FIR(temp);
+        // dump2FIR(temp);
     }
-  
+
     // 4/ Compute the scheduling of the output signals of the us circuit
     std::vector<Tree> V = ondemandCompilationOrder(outputs);
 
