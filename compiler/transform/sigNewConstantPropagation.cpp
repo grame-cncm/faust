@@ -67,7 +67,7 @@ Tree SigNewConstantPropagation::transformation(Tree sig)
     } else if (Tree x, y; isSigZeroPad(sig, x, y)) {
         return SignalIdentity::transformation(sig);
     }
-    
+
     Type     tt = getCertifiedSigType(sig);
     interval I  = tt->getInterval();
 

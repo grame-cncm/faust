@@ -277,10 +277,11 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
     else if (isBoxFConst(box, type, name, file)) {
         faustassert(lsig.size() == 0);
-        
+
         // Specific case for sampling rate (ma.SR)
         string vname = string(tree2str(name));
-        if ((clockenv != gGlobal->nil) && ((vname == "fSamplingFreq") || (vname == "fSamplingRate"))) {
+        if ((clockenv != gGlobal->nil) &&
+            ((vname == "fSamplingFreq") || (vname == "fSamplingRate"))) {
             Tree clock = hd(clockenv);
             Tree us_ds = hd(tl(clockenv));
             if (us_ds == tree("Upsampling")) {
@@ -289,7 +290,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
                 return makeList(sigDiv(sigFConst(type, name, file), clock));
             }
         }
-        
+
         return makeList(sigFConst(type, name, file));
     }
 
@@ -700,6 +701,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 1/ The first signal is the clock signal
         Tree H = lsig[0];
 
+        /*
         int up_factor;
         if (isSigInt(H, &up_factor)) {
             if (up_factor <= 1) {
@@ -708,6 +710,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         } else {
             throw faustexception("ERROR : upsampling parameter must be an integer\n");
         }
+        */
 
         // 3/ We compute the clock environment inside the upsampling by combining the clock, the
         // address of the circuit, and the current clock environment
@@ -715,10 +718,11 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // Tree clockenv2 = cons(H, cons(addr, clockenv));
         Tree clockenv2 = cons(H, cons(tree("Upsampling"), clockenv));
 
-        // 4/ We compute X1 the inputs of the ondemand using temporary variables
+        // 4/ We compute X1 the inputs of the upsampling using temporary variables
         siglist X1;
         for (unsigned int i = 1; i < lsig.size(); i++) {
-            X1.push_back(sigZeroPad(sigTempVar(lsig[i]), sigInt(up_factor)));
+            // X1.push_back(sigZeroPad(sigTempVar(lsig[i]), sigInt(up_factor)));
+            X1.push_back(sigZeroPad(sigTempVar(lsig[i]), H));
         }
 
         // 5/ We propagate X2, the clocked version of X1, into the upsampling circuit -> Y0
@@ -766,6 +770,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 1/ The first signal is the clock signal
         Tree H = lsig[0];
 
+        /*
         int ds_factor;
         if (isSigInt(H, &ds_factor)) {
             if (ds_factor <= 1) {
@@ -774,6 +779,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         } else {
             throw faustexception("ERROR : downsampling parameter must be an integer\n");
         }
+        */
 
         // 3/ We compute the clock environment inside the downsampling by combining the clock, the
         // address of the circuit, and the current clock environment
@@ -790,7 +796,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 5/ We propagate X2, the clocked version of X1, into the downsampling circuit -> Y0
         siglist X2;
         for (Tree s : X1) {
-            X2.push_back(sigClocked(clockenv2, sigDecimate(s, sigInt(ds_factor))));
+            // X2.push_back(sigClocked(clockenv2, sigDecimate(s, sigInt(ds_factor))));
+            X2.push_back(sigClocked(clockenv2, sigDecimate(s, H)));
         }
         siglist Y0 = propagate(clockenv2, slotenv, path, t1, X2);
 
