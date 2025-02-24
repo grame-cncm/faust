@@ -282,13 +282,12 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         string vname = string(tree2str(name));
         if ((clockenv != gGlobal->nil) &&
             ((vname == "fSamplingFreq") || (vname == "fSamplingRate"))) {
-            
             Tree adapted_sr = sigFConst(type, name, file);
-            Tree clocks = clockenv;
+            Tree clocks     = clockenv;
             // Unroll the stack of all US/DS to compute the adapted SR
             do {
                 Tree sr_factor = hd(clocks);
-                Tree us_ds = hd(tl(clocks));
+                Tree us_ds     = hd(tl(clocks));
                 if (us_ds == tree("Upsampling")) {
                     adapted_sr = sigMul(adapted_sr, sr_factor);
                 } else if (us_ds == tree("Downsampling")) {

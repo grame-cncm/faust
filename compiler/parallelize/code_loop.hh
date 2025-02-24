@@ -72,7 +72,7 @@ struct Codeblock : public virtual Garbageable {
 };
 
 struct CodeODblock : public Codeblock {
-    ValueInst* fODCond;  ///< condition of the OD block
+    ValueInst*  fODCond;  ///< condition of the OD block
     std::string fLoopIndex;
 
     CodeODblock(ValueInst* cond) : Codeblock(), fODCond(cond)
@@ -263,7 +263,7 @@ class CodeLoop : public virtual Garbageable {
      * Close the current/top OD block.
      */
     void closeODblock();
-  
+
     /**
      * Open a new US block.
      * @param us_factor the upsampling factor of the US block
