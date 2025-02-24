@@ -46,6 +46,8 @@ class InstructionsCompiler : public virtual Garbageable {
     property<ValueInst*>  fCompileProperty;
     property<std::string> fVectorProperty;
     property<std::string> fIotaProperty;  // IOTA associated to a specific ondemand clock signal
+    property<std::string>
+        fDSProperty;  // Downsampling counter associated to a specific downsampling block
     property<std::pair<std::string, std::string>> fStaticInitProperty;
     property<std::pair<std::string, std::string>> fInstanceInitProperty;
     property<std::string>                         fTableProperty;
@@ -63,8 +65,6 @@ class InstructionsCompiler : public virtual Garbageable {
 
     // Several 'IOTA' variables may be needed when subcontainers are inlined in the main module
     std::string fCurrentIOTA;
-
-    std::string fDSCounter;
 
     UITree       fUITree;
     Description* fDescription;
@@ -241,6 +241,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateXtended(Tree sig);
     virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree delay);
     std::string        declareRetrieveIotaName(Tree clock);
+    std::string        declareRetrieveDSName(Tree clock);
     ValueInst*         generateDelayAccess(Tree sig, Tree arg, int delay);
     ValueInst*         generateDelayAccess(Tree sig, Tree arg, ValueInst* delayidx);
 
