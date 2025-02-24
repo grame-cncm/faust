@@ -1175,8 +1175,8 @@ LIBFAUST_API Tree sigClocked(Tree clock, Tree y)
             // y is already annotated with the clock h
             return y;
         } else {
-            std::cerr << "We have a problem of clocks, new clock : " << *clock
-                      << " is different form existing clock " << *h2 << std::endl;
+            std::cerr << "ASSERT : we have a problem of clocks, new clock : " << *clock
+                      << " is different from existing clock " << *h2 << std::endl;
             faustassert(false);
         }
     } else {
