@@ -71,10 +71,14 @@ struct Codeblock : public virtual Garbageable {
     }
 };
 
-struct CodeIFblock : public Codeblock {
-    ValueInst* fCond;  ///< condition of the IF block
+struct CodeODblock : public Codeblock {
+    ValueInst* fODCond;  ///< condition of the OD block
+    std::string fLoopIndex;
 
-    CodeIFblock(ValueInst* cond) : Codeblock(), fCond(cond) {}
+    CodeODblock(ValueInst* cond) : Codeblock(), fODCond(cond)
+    {
+        fLoopIndex = gGlobal->getFreshID("od");
+    }
 };
 
 struct CodeUSblock : public Codeblock {
@@ -246,30 +250,20 @@ class CodeLoop : public virtual Garbageable {
     void addBackwardDependency(CodeLoop* ls) { fBackwardLoopDependencies.insert(ls); }
 
     /**
-     * Open a new IF block.
-     * @param cond the condition of the IF block
+     * Open a new OD block.
+     * @param cond the condition of the OD block
      */
-    void openIFblock(ValueInst* cond)
+    void openODblock(ValueInst* cond)
     {
-        CodeIFblock* b = new CodeIFblock(cond);
+        CodeODblock* b = new CodeODblock(cond);
         fCodeStack.push(b);
     }
 
     /**
-     * Close the current/top IF block.
+     * Close the current/top OD block.
      */
-    void closeIFblock()
-    {
-        CodeIFblock* b = dynamic_cast<CodeIFblock*>(fCodeStack.top());
-        faustassert(b);
-        fCodeStack.pop();
-        BlockInst* then_block = new BlockInst();
-        then_block->pushBackInst(b->fPreInst);
-        then_block->pushBackInst(b->fComputeInst);
-        then_block->pushBackInst(b->fPostInst);
-        pushComputeDSPMethod(IB::genIfInst(b->fCond, then_block));
-    }
-
+    void closeODblock();
+  
     /**
      * Open a new US block.
      * @param us_factor the upsampling factor of the US block

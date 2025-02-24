@@ -3593,11 +3593,11 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
         CS(x);
     }
 
-    std::cout << "opening if statement" << std::endl;
+    std::cout << "opening OD statement" << std::endl;
 
     // 3/ We then compile the clock signal and open an if statement
     // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
-    fContainer->getCurLoop()->openIFblock(CS(clock));
+    fContainer->getCurLoop()->openODblock(CS(clock));
 
     // 4/ Compute the scheduling of the output signals of the ondemand circuit
     std::vector<Tree> V = ondemandCompilationOrder(outputs);
@@ -3608,9 +3608,9 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
     }
 
     // 6/ We close the if statement
-    fContainer->getCurLoop()->closeIFblock();
+    fContainer->getCurLoop()->closeODblock();
 
-    std::cout << "closing if statement" << std::endl;
+    std::cout << "closing OD statement" << std::endl;
 
     // 7/ There is no compiled expression
     return IB::genNullValueInst();

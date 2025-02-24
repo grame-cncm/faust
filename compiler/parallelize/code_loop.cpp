@@ -339,11 +339,35 @@ void CodeLoop::groupSeqLoops(CodeLoop* l, set<CodeLoop*>& visited)
     }
 }
 
+void CodeLoop::closeODblock()
+{
+    CodeODblock* b = dynamic_cast<CodeODblock*>(fCodeStack.top());
+    faustassert(b);
+    fCodeStack.pop();
+    
+    BlockInst* od_block = new BlockInst();
+    od_block->pushBackInst(b->fPreInst);
+    od_block->pushBackInst(b->fComputeInst);
+    od_block->pushBackInst(b->fPostInst);
+    
+    //pushComputeDSPMethod(IB::genIfInst(b->fCond, then_block));
+    
+    DeclareVarInst* loop_decl =
+    IB::genDecLoopVar(b->fLoopIndex, IB::genInt32Typed(), IB::genInt32NumInst(0));
+    ValueInst*    loop_end = IB::genLessThan(loop_decl->load(), b->fODCond);
+    StoreVarInst* loop_inc = loop_decl->store(IB::genAdd(loop_decl->load(), 1));
+    
+    ForLoopInst* loop = IB::genForLoopInst(loop_decl, loop_end, loop_inc);
+    loop->pushFrontInst(od_block);
+    pushComputeDSPMethod(loop);
+}
+
 void CodeLoop::closeUSblock()
 {
     CodeUSblock* b = dynamic_cast<CodeUSblock*>(fCodeStack.top());
     faustassert(b);
     fCodeStack.pop();
+    
     BlockInst* us_block = new BlockInst();
     us_block->pushBackInst(b->fPreInst);
     us_block->pushBackInst(b->fComputeInst);
