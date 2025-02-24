@@ -3047,22 +3047,48 @@ struct IB {
 
     static bool isZero(ValueInst* val)
     {
-        return (castInt32(val) && castInt32(val)->fNum == 0) ||
-               (castInt64(val) && castInt64(val)->fNum == 0) ||
-               (castFloat(val) && castFloat(val)->fNum == 0.f) ||
-               (castDouble(val) && castDouble(val)->fNum == 0.) ||
-               (castQuad(val) && castQuad(val)->fNum == 0.L) ||
-               (castFixed(val) && castFixed(val)->fNum == 0.);
+        if (auto* v = castInt32(val)) {
+            return v->fNum == 0;
+        }
+        if (auto* v = castInt64(val)) {
+            return v->fNum == 0;
+        }
+        if (auto* v = castFloat(val)) {
+            return v->fNum == 0.f;
+        }
+        if (auto* v = castDouble(val)) {
+            return v->fNum == 0.0;
+        }
+        if (auto* v = castQuad(val)) {
+            return v->fNum == 0.L;
+        }
+        if (auto* v = castFixed(val)) {
+            return v->fNum == 0;
+        }
+        return false;
     }
 
     static bool isOne(ValueInst* val)
     {
-        return (castInt32(val) && castInt32(val)->fNum == 1) ||
-               (castInt64(val) && castInt64(val)->fNum == 1) ||
-               (castFloat(val) && castFloat(val)->fNum == 1.f) ||
-               (castDouble(val) && castDouble(val)->fNum == 1.) ||
-               (castQuad(val) && castQuad(val)->fNum == 1.L) ||
-               (castFixed(val) && castFixed(val)->fNum == 1.);
+        if (auto* v = castInt32(val)) {
+            return v->fNum == 1;
+        }
+        if (auto* v = castInt64(val)) {
+            return v->fNum == 1;
+        }
+        if (auto* v = castFloat(val)) {
+            return v->fNum == 1.f;
+        }
+        if (auto* v = castDouble(val)) {
+            return v->fNum == 1.0;
+        }
+        if (auto* v = castQuad(val)) {
+            return v->fNum == 1.L;
+        }
+        if (auto* v = castFixed(val)) {
+            return v->fNum == 1;
+        }
+        return false;
     }
 
     // Binop operations
@@ -3070,23 +3096,29 @@ struct IB {
     {
         if (isZero(a1)) {
             return a2;
-        } else if (isZero(a2)) {
-            return a1;
-        } else if (castInt32(a1) && castInt32(a2)) {
-            return genInt32NumInst(castInt32(a1)->fNum + castInt32(a2)->fNum);
-        } else if (castInt64(a1) && castInt64(a2)) {
-            return genInt64NumInst(castInt64(a1)->fNum + castInt64(a2)->fNum);
-        } else if (castFloat(a1) && castFloat(a2)) {
-            return genFloatNumInst(castFloat(a1)->fNum + castFloat(a2)->fNum);
-        } else if (castDouble(a1) && castDouble(a2)) {
-            return genDoubleNumInst(castDouble(a1)->fNum + castDouble(a2)->fNum);
-        } else if (castQuad(a1) && castQuad(a2)) {
-            return genQuadNumInst(castQuad(a1)->fNum + castQuad(a2)->fNum);
-        } else if (castFixed(a1) && castFixed(a2)) {
-            return genFixedPointNumInst(castFixed(a1)->fNum + castFixed(a2)->fNum);
-        } else {
-            return genBinopInst(kAdd, a1, a2);
         }
+        if (isZero(a2)) {
+            return a1;
+        }
+        if (auto *v1 = castInt32(a1), *v2 = castInt32(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum + v2->fNum);
+        }
+        if (auto *v1 = castInt64(a1), *v2 = castInt64(a2); v1 && v2) {
+            return genInt64NumInst(v1->fNum + v2->fNum);
+        }
+        if (auto *v1 = castFloat(a1), *v2 = castFloat(a2); v1 && v2) {
+            return genFloatNumInst(v1->fNum + v2->fNum);
+        }
+        if (auto *v1 = castDouble(a1), *v2 = castDouble(a2); v1 && v2) {
+            return genDoubleNumInst(v1->fNum + v2->fNum);
+        }
+        if (auto *v1 = castQuad(a1), *v2 = castQuad(a2); v1 && v2) {
+            return genQuadNumInst(v1->fNum + v2->fNum);
+        }
+        if (auto *v1 = castFixed(a1), *v2 = castFixed(a2); v1 && v2) {
+            return genFixedPointNumInst(v1->fNum + v2->fNum);
+        }
+        return genBinopInst(kAdd, a1, a2);
     }
 
     static ValueInst* genAdd(ValueInst* a1, int a2) { return genAdd(a1, genInt32NumInst(a2)); }
@@ -3095,23 +3127,29 @@ struct IB {
     {
         if (isZero(a1)) {
             return genMinusInst(a2);
-        } else if (isZero(a2)) {
-            return a1;
-        } else if (castInt32(a1) && castInt32(a2)) {
-            return genInt32NumInst(castInt32(a1)->fNum - castInt32(a2)->fNum);
-        } else if (castInt64(a1) && castInt64(a2)) {
-            return genInt64NumInst(castInt64(a1)->fNum - castInt64(a2)->fNum);
-        } else if (castFloat(a1) && castFloat(a2)) {
-            return genFloatNumInst(castFloat(a1)->fNum - castFloat(a2)->fNum);
-        } else if (castDouble(a1) && castDouble(a2)) {
-            return genDoubleNumInst(castDouble(a1)->fNum - castDouble(a2)->fNum);
-        } else if (castQuad(a1) && castQuad(a2)) {
-            return genQuadNumInst(castQuad(a1)->fNum - castQuad(a2)->fNum);
-        } else if (castFixed(a1) && castFixed(a2)) {
-            return genFixedPointNumInst(castFixed(a1)->fNum - castFixed(a2)->fNum);
-        } else {
-            return genBinopInst(kSub, a1, a2);
         }
+        if (isZero(a2)) {
+            return a1;
+        }
+        if (auto *v1 = castInt32(a1), *v2 = castInt32(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum - v2->fNum);
+        }
+        if (auto *v1 = castInt64(a1), *v2 = castInt64(a2); v1 && v2) {
+            return genInt64NumInst(v1->fNum - v2->fNum);
+        }
+        if (auto *v1 = castFloat(a1), *v2 = castFloat(a2); v1 && v2) {
+            return genFloatNumInst(v1->fNum - v2->fNum);
+        }
+        if (auto *v1 = castDouble(a1), *v2 = castDouble(a2); v1 && v2) {
+            return genDoubleNumInst(v1->fNum - v2->fNum);
+        }
+        if (auto *v1 = castQuad(a1), *v2 = castQuad(a2); v1 && v2) {
+            return genQuadNumInst(v1->fNum - v2->fNum);
+        }
+        if (auto *v1 = castFixed(a1), *v2 = castFixed(a2); v1 && v2) {
+            return genFixedPointNumInst(v1->fNum - v2->fNum);
+        }
+        return genBinopInst(kSub, a1, a2);
     }
 
     static ValueInst* genSub(ValueInst* a1, int a2) { return genSub(a1, genInt32NumInst(a2)); }
@@ -3120,23 +3158,29 @@ struct IB {
     {
         if (isOne(a1)) {
             return a2;
-        } else if (isOne(a2)) {
-            return a1;
-        } else if (castInt32(a1) && castInt32(a2)) {
-            return genInt32NumInst(castInt32(a1)->fNum * castInt32(a2)->fNum);
-        } else if (castInt64(a1) && castInt64(a2)) {
-            return genInt64NumInst(castInt64(a1)->fNum * castInt64(a2)->fNum);
-        } else if (castFloat(a1) && castFloat(a2)) {
-            return genFloatNumInst(castFloat(a1)->fNum * castFloat(a2)->fNum);
-        } else if (castDouble(a1) && castDouble(a2)) {
-            return genDoubleNumInst(castDouble(a1)->fNum * castDouble(a2)->fNum);
-        } else if (castQuad(a1) && castQuad(a2)) {
-            return genQuadNumInst(castQuad(a1)->fNum * castQuad(a2)->fNum);
-        } else if (castFixed(a1) && castFixed(a2)) {
-            return genFixedPointNumInst(castFixed(a1)->fNum * castFixed(a2)->fNum);
-        } else {
-            return genBinopInst(kMul, a1, a2);
         }
+        if (isOne(a2)) {
+            return a1;
+        }
+        if (auto *v1 = castInt32(a1), *v2 = castInt32(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum * v2->fNum);
+        }
+        if (auto *v1 = castInt64(a1), *v2 = castInt64(a2); v1 && v2) {
+            return genInt64NumInst(v1->fNum * v2->fNum);
+        }
+        if (auto *v1 = castFloat(a1), *v2 = castFloat(a2); v1 && v2) {
+            return genFloatNumInst(v1->fNum * v2->fNum);
+        }
+        if (auto *v1 = castDouble(a1), *v2 = castDouble(a2); v1 && v2) {
+            return genDoubleNumInst(v1->fNum * v2->fNum);
+        }
+        if (auto *v1 = castQuad(a1), *v2 = castQuad(a2); v1 && v2) {
+            return genQuadNumInst(v1->fNum * v2->fNum);
+        }
+        if (auto *v1 = castFixed(a1), *v2 = castFixed(a2); v1 && v2) {
+            return genFixedPointNumInst(v1->fNum * v2->fNum);
+        }
+        return genBinopInst(kMul, a1, a2);
     }
 
     static ValueInst* genMul(ValueInst* a1, int a2) { return genMul(a1, genInt32NumInst(a2)); }
@@ -3145,29 +3189,52 @@ struct IB {
     {
         if (isOne(a2)) {
             return a1;
-        } else if (castInt32(a1) && castInt32(a2)) {
-            return genInt32NumInst(castInt32(a1)->fNum / castInt32(a2)->fNum);
-        } else if (castInt64(a1) && castInt64(a2)) {
-            return genInt64NumInst(castInt64(a1)->fNum / castInt64(a2)->fNum);
-        } else if (castFloat(a1) && castFloat(a2)) {
-            return genFloatNumInst(castFloat(a1)->fNum / castFloat(a2)->fNum);
-        } else if (castDouble(a1) && castDouble(a2)) {
-            return genDoubleNumInst(castDouble(a1)->fNum / castDouble(a2)->fNum);
-        } else if (castQuad(a1) && castQuad(a2)) {
-            return genQuadNumInst(castQuad(a1)->fNum / castQuad(a2)->fNum);
-        } else if (castFixed(a1) && castFixed(a2)) {
-            return genFixedPointNumInst(castFixed(a1)->fNum / castFixed(a2)->fNum);
-        } else {
-            return genBinopInst(kDiv, a1, a2);
         }
+        if (auto *v1 = castInt32(a1), *v2 = castInt32(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum / v2->fNum);
+        }
+        if (auto *v1 = castInt64(a1), *v2 = castInt64(a2); v1 && v2) {
+            return genInt64NumInst(v1->fNum / v2->fNum);
+        }
+        if (auto *v1 = castFloat(a1), *v2 = castFloat(a2); v1 && v2) {
+            return genFloatNumInst(v1->fNum / v2->fNum);
+        }
+        if (auto *v1 = castDouble(a1), *v2 = castDouble(a2); v1 && v2) {
+            return genDoubleNumInst(v1->fNum / v2->fNum);
+        }
+        if (auto *v1 = castQuad(a1), *v2 = castQuad(a2); v1 && v2) {
+            return genQuadNumInst(v1->fNum / v2->fNum);
+        }
+        if (auto *v1 = castFixed(a1), *v2 = castFixed(a2); v1 && v2) {
+            return genFixedPointNumInst(v1->fNum / v2->fNum);
+        }
+        return genBinopInst(kDiv, a1, a2);
     }
 
     static ValueInst* genDiv(ValueInst* a1, int a2) { return genDiv(a1, genInt32NumInst(a2)); }
 
     static BinopInst* genRem(ValueInst* a1, ValueInst* a2) { return genBinopInst(kRem, a1, a2); }
 
-    static BinopInst* genGreaterThan(ValueInst* a1, ValueInst* a2)
+    static ValueInst* genGreaterThan(ValueInst* a1, ValueInst* a2)
     {
+        if (auto *v1 = castInt32(a1), *v2 = castInt32(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum > v2->fNum);
+        }
+        if (auto *v1 = castInt64(a1), *v2 = castInt64(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum > v2->fNum);
+        }
+        if (auto *v1 = castFloat(a1), *v2 = castFloat(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum > v2->fNum);
+        }
+        if (auto *v1 = castDouble(a1), *v2 = castDouble(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum > v2->fNum);
+        }
+        if (auto *v1 = castQuad(a1), *v2 = castQuad(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum > v2->fNum);
+        }
+        if (auto *v1 = castFixed(a1), *v2 = castFixed(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum > v2->fNum);
+        }
         return genBinopInst(kGT, a1, a2);
     }
 
@@ -3188,8 +3255,26 @@ struct IB {
 
     static BinopInst* genEqual(ValueInst* a1, ValueInst* a2) { return genBinopInst(kEQ, a1, a2); }
 
-    static BinopInst* genNotEqual(ValueInst* a1, ValueInst* a2)
+    static ValueInst* genNotEqual(ValueInst* a1, ValueInst* a2)
     {
+        if (auto* v1 = castInt32(a1), *v2 = castInt32(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum != v2->fNum);
+        }
+        if (auto* v1 = castInt64(a1), *v2 = castInt64(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum != v2->fNum);
+        }
+        if (auto* v1 = castFloat(a1), *v2 = castFloat(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum != v2->fNum);
+        }
+        if (auto* v1 = castDouble(a1), *v2 = castDouble(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum != v2->fNum);
+        }
+        if (auto* v1 = castQuad(a1), *v2 = castQuad(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum != v2->fNum);
+        }
+        if (auto* v1 = castFixed(a1), *v2 = castFixed(a2); v1 && v2) {
+            return genInt32NumInst(v1->fNum != v2->fNum);
+        }
         return genBinopInst(kNE, a1, a2);
     }
 
