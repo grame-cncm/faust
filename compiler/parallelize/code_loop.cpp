@@ -395,11 +395,19 @@ void CodeLoop::closeDSblock()
     ds_block1->pushBackInst(b->fPostInst);
 
     BlockInst* ds_block2 = new BlockInst();
-    ds_block2->pushBackInst(IB::genIfInst(
-        IB::genAnd(IB::genGreaterThan(b->fDSfactor, IB::genInt32NumInst(0)),
-                   IB::genEqual(IB::genRem(IB::genLoadStructVar(b->fDSCounter), b->fDSfactor),
-                                IB::genInt32NumInst(0))),
-        ds_block1));
+    ValueInst* cond      = IB::genNotEqual(b->fDSfactor, IB::genInt32NumInst(0));
+    if (IB::isOne(cond)) {
+        ds_block2->pushBackInst(IB::genIfInst(
+            IB::genEqual(IB::genRem(IB::genLoadStructVar(b->fDSCounter), b->fDSfactor),
+                         IB::genInt32NumInst(0)),
+            ds_block1));
+    } else {
+        ds_block2->pushBackInst(IB::genIfInst(
+            IB::genAnd(cond,
+                       IB::genEqual(IB::genRem(IB::genLoadStructVar(b->fDSCounter), b->fDSfactor),
+                                    IB::genInt32NumInst(0))),
+            ds_block1));
+    }
 
     pushComputeDSPMethod(ds_block2);
 }
