@@ -1,13 +1,13 @@
-declare name 		"spat";
-declare version 	"1.0";
-declare author 		"Grame";
-declare license 	"BSD";
-declare copyright 	"(c)GRAME 2006";
+declare name      "spat";
+declare version   "1.0";
+declare author    "Grame";
+declare license   "BSD";
+declare copyright "(c)GRAME 2006";
 
 //==========================================================
 //
-// 					    GMEM SPAT
-//	implementation of L. Pottier Spatializer
+//                         GMEM SPAT
+//    implementation of L. Pottier Spatializer
 //
 //==========================================================
 
