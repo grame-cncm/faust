@@ -32,7 +32,6 @@
 #include "normalform.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
-#include "sharing.hh"
 #include "sigPromotion.hh"
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
@@ -120,9 +119,6 @@ Tree InstructionsCompiler::prepare(Tree LS)
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
 
-    startTiming("sharingAnalysis");
-    sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count
-    endTiming("sharingAnalysis");
 
     startTiming("occurrences analysis");
     delete fOccMarkup;
@@ -156,7 +152,6 @@ Tree InstructionsCompiler::prepare2(Tree L0)
 
     recursivnessAnnotation(L0);        // Annotate L0 with recursivness information
     typeAnnotation(L0, true);          // Annotate L0 with type information
-    sharingAnalysis(L0, fSharingKey);  // Annotate L0 with sharing count
 
     delete fOccMarkup;
     fOccMarkup = new OccMarkup();
@@ -1048,28 +1043,27 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 
     string       vname;
     BasicTyped*  ctype;
-    int          sharing = getSharingCount(sig, fSharingKey);
     Occurrences* o       = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // Check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        if (sharing > 1) {
+        if (o->hasMultiOccurrences()) {
             return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname,
                                     o->getMaxDelay());
         } else {
             return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
         }
 
-    } else if (sharing > 1 || (o->hasMultiOccurrences())) {
+    } else if (o->hasMultiOccurrences()) {
         return generateVariableStore(sig, exp);
 
-    } else if (sharing == 1) {
+    } else if (o->getOccurrencesSum() == 1) {
         return exp;
 
     } else {
-        cerr << "ASSERT : in sharing count (" << sharing << ") for " << *sig << endl;
+        cerr << "ASSERT : getOccurrencesSum (" << o->getOccurrencesSum() << ") for " << *sig << endl;
         faustassert(false);
         return IB::genNullValueInst();
     }
@@ -1301,8 +1295,13 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, ValueI
     ::Type t = getCertifiedSigType(sig);
 
     // Cast to external float
-    ValueInst*    val = (gGlobal->gFAUSTFLOAT2Internal) ? exp : IB::genCastFloatMacroInst(exp);
+    ValueInst*    bg_in = generateCacheCode(sig,exp);
+    ValueInst*    val = (gGlobal->gFAUSTFLOAT2Internal) ? bg_in : IB::genCastFloatMacroInst(bg_in);
     StoreVarInst* res = IB::genStoreStructVar(varname, val);
+
+    string tempname;
+    BasicTyped*  ctype;
+    getTypedNames(t, "Temp", ctype, tempname);
 
     switch (t->variability()) {
         case kKonst:
@@ -1311,19 +1310,23 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, ValueI
 
         case kBlock: {
             if (gGlobal->gExtControl) {
-                pushControlDeclare(res);
+                pushControlDeclare(IB::genDecStackVar(tempname, ctype, val));
+                pushControlDeclare(IB::genStoreStructVar(varname, IB::genLoadStackVar(tempname)));
             } else {
-                pushComputeBlockMethod(res);
+                pushComputeBlockMethod(IB::genDecStackVar(tempname, ctype, val));
+                pushComputeBlockMethod(IB::genStoreStructVar(varname, IB::genLoadStackVar(tempname)));
             }
             break;
         }
 
         case kSamp:
-            pushComputeDSPMethod(IB::genControlInst(getConditionCode(sig), res));
-            break;
+            // pushComputeBlockMethod(IB::genDecStackVar(tempname, ctype));//c
+            pushComputeBlockMethod(IB::genDecStackVar(tempname, ctype, IB::genLoadStructVar(varname)));//initialize for rust
+            pushComputeDSPMethod(IB::genControlInst(getConditionCode(sig), IB::genStoreStackVar(tempname, val)));
+            pushPostComputeBlockMethod(IB::genStoreStructVar(varname, IB::genLoadStackVar(tempname)));
+            return IB::genLoadStackVar(tempname);
     }
-
-    return generateCacheCode(sig, IB::genLoadStructVar(varname));
+    return bg_in;
 }
 
 ValueInst* InstructionsCompiler::generateVBargraph(Tree sig, Tree path, ValueInst* exp)
