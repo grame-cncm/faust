@@ -87,6 +87,7 @@ void SignalChecker::isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux)
 void SignalChecker::visit(Tree sig)
 {
     int  opnum;
+    tvec w1;
     Tree size, gen, wi, ri, x, y, sel, sf, ff, largs, chan, part, tb, ws, label, init, min, max,
         step, t0;
 
@@ -248,6 +249,54 @@ void SignalChecker::visit(Tree sig)
                 cerr << "ASSERT : isSigWaveform with mixed kInt and kReal values : "
                      << ppsig(sig, MAX_ERROR_SIZE) << endl;
                 faustassert(false);
+            }
+        }
+
+        // Ondemand
+    } else if (isSigOD(sig, w1)) {
+        ::Type ty = getCertifiedSigType(w1[0]);
+        if (ty->nature() != kInt) {
+            cerr << "ASSERT : isSigOD with a non kInt clock : " << ppsig(sig, MAX_ERROR_SIZE)
+                 << endl;
+            faustassert(false);
+        } else if (ty->getInterval().lo() < 0) {
+            if (gAllWarning) {
+                stringstream error;
+                error << "WARNING : ondemand with a clock possibly < 0 : "
+                      << ppsig(sig, MAX_ERROR_SIZE) << endl;
+                gWarningMessages.push_back(error.str());
+            }
+        }
+
+        // Upsampling
+    } else if (isSigUS(sig, w1)) {
+        ::Type ty = getCertifiedSigType(w1[0]);
+        if (ty->nature() != kInt) {
+            cerr << "ASSERT : isSigUS with a non kInt clock : " << ppsig(sig, MAX_ERROR_SIZE)
+                 << endl;
+            faustassert(false);
+        } else if (ty->getInterval().lo() < 0) {
+            if (gAllWarning) {
+                stringstream error;
+                error << "WARNING : upsampling with a clock possibly < 0 : "
+                      << ppsig(sig, MAX_ERROR_SIZE) << endl;
+                gWarningMessages.push_back(error.str());
+            }
+        }
+
+        // Downsampling
+    } else if (isSigDS(sig, w1)) {
+        ::Type ty = getCertifiedSigType(w1[0]);
+        if (ty->nature() != kInt) {
+            cerr << "ASSERT : isSigDS with a non kInt clock : " << ppsig(sig, MAX_ERROR_SIZE)
+                 << endl;
+            faustassert(false);
+        } else if (ty->getInterval().lo() < 0) {
+            if (gAllWarning) {
+                stringstream error;
+                error << "WARNING : downsampling with a clock possibly < 0 : "
+                      << ppsig(sig, MAX_ERROR_SIZE) << endl;
+                gWarningMessages.push_back(error.str());
             }
         }
 
@@ -429,6 +478,36 @@ Tree SignalPromotion::transformation(Tree sig)
             }
         }
         return sigOD(w2);
+    }
+    // Upsampling
+    else if (tvec w1; isSigUS(sig, w1)) {
+        tvec w2;
+        for (size_t i = 0; i < w1.size(); i++) {
+            // Clock has to be casted to Int
+            if (i == 0) {
+                w2.push_back(smartIntCast(getCertifiedSigType(w1[i]), self(w1[i])));
+            } else if (w1[i] == gGlobal->nil) {
+                w2.push_back(gGlobal->nil);
+            } else {
+                w2.push_back(self(w1[i]));
+            }
+        }
+        return sigUS(w2);
+    }
+    // Downsampling
+    else if (tvec w1; isSigDS(sig, w1)) {
+        tvec w2;
+        for (size_t i = 0; i < w1.size(); i++) {
+            // Clock has to be casted to Int
+            if (i == 0) {
+                w2.push_back(smartIntCast(getCertifiedSigType(w1[i]), self(w1[i])));
+            } else if (w1[i] == gGlobal->nil) {
+                w2.push_back(gGlobal->nil);
+            } else {
+                w2.push_back(self(w1[i]));
+            }
+        }
+        return sigDS(w2);
     }
 
     // Tables
