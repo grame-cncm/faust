@@ -38,12 +38,9 @@
 
 /*
 
- We have independent loops that will be "connected" with vectors
-
+ We have independent loops that will be "connected" with vectors.
  We would like to be able to connect loops and remove the intermediate vectors.
-
  We start from a DAG of loops, we want to be able to:
-
  - put this DAG on the form of a sequence of loops (topological sorting)
  - merge all the loops into one, so basically extract the loops code and merge it
 
@@ -60,21 +57,52 @@ class CodeLoop;
 typedef std::set<CodeLoop*> lclset;
 typedef std::vector<lclset> lclgraph;
 
-struct CodeIFblock {
-    ValueInst* fCond;         ///< condition of the IF block
-    BlockInst* fPreInst;      ///< code to execute at the begin of the loop
+struct Codeblock : public virtual Garbageable {
+    BlockInst* fPreInst;      ///< code to execute at the begin
     BlockInst* fComputeInst;  ///< code to execute in the loop
-    BlockInst* fPostInst;     ///< code to execute at the end of the loop
+    BlockInst* fPostInst;     ///< code to execute at the end
+                              ///<
+    Codeblock()
+        : fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst())
+    {
+    }
+};
 
-    void pushPreComputeDSPMethod(StatementInst* inst);   ///< add a pre code statement
-    void pushComputeDSPMethod(StatementInst* inst);      ///< add a statement
-    void pushPostComputeDSPMethod(StatementInst* inst);  ///< add a post code statement
+/*
+    Code block for ondemand loops
+*/
+struct CodeODblock : public Codeblock {
+    ValueInst*  fODfactor;  ///< ondemand factor
+    std::string fLoopIndex;
 
-    CodeIFblock()
-        : fCond(nullptr),
-          fPreInst(new BlockInst()),
-          fComputeInst(new BlockInst()),
-          fPostInst(new BlockInst())
+    CodeODblock(ValueInst* od_factor) : Codeblock(), fODfactor(od_factor)
+    {
+        fLoopIndex = gGlobal->getFreshID("od");
+    }
+};
+
+/*
+    Code block for upsampling loops
+*/
+struct CodeUSblock : public Codeblock {
+    ValueInst*  fUSfactor;  ///< upsampling factor
+    std::string fLoopIndex;
+
+    CodeUSblock(ValueInst* us_factor) : Codeblock(), fUSfactor(us_factor)
+    {
+        fLoopIndex = gGlobal->getFreshID("us");
+    }
+};
+
+/*
+    Code block for downsampling blocks
+*/
+struct CodeDSblock : public Codeblock {
+    ValueInst*  fDSfactor;  ///< downsampling factor
+    std::string fDSCounter;
+
+    CodeDSblock(ValueInst* ds_factor, const std::string& ds_counter)
+        : Codeblock(), fDSfactor(ds_factor), fDSCounter(ds_counter)
     {
     }
 };
@@ -96,7 +124,7 @@ class CodeLoop : public virtual Garbageable {
 
     std::string fLoopIndex;
 
-    std::stack<CodeIFblock> fIFstack;  //< stack of IF code blocks
+    std::stack<Codeblock*> fCodeStack;  //< stack of OD/US/DS code blocks
 
     int                  fUseCount;    ///< how many loops depend on this one
     std::list<CodeLoop*> fExtraLoops;  ///< extra loops that where in sequences
@@ -157,8 +185,8 @@ class CodeLoop : public virtual Garbageable {
 
     StatementInst* pushPreComputeDSPMethod(StatementInst* inst)
     {
-        if (fIFstack.size() > 0) {
-            fIFstack.top().fPreInst->pushBackInst(inst);
+        if (fCodeStack.size() > 0) {
+            fCodeStack.top()->fPreInst->pushBackInst(inst);
         } else {
             fPreInst->pushBackInst(inst);
         }
@@ -166,8 +194,8 @@ class CodeLoop : public virtual Garbageable {
     }
     StatementInst* pushComputeDSPMethod(StatementInst* inst)
     {
-        if (fIFstack.size() > 0) {
-            fIFstack.top().fComputeInst->pushBackInst(inst);
+        if (fCodeStack.size() > 0) {
+            fCodeStack.top()->fComputeInst->pushBackInst(inst);
         } else {
             fComputeInst->pushBackInst(inst);
         }
@@ -175,8 +203,8 @@ class CodeLoop : public virtual Garbageable {
     }
     StatementInst* pushPostComputeDSPMethod(StatementInst* inst)
     {
-        if (fIFstack.size() > 0) {
-            fIFstack.top().fPostInst->pushBackInst(inst);
+        if (fCodeStack.size() > 0) {
+            fCodeStack.top()->fPostInst->pushBackInst(inst);
         } else {
             fPostInst->pushBackInst(inst);
         }
@@ -190,7 +218,15 @@ class CodeLoop : public virtual Garbageable {
     std::set<CodeLoop*>& getForwardLoopDependencies() { return fForwardLoopDependencies; }
     std::set<CodeLoop*>& getBackwardLoopDependencies() { return fBackwardLoopDependencies; }
 
-    ValueInst* getLoopIndex() { return IB::genLoadLoopVar(fLoopIndex); }
+    ValueInst* getLoopIndex()
+    {
+        if (fCodeStack.size() > 0) {
+            if (CodeUSblock* us_block = dynamic_cast<CodeUSblock*>(fCodeStack.top())) {
+                return IB::genLoadLoopVar(us_block->fLoopIndex);
+            }
+        }
+        return IB::genLoadLoopVar(fLoopIndex);
+    }
 
     ForLoopInst* generateScalarLoop(const std::string& counter, bool loop_var_in_bytes = false);
 
@@ -220,29 +256,49 @@ class CodeLoop : public virtual Garbageable {
     void addBackwardDependency(CodeLoop* ls) { fBackwardLoopDependencies.insert(ls); }
 
     /**
-     * Open a new IF block.
-     * @param cond the condition of the IF block
+     * Open a new OD block.
+     * @param cond the condition of the OD block
      */
-    void openIFblock(ValueInst* cond)
+    void openODblock(ValueInst* cond)
     {
-        CodeIFblock b;
-        b.fCond = cond;
-        fIFstack.push(b);
+        CodeODblock* b = new CodeODblock(cond);
+        fCodeStack.push(b);
     }
 
     /**
-     * Close the current/top IF block.
+     * Close the current/top OD block.
      */
-    void closeIFblock()
+    void closeODblock();
+
+    /**
+     * Open a new US block.
+     * @param us_factor the upsampling factor of the US block
+     */
+    void openUSblock(ValueInst* us_factor)
     {
-        CodeIFblock b = fIFstack.top();
-        fIFstack.pop();
-        BlockInst* then_block = new BlockInst();
-        then_block->pushBackInst(b.fPreInst);
-        then_block->pushBackInst(b.fComputeInst);
-        then_block->pushBackInst(b.fPostInst);
-        pushComputeDSPMethod(IB::genIfInst(b.fCond, then_block));
+        CodeUSblock* b = new CodeUSblock(us_factor);
+        fCodeStack.push(b);
     }
+
+    /**
+     * Close the current/top US block.
+     */
+    void closeUSblock();
+
+    /**
+     * Open a new DS block.
+     * @param us_factor the downsampling factor of the US block
+     */
+    void openDSblock(ValueInst* ds_factor, const std::string& ds_counter)
+    {
+        CodeDSblock* b = new CodeDSblock(ds_factor, ds_counter);
+        fCodeStack.push(b);
+    }
+
+    /**
+     * Close the current/top US block.
+     */
+    void closeDSblock();
 
     static void sortGraph(CodeLoop* root, lclgraph& V);
     static void computeUseCount(CodeLoop* l);

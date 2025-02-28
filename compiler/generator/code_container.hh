@@ -488,8 +488,17 @@ class CodeContainer : public virtual Garbageable {
     ValueInst* pushFunction(const std::string& name, Typed::VarType result,
                             std::vector<Typed::VarType>& types, const Values& args);
 
-    void openIFblock(ValueInst* cond) { fCurLoop->openIFblock(cond); }
-    void closeIFblock() { fCurLoop->closeIFblock(); }
+    void openODblock(ValueInst* cond) { fCurLoop->openODblock(cond); }
+    void closeODblock() { fCurLoop->closeODblock(); }
+
+    void openUSblock(ValueInst* us_factor) { fCurLoop->openUSblock(us_factor); }
+    void closeUSblock() { fCurLoop->closeUSblock(); }
+
+    void openDSblock(ValueInst* ds_factor, const std::string& ds_counter)
+    {
+        fCurLoop->openDSblock(ds_factor, ds_counter);
+    }
+    void closeDSblock() { fCurLoop->closeDSblock(); }
 
     void generateExtGlobalDeclarations(InstVisitor* visitor)
     {
