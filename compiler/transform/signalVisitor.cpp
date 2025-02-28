@@ -237,11 +237,31 @@ void SignalVisitor::visit(Tree sig)
     } else if (isSigPermVar(sig, x)) {
         self(x);
         return;
+    } else if (isSigZeroPad(sig, x, y)) {
+        self(x);
+        self(y);
+        return;
     } else if (isSigSeq(sig, x, y)) {
         self(x);
         self(y);
         return;
     } else if (isSigOD(sig)) {
+        for (Tree b : sig->branches()) {
+            if (b == gGlobal->nil) {
+                continue;
+            }
+            self(b);
+        }
+        return;
+    } else if (isSigUS(sig)) {
+        for (Tree b : sig->branches()) {
+            if (b == gGlobal->nil) {
+                continue;
+            }
+            self(b);
+        }
+        return;
+    } else if (isSigDS(sig)) {
         for (Tree b : sig->branches()) {
             if (b == gGlobal->nil) {
                 continue;

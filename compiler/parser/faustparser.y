@@ -230,6 +230,8 @@ inline Tree unquote(char* str)
 %token INPUTS
 %token OUTPUTS
 %token ONDEMAND
+%token UPSAMPLING
+%token DOWNSAMPLING
 
 %token STRING
 %token FSTRING
@@ -322,6 +324,8 @@ inline Tree unquote(char* str)
 %type <exp> finputs
 %type <exp> foutputs
 %type <exp> fondemand
+%type <exp> fupsampling
+%type <exp> fdownsampling
 
 %type <exp> button
 %type <exp> checkbox
@@ -642,6 +646,8 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
                 | finputs                       { $$ = $1; }
                 | foutputs                      { $$ = $1; }
                 | fondemand                     { $$ = $1; }
+                | fupsampling                   { $$ = $1; }
+                | fdownsampling                 { $$ = $1; }
                 ;
 
 ident           : IDENT                         { $$ = boxIdent(FAUSTtext); setUseProp($$, FAUSTfilename, FAUSTlineno);  }
@@ -696,6 +702,12 @@ foutputs        : OUTPUTS LPAR expression RPAR { $$ = boxOutputs($3); }
                 ;
 
 fondemand       : ONDEMAND LPAR expression RPAR { $$ = boxOndemand($3); }
+                ;
+
+fupsampling     : UPSAMPLING LPAR expression RPAR { $$ = boxUpsampling($3); }
+                ;
+
+fdownsampling   : DOWNSAMPLING LPAR expression RPAR { $$ = boxDownsampling($3); }
                 ;
 
 /* description of foreign functions */

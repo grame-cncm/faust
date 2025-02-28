@@ -539,6 +539,8 @@ struct global {
     Sym BOXINPUTS;
     Sym BOXOUTPUTS;
     Sym BOXONDEMAND;
+    Sym BOXUPSAMPLING;
+    Sym BOXDOWNSAMPLING;
     Sym BOXSOUNDFILE;
     Sym BOXMETADATA;
     Sym DOCEQN;
@@ -618,8 +620,11 @@ struct global {
     // Ondemand
     Sym SIGTEMPVAR;
     Sym SIGPERMVAR;
+    Sym SIGZEROPAD;
     Sym SIGSEQ;
     Sym SIGOD;
+    Sym SIGUS;
+    Sym SIGDS;
     Sym SIGCLOCKED;
 
     // Types
