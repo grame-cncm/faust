@@ -199,6 +199,12 @@ void SigDependenciesGraph::visit(Tree t)
         return;
     }
 
+    if (Tree x, n; isSigZeroPad(t, x, n)) {
+        fGraph.add(t, x, 0);
+        self(x);
+        return;
+    }
+
     // if (Tree x, y; isSigSeq(t, x, y)) {
     //     // Indicate a dependency to x (typically an ondemand).
     //     fGraph.add(t, y, 0);
@@ -216,7 +222,7 @@ void SigDependenciesGraph::visit(Tree t)
         return;
     }
 
-    if (tvec V; isSigOD(t, V)) {
+    if (tvec V; isSigOD(t, V) || isSigUS(t, V) || isSigDS(t, V)) {
         // V = H,X1,...,NIL,Y1,...
         // immediate dependencies are H,X1,...
         for (auto s : V) {

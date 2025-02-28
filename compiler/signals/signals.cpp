@@ -1045,6 +1045,21 @@ LIBFAUST_API bool isSigPermVar(Tree s, Tree& x)
     return isTree(s, gGlobal->SIGPERMVAR, x);
 }
 
+LIBFAUST_API Tree sigZeroPad(Tree x, Tree y)
+{
+    return tree(gGlobal->SIGZEROPAD, x, y);
+}
+
+LIBFAUST_API bool isSigZeroPad(Tree s)
+{
+    return isTree(s, gGlobal->SIGZEROPAD);
+}
+
+LIBFAUST_API bool isSigZeroPad(Tree s, Tree& x, Tree& y)
+{
+    return isTree(s, gGlobal->SIGZEROPAD, x, y);
+}
+
 LIBFAUST_API Tree sigSeq(Tree x, Tree y)
 {
     return tree(gGlobal->SIGSEQ, x, y);
@@ -1080,6 +1095,46 @@ LIBFAUST_API bool isSigOD(Tree s, tvec& sigsubs)
     }
 }
 
+LIBFAUST_API Tree sigUS(const tvec& sigsubs)
+{
+    return tree(gGlobal->SIGUS, sigsubs);
+}
+
+LIBFAUST_API bool isSigUS(Tree s)
+{
+    return isTree(s, gGlobal->SIGUS);
+}
+
+LIBFAUST_API bool isSigUS(Tree s, tvec& sigsubs)
+{
+    if (isTree(s, gGlobal->SIGUS)) {
+        sigsubs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API Tree sigDS(const tvec& sigsubs)
+{
+    return tree(gGlobal->SIGDS, sigsubs);
+}
+
+LIBFAUST_API bool isSigDS(Tree s)
+{
+    return isTree(s, gGlobal->SIGDS);
+}
+
+LIBFAUST_API bool isSigDS(Tree s, tvec& sigsubs)
+{
+    if (isTree(s, gGlobal->SIGDS)) {
+        sigsubs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
 LIBFAUST_API bool isSigClocked(Tree s)
 {
     return isTree(s, gGlobal->SIGCLOCKED);
@@ -1105,8 +1160,8 @@ LIBFAUST_API Tree sigClocked(Tree clock, Tree y)
             // y is already annotated with the clock h
             return y;
         } else {
-            std::cerr << "We have a problem of clocks, new clock : " << *clock
-                      << " is different form existing clock " << *h2 << std::endl;
+            std::cerr << "ASSERT : we have a problem of clocks, new clock : " << *clock
+                      << " is different from existing clock " << *h2 << std::endl;
             faustassert(false);
         }
     } else {
@@ -1114,40 +1169,6 @@ LIBFAUST_API Tree sigClocked(Tree clock, Tree y)
         return tree(gGlobal->SIGCLOCKED, clock, y);
     }
 }
-
-/**
- * @brief Search for clock signal
- *
- * @param s
- * @param clock
- * @return LIBFAUST_API
- */
-/*
-LIBFAUST_API bool hasClock(Tree sig, Tree& clock)
-{
-    if (Tree exp; isSigClocked(sig, clock, exp)) {
-        return true;
-    }
-    if (tvec args; isSigFIR(sig, args)) {
-        return hasClock(args[0], clock);
-    }
-    if (tvec args; isSigIIR(sig, args)) {
-        return hasClock(args[1], clock);
-    }
-    if (Tree x, y; isSigMul(sig, x, y)) {
-        return hasClock(x, clock) || hasClock(y, clock);
-    }
-    if (tvec args; isSigSum(sig, args)) {
-        for (Tree a : args) {
-            if (hasClock(a, clock)) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-*/
 
 // for FPGA Retiming
 
