@@ -319,6 +319,8 @@ global::global()
     BOXINPUTS        = symbol("BoxInputs");
     BOXOUTPUTS       = symbol("BoxOutputs");
     BOXONDEMAND      = symbol("BoxOndemand");
+    BOXUPSAMPLING    = symbol("BoxUpsampling");
+    BOXDOWNSAMPLING  = symbol("BoxDownsampling");
     BOXSOUNDFILE     = symbol("boxSoundfile");
     BOXMETADATA      = symbol("boxMetadata");
 
@@ -382,8 +384,11 @@ global::global()
     SIGSUM             = symbol("SigSum");
     SIGTEMPVAR         = symbol("SigTempVar");
     SIGPERMVAR         = symbol("SigPermVar");
+    SIGZEROPAD         = symbol("SigZeroPad");
     SIGSEQ             = symbol("SigSeq");
     SIGOD              = symbol("SigOD");
+    SIGUS              = symbol("SigUS");
+    SIGDS              = symbol("SigDS");
     SIGCLOCKED         = symbol("SigClocked");
     SIMPLETYPE         = symbol("SimpleType");
     TABLETYPE          = symbol("TableType");

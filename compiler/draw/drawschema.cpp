@@ -48,6 +48,7 @@
 #include "compatibility.hh"
 #include "description.hh"
 #include "devLib.h"
+#include "downsamplingSchema.h"
 #include "drawschema.hh"
 #include "exception.hh"
 #include "files.hh"
@@ -61,6 +62,7 @@
 #include "property.hh"
 #include "routeSchema.h"
 #include "schema.h"
+#include "upsamplingSchema.h"
 #include "xtended.hh"
 
 #if 0
@@ -532,6 +534,12 @@ static schema* generateInsideSchema(Tree t)
 
     } else if (isBoxOndemand(t, a)) {
         return makeOndemandSchema(generateDiagramSchema(a));
+
+    } else if (isBoxUpsampling(t, a)) {
+        return makeUpsamplingSchema(generateDiagramSchema(a));
+
+    } else if (isBoxDownsampling(t, a)) {
+        return makeDownsamplingSchema(generateDiagramSchema(a));
 
     } else {
         stringstream error;

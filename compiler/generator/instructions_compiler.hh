@@ -46,6 +46,8 @@ class InstructionsCompiler : public virtual Garbageable {
     property<ValueInst*>  fCompileProperty;
     property<std::string> fVectorProperty;
     property<std::string> fIotaProperty;  // IOTA associated to a specific ondemand clock signal
+    property<std::string>
+        fDSProperty;  // Downsampling counter associated to a specific downsampling block
     property<std::pair<std::string, std::string>> fStaticInitProperty;
     property<std::pair<std::string, std::string>> fInstanceInitProperty;
     property<std::string>                         fTableProperty;
@@ -239,6 +241,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateXtended(Tree sig);
     virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree delay);
     std::string        declareRetrieveIotaName(Tree clock);
+    std::string        declareRetrieveDSName(Tree clock);
     ValueInst*         generateDelayAccess(Tree sig, Tree arg, int delay);
     ValueInst*         generateDelayAccess(Tree sig, Tree arg, ValueInst* delayidx);
 
@@ -299,16 +302,21 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateFIRSmallExpression(const std::string& vecname, Tree sig,
                                                   const tvec& coefs)
     {
+        return IB::genNullValueInst();
     }
     virtual ValueInst* generateFIRBigExpression(const std::string& vecname, int mxd, Tree sig,
                                                 const tvec& coefs)
     {
+        return IB::genNullValueInst();
     }
 
     // ondemand related
     virtual ValueInst* generateTempVar(Tree sig, Tree x);
     virtual ValueInst* generatePermVar(Tree sig, Tree x);
+    virtual ValueInst* generateZeroPad(Tree sig, Tree x, Tree y);
     virtual ValueInst* generateOD(Tree sig, const tvec& w);
+    virtual ValueInst* generateUS(Tree sig, const tvec& w);
+    virtual ValueInst* generateDS(Tree sig, const tvec& w);
 
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype,
                                         const std::string& vname, int mxd, int count);

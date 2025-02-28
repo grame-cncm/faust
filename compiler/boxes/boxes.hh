@@ -157,11 +157,15 @@ LIBFAUST_API bool isBoxInputs(Tree t, Tree& x);
 LIBFAUST_API bool isBoxOutputs(Tree t, Tree& x);
 
 /*****************************************************************************
-                        On Demand Boxes
+                        On Demand, Up/Down Sampling Boxes
 *****************************************************************************/
 
 Tree              boxOndemand(Tree x);
 LIBFAUST_API bool isBoxOndemand(Tree t, Tree& x);
+Tree              boxUpsampling(Tree x);
+LIBFAUST_API bool isBoxUpsampling(Tree t, Tree& x);
+Tree              boxDownsampling(Tree x);
+LIBFAUST_API bool isBoxDownsampling(Tree t, Tree& x);
 
 /*****************************************************************************
                               Lambda-Calculus of Boxes

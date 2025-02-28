@@ -88,10 +88,10 @@ ostream& ppsig::printfun(ostream& fout, const string& funame, const tvec& args) 
     fout << funame;
     char sep = '(';
     for (auto arg : args) {
-        fout << sep << ' ' << ppsig(arg, fEnv, 0, fMaxSize);
+        fout << sep << ppsig(arg, fEnv, 0, fMaxSize);
         sep = ',';
     }
-    return fout << " )";
+    return fout << ")";
 }
 
 ostream& ppsig::printfir(ostream& fout, const tvec& args) const
@@ -390,10 +390,16 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "tempvar", x);
     } else if (isSigPermVar(fSig, x)) {
         printfun(fout, "permvar", x);
+    } else if (isSigZeroPad(fSig, x, y)) {
+        printfun(fout, "zeropad", x, y);
     } else if (isSigSeq(fSig, x, y)) {
         printfun(fout, "seq", x, y);
     } else if (isSigOD(fSig)) {
         printfun(fout, "ondemand", fSig->branches());
+    } else if (isSigUS(fSig)) {
+        printfun(fout, "upsampling", fSig->branches());
+    } else if (isSigDS(fSig)) {
+        printfun(fout, "downsampling", fSig->branches());
     } else if (isSigClocked(fSig, x, y)) {
         // printfun(fout, "clocked", y);
         return fout << "clocked" << '(' << x << ", " << ppsig(y, fEnv, 0, fMaxSize) << ')';
@@ -481,10 +487,10 @@ ostream& ppsigShared::printfun(ostream& fout, const string& funame, const tvec& 
     fout << funame;
     char sep = '(';
     for (auto arg : args) {
-        fout << sep << ' ' << ppsigShared(arg, fEnv);
+        fout << sep << ppsigShared(arg, fEnv);
         sep = ',';
     }
-    return fout << " )";
+    return fout << ')';
 }
 
 ostream& ppsigShared::printui(ostream& fout, const string& funame, Tree label) const
@@ -515,11 +521,11 @@ ostream& ppsigShared::printui(ostream& fout, const string& funame, Tree label, T
 ostream& ppsigShared::printout(ostream& fout, int i, Tree x) const
 {
     if (fPriority > 0) {
-        fout << "(";
+        fout << '(';
     }
     fout << "OUT" << i << " = " << ppsigShared(x, fEnv, 0);
     if (fPriority > 0) {
-        fout << ")";
+        fout << ')';
     }
     return fout;
 }
@@ -715,6 +721,10 @@ ostream& ppsigShared::print(ostream& fout) const
         SIG_INSERT_ID(printfun(s, "seq", x, y));
     } else if (isSigOD(fSig)) {
         SIG_INSERT_ID(printfun(s, "ondemand", fSig->branches()));
+    } else if (isSigUS(fSig)) {
+        SIG_INSERT_ID(printfun(s, "upsampling", fSig->branches()));
+    } else if (isSigDS(fSig)) {
+        SIG_INSERT_ID(printfun(s, "downsampling", fSig->branches()));
     } else if (isSigClocked(fSig, x, y)) {
         // printfun(fout, "clocked", y);
         SIG_INSERT_ID(s << "clocked(" << ppsigShared(y, fEnv, fPriority) << ")");

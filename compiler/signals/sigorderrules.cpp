@@ -285,9 +285,15 @@ static int inferSigOrder(Tree sig)
         return 3;  // to be checked
     } else if (Tree x; isSigPermVar(sig, x)) {
         return 3;  // to be checked
+    } else if (Tree x, y; isSigZeroPad(sig, x, y)) {
+        return 3;  // to be checked
     } else if (Tree x, y; isSigSeq(sig, x, y)) {
         return 3;  // to be checked
     } else if (tvec subs; isSigOD(sig, subs)) {
+        return 3;  // to be checked
+    } else if (tvec subs; isSigUS(sig, subs)) {
+        return 3;  // to be checked
+    } else if (tvec subs; isSigDS(sig, subs)) {
         return 3;  // to be checked
     } else if (Tree x, y; isSigSeq(sig, x, y)) {
         return 3;  // to be checked
