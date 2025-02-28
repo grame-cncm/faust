@@ -188,6 +188,10 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigPermVar(self(x));
     }
 
+    else if (isSigZeroPad(sig, x, y)) {
+        return sigZeroPad(this->self(x), this->self(y));
+    }
+
     else if (isSigSeq(sig, x, y)) {
         // std::cerr << "identity sigSeq " << ppsig(sig) << std::endl;
         Tree x2 = self(x);
@@ -206,6 +210,30 @@ Tree SignalIdentity::transformation(Tree sig)
             }
         }
         return sigOD(w2);
+    }
+
+    else if (tvec w1; isSigUS(sig, w1)) {
+        tvec w2;
+        for (Tree s : w1) {
+            if (s == gGlobal->nil) {
+                w2.push_back(gGlobal->nil);
+            } else {
+                w2.push_back(this->self(s));
+            }
+        }
+        return sigUS(w2);
+    }
+
+    else if (tvec w1; isSigDS(sig, w1)) {
+        tvec w2;
+        for (Tree s : w1) {
+            if (s == gGlobal->nil) {
+                w2.push_back(gGlobal->nil);
+            } else {
+                w2.push_back(this->self(s));
+            }
+        }
+        return sigDS(w2);
     }
 
     else if (isSigClocked(sig, x, y)) {

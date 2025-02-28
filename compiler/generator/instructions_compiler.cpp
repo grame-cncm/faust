@@ -22,6 +22,7 @@
 #include <string>
 
 #include "Text.hh"
+#include "factorizeFIRIIRs.hh"
 #include "fir_to_fir.hh"
 #include "floats.hh"
 #include "instructions.hh"
@@ -32,7 +33,6 @@
 #include "normalform.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
-#include "factorizeFIRIIRs.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
@@ -141,7 +141,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     endTiming("Sum revealer");
 
     Tree L2 = L2a;
-    
+
     // detect FIRs and IIRs if required
     if (gGlobal->gReconstructFIRIIRs) {
         startTiming("FIR revealer");
@@ -166,7 +166,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     } else {
         L2 = L2a;
     }
- 
+
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
     endTiming("conditionAnnotation");
@@ -406,14 +406,14 @@ bool InstructionsCompiler::getCompiledExpression(Tree sig, ValueType& cexp)
 }
 
 /**
- * Set the ValueType of a compiled expression is already compiled
+ * Set the ValueType of a compiled expression if already compiled
  * @param sig the signal expression to compile.
  * @param cexp the ValueType representing the compiled expression.
  * @return the cexp (for commodity)
  */
-ValueType InstructionsCompiler::setCompiledExpression(Tree sig, const ValueType& cexp)
+ValueInst* InstructionsCompiler::setCompiledExpression(Tree sig, const ValueType& cexp)
 {
-    ValueType old;
+    ValueInst* old;
     if (fCompileProperty.get(sig, old) && (old != cexp)) {
         // stringstream error;
         // error << "ERROR already a compiled expression attached : " << old << " replaced by " <<
@@ -461,9 +461,9 @@ bool InstructionsCompiler::getVectorNameProperty(Tree sig, string& vname)
  * @return the vector name associated with sig
  */
 
-std::string InstructionsCompiler::ensureVectorNameProperty(const std::string& altname, Tree sig)
+string InstructionsCompiler::ensureVectorNameProperty(const string& altname, Tree sig)
 {
-    std::string vecname;
+    string vecname;
     if (!getVectorNameProperty(sig, vecname)) {
         vecname = altname;
         setVectorNameProperty(sig, vecname);
@@ -491,6 +491,12 @@ BasicTyped* InstructionsCompiler::genFloatType(::Type type)
 ValueInst* InstructionsCompiler::CS(Tree sig)
 {
     ValueInst* code;
+
+#if 0
+    fprintf(stderr, "CALL CS(");
+    printSignal(sig, stderr);
+    fprintf(stderr, ")\n");
+#endif
 
     if (!getCompiledExpression(sig, code)) {
         code = generateCode(sig);
@@ -977,11 +983,17 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateTempVar(sig, x);
     } else if (isSigPermVar(sig, x)) {
         return generatePermVar(sig, x);
+    } else if (isSigZeroPad(sig, x, y)) {
+        return generateZeroPad(sig, x, y);
     } else if (isSigSeq(sig, x, y)) {
         (void)CS(x);
         return generateCacheCode(sig, CS(y));
     } else if (tvec w; isSigOD(sig, w)) {
         return generateOD(sig, w);
+    } else if (tvec w; isSigUS(sig, w)) {
+        return generateUS(sig, w);
+    } else if (tvec w; isSigDS(sig, w)) {
+        return generateDS(sig, w);
     } else if (isSigClocked(sig, x, y)) {
         return generateCacheCode(sig, CS(y));
 
@@ -1239,9 +1251,9 @@ void InstructionsCompiler::getTypedNames(::Type t, const string& prefix, BasicTy
 void InstructionsCompiler::getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype,
                                          string& vname)
 {
-    std::string typedescr = "VC";
-    typedescr[0]          = "KB?S"[t->variability()];
-    typedescr[1]          = "CI?E"[t->computability()];
+    string typedescr = "VC";
+    typedescr[0]     = "KB?S"[t->variability()];
+    typedescr[1]     = "CI?E"[t->computability()];
     if (t->nature() == kInt) {
         ctype = Typed::kInt32;
         vname = subst("i$0$1", gGlobal->getFreshID(prefix), typedescr.c_str());
@@ -1254,9 +1266,9 @@ void InstructionsCompiler::getTypedNames(::Type t, const string& prefix, Typed::
 void InstructionsCompiler::getTypedNames(::Type t, const string& prefix, BasicTyped*& ctype,
                                          string& vname)
 {
-    std::string typedescr = "VC";
-    typedescr[0]          = "KB?S"[t->variability()];
-    typedescr[1]          = "CI?E"[t->computability()];
+    string typedescr = "VC";
+    typedescr[0]     = "KB?S"[t->variability()];
+    typedescr[1]     = "CI?E"[t->computability()];
     if (t->nature() == kInt) {
         ctype = IB::genBasicTyped(Typed::kInt32);
         vname = subst("i$0$1", gGlobal->getFreshID(prefix), typedescr.c_str());
@@ -1341,9 +1353,11 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
 
-            /* TODO: deactivated for now since getOccurrence fails in some cases
-            // The variable is used in compute (kBlock or kSamp), so define is as a field in the DSP
-            struct if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
+            // TODO: deactivated for now since getOccurrence fails in some cases
+
+            // The variable is used in compute (kBlock or kSamp),
+            // so define is as a field in the DSP struct
+            if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
                 pushDeclare(IB::genDecStructVar(vname, ctype));
                 pushInitMethod(IB::genStoreStructVar(vname, exp));
                 return IB::genLoadStructVar(vname);
@@ -1352,13 +1366,13 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
                 pushInitMethod(IB::genDecStackVar(vname, ctype, exp));
                 return IB::genLoadStackVar(vname);
             }
-            */
 
+            /*
             // Always put variables in DSP struct for now
             pushDeclare(IB::genDecStructVar(vname, ctype));
             pushInitMethod(IB::genStoreStructVar(vname, exp));
             return IB::genLoadStructVar(vname);
-
+            */
         case kBlock: {
             getTypedNames(t, "Slow", ctype, vname);
 
@@ -2445,7 +2459,7 @@ string InstructionsCompiler::declareRetrieveIotaName(Tree clock)
         return iotaname;
     }
 
-    std::string newiotaname = gGlobal->getFreshID("IOTA");
+    string newiotaname = gGlobal->getFreshID("IOTA");
     fIotaProperty.set(clock, newiotaname);
 
     pushDeclare(IB::genDecStructVar(newiotaname, IB::genInt32Typed()));
@@ -2455,6 +2469,25 @@ string InstructionsCompiler::declareRetrieveIotaName(Tree clock)
     pushPostComputeDSPMethod(IB::genStoreStructVar(newiotaname, value));
 
     return newiotaname;
+}
+
+string InstructionsCompiler::declareRetrieveDSName(Tree clock)
+{
+    // std::cerr << "declareRetrieveIotaName(" << *clock << ")" << endl;
+    if (string dsname; fDSProperty.get(clock, dsname)) {
+        return dsname;
+    }
+
+    string newdsname = gGlobal->getFreshID("DSCounter");
+    fDSProperty.set(clock, newdsname);
+
+    pushDeclare(IB::genDecStructVar(newdsname, IB::genInt32Typed()));
+    pushClearMethod(IB::genStoreStructVar(newdsname, IB::genInt32NumInst(0)));
+
+    FIRIndex value = FIRIndex(IB::genLoadStructVar(newdsname)) + 1;
+    pushPostComputeDSPMethod(IB::genStoreStructVar(newdsname, value));
+
+    return newdsname;
 }
 
 ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, ValueInst* delayidx)
@@ -2506,7 +2539,7 @@ ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, ValueIn
             int  N = pow2limit(mxd + 1);
             Tree clock;
             faustassert(hasClock(exp, clock));
-            std::string iotaname = declareRetrieveIotaName(clock);
+            string iotaname = declareRetrieveIotaName(clock);
 
             // result = subst("$0[($1-$2)&$3]", vecname, iotaname, delayidx,
             //          T(N - 1));  // idx can't be cashed as it depends of loop variable ii
@@ -2610,8 +2643,8 @@ ValueInst* InstructionsCompiler::generateDelayVecNoTemp(Tree sig, ValueInst* exp
     faustassert(mxd > 0);
 
     // We make sure to use the vector name associated with signal, or we provide one
-    std::string vecname = ensureVectorNameProperty(pname, sig);
-    bool        mono    = isSigSimpleRec(sig);
+    string vecname = ensureVectorNameProperty(pname, sig);
+    bool   mono    = isSigSimpleRec(sig);
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
     ValueInst* ccs = getConditionCode(sig);
     // DelayType  dt  = analyzeDelayType(sig);
@@ -2712,8 +2745,8 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to,
 }
 
 // for (int j = 0; j < size; j++) { v1[j+1] = v2[j]; }
-StatementInst* InstructionsCompiler::generateMove1Array(const std::string& v1,
-                                                        const std::string& v2, int size)
+StatementInst* InstructionsCompiler::generateMove1Array(const string& v1, const string& v2,
+                                                        int size)
 {
     string index = gGlobal->getFreshID("j");
 
@@ -2732,8 +2765,8 @@ StatementInst* InstructionsCompiler::generateMove1Array(const std::string& v1,
 }
 
 // for (int j = 0; j < size; j++) { v1[j] = v2[j+1]; }
-StatementInst* InstructionsCompiler::generateMove2Array(const std::string& v1,
-                                                        const std::string& v2, int size)
+StatementInst* InstructionsCompiler::generateMove2Array(const string& v1, const string& v2,
+                                                        int size)
 {
     string index = gGlobal->getFreshID("j");
 
@@ -2751,9 +2784,9 @@ StatementInst* InstructionsCompiler::generateMove2Array(const std::string& v1,
     return loop;
 }
 
-ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype,
-                                                   const std::string& vname, int mxd, int count,
-                                                   bool mono, ValueInst* exp, ValueInst* ccs)
+ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype, const string& vname,
+                                                   int mxd, int count, bool mono, ValueInst* exp,
+                                                   ValueInst* ccs)
 {
     DelayType dt = analyzeDelayType(sig);
     switch (dt) {
@@ -2916,7 +2949,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype,
         case DelayType::kSelectRingDelay:
             Tree clock;
             faustassert(hasClock(sig, clock));
-            std::string iotaname = declareRetrieveIotaName(clock);
+            string iotaname = declareRetrieveIotaName(clock);
             // std::cerr << "Use of ring buffer " << vname << " with sig = " << sig << std::endl;
 
             // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
@@ -3357,8 +3390,8 @@ ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& coefs)
             faustassert(false);
         }
 
-        // std::string csize      = T(int(coefs.size() - 1));
-        // std::string ctabledecl = subst("const $0 \t$1[$2] = $3;", ctype, ctable, csize,
+        // string csize      = T(int(coefs.size() - 1));
+        // string ctabledecl = subst("const $0 \t$1[$2] = $3;", ctype, ctable, csize,
         // coefInit);
 
         // Defined as a global static
@@ -3519,15 +3552,23 @@ ValueInst* InstructionsCompiler::generatePermVar(Tree sig, Tree x)
     // compute a perm var name
     getTypedNames(getCertifiedSigType(sig), "PermVar", ctype, name);
     // assign it to sig unless it has already a name
-    std::string pvname = ensureVectorNameProperty(name, sig);
+    string pvname = ensureVectorNameProperty(name, sig);
     // declare the perm var as a class field
     pushDeclare(IB::genLabelInst("// Perm Var"));
     pushDeclare(IB::genDecStructVar(pvname, ctype));
     // initialize it to 0
-    pushInitMethod(IB::genStoreStructVar(pvname, IB::genInt32NumInst(0)));
+    pushInitMethod(IB::genStoreStructVar(pvname, IB::genTypedZero(ctype)));
     // store the value of x in the perm var
     pushComputeDSPMethod(IB::genStoreStructVar(pvname, CS(x)));
     return IB::genLoadStructVar(pvname);
+}
+
+ValueInst* InstructionsCompiler::generateZeroPad(Tree sig, Tree x, Tree y)
+{
+    return generateCacheCode(
+        sig, IB::genSelect2Inst(IB::genEqual(IB::genRem(getCurrentLoopIndex(), FIRIndex(CS(y)) - 1),
+                                             IB::genInt32NumInst(0)),
+                                CS(x), IB::genTypedZero(genBasicFIRTyped(sig))));
 }
 
 // Ondemand: generate the code of the ondemand circuit
@@ -3559,11 +3600,11 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
         CS(x);
     }
 
-    std::cout << "opening if statement" << std::endl;
+    std::cout << "opening OD statement" << std::endl;
 
     // 3/ We then compile the clock signal and open an if statement
     // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
-    fContainer->getCurLoop()->openIFblock(CS(clock));
+    fContainer->getCurLoop()->openODblock(CS(clock));
 
     // 4/ Compute the scheduling of the output signals of the ondemand circuit
     std::vector<Tree> V = ondemandCompilationOrder(outputs);
@@ -3574,9 +3615,107 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
     }
 
     // 6/ We close the if statement
-    fContainer->getCurLoop()->closeIFblock();
+    fContainer->getCurLoop()->closeODblock();
 
-    std::cout << "closing if statement" << std::endl;
+    std::cout << "closing OD statement" << std::endl;
+
+    // 7/ There is no compiled expression
+    return IB::genNullValueInst();
+}
+
+ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
+{
+    // 1/ We extract the clock, the inputs and the outputs signals
+    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    tvec inputs;   // the input signals (coming from outside)
+    tvec outputs;  // the output signals;
+    bool inmode = true;
+    for (unsigned int i = 1; i < w.size(); i++) {
+        if (w[i] == gGlobal->nil) {
+            inmode = false;
+            continue;
+        }
+        if (inmode) {
+            inputs.push_back(w[i]);
+        } else {
+            outputs.push_back(w[i]);
+        }
+    }
+
+    std::cout << "opening upsampling statement" << std::endl;
+
+    // 2/ We  compile the clock signal and open an us statement
+    fContainer->getCurLoop()->openUSblock(CS(clock));
+
+    // 3/ We then compile the input signals unconditionnally
+    for (Tree x : inputs) {
+        ValueInst* temp = CS(x);
+        // dump2FIR(temp);
+    }
+
+    // 4/ Compute the scheduling of the output signals of the us circuit
+    std::vector<Tree> V = ondemandCompilationOrder(outputs);
+
+    // 5/ We compile the output signals conditionnally inside the us statement
+    for (Tree x : V) {
+        CS(x);
+    }
+
+    // 6/ We close the if statement
+    fContainer->getCurLoop()->closeUSblock();
+
+    std::cout << "closing upsampling statement" << std::endl;
+
+    // 7/ There is no compiled expression
+    return IB::genNullValueInst();
+}
+
+ValueInst* InstructionsCompiler::generateDS(Tree sig, const tvec& w)
+{
+    // 1/ We extract the clock, the inputs and the outputs signals
+    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    tvec inputs;   // the input signals (coming from outside)
+    tvec outputs;  // the output signals;
+    bool inmode = true;
+    for (unsigned int i = 1; i < w.size(); i++) {
+        if (w[i] == gGlobal->nil) {
+            inmode = false;
+            continue;
+        }
+        if (inmode) {
+            inputs.push_back(w[i]);
+        } else {
+            outputs.push_back(w[i]);
+        }
+    }
+
+    // 2/ We compile the input signals unconditionnally
+    for (Tree x : inputs) {
+        CS(x);
+    }
+
+    std::cout << "opening downsampling statement" << std::endl;
+
+    // 3/ We then compile the clock signal and open an ds statement
+    // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
+    fContainer->getCurLoop()->openDSblock(CS(clock), declareRetrieveDSName(clock));
+
+    // 4/ Compute the scheduling of the output signals of the ds circuit
+    std::vector<Tree> V = ondemandCompilationOrder(outputs);
+
+    // 5/ We compile the output signals conditionnally inside the ds statement
+    for (Tree x : V) {
+        CS(x);
+    }
+
+    // 6/ We close the if statement
+    fContainer->getCurLoop()->closeDSblock();
+
+    std::cout << "closing downsampling statement" << std::endl;
 
     // 7/ There is no compiled expression
     return IB::genNullValueInst();
