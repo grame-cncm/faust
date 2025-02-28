@@ -611,6 +611,12 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxOndemand(exp, body)) {
         return boxOndemand(eval(body, visited, localValEnv));
 
+    } else if (isBoxUpsampling(exp, body)) {
+        return boxUpsampling(eval(body, visited, localValEnv));
+
+    } else if (isBoxDownsampling(exp, body)) {
+        return boxDownsampling(eval(body, visited, localValEnv));
+
     } else if (isBoxSlot(exp)) {
         return exp;
 

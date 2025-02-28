@@ -241,13 +241,29 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     } else if (isSigPermVar(sig, x)) {
         vsigs.push_back(x);
         return 1;
+    } else if (isSigZeroPad(sig, x, y)) {
+        vsigs.push_back(x);
+        vsigs.push_back(y);
+        return 2;
     } else if (isSigSeq(sig, x, y)) {
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 2;
     } else if (isSigOD(sig)) {
         // TODO: check if this is correct
-        // becasue of nil used to separate
+        // because of nil used to separate
+        // inputs and outputs
+        vsigs = sig->branches();
+        return int(vsigs.size());
+    } else if (isSigUS(sig)) {
+        // TODO: check if this is correct
+        // because of nil used to separate
+        // inputs and outputs
+        vsigs = sig->branches();
+        return int(vsigs.size());
+    } else if (isSigDS(sig)) {
+        // TODO: check if this is correct
+        // because of nil used to separate
         // inputs and outputs
         vsigs = sig->branches();
         return int(vsigs.size());
