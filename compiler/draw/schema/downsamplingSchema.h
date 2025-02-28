@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2025 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,31 +19,31 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __ODSCHEMA__
-#define __ODSCHEMA__
+#ifndef __DSSCHEMA__
+#define __DSSCHEMA__
 
 #include <string>
 #include <vector>
 #include "schema.h"
 
 /**
- * Ondemand box wrapper. The constructor is private because one
- * should use the makeOndemandSchema function instead.
+ * downsampling box wrapper. The constructor is private because one
+ * should use the makeDownsamplingSchema function instead.
  */
 
-class ondemandSchema : public schema {
+class downsamplingSchema : public schema {
     static const double fTopMargin;  // gap between the top and the top of the inside schema
     static const double fHorMargin;  // left and right gap
     static const double fBotMargin;  // gap between the bottom and the bottom of the inside schema
     static const double fMinWidth;   // gap between the bottom and the bottom of the inside schema
 
-    static const std::string fText;         // Test to display, tipically "ondemand"
+    static const std::string fText;         // Test to display, tipically "downsampling"
     schema*                  fSchema;       // the schema inside the on-demand box
     std::vector<point>       fInputPoint;   // input points
     std::vector<point>       fOutputPoint;  // output points
 
    public:
-    friend schema* makeOndemandSchema(schema* s1);
+    friend schema* makeDownsamplingSchema(schema* s1);
 
     virtual void  place(double ox, double oy, int orientation);
     virtual void  draw(device& dev);
@@ -52,11 +52,11 @@ class ondemandSchema : public schema {
     virtual void  collectTraits(collector& c);
 
    private:
-    ondemandSchema(schema* s1);
+    downsamplingSchema(schema* s1);
     void drawInternalWires(device& dev);
     void collectInternalWires(collector& c);
 };
 
-schema* makeOndemandSchema(schema* s);
+schema* makeDownsamplingSchema(schema* s);
 
 #endif

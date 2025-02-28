@@ -183,7 +183,14 @@ static int computeBoxComplexity(Tree box)
         return BC(t1);
     }
 
+    // ondemand and up/down sampling
     else if (isBoxOndemand(box, t1)) {
+        return 1 + BC(t1);
+    }
+
+    else if (isBoxUpsampling(box, t1)) {
+        return 1 + BC(t1);
+    } else if (isBoxDownsampling(box, t1)) {
         return 1 + BC(t1);
     }
 

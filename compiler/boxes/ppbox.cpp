@@ -460,6 +460,14 @@ ostream& boxpp::print(ostream& fout) const
         fout << "ondemand(" << boxpp(body) << ")";
     }
 
+    else if (isBoxUpsampling(fBox, body)) {
+        fout << "upsampling(" << boxpp(body) << ")";
+    }
+
+    else if (isBoxDownsampling(fBox, body)) {
+        fout << "downsampling(" << boxpp(body) << ")";
+    }
+
     else if (isBoxModulation(fBox, ident, body)) {
         fout << "modulate(" << *(ident) << ").(" << boxpp(body) << ")";
     }

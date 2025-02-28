@@ -294,7 +294,7 @@ LIBFAUST_API bool isBoxOutputs(Tree t, Tree& x)
 }
 
 /*****************************************************************************
-                        On Demand Boxes
+ On Demand, Up/Down Sampling Boxes
 *****************************************************************************/
 
 Tree boxOndemand(Tree x)
@@ -305,6 +305,26 @@ Tree boxOndemand(Tree x)
 LIBFAUST_API bool isBoxOndemand(Tree t, Tree& x)
 {
     return isTree(t, gGlobal->BOXONDEMAND, x);
+}
+
+Tree boxUpsampling(Tree x)
+{
+    return tree(gGlobal->BOXUPSAMPLING, x);
+}
+
+LIBFAUST_API bool isBoxUpsampling(Tree t, Tree& x)
+{
+    return isTree(t, gGlobal->BOXUPSAMPLING, x);
+}
+
+Tree boxDownsampling(Tree x)
+{
+    return tree(gGlobal->BOXDOWNSAMPLING, x);
+}
+
+LIBFAUST_API bool isBoxDownsampling(Tree t, Tree& x)
+{
+    return isTree(t, gGlobal->BOXDOWNSAMPLING, x);
 }
 
 /*****************************************************************************

@@ -30,6 +30,7 @@
 #include "ppbox.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
+#include "sigIdentity.hh"
 #include "sigvisitor.hh"
 #include "simplify.hh"
 #include "xtended.hh"
@@ -276,6 +277,28 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
     else if (isBoxFConst(box, type, name, file)) {
         faustassert(lsig.size() == 0);
+
+        // Specific case for sampling rate (ma.SR)
+        string vname = string(tree2str(name));
+        if ((clockenv != gGlobal->nil) &&
+            ((vname == "fSamplingFreq") || (vname == "fSamplingRate"))) {
+            Tree adapted_sr = sigFConst(type, name, file);
+            Tree clocks     = clockenv;
+            // Unroll the stack of all US/DS to compute the adapted SR
+            do {
+                Tree sr_factor = hd(clocks);
+                Tree us_ds     = hd(tl(clocks));
+                if (us_ds == tree("Upsampling")) {
+                    adapted_sr = sigMul(adapted_sr, sr_factor);
+                } else if (us_ds == tree("Downsampling")) {
+                    adapted_sr = sigDiv(adapted_sr, sr_factor);
+                }
+                clocks = tl(tl(clocks));
+            } while (clocks != gGlobal->nil);
+
+            return makeList(simplify(adapted_sr));
+        }
+
         return makeList(sigFConst(type, name, file));
     }
 
@@ -438,7 +461,6 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // if it occurs in an ondemand
         return makeList(sigVBargraph(normalizePath(cons(label, path)), min, max,
                                      sigClocked(clockenv, lsig[0])));
-        // makeList(sigDelay1(sigClocked(clockenv, lsig[0])))
     }
 
     else if (isBoxHBargraph(box, label, min, max)) {
@@ -598,7 +620,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
     } else if (isBoxOndemand(box, t1)) {
         // std::cerr << "we are in ONDEMAND" << std::endl;
-        //  Propagate lsig into the ondemand version of circuit t1
+        // Propagate lsig into the ondemand version of circuit t1
 
         // 1/ The first signal is the clock signal
         Tree H = lsig[0];
@@ -609,10 +631,10 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
         if (double f; isSigReal(H, &f)) {
             h0 = int(f) == 0;
-            h1 = int(f) != 0;
+            h1 = int(f) == 1;
         } else if (int n; isSigInt(H, &n)) {
             h0 = n == 0;
-            h1 = n != 0;
+            h1 = n == 1;
         }
 
         // 2/ We check for trivial cases where we don't need the ondemand circuit
@@ -673,6 +695,174 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         siglist Y2;
         for (Tree y : Y1) {
             Tree y2 = sigSeq(od, y);
+            // Tree y2 = sigSeq(od, sigClocked(clockenv, y));
+            //  std::cerr << "y2 = " << ppsig(y2) << std::endl;
+            Y2.push_back(y2);
+        }
+
+        return Y2;
+
+    } else if (isBoxUpsampling(box, t1)) {
+        // std::cerr << "we are in UPSAMPLING" << std::endl;
+        // Propagate lsig into the upsampled version of circuit t1
+
+        // 1/ The first signal is the clock signal
+        Tree H = lsig[0];
+
+        // We check if the clock signal is a constant
+        bool h0 = false;  // clock signal is zero constant
+        bool h1 = false;  // clock signal is non-zero constant
+
+        if (double f; isSigReal(H, &f)) {
+            h0 = int(f) == 0;
+            h1 = int(f) == 1;
+        } else if (int n; isSigInt(H, &n)) {
+            h0 = n == 0;
+            h1 = n == 1;
+        }
+
+        // 2/ We check for trivial cases where we don't need the upsampling circuit
+        if (h0) {
+            // std::cerr
+            //     << "If the clock signal is zero, we don't need to compute the upsampling circuit"
+            //     << std::endl;
+            int n, m;
+            getBoxType(t1, &n, &m);
+            // because the cicuit is never activated, its m outputs will remain zero
+            return siglist(m, sigInt(0));
+        }
+        if (h1) {
+            // std::cerr << "If the clock signal is one, we don't need an if" << std::endl;
+            return propagate(clockenv, slotenv, path, t1, {lsig.begin() + 1, lsig.end()});
+        }
+
+        // 3/ We compute the clock environment inside the upsampling by combining the clock, the
+        // address of the circuit, and the current clock environment
+        Tree clockenv2 = cons(H, cons(tree("Upsampling"), clockenv));
+
+        // 4/ We compute X1 the inputs of the upsampling using temporary variables
+        siglist X1;
+        for (unsigned int i = 1; i < lsig.size(); i++) {
+            X1.push_back(sigTempVar(lsig[i]));
+        }
+
+        // 5/ We propagate X2, the clocked version of X1, into the upsampling circuit -> Y0
+        siglist X2;
+        for (Tree s : X1) {
+            X2.push_back(sigZeroPad(sigClocked(clockenv2, s), H));
+        }
+        siglist Y0 = propagate(clockenv2, slotenv, path, t1, X2);
+
+        // 6/ We store the Y0 output signals into perm variables -> Y1
+        siglist Y1;
+        for (unsigned int i = 0; i < Y0.size(); i++) {
+            Y1.push_back(sigPermVar(sigClocked(clockenv2, Y0[i])));
+        }
+
+        // 7/ We create on us signal that contain all the information : US = (H, X1, NIL, Y1)
+        tvec W;
+        W.push_back(H);      // the clock signal
+        for (Tree s : X1) {  // the input signals are X1
+            W.push_back(s);
+        }
+        W.push_back(gGlobal->nil);  // the output signals are Y1
+        for (Tree s : Y1) {
+            W.push_back(s);
+        }
+        // The resulting upsampled signal with all the information
+        Tree us = sigUS(W);
+        // std::cerr << "us = " << ppsig(us) << std::endl;
+
+        // 8/ Finally, we create the output signals making sure that us is computed first
+        // using sigSeq(us, y)
+        siglist Y2;
+        for (Tree y : Y1) {
+            Tree y2 = sigSeq(us, y);
+            // Tree y2 = sigSeq(us, sigClocked(clockenv, y));
+            //  std::cerr << "y2 = " << ppsig(y2) << std::endl;
+            Y2.push_back(y2);
+        }
+
+        return Y2;
+    } else if (isBoxDownsampling(box, t1)) {
+        // std::cerr << "we are in DOWNSAMPLING" << std::endl;
+        // Propagate lsig into the downsampled version of circuit t1
+
+        // 1/ The first signal is the clock signal
+        Tree H = lsig[0];
+
+        // We check if the clock signal is a constant
+        bool h0 = false;  // clock signal is zero constant
+        bool h1 = false;  // clock signal is non-zero constant
+
+        if (double f; isSigReal(H, &f)) {
+            h0 = int(f) == 0;
+            h1 = int(f) == 1;
+        } else if (int n; isSigInt(H, &n)) {
+            h0 = n == 0;
+            h1 = n == 1;
+        }
+
+        // 2/ We check for trivial cases where we don't need the downsampling circuit
+        if (h0) {
+            // std::cerr
+            //     << "If the clock signal is zero, we don't need to compute the downsampling
+            //     circuit"
+            //     << std::endl;
+            int n, m;
+            getBoxType(t1, &n, &m);
+            // because the cicuit is never activated, its m outputs will remain zero
+            return siglist(m, sigInt(0));
+        }
+        if (h1) {
+            // std::cerr << "If the clock signal is one, we don't need an if" << std::endl;
+            return propagate(clockenv, slotenv, path, t1, {lsig.begin() + 1, lsig.end()});
+        }
+
+        // 3/ We compute the clock environment inside the downsampling by combining the clock, the
+        // address of the circuit, and the current clock environment
+        Tree addr = boxPrim0((prim0)box);
+        // Tree clockenv2 = cons(H, cons(addr, clockenv));
+        Tree clockenv2 = cons(H, cons(tree("Downsampling"), clockenv));
+
+        // 4/ We compute X1 the inputs of the downsampling using temporary variables
+        siglist X1;
+        for (unsigned int i = 1; i < lsig.size(); i++) {
+            X1.push_back(sigTempVar(lsig[i]));
+        }
+
+        // 5/ We propagate X2, the clocked version of X1, into the downsampling circuit -> Y0
+        siglist X2;
+        for (Tree s : X1) {
+            X2.push_back(sigClocked(clockenv2, s));
+        }
+        siglist Y0 = propagate(clockenv2, slotenv, path, t1, X2);
+
+        // 6/ We store the Y0 output signals into perm variables -> Y1
+        siglist Y1;
+        for (unsigned int i = 0; i < Y0.size(); i++) {
+            Y1.push_back(sigPermVar(sigClocked(clockenv2, Y0[i])));
+        }
+
+        // 7/ We create on ds signal that contain all the information : DS = (H, X1, NIL, Y1)
+        tvec W;
+        W.push_back(H);      // the clock signal
+        for (Tree s : X1) {  // the input signals are X1
+            W.push_back(s);
+        }
+        W.push_back(gGlobal->nil);  // the output signals are Y1
+        for (Tree s : Y1) {
+            W.push_back(s);
+        }
+        // The resulting downsampled signal with all the information
+        Tree ds = sigDS(W);
+        // std::cerr << "ds = " << ppsig(ds) << std::endl;
+
+        // 8/ Finally, we create the output signals making sure that ds is computed first
+        // using sigSeq(ds, y)
+        siglist Y2;
+        for (Tree y : Y1) {
+            Tree y2 = sigSeq(ds, y);
             // Tree y2 = sigSeq(od, sigClocked(clockenv, y));
             //  std::cerr << "y2 = " << ppsig(y2) << std::endl;
             Y2.push_back(y2);

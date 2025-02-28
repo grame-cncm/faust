@@ -304,6 +304,26 @@ static Tree simplification(Tree sig)
             return sig;
         }
 
+        /*
+        } else if (tvec w1; isSigUS(sig, w1)) {
+            Tree t3, t4;
+            if (tvec w2; isSigDS(sig, w2)) {
+                if (w1[0] == w2[0]) {
+                    return ??;
+                }
+            }
+            return sig;
+
+        } else if (tvec w1; isSigDS(sig, w1)) {
+            Tree t3, t4;
+            if (tvec w2; isSigUS(sig, w2)) {
+                if (w1[0] == w2[0]) {
+                    return ??
+                }
+            }
+            return sig;
+        */
+
     } else if (isSigLowest(sig, t1)) {
         typeAnnotation(t1, gGlobal->gLocalCausalityCheck);
         Type ty = getCertifiedSigType(t1);

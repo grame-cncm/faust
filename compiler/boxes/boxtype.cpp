@@ -377,6 +377,26 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
             return false;
         }
 
+    } else if (isBoxUpsampling(box, a)) {
+        int u, v;
+        if (getBoxType(a, &u, &v)) {
+            *inum = u + 1;
+            *onum = v;
+            return true;
+        } else {
+            return false;
+        }
+
+    } else if (isBoxDownsampling(box, a)) {
+        int u, v;
+        if (getBoxType(a, &u, &v)) {
+            *inum = u + 1;
+            *onum = v;
+            return true;
+        } else {
+            return false;
+        }
+
     } else {
         stringstream error;
         error << "ERROR : boxType() internal error, unrecognized box expression : " << boxpp(box)
