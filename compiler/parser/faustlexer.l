@@ -203,7 +203,9 @@ NSID     {ID}("::"{ID})*
 "inputs"      return INPUTS;
 "outputs"     return OUTPUTS;
 
-"ondemand"	  return ONDEMAND;
+"ondemand"    return ONDEMAND;
+"upsampling"  return UPSAMPLING;
+"downsampling"  return DOWNSAMPLING;
 
 "import"      return IMPORT;
 "component"   return COMPONENT;
