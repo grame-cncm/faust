@@ -167,7 +167,7 @@ Obviously, the corresponding dependencies for each of them must be installed on 
 ## Documentation and Resources
 
 * `/documentation/faust-quick-reference.pdf` contains the most up-to-date documentation of Faust.
-* `/documentation/library.pdf` contains the documentation of the Faust DSP libraries.
+* `/libraries/doc/library.pdf` contains the documentation of the Faust DSP libraries.
 * The [Faust website](https://faust.grame.fr) contains useful resources around Faust.
 * The [Faust online course](https://ccrma.stanford.edu/~rmichon/faustWorkshops/course2015/) or the [Faust Hero in 2 Hours tutorial](https://ccrma.stanford.edu/~rmichon/faustTutorials/#faust-hero-in-2-hours) might be good starting points for beginners.
 * [Julius Smith's website](https://ccrma.stanford.edu/~jos) is an incredible resource on various topics around DSP and Faust.
