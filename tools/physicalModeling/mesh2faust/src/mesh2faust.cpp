@@ -208,22 +208,16 @@ std::string m2f::modal2faust(const ModalModel &model, DspGenArguments args) {
         << "nModes = " << nModes << ";\n";
     if (nExPos > 1) dsp << "nExPos = " << nExPos << ";\n";
 
-    if (args.freqControl) {
-        dsp << "modeFreqRatios(n) = ba.take(n+1,(";
-        for (int mode = 0; mode < nModes; ++mode) {
-            dsp << freqs[mode] / freqs.front();
-            if (mode < nModes - 1) dsp << ",";
-        }
-        dsp << "));\n"
-                  << "modeFreqs(mode) = freq*modeFreqRatios(mode);\n";
-    } else {
-        dsp << "modeFreqs(n) = ba.take(n+1,(";
-        for (int mode = 0; mode < nModes; ++mode) {
-            dsp << freqs[mode];
-            if (mode < nModes - 1) dsp << ",";
-        }
-        dsp << "));\n";
+    dsp << "modeFreqsUnscaled(n) = ba.take(n+1,(";
+    for (int mode = 0; mode < nModes; ++mode) {
+        dsp << freqs[mode];
+        if (mode < nModes - 1) dsp << ",";
     }
+    dsp << "));\n";
+    dsp << "modeFreqs(mode) = ";
+    if (args.freqControl) dsp << "freq*modeFreqsUnscaled(mode)/modeFreqsUnscaled(0)";
+    else dsp << "modeFreqsUnscaled(mode)";
+    dsp << ";\n";
 
     dsp << "modesGains(p,n) = waveform{";
     for (int exPos = 0; exPos < gains.size(); ++exPos) {
