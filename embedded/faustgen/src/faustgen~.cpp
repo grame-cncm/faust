@@ -317,17 +317,29 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 
 void faustgen::compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv)
 {
-    fDSPfactory->compileoptions(inlet, s, argc, argv);
+    if (m_is_mc && sys_getdspobjdspstate((t_object*)&m_ob)) {
+        post("WARNING : in multichannels mode, 'compileoptions' cannot be safely used while running !");
+    } else {
+        fDSPfactory->compileoptions(inlet, s, argc, argv);
+    }
 }
 
 void faustgen::read(long inlet, t_symbol* s)
 {
-    fDSPfactory->read(inlet, s);
+    if (m_is_mc && sys_getdspobjdspstate((t_object*)&m_ob)) {
+        post("WARNING : in multichannels mode, 'read' cannot be safely used while running !");
+    } else {
+        fDSPfactory->read(inlet, s);
+    }
 }
 
 void faustgen::write(long inlet, t_symbol* s)
 {
-    fDSPfactory->write(inlet, s);
+    if (m_is_mc && sys_getdspobjdspstate((t_object*)&m_ob)) {
+        post("WARNING : in multichannels mode, 'write' cannot be safely used while running !");
+    } else {
+        fDSPfactory->write(inlet, s);
+    }
 }
 
 void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)

@@ -557,7 +557,7 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
         post("Cannot read \"version\" key, so ignore bitcode, force recompilation and use default compileoptions");
         goto read_sourcecode;
     } else if (strcmp(faustgen_version, FAUSTGEN_VERSION) != 0) {
-        post("Older version of faustgen~ (%s versus %s), so ignore bitcode, force recompilation and use default compileoptions", FAUSTGEN_VERSION, faustgen_version);
+        post("Older version of faustgen~/mc.faustgen~ (%s versus %s), so ignore bitcode, force recompilation and use default compileoptions", FAUSTGEN_VERSION, faustgen_version);
         goto read_sourcecode;
     }
     
