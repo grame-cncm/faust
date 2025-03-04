@@ -475,7 +475,7 @@ ValueInst* InstructionsCompiler::CS(Tree sig)
 {
     ValueInst* code;
 
-#if 0
+#if 1
     fprintf(stderr, "CALL CS(");
     printSignal(sig, stderr);
     fprintf(stderr, ")\n");
@@ -851,7 +851,7 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
 
 ValueInst* InstructionsCompiler::generateCode(Tree sig)
 {
-#if 0
+#if 1
     fprintf(stderr, "CALL generateCode(");
     printSignal(sig, stderr);
     fprintf(stderr, ")\n");
