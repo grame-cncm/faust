@@ -140,8 +140,8 @@ void Loop::addPreCode(const Statement& stmt)
 #ifdef TRACE
     cerr << this << "->addExecCode " << stmt.code() << endl;
 #endif
-    if (fIFstack.size() > 0) {
-        fIFstack.top().fPreCode.push_back(stmt);
+    if (fCodeStack.size() > 0) {
+        fCodeStack.top()->fPreCode.push_back(stmt);
     } else {
         fPreCode.push_back(stmt);
     }
@@ -155,8 +155,8 @@ void Loop::addExecCode(const Statement& stmt)
 #ifdef TRACE
     cerr << this << "->addExecCode " << stmt.code() << endl;
 #endif
-    if (fIFstack.size() > 0) {
-        fIFstack.top().fExecCode.push_back(stmt);
+    if (fCodeStack.size() > 0) {
+        fCodeStack.top()->fExecCode.push_back(stmt);
     } else {
         fExecCode.push_back(stmt);
     }
@@ -170,39 +170,105 @@ void Loop::addPostCode(const Statement& stmt)
 #ifdef TRACE
     cerr << this << "->addPostCode " << stmt.code() << endl;
 #endif
-    if (fIFstack.size() > 0) {
-        fIFstack.top().fPostCode.push_front(stmt);
+    if (fCodeStack.size() > 0) {
+        fCodeStack.top()->fPostCode.push_front(stmt);
     } else {
         fPostCode.push_front(stmt);
     }
 }
 
 /**
- * Open a new IF block.
- * @param cond the condition of the IF block
+ * Open a new OD block.
+ * @param cond the condition of the OD block
  */
-void Loop::openIFblock(const string& cond)
+void Loop::openODblock(const string& od_factor)
 {
-    IFblock b;
-    b.fCond = cond;
-    fIFstack.push(b);
+    CodeODblock* b = new CodeODblock(od_factor);
+    fCodeStack.push(b);
 }
 
 /**
- * Close the current/top IF block.
+ * Close the current/top OD block.
  */
-void Loop::closeIFblock()
+void Loop::closeODblock()
 {
-    IFblock b = fIFstack.top();
-    fIFstack.pop();
-    addExecCode(Statement("", subst("if ($0) {", b.fCond)));
-    for (Statement s : b.fPreCode) {
+    CodeODblock* b = dynamic_cast<CodeODblock*>(fCodeStack.top());
+    faustassert(b);
+    fCodeStack.pop();
+
+    // addExecCode(Statement("", subst("if ($0) {", b->fODfactor)));
+    addExecCode(Statement("", subst("for (int $0=0; $0<$1; $0++) {", b->fLoopIndex, b->fODfactor)));
+    for (Statement s : b->fPreCode) {
         addExecCode(s.indent());
     }
-    for (Statement s : b.fExecCode) {
+    for (Statement s : b->fExecCode) {
         addExecCode(s.indent());
     }
-    for (Statement s : b.fPostCode) {
+    for (Statement s : b->fPostCode) {
+        addExecCode(s.indent());
+    }
+    addExecCode(Statement("", "}"));
+}
+
+/**
+ * Open a new US block.
+ * @param cond the condition of the US block
+ */
+void Loop::openUSblock(const string& us_factor)
+{
+    CodeUSblock* b = new CodeUSblock(us_factor);
+    fCodeStack.push(b);
+}
+
+/**
+ * Close the current/top US block.
+ */
+void Loop::closeUSblock()
+{
+    CodeUSblock* b = dynamic_cast<CodeUSblock*>(fCodeStack.top());
+    faustassert(b);
+    fCodeStack.pop();
+
+    addExecCode(Statement("", subst("for (int $0=0; $0<$1; $0++) {", b->fLoopIndex, b->fUSfactor)));
+    for (Statement s : b->fPreCode) {
+        addExecCode(s.indent());
+    }
+    for (Statement s : b->fExecCode) {
+        addExecCode(s.indent());
+    }
+    for (Statement s : b->fPostCode) {
+        addExecCode(s.indent());
+    }
+    addExecCode(Statement("", "}"));
+}
+
+/**
+ * Open a new DS block.
+ * @param cond the condition of the DS block
+ */
+void Loop::openDSblock(const string& ds_factor, const std::string& ds_counter)
+{
+    CodeDSblock* b = new CodeDSblock(ds_factor, ds_counter);
+    fCodeStack.push(b);
+}
+
+/**
+ * Close the current/top DS block.
+ */
+void Loop::closeDSblock()
+{
+    CodeDSblock* b = dynamic_cast<CodeDSblock*>(fCodeStack.top());
+    faustassert(b);
+    fCodeStack.pop();
+
+    addExecCode(Statement("", subst("if (($0 % $1) == 0) {", b->fDSCounter, b->fDSfactor)));
+    for (Statement s : b->fPreCode) {
+        addExecCode(s.indent());
+    }
+    for (Statement s : b->fExecCode) {
+        addExecCode(s.indent());
+    }
+    for (Statement s : b->fPostCode) {
         addExecCode(s.indent());
     }
     addExecCode(Statement("", "}"));
