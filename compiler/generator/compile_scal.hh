@@ -44,7 +44,10 @@ class ScalarCompiler : public Compiler {
     property<std::string> fCompileProperty;
     property<std::string> fSoundfileVariableProperty;  // variable associated to a soundfile
     property<std::string> fVectorProperty;
-    property<std::string> fIotaProperty;  // IOTA associated to a specific ondemand clock signal
+    // IOTA associated to a specific ondemand clock signal
+    property<std::string> fIotaProperty;
+    // Downsampling counter associated to a specific downsampling block
+    property<std::string> fDSProperty;
     property<std::pair<std::string, std::string> >
         fStaticInitProperty;  // property added to solve 20101208 kjetil bug
     property<std::pair<std::string, std::string> >
@@ -90,12 +93,14 @@ class ScalarCompiler : public Compiler {
     Tree prepare(Tree L0);
     Tree prepare2(Tree L0);
 
+    std::string getCurrentLoopIndex() { return fClass->getLoopIndex(); }
+
     bool        getCompiledExpression(Tree sig, std::string& name);
     std::string setCompiledExpression(Tree sig, const std::string& name);
 
     void        setVectorNameProperty(Tree sig, const std::string& vecname);
     bool        getVectorNameProperty(Tree sig, std::string& vecname);
-    std::string ensureVectorNameProperty(const std::string altname, Tree sig);
+    std::string ensureVectorNameProperty(const std::string& altname, Tree sig);
 
     void        conditionAnnotation(Tree l);
     void        conditionAnnotation(Tree t, Tree nc);
@@ -107,7 +112,8 @@ class ScalarCompiler : public Compiler {
     virtual std::string generateDelayAccess(Tree sig, Tree arg, Tree delay);
     std::string         generateDelayAccess(Tree sig, Tree arg, int delay);
     std::string         generateDelayAccess(Tree sig, Tree arg, std::string delayidx);
-    std::string         declareRetriveIotaName(Tree clock);
+    std::string         declareRetrieveIotaName(Tree clock);
+    std::string         declareRetrieveDSName(Tree clock);
     std::string         generatePrefix(Tree sig, Tree x, Tree e);
     std::string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 
@@ -157,7 +163,10 @@ class ScalarCompiler : public Compiler {
     // ondemand related
     std::string generateTempVar(Tree sig, Tree x);
     std::string generatePermVar(Tree sig, Tree x);
+    std::string generateZeroPad(Tree sig, Tree x, Tree y);
     std::string generateOD(Tree sig, const tvec& w);
+    std::string generateUS(Tree sig, const tvec& w);
+    std::string generateDS(Tree sig, const tvec& w);
 
     std::string generateIIRSmallExpression(const std::string& dlname, Tree sig, const tvec& coefs);
     std::string generateIIRBigExpression(const std::string& dlname, int mxd, Tree sig,

@@ -135,6 +135,8 @@ class Klass {
     void openLoop(Tree recsymbol, const std::string& size);
     void closeLoop(Tree sig);
 
+    std::string getLoopIndex() { return fTopLoop->getLoopIndex(); }
+
     void setLoopProperty(Tree sig, Loop* l);   ///< Store the loop used to compute a signal
     bool getLoopProperty(Tree sig, Loop*& l);  ///< Returns the loop used to compute a signal
     void listAllLoopProperties(
@@ -195,8 +197,15 @@ class Klass {
     void addExecCode(const Statement& stmt) { fTopLoop->addExecCode(stmt); }
     void addPostCode(const Statement& stmt) { fTopLoop->addPostCode(stmt); }
 
-    void openIFblock(const std::string& cond) { fTopLoop->openIFblock(cond); }
-    void closeIFblock() { fTopLoop->closeIFblock(); }
+    void openODblock(const std::string& od_factor) { fTopLoop->openODblock(od_factor); }
+    void closeODblock() { fTopLoop->closeODblock(); }
+    void openUSblock(const std::string& us_factor) { fTopLoop->openUSblock(us_factor); }
+    void closeUSblock() { fTopLoop->closeUSblock(); }
+    void openDSblock(const std::string& ds_factor, const std::string& ds_counter)
+    {
+        fTopLoop->openDSblock(ds_factor, ds_counter);
+    }
+    void closeDSblock() { fTopLoop->closeDSblock(); }
 
     void setComputeByBlock(bool b) { fComputeByBlock = b; }
     bool getComputeByBlock() { return fComputeByBlock; }
