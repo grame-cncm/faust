@@ -341,7 +341,7 @@ void CodeLoop::groupSeqLoops(CodeLoop* l, set<CodeLoop*>& visited)
 
 void CodeLoop::closeODblock()
 {
-    CodeODblock* b = dynamic_cast<CodeODblock*>(fCodeStack.top());
+    FIRCodeODblock* b = dynamic_cast<FIRCodeODblock*>(fCodeStack.top());
     faustassert(b);
     fCodeStack.pop();
 
@@ -364,7 +364,7 @@ void CodeLoop::closeODblock()
 
 void CodeLoop::closeUSblock()
 {
-    CodeUSblock* b = dynamic_cast<CodeUSblock*>(fCodeStack.top());
+    FIRCodeUSblock* b = dynamic_cast<FIRCodeUSblock*>(fCodeStack.top());
     faustassert(b);
     fCodeStack.pop();
 
@@ -385,7 +385,7 @@ void CodeLoop::closeUSblock()
 
 void CodeLoop::closeDSblock()
 {
-    CodeDSblock* b = dynamic_cast<CodeDSblock*>(fCodeStack.top());
+    FIRCodeDSblock* b = dynamic_cast<FIRCodeDSblock*>(fCodeStack.top());
     faustassert(b);
     fCodeStack.pop();
 
