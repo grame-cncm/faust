@@ -57,12 +57,12 @@ class CodeLoop;
 typedef std::set<CodeLoop*> lclset;
 typedef std::vector<lclset> lclgraph;
 
-struct Codeblock : public virtual Garbageable {
+struct FIRCodeblock : public virtual Garbageable {
     BlockInst* fPreInst;      ///< code to execute at the begin
     BlockInst* fComputeInst;  ///< code to execute in the loop
     BlockInst* fPostInst;     ///< code to execute at the end
                               ///<
-    Codeblock()
+    FIRCodeblock()
         : fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst())
     {
     }
@@ -71,11 +71,11 @@ struct Codeblock : public virtual Garbageable {
 /*
     Code block for ondemand loops
 */
-struct CodeODblock : public Codeblock {
+struct FIRCodeODblock : public FIRCodeblock {
     ValueInst*  fODfactor;  ///< ondemand factor
     std::string fLoopIndex;
 
-    CodeODblock(ValueInst* od_factor) : Codeblock(), fODfactor(od_factor)
+    FIRCodeODblock(ValueInst* od_factor) : FIRCodeblock(), fODfactor(od_factor)
     {
         fLoopIndex = gGlobal->getFreshID("od");
     }
@@ -84,11 +84,11 @@ struct CodeODblock : public Codeblock {
 /*
     Code block for upsampling loops
 */
-struct CodeUSblock : public Codeblock {
+struct FIRCodeUSblock : public FIRCodeblock {
     ValueInst*  fUSfactor;  ///< upsampling factor
     std::string fLoopIndex;
 
-    CodeUSblock(ValueInst* us_factor) : Codeblock(), fUSfactor(us_factor)
+    FIRCodeUSblock(ValueInst* us_factor) : FIRCodeblock(), fUSfactor(us_factor)
     {
         fLoopIndex = gGlobal->getFreshID("us");
     }
@@ -97,12 +97,12 @@ struct CodeUSblock : public Codeblock {
 /*
     Code block for downsampling blocks
 */
-struct CodeDSblock : public Codeblock {
+struct FIRCodeDSblock : public FIRCodeblock {
     ValueInst*  fDSfactor;  ///< downsampling factor
     std::string fDSCounter;
 
-    CodeDSblock(ValueInst* ds_factor, const std::string& ds_counter)
-        : Codeblock(), fDSfactor(ds_factor), fDSCounter(ds_counter)
+    FIRCodeDSblock(ValueInst* ds_factor, const std::string& ds_counter)
+        : FIRCodeblock(), fDSfactor(ds_factor), fDSCounter(ds_counter)
     {
     }
 };
@@ -124,7 +124,7 @@ class CodeLoop : public virtual Garbageable {
 
     std::string fLoopIndex;
 
-    std::stack<Codeblock*> fCodeStack;  //< stack of OD/US/DS code blocks
+    std::stack<FIRCodeblock*> fCodeStack;  //< stack of OD/US/DS code blocks
 
     int                  fUseCount;    ///< how many loops depend on this one
     std::list<CodeLoop*> fExtraLoops;  ///< extra loops that where in sequences
@@ -221,7 +221,7 @@ class CodeLoop : public virtual Garbageable {
     ValueInst* getLoopIndex()
     {
         if (fCodeStack.size() > 0) {
-            if (CodeUSblock* us_block = dynamic_cast<CodeUSblock*>(fCodeStack.top())) {
+            if (FIRCodeUSblock* us_block = dynamic_cast<FIRCodeUSblock*>(fCodeStack.top())) {
                 return IB::genLoadLoopVar(us_block->fLoopIndex);
             }
         }
@@ -261,7 +261,7 @@ class CodeLoop : public virtual Garbageable {
      */
     void openODblock(ValueInst* cond)
     {
-        CodeODblock* b = new CodeODblock(cond);
+        FIRCodeODblock* b = new FIRCodeODblock(cond);
         fCodeStack.push(b);
     }
 
@@ -276,7 +276,7 @@ class CodeLoop : public virtual Garbageable {
      */
     void openUSblock(ValueInst* us_factor)
     {
-        CodeUSblock* b = new CodeUSblock(us_factor);
+        FIRCodeUSblock* b = new FIRCodeUSblock(us_factor);
         fCodeStack.push(b);
     }
 
@@ -291,7 +291,7 @@ class CodeLoop : public virtual Garbageable {
      */
     void openDSblock(ValueInst* ds_factor, const std::string& ds_counter)
     {
-        CodeDSblock* b = new CodeDSblock(ds_factor, ds_counter);
+        FIRCodeDSblock* b = new FIRCodeDSblock(ds_factor, ds_counter);
         fCodeStack.push(b);
     }
 
