@@ -45,9 +45,10 @@ class InstructionsCompiler : public virtual Garbageable {
 
     property<ValueInst*>  fCompileProperty;
     property<std::string> fVectorProperty;
-    property<std::string> fIotaProperty;  // IOTA associated to a specific ondemand clock signal
-    property<std::string>
-        fDSProperty;  // Downsampling counter associated to a specific downsampling block
+    // IOTA associated to a specific ondemand clock signal
+    property<std::string> fIotaProperty;
+    // Downsampling counter associated to a specific downsampling block
+    property<std::string>                         fDSProperty;
     property<std::pair<std::string, std::string>> fStaticInitProperty;
     property<std::pair<std::string, std::string>> fInstanceInitProperty;
     property<std::string>                         fTableProperty;
