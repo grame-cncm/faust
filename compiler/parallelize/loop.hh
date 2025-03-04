@@ -38,11 +38,12 @@
 #include <stack>
 #include <string>
 
+#include "garbageable.hh"
+#include "global.hh"
 #include "statement.hh"
 #include "tlib.hh"
 
-struct IFblock {
-    std::string          fCond;      ///< condition of the IF block
+struct Codeblock : public virtual Garbageable {
     std::list<Statement> fPreCode;   ///< code to execute at the begin of the loop
     std::list<Statement> fExecCode;  ///< code to execute in the loop
     std::list<Statement> fPostCode;  ///< code to execute at the end of the loop
@@ -52,11 +53,41 @@ struct IFblock {
     void addPostCode(const Statement& str);  ///< add a line of C++ post code
 };
 
+struct CodeODblock : public Codeblock {
+    std::string fODfactor;  ///< ondemand factor
+    std::string fLoopIndex;
+
+    CodeODblock(const std::string& od_factor) : Codeblock(), fODfactor(od_factor)
+    {
+        fLoopIndex = gGlobal->getFreshID("od");
+    }
+};
+
+struct CodeUSblock : public Codeblock {
+    std::string fUSfactor;  ///< ondemand factor
+    std::string fLoopIndex;
+
+    CodeUSblock(const std::string& us_factor) : Codeblock(), fUSfactor(us_factor)
+    {
+        fLoopIndex = gGlobal->getFreshID("us");
+    }
+};
+
+struct CodeDSblock : public Codeblock {
+    std::string fDSfactor;  ///< ondemand factor
+    std::string fDSCounter;
+
+    CodeDSblock(const std::string& ds_factor, const std::string& ds_counter)
+        : Codeblock(), fDSfactor(ds_factor), fDSCounter(ds_counter)
+    {
+    }
+};
+
 /*
  * Loops are lines of code that correspond to a recursive expression or a vector expression.
  */
 
-struct Loop {
+struct Loop : public virtual Garbageable {
     const bool        fIsRecursive;    ///< recursive loops can't be SIMDed
     Tree              fRecSymbolSet;   ///< recursive loops define a set of recursive symbol
     Loop* const       fEnclosingLoop;  ///< Loop from which this one originated
@@ -64,10 +95,10 @@ struct Loop {
     // fields concerned by absorbsion
     std::set<Loop*> fBackwardLoopDependencies;  ///< Loops that must be computed before this one
     std::set<Loop*> fForwardLoopDependencies;   ///< Loops that will be computed after this one
-    std::list<Statement> fPreCode;              ///< code to execute at the begin of the loop
-    std::list<Statement> fExecCode;             ///< code to execute in the loop
-    std::list<Statement> fPostCode;             ///< code to execute at the end of the loop
-    std::stack<IFblock>  fIFstack;              ///< stack of IF blocks
+    std::list<Statement>   fPreCode;            ///< code to execute at the begin of the loop
+    std::list<Statement>   fExecCode;           ///< code to execute in the loop
+    std::list<Statement>   fPostCode;           ///< code to execute at the end of the loop
+    std::stack<Codeblock*> fCodeStack;          ///< stack of OD/US/DS code blocks
     // for topological sort
     int fOrder;  ///< used during topological sort
     int fIndex;  ///< used during scheduler mode code generation
@@ -89,13 +120,28 @@ struct Loop {
     void addExecCode(const Statement& str);  ///< add a line of C++ code
     void addPostCode(const Statement& str);  ///< add a line of C++ post code
 
-    void openIFblock(const std::string& cond);  ///< open an IF block
-    void closeIFblock();                        ///< close an IF block
+    void openODblock(const std::string& od_factor);  ///< open an OD block
+    void closeODblock();                             ///< close an OD block
+    void openUSblock(const std::string& us_factor);  ///< open an US block
+    void closeUSblock();                             ///< close an US block
+    void openDSblock(const std::string& ds_factor,
+                     const std::string& ds_counter);  ///< open an DS block
+    void closeDSblock();                              ///< close an DS block
 
     void println(int n, std::ostream& fout);         ///< print the loop
     void printParLoopln(int n, std::ostream& fout);  ///< print the loop with a #pragma omp loop
 
     void printoneln(int n, std::ostream& fout);  ///< print the loop in scalar mode
+
+    std::string getLoopIndex()
+    {
+        if (fCodeStack.size() > 0) {
+            if (CodeUSblock* us_block = dynamic_cast<CodeUSblock*>(fCodeStack.top())) {
+                return us_block->fLoopIndex;
+            }
+        }
+        return "i";
+    }
 
     void absorb(Loop* l);  ///< absorb a loop inside this one
     // new method
