@@ -79,6 +79,7 @@ class faustgen : public MspCpp5<faustgen> {
         SaveUI* fSavedUI;               // Save/load current value, reset to init value
     
         ::dsp* fDSP;                    // JIT compiled Faust dsp
+        int fNumOutputs = 0;            // Cached getNumOutputs value
         ::dsp* fMCDSP;                  // Multi-channels adapted
         t_object* fEditor;              // Text editor object
         bool fMute;                     // DSP mute state

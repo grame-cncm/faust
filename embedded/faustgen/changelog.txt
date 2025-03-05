@@ -7,9 +7,14 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2025
 
 ----------------------------------------------------
+Version 1.75 - 05/03/2025
+
+- more robust code in multichannels mode.
+
+----------------------------------------------------
 Version 1.74 - 02/03/2025
 
-- more robust code in multichannels mode 
+- more robust code in multichannels mode. 
 
 ----------------------------------------------------
 Version 1.73 - 24/12/2024

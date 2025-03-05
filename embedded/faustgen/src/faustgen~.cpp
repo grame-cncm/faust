@@ -124,6 +124,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
 // Called upon deleting the object inside the patcher
 faustgen::~faustgen()
 {
+    fDSPfactory->lock_audio();
     free_dsp();
     
     if (fEditor) {
@@ -133,6 +134,7 @@ faustgen::~faustgen()
     
     fDSPfactory->remove_instance(this);    
     fMidiHandler.stopMidi();
+    fDSPfactory->unlock_audio();
 }
 
 void faustgen::assist(void* b, long msg, long a, char* dst)
@@ -317,29 +319,17 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 
 void faustgen::compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv)
 {
-    if (m_is_mc && sys_getdspobjdspstate((t_object*)&m_ob)) {
-        post("WARNING : in multichannels mode, 'compileoptions' cannot be safely used while running !");
-    } else {
-        fDSPfactory->compileoptions(inlet, s, argc, argv);
-    }
+    fDSPfactory->compileoptions(inlet, s, argc, argv);
 }
 
 void faustgen::read(long inlet, t_symbol* s)
 {
-    if (m_is_mc && sys_getdspobjdspstate((t_object*)&m_ob)) {
-        post("WARNING : in multichannels mode, 'read' cannot be safely used while running !");
-    } else {
-        fDSPfactory->read(inlet, s);
-    }
+    fDSPfactory->read(inlet, s);
 }
 
 void faustgen::write(long inlet, t_symbol* s)
 {
-    if (m_is_mc && sys_getdspobjdspstate((t_object*)&m_ob)) {
-        post("WARNING : in multichannels mode, 'write' cannot be safely used while running !");
-    } else {
-        fDSPfactory->write(inlet, s);
-    }
+    fDSPfactory->write(inlet, s);
 }
 
 void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
@@ -350,6 +340,8 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
         free_dsp();
         fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
         assert(fDSP);
+        // A cached getNumOutputs value to be used in multichanneloutputs
+        fNumOutputs = fDSP->getNumOutputs();
         
         // Init all controller (UI, MIDI, Soundfile)
         init_controllers();
@@ -531,11 +523,7 @@ void faustgen::dblclick(long inlet)
             
         case 1:
             // Open the text editor to allow the user to input Faust sourcecode
-            if (m_is_mc && sys_getdspobjdspstate((t_object*)&m_ob)) {
-                post("WARNING : in multichannels mode, the editor cannot be safely used while running !");
-            } else {
-                display_dsp_source();
-            }
+            display_dsp_source();
             break;
             
         case 2:
@@ -610,7 +598,10 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
                 if (!fMCDSP) {
                     fMCDSP = new dsp_adapter(fDSP, numins, fDSP->getNumOutputs(), 4096, false);
                 }
-                fMCDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
+                // Check channel coherency
+                if (numins == fMCDSP->getNumInputs() &&  numouts == fMCDSP->getNumOutputs()) {
+                    fMCDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
+                }
             } else {
                 fDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
             }
@@ -714,6 +705,8 @@ void faustgen::create_dsp(bool init)
     {
         fDSP = fDSPfactory->create_dsp_aux();
         assert(fDSP);
+        // A cached getNumOutputs value to be used in multichanneloutputs
+        fNumOutputs = fDSP->getNumOutputs();
         
         // Init all controllers (UI, MIDI, Soundfile)
         init_controllers();
@@ -838,7 +831,8 @@ long faustgen::multichanneloutputs(long outletindex)
 {
     if (m_is_mc) {
         std::cout << "faustgen::multichanneloutputs MC " << outletindex << std::endl;
-        return (outletindex == 0) ? fDSP->getNumOutputs() : 0;
+        // A cached getNumOutputs value (since using fDSP->getNumOutputs() cannot always be used safely)
+        return (outletindex == 0) ? fNumOutputs : 0;
     } else {
         std::cout << "faustgen::multichanneloutputs DEFAULT " << outletindex << std::endl;
         return 1;
