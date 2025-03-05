@@ -340,8 +340,6 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
         free_dsp();
         fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
         assert(fDSP);
-        // A cached getNumOutputs value to be used in multichanneloutputs
-        fNumOutputs = fDSP->getNumOutputs();
         
         // Init all controller (UI, MIDI, Soundfile)
         init_controllers();
@@ -594,14 +592,13 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
         // Has to be tested again when the lock has been taken...
         if (fDSP) {
             if (m_is_mc) {
-                // Not RT but simpler...
-                if (!fMCDSP) {
+                // Not RT but simpler: adapt channel layout at first cycle or when the connected layout changes
+                if (!fMCDSP || (fMCDSP && ((numins != fMCDSP->getNumInputs() || numouts != fMCDSP->getNumOutputs())))) {
+                    delete fMCDSP;
                     fMCDSP = new dsp_adapter(fDSP, numins, fDSP->getNumOutputs(), 4096, false);
+                    std::cout << "new dsp_adapter " << numins << " " << fDSP->getNumOutputs() << std::endl;
                 }
-                // Check channel coherency
-                if (numins == fMCDSP->getNumInputs() &&  numouts == fMCDSP->getNumOutputs()) {
-                    fMCDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
-                }
+                fMCDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
             } else {
                 fDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
             }
@@ -705,8 +702,6 @@ void faustgen::create_dsp(bool init)
     {
         fDSP = fDSPfactory->create_dsp_aux();
         assert(fDSP);
-        // A cached getNumOutputs value to be used in multichanneloutputs
-        fNumOutputs = fDSP->getNumOutputs();
         
         // Init all controllers (UI, MIDI, Soundfile)
         init_controllers();
@@ -831,8 +826,7 @@ long faustgen::multichanneloutputs(long outletindex)
 {
     if (m_is_mc) {
         std::cout << "faustgen::multichanneloutputs MC " << outletindex << std::endl;
-        // A cached getNumOutputs value (since using fDSP->getNumOutputs() cannot always be used safely)
-        return (outletindex == 0) ? fNumOutputs : 0;
+        return (outletindex == 0) ? fDSP->getNumOutputs() : 0;
     } else {
         std::cout << "faustgen::multichanneloutputs DEFAULT " << outletindex << std::endl;
         return 1;
