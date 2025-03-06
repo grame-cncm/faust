@@ -64,7 +64,7 @@ struct CodeODblock : public Codeblock {
 };
 
 struct CodeUSblock : public Codeblock {
-    std::string fUSfactor;  ///< ondemand factor
+    std::string fUSfactor;  ///< upsampling factor
     std::string fLoopIndex;
 
     CodeUSblock(const std::string& us_factor) : Codeblock(), fUSfactor(us_factor)
@@ -74,8 +74,8 @@ struct CodeUSblock : public Codeblock {
 };
 
 struct CodeDSblock : public Codeblock {
-    std::string fDSfactor;  ///< ondemand factor
-    std::string fDSCounter;
+    std::string fDSfactor;   ///< downsampling factor
+    std::string fDSCounter;  ///< downsampling counter
 
     CodeDSblock(const std::string& ds_factor, const std::string& ds_counter)
         : Codeblock(), fDSfactor(ds_factor), fDSCounter(ds_counter)
