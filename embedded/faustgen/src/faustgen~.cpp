@@ -731,6 +731,8 @@ void faustgen::create_dsp(bool init)
         // Possibly restart IO
         if (dspstate) {
             dsp_status("start");
+            // To explicitly force global DSP rebuild
+            dsp_status("restart");
         }
         
         // Send JSON to JS script
@@ -794,10 +796,11 @@ void faustgen::create_jsui()
  *
  * mess : "start" or "stop" message
  */
+
+/*
 void faustgen::dsp_status(const char* mess)
 {
     t_pxobject* dac = nullptr;
-    
     if ((dac = check_dac())) {
         t_atom msg[1];
         atom_setsym(msg, gensym(mess));
@@ -805,6 +808,12 @@ void faustgen::dsp_status(const char* mess)
     } else { // Global
         object_method(gensym("dsp")->s_thing, gensym(mess));
     }
+}
+*/
+
+void faustgen::dsp_status(const char* mess)
+{
+    object_method(gensym("dsp")->s_thing, gensym(mess));
 }
 
 /**
