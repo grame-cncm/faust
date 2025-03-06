@@ -3566,9 +3566,8 @@ ValueInst* InstructionsCompiler::generatePermVar(Tree sig, Tree x)
 ValueInst* InstructionsCompiler::generateZeroPad(Tree sig, Tree x, Tree y)
 {
     return generateCacheCode(
-        sig, IB::genSelect2Inst(IB::genEqual(IB::genRem(getCurrentLoopIndex(), FIRIndex(CS(y)) - 1),
-                                             IB::genInt32NumInst(0)),
-                                CS(x), IB::genTypedZero(genBasicFIRTyped(sig))));
+        sig, IB::genSelect2Inst(IB::genEqual(getCurrentLoopIndex(), FIRIndex(CS(y)) - 1), CS(x),
+                                IB::genTypedZero(genBasicFIRTyped(sig))));
 }
 
 // Ondemand: generate the code of the ondemand circuit
