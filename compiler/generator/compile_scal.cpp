@@ -2142,8 +2142,14 @@ string ScalarCompiler::generatePermVar(Tree sig, Tree x)
 
 string ScalarCompiler::generateZeroPad(Tree sig, Tree x, Tree y)
 {
-    return generateCacheCode(
-        sig, subst("(($0 % ($1 - 1) == 0) ? $2 : 0)", getCurrentLoopIndex(), CS(y), CS(x)));
+    int i;
+    if (isSigInt(y, &i)) {
+        return generateCacheCode(sig,
+                                 subst("(($0 == $1) ? $2 : 0)", getCurrentLoopIndex(), T(i-1), CS(x)));
+    } else {
+        return generateCacheCode(
+            sig, subst("(($0 == ($1 - 1)) ? $2 : 0)", getCurrentLoopIndex(), CS(y), CS(x)));
+    }
 }
 
 // Ondemand: generate the code of the ondemand circuit
