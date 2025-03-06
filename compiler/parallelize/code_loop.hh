@@ -98,8 +98,8 @@ struct FIRCodeUSblock : public FIRCodeblock {
     Code block for downsampling blocks
 */
 struct FIRCodeDSblock : public FIRCodeblock {
-    ValueInst*  fDSfactor;  ///< downsampling factor
-    std::string fDSCounter;
+    ValueInst*  fDSfactor;   ///< downsampling factor
+    std::string fDSCounter;  ///< downsampling counter
 
     FIRCodeDSblock(ValueInst* ds_factor, const std::string& ds_counter)
         : FIRCodeblock(), fDSfactor(ds_factor), fDSCounter(ds_counter)
@@ -296,7 +296,7 @@ class CodeLoop : public virtual Garbageable {
     }
 
     /**
-     * Close the current/top US block.
+     * Close the current/top DS block.
      */
     void closeDSblock();
 
