@@ -730,8 +730,6 @@ void faustgen::create_dsp(bool init)
         
         // Possibly restart IO
         if (dspstate) {
-            // To explicitly force global DSP rebuild
-            dspchain_setbroken(dspchain_fromobject((t_object*)this));
             dsp_status("start");
         }
         
