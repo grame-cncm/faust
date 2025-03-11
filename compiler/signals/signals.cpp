@@ -626,7 +626,7 @@ LIBFAUST_API bool isSigVBargraph(Tree s, Tree& lbl, Tree& min, Tree& max, Tree& 
 
 bool isUIInputItem(Tree sig)
 {
-    Tree label, x, y, z;
+    Tree label, c, x, y, z;
     if (isSigButton(sig, label)) {
         return true;
     }
@@ -650,7 +650,7 @@ bool isUIInputItem(Tree sig)
 
 bool isUIOutputItem(Tree sig)
 {
-    Tree label, c, x, y, z;
+    Tree label, x, y, z;
     if (isSigVBargraph(sig, label, x, y, z)) {
         return true;
     }
