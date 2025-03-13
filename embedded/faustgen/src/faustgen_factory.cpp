@@ -327,7 +327,7 @@ dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     for (const auto& it : fCompileOptions) {
         argv[i++] = (char*)it.c_str();
     }
-    argv[fCompileOptions.size()] = 0;  // NULL terminated argv
+    argv[fCompileOptions.size()] = nullptr;  // NULL terminated argv
   
 #ifdef INTERP_BACKEND
     dsp_factory* factory = createInterpreterDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, error_msg);
@@ -832,9 +832,29 @@ void faustgen_factory::update_sourcecode(int size, char* source_code)
         sysmem_copyptr(source_code, *fSourceCode, size);
         fSourceCodeSize = size;
         
+        // Prepare compile options
+        string error_msg;
+        const char* argv[64];
+        assert(fCompileOptions.size() < 64);
+        int argc = 0;
+        for (const auto& it : fCompileOptions) {
+            argv[argc++] = (char*)it.c_str();
+        }
+        argv[argc++] = "-lang";
+        argv[argc++] = "codebox";
+        argv[argc++] = "-o";
+        argv[argc++] = "string";
+        argv[argc] = nullptr;  // NULL terminated argv
+        
+        // Compile codebox
+        string codebox = generateAuxFilesFromString2("Codebox", *fSourceCode, argc, argv, error_msg);
+        if (codebox == "") {
+            post("Generate codebox error : %s", error_msg.c_str());
+        }
+        
         // Update all instances
         for (const auto& it : fInstances) {
-            it->update_sourcecode();
+            it->update_sourcecode(codebox);
         }
         
     } else {

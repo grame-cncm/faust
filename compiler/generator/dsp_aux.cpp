@@ -275,6 +275,15 @@ LIBFAUST_API bool generateAuxFilesFromFile(const string& filename, int argc, con
                                       error_msg);
 }
 
+LIBFAUST_API string generateAuxFilesFromFile2(const string& filename, int argc, const char* argv[],
+                                              string& error_msg)
+{
+    string base = basename((char*)filename.c_str());
+    size_t pos  = filename.find(".dsp");
+    return generateAuxFilesFromString2(base.substr(0, pos), pathToContent(filename), argc, argv,
+                                       error_msg);
+}
+
 LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const string& dsp_content,
                                              int argc, const char* argv[], string& error_msg)
 {
@@ -290,12 +299,45 @@ LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const strin
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
 
+    // Compilation
     dsp_factory_base* factory =
         createFactory(name_app, dsp_content, argc1, argv1, error_msg, false);
+    
     // Factory is no more needed
     delete factory;
     return (factory != nullptr);
 }
+
+LIBFAUST_API string generateAuxFilesFromString2(const string& name_app, const string& dsp_content,
+                                                int argc, const char* argv[], string& error_msg)
+{
+    LOCK_API
+    int         argc1 = 0;
+    const char* argv1[64];
+    argv1[argc1++] = "faust";
+    // Filter arguments
+    for (int i = 0; i < argc; i++) {
+        if (!(strcmp(argv[i], "-vec") == 0 || strcmp(argv[i], "-sch") == 0)) {
+            argv1[argc1++] = argv[i];
+        }
+    }
+    argv1[argc1] = nullptr;  // NULL terminated argv
+    
+    // Compilation
+    dsp_factory_base* factory =
+        createFactory(name_app, dsp_content, argc1, argv1, error_msg, false);
+    
+    if (factory) {
+        // Return the result as a string
+        stringstream str;
+        factory->write(&str);
+        return str.str();
+        delete factory;
+    } else {
+        return "";
+    }
+}
+
 
 // External C libfaust API
 
