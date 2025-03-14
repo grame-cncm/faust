@@ -63,15 +63,28 @@ map<string, bool> CodeboxInstVisitor::gFunctionSymbolTable;
 
 dsp_factory_base* CodeboxCodeContainer::produceFactory()
 {
-    std::cout << "fOut " << fOut << std::endl;
+    std::cout << "fOut: " << fOut << std::endl;
+    
+    std::string outputStr;
+    
     if (fOut) {
-        std::cout << "typeid(*fOut) == typeid(ostringstream) " << (typeid(*fOut) == typeid(ostringstream)) << std::endl;
-        std::cout << " static_cast<ostringstream*>(fOut)->str() " <<  static_cast<ostringstream*>(fOut)->str() << std::endl;
+        try {
+            if (typeid(*fOut) == typeid(std::ostringstream)) {
+                outputStr = static_cast<std::ostringstream*>(fOut)->str();
+                std::cout << "static_cast<ostringstream*>(fOut)->str(): " << outputStr << std::endl;
+            } else {
+                std::cout << "fOut is not of type std::ostringstream." << std::endl;
+            }
+        } catch (const std::bad_typeid& e) {
+            std::cerr << "RTTI exception: " << e.what() << std::endl;
+                // Gérer l'erreur, par exemple en définissant outputStr à une valeur par défaut
+            outputStr = "";
+        }
+    } else {
+        std::cout << "fOut is nullptr." << std::endl;
     }
-    return new text_dsp_factory_aux(
-        fKlassName, "", "",
-        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
-        "");
+    
+    return new text_dsp_factory_aux(fKlassName, "", "", outputStr, "");
 }
 
 CodeboxCodeContainer::CodeboxCodeContainer(const string& name, int numInputs, int numOutputs,
