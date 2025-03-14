@@ -63,6 +63,11 @@ map<string, bool> CodeboxInstVisitor::gFunctionSymbolTable;
 
 dsp_factory_base* CodeboxCodeContainer::produceFactory()
 {
+    std::cout << "fOut " << fOut << std::endl;
+    if (fOut) {
+        std::cout << "typeid(*fOut) == typeid(ostringstream) " << (typeid(*fOut) == typeid(ostringstream)) << std::endl;
+        std::cout << " static_cast<ostringstream*>(fOut)->str() " <<  static_cast<ostringstream*>(fOut)->str() << std::endl;
+    }
     return new text_dsp_factory_aux(
         fKlassName, "", "",
         ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
