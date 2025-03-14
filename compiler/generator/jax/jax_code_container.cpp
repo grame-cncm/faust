@@ -64,12 +64,11 @@ dsp_factory_base* JAXCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
         "");
 }
 
-JAXCodeContainer::JAXCodeContainer(const std::string& name, int numInputs, int numOutputs,
-                                   std::ostream* out)
+JAXCodeContainer::JAXCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
@@ -307,7 +306,7 @@ void JAXCodeContainer::generateSR()
 
 // Scalar
 JAXScalarCodeContainer::JAXScalarCodeContainer(const string& name, int numInputs, int numOutputs,
-                                               std::ostream* out, int sub_container_type)
+                                               ostream* out, int sub_container_type)
     : JAXCodeContainer(name, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;

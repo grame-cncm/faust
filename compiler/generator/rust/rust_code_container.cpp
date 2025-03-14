@@ -47,7 +47,7 @@ dsp_factory_base* RustCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
         "");
 }
 
@@ -618,7 +618,7 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     *fOut << "}";
 }
 
-void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut)
+void RustCodeContainer::generateComputeHeader(int n, ostream* fOut)
 {
     // Compute "compute" declaration
     tab(n, *fOut);
@@ -636,7 +636,7 @@ void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut)
     tab(n + 1, *fOut);
 }
 
-void RustCodeContainer::generateComputeIOHeader(int n, std::ostream* fOut)
+void RustCodeContainer::generateComputeIOHeader(int n, ostream* fOut)
 {
     // Compute "compute" declaration
     tab(n, *fOut);
@@ -689,7 +689,7 @@ void RustCodeContainer::generateComputeFrame(int n)
 
 // Scalar
 RustScalarCodeContainer::RustScalarCodeContainer(const string& name, int numInputs, int numOutputs,
-                                                 std::ostream* out, int sub_container_type)
+                                                 ostream* out, int sub_container_type)
     : RustCodeContainer(name, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;
@@ -706,7 +706,7 @@ void RustScalarCodeContainer::generateCompute(int n)
     generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
-    std::vector<std::string> iterators;
+    vector<string> iterators;
     for (int i = 0; i < fNumInputs; ++i) {
         iterators.push_back("inputs" + std::to_string(i));
     }
@@ -735,8 +735,8 @@ void RustScalarCodeContainer::generateComputeIO(int n)
     generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
-    std::vector<std::string> iterators;
-    int                      num_buffers = max(fNumInputs, fNumOutputs);
+    vector<string> iterators;
+    int            num_buffers = max(fNumInputs, fNumOutputs);
     for (int i = 0; i < num_buffers; ++i) {
         iterators.push_back("ios" + std::to_string(i));
     }
@@ -753,7 +753,7 @@ void RustScalarCodeContainer::generateComputeIO(int n)
 
 // Vector
 RustVectorCodeContainer::RustVectorCodeContainer(const string& name, int numInputs, int numOutputs,
-                                                 std::ostream* out)
+                                                 ostream* out)
     : VectorCodeContainer(numInputs, numOutputs),
       RustCodeContainer(name, numInputs, numOutputs, out)
 {
@@ -805,7 +805,7 @@ BlockInst* RustVectorCodeContainer::generateDAGLoopVariant0(const string& counte
     generateDAGLoop(loop_code, IB::genLoadVarInst(
                                    IB::genNamedAddress("output0.len() as i32", Address::kStack)));
 
-    std::vector<NamedAddress*> iterators;
+    vector<NamedAddress*> iterators;
     iterators.reserve(fNumInputs + fNumOutputs);
     for (int i = 0; i < fNumInputs; ++i) {
         iterators.push_back(IB::genNamedAddress("inputs" + std::to_string(i), Address::kStack));
@@ -824,7 +824,7 @@ BlockInst* RustVectorCodeContainer::generateDAGLoopVariant0(const string& counte
 
 // OpenMP
 RustOpenMPCodeContainer::RustOpenMPCodeContainer(const string& name, int numInputs, int numOutputs,
-                                                 std::ostream* out)
+                                                 ostream* out)
     : OpenMPCodeContainer(numInputs, numOutputs),
       RustCodeContainer(name, numInputs, numOutputs, out)
 {
@@ -854,7 +854,7 @@ void RustOpenMPCodeContainer::generateCompute(int n)
 
 // Works stealing scheduler
 RustWorkStealingCodeContainer::RustWorkStealingCodeContainer(const string& name, int numInputs,
-                                                             int numOutputs, std::ostream* out)
+                                                             int numOutputs, ostream* out)
     : WSSCodeContainer(numInputs, numOutputs, "dsp"),
       RustCodeContainer(name, numInputs, numOutputs, out)
 {

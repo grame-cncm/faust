@@ -49,12 +49,12 @@ dsp_factory_base* JuliaCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
         "");
 }
 
-JuliaCodeContainer::JuliaCodeContainer(const std::string& name, int numInputs, int numOutputs,
-                                       std::ostream* out)
+JuliaCodeContainer::JuliaCodeContainer(const string& name, int numInputs, int numOutputs,
+                                       ostream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
@@ -311,7 +311,7 @@ void JuliaCodeContainer::produceMetadata(int tabs)
 
 // Scalar
 JuliaScalarCodeContainer::JuliaScalarCodeContainer(const string& name, int numInputs,
-                                                   int numOutputs, std::ostream* out,
+                                                   int numOutputs, ostream* out,
                                                    int sub_container_type)
     : JuliaCodeContainer(name, numInputs, numOutputs, out)
 {
@@ -346,7 +346,7 @@ void JuliaScalarCodeContainer::generateCompute(int n)
 
 // Vector
 JuliaVectorCodeContainer::JuliaVectorCodeContainer(const string& name, int numInputs,
-                                                   int numOutputs, std::ostream* out)
+                                                   int numOutputs, ostream* out)
     : VectorCodeContainer(numInputs, numOutputs),
       JuliaCodeContainer(name, numInputs, numOutputs, out)
 {

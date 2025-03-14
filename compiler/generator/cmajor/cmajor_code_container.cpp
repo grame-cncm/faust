@@ -42,7 +42,8 @@ dsp_factory_base* CmajorCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((static_cast<ostringstream*>(fOut)) ? static_cast<ostringstream*>(fOut)->str() : ""), "");
+        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
+        "");
 }
 
 CodeContainer* CmajorCodeContainer::createScalarContainer(const string& name,

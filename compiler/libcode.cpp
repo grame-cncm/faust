@@ -1048,7 +1048,7 @@ static void generateCodeAux2(unique_ptr<ifstream>& enrobage, unique_ptr<ostream>
         gOldComp->getClass()->printGraphDotFormat(dotfile);
     }
 
-    if (gGlobal->gOutputFile == "") {
+    if (gUseCout) {
         cout << dynamic_cast<ostringstream*>(dst.get())->str();
     }
 }

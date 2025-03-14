@@ -65,12 +65,12 @@ dsp_factory_base* CodeboxCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
         "");
 }
 
-CodeboxCodeContainer::CodeboxCodeContainer(const std::string& name, int numInputs, int numOutputs,
-                                           std::ostream* out)
+CodeboxCodeContainer::CodeboxCodeContainer(const string& name, int numInputs, int numOutputs,
+                                           ostream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
@@ -279,7 +279,7 @@ void CodeboxCodeContainer::produceClass()
 
 // Scalar
 CodeboxScalarCodeContainer::CodeboxScalarCodeContainer(const string& name, int numInputs,
-                                                       int numOutputs, std::ostream* out,
+                                                       int numOutputs, ostream* out,
                                                        int sub_container_type)
     : CodeboxCodeContainer(name, numInputs, numOutputs, out)
 {

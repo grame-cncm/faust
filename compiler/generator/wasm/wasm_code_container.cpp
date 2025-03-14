@@ -80,7 +80,8 @@ dsp_factory_base* WASMCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        ((typeid(*fOut) == typeid(std::ostringstream)) ? dynamic_cast<ostringstream*>(fOut)->str()
+                                                       : ""),
         fHelper.str());
 }
 

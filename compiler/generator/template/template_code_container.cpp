@@ -34,12 +34,12 @@ dsp_factory_base* TemplateCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
         "");
 }
 
-TemplateCodeContainer::TemplateCodeContainer(const std::string& name, int numInputs, int numOutputs,
-                                             std::ostream* out)
+TemplateCodeContainer::TemplateCodeContainer(const string& name, int numInputs, int numOutputs,
+                                             ostream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
@@ -188,7 +188,7 @@ void TemplateCodeContainer::produceMetadata(int tabs)
 
 // Scalar
 TemplateScalarCodeContainer::TemplateScalarCodeContainer(const string& name, int numInputs,
-                                                         int numOutputs, std::ostream* out,
+                                                         int numOutputs, ostream* out,
                                                          int sub_container_type)
     : TemplateCodeContainer(name, numInputs, numOutputs, out)
 {
@@ -217,7 +217,7 @@ void TemplateScalarCodeContainer::generateCompute(int n)
 
 // Vector
 TemplateVectorCodeContainer::TemplateVectorCodeContainer(const string& name, int numInputs,
-                                                         int numOutputs, std::ostream* out)
+                                                         int numOutputs, ostream* out)
     : VectorCodeContainer(numInputs, numOutputs),
       TemplateCodeContainer(name, numInputs, numOutputs, out)
 {

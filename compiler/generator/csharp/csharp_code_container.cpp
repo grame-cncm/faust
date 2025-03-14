@@ -35,7 +35,7 @@ dsp_factory_base* CSharpCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
         "");
 }
 
@@ -75,8 +75,8 @@ CodeContainer* CSharpCodeContainer::createContainer(const string& name, const st
 
 // Scalar
 CSharpScalarCodeContainer::CSharpScalarCodeContainer(const string& name, const string& super,
-                                                     int numInputs, int numOutputs,
-                                                     std::ostream* out, int sub_container_type)
+                                                     int numInputs, int numOutputs, ostream* out,
+                                                     int sub_container_type)
     : CSharpCodeContainer(name, super, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;

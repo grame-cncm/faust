@@ -34,7 +34,7 @@ dsp_factory_base* DLangCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
         "");
 }
 
@@ -408,7 +408,7 @@ void DLangCodeContainer::produceClass()
 
 // Scalar
 DLangScalarCodeContainer::DLangScalarCodeContainer(const string& name, const string& super,
-                                                   int numInputs, int numOutputs, std::ostream* out,
+                                                   int numInputs, int numOutputs, ostream* out,
                                                    int sub_container_type)
     : DLangCodeContainer(name, super, numInputs, numOutputs, out)
 {
@@ -646,7 +646,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
 
 // Vector
 DLangVectorCodeContainer::DLangVectorCodeContainer(const string& name, const string& super,
-                                                   int numInputs, int numOutputs, std::ostream* out)
+                                                   int numInputs, int numOutputs, ostream* out)
     : VectorCodeContainer(numInputs, numOutputs),
       DLangCodeContainer(name, super, numInputs, numOutputs, out)
 {

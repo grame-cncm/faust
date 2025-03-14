@@ -49,13 +49,12 @@ dsp_factory_base* CPPCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
         "");
 }
 
-CodeContainer* CPPCodeContainer::createScalarContainer(const std::string& name,
-                                                       const std::string& super, int numInputs,
-                                                       int numOutputs, ostream* dst,
+CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, const string& super,
+                                                       int numInputs, int numOutputs, ostream* dst,
                                                        int sub_container_type)
 {
     return new CPPScalarCodeContainer(name, super, numInputs, numOutputs, dst, sub_container_type);
@@ -114,7 +113,7 @@ string CPPCodeContainer::genFinal()
 
 // Scalar
 CPPScalarCodeContainer::CPPScalarCodeContainer(const string& name, const string& super,
-                                               int numInputs, int numOutputs, std::ostream* out,
+                                               int numInputs, int numOutputs, ostream* out,
                                                int sub_container_type)
     : CPPCodeContainer(name, super, numInputs, numOutputs, out)
 {
@@ -915,7 +914,7 @@ void CPPScalarCodeContainer::generateCompute(int n)
 
 // Vector
 CPPVectorCodeContainer::CPPVectorCodeContainer(const string& name, const string& super,
-                                               int numInputs, int numOutputs, std::ostream* out)
+                                               int numInputs, int numOutputs, ostream* out)
     : VectorCodeContainer(numInputs, numOutputs),
       CPPCodeContainer(name, super, numInputs, numOutputs, out)
 {
@@ -953,7 +952,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
 
 // OpenMP
 CPPOpenMPCodeContainer::CPPOpenMPCodeContainer(const string& name, const string& super,
-                                               int numInputs, int numOutputs, std::ostream* out)
+                                               int numInputs, int numOutputs, ostream* out)
     : OpenMPCodeContainer(numInputs, numOutputs),
       CPPCodeContainer(name, super, numInputs, numOutputs, out)
 {
@@ -992,7 +991,7 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
 // Works stealing scheduler
 CPPWorkStealingCodeContainer::CPPWorkStealingCodeContainer(const string& name, const string& super,
                                                            int numInputs, int numOutputs,
-                                                           std::ostream* out)
+                                                           ostream* out)
     : WSSCodeContainer(numInputs, numOutputs, "this"),
       CPPCodeContainer(name, super, numInputs, numOutputs, out)
 {

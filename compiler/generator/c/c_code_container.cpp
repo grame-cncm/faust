@@ -49,11 +49,11 @@ dsp_factory_base* CCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
         "");
 }
 
-CodeContainer* CCodeContainer::createScalarContainer(const std::string& name, int numInputs,
+CodeContainer* CCodeContainer::createScalarContainer(const string& name, int numInputs,
                                                      int numOutputs, ostream* dst,
                                                      int sub_container_type)
 {
@@ -780,7 +780,7 @@ void CCodeContainer::produceMetadata(int tabs)
 
 // Scalar
 CScalarCodeContainer::CScalarCodeContainer(const string& name, int numInputs, int numOutputs,
-                                           std::ostream* out, int sub_container_type)
+                                           ostream* out, int sub_container_type)
     : CCodeContainer(name, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;
@@ -850,7 +850,7 @@ void CScalarCodeContainer1::generateComputeAux(int n)
 
 // Vector
 CVectorCodeContainer::CVectorCodeContainer(const string& name, int numInputs, int numOutputs,
-                                           std::ostream* out)
+                                           ostream* out)
     : VectorCodeContainer(numInputs, numOutputs), CCodeContainer(name, numInputs, numOutputs, out)
 {
 }
@@ -881,7 +881,7 @@ void CVectorCodeContainer::generateComputeAux(int n)
 }
 
 CVectorCodeContainer1::CVectorCodeContainer1(const string& name, int numInputs, int numOutputs,
-                                             std::ostream* out)
+                                             ostream* out)
     : VectorCodeContainer(numInputs, numOutputs),
       CScalarCodeContainer1(name, numInputs, numOutputs, out, kInt)
 {
@@ -912,7 +912,7 @@ void CVectorCodeContainer1::generateComputeAux(int n)
 
 // OpenMP
 COpenMPCodeContainer::COpenMPCodeContainer(const string& name, int numInputs, int numOutputs,
-                                           std::ostream* out)
+                                           ostream* out)
     : OpenMPCodeContainer(numInputs, numOutputs), CCodeContainer(name, numInputs, numOutputs, out)
 {
 }
@@ -944,7 +944,7 @@ void COpenMPCodeContainer::generateComputeAux(int n)
 
 // Works stealing scheduler
 CWorkStealingCodeContainer::CWorkStealingCodeContainer(const string& name, int numInputs,
-                                                       int numOutputs, std::ostream* out)
+                                                       int numOutputs, ostream* out)
     : WSSCodeContainer(numInputs, numOutputs, "dsp"),
       CCodeContainer(name, numInputs, numOutputs, out)
 {

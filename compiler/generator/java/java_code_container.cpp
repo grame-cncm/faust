@@ -34,7 +34,7 @@ dsp_factory_base* JAVACodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
+        ((typeid(*fOut) == typeid(ostringstream)) ? static_cast<ostringstream*>(fOut)->str() : ""),
         "");
 }
 
@@ -73,7 +73,7 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
 
 // Scalar
 JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const string& super,
-                                                 int numInputs, int numOutputs, std::ostream* out,
+                                                 int numInputs, int numOutputs, ostream* out,
                                                  int sub_container_type)
     : JAVACodeContainer(name, super, numInputs, numOutputs, out)
 {
