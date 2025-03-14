@@ -470,7 +470,7 @@ static void compileC(Tree signals, int numInputs, int numOutputs, ostream* out)
 #endif
 }
 
-static void compileCodebox(Tree signals, int numInputs, int numOutputs, ostream* out)
+static void compileCodebox(Tree signals, int numInputs, int numOutputs, ostringstream* out)
 {
 #ifdef CODEBOX_BUILD
     gGlobal->gAllowForeignFunction = false;  // No foreign functions
@@ -486,8 +486,14 @@ static void compileCodebox(Tree signals, int numInputs, int numOutputs, ostream*
     // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gNeedManualPow = false;
 
+    /*
     gContainer =
         CodeboxCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    */
+    
+    gContainer =
+        CodeboxCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+    
     gNewComp = new InstructionsCompiler(gContainer);
 
     if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) {
@@ -1074,7 +1080,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     } else if (gGlobal->gOutputLang == "c") {
         compileC(signals, numInputs, numOutputs, gDst.get());
     } else if (startWith(gGlobal->gOutputLang, "codebox")) {
-        compileCodebox(signals, numInputs, numOutputs, gDst.get());
+        //compileCodebox(signals, numInputs, numOutputs, &tmp_out);
+        compileCodebox(signals, numInputs, numOutputs, nullptr);
     } else if (gGlobal->gOutputLang == "cpp") {
         compileCPP(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "ocpp") {

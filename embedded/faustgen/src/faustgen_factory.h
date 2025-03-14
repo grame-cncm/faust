@@ -43,7 +43,7 @@
 #define FAUSTGEN_VERSION "1.76"
 
 // Possibly compile with Interp backend
-#define INTERP_BACKEND
+// #define INTERP_BACKEND
 
 #ifdef INTERP_BACKEND
 #include <faust/dsp/interpreter-dsp.h>

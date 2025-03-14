@@ -65,6 +65,7 @@ dsp_factory_base* CodeboxCodeContainer::produceFactory()
 {
     std::cout << "fOut: " << fOut << std::endl;
     
+    /*
     std::string outputStr;
     
     if (fOut) {
@@ -83,12 +84,15 @@ dsp_factory_base* CodeboxCodeContainer::produceFactory()
     } else {
         std::cout << "fOut is nullptr." << std::endl;
     }
+    */
     
-    return new text_dsp_factory_aux(fKlassName, "", "", outputStr, "");
+    std::cout << "fOut->str() " << fOut->str() << std::endl;
+    
+    return new text_dsp_factory_aux(fKlassName, "", "", fOut->str(), "");
 }
 
 CodeboxCodeContainer::CodeboxCodeContainer(const string& name, int numInputs, int numOutputs,
-                                           ostream* out)
+                                           ostringstream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
@@ -108,7 +112,7 @@ CodeContainer* CodeboxCodeContainer::createScalarContainer(const string& name,
 }
 
 CodeContainer* CodeboxCodeContainer::createContainer(const string& name, int numInputs,
-                                                     int numOutputs, ostream* dst)
+                                                     int numOutputs, ostringstream* dst)
 {
     CodeContainer* container;
 
@@ -297,7 +301,7 @@ void CodeboxCodeContainer::produceClass()
 
 // Scalar
 CodeboxScalarCodeContainer::CodeboxScalarCodeContainer(const string& name, int numInputs,
-                                                       int numOutputs, ostream* out,
+                                                       int numOutputs, ostringstream* out,
                                                        int sub_container_type)
     : CodeboxCodeContainer(name, numInputs, numOutputs, out)
 {
