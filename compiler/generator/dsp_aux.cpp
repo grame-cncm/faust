@@ -302,7 +302,7 @@ LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const strin
     // Compilation
     dsp_factory_base* factory =
         createFactory(name_app, dsp_content, argc1, argv1, error_msg, false);
-    
+
     // Factory is no more needed
     delete factory;
     return (factory != nullptr);
@@ -322,11 +322,11 @@ LIBFAUST_API string generateAuxFilesFromString2(const string& name_app, const st
         }
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
-    
+
     // Compilation
     dsp_factory_base* factory =
         createFactory(name_app, dsp_content, argc1, argv1, error_msg, false);
-    
+
     if (factory) {
         // Return the result as a string
         stringstream str;
@@ -337,7 +337,6 @@ LIBFAUST_API string generateAuxFilesFromString2(const string& name_app, const st
         return "";
     }
 }
-
 
 // External C libfaust API
 

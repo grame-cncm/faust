@@ -486,9 +486,11 @@ static void compileCodebox(Tree signals, int numInputs, int numOutputs, ostream*
     // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gNeedManualPow = false;
 
-    gContainer =
-        CodeboxCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
-    gNewComp = new InstructionsCompiler(gContainer);
+    // HACK : will use the CodeboxCodeContainer internally allocated ostringstream,
+    // this to solve a weird ostream => ostringstream dynamic_cast crash when building with GitHub
+    // CI.
+    gContainer = CodeboxCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+    gNewComp   = new InstructionsCompiler(gContainer);
 
     if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) {
         gNewComp->setDescription(new Description());
@@ -1048,7 +1050,7 @@ static void generateCodeAux2(unique_ptr<ifstream>& enrobage, unique_ptr<ostream>
         gOldComp->getClass()->printGraphDotFormat(dotfile);
     }
 
-    if (gGlobal->gOutputFile == "") {
+    if (gUseCout) {
         cout << dynamic_cast<ostringstream*>(dst.get())->str();
     }
 }
