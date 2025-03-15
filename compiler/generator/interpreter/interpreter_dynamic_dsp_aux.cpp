@@ -66,21 +66,14 @@ LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromString(
             return sfactory;
         } else {
             try {
-                int         argc1 = 0;
-                const char* argv1[64];
-                argv1[argc1++] = "faust";
-                argv1[argc1++] = "-lang";
-                argv1[argc1++] = "interp";
-                argv1[argc1++] = "-o";
-                argv1[argc1++] = "string";
-                // Copy arguments
+                vector<const char*> argv1 = {"faust", "-lang", "interp", "-o", "string"};
                 for (int i = 0; i < argc; i++) {
-                    argv1[argc1++] = argv[i];
+                    argv1.push_back(argv[i]);
                 }
-                argv1[argc1] = nullptr;  // NULL terminated argv
+                argv1.push_back(nullptr);  // Null termination
 
-                dsp_factory_base* dsp_factory_aux =
-                    createFactory(name_app, dsp_content, argc1, argv1, error_msg, true);
+                dsp_factory_base* dsp_factory_aux = createFactory(
+                    name_app, dsp_content, argv1.size() - 1, argv1.data(), error_msg, true);
                 if (dsp_factory_aux) {
                     dsp_factory_aux->setName(name_app);
                     interpreter_dsp_factory* factory = new interpreter_dsp_factory(dsp_factory_aux);
@@ -104,21 +97,14 @@ LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(
 {
     LOCK_API
     try {
-        int         argc1 = 0;
-        const char* argv1[64];
-        argv1[argc1++] = "faust";
-        argv1[argc1++] = "-lang";
-        argv1[argc1++] = "interp";
-        argv1[argc1++] = "-o";
-        argv1[argc1++] = "string";
-        // Copy arguments
+        vector<const char*> argv1 = {"faust", "-lang", "interp", "-o", "string"};
         for (int i = 0; i < argc; i++) {
-            argv1[argc1++] = argv[i];
+            argv1.push_back(argv[i]);
         }
-        argv1[argc1] = nullptr;  // NULL terminated argv
+        argv1.push_back(nullptr);  // Null termination
 
         dsp_factory_base* dsp_factory_aux =
-            createFactory(name_app, signals, argc1, argv1, error_msg);
+            createFactory(name_app, signals, argv1.size() - 1, argv1.data(), error_msg);
         if (dsp_factory_aux) {
             dsp_factory_aux->setName(name_app);
             interpreter_dsp_factory* factory = new interpreter_dsp_factory(dsp_factory_aux);

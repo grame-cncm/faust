@@ -252,17 +252,16 @@ LIBFAUST_API string expandDSPFromString(const string& name_app, const string& ds
             return new_dsp_content;
         }
     } else {
-        int         argc1 = 0;
-        const char* argv1[64];
-        argv1[argc1++] = "faust";
+        vector<const char*> argv1 = {"faust"};
+        // Filter arguments (-vec and -sch)
         for (int i = 0; i < argc; i++) {
-            argv1[argc1++] = argv[i];
+            argv1.push_back(argv[i]);
         }
-        argv1[argc1] = nullptr;  // NULL terminated argv
+        argv1.push_back(nullptr);  // Null termination
 
         // 'expandDsp' adds the normalized compilation options in the DSP code before computing the
         // SHA key
-        return expandDSP(name_app, dsp_content, argc1, argv1, sha_key, error_msg);
+        return expandDSP(name_app, dsp_content, argv1.size() - 1, argv1.data(), sha_key, error_msg);
     }
 }
 
@@ -288,20 +287,19 @@ LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const strin
                                              int argc, const char* argv[], string& error_msg)
 {
     LOCK_API
-    int         argc1 = 0;
-    const char* argv1[64];
-    argv1[argc1++] = "faust";
-    // Filter arguments
+
+    vector<const char*> argv1 = {"faust"};
+    // Filter arguments (-vec and -sch)
     for (int i = 0; i < argc; i++) {
-        if (!(strcmp(argv[i], "-vec") == 0 || strcmp(argv[i], "-sch") == 0)) {
-            argv1[argc1++] = argv[i];
+        if (strcmp(argv[i], "-vec") != 0 && strcmp(argv[i], "-sch") != 0) {
+            argv1.push_back(argv[i]);
         }
     }
-    argv1[argc1] = nullptr;  // NULL terminated argv
+    argv1.push_back(nullptr);  // Null termination
 
     // Compilation
     dsp_factory_base* factory =
-        createFactory(name_app, dsp_content, argc1, argv1, error_msg, false);
+        createFactory(name_app, dsp_content, argv1.size() - 1, argv1.data(), error_msg, false);
 
     // Factory is no more needed
     delete factory;
@@ -312,27 +310,26 @@ LIBFAUST_API string generateAuxFilesFromString2(const string& name_app, const st
                                                 int argc, const char* argv[], string& error_msg)
 {
     LOCK_API
-    int         argc1 = 0;
-    const char* argv1[64];
-    argv1[argc1++] = "faust";
-    // Filter arguments
+
+    vector<const char*> argv1 = {"faust"};
+    // Filter arguments (-vec and -sch)
     for (int i = 0; i < argc; i++) {
-        if (!(strcmp(argv[i], "-vec") == 0 || strcmp(argv[i], "-sch") == 0)) {
-            argv1[argc1++] = argv[i];
+        if (strcmp(argv[i], "-vec") != 0 && strcmp(argv[i], "-sch") != 0) {
+            argv1.push_back(argv[i]);
         }
     }
-    argv1[argc1] = nullptr;  // NULL terminated argv
+    argv1.push_back(nullptr);  // Null termination
 
     // Compilation
     dsp_factory_base* factory =
-        createFactory(name_app, dsp_content, argc1, argv1, error_msg, false);
+        createFactory(name_app, dsp_content, argv1.size() - 1, argv1.data(), error_msg, false);
 
     if (factory) {
         // Return the result as a string
         stringstream str;
         factory->write(&str);
-        return str.str();
         delete factory;
+        return str.str();
     } else {
         return "";
     }

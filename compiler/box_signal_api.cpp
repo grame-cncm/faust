@@ -110,21 +110,14 @@ LIBFAUST_API string createSourceFromSignals(const string& name_app, tvec signals
                                             const string& lang, int argc, const char* argv[],
                                             string& error_msg)
 {
-    int         argc1 = 0;
-    const char* argv1[64];
-    argv1[argc1++] = "faust";
-    argv1[argc1++] = "-lang";
-    argv1[argc1++] = lang.c_str();
-    argv1[argc1++] = "-o";
-    argv1[argc1++] = "string";
-
-    // Copy arguments
+    vector<const char*> argv1 = {"faust", "-lang", lang.c_str(), "-o", "string"};
     for (int i = 0; i < argc; i++) {
-        argv1[argc1++] = argv[i];
+        argv1.push_back(argv[i]);
     }
-    argv1[argc1] = nullptr;  // NULL terminated argv
+    argv1.push_back(nullptr);  // Null termination
 
-    dsp_factory_base* factory = createFactory(name_app, signals, argc1, argv1, error_msg);
+    dsp_factory_base* factory =
+        createFactory(name_app, signals, argv1.size() - 1, argv1.data(), error_msg);
     if (factory) {
         // Print the textual class
         stringstream str;
