@@ -4,10 +4,9 @@
 #
 
 MAKE ?= make
-AR   ?= ar
 
-TMP 	?= __tmp_llvm_lib__
-OUTPUT 	?= lib/libfaustwithllvm.a
+TMP    ?= __tmp_llvm_lib__
+OUTPUT ?= lib/libfaustwithllvm.a
 
 # start to determine the current platform
 system := $(shell uname -s)
@@ -18,16 +17,23 @@ NCURSES_BACKUP1_PREFIX := /opt/homebrew/Cellar/ncurses
 NCURSES_BACKUP2_PREFIX := /opt/local
 LIBNCURSES_PATH ?= $(shell find $(NCURSES_PRIMARY_PREFIX) -name libncurses.a 2>/dev/null || find $(NCURSES_BACKUP1_PREFIX) -name libncurses.a 2>/dev/null || find $(NCURSES_BACKUP2_PREFIX) -name libncurses.a 2>/dev/null)
 
+# Use libtool instead of ar on macOS
+AR = libtool
+ARFLAGS = -static -o
+
 INPUT   := $(shell ls $(LLVM_LIB_DIR)/lib*.a | sed "s|$(LLVM_LIB_DIR)/\(lib.*\.a\)|\1|g" | tr '\n' ' ')
 SYSLIBS := -lm -lz -lcurses -lxml2
 else
-# ubuntu
+# Ubuntu or others
 LIBNCURSES_PATH ?= $(shell find /usr -name libncurses.a)
 
 LLVM_CONFIG ?= llvm-config
 INPUT := $(shell $(LLVM_CONFIG) --libnames --link-static)
 LLVM_LIB_DIR := $(shell $(LLVM_CONFIG) --libdir)
 SYSLIBS := $(shell $(LLVM_CONFIG) --system-libs)
+
+AR = ar
+ARFLAGS = rcs
 endif
 
 FOLDERS := $(INPUT:%.a=$(TMP)/%.dir) $(TMP)/libfaust.dir $(TMP)/libncurses.dir
@@ -42,7 +48,7 @@ all: $(OUTPUT)
 
 $(OUTPUT): $(FOLDERS)
 	@-[ -f $@ ] && rm -f $@ 
-	$(AR) -csr $(OUTPUT) $(TMP)/*/*.o 
+	$(AR) $(ARFLAGS) $(OUTPUT) $(TMP)/*/*.o 
 	rm -rf $(TMP)
 
 syslibs:
@@ -51,9 +57,18 @@ syslibs:
 	chmod +x $(CONFIG)
 
 ##########################################
+# Determine system for extraction handling
+
+ifeq ($(system), Darwin)
+ARCH := $(shell uname -m)
+EXTRACT = mkdir -p $@ && lipo -thin $(ARCH) $(PREFIX)$< -o $@/thin.a && cd $@ && ar -x thin.a && rm thin.a
+else
+EXTRACT = mkdir -p $@ && cd $@ && ar -x $(PREFIX)$<
+endif
+
 $(TMP)/%.dir: $(LLVM_LIB_DIR)/%.a
 	@-[ -d $@ ] && rm -rf $@ 
-	mkdir -p $@ && cd $@ && ar -x $<
+	PREFIX= $(EXTRACT)
 
 $(TMP)/libfaust.dir: lib/libfaust.a
 	@-[ -d $@ ] && rm -rf $@ 
