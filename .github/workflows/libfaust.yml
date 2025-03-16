@@ -3,7 +3,7 @@ name: libfaust
 env:
   FAUST_VERSION: 2.80.0
   FAUSTGEN_VERSION: "1.76"   
-  LLVM_PACKAGE_VERSION: "15.0.7"
+  LLVM_PACKAGE_VERSION: "18.1.8"
   CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
   LLVM_COMMIT: 8dfdcc7b7bf66834a761bd8de445840ef68e4d1a
 
@@ -149,32 +149,37 @@ jobs:
         path: libfaust-${{ matrix.name }}.zip
         if-no-files-found: error
 
+
   build-macos:
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: arm64
-            os: macos-14
-            llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-macos10.15-arm64.zip
+            os: macos-15
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
             HOST: aarch64-apple-darwin
             ENABLE_MPEG: OFF
           - name: x64
             os: macos-13
-            llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-15.0.7-macos10.15-x86_64.zip
             ARCHS: "-arch x86_64"
             CMAKE_OSX_ARCHITECTURES: x86_64
             HOST: x86_64-apple-darwin
             ENABLE_MPEG: ON
-
+   
     runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: true
+
+    - name: Checkout LLVM universal binaries (shallow)
+      run: |
+        git clone --depth 1 --filter=blob:none --sparse https://github.com/cmajor-lang/llvm.git llvm-universal
+        cd llvm-universal
+        git sparse-checkout set release/osx/universal
 
     - name: Build libmicrohttpd
       run: |
@@ -226,14 +231,6 @@ jobs:
         dir: '${{ github.workspace }}/qt_install'
         # tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
 
-    - name: Download LLVM
-      run: |
-        # Libfaust will need to link against LLVM.
-        # Since we're using an x86_64 GitHub actions runner, we're unable to build arm64 LLVM on-demand.
-        # To get around this, we download a compatible LLVM build that we've built in advance.
-        curl -L ${{ matrix.llvm-url }} -o llvm.zip
-        unzip -o llvm.zip
-
     - name: Clone Libsndfile
       uses: actions/checkout@v4
       with:
@@ -263,6 +260,17 @@ jobs:
         repository: Cycling74/max-sdk-base
         path: max-sdk-base
 
+    - name: Slim LLVM libraries
+      env:
+       CMAKE_ARCH: ${{ matrix.CMAKE_OSX_ARCHITECTURES }}
+      run: |
+        echo "Slimming LLVM universal libs to ${{matrix.CMAKE_OSX_ARCHITECTURES}}"
+        mkdir -p slim-llvm-libs
+        for lib in llvm-universal/release/osx/universal/lib/lib*.a; do
+          base=$(basename "$lib")
+          lipo "$lib" -extract $CMAKE_ARCH -output slim-llvm-libs/"$base"
+        done
+
     # - name: Clone faustlive
     #   uses: actions/checkout@v4
     #   with:
@@ -271,13 +279,15 @@ jobs:
 
     - name: Build everything
       # todo: do we need to specify the qt@5 path for PKG_CONFIG_PATH?
-      run: |
+      run: |  
         export PKG_CONFIG_PATH="$QT_ROOT_DIR/lib/pkgconfig:$PWD/libsndfile/install/lib/pkgconfig:$PWD/libmicrohttpd/libmicrohttpd/lib/pkgconfig"
-        export LLVM_DIR=$PWD/llvm/lib/cmake/llvm
-        export LLVM_LIB_DIR=$PWD/llvm/lib
-        export LLVM_INCLUDE_DIRS=$PWD/llvm/include
+     
+        export LLVM_DIR=${{ github.workspace }}/llvm-universal/release/osx/universal
+        export LLVM_LIB_DIR=$PWD/slim-llvm-libs
+        export LLVM_INCLUDE_DIRS=$LLVM_DIR/include 
+
         export LLVM_LIBS=$(ls $LLVM_LIB_DIR/lib*.a | sed "s|$LLVM_LIB_DIR/lib\(.*\)\.a|-l\1|g" | tr '\n' ' ')
-        export LLVM_LIBS="-lm -lcurses -lxml2 $LLVM_LIBS"
+        export LLVM_LIBS="-lm -lcurses -lxml2 -lz $LLVM_LIBS"
         export LLVM_LIBS="$(echo "$LLVM_LIBS" | sed 's/[[:space:]]*$//')"
         export LLVM_DEFINITIONS="-D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS"
         export LLVM_LD_FLAGS="-L$LLVM_LIB_DIR -Wl,-search_paths_first -Wl,-headerpad_max_install_names"
@@ -289,9 +299,8 @@ jobs:
         export CMAKEOPT="-DCMAKE_OSX_ARCHITECTURES="$CMAKE_OSX_ARCHITECTURES" -DCMAKE_OSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET -DCMAKE_BUILD_TYPE=Release"
         export INCLUDE_LLVM=ON
         export USE_LLVM_CONFIG=off
-
+    
         cd build
-
         make release
 
         cd Release-${{env.FAUST_VERSION}}
