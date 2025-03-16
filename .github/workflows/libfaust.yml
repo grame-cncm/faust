@@ -26,7 +26,7 @@ jobs:
       matrix:
         include:
           - name: ubuntu-x86_64
-            os: ubuntu-24.04
+            os: ubuntu-22.04
             cmake-options: >-
               -DCMAKE_BUILD_TYPE=Release
               -DCMAKE_VERBOSE_MAKEFILE=ON
@@ -44,12 +44,12 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install -y libllvm18 llvm-18 llvm-18-dev
+        sudo apt-get install -y libllvm15 llvm-15 llvm-15-dev
 
     - name: Build libfaust
       run: |
         find /usr -name llvm-config
-        export PATH="/usr/lib/llvm-18/bin:$PATH"
+        export PATH="/usr/lib/llvm-15/bin:$PATH"
         export LLVM_ROOT=$(llvm-config --prefix | tr '\n' ' ')
         echo "LLVM_ROOT: " $LLVM_ROOT
         cd build
