@@ -99,7 +99,7 @@ endfunction()
 ####################################
 # Manual LLVM scan
 macro (llvm_config)
-    if ( NOT DEFINED LLVM_CONFIG)
+    if (NOT DEFINED LLVM_CONFIG)
         set (LLVM_CONFIG llvm-config)
     endif()
     find_program (LC ${LLVM_CONFIG})
@@ -110,10 +110,14 @@ macro (llvm_config)
     string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
     message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 
-    execute_process (COMMAND ${LLVM_CONFIG} --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
-    string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
+    execute_process (COMMAND ${LLVM_CONFIG} --includedir OUTPUT_VARIABLE LLVM_INCLUDE_TMP)
+    string ( STRIP ${LLVM_INCLUDE_TMP} LLVM_INCLUDE_DIRS )
+    
     execute_process (COMMAND ${LLVM_CONFIG} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
     string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
+    
+    execute_process (COMMAND ${LLVM_CONFIG}  --libdir OUTPUT_VARIABLE LLVM_LIB_DIR_TMP)
+    string ( STRIP ${LLVM_LIB_DIR_TMP} LLVM_LIB_DIR )
     
     # Check the option to decide whether to link statically or dynamically
     if (LINK_LLVM_STATIC)
@@ -133,7 +137,6 @@ macro (llvm_config)
     
     string ( APPEND LLVM_LIBS " ${LLVM_SYS_LIBS}")
     string ( REPLACE " " ";" LLVM_LIBS ${LLVM_LIBS} )
-
 endmacro()
 
 ####################################

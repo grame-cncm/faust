@@ -120,6 +120,8 @@ if (INCLUDE_LLVM)
     message(STATUS "LLVM_INCLUDE_DIRS: ${LLVM_INCLUDE_DIRS}")
     message(STATUS "LLVM_DEFINITIONS: ${LLVM_DEFINITIONS}")
     message(STATUS "LINK_LLVM_STATIC: ${LINK_LLVM_STATIC}")
+    message(STATUS "INCLUDE_LLVM_STATIC_IN_ARCHIVE: ${INCLUDE_LLVM_STATIC_IN_ARCHIVE}")
+    
 
     # the declarations below are redundant but necessary to cope with different cmake behaviors on different platforms
     set (TMP ${SRCDIR}/generator/llvm)
@@ -251,7 +253,7 @@ if (INCLUDE_STATIC)
             set (MAKELIBCMD make -f Make.llvm.static) 
         endif()
         add_custom_command(TARGET staticlib POST_BUILD
-                   COMMAND ${MAKELIBCMD}
+                   COMMAND ${MAKELIBCMD} LLVM_LIB_DIR=${LLVM_LIB_DIR}
                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                    COMMENT "Embed LLVM static libraries with libfaust" )
     endif()

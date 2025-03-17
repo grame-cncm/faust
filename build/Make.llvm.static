@@ -61,7 +61,7 @@ syslibs:
 
 ifeq ($(system), Darwin)
 ARCH := $(shell uname -m)
-EXTRACT = mkdir -p $@ && lipo -thin $(ARCH) $(PREFIX)$< -o $@/thin.a && cd $@ && ar -x thin.a && rm thin.a
+EXTRACT = mkdir -p $@ && (lipo -info $(PREFIX)$< | grep -q 'Non-fat' && cp $(PREFIX)$< $@/thin.a || lipo -thin $(ARCH) $(PREFIX)$< -o $@/thin.a) && cd $@ && ar -x thin.a && rm thin.a
 else
 EXTRACT = mkdir -p $@ && cd $@ && ar -x $(PREFIX)$<
 endif
