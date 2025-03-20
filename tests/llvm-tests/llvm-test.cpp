@@ -133,6 +133,82 @@ static void Test(const char* dspFileAux)
     }
     
     cout << "=============================\n";
+    cout << "Test createDSPFactoryFromFile with memory manager\n";
+    {
+        struct malloc_memory_manager : public dsp_memory_manager {
+            
+            virtual void begin(size_t count)
+            {
+                cout << "malloc_memory_manager::begin count = " << count << endl;
+            }
+            
+            virtual void info(size_t size, size_t reads, size_t writes)
+            {
+                cout << "malloc_memory_manager::info size = " << size << " reads = " << reads << " writes = " << writes << endl;
+            }
+            
+            virtual void end()
+            {
+                cout << "malloc_memory_manager::end" << endl;
+            }
+            
+            virtual void* allocate(size_t size)
+            {
+                void* ptr = malloc(size);
+                cout << "malloc_manager::allocate " << size << " ptr = " << ptr << endl;
+                return ptr;
+            }
+            
+            virtual void destroy(void* ptr)
+            {
+                cout << "malloc_memory_manager::destroy ptr = " << ptr << endl;
+                free(ptr);
+            }
+        };
+    
+        vector<const char*> argv = {"-it"};
+        argv.push_back(nullptr);  // Null termination
+    
+        llvm_dsp_factory* factory = createDSPFactoryFromFile(dspFile, argv.size() - 1, argv.data(), JIT_TARGET, error_msg, -1);
+        
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+    
+        malloc_memory_manager manager;
+        factory->setMemoryManager(&manager);
+        
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        printList(factory->getLibraryList());
+        printList(factory->getIncludePathnames());
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "Cannot create instance "<< endl;
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "getName " << factory->getName() << endl;
+        cout << "getSHAKey " << factory->getSHAKey() << endl;
+        
+        cout << "Print UI parameters" << endl;
+        PrintUI print_ui;
+        DSP->buildUserInterface(&print_ui);
+        
+        dummyaudio audio(1);
+        if (!audio.init("FaustDSP", DSP)) {
+            exit(EXIT_FAILURE);
+        }
+        
+        audio.start();
+        audio.stop();
+        
+        delete DSP;
+        deleteDSPFactory(factory);
+    }
+    
+    cout << "=============================\n";
     cout << "Test createDSPFactoryFromString\n";
     {
         llvm_dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = +;", 0, NULL, JIT_TARGET, error_msg, -1);
