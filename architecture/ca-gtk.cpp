@@ -247,11 +247,6 @@ int main(int argc, char* argv[])
     cout << "OSC is on" << endl;
 #endif
     
-    if (!audio.start()) {
-        cerr << "Unable to start audio" << endl;
-        exit(1);
-    }
-    
     cout << "ins " << audio.getNumInputs() << endl;
     cout << "outs " << audio.getNumOutputs() << endl;
     
@@ -274,6 +269,11 @@ int main(int argc, char* argv[])
     
     // After the allocation of controllers
     finterface.recallState(rcfilename);
+    
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
     
     interface->run();
     
