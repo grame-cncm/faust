@@ -71,7 +71,11 @@ int main(int argc, char* argv[])
 
     dummyaudio audio(BUFFER_TO_RENDER);
     audio.init(jackname, DSP);
-    audio.start();
+    
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
     
     // Render BUFFER_TO_RENDER buffers...
     audio.stop();

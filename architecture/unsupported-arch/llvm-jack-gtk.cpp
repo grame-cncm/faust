@@ -190,8 +190,13 @@ int main(int argc, char* argv[])
 
 	jackaudio audio;
 	audio.init(appname, DSP);
-	finterface->recallState(rcfilename);	
-	audio.start();
+	finterface->recallState(rcfilename);
+    
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
+    
 	
 #ifdef OSCCTRL
 	oscinterface->run();

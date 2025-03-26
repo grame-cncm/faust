@@ -96,8 +96,13 @@ int main(int argc, char* argv[])
     if (!audio.init(filename, DSP)) {
         return 0;
     }
+    
 	finterface->recallState(rcfilename);
-	audio.start();
+    
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
 
 #ifdef HTTPCTRL
 	httpdinterface->run();

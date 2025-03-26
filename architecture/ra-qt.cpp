@@ -193,10 +193,6 @@ int main(int argc, char* argv[])
         std::cerr << "Unable to init audio" << std::endl;
         exit(1);
     }
-    if (!audio.start()) {
-        std::cerr << "Unable to start audio" << std::endl;
-        exit(1);
-    }
     
     std::cout << "ins " << audio.getNumInputs() << std::endl;
     std::cout << "outs " << audio.getNumOutputs() << std::endl;
@@ -219,6 +215,12 @@ int main(int argc, char* argv[])
     
     // After the allocation of controllers
     finterface.recallState(rcfilename);
+    
+    if (!audio.start()) {
+        std::cerr << "Unable to start audio" << std::endl;
+        exit(1);
+    }
+    
     interface.run();
     
     myApp.setStyleSheet(interface.styleSheet());

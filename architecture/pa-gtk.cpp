@@ -102,8 +102,13 @@ int main(int argc, char *argv[])
 
 	portaudio audio (srate, fpb);
 	audio.init(appname, &DSP);
+    
 	finterface->recallState(rcfilename);
-	audio.start();
+    
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
 
 #ifdef OSCCTRL
 	oscinterface->run();
