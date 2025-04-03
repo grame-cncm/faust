@@ -1,8 +1,8 @@
 export TMPDIR=$(mktemp -d)
-for sig in SIGTERM ERR EXIT; do trap "_term ${sig}" ${sig}; done
+trap "_term" EXIT; done
 _term() {
-  trap "" SIGTERM ERR EXIT
-  declare -F "disconnectStratus" > /dev/null && disconnectStratus
+  trap "" EXIT
+  command -v "disconnectStratus" > /dev/null && disconnectStratus
   rm -rf ${TMPDIR}
   exit 0
 }

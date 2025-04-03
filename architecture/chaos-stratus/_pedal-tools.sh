@@ -2,7 +2,7 @@
 
 setEnv() {
     isOnStratus() {
-        if [ "$(uname -nm)" == "stratus armv7l" ]; then 
+        if [ "$(uname -nm)" = "stratus armv7l" ]; then 
             ON_STRATUS="true"
         else
             unset ON_STRATUS
@@ -35,10 +35,10 @@ setEnv() {
             true
         else
             # Intel
-            LOCAL_GCCFLAGS+=" -march=native"
+            LOCAL_GCCFLAGS="$LOCAL_GCCFLAGS -march=native"
         fi
     else                                        # for Linux (Intel)
-        LOCAL_GCCFLAGS+=" -march=native"
+        LOCAL_GCCFLAGS="$LOCAL_GCCFLAGS -march=native"
     fi
 
     : ${CXX:=g++}
@@ -53,7 +53,7 @@ setEnv() {
 setEnv
 
 pedalBuild() {
-    if [ "$1" == "-nodocker" ]; then
+    if [ "$1" = "-nodocker" ]; then
         local _NO_DOCKER="$1"
         shift
     fi
@@ -78,7 +78,7 @@ pedalInstall() {
 # Disconnect from the pedal if we are connected
 #
 disconnectStratus() {
-    [ "${STRATUS_CONNECTED}" == "true" ] && ssh -F "${SSH_CFG}" -S "${SSH_SOCKET}" -O exit "${STRATUS_ADDR}" >/dev/null 2>&1
+    [ "${STRATUS_CONNECTED}" = "true" ] && ssh -F "${SSH_CFG}" -S "${SSH_SOCKET}" -O exit "${STRATUS_ADDR}" >/dev/null 2>&1
     unset STRATUS_CONNECTED
     [ -f "${SSH_CFG}" ] && rm -f "${SSH_CFG}"
     [ -f "${SSH_SOCKET}" ] && rm -f "${SSH_SOCKET}"
@@ -88,7 +88,7 @@ disconnectStratus() {
 # Connect to the pedal if we are not connected
 #
 connectStratus() {
-    [ "${STRATUS_CONNECTED}" == "true" ] && return 0
+    [ "${STRATUS_CONNECTED}" = "true" ] && return 0
 
     # Create a temporary SSH config file:
     cat > "${SSH_CFG}" <<ENDCFG
@@ -121,7 +121,7 @@ buildLocal() {
     (
         ${CXX} ${CXXFLAGS} ${LOCAL_GCCFLAGS} "${EFFECT_CPP}" -o "${EFFECT_SO}"
         local RC=$?
-        if [ ${RC} -eq 0 -a "$(uname)" == "Darwin" ]; then
+        if [ ${RC} -eq 0 -a "$(uname)" = "Darwin" ]; then
             codesign --sign - --deep --force "${EFFECT_SO}"
             RC=$?
         fi
@@ -153,7 +153,7 @@ setEnv
 buildLocal "${EFFECT_CPP_NAME}" "${EFFECT_SO_NAME}" || { echo "failed to build ${EFFECT_SO_NAME}"; exit 1; }
 chown "$(id -u):$(id -g)" "${EFFECT_SO_NAME}"
 ENDSSH
-    [ $? == 0 ] || return 1
+    [ $? -eq 0 ] || return 1
 
     scp -F "${SSH_CFG}" "${STRATUS_USER}@${STRATUS_ADDR}:/tmp/${EFFECT_SO_NAME}" "${EFFECT_SO}" > /dev/null
 }
@@ -236,9 +236,9 @@ ENDSSH
 setIDandVersion() {
     unset EFFECT_VERSION EFFECT_ID
     local EFFECT_SRC="${1:?setIDandVersion: First argument must be a DSP or CPP file}"
-    if [ "${EFFECT_SRC##*.}" == "cpp" ]; then
+    if [ "${EFFECT_SRC##*.}" = "cpp" ]; then
         _id_version_cpp "${EFFECT_SRC}"
-    elif [ "${EFFECT_SRC##*.}" == "dsp" ]; then
+    elif [ "${EFFECT_SRC##*.}" = "dsp" ]; then
         _id_version_dsp "${EFFECT_SRC}"
     fi
 }
