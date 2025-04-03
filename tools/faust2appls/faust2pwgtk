@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to PIPEWIRE-GTK             #
-#               (c) Grame, 2009-2019                                #
+#               (c) Grame, 2025                                     #
 #                                                                   #
 #####################################################################
 
@@ -41,7 +41,7 @@ echoHelp()
 {
     usage faust2pipewire "[options] [Faust options] <file.dsp>"
     platform Linux
-    require Jack
+    require Pipewire
     echo "Compiles Faust programs to Pipewire and GTK"
     option
     options -httpd -osc -midi -soundfile -dyn
@@ -177,4 +177,3 @@ EndOfCode
 done
 
 echo $BINARIES
-

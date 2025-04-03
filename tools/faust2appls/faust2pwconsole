@@ -2,8 +2,8 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to Pipewire-console         #
-#               (c) Grame, 2009-2018                                #
+#               Compiles Faust programs to PIPEWIRE-console         #
+#               (c) Grame, 2025                                     #
 #                                                                   #
 #####################################################################
 
@@ -13,7 +13,7 @@
 
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
-ARCHFILE=$FAUSTARCH/pw-console.cpp
+ARCHFILE=$FAUSTARCH/pipewire-console.cpp
 
 OSCDEFS=""
 NVOICES=-1
@@ -32,7 +32,7 @@ fi
 echoHelp()
 {
     usage faust2pwconsole "[options] [Faust options] <file.dsp>"
-    require Jack
+    require Pipewire
     echo "Compiles Faust programs to CLI and PIPEWIRE"
     option
     options -httpd -osc -midi -soundfile
