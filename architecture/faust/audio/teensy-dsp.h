@@ -63,7 +63,7 @@ class teensyaudio : public AudioStream, public audio {
         float** fInChannel;
         float** fOutChannel;
         bool fRunning;
-        dsp* fDSP;
+        ::dsp* fDSP;
     
         template <int INPUTS, int OUTPUTS>
         void updateImp()
@@ -105,7 +105,7 @@ class teensyaudio : public AudioStream, public audio {
     
     public:
     
-        teensyaudio():AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_INPUTS]), fRunning(false), fDSP(NULL)
+        teensyaudio():AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_INPUTS]), fRunning(false), fDSP(nullptr)
         {}
     
         virtual ~teensyaudio()
@@ -120,7 +120,7 @@ class teensyaudio : public AudioStream, public audio {
             delete [] fOutChannel;
         }
 
-        virtual bool init(const char* name, dsp* dsp)
+        virtual bool init(const char* name, ::dsp* dsp)
         {
             fDSP = dsp;
             fDSP->init(AUDIO_SAMPLE_RATE_EXACT);

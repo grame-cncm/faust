@@ -181,11 +181,15 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     destroyDspFun    fDestroy;
     initFun          fInstanceConstants;
     instanceClearFun fInstanceClear;
-    classInitFun     fClassInit;
-    computeFun       fCompute;
-    getJSONFun       fGetJSON;
+    // fClassInit in used in default compilation mode
+    classInitFun fClassInit;
+    // fStaticInit in used in -it compilation mode
+    staticInitFun fStaticInit;
+    computeFun    fCompute;
+    getJSONFun    fGetJSON;
 
-    uint64_t loadOptimize(const std::string& function);
+    // Returns the function address or 0
+    uint64_t loadOptimize(const std::string& function, bool strict = true);
 
     void init(const std::string& dsp_name, const std::string& type_name);
 
@@ -305,7 +309,12 @@ class LIBFAUST_API llvm_dsp_factory : public dsp_factory, public faust_smartable
 
     llvm_dsp* createDSPInstance();
 
-    void classInit(int sample_rate) { fFactory->fClassInit(sample_rate); }
+    void classInit(int sample_rate)
+    {
+        if (fFactory->fClassInit) {
+            fFactory->fClassInit(sample_rate);
+        }
+    }
 
     void setMemoryManager(dsp_memory_manager* manager) { fFactory->setMemoryManager(manager); }
     dsp_memory_manager* getMemoryManager() { return fFactory->getMemoryManager(); }

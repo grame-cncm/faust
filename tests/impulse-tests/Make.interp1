@@ -69,10 +69,10 @@ ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
 # Specific rule to test 'enable/control' primitives that currently only work in scalar mode
 ir/$(outdir)/osc_enable.fbc: dsp/osc_enable.dsp 
 	@echo "Can only be tested in scalar mode"
-	cd $(dir $<); $(FAUST) -lang interp $(notdir $<) -I dsp -double > ../$@ || (rm -f ../$@; false)
+	cd $(dir $<); $(FAUST) -lang interp $(notdir $<) -double > ../$@ || (rm -f ../$@; false)
 
 ir/$(outdir)/%.fbc: dsp/%.dsp 
-	cd $(dir $<); $(FAUST) -lang interp $(notdir $<) -I dsp -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
+	cd $(dir $<); $(FAUST) -lang interp $(notdir $<) -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 
 ir/$(outdir)/%.ir: ir/$(outdir)/%.fbc reference/%.ir
 	./impulseinterp1 $< > $@ || (rm -f ../$@; false)

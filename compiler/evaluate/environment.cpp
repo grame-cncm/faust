@@ -167,7 +167,7 @@ bool searchIdDef(Tree id, Tree& def, Tree lenv)
  */
 static void updateClosures(vector<Tree>& clos, Tree oldEnv, Tree newEnv)
 {
-    for (unsigned int i = 0; i < clos.size(); i++) {
+    for (size_t i = 0; i < clos.size(); i++) {
         Tree exp, genv, visited, lenv;
         if (isClosure(clos[i], exp, genv, visited, lenv)) {
             if (lenv == oldEnv) {

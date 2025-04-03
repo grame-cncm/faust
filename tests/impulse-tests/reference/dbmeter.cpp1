@@ -1,0 +1,111 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "dbmeter"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "dbmeter.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "dbmeter");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 8; }
+	virtual int getNumOutputs() { return 8; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("dbmeter");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
+			FAUSTFLOAT* input4 = &input[4][index]; // Zone 3
+			FAUSTFLOAT* input5 = &input[5][index]; // Zone 3
+			FAUSTFLOAT* input6 = &input[6][index]; // Zone 3
+			FAUSTFLOAT* input7 = &input[7][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+			for (int i=0; i<count; i++) {
+				output0[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+				output5[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+				output6[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+				output7[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+			}
+		}
+	}
+};
+
+

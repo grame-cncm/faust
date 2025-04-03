@@ -98,7 +98,7 @@ static Tree subtree(Tree X, int i, const Path& p)
 
 struct Rule : public virtual Garbageable {
     int  r;   // rule number
-    Tree id;  // matched variable (NULL if none)
+    Tree id;  // matched variable (nullptr if none)
     Path p;   // subterm path indicating where variable value is found
 
     Rule(int _r, Tree _id) : r(_r), id(_id), p(Path()) {}
@@ -126,7 +126,7 @@ struct State;
 /* transitions */
 
 struct Trans : public virtual Garbageable {
-    Tree   x;      // symbol or constant (NULL for variable)
+    Tree   x;      // symbol or constant (nullptr for variable)
     Node   n;      // operator symbol (if arity>0)
     int    arity;  // symbol arity
     State* state;  // successor state
@@ -138,11 +138,11 @@ struct Trans : public virtual Garbageable {
 
     Trans& operator=(const Trans& trans);
 
-    bool is_var_trans() const { return arity == 0 && x == NULL; }
+    bool is_var_trans() const { return arity == 0 && x == nullptr; }
     bool is_cst_trans(Tree& _x) const
     {
         _x = x;
-        return arity == 0 && x != NULL;
+        return arity == 0 && x != nullptr;
     }
     bool is_op_trans(Node& _n) const
     {
@@ -158,7 +158,7 @@ struct Trans : public virtual Garbageable {
     {
         return (arity < trans.arity)   ? 1
                : (arity > trans.arity) ? 0
-               : (arity == 0)          ? (x < trans.x)
+               : (arity == 0)          ? (x->serial() < trans.x->serial())
                                        : (n.getSym() < trans.n.getSym());
     }
 
@@ -200,7 +200,7 @@ Trans::Trans(Tree _x) : x(_x), n(0), arity(0), state(new State)
 {
 }
 
-Trans::Trans(const Node& _n, int _arity) : x(NULL), n(_n), arity(_arity), state(new State)
+Trans::Trans(const Node& _n, int _arity) : x(nullptr), n(_n), arity(_arity), state(new State)
 {
 }
 
@@ -286,7 +286,7 @@ inline ostream& operator<<(ostream& s, const Automaton& x)
 
 ostream& Rule::print(ostream& fout) const
 {
-    if (id != NULL) {
+    if (id != nullptr) {
         fout << "#" << r << "(" << *id << ")";
     } else {
         fout << "#" << r;
@@ -298,7 +298,7 @@ ostream& Trans::print(ostream& fout) const
 {
     if (arity > 0) {
         fout << "\top  " << n << ": state " << state->s << endl;
-    } else if (x == NULL) {
+    } else if (x == nullptr) {
         fout << "\tvar _: state " << state->s << endl;
     } else {
         fout << "\tcst " << *x << ": state " << state->s << endl;
@@ -359,12 +359,12 @@ static State* make_state(State* state, int r, Tree x, Path& p)
         /* variable */
         Rule rule(r, id, p);
         state->rules.push_back(rule);
-        Trans trans(NULL);
+        Trans trans(nullptr);
         state->trans.push_back(trans);
         return state->trans.begin()->state;
     } else if (isBoxPatternOp(x, op, x0, x1)) {
         /* composite pattern */
-        Rule rule(r, NULL);
+        Rule rule(r, nullptr);
         state->rules.push_back(rule);
         Trans trans(op, 2);
         state->trans.push_back(trans);
@@ -378,7 +378,7 @@ static State* make_state(State* state, int r, Tree x, Path& p)
         return next;
     } else {
         /* constant */
-        Rule rule(r, NULL);
+        Rule rule(r, nullptr);
         state->rules.push_back(rule);
         Trans trans(x);
         state->trans.push_back(trans);
@@ -396,13 +396,13 @@ static State* make_var_state(int n, State* state)
     list<Rule>           rules = state->rules;
     list<Rule>::iterator r;
     for (r = rules.begin(); r != rules.end(); r++) {
-        r->id = NULL;
+        r->id = nullptr;
         r->p  = Path();
     }
     State *prefix = new State, *current = prefix;
     while (n-- > 0) {
         current->rules = rules;
-        Trans trans(NULL);
+        Trans trans(nullptr);
         current->trans.push_back(trans);
         current = current->trans.begin()->state;
     }
@@ -428,7 +428,7 @@ static void merge_trans_var(list<Trans>& trans, State* state)
     if (!trans.begin()->is_var_trans()) {
         /* If we don't have a variable transition in this state yet then create a
            new one. */
-        Trans tr(NULL);
+        Trans tr(nullptr);
         trans.push_front(tr);
     }
     list<Trans>::const_iterator t;
@@ -460,7 +460,7 @@ static void merge_trans_cst(list<Trans>& trans, Tree x, State* state)
             if (x == x1) {
                 merge_state(t->state, state);
                 return;
-            } else if (x < x1) {
+            } else if (x->serial() < x1->serial()) {
                 break;
             }
         }
@@ -555,7 +555,7 @@ Automaton* make_pattern_matcher(Tree R)
     int                   n = len(R), r = n;
     State*                start = new State;
     Tree                  rule, rest;
-    vector<Tree>          rules(n, (Tree)NULL);
+    vector<Tree>          rules(n, (Tree) nullptr);
     vector<vector<Tree> > testpats(n);
     while (isCons(R, rule, rest)) {
         rules[--r] = rule;
@@ -566,7 +566,7 @@ Automaton* make_pattern_matcher(Tree R)
         if (isCons(rules[r], lhs, rhs)) {
             Tree         pat, rest1;
             int          m = len(lhs), i = m;
-            vector<Tree> pats(len(lhs), (Tree)NULL);
+            vector<Tree> pats(len(lhs), (Tree) nullptr);
             State *      state0 = new State, *state = state0;
             A->rhs.push_back(rhs);
             while (isCons(lhs, pat, rest1)) {
@@ -578,7 +578,7 @@ Automaton* make_pattern_matcher(Tree R)
                 Path p;
                 state = make_state(state, r, pats[i], p);
             }
-            Rule rule1(r, NULL);
+            Rule rule1(r, nullptr);
             state->rules.push_back(rule1);
             merge_state(start, state0);
         }
@@ -650,7 +650,7 @@ static void add_subst(vector<Subst>& subst, Automaton* A, int s)
     list<Rule>                 rules = A->rules(s);
     list<Rule>::const_iterator r;
     for (r = rules.begin(); r != rules.end(); r++) {
-        if (r->id != NULL) {
+        if (r->id != nullptr) {
             subst[r->r].push_back(Assoc(r->id, r->p));
         }
     }

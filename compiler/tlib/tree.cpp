@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2024 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -81,6 +81,7 @@ storage of trees.
 #include <fstream>
 
 #include "exception.hh"
+#include "global.hh"
 #include "tree.hh"
 
 using namespace std;
@@ -117,24 +118,14 @@ CTree::CTree(size_t hk, const Node& n, const tvec& br)
     gHashTable[j] = this;
 }
 
-// Destructor : remove the tree from the hash table
+// Destructor
 CTree::~CTree()
 {
-    int  i = fHashKey % kHashTableSize;
-    Tree t = gHashTable[i];
-
-    // printf("Delete of "); this->print(); printf("\n");
-    if (t == this) {
-        gHashTable[i] = fNext;
-    } else {
-        Tree p = nullptr;
-        while (t != this) {
-            p = t;
-            t = t->fNext;
-        }
-        faustassert(p);
-        p->fNext = fNext;
-    }
+    /*
+     Remove the tree from the hash table is not needed
+     since all pointers are either managed using the Garbageable model
+     or with CDTree "successive pointers" allocation model.
+     */
 }
 
 // equivalence
@@ -145,23 +136,17 @@ bool CTree::equiv(const Node& n, const tvec& br) const
 
 size_t CTree::calcTreeHash(const Node& n, const tvec& br)
 {
-    size_t               hk = size_t(n.getPointer());
-    tvec::const_iterator b  = br.begin();
-    tvec::const_iterator z  = br.end();
-
-    while (b != z) {
-        hk = (hk << 1) ^ (hk >> 20) ^ ((*b)->fHashKey);
-        ++b;
+    size_t hk = std::hash<void*>()(n.getPointer());
+    for (const auto& ptr : br) {
+        // Taken from by boost::hash_combine
+        hk = hk ^ (ptr->fHashKey + 0x9e3779b9 + (hk << 6) + (hk >> 2));
     }
     return hk;
 }
 
-Tree CTree::make(const Node& n, int ar, Tree* tbl)
+Tree CTree::make(const Node& n, int ar, Tree tbl[])
 {
-    tvec br(ar);
-    for (int i = 0; i < ar; i++) {
-        br[i] = tbl[i];
-    }
+    vector<Tree> br(tbl, tbl + ar);
     return CTree::make(n, br);
 }
 
@@ -173,7 +158,12 @@ Tree CTree::make(const Node& n, const tvec& br)
     while (t && !t->equiv(n, br)) {
         t = t->fNext;
     }
-    return (t) ? t : new CTree(hk, n, br);
+
+    if (t) {
+        return t;
+    } else {
+        return new CTree(hk, n, br);
+    }
 }
 
 ostream& CTree::print(ostream& fout) const
@@ -360,7 +350,7 @@ LIBFAUST_API void* getUserData(Tree t)
     if (isSym(t->node(), &s)) {
         return getUserData(s);
     } else {
-        return 0;
+        return nullptr;
     }
 }
 
@@ -370,8 +360,8 @@ LIBFAUST_API void* getUserData(Tree t)
  */
 void CTree::exportProperties(vector<Tree>& keys, vector<Tree>& values)
 {
-    for (plist::const_iterator p = fProperties.begin(); p != fProperties.end(); p++) {
-        keys.push_back(p->first);
-        values.push_back(p->second);
+    for (const auto& it : fProperties) {
+        keys.push_back(it.first);
+        values.push_back(it.second);
     }
 }

@@ -1,0 +1,157 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to Miniaudio-GTK            #
+#               (c) Grame, 2024                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+. usage.sh
+
+CXXFLAGS+=" $MYGCCFLAGS -I/opt/local/include" # So that additional CXXFLAGS can be used
+
+ARCHFILE=$FAUSTARCH/ma-gtk.cpp
+
+OSCDEFS=""
+POLY="POLY"
+NVOICES=-1
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+PRESETDIR="auto"
+PRESETDEFS=""
+
+ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
+
+echoHelp() 
+{
+    usage faust2magtk "[options] [Faust options] <file.dsp>"
+    platform MacOS
+    require GTK
+    echo "Compiles Faust programs to Miniaudio and GTK"
+    option
+    options -httpd -osc -midi -soundfile -dyn
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
+    option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
+#PHASE 2 : dispatch command arguments
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+       echoHelp
+    elif [ $p = "-nvoices" ]; then
+        POLYDEFS="-DPOLY"
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
+    elif [ $p = "-effect" ]; then
+        POLYDEFS="-DPOLY2"
+        POLY="POLY2"
+        shift
+        EFFECT=$1
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-dyn" ]; then
+        OPTIONS="$OPTIONS -inj template-llvm.cpp"
+        LLVM_LIBS="$STRIP $FAUSTLDDIR/libfaust.a `llvm-config --link-static --ldflags --libs all --system-libs`"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE"
+    elif [ $p = "-fx" ]; then
+        OPTIONS="$OPTIONS $p"
+        CXXFLAGS="$CXXFLAGS -I /usr/local/include/ap_fixed -DFIXED_POINT"
+    elif [ $p = "-osc" ]; then
+        OSCDEFS="-DOSCCTRL -lOSCFaust"
+    elif [ $p = "-httpd" ]; then
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"
+        HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
+    elif [ "$p" = "-preset" ]; then
+        PRESETDEFS="-DPRESETUI"
+        shift
+        PRESETDIR=$1
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files using JACK-GTK
+#
+for f in $FILES; do
+
+    # compile faust to c++
+    if [ $POLY = "POLY2" ]; then
+        if [ $EFFECT = "auto" ]; then
+            cat > effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
+EndOfCode
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}_tmp.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp effect.dsp -o effect.h || exit
+            rm effect.dsp
+        else
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}_tmp.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "effect.h" || exit
+        fi
+    else
+        faust -i -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}_tmp.cpp"|| exit
+    fi
+
+    # add preset management
+    if [ $PRESETDIR = "auto" ]; then
+        PRESETFILE=`mktemp -t preset.XXXXXXXXXX.cpp` || exit 1
+        echo "#define PRESETDIR \"auto\"" > "$PRESETFILE"
+    else
+        PRESETFILE=`mktemp -t preset.XXXXXXXXXX.cpp` || exit 1
+        echo "#define PRESETDIR \"$PRESETDIR\"" > "$PRESETFILE"
+    fi
+    cat "$PRESETFILE" "${f%.dsp}_tmp.cpp" > "${f%.dsp}.cpp"
+    rm "$PRESETFILE" "${f%.dsp}_tmp.cpp"
+
+    # compile c++ to binary
+    (
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs $OCVLIBS gtk+-2.0` $LLVM_LIBS $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
+        
+        if [[ $(uname) == Darwin ]];  then
+            codesign --sign - --deep --force "${f%.dsp}"
+        fi
+
+    ) > /dev/null || exit
+
+    # remove temporary files
+    rm -f "${f%.dsp}.cpp" effect.h "$f.json"
+
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
+done
+
+echo $BINARIES

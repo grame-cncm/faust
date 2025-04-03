@@ -1,0 +1,129 @@
+//----------------------------------------------------------
+// name: "prefix"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	float 	fVec0State; // Single Delay
+	float 	pfPerm0;
+	float 	fVec1State; // Single Delay
+	float 	pfPerm1;
+	float 	fVec2State; // Single Delay
+	float 	pfPerm2;
+	float 	pfPerm3;
+	float 	fVec3State; // Single Delay
+	float 	pfPerm4;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "prefix.dsp");
+		m->declare("name", "prefix");
+	}
+
+	virtual int getNumInputs() { return 2; }
+	virtual int getNumOutputs() { return 5; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		pfPerm0 = 0.5f;
+		pfPerm1 = 0.31f;
+		pfPerm2 = 0.32f;
+		pfPerm3 = 0.7f;
+		pfPerm4 = 0.35f;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		fVec0State = 0;
+		fVec1State = 0;
+		fVec2State = 0;
+		fVec3State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("prefix");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fVec0[2];
+		float 	fVec1[2];
+		float 	fVec2[2];
+		float 	fVec3[2];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+			fVec0[1] = fVec0State;
+			fVec1[1] = fVec1State;
+			fVec2[1] = fVec2State;
+			fVec3[1] = fVec3State;
+			for (int i=0; i<count; i++) {
+				fVec0[0] = 0.8f;
+				float 	pfTemp0 = pfPerm0;
+				pfPerm0 = 0.8f;
+				fVec1[0] = (float)input0[i];
+				float 	pfTemp1 = pfPerm1;
+				pfPerm1 = fVec1[0];
+				fVec2[0] = (float)input1[i];
+				float 	pfTemp2 = pfPerm2;
+				pfPerm2 = fVec2[0];
+				float 	pfTemp3 = pfPerm3;
+				pfPerm3 = pfTemp2;
+				fVec3[0] = 0.9f;
+				float 	pfTemp4 = pfPerm4;
+				pfPerm4 = 0.9f;
+				output0[i] = (FAUSTFLOAT)(pfTemp0);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(pfTemp1);  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(pfTemp3);  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(pfTemp4);  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)(pfTemp4);  // Zone Exec Code
+				// post processing
+				fVec3[1] = fVec3[0];
+				fVec2[1] = fVec2[0];
+				fVec1[1] = fVec1[0];
+				fVec0[1] = fVec0[0];
+			}
+			fVec0State = fVec0[1];
+			fVec1State = fVec1[1];
+			fVec2State = fVec2[1];
+			fVec3State = fVec3[1];
+		}
+	}
+};
+
+

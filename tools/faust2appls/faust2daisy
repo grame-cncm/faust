@@ -25,6 +25,7 @@ POLY=""
 PATCH=false
 POD=false
 PATCHSM=false
+USE_SDRAM=false
 SR=44100
 BS=16
 SOURCE=false
@@ -37,6 +38,7 @@ echoHelp ()
     option -patch "to compile for 4 ins/outs Patch (knob[1,2,3,4])"
     option -pod "to compile for 2 ins/outs Pod (knob[1,3])"
     option -patchsm "to compile for the Pod.init eurorack module"
+    option -sdram "to compile using SDRAM for long delay lines/tables etc."
     options -midi
     option "-nvoices <num>"
     option "-sr <num>"
@@ -77,6 +79,9 @@ do
         POD=true
     elif [ $p = "-patchsm" ]; then
         PATCHSM=true
+    # -sdram
+    elif [ $p = "-sdram" ]; then
+        USE_SDRAM=true
     # -sr
     elif [ $p = "-sr" ]; then
         shift
@@ -113,8 +118,8 @@ for p in $FILE; do
     mkdir "$SRCDIR/$dspName"
 
     # compile faust to c++
-    cp -r $FAUSTARCH/daisy/Makefile "$SRCDIR/$dspName/"
-    faust -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+    cp -r "$FAUSTARCH/daisy/Makefile" "$SRCDIR/$dspName/"
+    faust -i -a "$ARCHFILE" $OPTIONS "$f" -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
 
     # for PATCH support
     if [ $PATCH == true ]; then
@@ -140,10 +145,17 @@ for p in $FILE; do
     # for Buffer Size
     echo "#define MY_BUFFER_SIZE $BS" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
 
+    # for DAISY_NO_RTTI preprocessor flag (to avoid dynamic casts since libdaisy is compiled with -fno-rtti flag)
+    echo "#define DAISY_NO_RTTI" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+
     # for POLY
     if [ "$NVOICES" -gt "0" ]; then
         echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
         echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+
+    if [ $USE_SDRAM == true ]; then
+        python3 "$FAUSTARCH/daisy/faust_sdram_converter.py" "$SRCDIR/$dspName/ex_faust.cpp"
     fi
 
     # compile and install plugin or keep the source folder

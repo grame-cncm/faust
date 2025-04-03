@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #include <iostream>
+#include <regex>
 #include <set>
 #include <sstream>
 #include <string>
@@ -287,11 +288,15 @@ static string sigLabel(Tree sig)
         fout << "highest";
     }
 
+    else if (isSigRegister(sig, &i, x)) {
+        fout << "register " << i;  // for FPGA Retiming
+    }
+
     else {
         stringstream error;
         error << "ERROR : sigToGraph.cpp, unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
     }
 
-    return fout.str();
+    return std::regex_replace(fout.str(), std::regex("\""), "\\\"");
 }

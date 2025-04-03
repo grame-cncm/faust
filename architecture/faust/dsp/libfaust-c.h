@@ -26,6 +26,7 @@
 #define LIBFAUST_C_H
 
 #include <string.h>
+#include <stdbool.h>
 
 #include "faust/export.h"
 

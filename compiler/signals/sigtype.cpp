@@ -47,7 +47,7 @@ AudioType::AudioType(int n, int v, int c, int vec, int b, interval i, res r)
       fBoolean(b),
       fInterval(i),
       fRes(r),
-      fCode(0)
+      fCode(nullptr)
 {
     TRACE(cerr << gGlobal->TABBER << "Building audioType : n="
                << "NR"[n] << ", v="
@@ -303,7 +303,7 @@ Type checkKonst(Type t)
 
 Type checkInit(Type t)
 {
-    // check that t is a known at init time
+    // check that t is known at init time
     if (t->computability() > kInit) {
         stringstream error;
         error << "ERROR : checkInit failed for type " << t << endl;
@@ -409,7 +409,7 @@ static Tree codeSimpleType(SimpleType* st)
 
     elems.push_back(tree(st->getRes().valid));
     elems.push_back(tree(st->getRes().index));
-    return CTree::make(gGlobal->SIMPLETYPE, elems);
+    return tree(gGlobal->SIMPLETYPE, elems);
 }
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i)

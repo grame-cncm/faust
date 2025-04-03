@@ -1,0 +1,138 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2007"
+// license: "BSD"
+// name: "quadecho"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fslider0;
+	float 	fConst0; // step: 14
+	FAUSTFLOAT 	fslider1;
+	// Recursion delay fVeeec0 is of type kMaskRingDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0[131072]; // Ring Delay
+	// Recursion delay fVeeec2 is of type kMaskRingDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2[131072]; // Ring Delay
+	// Recursion delay fVeeec4 is of type kMaskRingDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec4[131072]; // Ring Delay
+	// Recursion delay fVeeec6 is of type kMaskRingDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec6[131072]; // Ring Delay
+	int 	IOTA;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("copyright", "(c)GRAME 2007");
+		m->declare("filename", "quadecho.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "quadecho");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 4; }
+	virtual int getNumOutputs() { return 4; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = (0.001f * min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 14
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 108.7f;
+		fslider1 = 1e+02f;
+	}
+	virtual void instanceClear() {
+		for (int i = 0; i < 131072; i++) { fVeeec0[i] = 0; }
+		for (int i = 0; i < 131072; i++) { fVeeec2[i] = 0; }
+		for (int i = 0; i < 131072; i++) { fVeeec4[i] = 0; }
+		for (int i = 0; i < 131072; i++) { fVeeec6[i] = 0; }
+		IOTA = 3;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("stereo echo");
+		ui_interface->openVerticalBox("echo 1000");
+		ui_interface->addHorizontalSlider("feedback", &fslider1, 1e+02f, 0.0f, 1e+02f, 0.1f);
+		ui_interface->addHorizontalSlider("millisecond", &fslider0, 108.7f, 0.0f, 1e+03f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iSlow0 = (((int((fConst0 * float(fslider0))) + -1) & 65535) + 1); // step: 19
+		float 	fSlow1 = (0.01f * float(fslider1)); // step: 23
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			for (int i=0; i<count; i++) {
+				int vIota0 = (IOTA-iSlow0)&131071;
+				int vIota1 = IOTA&131071;
+				fVeeec0[vIota1] = ((float)input0[i] + (fSlow1 * fVeeec0[vIota0]));
+				int vIota2 = (IOTA-0)&131071;
+				fVeeec2[vIota1] = ((float)input1[i] + (fSlow1 * fVeeec2[vIota0]));
+				fVeeec4[vIota1] = ((float)input2[i] + (fSlow1 * fVeeec4[vIota0]));
+				fVeeec6[vIota1] = ((float)input3[i] + (fSlow1 * fVeeec6[vIota0]));
+				output0[i] = (FAUSTFLOAT)(fVeeec0[vIota2]);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(fVeeec2[vIota2]);  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(fVeeec4[vIota2]);  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(fVeeec6[vIota2]);  // Zone Exec Code
+				// post processing
+				IOTA = IOTA+1;
+			}
+		}
+	}
+};
+
+

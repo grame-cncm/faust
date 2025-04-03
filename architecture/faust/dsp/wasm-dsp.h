@@ -47,7 +47,7 @@ extern "C" LIFAUST_API const char* getCLibFaustVersion();
 /**
  * DSP instance class with methods.
  */
-class LIFAUST_API wasm_dsp : public dsp {
+class LIFAUST_API wasm_dsp : public ::dsp {
     
     private:
     

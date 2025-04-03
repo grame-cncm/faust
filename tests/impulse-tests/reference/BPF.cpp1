@@ -1,0 +1,118 @@
+//----------------------------------------------------------
+// name: "BPF"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fslider0;
+	float 	fConst0; // step: 12
+	FAUSTFLOAT 	fslider1;
+	// Recursion delay fVeeec0 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State[2]; // Copy Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "BPF.dsp");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("maxmsp.lib/author", "GRAME");
+		m->declare("maxmsp.lib/copyright", "GRAME");
+		m->declare("maxmsp.lib/license", "LGPL");
+		m->declare("maxmsp.lib/name", "MaxMSP compatibility Library");
+		m->declare("maxmsp.lib/version", "1.1");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "BPF");
+	}
+
+	virtual int getNumInputs() { return 1; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = (6.2831855f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 12
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 1e+03f;
+		fslider1 = 1.0f;
+	}
+	virtual void instanceClear() {
+		for (int j = 0; j < 2; j++) { fVeeec0State[j] = 0; }
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("BPF");
+		ui_interface->addHorizontalSlider("Freq", &fslider0, 1e+03f, 1e+02f, 1e+04f, 1.0f);
+		ui_interface->addHorizontalSlider("Q", &fslider1, 1.0f, 0.01f, 1e+02f, 0.01f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = (fConst0 * max(0.0f, float(fslider0))); // step: 13
+		float 	fSlow1 = sinf(fSlow0); // step: 14
+		float 	fSlow2 = max(0.001f, float(fslider1)); // step: 17
+		float 	fSlow3 = (0.5f * (fSlow1 / fSlow2)); // step: 19
+		float 	fSlow4 = (fSlow3 + 1.0f); // step: 20
+		float 	fSlow5 = (0.5f * (fSlow1 / (fSlow2 * fSlow4))); // step: 23
+		float 	fSlow6 = (1.0f / fSlow4); // step: 26
+		float 	fSlow7 = (1.0f - fSlow3); // step: 27
+		float 	fSlow8 = (2.0f * cosf(fSlow0)); // step: 33
+		float 	fVeeec0[3];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			fVeeec0[1] = fVeeec0State[0];
+			fVeeec0[2] = fVeeec0State[1];
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = fVeeec0[2]; // step: 29
+				fVeeec0[0] = ((float)input0[i] - (fSlow6 * ((fSlow7 * fTemp0) - (fSlow8 * fVeeec0[1]))));
+				output0[i] = (FAUSTFLOAT)((fSlow5 * (fVeeec0[0] - fTemp0)));  // Zone Exec Code
+				// post processing
+				fVeeec0[2] = fVeeec0[1];
+				fVeeec0[1] = fVeeec0[0];
+			}
+			fVeeec0State[0] = fVeeec0[1];
+			fVeeec0State[1] = fVeeec0[2];
+		}
+	}
+};
+
+

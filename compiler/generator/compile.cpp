@@ -128,7 +128,7 @@ static string wdel(const string& s)
 void Compiler::generateMetaData()
 {
     // Add global metadata
-    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin();
+    for (map<Tree, set<Tree>>::iterator i = gGlobal->gMetaDataSet.begin();
          i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             stringstream str1, str2;
@@ -174,12 +174,12 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
 
         // extract metadata from group label str resulting in a simplifiedLabel
         // and metadata declarations for fictive zone at address 0
-        string                    simplifiedLabel;
-        map<string, set<string> > metadata;
+        string                   simplifiedLabel;
+        map<string, set<string>> metadata;
         extractMetadata(str, simplifiedLabel, metadata);
 
         // add metadata if any
-        for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
+        for (map<string, set<string>>::iterator i = metadata.begin(); i != metadata.end(); i++) {
             const string&      key    = i->first;
             const set<string>& values = i->second;
             for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
@@ -189,7 +189,7 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
             }
         }
 
-        // At rool level and if label is empty, use the name kept in "metadata" (either the one
+        // At root level and if label is empty, use the name kept in "metadata" (either the one
         // coded in 'declare name "XXX";' line, or the filename)
         string group = (root && (simplifiedLabel == ""))
                            ? unquote(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())))
@@ -245,15 +245,15 @@ void Compiler::generateUserInterfaceElements(Tree elements)
  */
 void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 {
-    Tree                      path, c, x, y, z;
-    map<string, set<string> > metadata;
-    string                    label, url;
+    Tree                     path, c, x, y, z;
+    map<string, set<string>> metadata;
+    string                   label, url;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
 
     // Extract "url" metadata to be given as parameter to 'addSoundfile' function
     if (isSigSoundfile(sig, path)) {
-        for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
+        for (map<string, set<string>>::iterator i = metadata.begin(); i != metadata.end(); i++) {
             string      key    = i->first;
             set<string> values = i->second;
             for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
@@ -264,7 +264,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
         }
     } else {
         // Add metadata if any
-        for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
+        for (map<string, set<string>>::iterator i = metadata.begin(); i != metadata.end(); i++) {
             const string&      key    = i->first;
             const set<string>& values = i->second;
             for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
@@ -387,9 +387,9 @@ void Compiler::generateMacroInterfaceElements(const string& pathname, Tree eleme
  */
 void Compiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig)
 {
-    Tree                      path, c, x, y, z;
-    string                    label;
-    map<string, set<string> > metadata;
+    Tree                     path, c, x, y, z;
+    string                   label;
+    map<string, set<string>> metadata;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
     string pathlabel = pathname + label;

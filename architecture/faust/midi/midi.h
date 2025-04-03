@@ -29,6 +29,7 @@ architecture section is not modified.
 #include <string>
 #include <string.h>
 #include <algorithm>
+#include <cstdint>
 #include <assert.h>
 
 #include "faust/export.h"

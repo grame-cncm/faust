@@ -82,3 +82,7 @@ Some plugins add latency in the signal path. A special global metadata can be us
 - `declare latency_frames "7000";` (or alternatively `declare latency_samples "7000";`) to express the latency in samples/frames
 
 - `declare latency_sec "0.5";` to express the latency in seconds, to be converted internally in samples/frames using the host sample rate 
+
+## Faust DSP Testbench
+
+As a fork of the [DSP-Testbench](https://github.com/AndrewJJ/DSP-Testbench) project, [Faust DSP Testbench](https://github.com/grame-cncm/Faust-DSP-Testbench) is designed to help developers using the [JUCE framework](https://juce.com) to analyse their Faust DSP by providing a test harness for code inheriting from `juce::dsp::ProcessorBase`. The harness provides signal sources, routing, analysis and monitoring functions.

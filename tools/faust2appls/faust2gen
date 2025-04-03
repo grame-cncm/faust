@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to a fausgen~ patch         #
-#               (c) Grame, 2015                                     #
+#               (c) Grame, 2015-2025                                #
 #                                                                   #
 #####################################################################
 
@@ -13,6 +13,7 @@
 
 POLY="MONO"
 NVOICES=-1
+MC="0"
 
 JSFILE_PATH="ui.js"
 
@@ -20,9 +21,10 @@ echoHelp()
 {
     usage faust2gen "[options] <file.dsp>"
     require Max/MSP SDK
-    echo "Compiles Faust programs to a fausgen~ patch"
+    echo "Compiles Faust programs to a fausgen~/mc.faustgen patch"
     option
     option '-nvoices <num>'
+    option -mc "to activate multi-channels model"
     exit
 }
 
@@ -39,6 +41,8 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
        echoHelp
+    elif [ $p = "-mc" ]; then
+        MC="1"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     elif [ $p = "-nvoices" ]; then
@@ -70,9 +74,17 @@ for p in $FILES; do
 
     # create Max patch
     if [ $POLY = "POLY1" ]; then
-        cat $FAUSTARCH/max-msp/faustgen-wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+    	if [ $MC = "1" ]; then
+        	cat $FAUSTARCH/max-msp/mc-faustgen-wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+        else
+        	cat $FAUSTARCH/max-msp/faustgen-wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+        fi
     else
-        cat $FAUSTARCH/max-msp/faustgen-wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+    	if [ $MC = "1" ]; then
+        	cat $FAUSTARCH/max-msp/mc-faustgen-wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+        else
+        	cat $FAUSTARCH/max-msp/faustgen-wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+        fi
     fi
     sed -e "s/DSP_NAME/"${f%.dsp}"/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
     sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat

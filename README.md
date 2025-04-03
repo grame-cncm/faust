@@ -2,11 +2,6 @@
 
 ## Grame, Centre National de Creation Musicale: <https://www.grame.fr>
 
-<!-- 
-master : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master)](https://travis-ci.org/grame-cncm/faust)
-master-dev : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev)](https://travis-ci.org/grame-cncm/faust)![C/C++ CI](https://github.com/grame-cncm/faust/workflows/C/C++%20CI/badge.svg)
- -->
-
 Build status: [![Ubuntu](https://github.com/grame-cncm/faust/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/grame-cncm/faust/actions/workflows/ubuntu.yml) [![MacOS](https://github.com/grame-cncm/faust/actions/workflows/macos.yml/badge.svg)](https://github.com/grame-cncm/faust/actions/workflows/macos.yml) [![Windows](https://github.com/grame-cncm/faust/actions/workflows/windows.yml/badge.svg)](https://github.com/grame-cncm/faust/actions/workflows/windows.yml)
 
 ## Introduction
@@ -51,13 +46,23 @@ This is an overview of the content of the top-level folders of the Faust distrib
 	tools/                 : additional easy-to-use scripts (faust2...) to produce binaries and plugins
 	windows/               : Windows related resources
 
-## Libraries
+## Libraries and additional dependencies
 
-Faust libraries are now in a [separated project](https://github.com/grame-cncm/faustlibraries) and included as a git submodule. The [oboe](https://github.com/google/oboe) project is also included as submodule in two different places: `architecture/android/app/oboe` and `architecture/smartkeyboard/app/oboe`. The [faust2ck](https://github.com/ccrma/faust2ck) project is also included as submodule in `tools/faust2ck`. These submodules are synchronized from time to time in the main Faust repository using the following commands:
+Faust libraries are now in a [separated project](https://github.com/grame-cncm/faustlibraries) and included as a git submodule. 
+
+The [oboe](https://github.com/google/oboe) project is included as submodule in two different places: `architecture/android/app/oboe` and `architecture/smartkeyboard/app/oboe`. 
+
+The [faust2ck](https://github.com/ccrma/faust2ck) project is included as submodule in `tools/faust2ck`. 
+
+The [py2max](https://github.com/shakfu/py2max) project is also included as submodule in `architecture/max-msp/py2max`. 
+
+The [node-matcher-plugin](https://github.com/nuchi/node-matcher-plugin) project is also included as submodule in `node-matcher-plugin`. 
+
+These submodules are synchronized from time to time in the main Faust repository using the following commands:
 
     git submodule update --remote --merge
-    git add libraries tools/faust2ck architecture/android/app/oboe architecture/smartKeyboard/android/app/oboe
-    git commit -m "Faust updated to the latest version of the libraries, faust2ck, and oboe"
+    git add libraries tools/faust2ck architecture/android/app/oboe architecture/smartKeyboard/android/app/oboe architecture/max-msp/py2max node-matcher-plugin
+    git commit -m "Faust updated to the latest version of the libraries, faust2ck, oboe, py2max, node-matcher-plugin"
     git push
 
 Or to synchronize the *libraries* folder only:
@@ -73,12 +78,19 @@ Or to synchronize the *faust2ck* folder only:
     git add tools/faust2ck 
     git commit -m "Faust updated to the latest version of faust2ck."
     git push
-    
-Or to synchronize the *py2max* folder only:
+
+Or to synchronize the *py2max* folder only (note that current used stable py2max version is v0.1.1):
 
     git submodule update --remote --merge architecture/max-msp/py2max
     git add architecture/max-msp/py2max 
     git commit -m "Faust updated to the latest version of py2max."
+    git push
+    
+Or to synchronize the *node-matcher-plugin* folder only:
+
+    git submodule update --remote --merge node-matcher-plugin
+    git add node-matcher-plugin
+    git commit -m "Faust updated to the latest version of node-matcher-plugin."
     git push
 
 ## Compilation and Installation
@@ -95,7 +107,7 @@ The [Online Faust Editor](https://fausteditor.grame.fr) is a zero-conf tool that
 
 ### Online Faust IDE
 
-The [Online Faust IDE](https://faustide.grame.fr)  is a zero-conf tool that provides all the compilation services, including binaries generation for all the supported platforms and architectures, but also various utilities for signal processing development.
+The [Online Faust IDE](https://faustide.grame.fr) is a zero-conf tool that provides all the compilation services, including binaries generation for all the supported platforms and architectures, but also various utilities for signal processing development.
 
 ### Faust Playground
 
@@ -155,7 +167,7 @@ Obviously, the corresponding dependencies for each of them must be installed on 
 ## Documentation and Resources
 
 * `/documentation/faust-quick-reference.pdf` contains the most up-to-date documentation of Faust.
-* `/documentation/library.pdf` contains the documentation of the Faust DSP libraries.
+* `/libraries/doc/library.pdf` contains the documentation of the Faust DSP libraries.
 * The [Faust website](https://faust.grame.fr) contains useful resources around Faust.
 * The [Faust online course](https://ccrma.stanford.edu/~rmichon/faustWorkshops/course2015/) or the [Faust Hero in 2 Hours tutorial](https://ccrma.stanford.edu/~rmichon/faustTutorials/#faust-hero-in-2-hours) might be good starting points for beginners.
 * [Julius Smith's website](https://ccrma.stanford.edu/~jos) is an incredible resource on various topics around DSP and Faust.

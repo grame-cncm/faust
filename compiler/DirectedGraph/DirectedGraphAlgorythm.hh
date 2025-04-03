@@ -39,16 +39,16 @@ class Tarjan {
     };
 
     const digraph<N>       fGraph;
-    int                    fGroup;
+    int                    fGroup = 0;
     std::stack<N>          fStack;
     std::map<N, tarjanAux> fAux;
     std::set<std::set<N>>  fPartition;
-    int                    fCycleCount;
+    int                    fCycleCount = 0;
 
     // visit a specific node n of the graph
     void visit(const N& v)
     {
-        // std::cout << "start (first) visit of " << v << std::endl;
+        // std::cout << "start (first) visit of " << v << '\n';
         auto& x = fAux[v];
         fStack.push(v);
         x.fStacked = true;
@@ -56,10 +56,10 @@ class Tarjan {
         x.fNum1 = x.fNum2 = fGroup;
         ++fGroup;
 
-        // std::cout << "visit all nodes connected to " << v << std::endl;
+        // std::cout << "visit all nodes connected to " << v << '\n';
         for (const auto& p : fGraph.destinations(v)) {
             // std::cout << "we have a connection " << v << "-" << p.second << "->" << p.first <<
-            // std::endl;
+            // '\n';
             const N& w = p.first;
             auto&    y = fAux[w];
             if (!y.fVisited) {
@@ -68,14 +68,14 @@ class Tarjan {
             } else {
                 if (y.fStacked) {
                     // std::cout << "the node " << w << " is already in the std::stack" <<
-                    // std::endl;
+                    // '\n';
                     x.fNum2 = std::min(x.fNum2, y.fNum1);
                 }
             }
         }
 
         if (x.fNum1 == x.fNum2) {
-            // std::cout << "the node " << v << " is the root of a cycle" << std::endl;
+            // std::cout << "the node " << v << " is the root of a cycle" << '\n';
 
             std::set<N> cycle;
             bool        finished = false;
@@ -91,11 +91,11 @@ class Tarjan {
                 fCycleCount++;
             }
         }
-        // std::cout << "end (first) visit of " << v << std::endl;
+        // std::cout << "end (first) visit of " << v << '\n';
     }
 
    public:
-    explicit Tarjan(const digraph<N>& g) : fGraph(g), fGroup(0), fCycleCount(0)
+    explicit Tarjan(const digraph<N>& g) : fGraph(g)
     {
         for (const auto& n : fGraph.nodes()) {
             if (fAux.find(n) == fAux.end()) {
@@ -125,7 +125,7 @@ inline int cycles(const digraph<N>& g)
 
 //===========================================================
 //===========================================================
-// graph2dag : transfoms a graph into a dag of supernodes,
+// graph2dag : transforms a graph into a dag of supernodes,
 // ie strongly connected components. The connection value
 // between two supernodes A and B is the smallest value of all
 // the destinations between nodes of A and nodes of B.
@@ -175,7 +175,7 @@ inline digraph<digraph<N>> graph2dag(const digraph<N>& g)
 
 //===========================================================
 //===========================================================
-// graph2dag2 : transfoms a graph into a dag of supernodes,
+// graph2dag2 : transforms a graph into a dag of supernodes,
 // ie strongly connected components. The connection value
 // between two supernodes A and B is the number of existing
 // destinations between nodes of A and nodes of B.
@@ -231,7 +231,7 @@ inline digraph<digraph<N>> graph2dag2(const digraph<N>& g)
 //===========================================================
 //===========================================================
 //
-// parallelize : transfoms a DAG into a sequential std::vector
+// parallelize : transforms a DAG into a sequential std::vector
 // of parallel vectors of nodes using a topological sort.
 //
 //===========================================================
@@ -295,7 +295,7 @@ inline std::vector<std::vector<N>> rparallelize(const digraph<N>& G)
 
 //===========================================================
 //===========================================================
-// serialize : transfoms a DAG into a sequence of nodes
+// serialize : transforms a DAG into a sequence of nodes
 // using a topological sort.
 //===========================================================
 //===========================================================
@@ -332,7 +332,7 @@ inline std::vector<N> serialize(const digraph<N>& G)
 
 //===========================================================
 //===========================================================
-// std::mapgraph(foo) : transfoms a graph  by applying foo:N->M
+// std::mapgraph(foo) : transforms a graph by applying foo:N->M
 // to each node of graph. The destinations are preserved.
 //===========================================================
 //===========================================================
@@ -383,7 +383,7 @@ inline digraph<N> reverse(const digraph<N>& g)
 #if 0
 //===========================================================
 //===========================================================
-// mapconnections(g, keep) -> g' : transfoms a graph by
+// mapconnections(g, keep) -> g' : transforms a graph by
 // applying the std::function keep to each connection. If keep
 // returns true the connection is maintained, otherwise it
 // is removed.
@@ -471,9 +471,9 @@ digraph<N> subgraph(const digraph<N>& G, const std::set<N>& S)
             R.add(n);     // add n to the resulting graph
             P.insert(n);  // mark n as processed
             for (const auto& a : G.destinations(n)) {
-                R.add(n, a.first, a.second);       // add its adjacent nodes
-                if (P.find(a.first) == P.end()) {  // is it new ?
-                    M.insert(a.first);             // we will have to process it
+                R.add(n, a.first, a.second);  // add its adjacent nodes
+                if (!P.contains(a.first)) {   // is it new ?
+                    M.insert(a.first);        // we will have to process it
                 }
             }
         }
@@ -573,6 +573,103 @@ inline std::vector<N> leaves(const digraph<N>& G)
     return L;
 }
 
+/**
+ * @brief compute the critical path of a graph
+ *
+ * @param G
+ * @return std::vector<N>
+ */
+template <typename N>
+inline std::vector<N> criticalpath(const digraph<N>& G, const N& n)
+{
+    std::vector<N> P;
+    for (const auto& c : G.destinations(n)) {
+        std::vector<N> Q = criticalpath(G, c.first);
+        if (Q.size() > P.size()) {
+            P = Q;
+        }
+    }
+    P.push_back(n);
+    return P;
+}
+
+/**
+ * @brief interleave two lists
+ *
+ * @param list1: (A,B,C,...)
+ * @param list2: (U,W)
+ * @return (A,U,B,W,C,...)
+ */
+template <typename N>
+static std::list<N> interleave(std::list<N>& list1, std::list<N>& list2)
+{
+    std::list<N> result;
+
+    // Iterators for both lists
+    auto it1 = list1.begin();
+    auto it2 = list2.begin();
+
+    // Traverse both lists
+    while (it1 != list1.end() && it2 != list2.end()) {
+        result.push_back(*it1);
+        result.push_back(*it2);
+        ++it1;
+        ++it2;
+    }
+
+    // Append remaining elements of list1
+    while (it1 != list1.end()) {
+        result.push_back(*it1);
+        ++it1;
+    }
+
+    // Append remaining elements of list2
+    while (it2 != list2.end()) {
+        result.push_back(*it2);
+        ++it2;
+    }
+
+    return result;
+}
+
+/**
+ * @brief recursive scheduling of a node of a DAG
+ *
+ * @tparam N
+ * @param G a DAG
+ * @param n a node of G
+ * @return std::list<N> scheduling with duplicates
+ */
+template <typename N>
+inline std::list<N> recschedulenode(const digraph<N>& G, const N& n)
+{
+    std::list<N> P;
+    for (const auto& c : G.destinations(n)) {
+        std::list<N> Q = recschedulenode(G, c.first);
+        P              = interleave(P, Q);
+    }
+    P.push_front(n);
+    return P;
+}
+
+/**
+ * @brief recursive scheduling of the roots of a DAG
+ *
+ * @tparam N
+ * @param G a DAG
+ * @return std::list<N> scheduling with duplicates
+ */
+template <typename N>
+inline std::list<N> recschedule(const digraph<N>& G)
+{
+    std::list<N> P;
+    for (const N& n : roots(G)) {
+        std::list<N> Q = recschedulenode(G, n);
+        P              = interleave(P, Q);
+    }
+    return P;
+}
+
 /*******************************************************************************
 ********************************************************************************
 
@@ -659,7 +756,7 @@ inline std::ostream& operator<<(std::ostream& file, const std::pair<N, M>& V)
 template <typename N>
 inline std::ostream& dotfile(std::ostream& file, const digraph<N>& g, bool clusters = false)
 {
-    file << "digraph mygraph {" << std::endl;
+    file << "digraph mygraph {" << '\n';
     for (const N& n : g.nodes()) {
         std::stringstream sn;
         sn << '"' << n << '"';
@@ -669,10 +766,10 @@ inline std::ostream& dotfile(std::ostream& file, const digraph<N>& g, bool clust
             sm << '"' << c.first << '"';
             hascnx = true;
             file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << c.second << "\"];"
-                 << std::endl;
+                 << '\n';
         }
         if (!hascnx) {
-            file << "\t" << sn.str() << ";" << std::endl;
+            file << "\t" << sn.str() << ";" << '\n';
         }
     }
 
@@ -681,16 +778,17 @@ inline std::ostream& dotfile(std::ostream& file, const digraph<N>& g, bool clust
         int       ccount = 0;  // cluster count
         for (const auto& s : T.partition()) {
             file << "\t"
-                 << "subgraph cluster" << ccount++ << " { " << std::endl;
+                 << "subgraph cluster" << ccount << " { " << '\n';
             for (const N& n : s) {
-                file << "\t\t" << '"' << n << '"' << ";" << std::endl;
+                file << "\t\t" << '"' << n << '"' << ";" << '\n';
             }
             file << "\t"
-                 << "}" << std::endl;
+                 << "}" << '\n';
+            ccount++;
         }
     }
 
-    return file << "}" << std::endl;
+    return file << "}" << '\n';
 }
 
 //===========================================================
@@ -706,9 +804,8 @@ inline std::ostream& operator<<(std::ostream& file, const digraph<N>& g)
 
     file << "Graph {";
     for (const N& n : g.nodes()) {
-        bool        hascnx = false;
-        const auto& dst    = g.destinations(n);
-        for (const auto& c : dst) {
+        bool hascnx = false;
+        for (const auto& c : g.destinations(n)) {
             hascnx = true;
             file << sep << n << '-' << c.second << "->" << (c.first);
             sep = ", ";
@@ -720,4 +817,55 @@ inline std::ostream& operator<<(std::ostream& file, const digraph<N>& g)
     }
 
     return file << "}";
+}
+
+//===========================================================
+//===========================================================
+//
+// topology : high level description of a graph as a vector
+// of integers.
+//
+//===========================================================
+//===========================================================
+
+/**
+ * @brief topology : high level description of a graph.
+ * Returns a vector of int describing the graph g:
+ * n: total number of nodes
+ * a: total number of arrows
+ * c: total number of cycles
+ * 0: number of nodes of level 0 (with no dependencies)
+ * 1: number of nodes of level 1 (with only dependecies at level 0)
+ * ...
+ *
+ * @tparam N type of nodes
+ * @param g graph we want to analyze
+ * @return std::vector<int> [n, a, c, l0, l1, ...]
+ */
+template <typename N>
+inline std::vector<int> topology(const digraph<N>& g)
+{
+    std::vector<int> v;
+    int              n = 0;
+    int              a = 0;
+    for (const N& x : g.nodes()) {
+        n++;
+        a += g.destinations(x).size();  // count multi arrows for 1
+    }
+    v.push_back(n);  // number of nodes
+    v.push_back(a);  // number of arrows
+    int c = cycles(g);
+    v.push_back(c);
+    if (c > 0) {
+        // we have cycles, compute a dag d first
+        auto d = graph2dag(g);
+        for (const auto& l : parallelize(d)) {
+            v.push_back((int)l.size());
+        }
+    } else {
+        for (const auto& l : parallelize(g)) {
+            v.push_back((int)l.size());
+        }
+    }
+    return v;
 }

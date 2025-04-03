@@ -1,0 +1,283 @@
+//----------------------------------------------------------
+// name: "carre_volterra"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fslider0;
+	float 	fConst0; // step: 9
+	float 	fConst1; // step: 10
+	int 	iVec0State; // Single Delay
+	FAUSTFLOAT 	fslider1;
+	float 	fConst2; // step: 23
+	FAUSTFLOAT 	fslider2;
+	float 	fConst3; // step: 35
+	// Recursion delay fVeeec5 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec5State; // Single Delay
+	float 	fVec1State; // Single Delay
+	FAUSTFLOAT 	fslider3;
+	// Recursion delay fVeeec8 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec8State; // Single Delay
+	float 	fVec2State; // Single Delay
+	float 	fConst4; // step: 76
+	float 	fVec3[4096]; // Ring Delay
+	float 	fVeeec11[4096]; // Ring Delay
+	// Recursion delay fVeeec3 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec3State; // Mono Delay
+	// Recursion delay fVeeec2 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2State; // Mono Delay
+	// Recursion delay fVeeec1 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec1State; // Mono Delay
+	// Recursion delay fVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Mono Delay
+	// Recursion delay fVeeec22 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec22State; // Mono Delay
+	// Recursion delay fVeeec21 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec21State; // Mono Delay
+	// Recursion delay fVeeec20 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec20State; // Mono Delay
+	// Recursion delay fVeeec19 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec19State; // Mono Delay
+	FAUSTFLOAT 	fcheckbox0;
+	int 	IOTA;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("effect.lib/name", "Faust Audio Effect Library");
+		m->declare("filename", "carre_volterra.dsp");
+		m->declare("filter.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("filter.lib/copyright", "Julius O. Smith III");
+		m->declare("filter.lib/license", "STK-4.3");
+		m->declare("filter.lib/name", "Faust Filter Library");
+		m->declare("filter.lib/reference", "https://ccrma.stanford.edu/~jos/filters/");
+		m->declare("filter.lib/version", "1.29");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "carre_volterra");
+		m->declare("oscillator.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("oscillator.lib/copyright", "Julius O. Smith III");
+		m->declare("oscillator.lib/license", "STK-4.3");
+		m->declare("oscillator.lib/name", "Faust Oscillator Library");
+		m->declare("oscillator.lib/version", "1.11");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 9
+		fConst1 = (6.2831855f / fConst0); // step: 10
+		fConst2 = (0.25f * fConst0); // step: 23
+		fConst3 = (1.0f / fConst0); // step: 35
+		fConst4 = (0.5f * fConst0); // step: 76
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 7e+02f;
+		fslider1 = 0.5f;
+		fslider2 = 4.4e+02f;
+		fslider3 = 2.0f;
+		fcheckbox0 = 0.0;
+	}
+	virtual void instanceClear() {
+		iVec0State = 0;
+		fVeeec5State = 0;
+		fVec1State = 0;
+		fVeeec8State = 0;
+		fVec2State = 0;
+		for (int i = 0; i < 4096; i++) { fVec3[i] = 0; }
+		for (int i = 0; i < 4096; i++) { fVeeec11[i] = 0; }
+		fVeeec3State = 0;
+		fVeeec2State = 0;
+		fVeeec1State = 0;
+		fVeeec0State = 0;
+		fVeeec22State = 0;
+		fVeeec21State = 0;
+		fVeeec20State = 0;
+		fVeeec19State = 0;
+		IOTA = 1;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("carre_volterra");
+		ui_interface->addCheckButton("NL", &fcheckbox0);
+		ui_interface->addHorizontalSlider("delta", &fslider3, 2.0f, 0.0f, 6.0f, 0.1f);
+		ui_interface->addHorizontalSlider("freq carre", &fslider2, 4.4e+02f, 2e+01f, 8e+03f, 1.0f);
+		ui_interface->declare(&fslider0, "unit", "Hz");
+		ui_interface->addHorizontalSlider("freq", &fslider0, 7e+02f, 1.0f, 2e+04f, 1.0f);
+		ui_interface->addHorizontalSlider("level", &fslider1, 0.5f, 0.0f, 1.0f, 0.01f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = float(fslider0); // step: 3
+		float 	fSlow1 = (fConst1 * fSlow0); // step: 11
+		float 	fSlow2 = (1.0f / (fSlow1 + 1.0f)); // step: 13
+		int 	iVec0[2];
+		float 	fSlow3 = float(fslider1); // step: 19
+		float 	fSlow4 = (fConst1 * (fSlow3 * fSlow0)); // step: 21
+		float 	fSlow5 = float(fslider2); // step: 27
+		float 	fSlow6 = max(fSlow5, 23.44895f); // step: 29
+		float 	fSlow7 = max(2e+01f, fabsf(fSlow6)); // step: 31
+		float 	fSlow8 = (1.0f / fSlow7); // step: 32
+		float 	fSlow9 = (fConst3 * fSlow7); // step: 36
+		float 	fVeeec5[2];
+		float 	fVec1[2];
+		float 	fSlow10 = max((fSlow5 + float(fslider3)), 23.44895f); // step: 52
+		float 	fSlow11 = max(2e+01f, fabsf(fSlow10)); // step: 54
+		float 	fSlow12 = (1.0f / fSlow11); // step: 55
+		float 	fSlow13 = (fConst3 * fSlow11); // step: 56
+		float 	fVeeec8[2];
+		float 	fVec2[2];
+		float 	fSlow14 = max(0.0f, min(2047.0f, (fConst4 / fSlow10))); // step: 79
+		int 	iSlow15 = int(fSlow14); // step: 80
+		float 	fSlow16 = float(iSlow15); // step: 81
+		float 	fSlow17 = (fSlow14 - fSlow16); // step: 82
+		int 	iSlow18 = (iSlow15 + 1); // step: 83
+		float 	fSlow19 = max(0.0f, min(2047.0f, (fConst4 / fSlow6))); // step: 88
+		int 	iSlow20 = int(fSlow19); // step: 89
+		float 	fSlow21 = float(iSlow20); // step: 90
+		float 	fSlow22 = (fSlow21 + (1.0f - fSlow19)); // step: 92
+		float 	fSlow23 = (fConst2 / fSlow7); // step: 93
+		float 	fSlow24 = (fSlow19 - fSlow21); // step: 98
+		int 	iSlow25 = (iSlow20 + 1); // step: 99
+		float 	fSlow26 = (fSlow16 + (1.0f - fSlow14)); // step: 104
+		float 	fSlow27 = (fConst2 / fSlow11); // step: 105
+		float 	fVeeec3;
+		float 	fVeeec2;
+		float 	fVeeec1;
+		float 	fVeeec0;
+		float 	fVeeec22;
+		float 	fVeeec21;
+		float 	fVeeec20;
+		float 	fVeeec19;
+		float 	fSlow28 = (0.33333334f * float(fcheckbox0)); // step: 173
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			iVec0[1] = iVec0State;
+			fVeeec5[1] = fVeeec5State;
+			fVec1[1] = fVec1State;
+			fVeeec8[1] = fVeeec8State;
+			fVec2[1] = fVec2State;
+			fVeeec3 = fVeeec3State;
+			fVeeec2 = fVeeec2State;
+			fVeeec1 = fVeeec1State;
+			fVeeec0 = fVeeec0State;
+			fVeeec22 = fVeeec22State;
+			fVeeec21 = fVeeec21State;
+			fVeeec20 = fVeeec20State;
+			fVeeec19 = fVeeec19State;
+			for (int i=0; i<count; i++) {
+				iVec0[0] = 1;
+				float 	fTemp0 = float(iVec0[1]); // step: 25
+				float 	fTemp1 = fVeeec5[1]; // step: 37
+				fVeeec5[0] = (fSlow9 + (fTemp1 - floorf((fSlow9 + fTemp1))));
+				float 	fTemp2 = powf(((2.0f * fVeeec5[0]) + -1.0f),2.0f); // step: 46
+				fVec1[0] = fTemp2;
+				float 	fTemp3 = (fVec1[0] - fVec1[1]); // step: 48
+				float 	fTemp4 = fVeeec8[1]; // step: 57
+				fVeeec8[0] = (fSlow13 + (fTemp4 - floorf((fSlow13 + fTemp4))));
+				float 	fTemp5 = powf(((2.0f * fVeeec8[0]) + -1.0f),2.0f); // step: 66
+				fVec2[0] = fTemp5;
+				float 	fTemp6 = (fVec2[0] - fVec2[1]); // step: 68
+				int vIota0 = (IOTA-iSlow18)&4095;
+				float 	fTemp7 = (fSlow23 * (fTemp0 * fTemp3)); // step: 95
+				int vIota1 = IOTA&4095;
+				fVec3[vIota1] = fTemp7;
+				int vIota2 = (IOTA-iSlow20)&4095;
+				int vIota3 = (IOTA-iSlow25)&4095;
+				float 	fTemp8 = (fSlow27 * (fTemp0 * fTemp6)); // step: 107
+				fVeeec11[vIota1] = fTemp8;
+				int vIota4 = (IOTA-iSlow15)&4095;
+				float 	fTemp9 = ((fConst2 * (fTemp0 * ((fSlow8 * fTemp3) + (fSlow12 * fTemp6)))) - ((fSlow17 * fVeeec11[vIota0]) + (((fSlow22 * fVec3[vIota2]) + (fSlow24 * fVec3[vIota3])) + (fSlow26 * fVeeec11[vIota4])))); // step: 112
+				fVeeec3 = (fSlow2 * (fVeeec3 + (fSlow4 * fTemp9)));
+				float 	fTemp10 = fVeeec3; // step: 117
+				fVeeec2 = (fSlow2 * (fVeeec2 + (fSlow1 * fTemp10)));
+				float 	fTemp11 = fVeeec2; // step: 122
+				fVeeec1 = (fSlow2 * (fVeeec1 + (fSlow1 * fTemp11)));
+				float 	fTemp12 = fVeeec1; // step: 127
+				fVeeec0 = (fSlow2 * (fVeeec0 + (fSlow1 * fTemp12)));
+				float 	fTemp13 = fVeeec0; // step: 132
+				float 	fTemp14 = powf(fTemp12,3.0f); // step: 137
+				float 	fTemp15 = powf(fTemp11,3.0f); // step: 139
+				float 	fTemp16 = powf(fTemp10,3.0f); // step: 141
+				fVeeec22 = (fSlow2 * (fVeeec22 + (fSlow1 * (powf((fSlow3 * fTemp9),3.0f) - fTemp16))));
+				fVeeec21 = (fSlow2 * (fVeeec21 + (fSlow1 * ((fVeeec22 + fTemp16) - fTemp15))));
+				fVeeec20 = (fSlow2 * (fVeeec20 + (fSlow1 * ((fVeeec21 + fTemp15) - fTemp14))));
+				fVeeec19 = (fSlow2 * (fVeeec19 + (fSlow1 * ((fVeeec20 + fTemp14) - powf(fTemp13,3.0f)))));
+				output0[i] = (FAUSTFLOAT)((fTemp13 - (fSlow28 * fVeeec19)));  // Zone Exec Code
+				// post processing
+				IOTA = IOTA+1;
+				fVec2[1] = fVec2[0];
+				fVeeec8[1] = fVeeec8[0];
+				fVec1[1] = fVec1[0];
+				fVeeec5[1] = fVeeec5[0];
+				iVec0[1] = iVec0[0];
+			}
+			iVec0State = iVec0[1];
+			fVeeec5State = fVeeec5[1];
+			fVec1State = fVec1[1];
+			fVeeec8State = fVeeec8[1];
+			fVec2State = fVec2[1];
+			fVeeec3State = fVeeec3;
+			fVeeec2State = fVeeec2;
+			fVeeec1State = fVeeec1;
+			fVeeec0State = fVeeec0;
+			fVeeec22State = fVeeec22;
+			fVeeec21State = fVeeec21;
+			fVeeec20State = fVeeec20;
+			fVeeec19State = fVeeec19;
+		}
+	}
+};
+
+

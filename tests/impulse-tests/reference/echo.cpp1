@@ -1,0 +1,114 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "echo"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fslider0;
+	float 	fConst0; // step: 14
+	FAUSTFLOAT 	fslider1;
+	// Recursion delay fVeeec0 is of type kMaskRingDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0[131072]; // Ring Delay
+	int 	IOTA;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "echo.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "echo");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 1; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = (0.001f * min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 14
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 8.1f;
+		fslider1 = 98.4f;
+	}
+	virtual void instanceClear() {
+		for (int i = 0; i < 131072; i++) { fVeeec0[i] = 0; }
+		IOTA = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("echo-simple");
+		ui_interface->openVerticalBox("echo 1000");
+		ui_interface->addHorizontalSlider("feedback", &fslider1, 98.4f, 0.0f, 1e+02f, 0.1f);
+		ui_interface->addHorizontalSlider("millisecond", &fslider0, 8.1f, 0.0f, 1e+03f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iSlow0 = (((int((fConst0 * float(fslider0))) + -1) & 65535) + 1); // step: 19
+		float 	fSlow1 = (0.01f * float(fslider1)); // step: 23
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			for (int i=0; i<count; i++) {
+				int vIota0 = (IOTA-iSlow0)&131071;
+				int vIota1 = IOTA&131071;
+				fVeeec0[vIota1] = ((float)input0[i] + (fSlow1 * fVeeec0[vIota0]));
+				int vIota2 = (IOTA-0)&131071;
+				output0[i] = (FAUSTFLOAT)(fVeeec0[vIota2]);  // Zone Exec Code
+				// post processing
+				IOTA = IOTA+1;
+			}
+		}
+	}
+};
+
+

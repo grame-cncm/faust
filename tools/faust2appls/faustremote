@@ -5,9 +5,11 @@
 #USAGE : faustremote <servurl> ==> <targets>
 #USAGE : faustremote [<servurl>] <platform> <arch> <srcfile> ==> <binary.zip>
 
-URL="34.76.156.75"
+#URL="https://faustservicecloud.grame.fr"
+URL="https://faustservice.inria.fr"
 
 function targetrequest {
+    echo "Server URL:" $1
     curl  "$1/targets"
 }
 
@@ -15,9 +17,8 @@ function compilation {
     curl -F"file=@\"$4\";filename=\"$4\""  "$1/compile/$2/$3/binary.zip" --output binary.zip
 }
 
-
 if [ "$1" == "-h" ]; then
-    echo "Access the remote complation service to compile DSP programs"
+    echo "Access the remote compilation service to compile DSP programs"
     echo "Usage: faustremote [<servurl>] [<platform> <arch> <srcfile>]"
     echo "faustremote <servurl> ==> <targets>"
     echo "faustremote <servurl> <platform> <arch> <srcfile> ==> <binary.zip>"

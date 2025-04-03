@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2012-2023 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2012-2024 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -57,11 +57,11 @@
 #include "jgraphics.h"
 #include "ext_drag.h"
 
-#include "faustgen_factory.h"
-
 //====================
 // Faust DSP Instance
 //====================
+
+class faustgen_factory;
 
 class faustgen : public MspCpp5<faustgen> {
     
@@ -79,8 +79,10 @@ class faustgen : public MspCpp5<faustgen> {
         SaveUI* fSavedUI;               // Save/load current value, reset to init value
     
         ::dsp* fDSP;                    // JIT compiled Faust dsp
+        int fNumOutputs = 0;            // Cached getNumOutputs value
         ::dsp* fMCDSP;                  // Multi-channels adapted
         t_object* fEditor;              // Text editor object
+        bool fRNBOAttr;                 // RNBO attribute
         bool fMute;                     // DSP mute state
         static t_jrgba gDefaultColor;   // Color of the object to be used when restoring default color
         
@@ -121,10 +123,8 @@ class faustgen : public MspCpp5<faustgen> {
         
         faustgen(t_symbol* sym, long ac, t_atom* av);
         
-        void update_sourcecode();
-        
-        void hilight_on();
-        void hilight_off();
+        void update_sourcecode(const std::string& codebox = "");
+    
         void hilight_error(const std::string& error);
         
         // Called upon deleting the object inside the patcher

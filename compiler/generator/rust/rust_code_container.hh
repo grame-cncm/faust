@@ -54,8 +54,13 @@ class RustCodeContainer : public virtual CodeContainer {
     virtual ~RustCodeContainer() {}
 
     virtual void              produceClass();
+    void                      generateComputeHeader(int n, std::ostream* fOut);
+    void                      generateComputeIOHeader(int n, std::ostream* fOut);
+    void                      generateComputeFrame(int tab);
     virtual void              generateCompute(int tab) = 0;
+    virtual void              generateComputeIO(int tab) {};
     void                      produceInternal();
+    void                      produceFaustDspBlob();
     virtual dsp_factory_base* produceFactory();
     virtual void              produceInfoFunctions(int tabs, const std::string& classname,
                                                    const std::string& obj, bool ismethod,
@@ -79,6 +84,7 @@ class RustScalarCodeContainer : public RustCodeContainer {
     virtual ~RustScalarCodeContainer() {}
 
     void generateCompute(int tab);
+    void generateComputeIO(int tab);
 };
 
 // The Vector code container.

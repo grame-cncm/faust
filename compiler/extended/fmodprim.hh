@@ -109,4 +109,9 @@ class FmodPrim : public xtended {
         // (f % g)' = f' - g' * floor(f / g), sin(pi * f / g) != 0
         return sigSub(args[2], sigMul(args[3], sigFloor(sigDiv(args[0], args[1]))));
     }
+
+    double compute(const std::vector<Node>& args) override
+    {
+        return fmod(args[0].getDouble(), args[1].getDouble());
+    }
 };

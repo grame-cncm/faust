@@ -516,22 +516,26 @@ static Type inferSigType(Tree sig, Tree env)
         Type     t2 = T(s2, env);
         interval i1 = t2->getInterval();
 
-        //        cerr << "for sig fix delay : s1 = "
-        //        << t1 << ':' << ppsig(s1) << ", s2 = "
-        //        << t2 << ':' << ppsig(s2) << endl;
+        // cerr << "for sig fix delay : s1 = "
+        //      << t1 << ':' << ppsig(s1) << ", s2 = "
+        //      << t2 << ':' << ppsig(s2) << endl;
         if (gGlobal->gCausality) {
             if (!(i1.isValid()) || !(i1.isBounded())) {
-                stringstream error;
-                error << "ERROR : can't compute the min and max values of : "
-                      << ppsig(s2, MAX_ERROR_SIZE) << endl
-                      << "        used in delay expression : " << ppsig(sig, MAX_ERROR_SIZE) << endl
+                stringstream error, st1, st2;
+                // Prepare two separated streams for MAX_ERROR_SIZE model to work properly
+                st1 << ppsig(s1, MAX_ERROR_SIZE);
+                st2 << ppsig(s2, MAX_ERROR_SIZE);
+                error << "ERROR : can't compute the min and max values of : " << st2.str() << endl
+                      << "        used in delay expression : " << st1.str() << endl
                       << "        (probably a recursive signal)" << endl;
                 throw faustexception(error.str());
             } else if (i1.lo() < 0) {
-                stringstream error;
-                error << "ERROR : possible negative values of : " << ppsig(s2, MAX_ERROR_SIZE)
-                      << endl
-                      << "        used in delay expression : " << ppsig(sig, MAX_ERROR_SIZE) << endl
+                stringstream error, st1, st2;
+                // Prepare two separated streams for MAX_ERROR_SIZE model to work properly
+                st1 << ppsig(s1, MAX_ERROR_SIZE);
+                st2 << ppsig(s2, MAX_ERROR_SIZE);
+                error << "ERROR : possible negative values of : " << st2.str() << endl
+                      << "        used in delay expression : " << st1.str() << endl
                       << "        " << i1 << endl;
                 throw faustexception(error.str());
             }
@@ -582,12 +586,12 @@ static Type inferSigType(Tree sig, Tree env)
 
     else if (isSigButton(sig)) {
         return castInterval(gGlobal->TGUI,
-                            gAlgebra.Button(interval(0, 0)));  // todo replace the name
+                            gAlgebra.Button(interval(0, 0)));  // TODO: replace the name
     }
 
     else if (isSigCheckbox(sig)) {
         return castInterval(gGlobal->TGUI,
-                            gAlgebra.Checkbox(interval(0, 0)));  // todo replace the name
+                            gAlgebra.Checkbox(interval(0, 0)));  // TODO: replace the name
     }
 
     else if (isSigVSlider(sig, label, cur, min, max, step)) {
@@ -596,7 +600,7 @@ static Type inferSigType(Tree sig, Tree env)
         Type t3 = T(max, env);
         Type t4 = T(step, env);
         return castInterval(
-            gGlobal->TGUI, gAlgebra.VSlider(interval(0, 0),  // todo replace the name
+            gGlobal->TGUI, gAlgebra.VSlider(interval(0, 0),  // TODO: replace the name
                                             t1->getInterval(), t2->getInterval(), t3->getInterval(),
                                             t4->getInterval()));
     }
@@ -607,7 +611,7 @@ static Type inferSigType(Tree sig, Tree env)
         Type t3 = T(max, env);
         Type t4 = T(step, env);
         return castInterval(
-            gGlobal->TGUI, gAlgebra.HSlider(interval(0, 0),  // todo replace the name
+            gGlobal->TGUI, gAlgebra.HSlider(interval(0, 0),  // TODO: replace the name
                                             t1->getInterval(), t2->getInterval(), t3->getInterval(),
                                             t4->getInterval()));
     }
@@ -618,7 +622,7 @@ static Type inferSigType(Tree sig, Tree env)
         Type t3 = T(max, env);
         Type t4 = T(step, env);
         return castInterval(gGlobal->TGUI,
-                            gAlgebra.NumEntry(interval(0, 0),  // todo replace the name
+                            gAlgebra.NumEntry(interval(0, 0),  // TODO: replace the name
                                               t1->getInterval(), t2->getInterval(),
                                               t3->getInterval(), t4->getInterval()));
     }
@@ -636,7 +640,9 @@ static Type inferSigType(Tree sig, Tree env)
     }
 
     else if (isSigSoundfile(sig, l)) {
-        return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, INT32_MAX));
+        // computability should be kExec if the soundfile can be changed at runtime with the GUI
+        // (which is not implemented yet), so kInit for now
+        return makeSimpleType(kInt, kBlock, kInit, kVect, kNum, interval(0, INT32_MAX));
     }
 
     else if (isSigSoundfileLength(sig, sf, part)) {
@@ -644,7 +650,9 @@ static Type inferSigType(Tree sig, Tree env)
         Type t2 = T(part, env);
         checkPartInterval(sig, t2);
         int c = std::max(int(kBlock), t2->variability());
-        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, INT32_MAX));
+        // computability should be kExec if the soundfile can be changed at runtime with the GUI
+        // (which is not implemented yet), so kInit for now
+        return makeSimpleType(kInt, c, kInit, kVect, kNum, interval(0, INT32_MAX));
     }
 
     else if (isSigSoundfileRate(sig, sf, part)) {
@@ -652,7 +660,9 @@ static Type inferSigType(Tree sig, Tree env)
         Type t2 = T(part, env);
         checkPartInterval(sig, t2);
         int c = std::max(int(kBlock), t2->variability());
-        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, INT32_MAX));
+        // computability should be kExec if the soundfile can be changed at runtime with the GUI
+        // (which is not implemented yet), so kInit for now
+        return makeSimpleType(kInt, c, kInit, kVect, kNum, interval(0, INT32_MAX));
     }
 
     else if (isSigSoundfileBuffer(sig, sf, x, part, z)) {
@@ -661,7 +671,9 @@ static Type inferSigType(Tree sig, Tree env)
         Type tp = T(part, env);
         T(z, env);
         checkPartInterval(sig, tp);
-        return makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
+        // computability should be kExec if the soundfile can be changed at runtime with the GUI
+        // (which is not implemented yet), so kInit for now
+        return makeSimpleType(kReal, kSamp, kInit, kVect, kNum, interval(-1, 1));
     }
 
     else if (isSigAttach(sig, s1, s2)) {
@@ -763,6 +775,10 @@ static Type inferSigType(Tree sig, Tree env)
         interval i1 = T(s1, env)->getInterval();
         return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.hi()));
         // change this part   ^^^^^ once there are interval bounds depending on signal type
+    }
+
+    else if (isSigRegister(sig, &i, s1)) {
+        return T(s1, env);
     }
 
     // unrecognized signal here

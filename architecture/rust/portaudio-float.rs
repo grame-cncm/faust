@@ -173,7 +173,7 @@ fn run() -> Result<(), pa::Error> {
             let inputs = &[input0, input1];
             let outputs = &mut [output0, output1];
 
-            dsp.compute(frames as i32, inputs, outputs);
+            dsp.compute(frames as usize, inputs, outputs);
         }
         pa::Continue
     };

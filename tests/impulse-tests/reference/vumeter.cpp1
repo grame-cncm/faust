@@ -1,0 +1,123 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "vumeter"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	float 	fConst0; // step: 12
+	// Recursion delay fVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Mono Delay
+	FAUSTFLOAT 	fbargraph0;
+	// Recursion delay fVeeec2 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2State; // Mono Delay
+	FAUSTFLOAT 	fbargraph1;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "vumeter.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "vumeter");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 2; }
+	virtual int getNumOutputs() { return 2; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = (1.0f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 12
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		fVeeec0State = 0;
+		fVeeec2State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("vumeter");
+		ui_interface->declare(&fbargraph0, "2", "");
+		ui_interface->declare(&fbargraph0, "unit", "dB");
+		ui_interface->addHorizontalBargraph("hbargraph0", &fbargraph0, -7e+01f, 5.0f);
+		ui_interface->declare(&fbargraph1, "2", "");
+		ui_interface->declare(&fbargraph1, "unit", "dB");
+		ui_interface->addHorizontalBargraph("hbargraph1", &fbargraph1, -7e+01f, 5.0f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fVeeec0;
+		float 	fVeeec2;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			fVeeec0 = fVeeec0State;
+			fVeeec2 = fVeeec2State;
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = (float)input0[i]; // step: 1
+				fVeeec0 = max((fVeeec0 - fConst0), fabsf(fTemp0));
+				fbargraph0 = (2e+01f * log10f(max(0.00031622776f, fVeeec0)));
+				float 	fTemp1 = (float)input1[i]; // step: 24
+				fVeeec2 = max((fVeeec2 - fConst0), fabsf(fTemp1));
+				fbargraph1 = (2e+01f * log10f(max(0.00031622776f, fVeeec2)));
+				output0[i] = (FAUSTFLOAT)(fTemp0);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(fTemp1);  // Zone Exec Code
+			}
+			fVeeec0State = fVeeec0;
+			fVeeec2State = fVeeec2;
+		}
+	}
+};
+
+

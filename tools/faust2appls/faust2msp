@@ -209,7 +209,7 @@ for p in $FILES; do
                     sfpath="$TMP/${f%.dsp}$EXT/$(dirname $snd)/"
                     if ! [ -d $sfpath ]; then
                         echo "Create $sfpath"
-                        mkdir $sfpath
+                        mkdir -p $sfpath
                     fi
                     echo "Copy $snd in ${f%.dsp}$EXT"
                     cp $snd $sfpath

@@ -22,6 +22,7 @@ man:
 
 faust.1 : man1 readme
 	pandoc --standalone --to man README.md -o faust.1
+	sed -i '' 's/\\\[en]/\\-\\-/g' faust.1
 	mv -f faust.1 man1
 
 man1:

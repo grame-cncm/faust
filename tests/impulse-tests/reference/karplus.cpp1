@@ -1,0 +1,161 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "karplus"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fslider0;
+	FAUSTFLOAT 	fslider1;
+	// Recursion delay iVeeec2 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec2State; // Mono Delay
+	FAUSTFLOAT 	fslider2;
+	FAUSTFLOAT 	fbutton0;
+	float 	fVec0State; // Single Delay
+	// Recursion delay fVeeec4 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec4State; // Single Delay
+	float 	fVec1[512]; // Ring Delay
+	FAUSTFLOAT 	fslider3;
+	// Recursion delay fVeeec0 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State[2]; // Copy Delay
+	int 	IOTA;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "karplus.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "karplus");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 0.0f;
+		fslider1 = 0.5f;
+		fslider2 = 327.023f;
+		fbutton0 = 0.0;
+		fslider3 = 271.994f;
+	}
+	virtual void instanceClear() {
+		iVeeec2State = 0;
+		fVec0State = 0;
+		fVeeec4State = 0;
+		for (int i = 0; i < 512; i++) { fVec1[i] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec0State[j] = 0; }
+		IOTA = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("karplus");
+		ui_interface->openVerticalBox("excitator");
+		ui_interface->declare(&fslider2, "unit", "f");
+		ui_interface->addHorizontalSlider("excitation", &fslider2, 327.023f, 2.0f, 512.0f, 1.0f);
+		ui_interface->addButton("play", &fbutton0);
+		ui_interface->closeBox();
+		ui_interface->addHorizontalSlider("level", &fslider1, 0.5f, 0.0f, 1.0f, 0.01f);
+		ui_interface->openVerticalBox("resonator");
+		ui_interface->addHorizontalSlider("attenuation", &fslider0, 0.0f, 0.0f, 1.0f, 0.01f);
+		ui_interface->declare(&fslider3, "unit", "f");
+		ui_interface->addHorizontalSlider("duration", &fslider3, 271.994f, 2.0f, 512.0f, 1.0f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = (0.5f * (1.0f - float(fslider0))); // step: 11
+		float 	fSlow1 = (4.656613e-10f * float(fslider1)); // step: 15
+		int 	iVeeec2;
+		float 	fSlow2 = (1.0f / float(fslider2)); // step: 29
+		float 	fSlow3 = float(fbutton0); // step: 31
+		float 	fVec0[2];
+		float 	fVeeec4[2];
+		int 	iSlow4 = (int((float(fslider3) + -1.5f)) & 4095); // step: 50
+		float 	fVeeec0[3];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			iVeeec2 = iVeeec2State;
+			fVec0[1] = fVec0State;
+			fVeeec4[1] = fVeeec4State;
+			fVeeec0[1] = fVeeec0State[0];
+			fVeeec0[2] = fVeeec0State[1];
+			for (int i=0; i<count; i++) {
+				iVeeec2 = ((1103515245 * iVeeec2) + 12345);
+				float 	fTemp0 = fVeeec4[1]; // step: 25
+				fVec0[0] = fSlow3;
+				fVeeec4[0] = ((fTemp0 + float(((fSlow3 - fVec0[1]) > 0.0f))) - (fSlow2 * float((fTemp0 > 0.0f))));
+				int vIota0 = IOTA&511;
+				fVec1[vIota0] = ((fSlow0 * (fVeeec0[1] + fVeeec0[2])) + (fSlow1 * (float(iVeeec2) * float((fVeeec4[0] > 0.0f)))));
+				int vIota1 = (IOTA-iSlow4)&511;
+				fVeeec0[0] = fVec1[vIota1];
+				output0[i] = (FAUSTFLOAT)(fVeeec0[0]);  // Zone Exec Code
+				// post processing
+				IOTA = IOTA+1;
+				fVeeec0[2] = fVeeec0[1];
+				fVeeec0[1] = fVeeec0[0];
+				fVeeec4[1] = fVeeec4[0];
+				fVec0[1] = fVec0[0];
+			}
+			iVeeec2State = iVeeec2;
+			fVec0State = fVec0[1];
+			fVeeec4State = fVeeec4[1];
+			fVeeec0State[0] = fVeeec0[1];
+			fVeeec0State[1] = fVeeec0[2];
+		}
+	}
+};
+
+

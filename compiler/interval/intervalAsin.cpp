@@ -38,8 +38,8 @@ interval interval_algebra::Asin(const interval& x)
         return empty();
     }
 
-    double v    = 0;     // value at which the min slope is attained, zero if it is present
-    int    sign = 1;     // whether we compute the difference between f(v) and f(v+ε) or f(v-ε)
+    double v    = 0;  // value at which the min slope is attained, zero if it is present
+    int    sign = 1;  // whether we compute the difference between f(v) and f(v+ε) or f(v-ε)
     if (!i.has(0)) {  // if zero is not present, it's the bound closer to zero
         v    = minValAbs(i);
         sign = signMinValAbs(i);

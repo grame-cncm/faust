@@ -1,0 +1,211 @@
+//----------------------------------------------------------
+// name: "priority"
+// version: "2.44.4"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	class SIG0 {
+	  private:
+		int fSampleRate;
+		int 	iVec3State; // Single Delay
+		// Recursion delay iVeeec14 is of type kMonoDelay
+		// While its definition is of type kZeroDelay
+		int 	iVeeec14State; // Mono Delay
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			iVec3State = 0;
+			iVeeec14State = 0;
+		}
+		void fill(int count, float output[]) {
+			int 	iVec3[2];
+			int 	iVeeec14;
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = min(32, fullcount-index);
+				iVec3[1] = iVec3State;
+				iVeeec14 = iVeeec14State;
+				for (int i=0; i<count; i++) {
+					iVec3[0] = 1;
+					iVeeec14 = ((iVec3[1] + iVeeec14) % 65536);
+					output[i] = sinf((9.58738e-05f * float(iVeeec14)));
+					// post processing
+					iVec3[1] = iVec3[0];
+				}
+				iVec3State = iVec3[1];
+				iVeeec14State = iVeeec14;
+				output += 32;
+			}
+		}
+	};
+
+
+	int 	iVec0State; // Single Delay
+	float 	fConst0; // step: 17
+	int 	iConst1; // step: 19
+	// Recursion delay iVeeec3 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec3State; // Single Delay
+	int 	iVec1State; // Single Delay
+	// Recursion delay iVeeec1 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec1State; // Mono Delay
+	int 	iConst2; // step: 33
+	// Recursion delay iVeeec8 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec8State; // Single Delay
+	int 	iVec2State; // Single Delay
+	// Recursion delay iVeeec7 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec7State; // Mono Delay
+	float 	fConst3; // step: 49
+	// Recursion delay fVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Mono Delay
+	static float 	ftbl0[65536];
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("basics_lib_counter_author", "Stephane Letz");
+		m->declare("basics_lib_name", "Faust Basic Element Library");
+		m->declare("basics_lib_version", "0.8");
+		m->declare("compile_options", "-single -scal -e dsp/priority.dsp -o priority_exp.dsp");
+		m->declare("filename", "priority.dsp");
+		m->declare("library_path0", "/usr/local/share/faust/stdfaust.lib");
+		m->declare("library_path1", "/usr/local/share/faust/basics.lib");
+		m->declare("library_path2", "/usr/local/share/faust/maths.lib");
+		m->declare("library_path3", "/usr/local/share/faust/platform.lib");
+		m->declare("library_path4", "/usr/local/share/faust/oscillators.lib");
+		m->declare("maths_lib_author", "GRAME");
+		m->declare("maths_lib_copyright", "GRAME");
+		m->declare("maths_lib_license", "LGPL with exception");
+		m->declare("maths_lib_name", "Faust Math Library");
+		m->declare("maths_lib_version", "2.5");
+		m->declare("name", "priority");
+		m->declare("oscillators_lib_name", "Faust Oscillator Library");
+		m->declare("oscillators_lib_version", "0.3");
+		m->declare("platform_lib_name", "Generic Platform Library");
+		m->declare("platform_lib_version", "0.2");
+		m->declare("version", "2.44.4");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+		SIG0 sig0;
+		sig0.init(sample_rate);
+		sig0.fill(65536,ftbl0);
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 17
+		iConst1 = int((0.5f * fConst0)); // step: 19
+		iConst2 = int(fConst0); // step: 33
+		fConst3 = (1.0f / fConst0); // step: 49
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		iVec0State = 0;
+		iVeeec3State = 0;
+		iVec1State = 0;
+		iVeeec1State = 0;
+		iVeeec8State = 0;
+		iVec2State = 0;
+		iVeeec7State = 0;
+		fVeeec0State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("priority");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVec0[2];
+		int 	iVeeec3[2];
+		int 	iVec1[2];
+		int 	iVeeec1;
+		int 	iVeeec8[2];
+		int 	iVec2[2];
+		int 	iVeeec7;
+		float 	fVeeec0;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			iVec0[1] = iVec0State;
+			iVeeec3[1] = iVeeec3State;
+			iVec1[1] = iVec1State;
+			iVeeec1 = iVeeec1State;
+			iVeeec8[1] = iVeeec8State;
+			iVec2[1] = iVec2State;
+			iVeeec7 = iVeeec7State;
+			fVeeec0 = fVeeec0State;
+			for (int i=0; i<count; i++) {
+				iVec0[0] = 1;
+				int 	iTemp0 = iVec0[1]; // step: 8
+				int 	iTemp1 = iVeeec3[1]; // step: 9
+				iVeeec3[0] = ((iTemp0 + iTemp1) % iConst1);
+				int 	iTemp2 = (iVeeec3[0] <= iTemp1); // step: 23
+				iVec1[0] = iTemp2;
+				iVeeec1 = (iVeeec1 + (iVec1[0] > iVec1[1]));
+				int 	iTemp3 = iVeeec8[1]; // step: 31
+				iVeeec8[0] = ((iTemp0 + iTemp3) % iConst2);
+				int 	iTemp4 = (iVeeec8[0] <= iTemp3); // step: 37
+				iVec2[0] = iTemp4;
+				iVeeec7 = (iVeeec7 + (iVec2[0] > iVec2[1]));
+				float 	fTemp5 = (fVeeec0 + (fConst3 * float((200 * (((iVeeec1 % 2) + (2 * (iVeeec7 % 2))) + 1))))); // step: 51
+				fVeeec0 = (fTemp5 - floorf(fTemp5));
+				output0[i] = (FAUSTFLOAT)(ftbl0[max(0, int(min(int(int((65536.0f * fVeeec0))), 65535)))]);  // Zone Exec Code
+				// post processing
+				iVec2[1] = iVec2[0];
+				iVeeec8[1] = iVeeec8[0];
+				iVec1[1] = iVec1[0];
+				iVeeec3[1] = iVeeec3[0];
+				iVec0[1] = iVec0[0];
+			}
+			iVec0State = iVec0[1];
+			iVeeec3State = iVeeec3[1];
+			iVec1State = iVec1[1];
+			iVeeec1State = iVeeec1;
+			iVeeec8State = iVeeec8[1];
+			iVec2State = iVec2[1];
+			iVeeec7State = iVeeec7;
+			fVeeec0State = fVeeec0;
+		}
+	}
+};
+
+
+float 	mydsp::ftbl0[65536];

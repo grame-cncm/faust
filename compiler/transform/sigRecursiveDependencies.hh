@@ -85,4 +85,4 @@ Tree getProjFinalDefinition(Tree proj);
  * @param msg
  * @param sig
  */
-void printDependencies(std::string msg, Tree sig);
+void printDependencies(const std::string& msg, Tree sig);

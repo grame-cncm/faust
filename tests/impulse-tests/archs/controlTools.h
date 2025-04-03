@@ -189,7 +189,6 @@ struct malloc_memory_manager_check : public dsp_memory_manager {
     }
 };
 
-
 struct malloc_memory_manager_check_dsp : public malloc_memory_manager {
     
     int fDSPSize = 0;
@@ -235,7 +234,6 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
     }
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
-
 
 //---------------------------------------------------------------------
 // Soundfile: has to be global to be share across multiple instances

@@ -40,7 +40,7 @@ class netjackaudio : public audio
 
     protected:
     
-        dsp* fDSP;
+        ::dsp* fDSP;
         jack_net_slave_t* fNet;
         int fNetFormat;
         std::string fMasterIP;
@@ -95,7 +95,7 @@ class netjackaudio : public audio
             return 0;
         }
 
-        bool initAux(const char* name, dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs)
+        bool initAux(const char* name, ::dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs)
         {
             if (initAux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)) {
                 setDsp(DSP);
@@ -175,8 +175,8 @@ class netjackaudio : public audio
                      int latency,
                      int midi_in,
                      int midi_out)
-            : fDSP(0),
-            fNet(0),
+            : fDSP(nullptr),
+            fNet(nullptr),
             fNetFormat(net_format),
             fMasterIP(master_ip),
             fMasterPort(master_port),
@@ -194,7 +194,7 @@ class netjackaudio : public audio
             }
         }
 
-        virtual bool init(const char* name, dsp* DSP) 
+        virtual bool init(const char* name, ::dsp* DSP)
         {
             return initAux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fMIDIInputs, fMIDIOutputs);
         }
@@ -220,7 +220,7 @@ class netjackaudio : public audio
             return jack_net_slave_is_active(fNet);
         }
 
-        void setDsp(dsp* DSP)
+        void setDsp(::dsp* DSP)
         {
             fDSP = DSP;
             fDSP->init(fResult.sample_rate);

@@ -138,6 +138,7 @@ using namespace std;
 #include "z_dsp.h"
 #include "jpatcher_api.h"
 #include <string.h>
+#include <stdint.h>
 
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
@@ -149,6 +150,13 @@ using namespace std;
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/mspUI.h"
 #include "faust/dsp/poly-dsp.h"
+
+#ifdef MC_VERSION
+// For older Max/MSP SDK versions
+#ifndef Z_MC_INLETS
+#define Z_MC_INLETS 32
+#endif
+#endif
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -713,10 +721,10 @@ void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, dou
 
 /*--------------------------------------------------------------------------*/
 void faust_dsp64(t_faust* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
-{ 
+{
 #ifdef MC_VERSION
     // We need to know the real number of inputs to adapt faust_perform64
-    long inputs = (long)object_method(dsp64, gensym("getnuminputchannels"), x, 0);
+    intptr_t inputs = (intptr_t)object_method(dsp64, gensym("getnuminputchannels"), x, 0);
     delete x->m_mc_dsp;
     // x->m_mc_dsp will not delete the x->m_dsp object
     x->m_mc_dsp = new dsp_adapter(x->m_dsp, inputs, x->m_Outputs, maxvectorsize, false);
@@ -787,7 +795,7 @@ void ext_main(void* r)
     faust_class = c;
 #ifdef POST
     post((char*)"Faust DSP object v%s (sample = %s bits code = %s)", EXTERNAL_VERSION, ((sizeof(FAUSTFLOAT) == 4) ? "32" : "64"), getCodeSize());
-    post((char*)"Copyright (c) 2012-2024 Grame");
+    post((char*)"Copyright (c) 2012-2025 Grame");
 #endif
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);

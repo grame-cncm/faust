@@ -1,0 +1,140 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "capture"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fbutton0;
+	float 	fVec0[524288]; // Ring Delay
+	int 	iVec1State; // Single Delay
+	// Recursion delay iVeeec1 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec1State; // Mono Delay
+	// Recursion delay fVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Mono Delay
+	FAUSTFLOAT 	fslider0;
+	// Recursion delay fVeeec6 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec6State; // Mono Delay
+	int 	IOTA;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "capture.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "capture");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 1; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+		fbutton0 = 0.0;
+		fslider0 = 0.0f;
+	}
+	virtual void instanceClear() {
+		for (int i = 0; i < 524288; i++) { fVec0[i] = 0; }
+		iVec1State = 0;
+		iVeeec1State = 0;
+		fVeeec0State = 0;
+		fVeeec6State = 0;
+		IOTA = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("Audio Capture");
+		ui_interface->addButton("Capture", &fbutton0);
+		ui_interface->addHorizontalSlider("level (db)", &fslider0, 0.0f, -96.0f, 4.0f, 0.1f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = float(fbutton0); // step: 3
+		float 	fSlow1 = (1.0f - fSlow0); // step: 4
+		int 	iSlow2 = int(fSlow0); // step: 13
+		int 	iVec1[2];
+		int 	iVeeec1;
+		float 	fVeeec0;
+		float 	fSlow3 = (0.001f * powf(1e+01f,(0.05f * float(fslider0)))); // step: 36
+		float 	fVeeec6;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			iVec1[1] = iVec1State;
+			iVeeec1 = iVeeec1State;
+			fVeeec0 = fVeeec0State;
+			fVeeec6 = fVeeec6State;
+			for (int i=0; i<count; i++) {
+				int vIota0 = IOTA&524287;
+				fVec0[vIota0] = ((fSlow1 * fVeeec0) + (fSlow0 * (float)input0[i]));
+				iVec1[0] = iSlow2;
+				iVeeec1 = ((iSlow2 + iVeeec1) * ((iSlow2 - iVec1[1]) <= 0));
+				int vIota1 = (IOTA-((iVeeec1 + -1) & 524287))&524287;
+				fVeeec0 = fVec0[vIota1];
+				fVeeec6 = (fSlow3 + (0.999f * fVeeec6));
+				output0[i] = (FAUSTFLOAT)((fVeeec0 * fVeeec6));  // Zone Exec Code
+				// post processing
+				IOTA = IOTA+1;
+				iVec1[1] = iVec1[0];
+			}
+			iVec1State = iVec1[1];
+			iVeeec1State = iVeeec1;
+			fVeeec0State = fVeeec0;
+			fVeeec6State = fVeeec6;
+		}
+	}
+};
+
+

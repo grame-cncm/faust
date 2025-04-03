@@ -16,3 +16,6 @@
 [submodule "tools/physicalModeling/mesh2faust/spectra"]
 	path = tools/physicalModeling/mesh2faust/spectra
 	url = https://github.com/yixuan/spectra.git
+[submodule "node-matcher-plugin"]
+	path = node-matcher-plugin
+	url = https://github.com/nuchi/node-matcher-plugin.git

@@ -98,4 +98,6 @@ class SqrtPrim : public xtended {
         // (x^{1/2})' =  1/2 * x^{-1/2}
         return sigMul(sigReal(0.5), sigPow(args[0], sigReal(-0.5)));
     }
+
+    double compute(const std::vector<Node>& args) override { return sqrt(args[0].getDouble()); }
 };

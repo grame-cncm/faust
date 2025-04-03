@@ -1,0 +1,357 @@
+//----------------------------------------------------------
+// name: "math"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with : "" */
+#include <math.h>
+#ifndef FAUSTPOWER
+#define FAUSTPOWER
+#include <cmath>
+template <int N> inline int faustpower(int x)              { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } 
+template <> 	 inline int faustpower<0>(int x)            { return 1; }
+template <> 	 inline int faustpower<1>(int x)            { return x; }
+template <> 	 inline int faustpower<2>(int x)            { return x*x; }
+template <int N> inline float faustpower(float x)            { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } 
+template <> 	 inline float faustpower<0>(float x)          { return 1; }
+template <> 	 inline float faustpower<1>(float x)          { return x; }
+template <> 	 inline float faustpower<2>(float x)          { return x*x; }
+#endif
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	int 	iVec0State; // Single Delay
+	float 	fVeeec1State; // Single Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "math.dsp");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("name", "math");
+	}
+
+	virtual int getNumInputs() { return 104; }
+	virtual int getNumOutputs() { return 76; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		iVec0State = 0;
+		fVeeec1State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("math");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVec0[2];
+		float 	fVeeec1[2];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
+			FAUSTFLOAT* input4 = &input[4][index]; // Zone 3
+			FAUSTFLOAT* input5 = &input[5][index]; // Zone 3
+			FAUSTFLOAT* input6 = &input[6][index]; // Zone 3
+			FAUSTFLOAT* input7 = &input[7][index]; // Zone 3
+			FAUSTFLOAT* input8 = &input[8][index]; // Zone 3
+			FAUSTFLOAT* input9 = &input[9][index]; // Zone 3
+			FAUSTFLOAT* input10 = &input[10][index]; // Zone 3
+			FAUSTFLOAT* input11 = &input[11][index]; // Zone 3
+			FAUSTFLOAT* input12 = &input[12][index]; // Zone 3
+			FAUSTFLOAT* input13 = &input[13][index]; // Zone 3
+			FAUSTFLOAT* input14 = &input[14][index]; // Zone 3
+			FAUSTFLOAT* input15 = &input[15][index]; // Zone 3
+			FAUSTFLOAT* input16 = &input[16][index]; // Zone 3
+			FAUSTFLOAT* input17 = &input[17][index]; // Zone 3
+			FAUSTFLOAT* input18 = &input[18][index]; // Zone 3
+			FAUSTFLOAT* input19 = &input[19][index]; // Zone 3
+			FAUSTFLOAT* input20 = &input[20][index]; // Zone 3
+			FAUSTFLOAT* input21 = &input[21][index]; // Zone 3
+			FAUSTFLOAT* input22 = &input[22][index]; // Zone 3
+			FAUSTFLOAT* input23 = &input[23][index]; // Zone 3
+			FAUSTFLOAT* input24 = &input[24][index]; // Zone 3
+			FAUSTFLOAT* input25 = &input[25][index]; // Zone 3
+			FAUSTFLOAT* input26 = &input[26][index]; // Zone 3
+			FAUSTFLOAT* input27 = &input[27][index]; // Zone 3
+			FAUSTFLOAT* input28 = &input[28][index]; // Zone 3
+			FAUSTFLOAT* input29 = &input[29][index]; // Zone 3
+			FAUSTFLOAT* input30 = &input[30][index]; // Zone 3
+			FAUSTFLOAT* input31 = &input[31][index]; // Zone 3
+			FAUSTFLOAT* input32 = &input[32][index]; // Zone 3
+			FAUSTFLOAT* input33 = &input[33][index]; // Zone 3
+			FAUSTFLOAT* input34 = &input[34][index]; // Zone 3
+			FAUSTFLOAT* input35 = &input[35][index]; // Zone 3
+			FAUSTFLOAT* input36 = &input[36][index]; // Zone 3
+			FAUSTFLOAT* input37 = &input[37][index]; // Zone 3
+			FAUSTFLOAT* input38 = &input[38][index]; // Zone 3
+			FAUSTFLOAT* input39 = &input[39][index]; // Zone 3
+			FAUSTFLOAT* input40 = &input[40][index]; // Zone 3
+			FAUSTFLOAT* input41 = &input[41][index]; // Zone 3
+			FAUSTFLOAT* input42 = &input[42][index]; // Zone 3
+			FAUSTFLOAT* input43 = &input[43][index]; // Zone 3
+			FAUSTFLOAT* input44 = &input[44][index]; // Zone 3
+			FAUSTFLOAT* input45 = &input[45][index]; // Zone 3
+			FAUSTFLOAT* input46 = &input[46][index]; // Zone 3
+			FAUSTFLOAT* input47 = &input[47][index]; // Zone 3
+			FAUSTFLOAT* input48 = &input[48][index]; // Zone 3
+			FAUSTFLOAT* input49 = &input[49][index]; // Zone 3
+			FAUSTFLOAT* input50 = &input[50][index]; // Zone 3
+			FAUSTFLOAT* input51 = &input[51][index]; // Zone 3
+			FAUSTFLOAT* input52 = &input[52][index]; // Zone 3
+			FAUSTFLOAT* input53 = &input[53][index]; // Zone 3
+			FAUSTFLOAT* input54 = &input[54][index]; // Zone 3
+			FAUSTFLOAT* input55 = &input[55][index]; // Zone 3
+			FAUSTFLOAT* input56 = &input[56][index]; // Zone 3
+			FAUSTFLOAT* input57 = &input[57][index]; // Zone 3
+			FAUSTFLOAT* input58 = &input[58][index]; // Zone 3
+			FAUSTFLOAT* input59 = &input[59][index]; // Zone 3
+			FAUSTFLOAT* input60 = &input[60][index]; // Zone 3
+			FAUSTFLOAT* input61 = &input[61][index]; // Zone 3
+			FAUSTFLOAT* input62 = &input[62][index]; // Zone 3
+			FAUSTFLOAT* input63 = &input[63][index]; // Zone 3
+			FAUSTFLOAT* input64 = &input[64][index]; // Zone 3
+			FAUSTFLOAT* input65 = &input[65][index]; // Zone 3
+			FAUSTFLOAT* input66 = &input[66][index]; // Zone 3
+			FAUSTFLOAT* input67 = &input[67][index]; // Zone 3
+			FAUSTFLOAT* input68 = &input[68][index]; // Zone 3
+			FAUSTFLOAT* input69 = &input[69][index]; // Zone 3
+			FAUSTFLOAT* input70 = &input[70][index]; // Zone 3
+			FAUSTFLOAT* input71 = &input[71][index]; // Zone 3
+			FAUSTFLOAT* input72 = &input[72][index]; // Zone 3
+			FAUSTFLOAT* input73 = &input[73][index]; // Zone 3
+			FAUSTFLOAT* input74 = &input[74][index]; // Zone 3
+			FAUSTFLOAT* input75 = &input[75][index]; // Zone 3
+			FAUSTFLOAT* input76 = &input[76][index]; // Zone 3
+			FAUSTFLOAT* input77 = &input[77][index]; // Zone 3
+			FAUSTFLOAT* input78 = &input[78][index]; // Zone 3
+			FAUSTFLOAT* input79 = &input[79][index]; // Zone 3
+			FAUSTFLOAT* input80 = &input[80][index]; // Zone 3
+			FAUSTFLOAT* input81 = &input[81][index]; // Zone 3
+			FAUSTFLOAT* input82 = &input[82][index]; // Zone 3
+			FAUSTFLOAT* input83 = &input[83][index]; // Zone 3
+			FAUSTFLOAT* input84 = &input[84][index]; // Zone 3
+			FAUSTFLOAT* input85 = &input[85][index]; // Zone 3
+			FAUSTFLOAT* input86 = &input[86][index]; // Zone 3
+			FAUSTFLOAT* input87 = &input[87][index]; // Zone 3
+			FAUSTFLOAT* input88 = &input[88][index]; // Zone 3
+			FAUSTFLOAT* input89 = &input[89][index]; // Zone 3
+			FAUSTFLOAT* input90 = &input[90][index]; // Zone 3
+			FAUSTFLOAT* input91 = &input[91][index]; // Zone 3
+			FAUSTFLOAT* input92 = &input[92][index]; // Zone 3
+			FAUSTFLOAT* input93 = &input[93][index]; // Zone 3
+			FAUSTFLOAT* input94 = &input[94][index]; // Zone 3
+			FAUSTFLOAT* input95 = &input[95][index]; // Zone 3
+			FAUSTFLOAT* input96 = &input[96][index]; // Zone 3
+			FAUSTFLOAT* input97 = &input[97][index]; // Zone 3
+			FAUSTFLOAT* input98 = &input[98][index]; // Zone 3
+			FAUSTFLOAT* input99 = &input[99][index]; // Zone 3
+			FAUSTFLOAT* input100 = &input[100][index]; // Zone 3
+			FAUSTFLOAT* input101 = &input[101][index]; // Zone 3
+			FAUSTFLOAT* input102 = &input[102][index]; // Zone 3
+			FAUSTFLOAT* input103 = &input[103][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+			FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
+			FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
+			FAUSTFLOAT* output10 = &output[10][index]; // Zone 3
+			FAUSTFLOAT* output11 = &output[11][index]; // Zone 3
+			FAUSTFLOAT* output12 = &output[12][index]; // Zone 3
+			FAUSTFLOAT* output13 = &output[13][index]; // Zone 3
+			FAUSTFLOAT* output14 = &output[14][index]; // Zone 3
+			FAUSTFLOAT* output15 = &output[15][index]; // Zone 3
+			FAUSTFLOAT* output16 = &output[16][index]; // Zone 3
+			FAUSTFLOAT* output17 = &output[17][index]; // Zone 3
+			FAUSTFLOAT* output18 = &output[18][index]; // Zone 3
+			FAUSTFLOAT* output19 = &output[19][index]; // Zone 3
+			FAUSTFLOAT* output20 = &output[20][index]; // Zone 3
+			FAUSTFLOAT* output21 = &output[21][index]; // Zone 3
+			FAUSTFLOAT* output22 = &output[22][index]; // Zone 3
+			FAUSTFLOAT* output23 = &output[23][index]; // Zone 3
+			FAUSTFLOAT* output24 = &output[24][index]; // Zone 3
+			FAUSTFLOAT* output25 = &output[25][index]; // Zone 3
+			FAUSTFLOAT* output26 = &output[26][index]; // Zone 3
+			FAUSTFLOAT* output27 = &output[27][index]; // Zone 3
+			FAUSTFLOAT* output28 = &output[28][index]; // Zone 3
+			FAUSTFLOAT* output29 = &output[29][index]; // Zone 3
+			FAUSTFLOAT* output30 = &output[30][index]; // Zone 3
+			FAUSTFLOAT* output31 = &output[31][index]; // Zone 3
+			FAUSTFLOAT* output32 = &output[32][index]; // Zone 3
+			FAUSTFLOAT* output33 = &output[33][index]; // Zone 3
+			FAUSTFLOAT* output34 = &output[34][index]; // Zone 3
+			FAUSTFLOAT* output35 = &output[35][index]; // Zone 3
+			FAUSTFLOAT* output36 = &output[36][index]; // Zone 3
+			FAUSTFLOAT* output37 = &output[37][index]; // Zone 3
+			FAUSTFLOAT* output38 = &output[38][index]; // Zone 3
+			FAUSTFLOAT* output39 = &output[39][index]; // Zone 3
+			FAUSTFLOAT* output40 = &output[40][index]; // Zone 3
+			FAUSTFLOAT* output41 = &output[41][index]; // Zone 3
+			FAUSTFLOAT* output42 = &output[42][index]; // Zone 3
+			FAUSTFLOAT* output43 = &output[43][index]; // Zone 3
+			FAUSTFLOAT* output44 = &output[44][index]; // Zone 3
+			FAUSTFLOAT* output45 = &output[45][index]; // Zone 3
+			FAUSTFLOAT* output46 = &output[46][index]; // Zone 3
+			FAUSTFLOAT* output47 = &output[47][index]; // Zone 3
+			FAUSTFLOAT* output48 = &output[48][index]; // Zone 3
+			FAUSTFLOAT* output49 = &output[49][index]; // Zone 3
+			FAUSTFLOAT* output50 = &output[50][index]; // Zone 3
+			FAUSTFLOAT* output51 = &output[51][index]; // Zone 3
+			FAUSTFLOAT* output52 = &output[52][index]; // Zone 3
+			FAUSTFLOAT* output53 = &output[53][index]; // Zone 3
+			FAUSTFLOAT* output54 = &output[54][index]; // Zone 3
+			FAUSTFLOAT* output55 = &output[55][index]; // Zone 3
+			FAUSTFLOAT* output56 = &output[56][index]; // Zone 3
+			FAUSTFLOAT* output57 = &output[57][index]; // Zone 3
+			FAUSTFLOAT* output58 = &output[58][index]; // Zone 3
+			FAUSTFLOAT* output59 = &output[59][index]; // Zone 3
+			FAUSTFLOAT* output60 = &output[60][index]; // Zone 3
+			FAUSTFLOAT* output61 = &output[61][index]; // Zone 3
+			FAUSTFLOAT* output62 = &output[62][index]; // Zone 3
+			FAUSTFLOAT* output63 = &output[63][index]; // Zone 3
+			FAUSTFLOAT* output64 = &output[64][index]; // Zone 3
+			FAUSTFLOAT* output65 = &output[65][index]; // Zone 3
+			FAUSTFLOAT* output66 = &output[66][index]; // Zone 3
+			FAUSTFLOAT* output67 = &output[67][index]; // Zone 3
+			FAUSTFLOAT* output68 = &output[68][index]; // Zone 3
+			FAUSTFLOAT* output69 = &output[69][index]; // Zone 3
+			FAUSTFLOAT* output70 = &output[70][index]; // Zone 3
+			FAUSTFLOAT* output71 = &output[71][index]; // Zone 3
+			FAUSTFLOAT* output72 = &output[72][index]; // Zone 3
+			FAUSTFLOAT* output73 = &output[73][index]; // Zone 3
+			FAUSTFLOAT* output74 = &output[74][index]; // Zone 3
+			FAUSTFLOAT* output75 = &output[75][index]; // Zone 3
+			iVec0[1] = iVec0State;
+			fVeeec1[1] = fVeeec1State;
+			for (int i=0; i<count; i++) {
+				iVec0[0] = 2;
+				fVeeec1[0] = 2.0f;
+				output0[i] = (FAUSTFLOAT)(powf(fVeeec1[1],3e+01f));  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(faustpower<30>(iVec0[1]));  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(1.0737418e+09f);  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(1073741824);  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)(isnanf((float)input0[i]));  // Zone Exec Code
+				output5[i] = (FAUSTFLOAT)(isinff((float)input1[i]));  // Zone Exec Code
+				output6[i] = (FAUSTFLOAT)(copysignf((float)input2[i], (float)input3[i]));  // Zone Exec Code
+				output7[i] = (FAUSTFLOAT)((int((float)input4[i]) >> int((float)input5[i])));  // Zone Exec Code
+				output8[i] = (FAUSTFLOAT)((int((float)input6[i]) << int((float)input7[i])));  // Zone Exec Code
+				output9[i] = (FAUSTFLOAT)((int((10.5f * (float)input8[i])) % 3));  // Zone Exec Code
+				output10[i] = (FAUSTFLOAT)(fmodf((10.5f * (float)input9[i]),3.0f));  // Zone Exec Code
+				output11[i] = (FAUSTFLOAT)((int((float)input10[i]) & int((float)input11[i])));  // Zone Exec Code
+				output12[i] = (FAUSTFLOAT)((int((3.5f * (float)input12[i])) & int((2.4f * (float)input13[i]))));  // Zone Exec Code
+				output13[i] = (FAUSTFLOAT)((int((3.5f * (float)input14[i])) & int((2.4f * (float)input15[i]))));  // Zone Exec Code
+				output14[i] = (FAUSTFLOAT)((2.4f * float((int((3.5f * (float)input16[i])) & int((float)input17[i])))));  // Zone Exec Code
+				output15[i] = (FAUSTFLOAT)((int((3.5f * (float)input18[i])) | int((2.4f * (float)input19[i]))));  // Zone Exec Code
+				output16[i] = (FAUSTFLOAT)((int((3.5f * (float)input20[i])) | int((2.4f * (float)input21[i]))));  // Zone Exec Code
+				output17[i] = (FAUSTFLOAT)((int((3.5f * (float)input22[i])) ^ int((2.4f * (float)input23[i]))));  // Zone Exec Code
+				output18[i] = (FAUSTFLOAT)((int((3.5f * (float)input24[i])) ^ int((2.4f * (float)input25[i]))));  // Zone Exec Code
+				output19[i] = (FAUSTFLOAT)(powf(int((3.5f * (float)input26[i])),int((2.4f * (float)input27[i]))));  // Zone Exec Code
+				output20[i] = (FAUSTFLOAT)((2.4f * ((float)input28[i] * powf(3.5f,(float)input29[i]))));  // Zone Exec Code
+				output21[i] = (FAUSTFLOAT)((int((3.5f * (float)input30[i])) > int((2.4f * (float)input31[i]))));  // Zone Exec Code
+				output22[i] = (FAUSTFLOAT)(((3.5f * (float)input32[i]) > float(int((2.4f * (float)input33[i])))));  // Zone Exec Code
+				output23[i] = (FAUSTFLOAT)(((3.5f * (float)input34[i]) > (2.4f * (float)input35[i])));  // Zone Exec Code
+				output24[i] = (FAUSTFLOAT)((int((3.5f * (float)input36[i])) >= int((2.4f * (float)input37[i]))));  // Zone Exec Code
+				output25[i] = (FAUSTFLOAT)(((3.5f * (float)input38[i]) >= (2.4f * (float)input39[i])));  // Zone Exec Code
+				output26[i] = (FAUSTFLOAT)((int((3.5f * (float)input40[i])) < int((2.4f * (float)input41[i]))));  // Zone Exec Code
+				output27[i] = (FAUSTFLOAT)(((3.5f * (float)input42[i]) < (2.4f * (float)input43[i])));  // Zone Exec Code
+				output28[i] = (FAUSTFLOAT)((int((3.5f * (float)input44[i])) <= int((2.4f * (float)input45[i]))));  // Zone Exec Code
+				output29[i] = (FAUSTFLOAT)(((3.5f * (float)input46[i]) <= (2.4f * (float)input47[i])));  // Zone Exec Code
+				output30[i] = (FAUSTFLOAT)((int((3.5f * (float)input48[i])) == int((2.4f * (float)input49[i]))));  // Zone Exec Code
+				output31[i] = (FAUSTFLOAT)(((3.5f * (float)input50[i]) == (2.4f * (float)input51[i])));  // Zone Exec Code
+				output32[i] = (FAUSTFLOAT)((int((3.5f * (float)input52[i])) != int((2.4f * (float)input53[i]))));  // Zone Exec Code
+				output33[i] = (FAUSTFLOAT)(((3.5f * (float)input54[i]) != (2.4f * (float)input55[i])));  // Zone Exec Code
+				output34[i] = (FAUSTFLOAT)(abs(int((4.4f * (float)input56[i]))));  // Zone Exec Code
+				output35[i] = (FAUSTFLOAT)(abs(int(-(4.4f * (float)input57[i]))));  // Zone Exec Code
+				output36[i] = (FAUSTFLOAT)(fabsf((4.4f * (float)input58[i])));  // Zone Exec Code
+				output37[i] = (FAUSTFLOAT)(fabsf(-(4.4f * (float)input59[i])));  // Zone Exec Code
+				output38[i] = (FAUSTFLOAT)(acosf((0.5f * (float)input60[i])));  // Zone Exec Code
+				output39[i] = (FAUSTFLOAT)(1.5707964f);  // Zone Exec Code
+				output40[i] = (FAUSTFLOAT)(asinf((0.5f * (float)input62[i])));  // Zone Exec Code
+				output41[i] = (FAUSTFLOAT)(atanf((0.5f * (float)input63[i])));  // Zone Exec Code
+				output42[i] = (FAUSTFLOAT)(atan2f((0.5f * (float)input64[i]),4.0f));  // Zone Exec Code
+				output43[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
+				output44[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
+				output45[i] = (FAUSTFLOAT)(ceilf((1.3f * (float)input67[i])));  // Zone Exec Code
+				output46[i] = (FAUSTFLOAT)(cosf((0.3f * (float)input68[i])));  // Zone Exec Code
+				output47[i] = (FAUSTFLOAT)(expf((0.5f * (float)input69[i])));  // Zone Exec Code
+				output48[i] = (FAUSTFLOAT)(floorf((6.5f * (float)input70[i])));  // Zone Exec Code
+				output49[i] = (FAUSTFLOAT)(fmodf((9.2f * (float)input71[i]),2.0f));  // Zone Exec Code
+				output50[i] = (FAUSTFLOAT)(logf((0.5f * ((float)input72[i] + 1.0f))));  // Zone Exec Code
+				output51[i] = (FAUSTFLOAT)(log10f((0.5f * ((float)input73[i] + 1.0f))));  // Zone Exec Code
+				output52[i] = (FAUSTFLOAT)(max((0.5f * (float)input74[i]), (0.4f * (float)input75[i])));  // Zone Exec Code
+				output53[i] = (FAUSTFLOAT)(min((0.5f * (float)input76[i]), (0.4f * (float)input77[i])));  // Zone Exec Code
+				output54[i] = (FAUSTFLOAT)(max((0.5f * (float)input78[i]), 0.0f));  // Zone Exec Code
+				output55[i] = (FAUSTFLOAT)(min((0.5f * (float)input80[i]), 0.0f));  // Zone Exec Code
+				output56[i] = (FAUSTFLOAT)(max(int((3.5f * (float)input82[i])), int((2.4f * (float)input83[i]))));  // Zone Exec Code
+				output57[i] = (FAUSTFLOAT)(min(int((3.5f * (float)input84[i])), int((2.4f * (float)input85[i]))));  // Zone Exec Code
+				output58[i] = (FAUSTFLOAT)(powf((0.5f * (float)input86[i]),0.3f));  // Zone Exec Code
+				output59[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
+				output60[i] = (FAUSTFLOAT)(powf((0.5f * (float)input88[i]),3.0f));  // Zone Exec Code
+				output61[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+				output62[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+				output63[i] = (FAUSTFLOAT)(powf(1e+01f,(3.0f * (float)input91[i])));  // Zone Exec Code
+				output64[i] = (FAUSTFLOAT)(remainderf((9.2f * (float)input92[i]),2.0f));  // Zone Exec Code
+				output65[i] = (FAUSTFLOAT)(rintf((1.5f * (float)input93[i])));  // Zone Exec Code
+				output66[i] = (FAUSTFLOAT)(roundf((1.5f * (float)input94[i])));  // Zone Exec Code
+				output67[i] = (FAUSTFLOAT)(sinf((0.3f * (float)input95[i])));  // Zone Exec Code
+				output68[i] = (FAUSTFLOAT)(sqrtf((0.3f * (float)input96[i])));  // Zone Exec Code
+				output69[i] = (FAUSTFLOAT)(tanf((0.3f * (float)input97[i])));  // Zone Exec Code
+				output70[i] = (FAUSTFLOAT)(acoshf(((0.3f * (float)input98[i]) + 1e+01f)));  // Zone Exec Code
+				output71[i] = (FAUSTFLOAT)(asinhf(((0.3f * (float)input99[i]) + 1e+01f)));  // Zone Exec Code
+				output72[i] = (FAUSTFLOAT)(atanhf(((0.3f * (float)input100[i]) + 0.5f)));  // Zone Exec Code
+				output73[i] = (FAUSTFLOAT)(coshf(((0.3f * (float)input101[i]) + 1e+01f)));  // Zone Exec Code
+				output74[i] = (FAUSTFLOAT)(sinhf(((0.3f * (float)input102[i]) + 1e+01f)));  // Zone Exec Code
+				output75[i] = (FAUSTFLOAT)(tanhf(((0.3f * (float)input103[i]) + 1e+01f)));  // Zone Exec Code
+				// post processing
+				fVeeec1[1] = fVeeec1[0];
+				iVec0[1] = iVec0[0];
+			}
+			iVec0State = iVec0[1];
+			fVeeec1State = fVeeec1[1];
+		}
+	}
+};
+
+

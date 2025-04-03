@@ -682,7 +682,7 @@ const char* http_strerror()
 			stringIndex = strstr(originalError, "%d");
 			strncat(convertedError, originalError,	/* Copy up to %d */
             labs(long(stringIndex - originalError)));
-			sprintf(&convertedError[strlen(convertedError)], "%d", errorInt);
+			snprintf(&convertedError[strlen(convertedError)], sizeof(convertedError), "%d", errorInt);
 			stringIndex += 2;	/* Skip past the %d */
 			strcat(convertedError, stringIndex);
 

@@ -1,10 +1,9 @@
 
-
 This folder contains useful scripts that combines Faust and the C++ compiler to generates executable binary. Use `-h` or `-help` to get more information on each specific script options. Additional  Faust compiler options (like `-vec -lv 0 -I /path/to/lib`) can be given. You can possibly use the  `CXXFLAGS` environment variable to give additional options to the C++ compiler.
 
 You can use 'sudo make install' to install them. 
 
-###  The following scripts generate audio applications
+### The following scripts generate audio applications
 
 * `faust2alqt <file.dsp>` : create ALSA/QT application for each input file
 
@@ -56,17 +55,9 @@ You can use 'sudo make install' to install them.
 
 * `faust2vst <file.dsp>` : create a VST plugin for each input file
 
-* `faust2webaudio <file.dsp>` : create a HTML/WebAudioAPI (with JavaScript code) application for each input file
-  
-* `faust2wasm <file.dsp>` : using Emscripten compiler or wasm backend, create a WebAudioAPI node for each input file
-
-* `faust2webaudiowasm <file.dsp>` : using Emscripten compiler or wasm backend, create a HTML/WebAudioAPI (with wasm code) application for each input file
-
-
 NOTE: In the latest Faust versions there's also an alternative VST architecture available, featuring multi-channel MIDI, MIDI CC and MIDI Tuning Standard (MTS) support. It is invoked as follows:
 
 * `faust2faustvst <file.dsp>` : create a VST plugin for each input file
-
 
 ### The following scripts can be used to generate block diagrams
 
@@ -76,7 +67,6 @@ NOTE: In the latest Faust versions there's also an alternative VST architecture 
 
 * `faust2eps <file1.dsp>` : create eps block-diagrams for each input file
 
-
 ### The following scripts also integrate a visualization
 
 * `faust2firefox <file1.dsp>` : faust2svg with visualization using firefox
@@ -84,7 +74,6 @@ NOTE: In the latest Faust versions there's also an alternative VST architecture 
 * `faust2feh <file1.dsp>` : faust2svg with visualization using feh
 
 * `faust2octave <file.dsp>` : faust2plot with visualization using octave   
-
 
 ### The following scripts can be used to generate documentation
 

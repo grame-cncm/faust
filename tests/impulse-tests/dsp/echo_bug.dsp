@@ -1,5 +1,4 @@
 declare compilation_options    "-single -scal -e echo_bug.dsp -o echo_bug.dsp";
-declare library_path "/Documents/faust-github-faust2/tests/impulse-tests/dsp/echo_bug.dsp";
 declare library_path "/usr/local/share/faust/sf.lib";
 declare library_path "/usr/local/share/faust/all.lib";
 declare library_path "/usr/local/share/faust/vaeffects.lib";
@@ -38,7 +37,7 @@ declare envelopes_lib_copyright "GRAME";
 declare envelopes_lib_license "LGPL with exception";
 declare envelopes_lib_name "Faust Envelope Library";
 declare envelopes_lib_version "0.0";
-declare filename "echo_bug";
+declare filename "echo_bug.dsp";
 declare filters_lib_name "Faust Filters Library";
 declare filters_lib_version "0.0";
 declare hoa_lib_author "Pierre Guillot";

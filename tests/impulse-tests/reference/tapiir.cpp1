@@ -1,0 +1,524 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "tapiir"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fslider0;
+	FAUSTFLOAT 	fslider1;
+	FAUSTFLOAT 	fslider2;
+	FAUSTFLOAT 	fslider3;
+	FAUSTFLOAT 	fslider4;
+	FAUSTFLOAT 	fslider5;
+	FAUSTFLOAT 	fslider6;
+	FAUSTFLOAT 	fslider7;
+	FAUSTFLOAT 	fslider8;
+	FAUSTFLOAT 	fslider9;
+	FAUSTFLOAT 	fslider10;
+	float 	fVec0[524288]; // Ring Delay
+	FAUSTFLOAT 	fslider11;
+	float 	fConst0; // step: 45
+	// Recursion delay fVeeec0 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Single Delay
+	FAUSTFLOAT 	fslider12;
+	FAUSTFLOAT 	fslider13;
+	FAUSTFLOAT 	fslider14;
+	FAUSTFLOAT 	fslider15;
+	FAUSTFLOAT 	fslider16;
+	FAUSTFLOAT 	fslider17;
+	FAUSTFLOAT 	fslider18;
+	FAUSTFLOAT 	fslider19;
+	FAUSTFLOAT 	fslider20;
+	FAUSTFLOAT 	fslider21;
+	float 	fVec1[524288]; // Ring Delay
+	FAUSTFLOAT 	fslider22;
+	// Recursion delay fVeeec1 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec1State; // Single Delay
+	FAUSTFLOAT 	fslider23;
+	FAUSTFLOAT 	fslider24;
+	FAUSTFLOAT 	fslider25;
+	FAUSTFLOAT 	fslider26;
+	FAUSTFLOAT 	fslider27;
+	FAUSTFLOAT 	fslider28;
+	FAUSTFLOAT 	fslider29;
+	FAUSTFLOAT 	fslider30;
+	FAUSTFLOAT 	fslider31;
+	FAUSTFLOAT 	fslider32;
+	float 	fVec2[524288]; // Ring Delay
+	FAUSTFLOAT 	fslider33;
+	// Recursion delay fVeeec2 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2State; // Single Delay
+	FAUSTFLOAT 	fslider34;
+	FAUSTFLOAT 	fslider35;
+	FAUSTFLOAT 	fslider36;
+	FAUSTFLOAT 	fslider37;
+	FAUSTFLOAT 	fslider38;
+	FAUSTFLOAT 	fslider39;
+	FAUSTFLOAT 	fslider40;
+	FAUSTFLOAT 	fslider41;
+	FAUSTFLOAT 	fslider42;
+	FAUSTFLOAT 	fslider43;
+	float 	fVec3[524288]; // Ring Delay
+	FAUSTFLOAT 	fslider44;
+	// Recursion delay fVeeec3 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec3State; // Single Delay
+	FAUSTFLOAT 	fslider45;
+	FAUSTFLOAT 	fslider46;
+	FAUSTFLOAT 	fslider47;
+	FAUSTFLOAT 	fslider48;
+	FAUSTFLOAT 	fslider49;
+	FAUSTFLOAT 	fslider50;
+	FAUSTFLOAT 	fslider51;
+	FAUSTFLOAT 	fslider52;
+	FAUSTFLOAT 	fslider53;
+	FAUSTFLOAT 	fslider54;
+	float 	fVec4[524288]; // Ring Delay
+	FAUSTFLOAT 	fslider55;
+	// Recursion delay fVeeec4 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec4State; // Single Delay
+	FAUSTFLOAT 	fslider56;
+	FAUSTFLOAT 	fslider57;
+	FAUSTFLOAT 	fslider58;
+	FAUSTFLOAT 	fslider59;
+	FAUSTFLOAT 	fslider60;
+	FAUSTFLOAT 	fslider61;
+	FAUSTFLOAT 	fslider62;
+	FAUSTFLOAT 	fslider63;
+	FAUSTFLOAT 	fslider64;
+	FAUSTFLOAT 	fslider65;
+	float 	fVec5[524288]; // Ring Delay
+	FAUSTFLOAT 	fslider66;
+	// Recursion delay fVeeec5 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec5State; // Single Delay
+	FAUSTFLOAT 	fslider67;
+	FAUSTFLOAT 	fslider68;
+	FAUSTFLOAT 	fslider69;
+	FAUSTFLOAT 	fslider70;
+	FAUSTFLOAT 	fslider71;
+	FAUSTFLOAT 	fslider72;
+	FAUSTFLOAT 	fslider73;
+	FAUSTFLOAT 	fslider74;
+	FAUSTFLOAT 	fslider75;
+	FAUSTFLOAT 	fslider76;
+	FAUSTFLOAT 	fslider77;
+	int 	IOTA;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "tapiir.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "tapiir");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 2; }
+	virtual int getNumOutputs() { return 2; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 45
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 1.0f;
+		fslider1 = 0.0f;
+		fslider2 = 1.0f;
+		fslider3 = 0.0f;
+		fslider4 = 0.0f;
+		fslider5 = 0.0f;
+		fslider6 = 0.0f;
+		fslider7 = 0.0f;
+		fslider8 = 0.0f;
+		fslider9 = 1.0f;
+		fslider10 = 1.0f;
+		fslider11 = 0.0f;
+		fslider12 = 0.0f;
+		fslider13 = 1.0f;
+		fslider14 = 0.0f;
+		fslider15 = 0.0f;
+		fslider16 = 0.0f;
+		fslider17 = 0.0f;
+		fslider18 = 0.0f;
+		fslider19 = 0.0f;
+		fslider20 = 1.0f;
+		fslider21 = 1.0f;
+		fslider22 = 0.0f;
+		fslider23 = 0.0f;
+		fslider24 = 1.0f;
+		fslider25 = 0.0f;
+		fslider26 = 0.0f;
+		fslider27 = 0.0f;
+		fslider28 = 0.0f;
+		fslider29 = 0.0f;
+		fslider30 = 0.0f;
+		fslider31 = 1.0f;
+		fslider32 = 1.0f;
+		fslider33 = 0.0f;
+		fslider34 = 0.0f;
+		fslider35 = 1.0f;
+		fslider36 = 0.0f;
+		fslider37 = 0.0f;
+		fslider38 = 0.0f;
+		fslider39 = 0.0f;
+		fslider40 = 0.0f;
+		fslider41 = 0.0f;
+		fslider42 = 1.0f;
+		fslider43 = 1.0f;
+		fslider44 = 0.0f;
+		fslider45 = 0.0f;
+		fslider46 = 1.0f;
+		fslider47 = 0.0f;
+		fslider48 = 0.0f;
+		fslider49 = 0.0f;
+		fslider50 = 0.0f;
+		fslider51 = 0.0f;
+		fslider52 = 0.0f;
+		fslider53 = 1.0f;
+		fslider54 = 1.0f;
+		fslider55 = 0.0f;
+		fslider56 = 0.0f;
+		fslider57 = 1.0f;
+		fslider58 = 0.0f;
+		fslider59 = 0.0f;
+		fslider60 = 0.0f;
+		fslider61 = 0.0f;
+		fslider62 = 0.0f;
+		fslider63 = 0.0f;
+		fslider64 = 1.0f;
+		fslider65 = 1.0f;
+		fslider66 = 0.0f;
+		fslider67 = 1.0f;
+		fslider68 = 1.0f;
+		fslider69 = 1.0f;
+		fslider70 = 0.0f;
+		fslider71 = 0.0f;
+		fslider72 = 0.0f;
+		fslider73 = 0.0f;
+		fslider74 = 0.0f;
+		fslider75 = 0.0f;
+		fslider76 = 1.0f;
+		fslider77 = 1.0f;
+	}
+	virtual void instanceClear() {
+		for (int i = 0; i < 524288; i++) { fVec0[i] = 0; }
+		fVeeec0State = 0;
+		for (int i = 0; i < 524288; i++) { fVec1[i] = 0; }
+		fVeeec1State = 0;
+		for (int i = 0; i < 524288; i++) { fVec2[i] = 0; }
+		fVeeec2State = 0;
+		for (int i = 0; i < 524288; i++) { fVec3[i] = 0; }
+		fVeeec3State = 0;
+		for (int i = 0; i < 524288; i++) { fVec4[i] = 0; }
+		fVeeec4State = 0;
+		for (int i = 0; i < 524288; i++) { fVec5[i] = 0; }
+		fVeeec5State = 0;
+		IOTA = 5;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("Tapiir");
+		ui_interface->openTabBox("0x00");
+		ui_interface->openHorizontalBox("Tap 0");
+		ui_interface->addVerticalSlider("delay (sec)", &fslider11, 0.0f, 0.0f, 5.0f, 0.01f);
+		ui_interface->addVerticalSlider("gain", &fslider2, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 0", &fslider9, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 1", &fslider10, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 0", &fslider3, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 1", &fslider4, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 2", &fslider5, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 3", &fslider6, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 4", &fslider7, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 5", &fslider8, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Tap 1");
+		ui_interface->addVerticalSlider("delay (sec)", &fslider22, 0.0f, 0.0f, 5.0f, 0.01f);
+		ui_interface->addVerticalSlider("gain", &fslider13, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 0", &fslider20, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 1", &fslider21, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 0", &fslider14, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 1", &fslider15, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 2", &fslider16, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 3", &fslider17, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 4", &fslider18, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 5", &fslider19, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Tap 2");
+		ui_interface->addVerticalSlider("delay (sec)", &fslider33, 0.0f, 0.0f, 5.0f, 0.01f);
+		ui_interface->addVerticalSlider("gain", &fslider24, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 0", &fslider31, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 1", &fslider32, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 0", &fslider25, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 1", &fslider26, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 2", &fslider27, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 3", &fslider28, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 4", &fslider29, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 5", &fslider30, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Tap 3");
+		ui_interface->addVerticalSlider("delay (sec)", &fslider44, 0.0f, 0.0f, 5.0f, 0.01f);
+		ui_interface->addVerticalSlider("gain", &fslider35, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 0", &fslider42, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 1", &fslider43, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 0", &fslider36, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 1", &fslider37, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 2", &fslider38, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 3", &fslider39, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 4", &fslider40, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 5", &fslider41, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Tap 4");
+		ui_interface->addVerticalSlider("delay (sec)", &fslider55, 0.0f, 0.0f, 5.0f, 0.01f);
+		ui_interface->addVerticalSlider("gain", &fslider46, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 0", &fslider53, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 1", &fslider54, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 0", &fslider47, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 1", &fslider48, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 2", &fslider49, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 3", &fslider50, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 4", &fslider51, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 5", &fslider52, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Tap 5");
+		ui_interface->addVerticalSlider("delay (sec)", &fslider66, 0.0f, 0.0f, 5.0f, 0.01f);
+		ui_interface->addVerticalSlider("gain", &fslider57, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 0", &fslider64, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 1", &fslider65, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 0", &fslider58, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 1", &fslider59, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 2", &fslider60, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 3", &fslider61, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 4", &fslider62, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 5", &fslider63, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("outputs");
+		ui_interface->openHorizontalBox("output 0");
+		ui_interface->addVerticalSlider("gain", &fslider0, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 0", &fslider67, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 1", &fslider68, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 0", &fslider1, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 1", &fslider12, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 2", &fslider23, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 3", &fslider34, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 4", &fslider45, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 5", &fslider56, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("output 1");
+		ui_interface->addVerticalSlider("gain", &fslider69, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 0", &fslider76, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("input 1", &fslider77, 1.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 0", &fslider70, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 1", &fslider71, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 2", &fslider72, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 3", &fslider73, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 4", &fslider74, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->addVerticalSlider("tap 5", &fslider75, 0.0f, 0.0f, 1.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = float(fslider0); // step: 1
+		float 	fSlow1 = float(fslider1); // step: 2
+		float 	fSlow2 = float(fslider2); // step: 4
+		float 	fSlow3 = float(fslider3); // step: 5
+		float 	fSlow4 = float(fslider4); // step: 9
+		float 	fSlow5 = float(fslider5); // step: 13
+		float 	fSlow6 = float(fslider6); // step: 17
+		float 	fSlow7 = float(fslider7); // step: 21
+		float 	fSlow8 = float(fslider8); // step: 25
+		float 	fSlow9 = float(fslider9); // step: 30
+		float 	fSlow10 = float(fslider10); // step: 34
+		int 	iSlow11 = (int((fConst0 * float(fslider11))) & 524287); // step: 48
+		float 	fVeeec0[2];
+		float 	fSlow12 = float(fslider12); // step: 53
+		float 	fSlow13 = float(fslider13); // step: 54
+		float 	fSlow14 = float(fslider14); // step: 55
+		float 	fSlow15 = float(fslider15); // step: 57
+		float 	fSlow16 = float(fslider16); // step: 60
+		float 	fSlow17 = float(fslider17); // step: 63
+		float 	fSlow18 = float(fslider18); // step: 66
+		float 	fSlow19 = float(fslider19); // step: 69
+		float 	fSlow20 = float(fslider20); // step: 72
+		float 	fSlow21 = float(fslider21); // step: 75
+		int 	iSlow22 = (int((fConst0 * float(fslider22))) & 524287); // step: 82
+		float 	fVeeec1[2];
+		float 	fSlow23 = float(fslider23); // step: 88
+		float 	fSlow24 = float(fslider24); // step: 89
+		float 	fSlow25 = float(fslider25); // step: 90
+		float 	fSlow26 = float(fslider26); // step: 92
+		float 	fSlow27 = float(fslider27); // step: 95
+		float 	fSlow28 = float(fslider28); // step: 98
+		float 	fSlow29 = float(fslider29); // step: 101
+		float 	fSlow30 = float(fslider30); // step: 104
+		float 	fSlow31 = float(fslider31); // step: 107
+		float 	fSlow32 = float(fslider32); // step: 110
+		int 	iSlow33 = (int((fConst0 * float(fslider33))) & 524287); // step: 117
+		float 	fVeeec2[2];
+		float 	fSlow34 = float(fslider34); // step: 123
+		float 	fSlow35 = float(fslider35); // step: 124
+		float 	fSlow36 = float(fslider36); // step: 125
+		float 	fSlow37 = float(fslider37); // step: 127
+		float 	fSlow38 = float(fslider38); // step: 130
+		float 	fSlow39 = float(fslider39); // step: 133
+		float 	fSlow40 = float(fslider40); // step: 136
+		float 	fSlow41 = float(fslider41); // step: 139
+		float 	fSlow42 = float(fslider42); // step: 142
+		float 	fSlow43 = float(fslider43); // step: 145
+		int 	iSlow44 = (int((fConst0 * float(fslider44))) & 524287); // step: 152
+		float 	fVeeec3[2];
+		float 	fSlow45 = float(fslider45); // step: 158
+		float 	fSlow46 = float(fslider46); // step: 159
+		float 	fSlow47 = float(fslider47); // step: 160
+		float 	fSlow48 = float(fslider48); // step: 162
+		float 	fSlow49 = float(fslider49); // step: 165
+		float 	fSlow50 = float(fslider50); // step: 168
+		float 	fSlow51 = float(fslider51); // step: 171
+		float 	fSlow52 = float(fslider52); // step: 174
+		float 	fSlow53 = float(fslider53); // step: 177
+		float 	fSlow54 = float(fslider54); // step: 180
+		int 	iSlow55 = (int((fConst0 * float(fslider55))) & 524287); // step: 187
+		float 	fVeeec4[2];
+		float 	fSlow56 = float(fslider56); // step: 193
+		float 	fSlow57 = float(fslider57); // step: 194
+		float 	fSlow58 = float(fslider58); // step: 195
+		float 	fSlow59 = float(fslider59); // step: 197
+		float 	fSlow60 = float(fslider60); // step: 200
+		float 	fSlow61 = float(fslider61); // step: 203
+		float 	fSlow62 = float(fslider62); // step: 206
+		float 	fSlow63 = float(fslider63); // step: 209
+		float 	fSlow64 = float(fslider64); // step: 212
+		float 	fSlow65 = float(fslider65); // step: 215
+		int 	iSlow66 = (int((fConst0 * float(fslider66))) & 524287); // step: 222
+		float 	fVeeec5[2];
+		float 	fSlow67 = float(fslider67); // step: 228
+		float 	fSlow68 = float(fslider68); // step: 231
+		float 	fSlow69 = float(fslider69); // step: 235
+		float 	fSlow70 = float(fslider70); // step: 236
+		float 	fSlow71 = float(fslider71); // step: 238
+		float 	fSlow72 = float(fslider72); // step: 241
+		float 	fSlow73 = float(fslider73); // step: 244
+		float 	fSlow74 = float(fslider74); // step: 247
+		float 	fSlow75 = float(fslider75); // step: 250
+		float 	fSlow76 = float(fslider76); // step: 253
+		float 	fSlow77 = float(fslider77); // step: 256
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			fVeeec0[1] = fVeeec0State;
+			fVeeec1[1] = fVeeec1State;
+			fVeeec2[1] = fVeeec2State;
+			fVeeec3[1] = fVeeec3State;
+			fVeeec4[1] = fVeeec4State;
+			fVeeec5[1] = fVeeec5State;
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = fVeeec0[1]; // step: 7
+				float 	fTemp1 = fVeeec1[1]; // step: 10
+				float 	fTemp2 = fVeeec2[1]; // step: 14
+				float 	fTemp3 = fVeeec3[1]; // step: 18
+				float 	fTemp4 = fVeeec4[1]; // step: 22
+				float 	fTemp5 = fVeeec5[1]; // step: 26
+				float 	fTemp6 = (float)input0[i]; // step: 29
+				float 	fTemp7 = (float)input1[i]; // step: 33
+				int vIota0 = IOTA&524287;
+				fVec0[vIota0] = (fSlow2 * ((((((((fSlow3 * fTemp0) + (fSlow4 * fTemp1)) + (fSlow5 * fTemp2)) + (fSlow6 * fTemp3)) + (fSlow7 * fTemp4)) + (fSlow8 * fTemp5)) + (fSlow9 * fTemp6)) + (fSlow10 * fTemp7)));
+				int vIota1 = (IOTA-iSlow11)&524287;
+				fVeeec0[0] = fVec0[vIota1];
+				float 	fTemp8 = fVeeec0[0]; // step: 51
+				fVec1[vIota0] = (fSlow13 * ((((((((fSlow14 * fTemp0) + (fSlow15 * fTemp1)) + (fSlow16 * fTemp2)) + (fSlow17 * fTemp3)) + (fSlow18 * fTemp4)) + (fSlow19 * fTemp5)) + (fSlow20 * fTemp6)) + (fSlow21 * fTemp7)));
+				int vIota2 = (IOTA-iSlow22)&524287;
+				fVeeec1[0] = fVec1[vIota2];
+				float 	fTemp9 = fVeeec1[0]; // step: 85
+				fVec2[vIota0] = (fSlow24 * ((((((((fSlow25 * fTemp0) + (fSlow26 * fTemp1)) + (fSlow27 * fTemp2)) + (fSlow28 * fTemp3)) + (fSlow29 * fTemp4)) + (fSlow30 * fTemp5)) + (fSlow31 * fTemp6)) + (fSlow32 * fTemp7)));
+				int vIota3 = (IOTA-iSlow33)&524287;
+				fVeeec2[0] = fVec2[vIota3];
+				float 	fTemp10 = fVeeec2[0]; // step: 120
+				fVec3[vIota0] = (fSlow35 * ((((((((fSlow36 * fTemp0) + (fSlow37 * fTemp1)) + (fSlow38 * fTemp2)) + (fSlow39 * fTemp3)) + (fSlow40 * fTemp4)) + (fSlow41 * fTemp5)) + (fSlow42 * fTemp6)) + (fSlow43 * fTemp7)));
+				int vIota4 = (IOTA-iSlow44)&524287;
+				fVeeec3[0] = fVec3[vIota4];
+				float 	fTemp11 = fVeeec3[0]; // step: 155
+				fVec4[vIota0] = (fSlow46 * ((((((((fSlow47 * fTemp0) + (fSlow48 * fTemp1)) + (fSlow49 * fTemp2)) + (fSlow50 * fTemp3)) + (fSlow51 * fTemp4)) + (fSlow52 * fTemp5)) + (fSlow53 * fTemp6)) + (fSlow54 * fTemp7)));
+				int vIota5 = (IOTA-iSlow55)&524287;
+				fVeeec4[0] = fVec4[vIota5];
+				float 	fTemp12 = fVeeec4[0]; // step: 190
+				fVec5[vIota0] = (fSlow57 * ((((((((fSlow58 * fTemp0) + (fSlow59 * fTemp1)) + (fSlow60 * fTemp2)) + (fSlow61 * fTemp3)) + (fSlow62 * fTemp4)) + (fSlow63 * fTemp5)) + (fSlow64 * fTemp6)) + (fSlow65 * fTemp7)));
+				int vIota6 = (IOTA-iSlow66)&524287;
+				fVeeec5[0] = fVec5[vIota6];
+				float 	fTemp13 = fVeeec5[0]; // step: 225
+				output0[i] = (FAUSTFLOAT)((fSlow0 * ((((((((fSlow1 * fTemp8) + (fSlow12 * fTemp9)) + (fSlow23 * fTemp10)) + (fSlow34 * fTemp11)) + (fSlow45 * fTemp12)) + (fSlow56 * fTemp13)) + (fSlow67 * fTemp6)) + (fSlow68 * fTemp7))));  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)((fSlow69 * ((((((((fSlow70 * fTemp8) + (fSlow71 * fTemp9)) + (fSlow72 * fTemp10)) + (fSlow73 * fTemp11)) + (fSlow74 * fTemp12)) + (fSlow75 * fTemp13)) + (fSlow76 * fTemp6)) + (fSlow77 * fTemp7))));  // Zone Exec Code
+				// post processing
+				IOTA = IOTA+1;
+				fVeeec5[1] = fVeeec5[0];
+				fVeeec4[1] = fVeeec4[0];
+				fVeeec3[1] = fVeeec3[0];
+				fVeeec2[1] = fVeeec2[0];
+				fVeeec1[1] = fVeeec1[0];
+				fVeeec0[1] = fVeeec0[0];
+			}
+			fVeeec0State = fVeeec0[1];
+			fVeeec1State = fVeeec1[1];
+			fVeeec2State = fVeeec2[1];
+			fVeeec3State = fVeeec3[1];
+			fVeeec4State = fVeeec4[1];
+			fVeeec5State = fVeeec5[1];
+		}
+	}
+};
+
+

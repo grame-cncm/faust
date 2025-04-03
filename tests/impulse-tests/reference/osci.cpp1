@@ -1,0 +1,158 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2009"
+// license: "BSD"
+// name: "osci"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	class SIG0 {
+	  private:
+		int fSampleRate;
+		// Recursion delay iVeeec4 is of type kMonoDelay
+		// While its definition is of type kZeroDelay
+		int 	iVeeec4State; // Mono Delay
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			iVeeec4State = 0;
+		}
+		void fill(int count, float output[]) {
+			int 	iVeeec4;
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = min(32, fullcount-index);
+				iVeeec4 = iVeeec4State;
+				for (int i=0; i<count; i++) {
+					iVeeec4 = (iVeeec4 + 1);
+					output[i] = sinf((9.58738e-05f * float((iVeeec4 + -1))));
+				}
+				iVeeec4State = iVeeec4;
+				output += 32;
+			}
+		}
+	};
+
+
+	FAUSTFLOAT 	fslider0;
+	// Recursion delay fVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Mono Delay
+	FAUSTFLOAT 	fslider1;
+	float 	fConst0; // step: 25
+	// Recursion delay fVeeec2 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2State; // Single Delay
+	static float 	ftbl0[65537];
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("copyright", "(c)GRAME 2009");
+		m->declare("filename", "osci.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "osci");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+		SIG0 sig0;
+		sig0.init(sample_rate);
+		sig0.fill(65537,ftbl0);
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = (1.0f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 25
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 0.0f;
+		fslider1 = 564.0f;
+	}
+	virtual void instanceClear() {
+		fVeeec0State = 0;
+		fVeeec2State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("Oscillator");
+		ui_interface->declare(&fslider1, "unit", "Hz");
+		ui_interface->addHorizontalSlider("freq", &fslider1, 564.0f, 2e+01f, 2.4e+04f, 1.0f);
+		ui_interface->declare(&fslider0, "unit", "dB");
+		ui_interface->addHorizontalSlider("volume", &fslider0, 0.0f, -96.0f, 0.0f, 0.1f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = (0.001f * powf(1e+01f,(0.05f * float(fslider0)))); // step: 12
+		float 	fVeeec0;
+		float 	fSlow1 = (fConst0 * float(fslider1)); // step: 26
+		float 	fVeeec2[2];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			fVeeec0 = fVeeec0State;
+			fVeeec2[1] = fVeeec2State;
+			for (int i=0; i<count; i++) {
+				fVeeec0 = (fSlow0 + (0.999f * fVeeec0));
+				float 	fTemp0 = fVeeec2[1]; // step: 27
+				fVeeec2[0] = (fSlow1 + (fTemp0 - floorf((fSlow1 + fTemp0))));
+				float 	fTemp1 = (65536.0f * fVeeec2[0]); // step: 34
+				int 	iTemp2 = int(fTemp1); // step: 35
+				float 	fTemp3 = ftbl0[max(0, min(iTemp2, 65536))]; // step: 50
+				output0[i] = (FAUSTFLOAT)((fVeeec0 * (fTemp3 + ((fTemp1 - floorf(fTemp1)) * (ftbl0[max(0, min((iTemp2 + 1), 65536))] - fTemp3)))));  // Zone Exec Code
+				// post processing
+				fVeeec2[1] = fVeeec2[0];
+			}
+			fVeeec0State = fVeeec0;
+			fVeeec2State = fVeeec2[1];
+		}
+	}
+};
+
+
+float 	mydsp::ftbl0[65537];

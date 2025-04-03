@@ -37,7 +37,7 @@ architecture section is not modified.
  * This class allows a 'proxy' dsp to control a real dsp
  * possibly running somewhere else.
  */
-class proxy_dsp : public dsp {
+class proxy_dsp : public ::dsp {
 
     protected:
     

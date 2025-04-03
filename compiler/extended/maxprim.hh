@@ -175,4 +175,14 @@ class MaxPrim : public xtended {
          */
         return sigSelect2(sigGT(args[0], args[1]), args[2], args[3]);
     }
+
+    double compute(const std::vector<Node>& args) override
+    {
+        int i, j;
+        if (isInt(args[0], &i) && isInt(args[1], &j)) {
+            return std::max(i, j);
+        } else {
+            return std::max(args[0].getDouble(), args[1].getDouble());
+        }
+    }
 };

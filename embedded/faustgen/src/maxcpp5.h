@@ -404,6 +404,13 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth,
     if (m_is_mc) {
         // Prevent recycling of inputs for outputs
         m_ob.z_misc = Z_NO_INPLACE | Z_MC_INLETS;
+        
+        // Update m_siginlets/m_sigoutlets
+        m_siginlets = siginlets;
+        m_sigoutlets = sigoutlets;
+        
+        // Invalidate DSP chain
+        dspchain_setbroken(dspchain_fromobject((t_object*)this));
     } else {
     
         // detect inlet/outlet count change

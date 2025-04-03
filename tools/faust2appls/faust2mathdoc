@@ -125,7 +125,7 @@ for FILEPATH in $@ ; do
         faust $MDLANGOPT -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH  || exit
         cd ${FILEPATH%.dsp}-mdoc/ &&
         cd svg && convert_svgprocesses2pdf svg-* && cd .. &&
-        cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
+        cd tex && xelatex ${FILENAME%.dsp}.tex && xelatex ${FILENAME%.dsp}.tex && cd .. &&
         mkdir -p pdf && cp tex/${FILENAME%.dsp}.pdf pdf &&
         mkdir -p cpp && mv ../${FILENAME%.dsp}.cpp cpp &&
         cd ..

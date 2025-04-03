@@ -4,10 +4,35 @@
 GRAME - Centre national de creation musicale
 http://www.grame.fr
 ====================================================
-Copyright GRAME (c) 2012-2024
+Copyright GRAME (c) 2012-2025
 
 ----------------------------------------------------
-Version 1.70 - 14/05/2024
+Version 1.76 - 13/03/2025
+
+- RNBO/codebox export
+
+----------------------------------------------------
+Version 1.75 - 05/03/2025
+
+- more robust code in multichannels mode.
+
+----------------------------------------------------
+Version 1.74 - 02/03/2025
+
+- more robust code in multichannels mode. 
+
+----------------------------------------------------
+Version 1.73 - 24/12/2024
+
+- distribution with Faust 2.77.3. 
+
+----------------------------------------------------
+Version 1.72 - 18/09/2024
+
+- distribution with Faust 2.75.7. 
+
+----------------------------------------------------
+Version 1.71 - 14/05/2024
 
 - distribution with Faust 2.74.3. Add the multichannels mode 
 

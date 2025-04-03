@@ -40,8 +40,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "global.hh"
 #include "ppsig.hh"
-
 #include "signals.hh"
 
 // Uncomment to activate type inferrence tracing
@@ -54,9 +54,6 @@
     }
 #endif
 
-// TODO place in global.hh
-static std::unordered_map<Tree, std::set<Tree>> gDependencies;
-
 /**
  * @brief Compute the set of dependencies of a signal
  *
@@ -68,9 +65,9 @@ static std::set<Tree> sigDependencies(std::vector<Tree>& underVisit, Tree sig)
 {
     int  i;
     Tree rec, id, le;
-    if (gDependencies.count(sig)) {
+    if (gGlobal->gDependencies.count(sig)) {
         // 1) the dependencies of sig have already been computed
-        return gDependencies[sig];
+        return gGlobal->gDependencies[sig];
     } else if (isProj(sig, &i, rec)) {
         // 2) sig is a projection, its dependencies are itself and the dependecies of its definition
         std::set<Tree> deps;
@@ -82,7 +79,7 @@ static std::set<Tree> sigDependencies(std::vector<Tree>& underVisit, Tree sig)
             underVisit.pop_back();
         }
         deps.insert(sig);  // insert the projection itself
-        gDependencies[sig] = deps;
+        gGlobal->gDependencies[sig] = deps;
         return deps;
 
     } else {
@@ -93,7 +90,7 @@ static std::set<Tree> sigDependencies(std::vector<Tree>& underVisit, Tree sig)
             std::set<Tree> depsb = sigDependencies(underVisit, b);
             deps.insert(depsb.begin(), depsb.end());
         }
-        gDependencies[sig] = deps;
+        gGlobal->gDependencies[sig] = deps;
         return deps;
     }
 }
@@ -193,7 +190,7 @@ Tree getProjFinalDefinition(Tree proj)
  * @param msg a string prefix to the message
  * @param sig the signal we want to print the depedencies of
  */
-void printDependencies(std::string msg, Tree sig)
+void printDependencies(const std::string& msg, Tree sig)
 {
     std::set<Tree> deps = signalDependencies(sig);
     std::cerr << msg << " dependencies of " << ppsig(sig, 20) << " are: (";

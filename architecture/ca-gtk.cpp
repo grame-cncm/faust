@@ -9,7 +9,7 @@
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2021 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2021-2024 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -61,6 +61,7 @@
 
 #ifdef SOUNDFILE
 #include "faust/gui/SoundUI.h"
+#include "faust/dsp/dsp-tools.h"
 #endif
 
 // Always include this file, otherwise -nvoices only mode does not compile....
@@ -135,7 +136,7 @@ int main(int argc, char* argv[])
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
     
-    long srate = (long)lopt(argv, "--sample-rate", -1);
+    long srate = (long)lopt(argv, "--sample-rate", 44100);
     int fpb = lopt(argv, "--buffer", 512);
     bool is_virtual = lopt(argv, "--virtual-midi", false);
     
@@ -218,29 +219,33 @@ int main(int argc, char* argv[])
     cout << "HTTPD is on" << endl;
 #endif
     
+#ifdef SOUNDFILE
+    {
+        // Init default DSP to get the SR
+        coreaudio audio(srate, fpb);
+        default_dsp def_dsp;
+        if (!audio.init(name, &def_dsp)) {
+            cerr << "Unable to init audio" << endl;
+            exit(1);
+        }
+        // After audio init to get SR
+        srate = audio.getSampleRate();
+    }
+    SoundUI soundinterface("", srate);
+    DSP->buildUserInterface(&soundinterface);
+#endif
+    
     coreaudio audio(srate, fpb);
     if (!audio.init(name, DSP)) {
         cerr << "Unable to init audio" << endl;
         exit(1);
     }
    
-// After audio init to get SR
-#ifdef SOUNDFILE
-    // Use bundle path
-    SoundUI soundinterface("", audio.getSampleRate());
-    DSP->buildUserInterface(&soundinterface);
-#endif
-    
 #ifdef OSCCTRL
     OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);
     cout << "OSC is on" << endl;
 #endif
-    
-    if (!audio.start()) {
-        cerr << "Unable to start audio" << endl;
-        exit(1);
-    }
     
     cout << "ins " << audio.getNumInputs() << endl;
     cout << "outs " << audio.getNumOutputs() << endl;
@@ -265,6 +270,11 @@ int main(int argc, char* argv[])
     // After the allocation of controllers
     finterface.recallState(rcfilename);
     
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
+    
     interface->run();
     
 #ifdef MIDICTRL
@@ -279,5 +289,5 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-/******************** END bench.cpp ****************/
+/******************** END ca-gtk.cpp ****************/
 

@@ -40,7 +40,7 @@ using namespace std;
 
  - variable identifiers cannot end by a number, so add a "_cb" suffix
  - all init code is done in 'dspsetup', called when audio start or in case of SR change
- - gOneSampleControl mode is used, 'control' function is generated as well as 'update' function
+ - gExtControl is used, 'control' function is generated as well as 'update' function
  which call 'control' only when needed (that is when as least one parameter changes)
  - 'compute' returns the list of audio outputs (and possibly additional audio outputs for bargraph)
  - MIDI support: https://rnbo.cycling74.com/learn/midi-in-rnbo, done in the architecture file, by
@@ -51,9 +51,9 @@ done in architecture file, creating the 'notein' and decoding MIDI messaged to u
 freq/gain/gate parameters
  - bargraph values cannot directly be send as control values. So additional audio outputs are
 created for them, will be sampled (using 'snapshot~' and 'change') and be connected to 'param'
-objects, like input controllers.
- - in gOneSampleControl mode, inputXX/outputXX are added in the DSP struct. Here they are generated
-as local variables at the begining of 'compute'.
+objects, like input controllers
+ - in gOneSampleIO mode, inputXX/outputXX are added in the DSP struct. Here they are generated
+as local variables at the begining of 'compute'
 
  TODO:
  - soundfile primitive support: https://rnbo.cycling74.com/learn/audio-files-in-rnbo
@@ -63,14 +63,11 @@ map<string, bool> CodeboxInstVisitor::gFunctionSymbolTable;
 
 dsp_factory_base* CodeboxCodeContainer::produceFactory()
 {
-    return new text_dsp_factory_aux(
-        fKlassName, "", "",
-        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""),
-        "");
+    return new text_dsp_factory_aux(fKlassName, "", "", fOut->str(), "");
 }
 
-CodeboxCodeContainer::CodeboxCodeContainer(const std::string& name, int numInputs, int numOutputs,
-                                           std::ostream* out)
+CodeboxCodeContainer::CodeboxCodeContainer(const string& name, int numInputs, int numOutputs,
+                                           ostringstream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
@@ -90,7 +87,7 @@ CodeContainer* CodeboxCodeContainer::createScalarContainer(const string& name,
 }
 
 CodeContainer* CodeboxCodeContainer::createContainer(const string& name, int numInputs,
-                                                     int numOutputs, ostream* dst)
+                                                     int numOutputs, ostringstream* dst)
 {
     CodeContainer* container;
 
@@ -279,7 +276,7 @@ void CodeboxCodeContainer::produceClass()
 
 // Scalar
 CodeboxScalarCodeContainer::CodeboxScalarCodeContainer(const string& name, int numInputs,
-                                                       int numOutputs, std::ostream* out,
+                                                       int numOutputs, ostringstream* out,
                                                        int sub_container_type)
     : CodeboxCodeContainer(name, numInputs, numOutputs, out)
 {

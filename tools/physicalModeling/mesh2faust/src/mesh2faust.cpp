@@ -16,7 +16,7 @@
 
 using namespace std;
 
-m2f::Response m2f::mesh2faust(TetMesh *volumetricMesh, MaterialProperties material, CommonArguments args) {
+m2f::ModalModel m2f::mesh2modal(TetMesh *volumetricMesh, MaterialProperties material, CommonArguments args) {
     if (args.debugMode) cout << "Creating and computing mass matrix\n";
 
     SparseMatrix *massMatrix;
@@ -63,8 +63,13 @@ m2f::Response m2f::mesh2faust(TetMesh *volumetricMesh, MaterialProperties materi
     delete stiffnessMatrix;
     stiffnessMatrix = nullptr;
 
-    auto model = mesh2modal(M, K, numVertices, vertexDim, material, args);
-    return modal2faust(std::move(model), {args.modelName, args.freqControl});
+    return mesh2modal(M, K, numVertices, vertexDim, material, args);
+}
+
+m2f::Response m2f::mesh2faust(TetMesh *volumetricMesh, MaterialProperties material, CommonArguments args) {
+    auto modal = mesh2modal(volumetricMesh, material, args);
+    auto faustDsp = modal2faust(modal, {args.modelName, args.freqControl});
+    return {std::move(faustDsp), std::move(modal)};
 }
 
 m2f::ModalModel m2f::mesh2modal(
@@ -186,7 +191,7 @@ m2f::Response m2f::mesh2faust(const char *objFileName, MaterialProperties materi
     return response;
 }
 
-m2f::Response m2f::modal2faust(const ModalModel &model, DspGenArguments args) {
+std::string m2f::modal2faust(const ModalModel &model, DspGenArguments args) {
     const auto &freqs = model.modeFreqs;
     const auto &gains = model.modeGains;
     const auto &t60s = model.modeT60s;
@@ -203,22 +208,16 @@ m2f::Response m2f::modal2faust(const ModalModel &model, DspGenArguments args) {
         << "nModes = " << nModes << ";\n";
     if (nExPos > 1) dsp << "nExPos = " << nExPos << ";\n";
 
-    if (args.freqControl) {
-        dsp << "modeFreqRatios(n) = ba.take(n+1,(";
-        for (int mode = 0; mode < nModes; ++mode) {
-            dsp << freqs[mode] / freqs.front();
-            if (mode < nModes - 1) dsp << ",";
-        }
-        dsp << "));\n"
-                  << "modeFreqs(mode) = freq*modeFreqRatios(mode);\n";
-    } else {
-        dsp << "modeFreqs(n) = ba.take(n+1,(";
-        for (int mode = 0; mode < nModes; ++mode) {
-            dsp << freqs[mode];
-            if (mode < nModes - 1) dsp << ",";
-        }
-        dsp << "));\n";
+    dsp << "modeFreqsUnscaled(n) = ba.take(n+1,(";
+    for (int mode = 0; mode < nModes; ++mode) {
+        dsp << freqs[mode];
+        if (mode < nModes - 1) dsp << ",";
     }
+    dsp << "));\n";
+    dsp << "modeFreqs(mode) = ";
+    if (args.freqControl) dsp << "freq*modeFreqsUnscaled(mode)/modeFreqsUnscaled(0)";
+    else dsp << "modeFreqsUnscaled(mode)";
+    dsp << ";\n";
 
     dsp << "modesGains(p,n) = waveform{";
     for (int exPos = 0; exPos < gains.size(); ++exPos) {
@@ -238,5 +237,5 @@ m2f::Response m2f::modal2faust(const ModalModel &model, DspGenArguments args) {
     dsp << "));\n";
     dsp << "};\n";
 
-    return {dsp.str(), std::move(model)};
+    return dsp.str();
 }

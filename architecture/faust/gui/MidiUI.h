@@ -49,16 +49,19 @@ architecture section is not modified.
 /**
  * Helper code for MIDI meta and polyphonic 'nvoices' parsing.
  */
-struct MidiMeta : public Meta, public std::map<std::string, std::string> {
+struct MidiMeta : public Meta {
     
-    void declare(const char* key, const char* value)
+    std::map<std::string, std::string> fData;
+    
+    void declare(const char* key, const char* value) override
     {
-        (*this)[key] = value;
+        fData[key] = value;
     }
     
     const std::string get(const char* key, const char* def)
     {
-        return (this->find(key) != this->end()) ? (*this)[key] : def;
+        auto it = fData.find(key);
+        return (it != fData.end()) ? it->second : def;
     }
     
     static void analyse(dsp* mono_dsp, bool& midi, bool& midi_sync, int& nvoices)
@@ -809,6 +812,10 @@ class MidiUI : public GUI, public midi, public midi_interface, public MetaDataUI
             // TODO: use shared_ptr based implementation
             if (fDelete) delete fMidiHandler;
         }
+
+#ifdef DAISY_NO_RTTI
+        virtual bool isMidiInterface() const override { return true; }
+#endif
     
         bool run() { return fMidiHandler->startMidi(); }
         void stop() { fMidiHandler->stopMidi(); }

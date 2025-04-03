@@ -49,6 +49,8 @@ Response mesh2faust(const char *objFileName = "", MaterialProperties material = 
 // Material properties are assumed to already be baked into the mesh, but we still need the Rayleigh damping coefficients.
 Response mesh2faust(TetMesh *volumetricMesh, MaterialProperties material = {}, CommonArguments args = {});
 
+ModalModel mesh2modal(TetMesh *volumetricMesh, MaterialProperties material = {}, CommonArguments args = {});
+
 ModalModel mesh2modal(
     const Eigen::SparseMatrix<double> &M, // Mass matrix
     const Eigen::SparseMatrix<double> &K, // Stiffness matrix
@@ -65,6 +67,6 @@ struct DspGenArguments {
 };
 
 // Generate DSP code from a `ModalModel`.
-Response modal2faust(const ModalModel &, DspGenArguments args = {});
+std::string modal2faust(const ModalModel &, DspGenArguments args = {});
 
 } // namespace mesh2faust

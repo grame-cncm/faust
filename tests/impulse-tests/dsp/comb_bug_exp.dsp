@@ -1,5 +1,4 @@
 declare compilation_options    "-single -scal -e comb_bug.dsp -o comb_bug_exp.dsp";
-declare library_path "/Documents/Recherche/Expressive E/CombFilter/comb_bug.dsp";
 declare library_path "/usr/local/share/faust/stdfaust.lib";
 declare library_path "/usr/local/share/faust/envelopes.lib";
 declare library_path "/usr/local/share/faust/maths.lib";

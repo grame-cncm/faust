@@ -13,9 +13,9 @@
 //
 
 // Global table
-var dsp_ui_table = [];
+const dsp_ui_table = [];
 
-var faust = faust || {};
+const faust = faust || {};
 
 // global variables and arrays
 faust.numwidgets = -1;
@@ -35,7 +35,7 @@ faust.ui = function (json, patcher) {
         return (str.lastIndexOf(prefix, 0) === 0);
     }
 
-    get_dsp_name = function (patcher, name) {
+    getDSPName = function (patcher, name) {
         var obj = patcher.firstobject;
         while (obj) {
             if (starts_with(obj.varname, name)) {
@@ -76,10 +76,9 @@ faust.ui = function (json, patcher) {
 
             faust.numwidgets++;
             faust.theComments[faust.numwidgets] = patcher.newdefault(hBase, 20 + widgHeight * faust.numwidgets, "comment");
-            faust.theComments[faust.numwidgets].message("set", "bargraph" + faust.numwidgets);
+            faust.theComments[faust.numwidgets].message("set", "bargraph:" + item.label);
 
             // TODO : create "meter" instead of "multiSlider" 
-
             faust.theSliders[faust.numwidgets] = patcher.newobject("user", "multiSlider", hBase + 130, 20 + widgHeight * faust.numwidgets, 120, 20, 0., 1., 1, 2936, 15, 0, 0, 2, 0, 0, 0);
             if (parseFloat(item.step) == parseInt(item.step)) {
                 faust.theSliders[faust.numwidgets].message('settype', 0);
@@ -213,7 +212,7 @@ faust.ui = function (json, patcher) {
             parse_ui(parsed_json.ui, dsp_object2, patcher);
         } else {
             // Tries to find the compiled object from the "name" argument (used with faustgen~)
-            var dsp_object = get_dsp_name(patcher, "faustgen");
+            var dsp_object = getDSPName(patcher, "faustgen");
             if (dsp_object !== patcher.getnamed("null_object")) {
                 parse_ui(parsed_json.ui, dsp_object, patcher);
             } else {

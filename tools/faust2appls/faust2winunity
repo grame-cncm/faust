@@ -51,8 +51,10 @@ do
         echoHelp
     elif [ $p = "-32" ]; then
         BITS="$BITS 32"
+        CXXFLAGS+=" -march=i686"
     elif [ $p = "-64" ]; then
         BITS="$BITS 64"
+        CXXFLAGS+=" -march=x86-64 -fno-asynchronous-unwind-tables -fno-exceptions"
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1

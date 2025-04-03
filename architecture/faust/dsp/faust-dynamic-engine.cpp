@@ -243,8 +243,10 @@ struct dsp_aux {
             fDriver->init(fNameApp, fDSP);
             fDSP->buildUserInterface(&fParams);
     #if SOUNDFILE
-            // Use bundle path
-            fSoundInterface = new SoundUI(SoundUI::getBinaryPath());
+            // Use bundle path and "soundfiles" metadata URLs
+            vector<string> base_url = SoundUI::getSoundfilePaths(fDSP);
+            base_url.push_back(SoundUI::getBinaryPath());
+            fSoundInterface = new SoundUI(base_url);
             fDSP->buildUserInterface(fSoundInterface);
     #endif
             return true;

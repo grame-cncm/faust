@@ -182,7 +182,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     FAUSTFLOAT** fInputsSlice;
     FAUSTFLOAT** fOutputsSlice;
  
-    dsp_voice(dsp* dsp):decorator_dsp(dsp)
+    dsp_voice(::dsp* dsp):decorator_dsp(dsp)
     {
         // Default conversion functions
         fVelFun = [](int velocity) { return double(velocity)/127.0; };
@@ -333,7 +333,7 @@ struct dsp_voice_group {
     GroupUI fGroups;
 
     std::vector<dsp_voice*> fVoiceTable; // Individual voices
-    dsp* fVoiceGroup;                    // Voices group to be used for GUI grouped control
+    ::dsp* fVoiceGroup;                  // Voices group to be used for GUI grouped control
 
     FAUSTFLOAT fPanic;  // Panic button value
 
@@ -398,7 +398,11 @@ struct dsp_voice_group {
             ui_interface->closeBox();
 
             // If not grouped, also add individual voices UI
+#ifdef DAISY_NO_RTTI
+            if (!fGroupControl || ui_interface->isSoundUI()) {
+#else
             if (!fGroupControl || dynamic_cast<SoundUIInterface*>(ui_interface)) {
+#endif
                 for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     char buffer[32];
                     snprintf(buffer, 32, ((fVoiceTable.size() < 8) ? "Voice%ld" : "V%ld"), long(i+1));
@@ -438,7 +442,7 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
     public:
     
     #ifdef EMCC
-        dsp_poly(dsp* dsp):decorator_dsp(dsp), fMIDIUI(&fMidiHandler)
+        dsp_poly(::dsp* dsp):decorator_dsp(dsp), fMIDIUI(&fMidiHandler)
         {
             JSONUI jsonui(getNumInputs(), getNumOutputs());
             buildUserInterface(&jsonui);
@@ -447,7 +451,7 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
             buildUserInterface(&fMIDIUI);
         }
     #else
-        dsp_poly(dsp* dsp):decorator_dsp(dsp)
+        dsp_poly(::dsp* dsp):decorator_dsp(dsp)
         {}
     #endif
     
@@ -635,7 +639,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             // Looks for the first available voice
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 if (fVoiceTable[i]->fCurNote == kFreeVoice) {
-                    return allocVoice(i, kActiveVoice);
+                    return allocVoice(int(i), kActiveVoice);
                 }
             }
 
@@ -714,7 +718,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
          *                If false, all voices can be individually controlled.
          *
          */
-        mydsp_poly(dsp* dsp,
+        mydsp_poly(::dsp* dsp,
                    int nvoices,
                    bool control = false,
                    bool group = true)
@@ -757,10 +761,17 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         void buildUserInterface(UI* ui_interface)
         {
             // MidiUI ui_interface contains the midi_handler connected to the MIDI driver
+            #ifdef DAISY_NO_RTTI
+            if (ui_interface->isMidiInterface()) {
+                fMidiHandler = reinterpret_cast<midi_interface*>(ui_interface);
+                fMidiHandler->addMidiIn(this);
+            }
+            #else
             if (dynamic_cast<midi_interface*>(ui_interface)) {
                 fMidiHandler = dynamic_cast<midi_interface*>(ui_interface);
                 fMidiHandler->addMidiIn(this);
             }
+            #endif
             dsp_voice_group::buildUserInterface(ui_interface);
         }
 
@@ -948,7 +959,7 @@ class dsp_poly_effect : public dsp_poly {
         
     public:
         
-        dsp_poly_effect(dsp_poly* voice, dsp* combined)
+        dsp_poly_effect(dsp_poly* voice, ::dsp* combined)
         :dsp_poly(combined), fPolyDSP(voice)
         {}
         
@@ -1007,7 +1018,7 @@ struct dsp_poly_factory : public dsp_factory {
     dsp_factory* fProcessFactory;
     dsp_factory* fEffectFactory;
     
-    dsp* adaptDSP(dsp* dsp, bool is_double)
+    ::dsp* adaptDSP(::dsp* dsp, bool is_double)
     {
         return (is_double) ? new dsp_sample_adapter<double, float>(dsp) : dsp;
     }
@@ -1062,7 +1073,7 @@ struct dsp_poly_factory : public dsp_factory {
     {
         if (nvoices == -1) {
             // Get 'nvoices' from the metadata declaration
-            dsp* dsp = fProcessFactory->createDSPInstance();
+            ::dsp* dsp = fProcessFactory->createDSPInstance();
             bool midi_sync = false;
             bool midi = false;
             MidiMeta::analyse(dsp, midi, midi_sync, nvoices);
@@ -1078,7 +1089,7 @@ struct dsp_poly_factory : public dsp_factory {
     }
 
     /* Create a new DSP instance, to be deleted with C++ 'delete' */
-    dsp* createDSPInstance()
+    ::dsp* createDSPInstance()
     {
         return fProcessFactory->createDSPInstance();
     }

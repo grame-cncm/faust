@@ -46,11 +46,19 @@
 //--------------------------------------------------
 // simple types quality
 
-enum Nature { kInt = 0, kReal = 1, kAny = 2 };  ///< nature : integer or floating point values
+// kAny is a kind of 'wildcard' type and is only used with ffunction (no signal with never have this
+// type). Therefore kAny is not supposed to be used with a | operation, so kAny = 2 coding can be
+// used.
+
+enum Nature {
+    kInt  = 0,
+    kReal = 1,
+    kAny  = 2
+};  ///< nature : integer, floating point or 'any' values
 enum Boolean {
     kNum  = 0,
     kBool = 1
-};  ///< boolean : when a signal stands for a boolean value ( while being of c-type int or float )
+};  ///< boolean : when a signal stands for a boolean value (while being of c-type int or float)
 enum Variability { kKonst = 0, kBlock = 1, kSamp = 3 };  ///< variability : how fast values change
 enum Computability {
     kComp = 0,
@@ -117,7 +125,7 @@ class AudioType : public virtual Garbageable {
     int vectorability() const
     {
         return fVectorability;
-    }                                         ///< returns when a signal can be vectorized
+    }  ///< returns when a signal can be vectorized
     int boolean() const { return fBoolean; }  ///< returns when a signal stands for a boolean value
 
     interval getInterval() const
@@ -154,7 +162,7 @@ inline std::ostream& operator<<(std::ostream& s, const AudioType& n)
 inline int mergenature(ConstTypes v)
 {
     int r = 0;
-    for (unsigned int i = 0; i < v.size(); i++) {
+    for (size_t i = 0; i < v.size(); i++) {
         r |= v[i]->nature();
     }
     return r;
@@ -166,7 +174,7 @@ inline int mergenature(ConstTypes v)
 inline int mergevariability(ConstTypes v)
 {
     int r = 0;
-    for (unsigned int i = 0; i < v.size(); i++) {
+    for (size_t i = 0; i < v.size(); i++) {
         r |= v[i]->variability();
     }
     return r;
@@ -178,7 +186,7 @@ inline int mergevariability(ConstTypes v)
 inline int mergecomputability(ConstTypes v)
 {
     int r = 0;
-    for (unsigned int i = 0; i < v.size(); i++) {
+    for (size_t i = 0; i < v.size(); i++) {
         r |= v[i]->computability();
     }
     return r;
@@ -190,7 +198,7 @@ inline int mergecomputability(ConstTypes v)
 inline int mergevectorability(ConstTypes v)
 {
     int r = 0;
-    for (unsigned int i = 0; i < v.size(); i++) {
+    for (size_t i = 0; i < v.size(); i++) {
         r |= v[i]->vectorability();
     }
     return r;
@@ -202,7 +210,7 @@ inline int mergevectorability(ConstTypes v)
 inline int mergeboolean(ConstTypes v)
 {
     int r = 0;
-    for (unsigned int i = 0; i < v.size(); i++) {
+    for (size_t i = 0; i < v.size(); i++) {
         r |= v[i]->boolean();
     }
     return r;
@@ -217,14 +225,15 @@ inline interval mergeinterval(ConstTypes v)
         return interval();
     } else {
         interval r = v[0]->getInterval();
-        for (unsigned int i = 1; i < v.size(); i++) {
+        for (size_t i = 1; i < v.size(); i++) {
             r = itv::reunion(r, v[i]->getInterval());
         }
         return r;
     }
 }
 
-AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i);
+AudioType* makeSimpleType(int nature, int variability, int computability, int vectorability,
+                          int boolean, const interval& i);
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i, const res& lsb);
 // didn't use a default arg, would have created a cyclic dependancy with global.hh
 
@@ -356,15 +365,15 @@ class TableType : public AudioType {
     }  ///< construct a TableType with a content of a type t
 #if 0
     TableType(const Type& t, int v, int c) :
-          AudioType(t->nature(), t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
+          AudioType(t->nature(), t->variability() | v, t->computability() | c, t->vectorability(), t->boolean()),
           fContent(t) {}        ///< construct a TableType with a content of a type t, promoting variability and computability
 
     TableType(const Type& t, int n, int v, int c) :
-          AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
+          AudioType(t->nature() | n, t->variability() | v, t->computability() | c, t->vectorability(), t->boolean()),
           fContent(t) {}        ///< construct a TableType with a content of a type t, promoting nature, variability and computability
 
     TableType(const Type& t, int n, int v, int c, int vec, int b) :
-          AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()|b),
+          AudioType(t->nature() | n, t->variability() | v, t->computability() | c, t->vectorability() | vec, t->boolean()|b),
           fContent(t) {}        ///< construct a TableType with a content of a type t, promoting nature, variability, computability,            vectorability and booleanity
 #endif
 
@@ -541,9 +550,9 @@ std::ostream& operator<<(std::ostream& dst, const TupletType& t);
 
 Type checkInt(Type t);    ///< check that t is an integer
 Type checkKonst(Type t);  ///< check that t is a constant
-Type checkInit(Type t);   ///< check that t is a known at init time
+Type checkInit(Type t);   ///< check that t is known at init time
 
-Type checkIntParam(Type t);  ///< check that t is a known at init time, constant and an integer
+Type checkIntParam(Type t);  ///< check that t is known at init time, constant and an integer
 
 Type checkWRTbl(Type tbl, Type wr);  ///< check that wr is compatible with tbl content
 

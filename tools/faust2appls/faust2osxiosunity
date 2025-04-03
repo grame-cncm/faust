@@ -3,8 +3,8 @@
 #########################################################################################
 #                                                                                       #
 #  Compiles Faust programs to OSX/iOS libraries suitable for the Unity environment      #
+#                             (c) Grame, 2017-2024                                      #
 #                                                                                       #
-#  (c) Grame, 2017                                                                      #
 #                                                                                       #
 #########################################################################################
 
@@ -118,8 +118,8 @@ echoHelp()
     echo "Compiles Faust programs to OSX/iOS libraries suitable for the Unity environment"
     option
     option "-nvoices <num>"
-    option -ios "      create an iOS static library"
-    option -universal "generate a 64/32 bits external"
+    option -ios "creates an iOS static library"
+    option -universal "generates an universal (arm/intel) external on OSX"
     option "Faust options"
     # echo "Use 'faust2unity -osx -ios' to also create the c# and JSON files"
     echo "See architecture/unity/README.md for more info."
@@ -153,7 +153,7 @@ do
     elif [ $p = "-source" ]; then
         SOURCE=1
     elif [ $p = "-universal" ]; then
-        ARCH="-arch i386 -arch x86_64"
+        ARCH="-arch arm64 -arch x86_64"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then

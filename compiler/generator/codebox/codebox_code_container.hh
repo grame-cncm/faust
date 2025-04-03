@@ -34,17 +34,18 @@
 class CodeboxCodeContainer : public virtual CodeContainer {
    protected:
     static CodeboxInstVisitor* gCodeboxVisitor;
-    std::ostream*              fOut;
+    std::ostringstream*        fOut;
     CodeboxBargraphVisitor     fBargraph;
 
     // Not used since subcontainers are inlined
-    virtual void produceInternal(){};
+    virtual void produceInternal() {};
 
     virtual void produceClass();
 
    public:
     CodeboxCodeContainer() {}
-    CodeboxCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
+    CodeboxCodeContainer(const std::string& name, int numInputs, int numOutputs,
+                         std::ostringstream* out);
 
     virtual ~CodeboxCodeContainer()
     {
@@ -58,7 +59,7 @@ class CodeboxCodeContainer : public virtual CodeContainer {
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
 
     static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs,
-                                          std::ostream* dst = new std::stringstream());
+                                          std::ostringstream* dst = new std::ostringstream());
 };
 
 // Used in -scalar (= default) mode
@@ -67,7 +68,7 @@ class CodeboxScalarCodeContainer : public CodeboxCodeContainer {
    public:
     CodeboxScalarCodeContainer() {}
     CodeboxScalarCodeContainer(const std::string& name, int numInputs, int numOutputs,
-                               std::ostream* out, int sub_container_type);
+                               std::ostringstream* out, int sub_container_type);
     virtual ~CodeboxScalarCodeContainer() {}
 
     void generateCompute(int n);

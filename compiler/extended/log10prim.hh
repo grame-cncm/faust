@@ -108,4 +108,6 @@ class Log10Prim : public xtended {
         // TODO: handle division by zero
         return sigDiv(sigReal(1.0), sigMul(args[0], sigLog(sigReal(10.0))));
     }
+
+    double compute(const std::vector<Node>& args) override { return log10(args[0].getDouble()); }
 };

@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #    Generates an API for Android or iOS based on a Faust object    #
-#               (c) Romain Michon CCRMA and Grame, 2016-2021        #
+#               (c) Romain Michon CCRMA and Grame, 2016-2024        #
 #                                                                   #
 #####################################################################
 
@@ -43,8 +43,9 @@ IOS_DRIVER="0"
 ALSA_DRIVER="0"
 JACK_DRIVER="0"
 PORTAUDIO_DRIVER="0"
-COREAUDIO_DRIVER="0"
 RTAUDIO_DRIVER="0"
+MINIAUDIO_DRIVER="0"
+COREAUDIO_DRIVER="0"
 OPEN_FRAMEWORK_DRIVER="0"
 JUCE_DRIVER="0"
 DUMMY_DRIVER="0"
@@ -52,7 +53,7 @@ TEENSY_DRIVER="0"
 ESP32_DRIVER="0"
 
 if [[ $(uname -s) == Darwin ]]; then
-    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices"
+    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices "
 else
     ARCHLIB=""
 fi
@@ -70,6 +71,7 @@ echoHelp()
     option -jack "generates a JACK API"
     option -portaudio "generates a PortAudio API"
     option -rtaudio "generates an RTAudio API"
+    option -miniaudio "generates a Miniaudio API"
     option -of "generates an openFrameworks API"
     option -juce "generates a JUCE API"
     option -dummy "generates a dummy audio API"
@@ -88,9 +90,8 @@ echoHelp()
     echo
     echo "Android specific options:"
     option -package "set the JAVA package name (e.g. '-package mypackage' will change the JAVA package name to 'mypackage.DspFaust'). The default package name is 'com.DspFaust.'"
-    option -soundfile "add built-in Soundfile support to the API"
     echo
-    echo "Options supported by iOS, CoreAudio, ALSA, JACK, PortAudio, openFrameworks and JUCE"
+    echo "Options supported by iOS, CoreAudio, ALSA, JACK, PortAudio, RTAudio, Miniaudio, openFrameworks and JUCE"
     option -midi "add built-in RtMidi support to the API"
     option -osc "add built-in OSC support to the API"
     option -soundfile "add built-in Soundfile support to the API"
@@ -163,6 +164,8 @@ do
         PORTAUDIO_DRIVER=1
     elif [ $p = "-rtaudio" ]; then
         RTAUDIO_DRIVER=1
+    elif [ $p = "-miniaudio" ]; then
+        MINIAUDIO_DRIVER=1
     elif [ $p = "-of" ]; then
         OPEN_FRAMEWORK_DRIVER=1
     elif [ $p = "-juce" ]; then
@@ -303,6 +306,10 @@ elif [ $RTAUDIO_DRIVER -eq 1 ]; then
     echo "Your $APILOCATION API package for RTAudio is being created"
     createAPI
     echo "#define RTAUDIO_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+elif [ $MINIAUDIO_DRIVER -eq 1 ]; then
+    echo "Your $APILOCATION API package for Miniaudio is being created"
+    createAPI
+    echo "#define MINIAUDIO_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 elif [ $OPEN_FRAMEWORK_DRIVER -eq 1 ]; then
     echo "Your $APILOCATION API package for OpenFramework is being created"
     createAPI
@@ -333,19 +340,28 @@ fi
 ###################################
 
 if [ "$BUILD" = "1" ]; then
-
+    if [ $JACK_DRIVER -eq 1 ]; then    
+        ARCHLIB+=" $(pkg-config --cflags --static --libs jack)"
+    fi
+    if [ $SOUNDFILE -eq 1 ]; then
+        ARCHLIB+=" $(pkg-config --cflags --static --libs sndfile)"
+    fi
+    if [ $DYNAMIC_DSP -eq 1 ]; then
+        ARCHLIB+=" $(llvm-config --link-static --ldflags --libs all --system-libs)"
+    fi
     if [ "$DYNAMIC_DSP" = "1" ]; then
         echo "Compile as a binary named 'dynamic-api'"
-        # compile c++ to binary liked with lbfaust/LLSM
+        # compile c++ to binary liked with libfaust/LLVM
         (
-            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp /usr/local/lib/libfaust.a -lz -lncurses -lOSCFaust $ARCHLIB `llvm-config --ldflags --libs all --system-libs`  `pkg-config --cflags --static --libs jack sndfile` -o dynamic-api
+            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp /usr/local/lib/libfaust.a -lz -lncurses -lOSCFaust $ARCHLIB -o dynamic-api
         ) > /dev/null || exit 1
         exit 0
    else
         echo "Compile the ${FILE%.dsp} binary"
         # compile c++ to binary
+       
         (
-            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust $ARCHLIB `pkg-config --cflags --static --libs jack` -o ${FILE%.dsp}
+            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust $ARCHLIB -o ${FILE%.dsp}
         ) > /dev/null || exit 1
         exit 0
     fi

@@ -322,9 +322,9 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 102 "faustparser.y"
+#line 103 "faustparser.y"
 {
-    CTree*     exp;
+    Tree exp;
     char* str;
     std::string* cppstr;
     bool b;

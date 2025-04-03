@@ -68,7 +68,8 @@ CXXFLAGS="-Ofast -std=c++11 -march=native"
 # Darwin-specific
 #ARCH="-arch i386 -arch x86_64"
 if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
-    CXXFLAGS="-Ofast -std=c++11 -march=native $ARCH -I/opt/local/include"
+    #CXXFLAGS="-Ofast -std=c++11 -march=native $ARCH -I/opt/local/include"
+    CXXFLAGS="-Ofast -std=c++11 -mmacosx-version-min=10.9 $ARCH -I/opt/local/include"
     dllext=".vst"
 fi
 
@@ -145,9 +146,6 @@ EOF
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64 -fPIC"
-    elif [ $p = "-osx" ]; then
-        CXXFLAGS="-Ofast -std=c++11 -march=native $ARCH -I/opt/local/include"
-        dllext=".vst"
     elif [ $p = "-keep" ]; then
         KEEP="yes"
     elif [ $p = "-style" ]; then
@@ -265,7 +263,14 @@ if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
 </dict>
 </plist>
 EOF
-    $CXX -bundle $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
+    if [ $(uname -p) == arm ]; then
+        $CXX -arch arm64 -arch x86_64 -bundle $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
+    else
+        $CXX -bundle $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
+    fi
+    if which codesign > /dev/null; then
+        codesign --sign - --deep --force "$tmpdir/$soname/"
+    fi
 else
     $CXX -shared $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
 fi

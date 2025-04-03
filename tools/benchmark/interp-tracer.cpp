@@ -211,12 +211,12 @@ int main(int argc, char* argv[])
   
     cout << "Using interpreter backend" << endl;
     if (trace_mode > 0) {
-        char mode[8]; sprintf(mode, "%d", trace_mode);
+        char mode[8]; snprintf(mode, sizeof(mode), "%d", trace_mode);
         setenv("FAUST_INTERP_TRACE", mode, 1);
     }
     
     if (is_output > 0) {
-        char mode[8]; sprintf(mode, "%d", is_output);
+        char mode[8]; snprintf(mode, sizeof(mode), "%d", is_output);
         setenv("FAUST_INTERP_OUTPUT", mode, 1);
     }
     

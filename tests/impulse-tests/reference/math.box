@@ -1,4 +1,4 @@
-declare version "2.68.5";
+declare version "2.77.2";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/math.dsp -o reference/math.box";
 declare library_path0 "/Users/letz/Developpements/faust/tests/impulse-tests/dsp/math.lib";
 declare filename "math.dsp";

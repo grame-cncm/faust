@@ -98,4 +98,6 @@ class TanPrim : public xtended {
         // TODO: handle division by zero
         return sigDiv(sigReal(1.0), sigPow(sigCos(args[0]), sigReal(2.0)));
     }
+
+    double compute(const std::vector<Node>& args) override { return tan(args[0].getDouble()); }
 };

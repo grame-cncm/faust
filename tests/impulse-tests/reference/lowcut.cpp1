@@ -1,0 +1,128 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "lowcut"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fslider0;
+	float 	fConst0; // step: 9
+	FAUSTFLOAT 	fslider1;
+	// Recursion delay fVeeec0 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State[2]; // Copy Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "lowcut.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "lowcut");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 1; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = (3.1415927f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 9
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 1e+02f;
+		fslider1 = 0.0f;
+	}
+	virtual void instanceClear() {
+		for (int j = 0; j < 2; j++) { fVeeec0State[j] = 0; }
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("low-freq shelving cut");
+		ui_interface->declare(&fslider1, "style", "knob");
+		ui_interface->declare(&fslider1, "unit", "dB");
+		ui_interface->addHorizontalSlider("attenuation", &fslider1, 0.0f, -96.0f, 1e+01f, 0.1f);
+		ui_interface->declare(&fslider0, "style", "knob");
+		ui_interface->declare(&fslider0, "unit", "Hz");
+		ui_interface->addHorizontalSlider("freq", &fslider0, 1e+02f, 2e+01f, 5e+03f, 1.0f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = tanf((fConst0 * float(fslider0))); // step: 11
+		float 	fSlow1 = powf(1e+01f,-(0.05f * float(fslider1))); // step: 19
+		float 	fSlow2 = sqrtf((2.0f * fSlow1)); // step: 21
+		float 	fSlow3 = (fSlow0 * fSlow1); // step: 22
+		float 	fSlow4 = (1.0f / ((fSlow0 * (fSlow2 + fSlow3)) + 1.0f)); // step: 26
+		float 	fSlow5 = ((fSlow0 * (fSlow0 + -1.4142135f)) + 1.0f); // step: 32
+		float 	fSlow6 = (1.0f - (fSlow0 * (fSlow2 - fSlow3))); // step: 38
+		float 	fSlow7 = powf(fSlow0,2.0f); // step: 42
+		float 	fSlow8 = (2.0f * ((fSlow7 * fSlow1) + -1.0f)); // step: 45
+		float 	fVeeec0[3];
+		float 	fSlow9 = ((fSlow0 * (fSlow0 + 1.4142135f)) + 1.0f); // step: 55
+		float 	fSlow10 = (2.0f * (fSlow7 + -1.0f)); // step: 58
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			fVeeec0[1] = fVeeec0State[0];
+			fVeeec0[2] = fVeeec0State[1];
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = fVeeec0[2]; // step: 28
+				float 	fTemp1 = fVeeec0[1]; // step: 41
+				fVeeec0[0] = ((float)input0[i] - (fSlow4 * ((fSlow6 * fTemp0) + (fSlow8 * fTemp1))));
+				output0[i] = (FAUSTFLOAT)((fSlow4 * (((fSlow9 * fVeeec0[0]) + (fSlow10 * fTemp1)) + (fSlow5 * fTemp0))));  // Zone Exec Code
+				// post processing
+				fVeeec0[2] = fVeeec0[1];
+				fVeeec0[1] = fVeeec0[0];
+			}
+			fVeeec0State[0] = fVeeec0[1];
+			fVeeec0State[1] = fVeeec0[2];
+		}
+	}
+};
+
+

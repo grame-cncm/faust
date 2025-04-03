@@ -1,0 +1,177 @@
+//----------------------------------------------------------
+// name: "reverb_tester"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fbutton0;
+	float 	fVec0State; // Single Delay
+	FAUSTFLOAT 	fbutton1;
+	float 	fVec1State; // Single Delay
+	FAUSTFLOAT 	fcheckbox0;
+	// Recursion delay iVeeec4 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec4State; // Mono Delay
+	// Recursion delay fVeeec2 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2State[3]; // Copy Delay
+	FAUSTFLOAT 	fbutton2;
+	float 	fVec2State; // Single Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("effect.lib/name", "Faust Audio Effect Library");
+		m->declare("filename", "reverb_tester.dsp");
+		m->declare("filter.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("filter.lib/copyright", "Julius O. Smith III");
+		m->declare("filter.lib/license", "STK-4.3");
+		m->declare("filter.lib/name", "Faust Filter Library");
+		m->declare("filter.lib/reference", "https://ccrma.stanford.edu/~jos/filters/");
+		m->declare("filter.lib/version", "1.29");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "reverb_tester");
+		m->declare("oscillator.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("oscillator.lib/copyright", "Julius O. Smith III");
+		m->declare("oscillator.lib/license", "STK-4.3");
+		m->declare("oscillator.lib/name", "Faust Oscillator Library");
+		m->declare("oscillator.lib/version", "1.11");
+	}
+
+	virtual int getNumInputs() { return 2; }
+	virtual int getNumOutputs() { return 2; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+		fbutton0 = 0.0;
+		fbutton1 = 0.0;
+		fcheckbox0 = 0.0;
+		fbutton2 = 0.0;
+	}
+	virtual void instanceClear() {
+		fVec0State = 0;
+		fVec1State = 0;
+		iVeeec4State = 0;
+		for (int j = 0; j < 3; j++) { fVeeec2State[j] = 0; }
+		fVec2State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openHorizontalBox("Stereo Reverb Tester");
+		ui_interface->declare(0, "1", "");
+		ui_interface->openVerticalBox("Input Config");
+		ui_interface->declare(&fcheckbox0, "2", "");
+		ui_interface->declare(&fcheckbox0, "tooltip", "Pink Noise (or 1/f noise) is Constant-Q Noise (useful for adjusting the EQ sections)");
+		ui_interface->addCheckButton("Pink Noise", &fcheckbox0);
+		ui_interface->closeBox();
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("Impulse Selection");
+		ui_interface->declare(&fbutton0, "1", "");
+		ui_interface->declare(&fbutton0, "tooltip", "Send impulse into LEFT channel");
+		ui_interface->addButton("Left", &fbutton0);
+		ui_interface->declare(&fbutton1, "2", "");
+		ui_interface->declare(&fbutton1, "tooltip", "Send impulse into LEFT and RIGHT channels");
+		ui_interface->addButton("Center", &fbutton1);
+		ui_interface->declare(&fbutton2, "3", "");
+		ui_interface->declare(&fbutton2, "tooltip", "Send impulse into RIGHT channel");
+		ui_interface->addButton("Right", &fbutton2);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = float(fbutton0); // step: 2
+		float 	fVec0[2];
+		float 	fSlow1 = float(fbutton1); // step: 7
+		float 	fVec1[2];
+		float 	fSlow2 = (0.1f * float(fcheckbox0)); // step: 15
+		int 	iVeeec4;
+		float 	fVeeec2[4];
+		float 	fSlow3 = float(fbutton2); // step: 56
+		float 	fVec2[2];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			fVec0[1] = fVec0State;
+			fVec1[1] = fVec1State;
+			iVeeec4 = iVeeec4State;
+			fVeeec2[1] = fVeeec2State[0];
+			fVeeec2[2] = fVeeec2State[1];
+			fVeeec2[3] = fVeeec2State[2];
+			fVec2[1] = fVec2State;
+			for (int i=0; i<count; i++) {
+				fVec0[0] = fSlow0;
+				fVec1[0] = fSlow1;
+				int 	iTemp0 = ((fSlow1 - fVec1[1]) > 0.0f); // step: 10
+				float 	fTemp1 = fVeeec2[2]; // step: 20
+				float 	fTemp2 = fVeeec2[3]; // step: 23
+				iVeeec4 = ((1103515245 * iVeeec4) + 12345);
+				float 	fTemp3 = fVeeec2[1]; // step: 36
+				fVeeec2[0] = (((0.5221894f * fTemp2) + ((4.656613e-10f * float(iVeeec4)) + (2.494956f * fTemp3))) - (2.0172658f * fTemp1));
+				float 	fTemp4 = (fSlow2 * (((0.049922034f * fVeeec2[0]) + (0.0506127f * fTemp1)) - ((0.095993534f * fTemp3) + (0.004408786f * fTemp2)))); // step: 54
+				fVec2[0] = fSlow3;
+				output0[i] = (FAUSTFLOAT)((float((((fSlow0 - fVec0[1]) > 0.0f) + iTemp0)) + fTemp4));  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)((fTemp4 + float((iTemp0 + ((fSlow3 - fVec2[1]) > 0.0f)))));  // Zone Exec Code
+				// post processing
+				fVec2[1] = fVec2[0];
+				fVeeec2[3] = fVeeec2[2];
+				fVeeec2[2] = fVeeec2[1];
+				fVeeec2[1] = fVeeec2[0];
+				fVec1[1] = fVec1[0];
+				fVec0[1] = fVec0[0];
+			}
+			fVec0State = fVec0[1];
+			fVec1State = fVec1[1];
+			iVeeec4State = iVeeec4;
+			fVeeec2State[0] = fVeeec2[1];
+			fVeeec2State[1] = fVeeec2[2];
+			fVeeec2State[2] = fVeeec2[3];
+			fVec2State = fVec2[1];
+		}
+	}
+};
+
+

@@ -1,0 +1,125 @@
+//----------------------------------------------------------
+// name: "table1"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	class SIG0 {
+	  private:
+		int fSampleRate;
+		static float 	fWave0[8];
+		int 	idxfWave0;
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			idxfWave0 = 0;
+		}
+		void fill(int count, float output[]) {
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = min(32, fullcount-index);
+				for (int i=0; i<count; i++) {
+					output[i] = fWave0[idxfWave0];
+					// post processing
+					idxfWave0 = (idxfWave0 + 1) % 8;
+				}
+				output += 32;
+			}
+		}
+	};
+
+
+	// Recursion delay iVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec0State; // Mono Delay
+	static float 	ftbl0[8];
+	static float 	fWave1[8];
+	int 	idxfWave1;
+	float 	ftbl1[8];
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "table1.dsp");
+		m->declare("name", "table1");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 2; }
+	static void classInit(int sample_rate) {
+		SIG0 sig0;
+		sig0.init(sample_rate);
+		sig0.fill(8,ftbl0);
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		idxfWave1 = 0;
+		SIG0 sig0;
+		sig0.init(sample_rate);
+		sig0.fill(8,ftbl1);
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		iVeeec0State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("table1");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVeeec0;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			iVeeec0 = iVeeec0State;
+			for (int i=0; i<count; i++) {
+				iVeeec0 = (iVeeec0 + 1);
+				int 	iTemp0 = (iVeeec0 % 8); // step: 8
+				ftbl1[iTemp0] = fWave1[idxfWave1];
+				output0[i] = (FAUSTFLOAT)(ftbl0[iTemp0]);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(ftbl1[iTemp0]);  // Zone Exec Code
+				// post processing
+				idxfWave1 = (idxfWave1 + 1) % 8;
+			}
+			iVeeec0State = iVeeec0;
+		}
+	}
+};
+
+
+float 	mydsp::SIG0::fWave0[8] = {0,0.5f,1,0.5f,0,-0.5f,-1,-0.5f};
+float 	mydsp::ftbl0[8];
+float 	mydsp::fWave1[8] = {10,10.5f,11,10.5f,10,-10.5f,-11,-10.5f};

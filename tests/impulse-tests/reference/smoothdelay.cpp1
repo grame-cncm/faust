@@ -1,0 +1,192 @@
+//----------------------------------------------------------
+// author: "Yann Orlarey"
+// copyright: "Grame"
+// license: "STK-4.3"
+// name: "SmoothDelay"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fslider0;
+	float 	fConst0; // step: 18
+	float 	fConst1; // step: 19
+	FAUSTFLOAT 	fslider1;
+	float 	fConst2; // step: 26
+	// Recursion delay fVeeec0 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Single Delay
+	// Recursion delay fVeeec1 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec1State; // Single Delay
+	// Recursion delay fVeeec2 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2State; // Single Delay
+	FAUSTFLOAT 	fslider2;
+	float 	fVec0[524288]; // Ring Delay
+	// Recursion delay fVeeec3 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec3State; // Single Delay
+	// Recursion delay fVeeec6 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec6State; // Mono Delay
+	float 	fVec1[524288]; // Ring Delay
+	// Recursion delay fVeeec11 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec11State; // Mono Delay
+	int 	IOTA;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Yann Orlarey");
+		m->declare("copyright", "Grame");
+		m->declare("filename", "smoothdelay.dsp");
+		m->declare("license", "STK-4.3");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "SmoothDelay");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 2; }
+	virtual int getNumOutputs() { return 2; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 18
+		fConst1 = (0.001f * fConst0); // step: 19
+		fConst2 = (1e+03f / fConst0); // step: 26
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 114.5f;
+		fslider1 = 68.0329f;
+		fslider2 = 87.11f;
+	}
+	virtual void instanceClear() {
+		fVeeec0State = 0;
+		fVeeec1State = 0;
+		fVeeec2State = 0;
+		for (int i = 0; i < 524288; i++) { fVec0[i] = 0; }
+		fVeeec3State = 0;
+		fVeeec6State = 0;
+		for (int i = 0; i < 524288; i++) { fVec1[i] = 0; }
+		fVeeec11State = 0;
+		IOTA = 1;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("SmoothDelay");
+		ui_interface->declare(&fslider0, "style", "knob");
+		ui_interface->declare(&fslider0, "unit", "ms");
+		ui_interface->addHorizontalSlider("delay", &fslider0, 114.5f, 0.0f, 5e+03f, 0.1f);
+		ui_interface->declare(&fslider2, "style", "knob");
+		ui_interface->addHorizontalSlider("feedback", &fslider2, 87.11f, 0.0f, 1e+02f, 0.1f);
+		ui_interface->declare(&fslider1, "style", "knob");
+		ui_interface->declare(&fslider1, "unit", "ms");
+		ui_interface->addHorizontalSlider("interpolation", &fslider1, 68.0329f, 1.0f, 1e+02f, 0.1f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = (fConst1 * float(fslider0)); // step: 20
+		float 	fSlow1 = (fConst2 / float(fslider1)); // step: 27
+		float 	fVeeec0[2];
+		float 	fVeeec1[2];
+		float 	fVeeec2[2];
+		float 	fSlow2 = (0.01f * float(fslider2)); // step: 58
+		float 	fVeeec3[2];
+		float 	fVeeec6;
+		float 	fVeeec11;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			fVeeec0[1] = fVeeec0State;
+			fVeeec1[1] = fVeeec1State;
+			fVeeec2[1] = fVeeec2State;
+			fVeeec3[1] = fVeeec3State;
+			fVeeec6 = fVeeec6State;
+			fVeeec11 = fVeeec11State;
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = fVeeec0[1]; // step: 3
+				float 	fTemp1 = fVeeec1[1]; // step: 5
+				float 	fTemp2 = fVeeec2[1]; // step: 21
+				float 	fTemp3 = fVeeec3[1]; // step: 29
+				float 	fTemp4 = (((fTemp0 != 0.0f)) ? ((((fTemp1 > 0.0f) & (fTemp1 < 1.0f))) ? fTemp0 : 0.0f) : ((((fTemp1 == 0.0f) & (fSlow0 != fTemp2))) ? fSlow1 : ((((fTemp1 == 1.0f) & (fSlow0 != fTemp3))) ? -fSlow1 : 0.0f))); // step: 36
+				fVeeec0[0] = fTemp4;
+				fVeeec1[0] = max(0.0f, min(1.0f, (fTemp1 + fTemp4)));
+				float 	fTemp5 = fVeeec1[0]; // step: 43
+				float 	fTemp6 = (1.0f - fTemp5); // step: 44
+				fVeeec2[0] = ((((fTemp1 >= 1.0f) & (fTemp3 != fSlow0))) ? fSlow0 : fTemp2);
+				int 	iTemp7 = (int(fVeeec2[0]) & 524287); // step: 53
+				float 	fTemp8 = ((float)input0[i] + (fSlow2 * fVeeec6)); // step: 60
+				int vIota0 = IOTA&524287;
+				fVec0[vIota0] = fTemp8;
+				int vIota1 = (IOTA-iTemp7)&524287;
+				fVeeec3[0] = ((((fTemp1 <= 0.0f) & (fTemp2 != fSlow0))) ? fSlow0 : fTemp3);
+				int 	iTemp9 = (int(fVeeec3[0]) & 524287); // step: 70
+				int vIota2 = (IOTA-iTemp9)&524287;
+				fVeeec6 = ((fTemp6 * fVec0[vIota1]) + (fTemp5 * fVec0[vIota2]));
+				float 	fTemp10 = ((float)input1[i] + (fSlow2 * fVeeec11)); // step: 79
+				fVec1[vIota0] = fTemp10;
+				fVeeec11 = ((fTemp6 * fVec1[vIota1]) + (fTemp5 * fVec1[vIota2]));
+				output0[i] = (FAUSTFLOAT)(fVeeec6);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(fVeeec11);  // Zone Exec Code
+				// post processing
+				IOTA = IOTA+1;
+				fVeeec3[1] = fVeeec3[0];
+				fVeeec2[1] = fVeeec2[0];
+				fVeeec1[1] = fVeeec1[0];
+				fVeeec0[1] = fVeeec0[0];
+			}
+			fVeeec0State = fVeeec0[1];
+			fVeeec1State = fVeeec1[1];
+			fVeeec2State = fVeeec2[1];
+			fVeeec3State = fVeeec3[1];
+			fVeeec6State = fVeeec6;
+			fVeeec11State = fVeeec11;
+		}
+	}
+};
+
+

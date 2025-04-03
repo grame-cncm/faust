@@ -1,0 +1,78 @@
+//----------------------------------------------------------
+// name: "precision"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	static float 	fWave0[31];
+	int 	idxfWave0;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "precision.dsp");
+		m->declare("name", "precision");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 2; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		idxfWave0 = 0;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("precision");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			for (int i=0; i<count; i++) {
+				output0[i] = (FAUSTFLOAT)(31);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(fWave0[idxfWave0]);  // Zone Exec Code
+				// post processing
+				idxfWave0 = (idxfWave0 + 1) % 31;
+			}
+		}
+	}
+};
+
+
+float 	mydsp::fWave0[31] = {-1.8376776f,-1.8376776f,2,3,4,5,6,7,8,9,1.2f,1.02f,1.002f,1.0002f,1.00002f,1.000002f,1.0000002f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,9999};

@@ -2,8 +2,9 @@ export FAUSTBENCH_LOG=on
 
 for f in $@
 do
-  echo "Processing $f file..."
+  echo "Processing $f file in -double mode..."
   echo $f >> Faustbench.csv
-  faustbench-llvm -single $f
-  faustbench -single $f
+  faustbench-llvm -single -double $f
+  faustbench -single -double $f
+  faustbench -lang ocpp -single -double $f
 done

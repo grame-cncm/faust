@@ -59,7 +59,7 @@ static Tree traced_simplification(Tree sig)
     */
 #endif
     Tree r = simplification(sig);
-    faustassert(r != 0);
+    faustassert(r != nullptr);
 #ifdef TRACE
     cerr << --gGlobal->TABBER << "Simplification of : " << ppsig(sig, MAX_ERROR_SIZE)
          << " Returns : " << ppsig(r, MAX_ERROR_SIZE) << endl;
@@ -76,11 +76,7 @@ static Tree traced_simplification(Tree sig)
 
 Tree simplify(Tree sig)
 {
-    // TO IMPROVE: the simplication has to be done twice here because the second can still discover
-    // possible simplications
-    Tree r1 = sigMap(gGlobal->SIMPLIFIED, traced_simplification, sig);
-    Tree r2 = sigMap(gGlobal->SIMPLIFIED, traced_simplification, r1);
-    return r2;
+    return sigMap(gGlobal->SIMPLIFIED, traced_simplification, sig);
 }
 
 // Implementation
@@ -113,6 +109,8 @@ static Tree simplification(Tree sig)
         for (int i = 0; i < sig->arity(); i++) {
             args.push_back(sig->branch(i));
         }
+
+        faustassert(args.size() == xt->arity());
 
         // to avoid negative power to further normalization
         if (xt != gGlobal->gPowPrim) {
@@ -326,7 +324,6 @@ static Tree simplification(Tree sig)
  */
 static Tree sigMap(Tree key, tfun f, Tree t)
 {
-    // printf("start sigMap\n");
     Tree p, id, body;
 
     if (getProperty(t, key, p)) {
@@ -338,14 +335,18 @@ static Tree sigMap(Tree key, tfun f, Tree t)
 
     } else {
         tvec br;
-        int  n = t->arity();
-        for (int i = 0; i < n; i++) {
+        int  n   = t->arity();
+        int  arg = 0;
+        if (isUIInputItem(t) || isUIOutputItem(t)) {
+            // Do not handle labels to avoid simplifying them when using reserved keyword
+            br.push_back(t->branch(arg));
+            arg++;
+        }
+        for (int i = arg; i < n; i++) {
             br.push_back(sigMap(key, f, t->branch(i)));
         }
 
-        Tree r1 = tree(t->node(), br);
-
-        Tree r2 = f(r1);
+        Tree r2 = f(tree(t->node(), br));
         if (r2 == t) {
             setProperty(t, key, gGlobal->nil);
         } else {
@@ -362,7 +363,6 @@ static Tree sigMap(Tree key, tfun f, Tree t)
  */
 static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
 {
-    // printf("start sigMap\n");
     Tree p, id, body;
 
     if (getProperty(t, key, p)) {
@@ -384,14 +384,18 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
 
     } else {
         tvec br;
-        int  n = t->arity();
-        for (int i = 0; i < n; i++) {
+        int  n   = t->arity();
+        int  arg = 0;
+        if (isUIInputItem(t) || isUIOutputItem(t)) {
+            // Do not handle labels to avoid simplifying them when using reserved keyword
+            br.push_back(t->branch(arg));
+            arg++;
+        }
+        for (int i = arg; i < n; i++) {
             br.push_back(sigMapRename(key, env, f, t->branch(i)));
         }
 
-        Tree r1 = tree(t->node(), br);
-
-        Tree r2 = f(r1);
+        Tree r2 = f(tree(t->node(), br));
         if (r2 == t) {
             setProperty(t, key, gGlobal->nil);
         } else {

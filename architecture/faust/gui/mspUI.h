@@ -499,9 +499,10 @@ struct max_midi : public midi_handler {
     
     void sendMessage(std::vector<unsigned char>& message)
     {
-        assert(m_midi_outlet);
-        for (int i = 0; i < message.size(); i++) {
-            outlet_int(m_midi_outlet, message[i]);
+        if (m_midi_outlet) {
+            for (int i = 0; i < message.size(); i++) {
+                outlet_int(m_midi_outlet, message[i]);
+            }
         }
     }
     

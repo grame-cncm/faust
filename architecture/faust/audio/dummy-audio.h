@@ -53,7 +53,7 @@ class dummyaudio_real : public dummyaudio_base {
     
     private:
         
-        dsp* fDSP;
+        ::dsp* fDSP;
         
         int fSampleRate;
         int fBufferSize;
@@ -140,7 +140,7 @@ class dummyaudio_real : public dummyaudio_base {
             delete [] fOutChannel;
         }
         
-        virtual bool init(const char* name, dsp* dsp)
+        virtual bool init(const char* name, ::dsp* dsp)
         {
             fDSP = dsp;
             

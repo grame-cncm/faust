@@ -1,0 +1,478 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "multibandfilter"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fentry0;
+	float 	fConst0; // step: 9
+	FAUSTFLOAT 	fentry1;
+	FAUSTFLOAT 	fslider0;
+	FAUSTFLOAT 	fentry2;
+	FAUSTFLOAT 	fentry3;
+	FAUSTFLOAT 	fslider1;
+	FAUSTFLOAT 	fentry4;
+	FAUSTFLOAT 	fentry5;
+	FAUSTFLOAT 	fslider2;
+	FAUSTFLOAT 	fentry6;
+	FAUSTFLOAT 	fentry7;
+	FAUSTFLOAT 	fslider3;
+	FAUSTFLOAT 	fentry8;
+	FAUSTFLOAT 	fentry9;
+	FAUSTFLOAT 	fslider4;
+	FAUSTFLOAT 	fentry10;
+	FAUSTFLOAT 	fentry11;
+	FAUSTFLOAT 	fslider5;
+	FAUSTFLOAT 	fentry12;
+	FAUSTFLOAT 	fentry13;
+	FAUSTFLOAT 	fslider6;
+	FAUSTFLOAT 	fentry14;
+	FAUSTFLOAT 	fentry15;
+	FAUSTFLOAT 	fslider7;
+	FAUSTFLOAT 	fentry16;
+	FAUSTFLOAT 	fentry17;
+	FAUSTFLOAT 	fslider8;
+	FAUSTFLOAT 	fentry18;
+	FAUSTFLOAT 	fentry19;
+	FAUSTFLOAT 	fslider9;
+	// Recursion delay fVeeec9 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec9State[2]; // Copy Delay
+	// Recursion delay fVeeec8 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec8State[2]; // Copy Delay
+	// Recursion delay fVeeec7 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec7State[2]; // Copy Delay
+	// Recursion delay fVeeec6 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec6State[2]; // Copy Delay
+	// Recursion delay fVeeec5 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec5State[2]; // Copy Delay
+	// Recursion delay fVeeec4 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec4State[2]; // Copy Delay
+	// Recursion delay fVeeec3 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec3State[2]; // Copy Delay
+	// Recursion delay fVeeec2 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2State[2]; // Copy Delay
+	// Recursion delay fVeeec1 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec1State[2]; // Copy Delay
+	// Recursion delay fVeeec0 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State[2]; // Copy Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("bandfilter.dsp/author", "Grame");
+		m->declare("bandfilter.dsp/copyright", "(c)GRAME 2006");
+		m->declare("bandfilter.dsp/license", "BSD");
+		m->declare("bandfilter.dsp/name", "bandfilter");
+		m->declare("bandfilter.dsp/version", "1.0");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "multibandfilter.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "multibandfilter");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 1; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = (3.1415927f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 9
+	}
+	virtual void instanceResetUserInterface() {
+		fentry0 = 1e+04f;
+		fentry1 = 5e+01f;
+		fslider0 = 0.0f;
+		fentry2 = 9e+03f;
+		fentry3 = 5e+01f;
+		fslider1 = 0.0f;
+		fentry4 = 8e+03f;
+		fentry5 = 5e+01f;
+		fslider2 = 0.0f;
+		fentry6 = 7e+03f;
+		fentry7 = 5e+01f;
+		fslider3 = 0.0f;
+		fentry8 = 6e+03f;
+		fentry9 = 5e+01f;
+		fslider4 = 0.0f;
+		fentry10 = 5e+03f;
+		fentry11 = 5e+01f;
+		fslider5 = 0.0f;
+		fentry12 = 4e+03f;
+		fentry13 = 5e+01f;
+		fslider6 = 0.0f;
+		fentry14 = 3e+03f;
+		fentry15 = 5e+01f;
+		fslider7 = 0.0f;
+		fentry16 = 2e+03f;
+		fentry17 = 5e+01f;
+		fslider8 = 0.0f;
+		fentry18 = 1e+03f;
+		fentry19 = 5e+01f;
+		fslider9 = 0.0f;
+	}
+	virtual void instanceClear() {
+		for (int j = 0; j < 2; j++) { fVeeec9State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec8State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec7State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec6State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec5State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec4State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec3State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec2State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec1State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec0State[j] = 0; }
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openHorizontalBox("Multi Band Filter");
+		ui_interface->openVerticalBox("peak 0");
+		ui_interface->declare(&fentry19, "style", "knob");
+		ui_interface->addNumEntry("Q factor", &fentry19, 5e+01f, 0.1f, 1e+02f, 0.1f);
+		ui_interface->declare(&fentry18, "style", "knob");
+		ui_interface->declare(&fentry18, "unit", "Hz");
+		ui_interface->addNumEntry("freq", &fentry18, 1e+03f, 2e+01f, 2e+04f, 1.0f);
+		ui_interface->declare(&fslider9, "unit", "dB");
+		ui_interface->addVerticalSlider("gain", &fslider9, 0.0f, -5e+01f, 5e+01f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("peak 1");
+		ui_interface->declare(&fentry17, "style", "knob");
+		ui_interface->addNumEntry("Q factor", &fentry17, 5e+01f, 0.1f, 1e+02f, 0.1f);
+		ui_interface->declare(&fentry16, "style", "knob");
+		ui_interface->declare(&fentry16, "unit", "Hz");
+		ui_interface->addNumEntry("freq", &fentry16, 2e+03f, 2e+01f, 2e+04f, 1.0f);
+		ui_interface->declare(&fslider8, "unit", "dB");
+		ui_interface->addVerticalSlider("gain", &fslider8, 0.0f, -5e+01f, 5e+01f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("peak 2");
+		ui_interface->declare(&fentry15, "style", "knob");
+		ui_interface->addNumEntry("Q factor", &fentry15, 5e+01f, 0.1f, 1e+02f, 0.1f);
+		ui_interface->declare(&fentry14, "style", "knob");
+		ui_interface->declare(&fentry14, "unit", "Hz");
+		ui_interface->addNumEntry("freq", &fentry14, 3e+03f, 2e+01f, 2e+04f, 1.0f);
+		ui_interface->declare(&fslider7, "unit", "dB");
+		ui_interface->addVerticalSlider("gain", &fslider7, 0.0f, -5e+01f, 5e+01f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("peak 3");
+		ui_interface->declare(&fentry13, "style", "knob");
+		ui_interface->addNumEntry("Q factor", &fentry13, 5e+01f, 0.1f, 1e+02f, 0.1f);
+		ui_interface->declare(&fentry12, "style", "knob");
+		ui_interface->declare(&fentry12, "unit", "Hz");
+		ui_interface->addNumEntry("freq", &fentry12, 4e+03f, 2e+01f, 2e+04f, 1.0f);
+		ui_interface->declare(&fslider6, "unit", "dB");
+		ui_interface->addVerticalSlider("gain", &fslider6, 0.0f, -5e+01f, 5e+01f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("peak 4");
+		ui_interface->declare(&fentry11, "style", "knob");
+		ui_interface->addNumEntry("Q factor", &fentry11, 5e+01f, 0.1f, 1e+02f, 0.1f);
+		ui_interface->declare(&fentry10, "style", "knob");
+		ui_interface->declare(&fentry10, "unit", "Hz");
+		ui_interface->addNumEntry("freq", &fentry10, 5e+03f, 2e+01f, 2e+04f, 1.0f);
+		ui_interface->declare(&fslider5, "unit", "dB");
+		ui_interface->addVerticalSlider("gain", &fslider5, 0.0f, -5e+01f, 5e+01f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("peak 5");
+		ui_interface->declare(&fentry9, "style", "knob");
+		ui_interface->addNumEntry("Q factor", &fentry9, 5e+01f, 0.1f, 1e+02f, 0.1f);
+		ui_interface->declare(&fentry8, "style", "knob");
+		ui_interface->declare(&fentry8, "unit", "Hz");
+		ui_interface->addNumEntry("freq", &fentry8, 6e+03f, 2e+01f, 2e+04f, 1.0f);
+		ui_interface->declare(&fslider4, "unit", "dB");
+		ui_interface->addVerticalSlider("gain", &fslider4, 0.0f, -5e+01f, 5e+01f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("peak 6");
+		ui_interface->declare(&fentry7, "style", "knob");
+		ui_interface->addNumEntry("Q factor", &fentry7, 5e+01f, 0.1f, 1e+02f, 0.1f);
+		ui_interface->declare(&fentry6, "style", "knob");
+		ui_interface->declare(&fentry6, "unit", "Hz");
+		ui_interface->addNumEntry("freq", &fentry6, 7e+03f, 2e+01f, 2e+04f, 1.0f);
+		ui_interface->declare(&fslider3, "unit", "dB");
+		ui_interface->addVerticalSlider("gain", &fslider3, 0.0f, -5e+01f, 5e+01f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("peak 7");
+		ui_interface->declare(&fentry5, "style", "knob");
+		ui_interface->addNumEntry("Q factor", &fentry5, 5e+01f, 0.1f, 1e+02f, 0.1f);
+		ui_interface->declare(&fentry4, "style", "knob");
+		ui_interface->declare(&fentry4, "unit", "Hz");
+		ui_interface->addNumEntry("freq", &fentry4, 8e+03f, 2e+01f, 2e+04f, 1.0f);
+		ui_interface->declare(&fslider2, "unit", "dB");
+		ui_interface->addVerticalSlider("gain", &fslider2, 0.0f, -5e+01f, 5e+01f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("peak 8");
+		ui_interface->declare(&fentry3, "style", "knob");
+		ui_interface->addNumEntry("Q factor", &fentry3, 5e+01f, 0.1f, 1e+02f, 0.1f);
+		ui_interface->declare(&fentry2, "style", "knob");
+		ui_interface->declare(&fentry2, "unit", "Hz");
+		ui_interface->addNumEntry("freq", &fentry2, 9e+03f, 2e+01f, 2e+04f, 1.0f);
+		ui_interface->declare(&fslider1, "unit", "dB");
+		ui_interface->addVerticalSlider("gain", &fslider1, 0.0f, -5e+01f, 5e+01f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("peak 9");
+		ui_interface->declare(&fentry1, "style", "knob");
+		ui_interface->addNumEntry("Q factor", &fentry1, 5e+01f, 0.1f, 1e+02f, 0.1f);
+		ui_interface->declare(&fentry0, "style", "knob");
+		ui_interface->declare(&fentry0, "unit", "Hz");
+		ui_interface->addNumEntry("freq", &fentry0, 1e+04f, 2e+01f, 2e+04f, 1.0f);
+		ui_interface->declare(&fslider0, "unit", "dB");
+		ui_interface->addVerticalSlider("gain", &fslider0, 0.0f, -5e+01f, 5e+01f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = tanf((fConst0 * float(fentry0))); // step: 11
+		float 	fSlow1 = float(fentry1); // step: 12
+		float 	fSlow2 = (powf(1e+01f,-(0.05f * float(fslider0))) / fSlow1); // step: 20
+		float 	fSlow3 = (1.0f / ((fSlow0 * (fSlow0 + fSlow2)) + 1.0f)); // step: 24
+		float 	fSlow4 = (1.0f / fSlow1); // step: 27
+		float 	fSlow5 = (1.0f - (fSlow0 * (fSlow4 - fSlow0))); // step: 30
+		float 	fSlow6 = tanf((fConst0 * float(fentry2))); // step: 35
+		float 	fSlow7 = float(fentry3); // step: 36
+		float 	fSlow8 = (powf(1e+01f,-(0.05f * float(fslider1))) / fSlow7); // step: 41
+		float 	fSlow9 = (1.0f / ((fSlow6 * (fSlow6 + fSlow8)) + 1.0f)); // step: 45
+		float 	fSlow10 = (1.0f / fSlow7); // step: 47
+		float 	fSlow11 = (1.0f - (fSlow6 * (fSlow10 - fSlow6))); // step: 50
+		float 	fSlow12 = tanf((fConst0 * float(fentry4))); // step: 54
+		float 	fSlow13 = float(fentry5); // step: 55
+		float 	fSlow14 = (powf(1e+01f,-(0.05f * float(fslider2))) / fSlow13); // step: 60
+		float 	fSlow15 = (1.0f / ((fSlow12 * (fSlow12 + fSlow14)) + 1.0f)); // step: 64
+		float 	fSlow16 = (1.0f / fSlow13); // step: 66
+		float 	fSlow17 = (1.0f - (fSlow12 * (fSlow16 - fSlow12))); // step: 69
+		float 	fSlow18 = tanf((fConst0 * float(fentry6))); // step: 73
+		float 	fSlow19 = float(fentry7); // step: 74
+		float 	fSlow20 = (powf(1e+01f,-(0.05f * float(fslider3))) / fSlow19); // step: 79
+		float 	fSlow21 = (1.0f / ((fSlow18 * (fSlow18 + fSlow20)) + 1.0f)); // step: 83
+		float 	fSlow22 = (1.0f / fSlow19); // step: 85
+		float 	fSlow23 = (1.0f - (fSlow18 * (fSlow22 - fSlow18))); // step: 88
+		float 	fSlow24 = tanf((fConst0 * float(fentry8))); // step: 92
+		float 	fSlow25 = float(fentry9); // step: 93
+		float 	fSlow26 = (powf(1e+01f,-(0.05f * float(fslider4))) / fSlow25); // step: 98
+		float 	fSlow27 = (1.0f / ((fSlow24 * (fSlow24 + fSlow26)) + 1.0f)); // step: 102
+		float 	fSlow28 = (1.0f / fSlow25); // step: 104
+		float 	fSlow29 = (1.0f - (fSlow24 * (fSlow28 - fSlow24))); // step: 107
+		float 	fSlow30 = tanf((fConst0 * float(fentry10))); // step: 111
+		float 	fSlow31 = float(fentry11); // step: 112
+		float 	fSlow32 = (powf(1e+01f,-(0.05f * float(fslider5))) / fSlow31); // step: 117
+		float 	fSlow33 = (1.0f / ((fSlow30 * (fSlow30 + fSlow32)) + 1.0f)); // step: 121
+		float 	fSlow34 = (1.0f / fSlow31); // step: 123
+		float 	fSlow35 = (1.0f - (fSlow30 * (fSlow34 - fSlow30))); // step: 126
+		float 	fSlow36 = tanf((fConst0 * float(fentry12))); // step: 130
+		float 	fSlow37 = float(fentry13); // step: 131
+		float 	fSlow38 = (powf(1e+01f,-(0.05f * float(fslider6))) / fSlow37); // step: 136
+		float 	fSlow39 = (1.0f / ((fSlow36 * (fSlow36 + fSlow38)) + 1.0f)); // step: 140
+		float 	fSlow40 = (1.0f / fSlow37); // step: 142
+		float 	fSlow41 = (1.0f - (fSlow36 * (fSlow40 - fSlow36))); // step: 145
+		float 	fSlow42 = tanf((fConst0 * float(fentry14))); // step: 149
+		float 	fSlow43 = float(fentry15); // step: 150
+		float 	fSlow44 = (powf(1e+01f,-(0.05f * float(fslider7))) / fSlow43); // step: 155
+		float 	fSlow45 = (1.0f / ((fSlow42 * (fSlow42 + fSlow44)) + 1.0f)); // step: 159
+		float 	fSlow46 = (1.0f / fSlow43); // step: 161
+		float 	fSlow47 = (1.0f - (fSlow42 * (fSlow46 - fSlow42))); // step: 164
+		float 	fSlow48 = tanf((fConst0 * float(fentry16))); // step: 168
+		float 	fSlow49 = float(fentry17); // step: 169
+		float 	fSlow50 = (powf(1e+01f,-(0.05f * float(fslider8))) / fSlow49); // step: 174
+		float 	fSlow51 = (1.0f / ((fSlow48 * (fSlow48 + fSlow50)) + 1.0f)); // step: 178
+		float 	fSlow52 = (1.0f / fSlow49); // step: 180
+		float 	fSlow53 = (1.0f - (fSlow48 * (fSlow52 - fSlow48))); // step: 183
+		float 	fSlow54 = tanf((fConst0 * float(fentry18))); // step: 187
+		float 	fSlow55 = float(fentry19); // step: 188
+		float 	fSlow56 = (powf(1e+01f,-(0.05f * float(fslider9))) / fSlow55); // step: 193
+		float 	fSlow57 = (1.0f / ((fSlow54 * (fSlow54 + fSlow56)) + 1.0f)); // step: 197
+		float 	fSlow58 = (1.0f / fSlow55); // step: 199
+		float 	fSlow59 = (1.0f - (fSlow54 * (fSlow58 - fSlow54))); // step: 202
+		float 	fSlow60 = ((fSlow54 * (fSlow54 - fSlow56)) + 1.0f); // step: 207
+		float 	fSlow61 = (2.0f * (powf(fSlow54,2.0f) + -1.0f)); // step: 214
+		float 	fVeeec9[3];
+		float 	fSlow62 = ((fSlow54 * (fSlow54 + fSlow58)) + 1.0f); // step: 223
+		float 	fSlow63 = ((fSlow48 * (fSlow48 - fSlow50)) + 1.0f); // step: 230
+		float 	fSlow64 = (2.0f * (powf(fSlow48,2.0f) + -1.0f)); // step: 235
+		float 	fVeeec8[3];
+		float 	fSlow65 = ((fSlow48 * (fSlow48 + fSlow52)) + 1.0f); // step: 244
+		float 	fSlow66 = ((fSlow42 * (fSlow42 - fSlow44)) + 1.0f); // step: 251
+		float 	fSlow67 = (2.0f * (powf(fSlow42,2.0f) + -1.0f)); // step: 256
+		float 	fVeeec7[3];
+		float 	fSlow68 = ((fSlow42 * (fSlow42 + fSlow46)) + 1.0f); // step: 265
+		float 	fSlow69 = ((fSlow36 * (fSlow36 - fSlow38)) + 1.0f); // step: 272
+		float 	fSlow70 = (2.0f * (powf(fSlow36,2.0f) + -1.0f)); // step: 277
+		float 	fVeeec6[3];
+		float 	fSlow71 = ((fSlow36 * (fSlow36 + fSlow40)) + 1.0f); // step: 286
+		float 	fSlow72 = ((fSlow30 * (fSlow30 - fSlow32)) + 1.0f); // step: 293
+		float 	fSlow73 = (2.0f * (powf(fSlow30,2.0f) + -1.0f)); // step: 298
+		float 	fVeeec5[3];
+		float 	fSlow74 = ((fSlow30 * (fSlow30 + fSlow34)) + 1.0f); // step: 307
+		float 	fSlow75 = ((fSlow24 * (fSlow24 - fSlow26)) + 1.0f); // step: 314
+		float 	fSlow76 = (2.0f * (powf(fSlow24,2.0f) + -1.0f)); // step: 319
+		float 	fVeeec4[3];
+		float 	fSlow77 = ((fSlow24 * (fSlow24 + fSlow28)) + 1.0f); // step: 328
+		float 	fSlow78 = ((fSlow18 * (fSlow18 - fSlow20)) + 1.0f); // step: 335
+		float 	fSlow79 = (2.0f * (powf(fSlow18,2.0f) + -1.0f)); // step: 340
+		float 	fVeeec3[3];
+		float 	fSlow80 = ((fSlow18 * (fSlow18 + fSlow22)) + 1.0f); // step: 349
+		float 	fSlow81 = ((fSlow12 * (fSlow12 - fSlow14)) + 1.0f); // step: 356
+		float 	fSlow82 = (2.0f * (powf(fSlow12,2.0f) + -1.0f)); // step: 361
+		float 	fVeeec2[3];
+		float 	fSlow83 = ((fSlow12 * (fSlow12 + fSlow16)) + 1.0f); // step: 370
+		float 	fSlow84 = ((fSlow6 * (fSlow6 - fSlow8)) + 1.0f); // step: 377
+		float 	fSlow85 = (2.0f * (powf(fSlow6,2.0f) + -1.0f)); // step: 382
+		float 	fVeeec1[3];
+		float 	fSlow86 = ((fSlow6 * (fSlow6 + fSlow10)) + 1.0f); // step: 391
+		float 	fSlow87 = ((fSlow0 * (fSlow0 - fSlow2)) + 1.0f); // step: 398
+		float 	fSlow88 = (2.0f * (powf(fSlow0,2.0f) + -1.0f)); // step: 403
+		float 	fVeeec0[3];
+		float 	fSlow89 = ((fSlow0 * (fSlow0 + fSlow4)) + 1.0f); // step: 412
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			fVeeec9[1] = fVeeec9State[0];
+			fVeeec9[2] = fVeeec9State[1];
+			fVeeec8[1] = fVeeec8State[0];
+			fVeeec8[2] = fVeeec8State[1];
+			fVeeec7[1] = fVeeec7State[0];
+			fVeeec7[2] = fVeeec7State[1];
+			fVeeec6[1] = fVeeec6State[0];
+			fVeeec6[2] = fVeeec6State[1];
+			fVeeec5[1] = fVeeec5State[0];
+			fVeeec5[2] = fVeeec5State[1];
+			fVeeec4[1] = fVeeec4State[0];
+			fVeeec4[2] = fVeeec4State[1];
+			fVeeec3[1] = fVeeec3State[0];
+			fVeeec3[2] = fVeeec3State[1];
+			fVeeec2[1] = fVeeec2State[0];
+			fVeeec2[2] = fVeeec2State[1];
+			fVeeec1[1] = fVeeec1State[0];
+			fVeeec1[2] = fVeeec1State[1];
+			fVeeec0[1] = fVeeec0State[0];
+			fVeeec0[2] = fVeeec0State[1];
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = fVeeec0[2]; // step: 26
+				float 	fTemp1 = fVeeec1[2]; // step: 46
+				float 	fTemp2 = fVeeec2[2]; // step: 65
+				float 	fTemp3 = fVeeec3[2]; // step: 84
+				float 	fTemp4 = fVeeec4[2]; // step: 103
+				float 	fTemp5 = fVeeec5[2]; // step: 122
+				float 	fTemp6 = fVeeec6[2]; // step: 141
+				float 	fTemp7 = fVeeec7[2]; // step: 160
+				float 	fTemp8 = fVeeec8[2]; // step: 179
+				float 	fTemp9 = fVeeec9[2]; // step: 198
+				float 	fTemp10 = (fSlow61 * fVeeec9[1]); // step: 215
+				fVeeec9[0] = ((float)input0[i] - (fSlow57 * ((fSlow60 * fTemp9) + fTemp10)));
+				float 	fTemp11 = (fSlow64 * fVeeec8[1]); // step: 236
+				fVeeec8[0] = ((fSlow57 * ((fTemp10 + (fSlow62 * fVeeec9[0])) + (fSlow59 * fTemp9))) - (fSlow51 * ((fSlow63 * fTemp8) + fTemp11)));
+				float 	fTemp12 = (fSlow67 * fVeeec7[1]); // step: 257
+				fVeeec7[0] = ((fSlow51 * ((fTemp11 + (fSlow65 * fVeeec8[0])) + (fSlow53 * fTemp8))) - (fSlow45 * ((fSlow66 * fTemp7) + fTemp12)));
+				float 	fTemp13 = (fSlow70 * fVeeec6[1]); // step: 278
+				fVeeec6[0] = ((fSlow45 * ((fTemp12 + (fSlow68 * fVeeec7[0])) + (fSlow47 * fTemp7))) - (fSlow39 * ((fSlow69 * fTemp6) + fTemp13)));
+				float 	fTemp14 = (fSlow73 * fVeeec5[1]); // step: 299
+				fVeeec5[0] = ((fSlow39 * ((fTemp13 + (fSlow71 * fVeeec6[0])) + (fSlow41 * fTemp6))) - (fSlow33 * ((fSlow72 * fTemp5) + fTemp14)));
+				float 	fTemp15 = (fSlow76 * fVeeec4[1]); // step: 320
+				fVeeec4[0] = ((fSlow33 * ((fTemp14 + (fSlow74 * fVeeec5[0])) + (fSlow35 * fTemp5))) - (fSlow27 * ((fSlow75 * fTemp4) + fTemp15)));
+				float 	fTemp16 = (fSlow79 * fVeeec3[1]); // step: 341
+				fVeeec3[0] = ((fSlow27 * ((fTemp15 + (fSlow77 * fVeeec4[0])) + (fSlow29 * fTemp4))) - (fSlow21 * ((fSlow78 * fTemp3) + fTemp16)));
+				float 	fTemp17 = (fSlow82 * fVeeec2[1]); // step: 362
+				fVeeec2[0] = ((fSlow21 * ((fTemp16 + (fSlow80 * fVeeec3[0])) + (fSlow23 * fTemp3))) - (fSlow15 * ((fSlow81 * fTemp2) + fTemp17)));
+				float 	fTemp18 = (fSlow85 * fVeeec1[1]); // step: 383
+				fVeeec1[0] = ((fSlow15 * ((fTemp17 + (fSlow83 * fVeeec2[0])) + (fSlow17 * fTemp2))) - (fSlow9 * ((fSlow84 * fTemp1) + fTemp18)));
+				float 	fTemp19 = (fSlow88 * fVeeec0[1]); // step: 404
+				fVeeec0[0] = ((fSlow9 * ((fTemp18 + (fSlow86 * fVeeec1[0])) + (fSlow11 * fTemp1))) - (fSlow3 * ((fSlow87 * fTemp0) + fTemp19)));
+				output0[i] = (FAUSTFLOAT)((fSlow3 * ((fTemp19 + (fSlow89 * fVeeec0[0])) + (fSlow5 * fTemp0))));  // Zone Exec Code
+				// post processing
+				fVeeec0[2] = fVeeec0[1];
+				fVeeec0[1] = fVeeec0[0];
+				fVeeec1[2] = fVeeec1[1];
+				fVeeec1[1] = fVeeec1[0];
+				fVeeec2[2] = fVeeec2[1];
+				fVeeec2[1] = fVeeec2[0];
+				fVeeec3[2] = fVeeec3[1];
+				fVeeec3[1] = fVeeec3[0];
+				fVeeec4[2] = fVeeec4[1];
+				fVeeec4[1] = fVeeec4[0];
+				fVeeec5[2] = fVeeec5[1];
+				fVeeec5[1] = fVeeec5[0];
+				fVeeec6[2] = fVeeec6[1];
+				fVeeec6[1] = fVeeec6[0];
+				fVeeec7[2] = fVeeec7[1];
+				fVeeec7[1] = fVeeec7[0];
+				fVeeec8[2] = fVeeec8[1];
+				fVeeec8[1] = fVeeec8[0];
+				fVeeec9[2] = fVeeec9[1];
+				fVeeec9[1] = fVeeec9[0];
+			}
+			fVeeec9State[0] = fVeeec9[1];
+			fVeeec9State[1] = fVeeec9[2];
+			fVeeec8State[0] = fVeeec8[1];
+			fVeeec8State[1] = fVeeec8[2];
+			fVeeec7State[0] = fVeeec7[1];
+			fVeeec7State[1] = fVeeec7[2];
+			fVeeec6State[0] = fVeeec6[1];
+			fVeeec6State[1] = fVeeec6[2];
+			fVeeec5State[0] = fVeeec5[1];
+			fVeeec5State[1] = fVeeec5[2];
+			fVeeec4State[0] = fVeeec4[1];
+			fVeeec4State[1] = fVeeec4[2];
+			fVeeec3State[0] = fVeeec3[1];
+			fVeeec3State[1] = fVeeec3[2];
+			fVeeec2State[0] = fVeeec2[1];
+			fVeeec2State[1] = fVeeec2[2];
+			fVeeec1State[0] = fVeeec1[1];
+			fVeeec1State[1] = fVeeec1[2];
+			fVeeec0State[0] = fVeeec0[1];
+			fVeeec0State[1] = fVeeec0[2];
+		}
+	}
+};
+
+

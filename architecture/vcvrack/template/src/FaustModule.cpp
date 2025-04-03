@@ -52,7 +52,7 @@ static Plugin* pluginInstance;
 #endif
 
 #ifdef _WIN32
-typedef unsigned int uint
+typedef unsigned int uint;
 #endif
 
 /*

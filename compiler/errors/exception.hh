@@ -24,12 +24,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <sstream>
 #include <stdexcept>
 #ifndef WIN32
+#include <alloca.h>
 #include <unistd.h>
 #else
 // #include <io.h>
 #endif
 
-#if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID) && !defined(ALPINE)
+#if defined(__GLIBC__) || defined(__APPLE__)
 #include <execinfo.h>
 #endif
 
@@ -57,10 +58,10 @@ class faustexception : public std::runtime_error {
 
 inline void stacktrace(std::stringstream& str, int val)
 {
-#if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID) && !defined(ALPINE)
-    void*  callstack[val];
-    int    frames = backtrace(callstack, val);
-    char** strs   = backtrace_symbols(callstack, frames);
+#if defined(__GLIBC__) || defined(__APPLE__)
+    void** callstack = (void**)alloca(val * sizeof(void*));
+    int    frames    = backtrace(callstack, val);
+    char** strs      = backtrace_symbols(callstack, frames);
     str << "====== stack trace start ======\n";
     for (int i = 0; i < frames; ++i) {
         str << strs[i] << "\n";

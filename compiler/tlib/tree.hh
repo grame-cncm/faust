@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2024 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -33,10 +33,10 @@
  *
  * <b>Useful conversions :</b>
  *
- * \li int          tree2int (t)   : if t has a node of type int, return it otherwise error
- * \li float        tree2double (t) : if t has a node of type double, return it otherwise error
- * \li const char*  tree2str (t)   : if t has a node of type symbol, return its name otherwise error
- * \li void*        tree2ptr (t)   : if t has a node of type ptr, return it otherwise error
+ * \li int         tree2int (t)    : if t has a node of type int, return it otherwise error
+ * \li float       tree2double (t) : if t has a node of type double, return it otherwise error
+ * \li const char  tree2str (t)    : if t has a node of type symbol, return its name otherwise error
+ * \li void        tree2ptr (t)    : if t has a node of type ptr, return it otherwise error
  *
  * <b>Pattern matching :</b>
  *
@@ -82,8 +82,18 @@
 class CTree;
 typedef CTree* Tree;
 
-typedef std::map<Tree, Tree> plist;
-typedef std::vector<Tree>    tvec;
+typedef std::vector<Tree> tvec;
+
+namespace std {
+
+// The std::less <CTree*>comparison function is redefined to provide an unique and stable ordering
+// for all CTree instances and so maintain determinism.
+template <>
+struct less<CTree*> {
+    bool operator()(const CTree* lhs, const CTree* rhs) const;
+};
+
+}  // namespace std
 
 /**
  * A CTree = (Node x [CTree]) is the association of a content Node and a list of subtrees
@@ -96,23 +106,24 @@ typedef std::vector<Tree>    tvec;
  *
  * Means are also provided to do maximal sharing on recursive trees. The idea is to start from
  * a deBruijn representation and progressively build a classical representation such that
- * alpha-equivalent recursive CTrees are necesseraly identical (and therefore shared).
+ * alpha-equivalent recursive CTrees are necessarily identical (and therefore shared).
  *
- * WARNING : in the current implementation CTrees are allocated but never deleted.
  **/
 
 class LIBFAUST_API CTree : public virtual Garbageable {
-   private:
+   protected:
     static const int kHashTableSize = 400009;     ///< size of the hash table (prime number)
     static size_t    gSerialCounter;              ///< the serial number counter
     static Tree      gHashTable[kHashTableSize];  ///< hash table used for "hash consing"
 
    public:
-    static bool gDetails;  ///< Ctree::print() print with more details when true
-    static unsigned int
-        gVisitTime;  ///< Should be incremented for each new visit to keep track of visited tree
+    static bool gDetails;  ///< CTree::print() print with more details when true
+    ///< Should be incremented for each new visit to keep track of visited tree
+    static unsigned int gVisitTime;
 
-   private:
+    typedef std::map<Tree, Tree> plist;
+
+   protected:
     // fields
     Tree         fNext;        ///< next tree in the same hashtable entry
     Node         fNode;        ///< the node content of the tree
@@ -124,11 +135,15 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     unsigned int fVisitTime;   ///< keep track of visits
     tvec         fBranch;      ///< the subtrees
 
-    CTree(size_t hk, const Node& n,
-          const tvec& br);  ///< construction is private, uses tree::make instead
+    CTree() : fNext(nullptr), fType(nullptr), fHashKey(0), fSerial(0), fAperture(0), fVisitTime(0)
+    {
+    }
+    ///< construction is private, uses tree::make instead
+    CTree(size_t hk, const Node& n, const tvec& br);
 
-    bool          equiv(const Node& n,
-                        const tvec& br) const;  ///< used to check if an equivalent tree already exists
+    ///< used to check if an equivalent tree already exists
+    bool equiv(const Node& n, const tvec& br) const;
+
     static size_t calcTreeHash(
         const Node& n,
         const tvec& br);  ///< compute the hash key of a tree according to its node and branches
@@ -184,49 +199,53 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     Tree getProperty(Tree key)
     {
         plist::iterator i = fProperties.find(key);
-        if (i == fProperties.end()) {
-            return 0;
-        } else {
-            return i->second;
-        }
+        return (i == fProperties.end()) ? nullptr : i->second;
     }
 };
 
-//---------------------------------API---------------------------------------
+// The comparison function relies on lhs->serial() which provides an unique and stable ordering
+// for all CTree instances and so maintain determinism.
+namespace std {
+inline bool less<CTree*>::operator()(const CTree* lhs, const CTree* rhs) const
+{
+    return lhs->serial() < rhs->serial();
+}
+};  // namespace std
 
+//---------------------------------API---------------------------------------
 // To build trees
+
 inline Tree tree(const Node& n)
 {
-    Tree br[1];
-    return CTree::make(n, 0, br);
+    return CTree::make(n, 0, nullptr);
 }
+
 inline Tree tree(const Node& n, const Tree& a)
 {
-    Tree br[] = {a};
-    return CTree::make(n, 1, br);
+    return CTree::make(n, {a});
 }
+
 inline Tree tree(const Node& n, const Tree& a, const Tree& b)
 {
-    Tree br[] = {a, b};
-    return CTree::make(n, 2, br);
+    return CTree::make(n, {a, b});
 }
+
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c)
 {
-    Tree br[] = {a, b, c};
-    return CTree::make(n, 3, br);
+    return CTree::make(n, {a, b, c});
 }
+
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d)
 {
-    Tree br[] = {a, b, c, d};
-    return CTree::make(n, 4, br);
+    return CTree::make(n, {a, b, c, d});
 }
 
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d,
                  const Tree& e)
 {
-    Tree br[] = {a, b, c, d, e};
-    return CTree::make(n, 5, br);
+    return CTree::make(n, {a, b, c, d, e});
 }
+
 inline Tree tree(const Node& n, const tvec& br)
 {
     return CTree::make(n, br);

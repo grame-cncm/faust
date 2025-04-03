@@ -1,0 +1,391 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "matrix"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fslider0;
+	FAUSTFLOAT 	fslider1;
+	FAUSTFLOAT 	fslider2;
+	FAUSTFLOAT 	fslider3;
+	FAUSTFLOAT 	fslider4;
+	FAUSTFLOAT 	fslider5;
+	FAUSTFLOAT 	fslider6;
+	FAUSTFLOAT 	fslider7;
+	FAUSTFLOAT 	fslider8;
+	FAUSTFLOAT 	fslider9;
+	FAUSTFLOAT 	fslider10;
+	FAUSTFLOAT 	fslider11;
+	FAUSTFLOAT 	fslider12;
+	FAUSTFLOAT 	fslider13;
+	FAUSTFLOAT 	fslider14;
+	FAUSTFLOAT 	fslider15;
+	FAUSTFLOAT 	fslider16;
+	FAUSTFLOAT 	fslider17;
+	FAUSTFLOAT 	fslider18;
+	FAUSTFLOAT 	fslider19;
+	FAUSTFLOAT 	fslider20;
+	FAUSTFLOAT 	fslider21;
+	FAUSTFLOAT 	fslider22;
+	FAUSTFLOAT 	fslider23;
+	FAUSTFLOAT 	fslider24;
+	FAUSTFLOAT 	fslider25;
+	FAUSTFLOAT 	fslider26;
+	FAUSTFLOAT 	fslider27;
+	FAUSTFLOAT 	fslider28;
+	FAUSTFLOAT 	fslider29;
+	FAUSTFLOAT 	fslider30;
+	FAUSTFLOAT 	fslider31;
+	FAUSTFLOAT 	fslider32;
+	FAUSTFLOAT 	fslider33;
+	FAUSTFLOAT 	fslider34;
+	FAUSTFLOAT 	fslider35;
+	FAUSTFLOAT 	fslider36;
+	FAUSTFLOAT 	fslider37;
+	FAUSTFLOAT 	fslider38;
+	FAUSTFLOAT 	fslider39;
+	FAUSTFLOAT 	fslider40;
+	FAUSTFLOAT 	fslider41;
+	FAUSTFLOAT 	fslider42;
+	FAUSTFLOAT 	fslider43;
+	FAUSTFLOAT 	fslider44;
+	FAUSTFLOAT 	fslider45;
+	FAUSTFLOAT 	fslider46;
+	FAUSTFLOAT 	fslider47;
+	FAUSTFLOAT 	fslider48;
+	FAUSTFLOAT 	fslider49;
+	FAUSTFLOAT 	fslider50;
+	FAUSTFLOAT 	fslider51;
+	FAUSTFLOAT 	fslider52;
+	FAUSTFLOAT 	fslider53;
+	FAUSTFLOAT 	fslider54;
+	FAUSTFLOAT 	fslider55;
+	FAUSTFLOAT 	fslider56;
+	FAUSTFLOAT 	fslider57;
+	FAUSTFLOAT 	fslider58;
+	FAUSTFLOAT 	fslider59;
+	FAUSTFLOAT 	fslider60;
+	FAUSTFLOAT 	fslider61;
+	FAUSTFLOAT 	fslider62;
+	FAUSTFLOAT 	fslider63;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "matrix.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "matrix");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 8; }
+	virtual int getNumOutputs() { return 8; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = -1e+01f;
+		fslider1 = -1e+01f;
+		fslider2 = -1e+01f;
+		fslider3 = -1e+01f;
+		fslider4 = -1e+01f;
+		fslider5 = -1e+01f;
+		fslider6 = -1e+01f;
+		fslider7 = -1e+01f;
+		fslider8 = -1e+01f;
+		fslider9 = -1e+01f;
+		fslider10 = -1e+01f;
+		fslider11 = -1e+01f;
+		fslider12 = -1e+01f;
+		fslider13 = -1e+01f;
+		fslider14 = -1e+01f;
+		fslider15 = -1e+01f;
+		fslider16 = -1e+01f;
+		fslider17 = -1e+01f;
+		fslider18 = -1e+01f;
+		fslider19 = -1e+01f;
+		fslider20 = -1e+01f;
+		fslider21 = -1e+01f;
+		fslider22 = -1e+01f;
+		fslider23 = -1e+01f;
+		fslider24 = -1e+01f;
+		fslider25 = -1e+01f;
+		fslider26 = -1e+01f;
+		fslider27 = -1e+01f;
+		fslider28 = -1e+01f;
+		fslider29 = -1e+01f;
+		fslider30 = -1e+01f;
+		fslider31 = -1e+01f;
+		fslider32 = -1e+01f;
+		fslider33 = -1e+01f;
+		fslider34 = -1e+01f;
+		fslider35 = -1e+01f;
+		fslider36 = -1e+01f;
+		fslider37 = -1e+01f;
+		fslider38 = -1e+01f;
+		fslider39 = -1e+01f;
+		fslider40 = -1e+01f;
+		fslider41 = -1e+01f;
+		fslider42 = -1e+01f;
+		fslider43 = -1e+01f;
+		fslider44 = -1e+01f;
+		fslider45 = -1e+01f;
+		fslider46 = -1e+01f;
+		fslider47 = -1e+01f;
+		fslider48 = -1e+01f;
+		fslider49 = -1e+01f;
+		fslider50 = -1e+01f;
+		fslider51 = -1e+01f;
+		fslider52 = -1e+01f;
+		fslider53 = -1e+01f;
+		fslider54 = -1e+01f;
+		fslider55 = -1e+01f;
+		fslider56 = -1e+01f;
+		fslider57 = -1e+01f;
+		fslider58 = -1e+01f;
+		fslider59 = -1e+01f;
+		fslider60 = -1e+01f;
+		fslider61 = -1e+01f;
+		fslider62 = -1e+01f;
+		fslider63 = -1e+01f;
+	}
+	virtual void instanceClear() {
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openTabBox("Matrix 8 x 8");
+		ui_interface->openHorizontalBox("Output 0");
+		ui_interface->addVerticalSlider("Input 0", &fslider0, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 1", &fslider1, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 2", &fslider2, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 3", &fslider3, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 4", &fslider4, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 5", &fslider5, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 6", &fslider6, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 7", &fslider7, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 1");
+		ui_interface->addVerticalSlider("Input 0", &fslider8, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 1", &fslider9, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 2", &fslider10, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 3", &fslider11, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 4", &fslider12, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 5", &fslider13, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 6", &fslider14, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 7", &fslider15, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 2");
+		ui_interface->addVerticalSlider("Input 0", &fslider16, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 1", &fslider17, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 2", &fslider18, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 3", &fslider19, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 4", &fslider20, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 5", &fslider21, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 6", &fslider22, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 7", &fslider23, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 3");
+		ui_interface->addVerticalSlider("Input 0", &fslider24, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 1", &fslider25, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 2", &fslider26, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 3", &fslider27, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 4", &fslider28, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 5", &fslider29, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 6", &fslider30, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 7", &fslider31, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 4");
+		ui_interface->addVerticalSlider("Input 0", &fslider32, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 1", &fslider33, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 2", &fslider34, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 3", &fslider35, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 4", &fslider36, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 5", &fslider37, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 6", &fslider38, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 7", &fslider39, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 5");
+		ui_interface->addVerticalSlider("Input 0", &fslider40, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 1", &fslider41, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 2", &fslider42, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 3", &fslider43, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 4", &fslider44, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 5", &fslider45, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 6", &fslider46, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 7", &fslider47, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 6");
+		ui_interface->addVerticalSlider("Input 0", &fslider48, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 1", &fslider49, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 2", &fslider50, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 3", &fslider51, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 4", &fslider52, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 5", &fslider53, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 6", &fslider54, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 7", &fslider55, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("Output 7");
+		ui_interface->addVerticalSlider("Input 0", &fslider56, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 1", &fslider57, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 2", &fslider58, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 3", &fslider59, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 4", &fslider60, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 5", &fslider61, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 6", &fslider62, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->addVerticalSlider("Input 7", &fslider63, -1e+01f, -96.0f, 4.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = powf(1e+01f,(0.05f * float(fslider0))); // step: 6
+		float 	fSlow1 = powf(1e+01f,(0.05f * float(fslider1))); // step: 11
+		float 	fSlow2 = powf(1e+01f,(0.05f * float(fslider2))); // step: 17
+		float 	fSlow3 = powf(1e+01f,(0.05f * float(fslider3))); // step: 23
+		float 	fSlow4 = powf(1e+01f,(0.05f * float(fslider4))); // step: 29
+		float 	fSlow5 = powf(1e+01f,(0.05f * float(fslider5))); // step: 35
+		float 	fSlow6 = powf(1e+01f,(0.05f * float(fslider6))); // step: 41
+		float 	fSlow7 = powf(1e+01f,(0.05f * float(fslider7))); // step: 47
+		float 	fSlow8 = powf(1e+01f,(0.05f * float(fslider8))); // step: 52
+		float 	fSlow9 = powf(1e+01f,(0.05f * float(fslider9))); // step: 56
+		float 	fSlow10 = powf(1e+01f,(0.05f * float(fslider10))); // step: 61
+		float 	fSlow11 = powf(1e+01f,(0.05f * float(fslider11))); // step: 66
+		float 	fSlow12 = powf(1e+01f,(0.05f * float(fslider12))); // step: 71
+		float 	fSlow13 = powf(1e+01f,(0.05f * float(fslider13))); // step: 76
+		float 	fSlow14 = powf(1e+01f,(0.05f * float(fslider14))); // step: 81
+		float 	fSlow15 = powf(1e+01f,(0.05f * float(fslider15))); // step: 86
+		float 	fSlow16 = powf(1e+01f,(0.05f * float(fslider16))); // step: 91
+		float 	fSlow17 = powf(1e+01f,(0.05f * float(fslider17))); // step: 95
+		float 	fSlow18 = powf(1e+01f,(0.05f * float(fslider18))); // step: 100
+		float 	fSlow19 = powf(1e+01f,(0.05f * float(fslider19))); // step: 105
+		float 	fSlow20 = powf(1e+01f,(0.05f * float(fslider20))); // step: 110
+		float 	fSlow21 = powf(1e+01f,(0.05f * float(fslider21))); // step: 115
+		float 	fSlow22 = powf(1e+01f,(0.05f * float(fslider22))); // step: 120
+		float 	fSlow23 = powf(1e+01f,(0.05f * float(fslider23))); // step: 125
+		float 	fSlow24 = powf(1e+01f,(0.05f * float(fslider24))); // step: 130
+		float 	fSlow25 = powf(1e+01f,(0.05f * float(fslider25))); // step: 134
+		float 	fSlow26 = powf(1e+01f,(0.05f * float(fslider26))); // step: 139
+		float 	fSlow27 = powf(1e+01f,(0.05f * float(fslider27))); // step: 144
+		float 	fSlow28 = powf(1e+01f,(0.05f * float(fslider28))); // step: 149
+		float 	fSlow29 = powf(1e+01f,(0.05f * float(fslider29))); // step: 154
+		float 	fSlow30 = powf(1e+01f,(0.05f * float(fslider30))); // step: 159
+		float 	fSlow31 = powf(1e+01f,(0.05f * float(fslider31))); // step: 164
+		float 	fSlow32 = powf(1e+01f,(0.05f * float(fslider32))); // step: 169
+		float 	fSlow33 = powf(1e+01f,(0.05f * float(fslider33))); // step: 173
+		float 	fSlow34 = powf(1e+01f,(0.05f * float(fslider34))); // step: 178
+		float 	fSlow35 = powf(1e+01f,(0.05f * float(fslider35))); // step: 183
+		float 	fSlow36 = powf(1e+01f,(0.05f * float(fslider36))); // step: 188
+		float 	fSlow37 = powf(1e+01f,(0.05f * float(fslider37))); // step: 193
+		float 	fSlow38 = powf(1e+01f,(0.05f * float(fslider38))); // step: 198
+		float 	fSlow39 = powf(1e+01f,(0.05f * float(fslider39))); // step: 203
+		float 	fSlow40 = powf(1e+01f,(0.05f * float(fslider40))); // step: 208
+		float 	fSlow41 = powf(1e+01f,(0.05f * float(fslider41))); // step: 212
+		float 	fSlow42 = powf(1e+01f,(0.05f * float(fslider42))); // step: 217
+		float 	fSlow43 = powf(1e+01f,(0.05f * float(fslider43))); // step: 222
+		float 	fSlow44 = powf(1e+01f,(0.05f * float(fslider44))); // step: 227
+		float 	fSlow45 = powf(1e+01f,(0.05f * float(fslider45))); // step: 232
+		float 	fSlow46 = powf(1e+01f,(0.05f * float(fslider46))); // step: 237
+		float 	fSlow47 = powf(1e+01f,(0.05f * float(fslider47))); // step: 242
+		float 	fSlow48 = powf(1e+01f,(0.05f * float(fslider48))); // step: 247
+		float 	fSlow49 = powf(1e+01f,(0.05f * float(fslider49))); // step: 251
+		float 	fSlow50 = powf(1e+01f,(0.05f * float(fslider50))); // step: 256
+		float 	fSlow51 = powf(1e+01f,(0.05f * float(fslider51))); // step: 261
+		float 	fSlow52 = powf(1e+01f,(0.05f * float(fslider52))); // step: 266
+		float 	fSlow53 = powf(1e+01f,(0.05f * float(fslider53))); // step: 271
+		float 	fSlow54 = powf(1e+01f,(0.05f * float(fslider54))); // step: 276
+		float 	fSlow55 = powf(1e+01f,(0.05f * float(fslider55))); // step: 281
+		float 	fSlow56 = powf(1e+01f,(0.05f * float(fslider56))); // step: 286
+		float 	fSlow57 = powf(1e+01f,(0.05f * float(fslider57))); // step: 290
+		float 	fSlow58 = powf(1e+01f,(0.05f * float(fslider58))); // step: 295
+		float 	fSlow59 = powf(1e+01f,(0.05f * float(fslider59))); // step: 300
+		float 	fSlow60 = powf(1e+01f,(0.05f * float(fslider60))); // step: 305
+		float 	fSlow61 = powf(1e+01f,(0.05f * float(fslider61))); // step: 310
+		float 	fSlow62 = powf(1e+01f,(0.05f * float(fslider62))); // step: 315
+		float 	fSlow63 = powf(1e+01f,(0.05f * float(fslider63))); // step: 320
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
+			FAUSTFLOAT* input4 = &input[4][index]; // Zone 3
+			FAUSTFLOAT* input5 = &input[5][index]; // Zone 3
+			FAUSTFLOAT* input6 = &input[6][index]; // Zone 3
+			FAUSTFLOAT* input7 = &input[7][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = (float)input0[i]; // step: 1
+				float 	fTemp1 = (float)input1[i]; // step: 8
+				float 	fTemp2 = (float)input2[i]; // step: 14
+				float 	fTemp3 = (float)input3[i]; // step: 20
+				float 	fTemp4 = (float)input4[i]; // step: 26
+				float 	fTemp5 = (float)input5[i]; // step: 32
+				float 	fTemp6 = (float)input6[i]; // step: 38
+				float 	fTemp7 = (float)input7[i]; // step: 44
+				output0[i] = (FAUSTFLOAT)(((((((((fSlow0 * fTemp0) + (fSlow1 * fTemp1)) + (fSlow2 * fTemp2)) + (fSlow3 * fTemp3)) + (fSlow4 * fTemp4)) + (fSlow5 * fTemp5)) + (fSlow6 * fTemp6)) + (fSlow7 * fTemp7)));  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(((((((((fSlow8 * fTemp0) + (fSlow9 * fTemp1)) + (fSlow10 * fTemp2)) + (fSlow11 * fTemp3)) + (fSlow12 * fTemp4)) + (fSlow13 * fTemp5)) + (fSlow14 * fTemp6)) + (fSlow15 * fTemp7)));  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(((((((((fSlow16 * fTemp0) + (fSlow17 * fTemp1)) + (fSlow18 * fTemp2)) + (fSlow19 * fTemp3)) + (fSlow20 * fTemp4)) + (fSlow21 * fTemp5)) + (fSlow22 * fTemp6)) + (fSlow23 * fTemp7)));  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(((((((((fSlow24 * fTemp0) + (fSlow25 * fTemp1)) + (fSlow26 * fTemp2)) + (fSlow27 * fTemp3)) + (fSlow28 * fTemp4)) + (fSlow29 * fTemp5)) + (fSlow30 * fTemp6)) + (fSlow31 * fTemp7)));  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)(((((((((fSlow32 * fTemp0) + (fSlow33 * fTemp1)) + (fSlow34 * fTemp2)) + (fSlow35 * fTemp3)) + (fSlow36 * fTemp4)) + (fSlow37 * fTemp5)) + (fSlow38 * fTemp6)) + (fSlow39 * fTemp7)));  // Zone Exec Code
+				output5[i] = (FAUSTFLOAT)(((((((((fSlow40 * fTemp0) + (fSlow41 * fTemp1)) + (fSlow42 * fTemp2)) + (fSlow43 * fTemp3)) + (fSlow44 * fTemp4)) + (fSlow45 * fTemp5)) + (fSlow46 * fTemp6)) + (fSlow47 * fTemp7)));  // Zone Exec Code
+				output6[i] = (FAUSTFLOAT)(((((((((fSlow48 * fTemp0) + (fSlow49 * fTemp1)) + (fSlow50 * fTemp2)) + (fSlow51 * fTemp3)) + (fSlow52 * fTemp4)) + (fSlow53 * fTemp5)) + (fSlow54 * fTemp6)) + (fSlow55 * fTemp7)));  // Zone Exec Code
+				output7[i] = (FAUSTFLOAT)(((((((((fSlow56 * fTemp0) + (fSlow57 * fTemp1)) + (fSlow58 * fTemp2)) + (fSlow59 * fTemp3)) + (fSlow60 * fTemp4)) + (fSlow61 * fTemp5)) + (fSlow62 * fTemp6)) + (fSlow63 * fTemp7)));  // Zone Exec Code
+			}
+		}
+	}
+};
+
+

@@ -49,6 +49,12 @@
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
 
+// To force correct miniaudio include
+#if MINIAUDIO_DRIVER
+#define MINIAUDIO_IMPLEMENTATION
+#include "faust/miniaudio.h"
+#endif
+
 //**************************************************************
 // Soundfile handling
 //**************************************************************
@@ -59,6 +65,8 @@
 // So that the code uses JUCE audio file loading code
 #if JUCE_DRIVER
 #define JUCE_64BIT 1
+#elif MINIAUDIO_DRIVER
+#define MINIAUDIO_READER
 #endif
 #include "faust/gui/SoundUI.h"
 #endif
@@ -103,6 +111,8 @@
 #include "faust/audio/portaudio-dsp.h"
 #elif RTAUDIO_DRIVER
 #include "faust/audio/rtaudio-dsp.h"
+#elif MINIAUDIO_DRIVER
+#include "faust/audio/miniaudio-dsp.h"
 #elif OPEN_FRAMEWORK_DRIVER
 #include "faust/audio/ofaudio-dsp.h"
 #elif JUCE_DRIVER
@@ -240,14 +250,14 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size, bool auto_connec
     audio* driver = new portaudio(sample_rate, buffer_size);
 #elif RTAUDIO_DRIVER
     audio* driver = new rtaudio(sample_rate, buffer_size);
+#elif MINIAUDIO_DRIVER
+    audio* driver = new miniaudio(sample_rate, buffer_size);
 #elif OPEN_FRAMEWORK_DRIVER
     audio* driver = new ofaudio(sample_rate, buffer_size);
 #elif JUCE_DRIVER
     // JUCE audio device has its own sample rate and buffer size
     fprintf(stderr, "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n");
     audio* driver = new juceaudio();
-#elif DUMMY_DRIVER
-    audio* driver = new dummyaudio(sample_rate, buffer_size);
 #elif ESP32_DRIVER
     audio* driver = new esp32audio(sample_rate, buffer_size);
 #elif DUMMY_DRIVER

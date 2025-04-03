@@ -103,4 +103,6 @@ class SinPrim : public xtended {
         // sin(x)' = cos(x)
         return sigCos(args[0]);
     }
+
+    double compute(const std::vector<Node>& args) override { return sin(args[0].getDouble()); }
 };

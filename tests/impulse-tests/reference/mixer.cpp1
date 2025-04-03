@@ -1,0 +1,524 @@
+//----------------------------------------------------------
+// author: "Grame"
+// copyright: "(c)GRAME 2006"
+// license: "BSD"
+// name: "mixer"
+// version: "1.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	float 	fConst0; // step: 10
+	FAUSTFLOAT 	fslider0;
+	// Recursion delay fVeeec1 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec1State; // Mono Delay
+	FAUSTFLOAT 	fcheckbox0;
+	FAUSTFLOAT 	fslider1;
+	// Recursion delay fVeeec4 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec4State; // Mono Delay
+	// Recursion delay fVeeec3 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec3State; // Mono Delay
+	FAUSTFLOAT 	fbargraph0;
+	FAUSTFLOAT 	fentry0;
+	FAUSTFLOAT 	fcheckbox1;
+	FAUSTFLOAT 	fslider2;
+	// Recursion delay fVeeec8 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec8State; // Mono Delay
+	// Recursion delay fVeeec7 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec7State; // Mono Delay
+	FAUSTFLOAT 	fbargraph1;
+	FAUSTFLOAT 	fentry1;
+	FAUSTFLOAT 	fcheckbox2;
+	FAUSTFLOAT 	fslider3;
+	// Recursion delay fVeeec12 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec12State; // Mono Delay
+	// Recursion delay fVeeec11 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec11State; // Mono Delay
+	FAUSTFLOAT 	fbargraph2;
+	FAUSTFLOAT 	fentry2;
+	FAUSTFLOAT 	fcheckbox3;
+	FAUSTFLOAT 	fslider4;
+	// Recursion delay fVeeec16 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec16State; // Mono Delay
+	// Recursion delay fVeeec15 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec15State; // Mono Delay
+	FAUSTFLOAT 	fbargraph3;
+	FAUSTFLOAT 	fentry3;
+	FAUSTFLOAT 	fcheckbox4;
+	FAUSTFLOAT 	fslider5;
+	// Recursion delay fVeeec20 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec20State; // Mono Delay
+	// Recursion delay fVeeec19 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec19State; // Mono Delay
+	FAUSTFLOAT 	fbargraph4;
+	FAUSTFLOAT 	fentry4;
+	FAUSTFLOAT 	fcheckbox5;
+	FAUSTFLOAT 	fslider6;
+	// Recursion delay fVeeec24 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec24State; // Mono Delay
+	// Recursion delay fVeeec23 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec23State; // Mono Delay
+	FAUSTFLOAT 	fbargraph5;
+	FAUSTFLOAT 	fentry5;
+	FAUSTFLOAT 	fcheckbox6;
+	FAUSTFLOAT 	fslider7;
+	// Recursion delay fVeeec28 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec28State; // Mono Delay
+	// Recursion delay fVeeec27 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec27State; // Mono Delay
+	FAUSTFLOAT 	fbargraph6;
+	FAUSTFLOAT 	fentry6;
+	FAUSTFLOAT 	fcheckbox7;
+	FAUSTFLOAT 	fslider8;
+	// Recursion delay fVeeec32 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec32State; // Mono Delay
+	// Recursion delay fVeeec31 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec31State; // Mono Delay
+	FAUSTFLOAT 	fbargraph7;
+	FAUSTFLOAT 	fentry7;
+	// Recursion delay fVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Mono Delay
+	FAUSTFLOAT 	fbargraph8;
+	// Recursion delay fVeeec36 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec36State; // Mono Delay
+	FAUSTFLOAT 	fbargraph9;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "mixer.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "mixer");
+		m->declare("panpot.dsp/author", "Grame");
+		m->declare("panpot.dsp/copyright", "(c)GRAME 2006");
+		m->declare("panpot.dsp/license", "BSD");
+		m->declare("panpot.dsp/name", "panpot");
+		m->declare("panpot.dsp/version", "1.0");
+		m->declare("version", "1.0");
+		m->declare("volume.dsp/author", "Grame");
+		m->declare("volume.dsp/copyright", "(c)GRAME 2006");
+		m->declare("volume.dsp/license", "BSD");
+		m->declare("volume.dsp/name", "volume");
+		m->declare("volume.dsp/version", "1.0");
+		m->declare("vumeter.dsp/author", "Grame");
+		m->declare("vumeter.dsp/copyright", "(c)GRAME 2006");
+		m->declare("vumeter.dsp/license", "BSD");
+		m->declare("vumeter.dsp/name", "vumeter");
+		m->declare("vumeter.dsp/version", "1.0");
+	}
+
+	virtual int getNumInputs() { return 8; }
+	virtual int getNumOutputs() { return 2; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = (1.0f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 10
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 0.0f;
+		fcheckbox0 = 0.0;
+		fslider1 = 0.0f;
+		fentry0 = 0.0f;
+		fcheckbox1 = 0.0;
+		fslider2 = 0.0f;
+		fentry1 = 0.0f;
+		fcheckbox2 = 0.0;
+		fslider3 = 0.0f;
+		fentry2 = 0.0f;
+		fcheckbox3 = 0.0;
+		fslider4 = 0.0f;
+		fentry3 = 0.0f;
+		fcheckbox4 = 0.0;
+		fslider5 = 0.0f;
+		fentry4 = 0.0f;
+		fcheckbox5 = 0.0;
+		fslider6 = 0.0f;
+		fentry5 = 0.0f;
+		fcheckbox6 = 0.0;
+		fslider7 = 0.0f;
+		fentry6 = 0.0f;
+		fcheckbox7 = 0.0;
+		fslider8 = 0.0f;
+		fentry7 = 0.0f;
+	}
+	virtual void instanceClear() {
+		fVeeec1State = 0;
+		fVeeec4State = 0;
+		fVeeec3State = 0;
+		fVeeec8State = 0;
+		fVeeec7State = 0;
+		fVeeec12State = 0;
+		fVeeec11State = 0;
+		fVeeec16State = 0;
+		fVeeec15State = 0;
+		fVeeec20State = 0;
+		fVeeec19State = 0;
+		fVeeec24State = 0;
+		fVeeec23State = 0;
+		fVeeec28State = 0;
+		fVeeec27State = 0;
+		fVeeec32State = 0;
+		fVeeec31State = 0;
+		fVeeec0State = 0;
+		fVeeec36State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openHorizontalBox("mixer");
+		ui_interface->openVerticalBox("Ch 0");
+		ui_interface->declare(&fentry0, "1", "");
+		ui_interface->declare(&fentry0, "style", "knob");
+		ui_interface->addNumEntry("pan", &fentry0, 0.0f, -9e+01f, 9e+01f, 1.0f);
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fslider1, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fslider1, 0.0f, -7e+01f, 4.0f, 0.1f);
+		ui_interface->declare(&fbargraph0, "2", "");
+		ui_interface->declare(&fbargraph0, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph0", &fbargraph0, -7e+01f, 5.0f);
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fcheckbox0);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 1");
+		ui_interface->declare(&fentry1, "1", "");
+		ui_interface->declare(&fentry1, "style", "knob");
+		ui_interface->addNumEntry("pan", &fentry1, 0.0f, -9e+01f, 9e+01f, 1.0f);
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fslider2, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fslider2, 0.0f, -7e+01f, 4.0f, 0.1f);
+		ui_interface->declare(&fbargraph1, "2", "");
+		ui_interface->declare(&fbargraph1, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph1", &fbargraph1, -7e+01f, 5.0f);
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fcheckbox1);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 2");
+		ui_interface->declare(&fentry2, "1", "");
+		ui_interface->declare(&fentry2, "style", "knob");
+		ui_interface->addNumEntry("pan", &fentry2, 0.0f, -9e+01f, 9e+01f, 1.0f);
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fslider3, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fslider3, 0.0f, -7e+01f, 4.0f, 0.1f);
+		ui_interface->declare(&fbargraph2, "2", "");
+		ui_interface->declare(&fbargraph2, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph2", &fbargraph2, -7e+01f, 5.0f);
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fcheckbox2);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 3");
+		ui_interface->declare(&fentry3, "1", "");
+		ui_interface->declare(&fentry3, "style", "knob");
+		ui_interface->addNumEntry("pan", &fentry3, 0.0f, -9e+01f, 9e+01f, 1.0f);
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fslider4, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fslider4, 0.0f, -7e+01f, 4.0f, 0.1f);
+		ui_interface->declare(&fbargraph3, "2", "");
+		ui_interface->declare(&fbargraph3, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph3", &fbargraph3, -7e+01f, 5.0f);
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fcheckbox3);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 4");
+		ui_interface->declare(&fentry4, "1", "");
+		ui_interface->declare(&fentry4, "style", "knob");
+		ui_interface->addNumEntry("pan", &fentry4, 0.0f, -9e+01f, 9e+01f, 1.0f);
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fslider5, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fslider5, 0.0f, -7e+01f, 4.0f, 0.1f);
+		ui_interface->declare(&fbargraph4, "2", "");
+		ui_interface->declare(&fbargraph4, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph4", &fbargraph4, -7e+01f, 5.0f);
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fcheckbox4);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 5");
+		ui_interface->declare(&fentry5, "1", "");
+		ui_interface->declare(&fentry5, "style", "knob");
+		ui_interface->addNumEntry("pan", &fentry5, 0.0f, -9e+01f, 9e+01f, 1.0f);
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fslider6, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fslider6, 0.0f, -7e+01f, 4.0f, 0.1f);
+		ui_interface->declare(&fbargraph5, "2", "");
+		ui_interface->declare(&fbargraph5, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph5", &fbargraph5, -7e+01f, 5.0f);
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fcheckbox5);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 6");
+		ui_interface->declare(&fentry6, "1", "");
+		ui_interface->declare(&fentry6, "style", "knob");
+		ui_interface->addNumEntry("pan", &fentry6, 0.0f, -9e+01f, 9e+01f, 1.0f);
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fslider7, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fslider7, 0.0f, -7e+01f, 4.0f, 0.1f);
+		ui_interface->declare(&fbargraph6, "2", "");
+		ui_interface->declare(&fbargraph6, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph6", &fbargraph6, -7e+01f, 5.0f);
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fcheckbox6);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("Ch 7");
+		ui_interface->declare(&fentry7, "1", "");
+		ui_interface->declare(&fentry7, "style", "knob");
+		ui_interface->addNumEntry("pan", &fentry7, 0.0f, -9e+01f, 9e+01f, 1.0f);
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->declare(&fslider8, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fslider8, 0.0f, -7e+01f, 4.0f, 0.1f);
+		ui_interface->declare(&fbargraph7, "2", "");
+		ui_interface->declare(&fbargraph7, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph7", &fbargraph7, -7e+01f, 5.0f);
+		ui_interface->closeBox();
+		ui_interface->addCheckButton("mute", &fcheckbox7);
+		ui_interface->closeBox();
+		ui_interface->openHorizontalBox("stereo out");
+		ui_interface->openVerticalBox("L");
+		ui_interface->declare(&fbargraph9, "2", "");
+		ui_interface->declare(&fbargraph9, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph8", &fbargraph9, -7e+01f, 5.0f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("R");
+		ui_interface->declare(&fbargraph8, "2", "");
+		ui_interface->declare(&fbargraph8, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph9", &fbargraph8, -7e+01f, 5.0f);
+		ui_interface->closeBox();
+		ui_interface->declare(&fslider0, "1", "");
+		ui_interface->addVerticalSlider("0x00", &fslider0, 0.0f, -7e+01f, 4.0f, 0.1f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = (0.001f * powf(1e+01f,(0.05f * float(fslider0)))); // step: 23
+		float 	fVeeec1;
+		float 	fSlow1 = (1.0f - float(fcheckbox0)); // step: 30
+		float 	fSlow2 = (0.001f * powf(1e+01f,(0.05f * float(fslider1)))); // step: 37
+		float 	fVeeec4;
+		float 	fVeeec3;
+		float 	fSlow3 = (0.0055555557f * (float(fentry0) + -9e+01f)); // step: 56
+		float 	fSlow4 = sqrtf((fSlow3 + 1.0f)); // step: 58
+		float 	fSlow5 = (1.0f - float(fcheckbox1)); // step: 63
+		float 	fSlow6 = (0.001f * powf(1e+01f,(0.05f * float(fslider2)))); // step: 70
+		float 	fVeeec8;
+		float 	fVeeec7;
+		float 	fSlow7 = (0.0055555557f * (float(fentry1) + -9e+01f)); // step: 87
+		float 	fSlow8 = sqrtf((fSlow7 + 1.0f)); // step: 89
+		float 	fSlow9 = (1.0f - float(fcheckbox2)); // step: 95
+		float 	fSlow10 = (0.001f * powf(1e+01f,(0.05f * float(fslider3)))); // step: 102
+		float 	fVeeec12;
+		float 	fVeeec11;
+		float 	fSlow11 = (0.0055555557f * (float(fentry2) + -9e+01f)); // step: 119
+		float 	fSlow12 = sqrtf((fSlow11 + 1.0f)); // step: 121
+		float 	fSlow13 = (1.0f - float(fcheckbox3)); // step: 127
+		float 	fSlow14 = (0.001f * powf(1e+01f,(0.05f * float(fslider4)))); // step: 134
+		float 	fVeeec16;
+		float 	fVeeec15;
+		float 	fSlow15 = (0.0055555557f * (float(fentry3) + -9e+01f)); // step: 151
+		float 	fSlow16 = sqrtf((fSlow15 + 1.0f)); // step: 153
+		float 	fSlow17 = (1.0f - float(fcheckbox4)); // step: 159
+		float 	fSlow18 = (0.001f * powf(1e+01f,(0.05f * float(fslider5)))); // step: 166
+		float 	fVeeec20;
+		float 	fVeeec19;
+		float 	fSlow19 = (0.0055555557f * (float(fentry4) + -9e+01f)); // step: 183
+		float 	fSlow20 = sqrtf((fSlow19 + 1.0f)); // step: 185
+		float 	fSlow21 = (1.0f - float(fcheckbox5)); // step: 191
+		float 	fSlow22 = (0.001f * powf(1e+01f,(0.05f * float(fslider6)))); // step: 198
+		float 	fVeeec24;
+		float 	fVeeec23;
+		float 	fSlow23 = (0.0055555557f * (float(fentry5) + -9e+01f)); // step: 215
+		float 	fSlow24 = sqrtf((fSlow23 + 1.0f)); // step: 217
+		float 	fSlow25 = (1.0f - float(fcheckbox6)); // step: 223
+		float 	fSlow26 = (0.001f * powf(1e+01f,(0.05f * float(fslider7)))); // step: 230
+		float 	fVeeec28;
+		float 	fVeeec27;
+		float 	fSlow27 = (0.0055555557f * (float(fentry6) + -9e+01f)); // step: 247
+		float 	fSlow28 = sqrtf((fSlow27 + 1.0f)); // step: 249
+		float 	fSlow29 = (1.0f - float(fcheckbox7)); // step: 255
+		float 	fSlow30 = (0.001f * powf(1e+01f,(0.05f * float(fslider8)))); // step: 262
+		float 	fVeeec32;
+		float 	fVeeec31;
+		float 	fSlow31 = (0.0055555557f * (float(fentry7) + -9e+01f)); // step: 279
+		float 	fSlow32 = sqrtf((fSlow31 + 1.0f)); // step: 281
+		float 	fVeeec0;
+		float 	fSlow33 = sqrtf(-fSlow3); // step: 298
+		float 	fSlow34 = sqrtf(-fSlow7); // step: 301
+		float 	fSlow35 = sqrtf(-fSlow11); // step: 305
+		float 	fSlow36 = sqrtf(-fSlow15); // step: 309
+		float 	fSlow37 = sqrtf(-fSlow19); // step: 313
+		float 	fSlow38 = sqrtf(-fSlow23); // step: 317
+		float 	fSlow39 = sqrtf(-fSlow27); // step: 321
+		float 	fSlow40 = sqrtf(-fSlow31); // step: 325
+		float 	fVeeec36;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
+			FAUSTFLOAT* input4 = &input[4][index]; // Zone 3
+			FAUSTFLOAT* input5 = &input[5][index]; // Zone 3
+			FAUSTFLOAT* input6 = &input[6][index]; // Zone 3
+			FAUSTFLOAT* input7 = &input[7][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			fVeeec1 = fVeeec1State;
+			fVeeec4 = fVeeec4State;
+			fVeeec3 = fVeeec3State;
+			fVeeec8 = fVeeec8State;
+			fVeeec7 = fVeeec7State;
+			fVeeec12 = fVeeec12State;
+			fVeeec11 = fVeeec11State;
+			fVeeec16 = fVeeec16State;
+			fVeeec15 = fVeeec15State;
+			fVeeec20 = fVeeec20State;
+			fVeeec19 = fVeeec19State;
+			fVeeec24 = fVeeec24State;
+			fVeeec23 = fVeeec23State;
+			fVeeec28 = fVeeec28State;
+			fVeeec27 = fVeeec27State;
+			fVeeec32 = fVeeec32State;
+			fVeeec31 = fVeeec31State;
+			fVeeec0 = fVeeec0State;
+			fVeeec36 = fVeeec36State;
+			for (int i=0; i<count; i++) {
+				fVeeec1 = (fSlow0 + (0.999f * fVeeec1));
+				float 	fTemp0 = fVeeec1; // step: 26
+				fVeeec4 = (fSlow2 + (0.999f * fVeeec4));
+				float 	fTemp1 = (fSlow1 * ((float)input0[i] * fVeeec4)); // step: 42
+				fVeeec3 = max((fVeeec3 - fConst0), fabsf(fTemp1));
+				fbargraph0 = (2e+01f * log10f(max(0.00031622776f, fVeeec3)));
+				float 	fTemp2 = fTemp1; // step: 51
+				fVeeec8 = (fSlow6 + (0.999f * fVeeec8));
+				float 	fTemp3 = (fSlow5 * ((float)input1[i] * fVeeec8)); // step: 75
+				fVeeec7 = max((fVeeec7 - fConst0), fabsf(fTemp3));
+				fbargraph1 = (2e+01f * log10f(max(0.00031622776f, fVeeec7)));
+				float 	fTemp4 = fTemp3; // step: 84
+				fVeeec12 = (fSlow10 + (0.999f * fVeeec12));
+				float 	fTemp5 = (fSlow9 * ((float)input2[i] * fVeeec12)); // step: 107
+				fVeeec11 = max((fVeeec11 - fConst0), fabsf(fTemp5));
+				fbargraph2 = (2e+01f * log10f(max(0.00031622776f, fVeeec11)));
+				float 	fTemp6 = fTemp5; // step: 116
+				fVeeec16 = (fSlow14 + (0.999f * fVeeec16));
+				float 	fTemp7 = (fSlow13 * ((float)input3[i] * fVeeec16)); // step: 139
+				fVeeec15 = max((fVeeec15 - fConst0), fabsf(fTemp7));
+				fbargraph3 = (2e+01f * log10f(max(0.00031622776f, fVeeec15)));
+				float 	fTemp8 = fTemp7; // step: 148
+				fVeeec20 = (fSlow18 + (0.999f * fVeeec20));
+				float 	fTemp9 = (fSlow17 * ((float)input4[i] * fVeeec20)); // step: 171
+				fVeeec19 = max((fVeeec19 - fConst0), fabsf(fTemp9));
+				fbargraph4 = (2e+01f * log10f(max(0.00031622776f, fVeeec19)));
+				float 	fTemp10 = fTemp9; // step: 180
+				fVeeec24 = (fSlow22 + (0.999f * fVeeec24));
+				float 	fTemp11 = (fSlow21 * ((float)input5[i] * fVeeec24)); // step: 203
+				fVeeec23 = max((fVeeec23 - fConst0), fabsf(fTemp11));
+				fbargraph5 = (2e+01f * log10f(max(0.00031622776f, fVeeec23)));
+				float 	fTemp12 = fTemp11; // step: 212
+				fVeeec28 = (fSlow26 + (0.999f * fVeeec28));
+				float 	fTemp13 = (fSlow25 * ((float)input6[i] * fVeeec28)); // step: 235
+				fVeeec27 = max((fVeeec27 - fConst0), fabsf(fTemp13));
+				fbargraph6 = (2e+01f * log10f(max(0.00031622776f, fVeeec27)));
+				float 	fTemp14 = fTemp13; // step: 244
+				fVeeec32 = (fSlow30 + (0.999f * fVeeec32));
+				float 	fTemp15 = (fSlow29 * ((float)input7[i] * fVeeec32)); // step: 267
+				fVeeec31 = max((fVeeec31 - fConst0), fabsf(fTemp15));
+				fbargraph7 = (2e+01f * log10f(max(0.00031622776f, fVeeec31)));
+				float 	fTemp16 = fTemp15; // step: 276
+				float 	fTemp17 = (fTemp0 * ((((((((fSlow4 * fTemp2) + (fSlow8 * fTemp4)) + (fSlow12 * fTemp6)) + (fSlow16 * fTemp8)) + (fSlow20 * fTemp10)) + (fSlow24 * fTemp12)) + (fSlow28 * fTemp14)) + (fSlow32 * fTemp16))); // step: 284
+				fVeeec0 = max((fVeeec0 - fConst0), fabsf(fTemp17));
+				fbargraph8 = (2e+01f * log10f(max(0.00031622776f, fVeeec0)));
+				float 	fTemp18 = (fTemp0 * ((((((((fSlow33 * fTemp2) + (fSlow34 * fTemp4)) + (fSlow35 * fTemp6)) + (fSlow36 * fTemp8)) + (fSlow37 * fTemp10)) + (fSlow38 * fTemp12)) + (fSlow39 * fTemp14)) + (fSlow40 * fTemp16))); // step: 328
+				fVeeec36 = max((fVeeec36 - fConst0), fabsf(fTemp18));
+				fbargraph9 = (2e+01f * log10f(max(0.00031622776f, fVeeec36)));
+				output0[i] = (FAUSTFLOAT)(fTemp18);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(fTemp17);  // Zone Exec Code
+			}
+			fVeeec1State = fVeeec1;
+			fVeeec4State = fVeeec4;
+			fVeeec3State = fVeeec3;
+			fVeeec8State = fVeeec8;
+			fVeeec7State = fVeeec7;
+			fVeeec12State = fVeeec12;
+			fVeeec11State = fVeeec11;
+			fVeeec16State = fVeeec16;
+			fVeeec15State = fVeeec15;
+			fVeeec20State = fVeeec20;
+			fVeeec19State = fVeeec19;
+			fVeeec24State = fVeeec24;
+			fVeeec23State = fVeeec23;
+			fVeeec28State = fVeeec28;
+			fVeeec27State = fVeeec27;
+			fVeeec32State = fVeeec32;
+			fVeeec31State = fVeeec31;
+			fVeeec0State = fVeeec0;
+			fVeeec36State = fVeeec36;
+		}
+	}
+};
+
+

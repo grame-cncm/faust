@@ -42,7 +42,7 @@ class samAudio : public audio {
 
     private:
 
-        dsp* fDSP;
+        ::dsp* fDSP;
 
         int iSampleRate;
         int iBufferSize;
@@ -70,21 +70,21 @@ class samAudio : public audio {
     
         // the sam hardware DSP supports up to 8 channels (4 stereo pairs).
         virtual void setDSP_ChannelBuffers(FAUSTFLOAT *AudioChannelA_0_Left,
-                                       FAUSTFLOAT *AudioChannelA_0_Right,
-                                       FAUSTFLOAT *AudioChannelA_1_Left,
-                                       FAUSTFLOAT *AudioChannelA_1_Right,
-                                       FAUSTFLOAT *AudioChannelA_2_Left,
-                                       FAUSTFLOAT *AudioChannelA_2_Right,
-                                       FAUSTFLOAT *AudioChannelA_3_Left,
-                                       FAUSTFLOAT *AudioChannelA_3_Right,
-                                       FAUSTFLOAT *AudioChannelB_0_Left,
-                                       FAUSTFLOAT *AudioChannelB_0_Right,
-                                       FAUSTFLOAT *AudioChannelB_1_Left,
-                                       FAUSTFLOAT *AudioChannelB_1_Right,
-                                       FAUSTFLOAT *AudioChannelB_2_Left,
-                                       FAUSTFLOAT *AudioChannelB_2_Right,
-                                       FAUSTFLOAT *AudioChannelB_3_Left,
-                                       FAUSTFLOAT *AudioChannelB_3_Right)
+                                           FAUSTFLOAT *AudioChannelA_0_Right,
+                                           FAUSTFLOAT *AudioChannelA_1_Left,
+                                           FAUSTFLOAT *AudioChannelA_1_Right,
+                                           FAUSTFLOAT *AudioChannelA_2_Left,
+                                           FAUSTFLOAT *AudioChannelA_2_Right,
+                                           FAUSTFLOAT *AudioChannelA_3_Left,
+                                           FAUSTFLOAT *AudioChannelA_3_Right,
+                                           FAUSTFLOAT *AudioChannelB_0_Left,
+                                           FAUSTFLOAT *AudioChannelB_0_Right,
+                                           FAUSTFLOAT *AudioChannelB_1_Left,
+                                           FAUSTFLOAT *AudioChannelB_1_Right,
+                                           FAUSTFLOAT *AudioChannelB_2_Left,
+                                           FAUSTFLOAT *AudioChannelB_2_Right,
+                                           FAUSTFLOAT *AudioChannelB_3_Left,
+                                           FAUSTFLOAT *AudioChannelB_3_Right)
         {
             // set the pointers, generalized for the sam's 8 channels.
             inputsArray[0] = AudioChannelB_0_Left;
@@ -106,7 +106,7 @@ class samAudio : public audio {
             outputsArray[7] = AudioChannelA_3_Right;
         }
     
-        virtual bool init(const char* name, dsp* dsp)
+        virtual bool init(const char* name, ::dsp* dsp)
         {
             fDSP = dsp;                // this should be fFinalDSP
             fDSP->init(iSampleRate);   // this sets the sample rate

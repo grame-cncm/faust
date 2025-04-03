@@ -214,8 +214,13 @@ void LLVMCodeContainer::produceInternal()
 
 dsp_factory_base* LLVMCodeContainer::produceFactory()
 {
-    // Generate gub containers
-    generateSubContainers();
+    if (gGlobal->gInlineTable) {
+        // Sub containers are merged in the main class
+        mergeSubContainers();
+    } else {
+        // Generate sub containers
+        generateSubContainers();
+    }
 
     // Build DSP struct
     generateDeclarations(&fStructVisitor);
@@ -230,7 +235,11 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateExtGlobalDeclarations(fCodeProducer);
     generateGlobalDeclarations(fCodeProducer);
 
-    generateStaticInitFun("classInit" + fKlassName, false)->accept(fCodeProducer);
+    if (gGlobal->gInlineTable) {
+        generateStaticInitFun("staticInit" + fKlassName, false)->accept(fCodeProducer);
+    } else {
+        generateStaticInitFun("classInit" + fKlassName, false)->accept(fCodeProducer);
+    }
     generateInstanceClear("instanceClear" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
     generateInstanceConstants("instanceConstants" + fKlassName, "dsp", false, false)
         ->accept(fCodeProducer);
@@ -273,6 +282,39 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     }
 
     return new llvm_dynamic_dsp_factory_aux("", fModule, fContext, "", -1);
+}
+
+DeclareFunInst* LLVMCodeContainer::generateStaticInitFun(const string& name, bool isstatic)
+{
+    Names args;
+    if (gGlobal->gInlineTable) {
+        args.push_back(IB::genNamedTyped("dsp", Typed::kObj_ptr));
+    }
+    args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
+
+    BlockInst* block = IB::genBlockInst();
+
+    if (gGlobal->gInlineTable) {
+        BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
+        block->pushBackInst(inlined);
+    } else {
+        block->pushBackInst(fStaticInitInstructions);
+        block->pushBackInst(fPostStaticInitInstructions);
+    }
+
+    //  20/11/16 : added in generateInstanceInitFun, is this needed here ?
+    /*
+     init_block->pushBackInst(fResetUserInterfaceInstructions);
+     init_block->pushBackInst(fClearInstructions);
+     */
+
+    // Explicit return
+    block->pushBackInst(IB::genRetInst());
+
+    // Creates function
+    FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(),
+                                         (isstatic) ? FunTyped::kStatic : FunTyped::kDefault);
+    return IB::genDeclareFunInst(name, fun_type, block);
 }
 
 // Scalar

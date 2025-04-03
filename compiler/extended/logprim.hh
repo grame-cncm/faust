@@ -109,4 +109,6 @@ class LogPrim : public xtended {
         // TODO: handle division by zero
         return sigDiv(sigReal(1.0), args[0]);
     }
+
+    double compute(const std::vector<Node>& args) override { return log(args[0].getDouble()); }
 };

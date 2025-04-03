@@ -189,7 +189,9 @@ int main(int argc, char* argv[])
     if (!audio.init(appname, DSP)) {
         return 0;
     }
+    
     finterface->recallState(rcfilename);
+    
     if (!audio.start()) {
         return 0;
     }

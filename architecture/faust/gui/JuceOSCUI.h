@@ -103,7 +103,18 @@ class JuceOSCUI : private juce::OSCReceiver, private juce::OSCReceiver::Listener
             // Keep all zones for update when OSC messages are received
             if (fOSCItems.size() == 0) {
                 for (int p = 0; p < fAPIUI.getParamsCount(); ++p) {
-                    fOSCItems.add(new oscItem(&fSender, this, fAPIUI.getParamAddress(p), fAPIUI.getParamZone(p)));
+                    // If an osc metadata is used, take it
+                    const char* value;
+                    if ((value = fAPIUI.getMetadata(p, "osc"))) {
+                        std::stringstream ss(value);
+                        std::string item;
+                        std::vector<std::string> tokens;
+                        while (getline(ss, item, ' ')) { tokens.push_back(item); }
+                        // First token is the address
+                        fOSCItems.add(new oscItem(&fSender, this, tokens[0], fAPIUI.getParamZone(p)));
+                    } else {
+                        fOSCItems.add(new oscItem(&fSender, this, fAPIUI.getParamAddress(p), fAPIUI.getParamZone(p)));
+                    }
                 }
             }
             

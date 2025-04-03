@@ -138,6 +138,10 @@
 #include "vhdl/vhdl_producer.hh"
 #endif
 
+#ifdef SDF3_BUILD
+#include "sdf3/signal2SDF.hh"
+#endif
+
 using namespace std;
 
 /****************************************************************
@@ -477,13 +481,16 @@ static void compileCodebox(Tree signals, int numInputs, int numOutputs, ostream*
     // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
 
-    // "one sample control" model by default;
-    gGlobal->gOneSampleControl = true;
-    gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when y in an
+    // "one sample inputs/outputs" model by default
+    gGlobal->gOneSampleIO = true;
+    // Standard pow function will be used in pow(x,y) when y in an integer
+    gGlobal->gNeedManualPow = false;
 
-    gContainer =
-        CodeboxCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
-    gNewComp = new InstructionsCompiler(gContainer);
+    // HACK : will use the CodeboxCodeContainer internally allocated ostringstream,
+    // this to solve a weird ostream => ostringstream dynamic_cast crash when building with GitHub
+    // CI.
+    gContainer = CodeboxCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+    gNewComp   = new InstructionsCompiler(gContainer);
 
     if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) {
         gNewComp->setDescription(new Description());
@@ -522,6 +529,7 @@ static void compileCPP(Tree signals, int numInputs, int numOutputs, ostream* out
 static void compileOCPP(Tree signals, int numInputs, int numOutputs)
 {
 #ifdef OCPP_BUILD
+    gGlobal->gEnableFlag = false;  // enable not supported in current `-lang ocpp` backend
     if (gGlobal->gSchedulerSwitch) {
         gOldComp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
                                          numOutputs);
@@ -723,10 +731,10 @@ static void compileCmajor(Tree signals, int numInputs, int numOutputs, ostream* 
     // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
 
-    // "one sample control" model by default;
-    gGlobal->gOneSampleControl = true;
-    gGlobal->gNeedManualPow =
-        false;  // Standard pow function will be used in pow(x,y) when y in an integer
+    // "one sample inputs/outputs" model by default
+    gGlobal->gOneSampleIO = true;
+    // Standard pow function will be used in pow(x,y) when y in an integer
+    gGlobal->gNeedManualPow = false;
 
     gContainer =
         CmajorCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
@@ -871,6 +879,20 @@ static void compileVhdl(Tree signals, int numInputs, int numOutputs, ostream* ou
 #endif
 }
 
+static void compileSdf3(Tree signals, ostream* out)
+{
+#ifdef SDF3_BUILD
+    signals = simplifyToNormalForm(signals);
+    Signal2SDF V;
+    V.sigToSDF(signals, *out);
+    if (gUseCout) {
+        cout << dynamic_cast<ostringstream*>(out)->str();
+    }
+#else
+    throw faustexception("ERROR : -lang sdf3 not supported since SDF3 backend is not built\n");
+#endif
+}
+
 static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>& enrobage,
                              unique_ptr<ostream>& dst)
 {
@@ -955,6 +977,9 @@ static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>&
             }
         }
     }
+
+    // Possibly generate JSON
+    gContainer->generateJSONFile();
 }
 
 #ifdef OCPP_BUILD
@@ -1025,7 +1050,7 @@ static void generateCodeAux2(unique_ptr<ifstream>& enrobage, unique_ptr<ostream>
         gOldComp->getClass()->printGraphDotFormat(dotfile);
     }
 
-    if (gGlobal->gOutputFile == "") {
+    if (gUseCout) {
         cout << dynamic_cast<ostringstream*>(dst.get())->str();
     }
 }
@@ -1081,6 +1106,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     } else if (startWith(gGlobal->gOutputLang, "vhdl")) {
         compileVhdl(signals, numInputs, numOutputs, gDst.get());
         // VHDL does not create a compiler, code is already generated here.
+        return;
+    } else if (startWith(gGlobal->gOutputLang, "sdf3")) {
+        compileSdf3(signals, gDst.get());
+        // SDF3 does not create a compiler, code is already generated here.
         return;
     } else {
         stringstream error;

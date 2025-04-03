@@ -38,6 +38,10 @@ class FAUST_API GenericUI : public UI
         
         GenericUI() {}
         virtual ~GenericUI() {}
+
+#ifdef DAISY_NO_RTTI
+        virtual bool isSoundUI() const override { return true; }
+#endif
         
         // -- widget's layouts
         virtual void openTabBox(const char* label) {}

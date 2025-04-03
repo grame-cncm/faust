@@ -2404,8 +2404,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             // Execute new block
-            VEC_LOOP(
-                if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
+            VEC_LOOP(if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
         }
 
         do_kSelectInt: {
@@ -2417,8 +2416,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             // Execute new block
-            VEC_LOOP(
-                if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
+            VEC_LOOP(if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
         }
 
         do_kCondBranch: {

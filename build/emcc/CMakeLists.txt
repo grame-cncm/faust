@@ -10,8 +10,8 @@ set ( CMAKE_CXX_COMPILER "emcc")
 set (CMAKE_CXX_LINK_FLAGS "")
 
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
-	message (WARNING "Compiling on M1")
-  	set (CMAKE_OSX_ARCHITECTURES " ")
+    message (WARNING "Compiling on M1")
+    set (CMAKE_OSX_ARCHITECTURES " ")
 endif()
 
 if (UNIVERSAL)
@@ -42,10 +42,10 @@ target_compile_definitions (wasmlib PRIVATE -DEMCC -DFAUST_LIB ${FAUST_DEFINITIO
 #target_compile_definitions (wasmlib PRIVATE -DEMCC -DFAUST_LIB -DWASM_BUILD ${FAUST_DEFINITIONS})
 
 set_target_properties (wasmlib PROPERTIES
-		OUTPUT_NAME libfaust-wasm
-		LINK_FLAGS ${WASM_LINK_FLAGS}
-		COMPILE_FLAGS -O3 
-#		RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}   generation in a non default place prevents the data file to be found
-		SUFFIX ".js")
+        OUTPUT_NAME libfaust-wasm
+        LINK_FLAGS ${WASM_LINK_FLAGS}
+        COMPILE_FLAGS -O3 
+#       RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}   generation in a non default place prevents the data file to be found
+        SUFFIX ".js")
 
 scan_backends (wasmlib WASM)

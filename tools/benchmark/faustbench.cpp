@@ -28,6 +28,9 @@
 #include <string>
 #include <math.h>
 
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#define max(a, b) ((a) > (b) ? (a) : (b))
+
 #include "faust/gui/UI.h"
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"

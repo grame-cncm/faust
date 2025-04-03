@@ -118,7 +118,7 @@ class androidaudio : public audio {
     
     protected:
     
-        dsp* fDSP;
+        ::dsp* fDSP;
         
         int	fNumInChans;
         int	fNumOutChans;
@@ -242,9 +242,9 @@ class androidaudio : public audio {
     public:
     
         androidaudio(long srate, long bsize)
-        : fDSP(NULL), fSampleRate(srate),
+        : fDSP(nullptr), fSampleRate(srate),
         fBufferSize(bsize), fCPUTableIndex(0), fNumInChans(0), fNumOutChans(0),
-        fOpenSLEngine(NULL), fOutputMix(NULL), fInputBufferQueue(NULL), fOutputBufferQueue(NULL),
+        fOpenSLEngine(nullptr), fOutputMix(nullptr), fInputBufferQueue(nullptr), fOutputBufferQueue(nullptr),
         fOpenSLInputs(bsize * 4, NUM_INPUTS), fOpenSLOutputs(bsize * 4, NUM_OUTPUTS)
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "Constructor");
@@ -280,7 +280,7 @@ class androidaudio : public audio {
             delete [] fOutputs;
         }
     
-        virtual bool init(const char* name, dsp* DSP)
+        virtual bool init(const char* name, ::dsp* DSP)
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "init");
             

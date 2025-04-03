@@ -78,7 +78,11 @@ function (scan_backends TARGET FLAG)
     if (${POS} GREATER -1)
         backend (RUST rust ${TARGET})
     endif()
-        string (FIND "${TEMPLATE_BACKEND}" ${FLAG} POS)
+    string (FIND "${SDF3_BACKEND}" ${FLAG} POS)
+    if (${POS} GREATER -1)
+        backend (SDF3 sdf3 ${TARGET})
+    endif()
+    string (FIND "${TEMPLATE_BACKEND}" ${FLAG} POS)
     if (${POS} GREATER -1)
         backend (TEMPLATE template ${TARGET})
     endif()
@@ -110,11 +114,20 @@ macro (llvm_config)
     string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
     execute_process (COMMAND ${LLVM_CONFIG} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
     string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
-    execute_process (COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
-    string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS_TMP2 )
-    string ( REPLACE "C:\\Program Files\\LLVM\\lib\\" "" LLVM_LIBS ${LLVM_LIBS_TMP2})
-    execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
-    string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
+    
+    # Check the option to decide whether to link statically or dynamically
+    if (LINK_LLVM_STATIC)
+        execute_process(COMMAND ${LLVM_CONFIG} --link-static --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
+        execute_process(COMMAND ${LLVM_CONFIG} --link-static --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
+    else()
+        execute_process(COMMAND ${LLVM_CONFIG} --link-shared --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
+        execute_process(COMMAND ${LLVM_CONFIG} --link-shared --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
+    endif()
+    
+    string ( STRIP "${LLVM_LIBS_TMP}" LLVM_LIBS_TMP2 )
+    string ( REPLACE "C:\\Program Files\\LLVM\\lib\\" "" LLVM_LIBS "${LLVM_LIBS_TMP2}")
+    string ( STRIP "${LLVM_SYS_LIBS_TMP}" LLVM_SYS_LIBS)
+    
     # on ubuntu, expecting to find "-lz -lpthread -ledit -lcurses -lm"
     # on macos, expecting to find "-lm -lcurses -lxml2"
     

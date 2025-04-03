@@ -219,6 +219,13 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs(")", out);
     }
 
+    else if (isSigRegister(sig, &i, x)) {
+        fputs("register(", out);
+        fprintf(out, "%d, ", i);
+        printSignal(x, out, 0);
+        fputs(")", out);
+    }
+
     else if (isList(sig)) {
         char sep = '{';
         do {

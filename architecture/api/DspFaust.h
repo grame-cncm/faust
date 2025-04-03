@@ -406,7 +406,7 @@ class DspFaust
         float getParamInit(int id);
 
         //-----`const char* getMetadata(const char* address, const char* key)`-----
-        // Returns the metadataof a parameter in function of
+        // Returns the metadata of a parameter in function of
         // its address (label/shortname/path) and the metadata key.
         //
         // #### Arguments
@@ -417,7 +417,7 @@ class DspFaust
         const char* getMetadata(const char* address, const char* key);
 
         //----`const char* getMetadata(int id, const char* key)`---------------
-        // Returns the metadataof a parameter in function of
+        // Returns the metadata of a parameter in function of
         // its iD and the metadata key.
         //
         // #### Arguments

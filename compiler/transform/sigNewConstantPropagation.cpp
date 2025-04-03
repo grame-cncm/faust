@@ -1,3 +1,24 @@
+/************************************************************************
+ ************************************************************************
+ FAUST compiler
+ Copyright (C) 2023 INRIA
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
 #include <iostream>
 #include <string>
 
@@ -77,8 +98,8 @@ Tree SigNewConstantPropagation::transformation(Tree sig)
  */
 Tree SigNewConstantPropagation::postprocess(Tree sig)
 {
-    int  opnum, projnum;
-    Tree t1, t2, rg, var, le;
+    int  opnum;
+    Tree t1, t2;
 
     if (isSigBinOp(sig, &opnum, t1, t2)) {
         BinOp* op = gBinOpTable[opnum];

@@ -134,7 +134,7 @@ struct VhdlPort {
     VhdlType    type;
 
     VhdlPort(const std::string& name, PortMode mode, VhdlType type)
-        : name(name), mode(mode), type(type){};
+        : name(name), mode(mode), type(type) {};
 };
 std::ostream& operator<<(std::ostream& out, const VhdlPort& port);
 

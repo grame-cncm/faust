@@ -1,10 +1,10 @@
 // Size = 9
-ID_0 = waveform{...};
-ID_1 = write(6,ID_0,,);
+ID_0 = sigGen(waveform{...});
+ID_1 = WRTbl2p(6,ID_0);
 ID_2 = abs(IN[0]);
 ID_3 = 4.0f*ID_2;
 ID_4 = int(ID_3);
-ID_5 = read(ID_1,ID_4);
+ID_5 = sigRDTbl(ID_1,ID_4);
 ID_6 = float(ID_5);
 ID_7 = sin(ID_6);
 ID_8 = IN[1]*ID_7;

@@ -32,6 +32,7 @@ inline std::string makeNameSingular(const std::string& name)
     std::string result = name;
     result             = std::regex_replace(result, std::regex("inputs"), "input");
     result             = std::regex_replace(result, std::regex("outputs"), "output");
+    result             = std::regex_replace(result, std::regex("ios"), "io");
     return result;
 }
 
@@ -225,79 +226,52 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareBufferIterators* inst)
     {
         /* Generates an expression like:
-        let (outputs0, outputs1) = if let [outputs0, outputs1, ..] = outputs {
-            let outputs0 = outputs0[..count as usize].iter_mut();
-            let outputs1 = outputs1[..count as usize].iter_mut();
-            (outputs0, outputs1)
-        } else {
-            panic!("wrong number of outputs");
-        };
+        let [outputs0, outputs1, ..] = outputs.as_mut() else { panic!(\"wrong number of outputs\");
+        };"; let outputs0 = outputs0.as_mut[..count].iter_mut(); let outputs1 =
+        outputs1.as_mut[..count].iter_mut();
         */
 
-        // Don't generate if no channels
-        if (inst->fChannels == 0) {
+        // Don't generate if no channels or onesample mode
+        if (inst->fChannels == 0 || gGlobal->gOneSample) {
             return;
         }
 
         std::string name = inst->fBufferName2;
 
-        // Build pattern matching + if let line
-        *fOut << "let (";
-        for (int i = 0; i < inst->fChannels; ++i) {
-            if (i > 0) {
-                *fOut << ", ";
-            }
-            *fOut << name << i;
-        }
-        *fOut << ") = if let [";
+        *fOut << "let [";
         for (int i = 0; i < inst->fChannels; ++i) {
             *fOut << name << i << ", ";
         }
-        *fOut << "..] = " << name << " {";
+        *fOut << ".. ] = " << name;
+        if (inst->fMutable) {
+            if (gGlobal->gInPlace) {
+                *fOut << ".as_mut() else { panic!(\"wrong number of IO buffers\"); };";
+            } else {
+                *fOut << ".as_mut() else { panic!(\"wrong number of output buffers\"); };";
+            }
+        } else {
+            *fOut << ".as_ref() else { panic!(\"wrong number of input buffers\"); };";
+        }
 
         // Build fixed size iterator variables
-        fTab++;
         for (int i = 0; i < inst->fChannels; ++i) {
             tab(fTab, *fOut);
-            *fOut << "let " << name << i << " = " << name << i << "[..count as usize]";
+            *fOut << "let " << name << i << " = " << name << i;
+            ;
             if (inst->fMutable) {
                 if (inst->fChunk) {
-                    *fOut << ".chunks_mut(vsize as usize);";
+                    *fOut << ".as_mut()[..count].chunks_mut(vsize as usize);";
                 } else {
-                    *fOut << ".iter_mut();";
+                    *fOut << ".as_mut()[..count].iter_mut();";
                 }
             } else {
                 if (inst->fChunk) {
-                    *fOut << ".chunks(vsize as usize);";
+                    *fOut << ".as_ref()[..count].chunks(vsize as usize);";
                 } else {
-                    *fOut << ".iter();";
+                    *fOut << ".as_ref()[..count].iter();";
                 }
             }
         }
-
-        // Build return tuple
-        tab(fTab, *fOut);
-        *fOut << "(";
-        for (int i = 0; i < inst->fChannels; ++i) {
-            if (i > 0) {
-                *fOut << ", ";
-            }
-            *fOut << name << i;
-        }
-        *fOut << ")";
-
-        // Build else branch
-        fTab--;
-        tab(fTab, *fOut);
-        *fOut << "} else {";
-
-        fTab++;
-        tab(fTab, *fOut);
-        *fOut << "panic!(\"wrong number of " << name << "\");";
-
-        fTab--;
-        tab(fTab, *fOut);
-        *fOut << "};";
         tab(fTab, *fOut);
     }
 
@@ -312,12 +286,6 @@ class RustInstVisitor : public TextInstVisitor {
 
         // Only generates additional functions
         if (fMathLibTable.find(inst->fName) == fMathLibTable.end()) {
-            // Prototype
-            // Since functions are attached to a trait they must not be prefixed with "pub".
-            // In case we need a mechanism to attach functions to both traits and normal
-            // impls, we need a mechanism to forward the information whether to use "pub"
-            // or not. In the worst case, we have to prefix the name string like "pub fname",
-            // and handle the prefix here.
             *fOut << "fn " << inst->fName;
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
@@ -565,13 +533,13 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(Select2Inst* inst)
     {
-        *fOut << "if ";
+        *fOut << "(if ";
         inst->fCond->accept(this);
         *fOut << " != 0 {";
         inst->fThen->accept(this);
         *fOut << "} else {";
         inst->fElse->accept(this);
-        *fOut << "}";
+        *fOut << "})";
     }
 
     virtual void visit(IfInst* inst)

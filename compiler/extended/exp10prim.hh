@@ -95,4 +95,6 @@ class Exp10Prim : public xtended {
         // (10^x)' = 10^x * ln(10)
         return sigMul(sigExp10(args[0]), sigLog(sigReal(10.0)));
     }
+
+    double compute(const std::vector<Node>& args) override { return pow(10, args[0].getDouble()); }
 };

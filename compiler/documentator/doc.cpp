@@ -858,7 +858,7 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
      * Warning : pdflatex can't directly include SVG files !
      */
     char dgmid[MAXIDCHARS + 1];
-    sprintf(dgmid, "%02d", i);
+    snprintf(dgmid, sizeof(dgmid), "%02d", i);
     string thisdgmdir = subst("$0/svg-$1", svgTopDir, dgmid);
     // cerr << "Documentator : printDocDgm : drawSchema in '" << gCurrentDir << "/" << thisdgmdir <<
     // "'" << endl;
@@ -983,7 +983,7 @@ static unique_ptr<ifstream> openArchFile(const string& filename)
 {
     unique_ptr<ifstream> file;
     getCurrentDir();  // Save the current directory.
-    // cerr << "Documentator : openArchFile : Opening input file  '" << filename << "'" << endl;
+    // cerr << "Documentator : openArchFile : Opening input file '" << filename << "'" << endl;
     if ((file = openArchStream(filename.c_str()))) {
         // cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
     } else {
@@ -997,7 +997,7 @@ static unique_ptr<ifstream> openArchFile(const string& filename)
 
 /**
  * Transform the definition name property of tree <t> into a
- * legal file name.  The resulting file name is stored in
+ * legal file name. The resulting file name is stored in
  * <dst> a table of at least <n> chars. Returns the <dst> pointer
  * for convenience.
  */
@@ -1026,7 +1026,7 @@ static char* legalFileName(const Tree t, int n, char* dst)
 static string calcNumberedName(const char* base, int i)
 {
     char nb[MAXIDCHARS + 1];
-    sprintf(nb, "%03d", i);
+    snprintf(nb, sizeof(nb), "%03d", i);
     return subst("$0$1", base, nb);
 }
 

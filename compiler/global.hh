@@ -26,8 +26,10 @@
 #include <string.h>
 #include <list>
 #include <map>
+#include <memory>
 #include <set>
 #include <stack>
+#include <unordered_map>
 #include <vector>
 
 #ifndef _WIN32
@@ -124,6 +126,7 @@ struct global {
     // compilation options
     bool        gDetailsSwitch;   // -d option
     bool        gDrawSignals;     // -sg option
+    bool        gDrawRetiming;    // -rg option
     bool        gDrawRouteFrame;  // -drf option
     bool        gShadowBlur;      // -blur option, note: svg2pdf doesn't like the blur filter
     bool        gScaledSVG;       // -sc option, to draw scaled SVG files
@@ -137,6 +140,8 @@ struct global {
     bool        gPrintFileListSwitch;  // -flist option
     bool        gInlineArchSwitch;     // -i option
     bool        gUIMacroSwitch;        // -uim option
+    bool        gRustNoTraitSwitch;    // -rnt option
+    bool        gRustNoLibm;           // -rnlm option
     int         gDumpNorm;             // -norm option
     bool        gMathExceptions;       // -me option, whether to check math functions domains
     bool gLocalCausalityCheck;  // -lcc option, when true trigs local causality errors (negative
@@ -174,7 +179,7 @@ struct global {
     bool gEnableFlag;              // -es option (0/1: 0 by default)
     bool gNoVirtual;  // -nvi option, when compiled with the C++ backend, does not add the 'virtual'
                       // keyword
-    int  gMemoryManager;  // -mem option
+    int  gMemoryManager;  // -memX options
     bool gRangeUI;   // -rui option, whether to generate code to limit vslider/hslider/nentry values
                      // in [min..max] range
     bool gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init
@@ -225,9 +230,8 @@ struct global {
     bool gNeedManualPow;     // If manual pow(x, y) generation when y is an integer is needed
     bool gRemoveVarAddress;  // If use of variable addresses (like &foo or &foo[n]) have to be
                              // removed
-    int  gOneSample;         // -osX options, generate one sample computation
-    bool gOneSampleControl;  // -osX options, generate one sample computation control structure in
-                             // DSP module
+    bool gOneSample;         // -os option, generate one sample computation
+    bool gOneSampleIO;       // generate one sample computation inputs/outputs access
     int  gExtControl;        // separated 'control' and 'compute' functions
     bool gInlineTable;  // -it option, only in -cpp backend, to inline rdtable/rwtable code in the
                         // main class.
@@ -250,6 +254,8 @@ struct global {
     bool gLstDependenciesSwitch;  // mdoc listing management
     bool gLstMdocTagsSwitch;      // mdoc listing management
     bool gLstDistributedSwitch;   // mdoc listing management
+
+    std::unordered_map<Tree, std::set<Tree>> gDependencies;
 
     bool gAutoDifferentiate;
 
@@ -284,6 +290,7 @@ struct global {
     // ------------
     // Tree is used to identify the same nodes during Box tree traversal,
     // but gBoxCounter is then used to generate unique IDs
+
     std::map<Tree, std::pair<int, std::string>> gBoxTable;
     int                                         gBoxCounter;
     // To keep the box tree traversing trace
@@ -482,6 +489,7 @@ struct global {
     Sym SIGSOUNDFILELENGTH;
     Sym SIGSOUNDFILERATE;
     Sym SIGSOUNDFILEBUFFER;
+    Sym SIGREGISTER;  // for FPGA Retiming
     Sym SIGTUPLE;
     Sym SIGTUPLEACCESS;
 
@@ -680,11 +688,14 @@ struct global {
 
     int audioSampleSize();
 
-    // Allows to test if a given debug environment variable is set
+    // Allows to test if a debug environment variable is set
     static bool isDebug(const std::string& debug_val);
 
-    // Allows to test if a given optimisation environment variable is set
-    static bool isOpt(const std::string& debug_val);
+    // Get the value of a debug environment variable
+    static int getDebug(const std::string& debug_var, int def_val);
+
+    // Allows to test if an optimisation environment variable is set
+    static bool isOpt(const std::string& opt_val);
 
     bool processCmdline(int argc, const char* argv[]);
     void initDocumentNames();

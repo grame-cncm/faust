@@ -34,6 +34,7 @@
 #include <iostream>
 
 #include "faust/gui/PrintUI.h"
+#include "faust/gui/MapUI.h"
 #ifdef LAYOUT_UI
 #include "faust/gui/LayoutUI.h"
 #endif
@@ -106,8 +107,18 @@ int main(int argc, char* argv[])
     cout << "DSP size: " << sizeof(DSP) << " bytes\n";
     
     // Activate the UI, here that only print the control paths
-    PrintUI ui;
-    DSP.buildUserInterface(&ui);
+    PrintUI print_ui;
+    DSP.buildUserInterface(&print_ui);
+    
+    /*
+    MapUI map_ui;
+    DSP.buildUserInterface(&map_ui);
+    for (int i = 0; i < map_ui.getParamsCount(); i++) {
+        cout << "getParamAddress " << map_ui.getParamAddress(i) << endl;
+        cout << "getParamShortname " << map_ui.getParamShortname(i) << endl;
+        cout << "getParamLabel " << map_ui.getParamLabel(i) << endl;
+    }
+    */
     
 #ifdef LAYOUT_UI
     LayoutUI layout_ui;

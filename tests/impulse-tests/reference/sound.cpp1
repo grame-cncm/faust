@@ -1,0 +1,91 @@
+//----------------------------------------------------------
+// name: "sound"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	Soundfile* 	fSoundfile0;
+	// Recursion delay iVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec0State; // Mono Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "sound.dsp");
+		m->declare("name", "sound");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 4; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+		if (uintptr_t(fSoundfile0) == 0) fSoundfile0 = defaultsound;
+	}
+	virtual void instanceClear() {
+		iVeeec0State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("sound");
+		ui_interface->addSoundfile("son", "{'sound1';'sound2'}", &fSoundfile0);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		Soundfile* fSoundfile0cache = fSoundfile0;
+		int 	iVeeec0;
+		int 	iSlow0 = (fSoundfile0cache->fLength[0] + -1); // step: 10
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			iVeeec0 = iVeeec0State;
+			for (int i=0; i<count; i++) {
+				iVeeec0 = (iVeeec0 + 1);
+				int 	iTemp0 = max(0, min(iVeeec0, iSlow0)); // step: 12
+				output0[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[0][fSoundfile0cache->fOffset[0]+iTemp0]);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[1][fSoundfile0cache->fOffset[0]+iTemp0]);  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[2][fSoundfile0cache->fOffset[0]+iTemp0]);  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(((float**)fSoundfile0cache->fBuffers)[3][fSoundfile0cache->fOffset[0]+iTemp0]);  // Zone Exec Code
+			}
+			iVeeec0State = iVeeec0;
+		}
+		fSoundfile0 = fSoundfile0cache;
+	}
+};
+
+

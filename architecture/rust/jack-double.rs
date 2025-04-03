@@ -162,7 +162,7 @@ fn main() {
         let outputs_ref: &mut [&mut [f64]] = &mut outputs_f64;
 
         // Compute using f64 inputs and outputs
-        dsp.compute(in_a_p.len() as i32, inputs_ref, outputs_ref);
+        dsp.compute(in_a_p.len() as usize, inputs_ref, outputs_ref);
 
         // Convert f64 outputs to f32 outputs
         let output0: &mut[f32] = &mut out_a_p;

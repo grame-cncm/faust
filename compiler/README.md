@@ -1,4 +1,4 @@
-% man(1) Version 2.74.5. (29-May-2024) | Faust man page
+% man(1) Version 2.80.1 (03-April-2025) | Faust man page
 
 NAME
 ====
@@ -52,7 +52,7 @@ Code generation options:
 ---------------------------------------
 
   **-lang** \<lang> **--language**                 select output language,
-                                          'lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, ocpp, rust, vhdl or wast/wasm.
+                                          'lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, ocpp, rust, sdf3, vhdl or wast/wasm.
 
   **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 
@@ -166,6 +166,10 @@ Code generation options:
 
   **-ni** \<n>     **--narrowing-iterations** \<n>  number of iterations before stopping narrowing in signal bounding.
 
+  **-rnt**        **--rust-no-faustdsp-trait**    (Rust only) Don't generate FaustDsp trait implmentation.
+
+  **-rnlm**       **--rust-no-libm**              (Rust only) Don't generate FFI calls to libm.
+
 
 Block diagram options:
 ---------------------------------------
@@ -214,7 +218,11 @@ Debug options:
 
   **-sg**         **--signal-graph**              print the internal signal graph in dot format.
 
+  **-rg**         **--retiming-graph**            print the internal signal graph after retiming in dot format.
+
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
+
+  **-norm1**      **--normalized-form1**          print signals in normalized form with IDs for shared sub-expressions and exit.
 
   **-me**         **--math-exceptions**           check / for 0 as denominator and remainder, fmod, sqrt, log10, log, acos, asin functions domain.
 
@@ -243,6 +251,20 @@ Information options:
   **-pathslist**  **--pathslist**                 print the architectures and dsp library paths.
 
 
+Environment variables:
+---------------------------------------
+
+  FAUST_DEBUG      = FAUST_LLVM1          print LLVM IR before optimisation.
+
+  FAUST_DEBUG      = FAUST_LLVM2          print LLVM IR after optimisation.
+
+  FAUST_DEBUG      = FIR_PRINTER          print FIR after generation.
+
+  FAUST_DEBUG      = FAUST_LLVM_NO_FM     deactivate fast**-math** optimisation in LLVM IR.
+
+  FAUST_OPT        = FAUST_SIG_NO_NORM    deactivate signal normalisation.
+
+
 Example:
 ---------------------------------------
 
@@ -261,6 +283,6 @@ Please report bugs to: **<https://github.com/grame-cncm/faust/issues>**
 AUTHOR
 ======
 
-Copyright (C) 2002-2024, GRAME - Centre National de Creation Musicale.
+Copyright (C) 2002-2025, GRAME - Centre National de Creation Musicale.
 All rights reserved.
 

@@ -116,7 +116,10 @@ int main(int argc, char* argv[])
 	jackaudio audio;
 	audio.init(appname, DSP);
 	
-	audio.start();
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
 
 	// ROS Callbacks are called by AsyncSpinner spinner
 	ros::AsyncSpinner spinner(rosinterface->getParamsCount());

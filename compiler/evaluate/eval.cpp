@@ -253,7 +253,7 @@ static Tree real_a2sb(Tree exp)
                 modified = true;
             }
         }
-        Tree r = (modified) ? CTree::make(exp->node(), B) : exp;
+        Tree r = (modified) ? tree(exp->node(), B) : exp;
         return r;
     }
 }
@@ -1234,8 +1234,8 @@ static Tree applyList(Tree fun, Tree larg)
                 // return eval(body, nil, localValEnv);
                 return applyList(eval(body, gGlobal->nil, localValEnv), tl(larg));
             } else {
-                cerr << "wrong result from pattern matching (not a closure) : " << boxpp(result)
-                     << endl;
+                cerr << "ERROR : wrong result from pattern matching (not a closure) : "
+                     << boxpp(result) << endl;
                 return boxError();
             }
         }

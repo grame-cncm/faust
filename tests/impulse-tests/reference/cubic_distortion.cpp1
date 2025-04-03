@@ -1,0 +1,2740 @@
+//----------------------------------------------------------
+// name: "cubic_distortion"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	int 	iVec0State; // Single Delay
+	FAUSTFLOAT 	fslider0;
+	float 	fConst0; // step: 12
+	float 	fConst1; // step: 13
+	FAUSTFLOAT 	fslider1;
+	// Recursion delay fVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Mono Delay
+	float 	fConst2; // step: 34
+	// Recursion delay fVeeec4 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec4State; // Single Delay
+	FAUSTFLOAT 	fslider2;
+	// Recursion delay fVeeec5 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec5State; // Mono Delay
+	// Recursion delay fVeeec2 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2State; // Single Delay
+	FAUSTFLOAT 	fslider3;
+	// Recursion delay fVeeec9 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec9State; // Mono Delay
+	FAUSTFLOAT 	fcheckbox0;
+	FAUSTFLOAT 	fslider4;
+	// Recursion delay fVeeec11 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec11State; // Mono Delay
+	float 	fVec1State; // Single Delay
+	// Recursion delay fVeeec8 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec8State; // Mono Delay
+	FAUSTFLOAT 	fslider5;
+	FAUSTFLOAT 	fslider6;
+	float 	fConst3; // step: 109
+	float 	fConst4; // step: 118
+	float 	fConst5; // step: 120
+	float 	fConst6; // step: 124
+	float 	fConst7; // step: 130
+	float 	fConst8; // step: 136
+	float 	fConst9; // step: 142
+	float 	fConst10; // step: 145
+	float 	fConst11; // step: 146
+	float 	fConst12; // step: 148
+	// Recursion delay fVeeec16 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec16State[2]; // Copy Delay
+	float 	fConst13; // step: 157
+	float 	fConst14; // step: 158
+	float 	fConst15; // step: 161
+	float 	fConst16; // step: 171
+	float 	fConst17; // step: 175
+	// Recursion delay fVeeec19 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec19State[2]; // Copy Delay
+	float 	fConst18; // step: 183
+	float 	fConst19; // step: 184
+	float 	fConst20; // step: 187
+	float 	fConst21; // step: 197
+	float 	fConst22; // step: 201
+	// Recursion delay fVeeec22 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec22State[2]; // Copy Delay
+	float 	fConst23; // step: 209
+	float 	fConst24; // step: 210
+	float 	fConst25; // step: 213
+	// Recursion delay fVeeec15 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec15State; // Mono Delay
+	FAUSTFLOAT 	fbargraph0;
+	float 	fConst26; // step: 233
+	float 	fConst27; // step: 234
+	float 	fConst28; // step: 238
+	float 	fConst29; // step: 242
+	float 	fConst30; // step: 246
+	float 	fConst31; // step: 252
+	float 	fConst32; // step: 258
+	float 	fConst33; // step: 264
+	float 	fConst34; // step: 269
+	float 	fConst35; // step: 273
+	// Recursion delay fVeeec27 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec27State[2]; // Copy Delay
+	float 	fConst36; // step: 282
+	float 	fConst37; // step: 283
+	float 	fConst38; // step: 286
+	float 	fConst39; // step: 296
+	float 	fConst40; // step: 300
+	// Recursion delay fVeeec30 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec30State[2]; // Copy Delay
+	float 	fConst41; // step: 308
+	float 	fConst42; // step: 311
+	float 	fConst43; // step: 321
+	float 	fConst44; // step: 325
+	// Recursion delay fVeeec33 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec33State[2]; // Copy Delay
+	float 	fConst45; // step: 333
+	float 	fConst46; // step: 336
+	float 	fConst47; // step: 345
+	float 	fConst48; // step: 348
+	float 	fConst49; // step: 349
+	float 	fConst50; // step: 351
+	// Recursion delay fVeeec36 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec36State[2]; // Copy Delay
+	float 	fConst51; // step: 358
+	float 	fConst52; // step: 359
+	float 	fConst53; // step: 362
+	float 	fConst54; // step: 371
+	float 	fConst55; // step: 375
+	// Recursion delay fVeeec39 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec39State[2]; // Copy Delay
+	float 	fConst56; // step: 382
+	float 	fConst57; // step: 383
+	float 	fConst58; // step: 386
+	float 	fConst59; // step: 395
+	float 	fConst60; // step: 399
+	// Recursion delay fVeeec42 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec42State[2]; // Copy Delay
+	float 	fConst61; // step: 406
+	float 	fConst62; // step: 407
+	float 	fConst63; // step: 410
+	// Recursion delay fVeeec26 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec26State; // Mono Delay
+	FAUSTFLOAT 	fbargraph1;
+	float 	fConst64; // step: 430
+	float 	fConst65; // step: 431
+	float 	fConst66; // step: 435
+	float 	fConst67; // step: 439
+	float 	fConst68; // step: 443
+	float 	fConst69; // step: 447
+	float 	fConst70; // step: 451
+	float 	fConst71; // step: 455
+	float 	fConst72; // step: 459
+	float 	fConst73; // step: 463
+	// Recursion delay fVeeec47 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec47State[2]; // Copy Delay
+	float 	fConst74; // step: 470
+	float 	fConst75; // step: 471
+	float 	fConst76; // step: 474
+	float 	fConst77; // step: 483
+	float 	fConst78; // step: 487
+	// Recursion delay fVeeec50 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec50State[2]; // Copy Delay
+	float 	fConst79; // step: 494
+	float 	fConst80; // step: 497
+	float 	fConst81; // step: 506
+	float 	fConst82; // step: 510
+	// Recursion delay fVeeec53 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec53State[2]; // Copy Delay
+	float 	fConst83; // step: 517
+	float 	fConst84; // step: 520
+	float 	fConst85; // step: 529
+	float 	fConst86; // step: 532
+	float 	fConst87; // step: 533
+	float 	fConst88; // step: 535
+	// Recursion delay fVeeec56 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec56State[2]; // Copy Delay
+	float 	fConst89; // step: 542
+	float 	fConst90; // step: 543
+	float 	fConst91; // step: 546
+	float 	fConst92; // step: 555
+	float 	fConst93; // step: 559
+	// Recursion delay fVeeec59 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec59State[2]; // Copy Delay
+	float 	fConst94; // step: 566
+	float 	fConst95; // step: 567
+	float 	fConst96; // step: 570
+	float 	fConst97; // step: 579
+	float 	fConst98; // step: 583
+	// Recursion delay fVeeec62 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec62State[2]; // Copy Delay
+	float 	fConst99; // step: 590
+	float 	fConst100; // step: 591
+	float 	fConst101; // step: 594
+	// Recursion delay fVeeec46 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec46State; // Mono Delay
+	FAUSTFLOAT 	fbargraph2;
+	float 	fConst102; // step: 614
+	float 	fConst103; // step: 615
+	float 	fConst104; // step: 619
+	float 	fConst105; // step: 623
+	float 	fConst106; // step: 627
+	float 	fConst107; // step: 631
+	float 	fConst108; // step: 635
+	float 	fConst109; // step: 639
+	float 	fConst110; // step: 643
+	float 	fConst111; // step: 647
+	// Recursion delay fVeeec67 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec67State[2]; // Copy Delay
+	float 	fConst112; // step: 654
+	float 	fConst113; // step: 655
+	float 	fConst114; // step: 658
+	float 	fConst115; // step: 667
+	float 	fConst116; // step: 671
+	// Recursion delay fVeeec70 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec70State[2]; // Copy Delay
+	float 	fConst117; // step: 678
+	float 	fConst118; // step: 681
+	float 	fConst119; // step: 690
+	float 	fConst120; // step: 694
+	// Recursion delay fVeeec73 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec73State[2]; // Copy Delay
+	float 	fConst121; // step: 701
+	float 	fConst122; // step: 704
+	float 	fConst123; // step: 713
+	float 	fConst124; // step: 716
+	float 	fConst125; // step: 717
+	float 	fConst126; // step: 719
+	// Recursion delay fVeeec76 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec76State[2]; // Copy Delay
+	float 	fConst127; // step: 726
+	float 	fConst128; // step: 727
+	float 	fConst129; // step: 730
+	float 	fConst130; // step: 739
+	float 	fConst131; // step: 743
+	// Recursion delay fVeeec79 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec79State[2]; // Copy Delay
+	float 	fConst132; // step: 750
+	float 	fConst133; // step: 751
+	float 	fConst134; // step: 754
+	float 	fConst135; // step: 763
+	float 	fConst136; // step: 767
+	// Recursion delay fVeeec82 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec82State[2]; // Copy Delay
+	float 	fConst137; // step: 774
+	float 	fConst138; // step: 775
+	float 	fConst139; // step: 778
+	// Recursion delay fVeeec66 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec66State; // Mono Delay
+	FAUSTFLOAT 	fbargraph3;
+	float 	fConst140; // step: 798
+	float 	fConst141; // step: 799
+	float 	fConst142; // step: 803
+	float 	fConst143; // step: 807
+	float 	fConst144; // step: 811
+	float 	fConst145; // step: 815
+	float 	fConst146; // step: 819
+	float 	fConst147; // step: 823
+	float 	fConst148; // step: 827
+	float 	fConst149; // step: 831
+	// Recursion delay fVeeec87 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec87State[2]; // Copy Delay
+	float 	fConst150; // step: 838
+	float 	fConst151; // step: 839
+	float 	fConst152; // step: 842
+	float 	fConst153; // step: 851
+	float 	fConst154; // step: 855
+	// Recursion delay fVeeec90 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec90State[2]; // Copy Delay
+	float 	fConst155; // step: 862
+	float 	fConst156; // step: 865
+	float 	fConst157; // step: 874
+	float 	fConst158; // step: 878
+	// Recursion delay fVeeec93 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec93State[2]; // Copy Delay
+	float 	fConst159; // step: 885
+	float 	fConst160; // step: 888
+	float 	fConst161; // step: 897
+	float 	fConst162; // step: 900
+	float 	fConst163; // step: 901
+	float 	fConst164; // step: 903
+	// Recursion delay fVeeec96 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec96State[2]; // Copy Delay
+	float 	fConst165; // step: 910
+	float 	fConst166; // step: 911
+	float 	fConst167; // step: 914
+	float 	fConst168; // step: 923
+	float 	fConst169; // step: 927
+	// Recursion delay fVeeec99 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec99State[2]; // Copy Delay
+	float 	fConst170; // step: 934
+	float 	fConst171; // step: 935
+	float 	fConst172; // step: 938
+	float 	fConst173; // step: 947
+	float 	fConst174; // step: 951
+	// Recursion delay fVeeec102 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec102State[2]; // Copy Delay
+	float 	fConst175; // step: 958
+	float 	fConst176; // step: 959
+	float 	fConst177; // step: 962
+	// Recursion delay fVeeec86 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec86State; // Mono Delay
+	FAUSTFLOAT 	fbargraph4;
+	float 	fConst178; // step: 982
+	float 	fConst179; // step: 983
+	float 	fConst180; // step: 987
+	float 	fConst181; // step: 991
+	float 	fConst182; // step: 995
+	float 	fConst183; // step: 999
+	float 	fConst184; // step: 1003
+	float 	fConst185; // step: 1007
+	float 	fConst186; // step: 1011
+	float 	fConst187; // step: 1015
+	// Recursion delay fVeeec107 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec107State[2]; // Copy Delay
+	float 	fConst188; // step: 1022
+	float 	fConst189; // step: 1023
+	float 	fConst190; // step: 1026
+	float 	fConst191; // step: 1035
+	float 	fConst192; // step: 1039
+	// Recursion delay fVeeec110 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec110State[2]; // Copy Delay
+	float 	fConst193; // step: 1046
+	float 	fConst194; // step: 1049
+	float 	fConst195; // step: 1058
+	float 	fConst196; // step: 1062
+	// Recursion delay fVeeec113 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec113State[2]; // Copy Delay
+	float 	fConst197; // step: 1069
+	float 	fConst198; // step: 1072
+	float 	fConst199; // step: 1081
+	float 	fConst200; // step: 1084
+	float 	fConst201; // step: 1085
+	float 	fConst202; // step: 1087
+	// Recursion delay fVeeec116 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec116State[2]; // Copy Delay
+	float 	fConst203; // step: 1094
+	float 	fConst204; // step: 1095
+	float 	fConst205; // step: 1098
+	float 	fConst206; // step: 1107
+	float 	fConst207; // step: 1111
+	// Recursion delay fVeeec119 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec119State[2]; // Copy Delay
+	float 	fConst208; // step: 1118
+	float 	fConst209; // step: 1119
+	float 	fConst210; // step: 1122
+	float 	fConst211; // step: 1131
+	float 	fConst212; // step: 1135
+	// Recursion delay fVeeec122 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec122State[2]; // Copy Delay
+	float 	fConst213; // step: 1142
+	float 	fConst214; // step: 1143
+	float 	fConst215; // step: 1146
+	// Recursion delay fVeeec106 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec106State; // Mono Delay
+	FAUSTFLOAT 	fbargraph5;
+	float 	fConst216; // step: 1166
+	float 	fConst217; // step: 1167
+	float 	fConst218; // step: 1171
+	float 	fConst219; // step: 1175
+	float 	fConst220; // step: 1179
+	float 	fConst221; // step: 1183
+	float 	fConst222; // step: 1187
+	float 	fConst223; // step: 1191
+	float 	fConst224; // step: 1195
+	float 	fConst225; // step: 1199
+	// Recursion delay fVeeec127 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec127State[2]; // Copy Delay
+	float 	fConst226; // step: 1206
+	float 	fConst227; // step: 1207
+	float 	fConst228; // step: 1210
+	float 	fConst229; // step: 1219
+	float 	fConst230; // step: 1223
+	// Recursion delay fVeeec130 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec130State[2]; // Copy Delay
+	float 	fConst231; // step: 1230
+	float 	fConst232; // step: 1233
+	float 	fConst233; // step: 1242
+	float 	fConst234; // step: 1246
+	// Recursion delay fVeeec133 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec133State[2]; // Copy Delay
+	float 	fConst235; // step: 1253
+	float 	fConst236; // step: 1256
+	float 	fConst237; // step: 1265
+	float 	fConst238; // step: 1268
+	float 	fConst239; // step: 1269
+	float 	fConst240; // step: 1271
+	// Recursion delay fVeeec136 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec136State[2]; // Copy Delay
+	float 	fConst241; // step: 1278
+	float 	fConst242; // step: 1279
+	float 	fConst243; // step: 1282
+	float 	fConst244; // step: 1291
+	float 	fConst245; // step: 1295
+	// Recursion delay fVeeec139 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec139State[2]; // Copy Delay
+	float 	fConst246; // step: 1302
+	float 	fConst247; // step: 1303
+	float 	fConst248; // step: 1306
+	float 	fConst249; // step: 1315
+	float 	fConst250; // step: 1319
+	// Recursion delay fVeeec142 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec142State[2]; // Copy Delay
+	float 	fConst251; // step: 1326
+	float 	fConst252; // step: 1327
+	float 	fConst253; // step: 1330
+	// Recursion delay fVeeec126 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec126State; // Mono Delay
+	FAUSTFLOAT 	fbargraph6;
+	float 	fConst254; // step: 1350
+	float 	fConst255; // step: 1351
+	float 	fConst256; // step: 1355
+	float 	fConst257; // step: 1359
+	float 	fConst258; // step: 1363
+	float 	fConst259; // step: 1367
+	float 	fConst260; // step: 1371
+	float 	fConst261; // step: 1375
+	float 	fConst262; // step: 1379
+	float 	fConst263; // step: 1383
+	// Recursion delay fVeeec147 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec147State[2]; // Copy Delay
+	float 	fConst264; // step: 1390
+	float 	fConst265; // step: 1391
+	float 	fConst266; // step: 1394
+	float 	fConst267; // step: 1403
+	float 	fConst268; // step: 1407
+	// Recursion delay fVeeec150 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec150State[2]; // Copy Delay
+	float 	fConst269; // step: 1414
+	float 	fConst270; // step: 1417
+	float 	fConst271; // step: 1426
+	float 	fConst272; // step: 1430
+	// Recursion delay fVeeec153 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec153State[2]; // Copy Delay
+	float 	fConst273; // step: 1437
+	float 	fConst274; // step: 1440
+	float 	fConst275; // step: 1449
+	float 	fConst276; // step: 1452
+	float 	fConst277; // step: 1453
+	float 	fConst278; // step: 1455
+	// Recursion delay fVeeec156 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec156State[2]; // Copy Delay
+	float 	fConst279; // step: 1462
+	float 	fConst280; // step: 1463
+	float 	fConst281; // step: 1466
+	float 	fConst282; // step: 1475
+	float 	fConst283; // step: 1479
+	// Recursion delay fVeeec159 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec159State[2]; // Copy Delay
+	float 	fConst284; // step: 1486
+	float 	fConst285; // step: 1487
+	float 	fConst286; // step: 1490
+	float 	fConst287; // step: 1499
+	float 	fConst288; // step: 1503
+	// Recursion delay fVeeec162 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec162State[2]; // Copy Delay
+	float 	fConst289; // step: 1510
+	float 	fConst290; // step: 1511
+	float 	fConst291; // step: 1514
+	// Recursion delay fVeeec146 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec146State; // Mono Delay
+	FAUSTFLOAT 	fbargraph7;
+	float 	fConst292; // step: 1534
+	float 	fConst293; // step: 1535
+	float 	fConst294; // step: 1539
+	float 	fConst295; // step: 1543
+	float 	fConst296; // step: 1547
+	float 	fConst297; // step: 1551
+	float 	fConst298; // step: 1555
+	float 	fConst299; // step: 1559
+	float 	fConst300; // step: 1563
+	float 	fConst301; // step: 1567
+	// Recursion delay fVeeec167 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec167State[2]; // Copy Delay
+	float 	fConst302; // step: 1574
+	float 	fConst303; // step: 1575
+	float 	fConst304; // step: 1578
+	float 	fConst305; // step: 1587
+	float 	fConst306; // step: 1591
+	// Recursion delay fVeeec170 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec170State[2]; // Copy Delay
+	float 	fConst307; // step: 1598
+	float 	fConst308; // step: 1601
+	float 	fConst309; // step: 1610
+	float 	fConst310; // step: 1614
+	// Recursion delay fVeeec173 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec173State[2]; // Copy Delay
+	float 	fConst311; // step: 1621
+	float 	fConst312; // step: 1624
+	float 	fConst313; // step: 1633
+	float 	fConst314; // step: 1636
+	float 	fConst315; // step: 1637
+	float 	fConst316; // step: 1639
+	// Recursion delay fVeeec176 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec176State[2]; // Copy Delay
+	float 	fConst317; // step: 1646
+	float 	fConst318; // step: 1647
+	float 	fConst319; // step: 1650
+	float 	fConst320; // step: 1659
+	float 	fConst321; // step: 1663
+	// Recursion delay fVeeec179 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec179State[2]; // Copy Delay
+	float 	fConst322; // step: 1670
+	float 	fConst323; // step: 1671
+	float 	fConst324; // step: 1674
+	float 	fConst325; // step: 1683
+	float 	fConst326; // step: 1687
+	// Recursion delay fVeeec182 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec182State[2]; // Copy Delay
+	float 	fConst327; // step: 1694
+	float 	fConst328; // step: 1695
+	float 	fConst329; // step: 1698
+	// Recursion delay fVeeec166 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec166State; // Mono Delay
+	FAUSTFLOAT 	fbargraph8;
+	float 	fConst330; // step: 1718
+	float 	fConst331; // step: 1719
+	float 	fConst332; // step: 1723
+	float 	fConst333; // step: 1727
+	float 	fConst334; // step: 1731
+	float 	fConst335; // step: 1735
+	float 	fConst336; // step: 1739
+	float 	fConst337; // step: 1743
+	float 	fConst338; // step: 1747
+	float 	fConst339; // step: 1751
+	// Recursion delay fVeeec187 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec187State[2]; // Copy Delay
+	float 	fConst340; // step: 1758
+	float 	fConst341; // step: 1759
+	float 	fConst342; // step: 1762
+	float 	fConst343; // step: 1771
+	float 	fConst344; // step: 1775
+	// Recursion delay fVeeec190 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec190State[2]; // Copy Delay
+	float 	fConst345; // step: 1782
+	float 	fConst346; // step: 1785
+	float 	fConst347; // step: 1794
+	float 	fConst348; // step: 1798
+	// Recursion delay fVeeec193 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec193State[2]; // Copy Delay
+	float 	fConst349; // step: 1805
+	float 	fConst350; // step: 1808
+	float 	fConst351; // step: 1817
+	float 	fConst352; // step: 1820
+	float 	fConst353; // step: 1821
+	float 	fConst354; // step: 1823
+	// Recursion delay fVeeec196 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec196State[2]; // Copy Delay
+	float 	fConst355; // step: 1830
+	float 	fConst356; // step: 1831
+	float 	fConst357; // step: 1834
+	float 	fConst358; // step: 1843
+	float 	fConst359; // step: 1847
+	// Recursion delay fVeeec199 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec199State[2]; // Copy Delay
+	float 	fConst360; // step: 1854
+	float 	fConst361; // step: 1855
+	float 	fConst362; // step: 1858
+	float 	fConst363; // step: 1867
+	float 	fConst364; // step: 1871
+	// Recursion delay fVeeec202 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec202State[2]; // Copy Delay
+	float 	fConst365; // step: 1878
+	float 	fConst366; // step: 1879
+	float 	fConst367; // step: 1882
+	// Recursion delay fVeeec186 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec186State; // Mono Delay
+	FAUSTFLOAT 	fbargraph9;
+	float 	fConst368; // step: 1902
+	float 	fConst369; // step: 1903
+	float 	fConst370; // step: 1907
+	float 	fConst371; // step: 1911
+	float 	fConst372; // step: 1915
+	float 	fConst373; // step: 1919
+	float 	fConst374; // step: 1923
+	float 	fConst375; // step: 1927
+	float 	fConst376; // step: 1931
+	float 	fConst377; // step: 1935
+	// Recursion delay fVeeec207 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec207State[2]; // Copy Delay
+	float 	fConst378; // step: 1942
+	float 	fConst379; // step: 1943
+	float 	fConst380; // step: 1946
+	float 	fConst381; // step: 1955
+	float 	fConst382; // step: 1959
+	// Recursion delay fVeeec210 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec210State[2]; // Copy Delay
+	float 	fConst383; // step: 1966
+	float 	fConst384; // step: 1969
+	float 	fConst385; // step: 1978
+	float 	fConst386; // step: 1982
+	// Recursion delay fVeeec213 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec213State[2]; // Copy Delay
+	float 	fConst387; // step: 1989
+	float 	fConst388; // step: 1992
+	float 	fConst389; // step: 2001
+	float 	fConst390; // step: 2004
+	float 	fConst391; // step: 2005
+	float 	fConst392; // step: 2007
+	// Recursion delay fVeeec216 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec216State[2]; // Copy Delay
+	float 	fConst393; // step: 2014
+	float 	fConst394; // step: 2015
+	float 	fConst395; // step: 2018
+	float 	fConst396; // step: 2027
+	float 	fConst397; // step: 2031
+	// Recursion delay fVeeec219 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec219State[2]; // Copy Delay
+	float 	fConst398; // step: 2038
+	float 	fConst399; // step: 2039
+	float 	fConst400; // step: 2042
+	float 	fConst401; // step: 2051
+	float 	fConst402; // step: 2055
+	// Recursion delay fVeeec222 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec222State[2]; // Copy Delay
+	float 	fConst403; // step: 2062
+	float 	fConst404; // step: 2063
+	float 	fConst405; // step: 2066
+	// Recursion delay fVeeec206 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec206State; // Mono Delay
+	FAUSTFLOAT 	fbargraph10;
+	float 	fConst406; // step: 2086
+	float 	fConst407; // step: 2087
+	float 	fConst408; // step: 2091
+	float 	fConst409; // step: 2095
+	float 	fConst410; // step: 2099
+	float 	fConst411; // step: 2103
+	float 	fConst412; // step: 2107
+	float 	fConst413; // step: 2111
+	float 	fConst414; // step: 2115
+	float 	fConst415; // step: 2119
+	// Recursion delay fVeeec227 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec227State[2]; // Copy Delay
+	float 	fConst416; // step: 2126
+	float 	fConst417; // step: 2127
+	float 	fConst418; // step: 2130
+	float 	fConst419; // step: 2139
+	float 	fConst420; // step: 2143
+	// Recursion delay fVeeec230 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec230State[2]; // Copy Delay
+	float 	fConst421; // step: 2150
+	float 	fConst422; // step: 2153
+	float 	fConst423; // step: 2162
+	float 	fConst424; // step: 2166
+	// Recursion delay fVeeec233 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec233State[2]; // Copy Delay
+	float 	fConst425; // step: 2173
+	float 	fConst426; // step: 2176
+	float 	fConst427; // step: 2185
+	float 	fConst428; // step: 2188
+	float 	fConst429; // step: 2189
+	float 	fConst430; // step: 2191
+	// Recursion delay fVeeec236 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec236State[2]; // Copy Delay
+	float 	fConst431; // step: 2198
+	float 	fConst432; // step: 2199
+	float 	fConst433; // step: 2202
+	float 	fConst434; // step: 2211
+	float 	fConst435; // step: 2215
+	// Recursion delay fVeeec239 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec239State[2]; // Copy Delay
+	float 	fConst436; // step: 2222
+	float 	fConst437; // step: 2223
+	float 	fConst438; // step: 2226
+	float 	fConst439; // step: 2235
+	float 	fConst440; // step: 2239
+	// Recursion delay fVeeec242 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec242State[2]; // Copy Delay
+	float 	fConst441; // step: 2246
+	float 	fConst442; // step: 2247
+	float 	fConst443; // step: 2250
+	// Recursion delay fVeeec226 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec226State; // Mono Delay
+	FAUSTFLOAT 	fbargraph11;
+	float 	fConst444; // step: 2270
+	float 	fConst445; // step: 2271
+	float 	fConst446; // step: 2275
+	float 	fConst447; // step: 2279
+	float 	fConst448; // step: 2283
+	float 	fConst449; // step: 2287
+	float 	fConst450; // step: 2291
+	float 	fConst451; // step: 2295
+	float 	fConst452; // step: 2299
+	float 	fConst453; // step: 2303
+	// Recursion delay fVeeec247 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec247State[2]; // Copy Delay
+	float 	fConst454; // step: 2310
+	float 	fConst455; // step: 2311
+	float 	fConst456; // step: 2314
+	float 	fConst457; // step: 2323
+	float 	fConst458; // step: 2327
+	// Recursion delay fVeeec250 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec250State[2]; // Copy Delay
+	float 	fConst459; // step: 2334
+	float 	fConst460; // step: 2337
+	float 	fConst461; // step: 2346
+	float 	fConst462; // step: 2350
+	// Recursion delay fVeeec253 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec253State[2]; // Copy Delay
+	float 	fConst463; // step: 2357
+	float 	fConst464; // step: 2360
+	float 	fConst465; // step: 2369
+	float 	fConst466; // step: 2372
+	float 	fConst467; // step: 2373
+	float 	fConst468; // step: 2375
+	// Recursion delay fVeeec256 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec256State[2]; // Copy Delay
+	float 	fConst469; // step: 2382
+	float 	fConst470; // step: 2383
+	float 	fConst471; // step: 2386
+	float 	fConst472; // step: 2395
+	float 	fConst473; // step: 2399
+	// Recursion delay fVeeec259 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec259State[2]; // Copy Delay
+	float 	fConst474; // step: 2406
+	float 	fConst475; // step: 2407
+	float 	fConst476; // step: 2410
+	float 	fConst477; // step: 2419
+	float 	fConst478; // step: 2423
+	// Recursion delay fVeeec262 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec262State[2]; // Copy Delay
+	float 	fConst479; // step: 2430
+	float 	fConst480; // step: 2431
+	float 	fConst481; // step: 2434
+	// Recursion delay fVeeec246 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec246State; // Mono Delay
+	FAUSTFLOAT 	fbargraph12;
+	float 	fConst482; // step: 2454
+	float 	fConst483; // step: 2455
+	float 	fConst484; // step: 2459
+	float 	fConst485; // step: 2463
+	float 	fConst486; // step: 2467
+	float 	fConst487; // step: 2471
+	float 	fConst488; // step: 2475
+	float 	fConst489; // step: 2479
+	float 	fConst490; // step: 2483
+	float 	fConst491; // step: 2487
+	// Recursion delay fVeeec267 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec267State[2]; // Copy Delay
+	float 	fConst492; // step: 2494
+	float 	fConst493; // step: 2495
+	float 	fConst494; // step: 2498
+	float 	fConst495; // step: 2507
+	float 	fConst496; // step: 2511
+	// Recursion delay fVeeec270 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec270State[2]; // Copy Delay
+	float 	fConst497; // step: 2518
+	float 	fConst498; // step: 2521
+	float 	fConst499; // step: 2530
+	float 	fConst500; // step: 2534
+	// Recursion delay fVeeec273 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec273State[2]; // Copy Delay
+	float 	fConst501; // step: 2541
+	float 	fConst502; // step: 2544
+	float 	fConst503; // step: 2553
+	float 	fConst504; // step: 2556
+	float 	fConst505; // step: 2557
+	float 	fConst506; // step: 2559
+	// Recursion delay fVeeec276 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec276State[2]; // Copy Delay
+	float 	fConst507; // step: 2566
+	float 	fConst508; // step: 2567
+	float 	fConst509; // step: 2570
+	float 	fConst510; // step: 2579
+	float 	fConst511; // step: 2583
+	// Recursion delay fVeeec279 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec279State[2]; // Copy Delay
+	float 	fConst512; // step: 2590
+	float 	fConst513; // step: 2591
+	float 	fConst514; // step: 2594
+	float 	fConst515; // step: 2603
+	float 	fConst516; // step: 2607
+	// Recursion delay fVeeec282 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec282State[2]; // Copy Delay
+	float 	fConst517; // step: 2614
+	float 	fConst518; // step: 2615
+	float 	fConst519; // step: 2618
+	// Recursion delay fVeeec266 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec266State; // Mono Delay
+	FAUSTFLOAT 	fbargraph13;
+	float 	fConst520; // step: 2639
+	float 	fConst521; // step: 2643
+	float 	fConst522; // step: 2647
+	float 	fConst523; // step: 2651
+	float 	fConst524; // step: 2655
+	// Recursion delay fVeeec287 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec287State[2]; // Copy Delay
+	float 	fConst525; // step: 2662
+	float 	fConst526; // step: 2663
+	float 	fConst527; // step: 2666
+	float 	fConst528; // step: 2675
+	float 	fConst529; // step: 2679
+	// Recursion delay fVeeec290 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec290State[2]; // Copy Delay
+	float 	fConst530; // step: 2686
+	float 	fConst531; // step: 2689
+	float 	fConst532; // step: 2698
+	float 	fConst533; // step: 2702
+	// Recursion delay fVeeec293 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec293State[2]; // Copy Delay
+	float 	fConst534; // step: 2709
+	float 	fConst535; // step: 2712
+	// Recursion delay fVeeec286 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec286State; // Mono Delay
+	FAUSTFLOAT 	fbargraph14;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("effect.lib/bypass1:author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("effect.lib/bypass1:copyright", "Julius O. Smith III");
+		m->declare("effect.lib/bypass1:license", "STK-4.3");
+		m->declare("effect.lib/cubicnl:author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("effect.lib/cubicnl:copyright", "Julius O. Smith III");
+		m->declare("effect.lib/cubicnl:license", "STK-4.3");
+		m->declare("effect.lib/cubicnl_demo:author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("effect.lib/cubicnl_demo:copyright", "Julius O. Smith III");
+		m->declare("effect.lib/cubicnl_demo:license", "STK-4.3");
+		m->declare("effect.lib/cubicnl_nodc:author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("effect.lib/cubicnl_nodc:copyright", "Julius O. Smith III");
+		m->declare("effect.lib/cubicnl_nodc:license", "STK-4.3");
+		m->declare("effect.lib/name", "Faust Audio Effect Library");
+		m->declare("filename", "cubic_distortion.dsp");
+		m->declare("filter.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("filter.lib/copyright", "Julius O. Smith III");
+		m->declare("filter.lib/license", "STK-4.3");
+		m->declare("filter.lib/name", "Faust Filter Library");
+		m->declare("filter.lib/reference", "https://ccrma.stanford.edu/~jos/filters/");
+		m->declare("filter.lib/version", "1.29");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "cubic_distortion");
+		m->declare("oscillator.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("oscillator.lib/copyright", "Julius O. Smith III");
+		m->declare("oscillator.lib/license", "STK-4.3");
+		m->declare("oscillator.lib/name", "Faust Oscillator Library");
+		m->declare("oscillator.lib/version", "1.11");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 2; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 12
+		fConst1 = (1.0f / fConst0); // step: 13
+		fConst2 = (6.2831855f / fConst0); // step: 34
+		fConst3 = (1e+03f / fConst0); // step: 109
+		fConst4 = tanf((50265.484f / fConst0)); // step: 118
+		fConst5 = (1.0f / fConst4); // step: 120
+		fConst6 = (1.0f / (((fConst5 + 0.15748216f) / fConst4) + 0.9351402f)); // step: 124
+		fConst7 = (1.0f / (((fConst5 + 0.74313045f) / fConst4) + 1.4500711f)); // step: 130
+		fConst8 = (1.0f / (((fConst5 + 3.1897273f) / fConst4) + 4.0767817f)); // step: 136
+		fConst9 = (((fConst5 + -3.1897273f) / fConst4) + 4.0767817f); // step: 142
+		fConst10 = powf(fConst4,2.0f); // step: 145
+		fConst11 = (1.0f / fConst10); // step: 146
+		fConst12 = (2.0f * (4.0767817f - fConst11)); // step: 148
+		fConst13 = (0.0017661728f / fConst10); // step: 157
+		fConst14 = (fConst13 + 0.0004076782f); // step: 158
+		fConst15 = (2.0f * (0.0004076782f - fConst13)); // step: 161
+		fConst16 = (((fConst5 + -0.74313045f) / fConst4) + 1.4500711f); // step: 171
+		fConst17 = (2.0f * (1.4500711f - fConst11)); // step: 175
+		fConst18 = (11.0520525f / fConst10); // step: 183
+		fConst19 = (fConst18 + 1.4500711f); // step: 184
+		fConst20 = (2.0f * (1.4500711f - fConst18)); // step: 187
+		fConst21 = (((fConst5 + -0.15748216f) / fConst4) + 0.9351402f); // step: 197
+		fConst22 = (2.0f * (0.9351402f - fConst11)); // step: 201
+		fConst23 = (50.06381f / fConst10); // step: 209
+		fConst24 = (fConst23 + 0.9351402f); // step: 210
+		fConst25 = (2.0f * (0.9351402f - fConst23)); // step: 213
+		fConst26 = tanf((31665.27f / fConst0)); // step: 233
+		fConst27 = (1.0f / fConst26); // step: 234
+		fConst28 = (1.0f / (((fConst27 + 0.15748216f) / fConst26) + 0.9351402f)); // step: 238
+		fConst29 = (1.0f / (((fConst27 + 0.74313045f) / fConst26) + 1.4500711f)); // step: 242
+		fConst30 = (1.0f / (((fConst27 + 3.1897273f) / fConst26) + 4.0767817f)); // step: 246
+		fConst31 = (1.0f / (((fConst5 + 0.16840488f) / fConst4) + 1.0693583f)); // step: 252
+		fConst32 = (1.0f / (((fConst5 + 0.51247865f) / fConst4) + 0.6896214f)); // step: 258
+		fConst33 = (1.0f / (((fConst5 + 0.78241307f) / fConst4) + 0.2452915f)); // step: 264
+		fConst34 = (((fConst5 + -0.78241307f) / fConst4) + 0.2452915f); // step: 269
+		fConst35 = (2.0f * (0.2452915f - fConst11)); // step: 273
+		fConst36 = (0.0001f / fConst10); // step: 282
+		fConst37 = (fConst36 + 0.0004332272f); // step: 283
+		fConst38 = (2.0f * (0.0004332272f - fConst36)); // step: 286
+		fConst39 = (((fConst5 + -0.51247865f) / fConst4) + 0.6896214f); // step: 296
+		fConst40 = (2.0f * (0.6896214f - fConst11)); // step: 300
+		fConst41 = (fConst11 + 7.6217313f); // step: 308
+		fConst42 = (2.0f * (7.6217313f - fConst11)); // step: 311
+		fConst43 = (((fConst5 + -0.16840488f) / fConst4) + 1.0693583f); // step: 321
+		fConst44 = (2.0f * (1.0693583f - fConst11)); // step: 325
+		fConst45 = (fConst11 + 53.53615f); // step: 333
+		fConst46 = (2.0f * (53.53615f - fConst11)); // step: 336
+		fConst47 = (((fConst27 + -3.1897273f) / fConst26) + 4.0767817f); // step: 345
+		fConst48 = powf(fConst26,2.0f); // step: 348
+		fConst49 = (1.0f / fConst48); // step: 349
+		fConst50 = (2.0f * (4.0767817f - fConst49)); // step: 351
+		fConst51 = (0.0017661728f / fConst48); // step: 358
+		fConst52 = (fConst51 + 0.0004076782f); // step: 359
+		fConst53 = (2.0f * (0.0004076782f - fConst51)); // step: 362
+		fConst54 = (((fConst27 + -0.74313045f) / fConst26) + 1.4500711f); // step: 371
+		fConst55 = (2.0f * (1.4500711f - fConst49)); // step: 375
+		fConst56 = (11.0520525f / fConst48); // step: 382
+		fConst57 = (fConst56 + 1.4500711f); // step: 383
+		fConst58 = (2.0f * (1.4500711f - fConst56)); // step: 386
+		fConst59 = (((fConst27 + -0.15748216f) / fConst26) + 0.9351402f); // step: 395
+		fConst60 = (2.0f * (0.9351402f - fConst49)); // step: 399
+		fConst61 = (50.06381f / fConst48); // step: 406
+		fConst62 = (fConst61 + 0.9351402f); // step: 407
+		fConst63 = (2.0f * (0.9351402f - fConst61)); // step: 410
+		fConst64 = tanf((19947.87f / fConst0)); // step: 430
+		fConst65 = (1.0f / fConst64); // step: 431
+		fConst66 = (1.0f / (((fConst65 + 0.15748216f) / fConst64) + 0.9351402f)); // step: 435
+		fConst67 = (1.0f / (((fConst65 + 0.74313045f) / fConst64) + 1.4500711f)); // step: 439
+		fConst68 = (1.0f / (((fConst65 + 3.1897273f) / fConst64) + 4.0767817f)); // step: 443
+		fConst69 = (1.0f / (((fConst27 + 0.16840488f) / fConst26) + 1.0693583f)); // step: 447
+		fConst70 = (1.0f / (((fConst27 + 0.51247865f) / fConst26) + 0.6896214f)); // step: 451
+		fConst71 = (1.0f / (((fConst27 + 0.78241307f) / fConst26) + 0.2452915f)); // step: 455
+		fConst72 = (((fConst27 + -0.78241307f) / fConst26) + 0.2452915f); // step: 459
+		fConst73 = (2.0f * (0.2452915f - fConst49)); // step: 463
+		fConst74 = (0.0001f / fConst48); // step: 470
+		fConst75 = (fConst74 + 0.0004332272f); // step: 471
+		fConst76 = (2.0f * (0.0004332272f - fConst74)); // step: 474
+		fConst77 = (((fConst27 + -0.51247865f) / fConst26) + 0.6896214f); // step: 483
+		fConst78 = (2.0f * (0.6896214f - fConst49)); // step: 487
+		fConst79 = (fConst49 + 7.6217313f); // step: 494
+		fConst80 = (2.0f * (7.6217313f - fConst49)); // step: 497
+		fConst81 = (((fConst27 + -0.16840488f) / fConst26) + 1.0693583f); // step: 506
+		fConst82 = (2.0f * (1.0693583f - fConst49)); // step: 510
+		fConst83 = (fConst49 + 53.53615f); // step: 517
+		fConst84 = (2.0f * (53.53615f - fConst49)); // step: 520
+		fConst85 = (((fConst65 + -3.1897273f) / fConst64) + 4.0767817f); // step: 529
+		fConst86 = powf(fConst64,2.0f); // step: 532
+		fConst87 = (1.0f / fConst86); // step: 533
+		fConst88 = (2.0f * (4.0767817f - fConst87)); // step: 535
+		fConst89 = (0.0017661728f / fConst86); // step: 542
+		fConst90 = (fConst89 + 0.0004076782f); // step: 543
+		fConst91 = (2.0f * (0.0004076782f - fConst89)); // step: 546
+		fConst92 = (((fConst65 + -0.74313045f) / fConst64) + 1.4500711f); // step: 555
+		fConst93 = (2.0f * (1.4500711f - fConst87)); // step: 559
+		fConst94 = (11.0520525f / fConst86); // step: 566
+		fConst95 = (fConst94 + 1.4500711f); // step: 567
+		fConst96 = (2.0f * (1.4500711f - fConst94)); // step: 570
+		fConst97 = (((fConst65 + -0.15748216f) / fConst64) + 0.9351402f); // step: 579
+		fConst98 = (2.0f * (0.9351402f - fConst87)); // step: 583
+		fConst99 = (50.06381f / fConst86); // step: 590
+		fConst100 = (fConst99 + 0.9351402f); // step: 591
+		fConst101 = (2.0f * (0.9351402f - fConst99)); // step: 594
+		fConst102 = tanf((12566.371f / fConst0)); // step: 614
+		fConst103 = (1.0f / fConst102); // step: 615
+		fConst104 = (1.0f / (((fConst103 + 0.15748216f) / fConst102) + 0.9351402f)); // step: 619
+		fConst105 = (1.0f / (((fConst103 + 0.74313045f) / fConst102) + 1.4500711f)); // step: 623
+		fConst106 = (1.0f / (((fConst103 + 3.1897273f) / fConst102) + 4.0767817f)); // step: 627
+		fConst107 = (1.0f / (((fConst65 + 0.16840488f) / fConst64) + 1.0693583f)); // step: 631
+		fConst108 = (1.0f / (((fConst65 + 0.51247865f) / fConst64) + 0.6896214f)); // step: 635
+		fConst109 = (1.0f / (((fConst65 + 0.78241307f) / fConst64) + 0.2452915f)); // step: 639
+		fConst110 = (((fConst65 + -0.78241307f) / fConst64) + 0.2452915f); // step: 643
+		fConst111 = (2.0f * (0.2452915f - fConst87)); // step: 647
+		fConst112 = (0.0001f / fConst86); // step: 654
+		fConst113 = (fConst112 + 0.0004332272f); // step: 655
+		fConst114 = (2.0f * (0.0004332272f - fConst112)); // step: 658
+		fConst115 = (((fConst65 + -0.51247865f) / fConst64) + 0.6896214f); // step: 667
+		fConst116 = (2.0f * (0.6896214f - fConst87)); // step: 671
+		fConst117 = (fConst87 + 7.6217313f); // step: 678
+		fConst118 = (2.0f * (7.6217313f - fConst87)); // step: 681
+		fConst119 = (((fConst65 + -0.16840488f) / fConst64) + 1.0693583f); // step: 690
+		fConst120 = (2.0f * (1.0693583f - fConst87)); // step: 694
+		fConst121 = (fConst87 + 53.53615f); // step: 701
+		fConst122 = (2.0f * (53.53615f - fConst87)); // step: 704
+		fConst123 = (((fConst103 + -3.1897273f) / fConst102) + 4.0767817f); // step: 713
+		fConst124 = powf(fConst102,2.0f); // step: 716
+		fConst125 = (1.0f / fConst124); // step: 717
+		fConst126 = (2.0f * (4.0767817f - fConst125)); // step: 719
+		fConst127 = (0.0017661728f / fConst124); // step: 726
+		fConst128 = (fConst127 + 0.0004076782f); // step: 727
+		fConst129 = (2.0f * (0.0004076782f - fConst127)); // step: 730
+		fConst130 = (((fConst103 + -0.74313045f) / fConst102) + 1.4500711f); // step: 739
+		fConst131 = (2.0f * (1.4500711f - fConst125)); // step: 743
+		fConst132 = (11.0520525f / fConst124); // step: 750
+		fConst133 = (fConst132 + 1.4500711f); // step: 751
+		fConst134 = (2.0f * (1.4500711f - fConst132)); // step: 754
+		fConst135 = (((fConst103 + -0.15748216f) / fConst102) + 0.9351402f); // step: 763
+		fConst136 = (2.0f * (0.9351402f - fConst125)); // step: 767
+		fConst137 = (50.06381f / fConst124); // step: 774
+		fConst138 = (fConst137 + 0.9351402f); // step: 775
+		fConst139 = (2.0f * (0.9351402f - fConst137)); // step: 778
+		fConst140 = tanf((7916.3174f / fConst0)); // step: 798
+		fConst141 = (1.0f / fConst140); // step: 799
+		fConst142 = (1.0f / (((fConst141 + 0.15748216f) / fConst140) + 0.9351402f)); // step: 803
+		fConst143 = (1.0f / (((fConst141 + 0.74313045f) / fConst140) + 1.4500711f)); // step: 807
+		fConst144 = (1.0f / (((fConst141 + 3.1897273f) / fConst140) + 4.0767817f)); // step: 811
+		fConst145 = (1.0f / (((fConst103 + 0.16840488f) / fConst102) + 1.0693583f)); // step: 815
+		fConst146 = (1.0f / (((fConst103 + 0.51247865f) / fConst102) + 0.6896214f)); // step: 819
+		fConst147 = (1.0f / (((fConst103 + 0.78241307f) / fConst102) + 0.2452915f)); // step: 823
+		fConst148 = (((fConst103 + -0.78241307f) / fConst102) + 0.2452915f); // step: 827
+		fConst149 = (2.0f * (0.2452915f - fConst125)); // step: 831
+		fConst150 = (0.0001f / fConst124); // step: 838
+		fConst151 = (fConst150 + 0.0004332272f); // step: 839
+		fConst152 = (2.0f * (0.0004332272f - fConst150)); // step: 842
+		fConst153 = (((fConst103 + -0.51247865f) / fConst102) + 0.6896214f); // step: 851
+		fConst154 = (2.0f * (0.6896214f - fConst125)); // step: 855
+		fConst155 = (fConst125 + 7.6217313f); // step: 862
+		fConst156 = (2.0f * (7.6217313f - fConst125)); // step: 865
+		fConst157 = (((fConst103 + -0.16840488f) / fConst102) + 1.0693583f); // step: 874
+		fConst158 = (2.0f * (1.0693583f - fConst125)); // step: 878
+		fConst159 = (fConst125 + 53.53615f); // step: 885
+		fConst160 = (2.0f * (53.53615f - fConst125)); // step: 888
+		fConst161 = (((fConst141 + -3.1897273f) / fConst140) + 4.0767817f); // step: 897
+		fConst162 = powf(fConst140,2.0f); // step: 900
+		fConst163 = (1.0f / fConst162); // step: 901
+		fConst164 = (2.0f * (4.0767817f - fConst163)); // step: 903
+		fConst165 = (0.0017661728f / fConst162); // step: 910
+		fConst166 = (fConst165 + 0.0004076782f); // step: 911
+		fConst167 = (2.0f * (0.0004076782f - fConst165)); // step: 914
+		fConst168 = (((fConst141 + -0.74313045f) / fConst140) + 1.4500711f); // step: 923
+		fConst169 = (2.0f * (1.4500711f - fConst163)); // step: 927
+		fConst170 = (11.0520525f / fConst162); // step: 934
+		fConst171 = (fConst170 + 1.4500711f); // step: 935
+		fConst172 = (2.0f * (1.4500711f - fConst170)); // step: 938
+		fConst173 = (((fConst141 + -0.15748216f) / fConst140) + 0.9351402f); // step: 947
+		fConst174 = (2.0f * (0.9351402f - fConst163)); // step: 951
+		fConst175 = (50.06381f / fConst162); // step: 958
+		fConst176 = (fConst175 + 0.9351402f); // step: 959
+		fConst177 = (2.0f * (0.9351402f - fConst175)); // step: 962
+		fConst178 = tanf((4986.9673f / fConst0)); // step: 982
+		fConst179 = (1.0f / fConst178); // step: 983
+		fConst180 = (1.0f / (((fConst179 + 0.15748216f) / fConst178) + 0.9351402f)); // step: 987
+		fConst181 = (1.0f / (((fConst179 + 0.74313045f) / fConst178) + 1.4500711f)); // step: 991
+		fConst182 = (1.0f / (((fConst179 + 3.1897273f) / fConst178) + 4.0767817f)); // step: 995
+		fConst183 = (1.0f / (((fConst141 + 0.16840488f) / fConst140) + 1.0693583f)); // step: 999
+		fConst184 = (1.0f / (((fConst141 + 0.51247865f) / fConst140) + 0.6896214f)); // step: 1003
+		fConst185 = (1.0f / (((fConst141 + 0.78241307f) / fConst140) + 0.2452915f)); // step: 1007
+		fConst186 = (((fConst141 + -0.78241307f) / fConst140) + 0.2452915f); // step: 1011
+		fConst187 = (2.0f * (0.2452915f - fConst163)); // step: 1015
+		fConst188 = (0.0001f / fConst162); // step: 1022
+		fConst189 = (fConst188 + 0.0004332272f); // step: 1023
+		fConst190 = (2.0f * (0.0004332272f - fConst188)); // step: 1026
+		fConst191 = (((fConst141 + -0.51247865f) / fConst140) + 0.6896214f); // step: 1035
+		fConst192 = (2.0f * (0.6896214f - fConst163)); // step: 1039
+		fConst193 = (fConst163 + 7.6217313f); // step: 1046
+		fConst194 = (2.0f * (7.6217313f - fConst163)); // step: 1049
+		fConst195 = (((fConst141 + -0.16840488f) / fConst140) + 1.0693583f); // step: 1058
+		fConst196 = (2.0f * (1.0693583f - fConst163)); // step: 1062
+		fConst197 = (fConst163 + 53.53615f); // step: 1069
+		fConst198 = (2.0f * (53.53615f - fConst163)); // step: 1072
+		fConst199 = (((fConst179 + -3.1897273f) / fConst178) + 4.0767817f); // step: 1081
+		fConst200 = powf(fConst178,2.0f); // step: 1084
+		fConst201 = (1.0f / fConst200); // step: 1085
+		fConst202 = (2.0f * (4.0767817f - fConst201)); // step: 1087
+		fConst203 = (0.0017661728f / fConst200); // step: 1094
+		fConst204 = (fConst203 + 0.0004076782f); // step: 1095
+		fConst205 = (2.0f * (0.0004076782f - fConst203)); // step: 1098
+		fConst206 = (((fConst179 + -0.74313045f) / fConst178) + 1.4500711f); // step: 1107
+		fConst207 = (2.0f * (1.4500711f - fConst201)); // step: 1111
+		fConst208 = (11.0520525f / fConst200); // step: 1118
+		fConst209 = (fConst208 + 1.4500711f); // step: 1119
+		fConst210 = (2.0f * (1.4500711f - fConst208)); // step: 1122
+		fConst211 = (((fConst179 + -0.15748216f) / fConst178) + 0.9351402f); // step: 1131
+		fConst212 = (2.0f * (0.9351402f - fConst201)); // step: 1135
+		fConst213 = (50.06381f / fConst200); // step: 1142
+		fConst214 = (fConst213 + 0.9351402f); // step: 1143
+		fConst215 = (2.0f * (0.9351402f - fConst213)); // step: 1146
+		fConst216 = tanf((3141.5928f / fConst0)); // step: 1166
+		fConst217 = (1.0f / fConst216); // step: 1167
+		fConst218 = (1.0f / (((fConst217 + 0.15748216f) / fConst216) + 0.9351402f)); // step: 1171
+		fConst219 = (1.0f / (((fConst217 + 0.74313045f) / fConst216) + 1.4500711f)); // step: 1175
+		fConst220 = (1.0f / (((fConst217 + 3.1897273f) / fConst216) + 4.0767817f)); // step: 1179
+		fConst221 = (1.0f / (((fConst179 + 0.16840488f) / fConst178) + 1.0693583f)); // step: 1183
+		fConst222 = (1.0f / (((fConst179 + 0.51247865f) / fConst178) + 0.6896214f)); // step: 1187
+		fConst223 = (1.0f / (((fConst179 + 0.78241307f) / fConst178) + 0.2452915f)); // step: 1191
+		fConst224 = (((fConst179 + -0.78241307f) / fConst178) + 0.2452915f); // step: 1195
+		fConst225 = (2.0f * (0.2452915f - fConst201)); // step: 1199
+		fConst226 = (0.0001f / fConst200); // step: 1206
+		fConst227 = (fConst226 + 0.0004332272f); // step: 1207
+		fConst228 = (2.0f * (0.0004332272f - fConst226)); // step: 1210
+		fConst229 = (((fConst179 + -0.51247865f) / fConst178) + 0.6896214f); // step: 1219
+		fConst230 = (2.0f * (0.6896214f - fConst201)); // step: 1223
+		fConst231 = (fConst201 + 7.6217313f); // step: 1230
+		fConst232 = (2.0f * (7.6217313f - fConst201)); // step: 1233
+		fConst233 = (((fConst179 + -0.16840488f) / fConst178) + 1.0693583f); // step: 1242
+		fConst234 = (2.0f * (1.0693583f - fConst201)); // step: 1246
+		fConst235 = (fConst201 + 53.53615f); // step: 1253
+		fConst236 = (2.0f * (53.53615f - fConst201)); // step: 1256
+		fConst237 = (((fConst217 + -3.1897273f) / fConst216) + 4.0767817f); // step: 1265
+		fConst238 = powf(fConst216,2.0f); // step: 1268
+		fConst239 = (1.0f / fConst238); // step: 1269
+		fConst240 = (2.0f * (4.0767817f - fConst239)); // step: 1271
+		fConst241 = (0.0017661728f / fConst238); // step: 1278
+		fConst242 = (fConst241 + 0.0004076782f); // step: 1279
+		fConst243 = (2.0f * (0.0004076782f - fConst241)); // step: 1282
+		fConst244 = (((fConst217 + -0.74313045f) / fConst216) + 1.4500711f); // step: 1291
+		fConst245 = (2.0f * (1.4500711f - fConst239)); // step: 1295
+		fConst246 = (11.0520525f / fConst238); // step: 1302
+		fConst247 = (fConst246 + 1.4500711f); // step: 1303
+		fConst248 = (2.0f * (1.4500711f - fConst246)); // step: 1306
+		fConst249 = (((fConst217 + -0.15748216f) / fConst216) + 0.9351402f); // step: 1315
+		fConst250 = (2.0f * (0.9351402f - fConst239)); // step: 1319
+		fConst251 = (50.06381f / fConst238); // step: 1326
+		fConst252 = (fConst251 + 0.9351402f); // step: 1327
+		fConst253 = (2.0f * (0.9351402f - fConst251)); // step: 1330
+		fConst254 = tanf((1979.0793f / fConst0)); // step: 1350
+		fConst255 = (1.0f / fConst254); // step: 1351
+		fConst256 = (1.0f / (((fConst255 + 0.15748216f) / fConst254) + 0.9351402f)); // step: 1355
+		fConst257 = (1.0f / (((fConst255 + 0.74313045f) / fConst254) + 1.4500711f)); // step: 1359
+		fConst258 = (1.0f / (((fConst255 + 3.1897273f) / fConst254) + 4.0767817f)); // step: 1363
+		fConst259 = (1.0f / (((fConst217 + 0.16840488f) / fConst216) + 1.0693583f)); // step: 1367
+		fConst260 = (1.0f / (((fConst217 + 0.51247865f) / fConst216) + 0.6896214f)); // step: 1371
+		fConst261 = (1.0f / (((fConst217 + 0.78241307f) / fConst216) + 0.2452915f)); // step: 1375
+		fConst262 = (((fConst217 + -0.78241307f) / fConst216) + 0.2452915f); // step: 1379
+		fConst263 = (2.0f * (0.2452915f - fConst239)); // step: 1383
+		fConst264 = (0.0001f / fConst238); // step: 1390
+		fConst265 = (fConst264 + 0.0004332272f); // step: 1391
+		fConst266 = (2.0f * (0.0004332272f - fConst264)); // step: 1394
+		fConst267 = (((fConst217 + -0.51247865f) / fConst216) + 0.6896214f); // step: 1403
+		fConst268 = (2.0f * (0.6896214f - fConst239)); // step: 1407
+		fConst269 = (fConst239 + 7.6217313f); // step: 1414
+		fConst270 = (2.0f * (7.6217313f - fConst239)); // step: 1417
+		fConst271 = (((fConst217 + -0.16840488f) / fConst216) + 1.0693583f); // step: 1426
+		fConst272 = (2.0f * (1.0693583f - fConst239)); // step: 1430
+		fConst273 = (fConst239 + 53.53615f); // step: 1437
+		fConst274 = (2.0f * (53.53615f - fConst239)); // step: 1440
+		fConst275 = (((fConst255 + -3.1897273f) / fConst254) + 4.0767817f); // step: 1449
+		fConst276 = powf(fConst254,2.0f); // step: 1452
+		fConst277 = (1.0f / fConst276); // step: 1453
+		fConst278 = (2.0f * (4.0767817f - fConst277)); // step: 1455
+		fConst279 = (0.0017661728f / fConst276); // step: 1462
+		fConst280 = (fConst279 + 0.0004076782f); // step: 1463
+		fConst281 = (2.0f * (0.0004076782f - fConst279)); // step: 1466
+		fConst282 = (((fConst255 + -0.74313045f) / fConst254) + 1.4500711f); // step: 1475
+		fConst283 = (2.0f * (1.4500711f - fConst277)); // step: 1479
+		fConst284 = (11.0520525f / fConst276); // step: 1486
+		fConst285 = (fConst284 + 1.4500711f); // step: 1487
+		fConst286 = (2.0f * (1.4500711f - fConst284)); // step: 1490
+		fConst287 = (((fConst255 + -0.15748216f) / fConst254) + 0.9351402f); // step: 1499
+		fConst288 = (2.0f * (0.9351402f - fConst277)); // step: 1503
+		fConst289 = (50.06381f / fConst276); // step: 1510
+		fConst290 = (fConst289 + 0.9351402f); // step: 1511
+		fConst291 = (2.0f * (0.9351402f - fConst289)); // step: 1514
+		fConst292 = tanf((1246.7418f / fConst0)); // step: 1534
+		fConst293 = (1.0f / fConst292); // step: 1535
+		fConst294 = (1.0f / (((fConst293 + 0.15748216f) / fConst292) + 0.9351402f)); // step: 1539
+		fConst295 = (1.0f / (((fConst293 + 0.74313045f) / fConst292) + 1.4500711f)); // step: 1543
+		fConst296 = (1.0f / (((fConst293 + 3.1897273f) / fConst292) + 4.0767817f)); // step: 1547
+		fConst297 = (1.0f / (((fConst255 + 0.16840488f) / fConst254) + 1.0693583f)); // step: 1551
+		fConst298 = (1.0f / (((fConst255 + 0.51247865f) / fConst254) + 0.6896214f)); // step: 1555
+		fConst299 = (1.0f / (((fConst255 + 0.78241307f) / fConst254) + 0.2452915f)); // step: 1559
+		fConst300 = (((fConst255 + -0.78241307f) / fConst254) + 0.2452915f); // step: 1563
+		fConst301 = (2.0f * (0.2452915f - fConst277)); // step: 1567
+		fConst302 = (0.0001f / fConst276); // step: 1574
+		fConst303 = (fConst302 + 0.0004332272f); // step: 1575
+		fConst304 = (2.0f * (0.0004332272f - fConst302)); // step: 1578
+		fConst305 = (((fConst255 + -0.51247865f) / fConst254) + 0.6896214f); // step: 1587
+		fConst306 = (2.0f * (0.6896214f - fConst277)); // step: 1591
+		fConst307 = (fConst277 + 7.6217313f); // step: 1598
+		fConst308 = (2.0f * (7.6217313f - fConst277)); // step: 1601
+		fConst309 = (((fConst255 + -0.16840488f) / fConst254) + 1.0693583f); // step: 1610
+		fConst310 = (2.0f * (1.0693583f - fConst277)); // step: 1614
+		fConst311 = (fConst277 + 53.53615f); // step: 1621
+		fConst312 = (2.0f * (53.53615f - fConst277)); // step: 1624
+		fConst313 = (((fConst293 + -3.1897273f) / fConst292) + 4.0767817f); // step: 1633
+		fConst314 = powf(fConst292,2.0f); // step: 1636
+		fConst315 = (1.0f / fConst314); // step: 1637
+		fConst316 = (2.0f * (4.0767817f - fConst315)); // step: 1639
+		fConst317 = (0.0017661728f / fConst314); // step: 1646
+		fConst318 = (fConst317 + 0.0004076782f); // step: 1647
+		fConst319 = (2.0f * (0.0004076782f - fConst317)); // step: 1650
+		fConst320 = (((fConst293 + -0.74313045f) / fConst292) + 1.4500711f); // step: 1659
+		fConst321 = (2.0f * (1.4500711f - fConst315)); // step: 1663
+		fConst322 = (11.0520525f / fConst314); // step: 1670
+		fConst323 = (fConst322 + 1.4500711f); // step: 1671
+		fConst324 = (2.0f * (1.4500711f - fConst322)); // step: 1674
+		fConst325 = (((fConst293 + -0.15748216f) / fConst292) + 0.9351402f); // step: 1683
+		fConst326 = (2.0f * (0.9351402f - fConst315)); // step: 1687
+		fConst327 = (50.06381f / fConst314); // step: 1694
+		fConst328 = (fConst327 + 0.9351402f); // step: 1695
+		fConst329 = (2.0f * (0.9351402f - fConst327)); // step: 1698
+		fConst330 = tanf((785.3982f / fConst0)); // step: 1718
+		fConst331 = (1.0f / fConst330); // step: 1719
+		fConst332 = (1.0f / (((fConst331 + 0.15748216f) / fConst330) + 0.9351402f)); // step: 1723
+		fConst333 = (1.0f / (((fConst331 + 0.74313045f) / fConst330) + 1.4500711f)); // step: 1727
+		fConst334 = (1.0f / (((fConst331 + 3.1897273f) / fConst330) + 4.0767817f)); // step: 1731
+		fConst335 = (1.0f / (((fConst293 + 0.16840488f) / fConst292) + 1.0693583f)); // step: 1735
+		fConst336 = (1.0f / (((fConst293 + 0.51247865f) / fConst292) + 0.6896214f)); // step: 1739
+		fConst337 = (1.0f / (((fConst293 + 0.78241307f) / fConst292) + 0.2452915f)); // step: 1743
+		fConst338 = (((fConst293 + -0.78241307f) / fConst292) + 0.2452915f); // step: 1747
+		fConst339 = (2.0f * (0.2452915f - fConst315)); // step: 1751
+		fConst340 = (0.0001f / fConst314); // step: 1758
+		fConst341 = (fConst340 + 0.0004332272f); // step: 1759
+		fConst342 = (2.0f * (0.0004332272f - fConst340)); // step: 1762
+		fConst343 = (((fConst293 + -0.51247865f) / fConst292) + 0.6896214f); // step: 1771
+		fConst344 = (2.0f * (0.6896214f - fConst315)); // step: 1775
+		fConst345 = (fConst315 + 7.6217313f); // step: 1782
+		fConst346 = (2.0f * (7.6217313f - fConst315)); // step: 1785
+		fConst347 = (((fConst293 + -0.16840488f) / fConst292) + 1.0693583f); // step: 1794
+		fConst348 = (2.0f * (1.0693583f - fConst315)); // step: 1798
+		fConst349 = (fConst315 + 53.53615f); // step: 1805
+		fConst350 = (2.0f * (53.53615f - fConst315)); // step: 1808
+		fConst351 = (((fConst331 + -3.1897273f) / fConst330) + 4.0767817f); // step: 1817
+		fConst352 = powf(fConst330,2.0f); // step: 1820
+		fConst353 = (1.0f / fConst352); // step: 1821
+		fConst354 = (2.0f * (4.0767817f - fConst353)); // step: 1823
+		fConst355 = (0.0017661728f / fConst352); // step: 1830
+		fConst356 = (fConst355 + 0.0004076782f); // step: 1831
+		fConst357 = (2.0f * (0.0004076782f - fConst355)); // step: 1834
+		fConst358 = (((fConst331 + -0.74313045f) / fConst330) + 1.4500711f); // step: 1843
+		fConst359 = (2.0f * (1.4500711f - fConst353)); // step: 1847
+		fConst360 = (11.0520525f / fConst352); // step: 1854
+		fConst361 = (fConst360 + 1.4500711f); // step: 1855
+		fConst362 = (2.0f * (1.4500711f - fConst360)); // step: 1858
+		fConst363 = (((fConst331 + -0.15748216f) / fConst330) + 0.9351402f); // step: 1867
+		fConst364 = (2.0f * (0.9351402f - fConst353)); // step: 1871
+		fConst365 = (50.06381f / fConst352); // step: 1878
+		fConst366 = (fConst365 + 0.9351402f); // step: 1879
+		fConst367 = (2.0f * (0.9351402f - fConst365)); // step: 1882
+		fConst368 = tanf((494.76984f / fConst0)); // step: 1902
+		fConst369 = (1.0f / fConst368); // step: 1903
+		fConst370 = (1.0f / (((fConst369 + 0.15748216f) / fConst368) + 0.9351402f)); // step: 1907
+		fConst371 = (1.0f / (((fConst369 + 0.74313045f) / fConst368) + 1.4500711f)); // step: 1911
+		fConst372 = (1.0f / (((fConst369 + 3.1897273f) / fConst368) + 4.0767817f)); // step: 1915
+		fConst373 = (1.0f / (((fConst331 + 0.16840488f) / fConst330) + 1.0693583f)); // step: 1919
+		fConst374 = (1.0f / (((fConst331 + 0.51247865f) / fConst330) + 0.6896214f)); // step: 1923
+		fConst375 = (1.0f / (((fConst331 + 0.78241307f) / fConst330) + 0.2452915f)); // step: 1927
+		fConst376 = (((fConst331 + -0.78241307f) / fConst330) + 0.2452915f); // step: 1931
+		fConst377 = (2.0f * (0.2452915f - fConst353)); // step: 1935
+		fConst378 = (0.0001f / fConst352); // step: 1942
+		fConst379 = (fConst378 + 0.0004332272f); // step: 1943
+		fConst380 = (2.0f * (0.0004332272f - fConst378)); // step: 1946
+		fConst381 = (((fConst331 + -0.51247865f) / fConst330) + 0.6896214f); // step: 1955
+		fConst382 = (2.0f * (0.6896214f - fConst353)); // step: 1959
+		fConst383 = (fConst353 + 7.6217313f); // step: 1966
+		fConst384 = (2.0f * (7.6217313f - fConst353)); // step: 1969
+		fConst385 = (((fConst331 + -0.16840488f) / fConst330) + 1.0693583f); // step: 1978
+		fConst386 = (2.0f * (1.0693583f - fConst353)); // step: 1982
+		fConst387 = (fConst353 + 53.53615f); // step: 1989
+		fConst388 = (2.0f * (53.53615f - fConst353)); // step: 1992
+		fConst389 = (((fConst369 + -3.1897273f) / fConst368) + 4.0767817f); // step: 2001
+		fConst390 = powf(fConst368,2.0f); // step: 2004
+		fConst391 = (1.0f / fConst390); // step: 2005
+		fConst392 = (2.0f * (4.0767817f - fConst391)); // step: 2007
+		fConst393 = (0.0017661728f / fConst390); // step: 2014
+		fConst394 = (fConst393 + 0.0004076782f); // step: 2015
+		fConst395 = (2.0f * (0.0004076782f - fConst393)); // step: 2018
+		fConst396 = (((fConst369 + -0.74313045f) / fConst368) + 1.4500711f); // step: 2027
+		fConst397 = (2.0f * (1.4500711f - fConst391)); // step: 2031
+		fConst398 = (11.0520525f / fConst390); // step: 2038
+		fConst399 = (fConst398 + 1.4500711f); // step: 2039
+		fConst400 = (2.0f * (1.4500711f - fConst398)); // step: 2042
+		fConst401 = (((fConst369 + -0.15748216f) / fConst368) + 0.9351402f); // step: 2051
+		fConst402 = (2.0f * (0.9351402f - fConst391)); // step: 2055
+		fConst403 = (50.06381f / fConst390); // step: 2062
+		fConst404 = (fConst403 + 0.9351402f); // step: 2063
+		fConst405 = (2.0f * (0.9351402f - fConst403)); // step: 2066
+		fConst406 = tanf((311.68546f / fConst0)); // step: 2086
+		fConst407 = (1.0f / fConst406); // step: 2087
+		fConst408 = (1.0f / (((fConst407 + 0.15748216f) / fConst406) + 0.9351402f)); // step: 2091
+		fConst409 = (1.0f / (((fConst407 + 0.74313045f) / fConst406) + 1.4500711f)); // step: 2095
+		fConst410 = (1.0f / (((fConst407 + 3.1897273f) / fConst406) + 4.0767817f)); // step: 2099
+		fConst411 = (1.0f / (((fConst369 + 0.16840488f) / fConst368) + 1.0693583f)); // step: 2103
+		fConst412 = (1.0f / (((fConst369 + 0.51247865f) / fConst368) + 0.6896214f)); // step: 2107
+		fConst413 = (1.0f / (((fConst369 + 0.78241307f) / fConst368) + 0.2452915f)); // step: 2111
+		fConst414 = (((fConst369 + -0.78241307f) / fConst368) + 0.2452915f); // step: 2115
+		fConst415 = (2.0f * (0.2452915f - fConst391)); // step: 2119
+		fConst416 = (0.0001f / fConst390); // step: 2126
+		fConst417 = (fConst416 + 0.0004332272f); // step: 2127
+		fConst418 = (2.0f * (0.0004332272f - fConst416)); // step: 2130
+		fConst419 = (((fConst369 + -0.51247865f) / fConst368) + 0.6896214f); // step: 2139
+		fConst420 = (2.0f * (0.6896214f - fConst391)); // step: 2143
+		fConst421 = (fConst391 + 7.6217313f); // step: 2150
+		fConst422 = (2.0f * (7.6217313f - fConst391)); // step: 2153
+		fConst423 = (((fConst369 + -0.16840488f) / fConst368) + 1.0693583f); // step: 2162
+		fConst424 = (2.0f * (1.0693583f - fConst391)); // step: 2166
+		fConst425 = (fConst391 + 53.53615f); // step: 2173
+		fConst426 = (2.0f * (53.53615f - fConst391)); // step: 2176
+		fConst427 = (((fConst407 + -3.1897273f) / fConst406) + 4.0767817f); // step: 2185
+		fConst428 = powf(fConst406,2.0f); // step: 2188
+		fConst429 = (1.0f / fConst428); // step: 2189
+		fConst430 = (2.0f * (4.0767817f - fConst429)); // step: 2191
+		fConst431 = (0.0017661728f / fConst428); // step: 2198
+		fConst432 = (fConst431 + 0.0004076782f); // step: 2199
+		fConst433 = (2.0f * (0.0004076782f - fConst431)); // step: 2202
+		fConst434 = (((fConst407 + -0.74313045f) / fConst406) + 1.4500711f); // step: 2211
+		fConst435 = (2.0f * (1.4500711f - fConst429)); // step: 2215
+		fConst436 = (11.0520525f / fConst428); // step: 2222
+		fConst437 = (fConst436 + 1.4500711f); // step: 2223
+		fConst438 = (2.0f * (1.4500711f - fConst436)); // step: 2226
+		fConst439 = (((fConst407 + -0.15748216f) / fConst406) + 0.9351402f); // step: 2235
+		fConst440 = (2.0f * (0.9351402f - fConst429)); // step: 2239
+		fConst441 = (50.06381f / fConst428); // step: 2246
+		fConst442 = (fConst441 + 0.9351402f); // step: 2247
+		fConst443 = (2.0f * (0.9351402f - fConst441)); // step: 2250
+		fConst444 = tanf((196.34955f / fConst0)); // step: 2270
+		fConst445 = (1.0f / fConst444); // step: 2271
+		fConst446 = (1.0f / (((fConst445 + 0.15748216f) / fConst444) + 0.9351402f)); // step: 2275
+		fConst447 = (1.0f / (((fConst445 + 0.74313045f) / fConst444) + 1.4500711f)); // step: 2279
+		fConst448 = (1.0f / (((fConst445 + 3.1897273f) / fConst444) + 4.0767817f)); // step: 2283
+		fConst449 = (1.0f / (((fConst407 + 0.16840488f) / fConst406) + 1.0693583f)); // step: 2287
+		fConst450 = (1.0f / (((fConst407 + 0.51247865f) / fConst406) + 0.6896214f)); // step: 2291
+		fConst451 = (1.0f / (((fConst407 + 0.78241307f) / fConst406) + 0.2452915f)); // step: 2295
+		fConst452 = (((fConst407 + -0.78241307f) / fConst406) + 0.2452915f); // step: 2299
+		fConst453 = (2.0f * (0.2452915f - fConst429)); // step: 2303
+		fConst454 = (0.0001f / fConst428); // step: 2310
+		fConst455 = (fConst454 + 0.0004332272f); // step: 2311
+		fConst456 = (2.0f * (0.0004332272f - fConst454)); // step: 2314
+		fConst457 = (((fConst407 + -0.51247865f) / fConst406) + 0.6896214f); // step: 2323
+		fConst458 = (2.0f * (0.6896214f - fConst429)); // step: 2327
+		fConst459 = (fConst429 + 7.6217313f); // step: 2334
+		fConst460 = (2.0f * (7.6217313f - fConst429)); // step: 2337
+		fConst461 = (((fConst407 + -0.16840488f) / fConst406) + 1.0693583f); // step: 2346
+		fConst462 = (2.0f * (1.0693583f - fConst429)); // step: 2350
+		fConst463 = (fConst429 + 53.53615f); // step: 2357
+		fConst464 = (2.0f * (53.53615f - fConst429)); // step: 2360
+		fConst465 = (((fConst445 + -3.1897273f) / fConst444) + 4.0767817f); // step: 2369
+		fConst466 = powf(fConst444,2.0f); // step: 2372
+		fConst467 = (1.0f / fConst466); // step: 2373
+		fConst468 = (2.0f * (4.0767817f - fConst467)); // step: 2375
+		fConst469 = (0.0017661728f / fConst466); // step: 2382
+		fConst470 = (fConst469 + 0.0004076782f); // step: 2383
+		fConst471 = (2.0f * (0.0004076782f - fConst469)); // step: 2386
+		fConst472 = (((fConst445 + -0.74313045f) / fConst444) + 1.4500711f); // step: 2395
+		fConst473 = (2.0f * (1.4500711f - fConst467)); // step: 2399
+		fConst474 = (11.0520525f / fConst466); // step: 2406
+		fConst475 = (fConst474 + 1.4500711f); // step: 2407
+		fConst476 = (2.0f * (1.4500711f - fConst474)); // step: 2410
+		fConst477 = (((fConst445 + -0.15748216f) / fConst444) + 0.9351402f); // step: 2419
+		fConst478 = (2.0f * (0.9351402f - fConst467)); // step: 2423
+		fConst479 = (50.06381f / fConst466); // step: 2430
+		fConst480 = (fConst479 + 0.9351402f); // step: 2431
+		fConst481 = (2.0f * (0.9351402f - fConst479)); // step: 2434
+		fConst482 = tanf((123.69246f / fConst0)); // step: 2454
+		fConst483 = (1.0f / fConst482); // step: 2455
+		fConst484 = (1.0f / (((fConst483 + 0.15748216f) / fConst482) + 0.9351402f)); // step: 2459
+		fConst485 = (1.0f / (((fConst483 + 0.74313045f) / fConst482) + 1.4500711f)); // step: 2463
+		fConst486 = (1.0f / (((fConst483 + 3.1897273f) / fConst482) + 4.0767817f)); // step: 2467
+		fConst487 = (1.0f / (((fConst445 + 0.16840488f) / fConst444) + 1.0693583f)); // step: 2471
+		fConst488 = (1.0f / (((fConst445 + 0.51247865f) / fConst444) + 0.6896214f)); // step: 2475
+		fConst489 = (1.0f / (((fConst445 + 0.78241307f) / fConst444) + 0.2452915f)); // step: 2479
+		fConst490 = (((fConst445 + -0.78241307f) / fConst444) + 0.2452915f); // step: 2483
+		fConst491 = (2.0f * (0.2452915f - fConst467)); // step: 2487
+		fConst492 = (0.0001f / fConst466); // step: 2494
+		fConst493 = (fConst492 + 0.0004332272f); // step: 2495
+		fConst494 = (2.0f * (0.0004332272f - fConst492)); // step: 2498
+		fConst495 = (((fConst445 + -0.51247865f) / fConst444) + 0.6896214f); // step: 2507
+		fConst496 = (2.0f * (0.6896214f - fConst467)); // step: 2511
+		fConst497 = (fConst467 + 7.6217313f); // step: 2518
+		fConst498 = (2.0f * (7.6217313f - fConst467)); // step: 2521
+		fConst499 = (((fConst445 + -0.16840488f) / fConst444) + 1.0693583f); // step: 2530
+		fConst500 = (2.0f * (1.0693583f - fConst467)); // step: 2534
+		fConst501 = (fConst467 + 53.53615f); // step: 2541
+		fConst502 = (2.0f * (53.53615f - fConst467)); // step: 2544
+		fConst503 = (((fConst483 + -3.1897273f) / fConst482) + 4.0767817f); // step: 2553
+		fConst504 = powf(fConst482,2.0f); // step: 2556
+		fConst505 = (1.0f / fConst504); // step: 2557
+		fConst506 = (2.0f * (4.0767817f - fConst505)); // step: 2559
+		fConst507 = (0.0017661728f / fConst504); // step: 2566
+		fConst508 = (fConst507 + 0.0004076782f); // step: 2567
+		fConst509 = (2.0f * (0.0004076782f - fConst507)); // step: 2570
+		fConst510 = (((fConst483 + -0.74313045f) / fConst482) + 1.4500711f); // step: 2579
+		fConst511 = (2.0f * (1.4500711f - fConst505)); // step: 2583
+		fConst512 = (11.0520525f / fConst504); // step: 2590
+		fConst513 = (fConst512 + 1.4500711f); // step: 2591
+		fConst514 = (2.0f * (1.4500711f - fConst512)); // step: 2594
+		fConst515 = (((fConst483 + -0.15748216f) / fConst482) + 0.9351402f); // step: 2603
+		fConst516 = (2.0f * (0.9351402f - fConst505)); // step: 2607
+		fConst517 = (50.06381f / fConst504); // step: 2614
+		fConst518 = (fConst517 + 0.9351402f); // step: 2615
+		fConst519 = (2.0f * (0.9351402f - fConst517)); // step: 2618
+		fConst520 = (1.0f / (((fConst483 + 0.16840488f) / fConst482) + 1.0693583f)); // step: 2639
+		fConst521 = (1.0f / (((fConst483 + 0.51247865f) / fConst482) + 0.6896214f)); // step: 2643
+		fConst522 = (1.0f / (((fConst483 + 0.78241307f) / fConst482) + 0.2452915f)); // step: 2647
+		fConst523 = (((fConst483 + -0.78241307f) / fConst482) + 0.2452915f); // step: 2651
+		fConst524 = (2.0f * (0.2452915f - fConst505)); // step: 2655
+		fConst525 = (0.0001f / fConst504); // step: 2662
+		fConst526 = (fConst525 + 0.0004332272f); // step: 2663
+		fConst527 = (2.0f * (0.0004332272f - fConst525)); // step: 2666
+		fConst528 = (((fConst483 + -0.51247865f) / fConst482) + 0.6896214f); // step: 2675
+		fConst529 = (2.0f * (0.6896214f - fConst505)); // step: 2679
+		fConst530 = (fConst505 + 7.6217313f); // step: 2686
+		fConst531 = (2.0f * (7.6217313f - fConst505)); // step: 2689
+		fConst532 = (((fConst483 + -0.16840488f) / fConst482) + 1.0693583f); // step: 2698
+		fConst533 = (2.0f * (1.0693583f - fConst505)); // step: 2702
+		fConst534 = (fConst505 + 53.53615f); // step: 2709
+		fConst535 = (2.0f * (53.53615f - fConst505)); // step: 2712
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 0.1f;
+		fslider1 = 49.0f;
+		fslider2 = -2e+01f;
+		fslider3 = 0.0f;
+		fcheckbox0 = 0.0;
+		fslider4 = 0.0f;
+		fslider5 = 5e+01f;
+		fslider6 = 1e+02f;
+	}
+	virtual void instanceClear() {
+		iVec0State = 0;
+		fVeeec0State = 0;
+		fVeeec4State = 0;
+		fVeeec5State = 0;
+		fVeeec2State = 0;
+		fVeeec9State = 0;
+		fVeeec11State = 0;
+		fVec1State = 0;
+		fVeeec8State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec16State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec19State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec22State[j] = 0; }
+		fVeeec15State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec27State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec30State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec33State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec36State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec39State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec42State[j] = 0; }
+		fVeeec26State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec47State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec50State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec53State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec56State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec59State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec62State[j] = 0; }
+		fVeeec46State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec67State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec70State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec73State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec76State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec79State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec82State[j] = 0; }
+		fVeeec66State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec87State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec90State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec93State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec96State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec99State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec102State[j] = 0; }
+		fVeeec86State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec107State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec110State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec113State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec116State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec119State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec122State[j] = 0; }
+		fVeeec106State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec127State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec130State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec133State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec136State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec139State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec142State[j] = 0; }
+		fVeeec126State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec147State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec150State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec153State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec156State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec159State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec162State[j] = 0; }
+		fVeeec146State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec167State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec170State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec173State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec176State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec179State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec182State[j] = 0; }
+		fVeeec166State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec187State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec190State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec193State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec196State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec199State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec202State[j] = 0; }
+		fVeeec186State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec207State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec210State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec213State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec216State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec219State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec222State[j] = 0; }
+		fVeeec206State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec227State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec230State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec233State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec236State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec239State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec242State[j] = 0; }
+		fVeeec226State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec247State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec250State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec253State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec256State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec259State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec262State[j] = 0; }
+		fVeeec246State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec267State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec270State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec273State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec276State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec279State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec282State[j] = 0; }
+		fVeeec266State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec287State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec290State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec293State[j] = 0; }
+		fVeeec286State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("cubic_distortion");
+		ui_interface->declare(0, "1", "");
+		ui_interface->openVerticalBox("0x00");
+		ui_interface->declare(0, "0", "");
+		ui_interface->declare(0, "tooltip", "Sine oscillator based on 2D vector rotation");
+		ui_interface->openVerticalBox("SINE WAVE OSCILLATOR oscrs");
+		ui_interface->declare(&fslider2, "1", "");
+		ui_interface->declare(&fslider2, "tooltip", "Sawtooth waveform amplitude");
+		ui_interface->declare(&fslider2, "unit", "dB");
+		ui_interface->addHorizontalSlider("Amplitude", &fslider2, -2e+01f, -1.2e+02f, 1e+01f, 0.1f);
+		ui_interface->declare(&fslider1, "2", "");
+		ui_interface->declare(&fslider1, "tooltip", "Sine wave frequency as a Piano Key (PK) number (A440 = 49 PK)");
+		ui_interface->declare(&fslider1, "unit", "PK");
+		ui_interface->addHorizontalSlider("Frequency", &fslider1, 49.0f, 1.0f, 88.0f, 0.01f);
+		ui_interface->declare(&fslider0, "3", "");
+		ui_interface->declare(&fslider0, "scale", "log");
+		ui_interface->declare(&fslider0, "tooltip", "Portamento (frequency-glide) time-constant in seconds");
+		ui_interface->declare(&fslider0, "unit", "sec");
+		ui_interface->addHorizontalSlider("Portamento", &fslider0, 0.1f, 0.001f, 1e+01f, 0.001f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+		ui_interface->declare(0, "2", "");
+		ui_interface->openVerticalBox("0x00");
+		ui_interface->declare(0, "tooltip", "Reference:          https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html");
+		ui_interface->openVerticalBox("CUBIC NONLINEARITY cubicnl");
+		ui_interface->declare(&fcheckbox0, "0", "");
+		ui_interface->declare(&fcheckbox0, "tooltip", "When this is checked, the nonlinearity has no effect");
+		ui_interface->addCheckButton("Bypass", &fcheckbox0);
+		ui_interface->declare(&fslider4, "1", "");
+		ui_interface->declare(&fslider4, "tooltip", "Amount of distortion");
+		ui_interface->addHorizontalSlider("Drive", &fslider4, 0.0f, 0.0f, 1.0f, 0.01f);
+		ui_interface->declare(&fslider3, "2", "");
+		ui_interface->declare(&fslider3, "tooltip", "Brings in even harmonics");
+		ui_interface->addHorizontalSlider("Offset", &fslider3, 0.0f, 0.0f, 1.0f, 0.01f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+		ui_interface->declare(0, "3", "");
+		ui_interface->openVerticalBox("0x00");
+		ui_interface->declare(0, "0", "");
+		ui_interface->declare(0, "tooltip", "See Faust's filter.lib for documentation and references");
+		ui_interface->openHorizontalBox("CONSTANT-Q SPECTRUM ANALYZER (6E), 15 bands spanning LP, 9 octaves below 16000 Hz, HP");
+		ui_interface->declare(&fbargraph14, "0", "");
+		ui_interface->declare(&fbargraph14, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph14, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph0", &fbargraph14, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph13, "1", "");
+		ui_interface->declare(&fbargraph13, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph13, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph1", &fbargraph13, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph12, "2", "");
+		ui_interface->declare(&fbargraph12, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph12, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph2", &fbargraph12, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph11, "3", "");
+		ui_interface->declare(&fbargraph11, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph11, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph3", &fbargraph11, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph10, "4", "");
+		ui_interface->declare(&fbargraph10, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph10, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph4", &fbargraph10, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph9, "5", "");
+		ui_interface->declare(&fbargraph9, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph9, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph5", &fbargraph9, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph8, "6", "");
+		ui_interface->declare(&fbargraph8, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph8, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph6", &fbargraph8, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph7, "7", "");
+		ui_interface->declare(&fbargraph7, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph7, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph7", &fbargraph7, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph6, "8", "");
+		ui_interface->declare(&fbargraph6, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph6, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph8", &fbargraph6, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph5, "9", "");
+		ui_interface->declare(&fbargraph5, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph5, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph9", &fbargraph5, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph4, "10", "");
+		ui_interface->declare(&fbargraph4, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph4, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph10", &fbargraph4, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph3, "11", "");
+		ui_interface->declare(&fbargraph3, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph3, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph11", &fbargraph3, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph2, "12", "");
+		ui_interface->declare(&fbargraph2, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph2, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph12", &fbargraph2, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph1, "13", "");
+		ui_interface->declare(&fbargraph1, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph1, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph13", &fbargraph1, -5e+01f, 1e+01f);
+		ui_interface->declare(&fbargraph0, "14", "");
+		ui_interface->declare(&fbargraph0, "tooltip", "Spectral Band Level in dB");
+		ui_interface->declare(&fbargraph0, "unit", "dB");
+		ui_interface->addVerticalBargraph("vbargraph14", &fbargraph0, -5e+01f, 1e+01f);
+		ui_interface->closeBox();
+		ui_interface->declare(0, "1", "");
+		ui_interface->openHorizontalBox("SPECTRUM ANALYZER CONTROLS");
+		ui_interface->declare(&fslider6, "0", "");
+		ui_interface->declare(&fslider6, "scale", "log");
+		ui_interface->declare(&fslider6, "tooltip", "band-level averaging time in milliseconds");
+		ui_interface->declare(&fslider6, "unit", "ms");
+		ui_interface->addHorizontalSlider("Level Averaging Time", &fslider6, 1e+02f, 1.0f, 1e+04f, 1.0f);
+		ui_interface->declare(&fslider5, "1", "");
+		ui_interface->declare(&fslider5, "tooltip", "Level offset in decibels");
+		ui_interface->declare(&fslider5, "unit", "dB");
+		ui_interface->addHorizontalSlider("Level dB Offset", &fslider5, 5e+01f, 0.0f, 1e+02f, 1.0f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVec0[2];
+		float 	fSlow0 = ((1) ? expf(-(fConst1 / float(fslider0))) : 0.0f); // step: 17
+		float 	fSlow1 = ((4.4e+02f * powf(2.0f,(0.083333336f * (float(fslider1) + -49.0f)))) * (1.0f - fSlow0)); // step: 29
+		float 	fVeeec0;
+		float 	fVeeec4[2];
+		float 	fSlow2 = (0.001f * powf(1e+01f,(0.05f * float(fslider2)))); // step: 57
+		float 	fVeeec5;
+		float 	fVeeec2[2];
+		float 	fSlow3 = (0.001f * float(fslider3)); // step: 73
+		float 	fVeeec9;
+		int 	iSlow4 = int(float(fcheckbox0)); // step: 78
+		float 	fSlow5 = (0.001f * float(fslider4)); // step: 83
+		float 	fVeeec11;
+		float 	fVec1[2];
+		float 	fVeeec8;
+		float 	fSlow6 = float(fslider5); // step: 104
+		float 	fSlow7 = ((1) ? expf(-(fConst3 / float(fslider6))) : 0.0f); // step: 113
+		float 	fVeeec16[3];
+		float 	fVeeec19[3];
+		float 	fVeeec22[3];
+		float 	fSlow8 = (1.0f - fSlow7); // step: 220
+		float 	fVeeec15;
+		float 	fVeeec27[3];
+		float 	fVeeec30[3];
+		float 	fVeeec33[3];
+		float 	fVeeec36[3];
+		float 	fVeeec39[3];
+		float 	fVeeec42[3];
+		float 	fVeeec26;
+		float 	fVeeec47[3];
+		float 	fVeeec50[3];
+		float 	fVeeec53[3];
+		float 	fVeeec56[3];
+		float 	fVeeec59[3];
+		float 	fVeeec62[3];
+		float 	fVeeec46;
+		float 	fVeeec67[3];
+		float 	fVeeec70[3];
+		float 	fVeeec73[3];
+		float 	fVeeec76[3];
+		float 	fVeeec79[3];
+		float 	fVeeec82[3];
+		float 	fVeeec66;
+		float 	fVeeec87[3];
+		float 	fVeeec90[3];
+		float 	fVeeec93[3];
+		float 	fVeeec96[3];
+		float 	fVeeec99[3];
+		float 	fVeeec102[3];
+		float 	fVeeec86;
+		float 	fVeeec107[3];
+		float 	fVeeec110[3];
+		float 	fVeeec113[3];
+		float 	fVeeec116[3];
+		float 	fVeeec119[3];
+		float 	fVeeec122[3];
+		float 	fVeeec106;
+		float 	fVeeec127[3];
+		float 	fVeeec130[3];
+		float 	fVeeec133[3];
+		float 	fVeeec136[3];
+		float 	fVeeec139[3];
+		float 	fVeeec142[3];
+		float 	fVeeec126;
+		float 	fVeeec147[3];
+		float 	fVeeec150[3];
+		float 	fVeeec153[3];
+		float 	fVeeec156[3];
+		float 	fVeeec159[3];
+		float 	fVeeec162[3];
+		float 	fVeeec146;
+		float 	fVeeec167[3];
+		float 	fVeeec170[3];
+		float 	fVeeec173[3];
+		float 	fVeeec176[3];
+		float 	fVeeec179[3];
+		float 	fVeeec182[3];
+		float 	fVeeec166;
+		float 	fVeeec187[3];
+		float 	fVeeec190[3];
+		float 	fVeeec193[3];
+		float 	fVeeec196[3];
+		float 	fVeeec199[3];
+		float 	fVeeec202[3];
+		float 	fVeeec186;
+		float 	fVeeec207[3];
+		float 	fVeeec210[3];
+		float 	fVeeec213[3];
+		float 	fVeeec216[3];
+		float 	fVeeec219[3];
+		float 	fVeeec222[3];
+		float 	fVeeec206;
+		float 	fVeeec227[3];
+		float 	fVeeec230[3];
+		float 	fVeeec233[3];
+		float 	fVeeec236[3];
+		float 	fVeeec239[3];
+		float 	fVeeec242[3];
+		float 	fVeeec226;
+		float 	fVeeec247[3];
+		float 	fVeeec250[3];
+		float 	fVeeec253[3];
+		float 	fVeeec256[3];
+		float 	fVeeec259[3];
+		float 	fVeeec262[3];
+		float 	fVeeec246;
+		float 	fVeeec267[3];
+		float 	fVeeec270[3];
+		float 	fVeeec273[3];
+		float 	fVeeec276[3];
+		float 	fVeeec279[3];
+		float 	fVeeec282[3];
+		float 	fVeeec266;
+		float 	fVeeec287[3];
+		float 	fVeeec290[3];
+		float 	fVeeec293[3];
+		float 	fVeeec286;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			iVec0[1] = iVec0State;
+			fVeeec0 = fVeeec0State;
+			fVeeec4[1] = fVeeec4State;
+			fVeeec5 = fVeeec5State;
+			fVeeec2[1] = fVeeec2State;
+			fVeeec9 = fVeeec9State;
+			fVeeec11 = fVeeec11State;
+			fVec1[1] = fVec1State;
+			fVeeec8 = fVeeec8State;
+			fVeeec16[1] = fVeeec16State[0];
+			fVeeec16[2] = fVeeec16State[1];
+			fVeeec19[1] = fVeeec19State[0];
+			fVeeec19[2] = fVeeec19State[1];
+			fVeeec22[1] = fVeeec22State[0];
+			fVeeec22[2] = fVeeec22State[1];
+			fVeeec15 = fVeeec15State;
+			fVeeec27[1] = fVeeec27State[0];
+			fVeeec27[2] = fVeeec27State[1];
+			fVeeec30[1] = fVeeec30State[0];
+			fVeeec30[2] = fVeeec30State[1];
+			fVeeec33[1] = fVeeec33State[0];
+			fVeeec33[2] = fVeeec33State[1];
+			fVeeec36[1] = fVeeec36State[0];
+			fVeeec36[2] = fVeeec36State[1];
+			fVeeec39[1] = fVeeec39State[0];
+			fVeeec39[2] = fVeeec39State[1];
+			fVeeec42[1] = fVeeec42State[0];
+			fVeeec42[2] = fVeeec42State[1];
+			fVeeec26 = fVeeec26State;
+			fVeeec47[1] = fVeeec47State[0];
+			fVeeec47[2] = fVeeec47State[1];
+			fVeeec50[1] = fVeeec50State[0];
+			fVeeec50[2] = fVeeec50State[1];
+			fVeeec53[1] = fVeeec53State[0];
+			fVeeec53[2] = fVeeec53State[1];
+			fVeeec56[1] = fVeeec56State[0];
+			fVeeec56[2] = fVeeec56State[1];
+			fVeeec59[1] = fVeeec59State[0];
+			fVeeec59[2] = fVeeec59State[1];
+			fVeeec62[1] = fVeeec62State[0];
+			fVeeec62[2] = fVeeec62State[1];
+			fVeeec46 = fVeeec46State;
+			fVeeec67[1] = fVeeec67State[0];
+			fVeeec67[2] = fVeeec67State[1];
+			fVeeec70[1] = fVeeec70State[0];
+			fVeeec70[2] = fVeeec70State[1];
+			fVeeec73[1] = fVeeec73State[0];
+			fVeeec73[2] = fVeeec73State[1];
+			fVeeec76[1] = fVeeec76State[0];
+			fVeeec76[2] = fVeeec76State[1];
+			fVeeec79[1] = fVeeec79State[0];
+			fVeeec79[2] = fVeeec79State[1];
+			fVeeec82[1] = fVeeec82State[0];
+			fVeeec82[2] = fVeeec82State[1];
+			fVeeec66 = fVeeec66State;
+			fVeeec87[1] = fVeeec87State[0];
+			fVeeec87[2] = fVeeec87State[1];
+			fVeeec90[1] = fVeeec90State[0];
+			fVeeec90[2] = fVeeec90State[1];
+			fVeeec93[1] = fVeeec93State[0];
+			fVeeec93[2] = fVeeec93State[1];
+			fVeeec96[1] = fVeeec96State[0];
+			fVeeec96[2] = fVeeec96State[1];
+			fVeeec99[1] = fVeeec99State[0];
+			fVeeec99[2] = fVeeec99State[1];
+			fVeeec102[1] = fVeeec102State[0];
+			fVeeec102[2] = fVeeec102State[1];
+			fVeeec86 = fVeeec86State;
+			fVeeec107[1] = fVeeec107State[0];
+			fVeeec107[2] = fVeeec107State[1];
+			fVeeec110[1] = fVeeec110State[0];
+			fVeeec110[2] = fVeeec110State[1];
+			fVeeec113[1] = fVeeec113State[0];
+			fVeeec113[2] = fVeeec113State[1];
+			fVeeec116[1] = fVeeec116State[0];
+			fVeeec116[2] = fVeeec116State[1];
+			fVeeec119[1] = fVeeec119State[0];
+			fVeeec119[2] = fVeeec119State[1];
+			fVeeec122[1] = fVeeec122State[0];
+			fVeeec122[2] = fVeeec122State[1];
+			fVeeec106 = fVeeec106State;
+			fVeeec127[1] = fVeeec127State[0];
+			fVeeec127[2] = fVeeec127State[1];
+			fVeeec130[1] = fVeeec130State[0];
+			fVeeec130[2] = fVeeec130State[1];
+			fVeeec133[1] = fVeeec133State[0];
+			fVeeec133[2] = fVeeec133State[1];
+			fVeeec136[1] = fVeeec136State[0];
+			fVeeec136[2] = fVeeec136State[1];
+			fVeeec139[1] = fVeeec139State[0];
+			fVeeec139[2] = fVeeec139State[1];
+			fVeeec142[1] = fVeeec142State[0];
+			fVeeec142[2] = fVeeec142State[1];
+			fVeeec126 = fVeeec126State;
+			fVeeec147[1] = fVeeec147State[0];
+			fVeeec147[2] = fVeeec147State[1];
+			fVeeec150[1] = fVeeec150State[0];
+			fVeeec150[2] = fVeeec150State[1];
+			fVeeec153[1] = fVeeec153State[0];
+			fVeeec153[2] = fVeeec153State[1];
+			fVeeec156[1] = fVeeec156State[0];
+			fVeeec156[2] = fVeeec156State[1];
+			fVeeec159[1] = fVeeec159State[0];
+			fVeeec159[2] = fVeeec159State[1];
+			fVeeec162[1] = fVeeec162State[0];
+			fVeeec162[2] = fVeeec162State[1];
+			fVeeec146 = fVeeec146State;
+			fVeeec167[1] = fVeeec167State[0];
+			fVeeec167[2] = fVeeec167State[1];
+			fVeeec170[1] = fVeeec170State[0];
+			fVeeec170[2] = fVeeec170State[1];
+			fVeeec173[1] = fVeeec173State[0];
+			fVeeec173[2] = fVeeec173State[1];
+			fVeeec176[1] = fVeeec176State[0];
+			fVeeec176[2] = fVeeec176State[1];
+			fVeeec179[1] = fVeeec179State[0];
+			fVeeec179[2] = fVeeec179State[1];
+			fVeeec182[1] = fVeeec182State[0];
+			fVeeec182[2] = fVeeec182State[1];
+			fVeeec166 = fVeeec166State;
+			fVeeec187[1] = fVeeec187State[0];
+			fVeeec187[2] = fVeeec187State[1];
+			fVeeec190[1] = fVeeec190State[0];
+			fVeeec190[2] = fVeeec190State[1];
+			fVeeec193[1] = fVeeec193State[0];
+			fVeeec193[2] = fVeeec193State[1];
+			fVeeec196[1] = fVeeec196State[0];
+			fVeeec196[2] = fVeeec196State[1];
+			fVeeec199[1] = fVeeec199State[0];
+			fVeeec199[2] = fVeeec199State[1];
+			fVeeec202[1] = fVeeec202State[0];
+			fVeeec202[2] = fVeeec202State[1];
+			fVeeec186 = fVeeec186State;
+			fVeeec207[1] = fVeeec207State[0];
+			fVeeec207[2] = fVeeec207State[1];
+			fVeeec210[1] = fVeeec210State[0];
+			fVeeec210[2] = fVeeec210State[1];
+			fVeeec213[1] = fVeeec213State[0];
+			fVeeec213[2] = fVeeec213State[1];
+			fVeeec216[1] = fVeeec216State[0];
+			fVeeec216[2] = fVeeec216State[1];
+			fVeeec219[1] = fVeeec219State[0];
+			fVeeec219[2] = fVeeec219State[1];
+			fVeeec222[1] = fVeeec222State[0];
+			fVeeec222[2] = fVeeec222State[1];
+			fVeeec206 = fVeeec206State;
+			fVeeec227[1] = fVeeec227State[0];
+			fVeeec227[2] = fVeeec227State[1];
+			fVeeec230[1] = fVeeec230State[0];
+			fVeeec230[2] = fVeeec230State[1];
+			fVeeec233[1] = fVeeec233State[0];
+			fVeeec233[2] = fVeeec233State[1];
+			fVeeec236[1] = fVeeec236State[0];
+			fVeeec236[2] = fVeeec236State[1];
+			fVeeec239[1] = fVeeec239State[0];
+			fVeeec239[2] = fVeeec239State[1];
+			fVeeec242[1] = fVeeec242State[0];
+			fVeeec242[2] = fVeeec242State[1];
+			fVeeec226 = fVeeec226State;
+			fVeeec247[1] = fVeeec247State[0];
+			fVeeec247[2] = fVeeec247State[1];
+			fVeeec250[1] = fVeeec250State[0];
+			fVeeec250[2] = fVeeec250State[1];
+			fVeeec253[1] = fVeeec253State[0];
+			fVeeec253[2] = fVeeec253State[1];
+			fVeeec256[1] = fVeeec256State[0];
+			fVeeec256[2] = fVeeec256State[1];
+			fVeeec259[1] = fVeeec259State[0];
+			fVeeec259[2] = fVeeec259State[1];
+			fVeeec262[1] = fVeeec262State[0];
+			fVeeec262[2] = fVeeec262State[1];
+			fVeeec246 = fVeeec246State;
+			fVeeec267[1] = fVeeec267State[0];
+			fVeeec267[2] = fVeeec267State[1];
+			fVeeec270[1] = fVeeec270State[0];
+			fVeeec270[2] = fVeeec270State[1];
+			fVeeec273[1] = fVeeec273State[0];
+			fVeeec273[2] = fVeeec273State[1];
+			fVeeec276[1] = fVeeec276State[0];
+			fVeeec276[2] = fVeeec276State[1];
+			fVeeec279[1] = fVeeec279State[0];
+			fVeeec279[2] = fVeeec279State[1];
+			fVeeec282[1] = fVeeec282State[0];
+			fVeeec282[2] = fVeeec282State[1];
+			fVeeec266 = fVeeec266State;
+			fVeeec287[1] = fVeeec287State[0];
+			fVeeec287[2] = fVeeec287State[1];
+			fVeeec290[1] = fVeeec290State[0];
+			fVeeec290[2] = fVeeec290State[1];
+			fVeeec293[1] = fVeeec293State[0];
+			fVeeec293[2] = fVeeec293State[1];
+			fVeeec286 = fVeeec286State;
+			for (int i=0; i<count; i++) {
+				iVec0[0] = 1;
+				fVeeec0 = ((fVeeec0 * fSlow0) + fSlow1);
+				float 	fTemp0 = (fConst2 * fVeeec0); // step: 35
+				float 	fTemp1 = sinf(fTemp0); // step: 36
+				float 	fTemp2 = fVeeec2[1]; // step: 37
+				float 	fTemp3 = fVeeec4[1]; // step: 42
+				float 	fTemp4 = cosf(fTemp0); // step: 43
+				fVeeec4[0] = ((float((1 - iVec0[1])) + (fTemp3 * fTemp4)) - (fTemp1 * fTemp2));
+				fVeeec5 = (fSlow2 + (0.999f * fVeeec5));
+				fVeeec2[0] = ((fTemp3 * fTemp1) + (fTemp2 * fTemp4));
+				float 	fTemp5 = (fVeeec5 * fVeeec2[0]); // step: 66
+				fVeeec9 = (fSlow3 + (0.999f * fVeeec9));
+				fVeeec11 = (fSlow5 + (0.999f * fVeeec11));
+				float 	fTemp6 = max(-1.0f, min(1.0f, (fVeeec9 + (((iSlow4) ? 0.0f : fTemp5) * powf(1e+01f,(2.0f * fVeeec11)))))); // step: 92
+				float 	fTemp7 = (fTemp6 * (1.0f - (0.33333334f * powf(fTemp6,2.0f)))); // step: 97
+				fVec1[0] = fTemp7;
+				fVeeec8 = (((0.995f * fVeeec8) + fVec1[0]) - fVec1[1]);
+				float 	fTemp8 = ((iSlow4) ? fTemp5 : fVeeec8); // step: 103
+				float 	fTemp9 = fVeeec16[2]; // step: 138
+				float 	fTemp10 = fVeeec16[1]; // step: 144
+				fVeeec16[0] = (fTemp8 - (fConst8 * ((fConst9 * fTemp9) + (fConst12 * fTemp10))));
+				float 	fTemp11 = fVeeec19[2]; // step: 167
+				float 	fTemp12 = fVeeec19[1]; // step: 173
+				fVeeec19[0] = ((fConst8 * (((fConst14 * fVeeec16[0]) + (fConst15 * fTemp10)) + (fConst14 * fTemp9))) - (fConst7 * ((fConst16 * fTemp11) + (fConst17 * fTemp12))));
+				float 	fTemp13 = fVeeec22[2]; // step: 193
+				float 	fTemp14 = fVeeec22[1]; // step: 199
+				fVeeec22[0] = ((fConst7 * (((fConst19 * fVeeec19[0]) + (fConst20 * fTemp12)) + (fConst19 * fTemp11))) - (fConst6 * ((fConst21 * fTemp13) + (fConst22 * fTemp14))));
+				fVeeec15 = ((fVeeec15 * fSlow7) + (fabsf((fConst6 * (((fConst24 * fVeeec22[0]) + (fConst25 * fTemp14)) + (fConst24 * fTemp13)))) * fSlow8));
+				fbargraph0 = (fSlow6 + (2e+01f * log10f(fVeeec15)));
+				float 	fTemp15 = fVeeec27[2]; // step: 265
+				float 	fTemp16 = fVeeec27[1]; // step: 271
+				fVeeec27[0] = (fTemp8 - (fConst33 * ((fConst34 * fTemp15) + (fConst35 * fTemp16))));
+				float 	fTemp17 = fVeeec30[2]; // step: 292
+				float 	fTemp18 = fVeeec30[1]; // step: 298
+				fVeeec30[0] = ((fConst33 * (((fConst37 * fVeeec27[0]) + (fConst38 * fTemp16)) + (fConst37 * fTemp15))) - (fConst32 * ((fConst39 * fTemp17) + (fConst40 * fTemp18))));
+				float 	fTemp19 = fVeeec33[2]; // step: 317
+				float 	fTemp20 = fVeeec33[1]; // step: 323
+				fVeeec33[0] = ((fConst32 * (((fConst41 * fVeeec30[0]) + (fConst42 * fTemp18)) + (fConst41 * fTemp17))) - (fConst31 * ((fConst43 * fTemp19) + (fConst44 * fTemp20))));
+				float 	fTemp21 = (fConst31 * (((fConst45 * fVeeec33[0]) + (fConst46 * fTemp20)) + (fConst45 * fTemp19))); // step: 341
+				float 	fTemp22 = fVeeec36[2]; // step: 342
+				float 	fTemp23 = fVeeec36[1]; // step: 347
+				fVeeec36[0] = (fTemp21 - (fConst30 * ((fConst47 * fTemp22) + (fConst50 * fTemp23))));
+				float 	fTemp24 = fVeeec39[2]; // step: 368
+				float 	fTemp25 = fVeeec39[1]; // step: 373
+				fVeeec39[0] = ((fConst30 * (((fConst52 * fVeeec36[0]) + (fConst53 * fTemp23)) + (fConst52 * fTemp22))) - (fConst29 * ((fConst54 * fTemp24) + (fConst55 * fTemp25))));
+				float 	fTemp26 = fVeeec42[2]; // step: 392
+				float 	fTemp27 = fVeeec42[1]; // step: 397
+				fVeeec42[0] = ((fConst29 * (((fConst57 * fVeeec39[0]) + (fConst58 * fTemp25)) + (fConst57 * fTemp24))) - (fConst28 * ((fConst59 * fTemp26) + (fConst60 * fTemp27))));
+				fVeeec26 = ((fSlow7 * fVeeec26) + (fSlow8 * fabsf((fConst28 * (((fConst62 * fVeeec42[0]) + (fConst63 * fTemp27)) + (fConst62 * fTemp26))))));
+				fbargraph1 = (fSlow6 + (2e+01f * log10f(fVeeec26)));
+				float 	fTemp28 = fVeeec47[2]; // step: 456
+				float 	fTemp29 = fVeeec47[1]; // step: 461
+				fVeeec47[0] = (fTemp21 - (fConst71 * ((fConst72 * fTemp28) + (fConst73 * fTemp29))));
+				float 	fTemp30 = fVeeec50[2]; // step: 480
+				float 	fTemp31 = fVeeec50[1]; // step: 485
+				fVeeec50[0] = ((fConst71 * (((fConst75 * fVeeec47[0]) + (fConst76 * fTemp29)) + (fConst75 * fTemp28))) - (fConst70 * ((fConst77 * fTemp30) + (fConst78 * fTemp31))));
+				float 	fTemp32 = fVeeec53[2]; // step: 503
+				float 	fTemp33 = fVeeec53[1]; // step: 508
+				fVeeec53[0] = ((fConst70 * (((fConst79 * fVeeec50[0]) + (fConst80 * fTemp31)) + (fConst79 * fTemp30))) - (fConst69 * ((fConst81 * fTemp32) + (fConst82 * fTemp33))));
+				float 	fTemp34 = (fConst69 * (((fConst83 * fVeeec53[0]) + (fConst84 * fTemp33)) + (fConst83 * fTemp32))); // step: 525
+				float 	fTemp35 = fVeeec56[2]; // step: 526
+				float 	fTemp36 = fVeeec56[1]; // step: 531
+				fVeeec56[0] = (fTemp34 - (fConst68 * ((fConst85 * fTemp35) + (fConst88 * fTemp36))));
+				float 	fTemp37 = fVeeec59[2]; // step: 552
+				float 	fTemp38 = fVeeec59[1]; // step: 557
+				fVeeec59[0] = ((fConst68 * (((fConst90 * fVeeec56[0]) + (fConst91 * fTemp36)) + (fConst90 * fTemp35))) - (fConst67 * ((fConst92 * fTemp37) + (fConst93 * fTemp38))));
+				float 	fTemp39 = fVeeec62[2]; // step: 576
+				float 	fTemp40 = fVeeec62[1]; // step: 581
+				fVeeec62[0] = ((fConst67 * (((fConst95 * fVeeec59[0]) + (fConst96 * fTemp38)) + (fConst95 * fTemp37))) - (fConst66 * ((fConst97 * fTemp39) + (fConst98 * fTemp40))));
+				fVeeec46 = ((fSlow7 * fVeeec46) + (fSlow8 * fabsf((fConst66 * (((fConst100 * fVeeec62[0]) + (fConst101 * fTemp40)) + (fConst100 * fTemp39))))));
+				fbargraph2 = (fSlow6 + (2e+01f * log10f(fVeeec46)));
+				float 	fTemp41 = fVeeec67[2]; // step: 640
+				float 	fTemp42 = fVeeec67[1]; // step: 645
+				fVeeec67[0] = (fTemp34 - (fConst109 * ((fConst110 * fTemp41) + (fConst111 * fTemp42))));
+				float 	fTemp43 = fVeeec70[2]; // step: 664
+				float 	fTemp44 = fVeeec70[1]; // step: 669
+				fVeeec70[0] = ((fConst109 * (((fConst113 * fVeeec67[0]) + (fConst114 * fTemp42)) + (fConst113 * fTemp41))) - (fConst108 * ((fConst115 * fTemp43) + (fConst116 * fTemp44))));
+				float 	fTemp45 = fVeeec73[2]; // step: 687
+				float 	fTemp46 = fVeeec73[1]; // step: 692
+				fVeeec73[0] = ((fConst108 * (((fConst117 * fVeeec70[0]) + (fConst118 * fTemp44)) + (fConst117 * fTemp43))) - (fConst107 * ((fConst119 * fTemp45) + (fConst120 * fTemp46))));
+				float 	fTemp47 = (fConst107 * (((fConst121 * fVeeec73[0]) + (fConst122 * fTemp46)) + (fConst121 * fTemp45))); // step: 709
+				float 	fTemp48 = fVeeec76[2]; // step: 710
+				float 	fTemp49 = fVeeec76[1]; // step: 715
+				fVeeec76[0] = (fTemp47 - (fConst106 * ((fConst123 * fTemp48) + (fConst126 * fTemp49))));
+				float 	fTemp50 = fVeeec79[2]; // step: 736
+				float 	fTemp51 = fVeeec79[1]; // step: 741
+				fVeeec79[0] = ((fConst106 * (((fConst128 * fVeeec76[0]) + (fConst129 * fTemp49)) + (fConst128 * fTemp48))) - (fConst105 * ((fConst130 * fTemp50) + (fConst131 * fTemp51))));
+				float 	fTemp52 = fVeeec82[2]; // step: 760
+				float 	fTemp53 = fVeeec82[1]; // step: 765
+				fVeeec82[0] = ((fConst105 * (((fConst133 * fVeeec79[0]) + (fConst134 * fTemp51)) + (fConst133 * fTemp50))) - (fConst104 * ((fConst135 * fTemp52) + (fConst136 * fTemp53))));
+				fVeeec66 = ((fSlow7 * fVeeec66) + (fSlow8 * fabsf((fConst104 * (((fConst138 * fVeeec82[0]) + (fConst139 * fTemp53)) + (fConst138 * fTemp52))))));
+				fbargraph3 = (fSlow6 + (2e+01f * log10f(fVeeec66)));
+				float 	fTemp54 = fVeeec87[2]; // step: 824
+				float 	fTemp55 = fVeeec87[1]; // step: 829
+				fVeeec87[0] = (fTemp47 - (fConst147 * ((fConst148 * fTemp54) + (fConst149 * fTemp55))));
+				float 	fTemp56 = fVeeec90[2]; // step: 848
+				float 	fTemp57 = fVeeec90[1]; // step: 853
+				fVeeec90[0] = ((fConst147 * (((fConst151 * fVeeec87[0]) + (fConst152 * fTemp55)) + (fConst151 * fTemp54))) - (fConst146 * ((fConst153 * fTemp56) + (fConst154 * fTemp57))));
+				float 	fTemp58 = fVeeec93[2]; // step: 871
+				float 	fTemp59 = fVeeec93[1]; // step: 876
+				fVeeec93[0] = ((fConst146 * (((fConst155 * fVeeec90[0]) + (fConst156 * fTemp57)) + (fConst155 * fTemp56))) - (fConst145 * ((fConst157 * fTemp58) + (fConst158 * fTemp59))));
+				float 	fTemp60 = (fConst145 * (((fConst159 * fVeeec93[0]) + (fConst160 * fTemp59)) + (fConst159 * fTemp58))); // step: 893
+				float 	fTemp61 = fVeeec96[2]; // step: 894
+				float 	fTemp62 = fVeeec96[1]; // step: 899
+				fVeeec96[0] = (fTemp60 - (fConst144 * ((fConst161 * fTemp61) + (fConst164 * fTemp62))));
+				float 	fTemp63 = fVeeec99[2]; // step: 920
+				float 	fTemp64 = fVeeec99[1]; // step: 925
+				fVeeec99[0] = ((fConst144 * (((fConst166 * fVeeec96[0]) + (fConst167 * fTemp62)) + (fConst166 * fTemp61))) - (fConst143 * ((fConst168 * fTemp63) + (fConst169 * fTemp64))));
+				float 	fTemp65 = fVeeec102[2]; // step: 944
+				float 	fTemp66 = fVeeec102[1]; // step: 949
+				fVeeec102[0] = ((fConst143 * (((fConst171 * fVeeec99[0]) + (fConst172 * fTemp64)) + (fConst171 * fTemp63))) - (fConst142 * ((fConst173 * fTemp65) + (fConst174 * fTemp66))));
+				fVeeec86 = ((fSlow7 * fVeeec86) + (fSlow8 * fabsf((fConst142 * (((fConst176 * fVeeec102[0]) + (fConst177 * fTemp66)) + (fConst176 * fTemp65))))));
+				fbargraph4 = (fSlow6 + (2e+01f * log10f(fVeeec86)));
+				float 	fTemp67 = fVeeec107[2]; // step: 1008
+				float 	fTemp68 = fVeeec107[1]; // step: 1013
+				fVeeec107[0] = (fTemp60 - (fConst185 * ((fConst186 * fTemp67) + (fConst187 * fTemp68))));
+				float 	fTemp69 = fVeeec110[2]; // step: 1032
+				float 	fTemp70 = fVeeec110[1]; // step: 1037
+				fVeeec110[0] = ((fConst185 * (((fConst189 * fVeeec107[0]) + (fConst190 * fTemp68)) + (fConst189 * fTemp67))) - (fConst184 * ((fConst191 * fTemp69) + (fConst192 * fTemp70))));
+				float 	fTemp71 = fVeeec113[2]; // step: 1055
+				float 	fTemp72 = fVeeec113[1]; // step: 1060
+				fVeeec113[0] = ((fConst184 * (((fConst193 * fVeeec110[0]) + (fConst194 * fTemp70)) + (fConst193 * fTemp69))) - (fConst183 * ((fConst195 * fTemp71) + (fConst196 * fTemp72))));
+				float 	fTemp73 = (fConst183 * (((fConst197 * fVeeec113[0]) + (fConst198 * fTemp72)) + (fConst197 * fTemp71))); // step: 1077
+				float 	fTemp74 = fVeeec116[2]; // step: 1078
+				float 	fTemp75 = fVeeec116[1]; // step: 1083
+				fVeeec116[0] = (fTemp73 - (fConst182 * ((fConst199 * fTemp74) + (fConst202 * fTemp75))));
+				float 	fTemp76 = fVeeec119[2]; // step: 1104
+				float 	fTemp77 = fVeeec119[1]; // step: 1109
+				fVeeec119[0] = ((fConst182 * (((fConst204 * fVeeec116[0]) + (fConst205 * fTemp75)) + (fConst204 * fTemp74))) - (fConst181 * ((fConst206 * fTemp76) + (fConst207 * fTemp77))));
+				float 	fTemp78 = fVeeec122[2]; // step: 1128
+				float 	fTemp79 = fVeeec122[1]; // step: 1133
+				fVeeec122[0] = ((fConst181 * (((fConst209 * fVeeec119[0]) + (fConst210 * fTemp77)) + (fConst209 * fTemp76))) - (fConst180 * ((fConst211 * fTemp78) + (fConst212 * fTemp79))));
+				fVeeec106 = ((fSlow7 * fVeeec106) + (fSlow8 * fabsf((fConst180 * (((fConst214 * fVeeec122[0]) + (fConst215 * fTemp79)) + (fConst214 * fTemp78))))));
+				fbargraph5 = (fSlow6 + (2e+01f * log10f(fVeeec106)));
+				float 	fTemp80 = fVeeec127[2]; // step: 1192
+				float 	fTemp81 = fVeeec127[1]; // step: 1197
+				fVeeec127[0] = (fTemp73 - (fConst223 * ((fConst224 * fTemp80) + (fConst225 * fTemp81))));
+				float 	fTemp82 = fVeeec130[2]; // step: 1216
+				float 	fTemp83 = fVeeec130[1]; // step: 1221
+				fVeeec130[0] = ((fConst223 * (((fConst227 * fVeeec127[0]) + (fConst228 * fTemp81)) + (fConst227 * fTemp80))) - (fConst222 * ((fConst229 * fTemp82) + (fConst230 * fTemp83))));
+				float 	fTemp84 = fVeeec133[2]; // step: 1239
+				float 	fTemp85 = fVeeec133[1]; // step: 1244
+				fVeeec133[0] = ((fConst222 * (((fConst231 * fVeeec130[0]) + (fConst232 * fTemp83)) + (fConst231 * fTemp82))) - (fConst221 * ((fConst233 * fTemp84) + (fConst234 * fTemp85))));
+				float 	fTemp86 = (fConst221 * (((fConst235 * fVeeec133[0]) + (fConst236 * fTemp85)) + (fConst235 * fTemp84))); // step: 1261
+				float 	fTemp87 = fVeeec136[2]; // step: 1262
+				float 	fTemp88 = fVeeec136[1]; // step: 1267
+				fVeeec136[0] = (fTemp86 - (fConst220 * ((fConst237 * fTemp87) + (fConst240 * fTemp88))));
+				float 	fTemp89 = fVeeec139[2]; // step: 1288
+				float 	fTemp90 = fVeeec139[1]; // step: 1293
+				fVeeec139[0] = ((fConst220 * (((fConst242 * fVeeec136[0]) + (fConst243 * fTemp88)) + (fConst242 * fTemp87))) - (fConst219 * ((fConst244 * fTemp89) + (fConst245 * fTemp90))));
+				float 	fTemp91 = fVeeec142[2]; // step: 1312
+				float 	fTemp92 = fVeeec142[1]; // step: 1317
+				fVeeec142[0] = ((fConst219 * (((fConst247 * fVeeec139[0]) + (fConst248 * fTemp90)) + (fConst247 * fTemp89))) - (fConst218 * ((fConst249 * fTemp91) + (fConst250 * fTemp92))));
+				fVeeec126 = ((fSlow7 * fVeeec126) + (fSlow8 * fabsf((fConst218 * (((fConst252 * fVeeec142[0]) + (fConst253 * fTemp92)) + (fConst252 * fTemp91))))));
+				fbargraph6 = (fSlow6 + (2e+01f * log10f(fVeeec126)));
+				float 	fTemp93 = fVeeec147[2]; // step: 1376
+				float 	fTemp94 = fVeeec147[1]; // step: 1381
+				fVeeec147[0] = (fTemp86 - (fConst261 * ((fConst262 * fTemp93) + (fConst263 * fTemp94))));
+				float 	fTemp95 = fVeeec150[2]; // step: 1400
+				float 	fTemp96 = fVeeec150[1]; // step: 1405
+				fVeeec150[0] = ((fConst261 * (((fConst265 * fVeeec147[0]) + (fConst266 * fTemp94)) + (fConst265 * fTemp93))) - (fConst260 * ((fConst267 * fTemp95) + (fConst268 * fTemp96))));
+				float 	fTemp97 = fVeeec153[2]; // step: 1423
+				float 	fTemp98 = fVeeec153[1]; // step: 1428
+				fVeeec153[0] = ((fConst260 * (((fConst269 * fVeeec150[0]) + (fConst270 * fTemp96)) + (fConst269 * fTemp95))) - (fConst259 * ((fConst271 * fTemp97) + (fConst272 * fTemp98))));
+				float 	fTemp99 = (fConst259 * (((fConst273 * fVeeec153[0]) + (fConst274 * fTemp98)) + (fConst273 * fTemp97))); // step: 1445
+				float 	fTemp100 = fVeeec156[2]; // step: 1446
+				float 	fTemp101 = fVeeec156[1]; // step: 1451
+				fVeeec156[0] = (fTemp99 - (fConst258 * ((fConst275 * fTemp100) + (fConst278 * fTemp101))));
+				float 	fTemp102 = fVeeec159[2]; // step: 1472
+				float 	fTemp103 = fVeeec159[1]; // step: 1477
+				fVeeec159[0] = ((fConst258 * (((fConst280 * fVeeec156[0]) + (fConst281 * fTemp101)) + (fConst280 * fTemp100))) - (fConst257 * ((fConst282 * fTemp102) + (fConst283 * fTemp103))));
+				float 	fTemp104 = fVeeec162[2]; // step: 1496
+				float 	fTemp105 = fVeeec162[1]; // step: 1501
+				fVeeec162[0] = ((fConst257 * (((fConst285 * fVeeec159[0]) + (fConst286 * fTemp103)) + (fConst285 * fTemp102))) - (fConst256 * ((fConst287 * fTemp104) + (fConst288 * fTemp105))));
+				fVeeec146 = ((fSlow7 * fVeeec146) + (fSlow8 * fabsf((fConst256 * (((fConst290 * fVeeec162[0]) + (fConst291 * fTemp105)) + (fConst290 * fTemp104))))));
+				fbargraph7 = (fSlow6 + (2e+01f * log10f(fVeeec146)));
+				float 	fTemp106 = fVeeec167[2]; // step: 1560
+				float 	fTemp107 = fVeeec167[1]; // step: 1565
+				fVeeec167[0] = (fTemp99 - (fConst299 * ((fConst300 * fTemp106) + (fConst301 * fTemp107))));
+				float 	fTemp108 = fVeeec170[2]; // step: 1584
+				float 	fTemp109 = fVeeec170[1]; // step: 1589
+				fVeeec170[0] = ((fConst299 * (((fConst303 * fVeeec167[0]) + (fConst304 * fTemp107)) + (fConst303 * fTemp106))) - (fConst298 * ((fConst305 * fTemp108) + (fConst306 * fTemp109))));
+				float 	fTemp110 = fVeeec173[2]; // step: 1607
+				float 	fTemp111 = fVeeec173[1]; // step: 1612
+				fVeeec173[0] = ((fConst298 * (((fConst307 * fVeeec170[0]) + (fConst308 * fTemp109)) + (fConst307 * fTemp108))) - (fConst297 * ((fConst309 * fTemp110) + (fConst310 * fTemp111))));
+				float 	fTemp112 = (fConst297 * (((fConst311 * fVeeec173[0]) + (fConst312 * fTemp111)) + (fConst311 * fTemp110))); // step: 1629
+				float 	fTemp113 = fVeeec176[2]; // step: 1630
+				float 	fTemp114 = fVeeec176[1]; // step: 1635
+				fVeeec176[0] = (fTemp112 - (fConst296 * ((fConst313 * fTemp113) + (fConst316 * fTemp114))));
+				float 	fTemp115 = fVeeec179[2]; // step: 1656
+				float 	fTemp116 = fVeeec179[1]; // step: 1661
+				fVeeec179[0] = ((fConst296 * (((fConst318 * fVeeec176[0]) + (fConst319 * fTemp114)) + (fConst318 * fTemp113))) - (fConst295 * ((fConst320 * fTemp115) + (fConst321 * fTemp116))));
+				float 	fTemp117 = fVeeec182[2]; // step: 1680
+				float 	fTemp118 = fVeeec182[1]; // step: 1685
+				fVeeec182[0] = ((fConst295 * (((fConst323 * fVeeec179[0]) + (fConst324 * fTemp116)) + (fConst323 * fTemp115))) - (fConst294 * ((fConst325 * fTemp117) + (fConst326 * fTemp118))));
+				fVeeec166 = ((fSlow7 * fVeeec166) + (fSlow8 * fabsf((fConst294 * (((fConst328 * fVeeec182[0]) + (fConst329 * fTemp118)) + (fConst328 * fTemp117))))));
+				fbargraph8 = (fSlow6 + (2e+01f * log10f(fVeeec166)));
+				float 	fTemp119 = fVeeec187[2]; // step: 1744
+				float 	fTemp120 = fVeeec187[1]; // step: 1749
+				fVeeec187[0] = (fTemp112 - (fConst337 * ((fConst338 * fTemp119) + (fConst339 * fTemp120))));
+				float 	fTemp121 = fVeeec190[2]; // step: 1768
+				float 	fTemp122 = fVeeec190[1]; // step: 1773
+				fVeeec190[0] = ((fConst337 * (((fConst341 * fVeeec187[0]) + (fConst342 * fTemp120)) + (fConst341 * fTemp119))) - (fConst336 * ((fConst343 * fTemp121) + (fConst344 * fTemp122))));
+				float 	fTemp123 = fVeeec193[2]; // step: 1791
+				float 	fTemp124 = fVeeec193[1]; // step: 1796
+				fVeeec193[0] = ((fConst336 * (((fConst345 * fVeeec190[0]) + (fConst346 * fTemp122)) + (fConst345 * fTemp121))) - (fConst335 * ((fConst347 * fTemp123) + (fConst348 * fTemp124))));
+				float 	fTemp125 = (fConst335 * (((fConst349 * fVeeec193[0]) + (fConst350 * fTemp124)) + (fConst349 * fTemp123))); // step: 1813
+				float 	fTemp126 = fVeeec196[2]; // step: 1814
+				float 	fTemp127 = fVeeec196[1]; // step: 1819
+				fVeeec196[0] = (fTemp125 - (fConst334 * ((fConst351 * fTemp126) + (fConst354 * fTemp127))));
+				float 	fTemp128 = fVeeec199[2]; // step: 1840
+				float 	fTemp129 = fVeeec199[1]; // step: 1845
+				fVeeec199[0] = ((fConst334 * (((fConst356 * fVeeec196[0]) + (fConst357 * fTemp127)) + (fConst356 * fTemp126))) - (fConst333 * ((fConst358 * fTemp128) + (fConst359 * fTemp129))));
+				float 	fTemp130 = fVeeec202[2]; // step: 1864
+				float 	fTemp131 = fVeeec202[1]; // step: 1869
+				fVeeec202[0] = ((fConst333 * (((fConst361 * fVeeec199[0]) + (fConst362 * fTemp129)) + (fConst361 * fTemp128))) - (fConst332 * ((fConst363 * fTemp130) + (fConst364 * fTemp131))));
+				fVeeec186 = ((fSlow7 * fVeeec186) + (fSlow8 * fabsf((fConst332 * (((fConst366 * fVeeec202[0]) + (fConst367 * fTemp131)) + (fConst366 * fTemp130))))));
+				fbargraph9 = (fSlow6 + (2e+01f * log10f(fVeeec186)));
+				float 	fTemp132 = fVeeec207[2]; // step: 1928
+				float 	fTemp133 = fVeeec207[1]; // step: 1933
+				fVeeec207[0] = (fTemp125 - (fConst375 * ((fConst376 * fTemp132) + (fConst377 * fTemp133))));
+				float 	fTemp134 = fVeeec210[2]; // step: 1952
+				float 	fTemp135 = fVeeec210[1]; // step: 1957
+				fVeeec210[0] = ((fConst375 * (((fConst379 * fVeeec207[0]) + (fConst380 * fTemp133)) + (fConst379 * fTemp132))) - (fConst374 * ((fConst381 * fTemp134) + (fConst382 * fTemp135))));
+				float 	fTemp136 = fVeeec213[2]; // step: 1975
+				float 	fTemp137 = fVeeec213[1]; // step: 1980
+				fVeeec213[0] = ((fConst374 * (((fConst383 * fVeeec210[0]) + (fConst384 * fTemp135)) + (fConst383 * fTemp134))) - (fConst373 * ((fConst385 * fTemp136) + (fConst386 * fTemp137))));
+				float 	fTemp138 = (fConst373 * (((fConst387 * fVeeec213[0]) + (fConst388 * fTemp137)) + (fConst387 * fTemp136))); // step: 1997
+				float 	fTemp139 = fVeeec216[2]; // step: 1998
+				float 	fTemp140 = fVeeec216[1]; // step: 2003
+				fVeeec216[0] = (fTemp138 - (fConst372 * ((fConst389 * fTemp139) + (fConst392 * fTemp140))));
+				float 	fTemp141 = fVeeec219[2]; // step: 2024
+				float 	fTemp142 = fVeeec219[1]; // step: 2029
+				fVeeec219[0] = ((fConst372 * (((fConst394 * fVeeec216[0]) + (fConst395 * fTemp140)) + (fConst394 * fTemp139))) - (fConst371 * ((fConst396 * fTemp141) + (fConst397 * fTemp142))));
+				float 	fTemp143 = fVeeec222[2]; // step: 2048
+				float 	fTemp144 = fVeeec222[1]; // step: 2053
+				fVeeec222[0] = ((fConst371 * (((fConst399 * fVeeec219[0]) + (fConst400 * fTemp142)) + (fConst399 * fTemp141))) - (fConst370 * ((fConst401 * fTemp143) + (fConst402 * fTemp144))));
+				fVeeec206 = ((fSlow7 * fVeeec206) + (fSlow8 * fabsf((fConst370 * (((fConst404 * fVeeec222[0]) + (fConst405 * fTemp144)) + (fConst404 * fTemp143))))));
+				fbargraph10 = (fSlow6 + (2e+01f * log10f(fVeeec206)));
+				float 	fTemp145 = fVeeec227[2]; // step: 2112
+				float 	fTemp146 = fVeeec227[1]; // step: 2117
+				fVeeec227[0] = (fTemp138 - (fConst413 * ((fConst414 * fTemp145) + (fConst415 * fTemp146))));
+				float 	fTemp147 = fVeeec230[2]; // step: 2136
+				float 	fTemp148 = fVeeec230[1]; // step: 2141
+				fVeeec230[0] = ((fConst413 * (((fConst417 * fVeeec227[0]) + (fConst418 * fTemp146)) + (fConst417 * fTemp145))) - (fConst412 * ((fConst419 * fTemp147) + (fConst420 * fTemp148))));
+				float 	fTemp149 = fVeeec233[2]; // step: 2159
+				float 	fTemp150 = fVeeec233[1]; // step: 2164
+				fVeeec233[0] = ((fConst412 * (((fConst421 * fVeeec230[0]) + (fConst422 * fTemp148)) + (fConst421 * fTemp147))) - (fConst411 * ((fConst423 * fTemp149) + (fConst424 * fTemp150))));
+				float 	fTemp151 = (fConst411 * (((fConst425 * fVeeec233[0]) + (fConst426 * fTemp150)) + (fConst425 * fTemp149))); // step: 2181
+				float 	fTemp152 = fVeeec236[2]; // step: 2182
+				float 	fTemp153 = fVeeec236[1]; // step: 2187
+				fVeeec236[0] = (fTemp151 - (fConst410 * ((fConst427 * fTemp152) + (fConst430 * fTemp153))));
+				float 	fTemp154 = fVeeec239[2]; // step: 2208
+				float 	fTemp155 = fVeeec239[1]; // step: 2213
+				fVeeec239[0] = ((fConst410 * (((fConst432 * fVeeec236[0]) + (fConst433 * fTemp153)) + (fConst432 * fTemp152))) - (fConst409 * ((fConst434 * fTemp154) + (fConst435 * fTemp155))));
+				float 	fTemp156 = fVeeec242[2]; // step: 2232
+				float 	fTemp157 = fVeeec242[1]; // step: 2237
+				fVeeec242[0] = ((fConst409 * (((fConst437 * fVeeec239[0]) + (fConst438 * fTemp155)) + (fConst437 * fTemp154))) - (fConst408 * ((fConst439 * fTemp156) + (fConst440 * fTemp157))));
+				fVeeec226 = ((fSlow7 * fVeeec226) + (fSlow8 * fabsf((fConst408 * (((fConst442 * fVeeec242[0]) + (fConst443 * fTemp157)) + (fConst442 * fTemp156))))));
+				fbargraph11 = (fSlow6 + (2e+01f * log10f(fVeeec226)));
+				float 	fTemp158 = fVeeec247[2]; // step: 2296
+				float 	fTemp159 = fVeeec247[1]; // step: 2301
+				fVeeec247[0] = (fTemp151 - (fConst451 * ((fConst452 * fTemp158) + (fConst453 * fTemp159))));
+				float 	fTemp160 = fVeeec250[2]; // step: 2320
+				float 	fTemp161 = fVeeec250[1]; // step: 2325
+				fVeeec250[0] = ((fConst451 * (((fConst455 * fVeeec247[0]) + (fConst456 * fTemp159)) + (fConst455 * fTemp158))) - (fConst450 * ((fConst457 * fTemp160) + (fConst458 * fTemp161))));
+				float 	fTemp162 = fVeeec253[2]; // step: 2343
+				float 	fTemp163 = fVeeec253[1]; // step: 2348
+				fVeeec253[0] = ((fConst450 * (((fConst459 * fVeeec250[0]) + (fConst460 * fTemp161)) + (fConst459 * fTemp160))) - (fConst449 * ((fConst461 * fTemp162) + (fConst462 * fTemp163))));
+				float 	fTemp164 = (fConst449 * (((fConst463 * fVeeec253[0]) + (fConst464 * fTemp163)) + (fConst463 * fTemp162))); // step: 2365
+				float 	fTemp165 = fVeeec256[2]; // step: 2366
+				float 	fTemp166 = fVeeec256[1]; // step: 2371
+				fVeeec256[0] = (fTemp164 - (fConst448 * ((fConst465 * fTemp165) + (fConst468 * fTemp166))));
+				float 	fTemp167 = fVeeec259[2]; // step: 2392
+				float 	fTemp168 = fVeeec259[1]; // step: 2397
+				fVeeec259[0] = ((fConst448 * (((fConst470 * fVeeec256[0]) + (fConst471 * fTemp166)) + (fConst470 * fTemp165))) - (fConst447 * ((fConst472 * fTemp167) + (fConst473 * fTemp168))));
+				float 	fTemp169 = fVeeec262[2]; // step: 2416
+				float 	fTemp170 = fVeeec262[1]; // step: 2421
+				fVeeec262[0] = ((fConst447 * (((fConst475 * fVeeec259[0]) + (fConst476 * fTemp168)) + (fConst475 * fTemp167))) - (fConst446 * ((fConst477 * fTemp169) + (fConst478 * fTemp170))));
+				fVeeec246 = ((fSlow7 * fVeeec246) + (fSlow8 * fabsf((fConst446 * (((fConst480 * fVeeec262[0]) + (fConst481 * fTemp170)) + (fConst480 * fTemp169))))));
+				fbargraph12 = (fSlow6 + (2e+01f * log10f(fVeeec246)));
+				float 	fTemp171 = fVeeec267[2]; // step: 2480
+				float 	fTemp172 = fVeeec267[1]; // step: 2485
+				fVeeec267[0] = (fTemp164 - (fConst489 * ((fConst490 * fTemp171) + (fConst491 * fTemp172))));
+				float 	fTemp173 = fVeeec270[2]; // step: 2504
+				float 	fTemp174 = fVeeec270[1]; // step: 2509
+				fVeeec270[0] = ((fConst489 * (((fConst493 * fVeeec267[0]) + (fConst494 * fTemp172)) + (fConst493 * fTemp171))) - (fConst488 * ((fConst495 * fTemp173) + (fConst496 * fTemp174))));
+				float 	fTemp175 = fVeeec273[2]; // step: 2527
+				float 	fTemp176 = fVeeec273[1]; // step: 2532
+				fVeeec273[0] = ((fConst488 * (((fConst497 * fVeeec270[0]) + (fConst498 * fTemp174)) + (fConst497 * fTemp173))) - (fConst487 * ((fConst499 * fTemp175) + (fConst500 * fTemp176))));
+				float 	fTemp177 = (fConst487 * (((fConst501 * fVeeec273[0]) + (fConst502 * fTemp176)) + (fConst501 * fTemp175))); // step: 2549
+				float 	fTemp178 = fVeeec276[2]; // step: 2550
+				float 	fTemp179 = fVeeec276[1]; // step: 2555
+				fVeeec276[0] = (fTemp177 - (fConst486 * ((fConst503 * fTemp178) + (fConst506 * fTemp179))));
+				float 	fTemp180 = fVeeec279[2]; // step: 2576
+				float 	fTemp181 = fVeeec279[1]; // step: 2581
+				fVeeec279[0] = ((fConst486 * (((fConst508 * fVeeec276[0]) + (fConst509 * fTemp179)) + (fConst508 * fTemp178))) - (fConst485 * ((fConst510 * fTemp180) + (fConst511 * fTemp181))));
+				float 	fTemp182 = fVeeec282[2]; // step: 2600
+				float 	fTemp183 = fVeeec282[1]; // step: 2605
+				fVeeec282[0] = ((fConst485 * (((fConst513 * fVeeec279[0]) + (fConst514 * fTemp181)) + (fConst513 * fTemp180))) - (fConst484 * ((fConst515 * fTemp182) + (fConst516 * fTemp183))));
+				fVeeec266 = ((fSlow7 * fVeeec266) + (fSlow8 * fabsf((fConst484 * (((fConst518 * fVeeec282[0]) + (fConst519 * fTemp183)) + (fConst518 * fTemp182))))));
+				fbargraph13 = (fSlow6 + (2e+01f * log10f(fVeeec266)));
+				float 	fTemp184 = fVeeec287[2]; // step: 2648
+				float 	fTemp185 = fVeeec287[1]; // step: 2653
+				fVeeec287[0] = (fTemp177 - (fConst522 * ((fConst523 * fTemp184) + (fConst524 * fTemp185))));
+				float 	fTemp186 = fVeeec290[2]; // step: 2672
+				float 	fTemp187 = fVeeec290[1]; // step: 2677
+				fVeeec290[0] = ((fConst522 * (((fConst526 * fVeeec287[0]) + (fConst527 * fTemp185)) + (fConst526 * fTemp184))) - (fConst521 * ((fConst528 * fTemp186) + (fConst529 * fTemp187))));
+				float 	fTemp188 = fVeeec293[2]; // step: 2695
+				float 	fTemp189 = fVeeec293[1]; // step: 2700
+				fVeeec293[0] = ((fConst521 * (((fConst530 * fVeeec290[0]) + (fConst531 * fTemp187)) + (fConst530 * fTemp186))) - (fConst520 * ((fConst532 * fTemp188) + (fConst533 * fTemp189))));
+				fVeeec286 = ((fSlow7 * fVeeec286) + (fSlow8 * fabsf((fConst520 * (((fConst534 * fVeeec293[0]) + (fConst535 * fTemp189)) + (fConst534 * fTemp188))))));
+				fbargraph14 = (fSlow6 + (2e+01f * log10f(fVeeec286)));
+				float 	fTemp190 = fTemp8; // step: 2728
+				output0[i] = (FAUSTFLOAT)(fTemp190);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(fTemp190);  // Zone Exec Code
+				// post processing
+				fVeeec293[2] = fVeeec293[1];
+				fVeeec293[1] = fVeeec293[0];
+				fVeeec290[2] = fVeeec290[1];
+				fVeeec290[1] = fVeeec290[0];
+				fVeeec287[2] = fVeeec287[1];
+				fVeeec287[1] = fVeeec287[0];
+				fVeeec282[2] = fVeeec282[1];
+				fVeeec282[1] = fVeeec282[0];
+				fVeeec279[2] = fVeeec279[1];
+				fVeeec279[1] = fVeeec279[0];
+				fVeeec276[2] = fVeeec276[1];
+				fVeeec276[1] = fVeeec276[0];
+				fVeeec273[2] = fVeeec273[1];
+				fVeeec273[1] = fVeeec273[0];
+				fVeeec270[2] = fVeeec270[1];
+				fVeeec270[1] = fVeeec270[0];
+				fVeeec267[2] = fVeeec267[1];
+				fVeeec267[1] = fVeeec267[0];
+				fVeeec262[2] = fVeeec262[1];
+				fVeeec262[1] = fVeeec262[0];
+				fVeeec259[2] = fVeeec259[1];
+				fVeeec259[1] = fVeeec259[0];
+				fVeeec256[2] = fVeeec256[1];
+				fVeeec256[1] = fVeeec256[0];
+				fVeeec253[2] = fVeeec253[1];
+				fVeeec253[1] = fVeeec253[0];
+				fVeeec250[2] = fVeeec250[1];
+				fVeeec250[1] = fVeeec250[0];
+				fVeeec247[2] = fVeeec247[1];
+				fVeeec247[1] = fVeeec247[0];
+				fVeeec242[2] = fVeeec242[1];
+				fVeeec242[1] = fVeeec242[0];
+				fVeeec239[2] = fVeeec239[1];
+				fVeeec239[1] = fVeeec239[0];
+				fVeeec236[2] = fVeeec236[1];
+				fVeeec236[1] = fVeeec236[0];
+				fVeeec233[2] = fVeeec233[1];
+				fVeeec233[1] = fVeeec233[0];
+				fVeeec230[2] = fVeeec230[1];
+				fVeeec230[1] = fVeeec230[0];
+				fVeeec227[2] = fVeeec227[1];
+				fVeeec227[1] = fVeeec227[0];
+				fVeeec222[2] = fVeeec222[1];
+				fVeeec222[1] = fVeeec222[0];
+				fVeeec219[2] = fVeeec219[1];
+				fVeeec219[1] = fVeeec219[0];
+				fVeeec216[2] = fVeeec216[1];
+				fVeeec216[1] = fVeeec216[0];
+				fVeeec213[2] = fVeeec213[1];
+				fVeeec213[1] = fVeeec213[0];
+				fVeeec210[2] = fVeeec210[1];
+				fVeeec210[1] = fVeeec210[0];
+				fVeeec207[2] = fVeeec207[1];
+				fVeeec207[1] = fVeeec207[0];
+				fVeeec202[2] = fVeeec202[1];
+				fVeeec202[1] = fVeeec202[0];
+				fVeeec199[2] = fVeeec199[1];
+				fVeeec199[1] = fVeeec199[0];
+				fVeeec196[2] = fVeeec196[1];
+				fVeeec196[1] = fVeeec196[0];
+				fVeeec193[2] = fVeeec193[1];
+				fVeeec193[1] = fVeeec193[0];
+				fVeeec190[2] = fVeeec190[1];
+				fVeeec190[1] = fVeeec190[0];
+				fVeeec187[2] = fVeeec187[1];
+				fVeeec187[1] = fVeeec187[0];
+				fVeeec182[2] = fVeeec182[1];
+				fVeeec182[1] = fVeeec182[0];
+				fVeeec179[2] = fVeeec179[1];
+				fVeeec179[1] = fVeeec179[0];
+				fVeeec176[2] = fVeeec176[1];
+				fVeeec176[1] = fVeeec176[0];
+				fVeeec173[2] = fVeeec173[1];
+				fVeeec173[1] = fVeeec173[0];
+				fVeeec170[2] = fVeeec170[1];
+				fVeeec170[1] = fVeeec170[0];
+				fVeeec167[2] = fVeeec167[1];
+				fVeeec167[1] = fVeeec167[0];
+				fVeeec162[2] = fVeeec162[1];
+				fVeeec162[1] = fVeeec162[0];
+				fVeeec159[2] = fVeeec159[1];
+				fVeeec159[1] = fVeeec159[0];
+				fVeeec156[2] = fVeeec156[1];
+				fVeeec156[1] = fVeeec156[0];
+				fVeeec153[2] = fVeeec153[1];
+				fVeeec153[1] = fVeeec153[0];
+				fVeeec150[2] = fVeeec150[1];
+				fVeeec150[1] = fVeeec150[0];
+				fVeeec147[2] = fVeeec147[1];
+				fVeeec147[1] = fVeeec147[0];
+				fVeeec142[2] = fVeeec142[1];
+				fVeeec142[1] = fVeeec142[0];
+				fVeeec139[2] = fVeeec139[1];
+				fVeeec139[1] = fVeeec139[0];
+				fVeeec136[2] = fVeeec136[1];
+				fVeeec136[1] = fVeeec136[0];
+				fVeeec133[2] = fVeeec133[1];
+				fVeeec133[1] = fVeeec133[0];
+				fVeeec130[2] = fVeeec130[1];
+				fVeeec130[1] = fVeeec130[0];
+				fVeeec127[2] = fVeeec127[1];
+				fVeeec127[1] = fVeeec127[0];
+				fVeeec122[2] = fVeeec122[1];
+				fVeeec122[1] = fVeeec122[0];
+				fVeeec119[2] = fVeeec119[1];
+				fVeeec119[1] = fVeeec119[0];
+				fVeeec116[2] = fVeeec116[1];
+				fVeeec116[1] = fVeeec116[0];
+				fVeeec113[2] = fVeeec113[1];
+				fVeeec113[1] = fVeeec113[0];
+				fVeeec110[2] = fVeeec110[1];
+				fVeeec110[1] = fVeeec110[0];
+				fVeeec107[2] = fVeeec107[1];
+				fVeeec107[1] = fVeeec107[0];
+				fVeeec102[2] = fVeeec102[1];
+				fVeeec102[1] = fVeeec102[0];
+				fVeeec99[2] = fVeeec99[1];
+				fVeeec99[1] = fVeeec99[0];
+				fVeeec96[2] = fVeeec96[1];
+				fVeeec96[1] = fVeeec96[0];
+				fVeeec93[2] = fVeeec93[1];
+				fVeeec93[1] = fVeeec93[0];
+				fVeeec90[2] = fVeeec90[1];
+				fVeeec90[1] = fVeeec90[0];
+				fVeeec87[2] = fVeeec87[1];
+				fVeeec87[1] = fVeeec87[0];
+				fVeeec82[2] = fVeeec82[1];
+				fVeeec82[1] = fVeeec82[0];
+				fVeeec79[2] = fVeeec79[1];
+				fVeeec79[1] = fVeeec79[0];
+				fVeeec76[2] = fVeeec76[1];
+				fVeeec76[1] = fVeeec76[0];
+				fVeeec73[2] = fVeeec73[1];
+				fVeeec73[1] = fVeeec73[0];
+				fVeeec70[2] = fVeeec70[1];
+				fVeeec70[1] = fVeeec70[0];
+				fVeeec67[2] = fVeeec67[1];
+				fVeeec67[1] = fVeeec67[0];
+				fVeeec62[2] = fVeeec62[1];
+				fVeeec62[1] = fVeeec62[0];
+				fVeeec59[2] = fVeeec59[1];
+				fVeeec59[1] = fVeeec59[0];
+				fVeeec56[2] = fVeeec56[1];
+				fVeeec56[1] = fVeeec56[0];
+				fVeeec53[2] = fVeeec53[1];
+				fVeeec53[1] = fVeeec53[0];
+				fVeeec50[2] = fVeeec50[1];
+				fVeeec50[1] = fVeeec50[0];
+				fVeeec47[2] = fVeeec47[1];
+				fVeeec47[1] = fVeeec47[0];
+				fVeeec42[2] = fVeeec42[1];
+				fVeeec42[1] = fVeeec42[0];
+				fVeeec39[2] = fVeeec39[1];
+				fVeeec39[1] = fVeeec39[0];
+				fVeeec36[2] = fVeeec36[1];
+				fVeeec36[1] = fVeeec36[0];
+				fVeeec33[2] = fVeeec33[1];
+				fVeeec33[1] = fVeeec33[0];
+				fVeeec30[2] = fVeeec30[1];
+				fVeeec30[1] = fVeeec30[0];
+				fVeeec27[2] = fVeeec27[1];
+				fVeeec27[1] = fVeeec27[0];
+				fVeeec22[2] = fVeeec22[1];
+				fVeeec22[1] = fVeeec22[0];
+				fVeeec19[2] = fVeeec19[1];
+				fVeeec19[1] = fVeeec19[0];
+				fVeeec16[2] = fVeeec16[1];
+				fVeeec16[1] = fVeeec16[0];
+				fVec1[1] = fVec1[0];
+				fVeeec2[1] = fVeeec2[0];
+				fVeeec4[1] = fVeeec4[0];
+				iVec0[1] = iVec0[0];
+			}
+			iVec0State = iVec0[1];
+			fVeeec0State = fVeeec0;
+			fVeeec4State = fVeeec4[1];
+			fVeeec5State = fVeeec5;
+			fVeeec2State = fVeeec2[1];
+			fVeeec9State = fVeeec9;
+			fVeeec11State = fVeeec11;
+			fVec1State = fVec1[1];
+			fVeeec8State = fVeeec8;
+			fVeeec16State[0] = fVeeec16[1];
+			fVeeec16State[1] = fVeeec16[2];
+			fVeeec19State[0] = fVeeec19[1];
+			fVeeec19State[1] = fVeeec19[2];
+			fVeeec22State[0] = fVeeec22[1];
+			fVeeec22State[1] = fVeeec22[2];
+			fVeeec15State = fVeeec15;
+			fVeeec27State[0] = fVeeec27[1];
+			fVeeec27State[1] = fVeeec27[2];
+			fVeeec30State[0] = fVeeec30[1];
+			fVeeec30State[1] = fVeeec30[2];
+			fVeeec33State[0] = fVeeec33[1];
+			fVeeec33State[1] = fVeeec33[2];
+			fVeeec36State[0] = fVeeec36[1];
+			fVeeec36State[1] = fVeeec36[2];
+			fVeeec39State[0] = fVeeec39[1];
+			fVeeec39State[1] = fVeeec39[2];
+			fVeeec42State[0] = fVeeec42[1];
+			fVeeec42State[1] = fVeeec42[2];
+			fVeeec26State = fVeeec26;
+			fVeeec47State[0] = fVeeec47[1];
+			fVeeec47State[1] = fVeeec47[2];
+			fVeeec50State[0] = fVeeec50[1];
+			fVeeec50State[1] = fVeeec50[2];
+			fVeeec53State[0] = fVeeec53[1];
+			fVeeec53State[1] = fVeeec53[2];
+			fVeeec56State[0] = fVeeec56[1];
+			fVeeec56State[1] = fVeeec56[2];
+			fVeeec59State[0] = fVeeec59[1];
+			fVeeec59State[1] = fVeeec59[2];
+			fVeeec62State[0] = fVeeec62[1];
+			fVeeec62State[1] = fVeeec62[2];
+			fVeeec46State = fVeeec46;
+			fVeeec67State[0] = fVeeec67[1];
+			fVeeec67State[1] = fVeeec67[2];
+			fVeeec70State[0] = fVeeec70[1];
+			fVeeec70State[1] = fVeeec70[2];
+			fVeeec73State[0] = fVeeec73[1];
+			fVeeec73State[1] = fVeeec73[2];
+			fVeeec76State[0] = fVeeec76[1];
+			fVeeec76State[1] = fVeeec76[2];
+			fVeeec79State[0] = fVeeec79[1];
+			fVeeec79State[1] = fVeeec79[2];
+			fVeeec82State[0] = fVeeec82[1];
+			fVeeec82State[1] = fVeeec82[2];
+			fVeeec66State = fVeeec66;
+			fVeeec87State[0] = fVeeec87[1];
+			fVeeec87State[1] = fVeeec87[2];
+			fVeeec90State[0] = fVeeec90[1];
+			fVeeec90State[1] = fVeeec90[2];
+			fVeeec93State[0] = fVeeec93[1];
+			fVeeec93State[1] = fVeeec93[2];
+			fVeeec96State[0] = fVeeec96[1];
+			fVeeec96State[1] = fVeeec96[2];
+			fVeeec99State[0] = fVeeec99[1];
+			fVeeec99State[1] = fVeeec99[2];
+			fVeeec102State[0] = fVeeec102[1];
+			fVeeec102State[1] = fVeeec102[2];
+			fVeeec86State = fVeeec86;
+			fVeeec107State[0] = fVeeec107[1];
+			fVeeec107State[1] = fVeeec107[2];
+			fVeeec110State[0] = fVeeec110[1];
+			fVeeec110State[1] = fVeeec110[2];
+			fVeeec113State[0] = fVeeec113[1];
+			fVeeec113State[1] = fVeeec113[2];
+			fVeeec116State[0] = fVeeec116[1];
+			fVeeec116State[1] = fVeeec116[2];
+			fVeeec119State[0] = fVeeec119[1];
+			fVeeec119State[1] = fVeeec119[2];
+			fVeeec122State[0] = fVeeec122[1];
+			fVeeec122State[1] = fVeeec122[2];
+			fVeeec106State = fVeeec106;
+			fVeeec127State[0] = fVeeec127[1];
+			fVeeec127State[1] = fVeeec127[2];
+			fVeeec130State[0] = fVeeec130[1];
+			fVeeec130State[1] = fVeeec130[2];
+			fVeeec133State[0] = fVeeec133[1];
+			fVeeec133State[1] = fVeeec133[2];
+			fVeeec136State[0] = fVeeec136[1];
+			fVeeec136State[1] = fVeeec136[2];
+			fVeeec139State[0] = fVeeec139[1];
+			fVeeec139State[1] = fVeeec139[2];
+			fVeeec142State[0] = fVeeec142[1];
+			fVeeec142State[1] = fVeeec142[2];
+			fVeeec126State = fVeeec126;
+			fVeeec147State[0] = fVeeec147[1];
+			fVeeec147State[1] = fVeeec147[2];
+			fVeeec150State[0] = fVeeec150[1];
+			fVeeec150State[1] = fVeeec150[2];
+			fVeeec153State[0] = fVeeec153[1];
+			fVeeec153State[1] = fVeeec153[2];
+			fVeeec156State[0] = fVeeec156[1];
+			fVeeec156State[1] = fVeeec156[2];
+			fVeeec159State[0] = fVeeec159[1];
+			fVeeec159State[1] = fVeeec159[2];
+			fVeeec162State[0] = fVeeec162[1];
+			fVeeec162State[1] = fVeeec162[2];
+			fVeeec146State = fVeeec146;
+			fVeeec167State[0] = fVeeec167[1];
+			fVeeec167State[1] = fVeeec167[2];
+			fVeeec170State[0] = fVeeec170[1];
+			fVeeec170State[1] = fVeeec170[2];
+			fVeeec173State[0] = fVeeec173[1];
+			fVeeec173State[1] = fVeeec173[2];
+			fVeeec176State[0] = fVeeec176[1];
+			fVeeec176State[1] = fVeeec176[2];
+			fVeeec179State[0] = fVeeec179[1];
+			fVeeec179State[1] = fVeeec179[2];
+			fVeeec182State[0] = fVeeec182[1];
+			fVeeec182State[1] = fVeeec182[2];
+			fVeeec166State = fVeeec166;
+			fVeeec187State[0] = fVeeec187[1];
+			fVeeec187State[1] = fVeeec187[2];
+			fVeeec190State[0] = fVeeec190[1];
+			fVeeec190State[1] = fVeeec190[2];
+			fVeeec193State[0] = fVeeec193[1];
+			fVeeec193State[1] = fVeeec193[2];
+			fVeeec196State[0] = fVeeec196[1];
+			fVeeec196State[1] = fVeeec196[2];
+			fVeeec199State[0] = fVeeec199[1];
+			fVeeec199State[1] = fVeeec199[2];
+			fVeeec202State[0] = fVeeec202[1];
+			fVeeec202State[1] = fVeeec202[2];
+			fVeeec186State = fVeeec186;
+			fVeeec207State[0] = fVeeec207[1];
+			fVeeec207State[1] = fVeeec207[2];
+			fVeeec210State[0] = fVeeec210[1];
+			fVeeec210State[1] = fVeeec210[2];
+			fVeeec213State[0] = fVeeec213[1];
+			fVeeec213State[1] = fVeeec213[2];
+			fVeeec216State[0] = fVeeec216[1];
+			fVeeec216State[1] = fVeeec216[2];
+			fVeeec219State[0] = fVeeec219[1];
+			fVeeec219State[1] = fVeeec219[2];
+			fVeeec222State[0] = fVeeec222[1];
+			fVeeec222State[1] = fVeeec222[2];
+			fVeeec206State = fVeeec206;
+			fVeeec227State[0] = fVeeec227[1];
+			fVeeec227State[1] = fVeeec227[2];
+			fVeeec230State[0] = fVeeec230[1];
+			fVeeec230State[1] = fVeeec230[2];
+			fVeeec233State[0] = fVeeec233[1];
+			fVeeec233State[1] = fVeeec233[2];
+			fVeeec236State[0] = fVeeec236[1];
+			fVeeec236State[1] = fVeeec236[2];
+			fVeeec239State[0] = fVeeec239[1];
+			fVeeec239State[1] = fVeeec239[2];
+			fVeeec242State[0] = fVeeec242[1];
+			fVeeec242State[1] = fVeeec242[2];
+			fVeeec226State = fVeeec226;
+			fVeeec247State[0] = fVeeec247[1];
+			fVeeec247State[1] = fVeeec247[2];
+			fVeeec250State[0] = fVeeec250[1];
+			fVeeec250State[1] = fVeeec250[2];
+			fVeeec253State[0] = fVeeec253[1];
+			fVeeec253State[1] = fVeeec253[2];
+			fVeeec256State[0] = fVeeec256[1];
+			fVeeec256State[1] = fVeeec256[2];
+			fVeeec259State[0] = fVeeec259[1];
+			fVeeec259State[1] = fVeeec259[2];
+			fVeeec262State[0] = fVeeec262[1];
+			fVeeec262State[1] = fVeeec262[2];
+			fVeeec246State = fVeeec246;
+			fVeeec267State[0] = fVeeec267[1];
+			fVeeec267State[1] = fVeeec267[2];
+			fVeeec270State[0] = fVeeec270[1];
+			fVeeec270State[1] = fVeeec270[2];
+			fVeeec273State[0] = fVeeec273[1];
+			fVeeec273State[1] = fVeeec273[2];
+			fVeeec276State[0] = fVeeec276[1];
+			fVeeec276State[1] = fVeeec276[2];
+			fVeeec279State[0] = fVeeec279[1];
+			fVeeec279State[1] = fVeeec279[2];
+			fVeeec282State[0] = fVeeec282[1];
+			fVeeec282State[1] = fVeeec282[2];
+			fVeeec266State = fVeeec266;
+			fVeeec287State[0] = fVeeec287[1];
+			fVeeec287State[1] = fVeeec287[2];
+			fVeeec290State[0] = fVeeec290[1];
+			fVeeec290State[1] = fVeeec290[2];
+			fVeeec293State[0] = fVeeec293[1];
+			fVeeec293State[1] = fVeeec293[2];
+			fVeeec286State = fVeeec286;
+		}
+	}
+};
+
+

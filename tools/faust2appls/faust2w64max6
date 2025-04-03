@@ -5,7 +5,7 @@
 #               Cross-compiles Faust programs to Max/MSP            #
 #                      from : Linux or OSX                          #
 #                        to : Windows 64                            #
-#                       (c) Grame, 2018                             #
+#                       (c) Grame, 2018-2025                        #
 #                                                                   #
 #####################################################################
 
@@ -21,6 +21,8 @@ EFFECT=""
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
+MC=""
+POST="-DPOST"
 
 JSFILE_PATH="ui.js"
 
@@ -42,7 +44,7 @@ fi
 : ${MINGWPREFIX="x86_64-w64-mingw32-"}
 CXX="${MINGWPREFIX}g++"
 (which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
-DLLWRAP="${MINGWPREFIX}dllwrap --target=x86_64-w64-mingw32"
+DLLWRAP="${MINGWPREFIX}dllwrap --target=x86_64-w64-mingw32 -Wl,--dynamicbase -Wl,--enable-auto-image-base"
 STRIP="${MINGWPREFIX}strip"
 
 #-----------------------------------------------------------------------------
@@ -70,6 +72,10 @@ for p in $@; do
 
     if [ "$p" = -icc ]; then
         ignore=" "
+    elif [ $p = "-mc" ]; then
+         MC="-DMC_VERSION"
+    elif [ $p = "-nopost" ]; then
+        POST="" 
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -106,9 +112,10 @@ for p in $FILES; do
         echo "DESCRIPTION 'Faust generated MAX plugin'"     >> ${f%.dsp}.def
         echo "EXPORTS     main"                             >> ${f%.dsp}.def
 
-        $CXX $CXXINCS $CXXFLAGS -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
+        $CXX $CXXINCS $CXXFLAGS $MC $POST -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
         $DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static -o "${f%.dsp}$EXT"
-        $STRIP "${f%.dsp}$EXT"
+        # Read: https://beta.cycling74.com/t/error-998-loading-external-generated-with-faust2max6-on-windows/3327/10
+        # $STRIP "${f%.dsp}$EXT"
     ) > /dev/null || exit
 
     cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"

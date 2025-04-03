@@ -46,7 +46,7 @@ class CodeContainer;
 
 class xtended : public virtual Garbageable {
    private:
-    Symbol* fSymbol;  ///< the symbol the xtended is attached to
+    Sym fSymbol;  ///< the symbol the xtended is attached to
 
    public:
     xtended(const char* name) : fSymbol(::symbol(name)) { setUserData(fSymbol, (void*)this); }
@@ -79,6 +79,8 @@ class xtended : public virtual Garbageable {
     virtual ::Type      inferSigType(ConstTypes args)                    = 0;
     virtual Tree        computeSigOutput(const std::vector<Tree>& args)  = 0;
     virtual bool        needCache()                                      = 0;
+
+    virtual double compute(const std::vector<Node>& args) { return -1.; };
 
     // Compute the derivative of a primitive with respect to its arguments.
     virtual Tree diff(const std::vector<Tree>& args)

@@ -32,7 +32,7 @@ xml 	:= $(dspsrc:.dsp=.dsp.xml)
 pd 	:= $(dspsrc:.dsp=.pd)
 libs    := $(wildcard *.lib)
 
-ARCH     = puredata.cpp
+ARCH     = ../../../../architecture/puredata.cpp
 #FAUST2PD = faust2pd
 FAUST2PD = ../../faust2pd
 F2PDFLAGS = -s

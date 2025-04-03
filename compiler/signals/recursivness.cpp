@@ -106,7 +106,7 @@ static int annotate(Tree env, Tree sig)
         int          rmax = 0;
         vector<Tree> v;
         getSubSignals(sig, v);
-        for (unsigned int i = 0; i < v.size(); i++) {
+        for (size_t i = 0; i < v.size(); i++) {
             int r = annotate(env, v[i]);
             if (r > rmax) {
                 rmax = r;

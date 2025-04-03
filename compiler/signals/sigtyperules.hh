@@ -31,13 +31,15 @@
  *
  * Two functions are provided:
  *
- * \li void typeAnnotation(Tree term)      : annotates a signal term and its subterms with type
- *information \li Type getCertifiedSigType(Tree term) : returns the type of a previously annotated
- *signal term
+ * \li void typeAnnotation(Tree term) : annotates a signal term and its subterms with type
+ * information
+ *
+ * \li Type getCertifiedSigType(Tree term) : returns the type of a previously annotated
+ * signal term
  *
  * TypeAnnotation must be called first to annotate a signal or a list of signals, before being able
- *to call getCertifiedType on any subterms. GetCertifiedType will produce an error if a term was not
- * previously annotated.
+ * to call getCertifiedSigType on any subterms. GetCertifiedSigType will produce an error if a term
+ * was not previously annotated.
  *
  **/
 

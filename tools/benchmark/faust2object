@@ -33,19 +33,21 @@ SOUNDFILEDEFS=""
 SOUNDFILEINCS=""
 SOUNDFILELIBS=""
 dspName=""
+OPT_LD=""
 
 if [ $(uname -s) == Darwin ] && [ $(arch) == arm64 ]; then
-    CXX="arch -arch x86_64 "$CXX
+    #CXX="arch -arch x86_64 "$CXX
+    OPT_LD="-L /opt/local/lib"
 fi
 
-ALL_CPU_LIST="nocona core2 penryn bonnell atom silvermont slm goldmont goldmont-plus tremont nehalem corei7 westmere sandybridge corei7-avx ivybridge core-avx-i haswell core-avx2 broadwell skylake skylake-avx512 skx cascadelake cooperlake cannonlake icelake-client icelake-server tigerlake knl knm k8 athlon64 athlon-fx opteron k8-sse3 athlon64-sse3 opteron-sse3 amdfam10 barcelona btver1 btver2 bdver1 bdver2 bdver3 bdver4 znver1 znver2 x86-64 generic"
+ALL_CPU_LIST="nocona core2 penryn bonnell atom silvermont slm goldmont goldmont-plus tremont nehalem corei7 westmere sandybridge corei7-avx ivybridge core-avx-i haswell core-avx2 broadwell skylake skylake-avx512 skx cascadelake cooperlake cannonlake icelake-client icelake-server tigerlake knl knm k8 athlon64 athlon-fx opteron k8-sse3 athlon64-sse3 opteron-sse3 amdfam10 barcelona btver1 btver2 bdver1 bdver2 bdver3 bdver4 znver1 znver2 x86-64 apple-m1 apple-m2 apple-m3 generic"
 
 while [ $1 ]
 do
     p=$1
  
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2object [nocona] [core2] [penryn] [bonnell] [atom] [silvermont] [slm] [goldmont] [goldmont-plus] [tremont] [nehalem] [corei7] [westmere] [sandybridge] [corei7-avx] [ivybridge] [core-avx-i] [haswell] [core-avx2] [broadwell] [skylake] [skylake-avx512] [skx] [cascadelake] [cooperlake] [cannonlake] [icelake-client] [icelake-server] [tigerlake] [knl] [knm] [k8] [athlon64] [athlon-fx] [opteron] [k8-sse3] [athlon64-sse3] [opteron-sse3] [amdfam10] [barcelona] [btver1] [btver2] [bdver1] [bdver2] [bdver3] [bdver4] [znver1] [znver2] [x86-64] [generic] [-all] [-soundfile] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2object [nocona] [core2] [penryn] [bonnell] [atom] [silvermont] [slm] [goldmont] [goldmont-plus] [tremont] [nehalem] [corei7] [westmere] [sandybridge] [corei7-avx] [ivybridge] [core-avx-i] [haswell] [core-avx2] [broadwell] [skylake] [skylake-avx512] [skx] [cascadelake] [cooperlake] [cannonlake] [icelake-client] [icelake-server] [tigerlake] [knl] [knm] [k8] [athlon64] [athlon-fx] [opteron] [k8-sse3] [athlon64-sse3] [opteron-sse3] [amdfam10] [barcelona] [btver1] [btver2] [bdver1] [bdver2] [bdver3] [bdver4] [znver1] [znver2] [apple-m1] [apple-m2] [apple-m3] [x86-64] [generic] [-all] [-soundfile] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use 'xxx' to compile for 'xxx' CPU"
         echo "Use 'generic' to compile for generic CPU"
         echo "Use '-all' to compile for all CPUs"
@@ -174,7 +176,7 @@ for p in $FILES; do
 
             # compiling
             if [ $SOURCES = false ]; then
-                $CXX $CXXFLAGS -Ofast -std=c++14 -march=$arch_cpu -I `faust -includedir` $SOUNDFILEDEFS $SOUNDFILEINCS -c $dspName$cpu".cpp"
+                $CXX $CXXFLAGS -Ofast -std=c++17 -march=$arch_cpu -I `faust -includedir` $SOUNDFILEDEFS $SOUNDFILEINCS -c $dspName$cpu".cpp"
             fi
         fi
     done
@@ -218,9 +220,9 @@ for p in $FILES; do
         faust $OPTIONS -inj $dspName"multi.h" -a $FAUSTARCH/minimal-bench.cpp -cn $dspName"multi" $p -o $dspName"multi.cpp"
 
         if [ $MULTI = true ]; then
-            $CXX $CXXFLAGS -Ofast -std=c++14 $dspName"multi.cpp" -dead_strip $SOUNDFILEDEFS $SOUNDFILELIBS -I `llvm-config --includedir --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
+            $CXX $CXXFLAGS -Ofast -std=c++17 $dspName"multi.cpp" -dead_strip $SOUNDFILEDEFS $SOUNDFILELIBS -I `llvm-config --link-static --includedir --ldflags --libs all --system-libs` $OPT_LD $dspName*".o" -o $dspName"multi"
         elif [ $MULTIFUN = true ]; then
-            $CXX $CXXFLAGS -Ofast -std=c++14 $dspName"multi.cpp" $dspName"generic.cpp" $SOUNDFILEDEFS $SOUNDFILELIBS -o $dspName"multi"
+            $CXX $CXXFLAGS -Ofast -std=c++17 $dspName"multi.cpp" $dspName"generic.cpp" $SOUNDFILEDEFS $SOUNDFILELIBS -o $dspName"multi"
         fi
          
         echo "Run ./"$dspName"multi"" to test the program"

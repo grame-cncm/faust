@@ -1,6 +1,5 @@
 /*
-
- Copyright (C) 2006,2007 Grame
+ Copyright (C) 2006-2024 Grame
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -18,71 +17,31 @@
 
  Grame Research Laboratory, 9 rue du Garet, 69001 Lyon - France
  research@grame.fr
-
 */
 
 #ifndef __TMutex__
 #define __TMutex__
 
-#include <new>
-
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <pthread.h>
-#endif
+#include <iostream>
+#include <mutex>
+#include <stdexcept>
 
 class TMutex {
    private:
-#ifdef _WIN32
-    HANDLE fMutex;
-#else
-    pthread_mutex_t fMutex;
-#endif
+    std::recursive_mutex fMutex;
 
    public:
-#ifdef _WIN32
+    TMutex()          = default;
+    virtual ~TMutex() = default;
 
-    TMutex()
-    {
-        fMutex = CreateMutex(0, FALSE, 0);
-        if (!fMutex) {
-            throw std::bad_alloc();
-        }
-    }
-    virtual ~TMutex() { CloseHandle(fMutex); }
+    // Lock the mutex (blocking)
+    void Lock() { fMutex.lock(); }
 
-    bool Lock() { return (WaitForSingleObject(fMutex, INFINITE) == WAIT_OBJECT_0); }
+    // Try to lock the mutex (non-blocking)
+    bool TryLock() { return fMutex.try_lock(); }
 
-    bool TryLock() { return (WaitForSingleObject(fMutex, 0) == WAIT_TIMEOUT); }
-
-    void Unlock() { ReleaseMutex(fMutex); }
-
-#else
-
-    TMutex()
-    {
-        // Use recursive mutex
-        pthread_mutexattr_t mutex_attr;
-        if (pthread_mutexattr_init(&mutex_attr) != 0) {
-            throw std::bad_alloc();
-        }
-        if (pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE) != 0) {
-            throw std::bad_alloc();
-        }
-        if (pthread_mutex_init(&fMutex, &mutex_attr) != 0) {
-            throw std::bad_alloc();
-        }
-    }
-    virtual ~TMutex() { pthread_mutex_destroy(&fMutex); }
-
-    bool Lock() { return (pthread_mutex_lock(&fMutex) == 0); }
-
-    bool TryLock() { return (pthread_mutex_trylock(&fMutex) == 0); }
-
-    void Unlock() { pthread_mutex_unlock(&fMutex); }
-
-#endif
+    // Unlock the mutex
+    void Unlock() { fMutex.unlock(); }
 };
 
 class TLockAble {
@@ -90,13 +49,16 @@ class TLockAble {
     TMutex fMutex;
 
    public:
-    TLockAble() {}
-    virtual ~TLockAble() {}
+    TLockAble()          = default;
+    virtual ~TLockAble() = default;
 
-    bool Lock() { return fMutex.Lock(); }
+    // Lock the mutex
+    void Lock() { fMutex.Lock(); }
 
+    // Unlock the mutex
     void Unlock() { fMutex.Unlock(); }
 
+    // Try to lock the mutex
     bool TryLock() { return fMutex.TryLock(); }
 };
 
@@ -105,14 +67,14 @@ class TLock {
     TLockAble* fObj;
 
    public:
-    TLock(TLockAble* obj) : fObj(obj)
+    explicit TLock(TLockAble* obj) : fObj(obj)
     {
         if (fObj) {
             fObj->Lock();
         }
     }
 
-    TLock(const TLockAble* obj) : fObj((TLockAble*)obj)
+    TLock(const TLockAble* obj) : fObj(const_cast<TLockAble*>(obj))
     {
         if (fObj) {
             fObj->Lock();

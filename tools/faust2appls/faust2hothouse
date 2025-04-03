@@ -1,0 +1,142 @@
+#!/bin/bash -e
+
+#####################################################################
+#                                                                   #
+#                    faust2hothouse generator                       #
+#                       (c) Grame, 2024                             #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+. usage.sh
+
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
+ARCHFILE=$FAUSTARCH/hothouse/ex_faust.cpp
+
+# exit if a command fails
+set -e
+
+# global option variables
+NVOICES=0
+MIDI=false
+POLY=""
+SR=48000
+BS=48
+SOURCE=false
+
+echoHelp ()
+{
+    echo "faust2hothouse [-midi] [-nvoices <num>] [-sr <num>] [-bs <num>] [-source] [Faust options (-vec -vs 8...)] <file.dsp>"
+    echo "Compiles Faust programs to Hothouse Pedals, which use Daisy Seeds (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/hothouse)"
+    option
+    options -midi
+    option "-nvoices <num>"
+    option "-sr <num> (48000 or 96000)"
+    option "-bs <num>"
+    option -source
+    option "Faust options"
+    echo ""
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
+###########################
+# Processing Arguments
+###########################
+
+while [ $1 ]
+do
+    p=$1
+    # help
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echoHelp
+    # -nvoices:
+    elif [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+    # -midi
+    elif [ $p = "-midi" ]; then
+        MIDI=true
+    # -sr
+    elif [ $p = "-sr" ]; then
+        shift
+        SR=$1
+    # -bs
+    elif [ $p = "-bs" ]; then
+        shift
+        BS=$1
+    # -source
+    elif [  $p = "-source" ]; then
+        SOURCE=true
+    elif [[ -f "$p" ]]; then
+        FILE="$p"
+    # other compile options
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+done
+
+###########################
+# Compile the *.dsp files
+###########################
+
+for p in $FILE; do
+    CUR=$(pwd)
+    f=$(basename "$p")
+    SRCDIR=$(dirname "$p")
+
+    # creates the dir
+    dspName="${f%.dsp}"
+    rm -rf "$SRCDIR/$dspName"
+    mkdir "$SRCDIR/$dspName"
+
+    # compile faust to c++
+    cp -r "$FAUSTARCH/hothouse/Makefile" "$SRCDIR/$dspName/"
+    faust -i -a "$ARCHFILE" $OPTIONS "$f" -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+
+    # for MIDI
+    if [ $MIDI == true ]; then
+        echo "#define MIDICTRL" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+
+    # for Sample Rate
+    if [ "$SR" == "96000" ]; then
+        echo "#define MY_SAMPLE_RATE SaiHandle::Config::SampleRate::SAI_96KHZ" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    elif [ "$SR" == "48000" ]; then
+        echo "#define MY_SAMPLE_RATE SaiHandle::Config::SampleRate::SAI_48KHZ" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    else
+        echo "Unallowed sample rate: $SR"
+        exit
+    fi
+
+    # for Buffer Size
+    echo "#define MY_BUFFER_SIZE $BS" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+
+    # for POLY
+    if [ "$NVOICES" -gt "0" ]; then
+        echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+        echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+
+    python3 "$FAUSTARCH/daisy/faust_sdram_converter.py" "$SRCDIR/$dspName/ex_faust.cpp"
+
+    # compile and install plugin or keep the source folder
+    if [ $SOURCE == false ]; then
+        read -p "Press ENTER when Hothouse Pedal is in DFU mode"
+        ( cd "$SRCDIR/$dspName" && make && make program-dfu ) > /dev/null || exit
+        rm -rf "$SRCDIR/$dspName"
+        echo "Success !"
+    else
+        echo "Create the $SRCDIR/$dspName folder"
+    fi
+
+done

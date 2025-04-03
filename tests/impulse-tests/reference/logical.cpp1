@@ -1,0 +1,92 @@
+//----------------------------------------------------------
+// name: "logical"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "logical.dsp");
+		m->declare("name", "logical");
+	}
+
+	virtual int getNumInputs() { return 12; }
+	virtual int getNumOutputs() { return 6; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("logical");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
+			FAUSTFLOAT* input4 = &input[4][index]; // Zone 3
+			FAUSTFLOAT* input5 = &input[5][index]; // Zone 3
+			FAUSTFLOAT* input6 = &input[6][index]; // Zone 3
+			FAUSTFLOAT* input7 = &input[7][index]; // Zone 3
+			FAUSTFLOAT* input8 = &input[8][index]; // Zone 3
+			FAUSTFLOAT* input9 = &input[9][index]; // Zone 3
+			FAUSTFLOAT* input10 = &input[10][index]; // Zone 3
+			FAUSTFLOAT* input11 = &input[11][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+			for (int i=0; i<count; i++) {
+				output0[i] = (FAUSTFLOAT)((int((12345.0f * (float)input0[i])) & int((67895.0f * (float)input1[i]))));  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)((int((12345.0f * (float)input2[i])) | int((67895.0f * (float)input3[i]))));  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)((int((12345.0f * (float)input4[i])) ^ int((67895.0f * (float)input5[i]))));  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)((((int((12345.0f * (float)input6[i])) & int((67895.0f * (float)input7[i])))) ? 200 : 100));  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)((((int((12345.0f * (float)input8[i])) | int((67895.0f * (float)input9[i])))) ? 20 : 10));  // Zone Exec Code
+				output5[i] = (FAUSTFLOAT)((((int((12345.0f * (float)input10[i])) ^ int((67895.0f * (float)input11[i])))) ? 2 : 1));  // Zone Exec Code
+			}
+		}
+	}
+};
+
+

@@ -49,6 +49,7 @@
 struct itemInfo {
     std::string type;
     std::string label;
+    std::string varname;
     std::string shortname;
     std::string address;
     std::string url;
@@ -449,6 +450,12 @@ static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItem
                 else if (label == "label") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
                         uiItems[numItems].label = value;
+                    }
+                }
+                
+                else if (label == "varname") {
+                    if (parseChar(p, ':') && parseDQString(p, value)) {
+                        uiItems[numItems].varname = value;
                     }
                 }
                 

@@ -1016,6 +1016,13 @@ struct BlockInst : public StatementInst {
         }
     }
 
+    void insert(int index, BlockInst* inst)
+    {
+        auto it = fCode.begin();
+        std::advance(it, index);
+        fCode.insert(it, inst);
+    }
+
     int size() const { return int(fCode.size()); }
 
     bool       hasReturn() const;
@@ -3153,153 +3160,109 @@ struct IB {
 };
 
 /*
- * Syntactic sugar for index computations.
- *
- * wrapper for ValueInst* with support for basic arithmetics
- *
+ * Syntactic sugar for index computationsw, wapper for ValueInst* with support for basic
+ * arithmetics.
  */
+
 class FIRIndex {
    public:
-    /* explicit constructors in order to avoid the generation of implicit conversions */
+    // Explicit constructors to avoid implicit conversions
     explicit FIRIndex(ValueInst* inst) : fValue(inst) {}
-
     explicit FIRIndex(int num) : fValue(IB::genInt32NumInst(num)) {}
-
     FIRIndex(FIRIndex const& rhs) : fValue(rhs.fValue) {}
 
-    /* implicitly convert to ValueInst* in order to simplify the usage */
-    operator ValueInst*(void) const { return fValue; }
+    // Implicit conversion to ValueInst* for ease of use
+    operator ValueInst*() const { return fValue; }
 
-    // Add
-    friend FIRIndex operator+(FIRIndex const& lhs, ValueInst* rhs)
+    // Arithmetic operators
+    template <typename T>
+    friend FIRIndex operator+(const FIRIndex& lhs, const T& rhs)
     {
-        return FIRIndex(IB::genAdd(lhs.fValue, rhs));
+        return FIRIndex(IB::genAdd(lhs.fValue, convertToValueInst(rhs)));
     }
 
-    friend FIRIndex operator+(FIRIndex const& lhs, FIRIndex const& rhs)
+    template <typename T>
+    friend FIRIndex operator-(const FIRIndex& lhs, const T& rhs)
     {
-        return operator+(lhs, rhs.fValue);
+        return FIRIndex(IB::genSub(lhs.fValue, convertToValueInst(rhs)));
     }
 
-    friend FIRIndex operator+(FIRIndex const& lhs, int rhs)
+    template <typename T>
+    friend FIRIndex operator*(const FIRIndex& lhs, const T& rhs)
     {
-        return operator+(lhs, IB::genInt32NumInst(rhs));
+        return FIRIndex(IB::genMul(lhs.fValue, convertToValueInst(rhs)));
     }
 
-    // Sub
-    friend FIRIndex operator-(FIRIndex const& lhs, ValueInst* rhs)
+    template <typename T>
+    friend FIRIndex operator/(const FIRIndex& lhs, const T& rhs)
     {
-        return FIRIndex(IB::genSub(lhs.fValue, rhs));
+        return FIRIndex(IB::genDiv(lhs.fValue, convertToValueInst(rhs)));
     }
 
-    friend FIRIndex operator-(FIRIndex const& lhs, FIRIndex const& rhs)
+    template <typename T>
+    friend FIRIndex operator&(const FIRIndex& lhs, const T& rhs)
     {
-        return operator-(lhs, rhs.fValue);
+        return FIRIndex(IB::genAnd(lhs.fValue, convertToValueInst(rhs)));
     }
 
-    friend FIRIndex operator-(FIRIndex const& lhs, int rhs)
+    template <typename T>
+    friend FIRIndex operator%(const FIRIndex& lhs, const T& rhs)
     {
-        return operator-(lhs, IB::genInt32NumInst(rhs));
+        return FIRIndex(IB::genRem(lhs.fValue, convertToValueInst(rhs)));
     }
 
-    // Mul
-    friend FIRIndex operator*(FIRIndex const& lhs, ValueInst* rhs)
+    // Comparison operators
+    template <typename T>
+    friend FIRIndex operator==(const FIRIndex& lhs, const T& rhs)
     {
-        return FIRIndex(IB::genMul(lhs.fValue, rhs));
+        return FIRIndex(IB::genEqual(lhs.fValue, convertToValueInst(rhs)));
     }
 
-    friend FIRIndex operator*(FIRIndex const& lhs, FIRIndex const& rhs)
+    template <typename T>
+    friend FIRIndex operator!=(const FIRIndex& lhs, const T& rhs)
     {
-        return operator*(lhs, rhs.fValue);
+        return FIRIndex(IB::genNotEqual(lhs.fValue, convertToValueInst(rhs)));
     }
 
-    friend FIRIndex operator*(FIRIndex const& lhs, int rhs)
+    template <typename T>
+    friend FIRIndex operator<(const FIRIndex& lhs, const T& rhs)
     {
-        return operator*(lhs, IB::genInt32NumInst(rhs));
+        return FIRIndex(IB::genLessThan(lhs.fValue, convertToValueInst(rhs)));
     }
 
-    // Div
-    friend FIRIndex operator/(FIRIndex const& lhs, ValueInst* rhs)
+    template <typename T>
+    friend FIRIndex operator<=(const FIRIndex& lhs, const T& rhs)
     {
-        return FIRIndex(IB::genDiv(lhs.fValue, rhs));
+        return FIRIndex(IB::genLessEqual(lhs.fValue, convertToValueInst(rhs)));
     }
 
-    friend FIRIndex operator/(FIRIndex const& lhs, FIRIndex const& rhs)
+    template <typename T>
+    friend FIRIndex operator>(const FIRIndex& lhs, const T& rhs)
     {
-        return operator/(lhs, rhs.fValue);
+        return FIRIndex(IB::genGreaterThan(lhs.fValue, convertToValueInst(rhs)));
     }
 
-    friend FIRIndex operator/(FIRIndex const& lhs, int rhs)
+    template <typename T>
+    friend FIRIndex operator>=(const FIRIndex& lhs, const T& rhs)
     {
-        return operator/(lhs, IB::genInt32NumInst(rhs));
-    }
-
-    // And
-    friend FIRIndex operator&(FIRIndex const& lhs, ValueInst* rhs)
-    {
-        return FIRIndex(IB::genAnd(lhs.fValue, rhs));
-    }
-
-    friend FIRIndex operator&(FIRIndex const& lhs, FIRIndex const& rhs)
-    {
-        return operator&(lhs, rhs.fValue);
-    }
-
-    friend FIRIndex operator&(FIRIndex const& lhs, int rhs)
-    {
-        return operator&(lhs, IB::genInt32NumInst(rhs));
-    }
-
-    // Modulo
-    friend FIRIndex operator%(FIRIndex const& lhs, ValueInst* rhs)
-    {
-        return FIRIndex(IB::genRem(lhs.fValue, rhs));
-    }
-
-    friend FIRIndex operator%(FIRIndex const& lhs, FIRIndex const& rhs)
-    {
-        return operator%(lhs, rhs.fValue);
-    }
-
-    friend FIRIndex operator%(FIRIndex const& lhs, int rhs)
-    {
-        return operator%(lhs, IB::genInt32NumInst(rhs));
-    }
-
-    // Equal
-    friend FIRIndex operator==(FIRIndex const& lhs, ValueInst* rhs)
-    {
-        return FIRIndex(IB::genEqual(lhs.fValue, rhs));
-    }
-
-    friend FIRIndex operator==(FIRIndex const& lhs, FIRIndex const& rhs)
-    {
-        return operator==(lhs, rhs.fValue);
-    }
-
-    friend FIRIndex operator==(FIRIndex const& lhs, int rhs)
-    {
-        return operator==(lhs, IB::genInt32NumInst(rhs));
-    }
-
-    // Inf
-    friend FIRIndex operator<(FIRIndex const& lhs, ValueInst* rhs)
-    {
-        return FIRIndex(IB::genLessThan(lhs.fValue, rhs));
-    }
-
-    friend FIRIndex operator<(FIRIndex const& lhs, FIRIndex const& rhs)
-    {
-        return operator<(lhs, rhs.fValue);
-    }
-
-    friend FIRIndex operator<(FIRIndex const& lhs, int rhs)
-    {
-        return operator<(lhs, IB::genInt32NumInst(rhs));
+        return FIRIndex(IB::genGreaterEqual(lhs.fValue, convertToValueInst(rhs)));
     }
 
    private:
     ValueInst* fValue;
+
+    // Templated helper to handle different operand types
+    template <typename T>
+    static ValueInst* convertToValueInst(const T& val)
+    {
+        if constexpr (std::is_same_v<T, int>) {
+            return IB::genInt32NumInst(val);
+        } else if constexpr (std::is_same_v<T, FIRIndex>) {
+            return val.fValue;
+        } else {
+            return val;  // Assume ValueInst* type
+        }
+    }
 };
 
 Typed::VarType convert2FIRType(int type);
@@ -3354,7 +3317,8 @@ struct ZoneArray : public virtual Garbageable {
     // Associate a variable (scalar or array) with the correspondinf index in iZone/fZone
     std::map<std::string, int> fMap;
 
-    // Shared between iZone and fZone
+    // Shared between iZone and fZone, and progressively decremented when allocating in DSP
+    // until 0 with allocation moving then to external memory.
     static int gInternalMemorySize;
 
     static Typed::VarType getConstType(const std::string& name)
@@ -3380,7 +3344,7 @@ struct ZoneArray : public virtual Garbageable {
     {
         if (fMap.count(vname) == 0) {
             int size = dynamic_cast<ArrayTyped*>(type)->fSize;
-            if (size <= fDLThreshold && size <= gInternalMemorySize && !is_static) {
+            if ((size <= fDLThreshold || size <= gInternalMemorySize) && !is_static) {
                 gInternalMemorySize -= size;
                 return IB::genDeclareVarInst(IB::genNamedAddress(vname, Address::kStruct), type,
                                              exp);

@@ -1,0 +1,120 @@
+//----------------------------------------------------------
+// name: "pow"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTPOWER
+#define FAUSTPOWER
+#include <cmath>
+template <int N> inline int faustpower(int x)              { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } 
+template <> 	 inline int faustpower<0>(int x)            { return 1; }
+template <> 	 inline int faustpower<1>(int x)            { return x; }
+template <> 	 inline int faustpower<2>(int x)            { return x*x; }
+template <int N> inline float faustpower(float x)            { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } 
+template <> 	 inline float faustpower<0>(float x)          { return 1; }
+template <> 	 inline float faustpower<1>(float x)          { return x; }
+template <> 	 inline float faustpower<2>(float x)          { return x*x; }
+#endif
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	static float 	fWave0[4];
+	int 	idxfWave0;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "pow.dsp");
+		m->declare("name", "pow");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 14; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		idxfWave0 = 0;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("pow");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+			FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
+			FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
+			FAUSTFLOAT* output10 = &output[10][index]; // Zone 3
+			FAUSTFLOAT* output11 = &output[11][index]; // Zone 3
+			FAUSTFLOAT* output12 = &output[12][index]; // Zone 3
+			FAUSTFLOAT* output13 = &output[13][index]; // Zone 3
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = fWave0[idxfWave0]; // step: 6
+				float 	fTemp1 = sqrtf((3.0f * fTemp0)); // step: 9
+				float 	fTemp2 = (4.0f * fTemp0); // step: 13
+				float 	fTemp3 = powf((5.0f * fTemp0),2.0f); // step: 20
+				int 	iTemp4 = int((6.0f * fTemp0)); // step: 24
+				float 	fTemp5 = (7.0f * fTemp0); // step: 30
+				output0[i] = (FAUSTFLOAT)(fTemp1);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(sqrtf(fTemp1));  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(powf(fTemp2,0.125f));  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(powf(fTemp2,0.0625f));  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)(fTemp3);  // Zone Exec Code
+				output5[i] = (FAUSTFLOAT)(fTemp3);  // Zone Exec Code
+				output6[i] = (FAUSTFLOAT)(faustpower<2>(iTemp4));  // Zone Exec Code
+				output7[i] = (FAUSTFLOAT)(powf(float(iTemp4),2.0f));  // Zone Exec Code
+				output8[i] = (FAUSTFLOAT)(powf(fTemp5,2.0001f));  // Zone Exec Code
+				output9[i] = (FAUSTFLOAT)(powf(fTemp5,2.0f));  // Zone Exec Code
+				output10[i] = (FAUSTFLOAT)(1.0f);  // Zone Exec Code
+				output11[i] = (FAUSTFLOAT)((8.0f * fTemp0));  // Zone Exec Code
+				output12[i] = (FAUSTFLOAT)(1.0f);  // Zone Exec Code
+				output13[i] = (FAUSTFLOAT)((9.0f * fTemp0));  // Zone Exec Code
+				// post processing
+				idxfWave0 = (idxfWave0 + 1) % 4;
+			}
+		}
+	}
+};
+
+
+float 	mydsp::fWave0[4] = {0.1f,0.56f,1.3f,8.9f};

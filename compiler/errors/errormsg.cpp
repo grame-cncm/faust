@@ -65,7 +65,7 @@ void lexerror(const char* msg)
 void FAUSTerror(const char* msg)
 {
     stringstream error;
-    error << FAUSTfilename << " : " << FAUSTlineno << " : ERROR : " << msg << endl;
+    error << FAUSTfilename << ":" << FAUSTlineno << " : ERROR : " << msg << endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }
@@ -73,7 +73,7 @@ void FAUSTerror(const char* msg)
 void evalerror(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
-    error << filename << " : " << linenum << " : ERROR : " << msg << " : " << boxpp(exp) << endl;
+    error << filename << ":" << linenum << " : ERROR : " << msg << " : " << boxpp(exp) << endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }
@@ -81,7 +81,7 @@ void evalerror(const char* filename, int linenum, const char* msg, Tree exp)
 void evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
-    error << filename << " : " << linenum << " : ERROR : " << msg << " : " << boxpp(exp) << endl;
+    error << filename << ":" << linenum << " : ERROR : " << msg << " : " << boxpp(exp) << endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }
@@ -89,14 +89,14 @@ void evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp)
 void evalwarning(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
-    error << filename << " : " << linenum << " : WARNING : " << msg << " : " << boxpp(exp) << endl;
+    error << filename << ":" << linenum << " : WARNING : " << msg << " : " << boxpp(exp) << endl;
     gGlobal->gErrorMessage = error.str();
 }
 
 void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
-    error << filename << " : " << linenum << " : REMARK : " << msg << " : " << boxpp(exp) << endl;
+    error << filename << ":" << linenum << " : REMARK : " << msg << " : " << boxpp(exp) << endl;
     gGlobal->gErrorMessage = error.str();
 }
 

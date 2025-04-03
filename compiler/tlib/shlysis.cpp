@@ -67,7 +67,7 @@ unique to each sharing analysis must be generated.
 Tree shprkey(Tree t)
 {
     char name[256];
-    snprintf(name, 256, "SHARED IN %p : ", (void*)(CTree*)t);
+    snprintf(name, 256, "SHARED IN %p : ", t);
     return tree(unique(name));
 }
 
@@ -143,7 +143,7 @@ static void annotate(Tree k, Tree t, barrier foo)
             }
         }
     } else {
-        // printf(" annotate %p with %d\n", (CTree*)t, c+1);
+        // printf(" annotate %p with %d\n", t, c+1);
     }
     setProperty(t, k, tree(c + 1));
 }

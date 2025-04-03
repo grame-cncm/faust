@@ -671,22 +671,15 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const string& name_app
             return sfactory;
         } else {
             try {
-                int         argc1 = 0;
-                const char* argv1[64];
-                argv1[argc1++] = "faust";
-                argv1[argc1++] = "-lang";
-                argv1[argc1++] = "llvm";
-                argv1[argc1++] = "-o";
-                argv1[argc1++] = "string";
-                // Copy arguments
+                vector<const char*> argv1 = {"faust", "-lang", "llvm", "-o", "string"};
                 for (int i = 0; i < argc; i++) {
-                    argv1[argc1++] = argv[i];
+                    argv1.push_back(argv[i]);
                 }
-                argv1[argc1] = nullptr;  // NULL terminated argv
+                argv1.push_back(nullptr);  // Null termination
 
                 llvm_dynamic_dsp_factory_aux* factory_aux =
-                    static_cast<llvm_dynamic_dsp_factory_aux*>(
-                        createFactory(name_app, dsp_content, argc1, argv1, error_msg, true));
+                    static_cast<llvm_dynamic_dsp_factory_aux*>(createFactory(
+                        name_app, dsp_content, argv1.size() - 1, argv1.data(), error_msg, true));
                 if (factory_aux && factory_aux->initJIT(error_msg)) {
                     factory_aux->setTarget(target);
                     factory_aux->setOptlevel(opt_level);
@@ -716,21 +709,14 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const string& name_ap
 {
     LOCK_API
     try {
-        int         argc1 = 0;
-        const char* argv1[64];
-        argv1[argc1++] = "faust";
-        argv1[argc1++] = "-lang";
-        argv1[argc1++] = "llvm";
-        argv1[argc1++] = "-o";
-        argv1[argc1++] = "string";
-        // Copy arguments
+        vector<const char*> argv1 = {"faust", "-lang", "llvm", "-o", "string"};
         for (int i = 0; i < argc; i++) {
-            argv1[argc1++] = argv[i];
+            argv1.push_back(argv[i]);
         }
-        argv1[argc1] = nullptr;  // NULL terminated argv
+        argv1.push_back(nullptr);  // Null termination
 
         llvm_dynamic_dsp_factory_aux* factory_aux = static_cast<llvm_dynamic_dsp_factory_aux*>(
-            createFactory(name_app, signals, argc1, argv1, error_msg));
+            createFactory(name_app, signals, argv1.size() - 1, argv1.data(), error_msg));
         if (factory_aux && factory_aux->initJIT(error_msg)) {
             factory_aux->setTarget(target);
             factory_aux->setOptlevel(opt_level);

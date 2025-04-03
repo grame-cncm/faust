@@ -211,6 +211,11 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
+    else if (isSigRegister(sig, &i, x)) {
+        self(x);
+        return;
+    }
+
     else if (isNil(sig)) {
         // now nil can appear in table write instructions
         return;

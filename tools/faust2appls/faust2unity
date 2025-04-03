@@ -35,8 +35,10 @@ echoHelp()
     option -linux "generates a Linux library"
     option "-nvoices <num>"
     option -source "generates the source files (uncompressed folder)"
+    option -universal "generates a universal (arm/intel) external on OSX"
     option -unpacked "generates an unpacked folder with files organized like the Unity Asset hierarchy. Use this options to add specific files in the unity package (in the Assets folder, then use 'encoderunitypackage <folder>' to compress and pack it."
     option "Faust options"
+     $ARCH
     echo "See architecture/unity/README.md for more info."
     exit
 }
@@ -61,6 +63,7 @@ SRC="0"
 UNPCK="0"
 NVOICES=-1
 FAUST_UTILITY=FaustUtilities_template.cs
+ARCH=""
 
 while [ $1 ]
 do
@@ -86,6 +89,8 @@ do
     elif [ $p = "-linux" ]; then
         LINUX="1"
         ALL="0"
+    elif [ $p = "-universal" ]; then
+        ARCH="-universal"
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
@@ -171,7 +176,7 @@ for p in $FILES; do
 
     # macos
     if [ $OSX = "1" ] || [ $ALL = "1" ]; then
-        faust2osxiosunity -nvoices $NVOICES $f || exit
+        faust2osxiosunity $ARCH -nvoices $NVOICES $f || exit
     fi
 
     # ios

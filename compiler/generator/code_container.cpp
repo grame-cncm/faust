@@ -477,9 +477,6 @@ void CodeContainer::processFIR(void)
         createMemoryLayout();
     }
 
-    // Possibly generate JSON
-    generateJSONFile();
-
     // Sort struct fields by size and type
     // 05/16/17 : deactivated since it slows down the code...
     /*
@@ -505,6 +502,15 @@ void CodeContainer::processFIR(void)
                                       fCurLoop->generateScalarLoop("count"));
         endTiming("FIR var checker");
     }
+
+#ifdef FIR_BUILD
+    if (global::isDebug("FIR_PRINTER")) {
+        stringstream   res;
+        FIRInstVisitor fir_visitor(&res);
+        flattenFIR()->accept(&fir_visitor);
+        std::cout << res.str();
+    }
+#endif
 }
 
 // Possibly rewrite arrays access using iZone/fZone
@@ -540,12 +546,15 @@ void CodeContainer::rewriteInZones()
 
 void CodeContainer::mergeSubContainers()
 {
+    BlockInst* sub_ui = new BlockInst();
+
     for (const auto& it : fSubContainers) {
         // Merge the subcontainer in the main one
         fExtGlobalDeclarationInstructions->merge(it->fExtGlobalDeclarationInstructions);
         fGlobalDeclarationInstructions->merge(it->fGlobalDeclarationInstructions);
         fDeclarationInstructions->merge(it->fDeclarationInstructions);
         fControlDeclarationInstructions->merge(it->fControlDeclarationInstructions);
+        sub_ui->merge(it->fUserInterfaceInstructions);
         // TO CHECK (used for waveform initialisation which has to be moved first...)
         fStaticInitInstructions->mergeFront(it->fStaticInitInstructions);
         // Then clear it
@@ -553,8 +562,16 @@ void CodeContainer::mergeSubContainers()
         it->fExtGlobalDeclarationInstructions->fCode.clear();
         it->fDeclarationInstructions->fCode.clear();
         it->fControlDeclarationInstructions->fCode.clear();
+        it->fUserInterfaceInstructions->fCode.clear();
         it->fStaticInitInstructions->fCode.clear();
     }
+
+    /*
+     Insert subcontainer UIs at the end of the top group, just before the last closeBox
+     and remove empty groups.
+    */
+    fUserInterfaceInstructions->insert(fUserInterfaceInstructions->size() - 1,
+                                       removeEmptyGroups(sub_ui));
 
     // Possibly rewrite access in iZone/fZone
     rewriteInZones();
@@ -597,16 +614,16 @@ void CodeContainer::createMemoryLayout()
                 // Subcontainer size
                 VariableSizeCounter struct_size(Address::kStruct);
                 it->generateDeclarations(&struct_size);
-                fMemoryLayout.push_back(
-                    make_tuple(it->getClassName(), "kObj_ptr", 0, struct_size.fSizeBytes, 0, 0));
-
+                fMemoryLayout.push_back(MemoryLayoutItem{it->getClassName(), "kObj_ptr", 0,
+                                                         struct_size.fSizeBytes, 0, 0});
                 // Get the associated table size and access
                 pair<string, int> field = gGlobal->gTablesSize[it->getClassName()];
 
                 // Check the table name memory description
                 MemoryDesc& decs = struct_visitor.getMemoryDesc(field.first);
-                fMemoryLayout.push_back(make_tuple(field.first, Typed::gTypeString[decs.fType], 0,
-                                                   field.second, decs.fRAccessCount, 0));
+                fMemoryLayout.push_back(MemoryLayoutItem{field.first,
+                                                         Typed::gTypeString[decs.fType], 0,
+                                                         field.second, decs.fRAccessCount, 0});
             }
         }
     }
@@ -641,12 +658,12 @@ void CodeContainer::createMemoryLayout()
 
             // TODO: rework DSP site comptations with local arrays
 
-            fMemoryLayout.push_back(make_tuple(fKlassName, "kObj_ptr", 0,
-                                               // Raised value:
-                                               // - add virtual method pointer (8 bytes in 64 bits)
-                                               // - add 8 bytes for memory alignment
-                                               struct_size.fSizeBytes + 8 + 8, read_access,
-                                               write_access));
+            fMemoryLayout.push_back(
+                MemoryLayoutItem{fKlassName, "kObj_ptr", 0,
+                                 // Raised value:
+                                 // - add virtual method pointer (8 bytes in 64 bits)
+                                 // - add 8 bytes for memory alignment
+                                 struct_size.fSizeBytes + 8 + 8, read_access, write_access});
         }
 
         // Arrays and scalars inside the DSP struct
@@ -659,13 +676,13 @@ void CodeContainer::createMemoryLayout()
                 it.second.fSize << std::endl; std::cout << "it.second.fSizeBytes " <<
                 it.second.fSizeBytes << std::endl;
                 */
-                fMemoryLayout.push_back(
-                    make_tuple(it.first,
-                               Typed::gTypeString[(it.second.fIsScalar)
-                                                      ? it.second.fType
-                                                      : Typed::getPtrFromType(it.second.fType)],
-                               it.second.fSize, it.second.fSizeBytes, it.second.fRAccessCount,
-                               it.second.fWAccessCount));
+                fMemoryLayout.push_back(MemoryLayoutItem{
+                    it.first,
+                    Typed::gTypeString[(it.second.fIsScalar)
+                                           ? it.second.fType
+                                           : Typed::getPtrFromType(it.second.fType)],
+                    it.second.fSize, it.second.fSizeBytes, it.second.fRAccessCount,
+                    it.second.fWAccessCount});
             }
         }
 
@@ -678,8 +695,8 @@ void CodeContainer::createMemoryLayout()
                 if (search_class.fFound) {
                     VariableSizeCounter struct_size(Address::kStruct);
                     it->generateDeclarations(&struct_size);
-                    fMemoryLayout.push_back(make_tuple(it->getClassName(), "kObj_ptr", 0,
-                                                       struct_size.fSizeBytes, 0, 0));
+                    fMemoryLayout.push_back(MemoryLayoutItem{it->getClassName(), "kObj_ptr", 0,
+                                                             struct_size.fSizeBytes, 0, 0});
                 }
             }
         }
@@ -801,15 +818,6 @@ void CodeContainer::printMacros(ostream& fout, int n)
                 tab(n, fout);
             }
             fout << "#endif" << endl;
-        } else if (gGlobal->gOutputLang == "rust") {
-            fout << "pub const FAUST_INPUTS: i32 = " << fNumInputs << ";";
-            tab(n, fout);
-            fout << "pub const FAUST_OUTPUTS: i32 = " << fNumOutputs << ";";
-            tab(n, fout);
-            fout << "pub const FAUST_ACTIVES: i32 = " << fNumActives << ";";
-            tab(n, fout);
-            fout << "pub const FAUST_PASSIVES: i32 = " << fNumPassives << ";";
-            tab(n, fout);
         } else {
             cerr << "ASSERT : incorrect backend : " << gGlobal->gOutputLang << endl;
             faustassert(false);

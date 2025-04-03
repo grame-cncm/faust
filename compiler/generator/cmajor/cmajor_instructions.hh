@@ -36,7 +36,7 @@ inline std::string buildLabel(const std::string& label)
     return replaceCharList(label, {' ', '(', ')', '\\', '/', '.', '-'}, '_');
 }
 
-struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
+struct CmajorInstUIVisitor : public ShortnameInstVisitor {
     std::stringstream       fOut;
     CmajorStringTypeManager fTypeManager;
     int                     fTab;
@@ -52,27 +52,23 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
 
     void Tab(int tab) { fTab = tab; }
 
+    // Add metadata to the output if available and clear the metadata container
     void addMeta()
     {
-        if (fMetaAux.size() > 0) {
-            for (size_t i = 0; i < fMetaAux.size(); i++) {
-                if (!std::isdigit(fMetaAux[i].first[0])) {
-                    fOut << ", "
-                         << "meta_" + gGlobal->getFreshID(fMetaAux[i].first) << ": "
-                         << quote(fMetaAux[i].second);
-                }
+        for (const auto& [key, value] : fMetaAux) {
+            if (!std::isdigit(key[0])) {
+                fOut << ", meta_" << gGlobal->getFreshID(key) << ": " << quote(value);
             }
         }
         fMetaAux.clear();
     }
 
-    std::string getCmajorMetadata()
+    // Retrieve the "cmajor" metadata if present
+    std::string getCmajorMetadata() const
     {
-        if (fMetaAux.size() > 0) {
-            for (size_t i = 0; i < fMetaAux.size(); i++) {
-                if (fMetaAux[i].first == "cmajor") {
-                    return fMetaAux[i].second;
-                }
+        for (const auto& [key, value] : fMetaAux) {
+            if (key == "cmajor") {
+                return value;
             }
         }
         return "";
@@ -80,116 +76,127 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
-        fMetaAux.push_back(std::make_pair(inst->fKey, inst->fValue));
+        fMetaAux.emplace_back(inst->fKey, inst->fValue);
     }
 
     virtual void visit(AddButtonInst* inst)
     {
-        if (gGlobal->gOutputLang == "cmajor-poly") {
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-                 << buildLabel(inst->fLabel) << " [[ name: " << quote(inst->fLabel)
-                 << ", group: " << quote(buildPath(inst->fLabel));
-            if (inst->fType != AddButtonInst::kDefaultButton) {
-                fOut << ", latching";
+        if (hasShortname()) {
+            std::string short_name = buildShortname(inst->fLabel);
+            if (gGlobal->gOutputLang == "cmajor-poly") {
+                fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
+                     << short_name << " [[ name: " << quote(short_name)
+                     << ", group: " << quote(buildPath(inst->fLabel));
+                if (inst->fType != AddButtonInst::kDefaultButton) {
+                    fOut << ", latching";
+                }
+                fOut << ", text: \"off|on\""
+                     << ", boolean";
+                addMeta();
+                fOut << " ]];";
+            } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
+                std::string cmajor_meta = getCmajorMetadata();
+                fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " "
+                     << ((cmajor_meta != "") ? cmajor_meta : short_name)
+                     << " [[ name: " << quote(short_name)
+                     << ", group: " << quote(buildPath(inst->fLabel));
+                if (inst->fType != AddButtonInst::kDefaultButton) {
+                    fOut << ", latching";
+                }
+                fOut << ", text: \"off|on\""
+                     << ", boolean";
+                addMeta();
+                fOut << " ]];";
+            } else {
+                fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
+                     << inst->fZone << " [[ name: " << quote(short_name)
+                     << ", group: " << quote(buildPath(inst->fLabel));
+                if (inst->fType != AddButtonInst::kDefaultButton) {
+                    fOut << ", latching";
+                }
+                fOut << ", text: \"off|on\""
+                     << ", boolean";
+                addMeta();
+                fOut << " ]];";
             }
-            fOut << ", text: \"off|on\""
-                 << ", boolean";
-            addMeta();
-            fOut << " ]];";
-        } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
-            std::string cmajor_meta = getCmajorMetadata();
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " "
-                 << ((cmajor_meta != "") ? cmajor_meta : buildLabel(inst->fLabel))
-                 << " [[ name: " << quote(inst->fLabel)
-                 << ", group: " << quote(buildPath(inst->fLabel));
-            if (inst->fType != AddButtonInst::kDefaultButton) {
-                fOut << ", latching";
-            }
-            fOut << ", text: \"off|on\""
-                 << ", boolean";
-            addMeta();
-            fOut << " ]];";
+            tab(fTab, fOut);
         } else {
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
-                 << inst->fZone << " [[ name: " << quote(inst->fLabel)
-                 << ", group: " << quote(buildPath(inst->fLabel));
-            if (inst->fType != AddButtonInst::kDefaultButton) {
-                fOut << ", latching";
-            }
-            fOut << ", text: \"off|on\""
-                 << ", boolean";
-            addMeta();
-            fOut << " ]];";
+            ShortnameInstVisitor::visit(inst);
         }
-        tab(fTab, fOut);
     }
 
     virtual void visit(AddSliderInst* inst)
     {
-        if (gGlobal->gOutputLang == "cmajor-poly") {
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-                 << buildLabel(inst->fLabel) << " [[ name: " << quote(inst->fLabel)
-                 << ", group: " << quote(buildPath(inst->fLabel))
-                 << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
-                 << ", init: " << checkReal(inst->fInit) << ", step: " << checkReal(inst->fStep);
-            addMeta();
-            fOut << " ]];";
-        } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
-            std::string cmajor_meta = getCmajorMetadata();
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " "
-                 << ((cmajor_meta != "") ? cmajor_meta : buildLabel(inst->fLabel))
-                 << " [[ name: " << quote(inst->fLabel)
-                 << ", group: " << quote(buildPath(inst->fLabel))
-                 << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
-                 << ", init: " << checkReal(inst->fInit) << ", step: " << checkReal(inst->fStep);
-            addMeta();
-            fOut << " ]];";
+        if (hasShortname()) {
+            std::string short_name = buildShortname(inst->fLabel);
+            if (gGlobal->gOutputLang == "cmajor-poly") {
+                fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
+                     << short_name << " [[ name: " << quote(short_name)
+                     << ", group: " << quote(buildPath(inst->fLabel))
+                     << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
+                     << ", init: " << checkReal(inst->fInit)
+                     << ", step: " << checkReal(inst->fStep);
+                addMeta();
+                fOut << " ]];";
+            } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
+                std::string cmajor_meta = getCmajorMetadata();
+                fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " "
+                     << ((cmajor_meta != "") ? cmajor_meta : short_name)
+                     << " [[ name: " << quote(short_name)
+                     << ", group: " << quote(buildPath(inst->fLabel))
+                     << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
+                     << ", init: " << checkReal(inst->fInit)
+                     << ", step: " << checkReal(inst->fStep);
+                addMeta();
+                fOut << " ]];";
+            } else {
+                fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
+                     << inst->fZone << " [[ name: " << quote(inst->fLabel)
+                     << ", group: " << quote(buildPath(inst->fLabel))
+                     << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
+                     << ", init: " << checkReal(inst->fInit)
+                     << ", step: " << checkReal(inst->fStep);
+                addMeta();
+                fOut << " ]];";
+            }
+            tab(fTab, fOut);
         } else {
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
-                 << inst->fZone << " [[ name: " << quote(inst->fLabel)
-                 << ", group: " << quote(buildPath(inst->fLabel))
-                 << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
-                 << ", init: " << checkReal(inst->fInit) << ", step: " << checkReal(inst->fStep);
-            addMeta();
-            fOut << " ]];";
+            ShortnameInstVisitor::visit(inst);
         }
-        tab(fTab, fOut);
     }
 
     virtual void visit(AddBargraphInst* inst)
     {
-        // We have bargraphs
-        fHasBargraph = true;
+        if (hasShortname()) {
+            std::string short_name = buildShortname(inst->fLabel);
 
-        if (gGlobal->gOutputLang == "cmajor-poly") {
-            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-                 << quote(buildLabel(inst->fLabel)) << " [[ name: " << quote(inst->fLabel)
-                 << ", group: " << quote(buildPath(inst->fLabel))
-                 << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax);
-            addMeta();
-            fOut << " ]];";
-        } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
-            std::string cmajor_meta = getCmajorMetadata();
-            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " "
-                 << ((cmajor_meta != "") ? cmajor_meta : buildLabel(inst->fLabel))
-                 << " [[ name: " << quote(inst->fLabel)
-                 << ", group: " << quote(buildPath(inst->fLabel))
-                 << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax);
-            addMeta();
-            fOut << " ]];";
+            // We have bargraphs
+            fHasBargraph = true;
+
+            if (gGlobal->gOutputLang == "cmajor-poly") {
+                fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
+                     << short_name << " [[ name: " << quote(short_name)
+                     << ", group: " << quote(buildPath(inst->fLabel))
+                     << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax);
+                addMeta();
+                fOut << " ]];";
+            } else {
+                fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
+                     << inst->fZone << " [[ name: " << quote(short_name)
+                     << ", group: " << quote(buildPath(inst->fLabel))
+                     << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax);
+                addMeta();
+                fOut << " ]];";
+            }
+            tab(fTab, fOut);
         } else {
-            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
-                 << inst->fZone << " [[ name: " << quote(inst->fLabel)
-                 << ", group: " << quote(buildPath(inst->fLabel))
-                 << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax);
-            addMeta();
-            fOut << " ]];";
+            ShortnameInstVisitor::visit(inst);
         }
-        tab(fTab, fOut);
     }
 
     virtual void visit(OpenboxInst* inst)
     {
+        /*
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 pushLabel("v:" + inst->fName);
@@ -201,12 +208,14 @@ struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
                 pushLabel("t:" + inst->fName);
                 break;
         }
+        */
+        ShortnameInstVisitor::visit(inst);
         fMetaAux.clear();
     }
 
     virtual void visit(CloseboxInst* inst)
     {
-        popLabel();
+        ShortnameInstVisitor::visit(inst);
         fMetaAux.clear();
     }
 };
@@ -215,19 +224,18 @@ class CmajorInstVisitor : public TextInstVisitor {
    private:
     // Polymorphic math functions
     std::map<std::string, std::string> gPolyMathLibTable;
+    ShortnameInstVisitor               fShortNameVisitor;
 
     std::vector<std::pair<std::string, std::string>> fMetaAux;
 
     inline std::string checkFloat(float val) { return (std::isinf(val)) ? "inf" : T(val); }
     inline std::string checkDouble(double val) { return (std::isinf(val)) ? "inf" : T(val); }
 
-    std::string getCmajorMetadata()
+    std::string getCmajorMetadata() const
     {
-        if (fMetaAux.size() > 0) {
-            for (size_t i = 0; i < fMetaAux.size(); i++) {
-                if (fMetaAux[i].first == "cmajor") {
-                    return fMetaAux[i].second;
-                }
+        for (const auto& meta : fMetaAux) {
+            if (meta.first == "cmajor") {
+                return meta.second;
             }
         }
         return "";
@@ -330,61 +338,90 @@ class CmajorInstVisitor : public TextInstVisitor {
         fMetaAux.push_back(std::make_pair(inst->fKey, inst->fValue));
     }
 
-    virtual void visit(OpenboxInst* inst) { fMetaAux.clear(); }
+    virtual void visit(OpenboxInst* inst)
+    {
+        fShortNameVisitor.visit(inst);
+        fMetaAux.clear();
+    }
 
-    virtual void visit(CloseboxInst* inst) { fMetaAux.clear(); }
+    virtual void visit(CloseboxInst* inst)
+    {
+        fShortNameVisitor.visit(inst);
+        fMetaAux.clear();
+    }
 
     virtual void visit(AddButtonInst* inst)
     {
-        *fOut << "// " << inst->fLabel;
-        EndLine(' ');
-        if (gGlobal->gOutputLang == "cmajor-poly") {
-            *fOut << "event event_" << buildLabel(inst->fLabel) << " ("
-                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
-        } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
-            std::string cmajor_meta = getCmajorMetadata();
-            *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : buildLabel(inst->fLabel))
-                  << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
-            fMetaAux.clear();
+        if (fShortNameVisitor.hasShortname()) {
+            std::string short_name = fShortNameVisitor.buildShortname(inst->fLabel);
+            *fOut << "// " << short_name;
+            EndLine(' ');
+            if (gGlobal->gOutputLang == "cmajor-poly") {
+                *fOut << "event event_" << short_name << " ("
+                      << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                      << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone
+                      << " = val; }";
+            } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
+                std::string cmajor_meta = getCmajorMetadata();
+                *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : short_name) << " ("
+                      << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                      << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone
+                      << " = val; }";
+                fMetaAux.clear();
+            } else {
+                *fOut << "event event" << inst->fZone << " ("
+                      << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                      << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone
+                      << " = val; }";
+            }
+            EndLine(' ');
         } else {
-            *fOut << "event event" << inst->fZone << " ("
-                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
+            fShortNameVisitor.visit(inst);
         }
-        EndLine(' ');
     }
 
     virtual void visit(AddSliderInst* inst)
     {
-        *fOut << "// " << inst->fLabel << " [init = " << checkReal(inst->fInit)
-              << ", min = " << checkReal(inst->fMin) << ", max = " << checkReal(inst->fMax)
-              << ", step = " << checkReal(inst->fStep) << "]";
-        EndLine(' ');
-        if (gGlobal->gOutputLang == "cmajor-poly") {
-            *fOut << "event event_" << buildLabel(inst->fLabel) << " ("
-                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
-        } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
-            std::string cmajor_meta = getCmajorMetadata();
-            *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : buildLabel(inst->fLabel))
-                  << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
-            fMetaAux.clear();
+        if (fShortNameVisitor.hasShortname()) {
+            std::string short_name = fShortNameVisitor.buildShortname(inst->fLabel);
+            *fOut << "// " << short_name << " [init = " << checkReal(inst->fInit)
+                  << ", min = " << checkReal(inst->fMin) << ", max = " << checkReal(inst->fMax)
+                  << ", step = " << checkReal(inst->fStep) << "]";
+            EndLine(' ');
+            if (gGlobal->gOutputLang == "cmajor-poly") {
+                *fOut << "event event_" << short_name << " ("
+                      << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                      << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone
+                      << " = val; }";
+            } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
+                std::string cmajor_meta = getCmajorMetadata();
+                *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : short_name) << " ("
+                      << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                      << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone
+                      << " = val; }";
+                fMetaAux.clear();
+            } else {
+                *fOut << "event event" << inst->fZone << " ("
+                      << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                      << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone
+                      << " = val; }";
+            }
+            EndLine(' ');
         } else {
-            *fOut << "event event" << inst->fZone << " ("
-                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
+            fShortNameVisitor.visit(inst);
         }
-        EndLine(' ');
     }
 
     virtual void visit(AddBargraphInst* inst)
     {
-        *fOut << "// " << inst->fLabel << " [min = " << checkReal(inst->fMin)
-              << ", max = " << checkReal(inst->fMax) << "]";
-        EndLine(' ');
+        if (fShortNameVisitor.hasShortname()) {
+            std::string short_name = fShortNameVisitor.buildShortname(inst->fLabel);
+            *fOut << "// " << short_name << " [min = " << checkReal(inst->fMin)
+                  << ", max = " << checkReal(inst->fMax) << "]";
+            EndLine(' ');
+        } else {
+            fShortNameVisitor.visit(inst);
+        }
     }
 
     virtual void visit(AddSoundfileInst* inst)

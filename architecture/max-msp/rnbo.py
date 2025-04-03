@@ -1,6 +1,6 @@
 """
  FAUST Architecture File
- Copyright (C) 2023-2024 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2023-2025 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
@@ -1230,7 +1230,7 @@ def create_rnbo_patch_flat(
 
     # Faust generated patch comment
     patcher.add_comment(
-        "Faust generated RNBO patch, Copyright (c) 2023-2024 Grame",
+        "Faust generated RNBO patch, Copyright (c) 2023-2025 Grame",
         patching_rect=[50.0, 10.0, 350.0, 100.0],
         fontsize=16,
     )
@@ -1363,7 +1363,7 @@ def create_rnbo_patch(
 
     # Faust generated patch comment
     patcher.add_comment(
-        "Faust generated RNBO patch, Copyright (c) 2023-2024 Grame",
+        "Faust generated RNBO patch, Copyright (c) 2023-2025 Grame",
         patching_rect=[50.0, 10.0, 350.0, 100.0],
         fontsize=16,
     )
@@ -1490,7 +1490,7 @@ def load_files_create_rnbo_patch(
         with open(effect_codebox_path) as codebox_file:
             effect_codebox_code = codebox_file.read()
 
-        with open(effect_json_path) as json_file:
+        with open(effect_json_path, encoding="utf-8") as json_file:
             json_data = json.load(json_file)
             effect_items_info_list = extract_items_info(json_data)
             # print(effect_items_info_list)
@@ -1531,11 +1531,11 @@ def load_files_create_rnbo_patch(
             # Take either the midi parameter or options[0] (= the midi state found in the JSON file)
             midi or options[0],
             # Take either the given nvoices, otherwise options[1](= the number of voices found in the JSON file) or -1
-            nvoices
-            if nvoices is not None and nvoices > 0
-            else options[1]
-            if options[1]
-            else -1,
+            (
+                nvoices
+                if nvoices is not None and nvoices > 0
+                else options[1] if options[1] else -1
+            ),
             compile=compile,
             test=test,
             subpatcher=subpatcher,

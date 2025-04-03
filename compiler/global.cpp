@@ -130,6 +130,9 @@ extern const char* FAUSTfilename;
 list<Garbageable*> global::gObjectTable;
 bool               global::gHeapCleanup = false;
 
+// Just after gObjectTable initialisation for FaustAlgebra constructor to correctly work
+itv::interval_algebra gAlgebra;
+
 global::global()
     : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
@@ -368,6 +371,7 @@ global::global()
     SIGSOUNDFILELENGTH = symbol("SigSoundfileLength");
     SIGSOUNDFILERATE   = symbol("SigSoundfileRate");
     SIGSOUNDFILEBUFFER = symbol("SigSoundfileBuffer");
+    SIGREGISTER        = symbol("SigRegister");  // for FPGA Retiming
     SIGTUPLE           = symbol("SigTuple");
     SIGTUPLEACCESS     = symbol("SigTupleAccess");
     SIMPLETYPE         = symbol("SimpleType");
@@ -416,6 +420,7 @@ void global::reset()
 
     gDetailsSwitch    = false;
     gDrawSignals      = false;
+    gDrawRetiming     = false;
     gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
     gScaledSVG        = false;
@@ -442,11 +447,14 @@ void global::reset()
     gGroupTaskSwitch = false;
     gFunTaskSwitch   = false;
 
-    gUIMacroSwitch = false;
-    gDumpNorm      = -1;
-    gFTZMode       = 0;
-    gRangeUI       = false;
-    gFreezeUI      = false;
+    gUIMacroSwitch     = false;
+    gRustNoTraitSwitch = false;
+    gRustNoLibm        = false;
+
+    gDumpNorm = -1;
+    gFTZMode  = 0;
+    gRangeUI  = false;
+    gFreezeUI = false;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -472,7 +480,6 @@ void global::reset()
 
     gInputString = "";
     gInputFiles.clear();
-    gMetaDataSet.clear();
 
     // Backend configuration : default values
     gAllowForeignFunction = true;
@@ -492,7 +499,7 @@ void global::reset()
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
-    gOneSampleControl     = false;
+    gOneSampleIO          = false;
     gExtControl           = false;
     gInlineTable          = false;
     gComputeMix           = false;
@@ -1092,6 +1099,15 @@ bool global::isDebug(const string& debug_val)
     return debug_var == debug_val;
 }
 
+int global::getDebug(const string& debug_var, int def_val)
+{
+    if (getenv(debug_var.c_str())) {
+        return std::stoi(getenv(debug_var.c_str()));
+    } else {
+        return def_val;
+    }
+}
+
 bool global::isOpt(const string& opt_val)
 {
     string opt_var = (getenv("FAUST_OPT")) ? string(getenv("FAUST_OPT")) : "";
@@ -1206,6 +1222,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gDrawSignals = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-rg", "--retiming-graph")) {
+            gDrawRetiming = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-drf", "--draw-route-frame")) {
             gDrawRouteFrame = true;
             i += 1;
@@ -1239,7 +1259,7 @@ bool global::processCmdline(int argc, const char* argv[])
             i += 2;
 
         } else if (isCmd(argv[i], "-style", "--svgstyle")) {
-            gGlobal->gStyleFile = argv[i + 1];
+            gStyleFile = argv[i + 1];
             i += 2;
 
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
@@ -1345,6 +1365,14 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-uim", "--user-interface-macros")) {
             gUIMacroSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-rnt", "--rust-no-faustdsp-trait")) {
+            gRustNoTraitSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-rnlm", "--rust-no-libm")) {
+            gRustNoLibm = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-t", "--timeout") && (i + 1 < argc)) {
@@ -1631,12 +1659,25 @@ bool global::processCmdline(int argc, const char* argv[])
     }
 
     if (gMemoryManager >= 1) {
-        gGlobal->gWaveformInDSP = true;
+        gWaveformInDSP = true;
     }
 
     // ========================
     // Check options coherency
     // ========================
+
+    if (gRustNoTraitSwitch && gOutputLang != "rust") {
+        throw faustexception("ERROR : '-rnt' option can only be used with 'rust' backend\n");
+    }
+
+    if (gRustNoLibm && gOutputLang != "rust") {
+        throw faustexception("ERROR : '-rnlm' option can only be used with 'rust' backend\n");
+    }
+
+    if (!gRustNoTraitSwitch && gInPlace && gOutputLang == "rust") {
+        throw faustexception(
+            "ERROR : for 'rust' the '-inpl' flag must be combined with '-rnt' flag\n");
+    }
 
     if (gInPlace && gVectorSwitch) {
         throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n");
@@ -1648,9 +1689,17 @@ bool global::processCmdline(int argc, const char* argv[])
     }
 #endif
     if (gOneSample && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "dlang" &&
-        !startWith(gOutputLang, "cmajor") && gOutputLang != "fir") {
+        !startWith(gOutputLang, "cmajor") && gOutputLang != "fir" && gOutputLang != "rust") {
         throw faustexception(
-            "ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'cmajor' "
+            "ERROR : '-os' option can only be used with 'cpp', 'c', 'cmajor', 'dlang', 'fir' or "
+            "'rust'"
+            "backends\n");
+    }
+
+    if (gExtControl && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "cmajor" &&
+        gOutputLang != "rust") {
+        throw faustexception(
+            "ERROR : '-ec' option can only be used with 'cpp', 'c', 'cmajor' or 'rust' "
             "backends\n");
     }
 
@@ -1699,8 +1748,8 @@ bool global::processCmdline(int argc, const char* argv[])
     }
 
     // gInlinetable check
-    if (gInlineTable && (gOutputLang != "cpp" && gOutputLang != "c")) {
-        throw faustexception("ERROR : -it can only be used with 'cpp' and 'c' backends\n");
+    if (gInlineTable && (gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "llvm")) {
+        throw faustexception("ERROR : -it can only be used with 'cpp', 'c' and 'llvm' backends\n");
     }
 
     // gMemoryManager check
@@ -2009,6 +2058,10 @@ static void enumBackends(ostream& out)
     out << dspto << "Rust" << endl;
 #endif
 
+#ifdef SDF3_BUILD
+    out << dspto << "SDF3" << endl;
+#endif
+
 #ifdef TEMPLATE_BUILD
     out << dspto << "Template" << endl;
 #endif
@@ -2035,7 +2088,7 @@ string global::printVersion()
 #ifdef LLVM_BUILD
     sstr << "Build with LLVM version " << LLVM_VERSION << "\n";
 #endif
-    sstr << "Copyright (C) 2002-2024, GRAME - Centre National de Creation Musicale. All rights "
+    sstr << "Copyright (C) 2002-2025, GRAME - Centre National de Creation Musicale. All rights "
             "reserved. \n";
     return sstr.str();
 }
@@ -2097,7 +2150,7 @@ string global::printHelp()
          << "                                        'lang' should be c, cpp (default), cmajor, "
             "codebox, csharp, "
             "dlang, fir, interp, java, jax, jsfx, julia, llvm, "
-            "ocpp, rust, vhdl or wast/wasm."
+            "ocpp, rust, sdf3, vhdl or wast/wasm."
          << endl;
 #endif
     sstr << tab
@@ -2332,6 +2385,14 @@ string global::printHelp()
          << "-ni <n>     --narrowing-iterations <n>  number of iterations before stopping "
             "narrowing in signal bounding."
          << endl;
+    sstr << tab
+         << "-rnt        --rust-no-faustdsp-trait    (Rust only) Don't generate FaustDsp trait "
+            "implmentation."
+         << endl;
+    sstr << tab
+         << "-rnlm       --rust-no-libm              (Rust only) Don't generate FFI calls to libm."
+         << endl;
+
 #endif
 #ifndef EMCC
     sstr << endl << "Block diagram options:" << line;
@@ -2401,7 +2462,15 @@ string global::printHelp()
          << "-sg         --signal-graph              print the internal signal graph in dot format."
          << endl;
     sstr << tab
+         << "-rg         --retiming-graph            print the internal signal graph after "
+            "retiming in dot format."
+         << endl;
+    sstr << tab
          << "-norm       --normalized-form           print signals in normalized form and exit."
+         << endl;
+    sstr << tab
+         << "-norm1      --normalized-form1          print signals in normalized form with IDs for "
+            "shared sub-expressions and exit."
          << endl;
     sstr << tab
          << "-me         --math-exceptions           check / for 0 as denominator and remainder, "
@@ -2442,6 +2511,18 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-pathslist  --pathslist                 print the architectures and dsp library paths."
+         << endl;
+
+    sstr << endl << "Environment variables:" << line;
+    sstr << tab << "FAUST_DEBUG      = FAUST_LLVM1          print LLVM IR before optimisation."
+         << endl;
+    sstr << tab << "FAUST_DEBUG      = FAUST_LLVM2          print LLVM IR after optimisation."
+         << endl;
+    sstr << tab << "FAUST_DEBUG      = FIR_PRINTER          print FIR after generation." << endl;
+    sstr << tab
+         << "FAUST_DEBUG      = FAUST_LLVM_NO_FM     deactivate fast-math optimisation in LLVM IR."
+         << endl;
+    sstr << tab << "FAUST_OPT        = FAUST_SIG_NO_NORM    deactivate signal normalisation."
          << endl;
 
     sstr << endl << "Example:" << line;
@@ -2591,7 +2672,10 @@ void Garbageable::operator delete[](void* ptr)
     free(ptr);
 }
 
-// Threaded calls API
+/*
+    Threaded calls API: the compilation code is executed in a separate
+    thread so that the stack size can be raised to MAX_STACK_SIZE.
+ */
 void callFun(threaded_fun fun, void* arg)
 {
 #if defined(EMCC)

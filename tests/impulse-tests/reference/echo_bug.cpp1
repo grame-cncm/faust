@@ -1,0 +1,148 @@
+//----------------------------------------------------------
+// name: "echo_bug"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	// Recursion delay fVeeec0 is of type kMaskRingDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0[2048]; // Ring Delay
+	FAUSTFLOAT 	fslider0;
+	// Recursion delay fRiiic1 is of type kZeroDelay
+	// While its definition is of type kZeroDelay
+	// Recursion delay fRiiic2 is of type kZeroDelay
+	// While its definition is of type kZeroDelay
+	// Recursion delay fRiiic3 is of type kZeroDelay
+	// While its definition is of type kZeroDelay
+	int 	IOTA;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("analyzers_lib_name", "Faust Analyzer Library");
+		m->declare("analyzers_lib_version", "0.0");
+		m->declare("basics_lib_name", "Faust Basic Element Library");
+		m->declare("basics_lib_version", "0.0");
+		m->declare("compilation_options", "-single -scal -e echo_bug.dsp -o echo_bug.dsp");
+		m->declare("compressors_lib_name", "Faust Compressor Effect Library");
+		m->declare("compressors_lib_version", "0.0");
+		m->declare("delays_lib_name", "Faust Delay Library");
+		m->declare("delays_lib_version", "0.1");
+		m->declare("envelopes_lib_author", "GRAME");
+		m->declare("envelopes_lib_copyright", "GRAME");
+		m->declare("envelopes_lib_license", "LGPL with exception");
+		m->declare("envelopes_lib_name", "Faust Envelope Library");
+		m->declare("envelopes_lib_version", "0.0");
+		m->declare("filename", "echo_bug.dsp");
+		m->declare("filters_lib_name", "Faust Filters Library");
+		m->declare("filters_lib_version", "0.0");
+		m->declare("hoa_lib_author", "Pierre Guillot");
+		m->declare("hoa_lib_copyright", "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8");
+		m->declare("hoa_lib_name", "High Order Ambisonics library");
+		m->declare("library_path", "/usr/local/share/faust/sf.lib");
+		m->declare("maths_lib_author", "GRAME");
+		m->declare("maths_lib_copyright", "GRAME");
+		m->declare("maths_lib_license", "LGPL with exception");
+		m->declare("maths_lib_name", "Faust Math Library");
+		m->declare("maths_lib_version", "2.1");
+		m->declare("misceffects_lib_name", "Faust Math Library");
+		m->declare("misceffects_lib_version", "2.0");
+		m->declare("name", "echo_bug");
+		m->declare("noises_lib_name", "Faust Noise Generator Library");
+		m->declare("noises_lib_version", "0.0");
+		m->declare("oscillators_lib_name", "Faust Oscillator Library");
+		m->declare("oscillators_lib_version", "0.0");
+		m->declare("phaflangers_lib_name", "Faust Phaser and Flanger Library");
+		m->declare("phaflangers_lib_version", "0.0");
+		m->declare("reverbs_lib_name", "Faust Reverb Library");
+		m->declare("reverbs_lib_version", "0.0");
+		m->declare("routes_lib_name", "Faust Signal Routing Library");
+		m->declare("routes_lib_version", "0.1");
+		m->declare("signals_lib_name", "Faust Signal Routing Library");
+		m->declare("signals_lib_version", "0.0");
+		m->declare("soundfiles_lib_name", "Faust Soundfile Library");
+		m->declare("soundfiles_lib_version", "0.4");
+		m->declare("spats_lib_name", "Faust Spatialization Library");
+		m->declare("spats_lib_version", "0.0");
+		m->declare("synths_lib_name", "Faust Synthesizer Library");
+		m->declare("synths_lib_version", "0.0");
+		m->declare("vaeffects_lib_name", "Faust Virtual Analog Filter Effect Library");
+		m->declare("vaeffects_lib_version", "0.0");
+	}
+
+	virtual int getNumInputs() { return 1; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 0.0f;
+	}
+	virtual void instanceClear() {
+		for (int i = 0; i < 2048; i++) { fVeeec0[i] = 0; }
+		IOTA = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("echo_bug");
+		ui_interface->declare(&fslider0, "0", "");
+		ui_interface->addHorizontalSlider("EchoWarp", &fslider0, 0.0f, -1.0f, 1.0f, 0.001f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = (float)input0[i]; // step: 1
+				int vIota0 = (IOTA-1)&2047;
+				int vIota1 = IOTA&2047;
+				fVeeec0[vIota1] = ((0.995f * fVeeec0[vIota0]) + (0.005f * fTemp0));
+				float 	fRiiic1 = float(fslider0); // Zero delay
+				float 	fRiiic2 = (1e+02f * (fRiiic1 + 1.0f)); // Zero delay
+				float 	fTemp1 = fRiiic2; // step: 20
+				int 	iTemp2 = int(fTemp1); // step: 21
+				int vIota2 = (IOTA-min(1025, max(0, iTemp2)))&2047;
+				float 	fTemp3 = floorf(fTemp1); // step: 25
+				int vIota3 = (IOTA-min(1025, max(0, (iTemp2 + 1))))&2047;
+				float 	fRiiic3 = ((fVeeec0[vIota2] * (fTemp3 + (1.0f - fTemp1))) + ((fTemp1 - fTemp3) * fVeeec0[vIota3])); // Zero delay
+				output0[i] = (FAUSTFLOAT)((fTemp0 + fRiiic3));  // Zone Exec Code
+				// post processing
+				IOTA = IOTA+1;
+			}
+		}
+	}
+};
+
+

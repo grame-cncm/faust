@@ -70,7 +70,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
         // Two bargraph can have the same path (WARNING)
         if (fOuputsPathSet.find(path) != fOuputsPathSet.end()) {
             std::stringstream error;
-            error << "WARNING : bargraph path '" + path + "' is already used";
+            error << "WARNING : bargraph path '" + path + "' is already used\n";
             gWarningMessages.push_back(error.str());
         }
         fOuputsPathSet.insert(path);
@@ -122,10 +122,10 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
     {
         switch (inst->fType) {
             case AddButtonInst::kDefaultButton:
-                this->addButton(inst->fLabel.c_str(), nullptr);
+                this->addButtonVarname(inst->fLabel.c_str(), inst->fZone.c_str(), nullptr);
                 break;
             case AddButtonInst::kCheckButton:
-                this->addCheckButton(inst->fLabel.c_str(), nullptr);
+                this->addCheckButtonVarname(inst->fLabel.c_str(), inst->fZone.c_str(), nullptr);
                 break;
             default:
                 faustassert(false);
@@ -139,16 +139,16 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
     {
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                this->addHorizontalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin,
-                                          inst->fMax, inst->fStep);
+                this->addHorizontalSliderVarname(inst->fLabel.c_str(), inst->fZone.c_str(), nullptr,
+                                                 inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             case AddSliderInst::kVertical:
-                this->addVerticalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin,
-                                        inst->fMax, inst->fStep);
+                this->addVerticalSliderVarname(inst->fLabel.c_str(), inst->fZone.c_str(), nullptr,
+                                               inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             case AddSliderInst::kNumEntry:
-                this->addNumEntry(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin,
-                                  inst->fMax, inst->fStep);
+                this->addNumEntryVarname(inst->fLabel.c_str(), inst->fZone.c_str(), nullptr,
+                                         inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             default:
                 faustassert(false);
@@ -162,10 +162,12 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
     {
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
-                this->addHorizontalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
+                this->addHorizontalBargraphVarname(inst->fLabel.c_str(), inst->fZone.c_str(),
+                                                   nullptr, inst->fMin, inst->fMax);
                 break;
             case AddBargraphInst::kVertical:
-                this->addVerticalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
+                this->addVerticalBargraphVarname(inst->fLabel.c_str(), inst->fZone.c_str(), nullptr,
+                                                 inst->fMin, inst->fMax);
                 break;
             default:
                 faustassert(false);
@@ -177,7 +179,8 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        this->addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
+        this->addSoundfileVarname(inst->fLabel.c_str(), inst->fSFZone.c_str(), inst->fURL.c_str(),
+                                  nullptr);
         faustassert(fPathTable.find(inst->fSFZone) == fPathTable.end());
         fPathTable[inst->fSFZone] = insertInputsPath(this->buildPath(inst->fLabel));
     }

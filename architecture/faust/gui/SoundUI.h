@@ -1,6 +1,6 @@
 /************************** BEGIN SoundUI.h **************************
  FAUST Architecture File
- Copyright (C) 2003-2022 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2024 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -28,9 +28,12 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <memory>
 
+#include "faust/dsp/dsp.h"
+#include "faust/gui/meta.h"
 #include "faust/gui/SimpleParser.h"
 #include "faust/gui/DecoratorUI.h"
 
@@ -53,6 +56,9 @@ static Esp32Reader gReader;
 #elif defined(MEMORY_READER)
 #include "faust/gui/MemoryReader.h"
 static MemoryReader gReader;
+#elif defined(MINIAUDIO_READER)
+#include "faust/gui/MiniaudioReader.h"
+static MiniaudioReader gReader;
 #else
 #include "faust/gui/LibsndfileReader.h"
 static LibsndfileReader gReader;
@@ -211,6 +217,37 @@ class SoundUI : public SoundUIInterface
         #endif
             return bundle_path_str;
         }
+    
+        /**
+         * Decode the "declare soundfiles "url1;url2;...;urlN"; metadata and return the list of paths.
+         *
+         * @param dsp - the DSP.
+         *
+         * @return the list of paths.
+         */
+        static std::vector<std::string> getSoundfilePaths(dsp* dsp)
+        {
+            // Analyse 'soundfiles' metadata to extract the list of URLs.
+            struct SoundfilesMeta : Meta
+            {
+                std::vector<std::string> fURL;
+                void declare(const char* key, const char* value)
+                {
+                    if (std::string(key) == "soundfiles") {
+                        std::stringstream ss(value);
+                        std::string item;
+                        // Use getline with ';' as the delimiter to split the string
+                        while (getline(ss, item, ';')) { fURL.push_back(item); }
+                    }
+                }
+            };
+            
+            // Use bundle path
+            SoundfilesMeta sf;
+            dsp->metadata(&sf);
+            return sf.fURL;
+        };
+
 };
 
 #endif

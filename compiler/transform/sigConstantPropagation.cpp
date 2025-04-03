@@ -52,6 +52,7 @@ Tree SignalConstantPropagation::transformation(Tree sig)
             allNums &= isNum(c);
         }
         if (allNums) {
+            faustassert(newBranches.size() == xt->arity());
             return xt->computeSigOutput(newBranches);
         } else {
             return tree(sig->node(), newBranches);

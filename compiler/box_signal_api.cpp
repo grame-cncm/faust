@@ -110,21 +110,14 @@ LIBFAUST_API string createSourceFromSignals(const string& name_app, tvec signals
                                             const string& lang, int argc, const char* argv[],
                                             string& error_msg)
 {
-    int         argc1 = 0;
-    const char* argv1[64];
-    argv1[argc1++] = "faust";
-    argv1[argc1++] = "-lang";
-    argv1[argc1++] = lang.c_str();
-    argv1[argc1++] = "-o";
-    argv1[argc1++] = "string";
-
-    // Copy arguments
+    vector<const char*> argv1 = {"faust", "-lang", lang.c_str(), "-o", "string"};
     for (int i = 0; i < argc; i++) {
-        argv1[argc1++] = argv[i];
+        argv1.push_back(argv[i]);
     }
-    argv1[argc1] = nullptr;  // NULL terminated argv
+    argv1.push_back(nullptr);  // Null termination
 
-    dsp_factory_base* factory = createFactory(name_app, signals, argc1, argv1, error_msg);
+    dsp_factory_base* factory =
+        createFactory(name_app, signals, argv1.size() - 1, argv1.data(), error_msg);
     if (factory) {
         // Print the textual class
         stringstream str;
@@ -260,7 +253,7 @@ LIBFAUST_API tvec sigRecursionN(const tvec& ins)
 extern "C" {
 #endif
 
-static Tree* list2array(tvec list)
+static Tree* list2array(const tvec& list)
 {
     if (list.size() > 0) {
         Tree*  res = (Tree*)malloc(sizeof(Tree) * (list.size() + 1));
@@ -1033,6 +1026,18 @@ LIBFAUST_API bool CisSigControl(Tree s, Tree* s0_aux, Tree* s1_aux)
     if (isSigControl(s, s0, s1)) {
         *s0_aux = s0;
         *s1_aux = s1;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisSigRegister(Tree s, Tree* x_aux)
+{
+    Tree x;
+    int  i;
+    if (isSigRegister(s, &i, x)) {
+        *x_aux = x;
         return true;
     } else {
         return false;
@@ -2161,7 +2166,7 @@ LIBFAUST_API Tree CboxButton(const char* label)
 
 LIBFAUST_API Tree CboxCheckbox(const char* label)
 {
-    return boxButton(label);
+    return boxCheckbox(label);
 }
 
 LIBFAUST_API Tree CboxVSlider(const char* label, Tree init, Tree min, Tree max, Tree step)

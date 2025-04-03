@@ -39,12 +39,12 @@
 #include "boxes.hh"
 #include "garbageable.hh"
 
-LIBFAUST_API const char* prim0name(CTree* (*ptr)());
-LIBFAUST_API const char* prim1name(CTree* (*ptr)(CTree*));
-LIBFAUST_API const char* prim2name(CTree* (*ptr)(CTree*, CTree*));
-LIBFAUST_API const char* prim3name(CTree* (*ptr)(CTree*, CTree*, CTree*));
-LIBFAUST_API const char* prim4name(CTree* (*ptr)(CTree*, CTree*, CTree*, CTree*));
-LIBFAUST_API const char* prim5name(CTree* (*ptr)(CTree*, CTree*, CTree*, CTree*, CTree*));
+LIBFAUST_API const char* prim0name(Tree (*ptr)());
+LIBFAUST_API const char* prim1name(Tree (*ptr)(Tree));
+LIBFAUST_API const char* prim2name(Tree (*ptr)(Tree, Tree));
+LIBFAUST_API const char* prim3name(Tree (*ptr)(Tree, Tree, Tree));
+LIBFAUST_API const char* prim4name(Tree (*ptr)(Tree, Tree, Tree, Tree));
+LIBFAUST_API const char* prim5name(Tree (*ptr)(Tree, Tree, Tree, Tree, Tree));
 
 // Box pretty printer.
 // usage : out << boxpp(aBoxExp);

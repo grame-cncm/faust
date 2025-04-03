@@ -1,0 +1,111 @@
+//----------------------------------------------------------
+// name: "waveform2"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	class SIG0 {
+	  private:
+		int fSampleRate;
+		static int 	iWave0[7];
+		int 	idxiWave0;
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			idxiWave0 = 0;
+		}
+		void fill(int count, int output[]) {
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = min(32, fullcount-index);
+				for (int i=0; i<count; i++) {
+					output[i] = iWave0[idxiWave0];
+					// post processing
+					idxiWave0 = (idxiWave0 + 1) % 7;
+				}
+				output += 32;
+			}
+		}
+	};
+
+
+	// Recursion delay iVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec0State; // Mono Delay
+	static int 	itbl0[7];
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "waveform2.dsp");
+		m->declare("name", "waveform2");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+		SIG0 sig0;
+		sig0.init(sample_rate);
+		sig0.fill(7,itbl0);
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		iVeeec0State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("waveform2");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVeeec0;
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			iVeeec0 = iVeeec0State;
+			for (int i=0; i<count; i++) {
+				iVeeec0 = ((iVeeec0 + 3) % 7);
+				output0[i] = (FAUSTFLOAT)(itbl0[min(6, max(0, iVeeec0))]);  // Zone Exec Code
+			}
+			iVeeec0State = iVeeec0;
+		}
+	}
+};
+
+
+int 	mydsp::SIG0::iWave0[7] = {10,20,30,40,50,60,70};
+int 	mydsp::itbl0[7];

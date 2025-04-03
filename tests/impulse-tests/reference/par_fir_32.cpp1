@@ -1,0 +1,92 @@
+//----------------------------------------------------------
+// name: "par_fir_32"
+// version: "2.76.0"
+//
+// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	float 	fVec0State[31]; // Dense Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-single -scal -e par_fir_32.dsp -o par_fir_32_exp.dsp");
+		m->declare("filename", "par_fir_32.dsp");
+		m->declare("filters_lib_fir_author", "Julius O. Smith III");
+		m->declare("filters_lib_fir_copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters_lib_fir_license", "MIT-style STK-4.3 license");
+		m->declare("filters_lib_lowpass0_highpass1", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters_lib_name", "Faust Filters Library");
+		m->declare("filters_lib_version", "1.5.0");
+		m->declare("library_path0", "/usr/local/share/faust/stdfaust.lib");
+		m->declare("library_path1", "/usr/local/share/faust/filters.lib");
+		m->declare("name", "par_fir_32");
+		m->declare("version", "2.76.0");
+	}
+
+	virtual int getNumInputs() { return 1; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		for (int j = 0; j < 31; j++) { fVec0State[j] = 0; }
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("par_fir_32");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fVec0Cache[32+31];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			float* 	fVec0 = fVec0Cache + 32 - 1;
+			for (int j = 0; j < 31; j++) { fVec0[j+1] = fVec0State[j]; }
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = (float)input0[i]; // step: 1
+				fVec0[0] = fTemp0;
+				output0[i] = (FAUSTFLOAT)((((((((((((((((((((((((((((((((fVec0[0] + (0.5f * fVec0[1])) + (0.33333334f * fVec0[2])) + (0.25f * fVec0[3])) + (0.2f * fVec0[4])) + (0.16666667f * fVec0[5])) + (0.14285715f * fVec0[6])) + (0.125f * fVec0[7])) + (0.11111111f * fVec0[8])) + (0.1f * fVec0[9])) + (0.09090909f * fVec0[10])) + (0.083333336f * fVec0[11])) + (0.07692308f * fVec0[12])) + (0.071428575f * fVec0[13])) + (0.06666667f * fVec0[14])) + (0.0625f * fVec0[15])) + (0.05882353f * fVec0[16])) + (0.055555556f * fVec0[17])) + (0.05263158f * fVec0[18])) + (0.05f * fVec0[19])) + (0.04761905f * fVec0[20])) + (0.045454547f * fVec0[21])) + (0.04347826f * fVec0[22])) + (0.041666668f * fVec0[23])) + (0.04f * fVec0[24])) + (0.03846154f * fVec0[25])) + (0.037037037f * fVec0[26])) + (0.035714287f * fVec0[27])) + (0.03448276f * fVec0[28])) + (0.033333335f * fVec0[29])) + (0.032258064f * fVec0[30])) + (0.03125f * fVec0[31])));  // Zone Exec Code
+				// post processing
+				--fVec0;
+			}
+			for (int j = 0; j < 31; j++) { fVec0State[j] = fVec0[j+1]; }
+		}
+	}
+};
+
+

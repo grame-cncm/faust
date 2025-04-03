@@ -40,8 +40,8 @@ class FBCExecutor {
     virtual ~FBCExecutor() {}
 
     virtual void executeBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block,
-                                           UIInterface*                            glue){};
-    virtual void executeBlock(FBCBlockInstruction<REAL>* block){};
+                                           UIInterface*                            glue) {};
+    virtual void executeBlock(FBCBlockInstruction<REAL>* block) {};
 
     // Possibly compile (when using LLVM or MIR)
     virtual void compileBlock(FBCBlockInstruction<REAL>* block) {}
