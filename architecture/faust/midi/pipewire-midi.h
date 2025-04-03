@@ -1,6 +1,6 @@
 /************************** BEGIN pipewire-midi.h ****************************
  FAUST Architecture File
- Copyright (C) 2003-2022 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2025 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
