@@ -1,5 +1,5 @@
 export TMPDIR=$(mktemp -d)
-trap "_term" EXIT; done
+trap "_term" EXIT
 _term() {
   trap "" EXIT
   command -v "disconnectStratus" > /dev/null && disconnectStratus
