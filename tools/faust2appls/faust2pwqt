@@ -1,0 +1,278 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to PIPEWIRE-QT              #
+#               (c) Grame, 2009-2019                                #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+. usage.sh
+
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+CXXFLAGS+=" $(pkg-config --cflags libpipewire-0.3 libspa-0.2)"
+
+ARCHFILE=$FAUSTARCH/pipewire-qt.cpp
+
+if [[ $(uname -s) != Darwin ]]; then
+    LFLAGS+="-no-pie"
+fi
+
+#-------------------------------------------------------------------
+# Set Faust include path
+
+ARCHLIB="`pkg-config --libs libpipewire-0.3 libspa-0.2`"
+
+#-------------------------------------------------------------------------------
+# Search for qmake or qmake-qt4
+
+QMAKE=$(which qmake-qt5 || which qmake-qt4 || echo qmake)
+
+echoHelp()
+{
+    usage faust2pwqt "[options] [Faust options] <file.dsp>"
+    require Pipewire, QT
+    echo "Compiles Faust programs to Pipewire and QT"
+    option
+    options -httpd -osc -midi -soundfile -qrcode
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
+    option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
+    option -resample "to resample soundfiles to the audio driver sample rate."
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
+#PHASE 2 : dispatch command arguments
+
+OSCINC=""
+QTDEFS=""
+OSCLIB=""
+POLY="POLY"
+DEPLOY=""
+NVOICES=-1
+PRESETDIR="auto"
+PRESETDEFS=""
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILEINC=""
+SOUNDFILELIBS=""
+SAMPLERATEDEFS=""
+SAMPLERATELIBS=""
+
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echoHelp
+    fi
+
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+
+    if [ "$p" = -icc ]; then
+        ignore=" "
+    elif [ $p = "-deploy" ]; then
+        DEPLOY="yes"
+    elif [ $p = "-nvoices" ]; then
+        POLYDEFS="DEFINES += POLY"
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
+    elif [ $p = "-effect" ]; then
+        POLYDEFS="DEFINES += POLY2"
+        POLY="POLY2"
+        shift
+        EFFECT=$1
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="DEFINES += MIDICTRL"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="DEFINES += SOUNDFILE"
+        SOUNDFILEINC=$(pkg-config --cflags sndfile | cut -c 3-)
+        SOUNDFILELIBS=`pkg-config --static --libs sndfile`
+    elif [ $p = "-resample" ]; then
+        SAMPLERATEDEFS="DEFINES += SAMPLERATE"
+        SAMPLERATELIBS=`pkg-config --cflags --static --libs samplerate`
+    elif [ $p = "-osc" ]; then
+        OSCDEFS="DEFINES += OSCCTRL"
+        OSCLIBS="-lOSCFaust"
+    elif [ "$p" = "-httpd" ]; then
+    HTTPDEFS="DEFINES += HTTPCTRL"
+    HTTPLIBS="-lHTTPDFaust"
+    HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
+    elif [ "$p" = "-preset" ]; then
+        PRESETDEFS="DEFINES += PRESETUI"
+        shift
+        PRESETDIR=$1
+    elif [ "$p" = "-qrcode" ]; then # requires -httpd
+        QRDEFS="DEFINES += QRCODECTRL"
+    elif [ ${p:0:1} = "-" ]; then
+    OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+    OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+done
+
+#-------------------------------------------------------------------
+# Check Darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices"
+    SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
+    if [ $SYS_VERSION -ge 13 ]
+    then
+        SPEC="-spec macx-clang"
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"
+        CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
+    else
+        SPEC="-spec macx-g++"
+        CLANGOPT=""
+    fi
+    EXT=".app"
+fi
+
+#-------------------------------------------------------------------
+# Check Linux specifics
+#
+if [[ $(uname) == Linux ]]; then
+    ARCHLIB+=" -lasound"
+fi
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+    SRCDIR=$(dirname "$p")
+
+    # creates a temporary dir
+    TDR=$(mktemp -d faust.XXXXXX)
+    TMP="$TDR/${f%.dsp}"
+    mkdir "$TMP"
+
+    # compile faust to c++
+    if [ $POLY = "POLY2" ]; then
+        if [ $EFFECT = "auto" ]; then
+            cat > $TMP/effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
+EndOfCode
+            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.h" || exit
+            rm "$TMP/effect.dsp"
+        else
+            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
+        fi
+    else
+        faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+        faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "${f%.dsp}_tmp.cpp" || exit
+    fi
+
+    # add preset management
+    if [ $PRESETDIR = "auto" ]; then
+        PRESETFILE=`mktemp -t preset.XXXXXXXXXX.cpp` || exit 1
+        echo "#define PRESETDIR \"auto\"" > "$PRESETFILE"
+    else
+        PRESETFILE=`mktemp -t preset.XXXXXXXXXX.cpp` || exit 1
+        echo "#define PRESETDIR \"$PRESETDIR\"" > "$PRESETFILE"
+    fi
+    cat "$PRESETFILE" "$TMP/${f%.dsp}_tmp.cpp" > "$TMP/${f%.dsp}.cpp"
+    rm "$PRESETFILE" "$TMP/${f%.dsp}_tmp.cpp"
+
+    # compile c++ to binary
+    (
+        cd "$TMP"
+        $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$FAUSTINC" "INCLUDEPATH+=$SOUNDFILEINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
+        $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
+        make
+    ) > /dev/null || exit
+
+    if [[ $(uname) == Darwin ]]; then
+        if [ "$SOUNDFILE" = "1" ]; then
+            # get all soundfiles from the JSON file
+            cat $p.json | awk '
+                            BEGIN { FS=":"; SOFI=0; }
+                                /"soundfile"/ { SOFI=1; }
+                                /"url"/ {
+                                if (SOFI) {
+                                    match($2, /"[^"]*/);
+                                    split(substr($2, RSTART+2, RLENGTH-3), res, ";");
+                                    for (x in res) print substr(res[x], 2, length(res[x])-2);
+                                    SOFI=0;
+                                }
+                            }
+            ' > $p-tmp.txt
+            # copy found soundfiles in the final binary
+            for snd in $(cat $p-tmp.txt); do
+                if [ -f $snd ]; then
+                    if [ ${snd:0:1} = "/" ]; then
+                        echo "Warning: soundfile with absolute path is not copied !"
+                    else
+                        # create destination path and possibly create directory
+                        sfpath="$TMP/${f%.dsp}$EXT/Contents/Resources/$(dirname $snd)/"
+                        if ! [ -d $sfpath ]; then
+                            echo "Create $sfpath"
+                            mkdir $sfpath
+                        fi
+                        echo "Copy $snd in ${f%.dsp}$EXT"
+                        cp $snd $sfpath
+                    fi
+                else
+                    echo "Error: file $snd not found !"
+                fi
+            done
+            rm $p-tmp.txt
+        fi
+    fi
+
+    # on Mac add the qt libraries to the bundle
+    if [[ $(uname) == Darwin ]]; then
+        if [ "$DEPLOY" = "yes" ]; then
+            macdeployqt "$TMP/${f%.dsp}$EXT" || exit
+        fi
+    fi
+
+    # remove temporary files
+    rm -rf "$SRCDIR/${f%.dsp}$EXT"
+    cp -a "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
+    if [[ $(uname) == Darwin ]]; then
+        codesign --sign - --deep --force "$SRCDIR/${f%.dsp}$EXT"
+    fi
+    rm -rf "$TDR"
+    rm -f $p.json
+
+    # collect binary file name for FaustGIDE
+    BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
+done
+
+echo $BINARIES
