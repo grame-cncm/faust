@@ -64,6 +64,7 @@ class pipewire_midi: public midi_handler {
                     SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
                     SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(1, 1, 32),
                     SPA_PARAM_BUFFERS_blocks,  SPA_POD_Int(1),
+        			// buffer size: request default fMidiBufferSize bytes, min fMidiBufferSize, no maximum
                     SPA_PARAM_BUFFERS_size,    SPA_POD_CHOICE_RANGE_Int(fMidiBufferSize, fMidiBufferSize, INT32_MAX),
                     SPA_PARAM_BUFFERS_stride,  SPA_POD_Int(1));
 
@@ -151,11 +152,13 @@ class pipewire_midi: public midi_handler {
             d.chunk->stride = 1;
             d.chunk->flags = 0;
 
+			// to write spa_pods on output buffer we init spa_pod_builder on buffer data
             spa_pod_builder_init(&builder, d.data, fMidiBufferSize);
             spa_pod_builder_push_sequence(&builder, &frame, 0);
 
             DatedMessage dated_message;
             while (ringbuffer_read(fOutBuffer, (char*)&dated_message, sizeof(DatedMessage)) == sizeof(DatedMessage)) {
+                // SPA_CONTROL_Midi is deprecated, use SPA_CONTROL_UMP when distros switch to newer versions of pipewire
                 spa_pod_builder_control(&builder, 0, SPA_CONTROL_Midi);
                 spa_pod_builder_bytes(&builder, dated_message.fBuffer, dated_message.fSize);
             }
@@ -165,6 +168,7 @@ class pipewire_midi: public midi_handler {
     
         virtual void processMidiOut(int nframes)
         {
+            // couldn't get midi out working with pw_filter_get_dsp_buffer like in processMidiIn
             pw_buffer *buf = pw_filter_dequeue_buffer(fOutputMidiPort);
             if (!buf) return;
             processMidiOutBuffer(buf);

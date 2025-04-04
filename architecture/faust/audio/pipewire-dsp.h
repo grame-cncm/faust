@@ -64,18 +64,18 @@ class pipewireaudio : public audio {
 
     protected:
         ::dsp* fDSP;
-        pw_thread_loop *loop;
-        pw_filter *filter;
+        pw_thread_loop *fLoop;
+        pw_filter *fFilter;
         std::vector<audio_port*> fInputPorts;
         std::vector<audio_port*> fOutputPorts;
         bool fAutoConnect;
 
-        pw_filter_events filter_events = {
+		// pipewire doesn't take ownership of these two so we have to manage them ourselves
+        pw_filter_events fFilter_events = {
             .version = PW_VERSION_FILTER_EVENTS,
             .process = _pw_process
         };
-
-        spa_hook filter_listener;
+        spa_hook fFilter_listener;
 
         static void _pw_process(void* data, spa_io_position *position)
         {
@@ -90,8 +90,11 @@ class pipewireaudio : public audio {
             float** fInChannel = (float**)alloca(fInputPorts.size() * sizeof(float*));
             for (size_t i = 0; i < fInputPorts.size(); i++) {
                 void *buf = pw_filter_get_dsp_buffer(fInputPorts[i], nframes);
+                
+                // returns null if buffer is unavailable (eg. unconnected ports), need to allocate buffers manually
                 if (!buf) {
                     buf = alloca(nframes * sizeof(float));
+                    // zeroed buffer representing silence
                     memset(buf, 0, nframes * sizeof(float));
                 }
                 fInChannel[i] = (float*)buf;
@@ -100,7 +103,10 @@ class pipewireaudio : public audio {
             float** fOutChannel = (float**)alloca(fOutputPorts.size() * sizeof(float*));
             for (size_t i = 0; i < fOutputPorts.size(); i++) {
                 void *buf = pw_filter_get_dsp_buffer(fOutputPorts[i], nframes);
+
+                // returns null if buffer is unavailable (eg. unconnected ports), need to allocate buffers manually
                 if (!buf) {
+                    // dummy buffer to write to on compute
                     buf = alloca(nframes * sizeof(float));
                 }
                 fOutChannel[i] = (float*) buf;
@@ -114,7 +120,7 @@ class pipewireaudio : public audio {
 
         void shutdown(const char* message)
         {
-            loop = nullptr;
+            fLoop = nullptr;
             
             if (fShutdown) {
                 fShutdown(message, fShutdownArg);
@@ -126,20 +132,20 @@ class pipewireaudio : public audio {
     public:
 
         pipewireaudio(bool auto_connect = true)
-        : fDSP(nullptr), loop(nullptr), fAutoConnect(auto_connect)
+        : fDSP(nullptr), fLoop(nullptr), fAutoConnect(auto_connect)
         {}
         
         virtual ~pipewireaudio()
         {
-            if (filter) {
-                pw_core *core = pw_filter_get_core(filter);
+            if (fFilter) {
+                pw_core *core = pw_filter_get_core(fFilter);
                 pw_context *context = pw_core_get_context(core);
 
                 stop();
-                pw_filter_destroy(filter);
+                pw_filter_destroy(fFilter);
                 pw_core_disconnect(core);
                 pw_context_destroy(context);
-                pw_thread_loop_destroy(loop);
+                pw_thread_loop_destroy(fLoop);
                 pw_deinit();
             }
         }
@@ -158,19 +164,19 @@ class pipewireaudio : public audio {
         {
             pw_init(nullptr, nullptr);
 
-            loop = pw_thread_loop_new(nullptr, nullptr);
+            fLoop = pw_thread_loop_new(nullptr, nullptr);
 
-            pw_context *context = pw_context_new(pw_thread_loop_get_loop(loop), nullptr, 0);
+            pw_context *context = pw_context_new(pw_thread_loop_get_loop(fLoop), nullptr, 0);
             pw_core *core = pw_context_connect(context, nullptr, 0);
 
-            filter = pw_filter_new(core, name, pw_properties_new(
+            fFilter = pw_filter_new(core, name, pw_properties_new(
                 PW_KEY_MEDIA_TYPE, "Audio",
                 PW_KEY_MEDIA_CATEGORY, "Filter",
                 PW_KEY_MEDIA_ROLE, "DSP",
                 nullptr
             ));
 
-            pw_filter_add_listener(filter, &filter_listener, &filter_events, this);
+            pw_filter_add_listener(fFilter, &fFilter_listener, &fFilter_events, this);
             return true;
         }
 
@@ -179,32 +185,33 @@ class pipewireaudio : public audio {
             uint8_t buffer[1024];
             struct spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
 
-            if (pw_filter_connect(filter,
+            if (pw_filter_connect(fFilter,
                         PW_FILTER_FLAG_RT_PROCESS,
                         nullptr, 0) < 0) {
                 fprintf(stderr, "can't connect the filter\n");
                 return false;
             }
-            pw_thread_loop_start(loop);
+            pw_thread_loop_start(fLoop);
             return true;
         }
     
         virtual void stop()
         {
-            pw_thread_loop_lock(loop);
-            pw_filter_disconnect(filter);
-            pw_thread_loop_unlock(loop);
-            pw_thread_loop_stop(loop);
+            // need to lock thread_loop while calling function on objects associated with thread_loop
+            pw_thread_loop_lock(fLoop);
+            pw_filter_disconnect(fFilter);
+            pw_thread_loop_unlock(fLoop);
+            pw_thread_loop_stop(fLoop);
         }
 
         virtual int getBufferSize() {
-            const pw_properties *properties = pw_core_get_properties(pw_filter_get_core(filter));
+            const pw_properties *properties = pw_core_get_properties(pw_filter_get_core(fFilter));
             const char *bufsize = pw_properties_get(properties, "default.clock.quantum");
             return atoi(bufsize);
         }
     
         virtual int getSampleRate() {
-            const pw_properties *properties = pw_core_get_properties(pw_filter_get_core(filter));
+            const pw_properties *properties = pw_core_get_properties(pw_filter_get_core(fFilter));
             const char *bufsize = pw_properties_get(properties, "default.clock.rate");
             return atoi(bufsize);
         }
@@ -226,7 +233,7 @@ class pipewireaudio : public audio {
             char port_name[256];
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 snprintf(port_name, 256, "in_%d", i);
-                void *in = pw_filter_add_port(filter,
+                void *in = pw_filter_add_port(fFilter,
                     PW_DIRECTION_INPUT,
                     PW_FILTER_PORT_FLAG_MAP_BUFFERS,
                     sizeof(audio_port),
@@ -240,7 +247,7 @@ class pipewireaudio : public audio {
 
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 snprintf(port_name, 256, "out_%d", i);
-                void *out = pw_filter_add_port(filter,
+                void *out = pw_filter_add_port(fFilter,
                     PW_DIRECTION_OUTPUT,
                     PW_FILTER_PORT_FLAG_MAP_BUFFERS,
                     sizeof(audio_port),
@@ -291,7 +298,7 @@ class pipewireaudio_midi : public pipewireaudio, public pipewire_midi {
         {
             if (pipewireaudio::initAux(name)) {
                 if (dsp) { setDsp(dsp); }
-                return initPorts(filter);
+                return initPorts(fFilter);
             } else {
                 return false;
             }
