@@ -158,7 +158,7 @@ class pipewireaudio : public audio {
         {
             pw_init(nullptr, nullptr);
 
-            loop = pw_thread_loop_new("name", nullptr);
+            loop = pw_thread_loop_new(nullptr, nullptr);
 
             pw_context *context = pw_context_new(pw_thread_loop_get_loop(loop), nullptr, 0);
             pw_core *core = pw_context_connect(context, nullptr, 0);
