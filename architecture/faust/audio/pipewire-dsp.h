@@ -68,7 +68,6 @@ class pipewireaudio : public audio {
         pw_filter *fFilter;
         std::vector<audio_port*> fInputPorts;
         std::vector<audio_port*> fOutputPorts;
-        bool fAutoConnect;
 
 		// pipewire doesn't take ownership of these two so we have to manage them ourselves
         pw_filter_events fFilter_events = {
@@ -131,8 +130,8 @@ class pipewireaudio : public audio {
         
     public:
 
-        pipewireaudio(bool auto_connect = true)
-        : fDSP(nullptr), fLoop(nullptr), fAutoConnect(auto_connect)
+        pipewireaudio()
+        : fDSP(nullptr), fLoop(nullptr)
         {}
         
         virtual ~pipewireaudio()
@@ -287,8 +286,8 @@ class pipewireaudio_midi : public pipewireaudio, public pipewire_midi {
         
     public:
         
-        pipewireaudio_midi(bool auto_connect = true, bool is_polling = false)
-        :pipewireaudio(auto_connect), pipewire_midi("pipewire_midi"), fPolling(is_polling)
+        pipewireaudio_midi(bool is_polling = false)
+        :pipewireaudio(), pipewire_midi("pipewire_midi"), fPolling(is_polling)
         {}
         
         virtual ~pipewireaudio_midi()
