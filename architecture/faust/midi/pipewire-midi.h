@@ -64,7 +64,7 @@ class pipewire_midi: public midi_handler {
                     SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
                     SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(1, 1, 32),
                     SPA_PARAM_BUFFERS_blocks,  SPA_POD_Int(1),
-        			// buffer size: request default fMidiBufferSize bytes, min fMidiBufferSize, no maximum
+                    // buffer size: request default fMidiBufferSize bytes, min fMidiBufferSize, no maximum
                     SPA_PARAM_BUFFERS_size,    SPA_POD_CHOICE_RANGE_Int(fMidiBufferSize, fMidiBufferSize, INT32_MAX),
                     SPA_PARAM_BUFFERS_stride,  SPA_POD_Int(1));
 
@@ -152,7 +152,7 @@ class pipewire_midi: public midi_handler {
             d.chunk->stride = 1;
             d.chunk->flags = 0;
 
-			// to write spa_pods on output buffer we init spa_pod_builder on buffer data
+            // to write spa_pods on output buffer we init spa_pod_builder on buffer data
             spa_pod_builder_init(&builder, d.data, fMidiBufferSize);
             spa_pod_builder_push_sequence(&builder, &frame, 0);
 
@@ -194,7 +194,6 @@ class pipewire_midi: public midi_handler {
             int count = 0;
             int first_time_stamp = 0;
             void* port_buf_in = pw_filter_get_dsp_buffer(fInputMidiPort, 1024);
-
 
             spa_pod_sequence *seq;
             spa_pod_control *c;

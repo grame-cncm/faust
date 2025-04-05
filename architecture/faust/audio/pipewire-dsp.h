@@ -48,7 +48,6 @@
 #define snprintf _snprintf_s
 #endif
 
-
 /******************************************************************************
  *******************************************************************************
  
@@ -56,7 +55,6 @@
  
  *******************************************************************************
  *******************************************************************************/
-
 
 struct audio_port {};
 
@@ -69,7 +67,7 @@ class pipewireaudio : public audio {
         std::vector<audio_port*> fInputPorts;
         std::vector<audio_port*> fOutputPorts;
 
-		// pipewire doesn't take ownership of these two so we have to manage them ourselves
+        // pipewire doesn't take ownership of these two so we have to manage them ourselves
         pw_filter_events fFilter_events = {
             .version = PW_VERSION_FILTER_EVENTS,
             .process = _pw_process
