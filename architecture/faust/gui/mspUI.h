@@ -342,7 +342,7 @@ class mspUI : public UI, public PathBuilder
             fDeclareTable.clear();
             if (popLabel()) {
                 // Shortnames can be computed when all fullnames are known
-                computeShortNames();
+                computeShortNamesNew();
                 // Fill 'shortname' map
                 for (const auto& path : fFullPaths) {
                     if (fInputPathTable.count(path)) {

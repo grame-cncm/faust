@@ -89,7 +89,7 @@ class FAUST_API MapUI : public UI, public PathBuilder
         {
             if (popLabel()) {
                 // Shortnames can be computed when all fullnames are known
-                computeShortNames();
+                computeShortNamesNew();
                 // Fill 'shortname' map
                 for (const auto& it : fFullPaths) {
                     fShortnameZoneMap[fFull2Short[it]] = fPathZoneMap[it];
