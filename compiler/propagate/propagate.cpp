@@ -288,9 +288,10 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             do {
                 Tree sr_factor = hd(clocks);
                 Tree us_ds     = hd(tl(clocks));
-                if (us_ds == tree("Upsampling")) {
+                string us_ds_vname = string(tree2str(us_ds));
+                if (startWith(us_ds_vname, "Upsampling")) {
                     adapted_sr = sigMul(adapted_sr, sr_factor);
-                } else if (us_ds == tree("Downsampling")) {
+                } else if (startWith(us_ds_vname, "Downsampling")) {
                     adapted_sr = sigDiv(adapted_sr, sr_factor);
                 }
                 clocks = tl(tl(clocks));
@@ -738,8 +739,10 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
         // 3/ We compute the clock environment inside the upsampling by combining the clock, the
         // address of the circuit, and the current clock environment
-        Tree clockenv2 = cons(H, cons(tree("Upsampling"), clockenv));
-
+        char buffer[64];
+        snprintf(buffer, sizeof(buffer), "Upsampling_%p", box);
+        Tree clockenv2 = cons(H, cons(tree(buffer), clockenv));
+     
         // 4/ We compute X1 the inputs of the upsampling using temporary variables
         siglist X1;
         for (unsigned int i = 1; i < lsig.size(); i++) {
@@ -821,10 +824,10 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
         // 3/ We compute the clock environment inside the downsampling by combining the clock, the
         // address of the circuit, and the current clock environment
-        Tree addr = boxPrim0((prim0)box);
-        // Tree clockenv2 = cons(H, cons(addr, clockenv));
-        Tree clockenv2 = cons(H, cons(tree("Downsampling"), clockenv));
-
+        char buffer[64];
+        snprintf(buffer, sizeof(buffer), "Downsampling_%p", box);
+        Tree clockenv2 = cons(H, cons(tree(buffer), clockenv));
+     
         // 4/ We compute X1 the inputs of the downsampling using temporary variables
         siglist X1;
         for (unsigned int i = 1; i < lsig.size(); i++) {
