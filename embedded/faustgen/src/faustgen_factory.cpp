@@ -834,20 +834,16 @@ void faustgen_factory::update_sourcecode(int size, char* source_code)
         
         // Prepare compile options
         string error_msg;
-        const char* argv[64];
-        assert(fCompileOptions.size() < 64);
-        int argc = 0;
-        for (const auto& it : fCompileOptions) {
-            argv[argc++] = (char*)it.c_str();
+        std::vector<const char*> argv;
+        // Add user-defined compile options
+        for (const auto& opt : fCompileOptions) {
+            argv.push_back(opt.c_str());
         }
-        argv[argc++] = "-lang";
-        argv[argc++] = "codebox";
-        argv[argc++] = "-o";
-        argv[argc++] = "string";
-        argv[argc] = nullptr;  // NULL terminated argv
+        // Append fixed options
+        argv.insert(argv.end(), {"-lang", "codebox", "-o", "string", nullptr});  // Null-terminate the array
         
         // Compile codebox
-        string codebox = generateAuxFilesFromString2("Codebox", *fSourceCode, argc, argv, error_msg);
+        string codebox = generateAuxFilesFromString2("Codebox", *fSourceCode, argv.size() - 1, argv.data(), error_msg);
         if (codebox == "") {
             post("Generate codebox error : %s", error_msg.c_str());
         }
