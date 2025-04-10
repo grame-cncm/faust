@@ -2144,8 +2144,8 @@ string ScalarCompiler::generateZeroPad(Tree sig, Tree x, Tree y)
 {
     int i;
     if (isSigInt(y, &i)) {
-        return generateCacheCode(sig,
-                                 subst("(($0 == $1) ? $2 : 0)", getCurrentLoopIndex(), T(i-1), CS(x)));
+        return generateCacheCode(
+            sig, subst("(($0 == $1) ? $2 : 0)", getCurrentLoopIndex(), T(i - 1), CS(x)));
     } else {
         return generateCacheCode(
             sig, subst("(($0 == ($1 - 1)) ? $2 : 0)", getCurrentLoopIndex(), CS(y), CS(x)));
