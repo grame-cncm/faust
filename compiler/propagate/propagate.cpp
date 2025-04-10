@@ -286,8 +286,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             Tree clocks     = clockenv;
             // Unroll the stack of all US/DS to compute the adapted SR
             do {
-                Tree sr_factor = hd(clocks);
-                Tree us_ds     = hd(tl(clocks));
+                Tree   sr_factor   = hd(clocks);
+                Tree   us_ds       = hd(tl(clocks));
                 string us_ds_vname = string(tree2str(us_ds));
                 if (startWith(us_ds_vname, "Upsampling")) {
                     adapted_sr = sigMul(adapted_sr, sr_factor);
@@ -742,7 +742,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         char buffer[64];
         snprintf(buffer, sizeof(buffer), "Upsampling_%p", box);
         Tree clockenv2 = cons(H, cons(tree(buffer), clockenv));
-     
+
         // 4/ We compute X1 the inputs of the upsampling using temporary variables
         siglist X1;
         for (unsigned int i = 1; i < lsig.size(); i++) {
@@ -787,6 +787,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         }
 
         return Y2;
+        
     } else if (isBoxDownsampling(box, t1)) {
         // std::cerr << "we are in DOWNSAMPLING" << std::endl;
         // Propagate lsig into the downsampled version of circuit t1
@@ -827,7 +828,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         char buffer[64];
         snprintf(buffer, sizeof(buffer), "Downsampling_%p", box);
         Tree clockenv2 = cons(H, cons(tree(buffer), clockenv));
-     
+
         // 4/ We compute X1 the inputs of the downsampling using temporary variables
         siglist X1;
         for (unsigned int i = 1; i < lsig.size(); i++) {
@@ -888,7 +889,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 /**
  * Propagate a list of signals into a block diagram. Do memoization.
  *
- * @param clockenv surronnding ondemand clock
+ * @param clockenv surrounding ondemand clock
  * @param slotenv environment associating slots and signals
  * @param path user interface group path
  * @param box the block diagram
