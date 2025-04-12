@@ -31,18 +31,19 @@
         )
     )
 
-	(func $mixCheckVoice (param $count i32) (param $channels i32) (param $inputs i32) (param $outputs i32) (result f32)
+    (func $mixCheckVoice (param $count i32) (param $channels i32) (param $inputs i32) (param $outputs i32) (result f32)
 
         (local $input i32)
         (local $output i32)
         (local $i i32)
         (local $chan i32)
-        (local $level f32)
+        (local $sumSquares f32)
         (local $sample_in f32)
         (local $sample_out f32)
+        (local $totalSamples f32)
 
         (local.set $chan (i32.const 0))
-        (local.set $level (f32.const 0))
+        (local.set $sumSquares (f32.const 0))
 
         (loop $for-in-chan
             (block $for-out-chan
@@ -51,10 +52,25 @@
                 (local.set $output (i32.load (i32.add (local.get $outputs) (i32.shl (local.get $chan) (i32.const 2)))))
                 (loop $for-in-i
                     (block $for-out-i
+                        ;; Load input sample
                         (local.set $sample_in (f32.load (i32.add (local.get $input) (i32.shl (local.get $i) (i32.const 2)))))
-                        (local.set $level (f32.max (local.get $level) (f32.abs (local.get $sample_in))))
+
+                        ;; Accumulate squared value
+                        (local.set $sumSquares
+                            (f32.add
+                                (local.get $sumSquares)
+                                (f32.mul (local.get $sample_in) (local.get $sample_in))
+                            )
+                        )
+
+                        ;; Mix to output
                         (local.set $sample_out (f32.load (i32.add (local.get $output) (i32.shl (local.get $i) (i32.const 2)))))
-                        (f32.store (i32.add (local.get $output) (i32.shl (local.get $i) (i32.const 2))) (f32.add (local.get $sample_out) (local.get $sample_in)))
+                        (f32.store
+                            (i32.add (local.get $output) (i32.shl (local.get $i) (i32.const 2)))
+                            (f32.add (local.get $sample_out) (local.get $sample_in))
+                        )
+
+                        ;; Next frame
                         (local.set $i (i32.add (local.get $i) (i32.const 1)))
                         (if (i32.lt_s (local.get $i) (local.get $count)) (br $for-in-i) (br $for-out-i))
                     )
@@ -63,7 +79,17 @@
                 (if (i32.lt_s (local.get $chan) (local.get $channels)) (br $for-in-chan) (br $for-out-chan))
             )
         )
-        (return (local.get $level))
+
+        ;; Compute RMS: sqrt(sumSquares / (count * channels))
+        (local.set $totalSamples
+            (f32.convert_i32_s (i32.mul (local.get $count) (local.get $channels)))
+        )
+
+        (return
+            (f32.sqrt
+                (f32.div (local.get $sumSquares) (local.get $totalSamples))
+            )
+        )
     )
 
     (func $fadeOut (param $count i32) (param $channels i32) (param $outputs i32)
