@@ -7,6 +7,11 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2025
 
 ----------------------------------------------------
+Version 1.77 - 12/04/2025
+
+- Reworked polyphony handling.
+
+----------------------------------------------------
 Version 1.76 - 13/03/2025
 
 - RNBO/codebox export
