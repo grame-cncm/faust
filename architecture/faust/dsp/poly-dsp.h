@@ -54,7 +54,9 @@ architecture section is not modified.
 #define kLegatoVoice   -3
 #define kNoVoice       -4
 
-#define VOICE_STOP_LEVEL 0.00003162  // -90 db
+//#define VOICE_STOP_LEVEL 0.00003162  // -90 db
+
+#define VOICE_STOP_LEVEL 0.000001  // -120 dB
 #define MIX_BUFFER_SIZE  4096
 
 /**
