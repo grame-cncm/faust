@@ -28,6 +28,8 @@
 #include "tlib.hh"
 
 // Normalize a path
+Tree label2path(const char* label);
+Tree target2path(const std::string& target);
 Tree normalizePath(Tree path);
 Tree superNormalizePath(Tree path);
 bool matchGroup(Tree gpath, Tree lpath, Tree& rpath);

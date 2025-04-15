@@ -96,7 +96,7 @@ static Tree encodeName(char g, const string& name)
  * Analyzes a label and converts it as a path
  */
 
-static Tree label2path(const char* label)
+Tree label2path(const char* label)
 {
     if (label[0] == 0) {
         return cons(tree(""), gGlobal->nil);
@@ -126,6 +126,49 @@ static Tree label2path(const char* label)
     } else {
         return cons(tree(label), gGlobal->nil);
     }
+}
+
+/**
+ * @brief Converts a widget modulation target string into a reversed path.
+ *
+ * The target string is parsed according to the following grammar:
+ * <target> ::= [<sep>] <symbol> {<sep> <symbol>} [<sep>]
+ * <sep> ::= "/" {<sep>}
+ *
+ * Example: "group1/group2/name" -> cons("name", cons("group2", cons("group1", nil)))
+ *
+ * @param target The target string to convert.
+ * @return Tree The reversed path representation of the target.
+ */
+
+Tree target2path(const std::string& target)
+{
+    bool   frontier = true;          // Indicates if we are at the start of a new symbol
+    Tree   path     = gGlobal->nil;  // The resulting path (constructed in reverse order)
+    string currentSymbol;            // Holds the current symbol being builded
+
+    for (char c : target) {
+        if (frontier) {
+            if (c != '/') {
+                currentSymbol = c;      // start a new symbol
+                frontier      = false;  // end frontier mode
+            }
+        } else {
+            if (c != '/') {
+                currentSymbol += c;  // Continue building the current symbol
+            } else {
+                path     = cons(tree(currentSymbol), path);  // add current symbol to the path
+                frontier = true;  // abck to frontier mode for next symbol
+            }
+        }
+    }
+
+    // Add the last symbol to the path if it wasn't followed by a separator
+    if (!frontier) {
+        path = cons(tree(currentSymbol), path);
+    }
+
+    return path;
 }
 
 /**
@@ -199,7 +242,7 @@ Tree superNormalizePath(Tree path)
     Tree npath = normalizePath(path);
     Tree spath;
 
-    // std::cout << "SuperNormalize Path [[" << *path << "]]" << endl;
+    // std::cerr << "SuperNormalize Path [[" << *path << "]]" << endl;
     if (isNil(npath)) {
         spath = npath;
     } else {
@@ -227,6 +270,7 @@ Tree superNormalizePath(Tree path)
  */
 bool matchGroup(Tree gpath, Tree lpath, Tree& rpath)
 {
+    // std::cerr << "matchGroup " << *gpath << " " << *lpath << std::endl;
     if (gpath == lpath) {
         rpath = gGlobal->nil;
         return true;

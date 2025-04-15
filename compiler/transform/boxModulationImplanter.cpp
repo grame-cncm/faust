@@ -61,10 +61,13 @@ static bool isPathMatchingLabel(Tree path, Tree wLabel)
 {
     // we need to find all elements of path in label
     // in the same order
+    // std::cerr << "isPathMatchingLabel (";
+    // std::cerr << "path = " << *path << "; wLabel = " << *wLabel << ") -> ";
     while (path != gGlobal->nil) {
         if (wLabel == gGlobal->nil) {
             // wLabel is exhausted before path
             // => path and label do not match
+            // std::cerr << " NO" << std::endl;
             return false;
         }
 
@@ -76,6 +79,7 @@ static bool isPathMatchingLabel(Tree path, Tree wLabel)
 
         if (wLabel == gGlobal->nil) {
             // s wat not found => path and label do not match
+            // std::cerr << " NO" << std::endl;
             return false;
         }
         // s was found, we continue
@@ -84,6 +88,7 @@ static bool isPathMatchingLabel(Tree path, Tree wLabel)
     }
     // all elements of path were found in label
     // in the same order => path and label match
+    // std::cerr << " YES" << std::endl;
     return true;
 }
 
