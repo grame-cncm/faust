@@ -233,6 +233,24 @@ void RustCodeContainer::produceFaustDspBlob()
 void RustCodeContainer::produceClass()
 {
     int n = 0;
+    *fOut << "#[cfg_attr(feature = \"default-boxed\", derive(default_boxed::DefaultBoxed))]";
+    if (gGlobal->gReprC) {
+        tab(n, *fOut);
+        *fOut << "#[repr(C)]";
+    }
+
+    tab(n, *fOut);
+    *fOut << "pub struct " << fKlassName << " {";
+    tab(n + 1, *fOut);
+
+    // Fields
+    fCodeProducer.Tab(n + 1);
+    generateDeclarations(&fCodeProducer);
+
+    back(1, *fOut);
+    *fOut << "}";
+    tab(n, *fOut);
+
     tab(n, *fOut);
     *fOut << "pub type FaustFloat = " << ifloat() << ";";
 
@@ -286,7 +304,7 @@ void RustCodeContainer::produceClass()
     } else if (gGlobal->gFloatSize == 2 && !gGlobal->gRustNoLibm) {
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
-        *fOut << "use std::os::raw::{c_double};";
+        *fOut << "use std::os::raw::c_double;";
         tab(n + 1, *fOut);
         *fOut << "// Conditionally compile the link attribute only on non-Windows platforms";
         tab(n + 1, *fOut);
@@ -332,23 +350,6 @@ void RustCodeContainer::produceClass()
     *fOut << "pub const FAUST_PASSIVES: usize = " << fNumPassives << ";";
     tab(n, *fOut);
 
-    tab(n, *fOut);
-    *fOut << "#[cfg_attr(feature = \"default-boxed\", derive(default_boxed::DefaultBoxed))]";
-    if (gGlobal->gReprC) {
-        tab(n, *fOut);
-        *fOut << "#[repr(C)]";
-    }
-
-    tab(n, *fOut);
-    *fOut << "pub struct " << fKlassName << " {";
-    tab(n + 1, *fOut);
-
-    // Fields
-    fCodeProducer.Tab(n + 1);
-    generateDeclarations(&fCodeProducer);
-
-    back(1, *fOut);
-    *fOut << "}";
     tab(n, *fOut);
 
     tab(n, *fOut);
