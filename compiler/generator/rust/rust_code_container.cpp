@@ -310,7 +310,7 @@ void RustCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "#[cfg_attr(not(target_os=\"windows\"), link(name=\"m\"))]";
         tab(n + 1, *fOut);
-        *fOut << "extern {";
+        *fOut << "extern \"C\" {";
         tab(n + 2, *fOut);
         *fOut << "pub fn remainder(from: c_double, to: c_double) -> c_double;";
         tab(n + 2, *fOut);
