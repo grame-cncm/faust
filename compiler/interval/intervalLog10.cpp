@@ -37,7 +37,7 @@ interval interval_algebra::Log10(const interval& x)
         log10, x.hi(),
         -pow(2, x.lsb()));  // -pow because we take the FP number right before the higher bound
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(x.lsb() - (double)log2(abs(x.hi())) - log2(log(10)));
+        precision = floor(x.lsb() - (double)log2(std::abs(x.hi())) - log2(log(10)));
     }
 
     interval i = intersection(interval(0, HUGE_VAL), x);

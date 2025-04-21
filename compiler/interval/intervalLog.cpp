@@ -43,7 +43,7 @@ interval interval_algebra::Log(const interval& x)
     if ((precision == INT_MIN) || taylor_lsb) {
         /* double delta     = -log(1 - pow(2, i.lsb()) / i.hi());
         precision = floor((double)log2(delta));*/
-        precision = floor(i.lsb() - (double)log2(abs(i.hi())));
+        precision = floor(i.lsb() - (double)log2(std::abs(i.hi())));
     }
 
     return {log(i.lo()), log(i.hi()), precision};

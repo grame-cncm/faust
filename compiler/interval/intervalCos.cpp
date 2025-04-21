@@ -89,9 +89,8 @@ interval interval_algebra::Cos(const interval& x)
         /* cos(x + u) - cos(x) = - u·sin(x) if x != 0
                                 = - u^2/2 · cos(x) = -u^2/2 if x == 0*/
         if (v != 0) {
-            precision =
-                x.lsb() + (int)floor(log2(
-                              abs(sin(v))));  // (int)floor(log2(M_PI*abs(cos(M_PI*v)))) + x.lsb();
+            precision = x.lsb() + (int)floor(log2(std::abs(sin(
+                                      v))));  // (int)floor(log2(M_PI*abs(cos(M_PI*v)))) + x.lsb();
         } else {
             precision = 2 * x.lsb() - 1;  //- (int)floor(2*log2(M_PI));
         }

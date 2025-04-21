@@ -54,7 +54,8 @@ interval interval_algebra::Cosh(const interval& x)
 
     int precision = exactPrecisionUnary(cosh, v, sign * pow(2, x.lsb()));
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(x.lsb() + log2(abs(sinh(v))));  // cosh(x+u) - cosh(x) = u sinh(x) + o(u)
+        precision =
+            floor(x.lsb() + log2(std::abs(sinh(v))));  // cosh(x+u) - cosh(x) = u sinh(x) + o(u)
     }
 
     return {std::min(cosh(x.lo()), cosh(x.hi())), std::max(cosh(x.lo()), cosh(x.hi())), precision};

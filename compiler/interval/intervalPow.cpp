@@ -45,14 +45,14 @@ static interval ipow(const interval& x, int k)
     if (!x.hasZero()) {
         double v    = minValAbs(x);
         int    sign = signMinValAbs(x);
-        int    p1   = k * (int)log2(abs(v));
+        int    p1   = k * (int)log2(std::abs(v));
         int    p2   = 0;
 
         double u     = pow(2, x.lsb());  // ulp
-        double delta = abs(pow(1 + sign * u / v, k) - 1);
+        double delta = std::abs(pow(1 + sign * u / v, k) - 1);
         if (delta == 0) {  // in case of u << x
             p2 = floor((double)log2(k) + x.lsb() -
-                       (double)log2(abs(v)));  // (1 + u/v)^k - 1 ≃ k*u/v if u/v very small
+                       (double)log2(std::abs(v)));  // (1 + u/v)^k - 1 ≃ k*u/v if u/v very small
         } else {
             p2 = floor((double)log2(delta));
         }
