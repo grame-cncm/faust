@@ -31,6 +31,8 @@ namespace itv {
 // (where (x,y) are the cartesian coordinates of the point we wish to retrieve the angle of)
 interval interval_algebra::Atan2(const interval& y, const interval& x)
 {
+    using namespace std;
+
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }
@@ -61,9 +63,8 @@ interval interval_algebra::Atan2(const interval& y, const interval& x)
         int precisionn =
             exactPrecisionUnary(atan, maxValAbs(dn), signMaxValAbs(dn) * pow(2, dn.lsb()));
 
-        return {lo, hi,
-                std::min(precisionp, precisionn)};  // final precision is the finest precision
-                                                    // attained on either of the domains
+        return {lo, hi, min(precisionp, precisionn)};  // final precision is the finest precision
+                                                       // attained on either of the domains
     }
 
     interval d    = interval_algebra::Div(y, x);

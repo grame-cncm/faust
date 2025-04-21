@@ -34,6 +34,8 @@ static double inv(double x)
 
 interval interval_algebra::Inv(const interval& x)
 {
+    using namespace std;
+
     if (x.isEmpty()) {
         return empty();
     }
@@ -45,16 +47,16 @@ interval interval_algebra::Inv(const interval& x)
     // but since we're writing the fixed-point numbers on at most 31 bits of MSB
     // we can take the max number to be an integer bound
     // and this one will give a finite precision, unlike a floating-point infinity
-    if (std::isinf(v)) {
+    if (isinf(v)) {
         v = (sign == -1) ? INT_MAX : INT_MIN;
     }
 
     int precision = exactPrecisionUnary(inv, v, sign * pow(2, x.lsb()));
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(x.lsb() - 2 * log2(std::abs(v)));  // 1/(x+u) - 1/x = -u/x^2 + o(u)
+        precision = floor(x.lsb() - 2 * log2(abs(v)));  // 1/(x+u) - 1/x = -u/x^2 + o(u)
     }
 
-    // precision = std::max(precision, -31);
+    // precision = max(precision, -31);
 
     if ((x.hi() < 0) || (x.lo() >= 0)) {
         return {1.0 / x.hi(), 1.0 / x.lo(), precision};

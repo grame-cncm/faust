@@ -34,6 +34,8 @@ static const interval domainx = {0, HUGE_VAL, 0};
  */
 static interval ipow(const interval& x, int k)
 {
+    using namespace std;
+
     assert(k >= 0);
     if (k == 0) {
         return interval{1, 1, 0};
@@ -45,14 +47,14 @@ static interval ipow(const interval& x, int k)
     if (!x.hasZero()) {
         double v    = minValAbs(x);
         int    sign = signMinValAbs(x);
-        int    p1   = k * (int)log2(std::abs(v));
+        int    p1   = k * (int)log2(abs(v));
         int    p2   = 0;
 
         double u     = pow(2, x.lsb());  // ulp
-        double delta = std::abs(pow(1 + sign * u / v, k) - 1);
+        double delta = abs(pow(1 + sign * u / v, k) - 1);
         if (delta == 0) {  // in case of u << x
             p2 = floor((double)log2(k) + x.lsb() -
-                       (double)log2(std::abs(v)));  // (1 + u/v)^k - 1 ≃ k*u/v if u/v very small
+                       (double)log2(abs(v)));  // (1 + u/v)^k - 1 ≃ k*u/v if u/v very small
         } else {
             p2 = floor((double)log2(delta));
         }
@@ -62,18 +64,17 @@ static interval ipow(const interval& x, int k)
 
     if ((k & 1) == 0) {
         // k is even
-        double z0 = std::pow(x.lo(), k);
-        double z1 = std::pow(x.hi(), k);
-        return {
-            x.hasZero()
-                ? 0
-                : std::min(z0,
-                           z1),  // 0 is in the output interval only if it is in the input interval
-            std::max(z0, z1), precision};
+        double z0 = pow(x.lo(), k);
+        double z1 = pow(x.hi(), k);
+        return {x.hasZero()
+                    ? 0
+                    : min(z0,
+                          z1),  // 0 is in the output interval only if it is in the input interval
+                max(z0, z1), precision};
     }
 
     // k is odd
-    return {std::pow(x.lo(), k), std::pow(x.hi(), k), precision};
+    return {pow(x.lo(), k), pow(x.hi(), k), precision};
 }
 
 /**
@@ -92,12 +93,14 @@ interval interval_algebra::fPow(const interval& x, const interval& y)
 
 interval interval_algebra::iPow(const interval& x, const interval& y)
 {
+    using namespace std;
+
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }
 
-    int      y0 = std::max(0, saturatedIntCast(y.lo()));
-    int      y1 = std::max(0, saturatedIntCast(y.hi()));
+    int      y0 = max(0, saturatedIntCast(y.lo()));
+    int      y1 = max(0, saturatedIntCast(y.hi()));
     interval z  = ipow(x, y0);
     if (y1 > y0) {
         // we have more than one integer exponent

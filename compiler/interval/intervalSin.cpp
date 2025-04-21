@@ -34,6 +34,8 @@ static double sinPi(double x)
 
 interval interval_algebra::Sin(const interval& x)
 {
+    using namespace std;
+
     if (x.isEmpty()) {
         return empty();
     }
@@ -58,8 +60,8 @@ interval interval_algebra::Sin(const interval& x)
     // compute the default boundaries
     double a  = sin(i.lo());
     double b  = sin(i.hi());
-    double lo = std::min(a, b);
-    double hi = std::max(a, b);
+    double lo = min(a, b);
+    double hi = max(a, b);
 
     // check if integers are included
     if (i.has(M_PI_2) || i.has(5 * M_PI_2)) {
@@ -90,8 +92,9 @@ interval interval_algebra::Sin(const interval& x)
     precision = exactPrecisionUnary(sin, v, pow(2, x.lsb()));
     if ((precision == INT_MIN) || taylor_lsb) {
         if (v != 0.5 * M_PI) {
-            precision = x.lsb() + (int)floor(log2(std::abs(
-                                      cos(v))));  // (int)floor(log2(M_PI*cos(M_PI*v))) + x.lsb();
+            precision =
+                x.lsb() +
+                (int)floor(log2(abs(cos(v))));  // (int)floor(log2(M_PI*cos(M_PI*v))) + x.lsb();
         } else {
             precision = 2 * x.lsb() - 1;  // - (int)floor(2*log2(M_PI));
         }

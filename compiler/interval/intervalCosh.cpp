@@ -28,6 +28,8 @@ namespace itv {
 
 interval interval_algebra::Cosh(const interval& x)
 {
+    using namespace std;
+
     if (x.isEmpty()) {
         return empty();
     }
@@ -39,7 +41,7 @@ interval interval_algebra::Cosh(const interval& x)
         if ((precision == INT_MIN) || taylor_lsb) {
             precision = floor(2 * x.lsb() - 1);  // cosh(u) - cosh(0) = u^2/2 + o(u^2)
         }
-        return {1, std::max(cosh(x.lo()), cosh(x.hi())), precision};
+        return {1, max(cosh(x.lo()), cosh(x.hi())), precision};
     }
 
     int sign = 1;
@@ -54,11 +56,10 @@ interval interval_algebra::Cosh(const interval& x)
 
     int precision = exactPrecisionUnary(cosh, v, sign * pow(2, x.lsb()));
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision =
-            floor(x.lsb() + log2(std::abs(sinh(v))));  // cosh(x+u) - cosh(x) = u sinh(x) + o(u)
+        precision = floor(x.lsb() + log2(abs(sinh(v))));  // cosh(x+u) - cosh(x) = u sinh(x) + o(u)
     }
 
-    return {std::min(cosh(x.lo()), cosh(x.hi())), std::max(cosh(x.lo()), cosh(x.hi())), precision};
+    return {min(cosh(x.lo()), cosh(x.hi())), max(cosh(x.lo()), cosh(x.hi())), precision};
 }
 
 void interval_algebra::testCosh()

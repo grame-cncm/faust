@@ -42,6 +42,8 @@ static double specialmultint(double a, double b)
 
 interval interval_algebra::Mul(const interval& x, const interval& y)
 {
+    using namespace std;
+
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }
@@ -57,9 +59,7 @@ interval interval_algebra::Mul(const interval& x, const interval& y)
         // if the quotient of an INT limit by an interval limit is below a limit of the other
         // interval ie, if there is something big enough in the other interval to make the interval
         // limit go beyond an INT limit
-        if (std::max(std::abs(x.lo()), std::abs(x.hi())) *
-                std::max(std::abs(y.lo()), std::abs(y.hi())) >=
-            (double)INT_MAX) {
+        if (max(abs(x.lo()), abs(x.hi())) * max(abs(y.lo()), abs(y.hi())) >= (double)INT_MAX) {
             return {(double)INT_MIN, (double)INT_MAX, x.lsb() + y.lsb()};
         }
         /* interval z{lo, hi, x.lsb()+y.lsb()};
@@ -71,7 +71,7 @@ interval interval_algebra::Mul(const interval& x, const interval& y)
         /* if ((lo <= (double)INT_MIN - 1 && hi >= (double)INT_MIN) // discontinuity at the lower
         end or (lo <= (double)INT_MAX && hi >= (double)INT_MAX+1))
         {
-            return {(double)INT_MIN, (double)INT_MAX, std::min(x.lsb(), y.lsb())};
+            return {(double)INT_MIN, (double)INT_MAX, min(x.lsb(), y.lsb())};
         }
 
         int aint = (int)x.lo() * (int)y.lo();
