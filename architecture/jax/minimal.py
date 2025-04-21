@@ -129,7 +129,7 @@ from flax import linen as nn
 		state = self.initialize(x, T)
 		state = self.build_interface(state, x, T)
 		# convert any numpy arrays to jax numpy arrays
-		state = jax.tree_map(jnp.array, state)
+		state = jax.tree.map(jnp.array, state)
 
 		x = jnp.transpose(x, axes=(1, 0))
 		state, y = jax.lax.scan(self.tick, state, x)
