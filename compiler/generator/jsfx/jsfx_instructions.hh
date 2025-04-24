@@ -448,24 +448,29 @@ class JSFXInstVisitor : public TextInstVisitor {
     void _midi_poly_assign()
     {
         for (const auto& it : _midi_scales) {
-            tab(fTab + 2, *fOut);
-            *fOut << "obj[dsp." << it.first << "] = ";
             switch (it.second.type) {
                 case JSFXMIDIScaleType::freq:
-                    *fOut << "limit(mtof(msg2), " << it.second.min << ", " << it.second.max << ");";
+                    tab(fTab + 2, *fOut);
+                    *fOut << "obj[dsp." << it.first << "] = limit(mtof(msg2), " << it.second.min
+                          << ", " << it.second.max << ");";
                     break;
                 case JSFXMIDIScaleType::key:
-                    *fOut << "msg2;";
+                    tab(fTab + 2, *fOut);
+                    *fOut << "obj[dsp." << it.first << "] = msg2;";
                     break;
                 case JSFXMIDIScaleType::gain:
+                    tab(fTab + 2, *fOut);
+                    *fOut << "obj[dsp." << it.first << "] = ";
                     *fOut << "midi_scale(msg3, " << it.second.min << ", " << it.second.max << ", "
                           << it.second.step << ");";
                     break;
                 case JSFXMIDIScaleType::veloc:
-                    *fOut << "msg3;";
+                    tab(fTab + 2, *fOut);
+                    *fOut << "obj[dsp." << it.first << "] = msg3;";
                     break;
                 case JSFXMIDIScaleType::gate:
-                    *fOut << "1;";
+                    tab(fTab + 2, *fOut);
+                    *fOut << "obj[dsp." << it.first << "] = 1;";
                     break;
                 case JSFXMIDIScaleType::none:
                     continue;
