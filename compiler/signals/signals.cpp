@@ -1162,14 +1162,12 @@ LIBFAUST_API Tree sigClocked(Tree clock, Tree y)
         } else {
             std::cerr << "ASSERT : we have a problem of clocks, new clock : " << *clock
                       << " is different from existing clock " << *h2 << std::endl;
-            faustassert(false);
+            return y;
         }
-    } else {
-        // std::cerr << "sigClocked(" << *clock << ", " << ppsig(y) << ")" << std::endl;
-        return tree(gGlobal->SIGCLOCKED, clock, y);
     }
+    // std::cerr << "sigClocked(" << *clock << ", " << ppsig(y) << ")" << std::endl;
+    return tree(gGlobal->SIGCLOCKED, clock, y);
 }
-
 // for FPGA Retiming
 
 LIBFAUST_API Tree sigRegister(int n, Tree s)
@@ -1322,4 +1320,61 @@ float computeDensity(const tvec& coefs)
               << " coefs.size()=" << coefs.size() << " density=" << density << " cnz=" << cnz
               << " fnz=" << fnz << std::endl;
     return density;
+}
+
+// Operations to create and access clock environments (HE)
+// HE ::= nil | (HE, box, sig1, sig2, ...)
+// Box is encoded as a prim0
+// sig1, sig2, ... are the input signals of the box
+// sig1 is typically the clock signal
+
+Tree makeClockEnv(Tree clkenv, Tree box, const siglist& lsig)
+{
+    Tree L    = listConvert(lsig);
+    Tree addr = boxPrim0((prim0)box);
+    return cons(clkenv, cons(addr, L));
+}
+Tree getClockenvClock(Tree clkenv)
+{
+    if (isNil(clkenv)) {
+        return gGlobal->nil;
+    }
+    return nth(clkenv, 2);
+}
+
+Tree getClockenvBox(Tree clkenv)
+{
+    if (isNil(clkenv)) {
+        return gGlobal->nil;
+    }
+    Tree addr = nth(clkenv, 1);
+    if (prim0 p0; isBoxPrim0(addr, &p0)) {
+        return (Tree)p0;
+    }
+    return gGlobal->nil;
+}
+
+Tree getClockenvEnv(Tree clkenv)
+{
+    if (isNil(clkenv)) {
+        return gGlobal->nil;
+    }
+    return hd(clkenv);
+}
+
+bool isODClockenv(Tree clkenv)
+{
+    Tree c;
+    return isBoxOndemand(getClockenvBox(clkenv), c);
+}
+
+bool isUSClockenv(Tree clkenv)
+{
+    Tree c;
+    return isBoxUpsampling(getClockenvBox(clkenv), c);
+}
+bool isDSClockenv(Tree clkenv)
+{
+    Tree c;
+    return isBoxDownsampling(getClockenvBox(clkenv), c);
 }
