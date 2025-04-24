@@ -286,15 +286,13 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             Tree clocks     = clockenv;
             // Unroll the stack of all US/DS to compute the adapted SR
             do {
-                Tree   sr_factor   = hd(clocks);
-                Tree   us_ds       = hd(tl(clocks));
-                string us_ds_vname = string(tree2str(us_ds));
-                if (startWith(us_ds_vname, "Upsampling")) {
-                    adapted_sr = sigMul(adapted_sr, sr_factor);
-                } else if (startWith(us_ds_vname, "Downsampling")) {
-                    adapted_sr = sigDiv(adapted_sr, sr_factor);
+                if (isUSClockenv(clocks)) {
+                    adapted_sr = sigMul(adapted_sr, getClockenvClock(clocks));
+                } else if (isDSClockenv(clocks)) {
+                    adapted_sr = sigDiv(adapted_sr, getClockenvClock(clocks));
                 }
-                clocks = tl(tl(clocks));
+                clocks = getClockenvEnv(clocks);
+
             } while (clocks != gGlobal->nil);
 
             return makeList(simplify(adapted_sr));
@@ -653,10 +651,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             return propagate(clockenv, slotenv, path, t1, {lsig.begin() + 1, lsig.end()});
         }
 
-        // 3/ We compute the clock environment inside the ondemand by combining the clock, the
-        // address of the circuit, and the current clock environment
-        Tree addr      = boxPrim0((prim0)box);
-        Tree clockenv2 = cons(H, cons(addr, clockenv));
+        // 3/ We compute the clock environment inside the ondemand by combining the current clok
+        // environment, the circuit and its inout signals
+        Tree clockenv2 = makeClockEnv(clockenv, box, lsig);
 
         // 4/ We compute X1 the inputs of the ondemand using temporary variables
         siglist X1;
@@ -739,9 +736,10 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
         // 3/ We compute the clock environment inside the upsampling by combining the clock, the
         // address of the circuit, and the current clock environment
-        char buffer[64];
-        snprintf(buffer, sizeof(buffer), "Upsampling_%p", box);
-        Tree clockenv2 = cons(H, cons(tree(buffer), clockenv));
+        // char buffer[64];
+        // snprintf(buffer, sizeof(buffer), "Upsampling_%p", box);
+        // Tree clockenv2 = cons(H, cons(tree(buffer), clockenv));
+        Tree clockenv2 = makeClockEnv(clockenv, box, lsig);
 
         // 4/ We compute X1 the inputs of the upsampling using temporary variables
         siglist X1;
@@ -787,7 +785,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         }
 
         return Y2;
-        
+
     } else if (isBoxDownsampling(box, t1)) {
         // std::cerr << "we are in DOWNSAMPLING" << std::endl;
         // Propagate lsig into the downsampled version of circuit t1
@@ -825,9 +823,10 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
         // 3/ We compute the clock environment inside the downsampling by combining the clock, the
         // address of the circuit, and the current clock environment
-        char buffer[64];
-        snprintf(buffer, sizeof(buffer), "Downsampling_%p", box);
-        Tree clockenv2 = cons(H, cons(tree(buffer), clockenv));
+        // char buffer[64];
+        // snprintf(buffer, sizeof(buffer), "Downsampling_%p", box);
+        // Tree clockenv2 = cons(H, cons(tree(buffer), clockenv));
+        Tree clockenv2 = makeClockEnv(clockenv, box, lsig);
 
         // 4/ We compute X1 the inputs of the downsampling using temporary variables
         siglist X1;
