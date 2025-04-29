@@ -225,7 +225,9 @@ void JSFXCodeContainer::produceClass()
           << " */ \n"
           << "CC = 0xB0; \n"
           << "NOTE_ON = 0x90; \n"
-          << "NOTE_OFF = 0x80; \n";
+          << "NOTE_OFF = 0x80; \n"
+          << "BEND = 0xE0; \n"
+          << "PGM_CHANGE = 0xC0; \n";
 
     tab(n, *fOut);
 
@@ -436,6 +438,7 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     tab(n + 2, *fOut);
     *fOut << "obj = dsp.memory + dsp.size * voice_idx;";
     tab(n + 2, *fOut);
+    gGlobal->gJSFXVisitor->midi_poly_assign_sliders();
     generateComputeBlock(gGlobal->gJSFXVisitor);
     *fOut << "voice_idx += 1;";
     tab(n + 1, *fOut);
