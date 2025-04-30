@@ -269,24 +269,23 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size, bool auto_connec
 void DspFaust::init(dsp* mono_dsp, audio* driver)
 {
 #if MIDICTRL
-    midi_handler* handler;
 #if JACK_DRIVER
-    handler = static_cast<jackaudio_midi*>(driver);
-    fMidiInterface = new MidiUI(handler);
+    // JACK has its own MIDI interface, don't assign to fMidiHandler so we don't delete it
+    fMidiInterface = new MidiUI(static_cast<jackaudio_midi*>(driver));
 #elif JUCE_DRIVER
-    handler = new juce_midi();
-    fMidiInterface = new MidiUI(handler, true);
+    fMidiHandler.reset(new juce_midi());
+    fMidiInterface = new MidiUI(fMidiHandler.get());
 #elif TEENSY_DRIVER
-    handler = new teensy_midi();
-    fMidiInterface = new MidiUI(handler, true);
+    fMidiHandler.reset(new teensy_midi());
+    fMidiInterface = new MidiUI(fMidiHandler.get());
 #elif ESP32_DRIVER
-    handler = new esp32_midi();
-    fMidiInterface = new MidiUI(handler, true);
+    fMidiHandler.reset(new esp32_midi());
+    fMidiInterface = new MidiUI(fMidiHandler.get());
 #else
-    handler = new rt_midi();
-    fMidiInterface = new MidiUI(handler, true);
+    fMidiHandler.reset(new rt_midi());
+    fMidiInterface = new MidiUI(fMidiHandler.get());
 #endif
-    fPolyEngine = new FaustPolyEngine(mono_dsp, driver, handler);
+    fPolyEngine = new FaustPolyEngine(mono_dsp, driver, fMidiHandler.get());
     fPolyEngine->buildUserInterface(fMidiInterface);
 #else
     fPolyEngine = new FaustPolyEngine(mono_dsp, driver);

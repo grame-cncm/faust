@@ -29,6 +29,7 @@
 #define __faust_api__
 
 #include <cstdint>
+#include <memory>
 
 //===============API Reference==============
 //==========================================
@@ -60,6 +61,7 @@ class DspFaust
 
     #if MIDICTRL
         MidiUI* fMidiInterface;
+        std::unique_ptr<midi_handler> fMidiHandler;
     #endif
 
     #if SOUNDFILE
