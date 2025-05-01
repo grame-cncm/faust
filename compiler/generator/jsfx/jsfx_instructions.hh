@@ -199,6 +199,8 @@ class JSFXInstVisitor : public TextInstVisitor {
    public:
     // MIDI polyphonic mode
     bool poly    = false;
+    bool midi    = false;
+    bool next_control_is_midi = false;
     int  nvoices = 1;
     // If polyphonic, voice_stealing is default
     JSFXMIDIVoiceMode mode = JSFXMIDIVoiceMode::voice_steal;
@@ -434,6 +436,8 @@ class JSFXInstVisitor : public TextInstVisitor {
             /* To save from space at the end of string */
             temp = "";
         }
+        if(type == "pgm")
+            return JSFXMidiInstr(type, fzone, -1, res.first);
         return JSFXMidiInstr(type, fzone, res.first, res.second);
     }
 
@@ -443,8 +447,11 @@ class JSFXInstVisitor : public TextInstVisitor {
         if (inst->fKey == "midi") {
             _midi_instructions[inst->fZone] = inst->fValue;
             std::string name = inst->fValue;
-            if(poly &&  (strfind( name, "gate") || strfind(name, "freq") || strfind(name, "gain"))) 
+            if(poly &&  (strfind( name, "gate") || strfind(name, "freq") || strfind(name, "gain"))) {
                 skip_slider = true;
+            } else {
+                next_control_is_midi = true;
+            }
             //else 
         } 
     }
@@ -625,6 +632,7 @@ class JSFXInstVisitor : public TextInstVisitor {
                 *fOut << "(status == BEND) ? (";
                 tab(fTab + 2, *fOut);
                 *fOut << "midi_event += 1;";
+                tab(fTab + 2, *fOut);
                 JSFXMidiScale scale = _midi_scales[it.variable_name];
                 *fOut << it.variable_name << " = midi_scale( (msg2 << 7) + msg3, " << scale.min << ", " 
                         << scale.max << ", " << scale.step << ")"; 
@@ -641,8 +649,8 @@ class JSFXInstVisitor : public TextInstVisitor {
                 JSFXMidiScale scale = _midi_scales[cc.variable_name];
                 tab(fTab + 2, *fOut);
                 *fOut << "(msg2 == 0x" << std::hex << cc.nbr;
-                if (cc.channel >= 0) {
-                    *fOut << " && channel == 0x" << std::hex << cc.channel;
+                if (cc.channel > 0) {
+                    *fOut << " && channel == 0x" << std::hex << (cc.channel - 1);
                 }
                 *fOut << ") ? (" << cc.variable_name << " = midi_scale(msg3, " << scale.min << ", "
                       << scale.max << ", " << scale.step << "));";
@@ -659,12 +667,15 @@ class JSFXInstVisitor : public TextInstVisitor {
             for (const auto& pgm : pgms) {
                 JSFXMidiScale scale = _midi_scales[pgm.variable_name];
                 tab(fTab + 2, *fOut);
-                *fOut << "(msg2 == 0x" << std::hex << pgm.nbr;
-                if (pgm.channel >= 0) {
-                    *fOut << " && channel == 0x" << std::hex << pgm.channel;
+                if (pgm.channel > 0) {
+                    *fOut << "(channel == 0x" << std::hex << (pgm.channel - 1) << ") ? (";
                 }
-                *fOut << ") ? (" << pgm.variable_name << " = midi_scale(msg3, " << scale.min << ", "
-                      << scale.max << ", " << scale.step << "));";
+                *fOut << pgm.variable_name << " = midi_scale(msg2, " << scale.min << ", "
+                      << scale.max << ", " << scale.step << ")";
+                if(pgm.channel > 0) {
+                    *fOut << ")";
+                }
+                *fOut << ";";
             }
             tab(fTab + 1, *fOut);
             *fOut << ");";
@@ -679,8 +690,8 @@ class JSFXInstVisitor : public TextInstVisitor {
                 JSFXMidiScale scale = _midi_scales[k.variable_name];
                 tab(fTab + 2, *fOut);
                 *fOut << "(msg2 == 0x" << std::hex << k.nbr;
-                if (k.channel >= 0) {
-                    *fOut << " && channel == 0x" << std::hex << k.channel;
+                if (k.channel > 0) {
+                    *fOut << " && channel == 0x" << std::hex << (k.channel - 1);
                 }
                 *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3, " << scale.min
                       << ", " << scale.max << ", " << scale.step << "));";
@@ -697,8 +708,8 @@ class JSFXInstVisitor : public TextInstVisitor {
                 JSFXMidiScale scale = _midi_scales[k.variable_name];
                 tab(fTab + 2, *fOut);
                 *fOut << "(msg2 == 0x" << std::hex << k.nbr;
-                if (k.channel >= 0) {
-                    *fOut << " && channel == 0x" << std::hex << k.channel;
+                if (k.channel > 0) {
+                    *fOut << " && channel == 0x" << std::hex << (k.channel - 1);
                 }
                 *fOut << ") ? (" << k.variable_name << " = midi_scale(0xF0&msg3," << scale.min
                       << ", " << scale.max << ", " << scale.step << " )); ";
@@ -760,13 +771,16 @@ class JSFXInstVisitor : public TextInstVisitor {
     virtual void visit(AddButtonInst* inst)
     {
         if (!skip_slider) {
-
-            if (poly) {
-                std::string name = gGlobal->getFreshID(inst->fLabel);
+            std::string name = gGlobal->getFreshID(inst->fLabel);
+            if(next_control_is_midi && !poly){
+                _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1};
+                _midi_sliders[inst->fZone] = inst->fZone;
+            } else if (poly) {
                 if (strfind( name , "gate")) {
                     _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1, JSFXMIDIScaleType::gate};
                     return;
                 } else {
+                    _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1};
                     _midi_sliders[inst->fZone] = inst->fZone;
                 }
 
@@ -784,6 +798,7 @@ class JSFXInstVisitor : public TextInstVisitor {
             _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1};
         }
         skip_slider = false;
+        next_control_is_midi = false;
         if (slider_count == 256 && (gGlobal->gOutputLang != "jsfx-test")) {
             throw(
                 faustexception("ERROR : JSFX format does not support more than 256 controllers\n"));
@@ -793,8 +808,11 @@ class JSFXInstVisitor : public TextInstVisitor {
     virtual void visit(AddSliderInst* inst)
     {
         if (!skip_slider) {
-            if (poly) {
-                std::string name = gGlobal->getFreshID(inst->fLabel);
+            std::string name = gGlobal->getFreshID(inst->fLabel);
+            if(next_control_is_midi && !poly){
+                _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax, inst->fStep, JSFXMIDIScaleType::none};
+                _midi_sliders[inst->fZone] = inst->fZone;
+            } else if (poly) {
                 if (strfind(name, "gain")) {
                     _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax,
                                                               inst->fStep, JSFXMIDIScaleType::gain};
@@ -810,6 +828,8 @@ class JSFXInstVisitor : public TextInstVisitor {
                     _midi_scales[inst->fZone] =
                         JSFXMidiScale::MIDI7bScale(inst->fInit, JSFXMIDIScaleType::key);
                 } else {
+                    _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax,
+                                                              inst->fStep};
                     _midi_sliders[inst->fZone] = inst->fZone;
                 }
             }
@@ -834,6 +854,7 @@ class JSFXInstVisitor : public TextInstVisitor {
                 JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax, inst->fStep};
         }
         skip_slider = false;
+        next_control_is_midi = false;
         if (slider_count == 256 && (gGlobal->gOutputLang != "jsfx-test")) {
             throw(
                 faustexception("ERROR : JSFX format does not support more than 256 controllers\n"));

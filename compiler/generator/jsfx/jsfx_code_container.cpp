@@ -391,6 +391,7 @@ void JSFXCodeContainer::produceMetadata(int tabs)
                         }
                     }
                     gGlobal->gJSFXVisitor->poly    = poly;
+                    gGlobal->gJSFXVisitor->midi    = midi;
                     gGlobal->gJSFXVisitor->nvoices = nvoices;
                 }
                 *fOut << "desc: " << *(i.first) << " " << **j << "\n";

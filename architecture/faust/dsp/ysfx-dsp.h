@@ -117,7 +117,7 @@ class ysfx_dsp : public ::dsp {
                 if (startWith(name, "button")) {
                     ui_interface->addButton(ysfx_slider_get_name(fDSP, i), &fInputsValue[i]->fValue);
                 } else if (startWith(name, "checkbox")) {
-                    ui_interface->addCheckbox(ysfx_slider_get_name(fDSP, i), &fInputsValue[i]->fValue);
+                    ui_interface->addCheckButton(ysfx_slider_get_name(fDSP, i), &fInputsValue[i]->fValue);
                 } else if (startWith(name, "hslider")) {
                     ui_interface->addHorizontalSlider(ysfx_slider_get_name(fDSP, i),
                                                       &fInputsValue[i]->fValue,
@@ -126,7 +126,7 @@ class ysfx_dsp : public ::dsp {
                                                       ra.max,
                                                       ra.inc);
                 } else if (startWith(name, "vslider")) {
-                    ui_interface->addVorizontalSlider(ysfx_slider_get_name(fDSP, i),
+                    ui_interface->addVerticalSlider(ysfx_slider_get_name(fDSP, i),
                                                       &fInputsValue[i]->fValue,
                                                       ra.def,
                                                       ra.min,
