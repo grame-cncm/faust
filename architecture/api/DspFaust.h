@@ -49,6 +49,7 @@ class DspFaust
     private:
 
         FaustPolyEngine* fPolyEngine;
+        audio* fDriver;
 
     #if OSCCTRL
     #if JUCE_DRIVER
@@ -60,6 +61,7 @@ class DspFaust
 
     #if MIDICTRL
         MidiUI* fMidiInterface;
+        midi_handler* fMidiHandler;
     #endif
 
     #if SOUNDFILE
@@ -67,7 +69,7 @@ class DspFaust
     #endif
 
     #if DYNAMIC_DSP
-        dsp_factory* fFactory;
+        llvm_dsp_factory* fFactory;
     #endif
 
         void init(dsp* mono_dsp, audio* driver);

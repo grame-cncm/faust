@@ -701,7 +701,6 @@ class MidiUI : public GUI, public midi, public midi_interface, public MetaDataUI
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
         midi_handler* fMidiHandler;
-        bool fDelete;
         bool fTimeStamp;
     
         void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
@@ -796,12 +795,10 @@ class MidiUI : public GUI, public midi, public midi_interface, public MetaDataUI
     
     public:
     
-        MidiUI(midi_handler* midi_handler, bool delete_handler = false)
+        MidiUI(midi_handler* midi_handler)
         {
             fMidiHandler = midi_handler;
             fMidiHandler->addMidiIn(this);
-            // TODO: use shared_ptr based implementation
-            fDelete = delete_handler;
             fTimeStamp = false;
         }
  
@@ -809,8 +806,6 @@ class MidiUI : public GUI, public midi, public midi_interface, public MetaDataUI
         {
             // Remove from fMidiHandler
             fMidiHandler->removeMidiIn(this);
-            // TODO: use shared_ptr based implementation
-            if (fDelete) delete fMidiHandler;
         }
 
 #ifdef DAISY_NO_RTTI

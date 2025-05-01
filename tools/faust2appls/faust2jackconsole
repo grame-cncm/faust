@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to JACK-console             #
-#               (c) Grame, 2009-2018                                #
+#               (c) Grame, 2009-2025                                #
 #                                                                   #
 #####################################################################
 
@@ -16,6 +16,7 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 ARCHFILE=$FAUSTARCH/jack-console.cpp
 
 OSCDEFS=""
+POLY="POLY"
 NVOICES=-1
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
