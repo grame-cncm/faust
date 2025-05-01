@@ -34,15 +34,6 @@ inline std::string inlineInt32(double fnum)
     return std::to_string(int((fnum > 2147483648.) ? (fnum - 4294967296.) : fnum));
 }
 
-inline const std::string to_lower(const std::string& str) 
-{
-    std::string lowercase = str;
-    std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(),
-        [](unsigned char c){ return std::tolower(c); });
-    const std::string res(lowercase);
-    return res;
-
-}
 inline bool strfind(const std::string& str, const std::string& substr)
 {
     return (str.find(substr) != str.npos);
@@ -758,15 +749,6 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(CloseboxInst* inst) {}
 
-
-    static std::string to_lower(std::string& str) 
-    {
-        std::string lowercase = str;
-        std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(),
-            [](unsigned char c){ return std::tolower(c); });
-        return lowercase;
-    }
-
     static bool strfind(std::string& str, std::string substr)
     {
         if (str.find(substr) != str.npos) {
@@ -781,7 +763,6 @@ class JSFXInstVisitor : public TextInstVisitor {
 
             if (poly) {
                 std::string name = gGlobal->getFreshID(inst->fLabel);
-                //std::string lower = to_lower(name);
                 if (strfind( name , "gate")) {
                     _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1, JSFXMIDIScaleType::gate};
                     return;
@@ -814,7 +795,6 @@ class JSFXInstVisitor : public TextInstVisitor {
         if (!skip_slider) {
             if (poly) {
                 std::string name = gGlobal->getFreshID(inst->fLabel);
-                //std::string lower = to_lower(name);
                 if (strfind(name, "gain")) {
                     _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax,
                                                               inst->fStep, JSFXMIDIScaleType::gain};
