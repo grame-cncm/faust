@@ -225,7 +225,9 @@ void JSFXCodeContainer::produceClass()
           << " */ \n"
           << "CC = 0xB0; \n"
           << "NOTE_ON = 0x90; \n"
-          << "NOTE_OFF = 0x80; \n";
+          << "NOTE_OFF = 0x80; \n"
+          << "BEND = 0xE0; \n"
+          << "PGM_CHANGE = 0xC0; \n";
 
     tab(n, *fOut);
 
@@ -296,7 +298,7 @@ void JSFXCodeContainer::produceClass()
     }
 
     // These special fields dsp.key_id and dsp.gate are added in polyphonic context.
-    // They are used to know whether a noteoff can close a playing note (if same key and gate == 1 )
+    // They are used to know whether a noteoff can close a playing note (if same key and gate == 1)
     if (poly) {
         *fOut << "// Two identifiers to know which noteoff goes to which voice \n";
         class_decl += "dsp.key_id = " + std::to_string(total_size) + ";\n";
@@ -389,6 +391,7 @@ void JSFXCodeContainer::produceMetadata(int tabs)
                         }
                     }
                     gGlobal->gJSFXVisitor->poly    = poly;
+                    gGlobal->gJSFXVisitor->midi    = midi;
                     gGlobal->gJSFXVisitor->nvoices = nvoices;
                 }
                 *fOut << "desc: " << *(i.first) << " " << **j << "\n";
@@ -436,6 +439,7 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     tab(n + 2, *fOut);
     *fOut << "obj = dsp.memory + dsp.size * voice_idx;";
     tab(n + 2, *fOut);
+    gGlobal->gJSFXVisitor->midi_poly_assign_sliders();
     generateComputeBlock(gGlobal->gJSFXVisitor);
     *fOut << "voice_idx += 1;";
     tab(n + 1, *fOut);

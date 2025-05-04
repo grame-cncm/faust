@@ -9,9 +9,9 @@ Currently has available features :
 
 # TODO
 
-* Architecture file if required at some point
+* Add sustain (CC 64) - with metadata like `sustain[midi:ctrl 64]`
+* Add aftertouch and missing MIDI messages 
 * Bargraph for MIDI output
-* Test MIDI and slider scaling with FAUST MIDI laws (steps)
 
 # Possible improvements 
 
