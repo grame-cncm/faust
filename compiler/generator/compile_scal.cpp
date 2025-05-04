@@ -873,23 +873,23 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
     // check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        if (sharing > 1) {
+        if (o->hasMultiOccurrences()) {
             return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname,
                                     o->getMaxDelay(), o->getDelayCount());
         } else {
             return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
         }
 
-    } else if ((sharing > 1) || (o->hasMultiOccurrences())) {
+    } else if (o->hasMultiOccurrences()) {
         return generateVariableStore(sig, exp);
 
-    } else if (sharing == 1) {
-        return exp;
-
-    } else {
-        cerr << "ASSERT : sharing count (" << sharing << ") for " << *sig << endl;
+    } else if (o->getOccurrencesSum() == 0){
+        cerr << "ASSERT : sharing count (" << o->getOccurrencesSum() << ") for " << *sig << endl;
         faustassert(false);
         return {};
+
+    } else {
+        return exp;
     }
 }
 
