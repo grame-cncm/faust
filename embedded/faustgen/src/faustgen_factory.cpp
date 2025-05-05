@@ -895,7 +895,7 @@ void faustgen_factory::compile_file(t_filehandle file_handle, short path, char* 
     // Free the memory allocated for fBitCode
     free_bitcode();
     
-    // Always works here since 'is_new_file' returned true
+    // Always works here since 'is_new' returned true
     sysfile_readtextfile(file_handle, fSourceCode, 0, (t_sysfile_text_flags)(TEXT_LB_UNIX | TEXT_NULL_TERMINATE));
     sysfile_setpos(file_handle, SYSFILE_FROMSTART, 0);
     

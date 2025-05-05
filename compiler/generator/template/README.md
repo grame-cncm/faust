@@ -152,3 +152,10 @@ A textual FIR backend will generate code in a C++ stream. It typically uses a su
 ### Binary FIR backend 
 
 A binary FIR backend will generate binary code using a tailor-made output, which can greatly depend on the use-case. Look at the LLVM backend which outputs LLVM IR code, and the WASM backend which outputs binary WebAssembly code.
+
+## Miscs
+
+### Displaying the FIR
+
+For debugging purpose, the `dump2FIR` function can be used to print a textual version of the FIR code.
+

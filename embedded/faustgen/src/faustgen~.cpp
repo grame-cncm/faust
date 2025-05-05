@@ -362,7 +362,7 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
     fDSPfactory->unlock_audio();
 }
 
-// Reset controllers to init value and send [path, init, min, max]
+// Reset controllers to init values and send [path, init, min, max]
 void faustgen::init(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     // Reset internal state
