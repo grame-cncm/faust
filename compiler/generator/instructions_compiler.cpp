@@ -47,6 +47,8 @@ using namespace std;
 
 ostream* Printable::fOut = &cout;
 
+static CodeContainer* topcontainer = 0;
+
 static inline BasicTyped* genBasicFIRTyped(int sig_type)
 {
     return IB::genBasicTyped(convert2FIRType(sig_type));
@@ -892,7 +894,11 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
 
     // Special case for 'fSampleRate' parameter of the class
     if (name == "fSampleRate") {
-        pushDeclare(IB::genDecStructVar(name, genBasicFIRTyped(sig)));
+        if (gGlobal->gInlineTable && topcontainer) {
+            topcontainer->pushDeclare(IB::genDecStructVar(name, genBasicFIRTyped(sig)));
+        } else {
+            fContainer->pushDeclare(IB::genDecStructVar(name, genBasicFIRTyped(sig)));
+        }
         return IB::genLoadStructVar(name);
     } else {
         pushExtGlobalDeclare(IB::genDecGlobalVar(name, genBasicFIRTyped(sig)));
@@ -1537,7 +1543,7 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
     string signame = gGlobal->getFreshID("sig");
 
     CodeContainer* subcontainer = signal2Container(cname, content);
-    fContainer->addSubContainer(subcontainer);
+    topcontainer->addSubContainer(subcontainer);
 
     // We must allocate an object of type "cname"
     Values args;
@@ -1545,8 +1551,9 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
         args.push_back(IB::genLoadStaticStructVar("fManager"));
     }
     ValueInst* obj = IB::genFunCallInst("new" + cname, args);
-    pushStaticInitMethod(IB::genDecStackVar(
+    topcontainer->pushFrontStaticInitMethod(IB::genDecStackVar(
         signame, IB::genNamedTyped(cname, IB::genBasicTyped(Typed::kObj_ptr)), obj));
+
 
     // HACK for Rust and Julia backends
     if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
@@ -1556,7 +1563,7 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
         if (gGlobal->gMemoryManager >= 0) {
             args3.push_back(IB::genLoadStaticStructVar("fManager"));
         }
-        pushPostStaticInitMethod(IB::genVoidFunCallInst("delete" + cname, args3));
+        topcontainer->pushPostStaticInitMethod(IB::genVoidFunCallInst("delete" + cname, args3));
     }
 
     setTableNameProperty(sig, cname);
@@ -1643,6 +1650,9 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     bool res = isSigInt(tsize, &size);
     // Size type is previously checked in sigWriteReadTable or sigReadOnlyTable
     faustassert(res);
+    if (!topcontainer) {
+        topcontainer=fContainer;
+    }
 
     Tree        g;
     ValueInst*  signame;
@@ -1702,14 +1712,14 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
         Values alloc_args;
         alloc_args.push_back(IB::genLoadStaticStructVar("fManager"));
         alloc_args.push_back(IB::genInt32NumInst(size * ctype->getSizeBytes()));
-        pushStaticInitMethod(IB::genStoreStaticStructVar(
+        topcontainer->pushFrontStaticInitMethod(IB::genStoreStaticStructVar(
             vname, IB::genCastInst(IB::genFunCallInst("allocate", alloc_args, true),
                                    IB::genArrayTyped(ctype, 0))));
 
         Values destroy_args;
         destroy_args.push_back(IB::genLoadStaticStructVar("fManager"));
         destroy_args.push_back(IB::genLoadStaticStructVar(vname));
-        pushStaticDestroyMethod(IB::genVoidFunCallInst("destroy", destroy_args, true));
+        topcontainer->pushStaticDestroyMethod(IB::genVoidFunCallInst("destroy", destroy_args, true));
 
     } else {
         // The table is statically allocated
@@ -1723,7 +1733,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     Values args1;
     args1.push_back(signame);
     args1.push_back(IB::genLoadFunArgsVar("sample_rate"));
-    pushStaticInitMethod(IB::genVoidFunCallInst("instanceInit" + tablename, args1, true));
+    topcontainer->pushStaticInitMethod(IB::genVoidFunCallInst("instanceInit" + tablename, args1, true));
 
     // Fill the table
     Values args2;
@@ -1736,7 +1746,11 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
         // HACK for Rust backend
         args2.push_back(IB::genLoadStaticMutRefStructVar(vname));
     }
-    pushStaticInitMethod(IB::genVoidFunCallInst("fill" + tablename, args2, true));
+    topcontainer->pushStaticInitMethod(IB::genVoidFunCallInst("fill" + tablename, args2, true));
+
+    if (topcontainer==fContainer) {
+        topcontainer=0;
+    }
 
     // Return table access
     if (gGlobal->gInlineTable) {
