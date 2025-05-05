@@ -697,6 +697,12 @@ class CodeContainer : public virtual Garbageable {
         fStaticInitInstructions->pushBackInst(inst);
         return inst;
     }
+    StatementInst* pushFrontStaticInitMethod(StatementInst* inst)
+    {
+        faustassert(inst);
+        fStaticInitInstructions->pushFrontInst(inst);
+        return inst;
+    }
     StatementInst* pushStaticDestroyMethod(StatementInst* inst)
     {
         faustassert(inst);
