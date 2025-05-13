@@ -140,9 +140,9 @@ buildOnStratus() {
     local EFFECT_CPP_NAME=$(basename ${EFFECT_CPP})
     local EFFECT_SO="$2"
     local EFFECT_SO_NAME=$(basename ${EFFECT_SO})
-
+   
     # Upload the CPP file:
-    scp -F "${SSH_CFG}" "${EFFECT_CPP}" "${STRATUS_USER}@${STRATUS_ADDR}:/tmp" > /dev/null || { echo "Copy of ${EFFECT_CPP} to Stratus failsed"; return 1; }
+    scp -F "${SSH_CFG}" "${EFFECT_CPP}" "${STRATUS_USER}@${STRATUS_ADDR}:/tmp" > /dev/null || { echo "Copy of ${EFFECT_CPP} to Stratus failed"; return 1; }
 
     # Build the effect:
     ssh -F "${SSH_CFG}" "${STRATUS_USER}@${STRATUS_ADDR}" -T <<ENDSSH
@@ -235,12 +235,18 @@ ENDSSH
 #
 setIDandVersion() {
     unset EFFECT_VERSION EFFECT_ID
-    local EFFECT_SRC="${1:?setIDandVersion: First argument must be a DSP or CPP file}"
-    if [ "${EFFECT_SRC##*.}" = "cpp" ]; then
-        _id_version_cpp "${EFFECT_SRC}"
-    elif [ "${EFFECT_SRC##*.}" = "dsp" ]; then
-        _id_version_dsp "${EFFECT_SRC}"
-    fi
+    local EFFECT_SRC="${1:?setIDandVersion: First argument must be a DSP, CPP, or JSON file}"
+    case "${EFFECT_SRC##*.}" in
+        cpp) _id_version_cpp "${EFFECT_SRC}" ;;
+        dsp) _id_version_dsp "${EFFECT_SRC}" ;;
+        json) _id_version_json "${EFFECT_SRC}" ;;
+    esac
+}
+
+_id_version_json() {
+    local JSON_FILE="${1:?_id_version_json: First argument must be a JSON file}"
+    EFFECT_ID=$(jq -r '.meta[] | select(has("stratusId")) | .stratusId' "$JSON_FILE")
+    EFFECT_VERSION=$(jq -r '.meta[] | select(has("stratusVersion")) | .stratusVersion' "$JSON_FILE")
 }
 
 _id_version_dsp() {

@@ -155,7 +155,7 @@ for f in ${FILES}; do
     echo "Building effect ${EFFECT_CPP} with Faust:"
     echo "  Faust options: -a ${ARCHFILE} ${OPTIONS} ${EFFECT} -o ${EFFECT_CPP}"
 
-    faust -a ${ARCHFILE} ${OPTIONS} "${EFFECT}" -o "${EFFECT_CPP}" || exit
+    faust -json -a ${ARCHFILE} ${OPTIONS} "${EFFECT}" -o "${EFFECT_CPP}" || exit
 
     CPPFILES="${EFFECT_CPP} ${CPPFILES}"
 done
@@ -166,8 +166,8 @@ done
 if [[ "${CPPCOMPILE}" == "true" ]]; then
     for EFFECT_CPP in ${CPPFILES}; do
         EFFECT_SO="${EFFECT_CPP%.cpp}.so"
-        setIDandVersion "${EFFECT_CPP}"
-
+        setIDandVersion "${EFFECT}.json"
+  
         #
         # If we are building or installing for the Stratus we use pedalBuild, otherwise we use buildLocal
         #
