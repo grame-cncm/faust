@@ -36,7 +36,7 @@ architecture section is not modified.
 
 // Generic wasm_dsp_factory class that keeps the JSON decoder.
 
-class LIFAUST_API wasm_dsp_factory_imp : public dsp_factory {
+class LIBFAUST_API wasm_dsp_factory_imp : public dsp_factory {
     
     public:
     
@@ -65,11 +65,13 @@ class LIFAUST_API wasm_dsp_factory_imp : public dsp_factory {
         virtual void setMemoryManager(dsp_memory_manager* manager) {}
     
         virtual dsp_memory_manager* getMemoryManager() { return nullptr; }
+    
+        virtual std::vector<std::string> getWarningMessages() {return {}; };
 };
 
 // Generic wasm_dsp class that creates and use the JSON decoder, and manage DSP and audio memory.
 
-class LIFAUST_API wasm_dsp_imp : public ::dsp {
+class LIBFAUST_API wasm_dsp_imp : public ::dsp {
     
     protected:
     
