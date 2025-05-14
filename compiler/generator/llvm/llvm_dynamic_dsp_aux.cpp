@@ -434,28 +434,47 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
         SDsp_factory sfactory = (*it).first;
-        sfactory->addReference();
+        sfactory->addReference();  // Reuse cached factory
         return sfactory;
     } else {
+        LLVMContext* context = nullptr;
+        Module*      module  = nullptr;
+
         try {
-            LLVMContext* context = new LLVMContext();
-            Module*      module  = ParseBitcodeFile(buffer, *context, error_msg);
+            // Allocate new LLVM context
+            context = new LLVMContext();
+
+            // Parse Bitcode to module (module takes ownership of the buffer internally)
+            module = ParseBitcodeFile(buffer, *context, error_msg);
             if (!module) {
+                delete context;
                 return nullptr;
             }
+
+            // Build factory
             llvm_dynamic_dsp_factory_aux* factory_aux =
                 new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
+
             if (factory_aux->initJIT(error_msg)) {
                 llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
                 llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
                 factory->setSHAKey(sha_key);
                 return factory;
             } else {
-                delete factory_aux;
+                delete factory_aux;  // Clean up factory_aux, context and module will be deleted by
+                                     // its destructor
                 return nullptr;
             }
+
         } catch (faustexception& e) {
             error_msg = e.what();
+            // Clean up only if context/module were allocated but not yet owned by any object
+            if (module) {
+                delete module;
+            }
+            if (context) {
+                delete context;
+            }
             return nullptr;
         }
     }
@@ -548,8 +567,10 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         sfactory->addReference();
         return sfactory;
     } else {
+        char* tmp_local = nullptr;
         try {
-            char* tmp_local = setlocale(LC_ALL, NULL);
+            // Save locale
+            tmp_local = setlocale(LC_ALL, NULL);
             if (tmp_local) {
                 tmp_local = strdup(tmp_local);
             }
@@ -560,8 +581,14 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
             Module* module = parseIR(buffer, err, *context).release();
             if (!module) {
                 error_msg = "ERROR : " + string(err.getMessage().data()) + "\n";
+                delete context;
+                if (tmp_local) {
+                    setlocale(LC_ALL, tmp_local);
+                    free(tmp_local);
+                }
                 return nullptr;
             }
+            // Restore locale
             if (tmp_local) {
                 setlocale(LC_ALL, tmp_local);
                 free(tmp_local);
@@ -579,6 +606,10 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
             }
         } catch (faustexception& e) {
             error_msg = e.what();
+            if (tmp_local) {
+                setlocale(LC_ALL, tmp_local);
+                free(tmp_local);
+            }
             return nullptr;
         }
     }
