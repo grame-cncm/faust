@@ -298,7 +298,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
         {
             if (popLabel()) {
                 // Shortnames can be computed when all fullnames are known
-                computeShortNames();
+                computeShortNamesNew();
             }
             fTab -= 1;
             tab(fTab, fUI); fUI << "]";
@@ -313,6 +313,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
         {
             std::string path = buildPath(label);
             fFullPaths.push_back(path);
+            fFullPathsNew.push_back({path,varname});
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
@@ -364,6 +365,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
         {
             std::string path = buildPath(label);
             fFullPaths.push_back(path);
+            fFullPathsNew.push_back({path,varname});
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
@@ -429,7 +431,8 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
         {
             std::string path = buildPath(label);
             fFullPaths.push_back(path);
-            
+            fFullPathsNew.push_back({path,varname});
+
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
@@ -637,7 +640,9 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                 fUI.str("");
                 // Add N-1 sections
                 for (size_t i = 0; i < fAllUI.size()-1; i++) {
-                    fUI << fAllUI[i] << fFull2Short[fFullPaths[i]] << "\",";
+                    auto t = fFullPathsNew[i];
+                    auto varname = std::get<1>(t);
+                    fUI << fAllUI[i] << fVarname2Short[varname] << "\",";
                 }
                 // And the last one
                 fUI << fAllUI[fAllUI.size()-1];
