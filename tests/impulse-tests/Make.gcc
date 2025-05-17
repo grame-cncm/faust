@@ -82,6 +82,7 @@ ir/$(lang)/float/omp/cubic_distortion.ir:	precision=0.03
 ir/$(lang)/float/omp/comb_delay2.ir:		precision=0.065
 ir/$(lang)/float/omp/comb_delay1.ir:		precision=0.065
 ir/$(lang)/float/omp/carre_volterra.ir:		precision=0.002
+ir/$(lang)/float/omp/rectable.ir:			precision=0.0005
 
 ir/$(lang)/float/sched/zita_rev1.ir:		precision=0.00001
 ir/$(lang)/float/sched/virtual_analog_oscillators.ir: precision=0.00004
@@ -99,6 +100,7 @@ ir/$(lang)/float/sched/cubic_distortion.ir:	precision=0.03
 ir/$(lang)/float/sched/comb_delay2.ir:		precision=0.065
 ir/$(lang)/float/sched/comb_delay1.ir:		precision=0.065
 ir/$(lang)/float/sched/carre_volterra.ir:	precision=0.002
+ir/$(lang)/float/sched/rectable.ir:			precision=0.0005
 
 ir/$(lang)/float/vec/zita_rev1.ir:			precision=0.00001
 ir/$(lang)/float/vec/virtual_analog_oscillators.ir: precision=0.00004
@@ -116,6 +118,7 @@ ir/$(lang)/float/vec/cubic_distortion.ir:	precision=0.03
 ir/$(lang)/float/vec/comb_delay2.ir:		precision=0.065
 ir/$(lang)/float/vec/comb_delay1.ir:		precision=0.065
 ir/$(lang)/float/vec/carre_volterra.ir:		precision=0.002
+ir/$(lang)/float/vec/rectable.ir:			precision=0.0005
  
 ir/$(lang)/float/zita_rev1.ir:				precision=0.00001
 ir/$(lang)/float/virtual_analog_oscillators.ir: precision=0.00004
@@ -133,6 +136,7 @@ ir/$(lang)/float/cubic_distortion.ir:		precision=0.03
 ir/$(lang)/float/comb_delay2.ir:			precision=0.065
 ir/$(lang)/float/comb_delay1.ir:			precision=0.065
 ir/$(lang)/float/carre_volterra.ir: 		precision=0.0015
+ir/$(lang)/float/rectable.ir: 				precision=0.0005
 
 ir/c/double/sched/parametric_eq.ir:		precision=0.004
 ir/cpp/double/sched/parametric_eq.ir: 	precision=0.04
@@ -153,6 +157,12 @@ ir/$(outdir)/control.cpp : dsp/control.dsp
 
 ir/cpp/double/os/osc_enable.ir:
 	@echo "osc_enable test is broken with flag -os"
+
+ir/$(lang)/double/it/rectable.ir:
+	@echo "rectable test is broken with flag -it"
+
+ir/$(lang)/float/it/rectable.ir:
+	@echo "rectable test is broken with flag -it"
 
 # Specific rule to test 'enable/control' primitives that currently only work in scalar mode, used for 'cpp', 'c' and 'travis'
 ir/$(outdir)/osc_enable.$(ext) : dsp/osc_enable.dsp
