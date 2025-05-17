@@ -1630,7 +1630,11 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
     args2.push_back(signame);
     args2.push_back(IB::genInt32NumInst(size));
     // HACK for Rust backend
-    args2.push_back(IB::genLoadMutRefStructVar(vname));
+    if (gGlobal->gInlineTable){
+        args2.push_back(IB::genLoadStructVar(vname));
+    } else {
+        args2.push_back(IB::genLoadMutRefStructVar(vname));
+    }
     pushInitMethod(IB::genVoidFunCallInst("fill" + tablename, args2, true));
 
     // Return table access
