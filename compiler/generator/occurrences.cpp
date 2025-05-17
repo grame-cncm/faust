@@ -53,6 +53,15 @@ int Occurrences::getOccurrence(int variability) const
     return fOccurrences[variability];
 }
 
+int Occurrences::getOccurrencesSum() const
+{
+    int sum = 0;
+    for (int i = 0; i < 4; i++) {
+        sum += fOccurrences[i];
+    }
+    return sum;
+}
+
 Occurrences::Occurrences(int v, int r, Tree xc) : fXVariability(xVariability(v, r))
 {
     for (int i = 0; i < 4; i++) {

@@ -587,7 +587,7 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
         gGlobal->gDocNoticeFlagMap["recursigs"] = true;
         // cerr << "- r : generateCacheCode : vame=\"" << vname << "\", for sig=\"" << ppsig(sig) <<
         // "\"" << endl;
-        if (sharing > 1) {
+        if (o->hasMultiOccurrences()) {
             // cerr << "      generateCacheCode calls generateDelayVec(generateVariableStore) on
             // vame=\"" << vname <<
             // "\"" << endl;
@@ -598,15 +598,15 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
             // "\"" << endl;
             return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
         }
-    } else if (sharing == 1 || getVectorNameProperty(sig, vectorname) || isVerySimpleFormula(sig)) {
+    } else if (!o->hasMultiOccurrences() || getVectorNameProperty(sig, vectorname) || isVerySimpleFormula(sig)) {
         // cerr << "! generateCacheCode : sharing == 1 : return \"" << exp << "\"" << endl;
         return exp;
-    } else if (sharing > 1) {
+    } else if (o->hasMultiOccurrences()) {
         // cerr << "! generateCacheCode : sharing > 1 : return \"" << exp << "\"" << endl;
         return generateVariableStore(sig, exp);
     } else {
         stringstream error;
-        error << "ERROR in sharing count (" << sharing << ") for " << *sig << endl;
+        error << "ERROR in sharing count (" << o->getOccurrencesSum() << ") for " << *sig << endl;
         throw faustexception(error.str());
     }
 
