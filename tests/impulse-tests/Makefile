@@ -140,6 +140,7 @@ travis:
 #########################################################################
 # automatic github action test
 github_action:
+	$(MAKE) -f Make.rust outdir=rust/it CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -it -a archs/rust/architecture_trait_ff64.rs"
 	$(MAKE) -f Make.rust outdir=rust/inpl CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -inpl -rnt -rnlm -a archs/rust/architecture_inpl.rs"
 	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -a archs/rust/architecture_trait_ff64.rs"
 	$(MAKE) -f Make.gcc outdir=cpp/double lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I ../../libraries/ -I dsp -double"
@@ -397,6 +398,7 @@ interp1:
 #########################################################################
 # Rust backend
 rust:
+	$(MAKE) -f Make.rust outdir=rust/it CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -it -a archs/rust/architecture_trait_ff64.rs"
 	$(MAKE) -f Make.rust outdir=rust/cm CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -cm -a archs/rust/architecture_cm.rs"
 	$(MAKE) -f Make.rust outdir=rust/3232 precision=1.4 CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -single -rnlm -a archs/rust/architecture_trait_ff32.rs"
 	$(MAKE) -f Make.rust outdir=rust/3264 precision=1 CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -rnlm -a archs/rust/architecture_trait_ff32.rs"

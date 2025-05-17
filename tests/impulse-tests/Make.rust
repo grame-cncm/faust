@@ -70,6 +70,9 @@ ir/rust/vec4/prefix.ir:
 ir/rust/vec32/prefix.ir:
 	echo "todo fix bug #1071 to test dsp/prefix.dsp"
 
+ir/rust/it/subcontainer1.ir:
+	echo "todo fix bug #1236 to test dsp/subcontainer1.dsp"
+
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
 	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/$*.dsp -o archs/rust/src/bin/$*.rs
 	cd archs/rust/ && cargo run $(CARGOOPTIONS) --bin $* ../../$@
