@@ -69,6 +69,17 @@ LIBFAUST_API std::string generateWasmFromString(const std::string& name_app,
                                                 const char* argv[], std::string& error_msg,
                                                 bool internal_memory);
 
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code,
+                                                             std::string&       error_msg);
+
+LIBFAUST_API std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
+
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(
+    const std::string& machine_code_path, std::string& error_msg);
+
+LIBFAUST_API void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory*  factory,
+                                                   const std::string& machine_code_path);
+
 #ifdef __cplusplus
 extern "C" {
 #endif

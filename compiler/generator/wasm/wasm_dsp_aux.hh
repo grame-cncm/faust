@@ -34,6 +34,16 @@
 #include "dsp_factory.hh"
 #include "wasm_binary.hh"
 
+//#define WASMTIME
+
+#ifdef WASMTIME
+#ifndef EMCC
+// Wasmtime C API
+#include <wasm.h>
+#include <wasmtime.h>
+#endif
+#endif
+
 class wasm_dsp_factory;
 struct JSONUIDecoderBase;
 
@@ -309,9 +319,6 @@ struct WasmBinaryReader {
 
 // The C++ side version of compiled wasm code
 
-class SoundUI;
-class MidiUI;
-
 class LIBFAUST_API wasm_dsp : public dsp, public JSONControl {
    private:
     wasm_dsp_factory* fFactory;
@@ -353,6 +360,50 @@ class LIBFAUST_API wasm_dsp : public dsp, public JSONControl {
     virtual FAUSTFLOAT getParamValue(const std::string& path);
 };
 
+
+/**
+ * Concrete DSP instance backed by a Wasmtime instance (C‑API flavour).
+ */
+/*
+class wasmtime_dsp : public wasm_dsp_imp {
+   private:
+    // One store per DSP instance (required for thread‑safety)
+    wasmtime_store_t*   fStore = nullptr;
+    wasmtime_instance_t fInstance{};
+    wasmtime_memory_t   fMemory{};
+    wasmtime_func_t     fComputeFunc{};
+    char*               fMemoryBase = nullptr;
+
+    /// Helper – call exported int(int) with dsp index = 0
+    int callIntExport(const char* name);
+
+   public:
+    wasmtime_dsp(wasmtime_dsp_factory* factory, wasmtime_store_t* store,
+                 const wasmtime_instance_t& instance, const wasmtime_memory_t& memory,
+                 char* memoryBase);
+
+    ~wasmtime_dsp() override;
+
+    int getNumInputs() override;
+    int getNumOutputs() override;
+    int getSampleRate() override;
+
+    void init(int sample_rate) override;
+    void instanceInit(int sample_rate) override;
+    void instanceConstants(int sample_rate) override;
+    void instanceResetUserInterface() override;
+    void instanceClear() override;
+
+    wasmtime_dsp* clone() override;
+
+    void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) override;
+    void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) override
+    {
+        compute(count, inputs, outputs);
+    }
+};
+*/
+
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
 class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable {
@@ -363,12 +414,6 @@ class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable
     JSONUIDecoderBase* fDecoder;
     int                fInstance;  // Index of wasm DSP instance
     MapUI              fMapUI;
-
-    /*
-    #ifdef EMCC
-        SoundUI* fSoundUI;
-    #endif
-    */
 
    public:
     wasm_dsp_factory() : fFactory(nullptr), fDecoder(nullptr), fInstance(0) {}

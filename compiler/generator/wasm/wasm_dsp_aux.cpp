@@ -51,29 +51,17 @@ dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 #include "faust/dsp/poly-wasm-dsp.h"
 #endif
 
-// #include "faust/gui/SoundUI.h"
-
 LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(int instance, const string& json)
 {
     fFactory  = nullptr;
     fInstance = instance;
     fDecoder  = createJSONUIDecoder(json);
-    // fSoundUI = new SoundUI();
 }
 
 LIBFAUST_API wasm_dsp_factory::~wasm_dsp_factory()
 {
-    /* Deactivated for 'wasm' branch version
-    // Empty the JS structures so that the instance can be GCed
-#ifdef AUDIO_WORKLET
-    EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0] = null; }, fInstance);
-#else
-    EM_ASM({ faust_module.faust.wasm_instance[$0] = null; }, fInstance);
-#endif
-    */
     delete fFactory;
     delete fDecoder;
-    // delete fSoundUI;
 }
 
 LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int           instance,
@@ -83,24 +71,6 @@ LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int       
     wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
     return factory;
 }
-
-/* Deactivated for 'wasm' branch version
-// To keep 'wasmMemory' in the generated JS library
-#ifdef AUDIO_WORKLET
-EM_JS(void, connectMemory, (),
-{
-    AudioWorkletGlobalScope.faust_module.faust = AudioWorkletGlobalScope.faust_module.faust || {};
-    AudioWorkletGlobalScope.faust_module.faust.memory =
-AudioWorkletGlobalScope.faust_module.faust.memory || wasmMemory;
-});
-#else
-EM_JS(void, connectMemory, (),
-{
-    faust_module.faust = faust_module.faust || {};
-    faust_module.faust.memory = faust_module.faust.memory || wasmMemory;
-});
-#endif
-*/
 
 LIBFAUST_API string wasm_dsp_factory::extractJSON(const string& code)
 {
@@ -176,55 +146,24 @@ LIBFAUST_API void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory,
 
 LIBFAUST_API wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        fDSP = EM_ASM_INT({ return AudioWorkletGlobalScope.faust_module._malloc($0); },
-    fFactory->getDecoder()->getDSPSize()); #else fDSP = EM_ASM_INT({ return
-    faust_module._malloc($0); }, fFactory->getDecoder()->getDSPSize()); #endif
-    */
     // First instance builds the map
     if (fFactory->fMapUI.getParamsCount() == 0) {
         buildUserInterface(&fFactory->fMapUI);
     }
-    // buildUserInterface(factory->fSoundUI);
 }
 
 LIBFAUST_API wasm_dsp::~wasm_dsp()
 {
-    /* Deactivated for 'wasm' branch version
-        // Free the DSP memory
-    #ifdef AUDIO_WORKLET
-        EM_ASM({ AudioWorkletGlobalScope.faust_module._free($0); }, fDSP);
-    #else
-        EM_ASM({ faust_module._free($0); }, fDSP);
-    #endif
-    */
     wasm_dsp_factory::gWasmFactoryTable.removeDSP(fFactory, this);
 }
 
 LIBFAUST_API int wasm_dsp::getNumInputs()
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        return EM_ASM_INT({ return
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getNumInputs($1); },
-    fFactory->fInstance, fDSP); #else return EM_ASM_INT({ return
-    faust_module.faust.wasm_instance[$0].exports.getNumInputs($1); }, fFactory->fInstance, fDSP);
-    #endif
-    */
     return -1;
 }
 
 LIBFAUST_API int wasm_dsp::getNumOutputs()
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        return EM_ASM_INT({ return
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getNumOutputs($1); },
-    fFactory->fInstance, fDSP); #else return EM_ASM_INT({ return
-    faust_module.faust.wasm_instance[$0].exports.getNumOutputs($1); }, fFactory->fInstance, fDSP);
-    #endif
-    */
     return -1;
 }
 
@@ -235,74 +174,27 @@ LIBFAUST_API void wasm_dsp::buildUserInterface(UI* ui_interface)
 
 LIBFAUST_API int wasm_dsp::getSampleRate()
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        return EM_ASM_INT({ return
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getSampleRate($1); },
-    fFactory->fInstance, fDSP); #else return EM_ASM_INT({ return
-    faust_module.faust.wasm_instance[$0].exports.getSampleRate($1); }, fFactory->fInstance, fDSP);
-    #endif
-    */
     return -1;
 }
 
 LIBFAUST_API void wasm_dsp::init(int sample_rate)
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.init($1, $2);
-    }, fFactory->fInstance, fDSP, sample_rate); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.init($1, $2); }, fFactory->fInstance, fDSP,
-    sample_rate); #endif
-    */
 }
 
 LIBFAUST_API void wasm_dsp::instanceInit(int sample_rate)
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceInit($1, $2); },
-    fFactory->fInstance, fDSP, sample_rate); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fFactory->fInstance, fDSP,
-    sample_rate); #endif
-    */
 }
 
 LIBFAUST_API void wasm_dsp::instanceConstants(int sample_rate)
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceConstants($1, $2);
-    }, fFactory->fInstance, fDSP, sample_rate); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.instanceConstants($1, $2); }, fFactory->fInstance,
-    fDSP, sample_rate); #endif
-    */
 }
 
 LIBFAUST_API void wasm_dsp::instanceResetUserInterface()
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceResetUserInterface($1);
-    }, fFactory->fInstance, fDSP); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.instanceResetUserInterface($1); },
-    fFactory->fInstance, fDSP); #endif
-    */
 }
 
 LIBFAUST_API void wasm_dsp::instanceClear()
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceClear($1); },
-    fFactory->fInstance, fDSP); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.instanceClear($1); }, fFactory->fInstance, fDSP);
-    #endif
-    */
 }
 
 LIBFAUST_API wasm_dsp* wasm_dsp::clone()
@@ -317,25 +209,10 @@ LIBFAUST_API void wasm_dsp::metadata(Meta* m)
 
 LIBFAUST_API void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.compute($1,
-    $2, $3, $4); }, fFactory->fInstance, fDSP, count, inputs, outputs); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fFactory->fInstance,
-    fDSP, count, inputs, outputs); #endif
-    */
 }
 
 LIBFAUST_API void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.compute($1,
-    $2, $3, $4); }, fFactory->fInstance, fDSP, count, reinterpret_cast<uintptr_t>(inputs),
-    reinterpret_cast<uintptr_t>(outputs)); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fFactory->fInstance,
-    fDSP, count, reinterpret_cast<uintptr_t>(inputs), reinterpret_cast<uintptr_t>(outputs)); #endif
-    */
 }
 
 LIBFAUST_API void wasm_dsp::setParamValue(const string& path, FAUSTFLOAT value)
