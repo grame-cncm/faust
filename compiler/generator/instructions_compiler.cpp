@@ -1055,23 +1055,23 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
     // Check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        if (sharing > 1) {
+        if (o->hasMultiOccurrences()) {
             return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname,
                                     o->getMaxDelay());
         } else {
             return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
         }
 
-    } else if (sharing > 1 || (o->hasMultiOccurrences())) {
+    } else if (o->hasMultiOccurrences()) {
         return generateVariableStore(sig, exp);
 
-    } else if (sharing == 1) {
-        return exp;
-
-    } else {
-        cerr << "ASSERT : in sharing count (" << sharing << ") for " << *sig << endl;
+    } else if (o->getOccurrencesSum() == 0) {
+        cerr << "ASSERT : in sharing count (" << o->getOccurrencesSum() << ") for " << *sig << endl;
         faustassert(false);
         return IB::genNullValueInst();
+
+    } else {
+        return exp;
     }
 }
 
