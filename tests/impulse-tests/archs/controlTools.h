@@ -9,7 +9,7 @@
 #include "faust/gui/SoundUI.h"
 
 #include "faust/dsp/llvm-dsp.h"
-#include "faust/dsp/libfaust.h"
+#include "faust/dsp/libfaust-c.h"
 
 #ifdef HAS_FX
 #include "faust/dsp/fixed-point.h"
