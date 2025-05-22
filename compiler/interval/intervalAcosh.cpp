@@ -37,24 +37,26 @@ interval interval_algebra::Acosh(const interval& x)
 
     // the min slope is attained at the highest bound of the interval
     // we thus compute the gap between f(hi) and f(hi-ε), to remain in the interval
-    int precision = exactPrecisionUnary(acosh, x.hi(), -pow(2, x.lsb()));
+    int precision = exactPrecisionUnary(std::acosh, x.hi(), -std::pow(2, x.lsb()));
 
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(x.lsb() - (double)log2(x.hi() * x.hi() - 1) / 2);
+        precision = floor(x.lsb() - (double)std::log2(x.hi() * x.hi() - 1) / 2);
     }
 
-    return {acosh(i.lo()), acosh(i.hi()), precision};
+    return {std::acosh(i.lo()), std::acosh(i.hi()), precision};
 }
 
 void interval_algebra::testAcosh()
 {
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, 0), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -5), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -10), acosh,
+    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, 0), std::acosh,
                        &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -15), acosh,
+    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -5), std::acosh,
                        &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -20), acosh,
+    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -10), std::acosh,
+                       &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -15), std::acosh,
+                       &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -20), std::acosh,
                        &interval_algebra::Acosh);
 
     /* analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, 0), acosh, &interval_algebra::Acosh);

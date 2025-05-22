@@ -28,7 +28,7 @@ namespace itv {
 
 static double rsh(double x, double k)
 {
-    return x * pow(2, -k);
+    return x * std::pow(2, -k);
 }
 
 interval interval_algebra::Rsh(const interval& x, const interval& k)
@@ -37,7 +37,7 @@ interval interval_algebra::Rsh(const interval& x, const interval& k)
         return empty();
     }
 
-    interval j{pow(2, -k.hi()), pow(2, -k.lo())};
+    interval j{pow(2, -k.hi()), std::pow(2, -k.lo())};
     interval z = Mul(x, j);
 
     return {

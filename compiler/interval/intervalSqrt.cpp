@@ -40,25 +40,26 @@ interval interval_algebra::Sqrt(const interval& x)
     }*/
 
     // lowest slope at the highest bound of the interval
-    int precision = exactPrecisionUnary(sqrt, i.hi(), -pow(2, i.lsb()));
+    int precision = exactPrecisionUnary(sqrt, i.hi(), -std::pow(2, i.lsb()));
     if ((precision == INT_MIN) || taylor_lsb) {
         if (i.hi() == 0) {
-            precision = floor(i.lsb() / 2);
+            precision = std::floor(i.lsb() / 2);
         } else {
-            precision = floor(i.lsb() - log2(i.hi()) - 1);  // sqrt(x+u) - sqrt(x) = 1/2 u/sqrt(x)
+            precision = std::floor(i.lsb() - std::log2(i.hi()) -
+                                   1.);  // sqrt(x+u) - sqrt(x) = 1/2 u/sqrt(x)
         }
     }
 
-    return {sqrt(i.lo()), sqrt(i.hi()), precision};
+    return {std::sqrt(i.lo()), std::sqrt(i.hi()), precision};
 }
 
 void interval_algebra::testSqrt()
 {
-    // analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10), sqrt, &interval_algebra::Sqrt);
-    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, 0), sqrt, &interval_algebra::Sqrt);
-    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -5), sqrt, &interval_algebra::Sqrt);
-    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -10), sqrt, &interval_algebra::Sqrt);
-    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -15), sqrt, &interval_algebra::Sqrt);
-    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -20), sqrt, &interval_algebra::Sqrt);
+    // analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10), std::sqrt, &interval_algebra::Sqrt);
+    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, 0), std::sqrt, &interval_algebra::Sqrt);
+    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -5), std::sqrt, &interval_algebra::Sqrt);
+    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -10), std::sqrt, &interval_algebra::Sqrt);
+    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -15), std::sqrt, &interval_algebra::Sqrt);
+    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -20), std::sqrt, &interval_algebra::Sqrt);
 }
 }  // namespace itv

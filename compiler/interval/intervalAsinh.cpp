@@ -38,7 +38,7 @@ interval interval_algebra::Asinh(const interval& x)
     int sign =
         signMaxValAbs(x);  // whether we compute the difference between f(v) and f(v+ε) or f(v-ε)
 
-    int precision = exactPrecisionUnary(asinh, v, sign * pow(2, x.lsb()));
+    int precision = exactPrecisionUnary(std::asinh, v, sign * std::pow(2, x.lsb()));
 
     if ((precision == INT_MIN) || taylor_lsb) {
         precision = floor(x.lsb() - (double)log2(1 + v * v) / 2);
@@ -49,10 +49,15 @@ interval interval_algebra::Asinh(const interval& x)
 
 void interval_algebra::testAsinh()
 {
-    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, 0), asinh, &interval_algebra::Asinh);
-    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -5), asinh, &interval_algebra::Asinh);
-    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -10), asinh, &interval_algebra::Asinh);
-    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -15), asinh, &interval_algebra::Asinh);
-    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -20), asinh, &interval_algebra::Asinh);
+    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, 0), std::asinh,
+                       &interval_algebra::Asinh);
+    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -5), std::asinh,
+                       &interval_algebra::Asinh);
+    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -10), std::asinh,
+                       &interval_algebra::Asinh);
+    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -15), std::asinh,
+                       &interval_algebra::Asinh);
+    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -20), std::asinh,
+                       &interval_algebra::Asinh);
 }
 }  // namespace itv

@@ -39,10 +39,10 @@ interval interval_algebra::Atanh(const interval& x)
 
     double v         = minValAbs(x);
     double sign      = signMinValAbs(x);
-    int    precision = exactPrecisionUnary(atanh, v, sign * pow(2, x.lsb()));
+    int    precision = exactPrecisionUnary(std::atanh, v, sign * std::pow(2, x.lsb()));
 
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(x.lsb() - (double)log2(1 - v * v));
+        precision = std::floor(x.lsb() - (double)std::log2(1 - v * v));
     }
 
     return {atanh(i.lo()), atanh(i.hi()), precision};
@@ -50,15 +50,18 @@ interval interval_algebra::Atanh(const interval& x)
 
 void interval_algebra::testAtanh()
 {
-    analyzeUnaryMethod(10, 1000, "atanh", interval(-1 + pow(2, -3), 1 - pow(2, -3), -3), atanh,
+    analyzeUnaryMethod(10, 1000, "atanh", interval(-1 + std::pow(2, -3), 1 - std::pow(2, -3), -3),
+                       atanh, &interval_algebra::Atanh);
+    analyzeUnaryMethod(10, 1000, "atanh", interval(-1 + std::pow(2, -5), 1 - std::pow(2, -5), -5),
+                       atanh, &interval_algebra::Atanh);
+    analyzeUnaryMethod(10, 1000, "atanh",
+                       interval(-1 + std::pow(2, -10), 1 - std::pow(2, -10), -10), atanh,
                        &interval_algebra::Atanh);
-    analyzeUnaryMethod(10, 1000, "atanh", interval(-1 + pow(2, -5), 1 - pow(2, -5), -5), atanh,
+    analyzeUnaryMethod(10, 1000, "atanh",
+                       interval(-1 + std::pow(2, -15), 1 - std::pow(2, -15), -15), atanh,
                        &interval_algebra::Atanh);
-    analyzeUnaryMethod(10, 1000, "atanh", interval(-1 + pow(2, -10), 1 - pow(2, -10), -10), atanh,
-                       &interval_algebra::Atanh);
-    analyzeUnaryMethod(10, 1000, "atanh", interval(-1 + pow(2, -15), 1 - pow(2, -15), -15), atanh,
-                       &interval_algebra::Atanh);
-    analyzeUnaryMethod(10, 1000, "atanh", interval(-1 + pow(2, -20), 1 - pow(2, -20), -20), atanh,
+    analyzeUnaryMethod(10, 1000, "atanh",
+                       interval(-1 + std::pow(2, -20), 1 - std::pow(2, -20), -20), atanh,
                        &interval_algebra::Atanh);
 }
 }  // namespace itv

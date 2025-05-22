@@ -40,10 +40,10 @@ interval interval_algebra::Atan(const interval& x)
     int sign =
         signMaxValAbs(x);  // whether we compute the difference between f(v) and f(v+ε) or f(v-ε)
 
-    int precision = exactPrecisionUnary(atan, v, sign * pow(2, x.lsb()));
+    int precision = exactPrecisionUnary(std::atan, v, sign * std::pow(2, x.lsb()));
 
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(x.lsb() - (double)log2(1 + v * v));
+        precision = std::floor(x.lsb() - (double)std::log2(1 + v * v));
     }
 
     return {atan(x.lo()), atan(x.hi()), precision};
@@ -51,10 +51,15 @@ interval interval_algebra::Atan(const interval& x)
 
 void interval_algebra::testAtan()
 {
-    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, 0), atan, &interval_algebra::Atan);
-    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -5), atan, &interval_algebra::Atan);
-    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -10), atan, &interval_algebra::Atan);
-    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -15), atan, &interval_algebra::Atan);
-    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -20), atan, &interval_algebra::Atan);
+    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, 0), std::atan,
+                       &interval_algebra::Atan);
+    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -5), std::atan,
+                       &interval_algebra::Atan);
+    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -10), std::atan,
+                       &interval_algebra::Atan);
+    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -15), std::atan,
+                       &interval_algebra::Atan);
+    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -20), std::atan,
+                       &interval_algebra::Atan);
 }
 }  // namespace itv

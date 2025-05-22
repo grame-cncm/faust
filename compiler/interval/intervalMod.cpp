@@ -64,7 +64,7 @@ std::pair<interval, interval> split(interval x)
     if (x.hi() < 0) {
         return {x, empty()};
     }
-    return {interval{x.lo(), nexttoward(0.0, -1.0), x.lsb()}, interval{0.0, x.hi(), x.lsb()}};
+    return {interval{x.lo(), std::nexttoward(0.0, -1.0), x.lsb()}, interval{0.0, x.hi(), x.lsb()}};
 }
 
 // split an interval into two intervals, negative and positive (or empty)
@@ -76,8 +76,8 @@ std::pair<interval, interval> splitnz(interval x)
     if (x.hi() < 0) {
         return {x, empty()};
     }
-    return {interval{x.lo(), nexttoward(0.0, -1.0), x.lsb()},
-            interval{nexttoward(0.0, 1.0), x.hi(), x.lsb()}};
+    return {interval{x.lo(), std::nexttoward(0.0, -1.0), x.lsb()},
+            interval{std::nexttoward(0.0, 1.0), x.hi(), x.lsb()}};
 }
 
 //------------------------------------------------------------------------------------------
@@ -119,11 +119,11 @@ interval positiveFMod(const interval& x, const interval& y)
     // prop: n > 0 && y.hi() <= x.lo()
     double hi = x.hi() / (n + 1);
     if (y.hi() <= hi) {
-        return interval{0.0, nexttoward(y.hi(), 0), precision};
+        return interval{0.0, std::nexttoward(y.hi(), 0), precision};
     }
     // prop: y.hi() > hi
     if (y.lo() <= hi) {
-        return interval{0.0, nexttoward(hi, 0), precision};
+        return interval{0.0, std::nexttoward(hi, 0), precision};
     }
     // prop : y.lo() > hi
     // in that case, the quotient between x and y is constant and equal
@@ -143,8 +143,8 @@ interval interval_algebra::Mod(const interval& x, const interval& y)
     auto xpyp = positiveFMod(xp, yp);
 
     // Make sure these 4 values are in the resulting interval
-    auto bb = singleton(fmod(x.hi(), y.hi())) + singleton(fmod(x.lo(), y.hi())) +
-              singleton(fmod(x.hi(), y.lo())) + singleton(fmod(x.lo(), y.lo()));
+    auto bb = singleton(std::fmod(x.hi(), y.hi())) + singleton(std::fmod(x.lo(), y.hi())) +
+              singleton(std::fmod(x.hi(), y.lo())) + singleton(std::fmod(x.lo(), y.lo()));
 
     bb = interval{bb.lo(), bb.hi(), std::min(x.lsb(), y.lsb())};
 
@@ -166,7 +166,7 @@ void interval_algebra::testMod()
 
     // analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, -5), interval(0, 10, -5), fmod,
     // &interval_algebra::Mod);
-    analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, 1), interval(0, 10, 0), fmod,
+    analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, 1), interval(0, 10, 0), std::fmod,
                         &interval_algebra::Mod);
     /* analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, 0), interval(0, 10, 0), fmod,
     &interval_algebra::Mod); analyzeBinaryMethod(10, 10000, "mod", interval(0, 10, 0), interval(0,

@@ -193,7 +193,7 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->isStaticStruct() && (inst->getAccess() & Address::kConst )) {
+        if (inst->fAddress->isStaticStruct() && (inst->getAccess() & Address::kConst)) {
             *fOut << "static ";
         } else if (inst->fAddress->isStaticStruct()) {
             *fOut << "static mut ";

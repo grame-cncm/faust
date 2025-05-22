@@ -41,20 +41,23 @@ interval interval_algebra::Sinh(const interval& x)
         sign = signMinValAbs(x);
     }
 
-    int precision = exactPrecisionUnary(sinh, v, sign * pow(2, x.lsb()));
+    int precision = exactPrecisionUnary(sinh, v, sign * std::pow(2, x.lsb()));
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(x.lsb() + log2(cosh(v)));
+        precision = std::floor(x.lsb() + std::log2(std::cosh(v)));
     }
 
-    return {sinh(x.lo()), sinh(x.hi()), precision};
+    return {std::sinh(x.lo()), std::sinh(x.hi()), precision};
 }
 
 void interval_algebra::testSinh()
 {
-    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, 0), sinh, &interval_algebra::Sinh);
-    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -5), sinh, &interval_algebra::Sinh);
-    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -10), sinh, &interval_algebra::Sinh);
-    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -15), sinh, &interval_algebra::Sinh);
-    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -20), sinh, &interval_algebra::Sinh);
+    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, 0), std::sinh, &interval_algebra::Sinh);
+    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -5), std::sinh, &interval_algebra::Sinh);
+    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -10), std::sinh,
+                       &interval_algebra::Sinh);
+    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -15), std::sinh,
+                       &interval_algebra::Sinh);
+    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -20), std::sinh,
+                       &interval_algebra::Sinh);
 }
 }  // namespace itv

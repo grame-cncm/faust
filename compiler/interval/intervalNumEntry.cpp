@@ -32,7 +32,7 @@ interval interval_algebra::NumEntry(const interval& name, const interval& init, 
         std::min(step.lsb(), lo.lsb());  // the precision of the lower bound and that of the step
     if (step.lo() > 0) {                 // if we don't have negative or zero steps
         // and that associated to the smallest value the step can take
-        lsb = std::min(lsb, (int)log2(step.lo()));
+        lsb = std::min(lsb, (int)std::log2(step.lo()));
     }
 
     return {lo.lo(), hi.hi(), lsb};

@@ -44,27 +44,28 @@ interval interval_algebra::Asin(const interval& x)
         v    = minValAbs(i);
         sign = signMinValAbs(i);
     }
-    int precision = exactPrecisionUnary(asin, v, sign * pow(2, i.lsb()));
+    int precision = exactPrecisionUnary(std::asin, v, sign * std::pow(2, i.lsb()));
 
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(x.lsb() - (double)log2(1 - v * v) / 2);
+        precision = std::floor(x.lsb() - (double)std::log2(1 - v * v) / 2);
     }
 
-    return {asin(i.lo()), asin(i.hi()), precision};
+    return {std::asin(i.lo()), std::asin(i.hi()), precision};
 }
 
 void interval_algebra::testAsin()
 {
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, 0), asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -5), asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -10), asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -15), asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -20), asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, 0), std::asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -5), std::asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -10), std::asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -15), std::asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -20), std::asin, &interval_algebra::Asin);
 
-    /* analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, 30), asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -35), asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -40), asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -45), asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -50), asin, &interval_algebra::Asin);*/
+    /* analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, 30), std::asin,
+    &interval_algebra::Asin); analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -35), std::asin,
+    &interval_algebra::Asin); analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -40), std::asin,
+    &interval_algebra::Asin); analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -45), std::asin,
+    &interval_algebra::Asin); analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -50), std::asin,
+    &interval_algebra::Asin);*/
 }
 }  // namespace itv

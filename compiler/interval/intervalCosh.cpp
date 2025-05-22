@@ -28,8 +28,6 @@ namespace itv {
 
 interval interval_algebra::Cosh(const interval& x)
 {
-    using namespace std;
-
     if (x.isEmpty()) {
         return empty();
     }
@@ -37,11 +35,11 @@ interval interval_algebra::Cosh(const interval& x)
     double v = 0;  // absolute lowest slope is at zero
 
     if (x.hasZero()) {
-        int precision = exactPrecisionUnary(cosh, v, pow(2, x.lsb()));
+        int precision = exactPrecisionUnary(std::cosh, v, std::pow(2, x.lsb()));
         if ((precision == INT_MIN) || taylor_lsb) {
-            precision = floor(2 * x.lsb() - 1);  // cosh(u) - cosh(0) = u^2/2 + o(u^2)
+            precision = std::floor(2 * x.lsb() - 1);  // cosh(u) - cosh(0) = u^2/2 + o(u^2)
         }
-        return {1, max(cosh(x.lo()), cosh(x.hi())), precision};
+        return {1, std::max(std::cosh(x.lo()), std::cosh(x.hi())), precision};
     }
 
     int sign = 1;
@@ -54,19 +52,23 @@ interval interval_algebra::Cosh(const interval& x)
         sign = -1;
     }
 
-    int precision = exactPrecisionUnary(cosh, v, sign * pow(2, x.lsb()));
+    int precision = exactPrecisionUnary(cosh, v, sign * std::pow(2, x.lsb()));
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(x.lsb() + log2(abs(sinh(v))));  // cosh(x+u) - cosh(x) = u sinh(x) + o(u)
+        precision = std::floor(
+            x.lsb() + std::log2(std::abs(sinh(v))));  // cosh(x+u) - cosh(x) = u sinh(x) + o(u)
     }
 
-    return {min(cosh(x.lo()), cosh(x.hi())), max(cosh(x.lo()), cosh(x.hi())), precision};
+    return {std::min(std::cosh(x.lo()), std::cosh(x.hi())),
+            std::max(std::cosh(x.lo()), std::cosh(x.hi())), precision};
 }
 
 void interval_algebra::testCosh()
 {
-    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, 0), cosh, &interval_algebra::Cosh);
-    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -5), cosh, &interval_algebra::Cosh);
-    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -10), cosh, &interval_algebra::Cosh);
-    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -15), cosh, &interval_algebra::Cosh);
+    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, 0), std::cosh, &interval_algebra::Cosh);
+    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -5), std::cosh, &interval_algebra::Cosh);
+    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -10), std::cosh,
+                       &interval_algebra::Cosh);
+    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -15), std::cosh,
+                       &interval_algebra::Cosh);
 }
 }  // namespace itv

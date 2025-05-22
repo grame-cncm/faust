@@ -38,7 +38,7 @@ interval interval_algebra::Lsh(const interval& x, const interval& k)
         return empty();
     }
 
-    interval j{pow(2, k.lo()), pow(2, k.hi())};
+    interval j{pow(2, k.lo()), std::pow(2, k.hi())};
     interval z = Mul(x, j);
 
     return {z.lo(), z.hi(),

@@ -38,21 +38,24 @@ interval interval_algebra::Tanh(const interval& x)
     double v    = maxValAbs(x);
     int    sign = signMaxValAbs(x);
 
-    int precision = exactPrecisionUnary(tanh, v, sign * pow(2, x.lsb()));
+    int precision = exactPrecisionUnary(std::tanh, v, sign * std::pow(2, x.lsb()));
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(x.lsb() - 2 * (double)log2(cosh(v)));
+        precision = std::floor(x.lsb() - 2. * (double)std::log2(std::cosh(v)));
     }
 
-    return {tanh(x.lo()), tanh(x.hi()), precision};
+    return {std::tanh(x.lo()), std::tanh(x.hi()), precision};
 }
 
 void interval_algebra::testTanh()
 {
-    // analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10), tanh, &interval_algebra::Tanh);
-    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, 0), tanh, &interval_algebra::Tanh);
-    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -5), tanh, &interval_algebra::Tanh);
-    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -10), tanh, &interval_algebra::Tanh);
-    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -15), tanh, &interval_algebra::Tanh);
-    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -20), tanh, &interval_algebra::Tanh);
+    // analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10), std::tanh, &interval_algebra::Tanh);
+    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, 0), std::tanh, &interval_algebra::Tanh);
+    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -5), std::tanh, &interval_algebra::Tanh);
+    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -10), std::tanh,
+                       &interval_algebra::Tanh);
+    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -15), std::tanh,
+                       &interval_algebra::Tanh);
+    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -20), std::tanh,
+                       &interval_algebra::Tanh);
 }
 }  // namespace itv

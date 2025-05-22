@@ -29,7 +29,7 @@ namespace itv {
 
 static double cosPi(double x)
 {
-    return cos(x * M_PI);
+    return std::cos(x * M_PI);
 }
 
 interval interval_algebra::Cos(const interval& x)
@@ -75,7 +75,7 @@ interval interval_algebra::Cos(const interval& x)
         ((i.lo() > 1 * M_PI) &&
          i.hi() <
              2 * M_PI)) {  // if there are no integers in i, i.e i is included in ]0;1[ or ]1;2[
-        double delta_hi = ceil(x.hi() / M_PI) - x.hi() / M_PI;
+        double delta_hi = std::ceil(x.hi() / M_PI) - x.hi() / M_PI;
         double delta_lo = x.lo() / M_PI - floor(x.lo() / M_PI);
         if (delta_hi < delta_lo) {  // if the lowest slope is attained for the higher bound
             v = x.hi();
@@ -89,7 +89,7 @@ interval interval_algebra::Cos(const interval& x)
         /* cos(x + u) - cos(x) = - u·sin(x) if x != 0
                                 = - u^2/2 · cos(x) = -u^2/2 if x == 0*/
         if (v != 0) {
-            precision = x.lsb() + (int)floor(log2(std::abs(sin(
+            precision = x.lsb() + (int)std::floor(std::log2(std::abs(sin(
                                       v))));  // (int)floor(log2(M_PI*abs(cos(M_PI*v)))) + x.lsb();
         } else {
             precision = 2 * x.lsb() - 1;  //- (int)floor(2*log2(M_PI));
@@ -101,11 +101,12 @@ interval interval_algebra::Cos(const interval& x)
 
 void interval_algebra::testCos()
 {
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, 2 * M_PI, -3), cos, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -5), cos, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -10), cos, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -15), cos, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -20), cos, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -24), cos, &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, 2 * M_PI, -3), std::cos,
+                       &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -5), std::cos, &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -10), std::cos, &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -15), std::cos, &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -20), std::cos, &interval_algebra::Cos);
+    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -24), std::cos, &interval_algebra::Cos);
 }
 }  // namespace itv

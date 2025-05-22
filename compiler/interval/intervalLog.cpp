@@ -30,8 +30,6 @@ static const interval domain{0, HUGE_VAL, 0};
 
 interval interval_algebra::Log(const interval& x)
 {
-    using namespace std;
-
     interval i = intersection(x, domain);
 
     if (i.isEmpty()) {
@@ -40,12 +38,12 @@ interval interval_algebra::Log(const interval& x)
 
     // lowest slope is at the highest bound of the interval
     int precision = exactPrecisionUnary(
-        log, i.hi(),
-        -pow(2, i.lsb()));  // -pow because we take the FP number right before the higher bound
+        std::log, i.hi(),
+        -std::pow(2, i.lsb()));  // -pow because we take the FP number right before the higher bound
     if ((precision == INT_MIN) || taylor_lsb) {
-        /* double delta     = -log(1 - pow(2, i.lsb()) / i.hi());
-        precision = floor((double)log2(delta));*/
-        precision = floor(i.lsb() - (double)log2(abs(i.hi())));
+        /* double delta     = -std::log(1 - std::pow(2, i.lsb()) / i.hi());
+        precision = std::floor((double)std::log2(delta));*/
+        precision = std::floor(i.lsb() - (double)std::log2(std::abs(i.hi())));
     }
 
     return {log(i.lo()), log(i.hi()), precision};

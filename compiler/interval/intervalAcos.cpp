@@ -43,22 +43,22 @@ interval interval_algebra::Acos(const interval& x)
         sign = signMinValAbs(i);
     }
 
-    int precision = exactPrecisionUnary(acos, v, sign * pow(2, i.lsb()));
+    int precision = exactPrecisionUnary(std::acos, v, sign * std::pow(2, i.lsb()));
 
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(i.lsb() - (double)log2(1 - v * v) / 2);
+        precision = std::floor(i.lsb() - (double)std::log2(1 - v * v) / 2);
     }
 
-    return {acos(i.hi()), acos(i.lo()), precision};
+    return {std::acos(i.hi()), std::acos(i.lo()), precision};
 }
 
 void interval_algebra::testAcos()
 {
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -1), acos, &interval_algebra::Acos);
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -5), acos, &interval_algebra::Acos);
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -10), acos, &interval_algebra::Acos);
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -15), acos, &interval_algebra::Acos);
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -20), acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -1), std::acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -5), std::acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -10), std::acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -15), std::acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -20), std::acos, &interval_algebra::Acos);
 
     // very fine input precision
     /* analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -100), acos, &interval_algebra::Acos);

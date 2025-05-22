@@ -31,7 +31,7 @@ interval interval_algebra::Ceil(const interval& x)
     if (x.isEmpty()) {
         return empty();
     }
-    return {ceil(x.lo()), ceil(x.hi()),
+    return {std::ceil(x.lo()), std::ceil(x.hi()),
             -1};  // even though the output of floor are mathematical integers,
                   // they are implemented as floats and thus should not be given precision 0,
                   // lest it be cast as an int
@@ -39,6 +39,6 @@ interval interval_algebra::Ceil(const interval& x)
 
 void interval_algebra::testCeil()
 {
-    analyzeUnaryMethod(10, 1000, "ceil", interval(-10, 10), ceil, &interval_algebra::Ceil);
+    analyzeUnaryMethod(10, 1000, "ceil", interval(-10, 10), std::ceil, &interval_algebra::Ceil);
 }
 }  // namespace itv

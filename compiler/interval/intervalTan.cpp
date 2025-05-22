@@ -29,7 +29,7 @@ namespace itv {
 
 static double tanPi(double x)
 {
-    return tan(x * M_PI);
+    return std::tan(x * M_PI);
 }
 
 interval interval_algebra::Tan(const interval& x)
@@ -38,9 +38,9 @@ interval interval_algebra::Tan(const interval& x)
         return empty();
     }
 
-    if (x.size() >= M_PI) {  // spans asymptots and contains an integer multiple of pi
+    if (x.size() >= M_PI) {  // spans asymptotes and contains an integer multiple of pi
         // std::cout << "Spanning more than one period" << std::endl;
-        int precision = exactPrecisionUnary(tan, 0, pow(2, x.lsb()));
+        int precision = exactPrecisionUnary(std::tan, 0, std::pow(2, x.lsb()));
         if ((precision == INT_MIN) || taylor_lsb) {
             precision = x.lsb();
         }
@@ -48,7 +48,7 @@ interval interval_algebra::Tan(const interval& x)
     }
 
     // normalize input interval between -PI/2..PI/2
-    double   l = fmod(x.lo(), M_PI);  // fractional part of x.lo()
+    double   l = std::fmod(x.lo(), M_PI);  // fractional part of x.lo()
     interval i(l, l + x.size(), x.lsb());
 
     double v    = 0;  // value at which the lowest slope is computed: 0 if present
@@ -61,17 +61,17 @@ interval interval_algebra::Tan(const interval& x)
         sign = -1;
     }
 
-    int precision = exactPrecisionUnary(tan, v, sign * pow(2, x.lsb()));
+    int precision = exactPrecisionUnary(std::tan, v, sign * std::pow(2, x.lsb()));
     if ((precision == INT_MIN) || taylor_lsb) {
-        precision = floor(x.lsb() - 2 * (double)log2(cos(v)));
+        precision = std::floor(x.lsb() - 2. * (double)std::log2(std::cos(v)));
     }
 
-    if (i.has(-M_PI_2) || i.has(M_PI_2)) {  // asymptots at PI/2
+    if (i.has(-M_PI_2) || i.has(M_PI_2)) {  // asymptotes at PI/2
         return {-HUGE_VAL, HUGE_VAL, precision};
     }
 
-    double a  = tan(i.lo());
-    double b  = tan(i.hi());
+    double a  = std::tan(i.lo());
+    double b  = std::tan(i.hi());
     double lo = std::min(a, b);
     double hi = std::max(a, b);
 
@@ -80,9 +80,9 @@ interval interval_algebra::Tan(const interval& x)
 
 void interval_algebra::testTan()
 {
-    // analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -2), tan, &interval_algebra::Tan);
-    analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -5), tan, &interval_algebra::Tan);
-    // analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -10), tan, &interval_algebra::Tan);
-    // analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -15), tan, &interval_algebra::Tan);
+    // analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -2), std::tan, &interval_algebra::Tan);
+    analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -5), std::tan, &interval_algebra::Tan);
+    // analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -10), std::tan, &interval_algebra::Tan);
+    // analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -15), std::tan, &interval_algebra::Tan);
 }
 }  // namespace itv
