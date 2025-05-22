@@ -9,7 +9,8 @@
 #include "faust/gui/SoundUI.h"
 
 #include "faust/dsp/llvm-dsp.h"
-#include "faust/dsp/libfaust-c.h"
+// Use local version instead of installed one
+#include "../../../compiler/generator/libfaust.h"
 
 #ifdef HAS_FX
 #include "faust/dsp/fixed-point.h"
