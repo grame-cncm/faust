@@ -33,6 +33,407 @@
 #include "simplify.hh"
 #include "xtended.hh"
 
+//========================================================================
+// Memoization Tables
+//========================================================================
+
+static std::map<Tree, bool>                             memo_can_be_route;
+static std::map<Tree, std::vector<std::pair<int, int>>> memo_routing_pairs;
+
+//========================================================================
+// Memoization Cache Management
+//========================================================================
+
+/**
+ * Clears the memoization cache for can_be_fully_represented_as_single_box_route.
+ */
+static void clear_can_be_route_memoization()
+{
+    memo_can_be_route.clear();
+}
+
+/**
+ * Clears the memoization cache for compute_routing_pairs.
+ */
+static void clear_routing_pairs_memoization()
+{
+    memo_routing_pairs.clear();
+}
+
+//========================================================================
+// Eligibility Check Function (`can_be_fully_represented_as_single_box_route`)
+//========================================================================
+
+/**
+ * Checks if a given 'box' expression can be fully represented as a single BoxRoute.
+ * It recursively checks if the box and its children consist only of pure routing elements.
+ *
+ * @param box The Tree expression to check.
+ * @return True if the box can be represented as a single BoxRoute, false otherwise.
+ */
+static bool can_be_fully_represented_as_single_box_route(Tree box)
+{
+    // 1. Check memoization table
+    auto memo_it = memo_can_be_route.find(box);
+    if (memo_it != memo_can_be_route.end()) {
+        return memo_it->second;
+    }
+
+    bool result = false;
+    Tree child1, child2, content, label;
+    Tree route_ins, route_outs, route_list;
+
+    // 2. Check for allowed primitive routing elements
+    if (isBoxWire(box) || isBoxCut(box) || isBoxRoute(box, route_ins, route_outs, route_list)) {
+        result = true;
+    }
+    // 3. Check for allowed routing combinators and UI groups (recursive check)
+    else if (isBoxSeq(box, child1, child2)) {
+        result = can_be_fully_represented_as_single_box_route(child1) &&
+                 can_be_fully_represented_as_single_box_route(child2);
+    } else if (isBoxPar(box, child1, child2)) {
+        result = can_be_fully_represented_as_single_box_route(child1) &&
+                 can_be_fully_represented_as_single_box_route(child2);
+    } else if (isBoxSplit(box, child1, child2)) {
+        result = can_be_fully_represented_as_single_box_route(child1) &&
+                 can_be_fully_represented_as_single_box_route(child2);
+    } else if (isBoxMerge(box, child1, child2)) {
+        result = can_be_fully_represented_as_single_box_route(child1) &&
+                 can_be_fully_represented_as_single_box_route(child2);
+    } else if (isBoxVGroup(box, label, content) || isBoxHGroup(box, label, content) ||
+               isBoxTGroup(box, label, content)) {
+        result = can_be_fully_represented_as_single_box_route(content);
+    }
+    // 4. Check for extended primitives (assuming not pure routing)
+    else if (getUserData(box) != nullptr) {
+        result = false;
+    }
+    // 5. If it's none of the above, it's considered a non-routing element.
+    else {
+        result = false;
+    }
+
+    // Store result in memoization table
+    memo_can_be_route[box] = result;
+    return result;
+}
+
+//========================================================================
+// Routing Pair Computation Function (`compute_routing_pairs`)
+//========================================================================
+
+/**
+ * Recursively parses a boxPar structure (expected to contain boxInt nodes)
+ * into a flat vector of integers.
+ *
+ * @param box The Tree node to parse (starting with the BoxRoute's route_list).
+ * @param list The vector to populate with integers.
+ * @return True on success, false if the structure is not as expected.
+ */
+static bool parse_boxpar_to_int_vector(Tree box, std::vector<int>& list)
+{
+    Tree t1, t2;
+    int  val;
+
+    if (isBoxPar(box, t1, t2)) {
+        // We expect the first element to be a boxInt
+        if (isBoxInt(t1, &val)) {  // Assumes isBoxInt extracts value into 'val'
+            list.push_back(val);
+            // Recurse on the second element
+            return parse_boxpar_to_int_vector(t2, list);
+        } else {
+            // Error: Expected boxInt as the first part of boxPar
+            return false;
+        }
+    } else if (isBoxInt(box, &val)) {
+        // This is the last element in the chain
+        list.push_back(val);
+        return true;
+    } else {
+        // Check for the special 'empty' case: boxPar(boxInt(0), boxInt(0))
+        // This check needs to be robust. If isBoxPar returns false, we check isBoxInt.
+        // If both fail, we might be at an unexpected node.
+        // A simple `boxPar(boxInt(0), boxInt(0))` would be caught by the first 'if'.
+        // If 'box' itself is boxPar(0,0), we need to check both branches.
+        // For simplicity, we assume valid structures or an empty list (size 0)
+        // If it's neither Par nor Int, it's either empty (handled by caller) or an error.
+        return false;  // Or handle more specific error/empty cases
+    }
+}
+
+/**
+ * Computes the direct input-to-output routing pairs (0-indexed) for a given box expression.
+ * Assumes the box is eligible (checked via can_be_fully_represented_as_single_box_route).
+ *
+ * @param box The Tree expression to analyze.
+ * @return A vector of (source_input_idx, destination_output_idx) pairs.
+ */
+static std::vector<std::pair<int, int>> compute_routing_pairs(Tree box)
+{
+    // 1. Check memoization table
+    auto memo_it = memo_routing_pairs.find(box);
+    if (memo_it != memo_routing_pairs.end()) {
+        return memo_it->second;
+    }
+
+    std::vector<std::pair<int, int>> routes;
+    Tree t1, t2, label, ins_tree_route, outs_tree_route, route_list_tree_content;
+    // int  num_inputs, num_outputs;
+
+    // 2. Base Cases
+    if (isBoxWire(box)) {
+        routes.push_back({0, 0});
+    } else if (isBoxCut(box)) {
+        // No routes
+    } else if (isBoxRoute(box, ins_tree_route, outs_tree_route, route_list_tree_content)) {
+        std::vector<int> flat_routes_1_indexed;
+
+        // Use the new helper to parse the boxPar structure
+        if (parse_boxpar_to_int_vector(route_list_tree_content, flat_routes_1_indexed)) {
+            // Check if the parsed list is the 'empty' representation [0, 0]
+            if (flat_routes_1_indexed.size() == 2 && flat_routes_1_indexed[0] == 0 &&
+                flat_routes_1_indexed[1] == 0) {
+                // It's the conventional empty route list, 'routes' remains empty.
+            }
+            // Check if the number of elements is even (must be pairs)
+            else if (flat_routes_1_indexed.size() % 2 != 0) {
+                // This is an error - log or throw an exception if necessary
+                std::cerr << "ERROR: BoxRoute has an odd number of route elements: " << boxpp(box)
+                          << std::endl;
+            } else {
+                // Process the valid, non-empty list
+                for (size_t i = 0; i < flat_routes_1_indexed.size(); i += 2) {
+                    int src = flat_routes_1_indexed[i];
+                    int dst = flat_routes_1_indexed[i + 1];
+
+                    // Sanity check: ensure src and dst are > 0 before subtracting
+                    if (src > 0 && dst > 0) {
+                        // Convert 1-indexed to 0-indexed
+                        routes.push_back({src - 1, dst - 1});
+                    } else {
+                        // This shouldn't happen for valid BoxRoutes, except for the empty [0,0]
+                        // case.
+                        std::cerr << "WARNING: BoxRoute contains non-positive route index:" << src
+                                  << "," << dst << std::endl;
+                    }
+                }
+            }
+
+        } else {
+            faustassert(false);
+
+            // Parsing failed - the structure wasn't as expected.
+            // This might indicate an error or an empty list not caught yet.
+            // If flat_routes_1_indexed is empty after the call, it means an empty or invalid
+            // structure.
+            if (flat_routes_1_indexed.empty()) {
+                // Assume it means no routes, so 'routes' remains empty.
+            } else {
+                // std::cerr << "ERROR: Failed to parse BoxRoute structure: " << boxpp(box) <<
+                // std::endl;
+            }
+        }
+    }
+    // 3. Recursive Cases for Combinators
+    else if (isBoxSeq(box, t1, t2)) {
+        std::vector<std::pair<int, int>> routes1 = compute_routing_pairs(t1);
+        std::vector<std::pair<int, int>> routes2 = compute_routing_pairs(t2);
+        for (const auto& r1 : routes1) {
+            for (const auto& r2 : routes2) {
+                if (r1.second == r2.first) {
+                    routes.push_back({r1.first, r2.second});
+                }
+            }
+        }
+    } else if (isBoxPar(box, t1, t2)) {
+        int t1_ins, t1_outs;
+        getBoxType(t1, &t1_ins, &t1_outs);
+        std::vector<std::pair<int, int>> routes1 = compute_routing_pairs(t1);
+        std::vector<std::pair<int, int>> routes2 = compute_routing_pairs(t2);
+        routes                                   = routes1;
+        for (const auto& r2 : routes2) {
+            routes.push_back({r2.first + t1_ins, r2.second + t1_outs});
+        }
+    } else if (isBoxSplit(box, t1, t2)) {
+        int t1_ins, t1_outs, t2_ins, t2_outs;
+        getBoxType(t1, &t1_ins, &t1_outs);
+        getBoxType(t2, &t2_ins, &t2_outs);
+        if (t1_outs > 0) {
+            std::vector<std::pair<int, int>> routes1 = compute_routing_pairs(t1);
+            std::vector<std::pair<int, int>> routes2 = compute_routing_pairs(t2);
+            for (const auto& r1 : routes1) {
+                for (int t2_input_idx = 0; t2_input_idx < t2_ins; ++t2_input_idx) {
+                    if ((t2_input_idx % t1_outs) == r1.second) {
+                        for (const auto& r2 : routes2) {
+                            if (r2.first == t2_input_idx) {
+                                routes.push_back({r1.first, r2.second});
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else if (isBoxMerge(box, t1, t2)) {
+        int t1_ins, t1_outs, t2_ins, t2_outs;
+        getBoxType(t1, &t1_ins, &t1_outs);
+        getBoxType(t2, &t2_ins, &t2_outs);
+        if (t2_ins > 0) {
+            std::vector<std::pair<int, int>> routes1 = compute_routing_pairs(t1);
+            std::vector<std::pair<int, int>> routes2 = compute_routing_pairs(t2);
+            for (const auto& r1 : routes1) {
+                int target_t2_input = r1.second % t2_ins;
+                for (const auto& r2 : routes2) {
+                    if (r2.first == target_t2_input) {
+                        routes.push_back({r1.first, r2.second});
+                    }
+                }
+            }
+        }
+    }
+    // 4. Handle Groups (recurse on content)
+    else if (isBoxVGroup(box, label, t2) || isBoxHGroup(box, label, t2) ||
+             isBoxTGroup(box, label, t2)) {
+        // Here t2 should contain the content based on isBoxVGroup predicate signature.
+        // If the predicate only returns the content, we call compute_routing_pairs on that.
+        // Assuming the 'content' Tree is extracted into 't2' (or 'content')
+        // routes = compute_routing_pairs(content_tree_variable); // Needs adjustment based on
+        // actual predicate. This part needs refinement based on how Groups are structured and how
+        // 'content' is accessed. If groups only contain *one* child, and
+        // can_be_fully_represented_as_single_box_route handled them, then this function should
+        // ideally be called on the content, not the group itself, or it should directly recurse on
+        // the content. Let's assume recursion is handled by the caller or that this function won't
+        // be called on a Group directly if it should look *inside*. For simplicity here, we assume
+        // if it got here, it's an error or needs specific group handling. throw
+        // std::runtime_error("compute_routing_pairs called on UI Group - handle content instead");
+        routes = compute_routing_pairs(t2);
+    }
+    // 5. Default: Empty routes (should not happen for eligible boxes)
+    else {
+        // Potentially throw an error if called on an unsupported box type
+        // throw std::runtime_error("compute_routing_pairs called on unsupported box type");
+        faustassert(false);
+    }
+
+    // Store result in memoization table
+    memo_routing_pairs[box] = routes;
+    return routes;
+}
+
+//========================================================================
+// Conceptual Helper & Usage Example
+//========================================================================
+
+/**
+ * Converts a set of unique 0-indexed routing pairs into a
+ * 'boxPar' expression of 'boxInt' nodes, representing the route list
+ * for a BoxRoute primitive, following the structure used in eval.cpp.
+ * The pairs are converted to a 1-indexed flat list [s1,d1,s2,d2,...].
+ *
+ * @param unique_zero_indexed_pairs A set of unique (src, dst) pairs (0-indexed).
+ * @return A Tree representing boxPar(boxInt(s1), boxPar(boxInt(d1), ...))
+ * or a suitable representation for an empty route list (e.g., boxInt(0)).
+ */
+Tree convert_pairs_to_boxpar_route_list(
+    const std::set<std::pair<int, int>>& unique_zero_indexed_pairs)
+{
+    if (unique_zero_indexed_pairs.empty()) {
+        // The original code checks `(o3 > 1)`. If no pairs, o3=0.
+        // A BoxRoute needs a route list. What should an empty one look like?
+        // The original `iteratePar` used `boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0),
+        // boxInt(0)))`. This has 2 outputs. If we need 0 outputs (o3=0), it's tricky. Let's return
+        // a single boxInt(0) as a placeholder for an "empty but valid" list, though this might need
+        // adjustment based on how BoxRoute(..., ..., empty) is handled. Perhaps `boxPar(boxInt(0),
+        // boxInt(0))` *is* the canonical "empty list", despite having 2 outputs? Given the code
+        // snippet's logic, it relies on having at least one element. Let's create
+        // `boxPar(boxInt(0), boxInt(0))` as the "zero element" as seen in iteratePar
+        // - this often signifies a 0->0 connector in some contexts.
+        // A BoxRoute with 0 routes should likely have 0 outputs.
+        // Let's return boxPar(boxInt(0), boxInt(0)) for now, consistent with iteratePar.
+        return boxPar(boxInt(0), boxInt(0));
+    }
+
+    // 1. Create a flat vector of 1-indexed integers
+    std::vector<int> flat_list;
+    flat_list.reserve(unique_zero_indexed_pairs.size() * 2);
+    for (const auto& pair : unique_zero_indexed_pairs) {
+        flat_list.push_back(pair.first + 1);   // Convert src to 1-indexed
+        flat_list.push_back(pair.second + 1);  // Convert dst to 1-indexed
+    }
+
+    // 2. Build the boxPar structure, starting from the last element
+    //    and prepending with boxPar.
+    Tree route_box_expression = boxInt(flat_list.back());
+    for (int i = (int)flat_list.size() - 2; i >= 0; --i) {
+        route_box_expression = boxPar(boxInt(flat_list[i]), route_box_expression);
+    }
+
+    return route_box_expression;
+}
+
+/**
+ * (Conceptual) The main transformation pass function.
+ */
+static Tree simplify_to_box_route_pass(Tree current_box)
+{
+    Tree modified_box;
+
+    // 1. Recurse on children (example for isBoxSeq)
+    Tree t1, t2;
+    if (isBoxSeq(current_box, t1, t2)) {
+        Tree new_t1  = simplify_to_box_route_pass(t1);
+        Tree new_t2  = simplify_to_box_route_pass(t2);
+        modified_box = boxSeq(new_t1, new_t2);
+    } else if (isBoxPar(current_box, t1, t2)) {
+        Tree new_t1  = simplify_to_box_route_pass(t1);
+        Tree new_t2  = simplify_to_box_route_pass(t2);
+        modified_box = boxPar(new_t1, new_t2);
+    } else if (isBoxSplit(current_box, t1, t2)) {
+        Tree new_t1  = simplify_to_box_route_pass(t1);
+        Tree new_t2  = simplify_to_box_route_pass(t2);
+        modified_box = boxSplit(new_t1, new_t2);
+    } else if (isBoxMerge(current_box, t1, t2)) {
+        Tree new_t1  = simplify_to_box_route_pass(t1);
+        Tree new_t2  = simplify_to_box_route_pass(t2);
+        modified_box = boxMerge(new_t1, new_t2);
+    } else {
+        modified_box = current_box;
+    }
+
+    // 2. Try to convert the (potentially rebuilt) box
+    if (can_be_fully_represented_as_single_box_route(modified_box)) {
+        int ins, outs;
+        //std::cerr << "modified_box " << *modified_box << std::endl;
+        if (getBoxType(modified_box, &ins, &outs)) {
+            std::vector<std::pair<int, int>> zero_indexed_pairs =
+                compute_routing_pairs(modified_box);
+            std::set<std::pair<int, int>> unique_pairs(zero_indexed_pairs.begin(),
+                                                       zero_indexed_pairs.end());
+            Tree route_list_aterm = convert_pairs_to_boxpar_route_list(unique_pairs);
+
+            /*
+            std::cout << "can_be_fully_represented_as_single_box_route " << ins << " " << outs
+                      << "\n";
+            */
+
+            return boxRoute(tree(ins), tree(outs), route_list_aterm);
+        } else {
+            faustassert(false);
+        }
+    }
+
+    return modified_box;
+}
+
+/**
+ * Rebuild subgraph using 'route' when possible
+ */
+Tree run_box_route_optimization(Tree root_box)
+{
+    clear_can_be_route_memoization();
+    clear_routing_pairs_memoization();
+    return simplify_to_box_route_pass(root_box);
+}
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * propagate : box listOfSignal-> listOfSignal'
@@ -613,5 +1014,9 @@ siglist makeSigInputList(int n)
 
 Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig)
 {
+    std::cerr << "boxPropagateSig 1 " << *box << std::endl;
+    box = run_box_route_optimization(box);
+    std::cerr << "boxPropagateSig 2 " << *box << std::endl;
+
     return listConvert(propagate(gGlobal->nil, path, box, lsig));
 }
