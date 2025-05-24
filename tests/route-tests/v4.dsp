@@ -1,9 +1,11 @@
 // route visualisation test 
 import("stdfaust.lib");
 
-R = 3;
+R = 18;
 
-r1(N,M) = ro.interleave(N,M); // time 2mn
+interleave(row,col) = si.bus(row*col) <: par(r, row, par(c, col, ba.selector(r+c*row,row*col)));
+
+r1(N,M) = interleave(N,M); // time 2mn
 r2(N,M) = route(N*M, N*M, par(i, N*M, (i+1, (i%N)*M + int(i/N) + 1))); // time 0.1s
 
 process = r1(R,R);      // time 2mn

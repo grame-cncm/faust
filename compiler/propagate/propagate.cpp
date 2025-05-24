@@ -39,6 +39,7 @@
 
 static std::map<Tree, bool>                             memo_can_be_route;
 static std::map<Tree, std::vector<std::pair<int, int>>> memo_routing_pairs;
+static std::map<Tree, Tree>                             memo_simplify;
 
 //========================================================================
 // Memoization Cache Management
@@ -76,11 +77,12 @@ static bool can_be_fully_represented_as_single_box_route(Tree box)
     // 1. Check memoization table
     auto memo_it = memo_can_be_route.find(box);
     if (memo_it != memo_can_be_route.end()) {
+        // std::cout << "memo_can_be_route\n";
         return memo_it->second;
     }
 
     bool result = false;
-    Tree child1, child2, content, label;
+    Tree child1, child2, content, slot, body, label;
     Tree route_ins, route_outs, route_list;
 
     // 2. Check for allowed primitive routing elements
@@ -100,6 +102,9 @@ static bool can_be_fully_represented_as_single_box_route(Tree box)
     } else if (isBoxMerge(box, child1, child2)) {
         result = can_be_fully_represented_as_single_box_route(child1) &&
                  can_be_fully_represented_as_single_box_route(child2);
+
+    } else if (isBoxSymbolic(box, slot, body)) {
+        result = can_be_fully_represented_as_single_box_route(body);
     } else if (isBoxVGroup(box, label, content) || isBoxHGroup(box, label, content) ||
                isBoxTGroup(box, label, content)) {
         result = can_be_fully_represented_as_single_box_route(content);
@@ -173,6 +178,7 @@ static std::vector<std::pair<int, int>> compute_routing_pairs(Tree box)
     // 1. Check memoization table
     auto memo_it = memo_routing_pairs.find(box);
     if (memo_it != memo_routing_pairs.end()) {
+        // std::cout << "memo_routing_pairs\n";
         return memo_it->second;
     }
 
@@ -375,10 +381,17 @@ Tree convert_pairs_to_boxpar_route_list(
  */
 static Tree simplify_to_box_route_pass(Tree current_box)
 {
+    // 1. Check memoization table
+    auto memo_it = memo_simplify.find(current_box);
+    if (memo_it != memo_simplify.end()) {
+        // std::cout << "simplify_to_box_route_pass\n";
+        return memo_it->second;
+    }
+
     Tree modified_box;
 
     // 1. Recurse on children (example for isBoxSeq)
-    Tree t1, t2;
+    Tree t1, t2, slot, body;
     if (isBoxSeq(current_box, t1, t2)) {
         Tree new_t1  = simplify_to_box_route_pass(t1);
         Tree new_t2  = simplify_to_box_route_pass(t2);
@@ -395,6 +408,13 @@ static Tree simplify_to_box_route_pass(Tree current_box)
         Tree new_t1  = simplify_to_box_route_pass(t1);
         Tree new_t2  = simplify_to_box_route_pass(t2);
         modified_box = boxMerge(new_t1, new_t2);
+    } else if (isBoxRec(current_box, t1, t2)) {
+        Tree new_t1  = simplify_to_box_route_pass(t1);
+        Tree new_t2  = simplify_to_box_route_pass(t2);
+        modified_box = boxRec(new_t1, new_t2);
+    } else if (isBoxSymbolic(current_box, slot, body)) {
+        Tree new_t1  = simplify_to_box_route_pass(body);
+        modified_box = boxSymbolic(slot, new_t1);
     } else {
         modified_box = current_box;
     }
@@ -402,7 +422,7 @@ static Tree simplify_to_box_route_pass(Tree current_box)
     // 2. Try to convert the (potentially rebuilt) box
     if (can_be_fully_represented_as_single_box_route(modified_box)) {
         int ins, outs;
-        //std::cerr << "modified_box " << *modified_box << std::endl;
+        // std::cerr << "modified_box " << *modified_box << std::endl;
         if (getBoxType(modified_box, &ins, &outs)) {
             std::vector<std::pair<int, int>> zero_indexed_pairs =
                 compute_routing_pairs(modified_box);
@@ -415,12 +435,15 @@ static Tree simplify_to_box_route_pass(Tree current_box)
                       << "\n";
             */
 
-            return boxRoute(tree(ins), tree(outs), route_list_aterm);
+            modified_box               = boxRoute(tree(ins), tree(outs), route_list_aterm);
+            memo_simplify[current_box] = modified_box;
+            return modified_box;
         } else {
             faustassert(false);
         }
     }
 
+    memo_simplify[current_box] = modified_box;
     return modified_box;
 }
 
@@ -926,6 +949,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         return siglist();
 
     } else if (isBoxRoute(box, t1, t2, t3)) {
+        // std::cout << "isBoxRoute\n";
         int         ins, outs;
         vector<int> route;
         siglist     outsigs;
@@ -1014,9 +1038,9 @@ siglist makeSigInputList(int n)
 
 Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig)
 {
-    std::cerr << "boxPropagateSig 1 " << *box << std::endl;
-    box = run_box_route_optimization(box);
-    std::cerr << "boxPropagateSig 2 " << *box << std::endl;
+    // std::cerr << "boxPropagateSig 1 " << *box << std::endl;
+    // box = run_box_route_optimization(box);
+    // std::cerr << "boxPropagateSig 2 " << *box << std::endl;
 
     return listConvert(propagate(gGlobal->nil, path, box, lsig));
 }

@@ -1382,6 +1382,15 @@ static void* createFactoryAux1(void* arg)
         /****************************************************************
          4 - compute output signals of 'process'
         *****************************************************************/
+
+        // std::cerr << "propagation 1 " << *processTree << std::endl;
+
+        startTiming("run_box_route_optimization");
+        processTree = run_box_route_optimization(processTree);
+        endTiming("run_box_route_optimization");
+
+        // std::cerr << "propagation 2 " << *processTree << std::endl;
+
         startTiming("propagation");
 
         Tree lsignals = boxPropagateSig(gGlobal->nil, processTree, makeSigInputList(numInputs));

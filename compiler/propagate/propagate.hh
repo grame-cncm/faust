@@ -51,4 +51,9 @@ Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig);
  */
 siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig);
 
+/**
+ * Rebuild subgraph using 'route' when possible
+ */
+Tree run_box_route_optimization(Tree root_box);
+
 #endif
