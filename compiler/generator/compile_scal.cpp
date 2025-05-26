@@ -26,6 +26,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <array>
 #include <climits>
 #include <fstream>
 #include <iostream>
@@ -486,16 +487,16 @@ string ScalarCompiler::CS(Tree sig)
 #ifdef TRACE
         int step = gGlobal->gSTEP;
         cerr << "\n"
-             << step << " [order: " << fScheduleOrder[sig] << "] "
-             << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << endl;
+             << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
+             << "\t: generateCode( " << ppsig(sig, 10) << " )" << endl;
 #endif
         code = generateCode(sig);
         setCompiledExpression(sig, code);
 
 #ifdef TRACE
         cerr << "\n"
-             << step << " [order: " << fScheduleOrder[sig] << "] "
-             << "::" << sig << "\t: ============> " << code << endl;
+             << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
+             << "\t: ============> " << code << endl;
 #endif
     }
     return code;
@@ -507,7 +508,6 @@ string ScalarCompiler::CS(Tree sig)
 
 void ScalarCompiler::compileMultiSignal(Tree L)
 {
-    // contextor recursivness(0);
     L = prepare(L);  // optimize, share and annotate expression
 
     for (int i = 0; i < fClass->inputs(); i++) {
@@ -525,61 +525,37 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         }
     }
 
-    auto H = fullGraph(L);
-    if (gGlobal->gTopoSwitch) {
-        cerr << "Print siglist full graph topology : " << topology(H) << '\n';
-    }
+    // Choose the scheduling strategy
+    SchedulingFunction mySchedFun;
 
-    // Compute the dependency graph
-    auto G = immediateGraph(L);
-    if (gGlobal->gTopoSwitch) {
-        cerr << "Print siglist inst graph topology : " << topology(G) << '\n';
-    }
-    // Force a specific scheduling (i.e. compilation order)
-    schedule<Tree> S;
     switch (gGlobal->gSchedulingStrategy) {
         case 0:
-            S = dfschedule(G);
+            mySchedFun = dfschedule<Tree>;
             break;
         case 1:
-            S = bfschedule(G);
+            mySchedFun = bfschedule<Tree>;
             break;
         case 2:
-            S = spschedule(G);
+            mySchedFun = spschedule<Tree>;
             break;
-        case 3:
         default:
-            S = rbschedule(G);
+            mySchedFun = rbschedule<Tree>;
             break;
     }
-    cerr << "Scheduling strategy : " << gGlobal->gSchedulingStrategy
-         << " cost: " << schedulingcost(G, S) << '\n';
 
-    // Register the compilation order S for debug purposes
-    {
-        int jj = 0;
-        for (auto& s : S.elements()) {
-            fScheduleOrder[s] = ++jj;
-        }
-    }
+    // Compute the hierarchical scheduling of L applying the chosen strategy
+    fHschedule = scheduleSigList(L, mySchedFun);
 
-#ifdef TRACE
-    cerr << "\nBEFORE COMPILING" << endl;
-    cerr << G << endl;
-    cerr << S << endl;
-
-    cerr << "\nCOMPILE SCHEDULE" << endl;
-#endif
-    // gGlobal->gSTEP = 0;
-    for (auto& s : S.elements()) {
-        if (isNil(s)) {
-            cerr << "NOT SUPPOSED TO HAPPEN: We have a Nil in the schedule !" << endl;
-            faustassert(false);
-        }
+    // Then first compile the control or constant signals (i.e. non sample rate signals)
+    for (Tree s : fHschedule.controls.elements()) {
         CS(s);
-        gGlobal->gSTEP++;
     }
-
+    // Then compile the sample rate signals
+    faustassert(fHschedule.outSigList == L);
+    for (Tree s : fHschedule.sigsched[L].elements()) {
+        CS(s);
+    }
+    // Then compile the output signals
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree s = hd(L);
         fClass->addExecCode(Statement("", subst("output$0[i] = $2($1);  // Zone Exec Code", T(i),
@@ -815,10 +791,10 @@ string ScalarCompiler::generateNumber(Tree sig, const string& exp)
     string       ctype, vname;
     Occurrences* o = fOccMarkup->retrieve(sig);
 
-    faustassert(o != nullptr);
+    // YO 23 mai 2025 faustassert(o != nullptr);
 
     // check for number occuring in delays
-    if (o->getMaxDelay() > 0) {
+    if (o != nullptr && o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
     }
@@ -2155,6 +2131,7 @@ string ScalarCompiler::generateZeroPad(Tree sig, Tree x, Tree y)
 // Ondemand: generate the code of the ondemand circuit
 // - first the input signals are computed
 // - then the output signals in an if (clock) statement
+#if 0
 string ScalarCompiler::generateOD(Tree sig, const tvec& w)
 {
     // 1/ We extract the clock, the inputs and the outputs signals
@@ -2203,7 +2180,23 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
     // 7/ There is no compiled expression
     return "OD not used directly";
 }
+#else
 
+string ScalarCompiler::generateOD(Tree sig, const tvec& w)
+{
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    // We need first to compile the clock signal and open an if statement
+    fClass->openODblock(CS(clock));
+    // Then its internal signals
+    for (Tree x : fHschedule.sigsched[sig].elements()) {
+        CS(x);
+    }
+    fClass->closeODblock();
+    return "OD not used directly";
+}
+
+#endif
 // Upsampling: generate the code of the upsampling circuit
 // - first the input signals are computed
 // - then the output signals in an if (clock) statement
