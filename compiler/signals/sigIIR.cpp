@@ -44,7 +44,11 @@ if Ci constant, then (Ci@d)*(Vi@(d+k)) = Ci*(Vi@(d+k)) PROOF t<d+k : Vi@(d+k) = 
                                                              t>=d+k: Ci@d = Ci
 
 */
+#include <cmath>
+#include <complex>
 #include <iostream>
+#include <limits>
+#include <vector>
 
 #include "ppsig.hh"
 #include "sigIIR.hh"
@@ -427,10 +431,18 @@ Tree divSigIIR(Tree rt, Tree x, Tree y)
     return res;
 }
 
-// //-------------------------------------------------------------------------
-// // We have a FIR applyed to an IIR, we transform into an IIR applied to a FIR
-// // FIR[IIR[w,x,c0,c1,...],d0,d1,...] -> IIR[w,FIR[x,d0,d1,...],[c0,c1,...]x[d0,d1,...]]
-#if 1
+/**
+ * @brief Transforms a FIR filter applied to an IIR filter into an IIR filter applied to a FIR
+ * filter.
+ *
+ * This function takes a signal of the form FIR[IIR[w,x,c0,c1,...],d0,d1,...] and transforms it into
+ * IIR[w,FIR[x,d0,d1,...],[c0,c1,...]x[d0,d1,...]]. This transformation is useful for optimization
+ * purposes.
+ *
+ * @param rt  The recursive variable.
+ * @param fir The FIR filter applied to an IIR filter.
+ * @return    The transformed signal, or gGlobal->nil if the transformation is not possible.
+ */
 Tree embeddedIIR(Tree rt, Tree fir)
 {
     tvec cfir, ciir;
@@ -462,18 +474,45 @@ Tree embeddedIIR(Tree rt, Tree fir)
     // if (TRACE) std::cerr << "res2: " << ppsig(res2) << "\n";
     return res2;
 }
-#else
-Tree embeddedIIR(Tree rt, Tree fir)
+
+/**************************************************************************************************
+ * @brief Calculates the worst-case peak gain of the recursive part of an IIR filter.
+ *
+ * This function computes the minimum magnitude of the denominator polynomial A(z) of the IIR filter
+ * on the unit circle, and returns the inverse of this minimum magnitude. This provides an estimate
+ * of the maximum gain of the recursive part of the filter.
+ *
+ * @param a_coeffs A vector containing the coefficients of the denominator polynomial A(z) of the
+ * IIR filter. The coefficients are ordered from a1 to aN, where A(z) = 1 + a1*z^-1 + a2*z^-2 + ...
+ * + aN*z^-N.
+ * @param num_points The number of points to evaluate the magnitude of A(z) at.
+ *                   A larger number of points will result in a more accurate estimate of the peak
+ * gain, but will also increase the computation time.
+ * @return The worst-case peak gain of the recursive part of the IIR filter, which is the inverse of
+ * the minimum magnitude of its denominator polynomial A(z) on the unit circle.
+ */
+double IIRWorstPeakGain(const std::vector<double>& a_coeffs, int num_points)
 {
-    tvec cfir, ciir;
-    faustassert(isSigFIR(fir, cfir) && isSigIIR(cfir[0], ciir) && (ciir[0] == rt));
-    Tree res = cfir[0];
-    std::cerr << "res0: " << ppsig(res) << "\n";
-    for (unsigned int i = 1; i < cfir.size(); i++) {
-        res = addSigIIR(rt, res, mulSigIIR(rt, delaySigIIR(rt, cfir[0], sigInt(i - 1)), cfir[i]));
-        std::cerr << "res+: " << ppsig(res) << "\n";
+    using namespace std;
+    const double pi      = acos(-1);
+    double       min_mag = numeric_limits<double>::max();
+
+    for (int i = 0; i < num_points; ++i) {
+        double          omega = pi * i / (num_points - 1);
+        complex<double> ejw   = polar(1.0, -omega);
+        complex<double> A     = 1.0;
+
+        complex<double> ejw_pow = 1.0;
+        for (size_t k = 0; k < a_coeffs.size(); ++k) {
+            ejw_pow *= ejw;
+            A += a_coeffs[k] * ejw_pow;
+        }
+
+        double mag = abs(A);
+        if (mag < min_mag) {
+            min_mag = mag;
+        }
     }
-    std::cerr << "resn: " << ppsig(res) << "\n";
-    return res;
+
+    return 1.0 / min_mag;
 }
-#endif
