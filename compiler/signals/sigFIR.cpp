@@ -30,7 +30,11 @@
  *
  */
 
+#include <cmath>
+#include <complex>
 #include <iostream>
+#include <limits>
+#include <vector>
 
 #include "ppsig.hh"
 #include "sigFIR.hh"
@@ -847,4 +851,44 @@ void testFIR()
 
     Occurrences* o = occ.retrieve(s1);
     std::cerr << "s1=" << ppsig(s1) << " has max delay " << o->getMaxDelay() << std::endl;
+}
+
+/**************************************************************************************************
+ * @brief Calculates the worst-case peak gain of a FIR filter.
+ *
+ * This function computes the maximum magnitude of the frequency response of a FIR filter
+ * by evaluating it at a number of points equally spaced on the unit circle.
+ *
+ * @param b_coeffs A vector containing the coefficients of the FIR filter.
+ *                 The coefficients are ordered from b0 to bN, where N is the filter order.
+ * @param num_points The number of points to evaluate the frequency response at.
+ *                   A larger number of points will result in a more accurate estimate of the peak
+ * gain, but will also increase the computation time.
+ * @return The worst-case peak gain of the FIR filter, which is the maximum magnitude of its
+ *         frequency response.
+ */
+double FIRWorstPeakGain(const std::vector<double>& b_coeffs, int num_points)
+{
+    using namespace std;
+    const double pi      = acos(-1);
+    double       max_mag = 0.0;
+
+    for (int i = 0; i < num_points; ++i) {
+        double          omega = pi * i / (num_points - 1);
+        complex<double> ejw   = polar(1.0, -omega);
+        complex<double> H     = 0.0;
+
+        complex<double> ejw_pow = 1.0;
+        for (double b_k : b_coeffs) {
+            H += b_k * ejw_pow;
+            ejw_pow *= ejw;
+        }
+
+        double mag = abs(H);
+        if (mag > max_mag) {
+            max_mag = mag;
+        }
+    }
+
+    return max_mag;
 }
