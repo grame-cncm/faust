@@ -326,12 +326,19 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         if (!searchEnv(box, sig, slotenv)) {
             sig = sigInput(++gGlobal->gDummyInput);
         }
+        if (Tree ce, x; isSigClocked(sig, ce, x) && (clockenv != ce)) {
+            std::cerr << "WARNING: slot " << boxpp(box) << " is associated with external signal "
+                      << ppsig(sig) << " but used in clockenv " << clockenv << std::endl;
+            // we wrap the signal correctly
+            sig = recTempVar(clockenv, ce, x);
+        }
         return makeList(sig);
     }
 
     else if (isBoxSymbolic(box, slot, body)) {
         faustassert(lsig.size() > 0);
-        return propagate(clockenv, pushEnv(slot, lsig[0], slotenv), path, body,
+        Tree sig0 = sigClocked(clockenv, lsig[0]);  // Clocked to know its time reference
+        return propagate(clockenv, pushEnv(slot, sig0, slotenv), path, body,
                          listRange(lsig, 1, (int)lsig.size()));
     }
 
@@ -664,7 +671,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 5/ We propagate X2, the clocked version of X1, into the ondemand circuit -> Y0
         siglist X2;
         for (Tree s : X1) {
-            X2.push_back(sigClocked(clockenv2, s));
+            // X2.push_back(sigClocked(clockenv2, s));
+            //  NEW: double sigclocked !
+            X2.push_back(sigDoubleClocked(clockenv2, clockenv, s));
         }
         siglist Y0 = propagate(clockenv2, slotenv, path, t1, X2);
 
@@ -676,8 +685,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
         // 7/ We create on ondemand signal that contain all the information : OD = (H, X1, NIL, Y1)
         tvec W;
-        W.push_back(H);      // the clock signal
-        for (Tree s : X1) {  // the input signals are X1
+        // W.push_back(H);      // the clock signal
+        W.push_back(sigClocked(clockenv2, H));  // TRY
+        for (Tree s : X1) {                     // the input signals are X1
             W.push_back(s);
         }
         W.push_back(gGlobal->nil);  // the output signals are Y1
