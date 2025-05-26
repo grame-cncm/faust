@@ -31,6 +31,8 @@
 #include "ppsig.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
+#include "sigFIR.hh"
+#include "sigIIR.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -1143,9 +1145,17 @@ static Type inferFIRType(Tree sig, Tree env)
     for (unsigned int i = 1; i < vt.size(); i++) {
         nature        = nature | vt[i]->nature();
         vectorability = vectorability | vt[i]->vectorability();
-        R             = gAlgebra.Add(R, gAlgebra.Mul(XZ, vt[i]->getInterval()));
     }
-    return makeSimpleType(nature, variability, computability, vectorability, booleanity, R);
+    std::vector<double> numcoefs;
+    for (unsigned int i = 1; i < vt.size(); i++) {
+        itv::interval C = vt[i]->getInterval();
+        numcoefs.push_back((C.lo() + C.hi()) / 2.0);
+    }
+    double gain = FIRWorstPeakGain(numcoefs);
+    // std::cerr << "FIR gain = " << gain << " for " << ppsig(sig) << endl;
+    itv::interval R2 = gAlgebra.Mul(vt[0]->getInterval(), itv::interval(gain));
+
+    return makeSimpleType(nature, variability, computability, vectorability, booleanity, R2);
 }
 
 static Type inferIIRType(Tree sig, Tree env)
@@ -1163,30 +1173,25 @@ static Type inferIIRType(Tree sig, Tree env)
     for (unsigned int i = 3; i < coef.size(); i++) {
         ct.push_back(T(coef[i], env));
     }
-
-    int           nature        = tx->nature();
-    const int     variability   = kSamp;  // because we have delays
-    int           computability = tx->computability();
-    const int     vectorability = kScal;  // because we are recursive
-    const int     booleanity    = kNum;   // probably not a boolean value
-    itv::interval S(0);                   // sum of absolute values of coefficient intervals
-
+    std::vector<double> numcoefs;
     for (Type t : ct) {
-        nature        = nature | t->nature();
-        computability = computability | t->computability();
-        S             = gAlgebra.Add(S, gAlgebra.Abs(t->getInterval()));
+        itv::interval C = t->getInterval();
+        numcoefs.push_back((C.lo() + C.hi()) / 2.0);
     }
+    double gain = IIRWorstPeakGain(numcoefs);
 
-    // We compute the interval of the resulting signal W = X*(1/(1-g))
-    // where g = Sum(|Ci|) < 1
-    itv::interval R;
-    if (S.hi() < 1) {
-        double        g  = 1.0 / (1.0 - S.hi());
-        itv::interval AX = gAlgebra.Abs(tx->getInterval());
-        double        m  = AX.hi() * g;
-        R                = itv::interval(-m, m);
-    } else {
-        // We keep R very large
-    }
-    return makeSimpleType(nature, variability, computability, vectorability, booleanity, R);
+    // for (unsigned int i = 2; i < 16; i++) {
+    //     double g = IIRWorstPeakGain(numcoefs, 1 << i);
+    //     std::cerr << "points: " << (1 << i) << " IIR gain = " << g << " for " << ppsig(sig) <<
+    //     endl;
+    // }
+
+    int       nature        = tx->nature();
+    const int variability   = kSamp;  // because we have delays
+    int       computability = tx->computability();
+    const int vectorability = kScal;  // because we are recursive
+    const int booleanity    = kNum;   // probably not a boolean value
+
+    itv::interval R2 = gAlgebra.Mul(tx->getInterval(), itv::interval(gain));
+    return makeSimpleType(nature, variability, computability, vectorability, booleanity, R2);
 }

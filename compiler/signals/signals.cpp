@@ -1160,14 +1160,31 @@ LIBFAUST_API Tree sigClocked(Tree clock, Tree y)
             // y is already annotated with the clock h
             return y;
         } else {
-            std::cerr << "ASSERT : we have a problem of clocks, new clock : " << *clock
-                      << " is different from existing clock " << *h2 << std::endl;
-            return y;
+            // std::cerr << "ASSERT : we have a problem of clocks, new clock : " << *clock
+            //<< " is different from existing clock " << *h2 << std::endl;
+            // return y;
+            return tree(gGlobal->SIGCLOCKED, clock, y);
         }
     }
     // std::cerr << "sigClocked(" << *clock << ", " << ppsig(y) << ")" << std::endl;
     return tree(gGlobal->SIGCLOCKED, clock, y);
 }
+
+/**
+ * @brief When a signal enters an ondemand it needs to be clocked twice.
+ * It needs to be clocked first with the clock environment outside the ondemand, where the signal
+ * is computed and then with the clock environment inside the ondemand where the signal is used.
+ *
+ * @param insideclkenv Inside the ondemand clock environment
+ * @param outsideclkenv Outside the ondemand clock environment
+ * @param y
+ * @return LIBFAUST_API
+ */
+LIBFAUST_API Tree sigDoubleClocked(Tree insideclkenv, Tree outsideclkenv, Tree y)
+{
+    return tree(gGlobal->SIGCLOCKED, insideclkenv, tree(gGlobal->SIGCLOCKED, outsideclkenv, y));
+}
+
 // for FPGA Retiming
 
 LIBFAUST_API Tree sigRegister(int n, Tree s)
@@ -1316,9 +1333,9 @@ float computeDensity(const tvec& coefs)
     }
     faustassert(cnz > 0);
     float density = float(cnz) / float(coefs.size() - fnz);
-    std::cerr << gGlobal->gSTEP << " generateFIR: "
-              << " coefs.size()=" << coefs.size() << " density=" << density << " cnz=" << cnz
-              << " fnz=" << fnz << std::endl;
+    // std::cerr << gGlobal->gSTEP << " generateFIR: "
+    //           << " coefs.size()=" << coefs.size() << " density=" << density << " cnz=" << cnz
+    //           << " fnz=" << fnz << std::endl;
     return density;
 }
 
@@ -1377,4 +1394,14 @@ bool isDSClockenv(Tree clkenv)
 {
     Tree c;
     return isBoxDownsampling(getClockenvBox(clkenv), c);
+}
+
+Tree recTempVar(Tree clkenv1, Tree clkenv2, Tree sig)
+{
+    if (clkenv1 == clkenv2) {
+        return sig;
+    }
+    faustassert(clkenv1 != gGlobal->nil);
+    return sigClocked(clkenv1,
+                      sigClocked(hd(clkenv1), sigTempVar(recTempVar(hd(clkenv1), clkenv2, sig))));
 }

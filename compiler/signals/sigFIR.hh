@@ -114,3 +114,5 @@ void combine(std::map<Tree, Tree>& M, bool subflag, Tree sig);
 
 // internal tests for FIR reconstruction
 void testFIR();
+
+double FIRWorstPeakGain(const std::vector<double>& b_coeffs, int num_points = 10000);

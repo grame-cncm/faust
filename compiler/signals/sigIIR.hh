@@ -120,3 +120,5 @@ void normalizeFIRCoefs(tvec& V);
 
 // internal tests for IIR reconstruction
 void testFIR();
+
+double IIRWorstPeakGain(const std::vector<double>& a_coeffs, int num_points = 10000);
