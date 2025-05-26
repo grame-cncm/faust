@@ -383,6 +383,8 @@ LIBFAUST_API bool isSigClocked(Tree s);
 LIBFAUST_API bool isSigClocked(Tree s, Tree& h, Tree& y);
 LIBFAUST_API bool hasClock(Tree s, Tree& clock);
 
+LIBFAUST_API Tree sigDoubleClocked(Tree insideclkenv, Tree outsideclkenv, Tree y);
+
 /*****************************************************************************
                              Matrix extension
 *****************************************************************************/
@@ -452,4 +454,5 @@ bool isDSClockenv(Tree clkenv);
 Tree getClockenvBox(Tree clkenv);
 Tree getClockenvEnv(Tree clkenv);
 
+Tree recTempVar(Tree clkenv1, Tree clkenv2, Tree sig);
 #endif
