@@ -493,7 +493,16 @@ Tree SignalPromotion::transformation(Tree sig)
         for (size_t i = 0; i < w1.size(); i++) {
             // Clock has to be casted to Int
             if (i == 0) {
-                w2.push_back(smartIntCast(getCertifiedSigType(w1[i]), self(w1[i])));
+                // Ondemend clocks are wrapped into a clock environment that must stay at the top
+                // level, therefore int casting, if needed, must be propagated inside.
+                Type t1 = getCertifiedSigType(w1[i]);
+                if (t1->nature() == kInt) {
+                    w2.push_back(self(w1[i]));
+                } else {
+                    Tree clkEnv, clk;
+                    faustassert(isSigClocked(w1[i], clkEnv, clk));
+                    w2.push_back(sigClocked(clkEnv, sigIntCast(self(clk))));
+                }
             } else if (w1[i] == gGlobal->nil) {
                 w2.push_back(gGlobal->nil);
             } else {
@@ -508,7 +517,16 @@ Tree SignalPromotion::transformation(Tree sig)
         for (size_t i = 0; i < w1.size(); i++) {
             // Clock has to be casted to Int
             if (i == 0) {
-                w2.push_back(smartIntCast(getCertifiedSigType(w1[i]), self(w1[i])));
+                // Ondemend clocks are wrapped into a clock environment that must stay at the top
+                // level, therefore int casting, if needed, must be propagated inside.
+                Type t1 = getCertifiedSigType(w1[i]);
+                if (t1->nature() == kInt) {
+                    w2.push_back(self(w1[i]));
+                } else {
+                    Tree clkEnv, clk;
+                    faustassert(isSigClocked(w1[i], clkEnv, clk));
+                    w2.push_back(sigClocked(clkEnv, sigIntCast(self(clk))));
+                }
             } else if (w1[i] == gGlobal->nil) {
                 w2.push_back(gGlobal->nil);
             } else {
