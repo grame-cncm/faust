@@ -27,11 +27,11 @@
 #include <map>
 #include <utility>
 
+#include "DependenciesScheduling.hh"
 #include "compile.hh"
 #include "dcond.hh"
 #include "occurrences.hh"
 #include "property.hh"
-#include "DependenciesScheduling.hh"
 #include "sigtyperules.hh"
 
 ////////////////////////////////////////////////////////////////////////
