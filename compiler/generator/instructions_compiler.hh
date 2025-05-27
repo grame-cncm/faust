@@ -35,6 +35,7 @@
 #include "global.hh"
 #include "instructions.hh"
 #include "occurrences.hh"
+#include "DependenciesScheduling.hh"
 #include "property.hh"
 
 #define _DNF_ 1
@@ -60,6 +61,7 @@ class InstructionsCompiler : public virtual Garbageable {
     OccMarkup* fOccMarkup;
 
     std::map<Tree, int> fScheduleOrder;
+    Hsched              fHschedule;
 
     // Ensure IOTA base fixed delays are computed once
     std::map<int, std::string> fIOTATable;
