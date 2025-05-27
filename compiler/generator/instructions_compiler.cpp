@@ -583,7 +583,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     // Choose the scheduling strategy
     SchedulingFunction mySchedFun;
-    
+
     switch (gGlobal->gSchedulingStrategy) {
         case 0:
             mySchedFun = dfschedule<Tree>;
@@ -598,10 +598,10 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             mySchedFun = rbschedule<Tree>;
             break;
     }
-  
+
     // Compute the hierarchical scheduling of L applying the chosen strategy
     fHschedule = scheduleSigList(L, mySchedFun);
-    
+
     // Then first compile the control or constant signals (i.e. non sample rate signals)
     for (Tree s : fHschedule.controls.elements()) {
         CS(s);
