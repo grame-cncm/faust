@@ -350,8 +350,6 @@ void CodeLoop::closeODblock()
     od_block->pushBackInst(b->fComputeInst);
     od_block->pushBackInst(b->fPostInst);
 
-    // pushComputeDSPMethod(IB::genIfInst(b->fCond, then_block));
-
     DeclareVarInst* loop_decl =
         IB::genDecLoopVar(b->fLoopIndex, IB::genInt32Typed(), IB::genInt32NumInst(0));
     ValueInst*    loop_end = IB::genLessThan(loop_decl->load(), b->fODfactor);
@@ -359,7 +357,11 @@ void CodeLoop::closeODblock()
 
     ForLoopInst* loop = IB::genForLoopInst(loop_decl, loop_end, loop_inc);
     loop->pushFrontInst(od_block);
-    pushComputeDSPMethod(loop);
+    // Some backends like Interp and WebAssembly do not support loops with a zero index
+    BlockInst* loop_block = new BlockInst();
+    loop_block->pushBackInst(loop);
+    pushComputeDSPMethod(
+        IB::genIfInst(IB::genNotEqual(b->fODfactor, IB::genInt32NumInst(0)), loop_block));
 }
 
 void CodeLoop::closeUSblock()
@@ -377,10 +379,14 @@ void CodeLoop::closeUSblock()
         IB::genDecLoopVar(b->fLoopIndex, IB::genInt32Typed(), IB::genInt32NumInst(0));
     ValueInst*    loop_end = IB::genLessThan(loop_decl->load(), b->fUSfactor);
     StoreVarInst* loop_inc = loop_decl->store(IB::genAdd(loop_decl->load(), 1));
-
+  
     ForLoopInst* loop = IB::genForLoopInst(loop_decl, loop_end, loop_inc);
     loop->pushFrontInst(us_block);
-    pushComputeDSPMethod(loop);
+    // Some backends like Interp and WebAssembly do not support loops with a zero index
+    BlockInst* loop_block = new BlockInst();
+    loop_block->pushBackInst(loop);
+    pushComputeDSPMethod(
+        IB::genIfInst(IB::genNotEqual(b->fUSfactor, IB::genInt32NumInst(0)), loop_block));
 }
 
 void CodeLoop::closeDSblock()
