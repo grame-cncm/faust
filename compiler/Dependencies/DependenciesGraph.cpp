@@ -68,6 +68,11 @@ static void addDependencies(const Tree& curclkenv, std::set<Tree>& visited,
         faustassert(delayed.empty());
 
         Tree subClkenv, realSubClk;  // clockedClk = sigClocked(subClkenv, realSubClk);
+        if (!isSigClocked(clockedClk, subClkenv, realSubClk)) {
+            // If the clocked signal is not clocked, we create a new clock environment
+            std::cerr << "WARINING: signal " << ppsig(clockedClk) << " is not sigclocked\n";
+            realSubClk = cursig;  // the real clock is the signal itself
+        }
         faustassert(
             isSigClocked(clockedClk, subClkenv, realSubClk));  // Clock env from the clock signal
 
