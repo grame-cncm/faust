@@ -507,8 +507,8 @@ Tree SignalPromotion::transformation(Tree sig)
         for (size_t i = 0; i < w1.size(); i++) {
             // Clock has to be casted to Int
             if (i == 0) {
-                // Downsampling clocks are wrapped into a clock environment that must stay at the top
-                // level, therefore int casting, if needed, must be propagated inside.
+                // Downsampling clocks are wrapped into a clock environment that must stay at the
+                // top level, therefore int casting, if needed, must be propagated inside.
                 Type t1 = getCertifiedSigType(w1[i]);
                 if (t1->nature() == kInt) {
                     w2.push_back(self(w1[i]));

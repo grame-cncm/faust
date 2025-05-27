@@ -225,7 +225,6 @@ inline interval reunion(const interval& i, const interval& j)
     }
 }
 
-
 inline interval singleton(double x)
 {
     if (x == 0) {
