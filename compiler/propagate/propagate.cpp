@@ -659,7 +659,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         }
 
         // 3/ We compute the clock environment inside the ondemand by combining the current clok
-        // environment, the circuit and its inout signals
+        // environment, the circuit and its input signals
         Tree clockenv2 = makeClockEnv(clockenv, box, lsig);
 
         // 4/ We compute X1 the inputs of the ondemand using temporary variables
@@ -760,7 +760,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 5/ We propagate X2, the clocked version of X1, into the upsampling circuit -> Y0
         siglist X2;
         for (Tree s : X1) {
-            X2.push_back(sigZeroPad(sigClocked(clockenv2, s), H));
+            X2.push_back(sigZeroPad(sigDoubleClocked(clockenv2, clockenv, s), H));
         }
         siglist Y0 = propagate(clockenv2, slotenv, path, t1, X2);
 
@@ -772,7 +772,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
         // 7/ We create on us signal that contain all the information : US = (H, X1, NIL, Y1)
         tvec W;
-        W.push_back(H);      // the clock signal
+        // W.push_back(H);      // the clock signal
+        W.push_back(sigClocked(clockenv2, H));  // TRY
         for (Tree s : X1) {  // the input signals are X1
             W.push_back(s);
         }
@@ -847,7 +848,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 5/ We propagate X2, the clocked version of X1, into the downsampling circuit -> Y0
         siglist X2;
         for (Tree s : X1) {
-            X2.push_back(sigClocked(clockenv2, s));
+            X2.push_back(sigDoubleClocked(clockenv2, clockenv, s));
         }
         siglist Y0 = propagate(clockenv2, slotenv, path, t1, X2);
 
@@ -859,7 +860,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
 
         // 7/ We create on ds signal that contain all the information : DS = (H, X1, NIL, Y1)
         tvec W;
-        W.push_back(H);      // the clock signal
+        // W.push_back(H);      // the clock signal
+        W.push_back(sigClocked(clockenv2, H));  // TRY
         for (Tree s : X1) {  // the input signals are X1
             W.push_back(s);
         }
