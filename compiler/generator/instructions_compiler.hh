@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 
+#include "DependenciesScheduling.hh"
 #include "Text.hh"
 #include "code_container.hh"
 #include "dcond.hh"
@@ -35,7 +36,6 @@
 #include "global.hh"
 #include "instructions.hh"
 #include "occurrences.hh"
-#include "DependenciesScheduling.hh"
 #include "property.hh"
 
 #define _DNF_ 1
