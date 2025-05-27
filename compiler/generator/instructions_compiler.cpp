@@ -475,7 +475,7 @@ ValueInst* InstructionsCompiler::CS(Tree sig)
 {
     ValueInst* code;
 
-#if 1
+#if 0
     fprintf(stderr, "CALL CS(");
     printSignal(sig, stderr);
     fprintf(stderr, ")\n");
@@ -564,42 +564,35 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     L = prepare(L);  // Optimize, share and annotate expression
 
-    auto H = fullGraph(L);
-    if (gGlobal->gTopoSwitch) {
-        std::cerr << "Print siglist full graph topology : " << topology(H) << '\n';
-    }
-
-    // Compute the dependency graph
-    auto G = immediateGraph(L);
-    if (gGlobal->gTopoSwitch) {
-        std::cerr << "Print siglist inst graph topology : " << topology(G) << '\n';
-    }
-    // Force a specific scheduling (i.e. compilation order)
-    schedule<Tree> S;
+    // Choose the scheduling strategy
+    SchedulingFunction mySchedFun;
+    
     switch (gGlobal->gSchedulingStrategy) {
         case 0:
-            S = dfschedule(G);
+            mySchedFun = dfschedule<Tree>;
             break;
         case 1:
-            S = bfschedule(G);
+            mySchedFun = bfschedule<Tree>;
             break;
         case 2:
-            S = spschedule(G);
+            mySchedFun = spschedule<Tree>;
             break;
-        case 3:
         default:
-            S = rbschedule(G);
+            mySchedFun = rbschedule<Tree>;
             break;
     }
-    std::cerr << "Scheduling strategy : " << gGlobal->gSchedulingStrategy
-              << " cost: " << schedulingcost(G, S) << '\n';
-
-    // Register the compilation order S for debug purposes
-    {
-        int jj = 0;
-        for (auto& s : S.elements()) {
-            fScheduleOrder[s] = ++jj;
-        }
+  
+    // Compute the hierarchical scheduling of L applying the chosen strategy
+    fHschedule = scheduleSigList(L, mySchedFun);
+    
+    // Then first compile the control or constant signals (i.e. non sample rate signals)
+    for (Tree s : fHschedule.controls.elements()) {
+        CS(s);
+    }
+    // Then compile the sample rate signals
+    faustassert(fHschedule.outSigList == L);
+    for (Tree s : fHschedule.sigsched[L].elements()) {
+        CS(s);
     }
 
 #ifdef LLVM_DEBUG
@@ -685,15 +678,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     std::cerr << "\nCOMPILE SCHEDULE" << std::endl;
 #endif
-    // gGlobal->gSTEP = 0;
-    for (auto& s : S.elements()) {
-        if (isNil(s)) {
-            std::cerr << "ASSERT : we have a Nil in the schedule\n";
-            faustassert(false);
-        }
-        CS(s);
-        gGlobal->gSTEP++;
-    }
 
     // Compile inputs when gInPlace (force caching for in-place transformations)
     if (gGlobal->gInPlace) {
@@ -704,6 +688,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     string return_string = "state, jnp.stack([";
     string sep           = "";
 
+    // Then compile the output signals
     for (int index = 0; isList(L); L = tl(L), index++) {
         Tree sig = hd(L);
 
@@ -851,7 +836,7 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
 
 ValueInst* InstructionsCompiler::generateCode(Tree sig)
 {
-#if 1
+#if 0
     fprintf(stderr, "CALL generateCode(");
     printSignal(sig, stderr);
     fprintf(stderr, ")\n");
@@ -997,7 +982,7 @@ ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)
     Occurrences* o = fOccMarkup->retrieve(sig);
 
     // Check for number occuring in delays
-    if (o->getMaxDelay() > 0) {
+    if (o != nullptr && o->getMaxDelay() > 0) {
         BasicTyped* ctype;
         string      vname;
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
@@ -3628,13 +3613,12 @@ ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
 
     std::cout << "opening upsampling statement" << std::endl;
 
-    // 2/ We  compile the clock signal and open an us statement
+    // 2/ We compile the clock signal and open an us statement
     fContainer->getCurLoop()->openUSblock(CS(clock));
 
     // 3/ We then compile the input signals unconditionnally
     for (Tree x : inputs) {
-        ValueInst* temp = CS(x);
-        // dump2FIR(temp);
+        CS(x);
     }
 
     // 4/ Compute the scheduling of the output signals of the us circuit
