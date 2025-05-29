@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2025 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -27,11 +27,9 @@
 #include <vector>
 
 #include "faust/export.h"
-//#include "faust/gui/JSONControl.h"
-//#include "faust/gui/MapUI.h"
-#include "faust/dsp/wasm-dsp-imp.h"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
+#include "faust/dsp/wasm-dsp-imp.h"
 #include "wasm_binary.hh"
 
 #ifdef WASMTIME
@@ -143,68 +141,35 @@ struct JSONUIDecoderBase;
 class LIBFAUST_API wasm_dsp : public dsp {
    private:
     wasm_dsp_factory* fFactory;
-  
+
    public:
     wasm_dsp() : fFactory(nullptr) {}
-    wasm_dsp(wasm_dsp_factory* factory):fFactory(factory)
-    {}
-    virtual ~wasm_dsp()
-    {}
+    wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory) {}
+    virtual ~wasm_dsp() {}
 
-    virtual int getNumInputs()
-    {
-        return -1;
-    }
+    virtual int getNumInputs() { return -1; }
 
-    virtual int getNumOutputs()
-    {
-        return -1;
-    }
+    virtual int getNumOutputs() { return -1; }
 
-    virtual void buildUserInterface(UI* ui_interface)
-    {}
+    virtual void buildUserInterface(UI* ui_interface) {}
 
-    virtual int getSampleRate()
-    {
-        return -1;
-    }
+    virtual int getSampleRate() { return -1; }
 
-    virtual void init(int sample_rate)
-    {}
+    virtual void init(int sample_rate) {}
 
-    virtual void instanceInit(int sample_rate)
-    {}
+    virtual void instanceInit(int sample_rate) {}
 
-    virtual void instanceConstants(int sample_rate)
-    {}
+    virtual void instanceConstants(int sample_rate) {}
 
-    virtual void instanceResetUserInterface()
-    {}
+    virtual void instanceResetUserInterface() {}
 
-    virtual void instanceClear()
-    {}
+    virtual void instanceClear() {}
 
-    virtual wasm_dsp* clone()
-    {
-        return nullptr;
-    }
+    virtual wasm_dsp* clone() { return nullptr; }
 
-    virtual void metadata(Meta* m)
-    {}
+    virtual void metadata(Meta* m) {}
 
-    virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-    {}
-
-    virtual void computeJS(int count, uintptr_t inputs, uintptr_t outputs)
-    {}
-
-    virtual void setParamValue(const std::string& path, FAUSTFLOAT value)
-    {}
-
-    virtual FAUSTFLOAT getParamValue(const std::string& path)
-    {
-        return 0;
-    }
+    virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
     
 };
 
@@ -216,14 +181,13 @@ class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable
    protected:
     dsp_factory_base*  fFactory;
     JSONUIDecoderBase* fDecoder;
- 
+
    public:
     wasm_dsp_factory() : fFactory(nullptr), fDecoder(nullptr) {}
     wasm_dsp_factory(dsp_factory_base* factory);
     wasm_dsp_factory(int instance, const std::string& json);
 
-    virtual ~wasm_dsp_factory()
-    {}
+    virtual ~wasm_dsp_factory() {}
 
     std::string getName();
 

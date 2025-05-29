@@ -40,7 +40,7 @@ static bool endsWith(const std::string& str, const std::string& suffix)
 int main(int argc, char* argv[])
 {
     if (argc == 1 || isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "faustbench-wasmer foo.wasm" << endl;
+        cout << "faustbench-wasmtime foo.dsp|foo.wasm" << endl;
         exit(EXIT_FAILURE);
     }
 

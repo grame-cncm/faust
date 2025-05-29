@@ -54,7 +54,7 @@ static bool endsWith(const std::string& str, const std::string& suffix)
 int main(int argc, char* argv[])
 {
     if (argc == 1 || isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "faustwasmer foo.wasm" << endl;
+        cout << "faustwasmtime foo.dsp|foo.wasm" << endl;
         cout << "Open the http://127.0.0.1:5510 URL to get an http based control\n";
         exit(EXIT_FAILURE);
     }

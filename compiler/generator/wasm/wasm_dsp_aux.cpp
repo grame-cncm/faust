@@ -45,35 +45,10 @@ using namespace std;
 
 dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 
-
 #ifdef WASMTIME
 
 using namespace std;
 #define CTX(st) wasmtime_store_context(st)
-
-// ---------------------------------------------------------------------
-// Error helpers
-// ---------------------------------------------------------------------
-
-static void exit_on_error(const char* context, wasmtime_error_t* error, wasm_trap_t* trap = nullptr)
-{
-    if (error) {
-        wasm_name_t msg;
-        wasmtime_error_message(error, &msg);
-        cerr << context << ": " << string(msg.data, msg.size) << endl;
-        wasm_name_delete(&msg);
-        wasmtime_error_delete(error);
-        abort();
-    }
-    if (trap) {
-        wasm_name_t msg;
-        wasm_trap_message(trap, &msg);
-        cerr << context << ": trap – " << string(msg.data, msg.size) << endl;
-        wasm_name_delete(&msg);
-        wasm_trap_delete(trap);
-        abort();
-    }
-}
 
 // ---------------------------------------------------------------------
 // Functype helpers
@@ -195,23 +170,6 @@ static wasm_trap_t* _abs_cb(void*, wasmtime_caller_t*, const wasmtime_val_t* arg
 }
 
 // ---------------------------------------------------------------------
-// File read helper
-// ---------------------------------------------------------------------
-
-static vector<uint8_t> readFile(const string& path)
-{
-    ifstream is(path, ios::binary | ios::ate);
-    if (!is) {
-        throw runtime_error("Cannot open " + path);
-    }
-    streamsize sz = is.tellg();
-    is.seekg(0, ios::beg);
-    vector<uint8_t> buf(sz);
-    is.read(reinterpret_cast<char*>(buf.data()), sz);
-    return buf;
-}
-
-// ---------------------------------------------------------------------
 // Factory
 // ---------------------------------------------------------------------
 
@@ -228,23 +186,17 @@ wasm_dsp_factory::wasm_dsp_factory(const string& binary_code) : wasm_dsp_factory
     wasm_byte_vec_new_uninitialized(&fWasmBytes, binary_code.size());
     memcpy(fWasmBytes.data, binary_code.data(), binary_code.size());
 
-    wasmtime_error_t* err = wasmtime_module_new(
-        fEngine, reinterpret_cast<const uint8_t*>(fWasmBytes.data), fWasmBytes.size, &fModule);
-    exit_on_error("compile module", err);
+    wasmtime_module_new(fEngine, reinterpret_cast<const uint8_t*>(fWasmBytes.data), fWasmBytes.size,
+                        &fModule);
 
     wasm_trap_t*        trap = nullptr;
     wasmtime_instance_t inst;
-    err = wasmtime_linker_instantiate(fLinker, CTX(store), fModule, &inst, &trap);
-    exit_on_error("instantiate", err, trap);
+    wasmtime_linker_instantiate(fLinker, CTX(store), fModule, &inst, &trap);
 
     wasmtime_extern_t memExt;
-    bool ok = wasmtime_instance_export_get(CTX(store), &inst, "memory", strlen("memory"), &memExt);
-    if (!ok || memExt.kind != WASMTIME_EXTERN_MEMORY) {
-        throw runtime_error("memory export missing");
-    }
+    wasmtime_instance_export_get(CTX(store), &inst, "memory", strlen("memory"), &memExt);
 
-    char* memory = reinterpret_cast<char*>(wasmtime_memory_data(CTX(store), &memExt.of.memory));
-
+    char* memory     = reinterpret_cast<char*>(wasmtime_memory_data(CTX(store), &memExt.of.memory));
     std::string json = std::string(memory);
     fDecoder         = createJSONUIDecoder(json);
 
@@ -255,17 +207,15 @@ wasm_dsp_factory::wasm_dsp_factory(const string& binary_code) : wasm_dsp_factory
 // Helper: register one host callback
 //--------------------------------------------------------------------
 static void define_func(wasmtime_linker_t* linker, wasmtime_store_t*, const char* name,
-                        wasm_functype_t*         ft,  
-                        wasmtime_func_callback_t cb)
+                        wasm_functype_t* ft, wasmtime_func_callback_t cb)
 {
-    wasmtime_error_t* err = wasmtime_linker_define_func(linker, "env", 3,    // module name
-                                                        name, strlen(name),  // export name
-                                                        ft,                  // type
-                                                        cb,                  // callback
-                                                        nullptr,             // env  (not needed)
-                                                        nullptr  // finalizer (not needed)
+    wasmtime_linker_define_func(linker, "env", 3,    // module name
+                                name, strlen(name),  // export name
+                                ft,                  // type
+                                cb,                  // callback
+                                nullptr,             // env  (not needed)
+                                nullptr              // finalizer (not needed)
     );
-    exit_on_error("define callback", err);
 }
 
 void wasm_dsp_factory::registerMathFuns(wasmtime_linker_t* linker, wasmtime_store_t* s)
@@ -384,14 +334,10 @@ wasm_dsp* wasm_dsp_factory::createDSPInstance()
 
     wasm_trap_t*        trap = nullptr;
     wasmtime_instance_t inst;
-    wasmtime_error_t* err = wasmtime_linker_instantiate(fLinker, CTX(store), fModule, &inst, &trap);
-    exit_on_error("instantiate", err, trap);
+    wasmtime_linker_instantiate(fLinker, CTX(store), fModule, &inst, &trap);
 
     wasmtime_extern_t memExt;
-    bool ok = wasmtime_instance_export_get(CTX(store), &inst, "memory", strlen("memory"), &memExt);
-    if (!ok || memExt.kind != WASMTIME_EXTERN_MEMORY) {
-        throw runtime_error("memory export missing");
-    }
+    wasmtime_instance_export_get(CTX(store), &inst, "memory", strlen("memory"), &memExt);
 
     char* memory = reinterpret_cast<char*>(wasmtime_memory_data(CTX(store), &memExt.of.memory));
     return new wasm_dsp(this, store, inst, memory);
@@ -465,14 +411,11 @@ LIBFAUST_API bool writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory,
 wasm_dsp::wasm_dsp(wasm_dsp_factory* factory, wasmtime_store_t* store,
                    const wasmtime_instance_t& instance, char* memory)
     : wasm_dsp_imp(factory, memory), fStore(store), fInstance(instance)
-//, fMemory(mem), fMemoryBase(base)
 {
     initDecoder();
 
     wasmtime_extern_t ext;
-    bool              ok =
-        wasmtime_instance_export_get(CTX(fStore), &fInstance, "compute", strlen("compute"), &ext);
-    assert(ok && ext.kind == WASMTIME_EXTERN_FUNC);
+    wasmtime_instance_export_get(CTX(fStore), &fInstance, "compute", strlen("compute"), &ext);
     fComputeFunc = ext.of.func;
 }
 
@@ -484,16 +427,12 @@ wasm_dsp::~wasm_dsp()
 int wasm_dsp::callIntExport(const char* name)
 {
     wasmtime_extern_t ext;
-    bool ok = wasmtime_instance_export_get(CTX(fStore), &fInstance, name, strlen(name), &ext);
-    if (!ok || ext.kind != WASMTIME_EXTERN_FUNC) {
-        return -1;
-    }
+    wasmtime_instance_export_get(CTX(fStore), &fInstance, name, strlen(name), &ext);
 
-    wasmtime_val_t    arg{.kind = WASM_I32, .of = {.i32 = 0}};
-    wasmtime_val_t    out;
-    wasm_trap_t*      trap = nullptr;
-    wasmtime_error_t* err  = wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, &out, 1, &trap);
-    exit_on_error(name, err, trap);
+    wasmtime_val_t arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasmtime_val_t out;
+    wasm_trap_t*   trap = nullptr;
+    wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, &out, 1, &trap);
     return out.of.i32;
 }
 
@@ -513,51 +452,34 @@ int wasm_dsp::getSampleRate()
 void wasm_dsp::instanceResetUserInterface()
 {
     wasmtime_extern_t ext;
-    bool ok = wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceResetUserInterface",
-                                           strlen("instanceResetUserInterface"), &ext);
-    if (!ok || ext.kind != WASMTIME_EXTERN_FUNC) {
-        return;
-    }
-
-    wasmtime_val_t    arg{.kind = WASM_I32, .of = {.i32 = 0}};
-    wasm_trap_t*      trap = nullptr;
-    wasmtime_error_t* err =
-        wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
-    exit_on_error("instanceResetUI", err, trap);
+    wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceResetUserInterface",
+                                 strlen("instanceResetUserInterface"), &ext);
+    wasmtime_val_t arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasm_trap_t*   trap = nullptr;
+    wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
 }
 
 void wasm_dsp::instanceClear()
 {
     wasmtime_extern_t ext;
-    bool              ok = wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceClear",
+    wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceClear",
                                                         strlen("instanceClear"), &ext);
-    if (!ok || ext.kind != WASMTIME_EXTERN_FUNC) {
-        return;
-    }
-
-    wasmtime_val_t    arg{.kind = WASM_I32, .of = {.i32 = 0}};
-    wasm_trap_t*      trap = nullptr;
-    wasmtime_error_t* err =
-        wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
-    exit_on_error("instanceClear", err, trap);
+    wasmtime_val_t arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasm_trap_t*   trap = nullptr;
+    wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
 }
 
 static void call_i32_i32(wasmtime_store_t* st, const wasmtime_instance_t* inst, const char* fn,
                          int v, wasm_trap_t** trap)
 {
     wasmtime_extern_t ext;
-    bool              ok = wasmtime_instance_export_get(CTX(st), inst, fn, strlen(fn), &ext);
-    if (!ok || ext.kind != WASMTIME_EXTERN_FUNC) {
-        throw runtime_error(string("missing export ") + fn);
-    }
-
+    wasmtime_instance_export_get(CTX(st), inst, fn, strlen(fn), &ext);
     wasmtime_val_t a[2];
-    a[0].kind             = WASM_I32;
-    a[0].of.i32           = 0;
-    a[1].kind             = WASM_I32;
-    a[1].of.i32           = v;
-    wasmtime_error_t* err = wasmtime_func_call(CTX(st), &ext.of.func, a, 2, nullptr, 0, trap);
-    exit_on_error(fn, err, *trap);
+    a[0].kind   = WASM_I32;
+    a[0].of.i32 = 0;
+    a[1].kind   = WASM_I32;
+    a[1].of.i32 = v;
+    wasmtime_func_call(CTX(st), &ext.of.func, a, 2, nullptr, 0, trap);
 }
 
 void wasm_dsp::init(int sr)
@@ -597,9 +519,8 @@ void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     a[3].kind   = WASM_I32;
     a[3].of.i32 = fWasmOutputs;
 
-    wasm_trap_t*      trap = nullptr;
-    wasmtime_error_t* err = wasmtime_func_call(CTX(fStore), &fComputeFunc, a, 4, nullptr, 0, &trap);
-    exit_on_error("compute", err, trap);
+    wasm_trap_t* trap = nullptr;
+    wasmtime_func_call(CTX(fStore), &fComputeFunc, a, 4, nullptr, 0, &trap);
 
     for (int c = 0; c < fFactory->fDecoder->getNumOutputs(); ++c) {
         memcpy(outputs[c], fOutputs[c], sizeof(FAUSTFLOAT) * count);
@@ -710,4 +631,3 @@ LIBFAUST_API void deleteAllWasmDSPFactories()
 {
     wasm_dsp_factory::gWasmFactoryTable.deleteAllDSPFactories();
 }
-
