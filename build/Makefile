@@ -54,7 +54,6 @@ else
 endif
 DESTDIR ?=
 
-
 .PHONY: faust install uninstall osc http package wasmglue cmake
 
 MAKE ?= make
@@ -75,6 +74,7 @@ CXX_COMPILER_OPT = "-DCMAKE_CXX_COMPILER=$(shell llvm-config --bindir)/clang++"
 endif
 
 RELEASE_TYPE ?= Release
+#RELEASE_TYPE ?= Debug
 CMAKEOPT ?=
 BUILDOPT ?= --config $(RELEASE_TYPE)
 CMAKEOPTS = -DCMAKE_BUILD_TYPE=$(RELEASE_TYPE) $(WORKLETOPT) $(CMAKEOPT) $(NONDETERMINISM_LINT_OPT) $(CXX_COMPILER_OPT)

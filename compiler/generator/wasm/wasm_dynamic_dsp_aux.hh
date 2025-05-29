@@ -69,23 +69,20 @@ LIBFAUST_API std::string generateWasmFromString(const std::string& name_app,
                                                 const char* argv[], std::string& error_msg,
                                                 bool internal_memory);
 
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code,
+                                                             std::string&       error_msg);
+
+LIBFAUST_API std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
+
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(
+    const std::string& machine_code_path, std::string& error_msg);
+
+LIBFAUST_API bool writeWasmDSPFactoryToMachineFile(wasm_dsp_factory*  factory,
+                                                   const std::string& machine_code_path);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc,
-                                                              const char* argv[], char* error_msg,
-                                                              bool internal_memory);
-
-LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app,
-                                                                const char* dsp_content, int argc,
-                                                                const char* argv[], char* error_msg,
-                                                                bool internal_memory);
-
-LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromSignals2(const char* name_app, tvec signals,
-                                                                 int argc, const char* argv[],
-                                                                 char* error_msg,
-                                                                 bool  internal_memory);
 
 LIBFAUST_API bool deleteWasmCDSPFactory(wasm_dsp_factory* factory);
 

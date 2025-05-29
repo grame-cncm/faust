@@ -38,10 +38,18 @@ option ( INCLUDE_ITP         "Include Faust Machine library" off )
 option ( INCLUDE_EMCC        "Include emcc targets" on )
 option ( INCLUDE_WASM_GLUE   "Include wasm glue targets" on )
 option ( MSVC_STATIC         "Use static runtimes with MSVC" off)
-option ( SELF_CONTAINED_LIBRARY    "Don't search system architecture files." off)
-option ( LINK_LLVM_STATIC "Link LLVM statically" on )
-option ( INCLUDE_LLVM_STATIC_IN_ARCHIVE "Combine static LLVM .a files and libfaust.a in a single .a file" on )
 option ( NONDETERMINISM_LINT "Add compiler warning for nondeterminism" off)
+option ( INCLUDE_WASMTIME    "Compile with wasmtime support" off)
+option ( SELF_CONTAINED_LIBRARY    "Don't search system architecture files." off)
+option ( LINK_LLVM_STATIC          "Link LLVM statically" on )
+option ( INCLUDE_LLVM_STATIC_IN_ARCHIVE "Combine static LLVM .a files and libfaust.a in a single .a file" on )
+
+if (INCLUDE_WASMTIME)
+    set(WASMTIME_LIB /usr/local/lib/libwasmtime.a)
+    link_directories(/usr/local/lib)
+    add_compile_definitions(WASMTIME)
+endif()
+
 
 #######################################
 # Check output options
@@ -209,7 +217,7 @@ if (INCLUDE_EXECUTABLE)
         target_link_directories(faust PRIVATE "${LLVM_LIB_DIR}")
     endif()
     target_include_directories (faust PRIVATE ${FAUST_INC} ${LLVM_INCLUDE_DIRS})
-    target_link_libraries (faust PRIVATE ${FAUST_LIBS})
+    target_link_libraries (faust PRIVATE ${FAUST_LIBS} ${WASMTIME_LIB})
     scan_backends (faust COMPILER)
     set_target_properties(faust PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
     set_target_properties(faust PROPERTIES COMPILE_FLAGS -DFAUST_EXE)
@@ -227,7 +235,7 @@ if (INCLUDE_STATIC)
         target_link_directories(staticlib PRIVATE "${LLVM_LIB_DIR}")
     endif()
     target_include_directories (staticlib PRIVATE ${FAUST_INC} ${LLVM_INCLUDE_DIRS})
-    target_link_libraries (staticlib PRIVATE ${FAUST_LIBS})
+    target_link_libraries (staticlib PRIVATE ${FAUST_LIBS} ${WASMTIME_LIB})
     set_target_properties(staticlib PROPERTIES 
         ARCHIVE_OUTPUT_DIRECTORY ${LIBDIR}
         LIBRARY_OUTPUT_DIRECTORY ${LIBDIR}
@@ -269,7 +277,7 @@ if (INCLUDE_DYNAMIC)
     endif()
     target_include_directories (dynamiclib PRIVATE ${FAUST_INC} ${LLVM_INCLUDE_DIRS})
     # set (FAUST_LIBS /usr/local/lib/libmir.a ${FAUST_LIBS})
-    target_link_libraries (dynamiclib PRIVATE ${FAUST_LIBS})
+    target_link_libraries (dynamiclib PRIVATE ${FAUST_LIBS} ${WASMTIME_LIB})
     if (WIN32 OR MSYS)
         enable_language(RC)
         set_target_properties(dynamiclib PROPERTIES

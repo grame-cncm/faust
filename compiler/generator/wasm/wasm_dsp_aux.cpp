@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2025 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -45,75 +45,356 @@ using namespace std;
 
 dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 
-#ifdef EMCC
 
-#ifndef FAUST_LIB
-#include "faust/dsp/poly-wasm-dsp.h"
-#endif
+#ifdef WASMTIME
 
-// #include "faust/gui/SoundUI.h"
+using namespace std;
+#define CTX(st) wasmtime_store_context(st)
 
-LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(int instance, const string& json)
+// ---------------------------------------------------------------------
+// Error helpers
+// ---------------------------------------------------------------------
+
+static void exit_on_error(const char* context, wasmtime_error_t* error, wasm_trap_t* trap = nullptr)
 {
-    fFactory  = nullptr;
-    fInstance = instance;
-    fDecoder  = createJSONUIDecoder(json);
-    // fSoundUI = new SoundUI();
-}
-
-LIBFAUST_API wasm_dsp_factory::~wasm_dsp_factory()
-{
-    /* Deactivated for 'wasm' branch version
-    // Empty the JS structures so that the instance can be GCed
-#ifdef AUDIO_WORKLET
-    EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0] = null; }, fInstance);
-#else
-    EM_ASM({ faust_module.faust.wasm_instance[$0] = null; }, fInstance);
-#endif
-    */
-    delete fFactory;
-    delete fDecoder;
-    // delete fSoundUI;
-}
-
-LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int           instance,
-                                                                      const string& json)
-{
-    wasm_dsp_factory* factory = new wasm_dsp_factory(instance, json);
-    wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
-    return factory;
-}
-
-/* Deactivated for 'wasm' branch version
-// To keep 'wasmMemory' in the generated JS library
-#ifdef AUDIO_WORKLET
-EM_JS(void, connectMemory, (),
-{
-    AudioWorkletGlobalScope.faust_module.faust = AudioWorkletGlobalScope.faust_module.faust || {};
-    AudioWorkletGlobalScope.faust_module.faust.memory =
-AudioWorkletGlobalScope.faust_module.faust.memory || wasmMemory;
-});
-#else
-EM_JS(void, connectMemory, (),
-{
-    faust_module.faust = faust_module.faust || {};
-    faust_module.faust.memory = faust_module.faust.memory || wasmMemory;
-});
-#endif
-*/
-
-LIBFAUST_API string wasm_dsp_factory::extractJSON(const string& code)
-{
-    /* Deactivated for 'wasm' branch version
-        connectMemory();
-    */
-    if (code != "") {
-        WasmBinaryReader reader(code);
-        reader.read();
-        return reader.json;
-    } else {
-        return "";
+    if (error) {
+        wasm_name_t msg;
+        wasmtime_error_message(error, &msg);
+        cerr << context << ": " << string(msg.data, msg.size) << endl;
+        wasm_name_delete(&msg);
+        wasmtime_error_delete(error);
+        abort();
     }
+    if (trap) {
+        wasm_name_t msg;
+        wasm_trap_message(trap, &msg);
+        cerr << context << ": trap – " << string(msg.data, msg.size) << endl;
+        wasm_name_delete(&msg);
+        wasm_trap_delete(trap);
+        abort();
+    }
+}
+
+// ---------------------------------------------------------------------
+// Functype helpers
+// ---------------------------------------------------------------------
+
+// helper – build 1-param/1-result functype safely
+static wasm_functype_t* fn_1_1(wasm_valkind_t p, wasm_valkind_t r)
+{
+    // allocate the pointer array on the heap (linker will free it later)
+    auto** params  = new wasm_valtype_t*[1];
+    auto** results = new wasm_valtype_t*[1];
+    params[0]      = wasm_valtype_new(p);
+    results[0]     = wasm_valtype_new(r);
+
+    wasm_valtype_vec_t pvec;
+    wasm_valtype_vec_t rvec;
+    wasm_valtype_vec_new(&pvec, 1, params);   // takes ownership of `params`
+    wasm_valtype_vec_new(&rvec, 1, results);  // takes ownership of `results`
+
+    return wasm_functype_new(&pvec, &rvec);  // takes ownership of valtypes & arrays
+}
+
+// helper – 2-param/1-result
+static wasm_functype_t* fn_2_1(wasm_valkind_t p0, wasm_valkind_t p1, wasm_valkind_t r0)
+{
+    auto** params  = new wasm_valtype_t*[2];
+    auto** results = new wasm_valtype_t*[1];
+    params[0]      = wasm_valtype_new(p0);
+    params[1]      = wasm_valtype_new(p1);
+    results[0]     = wasm_valtype_new(r0);
+
+    wasm_valtype_vec_t pvec;
+    wasm_valtype_vec_t rvec;
+    wasm_valtype_vec_new(&pvec, 2, params);
+    wasm_valtype_vec_new(&rvec, 1, results);
+
+    return wasm_functype_new(&pvec, &rvec);
+}
+
+// ---------------------------------------------------------------------
+// Host math callbacks
+// ---------------------------------------------------------------------
+
+#define UNARY_CB(NAME, FN, VKIND)                                                                \
+    static wasm_trap_t* NAME##_cb(void*, wasmtime_caller_t*, const wasmtime_val_t* args, size_t, \
+                                  wasmtime_val_t* res, size_t)                                   \
+    {                                                                                            \
+        res[0].kind = VKIND;                                                                     \
+        if (VKIND == WASM_F32)                                                                   \
+            res[0].of.f32 = FN(args[0].of.f32);                                                  \
+        else                                                                                     \
+            res[0].of.f64 = FN(args[0].of.f64);                                                  \
+        return nullptr;                                                                          \
+    }
+
+#define BINARY_CB(NAME, FN, VKIND)                                                               \
+    static wasm_trap_t* NAME##_cb(void*, wasmtime_caller_t*, const wasmtime_val_t* args, size_t, \
+                                  wasmtime_val_t* res, size_t)                                   \
+    {                                                                                            \
+        res[0].kind = VKIND;                                                                     \
+        if (VKIND == WASM_F32)                                                                   \
+            res[0].of.f32 = FN(args[0].of.f32, args[1].of.f32);                                  \
+        else                                                                                     \
+            res[0].of.f64 = FN(args[0].of.f64, args[1].of.f64);                                  \
+        return nullptr;                                                                          \
+    }
+
+UNARY_CB(_sinf, std::sinf, WASM_F32)
+UNARY_CB(_cosf, std::cosf, WASM_F32)
+UNARY_CB(_tanf, std::tanf, WASM_F32)
+UNARY_CB(_asinf, std::asinf, WASM_F32)
+UNARY_CB(_acosf, std::acosf, WASM_F32)
+UNARY_CB(_atanf, std::atanf, WASM_F32)
+UNARY_CB(_expf, std::expf, WASM_F32)
+UNARY_CB(_logf, std::logf, WASM_F32)
+UNARY_CB(_log10f, std::log10f, WASM_F32)
+UNARY_CB(_roundf, std::roundf, WASM_F32)
+UNARY_CB(_sinhf, std::sinhf, WASM_F32)
+UNARY_CB(_coshf, std::coshf, WASM_F32)
+UNARY_CB(_tanhf, std::tanhf, WASM_F32)
+UNARY_CB(_asinhf, std::asinhf, WASM_F32)
+UNARY_CB(_acoshf, std::acoshf, WASM_F32)
+UNARY_CB(_atanhf, std::atanhf, WASM_F32)
+
+UNARY_CB(_sin, std::sin, WASM_F64)
+UNARY_CB(_cos, std::cos, WASM_F64)
+UNARY_CB(_tan, std::tan, WASM_F64)
+UNARY_CB(_asin, std::asin, WASM_F64)
+UNARY_CB(_acos, std::acos, WASM_F64)
+UNARY_CB(_atan, std::atan, WASM_F64)
+UNARY_CB(_exp, std::exp, WASM_F64)
+UNARY_CB(_log, std::log, WASM_F64)
+UNARY_CB(_log10, std::log10, WASM_F64)
+UNARY_CB(_round, std::round, WASM_F64)
+UNARY_CB(_sinh, std::sinh, WASM_F64)
+UNARY_CB(_cosh, std::cosh, WASM_F64)
+UNARY_CB(_tanh, std::tanh, WASM_F64)
+UNARY_CB(_asinh, std::asinh, WASM_F64)
+UNARY_CB(_acosh, std::acosh, WASM_F64)
+UNARY_CB(_atanh, std::atanh, WASM_F64)
+
+BINARY_CB(_atan2f, std::atan2f, WASM_F32)
+BINARY_CB(_fmodf, std::fmodf, WASM_F32)
+BINARY_CB(_powf, std::powf, WASM_F32)
+BINARY_CB(_remainderf, std::remainderf, WASM_F32)
+
+BINARY_CB(_atan2, std::atan2, WASM_F64)
+BINARY_CB(_fmod, std::fmod, WASM_F64)
+BINARY_CB(_pow, std::pow, WASM_F64)
+BINARY_CB(_remainder, std::remainder, WASM_F64)
+
+// abs(int)
+static wasm_trap_t* _abs_cb(void*, wasmtime_caller_t*, const wasmtime_val_t* args, size_t,
+                            wasmtime_val_t* res, size_t)
+{
+    res[0].kind   = WASM_I32;
+    res[0].of.i32 = std::abs(args[0].of.i32);
+    return nullptr;
+}
+
+// ---------------------------------------------------------------------
+// File read helper
+// ---------------------------------------------------------------------
+
+static vector<uint8_t> readFile(const string& path)
+{
+    ifstream is(path, ios::binary | ios::ate);
+    if (!is) {
+        throw runtime_error("Cannot open " + path);
+    }
+    streamsize sz = is.tellg();
+    is.seekg(0, ios::beg);
+    vector<uint8_t> buf(sz);
+    is.read(reinterpret_cast<char*>(buf.data()), sz);
+    return buf;
+}
+
+// ---------------------------------------------------------------------
+// Factory
+// ---------------------------------------------------------------------
+
+wasm_dsp_factory::wasm_dsp_factory(const string& binary_code) : wasm_dsp_factory_imp()
+{
+    fEngine = wasm_engine_new();
+    fLinker = wasmtime_linker_new(fEngine);
+
+    // Register math funcs
+    wasmtime_store_t* store = wasmtime_store_new(fEngine, nullptr, nullptr);
+    registerMathFuns(fLinker, store);
+
+    // Compile module
+    wasm_byte_vec_new_uninitialized(&fWasmBytes, binary_code.size());
+    memcpy(fWasmBytes.data, binary_code.data(), binary_code.size());
+
+    wasmtime_error_t* err = wasmtime_module_new(
+        fEngine, reinterpret_cast<const uint8_t*>(fWasmBytes.data), fWasmBytes.size, &fModule);
+    exit_on_error("compile module", err);
+
+    wasm_trap_t*        trap = nullptr;
+    wasmtime_instance_t inst;
+    err = wasmtime_linker_instantiate(fLinker, CTX(store), fModule, &inst, &trap);
+    exit_on_error("instantiate", err, trap);
+
+    wasmtime_extern_t memExt;
+    bool ok = wasmtime_instance_export_get(CTX(store), &inst, "memory", strlen("memory"), &memExt);
+    if (!ok || memExt.kind != WASMTIME_EXTERN_MEMORY) {
+        throw runtime_error("memory export missing");
+    }
+
+    char* memory = reinterpret_cast<char*>(wasmtime_memory_data(CTX(store), &memExt.of.memory));
+
+    std::string json = std::string(memory);
+    fDecoder         = createJSONUIDecoder(json);
+
+    wasmtime_store_delete(store);
+}
+
+//--------------------------------------------------------------------
+// Helper: register one host callback
+//--------------------------------------------------------------------
+static void define_func(wasmtime_linker_t* linker, wasmtime_store_t*, const char* name,
+                        wasm_functype_t*         ft,  
+                        wasmtime_func_callback_t cb)
+{
+    wasmtime_error_t* err = wasmtime_linker_define_func(linker, "env", 3,    // module name
+                                                        name, strlen(name),  // export name
+                                                        ft,                  // type
+                                                        cb,                  // callback
+                                                        nullptr,             // env  (not needed)
+                                                        nullptr  // finalizer (not needed)
+    );
+    exit_on_error("define callback", err);
+}
+
+void wasm_dsp_factory::registerMathFuns(wasmtime_linker_t* linker, wasmtime_store_t* s)
+{
+    define_func(linker, s, "_abs", fn_1_1(WASM_I32, WASM_I32), _abs_cb);
+
+#define REG_UN(name, kind) define_func(linker, s, #name, fn_1_1(kind, kind), name##_cb)
+#define REG_BIN(name, kind) define_func(linker, s, #name, fn_2_1(kind, kind, kind), name##_cb)
+
+    // Float
+    REG_UN(_sinf, WASM_F32);
+    REG_UN(_cosf, WASM_F32);
+    REG_UN(_tanf, WASM_F32);
+    REG_UN(_asinf, WASM_F32);
+    REG_UN(_acosf, WASM_F32);
+    REG_UN(_atanf, WASM_F32);
+    REG_UN(_expf, WASM_F32);
+    REG_UN(_logf, WASM_F32);
+    REG_UN(_log10f, WASM_F32);
+    REG_UN(_roundf, WASM_F32);
+    REG_UN(_sinhf, WASM_F32);
+    REG_UN(_coshf, WASM_F32);
+    REG_UN(_tanhf, WASM_F32);
+    REG_UN(_asinhf, WASM_F32);
+    REG_UN(_acoshf, WASM_F32);
+    REG_UN(_atanhf, WASM_F32);
+
+    REG_BIN(_atan2f, WASM_F32);
+    REG_BIN(_fmodf, WASM_F32);
+    REG_BIN(_powf, WASM_F32);
+    REG_BIN(_remainderf, WASM_F32);
+
+    // Double
+    REG_UN(_sin, WASM_F64);
+    REG_UN(_cos, WASM_F64);
+    REG_UN(_tan, WASM_F64);
+    REG_UN(_asin, WASM_F64);
+    REG_UN(_acos, WASM_F64);
+    REG_UN(_atan, WASM_F64);
+    REG_UN(_exp, WASM_F64);
+    REG_UN(_log, WASM_F64);
+    REG_UN(_log10, WASM_F64);
+    REG_UN(_round, WASM_F64);
+    REG_UN(_sinh, WASM_F64);
+    REG_UN(_cosh, WASM_F64);
+    REG_UN(_tanh, WASM_F64);
+    REG_UN(_asinh, WASM_F64);
+    REG_UN(_acosh, WASM_F64);
+    REG_UN(_atanh, WASM_F64);
+
+    REG_BIN(_atan2, WASM_F64);
+    REG_BIN(_fmod, WASM_F64);
+    REG_BIN(_pow, WASM_F64);
+    REG_BIN(_remainder, WASM_F64);
+
+#undef REG_UN
+#undef REG_BIN
+}
+
+wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory)
+    : wasm_dsp_factory(factory->getBinaryCode())
+{
+    fFactory = factory;
+}
+
+wasm_dsp_factory::~wasm_dsp_factory()
+{
+    if (fModule) {
+        wasmtime_module_delete(fModule);
+    }
+    if (fLinker) {
+        wasmtime_linker_delete(fLinker);
+    }
+    if (fEngine) {
+        wasm_engine_delete(fEngine);
+    }
+    wasm_byte_vec_delete(&fWasmBytes);
+}
+
+LIBFAUST_API string wasm_dsp_factory::getSHAKey()
+{
+    return fFactory->getSHAKey();
+}
+LIBFAUST_API void wasm_dsp_factory::setSHAKey(const string& sha_key)
+{
+    fFactory->setSHAKey(sha_key);
+}
+
+LIBFAUST_API string wasm_dsp_factory::getDSPCode()
+{
+    return fFactory->getDSPCode();
+}
+LIBFAUST_API void wasm_dsp_factory::setDSPCode(const string& code)
+{
+    fFactory->setDSPCode(code);
+}
+
+LIBFAUST_API string wasm_dsp_factory::getCompileOptions()
+{
+    return fDecoder->getCompileOptions();
+}
+
+LIBFAUST_API vector<string> wasm_dsp_factory::getLibraryList()
+{
+    return fDecoder->getLibraryList();
+}
+
+LIBFAUST_API vector<string> wasm_dsp_factory::getIncludePathnames()
+{
+    return fDecoder->getIncludePathnames();
+}
+
+wasm_dsp* wasm_dsp_factory::createDSPInstance()
+{
+    wasmtime_store_t* store = wasmtime_store_new(fEngine, nullptr, nullptr);
+
+    wasm_trap_t*        trap = nullptr;
+    wasmtime_instance_t inst;
+    wasmtime_error_t* err = wasmtime_linker_instantiate(fLinker, CTX(store), fModule, &inst, &trap);
+    exit_on_error("instantiate", err, trap);
+
+    wasmtime_extern_t memExt;
+    bool ok = wasmtime_instance_export_get(CTX(store), &inst, "memory", strlen("memory"), &memExt);
+    if (!ok || memExt.kind != WASMTIME_EXTERN_MEMORY) {
+        throw runtime_error("memory export missing");
+    }
+
+    char* memory = reinterpret_cast<char*>(wasmtime_memory_data(CTX(store), &memExt.of.memory));
+    return new wasm_dsp(this, store, inst, memory);
 }
 
 LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const string& machine_code,
@@ -160,356 +441,172 @@ LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& m
     }
 }
 
-LIBFAUST_API void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory,
+LIBFAUST_API bool writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory,
                                                    const string&     machine_code_path)
 {
     ofstream outfile;
     outfile.open(machine_code_path, ofstream::out | ofstream::binary);
     if (outfile.is_open()) {
         outfile << factory->getBinaryCode();
+        ;
         outfile.close();
+        return true;
     } else {
         cerr << "writeWasmDSPFactoryToMachineFile : cannot open '" << machine_code_path
              << "' file\n";
+        return false;
     }
 }
 
-LIBFAUST_API wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
+// ---------------------------------------------------------------------
+// DSP instance
+// ---------------------------------------------------------------------
+
+wasm_dsp::wasm_dsp(wasm_dsp_factory* factory, wasmtime_store_t* store,
+                   const wasmtime_instance_t& instance, char* memory)
+    : wasm_dsp_imp(factory, memory), fStore(store), fInstance(instance)
+//, fMemory(mem), fMemoryBase(base)
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        fDSP = EM_ASM_INT({ return AudioWorkletGlobalScope.faust_module._malloc($0); },
-    fFactory->getDecoder()->getDSPSize()); #else fDSP = EM_ASM_INT({ return
-    faust_module._malloc($0); }, fFactory->getDecoder()->getDSPSize()); #endif
-    */
-    // First instance builds the map
-    if (fFactory->fMapUI.getParamsCount() == 0) {
-        buildUserInterface(&fFactory->fMapUI);
+    initDecoder();
+
+    wasmtime_extern_t ext;
+    bool              ok =
+        wasmtime_instance_export_get(CTX(fStore), &fInstance, "compute", strlen("compute"), &ext);
+    assert(ok && ext.kind == WASMTIME_EXTERN_FUNC);
+    fComputeFunc = ext.of.func;
+}
+
+wasm_dsp::~wasm_dsp()
+{
+    wasmtime_store_delete(fStore);
+}
+
+int wasm_dsp::callIntExport(const char* name)
+{
+    wasmtime_extern_t ext;
+    bool ok = wasmtime_instance_export_get(CTX(fStore), &fInstance, name, strlen(name), &ext);
+    if (!ok || ext.kind != WASMTIME_EXTERN_FUNC) {
+        return -1;
     }
-    // buildUserInterface(factory->fSoundUI);
+
+    wasmtime_val_t    arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasmtime_val_t    out;
+    wasm_trap_t*      trap = nullptr;
+    wasmtime_error_t* err  = wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, &out, 1, &trap);
+    exit_on_error(name, err, trap);
+    return out.of.i32;
 }
 
-LIBFAUST_API wasm_dsp::~wasm_dsp()
+int wasm_dsp::getNumInputs()
 {
-    /* Deactivated for 'wasm' branch version
-        // Free the DSP memory
-    #ifdef AUDIO_WORKLET
-        EM_ASM({ AudioWorkletGlobalScope.faust_module._free($0); }, fDSP);
-    #else
-        EM_ASM({ faust_module._free($0); }, fDSP);
-    #endif
-    */
-    wasm_dsp_factory::gWasmFactoryTable.removeDSP(fFactory, this);
+    return callIntExport("getNumInputs");
+}
+int wasm_dsp::getNumOutputs()
+{
+    return callIntExport("getNumOutputs");
+}
+int wasm_dsp::getSampleRate()
+{
+    return callIntExport("getSampleRate");
 }
 
-LIBFAUST_API int wasm_dsp::getNumInputs()
+void wasm_dsp::instanceResetUserInterface()
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        return EM_ASM_INT({ return
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getNumInputs($1); },
-    fFactory->fInstance, fDSP); #else return EM_ASM_INT({ return
-    faust_module.faust.wasm_instance[$0].exports.getNumInputs($1); }, fFactory->fInstance, fDSP);
-    #endif
-    */
-    return -1;
+    wasmtime_extern_t ext;
+    bool ok = wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceResetUserInterface",
+                                           strlen("instanceResetUserInterface"), &ext);
+    if (!ok || ext.kind != WASMTIME_EXTERN_FUNC) {
+        return;
+    }
+
+    wasmtime_val_t    arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasm_trap_t*      trap = nullptr;
+    wasmtime_error_t* err =
+        wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
+    exit_on_error("instanceResetUI", err, trap);
 }
 
-LIBFAUST_API int wasm_dsp::getNumOutputs()
+void wasm_dsp::instanceClear()
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        return EM_ASM_INT({ return
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getNumOutputs($1); },
-    fFactory->fInstance, fDSP); #else return EM_ASM_INT({ return
-    faust_module.faust.wasm_instance[$0].exports.getNumOutputs($1); }, fFactory->fInstance, fDSP);
-    #endif
-    */
-    return -1;
+    wasmtime_extern_t ext;
+    bool              ok = wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceClear",
+                                                        strlen("instanceClear"), &ext);
+    if (!ok || ext.kind != WASMTIME_EXTERN_FUNC) {
+        return;
+    }
+
+    wasmtime_val_t    arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasm_trap_t*      trap = nullptr;
+    wasmtime_error_t* err =
+        wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
+    exit_on_error("instanceClear", err, trap);
 }
 
-LIBFAUST_API void wasm_dsp::buildUserInterface(UI* ui_interface)
+static void call_i32_i32(wasmtime_store_t* st, const wasmtime_instance_t* inst, const char* fn,
+                         int v, wasm_trap_t** trap)
 {
-    fFactory->getDecoder()->buildUserInterface(ui_interface, reinterpret_cast<char*>(fDSP));
+    wasmtime_extern_t ext;
+    bool              ok = wasmtime_instance_export_get(CTX(st), inst, fn, strlen(fn), &ext);
+    if (!ok || ext.kind != WASMTIME_EXTERN_FUNC) {
+        throw runtime_error(string("missing export ") + fn);
+    }
+
+    wasmtime_val_t a[2];
+    a[0].kind             = WASM_I32;
+    a[0].of.i32           = 0;
+    a[1].kind             = WASM_I32;
+    a[1].of.i32           = v;
+    wasmtime_error_t* err = wasmtime_func_call(CTX(st), &ext.of.func, a, 2, nullptr, 0, trap);
+    exit_on_error(fn, err, *trap);
 }
 
-LIBFAUST_API int wasm_dsp::getSampleRate()
+void wasm_dsp::init(int sr)
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        return EM_ASM_INT({ return
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getSampleRate($1); },
-    fFactory->fInstance, fDSP); #else return EM_ASM_INT({ return
-    faust_module.faust.wasm_instance[$0].exports.getSampleRate($1); }, fFactory->fInstance, fDSP);
-    #endif
-    */
-    return -1;
+    wasm_trap_t* t = nullptr;
+    call_i32_i32(fStore, &fInstance, "init", sr, &t);
+}
+void wasm_dsp::instanceInit(int sr)
+{
+    wasm_trap_t* t = nullptr;
+    call_i32_i32(fStore, &fInstance, "instanceInit", sr, &t);
+}
+void wasm_dsp::instanceConstants(int sr)
+{
+    wasm_trap_t* t = nullptr;
+    call_i32_i32(fStore, &fInstance, "instanceConstants", sr, &t);
 }
 
-LIBFAUST_API void wasm_dsp::init(int sample_rate)
+wasm_dsp* wasm_dsp::clone()
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.init($1, $2);
-    }, fFactory->fInstance, fDSP, sample_rate); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.init($1, $2); }, fFactory->fInstance, fDSP,
-    sample_rate); #endif
-    */
+    return reinterpret_cast<wasm_dsp*>(fFactory->createDSPInstance());
 }
 
-LIBFAUST_API void wasm_dsp::instanceInit(int sample_rate)
+void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 {
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceInit($1, $2); },
-    fFactory->fInstance, fDSP, sample_rate); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fFactory->fInstance, fDSP,
-    sample_rate); #endif
-    */
-}
+    for (int c = 0; c < fFactory->fDecoder->getNumInputs(); ++c) {
+        memcpy(fInputs[c], inputs[c], sizeof(FAUSTFLOAT) * count);
+    }
 
-LIBFAUST_API void wasm_dsp::instanceConstants(int sample_rate)
-{
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceConstants($1, $2);
-    }, fFactory->fInstance, fDSP, sample_rate); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.instanceConstants($1, $2); }, fFactory->fInstance,
-    fDSP, sample_rate); #endif
-    */
-}
+    wasmtime_val_t a[4];
+    a[0].kind   = WASM_I32;
+    a[0].of.i32 = 0;
+    a[1].kind   = WASM_I32;
+    a[1].of.i32 = count;
+    a[2].kind   = WASM_I32;
+    a[2].of.i32 = fWasmInputs;
+    a[3].kind   = WASM_I32;
+    a[3].of.i32 = fWasmOutputs;
 
-LIBFAUST_API void wasm_dsp::instanceResetUserInterface()
-{
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceResetUserInterface($1);
-    }, fFactory->fInstance, fDSP); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.instanceResetUserInterface($1); },
-    fFactory->fInstance, fDSP); #endif
-    */
-}
+    wasm_trap_t*      trap = nullptr;
+    wasmtime_error_t* err = wasmtime_func_call(CTX(fStore), &fComputeFunc, a, 4, nullptr, 0, &trap);
+    exit_on_error("compute", err, trap);
 
-LIBFAUST_API void wasm_dsp::instanceClear()
-{
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({
-    AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceClear($1); },
-    fFactory->fInstance, fDSP); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.instanceClear($1); }, fFactory->fInstance, fDSP);
-    #endif
-    */
-}
-
-LIBFAUST_API wasm_dsp* wasm_dsp::clone()
-{
-    return fFactory->createDSPInstance();
-}
-
-LIBFAUST_API void wasm_dsp::metadata(Meta* m)
-{
-    fFactory->getDecoder()->metadata(m);
-}
-
-LIBFAUST_API void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
-{
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.compute($1,
-    $2, $3, $4); }, fFactory->fInstance, fDSP, count, inputs, outputs); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fFactory->fInstance,
-    fDSP, count, inputs, outputs); #endif
-    */
-}
-
-LIBFAUST_API void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-{
-    /* Deactivated for 'wasm' branch version
-    #ifdef AUDIO_WORKLET
-        EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.compute($1,
-    $2, $3, $4); }, fFactory->fInstance, fDSP, count, reinterpret_cast<uintptr_t>(inputs),
-    reinterpret_cast<uintptr_t>(outputs)); #else EM_ASM({
-    faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fFactory->fInstance,
-    fDSP, count, reinterpret_cast<uintptr_t>(inputs), reinterpret_cast<uintptr_t>(outputs)); #endif
-    */
-}
-
-LIBFAUST_API void wasm_dsp::setParamValue(const string& path, FAUSTFLOAT value)
-{
-    fFactory->fMapUI.setParamValue(path, value);
-}
-
-LIBFAUST_API FAUSTFLOAT wasm_dsp::getParamValue(const string& path)
-{
-    return fFactory->fMapUI.getParamValue(path);
-}
-
-EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
-{
-    class_<wasm_dsp_factory>("wasm_dsp_factory")
-        .constructor()
-        .function("createDSPInstance", &wasm_dsp_factory::createDSPInstance, allow_raw_pointers())
-        .function("deleteDSPInstance", &wasm_dsp_factory::deleteDSPInstance, allow_raw_pointers())
-        .class_function("readWasmDSPFactoryFromMachineFile2",
-                        &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2, allow_raw_pointers())
-        .class_function("readWasmDSPFactoryFromMachine2",
-                        &wasm_dsp_factory::readWasmDSPFactoryFromMachine2, allow_raw_pointers())
-        .class_function("createWasmDSPFactory", &wasm_dsp_factory::createWasmDSPFactory,
-                        allow_raw_pointers())
-        .class_function("deleteWasmDSPFactory", &wasm_dsp_factory::deleteWasmDSPFactory2,
-                        allow_raw_pointers())
-        .class_function("getErrorMessage", &wasm_dsp_factory::getErrorMessage)
-        .class_function("extractJSON", &wasm_dsp_factory::extractJSON, allow_raw_pointers());
-}
-
-EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)
-{
-    class_<wasm_dsp>("wasm_dsp")
-        .constructor()
-        // DSP API
-        .function("getNumInputs", &wasm_dsp::getNumInputs, allow_raw_pointers())
-        .function("getNumOutputs", &wasm_dsp::getNumOutputs, allow_raw_pointers())
-        .function("getSampleRate", &wasm_dsp::getSampleRate, allow_raw_pointers())
-        .function("init", &wasm_dsp::init, allow_raw_pointers())
-        .function("instanceInit", &wasm_dsp::instanceInit, allow_raw_pointers())
-        .function("instanceConstants", &wasm_dsp::instanceConstants, allow_raw_pointers())
-        .function("instanceResetUserInterface", &wasm_dsp::instanceResetUserInterface,
-                  allow_raw_pointers())
-        .function("instanceClear", &wasm_dsp::instanceClear, allow_raw_pointers())
-        .function("clone", &wasm_dsp::clone, allow_raw_pointers())
-        .function("compute", &wasm_dsp::computeJS, allow_raw_pointers())
-        // Additional JSON based API
-        .function("setParamValue", &wasm_dsp::setParamValue, allow_raw_pointers())
-        .function("getParamValue", &wasm_dsp::getParamValue, allow_raw_pointers());
+    for (int c = 0; c < fFactory->fDecoder->getNumOutputs(); ++c) {
+        memcpy(outputs[c], fOutputs[c], sizeof(FAUSTFLOAT) * count);
+    }
 }
 
 #else
-
-LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(int instance, const string& json)
-{
-    fFactory  = nullptr;
-    fInstance = instance;
-    fDecoder  = createJSONUIDecoder(json);
-}
-
-LIBFAUST_API wasm_dsp_factory::~wasm_dsp_factory()
-{
-    delete fFactory;
-    delete fDecoder;
-}
-
-LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int           instance,
-                                                                      const string& json)
-{
-    return nullptr;
-}
-
-LIBFAUST_API string wasm_dsp_factory::extractJSON(const string& code)
-{
-    return "";
-}
-
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const string& machine_code,
-                                                             string&       error_msg)
-{
-    return nullptr;
-}
-
-LIBFAUST_API string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory)
-{
-    return "";
-}
-
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& machine_code_path,
-                                                                 string&       error_msg)
-{
-    return nullptr;
-}
-
-LIBFAUST_API void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory,
-                                                   const string&     machine_code_path)
-{
-}
-
-LIBFAUST_API wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
-{
-}
-
-LIBFAUST_API wasm_dsp::~wasm_dsp()
-{
-    wasm_dsp_factory::gWasmFactoryTable.removeDSP(fFactory, this);
-}
-
-LIBFAUST_API int wasm_dsp::getNumInputs()
-{
-    return -1;
-}
-
-LIBFAUST_API int wasm_dsp::getNumOutputs()
-{
-    return -1;
-}
-
-LIBFAUST_API void wasm_dsp::buildUserInterface(UI* ui_interface)
-{
-}
-
-LIBFAUST_API int wasm_dsp::getSampleRate()
-{
-    return -1;
-}
-
-LIBFAUST_API void wasm_dsp::init(int sample_rate)
-{
-}
-
-LIBFAUST_API void wasm_dsp::instanceInit(int sample_rate)
-{
-}
-
-LIBFAUST_API void wasm_dsp::instanceConstants(int sample_rate)
-{
-}
-
-LIBFAUST_API void wasm_dsp::instanceResetUserInterface()
-{
-}
-
-LIBFAUST_API void wasm_dsp::instanceClear()
-{
-}
-
-LIBFAUST_API wasm_dsp* wasm_dsp::clone()
-{
-    return nullptr;
-}
-
-LIBFAUST_API void wasm_dsp::metadata(Meta* m)
-{
-}
-
-LIBFAUST_API void wasm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
-{
-}
-
-LIBFAUST_API void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t output)
-{
-}
-
-LIBFAUST_API void wasm_dsp::setParamValue(const string& path, FAUSTFLOAT value)
-{
-}
-
-LIBFAUST_API FAUSTFLOAT wasm_dsp::getParamValue(const string& path)
-{
-    return -1;
-}
-
-#endif
 
 LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory)
 {
@@ -596,31 +693,11 @@ LIBFAUST_API void wasm_dsp_factory::deleteDSPInstance(wasm_dsp* dsp)
     delete dsp;
 }
 
+#endif
+
 // Static constructor
 
 string wasm_dsp_factory::gErrorMessage = "";
-
-LIBFAUST_API const string& wasm_dsp_factory::getErrorMessage()
-{
-    return wasm_dsp_factory::gErrorMessage;
-}
-
-LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2(
-    const string& machine_code_path)
-{
-    return readWasmDSPFactoryFromMachineFile(machine_code_path, wasm_dsp_factory::gErrorMessage);
-}
-
-LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(
-    const string& machine_code)
-{
-    return readWasmDSPFactoryFromMachine(machine_code, wasm_dsp_factory::gErrorMessage);
-}
-
-LIBFAUST_API bool wasm_dsp_factory::deleteWasmDSPFactory2(wasm_dsp_factory* factory)
-{
-    return (factory) ? wasm_dsp_factory::gWasmFactoryTable.deleteDSPFactory(factory) : false;
-}
 
 // C++ API
 
@@ -633,3 +710,4 @@ LIBFAUST_API void deleteAllWasmDSPFactories()
 {
     wasm_dsp_factory::gWasmFactoryTable.deleteAllDSPFactories();
 }
+

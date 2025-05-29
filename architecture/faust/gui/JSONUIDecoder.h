@@ -31,6 +31,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <functional>
+#include <cstring>  
 
 #include "faust/gui/CGlue.h"
 #include "faust/gui/meta.h"
