@@ -31,20 +31,22 @@
 #include <cstring>
 #include <libgen.h>
 
+#define BUFFER 1
 #define BUFFER_SIZE 64
+
+#define REAL_TIME 1
 
 using namespace std;
 
 //std::string dsp_code = "process = 1,2;";
 //std::string dsp_code = "process = 1.5,2.6;";
 //std::string dsp_code = "process = _ <: _+1.5, _+2.6;";
-//std::string dsp_code = "process = _ <: (_+1.5, _+2.6) : (sin, cos);";
+std::string dsp_code = "process = _ <: (_+1.5, _+2.6) : (sin, cos);";
 //std::string dsp_code = "process = sin;";
 //std::string dsp_code = "process = @(5);";
 //std::string dsp_code = "process = _ <: @(5), @(10);";
 //std::string dsp_code = "process = _&_;";
-
-std::string dsp_code = "process = 1 : + ~ _;";
+//std::string dsp_code = "process = 1 : + ~ _;";
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -90,26 +92,7 @@ int main(int argc, char* argv[])
     
     DSP->init(44100);
      
-    /*
-    FAUSTFLOAT* inputs[DSP->getNumInputs()];
-    for (int chan = 0; chan < DSP->getNumInputs(); chan++) {
-        inputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * BUFFER_SIZE);
-        memset(inputs[chan], 0, sizeof(FAUSTFLOAT) * BUFFER_SIZE);
-    }
-    FAUSTFLOAT* outputs[DSP->getNumOutputs()];
-    for (int chan = 0; chan < DSP->getNumOutputs(); chan++) {
-        outputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * BUFFER_SIZE);
-    }
-    DSP->compute(BUFFER_SIZE, inputs, outputs);
-    for (int chan = 0; chan < DSP->getNumOutputs(); chan++) {
-        for (int frame = 0; frame < BUFFER_SIZE/2; frame++) {
-            cout << "chan[" << chan << "]frame[" << frame << "] = " << outputs[chan][frame] << endl;
-        }
-    }
-    cout << "Type a key\n";
-    char c = getchar();
-    */
-    
+#ifdef REAL_TIME
     char name[256];
     char filename[256];
     
@@ -119,6 +102,7 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(gui);
     
     coreaudio audio(44100, 512);
+    
     if (!audio.init(name, DSP)) {
         cerr << "Unable to init audio" << endl;
         exit(1);
@@ -131,6 +115,29 @@ int main(int argc, char* argv[])
     
     gui->run();
     audio.stop();
+#else
+    FAUSTFLOAT* inputs[DSP->getNumInputs()];
+    for (int chan = 0; chan < DSP->getNumInputs(); chan++) {
+        inputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * BUFFER_SIZE);
+        memset(inputs[chan], 0, sizeof(FAUSTFLOAT) * BUFFER_SIZE);
+    }
+    FAUSTFLOAT* outputs[DSP->getNumOutputs()];
+    for (int chan = 0; chan < DSP->getNumOutputs(); chan++) {
+        outputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * BUFFER_SIZE);
+    }
+    
+    for (int buffer = 0; buffer < BUFFER; buffer++) {
+        DSP->compute(BUFFER_SIZE, inputs, outputs);
+        cout << "================================\n";
+        for (int chan = 0; chan < DSP->getNumOutputs(); chan++) {
+            for (int frame = 0; frame < BUFFER_SIZE; frame++) {
+                cout << "chan[" << chan << "] frame[" << frame << "] = " << outputs[chan][frame] << endl;
+            }
+        }
+    }
+    cout << "Type a key\n";
+    char c = getchar();
+#endif
     
     delete DSP;
     deleteSignalDSPFactory(factory);

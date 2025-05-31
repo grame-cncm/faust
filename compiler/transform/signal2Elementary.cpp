@@ -124,23 +124,6 @@ void Signal2Elementary::visit(Tree sig)
         return;
     }
 
-    // Doc
-    else if (isSigDocConstantTbl(sig, x, y)) {
-        self(x);
-        self(y);
-        return;
-    } else if (isSigDocWriteTbl(sig, x, y, u, v)) {
-        self(x);
-        self(y);
-        self(u);
-        self(v);
-        return;
-    } else if (isSigDocAccessTbl(sig, x, y)) {
-        self(x);
-        self(y);
-        return;
-    }
-
     // Select2 (and Select3 expressed with Select2)
     else if (isSigSelect2(sig, sel, x, y)) {
         self(sel);
@@ -225,11 +208,6 @@ void Signal2Elementary::visit(Tree sig)
         return;
     } else if (isSigControl(sig, x, y)) {
         self(x), self(y);
-        return;
-    }
-
-    else if (isSigRegister(sig, &i, x)) {
-        self(x);
         return;
     }
 

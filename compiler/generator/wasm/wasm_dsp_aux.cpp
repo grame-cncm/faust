@@ -462,8 +462,8 @@ void wasm_dsp::instanceResetUserInterface()
 void wasm_dsp::instanceClear()
 {
     wasmtime_extern_t ext;
-    wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceClear",
-                                                        strlen("instanceClear"), &ext);
+    wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceClear", strlen("instanceClear"),
+                                 &ext);
     wasmtime_val_t arg{.kind = WASM_I32, .of = {.i32 = 0}};
     wasm_trap_t*   trap = nullptr;
     wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);

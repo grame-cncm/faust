@@ -1,41 +1,45 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2024 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.
+ FAUST compiler
+ Copyright (C) 2024 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
 
 #pragma once
 
+#include <algorithm>
 #include <cstdlib>
 #include <fstream>
 #include <iterator>
 #include <map>
 #include <stack>
+#include <string>
+#include <vector>
 
 #ifndef FAUSTFLOAT
-#define FAUSTFLOAT double
-// #define FAUSTFLOAT float
+// #define FAUSTFLOAT double
+#define FAUSTFLOAT float
 #endif
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
 
 #include "Text.hh"
+#include "description.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
 #include "signalVisitor.hh"
@@ -46,42 +50,82 @@
 //----------------------------------------------------------------------
 
 /**
- * @brief A buffer of a given type to implement delay lines.
- *
- * @tparam TYPE
- */
-template <class TYPE>
-struct DelayedSig {
-    std::vector<TYPE> fBuffer;
-
-    // Default constructor
-    DelayedSig() : fBuffer() {}
-    DelayedSig(int size) { resize(size); }
-
-    void resize(int size) { fBuffer.resize(size, TYPE(0)); }
-    int  size() { return int(fBuffer.size()); }
-
-    TYPE read(int index) { return fBuffer[index & (size() - 1)]; }
-    void write(int index, TYPE value) { fBuffer[index & (size() - 1)] = value; }
-
-    // Method to reset fBuffer content to 0
-    void reset() { std::fill(fBuffer.begin(), fBuffer.end(), TYPE(0)); }
-};
-
-inline bool isZeroDelay(Tree sig)
-{
-    Type     ty = getCertifiedSigType(sig);
-    interval it = ty->getInterval();
-    return (it.hi() == 0.0);
-}
-
-/**
- * @brief Define a renderer to render a signal.
+ * @brief Define a renderer to interpret a signal.
  *
  * @tparam REAL
  */
 template <class REAL>
 struct SignalRenderer : public SignalVisitor {
+    // Utility
+    inline bool isZeroDelay(Tree sig)
+    {
+        Type     ty = getCertifiedSigType(sig);
+        interval it = ty->getInterval();
+        return (it.hi() == 0.0);
+    }
+
+    /**
+     * @brief A buffer of a given type to implement delay lines.
+     *
+     * @tparam TYPE
+     */
+    template <class TYPE>
+    struct DelayedSig {
+        std::vector<TYPE> fBuffer;
+
+        // Default constructor
+        DelayedSig() : fBuffer() {}
+        DelayedSig(int size) { resize(size); }
+
+        void resize(int size) { fBuffer.resize(size, TYPE(0)); }
+        int  size() const { return int(fBuffer.size()); }  // Made const
+
+        TYPE read(int index) { return fBuffer[index & (size() - 1)]; }
+        void write(int index, TYPE value) { fBuffer[index & (size() - 1)] = value; }
+
+        // Method to reset fBuffer content to 0
+        void reset() { std::fill(fBuffer.begin(), fBuffer.end(), TYPE(0)); }
+    };
+
+    /**
+     * @brief A buffer of a given type to implement tables.
+     *
+     * @tparam TYPE
+     */
+    template <class TYPE>
+    struct TableData {
+        std::vector<TYPE> fData;
+
+        TableData() : fData() {}
+        TableData(int size_val) { resize(size_val); }
+
+        void resize(int size_val) { fData.resize(size_val, TYPE(0)); }
+        int  size() const { return int(fData.size()); }  // Made const
+
+        TYPE read(int index)
+        {
+            // Simple wrap-around for positive and negative indices
+            int s             = size();
+            int wrapped_index = index % s;
+            if (wrapped_index < 0) {
+                wrapped_index += s;
+            }
+            return fData[wrapped_index];
+        }
+
+        void write(int index, TYPE value)
+        {
+            int s             = size();
+            int wrapped_index = index % s;
+            if (wrapped_index < 0) {
+                wrapped_index += s;
+            }
+            fData[wrapped_index] = value;
+        }
+
+        void fill(TYPE val) { std::fill(fData.begin(), fData.end(), val); }
+    };
+
     // Keep input controls
     struct inputControl {
         enum type { kButton, kCheckbutton, kVslider, kHslider, kNumEntry } fType;
@@ -112,39 +156,67 @@ struct SignalRenderer : public SignalVisitor {
             : fType(type), fLabel(label), fMin(min), fMax(max)
         {
         }
+
+        void setValue(REAL val) { fZone = static_cast<FAUSTFLOAT>(val); }
     };
 
     /**
-     * @brief Build delay lines.
+     * @brief Build delay lines (for real ones and recursions) and tables
+     * and keep input and output controls.
      *
      * @tparam REAL
      */
     struct SignalBuilder : public SignalVisitor {
         std::map<Tree, DelayedSig<int>>&  fIntDelays;
         std::map<Tree, DelayedSig<REAL>>& fRealDelays;
+        std::map<Tree, TableData<int>>&   fIntTables;
+        std::map<Tree, TableData<REAL>>&  fRealTables;
         std::map<Tree, inputControl>&     fInputControls;
         std::map<Tree, outputControl>&    fOutputControls;
         int&                              fNumInputs;
 
-        void allocateDelayLine(Tree x, Tree y)
+        /**
+         * @brief Allocates or resizes a delay line for a given signal. All delay lines have a
+         * power-of-two size and the IOTA based global index access.
+         *
+         * This method is responsible for ensuring that a delay line (either integer or REAL-valued)
+         * exists and is of sufficient size for the signal `x`. The maximum delay amount is
+         * determined by the `y_delay` tree, which represents the signal controlling
+         * the delay length.
+         *
+         * The nature of the signal `x` (integer or real) determines whether an `fIntDelays`
+         * or `fRealDelays` entry is used. The size of the delay line buffer is calculated
+         * using `pow2limit(max_delay + 1)` to ensure it's a power of two, which is
+         * efficient for circular buffer implementations using bitwise AND for indexing.
+         *
+         * If a delay line for `x` already exists, its size is compared with the newly
+         * required size (`N`), and it's resized if `N` is larger. If it doesn't exist,
+         * a new `DelayedSig` buffer is created and stored in the appropriate map
+         * (`fIntDelays` or `fRealDelays`) with `x` as the key.
+         *
+         * @param x The signal tree node that identifies the signal requiring the delay line.
+         * The type of this signal (int or real) determines the type of the delay buffer.
+         * @param y_delay The signal tree node representing the delay amount.
+         * The interval analysis of this signal (`it.hi()`) provides the
+         * maximum required delay length.
+         */
+        void allocateDelayLine(Tree x, Tree y_delay)
         {
-            Type     ty     = getCertifiedSigType(y);
-            int      nature = getCertifiedSigType(x)->nature();
-            interval it     = ty->getInterval();
-            int      N      = pow2limit(it.hi() + 1);
+            Type ty     = getCertifiedSigType(y_delay);
+            int  nature = getCertifiedSigType(x)->nature();  // Nature of the signal being delayed
+            interval it = ty->getInterval();                 // Interval of the delay amount signal
+            int      N  = pow2limit(it.hi() + 1);            // Max delay rounded up to power of 2
 
             if (nature == kInt) {
                 if (fIntDelays.find(x) == fIntDelays.end()) {
                     fIntDelays[x] = DelayedSig<int>(N);
                 } else {
-                    // Update existing DelayedSig
                     fIntDelays[x].resize(std::max(int(fIntDelays[x].size()), N));
                 }
-            } else {
+            } else {  // kReal or other numeric types default to REAL
                 if (fRealDelays.find(x) == fRealDelays.end()) {
                     fRealDelays[x] = DelayedSig<REAL>(N);
                 } else {
-                    // Update existing DelayedSig
                     fRealDelays[x].resize(std::max(int(fRealDelays[x].size()), N));
                 }
             }
@@ -152,54 +224,110 @@ struct SignalRenderer : public SignalVisitor {
 
         SignalBuilder(std::map<Tree, DelayedSig<int>>&  int_delays,
                       std::map<Tree, DelayedSig<REAL>>& real_delays,
+                      std::map<Tree, TableData<int>>&   int_tables,
+                      std::map<Tree, TableData<REAL>>&  real_tables,
                       std::map<Tree, inputControl>&     inputs_control,
                       std::map<Tree, outputControl>& outputs_control, int& inputs)
             : fIntDelays(int_delays),
               fRealDelays(real_delays),
+              fIntTables(int_tables),
+              fRealTables(real_tables),
               fInputControls(inputs_control),
               fOutputControls(outputs_control),
               fNumInputs(inputs)
         {
         }
 
-        void visit(Tree sig)
+        void visit(Tree sig) override
         {
             Tree path, c, x, y, z;
+            Tree table_size_tree, table_gen_tree, table_wi_tree, table_ws_tree;
+            Tree rec_expr_tree, rec_var_list, rec_expr_list;  // For isProj/isRec
+            int  proj_idx_val;
 
-            if (int input; isSigInput(sig, &input)) {
+            if (int input_idx; isSigInput(sig, &input_idx)) {
                 fNumInputs++;
             } else if (isSigDelay1(sig, x)) {
-                allocateDelayLine(x, tree(1));
+                allocateDelayLine(x, tree(1));  // Delay of 1 sample
                 SignalVisitor::visit(sig);
             } else if (isSigDelay(sig, x, y)) {
-                allocateDelayLine(x, y);
+                allocateDelayLine(x, y);  // y is the delay amount signal
+                SignalVisitor::visit(sig);
+            } else if (isProj(sig, &proj_idx_val, rec_expr_tree) &&
+                       isRec(rec_expr_tree, rec_var_list, rec_expr_list)) {
+                // This projection 'sig' represents a recursive variable's state.
+                // It implicitly requires a 1-sample delay buffer.
+                // The delay amount for recursion is 1 sample.
+                allocateDelayLine(sig, tree(1));
+                SignalVisitor::visit(sig);  // Continue visiting children of the projection
+            } else if (isSigWRTbl(sig, table_size_tree, table_gen_tree, table_wi_tree,
+                                  table_ws_tree)) {
+                int    table_s_val        = 0;
+                double table_s_double_val = 0.0;  // Use different variable for double
+                bool   size_is_const_int  = false;
+
+                if (isSigInt(table_size_tree, &table_s_val)) {
+                    size_is_const_int = true;
+                } else if (isSigReal(table_size_tree, &table_s_double_val)) {
+                    table_s_val = static_cast<int>(table_s_double_val);  // Convert double to int
+                    size_is_const_int = true;                            // Assume it's a valid size
+                }
+
+                if (size_is_const_int && table_s_val > 0) {
+                    // Determine content type from 'gen_tree' (if rdtable) or 'ws_tree' (if rwtable)
+                    Type content_type =
+                        getCertifiedSigType(isNil(table_wi_tree) ? table_gen_tree : table_ws_tree);
+                    if (content_type->nature() == kInt) {
+                        if (fIntTables.find(sig) == fIntTables.end()) {
+                            fIntTables[sig] = TableData<int>(table_s_val);
+                        } else {
+                            fIntTables[sig].resize(
+                                std::max(int(fIntTables[sig].size()), table_s_val));
+                        }
+                    } else {  // Default to REAL for kReal, kFloat, etc.
+                        if (fRealTables.find(sig) == fRealTables.end()) {
+                            fRealTables[sig] = TableData<REAL>(table_s_val);
+                        } else {
+                            fRealTables[sig].resize(
+                                std::max(int(fRealTables[sig].size()), table_s_val));
+                        }
+                    }
+                } else {
+                    // Consider logging a warning if table size is not a positive constant integer
+                    std::cerr << "Warning: Table " << tree2str(sig)
+                              << " size is not a positive constant integer." << std::endl;
+                }
                 SignalVisitor::visit(sig);
             } else if (isSigButton(sig, path)) {  // UI
-                fInputControls[sig] =
-                    inputControl(inputControl::kButton, tree2str(hd(path)), 0, 0, 1, 1);
+                fInputControls[sig] = inputControl(inputControl::kButton,
+                                                   removeMetadata(tree2str(hd(path))), 0, 0, 1, 1);
             } else if (isSigCheckbox(sig, path)) {
-                fInputControls[sig] =
-                    inputControl(inputControl::kCheckbutton, tree2str(hd(path)), 0, 0, 1, 1);
+                fInputControls[sig] = inputControl(inputControl::kCheckbutton,
+                                                   removeMetadata(tree2str(hd(path))), 0, 0, 1, 1);
             } else if (isSigVSlider(sig, path, c, x, y, z)) {
                 fInputControls[sig] =
-                    inputControl(inputControl::kVslider, tree2str(hd(path)), tree2double(c),
-                                 tree2double(x), tree2double(y), tree2double(z));
+                    inputControl(inputControl::kVslider, removeMetadata(tree2str(hd(path))),
+                                 tree2double(c), tree2double(x), tree2double(y), tree2double(z));
             } else if (isSigHSlider(sig, path, c, x, y, z)) {
                 fInputControls[sig] =
-                    inputControl(inputControl::kHslider, tree2str(hd(path)), tree2double(c),
-                                 tree2double(x), tree2double(y), tree2double(z));
+                    inputControl(inputControl::kHslider, removeMetadata(tree2str(hd(path))),
+                                 tree2double(c), tree2double(x), tree2double(y), tree2double(z));
             } else if (isSigNumEntry(sig, path, c, x, y, z)) {
                 fInputControls[sig] =
-                    inputControl(inputControl::kNumEntry, tree2str(hd(path)), tree2double(c),
-                                 tree2double(x), tree2double(y), tree2double(z));
-            } else if (isSigVBargraph(sig, path, x, y, z)) {
-                fOutputControls[sig] = outputControl(outputControl::kVbargraph, tree2str(hd(path)),
-                                                     tree2double(x), tree2double(y));
-                SignalVisitor::visit(sig);
-            } else if (isSigHBargraph(sig, path, x, y, z)) {
-                fOutputControls[sig] = outputControl(outputControl::kHbargraph, tree2str(hd(path)),
-                                                     tree2double(x), tree2double(y));
-                SignalVisitor::visit(sig);
+                    inputControl(inputControl::kNumEntry, removeMetadata(tree2str(hd(path))),
+                                 tree2double(c), tree2double(x), tree2double(y), tree2double(z));
+            } else if (isSigVBargraph(sig, path, x, y,
+                                      z)) {  // z is the input signal to the bargraph
+                fOutputControls[sig] =
+                    outputControl(outputControl::kVbargraph, removeMetadata(tree2str(hd(path))),
+                                  tree2double(x), tree2double(y));
+                SignalVisitor::visit(sig);  // Visit children (i.e., the input signal z)
+            } else if (isSigHBargraph(sig, path, x, y,
+                                      z)) {  // z is the input signal to the bargraph
+                fOutputControls[sig] =
+                    outputControl(outputControl::kHbargraph, removeMetadata(tree2str(hd(path))),
+                                  tree2double(x), tree2double(y));
+                SignalVisitor::visit(sig);  // Visit children (i.e., the input signal z)
             } else {
                 // Other cases
                 SignalVisitor::visit(sig);
@@ -211,14 +339,31 @@ struct SignalRenderer : public SignalVisitor {
     SignalRenderer() = default;
     SignalRenderer(Tree lsig) : fOutputSig(lsig)
     {
-        // Build delay lines and inputs/outputs control
-        SignalBuilder builder(fIntDelays, fRealDelays, fInputControls, fOutputControls, fNumInputs);
+        // Build delay lines and recursions, tables and inputs/outputs control
+        SignalBuilder builder(fIntDelays, fRealDelays, fIntTables, fRealTables, fInputControls,
+                              fOutputControls, fNumInputs);
         builder.visitRoot(fOutputSig);
     }
 
     // Do not check already visited
     void self(Tree sig) override { visit(sig); }
 
+    /**
+     * @brief Writes a value to a delay line and reads a delayed value.
+     *
+     * This function first writes the current input value (`v1`) to the delay line
+     * associated with the signal tree `x` at the current time `fIOTA`.
+     * Then, it reads a value from the same delay line that was written `v2` samples ago
+     * (i.e., at `fIOTA - v2.getInt()`).
+     * The type of delay line (integer or REAL) is determined by checking `fIntDelays` and
+     * `fRealDelays` maps.
+     *
+     * @param x The signal tree node representing the delay line's identity.
+     * @param v1 The Node containing the current value to write to the delay line.
+     * @param v2 The Node containing the delay amount in samples.
+     * @return Node The value read from the delay line. Returns Node(0) if delay line not found
+     * (should not happen if allocated).
+     */
     Node writeReadDelay(Tree x, Node& v1, Node& v2)
     {
         if (fIntDelays.count(x) > 0) {
@@ -228,11 +373,24 @@ struct SignalRenderer : public SignalVisitor {
             fRealDelays[x].write(fIOTA, v1.getDouble());
             return Node(fRealDelays[x].read(fIOTA - v2.getInt()));
         } else {
-            faustassert(false);
+            faustassert(false);  // Should have been allocated by SignalBuilder
             return Node(0);
         }
     }
 
+    /**
+     * @brief Reads a delayed value from a delay line.
+     *
+     * This function reads a value from the delay line associated with signal tree `x`.
+     * The value read is the one that was written `v2` samples ago (i.e., at `fIOTA - v2.getInt()`).
+     * The type of delay line (integer or REAL) is determined by checking `fIntDelays` and
+     * `fRealDelays` maps.
+     *
+     * @param x The signal tree node representing the delay line's identity.
+     * @param v2 The Node containing the delay amount in samples.
+     * @return Node The value read from the delay line. Returns Node(0) if delay line not found
+     * (should not happen if allocated).
+     */
     Node readDelay(Tree x, Node& v2)
     {
         if (fIntDelays.count(x) > 0) {
@@ -240,21 +398,24 @@ struct SignalRenderer : public SignalVisitor {
         } else if (fRealDelays.count(x) > 0) {
             return Node(fRealDelays[x].read(fIOTA - v2.getInt()));
         } else {
-            faustassert(false);
+            faustassert(false);  // Should have been allocated by SignalBuilder
             return Node(0);
         }
     }
 
-    bool                             fVisitGen{false};  // wether to visit gen signal for tables
-    std::stack<Node>                 fValueStack;
-    std::map<Tree, DelayedSig<int>>  fIntDelays;
-    std::map<Tree, DelayedSig<REAL>> fRealDelays;
+    bool                             fVisitGen{false};  // whether to visit gen signal for tables
+    std::stack<Node>                 fValueStack;       // Interpreter stack of values
+    std::map<Tree, DelayedSig<int>>  fIntDelays;        // Delay lines for integer signals
+    std::map<Tree, DelayedSig<REAL>> fRealDelays;       // Delay lines for REAL signals
+    std::map<Tree, TableData<int>>   fIntTables;        // Table for integer signals
+    std::map<Tree, TableData<REAL>>  fRealTables;       // Table for REAL signals
+    std::map<Tree, bool>             fTableGenDone;     // Tracks if rdtable 'gen' has been run
     std::map<Tree, inputControl>     fInputControls;
     std::map<Tree, outputControl>    fOutputControls;
     int                              fNumInputs  = 0;
     int                              fSampleRate = -1;
     int                              fSample     = 0;
-    int                              fIOTA       = 0;
+    int                              fIOTA       = 0;  // Used as index counter for all delay lines
     FAUSTFLOAT**                     fInputs     = nullptr;
     Tree                             fOutputSig;
 
@@ -264,18 +425,31 @@ struct SignalRenderer : public SignalVisitor {
     {
         Node val = fValueStack.top();
         fValueStack.pop();
+        /*
+        if (global::isDebug("SIG_RENDERER")) {
+            std::cout << "popRes : " << val << std::endl;
+        }
+        */
         return val;
     }
 
     Node topRes() { return fValueStack.top(); }
 
-    void pushRes(Node node) { fValueStack.push(node); }
+    void pushRes(Node val)
+    {
+        /*
+        if (global::isDebug("SIG_RENDERER")) {
+            std::cout << "pushRes : " << val << std::endl;
+        }
+        */
+        fValueStack.push(val);
+    }
 
     virtual void visit(Tree t) override;
 };
 
 /**
- * @brief The signal\_dsp class is used to render signals.
+ * @brief The signal_dsp class is used to render signals.
  */
 
 struct signal_dsp : public dsp {
@@ -349,7 +523,7 @@ struct signal_dsp_aux : public signal_dsp {
 
     virtual void init(int sample_rate)
     {
-        // classInit(sample_rate);
+        // classInit(sample_rate); // Typically for static tables, handled by factory
         instanceInit(sample_rate);
     }
 
@@ -358,6 +532,8 @@ struct signal_dsp_aux : public signal_dsp {
         instanceConstants(sample_rate);
         instanceResetUserInterface();
         instanceClear();
+        // Potentially trigger one-time table generations if needed after sample rate is known
+        // However, fTableGenDone is managed within SignalRenderer::compute/visit
     }
 
     virtual void instanceClear()
@@ -368,6 +544,27 @@ struct signal_dsp_aux : public signal_dsp {
         for (auto& it : fRenderer.fRealDelays) {
             it.second.reset();
         }
+        // Resetting table contents might be desired by Faust's 'instanceClear' semantics
+        // For now, only resetting fTableGenDone to allow re-initialization if instanceClear is
+        // called and then compute is run again. Actual table data is not cleared here unless
+        // specified. Standard Faust behavior for `instanceClear` clears delay lines and resets UI
+        // elements to init. Table data (like rdtable) is usually considered part of the "constants"
+        // once generated. If rwtable, its state might be reset or not depending on detailed Faust
+        // semantics. Let's assume rdtable content persists, rwtable content persists unless
+        // explicitly cleared. Clearing fTableGenDone allows rdtable to re-generate if compute is
+        // called after instanceClear.
+        for (auto& it : fRenderer.fTableGenDone) {
+            it.second = false;  // Allow re-generation of rdtable content
+        }
+        // If tables should be zeroed:
+        /*
+         for (auto& it : fRenderer.fIntTables) {
+            it.second.fill(0);
+         }
+         for (auto& it : fRenderer.fRealTables) {
+            it.second.fill(REAL(0));
+         }
+         */
     }
 
     virtual void metadata(Meta* meta) {}
@@ -380,8 +577,9 @@ struct signal_dsp_aux : public signal_dsp {
 // External API
 
 struct signal_dsp_factory : public dsp_factory {
+    // Check that signal can be interpreted
     struct SignalChecker : public SignalVisitor {
-        void visit(Tree sig)
+        void visit(Tree sig) override
         {
             Tree ff, largs, name, type, file;
 
@@ -409,7 +607,6 @@ struct signal_dsp_factory : public dsp_factory {
     };
 
     Tree        fOutputSig;
-    bool        fIsDouble = false;
     std::string fCompileOptions;
 
     bool hasCompileOption(const std::string& option)
@@ -430,13 +627,11 @@ struct signal_dsp_factory : public dsp_factory {
         checker.visitRoot(fOutputSig);
 
         std::ostringstream oss;
-        std::copy(argv, argv + argc, std::ostream_iterator<std::string>(oss, " "));
-
-        // Get the resulting string and trim the trailing space
-        fCompileOptions = oss.str();
-        if (!fCompileOptions.empty()) {
-            fCompileOptions.pop_back();  // Remove the trailing space
+        // Correctly copy argv to oss
+        for (int i = 0; i < argc; ++i) {
+            oss << argv[i] << (i == argc - 1 ? "" : " ");
         }
+        fCompileOptions = oss.str();
     }
     virtual ~signal_dsp_factory() {}
 
@@ -467,12 +662,15 @@ struct signal_dsp_factory : public dsp_factory {
         if (hasCompileOption("-double")) {
             return new signal_dsp_aux<double>(fOutputSig);
         } else {
+            // Default to float if -double is not specified or FAUSTFLOAT is float
+            // The #ifndef FAUSTFLOAT block defaults to double, so this logic might need alignment
+            // For now, strictly follow -double flag. If not present, use float.
             return new signal_dsp_aux<float>(fOutputSig);
         }
     }
 
     /* Static tables initialization, possibly implemened in sub-classes*/
-    virtual void classInit(int sample_rate) {};
+    virtual void classInit(int sample_rate) {};  // This is typically for global/static tables
 
     /* Set a custom memory manager to be used when creating instances */
     virtual void setMemoryManager(dsp_memory_manager* manager) {}
