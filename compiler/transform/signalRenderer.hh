@@ -31,8 +31,8 @@
 #include <vector>
 
 #ifndef FAUSTFLOAT
-// #define FAUSTFLOAT double
-#define FAUSTFLOAT float
+ #define FAUSTFLOAT double
+//#define FAUSTFLOAT float
 #endif
 
 #include "faust/dsp/dsp.h"
@@ -241,7 +241,7 @@ struct SignalRenderer : public SignalVisitor {
         void visit(Tree sig) override
         {
             Tree path, c, x, y, z;
-            Tree table_size_tree, table_gen_tree, table_wi_tree, table_ws_tree;
+            Tree size_tree, gen_tree, wi_tree, ws_tree;
             Tree rec_expr_tree, rec_var_list, rec_expr_list;  // For isProj/isRec
             int  proj_idx_val;
 
@@ -260,43 +260,44 @@ struct SignalRenderer : public SignalVisitor {
                 // The delay amount for recursion is 1 sample.
                 allocateDelayLine(sig, tree(1));
                 SignalVisitor::visit(sig);  // Continue visiting children of the projection
-            } else if (isSigWRTbl(sig, table_size_tree, table_gen_tree, table_wi_tree,
-                                  table_ws_tree)) {
-                int    table_s_val        = 0;
-                double table_s_double_val = 0.0;  // Use different variable for double
-                bool   size_is_const_int  = false;
-
-                if (isSigInt(table_size_tree, &table_s_val)) {
-                    size_is_const_int = true;
-                } else if (isSigReal(table_size_tree, &table_s_double_val)) {
-                    table_s_val = static_cast<int>(table_s_double_val);  // Convert double to int
-                    size_is_const_int = true;                            // Assume it's a valid size
-                }
-
-                if (size_is_const_int && table_s_val > 0) {
-                    // Determine content type from 'gen_tree' (if rdtable) or 'ws_tree' (if rwtable)
-                    Type content_type =
-                        getCertifiedSigType(isNil(table_wi_tree) ? table_gen_tree : table_ws_tree);
-                    if (content_type->nature() == kInt) {
-                        if (fIntTables.find(sig) == fIntTables.end()) {
-                            fIntTables[sig] = TableData<int>(table_s_val);
-                        } else {
-                            fIntTables[sig].resize(
-                                std::max(int(fIntTables[sig].size()), table_s_val));
-                        }
-                    } else {  // Default to REAL for kReal, kFloat, etc.
-                        if (fRealTables.find(sig) == fRealTables.end()) {
-                            fRealTables[sig] = TableData<REAL>(table_s_val);
-                        } else {
-                            fRealTables[sig].resize(
-                                std::max(int(fRealTables[sig].size()), table_s_val));
-                        }
-                    }
+            } else if (isSigWRTbl(sig, size_tree, gen_tree, wi_tree, ws_tree)) {
+                int size_val = 0;
+                isSigInt(size_tree, &size_val);
+                Type content_type = getCertifiedSigType(isNil(wi_tree) ? gen_tree : ws_tree);
+                if (content_type->nature() == kInt) {
+                    std::cout << "fIntTables " << size_val << std::endl;
+                    fIntTables[sig] = TableData<int>(size_val);
                 } else {
-                    // Consider logging a warning if table size is not a positive constant integer
-                    std::cerr << "Warning: Table " << tree2str(sig)
-                              << " size is not a positive constant integer." << std::endl;
+                    std::cout << "fRealTables " << size_val << std::endl;
+                    fRealTables[sig] = TableData<REAL>(size_val);
                 }
+                
+                /*
+                 if (size_is_const_int && table_s_val > 0) {
+                 // Determine content type from 'gen_tree' (if rdtable) or 'ws_tree' (if rwtable)
+                 Type content_type = getCertifiedSigType(isNil(wi_tree) ? gen_tree : ws_tree);
+                 if (content_type->nature() == kInt) {
+                 if (fIntTables.find(sig) == fIntTables.end()) {
+                 fIntTables[sig] = TableData<int>(table_s_val);
+                 } else {
+                 fIntTables[sig].resize(
+                 std::max(int(fIntTables[sig].size()), table_s_val));
+                 }
+                 } else {  // Default to REAL for kReal, kFloat, etc.
+                 if (fRealTables.find(sig) == fRealTables.end()) {
+                 fRealTables[sig] = TableData<REAL>(table_s_val);
+                 } else {
+                 fRealTables[sig].resize(
+                 std::max(int(fRealTables[sig].size()), table_s_val));
+                 }
+                 }
+                 } else {
+                 // Consider logging a warning if table size is not a positive constant integer
+                 std::cerr << "Warning: Table " << tree2str(sig)
+                 << " size is not a positive constant integer." << std::endl;
+                 }
+                 */
+                
                 SignalVisitor::visit(sig);
             } else if (isSigButton(sig, path)) {  // UI
                 fInputControls[sig] = inputControl(inputControl::kButton,
@@ -403,20 +404,20 @@ struct SignalRenderer : public SignalVisitor {
         }
     }
 
-    bool                             fVisitGen{false};  // whether to visit gen signal for tables
+    bool                             fVisitGen{false};  // Whether to visit gen signal for tables
     std::stack<Node>                 fValueStack;       // Interpreter stack of values
     std::map<Tree, DelayedSig<int>>  fIntDelays;        // Delay lines for integer signals
     std::map<Tree, DelayedSig<REAL>> fRealDelays;       // Delay lines for REAL signals
     std::map<Tree, TableData<int>>   fIntTables;        // Table for integer signals
     std::map<Tree, TableData<REAL>>  fRealTables;       // Table for REAL signals
     std::map<Tree, bool>             fTableGenDone;     // Tracks if rdtable 'gen' has been run
-    std::map<Tree, inputControl>     fInputControls;
-    std::map<Tree, outputControl>    fOutputControls;
+    std::map<Tree, inputControl>     fInputControls;    // Inputs controls (sliders, nentry, button)
+    std::map<Tree, outputControl>    fOutputControls;   // Output controls (bargraph)
     int                              fNumInputs  = 0;
     int                              fSampleRate = -1;
-    int                              fSample     = 0;
-    int                              fIOTA       = 0;  // Used as index counter for all delay lines
-    FAUSTFLOAT**                     fInputs     = nullptr;
+    int                              fSample     = 0;   // Current sample in a buffer
+    int                              fIOTA       = 0;   // Used as index counter for all delay lines
+    FAUSTFLOAT**                     fInputs     = nullptr; // Set at each call of 'compute'
     Tree                             fOutputSig;
 
     void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
@@ -448,6 +449,36 @@ struct SignalRenderer : public SignalVisitor {
     virtual void visit(Tree t) override;
 };
 
+template <class REAL>
+struct SignalOptRenderer : public SignalRenderer<REAL> {
+    
+    SignalOptRenderer() = default;
+    SignalOptRenderer(Tree lsig) : SignalRenderer<REAL>(lsig)
+    {}
+    
+    std::map<Tree, Node> fValues;
+    
+    void visit(Tree sig)
+    {
+        if (fValues.find(sig) != fValues.end()) {
+            std::cout << "Reuse : " << fValues[sig] << "\n";
+            this->pushRes(fValues[sig]);
+        } else {
+            SignalRenderer<REAL>::visit(sig);
+            fValues[sig] = this->topRes();
+        }
+        
+        //SignalRenderer<REAL>::visit(sig);
+    }
+    
+    void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    {
+        fValues.clear();
+        SignalRenderer<REAL>::compute(count, inputs, outputs);
+    }
+     
+};
+
 /**
  * @brief The signal_dsp class is used to render signals.
  */
@@ -459,6 +490,7 @@ struct signal_dsp : public dsp {
 template <class REAL>
 struct signal_dsp_aux : public signal_dsp {
     SignalRenderer<REAL> fRenderer;
+    //SignalOptRenderer<REAL> fRenderer;
 
     signal_dsp_aux(Tree lsig) : fRenderer(lsig) {}
     virtual ~signal_dsp_aux() {}
@@ -544,6 +576,7 @@ struct signal_dsp_aux : public signal_dsp {
         for (auto& it : fRenderer.fRealDelays) {
             it.second.reset();
         }
+        fRenderer.fIOTA = 0;
         // Resetting table contents might be desired by Faust's 'instanceClear' semantics
         // For now, only resetting fTableGenDone to allow re-initialization if instanceClear is
         // called and then compute is run again. Actual table data is not cleared here unless

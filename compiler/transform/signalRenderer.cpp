@@ -30,7 +30,7 @@
 using namespace std;
 
 //-------------------------SignalRenderer-------------------------------
-// Render a signal.
+// Render a list of signals
 //----------------------------------------------------------------------
 
 template <class REAL>
@@ -60,9 +60,10 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
         int  chan        = 0;
         Tree output_list = fOutputSig;
 
+        fVisited.clear();  // Clear visited for each top-level signal evaluation per sample
+        
         while (!isNil(output_list)) {
-            fVisited.clear();  // Clear visited for each top-level signal evaluation per sample
-            // Render each output
+            // Render each output in 'chan'
             Tree out_sig = hd(output_list);
             self(out_sig);
             // Get the result which can contain an integer or REAL value
@@ -91,7 +92,7 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
             output_list = tl(output_list);
         }
 
-        // Increment the delay lines shared index
+        // Increment the delay lines and Waveforms shared index
         fIOTA++;
     }
 }
@@ -108,11 +109,11 @@ void SignalRenderer<REAL>::visit(Tree sig)
     int     opt_op;
     int     proj_idx_val;  // For isProj
 
-    /*
+    
     if (global::isDebug("SIG_RENDERER")) {
         std::cout << "SignalRenderer : " << ppsig(sig, 64) << std::endl;
     }
-    */
+    
 
     xtended* xt = (xtended*)getUserData(sig);
     if (xt) {
@@ -129,12 +130,6 @@ void SignalRenderer<REAL>::visit(Tree sig)
         pushRes(i64_val);
     } else if (isSigReal(sig, &r_val)) {
         pushRes(r_val);
-    } else if (isSigWaveform(sig)) {
-        // Assuming waveform data is read via RDTbl after being defined by WRTbl.
-        // If encountered directly, it might be an uninitialized table or a type tag.
-        // Pushing a default value (0) if it's expected to produce a signal.
-        // This behavior might need refinement based on how Faust processes 'waveform'.
-        pushRes(Node(0));
     } else if (isSigInput(sig, &i_val)) {
         pushRes(fInputs[i_val][fSample]);
     } else if (isSigOutput(sig, &i_val, x_tree)) {
@@ -301,6 +296,10 @@ void SignalRenderer<REAL>::visit(Tree sig)
         } else {
             pushRes(Node(0));
         }
+    } else if (isSigWaveform(sig)) {
+        int size = sig->arity();
+        int index = fIOTA % size;
+        self(sig->branch(index));
     } else if (isProj(sig, &proj_idx_val, x_tree)) {
         Tree rec_vars, rec_exprs;
         isRec(x_tree, rec_vars, rec_exprs);
@@ -446,11 +445,13 @@ signal_dsp_factory* createSignalDSPFactoryFromString(const string& name_app,
     createLibContext();
 
     try {
+        // Using the DSP to Box API
         int  inputs = 0, outputs = 0;
         Tree box = DSPToBoxes(name_app, dsp_content, argc, argv, &inputs, &outputs, error_msg);
         if (!box) {
             goto error;
         }
+        // Then the Box to Signal API
         tvec signals = boxesToSignals(box, error_msg);
         if (signals.empty()) {
             goto error;

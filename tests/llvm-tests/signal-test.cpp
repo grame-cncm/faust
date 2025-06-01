@@ -34,7 +34,7 @@
 #define BUFFER 1
 #define BUFFER_SIZE 64
 
-#define REAL_TIME 1
+//#define REAL_TIME 1
 
 using namespace std;
 
