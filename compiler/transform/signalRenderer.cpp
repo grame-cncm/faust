@@ -61,7 +61,7 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
         Tree output_list = fOutputSig;
 
         fVisited.clear();  // Clear visited for each top-level signal evaluation per sample
-        
+
         while (!isNil(output_list)) {
             // Render each output in 'chan'
             Tree out_sig = hd(output_list);
@@ -73,7 +73,7 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
                 /*
                 if (global::isDebug("SIG_RENDERER")) {
                     std::cout << "========================\n";
-                    std::cout << "Output : " << static_cast<FAUSTFLOAT>(res.getInt()) << std::endl;
+                    std::cout << "Output INT : " << fSample << " " << static_cast<FAUSTFLOAT>(res.getInt()) << std::endl;
                     std::cout << "========================\n";
                 }
                 */
@@ -82,7 +82,7 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
                 /*
                 if (global::isDebug("SIG_RENDERER")) {
                     std::cout << "========================\n";
-                    std::cout << "Output : " << static_cast<FAUSTFLOAT>(res.getDouble())
+                    std::cout << "Output REAL : " << fSample << " " << static_cast<FAUSTFLOAT>(res.getDouble())
                               << std::endl;
                     std::cout << "========================\n";
                 }
@@ -109,12 +109,12 @@ void SignalRenderer<REAL>::visit(Tree sig)
     int     opt_op;
     int     proj_idx_val;  // For isProj
 
-    
+    /*
     if (global::isDebug("SIG_RENDERER")) {
         std::cout << "SignalRenderer : " << ppsig(sig, 64) << std::endl;
     }
+     */
     
-
     xtended* xt = (xtended*)getUserData(sig);
     if (xt) {
         vector<Node> args;
@@ -144,10 +144,10 @@ void SignalRenderer<REAL>::visit(Tree sig)
     } else if (isSigDelay(sig, x_tree, y_tree)) {
         if (isZeroDelay(y_tree)) {
             /*
-            if (global::isDebug("SIG_RENDERER")) {
-                std::cout << "SignalRenderer::isZeroDelay\n";
-            }
-            */
+             if (global::isDebug("SIG_RENDERER")) {
+             std::cout << "SignalRenderer::isZeroDelay\n";
+             }
+             */
             self(x_tree);
         } else {
             self(x_tree);
@@ -193,26 +193,9 @@ void SignalRenderer<REAL>::visit(Tree sig)
             pushRes(Node(0));
         }
     } else if (isSigWRTbl(sig, size_tree, gen_tree, wi_tree, ws_tree)) {
-        TableData<int>*  current_int_table  = nullptr;
-        TableData<REAL>* current_real_table = nullptr;
-        int              table_len          = 0;
-
-        auto it_int = fIntTables.find(sig);
-        if (it_int != fIntTables.end()) {
-            current_int_table = &it_int->second;
-            table_len         = current_int_table->size();
-        } else {
-            auto it_real = fRealTables.find(sig);
-            if (it_real != fRealTables.end()) {
-                current_real_table = &it_real->second;
-                table_len          = current_real_table->size();
-            } else {
-                faustassert(false);
-                return;
-            }
-        }
-
         if (isNil(wi_tree)) {
+            // rtable
+            /*
             if (fTableGenDone.find(sig) == fTableGenDone.end() ||
                 !fTableGenDone[sig]) {  // Check if key exists before accessing
                 if (table_len > 0) {
@@ -248,47 +231,41 @@ void SignalRenderer<REAL>::visit(Tree sig)
                     fTableGenDone[sig] = true;
                 }
             }
+            */
         } else {
+            
             self(wi_tree);
-            Node write_idx_node = popRes();
+            Node write_id = popRes();
+            int write_idx = write_id.getInt();
             self(ws_tree);
-            Node val_to_write_node = popRes();
-
-            int write_idx = write_idx_node.getInt();
-            int int_val_check;
-
-            if (current_int_table) {
-                if (isInt(val_to_write_node, &int_val_check)) {
-                    current_int_table->write(write_idx, int_val_check);
-                } else {
-                    current_int_table->write(write_idx,
-                                             static_cast<int>(val_to_write_node.getDouble()));
-                }
-            } else if (current_real_table) {
-                if (isInt(val_to_write_node, &int_val_check)) {
-                    current_real_table->write(write_idx, static_cast<REAL>(int_val_check));
-                } else {
-                    current_real_table->write(write_idx,
-                                              static_cast<REAL>(val_to_write_node.getDouble()));
-                }
-            }
-        }
-    } else if (isSigRDTbl(sig, tbl_tree, ri_tree)) {
-        self(ri_tree);
-        Node read_idx_node = popRes();
-        int  read_idx      = read_idx_node.getInt();
-
-        auto it_int = fIntTables.find(tbl_tree);
-        if (it_int != fIntTables.end()) {
-            pushRes(it_int->second.read(read_idx));
-        } else {
-            auto it_real = fRealTables.find(tbl_tree);
-            if (it_real != fRealTables.end()) {
-                pushRes(it_real->second.read(read_idx));
+            Node val_node = popRes();
+        
+            auto it_int  = fIntTables.find(sig);
+            auto it_real = fRealTables.find(sig);
+            if (it_int != fIntTables.end()) {
+                it_int->second.write(write_idx, val_node.getInt());
+            } else if (it_real != fRealTables.end()) {
+                it_real->second.write(write_idx, val_node.getDouble());
             } else {
                 faustassert(false);
-                pushRes(Node(0));
+                return;
             }
+        }
+        
+    } else if (isSigRDTbl(sig, tbl_tree, ri_tree)) {
+        self(ri_tree);
+        Node read_id  = popRes();
+        int  read_idx = read_id.getInt();
+
+        auto it_int  = fIntTables.find(tbl_tree);
+        auto it_real = fRealTables.find(tbl_tree);
+        if (it_int != fIntTables.end()) {
+            pushRes(it_int->second.read(read_idx));
+        } else if (it_real != fRealTables.end()) {
+            pushRes(it_real->second.read(read_idx));
+        } else {
+            faustassert(false);
+            pushRes(Node(0));
         }
     } else if (isSigGen(sig, x_tree)) {
         if (fVisitGen) {
@@ -297,7 +274,7 @@ void SignalRenderer<REAL>::visit(Tree sig)
             pushRes(Node(0));
         }
     } else if (isSigWaveform(sig)) {
-        int size = sig->arity();
+        int size  = sig->arity();
         int index = fIOTA % size;
         self(sig->branch(index));
     } else if (isProj(sig, &proj_idx_val, x_tree)) {

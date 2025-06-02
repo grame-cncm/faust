@@ -31,7 +31,7 @@
 #include <vector>
 
 #ifndef FAUSTFLOAT
- #define FAUSTFLOAT double
+#define FAUSTFLOAT double
 //#define FAUSTFLOAT float
 #endif
 
@@ -95,9 +95,10 @@ struct SignalRenderer : public SignalVisitor {
     template <class TYPE>
     struct TableData {
         std::vector<TYPE> fData;
+        Tree              fSigGen = nullptr;
 
         TableData() : fData() {}
-        TableData(int size_val) { resize(size_val); }
+        TableData(Tree sig_gen, int size_val) { fSigGen = sig_gen, resize(size_val); }
 
         void resize(int size_val) { fData.resize(size_val, TYPE(0)); }
         int  size() const { return int(fData.size()); }  // Made const
@@ -265,13 +266,13 @@ struct SignalRenderer : public SignalVisitor {
                 isSigInt(size_tree, &size_val);
                 Type content_type = getCertifiedSigType(isNil(wi_tree) ? gen_tree : ws_tree);
                 if (content_type->nature() == kInt) {
-                    std::cout << "fIntTables " << size_val << std::endl;
-                    fIntTables[sig] = TableData<int>(size_val);
+                    // std::cout << "fIntTables " << size_val << std::endl;
+                    fIntTables[sig] = TableData<int>(gen_tree, size_val);
                 } else {
-                    std::cout << "fRealTables " << size_val << std::endl;
-                    fRealTables[sig] = TableData<REAL>(size_val);
+                    // std::cout << "fRealTables " << size_val << std::endl;
+                    fRealTables[sig] = TableData<REAL>(gen_tree, size_val);
                 }
-                
+
                 /*
                  if (size_is_const_int && table_s_val > 0) {
                  // Determine content type from 'gen_tree' (if rdtable) or 'ws_tree' (if rwtable)
@@ -297,7 +298,7 @@ struct SignalRenderer : public SignalVisitor {
                  << " size is not a positive constant integer." << std::endl;
                  }
                  */
-                
+
                 SignalVisitor::visit(sig);
             } else if (isSigButton(sig, path)) {  // UI
                 fInputControls[sig] = inputControl(inputControl::kButton,
@@ -415,15 +416,16 @@ struct SignalRenderer : public SignalVisitor {
     std::map<Tree, outputControl>    fOutputControls;   // Output controls (bargraph)
     int                              fNumInputs  = 0;
     int                              fSampleRate = -1;
-    int                              fSample     = 0;   // Current sample in a buffer
-    int                              fIOTA       = 0;   // Used as index counter for all delay lines
-    FAUSTFLOAT**                     fInputs     = nullptr; // Set at each call of 'compute'
+    int                              fSample     = 0;  // Current sample in a buffer
+    int                              fIOTA       = 0;  // Used as index counter for all delay lines
+    FAUSTFLOAT**                     fInputs     = nullptr;  // Set at each call of 'compute'
     Tree                             fOutputSig;
 
     void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
     Node popRes()
     {
+        faustassert(fValueStack.size() > 0);
         Node val = fValueStack.top();
         fValueStack.pop();
         /*
@@ -451,13 +453,11 @@ struct SignalRenderer : public SignalVisitor {
 
 template <class REAL>
 struct SignalOptRenderer : public SignalRenderer<REAL> {
-    
     SignalOptRenderer() = default;
-    SignalOptRenderer(Tree lsig) : SignalRenderer<REAL>(lsig)
-    {}
-    
+    SignalOptRenderer(Tree lsig) : SignalRenderer<REAL>(lsig) {}
+
     std::map<Tree, Node> fValues;
-    
+
     void visit(Tree sig)
     {
         if (fValues.find(sig) != fValues.end()) {
@@ -467,16 +467,15 @@ struct SignalOptRenderer : public SignalRenderer<REAL> {
             SignalRenderer<REAL>::visit(sig);
             fValues[sig] = this->topRes();
         }
-        
-        //SignalRenderer<REAL>::visit(sig);
+
+        // SignalRenderer<REAL>::visit(sig);
     }
-    
+
     void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         fValues.clear();
         SignalRenderer<REAL>::compute(count, inputs, outputs);
     }
-     
 };
 
 /**
@@ -490,7 +489,7 @@ struct signal_dsp : public dsp {
 template <class REAL>
 struct signal_dsp_aux : public signal_dsp {
     SignalRenderer<REAL> fRenderer;
-    //SignalOptRenderer<REAL> fRenderer;
+    // SignalOptRenderer<REAL> fRenderer;
 
     signal_dsp_aux(Tree lsig) : fRenderer(lsig) {}
     virtual ~signal_dsp_aux() {}
@@ -544,7 +543,7 @@ struct signal_dsp_aux : public signal_dsp {
         ui_interface->closeBox();
     }
 
-    virtual void instanceConstants(int sample_rate) { fRenderer.fSampleRate = sample_rate; }
+    virtual void instanceConstants(int sample_rate) {}
 
     virtual void instanceResetUserInterface()
     {
@@ -553,9 +552,37 @@ struct signal_dsp_aux : public signal_dsp {
         }
     }
 
+    // Tables for rdtable and rwtable are generated once at init time
+    virtual void classInit(int sample_rate)
+    {
+        // So that sigGen are properly visited
+        fRenderer.fVisitGen = true;
+
+        // Generate integer tables
+        for (auto& it : fRenderer.fIntTables) {
+            for (int index = 0; index < it.second.size(); index++) {
+                fRenderer.self(it.second.fSigGen);
+                Node res = fRenderer.popRes();
+                it.second.write(index, res.getInt());
+            }
+        }
+
+        // Generate REAL tables
+        for (auto& it : fRenderer.fRealTables) {
+            for (int index = 0; index < it.second.size(); index++) {
+                fRenderer.self(it.second.fSigGen);
+                Node res = fRenderer.popRes();
+                it.second.write(index, res.getDouble());
+            }
+        }
+
+        fRenderer.fVisitGen = false;
+    }
+
     virtual void init(int sample_rate)
     {
-        // classInit(sample_rate); // Typically for static tables, handled by factory
+        fRenderer.fSampleRate = sample_rate;
+        classInit(sample_rate);  // Typically for static tables (TODO ; handled by factory ?)
         instanceInit(sample_rate);
     }
 
