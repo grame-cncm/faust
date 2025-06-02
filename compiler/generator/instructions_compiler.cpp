@@ -867,6 +867,14 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
     // Special case for 02/25/19 renaming
     string name = (name_aux == "fSamplingFreq") ? "fSampleRate" : name_aux;
 
+    if (topcontainer){
+        stringstream error;
+        error << "ERROR : accessing foreign constant '" << name << "'"
+              << " is not allowed in subcontainers" << endl;
+        throw faustexception(error.str());
+
+    }
+
     // Check access (handling "fSampleRate" as a special case)
     if (name != "fSampleRate" && !gGlobal->gAllowForeignConstant) {
         stringstream error;
@@ -1751,6 +1759,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     if (topcontainer==fContainer) {
         topcontainer=0;
     }
+
 
     // Return table access
     if (gGlobal->gInlineTable) {
