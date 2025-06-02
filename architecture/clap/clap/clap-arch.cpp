@@ -1,0 +1,7 @@
+//dummy clap architecture file
+
+//this file will translate faust's mydsp c++ class into the clap plugin interface
+//it should include plugin lifecycle, audio block processing calls, parameter registration and ui integration using buildUserInterface () and CLAP API
+//core of the plugin backend
+<<includeIntrinsic>>
+<<includeclass>>
