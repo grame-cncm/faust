@@ -18,7 +18,6 @@ if not os.path.isfile(dsp_path):
     print(f"[!] dsp file not found: {dsp_path}")
     sys.exit(1)
 
-#
 base=os.path.splitext(os.path.basename(dsp_path))[0] #name minus extension (.dsp)
 out_cpp=f"{base}_clap.cpp" #target outpu filename
 
@@ -27,10 +26,6 @@ this_dir=os.path.dirname(os.path.abspath(__file__))
 faust_root=os.path.abspath(os.path.join(this_dir,"../.."))
 
 arch_path=os.path.join(faust_root, ARCH_REL_PATH)
-print(f"[debug] __file__: {__file__}")
-print(f"[debug] this_dir: {this_dir}")
-print(f"[debug] faust_root: {faust_root}")
-print(f"[debug] arch_path: {arch_path}")
 if not os.path.isfile(arch_path):
     print(f"[!]missing architecture file: {arch_path}")
     sys.exit(1)
