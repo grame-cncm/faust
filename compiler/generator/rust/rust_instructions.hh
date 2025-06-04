@@ -196,7 +196,7 @@ class RustInstVisitor : public TextInstVisitor {
         if (inst->fAddress->isStaticStruct() && (inst->getAccess() & Address::kConst)) {
             *fOut << "static ";
         } else if (inst->fAddress->isStaticStruct()) {
-            *fOut << "static mut ";
+            *fOut << "static "; // uses interior mutability via RwLock
         } else if (inst->getAccess() & Address::kStack || inst->getAccess() & Address::kLoop) {
             *fOut << "let mut ";
         } else if (inst->getAccess() & Address::kConst) {
@@ -206,6 +206,8 @@ class RustInstVisitor : public TextInstVisitor {
         // If type is kNoType, only generate the name, otherwise a typed expression
         if (inst->fType->getType() == Typed::kNoType) {
             *fOut << inst->getName();
+        } else if (inst->fAddress->isStaticStruct()) {
+            *fOut << inst->getName() << ": " << "std::sync::RwLock<" << fTypeManager->generateType(inst->fType) << "> ";
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->getName());
         }
@@ -214,8 +216,9 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << " = ";
             inst->fValue->accept(this);
         } else if (inst->fAddress->isStaticStruct()) {
-            *fOut << " = ";
+            *fOut << " = std::sync::RwLock::new(";
             RustInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
+            *fOut << ")";
         } else if (inst->getAccess() == Address::kStack && dynamic_cast<ArrayTyped*>(inst->fType)) {
             // Initialize stack arrays to zero
             *fOut << " = ";
@@ -331,18 +334,23 @@ class RustInstVisitor : public TextInstVisitor {
             } else {
                 *fOut << "self.";
             }
-        } else if (named->isStaticStruct()) {
-            if (named->getAccess() & Address::kReference &&
-                named->getAccess() & Address::kMutable) {
-                *fOut << "&mut ";
-            }
         }
         *fOut << named->getName();
+        if (named->isStaticStruct()) {
+            *fOut << "_guard";
+            if (named->getAccess() & Address::kReference &&
+                named->getAccess() & Address::kMutable) {
+                    *fOut << ".as_mut()";
+            }
+        }
     }
 
     virtual void visit(IndexedAddress* indexed)
     {
         indexed->fAddress->accept(this);
+        // if (indexed->isStaticStruct()) {
+        //     *fOut << "_guard";
+        // }
         if (isInt32Num(indexed->getIndex())) {
             *fOut << "[";
             indexed->getIndex()->accept(this);
@@ -363,13 +371,7 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(LoadVarInst* inst)
     {
-        if (inst->fAddress->isStaticStruct()) {
-            *fOut << "unsafe { ";
-        }
         inst->fAddress->accept(this);
-        if (inst->fAddress->isStaticStruct()) {
-            *fOut << " }";
-        }
     }
 
     virtual void visit(LoadVarAddressInst* inst)
