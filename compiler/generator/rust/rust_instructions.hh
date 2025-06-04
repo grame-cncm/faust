@@ -348,9 +348,6 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(IndexedAddress* indexed)
     {
         indexed->fAddress->accept(this);
-        // if (indexed->isStaticStruct()) {
-        //     *fOut << "_guard";
-        // }
         if (isInt32Num(indexed->getIndex())) {
             *fOut << "[";
             indexed->getIndex()->accept(this);
