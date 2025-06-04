@@ -54,6 +54,7 @@ class RustCodeContainer : public virtual CodeContainer {
     virtual ~RustCodeContainer() {}
 
     virtual void              produceClass();
+    void                      generateLockGuards(int n, bool read);
     void                      generateComputeHeader(int n, std::ostream* fOut);
     void                      generateComputeIOHeader(int n, std::ostream* fOut);
     void                      generateComputeFrame(int tab);

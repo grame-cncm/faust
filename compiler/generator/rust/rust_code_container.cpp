@@ -417,14 +417,7 @@ void RustCodeContainer::produceClass()
         // Local visitor here to avoid DSP object type wrong generation
         RustInstVisitor codeproducer(fOut, "");
         codeproducer.Tab(n + 2);
-        // Obtain write locks on RwLock instances
-        *fOut << "// Obtaining write locks on " << fSubContainers.size() << " subcontainers";
-        tab(n + 1, *fOut);
-        for (const auto& subContainer : fSubContainers) {
-            const auto& staticVarName = "ftbl0" + subContainer->getFullClassName();
-            *fOut << "let mut " << staticVarName << "_guard = " << staticVarName << ".write().unwrap();";
-            tab(n + 2, *fOut);
-        }
+        generateLockGuards(n + 2, false);
         generateStaticInit(&codeproducer);
     }
     back(1, *fOut);
@@ -627,6 +620,22 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     *fOut << "}";
 }
 
+void RustCodeContainer::generateLockGuards(int n, bool read) {
+    // Helper to create lock guards for static RwLocks, generating expressions like:
+    //     let <static-var-name>_guard = <static-var-name>.read().unwrap();
+    //     let mut <static-var-name>_guard = <static-var-name>.write().unwrap();
+    *fOut << "// Obtaining locks on " << fSubContainers.size() << " subcontainer(s)";
+    tab(n, *fOut);
+    const auto method = (read ? "read()" : "write()");
+    const auto binding = (read ? "let" : "let mut");
+    for (const auto& subContainer : fSubContainers) {
+        // FIXME: Find better way to obtain the variable name associated with subcontainer.
+        const auto& staticVarName = "ftbl0" + subContainer->getFullClassName();
+        *fOut << binding << " " << staticVarName << "_guard = " << staticVarName << "." << method << ".unwrap();";
+        tab(n, *fOut);
+    }
+}
+
 void RustCodeContainer::generateComputeHeader(int n, std::ostream* fOut)
 {
     // Compute "compute" declaration
@@ -675,6 +684,8 @@ void RustCodeContainer::generateComputeFrame(int n)
 
     fCodeProducer.Tab(n + 1);
 
+    generateLockGuards(n + 1, true);
+
     tab(n + 1, *fOut);
     generateComputeBlock(&fCodeProducer);
 
@@ -712,14 +723,7 @@ void RustScalarCodeContainer::generateCompute(int n)
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
-    // Obtain read locks on RwLock instances
-    *fOut << "// Obtaining read locks on " << fSubContainers.size() << " subcontainers";
-    tab(n + 1, *fOut);
-    for (const auto& subContainer : fSubContainers) {
-        const auto& staticVarName = "ftbl0" + subContainer->getFullClassName();
-        *fOut << "let " << staticVarName << "_guard = " << staticVarName << ".read().unwrap();";
-        tab(n + 1, *fOut);
-    }
+    generateLockGuards(n + 1, true);
 
     generateComputeBlock(&fCodeProducer);
 
@@ -749,6 +753,8 @@ void RustScalarCodeContainer::generateComputeIO(int n)
     generateComputeIOHeader(n, fOut);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
+
+    generateLockGuards(n + 1, true);
 
     generateComputeBlock(&fCodeProducer);
 
@@ -793,6 +799,8 @@ void RustVectorCodeContainer::generateCompute(int n)
     generateComputeHeader(n, fOut);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
+
+    generateLockGuards(n + 1, true);
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
@@ -860,6 +868,8 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
+    generateLockGuards(n + 1, true);
+
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
 
@@ -903,6 +913,8 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
 
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
+
+    generateLockGuards(n + 1, true);
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
