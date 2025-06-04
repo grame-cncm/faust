@@ -22,3 +22,6 @@
 [submodule "architecture/faust/external/clap-helpers"]
 	path = architecture/faust/external/clap-helpers
 	url = https://github.com/free-audio/clap-helpers
+[submodule "external/clap-helpers"]
+	path = external/clap-helpers
+	url = https://github.com/free-audio/clap-helpers
