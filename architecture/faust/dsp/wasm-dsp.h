@@ -30,6 +30,7 @@ architecture section is not modified.
 
 #include "faust/dsp/dsp.h"
 #include "faust/dsp/libfaust-signal.h"
+#include "faust/dsp/libfaust-box.h"
 #include "faust/gui/meta.h"
 
 /*!
@@ -194,6 +195,25 @@ LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string&
 LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name_app, tvec signals,
                                                               int argc, const char* argv[], std::string& error_msg,
                                                               bool internal_memory);
+
+/**
+ * Create a Faust DSP factory from a box expression.
+ * It has to be used with the box API defined in libfaust-box.h.
+ *
+ * @param name_app - the name of the Faust program
+ * @param box - the box expression
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param error_msg - the error string to be filled
+ * @param internal_memory - whether to use an internally allocated memory block for wasm module
+ *
+ * @return a DSP factory on success, otherwise a null pointer.
+ */
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromBoxes(const std::string& name_app,
+                                                            Box box,
+                                                            int argc, const char* argv[],
+                                                            std::string& error_msg,
+                                                            bool         internal_memory);
 
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer.

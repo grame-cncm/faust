@@ -26,6 +26,7 @@
 #include "wasm_dynamic_dsp_aux.hh"
 #include "Text.hh"
 #include "compatibility.hh"
+#include "lock_api.hh"
 
 using namespace std;
 
@@ -56,6 +57,7 @@ LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name
                                                               const char* argv[], string& error_msg,
                                                               bool internal_memory)
 {
+    LOCK_API
     string expanded_dsp_content, sha_key;
 
     if ((expanded_dsp_content = sha1FromDSP(name_app, dsp_content, argc, argv, sha_key)) == "") {
@@ -95,6 +97,7 @@ LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const string& nam
                                                                string& error_msg,
                                                                bool    internal_memory)
 {
+    LOCK_API
     vector<const char*> argv1 = {"faust", "-lang", (internal_memory ? "wasm-ib" : "wasm-eb"), "-o",
                                  "binary"};
     for (int i = 0; i < argc; i++) {
@@ -110,6 +113,22 @@ LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const string& nam
         wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
         return factory;
     } else {
+        return nullptr;
+    }
+}
+
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromBoxes(const std::string& name_app, Tree box,
+                                                             int argc, const char* argv[],
+                                                             std::string& error_msg,
+                                                             bool         internal_memory)
+{
+    LOCK_API
+    try {
+        tvec signals = boxesToSignalsAux(box);
+        return createWasmDSPFactoryFromSignals(name_app, signals, argc, argv, error_msg,
+                                               internal_memory);
+    } catch (faustexception& e) {
+        error_msg = e.Message();
         return nullptr;
     }
 }

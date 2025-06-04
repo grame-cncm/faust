@@ -26,10 +26,10 @@
 #include <string>
 #include <vector>
 
-#include "faust/export.h"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "faust/dsp/wasm-dsp-imp.h"
+#include "faust/export.h"
 #include "wasm_binary.hh"
 
 #ifdef WASMTIME
@@ -170,7 +170,6 @@ class LIBFAUST_API wasm_dsp : public dsp {
     virtual void metadata(Meta* m) {}
 
     virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
-    
 };
 
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;

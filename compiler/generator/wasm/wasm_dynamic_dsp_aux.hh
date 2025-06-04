@@ -64,6 +64,11 @@ LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string
                                                                std::string& error_msg,
                                                                bool         internal_memory);
 
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromBoxes(const std::string& name_app, Tree box,
+                                                             int argc, const char* argv[],
+                                                             std::string& error_msg,
+                                                             bool         internal_memory);
+
 LIBFAUST_API std::string generateWasmFromString(const std::string& name_app,
                                                 const std::string& dsp_content, int argc,
                                                 const char* argv[], std::string& error_msg,
