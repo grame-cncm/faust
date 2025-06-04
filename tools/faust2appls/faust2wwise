@@ -6,7 +6,6 @@
 #                          (c) Grame, 2025                          #
 #                                                                   #
 #####################################################################    
-
 : '
 @Documentation : 
 The Faust2Wwise conversion process is applied with the folowing steps:
@@ -28,13 +27,12 @@ The Faust2Wwise conversion process is applied with the folowing steps:
                 #INPUTS/#OUTPUTS?
     Step 2: Wwise Plugin Project Generation
         Use Wwise wp.py script to create plugin project structur, geenerating the plugin template files
-    Step 3: script-based hardcoded/hacked DSP Integration 
+    Step 3: Integration step (DSP only)
         Copy generated Faust DSP file to plugin SoundEngine directory
         Modify plugin header file to include DSP file and add mydsp member variable
-        Modify plugin implementation to initialize DSP in Init() function
-        Inject DSP processing code into Execute() function
+        Modify plugin implementation to initialize DSP in Init() function && ...
+        .. inject DSP processing code into Execute() function
         Update Lua build script (PremakePlugin.lua) to include Faust headers
-        **This step should be merged with step 3 - with the use of the wwise.cpp architecture file
     Step 4: Configuration step
         Use Wwise wp.py with `premake` to configure project before building
     Step 5: Plugin Compilation
@@ -57,12 +55,14 @@ The Faust2Wwise conversion process is applied with the folowing steps:
 # FAUST_LIB_PATH="$FAUSTLIB"
 FAUST_LIB_PATH="/usr/local/share/faust"
 # FAUST_INC_PATH="$FAUSTINC" 
-ARCHFILE=$FAUST_LIB_PATH/"wwise.cpp"
+ARCHFILE="$FAUST_LIB_PATH/wwise23.cpp"
+PYTHON_INTEGRATOR="$FAUST_LIB_PATH/wwise23/wwise_integrator23.py"
 
-################################################ Wwise path
+################################################ Wwise stuff
 WWISEROOT=""
 WWISEROOT_MSYS=""
-
+PATCH_VERSION="" # related to wwise version (for now we use <default>)
+PATCH_DIR="" # PATCH dir storing the PATCH files. These are used for integrating wwise plugable faust-compiled code
 ############################################### faust stuff
 # Project configuration 
 ### script arguments
@@ -70,7 +70,7 @@ OUTPUT_DIR="."
 FAUST_OPTIONS=""
 DSP_FILE=""
 ### additional
-BASENAME=""
+DSP_FILENAME=""
 ### Platform-specific paths
 FAUST_INCLUDE_PATH=""
 
@@ -141,6 +141,7 @@ printConfiguration() {
     echo "FAUST2WWISE CONFIGURATION"
     echo "------------------------------------------"
     echo "TEMP_DIR $TEMP_DIR"
+    echo "PYTHON_INTEGRATOR $PYTHON_INTEGRATOR"
     echo "========== FAUST CONFIGURATION ==========="
     echo "DSP_FILE $DSP_FILE"
     echo "ARCHFILE $ARCHFILE"
@@ -158,7 +159,7 @@ printConfiguration() {
     echo "PROJECT_NAME $PROJECT_NAME"
     echo "AUTHOR $AUTHOR"
     echo "DESCRIPTION $DESCRIPTION"
-    echo "BASENAME $BASENAME"
+    echo "DSP_FILENAME $DSP_FILENAME"
     echo "PLUGIN_NAME $PLUGIN_NAME"
     echo "------------------------------------------"
 }
@@ -169,6 +170,8 @@ setupPlatformPaths() {
         # Windows MSYS2 - use forward slashes for Lua compatibility
         FAUST_INCLUDE_PATH="C:/msys64/usr/local/include"
         WWISEROOT=$(find "C:/Program Files (x86)/Audiokinetic" -maxdepth 1 -name "Wwise*" -type d | sort -V | tail -1)
+        PATCH_VERSION="default"
+        # PATCH_DIR="$FAUST_LIB_PATH/wwise/$PATCH_VERSION/$PLUGIN_TYPE/" //$PLUGIN_TYPE has not yet been initialized
     else
         # macOS
         FAUST_INCLUDE_PATH="/usr/local/include"
@@ -178,6 +181,7 @@ setupPlatformPaths() {
 }
 
 validateEnvironment() {
+
     # Check if WWISEROOT is set
     if [ -z "$WWISEROOT" ]; then
         echo "Error $ERR_ENVIRONMENT: WWISEROOT environment variable is not set."
@@ -198,6 +202,19 @@ validateEnvironment() {
         exit ERR_INVALID_INPUT
     fi
 
+    # Check if architecture file exists
+    if [ ! -f "$ARCHFILE" ]; then
+        echo "Error $ERR_ENVIRONMENT: Wwise architecture file not found at $ARCHFILE"
+        echo "Make sure the wwise.cpp architecture file is installed in $FAUST_LIB_PATH"
+        exit $ERR_ENVIRONMENT
+    fi
+
+    # Check if python integration script was installed properly
+    if [ ! -f "$PYTHON_INTEGRATOR" ]; then
+        echo "Error: Python integrator not found at $PYTHON_INTEGRATOR. Please make sure wwise_integrator.py is installed."
+        exit $ERR_INTEGRATION
+    fi
+
 }
 
 setupEnvironment() {
@@ -208,13 +225,13 @@ setupEnvironment() {
     
     setupPlatformPaths
 
-    BASENAME=$(basename "$DSP_FILE" .dsp) # extract name without extension
-    PLUGIN_NAME="${BASENAME^}"  #capitalize first letter
+    DSP_FILENAME=$(basename "$DSP_FILE" .dsp) # extract name without extension
+    PLUGIN_NAME="${DSP_FILENAME^}" #capitalize first letter
     
     # convert WWISEROOT from Windows path to MSYS2 path if needed
     WWISEROOT_MSYS=$(echo "$WWISEROOT" | sed 's|\\|/|g' | sed 's|^\([A-Za-z]\):|/\1|')
 
-    TEMP_DIR="${pwd}/$OUTPUT_DIR/$TEMP_DIR"    
+    TEMP_DIR="$(pwd)/$TEMP_DIR"    
     mkdir -p $TEMP_DIR
     mkdir -p "$OUTPUT_DIR"
 
@@ -249,10 +266,15 @@ processJSONConfig() {
         # Determine plugin type based on inputs
         if [ "$DSP_INPUTS" -gt 0 ]; then
             PLUGIN_TYPE="effect"
+            PLUGIN_SUFFIX="FX"
+            #TODO: FX can be in-place and out-of-place
         else
             PLUGIN_TYPE="source"
-        fi
-        
+            PLUGIN_SUFFIX="Source"
+        fi    
+        # after $PLUGIN_TYPE has been initialized --> TODO: this is related to the platform specific paths - maybe it will be a function
+        PATCH_DIR="$FAUST_LIB_PATH/wwise23/$PATCH_VERSION/$PLUGIN_TYPE"
+
         # Extract project name & override in case it is provided as a declaration in faust dsp file
         # i.e. declare name "Name"
         TEMP_PLUGIN_NAME=$(cat "$JSON_FILE" | jq -r '.name // empty')
@@ -291,7 +313,7 @@ processJSONConfig() {
 compileFaustDSP() {
     echo "------------------------------------------Step 1: Compiling Faust DSP to C++"
     
-    faust -I "$FAUST_LIB_PATH" -json -a "$ARCHFILE" $FAUST_OPTIONS "$DSP_FILE" -o "$TEMP_DIR/${BASENAME}.cpp"
+    faust -I "$FAUST_LIB_PATH" -json -a "$ARCHFILE" $FAUST_OPTIONS "$DSP_FILE" -o "$TEMP_DIR/${DSP_FILENAME}.cpp"
     
     if [ $? -ne 0 ]; then
         echo "Error ${ERR_FAUST_COMPILE}: Failed to compile Faust DSP"
@@ -299,12 +321,12 @@ compileFaustDSP() {
     fi
     
     processJSONConfig
-
-    echo "OK : ${TEMP_DIR}/${BASENAME}.cpp generated successfully!"
+    
+    echo "OK : ${TEMP_DIR}/${DSP_FILENAME}.cpp generated successfully!"
 }
 
 #==============================================================================
-# GENERATE PROJECT (python)
+# GENERATE PROJECT
 #==============================================================================
 
 generateWwiseProject() {
@@ -327,119 +349,83 @@ generateWwiseProject() {
 }
 
 #==============================================================================
-# POST/PRE PROCESS COMBINED RESULT (file-based IO)
+# INTEGRATION
 #==============================================================================
 
-hardcodedIntegration() {
-    echo "------------------------------------------Step 3: Integrating Faust DSP into Wwise plugin"
-    
-    cd "$PLUGIN_NAME"
-    
-    # 3.1 copy the generated cpp file to the plugin directory
-    cp "$TEMP_DIR/${BASENAME}.cpp" "SoundEnginePlugin/${BASENAME}.cpp"
-    echo "OK - Copied ${BASENAME}.cpp to plugin directory"
-    
-    # 3.2 Modify the header of the Source plugin (projectnameSource.h)
-    DSP_CLASS_NAME="mydsp"    
-    SOURCE_HEADER="SoundEnginePlugin/${PLUGIN_NAME}Source.h"
-    if [ -f "$SOURCE_HEADER" ]; then
-        
-        # Add include after existing AK includes
-        sed -i '/^#include.*AK.*\.h/a #include "'"${BASENAME}.cpp"'"' "$SOURCE_HEADER"
-        
-        # Add DSP member variable in the private section
-        sed -i '/^private:/,/^[[:space:]]*};/{
-            /^[[:space:]]*};/{
-                i\
-    '"$DSP_CLASS_NAME"' m_dsp;
-            }
-        }' "$SOURCE_HEADER"
-        
-        echo "OK - Added DSP class include and member variable"
-    else
-        echo "Warning: Could not find ${SOURCE_HEADER}"
-        find SoundEnginePlugin -name "*Source.h" -type f
+architectureFileIntegration() {
+    echo "Architecture File Integration"
+    echo "Current plugin directory: $PWD"
+
+    # Replace the Wwise-generated header with our Faust-generated one
+    FAUST_GENERATED_ARCH_FILE="$TEMP_DIR/${DSP_FILENAME}.cpp"
+    FAUST_GENERATED_DESTINATION="$PLUGIN_NAME/SoundEnginePlugin/faustdsp.cpp"
+
+    if [ ! -f "$FAUST_GENERATED_ARCH_FILE" ]; then
+        echo "Error: Faust-generated file not found: $FAUST_GENERATED_ARCH_FILE"
+        exit $ERR_FAUST_COMPILE
     fi
     
-    # 3.3 Modify the implementation file of the Source plugin (projectnameSource.cpp)
-    SOURCE_CPP="SoundEnginePlugin/${PLUGIN_NAME}Source.cpp"
-    if [ -f "$SOURCE_CPP" ]; then
-        echo "OK - Modifying ${SOURCE_CPP}"
-        
-        # Add initialization in Init function
-        awk '
-        /AKRESULT.*Init.*AkAudioFormat.*in_rFormat/ { in_init = 1 }
-        in_init && /return AK_Success/ {
-            print "    // Initialize Faust DSP"
-            print "    in_rFormat.channelConfig.SetStandard(AK_SPEAKER_SETUP_STEREO);"
-            print "    m_dsp.init((int)in_rFormat.uSampleRate);"
-            print ""
-            print $0
-            in_init = 0
-            next
-        }
-        { print }
-        ' "$SOURCE_CPP" > "${SOURCE_CPP}.tmp" && mv "${SOURCE_CPP}.tmp" "$SOURCE_CPP"
-        
-        # Add DSP processing in Execute function
-        awk '
-        /void.*Execute.*AkAudioBuffer.*out_pBuffer/ { in_execute = 1 }
-        in_execute && /^}$/ && !added_dsp {
-            print "    // Process audio with Faust DSP"
-            print "    FAUSTFLOAT* outputs[2];"
-            print "    AkReal32* AK_RESTRICT pBuf[2];"
-            print "    for (int i = 0; i < 2; ++i) {"
-            print "        pBuf[i] = (AkReal32 * AK_RESTRICT)out_pBuffer->GetChannel(i);"
-            print "        outputs[i] = pBuf[i];"
-            print "    }"
-            print "    m_dsp.compute((int)out_pBuffer->uValidFrames, nullptr, outputs);"
-            print ""
-            added_dsp = 1
-            in_execute = 0
-        }
-        { print }
-        ' "$SOURCE_CPP" > "${SOURCE_CPP}.tmp" && mv "${SOURCE_CPP}.tmp" "$SOURCE_CPP"
-        
-        echo "OK - Added DSP initialization and processing code"
-    else
-        echo "Warning: Could not find ${SOURCE_CPP}"
+    cp $FAUST_GENERATED_ARCH_FILE $FAUST_GENERATED_DESTINATION
+    echo "OK : Copied Faust DSP to: $FAUST_GENERATED_DESTINATION"
+}
+
+pythonBasedIntegration() {
+
+    echo "Python-based Code Integration"
+    
+    cd "$PLUGIN_NAME" 
+    
+    # Call integrator
+    python3 "$PYTHON_INTEGRATOR" \
+        --plugin-name "$PLUGIN_NAME" \
+        --plugin-suffix "$PLUGIN_SUFFIX" \
+        --plugin-dir "$PWD" \
+        --patch-dir "$PATCH_DIR" \
+        --json-file "$JSON_FILE"
+    
+    if [ $? -ne 0 ]; then
+        echo "Error $ERR_INTEGRATION: Python integration failed"
+        exit $ERR_INTEGRATION
     fi
+    echo "OK : Python integration completed successfully!"
+
+}
+
+modifyLuaBuildScript() {
+    echo "Modifying Lua build script for Faust includes..."
     
-    # 3.4 Modify the Lua script to add Faust include directory
-    echo "Modifying Lua build script for Faust includes"
-    echo "  Using Faust include path: $FAUST_INCLUDE_PATH"
-    
-    # Find the PremakePlugin.lua file
     PREMAKE_FILE="PremakePlugin.lua"
-    if [ -f "$PREMAKE_FILE" ]; then
-        echo "  Found Lua build script: $PREMAKE_FILE"
-        
-        # Add Faust include directory to the SDK static includedirs section
+    if [ -f "$PREMAKE_FILE" ]; then        
+        # Add Faust include directory to all sections
         sed -i '/Plugin\.sdk\.static\.includedirs.*=/,/^}$/ {
             /^}$/i\
     "'"$FAUST_INCLUDE_PATH"'",
         }' "$PREMAKE_FILE"
         
-        # Also add to SDK shared includedirs section
         sed -i '/Plugin\.sdk\.shared\.includedirs.*=/,/^}$/ {
             /^}$/i\
     "'"$FAUST_INCLUDE_PATH"'",
         }' "$PREMAKE_FILE"
         
-        # Also add to authoring includedirs section
         sed -i '/Plugin\.authoring\.includedirs.*=/,/^}$/ {
             /^}$/i\
-    "'"$FAUST_INCLUDE_PATH"'",
+    "'"$FAUST_INCLUDE_PATH"'",   
         }' "$PREMAKE_FILE"
         
-        echo "OK - Added Faust include directory to all sections"
+        echo "OK : Updated Lua build script with Faust include paths"
     else
-        echo "ERROR ${ERR_INTEGRATION}: Could not find PremakePlugin.lua file"
-        find . -name "*.lua" -type f
+        echo "ERROR $ERR_INTEGRATION: Could not find PremakePlugin.lua"
         exit $ERR_INTEGRATION
     fi
 }
 
+
+integrationStep(){
+    echo "------------------------------------------Step 3: Integration Step"
+    architectureFileIntegration # edit the exported arch file
+    pythonBasedIntegration # import integration code into the wwise plugin
+    modifyLuaBuildScript # additional step : ought to be absorbed by the pythonBasedIntegration
+}
 #==============================================================================
 # CONFIGURE(PREMAKE) & BUILD 
 #==============================================================================
@@ -489,7 +475,7 @@ main() {
     setupEnvironment "$@"   # preliminary step    
     compileFaustDSP         # step 1
     generateWwiseProject    # step 2
-    hardcodedIntegration    # step 3
+    integrationStep         # step 3
     configureWwiseProject   # step 4
     buildPlugin             # step 5
     cleanup                 # outro

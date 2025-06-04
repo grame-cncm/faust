@@ -3,5 +3,4 @@
 #include <faust/gui/meta.h>
 
 <<includeIntrinsic>>
-
 <<includeclass>>
