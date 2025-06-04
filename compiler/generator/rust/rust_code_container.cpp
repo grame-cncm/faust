@@ -417,6 +417,14 @@ void RustCodeContainer::produceClass()
         // Local visitor here to avoid DSP object type wrong generation
         RustInstVisitor codeproducer(fOut, "");
         codeproducer.Tab(n + 2);
+        // Obtain write locks on RwLock instances
+        *fOut << "// Obtaining write locks on " << fSubContainers.size() << " subcontainers";
+        tab(n + 1, *fOut);
+        for (const auto& subContainer : fSubContainers) {
+            const auto& staticVarName = "ftbl0" + subContainer->getFullClassName();
+            *fOut << "let mut " << staticVarName << "_guard = " << staticVarName << ".write().unwrap();";
+            tab(n + 2, *fOut);
+        }
         generateStaticInit(&codeproducer);
     }
     back(1, *fOut);
@@ -703,6 +711,15 @@ void RustScalarCodeContainer::generateCompute(int n)
     generateComputeHeader(n, fOut);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
+
+    // Obtain read locks on RwLock instances
+    *fOut << "// Obtaining read locks on " << fSubContainers.size() << " subcontainers";
+    tab(n + 1, *fOut);
+    for (const auto& subContainer : fSubContainers) {
+        const auto& staticVarName = "ftbl0" + subContainer->getFullClassName();
+        *fOut << "let " << staticVarName << "_guard = " << staticVarName << ".read().unwrap();";
+        tab(n + 1, *fOut);
+    }
 
     generateComputeBlock(&fCodeProducer);
 
