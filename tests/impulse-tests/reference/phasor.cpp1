@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "phasor"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.81.0 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -117,4 +117,4 @@ class mydsp : public dsp {
 
 
 float 	mydsp::fWave0[4] = {0.1f,0.8f,0.9f,0.2f};
-float 	mydsp::fWave1[11] = {0.0f,0.0f,0.0f,0.0f,1.0f,1.0f,0.0f,0.0f,0.0f,0.0f,0};
+float 	mydsp::fWave1[11] = {0.0f,0.0f,0.0f,0.0f,1.0f,1.0f,0.0f,0.0f,0.0f,0.0f,0.0f};

@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "priority1"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.81.0 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -496,9 +496,9 @@ class mydsp : public dsp {
 				fVeeec68 = ((0.1f * float((int((3.5f * (float)input75[i])) & (int((3.5f * (float)input76[i])) | (int((float)input77[i]) + 3))))) + (0.9f * fVeeec68));
 				fVeeec70 = ((0.1f * float((int((3.5f * (float)input78[i])) & (int((3.5f * (float)input79[i])) ^ (int((float)input80[i]) + 3))))) + (0.9f * fVeeec70));
 				fVeeec72 = ((0.1f * float((((int((float)input82[i]) + int((3.5f * (float)input81[i]))) + (3 - int((3.5f * (float)input83[i])))) | (int((float)input84[i]) + 3)))) + (0.9f * fVeeec72));
-				fVeeec74 = ((0.1f * float(((((int(fmodf((float(((int((float)input86[i]) + 3) * int((3.5f * (float)input85[i])))) / float(int((3.5f * (float)input87[i])))),float((int((float)input88[i]) + 3)))) & int((3.5f * (float)input89[i]))) ^ (int((float)input90[i]) + 3)) << int((3.5f * (float)input91[i]))) >> (int((float)input92[i]) + 3)))) + (0.9f * fVeeec74));
+				fVeeec74 = ((0.1f * float(((((int(fmodf((float(((int((float)input86[i]) + 3) * int((3.5f * (float)input85[i])))) / float((int((3.5f * (float)input87[i])) + 1))),float((int((float)input88[i]) + 3)))) & int((3.5f * (float)input89[i]))) ^ (int((float)input90[i]) + 3)) << int((3.5f * (float)input91[i]))) >> (int((float)input92[i]) + 3)))) + (0.9f * fVeeec74));
 				fVeeec76 = ((0.1f * float(((int((3.5f * (float)input93[i])) <= (int((float)input94[i]) + 3)) >= (((int((float)input96[i]) + int((3.5f * (float)input95[i]))) + (3 - int((3.5f * (float)input97[i])))) | (int((float)input98[i]) + 3))))) + (0.9f * fVeeec76));
-				fVeeec78 = ((0.1f * float((((int((float)input99[i]) + int((3.5f * (float)input100[i]))) - int((float)input101[i])) | ((((int(fmodf((float(((int((float)input103[i]) + 3) * int((3.5f * (float)input102[i])))) / float(int((3.5f * (float)input104[i])))),float((int((float)input105[i]) + 3)))) & int((3.5f * (float)input106[i]))) ^ (int((float)input107[i]) + 3)) << int((3.5f * (float)input108[i]))) >> (int((float)input109[i]) + 3))))) + (0.9f * fVeeec78));
+				fVeeec78 = ((0.1f * float((((int((float)input99[i]) + int((3.5f * (float)input100[i]))) - int((float)input101[i])) | ((((int(fmodf((float(((int((float)input103[i]) + 3) * int((3.5f * (float)input102[i])))) / float((int((3.5f * (float)input104[i])) + 1))),float((int((float)input105[i]) + 3)))) & int((3.5f * (float)input106[i]))) ^ (int((float)input107[i]) + 3)) << int((3.5f * (float)input108[i]))) >> (int((float)input109[i]) + 3))))) + (0.9f * fVeeec78));
 				fVeeec80 = ((1.05f * (float)input8[i]) + (0.9f * fVeeec80));
 				fVeeec82 = ((1.05f * (float)input6[i]) + (0.9f * fVeeec82));
 				fVeeec84 = ((1.05f * (float)input7[i]) + (0.9f * fVeeec84));

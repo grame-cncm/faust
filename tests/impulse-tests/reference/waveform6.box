@@ -1,4 +1,4 @@
-declare version "2.77.2";
+declare version "2.81.0";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/waveform6.dsp -o reference/waveform6.box";
 declare filename "waveform6.dsp";
 declare name "waveform6";

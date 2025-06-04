@@ -1,9 +1,5 @@
 //----------------------------------------------------------
-// author: "Grame"
-// copyright: "(c)GRAME 2009"
-// license: "BSD"
-// name: "Noise"
-// version: "1.1"
+// name: "select2"
 //
 // Code generated with Faust 2.81.0 (https://faust.grame.fr)
 //----------------------------------------------------------
@@ -21,19 +17,20 @@
 
 class mydsp : public dsp {
   private:
+	static int 	iWave0[4];
+	int 	idxiWave0;
 	// Recursion delay iVeeec0 is of type kMonoDelay
 	// While its definition is of type kZeroDelay
 	int 	iVeeec0State; // Mono Delay
+	// Recursion delay iVeeec2 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec2State; // Mono Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
-		m->declare("author", "Grame");
-		m->declare("copyright", "(c)GRAME 2009");
-		m->declare("filename", "noiseabs.dsp");
-		m->declare("license", "BSD");
-		m->declare("name", "Noise");
-		m->declare("version", "1.1");
+		m->declare("filename", "select2.dsp");
+		m->declare("name", "select2");
 	}
 
 	virtual int getNumInputs() { return 0; }
@@ -42,11 +39,13 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
+		idxiWave0 = 0;
 	}
 	virtual void instanceResetUserInterface() {
 	}
 	virtual void instanceClear() {
 		iVeeec0State = 0;
+		iVeeec2State = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -64,23 +63,30 @@ class mydsp : public dsp {
 		return fSampleRate;
 	}
 	virtual void buildUserInterface(UI* ui_interface) {
-		ui_interface->openVerticalBox("Noise");
+		ui_interface->openVerticalBox("select2");
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		int 	iVeeec0;
+		int 	iVeeec2;
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
 			int count = min(32, fullcount-index);
 			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
 			iVeeec0 = iVeeec0State;
+			iVeeec2 = iVeeec2State;
 			for (int i=0; i<count; i++) {
-				iVeeec0 = ((1103515245 * iVeeec0) + 12345);
-				output0[i] = (FAUSTFLOAT)(fabsf((4.656613e-10f * float(iVeeec0))));  // Zone Exec Code
+				iVeeec0 = (iVeeec0 + 1);
+				iVeeec2 = (iVeeec2 + 2);
+				output0[i] = (FAUSTFLOAT)(((iWave0[idxiWave0]) ? iVeeec2 : iVeeec0));  // Zone Exec Code
+				// post processing
+				idxiWave0 = (idxiWave0 + 1) % 4;
 			}
 			iVeeec0State = iVeeec0;
+			iVeeec2State = iVeeec2;
 		}
 	}
 };
 
 
+int 	mydsp::iWave0[4] = {1,0,0,0};

@@ -4,7 +4,7 @@
 // name: "Faust Midi Tester"
 // version: "1.0"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.81.0 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */

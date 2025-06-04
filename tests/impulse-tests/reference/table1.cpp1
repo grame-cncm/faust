@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "table1"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.81.0 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -120,6 +120,6 @@ class mydsp : public dsp {
 };
 
 
-float 	mydsp::SIG0::fWave0[8] = {0,0.5f,1,0.5f,0,-0.5f,-1,-0.5f};
+float 	mydsp::SIG0::fWave0[8] = {0.0f,0.5f,1.0f,0.5f,0.0f,-0.5f,-1.0f,-0.5f};
 float 	mydsp::ftbl0[8];
-float 	mydsp::fWave1[8] = {10,10.5f,11,10.5f,10,-10.5f,-11,-10.5f};
+float 	mydsp::fWave1[8] = {1e+01f,10.5f,11.0f,10.5f,1e+01f,-10.5f,-11.0f,-10.5f};

@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // name: "osc_enable"
 //
-// Code generated with Faust 2.77.2 (https://faust.grame.fr)
+// Code generated with Faust 2.81.0 (https://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -50,7 +50,7 @@ class mydsp : public dsp {
 	static float 	fWave0[13];
 	int 	idxfWave0;
 	float 	fTempPerm0;
-	float 	fConst0; // step: 21
+	float 	fConst0; // step: 20
 	float 	fTempPerm1;
 	// Recursion delay fVeeec0 is of type kSingleDelay
 	// While its definition is of type kZeroDelay
@@ -88,7 +88,7 @@ class mydsp : public dsp {
 		fSampleRate = sample_rate;
 		idxfWave0 = 0;
 		fTempPerm0 = 0;
-		fConst0 = (4e+02f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 21
+		fConst0 = (4e+02f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 20
 		fTempPerm1 = 0;
 		fTempPerm2 = 0;
 		fTempPerm3 = 0;
@@ -134,7 +134,7 @@ class mydsp : public dsp {
 			fVeeec0[1] = fVeeec0State;
 			for (int i=0; i<count; i++) {
 				float 	fTemp0 = fWave0[idxfWave0]; // step: 6
-				int 	iTemp1 = (fTemp0 != 0.0f); // step: 8
+				int 	iTemp1 = (fTemp0 != 0.0f); // step: 7
 				if (iTemp1) {
 					fTemp2 = powf(fTemp0,2.0f);
 					fTemp3 = fVeeec0[1];
@@ -161,5 +161,5 @@ class mydsp : public dsp {
 };
 
 
-float 	mydsp::fWave0[13] = {1,0.5f,0,0,0,0,-0.5f,-1,-0.5f,0,0,0,0};
+float 	mydsp::fWave0[13] = {1.0f,0.5f,0.0f,0.0f,0.0f,0.0f,-0.5f,-1.0f,-0.5f,0.0f,0.0f,0.0f,0.0f};
 float 	mydsp::ftbl0[65536];

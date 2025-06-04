@@ -1,0 +1,17 @@
+declare version "2.81.0";
+declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/select2.dsp -o reference/select2.box";
+declare filename "select2.dsp";
+declare name "select2";
+ID_0 = waveform{1,0,0,0};
+ID_1 = !, _;
+ID_2 = (ID_0 : ID_1);
+ID_3 = _, 1;
+ID_4 = (ID_3 : +);
+ID_5 = ID_4 ~ _;
+ID_6 = _, 2;
+ID_7 = (ID_6 : +);
+ID_8 = ID_7 ~ _;
+ID_9 = ID_5, ID_8;
+ID_10 = ID_2, ID_9;
+ID_11 = ID_10 : select2;
+process = ID_11;

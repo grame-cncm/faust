@@ -54,10 +54,10 @@ out26 = (op3 & (op3 | op4)) : smoo;
 out27 = (op3 & (op3 xor op4)) : smoo;
 
 out28 = op3 + op4 - op3 | op4 : smoo;
-out29 = op3 * op4 / op3 % op4 & op3 xor op4 << op3 >> op4 : smoo;
+out29 = op3 * op4 / (op3+1) % op4 & op3 xor op4 << op3 >> op4 : smoo;
 
 out30 = (op3 <= op4 >= op3 + op4 - op3 | op4) : smoo;
-out31 = (op4 + op3 - op4 | op3 * op4 / op3 % op4 & op3 xor op4 << op3 >> op4) : smoo;
+out31 = (op4 + op3 - op4 | op3 * op4 / (op3+1) % op4 & op3 xor op4 << op3 >> op4) : smoo;
 
 process = out1, out2, out3, out4, out5, out6, out7, out8, out9, out10,
     out11, out12, out13, out14, out15, out16, out17, out18, out19, out20,
