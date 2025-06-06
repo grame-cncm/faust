@@ -55,11 +55,8 @@ class CollectStaticVarsVisitor : public DispatchVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        std::cout << "VISITING DeclareVarInst\n";
-        std::cout << inst->getName() << " " << inst->fAddress->isStaticStruct() << " " << (inst->getAccess() & Address::kConst) << " " << (inst->getAccess() & Address::kMutable) << "\n";
         if (inst->fAddress->isStaticStruct() && !(inst->getAccess() & Address::kConst)) {
             fStaticVarNames.push_back(inst->getName());
-            std::cout << "ADDING " << inst->getName() << "\n";
         }
     }
 
@@ -264,8 +261,7 @@ void RustCodeContainer::produceFaustDspBlob()
 
 void RustCodeContainer::produceClass()
 {
-    // Initialize fStaticVarNames by collecting static vars from static init instructions.
-    std::cout << "Collecting static vars...\n";
+    // Initialize fStaticVarNames by collecting static vars from global declarations.
     CollectStaticVarsVisitor collectStaticVarsVisitor{};
     generateGlobalDeclarations(&collectStaticVarsVisitor);
     fStaticVarNames = collectStaticVarsVisitor.getStaticVarNames();
