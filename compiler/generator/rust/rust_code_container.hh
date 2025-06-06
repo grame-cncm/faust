@@ -29,6 +29,8 @@
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
 
+#include <vector>
+
 #ifdef WIN32
 #pragma warning(disable : 4250)
 #endif
@@ -39,6 +41,7 @@ class RustCodeContainer : public virtual CodeContainer {
    protected:
     RustInstVisitor fCodeProducer;
     std::ostream*   fOut;
+    std::vector<std::string> fStaticVarNames;
 
     void produceMetadata(int tabs);
 
@@ -46,7 +49,7 @@ class RustCodeContainer : public virtual CodeContainer {
 
    public:
     RustCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
-        : fCodeProducer(out, name), fOut(out)
+        : fCodeProducer(out, name), fOut(out), fStaticVarNames{}
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
@@ -84,8 +87,8 @@ class RustScalarCodeContainer : public RustCodeContainer {
                             std::ostream* out, int sub_container_type);
     virtual ~RustScalarCodeContainer() {}
 
-    void generateCompute(int tab);
-    void generateComputeIO(int tab);
+    void generateCompute(int tab) override;
+    void generateComputeIO(int tab) override;
 };
 
 // The Vector code container.
@@ -110,7 +113,7 @@ class RustOpenMPCodeContainer : public OpenMPCodeContainer, public RustCodeConta
                             std::ostream* out);
     virtual ~RustOpenMPCodeContainer() {}
 
-    void generateCompute(int tab);
+    void generateCompute(int tab) override;
 };
 
 // The WorkStealing code container (not implemented yet).
@@ -122,7 +125,7 @@ class RustWorkStealingCodeContainer : public WSSCodeContainer, public RustCodeCo
                                   std::ostream* out);
     virtual ~RustWorkStealingCodeContainer() {}
 
-    void generateCompute(int tab);
+    void generateCompute(int tab) override;
 };
 
 #endif

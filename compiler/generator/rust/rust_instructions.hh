@@ -23,6 +23,7 @@
 #define _RUST_INSTRUCTIONS_H
 
 #include <regex>
+#include <unordered_set>
 
 #include "Text.hh"
 #include "text_instructions.hh"
@@ -85,6 +86,7 @@ class RustInstVisitor : public TextInstVisitor {
     std::map<std::string, std::string> fMathLibTable;
     // Integer wrapping operators
     std::map<int, std::string> fWrappingOpTable;
+    std::unordered_set<std::string> fVarsRequiringGuards;
 
     // Function returning 'bool', to be casted to 'int'
     inline bool isBoolFun(const std::string& name)
@@ -191,6 +193,10 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual ~RustInstVisitor() {}
 
+    void setVarsRequiringGuards(const std::unordered_set<std::string> vars_requiring_guards) {
+        fVarsRequiringGuards = vars_requiring_guards;
+    }
+
     virtual void visit(DeclareVarInst* inst)
     {
         if (inst->fAddress->isStaticStruct() && (inst->getAccess() & Address::kConst)) {
@@ -206,7 +212,7 @@ class RustInstVisitor : public TextInstVisitor {
         // If type is kNoType, only generate the name, otherwise a typed expression
         if (inst->fType->getType() == Typed::kNoType) {
             *fOut << inst->getName();
-        } else if (inst->fAddress->isStaticStruct()) {
+        } else if (inst->fAddress->isStaticStruct() && !(inst->getAccess() & Address::kConst)) {
             *fOut << inst->getName() << ": " << "std::sync::RwLock<" << fTypeManager->generateType(inst->fType) << "> ";
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->getName());
@@ -337,7 +343,19 @@ class RustInstVisitor : public TextInstVisitor {
         }
         *fOut << named->getName();
         if (named->isStaticStruct()) {
-            *fOut << "_guard";
+            std::cout << "usage of: " << named->getName() <<
+                " kStack=" << (named->getAccess() & Address::kStack) <<
+                " kGlobal=" << (named->getAccess() & Address::kGlobal) <<
+                " kLink=" << (named->getAccess() & Address::kLink) <<
+                " kLoop=" << (named->getAccess() & Address::kLoop) <<
+                " kVolatile=" << (named->getAccess() & Address::kVolatile) <<
+                " kConst=" << (named->getAccess() & Address::kConst) <<
+                " kReference=" << (named->getAccess() & Address::kReference) <<
+                " kMutable=" << (named->getAccess() & Address::kMutable) <<
+                "\n";
+            if (fVarsRequiringGuards.find(named->getName()) != fVarsRequiringGuards.end()) {
+                *fOut << "_guard";
+            }
             if (named->getAccess() & Address::kReference &&
                 named->getAccess() & Address::kMutable) {
                     *fOut << ".as_mut()";
