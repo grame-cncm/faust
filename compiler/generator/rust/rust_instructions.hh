@@ -343,16 +343,6 @@ class RustInstVisitor : public TextInstVisitor {
         }
         *fOut << named->getName();
         if (named->isStaticStruct()) {
-            std::cout << "usage of: " << named->getName() <<
-                " kStack=" << (named->getAccess() & Address::kStack) <<
-                " kGlobal=" << (named->getAccess() & Address::kGlobal) <<
-                " kLink=" << (named->getAccess() & Address::kLink) <<
-                " kLoop=" << (named->getAccess() & Address::kLoop) <<
-                " kVolatile=" << (named->getAccess() & Address::kVolatile) <<
-                " kConst=" << (named->getAccess() & Address::kConst) <<
-                " kReference=" << (named->getAccess() & Address::kReference) <<
-                " kMutable=" << (named->getAccess() & Address::kMutable) <<
-                "\n";
             if (fVarsRequiringGuards.find(named->getName()) != fVarsRequiringGuards.end()) {
                 *fOut << "_guard";
             }
