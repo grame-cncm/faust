@@ -41,6 +41,38 @@ using namespace std;
 
 */
 
+class CollectStaticVarsVisitor : public DispatchVisitor {
+  private:
+    std::vector<std::string> fStaticVarNames;
+
+  public:
+    using InstVisitor::visit;
+
+    CollectStaticVarsVisitor()
+        : DispatchVisitor(), fStaticVarNames{}
+    {
+    }
+
+    virtual void visit(DeclareVarInst* inst)
+    {
+        std::cout << "VISITING DeclareVarInst\n";
+        std::cout << inst->getName() << " " << inst->fAddress->isStaticStruct() << " " << (inst->getAccess() & Address::kConst) << " " << (inst->getAccess() & Address::kMutable) << "\n";
+        if (inst->fAddress->isStaticStruct() && !(inst->getAccess() & Address::kConst)) {
+            fStaticVarNames.push_back(inst->getName());
+            std::cout << "ADDING " << inst->getName() << "\n";
+        }
+    }
+
+    std::vector<std::string> getStaticVarNames() {
+        return fStaticVarNames;
+    }
+};
+
+template<typename T>
+std::unordered_set<T> toUnorderedSet(const std::vector<T>& vec) {
+    return std::unordered_set<T>(vec.begin(), vec.end());
+}
+
 map<string, bool> RustInstVisitor::gFunctionSymbolTable;
 
 dsp_factory_base* RustCodeContainer::produceFactory()
@@ -232,6 +264,13 @@ void RustCodeContainer::produceFaustDspBlob()
 
 void RustCodeContainer::produceClass()
 {
+    // Initialize fStaticVarNames by collecting static vars from static init instructions.
+    std::cout << "Collecting static vars...\n";
+    CollectStaticVarsVisitor collectStaticVarsVisitor{};
+    generateGlobalDeclarations(&collectStaticVarsVisitor);
+    fStaticVarNames = collectStaticVarsVisitor.getStaticVarNames();
+    fCodeProducer.setVarsRequiringGuards(toUnorderedSet(fStaticVarNames));
+
     int n = 0;
     *fOut << "#[cfg_attr(feature = \"default-boxed\", derive(default_boxed::DefaultBoxed))]";
     if (gGlobal->gReprC) {
@@ -416,6 +455,7 @@ void RustCodeContainer::produceClass()
         tab(n + 2, *fOut);
         // Local visitor here to avoid DSP object type wrong generation
         RustInstVisitor codeproducer(fOut, "");
+        codeproducer.setVarsRequiringGuards(toUnorderedSet(fStaticVarNames));
         codeproducer.Tab(n + 2);
         generateLockGuards(n + 2, false);
         generateStaticInit(&codeproducer);
@@ -514,6 +554,7 @@ void RustCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "pub fn control(&mut self) {";
         tab(n + 2, *fOut);
+        generateLockGuards(n + 1, true);
         generateControlDeclarations(&fCodeProducer);
         back(1, *fOut);
         *fOut << "}";
@@ -624,13 +665,11 @@ void RustCodeContainer::generateLockGuards(int n, bool read) {
     // Helper to create lock guards for static RwLocks, generating expressions like:
     //     let <static-var-name>_guard = <static-var-name>.read().unwrap();
     //     let mut <static-var-name>_guard = <static-var-name>.write().unwrap();
-    *fOut << "// Obtaining locks on " << fSubContainers.size() << " subcontainer(s)";
+    *fOut << "// Obtaining locks on " << fStaticVarNames.size() << " static var(s)";
     tab(n, *fOut);
     const auto method = (read ? "read()" : "write()");
     const auto binding = (read ? "let" : "let mut");
-    for (const auto& subContainer : fSubContainers) {
-        // FIXME: Find better way to obtain the variable name associated with subcontainer.
-        const auto& staticVarName = "ftbl0" + subContainer->getFullClassName();
+    for (const auto& staticVarName : fStaticVarNames) {
         *fOut << binding << " " << staticVarName << "_guard = " << staticVarName << "." << method << ".unwrap();";
         tab(n, *fOut);
     }
