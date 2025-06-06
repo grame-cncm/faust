@@ -1,32 +1,36 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2024 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.
+ FAUST compiler
+ Copyright (C) 2024 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
 
 #include "signalRenderer.hh"
-#include "compatibility.hh"
+#include "compatibility.hh"  // For basename, pathToContent
 #include "xtended.hh"
+
+#include <iostream>
+#include <string>
+#include <vector>
 
 using namespace std;
 
 //-------------------------SignalRenderer-------------------------------
-// Render a signal.
+// Render a list of signals
 //----------------------------------------------------------------------
 
 template <class REAL>
@@ -53,25 +57,27 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
     fInputs = inputs;
 
     for (fSample = 0; fSample < count; fSample++) {
-        int  chan   = 0;
-        Tree output = fOutputSig;
+        int  chan        = 0;
+        Tree output_list = fOutputSig;
 
-        while (!isNil(output)) {
-            self(hd(output));
+        fVisited.clear();  // Clear visited for each top-level signal evaluation per sample
+
+        while (!isNil(output_list)) {
+            // Render each output in 'chan'
+            Tree out_sig = hd(output_list);
+            self(out_sig);
+            // Get the result which can contain an integer or REAL value
             Node res = popRes();
-            int  i;
-            // Possibly cast the result
-            if (isInt(res, &i)) {
-                outputs[chan++][fSample] = FAUSTFLOAT(REAL(res.getInt()));
+            int  int_val;
+            if (isInt(res, &int_val)) {
+                outputs[chan++][fSample] = static_cast<FAUSTFLOAT>(res.getInt());
             } else {
-                outputs[chan++][fSample] = FAUSTFLOAT(res.getDouble());
+                outputs[chan++][fSample] = static_cast<FAUSTFLOAT>(res.getDouble());
             }
-            output = tl(output);
-            // Reset signals
-            fVisited.clear();
+            output_list = tl(output_list);
         }
 
-        // For delaylines
+        // Increment the delay lines and waveforms shared index
         fIOTA++;
     }
 }
@@ -79,230 +85,263 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
 template <class REAL>
 void SignalRenderer<REAL>::visit(Tree sig)
 {
-    int     i, opt;
-    int64_t i64;
-    double  r;
-    Tree    size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, type, name, file, sf;
+    int     i_val;
+    int64_t i64_val;
+    double  r_val;
+    Tree    size_tree, gen_tree, wi_tree, ws_tree, tbl_tree, ri_tree;
+    Tree    c_tree, x_tree, y_tree, z_tree;
+    Tree    label_tree, type_tree, name_tree, file_tree, sf_tree, sel;
+    int     opt_op;
+    int     proj_idx_val;  // For isProj
+
+    /*
+    if (global::isDebug("SIG_RENDERER")) {
+        std::cout << "SignalRenderer : " << ppsig(sig, 64) << std::endl;
+        std::cout << "SignalRenderer : fIOTA " << fIOTA << std::endl;
+    }
+    */
 
     xtended* xt = (xtended*)getUserData(sig);
-    // Primitive elements
     if (xt) {
         vector<Node> args;
+        // Interpret all arguments then call the function
         for (Tree b : sig->branches()) {
             self(b);
             args.push_back(popRes());
         }
-        pushRes(xt->compute(args));
-    } else if (isSigInt(sig, &i)) {
-        pushRes(i);
-    } else if (isSigInt64(sig, &i64)) {
-        pushRes(i64);
-    } else if (isSigReal(sig, &r)) {
-        pushRes(r);
-    } else if (isSigWaveform(sig)) {
-        // TODO
-    } else if (isSigInput(sig, &i)) {
-        pushRes(fInputs[i][fSample]);
-    } else if (isSigOutput(sig, &i, x)) {
-        self(x);
-    } else if (isSigDelay1(sig, x)) {
-        // Evaluate
-        self(x);
-        Node v1 = popRes();
-        // Write and read delayline
+        Node res = xt->compute(args);
+        //  Hack: for 'min/max' res may actually be of type kInt
+        int ty = getCertifiedSigType(sig)->nature();
+        pushRes((ty == kInt) ? Node(int(res.getDouble())) : res);
+    } else if (isSigInt(sig, &i_val)) {
+        pushRes(i_val);
+    } else if (isSigInt64(sig, &i64_val)) {
+        pushRes(i64_val);
+    } else if (isSigReal(sig, &r_val)) {
+        pushRes(r_val);
+    } else if (isSigInput(sig, &i_val)) {
+        pushRes(fInputs[i_val][fSample]);
+    } else if (isSigOutput(sig, &i_val, x_tree)) {
+        self(x_tree);  // Evaluate the expression connected to the output
+    } else if (isSigDelay1(sig, x_tree)) {
+        self(x_tree);
+        Node v1  = popRes();
         Node one = Node(1);
-        pushRes(writeReadDelay(x, v1, one));
+        pushRes(writeReadDelay(x_tree, v1, one));
 
-    } else if (isSigDelay(sig, x, y)) {
-        if (isZeroDelay(y)) {
-            self(x);
+    } else if (isSigDelay(sig, x_tree, y_tree)) {
+        if (isZeroDelay(y_tree)) {
+            self(x_tree);
         } else {
-            // Evaluate
-            self(x);
+            self(x_tree);
             Node v1 = popRes();
-            self(y);
+            self(y_tree);
             Node v2 = popRes();
-            // Write and read delayline
-            pushRes(writeReadDelay(x, v1, v2));
+            pushRes(writeReadDelay(x_tree, v1, v2));
         }
-    } else if (isSigPrefix(sig, x, y)) {
-        self(x);
-        self(y);
-    } else if (isSigBinOp(sig, &opt, x, y)) {
-        self(x);
-        Node v1 = popRes();
-        self(y);
-        Node v2    = popRes();
-        int  v1_ty = getCertifiedSigType(x)->nature();
-        int  v2_ty = getCertifiedSigType(y)->nature();
-        if (v1_ty == kInt && v2_ty == kInt) {
-            pushRes(gBinOpTable[opt]->compute(v1.getInt(), v2.getInt()));
+    } else if (isSigSelect2(sig, sel, x_tree, y_tree)) {
+        // Interpret the condition and both branches
+        self(sel);
+        Node sel_val = popRes();
+        self(x_tree);
+        Node x_val = popRes();
+        self(y_tree);
+        Node y_val = popRes();
+        // Inverted
+        if (sel_val.getInt()) {
+            pushRes(y_val);
         } else {
-            pushRes(gBinOpTable[opt]->compute(v1.getDouble(), v2.getDouble()));
+            pushRes(x_val);
         }
-    }
+    } else if (isSigPrefix(sig, x_tree, y_tree)) {
+        self(y_tree);
+        if (fIOTA == 0) {
+            self(x_tree);
+        }
+    } else if (isSigBinOp(sig, &opt_op, x_tree, y_tree)) {
+        self(x_tree);
+        Node v1 = popRes();
+        self(y_tree);
+        Node v2 = popRes();
+        Type x_type_info = getCertifiedSigType(x_tree);
+        Type y_type_info = getCertifiedSigType(y_tree);
 
-    // Foreign variable unctions
-    else if (isSigFConst(sig, type, name, file)) {
-        // Special case for SR
-        if (string(tree2str(name)) == "fSamplingFreq") {
+        // Integer binop when both arguments are integer
+        if (x_type_info->nature() == kInt && y_type_info->nature() == kInt) {
+            pushRes(gBinOpTable[opt_op]->compute(v1.getInt(), v2.getInt()));
+        } else {
+            // Otherwise REAL binop
+            pushRes(gBinOpTable[opt_op]->compute(v1.getDouble(), v2.getDouble()));
+        }
+    } else if (isSigFConst(sig, type_tree, name_tree, file_tree)) {
+        if (string(tree2str(name_tree)) == "fSamplingFreq") {
             pushRes(fSampleRate);
         } else {
             faustassert(false);
+            pushRes(Node(0));
         }
-    }
-
-    // Tables
-    else if (isSigWRTbl(sig, size, gen, wi, ws)) {
-        // TODO
-        self(size);
-        self(gen);
-        if (wi != gGlobal->nil) {
-            // rwtable
-            self(wi);
-            self(ws);
-        }
-    } else if (isSigRDTbl(sig, tbl, ri)) {
-        // TODO
-        self(tbl);
-        self(ri);
-    }
-
-    // Doc
-    else if (isSigDocConstantTbl(sig, x, y)) {
-        self(x);
-        self(y);
-    } else if (isSigDocWriteTbl(sig, x, y, u, v)) {
-        self(x);
-        self(y);
-        self(u);
-        self(v);
-    } else if (isSigDocAccessTbl(sig, x, y)) {
-        self(x);
-        self(y);
-    }
-
-    // Select2 (and Select3 expressed with Select2)
-    else if (isSigSelect2(sig, sel, x, y)) {
-        self(sel);
-        Node sel_val = popRes();
-        self(x);
-        Node then_val = popRes();
-        self(y);
-        Node else_val = popRes();
-        // Inverted
-        if (sel_val.getInt()) {
-            pushRes(else_val);
+    } else if (isSigWRTbl(sig, size_tree, gen_tree, wi_tree, ws_tree)) {
+        if (isNil(wi_tree)) {
+            // Nothing
         } else {
-            pushRes(then_val);
-        }
-    }
+            self(wi_tree);
+            Node write_id  = popRes();
+            int  write_idx = write_id.getInt();
+            self(ws_tree);
+            Node val_node = popRes();
 
-    // Table sigGen
-    else if (isSigGen(sig, x)) {
-        // TODO
+            auto it_int  = fIntTables.find(sig);
+            auto it_real = fRealTables.find(sig);
+            if (it_int != fIntTables.end()) {
+                it_int->second.write(write_idx, val_node.getInt());
+            } else if (it_real != fRealTables.end()) {
+                it_real->second.write(write_idx, val_node.getDouble());
+            } else {
+                faustassert(false);
+                return;
+            }
+        }
+    } else if (isSigRDTbl(sig, tbl_tree, ri_tree)) {
+        // Interpret table
+        self(tbl_tree);
+
+        // Then read its content
+        self(ri_tree);
+        Node read_id  = popRes();
+        int  read_idx = read_id.getInt();
+
+        auto it_int  = fIntTables.find(tbl_tree);
+        auto it_real = fRealTables.find(tbl_tree);
+        if (it_int != fIntTables.end()) {
+            pushRes(it_int->second.read(read_idx));
+        } else if (it_real != fRealTables.end()) {
+            pushRes(it_real->second.read(read_idx));
+        } else {
+            faustassert(false);
+            pushRes(Node(0));
+        }
+    } else if (isSigGen(sig, x_tree)) {
         if (fVisitGen) {
-            self(x);
-        }
-    }
-
-    // Recursive signals
-    else if (isProj(sig, &i, x)) {
-        if (!fVisited.count(sig)) {
-            faustassert(isRec(x, var, le));
-            fVisited[sig]++;
-            // Compute the i projection
-            self(nth(le, i));
-            Node res  = popRes();
-            Node zero = Node(0);
-            // Write and read delayline
-            pushRes(writeReadDelay(sig, res, zero));
+            self(x_tree);
         } else {
-            Node one = Node(1);
-            // Read delayline
-            pushRes(readDelay(sig, one));
+            pushRes(Node(0));
         }
-    }
+    } else if (isSigWaveform(sig)) {
+        int size  = sig->arity();
+        int index = fIOTA % size;
+        self(sig->branch(index));
+    } else if (isProj(sig, &proj_idx_val, x_tree)) {
+        Tree rec_vars, rec_exprs;
+        isRec(x_tree, rec_vars, rec_exprs);
 
-    // Int, Bit and Float Cast
-    else if (isSigIntCast(sig, x)) {
-        self(x);
+        // First visit of the recursive signal
+        if (fVisited.find(sig) == fVisited.end()) {
+            faustassert(isRec(x_tree, rec_vars, rec_exprs));
+            fVisited[sig]++;
+            // Render the actual projection
+            self(nth(rec_exprs, proj_idx_val));
+            Node res = popRes();
+            /*
+            if (global::isDebug("SIG_RENDERER")) {
+                std::cout << "Proj : " << res << "\n";
+            }
+            */
+            Node zero = Node(0);
+            pushRes(writeReadDelay(sig, res, zero));
+
+        } else {
+            /*
+            if (global::isDebug("SIG_RENDERER")) {
+                std::cout << "SignalRenderer : next visit of the recursive signal\n";
+            }
+            */
+            Node zero = Node(0);
+            pushRes(readDelay(sig, zero));
+        }
+    } else if (isSigIntCast(sig, x_tree)) {
+        self(x_tree);
         Node cur = popRes();
-        pushRes(int(cur.getDouble()));
-    } else if (isSigBitCast(sig, x)) {
-        // TODO
-        self(x);
-    } else if (isSigFloatCast(sig, x)) {
-        self(x);
+        pushRes(static_cast<int>(cur.getDouble()));
+    } else if (isSigBitCast(sig, x_tree)) {
+        // Bitcast is complex. For a simple renderer, it might be an identity if types are
+        // "close enough" or a reinterpretation of bits (e.g., float bits as int). This renderer
+        // doesn't have type info readily on Node to do a true bitcast. Assuming it's a numeric
+        // pass-through for now.
+        self(x_tree);
+    } else if (isSigFloatCast(sig, x_tree)) {
+        self(x_tree);
         Node cur = popRes();
-        pushRes(double(cur.getInt()));
-    }
-
-    // UI
-    // TODO: compute kr separately until ar is reached, using types associated to signals
-    else if (isSigButton(sig, label)) {
+        pushRes(static_cast<REAL>(cur.getInt()));
+    } else if (isSigButton(sig, label_tree)) {
         pushRes(fInputControls[sig].fZone);
-    } else if (isSigCheckbox(sig, label)) {
+    } else if (isSigCheckbox(sig, label_tree)) {
         pushRes(fInputControls[sig].fZone);
-    } else if (isSigVSlider(sig, label, c, x, y, z)) {
+    } else if (isSigVSlider(sig, label_tree, c_tree, x_tree, y_tree, z_tree)) {
         pushRes(fInputControls[sig].fZone);
-    } else if (isSigHSlider(sig, label, c, x, y, z)) {
+    } else if (isSigHSlider(sig, label_tree, c_tree, x_tree, y_tree, z_tree)) {
         pushRes(fInputControls[sig].fZone);
-    } else if (isSigNumEntry(sig, label, c, x, y, z)) {
+    } else if (isSigNumEntry(sig, label_tree, c_tree, x_tree, y_tree, z_tree)) {
         pushRes(fInputControls[sig].fZone);
-    } else if (isSigVBargraph(sig, label, x, y, z)) {
-        self(z);
-        Node val                   = topRes();
-        fOutputControls[sig].fZone = val.getDouble();
-    } else if (isSigHBargraph(sig, label, x, y, z)) {
-        self(z);
-        Node val                   = topRes();
-        fOutputControls[sig].fZone = val.getDouble();
-    }
-
-    // Soundfile length, rate, buffer
-    else if (isSigSoundfile(sig, label)) {
+    } else if (isSigVBargraph(sig, label_tree, x_tree, y_tree, z_tree)) {
+        self(z_tree);
+        Node val = topRes();
+        fOutputControls[sig].setValue(val.getDouble());
+    } else if (isSigHBargraph(sig, label_tree, x_tree, y_tree, z_tree)) {
+        self(z_tree);
+        Node val = topRes();
+        fOutputControls[sig].setValue(val.getDouble());
+    } else if (isSigSoundfile(sig, label_tree)) {
+        // TODO: Implement soundfile reading. Requires state management for file handlers,
+        // position, etc.
+        pushRes(Node(0));  // Placeholder: outputs silence
+    } else if (isSigSoundfileLength(sig, sf_tree, x_tree)) {
         // TODO
-    } else if (isSigSoundfileLength(sig, sf, x)) {
+        self(sf_tree);
+        popRes();
+        self(x_tree);
+        popRes();
+        pushRes(Node(0));
+    } else if (isSigSoundfileRate(sig, sf_tree, x_tree)) {
         // TODO
-        self(sf), self(x);
-    } else if (isSigSoundfileRate(sig, sf, x)) {
+        self(sf_tree);
+        popRes();
+        self(x_tree);
+        popRes();
+        pushRes(Node(0));
+    } else if (isSigSoundfileBuffer(sig, sf_tree, x_tree, y_tree, z_tree)) {
         // TODO
-        self(sf), self(x);
-    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
-        // TODO
-        self(sf), self(x), self(y), self(z);
-    }
-
-    // Attach, Enable, Control
-    else if (isSigAttach(sig, x, y)) {
-        // TODO
-        self(x), self(y);
-
-    } else if (isSigEnable(sig, x, y)) {
-        // TODO
-        self(x), self(y);
-
-    } else if (isSigControl(sig, x, y)) {
-        // TODO
-        self(x), self(y);
-    }
-
-    else if (isSigRegister(sig, &i, x)) {
-        // TODO
-        self(x);
-    }
-
-    else if (isNil(sig)) {
-        // now nil can appear in table write instructions
-        return;
+        self(sf_tree);
+        popRes();
+        self(x_tree);
+        popRes();
+        self(y_tree);
+        popRes();
+        self(z_tree);
+        popRes();
+        pushRes(Node(0));
+    } else if (isSigAttach(sig, x_tree, y_tree)) {
+        // Interpret second arg then drop it
+        self(y_tree);
+        popRes();
+        // And return the first one
+        self(x_tree);
+    } else if (isSigEnable(sig, x_tree, y_tree)) {  // x_tree is condition, y_tree is signal
+        self(x_tree);
+        Node enable = popRes();  // Renamed enable_cond
+        if (enable.getInt() != 0) {
+            self(y_tree);
+        } else {
+            pushRes(Node(0));
+        }
+    } else if (isSigControl(sig, x_tree, y_tree)) {  // x_tree is name, y_tree is signal
+        self(y_tree);
     } else {
         cerr << __FILE__ << ":" << __LINE__ << " ASSERT : unrecognized signal : " << *sig << endl;
         faustassert(false);
     }
 }
 
-// Needed internal API
+// Needed functions
 Tree DSPToBoxes(const string& name_app, const string& dsp_content, int argc, const char* argv[],
                 int* inputs, int* outputs, string& error_msg);
 
@@ -311,37 +350,74 @@ tvec boxesToSignals(Tree box, string& error_msg);
 extern "C" void createLibContext();
 extern "C" void destroyLibContext();
 
-// External C++ API
+// Explicit template instantiations
+template struct SignalRenderer<float>;
+template struct SignalRenderer<double>;
+template struct signal_dsp_aux<float>;
+template struct signal_dsp_aux<double>;
 
-// Only one factory can be built and used.
+// External API
 
-signal_dsp_factory* createSignalDSPFactoryFromString(const std::string& name_app,
-                                                     const std::string& dsp_content, int argc,
-                                                     const char* argv[], std::string& error_msg)
+/*
+ Since the compilation/interpretation context is global, a UNIQUE factory can be created.
+ The context has to be be kept until the factory destroys it in deleteSignalDSPFactory.
+ */
+
+signal_dsp_factory* createSignalDSPFactoryFromString(const string& name_app,
+                                                     const string& dsp_content, int argc,
+                                                     const char* argv[], string& error_msg)
 {
     createLibContext();
+
+    class SignalPrefix : public SignalIdentity {
+       public:
+        SignalPrefix() : SignalIdentity() {}
+
+       protected:
+        virtual Tree transformation(Tree sig)
+        {
+            Tree x, y;
+            if (isSigPrefix(sig, x, y)) {
+                return sigPrefix(self(x), sigDelay1(self(y)));
+            } else {
+                // Other cases => identity transformation
+                return SignalIdentity::transformation(sig);
+            }
+        }
+    };
+
     try {
-        int  inputs, outputs;
+        // Using the DSP to Box API
+        int  inputs = 0, outputs = 0;
         Tree box = DSPToBoxes(name_app, dsp_content, argc, argv, &inputs, &outputs, error_msg);
         if (!box) {
-            return nullptr;
+            goto error;
         }
+        // Then the Box to Signal API
         tvec signals = boxesToSignals(box, error_msg);
-        if (signals.size() == 0) {
-            return nullptr;
+        if (signals.empty()) {
+            goto error;
         }
 
-        return new signal_dsp_factory(listConvert(signals), argc, argv);
+        // Rewrite prefix trees
+        Tree         res = listConvert(signals);
+        SignalPrefix SP;
+        res = SP.mapself(res);
+        typeAnnotation(res, gGlobal->gLocalCausalityCheck);
+        
+        // Context has to be kept until destroyed in deleteSignalDSPFactory
+        return new signal_dsp_factory(res, argc, argv);
     } catch (faustexception& e) {
-        destroyLibContext();
         error_msg = e.Message();
-        return nullptr;
     }
+
+error:
+    destroyLibContext();
+    return nullptr;
 }
 
-// Only one factory can be built and used.
-signal_dsp_factory* createSignalDSPFactoryFromFile(const std::string& filename, int argc,
-                                                   const char* argv[], std::string& error_msg)
+signal_dsp_factory* createSignalDSPFactoryFromFile(const string& filename, int argc,
+                                                   const char* argv[], string& error_msg)
 {
     string base = basename((char*)filename.c_str());
     size_t pos  = filename.find(".dsp");
@@ -350,15 +426,15 @@ signal_dsp_factory* createSignalDSPFactoryFromFile(const std::string& filename, 
         return createSignalDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc,
                                                 argv, error_msg);
     } else {
-        error_msg = "File Extension is not the one expected (.dsp expected)\n";
+        error_msg = "ERROR : file extension is not the one expected (.dsp expected)\n";
         return nullptr;
     }
 }
 
-// Has to be used before creating another factory.
 bool deleteSignalDSPFactory(signal_dsp_factory* factory)
 {
-    destroyLibContext();
     delete factory;
+    // Context is destroyed, a new factory can possibly be created...
+    destroyLibContext();
     return true;
 }

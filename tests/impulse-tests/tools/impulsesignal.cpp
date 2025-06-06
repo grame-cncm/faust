@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     factory = createSignalDSPFactoryFromFile(argv[1], argc1, argv1, error_msg);
     
     if (!factory) {
-        cerr << "ERROR in createInterpreterDSPFactory " << error_msg  << endl;
+        cerr << "ERROR in createSignalDSPFactoryFromFile " << error_msg  << endl;
         exit(-1);
     }
     

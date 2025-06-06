@@ -1314,6 +1314,7 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
         *outputs = context.fNumOutputs;
         return context.fTree;
     } else {
+        error_msg = gGlobal->gErrorMessage;
         return nullptr;
     }
 }

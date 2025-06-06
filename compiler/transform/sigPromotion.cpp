@@ -382,6 +382,16 @@ Tree SignalPromotion::transformation(Tree sig)
         return sigFFun(ff, listConvert(clargs));
     }
 
+    else if (isSigPrefix(sig, x, y)) {
+        Type tx = getCertifiedSigType(x);
+        Type ty = getCertifiedSigType(y);
+        if (tx->nature() == ty->nature()) {
+            return sigPrefix(self(x), self(y));
+        } else {
+            return sigPrefix(smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
+        }
+    }
+
     // Select2 (and Select3 expressed with Select2)
     else if (isSigSelect2(sig, sel, x, y)) {
         Type ts = getCertifiedSigType(sel);

@@ -247,6 +247,10 @@ class PowPrim : public xtended {
 
     double compute(const std::vector<Node>& args) override
     {
-        return pow(args[0].getDouble(), args[1].getDouble());
+        if (isInt(args[0]) && isInt(args[1])) {
+            return pow(args[0].getInt(), args[1].getInt());
+        } else {
+            return pow(args[0].getDouble(), args[1].getDouble());
+        }
     }
 };
