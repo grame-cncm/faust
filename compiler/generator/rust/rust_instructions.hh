@@ -85,7 +85,7 @@ class RustInstVisitor : public TextInstVisitor {
     static std::map<std::string, bool> gFunctionSymbolTable;
     std::map<std::string, std::string> fMathLibTable;
     // Integer wrapping operators
-    std::map<int, std::string> fWrappingOpTable;
+    std::map<int, std::string>      fWrappingOpTable;
     std::unordered_set<std::string> fVarsRequiringGuards;
 
     // Function returning 'bool', to be casted to 'int'
@@ -193,7 +193,8 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual ~RustInstVisitor() {}
 
-    void setVarsRequiringGuards(const std::unordered_set<std::string> vars_requiring_guards) {
+    void setVarsRequiringGuards(const std::unordered_set<std::string> vars_requiring_guards)
+    {
         fVarsRequiringGuards = vars_requiring_guards;
     }
 
@@ -202,7 +203,7 @@ class RustInstVisitor : public TextInstVisitor {
         if (inst->fAddress->isStaticStruct() && (inst->getAccess() & Address::kConst)) {
             *fOut << "static ";
         } else if (inst->fAddress->isStaticStruct()) {
-            *fOut << "static "; // uses interior mutability via RwLock
+            *fOut << "static ";  // uses interior mutability via RwLock
         } else if (inst->getAccess() & Address::kStack || inst->getAccess() & Address::kLoop) {
             *fOut << "let mut ";
         } else if (inst->getAccess() & Address::kConst) {
@@ -213,7 +214,8 @@ class RustInstVisitor : public TextInstVisitor {
         if (inst->fType->getType() == Typed::kNoType) {
             *fOut << inst->getName();
         } else if (inst->fAddress->isStaticStruct() && !(inst->getAccess() & Address::kConst)) {
-            *fOut << inst->getName() << ": " << "std::sync::RwLock<" << fTypeManager->generateType(inst->fType) << "> ";
+            *fOut << inst->getName() << ": " << "std::sync::RwLock<"
+                  << fTypeManager->generateType(inst->fType) << "> ";
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->getName());
         }
@@ -348,7 +350,7 @@ class RustInstVisitor : public TextInstVisitor {
             }
             if (named->getAccess() & Address::kReference &&
                 named->getAccess() & Address::kMutable) {
-                    *fOut << ".as_mut()";
+                *fOut << ".as_mut()";
             }
         }
     }
@@ -374,10 +376,7 @@ class RustInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(LoadVarInst* inst)
-    {
-        inst->fAddress->accept(this);
-    }
+    virtual void visit(LoadVarInst* inst) { inst->fAddress->accept(this); }
 
     virtual void visit(LoadVarAddressInst* inst)
     {

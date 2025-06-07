@@ -39,8 +39,8 @@
 
 class RustCodeContainer : public virtual CodeContainer {
    protected:
-    RustInstVisitor fCodeProducer;
-    std::ostream*   fOut;
+    RustInstVisitor          fCodeProducer;
+    std::ostream*            fOut;
     std::vector<std::string> fStaticVarNames;
 
     void produceMetadata(int tabs);

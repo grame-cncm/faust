@@ -228,8 +228,8 @@ struct SignalRenderer : public SignalVisitor {
         SignalBuilder(std::map<Tree, DelayedSig<int>>&  int_delays,
                       std::map<Tree, DelayedSig<REAL>>& real_delays,
                       std::map<Tree, TableData<int>>&   int_tables,
-                      std::map<Tree, TableData<REAL>>& real_tables,
-                      std::map<Tree, inputControl>&  inputs_control,
+                      std::map<Tree, TableData<REAL>>&  real_tables,
+                      std::map<Tree, inputControl>&     inputs_control,
                       std::map<Tree, outputControl>& outputs_control, int& inputs)
             : fIntDelays(int_delays),
               fRealDelays(real_delays),
@@ -316,16 +316,13 @@ struct SignalRenderer : public SignalVisitor {
     SignalRenderer(Tree lsig) : fOutputSig(lsig)
     {
         // Build delay lines and recursions, tables and inputs/outputs control
-        SignalBuilder builder(fIntDelays, fRealDelays, fIntTables, fRealTables,
-                              fInputControls, fOutputControls, fNumInputs);
+        SignalBuilder builder(fIntDelays, fRealDelays, fIntTables, fRealTables, fInputControls,
+                              fOutputControls, fNumInputs);
         builder.visitRoot(fOutputSig);
     }
 
     // Do not check already visited
-    void self(Tree sig) override
-    {
-        visit(sig);
-    }
+    void self(Tree sig) override { visit(sig); }
 
     /**
      * @brief Writes a value to a delay line and reads a delayed value.
@@ -452,10 +449,7 @@ struct SignalRenderer : public SignalVisitor {
 
     Node topRes() { return fValueStack.top(); }
 
-    void pushRes(Node val)
-    {
-        fValueStack.push(val);
-    }
+    void pushRes(Node val) { fValueStack.push(val); }
 
     virtual void visit(Tree t) override;
 };
@@ -471,7 +465,7 @@ struct signal_dsp : public dsp {
 template <class REAL>
 struct signal_dsp_aux : public signal_dsp {
     SignalRenderer<REAL> fRenderer;
- 
+
     signal_dsp_aux(Tree lsig) : fRenderer(lsig) {}
     virtual ~signal_dsp_aux() {}
 

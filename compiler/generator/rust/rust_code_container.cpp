@@ -42,16 +42,13 @@ using namespace std;
 */
 
 class CollectStaticVarsVisitor : public DispatchVisitor {
-  private:
+   private:
     std::vector<std::string> fStaticVarNames;
 
-  public:
+   public:
     using InstVisitor::visit;
 
-    CollectStaticVarsVisitor()
-        : DispatchVisitor(), fStaticVarNames{}
-    {
-    }
+    CollectStaticVarsVisitor() : DispatchVisitor(), fStaticVarNames{} {}
 
     virtual void visit(DeclareVarInst* inst)
     {
@@ -60,13 +57,12 @@ class CollectStaticVarsVisitor : public DispatchVisitor {
         }
     }
 
-    std::vector<std::string> getStaticVarNames() {
-        return fStaticVarNames;
-    }
+    std::vector<std::string> getStaticVarNames() { return fStaticVarNames; }
 };
 
-template<typename T>
-std::unordered_set<T> toUnorderedSet(const std::vector<T>& vec) {
+template <typename T>
+std::unordered_set<T> toUnorderedSet(const std::vector<T>& vec)
+{
     return std::unordered_set<T>(vec.begin(), vec.end());
 }
 
@@ -657,16 +653,18 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     *fOut << "}";
 }
 
-void RustCodeContainer::generateLockGuards(int n, bool read) {
+void RustCodeContainer::generateLockGuards(int n, bool read)
+{
     // Helper to create lock guards for static RwLocks, generating expressions like:
     //     let <static-var-name>_guard = <static-var-name>.read().unwrap();
     //     let mut <static-var-name>_guard = <static-var-name>.write().unwrap();
     *fOut << "// Obtaining locks on " << fStaticVarNames.size() << " static var(s)";
     tab(n, *fOut);
-    const auto method = (read ? "read()" : "write()");
+    const auto method  = (read ? "read()" : "write()");
     const auto binding = (read ? "let" : "let mut");
     for (const auto& staticVarName : fStaticVarNames) {
-        *fOut << binding << " " << staticVarName << "_guard = " << staticVarName << "." << method << ".unwrap();";
+        *fOut << binding << " " << staticVarName << "_guard = " << staticVarName << "." << method
+              << ".unwrap();";
         tab(n, *fOut);
     }
 }

@@ -162,7 +162,7 @@ void SignalRenderer<REAL>::visit(Tree sig)
         self(x_tree);
         Node v1 = popRes();
         self(y_tree);
-        Node v2 = popRes();
+        Node v2          = popRes();
         Type x_type_info = getCertifiedSigType(x_tree);
         Type y_type_info = getCertifiedSigType(y_tree);
 
@@ -404,7 +404,7 @@ signal_dsp_factory* createSignalDSPFactoryFromString(const string& name_app,
         SignalPrefix SP;
         res = SP.mapself(res);
         typeAnnotation(res, gGlobal->gLocalCausalityCheck);
-        
+
         // Context has to be kept until destroyed in deleteSignalDSPFactory
         return new signal_dsp_factory(res, argc, argv);
     } catch (faustexception& e) {
