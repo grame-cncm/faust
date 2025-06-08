@@ -30,7 +30,42 @@
 using namespace std;
 
 //-------------------------SignalRenderer-------------------------------
-// Render a list of signals
+//
+// Signal Interpreter is designed to directly render signals in real-time, bypassing the traditional
+// compilation phase.
+//
+// Execution Flow. The interpretation process is divided into two main stages:
+//
+// 1) Preparation Stage (SignalBuilder). The SignalBuilder class traverses all output signal trees
+// to:
+//      - Allocate delay lines (both integer and real types) for sample-accurate delays and
+//      recursive constructs.
+//      - Allocate tables (both integer and real types) required for table-based signal generation.
+//      - Collect and configure input and output control signals (e.g., sliders, buttons,
+//      bargraphs).
+//
+// Rendering Stage (SignalRenderer). The SignalRenderer class:
+//      - Traverses all output signal trees.
+//      - Computes the value of each output signal sample by recursively interpreting the expression
+//      tree.
+//      - Uses a value stack to manage intermediate results.
+//
+// Table Initialization:
+//
+// After SignalBuilder has prepared the signal trees, the tables are precomputed once during
+// the initialization phase via the `initTables` method. This ensures efficient table lookup during
+// rendering.
+//
+// Sample Computation. For each audio sample:
+//      - The interpreter starts from the output signal tree and recursively traverses the
+//        graph back to its inputs (audio inputs and control signals).
+//      - Recursion is handled once per sample using the fVisited variable to prevent cycles.
+//
+// Integration with DSP Factory.
+//
+// The SignalRenderer class is wrapped by `signal_dsp_factory` and `signal_dsp` classes,
+// enabling integration with the existing DSP backends used in Faust (e.g., LLVM or Interp).
+// This allows seamless reuse of user interfaces and other DSP features.
 //----------------------------------------------------------------------
 
 template <class REAL>
@@ -51,6 +86,34 @@ void signal_dsp_aux<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
     fRenderer.compute(count, inputs, outputs);
 }
 
+/**
+* @brief Computes and renders audio samples for a block of output signals.
+*
+* This method performs the real-time rendering loop of the signal interpreter.
+* It processes a block of audio samples by traversing the output signal tree,
+* computing each sample value recursively, and writing the result to the
+* appropriate output channel.
+*
+* Core steps:
+* 1. Sets the input pointer (`fInputs`) for use during recursive evaluation.
+* 2. Iterates over each sample in the block (sample index `fSample`).
+* 3. For each output signal, recursively evaluates the expression tree
+*    using `self()`, retrieving the computed value from the stack.
+* 4. Determines whether the result is an integer or a real value
+*    and writes it to the correct output channel.
+* 5. Increments the shared index counter (`fIOTA`) used for delay lines
+*    and waveforms.
+*
+* Implementation details:
+* - Clears the `fVisited` map at the start of each sample to ensure correct
+*   handling of recursive signals and avoid cyclic evaluations.
+* - Supports both integer and real-valued output signals, allowing mixed-type
+*   outputs depending on the signal graph.
+*
+* @param count The number of samples to process in the current block.
+* @param inputs The input signal buffers (audio and control signals).
+* @param outputs The output signal buffers.
+*/
 template <class REAL>
 void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 {
@@ -82,6 +145,35 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
     }
 }
 
+/**
+ * @brief Visits a signal tree node and recursively evaluates its value.
+ *
+ * This method implements the core interpreter logic for rendering a Faust
+ * signal graph. It uses a recursive traversal to process each node type,
+ * evaluates its sub-expressions, and computes the resulting value. The
+ * intermediate results are stored on a value stack (`fValueStack`).
+ *
+ * The method supports a wide variety of Faust signal constructs, including:
+ * - Constants (integer, real)
+ * - Inputs and outputs
+ * - Delay lines and feedback structures
+ * - Control structures (sliders, buttons, bargraphs)
+ * - Mathematical operations (binary operators, conditional expressions)
+ * - Table-based operations (read/write table)
+ * - Recursive signals and projections
+ *
+ * Key implementation notes:
+ * - For each recognized node type, it performs the appropriate evaluation logic
+ *   and pushes the result onto the value stack.
+ * - For recursive signals (e.g., projections), it uses the `fVisited` map to
+ *   detect cycles and avoid infinite recursion.
+ * - It handles the evaluation of user interface controls by reading values
+ *   from `fInputControls` and updating `fOutputControls`.
+ * - For unimplemented or unrecognized nodes, it triggers an assertion failure
+ *   to ensure correctness.
+ *
+ * @param sig The signal tree node to evaluate.
+ */
 template <class REAL>
 void SignalRenderer<REAL>::visit(Tree sig)
 {
@@ -293,7 +385,7 @@ void SignalRenderer<REAL>::visit(Tree sig)
     } else if (isSigSoundfile(sig, label_tree)) {
         // TODO: Implement soundfile reading. Requires state management for file handlers,
         // position, etc.
-        pushRes(Node(0));  // Placeholder: outputs silence
+        pushRes(Node(0));
     } else if (isSigSoundfileLength(sig, sf_tree, x_tree)) {
         // TODO
         self(sf_tree);
@@ -362,7 +454,6 @@ template struct signal_dsp_aux<double>;
  Since the compilation/interpretation context is global, a UNIQUE factory can be created.
  The context has to be be kept until the factory destroys it in deleteSignalDSPFactory.
  */
-
 signal_dsp_factory* createSignalDSPFactoryFromString(const string& name_app,
                                                      const string& dsp_content, int argc,
                                                      const char* argv[], string& error_msg)

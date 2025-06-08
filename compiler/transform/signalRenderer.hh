@@ -46,14 +46,26 @@
 #include "signalVisitor.hh"
 #include "sigtyperules.hh"
 
-//-------------------------SignalRenderer-------------------------------
-// Render a list of signals.
-//----------------------------------------------------------------------
-
 /**
- * @brief Define a renderer to interpret a signal.
+ * @brief Class to interpret and render signals sample-by-sample in real-time.
  *
- * @tparam REAL
+ * The `SignalRenderer` class is responsible for traversing the output signal trees,
+ * evaluating each node recursively to compute the value of each output sample.
+ * It handles delay lines, tables, recursive signals, and user controls, making it
+ * the core component for real-time signal interpretation in the non-compilation backend.
+ *
+ * Key responsibilities:
+ * - Recursively evaluate signal trees to compute sample values.
+ * - Manage circular delay lines for recursive and time-based signal processing.
+ * - Initialize lookup tables by precomputing their contents.
+ * - Handle user interface controls (inputs and outputs) during rendering.
+ *
+ * Usage:
+ * 1. Construct a `SignalRenderer` with the output signal tree.
+ * 2. Use `initTables()` to precompute all tables before real-time processing.
+ * 3. Call `compute(count, inputs, outputs)` each render block to produce audio samples.
+ *
+ * @tparam REAL The numeric type used for real-valued signals (e.g., float or double).
  */
 template <class REAL>
 struct SignalRenderer : public SignalVisitor {
@@ -66,9 +78,14 @@ struct SignalRenderer : public SignalVisitor {
     }
 
     /**
-     * @brief A buffer of a given type to implement delay lines.
+     * @brief A circular buffer implementing delay lines for signals of a given type.
      *
-     * @tparam TYPE
+     * This templated structure is used to store delayed versions of a signal
+     * in a circular buffer for efficient sample-accurate delays. Delay lines
+     * are essential for implementing feedback, recursive structures, and
+     * time-based signal processing in audio DSP (e.g., echoes, filters).
+     *
+     * @tparam TYPE The numeric type stored in the buffer (e.g., int or float).
      */
     template <class TYPE>
     struct DelayedSig {
@@ -89,9 +106,15 @@ struct SignalRenderer : public SignalVisitor {
     };
 
     /**
-     * @brief A buffer of a given type to implement tables.
+     * @brief A table structure to store precomputed data for signal processing.
      *
-     * @tparam TYPE
+     * This templated structure implements a buffer of a given type (e.g., int or float)
+     * to store lookup tables or precomputed signal values.
+     *
+     * Each table is associated with a Faust signal generator (`fSigGen`),
+     * which can be used to fill the table during initialization.
+     *
+     * @tparam TYPE The numeric type of the table elements (e.g., int or float).
      */
     template <class TYPE>
     struct TableData {
@@ -122,7 +145,15 @@ struct SignalRenderer : public SignalVisitor {
         void fill(TYPE val) { std::fill(fData.begin(), fData.end(), val); }
     };
 
-    // Keep input controls
+    /**
+     * @brief Structure to represent user input controls.
+     *
+     * This structure defines the configuration for user interface controls
+     * that allow the user to interact with signal parameters during runtime.
+     * Typical examples include sliders, buttons, and numerical entries.
+     *
+     * Each control has an associated type, label, and value range.
+     */
     struct inputControl {
         enum type { kButton, kCheckbutton, kVslider, kHslider, kNumEntry } fType;
         std::string fLabel;
@@ -140,7 +171,13 @@ struct SignalRenderer : public SignalVisitor {
 
         void init() { fZone = fInit; }
     };
-    // Keep output controls
+
+    /**
+     * @brief Structure to represent output controls (bargraphs).
+     *
+     * This structure defines the configuration for output controls that
+     * visualize signal levels, such as vertical or horizontal bargraphs.
+     */
     struct outputControl {
         enum type { kHbargraph, kVbargraph } fType;
         std::string fLabel;
@@ -157,10 +194,19 @@ struct SignalRenderer : public SignalVisitor {
     };
 
     /**
-     * @brief Build delay lines (for real ones and recursions) and tables
-     * and keep input and output controls.
+     * @brief Class to traverse and prepare signal trees for rendering.
      *
-     * @tparam REAL
+     * The `SignalBuilder` class is responsible for analyzing the output signal trees,
+     * allocating all necessary resources such as delay lines, tables, and input/output controls,
+     * and performing preliminary setup before rendering. It ensures that each signal
+     * has the correct data structures allocated for real-time sample interpretation.
+     *
+     * Key responsibilities:
+     * - Allocates delay lines for signals that require delays or recursive definitions.
+     * - Allocates tables for signals that generate lookup data.
+     * - Registers input and output controls such as sliders and bargraphs.
+     *
+     * @tparam REAL The numeric type used for real-valued signals (e.g., float or double).
      */
     struct SignalBuilder : public SignalVisitor {
         std::map<Tree, DelayedSig<int>>&  fIntDelays;
@@ -379,6 +425,19 @@ struct SignalRenderer : public SignalVisitor {
         }
     }
 
+    /**
+     * @brief Computes a single output sample for an integer-valued signal expression.
+     *
+     * This method clears the visited nodes map (`fVisited`) to ensure that recursive
+     * or shared subtrees are properly evaluated during this sample.
+     * It then evaluates the given expression tree by recursively interpreting it.
+     * The result is retrieved from the value stack as an integer.
+     * Finally, the global sample index counter (`fIOTA`) is incremented to advance
+     * the circular buffer indexing and waveform rendering state.
+     *
+     * @param exp The expression tree representing the signal to compute.
+     * @return The computed integer sample value.
+     */
     int computeIntSample(Tree exp)
     {
         fVisited.clear();  // Clear visited for each top-level signal evaluation per sample
@@ -389,6 +448,15 @@ struct SignalRenderer : public SignalVisitor {
         return res.getInt();
     }
 
+    /**
+     * @brief Computes a single output sample for a real-valued signal expression.
+     *
+     * This method performs the same logic as `computeIntSample`, but returns
+     * a floating-point value instead.
+     *
+     * @param exp The expression tree representing the signal to compute.
+     * @return The computed real-valued sample.
+     */
     double computeRealSample(Tree exp)
     {
         fVisited.clear();  // Clear visited for each top-level signal evaluation per sample
@@ -399,6 +467,27 @@ struct SignalRenderer : public SignalVisitor {
         return res.getDouble();
     }
 
+    /**
+     * @brief Initializes lookup tables used in the signal graph.
+     *
+     * This method precomputes all lookup tables (both integer and real-valued)
+     * that are defined in the signal expression. It ensures that any table-based
+     * signals (e.g., wavetables, precomputed envelopes) are filled with their
+     * corresponding precomputed values before real-time rendering begins.
+     *
+     * Implementation details:
+     * - Enables the generator flag (`fVisitGen = true`) to allow recursive
+     *   evaluation of table-generating signals.
+     * - Iterates over all integer tables (`fIntTables`) and computes their
+     *   contents using `computeIntSample`.
+     * - Iterates over all real-valued tables (`fRealTables`) and computes their
+     *   contents using `computeRealSample`.
+     * - Resets the generator flag (`fVisitGen = false`) once table initialization
+     *   is complete.
+     *
+     * This method must be called once before starting real-time processing
+     * to ensure that all table-based signals are correctly initialized.
+     */
     void initTables()
     {
         // So that sigGen are properly visited
@@ -455,13 +544,35 @@ struct SignalRenderer : public SignalVisitor {
 };
 
 /**
- * @brief The signal_dsp class is used to render signals.
+ * @brief The `signal_dsp` class is used to render signals.
  */
-
 struct signal_dsp : public dsp {
     virtual ~signal_dsp() {}
 };
 
+/**
+ * @brief Concrete DSP implementation for rendering interpreted signals.
+ *
+ * The `signal_dsp_aux` class is a specialized implementation of `signal_dsp`
+ * that renders signals interpreted at runtime. It integrates the `SignalRenderer`
+ * to compute sample values using recursive traversal of the output signal tree.
+ *
+ * Key responsibilities:
+ * - Manages a `SignalRenderer` that performs the core sample-by-sample interpretation.
+ * - Implements the standard Faust DSP interface (`dsp`), including:
+ *   - User interface construction (`buildUserInterface`)
+ *   - Lifecycle management (initialization, reset, clear)
+ *   - Sample rendering (`compute`)
+ * - Supports real-time control via dynamic input controls (sliders, buttons)
+ *   and output controls (bargraphs).
+ *
+ * Usage:
+ * - Instantiated by the `signal_dsp_factory` based on compile options.
+ * - Used by Faust applications to render interpreted signals in real-time
+ *   without requiring a separate compilation step.
+ *
+ * @tparam REAL The numeric type used for real-valued signals (e.g., float or double).
+ */
 template <class REAL>
 struct signal_dsp_aux : public signal_dsp {
     SignalRenderer<REAL> fRenderer;
@@ -565,8 +676,34 @@ struct signal_dsp_aux : public signal_dsp {
 
 // External API
 
+/**
+ * @brief Factory class to create and manage `signal_dsp` instances for interpreted signals.
+ *
+ * The `signal_dsp_factory` encapsulates the output signal tree and any associated
+ * compile options needed to create DSP instances. It performs validation of the
+ * signal graph to ensure that no unsupported features (e.g., foreign functions or variables)
+ * are used in interpreted mode.
+ *
+ * Responsibilities:
+ * - Validates that the signal tree can be interpreted safely.
+ * - Stores compile options (e.g., `-double` for double-precision support).
+ * - Creates instances of `signal_dsp` (using `signal_dsp_aux`) with the appropriate
+ *   numeric type based on compile options.
+ * - Integrates seamlessly with the broader Faust DSP ecosystem by implementing
+ *   the same factory interface as other backends.
+ *
+ * Usage:
+ * - Construct a `signal_dsp_factory` with the output signal tree and command-line arguments.
+ * - Use `createDSPInstance()` to instantiate one or more DSP objects.
+ * - Manage lifecycle via `deleteSignalDSPFactory` (for global context management).
+ */
 struct signal_dsp_factory : public dsp_factory {
-    // Check that signal can be interpreted
+    /**
+     * @brief Internal class to check for unsupported features in interpreted mode.
+     *
+     * Traverses the signal tree and throws exceptions if unsupported constructs
+     * (e.g., foreign functions or variables) are detected.
+     */
     struct SignalChecker : public SignalVisitor {
         void visit(Tree sig) override
         {
