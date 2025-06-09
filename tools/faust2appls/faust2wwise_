@@ -1,0 +1,511 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#                        faust2wwise generator                      #
+#                          (c) Grame, 2025                          #
+#                                                                   #
+#####################################################################    
+: '
+@Documentation : 
+The Faust2Wwise conversion process is applied with the folowing steps:
+    Preliminary/Preparation Step: Setup and Validation
+        Declare all variables
+        Define basic script functions
+        Preprocessing & Initialization (i.e. platform paths depending on the platform (win/macOs))
+        Validate environment providing checks
+        Prepare the ground in general
+    Step 1: Faust DSP Compilation
+        Compile dsp file
+        Extract DSP json description
+        JSON Configuration Processing
+            Initialize/override value of
+                PLUGIN_TYPE
+                PLUGIN_NAME
+                AUTHOR
+                DESCRIPTION
+                #INPUTS/#OUTPUTS?
+    Step 2: Wwise Plugin Project Generation
+        Use Wwise wp.py script to create plugin project structur, geenerating the plugin template files
+    Step 3: Integration step (DSP only)
+        Copy generated Faust DSP file to plugin SoundEngine directory
+        Replace plugin header and source (cpp) file in the SoundEnginePlugin directory
+        Update Lua build script (PremakePlugin.lua) to include Faust headers
+    Step 4: Configuration step
+        Use Wwise wp.py with `premake` to configure project before building
+    Step 5: Plugin Compilation
+        Use Wwise wp.py build command with Release configuration
+        Generate static and dynamic libraries for Wwise integration
+    Outro step: Cleanup
+        Remove temporary files
+'
+
+
+. faustpath
+# . faustoptflags  
+. usage.sh
+
+#==============================================================================
+# DECLARE ALL VARIABLES
+#==============================================================================
+
+################################################ paths
+# FAUST_LIB_PATH="$FAUSTLIB"
+FAUST_LIB_PATH="/usr/local/share/faust"
+# FAUST_INC_PATH="$FAUSTINC" 
+ARCHFILE="$FAUST_LIB_PATH/wwise.cpp"
+
+################################################ Wwise stuff
+WWISEROOT=""
+WWISEROOT_MSYS=""
+PATCH_VERSION="" # related to wwise version (for now we use <default>)
+WWISE_SCRIPTS_DIR="" # PATCH dir storing the PATCH files. These are used for integrating wwise plugable faust-compiled code
+############################################### faust stuff
+# Project configuration 
+### script arguments
+OUTPUT_DIR="."
+FAUST_OPTIONS=""
+DSP_FILE=""
+### additional
+DSP_FILENAME=""
+### Platform-specific paths
+FAUST_INCLUDE_PATH=""
+
+################################################ plugin config
+PLUGIN_TYPE="" 
+PLUGIN_NAME=""
+AUTHOR=""
+DESCRIPTION=""
+
+################################################ helper vars
+# Temp dir to store temp data ( i.e. jsonfile )
+TEMP_DIR="_temp_"
+
+################################################ error codes
+ERR_INVALID_INPUT=2
+ERR_ENVIRONMENT=3
+ERR_FAUST_COMPILE=4
+ERR_JSON_PARSE=5
+ERR_GENERATION=6
+ERR_INTEGRATION=7
+ERR_CONFIGURATION=8
+ERR_BUILD=9
+
+#==============================================================================
+# DEFINE BASIC SCRIPT FUNCTIONS
+#==============================================================================
+
+# help utility using Faust standard approach
+printUsage() {
+    usage "faust2wwise" "[options] file.dsp"
+    echo "Converts Faust DSP files to Wwise plugins"
+    echo ""
+    platform "Windows/macOS/Linux with Wwise SDK"
+    echo ""
+    require "Wwise SDK" "Faust compiler" "Python (for build scripts)"
+    echo ""
+    options "-h, --help     Show this help message" \
+            "-o <dir>       Output directory (default: current directory)"
+    echo ""
+    echo "Example:"
+    echo "  faust2wwise sine.dsp"
+    exit 1
+}
+
+parseArguments() {
+    while [ $# -gt 0 ]; do
+        case $1 in
+            -h|--help)
+                printUsage
+                ;;
+            -o)
+                shift
+                OUTPUT_DIR="$1"
+                ;;
+            *.dsp)
+                DSP_FILE="$1"
+                ;;
+            *)
+                FAUST_OPTIONS="$FAUST_OPTIONS $1" # TODO: extend here with wwise related configuration options?
+                ;;
+        esac
+        shift
+    done
+}
+
+printConfiguration() {
+    echo "------------------------------------------"
+    echo "FAUST2WWISE CONFIGURATION"
+    echo "------------------------------------------"
+    echo "TEMP_DIR $TEMP_DIR"
+    echo "========== FAUST CONFIGURATION ==========="
+    echo "DSP_FILE $DSP_FILE"
+    echo "ARCHFILE $ARCHFILE"
+    echo "FAUSTARCH $FAUSTARCH"
+    echo "FAUSTLIB $FAUSTLIB"
+    echo "FAUST_LIB_PATH: $FAUST_LIB_PATH"
+    echo "FAUSTINC $FAUSTINC"
+    echo "OUTPUT_DIR $OUTPUT_DIR"
+    echo "FAUST_OPTIONS $FAUST_OPTIONS"
+    echo "Faust Include Path (platform path used in the lua): $FAUST_INCLUDE_PATH"
+    echo "=========== WWISE CONFIGURATION=========== "
+    echo "WWISEROOT $WWISEROOT"
+    echo "========== PLUGIN CONFIGURATION =========="
+    echo "PLUGIN_TYPE $PLUGIN_TYPE"
+    echo "PROJECT_NAME $PROJECT_NAME"
+    echo "AUTHOR $AUTHOR"
+    echo "DESCRIPTION $DESCRIPTION"
+    echo "DSP_FILENAME $DSP_FILENAME"
+    echo "PLUGIN_NAME $PLUGIN_NAME"
+    echo "------------------------------------------"
+}
+
+setupPlatformPaths() {
+    # TODO : Validate paths
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+        # Windows MSYS2 - use forward slashes for Lua compatibility
+        FAUST_INCLUDE_PATH="C:/msys64/usr/local/include"
+        WWISEROOT=$(find "C:/Program Files (x86)/Audiokinetic" -maxdepth 1 -name "Wwise*" -type d | sort -V | tail -1)
+        PATCH_VERSION="default"
+        # WWISE_SCRIPTS_DIR="$FAUST_LIB_PATH/wwise/$PATCH_VERSION/$PLUGIN_TYPE/" //$PLUGIN_TYPE has not yet been initialized
+    else
+        # macOS
+        FAUST_INCLUDE_PATH="/usr/local/include"
+        # WWISEROOT=$(find "/usr/bin/" -maxdepth 1 -name "Wwise*" -type d | sort -V | tail -1) 
+        # ...
+    fi
+    
+}
+
+validateEnvironment() {
+
+    # Check if WWISEROOT is set
+    if [ -z "$WWISEROOT" ]; then
+        echo "Error $ERR_ENVIRONMENT: WWISEROOT environment variable is not set."
+        echo "Please set it to your Wwise installation directory or make sure wwise is installed."
+        exit ${ERR_ENVIRONMENT}
+    fi
+    
+    # Check if dsp file provided
+    if [ -z "$DSP_FILE" ]; then
+        echo "Error $ERR_INVALID_INPUT: No DSP file provided"
+        printUsage
+        exit $ERR_INVALID_INPUT
+    fi
+    
+    # Check if the given dsp file exists
+    if [ ! -f "$DSP_FILE" ]; then
+        echo "Error $ERR_INVALID_INPUT: DSP file '$DSP_FILE' not found"
+        exit ERR_INVALID_INPUT
+    fi
+
+    # Check if architecture file exists
+    if [ ! -f "$ARCHFILE" ]; then
+        echo "Error $ERR_ENVIRONMENT: Wwise architecture file not found at $ARCHFILE"
+        echo "Make sure the wwise.cpp architecture file is installed in $FAUST_LIB_PATH"
+        exit $ERR_ENVIRONMENT
+    fi
+
+}
+
+setupEnvironment() {
+
+    echo "------------------------------------------Preliminary Step : setup and validate environment"
+
+    parseArguments "$@"
+    
+    setupPlatformPaths
+
+    DSP_FILENAME=$(basename "$DSP_FILE" .dsp) # extract name without extension
+    PLUGIN_NAME="${DSP_FILENAME^}" #capitalize first letter
+    
+    # convert WWISEROOT from Windows path to MSYS2 path if needed
+    WWISEROOT_MSYS=$(echo "$WWISEROOT" | sed 's|\\|/|g' | sed 's|^\([A-Za-z]\):|/\1|')
+
+    TEMP_DIR="$(pwd)/$TEMP_DIR"    
+    mkdir -p $TEMP_DIR
+    mkdir -p "$OUTPUT_DIR"
+
+    validateEnvironment
+    printConfiguration
+}
+
+#==============================================================================
+# PROCESS JSON FILE
+#==============================================================================
+processJSONConfig() {
+
+    echo "Parsing json configuration file.."
+
+    mv ${DSP_FILE}.json $TEMP_DIR
+    JSON_FILE="$TEMP_DIR/${DSP_FILE}.json"
+
+    if [ -f $JSON_FILE ]; then
+        echo "Reading JSON configuration..."
+
+        # Fix the invalid JSON syntax due to unescaped backslashes in the Windows paths issue,
+        # ...by escaping backslashes
+        if grep -q '[A-Za-z]:\\' "$JSON_FILE"; then # That s why we check for windows like paths (i.e. D:\) inserted in the json file.
+            FIXED_JSON="$TEMP_DIR/fixed_${DSP_FILE}.json"
+            sed 's|\\|\\\\|g' "$JSON_FILE" > "$FIXED_JSON"
+            mv $FIXED_JSON $JSON_FILE
+        fi
+
+        DSP_INPUTS=$(cat $JSON_FILE | jq -r '.inputs')
+        DSP_OUTPUTS=$(cat "$JSON_FILE" | jq -r '.outputs')
+
+        # Determine plugin type based on inputs
+        if [ "$DSP_INPUTS" -gt 0 ]; then
+            PLUGIN_TYPE="effect"
+            PLUGIN_SUFFIX="FX"
+            #TODO: FX can be in-place and out-of-place
+        else
+            PLUGIN_TYPE="source"
+            PLUGIN_SUFFIX="Source"
+        fi    
+        # after $PLUGIN_TYPE has been initialized --> TODO: this is related to the platform specific paths - maybe it will be a function
+        WWISE_SCRIPTS_DIR="$FAUST_LIB_PATH/wwise_/$PATCH_VERSION/$PLUGIN_TYPE"
+
+        # Extract project name & override in case it is provided as a declaration in faust dsp file
+        # i.e. declare name "Name"
+        TEMP_PLUGIN_NAME=$(cat "$JSON_FILE" | jq -r '.name // empty')
+        if [ -z "$TEMP_PLUGIN_NAME" ]; then
+            PLUGIN_NAME="$TEMP_PLUGIN_NAME"
+            echo "PLUGIN_NAME changed to $PLUGIN_NAME"
+        fi
+        
+        # extract author from meta dict
+        AUTHOR=$(cat "$JSON_FILE" | jq -r '.meta[] | select(has("author")) | .author // empty' | head -1)
+        if [ -z "$AUTHOR" ]; then
+            AUTHOR="Unknown"
+        fi
+
+        # Extract description from meta dict
+        DESCRIPTION=$(cat "$JSON_FILE" | jq -r '.meta[] | select(has("description")) | .description // empty' | head -1)
+        if [ -z "$DESCRIPTION" ]; then
+            DESCRIPTION="No description provided"
+        fi
+        
+        echo "PLUGIN_TYPE $PLUGIN_TYPE"
+        echo "PLUGIN_NAME $PLUGIN_NAME"
+        echo "AUTHOR $AUTHOR"
+        echo "DESCRIPTION $DESCRIPTION"
+    else
+        echo "Error $ERR_JSON_PARSE: Failed to compile Faust DSP"
+        return $ERR_JSON_PARSE
+    fi
+    echo "OK : ${JSON_FILE} was parsed successfully!"
+    
+}
+
+#==============================================================================
+# FAUST COMPILATION 
+#==============================================================================
+compileFaustDSP() {
+    echo "------------------------------------------Step 1: Compiling Faust DSP to C++"
+    
+    faust -I "$FAUST_LIB_PATH" -json -a "$ARCHFILE" $FAUST_OPTIONS "$DSP_FILE" -o "$TEMP_DIR/${DSP_FILENAME}.cpp"
+    
+    if [ $? -ne 0 ]; then
+        echo "Error ${ERR_FAUST_COMPILE}: Failed to compile Faust DSP"
+        exit $ERR_FAUST_COMPILE
+    fi
+    
+    processJSONConfig
+    
+    echo "OK : ${TEMP_DIR}/${DSP_FILENAME}.cpp generated successfully!"
+}
+
+#==============================================================================
+# GENERATE PROJECT
+#==============================================================================
+
+generateWwiseProject() {
+    echo "------------------------------------------Step 2: Generating Wwise plugin project"
+    cd "$OUTPUT_DIR"
+    
+    python "$WWISEROOT_MSYS/Scripts/Build/Plugins/wp.py" new "--${PLUGIN_TYPE}" \
+        --name "$PLUGIN_NAME" \
+        --display-name "$PLUGIN_NAME" \
+        --author "$AUTHOR" \
+        --description "$DESCRIPTION" \
+        --no-prompt
+    
+    if [ $? -ne 0 ]; then
+        echo "Error ${ERR_GENERATION}: Failed to generate Wwise plugin project"
+        exit ${ERR_GENERATION}
+    fi
+    
+    echo "$PLUGIN_NAME generated successfully!"
+}
+
+#==============================================================================
+# INTEGRATION - File replacing method
+#==============================================================================
+
+architectureFileIntegration() {
+    echo "Architecture File Integration"
+    echo "Current plugin directory: $PWD"
+
+    # Replace the Wwise-generated header with our Faust-generated one
+    FAUST_GENERATED_ARCH_FILE="$TEMP_DIR/${DSP_FILENAME}.cpp"
+    FAUST_GENERATED_DESTINATION="$PLUGIN_NAME/SoundEnginePlugin/faustdsp.cpp"
+
+    if [ ! -f "$FAUST_GENERATED_ARCH_FILE" ]; then
+        echo "Error: Faust-generated file not found: $FAUST_GENERATED_ARCH_FILE"
+        exit $ERR_FAUST_COMPILE
+    fi
+    
+    cp $FAUST_GENERATED_ARCH_FILE $FAUST_GENERATED_DESTINATION
+    echo "OK : Copied Faust DSP to: $FAUST_GENERATED_DESTINATION"
+}
+
+replaceCustomTemplates() {
+    
+    echo "Replacing generated files with custom templates..."
+    
+    # Define the list of template files to replace (these contain {name} placeholders)
+    local templateFiles=(
+        "SoundEnginePlugin/ProjectName$PLUGIN_SUFFIX.h"
+        "SoundEnginePlugin/ProjectName$PLUGIN_SUFFIX.cpp"
+    )
+    
+    # Define the corresponding target files (using actual plugin name)
+    local targetFiles=(
+        "SoundEnginePlugin/$PLUGIN_NAME$PLUGIN_SUFFIX.h"
+        "SoundEnginePlugin/$PLUGIN_NAME$PLUGIN_SUFFIX.cpp"
+    )
+    
+    TARGET_DIR="$PLUGIN_NAME"
+    if [ -d "$TARGET_DIR" ]; then
+        echo "Replacing specific SoundEnginePlugin files..."
+        
+        for i in "${!templateFiles[@]}"; do
+
+            template="${templateFiles[$i]}"
+            target="${targetFiles[$i]}"
+            template_path="$WWISE_SCRIPTS_DIR/$template"
+            target_path="$TARGET_DIR/$target"
+
+            if [ -f "$template_path" ]; then
+            
+                # Replace the ${name} placeholders with $PLUGIN_NAME + directly copy to target path
+                sed "s/\${name}/${PLUGIN_NAME}/g" "$template_path" > "$target_path"
+                
+                echo "OK : Replaced: $target with $template"
+            else
+                echo "ERROR: Template file not found: $template_path"
+            fi
+
+        done
+        
+        echo "OK: Custom templates applied successfully!"
+    else
+        echo "ERROR: Target directory $TARGET_DIR not found"
+        return 1
+
+    fi
+}
+
+modifyLuaBuildScript() {
+    echo "Modifying Lua build script for Faust includes..."
+    
+    cd "$PLUGIN_NAME"
+    
+    PREMAKE_FILE="PremakePlugin.lua"
+    if [ -f "$PREMAKE_FILE" ]; then        
+        # Add Faust include directory to all sections
+        sed -i '/Plugin\.sdk\.static\.includedirs.*=/,/^}$/ {
+            /^}$/i\
+    "'"$FAUST_INCLUDE_PATH"'",
+        }' "$PREMAKE_FILE"
+        
+        sed -i '/Plugin\.sdk\.shared\.includedirs.*=/,/^}$/ {
+            /^}$/i\
+    "'"$FAUST_INCLUDE_PATH"'",
+        }' "$PREMAKE_FILE"
+        
+        sed -i '/Plugin\.authoring\.includedirs.*=/,/^}$/ {
+            /^}$/i\
+    "'"$FAUST_INCLUDE_PATH"'",   
+        }' "$PREMAKE_FILE"
+        
+        echo "OK : Updated Lua build script with Faust include paths"
+    else
+        echo "ERROR $ERR_INTEGRATION: Could not find PremakePlugin.lua"
+        exit $ERR_INTEGRATION
+    fi
+}
+
+
+integrationStep(){
+    echo "------------------------------------------Step 3: Integration Step"
+    architectureFileIntegration # edit the exported arch file
+    replaceCustomTemplates # replace the vital for the integration files
+    modifyLuaBuildScript # additional step : ought to be absorbed by the replaceCustomTemplates
+}
+#==============================================================================
+# CONFIGURE(PREMAKE) & BUILD 
+#==============================================================================
+
+configureWwiseProject() {
+    echo "------------------------------------------Step 4: Configuring project files"
+    python "$WWISEROOT_MSYS/Scripts/Build/Plugins/wp.py" premake Authoring
+    
+    if [ $? -ne 0 ]; then
+        echo "Error $ERR_CONFIGURATION: Failed to configure project files"
+        exit $ERR_CONFIGURATION
+    fi
+    
+    echo "OK : Configuration executed sucessfully!"
+}
+
+buildPlugin() {
+    echo "------------------------------------------Step 5: Building plugin"
+    python "$WWISEROOT_MSYS/Scripts/Build/Plugins/wp.py" build -c Release -x x64 -t vc170 Authoring
+    
+    if [ $? -ne 0 ]; then
+        echo "Error $ERR_BUILD: Failed to build plugin"
+        exit $ERR_BUILD
+    fi
+    
+    echo "OK : Plugin built successfully!"
+}
+
+#==============================================================================
+# CLEANING
+#==============================================================================
+
+cleanup() {
+    echo "------------------------------------------Outro"
+    echo "# Cleaning up temporary files ($TEMP_DIR)"
+    rm -r $TEMP_DIR 
+}
+
+#==============================================================================
+# MAIN EXECUTION
+#==============================================================================
+
+main() {
+
+    echo "Converting $DSP_FILE to Wwise plugin..."
+    
+    setupEnvironment "$@"   # preliminary step    
+    compileFaustDSP         # step 1
+    generateWwiseProject    # step 2
+    integrationStep         # step 3
+    configureWwiseProject   # step 4
+    buildPlugin             # step 5
+    cleanup                 # outro
+    
+    echo ""
+    echo "====================================="
+    echo "Faust2Wwise conversion completed!"
+    echo "Generated plugin: $PLUGIN_NAME"
+    echo "Location: $OUTPUT_DIR/$PLUGIN_NAME"
+    echo "====================================="
+    echo ""
+}
+
+# Execute main function
+main "$@"
