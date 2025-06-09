@@ -13,11 +13,9 @@ CODE:
     m_dsp.init(static_cast<int>(in_rFormat.uSampleRate));
 
 TITLE:Dsp compute in FX.Execute
-BELOW: void FlangerFX::Execute(AkAudioBuffer* io_pBuffer)
-REPLACE: 17
+BELOW: const AkUInt32 uNumChannels = io_pBuffer->NumChannels();
+REPLACE: 15
 CODE: 
-void FlangerFX::Execute(AkAudioBuffer* io_pBuffer)
-{
     const AkUInt32 uNumChannels = io_pBuffer->NumChannels();
     const AkUInt32 maxChannels = AkMin(uNumChannels, (AkUInt32)m_dsp.getNumInputs());
     
