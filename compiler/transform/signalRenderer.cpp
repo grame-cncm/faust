@@ -428,8 +428,8 @@ void SignalRenderer<REAL>::visit(Tree sig)
     } else if (isSigControl(sig, x_tree, y_tree)) {  // x_tree is name, y_tree is signal
         self(y_tree);
     } else {
-        cerr << __FILE__ << ":" << __LINE__ << " ASSERT : unrecognized signal : " << *sig << endl;
-        faustassert(false);
+        // Default case and recursion
+        SignalVisitor::visit(sig);
     }
 }
 
