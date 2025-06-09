@@ -253,20 +253,41 @@ struct SignalRenderer : public SignalVisitor {
 
         void allocateDelayLineAux(Tree x, int delay)
         {
+            
             int nature = getCertifiedSigType(x)->nature();  // Nature of the signal being delayed
             int N      = pow2limit(delay + 1);              // Max delay rounded up to power of 2
 
             if (nature == kInt) {
                 if (fIntDelays.find(x) == fIntDelays.end()) {
                     fIntDelays[x] = DelayedSig<int>(N);
+                    /*
+                    if (global::isDebug("SIG_RENDERER")) {
+                        std::cout << "allocateDelayLineAux NEW INT " << ppsig(x, 8) << std::endl;
+                    }
+                    */
                 } else {
                     fIntDelays[x].resize(std::max(int(fIntDelays[x].size()), N));
+                    /*
+                    if (global::isDebug("SIG_RENDERER")) {
+                        std::cout << "allocateDelayLineAux RESIZE INT " << ppsig(x, 8) << std::endl;
+                    }
+                    */
                 }
             } else {  // kReal or other numeric types default to REAL
                 if (fRealDelays.find(x) == fRealDelays.end()) {
                     fRealDelays[x] = DelayedSig<REAL>(N);
+                    /*
+                    if (global::isDebug("SIG_RENDERER")) {
+                        td::cout << "allocateDelayLineAux NEW REAL " << ppsig(x, 8) << std::endl;
+                    }
+                    */
                 } else {
                     fRealDelays[x].resize(std::max(int(fRealDelays[x].size()), N));
+                    /*
+                    if (global::isDebug("SIG_RENDERER")) {
+                        std::cout << "allocateDelayLineAux RESIZE REAL " << ppsig(x, 8) << std::endl;
+                    }
+                    */
                 }
             }
         }
@@ -292,7 +313,7 @@ struct SignalRenderer : public SignalVisitor {
         {
             Tree path, c, x, y, z;
             Tree size_tree, gen_tree, wi_tree, ws_tree;
-            Tree rec_expr_tree, rec_var_list, rec_expr_list;  // For isProj/isRec
+            Tree rec_expr_tree, rec_vars, rec_exprs;  // For isProj/isRec
             int  proj_idx_val;
 
             if (int input_idx; isSigInput(sig, &input_idx)) {
@@ -304,12 +325,11 @@ struct SignalRenderer : public SignalVisitor {
                 allocateDelayLine(x, y);  // y is the delay amount signal
                 SignalVisitor::visit(sig);
             } else if (isProj(sig, &proj_idx_val, rec_expr_tree) &&
-                       isRec(rec_expr_tree, rec_var_list, rec_expr_list)) {
+                       isRec(rec_expr_tree, rec_vars, rec_exprs)) {
                 // This projection 'sig' represents a recursive variable's state.
                 // It implicitly requires a 1-sample delay buffer.
-                // The delay amount for recursion is 1 sample.
-                allocateDelayLine(sig, 1);  // TO CHECK
-                SignalVisitor::visit(sig);  // Continue visiting children of the projection
+                allocateDelayLine(sig, 1);
+                SignalVisitor::visit(sig);
             } else if (isSigWRTbl(sig, size_tree, gen_tree, wi_tree, ws_tree)) {
                 int size_val = 0;
                 isSigInt(size_tree, &size_val);
@@ -386,7 +406,7 @@ struct SignalRenderer : public SignalVisitor {
      * @return Node The value read from the delay line. Returns Node(0) if delay line not found
      * (should not happen if allocated).
      */
-    Node writeReadDelay(Tree x, Node& v1, Node& v2)
+    virtual Node writeReadDelay(Tree x, Node& v1, Node& v2)
     {
         if (fIntDelays.count(x) > 0) {
             fIntDelays[x].write(fIOTA, v1.getInt());
@@ -413,7 +433,7 @@ struct SignalRenderer : public SignalVisitor {
      * @return Node The value read from the delay line. Returns Node(0) if delay line not found
      * (should not happen if allocated).
      */
-    Node readDelay(Tree x, Node& v2)
+    virtual Node readDelay(Tree x, Node& v2)
     {
         if (fIntDelays.count(x) > 0) {
             return Node(fIntDelays[x].read(fIOTA - v2.getInt()));
@@ -544,6 +564,71 @@ struct SignalRenderer : public SignalVisitor {
 };
 
 /**
+ * @brief A debugging extension of SignalRenderer that prints each signal evaluation.
+ *
+ * The `SignalPrintRenderer` class inherits from `SignalRenderer` and overrides the
+ * `visit(Tree sig)` method to add print statements. It prints the signal node
+ * currently being evaluated (via `ppsig`) and the computed value at each step.
+ *
+ * This is useful for debugging signal evaluation and understanding how each
+ * node in the Faust signal tree is processed by the interpreter.
+ *
+ * @tparam REAL The numeric type used for real-valued signals (e.g., float or double).
+ */
+template <class REAL>
+struct SignalPrintRenderer : public SignalRenderer<REAL> {
+    
+    SignalPrintRenderer() = default;
+    
+    SignalPrintRenderer(Tree lsig) : SignalRenderer<REAL>(lsig)
+    {
+        std::cout << "======== Delays and tables ========" << std::endl;
+        for (const auto& it : this->fIntDelays) {
+            std::cout << "fIntDelays : " << ppsig(it.first, 16) << " " << it.second.size() << std::endl;
+        }
+        for (const auto& it : this->fRealDelays) {
+            std::cout << "fRealDelays : " << ppsig(it.first, 16) << " " << it.second.size() << std::endl;
+        }
+        for (const auto& it : this->fIntTables) {
+            std::cout << "fIntTables : " << ppsig(it.first, 16) << " " << it.second.size() << std::endl;
+        }
+        for (const auto& it : this->fRealTables) {
+            std::cout << "fRealTables : " << ppsig(it.first, 16) << " " << it.second.size() << std::endl;
+        }
+        std::cout << "===================================" << std::endl;
+    }
+    
+    virtual Node writeReadDelay(Tree x, Node& v1, Node& v2) override
+    {
+        std::cout << "========= writeReadDelay : " << ppsig(x, 8) << " =========" << std::endl;
+        std::cout << "v1 : " << v1 << ", v2 : " << v2 << std::endl;
+        return SignalRenderer<REAL>::writeReadDelay(x, v1, v2);
+    }
+    
+    virtual Node readDelay(Tree x, Node& v2) override
+    {
+        std::cout << "========= readDelay : " << ppsig(x, 8) << " =========" << std::endl;
+        std::cout << "v2 : " << v2 << std::endl;
+        return SignalRenderer<REAL>::readDelay(x, v2);
+    }
+
+    virtual void visit(Tree sig) override
+    {
+        SignalRenderer<REAL>::visit(sig);
+        std::cout << "========= SIG : " << ppsig(sig, 40) << " =========" << std::endl;
+        if (this->fValueStack.size() > 0) {
+            Node res = this->fValueStack.top();
+            int  int_val;
+            if (isInt(res, &int_val)) {
+                std::cout << "value Int : " << res.getInt() << std::endl;
+            } else {
+                std::cout << "value REAL : " << res.getDouble() << std::endl;
+            }
+        }
+    }
+};
+
+/**
  * @brief The `signal_dsp` class is used to render signals.
  */
 struct signal_dsp : public dsp {
@@ -576,6 +661,7 @@ struct signal_dsp : public dsp {
 template <class REAL>
 struct signal_dsp_aux : public signal_dsp {
     SignalRenderer<REAL> fRenderer;
+    // SignalPrintRenderer<REAL> fRenderer;
 
     signal_dsp_aux(Tree lsig) : fRenderer(lsig) {}
     virtual ~signal_dsp_aux() {}

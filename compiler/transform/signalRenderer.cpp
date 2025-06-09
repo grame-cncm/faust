@@ -87,33 +87,33 @@ void signal_dsp_aux<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
 }
 
 /**
-* @brief Computes and renders audio samples for a block of output signals.
-*
-* This method performs the real-time rendering loop of the signal interpreter.
-* It processes a block of audio samples by traversing the output signal tree,
-* computing each sample value recursively, and writing the result to the
-* appropriate output channel.
-*
-* Core steps:
-* 1. Sets the input pointer (`fInputs`) for use during recursive evaluation.
-* 2. Iterates over each sample in the block (sample index `fSample`).
-* 3. For each output signal, recursively evaluates the expression tree
-*    using `self()`, retrieving the computed value from the stack.
-* 4. Determines whether the result is an integer or a real value
-*    and writes it to the correct output channel.
-* 5. Increments the shared index counter (`fIOTA`) used for delay lines
-*    and waveforms.
-*
-* Implementation details:
-* - Clears the `fVisited` map at the start of each sample to ensure correct
-*   handling of recursive signals and avoid cyclic evaluations.
-* - Supports both integer and real-valued output signals, allowing mixed-type
-*   outputs depending on the signal graph.
-*
-* @param count The number of samples to process in the current block.
-* @param inputs The input signal buffers (audio and control signals).
-* @param outputs The output signal buffers.
-*/
+ * @brief Computes and renders audio samples for a block of output signals.
+ *
+ * This method performs the real-time rendering loop of the signal interpreter.
+ * It processes a block of audio samples by traversing the output signal tree,
+ * computing each sample value recursively, and writing the result to the
+ * appropriate output channel.
+ *
+ * Core steps:
+ * 1. Sets the input pointer (`fInputs`) for use during recursive evaluation.
+ * 2. Iterates over each sample in the block (sample index `fSample`).
+ * 3. For each output signal, recursively evaluates the expression tree
+ *    using `self()`, retrieving the computed value from the stack.
+ * 4. Determines whether the result is an integer or a real value
+ *    and writes it to the correct output channel.
+ * 5. Increments the shared index counter (`fIOTA`) used for delay lines
+ *    and waveforms.
+ *
+ * Implementation details:
+ * - Clears the `fVisited` map at the start of each sample to ensure correct
+ *   handling of recursive signals and avoid cyclic evaluations.
+ * - Supports both integer and real-valued output signals, allowing mixed-type
+ *   outputs depending on the signal graph.
+ *
+ * @param count The number of samples to process in the current block.
+ * @param inputs The input signal buffers (audio and control signals).
+ * @param outputs The output signal buffers.
+ */
 template <class REAL>
 void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 {
@@ -183,6 +183,7 @@ void SignalRenderer<REAL>::visit(Tree sig)
     Tree    size_tree, gen_tree, wi_tree, ws_tree, tbl_tree, ri_tree;
     Tree    c_tree, x_tree, y_tree, z_tree;
     Tree    label_tree, type_tree, name_tree, file_tree, sf_tree, sel;
+    Tree    rec_vars, rec_exprs;
     int     opt_op;
     int     proj_idx_val;  // For isProj
 
@@ -322,10 +323,8 @@ void SignalRenderer<REAL>::visit(Tree sig)
         int size  = sig->arity();
         int index = fIOTA % size;
         self(sig->branch(index));
-    } else if (isProj(sig, &proj_idx_val, x_tree)) {
-        Tree rec_vars, rec_exprs;
-        isRec(x_tree, rec_vars, rec_exprs);
-
+    } else if (isProj(sig, &proj_idx_val, x_tree) && isRec(x_tree, rec_vars, rec_exprs)) {
+       
         // First visit of the recursive signal
         if (fVisited.find(sig) == fVisited.end()) {
             faustassert(isRec(x_tree, rec_vars, rec_exprs));
