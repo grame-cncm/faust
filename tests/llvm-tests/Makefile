@@ -48,9 +48,6 @@ llvm-test-c: llvm-test.c $(LIB)/libfaust.a
 llvm-algebra-test: llvm-algebra-test.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 llvm-algebra-test.cpp -I$(INC) -L$(LIB) -L$(LIB_OPT) $(LIB)/libfaust.a -lpthread $(LLVM) `pkg-config --cflags --libs gtk+-2.0` -o llvm-algebra-test
 
-signal-test: signal-test.cpp $(LIB)/libfaust.a
-	c++ -O3 -std=c++11 signal-test.cpp $(LIB)/libfaust.a $(LLVM) -L$(LIB_OPT) `pkg-config --cflags --libs gtk+-2.0` `pkg-config --cflags` $(MACOSLIBS) -o signal-test
-
 install: 
 	([ -e llvm-test ]) && cp llvm-test $(prefix)/bin
 

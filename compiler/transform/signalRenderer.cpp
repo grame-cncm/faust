@@ -61,7 +61,7 @@ using namespace std;
 //        graph back to its inputs (audio inputs and control signals).
 //      - Recursion is handled once per sample using the fVisited variable to prevent cycles.
 //
-// Integration with DSP Factory.
+// Integration with DSP Factory:
 //
 // The SignalRenderer class is wrapped by `signal_dsp_factory` and `signal_dsp` classes,
 // enabling integration with the existing DSP backends used in Faust (e.g., LLVM or Interp).
