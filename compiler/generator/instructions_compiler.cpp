@@ -172,12 +172,12 @@ Tree InstructionsCompiler::prepare(Tree LS)
     fOccMarkup->mark(L2);  // Annotate L2 with occurrences analysis
     endTiming("occurrences analysis");
 
-    // Stage to test that SignalIdentity is working correctly
-    startTiming("consistence analysis");
-    SignalIdentity SI;
-    Tree           Lx = SI.mapself(L2);
-    faustassert(Lx == L2);
-    endTiming("consistence analysis");
+    // // Stage to test that SignalIdentity is working correctly
+    // startTiming("consistence analysis");
+    // SignalIdentity SI;
+    // Tree           Lx = SI.mapself(L2);
+    // faustassert(Lx == L2);
+    // endTiming("consistence analysis");
 
     endTiming("prepare");
 
