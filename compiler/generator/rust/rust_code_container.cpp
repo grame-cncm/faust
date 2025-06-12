@@ -485,7 +485,9 @@ void RustCodeContainer::produceClass()
         tab(n + 2, *fOut);
         // Local visitor here to avoid DSP object type wrong generation
         RustInstVisitor codeproducer(fOut, "");
+        codeproducer.setVarsRequiringGuards(toUnorderedSet(fStaticVarNames));
         codeproducer.Tab(n + 2);
+        generateLockGuards(n + 2, true);
         generateInit(&codeproducer);
     }
     back(1, *fOut);
