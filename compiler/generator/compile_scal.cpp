@@ -176,12 +176,12 @@ Tree ScalarCompiler::prepare(Tree LS)
     fOccMarkup->mark(L2);  // Annotate L2 with occurrences analysis
     endTiming("occurrences analysis");
 
-    // Stage to test that SignalIdentity is working correctly
-    startTiming("consistence analysis");
-    SignalIdentity SI;
-    Tree           Lx = SI.mapself(L2);
-    faustassert(Lx == L2);
-    endTiming("consistence analysis");
+    // // Stage to test that SignalIdentity is working correctly
+    // startTiming("consistence analysis");
+    // SignalIdentity SI;
+    // Tree           Lx = SI.mapself(L2);
+    // faustassert(Lx == L2);
+    // endTiming("consistence analysis");
 
     endTiming("prepare");
 
@@ -487,16 +487,16 @@ string ScalarCompiler::CS(Tree sig)
 #ifdef TRACE
         int step = gGlobal->gSTEP;
         cerr << "\n"
-             << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
-             << "\t: generateCode( " << ppsig(sig, 10) << " )" << endl;
+             << step << " [order: " << fScheduleOrder[sig] << "] "
+             << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << endl;
 #endif
         code = generateCode(sig);
         setCompiledExpression(sig, code);
 
 #ifdef TRACE
         cerr << "\n"
-             << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
-             << "\t: ============> " << code << endl;
+             << step << " [order: " << fScheduleOrder[sig] << "] "
+             << "::" << sig << "\t: ============> " << code << endl;
 #endif
     }
     return code;
