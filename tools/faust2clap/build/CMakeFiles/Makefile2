@@ -116,12 +116,12 @@ clap-sdk/clean: clap-sdk/CMakeFiles/clap-tests.dir/clean
 CMakeFiles/gain.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=1,2 "Built target gain"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=1,2,3 "Built target gain"
 .PHONY : CMakeFiles/gain.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/gain.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/gain.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
 .PHONY : CMakeFiles/gain.dir/rule

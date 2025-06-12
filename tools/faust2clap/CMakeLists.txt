@@ -34,6 +34,14 @@ set(GENERATED_CPP ${CMAKE_SOURCE_DIR}/../../build/${GENERATED_NAME}/${GENERATED_
 add_library(${GENERATED_NAME} MODULE ${GENERATED_CPP})
 
 
+
+#add plugin.cc to get full implementation of clap::helpers::Plugin<>
+target_sources(${GENERATED_NAME}
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}/lib/plugin.cc
+)
+
+
 #include necessary directories for compilation
 target_include_directories(${GENERATED_NAME} PRIVATE
   ${CMAKE_SOURCE_DIR}/../../
@@ -45,8 +53,11 @@ target_include_directories(${GENERATED_NAME} PRIVATE
 )
 
 
-#link against the clap core library
-target_link_libraries(${GENERATED_NAME} PRIVATE clap)
+#link against the clap core library and clap helpers
+target_link_libraries(${GENERATED_NAME} PRIVATE
+  clap
+  clap-helpers
+)
 
 
 #generate info.plist from template

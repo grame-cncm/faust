@@ -211,6 +211,30 @@ Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.cpp.s
 .PHONY : Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.cpp.s
 
+lib/plugin.o: lib/plugin.cc.o
+.PHONY : lib/plugin.o
+
+# target to build an object file
+lib/plugin.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/lib/plugin.cc.o
+.PHONY : lib/plugin.cc.o
+
+lib/plugin.i: lib/plugin.cc.i
+.PHONY : lib/plugin.i
+
+# target to preprocess a source file
+lib/plugin.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/lib/plugin.cc.i
+.PHONY : lib/plugin.cc.i
+
+lib/plugin.s: lib/plugin.cc.s
+.PHONY : lib/plugin.s
+
+# target to generate assembly for a file
+lib/plugin.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/lib/plugin.cc.s
+.PHONY : lib/plugin.cc.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -228,6 +252,9 @@ help:
 	@echo "... Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.o"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.i"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.s"
+	@echo "... lib/plugin.o"
+	@echo "... lib/plugin.i"
+	@echo "... lib/plugin.s"
 .PHONY : help
 
 
