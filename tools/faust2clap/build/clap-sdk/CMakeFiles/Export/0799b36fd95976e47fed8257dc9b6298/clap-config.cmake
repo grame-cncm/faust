@@ -59,7 +59,7 @@ endif()
 add_library(clap INTERFACE IMPORTED)
 
 set_target_properties(clap PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include"
 )
 
 # Load information for each installed configuration.

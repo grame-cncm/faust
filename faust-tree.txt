@@ -1,0 +1,2122 @@
+.
+├── .DS_Store
+├── .clang-format
+├── .dockerignore
+├── .git
+│   ├── COMMIT_EDITMSG
+│   ├── FETCH_HEAD
+│   ├── HEAD
+│   ├── ORIG_HEAD
+│   ├── branches
+│   ├── config
+│   ├── description
+│   ├── hooks
+│   │   ├── applypatch-msg.sample
+│   │   ├── commit-msg.sample
+│   │   ├── fsmonitor-watchman.sample
+│   │   ├── post-update.sample
+│   │   ├── pre-applypatch.sample
+│   │   ├── pre-commit.sample
+│   │   ├── pre-merge-commit.sample
+│   │   ├── pre-push.sample
+│   │   ├── pre-rebase.sample
+│   │   ├── pre-receive.sample
+│   │   ├── prepare-commit-msg.sample
+│   │   ├── push-to-checkout.sample
+│   │   ├── sendemail-validate.sample
+│   │   └── update.sample
+│   ├── index
+│   ├── info
+│   │   └── exclude
+│   ├── logs
+│   │   ├── HEAD
+│   │   └── refs
+│   ├── modules
+│   │   ├── architecture
+│   │   ├── external
+│   │   ├── libraries
+│   │   ├── node-matcher-plugin
+│   │   └── tools
+│   ├── objects
+│   │   ├── 00
+│   │   ├── 01
+│   │   ├── 02
+│   │   ├── 03
+│   │   ├── 04
+│   │   ├── 05
+│   │   ├── 06
+│   │   ├── 07
+│   │   ├── 08
+│   │   ├── 09
+│   │   ├── 0a
+│   │   ├── 0b
+│   │   ├── 0c
+│   │   ├── 0d
+│   │   ├── 0e
+│   │   ├── 0f
+│   │   ├── 10
+│   │   ├── 11
+│   │   ├── 12
+│   │   ├── 13
+│   │   ├── 14
+│   │   ├── 15
+│   │   ├── 16
+│   │   ├── 17
+│   │   ├── 18
+│   │   ├── 19
+│   │   ├── 1a
+│   │   ├── 1b
+│   │   ├── 1c
+│   │   ├── 1d
+│   │   ├── 1e
+│   │   ├── 1f
+│   │   ├── 20
+│   │   ├── 21
+│   │   ├── 22
+│   │   ├── 23
+│   │   ├── 24
+│   │   ├── 25
+│   │   ├── 26
+│   │   ├── 27
+│   │   ├── 28
+│   │   ├── 29
+│   │   ├── 2a
+│   │   ├── 2b
+│   │   ├── 2c
+│   │   ├── 2d
+│   │   ├── 2e
+│   │   ├── 30
+│   │   ├── 31
+│   │   ├── 32
+│   │   ├── 33
+│   │   ├── 34
+│   │   ├── 35
+│   │   ├── 36
+│   │   ├── 37
+│   │   ├── 38
+│   │   ├── 39
+│   │   ├── 3a
+│   │   ├── 3b
+│   │   ├── 3c
+│   │   ├── 3d
+│   │   ├── 3e
+│   │   ├── 3f
+│   │   ├── 40
+│   │   ├── 41
+│   │   ├── 42
+│   │   ├── 43
+│   │   ├── 44
+│   │   ├── 45
+│   │   ├── 46
+│   │   ├── 47
+│   │   ├── 48
+│   │   ├── 49
+│   │   ├── 4a
+│   │   ├── 4b
+│   │   ├── 4c
+│   │   ├── 4d
+│   │   ├── 4e
+│   │   ├── 4f
+│   │   ├── 50
+│   │   ├── 52
+│   │   ├── 53
+│   │   ├── 54
+│   │   ├── 55
+│   │   ├── 56
+│   │   ├── 57
+│   │   ├── 58
+│   │   ├── 59
+│   │   ├── 5a
+│   │   ├── 5b
+│   │   ├── 5c
+│   │   ├── 5d
+│   │   ├── 5e
+│   │   ├── 5f
+│   │   ├── 60
+│   │   ├── 62
+│   │   ├── 63
+│   │   ├── 64
+│   │   ├── 65
+│   │   ├── 66
+│   │   ├── 67
+│   │   ├── 68
+│   │   ├── 69
+│   │   ├── 6a
+│   │   ├── 6b
+│   │   ├── 6c
+│   │   ├── 6d
+│   │   ├── 6e
+│   │   ├── 6f
+│   │   ├── 70
+│   │   ├── 71
+│   │   ├── 72
+│   │   ├── 73
+│   │   ├── 74
+│   │   ├── 75
+│   │   ├── 76
+│   │   ├── 77
+│   │   ├── 78
+│   │   ├── 79
+│   │   ├── 7a
+│   │   ├── 7b
+│   │   ├── 7c
+│   │   ├── 7d
+│   │   ├── 7e
+│   │   ├── 7f
+│   │   ├── 80
+│   │   ├── 81
+│   │   ├── 82
+│   │   ├── 83
+│   │   ├── 85
+│   │   ├── 86
+│   │   ├── 87
+│   │   ├── 88
+│   │   ├── 89
+│   │   ├── 8a
+│   │   ├── 8b
+│   │   ├── 8c
+│   │   ├── 8d
+│   │   ├── 8e
+│   │   ├── 8f
+│   │   ├── 90
+│   │   ├── 91
+│   │   ├── 92
+│   │   ├── 94
+│   │   ├── 95
+│   │   ├── 96
+│   │   ├── 97
+│   │   ├── 98
+│   │   ├── 99
+│   │   ├── 9a
+│   │   ├── 9b
+│   │   ├── 9c
+│   │   ├── 9d
+│   │   ├── 9e
+│   │   ├── 9f
+│   │   ├── a0
+│   │   ├── a1
+│   │   ├── a2
+│   │   ├── a3
+│   │   ├── a4
+│   │   ├── a5
+│   │   ├── a6
+│   │   ├── a7
+│   │   ├── a8
+│   │   ├── a9
+│   │   ├── aa
+│   │   ├── ab
+│   │   ├── ac
+│   │   ├── ad
+│   │   ├── ae
+│   │   ├── af
+│   │   ├── b0
+│   │   ├── b1
+│   │   ├── b2
+│   │   ├── b3
+│   │   ├── b4
+│   │   ├── b5
+│   │   ├── b6
+│   │   ├── b7
+│   │   ├── b8
+│   │   ├── b9
+│   │   ├── ba
+│   │   ├── bb
+│   │   ├── bc
+│   │   ├── bd
+│   │   ├── be
+│   │   ├── bf
+│   │   ├── c0
+│   │   ├── c1
+│   │   ├── c2
+│   │   ├── c3
+│   │   ├── c4
+│   │   ├── c5
+│   │   ├── c6
+│   │   ├── c7
+│   │   ├── c8
+│   │   ├── c9
+│   │   ├── ca
+│   │   ├── cb
+│   │   ├── cc
+│   │   ├── cd
+│   │   ├── ce
+│   │   ├── cf
+│   │   ├── d0
+│   │   ├── d1
+│   │   ├── d2
+│   │   ├── d3
+│   │   ├── d4
+│   │   ├── d5
+│   │   ├── d7
+│   │   ├── d8
+│   │   ├── d9
+│   │   ├── da
+│   │   ├── db
+│   │   ├── dc
+│   │   ├── dd
+│   │   ├── de
+│   │   ├── df
+│   │   ├── e0
+│   │   ├── e1
+│   │   ├── e2
+│   │   ├── e3
+│   │   ├── e4
+│   │   ├── e5
+│   │   ├── e6
+│   │   ├── e7
+│   │   ├── e8
+│   │   ├── e9
+│   │   ├── ea
+│   │   ├── eb
+│   │   ├── ec
+│   │   ├── ed
+│   │   ├── ee
+│   │   ├── ef
+│   │   ├── f0
+│   │   ├── f1
+│   │   ├── f2
+│   │   ├── f3
+│   │   ├── f4
+│   │   ├── f5
+│   │   ├── f6
+│   │   ├── f7
+│   │   ├── f8
+│   │   ├── f9
+│   │   ├── fa
+│   │   ├── fb
+│   │   ├── fc
+│   │   ├── fd
+│   │   ├── fe
+│   │   ├── ff
+│   │   ├── info
+│   │   └── pack
+│   ├── packed-refs
+│   └── refs
+│       ├── heads
+│       ├── remotes
+│       └── tags
+├── .gitattributes
+├── .github
+│   └── workflows
+│       ├── libfaust.yml
+│       ├── macos.yml
+│       ├── ubuntu.yml
+│       └── windows.yml
+├── .gitignore
+├── .gitmodules
+├── .travis.yml
+├── CMakeLists.txt
+├── COPYING.txt
+├── Dockerfile
+├── Dockerfile-aarch64
+├── Makefile
+├── README.md
+├── WHATSNEW.md
+├── adding-feature.md
+├── architecture
+│   ├── .DS_Store
+│   ├── AU
+│   │   ├── .DS_Store
+│   │   ├── AUPublic
+│   │   ├── English.lproj
+│   │   ├── FaustAU.exp
+│   │   ├── FaustAU.xcodeproj
+│   │   ├── FaustAUCustomView.plist
+│   │   ├── Info.plist
+│   │   ├── PublicUtility
+│   │   ├── SectionPatternLight.tiff
+│   │   ├── Source
+│   │   └── version.plist
+│   ├── CSharpFaustBase.cs
+│   ├── CSharpFaustClass.cs
+│   ├── VST
+│   │   ├── .DS_Store
+│   │   ├── Info.plist
+│   │   ├── PkgInfo
+│   │   ├── README
+│   │   └── VST.xcode
+│   ├── alsa-console.cpp
+│   ├── alsa-gtk.cpp
+│   ├── alsa-qt.cpp
+│   ├── android
+│   │   ├── .DS_Store
+│   │   ├── README.md
+│   │   ├── android.iml
+│   │   ├── app
+│   │   ├── build.gradle
+│   │   ├── gradle
+│   │   ├── gradle.properties
+│   │   ├── gradlew
+│   │   ├── gradlew.bat
+│   │   ├── img
+│   │   ├── local.properties
+│   │   └── settings.gradle
+│   ├── api
+│   │   ├── DspFaust.cpp
+│   │   ├── DspFaust.h
+│   │   ├── README.md
+│   │   ├── android
+│   │   └── doc
+│   ├── au-effect.cpp
+│   ├── au-instrument.cpp
+│   ├── audiokit
+│   │   ├── FaustDSP.mm
+│   │   ├── README.md
+│   │   └── SwiftGenerator.cpp
+│   ├── autodiff
+│   │   ├── README.md
+│   │   ├── autodiff.cpp
+│   │   ├── autodiff.h
+│   │   ├── autodiff.sh
+│   │   ├── autodiffVerifier.cpp
+│   │   ├── autodiffVerifier.h
+│   │   ├── dspFactoryOwner.h
+│   │   ├── loss_example.png
+│   │   └── plot.py
+│   ├── bela.cpp
+│   ├── bench.cpp
+│   ├── bench.d
+│   ├── c-jack-gtk.c
+│   ├── ca-console.cpp
+│   ├── ca-gtk.cpp
+│   ├── ca-qt.cpp
+│   ├── chaos-stratus
+│   │   ├── README.txt
+│   │   ├── _pedal-tools.sh
+│   │   ├── build-effect.sh
+│   │   ├── build-install-effect.sh
+│   │   ├── install-effect.sh
+│   │   └── stratus.cpp
+│   ├── clap
+│   │   ├── .DS_Store
+│   │   ├── .idea
+│   │   └── clap-arch.cpp
+│   ├── cmajor
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   ├── cmajor-faust-editor.cpp
+│   │   ├── cmajor-faust-player.cpp
+│   │   ├── cmajor-faust-tester.cpp
+│   │   ├── cmajor-tools.h
+│   │   ├── hybrid-test1.cmajor
+│   │   ├── hybrid-test1.cmajorpatch
+│   │   ├── hybrid-test2.cmajor
+│   │   ├── hybrid-test2.cmajorpatch
+│   │   ├── minimal.cmajor
+│   │   ├── poly-dsp-effect.cmajor
+│   │   └── poly-dsp.cmajor
+│   ├── comparator
+│   │   ├── README.md
+│   │   ├── compclass.cpp
+│   │   ├── minimal-fixed-point.cpp
+│   │   └── minimal-floating-point.cpp
+│   ├── csound.cpp
+│   ├── csvplot.cpp
+│   ├── daisy
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   ├── ex_faust.cpp
+│   │   └── faust_sdram_converter.py
+│   ├── dplug.d
+│   ├── dssi.cpp
+│   ├── dummy-mem.cpp
+│   ├── dummy.cpp
+│   ├── esp32
+│   │   ├── .DS_Store
+│   │   ├── CMakeLists.txt
+│   │   ├── MPU9250.cpp
+│   │   ├── MPU9250.h
+│   │   ├── README.md
+│   │   ├── component.mk
+│   │   ├── drivers
+│   │   ├── esp32.cpp
+│   │   ├── esp32.h
+│   │   ├── gramo-bt-midi
+│   │   ├── gramophone-multi.cpp
+│   │   ├── gramophone.cpp
+│   │   └── volume.dsp
+│   ├── faust
+│   │   ├── .DS_Store
+│   │   ├── au
+│   │   ├── audio
+│   │   ├── dsp
+│   │   ├── export.h
+│   │   ├── external
+│   │   ├── gui
+│   │   ├── midi
+│   │   ├── miniaudio.h
+│   │   ├── misc.h
+│   │   ├── sound-file.h
+│   │   ├── unity
+│   │   └── vst
+│   ├── faust-llvm.cpp
+│   ├── faust-netjack-gtk.cpp
+│   ├── faustui.js
+│   ├── faustvst.cpp
+│   ├── faustvstqt.h
+│   ├── gen-json.cpp
+│   ├── hothouse
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   └── ex_faust.cpp
+│   ├── httpdlib
+│   │   ├── .DS_Store
+│   │   ├── .gitignore
+│   │   ├── changelog.txt
+│   │   ├── doc
+│   │   ├── html
+│   │   ├── license.txt
+│   │   ├── readme.txt
+│   │   ├── src
+│   │   └── todo.txt
+│   ├── iOS
+│   │   ├── .DS_Store
+│   │   ├── Default-568h@2x.png
+│   │   ├── Default-Landscape@2x~ipad.png
+│   │   ├── Default-Landscape~ipad.png
+│   │   ├── Default-Portrait@2x~ipad.png
+│   │   ├── Default-Portrait~ipad.png
+│   │   ├── Default.png
+│   │   ├── Default@2x.png
+│   │   ├── Template_CoreAudio
+│   │   ├── iOS
+│   │   ├── iOS.xcodeproj
+│   │   ├── iOSTests
+│   │   ├── ios-faust.h
+│   │   └── pix
+│   ├── ios-coreaudio-jack.cpp
+│   ├── ios-coreaudio.cpp
+│   ├── ios-libsndfile.a
+│   ├── jack-console.cpp
+│   ├── jack-gtk-ros.cpp
+│   ├── jack-gtk.cpp
+│   ├── jack-internal.cpp
+│   ├── jack-qt-chain-footer.cpp
+│   ├── jack-qt-chain-header.cpp
+│   ├── jack-qt.cpp
+│   ├── jack-ros.cpp
+│   ├── java-minimal.java
+│   ├── java-swing.java
+│   ├── jax
+│   │   └── minimal.py
+│   ├── juce
+│   │   ├── .DS_Store
+│   │   ├── README.md
+│   │   ├── juce-plugin.cpp
+│   │   ├── juce-standalone.cpp
+│   │   ├── plugin
+│   │   └── standalone
+│   ├── julia
+│   │   ├── .DS_Store
+│   │   ├── README.md
+│   │   ├── audio
+│   │   ├── dsp
+│   │   ├── gui
+│   │   ├── minimal-control.jl
+│   │   ├── minimal.jl
+│   │   ├── packages.jl
+│   │   └── portaudio-gtk.jl
+│   ├── ladspa.cpp
+│   ├── latexheader.tex
+│   ├── lv2.cpp
+│   ├── lv2qtgui.h
+│   ├── lv2ui.cpp
+│   ├── ma-gtk.cpp
+│   ├── mathdoctexts-de.txt
+│   ├── mathdoctexts-default.txt
+│   ├── mathdoctexts-en.txt
+│   ├── mathdoctexts-fr.txt
+│   ├── mathdoctexts-it.txt
+│   ├── matlabplot.cpp
+│   ├── max-msp
+│   │   ├── README.md
+│   │   ├── faustgen-wrapper-poly.maxpat
+│   │   ├── faustgen-wrapper.maxpat
+│   │   ├── max-msp.cpp
+│   │   ├── max-msp64.cpp
+│   │   ├── mc-faustgen-wrapper-poly.maxpat
+│   │   ├── mc-faustgen-wrapper.maxpat
+│   │   ├── mc-wrapper-poly.maxpat
+│   │   ├── mc-wrapper.maxpat
+│   │   ├── py2max
+│   │   ├── rnbo.py
+│   │   ├── sndfile
+│   │   ├── ui.js
+│   │   ├── wrapper-poly.maxpat
+│   │   └── wrapper.maxpat
+│   ├── minimal-bench.cpp
+│   ├── minimal-effect.c
+│   ├── minimal-effect.cpp
+│   ├── minimal-static.cpp
+│   ├── minimal.c
+│   ├── minimal.cpp
+│   ├── minimal.d
+│   ├── module.cpp
+│   ├── netjack-console.cpp
+│   ├── netjack-qt.cpp
+│   ├── nodejs
+│   │   ├── DspFaustNode.cpp
+│   │   ├── DspFaustNode.h
+│   │   ├── README.md
+│   │   ├── binding.gyp
+│   │   └── faust.cpp
+│   ├── octave.cpp
+│   ├── old-scheduler.cpp
+│   ├── oscio-gtk.cpp
+│   ├── oscio-qt.cpp
+│   ├── osclib
+│   │   ├── .DS_Store
+│   │   ├── .gitignore
+│   │   ├── README.md
+│   │   ├── android
+│   │   ├── faust
+│   │   └── oscpack
+│   ├── owl.cpp
+│   ├── pa-console.cpp
+│   ├── pa-gtk.cpp
+│   ├── pa-qt.cpp
+│   ├── params.d
+│   ├── path-printer.cpp
+│   ├── pipewire-console.cpp
+│   ├── pipewire-gtk.cpp
+│   ├── pipewire-qt.cpp
+│   ├── plot.cpp
+│   ├── pure.c
+│   ├── pure.cpp
+│   ├── puredata.cpp
+│   ├── ra-qt.cpp
+│   ├── ros-callbacks.cpp
+│   ├── rust
+│   │   ├── README.md
+│   │   ├── cpal.rs
+│   │   ├── jack-double.rs
+│   │   ├── jack-float.rs
+│   │   ├── minimal.rs
+│   │   ├── portaudio-double.rs
+│   │   └── portaudio-float.rs
+│   ├── sam
+│   │   ├── fast_pow2.h
+│   │   ├── fastexp.h
+│   │   ├── samFaustDSP.cpp
+│   │   └── samFaustDSP.h
+│   ├── scheduler.cpp
+│   ├── smartKeyboard
+│   │   ├── .DS_Store
+│   │   ├── LICENCE.md
+│   │   ├── README.md
+│   │   ├── android
+│   │   └── iOS
+│   ├── sndfile.cpp
+│   ├── supercollider.cpp
+│   ├── svgplot
+│   │   ├── README.md
+│   │   ├── example.png
+│   │   ├── heatmap.h
+│   │   ├── plot.h
+│   │   ├── probeexample.png
+│   │   ├── splitexample.png
+│   │   └── svgplot.cpp
+│   ├── teensy
+│   │   ├── README.md
+│   │   ├── teensy.cpp
+│   │   └── teensy.h
+│   ├── template-llvm.cpp
+│   ├── thread.h
+│   ├── unity
+│   │   ├── .DS_Store
+│   │   ├── Android
+│   │   ├── FaustPlugin_template.cs
+│   │   ├── FaustPolyUtilities_template.cs
+│   │   ├── FaustUtilities_template.cs
+│   │   ├── README.md
+│   │   ├── unity.cpp
+│   │   └── unityplugin.cpp
+│   ├── unsupported-arch
+│   │   ├── alchemy-as.cpp
+│   │   ├── iOSKeyboard.cpp
+│   │   ├── intrinsic.hh
+│   │   ├── iphone-cocoa.cpp
+│   │   ├── jack-wx.cpp
+│   │   ├── llvm-jack-gtk.cpp
+│   │   ├── mr-plot.cpp
+│   │   ├── ms-jack-gtk.cpp
+│   │   ├── oss-gtk.cpp
+│   │   ├── oss-wx.cpp
+│   │   ├── pa-wx.cpp
+│   │   ├── q.cpp
+│   │   ├── snd-rt-gtk.cpp
+│   │   └── windowsdll.cpp
+│   ├── vcvrack
+│   │   ├── README.md
+│   │   └── template
+│   ├── vst.cpp
+│   ├── wasmtime
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   ├── faustbench-wasmtime.cpp
+│   │   └── faustwasmtime.cpp
+│   └── webaudio
+│       ├── README.md
+│       ├── mixer32.wasm
+│       ├── mixer32.wast
+│       ├── mixer64.wasm
+│       ├── mixer64.wast
+│       ├── wasm-standalone-node-wrapper-double.js
+│       └── wasm-standalone-node-wrapper.js
+├── benchmark
+│   ├── 20121009-Bench-Faust-template.ots
+│   ├── Makefile
+│   ├── Makefile.compile
+│   ├── README.md
+│   ├── alsa-gtk-bench.cpp
+│   ├── bench-llvm.sh
+│   ├── bench.sh
+│   ├── console-bench-llvm.cpp
+│   ├── console-bench.cpp
+│   ├── copy1.dsp
+│   ├── copy2.dsp
+│   ├── coreaudio-gtk-bench.cpp
+│   ├── coreaudio-gtk-llvm-bench.cpp
+│   ├── crybaby1.dsp
+│   ├── crybaby8.dsp
+│   ├── fdelay8.dsp
+│   ├── filterseq2x8.dsp
+│   ├── freeverb.dsp
+│   ├── karplus32.dsp
+│   ├── math.dsp
+│   ├── matrix.dsp
+│   ├── mixer.dsp
+│   ├── rms.dsp
+│   ├── rms2.dsp
+│   ├── rms4.dsp
+│   ├── rms8.dsp
+│   ├── tapiir.dsp
+│   ├── zero1.dsp
+│   └── zero2.dsp
+├── build
+│   ├── CMakeCache.txt
+│   ├── CMakeFiles
+│   │   ├── 3.30.5
+│   │   ├── CMakeConfigureLog.yaml
+│   │   ├── CMakeScratch
+│   │   ├── cmake.check_cache
+│   │   └── pkgRedirects
+│   └── gain
+│       └── gain_clap.cpp
+├── build-cmake
+├── compiler
+│   ├── .cvsignore
+│   ├── .gitignore
+│   ├── DirectedGraph
+│   │   ├── DirectedGraph.hh
+│   │   ├── DirectedGraphAlgorythm.hh
+│   │   └── Schedule.hh
+│   ├── FaustAlgebra
+│   │   └── FaustAlgebra.hh
+│   ├── README.md
+│   ├── box_signal_api.cpp
+│   ├── boxes
+│   │   ├── boxcomplexity.cpp
+│   │   ├── boxcomplexity.hh
+│   │   ├── boxes.cpp
+│   │   ├── boxes.hh
+│   │   ├── boxtype.cpp
+│   │   ├── ppbox.cpp
+│   │   └── ppbox.hh
+│   ├── documentator
+│   │   ├── doc.cpp
+│   │   ├── doc.hh
+│   │   ├── doc_Text.cpp
+│   │   ├── doc_Text.hh
+│   │   ├── doc_autodoc.cpp
+│   │   ├── doc_autodoc.hh
+│   │   ├── doc_compile.cpp
+│   │   ├── doc_compile.hh
+│   │   ├── doc_lang.cpp
+│   │   ├── doc_lang.hh
+│   │   ├── doc_metadatas.cpp
+│   │   ├── doc_metadatas.hh
+│   │   ├── doc_notice.cpp
+│   │   ├── doc_notice.hh
+│   │   ├── doc_sharing.cpp
+│   │   ├── lateq.cpp
+│   │   └── lateq.hh
+│   ├── draw
+│   │   ├── device
+│   │   ├── drawschema.cpp
+│   │   ├── drawschema.hh
+│   │   ├── schema
+│   │   ├── sigToGraph.cpp
+│   │   └── sigToGraph.hh
+│   ├── dsp_factory.hh
+│   ├── errors
+│   │   ├── errormsg.cpp
+│   │   ├── errormsg.hh
+│   │   ├── exception.hh
+│   │   ├── timing.cpp
+│   │   └── timing.hh
+│   ├── evaluate
+│   │   ├── environment.cpp
+│   │   ├── environment.hh
+│   │   ├── eval.cpp
+│   │   ├── eval.hh
+│   │   ├── loopDetector.cpp
+│   │   └── loopDetector.hh
+│   ├── extended
+│   │   ├── absprim.hh
+│   │   ├── acosprim.hh
+│   │   ├── asinprim.hh
+│   │   ├── atan2prim.hh
+│   │   ├── atanprim.hh
+│   │   ├── ceilprim.hh
+│   │   ├── cosprim.hh
+│   │   ├── exp10prim.hh
+│   │   ├── expprim.hh
+│   │   ├── floorprim.hh
+│   │   ├── fmodprim.hh
+│   │   ├── log10prim.hh
+│   │   ├── logprim.hh
+│   │   ├── maxprim.hh
+│   │   ├── minprim.hh
+│   │   ├── powprim.hh
+│   │   ├── remainderprim.hh
+│   │   ├── rintprim.hh
+│   │   ├── roundprim.hh
+│   │   ├── sinprim.hh
+│   │   ├── sqrtprim.hh
+│   │   ├── tanprim.hh
+│   │   ├── xtended.cpp
+│   │   └── xtended.hh
+│   ├── garbageable.hh
+│   ├── generator
+│   │   ├── Text.cpp
+│   │   ├── Text.hh
+│   │   ├── c
+│   │   ├── cmajor
+│   │   ├── code_container.cpp
+│   │   ├── code_container.hh
+│   │   ├── codebox
+│   │   ├── compile.cpp
+│   │   ├── compile.hh
+│   │   ├── compile_scal.cpp
+│   │   ├── compile_scal.hh
+│   │   ├── compile_sched.cpp
+│   │   ├── compile_sched.hh
+│   │   ├── compile_vect.cpp
+│   │   ├── compile_vect.hh
+│   │   ├── contextor.cpp
+│   │   ├── contextor.hh
+│   │   ├── cpp
+│   │   ├── csharp
+│   │   ├── dag_instructions_compiler.cpp
+│   │   ├── dag_instructions_compiler.hh
+│   │   ├── description.cpp
+│   │   ├── description.hh
+│   │   ├── dlang
+│   │   ├── dlcodegen.cpp
+│   │   ├── dlcodegen.hh
+│   │   ├── dsp_aux.cpp
+│   │   ├── dsp_aux.hh
+│   │   ├── export.cpp
+│   │   ├── fir
+│   │   ├── fir_function_builder.hh
+│   │   ├── fir_to_fir.cpp
+│   │   ├── fir_to_fir.hh
+│   │   ├── floats.cpp
+│   │   ├── floats.hh
+│   │   ├── instructions.cpp
+│   │   ├── instructions.hh
+│   │   ├── instructions_compiler.cpp
+│   │   ├── instructions_compiler.hh
+│   │   ├── instructions_compiler1.cpp
+│   │   ├── instructions_compiler1.hh
+│   │   ├── instructions_compiler_jax.cpp
+│   │   ├── instructions_compiler_jax.hh
+│   │   ├── instructions_complexity.hh
+│   │   ├── instructions_type.hh
+│   │   ├── interpreter
+│   │   ├── java
+│   │   ├── jax
+│   │   ├── jsfx
+│   │   ├── json_instructions.hh
+│   │   ├── julia
+│   │   ├── klass.cpp
+│   │   ├── klass.hh
+│   │   ├── libfaust.h
+│   │   ├── llvm
+│   │   ├── occurrences.cpp
+│   │   ├── occurrences.hh
+│   │   ├── omp_code_container.cpp
+│   │   ├── omp_code_container.hh
+│   │   ├── rn_base64.h
+│   │   ├── rust
+│   │   ├── sdf3
+│   │   ├── sha_key.hh
+│   │   ├── smartpointer.h
+│   │   ├── statement.hh
+│   │   ├── struct_manager.hh
+│   │   ├── template
+│   │   ├── text_instructions.hh
+│   │   ├── tools.cpp
+│   │   ├── tools.hh
+│   │   ├── type_manager.hh
+│   │   ├── typing_instructions.hh
+│   │   ├── uitree.cpp
+│   │   ├── uitree.hh
+│   │   ├── vec_code_container.cpp
+│   │   ├── vec_code_container.hh
+│   │   ├── vhdl
+│   │   ├── wasm
+│   │   ├── wss_code_container.cpp
+│   │   └── wss_code_container.hh
+│   ├── global.cpp
+│   ├── global.hh
+│   ├── interval
+│   │   ├── bitwiseOperations.cpp
+│   │   ├── bitwiseOperations.hh
+│   │   ├── check.cpp
+│   │   ├── check.hh
+│   │   ├── intervalAbs.cpp
+│   │   ├── intervalAcos.cpp
+│   │   ├── intervalAcosh.cpp
+│   │   ├── intervalAdd.cpp
+│   │   ├── intervalAnd.cpp
+│   │   ├── intervalAsin.cpp
+│   │   ├── intervalAsinh.cpp
+│   │   ├── intervalAtan.cpp
+│   │   ├── intervalAtan2.cpp
+│   │   ├── intervalAtanh.cpp
+│   │   ├── intervalButton.cpp
+│   │   ├── intervalCeil.cpp
+│   │   ├── intervalCheckbox.cpp
+│   │   ├── intervalCos.cpp
+│   │   ├── intervalCosh.cpp
+│   │   ├── intervalDelay.cpp
+│   │   ├── intervalDiv.cpp
+│   │   ├── intervalEq.cpp
+│   │   ├── intervalExp.cpp
+│   │   ├── intervalFloatCast.cpp
+│   │   ├── intervalFloatNum.cpp
+│   │   ├── intervalFloor.cpp
+│   │   ├── intervalGe.cpp
+│   │   ├── intervalGt.cpp
+│   │   ├── intervalHSlider.cpp
+│   │   ├── intervalIntCast.cpp
+│   │   ├── intervalIntNum.cpp
+│   │   ├── intervalInv.cpp
+│   │   ├── intervalLabel.cpp
+│   │   ├── intervalLe.cpp
+│   │   ├── intervalLog.cpp
+│   │   ├── intervalLog10.cpp
+│   │   ├── intervalLsh.cpp
+│   │   ├── intervalLt.cpp
+│   │   ├── intervalMax.cpp
+│   │   ├── intervalMem.cpp
+│   │   ├── intervalMin.cpp
+│   │   ├── intervalMissing.cpp
+│   │   ├── intervalMod.cpp
+│   │   ├── intervalMul.cpp
+│   │   ├── intervalNe.cpp
+│   │   ├── intervalNeg.cpp
+│   │   ├── intervalNot.cpp
+│   │   ├── intervalNumEntry.cpp
+│   │   ├── intervalOr.cpp
+│   │   ├── intervalPow.cpp
+│   │   ├── intervalRemainder.cpp
+│   │   ├── intervalRint.cpp
+│   │   ├── intervalRound.cpp
+│   │   ├── intervalRsh.cpp
+│   │   ├── intervalSin.cpp
+│   │   ├── intervalSinh.cpp
+│   │   ├── intervalSqrt.cpp
+│   │   ├── intervalSub.cpp
+│   │   ├── intervalTan.cpp
+│   │   ├── intervalTanh.cpp
+│   │   ├── intervalVSlider.cpp
+│   │   ├── intervalXor.cpp
+│   │   ├── interval_algebra.cpp
+│   │   ├── interval_algebra.hh
+│   │   ├── interval_def.hh
+│   │   ├── precision_utils.hh
+│   │   └── utils.hh
+│   ├── libcode.cpp
+│   ├── lock_api.cpp
+│   ├── lock_api.hh
+│   ├── main.cpp
+│   ├── normalize
+│   │   ├── aterm.cpp
+│   │   ├── aterm.hh
+│   │   ├── mterm.cpp
+│   │   ├── mterm.hh
+│   │   ├── normalform.cpp
+│   │   ├── normalform.hh
+│   │   ├── normalize.cpp
+│   │   ├── normalize.hh
+│   │   ├── simplify.cpp
+│   │   └── simplify.hh
+│   ├── parallelize
+│   │   ├── code_loop.cpp
+│   │   ├── code_loop.hh
+│   │   ├── graphSorting.cpp
+│   │   ├── graphSorting.hh
+│   │   ├── loop.cpp
+│   │   └── loop.hh
+│   ├── parser
+│   │   ├── Makefile
+│   │   ├── enrobage.cpp
+│   │   ├── enrobage.hh
+│   │   ├── faustlexer.cpp
+│   │   ├── faustlexer.l
+│   │   ├── faustparser.cpp
+│   │   ├── faustparser.hpp
+│   │   ├── faustparser.y
+│   │   ├── initfaustparser.sh
+│   │   ├── initfaustparser2.sh
+│   │   ├── initfaustparser3.sh
+│   │   ├── sourcefetcher.cpp
+│   │   ├── sourcefetcher.hh
+│   │   ├── sourcereader.cpp
+│   │   └── sourcereader.hh
+│   ├── patternmatcher
+│   │   ├── patternmatcher.cpp
+│   │   └── patternmatcher.hh
+│   ├── propagate
+│   │   ├── labels.cpp
+│   │   ├── labels.hh
+│   │   ├── propagate.cpp
+│   │   └── propagate.hh
+│   ├── signals
+│   │   ├── binop.cpp
+│   │   ├── binop.hh
+│   │   ├── interval.hh
+│   │   ├── ppsig.cpp
+│   │   ├── ppsig.hh
+│   │   ├── prim2.cpp
+│   │   ├── prim2.hh
+│   │   ├── recursivness.cpp
+│   │   ├── recursivness.hh
+│   │   ├── sharing.cpp
+│   │   ├── sharing.hh
+│   │   ├── signals.cpp
+│   │   ├── signals.hh
+│   │   ├── sigorderrules.cpp
+│   │   ├── sigorderrules.hh
+│   │   ├── sigprint.cpp
+│   │   ├── sigprint.hh
+│   │   ├── sigtype.cpp
+│   │   ├── sigtype.hh
+│   │   ├── sigtyperules.cpp
+│   │   ├── sigtyperules.hh
+│   │   ├── sigvisitor.cpp
+│   │   ├── sigvisitor.hh
+│   │   └── subsignals.cpp
+│   ├── tlib
+│   │   ├── compatibility.cpp
+│   │   ├── compatibility.hh
+│   │   ├── dcond.cpp
+│   │   ├── dcond.hh
+│   │   ├── list.cpp
+│   │   ├── list.hh
+│   │   ├── node.cpp
+│   │   ├── node.hh
+│   │   ├── num.hh
+│   │   ├── occur.cpp
+│   │   ├── occur.hh
+│   │   ├── property.hh
+│   │   ├── recursive-tree.cpp
+│   │   ├── shlysis.cpp
+│   │   ├── shlysis.hh
+│   │   ├── smartpointer.hh
+│   │   ├── symbol.cpp
+│   │   ├── symbol.hh
+│   │   ├── tlib.hh
+│   │   ├── tree.cpp
+│   │   └── tree.hh
+│   ├── transform
+│   │   ├── Differentiation.md
+│   │   ├── boxIdentity.cpp
+│   │   ├── boxIdentity.hh
+│   │   ├── boxModulation.cpp
+│   │   ├── boxModulation.hh
+│   │   ├── boxModulationImplanter.cpp
+│   │   ├── boxModulationImplanter.hh
+│   │   ├── boxVisitor.cpp
+│   │   ├── boxVisitor.hh
+│   │   ├── sigConstantPropagation.cpp
+│   │   ├── sigConstantPropagation.hh
+│   │   ├── sigDependenciesGraph.cpp
+│   │   ├── sigDependenciesGraph.hh
+│   │   ├── sigIdentity.cpp
+│   │   ├── sigIdentity.hh
+│   │   ├── sigNewConstantPropagation.cpp
+│   │   ├── sigNewConstantPropagation.hh
+│   │   ├── sigPromotion.cpp
+│   │   ├── sigPromotion.hh
+│   │   ├── sigRecursiveDependencies.cpp
+│   │   ├── sigRecursiveDependencies.hh
+│   │   ├── sigRetiming.cpp
+│   │   ├── sigRetiming.hh
+│   │   ├── signal2Elementary.cpp
+│   │   ├── signal2Elementary.hh
+│   │   ├── signalRenderer.cpp
+│   │   ├── signalRenderer.hh
+│   │   ├── signalVisitor.cpp
+│   │   ├── signalVisitor.hh
+│   │   ├── treeTransform.cpp
+│   │   ├── treeTransform.hh
+│   │   ├── treeTraversal.cpp
+│   │   └── treeTraversal.hh
+│   └── utils
+│       ├── TMutex.h
+│       ├── exepath.cpp
+│       ├── exepath.hh
+│       ├── files.cpp
+│       ├── files.hh
+│       ├── names.cpp
+│       └── names.hh
+├── debian
+│   ├── changelog
+│   ├── compat
+│   ├── control
+│   ├── copyright
+│   ├── docs
+│   ├── examples
+│   ├── install
+│   ├── rules
+│   ├── source
+│   │   └── format
+│   └── watch
+├── documentation
+│   ├── .DS_Store
+│   ├── compiler
+│   │   └── Doxyfile
+│   ├── faust-quick-reference.pdf
+│   ├── libfaust
+│   │   └── Doxyfile
+│   ├── libfaustremote
+│   │   └── Doxyfile
+│   ├── man
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   ├── man-footer.txt
+│   │   ├── man-header.txt
+│   │   └── man1
+│   └── misc
+│       ├── Faust_tutorial2.pdf
+│       ├── additional documentation
+│       ├── faust-den-haag-april-2006-v6.pdf
+│       ├── faust-rewriting.pdf
+│       ├── faust-soft-computing.pdf
+│       ├── faust_SMC2009.pdf
+│       ├── faust_tutorial.pdf
+│       ├── lac06.pdf
+│       ├── lac07_graef.pdf
+│       ├── lac07_slides_graef.pdf
+│       ├── touchOSC.txt
+│       ├── using-faust-with-ros-src
+│       └── using-faust-with-ros.pdf
+├── embedded
+│   ├── faust4processing
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   └── src
+│   ├── faustcsound
+│   │   ├── Makefile
+│   │   └── faustcsound.cpp
+│   ├── faustgen
+│   │   ├── .gitignore
+│   │   ├── CMakeLists.txt
+│   │   ├── Info.plist
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   ├── changelog.txt
+│   │   ├── package
+│   │   └── src
+│   ├── faustjava
+│   │   ├── Faust.i
+│   │   ├── FaustEngine.i
+│   │   ├── FaustEngine_wrap.cxx
+│   │   ├── Faust_wrap.cxx
+│   │   ├── Makefile
+│   │   ├── TestFaust.java
+│   │   ├── TestFaustEngine.java
+│   │   ├── com
+│   │   ├── faust2engine
+│   │   ├── libfaust_ext.cpp
+│   │   ├── libfaust_ext.h
+│   │   ├── llvm_math.ll
+│   │   └── windows
+│   └── faustremote
+│       ├── .gitignore
+│       ├── Makefile
+│       ├── README.md
+│       ├── RemoteClient
+│       ├── RemoteServer
+│       ├── dns_avahi
+│       ├── remote-dsp.h
+│       ├── utilities.cpp
+│       └── utilities.h
+├── examples
+│   ├── .DS_Store
+│   ├── README.md
+│   ├── SAM
+│   │   ├── 16_channel_volume
+│   │   ├── SHARC Audio Module Faust Interface.pdf
+│   │   ├── chorus
+│   │   ├── echo
+│   │   ├── effects
+│   │   ├── flanger
+│   │   ├── freeverb
+│   │   ├── sawtooth_synth
+│   │   ├── sine_synth
+│   │   ├── virtualAnalog
+│   │   └── volume
+│   ├── ambisonics
+│   │   ├── fourSourcesToOcto.dsp
+│   │   └── oneSourceToStereo.dsp
+│   ├── analysis
+│   │   ├── FFT.dsp
+│   │   ├── dbmeter.dsp
+│   │   ├── spectralLevel.dsp
+│   │   ├── spectralTiltLab.dsp
+│   │   └── vumeter.dsp
+│   ├── autodiff
+│   │   ├── delay
+│   │   ├── gain
+│   │   ├── gain_dc
+│   │   ├── gain_exp
+│   │   ├── gain_pow
+│   │   ├── gain_pow_trig
+│   │   ├── gain_sq
+│   │   ├── mem
+│   │   ├── noise.dsp
+│   │   ├── noop.dsp
+│   │   ├── one_zero
+│   │   ├── ramp.dsp
+│   │   ├── recursion
+│   │   └── tremolo
+│   ├── bela
+│   │   ├── AdditiveSynth.dsp
+│   │   ├── AdditiveSynth_Analog.dsp
+│   │   ├── FMSynth2.dsp
+│   │   ├── FMSynth2_Analog.dsp
+│   │   ├── FMSynth2_FX.dsp
+│   │   ├── FMSynth2_FX_Analog.dsp
+│   │   ├── FXChaine2.dsp
+│   │   ├── Faust-complement.lib
+│   │   ├── GrainGenerator.dsp
+│   │   ├── ReadMe.pdf
+│   │   ├── WaveSynth.dsp
+│   │   ├── WaveSynth_Analog.dsp
+│   │   ├── WaveSynth_FX.dsp
+│   │   ├── WaveSynth_FX_Analog.dsp
+│   │   ├── crossDelay2.dsp
+│   │   ├── granulator.dsp
+│   │   ├── latency-measure.maxpat
+│   │   ├── repeater.dsp
+│   │   ├── simpleFX.dsp
+│   │   ├── simpleFX_Analog.dsp
+│   │   ├── simpleSynth.dsp
+│   │   ├── simpleSynth_Analog.dsp
+│   │   ├── simpleSynth_FX.dsp
+│   │   ├── simpleSynth_FX_Analog.dsp
+│   │   ├── trill_simple_monophonic_keyboard.dsp
+│   │   └── trill_simple_polyphonic_keyboard.dsp
+│   ├── delayEcho
+│   │   ├── echo.dsp
+│   │   ├── quadEcho.dsp
+│   │   ├── smoothDelay.dsp
+│   │   ├── stereoEcho.dsp
+│   │   └── tapiir.dsp
+│   ├── dynamic
+│   │   ├── compressor.dsp
+│   │   ├── distortion.dsp
+│   │   ├── gateCompressor.dsp
+│   │   ├── noiseGate.dsp
+│   │   └── volume.dsp
+│   ├── filtering
+│   │   ├── APF.dsp
+│   │   ├── BPF.dsp
+│   │   ├── DNN.dsp
+│   │   ├── HPF.dsp
+│   │   ├── LPF.dsp
+│   │   ├── bandFilter.dsp
+│   │   ├── cryBaby.dsp
+│   │   ├── diodeLadder.dsp
+│   │   ├── filterBank.dsp
+│   │   ├── graphicEqLab.dsp
+│   │   ├── highShelf.dsp
+│   │   ├── korg35HPF.dsp
+│   │   ├── korg35LPF.dsp
+│   │   ├── lfBoost.dsp
+│   │   ├── lowBoost.dsp
+│   │   ├── lowCut.dsp
+│   │   ├── lowShelf.dsp
+│   │   ├── moogHalfLadder.dsp
+│   │   ├── moogLadder.dsp
+│   │   ├── moogVCF.dsp
+│   │   ├── multibandFilter.dsp
+│   │   ├── notch.dsp
+│   │   ├── oberheim.dsp
+│   │   ├── oberheimBPF.dsp
+│   │   ├── oberheimBSF.dsp
+│   │   ├── oberheimHPF.dsp
+│   │   ├── oberheimLPF.dsp
+│   │   ├── parametricEqLab.dsp
+│   │   ├── parametricEqualizer.dsp
+│   │   ├── peakNotch.dsp
+│   │   ├── peakingEQ.dsp
+│   │   ├── sallenKey2ndOrder.dsp
+│   │   ├── sallenKey2ndOrderBPF.dsp
+│   │   ├── sallenKey2ndOrderHPF.dsp
+│   │   ├── sallenKey2ndOrderLPF.dsp
+│   │   ├── sallenKeyOnePole.dsp
+│   │   ├── sallenKeyOnePoleHPF.dsp
+│   │   ├── sallenKeyOnePoleLPF.dsp
+│   │   ├── spectralTilt.dsp
+│   │   ├── vcfWahLab.dsp
+│   │   ├── vocoder.dsp
+│   │   └── wahPedal.dsp
+│   ├── gain.dsp
+│   ├── gameaudio
+│   │   ├── bubble.dsp
+│   │   ├── complex_rain.dsp
+│   │   ├── door.dsp
+│   │   ├── fire.dsp
+│   │   ├── insects.dsp
+│   │   ├── rain.dsp
+│   │   ├── thunder.dsp
+│   │   ├── wind.dsp
+│   │   └── windchimes.dsp
+│   ├── generator
+│   │   ├── churchOrgan.dsp
+│   │   ├── filterOsc.dsp
+│   │   ├── noise.dsp
+│   │   ├── noiseMetadata.dsp
+│   │   ├── osc.dsp
+│   │   ├── osci.dsp
+│   │   ├── sawtoothLab.dsp
+│   │   ├── virtualAnalog.dsp
+│   │   └── virtualAnalogLab.dsp
+│   ├── misc
+│   │   ├── UITester.dsp
+│   │   ├── autopan.dsp
+│   │   ├── capture.dsp
+│   │   ├── drumkit.dsp
+│   │   ├── guitarix.dsp
+│   │   ├── inlooper.dsp
+│   │   ├── matrix.dsp
+│   │   ├── midiTester.dsp
+│   │   ├── mixer.dsp
+│   │   ├── sflooper.dsp
+│   │   ├── statespace.dsp
+│   │   ├── switcher.dsp
+│   │   ├── tester.dsp
+│   │   └── tester2.dsp
+│   ├── old
+│   │   ├── README.md
+│   │   ├── freeverb.dsp
+│   │   └── rewriting
+│   ├── phasing
+│   │   ├── flanger.dsp
+│   │   ├── phaser.dsp
+│   │   └── phaserFlangerLab.dsp
+│   ├── physicalModeling
+│   │   ├── brass.dsp
+│   │   ├── brassMIDI.dsp
+│   │   ├── churchBell.dsp
+│   │   ├── clarinet.dsp
+│   │   ├── clarinetMIDI.dsp
+│   │   ├── djembeMIDI.dsp
+│   │   ├── elecGuitarMIDI.dsp
+│   │   ├── englishBell.dsp
+│   │   ├── faust-stk
+│   │   ├── fds
+│   │   ├── flute.dsp
+│   │   ├── fluteMIDI.dsp
+│   │   ├── frenchBell.dsp
+│   │   ├── germanBell.dsp
+│   │   ├── guitarMIDI.dsp
+│   │   ├── karplus.dsp
+│   │   ├── marimbaMIDI.dsp
+│   │   ├── mi-faust
+│   │   ├── modularInterpInstrMIDI.dsp
+│   │   ├── nylonGuitarMIDI.dsp
+│   │   ├── old
+│   │   ├── russianBell.dsp
+│   │   ├── standardBell.dsp
+│   │   ├── violin.dsp
+│   │   ├── violinMIDI.dsp
+│   │   ├── vocalBP.dsp
+│   │   ├── vocalBPMIDI.dsp
+│   │   ├── vocalFOF.dsp
+│   │   └── vocalFOFMIDI.dsp
+│   ├── pitchShifting
+│   │   └── pitchShifter.dsp
+│   ├── psychoacoustic
+│   │   └── harmonicExciter.dsp
+│   ├── quantizing
+│   │   └── quantizedChords.dsp
+│   ├── reverb
+│   │   ├── dattorro.dsp
+│   │   ├── fdnRev.dsp
+│   │   ├── freeverb.dsp
+│   │   ├── greyhole.dsp
+│   │   ├── jprev.dsp
+│   │   ├── kb_rom_rev1.dsp
+│   │   ├── reverbDesigner.dsp
+│   │   ├── reverbTank.dsp
+│   │   ├── reverbTester.dsp
+│   │   ├── vital_rev.dsp
+│   │   ├── zitaRev.dsp
+│   │   └── zitaRevFDN.dsp
+│   ├── smartKeyboard
+│   │   ├── acGuitar.dsp
+│   │   ├── associatedEffects
+│   │   ├── bells.dsp
+│   │   ├── bowed.dsp
+│   │   ├── brass.dsp
+│   │   ├── clarinet.dsp
+│   │   ├── crazyGuiro.dsp
+│   │   ├── drums.dsp
+│   │   ├── dubDub.dsp
+│   │   ├── elecGuitar.dsp
+│   │   ├── fm.dsp
+│   │   ├── frog.dsp
+│   │   ├── harp.dsp
+│   │   ├── midiOnly.dsp
+│   │   ├── multiSynth.dsp
+│   │   ├── toy.dsp
+│   │   ├── trumpet.dsp
+│   │   ├── turenas.dsp
+│   │   ├── violin.dsp
+│   │   ├── violin2.dsp
+│   │   └── vocal.dsp
+│   └── spat
+│       ├── panpot.dsp
+│       ├── spat.dsp
+│       └── wfs.dsp
+├── external
+│   ├── .DS_Store
+│   ├── clap-helpers
+│   │   ├── .DS_Store
+│   │   ├── .clang-format
+│   │   ├── .git
+│   │   ├── .github
+│   │   ├── .gitignore
+│   │   ├── CMakeLists.txt
+│   │   ├── LICENSE
+│   │   ├── cmake
+│   │   ├── include
+│   │   └── tests
+│   └── clap-sdk
+│       ├── .DS_Store
+│       ├── .clang-format
+│       ├── .git
+│       ├── .github
+│       ├── .gitignore
+│       ├── CMakeLists.txt
+│       ├── CMakePresets.json
+│       ├── ChangeLog.md
+│       ├── Contributors.md
+│       ├── LICENSE
+│       ├── README.md
+│       ├── artwork
+│       ├── clap.pc.in
+│       ├── conventions
+│       ├── include
+│       └── src
+├── faust-tree.txt
+├── installer
+│   ├── README.md
+│   ├── mint18
+│   │   └── install.developer.sh
+│   ├── ubuntu1404
+│   │   ├── install.developer.sh
+│   │   ├── install.full.sh
+│   │   ├── install.min.sh
+│   │   └── install.regular.sh
+│   └── ubuntu1704
+│       └── install.faust.sh
+├── libraries
+│   ├── .DS_Store
+│   ├── .git
+│   ├── .gitignore
+│   ├── README.md
+│   ├── aanl.lib
+│   ├── all.lib
+│   ├── analyzers.lib
+│   ├── basics.lib
+│   ├── compressors.lib
+│   ├── delays.lib
+│   ├── demos.lib
+│   ├── doc
+│   │   ├── Makefile
+│   │   ├── docs
+│   │   ├── library.pdf
+│   │   ├── mkdocs.yml
+│   │   ├── scripts
+│   │   └── theme
+│   ├── docs
+│   │   ├── .nojekyll
+│   │   ├── 404.html
+│   │   ├── CNAME
+│   │   ├── about
+│   │   ├── community
+│   │   ├── contributing
+│   │   ├── css
+│   │   ├── fonts
+│   │   ├── img
+│   │   ├── index.html
+│   │   ├── js
+│   │   ├── libs
+│   │   ├── organization
+│   │   ├── search
+│   │   ├── sitemap.xml
+│   │   ├── sitemap.xml.gz
+│   │   └── standardFunctions
+│   ├── dx7.lib
+│   ├── dx7presets
+│   │   ├── README.md
+│   │   ├── brass.syx
+│   │   ├── dx7_brass.syx.lib
+│   │   └── makelibs
+│   ├── embedded
+│   │   └── platform.lib
+│   ├── envelopes.lib
+│   ├── fds.lib
+│   ├── filters.lib
+│   ├── hoa.lib
+│   ├── install
+│   ├── instruments.lib
+│   ├── interpolators.lib
+│   ├── licenses
+│   │   └── stk-4.3.0.md
+│   ├── linearalgebra.lib
+│   ├── maths.lib
+│   ├── maxmsp.lib
+│   ├── mi.lib
+│   ├── misceffects.lib
+│   ├── modalmodels
+│   │   ├── carillonBell
+│   │   ├── churchBell
+│   │   ├── englishBell
+│   │   ├── frenchBell
+│   │   ├── germanBell
+│   │   ├── marimbaBar
+│   │   ├── russianBell
+│   │   └── standardBell
+│   ├── noises.lib
+│   ├── old
+│   │   ├── effect.lib
+│   │   ├── filter.lib
+│   │   ├── math.lib
+│   │   ├── music.lib
+│   │   └── oscillator.lib
+│   ├── oscillators.lib
+│   ├── phaflangers.lib
+│   ├── physmodels.lib
+│   ├── platform.lib
+│   ├── quantizers.lib
+│   ├── reducemaps.lib
+│   ├── resources
+│   │   ├── .gitignore
+│   │   ├── Makefile
+│   │   └── README.md
+│   ├── reverbs.lib
+│   ├── routes.lib
+│   ├── sf.lib
+│   ├── signals.lib
+│   ├── soundfiles.lib
+│   ├── spats.lib
+│   ├── stdfaust.lib
+│   ├── synths.lib
+│   ├── tonestacks.lib
+│   ├── tubes.lib
+│   ├── vaeffects.lib
+│   ├── version.lib
+│   ├── wdmodels.lib
+│   └── webaudio.lib
+├── node-matcher-plugin
+│   ├── .git
+│   ├── .gitignore
+│   ├── CMakeLists.txt
+│   ├── LICENSE.txt
+│   ├── LLVM-License.txt
+│   ├── Makefile
+│   ├── NodeMatcherPlugin.cpp
+│   ├── Query.cpp
+│   ├── Query.h
+│   ├── QueryParser.cpp
+│   ├── QueryParser.h
+│   ├── QuerySession.h
+│   └── README.md
+├── syntax-highlighting
+│   ├── Faust.plist
+│   ├── README.md
+│   ├── atom
+│   │   └── language-faust
+│   ├── codepress
+│   │   ├── faust.css
+│   │   └── faust.js
+│   ├── dsp.lang
+│   ├── faust-mode.el
+│   ├── faust.lang
+│   ├── faust.nanorc
+│   ├── faust.vim
+│   ├── faust.xml
+│   └── sublime-text
+│       └── Faust
+├── tests
+│   ├── architecture-tests
+│   │   ├── README.md
+│   │   ├── badcpp.dsp
+│   │   ├── badfaust.dsp
+│   │   ├── effect.dsp
+│   │   ├── exp10.dsp
+│   │   ├── good.dsp
+│   │   ├── good_midi_ref.txt
+│   │   ├── good_ref.txt
+│   │   ├── organ.dsp
+│   │   ├── organ_2voices_ref.txt
+│   │   ├── organ_8voices_ref.txt
+│   │   ├── s1.wav
+│   │   ├── s2.wav
+│   │   ├── sound.dsp
+│   │   ├── testfailure
+│   │   ├── testserver
+│   │   ├── testsuccess
+│   │   ├── testsuccessrenamed
+│   │   ├── testtravis
+│   │   ├── waveform4.dsp
+│   │   └── waveform4_ref.txt
+│   ├── codegen-tests
+│   │   ├── 20aout08.dsp
+│   │   ├── BUG071129.dsp
+│   │   ├── BUG080127-twgosc.dsp
+│   │   ├── BUG20180710.dsp
+│   │   ├── CMakeLists.txt
+│   │   ├── bug-power-partialappl.dsp
+│   │   ├── bug-sampo-power.dsp
+│   │   ├── bug-wall.dsp
+│   │   ├── castsimplify.dsp
+│   │   ├── const-table.dsp
+│   │   ├── felix1.dsp
+│   │   ├── felix2.dsp
+│   │   ├── freeverb.dsp
+│   │   ├── granulator1.dsp
+│   │   ├── math.dsp
+│   │   ├── parabolic-env.dsp
+│   │   ├── parabolic-env2.dsp
+│   │   ├── parabolic-env3.dsp
+│   │   ├── parabolic-env4.dsp
+│   │   ├── parabolic-env5.dsp
+│   │   ├── parabolic-env6.dsp
+│   │   ├── path1.dsp
+│   │   ├── path2.dsp
+│   │   ├── path2b.dsp
+│   │   ├── path2c.dsp
+│   │   ├── path2d.dsp
+│   │   ├── path3.dsp
+│   │   ├── path4.dsp
+│   │   ├── path5.dsp
+│   │   ├── shareFixDelays.dsp
+│   │   ├── sharedelays.dsp
+│   │   ├── shortdelays.dsp
+│   │   ├── shortdelays2.dsp
+│   │   ├── simplify1.dsp
+│   │   ├── test010.dsp
+│   │   ├── test10.dsp
+│   │   ├── test11.dsp
+│   │   ├── test12.dsp
+│   │   ├── test13.dsp
+│   │   ├── test14.dsp
+│   │   ├── test14bis.dsp
+│   │   ├── test15.dsp
+│   │   ├── test16.dsp
+│   │   ├── test17.dsp
+│   │   ├── test18.dsp
+│   │   ├── test19.dsp
+│   │   ├── test2.dsp
+│   │   ├── test20.dsp
+│   │   ├── test21.dsp
+│   │   ├── test22.dsp
+│   │   ├── test23.dsp
+│   │   ├── test24.dsp
+│   │   ├── test25.dsp
+│   │   ├── test26.dsp
+│   │   ├── test27.dsp
+│   │   ├── test28.dsp
+│   │   ├── test29.dsp
+│   │   ├── test3.dsp
+│   │   ├── test4.dsp
+│   │   ├── test5.dsp
+│   │   ├── test5b.dsp
+│   │   ├── test6.dsp
+│   │   ├── test7.dsp
+│   │   ├── test8.dsp
+│   │   ├── test9.dsp
+│   │   ├── testif1.dsp
+│   │   ├── testif2.dsp
+│   │   ├── testpow1.dsp
+│   │   ├── testpow2.dsp
+│   │   └── tests
+│   ├── compile-tests
+│   │   ├── Make.lang
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   ├── ffexcluded.txt
+│   │   ├── filter
+│   │   ├── min.c
+│   │   └── min.cpp
+│   ├── compile-time-tests
+│   │   ├── bug090728.dsp
+│   │   └── bug127.dsp
+│   ├── entrypoint-tests
+│   │   ├── README.md
+│   │   ├── foo.lib
+│   │   ├── t1.dsp
+│   │   ├── t2.dsp
+│   │   ├── t3.dsp
+│   │   └── tests
+│   ├── error-tests
+│   │   ├── CMakeLists.txt
+│   │   ├── error01.dsp
+│   │   ├── error02.dsp
+│   │   ├── error03.dsp
+│   │   ├── error04.dsp
+│   │   ├── error05.dsp
+│   │   ├── error06.dsp
+│   │   ├── error22.dsp
+│   │   ├── error23.dsp
+│   │   ├── error24.dsp
+│   │   ├── error25.dsp
+│   │   ├── error26.dsp
+│   │   ├── error27-tblsize-nonconst.dsp
+│   │   ├── numsimplerr1.dsp
+│   │   ├── numsimplerr2.dsp
+│   │   ├── numsimplerr3.dsp
+│   │   ├── numsimplerr4.dsp
+│   │   ├── numsimplerr5.dsp
+│   │   ├── numsimplerr6.dsp
+│   │   ├── numsimplerr7.dsp
+│   │   └── numsimplerr8.dsp
+│   ├── impulse-tests
+│   │   ├── .gitignore
+│   │   ├── Make.cmajor
+│   │   ├── Make.dlang
+│   │   ├── Make.gcc
+│   │   ├── Make.interp
+│   │   ├── Make.interp1
+│   │   ├── Make.jax
+│   │   ├── Make.jsfx
+│   │   ├── Make.julia
+│   │   ├── Make.llvm
+│   │   ├── Make.llvm1
+│   │   ├── Make.ref
+│   │   ├── Make.rnbo
+│   │   ├── Make.rust
+│   │   ├── Make.signal
+│   │   ├── Make.web
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   ├── archs
+│   │   ├── cmajordsp.cmajorpatch
+│   │   ├── deprecated
+│   │   ├── dsp
+│   │   ├── lines.sh
+│   │   ├── reference
+│   │   ├── requirements.txt
+│   │   └── tools
+│   ├── interp-tests
+│   │   ├── .gitignore
+│   │   ├── Makefile
+│   │   ├── foo.dsp
+│   │   ├── interp-machine-test.cpp
+│   │   ├── interp-test.c
+│   │   └── interp-test.cpp
+│   ├── llvm-tests
+│   │   ├── .gitignore
+│   │   ├── CMakeLists.txt
+│   │   ├── Makefile
+│   │   ├── faust-dynamic-engine-test.cpp
+│   │   ├── foo.dsp
+│   │   ├── llvm-algebra-test.cpp
+│   │   ├── llvm-apiui-test.cpp
+│   │   ├── llvm-test-poly.cpp
+│   │   ├── llvm-test.c
+│   │   ├── llvm-test.cpp
+│   │   ├── organ-effect.dsp
+│   │   └── organ.dsp
+│   ├── mathdoc
+│   │   ├── Makefile
+│   │   ├── prefix.dsp
+│   │   ├── rms.dsp
+│   │   ├── select2.dsp
+│   │   └── select3.dsp
+│   ├── multirate-error-tests
+│   │   ├── multirate_1.dsp
+│   │   ├── multirate_2.dsp
+│   │   ├── multirate_3.dsp
+│   │   ├── multirate_4.dsp
+│   │   ├── multirate_5.dsp
+│   │   ├── multirate_6.dsp
+│   │   ├── rateconflict_1.dsp
+│   │   └── rateconflict_2.dsp
+│   ├── osc-tests
+│   │   ├── .gitignore
+│   │   ├── Make.size
+│   │   ├── Makefile
+│   │   ├── dsp
+│   │   ├── osc-version.txt
+│   │   ├── oscmin.cpp
+│   │   └── tools
+│   ├── pass-tests
+│   │   ├── 20091211-hbg-bug.dsp
+│   │   ├── 20091213-empty-label-bug.dsp
+│   │   ├── 20100120-bug.dsp
+│   │   ├── 20100120b-bug.dsp
+│   │   ├── 20100313-ffdelay-bug.dsp
+│   │   ├── 20100716-bug-jos.dsp
+│   │   ├── 20180211-bug.dsp
+│   │   ├── 20180424-env-bug.dsp
+│   │   ├── CMakeLists.txt
+│   │   ├── PM-bug1.dsp
+│   │   ├── PM-bug10.dsp
+│   │   ├── PM-bug11.dsp
+│   │   ├── PM-bug12.dsp
+│   │   ├── PM-bug13.dsp
+│   │   ├── PM-bug17.dsp
+│   │   ├── PM-bug19.dsp
+│   │   ├── PM-bug2.dsp
+│   │   ├── PM-bug20.dsp
+│   │   ├── PM-bug3-4.dsp
+│   │   ├── PM-bug3.dsp
+│   │   ├── PM-bug3bis.dsp
+│   │   ├── PM-bug3tris.dsp
+│   │   ├── PM-bug4.dsp
+│   │   ├── PM-bug5.dsp
+│   │   ├── PM-bug7.dsp
+│   │   ├── SHbug.dsp
+│   │   ├── associativity.dsp
+│   │   ├── autocast.dsp
+│   │   ├── bug-0994jpar.dsp
+│   │   ├── bug-221107.dsp
+│   │   ├── bug20100223.dsp
+│   │   ├── clipped_samplerate.dsp
+│   │   ├── delay01.dsp
+│   │   ├── delay02.dsp
+│   │   ├── dimensioncheck_1.dsp
+│   │   ├── dimensioncheck_2.dsp
+│   │   ├── dimensioncheck_3.dsp
+│   │   ├── dimensioncheck_4.dsp
+│   │   ├── dimensioncheck_5.dsp
+│   │   ├── dimensioncheck_6.dsp
+│   │   ├── dimensioncheck_7.dsp
+│   │   ├── felix1.dsp
+│   │   ├── felix2.dsp
+│   │   ├── find-import.dsp
+│   │   ├── floatcastbug.dsp
+│   │   ├── fst.granulator.dsp
+│   │   ├── intcast01.dsp
+│   │   ├── intcast02.dsp
+│   │   ├── partialapp.dsp
+│   │   ├── ratepass_1.dsp
+│   │   ├── ratepass_10.dsp
+│   │   ├── ratepass_11.dsp
+│   │   ├── ratepass_12.dsp
+│   │   ├── ratepass_2.dsp
+│   │   ├── ratepass_3.dsp
+│   │   ├── ratepass_4.dsp
+│   │   ├── ratepass_5.dsp
+│   │   ├── ratepass_6.dsp
+│   │   ├── ratepass_7.dsp
+│   │   ├── ratepass_8.dsp
+│   │   ├── ratepass_9.dsp
+│   │   ├── schema1.dsp
+│   │   ├── schema2.dsp
+│   │   ├── schema3.dsp
+│   │   ├── schema4.dsp
+│   │   ├── schema5.dsp
+│   │   ├── slowdelay1.dsp
+│   │   ├── test-max-int.dsp
+│   │   ├── testYO.dsp
+│   │   └── uselessrec.dsp
+│   ├── pending-tests
+│   │   ├── mr_binop.dsp
+│   │   ├── mr_cast.dsp
+│   │   ├── mr_delay.dsp
+│   │   ├── mr_ffun.dsp
+│   │   ├── mr_oversample.dsp
+│   │   ├── mr_prim.dsp
+│   │   ├── mr_undersample.dsp
+│   │   └── table1.dsp
+│   ├── route-tests
+│   │   ├── structure4chris.dsp
+│   │   ├── surface.dsp
+│   │   ├── surface4.dsp
+│   │   ├── t1.dsp
+│   │   ├── t2.dsp
+│   │   ├── t3.dsp
+│   │   ├── t4.dsp
+│   │   ├── t4b.dsp
+│   │   ├── t5.dsp
+│   │   ├── t6.dsp
+│   │   ├── v1.dsp
+│   │   ├── v2.dsp
+│   │   ├── v3.dsp
+│   │   └── v4.dsp
+│   ├── signal-tests
+│   │   ├── Makefile
+│   │   └── signal-test.cpp
+│   ├── soundfile
+│   │   ├── tp0.dsp
+│   │   ├── tp1.dsp
+│   │   └── tp2.dsp
+│   ├── warning-tests
+│   │   ├── CMakeLists.txt
+│   │   ├── error07.dsp
+│   │   └── error08.dsp
+│   └── wasm-tests
+│       ├── .gitignore
+│       ├── Makefile
+│       ├── foo.dsp
+│       ├── wasm-machine-test.cpp
+│       ├── wasm-test.c
+│       └── wasm-test.cpp
+├── tools
+│   ├── .DS_Store
+│   ├── README.md
+│   ├── benchmark
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   ├── box-tester.c
+│   │   ├── box-tester.cpp
+│   │   ├── dynamic-faust.cpp
+│   │   ├── dynamic-jack-gtk.cpp
+│   │   ├── dynamic-machine-jack-gtk.cpp
+│   │   ├── faust-osc-controller.cpp
+│   │   ├── faust-tester
+│   │   ├── faust2benchwasm
+│   │   ├── faust2object
+│   │   ├── faustbench
+│   │   ├── faustbench-interp-comp.cpp
+│   │   ├── faustbench-interp.cpp
+│   │   ├── faustbench-llvm-interp.cpp
+│   │   ├── faustbench-llvm.cpp
+│   │   ├── faustbench-wasm
+│   │   ├── faustbench.cpp
+│   │   ├── iOS-bench
+│   │   ├── interp-tracer.cpp
+│   │   ├── layout-ui.cpp
+│   │   ├── poly-dynamic-jack-gtk.cpp
+│   │   ├── signal-tester.c
+│   │   ├── signal-tester.cpp
+│   │   ├── wasm-bench-emcc.js
+│   │   ├── wasm-bench-jsmem.js
+│   │   ├── wasm-bench.js
+│   │   └── wasm-node-bench.js
+│   ├── dx72faust
+│   │   ├── .gitignore
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   └── dx72faust.cpp
+│   ├── faust-config
+│   ├── faust2appls
+│   │   ├── Info.plist
+│   │   ├── README.md
+│   │   ├── check-au.sh
+│   │   ├── encoderunitypackage
+│   │   ├── faust2alqt
+│   │   ├── faust2alsa
+│   │   ├── faust2alsaconsole
+│   │   ├── faust2android
+│   │   ├── faust2androidunity
+│   │   ├── faust2api
+│   │   ├── faust2atomsnippets
+│   │   ├── faust2au
+│   │   ├── faust2audiokit
+│   │   ├── faust2bela
+│   │   ├── faust2bench
+│   │   ├── faust2caconsole
+│   │   ├── faust2cagtk
+│   │   ├── faust2caqt
+│   │   ├── faust2caqtios
+│   │   ├── faust2cmajor
+│   │   ├── faust2comparator
+│   │   ├── faust2cpalrust
+│   │   ├── faust2csound
+│   │   ├── faust2csvplot
+│   │   ├── faust2daisy
+│   │   ├── faust2dplug
+│   │   ├── faust2dssi
+│   │   ├── faust2dummy
+│   │   ├── faust2dummymem
+│   │   ├── faust2eps
+│   │   ├── faust2esp32
+│   │   ├── faust2faustvst
+│   │   ├── faust2feh
+│   │   ├── faust2firefox
+│   │   ├── faust2gen
+│   │   ├── faust2graph
+│   │   ├── faust2graphviewer
+│   │   ├── faust2hothouse
+│   │   ├── faust2ios
+│   │   ├── faust2jack
+│   │   ├── faust2jackconsole
+│   │   ├── faust2jackrust
+│   │   ├── faust2jackserver
+│   │   ├── faust2jaqt
+│   │   ├── faust2jaqtchain
+│   │   ├── faust2juce
+│   │   ├── faust2ladspa
+│   │   ├── faust2linuxunity
+│   │   ├── faust2lv2
+│   │   ├── faust2magtk
+│   │   ├── faust2mathdoc
+│   │   ├── faust2mathviewer
+│   │   ├── faust2max6
+│   │   ├── faust2md
+│   │   ├── faust2minimal
+│   │   ├── faust2msp
+│   │   ├── faust2netjackconsole
+│   │   ├── faust2netjackqt
+│   │   ├── faust2nodejs
+│   │   ├── faust2octave
+│   │   ├── faust2osxiosunity
+│   │   ├── faust2owl
+│   │   ├── faust2paconsole
+│   │   ├── faust2paqt
+│   │   ├── faust2pdf
+│   │   ├── faust2plot
+│   │   ├── faust2png
+│   │   ├── faust2portaudiojulia
+│   │   ├── faust2portaudiorust
+│   │   ├── faust2pure
+│   │   ├── faust2puredata
+│   │   ├── faust2pwconsole
+│   │   ├── faust2pwgtk
+│   │   ├── faust2pwqt
+│   │   ├── faust2raqt
+│   │   ├── faust2rnbo
+│   │   ├── faust2ros
+│   │   ├── faust2rosgtk
+│   │   ├── faust2rpialsaconsole
+│   │   ├── faust2rpinetjackconsole
+│   │   ├── faust2sam
+│   │   ├── faust2sc.py
+│   │   ├── faust2sig
+│   │   ├── faust2sigviewer
+│   │   ├── faust2smartkeyb
+│   │   ├── faust2sndfile
+│   │   ├── faust2stratus
+│   │   ├── faust2sublimecompletions
+│   │   ├── faust2supercollider
+│   │   ├── faust2svg
+│   │   ├── faust2svgplot
+│   │   ├── faust2svgviewer
+│   │   ├── faust2teensy
+│   │   ├── faust2tidalcycles
+│   │   ├── faust2unity
+│   │   ├── faust2vcvrack
+│   │   ├── faust2vst
+│   │   ├── faust2vsti
+│   │   ├── faust2w32max6
+│   │   ├── faust2w32msp
+│   │   ├── faust2w32puredata
+│   │   ├── faust2w32vst
+│   │   ├── faust2w64max6
+│   │   ├── faust2w64puredata
+│   │   ├── faust2w64vst
+│   │   ├── faust2winunity
+│   │   ├── faustoptflags
+│   │   ├── faustpath
+│   │   ├── faustremote
+│   │   ├── filename2ident
+│   │   ├── readme-faust2au.txt
+│   │   ├── unsupported
+│   │   └── usage.sh
+│   ├── faust2ck
+│   │   ├── .git
+│   │   ├── .gitignore
+│   │   ├── COPYING
+│   │   ├── README
+│   │   ├── README.md
+│   │   ├── src
+│   │   └── win32
+│   ├── faust2clap
+│   │   ├── .DS_Store
+│   │   ├── CMakeLists.txt
+│   │   ├── build
+│   │   ├── cmake
+│   │   ├── faust2clap.py
+│   │   └── lib
+│   ├── faust2flash_v0.1
+│   │   ├── COPYING
+│   │   ├── README.txt
+│   │   ├── Step_1_faust_architecture_file
+│   │   └── Step_2_FlashBuilder_project
+│   ├── faust2fpga
+│   │   ├── Makefile
+│   │   ├── build.tcl
+│   │   ├── faust
+│   │   ├── fpga.cpp
+│   │   ├── program.tcl
+│   │   ├── project_v4.tcl
+│   │   ├── run_hls_v4.tcl
+│   │   ├── src
+│   │   ├── version
+│   │   └── vhdl
+│   ├── faust2oct
+│   │   ├── README
+│   │   ├── faust2oct
+│   │   ├── faustscale.dsp
+│   │   ├── octave.cpp
+│   │   ├── ringmod.dsp
+│   │   ├── test.m
+│   │   └── wgo.dsp
+│   ├── faust2pd
+│   │   ├── .DS_Store
+│   │   ├── COPYING
+│   │   ├── ChangeLog
+│   │   ├── Makefile
+│   │   ├── README
+│   │   ├── config.guess
+│   │   ├── examples
+│   │   ├── faust-control.pd
+│   │   ├── faust-gate.pd
+│   │   ├── faust-r.pd
+│   │   ├── faust-s.pd
+│   │   ├── faust-timer.pd
+│   │   ├── faust2pd.pure
+│   │   ├── faustxml.pure
+│   │   └── pd
+│   ├── faust2sc-1.0.0
+│   │   ├── README
+│   │   └── faust2sc
+│   ├── physicalModeling
+│   │   ├── inkscape2scad
+│   │   ├── ir2dsp
+│   │   └── mesh2faust
+│   ├── scbuilder
+│   │   ├── COPYING
+│   │   └── scbuilder
+│   └── sound2faust
+│       ├── .gitignore
+│       ├── Makefile
+│       ├── sound2faust.cpp
+│       ├── sound2file.cpp
+│       └── sound2reader
+├── version.sh
+└── windows
+    ├── README.md
+    ├── faust.rc
+    ├── faustdll.rc
+    └── libmicrohttpd
+        ├── libmicrohttpd-dll.dll
+        ├── libmicrohttpd-dll.lib
+        ├── libmicrohttpd.lib
+        ├── microhttpd.h
+        └── x64
+
+587 directories, 1533 files
