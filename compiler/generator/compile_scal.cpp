@@ -55,6 +55,7 @@
 #include "sigRecursiveDependencies.hh"
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
+#include "signalValidator.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "timing.hh"
@@ -542,6 +543,8 @@ void ScalarCompiler::compileMultiSignal(Tree L)
             mySchedFun = rbschedule<Tree>;
             break;
     }
+
+    validateSignalList(L);  // validate the signal list
 
     // Compute the hierarchical scheduling of L applying the chosen strategy
     fHschedule = scheduleSigList(L, mySchedFun);
