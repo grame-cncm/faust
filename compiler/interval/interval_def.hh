@@ -61,6 +61,14 @@ class interval {
 
     interval(double n, double m, int lsb = -24) noexcept
     {
+        if (n == 0.0 && m == 0.0) {
+            fLo  = 0.0;
+            fHi  = 0.0;
+            fLSB = 0;
+            // std::cerr << "Warning: creating an interval with both bounds equal to zero."
+            //           << std::endl;
+            return;
+        }
         if (lsb == INT_MIN) {
             fLSB = -24;
         } else {
