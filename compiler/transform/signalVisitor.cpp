@@ -144,9 +144,16 @@ void SignalVisitor::visit(Tree sig)
 
     // recursive signals
     else if (isProj(sig, &i, x)) {
-        self(x);
+        if (fBypassRecGroup) {
+            faustassert(isRec(x, var, le));
+            Tree def = nth(le, i);
+            self(def);
+        } else {
+            self(x);
+        }
         return;
     } else if (isRec(sig, var, le)) {
+        faustassert(!fBypassRecGroup);
         mapself(le);
         return;
     }
