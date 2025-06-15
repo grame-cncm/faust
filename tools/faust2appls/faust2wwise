@@ -29,9 +29,7 @@ The Faust2Wwise conversion process is applied with the folowing steps:
         Use Wwise wp.py script to create plugin project structur, geenerating the plugin template files
     Step 3: Integration step (DSP only)
         Copy generated Faust DSP file to plugin SoundEngine directory
-        Modify plugin header file to include DSP file and add mydsp member variable
-        Modify plugin implementation to initialize DSP in Init() function && ...
-        .. inject DSP processing code into Execute() function
+        Replace plugin header and source (cpp) file in the SoundEnginePlugin directory
         Update Lua build script (PremakePlugin.lua) to include Faust headers
     Step 4: Configuration step
         Use Wwise wp.py with `premake` to configure project before building
@@ -55,14 +53,13 @@ The Faust2Wwise conversion process is applied with the folowing steps:
 # FAUST_LIB_PATH="$FAUSTLIB"
 FAUST_LIB_PATH="/usr/local/share/faust"
 # FAUST_INC_PATH="$FAUSTINC" 
-ARCHFILE="$FAUST_LIB_PATH/wwise23.cpp"
-PYTHON_INTEGRATOR="$FAUST_LIB_PATH/wwise23/wwise_integrator23.py"
+ARCHFILE="$FAUST_LIB_PATH/wwise.cpp"
 
 ################################################ Wwise stuff
 WWISEROOT=""
 WWISEROOT_MSYS=""
 PATCH_VERSION="" # related to wwise version (for now we use <default>)
-PATCH_DIR="" # PATCH dir storing the PATCH files. These are used for integrating wwise plugable faust-compiled code
+WWISE_SCRIPTS_DIR="" # PATCH dir storing the PATCH files. These are used for integrating wwise plugable faust-compiled code
 ############################################### faust stuff
 # Project configuration 
 ### script arguments
@@ -141,7 +138,6 @@ printConfiguration() {
     echo "FAUST2WWISE CONFIGURATION"
     echo "------------------------------------------"
     echo "TEMP_DIR $TEMP_DIR"
-    echo "PYTHON_INTEGRATOR $PYTHON_INTEGRATOR"
     echo "========== FAUST CONFIGURATION ==========="
     echo "DSP_FILE $DSP_FILE"
     echo "ARCHFILE $ARCHFILE"
@@ -171,11 +167,12 @@ setupPlatformPaths() {
         FAUST_INCLUDE_PATH="C:/msys64/usr/local/include"
         WWISEROOT=$(find "C:/Program Files (x86)/Audiokinetic" -maxdepth 1 -name "Wwise*" -type d | sort -V | tail -1)
         PATCH_VERSION="default"
-        # PATCH_DIR="$FAUST_LIB_PATH/wwise/$PATCH_VERSION/$PLUGIN_TYPE/" //$PLUGIN_TYPE has not yet been initialized
+        # WWISE_SCRIPTS_DIR="$FAUST_LIB_PATH/wwise/$PATCH_VERSION/$PLUGIN_TYPE/" //$PLUGIN_TYPE has not yet been initialized
     else
         # macOS
         FAUST_INCLUDE_PATH="/usr/local/include"
-        # WWISEROOT=$(find "/usr/bin/" -maxdepth 1 -name "Wwise*" -type d | sort -V | tail -1) #
+        # WWISEROOT=$(find "/usr/bin/" -maxdepth 1 -name "Wwise*" -type d | sort -V | tail -1) 
+        # ...
     fi
     
 }
@@ -207,12 +204,6 @@ validateEnvironment() {
         echo "Error $ERR_ENVIRONMENT: Wwise architecture file not found at $ARCHFILE"
         echo "Make sure the wwise.cpp architecture file is installed in $FAUST_LIB_PATH"
         exit $ERR_ENVIRONMENT
-    fi
-
-    # Check if python integration script was installed properly
-    if [ ! -f "$PYTHON_INTEGRATOR" ]; then
-        echo "Error: Python integrator not found at $PYTHON_INTEGRATOR. Please make sure wwise_integrator.py is installed."
-        exit $ERR_INTEGRATION
     fi
 
 }
@@ -273,7 +264,7 @@ processJSONConfig() {
             PLUGIN_SUFFIX="Source"
         fi    
         # after $PLUGIN_TYPE has been initialized --> TODO: this is related to the platform specific paths - maybe it will be a function
-        PATCH_DIR="$FAUST_LIB_PATH/wwise23/$PATCH_VERSION/$PLUGIN_TYPE"
+        WWISE_SCRIPTS_DIR="$FAUST_LIB_PATH/wwise/$PATCH_VERSION/$PLUGIN_TYPE"
 
         # Extract project name & override in case it is provided as a declaration in faust dsp file
         # i.e. declare name "Name"
@@ -349,7 +340,7 @@ generateWwiseProject() {
 }
 
 #==============================================================================
-# INTEGRATION
+# INTEGRATION - File replacing method
 #==============================================================================
 
 architectureFileIntegration() {
@@ -369,30 +360,57 @@ architectureFileIntegration() {
     echo "OK : Copied Faust DSP to: $FAUST_GENERATED_DESTINATION"
 }
 
-pythonBasedIntegration() {
+replaceCustomTemplates() {
+    
+    echo "Replacing generated files with custom templates..."
+    
+    # Define the list of template files to replace (these contain {name} placeholders)
+    local templateFiles=(
+        "SoundEnginePlugin/ProjectName$PLUGIN_SUFFIX.h"
+        "SoundEnginePlugin/ProjectName$PLUGIN_SUFFIX.cpp"
+    )
+    
+    # Define the corresponding target files (using actual plugin name)
+    local targetFiles=(
+        "SoundEnginePlugin/$PLUGIN_NAME$PLUGIN_SUFFIX.h"
+        "SoundEnginePlugin/$PLUGIN_NAME$PLUGIN_SUFFIX.cpp"
+    )
+    
+    TARGET_DIR="$PLUGIN_NAME"
+    if [ -d "$TARGET_DIR" ]; then
+        echo "Replacing specific SoundEnginePlugin files..."
+        
+        for i in "${!templateFiles[@]}"; do
 
-    echo "Python-based Code Integration"
-    
-    cd "$PLUGIN_NAME" 
-    
-    # Call integrator
-    python3 "$PYTHON_INTEGRATOR" \
-        --plugin-name "$PLUGIN_NAME" \
-        --plugin-suffix "$PLUGIN_SUFFIX" \
-        --plugin-dir "$PWD" \
-        --patch-dir "$PATCH_DIR" \
-        --json-file "$JSON_FILE"
-    
-    if [ $? -ne 0 ]; then
-        echo "Error $ERR_INTEGRATION: Python integration failed"
-        exit $ERR_INTEGRATION
+            template="${templateFiles[$i]}"
+            target="${targetFiles[$i]}"
+            template_path="$WWISE_SCRIPTS_DIR/$template"
+            target_path="$TARGET_DIR/$target"
+
+            if [ -f "$template_path" ]; then
+            
+                # Replace the ${name} placeholders with $PLUGIN_NAME + directly copy to target path
+                sed "s/\${name}/${PLUGIN_NAME}/g" "$template_path" > "$target_path"
+                
+                echo "OK : Replaced: $target with $template"
+            else
+                echo "ERROR: Template file not found: $template_path"
+            fi
+
+        done
+        
+        echo "OK: Custom templates applied successfully!"
+    else
+        echo "ERROR: Target directory $TARGET_DIR not found"
+        return 1
+
     fi
-    echo "OK : Python integration completed successfully!"
-
 }
 
 modifyLuaBuildScript() {
     echo "Modifying Lua build script for Faust includes..."
+    
+    cd "$PLUGIN_NAME"
     
     PREMAKE_FILE="PremakePlugin.lua"
     if [ -f "$PREMAKE_FILE" ]; then        
@@ -423,8 +441,8 @@ modifyLuaBuildScript() {
 integrationStep(){
     echo "------------------------------------------Step 3: Integration Step"
     architectureFileIntegration # edit the exported arch file
-    pythonBasedIntegration # import integration code into the wwise plugin
-    modifyLuaBuildScript # additional step : ought to be absorbed by the pythonBasedIntegration
+    replaceCustomTemplates # replace the vital for the integration files
+    modifyLuaBuildScript # additional step : ought to be absorbed by the replaceCustomTemplates
 }
 #==============================================================================
 # CONFIGURE(PREMAKE) & BUILD 
