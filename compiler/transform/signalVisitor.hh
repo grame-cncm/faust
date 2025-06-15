@@ -44,8 +44,10 @@ class SignalVisitor : public TreeTraversal {
             L = tl(L);
         }
     }
+    void bypassRecGroup(bool b) { fBypassRecGroup = b; }
 
    protected:
-    bool         fVisitGen{false};  // wether to visit gen signal for tables
+    bool         fBypassRecGroup{false};  // when true goes directly from projection to definition
+    bool         fVisitGen{false};        // wether to visit gen signal for tables
     virtual void visit(Tree t) override;
 };
