@@ -163,16 +163,94 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
 }
 
 // Uncomment to activate type inferrence tracing
-// #define TRACE(x) x
-
-#define TRACE(x) \
-    {            \
-        ;        \
-    }
+#define TRACE(x)
+static bool gTrace = false;  ///< global trace flag
+// #define TRACE(x)  \
+//     if (gTrace) { \
+//         x;        \
+//     }
 
 /**
- * The empty type environment (also property key for closed term type)
+ * Verify the coherence of recursive signal types.
+ * Check that when a recursive group is assigned a tuplet type T0×T1×T2×...,
+ * the individual signals S0, S1, S2, ... in the group have the corresponding types T0, T1, T2, ...
+ * Also verify that projections proj0(recSig), proj1(recSig), etc. are coherent
+ *
+ * @param recSig the recursive signal (Tree representing the recursive group)
+ * @param defList the definition list of signals in the recursive group
+ * @param expectedTupletType the expected tuplet type assigned to the group
+ * @param groupIndex index of the group (for error reporting)
+ * @return true if all checks pass, false if errors were found
  */
+static bool checkRecType(Tree recSig, Tree defList, Type expectedTupletType, int groupIndex)
+{
+    bool hasErrors = false;
+
+    // Extract recursive symbol name for better error reporting
+    Tree   var, body;
+    string recSymbol = "unknown";
+    if (isRec(recSig, var, body)) {
+        stringstream ss;
+        ss << *var;
+        recSymbol = ss.str();
+    }
+
+    TupletType* tupletType = isTupletType(expectedTupletType);
+    faustassert(tupletType != nullptr);  // expectedTupletType must be a tuplet type
+
+    int signalIndex = 0;
+    for (Tree l = defList; isList(l); l = tl(l), signalIndex++) {
+        Tree individualSignal = hd(l);
+
+        // Check that the individual signal has a type
+        Type actualType = getCertifiedSigType(individualSignal);  // Will assert if no type
+
+        // Check that the signal index is within bounds
+        faustassert(signalIndex <
+                    tupletType->arity());  // Signal index must be within tuplet bounds
+
+        // Get expected type from tuplet
+        Type expectedType = (*tupletType)[signalIndex];
+
+        // Check type equality
+        if (actualType != expectedType) {
+            cerr << "WARNING : checkRecType, type mismatch for signal " << signalIndex
+                 << " in recursive symbol " << recSymbol << " (group " << groupIndex << ")" << endl
+                 << "        Expected type: " << *expectedType << endl
+                 << "        Actual type:   " << *actualType << endl
+                 << "        Signal: " << ppsig(individualSignal, MAX_ERROR_SIZE) << endl;
+            hasErrors = true;
+        }
+    }
+
+    // Verify that we have the expected number of signals
+    faustassert(signalIndex == tupletType->arity());  // Exact arity match required
+
+    // Verify that the body of the recursive signal matches the definition list
+    faustassert(isRec(recSig, var, body));  // recSig must be a recursive signal
+    faustassert(body == defList);           // body must match defList exactly
+
+    // Verify that used projections have correct types (unused projections may not have types)
+    for (int projIndex = 0; projIndex < tupletType->arity(); projIndex++) {
+        Tree projection = sigProj(projIndex, recSig);
+        Type projType   = getSigType(projection);
+
+        if (projType) {
+            // Only check type coherence for projections that have been typed (i.e., used)
+            Type expectedProjType = (*tupletType)[projIndex];
+            if (projType != expectedProjType) {
+                cerr << "WARNING : checkRecType, projection type mismatch for proj" << projIndex
+                     << "(" << recSymbol << ") in group " << groupIndex << endl
+                     << "        Expected type: " << *expectedProjType << endl
+                     << "        Projection type: " << *projType << endl;
+                hasErrors = true;
+            }
+        }
+        // Note: Projections without types are assumed to be unused, which is normal
+    }
+
+    return !hasErrors;
+}
 
 /**
  * Do one step of type inference on the recursive signal groups of a signal
@@ -186,42 +264,37 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
  * @param inter if set to false, the interval of the new type is the union of the old one and the
  * computed one, otherwise it is the intersection
  */
-static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef,
+static void updateRecTypes(const vector<Tree>& vrec, const vector<Tree>& vdef,
                            const vector<int>& vdefSizes, vector<Type>& vtype, const bool inter)
 {
-    Type         newType;
-    vector<Type> newTuplet;
-    TupletType   newRecType;
-    TupletType   oldRecType;
-    interval     newI(NAN, NAN);
-    interval     oldI(NAN, NAN);
-
-    const int n = vdef.size();
+    const int numRecGroups = vdef.size();
 
     CTree::startNewVisit();
 
     // init recursive types
-    for (int i = 0; i < n; i++) {
-        setSigType(vrec[i], vtype[i]);
-        vrec[i]->setVisited();
+    for (int g = 0; g < numRecGroups; g++) {
+        setSigType(vrec[g], vtype[g]);
+        // std::cerr << gGlobal->TABBER << "set type for " << *vrec[g] << " to " << *vtype[g]
+        //           << std::endl;
+        vrec[g]->setVisited();
     }
 
     // cerr << "compute recursive types" << endl;
-    for (int i = 0; i < n; i++) {
-        newType = T(vdef[i], gGlobal->NULLTYPEENV);
-        newTuplet.clear();
-        oldRecType = derefRecCert(getSigType(vrec[i]));
-        newRecType = derefRecCert(newType);
+    for (int g = 0; g < numRecGroups; g++) {
+        // std::cerr << gGlobal->TABBER << "computing type for " << *vrec[i] << std::endl;
+        TupletType oldRecType = derefRecCert(getSigType(vrec[g]));
+        TupletType newRecType = derefRecCert(T(vdef[g], gGlobal->NULLTYPEENV));
 
-        for (int j = 0; j < vdefSizes[i]; j++) {
+        vector<Type> newTuplet;
+        for (int j = 0; j < vdefSizes[g]; j++) {
             newTuplet.push_back(newRecType[j]);
-            newI = newRecType[j]->getInterval();
-            oldI = oldRecType[j]->getInterval();
+            interval newI = newRecType[j]->getInterval();
+            interval oldI = oldRecType[j]->getInterval();
 
             newI         = inter ? intersection(newI, oldI) : itv::reunion(newI, oldI);
             newTuplet[j] = newTuplet[j]->promoteInterval(newI);
         }
-        vtype[i] = new TupletType(newTuplet);
+        vtype[g] = new TupletType(newTuplet);
     }
 }
 
@@ -232,114 +305,133 @@ static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef,
  */
 void typeAnnotation(Tree sig, bool causality)
 {
-    gGlobal->gCausality = causality;
-    Tree sl             = symlist(sig);
-    int  n              = len(sl);
+    gGlobal->gCausality    = causality;
+    Tree      recGroupList = symlist(sig);
+    const int numRecGroups = len(recGroupList);
 
-    int  size;
-    bool finished = false;
+    // std::cerr << "*****SYMLIST : " << *recGroupList << std::endl;
 
+    // Parse recursive signal groups
     vector<Tree> vrec;       ///< array of all the recursive signal groups
     vector<Tree> vdef;       ///< definitions of all the recursive signal groups (vector of _lists_)
     vector<int>  vdefSizes;  ///< number of signals for each group
-    vector<Type> vtype;      ///< type of the recursive signals
-    vector<Type> vtypeUp;    ///< an upperbound of the recursive signals type
-    vector<TupletType> vUp;  ///< the unfolded version of the variable above
-
     vector<vector<int>> vAgeMin;  ///< age of the minimum of every subsignal of the recursive signal
     vector<vector<int>> vAgeMax;  ///< age of the maximum of every subsignal of the recursive signal
 
-    // work variables used in widening loop
-    vector<Type> newTuplet;
-    TupletType   newRecType;
-    TupletType   oldRecType;
-    interval     newI(NAN, NAN);
-    interval     oldI(NAN, NAN);
-
-    // cerr << "Symlist " << *sl << endl;
-    for (Tree l = sl; isList(l); l = tl(l)) {
+    // cerr << "Symlist " << *recGroupList << endl;
+    for (Tree l = recGroupList; isList(l); l = tl(l)) {
         Tree id, body;
         faustassert(isRec(hd(l), id, body));
-        if (!isRec(hd(l), id, body)) {
-            continue;
-        }
+        // if (!isRec(hd(l), id, body)) {
+        //     continue;
+        // }
         vrec.push_back(hd(l));
         vdef.push_back(body);
 
-        size = len(body);
+        int size = len(body);
         vdefSizes.push_back(size);
         vAgeMin.push_back(vector<int>(size, 0));
         vAgeMax.push_back(vector<int>(size, 0));
     }
 
-    // init recursive types
-    for (int i = 0; i < n; i++) {
+    // Initialize recursive types
+    vector<Type> vtype;    ///< type of the recursive signals
+    vector<Type> vtypeUp;  ///< an upperbound of the recursive signals type
+
+    for (int i = 0; i < numRecGroups; i++) {
         vtypeUp.push_back(maximalRecType(vdef[i]));
         vtype.push_back(initialRecType(vdef[i]));
     }
 
-    faustassert(int(vrec.size()) == n);
-    faustassert(int(vdef.size()) == n);
-    faustassert(int(vtype.size()) == n);
-    faustassert((int)vAgeMin.size() == n);
-    faustassert((int)vAgeMax.size() == n);
+    faustassert(int(vrec.size()) == numRecGroups);
+    faustassert(int(vdef.size()) == numRecGroups);
+    faustassert(int(vtype.size()) == numRecGroups);
+    faustassert((int)vAgeMin.size() == numRecGroups);
+    faustassert((int)vAgeMax.size() == numRecGroups);
 
     // cerr << "compute upper bounds for recursive types" << endl;
     for (int k = 0; k < gGlobal->gNarrowingLimit; k++) {
         updateRecTypes(vrec, vdef, vdefSizes, vtypeUp, true);
     }
 
+    vector<TupletType> vUp;  ///< the unfolded version of the variable above
     for (const auto& ty : vtypeUp) {
         vUp.push_back(derefRecCert(ty));
     }
 
     // cerr << "find an upperbound of the least fixpoint" << endl;
+    bool finished = false;
     while (!finished) {
         updateRecTypes(vrec, vdef, vdefSizes, vtype, false);
 
         // check finished
         finished = true;
-        for (int i = 0; i < n; i++) {
-            newTuplet.clear();
+
+        // for each recursive group of index g
+        for (int g = 0; g < numRecGroups; g++) {
             // cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] <<
             // endl;
-            if (vtype[i] != getSigType(vrec[i])) {
-                finished   = false;
-                newRecType = derefRecCert(vtype[i]);
-                oldRecType = derefRecCert(getSigType(vrec[i]));
-                for (int j = 0; j < vdefSizes[i]; j++) {
-                    newTuplet.push_back(newRecType[j]);
-                    newI = newRecType[j]->getInterval();
-                    oldI = oldRecType[j]->getInterval();
+            // if (vtype[g] == getSigType(vrec[g])) {
+            //     cerr << *vrec[g] << " = " << vdef[g] << "; has converged" << endl;
+            //     continue;  // already converged
+            // }
+            if (vtype[g] != getSigType(vrec[g])) {
+                finished = false;
 
-                    TRACE(cerr << gGlobal->TABBER << "inspecting " << newTuplet[j] << endl;)
+                vector<Type> newTuplet;
+                TupletType   newRecType = derefRecCert(vtype[g]);
+                TupletType   oldRecType = derefRecCert(getSigType(vrec[g]));
+
+                // for each projection p of recursive group g
+                for (int p = 0; p < vdefSizes[g]; p++) {
+                    newTuplet.push_back(newRecType[p]);
+                    interval newI = newRecType[p]->getInterval();
+                    interval oldI = oldRecType[p]->getInterval();
+
+                    TRACE(cerr << gGlobal->TABBER << "inspecting " << newTuplet[p] << endl;)
                     if (newI.lo() != oldI.lo()) {
                         faustassert(newI.lo() < oldI.lo());
-                        vAgeMin[i][j]++;
-                        if (vAgeMin[i][j] > gGlobal->gWideningLimit) {
-                            TRACE(cerr << gGlobal->TABBER << "low widening of " << newTuplet[j]
+                        vAgeMin[g][p]++;
+                        if (vAgeMin[g][p] > gGlobal->gWideningLimit) {
+                            TRACE(cerr << gGlobal->TABBER << "low widening of " << newTuplet[p]
                                        << endl;)
-                            newI = {vUp[i][j]->getInterval().lo(), newI.hi()};
+                            newI = {vUp[g][p]->getInterval().lo(), newI.hi()};
                         }
                     }
 
                     if (newI.hi() != oldI.hi()) {
                         faustassert(newI.hi() > oldI.hi());
-                        vAgeMax[i][j]++;
-                        if (vAgeMax[i][j] > gGlobal->gWideningLimit) {
-                            TRACE(cerr << gGlobal->TABBER << "up widening of " << newTuplet[j]
+                        vAgeMax[g][p]++;
+                        if (vAgeMax[g][p] > gGlobal->gWideningLimit) {
+                            TRACE(cerr << gGlobal->TABBER << "up widening of " << newTuplet[p]
                                        << endl;)
-                            newI = {newI.lo(), vUp[i][j]->getInterval().hi()};
+                            newI = {newI.lo(), vUp[g][p]->getInterval().hi()};
                         }
                     }
 
-                    newTuplet[j] = newTuplet[j]->promoteInterval(newI);
-                    TRACE(cerr << gGlobal->TABBER << "widening ended : " << newTuplet[j] << endl;)
+                    newTuplet[p] = newTuplet[p]->promoteInterval(newI);
+                    TRACE(cerr << gGlobal->TABBER << "widening ended : " << newTuplet[p] << endl;)
                 }
-                vtype[i] = new TupletType(newTuplet);
+                vtype[g] = new TupletType(newTuplet);
             }
         }
     }
+
+    // verify coherence of recursive types after convergence
+    // cerr << "Verifying type coherence after convergence..." << endl;
+    // bool allCoherent = true;
+    // for (int i = 0; i < numRecGroups; i++) {
+    //     bool isCoherent = checkRecType(vrec[i], vdef[i], vtype[i], i);
+    //     if (!isCoherent) {
+    //         cerr << "WARNING : Type coherence issues detected in recursive group " << i
+    //              << " after convergence" << endl;
+    //         allCoherent = false;
+    //     }
+    // }
+    // if (allCoherent) {
+    //     cerr << "Type coherence verification: OK" << endl;
+    // }
+
     // type full term
     T(sig, gGlobal->NULLTYPEENV);
     TRACE(cerr << "type success : " << endl << "BYE" << endl;)
@@ -464,58 +556,55 @@ static void checkPartInterval(Tree s, Type t)
  */
 static Type inferSigType(Tree sig, Tree env)
 {
-    int     i;
-    int64_t i64;
-    double  r;
-    Tree    sel, s1, s2, s3, s4, ff, ls, l, x, y, z, part, u, var, body, type, name, file, sf;
-    Tree    label, cur, min, max, step;
-
     gGlobal->gCountInferences++;
 
     if (getUserData(sig)) {
         return inferXType(sig, env);
     }
 
-    else if (isSigInt(sig, &i)) {
+    if (int i; isSigInt(sig, &i)) {
         Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.IntNum(i));
         return t;
     }
 
-    else if (isSigInt64(sig, &i64)) {
-        Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.Int64Num(i));
+    if (int64_t i64; isSigInt64(sig, &i64)) {
+        Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.Int64Num(i64));
         return t;
     }
 
-    else if (isSigReal(sig, &r)) {
+    if (double r; isSigReal(sig, &r)) {
         Type t = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, gAlgebra.FloatNum(r));
         return t;
     }
 
-    else if (isSigWaveform(sig)) {
+    if (isSigWaveform(sig)) {
         return inferWaveformType(sig, env);
     }
 
-    else if (isSigInput(sig, &i)) {
+    if (int i; isSigInput(sig, &i)) {
         return gGlobal->TINPUT;
     }
 
-    else if (isSigOutput(sig, &i, s1)) {
-        return sampCast(T(s1, env));
+    {
+        int chan;
+        if (Tree s1; isSigOutput(sig, &chan, s1)) {
+            return sampCast(T(s1, env));
+        }
     }
 
-    else if (isSigDelay1(sig, s1)) {
+    if (Tree s1; isSigDelay1(sig, s1)) {
         Type t = T(s1, env);
-        return castInterval(sampCast(t), itv::reunion(t->getInterval(), interval(0, 0)));
+        return castInterval(sampCast(t), itv::reunion(t->getInterval(), interval(0)));
     }
 
-    else if (isSigPrefix(sig, s1, s2)) {
+    if (Tree s1, s2; isSigPrefix(sig, s1, s2)) {
         Type t1 = T(s1, env);
         Type t2 = T(s2, env);
         checkInit(t1);
         return castInterval(sampCast(t1 | t2), itv::reunion(t1->getInterval(), t2->getInterval()));
     }
 
-    else if (isSigDelay(sig, s1, s2)) {
+    if (Tree s1, s2; isSigDelay(sig, s1, s2)) {
         Type     t1 = T(s1, env);
         Type     t2 = T(s2, env);
         interval i1 = t2->getInterval();
@@ -545,111 +634,112 @@ static Type inferSigType(Tree sig, Tree env)
             }
         }
 
-        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
+        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0)));
     }
 
-    else if (isSigBinOp(sig, &i, s1, s2)) {
-        Type t1 = T(s1, env);
-        Type t2 = T(s2, env);
-        Type t3 = castInterval(t1 | t2, arithmetic(i, t1->getInterval(), t2->getInterval()));
+    {
+        int op;
+        if (Tree s1, s2; isSigBinOp(sig, &op, s1, s2)) {
+            Type t1 = T(s1, env);
+            Type t2 = T(s2, env);
+            Type t3 = castInterval(t1 | t2, arithmetic(op, t1->getInterval(), t2->getInterval()));
 
-        if (i == kDiv) {
-            return floatCast(t3);  // division always result in a float even with int arguments
-        } else if ((i >= kGT) && (i <= kNE)) {
-            return boolCast(t3);  // comparison always result in a boolean int
-        } else if (((i >= kLsh) && (i <= kLRsh)) || ((i >= kAND) && (i <= kXOR))) {
-            return intCast(t3);  // boolean and logical operators always result in an int
-        } else {
-            return t3;  //  otherwise most general of t1 and t2
+            if (op == kDiv) {
+                return floatCast(t3);  // division always result in a float even with int arguments
+            } else if ((op >= kGT) && (op <= kNE)) {
+                return boolCast(t3);  // comparison always result in a boolean int
+            } else if (((op >= kLsh) && (op <= kLRsh)) || ((op >= kAND) && (op <= kXOR))) {
+                return intCast(t3);  // boolean and logical operators always result in an int
+            } else {
+                return t3;  //  otherwise most general of t1 and t2
+            }
         }
     }
 
-    else if (isSigIntCast(sig, s1)) {
+    if (Tree s1; isSigIntCast(sig, s1)) {
         return intCast(T(s1, env));
     }
 
-    else if (isSigBitCast(sig, s1)) {
+    if (Tree s1; isSigBitCast(sig, s1)) {
         return bitCast(T(s1, env));
     }
 
-    else if (isSigFloatCast(sig, s1)) {
+    if (Tree s1; isSigFloatCast(sig, s1)) {
         return floatCast(T(s1, env));
     }
 
-    else if (isSigFFun(sig, ff, ls)) {
+    if (Tree ff, ls; isSigFFun(sig, ff, ls)) {
         return inferFFType(ff, ls, env);
     }
 
-    else if (isSigFConst(sig, type, name, file)) {
+    if (Tree type, name, file; isSigFConst(sig, type, name, file)) {
         return inferFConstType(type);
     }
 
-    else if (isSigFVar(sig, type, name, file)) {
+    if (Tree type, name, file; isSigFVar(sig, type, name, file)) {
         return inferFVarType(type);
     }
 
-    else if (isSigButton(sig)) {
+    if (isSigButton(sig)) {
         return castInterval(gGlobal->TGUI,
-                            gAlgebra.Button(interval(0, 0)));  // TODO: replace the name
+                            gAlgebra.Button(interval(0)));  // TODO: replace the name
     }
 
-    else if (isSigCheckbox(sig)) {
+    if (isSigCheckbox(sig)) {
         return castInterval(gGlobal->TGUI,
-                            gAlgebra.Checkbox(interval(0, 0)));  // TODO: replace the name
+                            gAlgebra.Checkbox(interval(0)));  // TODO: replace the name
     }
 
-    else if (isSigVSlider(sig, label, cur, min, max, step)) {
+    if (Tree label, cur, min, max, step; isSigVSlider(sig, label, cur, min, max, step)) {
         Type t1 = T(cur, env);
         Type t2 = T(min, env);
         Type t3 = T(max, env);
         Type t4 = T(step, env);
-        return castInterval(
-            gGlobal->TGUI, gAlgebra.VSlider(interval(0, 0),  // TODO: replace the name
-                                            t1->getInterval(), t2->getInterval(), t3->getInterval(),
-                                            t4->getInterval()));
+        return castInterval(gGlobal->TGUI, gAlgebra.VSlider(interval(0),  // TODO: replace the name
+                                                            t1->getInterval(), t2->getInterval(),
+                                                            t3->getInterval(), t4->getInterval()));
     }
 
-    else if (isSigHSlider(sig, label, cur, min, max, step)) {
+    if (Tree label, cur, min, max, step; isSigHSlider(sig, label, cur, min, max, step)) {
         Type t1 = T(cur, env);
         Type t2 = T(min, env);
         Type t3 = T(max, env);
         Type t4 = T(step, env);
-        return castInterval(
-            gGlobal->TGUI, gAlgebra.HSlider(interval(0, 0),  // TODO: replace the name
-                                            t1->getInterval(), t2->getInterval(), t3->getInterval(),
-                                            t4->getInterval()));
+        return castInterval(gGlobal->TGUI, gAlgebra.HSlider(interval(0),  // TODO: replace the name
+                                                            t1->getInterval(), t2->getInterval(),
+                                                            t3->getInterval(), t4->getInterval()));
     }
 
-    else if (isSigNumEntry(sig, label, cur, min, max, step)) {
+    if (Tree label, cur, min, max, step; isSigNumEntry(sig, label, cur, min, max, step)) {
         Type t1 = T(cur, env);
         Type t2 = T(min, env);
         Type t3 = T(max, env);
         Type t4 = T(step, env);
         return castInterval(gGlobal->TGUI,
-                            gAlgebra.NumEntry(interval(0, 0),  // TODO: replace the name
+                            gAlgebra.NumEntry(interval(0),  // TODO: replace the name
                                               t1->getInterval(), t2->getInterval(),
                                               t3->getInterval(), t4->getInterval()));
     }
 
-    else if (isSigHBargraph(sig, l, x, y, s1)) {
+    if (Tree l, x, y, s1; isSigHBargraph(sig, l, x, y, s1)) {
         Type t1 = T(x, env);
         Type t2 = T(y, env);
         return T(s1, env)->promoteVariability(kBlock);
     }
 
-    else if (isSigVBargraph(sig, l, x, y, s1)) {
+    if (Tree l, x, y, s1; isSigVBargraph(sig, l, x, y, s1)) {
         Type t1 = T(x, env);
         Type t2 = T(y, env);
         return T(s1, env)->promoteVariability(kBlock);
     }
 
-    else if (isSigSoundfile(sig, l)) {
+    if (Tree l; isSigSoundfile(sig, l)) {
         // computability should be kExec if the soundfile can be changed at runtime with the GUI
         // (which is not implemented yet), so kInit for now
         return makeSimpleType(kInt, kBlock, kInit, kVect, kNum, interval(0, INT32_MAX));
     }
 
-    else if (isSigSoundfileLength(sig, sf, part)) {
+    if (Tree sf, part; isSigSoundfileLength(sig, sf, part)) {
         Type t1 = T(sf, env);
         Type t2 = T(part, env);
         checkPartInterval(sig, t2);
@@ -659,7 +749,7 @@ static Type inferSigType(Tree sig, Tree env)
         return makeSimpleType(kInt, c, kInit, kVect, kNum, interval(0, INT32_MAX));
     }
 
-    else if (isSigSoundfileRate(sig, sf, part)) {
+    if (Tree sf, part; isSigSoundfileRate(sig, sf, part)) {
         Type t1 = T(sf, env);
         Type t2 = T(part, env);
         checkPartInterval(sig, t2);
@@ -669,7 +759,7 @@ static Type inferSigType(Tree sig, Tree env)
         return makeSimpleType(kInt, c, kInit, kVect, kNum, interval(0, INT32_MAX));
     }
 
-    else if (isSigSoundfileBuffer(sig, sf, x, part, z)) {
+    if (Tree sf, x, part, z; isSigSoundfileBuffer(sig, sf, x, part, z)) {
         T(sf, env);
         T(x, env);
         Type tp = T(part, env);
@@ -680,30 +770,44 @@ static Type inferSigType(Tree sig, Tree env)
         return makeSimpleType(kReal, kSamp, kInit, kVect, kNum, interval(-1, 1));
     }
 
-    else if (isSigAttach(sig, s1, s2)) {
+    if (Tree s1, s2; isSigAttach(sig, s1, s2)) {
         T(s2, env);
         return T(s1, env);
     }
 
-    else if (isSigEnable(sig, s1, s2)) {
+    if (Tree s1, s2; isSigEnable(sig, s1, s2)) {
         T(s2, env);
         return T(s1, env);
     }
 
-    else if (isSigControl(sig, s1, s2)) {
+    if (Tree s1, s2; isSigControl(sig, s1, s2)) {
         T(s2, env);
         return T(s1, env);
     }
 
-    else if (isRec(sig, var, body)) {
+    if (Tree var, body; isRec(sig, var, body)) {
         return inferRecType(sig, body, env);
     }
 
-    else if (isProj(sig, &i, s1)) {
-        return inferProjType(T(s1, env), i, kScal);
+    {
+        int pnum;  // projection number
+        if (Tree recgroup; isProj(sig, &pnum, recgroup)) {
+            Tree var, body;
+            isRec(recgroup, var, body);
+
+            // std::stringstream ss;
+            // ss << *var;
+            // std::cerr << "the var is " << ss.str() << std::endl;
+            // if (ss.str() == "WS6") {
+            //     std::cerr << "the var is WS6, i = " << i << std::endl;
+            //     gTrace = true;  // activate trace for this case
+            // }
+
+            return inferProjType(T(recgroup, env), pnum, kScal);
+        }
     }
 
-    else if (isSigWRTbl(sig, s1, s2, s3, s4)) {
+    if (Tree s1, s2, s3, s4; isSigWRTbl(sig, s1, s2, s3, s4)) {
         if (s3 == gGlobal->nil) {
             // rdtable
             return inferTableType(s1, s2, env);
@@ -713,23 +817,25 @@ static Type inferSigType(Tree sig, Tree env)
         }
     }
 
-    else if (isSigRDTbl(sig, s1, s2)) {
+    if (Tree s1, s2; isSigRDTbl(sig, s1, s2)) {
         return inferReadTableType(T(s1, env), T(s2, env));
     }
 
-    else if (isSigGen(sig, s1)) {
+    if (Tree s1; isSigGen(sig, s1)) {
         return T(s1, gGlobal->NULLTYPEENV);
     }
 
-    else if (isSigDocConstantTbl(sig, x, y)) {
+    if (Tree x, y; isSigDocConstantTbl(sig, x, y)) {
         return inferDocConstantTblType(T(x, env), T(y, env));
-    } else if (isSigDocWriteTbl(sig, x, y, z, u)) {
+    }
+    if (Tree x, y, z, u; isSigDocWriteTbl(sig, x, y, z, u)) {
         return inferDocWriteTblType(T(x, env), T(y, env), T(z, env), T(u, env));
-    } else if (isSigDocAccessTbl(sig, x, y)) {
+    }
+    if (Tree x, y; isSigDocAccessTbl(sig, x, y)) {
         return inferDocAccessTblType(T(x, env), T(y, env));
     }
 
-    else if (isSigSelect2(sig, sel, s1, s2)) {
+    if (Tree sel, s1, s2; isSigSelect2(sig, sel, s1, s2)) {
         SimpleType *st1, *st2, *stsel;
 
         st1   = isSimpleType(T(s1, env));
@@ -744,15 +850,15 @@ static Type inferSigType(Tree sig, Tree env)
                               itv::reunion(st1->getInterval(), st2->getInterval()));
     }
 
-    else if (isSigFIR(sig)) {
+    if (isSigFIR(sig)) {
         return inferFIRType(sig, env);
     }
 
-    else if (isSigIIR(sig)) {
+    if (isSigIIR(sig)) {
         return inferIIRType(sig, env);
     }
 
-    else if (tvec subs; isSigSum(sig, subs)) {
+    if (tvec subs; isSigSum(sig, subs)) {
         faustassert(!subs.empty());
         Type t = T(subs[0], env);
         for (size_t ii = 1; ii < subs.size(); ii++) {
@@ -763,25 +869,25 @@ static Type inferSigType(Tree sig, Tree env)
     }
 
     // OnDemand types
-    else if (Tree x; isSigTempVar(sig, x)) {
+    if (Tree x; isSigTempVar(sig, x)) {
         return T(x, env);
-
-    } else if (Tree x; isSigPermVar(sig, x)) {
+    }
+    if (Tree x; isSigPermVar(sig, x)) {
         Type t1 = T(x, env);
-        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
-
-    } else if (Tree x, y; isSigZeroPad(sig, x, y)) {
+        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0)));
+    }
+    if (Tree x, y; isSigZeroPad(sig, x, y)) {
         Type t1 = T(x, env);
-        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
-
-    } else if (Tree x, y; isSigSeq(sig, x, y)) {
+        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0)));
+    }
+    if (Tree x, y; isSigSeq(sig, x, y)) {
         T(x, env);
         return T(y, env);
-
-    } else if (Tree h, y; isSigClocked(sig, h, y)) {
+    }
+    if (Tree h, y; isSigClocked(sig, h, y)) {
         return T(y, env);
-
-    } else if (tvec subs; isSigOD(sig, subs)) {
+    }
+    if (tvec subs; isSigOD(sig, subs)) {
         // an OD block don't have a proper type,
         // but we need to type its subsignals
         for (size_t ii = 0; ii < subs.size(); ii++) {
@@ -794,7 +900,7 @@ static Type inferSigType(Tree sig, Tree env)
         return makeSimpleType(kReal, kSamp, kExec, kScal, kNum, interval(-1, 1));
     }
 
-    else if (tvec subs; isSigUS(sig, subs)) {
+    if (tvec subs; isSigUS(sig, subs)) {
         // an US block don't have a proper type,
         // but we need to type its subsignals
         for (size_t ii = 0; ii < subs.size(); ii++) {
@@ -807,7 +913,7 @@ static Type inferSigType(Tree sig, Tree env)
         return makeSimpleType(kReal, kSamp, kExec, kScal, kNum, interval(-1, 1));
     }
 
-    else if (tvec subs; isSigDS(sig, subs)) {
+    if (tvec subs; isSigDS(sig, subs)) {
         // an DS block don't have a proper type,
         // but we need to type its subsignals
         for (size_t ii = 0; ii < subs.size(); ii++) {
@@ -820,16 +926,16 @@ static Type inferSigType(Tree sig, Tree env)
         return makeSimpleType(kReal, kSamp, kExec, kScal, kNum, interval(-1, 1));
     }
 
-    else if (isNil(sig)) {
+    if (isNil(sig)) {
         Type t = new TupletType();
         return t;
     }
 
-    else if (isList(sig)) {
+    if (isList(sig)) {
         return T(hd(sig), env) * T(tl(sig), env);
     }
 
-    else if (isSigAssertBounds(sig, min, max, cur)) {
+    if (Tree min, max, cur; isSigAssertBounds(sig, min, max, cur)) {
         Type     t1 = T(min, env);
         Type     t2 = T(max, env);
         Type     t3 = T(cur, env);
@@ -845,20 +951,23 @@ static Type inferSigType(Tree sig, Tree env)
         return t3->promoteInterval(iEnd);
     }
 
-    else if (isSigLowest(sig, s1)) {
+    if (Tree s1; isSigLowest(sig, s1)) {
         interval i1 = T(s1, env)->getInterval();
         return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.lo()));
         // change this part   ^^^^^ once there are interval bounds depending on signal type
     }
 
-    else if (isSigHighest(sig, s1)) {
+    if (Tree s1; isSigHighest(sig, s1)) {
         interval i1 = T(s1, env)->getInterval();
         return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.hi()));
         // change this part   ^^^^^ once there are interval bounds depending on signal type
     }
 
-    else if (isSigRegister(sig, &i, s1)) {
-        return T(s1, env);
+    {
+        int i;
+        if (Tree s1; isSigRegister(sig, &i, s1)) {
+            return T(s1, env);
+        }
     }
 
     // unrecognized signal here
@@ -1134,14 +1243,14 @@ static Type inferFIRType(Tree sig, Tree env)
         vt.push_back(T(b, env));
     }
 
-    int                 nature        = vt[0]->nature();  //= kInt;
-    const int           variability   = kSamp;            // because we have delays
-    const int           computability = kExec;
-    int                 vectorability = kVect;
-    const int           booleanity    = kNum;
-    const itv::interval X             = vt[0]->getInterval();
-    const itv::interval XZ            = reunion(X, interval(0, 0));
-    itv::interval       R             = gAlgebra.Mul(X, vt[1]->getInterval());
+    int       nature        = vt[0]->nature();  //= kInt;
+    const int variability   = kSamp;            // because we have delays
+    const int computability = kExec;
+    int       vectorability = kVect;
+    const int booleanity    = kNum;
+    // const itv::interval X             = vt[0]->getInterval();
+    // const itv::interval XZ            = reunion(X, interval(0));
+    // itv::interval       R             = gAlgebra.Mul(X, vt[1]->getInterval());
     for (unsigned int i = 1; i < vt.size(); i++) {
         nature        = nature | vt[i]->nature();
         vectorability = vectorability | vt[i]->vectorability();
