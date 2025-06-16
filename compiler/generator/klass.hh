@@ -197,6 +197,8 @@ class Klass {
     void addExecCode(const Statement& stmt) { fTopLoop->addExecCode(stmt); }
     void addPostCode(const Statement& stmt) { fTopLoop->addPostCode(stmt); }
 
+    void openIFblock(const std::string& condition) { fTopLoop->openIFblock(condition); }
+    void closeIFblock() { fTopLoop->closeIFblock(); }
     void openODblock(const std::string& od_factor) { fTopLoop->openODblock(od_factor); }
     void closeODblock() { fTopLoop->closeODblock(); }
     void openUSblock(const std::string& us_factor) { fTopLoop->openUSblock(us_factor); }
