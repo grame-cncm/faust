@@ -314,9 +314,20 @@ struct SignalRenderer : public SignalVisitor {
             int  proj_idx_val;
 
             if (isSigDelay1(sig, x)) {
+                Tree x_ck, y_ck;
+                if (isSigClocked(x, x_ck, y_ck)) {
+                    x = y_ck;
+                }
                 allocateDelayLine(x, 1);  // Delay of 1 sample
                 SignalVisitor::visit(sig);
             } else if (isSigDelay(sig, x, y)) {
+                Tree x_ck, y_ck;
+                if (isSigClocked(x, x_ck, y_ck)) {
+                    x = y_ck;
+                }
+                if (isSigClocked(y, x_ck, y_ck)) {
+                    y = y_ck;
+                }
                 allocateDelayLine(x, y);  // y is the delay amount signal
                 SignalVisitor::visit(sig);
             } else if (isProj(sig, &proj_idx_val, rec_expr_tree) &&
