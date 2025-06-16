@@ -178,6 +178,39 @@ void Loop::addPostCode(const Statement& stmt)
 }
 
 /**
+ * Open a new IF block.
+ * @param cond the condition of the OD block
+ */
+void Loop::openIFblock(const std::string& condition)
+{
+    CodeIFblock* b = new CodeIFblock(condition);
+    fCodeStack.push(b);
+}
+
+/**
+ * Open a new IF block.
+ * @param cond the condition of the OD block
+ */
+void Loop::closeIFblock()
+{
+    CodeIFblock* b = dynamic_cast<CodeIFblock*>(fCodeStack.top());
+    faustassert(b);
+    fCodeStack.pop();
+
+    addExecCode(Statement("", subst("if ($0) {", b->fCondition)));
+    for (Statement s : b->fPreCode) {
+        addExecCode(s.indent());
+    }
+    for (Statement s : b->fExecCode) {
+        addExecCode(s.indent());
+    }
+    for (Statement s : b->fPostCode) {
+        addExecCode(s.indent());
+    }
+    addExecCode(Statement("", "}"));
+}
+
+/**
  * Open a new OD block.
  * @param cond the condition of the OD block
  */
