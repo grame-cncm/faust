@@ -217,6 +217,10 @@ void SignalRenderer<REAL>::visit(Tree sig)
     } else if (isSigOutput(sig, &i_val, x_tree)) {
         self(x_tree);  // Evaluate the expression connected to the output
     } else if (isSigDelay1(sig, x_tree)) {
+        Tree x_ck, y_ck;
+        if (isSigClocked(x_tree, x_ck, y_ck)) {
+            x_tree = y_ck;
+        }
         self(x_tree);
         Node v1  = popRes();
         Node one = Node(1);
@@ -226,6 +230,13 @@ void SignalRenderer<REAL>::visit(Tree sig)
         if (isZeroDelay(y_tree)) {
             self(x_tree);
         } else {
+            Tree x_ck, y_ck;
+            if (isSigClocked(x_tree, x_ck, y_ck)) {
+                x_tree = y_ck;
+            }
+            if (isSigClocked(y_tree, x_ck, y_ck)) {
+                y_tree = y_ck;
+            }
             self(x_tree);
             Node v1 = popRes();
             self(y_tree);
