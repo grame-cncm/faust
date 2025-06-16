@@ -46,6 +46,19 @@ except subprocess.CalledProcessError:
     sys.exit(1)
 
 
+#build plugin using cmake
+try:
+    print("[*] running cmake build")
+    subprocess.run(["cmake", "-S", ".", "-B", "build"], cwd=this_dir, check=True, capture_output=True)
+    subprocess.run(["cmake", "--build", "build"], cwd=this_dir, check=True, capture_output=True)
+    print("[✓] build completed successfully.")
+
+    
+except subprocess.CalledProcessError as e:
+    print("[!] cmake build failed.")
+    print(f"[stderr]\n{e.stderr.decode() if e.stderr else 'No stderr'}")
+    print(f"[stdout]\n{e.stdout.decode() if e.stdout else 'No stdout'}")
+    sys.exit(1)
 
 
 
