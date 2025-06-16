@@ -9,33 +9,29 @@
 #include <faust/gui/MapUI.h>
 #include <faust/gui/meta.h>
 
-
 //include for cpp logging
 #include <iostream>
 
 //includes for the clap helpers glue
 #include <clap/helpers/plugin.hh>
-#include <clap/helpers/host-proxy.hh> //required for clap::helpers base class
+#include <clap/helpers/host-proxy.hh>
 #include <clap/events.h>
 
 //guarded MapUI subclass to prevent accidental param writes
 struct GuardedUI : public MapUI {
     bool allowWrite = false;
 
-    //log and guard set by path
     void setParamValue(const std::string& path, FAUSTFLOAT val) {
-        std::cerr << "🔍 [GuardedUI] setParamValue(path=" << path << ", val=" << val
-                  << ") | allowWrite=" << allowWrite << std::endl;
-
         if (!allowWrite) {
-            std::cerr << "🚨 ILLEGAL param write detected! path=" << path << " val=" << val << std::endl;
-            std::abort(); //immediate crash
+            std::cerr << "🚨 GuardedUI blocked write to path=" << path << " with val=" << val << std::endl;
+            std::abort(); // Catch unintended writes early
         }
 
+        std::cerr << "✅ GuardedUI write: " << path << " = " << val << std::endl;
         MapUI::setParamValue(path, val);
     }
 
-    //log and guard set by index (could be used by other FAUST layers)
+
     void setParamValue(int index, FAUSTFLOAT val) {
         std::string addr = getParamAddress(index);
         std::cerr << "🔍 [GuardedUI] setParamValue(index=" << index << ", addr=" << addr
@@ -47,6 +43,7 @@ struct GuardedUI : public MapUI {
         }
         MapUI::setParamValue(addr, val);
     }
+
     void guardedSetByIndex(int index, FAUSTFLOAT val) {
         std::string addr = getParamAddress(index);
         std::cerr << "🔍 [GuardedUI] guardedSetByIndex(index=" << index << ", addr=" << addr
@@ -60,29 +57,27 @@ struct GuardedUI : public MapUI {
     }
 };
 
-//scoped guard to enable/disable writes safely
 struct GuardedScope {
     GuardedUI& ui;
-    GuardedScope(GuardedUI& ui) : ui(ui) {
+    const char* tag;
+
+    GuardedScope(GuardedUI& ui, const char* src = "unknown") : ui(ui), tag(src) {
+        std::cerr << "🟢 Enter GuardedScope from: " << tag << std::endl;
         ui.allowWrite = true;
     }
+
     ~GuardedScope() {
-         ui.allowWrite = false;
+        ui.allowWrite = false;
+        std::cerr << "🔴 Exit GuardedScope from: " << tag << std::endl;
     }
 };
 
-
-
-//user defined dsp will be inserted here!
 <<includeclass>>
 
-//plugin class specialisation using clap helpers
 using Base = clap::helpers::Plugin<
     clap::helpers::MisbehaviourHandler::Terminate,
     clap::helpers::CheckingLevel::Minimal>;
 
-
-//plugin descriptor metadata
 static const clap_plugin_descriptor_t gain_desc = {
     .clap_version = CLAP_VERSION_INIT,
     .id = "org.faust.gain",
@@ -98,98 +93,95 @@ static const clap_plugin_descriptor_t gain_desc = {
 
 class GainPlugin final : public Base {
 public:
-    //faust dsp and UI objects
     mydsp fDSP;
     GuardedUI fUI;
     std::vector<std::string> fParamAddresses;
     std::vector<float> fExpectedValues;
-    bool fHasFlushed= false; //new flag to track if flush() was called
+    bool fHasFlushed = false;
 
     GainPlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
-    : Base(desc, host) {
-        //std::cout << "[faust2clap] GainPlugin constructor" << std::endl;
-        //std::cout << "[faust2clap] implementsAudioPorts: " << std::boolalpha << implementsAudioPorts() << std::endl;
-    }
+    : Base(desc, host) {}
 
-
-    //plugin lifecycle: init, activate, process, etc.
     bool init() noexcept override {
-        //fDSP.init(48000);
         fDSP.buildUserInterface(&fUI);
-
         fParamAddresses.clear();
         for (int i = 0; i < fUI.getParamsCount(); ++i) {
             auto shortname = fUI.getParamShortname(i);
             fParamAddresses.push_back(shortname);
             float actual = fUI.getParamValue(shortname);
-            fExpectedValues.push_back(actual); //capture whatever the DSP sets
-            std::cout <<"[init] param" << i << "=" <<actual <<std::endl;
-
-            //std::cout << "[faust2clap] Param " << i << ": " << shortname << std::endl;
+            fExpectedValues.push_back(actual);
         }
         return true;
     }
 
     bool startProcessing() noexcept override {
-        //std::cout << "[faust2clap] startProcessing() CALLED" << std::endl;
-        bool ok = Base::startProcessing();
-        //std::cout << "[faust2clap] Base::startProcessing() returned: " << std::boolalpha << ok << std::endl;
-        return ok;
+        return Base::startProcessing();
     }
 
-
-
-    void stopProcessing() noexcept override {
-        // no-op
-    }
+    void stopProcessing() noexcept override {}
 
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override {
         fDSP.init(sampleRate);
         return true;
     }
 
+    bool applyParamEventIfValid(const clap_event_header_t* hdr) {
+        if (!hdr) return false;
+
+        std::cerr << "🔎 Event received: type=" << hdr->type << " space_id=0x" << std::hex << hdr->space_id << std::dec << std::endl;
+
+        if (hdr->space_id != CLAP_CORE_EVENT_SPACE_ID) {
+            std::cerr << "❌ Rejected param event with wrong namespace: 0x" << std::hex << hdr->space_id << std::dec << std::endl;
+            return false;
+        }
+
+        if (hdr->type != CLAP_EVENT_PARAM_VALUE) return false;
+
+        const auto* evParam = reinterpret_cast<const clap_event_param_value_t*>(hdr);
+        if (evParam->param_id >= fParamAddresses.size()) return false;
+
+        GuardedScope guard(fUI, "applyParamEventIfValid");
+        fUI.setParamValue(fParamAddresses[evParam->param_id], evParam->value);
+        fExpectedValues[evParam->param_id] = evParam->value;
+
+        return true;
+    }
+
+
+
     clap_process_status process(const clap_process_t* process) noexcept override {
         if (!process || process->audio_inputs_count < 1 || process->audio_outputs_count < 1)
             return CLAP_PROCESS_ERROR;
 
-        if (fHasFlushed) {
-            for (size_t i = 0; i < fExpectedValues.size(); ++i) {
-                float actual = fUI.getParamValue(fParamAddresses[i]);
-                float expected = fExpectedValues[i];
-                if (actual != expected) {
-                    fExpectedValues[i] = actual;
+        //batch-apply all param events (ignore timestamps)
+        if (auto events = process->in_events) {
+            uint32_t N = events->size(events);
+            for (uint32_t i = 0; i < N; ++i) {
+                const clap_event_header_t* hdr = events->get(events, i);
+                if (!applyParamEventIfValid(hdr)) {
+                    std::cerr << "⚠️ Skipped event with invalid namespace or type\n";
                 }
+
             }
         }
 
-        auto in = (FAUSTFLOAT**)process->audio_inputs->data32;
-        auto out = (FAUSTFLOAT**)process->audio_outputs->data32;
-
-        {
-            GuardedScope guard(fUI);
-            fDSP.compute(process->frames_count, in, out);
-        }
+        //run DSP compute once on the full buffer
+        GuardedScope guard(fUI, "full-buffer");
+        uint32_t frames = process->frames_count;
+        auto in = (FAUSTFLOAT**) process->audio_inputs->data32;
+        auto out = (FAUSTFLOAT**) process->audio_outputs->data32;
+        fDSP.compute(frames, in, out);
 
         return CLAP_PROCESS_CONTINUE;
     }
 
 
 
-    //expose parameter count
     bool implementsParams() const noexcept override { return true; }
     uint32_t paramsCount() const noexcept override { return static_cast<uint32_t>(fParamAddresses.size()); }
 
-
-    //audio port declaration for validator compatibility
-    bool implementsAudioPorts() const noexcept override {
-        //std::cout << "[faust2clap] implementsAudioPorts() CALLED" << std::endl;
-        return true;
-    }
-
-    uint32_t audioPortsCount(bool isInput) const noexcept override {
-        return 1;
-    }
-
+    bool implementsAudioPorts() const noexcept override { return true; }
+    uint32_t audioPortsCount(bool isInput) const noexcept override { return 1; }
     bool audioPortsInfo(uint32_t index, bool isInput, clap_audio_port_info_t* info) const noexcept override {
         if (index != 0) return false;
         std::memset(info, 0, sizeof(*info));
@@ -203,36 +195,27 @@ public:
 
     bool paramsInfo(uint32_t index, clap_param_info_t* info) const noexcept override {
         if (index >= fParamAddresses.size()) return false;
-
         std::memset(info, 0, sizeof(*info));
         info->id = index;
         const char* addr = fParamAddresses[index].c_str();
-        if (addr[0] == '/')
-            addr += 1;
-
+        if (addr[0] == '/') addr += 1;
         snprintf(info->name, sizeof(info->name), "%s", addr);
         info->min_value = 0.f;
         info->max_value = 1.f;
         info->default_value = 0.5f;
         info->flags = CLAP_PARAM_IS_AUTOMATABLE;
-
         return true;
     }
 
     bool paramsValue(clap_id id, double* value) noexcept override {
-        *value = fUI.getParamValue(fParamAddresses[id]);
-        std::cout << "[param value read] id=" << id << " val=" << *value << std::endl;
+        if (id >= fExpectedValues.size()) return false;
+        *value = fExpectedValues[id];
         return true;
     }
 
 
-    bool paramsTextToValue(clap_id, const char*, double*) noexcept override {
-        return false; //not implemented
-    }
-
-    bool paramsValueToText(clap_id, double, char*, uint32_t) noexcept override {
-        return false; //not implemented
-    }
+    bool paramsTextToValue(clap_id, const char*, double*) noexcept override { return false; }
+    bool paramsValueToText(clap_id, double, char*, uint32_t) noexcept override { return false; }
 
     void paramsFlush(const clap_input_events_t* in, const clap_output_events_t*) noexcept override {
         if (!in) return;
@@ -240,71 +223,31 @@ public:
 
         for (uint32_t i = 0; i < in->size(in); ++i) {
             const clap_event_header_t* hdr = in->get(in, i);
-            if (!hdr) continue;
 
-            std::cout << "[flush] got event: type=" << hdr->type
-                      << " space_id=0x" << std::hex << hdr->space_id << std::dec << std::endl;
-
-
-
-            if (hdr->type != CLAP_EVENT_PARAM_VALUE)
-                continue;
-
-
-            if (hdr->space_id != CLAP_CORE_EVENT_SPACE_ID) {
-                std::cerr << "❌ Rejected param event with wrong namespace: 0x"
-                          << std::hex << hdr->space_id << std::dec << std::endl;
-                continue;
+            if (!applyParamEventIfValid(hdr)) {
+                std::cerr << "⚠️ paramsFlush skipped event: type=" << hdr->type << ", space_id=0x" << std::hex << hdr->space_id << std::dec << std::endl;
             }
-
-            const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
-
-
-            if (ev->param_id >= fParamAddresses.size()) {
-                std::cout << "[faust2clap] skipping event with out-of-range param_id " << ev->param_id << std::endl;
-                continue;
-            }
-
-            std::cout << "[faust2clap] ➤ applying value to param " << ev->param_id << std::endl;
-
-            {
-                GuardedScope guard(fUI);
-                fUI.setParamValue(fParamAddresses[ev->param_id], ev->value);
-            }
-
-
-            fExpectedValues[ev->param_id] = ev->value;
         }
     }
 
 
 
     using Base::clapPlugin;
-
     static const clap_plugin_t* create(const clap_host_t* host) {
         return (new GainPlugin(&gain_desc, host))->clapPlugin();
     }
-
 };
 
-
-//factory logic for plugin instantiation
-static uint32_t plugin_count(const clap_plugin_factory_t*) {
-    return 1;
-}
-
+static uint32_t plugin_count(const clap_plugin_factory_t*) { return 1; }
 static const clap_plugin_descriptor_t* plugin_desc(const clap_plugin_factory_t*, uint32_t index) {
     return (index == 0) ? &gain_desc : nullptr;
 }
-
 static const clap_plugin_t* plugin_create(const clap_plugin_factory_t*, const clap_host_t* host, const char* plugin_id) {
     if (std::strcmp(plugin_id, gain_desc.id) == 0) {
-        return GainPlugin::create(host); //use static helper method?
+        return GainPlugin::create(host);
     }
     return nullptr;
 }
-
-
 
 static const clap_plugin_factory_t gain_factory = {
     .get_plugin_count = plugin_count,
@@ -312,21 +255,15 @@ static const clap_plugin_factory_t gain_factory = {
     .create_plugin = plugin_create
 };
 
-//entry point init and teardown
-static bool entry_init(const char* path) {
-    return true;
-}
-
+static bool entry_init(const char* path) { return true; }
 static void entry_deinit() {}
 
 extern "C" {
-//factory dispatcher, as required by clap spec
 CLAP_EXPORT const void* clap_get_factory(const char* factory_id) {
     if (std::strcmp(factory_id, CLAP_PLUGIN_FACTORY_ID) == 0)
         return &gain_factory;
     return nullptr;
 }
-//plugin entrypoint exported for host discovery
 CLAP_EXPORT const clap_plugin_entry_t clap_entry = {
     CLAP_VERSION_INIT,
     entry_init,
