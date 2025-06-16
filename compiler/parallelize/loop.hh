@@ -53,6 +53,12 @@ struct Codeblock : public virtual Garbageable {
     void addPostCode(const Statement& str);  ///< add a line of C++ post code
 };
 
+struct CodeIFblock : public Codeblock {
+    std::string fCondition;  ///< ondemand factor
+
+    CodeIFblock(const std::string& condition) : Codeblock(), fCondition(condition) {}
+};
+
 struct CodeODblock : public Codeblock {
     std::string fODfactor;  ///< ondemand factor
     std::string fLoopIndex;
@@ -119,6 +125,9 @@ struct Loop : public virtual Garbageable {
     void addPreCode(const Statement& str);   ///< add a line of C++ code pre code
     void addExecCode(const Statement& str);  ///< add a line of C++ code
     void addPostCode(const Statement& str);  ///< add a line of C++ post code
+
+    void openIFblock(const std::string& condition);
+    void closeIFblock();
 
     void openODblock(const std::string& od_factor);  ///< open an OD block
     void closeODblock();                             ///< close an OD block

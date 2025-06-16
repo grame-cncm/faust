@@ -2189,13 +2189,26 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
 {
     faustassert(w.size() > 2);
     Tree clock = w[0];
-    // We need first to compile the clock signal and open an if statement
-    fClass->openODblock(CS(clock));
-    // Then its internal signals
-    for (Tree x : fHschedule.sigsched[sig].elements()) {
-        CS(x);
+    Type ty    = getCertifiedSigType(clock);
+    std::cerr << "Print OD condition type " << *ty << std::endl;
+    bool isBoolean = (ty->getInterval().lo() >= 0.0) && (ty->getInterval().hi() <= 1.0);
+    if (isBoolean) {
+        fClass->openIFblock(CS(clock));
+        // Then its internal signals
+        for (Tree x : fHschedule.sigsched[sig].elements()) {
+            CS(x);
+        }
+        fClass->closeIFblock();
+    } else {
+        fClass->openODblock(CS(clock));
+        // Then its internal signals
+        for (Tree x : fHschedule.sigsched[sig].elements()) {
+            CS(x);
+        }
+        fClass->closeODblock();
     }
-    fClass->closeODblock();
+
+    // We need first to compile the clock signal and open an if statement
     return "OD not used directly";
 }
 
