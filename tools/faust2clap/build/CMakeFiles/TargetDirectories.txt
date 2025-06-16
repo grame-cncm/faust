@@ -1,3 +1,4 @@
+/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/freeverb.dir
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/gain.dir
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/edit_cache.dir
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/rebuild_cache.dir

@@ -14,8 +14,9 @@ set(CMAKE_MAKEFILE_DEPENDS
   "CMakeFiles/3.30.5/CMakeCCompiler.cmake"
   "CMakeFiles/3.30.5/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.30.5/CMakeSystem.cmake"
+  "freeverb.plist"
   "gain.plist"
-  "/Users/cucu/Documents/GitHub/faust/tools/faust2clap/cmake/gain.plist.in"
+  "/Users/cucu/Documents/GitHub/faust/tools/faust2clap/cmake/generic.plist.in"
   "/opt/homebrew/Cellar/cmake/3.30.5/share/cmake/Modules/BasicConfigVersion-AnyNewerVersion.cmake.in"
   "/opt/homebrew/Cellar/cmake/3.30.5/share/cmake/Modules/CMakeCInformation.cmake"
   "/opt/homebrew/Cellar/cmake/3.30.5/share/cmake/Modules/CMakeCXXInformation.cmake"
@@ -51,7 +52,11 @@ set(CMAKE_MAKEFILE_OUTPUTS
 
 # Byproducts of CMake generate step:
 set(CMAKE_MAKEFILE_PRODUCTS
+  "freeverb.plist"
   "gain.plist"
+  "freeverb.clap/Contents/MacOS"
+  "freeverb.clap/Contents/Info.plist"
+  "freeverb.clap/Contents/Info.plist"
   "gain.clap/Contents/MacOS"
   "gain.clap/Contents/Info.plist"
   "gain.clap/Contents/Info.plist"
@@ -64,6 +69,7 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
+  "CMakeFiles/freeverb.dir/DependInfo.cmake"
   "CMakeFiles/gain.dir/DependInfo.cmake"
   "clap-sdk/CMakeFiles/clap-tests.dir/DependInfo.cmake"
   )

@@ -63,6 +63,7 @@ CMAKE_BINARY_DIR = /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
+all: CMakeFiles/freeverb.dir/all
 all: CMakeFiles/gain.dir/all
 all: clap-sdk/all
 all: clap-helpers/all
@@ -74,6 +75,7 @@ preinstall: clap-helpers/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
+clean: CMakeFiles/freeverb.dir/clean
 clean: CMakeFiles/gain.dir/clean
 clean: clap-sdk/clean
 clean: clap-helpers/clean
@@ -110,13 +112,39 @@ clap-sdk/clean: clap-sdk/CMakeFiles/clap-tests.dir/clean
 .PHONY : clap-sdk/clean
 
 #=============================================================================
+# Target rules for target CMakeFiles/freeverb.dir
+
+# All Build rule for target.
+CMakeFiles/freeverb.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=1,2,3 "Built target freeverb"
+.PHONY : CMakeFiles/freeverb.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/freeverb.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/freeverb.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/freeverb.dir/rule
+
+# Convenience name for target.
+freeverb: CMakeFiles/freeverb.dir/rule
+.PHONY : freeverb
+
+# clean rule for target.
+CMakeFiles/freeverb.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/clean
+.PHONY : CMakeFiles/freeverb.dir/clean
+
+#=============================================================================
 # Target rules for target CMakeFiles/gain.dir
 
 # All Build rule for target.
 CMakeFiles/gain.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=1,2,3 "Built target gain"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=4,5,6 "Built target gain"
 .PHONY : CMakeFiles/gain.dir/all
 
 # Build rule for subdir invocation for target.

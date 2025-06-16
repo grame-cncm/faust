@@ -162,6 +162,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named freeverb
+
+# Build rule for target.
+freeverb: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 freeverb
+.PHONY : freeverb
+
+# fast build rule for target.
+freeverb/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/build
+.PHONY : freeverb/fast
+
+#=============================================================================
 # Target rules for targets named gain
 
 # Build rule for target.
@@ -186,6 +199,30 @@ clap-tests: cmake_check_build_system
 clap-tests/fast:
 	$(MAKE) $(MAKESILENT) -f clap-sdk/CMakeFiles/clap-tests.dir/build.make clap-sdk/CMakeFiles/clap-tests.dir/build
 .PHONY : clap-tests/fast
+
+Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.o: Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.o
+.PHONY : Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.o
+
+# target to build an object file
+Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.o
+.PHONY : Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.o
+
+Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.i: Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.i
+.PHONY : Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.i
+
+# target to preprocess a source file
+Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.i
+.PHONY : Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.i
+
+Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.s: Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.s
+.PHONY : Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.s
+
+# target to generate assembly for a file
+Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.s
+.PHONY : Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.cpp.s
 
 Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.o: Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.cpp.o
 .PHONY : Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.o
@@ -216,6 +253,7 @@ lib/plugin.o: lib/plugin.cc.o
 
 # target to build an object file
 lib/plugin.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/lib/plugin.cc.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/lib/plugin.cc.o
 .PHONY : lib/plugin.cc.o
 
@@ -224,6 +262,7 @@ lib/plugin.i: lib/plugin.cc.i
 
 # target to preprocess a source file
 lib/plugin.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/lib/plugin.cc.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/lib/plugin.cc.i
 .PHONY : lib/plugin.cc.i
 
@@ -232,6 +271,7 @@ lib/plugin.s: lib/plugin.cc.s
 
 # target to generate assembly for a file
 lib/plugin.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/lib/plugin.cc.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/lib/plugin.cc.s
 .PHONY : lib/plugin.cc.s
 
@@ -248,7 +288,11 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... clap-tests"
+	@echo "... freeverb"
 	@echo "... gain"
+	@echo "... Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.o"
+	@echo "... Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.i"
+	@echo "... Users/cucu/Documents/GitHub/faust/build/freeverb/freeverb_clap.s"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.o"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.i"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/gain/gain_clap.s"

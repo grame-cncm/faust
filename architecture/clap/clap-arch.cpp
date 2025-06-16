@@ -20,25 +20,17 @@
 //guarded MapUI subclass to prevent accidental param writes
 struct GuardedUI : public MapUI {
     bool allowWrite = false;
-
     void setParamValue(const std::string& path, FAUSTFLOAT val) {
         if (!allowWrite) {
-            std::cerr << "🚨 GuardedUI blocked write to path=" << path << " with val=" << val << std::endl;
-            std::abort(); // Catch unintended writes early
+            std::abort(); //catch unintended writes early
         }
-
-        std::cerr << "✅ GuardedUI write: " << path << " = " << val << std::endl;
         MapUI::setParamValue(path, val);
     }
 
-
     void setParamValue(int index, FAUSTFLOAT val) {
         std::string addr = getParamAddress(index);
-        std::cerr << "🔍 [GuardedUI] setParamValue(index=" << index << ", addr=" << addr
-                  << ", val=" << val << ") | allowWrite=" << allowWrite << std::endl;
 
         if (!allowWrite) {
-            std::cerr << "🚫 [GuardedUI] Blocked param write by index!" << std::endl;
             return;
         }
         MapUI::setParamValue(addr, val);
@@ -46,29 +38,25 @@ struct GuardedUI : public MapUI {
 
     void guardedSetByIndex(int index, FAUSTFLOAT val) {
         std::string addr = getParamAddress(index);
-        std::cerr << "🔍 [GuardedUI] guardedSetByIndex(index=" << index << ", addr=" << addr
-                  << ", val=" << val << ") | allowWrite=" << allowWrite << std::endl;
 
         if (!allowWrite) {
-            std::cerr << "🚫 [GuardedUI] Blocked param write via guardedSetByIndex!" << std::endl;
             return;
         }
         MapUI::setParamValue(addr, val);
     }
 };
 
+
 struct GuardedScope {
     GuardedUI& ui;
     const char* tag;
 
     GuardedScope(GuardedUI& ui, const char* src = "unknown") : ui(ui), tag(src) {
-        std::cerr << "🟢 Enter GuardedScope from: " << tag << std::endl;
         ui.allowWrite = true;
     }
 
     ~GuardedScope() {
         ui.allowWrite = false;
-        std::cerr << "🔴 Exit GuardedScope from: " << tag << std::endl;
     }
 };
 
@@ -93,6 +81,8 @@ static const clap_plugin_descriptor_t gain_desc = {
 
 class GainPlugin final : public Base {
 public:
+    int fNumInputs = 0;
+    int fNumOutputs = 0;
     mydsp fDSP;
     GuardedUI fUI;
     std::vector<std::string> fParamAddresses;
@@ -115,23 +105,25 @@ public:
     }
 
     bool startProcessing() noexcept override {
-        return Base::startProcessing();
+        return Base::startProcessing(); //set status to processing
     }
 
-    void stopProcessing() noexcept override {}
+    void stopProcessing() noexcept override {
+        Base::stopProcessing(); //resets status to activated
+    }
 
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override {
         fDSP.init(sampleRate);
+        fNumInputs = fDSP.getNumInputs();
+        fNumOutputs = fDSP.getNumOutputs();
+        std::cerr << "[activate] Sample rate: " << sampleRate << std::endl;
+        std::cerr << "[activate] Input channels: " << fNumInputs << ", Output channels: " << fNumOutputs << std::endl;
         return true;
     }
 
+
     bool applyParamEventIfValid(const clap_event_header_t* hdr) {
-        if (!hdr) return false;
-
-        std::cerr << "🔎 Event received: type=" << hdr->type << " space_id=0x" << std::hex << hdr->space_id << std::dec << std::endl;
-
         if (hdr->space_id != CLAP_CORE_EVENT_SPACE_ID) {
-            std::cerr << "❌ Rejected param event with wrong namespace: 0x" << std::hex << hdr->space_id << std::dec << std::endl;
             return false;
         }
 
@@ -153,41 +145,58 @@ public:
         if (!process || process->audio_inputs_count < 1 || process->audio_outputs_count < 1)
             return CLAP_PROCESS_ERROR;
 
-        //batch-apply all param events (ignore timestamps)
-        if (auto events = process->in_events) {
-            uint32_t N = events->size(events);
-            for (uint32_t i = 0; i < N; ++i) {
-                const clap_event_header_t* hdr = events->get(events, i);
-                if (!applyParamEventIfValid(hdr)) {
-                    std::cerr << "⚠️ Skipped event with invalid namespace or type\n";
-                }
+        const auto& inBuffer  = process->audio_inputs[0];
+        const auto& outBuffer = process->audio_outputs[0];
 
+        //skip processing gracefully if no audio channels are connected
+        if (inBuffer.channel_count == 0 || outBuffer.channel_count == 0)
+            return CLAP_PROCESS_CONTINUE;
+
+        if (inBuffer.channel_count < fNumInputs ||
+            outBuffer.channel_count < fNumOutputs) {
+            std::cerr << "[error] Channel count mismatch: in="
+                      << inBuffer.channel_count << ", expected="
+                      << fNumInputs << " / out=" << outBuffer.channel_count
+                      << ", expected=" << fNumOutputs << "\n";
+            return CLAP_PROCESS_ERROR;
+            }
+
+        //apply param events
+        if (auto events = process->in_events) {
+            for (uint32_t i = 0, N = events->size(events); i < N; ++i) {
+                applyParamEventIfValid(events->get(events, i));
             }
         }
 
-        //run DSP compute once on the full buffer
+        //prepare pointers
+        FAUSTFLOAT* inputs[fNumInputs];
+        FAUSTFLOAT* outputs[fNumOutputs];
+        for (int i = 0; i < fNumInputs; ++i)
+            inputs[i] = inBuffer.data32[i];
+        for (int i = 0; i < fNumOutputs; ++i)
+            outputs[i] = outBuffer.data32[i];
+
+        //process audio
         GuardedScope guard(fUI, "full-buffer");
-        uint32_t frames = process->frames_count;
-        auto in = (FAUSTFLOAT**) process->audio_inputs->data32;
-        auto out = (FAUSTFLOAT**) process->audio_outputs->data32;
-        fDSP.compute(frames, in, out);
+        fDSP.compute(process->frames_count, inputs, outputs);
 
         return CLAP_PROCESS_CONTINUE;
     }
-
 
 
     bool implementsParams() const noexcept override { return true; }
     uint32_t paramsCount() const noexcept override { return static_cast<uint32_t>(fParamAddresses.size()); }
 
     bool implementsAudioPorts() const noexcept override { return true; }
-    uint32_t audioPortsCount(bool isInput) const noexcept override { return 1; }
+    uint32_t audioPortsCount(bool isInput) const noexcept override {
+        return 1; //still 1 port, but could change if faust generates multiple ports
+    }
     bool audioPortsInfo(uint32_t index, bool isInput, clap_audio_port_info_t* info) const noexcept override {
         if (index != 0) return false;
         std::memset(info, 0, sizeof(*info));
         info->id = index;
         snprintf(info->name, sizeof(info->name), "%s", isInput ? "Input" : "Output");
-        info->channel_count = 1;
+        info->channel_count = isInput ? fNumInputs : fNumOutputs;
         info->flags = CLAP_AUDIO_PORT_IS_MAIN;
         info->port_type = nullptr;
         return true;
@@ -213,7 +222,6 @@ public:
         return true;
     }
 
-
     bool paramsTextToValue(clap_id, const char*, double*) noexcept override { return false; }
     bool paramsValueToText(clap_id, double, char*, uint32_t) noexcept override { return false; }
 
@@ -223,21 +231,15 @@ public:
 
         for (uint32_t i = 0; i < in->size(in); ++i) {
             const clap_event_header_t* hdr = in->get(in, i);
-
             if (!applyParamEventIfValid(hdr)) {
-                std::cerr << "⚠️ paramsFlush skipped event: type=" << hdr->type << ", space_id=0x" << std::hex << hdr->space_id << std::dec << std::endl;
             }
         }
     }
-
-
-
     using Base::clapPlugin;
     static const clap_plugin_t* create(const clap_host_t* host) {
         return (new GainPlugin(&gain_desc, host))->clapPlugin();
     }
 };
-
 static uint32_t plugin_count(const clap_plugin_factory_t*) { return 1; }
 static const clap_plugin_descriptor_t* plugin_desc(const clap_plugin_factory_t*, uint32_t index) {
     return (index == 0) ? &gain_desc : nullptr;
@@ -248,13 +250,11 @@ static const clap_plugin_t* plugin_create(const clap_plugin_factory_t*, const cl
     }
     return nullptr;
 }
-
 static const clap_plugin_factory_t gain_factory = {
     .get_plugin_count = plugin_count,
     .get_plugin_descriptor = plugin_desc,
     .create_plugin = plugin_create
 };
-
 static bool entry_init(const char* path) { return true; }
 static void entry_deinit() {}
 
