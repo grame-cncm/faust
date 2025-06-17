@@ -2208,7 +2208,7 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
         fClass->closeODblock();
     }
 
-    // We need first to compile the clock signal and open an if statement
+    // There is no compiled expression
     return "OD not used directly";
 }
 
