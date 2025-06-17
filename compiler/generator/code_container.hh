@@ -490,6 +490,9 @@ class CodeContainer : public virtual Garbageable {
 
     void openODblock(ValueInst* cond) { fCurLoop->openODblock(cond); }
     void closeODblock() { fCurLoop->closeODblock(); }
+    
+    void openIfblock(ValueInst* cond) { fCurLoop->openIfblock(cond); }
+    void closeIfblock() { fCurLoop->closeIfblock(); }
 
     void openUSblock(ValueInst* us_factor) { fCurLoop->openUSblock(us_factor); }
     void closeUSblock() { fCurLoop->closeUSblock(); }
