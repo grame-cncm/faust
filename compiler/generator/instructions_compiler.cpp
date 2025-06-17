@@ -3623,6 +3623,8 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
 
 #endif
 
+#if 1
+
 ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
 {
     // 1/ We extract the clock, the inputs and the outputs signals
@@ -3671,6 +3673,26 @@ ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
     return IB::genNullValueInst();
 }
 
+#else
+
+ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
+{
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    fContainer->getCurLoop()->openUSblock(CS(clock));
+    // Then its internal signals
+    for (Tree x : fHschedule.sigsched[sig].elements()) {
+        CS(x);
+    }
+    fContainer->getCurLoop()->closeUSblock();
+    
+    // There is no compiled expression
+    return IB::genNullValueInst();
+}
+
+#endif
+
+#if 0
 ValueInst* InstructionsCompiler::generateDS(Tree sig, const tvec& w)
 {
     // 1/ We extract the clock, the inputs and the outputs signals
@@ -3719,6 +3741,25 @@ ValueInst* InstructionsCompiler::generateDS(Tree sig, const tvec& w)
     // 7/ There is no compiled expression
     return IB::genNullValueInst();
 }
+
+#else
+
+ValueInst* InstructionsCompiler::generateDS(Tree sig, const tvec& w)
+{
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    fContainer->getCurLoop()->openDSblock(CS(clock), declareRetrieveDSName(clock));
+    // Then its internal signals
+    for (Tree x : fHschedule.sigsched[sig].elements()) {
+        CS(x);
+    }
+    fContainer->getCurLoop()->closeDSblock();
+    
+    // There is no compiled expression
+    return IB::genNullValueInst();
+}
+
+#endif
 
 //================================= BUILD USER INTERFACE METHOD =================================
 
