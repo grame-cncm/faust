@@ -1,5 +1,9 @@
 /* ------------------------------------------------------------
-name: "gain"
+author: "CICM"
+copyright: "(c)CICM 2013"
+license: "BSD"
+name: "oneSourceToStereo"
+version: "1.0"
 Code generated with Faust 2.81.0 (https://faust.grame.fr)
 Compilation options: -a /Users/cucu/Documents/GitHub/faust/architecture/clap/clap-arch.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 ------------------------------------------------------------ */
@@ -75,6 +79,7 @@ struct GuardedScope {
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <math.h>
 
 #ifndef FAUSTCLASS 
 #define FAUSTCLASS mydsp
@@ -91,29 +96,58 @@ struct GuardedScope {
 #define RESTRICT __restrict__
 #endif
 
+static float mydsp_faustpower2_f(float value) {
+	return value * value;
+}
 
 class mydsp : public dsp {
 	
  private:
 	
-	FAUSTFLOAT fVslider0;
 	int fSampleRate;
+	float fConst0;
+	float fConst1;
+	FAUSTFLOAT fHslider0;
+	float fRec0[2];
+	FAUSTFLOAT fHslider1;
+	float fRec1[2];
 	
  public:
 	mydsp() {
 	}
 	
 	void metadata(Meta* m) { 
+		m->declare("author", "CICM");
+		m->declare("basics.lib/name", "Faust Basic Element Library");
+		m->declare("basics.lib/version", "1.21.0");
 		m->declare("compile_options", "-a /Users/cucu/Documents/GitHub/faust/architecture/clap/clap-arch.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
-		m->declare("filename", "gain.dsp");
-		m->declare("name", "gain");
+		m->declare("copyright", "(c)CICM 2013");
+		m->declare("filename", "oneSourceToStereo.dsp");
+		m->declare("hoa.lib/author", "Pierre Guillot");
+		m->declare("hoa.lib/copyright", "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8, 2019 Wargreen, 2022 Bonardi, Goutmann");
+		m->declare("hoa.lib/name", "High Order Ambisonics library");
+		m->declare("hoa.lib/version", "1.4.0");
+		m->declare("license", "BSD");
+		m->declare("maths.lib/author", "GRAME");
+		m->declare("maths.lib/copyright", "GRAME");
+		m->declare("maths.lib/license", "LGPL with exception");
+		m->declare("maths.lib/name", "Faust Math Library");
+		m->declare("maths.lib/version", "2.8.1");
+		m->declare("name", "oneSourceToStereo");
+		m->declare("platform.lib/name", "Generic Platform Library");
+		m->declare("platform.lib/version", "1.3.0");
+		m->declare("routes.lib/name", "Faust Signal Routing Library");
+		m->declare("routes.lib/version", "1.2.0");
+		m->declare("signals.lib/name", "Faust Signal Routing Library");
+		m->declare("signals.lib/version", "1.6.0");
+		m->declare("version", "1.0");
 	}
 
 	virtual int getNumInputs() {
 		return 1;
 	}
 	virtual int getNumOutputs() {
-		return 1;
+		return 2;
 	}
 	
 	static void classInit(int sample_rate) {
@@ -121,13 +155,22 @@ class mydsp : public dsp {
 	
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
+		fConst0 = std::exp(-(5e+01f / std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)))));
+		fConst1 = 1.0f - fConst0;
 	}
 	
 	virtual void instanceResetUserInterface() {
-		fVslider0 = FAUSTFLOAT(1.0f);
+		fHslider0 = FAUSTFLOAT(1.0f);
+		fHslider1 = FAUSTFLOAT(0.0f);
 	}
 	
 	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
+			fRec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fRec1[l1] = 0.0f;
+		}
 	}
 	
 	virtual void init(int sample_rate) {
@@ -150,17 +193,96 @@ class mydsp : public dsp {
 	}
 	
 	virtual void buildUserInterface(UI* ui_interface) {
-		ui_interface->openVerticalBox("gain");
-		ui_interface->addVerticalSlider("gain", &fVslider0, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f), FAUSTFLOAT(0.1f));
+		ui_interface->openVerticalBox("oneSourceToStereo");
+		ui_interface->addHorizontalSlider("Angle", &fHslider1, FAUSTFLOAT(0.0f), FAUSTFLOAT(-6.2831855f), FAUSTFLOAT(6.2831855f), FAUSTFLOAT(0.001f));
+		ui_interface->addHorizontalSlider("Radius", &fHslider0, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(5.0f), FAUSTFLOAT(0.001f));
 		ui_interface->closeBox();
 	}
 	
 	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
 		FAUSTFLOAT* input0 = inputs[0];
 		FAUSTFLOAT* output0 = outputs[0];
-		float fSlow0 = float(fVslider0);
+		FAUSTFLOAT* output1 = outputs[1];
+		float fSlow0 = fConst1 * float(fHslider0);
+		float fSlow1 = fConst1 * float(fHslider1);
 		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			output0[i0] = FAUSTFLOAT(fSlow0 * float(input0[i0]));
+			fRec0[0] = fSlow0 + fConst0 * fRec0[1];
+			float fTemp0 = fRec0[0] * float(fRec0[0] < 1.0f) + float(fRec0[0] >= 1.0f);
+			float fTemp1 = float(input0[i0]) * (2.0794415f * (1.0f - fTemp0) + 1.0f);
+			float fTemp2 = 3.0f * fTemp0;
+			float fTemp3 = 3.0f * fTemp0 * float(fTemp2 > 0.0f) * float(fTemp2 <= 1.0f) + float(fTemp2 > 1.0f);
+			fRec1[0] = fSlow1 + fConst0 * fRec1[1];
+			float fTemp4 = fTemp3 * std::cos(fRec1[0]);
+			float fTemp5 = 2.0f * fRec1[0];
+			float fTemp6 = 2.0794415f * fTemp0;
+			float fTemp7 = fTemp6 + -0.6931472f;
+			float fTemp8 = 2.4663033f * fTemp7;
+			float fTemp9 = 2.4663033f * fTemp7 * float(fTemp8 > 0.0f) * float(fTemp8 <= 1.0f) + float(fTemp8 > 1.0f);
+			float fTemp10 = std::cos(fTemp5) * fTemp9;
+			float fTemp11 = 0.072916664f * fTemp10;
+			float fTemp12 = 3.0f * fRec1[0];
+			float fTemp13 = fTemp6 + -1.0986123f;
+			float fTemp14 = 3.4760594f * fTemp13;
+			float fTemp15 = 3.4760594f * fTemp13 * float(fTemp14 > 0.0f) * float(fTemp14 <= 1.0f) + float(fTemp14 > 1.0f);
+			float fTemp16 = std::cos(fTemp12) * fTemp15;
+			float fTemp17 = 4.0f * fRec1[0];
+			float fTemp18 = fTemp6 + -1.3862944f;
+			float fTemp19 = 4.48142f * fTemp18;
+			float fTemp20 = 4.48142f * fTemp18 * float(fTemp19 > 0.0f) * float(fTemp19 <= 1.0f) + float(fTemp19 > 1.0f);
+			float fTemp21 = 0.013257576f * std::cos(fTemp17) * fTemp20;
+			float fTemp22 = 5.0f * fRec1[0];
+			float fTemp23 = fTemp6 + -1.609438f;
+			float fTemp24 = 5.484815f * fTemp23;
+			float fTemp25 = 5.484815f * fTemp23 * float(fTemp24 > 0.0f) * float(fTemp24 <= 1.0f) + float(fTemp24 > 1.0f);
+			float fTemp26 = std::cos(fTemp22) * fTemp25;
+			float fTemp27 = 6.0f * fRec1[0];
+			float fTemp28 = fTemp6 + -1.7917595f;
+			float fTemp29 = 6.4871593f * fTemp28;
+			float fTemp30 = 6.4871593f * fTemp28 * float(fTemp29 > 0.0f) * float(fTemp29 <= 1.0f) + float(fTemp29 > 1.0f);
+			float fTemp31 = std::cos(fTemp27) * fTemp30;
+			float fTemp32 = 0.0016434328f * fTemp31;
+			float fTemp33 = 7.0f * fRec1[0];
+			float fTemp34 = fTemp6 + -1.9459101f;
+			float fTemp35 = 7.488876f * fTemp34;
+			float fTemp36 = 7.488876f * fTemp34 * float(fTemp35 > 0.0f) * float(fTemp35 <= 1.0f) + float(fTemp35 > 1.0f);
+			float fTemp37 = std::cos(fTemp33) * fTemp36;
+			float fTemp38 = 0.70710677f * (0.109375f * fTemp4 + 0.0625f + fTemp11 + 0.036458332f * fTemp16 + fTemp21 + 0.003314394f * fTemp26 + fTemp32 + 0.0024826708f * fTemp37);
+			float fTemp39 = std::sin(fRec1[0]) * fTemp3;
+			float fTemp40 = 0.10104933f * fTemp4;
+			float fTemp41 = std::sin(fTemp5) * fTemp9;
+			float fTemp42 = 0.05155987f * fTemp41;
+			float fTemp43 = 0.05155987f * fTemp10;
+			float fTemp44 = std::sin(fTemp12) * fTemp15;
+			float fTemp45 = 0.033683106f * fTemp44;
+			float fTemp46 = 0.013257576f * std::sin(fTemp17) * fTemp20;
+			float fTemp47 = std::sin(fTemp22) * fTemp25;
+			float fTemp48 = std::sin(fTemp27) * fTemp30;
+			float fTemp49 = std::sin(fTemp33) * fTemp36;
+			float fTemp50 = 0.041856002f * fTemp39 + 0.0625f + fTemp40 + fTemp42 + fTemp43 + fTemp45 + 0.013952f * fTemp16 + fTemp46 + 0.0030621006f * fTemp47 - 0.0012683637f * fTemp26 + 0.0011620824f * fTemp48 - 0.0011620824f * fTemp31 + 0.00095007697f * fTemp49 - 0.0022936887f * fTemp37;
+			float fTemp51 = 0.077339806f * fTemp39;
+			float fTemp52 = 0.072916664f * fTemp41;
+			float fTemp53 = 0.0016434328f * fTemp48;
+			float fTemp54 = 0.10104933f * fTemp39 + 0.0625f;
+			float fTemp55 = 0.0030621006f * fTemp26;
+			float fTemp56 = 0.0022936887f * fTemp49;
+			float fTemp57 = 0.109375f * fTemp39;
+			float fTemp58 = 0.036458332f * fTemp44;
+			float fTemp59 = 0.003314394f * fTemp47;
+			float fTemp60 = 0.0024826708f * fTemp49;
+			float fTemp61 = 0.0011620824f * fTemp31;
+			float fTemp62 = 0.077339806f * fTemp4;
+			float fTemp63 = 0.0023436304f * fTemp47;
+			float fTemp64 = 0.0023436304f * fTemp26;
+			float fTemp65 = 0.0030621006f * fTemp47;
+			float fTemp66 = 0.05155987f * fTemp10;
+			float fTemp67 = fTemp66 + (0.0625f - 0.041856002f * fTemp39 + 0.10104933f * fTemp4 - 0.05155987f * fTemp41) - 0.033683106f * fTemp44 + 0.013952f * fTemp16 - fTemp46 - fTemp65 - 0.0012683637f * fTemp26 - 0.0011620824f * fTemp48 - 0.0011620824f * fTemp31 - 0.00095007697f * fTemp49 - 0.0022936887f * fTemp37;
+			float fTemp68 = float(fRec0[0] <= 1.0f) + mydsp_faustpower2_f(fRec0[0]) * float(fRec0[0] > 1.0f);
+			output0[i0] = FAUSTFLOAT(fTemp1 * (fTemp38 + 0.98078525f * fTemp50 + 0.98768836f * (fTemp51 + 0.0625f + 0.077339806f * fTemp4 + fTemp52 + 0.025779935f * fTemp44 - 0.025779935f * fTemp16 - fTemp21 - 0.0023436304f * fTemp47 - 0.0023436304f * fTemp26 - fTemp53 - 0.0017555133f * fTemp49 + 0.0017555133f * fTemp37) + 0.9238795f * (fTemp54 + 0.041856002f * fTemp4 + 0.05155987f * fTemp41 - 0.05155987f * fTemp10 - 0.013952f * fTemp44 - 0.033683106f * fTemp16 - fTemp46 - 0.0012683637f * fTemp47 + fTemp55 + 0.0011620824f * fTemp48 + 0.0011620824f * fTemp31 + fTemp56 - 0.00095007697f * fTemp37) + 0.809017f * (fTemp21 + (fTemp57 + 0.0625f - fTemp11 - fTemp58) + fTemp59 - fTemp32 - fTemp60) + 0.64944804f * (fTemp56 + fTemp46 + fTemp54 - 0.041856002f * fTemp4 - fTemp42 - 0.05155987f * fTemp10 - 0.013952f * fTemp44 + 0.033683106f * fTemp16 - 0.0012683637f * fTemp47 - fTemp55 - 0.0011620824f * fTemp48 + fTemp61 + 0.00095007697f * fTemp37) + 0.4539905f * (fTemp53 + 0.077339806f * fTemp39 + 0.0625f - fTemp62 - fTemp52 + 0.025779935f * fTemp44 + 0.025779935f * fTemp16 - fTemp21 - fTemp63 + fTemp64 - 0.0017555133f * fTemp49 - 0.0017555133f * fTemp37) + 0.23344536f * (fTemp45 + 0.041856002f * fTemp39 + 0.0625f - fTemp40 - 0.05155987f * fTemp41 + 0.05155987f * fTemp10 - 0.013952f * fTemp16 - fTemp46 + fTemp65 + 0.0012683637f * fTemp26 - 0.0011620824f * fTemp48 - 0.0011620824f * fTemp31 + 0.00095007697f * fTemp49 + 0.0022936887f * fTemp37) + 0.19509032f * fTemp67) / fTemp68);
+			float fTemp69 = 0.0625f - 0.10104933f * fTemp39;
+			float fTemp70 = 0.0030621006f * fTemp26;
+			output1[i0] = FAUSTFLOAT(fTemp1 * (fTemp38 + 0.19509032f * fTemp50 + 0.23344536f * (fTemp46 + (fTemp43 + fTemp42 + (0.0625f - 0.041856002f * fTemp39 - 0.10104933f * fTemp4) - 0.033683106f * fTemp44 - 0.013952f * fTemp16) - fTemp65 + 0.0012683637f * fTemp26 + 0.0011620824f * fTemp48 - fTemp61 - 0.00095007697f * fTemp49 + 0.0022936887f * fTemp37) + 0.4539905f * (fTemp64 + fTemp52 + (0.0625f - fTemp51 - 0.077339806f * fTemp4) - 0.025779935f * fTemp44 + 0.025779935f * fTemp16 - fTemp21 + 0.0023436304f * fTemp47 - fTemp53 + 0.0017555133f * fTemp49 - 0.0017555133f * fTemp37) + 0.64944804f * (fTemp69 - 0.041856002f * fTemp4 + 0.05155987f * fTemp41 - fTemp66 + 0.013952f * fTemp44 + 0.033683106f * fTemp16 - fTemp46 + 0.0012683637f * fTemp47 - fTemp70 + 0.0011620824f * fTemp48 + 0.0011620824f * fTemp31 - 0.0022936887f * fTemp49 + 0.00095007697f * fTemp37) + 0.809017f * (fTemp60 + (fTemp21 + fTemp58 + (0.0625f - fTemp57 - fTemp11) - fTemp59 - fTemp32)) + 0.9238795f * (fTemp70 + fTemp46 + (fTemp69 + 0.041856002f * fTemp4 - 0.05155987f * fTemp41 - 0.05155987f * fTemp10 + 0.013952f * fTemp44 - 0.033683106f * fTemp16) + 0.0012683637f * fTemp47 - 0.0011620824f * fTemp48 + 0.0011620824f * fTemp31 - 0.0022936887f * fTemp49 - 0.00095007697f * fTemp37) + 0.98768836f * (fTemp53 + (fTemp63 + (fTemp62 + (0.0625f - 0.077339806f * fTemp39) - fTemp52 - 0.025779935f * fTemp44 - 0.025779935f * fTemp16 - fTemp21) - fTemp64) + 0.0017555133f * fTemp49 + 0.0017555133f * fTemp37) + 0.98078525f * fTemp67) / fTemp68);
+			fRec0[1] = fRec0[0];
+			fRec1[1] = fRec1[0];
 		}
 	}
 

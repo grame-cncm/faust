@@ -1,5 +1,9 @@
 /* ------------------------------------------------------------
-name: "gain"
+author: "Grame"
+copyright: "(c)GRAME 2006"
+license: "BSD"
+name: "pitchShifter"
+version: "1.0"
 Code generated with Faust 2.81.0 (https://faust.grame.fr)
 Compilation options: -a /Users/cucu/Documents/GitHub/faust/architecture/clap/clap-arch.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 ------------------------------------------------------------ */
@@ -96,7 +100,12 @@ class mydsp : public dsp {
 	
  private:
 	
-	FAUSTFLOAT fVslider0;
+	int IOTA0;
+	float fVec0[131072];
+	FAUSTFLOAT fHslider0;
+	FAUSTFLOAT fHslider1;
+	float fRec0[2];
+	FAUSTFLOAT fHslider2;
 	int fSampleRate;
 	
  public:
@@ -104,9 +113,22 @@ class mydsp : public dsp {
 	}
 	
 	void metadata(Meta* m) { 
+		m->declare("author", "Grame");
 		m->declare("compile_options", "-a /Users/cucu/Documents/GitHub/faust/architecture/clap/clap-arch.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
-		m->declare("filename", "gain.dsp");
-		m->declare("name", "gain");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("delays.lib/name", "Faust Delay Library");
+		m->declare("delays.lib/version", "1.1.0");
+		m->declare("filename", "pitchShifter.dsp");
+		m->declare("license", "BSD");
+		m->declare("maths.lib/author", "GRAME");
+		m->declare("maths.lib/copyright", "GRAME");
+		m->declare("maths.lib/license", "LGPL with exception");
+		m->declare("maths.lib/name", "Faust Math Library");
+		m->declare("maths.lib/version", "2.8.1");
+		m->declare("misceffects.lib/name", "Misc Effects Library");
+		m->declare("misceffects.lib/version", "2.5.1");
+		m->declare("name", "pitchShifter");
+		m->declare("version", "1.0");
 	}
 
 	virtual int getNumInputs() {
@@ -124,10 +146,19 @@ class mydsp : public dsp {
 	}
 	
 	virtual void instanceResetUserInterface() {
-		fVslider0 = FAUSTFLOAT(1.0f);
+		fHslider0 = FAUSTFLOAT(1e+03f);
+		fHslider1 = FAUSTFLOAT(0.0f);
+		fHslider2 = FAUSTFLOAT(1e+01f);
 	}
 	
 	virtual void instanceClear() {
+		IOTA0 = 0;
+		for (int l0 = 0; l0 < 131072; l0 = l0 + 1) {
+			fVec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; l1 < 2; l1 = l1 + 1) {
+			fRec0[l1] = 0.0f;
+		}
 	}
 	
 	virtual void init(int sample_rate) {
@@ -150,17 +181,33 @@ class mydsp : public dsp {
 	}
 	
 	virtual void buildUserInterface(UI* ui_interface) {
-		ui_interface->openVerticalBox("gain");
-		ui_interface->addVerticalSlider("gain", &fVslider0, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f), FAUSTFLOAT(0.1f));
+		ui_interface->openVerticalBox("Pitch Shifter");
+		ui_interface->addHorizontalSlider("shift (semitones)", &fHslider1, FAUSTFLOAT(0.0f), FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f), FAUSTFLOAT(0.1f));
+		ui_interface->addHorizontalSlider("window (samples)", &fHslider0, FAUSTFLOAT(1e+03f), FAUSTFLOAT(5e+01f), FAUSTFLOAT(1e+04f), FAUSTFLOAT(1.0f));
+		ui_interface->addHorizontalSlider("xfade (samples)", &fHslider2, FAUSTFLOAT(1e+01f), FAUSTFLOAT(1.0f), FAUSTFLOAT(1e+04f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 	}
 	
 	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
 		FAUSTFLOAT* input0 = inputs[0];
 		FAUSTFLOAT* output0 = outputs[0];
-		float fSlow0 = float(fVslider0);
+		float fSlow0 = float(fHslider0);
+		float fSlow1 = std::pow(2.0f, 0.083333336f * float(fHslider1));
+		float fSlow2 = 1.0f / float(fHslider2);
 		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			output0[i0] = FAUSTFLOAT(fSlow0 * float(input0[i0]));
+			float fTemp0 = float(input0[i0]);
+			fVec0[IOTA0 & 131071] = fTemp0;
+			fRec0[0] = std::fmod(fSlow0 + (fRec0[1] + 1.0f - fSlow1), fSlow0);
+			int iTemp1 = int(fRec0[0]);
+			float fTemp2 = std::floor(fRec0[0]);
+			float fTemp3 = 1.0f - fRec0[0];
+			float fTemp4 = std::min<float>(fSlow2 * fRec0[0], 1.0f);
+			float fTemp5 = fSlow0 + fRec0[0];
+			int iTemp6 = int(fTemp5);
+			float fTemp7 = std::floor(fTemp5);
+			output0[i0] = FAUSTFLOAT((fVec0[(IOTA0 - std::min<int>(65537, std::max<int>(0, iTemp1))) & 131071] * (fTemp2 + fTemp3) + (fRec0[0] - fTemp2) * fVec0[(IOTA0 - std::min<int>(65537, std::max<int>(0, iTemp1 + 1))) & 131071]) * fTemp4 + (fVec0[(IOTA0 - std::min<int>(65537, std::max<int>(0, iTemp6))) & 131071] * (fTemp7 + fTemp3 - fSlow0) + (fSlow0 + (fRec0[0] - fTemp7)) * fVec0[(IOTA0 - std::min<int>(65537, std::max<int>(0, iTemp6 + 1))) & 131071]) * (1.0f - fTemp4));
+			IOTA0 = IOTA0 + 1;
+			fRec0[1] = fRec0[0];
 		}
 	}
 

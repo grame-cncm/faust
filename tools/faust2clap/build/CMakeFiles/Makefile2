@@ -63,8 +63,23 @@ CMAKE_BINARY_DIR = /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
+all: CMakeFiles/FFT.dir/all
+all: CMakeFiles/UITester.dir/all
+all: CMakeFiles/compressor.dir/all
+all: CMakeFiles/echo.dir/all
+all: CMakeFiles/flanger.dir/all
+all: CMakeFiles/fourSourcesToOcto.dir/all
 all: CMakeFiles/freeverb.dir/all
 all: CMakeFiles/gain.dir/all
+all: CMakeFiles/midiTester.dir/all
+all: CMakeFiles/oneSourceToStereo.dir/all
+all: CMakeFiles/panpot.dir/all
+all: CMakeFiles/phaser.dir/all
+all: CMakeFiles/phaserFlangerLab.dir/all
+all: CMakeFiles/pitchShifter.dir/all
+all: CMakeFiles/quadEcho.dir/all
+all: CMakeFiles/russianBell.dir/all
+all: CMakeFiles/spat.dir/all
 all: clap-sdk/all
 all: clap-helpers/all
 .PHONY : all
@@ -75,8 +90,23 @@ preinstall: clap-helpers/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
+clean: CMakeFiles/FFT.dir/clean
+clean: CMakeFiles/UITester.dir/clean
+clean: CMakeFiles/compressor.dir/clean
+clean: CMakeFiles/echo.dir/clean
+clean: CMakeFiles/flanger.dir/clean
+clean: CMakeFiles/fourSourcesToOcto.dir/clean
 clean: CMakeFiles/freeverb.dir/clean
 clean: CMakeFiles/gain.dir/clean
+clean: CMakeFiles/midiTester.dir/clean
+clean: CMakeFiles/oneSourceToStereo.dir/clean
+clean: CMakeFiles/panpot.dir/clean
+clean: CMakeFiles/phaser.dir/clean
+clean: CMakeFiles/phaserFlangerLab.dir/clean
+clean: CMakeFiles/pitchShifter.dir/clean
+clean: CMakeFiles/quadEcho.dir/clean
+clean: CMakeFiles/russianBell.dir/clean
+clean: CMakeFiles/spat.dir/clean
 clean: clap-sdk/clean
 clean: clap-helpers/clean
 .PHONY : clean
@@ -112,13 +142,169 @@ clap-sdk/clean: clap-sdk/CMakeFiles/clap-tests.dir/clean
 .PHONY : clap-sdk/clean
 
 #=============================================================================
+# Target rules for target CMakeFiles/FFT.dir
+
+# All Build rule for target.
+CMakeFiles/FFT.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FFT.dir/build.make CMakeFiles/FFT.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FFT.dir/build.make CMakeFiles/FFT.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=1,2,3 "Built target FFT"
+.PHONY : CMakeFiles/FFT.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/FFT.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/FFT.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/FFT.dir/rule
+
+# Convenience name for target.
+FFT: CMakeFiles/FFT.dir/rule
+.PHONY : FFT
+
+# clean rule for target.
+CMakeFiles/FFT.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FFT.dir/build.make CMakeFiles/FFT.dir/clean
+.PHONY : CMakeFiles/FFT.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/UITester.dir
+
+# All Build rule for target.
+CMakeFiles/UITester.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/UITester.dir/build.make CMakeFiles/UITester.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/UITester.dir/build.make CMakeFiles/UITester.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=4,5,6 "Built target UITester"
+.PHONY : CMakeFiles/UITester.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/UITester.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/UITester.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/UITester.dir/rule
+
+# Convenience name for target.
+UITester: CMakeFiles/UITester.dir/rule
+.PHONY : UITester
+
+# clean rule for target.
+CMakeFiles/UITester.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/UITester.dir/build.make CMakeFiles/UITester.dir/clean
+.PHONY : CMakeFiles/UITester.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/compressor.dir
+
+# All Build rule for target.
+CMakeFiles/compressor.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compressor.dir/build.make CMakeFiles/compressor.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compressor.dir/build.make CMakeFiles/compressor.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=7,8,9 "Built target compressor"
+.PHONY : CMakeFiles/compressor.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/compressor.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/compressor.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/compressor.dir/rule
+
+# Convenience name for target.
+compressor: CMakeFiles/compressor.dir/rule
+.PHONY : compressor
+
+# clean rule for target.
+CMakeFiles/compressor.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compressor.dir/build.make CMakeFiles/compressor.dir/clean
+.PHONY : CMakeFiles/compressor.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/echo.dir
+
+# All Build rule for target.
+CMakeFiles/echo.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/echo.dir/build.make CMakeFiles/echo.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/echo.dir/build.make CMakeFiles/echo.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=10,11,12 "Built target echo"
+.PHONY : CMakeFiles/echo.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/echo.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/echo.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/echo.dir/rule
+
+# Convenience name for target.
+echo: CMakeFiles/echo.dir/rule
+.PHONY : echo
+
+# clean rule for target.
+CMakeFiles/echo.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/echo.dir/build.make CMakeFiles/echo.dir/clean
+.PHONY : CMakeFiles/echo.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/flanger.dir
+
+# All Build rule for target.
+CMakeFiles/flanger.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/flanger.dir/build.make CMakeFiles/flanger.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/flanger.dir/build.make CMakeFiles/flanger.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=13,14,15 "Built target flanger"
+.PHONY : CMakeFiles/flanger.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/flanger.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/flanger.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/flanger.dir/rule
+
+# Convenience name for target.
+flanger: CMakeFiles/flanger.dir/rule
+.PHONY : flanger
+
+# clean rule for target.
+CMakeFiles/flanger.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/flanger.dir/build.make CMakeFiles/flanger.dir/clean
+.PHONY : CMakeFiles/flanger.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/fourSourcesToOcto.dir
+
+# All Build rule for target.
+CMakeFiles/fourSourcesToOcto.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fourSourcesToOcto.dir/build.make CMakeFiles/fourSourcesToOcto.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fourSourcesToOcto.dir/build.make CMakeFiles/fourSourcesToOcto.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=16,17,18 "Built target fourSourcesToOcto"
+.PHONY : CMakeFiles/fourSourcesToOcto.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/fourSourcesToOcto.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/fourSourcesToOcto.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/fourSourcesToOcto.dir/rule
+
+# Convenience name for target.
+fourSourcesToOcto: CMakeFiles/fourSourcesToOcto.dir/rule
+.PHONY : fourSourcesToOcto
+
+# clean rule for target.
+CMakeFiles/fourSourcesToOcto.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fourSourcesToOcto.dir/build.make CMakeFiles/fourSourcesToOcto.dir/clean
+.PHONY : CMakeFiles/fourSourcesToOcto.dir/clean
+
+#=============================================================================
 # Target rules for target CMakeFiles/freeverb.dir
 
 # All Build rule for target.
 CMakeFiles/freeverb.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/freeverb.dir/build.make CMakeFiles/freeverb.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=1,2,3 "Built target freeverb"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=19,20,21 "Built target freeverb"
 .PHONY : CMakeFiles/freeverb.dir/all
 
 # Build rule for subdir invocation for target.
@@ -144,7 +330,7 @@ CMakeFiles/freeverb.dir/clean:
 CMakeFiles/gain.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=4,5,6 "Built target gain"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=22,23,24 "Built target gain"
 .PHONY : CMakeFiles/gain.dir/all
 
 # Build rule for subdir invocation for target.
@@ -162,6 +348,240 @@ gain: CMakeFiles/gain.dir/rule
 CMakeFiles/gain.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gain.dir/build.make CMakeFiles/gain.dir/clean
 .PHONY : CMakeFiles/gain.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/midiTester.dir
+
+# All Build rule for target.
+CMakeFiles/midiTester.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/midiTester.dir/build.make CMakeFiles/midiTester.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/midiTester.dir/build.make CMakeFiles/midiTester.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=25,26,27 "Built target midiTester"
+.PHONY : CMakeFiles/midiTester.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/midiTester.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/midiTester.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/midiTester.dir/rule
+
+# Convenience name for target.
+midiTester: CMakeFiles/midiTester.dir/rule
+.PHONY : midiTester
+
+# clean rule for target.
+CMakeFiles/midiTester.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/midiTester.dir/build.make CMakeFiles/midiTester.dir/clean
+.PHONY : CMakeFiles/midiTester.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/oneSourceToStereo.dir
+
+# All Build rule for target.
+CMakeFiles/oneSourceToStereo.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oneSourceToStereo.dir/build.make CMakeFiles/oneSourceToStereo.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oneSourceToStereo.dir/build.make CMakeFiles/oneSourceToStereo.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=28,29,30 "Built target oneSourceToStereo"
+.PHONY : CMakeFiles/oneSourceToStereo.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/oneSourceToStereo.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/oneSourceToStereo.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/oneSourceToStereo.dir/rule
+
+# Convenience name for target.
+oneSourceToStereo: CMakeFiles/oneSourceToStereo.dir/rule
+.PHONY : oneSourceToStereo
+
+# clean rule for target.
+CMakeFiles/oneSourceToStereo.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oneSourceToStereo.dir/build.make CMakeFiles/oneSourceToStereo.dir/clean
+.PHONY : CMakeFiles/oneSourceToStereo.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/panpot.dir
+
+# All Build rule for target.
+CMakeFiles/panpot.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/panpot.dir/build.make CMakeFiles/panpot.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/panpot.dir/build.make CMakeFiles/panpot.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=31,32,33 "Built target panpot"
+.PHONY : CMakeFiles/panpot.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/panpot.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/panpot.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/panpot.dir/rule
+
+# Convenience name for target.
+panpot: CMakeFiles/panpot.dir/rule
+.PHONY : panpot
+
+# clean rule for target.
+CMakeFiles/panpot.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/panpot.dir/build.make CMakeFiles/panpot.dir/clean
+.PHONY : CMakeFiles/panpot.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/phaser.dir
+
+# All Build rule for target.
+CMakeFiles/phaser.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/phaser.dir/build.make CMakeFiles/phaser.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/phaser.dir/build.make CMakeFiles/phaser.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=34,35,36 "Built target phaser"
+.PHONY : CMakeFiles/phaser.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/phaser.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/phaser.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/phaser.dir/rule
+
+# Convenience name for target.
+phaser: CMakeFiles/phaser.dir/rule
+.PHONY : phaser
+
+# clean rule for target.
+CMakeFiles/phaser.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/phaser.dir/build.make CMakeFiles/phaser.dir/clean
+.PHONY : CMakeFiles/phaser.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/phaserFlangerLab.dir
+
+# All Build rule for target.
+CMakeFiles/phaserFlangerLab.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/phaserFlangerLab.dir/build.make CMakeFiles/phaserFlangerLab.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/phaserFlangerLab.dir/build.make CMakeFiles/phaserFlangerLab.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=37,38,39 "Built target phaserFlangerLab"
+.PHONY : CMakeFiles/phaserFlangerLab.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/phaserFlangerLab.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/phaserFlangerLab.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/phaserFlangerLab.dir/rule
+
+# Convenience name for target.
+phaserFlangerLab: CMakeFiles/phaserFlangerLab.dir/rule
+.PHONY : phaserFlangerLab
+
+# clean rule for target.
+CMakeFiles/phaserFlangerLab.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/phaserFlangerLab.dir/build.make CMakeFiles/phaserFlangerLab.dir/clean
+.PHONY : CMakeFiles/phaserFlangerLab.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/pitchShifter.dir
+
+# All Build rule for target.
+CMakeFiles/pitchShifter.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pitchShifter.dir/build.make CMakeFiles/pitchShifter.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pitchShifter.dir/build.make CMakeFiles/pitchShifter.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=40,41,42 "Built target pitchShifter"
+.PHONY : CMakeFiles/pitchShifter.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/pitchShifter.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/pitchShifter.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/pitchShifter.dir/rule
+
+# Convenience name for target.
+pitchShifter: CMakeFiles/pitchShifter.dir/rule
+.PHONY : pitchShifter
+
+# clean rule for target.
+CMakeFiles/pitchShifter.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pitchShifter.dir/build.make CMakeFiles/pitchShifter.dir/clean
+.PHONY : CMakeFiles/pitchShifter.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/quadEcho.dir
+
+# All Build rule for target.
+CMakeFiles/quadEcho.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/quadEcho.dir/build.make CMakeFiles/quadEcho.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/quadEcho.dir/build.make CMakeFiles/quadEcho.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=43,44,45 "Built target quadEcho"
+.PHONY : CMakeFiles/quadEcho.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/quadEcho.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/quadEcho.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/quadEcho.dir/rule
+
+# Convenience name for target.
+quadEcho: CMakeFiles/quadEcho.dir/rule
+.PHONY : quadEcho
+
+# clean rule for target.
+CMakeFiles/quadEcho.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/quadEcho.dir/build.make CMakeFiles/quadEcho.dir/clean
+.PHONY : CMakeFiles/quadEcho.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/russianBell.dir
+
+# All Build rule for target.
+CMakeFiles/russianBell.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/russianBell.dir/build.make CMakeFiles/russianBell.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/russianBell.dir/build.make CMakeFiles/russianBell.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=46,47,48 "Built target russianBell"
+.PHONY : CMakeFiles/russianBell.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/russianBell.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/russianBell.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/russianBell.dir/rule
+
+# Convenience name for target.
+russianBell: CMakeFiles/russianBell.dir/rule
+.PHONY : russianBell
+
+# clean rule for target.
+CMakeFiles/russianBell.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/russianBell.dir/build.make CMakeFiles/russianBell.dir/clean
+.PHONY : CMakeFiles/russianBell.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/spat.dir
+
+# All Build rule for target.
+CMakeFiles/spat.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/spat.dir/build.make CMakeFiles/spat.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/spat.dir/build.make CMakeFiles/spat.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles --progress-num=49,50,51 "Built target spat"
+.PHONY : CMakeFiles/spat.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/spat.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/spat.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles 0
+.PHONY : CMakeFiles/spat.dir/rule
+
+# Convenience name for target.
+spat: CMakeFiles/spat.dir/rule
+.PHONY : spat
+
+# clean rule for target.
+CMakeFiles/spat.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/spat.dir/build.make CMakeFiles/spat.dir/clean
+.PHONY : CMakeFiles/spat.dir/clean
 
 #=============================================================================
 # Target rules for target clap-sdk/CMakeFiles/clap-tests.dir

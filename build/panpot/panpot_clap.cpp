@@ -1,5 +1,9 @@
 /* ------------------------------------------------------------
-name: "gain"
+author: "Grame"
+copyright: "(c)GRAME 2006"
+license: "BSD"
+name: "panpot"
+version: "1.0"
 Code generated with Faust 2.81.0 (https://faust.grame.fr)
 Compilation options: -a /Users/cucu/Documents/GitHub/faust/architecture/clap/clap-arch.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 ------------------------------------------------------------ */
@@ -96,7 +100,7 @@ class mydsp : public dsp {
 	
  private:
 	
-	FAUSTFLOAT fVslider0;
+	FAUSTFLOAT fEntry0;
 	int fSampleRate;
 	
  public:
@@ -104,16 +108,20 @@ class mydsp : public dsp {
 	}
 	
 	void metadata(Meta* m) { 
+		m->declare("author", "Grame");
 		m->declare("compile_options", "-a /Users/cucu/Documents/GitHub/faust/architecture/clap/clap-arch.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
-		m->declare("filename", "gain.dsp");
-		m->declare("name", "gain");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "panpot.dsp");
+		m->declare("license", "BSD");
+		m->declare("name", "panpot");
+		m->declare("version", "1.0");
 	}
 
 	virtual int getNumInputs() {
 		return 1;
 	}
 	virtual int getNumOutputs() {
-		return 1;
+		return 2;
 	}
 	
 	static void classInit(int sample_rate) {
@@ -124,7 +132,7 @@ class mydsp : public dsp {
 	}
 	
 	virtual void instanceResetUserInterface() {
-		fVslider0 = FAUSTFLOAT(1.0f);
+		fEntry0 = FAUSTFLOAT(0.0f);
 	}
 	
 	virtual void instanceClear() {
@@ -150,17 +158,24 @@ class mydsp : public dsp {
 	}
 	
 	virtual void buildUserInterface(UI* ui_interface) {
-		ui_interface->openVerticalBox("gain");
-		ui_interface->addVerticalSlider("gain", &fVslider0, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+01f), FAUSTFLOAT(0.1f));
+		ui_interface->openVerticalBox("panpot");
+		ui_interface->declare(&fEntry0, "1", "");
+		ui_interface->declare(&fEntry0, "style", "knob");
+		ui_interface->addNumEntry("pan", &fEntry0, FAUSTFLOAT(0.0f), FAUSTFLOAT(-9e+01f), FAUSTFLOAT(9e+01f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 	}
 	
 	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
 		FAUSTFLOAT* input0 = inputs[0];
 		FAUSTFLOAT* output0 = outputs[0];
-		float fSlow0 = float(fVslider0);
+		FAUSTFLOAT* output1 = outputs[1];
+		float fSlow0 = 0.0055555557f * (float(fEntry0) + -9e+01f);
+		float fSlow1 = std::sqrt(-fSlow0);
+		float fSlow2 = std::sqrt(fSlow0 + 1.0f);
 		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-			output0[i0] = FAUSTFLOAT(fSlow0 * float(input0[i0]));
+			float fTemp0 = float(input0[i0]);
+			output0[i0] = FAUSTFLOAT(fSlow1 * fTemp0);
+			output1[i0] = FAUSTFLOAT(fSlow2 * fTemp0);
 		}
 	}
 
