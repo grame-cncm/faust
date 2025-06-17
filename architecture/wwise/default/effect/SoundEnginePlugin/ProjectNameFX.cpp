@@ -58,6 +58,8 @@ AKRESULT ${name}FX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPlug
     m_pAllocator = in_pAllocator;
     m_pContext = in_pContext;
 
+    // @TODO improve dsp_outputs
+
     int dsp_outputs = m_dsp.getNumOutputs();
     
     if (dsp_outputs >= 2) {
@@ -66,7 +68,7 @@ AKRESULT ${name}FX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPlug
         in_rFormat.channelConfig.SetStandard(AK_SPEAKER_SETUP_MONO);
     }
     
-    m_dsp.init(static_cast<int>(in_rFormat.uSampleRate));
+    initDSP(static_cast<int>(in_rFormat.uSampleRate));
 
     return AK_Success;
 }
@@ -96,6 +98,10 @@ void ${name}FX::Execute(AkAudioBuffer* io_pBuffer)
     const AkUInt32 uNumChannels = io_pBuffer->NumChannels();
     const AkUInt32 maxChannels = AkMin(uNumChannels, (AkUInt32)m_dsp.getNumInputs());
     
+    <<FOREACHPARAM: setParameter( "${shortname}", m_pParams->${isRTPC}.${RTPCname} );>>
+
+    // @TODO improve hardcoded inputs outputs channelBufs
+
     FAUSTFLOAT* inputs[8];
     FAUSTFLOAT* outputs[8];
     AkReal32* AK_RESTRICT channelBufs[8];
@@ -117,6 +123,22 @@ void ${name}FX::Execute(AkAudioBuffer* io_pBuffer)
     
     // Process entire buffer at once
     m_dsp.compute((int)io_pBuffer->uValidFrames, inputs, outputs);
+
+    // const AkUInt32 uNumChannels = io_pBuffer->NumChannels();
+
+    // AkUInt16 uFramesProcessed;
+    // for (AkUInt32 i = 0; i < uNumChannels; ++i)
+    // {
+    //     AkReal32* AK_RESTRICT pBuf = (AkReal32* AK_RESTRICT)io_pBuffer->GetChannel(i);
+
+    //     uFramesProcessed = 0;
+    //     while (uFramesProcessed < io_pBuffer->uValidFrames)
+    //     {
+    //         // Execute DSP in-place here
+    //         ++uFramesProcessed;
+    //     }
+    // }
+
 }
 
 AKRESULT ${name}FX::TimeSkip(AkUInt32 in_uFrames)

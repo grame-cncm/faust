@@ -68,7 +68,6 @@ private:
     AK::IAkSourcePluginContext* m_pContext;
     AkFXDurationHandler m_durationHandler;
     
-    mydsp m_dsp;
 };
 
 #endif // ${name}Source_H

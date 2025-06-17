@@ -7,6 +7,11 @@
 #                                                                   #
 #####################################################################    
 : '
+
+based on the templates, a first clean param integrator, that works only for source plugins. Not for effects yet.
+cleaning now to help integrating also the effect plugin.
+FIRST WORKING VERSION FOR BOTH SOURCE AND EFFECT PLUGINS
+
 @Documentation : 
 The Faust2Wwise conversion process is applied with the folowing steps:
     Preliminary/Preparation Step: Setup and Validation
@@ -29,7 +34,8 @@ The Faust2Wwise conversion process is applied with the folowing steps:
         Use Wwise wp.py script to create plugin project structur, geenerating the plugin template files
     Step 3: Integration step (DSP only)
         Copy generated Faust DSP file to plugin SoundEngine directory
-        Replace plugin header and source (cpp) file in the SoundEnginePlugin directory
+        Replace template files into the project structure
+        Generate code for each parameter within the template files
         Update Lua build script (PremakePlugin.lua) to include Faust headers
     Step 4: Configuration step
         Use Wwise wp.py with `premake` to configure project before building
@@ -54,6 +60,7 @@ The Faust2Wwise conversion process is applied with the folowing steps:
 FAUST_LIB_PATH="/usr/local/share/faust"
 # FAUST_INC_PATH="$FAUSTINC" 
 ARCHFILE="$FAUST_LIB_PATH/wwise.cpp"
+PYTHON_INTEGRATOR="$FAUST_LIB_PATH/wwise/integrator.py"
 
 ################################################ Wwise stuff
 WWISEROOT=""
@@ -66,6 +73,7 @@ WWISE_SCRIPTS_DIR="" # PATCH dir storing the PATCH files. These are used for int
 OUTPUT_DIR="."
 FAUST_OPTIONS=""
 DSP_FILE=""
+JSON_FILE=""
 ### additional
 DSP_FILENAME=""
 ### Platform-specific paths
@@ -138,6 +146,7 @@ printConfiguration() {
     echo "FAUST2WWISE CONFIGURATION"
     echo "------------------------------------------"
     echo "TEMP_DIR $TEMP_DIR"
+    echo "PYTHON_INTEGRATOR $PYTHON_INTEGRATOR"
     echo "========== FAUST CONFIGURATION ==========="
     echo "DSP_FILE $DSP_FILE"
     echo "ARCHFILE $ARCHFILE"
@@ -204,6 +213,12 @@ validateEnvironment() {
         echo "Error $ERR_ENVIRONMENT: Wwise architecture file not found at $ARCHFILE"
         echo "Make sure the wwise.cpp architecture file is installed in $FAUST_LIB_PATH"
         exit $ERR_ENVIRONMENT
+    fi
+
+    # Check if python integration script was installed properly
+    if [ ! -f "$PYTHON_INTEGRATOR" ]; then
+        echo "Error: Python integrator not found at $PYTHON_INTEGRATOR. Please make sure wwise_integrator.py is installed."
+        exit $ERR_INTEGRATION
     fi
 
 }
@@ -286,6 +301,9 @@ processJSONConfig() {
             DESCRIPTION="No description provided"
         fi
         
+        # Get all UI items --> prefer python instead
+        # UI_ITEMS=$(cat "$JSON_FILE" | jq -c '.ui[].items[]?')
+
         echo "PLUGIN_TYPE $PLUGIN_TYPE"
         echo "PLUGIN_NAME $PLUGIN_NAME"
         echo "AUTHOR $AUTHOR"
@@ -368,12 +386,18 @@ replaceCustomTemplates() {
     local templateFiles=(
         "SoundEnginePlugin/ProjectName$PLUGIN_SUFFIX.h"
         "SoundEnginePlugin/ProjectName$PLUGIN_SUFFIX.cpp"
+        "SoundEnginePlugin/ProjectName${PLUGIN_SUFFIX}Params.h"
+        "SoundEnginePlugin/ProjectName${PLUGIN_SUFFIX}Params.cpp"
+        "WwisePlugin/ProjectNamePlugin.cpp"
     )
     
     # Define the corresponding target files (using actual plugin name)
     local targetFiles=(
         "SoundEnginePlugin/$PLUGIN_NAME$PLUGIN_SUFFIX.h"
         "SoundEnginePlugin/$PLUGIN_NAME$PLUGIN_SUFFIX.cpp"
+        "SoundEnginePlugin/$PLUGIN_NAME${PLUGIN_SUFFIX}Params.h"
+        "SoundEnginePlugin/$PLUGIN_NAME${PLUGIN_SUFFIX}Params.cpp"
+        "WwisePlugin/${PLUGIN_NAME}Plugin.cpp"
     )
     
     TARGET_DIR="$PLUGIN_NAME"
@@ -405,6 +429,19 @@ replaceCustomTemplates() {
         return 1
 
     fi
+}
+
+parameterIntegration(){
+
+    echo "Integrating parameters..."
+    
+    python3 $PYTHON_INTEGRATOR $PLUGIN_NAME $PLUGIN_SUFFIX $JSON_FILE
+
+    if [ $? -ne 0 ]; then
+        echo "Error $ERR_INTEGRATION: Failed to integerate parameters"
+        exit $ERR_INTEGRATION
+    fi
+
 }
 
 modifyLuaBuildScript() {
@@ -442,6 +479,7 @@ integrationStep(){
     echo "------------------------------------------Step 3: Integration Step"
     architectureFileIntegration # edit the exported arch file
     replaceCustomTemplates # replace the vital for the integration files
+    parameterIntegration # integrate parameters
     modifyLuaBuildScript # additional step : ought to be absorbed by the replaceCustomTemplates
 }
 #==============================================================================

@@ -66,8 +66,6 @@ private:
     ${name}FXParams* m_pParams;
     AK::IAkPluginMemAlloc* m_pAllocator;
     AK::IAkEffectPluginContext* m_pContext;
-
-    mydsp m_dsp;
 };
 
 #endif // ${name}FX_H

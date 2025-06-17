@@ -60,6 +60,8 @@ AKRESULT ${name}Source::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkSource
 
     m_durationHandler.Setup(m_pParams->RTPC.fDuration, in_pContext->GetNumLoops(), in_rFormat.uSampleRate);
 
+    // @TODO improve dsp_outputs
+
     int dsp_outputs = m_dsp.getNumOutputs();
     
     if (dsp_outputs >= 2) {
@@ -68,7 +70,7 @@ AKRESULT ${name}Source::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkSource
         in_rFormat.channelConfig.SetStandard(AK_SPEAKER_SETUP_MONO);
     }
     
-    m_dsp.init(static_cast<int>(in_rFormat.uSampleRate));
+    initDSP(static_cast<int>(in_rFormat.uSampleRate));
 
     return AK_Success;
 }
@@ -98,9 +100,13 @@ void ${name}Source::Execute(AkAudioBuffer* out_pBuffer)
     m_durationHandler.SetDuration(m_pParams->RTPC.fDuration);
     m_durationHandler.ProduceBuffer(out_pBuffer);
 
+    <<FOREACHPARAM: setParameter( "${shortname}", m_pParams->${isRTPC}.${RTPCname} );>>
+
     const AkUInt32 uNumChannels = out_pBuffer->NumChannels();
 
-    AkUInt16 uFramesProduced;
+    // @TODO improve outputs, pbuf
+    
+    // AkUInt16 uFramesProduced;
     FAUSTFLOAT* outputs[2];
     AkReal32* AK_RESTRICT pBuf[2];
 
