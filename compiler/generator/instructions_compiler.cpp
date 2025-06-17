@@ -3558,6 +3558,8 @@ ValueInst* InstructionsCompiler::generateZeroPad(Tree sig, Tree x, Tree y)
 // Ondemand: generate the code of the ondemand circuit
 // - first the input signals are computed
 // - then the output signals in an if (clock) statement
+
+#if 0
 ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
 {
     // 1/ We extract the clock, the inputs and the outputs signals
@@ -3606,6 +3608,37 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
     // 7/ There is no compiled expression
     return IB::genNullValueInst();
 }
+
+#else
+
+ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
+{
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    Type ty    = getCertifiedSigType(clock);
+    std::cerr << "Print OD condition type " << *ty << std::endl;
+    bool isBoolean = (ty->getInterval().lo() >= 0.0) && (ty->getInterval().hi() <= 1.0);
+    if (isBoolean) {
+        fContainer->getCurLoop()->openIfblock(CS(clock));
+        // Then its internal signals
+        for (Tree x : fHschedule.sigsched[sig].elements()) {
+            CS(x);
+        }
+        fContainer->getCurLoop()->closeIfblock();
+    } else {
+        fContainer->getCurLoop()->openODblock(CS(clock));
+        // Then its internal signals
+        for (Tree x : fHschedule.sigsched[sig].elements()) {
+            CS(x);
+        }
+        fContainer->getCurLoop()->closeODblock();
+    }
+    
+    // There is no compiled expression
+    return IB::genNullValueInst();
+}
+
+#endif
 
 ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
 {
