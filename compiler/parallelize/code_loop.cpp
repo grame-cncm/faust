@@ -364,6 +364,20 @@ void CodeLoop::closeODblock()
         IB::genIfInst(IB::genNotEqual(b->fODfactor, IB::genInt32NumInst(0)), loop_block));
 }
 
+void CodeLoop::closeIfblock()
+{
+    FIRCodeIfblock* b = dynamic_cast<FIRCodeIfblock*>(fCodeStack.top());
+    faustassert(b);
+    fCodeStack.pop();
+    
+    BlockInst* od_block = new BlockInst();
+    od_block->pushBackInst(b->fPreInst);
+    od_block->pushBackInst(b->fComputeInst);
+    od_block->pushBackInst(b->fPostInst);
+     
+    pushComputeDSPMethod(IB::genIfInst(b->fCond, od_block));
+}
+
 void CodeLoop::closeUSblock()
 {
     FIRCodeUSblock* b = dynamic_cast<FIRCodeUSblock*>(fCodeStack.top());
