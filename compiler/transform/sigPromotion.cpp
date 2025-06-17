@@ -535,6 +535,11 @@ Tree SignalPromotion::transformation(Tree sig)
         }
         return sigDS(w2);
     }
+    
+    else if (isSigZeroPad(sig, x, y)) {
+        Type ty = getCertifiedSigType(y);
+        return sigZeroPad(x, smartIntCast(ty , self(y)));
+    }
 
     // Tables
     else if (isSigRDTbl(sig, tb, ri)) {
