@@ -215,6 +215,8 @@ static string addSuffix(const string& num)
  * Convert a single precision real into a string.
  * Adjusts the precision p to the needs.
  */
+const int MAX_PRECISION = 32;
+
 string TAux(float n)
 {
     char c[512];
@@ -222,6 +224,9 @@ string TAux(float n)
 
     do {
         snprintf(c, 512, "%.*g", p++, n);
+        if (p > MAX_PRECISION) {
+            break;
+        }
     } while (strtof(c, 0) != n);
 
     ensureFloat(c);
@@ -247,22 +252,34 @@ string TAux(double n)
         float v = (float)n;
         do {
             snprintf(c, 512, "%.*g", p++, v);
+            if (p > MAX_PRECISION) {
+                break;
+            }
             endp = nullptr;
         } while (strtof(c, &endp) != v);
     } else if (gGlobal->gFloatSize == 2) {
         do {
             snprintf(c, 512, "%.*g", p++, n);
+            if (p > MAX_PRECISION) {
+                break;
+            }
             endp = nullptr;
         } while (strtod(c, &endp) != n);
     } else if (gGlobal->gFloatSize == 3) {
         long double q = (long double)n;
         do {
             snprintf(c, 512, "%.*Lg", p++, q);
+            if (p > MAX_PRECISION) {
+                break;
+            }
             endp = nullptr;
         } while (strtold(c, &endp) != q);
     } else if (gGlobal->gFloatSize == 4) {
         do {
             snprintf(c, 512, "%.*g", p++, n);
+            if (p > MAX_PRECISION) {
+                break;
+            }
             endp = nullptr;
         } while (strtod(c, &endp) != n);
     } else {
@@ -293,22 +310,34 @@ string TAux(long double n)
         float v = (float)n;
         do {
             snprintf(c, 512, "%.*g", p++, v);
+            if (p > MAX_PRECISION) {
+                break;
+            }
             endp = nullptr;
         } while (strtof(c, &endp) != v);
     } else if (gGlobal->gFloatSize == 2) {
         do {
             snprintf(c, 512, "%.*Lg", p++, n);
+            if (p > MAX_PRECISION) {
+                break;
+            }
             endp = nullptr;
         } while (strtod(c, &endp) != n);
     } else if (gGlobal->gFloatSize == 3) {
         long double q = (long double)n;
         do {
             snprintf(c, 512, "%.*Lg", p++, q);
+            if (p > MAX_PRECISION) {
+                break;
+            }
             endp = nullptr;
         } while (strtold(c, &endp) != q);
     } else if (gGlobal->gFloatSize == 4) {
         do {
             snprintf(c, 512, "%.*Lg", p++, n);
+            if (p > MAX_PRECISION) {
+                break;
+            }
             endp = nullptr;
         } while (strtod(c, &endp) != n);
     } else {
