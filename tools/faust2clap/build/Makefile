@@ -162,6 +162,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named faust_gui_glue
+
+# Build rule for target.
+faust_gui_glue: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 faust_gui_glue
+.PHONY : faust_gui_glue
+
+# fast build rule for target.
+faust_gui_glue/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/faust_gui_glue.dir/build.make CMakeFiles/faust_gui_glue.dir/build
+.PHONY : faust_gui_glue/fast
+
+#=============================================================================
 # Target rules for targets named FFT
 
 # Build rule for target.
@@ -803,6 +816,30 @@ Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spat.dir/build.make CMakeFiles/spat.dir/Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.cpp.s
 .PHONY : Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.cpp.s
 
+lib/faust_gui_glue.o: lib/faust_gui_glue.cpp.o
+.PHONY : lib/faust_gui_glue.o
+
+# target to build an object file
+lib/faust_gui_glue.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/faust_gui_glue.dir/build.make CMakeFiles/faust_gui_glue.dir/lib/faust_gui_glue.cpp.o
+.PHONY : lib/faust_gui_glue.cpp.o
+
+lib/faust_gui_glue.i: lib/faust_gui_glue.cpp.i
+.PHONY : lib/faust_gui_glue.i
+
+# target to preprocess a source file
+lib/faust_gui_glue.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/faust_gui_glue.dir/build.make CMakeFiles/faust_gui_glue.dir/lib/faust_gui_glue.cpp.i
+.PHONY : lib/faust_gui_glue.cpp.i
+
+lib/faust_gui_glue.s: lib/faust_gui_glue.cpp.s
+.PHONY : lib/faust_gui_glue.s
+
+# target to generate assembly for a file
+lib/faust_gui_glue.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/faust_gui_glue.dir/build.make CMakeFiles/faust_gui_glue.dir/lib/faust_gui_glue.cpp.s
+.PHONY : lib/faust_gui_glue.cpp.s
+
 lib/plugin.o: lib/plugin.cc.o
 .PHONY : lib/plugin.o
 
@@ -892,6 +929,7 @@ help:
 	@echo "... UITester"
 	@echo "... compressor"
 	@echo "... echo"
+	@echo "... faust_gui_glue"
 	@echo "... flanger"
 	@echo "... fourSourcesToOcto"
 	@echo "... freeverb"
@@ -956,6 +994,9 @@ help:
 	@echo "... Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.o"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.i"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.s"
+	@echo "... lib/faust_gui_glue.o"
+	@echo "... lib/faust_gui_glue.i"
+	@echo "... lib/faust_gui_glue.s"
 	@echo "... lib/plugin.o"
 	@echo "... lib/plugin.i"
 	@echo "... lib/plugin.s"

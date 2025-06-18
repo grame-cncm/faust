@@ -14,9 +14,12 @@ Compilation options: -a /Users/cucu/Documents/GitHub/faust/architecture/clap/cla
 
 //includes for faust dsp and ui
 #include <faust/dsp/dsp.h>
+#include <faust/dsp/poly-dsp.h>
 #include <faust/gui/MapUI.h>
 #include <faust/gui/meta.h>
-
+#include <faust/gui/MidiUI.h> //midi ui mapping
+#include <faust/midi/midi.h> //faust midi types
+#include <faust/gui/UI.h>
 //include for cpp logging
 #include <iostream>
 
@@ -24,6 +27,9 @@ Compilation options: -a /Users/cucu/Documents/GitHub/faust/architecture/clap/cla
 #include <clap/helpers/plugin.hh>
 #include <clap/helpers/host-proxy.hh>
 #include <clap/events.h>
+#include <clap/ext/note-ports.h> //clap note port api
+
+
 
 //guarded MapUI subclass to prevent accidental param writes
 struct GuardedUI : public MapUI {
@@ -2722,9 +2728,12 @@ class mydsp : public dsp {
 
 };
 
+class GainPlugin;
+
 using Base = clap::helpers::Plugin<
     clap::helpers::MisbehaviourHandler::Terminate,
     clap::helpers::CheckingLevel::Minimal>;
+
 
 static const clap_plugin_descriptor_t gain_desc = {
     .clap_version = CLAP_VERSION_INIT,
@@ -2743,17 +2752,25 @@ class GainPlugin final : public Base {
 public:
     int fNumInputs = 0;
     int fNumOutputs = 0;
-    mydsp fDSP;
+    mydsp* fBaseDSP = nullptr;//original Faust DSP
+    mydsp_poly* fDSP = nullptr;//midi-aware wrapper
+    MidiUI fMIDI;
+
     GuardedUI fUI;
     std::vector<std::string> fParamAddresses;
     std::vector<float> fExpectedValues;
     bool fHasFlushed = false;
 
     GainPlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
-    : Base(desc, host) {}
+: Base(desc, host), fMIDI(nullptr) {}
 
     bool init() noexcept override {
-        fDSP.buildUserInterface(&fUI);
+        fBaseDSP = new mydsp();
+        fDSP = new mydsp_poly(fBaseDSP, 16, true, true); //16 voices,and other poly config
+        fDSP->buildUserInterface(&fUI); //ui as before
+        fMIDI.addMidiIn(fDSP); //wire midi
+        fDSP->buildUserInterface(&fMIDI);//map midi
+
         fParamAddresses.clear();
         for (int i = 0; i < fUI.getParamsCount(); ++i) {
             auto shortname = fUI.getParamShortname(i);
@@ -2773,14 +2790,13 @@ public:
     }
 
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override {
-        fDSP.init(sampleRate);
-        fNumInputs = fDSP.getNumInputs();
-        fNumOutputs = fDSP.getNumOutputs();
+        fDSP->init(sampleRate);
+        fNumInputs = fDSP->getNumInputs();
+        fNumOutputs = fDSP->getNumOutputs();
         std::cerr << "[activate] Sample rate: " << sampleRate << std::endl;
         std::cerr << "[activate] Input channels: " << fNumInputs << ", Output channels: " << fNumOutputs << std::endl;
         return true;
     }
-
 
     bool applyParamEventIfValid(const clap_event_header_t* hdr) {
         if (hdr->space_id != CLAP_CORE_EVENT_SPACE_ID) {
@@ -2796,6 +2812,44 @@ public:
         fUI.setParamValue(fParamAddresses[evParam->param_id], evParam->value);
         fExpectedValues[evParam->param_id] = evParam->value;
 
+        return true;
+    }
+
+    void handleNoteEvent(const clap_event_header_t* hdr) {
+        if (hdr->space_id != CLAP_CORE_EVENT_SPACE_ID)
+            return;
+
+        switch (hdr->type) {
+            case CLAP_EVENT_NOTE_ON: {
+                auto* ev = reinterpret_cast<const clap_event_note_t*>(hdr);
+                fMIDI.keyOn(ev->channel, ev->key, ev->velocity, 0);
+                break;
+            }
+            case CLAP_EVENT_NOTE_OFF: {
+                auto* ev = reinterpret_cast<const clap_event_note_t*>(hdr);
+                fMIDI.keyOff(ev->channel, ev->key, ev->velocity, 0);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+
+    bool implementsNotePorts() const noexcept override { return true; }
+
+    uint32_t notePortsCount(bool isInput) const noexcept override {
+        return isInput ? 1 : 0; // ✨ advertise 1 MIDI in port
+    }
+
+    bool notePortsInfo(uint32_t index, bool isInput, clap_note_port_info_t* info) const noexcept override {
+        if (!isInput || index != 0) return false;
+
+        std::memset(info, 0, sizeof(*info));
+        info->id = index;
+        snprintf(info->name, sizeof(info->name), "MIDI In");
+        info->supported_dialects = CLAP_NOTE_DIALECT_CLAP;
+        info->preferred_dialect = CLAP_NOTE_DIALECT_CLAP;
         return true;
     }
 
@@ -2821,12 +2875,15 @@ public:
             return CLAP_PROCESS_ERROR;
             }
 
-        //apply param events
+        //apply param events and MIDI note events
         if (auto events = process->in_events) {
             for (uint32_t i = 0, N = events->size(events); i < N; ++i) {
-                applyParamEventIfValid(events->get(events, i));
+                const clap_event_header_t* hdr = events->get(events, i);
+                applyParamEventIfValid(hdr);    //existing param logic
+                handleNoteEvent(hdr);           //new midi handler
             }
         }
+
 
         //prepare pointers
         FAUSTFLOAT* inputs[fNumInputs];
@@ -2838,7 +2895,7 @@ public:
 
         //process audio
         GuardedScope guard(fUI, "full-buffer");
-        fDSP.compute(process->frames_count, inputs, outputs);
+        fDSP->compute(process->frames_count, inputs, outputs);
 
         return CLAP_PROCESS_CONTINUE;
     }

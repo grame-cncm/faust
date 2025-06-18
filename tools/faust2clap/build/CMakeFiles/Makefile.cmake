@@ -144,6 +144,7 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
+  "CMakeFiles/faust_gui_glue.dir/DependInfo.cmake"
   "CMakeFiles/FFT.dir/DependInfo.cmake"
   "CMakeFiles/UITester.dir/DependInfo.cmake"
   "CMakeFiles/compressor.dir/DependInfo.cmake"

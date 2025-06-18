@@ -1,3 +1,4 @@
+/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/faust_gui_glue.dir
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/FFT.dir
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/UITester.dir
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/compressor.dir
