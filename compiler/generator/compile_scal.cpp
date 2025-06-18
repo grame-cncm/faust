@@ -2213,9 +2213,11 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
 }
 
 #endif
+
 // Upsampling: generate the code of the upsampling circuit
 // - first the input signals are computed
 // - then the output signals in an if (clock) statement
+#if 0
 string ScalarCompiler::generateUS(Tree sig, const tvec& w)
 {
     // 1/ We extract the clock, the inputs and the outputs signals
@@ -2264,10 +2266,27 @@ string ScalarCompiler::generateUS(Tree sig, const tvec& w)
     // 7/ There is no compiled expression
     return "US not used directly";
 }
+#else
+string ScalarCompiler::generateUS(Tree sig, const tvec& w)
+{
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    fClass->openUSblock(CS(clock));
+    // Then its internal signals
+    for (Tree x : fHschedule.sigsched[sig].elements()) {
+        CS(x);
+    }
+    fClass->closeUSblock();
+    
+    // There is no compiled expression
+    return "US not used directly";
+}
+#endif
 
 // Downsampling: generate the code of the downsampling circuit
 // - first the input signals are computed
 // - then the output signals in an if (clock) statement
+#if 0
 string ScalarCompiler::generateDS(Tree sig, const tvec& w)
 {
     // 1/ We extract the clock, the inputs and the outputs signals
@@ -2316,3 +2335,19 @@ string ScalarCompiler::generateDS(Tree sig, const tvec& w)
     // 7/ There is no compiled expression
     return "DS not used directly";
 }
+#else
+string ScalarCompiler::generateDS(Tree sig, const tvec& w)
+{
+    faustassert(w.size() > 2);
+    Tree clock = w[0];
+    fClass->openDSblock(CS(clock), declareRetrieveDSName(clock));
+    // Then its internal signals
+    for (Tree x : fHschedule.sigsched[sig].elements()) {
+        CS(x);
+    }
+    fClass->closeDSblock();
+    
+    // There is no compiled expression
+    return "DS not used directly";
+}
+#endif
