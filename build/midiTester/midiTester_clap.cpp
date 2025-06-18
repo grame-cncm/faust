@@ -24,6 +24,7 @@ Compilation options: -a /Users/cucu/Documents/GitHub/faust/architecture/clap/cla
 #include <faust/midi/midi.h> //faust midi types
 #include <faust/gui/UI.h>
 #include <faust/gui/GUI.h>
+#include <faust/midi/rt-midi.h> //added for real-time MIDI handler
 //include for cpp logging
 #include <iostream>
 
@@ -36,25 +37,65 @@ Compilation options: -a /Users/cucu/Documents/GitHub/faust/architecture/clap/cla
 //guarded MapUI subclass to prevent accidental param writes
 struct GuardedUI : public MapUI {
     bool allowWrite = false;
+
+    struct ParamMeta {
+        FAUSTFLOAT init;
+        FAUSTFLOAT min;
+        FAUSTFLOAT max;
+    };
+    std::vector<ParamMeta> paramRanges;
+
     void setParamValue(const std::string& path, FAUSTFLOAT val) {
-        if (!allowWrite) {
-            std::abort(); //catch unintended writes early
-        }
+        if (!allowWrite) std::abort();
         MapUI::setParamValue(path, val);
     }
 
     void setParamValue(int index, FAUSTFLOAT val) {
-        std::string addr = getParamAddress(index);
         if (!allowWrite) return;
+        std::string addr = getParamAddress(index);
         MapUI::setParamValue(addr, val);
     }
 
     void guardedSetByIndex(int index, FAUSTFLOAT val) {
-        std::string addr = getParamAddress(index);
         if (!allowWrite) return;
+        std::string addr = getParamAddress(index);
         MapUI::setParamValue(addr, val);
     }
+
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone,
+                           FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step) override {
+        MapUI::addVerticalSlider(label, zone, init, fmin, fmax, step);
+        paramRanges.push_back({init, fmin, fmax});
+    }
+
+    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone,
+                             FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step) override {
+        MapUI::addHorizontalSlider(label, zone, init, fmin, fmax, step);
+        paramRanges.push_back({init, fmin, fmax});
+    }
+
+    void addNumEntry(const char* label, FAUSTFLOAT* zone,
+                     FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step) override {
+        MapUI::addNumEntry(label, zone, init, fmin, fmax, step);
+        paramRanges.push_back({init, fmin, fmax});
+    }
+
+    FAUSTFLOAT getParamMin(int index) const {
+        if (index < 0 || index >= int(paramRanges.size())) return 0.f;
+        return paramRanges[index].min;
+    }
+
+    FAUSTFLOAT getParamMax(int index) const {
+        if (index < 0 || index >= int(paramRanges.size())) return 1.f;
+        return paramRanges[index].max;
+    }
+
+    FAUSTFLOAT getParamInit(int index) const {
+        if (index < 0 || index >= int(paramRanges.size())) return 0.5f;
+        return paramRanges[index].init;
+    }
 };
+
 
 struct GuardedScope {
     GuardedUI& ui;
@@ -454,6 +495,7 @@ using Base = clap::helpers::Plugin<
     clap::helpers::MisbehaviourHandler::Terminate,
     clap::helpers::CheckingLevel::Minimal>;
 
+
 static const char* gain_features[] = { CLAP_PLUGIN_FEATURE_AUDIO_EFFECT, nullptr };
 
 static const clap_plugin_descriptor_t gain_desc = {
@@ -469,52 +511,67 @@ static const clap_plugin_descriptor_t gain_desc = {
     .features = gain_features
 };
 
-
-
 class GainPlugin final : public Base {
 public:
     int fNumInputs = 0;
     int fNumOutputs = 0;
-    mydsp* fBaseDSP = nullptr; // original Faust DSP
-    mydsp_poly* fDSP = nullptr; // MIDI-aware wrapper
-    MidiUI fMIDI;
+    mydsp* fBaseDSP = nullptr; //original Faust DSP
+    mydsp_poly* fDSP = nullptr; //midi-aware wrapper
+
+    rt_midi fRtMidi {"CLAP-MIDI"};
+    MidiUI fMIDI {&fRtMidi};
 
     GuardedUI fUI;
     std::vector<std::string> fParamAddresses;
     std::vector<float> fExpectedValues;
+    std::vector<int> fParamIndices;
     bool fHasFlushed = false;
+    bool fIsProcessing = false;
 
     GainPlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
-        : Base(desc, host), fMIDI(nullptr) {}
+        : Base(desc, host) {}
 
     bool init() noexcept override {
         fBaseDSP = new mydsp();
         fDSP = new mydsp_poly(fBaseDSP, 16, true, true);
         fDSP->buildUserInterface(&fUI);
-        fMIDI.addMidiIn(fDSP);
+        fRtMidi.addMidiIn(fDSP);
         fDSP->buildUserInterface(&fMIDI);
 
         fParamAddresses.clear();
         fExpectedValues.clear();
+        fParamIndices.clear();
 
         for (int i = 0; i < fUI.getParamsCount(); ++i) {
             std::string shortname = fUI.getParamShortname(i);
             if (shortname.empty()) continue;
             fParamAddresses.emplace_back(shortname);
-            float val = fUI.getParamValue(shortname);
-
-            fExpectedValues.push_back(val);
+            fExpectedValues.push_back(fUI.getParamValue(shortname));
+            fParamIndices.push_back(i); //i is index in MapUI
         }
+
         return true;
     }
 
     bool startProcessing() noexcept override {
-        return Base::startProcessing();
+        fIsProcessing = true;
+
+        //calls the CLAP method and sets the status
+        if (!clapPlugin()->start_processing(clapPlugin())) {
+            std::cerr << "[startProcessing] failed\n";
+            return false;
+        }
+
+        return Base::startProcessing();  //keep the helper layer happy
     }
 
+
     void stopProcessing() noexcept override {
+        fIsProcessing = false;
+        clapPlugin()->stop_processing(clapPlugin());
         Base::stopProcessing();
     }
+
 
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override {
         fDSP->init(sampleRate);
@@ -530,8 +587,10 @@ public:
             return false;
 
         const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
-        if (ev->param_id >= fParamAddresses.size()) return false;
-        if (fParamAddresses[ev->param_id].empty()) return false;
+        if (!ev || ev->param_id >= fParamAddresses.size() || ev->param_id >= fExpectedValues.size())
+            return false;
+        if (fParamAddresses[ev->param_id].empty())
+            return false;
 
         GuardedScope guard(fUI, "applyParamEvent");
         fUI.setParamValue(fParamAddresses[ev->param_id], ev->value);
@@ -553,6 +612,15 @@ public:
                 fMIDI.keyOff(ev->channel, ev->key, ev->velocity, 0);
                 break;
             }
+            case CLAP_EVENT_MIDI: {
+                auto* ev = reinterpret_cast<const clap_event_midi_t*>(hdr);
+                fMIDI.keyOn(ev->data[0] & 0x0F, ev->data[1], ev->data[2], 0);
+                break;
+            }
+            case CLAP_EVENT_NOTE_EXPRESSION: {
+                //optional: implement per-note expression handling
+                break;
+            }
         }
     }
 
@@ -563,7 +631,9 @@ public:
         return nullptr;
     }
 
-        clap_process_status process(const clap_process_t* process) noexcept override {
+    clap_process_status process(const clap_process_t* process) noexcept override {
+        if (!fIsProcessing)
+            return CLAP_PROCESS_SLEEP;
         if (!process || process->audio_inputs_count < 1 || process->audio_outputs_count < 1)
             return CLAP_PROCESS_ERROR;
 
@@ -604,7 +674,7 @@ public:
         std::memset(info, 0, sizeof(*info));
         info->id = index;
         std::snprintf(info->name, sizeof(info->name), "MIDI In");
-        info->supported_dialects = CLAP_NOTE_DIALECT_CLAP;
+        info->supported_dialects = CLAP_NOTE_DIALECT_CLAP | CLAP_NOTE_DIALECT_MIDI;
         info->preferred_dialect = CLAP_NOTE_DIALECT_CLAP;
         return true;
     }
@@ -624,8 +694,10 @@ public:
         if (!stream || !stream->read) return false;
         uint32_t paramCount = 0;
         if (!stream->read(stream, &paramCount, sizeof(paramCount))) return false;
-        if (paramCount != fExpectedValues.size()) return false;
-
+        if (paramCount > fExpectedValues.size())
+            return false;
+        if (paramCount != fExpectedValues.size())
+            return false;
         for (uint32_t i = 0; i < paramCount; ++i) {
             float v;
             if (!stream->read(stream, &v, sizeof(v))) return false;
@@ -633,6 +705,12 @@ public:
             fUI.setParamValue(fParamAddresses[i], v);
             fExpectedValues[i] = v;
         }
+
+        if (_host.canUseParams()) {
+            _host.paramsRescan(CLAP_PARAM_RESCAN_VALUES | CLAP_PARAM_RESCAN_ALL);
+            _host.paramsRequestFlush();
+        }
+
         return true;
     }
 
@@ -646,21 +724,28 @@ public:
         const char* name = fParamAddresses[index].c_str();
         if (name[0] == '/') ++name;
         std::snprintf(info->name, sizeof(info->name), "%s", name);
-        info->min_value = 0.f;
-        info->max_value = 1.f;
-        info->default_value = 0.5f;
+
+        FAUSTFLOAT min = fUI.getParamMin(index);
+        FAUSTFLOAT max = fUI.getParamMax(index);
+        FAUSTFLOAT init = fUI.getParamInit(index);
+
+        info->min_value = min;
+        info->max_value = max;
+        info->default_value = init;
         info->flags = CLAP_PARAM_IS_AUTOMATABLE;
         return true;
     }
 
     bool paramsValue(clap_id id, double* value) noexcept override {
-        if (id >= fExpectedValues.size() || !value) return false;
+        if (!value || id >= fExpectedValues.size())
+            return false;
         *value = fExpectedValues[id];
         return true;
     }
 
     bool paramsTextToValue(clap_id id, const char* text, double* outValue) noexcept override {
-        if (!text || id >= fExpectedValues.size()) return false;
+        if (!text || !outValue || id >= fExpectedValues.size())
+            return false;
         try {
             *outValue = std::stod(text);
             return true;
@@ -670,7 +755,8 @@ public:
     }
 
     bool paramsValueToText(clap_id id, double value, char* outBuffer, uint32_t bufferSize) noexcept override {
-        if (!outBuffer || bufferSize < 1 || id >= fExpectedValues.size()) return false;
+        if (!outBuffer || bufferSize == 0 || id >= fExpectedValues.size())
+            return false;
         std::snprintf(outBuffer, bufferSize, "%.3f", value);
         return true;
     }
@@ -680,7 +766,9 @@ public:
         fHasFlushed = true;
         for (uint32_t i = 0; i < in->size(in); ++i) {
             const clap_event_header_t* hdr = in->get(in, i);
+            if (!hdr) continue;
             applyParamEventIfValid(hdr);
+            handleNoteEvent(hdr);
         }
     }
 

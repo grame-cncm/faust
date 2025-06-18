@@ -305,6 +305,12 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 //Copy the CLAP plugin to system folder after build
 COPY_AFTER_BUILD:BOOL=ON
 
+//Hardcoded RtMidi include path
+RTMIDI_INCLUDE_DIR:PATH=/opt/homebrew/Cellar/rtmidi/6.0.0/include
+
+//Hardcoded RtMidi lib path
+RTMIDI_LIBRARY:FILEPATH=/opt/homebrew/Cellar/rtmidi/6.0.0/lib/librtmidi.dylib
+
 //Value Computed by CMake
 clap-helpers_BINARY_DIR:STATIC=/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/clap-helpers
 
