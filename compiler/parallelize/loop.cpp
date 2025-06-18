@@ -294,7 +294,7 @@ void Loop::closeDSblock()
     faustassert(b);
     fCodeStack.pop();
 
-    addExecCode(Statement("", subst("if (($0 % $1) == 0) {", b->fDSCounter, b->fDSfactor)));
+    addExecCode(Statement("", subst("if (($1 != 0) & ($0 % $1) == 0) {", b->fDSCounter, b->fDSfactor)));
     for (Statement s : b->fPreCode) {
         addExecCode(s.indent());
     }
