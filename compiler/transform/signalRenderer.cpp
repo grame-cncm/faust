@@ -335,7 +335,6 @@ void SignalRenderer<REAL>::visit(Tree sig)
         int index = fIOTA % size;
         self(sig->branch(index));
     } else if (isProj(sig, &proj_idx_val, x_tree) && isRec(x_tree, rec_vars, rec_exprs)) {
-       
         // First visit of the recursive signal
         if (fVisited.find(sig) == fVisited.end()) {
             faustassert(isRec(x_tree, rec_vars, rec_exprs));

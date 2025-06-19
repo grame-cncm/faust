@@ -253,7 +253,6 @@ struct SignalRenderer : public SignalVisitor {
 
         void allocateDelayLineAux(Tree x, int delay)
         {
-            
             int nature = getCertifiedSigType(x)->nature();  // Nature of the signal being delayed
             int N      = pow2limit(delay + 1);              // Max delay rounded up to power of 2
 
@@ -285,7 +284,8 @@ struct SignalRenderer : public SignalVisitor {
                     fRealDelays[x].resize(std::max(int(fRealDelays[x].size()), N));
                     /*
                     if (global::isDebug("SIG_RENDERER")) {
-                        std::cout << "allocateDelayLineAux RESIZE REAL " << ppsig(x, 8) << std::endl;
+                        std::cout << "allocateDelayLineAux RESIZE REAL " << ppsig(x, 8) <<
+                    std::endl;
                     }
                     */
                 }
@@ -588,34 +588,37 @@ struct SignalRenderer : public SignalVisitor {
  */
 template <class REAL>
 struct SignalPrintRenderer : public SignalRenderer<REAL> {
-    
     SignalPrintRenderer() = default;
-    
+
     SignalPrintRenderer(Tree lsig) : SignalRenderer<REAL>(lsig)
     {
         std::cout << "======== Delays and tables ========" << std::endl;
         for (const auto& it : this->fIntDelays) {
-            std::cout << "fIntDelays : " << ppsig(it.first, 16) << " " << it.second.size() << std::endl;
+            std::cout << "fIntDelays : " << ppsig(it.first, 16) << " " << it.second.size()
+                      << std::endl;
         }
         for (const auto& it : this->fRealDelays) {
-            std::cout << "fRealDelays : " << ppsig(it.first, 16) << " " << it.second.size() << std::endl;
+            std::cout << "fRealDelays : " << ppsig(it.first, 16) << " " << it.second.size()
+                      << std::endl;
         }
         for (const auto& it : this->fIntTables) {
-            std::cout << "fIntTables : " << ppsig(it.first, 16) << " " << it.second.size() << std::endl;
+            std::cout << "fIntTables : " << ppsig(it.first, 16) << " " << it.second.size()
+                      << std::endl;
         }
         for (const auto& it : this->fRealTables) {
-            std::cout << "fRealTables : " << ppsig(it.first, 16) << " " << it.second.size() << std::endl;
+            std::cout << "fRealTables : " << ppsig(it.first, 16) << " " << it.second.size()
+                      << std::endl;
         }
         std::cout << "===================================" << std::endl;
     }
-    
+
     virtual Node writeReadDelay(Tree x, Node& v1, Node& v2) override
     {
         std::cout << "========= writeReadDelay : " << ppsig(x, 8) << " =========" << std::endl;
         std::cout << "v1 : " << v1 << ", v2 : " << v2 << std::endl;
         return SignalRenderer<REAL>::writeReadDelay(x, v1, v2);
     }
-    
+
     virtual Node readDelay(Tree x, Node& v2) override
     {
         std::cout << "========= readDelay : " << ppsig(x, 8) << " =========" << std::endl;
