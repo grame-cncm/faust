@@ -310,6 +310,9 @@ wasm:
 	$(MAKE) -f Make.web wasm wasmdir=wasm/double/ftz1    FAUSTOPTIONS="-I dsp -ftz 1"
 	$(MAKE) -f Make.web wasm wasmdir=wasm/double/ftz2    FAUSTOPTIONS="-I dsp -ftz 2"
 
+wasm-od:
+	$(MAKE) -f Make.web-od wasm wasmdir=wasmod/double    FAUSTOPTIONS="-I dsp"
+
 wast:
 	$(MAKE) -f Make.web wast wastdir=wast/double         FAUSTOPTIONS="-I dsp"
 	$(MAKE) -f Make.web wast wastdir=wast/double/lp      FAUSTOPTIONS="-I dsp -fp"
@@ -343,6 +346,11 @@ llvm:
 	$(MAKE) -f Make.llvm outdir=llvm/double/vec/g         FAUSTOPTIONS="-I dsp -vec -lv 1 -g"
 	$(MAKE) -f Make.llvm outdir=llvm/double/vec/gfun      FAUSTOPTIONS="-I dsp -vec -lv 1 -g -fun"
 	#$(MAKE) -f Make.llvm outdir=llvm/double/sch FAUSTOPTIONS="-I dsp -sch"
+
+# llvm backend testing ondemand
+llvm-od:
+	export FAUST_OPT=FAUST_LLVM_NO_FM; \
+	$(MAKE) -f Make.llvm-od outdir=llvmod/double           FAUSTOPTIONS="-I dsp"
 
 #########################################################################
 # llvm backend in object code mode
