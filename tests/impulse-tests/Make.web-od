@@ -1,0 +1,109 @@
+#
+# Makefile for generating ir using wasm, wast...
+#
+
+system := $(shell uname -s)
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+ifeq ($(system), MINGW)
+ FAUST ?= ../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
+else
+ FAUST ?= ../../build/bin/faust
+ COMPARE := ./filesCompare
+endif
+MAKE ?= make
+
+wasmdir ?= wasm
+wastdir ?= wast
+lang ?= wasm
+wasmarch ?= ../../architecture/webaudio/wasm-standalone-node-wrapper-double.js
+wastarch ?= ../../architecture/webaudio/wasm-standalone-node-wrapper-double.js
+FAUSTOPTIONS ?= 
+
+.PHONY: test 
+
+dspfiles := $(wildcard od/*.dsp)
+listfiles = $(dspfiles:od/%.dsp=ir/$1/%.ir) 
+
+SRCDIR := tools
+
+all:
+	$(MAKE) -f Make.web
+
+test:
+	@echo $(call listfiles,$(outdir))
+
+help:
+	@echo "-------- FAUST impulse response tests --------"
+	@echo "Available targets are:"
+	@echo " 'wasm'           : check the double output using the wasm backend"
+	@echo " 'wast'           : check the double output using the wast backend"
+	@echo
+	@echo "Options:"
+	@echo " 'outdir' 	   : define the output directory (default to 'wasm')"
+	@echo " 'FAUSTOPTIONS' : define additional faust options (empty by default)"
+
+#########################################################################
+# web backends
+wasm:  ir/$(wasmdir) $(call listfiles,$(wasmdir))
+wast:  ir/$(wastdir) $(call listfiles,$(wastdir))
+
+#########################################################################
+# output directories
+ir/$(wasmdir):
+	mkdir -p ir/$(wasmdir)
+ir/$(wastdir):
+	mkdir -p ir/$(wastdir)
+
+#########################################################################
+# tools
+filesCompare: $(SRCDIR)/filesCompare.cpp
+	$(MAKE) filesCompare
+
+#########################################################################
+# rules for wasm
+ir/$(wasmdir)/%.ir: ir/$(wasmdir)/%.js reference/%.ir
+	cd $(dir $<) && node --expose-wasm $(notdir $<) > $(notdir $@) || (rm -f $@; false)
+	$(COMPARE) $@ reference/$(notdir $@) -1 -part || (rm -f $@; false)
+	
+ir/$(wasmdir)/%.js : ir/$(wasmdir)/%.wasm
+	cat $(wasmarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
+	mv $@.tmp $@
+	
+ir/$(wasmdir)/%.wasm : od/%.dsp
+	$(FAUST) -double -lang wasm -I dsp -i $(FAUSTOPTIONS) $< -o $@
+	
+# Specific rule to test 'control' primitive, using a 'fake' test...
+ir/$(wasmdir)/control.wasm : od/control.dsp
+	$(FAUST) -double -lang wasm -I dsp -i $(FAUSTOPTIONS) od/simulated_control.dsp -o $@
+
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+ir/$(wasmdir)/osc_enable.wasm : od/osc_enable.dsp
+	@echo "Can only be tested in scalar mode"
+	$(FAUST) -double -lang wasm -I dsp -i $< -o $@
+
+#########################################################################
+# rules for wast
+ir/$(wastdir)/%.ir: ir/$(wastdir)/%.js reference/%.ir
+	cd $(dir $<) && node --expose-wasm $(notdir $<) > $(notdir $@) || (rm -f $@; false)
+	$(COMPARE) $@ reference/$(notdir $@) -1 -part || (rm -f $@; false)
+
+ir/$(wastdir)/%.js : ir/$(wastdir)/%.wast
+	cat $(wastarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
+	mv $@.tmp $@
+
+ir/$(wastdir)/%.wast : od/%.dsp
+	$(FAUST) -double -lang wast -i $(FAUSTOPTIONS) $<  -o $@
+	wasm-as $@ -o $(patsubst %.wast,%.wasm,$@)
+
+# Specific rule to test 'control' primitive, using a 'fake' test...
+ir/$(wastdir)/control.wast : od/control.dsp
+	$(FAUST) -double -lang wast -i $(FAUSTOPTIONS) od/simulated_control.dsp -o $@
+	wasm-as $@ -o $(patsubst %.wast,%.wasm,$@)
+
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+ir/$(wastdir)/osc_enable.wast : od/osc_enable.dsp
+	@echo "Can only be tested in scalar mode"
+	$(FAUST) -double -lang wast -i  $< -o $@
+	wasm-as $@ -o $(patsubst %.wast,%.wasm,$@)
+

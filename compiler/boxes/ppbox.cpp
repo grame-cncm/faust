@@ -611,6 +611,14 @@ ostream& boxppShared::print(ostream& fout) const
     } else if (isBoxIProd(fBox, t1, t2, t3)) {
         BOX_INSERT_ID(s << "prod(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {"
                         << boxppShared(t3) << "}");
+
+    } else if (isBoxOndemand(fBox, t1)) {
+        BOX_INSERT_ID(s << "ondemand(" << boxppShared(t1) << ")");
+    } else if (isBoxUpsampling(fBox, t1)) {
+        BOX_INSERT_ID(s << "upsampling(" << boxppShared(t1) << ")");
+    } else if (isBoxUpsampling(fBox, t1)) {
+        BOX_INSERT_ID(s << "downsampling(" << boxppShared(t1) << ")");
+
     } else if (isBoxInputs(fBox, t1)) {
         BOX_INSERT_ID(s << "inputs(" << boxppShared(t1) << ")");
     } else if (isBoxOutputs(fBox, t1)) {
