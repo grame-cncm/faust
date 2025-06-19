@@ -30,12 +30,30 @@ bool needSubGraph(Tree sig, Tree& clk)
  */
 bool isExternal(Tree clkenv, Tree sig)
 {
-    // Handle clocked signals
-    if (Tree ce, x; isSigClocked(sig, ce, x)) {
-        if (clkenv != ce) {
+    // handle tempvar signals
+    if (Tree content; isSigTempVar(sig, content)) {
+        Tree clk2, sig2;
+        faustassert(isSigClocked(content, clk2, sig2));
+        if (clkenv == clk2) {
+            // std::cerr << "related to clock " << clkenv << " the tempvar " << ppsig(sig)
+            //           << " is internal !" << std::endl;
+            return false;
+        } else {
+            // std::cerr << "related to clock " << clkenv << " the tempvar " << ppsig(sig)
+            //           << " is external !" << std::endl;
             return true;
         }
     }
+    // Handle clocked signals
+    if (Tree ce, x; isSigClocked(sig, ce, x)) {
+        // std::cerr << "isExternal(" << ce << ", " << ppsig(x) << ")" << std::endl;
+        if (clkenv != ce) {
+            // std::cerr << " YES" << std::endl;
+            return true;
+        }
+        // std::cerr << " NO1" << std::endl;
+    }
+    // std::cerr << " NO2" << std::endl;
     return false;
 }
 
