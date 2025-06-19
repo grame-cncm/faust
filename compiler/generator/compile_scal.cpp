@@ -2277,7 +2277,7 @@ string ScalarCompiler::generateUS(Tree sig, const tvec& w)
         CS(x);
     }
     fClass->closeUSblock();
-    
+
     // There is no compiled expression
     return "US not used directly";
 }
@@ -2346,7 +2346,7 @@ string ScalarCompiler::generateDS(Tree sig, const tvec& w)
         CS(x);
     }
     fClass->closeDSblock();
-    
+
     // There is no compiled expression
     return "DS not used directly";
 }

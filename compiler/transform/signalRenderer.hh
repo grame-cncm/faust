@@ -284,7 +284,8 @@ struct SignalRenderer : public SignalVisitor {
                     fRealDelays[x].resize(std::max(int(fRealDelays[x].size()), N));
                     /*
                     if (global::isDebug("SIG_RENDERER")) {
-                        std::cout << "allocateDelayLine RESIZE REAL " << ppsig(x, 8) << std::endl;
+                        std::cout << "allocateDelayLineAux RESIZE REAL " << ppsig(x, 8) <<
+                        std::endl;
                     }
                     */
                 }
