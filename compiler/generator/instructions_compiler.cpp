@@ -3633,7 +3633,7 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
         }
         fContainer->getCurLoop()->closeODblock();
     }
-    
+
     // There is no compiled expression
     return IB::genNullValueInst();
 }
@@ -3702,7 +3702,7 @@ ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
         CS(x);
     }
     fContainer->getCurLoop()->closeUSblock();
-    
+
     // There is no compiled expression
     return IB::genNullValueInst();
 }
@@ -3771,7 +3771,7 @@ ValueInst* InstructionsCompiler::generateDS(Tree sig, const tvec& w)
         CS(x);
     }
     fContainer->getCurLoop()->closeDSblock();
-    
+
     // There is no compiled expression
     return IB::genNullValueInst();
 }

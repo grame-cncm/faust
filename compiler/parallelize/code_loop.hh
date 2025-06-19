@@ -85,12 +85,10 @@ struct FIRCodeODblock : public FIRCodeblock {
  Code block for IF
  */
 struct FIRCodeIfblock : public FIRCodeblock {
-    ValueInst*  fCond;  ///< condition
-    
-    FIRCodeIfblock(ValueInst* cond) : FIRCodeblock(), fCond(cond)
-    {}
-};
+    ValueInst* fCond;  ///< condition
 
+    FIRCodeIfblock(ValueInst* cond) : FIRCodeblock(), fCond(cond) {}
+};
 
 /*
     Code block for upsampling loops
@@ -280,7 +278,7 @@ class CodeLoop : public virtual Garbageable {
      * Close the current/top OD block.
      */
     void closeODblock();
-    
+
     /**
      * Open a new If block.
      * @param cond the condition of the If block
@@ -290,7 +288,7 @@ class CodeLoop : public virtual Garbageable {
         FIRCodeIfblock* b = new FIRCodeIfblock(cond);
         fCodeStack.push(b);
     }
-    
+
     /**
      * Close the current/top If block.
      */

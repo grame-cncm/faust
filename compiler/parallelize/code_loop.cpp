@@ -369,12 +369,12 @@ void CodeLoop::closeIfblock()
     FIRCodeIfblock* b = dynamic_cast<FIRCodeIfblock*>(fCodeStack.top());
     faustassert(b);
     fCodeStack.pop();
-    
+
     BlockInst* od_block = new BlockInst();
     od_block->pushBackInst(b->fPreInst);
     od_block->pushBackInst(b->fComputeInst);
     od_block->pushBackInst(b->fPostInst);
-     
+
     pushComputeDSPMethod(IB::genIfInst(b->fCond, od_block));
 }
 
@@ -393,7 +393,7 @@ void CodeLoop::closeUSblock()
         IB::genDecLoopVar(b->fLoopIndex, IB::genInt32Typed(), IB::genInt32NumInst(0));
     ValueInst*    loop_end = IB::genLessThan(loop_decl->load(), b->fUSfactor);
     StoreVarInst* loop_inc = loop_decl->store(IB::genAdd(loop_decl->load(), 1));
-  
+
     ForLoopInst* loop = IB::genForLoopInst(loop_decl, loop_end, loop_inc);
     loop->pushFrontInst(us_block);
     // Some backends like Interp and WebAssembly do not support loops with a zero index
