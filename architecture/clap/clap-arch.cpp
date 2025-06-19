@@ -9,11 +9,9 @@
 #include <faust/dsp/poly-dsp.h>
 #include <faust/gui/MapUI.h>
 #include <faust/gui/meta.h>
-#include <faust/gui/MidiUI.h> //midi ui mapping
 #include <faust/midi/midi.h> //faust midi types
 #include <faust/gui/UI.h>
 #include <faust/gui/GUI.h>
-#include <faust/midi/rt-midi.h> //added for real-time MIDI handler
 //include for cpp logging
 #include <iostream>
 
@@ -125,13 +123,11 @@ static const clap_plugin_descriptor_t gain_desc = {
 
 class GainPlugin final : public Base {
 public:
-    int fNumInputs = 0;
-    int fNumOutputs = 0;
+    int fNumInputs = 2; //defautl to stereo??
+    int fNumOutputs = 2;
     mydsp* fBaseDSP = nullptr; //original Faust DSP
     mydsp_poly* fDSP = nullptr; //midi-aware wrapper
 
-    rt_midi fRtMidi {"CLAP-MIDI"};
-    MidiUI fMIDI {&fRtMidi};
 
     GuardedUI fUI;
     std::vector<std::string> fParamAddresses;
@@ -147,8 +143,6 @@ public:
         fBaseDSP = new mydsp();
         fDSP = new mydsp_poly(fBaseDSP, 16, true, true);
         fDSP->buildUserInterface(&fUI);
-        fRtMidi.addMidiIn(fDSP);
-        fDSP->buildUserInterface(&fMIDI);
 
         fParamAddresses.clear();
         fExpectedValues.clear();
@@ -165,23 +159,16 @@ public:
         return true;
     }
 
+
     bool startProcessing() noexcept override {
+        std::cerr << "[startProcessing] called\n";
         fIsProcessing = true;
-
-        //calls the CLAP method and sets the status
-        if (!clapPlugin()->start_processing(clapPlugin())) {
-            std::cerr << "[startProcessing] failed\n";
-            return false;
-        }
-
-        return Base::startProcessing();  //keep the helper layer happy
+        return true;
     }
 
-
     void stopProcessing() noexcept override {
+        std::cerr << "[stopProcessing] called\n";
         fIsProcessing = false;
-        clapPlugin()->stop_processing(clapPlugin());
-        Base::stopProcessing();
     }
 
 
@@ -216,25 +203,34 @@ public:
         switch (hdr->type) {
             case CLAP_EVENT_NOTE_ON: {
                 auto* ev = reinterpret_cast<const clap_event_note_t*>(hdr);
-                fMIDI.keyOn(ev->channel, ev->key, ev->velocity, 0);
+                fDSP->keyOn(ev->channel, ev->key, ev->velocity);
                 break;
             }
             case CLAP_EVENT_NOTE_OFF: {
                 auto* ev = reinterpret_cast<const clap_event_note_t*>(hdr);
-                fMIDI.keyOff(ev->channel, ev->key, ev->velocity, 0);
+                fDSP->keyOff(ev->channel, ev->key, ev->velocity);
                 break;
             }
             case CLAP_EVENT_MIDI: {
                 auto* ev = reinterpret_cast<const clap_event_midi_t*>(hdr);
-                fMIDI.keyOn(ev->data[0] & 0x0F, ev->data[1], ev->data[2], 0);
+                uint8_t status = ev->data[0] & 0xF0;
+                uint8_t channel = ev->data[0] & 0x0F;
+                uint8_t data1 = ev->data[1];
+                uint8_t data2 = ev->data[2];
+
+                switch (status) {
+                    case 0x90: fDSP->keyOn(channel, data1, data2); break;
+                    case 0x80: fDSP->keyOff(channel, data1, data2); break;
+                    case 0xB0: fDSP->ctrlChange(channel, data1, data2); break;
+                    case 0xE0: fDSP->pitchWheel(channel, (data2 << 7) | data1); break;
+                }
                 break;
             }
-            case CLAP_EVENT_NOTE_EXPRESSION: {
-                //optional: implement per-note expression handling
+            default:
                 break;
-            }
         }
     }
+
 
     const void* get_extension(const char* id) noexcept {
         if (std::strcmp(id, CLAP_EXT_NOTE_PORTS) == 0) return (const clap_plugin_note_ports_t*)this;
@@ -244,13 +240,19 @@ public:
     }
 
     clap_process_status process(const clap_process_t* process) noexcept override {
-        if (!fIsProcessing)
+        std::cerr << "[process] Entered process()\n";
+        if (!fIsProcessing) {
+            std::cerr << "[process] fIsProcessing is false\n";
             return CLAP_PROCESS_SLEEP;
+        }
         if (!process || process->audio_inputs_count < 1 || process->audio_outputs_count < 1)
             return CLAP_PROCESS_ERROR;
-
         const auto& inBuffer = process->audio_inputs[0];
         const auto& outBuffer = process->audio_outputs[0];
+
+        std::cerr << "[process] Channel count: input = " << inBuffer.channel_count
+              << ", output = " << outBuffer.channel_count << "\n";
+
 
         if (inBuffer.channel_count < fNumInputs || outBuffer.channel_count < fNumOutputs)
             return CLAP_PROCESS_ERROR;
@@ -275,6 +277,7 @@ public:
 
         GuardedScope guard(fUI, "compute");
         fDSP->compute(process->frames_count, inputs, outputs);
+        std::cerr << "[process] DSP compute finished\n";
         return CLAP_PROCESS_CONTINUE;
     }
 
@@ -392,7 +395,7 @@ public:
         std::memset(info, 0, sizeof(*info));
         info->id = index;
         std::snprintf(info->name, sizeof(info->name), "%s", isInput ? "Input" : "Output");
-        info->channel_count = isInput ? fNumInputs : fNumOutputs;
+        info->channel_count = isInput ? std::max(1, fNumInputs) : std::max(1, fNumOutputs);
         info->flags = CLAP_AUDIO_PORT_IS_MAIN;
         return true;
     }
