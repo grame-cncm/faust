@@ -87,12 +87,14 @@ help:
 	@echo " 'reference'              : build the reference files"
 	@echo " 'reference-box'          : build the reference box files"
 	@echo " 'reference-signal'       : build the reference signal files"
+	@echo " 'reference-signal-sch'   : build the reference signal files after scheduling"
 	@echo " 'reference-signal-wn'    : build the reference signal files without normalisation (FAUST_OPT=FAUST_SIG_NO_NORM)"
 	@echo " 'reference-type'         : build the reference signal type files"
 	@echo " 'reference-fir'          : build the reference FIR files"
 	@echo " 'reference-cpp'          : build the reference C++ files"
 	@echo " 'test-box'               : test box creation intermediate step"
 	@echo " 'test-signal'            : test signal creation intermediate step"
+	@echo " 'test-signal-sch'        : test signal creation intermediate step after scheduling"
 	@echo " 'test-signal-wn'         : test signal creation intermediate step without normalisation (FAUST_OPT=FAUST_SIG_NO_NORM)"
 	@echo " 'test-type'              : test signal typing intermediate step"
 	@echo " 'test-fir'               : test FIR intermediate step"
@@ -479,6 +481,10 @@ reference-signal:
 	cd reference && rm -f *.sig
 	$(MAKE) -f Make.ref reference-signal FAUSTOPTIONS="-I dsp"
 
+reference-signal-sch:
+	cd reference && rm -f *.sig2
+	$(MAKE) -f Make.ref reference-signal-sch FAUSTOPTIONS="-I dsp"
+
 reference-type:
 	cd reference && rm -f *.type
 	$(MAKE) -f Make.ref reference-type FAUSTOPTIONS="-I dsp"
@@ -507,6 +513,9 @@ test-signal-wn:
 	
 test-signal:
 	cd dsp && ./sig-script *.dsp
+
+test-signal-sch:
+	cd dsp && ./sig-sch-script *.dsp
 
 test-type:
 	 cd dsp && ./type-script *.dsp
