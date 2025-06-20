@@ -26,6 +26,7 @@ reffiles := $(patsubst dsp/%.dsp, $(refdir)/%.ir, $(dspfiles))
 
 boxfiles := $(patsubst dsp/%.dsp, $(refdir)/%.box, $(dspfiles))
 sigfiles := $(patsubst dsp/%.dsp, $(refdir)/%.sig, $(dspfiles))
+sigschfiles := $(patsubst dsp/%.dsp, $(refdir)/%.sig2, $(dspfiles))
 typefiles := $(patsubst dsp/%.dsp, $(refdir)/%.type, $(dspfiles))
 firfiles := $(patsubst dsp/%.dsp, $(refdir)/%.fir, $(dspfiles))
 cppfiles := $(patsubst dsp/%.dsp, $(refdir)/%.cpp1, $(dspfiles))
@@ -45,6 +46,8 @@ reference: filesCompare $(refdir)/vec $(refdir)/sched $(reffiles)
 reference-box: $(boxfiles) 
 
 reference-signal: $(sigfiles) 
+
+reference-signal-sch: $(sigschfiles) 
 
 reference-type: $(typefiles)
 
@@ -83,6 +86,11 @@ $(refdir)/%.box: dsp/%.dsp
 # rules for reference-signal
 $(refdir)/%.sig: dsp/%.dsp
 	$(FAUST) $(FAUSTOPTIONS) -norm1 $<  > $@ ; echo $<
+
+# rules for reference-signal-sch
+$(refdir)/%.sig2: dsp/%.dsp
+	$(FAUST) $(FAUSTOPTIONS) -norm3 -ss 0 $<  > $@ ; echo $<
+	$(FAUST) $(FAUSTOPTIONS) -norm3 -ss 1 $<  >> $@ ; echo $<
 
 # rules for reference-type
 $(refdir)/%.type: dsp/%.dsp
