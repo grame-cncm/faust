@@ -536,8 +536,9 @@ void global::reset()
     gCheckIntRange        = false;
     gReprC                = true;
 
-    gNarrowingLimit = 0;
-    gWideningLimit  = 0;
+    gFixSamplingRate = 0;
+    gNarrowingLimit  = 0;
+    gWideningLimit   = 0;
 
     gLstDependenciesSwitch = true;  // mdoc listing management.
     gLstMdocTagsSwitch     = true;  // mdoc listing management.
@@ -1240,6 +1241,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-o") && (i + 1 < argc)) {
             gOutputFile = argv[i + 1];
+            i += 2;
+
+        } else if (isCmd(argv[i], "-fsr", "--fix-sampling-rate") && (i + 1 < argc)) {
+            gFixSamplingRate = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-wi", "--widening-iterations") && (i + 1 < argc)) {
@@ -2553,6 +2558,11 @@ string global::printHelp()
     sstr << tab
          << "-fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, used in -mem1/-mem2 "
             "mode."
+         << endl;
+
+    sstr << tab
+         << "-fsr <n>    --fix-sampling-rate <n>     fix sampling rate at compile time instead of "
+            "runtime parameter."
          << endl;
 
     sstr << tab
