@@ -1605,6 +1605,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gDumpNorm = 2;
             i += 1;
 
+        } else if (isCmd(argv[i], "-norm3", "--normalized-form3")) {
+            gDumpNorm = 3;
+            i += 1;
+
         } else if (isCmd(argv[i], "-cn", "--class-name") && (i + 1 < argc)) {
             vector<char> rep = {'@', ' ', '(', ')', '/', '\\', '.'};
             gClassName       = replaceCharList(argv[i + 1], rep, '_');
@@ -2662,14 +2666,20 @@ string global::printHelp()
             "shared sub-expressions and exit."
          << endl;
     sstr << tab
+         << "-norm2      --normalized-form2          print signals in normalized form with types "
+            "and exit."
+         << endl;
+    sstr << tab
+         << "-norm3      --normalized-form3          print signals in normalized form afer "
+            "scheduling with IDs for shared sub-expressions and exit."
+         << endl;
+    sstr << tab
          << "-me         --math-exceptions           check / for 0 as denominator and remainder, "
-            "fmod, sqrt, log10, "
-            "log, acos, asin functions domain."
+            "fmod, sqrt, log10, log, acos, asin functions domain."
          << endl;
     sstr << tab
          << "-sts        --strict-select             generate strict code for 'selectX' even for "
-            "stateless branches "
-            "(both are computed)."
+            "stateless branches (both are computed)."
          << endl;
     sstr << tab << "-wall       --warning-all               print all warnings." << endl;
     sstr << tab

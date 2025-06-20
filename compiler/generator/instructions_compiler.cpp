@@ -43,6 +43,7 @@
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
 #include "signal2Elementary.hh"
+#include "signalValidator.hh"
 #include "signalVisitor.hh"
 #include "sigprint.hh"
 #include "sigtyperules.hh"
@@ -582,6 +583,8 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             break;
     }
 
+    validateSignalList(L);  // validate the signal list
+
     // Compute the hierarchical scheduling of L applying the chosen strategy
     fHschedule = scheduleSigList(L, mySchedFun);
 
@@ -593,6 +596,23 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     faustassert(fHschedule.outSigList == L);
     for (Tree s : fHschedule.sigsched[L].elements()) {
         CS(s);
+    }
+
+    if (gGlobal->gDumpNorm == 3) {
+        
+        // Print the last item on the container
+        const auto& controls = fHschedule.controls.elements();
+        if (!controls.empty()) {
+            ppsigShared(controls.back(), cout, false);
+        }
+        
+        // Print the last item on the container
+        const auto& sigsched = fHschedule.sigsched[L].elements();
+        if (!sigsched.empty()) {
+            ppsigShared(sigsched.back(), cout, false);
+        }
+
+        throw faustexception("Dump shared normal form after scheduling finished...\n");
     }
 
 #ifdef LLVM_DEBUG
