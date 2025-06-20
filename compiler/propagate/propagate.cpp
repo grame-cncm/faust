@@ -283,7 +283,13 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         if ((clockenv != gGlobal->nil) &&
             ((vname == "fSamplingFreq") || (vname == "fSamplingRate"))) {
             Tree adapted_sr = sigFConst(type, name, file);
-            Tree clocks     = clockenv;
+
+            // Check if we have a sampling rate fixed at compile time
+            if (gGlobal->gFixSamplingRate > 0) {
+                adapted_sr = sigInt(gGlobal->gFixSamplingRate);
+            }
+
+            Tree clocks = clockenv;
             // Unroll the stack of all US/DS to compute the adapted SR
             do {
                 if (isUSClockenv(clocks)) {
@@ -296,6 +302,11 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             } while (clocks != gGlobal->nil);
 
             return makeList(simplify(adapted_sr));
+        }
+
+        // Check if we have a sampling rate fixed at compile time
+        if (gGlobal->gFixSamplingRate > 0) {
+            return makeList(sigInt(gGlobal->gFixSamplingRate));
         }
 
         return makeList(sigFConst(type, name, file));
