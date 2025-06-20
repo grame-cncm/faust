@@ -255,7 +255,8 @@ struct global {
     std::string
         gVHDLComponentsFile;  // -vhdl-operators, a config file to replace specific operators
 
-    int gWideningLimit;   // Max number of iterations before interval widening
+    int gFixSamplingRate;  // -fsr, fix sampling rate at compile time instead of runtime parameter
+    int gWideningLimit;    // Max number of iterations before interval widening
     int gNarrowingLimit;  // Max number of iterations to compute interval widener
 
     std::map<std::string, std::string> gFastMathLibTable;  // Mapping table for fastmath functions
