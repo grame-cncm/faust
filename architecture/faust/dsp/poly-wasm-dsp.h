@@ -25,17 +25,7 @@ architecture section is not modified.
 #ifndef __poly_wasm_dsp__
 #define __poly_wasm_dsp__
 
-#ifdef EMCC
-wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc,
-                                                 const char* argv[], std::string& error_msg, bool internal_memory)
-{
-    return nullptr;
-}
-std::string pathToContent(const string& str) { return ""; }
-#else
 #include "faust/dsp/wasm-dsp.h"
-#endif
-
 #include "faust/dsp/poly-dsp.h"
 
 /**
@@ -195,63 +185,6 @@ static void writeWasmPolyDSPFactoryToMachineFile(dsp_poly_factory* factory, cons
     }
     writeWasmDSPFactoryToMachineFile(static_cast<wasm_dsp_factory*>(factory->fProcessFactory), process_path);
 }
-
-#ifdef EMCC
-#include <emscripten.h>
-#include <emscripten/bind.h>
-using namespace emscripten;
-
-EMSCRIPTEN_BINDINGS(CLASS_MapUI) {
-    
-    class_<MapUI>("MapUI")
-    .constructor();
-}
-
-EMSCRIPTEN_BINDINGS(CLASS_dsp_poly_factory) {
-    class_<dsp_poly_factory>("dsp_poly_factory")
-    .constructor<dsp_poly_factory*, dsp_poly_factory*>();
-}
-
-EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_poly_factory) {
-    class_<wasm_dsp_poly_factory>("wasm_dsp_poly_factory")
-    .constructor<wasm_dsp_factory*, wasm_dsp_factory*>()
-    .function("createPolyDSPInstance", &wasm_dsp_poly_factory::createPolyDSPInstance, allow_raw_pointers())
-    .function("deletePolyDSPInstance", &wasm_dsp_poly_factory::deletePolyDSPInstance, allow_raw_pointers())
-    .class_function("createWasmPolyDSPFactoryFromString2",&wasm_dsp_poly_factory::createWasmPolyDSPFactoryFromString2, allow_raw_pointers())
-    .class_function("deleteWasmPolyDSPFactory", &wasm_dsp_poly_factory::deleteWasmPolyDSPFactory, allow_raw_pointers());
-}
-
-EMSCRIPTEN_BINDINGS(CLASS_dsp_poly)
-{
-    class_<dsp_poly>("dsp_poly")
-    .constructor<dsp*>()
-    // DSP API
-    .function("getNumInputs", &dsp_poly::getNumInputs, allow_raw_pointers())
-    .function("getNumOutputs", &dsp_poly::getNumOutputs, allow_raw_pointers())
-    .function("getSampleRate", &dsp_poly::getSampleRate, allow_raw_pointers())
-    .function("init", &dsp_poly::init, allow_raw_pointers())
-    .function("instanceInit", &dsp_poly::instanceInit, allow_raw_pointers())
-    .function("instanceConstants", &dsp_poly::instanceConstants, allow_raw_pointers())
-    .function("instanceResetUserInterface", &dsp_poly::instanceResetUserInterface, allow_raw_pointers())
-    .function("instanceClear", &dsp_poly::instanceClear, allow_raw_pointers())
-    .function("clone", &dsp_poly::clone, allow_raw_pointers())
-    .function("compute", &dsp_poly::computeJS, allow_raw_pointers())
-    // Additional JSON based API
-    .function("getJSON", &dsp_poly::getJSON, allow_raw_pointers())
-    .function("setParamValue", &dsp_poly::setParamValue, allow_raw_pointers())
-    .function("getParamValue", &dsp_poly::getParamValue, allow_raw_pointers())
-    // MIDI API
-    .function("keyOn", &dsp_poly::keyOn, allow_raw_pointers())
-    .function("keyOff", &dsp_poly::keyOff, allow_raw_pointers())
-    .function("keyPress", &dsp_poly::keyPress, allow_raw_pointers())
-    .function("chanPress", &dsp_poly::chanPress, allow_raw_pointers())
-    .function("ctrlChange", &dsp_poly::ctrlChange, allow_raw_pointers())
-    .function("ctrlChange14bits", &dsp_poly::ctrlChange14bits, allow_raw_pointers())
-    .function("pitchWheel", &dsp_poly::pitchWheel, allow_raw_pointers())
-    .function("progChange", &dsp_poly::progChange, allow_raw_pointers());
-}
-
-#endif
 
 #endif // __poly_wasm_dsp__
 /************************** END poly-wasm-dsp.h **************************/

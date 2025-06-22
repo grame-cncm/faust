@@ -111,7 +111,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
     endTiming("L4 typeAnnotation");
 
-    // Must be done after simplifation so that 'size' signal is properly simplified to a constant
+    // Must be done after simplification so that 'size' signal is properly simplified to a constant
     if (gGlobal->gCheckTable) {
         // Check and generate safe access to rdtable/rwtable
         startTiming("Safe access to rdtable/rwtable");
