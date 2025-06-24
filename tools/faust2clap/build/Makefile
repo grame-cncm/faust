@@ -383,6 +383,32 @@ russianBell/fast:
 .PHONY : russianBell/fast
 
 #=============================================================================
+# Target rules for targets named sawtoothLab
+
+# Build rule for target.
+sawtoothLab: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sawtoothLab
+.PHONY : sawtoothLab
+
+# fast build rule for target.
+sawtoothLab/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab.dir/build.make CMakeFiles/sawtoothLab.dir/build
+.PHONY : sawtoothLab/fast
+
+#=============================================================================
+# Target rules for targets named sawtoothLab2
+
+# Build rule for target.
+sawtoothLab2: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sawtoothLab2
+.PHONY : sawtoothLab2
+
+# fast build rule for target.
+sawtoothLab2/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab2.dir/build.make CMakeFiles/sawtoothLab2.dir/build
+.PHONY : sawtoothLab2/fast
+
+#=============================================================================
 # Target rules for targets named spat
 
 # Build rule for target.
@@ -792,6 +818,54 @@ Users/cucu/Documents/GitHub/faust/build/russianBell/russianBell_clap.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/russianBell.dir/build.make CMakeFiles/russianBell.dir/Users/cucu/Documents/GitHub/faust/build/russianBell/russianBell_clap.cpp.s
 .PHONY : Users/cucu/Documents/GitHub/faust/build/russianBell/russianBell_clap.cpp.s
 
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.o: Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.o
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.o
+
+# target to build an object file
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab.dir/build.make CMakeFiles/sawtoothLab.dir/Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.o
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.o
+
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.i: Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.i
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.i
+
+# target to preprocess a source file
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab.dir/build.make CMakeFiles/sawtoothLab.dir/Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.i
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.i
+
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.s: Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.s
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.s
+
+# target to generate assembly for a file
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab.dir/build.make CMakeFiles/sawtoothLab.dir/Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.s
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.cpp.s
+
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.o: Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.o
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.o
+
+# target to build an object file
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab2.dir/build.make CMakeFiles/sawtoothLab2.dir/Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.o
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.o
+
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.i: Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.i
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.i
+
+# target to preprocess a source file
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab2.dir/build.make CMakeFiles/sawtoothLab2.dir/Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.i
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.i
+
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.s: Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.s
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.s
+
+# target to generate assembly for a file
+Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab2.dir/build.make CMakeFiles/sawtoothLab2.dir/Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.s
+.PHONY : Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.cpp.s
+
 Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.o: Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.cpp.o
 .PHONY : Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.o
 
@@ -861,6 +935,8 @@ lib/plugin.cc.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pitchShifter.dir/build.make CMakeFiles/pitchShifter.dir/lib/plugin.cc.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/quadEcho.dir/build.make CMakeFiles/quadEcho.dir/lib/plugin.cc.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/russianBell.dir/build.make CMakeFiles/russianBell.dir/lib/plugin.cc.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab.dir/build.make CMakeFiles/sawtoothLab.dir/lib/plugin.cc.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab2.dir/build.make CMakeFiles/sawtoothLab2.dir/lib/plugin.cc.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spat.dir/build.make CMakeFiles/spat.dir/lib/plugin.cc.o
 .PHONY : lib/plugin.cc.o
 
@@ -885,6 +961,8 @@ lib/plugin.cc.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pitchShifter.dir/build.make CMakeFiles/pitchShifter.dir/lib/plugin.cc.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/quadEcho.dir/build.make CMakeFiles/quadEcho.dir/lib/plugin.cc.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/russianBell.dir/build.make CMakeFiles/russianBell.dir/lib/plugin.cc.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab.dir/build.make CMakeFiles/sawtoothLab.dir/lib/plugin.cc.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab2.dir/build.make CMakeFiles/sawtoothLab2.dir/lib/plugin.cc.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spat.dir/build.make CMakeFiles/spat.dir/lib/plugin.cc.i
 .PHONY : lib/plugin.cc.i
 
@@ -909,6 +987,8 @@ lib/plugin.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pitchShifter.dir/build.make CMakeFiles/pitchShifter.dir/lib/plugin.cc.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/quadEcho.dir/build.make CMakeFiles/quadEcho.dir/lib/plugin.cc.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/russianBell.dir/build.make CMakeFiles/russianBell.dir/lib/plugin.cc.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab.dir/build.make CMakeFiles/sawtoothLab.dir/lib/plugin.cc.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sawtoothLab2.dir/build.make CMakeFiles/sawtoothLab2.dir/lib/plugin.cc.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spat.dir/build.make CMakeFiles/spat.dir/lib/plugin.cc.s
 .PHONY : lib/plugin.cc.s
 
@@ -942,6 +1022,8 @@ help:
 	@echo "... pitchShifter"
 	@echo "... quadEcho"
 	@echo "... russianBell"
+	@echo "... sawtoothLab"
+	@echo "... sawtoothLab2"
 	@echo "... spat"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/FFT/FFT_clap.o"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/FFT/FFT_clap.i"
@@ -991,6 +1073,12 @@ help:
 	@echo "... Users/cucu/Documents/GitHub/faust/build/russianBell/russianBell_clap.o"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/russianBell/russianBell_clap.i"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/russianBell/russianBell_clap.s"
+	@echo "... Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.o"
+	@echo "... Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.i"
+	@echo "... Users/cucu/Documents/GitHub/faust/build/sawtoothLab/sawtoothLab_clap.s"
+	@echo "... Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.o"
+	@echo "... Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.i"
+	@echo "... Users/cucu/Documents/GitHub/faust/build/sawtoothLab2/sawtoothLab2_clap.s"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.o"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.i"
 	@echo "... Users/cucu/Documents/GitHub/faust/build/spat/spat_clap.s"

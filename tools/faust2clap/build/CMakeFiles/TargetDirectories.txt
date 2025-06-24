@@ -15,6 +15,8 @@
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/pitchShifter.dir
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/quadEcho.dir
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/russianBell.dir
+/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/sawtoothLab.dir
+/Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/sawtoothLab2.dir
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/spat.dir
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/edit_cache.dir
 /Users/cucu/Documents/GitHub/faust/tools/faust2clap/build/CMakeFiles/rebuild_cache.dir

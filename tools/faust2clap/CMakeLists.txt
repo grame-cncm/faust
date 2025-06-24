@@ -24,6 +24,7 @@ add_library(faust_gui_glue STATIC lib/faust_gui_glue.cpp)
 #make sure it sees FAUST GUI headers (like faust/gui/GUI.h)
 target_include_directories(faust_gui_glue PRIVATE
   ${CMAKE_SOURCE_DIR}/../../architecture
+  ${CMAKE_SOURCE_DIR}/architecture/faust/gui
 )
 
 #hardcode RtMidi paths for Homebrew on Apple Silicon
@@ -59,6 +60,8 @@ foreach(FAUST_CPP ${FAUST_SOURCES})
     ${CMAKE_SOURCE_DIR}/../../
     ${CMAKE_SOURCE_DIR}/../../build
     ${CMAKE_SOURCE_DIR}/../../architecture
+    ${CMAKE_SOURCE_DIR}/architecture/faust/gui
+    ${CMAKE_SOURCE_DIR}/architecture/faust/midi
     ${CMAKE_SOURCE_DIR}/../../architecture/faust/dsp
     ${CMAKE_SOURCE_DIR}/../../external/clap-helpers/include
     ${CMAKE_SOURCE_DIR}/../../external/clap-sdk/include
