@@ -595,13 +595,13 @@ public:
 
 
     bool startProcessing() noexcept override {
-        std::cerr << "[startProcessing] called\n";
+        //std::cerr << "[startProcessing] called\n";
         fIsProcessing = true;
         return true;
     }
 
     void stopProcessing() noexcept override {
-        std::cerr << "[stopProcessing] called\n";
+        //std::cerr << "[stopProcessing] called\n";
         fIsProcessing = false;
     }
 
@@ -616,8 +616,8 @@ public:
             fNumInputs = fBaseDSP->getNumInputs();
             fNumOutputs = fBaseDSP->getNumOutputs();
         }
-        std::cerr << "[activate] Sample rate: " << sampleRate << "\n";
-        std::cerr << "[activate] Inputs: " << fNumInputs << ", Outputs: " << fNumOutputs << "\n";
+        //std::cerr << "[activate] Sample rate: " << sampleRate << "\n";
+        //std::cerr << "[activate] Inputs: " << fNumInputs << ", Outputs: " << fNumOutputs << "\n";
         return true;
     }
 
@@ -679,7 +679,7 @@ public:
     }
 
     clap_process_status process(const clap_process_t* process) noexcept override {
-        std::cerr << "[process] Entered process()\n";
+        //std::cerr << "[process] Entered process()\n";
         if (!fIsProcessing) {
             std::cerr << "[process] fIsProcessing is false\n";
             return CLAP_PROCESS_SLEEP;
@@ -689,8 +689,8 @@ public:
         const auto& inBuffer = process->audio_inputs[0];
         const auto& outBuffer = process->audio_outputs[0];
 
-        std::cerr << "[process] Channel count: input = " << inBuffer.channel_count
-              << ", output = " << outBuffer.channel_count << "\n";
+        //std::cerr << "[process] Channel count: input = " << inBuffer.channel_count
+        //      << ", output = " << outBuffer.channel_count << "\n";
 
 
         if (inBuffer.channel_count < fNumInputs || outBuffer.channel_count < fNumOutputs)
