@@ -68,7 +68,7 @@ class Faust2WwiseOrchestrator:
         ############################################### faust parameters obta
         # Project configuration
         ### script arguments
-        self.output_dir = "."
+        self.output_dir = None
         self.faust_options = ""
         self.dsp_file = ""
         self.json_file = ""
@@ -138,6 +138,7 @@ class Faust2WwiseOrchestrator:
         
         if parsed_args.dsp_file:
             self.dsp_file = parsed_args.dsp_file
+            self.dsp_file = os.path.join(os.getcwd(), self.dsp_file )
         
         all_faust_options = (parsed_args.faust_options or []) + unknown_args
         self.faust_options = " ".join(all_faust_options)
@@ -208,10 +209,12 @@ class Faust2WwiseOrchestrator:
             self.plugin_name = self.dsp_filename.capitalize() #capitalize first letter
                 
         current_dir = os.getcwd()
-        self.temp_dir = os.path.join(current_dir, self.temp_dir)
+        if (not self.output_dir):
+            self.output_dir = os.path.join(current_dir,self.dsp_filename)
+        self.temp_dir = os.path.join(self.output_dir, self.temp_dir)
         
-        os.makedirs(self.temp_dir, exist_ok=True)
         os.makedirs(self.output_dir, exist_ok=True)
+        os.makedirs(self.temp_dir, exist_ok=True)
         
         self.validate_environment()
         self.print_configuration()
@@ -426,7 +429,7 @@ class Faust2WwiseOrchestrator:
         ]
         
         target_dir = os.path.join(self.output_dir, self.plugin_name)
-        pdb.set_trace()
+
         if os.path.isdir(target_dir):
             print("Replacing specific SoundEnginePlugin files...")
             
@@ -459,7 +462,14 @@ class Faust2WwiseOrchestrator:
         print("Integrating parameters...")
 
         try:
-            integrateParameters(self.plugin_name, self.plugin_suffix, self.json_file)
+            
+            integrateParameters(
+                self.output_dir, 
+                self.plugin_name, 
+                self.plugin_suffix, 
+                self.json_file
+            )
+            
         except Exception as e:
             print(f"Error {self.ERR_INTEGRATION}: Failed to integrate parameters")
             print(f"Exception: {e}")

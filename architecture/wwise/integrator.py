@@ -2,7 +2,6 @@ import json
 import os
 from parameters import Parameter
 from processor import TemplateProcessor
-import pdb
 from xmlinjector import inject_properties_to_xml
 
 def extract_parameters(ui_tree)->list:
@@ -19,7 +18,7 @@ def extract_parameters(ui_tree)->list:
     walk(ui_tree)
     return result  # List of dicts
 
-def integrateParameters(plugin_name, plugin_suffix, json_file_path):
+def integrateParameters(output_dir, plugin_name, plugin_suffix, json_file_path):
 
     # @TODO: make this a configuration file.
     target_files = [
@@ -43,20 +42,21 @@ def integrateParameters(plugin_name, plugin_suffix, json_file_path):
 
 
     for file in target_files:
-        file = os.path.join(plugin_name,file)
+        file = os.path.join(output_dir, plugin_name, file)
         processor.process_file(file)
-    xml_file = os.path.join(plugin_name,xml_file)
+    xml_file = os.path.join(output_dir, plugin_name, xml_file)
 
     inject_properties_to_xml(parameters, xml_file)
 
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) != 4:
-        print("Usage: python3 inject_parameters.py plugin_name plugin_suffix path/to/faust.json")
+    if len(sys.argv) != 5:
+        print("Usage: python3 inject_parameters.py output_dir plugin_name plugin_suffix path/to/faust.json")
         sys.exit(1)
 
-    plugin_name = sys.argv[1]
-    plugin_suffix = sys.argv[2]
-    json_file_path = sys.argv[3]
-    integrateParameters(plugin_name, plugin_suffix, json_file_path)
+    output_dir = sys.argv[1]
+    plugin_name = sys.argv[2]
+    plugin_suffix = sys.argv[3]
+    json_file_path = sys.argv[4]
+    integrateParameters(output_dir, plugin_name, plugin_suffix, json_file_path)
