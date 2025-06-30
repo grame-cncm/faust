@@ -4,19 +4,29 @@ from parameters import Parameter
 from processor import TemplateProcessor
 from xmlinjector import inject_properties_to_xml
 
+def parse_ui(ui_tree, callback):
+    for group in ui_tree:
+        parse_group(group, callback)
+
+def parse_group(group, callback):
+    items = group.get("items", [])
+    parse_items(items, callback)
+
+def parse_items(items, callback):
+    for item in items:
+        parse_item(item, callback)
+
+def parse_item(item, callback):
+    if item["type"] in {"vgroup", "hgroup", "tgroup"}:
+        parse_items(item.get("items", []), callback)
+    else:
+        callback(item)
+
 def extract_parameters(ui_tree)->list:
-    
     result = []
-
-    def walk(tree):
-        for node in tree:
-            if node["type"] in ("vgroup", "hgroup"):
-                walk(node.get("items", []))  # recurse
-            else:
-                result.append(node)
-
-    walk(ui_tree)
-    return result  # List of dicts
+    parse_ui(ui_tree, lambda item: result.append(item))
+    # return result # TODO need to filter out non-input parameters such as the BarGraph 
+    return [p for p in result if p["type"] in {"hslider", "vslider", "nentry", "checkbox", "button"}] # List of dicts
 
 def integrateParameters(output_dir, plugin_name, plugin_suffix, json_file_path):
 
