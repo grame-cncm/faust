@@ -35,9 +35,9 @@ def inject_properties_to_xml(parameters, xml_file):
 def _parameter_to_property_xml(param):
     
     property_attrs = {
-        "Name": param.label,
+        "Name": param.Shortname,
         "Type": param.WwiseXMLTypeCast,
-        "DisplayName": param.label
+        "DisplayName": param.Shortname
     }
 
     if param.is_rtpc():

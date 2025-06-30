@@ -11,7 +11,7 @@ class Parameter:
     def __init__(self, data):
         self.raw = data
         self.varname = data.get("varname")
-        data["label"] = self.label = data.get("label").capitalize()
+        self.Shortname = data.get("shortname").capitalize()
         self.shortname = data.get("shortname")
         self.type = data.get("type")
         self.address = data.get("address")
@@ -57,7 +57,7 @@ class Parameter:
         }.get(self.type, "auto")
 
     def _derive_setter_name(self):
-        base = self.shortname or self.label
+        base = self.shortname or self.Shortname
         return f"set{base.capitalize()}"
 
     def _derive_is_rtpc(self):
@@ -71,7 +71,7 @@ class Parameter:
             return "NonRTPC"
         
     def _derive_rtpc_name(self):
-        return self.paramCastedType[0] + self.label
+        return self.paramCastedType[0] + self.Shortname
 
     def _cast_type_2wwise(self):
         if self.paramCastedType == "float":
@@ -106,7 +106,7 @@ class Parameter:
         """
 
     def _derive_id_name(self):
-        name = self.shortname or self.label
+        name = self.shortname or self.Shortname
         return f"PARAM_{name.upper()}_ID"
     
     def _derive_Wwise_WriteFunction(self):
