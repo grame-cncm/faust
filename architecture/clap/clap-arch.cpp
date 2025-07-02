@@ -20,84 +20,100 @@
 #include <clap/helpers/host-proxy.hh>
 #include <clap/events.h>
 #include <clap/ext/note-ports.h> //clap note port api
+<<includeclass>>
 
-//guarded MapUI subclass to prevent accidental param writes
-struct GuardedUI : public MapUI {
-    bool allowWrite = false;
-
+struct CLAPMapUI : public MapUI {
     struct ParamMeta {
-        FAUSTFLOAT init;
         FAUSTFLOAT min;
         FAUSTFLOAT max;
+        FAUSTFLOAT init;
     };
-    std::vector<ParamMeta> paramRanges;
 
-    void setParamValue(const std::string& path, FAUSTFLOAT val) {
-        if (!allowWrite) std::abort();
-        MapUI::setParamValue(path, val);
+    struct ParamData {
+        std::string shortname;
+        FAUSTFLOAT* zone;
+        ParamMeta meta;
+    };
+
+    std::vector<ParamData> fParams;
+
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
+        MapUI::addVerticalSlider(label, zone, init, min, max, step);
+        std::string shortname = buildPath(label);
+        fParams.push_back({shortname, zone, {min, max, init}});
     }
 
-    void setParamValue(int index, FAUSTFLOAT val) {
-        if (!allowWrite) return;
-        std::string addr = getParamAddress(index);
-        MapUI::setParamValue(addr, val);
+    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
+        MapUI::addHorizontalSlider(label, zone, init, min, max, step);
+        std::string shortname = buildPath(label);
+        fParams.push_back({shortname, zone, {min, max, init}});
     }
 
-    void guardedSetByIndex(int index, FAUSTFLOAT val) {
-        if (!allowWrite) return;
-        std::string addr = getParamAddress(index);
-        MapUI::setParamValue(addr, val);
+    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
+        MapUI::addNumEntry(label, zone, init, min, max, step);
+        std::string shortname = buildPath(label);
+        fParams.push_back({shortname, zone, {min, max, init}});
     }
 
-    void addVerticalSlider(const char* label, FAUSTFLOAT* zone,
-                           FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step) override {
-        MapUI::addVerticalSlider(label, zone, init, fmin, fmax, step);
-        paramRanges.push_back({init, fmin, fmax});
-    }
 
-    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone,
-                             FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step) override {
-        MapUI::addHorizontalSlider(label, zone, init, fmin, fmax, step);
-        paramRanges.push_back({init, fmin, fmax});
-    }
+    void openTabBox(const char* label) override { MapUI::openTabBox(label); }
+    void openHorizontalBox(const char* label) override { MapUI::openHorizontalBox(label); }
+    void openVerticalBox(const char* label) override { MapUI::openVerticalBox(label); }
+    void closeBox() override { MapUI::closeBox(); }
 
-    void addNumEntry(const char* label, FAUSTFLOAT* zone,
-                     FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step) override {
-        MapUI::addNumEntry(label, zone, init, fmin, fmax, step);
-        paramRanges.push_back({init, fmin, fmax});
+
+    int getParamsCount() const { return int(fParams.size()); }
+
+    std::string getParamShortname(int index) const {
+        if (index < 0 || index >= int(fParams.size())) return "";
+        return fParams[index].shortname;
     }
 
     FAUSTFLOAT getParamMin(int index) const {
-        if (index < 0 || index >= int(paramRanges.size())) return 0.f;
-        return paramRanges[index].min;
+        if (index < 0 || index >= int(fParams.size())) return 0.f;
+        return fParams[index].meta.min;
     }
 
     FAUSTFLOAT getParamMax(int index) const {
-        if (index < 0 || index >= int(paramRanges.size())) return 1.f;
-        return paramRanges[index].max;
+        if (index < 0 || index >= int(fParams.size())) return 1.f;
+        return fParams[index].meta.max;
     }
+
+
+    void setParamValue(const std::string& path, FAUSTFLOAT val) {
+        MapUI::setParamValue(path, val);
+    }
+
+    FAUSTFLOAT getParamValue(const std::string& path) {
+        return MapUI::getParamValue(path);
+    }
+
 
     FAUSTFLOAT getParamInit(int index) const {
-        if (index < 0 || index >= int(paramRanges.size())) return 0.5f;
-        return paramRanges[index].init;
+        if (index < 0 || index >= int(fParams.size())) return 0.5f;
+        return fParams[index].meta.init;
+    }
+
+    FAUSTFLOAT* getParamZone(int index) const {
+        if (index < 0 || index >= int(fParams.size())) return nullptr;
+        return fParams[index].zone;
+    }
+
+    void setParamValue(int index, FAUSTFLOAT val) {
+        if (index < 0 || index >= int(fParams.size())) return;
+        *fParams[index].zone = val;
+    }
+
+    FAUSTFLOAT getParamValue(int index) const {
+        if (index < 0 || index >= int(fParams.size())) return 0.f;
+        return *fParams[index].zone;
+    }
+
+    std::string getParamAddress(int index) const {
+        if (index < 0 || index >= int(fParams.size())) return "";
+        return fParams[index].shortname;
     }
 };
-
-
-struct GuardedScope {
-    GuardedUI& ui;
-    const char* tag;
-
-    GuardedScope(GuardedUI& ui, const char* src = "unknown") : ui(ui), tag(src) {
-        ui.allowWrite = true;
-    }
-
-    ~GuardedScope() {
-        ui.allowWrite = false;
-    }
-};
-
-<<includeclass>>
 
 class GainPlugin;
 
@@ -128,13 +144,11 @@ public:
     mydsp* fBaseDSP = nullptr; //original Faust DSP
     mydsp_poly* fDSP = nullptr; //midi-aware wrapper
 
-    GuardedUI fUI;
+    CLAPMapUI fUI;
     std::vector<std::string> fParamAddresses;
     std::vector<float> fExpectedValues;
-    std::vector<int> fParamIndices;
     bool fIsPolyphonic = false; //determines if midi/note handling is enabled
     bool fHasFlushed = false;
-    bool fIsProcessing = false;
 
     GainPlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
         : Base(desc, host) {}
@@ -145,38 +159,24 @@ public:
         if (fIsPolyphonic) {
             fDSP = new mydsp_poly(fBaseDSP, 16, true, true);
             fDSP->buildUserInterface(&fUI);
+            GUI::updateAllGuis();
+
 }       else {
             fBaseDSP->buildUserInterface(&fUI);
+            GUI::updateAllGuis();
 }
 
         fParamAddresses.clear();
         fExpectedValues.clear();
-        fParamIndices.clear();
-
         for (int i = 0; i < fUI.getParamsCount(); ++i) {
             std::string shortname = fUI.getParamShortname(i);
             if (shortname.empty()) continue;
             fParamAddresses.emplace_back(shortname);
             fExpectedValues.push_back(fUI.getParamValue(shortname));
-            fParamIndices.push_back(i); //i is index in MapUI
         }
 
         return true;
     }
-
-
-    bool startProcessing() noexcept override {
-        //std::cerr << "[startProcessing] called\n";
-        fIsProcessing = true;
-        return true;
-    }
-
-    void stopProcessing() noexcept override {
-        //std::cerr << "[stopProcessing] called\n";
-        fIsProcessing = false;
-    }
-
-
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override {
         if (fIsPolyphonic) {
             fDSP->init(sampleRate);
@@ -187,8 +187,6 @@ public:
             fNumInputs = fBaseDSP->getNumInputs();
             fNumOutputs = fBaseDSP->getNumOutputs();
         }
-        //std::cerr << "[activate] Sample rate: " << sampleRate << "\n";
-        //std::cerr << "[activate] Inputs: " << fNumInputs << ", Outputs: " << fNumOutputs << "\n";
         return true;
     }
 
@@ -201,14 +199,12 @@ public:
             return false;
         if (fParamAddresses[ev->param_id].empty())
             return false;
-
-        GuardedScope guard(fUI, "applyParamEvent");
         fUI.setParamValue(fParamAddresses[ev->param_id], ev->value);
         fExpectedValues[ev->param_id] = ev->value;
         return true;
     }
 
-    void handleNoteEvent(const clap_event_header_t* hdr) {
+    void handlePolyMIDIEvent(const clap_event_header_t* hdr){
         if (!fIsPolyphonic || !fDSP || !hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID) return;
 
         switch (hdr->type) {
@@ -250,20 +246,10 @@ public:
     }
 
     clap_process_status process(const clap_process_t* process) noexcept override {
-        //std::cerr << "[process] Entered process()\n";
-        if (!fIsProcessing) {
-            std::cerr << "[process] fIsProcessing is false\n";
-            return CLAP_PROCESS_SLEEP;
-        }
-        if (!process || process->audio_inputs_count < 1 || process->audio_outputs_count < 1)
+        if (process->audio_inputs_count < 1 || process->audio_outputs_count < 1)
             return CLAP_PROCESS_ERROR;
         const auto& inBuffer = process->audio_inputs[0];
         const auto& outBuffer = process->audio_outputs[0];
-
-        //std::cerr << "[process] Channel count: input = " << inBuffer.channel_count
-        //      << ", output = " << outBuffer.channel_count << "\n";
-
-
         if (inBuffer.channel_count < fNumInputs || outBuffer.channel_count < fNumOutputs)
             return CLAP_PROCESS_ERROR;
 
@@ -274,7 +260,7 @@ public:
             for (uint32_t i = 0, N = process->in_events->size(process->in_events); i < N; ++i) {
                 const clap_event_header_t* hdr = process->in_events->get(process->in_events, i);
                 applyParamEventIfValid(hdr);
-                if (fIsPolyphonic) handleNoteEvent(hdr); //ONLY for synths
+                if (fIsPolyphonic) handlePolyMIDIEvent(hdr); //ONLY for synths
             }
         }
 
@@ -286,7 +272,6 @@ public:
         for (int i = 0; i < fNumOutputs; ++i)
             outputs[i] = outBuffer.data32[i];
 
-        GuardedScope guard(fUI, "compute");
         if (fIsPolyphonic) {
             fDSP->compute(process->frames_count, inputs, outputs);
         } else {
@@ -300,7 +285,7 @@ public:
     uint32_t notePortsCount(bool isInput) const noexcept override { return isInput ? 1 : 0; }
 
     bool notePortsInfo(uint32_t index, bool isInput, clap_note_port_info_t* info) const noexcept override {
-        if (!isInput || index != 0 || !info) return false;
+        if (!isInput || index != 0) return false;
         std::memset(info, 0, sizeof(*info));
         info->id = index;
         std::snprintf(info->name, sizeof(info->name), "MIDI In");
@@ -324,14 +309,11 @@ public:
         if (!stream || !stream->read) return false;
         uint32_t paramCount = 0;
         if (!stream->read(stream, &paramCount, sizeof(paramCount))) return false;
-        if (paramCount > fExpectedValues.size())
-            return false;
         if (paramCount != fExpectedValues.size())
             return false;
         for (uint32_t i = 0; i < paramCount; ++i) {
             float v;
             if (!stream->read(stream, &v, sizeof(v))) return false;
-            GuardedScope guard(fUI, "stateLoad");
             fUI.setParamValue(fParamAddresses[i], v);
             fExpectedValues[i] = v;
         }
@@ -398,7 +380,7 @@ public:
             const clap_event_header_t* hdr = in->get(in, i);
             if (!hdr) continue;
             applyParamEventIfValid(hdr);
-            handleNoteEvent(hdr);
+            handlePolyMIDIEvent(hdr);
         }
     }
 
