@@ -52,6 +52,7 @@ class Parameter:
     def _derive_casted_type(self):
         return {
             "hslider": "float",
+            "vslider": "float",
             "nentry": "float",
             "checkbox": "bool"
         }.get(self.type, "auto")
