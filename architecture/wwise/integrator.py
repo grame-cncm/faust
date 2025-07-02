@@ -28,6 +28,19 @@ def extract_parameters(ui_tree)->list:
     # return result # TODO need to filter out non-input parameters such as the BarGraph 
     return [p for p in result if p["type"] in {"hslider", "vslider", "nentry", "checkbox", "button"}] # List of dicts
 
+def add_number_suffix_to_shortnames(ui_tree):
+
+    def recurse(items, counter):
+        for item in items:
+            if "shortname" in item:
+                item["shortname"] = f"{item['shortname']}{counter}"
+                counter += 1
+            if "items" in item:
+                counter = recurse(item["items"], counter)
+        return counter
+
+    recurse(ui_tree, 1)
+
 def integrateParameters(output_dir, plugin_name, plugin_suffix, json_file_path):
 
     # @TODO: make this a configuration file.
@@ -43,6 +56,7 @@ def integrateParameters(output_dir, plugin_name, plugin_suffix, json_file_path):
     with open(json_file_path, 'r') as f:
         faustdata = json.load(f)
 
+    add_number_suffix_to_shortnames(faustdata["ui"]) # uniquify_shortnames
     parameters_data = extract_parameters(faustdata["ui"])
 
     print(f"OK : Succesfully extracted parameters from {json_file_path} file.")
