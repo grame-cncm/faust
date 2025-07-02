@@ -13,6 +13,15 @@ FAUST_EXAMPLES_DIR = ROOT_DIR / "examples"
 BASE_DIR = ROOT_DIR / "myTests"
 OUTPUT_JSON_FILE = BASE_DIR / "test_results.json"
 
+def moveJsonFile(json_source_path, json_target_path, log_path):
+
+    if json_source_path.exists():
+        try:
+            os.rename(json_source_path, json_target_path)
+        except Exception as e:
+            with open(log_path, "a", encoding="utf-8") as log_file:
+                log_file.write(f"\nWARNING: Could not move (rename) JSON file from {json_source_path} to {json_target_path}, continuing.\n")
+
 def run_faust2wwise_on_file(dsp_file, script="faust2wwise"):
     rel_path = dsp_file.relative_to(FAUST_EXAMPLES_DIR).with_suffix("")
     output_dir = BASE_DIR / rel_path
@@ -58,6 +67,11 @@ def run_faust2wwise_on_file(dsp_file, script="faust2wwise"):
             log_file.write(str(e))
 
         success = False
+
+    # move the json file from the examples dir into the project dir
+    json_source_path = dsp_file.with_name(dsp_file.name + ".json")
+    json_target_path = output_dir / json_source_path.name
+    moveJsonFile(json_source_path, json_target_path, log_path)
 
     return {
         "file": str(dsp_file),
