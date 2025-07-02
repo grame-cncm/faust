@@ -13,6 +13,17 @@ FAUST_EXAMPLES_DIR = ROOT_DIR / "examples"
 BASE_DIR = ROOT_DIR / "myTests"
 OUTPUT_JSON_FILE = BASE_DIR / "test_results.json"
 
+# these files are additional files that get imported by other dsp files, so they have to be excluded.
+EXCLUDE_FILES = {
+    "SAM/16_channel_volume/layout.dsp",
+    "SAM/chorus/layout2.dsp",
+    "SAM/echo/layout2.dsp",
+    "SAM/effects/layout2.dsp",
+    "SAM/flanger/layout2.dsp",
+    "SAM/freeverb/layout2.dsp",
+    "SAM/virtualAnalog/layout2.dsp"
+}
+
 def moveJsonFile(json_source_path, json_target_path, log_path):
 
     if json_source_path.exists():
@@ -83,7 +94,10 @@ def run_faust2wwise_on_file(dsp_file, script="faust2wwise"):
 
 def main():
 
-    dsp_files = list(FAUST_EXAMPLES_DIR.rglob("*.dsp"))
+    dsp_files = [
+        f for f in FAUST_EXAMPLES_DIR.rglob("*.dsp")
+        if str(f.relative_to(FAUST_EXAMPLES_DIR)).replace("\\", "/") not in EXCLUDE_FILES
+    ]
     print(f"Found {len(dsp_files)} .dsp files.\n")
 
     BASE_DIR.mkdir(parents=True, exist_ok=True)
