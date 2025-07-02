@@ -54,7 +54,8 @@ class Parameter:
             "hslider": "float",
             "vslider": "float",
             "nentry": "float",
-            "checkbox": "bool"
+            "checkbox": "bool",
+            "button" : "bool",
         }.get(self.type, "auto")
 
     def _derive_setter_name(self):
