@@ -149,6 +149,8 @@ public:
     std::vector<float> fExpectedValues;
     bool fIsPolyphonic = false; //determines if midi/note handling is enabled
     bool fHasFlushed = false;
+    MidiUI* fMidiUI = nullptr;
+    midi_handler* fMidiHandler = nullptr;
 
     GainPlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
         : Base(desc, host) {}
@@ -161,10 +163,14 @@ public:
             fDSP->buildUserInterface(&fUI);
             GUI::updateAllGuis();
 
-}       else {
-            fBaseDSP->buildUserInterface(&fUI);
+        } else {
+            fMidiHandler = new midi_handler();
+            fMidiUI = new MidiUI(fMidiHandler);
+            fBaseDSP->buildUserInterface(fMidiUI); //MIDI support
+            fBaseDSP->buildUserInterface(&fUI);    //regular UI
             GUI::updateAllGuis();
-}
+        }
+
 
         fParamAddresses.clear();
         fExpectedValues.clear();
@@ -236,6 +242,23 @@ public:
         }
     }
 
+    void handleDSPMIDIEvent(const clap_event_header_t* hdr) {
+        if (!fBaseDSP || !fMidiHandler || !hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID) return;
+
+        switch (hdr->type) {
+            case CLAP_EVENT_MIDI: {
+                auto* ev = reinterpret_cast<const clap_event_midi_t*>(hdr);
+                int type = ev->data[0] & 0xF0;
+                int channel = ev->data[0] & 0x0F;
+                int data1 = ev->data[1];
+                int data2 = ev->data[2];
+                fMidiHandler->handleData2(0.0, type, channel, data1, data2);
+
+                break;
+            }
+            default: break;
+        }
+    }
 
 
     const void* get_extension(const char* id) noexcept {
@@ -260,9 +283,14 @@ public:
             for (uint32_t i = 0, N = process->in_events->size(process->in_events); i < N; ++i) {
                 const clap_event_header_t* hdr = process->in_events->get(process->in_events, i);
                 applyParamEventIfValid(hdr);
-                if (fIsPolyphonic) handlePolyMIDIEvent(hdr); //ONLY for synths
+                if (fIsPolyphonic) {
+                    handlePolyMIDIEvent(hdr);
+                } else {
+                    handleDSPMIDIEvent(hdr);
+                }
             }
         }
+
 
 
         FAUSTFLOAT* inputs[fNumInputs];
@@ -288,7 +316,7 @@ public:
         if (!isInput || index != 0) return false;
         std::memset(info, 0, sizeof(*info));
         info->id = index;
-        std::snprintf(info->name, sizeof(info->name), "MIDI In");
+        std::snprintf(info->name, CLAP_NAME_SIZE, "MIDI In");
         info->supported_dialects = CLAP_NOTE_DIALECT_CLAP | CLAP_NOTE_DIALECT_MIDI;
         info->preferred_dialect = CLAP_NOTE_DIALECT_CLAP;
         return true;
@@ -335,7 +363,7 @@ public:
         info->id = index;
         const char* name = fParamAddresses[index].c_str();
         if (name[0] == '/') ++name;
-        std::snprintf(info->name, sizeof(info->name), "%s", name);
+        std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name);
 
         FAUSTFLOAT min = fUI.getParamMin(index);
         FAUSTFLOAT max = fUI.getParamMax(index);
@@ -345,6 +373,10 @@ public:
         info->max_value = max;
         info->default_value = init;
         info->flags = CLAP_PARAM_IS_AUTOMATABLE;
+
+        std::strncpy(info->module, "Main", sizeof(info->module));
+        info->module[sizeof(info->module) - 1] = '\0'; //make sure of null-termination
+
         return true;
     }
 
@@ -380,9 +412,14 @@ public:
             const clap_event_header_t* hdr = in->get(in, i);
             if (!hdr) continue;
             applyParamEventIfValid(hdr);
-            handlePolyMIDIEvent(hdr);
+            if (fIsPolyphonic) {
+                handlePolyMIDIEvent(hdr);
+            } else {
+                handleDSPMIDIEvent(hdr);
+            }
         }
     }
+
 
     bool implementsAudioPorts() const noexcept override { return true; }
     uint32_t audioPortsCount(bool isInput) const noexcept override { return 1; }
@@ -391,11 +428,13 @@ public:
         if (index != 0 || !info) return false;
         std::memset(info, 0, sizeof(*info));
         info->id = index;
-        std::snprintf(info->name, sizeof(info->name), "%s", isInput ? "Input" : "Output");
+        std::snprintf(info->name, CLAP_NAME_SIZE, "%s", isInput ? "Input" : "Output");
         info->channel_count = isInput ? std::max(1, fNumInputs) : std::max(1, fNumOutputs);
         info->flags = CLAP_AUDIO_PORT_IS_MAIN;
+        info->in_place_pair = 0;  //port for in-place processing
         return true;
     }
+
 
     using Base::clapPlugin;
     static const clap_plugin_t* create(const clap_host_t* host) {
