@@ -172,6 +172,17 @@ class Faust2WwiseOrchestrator:
         print(f"DSP_FILENAME {self.dsp_filename}")
         print("------------------------------------------")
     
+    def ensure_valid_plugin_name(self, name: str) -> str:
+        """
+        Check if plugin name is valid (i.e. if starts with a number.)
+        Faust compiles such files, but wwise is not handling such project names
+        Therefore, if invalid, prefix with 'Dsp_'
+        .. & always capitalize the first letter..
+        """
+        if not name or not (name[0].isalpha() or name[0] == '_') or not all(c.isalnum() or c == '_' for c in name):
+            name = "Dsp_" + name
+        return name.capitalize()
+    
     def validate_environment(self):
         
         # Check if WWISEROOT is set
@@ -206,7 +217,7 @@ class Faust2WwiseOrchestrator:
         
         if self.dsp_file:
             self.dsp_filename = Path(self.dsp_file).stem # extract name without extension
-            self.plugin_name = self.dsp_filename.capitalize() #capitalize first letter
+            self.plugin_name = self.ensure_valid_plugin_name(self.dsp_filename) # Conform to the plugin name restrictions (Capitalized, first letter cannot be a number)
                 
         current_dir = os.getcwd()
         if (not self.output_dir):
@@ -321,7 +332,7 @@ class Faust2WwiseOrchestrator:
             # i.e. declare name "Name"
             temp_plugin_name = json_data.get('name')
             if temp_plugin_name:
-                self.plugin_name = temp_plugin_name
+                self.plugin_name = self.ensure_valid_plugin_name(temp_plugin_name) # Conform to the plugin name restrictions (Capitalized, first letter cannot be a number)
                 print(f"PLUGIN_NAME changed to {self.plugin_name}")
             
             # extract author from meta dict
@@ -616,7 +627,7 @@ class Faust2WwiseOrchestrator:
         self.integrate_dsp_files()      # step 3
         self.configure_wwise_project()  # step 4
         self.build_plugin()             # step 5
-        self.cleanup()                  # outro
+        # self.cleanup()                  # outro
         
         print("")
         print("=====================================")
