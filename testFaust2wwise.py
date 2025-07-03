@@ -15,13 +15,24 @@ OUTPUT_JSON_FILE = BASE_DIR / "test_results.json"
 
 # these files are additional files that get imported by other dsp files, so they have to be excluded.
 EXCLUDE_FILES = {
-    "SAM/16_channel_volume/layout.dsp",
-    "SAM/chorus/layout2.dsp",
-    "SAM/echo/layout2.dsp",
-    "SAM/effects/layout2.dsp",
-    "SAM/flanger/layout2.dsp",
-    "SAM/freeverb/layout2.dsp",
-    "SAM/virtualAnalog/layout2.dsp"
+    "SAM/16_channel_volume/layout.dsp",         # ok, this file is imported by other dsp files
+    "SAM/chorus/layout2.dsp",                   # ok, this file is imported by other dsp files
+    "SAM/echo/layout2.dsp",                     # ok, this file is imported by other dsp files
+    "SAM/effects/layout2.dsp",                  # ok, this file is imported by other dsp files
+    "SAM/flanger/layout2.dsp",                  # ok, this file is imported by other dsp files
+    "SAM/freeverb/layout2.dsp",                 # ok, this file is imported by other dsp files
+    "SAM/virtualAnalog/layout2.dsp",            # ok, this file is imported by other dsp files
+    "misc/sflooper.dsp",                        # ok, requires different arch file, builds with manual tweaking (#include faust/gui/SoundUI.h && faust/gui/LibsndfileReader.h in faustdsp.cpp + copying -I -L in compiler settings) 
+    "SAM/echo/echo.dsp",                        # ok, builds when copying the faust\architecture\sam\headers into the SoundEnginePlugin directory
+    "SAM/effects/echo.dsp",                     # ok, builds when copying the faust\architecture\sam\headers into the SoundEnginePlugin directory
+    "SAM/effects/effects.dsp",                  # ok, builds when copying the faust\architecture\sam\headers into the SoundEnginePlugin directory
+    "physicalModeling/faust-stk/bass.dsp",      # ok, builds when copying bass.h and instrument.h into the SoundEnginePlugin directory + change #include <bass.h> to "bass.h" in faustdsp.cpp
+    "physicalModeling/faust-stk/harpsi.dsp",    # ok, builds when copying harpsichord.h and instrument.h into the SoundEnginePlugin directory + change #include <harpsichord.h> to "harpsichord.h" in faustdsp.cpp
+    "physicalModeling/faust-stk/modalBar.dsp",  # ok, builds when copying modalBar.h and instrument.h into the SoundEnginePlugin directory + change #include from <> to "" in the include statements of the faustdsp.cpp for those two files
+    "physicalModeling/faust-stk/piano.dsp",     # ok, builds when copying piano.h and instrument.h into the SoundEnginePlugin directory + change #include <piano.h> to "piano.h" in faustdsp.cpp
+    "physicalModeling/faust-stk/voiceForm.dsp", # ok, builds when copying phonemes.h into the SoundEnginePlugin directory + change #include <phonemes.h> to "phonemes.h" in faustdsp.cpp
+    "physicalModeling/mi-faust/08_TwoMassChain/2massChain.dsp", # ok, builds if remove the - symbol from the declare name statement, i.e. from "2-mass .." to "2_mass.."
+    "autodiff/gain_dc/diff.dsp"                 # ok, builds if remove the + symbol from the declare name statement 
 }
 
 def moveJsonFile(json_source_path, json_target_path, log_path):
