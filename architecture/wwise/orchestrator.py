@@ -174,13 +174,18 @@ class Faust2WwiseOrchestrator:
     
     def ensure_valid_plugin_name(self, name: str) -> str:
         """
-        Check if plugin name is valid (i.e. if starts with a number.)
-        Faust compiles such files, but wwise is not handling such project names
-        Therefore, if invalid, prefix with 'Dsp_'
-        .. & always capitalize the first letter..
+        Check if plugin name is valid (i.e. if starts with a number, or if it has spaces)
+        Faust compiles files that starts with a number, but wwise is not handling such project names
+        Therefore, if invalid, prefix with 'Dsp_',
+        replace spaces with underscore _,
+        & always capitalize the first letter..
         """
+        
+        name = name.replace(" ", "_")
+
         if not name or not (name[0].isalpha() or name[0] == '_') or not all(c.isalnum() or c == '_' for c in name):
             name = "Dsp_" + name
+        
         return name.capitalize()
     
     def validate_environment(self):
