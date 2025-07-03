@@ -183,7 +183,7 @@ class Faust2WwiseOrchestrator:
         
         name = name.replace(" ", "_")
 
-        if not name or not (name[0].isalpha() or name[0] == '_') or not all(c.isalnum() or c == '_' for c in name):
+        if not name or not (name[0].isalpha() or name[0] == '_'):
             name = "Dsp_" + name
         
         return name.capitalize()
