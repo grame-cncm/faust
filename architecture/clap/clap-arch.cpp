@@ -1,42 +1,50 @@
 // Created by Cucu on 02/06/2025.
-//this file translates faust's mydsp c++ class into the clap plugin interface
-//core of the plugin backend
 
+// this file implements a CLAP plugin backend by wrapping Faust's mydsp class.
+// it acts as a bridge between Faust-generated DSP code and the CLAP plugin API.
 <<includeIntrinsic>>
 
-//includes for faust dsp and ui
+// faust DSP and UI headers
 #include <faust/dsp/dsp.h>
 #include <faust/dsp/poly-dsp.h>
 #include <faust/gui/MapUI.h>
 #include <faust/gui/meta.h>
-#include <faust/midi/midi.h> //faust midi types
+#include <faust/midi/midi.h> // faust midi types
 #include <faust/gui/UI.h>
 #include <faust/gui/GUI.h>
-//include for cpp logging
+
+// cpp logging
 #include <iostream>
 
-//includes for the clap helpers glue
+// CLAP helpers and API headers
 #include <clap/helpers/plugin.hh>
 #include <clap/helpers/host-proxy.hh>
 #include <clap/events.h>
-#include <clap/ext/note-ports.h> //clap note port api
+#include <clap/ext/note-ports.h> // CLAP note port extension
+
+// include user Faust-generated class placeholder
 <<includeclass>>
 
+// custom UI class inheriting Faust's MapUI to store parameter metadata
 struct CLAPMapUI : public MapUI {
+    // metadata struct for parameter limits and default value
     struct ParamMeta {
         FAUSTFLOAT min;
         FAUSTFLOAT max;
         FAUSTFLOAT init;
     };
 
+    // parameter data combines a unique path, pointer to parameter zone and meta
     struct ParamData {
         std::string shortname;
         FAUSTFLOAT* zone;
         ParamMeta meta;
     };
 
+    // vector holding all parameter information
     std::vector<ParamData> fParams;
 
+    // overridden Faust UI methods to track parameters as they are created
     void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
         MapUI::addVerticalSlider(label, zone, init, min, max, step);
         std::string shortname = buildPath(label);
@@ -55,13 +63,14 @@ struct CLAPMapUI : public MapUI {
         fParams.push_back({shortname, zone, {min, max, init}});
     }
 
-
+    // box-related methods simply forward to base class (no extra handling)
     void openTabBox(const char* label) override { MapUI::openTabBox(label); }
     void openHorizontalBox(const char* label) override { MapUI::openHorizontalBox(label); }
     void openVerticalBox(const char* label) override { MapUI::openVerticalBox(label); }
     void closeBox() override { MapUI::closeBox(); }
 
 
+    // accessors for parameters count and metadata
     int getParamsCount() const { return int(fParams.size()); }
 
     std::string getParamShortname(int index) const {
@@ -79,7 +88,7 @@ struct CLAPMapUI : public MapUI {
         return fParams[index].meta.max;
     }
 
-
+    // set and get parameter values by path, delegating to base MapUI
     void setParamValue(const std::string& path, FAUSTFLOAT val) {
         MapUI::setParamValue(path, val);
     }
@@ -88,7 +97,7 @@ struct CLAPMapUI : public MapUI {
         return MapUI::getParamValue(path);
     }
 
-
+    // access initial/default parameter value and the zone pointer
     FAUSTFLOAT getParamInit(int index) const {
         if (index < 0 || index >= int(fParams.size())) return 0.5f;
         return fParams[index].meta.init;
@@ -99,6 +108,7 @@ struct CLAPMapUI : public MapUI {
         return fParams[index].zone;
     }
 
+    // set or get parameter value by index directly via zone pointer
     void setParamValue(int index, FAUSTFLOAT val) {
         if (index < 0 || index >= int(fParams.size())) return;
         *fParams[index].zone = val;
@@ -109,21 +119,25 @@ struct CLAPMapUI : public MapUI {
         return *fParams[index].zone;
     }
 
+    // return the unique parameter address (path)
     std::string getParamAddress(int index) const {
         if (index < 0 || index >= int(fParams.size())) return "";
         return fParams[index].shortname;
     }
 };
 
+// forward declaration for Plugin class
 class GainPlugin;
 
+// base class alias for simplified CLAP plugin inheritance
 using Base = clap::helpers::Plugin<
     clap::helpers::MisbehaviourHandler::Terminate,
     clap::helpers::CheckingLevel::Minimal>;
 
-
+// plugin features declaration
 static const char* gain_features[] = { CLAP_PLUGIN_FEATURE_AUDIO_EFFECT, nullptr };
 
+// plugin descriptor structure describing metadata to the host
 static const clap_plugin_descriptor_t gain_desc = {
     .clap_version = CLAP_VERSION_INIT,
     .id = "org.faust.gain",
@@ -137,18 +151,20 @@ static const clap_plugin_descriptor_t gain_desc = {
     .features = gain_features
 };
 
+// the main plugin class implementing CLAP plugin behaviour
 class GainPlugin final : public Base {
 public:
-    int fNumInputs = 2; //defautl to stereo??
+    int fNumInputs = 2; // default to stereo
     int fNumOutputs = 2;
-    mydsp* fBaseDSP = nullptr; //original Faust DSP
-    mydsp_poly* fDSP = nullptr; //midi-aware wrapper
+    mydsp* fBaseDSP = nullptr; // original Faust DSP
+    mydsp_poly* fDSP = nullptr; // midi-aware wrapper
 
     CLAPMapUI fUI;
-    bool fIsPolyphonic = false; //determines if midi/note handling is enabled
+    bool fIsPolyphonic = false; // determines if midi/note handling is enabled
     MidiUI* fMidiUI = nullptr;
     midi_handler* fMidiHandler = nullptr;
 
+    // constructor initialises base class with descriptor and host pointers
     GainPlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
         : Base(desc, host) {}
 
@@ -156,11 +172,13 @@ public:
         fBaseDSP = new mydsp();
         fIsPolyphonic = true;
         if (fIsPolyphonic) {
+            // create polyphonic wrapper and build UI linked to CLAPMapUI
             fDSP = new mydsp_poly(fBaseDSP, 16, true, true);
             fDSP->buildUserInterface(&fUI);
             GUI::updateAllGuis();
 
         } else {
+            // create MIDI support and UI for non-polyphonic mode
             fMidiHandler = new midi_handler();
             fMidiUI = new MidiUI(fMidiHandler);
             fBaseDSP->buildUserInterface(fMidiUI); // MIDI support
@@ -169,6 +187,8 @@ public:
         }
         return true;
     }
+
+    // activate plugin and initialise DSP with sample rate
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override {
         if (fIsPolyphonic) {
             fDSP->init(sampleRate);
@@ -182,6 +202,7 @@ public:
         return true;
     }
 
+    // apply parameter event if valid and within range
     bool applyParamEventIfValid(const clap_event_header_t* hdr) {
         if (!hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID || hdr->type != CLAP_EVENT_PARAM_VALUE)
             return false;
@@ -195,7 +216,7 @@ public:
         return true;
     }
 
-
+    // handle MIDI events in polyphonic mode by forwarding to Faust DSP
     void handlePolyMIDIEvent(const clap_event_header_t* hdr){
         switch (hdr->type) {
             case CLAP_EVENT_NOTE_ON: {
@@ -226,6 +247,7 @@ public:
         }
     }
 
+    // handle MIDI events in non-polyphonic DSP mode
     void handleDSPMIDIEvent(const clap_event_header_t* hdr) {
         if (!fBaseDSP || !fMidiHandler || !hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID) return;
 
@@ -244,7 +266,7 @@ public:
         }
     }
 
-
+    // provide CLAP extensions this plugin supports
     const void* get_extension(const char* id) noexcept {
         if (std::strcmp(id, CLAP_EXT_NOTE_PORTS) == 0) return (const clap_plugin_note_ports_t*)this;
         if (std::strcmp(id, CLAP_EXT_STATE) == 0) return (const clap_plugin_state_t*)this;
@@ -252,7 +274,10 @@ public:
         return nullptr;
     }
 
+    // main processing method called by host each audio block
     clap_process_status process(const clap_process_t* process) noexcept override {
+
+        // basic sanity checks on audio IO buffers
         if (process->audio_inputs_count < 1 || process->audio_outputs_count < 1)
             return CLAP_PROCESS_ERROR;
         const auto& inBuffer = process->audio_inputs[0];
@@ -263,6 +288,7 @@ public:
         if (inBuffer.channel_count == 0 || outBuffer.channel_count == 0)
             return CLAP_PROCESS_CONTINUE;
 
+        // process incoming parameter and MIDI events
         if (process->in_events) {
             for (uint32_t i = 0, N = process->in_events->size(process->in_events); i < N; ++i) {
                 const clap_event_header_t* hdr = process->in_events->get(process->in_events, i);
@@ -275,6 +301,7 @@ public:
             }
         }
 
+        // prepare Faust audio buffers
         FAUSTFLOAT* inputs[fNumInputs];
         FAUSTFLOAT* outputs[fNumOutputs];
         for (int i = 0; i < fNumInputs; ++i)
@@ -282,6 +309,7 @@ public:
         for (int i = 0; i < fNumOutputs; ++i)
             outputs[i] = outBuffer.data32[i];
 
+        // compute audio block
         if (fIsPolyphonic) {
             fDSP->compute(process->frames_count, inputs, outputs);
         } else {
@@ -291,6 +319,7 @@ public:
         return CLAP_PROCESS_CONTINUE;
     }
 
+    // implement note ports extension, always 1 input port
     bool implementsNotePorts() const noexcept override { return true; }
     uint32_t notePortsCount(bool isInput) const noexcept override { return isInput ? 1 : 0; }
 
@@ -304,12 +333,17 @@ public:
         return true;
     }
 
+    // implement state extension to save and restore parameter values
     bool implementsState() const noexcept override { return true; }
 
     bool stateSave(const clap_ostream_t* stream) noexcept override {
         if (!stream || !stream->write) return false;
         int paramCount = fUI.getParamsCount();
+
+        // write number of parameters
         if (!stream->write(stream, &paramCount, sizeof(paramCount))) return false;
+
+        // write each parameter value
         for (int i = 0; i < paramCount; ++i) {
             float v = fUI.getParamValue(i);
             if (!stream->write(stream, &v, sizeof(v))) return false;
@@ -320,15 +354,21 @@ public:
     bool stateLoad(const clap_istream_t* stream) noexcept override {
         if (!stream || !stream->read) return false;
         uint32_t paramCount = 0;
+
+        // read number of parameters
         if (!stream->read(stream, &paramCount, sizeof(paramCount))) return false;
+
         if (paramCount != (uint32_t)fUI.getParamsCount())
             return false;
+
+        // read each parameter and set value
         for (uint32_t i = 0; i < paramCount; ++i) {
             float v;
             if (!stream->read(stream, &v, sizeof(v))) return false;
             fUI.setParamValue(i, v);
         }
 
+        // notify host to update parameter display and processing
         if (_host.canUseParams()) {
             _host.paramsRescan(CLAP_PARAM_RESCAN_VALUES | CLAP_PARAM_RESCAN_ALL);
             _host.paramsRequestFlush();
@@ -337,6 +377,7 @@ public:
         return true;
     }
 
+    // implement parameter extension methods
     bool implementsParams() const noexcept override { return true; }
     uint32_t paramsCount() const noexcept override {
         return static_cast<uint32_t>(fUI.getParamsCount());
@@ -351,25 +392,27 @@ public:
 
         std::string paramName = fUI.getParamShortname(index);
         const char* name = paramName.c_str();
-        if (name[0] == '/') ++name;
+        if (name[0] == '/') ++name; // remove leading slash for cleaner display
         std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name);
 
         FAUSTFLOAT min = fUI.getParamMin(index);
         FAUSTFLOAT max = fUI.getParamMax(index);
         FAUSTFLOAT init = fUI.getParamInit(index);
 
+        // provide parameter value range and default
         info->min_value = min;
         info->max_value = max;
         info->default_value = init;
         info->flags = CLAP_PARAM_IS_AUTOMATABLE;
 
+        // parameters grouped in a module named "Main"
         std::strncpy(info->module, "Main", sizeof(info->module));
         info->module[sizeof(info->module) - 1] = '\0'; //make sure of null-termination
 
         return true;
     }
 
-
+// return parameter value by ID
 bool paramsValue(clap_id id, double* value) noexcept override {
     if (!value || id >= (clap_id)fUI.getParamsCount())
         return false;
@@ -377,7 +420,7 @@ bool paramsValue(clap_id id, double* value) noexcept override {
     return true;
 }
 
-
+    // convert text to parameter value (string to double)
     bool paramsTextToValue(clap_id id, const char* text, double* outValue) noexcept override {
         if (!text || !outValue || id >= (clap_id)fUI.getParamsCount())
             return false;
@@ -389,6 +432,7 @@ bool paramsValue(clap_id id, double* value) noexcept override {
         }
     }
 
+    // convert parameter value to text representation
     bool paramsValueToText(clap_id id, double value, char* outBuffer, uint32_t bufferSize) noexcept override {
         if (!outBuffer || bufferSize == 0 || id >= (clap_id)fUI.getParamsCount())
             return false;
@@ -396,12 +440,19 @@ bool paramsValue(clap_id id, double* value) noexcept override {
         return true;
     }
 
+    // flush pending parameter and MIDI events in the event queue
     void paramsFlush(const clap_input_events_t* in, const clap_output_events_t*) noexcept override {
         if (!in) return;
+
+        // iterate over all incoming events
         for (uint32_t i = 0; i < in->size(in); ++i) {
             const clap_event_header_t* hdr = in->get(in, i);
             if (!hdr) continue;
+
+            // apply parameter changes if the event is valid
             applyParamEventIfValid(hdr);
+
+            // route MIDI events according to polyphony mode
             if (fIsPolyphonic) {
                 handlePolyMIDIEvent(hdr);
             } else {
@@ -410,52 +461,72 @@ bool paramsValue(clap_id id, double* value) noexcept override {
         }
     }
 
-
+    // indicate support for audio ports
     bool implementsAudioPorts() const noexcept override { return true; }
+
+    // report number of audio ports; 1 input and 1 output port by default
     uint32_t audioPortsCount(bool isInput) const noexcept override { return 1; }
 
+    // provide information about audio ports to host
     bool audioPortsInfo(uint32_t index, bool isInput, clap_audio_port_info_t* info) const noexcept override {
         if (index != 0 || !info) return false;
         std::memset(info, 0, sizeof(*info));
         info->id = index;
         std::snprintf(info->name, CLAP_NAME_SIZE, "%s", isInput ? "Input" : "Output");
+
+        // channel count matches current number of DSP inputs or outputs
         info->channel_count = isInput ? std::max(1, fNumInputs) : std::max(1, fNumOutputs);
+
+        // mark port as the main port for in-place processing
         info->flags = CLAP_AUDIO_PORT_IS_MAIN;
         info->in_place_pair = 0;  //port for in-place processing
         return true;
     }
 
-
+    // expose base class method to retrieve underlying CLAP plugin pointer
     using Base::clapPlugin;
     static const clap_plugin_t* create(const clap_host_t* host) {
         return (new GainPlugin(&gain_desc, host))->clapPlugin();
     }
 };
 
-// Factory glue
+// return total number of plugins provided by this factory
 static uint32_t plugin_count(const clap_plugin_factory_t*) { return 1; }
+
+// return plugin descriptor for given index; only one plugin here
 static const clap_plugin_descriptor_t* plugin_desc(const clap_plugin_factory_t*, uint32_t index) {
     return (index == 0) ? &gain_desc : nullptr;
 }
+
+// factory method to create new plugin instance
 static const clap_plugin_t* plugin_create(const clap_plugin_factory_t*, const clap_host_t* host, const char* plugin_id) {
     if (std::strcmp(plugin_id, gain_desc.id) == 0)
         return GainPlugin::create(host);
     return nullptr;
 }
+
+// single plugin factory structure describing factory callbacks
 static const clap_plugin_factory_t gain_factory = {
     .get_plugin_count = plugin_count,
     .get_plugin_descriptor = plugin_desc,
     .create_plugin = plugin_create
 };
+
+// entry point initialisation and deinitialisation
 static bool entry_init(const char* path) { return true; }
 static void entry_deinit() {}
 
+// C linkage block exporting the CLAP factory to the host
 extern "C" {
+
+// retrieve the requested factory by its ID string
 CLAP_EXPORT const void* clap_get_factory(const char* factory_id) {
     if (std::strcmp(factory_id, CLAP_PLUGIN_FACTORY_ID) == 0)
         return &gain_factory;
     return nullptr;
 }
+
+// define the CLAP plugin entry point structure
 CLAP_EXPORT const clap_plugin_entry_t clap_entry = {
     CLAP_VERSION_INIT,
     entry_init,
