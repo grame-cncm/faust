@@ -1,8 +1,7 @@
 // Created by Cucu on 02/06/2025.
-//dummy clap architecture file
-//this file will translate faust's mydsp c++ class into the clap plugin interface
-//it should include plugin lifecycle, audio block processing calls, parameter registration and ui integration using buildUserInterface () and CLAP API
+//this file translates faust's mydsp c++ class into the clap plugin interface
 //core of the plugin backend
+
 <<includeIntrinsic>>
 
 //includes for faust dsp and ui
@@ -146,10 +145,7 @@ public:
     mydsp_poly* fDSP = nullptr; //midi-aware wrapper
 
     CLAPMapUI fUI;
-    std::vector<std::string> fParamAddresses;
-    std::vector<float> fExpectedValues;
     bool fIsPolyphonic = false; //determines if midi/note handling is enabled
-    bool fHasFlushed = false;
     MidiUI* fMidiUI = nullptr;
     midi_handler* fMidiHandler = nullptr;
 
@@ -167,21 +163,10 @@ public:
         } else {
             fMidiHandler = new midi_handler();
             fMidiUI = new MidiUI(fMidiHandler);
-            fBaseDSP->buildUserInterface(fMidiUI); //MIDI support
-            fBaseDSP->buildUserInterface(&fUI);    //regular UI
+            fBaseDSP->buildUserInterface(fMidiUI); // MIDI support
+            fBaseDSP->buildUserInterface(&fUI); // regular UI
             GUI::updateAllGuis();
         }
-
-
-        fParamAddresses.clear();
-        fExpectedValues.clear();
-        for (int i = 0; i < fUI.getParamsCount(); ++i) {
-            std::string shortname = fUI.getParamShortname(i);
-            if (shortname.empty()) continue;
-            fParamAddresses.emplace_back(shortname);
-            fExpectedValues.push_back(fUI.getParamValue(shortname));
-        }
-
         return true;
     }
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override {
@@ -202,18 +187,16 @@ public:
             return false;
 
         const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
-        if (!ev || ev->param_id >= fParamAddresses.size() || ev->param_id >= fExpectedValues.size())
+        int paramCount = fUI.getParamsCount();
+        if (!ev || ev->param_id < 0 || ev->param_id >= paramCount)
             return false;
-        if (fParamAddresses[ev->param_id].empty())
-            return false;
-        fUI.setParamValue(fParamAddresses[ev->param_id], ev->value);
-        fExpectedValues[ev->param_id] = ev->value;
+
+        fUI.setParamValue(ev->param_id, ev->value);
         return true;
     }
 
-    void handlePolyMIDIEvent(const clap_event_header_t* hdr){
-        if (!fIsPolyphonic || !fDSP || !hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID) return;
 
+    void handlePolyMIDIEvent(const clap_event_header_t* hdr){
         switch (hdr->type) {
             case CLAP_EVENT_NOTE_ON: {
                 auto* ev = reinterpret_cast<const clap_event_note_t*>(hdr);
@@ -292,8 +275,6 @@ public:
             }
         }
 
-
-
         FAUSTFLOAT* inputs[fNumInputs];
         FAUSTFLOAT* outputs[fNumOutputs];
         for (int i = 0; i < fNumInputs; ++i)
@@ -327,10 +308,12 @@ public:
 
     bool stateSave(const clap_ostream_t* stream) noexcept override {
         if (!stream || !stream->write) return false;
-        uint32_t paramCount = fExpectedValues.size();
+        int paramCount = fUI.getParamsCount();
         if (!stream->write(stream, &paramCount, sizeof(paramCount))) return false;
-        for (float v : fExpectedValues)
+        for (int i = 0; i < paramCount; ++i) {
+            float v = fUI.getParamValue(i);
             if (!stream->write(stream, &v, sizeof(v))) return false;
+        }
         return true;
     }
 
@@ -338,13 +321,12 @@ public:
         if (!stream || !stream->read) return false;
         uint32_t paramCount = 0;
         if (!stream->read(stream, &paramCount, sizeof(paramCount))) return false;
-        if (paramCount != fExpectedValues.size())
+        if (paramCount != (uint32_t)fUI.getParamsCount())
             return false;
         for (uint32_t i = 0; i < paramCount; ++i) {
             float v;
             if (!stream->read(stream, &v, sizeof(v))) return false;
-            fUI.setParamValue(fParamAddresses[i], v);
-            fExpectedValues[i] = v;
+            fUI.setParamValue(i, v);
         }
 
         if (_host.canUseParams()) {
@@ -356,13 +338,19 @@ public:
     }
 
     bool implementsParams() const noexcept override { return true; }
-    uint32_t paramsCount() const noexcept override { return static_cast<uint32_t>(fParamAddresses.size()); }
+    uint32_t paramsCount() const noexcept override {
+        return static_cast<uint32_t>(fUI.getParamsCount());
+    }
 
     bool paramsInfo(uint32_t index, clap_param_info_t* info) const noexcept override {
-        if (index >= fParamAddresses.size()) return false;
+        int paramCount = fUI.getParamsCount();
+        if (index >= paramCount) return false;
+
         std::memset(info, 0, sizeof(*info));
         info->id = index;
-        const char* name = fParamAddresses[index].c_str();
+
+        std::string paramName = fUI.getParamShortname(index);
+        const char* name = paramName.c_str();
         if (name[0] == '/') ++name;
         std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name);
 
@@ -381,15 +369,17 @@ public:
         return true;
     }
 
-    bool paramsValue(clap_id id, double* value) noexcept override {
-        if (!value || id >= fExpectedValues.size())
-            return false;
-        *value = fExpectedValues[id];
-        return true;
-    }
+
+bool paramsValue(clap_id id, double* value) noexcept override {
+    if (!value || id >= (clap_id)fUI.getParamsCount())
+        return false;
+    *value = fUI.getParamValue(id);
+    return true;
+}
+
 
     bool paramsTextToValue(clap_id id, const char* text, double* outValue) noexcept override {
-        if (!text || !outValue || id >= fExpectedValues.size())
+        if (!text || !outValue || id >= (clap_id)fUI.getParamsCount())
             return false;
         try {
             *outValue = std::stod(text);
@@ -400,7 +390,7 @@ public:
     }
 
     bool paramsValueToText(clap_id id, double value, char* outBuffer, uint32_t bufferSize) noexcept override {
-        if (!outBuffer || bufferSize == 0 || id >= fExpectedValues.size())
+        if (!outBuffer || bufferSize == 0 || id >= (clap_id)fUI.getParamsCount())
             return false;
         std::snprintf(outBuffer, bufferSize, "%.3f", value);
         return true;
@@ -408,7 +398,6 @@ public:
 
     void paramsFlush(const clap_input_events_t* in, const clap_output_events_t*) noexcept override {
         if (!in) return;
-        fHasFlushed = true;
         for (uint32_t i = 0; i < in->size(in); ++i) {
             const clap_event_header_t* hdr = in->get(in, i);
             if (!hdr) continue;

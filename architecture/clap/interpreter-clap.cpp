@@ -5,10 +5,16 @@
 #include "interpreter-clap.h"
 #include <iostream>
 
+// starting w no parameters, no midi, no ui, just handles one input and one output mono channels for now
 
+// plugin constructor, it calls the base clap plugin constructor with the descriptor and host
+// initialises the pointers fDSP, fFactory to nullptr to start clean
 InterpreterCLAPPlugin::InterpreterCLAPPlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
 : clap::helpers::Plugin(desc, host), fFactory(nullptr), fDSP(nullptr) {}
 
+
+// the faust API function deleteInterpreterDSPFactory releases the compiled DSP factory and reduces its reference count
+// using this in order to prevent memory leakage
 InterpreterCLAPPlugin::~InterpreterCLAPPlugin() {
     if (fDSP) delete fDSP;
     if (fFactory) deleteInterpreterDSPFactory(fFactory);
