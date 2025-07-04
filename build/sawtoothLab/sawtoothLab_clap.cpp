@@ -802,6 +802,10 @@ public:
         info->max_value = max;
         info->default_value = init;
         info->flags = CLAP_PARAM_IS_AUTOMATABLE;
+
+        std::strncpy(info->module, "Main", sizeof(info->module));
+        info->module[sizeof(info->module) - 1] = '\0'; //make sure of null-termination
+
         return true;
     }
 
