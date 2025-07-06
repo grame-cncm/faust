@@ -39,190 +39,43 @@ The Faust2Wwise conversion process is applied with the following steps:
 
 import os
 import sys
-import argparse
-import subprocess
-import json
 import shutil
 from pathlib import Path
-import platform
-from integrator import integrateParameters
-import pdb
-
+import integrator
+import config
+import utils
+import jsoninjector
 
 class Faust2WwiseOrchestrator:
     def __init__(self, wwiseroot , faust_lib_dir, faust_include_dir):
         
-        ################################################ paths
-        self.faust_lib_dir = faust_lib_dir
-        self.faust_include_dir = faust_include_dir
-        self.archfile = os.path.join(self.faust_lib_dir, "wwise.cpp")
-        
-        ################################################ Wwise stuff
-        self.wwiseroot = wwiseroot
-        # self.wp_script = os.path.join(self.wwiseroot, "Scripts", "Build", "Plugins", "wp.py")
-        self.wp_script = os.path.join(self.wwiseroot, "Scripts/Build/Plugins/wp.py")
-        # self.wwiseroot_msys = ""
-        self.patch_version = ""
-        self.wwise_template_dir = ""
-        
-        ############################################### faust parameters obta
-        # Project configuration
-        ### script arguments
-        self.output_dir = None
-        self.faust_options = ""
-        self.dsp_file = ""
-        self.json_file = ""
-        ### additional
-        self.dsp_filename = ""
-        
-        ################################################ plugin config
-        self.plugin_type = ""
-        self.plugin_name = ""
-        self.plugin_suffix = ""
-        self.author = ""
-        self.description = ""
-        
-        ################################################ helper vars
-        self.temp_dir = "_temp_" # Temp dir to store temp data ( i.e. jsonfile )
+        self.cfg = config.Config(wwiseroot , faust_lib_dir, faust_include_dir)
 
-        ################################################ error codes
-        self.ERR_INVALID_INPUT = 2
-        self.ERR_ENVIRONMENT = 3
-        self.ERR_FAUST_COMPILE = 4
-        self.ERR_JSON_PARSE = 5
-        self.ERR_GENERATION = 6
-        self.ERR_INTEGRATION = 7
-        self.ERR_CONFIGURATION = 8
-        self.ERR_BUILD = 9
+    def __getattr__(self, name):
+        if hasattr(self.cfg, name):
+            return getattr(self.cfg, name)
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+
+    def __setattr__(self, name, value):
+        if name == 'cfg' or name not in getattr(self, 'cfg', {}).__dict__:
+            super().__setattr__(name, value)
+        else:
+            setattr(self.cfg, name, value)
 
     # =========================================================================
     # PRELIMINARY/PREPARATION STEP: SETUP AND VALIDATION 
     # =========================================================================
     
-    # help utility using Faust standard approach
-    def print_usage(self):
-        print("faust2wwise [options] file.dsp")
-        print("Converts Faust DSP files to Wwise plugins")
-        print("")
-        print("Platform: Windows/macOS/Linux with Wwise SDK")
-        print("")
-        print("Requirements: Wwise SDK, Faust compiler, Python")
-        print("")
-        print("Options:")
-        print("  -h, --help     Show this help message")
-        print("  -o <dir>       Output directory (default: current directory)")
-        print("")
-        print("Example:")
-        print("  faust2wwise sine.dsp")
-        sys.exit(1)
-    
-    def parse_arguments(self, args=None):
-
-        parser = argparse.ArgumentParser(description="Converts Faust DSP files to Wwise plugins",
-                                         add_help=False)
-        parser.add_argument('-h', '--help', action='store_true', help='Show help message')
-        parser.add_argument('-o', '--output_dir', help='Output directory')
-        parser.add_argument('dsp_file', nargs='?', help='DSP file to convert')
-        parser.add_argument('faust_options', nargs='*', help='Additional Faust options')
-        
-        if args is None:
-            args = sys.argv[1:]
-        
-        parsed_args, unknown_args = parser.parse_known_args(args)
-        
-        if parsed_args.help:
-            self.print_usage()
-        
-        if parsed_args.output_dir:
-            self.output_dir = parsed_args.output_dir
-        
-        if parsed_args.dsp_file:
-            self.dsp_file = parsed_args.dsp_file
-            self.dsp_file = os.path.join(os.getcwd(), self.dsp_file )
-        
-        all_faust_options = (parsed_args.faust_options or []) + unknown_args
-        self.faust_options = " ".join(all_faust_options)
-        # TODO: extend here with wwise related configuration options?
-        self.faust_options = self.faust_options.split() if isinstance(self.faust_options, str) else (self.faust_options or [])
-
-        # pdb.set_trace()
-    
-    def print_configuration(self):
-        print("------------------------------------------")
-        print("FAUST2WWISE CONFIGURATION")
-        print("------------------------------------------")
-        print(f"TEMP_DIR {self.temp_dir}")
-        print("========== FAUST CONFIGURATION ===========")
-        print(f"DSP_FILE {self.dsp_file}")
-        print(f"ARCHFILE {self.archfile}")
-        print(f"FAUSTARCH {os.environ.get('FAUSTARCH', '')}")
-        print(f"FAUSTLIB {os.environ.get('FAUSTLIB', '')}")
-        print(f"FAUST_LIB_DIR: {self.faust_lib_dir}")
-        print(f"FAUSTINC {os.environ.get('FAUSTINC', '')}")
-        print(f"FAUST_INCLUDE_DIR: {self.faust_include_dir}")
-        print(f"OUTPUT_DIR {self.output_dir}")
-        print(f"FAUST_OPTIONS {self.faust_options}")
-        print("=========== WWISE CONFIGURATION===========")
-        print(f"WWISEROOT {self.wwiseroot}")
-        print("========== PLUGIN CONFIGURATION ==========")
-        print(f"PLUGIN_TYPE {self.plugin_type}")
-        print(f"PLUGIN_NAME {self.plugin_name}")
-        print(f"AUTHOR {self.author}")
-        print(f"DESCRIPTION {self.description}")
-        print(f"DSP_FILENAME {self.dsp_filename}")
-        print("------------------------------------------")
-    
-    def ensure_valid_plugin_name(self, name: str) -> str:
-        """
-        Check if plugin name is valid (i.e. if starts with a number, or if it has spaces)
-        Faust compiles files that starts with a number, but wwise is not handling such project names
-        Therefore, if invalid, prefix with 'Dsp_',
-        replace spaces with underscore _,
-        & always capitalize the first letter..
-        """
-        
-        name = name.replace(" ", "_")
-
-        if not name or not (name[0].isalpha() or name[0] == '_'):
-            name = "Dsp_" + name
-        
-        return name.capitalize()
-    
-    def validate_environment(self):
-        
-        # Check if WWISEROOT is set
-        if not self.wwiseroot:
-            print(f"Error {self.ERR_ENVIRONMENT}: WWISEROOT environment variable is not set.")
-            print("Please set it to your Wwise installation directory or make sure wwise is installed.")
-            sys.exit(self.ERR_ENVIRONMENT)
-        
-        # Check if dsp file provided
-        if not self.dsp_file:
-            print(f"Error {self.ERR_INVALID_INPUT}: No DSP file provided")
-            self.print_usage()
-            sys.exit(self.ERR_INVALID_INPUT)
-        
-        # Check if the given dsp file exists
-        if not os.path.isfile(self.dsp_file):
-            print(f"Error {self.ERR_INVALID_INPUT}: DSP file '{self.dsp_file}' not found")
-            sys.exit(self.ERR_INVALID_INPUT)
-
-        # Check if architecture file exists
-        if not os.path.isfile(self.archfile):
-            print(f"Error {self.ERR_ENVIRONMENT}: Wwise architecture file not found at {self.archfile}")
-            print(f"Make sure the wwise.cpp architecture file is installed in {self.faust_lib_dir}")
-            sys.exit(self.ERR_ENVIRONMENT)
-    
     def setup_environment(self, args=None):
 
         print("------------------------------------------Preliminary Step : setup and validate environment")
         
-        self.parse_arguments(args)
+        utils.parse_arguments(self.cfg,args)
         # self.setup_platform_paths() # This is discarded, not needed now!
         
         if self.dsp_file:
             self.dsp_filename = Path(self.dsp_file).stem # extract name without extension
-            self.plugin_name = self.ensure_valid_plugin_name(self.dsp_filename) # Conform to the plugin name restrictions (Capitalized, first letter cannot be a number)
+            self.plugin_name = utils.ensure_valid_plugin_name(self.dsp_filename) # Conform to the plugin name restrictions (Capitalized, first letter cannot be a number)
                 
         current_dir = os.getcwd()
         if (not self.output_dir):
@@ -232,36 +85,8 @@ class Faust2WwiseOrchestrator:
         os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(self.temp_dir, exist_ok=True)
         
-        self.validate_environment()
-        self.print_configuration()
-
-    def run_system_command(self, cmd, error_code=None):
-    
-        # Run a system based command with consistent output and error handling.
-        
-        print("Running command:", " ".join(cmd))
-
-        try:
-            result = subprocess.run(
-                cmd,
-                check=True,
-                # capture_output=True,
-                # text=True,
-            )
-            if result.stdout:
-                print(result.stdout.strip())
-            if result.stderr:
-                print(result.stderr.strip())
-            return result
-
-        except subprocess.CalledProcessError as e:
-            print("Error: Command failed:", " ".join(cmd))
-            if e.stdout:
-                print(e.stdout.strip())
-            if e.stderr:
-                print(e.stderr.strip())
-            print(f"Exiting with error code {error_code or e.returncode}")
-            sys.exit(error_code or e.returncode)
+        utils.validate_environment(self.cfg)
+        self.cfg.print()
 
     # =========================================================================
     # FAUST COMPILATION
@@ -283,92 +108,10 @@ class Faust2WwiseOrchestrator:
             "-o", output_file
         ]
         
-        self.run_system_command(cmd, self.ERR_FAUST_COMPILE)
+        utils.run_system_command(cmd, self.ERR_FAUST_COMPILE)
         
-        self.process_json_configuration()
-      
-    def process_json_configuration(self):
-        
-        print("Parsing json configuration file..")
-        
-        # Move JSON file to temp directory
-        json_source = f"{self.dsp_file}.json"
-        self.json_file = os.path.join(self.temp_dir, f"{self.dsp_file}.json")
-        
-        if os.path.exists(json_source):
-            shutil.move(json_source, self.json_file)
-        
-        if not os.path.isfile(self.json_file):
-            print(f"Error {self.ERR_JSON_PARSE}: JSON file not found at {self.json_file}")
-            sys.exit(self.ERR_JSON_PARSE)
-        
-        try:
-            # Fix the invalid JSON syntax due to unescaped backslashes in the Windows paths issue,
-            # ...by escaping backslashes
-            with open(self.json_file, 'r') as f:
-                content = f.read()            
-            # Check for Windows-like paths and fix backslashes
-            if any(c + ':\\' in content for c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'):
-                content = content.replace('\\', '\\\\')
-                with open(self.json_file, 'w') as f:
-                    f.write(content)
-            
-            # Parse JSON
-            with open(self.json_file, 'r') as f:
-                json_data = json.load(f)
-            
-            # Extract inputs/outputs
-            dsp_inputs = json_data.get('inputs', 0)
-            dsp_outputs = json_data.get('outputs', 0)
-            
-            # Determine plugin type based on inputs
-            if dsp_inputs > 0:
-                self.plugin_type = "effect"
-                self.plugin_suffix = "FX"
-                #TODO: FX can be in-place and out-of-place
-            else:
-                self.plugin_type = "source"
-                self.plugin_suffix = "Source"
-            
-            #Set the wwise_template_dir, the directory where the wwise template files are stored 
-            self.wwise_template_dir = os.path.join(self.faust_lib_dir, "wwise", self.patch_version or "default", self.plugin_type) 
-
-            # Extract project name & override in case it is provided as a declaration in faust dsp file
-            # i.e. declare name "Name"
-            temp_plugin_name = json_data.get('name')
-            if temp_plugin_name:
-                self.plugin_name = self.ensure_valid_plugin_name(temp_plugin_name) # Conform to the plugin name restrictions (Capitalized, first letter cannot be a number)
-                print(f"PLUGIN_NAME changed to {self.plugin_name}")
-            
-            # extract author from meta dict
-            meta = json_data.get('meta', [])
-            self.author = "Unknown"
-            for item in meta:
-                if isinstance(item, dict) and 'author' in item:
-                    self.author = item['author']
-                    break
-            
-            # Extract description from meta dict
-            self.description = "No description provided"
-            for item in meta:
-                if isinstance(item, dict) and 'description' in item:
-                    self.description = item['description']
-                    break
-            
-            print(f"PLUGIN_TYPE {self.plugin_type}")
-            print(f"PLUGIN_NAME {self.plugin_name}")
-            print(f"AUTHOR {self.author}")
-            print(f"DESCRIPTION {self.description}")
-            
-        except json.JSONDecodeError as e:
-            print(f"Error {self.ERR_JSON_PARSE}: Failed to parse JSON: {e}")
-            sys.exit(self.ERR_JSON_PARSE)
-        except Exception as e:
-            print(f"Error {self.ERR_JSON_PARSE}: Failed to process JSON configuration: {e}")
-            sys.exit(self.ERR_JSON_PARSE)
-        
-        print(f"OK : {self.json_file} was parsed successfully!")
-
+        jsoninjector.process_json_configuration(self.cfg)
+    
     # =========================================================================
     # GENERATE PROJECT
     # =========================================================================
@@ -390,7 +133,7 @@ class Faust2WwiseOrchestrator:
             "--no-prompt"
         ]
         
-        self.run_system_command(cmd, self.ERR_GENERATION)
+        utils.run_system_command(cmd, self.ERR_GENERATION)
         os.chdir(original_dir)
 
     # =========================================================================
@@ -479,7 +222,7 @@ class Faust2WwiseOrchestrator:
 
         try:
             
-            integrateParameters(
+            integrator.integrateParameters(
                 self.output_dir, 
                 self.plugin_name, 
                 self.plugin_suffix, 
@@ -579,7 +322,7 @@ class Faust2WwiseOrchestrator:
         
         cmd = ["python", self.wp_script, "premake", "Authoring"]
 
-        self.run_system_command(cmd, self.ERR_CONFIGURATION)
+        utils.run_system_command(cmd, self.ERR_CONFIGURATION)
         os.chdir(original_dir)
     
     def build_plugin(self):
@@ -598,10 +341,9 @@ class Faust2WwiseOrchestrator:
             "Authoring"
         ]
         
-        self.run_system_command(cmd, self.ERR_BUILD)
+        utils.run_system_command(cmd, self.ERR_BUILD)
         os.chdir(original_dir)
             
-
     #==============================================================================
     # CLEANING
     #==============================================================================
