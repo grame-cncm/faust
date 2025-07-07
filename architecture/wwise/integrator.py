@@ -43,6 +43,8 @@ def add_number_suffix_to_shortnames(ui_tree):
 
 def integrateParameters(output_dir, plugin_name, plugin_suffix, json_file_path):
 
+    print("Integrating parameters...")
+
     # @TODO: make this a configuration file.
     target_files = [
         "SoundEnginePlugin/faustdsp.cpp",

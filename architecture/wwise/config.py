@@ -45,9 +45,9 @@ class Config:
         self.ERR_BUILD = 9
 
     def print(self):
-        print("------------------------------------------")
+        print("==========================================")
         print("FAUST2WWISE CONFIGURATION")
-        print("------------------------------------------")
+        print("==========================================")
         print(f"temp_dir {self.temp_dir}")
         print("========== FAUST CONFIGURATION ===========")
         print(f"dsp_file {self.dsp_file}")
@@ -64,4 +64,4 @@ class Config:
         print(f"author {self.author}")
         print(f"description {self.description}")
         print(f"dsp_filename {self.dsp_filename}")
-        print("------------------------------------------")
+        print("==========================================")

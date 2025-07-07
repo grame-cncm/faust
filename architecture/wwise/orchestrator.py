@@ -88,6 +88,8 @@ class Faust2WwiseOrchestrator:
         utils.validate_environment(self.cfg)
         self.cfg.print()
 
+        print("OK : Preliminary step was completed successfully!")
+
     # =========================================================================
     # FAUST COMPILATION
     # =========================================================================
@@ -111,6 +113,8 @@ class Faust2WwiseOrchestrator:
         utils.run_system_command(cmd, self.ERR_FAUST_COMPILE)
         
         jsoninjector.process_json_configuration(self.cfg)
+
+        print("OK : DSP compiling step was completed successfully!")
     
     # =========================================================================
     # GENERATE PROJECT
@@ -135,21 +139,29 @@ class Faust2WwiseOrchestrator:
         
         utils.run_system_command(cmd, self.ERR_GENERATION)
         os.chdir(original_dir)
+        print("OK : Generation step was completed successfully!")
 
     # =========================================================================
     # STEP 3: INTEGRATION STEP (DSP ONLY)
     # =========================================================================
     
-    def integrate_dsp_files(self):
+    def integration_step(self):
 
         print("------------------------------------------Step 3: Integration Step")
         
-        self.architecture_file_integration() # edit the exported arch file
-        self.replace_custom_templates() # replace the vital for the integration files
-        self.parameter_integration() # integrate parameters
-        self.modify_lua_build_script() # additional step : TODO ought to be absorbed by the replaceCustomTemplates
+        try:
+            self.architecture_file_integration() # edit the exported arch file
+            self.replace_custom_templates() # replace the vital for the integration files
+            self.parameter_integration() # integrate parameters
+            self.modify_lua_build_script() # additional step : TODO ought to be absorbed by the replaceCustomTemplates
                                         # .. or by the integrator instead
-    
+        except Exception as e:
+            print(f"Error {self.ERR_INTEGRATION}: Failed to integrate parameters")
+            print(f"Exception: {e}")
+            sys.exit(self.ERR_INTEGRATION)
+
+        print("OK : Integration step was completed successfully!")
+
     def architecture_file_integration(self):
         # Copy generated faust dsp file to SoundEnginePlugin dir
 
@@ -220,19 +232,12 @@ class Faust2WwiseOrchestrator:
     def parameter_integration(self):
         print("Integrating parameters...")
 
-        try:
-            
-            integrator.integrateParameters(
-                self.output_dir, 
-                self.plugin_name, 
-                self.plugin_suffix, 
-                self.json_file
-            )
-            
-        except Exception as e:
-            print(f"Error {self.ERR_INTEGRATION}: Failed to integrate parameters")
-            print(f"Exception: {e}")
-            sys.exit(self.ERR_INTEGRATION)
+        integrator.integrateParameters(
+            self.output_dir, 
+            self.plugin_name, 
+            self.plugin_suffix, 
+            self.json_file
+        )
 
     def modify_lua_build_script(self):
         print("Modifying Lua build script for Faust includes...")
@@ -324,6 +329,8 @@ class Faust2WwiseOrchestrator:
 
         utils.run_system_command(cmd, self.ERR_CONFIGURATION)
         os.chdir(original_dir)
+
+        print("OK : Configuring step was completed successfully!")
     
     def build_plugin(self):
 
@@ -343,6 +350,8 @@ class Faust2WwiseOrchestrator:
         
         utils.run_system_command(cmd, self.ERR_BUILD)
         os.chdir(original_dir)
+
+        print("OK : Building step was completed successfully!")
             
     #==============================================================================
     # CLEANING
@@ -359,6 +368,8 @@ class Faust2WwiseOrchestrator:
                 print(f"Cleaned up temporary directory: {self.temp_dir}")
         except Exception as e:
             print(f"Warning: Could not clean up temporary directory: {e}")
+        
+        print("OK : Cleaning step was completed successfully!")
 
     # =========================================================================
     # MAIN EXECUTION
@@ -371,10 +382,10 @@ class Faust2WwiseOrchestrator:
         self.setup_environment(args)    # preliminary step
         self.compile_dsp_file()         # step 1
         self.generate_wwise_project()   # step 2
-        self.integrate_dsp_files()      # step 3
+        self.integration_step()         # step 3
         self.configure_wwise_project()  # step 4
         self.build_plugin()             # step 5
-        # self.cleanup()                  # outro
+        self.cleanup()                  # outro
         
         print("")
         print("=====================================")

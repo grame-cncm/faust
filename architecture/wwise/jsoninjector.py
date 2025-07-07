@@ -72,10 +72,14 @@ def process_json_configuration(cfg):
                 cfg.description = item['description']
                 break
         
-        print(f"PLUGIN_TYPE {cfg.plugin_type}")
-        print(f"PLUGIN_NAME {cfg.plugin_name}")
-        print(f"AUTHOR {cfg.author}")
-        print(f"DESCRIPTION {cfg.description}")
+        print("================================")
+        print(f"description {cfg.description}")
+        print("================================")
+        print(f"plugin_type {cfg.plugin_type}")
+        print(f"plugin_name {cfg.plugin_name}")
+        print(f"author {cfg.author}")
+        print(f"description {cfg.description}")
+        print("================================")
         
     except json.JSONDecodeError as e:
         print(f"Error {cfg.ERR_JSON_PARSE}: Failed to parse JSON: {e}")
