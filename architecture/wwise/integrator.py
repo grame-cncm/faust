@@ -48,9 +48,8 @@ def parameter_integration(cfg):
 
     print("Integrating parameters...")
     
-    # @TODO: make this a configuration file.
+    # target files that are going to be replaced by template files that contains project-related placeholders for injection
     target_files = [
-        "SoundEnginePlugin/faustdsp.cpp",
         f"SoundEnginePlugin/{cfg.plugin_name}{cfg.plugin_suffix}.cpp",
         f"SoundEnginePlugin/{cfg.plugin_name}{cfg.plugin_suffix}Params.h",
         f"SoundEnginePlugin/{cfg.plugin_name}{cfg.plugin_suffix}Params.cpp",
