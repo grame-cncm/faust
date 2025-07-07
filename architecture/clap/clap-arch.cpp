@@ -72,9 +72,11 @@ struct CLAPMapUI : public MapUI {
 
     // accessors for parameters count and metadata
     int getParamsCount() const { return int(fParams.size()); }
-
+// returns the shortname of the parameter at 'index'
+// defensive checks to make sure index is within valid range to avoid crashes
+// in case of invalid or fuzzed parameter indices
     std::string getParamShortname(int index) const {
-        if (index < 0 || index >= int(fParams.size())) return "";
+        if (index < 0 || index >= int(fParams.size())) return ""; //
         return fParams[index].shortname;
     }
 
@@ -86,15 +88,6 @@ struct CLAPMapUI : public MapUI {
     FAUSTFLOAT getParamMax(int index) const {
         if (index < 0 || index >= int(fParams.size())) return 1.f;
         return fParams[index].meta.max;
-    }
-
-    // set and get parameter values by path, delegating to base MapUI
-    void setParamValue(const std::string& path, FAUSTFLOAT val) {
-        MapUI::setParamValue(path, val);
-    }
-
-    FAUSTFLOAT getParamValue(const std::string& path) {
-        return MapUI::getParamValue(path);
     }
 
     // access initial/default parameter value and the zone pointer
@@ -204,7 +197,7 @@ public:
 
     // apply parameter event if valid and within range
     bool applyParamEventIfValid(const clap_event_header_t* hdr) {
-        if (!hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID || hdr->type != CLAP_EVENT_PARAM_VALUE)
+        if (!hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID || hdr->type != CLAP_EVENT_PARAM_VALUE) // defensive check: hdr should not be null, but verify to avoid crashes on malformed events
             return false;
 
         const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
@@ -248,9 +241,9 @@ public:
     }
 
     // handle MIDI events in non-polyphonic DSP mode
-    void handleDSPMIDIEvent(const clap_event_header_t* hdr) {
-        if (!fBaseDSP || !fMidiHandler || !hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID) return;
+	//assumes fBaseDSP, fMidiHandler, and hdr are valid and hdr->space_id == CLAP_CORE_EVENT_SPACE_ID
 
+    void handleDSPMIDIEvent(const clap_event_header_t* hdr) {
         switch (hdr->type) {
             case CLAP_EVENT_MIDI: {
                 auto* ev = reinterpret_cast<const clap_event_midi_t*>(hdr);
