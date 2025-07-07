@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 """
-
-comment : first working Python converted version of the original bash script
-
-Next change is to identify the platform specific variables ( apart from variables any other part of the code ? Cause not sure .. ) and isolate it so as to address the way it is going to be utilized throughout this script structure.. 
-
 @Documentation :
 The Faust2Wwise conversion process is applied with the following steps:
     Preliminary/Preparation Step: Setup and Validation
@@ -150,10 +145,10 @@ class Faust2WwiseOrchestrator:
         print("------------------------------------------Step 3: Integration Step")
         
         try:
-            self.architecture_file_integration() # edit the exported arch file
-            self.replace_custom_templates() # replace the vital for the integration files
-            self.parameter_integration() # integrate parameters
-            self.modify_lua_build_script() # additional step : TODO ought to be absorbed by the replaceCustomTemplates
+            integrator.architecture_file_integration(self.cfg) # edit the exported arch file
+            integrator.replace_custom_templates(self.cfg) # replace the vital for the integration files
+            integrator.parameter_integration(self.cfg) # integrate parameters
+            integrator.modify_lua_build_script(self.cfg) # additional step : TODO ought to be absorbed by the replaceCustomTemplates
                                         # .. or by the integrator instead
         except Exception as e:
             print(f"Error {self.ERR_INTEGRATION}: Failed to integrate parameters")
@@ -161,157 +156,6 @@ class Faust2WwiseOrchestrator:
             sys.exit(self.ERR_INTEGRATION)
 
         print("OK : Integration step was completed successfully!")
-
-    def architecture_file_integration(self):
-        # Copy generated faust dsp file to SoundEnginePlugin dir
-
-        print("Architecture File Integration")
-        
-        faust_generated_arch_file = os.path.join(self.temp_dir, f"{self.dsp_filename}.cpp")
-        faust_generated_destination = os.path.join(self.output_dir, self.plugin_name, "SoundEnginePlugin/faustdsp.cpp")
-        
-        if not os.path.isfile(faust_generated_arch_file):
-            print(f"Error: Faust-generated file not found: {faust_generated_arch_file}")
-            sys.exit(self.ERR_FAUST_COMPILE)
-                
-        shutil.copy2(faust_generated_arch_file, faust_generated_destination)
-        print(f"OK : Copied Faust DSP to: {faust_generated_destination}")
-    
-    def replace_custom_templates(self):
-
-        print("Replacing generated files with custom templates...")
-        
-        # Define the list of template files to replace (these contain {name} placeholders)
-        template_files = [
-            f"SoundEnginePlugin/ProjectName{self.plugin_suffix}.h",
-            f"SoundEnginePlugin/ProjectName{self.plugin_suffix}.cpp",
-            f"SoundEnginePlugin/ProjectName{self.plugin_suffix}Params.h",
-            f"SoundEnginePlugin/ProjectName{self.plugin_suffix}Params.cpp",
-            "WwisePlugin/ProjectNamePlugin.cpp"
-        ]
-        
-        # Define the corresponding target files (using actual plugin name)
-        target_files = [
-            f"SoundEnginePlugin/{self.plugin_name}{self.plugin_suffix}.h",
-            f"SoundEnginePlugin/{self.plugin_name}{self.plugin_suffix}.cpp",
-            f"SoundEnginePlugin/{self.plugin_name}{self.plugin_suffix}Params.h",
-            f"SoundEnginePlugin/{self.plugin_name}{self.plugin_suffix}Params.cpp",
-            f"WwisePlugin/{self.plugin_name}Plugin.cpp"
-        ]
-        
-        target_dir = os.path.join(self.output_dir, self.plugin_name)
-
-        if os.path.isdir(target_dir):
-            print("Replacing specific SoundEnginePlugin files...")
-            
-            for template, target in zip(template_files, target_files):
-                template_path = os.path.join(self.wwise_template_dir, template)
-                target_path = os.path.join(target_dir, target)
-                
-                if os.path.isfile(template_path):
-                    # Read template and replace placeholders
-                    with open(template_path, 'r') as f:
-                        content = f.read()
-                    
-                    # Replace the ${name} placeholders with self.plugin name
-                    content = content.replace('${name}', self.plugin_name)
-                                        
-                    # Write to target file
-                    with open(target_path, 'w') as f:
-                        f.write(content)
-                    
-                    print(f"OK : Replaced: {target} with {template}")
-                else:
-                    print(f"ERROR: Template file not found: {template_path}")
-            
-            print("OK: Custom templates applied successfully!")
-        else:
-            print(f"ERROR: Target directory {target_dir} not found")
-            sys.exit(self.ERR_INTEGRATION)
-    
-    def parameter_integration(self):
-        print("Integrating parameters...")
-
-        integrator.integrateParameters(
-            self.output_dir, 
-            self.plugin_name, 
-            self.plugin_suffix, 
-            self.json_file
-        )
-
-    def modify_lua_build_script(self):
-        print("Modifying Lua build script for Faust includes...")
-        
-        original_dir = os.getcwd()
-        plugin_dir = os.path.join(self.output_dir, self.plugin_name)
-        os.chdir(plugin_dir)
-        
-        premake_file = "PremakePlugin.lua"
-        if not os.path.isfile(premake_file):
-            print(f"ERROR {self.ERR_INTEGRATION}: Could not find {premake_file}")
-            sys.exit(self.ERR_INTEGRATION)
-        
-        with open(premake_file, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-        
-        sections = [
-            'Plugin.sdk.static.includedirs',
-            'Plugin.sdk.shared.includedirs',
-            'Plugin.authoring.includedirs'
-        ]
-        
-        new_lines = []
-        inside_section = False
-        current_section = None
-        
-        for i, line in enumerate(lines):
-            stripped = line.strip()
-            
-            # Check if starting a section block
-            if any(line.startswith(section) and '=' in line for section in sections):
-                inside_section = True
-                # Remember which section we are in (not strictly necessary here)
-                current_section = next(section for section in sections if line.startswith(section))
-                new_lines.append(line)
-                continue
-            
-            # If inside a section, look for the line that contains just the closing brace '}'
-            if inside_section:
-                if stripped == '}':
-                    # Insert your include path line before this closing brace if not already present
-                    # But first check if faust include path already in previous lines in this block
-                    block_start_idx = len(new_lines) - 1
-                    # Walk backwards to check if faust path exists
-                    already_added = False
-                    for check_line in reversed(new_lines):
-                        if self.faust_include_dir in check_line:
-                            already_added = True
-                            break
-                        if check_line.strip() == '':  # empty line - skip
-                            continue
-                        if check_line.strip() == '{':  # hit start of block, stop checking
-                            break
-                    
-                    if not already_added:
-                        # Insert with the same indentation as the closing brace
-                        indent = line[:line.index('}')]
-                        insert_line = f'{indent}"{Path(self.faust_include_dir).as_posix()}",\n' # convert to posix path before replacing
-                        new_lines.append(insert_line)
-                    
-                    new_lines.append(line)
-                    inside_section = False
-                    current_section = None
-                    continue
-            
-            # Normal line outside or inside section
-            new_lines.append(line)
-        
-        # Writing back ..
-        with open(premake_file, 'w', encoding='utf-8') as f:
-            f.writelines(new_lines)
-        
-        print("OK : Updated Lua build script with Faust include paths")
-        os.chdir(original_dir)
 
     #==============================================================================
     # CONFIGURE(PREMAKE) & BUILD 
