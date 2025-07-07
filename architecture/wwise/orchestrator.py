@@ -148,8 +148,8 @@ class Faust2WwiseOrchestrator:
             integrator.architecture_file_integration(self.cfg) # edit the exported arch file
             integrator.replace_custom_templates(self.cfg) # replace the vital for the integration files
             integrator.parameter_integration(self.cfg) # integrate parameters
-            integrator.modify_lua_build_script(self.cfg) # additional step : TODO ought to be absorbed by the replaceCustomTemplates
-                                        # .. or by the integrator instead
+            integrator.modify_lua_build_script(self.cfg) # inject faust includes within the lua script
+            
         except Exception as e:
             print(f"Error {self.ERR_INTEGRATION}: Failed to integrate parameters")
             print(f"Exception: {e}")
