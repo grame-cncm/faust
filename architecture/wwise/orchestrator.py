@@ -169,7 +169,16 @@ class Faust2WwiseOrchestrator:
         plugin_dir = os.path.join(self.output_dir, self.plugin_name)
         os.chdir(plugin_dir)
         
-        cmd = ["python", self.wp_script, "premake", "Authoring"]
+        cmd = ["python", self.wp_script, "premake", self.wwise_platform]
+
+        if self.wwise_toolset:
+            cmd.extend(["--toolset", self.wwise_toolset])
+
+        if self.wwise_debugger:
+            cmd.append("--debugger")
+
+        if self.wwise_disable_codesign:
+            cmd.append("--disable-codesign")
 
         utils.run_system_command(cmd, self.ERR_CONFIGURATION)
         os.chdir(original_dir)
@@ -186,11 +195,26 @@ class Faust2WwiseOrchestrator:
         
         cmd = [
             "python", self.wp_script, "build",
-            "-c", "Release",
-            "-x", "x64", 
-            "-t", "vc170",
-            "Authoring"
+            "-c", self.wwise_configuration,
+            "-x", self.wwise_arch
         ]
+
+        if self.wwise_toolset:
+            cmd.extend(["--toolset", self.wwise_toolset])
+
+        if self.wwise_build_hooks_file:
+            cmd.extend(["--build-hooks-file", self.wwise_build_hooks_file])
+
+        if self.wwise_toolchain_vers:
+            cmd.extend(["--toolchain-vers", self.wwise_toolchain_vers])
+
+        if self.wwise_toolchain_env_script:
+            cmd.extend(["--toolchain-env-script", self.wwise_toolchain_env_script])
+        
+        cmd.extend([self.wwise_platform])
+
+        import pdb
+        pdb.set_trace()
         
         utils.run_system_command(cmd, self.ERR_BUILD)
         os.chdir(original_dir)

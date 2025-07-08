@@ -13,7 +13,17 @@ class Config:
         self.wp_script = os.path.join(self.wwiseroot, "Scripts", "Build", "Plugins", "wp.py")
         self.patch_version = ""
         self.wwise_template_dir = ""
-        
+        # configuration options
+        self.wwise_platform = "Authoring"           # default
+        self.wwise_toolset = None
+        self.wwise_debugger = False
+        self.wwise_disable_codesign = False
+        self.wwise_configuration = "Release"        # default
+        self.wwise_arch = None
+        self.wwise_build_hooks_file = None
+        self.wwise_toolchain_vers = None
+        self.wwise_toolchain_env_script = None
+
         ############################################### faust parameters obta
         # Project configuration
         ### script arguments
