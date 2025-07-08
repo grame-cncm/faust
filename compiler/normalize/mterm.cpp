@@ -1,23 +1,33 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.
+ FAUST compiler
+ Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
+
+/**
+ * @file mterm.cpp
+ * @brief Implementation of the multiplicative term (`mterm`) class. 
+ *
+ * This file contains the logic for manipulating multiplicative terms, which
+ * are a cornerstone of Faust's symbolic simplification engine. It handles
+ * parsing expression trees into mterms, performing arithmetic, and
+ * reconstructing canonical expression trees from them.
+ */
 
 #include "mterm.hh"
 #include "exception.hh"
@@ -26,6 +36,7 @@
 #include "signals.hh"
 #include "xtended.hh"
 
+#undef TRACE
 using namespace std;
 
 typedef map<Tree, int> MP;
@@ -44,7 +55,7 @@ mterm::mterm(const mterm& m) : fCoef(m.fCoef), fFactors(m.fFactors)
 }
 
 /**
- * Create a mterm from a tree expression
+ * @brief Create a mterm from a tree expression
  */
 mterm::mterm(Tree t) : fCoef(sigInt(1))
 {
@@ -58,7 +69,7 @@ mterm::mterm(Tree t) : fCoef(sigInt(1))
 }
 
 /**
- * true if mterm doesn't represent number 0
+ * @brief true if mterm doesn't represent number 0
  */
 bool mterm::isNotZero() const
 {
@@ -66,7 +77,7 @@ bool mterm::isNotZero() const
 }
 
 /**
- * true if mterm is strictly negative
+ * @brief true if mterm is strictly negative
  */
 bool mterm::isNegative() const
 {
@@ -74,7 +85,7 @@ bool mterm::isNegative() const
 }
 
 /**
- * Print a mterm in a human readable format
+ * @brief Print a mterm in a human readable format
  */
 ostream& mterm::print(ostream& dst) const
 {
@@ -95,7 +106,7 @@ ostream& mterm::print(ostream& dst) const
 }
 
 /**
- * Compute the "complexity" of a mterm, that is the number of
+ * @brief Compute the "complexity" of a mterm, that is the number of
  * factors it contains (weighted by the importance of these factors)
  */
 int mterm::complexity() const
@@ -109,7 +120,7 @@ int mterm::complexity() const
 }
 
 /**
- * Match x^p with p:int
+ * @brief Match x^p with p:int
  */
 static bool isSigPow(Tree sig, Tree& x, int& n)
 {
@@ -126,7 +137,7 @@ static bool isSigPow(Tree sig, Tree& x, int& n)
 }
 
 /**
- * Produce x^p with p:int
+ * @brief Produce x^p with p:int
  */
 static Tree sigPow(Tree x, int p)
 {
@@ -134,7 +145,7 @@ static Tree sigPow(Tree x, int p)
 }
 
 /**
- * Multiply a mterm by an expression tree. Go down recursively looking
+ * @brief Multiply a mterm by an expression tree. Go down recursively looking
  * for multiplications and divisions
  */
 const mterm& mterm::operator*=(Tree t)
@@ -166,7 +177,7 @@ const mterm& mterm::operator*=(Tree t)
 }
 
 /**
- * Divide a mterm by an expression tree t. Go down recursively looking
+ * @brief Divide a mterm by an expression tree t. Go down recursively looking
  * for multiplications and divisions
  */
 const mterm& mterm::operator/=(Tree t)
@@ -204,7 +215,7 @@ const mterm& mterm::operator/=(Tree t)
 }
 
 /**
- * Replace the content with a copy of m
+ * @brief Replace the content with a copy of m
  */
 const mterm& mterm::operator=(const mterm& m)
 {
@@ -214,7 +225,7 @@ const mterm& mterm::operator=(const mterm& m)
 }
 
 /**
- * Clean a mterm by removing x**0 factors
+ * @brief Clean a mterm by removing x**0 factors
  */
 void mterm::cleanup()
 {
@@ -232,7 +243,7 @@ void mterm::cleanup()
 }
 
 /**
- * Add in place an mterm. As we want the result to be
+ * @brief Add in place an mterm. As we want the result to be
  * a mterm therefore essentially mterms of same signature can be added
  */
 const mterm& mterm::operator+=(const mterm& m)
@@ -253,7 +264,7 @@ const mterm& mterm::operator+=(const mterm& m)
 }
 
 /**
- * Substract in place an mterm. As we want the result to be
+ * @brief Substract in place an mterm. As we want the result to be
  * a mterm therefore essentially mterms of same signature can be substracted
  */
 const mterm& mterm::operator-=(const mterm& m)
@@ -274,7 +285,7 @@ const mterm& mterm::operator-=(const mterm& m)
 }
 
 /**
- * Multiply a mterm by the content of another mterm
+ * @brief Multiply a mterm by the content of another mterm
  */
 const mterm& mterm::operator*=(const mterm& m)
 {
@@ -287,7 +298,7 @@ const mterm& mterm::operator*=(const mterm& m)
 }
 
 /**
- * Divide a mterm by the content of another mterm
+ * @brief Divide a mterm by the content of another mterm
  */
 const mterm& mterm::operator/=(const mterm& m)
 {
@@ -306,7 +317,7 @@ const mterm& mterm::operator/=(const mterm& m)
 }
 
 /**
- * Multiply two mterms
+ * @brief Multiply two mterms
  */
 mterm mterm::operator*(const mterm& m) const
 {
@@ -316,7 +327,7 @@ mterm mterm::operator*(const mterm& m) const
 }
 
 /**
- * Divide two mterms
+ * @brief Divide two mterms
  */
 mterm mterm::operator/(const mterm& m) const
 {
@@ -326,7 +337,7 @@ mterm mterm::operator/(const mterm& m) const
 }
 
 /**
- * Return the "common quantity" of two numbers
+ * @brief Return the "common quantity" of two numbers
  */
 static int common(int a, int b)
 {
@@ -340,7 +351,7 @@ static int common(int a, int b)
 }
 
 /**
- * Return a mterm that is the greatest common divisor of two mterms
+ * @brief Return a mterm that is the greatest common divisor of two mterms
  */
 mterm gcd(const mterm& m1, const mterm& m2)
 {
@@ -367,7 +378,7 @@ mterm gcd(const mterm& m1, const mterm& m2)
 }
 
 /**
- * We say that a "contains" b if a/b > 0. For example 3 contains 2 and
+ * @brief We say that a "contains" b if a/b > 0. For example 3 contains 2 and
  * -4 contains -2, but 3 doesn't contains -2 and -3 doesn't contains 1
  */
 static bool contains(int a, int b)
@@ -376,7 +387,7 @@ static bool contains(int a, int b)
 }
 
 /**
- * Check if M accept N has a divisor. We can say that N is
+ * @brief Check if M accept N has a divisor. We can say that N is
  * a divisor of M if M = N*Q and the complexity is preserved :
  * complexity(M) = complexity(N)+complexity(Q)
  * x**u has divisor x**v if u >= v
@@ -410,11 +421,11 @@ bool mterm::hasDivisor(const mterm& n) const
 }
 
 /**
- * Produce the canonical tree corresponding to a mterm
+ * @brief Produce the canonical tree corresponding to a mterm
  */
 
 /**
- * Build a power term of type f**q -> (((f.f).f)..f) with q>0
+ * @brief Build a power term of type f**q -> (((f.f).f)..f) with q>0
  */
 static Tree buildPowTerm(Tree f, int q)
 {
@@ -428,7 +439,7 @@ static Tree buildPowTerm(Tree f, int q)
 }
 
 /**
- * Combine R and A doing R = R*A or R = A
+ * @brief Combine R and A doing R = R*A or R = A
  */
 static void combineMulLeft(Tree& R, Tree A)
 {
@@ -443,7 +454,7 @@ static void combineMulLeft(Tree& R, Tree A)
 }
 
 /**
- * Combine R and A doing R = R/A or R = A
+ * @brief Combine R and A doing R = R/A or R = A
  */
 static void combineDivLeft(Tree& R, Tree A)
 {
@@ -458,7 +469,7 @@ static void combineDivLeft(Tree& R, Tree A)
 }
 
 /**
- * Do M = M * f**q or D = D * f**-q
+ * @brief Do M = M * f**q or D = D * f**-q
  */
 static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
 {
@@ -476,8 +487,8 @@ static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
 }
 
 /**
- * Returns a normalized (canonical) tree expression of structure :
- * 		((v1/v2)*(c1/c2))*(s1/s2)
+ * @brief Returns a normalized (canonical) tree expression of structure :
+ * ((v1/v2)*(c1/c2))*(s1/s2)
  */
 Tree mterm::signatureTree() const
 {
@@ -485,8 +496,8 @@ Tree mterm::signatureTree() const
 }
 
 /**
- * Returns a normalized (canonical) tree expression of structure :
- * 		((k*(v1/v2))*(c1/c2))*(s1/s2)
+ * @brief Returns a normalized (canonical) tree expression of structure :
+ * ((k*(v1/v2))*(c1/c2))*(s1/s2)
  * In signature mode the fCoef factor is ommited
  * In negativeMode the sign of the fCoef factor is inverted
  */

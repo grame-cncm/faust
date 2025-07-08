@@ -1,23 +1,33 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.
+ FAUST compiler
+ Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
+
+/**
+ * @file aterm.cpp
+ * @brief Implementation of the additive term (`aterm`) class.
+ *
+ * This file provides the logic for the `aterm` class, which represents
+ * a sum of `mterm`s. It is the main driver of Faust's symbolic simplification,
+ * handling the deconstruction of expressions, grouping of like terms,
+ * factorization, and reconstruction of a final, normalized expression tree.
+ */
 
 #include "aterm.hh"
 #include "ppsig.hh"
@@ -32,7 +42,7 @@ aterm::aterm()
 }
 
 /**
- * Create a aterm from a tree expression
+ * @brief Create a aterm from a tree expression
  */
 aterm::aterm(Tree t)
 {
@@ -46,7 +56,7 @@ aterm::aterm(Tree t)
 }
 
 /**
- * Add two terms trying to simplify the result
+ * @brief Add two terms trying to simplify the result
  */
 Tree simplifyingAdd(Tree t1, Tree t2)
 {
@@ -71,7 +81,7 @@ Tree simplifyingAdd(Tree t1, Tree t2)
 }
 
 /**
- * Return the corresponding normalized expression tree
+ * @brief Return the corresponding normalized expression tree
  */
 
 /*====================================================
@@ -88,7 +98,19 @@ Tree simplifyingAdd(Tree t1, Tree t2)
  (-  v1 -  v2) -> (- (v1+v2))
 
  */
-
+/**
+ * @brief Helper to combine two terms with their signs, producing a new signed term. (New
+ * Documentation)
+ *
+ * Implements the logic for (s1*v1) + (s2*v2), where s1/s2 are signs (+1 or -1).
+ * The result is (s3*v3). This helps in reconstructing a canonical expression tree.
+ * @param p1 Sign of the first value (true for '+').
+ * @param v1 First value tree.
+ * @param p2 Sign of the second value.
+ * @param v2 Second value tree.
+ * @param[out] p3 Sign of the result.
+ * @param[out] v3 Result value tree.
+ */
 static void addTermsWithSign(bool p1, Tree v1, bool p2, Tree v2, bool& p3, Tree& v3)
 {
     if (isZero(v1)) {
@@ -122,6 +144,17 @@ static void addTermsWithSign(bool p1, Tree v1, bool p2, Tree v2, bool& p3, Tree&
     }
 }
 
+/**
+ * @brief Reconstructs a single, simplified, and canonical Faust expression tree from the aterm.
+ *
+ * This is the final step of normalization. It rebuilds an expression tree from the
+ * simplified internal map of mterms. The process involves:
+ * 1. Separating mterms into positive (P) and negative (N) groups, based on their coefficient.
+ * 2. Sorting these groups by signal order to create a canonical structure (e.g., signals first).
+ * 3. Recombining the sorted terms into a final expression tree, typically in a `(P - N)` form.
+ *
+ * @return The normalized expression tree.
+ */
 Tree aterm::normalizedTree() const
 {
     // store positive and negative terms by order and sign
@@ -176,7 +209,7 @@ Tree aterm::normalizedTree() const
 }
 
 /**
- * Print an aterm in a human readable format
+ * @brief Print an aterm in a human readable format
  */
 ostream& aterm::print(ostream& dst) const
 {
@@ -194,7 +227,7 @@ ostream& aterm::print(ostream& dst) const
 }
 
 /**
- * Add in place an additive expression tree. Go down recursively looking
+ * @brief Add in place an additive expression tree. Go down recursively looking
  * for additions and substractions
  */
 const aterm& aterm::operator+=(Tree t)
@@ -220,7 +253,7 @@ const aterm& aterm::operator+=(Tree t)
 }
 
 /**
- * Substract in place an additive expression tree. Go down to recursively looking
+ * @brief Substract in place an additive expression tree. Go down to recursively looking
  * for additions and substractions
  */
 const aterm& aterm::operator-=(Tree t)
@@ -246,7 +279,7 @@ const aterm& aterm::operator-=(Tree t)
 }
 
 /**
- * Add in place an mterm
+ * @brief Add in place an mterm
  */
 const aterm& aterm::operator+=(const mterm& m)
 {
@@ -269,7 +302,7 @@ const aterm& aterm::operator+=(const mterm& m)
 }
 
 /**
- * Substract in place an mterm
+ * @brief Substract in place an mterm
  */
 const aterm& aterm::operator-=(const mterm& m)
 {
@@ -286,6 +319,14 @@ const aterm& aterm::operator-=(const mterm& m)
     return *this;
 }
 
+/**
+ * @brief Finds the greatest common divisor (GCD) among the mterms.
+ *
+ * This method iterates through all pairs of mterms in the aterm, computes
+ * their GCD, and returns the one with the highest "complexity". This "best"
+ * GCD is a candidate for factorization to simplify the overall expression.
+ * @return The mterm representing the most significant GCD found.
+ */
 mterm aterm::greatestDivisor() const
 {
     int   maxComplexity = 0;
@@ -309,7 +350,7 @@ mterm aterm::greatestDivisor() const
 }
 
 /**
- * Reorganize the aterm by factorizing d
+ * @brief Reorganize the aterm by factorizing d
  */
 aterm aterm::factorize(const mterm& d)
 {
