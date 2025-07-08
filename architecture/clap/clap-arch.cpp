@@ -70,8 +70,7 @@ struct CLAPMapUI : public MapUI {
     void closeBox() override { MapUI::closeBox(); }
 
 
-    // accessors for parameters count and metadata
-    int getParamsCount() const { return int(fParams.size()); }
+// accessors for parameters count and metadata
 // returns the shortname of the parameter at 'index'
 // defensive checks to make sure index is within valid range to avoid crashes
 // in case of invalid or fuzzed parameter indices
@@ -140,7 +139,7 @@ static const clap_plugin_descriptor_t gain_desc = {
     .manual_url = "",
     .support_url = "",
     .version = "1.0.0",
-    .description = "Simple gain plugin generated from Faust",
+    .description = "Plugin generated from Faust",
     .features = gain_features
 };
 
@@ -242,7 +241,6 @@ public:
 
     // handle MIDI events in non-polyphonic DSP mode
 	//assumes fBaseDSP, fMidiHandler, and hdr are valid and hdr->space_id == CLAP_CORE_EVENT_SPACE_ID
-
     void handleDSPMIDIEvent(const clap_event_header_t* hdr) {
         switch (hdr->type) {
             case CLAP_EVENT_MIDI: {
