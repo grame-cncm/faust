@@ -21,7 +21,7 @@
 
 /**
  * @file aterm.cpp
- * @brief Implementation of the additive term (`aterm`) class.
+ * @brief Implementation of the additive term (`aterm`) class. (New Documentation)
  *
  * This file provides the logic for the `aterm` class, which represents
  * a sum of `mterm`s. It is the main driver of Faust's symbolic simplification,
@@ -44,6 +44,14 @@ aterm::aterm()
 /**
  * @brief Create a aterm from a tree expression
  */
+/**
+ * @brief Creates an aterm from a Faust expression tree. (New Documentation)
+ *
+ * This constructor serves as the main entry point for the normalization process.
+ * It takes a raw expression tree and uses the in-place addition operator (`+=`)
+ * to recursively deconstruct the tree into a simplified sum of `mterm`s.
+ * @param t The input expression tree to normalize.
+ */
 aterm::aterm(Tree t)
 {
 #ifdef TRACE
@@ -57,6 +65,16 @@ aterm::aterm(Tree t)
 
 /**
  * @brief Add two terms trying to simplify the result
+ */
+/**
+ * @brief Adds two expression trees, performing basic simplifications. (New Documentation)
+ *
+ * This function handles simple cases like adding two numbers, adding zero,
+ * and canonicalizing the order of operands based on their serial number.
+ * This reordering helps improve expression sharing in the compiler's graph.
+ * @param t1 The first tree.
+ * @param t2 The second tree.
+ * @return The simplified sum as a new tree.
  */
 Tree simplifyingAdd(Tree t1, Tree t2)
 {
@@ -102,8 +120,15 @@ Tree simplifyingAdd(Tree t1, Tree t2)
  * @brief Helper to combine two terms with their signs, producing a new signed term. (New
  * Documentation)
  *
- * Implements the logic for (s1*v1) + (s2*v2), where s1/s2 are signs (+1 or -1).
- * The result is (s3*v3). This helps in reconstructing a canonical expression tree.
+ * Implements the logic for `(s1*v1) + (s2*v2)`, where `s1` and `s2` are implicit
+ * signs (+1 or -1) represented by the boolean flags. This is crucial for the
+ * `normalizedTree` function to correctly reconstruct a canonical expression tree
+ * by handling all four sign combinations:
+ * - `(+v1) + (+v2) -> +(v1 + v2)`
+ * - `(+v1) + (-v2) -> +(v1 - v2)`
+ * - `(-v1) + (+v2) -> +(v2 - v1)`
+ * - `(-v1) + (-v2) -> -(v1 + v2)`
+ *
  * @param p1 Sign of the first value (true for '+').
  * @param v1 First value tree.
  * @param p2 Sign of the second value.
@@ -146,12 +171,25 @@ static void addTermsWithSign(bool p1, Tree v1, bool p2, Tree v2, bool& p3, Tree&
 
 /**
  * @brief Reconstructs a single, simplified, and canonical Faust expression tree from the aterm.
+ * (New Documentation)
  *
  * This is the final step of normalization. It rebuilds an expression tree from the
- * simplified internal map of mterms. The process involves:
- * 1. Separating mterms into positive (P) and negative (N) groups, based on their coefficient.
- * 2. Sorting these groups by signal order to create a canonical structure (e.g., signals first).
- * 3. Recombining the sorted terms into a final expression tree, typically in a `(P - N)` form.
+ * simplified internal map of mterms (`fSig2MTerms`). The process is carefully
+ * ordered to produce a canonical result:
+ *
+ * 1.  **Segregation**: It iterates through all simplified `mterm`s. Positive terms
+ * are added to an array `P`, and negative terms (with their sign flipped) are
+ * added to an array `N`. Both arrays are indexed by the term's signal order.
+ *
+ * 2.  **Initialization**: The reconstruction starts with the numerical part, `P[0] - N[0]`.
+ *
+ * 3.  **Iterative Combination**: It then iterates from the highest signal order down to 1.
+ * In each step, it combines the running sum with the terms of the current order,
+ * maintaining a canonical `P-N` structure using the `addTermsWithSign` helper.
+ * This is equivalent to `SUM_new = (P[order] - N[order]) + SUM_old`.
+ *
+ * 4.  **Final Sign**: If the final combined expression is negative, it is wrapped
+ * in a multiplication by -1 to complete the canonical form.
  *
  * @return The normalized expression tree.
  */
@@ -211,6 +249,13 @@ Tree aterm::normalizedTree() const
 /**
  * @brief Print an aterm in a human readable format
  */
+/**
+ * @brief Prints a human-readable representation of the aterm. (New Documentation)
+ *
+ * The format is `m1 + m2 + m3 ...`, where each `m` is an `mterm`.
+ * @param dst The output stream.
+ * @return A reference to the output stream.
+ */
 ostream& aterm::print(ostream& dst) const
 {
     if (fSig2MTerms.empty()) {
@@ -229,6 +274,16 @@ ostream& aterm::print(ostream& dst) const
 /**
  * @brief Add in place an additive expression tree. Go down recursively looking
  * for additions and substractions
+ */
+/**
+ * @brief Adds a Faust expression tree to the aterm in-place. (New Documentation)
+ *
+ * This method recursively decomposes the tree `t`. It handles additive
+ * operations (`+`, `-`) by recursively calling the appropriate operators on
+ * the sub-trees. Any non-additive sub-expression is treated as a single term,
+ * converted into an `mterm` object, and then added to this `aterm`.
+ * @param t The expression tree to add.
+ * @return A const reference to the modified aterm (`*this`).
  */
 const aterm& aterm::operator+=(Tree t)
 {
@@ -256,6 +311,14 @@ const aterm& aterm::operator+=(Tree t)
  * @brief Substract in place an additive expression tree. Go down to recursively looking
  * for additions and substractions
  */
+/**
+ * @brief Subtracts a Faust expression tree from the aterm in-place. (New Documentation)
+ *
+ * This method mirrors the logic of `operator+=` but handles subtraction. It
+ * correctly distributes the negation over additions and subtractions within `t`.
+ * @param t The expression tree to subtract.
+ * @return A const reference to the modified aterm (`*this`).
+ */
 const aterm& aterm::operator-=(Tree t)
 {
     int  op;
@@ -281,6 +344,15 @@ const aterm& aterm::operator-=(Tree t)
 /**
  * @brief Add in place an mterm
  */
+/**
+ * @brief Adds an mterm in-place. (New Documentation)
+ *
+ * This is the core simplification routine. It computes the signature of the
+ * incoming mterm `m`. If an mterm with the same signature already exists,
+ * their coefficients are added. Otherwise, `m` is inserted as a new entry.
+ * @param m The mterm to add.
+ * @return A const reference to the modified aterm (`*this`).
+ */
 const aterm& aterm::operator+=(const mterm& m)
 {
 #ifdef TRACE
@@ -304,6 +376,15 @@ const aterm& aterm::operator+=(const mterm& m)
 /**
  * @brief Substract in place an mterm
  */
+/**
+ * @brief Subtracts an mterm in-place. (New Documentation)
+ *
+ * This works like `operator+=`, but subtracts the mterm's coefficient from
+ * an existing term with the same signature, or inserts a new, negated mterm
+ * if the signature is not found.
+ * @param m The mterm to subtract.
+ * @return A const reference to the modified aterm (`*this`).
+ */
 const aterm& aterm::operator-=(const mterm& m)
 {
     // cerr << *this << " aterm::-= " << m << endl;
@@ -320,11 +401,13 @@ const aterm& aterm::operator-=(const mterm& m)
 }
 
 /**
- * @brief Finds the greatest common divisor (GCD) among the mterms.
+ * @brief Finds the greatest common divisor (GCD) among the mterms. (New Documentation)
  *
- * This method iterates through all pairs of mterms in the aterm, computes
- * their GCD, and returns the one with the highest "complexity". This "best"
- * GCD is a candidate for factorization to simplify the overall expression.
+ * This method is a key part of the factorization optimization. It performs a
+ * brute-force search by iterating through all pairs of `mterm`s within the aterm.
+ * For each pair, it computes their `mterm::gcd` and returns the GCD that has
+ * the highest "complexity". This "best" GCD is the most promising candidate for
+ * factorization.
  * @return The mterm representing the most significant GCD found.
  */
 mterm aterm::greatestDivisor() const
@@ -351,6 +434,21 @@ mterm aterm::greatestDivisor() const
 
 /**
  * @brief Reorganize the aterm by factorizing d
+ */
+/**
+ * @brief Reorganizes the aterm by factoring out a common divisor 'd'. (New Documentation)
+ *
+ * This function implements expression factorization. It partitions the aterm's
+ * mterms into two groups:
+ * 1.  `Q`: A sum of terms that are divisible by `d`. Each term is divided by `d`
+ * before being added to `Q`.
+ * 2.  `A`: A sum of the remaining terms that are not divisible by `d`.
+ *
+ * It then reconstructs the expression as `A + (d * Q)`, creating a new,
+ * potentially simpler `aterm`.
+ *
+ * @param d The mterm to factor out, typically found via `greatestDivisor()`.
+ * @return A new, factorized aterm.
  */
 aterm aterm::factorize(const mterm& d)
 {

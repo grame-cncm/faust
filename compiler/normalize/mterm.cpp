@@ -21,7 +21,7 @@
 
 /**
  * @file mterm.cpp
- * @brief Implementation of the multiplicative term (`mterm`) class. 
+ * @brief Implementation of the multiplicative term (`mterm`) class. (New Documentation)
  *
  * This file contains the logic for manipulating multiplicative terms, which
  * are a cornerstone of Faust's symbolic simplification engine. It handles
@@ -57,6 +57,14 @@ mterm::mterm(const mterm& m) : fCoef(m.fCoef), fFactors(m.fFactors)
 /**
  * @brief Create a mterm from a tree expression
  */
+/**
+ * @brief Creates an mterm from a Faust expression tree. (New Documentation)
+ *
+ * This constructor initializes the mterm with a multiplicative identity (a
+ * coefficient of 1) and then uses the in-place multiplication operator (`*=`)
+ * to recursively parse the input tree and build the mterm's internal state.
+ * @param t The input expression tree to deconstruct.
+ */
 mterm::mterm(Tree t) : fCoef(sigInt(1))
 {
 #ifdef TRACE
@@ -71,6 +79,10 @@ mterm::mterm(Tree t) : fCoef(sigInt(1))
 /**
  * @brief true if mterm doesn't represent number 0
  */
+/**
+ * @brief Checks if the mterm's coefficient is not zero. (New Documentation)
+ * @return True if the coefficient is non-zero, false otherwise.
+ */
 bool mterm::isNotZero() const
 {
     return !isZero(fCoef);
@@ -79,6 +91,10 @@ bool mterm::isNotZero() const
 /**
  * @brief true if mterm is strictly negative
  */
+/**
+ * @brief Checks if the mterm has a negative coefficient. (New Documentation)
+ * @return True if the coefficient is strictly negative.
+ */
 bool mterm::isNegative() const
 {
     return !isGEZero(fCoef);
@@ -86,6 +102,14 @@ bool mterm::isNegative() const
 
 /**
  * @brief Print a mterm in a human readable format
+ */
+/**
+ * @brief Prints a human-readable representation of the mterm. (New Documentation)
+ *
+ * The format is `k * f1**p1 * f2**p2 ...`. The coefficient `k` is omitted
+ * if it is 1 and there are other factors.
+ * @param dst The output stream.
+ * @return A reference to the output stream.
  */
 ostream& mterm::print(ostream& dst) const
 {
@@ -109,6 +133,17 @@ ostream& mterm::print(ostream& dst) const
  * @brief Compute the "complexity" of a mterm, that is the number of
  * factors it contains (weighted by the importance of these factors)
  */
+/**
+ * @brief Computes the "complexity" of the mterm. (New Documentation)
+ *
+ * Complexity is a metric used for optimization decisions, such as in choosing
+ * a common divisor for factorization. It's a weighted sum of the term's
+ * components:
+ * - A non-unity, non-minus-one coefficient adds 1.
+ * - Each factor adds `(1 + order) * abs(power)`, where `order` is the
+ * factor's signal order (e.g., signal-rate is higher order than control-rate).
+ * @return An integer representing the term's complexity.
+ */
 int mterm::complexity() const
 {
     int c = isOne(fCoef) ? 0 : (isMinusOne(fCoef) ? 0 : 1);
@@ -121,6 +156,13 @@ int mterm::complexity() const
 
 /**
  * @brief Match x^p with p:int
+ */
+/**
+ * @brief Checks if a signal tree is an integer power operation (`x**n`). (New Documentation)
+ * @param sig The tree to check.
+ * @param[out] x The base of the power (`x`).
+ * @param[out] n The integer exponent (`n`).
+ * @return True if the tree matches the power pattern, false otherwise.
  */
 static bool isSigPow(Tree sig, Tree& x, int& n)
 {
@@ -139,6 +181,12 @@ static bool isSigPow(Tree sig, Tree& x, int& n)
 /**
  * @brief Produce x^p with p:int
  */
+/**
+ * @brief Creates a signal tree for an integer power operation (`x**p`). (New Documentation)
+ * @param x The base of the power.
+ * @param p The integer exponent.
+ * @return A new `Tree` representing `x**p`.
+ */
 static Tree sigPow(Tree x, int p)
 {
     return tree(gGlobal->gPowPrim->symbol(), x, sigInt(p));
@@ -147,6 +195,15 @@ static Tree sigPow(Tree x, int p)
 /**
  * @brief Multiply a mterm by an expression tree. Go down recursively looking
  * for multiplications and divisions
+ */
+/**
+ * @brief Multiplies the mterm by a Faust expression tree in-place. (New Documentation)
+ *
+ * This operator recursively deconstructs the multiplier tree `t` to update
+ * the mterm. It handles numerical values, multiplications, divisions, and
+ * symbolic factors, including explicit power terms.
+ * @param t The expression tree to multiply by.
+ * @return A const reference to the modified mterm (`*this`).
  */
 const mterm& mterm::operator*=(Tree t)
 {
@@ -179,6 +236,34 @@ const mterm& mterm::operator*=(Tree t)
 /**
  * @brief Divide a mterm by an expression tree t. Go down recursively looking
  * for multiplications and divisions
+ */
+/**
+ * @brief Divides the mterm by a Faust expression tree in-place, recursively processing
+ * multiplications and divisions. (New Documentation)
+ *
+ * This operator updates the `mterm` in-place by dividing it by the provided
+ * expression tree `t`. It deconstructs the divisor `t` to correctly modify the
+ * `mterm`'s coefficient (`fCoef`) and its symbolic factors (`fFactors`).
+ *
+ * The logic handles several cases for the divisor `t`:
+ *
+ * - **Numerical Divisor**: If `t` is a number, the mterm's coefficient `fCoef`
+ * is divided by it. A critical check for division by zero is included to prevent errors.
+ *
+ * - **Division by a Product (e.g., `x * y`)**: Following the rule `A / (x * y) = (A / x) / y`,
+ * the function recursively calls itself on each branch of the multiplication.
+ *
+ * - **Division by a Quotient (e.g., `x / y`)**: Following the rule `A / (x / y) = (A * y) / x`,
+ * the function recursively divides by the numerator `x` and multiplies by the denominator `y`.
+ *
+ * - **Symbolic Factor**: If `t` is a symbolic term (not a number or a `*`/`/` operation),
+ * it directly affects the exponents in the `fFactors` map.
+ * - If `t` is a power expression like `base**exp`, the exponent `exp` is
+ * subtracted from the exponent of the `base` factor.
+ * - For any other symbolic factor, its exponent is simply decremented by 1.
+ *
+ * @param t The expression tree to divide the mterm by.
+ * @return A const reference to the modified mterm (`*this`).
  */
 const mterm& mterm::operator/=(Tree t)
 {
@@ -217,6 +302,11 @@ const mterm& mterm::operator/=(Tree t)
 /**
  * @brief Replace the content with a copy of m
  */
+/**
+ * @brief Replaces the content with a copy of another mterm. (New Documentation)
+ * @param m The mterm to copy from.
+ * @return A const reference to the modified mterm (`*this`).
+ */
 const mterm& mterm::operator=(const mterm& m)
 {
     fCoef    = m.fCoef;
@@ -226,6 +316,12 @@ const mterm& mterm::operator=(const mterm& m)
 
 /**
  * @brief Clean a mterm by removing x**0 factors
+ */
+/**
+ * @brief Cleans up the mterm's internal state. (New Documentation)
+ *
+ * If the coefficient is zero, all symbolic factors are cleared. Otherwise,
+ * any factor with a power of zero is removed from the `fFactors` map.
  */
 void mterm::cleanup()
 {
@@ -245,6 +341,15 @@ void mterm::cleanup()
 /**
  * @brief Add in place an mterm. As we want the result to be
  * a mterm therefore essentially mterms of same signature can be added
+ */
+/**
+ * @brief Adds another mterm in-place. (New Documentation)
+ *
+ * This operation is only valid if the mterms have the same signature (i.e.,
+ * the same symbolic factors), which is enforced by an assertion. It works
+ * by simply adding their numerical coefficients.
+ * @param m The mterm to add.
+ * @return A const reference to the modified mterm (`*this`).
  */
 const mterm& mterm::operator+=(const mterm& m)
 {
@@ -267,6 +372,14 @@ const mterm& mterm::operator+=(const mterm& m)
  * @brief Substract in place an mterm. As we want the result to be
  * a mterm therefore essentially mterms of same signature can be substracted
  */
+/**
+ * @brief Subtracts another mterm in-place. (New Documentation)
+ *
+ * Like addition, this is only valid for mterms with the same signature. It
+ * subtracts the given mterm's coefficient from this mterm's coefficient.
+ * @param m The mterm to subtract.
+ * @return A const reference to the modified mterm (`*this`).
+ */
 const mterm& mterm::operator-=(const mterm& m)
 {
     if (isZero(m.fCoef)) {
@@ -287,6 +400,14 @@ const mterm& mterm::operator-=(const mterm& m)
 /**
  * @brief Multiply a mterm by the content of another mterm
  */
+/**
+ * @brief Multiplies by another mterm in-place. (New Documentation)
+ *
+ * The coefficients of the two mterms are multiplied, and the powers of their
+ * common factors are added together.
+ * @param m The mterm to multiply by.
+ * @return A const reference to the modified mterm (`*this`).
+ */
 const mterm& mterm::operator*=(const mterm& m)
 {
     fCoef = mulNums(fCoef, m.fCoef);
@@ -299,6 +420,14 @@ const mterm& mterm::operator*=(const mterm& m)
 
 /**
  * @brief Divide a mterm by the content of another mterm
+ */
+/**
+ * @brief Divides by another mterm in-place. (New Documentation)
+ *
+ * The coefficient is divided, and the powers of the divisor's factors are
+ * subtracted from this mterm's corresponding factor powers.
+ * @param m The mterm to divide by.
+ * @return A const reference to the modified mterm (`*this`).
  */
 const mterm& mterm::operator/=(const mterm& m)
 {
@@ -319,6 +448,11 @@ const mterm& mterm::operator/=(const mterm& m)
 /**
  * @brief Multiply two mterms
  */
+/**
+ * @brief Returns the product of this mterm and another. (New Documentation)
+ * @param m The mterm to multiply by.
+ * @return A new `mterm` representing the product.
+ */
 mterm mterm::operator*(const mterm& m) const
 {
     mterm r(*this);
@@ -329,6 +463,11 @@ mterm mterm::operator*(const mterm& m) const
 /**
  * @brief Divide two mterms
  */
+/**
+ * @brief Returns the result of dividing this mterm by another. (New Documentation)
+ * @param m The mterm to divide by.
+ * @return A new `mterm` representing the quotient.
+ */
 mterm mterm::operator/(const mterm& m) const
 {
     mterm r(*this);
@@ -338,6 +477,29 @@ mterm mterm::operator/(const mterm& m) const
 
 /**
  * @brief Return the "common quantity" of two numbers
+ */
+/**
+ * @brief Determines the common exponent for a factor when calculating a GCD. (New Documentation)
+ *
+ * This helper function is called by `gcd` to find the correct exponent for a
+ * symbolic factor that is present in two different `mterm`s. The logic is designed
+ * to find the "largest" factor that can be divided out from both terms.
+ *
+ * The rules are:
+ * - **Positive Exponents**: If both exponents `a` and `b` are positive, the function
+ * returns `min(a, b)`. For example, the greatest common divisor of `x^5` and `x^3` is `x^3`.
+ *
+ * - **Negative Exponents**: If both `a` and `b` are negative, the function returns
+ * `max(a, b)` (the value closer to zero). For example, the greatest common divisor
+ * of `x^-2` and `x^-4` is `x^-2`, as `x^-2 = x^-2 * 1` and `x^-4 = x^-2 * x^-2`.
+ *
+ * - **Mixed Signs**: If the exponents have different signs (or one is zero), there is no
+ * common part that can be factored out in a simplifying way. The function returns `0`,
+ * which causes the `gcd` function to exclude this factor from the result.
+ *
+ * @param a The exponent of the factor in the first mterm.
+ * @param b The exponent of the factor in the second mterm.
+ * @return The resulting exponent for the common factor in the GCD, or 0 if none.
  */
 static int common(int a, int b)
 {
@@ -352,6 +514,36 @@ static int common(int a, int b)
 
 /**
  * @brief Return a mterm that is the greatest common divisor of two mterms
+ */
+/**
+ * @brief Computes the greatest common divisor (GCD) of two mterms. (New Documentation)
+ *
+ * This function is crucial for expression optimization, particularly for factorization.
+ * It identifies the common symbolic parts between two multiplicative terms (`mterm`)
+ * so that they can be factored out by the `aterm` class. For example, in an
+ * expression like `a*b + a*c`, this function would identify `a` as the GCD,
+ * enabling the expression to be simplified to `a*(b+c)`.
+ *
+ * The algorithm operates as follows:
+ *
+ * 1.  **Coefficient Simplification**: The process is focused on symbolic factors, so a
+ * true numerical GCD of the coefficients is not calculated. The resulting
+ * coefficient is set to 1, unless the two input coefficients have the exact
+ * same magnitude, in which case the first term's coefficient is used.
+ *
+ * 2.  **Common Factor Identification**: It iterates through the factors of the first
+ * term (`m1`). For each factor, it checks if the same factor exists in the
+ * second term (`m2`).
+ *
+ * 3.  **Exponent Calculation**: If a factor is common to both terms, their
+ * exponents are passed to the `common()` helper function.
+ *
+ * 4.  **Result Construction**: The common factor with its newly calculated exponent is
+ * added to the result `mterm`, but only if the exponent is not zero.
+ *
+ * @param m1 The first mterm for the comparison.
+ * @param m2 The second mterm for the comparison.
+ * @return A new `mterm` representing the greatest common symbolic divisor.
  */
 mterm gcd(const mterm& m1, const mterm& m2)
 {
@@ -381,6 +573,16 @@ mterm gcd(const mterm& m1, const mterm& m2)
  * @brief We say that a "contains" b if a/b > 0. For example 3 contains 2 and
  * -4 contains -2, but 3 doesn't contains -2 and -3 doesn't contains 1
  */
+/**
+ * @brief Checks if integer `a` "contains" integer `b`. (New Documentation)
+ *
+ * "Contains" means that `b` can be factored out of `a` without changing signs.
+ * This is true if `b` is zero or if `a` and `b` have the same sign.
+ * It is used in `hasDivisor` to check if exponents are compatible for division.
+ * @param a The dividend exponent.
+ * @param b The divisor exponent.
+ * @return True if `a` contains `b`.
+ */
 static bool contains(int a, int b)
 {
     return (b == 0) || (a / b > 0);
@@ -392,6 +594,17 @@ static bool contains(int a, int b)
  * complexity(M) = complexity(N)+complexity(Q)
  * x**u has divisor x**v if u >= v
  * x**-u has divisor x**-v if -u <= -v
+ */
+/**
+ * @brief Checks if this mterm is cleanly divisible by another mterm `n`. (New Documentation)
+ *
+ * This function determines if `n` can be factored out of the current mterm.
+ * Divisibility is defined not just mathematically, but in a way that preserves
+ * simplification goals. For each factor `f^v` in `n`, this mterm must contain
+ * a factor `f^u` where the exponent `u` "contains" `v` (i.e., they have the
+ * same sign and `|u| >= |v|`).
+ * @param n The potential divisor mterm.
+ * @return True if this mterm has `n` as a divisor.
  */
 bool mterm::hasDivisor(const mterm& n) const
 {
@@ -427,6 +640,12 @@ bool mterm::hasDivisor(const mterm& n) const
 /**
  * @brief Build a power term of type f**q -> (((f.f).f)..f) with q>0
  */
+/**
+ * @brief Builds a power term `f**q` where `q` > 0. (New Documentation)
+ * @param f The base tree.
+ * @param q The positive integer exponent.
+ * @return A tree representing `f` if `q` is 1, or `f**q` otherwise.
+ */
 static Tree buildPowTerm(Tree f, int q)
 {
     faustassert(f);
@@ -440,6 +659,14 @@ static Tree buildPowTerm(Tree f, int q)
 
 /**
  * @brief Combine R and A doing R = R*A or R = A
+ */
+/**
+ * @brief Helper to combine two trees with multiplication. (New Documentation)
+ *
+ * If `R` is an existing tree, the result is `R * A`.
+ * If `R` is null, the result is `A`.
+ * @param[in,out] R The tree to be multiplied into.
+ * @param A The tree to multiply.
  */
 static void combineMulLeft(Tree& R, Tree A)
 {
@@ -456,6 +683,14 @@ static void combineMulLeft(Tree& R, Tree A)
 /**
  * @brief Combine R and A doing R = R/A or R = A
  */
+/**
+ * @brief Helper to combine two trees with division. (New Documentation)
+ *
+ * If `R` is an existing tree, the result is `R / A`.
+ * If `R` is null, the result is `1 / A`.
+ * @param[in,out] R The numerator tree.
+ * @param A The denominator tree.
+ */
 static void combineDivLeft(Tree& R, Tree A)
 {
     if (R && A) {
@@ -470,6 +705,17 @@ static void combineDivLeft(Tree& R, Tree A)
 
 /**
  * @brief Do M = M * f**q or D = D * f**-q
+ */
+/**
+ * @brief Adds a factor `f**q` to a numerator/denominator pair of trees. (New Documentation)
+ *
+ * This function is used during tree reconstruction in `normalizedTree`.
+ * If `q` is positive, `f**q` is multiplied into the numerator tree `M`.
+ * If `q` is negative, `f**(-q)` is multiplied into the denominator tree `D`.
+ * @param[in,out] M The numerator tree.
+ * @param[in,out] D The denominator tree.
+ * @param f The factor's base tree.
+ * @param q The factor's exponent.
  */
 static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
 {
@@ -490,6 +736,15 @@ static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
  * @brief Returns a normalized (canonical) tree expression of structure :
  * ((v1/v2)*(c1/c2))*(s1/s2)
  */
+/**
+ * @brief Returns the signature tree of the mterm. (New Documentation)
+ *
+ * The signature is a canonical tree representing the symbolic part of the
+ * mterm (all factors and their powers), ignoring the numerical coefficient.
+ * It is crucial for identifying "like terms" that can be simplified in an `aterm`.
+ * This is a convenience method that calls `normalizedTree(true)`.
+ * @return A `Tree` representing the mterm's signature.
+ */
 Tree mterm::signatureTree() const
 {
     return normalizedTree(true);
@@ -500,6 +755,39 @@ Tree mterm::signatureTree() const
  * ((k*(v1/v2))*(c1/c2))*(s1/s2)
  * In signature mode the fCoef factor is ommited
  * In negativeMode the sign of the fCoef factor is inverted
+ */
+/**
+ * @brief Reconstructs a canonical Faust expression tree from the mterm's internal state. (New
+ * Documentation)
+ *
+ * This function is the counterpart to the `mterm` constructor; it converts the
+ * internal representation (a coefficient and a map of factors) back into a
+ * standard, simplified Faust expression tree. The resulting tree is "normalized,"
+ * meaning it has a canonical structure that helps in subsequent compilation stages.
+ *
+ * The normalization process involves:
+ * 1.  **Factor Sorting by Order**: Symbolic factors are first sorted into groups based
+ * on their "signal order" (e.g., constant, control-rate, signal-rate).
+ * This ensures that expressions are always built in the same way, for instance,
+ * with signal-rate components appearing before control-rate components.
+ *
+ * 2.  **Numerator/Denominator Separation**: Factors with positive exponents are collected
+ * as numerators, while those with negative exponents are collected as denominators.
+ *
+ * 3.  **Coefficient Handling**: The mterm's numerical coefficient is handled based on the
+ * function's parameters. It can be included, ignored (in signature mode), or inverted.
+ *
+ * 4.  **Tree Assembly**: The sorted parts are combined into a final expression tree,
+ * typically of the form `(coefficient * Numerator) / Denominator`.
+ *
+ * @param signatureMode If true, the `fCoef` factor is ignored (effectively treated as 1).
+ * This is used to generate a tree representing only the symbolic part of the mterm,
+ * which is essential for identifying like terms.
+ *
+ * @param negativeMode If true, the sign of the `fCoef` is inverted in the resulting tree.
+ * This is used when reconstructing negative terms in an `aterm`.
+ *
+ * @return A normalized, canonical Faust expression `Tree`.
  */
 Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 {

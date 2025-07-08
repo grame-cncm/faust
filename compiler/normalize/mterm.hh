@@ -173,7 +173,7 @@ class mterm : public virtual Garbageable {
 };
 
 /**
- * @brief Stream insertion operator for printing an mterm. 
+ * @brief Stream insertion operator for printing an mterm.
  * @param s The output stream.
  * @param m The mterm to print.
  * @return The output stream.

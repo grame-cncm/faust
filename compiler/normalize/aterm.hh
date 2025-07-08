@@ -42,7 +42,7 @@
  */
 /**
  * @class aterm
- * @brief Implements an additive term, representing a sum of multiplicative terms (mterms). 
+ * @brief Implements an additive term, representing a sum of multiplicative terms (mterms).
  *
  * An aterm represents a polynomial expression of the form:
  * m1 + m2 + m3 + ...
