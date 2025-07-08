@@ -19,6 +19,29 @@
  ************************************************************************
  ************************************************************************/
 
+/**
+ * @file normalform.hh
+ * @brief Complete normalization to normal form for the Faust compiler
+ * 
+ * This module provides the highest-level interface for signal normalization
+ * in the Faust compiler. It combines all normalization techniques (algebraic
+ * simplification, type promotion, casting) into a unified process that
+ * produces signals in complete normal form.
+ * 
+ * Normal form characteristics:
+ * - All possible optimizations and simplifications applied
+ * - Mathematical functions properly typed (arguments and results)
+ * - Signal casts inserted where needed for type correctness
+ * - Delay operations normalized according to algebraic rules
+ * - Expressions factorized and in canonical representation
+ * 
+ * This is typically the final optimization step before code generation,
+ * ensuring that the signal processing graph is in its most efficient form.
+ * 
+ * @author GRAME
+ * @version 2.75+
+ */
+
 #ifndef _SIMPLIFY_TO_NF_
 #define _SIMPLIFY_TO_NF_
 

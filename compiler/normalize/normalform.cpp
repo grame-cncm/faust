@@ -19,6 +19,29 @@
  ************************************************************************
  ************************************************************************/
 
+/**
+ * @file normalform.cpp
+ * @brief Implementation of complete signal normalization to normal form
+ * 
+ * This file implements the highest-level interface for signal normalization,
+ * combining all optimization techniques into a unified process. The complete
+ * normalization process includes:
+ * 
+ * 1. De Bruijn to symbolic recursion conversion
+ * 2. Type annotation and analysis
+ * 3. UI range constraint generation  
+ * 4. Mathematical function typing
+ * 5. Signal simplification and algebraic optimization
+ * 6. Type promotion and casting
+ * 7. Final cleanup and validation
+ * 
+ * This produces signals in complete normal form, ready for efficient
+ * code generation by subsequent compiler phases.
+ * 
+ * @see normalform.hh for public interface documentation
+ * @see simplify.cpp for algebraic simplification implementation
+ */
+
 #include <stdio.h>
 #include <map>
 
@@ -33,19 +56,35 @@
 
 using namespace std;
 
-// Implementation
+/*****************************************************************************
+ * IMPLEMENTATION 
+ *****************************************************************************/
+
+/**
+ * @brief Internal helper function for complete signal normalization.
+ * 
+ * This function implements the core normalization pipeline, applying
+ * all optimization and type analysis steps in the correct order.
+ * Each step is timed for performance analysis.
+ * 
+ * @param LS Input signal list to normalize
+ * @return Completely normalized signal list
+ */
 static Tree simplifyToNormalFormAux(Tree LS)
 {
-    // Convert deBruijn recursion into symbolic recursion
+    // Step 1: Convert deBruijn recursion into symbolic recursion
+    // This transforms recursive references from numeric indices to symbolic names
     startTiming("deBruijn2Sym");
     Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
 
-    // Annotate L1 with type information
+    // Step 2: Annotate signals with type information
+    // Performs type inference and causality checking
     startTiming("L1 typeAnnotation");
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");
 
+    // Step 3: Generate range constraints for UI elements (optional)
     if (gGlobal->gRangeUI) {
         // Generate safe values for range UI items (sliders and nentry)
         startTiming("Safe values for range UI items");

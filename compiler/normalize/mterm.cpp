@@ -19,6 +19,26 @@
  ************************************************************************
  ************************************************************************/
 
+/**
+ * @file mterm.cpp  
+ * @brief Implementation of multiplicative term representation for signal normalization
+ * 
+ * This file implements the mterm class, which represents multiplicative expressions
+ * of the form k * x^n * y^m * ... where k is a coefficient and x, y are signal
+ * factors with integer powers. The class provides efficient operations for:
+ * 
+ * - Multiplication and division by combining powers
+ * - Greatest common divisor computation for factorization
+ * - Complexity analysis for optimization decisions  
+ * - Conversion to/from Faust expression trees
+ * 
+ * The multiplicative term representation is fundamental to the additive 
+ * normalization process, enabling algebraic simplification and factorization.
+ * 
+ * @see mterm.hh for class interface documentation
+ * @see aterm.cpp for additive term implementation
+ */
+
 #include "mterm.hh"
 #include "exception.hh"
 #include "global.hh"
@@ -28,6 +48,7 @@
 
 using namespace std;
 
+/// Type alias for the factor-to-power mapping
 typedef map<Tree, int> MP;
 
 mterm::mterm() : fCoef(sigInt(0))

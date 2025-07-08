@@ -37,35 +37,152 @@
 #include "tlib.hh"
 
 /**
- * Implements a additive term, a set of mterms added together
- * m1 + m2 + m3 + ...
+ * @brief Represents an additive term composed of multiple multiplicative terms.
+ * 
+ * The aterm class implements an additive expression of the form:
+ * m1 + m2 + m3 + ... where each mi is a multiplicative term (mterm).
+ * 
+ * This representation enables efficient algebraic simplification by:
+ * - Grouping terms with the same signature
+ * - Finding common factors across terms
+ * - Factorizing expressions to reduce computational complexity
+ * 
+ * The class maintains a mapping between signal signatures and their
+ * corresponding multiplicative terms, allowing for efficient addition
+ * and factorization operations.
+ * 
+ * @see mterm for multiplicative term representation
  */
-
 class aterm : public virtual Garbageable {
-    std::map<Tree, mterm> fSig2MTerms;  ///< mapping between signatures and corresponding mterms
+    /// Mapping between signal signatures and their corresponding multiplicative terms
+    std::map<Tree, mterm> fSig2MTerms;
 
    public:
-    aterm();        ///< create an empty aterm (equivalent to 0)
-    aterm(Tree t);  ///< create a aterm from an additive exp
-    // aterm (const aterm& a);						///< create a copy of an aterm
+    /**
+     * @brief Create an empty additive term (equivalent to mathematical 0).
+     */
+    aterm();
+    
+    /**
+     * @brief Create an additive term from an expression tree.
+     * 
+     * Parses the given tree and decomposes it into constituent multiplicative
+     * terms. Handles addition, subtraction, and nested expressions.
+     * 
+     * @param t The expression tree to convert to additive normal form
+     */
+    aterm(Tree t);
 
-    const aterm& operator+=(Tree t);  ///< add in place an additive expression tree
-    const aterm& operator-=(Tree t);  ///< add in place an additive expression tree
+    /**
+     * @brief Add an expression tree in place.
+     * 
+     * Decomposes the expression and adds its terms to this additive term.
+     * Terms with the same signature are combined automatically.
+     * 
+     * @param t The additive expression tree to add
+     * @return Reference to this aterm for method chaining
+     */
+    const aterm& operator+=(Tree t);
+    
+    /**
+     * @brief Subtract an expression tree in place.
+     * 
+     * Decomposes the expression and subtracts its terms from this additive term.
+     * Equivalent to adding the negation of each term.
+     * 
+     * @param t The additive expression tree to subtract
+     * @return Reference to this aterm for method chaining
+     */
+    const aterm& operator-=(Tree t);
 
-    const aterm& operator+=(const mterm& m);  ///< add in place an mterm
-    const aterm& operator-=(const mterm& m);  ///< add in place an mterm
-    Tree         normalizedTree() const;  ///< return the corresponding normalized expression tree
+    /**
+     * @brief Add a multiplicative term in place.
+     * 
+     * @param m The multiplicative term to add
+     * @return Reference to this aterm for method chaining
+     */
+    const aterm& operator+=(const mterm& m);
+    
+    /**
+     * @brief Subtract a multiplicative term in place.
+     * 
+     * @param m The multiplicative term to subtract
+     * @return Reference to this aterm for method chaining
+     */
+    const aterm& operator-=(const mterm& m);
+    
+    /**
+     * @brief Convert back to normalized expression tree.
+     * 
+     * Reconstructs a Faust expression tree from the internal additive
+     * representation. The result is in normal form with common factors
+     * properly organized.
+     * 
+     * @return The normalized expression tree
+     */
+    Tree normalizedTree() const;
 
-    std::ostream& print(std::ostream& dst) const;  ///< print a aterm m1 + m2 + m3 +...
-    mterm         greatestDivisor() const;    ///< return the greatest divisor of any two mterms
-    aterm         factorize(const mterm& d);  ///< reorganize the aterm by factorizing d
+    /**
+     * @brief Print the additive term in human-readable form.
+     * 
+     * Outputs the term in the format: m1 + m2 + m3 + ...
+     * 
+     * @param dst Output stream to write to
+     * @return Reference to the output stream
+     */
+    std::ostream& print(std::ostream& dst) const;
+    
+    /**
+     * @brief Find the greatest common divisor of all multiplicative terms.
+     * 
+     * Computes the greatest multiplicative term that divides all terms
+     * in this additive expression. This is used for factorization.
+     * 
+     * @return The greatest common divisor as a multiplicative term
+     */
+    mterm greatestDivisor() const;
+    
+    /**
+     * @brief Factorize the additive term by a given divisor.
+     * 
+     * Reorganizes the expression by factoring out the given multiplicative
+     * term from all constituent terms. This creates a more efficient
+     * representation: d * (t1 + t2 + ...) where d is the divisor.
+     * 
+     * @param d The multiplicative term to factor out
+     * @return A new factorized additive term
+     */
+    aterm factorize(const mterm& d);
 };
 
+/**
+ * @brief Stream output operator for additive terms.
+ * 
+ * Convenience operator for printing additive terms directly to output streams.
+ * 
+ * @param s Output stream
+ * @param a Additive term to print
+ * @return Reference to the output stream
+ */
 inline std::ostream& operator<<(std::ostream& s, const aterm& a)
 {
     return a.print(s);
 }
 
+/**
+ * @brief Perform optimized addition of two expression trees.
+ * 
+ * This function provides an optimized way to add two expression trees
+ * by using the additive term representation for simplification.
+ * Unlike simple tree addition, this function may factorize common
+ * terms and produce a more efficient result.
+ * 
+ * @param t1 First expression tree
+ * @param t2 Second expression tree
+ * @return Simplified sum of the two trees
+ * 
+ * @see aterm for the underlying additive representation
+ */
 Tree simplifyingAdd(Tree t1, Tree t2);
 
 #endif
