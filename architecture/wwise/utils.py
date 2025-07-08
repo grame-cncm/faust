@@ -25,6 +25,8 @@ def print_wwise_help():
     print("")
     print("Common options for both Premake and Build:")
     print("  --platform <platform>           platform to premake (Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)")
+    print("  --in-place                      Use in-place processing (default). Uses the same audio buffer for input and output; suitable for most effects without data flow changes")
+    print("  --out-of-place                  Use out-of-place processing. Requires separate input and output buffers; needed for effects like time-stretching that alter data flow")
     print("  --wwise-help                    show this help message and exit")
     print("")
     print("Premake:")
@@ -61,6 +63,7 @@ def create_wwise_config(cfg, parsed_args):
     # Common to both premake and build
     if parsed_args.platform:
         cfg.wwise_platform = parsed_args.platform
+    cfg.wwise_plugin_interface = parsed_args.plugin_interface
 
     # Premake-specific options
     cursys = platform.system()
@@ -107,6 +110,12 @@ def parse_arguments(cfg, args=None):
     
     # Wwise options
     parser.add_argument('--platform', help='Target platform for Wwise plugin (Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)')
+    # mutually exclussive in-place and out-of-place effect plugin options. in-place is the default choice.
+    plugin_interface_group = parser.add_mutually_exclusive_group()
+    plugin_interface_group.add_argument('--in-place', dest='plugin_interface', action='store_const', const='in-place', help='Uses the same audio buffer for input and output; suitable for most effects without data flow changes.')
+    plugin_interface_group.add_argument('--out-of-place', dest='plugin_interface', action='store_const', const='out-of-place', help='Use out-of-place processing. Requires separate input and output buffers; needed for effects like time-stretching that alter data flow.')
+    parser.set_defaults(plugin_interface='in-place')
+
     # wwise premake options
     parser.add_argument('--toolset', help='toolset used to build on Windows platforms (vc160, vc170).')
     parser.add_argument('--debugger', action='store_true', help='Enable lua debugger for premake scripts')

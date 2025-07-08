@@ -49,6 +49,8 @@ def process_json_configuration(cfg):
         
         #Set the wwise_template_dir, the directory where the wwise template files are stored 
         cfg.wwise_template_dir = os.path.join(cfg.faust_lib_dir, "wwise", cfg.patch_version or "default", cfg.plugin_type) 
+        if (cfg.plugin_type == "effect"):
+            cfg.wwise_template_dir = cfg.wwise_template_dir+" ("+cfg.wwise_plugin_interface+")" # append the {space}(in-place) or {space}(out-of-place) at the end
 
         # Extract project name & override in case it is provided as a declaration in faust dsp file
         # i.e. declare name "Name"
@@ -73,7 +75,7 @@ def process_json_configuration(cfg):
                 break
         
         print("================================")
-        print(f"description {cfg.description}")
+        print("DSP file plugin config")
         print("================================")
         print(f"plugin_type {cfg.plugin_type}")
         print(f"plugin_name {cfg.plugin_name}")

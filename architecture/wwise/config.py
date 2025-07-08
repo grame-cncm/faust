@@ -12,9 +12,10 @@ class Config:
         self.wwiseroot = wwiseroot
         self.wp_script = os.path.join(self.wwiseroot, "Scripts", "Build", "Plugins", "wp.py")
         self.patch_version = ""
-        self.wwise_template_dir = ""
+        self.wwise_template_dir = ""                # Directory where the template files are stored
         # configuration options
         self.wwise_platform = "Authoring"           # default
+        self.wwise_plugin_interface = None          
         self.wwise_toolset = None
         self.wwise_debugger = False
         self.wwise_disable_codesign = False
@@ -68,6 +69,24 @@ class Config:
         print(f"faust_options {self.faust_options}")
         print("=========== WWISE CONFIGURATION===========")
         print(f"wwiseroot {self.wwiseroot}")
+        print(f"platform {self.wwise_platform}")
+        if self.wwise_plugin_interface:
+            print(f"plugin_interface {self.wwise_plugin_interface} (applicable only in case of an effect plugin)")
+        if self.wwise_toolset:
+            print(f"toolset {self.wwise_toolset}")
+        if self.wwise_debugger:
+            print(f"debugger {self.wwise_debugger}")
+        if self.wwise_disable_codesign:
+            print(f"disable_codesign{self.wwise_disable_codesign}")
+        print(f"configuration {self.wwise_configuration}")
+        if self.wwise_arch:
+            print(f"arch {self.wwise_arch}")
+        if self.wwise_build_hooks_file:
+            print(f"build_hooks_file {self.wwise_build_hooks_file}")
+        if self.wwise_toolchain_vers:
+            print(f"toolchain_vers {self.wwise_toolchain_vers}")
+        if self.wwise_toolchain_env_script:
+            print(f"toolchain_env_script {self.wwise_toolchain_env_script}")
         print("========== PLUGIN CONFIGURATION ==========")
         print(f"plugin_type {self.plugin_type}")
         print(f"plugin_name {self.plugin_name}")
