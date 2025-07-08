@@ -34,10 +34,9 @@ struct CLAPMapUI : public MapUI {
         FAUSTFLOAT init;
     };
 
-    // parameter data combines a unique path, pointer to parameter zone and meta
+    // parameter data combines a unique path and meta info
     struct ParamData {
         std::string shortname;
-        FAUSTFLOAT* zone;
         ParamMeta meta;
     };
 
@@ -48,19 +47,19 @@ struct CLAPMapUI : public MapUI {
     void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
         MapUI::addVerticalSlider(label, zone, init, min, max, step);
         std::string shortname = buildPath(label);
-        fParams.push_back({shortname, zone, {min, max, init}});
+        fParams.push_back({shortname, {min, max, init}});
     }
 
     void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
         MapUI::addHorizontalSlider(label, zone, init, min, max, step);
         std::string shortname = buildPath(label);
-        fParams.push_back({shortname, zone, {min, max, init}});
+        fParams.push_back({shortname, {min, max, init}});
     }
 
     void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
         MapUI::addNumEntry(label, zone, init, min, max, step);
         std::string shortname = buildPath(label);
-        fParams.push_back({shortname, zone, {min, max, init}});
+        fParams.push_back({shortname, {min, max, init}});
     }
 
     // box-related methods simply forward to base class (no extra handling)
@@ -69,11 +68,10 @@ struct CLAPMapUI : public MapUI {
     void openVerticalBox(const char* label) override { MapUI::openVerticalBox(label); }
     void closeBox() override { MapUI::closeBox(); }
 
-
-// accessors for parameters count and metadata
-// returns the shortname of the parameter at 'index'
-// defensive checks to make sure index is within valid range to avoid crashes
-// in case of invalid or fuzzed parameter indices
+    // accessors for parameters count and metadata
+    // returns the shortname of the parameter at 'index'
+    // defensive checks to make sure index is within valid range to avoid crashes
+    // in case of invalid or fuzzed parameter indices
     std::string getParamShortname(int index) const {
         if (index < 0 || index >= int(fParams.size())) return ""; //
         return fParams[index].shortname;
@@ -97,18 +95,18 @@ struct CLAPMapUI : public MapUI {
 
     FAUSTFLOAT* getParamZone(int index) const {
         if (index < 0 || index >= int(fParams.size())) return nullptr;
-        return fParams[index].zone;
+        return MapUI::getParamZone(fParams[index].shortname);
     }
 
     // set or get parameter value by index directly via zone pointer
     void setParamValue(int index, FAUSTFLOAT val) {
-        if (index < 0 || index >= int(fParams.size())) return;
-        *fParams[index].zone = val;
+        if (index < 0 || index >= getParamsCount()) return;
+        MapUI::setParamValue(fParams[index].shortname, val);
     }
 
     FAUSTFLOAT getParamValue(int index) const {
-        if (index < 0 || index >= int(fParams.size())) return 0.f;
-        return *fParams[index].zone;
+        if (index < 0 || index >= getParamsCount()) return 0.f;
+        return MapUI::getParamValue(fParams[index].shortname);
     }
 
     // return the unique parameter address (path)
@@ -117,6 +115,7 @@ struct CLAPMapUI : public MapUI {
         return fParams[index].shortname;
     }
 };
+
 
 // forward declaration for Plugin class
 class GainPlugin;
@@ -375,33 +374,39 @@ public:
     }
 
     bool paramsInfo(uint32_t index, clap_param_info_t* info) const noexcept override {
-        int paramCount = fUI.getParamsCount();
-        if (index >= paramCount) return false;
+    int paramCount = fUI.getParamsCount();
+    if (index >= paramCount) return false;
 
-        std::memset(info, 0, sizeof(*info));
-        info->id = index;
+    std::memset(info, 0, sizeof(*info));
+    info->id = index;
 
-        std::string paramName = fUI.getParamShortname(index);
-        const char* name = paramName.c_str();
-        if (name[0] == '/') ++name; // remove leading slash for cleaner display
-        std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name);
-
-        FAUSTFLOAT min = fUI.getParamMin(index);
-        FAUSTFLOAT max = fUI.getParamMax(index);
-        FAUSTFLOAT init = fUI.getParamInit(index);
-
-        // provide parameter value range and default
-        info->min_value = min;
-        info->max_value = max;
-        info->default_value = init;
-        info->flags = CLAP_PARAM_IS_AUTOMATABLE;
-
-        // parameters grouped in a module named "Main"
-        std::strncpy(info->module, "Main", sizeof(info->module));
-        info->module[sizeof(info->module) - 1] = '\0'; //make sure of null-termination
-
-        return true;
+    std::string paramName = fUI.getParamShortname(index);
+    if (paramName.empty() || paramName == "/") {
+        paramName = "param" + std::to_string(index);  // fallback safe name
     }
+    const char* name = paramName.c_str();
+    if (paramName.size() > 1 && name[0] == '/') ++name; // remove leading slash if present
+
+    std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name);
+
+    FAUSTFLOAT min = fUI.getParamMin(index);
+    FAUSTFLOAT max = fUI.getParamMax(index);
+    FAUSTFLOAT init = fUI.getParamInit(index);
+
+    // provide parameter value range and default
+    info->min_value = min;
+    info->max_value = max;
+    info->default_value = init;
+    info->flags = CLAP_PARAM_IS_AUTOMATABLE;
+
+    // parameters grouped in a module named "Main"
+    std::strncpy(info->module, "Main", sizeof(info->module));
+    info->module[sizeof(info->module) - 1] = '\0'; //make sure of null-termination
+
+    return true;
+}
+
+
 
 // return parameter value by ID
 bool paramsValue(clap_id id, double* value) noexcept override {
