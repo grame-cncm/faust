@@ -212,9 +212,6 @@ class Faust2WwiseOrchestrator:
             cmd.extend(["--toolchain-env-script", self.wwise_toolchain_env_script])
         
         cmd.extend([self.wwise_platform])
-
-        import pdb
-        pdb.set_trace()
         
         utils.run_system_command(cmd, self.ERR_BUILD)
         os.chdir(original_dir)
