@@ -52,22 +52,69 @@ ${name}FX::~${name}FX()
 {
 }
 
+AkUInt32 ${name}FX::GetSpeakerConfigChannelMask(int dsp_outputs){
+    
+    // improved formats based on :
+    // https://www.audiokinetic.com/en/public-library/2024.1.6_8842/?source=SDK&id=_ak_speaker_config_8h_source.html
+    // @TODO:
+    // The configuration that takes place is a coarse one and make assumptions about the maching of config options 
+    // .. for instance, 7 speakers may be 7_0 or 6_1 as well.
+    // .. so there is space for improvement here...
+
+    AkUInt32 in_uChannelMask;
+    switch (dsp_outputs)
+    {
+    case 1:
+        in_uChannelMask = AK_SPEAKER_SETUP_MONO;
+        break;
+    case 2:
+        in_uChannelMask = AK_SPEAKER_SETUP_STEREO;
+        break;
+    case 3:
+        in_uChannelMask = AK_SPEAKER_SETUP_3STEREO;
+        break;
+    case 4:
+        in_uChannelMask = AK_SPEAKER_SETUP_4;
+        break;
+    case 5:
+        in_uChannelMask = AK_SPEAKER_SETUP_5;
+        break;
+    case 6:
+        in_uChannelMask = AK_SPEAKER_SETUP_6;
+        break;
+    case 7:
+        in_uChannelMask = AK_SPEAKER_SETUP_7;
+        break;
+    case 8:
+        in_uChannelMask = AK_SPEAKER_SETUP_7POINT1; // or AK_SPEAKER_SETUP_DEFAULT_PLANE?
+        break;
+    default:
+        in_uChannelMask = AK_SPEAKER_SETUP_STEREO;
+        break;
+    }
+
+    if (dsp_outputs > 8)
+    {
+        AKPLATFORM::OutputDebugMsg(" [WARNING] dsp_outputs > 8. This is an unsupported speaker configuration. Falling back to 8 channels (7.1).\n");
+        in_uChannelMask = AK_SPEAKER_SETUP_7POINT1;
+    }
+
+    return in_uChannelMask;
+}
+
 AKRESULT ${name}FX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginContext* in_pContext, AK::IAkPluginParam* in_pParams, AkAudioFormat& in_rFormat)
 {
     m_pParams = (${name}FXParams*)in_pParams;
     m_pAllocator = in_pAllocator;
     m_pContext = in_pContext;
 
-    // @TODO improve dsp_outputs
+    numInputs = m_dsp.getNumInputs();
+    numOutputs = m_dsp.getNumOutputs();
+    faust_inputs.resize(numInputs);
+    faust_outputs.resize(numOutputs);
+    
+    in_rFormat.channelConfig.SetStandard( GetSpeakerConfigChannelMask(numOutputs) );
 
-    int dsp_outputs = m_dsp.getNumOutputs();
-    
-    if (dsp_outputs >= 2) {
-        in_rFormat.channelConfig.SetStandard(AK_SPEAKER_SETUP_STEREO);
-    } else {
-        in_rFormat.channelConfig.SetStandard(AK_SPEAKER_SETUP_MONO);
-    }
-    
     initDSP(static_cast<int>(in_rFormat.uSampleRate));
 
     return AK_Success;
@@ -95,50 +142,28 @@ AKRESULT ${name}FX::GetPluginInfo(AkPluginInfo& out_rPluginInfo)
 
 void ${name}FX::Execute(AkAudioBuffer* io_pBuffer)
 {
-    const AkUInt32 uNumChannels = io_pBuffer->NumChannels();
-    const AkUInt32 maxChannels = AkMin(uNumChannels, (AkUInt32)m_dsp.getNumInputs());
-    
-    <<FOREACHPARAM: setParameter( "${shortname}", m_pParams->${isRTPC}.${RTPCname} );>>
+    // Technical note:
+    // This function assumes that the FAUST DSP consumes and produces exactly the same number of frames.(framesProduced variable is discarded)
+    // The number of channels are as many as the DSP supports and extra ones are ignored
+    // If the DSP needs a different frame ratio, this logic might not be correct.
 
-    // @TODO improve hardcoded inputs outputs channelBufs
+    const AkUInt32 inChannels = io_pBuffer->NumChannels();
+    const AkUInt32 framesToProcess = io_pBuffer->uValidFrames;
+    const AkUInt32 maxChannels = AkMin(inChannels, static_cast<AkUInt32>(AkMin(numInputs, numOutputs)));
 
-    FAUSTFLOAT* inputs[8];
-    FAUSTFLOAT* outputs[8];
-    AkReal32* AK_RESTRICT channelBufs[8];
-    
-    // Setup channel pointers
+    <<FOREACHPARAM: setParameter("${shortname}", m_pParams->${isRTPC}.${RTPCname});>>
+
+    std::fill(faust_inputs.begin(), faust_inputs.end(), nullptr);
+    std::fill(faust_outputs.begin(), faust_outputs.end(), nullptr);
+
     for (AkUInt32 ch = 0; ch < maxChannels; ++ch)
     {
-        channelBufs[ch] = (AkReal32 * AK_RESTRICT)io_pBuffer->GetChannel(ch);
-        inputs[ch] = channelBufs[ch];
-        outputs[ch] = channelBufs[ch];
+        AkReal32* channel = io_pBuffer->GetChannel(ch);
+        faust_inputs[ch] = channel;
+        faust_outputs[ch] = channel;
     }
-    
-    // Zero unused channels
-    for (AkUInt32 ch = maxChannels; ch < 8; ++ch)
-    {
-        inputs[ch] = nullptr;
-        outputs[ch] = nullptr;
-    }
-    
-    // Process entire buffer at once
-    m_dsp.compute((int)io_pBuffer->uValidFrames, inputs, outputs);
 
-    // const AkUInt32 uNumChannels = io_pBuffer->NumChannels();
-
-    // AkUInt16 uFramesProcessed;
-    // for (AkUInt32 i = 0; i < uNumChannels; ++i)
-    // {
-    //     AkReal32* AK_RESTRICT pBuf = (AkReal32* AK_RESTRICT)io_pBuffer->GetChannel(i);
-
-    //     uFramesProcessed = 0;
-    //     while (uFramesProcessed < io_pBuffer->uValidFrames)
-    //     {
-    //         // Execute DSP in-place here
-    //         ++uFramesProcessed;
-    //     }
-    // }
-
+    m_dsp.compute(static_cast<int>(framesToProcess), faust_inputs.data(), faust_outputs.data());
 }
 
 AKRESULT ${name}FX::TimeSkip(AkUInt32 in_uFrames)

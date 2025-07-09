@@ -52,22 +52,69 @@ ${name}FX::~${name}FX()
 {
 }
 
+AkUInt32 ${name}FX::GetSpeakerConfigChannelMask(int dsp_outputs){
+    
+    // improved formats based on :
+    // https://www.audiokinetic.com/en/public-library/2024.1.6_8842/?source=SDK&id=_ak_speaker_config_8h_source.html
+    // @TODO:
+    // The configuration that takes place is a coarse one and make assumptions about the maching of config options 
+    // .. for instance, 7 speakers may be 7_0 or 6_1 as well.
+    // .. so there is space for improvement here...
+
+    AkUInt32 in_uChannelMask;
+    switch (dsp_outputs)
+    {
+    case 1:
+        in_uChannelMask = AK_SPEAKER_SETUP_MONO;
+        break;
+    case 2:
+        in_uChannelMask = AK_SPEAKER_SETUP_STEREO;
+        break;
+    case 3:
+        in_uChannelMask = AK_SPEAKER_SETUP_3STEREO;
+        break;
+    case 4:
+        in_uChannelMask = AK_SPEAKER_SETUP_4;
+        break;
+    case 5:
+        in_uChannelMask = AK_SPEAKER_SETUP_5;
+        break;
+    case 6:
+        in_uChannelMask = AK_SPEAKER_SETUP_6;
+        break;
+    case 7:
+        in_uChannelMask = AK_SPEAKER_SETUP_7;
+        break;
+    case 8:
+        in_uChannelMask = AK_SPEAKER_SETUP_7POINT1; // or AK_SPEAKER_SETUP_DEFAULT_PLANE?
+        break;
+    default:
+        in_uChannelMask = AK_SPEAKER_SETUP_STEREO;
+        break;
+    }
+
+    if (dsp_outputs > 8)
+    {
+        AKPLATFORM::OutputDebugMsg(" [WARNING] dsp_outputs > 8. This is an unsupported speaker configuration. Falling back to 8 channels (7.1).\n");
+        in_uChannelMask = AK_SPEAKER_SETUP_7POINT1;
+    }
+
+    return in_uChannelMask;
+}
+
 AKRESULT ${name}FX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginContext* in_pContext, AK::IAkPluginParam* in_pParams, AkAudioFormat& in_rFormat)
 {
     m_pParams = (${name}FXParams*)in_pParams;
     m_pAllocator = in_pAllocator;
     m_pContext = in_pContext;
 
-    // @TODO improve dsp_outputs
+    numInputs = m_dsp.getNumInputs();
+    numOutputs = m_dsp.getNumOutputs();
+    faust_inputs.resize(numInputs);
+    faust_outputs.resize(numOutputs);
+    
+    in_rFormat.channelConfig.SetStandard( GetSpeakerConfigChannelMask(numOutputs) );
 
-    int dsp_outputs = m_dsp.getNumOutputs();
-    
-    if (dsp_outputs >= 2) {
-        in_rFormat.channelConfig.SetStandard(AK_SPEAKER_SETUP_STEREO);
-    } else {
-        in_rFormat.channelConfig.SetStandard(AK_SPEAKER_SETUP_MONO);
-    }
-    
     initDSP(static_cast<int>(in_rFormat.uSampleRate));
 
     return AK_Success;
@@ -93,78 +140,33 @@ AKRESULT ${name}FX::GetPluginInfo(AkPluginInfo& out_rPluginInfo)
     return AK_Success;
 }
 
-// void ${name}FX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAudioBuffer* out_pBuffer)
-// {
-//     const AkUInt32 uNumChannels = in_pBuffer->NumChannels();
-
-//     AkUInt16 uFramesConsumed;
-//     AkUInt16 uFramesProduced;
-//     for (AkUInt32 i = 0; i < uNumChannels; ++i)
-//     {
-//         AkReal32* AK_RESTRICT pInBuf = (AkReal32* AK_RESTRICT)in_pBuffer->GetChannel(i) + in_ulnOffset;
-//         AkReal32* AK_RESTRICT pOutBuf = (AkReal32* AK_RESTRICT)out_pBuffer->GetChannel(i) +  out_pBuffer->uValidFrames;
-
-//         uFramesConsumed = 0;
-//         uFramesProduced = 0;
-//         while (uFramesConsumed < in_pBuffer->uValidFrames
-//             && uFramesProduced < out_pBuffer->MaxFrames())
-//         {
-//              // Execute DSP that consumes input and produces output at different rate here
-//             *pOutBuf++ = *pInBuf++;
-//             ++uFramesConsumed;
-//             ++uFramesProduced;
-//         }
-//     }
-
-//     in_pBuffer->uValidFrames -= uFramesConsumed;
-//     out_pBuffer->uValidFrames += uFramesProduced;
-
-//     if (in_pBuffer->eState == AK_NoMoreData && in_pBuffer->uValidFrames == 0)
-//         out_pBuffer->eState = AK_NoMoreData;
-//     else if (out_pBuffer->uValidFrames == out_pBuffer->MaxFrames())
-//         out_pBuffer->eState = AK_DataReady;
-//     else
-//         out_pBuffer->eState = AK_DataNeeded;
-// }
-
 void ${name}FX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAudioBuffer* out_pBuffer)
 {
+    // Technical note:
+    // This function assumes that the FAUST DSP consumes and produces exactly the same number of frames.(framesProduced variable is discarded)
+    // The number of channels are as many as the DSP supports and extra ones are ignored
+    // If the DSP needs a different frame ratio, this logic might not be correct.
+
     const AkUInt32 uNumChannels = in_pBuffer->NumChannels();
-    const AkUInt32 maxChannels = AkMin(uNumChannels, (AkUInt32)m_dsp.getNumInputs());
 
-    // Set all Faust parameters
-    <<FOREACHPARAM: setParameter( "${shortname}", m_pParams->${isRTPC}.${RTPCname} );>>
-
-    FAUSTFLOAT* inputs[8];
-    FAUSTFLOAT* outputs[8];
-
-    // Setup input/output channel pointers
-    for (AkUInt32 ch = 0; ch < maxChannels; ++ch)
-    {
-        AkReal32* AK_RESTRICT pInBuf = (AkReal32* AK_RESTRICT)in_pBuffer->GetChannel(ch) + in_ulnOffset;
-        AkReal32* AK_RESTRICT pOutBuf = (AkReal32* AK_RESTRICT)out_pBuffer->GetChannel(ch) + out_pBuffer->uValidFrames;
-
-        inputs[ch] = pInBuf;
-        outputs[ch] = pOutBuf;
-    }
-
-    // Zero unused channels
-    for (AkUInt32 ch = maxChannels; ch < 8; ++ch)
-    {
-        inputs[ch] = nullptr;
-        outputs[ch] = nullptr;
-    }
-
-    // Compute number of frames to process
-    AkUInt32 framesToProcess = AkMin(
+    const AkUInt32 framesToProcess = AkMin(
         in_pBuffer->uValidFrames,
         out_pBuffer->MaxFrames() - out_pBuffer->uValidFrames
     );
 
-    // Perform DSP processing
-    m_dsp.compute((int)framesToProcess, inputs, outputs);
+    <<FOREACHPARAM: setParameter("${shortname}", m_pParams->${isRTPC}.${RTPCname});>>
 
-    // Update buffer states
+    std::fill( faust_inputs.begin(), faust_inputs.end(), nullptr);
+    std::fill( faust_outputs.begin(), faust_outputs.end(), nullptr);
+
+    for (AkUInt32 ch = 0; ch < uNumChannels && ch < numInputs && ch < numOutputs; ++ch)
+    {
+        faust_inputs[ch] = in_pBuffer->GetChannel(ch) + in_ulnOffset;
+        faust_outputs[ch] = out_pBuffer->GetChannel(ch) + out_pBuffer->uValidFrames;
+    }
+
+    m_dsp.compute(static_cast<int>(framesToProcess), faust_inputs.data(), faust_outputs.data());
+
     in_pBuffer->uValidFrames -= framesToProcess;
     out_pBuffer->uValidFrames += framesToProcess;
 

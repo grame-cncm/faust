@@ -68,6 +68,9 @@ private:
     AK::IAkSourcePluginContext* m_pContext;
     AkFXDurationHandler m_durationHandler;
     
+    AkUInt32 GetSpeakerConfigChannelMask(int);
+    int numOutputs {0};
+    std::vector<FAUSTFLOAT*> faust_outputs;
 };
 
 #endif // ${name}Source_H
