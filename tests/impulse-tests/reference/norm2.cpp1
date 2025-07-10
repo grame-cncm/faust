@@ -1,0 +1,132 @@
+//----------------------------------------------------------
+// name: "norm2"
+//
+// Code generated with Faust 2.81.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fslider0;
+	FAUSTFLOAT 	fslider1;
+	FAUSTFLOAT 	fslider2;
+	FAUSTFLOAT 	fslider3;
+	FAUSTFLOAT 	fslider4;
+	FAUSTFLOAT 	fslider5;
+	FAUSTFLOAT 	fslider6;
+	FAUSTFLOAT 	fslider7;
+	FAUSTFLOAT 	fslider8;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "norm2.dsp");
+		m->declare("name", "norm2");
+	}
+
+	virtual int getNumInputs() { return 10; }
+	virtual int getNumOutputs() { return 10; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 1.0f;
+		fslider1 = 1.0f;
+		fslider2 = 1.0f;
+		fslider3 = 1.0f;
+		fslider4 = 0.0f;
+		fslider5 = 0.0f;
+		fslider6 = 1.0f;
+		fslider7 = 1.0f;
+		fslider8 = 1.0f;
+	}
+	virtual void instanceClear() {
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("norm2");
+		ui_interface->addHorizontalSlider("c_add_2", &fslider4, 0.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_add_3", &fslider5, 0.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_adv_1", &fslider0, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_adv_2", &fslider1, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_adv_4", &fslider2, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_adv_5", &fslider3, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_adv_6", &fslider8, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_cmpd_2", &fslider7, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_mul_2", &fslider6, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = (float(fslider0) + float(fslider1)); // step: 7
+		float 	fSlow1 = (float(fslider2) + float(fslider3)); // step: 11
+		float 	fSlow2 = float(fslider4); // step: 12
+		float 	fSlow3 = (2.0f * float(fslider5)); // step: 19
+		float 	fSlow4 = powf(float(fslider6),2.0f); // step: 23
+		float 	fSlow5 = (2.0f * float(fslider7)); // step: 27
+		float 	fSlow6 = float(fslider8); // step: 29
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
+			FAUSTFLOAT* input4 = &input[4][index]; // Zone 3
+			FAUSTFLOAT* input5 = &input[5][index]; // Zone 3
+			FAUSTFLOAT* input6 = &input[6][index]; // Zone 3
+			FAUSTFLOAT* input7 = &input[7][index]; // Zone 3
+			FAUSTFLOAT* input8 = &input[8][index]; // Zone 3
+			FAUSTFLOAT* input9 = &input[9][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+			FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
+			FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
+			for (int i=0; i<count; i++) {
+				output0[i] = (FAUSTFLOAT)((float)input0[i]);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)((fSlow2 + (2.0f * (float)input1[i])));  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)((fSlow3 + (float)input2[i]));  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)((float)input3[i]);  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)((fSlow4 * (float)input4[i]));  // Zone Exec Code
+				output5[i] = (FAUSTFLOAT)((float)input5[i]);  // Zone Exec Code
+				output6[i] = (FAUSTFLOAT)((fSlow5 * (float)input6[i]));  // Zone Exec Code
+				output7[i] = (FAUSTFLOAT)((fSlow0 * (float)input7[i]));  // Zone Exec Code
+				output8[i] = (FAUSTFLOAT)(fSlow1);  // Zone Exec Code
+				output9[i] = (FAUSTFLOAT)((fSlow6 * powf((float)input9[i],2.0f)));  // Zone Exec Code
+			}
+		}
+	}
+};
+
+

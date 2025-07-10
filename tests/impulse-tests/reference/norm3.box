@@ -1,0 +1,5 @@
+declare version "2.81.2";
+declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/norm3.dsp -o reference/norm3.box";
+declare filename "norm3.dsp";
+declare name "norm3";
+process = \(x1).(\(x2).(\(x3).(\(x4).(\(x5).(\(x6).(\(x7).(\(x8).(\(x9).(\(x10).(\(x11).((x1,hslider("1.1_c", 2.0f, 1.0f, 1e+01f, 1.0f) : * : mem),(x2,hslider("1.2_c", 2.0f, 1.0f, 1e+01f, 1.0f) : / : mem),((x3,10 : @),20 : @),((x4,(hslider("1.4_c1", 1e+01f, 1.0f, 1e+02f, 1.0f) : int) : @),(hslider("1.4_c2", 2e+01f, 1.0f, 1e+02f, 1.0f) : int) : @),((x5,((x6 : abs),10 : * : int) : @),(hslider("1.5_c", 2e+01f, 1.0f, 1e+02f, 1.0f) : int) : @),(x7,0 : @),(3.7f : int),(5 : float),(0,hslider("3.1_x", 0.0f, -1.0f, 1.0f, 1.0f),hslider("3.1_y", 0.0f, -1.0f, 1.0f, 1.0f) : select2),(1,hslider("3.2_x", 0.0f, -1.0f, 1.0f, 1.0f),hslider("3.2_y", 0.0f, -1.0f, 1.0f, 1.0f) : select2),(hslider("3.3_c", 0.0f, 0.0f, 1.0f, 1.0f),x8,x8 : select2))))))))))));

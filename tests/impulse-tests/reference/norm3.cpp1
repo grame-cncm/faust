@@ -1,0 +1,199 @@
+//----------------------------------------------------------
+// name: "norm3"
+//
+// Code generated with Faust 2.81.2 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	float 	fVec0[32]; // Ring Delay
+	float 	fVec1[128]; // Ring Delay
+	FAUSTFLOAT 	fslider0;
+	float 	fVec2[128]; // Ring Delay
+	FAUSTFLOAT 	fslider1;
+	FAUSTFLOAT 	fslider2;
+	FAUSTFLOAT 	fslider3;
+	FAUSTFLOAT 	fslider4;
+	float 	fVec3State; // Single Delay
+	FAUSTFLOAT 	fslider5;
+	float 	fVec4State; // Single Delay
+	float 	fVec5State[10]; // Copy Delay
+	float 	fVec6[128]; // Ring Delay
+	FAUSTFLOAT 	fslider6;
+	int 	IOTA;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "norm3.dsp");
+		m->declare("name", "norm3");
+	}
+
+	virtual int getNumInputs() { return 11; }
+	virtual int getNumOutputs() { return 11; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 1e+01f;
+		fslider1 = 2e+01f;
+		fslider2 = 0.0f;
+		fslider3 = 0.0f;
+		fslider4 = 2.0f;
+		fslider5 = 2.0f;
+		fslider6 = 2e+01f;
+	}
+	virtual void instanceClear() {
+		for (int i = 0; i < 32; i++) { fVec0[i] = 0; }
+		for (int i = 0; i < 128; i++) { fVec1[i] = 0; }
+		for (int i = 0; i < 128; i++) { fVec2[i] = 0; }
+		fVec3State = 0;
+		fVec4State = 0;
+		for (int j = 0; j < 10; j++) { fVec5State[j] = 0; }
+		for (int i = 0; i < 128; i++) { fVec6[i] = 0; }
+		IOTA = 3;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("norm3");
+		ui_interface->addHorizontalSlider("1.1_c", &fslider4, 2.0f, 1.0f, 1e+01f, 1.0f);
+		ui_interface->addHorizontalSlider("1.2_c", &fslider5, 2.0f, 1.0f, 1e+01f, 1.0f);
+		ui_interface->addHorizontalSlider("1.4_c1", &fslider0, 1e+01f, 1.0f, 1e+02f, 1.0f);
+		ui_interface->addHorizontalSlider("1.4_c2", &fslider1, 2e+01f, 1.0f, 1e+02f, 1.0f);
+		ui_interface->addHorizontalSlider("1.5_c", &fslider6, 2e+01f, 1.0f, 1e+02f, 1.0f);
+		ui_interface->addHorizontalSlider("3.1_x", &fslider2, 0.0f, -1.0f, 1.0f, 1.0f);
+		ui_interface->addHorizontalSlider("3.2_y", &fslider3, 0.0f, -1.0f, 1.0f, 1.0f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iSlow0 = int(float(fslider0)); // step: 7
+		int 	iSlow1 = int(float(fslider1)); // step: 10
+		float 	fSlow2 = float(fslider2); // step: 13
+		float 	fSlow3 = float(fslider3); // step: 14
+		float 	fSlow4 = float(fslider4); // step: 16
+		float 	fVec3[2];
+		float 	fSlow5 = (1.0f / float(fslider5)); // step: 23
+		float 	fVec4[2];
+		float 	fVec5[11];
+		int 	iSlow6 = int(float(fslider6)); // step: 36
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = min(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
+			FAUSTFLOAT* input4 = &input[4][index]; // Zone 3
+			FAUSTFLOAT* input5 = &input[5][index]; // Zone 3
+			FAUSTFLOAT* input6 = &input[6][index]; // Zone 3
+			FAUSTFLOAT* input7 = &input[7][index]; // Zone 3
+			FAUSTFLOAT* input8 = &input[8][index]; // Zone 3
+			FAUSTFLOAT* input9 = &input[9][index]; // Zone 3
+			FAUSTFLOAT* input10 = &input[10][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+			FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
+			FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
+			FAUSTFLOAT* output10 = &output[10][index]; // Zone 3
+			fVec3[1] = fVec3State;
+			fVec4[1] = fVec4State;
+			fVec5[1] = fVec5State[0];
+			fVec5[2] = fVec5State[1];
+			fVec5[3] = fVec5State[2];
+			fVec5[4] = fVec5State[3];
+			fVec5[5] = fVec5State[4];
+			fVec5[6] = fVec5State[5];
+			fVec5[7] = fVec5State[6];
+			fVec5[8] = fVec5State[7];
+			fVec5[9] = fVec5State[8];
+			fVec5[10] = fVec5State[9];
+			for (int i=0; i<count; i++) {
+				int vIota0 = IOTA&31;
+				fVec0[vIota0] = (float)input2[i];
+				int vIota1 = IOTA&127;
+				fVec1[vIota1] = (float)input3[i];
+				int vIota2 = (IOTA-iSlow0)&127;
+				fVec2[vIota1] = fVec1[vIota2];
+				int vIota3 = (IOTA-iSlow1)&127;
+				fVec3[0] = (fSlow4 * (float)input0[i]);
+				fVec4[0] = (fSlow5 * (float)input1[i]);
+				int vIota4 = (IOTA-30)&31;
+				fVec5[0] = (float)input4[i];
+				fVec6[vIota1] = fVec5[int((1e+01f * fabsf((float)input5[i])))];
+				int vIota5 = (IOTA-iSlow6)&127;
+				output0[i] = (FAUSTFLOAT)(fVec3[1]);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(fVec4[1]);  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(fVec0[vIota4]);  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(fVec2[vIota3]);  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)(fVec6[vIota5]);  // Zone Exec Code
+				output5[i] = (FAUSTFLOAT)((float)input6[i]);  // Zone Exec Code
+				output6[i] = (FAUSTFLOAT)(3);  // Zone Exec Code
+				output7[i] = (FAUSTFLOAT)(5.0f);  // Zone Exec Code
+				output8[i] = (FAUSTFLOAT)(fSlow2);  // Zone Exec Code
+				output9[i] = (FAUSTFLOAT)(fSlow3);  // Zone Exec Code
+				output10[i] = (FAUSTFLOAT)((float)input7[i]);  // Zone Exec Code
+				// post processing
+				IOTA = IOTA+1;
+				fVec5[10] = fVec5[9];
+				fVec5[9] = fVec5[8];
+				fVec5[8] = fVec5[7];
+				fVec5[7] = fVec5[6];
+				fVec5[6] = fVec5[5];
+				fVec5[5] = fVec5[4];
+				fVec5[4] = fVec5[3];
+				fVec5[3] = fVec5[2];
+				fVec5[2] = fVec5[1];
+				fVec5[1] = fVec5[0];
+				fVec4[1] = fVec4[0];
+				fVec3[1] = fVec3[0];
+			}
+			fVec3State = fVec3[1];
+			fVec4State = fVec4[1];
+			fVec5State[0] = fVec5[1];
+			fVec5State[1] = fVec5[2];
+			fVec5State[2] = fVec5[3];
+			fVec5State[3] = fVec5[4];
+			fVec5State[4] = fVec5[5];
+			fVec5State[5] = fVec5[6];
+			fVec5State[6] = fVec5[7];
+			fVec5State[7] = fVec5[8];
+			fVec5State[8] = fVec5[9];
+			fVec5State[9] = fVec5[10];
+		}
+	}
+};
+
+
