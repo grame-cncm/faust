@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import platform
 import os
+import random
 
 ROOT_DIR =  Path(__file__).resolve().parents[0]
 FAUST_EXAMPLES_DIR = ROOT_DIR / "examples"
@@ -44,6 +45,19 @@ def moveJsonFile(json_source_path, json_target_path, log_path):
             with open(log_path, "a", encoding="utf-8") as log_file:
                 log_file.write(f"\nWARNING: Could not move (rename) JSON file from {json_source_path} to {json_target_path}, continuing.\n")
 
+def add_faust2wwise_arguments(command):
+
+    # Define possible argument options
+    argumentsList = [
+        ["--out-of-place"],
+        ["--platform","Windows_vc170","--toolset","vc170"],
+        ["--disable-codesign"]
+    ]
+    
+    selected_args = random.choice(argumentsList)
+    command.extend(selected_args)
+    return command
+
 def run_faust2wwise_on_file(dsp_file, script="faust2wwise"):
     rel_path = dsp_file.relative_to(FAUST_EXAMPLES_DIR).with_suffix("")
     output_dir = BASE_DIR / rel_path
@@ -58,6 +72,8 @@ def run_faust2wwise_on_file(dsp_file, script="faust2wwise"):
             "--output_dir", str(output_dir),
             str(dsp_file)
         ]
+
+        command = add_faust2wwise_arguments(command)
 
         if (platform.system()=="Windows" and not
             ('MSYSTEM' in os.environ or 'MSYS' in os.environ)):
@@ -105,18 +121,31 @@ def run_faust2wwise_on_file(dsp_file, script="faust2wwise"):
 
 def main():
 
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--limit", type=int, default=None)
+    args = parser.parse_args()
+
     dsp_files = [
         f for f in FAUST_EXAMPLES_DIR.rglob("*.dsp")
         if str(f.relative_to(FAUST_EXAMPLES_DIR)).replace("\\", "/") not in EXCLUDE_FILES
     ]
     print(f"Found {len(dsp_files)} .dsp files.\n")
 
+    totalFiles = len(dsp_files)
+    import random
+    if args.limit:
+        dsp_files = random.sample(dsp_files, min(args.limit, len(dsp_files)))
+        print(f"Picked {min(args.limit, len(dsp_files))} out of {totalFiles} .dsp files.\n")
+        totalFiles = min(args.limit, len(dsp_files))
+
     BASE_DIR.mkdir(parents=True, exist_ok=True)
     results = []
 
-    for dsp_file in dsp_files:
+    for i,dsp_file in enumerate(dsp_files):
         print(f"Processing: {dsp_file}")
         result = run_faust2wwise_on_file(dsp_file)
+        print(f"{"Success" if result["success"] else "Failed "} : ({i+1}/{totalFiles}) {dsp_file.name} ")
         results.append(result)
 
     with open(OUTPUT_JSON_FILE, "w", encoding="utf-8") as f:
