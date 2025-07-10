@@ -41,12 +41,12 @@ static const AkUInt32 NUM_PARAMS = 1
 struct ${name}RTPCParams
 {
     AkReal32 fDuration;
-    <<FOREACHPARAM:isRTPC==RTPC: ${WwiseTypeCast} ${RTPCname}; >>
+    <<FOREACHPARAM:IF isRTPC==RTPC: ${WwiseTypeCast} ${RTPCname}; >>
 };
 
 struct ${name}NonRTPCParams
 {
-    <<FOREACHPARAM:isRTPC==NonRTPC: ${WwiseTypeCast} ${RTPCname}; >>
+    <<FOREACHPARAM:IF isRTPC==NonRTPC: ${WwiseTypeCast} ${RTPCname}; >>
 };
 
 struct ${name}SourceParams

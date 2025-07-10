@@ -15,9 +15,9 @@ class TemplateProcessor:
         inner = placeholder_str[len(self.PLACEHOLDER_PREFIX):-len(self.PLACEHOLDER_SUFFIX)]
 
         # Spliting the optional condition
-        # @TODO If an : mark and a == mark is found before the == mark, then the condition is triggered. We could add an IF capitalized 
-        if ":" in inner:
-            condition_part, template = inner.split(":", 1)
+        if "IF" in inner and ":" in inner:
+            condition_with_if, template = inner.split(":", 1)
+            condition_part = condition_with_if.strip().removeprefix("IF").strip()
             if "==" in condition_part:
                 cond_key, cond_val = map(str.strip, condition_part.split("==", 1))
             else:
