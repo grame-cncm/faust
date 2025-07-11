@@ -1,6 +1,8 @@
+FAUST=../../../build/bin/faust
+
 for f in $@
 do
   echo "Processing $f file..."
-  faust -lang ocpp $f > ${f%.dsp}.cpp
+  $FAUST -lang ocpp $f > ${f%.dsp}.cpp
   diff ${f%.dsp}.cpp ../reference/${f%.dsp}.cpp1 ; echo Done
 done

@@ -1,6 +1,8 @@
+FAUST=../../../build/bin/faust
+
 for f in $@
 do
   echo "Processing $f file..."
-  faust -lang fir $f -o ${f%.dsp}.fir
+  $FAUST -lang fir $f -o ${f%.dsp}.fir
   diff ${f%.dsp}.fir ../reference/${f%.dsp}.fir ; echo Done
 done
