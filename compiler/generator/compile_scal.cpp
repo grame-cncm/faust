@@ -42,7 +42,6 @@
 #include "ppsig.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
-#include "sharing.hh"
 #include "sigDependenciesGraph.hh"
 #include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
@@ -128,10 +127,6 @@ Tree ScalarCompiler::prepare(Tree LS)
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
 
-    startTiming("sharingAnalysis");
-    sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count
-    endTiming("sharingAnalysis");
-
     startTiming("occurrences analysis");
     delete fOccMarkup;
     fOccMarkup = new OccMarkup(fConditionProperty);
@@ -162,9 +157,8 @@ Tree ScalarCompiler::prepare2(Tree L0)
 {
     startTiming("ScalarCompiler::prepare2");
 
-    recursivnessAnnotation(L0);        // Annotate L0 with recursivness information
-    typeAnnotation(L0, true);          // Annotate L0 with type information
-    sharingAnalysis(L0, fSharingKey);  // annotate L0 with sharing count
+    recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
+    typeAnnotation(L0, true);    // Annotate L0 with type information
 
     delete fOccMarkup;
     fOccMarkup = new OccMarkup();
@@ -858,47 +852,38 @@ string ScalarCompiler::generateIotaCache(const std::string& exp)
 
 string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 {
-    string code;
-
     // check reentrance
+    string code;
     if (getCompiledExpression(sig, code)) {
         return code;
     }
 
     string       vname, ctype;
-    int          sharing = getSharingCount(sig, fSharingKey);
-    Occurrences* o       = fOccMarkup->retrieve(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        if (sharing > 1) {
+        if (o->hasMultiOccurrences()) {
             return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname,
                                     o->getMaxDelay(), o->getDelayCount());
         } else {
             return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
         }
-
-    } else if ((sharing > 1) || (o->hasMultiOccurrences())) {
+    } else if (o->hasMultiOccurrences()) {
         return generateVariableStore(sig, exp);
-
-    } else if (sharing == 1) {
-        return exp;
-
     } else {
-        cerr << "ASSERT : sharing count (" << sharing << ") for " << *sig << endl;
-        faustassert(false);
-        return {};
+        // If there are no multiple occurrences, just return the expression directly.
+        return exp;
     }
 }
 
 // like generateCacheCode but we force caching like if sharing was always > 1
 string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
 {
-    string code;
-
     // check reentrance
+    string code;
     if (getCompiledExpression(sig, code)) {
         return code;
     }

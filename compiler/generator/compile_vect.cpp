@@ -26,7 +26,6 @@
 #include "compile_vect.hh"
 #include "floats.hh"
 #include "ppsig.hh"
-#include "sharing.hh"
 
 using namespace std;
 
@@ -220,10 +219,9 @@ string VectorCompiler::generateLoopCode(Tree sig)
 string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
 {
     string       vname, ctype;
-    int          sharing = getSharingCount(sig, fSharingKey);
-    Type         t       = getCertifiedSigType(sig);
-    Occurrences* o       = fOccMarkup->retrieve(sig);
-    int          d       = o->getMaxDelay();
+    Type         t = getCertifiedSigType(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
+    int          d = o->getMaxDelay();
 
     if (t->variability() < kSamp) {
         if (d == 0) {
@@ -234,7 +232,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
             // it is a non-sample expressions but used delayed
             // we need a delay line
             getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-            if ((sharing > 1) && !verySimple(sig)) {
+            if (o->hasMultiOccurrences() && !verySimple(sig)) {
                 // first cache this expression because it
                 // it is shared and complex
                 string cachedexp = generateVariableStore(sig, exp);
@@ -279,10 +277,10 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
         } else {
             // not delayed
             Tree x, y;
-            if (sharing > 1 && isSigDelay(sig, x, y) && verySimple(y)) {
+            if (o->hasMultiOccurrences() && isSigDelay(sig, x, y) && verySimple(y)) {
                 // cerr << "SPECIAL CASE NO CACHE NEEDED : " << ppsig(sig) << endl;
                 return exp;
-            } else if (sharing > 1 && !verySimple(sig)) {
+            } else if (o->hasMultiOccurrences() && !verySimple(sig)) {
                 // shared and not simple : we need a vector
                 // cerr << "ZEC : " << ppsig(sig) << endl;
                 getTypedNames(getCertifiedSigType(sig), "Zec", ctype, vname);
@@ -306,7 +304,6 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
 {
     Occurrences* o = fOccMarkup->retrieve(sig);
     Type         t = getCertifiedSigType(sig);
-    int          c = getSharingCount(sig, fSharingKey);
     bool         b;
 
     int  i;
@@ -322,7 +319,7 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
     } else if (isProj(sig, &i, x)) {
         // cerr << "REC "; // recursive expressions require a separate loop
         b = true;
-    } else if (c > 1) {
+    } else if (o->hasMultiOccurrences()) {
         // cerr << "SHA(" << c << ") "; // expressions used several times required a separate loop
         b = true;
     } else {

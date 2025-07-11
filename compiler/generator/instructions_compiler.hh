@@ -52,7 +52,6 @@ class InstructionsCompiler : public virtual Garbageable {
     std::map<Tree, Tree>
         fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
 
-    Tree       fSharingKey;
     OccMarkup* fOccMarkup;
 
     // Ensure IOTA base fixed delays are computed once
