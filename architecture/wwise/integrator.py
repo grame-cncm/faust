@@ -36,7 +36,7 @@ def add_number_suffix_to_shortnames(ui_tree):
     def recurse(items, counter):
         for item in items:
             if "shortname" in item:
-                item["shortname"] = f"{item['shortname']}{counter}"
+                item["unq_shortname"] = f"{item['shortname']}{counter}"
                 counter += 1
             if "items" in item:
                 counter = recurse(item["items"], counter)
@@ -60,7 +60,13 @@ def parameter_integration(cfg):
     with open(cfg.json_file, 'r') as f:
         faustdata = json.load(f)
 
-    add_number_suffix_to_shortnames(faustdata["ui"]) # uniquify_shortnames
+    # uniquify_shortnames by adding a new key in the dict. 
+    # This is done for defining unique rtpc values.
+    # Note: Faust UI elements support groups of elements so that different groups may contain elements with the same name
+    # However, currently we do not support this grouping of elements, but we serialize all ui elements under the same umberella.
+    # Therefore, uniquifying UI elements is done to discard the concern of two parameters sharing the same name in different depths of the nested ui dictionary of the exported faust compiled program.
+    add_number_suffix_to_shortnames(faustdata["ui"]) 
+
     parameters_data = extract_parameters(faustdata["ui"])
 
     print(f"OK : Succesfully extracted parameters from {cfg.json_file} file.")

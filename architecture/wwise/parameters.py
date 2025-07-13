@@ -26,7 +26,7 @@ class Parameter:
         self.paramCastedType = self._derive_casted_type()
         self.setterFunctionName = self._derive_setter_name()
         self.isRTPC = self._derive_is_rtpc()
-        self.RTPCname = self._derive_rtpc_name()
+        self.RTPCname = self._derive_rtpc_name(data.get("unq_shortname"))
         self.WwiseTypeCast = self._cast_type_2wwise()
         self.WwiseXMLTypeCast = self._cast_type_2XMLwwise()
         self.PARAM_ID_NAME = self._derive_id_name()
@@ -72,8 +72,8 @@ class Parameter:
         except:
             return "NonRTPC"
         
-    def _derive_rtpc_name(self):
-        return self.paramCastedType[0] + self.Shortname
+    def _derive_rtpc_name(self, unq_shortname):
+        return self.paramCastedType[0] + unq_shortname
 
     def _cast_type_2wwise(self):
         if self.paramCastedType == "float":
