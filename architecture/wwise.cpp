@@ -17,3 +17,7 @@ template <typename T> // for the shake of proper usage and to supress a probable
 void setParameter(const char* name, T value) {
     map_ui.setParamValue(std::string(name), static_cast<FAUSTFLOAT>(value)); 
 }
+
+FAUSTFLOAT getParameter(const char* name) { // Not used. Added for potential future debugging of the parameter's integration
+    return map_ui.getParamValue(std::string(name)); 
+}
