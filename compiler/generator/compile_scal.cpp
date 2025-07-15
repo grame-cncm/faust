@@ -33,6 +33,7 @@
 #include <sstream>
 #include <vector>
 
+#include "DependenciesPrinting.hh"
 #include "Schedule.hh"
 #include "Text.hh"
 #include "compatibility.hh"
@@ -548,6 +549,10 @@ void ScalarCompiler::compileMultiSignal(Tree L)
 
     // Compute the hierarchical scheduling of L applying the chosen strategy
     fHschedule = scheduleSigList(L, mySchedFun);
+
+    if (gGlobal->gPrintHSchedule) {
+        printHsched(fHschedule);
+    }
 
     // Then first compile the control or constant signals (i.e. non sample rate signals)
     for (Tree s : fHschedule.controls.elements()) {
