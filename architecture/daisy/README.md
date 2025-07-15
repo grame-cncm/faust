@@ -6,8 +6,9 @@ The **faust2daisy** tool compiles a Faust DSP program in a folder containing the
 
 Here are the available options:
 
-- `-patch`: to compile for 4 ins/outs [patch.Init()](https://electro-smith.com/products/patch-init)
+- `-patch`: to compile for 4 ins/outs [Patch](https://electro-smith.com/products/patch)
 - `-pod`: to compile for 2 ins/outs [Pod](https://www.electro-smith.com/daisy/pod)
+- `-patchsm`: to compile for Patch Submodule and [patch.Init()](https://electro-smith.com/products/patch-init)
 - `-sdram`: to compile using SDRAM for long delay lines/tables etc.
 - `-midi`: to activate MIDI control
 - `-nvoices <num>`: to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI

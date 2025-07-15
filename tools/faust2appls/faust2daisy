@@ -37,7 +37,7 @@ echoHelp ()
     option
     option -patch "to compile for 4 ins/outs Patch (knob[1,2,3,4])"
     option -pod "to compile for 2 ins/outs Pod (knob[1,3])"
-    option -patchsm "to compile for the Pod.init eurorack module"
+    option -patchsm "to compile for the patch.Init() eurorack module"
     option -sdram "to compile using SDRAM for long delay lines/tables etc."
     options -midi
     option "-nvoices <num>"
