@@ -490,6 +490,7 @@ void global::reset()
     gFixedPointLSB  = 0;
 
     gPrintFileListSwitch = false;
+    gPrintHSchedule      = false;
     gInlineArchSwitch    = false;
 
     gDSPStruct  = false;
@@ -1593,6 +1594,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-flist", "--file-list")) {
             gPrintFileListSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-phs", "--print-hschedule")) {
+            gPrintHSchedule = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-norm", "--normalized-form")) {
