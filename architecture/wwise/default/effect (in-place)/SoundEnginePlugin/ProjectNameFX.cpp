@@ -149,18 +149,17 @@ void ${name}FX::Execute(AkAudioBuffer* io_pBuffer)
 
     const AkUInt32 inChannels = io_pBuffer->NumChannels();
     const AkUInt32 framesToProcess = io_pBuffer->uValidFrames;
-    const AkUInt32 maxChannels = AkMin(inChannels, static_cast<AkUInt32>(AkMin(numInputs, numOutputs)));
 
     <<FOREACHPARAM: setParameter("${shortname}", m_pParams->${isRTPC}.${RTPCname});>>
 
     std::fill(faust_inputs.begin(), faust_inputs.end(), nullptr);
     std::fill(faust_outputs.begin(), faust_outputs.end(), nullptr);
 
-    for (AkUInt32 ch = 0; ch < maxChannels; ++ch)
-    {
-        AkReal32* channel = io_pBuffer->GetChannel(ch);
-        faust_inputs[ch] = channel;
-        faust_outputs[ch] = channel;
+    for (int ch = 0; ch < static_cast<int>(io_pBuffer->NumChannels()); ++ch) {
+        if (ch < numInputs)
+            faust_inputs[ch] = io_pBuffer->GetChannel(ch);
+        if (ch < numOutputs)
+            faust_outputs[ch] = io_pBuffer->GetChannel(ch);
     }
 
     m_dsp.compute(static_cast<int>(framesToProcess), faust_inputs.data(), faust_outputs.data());

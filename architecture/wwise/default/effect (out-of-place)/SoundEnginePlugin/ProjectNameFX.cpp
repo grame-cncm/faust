@@ -159,10 +159,20 @@ void ${name}FX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAudi
     std::fill( faust_inputs.begin(), faust_inputs.end(), nullptr);
     std::fill( faust_outputs.begin(), faust_outputs.end(), nullptr);
 
-    for (AkUInt32 ch = 0; ch < uNumChannels && ch < numInputs && ch < numOutputs; ++ch)
+    for (int ch = 0; ch < numInputs; ++ch)
     {
-        faust_inputs[ch] = in_pBuffer->GetChannel(ch) + in_ulnOffset;
-        faust_outputs[ch] = out_pBuffer->GetChannel(ch) + out_pBuffer->uValidFrames;
+        if (ch < static_cast<int>(in_pBuffer->NumChannels()))
+        {
+            faust_inputs[ch] = in_pBuffer->GetChannel(ch) + in_ulnOffset;
+        }
+    }
+
+    for (int ch = 0; ch < numOutputs; ++ch)
+    {
+        if (ch < static_cast<int>(out_pBuffer->NumChannels()))
+        {
+            faust_outputs[ch] = out_pBuffer->GetChannel(ch) + out_pBuffer->uValidFrames;
+        }
     }
 
     m_dsp.compute(static_cast<int>(framesToProcess), faust_inputs.data(), faust_outputs.data());
