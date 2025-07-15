@@ -131,6 +131,9 @@ class Faust2WwiseOrchestrator:
             "--description", self.description,
             "--no-prompt"
         ]
+
+        if self.wwise_plugin_interface == "out-of-place":
+            cmd.extend(["--out-of-place"])
         
         utils.run_system_command(cmd, self.ERR_GENERATION)
         os.chdir(original_dir)

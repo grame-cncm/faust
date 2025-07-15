@@ -42,10 +42,10 @@ def process_json_configuration(cfg):
         if dsp_inputs > 0:
             cfg.plugin_type = "effect"
             cfg.plugin_suffix = "FX"
-            #TODO: FX can be in-place and out-of-place
         else:
             cfg.plugin_type = "source"
             cfg.plugin_suffix = "Source"
+            cfg.wwise_plugin_interface = None       # reset the plugin_interface to None
         
         #Set the wwise_template_dir, the directory where the wwise template files are stored 
         cfg.wwise_template_dir = os.path.join(cfg.faust_lib_dir, "wwise", cfg.patch_version or "default", cfg.plugin_type) 
@@ -78,6 +78,8 @@ def process_json_configuration(cfg):
         print("DSP file plugin config")
         print("================================")
         print(f"plugin_type {cfg.plugin_type}")
+        if cfg.wwise_plugin_interface:
+            print(f"plugin_interface {cfg.wwise_plugin_interface}")
         print(f"plugin_name {cfg.plugin_name}")
         print(f"author {cfg.author}")
         print(f"description {cfg.description}")

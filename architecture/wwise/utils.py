@@ -63,7 +63,7 @@ def create_wwise_config(cfg, parsed_args):
     # Common to both premake and build
     if parsed_args.platform:
         cfg.wwise_platform = parsed_args.platform
-    cfg.wwise_plugin_interface = parsed_args.plugin_interface
+    cfg.wwise_plugin_interface = parsed_args.plugin_interface   # default value in-place. In case of being a source plugin, it will be reset to None, but it is not known at initialization time, only after compiling the dsp file with the Faust compiler.
 
     # Premake-specific options
     cursys = platform.system()
