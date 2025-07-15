@@ -139,6 +139,7 @@ struct global {
     bool        gSimpleNames;          // -sn option
     bool        gSimplifyDiagrams;     // -sd option
     bool        gPrintFileListSwitch;  // -flist option
+    bool        gPrintHSchedule;       // -phs --print-hschedule option
     bool        gInlineArchSwitch;     // -i option
     bool        gUIMacroSwitch;        // -uim option
     bool        gRustNoTraitSwitch;    // -rnt option
@@ -257,7 +258,7 @@ struct global {
 
     int gFixSamplingRate;  // -fsr, fix sampling rate at compile time instead of runtime parameter
     int gWideningLimit;    // Max number of iterations before interval widening
-    int gNarrowingLimit;  // Max number of iterations to compute interval widener
+    int gNarrowingLimit;   // Max number of iterations to compute interval widener
 
     std::map<std::string, std::string> gFastMathLibTable;  // Mapping table for fastmath functions
     std::map<std::string, bool>        gMathForeignFunctions;  // Map of math foreign functions
