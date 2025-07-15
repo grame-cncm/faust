@@ -29,7 +29,7 @@ class Parameter:
         self.RTPCname = self._derive_rtpc_name(data.get("unq_shortname"))
         self.WwiseTypeCast = self._cast_type_2wwise()
         self.WwiseXMLTypeCast = self._cast_type_2XMLwwise()
-        self.PARAM_ID_NAME = self._derive_id_name()
+        self.PARAM_ID_NAME = self._derive_id_name(data.get("unq_shortname"))
         self.PARAM_ID = static_param_id()
 
         self.Wwise_Type_Specific_WriteFunction = self._derive_Wwise_WriteFunction()
@@ -107,9 +107,8 @@ class Parameter:
         https://www.audiokinetic.com/en/public-library/2024.1.5_8803/?source=SDK&id=plugin_xml_properties.html
         """
 
-    def _derive_id_name(self):
-        name = self.shortname or self.Shortname
-        return f"PARAM_{name.upper()}_ID"
+    def _derive_id_name(self, unq_shortname):
+        return f"PARAM_{unq_shortname.upper()}_ID"
     
     def _derive_Wwise_WriteFunction(self):
         return {
