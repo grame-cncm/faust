@@ -1,50 +1,103 @@
+"""
+integrator.py
+
+Module responsible for the integration of Faust-generated code into a Wwise plugin project, 
+broken down into the following steps:
+- integrate the compiled dsp file
+- replace the vital for the integration files
+- integrate parameters
+- inject faust includes within the lua script
+"""
 import json
 import os
 import sys
 import shutil
-from pathlib import Path
 from parameters import Parameter
 from processor import TemplateProcessor
 from xmlinjector import inject_properties_to_xml
+from typing import List, Dict, Any, Callable
 
-def parse_ui(ui_tree, callback):
+FaustUIItem = Dict[str, Any]
+FaustUITree = List[FaustUIItem]
+
+"""
+Faust UI tree Parsing Utilities:
+these functions recursively parse the Faust UI tree retrieved from the JSON file.
+The parse_ui / parse_group / parse_items / parse_item methods are ported from the
+TypeScript implementation implemented in the context of the faustwasm repository:
+github.com/grame-cncm/faustwasm/blob/3ac9238bb0579bd2c51e67f5868997395766dbab/src/FaustWebAudioDsp.ts#L730C1-L730C30
+"""
+def parse_ui(ui_tree, callback) -> None:
     for group in ui_tree:
         parse_group(group, callback)
 
-def parse_group(group, callback):
+def parse_group(group, callback) -> None:
     items = group.get("items", [])
     parse_items(items, callback)
 
-def parse_items(items, callback):
+def parse_items(items, callback) -> None:
     for item in items:
         parse_item(item, callback)
 
-def parse_item(item, callback):
+def parse_item(item, callback) -> None:
     if item["type"] in {"vgroup", "hgroup", "tgroup"}:
         parse_items(item.get("items", []), callback)
     else:
         callback(item)
 
 def extract_parameters(ui_tree)->list:
+    """
+    Extracts parameter items from the Faust UI tree and assigns unique shortnames as a new key in the dict.
+    
+    This function performs two operations in a single pass:
+    - assigns unique shortnames to ALL items that have a 'shortname' property
+    - collects only parameter-type items (sliders, entries, checkboxes, buttons), 
+    filtering out BarGraphs which are curently not supported 
+    
+    As for the uniquification, it is necessary because Faust UI elements support groups where
+    different groups may contain elements with the same name. Since we serialize all UI elements 
+    under the same umbrella (rather than preserving grouping), we need unique identifiers to avoid 
+    naming conflicts when defining RTPC values.
+    
+    Args:
+        ui_tree: The Faust UI tree structure from the JSON file
+        
+    Returns:
+        List of parameter items (dicts) with 'unq_shortname' added to each item
+        that originally had a 'shortname'. Only returns items of parameter types.
+    """
+
     result = []
-    parse_ui(ui_tree, lambda item: result.append(item))
-    # return result # TODO need to filter out non-input parameters such as the BarGraph 
-    return [p for p in result if p["type"] in {"hslider", "vslider", "nentry", "checkbox", "button"}] # List of dicts
+    counter = 1
+    
+    def callback(item):
+        nonlocal counter
 
-def add_number_suffix_to_shortnames(ui_tree):
-
-    def recurse(items, counter):
-        for item in items:
-            if "shortname" in item:
-                item["unq_shortname"] = f"{item['shortname']}{counter}"
-                counter += 1
-            if "items" in item:
-                counter = recurse(item["items"], counter)
-        return counter
-
-    recurse(ui_tree, 1)
-
-def parameter_integration(cfg):
+        # uniquify_shortnames to ALL items that have shortname, by asigning them a new key. 
+        # This ensures unique RTPC values across the entire UI tree
+        if "shortname" in item:
+            item["unq_shortname"] = f"{item['shortname']}{counter}"
+            counter += 1
+        
+        # result.append(item) # TODO need to filter out non-input parameters such as the BarGraph
+        if item["type"] in {"hslider", "vslider", "nentry", "checkbox", "button"}:
+            result.append(item) # List of dicts
+    
+    parse_ui(ui_tree, callback)
+    return result
+    
+def parameter_integration(cfg) -> None:
+    """
+    Processes the parameters from the Faust JSON and injects them into the template files and in the XML file.
+    The method applied is broken down in the following steps:
+    - Extract parameters from the Faust UI tree
+    - Create Parameter objects for processing
+    - Apply template substitutions to target files
+    - Inject properties into the plugin XML configuration
+    
+    Args:
+        cfg (Config): the configuration object
+    """
 
     print("Integrating parameters...")
     
@@ -60,20 +113,12 @@ def parameter_integration(cfg):
     with open(cfg.json_file, 'r') as f:
         faustdata = json.load(f)
 
-    # uniquify_shortnames by adding a new key in the dict. 
-    # This is done for defining unique rtpc values.
-    # Note: Faust UI elements support groups of elements so that different groups may contain elements with the same name
-    # However, currently we do not support this grouping of elements, but we serialize all ui elements under the same umberella.
-    # Therefore, uniquifying UI elements is done to discard the concern of two parameters sharing the same name in different depths of the nested ui dictionary of the exported faust compiled program.
-    add_number_suffix_to_shortnames(faustdata["ui"]) 
-
     parameters_data = extract_parameters(faustdata["ui"])
 
     print(f"OK : Succesfully extracted parameters from {cfg.json_file} file.")
 
     parameters = [Parameter(d) for d in parameters_data]
     processor = TemplateProcessor(parameters)
-
 
     for file in target_files:
         file = os.path.join(cfg.output_dir, cfg.plugin_name, file)
@@ -82,9 +127,13 @@ def parameter_integration(cfg):
 
     inject_properties_to_xml(parameters, xml_file)
 
-def faust_dspfile_integration(cfg):
-    # Copy generated faust dsp file to SoundEnginePlugin dir
-
+def faust_dspfile_integration(cfg) -> None:
+    """
+    Copies the generated Faust DSP file (faustdsp.cpp) into the SoundEnginePlugin project directory.
+    Args:
+        cfg (Config): the configuration object
+    """
+    
     print("Architecture File Integration")
     
     faust_generated_arch_file = os.path.join(cfg.temp_dir, f"{cfg.dsp_filename}.cpp")
@@ -97,8 +146,14 @@ def faust_dspfile_integration(cfg):
     shutil.copy2(faust_generated_arch_file, faust_generated_destination)
     print(f"OK : Copied Faust DSP to: {faust_generated_destination}")
 
-def replace_custom_templates(cfg):
-
+def replace_custom_templates(cfg) -> None:
+    """
+    Replaces the generated plugin files with custom template files that include placeholders.
+    These placeholders are used to inject the Faust logic into the Wwise plugin logic, using 
+    a patch-based method.
+    Args:
+        cfg (Config): the configuration object
+    """
     print("Replacing generated files with custom templates...")
     
     # Define the list of template files to replace (these contain {name} placeholders)
@@ -150,7 +205,11 @@ def replace_custom_templates(cfg):
         sys.exit(cfg.ERR_INTEGRATION)
 
 
-def modify_lua_build_script(cfg):
+def modify_lua_build_script(cfg) -> None:
+    """
+    Modifies the Lua build script (`PremakePlugin.lua`) injecting faust include directories at specific parts 
+    of its content.
+    """
     print("Modifying Lua build script for Faust includes...")
     
     original_dir = os.getcwd()
@@ -173,7 +232,6 @@ def modify_lua_build_script(cfg):
     
     new_lines = []
     inside_section = False
-    current_section = None
     
     for i, line in enumerate(lines):
         stripped = line.strip()
@@ -181,17 +239,13 @@ def modify_lua_build_script(cfg):
         # Check if starting a section block
         if any(line.startswith(section) and '=' in line for section in sections):
             inside_section = True
-            # Remember which section we are in (not strictly necessary here)
-            current_section = next(section for section in sections if line.startswith(section))
             new_lines.append(line)
             continue
         
         # If inside a section, look for the line that contains just the closing brace '}'
         if inside_section:
             if stripped == '}':
-                # Insert your include path line before this closing brace if not already present
-                # But first check if faust include path already in previous lines in this block
-                block_start_idx = len(new_lines) - 1
+
                 # Walk backwards to check if faust path exists
                 already_added = False
                 for check_line in reversed(new_lines):
@@ -211,7 +265,6 @@ def modify_lua_build_script(cfg):
                 
                 new_lines.append(line)
                 inside_section = False
-                current_section = None
                 continue
         
         # Normal line outside or inside section

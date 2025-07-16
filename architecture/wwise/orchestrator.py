@@ -184,7 +184,7 @@ class Faust2WwiseOrchestrator:
         print("------------------------------------------Step 3: Integration Step")
         
         try:
-            integrator.faust_dspfile_integration(self.cfg) # edit the exported dsp file
+            integrator.faust_dspfile_integration(self.cfg) # integrate the compiled dsp file
             integrator.replace_custom_templates(self.cfg) # replace the vital for the integration files
             integrator.parameter_integration(self.cfg) # integrate parameters
             integrator.modify_lua_build_script(self.cfg) # inject faust includes within the lua script
