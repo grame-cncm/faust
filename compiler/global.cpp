@@ -2622,13 +2622,8 @@ void Garbageable::cleanup()
     // Here removing the deleted pointer from the list is pointless
     // and takes time, thus we don't do it.
     global::gHeapCleanup = true;
-    for (it = global::gObjectTable.begin(); it != global::gObjectTable.end(); it++) {
-#ifdef _WIN32
-        // Hack : "this" and actual pointer are not the same: destructor cannot be called...
-        Garbageable::operator delete(*it);
-#else
-        delete (*it);
-#endif
+    for (Garbageable* obj : global::gObjectTable) {
+        delete obj;  // Safe: allocated with new, so destructor + delete
     }
 
     // Reset to default state
@@ -2638,8 +2633,7 @@ void Garbageable::cleanup()
 
 void* Garbageable::operator new(size_t size)
 {
-    // HACK : add 16 bytes to avoid unsolved memory smashing bug...
-    Garbageable* res = (Garbageable*)malloc(size + 16);
+    Garbageable* res = static_cast<Garbageable*>(::operator new(size));
     global::gObjectTable.push_front(res);
     return res;
 }
@@ -2651,13 +2645,12 @@ void Garbageable::operator delete(void* ptr)
     if (!global::gHeapCleanup) {
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
     }
-    free(ptr);
+    ::operator delete(ptr);
 }
 
 void* Garbageable::operator new[](size_t size)
 {
-    // HACK : add 16 bytes to avoid unsolved memory smashing bug...
-    Garbageable* res = (Garbageable*)malloc(size + 16);
+    Garbageable* res = static_cast<Garbageable*>(::operator new[](size));
     global::gObjectTable.push_front(res);
     return res;
 }
@@ -2669,7 +2662,7 @@ void Garbageable::operator delete[](void* ptr)
     if (!global::gHeapCleanup) {
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
     }
-    free(ptr);
+    ::operator delete[](ptr);
 }
 
 /*
