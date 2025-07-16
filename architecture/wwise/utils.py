@@ -1,10 +1,28 @@
+"""
+utils.py
+
+Utility functions for the faust2wwise tool, including:
+
+- Command-line argument parsing and validation
+- Help messages for general and Wwise-specific options
+- Wwise configuration setup and verification
+- Environment validation
+- System command execution
+
+This module is intended to assist with the orchestration of plugin generation from Faust DSP files to Wwise-compatible plugins.
+"""
+
 import sys
 import os
 import platform
 import subprocess
+import argparse
+from typing import List, Optional
 
-# help utility using Faust standard approach
-def print_usage():
+def print_usage() -> None:
+    """
+    Prints general usage information for the faust2wwise command-line tool.
+    """
     print("faust2wwise [options] file.dsp")
     print("Converts Faust DSP files to Wwise plugins")
     print("")
@@ -19,7 +37,11 @@ def print_usage():
     print("Example:")
     print("  faust2wwise sine.dsp")
 
-def print_wwise_help():
+def print_wwise_help() -> None:
+    """
+    Prints Wwise-specific command-line options and examples.
+    Includes options for both premake and build steps.
+    """
     print("")
     print("Wwise Plugin Options:")
     print("")
@@ -45,11 +67,22 @@ def print_wwise_help():
     print("  faust2wwise myfaustfile.dsp --platform Authoring_Windows --toolset vc170 --configuration Release --arch x64")
     print("")
 
-def create_wwise_config(cfg, parsed_args):
+def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
     """
-    Populates cfg with Wwise-related configuration options from parsed_args.
+    Populates Wwise-related configuration values into the given config object,
+    using the parsed command-line arguments.
+
+    Args:
+        cfg (Config): The configuration object to modify.
+        parsed_args (argparse.Namespace): Parsed arguments from argparse.
     """
-    def detect_arch():
+    def detect_arch() -> str:
+        """
+        Automatically detects the system architecture and sets sensible defaults
+        for platform/toolset compatibility.
+        Returns:
+            arch : detected architecture.
+        """
         arch = platform.machine().lower()
         if arch in ["amd64", "x86_64"]:
             return "x64"
@@ -99,8 +132,20 @@ def create_wwise_config(cfg, parsed_args):
     if parsed_args.toolchain_env_script:
         cfg.wwise_toolchain_env_script = parsed_args.toolchain_env_script
 
-def parse_arguments(cfg, args=None):
-    import argparse
+def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> None:
+    """
+    Parses command-line arguments and updates the configuration object.
+
+    This includes:
+        - DSP file path
+        - Output directory
+        - Faust options
+        - Wwise-related arguments (platform, toolset, configuration, etc.)
+
+    Args:
+        cfg (Config): The configuration object to populate.
+        args (list[str], optional): Command-line argument list (used for testing). Defaults to sys.argv[1:].
+    """
     parser = argparse.ArgumentParser(description="Converts Faust DSP files to Wwise plugins",
                                     add_help=False)
     parser.add_argument('-h', '--help', action='store_true', help='Show help message')
@@ -154,11 +199,21 @@ def parse_arguments(cfg, args=None):
 
 def ensure_valid_plugin_name(name: str) -> str:
     """
-    Check if plugin name is valid (i.e. if starts with a number, or if it has spaces)
-    Faust compiles files that starts with a number, but wwise is not handling such project names
-    Therefore, if invalid, prefix with 'Dsp_',
-    replace spaces with underscore _,
-    & always capitalize the first letter..
+    Converts the plugin name to a valid format accepted by Wwise.
+
+    Adjustments include:
+        - Prefixing with "Dsp_" if name starts with a number or is invalid
+        - Replacing spaces with underscores
+        - Capitalizing the first character
+
+    Args:
+        name (str): The raw plugin name to validate
+
+    Returns:
+        str: A sanitized, Wwise-compatible plugin name
+
+    Note:
+        Faust compiles files that starts with a number, but wwise is not handling such project names
     """
     
     name = name.replace(" ", "_")
@@ -168,7 +223,16 @@ def ensure_valid_plugin_name(name: str) -> str:
     
     return name.capitalize()
 
-def check_wwise_required_arguments(cfg):
+def check_wwise_required_arguments(cfg) -> List[str]:
+    """
+    Checks whether all required Wwise configuration parameters are set.
+
+    Args:
+        cfg (Config): The configuration object to validate.
+
+    Returns:
+        list[str]: A list of missing required arguments, if any.
+    """
     missing = []
     if not cfg.wwise_platform:
         missing.append("platform (--platform)")
@@ -184,7 +248,20 @@ def check_wwise_required_arguments(cfg):
     return missing
 
 
-def wwise_platform_and_toolset_compatible(cfg):
+def wwise_platform_and_toolset_compatible(cfg) -> bool:
+
+    """
+    Ensures that platform and toolset are compatible.
+
+    TODO <will be updated>
+
+    Args:
+        cfg (Config): The configuration object.
+
+    Returns:
+        bool: True if compatible, False if an invalid combination is detected.
+    """
+        
     if (platform.system() == "Windows"):
         default_toolset = "vc170"
 
@@ -212,8 +289,20 @@ def wwise_platform_and_toolset_compatible(cfg):
             cfg.wwise_toolset=None
         return True # Ignoring 
 
-def validate_environment(cfg):
-    
+def validate_environment(cfg) -> None:
+    """
+    Validates the environment setup before building the plugin.
+    Various checks are applied. These include:
+        - if WWISEROOT is set
+        - if DSP file is provided
+        - if given DSP file exists
+        - if architecture file exists
+        - if required Wwise configuration parameters are set properly
+        - if platform and toolset(if given) are compatible
+
+    If invalid, exits the program with a specific error code.
+    """
+        
     # Check if WWISEROOT is set
     if not cfg.wwiseroot:
         print(f"Error {cfg.ERR_ENVIRONMENT}: WWISEROOT environment variable is not set.")
@@ -251,9 +340,21 @@ def validate_environment(cfg):
         print(f"Make sure you explicitly define compatible options. For instance: 'Windows_vc160' platform with 'vc160' toolset.")
         sys.exit(cfg.ERR_INVALID_INPUT)
 
-def run_system_command(cmd, error_code=None):
+def run_system_command(cmd : List[str], error_code:Optional[int]=None) -> subprocess.CompletedProcess :
 
-    # Run a system based command with consistent output and error handling.
+    """
+    Executes a system based command with consistent output and error handling.
+
+    Args:
+        cmd (list[str]): Command to run.
+        error_code (int, optional): Custom error code for failure.
+
+    Returns:
+        subprocess.CompletedProcess: The result of the command execution, if successful, otherwise exits program before return.
+
+    Raises:
+        SystemExit: On command failure, exits with the provided error code.
+    """
     
     print("Running command:", " ".join(cmd))
 
@@ -261,8 +362,6 @@ def run_system_command(cmd, error_code=None):
         result = subprocess.run(
             cmd,
             check=True,
-            # capture_output=True,
-            # text=True,
         )
         if result.stdout:
             print(result.stdout.strip())
