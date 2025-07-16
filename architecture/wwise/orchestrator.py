@@ -42,7 +42,7 @@ import utils
 import jsoninjector
 
 class Faust2WwiseOrchestrator:
-    def __init__(self, wwiseroot , faust_dsp_dir, faust_include_dir):
+    def __init__(self, wwiseroot:Path , faust_dsp_dir:Path, faust_include_dir:Path):
         
         self.cfg = config.Config(wwiseroot , faust_dsp_dir, faust_include_dir)
 

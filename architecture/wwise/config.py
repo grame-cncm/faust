@@ -47,9 +47,9 @@ class Config:
         Initialize the Config instance.
 
         Args:
-            wwiseroot (str): Path to the root directory of the Wwise installation.
-            faust_dsp_dir (str): Path to the Faust architecture library directory.
-            faust_include_dir (str): Path to the Faust include files directory.
+            wwiseroot (Path): Path to the root directory of the Wwise installation.
+            faust_dsp_dir (Path): Path to the Faust architecture library directory.
+            faust_include_dir (Path): Path to the Faust include files directory.
 
         Notes:
             This method sets up the initial paths and configuration variables.

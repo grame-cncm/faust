@@ -195,7 +195,7 @@ def modify_lua_build_script(cfg):
                 # Walk backwards to check if faust path exists
                 already_added = False
                 for check_line in reversed(new_lines):
-                    if cfg.faust_include_dir in check_line:
+                    if str(cfg.faust_include_dir) in check_line:
                         already_added = True
                         break
                     if check_line.strip() == '':  # empty line - skip
@@ -206,7 +206,7 @@ def modify_lua_build_script(cfg):
                 if not already_added:
                     # Insert with the same indentation as the closing brace
                     indent = line[:line.index('}')]
-                    insert_line = f'{indent}"{Path(cfg.faust_include_dir).as_posix()}",\n' # convert to posix path before replacing
+                    insert_line = f'{indent}"{cfg.faust_include_dir.as_posix()}",\n' # convert to posix path before replacing
                     new_lines.append(insert_line)
                 
                 new_lines.append(line)
