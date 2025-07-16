@@ -1,10 +1,24 @@
+"""
+xmlinjector.py
+
+This module contains of a single function that provides the functionality to inject audio plugin parameter 
+metadata into a Wwise-compatible XML format. It modifies an existing XML plugin definition by appending 
+<Property> entries derived from parameter objects.
+"""
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import os
 
-def inject_properties_to_xml(parameters, xml_file):
+def inject_properties_to_xml(parameters : list, xml_file : str) -> None:
+    """
+    Injects <Property> entries into the provided XML file, appending them under the <Properties> element.
 
-    # Injects <Property> entries into the provided XML file, appending them under the <Properties> element.
+    Args:
+        parameters (list[Parameter]): List of Parameter objects.
+        xml_file (str): Path to the Wwise plugin XML file.
+    Raises:
+        FileNotFoundError: If the specified XML file does not exist.
+    """
     
     if not os.path.isfile(xml_file):
         raise FileNotFoundError(f"XML file not found: {xml_file}")
@@ -22,7 +36,7 @@ def inject_properties_to_xml(parameters, xml_file):
     for param in parameters:
         properties_elem.append(_parameter_to_property_xml(param))
 
-    # format before saving
+    # format before saving - pretty-prints and removes blank lines for cleaner formatting.
     xml_str = ET.tostring(root, encoding="utf-8")
     pretty = minidom.parseString(xml_str).toprettyxml(indent="    ")
     cleanedXml = "\n".join([line for line in pretty.splitlines() if line.strip() != ""])     # erase empty lines
@@ -32,8 +46,14 @@ def inject_properties_to_xml(parameters, xml_file):
     
     print("OK : Properties are injected successfully into xml file")
 
-def _parameter_to_property_xml(param):
-    
+def _parameter_to_property_xml(param) -> ET.Element:
+    """
+    Converts a Parameter object into a Wwise-compatible <Property> XML element.
+    Args:
+        param (Parameter): The parameter object to convert.
+    Returns:
+        ET.Element: An XML element representing the parameter as a Wwise <Property> node.
+    """
     property_attrs = {
         "Name": param.Shortname,
         "Type": param.WwiseXMLTypeCast,
