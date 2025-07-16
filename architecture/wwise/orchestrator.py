@@ -29,7 +29,7 @@ from pathlib import Path
 import integrator
 import config
 import utils
-import jsoninjector
+import jsonprocessor
 from typing import List,Optional
 
 class Faust2WwiseOrchestrator:
@@ -131,7 +131,7 @@ class Faust2WwiseOrchestrator:
         
         utils.run_system_command(cmd, self.ERR_FAUST_COMPILE)
         
-        jsoninjector.process_json_configuration(self.cfg)
+        jsonprocessor.process_json_configuration(self.cfg)
 
         self.cfg.plugin_print() # print finalized configuration, after having parsed the faust't output json file
         self.cfg.lock()         # lock config to deprive any further modifications of its internal state, making it immutable

@@ -1,11 +1,36 @@
+"""
+jsonprocessor.py
+
+Contain a single function that handles the parsing and processing of the Faust-generated JSON file.
+"""
 import sys
 import os
 import shutil
 import json
 from utils import ensure_valid_plugin_name
 
-def process_json_configuration(cfg):
+def process_json_configuration(cfg) -> None :
+    """
+    Parses the Faust-generated JSON file and updates configuration fields accordingly, including
+    the following operations:
+    - move the json file into the temp directory,
+    - fixes the Windows-style backslashes if needed.
+    - Parses the file and sets the value to the following configuration properties:
+        - plugin_type (source or effect)
+        - Plugin_suffix
+        - wwise_plugin_interface
+        - plugin_name
+        - author
+        - description
+        - wwise template directory
+
+    Args:
+        cfg (Config): The configuration object to update.
     
+    Raises:
+        SystemExit: If the JSON file is not found or if parsing fails.
+    """
+        
     print("Parsing json configuration file..")
     
     # Move JSON file to temp directory
