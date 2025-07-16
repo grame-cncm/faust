@@ -10,7 +10,6 @@ def process_json_configuration(cfg):
     
     # Move JSON file to temp directory
     json_source = f"{cfg.dsp_file}.json"
-    cfg.json_file = os.path.join(cfg.temp_dir, f"{cfg.dsp_file}.json")
     
     if os.path.exists(json_source):
         shutil.move(json_source, cfg.json_file)
@@ -48,7 +47,7 @@ def process_json_configuration(cfg):
             cfg.wwise_plugin_interface = None       # reset the plugin_interface to None
         
         #Set the wwise_template_dir, the directory where the wwise template files are stored 
-        cfg.wwise_template_dir = os.path.join(cfg.faust_lib_dir, "wwise", cfg.patch_version or "default", cfg.plugin_type) 
+        cfg.wwise_template_dir = os.path.join(cfg.faust_dsp_dir, "wwise", cfg.patch_version or "default", cfg.plugin_type) 
         if (cfg.plugin_type == "effect"):
             cfg.wwise_template_dir = cfg.wwise_template_dir+" ("+cfg.wwise_plugin_interface+")" # append the {space}(in-place) or {space}(out-of-place) at the end
 
@@ -73,18 +72,7 @@ def process_json_configuration(cfg):
             if isinstance(item, dict) and 'description' in item:
                 cfg.description = item['description']
                 break
-        
-        print("================================")
-        print("DSP file plugin config")
-        print("================================")
-        print(f"plugin_type {cfg.plugin_type}")
-        if cfg.wwise_plugin_interface:
-            print(f"plugin_interface {cfg.wwise_plugin_interface}")
-        print(f"plugin_name {cfg.plugin_name}")
-        print(f"author {cfg.author}")
-        print(f"description {cfg.description}")
-        print("================================")
-        
+                    
     except json.JSONDecodeError as e:
         print(f"Error {cfg.ERR_JSON_PARSE}: Failed to parse JSON: {e}")
         sys.exit(cfg.ERR_JSON_PARSE)

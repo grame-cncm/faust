@@ -42,9 +42,9 @@ import utils
 import jsoninjector
 
 class Faust2WwiseOrchestrator:
-    def __init__(self, wwiseroot , faust_lib_dir, faust_include_dir):
+    def __init__(self, wwiseroot , faust_dsp_dir, faust_include_dir):
         
-        self.cfg = config.Config(wwiseroot , faust_lib_dir, faust_include_dir)
+        self.cfg = config.Config(wwiseroot , faust_dsp_dir, faust_include_dir)
 
     def __getattr__(self, name):
         if hasattr(self.cfg, name):
@@ -71,7 +71,8 @@ class Faust2WwiseOrchestrator:
         if self.dsp_file:
             self.dsp_filename = Path(self.dsp_file).stem # extract name without extension
             self.plugin_name = utils.ensure_valid_plugin_name(self.dsp_filename) # Conform to the plugin name restrictions (Capitalized, first letter cannot be a number)
-                
+            self.json_file = os.path.join(self.temp_dir, f"{self.dsp_file}.json") # initialize json filepath
+
         current_dir = os.getcwd()
         if (not self.output_dir):
             self.output_dir = os.path.join(current_dir,self.dsp_filename)
@@ -81,8 +82,9 @@ class Faust2WwiseOrchestrator:
         os.makedirs(self.temp_dir, exist_ok=True)
         
         utils.validate_environment(self.cfg)
+        
         self.cfg.print()
-
+        
         print("OK : Preliminary step was completed successfully!")
 
     # =========================================================================
@@ -109,8 +111,11 @@ class Faust2WwiseOrchestrator:
         
         jsoninjector.process_json_configuration(self.cfg)
 
-        print("OK : DSP compiling step was completed successfully!")
-    
+        self.cfg.plugin_print() # print finalized configuration, after having parsed the faust't output json file
+        self.cfg.lock()         # lock config to deprive any further modifications of its internal state
+
+        print("OK : DSP compiling step was completed successfully!") 
+
     # =========================================================================
     # GENERATE PROJECT
     # =========================================================================

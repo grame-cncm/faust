@@ -1,19 +1,83 @@
+"""
+config.py
+
+The Config class. Responsible for storing and managing paths, parameters,
+and plugin metadata for integrating Faust DSP files into the Wwise plugin generation pipeline.
+
+Note: 
+Some fields are set during initialization, while others are computed or updated during later 
+processing steps.
+"""
+
 import os
+from typing import Final,get_type_hints
 
 class Config:
-    def __init__(self, wwiseroot , faust_lib_dir, faust_include_dir):
+    """
+    Configuration class for Faust-to-Wwise plugin integration.
 
-        ################################################ paths
-        self.faust_lib_dir = faust_lib_dir
+    This class holds all configuration data used throughout the plugin generation process, including:
+        - Paths to Faust and Wwise resources
+        - Parameters passed through the console
+        - Plugin configuration (name, author, type, ..)
+        - Error codes for proper diagnostics
+
+    The configuration follows a two-stage setup:
+        1. Initial setup — most variables are initialized.
+        2. Plugin generation — plugin metadata is finalized after compiling the DSP file using the Faust compiler.
+
+    The config can be locked to prevent mutation after setup is complete.
+    """
+    faust_dsp_dir: Final[str] 
+    faust_include_dir: Final[str]
+    archfile: Final[str]
+    wwiseroot: Final[str]
+    wp_script: Final[str]
+    ERR_INVALID_INPUT: Final[int]
+    ERR_ENVIRONMENT: Final[int]
+    ERR_FAUST_COMPILE: Final[int]
+    ERR_JSON_PARSE: Final[int]
+    ERR_GENERATION: Final[int]
+    ERR_INTEGRATION: Final[int]
+    ERR_CONFIGURATION: Final[int]
+    ERR_BUILD: Final[int]
+
+    def __init__(self, wwiseroot , faust_dsp_dir, faust_include_dir) -> None :
+        """
+        Initialize the Config instance.
+
+        Args:
+            wwiseroot (str): Path to the root directory of the Wwise installation.
+            faust_dsp_dir (str): Path to the Faust architecture library directory.
+            faust_include_dir (str): Path to the Faust include files directory.
+
+        Notes:
+            This method sets up the initial paths and configuration variables.
+            Additional plugin parameters are configured after compiling the DSP file
+            using the Faust compiler.
+        """
+        ################################################  paths
+        # Faust paths
+        self.faust_dsp_dir = faust_dsp_dir          # Directory containing the Faust dsp libraries
         self.faust_include_dir = faust_include_dir
-        self.archfile = os.path.join(self.faust_lib_dir, "wwise.cpp")
-        
-        ################################################ Wwise stuff
-        self.wwiseroot = wwiseroot
+        self.archfile = os.path.join(self.faust_dsp_dir, "wwise.cpp")
+        # Wwise paths
+        self.wwiseroot = wwiseroot                  # Root dir of the Wwise installation
         self.wp_script = os.path.join(self.wwiseroot, "Scripts", "Build", "Plugins", "wp.py")
-        self.patch_version = ""
-        self.wwise_template_dir = ""                # Directory where the template files are stored
-        # configuration options
+        self.patch_version = None                   # Derived from wwise version and used for defining the wwise_template_dir
+        self.wwise_template_dir = None              # Directory where the template files are stored
+        
+        # temp path
+        self.temp_dir = "_temp_"                    # Temp dir to store temp data ( i.e. jsonfile )
+
+        ############################################### Parameters
+        # Faust parameters
+        self.dsp_file = None
+        self.dsp_filename = None
+        self.output_dir = None
+        self.json_file = None
+        self.faust_options = None
+        # Wwise parameters
         self.wwise_platform = "Authoring"           # default
         self.wwise_plugin_interface = None          
         self.wwise_toolset = None
@@ -25,26 +89,13 @@ class Config:
         self.wwise_toolchain_vers = None
         self.wwise_toolchain_env_script = None
 
-        ############################################### faust parameters obta
-        # Project configuration
-        ### script arguments
-        self.output_dir = None
-        self.faust_options = ""
-        self.dsp_file = ""
-        self.json_file = ""
-        ### additional
-        self.dsp_filename = ""
+        ################################################ plugin configuration
+        self.plugin_type = None
+        self.plugin_name = None
+        self.plugin_suffix = None
+        self.author = None
+        self.description = None
         
-        ################################################ plugin config
-        self.plugin_type = ""
-        self.plugin_name = ""
-        self.plugin_suffix = ""
-        self.author = ""
-        self.description = ""
-        
-        ################################################ helper vars
-        self.temp_dir = "_temp_" # Temp dir to store temp data ( i.e. jsonfile )
-
         ################################################ error codes
         self.ERR_INVALID_INPUT = 2
         self.ERR_ENVIRONMENT = 3
@@ -55,23 +106,38 @@ class Config:
         self.ERR_CONFIGURATION = 8
         self.ERR_BUILD = 9
 
-    def print(self):
+        ################################################ config internal 
+        self._locked = False
+        self._final_attrs = self._get_final_attrs()
+        self._final_values = {}
+
+    def print(self) -> None :
+        """Prints the full Faust-to-Wwise configuration, including paths, parameters, and error codes."""
         print("==========================================")
         print("FAUST2WWISE CONFIGURATION")
-        print("==========================================")
-        print(f"temp_dir {self.temp_dir}")
-        print("========== FAUST CONFIGURATION ===========")
-        print(f"dsp_file {self.dsp_file}")
-        print(f"archfile {self.archfile}")
-        print(f"faust_lib_dir: {self.faust_lib_dir}")
+        
+        print("================= Paths ==================")
+        print("Faust paths:")
+        print(f"faust_dsp_dir: {self.faust_dsp_dir}")
         print(f"faust_include_dir: {self.faust_include_dir}")
+        print(f"archfile {self.archfile}")
+        print("Wwise paths:")
+        print(f"wwiseroot {self.wwiseroot}")
+        print(f"wp_script {self.wp_script}")
+        print(f"wwise_template_dir -> unresolved yet and will be defined after compiling the dsp file with Faust")
+        print(f"patch_version {self.patch_version}")
+        print("Other:")
+        print(f"temp_dir {self.temp_dir}")
+
+        print("============== Parameters ================")
+        print("Faust params:")
+        print(f"dsp_file {self.dsp_file}")
+        print(f"dsp_filename {self.dsp_filename}")
+        print(f"json_file {self.json_file}")
         print(f"output_dir {self.output_dir}")
         print(f"faust_options {self.faust_options}")
-        print("=========== WWISE CONFIGURATION===========")
-        print(f"wwiseroot {self.wwiseroot}")
+        print("Wwise params:")
         print(f"platform {self.wwise_platform}")
-        if self.wwise_plugin_interface:
-            print(f"plugin_interface {self.wwise_plugin_interface} (applicable only in case of an effect plugin)")
         if self.wwise_toolset:
             print(f"toolset {self.wwise_toolset}")
         if self.wwise_debugger:
@@ -87,10 +153,52 @@ class Config:
             print(f"toolchain_vers {self.wwise_toolchain_vers}")
         if self.wwise_toolchain_env_script:
             print(f"toolchain_env_script {self.wwise_toolchain_env_script}")
+        print(f"plugin_interface --> unresolved yet and will be defined after compiling the dsp file with Faust")
+
+        print("============= Error Codes ================")
+        print(f"ERR_INVALID_INPUT {self.ERR_INVALID_INPUT}")
+        print(f"ERR_ENVIRONMENT {self.ERR_ENVIRONMENT}")
+        print(f"ERR_FAUST_COMPILE {self.ERR_FAUST_COMPILE}")
+        print(f"ERR_JSON_PARSE {self.ERR_JSON_PARSE}")
+        print(f"ERR_GENERATION {self.ERR_GENERATION}")
+        print(f"ERR_INTEGRATION {self.ERR_INTEGRATION}")
+        print(f"ERR_CONFIGURATION {self.ERR_CONFIGURATION}")
+        print(f"ERR_BUILD {self.ERR_BUILD}")
+
+        print("========== Plugin Configuration ==========")
+        print("unresolved yet and will be defined after compiling the dsp file with Faust")
+        print("==========================================")
+    
+    def plugin_print(self) -> None :
+        """Prints the resolved plugin metadata (name, author, type, etc.)."""
         print("========== PLUGIN CONFIGURATION ==========")
         print(f"plugin_type {self.plugin_type}")
         print(f"plugin_name {self.plugin_name}")
+        print(f"plugin_suffix {self.plugin_suffix}")
         print(f"author {self.author}")
         print(f"description {self.description}")
-        print(f"dsp_filename {self.dsp_filename}")
+        if self.wwise_plugin_interface:
+            print(f"plugin_interface {self.wwise_plugin_interface}")
+        print(f"wwise_template_dir {self.wwise_template_dir}")    
         print("==========================================")
+    
+    def _get_final_attrs(self) -> set[str]:
+        """Return names of attributes marked as Final."""
+        hints = get_type_hints(self.__class__, include_extras=True)
+        return {name for name, typ in hints.items() if getattr(typ, '__origin__', None) is Final}
+
+    def __setattr__(self, name, value):
+        if name in getattr(self, '_final_attrs', set()):
+            if name in self.__dict__:
+                raise AttributeError(f"Cannot reassign final attribute '{name}'")
+            self._final_values[name] = value
+
+        if getattr(self, '_locked', False) and not name.startswith('_'):
+            raise AttributeError(f"Cannot modify '{name}': Config is locked.")
+
+        super().__setattr__(name, value)
+
+    def lock(self):
+        """Locks the config to prevent further changes."""
+        self._locked = True
+

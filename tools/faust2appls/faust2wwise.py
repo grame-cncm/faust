@@ -27,7 +27,7 @@ def get_wwise_root_dir():
     )
     return None
 
-def get_faust_lib_dir():
+def get_faust_dsp_dir():
 
     # `faust --libdir` is called to get the standard Faust library path.
     
@@ -56,9 +56,9 @@ def get_faust_include_dir():
     return result.stdout.strip()
 
 
-def import_orchestrator(faust_lib_dir):
+def import_orchestrator(faust_dsp_dir):
 
-    arch_tools_dir = os.path.join(faust_lib_dir,"wwise")
+    arch_tools_dir = os.path.join(faust_dsp_dir,"wwise")
     orchestrator_path = Path(os.path.join(arch_tools_dir,"orchestrator.py"))
     if not orchestrator_path.is_file():
         print(f"Warning: orchestrator.py not found at: {orchestrator_path}")
@@ -74,19 +74,19 @@ def import_orchestrator(faust_lib_dir):
 if __name__ == "__main__":
 
     wwise_root_dir = get_wwise_root_dir()
-    faust_lib_dir = get_faust_lib_dir()
+    faust_dsp_dir = get_faust_dsp_dir()
     faust_include_dir = get_faust_include_dir()
 
     print("Wwise installation:", wwise_root_dir or "Not found")
-    print(f"faust_lib_dir {faust_lib_dir}")
+    print(f"faust_dsp_dir {faust_dsp_dir}")
     print(f"faust_include_dir {faust_include_dir}")
     
 
-    orchestrator_module = import_orchestrator(faust_lib_dir)
+    orchestrator_module = import_orchestrator(faust_dsp_dir)
 
     faust2wwiser = orchestrator_module.Faust2WwiseOrchestrator( \
         wwiseroot = wwise_root_dir,
-        faust_lib_dir = faust_lib_dir,
+        faust_dsp_dir = faust_dsp_dir,
         faust_include_dir = faust_include_dir)
     
     faust2wwiser.orchestrate()
