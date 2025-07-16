@@ -1,6 +1,17 @@
-import json
+"""
+parameters.py
 
-def static_param_id():
+The Parameter class used to represent the Faust UI elements as Wwise plugin parameters.
+These are typically extracted from Faust-generated JSON UI data and translated into a Wwise-compatible format.
+"""
+from typing import Any, Dict, Optional
+
+def static_param_id() -> int:
+    """
+    Static counter function to generate unique parameter IDs for the Wwise plugin integration needs.
+    Returns:
+        int: Unique integer ID, incremented with each call.
+    """
     try:
         static_param_id.counter += 1
     except AttributeError:
@@ -8,7 +19,11 @@ def static_param_id():
     return int(static_param_id.counter)
 
 class Parameter:
-    def __init__(self, data):
+    """
+    Models a parameter extracted from a Faust DSP UI JSON structure, providing utilities to transform 
+    Faust UI metadata into Wwise plugin-compatible code and XML structures.
+    """
+    def __init__(self, data: Dict[str, Any]):
         self.raw = data
         self.varname = data.get("varname")
         self.Shortname = data.get("shortname").capitalize()
@@ -24,7 +39,6 @@ class Parameter:
         self.initValue = self._derive_init_value(self.init)
         self.paramVarname = self.varname
         self.paramCastedType = self._derive_casted_type()
-        self.setterFunctionName = self._derive_setter_name()
         self.isRTPC = self._derive_is_rtpc()
         self.RTPCname = self._derive_rtpc_name(data.get("unq_shortname"))
         self.WwiseTypeCast = self._cast_type_2wwise()
@@ -35,7 +49,8 @@ class Parameter:
         self.Wwise_Type_Specific_WriteFunction = self._derive_Wwise_WriteFunction()
         self.Wwise_Type_Specific_GetFunction = self._derive_Wwise_GetFunction()
     
-    def _derive_init_value(self, init_value):
+    def _derive_init_value(self, init_value : Any) -> str:
+        """Convert init value to a string"""
         if init_value is not None:
             if isinstance(init_value, bool):
                 return "true" if init_value else "false"
@@ -49,7 +64,8 @@ class Parameter:
         }
         return type_defaults.get(self.type, "0")
 
-    def _derive_casted_type(self):
+    def _derive_casted_type(self) -> str:
+        """Map Faust UI type to C++ type."""
         return {
             "hslider": "float",
             "vslider": "float",
@@ -58,11 +74,11 @@ class Parameter:
             "button" : "bool",
         }.get(self.type, "auto")
 
-    def _derive_setter_name(self):
-        base = self.shortname or self.Shortname
-        return f"set{base.capitalize()}"
-
-    def _derive_is_rtpc(self):
+    def _derive_is_rtpc(self) -> str:
+        """
+        Check metadata to see if RTPC is enabled.
+        TODO Enhance that feature
+        """
         try:
             meta = self.raw.get("meta", [])
             for item in meta:
@@ -72,10 +88,12 @@ class Parameter:
         except:
             return "NonRTPC"
         
-    def _derive_rtpc_name(self, unq_shortname):
+    def _derive_rtpc_name(self, unq_shortname : str) -> str:
+        """Build a unique RTPC name based on type and shortname"""
         return self.paramCastedType[0] + unq_shortname
 
-    def _cast_type_2wwise(self):
+    def _cast_type_2wwise(self) -> str:
+        """Map internal type to Wwise casted C++ type."""
         if self.paramCastedType == "float":
             return "AkReal32"
         elif self.paramCastedType == "double":
@@ -83,17 +101,10 @@ class Parameter:
         elif self.paramCastedType == "bool":
             return "bool"
 
-    def _cast_type_2XMLwwise(self):
-        if self.paramCastedType == "float":
-            return "Real32"
-        elif self.paramCastedType == "double":
-            return "Real64"
-        elif self.paramCastedType == "bool":
-            return "bool"
-        elif self.paramCastedType == "int":
-            return "int32"
-        # @TODO proper type casting
+    def _cast_type_2XMLwwise(self) -> str:
         """
+        Map internal type to Wwise XML type.
+        @TODO proper type casting
         bool: Boolean
         int16: 16-bit integer
         Uint16: 16-bit unsigned integer
@@ -106,25 +117,41 @@ class Parameter:
         string:
         https://www.audiokinetic.com/en/public-library/2024.1.5_8803/?source=SDK&id=plugin_xml_properties.html
         """
-
-    def _derive_id_name(self, unq_shortname):
+        if self.paramCastedType == "float":
+            return "Real32"
+        elif self.paramCastedType == "double":
+            return "Real64"
+        elif self.paramCastedType == "bool":
+            return "bool"
+        elif self.paramCastedType == "int":
+            return "int32"
+        
+    def _derive_id_name(self, unq_shortname) -> str:
+        """Generate a preprocessor macro name for parameter ID."""
         return f"PARAM_{unq_shortname.upper()}_ID"
     
-    def _derive_Wwise_WriteFunction(self):
+    def _derive_Wwise_WriteFunction(self) -> str:
+        """Return the correct Wwise function"""
         return {
             "float": "WriteReal32",
             "double": "WriteReal64",
             "bool": "WriteBool"
         }.get(self.paramCastedType, "WriteUnknown")
 
-    def _derive_Wwise_GetFunction(self):
+    def _derive_Wwise_GetFunction(self)-> str:
+        """Return the correct Wwise function"""
         return {
             "float": "GetReal32",
             "double": "GetReal64",
             "bool": "GetBool"
         }.get(self.paramCastedType, "GetUnknown")
 
-    def to_dict(self):
+    def to_dict(self)-> Dict[str, Any]:
+        """
+        Converts the parameter class into a flat dictionary.
+        Returns:
+            Dict[str, Any]: Dictionary containing all the member variables and their values.
+        """
         return {
             **vars(self),
             **self.raw  # include original fields
@@ -132,14 +159,18 @@ class Parameter:
 
     ################################################ other helper functions, could be made properties
 
-    def is_slider(self):
+    def is_slider(self)-> bool:
+        """Return True if this parameter is a slider (horizontal or vertical)."""
         return self.type in ("hslider", "vslider")
 
-    def has_restrictions(self):
+    def has_restrictions(self)-> bool:
+        """Return True if the parameter has both min and max values set."""
         return self.min is not None and self.max is not None
 
-    def is_rtpc(self):
+    def is_rtpc(self) -> bool:
+        """Return True if parameter is tagged as RTPC-enabled."""
         return self.isRTPC == "RTPC"
 
-    def default_value(self):
+    def default_value(self) -> str:
+        """Return the derived initial/default value for the parameter."""
         return self.initValue or "0"
