@@ -144,7 +144,7 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> None:
 
     Args:
         cfg (Config): The configuration object to populate.
-        args (list[str], optional): Command-line argument list (used for testing). Defaults to sys.argv[1:].
+        args (List[str], optional): Command-line argument list (used for testing). Defaults to sys.argv[1:].
     """
     parser = argparse.ArgumentParser(description="Converts Faust DSP files to Wwise plugins",
                                     add_help=False)
@@ -231,7 +231,7 @@ def check_wwise_required_arguments(cfg) -> List[str]:
         cfg (Config): The configuration object to validate.
 
     Returns:
-        list[str]: A list of missing required arguments, if any.
+        List[str]: A list of missing required arguments, if any.
     """
     missing = []
     if not cfg.wwise_platform:
@@ -346,7 +346,7 @@ def run_system_command(cmd : List[str], error_code:Optional[int]=None) -> subpro
     Executes a system based command with consistent output and error handling.
 
     Args:
-        cmd (list[str]): Command to run.
+        cmd (List[str]): Command to run.
         error_code (int, optional): Custom error code for failure.
 
     Returns:
