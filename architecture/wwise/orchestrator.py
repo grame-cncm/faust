@@ -1,33 +1,23 @@
 #!/usr/bin/env python3
 """
-@Documentation :
 The Faust2Wwise conversion process is applied with the following steps:
     Preliminary/Preparation Step: Setup and Validation
-        Declare all variables
-        Define basic script functions
-        Preprocessing & Initialization (i.e. platform paths depending on the platform (win/macOs))
-        Validate environment providing checks
-        Prepare the ground in general
+        - intialize config
+        - setup_environment and validate environment providing checks
     Step 1: Faust DSP Compilation
-        Compile dsp file
-        Extract DSP json description
-        JSON Configuration Processing
-            Initialize/override value of
-                PLUGIN_TYPE
-                PLUGIN_NAME
-                AUTHOR
-                DESCRIPTION
+        - Compile dsp file and extract DSP json description
+        - JSON Configuration Processing to initialize plugin configuration
     Step 2: Wwise Plugin Project Generation
-        Use Wwise wp.py script to create plugin project structure, generating the plugin template files
-    Step 3: Integration step (DSP only)
-        Copy generated Faust DSP file to plugin SoundEngine directory
-        Replace plugin header and source (cpp) file in the SoundEnginePlugin directory
-        Update Lua build script (PremakePlugin.lua) to include Faust headers
+        - Use Wwise wp.py script to create plugin project structure, generating the plugin template files
+    Step 3: Integration step
+        - Copy generated Faust DSP file to plugin SoundEngine directory
+        - Replace template files with the generated files of the wwise plugin project
+        - Integrate Faust into Wwise using a patch based method
+        - Update Lua build script (PremakePlugin.lua) to include Faust headers
     Step 4: Configuration step
-        Use Wwise wp.py with `premake` to configure project before building
+        - Use Wwise wp.py with `premake` to configure project before building
     Step 5: Plugin Compilation
-        Use Wwise wp.py build command with Release configuration
-        Generate static and dynamic libraries for Wwise integration
+        - Use Wwise wp.py build command to build the Wwise plugin
     Outro step: Cleanup
         Remove temporary files
 """
@@ -40,18 +30,37 @@ import integrator
 import config
 import utils
 import jsoninjector
+from typing import List,Optional
 
 class Faust2WwiseOrchestrator:
+    """
+    Orchestrates the complete process of converting a Faust DSP file into a Wwise plugin,
+    including the following steps:
+      1. Validating environment and preparing config
+      2. Compiling Faust DSP to C++ using architecture files and define plugin configuration
+      3. Generating a Wwise plugin project
+      4. Integrating compiled DSP code and metadata
+      5. Running premake configuration and building the plugin
+      6. Cleaning up temporary files
+    """
+        
     def __init__(self, wwiseroot:Path , faust_dsp_dir:Path, faust_include_dir:Path):
         
         self.cfg = config.Config(wwiseroot , faust_dsp_dir, faust_include_dir)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name:str):
+        """
+        This allows accessing configuration properties directly on the orchestrator with self instead of self.cfg
+        For instance, `self.plugin_name` is used instead of `self.cfg.plugin_name`.
+        """
         if hasattr(self.cfg, name):
             return getattr(self.cfg, name)
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name:str, value):
+        """
+        Allows modifying config values as if they were direct attributes of the orchestrator.
+        """
         if name == 'cfg' or name not in getattr(self, 'cfg', {}).__dict__:
             super().__setattr__(name, value)
         else:
@@ -61,13 +70,24 @@ class Faust2WwiseOrchestrator:
     # PRELIMINARY/PREPARATION STEP: SETUP AND VALIDATION 
     # =========================================================================
     
-    def setup_environment(self, args=None):
+    def setup_environment(self, args: Optional[List[str]]=None) -> None:
+        """
+        Sets up and validates environment, including the following steps:
+        - parse arguments, 
+        - initialize uninitialized configuration variables, 
+        - create non existing directories, 
+        - and validate environment.
 
+        Args:
+            args(List[str]): Optional list of arguments. If not provided, parse_arguments function makes 
+            use of sys library to retrieve them.
+        """
         print("------------------------------------------Preliminary Step : setup and validate environment")
         
-        utils.parse_arguments(self.cfg,args)
-        # self.setup_platform_paths() # This is discarded, not needed now!
-        
+        utils.parse_arguments(self.cfg, args)
+
+        # utils.setup_platform_paths(self.cfg) # TODO Discarded, but may be used to conditionally edit variables across different platforms (windows/macOs) 
+
         if self.dsp_file:
             self.dsp_filename = Path(self.dsp_file).stem # extract name without extension
             self.plugin_name = utils.ensure_valid_plugin_name(self.dsp_filename) # Conform to the plugin name restrictions (Capitalized, first letter cannot be a number)
@@ -91,8 +111,10 @@ class Faust2WwiseOrchestrator:
     # FAUST COMPILATION
     # =========================================================================
     
-    def compile_dsp_file(self):
-
+    def compile_dsp_file(self) -> None:
+        """
+        Compile the DSP file to C++ using Faust and inject parameter metadata from the generated json file.
+        """
         print("------------------------------------------Step 1: Compiling Faust DSP to C++")
         
         output_file = os.path.join(self.temp_dir, f"{self.dsp_filename}.cpp")
@@ -112,7 +134,7 @@ class Faust2WwiseOrchestrator:
         jsoninjector.process_json_configuration(self.cfg)
 
         self.cfg.plugin_print() # print finalized configuration, after having parsed the faust't output json file
-        self.cfg.lock()         # lock config to deprive any further modifications of its internal state
+        self.cfg.lock()         # lock config to deprive any further modifications of its internal state, making it immutable
 
         print("OK : DSP compiling step was completed successfully!") 
 
@@ -120,8 +142,10 @@ class Faust2WwiseOrchestrator:
     # GENERATE PROJECT
     # =========================================================================
     
-    def generate_wwise_project(self):
-        
+    def generate_wwise_project(self) -> None:
+        """
+        Generate a new Wwise plugin project using the Audiokinetic's wp python script.
+        """
         print("------------------------------------------Step 2: Generating Wwise plugin project")
         
         # Change to output directory
@@ -148,12 +172,19 @@ class Faust2WwiseOrchestrator:
     # STEP 3: INTEGRATION STEP (DSP ONLY)
     # =========================================================================
     
-    def integration_step(self):
-
+    def integration_step(self) -> None:
+        """
+        Perform the integration steps to integrate Faust into the generated plugin project,
+        including the following steps:
+            1.integrate the compiled dsp file into the wwise project,
+            2.replace the customized template files with the ones generated by the wp tool,
+            3.integrate parameters using the patch-based method into the template files,
+            4.modify the lua script by injecting the faust include directory into the script 
+        """
         print("------------------------------------------Step 3: Integration Step")
         
         try:
-            integrator.architecture_file_integration(self.cfg) # edit the exported arch file
+            integrator.faust_dspfile_integration(self.cfg) # edit the exported dsp file
             integrator.replace_custom_templates(self.cfg) # replace the vital for the integration files
             integrator.parameter_integration(self.cfg) # integrate parameters
             integrator.modify_lua_build_script(self.cfg) # inject faust includes within the lua script
@@ -169,8 +200,10 @@ class Faust2WwiseOrchestrator:
     # CONFIGURE(PREMAKE) & BUILD 
     #==============================================================================
     
-    def configure_wwise_project(self):
-
+    def configure_wwise_project(self) -> None:
+        """
+        Run the Wwise plugin configuration using "premake" command line argument.
+        """        
         print("------------------------------------------Step 4: Configuring project files")
         
         original_dir = os.getcwd()
@@ -193,8 +226,10 @@ class Faust2WwiseOrchestrator:
 
         print("OK : Configuring step was completed successfully!")
     
-    def build_plugin(self):
-
+    def build_plugin(self) -> None:
+        """
+        Build the Wwise plugin using the build command line option.
+        """
         print("------------------------------------------Step 5: Building plugin")
         
         original_dir = os.getcwd()
@@ -230,8 +265,10 @@ class Faust2WwiseOrchestrator:
     # CLEANING
     #==============================================================================
     
-    def cleanup(self):
-
+    def cleanup(self) -> None:
+        """
+        Remove temporary directory after build.
+        """
         print("------------------------------------------Outro")
         print(f"# Cleaning up temporary files ({self.temp_dir})")
         
@@ -248,8 +285,13 @@ class Faust2WwiseOrchestrator:
     # MAIN EXECUTION
     # =========================================================================
     
-    def orchestrate(self, args=None):
-
+    def orchestrate(self, args: Optional[List[str]] = None) -> None:
+        """
+        Run the Faust2Wwise conversion process to integrate Faust dsp script into a Wwise plugin.
+        Args:
+            args (List[str], optional) : the arguments passed through the console. If not directly
+            passed through the function, the arguments are obtained using the sys library.
+        """
         print(f"Converting {self.dsp_file or 'DSP file'} to Wwise plugin...")
     
         self.setup_environment(args)    # preliminary step
@@ -265,5 +307,6 @@ class Faust2WwiseOrchestrator:
         print("Faust2Wwise conversion completed!")
         print(f"Generated plugin: {self.plugin_name}")
         print(f"Location: {os.path.join(self.output_dir, self.plugin_name)}")
+        print(f"Installation: {os.path.join(self.wwiseroot, "Authoring", self.wwise_arch, self.wwise_configuration, "bin", "Plugins", self.plugin_name)}.(ext)")
         print("=====================================")
         print("")

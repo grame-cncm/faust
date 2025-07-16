@@ -82,7 +82,7 @@ def parameter_integration(cfg):
 
     inject_properties_to_xml(parameters, xml_file)
 
-def architecture_file_integration(cfg):
+def faust_dspfile_integration(cfg):
     # Copy generated faust dsp file to SoundEnginePlugin dir
 
     print("Architecture File Integration")
