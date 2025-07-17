@@ -10,7 +10,7 @@ processing steps.
 """
 
 import os
-from typing import Final,get_type_hints
+from typing import Final, Any, get_type_hints
 
 class Config:
     """
@@ -187,7 +187,7 @@ class Config:
         hints = get_type_hints(self.__class__, include_extras=True)
         return {name for name, typ in hints.items() if getattr(typ, '__origin__', None) is Final}
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name : str, value: Any) -> None:
         if name in getattr(self, '_final_attrs', set()):
             if name in self.__dict__:
                 raise AttributeError(f"Cannot reassign final attribute '{name}'")
@@ -198,7 +198,7 @@ class Config:
 
         super().__setattr__(name, value)
 
-    def lock(self):
+    def lock(self) -> None:
         """Locks the config to prevent further changes."""
         self._locked = True
 

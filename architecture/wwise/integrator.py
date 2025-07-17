@@ -19,6 +19,7 @@ from typing import List, Dict, Any, Callable
 
 FaustUIItem = Dict[str, Any]
 FaustUITree = List[FaustUIItem]
+CallbackFn = Callable[[FaustUIItem], None]
 
 """
 Faust UI tree Parsing Utilities:
@@ -27,25 +28,25 @@ The parse_ui / parse_group / parse_items / parse_item methods are ported from th
 TypeScript implementation implemented in the context of the faustwasm repository:
 github.com/grame-cncm/faustwasm/blob/3ac9238bb0579bd2c51e67f5868997395766dbab/src/FaustWebAudioDsp.ts#L730C1-L730C30
 """
-def parse_ui(ui_tree, callback) -> None:
+def parse_ui(ui_tree : FaustUITree, callback : CallbackFn) -> None:
     for group in ui_tree:
         parse_group(group, callback)
 
-def parse_group(group, callback) -> None:
+def parse_group(group : FaustUIItem, callback : CallbackFn) -> None:
     items = group.get("items", [])
     parse_items(items, callback)
 
-def parse_items(items, callback) -> None:
+def parse_items(items : List[FaustUIItem], callback : CallbackFn) -> None:
     for item in items:
         parse_item(item, callback)
 
-def parse_item(item, callback) -> None:
+def parse_item(item : FaustUIItem, callback : CallbackFn) -> None:
     if item["type"] in {"vgroup", "hgroup", "tgroup"}:
         parse_items(item.get("items", []), callback)
     else:
         callback(item)
 
-def extract_parameters(ui_tree)->list:
+def extract_parameters(ui_tree : FaustUITree)-> List[FaustUIItem]:
     """
     Extracts parameter items from the Faust UI tree and assigns unique shortnames as a new key in the dict.
     
@@ -70,7 +71,7 @@ def extract_parameters(ui_tree)->list:
     result = []
     counter = 1
     
-    def callback(item):
+    def callback(item : FaustUIItem) -> None:
         nonlocal counter
 
         # uniquify_shortnames to ALL items that have shortname, by asigning them a new key. 

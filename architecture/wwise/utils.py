@@ -81,17 +81,24 @@ def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
         Automatically detects the system architecture and sets sensible defaults
         for platform/toolset compatibility.
         Returns:
-            arch : detected architecture.
+            arch (str if platform found): detected architecture.
+            Exits with an error if the architecture is not recognized/supported.
         """
         arch = platform.machine().lower()
         if arch in ["amd64", "x86_64"]:
             return "x64"
         elif arch in ["i386", "i686", "x86"]:
             return "x32"
-        elif "arm" in arch:
+        elif arch in ("arm64", "aarch64"):
             return "arm64"
+        elif arch.startswith("arm"):
+            return "arm32"
         else:
-            return "x64"
+            sys.stderr.write(
+                f"[Error] Unknown or unsupported architecture: '{arch}'.\n"
+                "Please verify if Wwise supports this platform and if yes, update the detect_arch() function to handle this platform .\n"
+            )
+            sys.exit(cfg.ERR_ENVIRONMENT)
         
     # Common to both premake and build
     if parsed_args.platform:
@@ -160,7 +167,6 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> None:
     plugin_interface_group.add_argument('--in-place', dest='plugin_interface', action='store_const', const='in-place', help='Uses the same audio buffer for input and output; suitable for most effects without data flow changes.')
     plugin_interface_group.add_argument('--out-of-place', dest='plugin_interface', action='store_const', const='out-of-place', help='Use out-of-place processing. Requires separate input and output buffers; needed for effects like time-stretching that alter data flow.')
     parser.set_defaults(plugin_interface='in-place')
-
     # wwise premake options
     parser.add_argument('--toolset', help='toolset used to build on Windows platforms (vc160, vc170).')
     parser.add_argument('--debugger', action='store_true', help='Enable lua debugger for premake scripts')
@@ -191,7 +197,6 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> None:
     
     all_faust_options = (parsed_args.faust_options or []) + unknown_args
     cfg.faust_options = " ".join(all_faust_options)
-    # TODO: extend here with wwise related configuration options?
     cfg.faust_options = cfg.faust_options.split() if isinstance(cfg.faust_options, str) else (cfg.faust_options or [])
 
     # Wwise-related options

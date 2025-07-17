@@ -93,6 +93,7 @@ class Faust2WwiseOrchestrator:
             self.plugin_name = utils.ensure_valid_plugin_name(self.dsp_filename) # Conform to the plugin name restrictions (Capitalized, first letter cannot be a number)
             self.json_file = os.path.join(self.temp_dir, f"{self.dsp_file}.json") # initialize json filepath
 
+        # if the output_dir is not set, set it now accordingly 
         current_dir = os.getcwd()
         if (not self.output_dir):
             self.output_dir = os.path.join(current_dir,self.dsp_filename)
@@ -113,7 +114,8 @@ class Faust2WwiseOrchestrator:
     
     def compile_dsp_file(self) -> None:
         """
-        Compile the DSP file to C++ using Faust and inject parameter metadata from the generated json file.
+        Compile the DSP file to a faustdsp.cpp file using Faust and inject parameter metadata 
+        from the generated json file.
         """
         print("------------------------------------------Step 1: Compiling Faust DSP to C++")
         
