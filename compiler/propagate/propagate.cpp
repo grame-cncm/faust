@@ -341,7 +341,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             std::cerr << "WARNING: slot " << boxpp(box) << " is associated with external signal "
                       << ppsig(sig) << " but used in clockenv " << clockenv << std::endl;
             // we wrap the signal correctly
-            sig = recTempVar(clockenv, ce, x);
+            sig = recTempVar(clockenv, ce, sig);  // keep sig with its clockenv
         }
         return makeList(sig);
     }
@@ -657,7 +657,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 2/ We check for trivial cases where we don't need the ondemand circuit
         if (h0) {
             // std::cerr
-            //     << "If the clock signal is zero, we don't need to compute the ondemand circuit"
+            //     << "If the clock signal is zero, we don't need to compute the ondemand
+            //     circuit"
             //     << std::endl;
             int n, m;
             getBoxType(t1, &n, &m);
@@ -694,7 +695,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             Y1.push_back(sigPermVar(sigClocked(clockenv2, Y0[i])));
         }
 
-        // 7/ We create on ondemand signal that contain all the information : OD = (H, X1, NIL, Y1)
+        // 7/ We create on ondemand signal that contain all the information : OD = (H, X1, NIL,
+        // Y1)
         tvec W;
         // W.push_back(H);      // the clock signal
         W.push_back(sigClocked(clockenv2, H));  // TRY
@@ -743,7 +745,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 2/ We check for trivial cases where we don't need the upsampling circuit
         if (h0) {
             // std::cerr
-            //     << "If the clock signal is zero, we don't need to compute the upsampling circuit"
+            //     << "If the clock signal is zero, we don't need to compute the upsampling
+            //     circuit"
             //     << std::endl;
             int n, m;
             getBoxType(t1, &n, &m);
@@ -843,9 +846,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             return propagate(clockenv, slotenv, path, t1, {lsig.begin() + 1, lsig.end()});
         }
 
-        // 3/ We compute the clock environment inside the downsampling by combining the clock, the
-        // address of the circuit, and the current clock environment
-        // char buffer[64];
+        // 3/ We compute the clock environment inside the downsampling by combining the clock,
+        // the address of the circuit, and the current clock environment char buffer[64];
         // snprintf(buffer, sizeof(buffer), "Downsampling_%p", box);
         // Tree clockenv2 = cons(H, cons(tree(buffer), clockenv));
         Tree clockenv2 = makeClockEnv(clockenv, box, lsig);
@@ -939,8 +941,8 @@ siglist propagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglis
         // cerr << endl;
     }
     // cerr << "propagate in " << boxpp(box) << endl;
-    // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) <<
-    // endl; } cerr << endl;
+    // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i])
+    // << endl; } cerr << endl;
     return result;
 }
 
