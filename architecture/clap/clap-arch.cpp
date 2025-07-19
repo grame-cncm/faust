@@ -27,6 +27,7 @@
 
 // custom UI class inheriting Faust's MapUI to store parameter metadata
 struct CLAPMapUI : public MapUI {
+
     // metadata struct for parameter limits and default value
     struct ParamMeta {
         FAUSTFLOAT min;
@@ -34,32 +35,26 @@ struct CLAPMapUI : public MapUI {
         FAUSTFLOAT init;
     };
 
-    // parameter data combines a unique path and meta info
-    struct ParamData {
-        std::string shortname;
-        ParamMeta meta;
-    };
-
-    // vector holding all parameter information
-    std::vector<ParamData> fParams;
+    // vector holding all parameter information (min/max/init only)
+    std::vector<ParamMeta> fParams;
 
     // overridden Faust UI methods to track parameters as they are created
-    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init,
+                           FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
         MapUI::addVerticalSlider(label, zone, init, min, max, step);
-        std::string shortname = buildPath(label);
-        fParams.push_back({shortname, {min, max, init}});
+        fParams.push_back({min, max, init});
     }
 
-    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
+    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init,
+                             FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
         MapUI::addHorizontalSlider(label, zone, init, min, max, step);
-        std::string shortname = buildPath(label);
-        fParams.push_back({shortname, {min, max, init}});
+        fParams.push_back({min, max, init});
     }
 
-    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
+    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init,
+                     FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
         MapUI::addNumEntry(label, zone, init, min, max, step);
-        std::string shortname = buildPath(label);
-        fParams.push_back({shortname, {min, max, init}});
+        fParams.push_back({min, max, init});
     }
 
     // box-related methods simply forward to base class (no extra handling)
@@ -69,50 +64,49 @@ struct CLAPMapUI : public MapUI {
     void closeBox() override { MapUI::closeBox(); }
 
     // accessors for parameters count and metadata
-    // returns the shortname of the parameter at 'index'
-    // defensive checks to make sure index is within valid range to avoid crashes
-    // in case of invalid or fuzzed parameter indices
     std::string getParamShortname(int index) const {
-        if (index < 0 || index >= int(fParams.size())) return ""; //
-        return fParams[index].shortname;
+        if (index < 0 || index >= int(fParams.size())) return "";
+        std::string full = getParamAddress(index);
+        if (full.empty() || full == "/") return "param" + std::to_string(index);
+        size_t slash = full.find_last_of('/');
+        return (slash != std::string::npos) ? full.substr(slash + 1) : full;
     }
 
     FAUSTFLOAT getParamMin(int index) const {
         if (index < 0 || index >= int(fParams.size())) return 0.f;
-        return fParams[index].meta.min;
+        return fParams[index].min;
     }
 
     FAUSTFLOAT getParamMax(int index) const {
         if (index < 0 || index >= int(fParams.size())) return 1.f;
-        return fParams[index].meta.max;
+        return fParams[index].max;
     }
 
     // access initial/default parameter value and the zone pointer
     FAUSTFLOAT getParamInit(int index) const {
         if (index < 0 || index >= int(fParams.size())) return 0.5f;
-        return fParams[index].meta.init;
+        return fParams[index].init;
     }
 
     FAUSTFLOAT* getParamZone(int index) const {
-        if (index < 0 || index >= int(fParams.size())) return nullptr;
-        return MapUI::getParamZone(fParams[index].shortname);
+        // use internal MapUI address mapping
+        return MapUI::getParamZone(getParamAddress(index));
     }
 
     // set or get parameter value by index directly via zone pointer
     void setParamValue(int index, FAUSTFLOAT val) {
-        if (index < 0 || index >= getParamsCount()) return;
-        MapUI::setParamValue(fParams[index].shortname, val);
+        auto zone = getParamZone(index);
+        if (zone) *zone = val;
     }
 
     FAUSTFLOAT getParamValue(int index) const {
-        if (index < 0 || index >= getParamsCount()) return 0.f;
-        return MapUI::getParamValue(fParams[index].shortname);
+        auto zone = getParamZone(index);
+        return zone ? *zone : 0.f;
     }
 
     // return the unique parameter address (path)
     std::string getParamAddress(int index) const {
-        if (index < 0 || index >= int(fParams.size())) return "";
-        return fParams[index].shortname;
+        return MapUI::getParamAddress(index);
     }
 };
 
@@ -129,7 +123,7 @@ using Base = clap::helpers::Plugin<
 static const char* gain_features[] = { CLAP_PLUGIN_FEATURE_AUDIO_EFFECT, nullptr };
 
 // plugin descriptor structure describing metadata to the host
-static const clap_plugin_descriptor_t gain_desc = {
+constexpr static clap_plugin_descriptor_t gain_desc = {
     .clap_version = CLAP_VERSION_INIT,
     .id = "org.faust.gain",
     .name = "Faust Gain",
@@ -195,17 +189,21 @@ public:
 
     // apply parameter event if valid and within range
     bool applyParamEventIfValid(const clap_event_header_t* hdr) {
-        if (!hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID || hdr->type != CLAP_EVENT_PARAM_VALUE) // defensive check: hdr should not be null, but verify to avoid crashes on malformed events
-            return false;
+    if (!hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID || hdr->type != CLAP_EVENT_PARAM_VALUE)
+        return false;
 
-        const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
-        int paramCount = fUI.getParamsCount();
-        if (!ev || ev->param_id < 0 || ev->param_id >= paramCount)
-            return false;
-
-        fUI.setParamValue(ev->param_id, ev->value);
-        return true;
+    const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
+    int paramCount = fUI.getParamsCount();
+    if (!ev || ev->param_id < 0 || ev->param_id >= paramCount) {
+        std::cerr << "[WARN] Invalid param_id: " << (ev ? ev->param_id : -1) << "\n";
+        return false;
     }
+
+    fUI.setParamValue(ev->param_id, ev->value);
+    return true;
+}
+
+
 
     // handle MIDI events in polyphonic mode by forwarding to Faust DSP
     void handlePolyMIDIEvent(const clap_event_header_t* hdr){
@@ -382,29 +380,35 @@ public:
 
     std::string paramName = fUI.getParamShortname(index);
     if (paramName.empty() || paramName == "/") {
-        paramName = "param" + std::to_string(index);  // fallback safe name
+        paramName = "param" + std::to_string(index);
     }
-    const char* name = paramName.c_str();
-    if (paramName.size() > 1 && name[0] == '/') ++name; // remove leading slash if present
 
-    std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name);
+    //strip leading slash
+    if (!paramName.empty() && paramName[0] == '/')
+        paramName = paramName.substr(1);
+
+    //only show last path segment
+    size_t lastSlash = paramName.find_last_of('/');
+    if (lastSlash != std::string::npos)
+        paramName = paramName.substr(lastSlash + 1);
+
+    std::snprintf(info->name, CLAP_NAME_SIZE, "%s", paramName.c_str());
 
     FAUSTFLOAT min = fUI.getParamMin(index);
     FAUSTFLOAT max = fUI.getParamMax(index);
     FAUSTFLOAT init = fUI.getParamInit(index);
 
-    // provide parameter value range and default
     info->min_value = min;
     info->max_value = max;
     info->default_value = init;
     info->flags = CLAP_PARAM_IS_AUTOMATABLE;
 
-    // parameters grouped in a module named "Main"
     std::strncpy(info->module, "Main", sizeof(info->module));
-    info->module[sizeof(info->module) - 1] = '\0'; //make sure of null-termination
+    info->module[sizeof(info->module) - 1] = '\0';
 
     return true;
 }
+
 
 
 
@@ -502,7 +506,7 @@ static const clap_plugin_t* plugin_create(const clap_plugin_factory_t*, const cl
 }
 
 // single plugin factory structure describing factory callbacks
-static const clap_plugin_factory_t gain_factory = {
+constexpr static clap_plugin_factory_t gain_factory = {
     .get_plugin_count = plugin_count,
     .get_plugin_descriptor = plugin_desc,
     .create_plugin = plugin_create
