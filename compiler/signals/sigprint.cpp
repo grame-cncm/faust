@@ -271,31 +271,31 @@ void printSignal(Tree sig, FILE* out, int prec)
         printSignal(y, out, 0);
         fputs(")", out);
     } else if (isSigOD(sig)) {
-        fputs("ondemand(", out);
-        char sep = '{';
+        fputs("ondemand", out);
+        char sep = '(';
         for (Tree b : sig->branches()) {
             fputc(sep, out);
             printSignal(b, out, 0);
             sep = ',';
-        }  // TODO, improve printing separate H, ins and outs
+        }  // TODO, improve printing separate H and outs
         fputs(")", out);
     } else if (isSigUS(sig)) {
-        fputs("upsampling(", out);
-        char sep = '{';
+        fputs("upsampling", out);
+        char sep = '(';
         for (Tree b : sig->branches()) {
             fputc(sep, out);
             printSignal(b, out, 0);
             sep = ',';
-        }  // TODO, improve printing separate H, ins and outs
+        }  // TODO, improve printing separate H and outs
         fputs(")", out);
     } else if (isSigDS(sig)) {
-        fputs("downsampling(", out);
-        char sep = '{';
+        fputs("downsampling", out);
+        char sep = '(';
         for (Tree b : sig->branches()) {
             fputc(sep, out);
             printSignal(b, out, 0);
             sep = ',';
-        }  // TODO, improve printing separate H, ins and outs
+        }  // TODO, improve printing separate H and outs
         fputs(")", out);
     } else if (isSigClocked(sig, x, y)) {
         fputs("clocked(", out);
