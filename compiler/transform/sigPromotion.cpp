@@ -479,8 +479,6 @@ Tree SignalPromotion::transformation(Tree sig)
                     faustassert(isSigClocked(w1[i], clkEnv, clk));
                     w2.push_back(sigClocked(clkEnv, sigIntCast(self(clk))));
                 }
-            } else if (w1[i] == gGlobal->nil) {
-                w2.push_back(gGlobal->nil);
             } else {
                 w2.push_back(self(w1[i]));
             }
@@ -503,8 +501,6 @@ Tree SignalPromotion::transformation(Tree sig)
                     faustassert(isSigClocked(w1[i], clkEnv, clk));
                     w2.push_back(sigClocked(clkEnv, sigIntCast(self(clk))));
                 }
-            } else if (w1[i] == gGlobal->nil) {
-                w2.push_back(gGlobal->nil);
             } else {
                 w2.push_back(self(w1[i]));
             }
@@ -527,8 +523,6 @@ Tree SignalPromotion::transformation(Tree sig)
                     faustassert(isSigClocked(w1[i], clkEnv, clk));
                     w2.push_back(sigClocked(clkEnv, sigIntCast(self(clk))));
                 }
-            } else if (w1[i] == gGlobal->nil) {
-                w2.push_back(gGlobal->nil);
             } else {
                 w2.push_back(self(w1[i]));
             }

@@ -891,9 +891,7 @@ static Type inferSigType(Tree sig, Tree env)
         // an OD block don't have a proper type,
         // but we need to type its subsignals
         for (size_t ii = 0; ii < subs.size(); ii++) {
-            if (subs[ii] != gGlobal->nil) {
-                T(subs[ii], env);
-            }
+            T(subs[ii], env);
         }
         // we lack a bottom type ! But is must NOT be a constant type, otherwise it will be
         // optimized by the constant propagation phase
@@ -904,9 +902,7 @@ static Type inferSigType(Tree sig, Tree env)
         // an US block don't have a proper type,
         // but we need to type its subsignals
         for (size_t ii = 0; ii < subs.size(); ii++) {
-            if (subs[ii] != gGlobal->nil) {
-                T(subs[ii], env);
-            }
+            T(subs[ii], env);
         }
         // we lack a bottom type ! But is must NOT be a constant type, otherwise it will be
         // optimized by the constant propagation phase
@@ -917,9 +913,7 @@ static Type inferSigType(Tree sig, Tree env)
         // an DS block don't have a proper type,
         // but we need to type its subsignals
         for (size_t ii = 0; ii < subs.size(); ii++) {
-            if (subs[ii] != gGlobal->nil) {
-                T(subs[ii], env);
-            }
+            T(subs[ii], env);
         }
         // we lack a bottom type ! But is must NOT be a constant type, otherwise it will be
         // optimized by the constant propagation phase
