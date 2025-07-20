@@ -547,6 +547,12 @@ void ScalarCompiler::compileMultiSignal(Tree L)
 
     validateSignalList(L);  // validate the signal list
 
+    // Compute and draw the recursion graph if requested
+    if (gGlobal->gDrawRecProjGraph) {
+        digraph<Tree> recursionG = recursionGraph(L);
+        printRecursionGraphDot(recursionG, subst("$0-recsig.dot", gGlobal->makeDrawPath()));
+    }
+
     // Compute the hierarchical scheduling of L applying the chosen strategy
     fHschedule = scheduleSigList(L, mySchedFun);
 
