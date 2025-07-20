@@ -43,3 +43,19 @@ std::vector<Tree> compilationOrder(Tree L);
  * @return std::vector<Tree> The first element of the vector is the first signal to compile
  */
 std::vector<Tree> ondemandCompilationOrder(const tvec& V);
+
+/**
+ * @brief Compute the graph of dependencies between recursive definition of a list of signals
+ *
+ * @param L list of signals
+ * @return digraph<Tree>
+ */
+digraph<Tree> recursionGraph(Tree L);
+
+/**
+ * @brief Print recursion graph in DOT format
+ *
+ * @param graph the recursion graph
+ * @param filename output filename
+ */
+void printRecursionGraphDot(const digraph<Tree>& graph, const std::string& filename);
