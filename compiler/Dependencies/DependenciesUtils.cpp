@@ -168,13 +168,8 @@ std::pair<std::vector<Tree>, std::vector<Tree>> getSignalDependencies(Tree sig)
     // For test purposes only: return the internal subsignals (after nil) of an ondemand
     // expression.
     if (tvec V; isSigOD(sig, V) || isSigUS(sig, V) || isSigDS(sig, V)) {
-        bool push = false;
-        for (unsigned int ii = 0; ii < V.size(); ii++) {
-            if (push) {
-                immediate.push_back(V[ii]);  // HACK, for test purposes only
-            } else if (V[ii] == gGlobal->nil) {
-                push = true;
-            }
+        for (unsigned int ii = 1; ii < V.size(); ii++) {
+            immediate.push_back(V[ii]);  // HACK, for test purposes only
         }
         return {immediate, delayed};
     }

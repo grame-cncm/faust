@@ -2139,60 +2139,10 @@ string ScalarCompiler::generateZeroPad(Tree sig, Tree x, Tree y)
 // Ondemand: generate the code of the ondemand circuit
 // - first the input signals are computed
 // - then the output signals in an if (clock) statement
-#if 0
-string ScalarCompiler::generateOD(Tree sig, const tvec& w)
-{
-    // 1/ We extract the clock, the inputs and the outputs signals
-    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
-    faustassert(w.size() > 2);
-    Tree clock = w[0];
-    tvec inputs;   // the input signals (coming from outside)
-    tvec outputs;  // the output signals;
-    bool inmode = true;
-    for (unsigned int i = 1; i < w.size(); i++) {
-        if (w[i] == gGlobal->nil) {
-            inmode = false;
-            continue;
-        }
-        if (inmode) {
-            inputs.push_back(w[i]);
-        } else {
-            outputs.push_back(w[i]);
-        }
-    }
-
-    // 2/ We compile the input signals unconditionnally
-    for (Tree x : inputs) {
-        CS(x);
-    }
-
-    // cerr << "opening if statement" << endl;
-
-    // 3/ We then compile the clock signal and open an if statement
-    // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
-    fClass->openODblock(CS(clock));
-
-    // 4/ Compute the scheduling of the output signals of the ondemand circuit
-    vector<Tree> V = ondemandCompilationOrder(outputs);
-
-    // 5/ We compile the output signals conditionnally inside the if statement
-    for (Tree x : V) {
-        CS(x);
-    }
-
-    // 6/ We close the if statement
-    fClass->closeODblock();
-
-    // cerr << "closing if statement" << endl;
-
-    // 7/ There is no compiled expression
-    return "OD not used directly";
-}
-#else
 
 string ScalarCompiler::generateOD(Tree sig, const tvec& w)
 {
-    faustassert(w.size() > 2);
+    faustassert(w.size() > 1);
     Tree clock = w[0];
     Type ty    = getCertifiedSigType(clock);
     std::cerr << "Print OD condition type " << *ty << std::endl;
@@ -2217,64 +2167,12 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
     return "OD not used directly";
 }
 
-#endif
-
 // Upsampling: generate the code of the upsampling circuit
 // - first the input signals are computed
 // - then the output signals in an if (clock) statement
-#if 0
 string ScalarCompiler::generateUS(Tree sig, const tvec& w)
 {
-    // 1/ We extract the clock, the inputs and the outputs signals
-    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
-    faustassert(w.size() > 2);
-    Tree clock = w[0];
-    tvec inputs;   // the input signals (coming from outside)
-    tvec outputs;  // the output signals;
-    bool inmode = true;
-    for (unsigned int i = 1; i < w.size(); i++) {
-        if (w[i] == gGlobal->nil) {
-            inmode = false;
-            continue;
-        }
-        if (inmode) {
-            inputs.push_back(w[i]);
-        } else {
-            outputs.push_back(w[i]);
-        }
-    }
-
-    // 2/ We compile the input signals unconditionnally
-    for (Tree x : inputs) {
-        CS(x);
-    }
-
-    // cerr << "opening upsampling statement" << endl;
-
-    // 3/ We then compile the clock signal and open an if statement
-    // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
-    fClass->openUSblock(CS(clock));
-
-    // 4/ Compute the scheduling of the output signals of the ondemand circuit
-    vector<Tree> V = ondemandCompilationOrder(outputs);
-
-    // 5/ We compile the output signals conditionnally inside the if statement
-    for (Tree x : V) {
-        CS(x);
-    }
-
-    // 6/ We close the if statement
-    fClass->closeUSblock();
-
-    // cerr << "closing upsampling statement" << endl;
-
-    // 7/ There is no compiled expression
-    return "US not used directly";
-}
-#else
-string ScalarCompiler::generateUS(Tree sig, const tvec& w)
-{
-    faustassert(w.size() > 2);
+    faustassert(w.size() > 1);
     Tree clock = w[0];
     fClass->openUSblock(CS(clock));
     // Then its internal signals
@@ -2286,64 +2184,13 @@ string ScalarCompiler::generateUS(Tree sig, const tvec& w)
     // There is no compiled expression
     return "US not used directly";
 }
-#endif
 
 // Downsampling: generate the code of the downsampling circuit
 // - first the input signals are computed
 // - then the output signals in an if (clock) statement
-#if 0
 string ScalarCompiler::generateDS(Tree sig, const tvec& w)
 {
-    // 1/ We extract the clock, the inputs and the outputs signals
-    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
-    faustassert(w.size() > 2);
-    Tree clock = w[0];
-    tvec inputs;   // the input signals (coming from outside)
-    tvec outputs;  // the output signals;
-    bool inmode = true;
-    for (unsigned int i = 1; i < w.size(); i++) {
-        if (w[i] == gGlobal->nil) {
-            inmode = false;
-            continue;
-        }
-        if (inmode) {
-            inputs.push_back(w[i]);
-        } else {
-            outputs.push_back(w[i]);
-        }
-    }
-
-    // 2/ We compile the input signals unconditionnally
-    for (Tree x : inputs) {
-        CS(x);
-    }
-
-    // cerr << "opening downsampling statement" << endl;
-
-    // 3/ We then compile the clock signal and open an if statement
-    // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
-    fClass->openDSblock(CS(clock), declareRetrieveDSName(clock));
-
-    // 4/ Compute the scheduling of the output signals of the ondemand circuit
-    vector<Tree> V = ondemandCompilationOrder(outputs);
-
-    // 5/ We compile the output signals conditionnally inside the if statement
-    for (Tree x : V) {
-        CS(x);
-    }
-
-    // 6/ We close the if statement
-    fClass->closeDSblock();
-
-    // cerr << "closing downsampling statement" << endl;
-
-    // 7/ There is no compiled expression
-    return "DS not used directly";
-}
-#else
-string ScalarCompiler::generateDS(Tree sig, const tvec& w)
-{
-    faustassert(w.size() > 2);
+    faustassert(w.size() > 1);
     Tree clock = w[0];
     fClass->openDSblock(CS(clock), declareRetrieveDSName(clock));
     // Then its internal signals
@@ -2355,4 +2202,3 @@ string ScalarCompiler::generateDS(Tree sig, const tvec& w)
     // There is no compiled expression
     return "DS not used directly";
 }
-#endif
