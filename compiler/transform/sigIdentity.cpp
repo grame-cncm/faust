@@ -203,11 +203,7 @@ Tree SignalIdentity::transformation(Tree sig)
     else if (tvec w1; isSigOD(sig, w1)) {
         tvec w2;
         for (Tree s : w1) {
-            if (s == gGlobal->nil) {
-                w2.push_back(gGlobal->nil);
-            } else {
-                w2.push_back(self(s));
-            }
+            w2.push_back(self(s));
         }
         return sigOD(w2);
     }
@@ -215,11 +211,7 @@ Tree SignalIdentity::transformation(Tree sig)
     else if (tvec w1; isSigUS(sig, w1)) {
         tvec w2;
         for (Tree s : w1) {
-            if (s == gGlobal->nil) {
-                w2.push_back(gGlobal->nil);
-            } else {
-                w2.push_back(this->self(s));
-            }
+            w2.push_back(this->self(s));
         }
         return sigUS(w2);
     }
@@ -227,11 +219,7 @@ Tree SignalIdentity::transformation(Tree sig)
     else if (tvec w1; isSigDS(sig, w1)) {
         tvec w2;
         for (Tree s : w1) {
-            if (s == gGlobal->nil) {
-                w2.push_back(gGlobal->nil);
-            } else {
-                w2.push_back(this->self(s));
-            }
+            w2.push_back(this->self(s));
         }
         return sigDS(w2);
     }

@@ -642,7 +642,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 1/ The first signal is the clock signal
         Tree H = lsig[0];
 
-        // We check if the clock signal is a constant
+        // 2/ Check trivial case: never our always called
         bool h0 = false;  // clock signal is zero constant
         bool h1 = false;  // clock signal is non-zero constant
 
@@ -654,7 +654,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             h1 = n == 1;
         }
 
-        // 2/ We check for trivial cases where we don't need the ondemand circuit
+        // 2a/ We check for trivial cases where we don't need the ondemand circuit
         if (h0) {
             // std::cerr
             //     << "If the clock signal is zero, we don't need to compute the ondemand
@@ -662,25 +662,28 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             //     << std::endl;
             int n, m;
             getBoxType(t1, &n, &m);
-            // because the cicuit is never activated, its m outputs will remain zero
+            // because the circuit is never activated, its m outputs will remain zero
             return siglist(m, sigInt(0));
         }
+
+        // 2b/ Check if always called
         if (h1) {
             // std::cerr << "If the clock signal is one, we don't need an if" << std::endl;
             return propagate(clockenv, slotenv, path, t1, {lsig.begin() + 1, lsig.end()});
         }
 
-        // 3/ We compute the clock environment inside the ondemand by combining the current clok
+        // 3) check normal cases
+        // 3a) We compute the clock environment inside the ondemand by combining the current clock
         // environment, the circuit and its input signals
         Tree clockenv2 = makeClockEnv(clockenv, box, lsig);
 
-        // 4/ We compute X1 the inputs of the ondemand using temporary variables
+        // 3b) We compute X1 the inputs of the ondemand using temporary variables
         siglist X1;
         for (unsigned int i = 1; i < lsig.size(); i++) {
             X1.push_back(sigTempVar(lsig[i]));
         }
 
-        // 5/ We propagate X2, the clocked version of X1, into the ondemand circuit -> Y0
+        // 3c) We propagate X2, the clocked version of X1, into the ondemand circuit -> Y0
         siglist X2;
         for (Tree s : X1) {
             // X2.push_back(sigClocked(clockenv2, s));
@@ -695,15 +698,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             Y1.push_back(sigPermVar(sigClocked(clockenv2, Y0[i])));
         }
 
-        // 7/ We create on ondemand signal that contain all the information : OD = (H, X1, NIL,
-        // Y1)
+        // 3d) We create on ondemand signal that contain all the information : OD = (H, Y1)
         tvec W;
-        // W.push_back(H);      // the clock signal
-        W.push_back(sigClocked(clockenv2, H));  // TRY
-        for (Tree s : X1) {                     // the input signals are X1
-            W.push_back(s);
-        }
-        W.push_back(gGlobal->nil);  // the output signals are Y1
+        W.push_back(sigClocked(clockenv2, H));  // the clock signal
         for (Tree s : Y1) {
             W.push_back(s);
         }
@@ -711,7 +708,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         Tree od = sigOD(W);
         // std::cerr << "od = " << ppsig(od) << std::endl;
 
-        // 8/ Finally, we create the output signals making sure that od is computed first
+        // 3e) Finally, we create the output signals making sure that od is computed first
         // using sigSeq(od, y)
         siglist Y2;
         for (Tree y : Y1) {
@@ -784,14 +781,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             Y1.push_back(sigPermVar(sigClocked(clockenv2, Y0[i])));
         }
 
-        // 7/ We create on us signal that contain all the information : US = (H, X1, NIL, Y1)
+        // 7/ We create on us signal that contain all the information : US = (H, Y1)
         tvec W;
-        // W.push_back(H);      // the clock signal
-        W.push_back(sigClocked(clockenv2, H));  // TRY
-        for (Tree s : X1) {                     // the input signals are X1
-            W.push_back(s);
-        }
-        W.push_back(gGlobal->nil);  // the output signals are Y1
+        W.push_back(sigClocked(clockenv2, H));  // the clock signal
         for (Tree s : Y1) {
             W.push_back(s);
         }
@@ -871,14 +863,9 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             Y1.push_back(sigPermVar(sigClocked(clockenv2, Y0[i])));
         }
 
-        // 7/ We create on ds signal that contain all the information : DS = (H, X1, NIL, Y1)
+        // 7/ We create on ds signal that contain all the information : DS = (H, Y1)
         tvec W;
-        // W.push_back(H);      // the clock signal
-        W.push_back(sigClocked(clockenv2, H));  // TRY
-        for (Tree s : X1) {                     // the input signals are X1
-            W.push_back(s);
-        }
-        W.push_back(gGlobal->nil);  // the output signals are Y1
+        W.push_back(sigClocked(clockenv2, H));  // the clock signal
         for (Tree s : Y1) {
             W.push_back(s);
         }
