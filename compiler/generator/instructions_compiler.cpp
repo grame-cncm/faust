@@ -599,13 +599,12 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     }
 
     if (gGlobal->gDumpNorm == 3) {
-        
         // Print the last item on the container
         const auto& controls = fHschedule.controls.elements();
         if (!controls.empty()) {
             ppsigShared(controls.back(), cout, false);
         }
-        
+
         // Print the last item on the container
         const auto& sigsched = fHschedule.sigsched[L].elements();
         if (!sigsched.empty()) {
@@ -3562,61 +3561,9 @@ ValueInst* InstructionsCompiler::generateZeroPad(Tree sig, Tree x, Tree y)
 // - first the input signals are computed
 // - then the output signals in an if (clock) statement
 
-#if 0
 ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
 {
-    // 1/ We extract the clock, the inputs and the outputs signals
-    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
-    faustassert(w.size() > 2);
-    Tree clock = w[0];
-    tvec inputs;   // the input signals (coming from outside)
-    tvec outputs;  // the output signals;
-    bool inmode = true;
-    for (unsigned int i = 1; i < w.size(); i++) {
-        if (w[i] == gGlobal->nil) {
-            inmode = false;
-            continue;
-        }
-        if (inmode) {
-            inputs.push_back(w[i]);
-        } else {
-            outputs.push_back(w[i]);
-        }
-    }
-
-    // 2/ We compile the input signals unconditionnally
-    for (Tree x : inputs) {
-        CS(x);
-    }
-
-    std::cout << "opening OD statement" << std::endl;
-
-    // 3/ We then compile the clock signal and open an if statement
-    // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
-    fContainer->getCurLoop()->openODblock(CS(clock));
-
-    // 4/ Compute the scheduling of the output signals of the ondemand circuit
-    std::vector<Tree> V = ondemandCompilationOrder(outputs);
-
-    // 5/ We compile the output signals conditionnally inside the if statement
-    for (Tree x : V) {
-        CS(x);
-    }
-
-    // 6/ We close the if statement
-    fContainer->getCurLoop()->closeODblock();
-
-    std::cout << "closing OD statement" << std::endl;
-
-    // 7/ There is no compiled expression
-    return IB::genNullValueInst();
-}
-
-#else
-
-ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
-{
-    faustassert(w.size() > 2);
+    faustassert(w.size() > 1);
     Tree clock = w[0];
     Type ty    = getCertifiedSigType(clock);
     std::cerr << "Print OD condition type " << *ty << std::endl;
@@ -3641,63 +3588,9 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
     return IB::genNullValueInst();
 }
 
-#endif
-
-#if 1
-
 ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
 {
-    // 1/ We extract the clock, the inputs and the outputs signals
-    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
-    faustassert(w.size() > 2);
-    Tree clock = w[0];
-    tvec inputs;   // the input signals (coming from outside)
-    tvec outputs;  // the output signals;
-    bool inmode = true;
-    for (unsigned int i = 1; i < w.size(); i++) {
-        if (w[i] == gGlobal->nil) {
-            inmode = false;
-            continue;
-        }
-        if (inmode) {
-            inputs.push_back(w[i]);
-        } else {
-            outputs.push_back(w[i]);
-        }
-    }
-
-    std::cout << "opening upsampling statement" << std::endl;
-
-    // 2/ We compile the clock signal and open an us statement
-    fContainer->getCurLoop()->openUSblock(CS(clock));
-
-    // 3/ We then compile the input signals unconditionnally
-    for (Tree x : inputs) {
-        CS(x);
-    }
-
-    // 4/ Compute the scheduling of the output signals of the us circuit
-    std::vector<Tree> V = ondemandCompilationOrder(outputs);
-
-    // 5/ We compile the output signals conditionnally inside the us statement
-    for (Tree x : V) {
-        CS(x);
-    }
-
-    // 6/ We close the if statement
-    fContainer->getCurLoop()->closeUSblock();
-
-    std::cout << "closing upsampling statement" << std::endl;
-
-    // 7/ There is no compiled expression
-    return IB::genNullValueInst();
-}
-
-#else
-
-ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
-{
-    faustassert(w.size() > 2);
+    faustassert(w.size() > 1);
     Tree clock = w[0];
     fContainer->getCurLoop()->openUSblock(CS(clock));
     // Then its internal signals
@@ -3710,63 +3603,9 @@ ValueInst* InstructionsCompiler::generateUS(Tree sig, const tvec& w)
     return IB::genNullValueInst();
 }
 
-#endif
-
-#if 0
 ValueInst* InstructionsCompiler::generateDS(Tree sig, const tvec& w)
 {
-    // 1/ We extract the clock, the inputs and the outputs signals
-    // form w = [clock, input1, input2, ..., nil, output1, output2, ...]
-    faustassert(w.size() > 2);
-    Tree clock = w[0];
-    tvec inputs;   // the input signals (coming from outside)
-    tvec outputs;  // the output signals;
-    bool inmode = true;
-    for (unsigned int i = 1; i < w.size(); i++) {
-        if (w[i] == gGlobal->nil) {
-            inmode = false;
-            continue;
-        }
-        if (inmode) {
-            inputs.push_back(w[i]);
-        } else {
-            outputs.push_back(w[i]);
-        }
-    }
-
-    // 2/ We compile the input signals unconditionnally
-    for (Tree x : inputs) {
-        CS(x);
-    }
-
-    std::cout << "opening downsampling statement" << std::endl;
-
-    // 3/ We then compile the clock signal and open an ds statement
-    // fClass->addExecCode(Statement("", subst("if ($0) {", CS(clock))));
-    fContainer->getCurLoop()->openDSblock(CS(clock), declareRetrieveDSName(clock));
-
-    // 4/ Compute the scheduling of the output signals of the ds circuit
-    std::vector<Tree> V = ondemandCompilationOrder(outputs);
-
-    // 5/ We compile the output signals conditionnally inside the ds statement
-    for (Tree x : V) {
-        CS(x);
-    }
-
-    // 6/ We close the if statement
-    fContainer->getCurLoop()->closeDSblock();
-
-    std::cout << "closing downsampling statement" << std::endl;
-
-    // 7/ There is no compiled expression
-    return IB::genNullValueInst();
-}
-
-#else
-
-ValueInst* InstructionsCompiler::generateDS(Tree sig, const tvec& w)
-{
-    faustassert(w.size() > 2);
+    faustassert(w.size() > 1);
     Tree clock = w[0];
     fContainer->getCurLoop()->openDSblock(CS(clock), declareRetrieveDSName(clock));
     // Then its internal signals
@@ -3778,8 +3617,6 @@ ValueInst* InstructionsCompiler::generateDS(Tree sig, const tvec& w)
     // There is no compiled expression
     return IB::genNullValueInst();
 }
-
-#endif
 
 //================================= BUILD USER INTERFACE METHOD =================================
 
