@@ -254,25 +254,16 @@ void SignalVisitor::visit(Tree sig)
         return;
     } else if (isSigOD(sig)) {
         for (Tree b : sig->branches()) {
-            if (b == gGlobal->nil) {
-                continue;
-            }
             self(b);
         }
         return;
     } else if (isSigUS(sig)) {
         for (Tree b : sig->branches()) {
-            if (b == gGlobal->nil) {
-                continue;
-            }
             self(b);
         }
         return;
     } else if (isSigDS(sig)) {
         for (Tree b : sig->branches()) {
-            if (b == gGlobal->nil) {
-                continue;
-            }
             self(b);
         }
         return;
