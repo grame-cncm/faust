@@ -1,7 +1,9 @@
 #include "sigDependenciesGraph.hh"
 #include "ppsig.hh"
+#include "sigRecursiveDependencies.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
+#include <fstream>
 
 #undef TRACE
 /**
@@ -348,4 +350,138 @@ std::vector<Tree> ondemandCompilationOrder(const tvec& signals)
 {
     digraph<Tree> G = ondemandGraph(signals);
     return serialize(G);
+}
+
+/**
+ * @brief Check if a signal is a projection and get its definition
+ *
+ * @param sig the signal to check
+ * @param def reference to store the definition if found
+ * @return true if sig is a projection, false otherwise
+ */
+static bool hasProjDefinition(Tree sig, Tree& def)
+{
+    int  i;
+    Tree w;
+
+    // Check if sig is a projection
+    if (isProj(sig, &i, w)) {
+        // Get the definition
+        Tree id, le;
+        faustassert(isRec(w, id, le));
+        def = nth(le, i);
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Visit recursive definitions and build the recursion graph
+ *
+ * @param graph the graph being constructed
+ * @param visited set of already visited signals
+ * @param parent the recursive signal currently being explored (or nil at start)
+ * @param sig the signal to visit
+ */
+static void visitRecDefinitions(digraph<Tree>& graph, std::set<Tree>& visited, Tree parent,
+                                Tree sig)
+{
+    if (Tree def; hasProjDefinition(sig, def)) {
+        // Case (a): sig is a projection
+        graph.add(parent, sig, 0);
+
+        if (visited.find(sig) == visited.end()) {
+            visited.insert(sig);
+            visitRecDefinitions(graph, visited, sig, def);
+        }
+    } else {
+        // Case (b): sig is not a projection
+        if (visited.find(sig) == visited.end()) {
+            visited.insert(sig);
+
+            tvec subsignals;
+            (void)getSubSignals(sig, subsignals, true);
+
+            for (auto subsig : subsignals) {
+                visitRecDefinitions(graph, visited, parent, subsig);
+            }
+        }
+    }
+}
+
+/**
+ * @brief Compute the graph of dependencies between recursive definition of a list of signals
+ *
+ * @param L list of signals
+ * @return digraph<Tree>
+ */
+digraph<Tree> recursionGraph(Tree L)
+{
+    digraph<Tree>  graph;
+    std::set<Tree> visited;
+
+    // Iterate through all signals in the list
+    Tree current = L;
+    while (!isNil(current)) {
+        Tree sig = hd(current);
+        visitRecDefinitions(graph, visited, gGlobal->nil, sig);
+        current = tl(current);
+    }
+
+    return graph;
+}
+
+/**
+ * @brief Print recursion graph in DOT format
+ *
+ * @param graph the recursion graph
+ * @param filename output filename
+ */
+void printRecursionGraphDot(const digraph<Tree>& graph, const std::string& filename)
+{
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error: cannot open file " << filename << std::endl;
+        return;
+    }
+    
+    file << "digraph RecursionGraph {\n";
+    file << "    rankdir=TB;\n";
+    file << "    node [shape=box];\n\n";
+    
+    // Get all nodes from the graph
+    const std::set<Tree>& nodes = graph.nodes();
+    
+    // Print nodes with labels (skip nil)
+    for (Tree node : nodes) {
+        if (node != gGlobal->nil) {
+            int i;
+            Tree w;
+            faustassert(isProj(node, &i, w));
+            Tree id, le;
+            faustassert(isRec(w, id, le));
+            std::string nodeName = std::string(tree2str(id)) + "_" + std::to_string(i);
+            file << "    \"" << node << "\" [label=\"" << nodeName << "\"];\n";
+        }
+    }
+    
+    file << "\n";
+    
+    // Print edges (skip edges from/to nil)
+    const auto& connections = graph.connections();
+    for (const auto& fromPair : connections) {
+        Tree from = fromPair.first;
+        if (from != gGlobal->nil) {
+            for (const auto& toPair : fromPair.second) {
+                Tree to = toPair.first;
+                if (to != gGlobal->nil) {
+                    file << "    \"" << from << "\" -> \"" << to << "\";\n";
+                }
+            }
+        }
+    }
+    
+    file << "}\n";
+    file.close();
 }
