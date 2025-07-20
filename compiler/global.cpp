@@ -437,6 +437,7 @@ void global::reset()
     gDetailsSwitch    = false;
     gDrawSignals      = false;
     gDrawRetiming     = false;
+    gDrawRecProjGraph = false;
     gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
     gScaledSVG        = false;
@@ -1288,6 +1289,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-rg", "--retiming-graph")) {
             gDrawRetiming = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-rpg", "--recursive-projection-graph")) {
+            gDrawRecProjGraph = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-drf", "--draw-route-frame")) {
@@ -2676,6 +2681,9 @@ string global::printHelp()
     sstr << tab
          << "-rg         --retiming-graph            print the internal signal graph after "
             "retiming in dot format."
+         << endl;
+    sstr << tab
+         << "-rpg        --recursive-projection-graph print the recursive projection graph in dot format."
          << endl;
     sstr << tab
          << "-norm       --normalized-form           print signals in normalized form and exit."

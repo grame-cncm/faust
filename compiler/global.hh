@@ -128,6 +128,7 @@ struct global {
     bool        gDetailsSwitch;   // -d option
     bool        gDrawSignals;     // -sg option
     bool        gDrawRetiming;    // -rg option
+    bool        gDrawRecProjGraph;  // -rpg option
     bool        gDrawRouteFrame;  // -drf option
     bool        gShadowBlur;      // -blur option, note: svg2pdf doesn't like the blur filter
     bool        gScaledSVG;       // -sc option, to draw scaled SVG files
