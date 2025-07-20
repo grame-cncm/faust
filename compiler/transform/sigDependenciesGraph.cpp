@@ -223,19 +223,11 @@ void SigDependenciesGraph::visit(Tree t)
     }
 
     if (tvec V; isSigOD(t, V) || isSigUS(t, V) || isSigDS(t, V)) {
-        // V = H,X1,...,NIL,Y1,...
-        // immediate dependencies are H,X1,...
-        for (auto s : V) {
-            if (s == gGlobal->nil) {
-                break;
-            }
-            fGraph.add(t, s, 0);
-        }
-        for (auto s : V) {
-            if (s == gGlobal->nil) {
-                break;
-            }
-            self(s);
+        // V = H,Y1,...
+        // immediate dependencies are H only
+        if (V.size() > 0) {
+            fGraph.add(t, V[0], 0);  // H is the clock
+            self(V[0]);
         }
         return;
     }
