@@ -59,3 +59,15 @@ digraph<Tree> recursionGraph(Tree L);
  * @param filename output filename
  */
 void printRecursionGraphDot(const digraph<Tree>& graph, const std::string& filename);
+
+/**
+ * @brief Analyze a recursion graph to find degenerate recursions
+ *
+ * A degenerate recursion is a strongly connected component that:
+ * - Contains only one recursive projection
+ * - Has no connections (not connected to itself)
+ *
+ * @param graph the recursion graph produced by recursionGraph()
+ * @return std::set<Tree> set of degenerate recursive projections
+ */
+std::set<Tree> analyzeDegenerateRecursions(const digraph<Tree>& graph);
