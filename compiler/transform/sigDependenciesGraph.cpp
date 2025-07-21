@@ -3,6 +3,7 @@
 #include "sigRecursiveDependencies.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
+#include "DirectedGraphAlgorythm.hh"
 #include <fstream>
 
 #undef TRACE
@@ -446,6 +447,9 @@ void printRecursionGraphDot(const digraph<Tree>& graph, const std::string& filen
         return;
     }
     
+    // Find degenerate recursions
+    std::set<Tree> degenerateRecursions = analyzeDegenerateRecursions(graph);
+    
     file << "digraph RecursionGraph {\n";
     file << "    rankdir=TB;\n";
     file << "    node [shape=box];\n\n";
@@ -462,7 +466,13 @@ void printRecursionGraphDot(const digraph<Tree>& graph, const std::string& filen
             Tree id, le;
             faustassert(isRec(w, id, le));
             std::string nodeName = std::string(tree2str(id)) + "_" + std::to_string(i);
-            file << "    \"" << node << "\" [label=\"" << nodeName << "\"];\n";
+            
+            // Color degenerate recursions differently
+            if (degenerateRecursions.find(node) != degenerateRecursions.end()) {
+                file << "    \"" << node << "\" [label=\"" << nodeName << "\" fillcolor=red style=filled];\n";
+            } else {
+                file << "    \"" << node << "\" [label=\"" << nodeName << "\"];\n";
+            }
         }
     }
     
@@ -484,4 +494,44 @@ void printRecursionGraphDot(const digraph<Tree>& graph, const std::string& filen
     
     file << "}\n";
     file.close();
+}
+
+/**
+ * @brief Analyze a recursion graph to find degenerate recursions
+ *
+ * A degenerate recursion is a strongly connected component that:
+ * - Contains only one recursive projection
+ * - Has no connections (not connected to itself)
+ *
+ * @param graph the recursion graph produced by recursionGraph()
+ * @return std::set<Tree> set of degenerate recursive projections
+ */
+std::set<Tree> analyzeDegenerateRecursions(const digraph<Tree>& graph)
+{
+    std::set<Tree> degenerateRecursions;
+    
+    // Transform the graph into a DAG of strongly connected components
+    digraph<digraph<Tree>> dag = graph2dag(graph);
+    
+    // Iterate through each strongly connected component (supernode)
+    for (const digraph<Tree>& component : dag.nodes()) {
+        const std::set<Tree>& nodes = component.nodes();
+        
+        // Check if the component contains exactly one node
+        if (nodes.size() == 1) {
+            Tree singleNode = *nodes.begin();
+            
+            // Skip nil nodes
+            if (singleNode == gGlobal->nil) {
+                continue;
+            }
+            
+            // Check if the component has no internal connections
+            if (component.destinations(singleNode).empty()) {
+                degenerateRecursions.insert(singleNode);
+            }
+        }
+    }
+    
+    return degenerateRecursions;
 }
