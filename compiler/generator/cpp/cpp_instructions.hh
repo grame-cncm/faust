@@ -473,12 +473,12 @@ class CPPInstVisitor : public TextInstVisitor {
     virtual void visit(::CastInst* inst)
     {
         std::string type = fTypeManager->generateType(inst->fType);
-        if (endWith(type, "*")) {
-            *fOut << "static_cast<" << type << ">(";
+        if (inst->fType->getType() == Typed::kUint_ptr) {
+            *fOut << "reinterpret_cast<" << type << ">(";
             inst->fInst->accept(this);
             *fOut << ")";
         } else {
-            *fOut << type << "(";
+            *fOut << "static_cast<" << type << ">(";
             inst->fInst->accept(this);
             *fOut << ")";
         }
@@ -486,31 +486,10 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(BitcastInst* inst)
     {
-        switch (inst->fType->getType()) {
-            case Typed::kInt32:
-                *fOut << "*reinterpret_cast<int*>(&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            case Typed::kInt64:
-                *fOut << "*reinterpret_cast<int64_t*>(&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            case Typed::kFloat:
-                *fOut << "*reinterpret_cast<float*>(&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            case Typed::kDouble:
-                *fOut << "*reinterpret_cast<double*>(&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            default:
-                faustassert(false);
-                break;
-        }
+        std::string type = fTypeManager->generateType(inst->fType);
+        *fOut << "*reinterpret_cast<" << type << "*>(&";
+        inst->fInst->accept(this);
+        *fOut << ")";
     }
 
     virtual void visit(FunCallInst* inst)

@@ -1133,7 +1133,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(BitcastInst* inst) {}
+    virtual void visit(BitcastInst* inst) { faustassert(false); }
 
     virtual void visitCond(ValueInst* cond)
     {

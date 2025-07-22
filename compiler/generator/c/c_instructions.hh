@@ -375,31 +375,10 @@ class CInstVisitor : public TextInstVisitor {
     // TODO : does not work, put this code in a function
     virtual void visit(BitcastInst* inst)
     {
-        switch (inst->fType->getType()) {
-            case Typed::kInt32:
-                *fOut << "*((int*)&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            case Typed::kInt64:
-                *fOut << "*((int64_t*)&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            case Typed::kFloat:
-                *fOut << "*((float*)&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            case Typed::kDouble:
-                *fOut << "*((double*)&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            default:
-                faustassert(false);
-                break;
-        }
+        std::string type = fTypeManager->generateType(inst->fType);
+        *fOut << "*((" << type << "*(&";
+        inst->fInst->accept(this);
+        *fOut << ")";
     }
 
     // Generate standard funcall (not 'method' like funcall...)
