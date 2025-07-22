@@ -58,7 +58,6 @@ class ScalarCompiler : public Compiler {
         fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
 
     static std::map<std::string, int>  fIDCounters;
-    Tree                               fSharingKey;
     OccMarkup*                         fOccMarkup;
     int                                fMaxIota;
     std::map<std::string, std::string> fIotaCache;
@@ -67,16 +66,11 @@ class ScalarCompiler : public Compiler {
 
    public:
     ScalarCompiler(const std::string& name, const std::string& super, int numInputs, int numOutputs)
-        : Compiler(name, super, numInputs, numOutputs, false),
-          fSharingKey(nullptr),
-          fOccMarkup(nullptr),
-          fMaxIota(-1)
+        : Compiler(name, super, numInputs, numOutputs, false), fOccMarkup(nullptr), fMaxIota(-1)
     {
     }
 
-    ScalarCompiler(Klass* k) : Compiler(k), fSharingKey(nullptr), fOccMarkup(nullptr), fMaxIota(-1)
-    {
-    }
+    ScalarCompiler(Klass* k) : Compiler(k), fOccMarkup(nullptr), fMaxIota(-1) {}
 
     virtual void compileMultiSignal(Tree lsig);
     virtual void compileSingleSignal(Tree lsig);
