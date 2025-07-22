@@ -1,10 +1,10 @@
 #include "sigDependenciesGraph.hh"
+#include <fstream>
+#include "DirectedGraphAlgorythm.hh"
 #include "ppsig.hh"
 #include "sigRecursiveDependencies.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
-#include "DirectedGraphAlgorythm.hh"
-#include <fstream>
 
 #undef TRACE
 /**
@@ -446,38 +446,39 @@ void printRecursionGraphDot(const digraph<Tree>& graph, const std::string& filen
         std::cerr << "Error: cannot open file " << filename << std::endl;
         return;
     }
-    
+
     // Find degenerate recursions
     std::set<Tree> degenerateRecursions = analyzeDegenerateRecursions(graph);
-    
+
     file << "digraph RecursionGraph {\n";
     file << "    rankdir=TB;\n";
     file << "    node [shape=box];\n\n";
-    
+
     // Get all nodes from the graph
     const std::set<Tree>& nodes = graph.nodes();
-    
+
     // Print nodes with labels (skip nil)
     for (Tree node : nodes) {
         if (node != gGlobal->nil) {
-            int i;
+            int  i;
             Tree w;
             faustassert(isProj(node, &i, w));
             Tree id, le;
             faustassert(isRec(w, id, le));
             std::string nodeName = std::string(tree2str(id)) + "_" + std::to_string(i);
-            
+
             // Color degenerate recursions differently
             if (degenerateRecursions.find(node) != degenerateRecursions.end()) {
-                file << "    \"" << node << "\" [label=\"" << nodeName << "\" fillcolor=red style=filled];\n";
+                file << "    \"" << node << "\" [label=\"" << nodeName
+                     << "\" fillcolor=red style=filled];\n";
             } else {
                 file << "    \"" << node << "\" [label=\"" << nodeName << "\"];\n";
             }
         }
     }
-    
+
     file << "\n";
-    
+
     // Print edges (skip edges from/to nil)
     const auto& connections = graph.connections();
     for (const auto& fromPair : connections) {
@@ -491,7 +492,7 @@ void printRecursionGraphDot(const digraph<Tree>& graph, const std::string& filen
             }
         }
     }
-    
+
     file << "}\n";
     file.close();
 }
@@ -509,29 +510,29 @@ void printRecursionGraphDot(const digraph<Tree>& graph, const std::string& filen
 std::set<Tree> analyzeDegenerateRecursions(const digraph<Tree>& graph)
 {
     std::set<Tree> degenerateRecursions;
-    
+
     // Transform the graph into a DAG of strongly connected components
     digraph<digraph<Tree>> dag = graph2dag(graph);
-    
+
     // Iterate through each strongly connected component (supernode)
     for (const digraph<Tree>& component : dag.nodes()) {
         const std::set<Tree>& nodes = component.nodes();
-        
+
         // Check if the component contains exactly one node
         if (nodes.size() == 1) {
             Tree singleNode = *nodes.begin();
-            
+
             // Skip nil nodes
             if (singleNode == gGlobal->nil) {
                 continue;
             }
-            
+
             // Check if the component has no internal connections
             if (component.destinations(singleNode).empty()) {
                 degenerateRecursions.insert(singleNode);
             }
         }
     }
-    
+
     return degenerateRecursions;
 }
