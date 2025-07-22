@@ -36,7 +36,6 @@
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
-#include "sharing.hh"
 #include "sigDependenciesGraph.hh"
 #include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
@@ -82,7 +81,7 @@ ValueInst* InstructionsCompiler::genCastedInput(ValueInst* value)
 }
 
 InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
-    : fContainer(container), fSharingKey(nullptr), fOccMarkup(nullptr), fDescription(nullptr)
+    : fContainer(container), fOccMarkup(nullptr), fDescription(nullptr)
 {
 }
 
@@ -180,10 +179,6 @@ Tree InstructionsCompiler::prepare(Tree LS)
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
 
-    startTiming("sharingAnalysis");
-    sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count
-    endTiming("sharingAnalysis");
-
     startTiming("occurrences analysis");
     delete fOccMarkup;
     fOccMarkup = new OccMarkup(fConditionProperty);
@@ -220,9 +215,8 @@ Tree InstructionsCompiler::prepare2(Tree L0)
 {
     startTiming("prepare2");
 
-    recursivnessAnnotation(L0);        // Annotate L0 with recursivness information
-    typeAnnotation(L0, true);          // Annotate L0 with type information
-    sharingAnalysis(L0, fSharingKey);  // Annotate L0 with sharing count
+    recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
+    typeAnnotation(L0, true);    // Annotate L0 with type information
 
     delete fOccMarkup;
     fOccMarkup = new OccMarkup();
@@ -1292,30 +1286,25 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 
     string       vname;
     BasicTyped*  ctype;
-    int          sharing = getSharingCount(sig, fSharingKey);
-    Occurrences* o       = fOccMarkup->retrieve(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // Check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        if (sharing > 1) {
+        if (o->hasMultiOccurrences()) {
             return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname,
                                     o->getMaxDelay(), o->getDelayCount());
         } else {
             return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
         }
 
-    } else if (sharing > 1 || (o->hasMultiOccurrences())) {
+    } else if (o->hasMultiOccurrences() || (o->hasMultiOccurrences())) {
         return generateVariableStore(sig, exp);
 
-    } else if (sharing == 1) {
-        return exp;
-
     } else {
-        cerr << "ASSERT : in sharing count (" << sharing << ") for " << *sig << endl;
-        faustassert(false);
-        return IB::genNullValueInst();
+        // If there are no multiple occurrences, just return the expression directly.
+        return exp;
     }
 }
 

@@ -2683,7 +2683,8 @@ string global::printHelp()
             "retiming in dot format."
          << endl;
     sstr << tab
-         << "-rpg        --recursive-projection-graph print the recursive projection graph in dot format."
+         << "-rpg        --recursive-projection-graph print the recursive projection graph in dot "
+            "format."
          << endl;
     sstr << tab
          << "-norm       --normalized-form           print signals in normalized form and exit."
