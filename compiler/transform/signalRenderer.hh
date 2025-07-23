@@ -215,7 +215,6 @@ struct SignalRenderer : public SignalVisitor {
         std::map<Tree, TableData<REAL>>&  fRealTables;
         std::map<Tree, inputControl>&     fInputControls;
         std::map<Tree, outputControl>&    fOutputControls;
-        int&                              fNumInputs;
 
         /**
          * @brief Allocates or resizes a delay line for a given signal. All delay lines have a
@@ -296,14 +295,13 @@ struct SignalRenderer : public SignalVisitor {
                       std::map<Tree, TableData<int>>&   int_tables,
                       std::map<Tree, TableData<REAL>>&  real_tables,
                       std::map<Tree, inputControl>&     inputs_control,
-                      std::map<Tree, outputControl>& outputs_control, int& inputs)
+                      std::map<Tree, outputControl>&    outputs_control)
             : fIntDelays(int_delays),
               fRealDelays(real_delays),
               fIntTables(int_tables),
               fRealTables(real_tables),
               fInputControls(inputs_control),
-              fOutputControls(outputs_control),
-              fNumInputs(inputs)
+              fOutputControls(outputs_control)
         {
             fVisitGen = true;
         }
@@ -315,9 +313,7 @@ struct SignalRenderer : public SignalVisitor {
             Tree rec_expr_tree, rec_vars, rec_exprs;  // For isProj/isRec
             int  proj_idx_val;
 
-            if (int input_idx; isSigInput(sig, &input_idx)) {
-                fNumInputs++;
-            } else if (isSigDelay1(sig, x)) {
+            if (isSigDelay1(sig, x)) {
                 allocateDelayLine(x, 1);  // Delay of 1 sample
                 SignalVisitor::visit(sig);
             } else if (isSigDelay(sig, x, y)) {
@@ -378,11 +374,12 @@ struct SignalRenderer : public SignalVisitor {
 
    public:
     SignalRenderer() = default;
-    SignalRenderer(Tree lsig) : fOutputSig(lsig)
+    SignalRenderer(int inputs, int outputs, Tree lsig)
+        : fNumInputs(inputs), fNumOutputs(outputs), fOutputSig(lsig)
     {
         // Build delay lines and recursions, tables and inputs/outputs control
         SignalBuilder builder(fIntDelays, fRealDelays, fIntTables, fRealTables, fInputControls,
-                              fOutputControls, fNumInputs);
+                              fOutputControls);
         builder.visitRoot(fOutputSig);
     }
 
@@ -539,6 +536,7 @@ struct SignalRenderer : public SignalVisitor {
     std::map<Tree, inputControl>     fInputControls;   // Inputs controls (sliders, nentry, button)
     std::map<Tree, outputControl>    fOutputControls;  // Output controls (bargraph)
     int                              fNumInputs  = 0;
+    int                              fNumOutputs = 0;
     int                              fSampleRate = -1;
     int                              fSample     = 0;  // Current sample in a buffer
     int                              fIOTA       = 0;  // Used as index counter for all delay lines
@@ -665,7 +663,7 @@ struct signal_dsp_aux : public signal_dsp {
     SignalRenderer<REAL> fRenderer;
     // SignalPrintRenderer<REAL> fRenderer;
 
-    signal_dsp_aux(Tree lsig) : fRenderer(lsig) {}
+    signal_dsp_aux(int inputs, int outputs, Tree lsig) : fRenderer(inputs, outputs, lsig) {}
     virtual ~signal_dsp_aux() {}
 
     virtual int getNumInputs();
@@ -757,7 +755,11 @@ struct signal_dsp_aux : public signal_dsp {
 
     virtual void metadata(Meta* meta) {}
 
-    virtual signal_dsp_aux* clone() { return new signal_dsp_aux<REAL>(fRenderer.fOutputSig); }
+    virtual signal_dsp_aux* clone()
+    {
+        return new signal_dsp_aux<REAL>(fRenderer.fNumInputs, fRenderer.fNumOutputs,
+                                        fRenderer.fOutputSig);
+    }
 
     virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 };
@@ -820,8 +822,10 @@ struct signal_dsp_factory : public dsp_factory {
         }
     };
 
-    Tree        fOutputSig;
     std::string fCompileOptions;
+    int         fNumInputs;
+    int         fNumOutputs;
+    Tree        fOutputSig;
 
     bool hasCompileOption(const std::string& option)
     {
@@ -835,7 +839,8 @@ struct signal_dsp_factory : public dsp_factory {
         return false;
     }
 
-    signal_dsp_factory(Tree lsig, int argc, const char* argv[]) : fOutputSig(lsig)
+    signal_dsp_factory(int inputs, int outputs, Tree lsig, int argc, const char* argv[])
+        : fNumInputs(inputs), fNumOutputs(outputs), fOutputSig(lsig)
     {
         SignalChecker checker;
         checker.visitRoot(fOutputSig);
@@ -876,14 +881,14 @@ struct signal_dsp_factory : public dsp_factory {
         if (hasCompileOption("-double")) {
             // std::cerr << "createDSPInstance -double\n";
             // std::cerr << "sizeof(FAUSTFLOAT) " << sizeof(FAUSTFLOAT) << "\n";
-            return new signal_dsp_aux<double>(fOutputSig);
+            return new signal_dsp_aux<double>(fNumInputs, fNumOutputs, fOutputSig);
         } else {
             // std::cerr << "createDSPInstance -single\n";
             // std::cerr << "sizeof(FAUSTFLOAT) " << sizeof(FAUSTFLOAT) << "\n";
             //  Default to float if -double is not specified or FAUSTFLOAT is float
             //  The #ifndef FAUSTFLOAT block defaults to double, so this logic might need alignment
             //  For now, strictly follow -double flag. If not present, use float.
-            return new signal_dsp_aux<float>(fOutputSig);
+            return new signal_dsp_aux<float>(fNumInputs, fNumOutputs, fOutputSig);
         }
     }
 

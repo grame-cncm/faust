@@ -77,7 +77,7 @@ int signal_dsp_aux<REAL>::getNumInputs()
 template <class REAL>
 int signal_dsp_aux<REAL>::getNumOutputs()
 {
-    return treeConvert(fRenderer.fOutputSig).size();
+    return fRenderer.fNumOutputs;
 }
 
 template <class REAL>
@@ -495,7 +495,7 @@ signal_dsp_factory* createSignalDSPFactoryFromString(const string& name_app,
         typeAnnotation(res, gGlobal->gLocalCausalityCheck);
 
         // Context has to be kept until destroyed in deleteSignalDSPFactory
-        return new signal_dsp_factory(res, argc, argv);
+        return new signal_dsp_factory(inputs, outputs, res, argc, argv);
     } catch (faustexception& e) {
         error_msg = e.Message();
     }
