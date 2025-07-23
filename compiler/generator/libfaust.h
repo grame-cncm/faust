@@ -85,7 +85,7 @@ LIBFAUST_API std::string expandDSPFromString(const std::string& name_app,
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
- * @return the expanded DSP or an empty string in case of failure.
+ * @return true if success or false and an error message in case of failure.
  */
 LIBFAUST_API bool generateAuxFilesFromFile(const std::string& filename, int argc,
                                            const char* argv[], std::string& error_msg);
@@ -98,7 +98,7 @@ LIBFAUST_API bool generateAuxFilesFromFile(const std::string& filename, int argc
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
- * @return the result as a string.
+ * @return the result as a string or a empty string in case of failure.
  */
 LIBFAUST_API std::string generateAuxFilesFromFile2(const std::string& filename, int argc,
                                                    const char* argv[], std::string& error_msg);
@@ -112,7 +112,7 @@ LIBFAUST_API std::string generateAuxFilesFromFile2(const std::string& filename, 
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
- * @return the true if success or false and an error message in case of failure.
+ * @return true if success or false and an error message in case of failure.
  */
 LIBFAUST_API bool generateAuxFilesFromString(const std::string& name_app,
                                              const std::string& dsp_content, int argc,
@@ -127,7 +127,7 @@ LIBFAUST_API bool generateAuxFilesFromString(const std::string& name_app,
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
- * @return the result as a string.
+ * @return the result as a string or a empty string in case of failure.
  */
 LIBFAUST_API std::string generateAuxFilesFromString2(const std::string& name_app,
                                                      const std::string& dsp_content, int argc,

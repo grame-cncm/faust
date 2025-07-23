@@ -54,7 +54,7 @@ LIBFAUST_API void generateCSHA1(const char* data, char* sha_key);
  * @param sha_key - a SHA key to be filled by for the resulting DSP
  * @param error_msg - the error string to be filled, has to be 4096 characters long
  *
- * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
+ * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory).
  */
 LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
                                             char* error_msg);
@@ -70,7 +70,7 @@ LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, cons
  * @param sha_key - a SHA key to be filled by for the resulting DSP
  * @param error_msg - the error string to be filled, has to be 4096 characters long
  *
- * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
+ * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory).
  */
 LIBFAUST_API const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
                                            char* sha_key, char* error_msg);
@@ -83,9 +83,35 @@ LIBFAUST_API const char* expandCDSPFromString(const char* name_app, const char* 
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled, has to be 4096 characters long
  *
- * @return the expanded DSP or a empty string in case of failure
+ * @return true if success or false and an error message in case of failure.
  */
 LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+
+/**
+ * Generate additional file (other backends, SVG, XML, JSON...) starting from a filename.
+ *
+ * @param filename - the DSP filename
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param error_msg - the error string to be filled, has to be 4096 characters long
+ *
+ * @return the result as a string or a NULL string in case of failure (to be deleted by the caller using freeCMemory).
+ */
+LIBFAUST_API const char* generateCAuxFilesFromFile2(const char* filename, int argc, const char* argv[],
+                                                    char* error_msg);
+/**
+ * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
+ *
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param error_msg - the error string to be filled, has to be 4096 characters long
+ *
+ * @return true if success or false and an error message in case of failure
+ */
+LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
+                                             char* error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
@@ -96,10 +122,10 @@ LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, cons
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled, has to be 4096 characters long
  *
- * @return the true if success or false and an error message in case of failure
+ * @return the result as a string or a NULL string in case of failure (to be deleted by the caller using freeCMemory).
  */
-LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
-                                           char* error_msg);
+LIBFAUST_API const char* generateCAuxFilesFromString2(const char* name_app, const char* dsp_content,
+                                                     int argc, const char* argv[], char* error_msg);
 
 /**
  * The free function to be used on memory returned expandCDSPFromString and expandCDSPFromFile.

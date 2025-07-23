@@ -334,8 +334,14 @@ LIBFAUST_API const char* expandCDSPFromString(const char* name_app, const char* 
 LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[],
                                             char* error_msg);
 
+LIBFAUST_API const char* generateCAuxFilesFromFile2(const char* filename, int argc, const char* argv[],
+                                                    char* error_msg);
+
 LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content,
                                               int argc, const char* argv[], char* error_msg);
+
+LIBFAUST_API const char* generateCAuxFilesFromString2(const char* name_app, const char* dsp_content,
+                                                      int argc, const char* argv[], char* error_msg);
 
 #ifdef __cplusplus
 }
