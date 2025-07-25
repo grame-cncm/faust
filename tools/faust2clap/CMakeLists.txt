@@ -66,6 +66,7 @@ foreach(FAUST_CPP ${FAUST_SOURCES})
     ${CMAKE_SOURCE_DIR}/../../external/clap-helpers/include
     ${CMAKE_SOURCE_DIR}/../../external/clap-sdk/include
     ${RTMIDI_INCLUDE_DIR} # RtMidi include path
+    ${CMAKE_SOURCE_DIR}/../../build/${PLUGIN_NAME}
   )
 
   #link against the clap core library and clap helpers and GUI glue

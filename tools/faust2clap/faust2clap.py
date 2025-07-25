@@ -2,6 +2,8 @@
 import sys #cli arguments
 import os #file path manipulation
 import subprocess #run shell commands
+import json
+import re
 
 #config
 ARCH_REL_PATH="architecture/clap/clap-arch.cpp"
@@ -34,6 +36,73 @@ if not os.path.isfile(arch_path):
 output_dir=os.path.join(faust_root, OUTPUT_ROOT,base)
 os.makedirs(output_dir, exist_ok=True)
 out_cpp_path=os.path.join(output_dir,out_cpp)
+
+#extract metadata from the .dsp using faust -json
+def extract_metadata(dsp_path):
+    json_output = None
+
+    try:
+        json_output = subprocess.check_output(["faust", "-json", dsp_path], universal_newlines=True)
+    except subprocess.CalledProcessError as e:
+        print("[!] faust -json failed (non-zero exit). Falling back to C++ parsing.")
+    except Exception as e:
+        print(f"[!] unexpected error running faust -json: {e}")
+        return {}
+
+    try:
+        parsed = json.loads(json_output)
+        meta_entries = parsed.get("meta", []) or parsed.get("ui", [{}])[0].get("meta", [])
+        metadata = {}
+        for entry in meta_entries:
+            metadata.update(entry)
+        return metadata
+    except json.JSONDecodeError:
+        print(f"[!] failed to parse JSON output: invalid JSON. Falling back to parsing C++ output.")
+    except Exception as e:
+        print(f"[!] unexpected error during JSON parse: {e}")
+        return {}
+
+    #final fallback: parse -lang cpp output for m->declare("...", "...")
+    try:
+        cpp_output = subprocess.check_output(["faust", "-lang", "cpp", dsp_path], universal_newlines=True)
+        metadata = {}
+        for line in cpp_output.splitlines():
+            if 'm->declare' in line:
+                match = re.search(r'm->declare\("([^"]+)",\s*"([^"]+)"\)', line)
+                if match:
+                    key, value = match.groups()
+                    metadata[key] = value
+        return metadata
+    except Exception as e:
+        print(f"[!] failed to fallback-parse cpp metadata: {e}")
+        return {}
+
+metadata = extract_metadata(dsp_path)
+
+#fallback values
+plugin_id = f"org.faust.{base.lower()}"
+plugin_name = metadata.get("name", base)
+plugin_vendor = metadata.get("author", "faust")
+plugin_version = metadata.get("version", "1.0.0")
+plugin_description = metadata.get("description", f"Plugin generated from {base}.dsp")
+
+#generate plugin_metadata.h
+metadata_header_path = os.path.join(output_dir, "plugin_metadata.h")
+print(f"[i] Add this to your CMakeLists.txt:")
+print(f'    include_directories("{output_dir}")')
+with open(metadata_header_path, "w") as f:
+    f.write(f'#define FAUST_PLUGIN_ID "{plugin_id}"\n')
+    f.write(f'#define FAUST_PLUGIN_NAME "{plugin_name}"\n')
+    f.write(f'#define FAUST_PLUGIN_VENDOR "{plugin_vendor}"\n')
+    f.write(f'#define FAUST_PLUGIN_VERSION "{plugin_version}"\n')
+    f.write(f'#define FAUST_PLUGIN_DESCRIPTION "{plugin_description}"\n')
+
+print("[*] extracted metadata:")
+print(f"    id:          {plugin_id}")
+print(f"    name:        {plugin_name}")
+print(f"    vendor:      {plugin_vendor}")
+print(f"    version:     {plugin_version}")
+print(f"    description: {plugin_description}")
 
 
 #now run faust

@@ -1,0 +1,213 @@
+{
+	"name": "sawtoothLab",
+	"filename": "sawtoothLab.dsp",
+	"version": "2.81.0",
+	"compile_options": "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+	"library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/demos.lib","/usr/local/share/faust/basics.lib","/usr/local/share/faust/signals.lib","/usr/local/share/faust/maths.lib","/usr/local/share/faust/platform.lib","/usr/local/share/faust/noises.lib","/usr/local/share/faust/filters.lib","/usr/local/share/faust/oscillators.lib"],
+	"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust","examples/generator","/Users/cucu/Documents/GitHub/faust/examples/generator"],
+	"size": 292,
+	"inputs": 1,
+	"outputs": 1,
+	"meta": [ 
+		{ "author": "JOS, revised by RM" },
+		{ "basics.lib/name": "Faust Basic Element Library" },
+		{ "basics.lib/version": "1.21.0" },
+		{ "compile_options": "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0" },
+		{ "demos.lib/name": "Faust Demos Library" },
+		{ "demos.lib/sawtooth_demo:author": "Julius O. Smith III" },
+		{ "demos.lib/sawtooth_demo:licence": "MIT" },
+		{ "demos.lib/version": "1.2.0" },
+		{ "description": "An application demonstrating the different sawtooth oscillators of Faust." },
+		{ "filename": "sawtoothLab.dsp" },
+		{ "filters.lib/fir:author": "Julius O. Smith III" },
+		{ "filters.lib/fir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/fir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/iir:author": "Julius O. Smith III" },
+		{ "filters.lib/iir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/iir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1": "MIT-style STK-4.3 license" },
+		{ "filters.lib/name": "Faust Filters Library" },
+		{ "filters.lib/version": "1.7.1" },
+		{ "maths.lib/author": "GRAME" },
+		{ "maths.lib/copyright": "GRAME" },
+		{ "maths.lib/license": "LGPL with exception" },
+		{ "maths.lib/name": "Faust Math Library" },
+		{ "maths.lib/version": "2.8.1" },
+		{ "name": "sawtoothLab" },
+		{ "noises.lib/name": "Faust Noise Generator Library" },
+		{ "noises.lib/version": "1.4.1" },
+		{ "oscillators.lib/lf_sawpos:author": "Bart Brouns, revised by Stéphane Letz" },
+		{ "oscillators.lib/lf_sawpos:licence": "STK-4.3" },
+		{ "oscillators.lib/name": "Faust Oscillator Library" },
+		{ "oscillators.lib/sawN:author": "Julius O. Smith III" },
+		{ "oscillators.lib/sawN:license": "STK-4.3" },
+		{ "oscillators.lib/version": "1.6.0" },
+		{ "platform.lib/name": "Generic Platform Library" },
+		{ "platform.lib/version": "1.3.0" },
+		{ "signals.lib/name": "Faust Signal Routing Library" },
+		{ "signals.lib/version": "1.6.0" },
+		{ "version": "0.0" }
+	],
+	"ui": [ 
+		{
+			"type": "vgroup",
+			"label": "SAWTOOTH OSCILLATOR",
+			"meta": [
+				{ "0": "" },
+				{ "tooltip": "See Faust's oscillators.lib         for documentation and references" }
+			],
+			"items": [ 
+				{
+					"type": "hgroup",
+					"label": "0x00",
+					"meta": [
+						{ "1": "" }
+					],
+					"items": [ 
+						{
+							"type": "vslider",
+							"label": "Amplitude",
+							"varname": "fVslider0",
+							"shortname": "Amplitude",
+							"address": "/SAWTOOTH_OSCILLATOR/0x00/Amplitude",
+							"meta": [
+								{ "1": "" },
+								{ "style": "knob" },
+								{ "tooltip": "Sawtooth         waveform amplitude" },
+								{ "unit": "dB" }
+							],
+							"init": -20,
+							"min": -120,
+							"max": 10,
+							"step": 0.1
+						},
+						{
+							"type": "vslider",
+							"label": "Frequency",
+							"varname": "fVslider1",
+							"shortname": "Frequency",
+							"address": "/SAWTOOTH_OSCILLATOR/0x00/Frequency",
+							"meta": [
+								{ "2": "" },
+								{ "style": "knob" },
+								{ "tooltip": "Sawtooth         frequency as a Piano Key (PK) number (A440 = key 49)" },
+								{ "unit": "PK" }
+							],
+							"init": 49,
+							"min": 1,
+							"max": 88,
+							"step": 0.01
+						},
+						{
+							"type": "vslider",
+							"label": "Detuning 1",
+							"varname": "fVslider3",
+							"shortname": "Detuning_1",
+							"address": "/SAWTOOTH_OSCILLATOR/0x00/Detuning_1",
+							"meta": [
+								{ "3": "" },
+								{ "style": "knob" },
+								{ "tooltip": "Percentage frequency-shift     up or down for second oscillator" },
+								{ "unit": "%%" }
+							],
+							"init": -0.1,
+							"min": -10,
+							"max": 10,
+							"step": 0.01
+						},
+						{
+							"type": "vslider",
+							"label": "Detuning 2",
+							"varname": "fVslider4",
+							"shortname": "Detuning_2",
+							"address": "/SAWTOOTH_OSCILLATOR/0x00/Detuning_2",
+							"meta": [
+								{ "4": "" },
+								{ "style": "knob" },
+								{ "tooltip": "Percentage frequency-shift up or down for third detuned oscillator" },
+								{ "unit": "%%" }
+							],
+							"init": 0.1,
+							"min": -10,
+							"max": 10,
+							"step": 0.01
+						},
+						{
+							"type": "vslider",
+							"label": "Portamento",
+							"varname": "fVslider2",
+							"shortname": "Portamento",
+							"address": "/SAWTOOTH_OSCILLATOR/0x00/Portamento",
+							"meta": [
+								{ "5": "" },
+								{ "scale": "log" },
+								{ "style": "knob" },
+								{ "tooltip": "Portamento (frequency-glide) time-constant in seconds" },
+								{ "unit": "sec" }
+							],
+							"init": 0.1,
+							"min": 0.001,
+							"max": 10,
+							"step": 0.001
+						},
+						{
+							"type": "nentry",
+							"label": "Saw Order",
+							"varname": "fEntry0",
+							"shortname": "Saw_Order",
+							"address": "/SAWTOOTH_OSCILLATOR/0x00/Saw_Order",
+							"meta": [
+								{ "6": "" },
+								{ "tooltip": "Order of sawtootn aliasing         suppression" }
+							],
+							"init": 2,
+							"min": 1,
+							"max": 4,
+							"step": 1
+						},
+						{
+							"type": "vgroup",
+							"label": "Alternate Signals",
+							"meta": [
+								{ "7": "" }
+							],
+							"items": [ 
+								{
+									"type": "checkbox",
+									"label": "Noise (White or Pink - uses only Amplitude control on         the left)",
+									"varname": "fCheckbox1",
+									"shortname": "Noise_White_or_Pink_uses_only_Amplitude_control_on_the_left",
+									"address": "/SAWTOOTH_OSCILLATOR/0x00/Alternate_Signals/Noise__White_or_Pink_-_uses_only_Amplitude_control_on_________the_left_",
+									"meta": [
+										{ "0": "" }
+									]
+								},
+								{
+									"type": "checkbox",
+									"label": "Pink instead of White Noise (also called 1/f Noise)",
+									"varname": "fCheckbox2",
+									"shortname": "Pink_instead_of_White_Noise_also_called_1_f_Noise",
+									"address": "/SAWTOOTH_OSCILLATOR/0x00/Alternate_Signals/Pink_instead_of_White_Noise__also_called_1_f_Noise_",
+									"meta": [
+										{ "1": "" },
+										{ "tooltip": "Pink Noise (or 1/f noise) is Constant-Q Noise, meaning that it has the         same total power in every octave" }
+									]
+								},
+								{
+									"type": "checkbox",
+									"label": "External Signal Input (overrides Sawtooth/Noise         selection above)",
+									"varname": "fCheckbox0",
+									"shortname": "External_Signal_Input_overrides_Sawtooth_Noise_selection_above",
+									"address": "/SAWTOOTH_OSCILLATOR/0x00/Alternate_Signals/External_Signal_Input__overrides_Sawtooth_Noise_________selection_above_",
+									"meta": [
+										{ "2": "" }
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}

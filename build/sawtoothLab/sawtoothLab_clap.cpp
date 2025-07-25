@@ -22,6 +22,7 @@ Compilation options: -a /Users/cucu/Documents/GitHub/faust/architecture/clap/cla
 #include <faust/midi/midi.h> // faust midi types
 #include <faust/gui/UI.h>
 #include <faust/gui/GUI.h>
+#include "plugin_metadata.h"
 
 // cpp logging
 #include <iostream>
@@ -541,7 +542,7 @@ struct CLAPMapUI : public MapUI {
 
 
 // forward declaration for Plugin class
-class GainPlugin;
+class APlugin;
 
 // base class alias for simplified CLAP plugin inheritance
 using Base = clap::helpers::Plugin<
@@ -554,19 +555,19 @@ static const char* gain_features[] = { CLAP_PLUGIN_FEATURE_AUDIO_EFFECT, nullptr
 // plugin descriptor structure describing metadata to the host
 constexpr static clap_plugin_descriptor_t gain_desc = {
     .clap_version = CLAP_VERSION_INIT,
-    .id = "org.faust.gain",
-    .name = "Faust Gain",
-    .vendor = "faust",
+    .id = FAUST_PLUGIN_ID,
+    .name = FAUST_PLUGIN_NAME,
+    .vendor = FAUST_PLUGIN_VENDOR,
     .url = "https://faust.grame.fr",
     .manual_url = "",
     .support_url = "",
-    .version = "1.0.0",
-    .description = "Plugin generated from Faust",
+    .version = FAUST_PLUGIN_VERSION,
+    .description = FAUST_PLUGIN_DESCRIPTION,
     .features = gain_features
 };
 
 // the main plugin class implementing CLAP plugin behaviour
-class GainPlugin final : public Base {
+class APlugin final : public Base {
 public:
     int fNumInputs = 2; // default to stereo
     int fNumOutputs = 2;
@@ -579,7 +580,7 @@ public:
     midi_handler* fMidiHandler = nullptr;
 
     // constructor initialises base class with descriptor and host pointers
-    GainPlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
+    APlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
         : Base(desc, host) {}
 
     bool init() noexcept override {
@@ -915,7 +916,7 @@ bool paramsValue(clap_id id, double* value) noexcept override {
     // expose base class method to retrieve underlying CLAP plugin pointer
     using Base::clapPlugin;
     static const clap_plugin_t* create(const clap_host_t* host) {
-        return (new GainPlugin(&gain_desc, host))->clapPlugin();
+        return (new APlugin(&gain_desc, host))->clapPlugin();
     }
 };
 
@@ -930,7 +931,7 @@ static const clap_plugin_descriptor_t* plugin_desc(const clap_plugin_factory_t*,
 // factory method to create new plugin instance
 static const clap_plugin_t* plugin_create(const clap_plugin_factory_t*, const clap_host_t* host, const char* plugin_id) {
     if (std::strcmp(plugin_id, gain_desc.id) == 0)
-        return GainPlugin::create(host);
+        return APlugin::create(host);
     return nullptr;
 }
 
