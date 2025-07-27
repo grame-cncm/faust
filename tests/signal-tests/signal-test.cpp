@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2019-2024 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2019-2025 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -98,7 +98,6 @@ int main(int argc, char* argv[])
     DSP->init(44100);
      
 #ifdef REAL_TIME
-    
     char name[256];
     char filename[256];
     

@@ -27,14 +27,11 @@
 #include <iostream>
 #include <string>
 #include <math.h>
-
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
+#include <cmath>
 
 #include "faust/gui/UI.h"
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
-
 #include "faust/gui/Soundfile.h"
 
 // To be used by DSP code if no SoundUI is used

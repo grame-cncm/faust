@@ -22,13 +22,13 @@
  architecture section is not modified.
  **************************************************************************/
 
-#ifndef LIBFAUSTCOMMON_H
-#define LIBFAUSTCOMMON_H
-
 #include <string>
 #include <vector>
 #include <ostream>
 #include <limits>
+
+#ifndef LIBFAUSTCOMMON_H
+#define LIBFAUSTCOMMON_H
 
 #include "faust/export.h"
 

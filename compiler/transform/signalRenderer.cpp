@@ -31,20 +31,20 @@ using namespace std;
 
 //-------------------------SignalRenderer-------------------------------
 //
-// Signal Interpreter is designed to directly render signals in real-time, bypassing the traditional
+// SignalRenderer is designed to directly render signals, bypassing the traditional
 // compilation phase.
 //
 // Execution Flow. The interpretation process is divided into two main stages:
 //
 // 1) Preparation Stage (SignalBuilder). The SignalBuilder class traverses all output signal trees
 // to:
-//      - Allocate delay lines (both integer and real types) for sample-accurate delays and
+//      - Allocate delay lines (both integer and REAL types) for sample-accurate delays and
 //      recursive constructs.
 //      - Allocate tables (both integer and real types) required for table-based signal generation.
 //      - Collect and configure input and output control signals (e.g., sliders, buttons,
 //      bargraphs).
 //
-// Rendering Stage (SignalRenderer). The SignalRenderer class:
+// 2) Rendering Stage (SignalRenderer). The SignalRenderer class:
 //      - Traverses all output signal trees.
 //      - Computes the value of each output signal sample by recursively interpreting the expression
 //      tree.
@@ -89,7 +89,7 @@ void signal_dsp_aux<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
 /**
  * @brief Computes and renders audio samples for a block of output signals.
  *
- * This method performs the real-time rendering loop of the signal interpreter.
+ * This method performs the rendering loop of the signal interpreter.
  * It processes a block of audio samples by traversing the output signal tree,
  * computing each sample value recursively, and writing the result to the
  * appropriate output channel.
@@ -107,7 +107,7 @@ void signal_dsp_aux<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
  * Implementation details:
  * - Clears the `fVisited` map at the start of each sample to ensure correct
  *   handling of recursive signals and avoid cyclic evaluations.
- * - Supports both integer and real-valued output signals, allowing mixed-type
+ * - Supports both integer and REAL output signals, allowing mixed-type
  *   outputs depending on the signal graph.
  *
  * @param count The number of samples to process in the current block.
@@ -137,6 +137,7 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
             } else {
                 outputs[chan++][fSample] = static_cast<FAUSTFLOAT>(res.getDouble());
             }
+            // Render next output
             output_list = tl(output_list);
         }
 
@@ -148,7 +149,7 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
 /**
  * @brief Visits a signal tree node and recursively evaluates its value.
  *
- * This method implements the core interpreter logic for rendering a Faust
+ * This method implements the core interpreter logic for rendering the
  * signal graph. It uses a recursive traversal to process each node type,
  * evaluates its sub-expressions, and computes the resulting value. The
  * intermediate results are stored on a value stack (`fValueStack`).
@@ -185,7 +186,7 @@ void SignalRenderer<REAL>::visit(Tree sig)
     Tree    label_tree, type_tree, name_tree, file_tree, sf_tree, sel;
     Tree    rec_vars, rec_exprs;
     int     opt_op;
-    int     proj_idx_val;  // For isProj
+    int     proj_idx;  // For isProj
 
     /*
     if (global::isDebug("SIG_RENDERER")) {
@@ -194,8 +195,7 @@ void SignalRenderer<REAL>::visit(Tree sig)
     }
     */
 
-    xtended* xt = (xtended*)getUserData(sig);
-    if (xt) {
+    if (xtended* xt = (xtended*)getUserData(sig)) {
         vector<Node> args;
         // Interpret all arguments then call the function
         for (Tree b : sig->branches()) {
@@ -203,7 +203,7 @@ void SignalRenderer<REAL>::visit(Tree sig)
             args.push_back(popRes());
         }
         Node res = xt->compute(args);
-        //  Hack: for 'min/max' res may actually be of type kInt
+        //  HACK: for 'min/max' res may actually be of type kInt
         int ty = getCertifiedSigType(sig)->nature();
         pushRes((ty == kInt) ? Node(int(res.getDouble())) : res);
     } else if (isSigInt(sig, &i_val)) {
@@ -255,21 +255,24 @@ void SignalRenderer<REAL>::visit(Tree sig)
         self(x_tree);
         Node v1 = popRes();
         self(y_tree);
-        Node v2          = popRes();
-        Type x_type_info = getCertifiedSigType(x_tree);
-        Type y_type_info = getCertifiedSigType(y_tree);
+        Node v2 = popRes();
+
+        Type x_type = getCertifiedSigType(x_tree);
+        Type y_type = getCertifiedSigType(y_tree);
 
         // Integer binop when both arguments are integer
-        if (x_type_info->nature() == kInt && y_type_info->nature() == kInt) {
+        if (x_type->nature() == kInt && y_type->nature() == kInt) {
             pushRes(gBinOpTable[opt_op]->compute(v1.getInt(), v2.getInt()));
         } else {
             // Otherwise REAL binop
             pushRes(gBinOpTable[opt_op]->compute(v1.getDouble(), v2.getDouble()));
         }
     } else if (isSigFConst(sig, type_tree, name_tree, file_tree)) {
+        // Special case for SR constant
         if (string(tree2str(name_tree)) == "fSamplingFreq") {
             pushRes(fSampleRate);
         } else {
+            // TODO
             faustassert(false);
             pushRes(Node(0));
         }
@@ -320,16 +323,17 @@ void SignalRenderer<REAL>::visit(Tree sig)
             pushRes(Node(0));
         }
     } else if (isSigWaveform(sig)) {
+        // Modulo based access in the waveform
         int size  = sig->arity();
         int index = fIOTA % size;
         self(sig->branch(index));
-    } else if (isProj(sig, &proj_idx_val, x_tree) && isRec(x_tree, rec_vars, rec_exprs)) {
+    } else if (isProj(sig, &proj_idx, x_tree) && isRec(x_tree, rec_vars, rec_exprs)) {
         // First visit of the recursive signal
         if (fVisited.find(sig) == fVisited.end()) {
             faustassert(isRec(x_tree, rec_vars, rec_exprs));
             fVisited[sig]++;
             // Render the actual projection
-            self(nth(rec_exprs, proj_idx_val));
+            self(nth(rec_exprs, proj_idx));
             Node res = popRes();
             /*
             if (global::isDebug("SIG_RENDERER")) {
@@ -417,7 +421,7 @@ void SignalRenderer<REAL>::visit(Tree sig)
         self(x_tree);
     } else if (isSigEnable(sig, x_tree, y_tree)) {  // x_tree is condition, y_tree is signal
         self(x_tree);
-        Node enable = popRes();  // Renamed enable_cond
+        Node enable = popRes();
         if (enable.getInt() != 0) {
             self(y_tree);
         } else {

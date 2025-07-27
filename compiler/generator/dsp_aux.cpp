@@ -373,15 +373,15 @@ LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, cons
     return res;
 }
 
-LIBFAUST_API const char* generateCAuxFilesFromFile2(const char* filename, int argc, const char* argv[],
-                                                    char* error_msg)
+LIBFAUST_API const char* generateCAuxFilesFromFile2(const char* filename, int argc,
+                                                    const char* argv[], char* error_msg)
 {
     string error_msg_aux;
     string res = generateAuxFilesFromFile2(filename, argc, argv, error_msg_aux);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return strdup(res.c_str());
 }
-    
+
 LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content,
                                               int argc, const char* argv[], char* error_msg)
 {
@@ -390,9 +390,9 @@ LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* 
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return res;
 }
-    
+
 LIBFAUST_API const char* generateCAuxFilesFromString2(const char* name_app, const char* dsp_content,
-                                                        int argc, const char* argv[], char* error_msg)
+                                                      int argc, const char* argv[], char* error_msg)
 {
     string error_msg_aux;
     string res = generateAuxFilesFromString2(name_app, dsp_content, argc, argv, error_msg_aux);

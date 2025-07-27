@@ -47,12 +47,12 @@
 #include "sigtyperules.hh"
 
 /**
- * @brief Class to interpret and render signals sample-by-sample in real-time.
+ * @brief Class to interpret and render signals sample-by-sample.
  *
  * The `SignalRenderer` class is responsible for traversing the output signal trees,
  * evaluating each node recursively to compute the value of each output sample.
  * It handles delay lines, tables, recursive signals, and user controls, making it
- * the core component for real-time signal interpretation in the non-compilation backend.
+ * the core component for signal interpretation in the non-compilation backend.
  *
  * Key responsibilities:
  * - Recursively evaluate signal trees to compute sample values.
@@ -118,8 +118,8 @@ struct SignalRenderer : public SignalVisitor {
      */
     template <class TYPE>
     struct TableData {
-        std::vector<TYPE> fData;
-        Tree              fSigGen = nullptr;
+        std::vector<TYPE> fData;              // The table
+        Tree              fSigGen = nullptr;  // The signal generator
 
         TableData() : fData() {}
         TableData(Tree sig_gen, int size_val) { fSigGen = sig_gen, resize(size_val); }
@@ -146,11 +146,11 @@ struct SignalRenderer : public SignalVisitor {
     };
 
     /**
-     * @brief Structure to represent user input controls.
+     * @brief Structure to represent user input controls (sliders, nentries, buttons).
      *
      * This structure defines the configuration for user interface controls
      * that allow the user to interact with signal parameters during runtime.
-     * Typical examples include sliders, buttons, and numerical entries.
+     * Typical examples include sliders, buttons, and nentries.
      *
      * Each control has an associated type, label, and value range.
      */
@@ -173,10 +173,10 @@ struct SignalRenderer : public SignalVisitor {
     };
 
     /**
-     * @brief Structure to represent output controls (bargraphs).
+     * @brief Structure to represent output controls (bargraph).
      *
      * This structure defines the configuration for output controls that
-     * visualize signal levels, such as vertical or horizontal bargraphs.
+     * visualize signal levels, such as vertical or horizontal bargraph.
      */
     struct outputControl {
         enum type { kHbargraph, kVbargraph } fType;
@@ -199,7 +199,7 @@ struct SignalRenderer : public SignalVisitor {
      * The `SignalBuilder` class is responsible for analyzing the output signal trees,
      * allocating all necessary resources such as delay lines, tables, and input/output controls,
      * and performing preliminary setup before rendering. It ensures that each signal
-     * has the correct data structures allocated for real-time sample interpretation.
+     * has the correct data structures allocated for sample interpretation.
      *
      * Key responsibilities:
      * - Allocates delay lines for signals that require delays or recursive definitions.
@@ -222,7 +222,7 @@ struct SignalRenderer : public SignalVisitor {
          *
          * This method is responsible for ensuring that a delay line (either integer or REAL-valued)
          * exists and is of sufficient size for the signal `x`. The maximum delay amount is
-         * determined by the `y_delay` tree, which represents the signal controlling
+         * determined by the `delay` value, which represents the signal controlling
          * the delay length.
          *
          * The nature of the signal `x` (integer or real) determines whether an `fIntDelays`
@@ -237,7 +237,7 @@ struct SignalRenderer : public SignalVisitor {
          *
          * @param x The signal tree node that identifies the signal requiring the delay line.
          * The type of this signal (int or real) determines the type of the delay buffer.
-         * @param y_delay The signal tree node representing the delay amount.
+         * @param delay The signal tree node representing the delay amount.
          * The interval analysis of this signal (`it.hi()`) provides the
          * maximum required delay length.
          */
@@ -468,12 +468,12 @@ struct SignalRenderer : public SignalVisitor {
      * @brief Computes a single output sample for a real-valued signal expression.
      *
      * This method performs the same logic as `computeIntSample`, but returns
-     * a floating-point value instead.
+     * a REAL value instead.
      *
      * @param exp The expression tree representing the signal to compute.
      * @return The computed real-valued sample.
      */
-    double computeRealSample(Tree exp)
+    REAL computeRealSample(Tree exp)
     {
         fVisited.clear();  // Clear visited for each top-level signal evaluation per sample
         self(exp);
@@ -488,8 +488,8 @@ struct SignalRenderer : public SignalVisitor {
      *
      * This method precomputes all lookup tables (both integer and real-valued)
      * that are defined in the signal expression. It ensures that any table-based
-     * signals (e.g., wavetables, precomputed envelopes) are filled with their
-     * corresponding precomputed values before real-time rendering begins.
+     * signals are filled with their corresponding precomputed values before
+     * rendering begins.
      *
      * Implementation details:
      * - Enables the generator flag (`fVisitGen = true`) to allow recursive
@@ -501,9 +501,10 @@ struct SignalRenderer : public SignalVisitor {
      * - Resets the generator flag (`fVisitGen = false`) once table initialization
      *   is complete.
      *
-     * This method must be called once before starting real-time processing
+     * This method must be called once before starting processing
      * to ensure that all table-based signals are correctly initialized.
      */
+
     void initTables()
     {
         // So that sigGen are properly visited
@@ -511,7 +512,8 @@ struct SignalRenderer : public SignalVisitor {
 
         // Generate integer tables
         for (auto& it : fIntTables) {
-            fIOTA = 0;
+            // Clear renderer state
+            clear();
             for (int index = 0; index < it.second.size(); index++) {
                 it.second.write(index, computeIntSample(it.second.fSigGen));
             }
@@ -519,7 +521,8 @@ struct SignalRenderer : public SignalVisitor {
 
         // Generate REAL tables
         for (auto& it : fRealTables) {
-            fIOTA = 0;
+            // Clear renderer state
+            clear();
             for (int index = 0; index < it.second.size(); index++) {
                 it.second.write(index, computeRealSample(it.second.fSigGen));
             }
@@ -533,15 +536,26 @@ struct SignalRenderer : public SignalVisitor {
     std::map<Tree, DelayedSig<REAL>> fRealDelays;      // Delay lines for REAL signals
     std::map<Tree, TableData<int>>   fIntTables;       // Table for integer signals
     std::map<Tree, TableData<REAL>>  fRealTables;      // Table for REAL signals
-    std::map<Tree, inputControl>     fInputControls;   // Inputs controls (sliders, nentry, button)
-    std::map<Tree, outputControl>    fOutputControls;  // Output controls (bargraph)
+    std::map<Tree, inputControl>     fInputControls;   // Inputs controls (sliders, nentries, buttons)
+    std::map<Tree, outputControl>    fOutputControls;  // Output controls (bargraphs)
     int                              fNumInputs  = 0;
     int                              fNumOutputs = 0;
     int                              fSampleRate = -1;
     int                              fSample     = 0;  // Current sample in a buffer
     int                              fIOTA       = 0;  // Used as index counter for all delay lines
     FAUSTFLOAT**                     fInputs     = nullptr;  // Set at each call of 'compute'
-    Tree                             fOutputSig;
+    Tree                             fOutputSig;             // The output tree to be rendered
+
+    void clear()
+    {
+        for (auto& it : fIntDelays) {
+            it.second.reset();
+        }
+        for (auto& it : fRealDelays) {
+            it.second.reset();
+        }
+        fIOTA = 0;
+    }
 
     void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
@@ -742,16 +756,7 @@ struct signal_dsp_aux : public signal_dsp {
         instanceClear();
     }
 
-    virtual void instanceClear()
-    {
-        for (auto& it : fRenderer.fIntDelays) {
-            it.second.reset();
-        }
-        for (auto& it : fRenderer.fRealDelays) {
-            it.second.reset();
-        }
-        fRenderer.fIOTA = 0;
-    }
+    virtual void instanceClear() { fRenderer.clear(); }
 
     virtual void metadata(Meta* meta) {}
 

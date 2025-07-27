@@ -59,7 +59,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     }
 
     if (gGlobal->gFreezeUI) {
-        // Freeze range UI items (sliders and nentry)to their init value
+        // Freeze range UI items (sliders and nentry) to their init value
         startTiming("Freeze values for range UI items");
         L1 = signalUIFreezePromote(L1);
         endTiming("Freeze values for range UI items");
