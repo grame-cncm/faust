@@ -47,8 +47,7 @@
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/PresetUI.h"
 #include "faust/gui/QTUI.h"
-#include "faust/mcp/MCPUI.h"
-#include "faust/mcp/mcp-protocol.h"
+#include "faust/gui/McpUI.h"
 #include "faust/misc.h"
 
 #ifdef IOS
