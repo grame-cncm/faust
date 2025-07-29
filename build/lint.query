@@ -1,0 +1,72 @@
+# Check for a pointer comparison between CTree* / Symbol*
+
+let hasTargetComparisonNoBind binaryOperator(
+  hasAnyOperatorName("<", ">", "<=", ">="),
+  hasEitherOperand(hasType(hasUnqualifiedDesugaredType(pointerType(pointee(hasDeclaration(namedDecl(hasAnyName("CTree", "Symbol"))))).bind("pointer-type"))))
+)
+
+# Or a function call to a function in the STL which has one of those pointer comparisons
+
+let hasTargetComparison hasTargetComparisonNoBind.bind("comparison")
+
+let hasTransitiveTargetCall0 callExpr(callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTargetComparison))))
+
+# Or nested function calls. We can't do arbitrary recursion, so just go 8 deep
+
+let hasTransitiveTargetCall1 callExpr(anyOf(
+    callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTargetComparison)))
+    , callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTransitiveTargetCall0)))
+))
+
+let hasTransitiveTargetCall2 callExpr(anyOf(
+    callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTargetComparison)))
+    , callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTransitiveTargetCall1)))
+))
+
+let hasTransitiveTargetCall3 callExpr(anyOf(
+    callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTargetComparison)))
+    , callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTransitiveTargetCall2)))
+))
+
+let hasTransitiveTargetCall4 callExpr(anyOf(
+    callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTargetComparison)))
+    , callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTransitiveTargetCall3)))
+))
+
+let hasTransitiveTargetCall5 callExpr(anyOf(
+    callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTargetComparison)))
+    , callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTransitiveTargetCall4)))
+))
+
+let hasTransitiveTargetCall6 callExpr(anyOf(
+    callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTargetComparison)))
+    , callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTransitiveTargetCall5)))
+))
+
+let hasTransitiveTargetCall7 callExpr(anyOf(
+    callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTargetComparison)))
+    , callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTransitiveTargetCall6)))
+))
+
+let hasTransitiveTargetCall8 callExpr(anyOf(
+    callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTargetComparison)))
+    , callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTransitiveTargetCall7)))
+))
+
+let hasTransitiveTargetCall hasTransitiveTargetCall8
+
+let Diagnostic "this function call leads to pointer comparison of type %1, don't do that"
+let DiagnosticArgs "root pointer-type"
+
+# Match a function call in a source file (either the .cpp or an included .hh)
+# whose definition is in a system header
+match callExpr(
+  unless(isExpansionInSystemHeader()),
+  callee(decl(isExpansionInSystemHeader(), hasDescendant(hasTransitiveTargetCall)))
+)
+
+let Diagnostic "don't compare pointers of type %1"
+let DiagnosticArgs "root pointer-type"
+
+# Match a pointer comparison in a source file (either .cpp or included .hh)
+match stmt(unless(isExpansionInSystemHeader()), hasTargetComparisonNoBind)
