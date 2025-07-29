@@ -78,7 +78,7 @@ class FBCCompiler : public FBCInterpreter<REAL, 0> {
 #endif
 #else
 #ifdef WIN32
-#pragma message("warning pure Interpreter mode");
+#pragma message("warning pure Interpreter mode")
 #else
 #warning pure Interpreter mode
 #endif
