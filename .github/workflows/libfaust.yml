@@ -183,9 +183,9 @@ jobs:
 
     - name: Build libmicrohttpd
       run: |
-        curl -L https://mirror.cyberbits.eu/gnu/libmicrohttpd/libmicrohttpd-0.9.76.tar.gz -o libmicrohttpd-0.9.76.tar.gz
-        tar -xvf libmicrohttpd-0.9.76.tar.gz
-        mv libmicrohttpd-0.9.76 libmicrohttpd
+        curl -L https://mirror.cyberbits.eu/gnu/libmicrohttpd/libmicrohttpd-1.0.2.tar.gz -o libmicrohttpd-1.0.2.tar.gz
+        tar -xvf libmicrohttpd-1.0.2.tar.gz
+        mv libmicrohttpd-1.0.2 libmicrohttpd
         cd libmicrohttpd
         export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
         export TARGET=${{matrix.HOST}}
