@@ -3157,10 +3157,21 @@ struct IB {
                                         const std::string& arg5, Typed::VarType arg5_ty,
                                         const std::string& arg6, Typed::VarType arg6_ty,
                                         BlockInst* code = new BlockInst());
+
+    static DeclareFunInst* genFunction(const std::string& name, Typed::VarType rtype,
+                                       std::vector<Typed::VarType>& atypes)
+    {
+        Names named_args;
+        for (size_t i = 0; i < atypes.size(); i++) {
+            named_args.push_back(
+                genNamedTyped("dummy" + std::to_string(i), genBasicTyped(atypes[i])));
+        }
+        return genDeclareFunInst(name, genFunTyped(named_args, genBasicTyped(rtype)));
+    }
 };
 
 /*
- * Syntactic sugar for index computationsw, wapper for ValueInst* with support for basic
+ * Syntactic sugar for index computations, wrapper for ValueInst* with support for basic
  * arithmetics.
  */
 

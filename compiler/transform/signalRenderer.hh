@@ -95,7 +95,7 @@ struct SignalRenderer : public SignalVisitor {
         DelayedSig() : fBuffer() {}
         DelayedSig(int size) { resize(size); }
 
-        void resize(int size) { fBuffer.resize(size, TYPE(0)); }
+        void resize(int size) { fBuffer.resize(std::max(size, int(fBuffer.size())), TYPE(0)); }
         int  size() const { return int(fBuffer.size()); }  // Made const
 
         TYPE read(int index) { return fBuffer[index & (size() - 1)]; }
@@ -168,6 +168,8 @@ struct SignalRenderer : public SignalVisitor {
             : fType(type), fLabel(label), fInit(init), fMin(min), fMax(max), fStep(step)
         {
         }
+
+        FAUSTFLOAT getValue() { return fZone; }
 
         void init() { fZone = fInit; }
     };
@@ -264,7 +266,7 @@ struct SignalRenderer : public SignalVisitor {
                     }
                     */
                 } else {
-                    fIntDelays[x].resize(std::max(int(fIntDelays[x].size()), N));
+                    fIntDelays[x].resize(N);
                     /*
                     if (global::isDebug("SIG_RENDERER")) {
                         std::cout << "allocateDelayLine RESIZE INT " << ppsig(x, 8) << std::endl;
@@ -280,7 +282,7 @@ struct SignalRenderer : public SignalVisitor {
                     }
                     */
                 } else {
-                    fRealDelays[x].resize(std::max(int(fRealDelays[x].size()), N));
+                    fRealDelays[x].resize(N);
                     /*
                     if (global::isDebug("SIG_RENDERER")) {
                         std::cout << "allocateDelayLine RESIZE REAL " << ppsig(x, 8) << std::endl;
@@ -531,20 +533,20 @@ struct SignalRenderer : public SignalVisitor {
         fVisitGen = false;
     }
 
-    std::stack<Node>                 fValueStack;      // Interpreter stack of values
-    std::map<Tree, DelayedSig<int>>  fIntDelays;       // Delay lines for integer signals
-    std::map<Tree, DelayedSig<REAL>> fRealDelays;      // Delay lines for REAL signals
-    std::map<Tree, TableData<int>>   fIntTables;       // Table for integer signals
-    std::map<Tree, TableData<REAL>>  fRealTables;      // Table for REAL signals
-    std::map<Tree, inputControl>     fInputControls;   // Inputs controls (sliders, nentries, buttons)
-    std::map<Tree, outputControl>    fOutputControls;  // Output controls (bargraphs)
-    int                              fNumInputs  = 0;
-    int                              fNumOutputs = 0;
-    int                              fSampleRate = -1;
-    int                              fSample     = 0;  // Current sample in a buffer
-    int                              fIOTA       = 0;  // Used as index counter for all delay lines
-    FAUSTFLOAT**                     fInputs     = nullptr;  // Set at each call of 'compute'
-    Tree                             fOutputSig;             // The output tree to be rendered
+    std::stack<Node>                 fValueStack;   // Interpreter stack of values
+    std::map<Tree, DelayedSig<int>>  fIntDelays;    // Delay lines for integer signals
+    std::map<Tree, DelayedSig<REAL>> fRealDelays;   // Delay lines for REAL signals
+    std::map<Tree, TableData<int>>   fIntTables;    // Table for integer signals
+    std::map<Tree, TableData<REAL>>  fRealTables;   // Table for REAL signals
+    std::map<Tree, inputControl>  fInputControls;   // Inputs controls (sliders, nentries, buttons)
+    std::map<Tree, outputControl> fOutputControls;  // Output controls (bargraphs)
+    int                           fNumInputs  = 0;
+    int                           fNumOutputs = 0;
+    int                           fSampleRate = -1;
+    int                           fSample     = 0;  // Current sample in a buffer
+    int                           fIOTA       = 0;  // Used as index counter for all delay lines
+    FAUSTFLOAT**                  fInputs     = nullptr;  // Set at each call of 'compute'
+    Tree                          fOutputSig;             // The output tree to be rendered
 
     void clear()
     {

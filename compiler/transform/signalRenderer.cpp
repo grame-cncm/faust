@@ -367,15 +367,15 @@ void SignalRenderer<REAL>::visit(Tree sig)
         Node cur = popRes();
         pushRes(static_cast<REAL>(cur.getInt()));
     } else if (isSigButton(sig, label_tree)) {
-        pushRes(fInputControls[sig].fZone);
+        pushRes(fInputControls[sig].getValue());
     } else if (isSigCheckbox(sig, label_tree)) {
-        pushRes(fInputControls[sig].fZone);
+        pushRes(fInputControls[sig].getValue());
     } else if (isSigVSlider(sig, label_tree, c_tree, x_tree, y_tree, z_tree)) {
-        pushRes(fInputControls[sig].fZone);
+        pushRes(fInputControls[sig].getValue());
     } else if (isSigHSlider(sig, label_tree, c_tree, x_tree, y_tree, z_tree)) {
-        pushRes(fInputControls[sig].fZone);
+        pushRes(fInputControls[sig].getValue());
     } else if (isSigNumEntry(sig, label_tree, c_tree, x_tree, y_tree, z_tree)) {
-        pushRes(fInputControls[sig].fZone);
+        pushRes(fInputControls[sig].getValue());
     } else if (isSigVBargraph(sig, label_tree, x_tree, y_tree, z_tree)) {
         self(z_tree);
         Node val = topRes();

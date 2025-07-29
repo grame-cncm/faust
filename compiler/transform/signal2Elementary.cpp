@@ -56,8 +56,8 @@ void Signal2Elementary::visit(Tree sig)
 {
     int    i;
     double r;
-    Tree   size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name,
-        file, sf;
+    Tree   size, gen, wi, ws, tbl, ri, c, sel, x, y, z, var, le, label, ff, largs, type, name, file,
+        sf;
 
     if (getUserData(sig)) {
         for (Tree b : sig->branches()) {
