@@ -39,28 +39,16 @@ out_cpp_path=os.path.join(output_dir,out_cpp)
 
 #extract metadata from the .dsp using faust -json
 def extract_metadata(dsp_path):
-    json_output = None
-
     try:
         json_output = subprocess.check_output(["faust", "-json", dsp_path], universal_newlines=True)
-    except subprocess.CalledProcessError as e:
-        print("[!] faust -json failed (non-zero exit). Falling back to C++ parsing.")
-    except Exception as e:
-        print(f"[!] unexpected error running faust -json: {e}")
-        return {}
-
-    try:
         parsed = json.loads(json_output)
         meta_entries = parsed.get("meta", []) or parsed.get("ui", [{}])[0].get("meta", [])
         metadata = {}
         for entry in meta_entries:
             metadata.update(entry)
         return metadata
-    except json.JSONDecodeError:
-        print(f"[!] failed to parse JSON output: invalid JSON. Falling back to parsing C++ output.")
-    except Exception as e:
-        print(f"[!] unexpected error during JSON parse: {e}")
-        return {}
+    except (subprocess.CalledProcessError, json.JSONDecodeError, Exception) as e:
+        print(f"[i] JSON metadata not available, falling back to C++ parsing.")
 
     #final fallback: parse -lang cpp output for m->declare("...", "...")
     try:
@@ -105,22 +93,33 @@ print(f"    version:     {plugin_version}")
 print(f"    description: {plugin_description}")
 
 
-#now run faust
+#run faust to generate the plugin source file
 try:
-    subprocess.run(["faust","-a", arch_path, dsp_path, "-o", out_cpp_path], check=True)
+    subprocess.run(["faust", "-a", arch_path, dsp_path, "-o", out_cpp_path], check=True)
     print(f"[✓] generated: {out_cpp_path}")
-
 except subprocess.CalledProcessError:
     print("[!] faust compilation failed.")
     sys.exit(1)
 
-
-#build plugin using cmake
+#run cMake with macOS sdk path to find stdlib headers
 try:
     print("[*] running cmake build")
-    subprocess.run(["cmake", "-S", ".", "-B", "build"], cwd=this_dir, check=True, capture_output=True)
+    sdk_path = subprocess.check_output(["xcrun", "--sdk", "macosx", "--show-sdk-path"], universal_newlines=True).strip()
+    cxx_include_path = "/Library/Developer/CommandLineTools/usr/include/c++/v1"
+
+    subprocess.run([
+        "cmake", "-S", ".", "-B", "build",
+        f"-DCMAKE_CXX_FLAGS=-isysroot {sdk_path} -I{cxx_include_path}"
+    ], cwd=this_dir, check=True, capture_output=True)
+
     subprocess.run(["cmake", "--build", "build"], cwd=this_dir, check=True, capture_output=True)
+
     print("[✓] build completed successfully.")
+except subprocess.CalledProcessError as e:
+    print("[!] cmake build failed.")
+    print(f"[stderr]\n{e.stderr.decode() if e.stderr else 'No stderr'}")
+    print(f"[stdout]\n{e.stdout.decode() if e.stdout else 'No stdout'}")
+    sys.exit(1)
 
     
 except subprocess.CalledProcessError as e:

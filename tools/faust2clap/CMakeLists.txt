@@ -57,7 +57,6 @@ foreach(FAUST_CPP ${FAUST_SOURCES})
 
   #include necessary directories for compilation
   target_include_directories(${PLUGIN_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/../../
     ${CMAKE_SOURCE_DIR}/../../build
     ${CMAKE_SOURCE_DIR}/../../architecture
     ${CMAKE_SOURCE_DIR}/architecture/faust/gui
