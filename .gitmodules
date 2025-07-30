@@ -25,3 +25,6 @@
 [submodule "external/clap-helpers"]
 	path = external/clap-helpers
 	url = https://github.com/free-audio/clap-helpers
+[submodule "external/clap-sdk"]
+	path = external/clap-sdk
+	url = https://github.com/free-audio/clap.git
