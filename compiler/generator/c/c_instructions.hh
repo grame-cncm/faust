@@ -145,8 +145,8 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["tanfx"]       = true;
 
         // Polymath mapping int version
-        fPolyMathLibTable["min_i"] = "min";
-        fPolyMathLibTable["max_i"] = "max";
+        fPolyMathLibTable["min_i"] = "min_i";
+        fPolyMathLibTable["max_i"] = "max_i";
 
         // Polymath mapping float version
         fPolyMathLibTable["min_f"] = "fminf";

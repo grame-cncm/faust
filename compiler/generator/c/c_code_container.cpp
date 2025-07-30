@@ -257,12 +257,9 @@ void CCodeContainer::produceClass()
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
-
-    if (gGlobal->gLightMode) {
-        tab(n, *fOut);
-        *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
-        *fOut << "#define min(a,b) ((a < b) ? a : b)\n";
-    }
+    
+    *fOut << "static inline int max_i(int a, int b) { return (a > b) ? a : b; }" << endl;
+    *fOut << "static inline int min_i(int a, int b) { return (a < b) ? a : b; }" << endl;
 
     tab(n, *fOut);
     *fOut << "typedef struct {";
@@ -655,6 +652,9 @@ void CScalarCodeContainer1::produceClass()
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
+    
+    *fOut << "static inline int max_i(int a, int b) { return (a > b) ? a : b; }" << endl;
+    *fOut << "static inline int min_i(int a, int b) { return (a < b) ? a : b; }" << endl;
 
     // Generate user interface macros if needed
     printMacros(*fOut, n);
