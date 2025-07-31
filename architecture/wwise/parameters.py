@@ -23,7 +23,7 @@ class Parameter:
     Models a parameter extracted from a Faust DSP UI JSON structure, providing utilities to transform 
     Faust UI metadata into Wwise plugin-compatible code and XML structures.
     """
-    def __init__(self, data: Dict[str, Any]):
+    def __init__(self, data: Dict[str, Any], faustfloat_isDouble : bool):
         self.raw = data
         self.varname = data.get("varname")
         self.Shortname = data.get("shortname").capitalize()
@@ -36,9 +36,11 @@ class Parameter:
         self.step = data.get("step", 1)
         self.init = data.get("init")
 
+        faustfloatType = "double" if faustfloat_isDouble else "float"
+
         self.initValue = self._derive_init_value(self.init)
         self.paramVarname = self.varname
-        self.paramCastedType = self._derive_casted_type()
+        self.paramCastedType = self._derive_casted_type(faustfloatType)
         self.isRTPC = self._derive_is_rtpc()
         self.RTPCname = self._derive_rtpc_name(data.get("unq_shortname"))
         self.WwiseTypeCast = self._cast_type_2wwise()
@@ -55,21 +57,20 @@ class Parameter:
             if isinstance(init_value, bool):
                 return "true" if init_value else "false"
             return str(init_value)
-        type_defaults = {
+        return {
             "checkbox": "false",
             "hslider": "0.0",
             "nentry": "0.0",
             "vslider": "0.0",
             "button": "false"
-        }
-        return type_defaults.get(self.type, "0")
+        }.get(self.type, "0")
 
-    def _derive_casted_type(self) -> str:
+    def _derive_casted_type(self, faustfloatType : str) -> str:
         """Map Faust UI type to C++ type."""
         return {
-            "hslider": "float",
-            "vslider": "float",
-            "nentry": "float",
+            "hslider": faustfloatType,
+            "vslider": faustfloatType,
+            "nentry": faustfloatType,
             "checkbox": "bool",
             "button" : "bool",
         }.get(self.type, "auto")
@@ -77,12 +78,10 @@ class Parameter:
     def _derive_is_rtpc(self) -> str:
         """
         Check metadata to see if RTPC is enabled.
-        TODO Enhance that feature
         """
         try:
             meta = self.raw.get("meta", [])
             for item in meta:
-                
                 if isinstance(item, dict) and "RTPC" in item:
                     self.rtpcType = item["RTPC"]
                     return "RTPC"
@@ -96,37 +95,22 @@ class Parameter:
 
     def _cast_type_2wwise(self) -> str:
         """Map internal type to Wwise casted C++ type."""
-        if self.paramCastedType == "float":
-            return "AkReal32"
-        elif self.paramCastedType == "double":
-            return "AkReal64"
-        elif self.paramCastedType == "bool":
-            return "bool"
+        return {
+            "float" : "AkReal32",
+            "double": "AkReal64",
+            "double": "AkReal64",
+            "bool"  : "bool"
+             
+        }.get(self.paramCastedType)
 
     def _cast_type_2XMLwwise(self) -> str:
-        """
-        Map internal type to Wwise XML type.
-        @TODO proper type casting
-        bool: Boolean
-        int16: 16-bit integer
-        Uint16: 16-bit unsigned integer
-        int32: 32-bit integer
-        Uint32: 32-bit unsigned integer
-        int64: 64-bit integer
-        Uint64: 64-bit unsigned integer
-        Real32: Single-precision float (32-bit)
-        Real64: Double-precision float (64-bit)
-        string:
-        https://www.audiokinetic.com/en/public-library/2024.1.5_8803/?source=SDK&id=plugin_xml_properties.html
-        """
-        if self.paramCastedType == "float":
-            return "Real32"
-        elif self.paramCastedType == "double":
-            return "Real64"
-        elif self.paramCastedType == "bool":
-            return "bool"
-        elif self.paramCastedType == "int":
-            return "int32"
+        """Map internal type to Wwise XML type."""
+        return {
+            "float": "Real32",
+            "double": "Real64",
+            "bool": "bool",
+            "int": "int32"
+        }.get(self.paramCastedType)
         
     def _derive_id_name(self, unq_shortname) -> str:
         """Generate a preprocessor macro name for parameter ID."""

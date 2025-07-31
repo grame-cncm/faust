@@ -118,7 +118,9 @@ def parameter_integration(cfg) -> None:
 
     print(f"OK : Succesfully extracted parameters from {cfg.json_file} file.")
 
-    parameters = [Parameter(d) for d in parameters_data]
+    faustfloat_isDouble = '-double' in cfg.faust_options
+
+    parameters = [Parameter(d,faustfloat_isDouble) for d in parameters_data]
     processor = TemplateProcessor(parameters)
 
     for file in target_files:
