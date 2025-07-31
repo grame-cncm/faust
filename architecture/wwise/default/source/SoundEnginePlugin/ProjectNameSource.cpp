@@ -113,7 +113,9 @@ AKRESULT ${name}Source::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkSource
     numOutputs = m_dsp.getNumOutputs();
     faust_outputs.resize(numOutputs);
     
+
     in_rFormat.channelConfig.SetStandard( GetSpeakerConfigChannelMask(numOutputs) );
+    speakersAvail = in_rFormat.channelConfig.uNumChannels;
 
     initDSP(static_cast<int>(in_rFormat.uSampleRate));
 
@@ -139,6 +141,29 @@ AKRESULT ${name}Source::GetPluginInfo(AkPluginInfo& out_rPluginInfo)
     return AK_Success;
 }
 
+void ${name}Source::fillRestOfBuffersWithSilence(const AkUInt32 framesToProcess )
+{
+    
+    // Runs only once filling the rest of the faust output channels with silence,  ...
+    // ... and only in case the channels requested by the faust dsp program is greater 
+    // than the available channels wwise can support.
+
+    static std::vector<FAUSTFLOAT> silenceBuffer;
+    if (silenceBuffer.size() < framesToProcess) {
+        silenceBuffer.resize(framesToProcess, 0.0f);
+
+    }
+    
+    // Fill silent channels
+    if (!faust_outputs[speakersAvail])
+    {
+        for (AkUInt32 ch = speakersAvail; ch < static_cast<AkUInt32>(numOutputs); ++ch) {
+            faust_outputs[ch] = silenceBuffer.data();
+        }
+        OutputDebugStringA("Filled the silence buffer!\n");
+    }
+}
+
 void ${name}Source::Execute(AkAudioBuffer* out_pBuffer)
 {
     m_durationHandler.SetDuration(m_pParams->RTPC.fDuration);
@@ -146,15 +171,16 @@ void ${name}Source::Execute(AkAudioBuffer* out_pBuffer)
 
     <<FOREACHPARAM: setParameter( "${shortname}", m_pParams->${isRTPC}.${RTPCname} );>>
 
-    const AkUInt32 uNumChannels = out_pBuffer->NumChannels();
-
-    const AkUInt32 minChannels = AkMin(static_cast<AkUInt32>(numOutputs), uNumChannels);
-    for (AkUInt32 ch = 0; ch < minChannels; ++ch)
+    for (AkUInt32 ch = 0; ch < speakersAvail; ++ch)
     {
         faust_outputs[ch] = out_pBuffer->GetChannel(ch);
     }
+
+    const AkUInt32 framesToProcess = out_pBuffer->uValidFrames;
+
+    fillRestOfBuffersWithSilence(framesToProcess);
         
-    m_dsp.compute(static_cast<int>(out_pBuffer->uValidFrames), nullptr, faust_outputs.data());
+    m_dsp.compute(static_cast<int>(framesToProcess), nullptr, faust_outputs.data());
 }
 
 AkReal32 ${name}Source::GetDuration() const

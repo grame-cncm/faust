@@ -67,10 +67,10 @@ private:
     AK::IAkPluginMemAlloc* m_pAllocator;
     AK::IAkEffectPluginContext* m_pContext;
 
-    AkUInt32 GetSpeakerConfigChannelMask(int);
-    int numInputs {0}, numOutputs {0}; 
-    std::vector<FAUSTFLOAT*> faust_inputs;
-    std::vector<FAUSTFLOAT*> faust_outputs;
+    void fillRestOfBuffersWithSilence(const AkUInt32 );
+    std::vector<FAUSTFLOAT> silenceBuffer;
+    int numChannels {0}, channelsAvail{0}; 
+    std::vector<FAUSTFLOAT*> faust_inplace_buffer;    
 };
 
 #endif // ${name}FX_H

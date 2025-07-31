@@ -23,11 +23,11 @@ the specific language governing permissions and limitations under the License.
 
   Copyright (c) 2025 Audiokinetic Inc.
 *******************************************************************************/
-
 #include "${name}FX.h"
 #include "../${name}Config.h"
 
 #include <AK/AkWwiseSDKVersion.h>
+#include <stdexcept>
 
 AK::IAkPlugin* Create${name}FX(AK::IAkPluginMemAlloc* in_pAllocator)
 {
@@ -52,68 +52,28 @@ ${name}FX::~${name}FX()
 {
 }
 
-AkUInt32 ${name}FX::GetSpeakerConfigChannelMask(int dsp_outputs){
-    
-    // improved formats based on :
-    // https://www.audiokinetic.com/en/public-library/2024.1.6_8842/?source=SDK&id=_ak_speaker_config_8h_source.html
-    // @TODO:
-    // The configuration that takes place is a coarse one and make assumptions about the maching of config options 
-    // .. for instance, 7 speakers may be 7_0 or 6_1 as well.
-    // .. so there is space for improvement here...
-
-    AkUInt32 in_uChannelMask;
-    switch (dsp_outputs)
-    {
-    case 1:
-        in_uChannelMask = AK_SPEAKER_SETUP_MONO;
-        break;
-    case 2:
-        in_uChannelMask = AK_SPEAKER_SETUP_STEREO;
-        break;
-    case 3:
-        in_uChannelMask = AK_SPEAKER_SETUP_3STEREO;
-        break;
-    case 4:
-        in_uChannelMask = AK_SPEAKER_SETUP_4;
-        break;
-    case 5:
-        in_uChannelMask = AK_SPEAKER_SETUP_5;
-        break;
-    case 6:
-        in_uChannelMask = AK_SPEAKER_SETUP_6;
-        break;
-    case 7:
-        in_uChannelMask = AK_SPEAKER_SETUP_7;
-        break;
-    case 8:
-        in_uChannelMask = AK_SPEAKER_SETUP_7POINT1; // or AK_SPEAKER_SETUP_DEFAULT_PLANE?
-        break;
-    default:
-        in_uChannelMask = AK_SPEAKER_SETUP_STEREO;
-        break;
-    }
-
-    if (dsp_outputs > 8)
-    {
-        AKPLATFORM::OutputDebugMsg(" [WARNING] dsp_outputs > 8. This is an unsupported speaker configuration. Falling back to 8 channels (7.1).\n");
-        in_uChannelMask = AK_SPEAKER_SETUP_7POINT1;
-    }
-
-    return in_uChannelMask;
-}
-
 AKRESULT ${name}FX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginContext* in_pContext, AK::IAkPluginParam* in_pParams, AkAudioFormat& in_rFormat)
 {
     m_pParams = (${name}FXParams*)in_pParams;
     m_pAllocator = in_pAllocator;
     m_pContext = in_pContext;
 
-    numInputs = m_dsp.getNumInputs();
-    numOutputs = m_dsp.getNumOutputs();
-    faust_inputs.resize(numInputs);
-    faust_outputs.resize(numOutputs);
-    
-    in_rFormat.channelConfig.SetStandard( GetSpeakerConfigChannelMask(numOutputs) );
+    channelsAvail = in_rFormat.channelConfig.uNumChannels;
+    const int numInputs = m_dsp.getNumInputs();
+    const int numOutputs = m_dsp.getNumOutputs();
+    // Runtime error in case of misalignment between amount of input and output requested channels by the Faust program
+    if (numInputs != numOutputs){
+        char errorMsg[256];
+        snprintf(errorMsg, sizeof(errorMsg),
+            "[ERROR]: Wwise FX plugins require the same amount of input/output channels. In this case {} != {}", 
+                numInputs, numOutputs);
+        AKPLATFORM::OutputDebugMsg(errorMsg);
+        throw std::runtime_error(errorMsg);
+    }
+    numChannels = numInputs;
+
+    // resize and initialize the faust io (in-place) buffer with nullptr
+    faust_inplace_buffer.resize(numChannels, nullptr);
 
     initDSP(static_cast<int>(in_rFormat.uSampleRate));
 
@@ -140,29 +100,47 @@ AKRESULT ${name}FX::GetPluginInfo(AkPluginInfo& out_rPluginInfo)
     return AK_Success;
 }
 
+void ${name}FX::fillRestOfBuffersWithSilence(const AkUInt32 framesToProcess )
+{
+    
+    // Runs only once filling the rest of the faust channels with silence,
+    // and only in case the channels requested by the faust dsp program is
+    // greater than the available channels wwise can support.
+    
+    if (faust_inplace_buffer[channelsAvail] == nullptr)
+    {
+        if (silenceBuffer.size() < framesToProcess) {
+            silenceBuffer.resize(framesToProcess, 0.0f);
+        }
+        // Fill silent channels
+        for (int ch = channelsAvail; ch < numChannels; ++ch) {
+            faust_inplace_buffer[ch] = silenceBuffer.data();
+        }
+        AKPLATFORM::OutputDebugMsg("Filled the input(/output) channels with silence.\n");
+    }
+}
+
 void ${name}FX::Execute(AkAudioBuffer* io_pBuffer)
 {
-    // Technical note:
-    // This function assumes that the FAUST DSP consumes and produces exactly the same number of frames.(framesProduced variable is discarded)
-    // The number of channels are as many as the DSP supports and extra ones are ignored
-    // If the DSP needs a different frame ratio, this logic might not be correct.
 
-    const AkUInt32 inChannels = io_pBuffer->NumChannels();
+    channelsAvail = static_cast<int>(io_pBuffer->NumChannels());
     const AkUInt32 framesToProcess = io_pBuffer->uValidFrames;
 
     <<FOREACHPARAM: setParameter("${shortname}", m_pParams->${isRTPC}.${RTPCname});>>
 
-    std::fill(faust_inputs.begin(), faust_inputs.end(), nullptr);
-    std::fill(faust_outputs.begin(), faust_outputs.end(), nullptr);
+    for (int ch = 0; ch < numChannels; ++ch) {
+        if (ch < channelsAvail ){
+            faust_inplace_buffer[ch] = io_pBuffer->GetChannel(ch);
+        }
+    }        
 
-    for (int ch = 0; ch < static_cast<int>(io_pBuffer->NumChannels()); ++ch) {
-        if (ch < numInputs)
-            faust_inputs[ch] = io_pBuffer->GetChannel(ch);
-        if (ch < numOutputs)
-            faust_outputs[ch] = io_pBuffer->GetChannel(ch);
+    if (channelsAvail < numChannels)
+    {
+        fillRestOfBuffersWithSilence(framesToProcess);
+        numChannels = channelsAvail;
     }
 
-    m_dsp.compute(static_cast<int>(framesToProcess), faust_inputs.data(), faust_outputs.data());
+    m_dsp.compute(static_cast<int>(framesToProcess), faust_inplace_buffer.data(), faust_inplace_buffer.data());
 }
 
 AKRESULT ${name}FX::TimeSkip(AkUInt32 in_uFrames)

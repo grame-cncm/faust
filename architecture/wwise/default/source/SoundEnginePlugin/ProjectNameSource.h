@@ -69,7 +69,8 @@ private:
     AkFXDurationHandler m_durationHandler;
     
     AkUInt32 GetSpeakerConfigChannelMask(int);
-    int numOutputs {0};
+    void fillRestOfBuffersWithSilence(const AkUInt32);
+    int numOutputs {0},speakersAvail{0};
     std::vector<FAUSTFLOAT*> faust_outputs;
 };
 
