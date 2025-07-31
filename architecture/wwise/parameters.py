@@ -82,7 +82,9 @@ class Parameter:
         try:
             meta = self.raw.get("meta", [])
             for item in meta:
+                
                 if isinstance(item, dict) and "RTPC" in item:
+                    self.rtpcType = item["RTPC"]
                     return "RTPC"
             return "NonRTPC"
         except:

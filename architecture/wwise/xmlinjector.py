@@ -61,7 +61,7 @@ def _parameter_to_property_xml(param) -> ET.Element:
     }
 
     if param.is_rtpc():
-        property_attrs["SupportRTPCType"] = "Additive"
+        property_attrs["SupportRTPCType"] = param.rtpcType
 
     property_elem = ET.Element("Property", property_attrs)
 
