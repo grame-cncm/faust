@@ -820,7 +820,7 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
         void comboBoxChanged (juce::ComboBox* cb) override
         {
             // -1 because of the starting item at 1 at the initialization, and protect against out of range access.
-            modifyZone(fValues[std::max(0, cb->getSelectedId() - 1)]);
+            modifyZone(fValues[std::max<int>(0, cb->getSelectedId() - 1)]);
         }
 
         virtual void reflectZone() override
