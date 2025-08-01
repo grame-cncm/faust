@@ -30,6 +30,7 @@
 #endif
 
 #include <stack>
+#include <algorithm>
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
