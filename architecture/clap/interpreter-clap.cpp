@@ -3,37 +3,88 @@
 //
 
 #include "interpreter-clap.h"
+#include <faust/dsp/interpreter-dsp.h>
+#include <faust/gui/APIUI.h> //backend parameter list
+#include <fstream>
+#include <sstream>
 #include <iostream>
 
-// starting w no parameters, no midi, no ui, just handles one input and one output mono channels for now
+InterpreterCLAP::InterpreterCLAP() : fFactory(nullptr), fDSP(nullptr) {}
 
-// plugin constructor, it calls the base clap plugin constructor with the descriptor and host
-// initialises the pointers fDSP, fFactory to nullptr to start clean
-InterpreterCLAPPlugin::InterpreterCLAPPlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
-: clap::helpers::Plugin(desc, host), fFactory(nullptr), fDSP(nullptr) {}
-
-
-// the faust API function deleteInterpreterDSPFactory releases the compiled DSP factory and reduces its reference count
-// using this in order to prevent memory leakage
-InterpreterCLAPPlugin::~InterpreterCLAPPlugin() {
-    if (fDSP) delete fDSP;
+InterpreterCLAP::~InterpreterCLAP() {
     if (fFactory) deleteInterpreterDSPFactory(fFactory);
 }
 
-
-bool InterpreterCLAPPlugin::init() noexcept {
-    std::string error_msg;
-    const char* dsp_code = "process = no.noise;"; //minimal Faust DSP code
-    fFactory = createInterpreterDSPFactoryFromString("interpreter_plugin", dsp_code, 0, nullptr, error_msg);
-    if (!fFactory) {
-        std::cerr << "failed to create interpreter DSP factory: " << error_msg << "\n";
+bool InterpreterCLAP::loadFromFile(const std::string& path, int sampleRate) {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open DSP file: " << path << "\n";
         return false;
     }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string code = buffer.str();
+
+    std::string error_msg;
+    fFactory = createInterpreterDSPFactoryFromString(
+        path.c_str(), code, 0, nullptr, error_msg
+    );
+
+    if (!fFactory) {
+        std::cerr << "DSP factory creation failed: " << error_msg << "\n";
+        return false;
+    }
+
     fDSP = fFactory->createDSPInstance();
     if (!fDSP) {
-        std::cerr << "failed to create interpreter DSP instance\n";
+        std::cerr << "DSP instance creation failed\n";
         return false;
     }
-    fDSP->init(44100); //init with default sample rate
+
+    fUI = std::make_unique<APIUI>();
+    fDSP->buildUserInterface(fUI.get());
+    fDSP->init(sampleRate);
+
     return true;
+}
+
+int InterpreterCLAP::getNumInputs() const {
+    return fDSP ? fDSP->getNumInputs() : 0;
+}
+
+int InterpreterCLAP::getNumOutputs() const {
+    return fDSP ? fDSP->getNumOutputs() : 0;
+}
+
+int InterpreterCLAP::getParamCount() const {
+    return fUI ? fUI->getParamsCount() : 0;
+}
+
+void InterpreterCLAP::setParamValue(int idx, float val) {
+    if (fUI) fUI->setParamValue(idx, val);
+}
+
+std::string InterpreterCLAP::getParamLabel(int idx) const {
+    return fUI ? fUI->getParamLabel(idx) : "";
+}
+
+float InterpreterCLAP::getParamValue(int idx) const {
+    return fUI ? fUI->getParamValue(idx) : 0.f;
+}
+
+float InterpreterCLAP::getParamMin(int idx) const {
+    return fUI ? fUI->getParamMin(idx) : 0.f;
+}
+
+float InterpreterCLAP::getParamMax(int idx) const {
+    return fUI ? fUI->getParamMax(idx) : 1.f;
+}
+
+float InterpreterCLAP::getParamInit(int idx) const {
+    return fUI ? fUI->getParamInit(idx) : 0.f;
+}
+
+void InterpreterCLAP::compute(int frames, float** inputs, float** outputs) {
+    if (fDSP) fDSP->compute(frames, inputs, outputs);
 }
