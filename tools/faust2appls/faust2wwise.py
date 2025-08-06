@@ -115,10 +115,15 @@ if __name__ == "__main__":
     faust_dsp_dir = get_faust_dsp_dir()
     faust_include_dir = get_faust_include_dir()
 
+    print(f"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    print(f"faust2wwise static compilation tool.")
+    print(f"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+
+    print("\n--------- Environment variables ----------\n")
     print("Wwise installation:", wwise_root_dir or "Not found")
     print(f"faust_dsp_dir {faust_dsp_dir}")
     print(f"faust_include_dir {faust_include_dir}")
-    
+    print("\n------------------------------------------\n")
 
     orchestrator_module = import_orchestrator(faust_dsp_dir)
 

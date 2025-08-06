@@ -82,9 +82,10 @@ class Faust2WwiseOrchestrator:
             args(List[str]): Optional list of arguments. If not provided, parse_arguments function makes 
             use of sys library to retrieve them.
         """
-        print("------------------------------------------Preliminary Step : setup and validate environment")
         
         utils.parse_arguments(self.cfg, args)
+
+        print("------------------------------------------Preliminary Step : setup and validate environment")
 
         # utils.setup_platform_paths(self.cfg) # TODO Discarded, but may be used to conditionally edit variables across different platforms (windows/macOs) 
 
@@ -294,7 +295,6 @@ class Faust2WwiseOrchestrator:
             args (List[str], optional) : the arguments passed through the console. If not directly
             passed through the function, the arguments are obtained using the sys library.
         """
-        print(f"Converting {self.dsp_file or 'DSP file'} to Wwise plugin...")
     
         self.setup_environment(args)    # preliminary step
         self.compile_dsp_file()         # step 1
@@ -304,11 +304,4 @@ class Faust2WwiseOrchestrator:
         self.build_plugin()             # step 5
         self.cleanup()                  # outro
         
-        print("")
-        print("=====================================")
-        print("Faust2Wwise conversion completed!")
-        print(f"Generated plugin: {self.plugin_name}")
-        print(f"Location: {os.path.join(self.output_dir, self.plugin_name)}")
-        print(f"Installation: {os.path.join(self.wwiseroot, "Authoring", self.wwise_arch, self.wwise_configuration, "bin", "Plugins", self.plugin_name)}.(ext)")
-        print("=====================================")
-        print("")
+        self.cfg.print_summary()        # print summary info

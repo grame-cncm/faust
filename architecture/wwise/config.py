@@ -182,6 +182,18 @@ class Config:
         print(f"wwise_template_dir {self.wwise_template_dir}")    
         print("==========================================")
     
+    def print_summary(self) -> None:
+        """Prints the summary info after successful Faust to Wwise integration."""
+        print("")
+        print("=====================================")
+        print("Faust2Wwise conversion completed!")
+        print(f"Generated plugin: {self.plugin_name}")
+        print(f"Plugin type: {self.plugin_type}" + (" (in-place)" if self.plugin_type == "effect" and self.wwise_plugin_interface=="in-place" else " (out-of-place)" if self.plugin_type == "effect" else ""))
+        print(f"Location: {os.path.join(self.output_dir, self.plugin_name)}")
+        print(f"Installation: {os.path.join(self.wwiseroot, 'Authoring', self.wwise_arch, self.wwise_configuration, 'bin', 'Plugins', self.plugin_name)}.(ext)")
+        print("=====================================")
+        print("")
+
     def _get_final_attrs(self) -> set[str]:
         """Return names of attributes marked as Final."""
         hints = get_type_hints(self.__class__, include_extras=True)

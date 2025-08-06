@@ -23,6 +23,7 @@ def print_usage() -> None:
     """
     Prints general usage information for the faust2wwise command-line tool.
     """
+    print("Usage:")
     print("faust2wwise [options] file.dsp")
     print("Converts Faust DSP files to Wwise plugins")
     print("")
@@ -64,7 +65,7 @@ def print_wwise_help() -> None:
     print("  --toolchain-env-script <path>   Path to a \'GetToolchainEnv\' script, which, when executed with a version provided by the toolchain-vers file, returns a comma separated list of environment variables to apply for build step.")
     print("")
     print("Example:")
-    print("  faust2wwise myfaustfile.dsp --platform Authoring_Windows --toolset vc170 --configuration Release --arch x64")
+    print("  faust2wwise myfaustfile.dsp -double -o myWwisePlugin --platform Authoring_Windows --toolset vc170 --configuration Release --arch x64")
     print("")
 
 def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
@@ -271,15 +272,15 @@ def wwise_platform_and_toolset_compatible(cfg) -> bool:
         default_toolset = "vc170"
 
         # Strict compatibility
-        if cfg.wwise_platform == "Windows_vc160":
-            if cfg.wwise_toolset is None or cfg.wwise_toolset != "vc160":
+        if cfg.wwise_platform == 'Windows_vc160':
+            if cfg.wwise_toolset is None or cfg.wwise_toolset != 'vc160':
                 return False  # Incompatible
 
-        elif cfg.wwise_platform == "Windows_vc170":
+        elif cfg.wwise_platform == 'Windows_vc170':
             if cfg.wwise_toolset is None:
                 cfg.wwise_toolset = default_toolset
                 print(f"[WARNING] No toolset provided. Defaulting to '{default_toolset}' for platform 'Windows_vc170'.")
-            elif cfg.wwise_toolset != "vc170":
+            elif cfg.wwise_toolset != 'vc170':
                 return False  # Incompatible
 
         else:  # Authoring, Authoring_Windows, WinGC
