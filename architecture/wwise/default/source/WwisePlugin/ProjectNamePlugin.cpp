@@ -40,7 +40,7 @@ bool ${name}Plugin::GetBankParameters(const GUID & in_guidPlatform, AK::Wwise::P
     // Write bank data here
     in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Duration"));
 
-    <<FOREACHPARAM: in_dataWriter.${Wwise_Type_Specific_WriteFunction}(m_propertySet.${Wwise_Type_Specific_GetFunction}(in_guidPlatform, "${label}")); >>
+    <<FOREACHPARAM:IF io_type==input: in_dataWriter.${Wwise_Type_Specific_WriteFunction}(m_propertySet.${Wwise_Type_Specific_GetFunction}(in_guidPlatform, "${label}")); >>
 
     return true;
 }

@@ -40,36 +40,48 @@ class TemplateProcessor:
         """
         self.parameters = parameters
 
-    def parse_placeholder(self, placeholder_str: str) -> Tuple[Optional[str], Optional[str], str]:
+    def parse_placeholder(self, placeholder_str: str) -> Tuple[Optional[List[Tuple[str, str, str]]], str]:
         """
-        Function that parses a placeholder, extracting the optional condition and the template code.
+        Function that parses a placeholder, extracting the optional condition(s) and the template code.
         Args:
             placeholder_str (str): The raw placeholder string from the template.
         Returns:
-            Tuple[Optional[str], Optional[str], str]: A tuple containing:
-                - cond_key (str or None if no condition): The condition key,
-                - cond_val (str or None if no condition): The condition value,
+            Tuple[Optional[List[Tuple[str, str, str]]], str]: A tuple containing:
+                - conditions (optional list of tuple of 3 str or None if no condition): A list containing the condition key, the condition value, and the equality/inequality operator.
                 - template (str): The raw template to render per parameter
         """
         # Remove prefix and suffix
         inner = placeholder_str[len(self.PLACEHOLDER_PREFIX):-len(self.PLACEHOLDER_SUFFIX)]
 
+        conditions = None
+
         # Spliting the optional condition
         if "IF" in inner and ":" in inner:
+            while(inner[0]==' '):
+                inner = inner[1:]
             condition_with_if, template = inner.split(":", 1)
             condition_part = condition_with_if.strip().removeprefix("IF").strip()
-            if "==" in condition_part:
-                cond_key, cond_val = map(str.strip, condition_part.split("==", 1))
-            else:
-                cond_key = None
-                cond_val = None
-                template = inner
+            # Split compound conditions by AND
+            condition_strings = [c.strip() for c in condition_part.split("AND")]
+            conditions = []
+
+            for cond in condition_strings:
+                if "==" in cond:
+                    key, val = map(str.strip, cond.split("==", 1))
+                    conditions.append((key, "==", val))
+                elif "!=" in cond:
+                    key, val = map(str.strip, cond.split("!=", 1))
+                    conditions.append((key, "!=", val))
+                else:
+                    # Invalid condition format
+                    conditions = None
+                    template = inner
+                    break
         else:
-            cond_key = None
-            cond_val = None
             template = inner
 
-        return cond_key, cond_val, template.strip()
+
+        return conditions, template.strip()
 
     def render_template(self, template_str : str, context : Dict[str, Any]) -> str:
         """
@@ -104,13 +116,27 @@ class TemplateProcessor:
             content = f.read()
 
         def replace_match(placeholder_str):
-            cond_key, cond_val, template = self.parse_placeholder(placeholder_str)
+            conditions, template = self.parse_placeholder(placeholder_str)
 
             rendered_blocks = []
             for param in self.parameters:
                 context = param.to_dict()
-                if cond_key and context.get(cond_key) != cond_val:
-                    continue  # skip if condition not matched
+
+                # Evaluate all conditions
+                if conditions:
+                    failed = False
+                    for key, op, val in conditions:
+                        actual_val = context.get(key)
+
+                        # Simple equality/inequality checks
+                        if op == "==" and str(actual_val) != val:
+                            failed = True
+                            break
+                        elif op == "!=" and str(actual_val) == val:
+                            failed = True
+                            break
+                    if failed:
+                        continue  # skip this param
 
                 rendered_blocks.append(self.render_template(template, context))
 

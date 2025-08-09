@@ -38,6 +38,7 @@ class Parameter:
 
         faustfloatType = "double" if faustfloat_isDouble else "float"
 
+        self.io_type = self._derive_io_type()
         self.initValue = self._derive_init_value(self.init)
         self.paramVarname = self.varname
         self.paramCastedType = self._derive_casted_type(faustfloatType)
@@ -51,6 +52,11 @@ class Parameter:
         self.Wwise_Type_Specific_WriteFunction = self._derive_Wwise_WriteFunction()
         self.Wwise_Type_Specific_GetFunction = self._derive_Wwise_GetFunction()
     
+    def _derive_io_type(self):
+        if self.is_bargraph():
+            return "output"
+        return "input"
+
     def _derive_init_value(self, init_value : Any) -> str:
         """Convert init value to a string"""
         if init_value is not None:
@@ -58,6 +64,8 @@ class Parameter:
                 return "true" if init_value else "false"
             return str(init_value)
         return {
+            "vbargraph" : "0.0",
+            "hbargraph" : "0.0",
             "checkbox": "false",
             "hslider": "0.0",
             "nentry": "0.0",
@@ -68,6 +76,8 @@ class Parameter:
     def _derive_casted_type(self, faustfloatType : str) -> str:
         """Map Faust UI type to C++ type."""
         return {
+            "vbargraph": faustfloatType,
+            "hbargraph": faustfloatType,
             "hslider": faustfloatType,
             "vslider": faustfloatType,
             "nentry": faustfloatType,
@@ -83,6 +93,9 @@ class Parameter:
             meta = self.raw.get("meta", [])
             for item in meta:
                 if isinstance(item, dict) and "RTPC" in item:
+                    if self.is_bargraph():
+                        self.rtpcType = None
+                        return None
                     self.rtpcType = item["RTPC"]
                     return "RTPC"
             return "NonRTPC"
@@ -160,3 +173,9 @@ class Parameter:
     def default_value(self) -> str:
         """Return the derived initial/default value for the parameter."""
         return self.initValue or "0"
+    
+    def is_bargraph(self) -> bool:
+        return self.type=="vbargraph" or self.type=="hbargraph"
+    
+    def xml_applicable(self) -> bool:
+        return not self.is_bargraph()

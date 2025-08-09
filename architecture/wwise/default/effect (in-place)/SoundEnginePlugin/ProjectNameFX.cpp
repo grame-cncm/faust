@@ -126,7 +126,7 @@ void ${name}FX::Execute(AkAudioBuffer* io_pBuffer)
     channelsAvail = static_cast<int>(io_pBuffer->NumChannels());
     const AkUInt32 framesToProcess = io_pBuffer->uValidFrames;
 
-    <<FOREACHPARAM: setParameter("${shortname}", m_pParams->${isRTPC}.${RTPCname});>>
+    <<FOREACHPARAM:IF io_type==input:setParameter("${shortname}", m_pParams->${isRTPC}.${RTPCname});>>
 
     for (int ch = 0; ch < numChannels; ++ch) {
         if (ch < channelsAvail ){

@@ -34,7 +34,8 @@ def inject_properties_to_xml(parameters : list, xml_file : str) -> None:
     
     # Append each parameter;s property XML
     for param in parameters:
-        properties_elem.append(_parameter_to_property_xml(param))
+        if param.xml_applicable():
+            properties_elem.append(_parameter_to_property_xml(param))
 
     # format before saving - pretty-prints and removes blank lines for cleaner formatting.
     xml_str = ET.tostring(root, encoding="utf-8")

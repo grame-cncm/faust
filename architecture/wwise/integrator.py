@@ -52,8 +52,7 @@ def extract_parameters(ui_tree : FaustUITree)-> List[FaustUIItem]:
     
     This function performs two operations in a single pass:
     - assigns unique shortnames to ALL items that have a 'shortname' property
-    - collects only parameter-type items (sliders, entries, checkboxes, buttons), 
-    filtering out BarGraphs which are curently not supported 
+    - collects only parameter-type items (sliders, entries, checkboxes, buttons, barGraphs).
     
     As for the uniquification, it is necessary because Faust UI elements support groups where
     different groups may contain elements with the same name. Since we serialize all UI elements 
@@ -80,9 +79,7 @@ def extract_parameters(ui_tree : FaustUITree)-> List[FaustUIItem]:
             item["unq_shortname"] = f"{item['shortname']}{counter}"
             counter += 1
         
-        # result.append(item) # TODO need to filter out non-input parameters such as the BarGraph
-        if item["type"] in {"hslider", "vslider", "nentry", "checkbox", "button"}:
-            result.append(item) # List of dicts
+        result.append(item)
     
     parse_ui(ui_tree, callback)
     return result

@@ -54,7 +54,7 @@ AKRESULT ${name}SourceParams::Init(AK::IAkPluginMemAlloc* in_pAllocator, const v
     {
         // Initialize default parameters here
         RTPC.fDuration = 0.0f;
-        <<FOREACHPARAM:  ${isRTPC}.${RTPCname} = ${initValue}; >>
+        <<FOREACHPARAM:IF io_type==input:  ${isRTPC}.${RTPCname} = ${initValue}; >>
         m_paramChangeHandler.SetAllParamChanges();
         return AK_Success;
     }
@@ -75,7 +75,7 @@ AKRESULT ${name}SourceParams::SetParamsBlock(const void* in_pParamsBlock, AkUInt
 
     // Read bank data here
     RTPC.fDuration = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
-    <<FOREACHPARAM:  ${isRTPC}.${RTPCname} = READBANKDATA(${WwiseTypeCast}, pParamsBlock, in_ulBlockSize); >>
+    <<FOREACHPARAM:IF io_type==input:  ${isRTPC}.${RTPCname} = READBANKDATA(${WwiseTypeCast}, pParamsBlock, in_ulBlockSize); >>
     CHECKBANKDATASIZE(in_ulBlockSize, eResult);
     m_paramChangeHandler.SetAllParamChanges();
 
@@ -93,7 +93,7 @@ AKRESULT ${name}SourceParams::SetParam(AkPluginParamID in_paramID, const void* i
         RTPC.fDuration = *((AkReal32*)in_pValue);
         m_paramChangeHandler.SetParamChange(PARAM_DURATION_ID);
         break;
-    <<FOREACHPARAM:  case ${PARAM_ID_NAME} : ${isRTPC}.${RTPCname} = *((${WwiseTypeCast}*)in_pValue); m_paramChangeHandler.SetParamChange(${PARAM_ID_NAME});break; >>
+    <<FOREACHPARAM:IF io_type==input:  case ${PARAM_ID_NAME} : ${isRTPC}.${RTPCname} = *((${WwiseTypeCast}*)in_pValue); m_paramChangeHandler.SetParamChange(${PARAM_ID_NAME});break; >>
     default:
         eResult = AK_InvalidParameter;
         break;

@@ -169,7 +169,7 @@ void ${name}Source::Execute(AkAudioBuffer* out_pBuffer)
     m_durationHandler.SetDuration(m_pParams->RTPC.fDuration);
     m_durationHandler.ProduceBuffer(out_pBuffer);
 
-    <<FOREACHPARAM: setParameter( "${shortname}", m_pParams->${isRTPC}.${RTPCname} );>>
+    <<FOREACHPARAM:IF io_type==input: setParameter( "${shortname}", m_pParams->${isRTPC}.${RTPCname} );>>
 
     for (AkUInt32 ch = 0; ch < speakersAvail; ++ch)
     {
