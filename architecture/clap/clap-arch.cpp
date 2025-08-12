@@ -1,4 +1,4 @@
-// Created by Cucu on 02/06/2025.
+// Created by Facundo Franchino on 02/06/2025.
 
 // this file implements a CLAP plugin backend by wrapping Faust's mydsp class.
 // it acts as a bridge between Faust-generated DSP code and the CLAP plugin API.
@@ -154,12 +154,34 @@ public:
     APlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
         : Base(desc, host) {}
 
+private:
+    // set all parameters to their default/initial values
+    void initParametersToDefaults() {
+        for (int i = 0; i < fUI.getParamsCount(); ++i) {
+            FAUSTFLOAT defaultVal = fUI.getParamInit(i);
+            fUI.setParamValue(i, defaultVal);
+        }
+    }
+
+public:
     bool init() noexcept override {
         fBaseDSP = new mydsp();
-        fIsPolyphonic = true;
+        
+        // use compile-time configuration for polyphonic mode
+        #ifdef FAUST_IS_POLYPHONIC
+        fIsPolyphonic = (FAUST_IS_POLYPHONIC == 1);
+        #else
+        fIsPolyphonic = true;  // default to polyphonic
+        #endif
+        
         if (fIsPolyphonic) {
-            // create polyphonic wrapper and build UI linked to CLAPMapUI
-            fDSP = new mydsp_poly(fBaseDSP, 16, true, true);
+            // create polyphonic wrapper with configurable voice count
+            #ifdef FAUST_NVOICES
+            int nvoices = FAUST_NVOICES;
+            #else
+            int nvoices = 16;  // default voice count
+            #endif
+            fDSP = new mydsp_poly(fBaseDSP, nvoices, true, true);
             fDSP->buildUserInterface(&fUI);
             GUI::updateAllGuis();
 
@@ -171,6 +193,9 @@ public:
             fBaseDSP->buildUserInterface(&fUI); // regular UI
             GUI::updateAllGuis();
         }
+        
+        // initialise all parameters to their default values
+        initParametersToDefaults();
         return true;
     }
 

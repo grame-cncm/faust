@@ -4,18 +4,25 @@ import os #file path manipulation
 import subprocess #run shell commands
 import json
 import re
+import argparse
 
 #config
 ARCH_REL_PATH="architecture/clap/clap-arch.cpp"
 OUTPUT_ROOT="build"
 
-#check for user input, which should be a .dsp file, otherwise just exit
-if len(sys.argv)<2:
-    print("usage: faust2clap.py <file.dsp>")
-    sys.exit(1)
+#parse command line arguments properly
+parser = argparse.ArgumentParser(description='faust2clap - Generate CLAP plugins from Faust DSP code')
+parser.add_argument('dsp_file', help='Input .dsp file')
+parser.add_argument('-nvoices', type=int, default=16, help='Number of polyphonic voices (default: 16)')
+parser.add_argument('-mono', action='store_true', help='Generate monophonic plugin instead of polyphonic')
+parser.add_argument('-poly', action='store_true', help='Generate polyphonic plugin (default behaviour)')
 
+args = parser.parse_args()
 
-dsp_path= sys.argv[1]#full path to the provdded .dsp file
+dsp_path = args.dsp_file #full path to the provided .dsp file
+nvoices = args.nvoices
+is_monophonic = args.mono
+is_polyphonic = args.poly or not args.mono  # default to poly unless mono specified
 if not os.path.isfile(dsp_path):
     print(f"[!] dsp file not found: {dsp_path}")
     sys.exit(1)
@@ -84,6 +91,8 @@ with open(metadata_header_path, "w") as f:
     f.write(f'#define FAUST_PLUGIN_VENDOR "{plugin_vendor}"\n')
     f.write(f'#define FAUST_PLUGIN_VERSION "{plugin_version}"\n')
     f.write(f'#define FAUST_PLUGIN_DESCRIPTION "{plugin_description}"\n')
+    f.write(f'#define FAUST_NVOICES {nvoices}\n')
+    f.write(f'#define FAUST_IS_POLYPHONIC {"1" if is_polyphonic else "0"}\n')
 
 print("[*] extracted metadata:")
 print(f"    id:          {plugin_id}")
@@ -91,6 +100,8 @@ print(f"    name:        {plugin_name}")
 print(f"    vendor:      {plugin_vendor}")
 print(f"    version:     {plugin_version}")
 print(f"    description: {plugin_description}")
+print(f"    polyphonic:  {is_polyphonic}")
+print(f"    voices:      {nvoices}")
 
 
 #run faust to generate the plugin source file

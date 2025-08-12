@@ -1,0 +1,80 @@
+# Makefile for Faust Dynamic CLAP Plugin
+# 
+# This builds a CLAP plugin that can dynamically compile Faust DSP files
+# at runtime using the libfaust interpreter.
+#
+# Usage:
+#   make -f Makefile.simple         # Build the plugin
+#   make -f Makefile.simple install # Install to system plugin directories
+#   make -f Makefile.simple clean   # Clean build artifacts
+#
+# Requirements:
+#   - libfaust installed with interpreter support
+#   - CLAP SDK and helpers in ../../external/
+#   - C++17 compatible compiler
+
+CXX = g++
+CXXFLAGS = -std=c++17 -fPIC -O2 -Wall -Wextra
+INCLUDES = -I../../architecture \
+           -I../../external/clap-sdk/include \
+           -I../../external/clap-helpers/include \
+           -I/usr/local/include \
+           -I/opt/homebrew/include
+
+LIBS = -L/usr/local/lib -L/opt/homebrew/lib -lfaust -ldl
+
+TARGET = FaustDynamic.clap
+SOURCE = simple-faust.cpp
+HELPER_OBJS = clap-helpers-impl.o interpreter-clap.o
+MAIN_OBJ = faust-dynamic.o
+
+all: $(TARGET)
+
+$(TARGET): $(MAIN_OBJ) $(HELPER_OBJS)
+	@echo "🔗 Linking $(TARGET)..."
+	$(CXX) -shared $^ $(LIBS) -o $@
+	@echo "✅ Built $(TARGET) successfully"
+
+$(MAIN_OBJ): $(SOURCE)
+	@echo "🔨 Compiling main plugin source..."
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $(SOURCE) -o $@
+
+clap-helpers-impl.o: clap-helpers-impl.cpp
+	@echo "🔨 Compiling CLAP helpers..."
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c clap-helpers-impl.cpp -o $@
+
+interpreter-clap.o: interpreter-clap.cpp interpreter-clap.h
+	@echo "🔨 Compiling Faust interpreter interface..."
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c interpreter-clap.cpp -o $@
+
+clean:
+	@echo "🧹 Cleaning build artifacts..."
+	rm -f $(MAIN_OBJ) $(HELPER_OBJS) $(TARGET)
+	@echo "✅ Clean complete"
+
+install: $(TARGET)
+	@echo "📦 Installing $(TARGET)..."
+	@mkdir -p $(HOME)/Library/Audio/Plug-Ins/CLAP/
+	@mkdir -p $(HOME)/.clap/plugins/
+	cp $(TARGET) $(HOME)/Library/Audio/Plug-Ins/CLAP/
+	cp $(TARGET) $(HOME)/.clap/plugins/
+	@echo "✅ Installed $(TARGET) to system plugin directories"
+
+# Development targets
+test: $(TARGET)
+	@echo "🧪 Testing plugin load..."
+	@if [ -n "$(CLAP_VALIDATOR)" ]; then \
+		$(CLAP_VALIDATOR) $(TARGET); \
+	else \
+		echo "⚠️  CLAP_VALIDATOR not set, skipping validation"; \
+	fi
+
+# Show build info
+info:
+	@echo "🛠️  Faust Dynamic CLAP Plugin Build Configuration:"
+	@echo "   Compiler: $(CXX)"
+	@echo "   Flags: $(CXXFLAGS)"
+	@echo "   Target: $(TARGET)"
+	@echo "   Dependencies: libfaust (with interpreter), CLAP SDK"
+
+.PHONY: all clean install test info

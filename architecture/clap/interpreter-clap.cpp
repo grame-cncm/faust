@@ -1,10 +1,11 @@
 //
-// Created by Cucu on 04/07/2025.
+// Created by Facundo Franchino on 04/07/2025.
 //
 
 #include "interpreter-clap.h"
 #include <faust/dsp/interpreter-dsp.h>
-#include <faust/gui/APIUI.h> //backend parameter list
+// #include <faust/gui/APIUI.h>
+// #include <faust/gui/MapUI.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -12,7 +13,15 @@
 InterpreterCLAP::InterpreterCLAP() : fFactory(nullptr), fDSP(nullptr) {}
 
 InterpreterCLAP::~InterpreterCLAP() {
-    if (fFactory) deleteInterpreterDSPFactory(fFactory);
+    // delete DSP first, then factory
+    if (fDSP) {
+        delete fDSP;
+        fDSP = nullptr;
+    }
+    if (fFactory) {
+        deleteInterpreterDSPFactory(fFactory);
+        fFactory = nullptr;
+    }
 }
 
 bool InterpreterCLAP::loadFromFile(const std::string& path, int sampleRate) {
@@ -26,9 +35,23 @@ bool InterpreterCLAP::loadFromFile(const std::string& path, int sampleRate) {
     buffer << file.rdbuf();
     std::string code = buffer.str();
 
+    return loadFromString(path, code, sampleRate);
+}
+
+bool InterpreterCLAP::loadFromString(const std::string& name, const std::string& dspCode, int sampleRate) {
+    // clean up any existing DSP
+    if (fDSP) {
+        delete fDSP;
+        fDSP = nullptr;
+    }
+    if (fFactory) {
+        deleteInterpreterDSPFactory(fFactory);
+        fFactory = nullptr;
+    }
+
     std::string error_msg;
     fFactory = createInterpreterDSPFactoryFromString(
-        path.c_str(), code, 0, nullptr, error_msg
+        name.c_str(), dspCode, 0, nullptr, error_msg
     );
 
     if (!fFactory) {
@@ -42,9 +65,10 @@ bool InterpreterCLAP::loadFromFile(const std::string& path, int sampleRate) {
         return false;
     }
 
-    fUI = std::make_unique<APIUI>();
+    fUI = std::make_unique<CLAPMapUI>();  // changed from APIUI to CLAPMapUI
     fDSP->buildUserInterface(fUI.get());
     fDSP->init(sampleRate);
+    fSampleRate = sampleRate;
 
     return true;
 }
@@ -62,7 +86,10 @@ int InterpreterCLAP::getParamCount() const {
 }
 
 void InterpreterCLAP::setParamValue(int idx, float val) {
-    if (fUI) fUI->setParamValue(idx, val);
+    if (fUI && idx >= 0 && idx < getParamCount()) {
+        FAUSTFLOAT* zone = fUI->getParamZone(idx);
+        if (zone) *zone = val;
+    }
 }
 
 std::string InterpreterCLAP::getParamLabel(int idx) const {
@@ -70,21 +97,27 @@ std::string InterpreterCLAP::getParamLabel(int idx) const {
 }
 
 float InterpreterCLAP::getParamValue(int idx) const {
-    return fUI ? fUI->getParamValue(idx) : 0.f;
+    if (fUI && idx >= 0 && idx < getParamCount()) {
+        FAUSTFLOAT* zone = fUI->getParamZone(idx);
+        return zone ? *zone : 0.0f;
+    }
+    return 0.0f;
 }
 
 float InterpreterCLAP::getParamMin(int idx) const {
-    return fUI ? fUI->getParamMin(idx) : 0.f;
+    return fUI ? fUI->getParamMin(idx) : 0.f;  // now CLAPMapUI has this method
 }
 
 float InterpreterCLAP::getParamMax(int idx) const {
-    return fUI ? fUI->getParamMax(idx) : 1.f;
+    return fUI ? fUI->getParamMax(idx) : 1.f;  // now CLAPMapUI has this method
 }
 
 float InterpreterCLAP::getParamInit(int idx) const {
-    return fUI ? fUI->getParamInit(idx) : 0.f;
+    return fUI ? fUI->getParamInit(idx) : 0.5f;  // now CLAPMapUI has this method
 }
 
 void InterpreterCLAP::compute(int frames, float** inputs, float** outputs) {
-    if (fDSP) fDSP->compute(frames, inputs, outputs);
+    if (fDSP) {
+        fDSP->compute(frames, inputs, outputs);
+    }
 }
