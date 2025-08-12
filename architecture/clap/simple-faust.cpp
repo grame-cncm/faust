@@ -25,6 +25,11 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
+#include <thread>
+#include <atomic>
+#include <chrono>
+#include <sys/stat.h>
+#include <fstream>
 #include <clap/helpers/plugin.hh>
 #include <clap/helpers/host-proxy.hh>
 #include <clap/events.h>
@@ -122,26 +127,78 @@ constexpr static clap_plugin_descriptor_t desc = {
  */
 class FaustDynamicPlugin final : public Base {
 private:
-    InterpreterCLAP fInterpreter;   // Faust interpreter for dynamic compilation
-    dsp* fDSP = nullptr;            // Currently loaded DSP instance
+    InterpreterCLAP fInterpreter;   // faust interpreter for dynamic compilation
+    dsp* fDSP = nullptr;            // currently loaded DSP instance
     DynamicUI fUI;                  // UI interface for parameter management
-    std::string fCurrentDSPPath;    // Path to currently loaded DSP file
-    int fActiveDSPParams = 0;       // Number of parameters in current DSP
+    std::string fCurrentDSPPath;    // path to currently loaded DSP file
+    int fActiveDSPParams = 0;       // number of parameters in current DSP
+    
+    // Hot reload functionality
+    std::thread fWatcher;           // file watching thread
+    std::atomic<bool> fWatcherRunning{false};  // thread control
+    std::atomic<bool> fNeedsReload{false};     // reload flag
+    std::atomic<bool> fReloadInProgress{false}; // prevent concurrent reloads
+    time_t fLastModTime = 0;        // last file modification time
+    time_t fLastConfigModTime = 0;  // last config file modification time
+    std::string fConfigPath = "/tmp/faust-current-dsp.txt"; // config file path
+    
+    // Debug logging
+    void logDebug(const std::string& msg) {
+        std::ofstream logFile("/tmp/faust-dynamic.log", std::ios::app);
+        auto now = std::chrono::system_clock::now();
+        auto time_t = std::chrono::system_clock::to_time_t(now);
+        logFile << std::ctime(&time_t) << " " << msg << std::endl;
+    }
+    
+    // read DSP path from config file
+    std::string readConfigFile() {
+        std::ifstream configFile(fConfigPath);
+        if (configFile.is_open()) {
+            std::string path;
+            std::getline(configFile, path);
+            // trim whitespace
+            path.erase(0, path.find_first_not_of(" \t\r\n"));
+            path.erase(path.find_last_not_of(" \t\r\n") + 1);
+            return path;
+        }
+        return "";
+    }
 
 public:
     FaustDynamicPlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
         : Base(desc, host) {}
+    
+    ~FaustDynamicPlugin() {
+        // clean shutdown of file watcher
+        fWatcherRunning = false;
+        if (fWatcher.joinable()) {
+            fWatcher.join();
+        }
+    }
     
     /**
      * Initialize the plugin by loading the DSP file specified in FAUST_DSP_FILE environment variable
      */
 
     bool init() noexcept override {
-        const char* dspFile = getenv("FAUST_DSP_FILE");
+        logDebug("Plugin init() called");
         
-        if (!dspFile || strlen(dspFile) == 0) {
-            // No DSP file specified - load a simple default DSP
-            std::cerr << "[Faust Dynamic] No FAUST_DSP_FILE environment variable set, using default DSP\n";
+        // try config file first, then environment variable, then default
+        std::string dspPath = readConfigFile();
+        if (dspPath.empty()) {
+            const char* envDspFile = getenv("FAUST_DSP_FILE");
+            if (envDspFile && strlen(envDspFile) > 0) {
+                dspPath = envDspFile;
+                logDebug("Using FAUST_DSP_FILE environment variable: " + dspPath);
+            }
+        } else {
+            logDebug("Using config file DSP path: " + dspPath);
+        }
+        
+        if (dspPath.empty()) {
+            // no DSP file specified - load a simple default DSP
+            logDebug("No DSP file specified, using default DSP");
+            std::cerr << "[Faust Dynamic] No DSP file specified, using default DSP\n";
             std::string defaultCode = R"(
                 import("stdfaust.lib");
                 gain = hslider("Gain", 0.5, 0, 1, 0.01);
@@ -153,15 +210,16 @@ public:
                 return false;
             }
         } else {
-            // Load DSP file from environment variable
-            fCurrentDSPPath = dspFile;
-            std::cerr << "[Faust Dynamic] Loading DSP file: " << dspFile << "\n";
+            // load DSP file from config file or environment variable
+            fCurrentDSPPath = dspPath;
+            logDebug("Loading DSP file: " + dspPath);
+            std::cerr << "[Faust Dynamic] Loading DSP file: " << dspPath << "\n";
             
-            if (!fInterpreter.loadFromFile(dspFile, 44100)) {
-                std::cerr << "[Faust Dynamic] ERROR: Failed to load DSP file: " << dspFile << "\n";
+            if (!fInterpreter.loadFromFile(dspPath.c_str(), 44100)) {
+                std::cerr << "[Faust Dynamic] ERROR: Failed to load DSP file: " << dspPath << "\n";
                 std::cerr << "[Faust Dynamic] Falling back to default DSP\n";
                 
-                // Fall back to default DSP on load failure
+                // fall back to default DSP on load failure
                 std::string defaultCode = R"(
                     import("stdfaust.lib");
                     gain = hslider("Gain", 0.5, 0, 1, 0.01);
@@ -176,30 +234,171 @@ public:
             }
         }
 
-        // Get the compiled DSP instance
+        // get the compiled DSP instance
         fDSP = fInterpreter.getDSP();
         if (!fDSP) {
             std::cerr << "[Faust Dynamic] ERROR: No DSP instance available\n";
             return false;
         }
 
-        // Build the user interface to discover parameters
+        // build the user interface to discover parameters
         fDSP->buildUserInterface(&fUI);
         fActiveDSPParams = fUI.getParamsCount();
         
-        // Initialize all parameters to their default values
+        // initialise all parameters to their default values
         for (int i = 0; i < fActiveDSPParams; ++i) {
             fUI.setValue(i, fUI.getInit(i));
         }
 
+        logDebug("Successfully loaded DSP with " + std::to_string(fActiveDSPParams) + " parameters");
         std::cerr << "[Faust Dynamic] Successfully loaded DSP with " << fActiveDSPParams 
                   << " parameters (max " << MAX_PARAMS << " supported)\n";
+        
+        // start hot reload watching if we have a DSP file
+        if (!fCurrentDSPPath.empty()) {
+            logDebug("Starting file watcher for: " + fCurrentDSPPath);
+            startFileWatching();
+        } else {
+            // even without a DSP file, watch for config file changes
+            logDebug("Starting config file watcher");
+            startFileWatching();
+        }
         
         return true;
     }
 
+private:
     /**
-     * Activate the plugin with the given sample rate
+     * gget file modification time for hot reload detection
+     */
+    time_t getFileModTime(const std::string& path) {
+        struct stat st;
+        if (stat(path.c_str(), &st) == 0) {
+            return st.st_mtime;
+        }
+        return 0;
+    }
+    
+    /**
+     * dtart file watching thread for hot reload
+     */
+    void startFileWatching() {
+        if (fWatcherRunning.load()) {
+            logDebug("File watcher already running");
+            return;
+        }
+        
+        fLastModTime = fCurrentDSPPath.empty() ? 0 : getFileModTime(fCurrentDSPPath);
+        fLastConfigModTime = getFileModTime(fConfigPath);
+        fWatcherRunning = true;
+        logDebug("File watcher thread starting");
+        
+        fWatcher = std::thread([this]() {
+            logDebug("File watcher thread running - watching config and DSP files");
+            std::cerr << "[Faust Dynamic] 🔍 Watching config: " << fConfigPath;
+            if (!fCurrentDSPPath.empty()) {
+                std::cerr << " and DSP: " << fCurrentDSPPath;
+            }
+            std::cerr << "\n";
+            
+            while (fWatcherRunning.load()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                
+                // check config file changes
+                time_t currentConfigModTime = getFileModTime(fConfigPath);
+                if (currentConfigModTime > fLastConfigModTime && currentConfigModTime != 0) {
+                    fLastConfigModTime = currentConfigModTime;
+                    logDebug("Config file changed, triggering reload");
+                    std::cerr << "[Faust Dynamic] 🔥 Config file changed, triggering reload...\n";
+                    fNeedsReload = true;
+                }
+                
+                // check DSP file changes (if we have one)
+                if (!fCurrentDSPPath.empty()) {
+                    time_t currentModTime = getFileModTime(fCurrentDSPPath);
+                    if (currentModTime > fLastModTime && currentModTime != 0) {
+                        fLastModTime = currentModTime;
+                        logDebug("DSP file changed, triggering reload");
+                        std::cerr << "[Faust Dynamic] 🔥 DSP file changed, triggering reload...\n";
+                        fNeedsReload = true;
+                    }
+                }
+            }
+        });
+    }
+    
+    /**
+     * perform hot reload of DSP file - called from audio thread
+     */
+    void performHotReload() {
+        fNeedsReload = false;
+        
+        // check if we need to switch to a new DSP file from config
+        std::string newDSPPath = readConfigFile();
+        if (!newDSPPath.empty() && newDSPPath != fCurrentDSPPath) {
+            // config file changed to point to a different DSP file
+            fCurrentDSPPath = newDSPPath;
+            fLastModTime = getFileModTime(fCurrentDSPPath);
+            logDebug("Switching to new DSP file from config: " + fCurrentDSPPath);
+            std::cerr << "[Faust Dynamic] 🔄 Switching to: " << fCurrentDSPPath << "\n";
+        } else if (fCurrentDSPPath.empty()) {
+            logDebug("No DSP file to reload");
+            return;
+        } else {
+            std::cerr << "[Faust Dynamic] 🔄 Hot reloading: " << fCurrentDSPPath << "\n";
+        }
+        
+        try {
+            // store current parameter values
+            std::vector<FAUSTFLOAT> oldValues;
+            for (int i = 0; i < fActiveDSPParams; ++i) {
+                oldValues.push_back(fUI.getValue(i));
+            }
+            
+            // attempt to reload the DSP
+            if (fInterpreter.loadFromFile(fCurrentDSPPath.c_str(), 44100)) {
+                dsp* newDSP = fInterpreter.getDSP();
+                if (newDSP) {
+                    // initialise new DSP
+                    newDSP->init(44100);
+                    
+                    // reset UI and rebuild with new DSP
+                    fUI = DynamicUI();
+                    newDSP->buildUserInterface(&fUI);
+                    int newParamCount = fUI.getParamsCount();
+                    
+                    // restore parameter values for parameters that still exist
+                    int minParams = std::min((int)oldValues.size(), newParamCount);
+                    for (int i = 0; i < minParams; ++i) {
+                        fUI.setValue(i, oldValues[i]);
+                    }
+                    
+                    // initialise any new parameters to defaults
+                    for (int i = minParams; i < newParamCount; ++i) {
+                        fUI.setValue(i, fUI.getInit(i));
+                    }
+                    
+                    // atomically switch to new DSP
+                    fDSP = newDSP;
+                    fActiveDSPParams = newParamCount;
+                    
+                    std::cerr << "[Faust Dynamic] ✅ Hot reload successful: " 
+                              << fActiveDSPParams << " parameters\n";
+                } else {
+                    std::cerr << "[Faust Dynamic] ❌ Hot reload failed: No DSP instance\n";
+                }
+            } else {
+                std::cerr << "[Faust Dynamic] ❌ Hot reload failed: Compilation error\n";
+            }
+        } catch (...) {
+            std::cerr << "[Faust Dynamic] ❌ Hot reload crashed - keeping current DSP\n";
+        }
+    }
+
+public:
+
+    /**
+     * activate the plugin with the given sample rate
      */
 
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override {
@@ -211,16 +410,24 @@ public:
     }
 
     /**
-     * Process audio and handle parameter events
+     * process audio and handle parameter events
      */
     clap_process_status process(const clap_process_t* process) noexcept override {
-        if (!fDSP || process->audio_inputs_count < 1 || process->audio_outputs_count < 1)
+        // handle hot reload if needed
+        if (fNeedsReload.load() && !fReloadInProgress.exchange(true)) {
+            performHotReload();
+            fReloadInProgress = false;
+        }
+        
+        // store local copy to avoid race condition
+        dsp* currentDSP = fDSP;
+        if (!currentDSP || process->audio_inputs_count < 1 || process->audio_outputs_count < 1)
             return CLAP_PROCESS_ERROR;
 
         const auto& in = process->audio_inputs[0];
         const auto& out = process->audio_outputs[0];
 
-        // Process incoming parameter events
+        // process incoming parameter events
         if (process->in_events) {
             for (uint32_t i = 0; i < process->in_events->size(process->in_events); ++i) {
                 const clap_event_header_t* hdr = process->in_events->get(process->in_events, i);
@@ -234,15 +441,15 @@ public:
             }
         }
 
-        // Process audio through the DSP
+        // process audio through the DSP
         FAUSTFLOAT* inputs[2] = { in.data32[0], in.data32[1] };
         FAUSTFLOAT* outputs[2] = { out.data32[0], out.data32[1] };
-        fDSP->compute(process->frames_count, inputs, outputs);
+        currentDSP->compute(process->frames_count, inputs, outputs);
 
         return CLAP_PROCESS_CONTINUE;
     }
 
-    // Parameter interface implementation
+    // parameter interface implementation
     bool implementsParams() const noexcept override { return true; }
     uint32_t paramsCount() const noexcept override { return MAX_PARAMS; }
 
@@ -253,7 +460,7 @@ public:
         info->id = index;
         
         if (index < fActiveDSPParams) {
-            // Active DSP parameter
+            // active DSP parameter
             std::string name = fUI.getParamAddress(index);
             if (name.empty()) name = "param" + std::to_string(index);
             if (name[0] == '/') name = name.substr(1);
@@ -266,7 +473,7 @@ public:
             info->default_value = fUI.getInit(index);
             info->flags = CLAP_PARAM_IS_AUTOMATABLE;
         } else {
-            // Unused parameter slot
+            // unused parameter slot
             std::snprintf(info->name, CLAP_NAME_SIZE, "Unused_%d", index);
             info->min_value = 0.0;
             info->max_value = 1.0;
@@ -282,7 +489,7 @@ public:
         if (id < fActiveDSPParams) {
             *value = fUI.getValue(id);
         } else {
-            *value = 0.0;  // Unused slots return 0
+            *value = 0.0;  // unused slots return 0
         }
         return true;
     }
@@ -290,7 +497,7 @@ public:
     void paramsFlush(const clap_input_events_t* in, const clap_output_events_t*) noexcept override {
         if (!in) return;
         
-        // Process parameter events
+        // process parameter events
         for (uint32_t i = 0; i < in->size(in); ++i) {
             const clap_event_header_t* hdr = in->get(in, i);
             if (hdr && hdr->space_id == CLAP_CORE_EVENT_SPACE_ID && 
@@ -303,7 +510,7 @@ public:
         }
     }
 
-    // Audio ports interface
+    // audio ports interface
     bool implementsAudioPorts() const noexcept override { return true; }
     uint32_t audioPortsCount(bool) const noexcept override { return 1; }
     
@@ -321,7 +528,7 @@ public:
         return true;
     }
 
-    // Extension support
+    // extension sypport
     const void* get_extension(const char* id) noexcept {
         if (std::strcmp(id, CLAP_EXT_PARAMS) == 0) {
             return (const clap_plugin_params_t*)this;
@@ -332,13 +539,13 @@ public:
         return nullptr;
     }
 
-    // Plugin factory method
+    // plugin factory method
     static const clap_plugin_t* create(const clap_host_t* host) {
         return (new FaustDynamicPlugin(&desc, host))->Base::clapPlugin();
     }
 };
 
-// Plugin factory implementation
+// plugin factory implementation
 static uint32_t plugin_count(const clap_plugin_factory_t*) { 
     return 1; 
 }
@@ -362,7 +569,7 @@ constexpr static clap_plugin_factory_t factory = {
     .create_plugin = plugin_create
 };
 
-// Entry point functions
+// entry point functions
 static bool entry_init(const char*) { return true; }
 static void entry_deinit() {}
 
