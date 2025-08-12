@@ -19,20 +19,23 @@ INCLUDES = -I../../architecture \
            -I../../external/clap-sdk/include \
            -I../../external/clap-helpers/include \
            -I/usr/local/include \
-           -I/opt/homebrew/include
+           -I/opt/homebrew/include \
+           -Iefsw/include \
+           -Iefsw/src
 
-LIBS = -L/usr/local/lib -L/opt/homebrew/lib -lfaust -ldl
+LIBS = -L/usr/local/lib -L/opt/homebrew/lib -lfaust -ldl -framework CoreServices -framework CoreFoundation
 
 TARGET = FaustDynamic.clap
 SOURCE = simple-faust.cpp
 HELPER_OBJS = clap-helpers-impl.o interpreter-clap.o
 MAIN_OBJ = faust-dynamic.o
+EFSW_LIB = efsw/build/libefsw-static.a
 
 all: $(TARGET)
 
-$(TARGET): $(MAIN_OBJ) $(HELPER_OBJS)
+$(TARGET): $(MAIN_OBJ) $(HELPER_OBJS) $(EFSW_LIB)
 	@echo "🔗 Linking $(TARGET)..."
-	$(CXX) -shared $^ $(LIBS) -o $@
+	$(CXX) -shared $(MAIN_OBJ) $(HELPER_OBJS) $(EFSW_LIB) $(LIBS) -o $@
 	@echo "✅ Built $(TARGET) successfully"
 
 $(MAIN_OBJ): $(SOURCE)
@@ -46,6 +49,10 @@ clap-helpers-impl.o: clap-helpers-impl.cpp
 interpreter-clap.o: interpreter-clap.cpp interpreter-clap.h
 	@echo "🔨 Compiling Faust interpreter interface..."
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c interpreter-clap.cpp -o $@
+
+$(EFSW_LIB):
+	@echo "🔨 Building efsw library..."
+	@cd efsw && mkdir -p build && cd build && cmake .. && make efsw-static
 
 clean:
 	@echo "🧹 Cleaning build artifacts..."

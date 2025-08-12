@@ -28,11 +28,11 @@
 #include <thread>
 #include <atomic>
 #include <chrono>
-#include <sys/stat.h>
 #include <fstream>
 #include <clap/helpers/plugin.hh>
 #include <clap/helpers/host-proxy.hh>
 #include <clap/events.h>
+#include <efsw/efsw.h>
 
 // Plugin identification
 #define PLUGIN_ID "org.grame.faust.dynamic"
@@ -134,12 +134,12 @@ private:
     int fActiveDSPParams = 0;       // number of parameters in current DSP
     
     // Hot reload functionality
-    std::thread fWatcher;           // file watching thread
-    std::atomic<bool> fWatcherRunning{false};  // thread control
-    std::atomic<bool> fNeedsReload{false};     // reload flag
+    efsw_watcher fConfigWatcher = nullptr;      // efsw watcher for config file
+    efsw_watcher fDSPWatcher = nullptr;         // efsw watcher for DSP file
+    efsw_watchid fConfigWatchID;                // config file watch ID
+    efsw_watchid fDSPWatchID;                   // DSP file watch ID
+    std::atomic<bool> fNeedsReload{false};      // reload flag
     std::atomic<bool> fReloadInProgress{false}; // prevent concurrent reloads
-    time_t fLastModTime = 0;        // last file modification time
-    time_t fLastConfigModTime = 0;  // last config file modification time
     std::string fConfigPath = "/tmp/faust-current-dsp.txt"; // config file path
     
     // Debug logging
@@ -164,15 +164,57 @@ private:
         return "";
     }
 
+    // Static callback function for config file changes
+    static void configFileCallback(efsw_watcher watcher, efsw_watchid watchid, 
+                                 const char* dir, const char* filename, 
+                                 enum efsw_action action, const char* old_filename, 
+                                 void* param) {
+        FaustDynamicPlugin* plugin = (FaustDynamicPlugin*) param;
+        if (action == EFSW_ADD || action == EFSW_DELETE || action == EFSW_MODIFIED || action == EFSW_MOVED) {
+            std::string configFilename = "faust-current-dsp.txt";
+            if (configFilename == filename) {
+                plugin->logDebug("Config file changed, triggering reload");
+                plugin->fNeedsReload = true;
+            }
+        }
+    }
+
+    // Static callback function for DSP file changes  
+    static void dspFileCallback(efsw_watcher watcher, efsw_watchid watchid,
+                               const char* dir, const char* filename,
+                               enum efsw_action action, const char* old_filename,
+                               void* param) {
+        FaustDynamicPlugin* plugin = (FaustDynamicPlugin*) param;
+        if (action == EFSW_ADD || action == EFSW_DELETE || action == EFSW_MODIFIED || action == EFSW_MOVED) {
+            // Extract just filename from current DSP path
+            std::string currentFilename;
+            size_t pos = plugin->fCurrentDSPPath.find_last_of("/\\");
+            if (pos != std::string::npos) {
+                currentFilename = plugin->fCurrentDSPPath.substr(pos + 1);
+            } else {
+                currentFilename = plugin->fCurrentDSPPath;
+            }
+            
+            if (currentFilename == filename) {
+                plugin->logDebug("DSP file changed, triggering reload");
+                plugin->fNeedsReload = true;
+            }
+        }
+    }
+
 public:
     FaustDynamicPlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
         : Base(desc, host) {}
     
     ~FaustDynamicPlugin() {
-        // clean shutdown of file watcher
-        fWatcherRunning = false;
-        if (fWatcher.joinable()) {
-            fWatcher.join();
+        // clean shutdown of file watchers
+        if (fConfigWatcher) {
+            efsw_release(fConfigWatcher);
+            fConfigWatcher = nullptr;
+        }
+        if (fDSPWatcher) {
+            efsw_release(fDSPWatcher);
+            fDSPWatcher = nullptr;
         }
     }
     
@@ -269,62 +311,70 @@ public:
 
 private:
     /**
-     * gget file modification time for hot reload detection
-     */
-    time_t getFileModTime(const std::string& path) {
-        struct stat st;
-        if (stat(path.c_str(), &st) == 0) {
-            return st.st_mtime;
-        }
-        return 0;
-    }
-    
-    /**
-     * dtart file watching thread for hot reload
+     * Start file watching using efsw for hot reload
      */
     void startFileWatching() {
-        if (fWatcherRunning.load()) {
-            logDebug("File watcher already running");
+        // Setup config file watcher
+        if (!fConfigWatcher) {
+            fConfigWatcher = efsw_create(false);
+            if (fConfigWatcher) {
+                std::string configDir = "/tmp";  // directory of config file
+                fConfigWatchID = efsw_addwatch(fConfigWatcher, configDir.c_str(), 
+                                             configFileCallback, false, this);
+                if (fConfigWatchID > 0) {
+                    efsw_watch(fConfigWatcher);
+                    logDebug("Started config file watcher for: " + fConfigPath);
+                } else {
+                    logDebug("Failed to add config file watch");
+                    efsw_release(fConfigWatcher);
+                    fConfigWatcher = nullptr;
+                }
+            }
+        }
+        
+        // Setup DSP file watcher if we have a DSP file
+        if (!fCurrentDSPPath.empty()) {
+            setupDSPFileWatcher();
+        }
+    }
+
+    /**
+     * Setup watcher for current DSP file
+     */
+    void setupDSPFileWatcher() {
+        // Clean up existing DSP watcher
+        if (fDSPWatcher) {
+            efsw_release(fDSPWatcher);
+            fDSPWatcher = nullptr;
+        }
+        
+        if (fCurrentDSPPath.empty()) {
             return;
         }
         
-        fLastModTime = fCurrentDSPPath.empty() ? 0 : getFileModTime(fCurrentDSPPath);
-        fLastConfigModTime = getFileModTime(fConfigPath);
-        fWatcherRunning = true;
-        logDebug("File watcher thread starting");
+        // Extract directory from DSP path
+        std::string dspDir;
+        size_t pos = fCurrentDSPPath.find_last_of("/\\");
+        if (pos != std::string::npos) {
+            dspDir = fCurrentDSPPath.substr(0, pos);
+        } else {
+            dspDir = ".";  // current directory
+        }
         
-        fWatcher = std::thread([this]() {
-            logDebug("File watcher thread running - watching config and DSP files");
-            std::cerr << "[Faust Dynamic] 🔍 Watching config: " << fConfigPath;
-            if (!fCurrentDSPPath.empty()) {
-                std::cerr << " and DSP: " << fCurrentDSPPath;
+        fDSPWatcher = efsw_create(false);
+        if (fDSPWatcher) {
+            fDSPWatchID = efsw_addwatch(fDSPWatcher, dspDir.c_str(), 
+                                       dspFileCallback, false, this);
+            if (fDSPWatchID > 0) {
+                efsw_watch(fDSPWatcher);
+                logDebug("Started DSP file watcher for: " + fCurrentDSPPath);
+                std::cerr << "[Faust Dynamic] 🔍 Watching DSP: " << fCurrentDSPPath << "\n";
+            } else {
+                logDebug("Failed to add DSP file watch");
+                efsw_release(fDSPWatcher);
+                fDSPWatcher = nullptr;
             }
-            std::cerr << "\n";
-            
-            while (fWatcherRunning.load()) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                
-                // check config file changes
-                time_t currentConfigModTime = getFileModTime(fConfigPath);
-                if (currentConfigModTime > fLastConfigModTime && currentConfigModTime != 0) {
-                    fLastConfigModTime = currentConfigModTime;
-                    logDebug("Config file changed, triggering reload");
-                    std::cerr << "[Faust Dynamic] 🔥 Config file changed, triggering reload...\n";
-                    fNeedsReload = true;
-                }
-                
-                // check DSP file changes (if we have one)
-                if (!fCurrentDSPPath.empty()) {
-                    time_t currentModTime = getFileModTime(fCurrentDSPPath);
-                    if (currentModTime > fLastModTime && currentModTime != 0) {
-                        fLastModTime = currentModTime;
-                        logDebug("DSP file changed, triggering reload");
-                        std::cerr << "[Faust Dynamic] 🔥 DSP file changed, triggering reload...\n";
-                        fNeedsReload = true;
-                    }
-                }
-            }
-        });
+        }
     }
     
     /**
@@ -338,9 +388,10 @@ private:
         if (!newDSPPath.empty() && newDSPPath != fCurrentDSPPath) {
             // config file changed to point to a different DSP file
             fCurrentDSPPath = newDSPPath;
-            fLastModTime = getFileModTime(fCurrentDSPPath);
             logDebug("Switching to new DSP file from config: " + fCurrentDSPPath);
             std::cerr << "[Faust Dynamic] 🔄 Switching to: " << fCurrentDSPPath << "\n";
+            // Setup watcher for the new DSP file
+            setupDSPFileWatcher();
         } else if (fCurrentDSPPath.empty()) {
             logDebug("No DSP file to reload");
             return;
@@ -380,7 +431,22 @@ private:
                     
                     // atomically switch to new DSP
                     fDSP = newDSP;
+                    int oldParamCount = fActiveDSPParams;
                     fActiveDSPParams = newParamCount;
+                    
+                    // notify host if parameter structure changed
+                    if (oldParamCount != newParamCount) {
+                        logDebug("Parameter count changed: " + std::to_string(oldParamCount) + 
+                                " -> " + std::to_string(newParamCount));
+                        
+                        // Use runOnMainThread to safely notify host about parameter changes
+                        // This queues the notification to run on the main thread, not the audio thread
+                        runOnMainThread([this]() {
+                            logDebug("Requesting host parameter rescan from main thread");
+                            _host.paramsRescan(CLAP_PARAM_RESCAN_INFO | CLAP_PARAM_RESCAN_VALUES);
+                            std::cerr << "[Faust Dynamic] 🔄 Notified host about parameter structure change\n";
+                        });
+                    }
                     
                     std::cerr << "[Faust Dynamic] ✅ Hot reload successful: " 
                               << fActiveDSPParams << " parameters\n";
@@ -451,46 +517,33 @@ public:
 
     // parameter interface implementation
     bool implementsParams() const noexcept override { return true; }
-    uint32_t paramsCount() const noexcept override { return MAX_PARAMS; }
+    uint32_t paramsCount() const noexcept override { return fActiveDSPParams; }
 
     bool paramsInfo(uint32_t index, clap_param_info_t* info) const noexcept override {
-        if (index >= MAX_PARAMS) return false;
+        if (index >= fActiveDSPParams) return false;
         
         std::memset(info, 0, sizeof(*info));
         info->id = index;
         
-        if (index < fActiveDSPParams) {
-            // active DSP parameter
-            std::string name = fUI.getParamAddress(index);
-            if (name.empty()) name = "param" + std::to_string(index);
-            if (name[0] == '/') name = name.substr(1);
-            size_t slash = name.find_last_of('/');
-            if (slash != std::string::npos) name = name.substr(slash + 1);
-            
-            std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name.c_str());
-            info->min_value = fUI.getMin(index);
-            info->max_value = fUI.getMax(index);
-            info->default_value = fUI.getInit(index);
-            info->flags = CLAP_PARAM_IS_AUTOMATABLE;
-        } else {
-            // unused parameter slot
-            std::snprintf(info->name, CLAP_NAME_SIZE, "Unused_%d", index);
-            info->min_value = 0.0;
-            info->max_value = 1.0;
-            info->default_value = 0.0;
-            info->flags = CLAP_PARAM_IS_HIDDEN;
-        }
+        // active DSP parameter (we already checked index < fActiveDSPParams above)
+        std::string name = fUI.getParamAddress(index);
+        if (name.empty()) name = "param" + std::to_string(index);
+        if (name[0] == '/') name = name.substr(1);
+        size_t slash = name.find_last_of('/');
+        if (slash != std::string::npos) name = name.substr(slash + 1);
+        
+        std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name.c_str());
+        info->min_value = fUI.getMin(index);
+        info->max_value = fUI.getMax(index);
+        info->default_value = fUI.getInit(index);
+        info->flags = CLAP_PARAM_IS_AUTOMATABLE;
         
         return true;
     }
 
     bool paramsValue(clap_id id, double* value) noexcept override {
-        if (!value || id >= MAX_PARAMS) return false;
-        if (id < fActiveDSPParams) {
-            *value = fUI.getValue(id);
-        } else {
-            *value = 0.0;  // unused slots return 0
-        }
+        if (!value || id >= fActiveDSPParams) return false;
+        *value = fUI.getValue(id);
         return true;
     }
 
