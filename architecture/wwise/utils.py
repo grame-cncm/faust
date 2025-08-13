@@ -123,7 +123,7 @@ def platform_dependent_setup(cfg, parsed_args:argparse.Namespace) -> None:
             raise ValueError (f"{cursys} detected. Wwise does not support toolset options for this platform. This option is only for windows environments.")
         cfg.wwise_toolset = parsed_args.toolset
     elif cursys == "Windows":
-        if parsed_args.wwise_platform == "Windows_vc160":
+        if parsed_args.platform == "Windows_vc160":
             cfg.wwise_toolset = "vc160"
         else: # in all other cases : Authoring_Windows, Authoring, Windows_vc170, WinGC
             cfg.wwise_toolset = "vc170"
