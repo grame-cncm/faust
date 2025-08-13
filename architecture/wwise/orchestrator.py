@@ -83,11 +83,15 @@ class Faust2WwiseOrchestrator:
             use of sys library to retrieve them.
         """
         
-        utils.parse_arguments(self.cfg, args)
+        parsed_args = utils.parse_arguments(self.cfg, args)
 
         print("------------------------------------------Preliminary Step : setup and validate environment")
 
-        # utils.setup_platform_paths(self.cfg) # TODO Discarded, but may be used to conditionally edit variables across different platforms (windows/macOs) 
+        # conditionally edit variables across different platforms (windows/macOs) 
+        utils.platform_dependent_setup(self.cfg, parsed_args) 
+
+        # Wwise-related options
+        utils.create_wwise_config(self.cfg, parsed_args)
 
         if self.dsp_file:
             self.dsp_filename = Path(self.dsp_file).stem # extract name without extension
@@ -126,6 +130,7 @@ class Faust2WwiseOrchestrator:
         cmd = [
             "faust",
             "-json",
+            "-I", str(Path(self.faust_include_dir)),
             "-a", self.archfile,
             *self.faust_options,
             self.dsp_file,

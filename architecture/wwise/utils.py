@@ -68,6 +68,73 @@ def print_wwise_help() -> None:
     print("  faust2wwise myfaustfile.dsp -double -o myWwisePlugin --platform Authoring_Windows --toolset vc170 --configuration Release --arch x64")
     print("")
 
+def detect_arch(cfg) -> str:
+    """
+    Automatically detects the system architecture and sets sensible defaults
+    for platform/toolset compatibility.
+    Returns:
+        arch (str if platform found): detected architecture.
+        Exits with an error if the architecture is not recognized/supported.
+    """
+    arch = platform.machine().lower()
+    if arch == "amd64":
+        return "x64"
+    elif arch == "x86_64":
+        return "x86_64"
+    elif arch in ["i386", "i686", "x86"]:
+        return "x32"
+    elif arch in ("arm64", "aarch64"):
+        return "arm64"
+    elif arch.startswith("arm"):
+        return "arm32"
+    else:
+        sys.stderr.write(
+            f"[Error] Unknown or unsupported architecture: '{arch}'.\n"
+            "Please verify if Wwise supports this platform and if yes, update the detect_arch() function to handle this platform .\n"
+        )
+        sys.exit(cfg.ERR_ENVIRONMENT)
+
+def platform_dependent_setup(cfg, parsed_args:argparse.Namespace) -> None:
+    """
+    Applies platform-specific configuration to the given config object.
+    Sets the default Wwise platform and toolset based on the current operating system 
+    and the parsed command-line arguments.
+
+    - On Windows:
+        - Uses the specified toolset if provided.
+        - Otherwise, selects a default based on the Wwise platform.
+        - Sets the default Wwise platform to "Authoring".
+    - On macOS:
+        - Disables toolset usage.
+        - Sets the default Wwise platform to "Mac".
+        
+    Args:
+        cfg (Config): The configuration object to modify.
+        parsed_args (argparse.Namespace): Parsed arguments from argparse.
+
+    Raises:
+        ValueError: If a toolset is provided on a non-Windows platform.
+    """
+
+    # Premake-specific options - toolset
+    cursys = platform.system()
+    if parsed_args.toolset:
+        if cursys != "Windows":
+            raise ValueError (f"{cursys} detected. Wwise does not support toolset options for this platform. This option is only for windows environments.")
+        cfg.wwise_toolset = parsed_args.toolset
+    elif cursys == "Windows":
+        if parsed_args.wwise_platform == "Windows_vc160":
+            cfg.wwise_toolset = "vc160"
+        else: # in all other cases : Authoring_Windows, Authoring, Windows_vc170, WinGC
+            cfg.wwise_toolset = "vc170"
+        print(f"[WARNING] Using default toolset '{cfg.wwise_toolset}' — it would be better to override it with --toolset command line option.")
+    
+    # set default platform
+    if cursys == "Darwin":
+        cfg.wwise_platform = "Mac"  # default platform for MacOs
+    elif cursys == "Windows":
+        cfg.wwise_platform = "Authoring" # default platform for Windows
+
 def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
     """
     Populates Wwise-related configuration values into the given config object,
@@ -77,47 +144,12 @@ def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
         cfg (Config): The configuration object to modify.
         parsed_args (argparse.Namespace): Parsed arguments from argparse.
     """
-    def detect_arch() -> str:
-        """
-        Automatically detects the system architecture and sets sensible defaults
-        for platform/toolset compatibility.
-        Returns:
-            arch (str if platform found): detected architecture.
-            Exits with an error if the architecture is not recognized/supported.
-        """
-        arch = platform.machine().lower()
-        if arch in ["amd64", "x86_64"]:
-            return "x64"
-        elif arch in ["i386", "i686", "x86"]:
-            return "x32"
-        elif arch in ("arm64", "aarch64"):
-            return "arm64"
-        elif arch.startswith("arm"):
-            return "arm32"
-        else:
-            sys.stderr.write(
-                f"[Error] Unknown or unsupported architecture: '{arch}'.\n"
-                "Please verify if Wwise supports this platform and if yes, update the detect_arch() function to handle this platform .\n"
-            )
-            sys.exit(cfg.ERR_ENVIRONMENT)
-        
-    # Common to both premake and build
+    
+    # Overwrite any platform specific defaults in case explicit platform is passed as an argument
     if parsed_args.platform:
         cfg.wwise_platform = parsed_args.platform
-    cfg.wwise_plugin_interface = parsed_args.plugin_interface   # default value in-place. In case of being a source plugin, it will be reset to None, but it is not known at initialization time, only after compiling the dsp file with the Faust compiler.
 
-    # Premake-specific options
-    cursys = platform.system()
-    if parsed_args.toolset:
-        if cursys != "Windows":
-            raise ValueError (f"{cursys} detected. Wwise does not support toolset options for this platform. This option is only for windows environments.")
-        cfg.wwise_toolset = parsed_args.toolset
-    elif cursys == "Windows":
-        if cfg.wwise_platform == "Windows_vc160":
-            cfg.wwise_toolset = "vc160"
-        else: # in all other cases : Authoring_Windows, Authoring, Windows_vc170, WinGC
-            cfg.wwise_toolset = "vc170"
-        print(f"[WARNING] Using default toolset '{cfg.wwise_toolset}' — it would be better to override it with --toolset command line option.")
+    cfg.wwise_plugin_interface = parsed_args.plugin_interface   # default value in-place. In case of being a source plugin, it will be reset to None, but it is not known at initialization time, only after compiling the dsp file with the Faust compiler.
 
     cfg.wwise_debugger = parsed_args.debugger
     cfg.wwise_disable_codesign = parsed_args.disable_codesign
@@ -129,7 +161,7 @@ def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
     if parsed_args.arch:
         cfg.wwise_arch = parsed_args.arch
     else:
-        cfg.wwise_arch = detect_arch()
+        cfg.wwise_arch = detect_arch(cfg)
 
     if parsed_args.build_hooks_file:
         cfg.wwise_build_hooks_file = parsed_args.build_hooks_file
@@ -140,7 +172,7 @@ def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
     if parsed_args.toolchain_env_script:
         cfg.wwise_toolchain_env_script = parsed_args.toolchain_env_script
 
-def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> None:
+def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> argparse.Namespace:
     """
     Parses command-line arguments and updates the configuration object.
 
@@ -200,8 +232,7 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> None:
     cfg.faust_options = " ".join(all_faust_options)
     cfg.faust_options = cfg.faust_options.split() if isinstance(cfg.faust_options, str) else (cfg.faust_options or [])
 
-    # Wwise-related options
-    create_wwise_config(cfg, parsed_args)
+    return parsed_args
 
 def ensure_valid_plugin_name(name: str) -> str:
     """

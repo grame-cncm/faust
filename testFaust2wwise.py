@@ -145,7 +145,7 @@ def main():
     for i,dsp_file in enumerate(dsp_files):
         print(f"Processing: {dsp_file}")
         result = run_faust2wwise_on_file(dsp_file)
-        print(f"{"Success" if result["success"] else "Failed "} : ({i+1}/{totalFiles}) {dsp_file.name} ")
+        print(f"{'Success' if result['success'] else 'Failed '} : ({i+1}/{totalFiles}) {dsp_file.name} ")
         results.append(result)
 
     with open(OUTPUT_JSON_FILE, "w", encoding="utf-8") as f:

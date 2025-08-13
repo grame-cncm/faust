@@ -6,7 +6,7 @@
 
 Following the `faust2xxx` model, Faust-compiled code is integrated into Wwise using the `wp` script and template files provided by the Wwise SDK, along with a patch-based Python method for plugin generation.
 
-Supported platforms include Windows, MSYS2, and macOS (experimental support).
+Supported platforms include Windows, MSYS2, and macOS (via implicit support for the Sound Engine portion only).
 
 ## Supported Features
 
@@ -54,9 +54,20 @@ The way this work is orchestrated follows a multi-step process, where each phase
 - **FAUST**
   - The `Faust` compiler must be available in your system **PATH**.
 - **Wwise SDK (>??)**
-  - `WWISEROOT` must also be exposed system-wide. To do that, open the **AudioKinetic Launcher**, click **Install options (tool icon)** and select **Set environment variables**.
+  - `WWISEROOT` must also be exposed system-wide.
 - **Python (>??)**
 - **Console access with admin rights**
+
+> **HINNT:** `WWISEROOT` must also be exposed system-wide. 
+
+- On **Windows**, open the **AudioKinetic Launcher**, click **Install options (tool icon)** and select **Set environment variables**.
+
+- On **macOS**, set manually the Wwise installation path in your terminal.For instance, assuming a 2024.1.4.8780 Wwise installation, type:
+
+  `export WWISEROOT="/Applications/Audiokinetic/Wwise2024.1.4.8780"`
+
+  To make it permanent, add the line above to your shell config file (e.g., ~/.zshrc or ~/.bash_profile depending on your shell).
+Check it's set with: `echo $WWISEROOT`
 
 ## Usage
 
@@ -155,17 +166,25 @@ The following features are currently limited or under development:
   - `hbargraphs` which behave like sliders visually, but they do not output values, limiting their usefulness for feedback or monitoring. 
 - Older Wwise versions not supported (<??)
 - Speaker configuration code has known technical limitations
-- macOS support under active testing
+- macOS support for Wwise Authoring plug-ins is indirect because the Authoring application runs as a Windows binary through an adaptation layer, and therefore requires plug-ins to be built as Windows DLLs. To achieve this on macOs, you must build the Authoring plug-in on a Windows machine or VM with Visual Studio, while the Sound Engine plug-in can be built natively on macOS. (For more details, see the official documentation on [macOs Plug-in Considerations](https://www.audiokinetic.com/en/public-library/2024.1.7_8863/?source=SDK&id=authoringplugin_macos.html))
 
 If you'd like to help improve any of these, contributions are welcome!
 Please follow the [official contribution guideline](https://faustdoc.grame.fr/manual/community/).
 
 ## Troubleshooting
 
-A common error occurred is the following: 
-`error: {plugin name} is not a valid name (a project already exists with that name)`
+### `error: {plugin name} is not a valid name (a project already exists with that name)`
 
-> This typically means that the DSP file has already been compiled, and project files exist in the output directory. To fix this, delete the previously generated directory before recompiling.
+> This is a common error and it typically means that the DSP file has already been compiled, and project files exist in the output directory. To fix this, delete the previously generated directory before recompiling.
+
+### Build error:`fatal error: 'faust/dsp/dsp.h' file not found`
+
+> This error is observed on macOs platform and usually occurs when the Faust include path is misconfigured—most often, the leading `/` is missing  (e.g., `usr/local/include` instead of `/usr/local/include`), causing the compiler to fail. To fix this, open the project in Xcode, go to **Build Settings -> Search Paths -> Header Search Paths**, and manually correct the path by ensuring it begins with a `/`.
+
+### Build error: `Cannot use 'throw' with exceptions disabled`
+
+> This error occurs on macOS when building with Xcode and using `throw` in the code, while C++ exceptions are disabled. To fix this, open the project in Xcode, navigate to **Build Settings -> Apple Clang -> Language - C++ -> Enable C++ Exceptions**, and set to **Yes**.
+
 
 Found a bug, unexpected behavior, or something unclear? [Open an issue](https://github.com/grame-cncm/faust/issues).
 

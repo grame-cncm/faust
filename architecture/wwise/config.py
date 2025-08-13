@@ -60,10 +60,10 @@ class Config:
         # Faust paths
         self.faust_dsp_dir = faust_dsp_dir          # Directory containing the Faust dsp libraries
         self.faust_include_dir = faust_include_dir
-        self.archfile = os.path.join(self.faust_dsp_dir, "wwise.cpp")
+        self.archfile = os.path.join(self.faust_dsp_dir, 'wwise.cpp')
         # Wwise paths
         self.wwiseroot = wwiseroot                  # Root dir of the Wwise installation
-        self.wp_script = os.path.join(self.wwiseroot, "Scripts", "Build", "Plugins", "wp.py")
+        self.wp_script = os.path.join(self.wwiseroot, 'Scripts', 'Build', 'Plugins', 'wp.py')
         self.patch_version = None                   # Derived from wwise version and used for defining the wwise_template_dir
         self.wwise_template_dir = None              # Directory where the template files are stored
         
@@ -78,7 +78,7 @@ class Config:
         self.json_file = None
         self.faust_options = None
         # Wwise parameters
-        self.wwise_platform = "Authoring"           # default
+        self.wwise_platform = None
         self.wwise_plugin_interface = None          
         self.wwise_toolset = None
         self.wwise_debugger = False
