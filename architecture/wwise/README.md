@@ -134,11 +134,27 @@ This demonstrates how to define the `volume` parameter as an **RTPC** of type **
 Support for hidden Faust parameters is also available via [widget modulation](https://faustdoc.grame.fr/manual/syntax/#widget-modulation), allowing to override internal parameters and redefining them by attaching RTPC-related metadata directly to its label.
 
 ## Testing
- <add a section about faust2wwise script after finalizing it.
+
+To test `faust2wwise`, a Python test script is provided that runs the conversion script on all `.dsp` files in a given directory. To use it, run `faust2wwise` in test mode using the `test` command-line parameter:
+
+```
+faust2wwise test --testdir /path/to/dir_containing_dsp_files
+```
+
+*Type `faust2wwise test --help` to view all the available command-line options.*
+>Note: the`--clean` option is currently not supported.
+
+Test results are stored in the current working directory under the `myF2Wtests/` folder:
+ - a summary is saved in the `testResults.json` file
+ - each `dsp` file gets a separate `build.log` in its distinct output directory.
+
+> Important: Because `faust2wwise test` installs plugins into system-level Wwise directories, it must be run from a console with **administrative rights**.
+
+**Compiling Faust examples from the official Faust repo**
+
+Use `faust2wwise test --testdir path/to/faust/examples` to compile all the tests (or a random portion of them using the `--limit <N>` option) of the official Faust dsp `examples`. This allows to either test `faust2wwise` at scale or compile a large suite of Faust examples into Wwise plugins making them accessible for use directly within the Wwise SDK. 
  
-- @TODO: add a `--faust-root` argument. (default something like `../../../faust`) 
- 
-- @TODO: add a `--clean` argument to delete all installed plugins from the Wwise directory where the plugins are typically stored. 
+> Note: Some .dsp files are automatically excluded since they require special handling (see EXCLUDE_FILES in the [test script](test.py)).
 
 ## Error Codes
 
@@ -167,6 +183,7 @@ The following features are currently limited or under development:
 - Older Wwise versions not supported (<??)
 - Speaker configuration code has known technical limitations
 - macOS support for Wwise Authoring plug-ins is indirect because the Authoring application runs as a Windows binary through an adaptation layer, and therefore requires plug-ins to be built as Windows DLLs. To achieve this on macOs, you must build the Authoring plug-in on a Windows machine or VM with Visual Studio, while the Sound Engine plug-in can be built natively on macOS. (For more details, see the official documentation on [macOs Plug-in Considerations](https://www.audiokinetic.com/en/public-library/2024.1.7_8863/?source=SDK&id=authoringplugin_macos.html))
+- `faust2wwise test` currently does not support the `--clean` option.
 
 If you'd like to help improve any of these, contributions are welcome!
 Please follow the [official contribution guideline](https://faustdoc.grame.fr/manual/community/).

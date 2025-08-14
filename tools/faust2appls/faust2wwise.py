@@ -85,29 +85,29 @@ def get_faust_include_dir() -> Path:
     return Path(result.stdout.strip()).resolve()
 
 
-def import_orchestrator(faust_dsp_dir:str)-> Optional[ModuleType]:
+def import_module(faust_dsp_dir:str, file:str)-> Optional[ModuleType]:
     """
-    Loads dynamically the orchestrator module from the Faust DSP architecture dir.
+    Loads dynamically a module from the Faust DSP architecture dir.
 
     Args:
         faust_dsp_dir (str): The directory where Faust DSP architectures are located.
 
     Returns:
-        A loaded Python module if successful, otherwise None if the `orchestrator.py` is missing.
+        A loaded Python module if successful, otherwise None if the python file is missing.
     """
         
     arch_tools_dir = os.path.join(faust_dsp_dir,"wwise")
-    orchestrator_path = Path(os.path.join(arch_tools_dir,"orchestrator.py"))
-    if not orchestrator_path.is_file():
-        print(f"Warning: orchestrator.py not found at: {orchestrator_path}")
+    module_path = Path(os.path.join(arch_tools_dir,file))
+    if not module_path.is_file():
+        print(f"Warning: {file} not found at: {module_path}")
         return None
 
     sys.path.insert(0,arch_tools_dir) # insert the directory into the sys.path
     # import path as a python module
-    spec = importlib.util.spec_from_file_location("orchestrator", orchestrator_path)
-    orchestrator = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(orchestrator)
-    return orchestrator
+    spec = importlib.util.spec_from_file_location(file.split(".py")[0], module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 if __name__ == "__main__":
 
@@ -125,11 +125,21 @@ if __name__ == "__main__":
     print(f"faust_include_dir {faust_include_dir}")
     print("\n------------------------------------------\n")
 
-    orchestrator_module = import_orchestrator(faust_dsp_dir)
+    if ("test" in sys.argv):
+        
+        test_module = import_module(faust_dsp_dir,"test.py")
 
-    faust2wwiser = orchestrator_module.Faust2WwiseOrchestrator( \
-        wwiseroot = wwise_root_dir,
-        faust_dsp_dir = faust_dsp_dir,
-        faust_include_dir = faust_include_dir)
-    
-    faust2wwiser.orchestrate()
+        tester = test_module.TestFaustExamples( wwiseroot = wwise_root_dir)
+        
+        tester.test_faust2wwise()
+
+    else:
+        
+        orchestrator_module = import_module(faust_dsp_dir,"orchestrator.py")
+
+        faust2wwiser = orchestrator_module.Faust2WwiseOrchestrator( \
+            wwiseroot = wwise_root_dir,
+            faust_dsp_dir = faust_dsp_dir,
+            faust_include_dir = faust_include_dir)
+        
+        faust2wwiser.orchestrate()
