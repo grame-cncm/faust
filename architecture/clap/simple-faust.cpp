@@ -41,7 +41,7 @@
 #define PLUGIN_VERSION "1.0.0"
 #define PLUGIN_DESCRIPTION "Dynamic Faust DSP Compiler for CLAP"
 #define PLUGIN_URL "https://faust.grame.fr"
-#define MAX_PARAMS 16  // maximum number of parameters supported
+#define MAX_PARAMS 12  // fixed parameter slots for stable hot reloading
 
 /**
  * Enhanced UI class that stores parameter metadata for CLAP parameter interface
@@ -219,7 +219,7 @@ public:
     }
     
     /**
-     * Initialize the plugin by loading the DSP file specified in FAUST_DSP_FILE environment variable
+     * Initialise the plugin by loading the DSP file specified in FAUST_DSP_FILE environment variable
      */
 
     bool init() noexcept override {
@@ -292,9 +292,9 @@ public:
             fUI.setValue(i, fUI.getInit(i));
         }
 
-        logDebug("Successfully loaded DSP with " + std::to_string(fActiveDSPParams) + " parameters");
+        logDebug("Successfully loaded DSP with " + std::to_string(fActiveDSPParams) + " active parameters");
         std::cerr << "[Faust Dynamic] Successfully loaded DSP with " << fActiveDSPParams 
-                  << " parameters (max " << MAX_PARAMS << " supported)\n";
+                  << " active parameters (fixed " << MAX_PARAMS << " slots)\n";
         
         // start hot reload watching if we have a DSP file
         if (!fCurrentDSPPath.empty()) {
@@ -434,19 +434,17 @@ private:
                     int oldParamCount = fActiveDSPParams;
                     fActiveDSPParams = newParamCount;
                     
-                    // notify host if parameter structure changed
-                    if (oldParamCount != newParamCount) {
-                        logDebug("Parameter count changed: " + std::to_string(oldParamCount) + 
-                                " -> " + std::to_string(newParamCount));
-                        
-                        // Use runOnMainThread to safely notify host about parameter changes
-                        // This queues the notification to run on the main thread, not the audio thread
-                        runOnMainThread([this]() {
-                            logDebug("Requesting host parameter rescan from main thread");
-                            _host.paramsRescan(CLAP_PARAM_RESCAN_INFO | CLAP_PARAM_RESCAN_VALUES);
-                            std::cerr << "[Faust Dynamic] 🔄 Notified host about parameter structure change\n";
-                        });
-                    }
+                    // Always notify host about parameter info changes
+                    // With fixed slots, the count stays at 12 but names/ranges change
+                    logDebug("Active parameters changed: " + std::to_string(oldParamCount) + 
+                            " -> " + std::to_string(newParamCount));
+                    
+                    // Use runOnMainThread to safely notify host about parameter changes
+                    runOnMainThread([this]() {
+                        logDebug("Requesting host parameter info update from main thread");
+                        _host.paramsRescan(CLAP_PARAM_RESCAN_INFO | CLAP_PARAM_RESCAN_VALUES);
+                        std::cerr << "[Faust Dynamic] 🔄 Updated parameter info (fixed 12 slots)\n";
+                    });
                     
                     std::cerr << "[Faust Dynamic] ✅ Hot reload successful: " 
                               << fActiveDSPParams << " parameters\n";
@@ -500,9 +498,11 @@ public:
                 if (hdr && hdr->space_id == CLAP_CORE_EVENT_SPACE_ID && 
                     hdr->type == CLAP_EVENT_PARAM_VALUE) {
                     const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
+                    // Only process events for active parameters
                     if (ev->param_id < fActiveDSPParams) {
                         fUI.setValue(ev->param_id, ev->value);
                     }
+                    // Ignore events for unused parameter slots
                 }
             }
         }
@@ -517,33 +517,47 @@ public:
 
     // parameter interface implementation
     bool implementsParams() const noexcept override { return true; }
-    uint32_t paramsCount() const noexcept override { return fActiveDSPParams; }
+    uint32_t paramsCount() const noexcept override { return MAX_PARAMS; }  // Always report fixed count
 
     bool paramsInfo(uint32_t index, clap_param_info_t* info) const noexcept override {
-        if (index >= fActiveDSPParams) return false;
+        if (index >= MAX_PARAMS) return false;
         
         std::memset(info, 0, sizeof(*info));
         info->id = index;
         
-        // active DSP parameter (we already checked index < fActiveDSPParams above)
-        std::string name = fUI.getParamAddress(index);
-        if (name.empty()) name = "param" + std::to_string(index);
-        if (name[0] == '/') name = name.substr(1);
-        size_t slash = name.find_last_of('/');
-        if (slash != std::string::npos) name = name.substr(slash + 1);
-        
-        std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name.c_str());
-        info->min_value = fUI.getMin(index);
-        info->max_value = fUI.getMax(index);
-        info->default_value = fUI.getInit(index);
-        info->flags = CLAP_PARAM_IS_AUTOMATABLE;
+        if (index < fActiveDSPParams) {
+            // Active DSP parameter
+            std::string name = fUI.getParamAddress(index);
+            if (name.empty()) name = "param" + std::to_string(index);
+            if (name[0] == '/') name = name.substr(1);
+            size_t slash = name.find_last_of('/');
+            if (slash != std::string::npos) name = name.substr(slash + 1);
+            
+            std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name.c_str());
+            info->min_value = fUI.getMin(index);
+            info->max_value = fUI.getMax(index);
+            info->default_value = fUI.getInit(index);
+            info->flags = CLAP_PARAM_IS_AUTOMATABLE;
+        } else {
+            // Unused parameter slot
+            std::snprintf(info->name, CLAP_NAME_SIZE, "Unused %d", index + 1);
+            info->min_value = 0.0;
+            info->max_value = 1.0;
+            info->default_value = 0.0;
+            info->flags = CLAP_PARAM_IS_AUTOMATABLE | CLAP_PARAM_IS_READONLY;
+        }
         
         return true;
     }
 
     bool paramsValue(clap_id id, double* value) noexcept override {
-        if (!value || id >= fActiveDSPParams) return false;
-        *value = fUI.getValue(id);
+        if (!value || id >= MAX_PARAMS) return false;
+        
+        if (id < fActiveDSPParams) {
+            *value = fUI.getValue(id);
+        } else {
+            *value = 0.0;  // Default value for unused parameters
+        }
         return true;
     }
 
