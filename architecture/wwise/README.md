@@ -113,7 +113,7 @@ The following Faust UI elements are supported by faust2wwise:
 
 **RTPC Integration**
 
-To define a Faust parameter as an RTPC (Real-Time Parameter Control) in Wwise, use UI metadata with the [RTPC,rtpcType] syntax.
+To define a Faust parameter as an RTPC (Real-Time Parameter Control) in Wwise, use UI metadata with the [RTPC:rtpcType] syntax.
 
 The available `rtpcType` options:
 - Additive
@@ -125,7 +125,7 @@ These types specify how the parameter should react to real-time game input — v
 
 **Example:**
 ```
-hslider("volume[RTPC,Additive]", 0, 0, 1, 0.01);
+hslider("volume[RTPC:Additive]", 0, 0, 1, 0.01);
 ```
 This demonstrates how to define the `volume` parameter as an **RTPC** of type **Additive**, meaning its final value in Wwise will be the sum of the base value plus any real-time contributions from RTPCs or States, allowing multiple sources to influence the parameter simultaneously *(Credits to Guido Fazzito)*.
 
