@@ -17,6 +17,7 @@ Supported platforms include Windows, MSYS2, and macOS (via implicit support for 
 - Multichannel audio support for source plugins
 - Error handling
 - Testing script to validate against all Faust example files
+- Support for channel mask selection for explicit speaker configuration
 
 ## Pipeline overview
 
@@ -135,6 +136,17 @@ This demonstrates how to define the `volume` parameter as an **RTPC** of type **
 
 Support for hidden Faust parameters is also available via [widget modulation](https://faustdoc.grame.fr/manual/syntax/#widget-modulation), allowing to override internal parameters and redefining them by attaching RTPC-related metadata directly to its label.
 
+## Explicit Speaker Configuration (Source plugins only)
+
+You can specify a speaker layout explicitly using the `--spkcfg` option. This allows to define the channel configuration by referencing one of the standard Wwise speaker setup macros, as defined in the `AkSpeakerConfig.h` of the Wwise SDK. This is useful when your plugin or project targets a specific speaker configuration(i.e. 5.1, 7.1.4, Auro, or Dolby Atmos). Available options are listed in [spkcfg.py](spkcfg.py) file, and are based on the official [Wwise channel mask definitions](https://www.audiokinetic.com/en/public-library/2024.1.7_8863/?source=SDK&id=_ak_speaker_config_8h_source.html). if `--spkcfg` option is not provided, the speaker configuration is automatically inferred based on the number of audio outputs declared in the Faust DSP file.
+
+> Important: The number of audio outputs defined in your Faust DSP file must match the number of channels implied by the selected configuration. 
+
+### Example:
+
+```bash
+faust2wwise myeffect.dsp --spkcfg AK_SPEAKER_SETUP_5POINT1
+
 ## Testing
 
 To test `faust2wwise`, a Python test script is provided that runs the conversion script on all `.dsp` files in a given directory. To use it, run `faust2wwise` in test mode using the `test` command-line parameter:
@@ -204,6 +216,9 @@ Please follow the [official contribution guideline](https://faustdoc.grame.fr/ma
 
 > This error occurs on macOS when building with Xcode and using `throw` in the code, while C++ exceptions are disabled. To fix this, open the project in Xcode, navigate to **Build Settings -> Apple Clang -> Language - C++ -> Enable C++ Exceptions**, and set to **Yes**.
 
+### Speaker configuration provided does not match with number of outputs supported by the Faust program.
+
+> This error occurs when the number of outputs in your Faust program doesn't match the number of speakers implied by the selected `--spkcfg` option. Ensure that your Faust file uses the correct number of outputs to match the speaker layout, or omit the `--spkcfg` option to use the default speaker configuration to let the channel mask be selected automatically from default mappings based on the number of DSP outputs.
 
 Found a bug, unexpected behavior, or something unclear? [Open an issue](https://github.com/grame-cncm/faust/issues).
 

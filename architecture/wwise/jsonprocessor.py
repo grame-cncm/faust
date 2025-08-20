@@ -59,11 +59,11 @@ def process_json_configuration(cfg) -> None :
             json_data = json.load(f)
         
         # Extract inputs/outputs
-        dsp_inputs = json_data.get('inputs', 0)
-        dsp_outputs = json_data.get('outputs', 0)
+        cfg.num_inputs = json_data.get('inputs', 0)
+        cfg.num_outputs = json_data.get('outputs', 0)
         
         # Determine plugin type based on inputs
-        if dsp_inputs > 0:
+        if cfg.num_inputs > 0:
             cfg.plugin_type = "effect"
             cfg.plugin_suffix = "FX"
         else:

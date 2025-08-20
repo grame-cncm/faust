@@ -18,6 +18,7 @@ import platform
 import subprocess
 import argparse
 from typing import List, Optional
+from spkcfg import speaker_config_options
 
 def print_usage() -> None:
     """
@@ -63,6 +64,7 @@ def print_wwise_help() -> None:
     print("  --build-hooks-file <path>       path to a Python file defining one or more of the supported hooks (postbuild) to be called at various step during the build process")
     print("  --toolchain-vers <path>         Path to a \'ToolchainVers\' text file, containing a list of supported toolchain versions to pass to the platform\'s toolchain_setup script, to setup and define a set of env-vars to re-run each build step with.")
     print("  --toolchain-env-script <path>   Path to a \'GetToolchainEnv\' script, which, when executed with a version provided by the toolchain-vers file, returns a comma separated list of environment variables to apply for build step.")
+    print("  --spkcfg <in_uChannelMask>      Specify an explicit speaker configuration using one of the standard channel mask macros defined in AkSpeakerConfig.h")
     print("")
     print("Example:")
     print("  faust2wwise myfaustfile.dsp -double -o myWwisePlugin --platform Authoring_Windows --toolset vc170 --configuration Release --arch x64")
@@ -171,6 +173,9 @@ def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
 
     if parsed_args.toolchain_env_script:
         cfg.wwise_toolchain_env_script = parsed_args.toolchain_env_script
+    
+    if parsed_args.spkcfg:
+        cfg.wwise_speaker_cfg_channel_mask = parsed_args.spkcfg
 
 def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> argparse.Namespace:
     """
@@ -210,6 +215,7 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> argparse.N
     parser.add_argument('--build-hooks-file', help='path to a Python file defining one or more of the supported hooks (postbuild) to be called at various step during the build process')
     parser.add_argument('--toolchain-vers', help='Path to a \'ToolchainVers\' text file, containing a list of supported toolchain versions to pass to the platform\'s toolchain_setup script, to setup and define a set of env-vars to re-run each build step with.')
     parser.add_argument('--toolchain-env-script', help='Path to a \'GetToolchainEnv\' script, which, when executed with a version provided by the toolchain-vers file, returns a comma separated list of environment variables to apply for build step.')
+    parser.add_argument('--spkcfg', type=str, choices=list(speaker_config_options.keys()), help='Explicit speaker configuration defined by a standard channel mask (e.g. AK_SPEAKER_SETUP_5POINT1), as specified in AkSpeakerConfig.h from the official Wwise SDK.')
 
     if args is None:
         args = sys.argv[1:]

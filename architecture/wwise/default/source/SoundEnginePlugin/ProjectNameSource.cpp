@@ -54,12 +54,7 @@ ${name}Source::~${name}Source()
 
 AkUInt32 ${name}Source::GetSpeakerConfigChannelMask(int dsp_outputs){
     
-    // improved formats based on :
-    // https://www.audiokinetic.com/en/public-library/2024.1.6_8842/?source=SDK&id=_ak_speaker_config_8h_source.html
-    // @TODO:
-    // The configuration that takes place is a coarse one and make assumptions about the maching of config options 
-    // .. for instance, 7 speakers may be 7_0 or 6_1 as well.
-    // .. so there is space for improvement here...
+    // provide default configurations based on given faust dsp outputs
 
     AkUInt32 in_uChannelMask;
     switch (dsp_outputs)
@@ -86,17 +81,34 @@ AkUInt32 ${name}Source::GetSpeakerConfigChannelMask(int dsp_outputs){
         in_uChannelMask = AK_SPEAKER_SETUP_7;
         break;
     case 8:
-        in_uChannelMask = AK_SPEAKER_SETUP_7POINT1; // or AK_SPEAKER_SETUP_DEFAULT_PLANE?
+        in_uChannelMask = AK_SPEAKER_SETUP_7POINT1;
+        break;
+    case 9:
+        in_uChannelMask = AK_SPEAKER_SETUP_AURO_9;
+        break;
+    case 10:
+        in_uChannelMask = AK_SPEAKER_SETUP_AURO_9POINT1;
+        break;
+    case 11:
+        in_uChannelMask = AK_SPEAKER_SETUP_AURO_10POINT1;
+        break;
+    case 12:
+        in_uChannelMask = AK_SPEAKER_SETUP_AURO_11POINT1;
+        break;
+    case 13:
+        in_uChannelMask = AK_SPEAKER_SETUP_AURO_13_751;
+        break;
+    case 14:
+        in_uChannelMask = AK_SPEAKER_SETUP_AURO_13POINT1_751;
         break;
     default:
         in_uChannelMask = AK_SPEAKER_SETUP_STEREO;
         break;
     }
-
-    if (dsp_outputs > 8)
+    if (dsp_outputs > 14)
     {
-        AKPLATFORM::OutputDebugMsg(" [WARNING] dsp_outputs > 8. This is an unsupported speaker configuration. Falling back to 8 channels (7.1).\n");
-        in_uChannelMask = AK_SPEAKER_SETUP_7POINT1;
+        AKPLATFORM::OutputDebugMsg(" [WARNING] dsp_outputs > 14. This is an unsupported speaker configuration. Falling back to 14 channels (AK_SPEAKER_SETUP_AURO_13POINT1_751).\n");
+        in_uChannelMask = AK_SPEAKER_SETUP_AURO_13POINT1_751;
     }
 
     return in_uChannelMask;

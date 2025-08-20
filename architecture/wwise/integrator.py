@@ -7,11 +7,14 @@ broken down into the following steps:
 - replace the vital for the integration files
 - integrate parameters
 - inject faust includes within the lua script
+- replace the line that sets the speaker configuration, in case --spkcfg is provided by the user 
 """
 import json
 import os
+import re
 import sys
 import shutil
+from pathlib import Path
 from parameters import Parameter
 from processor import TemplateProcessor
 from xmlinjector import inject_properties_to_xml
@@ -209,6 +212,8 @@ def modify_lua_build_script(cfg) -> None:
     """
     Modifies the Lua build script (`PremakePlugin.lua`) injecting faust include directories at specific parts 
     of its content.
+    Args:
+        cfg (Config): the configuration object
     """
     print("Modifying Lua build script for Faust includes...")
     
@@ -276,3 +281,41 @@ def modify_lua_build_script(cfg) -> None:
     
     print("OK : Updated Lua build script with Faust include paths")
     os.chdir(original_dir)
+
+def replace_channel_config_line(cfg) -> bool:
+    """
+    Replaces the entire line that sets the speaker configuration in the 
+    default\source\SoundEnginePlugin\ProjectNameSource.cpp file with a provided value.
+    Args:
+        cfg (Config): The configuration object
+    """
+    if cfg.plugin_type != "source" or not cfg.wwise_speaker_cfg_channel_mask:
+        return
+
+    target_dir = Path(cfg.output_dir) / cfg.plugin_name
+    filepath = target_dir / "SoundEnginePlugin" / f"{cfg.plugin_name}Source.cpp"
+
+    anchor = "in_rFormat.channelConfig.SetStandard"
+    patch = f"in_rFormat.channelConfig.SetStandard({cfg.wwise_speaker_cfg_channel_mask});"
+
+    try:
+        lines = filepath.read_text(encoding="utf-8").splitlines(keepends=True)
+    except FileNotFoundError:
+        print(f"Error: File not found: {filepath}")
+        return False
+
+    for i, line in enumerate(lines):
+        if anchor in line:
+            indent = re.match(r"^\s*", line).group()
+            lines[i] = f"{indent}{patch}\n"
+            break
+    else:
+        print(f"Error: Anchor line not found in {filepath}")
+        return False
+
+    try:
+        filepath.write_text("".join(lines), encoding="utf-8")
+        return True
+    except Exception as e:
+        print(f"Error writing file: {e}")
+        return False

@@ -88,6 +88,7 @@ class Config:
         self.wwise_build_hooks_file = None
         self.wwise_toolchain_vers = None
         self.wwise_toolchain_env_script = None
+        self.wwise_speaker_cfg_channel_mask = None 
 
         ################################################ plugin configuration
         self.plugin_type = None
@@ -95,6 +96,8 @@ class Config:
         self.plugin_suffix = None
         self.author = None
         self.description = None
+        self.num_inputs = None
+        self.num_outputs = None
         
         ################################################ error codes
         self.ERR_INVALID_INPUT = 2
@@ -153,6 +156,8 @@ class Config:
             print(f"toolchain_vers {self.wwise_toolchain_vers}")
         if self.wwise_toolchain_env_script:
             print(f"toolchain_env_script {self.wwise_toolchain_env_script}")
+        if self.wwise_speaker_cfg_channel_mask:
+            print(f"wwise_speaker_cfg_channel_mask {self.wwise_speaker_cfg_channel_mask}")
         print(f"plugin_interface --> unresolved yet and will be defined after compiling the dsp file with Faust")
 
         print("============= Error Codes ================")
@@ -175,6 +180,8 @@ class Config:
         print(f"plugin_type {self.plugin_type}")
         print(f"plugin_name {self.plugin_name}")
         print(f"plugin_suffix {self.plugin_suffix}")
+        print(f"num_inputs {self.num_inputs}")
+        print(f"num_outputs {self.num_outputs}")
         print(f"author {self.author}")
         print(f"description {self.description}")
         if self.wwise_plugin_interface:
@@ -189,6 +196,7 @@ class Config:
         print("Faust2Wwise conversion completed!")
         print(f"Generated plugin: {self.plugin_name}")
         print(f"Plugin type: {self.plugin_type}" + (" (in-place)" if self.plugin_type == "effect" and self.wwise_plugin_interface=="in-place" else " (out-of-place)" if self.plugin_type == "effect" else ""))
+        print(f"IO: num inputs({self.num_inputs}), num outputs({self.num_outputs})")
         print(f"Location: {os.path.join(self.output_dir, self.plugin_name)}")
         print(f"Installation: {os.path.join(self.wwiseroot, 'Authoring', self.wwise_arch, self.wwise_configuration, 'bin', 'Plugins', self.plugin_name)}.(ext)")
         print("=====================================")
