@@ -109,6 +109,15 @@ def import_module(faust_dsp_dir:str, file:str)-> Optional[ModuleType]:
     spec.loader.exec_module(module)
     return module
 
+def print_message_on_fail():
+    print("\nAn error occurred during execution.")
+    print("Please review the console output above to identify the issue.")
+    print("For help, refer to the Troubleshooting Guide:")
+    # print("\thttps://github.com/grame-cncm/faust/blob/main-dev/architecture/wwise/README.md#troubleshooting") # TODO uncomment when merged
+    print("\thttps://github.com/pasquale90/faust/blob/wwise-dev_templates/architecture/wwise/README.md#troubleshooting") # TODO remove when merged
+    print("If the error is not listed there, check the GitHub issues or consider reporting it:")
+    print("\thttps://github.com/grame-cncm/faust/issues")
+
 if __name__ == "__main__":
 
     wwise_root_dir = get_wwise_root_dir()
@@ -141,5 +150,12 @@ if __name__ == "__main__":
             wwiseroot = wwise_root_dir,
             faust_dsp_dir = faust_dsp_dir,
             faust_include_dir = faust_include_dir)
+
+        try:
+
+            faust2wwiser.orchestrate()
         
-        faust2wwiser.orchestrate()
+        except:
+        
+            print_message_on_fail()
+            sys.exit(1)
