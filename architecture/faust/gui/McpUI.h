@@ -507,6 +507,13 @@ class McpWidget : public McpTool {
     }
 })";
     }
+    
+    inline float clamp(float value, float a, float b)
+    {
+        float lo = (a <= b) ? a : b;
+        float hi = (a <= b) ? b : a;
+        return (value < lo) ? lo : (value > hi) ? hi : value;
+    }
 
     /**
      * @brief Handle parameter value change
@@ -529,7 +536,7 @@ class McpWidget : public McpTool {
             float value = std::stof(valueStr);
 
             // Clamp value between min and max
-            value = std::clamp(value, fMinValue, fMaxValue);
+            value = clamp(value, fMinValue, fMaxValue);
 
             // Update the parameter
             *fAddress = value;

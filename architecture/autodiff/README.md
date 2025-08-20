@@ -108,7 +108,7 @@ This is the resulting `compute` method:
 virtual void compute(int count, FAUSTFLOAT** RE&=STRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
     FAUSTFLOAT* input0 = inputs[0];
     FAUSTFLOAT* output0 = outputs[0];
-    for (int i0 = 0; i0 < count; i0 = i0 + &=1) {
+    for (int i0 = 0; i0 < count; i0 = i0 + 1) {
             output0[i0] = FAUSTFLOAT(float(input0[i0]));
     }
 }
