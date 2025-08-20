@@ -96,12 +96,21 @@ class Parameter:
                     if self.is_bargraph():
                         self.rtpcType = None
                         return None
-                    self.rtpcType = item["RTPC"]
+                    self.rtpcType = self._derive_rtpc_type(item["RTPC"])
                     return "RTPC"
             return "NonRTPC"
         except:
             return "NonRTPC"
-        
+    
+    def _derive_rtpc_type(self, val):
+        val = val.lower()
+        return {
+            "additive": "Additive",
+            "multiplicative": "Multiplicative",
+            "exclusive": "Exclusive",
+            "boolean": "Boolean"
+        }.get(val)
+
     def _derive_rtpc_name(self, unq_shortname : str) -> str:
         """Build a unique RTPC name based on type and shortname"""
         return self.paramCastedType[0] + unq_shortname

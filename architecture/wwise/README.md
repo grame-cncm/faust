@@ -123,6 +123,8 @@ The available `rtpcType` options:
 
 These types specify how the parameter should react to real-time game input — via an RTPC, a State, or both — and how those values interact (e.g., additive, multiplicative). 
 
+> Note: RTPC types are case-insensitive. For example, `multiplicative` is also considered as a valid input and will be interpreted correctly.
+
 **Example:**
 ```
 hslider("volume[RTPC:Additive]", 0, 0, 1, 0.01);
