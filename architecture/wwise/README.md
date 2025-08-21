@@ -144,8 +144,10 @@ You can specify a speaker layout explicitly using the `--spkcfg` option. This al
 
 ### Example:
 
-```bash
-faust2wwise myeffect.dsp --spkcfg AK_SPEAKER_SETUP_5POINT1
+```
+faust2wwise myGenerator.dsp --spkcfg AK_SPEAKER_SETUP_5POINT1
+```
+This example shows of how explicit speaker configuration can be provided for a Faust DSP file that generates audio output for 6 channels.
 
 ## Testing
 
@@ -195,7 +197,6 @@ The following features are currently limited or under development:
   - [Wwise Plug-in Dialog](https://www.audiokinetic.com/en/public-library/2024.1.6_8842/?source=SDK&id=wwiseplugin_dialog_guide.html), though note this is currently platform-dependent and only supported on Windows.
   - `hbargraphs` which behave like sliders visually, but they do not output values, limiting their usefulness for feedback or monitoring. 
 - Older Wwise versions not supported (<??)
-- Speaker configuration code has known technical limitations
 - macOS support for Wwise Authoring plug-ins is indirect because the Authoring application runs as a Windows binary through an adaptation layer, and therefore requires plug-ins to be built as Windows DLLs. To achieve this on macOs, you must build the Authoring plug-in on a Windows machine or VM with Visual Studio, while the Sound Engine plug-in can be built natively on macOS. (For more details, see the official documentation on [macOs Plug-in Considerations](https://www.audiokinetic.com/en/public-library/2024.1.7_8863/?source=SDK&id=authoringplugin_macos.html))
 - `faust2wwise test` currently does not support the `--clean` option.
 
