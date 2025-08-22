@@ -19,8 +19,8 @@
  */
 
 #include <faust/dsp/dsp.h>
-#include <faust/gui/MapUI.h>
 #include "interpreter-clap.h"
+#include "clap-mapui.h"
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -29,6 +29,8 @@
 #include <atomic>
 #include <chrono>
 #include <fstream>
+#include <algorithm>
+#include <map>
 #include <clap/helpers/plugin.hh>
 #include <clap/helpers/host-proxy.hh>
 #include <clap/events.h>
@@ -43,65 +45,7 @@
 #define PLUGIN_URL "https://faust.grame.fr"
 #define MAX_PARAMS 12  // fixed parameter slots for stable hot reloading
 
-/**
- * Enhanced UI class that stores parameter metadata for CLAP parameter interface
- */
-struct DynamicUI : public MapUI {
-    std::vector<FAUSTFLOAT> fMins, fMaxs, fInits;
-    std::vector<std::string> fLabels;
-
-    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init,
-                             FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
-        MapUI::addHorizontalSlider(label, zone, init, min, max, step);
-        addParamMetadata(label, init, min, max);
-    }
-
-    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init,
-                           FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
-        MapUI::addVerticalSlider(label, zone, init, min, max, step);
-        addParamMetadata(label, init, min, max);
-    }
-
-    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init,
-                     FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override {
-        MapUI::addNumEntry(label, zone, init, min, max, step);
-        addParamMetadata(label, init, min, max);
-    }
-
-private:
-    void addParamMetadata(const char* label, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max) {
-        fMins.push_back(min);
-        fMaxs.push_back(max);
-        fInits.push_back(init);
-        fLabels.push_back(label ? label : "");
-    }
-
-public:
-
-    // Parameter access methods
-    FAUSTFLOAT getMin(int i) const { return (i < fMins.size()) ? fMins[i] : 0.f; }
-    FAUSTFLOAT getMax(int i) const { return (i < fMaxs.size()) ? fMaxs[i] : 1.f; }
-    FAUSTFLOAT getInit(int i) const { return (i < fInits.size()) ? fInits[i] : 0.5f; }
-    const std::string& getLabel(int i) const { 
-        static const std::string empty;
-        return (i < fLabels.size()) ? fLabels[i] : empty;
-    }
-    
-    void setValue(int i, FAUSTFLOAT val) {
-        if (i >= 0 && i < getParamsCount()) {
-            std::string addr = getParamAddress(i);
-            setParamValue(addr, val);
-        }
-    }
-    
-    FAUSTFLOAT getValue(int i) {
-        if (i >= 0 && i < getParamsCount()) {
-            std::string addr = getParamAddress(i);
-            return getParamValue(addr);
-        }
-        return 0.f;
-    }
-};
+// DynamicUI completely removed - using only CLAPMapUI from interpreter
 
 using Base = clap::helpers::Plugin<
     clap::helpers::MisbehaviourHandler::Terminate,
@@ -129,9 +73,11 @@ class FaustDynamicPlugin final : public Base {
 private:
     InterpreterCLAP fInterpreter;   // faust interpreter for dynamic compilation
     dsp* fDSP = nullptr;            // currently loaded DSP instance
-    DynamicUI fUI;                  // UI interface for parameter management
+    CLAPMapUI* fUI = nullptr;       // UI interface from interpreter (single source of truth)
     std::string fCurrentDSPPath;    // path to currently loaded DSP file
     int fActiveDSPParams = 0;       // number of parameters in current DSP
+    int fCurrentSampleRate = 44100; // current session sample rate (updated in activate())
+    std::map<std::string, FAUSTFLOAT> fOldParamValues; // for address-based restore
     
     // Hot reload functionality
     efsw_watcher fConfigWatcher = nullptr;      // efsw watcher for config file
@@ -247,7 +193,7 @@ public:
                 process = _ * gain, _ * gain;
             )";
             
-            if (!fInterpreter.loadFromString("default", defaultCode, 44100)) {
+            if (!fInterpreter.loadFromString("default", defaultCode, fCurrentSampleRate)) {
                 std::cerr << "[Faust Dynamic] ERROR: Failed to load default DSP\n";
                 return false;
             }
@@ -257,7 +203,7 @@ public:
             logDebug("Loading DSP file: " + dspPath);
             std::cerr << "[Faust Dynamic] Loading DSP file: " << dspPath << "\n";
             
-            if (!fInterpreter.loadFromFile(dspPath.c_str(), 44100)) {
+            if (!fInterpreter.loadFromFile(dspPath.c_str(), fCurrentSampleRate)) {
                 std::cerr << "[Faust Dynamic] ERROR: Failed to load DSP file: " << dspPath << "\n";
                 std::cerr << "[Faust Dynamic] Falling back to default DSP\n";
                 
@@ -268,7 +214,7 @@ public:
                     process = _ * gain, _ * gain;
                 )";
                 
-                if (!fInterpreter.loadFromString("default", defaultCode, 44100)) {
+                if (!fInterpreter.loadFromString("default", defaultCode, fCurrentSampleRate)) {
                     std::cerr << "[Faust Dynamic] ERROR: Failed to load default DSP\n";
                     return false;
                 }
@@ -276,20 +222,19 @@ public:
             }
         }
 
-        // get the compiled DSP instance
+        // get the compiled DSP instance and UI from interpreter
         fDSP = fInterpreter.getDSP();
-        if (!fDSP) {
-            std::cerr << "[Faust Dynamic] ERROR: No DSP instance available\n";
+        fUI = fInterpreter.getUI();
+        if (!fDSP || !fUI) {
+            std::cerr << "[Faust Dynamic] ERROR: No DSP instance or UI available\n";
             return false;
         }
 
-        // build the user interface to discover parameters
-        fDSP->buildUserInterface(&fUI);
-        fActiveDSPParams = fUI.getParamsCount();
+        fActiveDSPParams = fUI->getParamsCount();
         
         // initialise all parameters to their default values
         for (int i = 0; i < fActiveDSPParams; ++i) {
-            fUI.setValue(i, fUI.getInit(i));
+            fUI->setParamValue(i, fUI->getParamInit(i));
         }
 
         logDebug("Successfully loaded DSP with " + std::to_string(fActiveDSPParams) + " active parameters");
@@ -400,42 +345,55 @@ private:
         }
         
         try {
-            // store current parameter values
-            std::vector<FAUSTFLOAT> oldValues;
-            for (int i = 0; i < fActiveDSPParams; ++i) {
-                oldValues.push_back(fUI.getValue(i));
+            // store current parameter values BY ADDRESS (not index!)
+            fOldParamValues.clear();
+            if (fUI) {
+                for (int i = 0; i < fActiveDSPParams; ++i) {
+                    std::string address = fUI->getParamAddress(i);
+                    FAUSTFLOAT value = fUI->getParamValue(i);
+                    fOldParamValues[address] = value;
+                    logDebug("Stored param: " + address + " = " + std::to_string(value));
+                }
             }
             
-            // attempt to reload the DSP
-            if (fInterpreter.loadFromFile(fCurrentDSPPath.c_str(), 44100)) {
+            // attempt to reload the DSP with correct sequencing
+            if (fInterpreter.loadFromFile(fCurrentDSPPath.c_str(), fCurrentSampleRate)) {
                 dsp* newDSP = fInterpreter.getDSP();
-                if (newDSP) {
-                    // initialise new DSP
-                    newDSP->init(44100);
+                CLAPMapUI* newUI = fInterpreter.getUI();
+                if (newDSP && newUI) {
+                    // CRITICAL: init DSP at correct sample rate BEFORE restoring values
+                    newDSP->init(fCurrentSampleRate);
                     
-                    // reset UI and rebuild with new DSP
-                    fUI = DynamicUI();
-                    newDSP->buildUserInterface(&fUI);
-                    int newParamCount = fUI.getParamsCount();
+                    int newParamCount = newUI->getParamsCount();
                     
-                    // restore parameter values for parameters that still exist
-                    int minParams = std::min((int)oldValues.size(), newParamCount);
-                    for (int i = 0; i < minParams; ++i) {
-                        fUI.setValue(i, oldValues[i]);
+                    // restore parameter values BY ADDRESS for parameters that still exist
+                    for (int i = 0; i < newParamCount; ++i) {
+                        std::string address = newUI->getParamAddress(i);
+                        auto it = fOldParamValues.find(address);
+                        if (it != fOldParamValues.end()) {
+                            // Found old value - clamp to new range and restore
+                            FAUSTFLOAT oldValue = it->second;
+                            FAUSTFLOAT minVal = newUI->getParamMin(i);
+                            FAUSTFLOAT maxVal = newUI->getParamMax(i);
+                            FAUSTFLOAT clampedValue = std::max(minVal, std::min(maxVal, oldValue));
+                            newUI->setParamValue(i, clampedValue);
+                            logDebug("Restored param: " + address + " = " + std::to_string(clampedValue) + 
+                                   " (was " + std::to_string(oldValue) + ", range " + 
+                                   std::to_string(minVal) + "-" + std::to_string(maxVal) + ")");
+                        } else {
+                            // New parameter - use default
+                            newUI->setParamValue(i, newUI->getParamInit(i));
+                            logDebug("New param: " + address + " = " + std::to_string(newUI->getParamInit(i)));
+                        }
                     }
                     
-                    // initialise any new parameters to defaults
-                    for (int i = minParams; i < newParamCount; ++i) {
-                        fUI.setValue(i, fUI.getInit(i));
-                    }
-                    
-                    // atomically switch to new DSP
+                    // atomically switch to new DSP and UI
                     fDSP = newDSP;
+                    fUI = newUI;
                     int oldParamCount = fActiveDSPParams;
                     fActiveDSPParams = newParamCount;
                     
                     // Always notify host about parameter info changes
-                    // With fixed slots, the count stays at 12 but names/ranges change
                     logDebug("Active parameters changed: " + std::to_string(oldParamCount) + 
                             " -> " + std::to_string(newParamCount));
                     
@@ -449,7 +407,7 @@ private:
                     std::cerr << "[Faust Dynamic] ✅ Hot reload successful: " 
                               << fActiveDSPParams << " parameters\n";
                 } else {
-                    std::cerr << "[Faust Dynamic] ❌ Hot reload failed: No DSP instance\n";
+                    std::cerr << "[Faust Dynamic] ❌ Hot reload failed: No DSP instance or UI\n";
                 }
             } else {
                 std::cerr << "[Faust Dynamic] ❌ Hot reload failed: Compilation error\n";
@@ -466,6 +424,7 @@ public:
      */
 
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override {
+        fCurrentSampleRate = (int)sampleRate;  // Store actual session sample rate
         if (fDSP) {
             fDSP->init(sampleRate);
             return true;
@@ -498,19 +457,35 @@ public:
                 if (hdr && hdr->space_id == CLAP_CORE_EVENT_SPACE_ID && 
                     hdr->type == CLAP_EVENT_PARAM_VALUE) {
                     const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
-                    // Only process events for active parameters
-                    if (ev->param_id < fActiveDSPParams) {
-                        fUI.setValue(ev->param_id, ev->value);
+                    // Only process events for active parameters with value clamping
+                    if (ev->param_id < fActiveDSPParams && fUI) {
+                        FAUSTFLOAT min = fUI->getParamMin(ev->param_id);
+                        FAUSTFLOAT max = fUI->getParamMax(ev->param_id);
+                        FAUSTFLOAT clampedValue = std::max(min, std::min(max, (FAUSTFLOAT)ev->value));
+                        fUI->setParamValue(ev->param_id, clampedValue);
                     }
                     // Ignore events for unused parameter slots
                 }
             }
         }
 
-        // process audio through the DSP
-        FAUSTFLOAT* inputs[2] = { in.data32[0], in.data32[1] };
-        FAUSTFLOAT* outputs[2] = { out.data32[0], out.data32[1] };
-        currentDSP->compute(process->frames_count, inputs, outputs);
+        // process audio through the DSP with proper channel handling
+        // CRITICAL: Handle mono/stereo properly - don't assume channels exist!
+        FAUSTFLOAT* inputs[2];
+        FAUSTFLOAT* outputs[2];
+        
+        // Set up input channels (handle mono input gracefully)
+        inputs[0] = (in.channel_count > 0 && in.data32) ? in.data32[0] : nullptr;
+        inputs[1] = (in.channel_count > 1 && in.data32) ? in.data32[1] : inputs[0]; // duplicate L if mono
+        
+        // Set up output channels (handle mono output gracefully)  
+        outputs[0] = (out.channel_count > 0 && out.data32) ? out.data32[0] : nullptr;
+        outputs[1] = (out.channel_count > 1 && out.data32) ? out.data32[1] : outputs[0]; // duplicate L if mono
+        
+        // Only process if we have valid buffers
+        if (inputs[0] && outputs[0]) {
+            currentDSP->compute(process->frames_count, inputs, outputs);
+        }
 
         return CLAP_PROCESS_CONTINUE;
     }
@@ -525,18 +500,15 @@ public:
         std::memset(info, 0, sizeof(*info));
         info->id = index;
         
-        if (index < fActiveDSPParams) {
+        if (index < fActiveDSPParams && fUI) {
             // Active DSP parameter
-            std::string name = fUI.getParamAddress(index);
+            std::string name = fUI->getParamShortname(index);
             if (name.empty()) name = "param" + std::to_string(index);
-            if (name[0] == '/') name = name.substr(1);
-            size_t slash = name.find_last_of('/');
-            if (slash != std::string::npos) name = name.substr(slash + 1);
             
             std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name.c_str());
-            info->min_value = fUI.getMin(index);
-            info->max_value = fUI.getMax(index);
-            info->default_value = fUI.getInit(index);
+            info->min_value = fUI->getParamMin(index);
+            info->max_value = fUI->getParamMax(index);
+            info->default_value = fUI->getParamInit(index);
             info->flags = CLAP_PARAM_IS_AUTOMATABLE;
         } else {
             // Unused parameter slot
@@ -553,8 +525,8 @@ public:
     bool paramsValue(clap_id id, double* value) noexcept override {
         if (!value || id >= MAX_PARAMS) return false;
         
-        if (id < fActiveDSPParams) {
-            *value = fUI.getValue(id);
+        if (id < fActiveDSPParams && fUI) {
+            *value = fUI->getParamValue(id);
         } else {
             *value = 0.0;  // Default value for unused parameters
         }
@@ -570,8 +542,11 @@ public:
             if (hdr && hdr->space_id == CLAP_CORE_EVENT_SPACE_ID && 
                 hdr->type == CLAP_EVENT_PARAM_VALUE) {
                 const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
-                if (ev->param_id < fActiveDSPParams) {
-                    fUI.setValue(ev->param_id, ev->value);
+                if (ev->param_id < fActiveDSPParams && fUI) {
+                    FAUSTFLOAT min = fUI->getParamMin(ev->param_id);
+                    FAUSTFLOAT max = fUI->getParamMax(ev->param_id);
+                    FAUSTFLOAT clampedValue = std::max(min, std::min(max, (FAUSTFLOAT)ev->value));
+                    fUI->setParamValue(ev->param_id, clampedValue);
                 }
             }
         }
@@ -590,7 +565,7 @@ public:
         info->channel_count = 2;
         info->flags = CLAP_AUDIO_PORT_IS_MAIN;
         info->port_type = CLAP_PORT_STEREO;
-        info->in_place_pair = isInput ? CLAP_INVALID_ID : 0;
+        info->in_place_pair = CLAP_INVALID_ID;  // CRITICAL: Disable in-place processing!
         
         return true;
     }
