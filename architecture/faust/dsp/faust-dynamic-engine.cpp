@@ -157,12 +157,6 @@ struct dsp_aux {
         }
     }
   
-    dsp_aux() : fDriver(nullptr)
-    {
-        fDSP = nullptr;
-        createJSON("dummy_dsp");
-    }
-
     virtual ~dsp_aux()
     {
         if (fDriver) {
