@@ -43,3 +43,4 @@ tests/impulse-tests/ir
 .idea/
 ### Pyenv
 .python-version
+architecture/clap/FaustDynamic.clap

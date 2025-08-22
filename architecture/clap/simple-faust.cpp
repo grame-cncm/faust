@@ -6,15 +6,17 @@
  * This architecture allows loading Faust DSP files at runtime using the interpreter,
  * enabling rapid DSP development without recompiling the entire plugin.
  * 
- * Usage:
- * 1. set environment variable: export FAUST_DSP_FILE="/path/to/your.dsp"  
- * 2. launch DAW with the environment variable set
- * 3. load this plugin - it will compile and load your DSP file
+ * use:
+ * -set environment variable: export FAUST_DSP_FILE="/path/to/your.dsp"  
+ * -launch DAW with the environment variable set
+ * -load this plugin - it will compile and load your DSP file
  * 
- * the plugin supports up to 16 parameters. If your DSP has fewer parameters,
+ * alternatively, you could just run the script faust-hot-reload.py and you'll get a "nicer than command line" GUI to load your favourite dsp files
+ * 
+ * the plugin supports up to 12 parameters. If your DSP has fewer parameters,
  * the unused parameter slots will be hidden from the DAW interface.
  * 
- * @author GRAME
+ * @author Facundo Franchino under the mentorship of Stèphane Letz and Jatin Chowdhury for GSoC 2025
  * @version 1.0.0
  */
 
@@ -78,6 +80,13 @@ private:
     int fActiveDSPParams = 0;       // number of parameters in current DSP
     int fCurrentSampleRate = 44100; // current session sample rate (updated in activate())
     std::map<std::string, FAUSTFLOAT> fOldParamValues; // for address-based restore
+    // --- Stable 12-slot mapping by FAUST address ---
+    std::array<std::string, MAX_PARAMS> fSlotAddress{}; // "" means unused slot
+    std::array<int, MAX_PARAMS>         fSlotToParam{}; // -1 means unmapped
+
+    // Work buffers to bridge host 32f/64f <-> FAUSTFLOAT
+    std::vector<FAUSTFLOAT> fTmpIn[2];
+    std::vector<FAUSTFLOAT> fTmpOut[2];
     
     // Hot reload functionality
     efsw_watcher fConfigWatcher = nullptr;      // efsw watcher for config file
@@ -88,6 +97,60 @@ private:
     std::atomic<bool> fReloadInProgress{false}; // prevent concurrent reloads
     std::string fConfigPath = "/tmp/faust-current-dsp.txt"; // config file path
     
+
+    // Rebuild slot<->param mapping using addresses, preserving existing slots when possible.
+    void rebuildSlotMapping()
+    {
+        // reset mapping
+        for (int s = 0; s < MAX_PARAMS; ++s) fSlotToParam[s] = -1;
+
+        if (!fUI) return;
+
+        const int newN = fUI->getParamsCount();
+        std::vector<int> paramTaken(newN, 0);
+
+        // 1) First pass: keep existing slots if the address still exists
+        for (int s = 0; s < MAX_PARAMS; ++s) {
+            if (fSlotAddress[s].empty()) continue;
+            for (int j = 0; j < newN; ++j) {
+                if (!paramTaken[j] && fUI->getParamAddress(j) == fSlotAddress[s]) {
+                    fSlotToParam[s] = j;
+                    paramTaken[j] = 1;
+                    break;
+                }
+            }
+        }
+
+        // 2) Second pass: assign any new (unassigned) params to empty slots
+        for (int j = 0; j < newN; ++j) {
+            if (paramTaken[j]) continue;
+            // find an empty slot
+            for (int s = 0; s < MAX_PARAMS; ++s) {
+                if (fSlotAddress[s].empty()) {
+                    fSlotAddress[s] = fUI->getParamAddress(j);
+                    fSlotToParam[s] = j;
+                    paramTaken[j] = 1;
+                    break;
+                }
+            }
+        }
+
+        // 3) Any slots whose address no longer exists become unused
+        for (int s = 0; s < MAX_PARAMS; ++s) {
+            if (fSlotToParam[s] == -1) {
+                // keep fSlotAddress[s] if you want it to “linger”, or clear it:
+                // clearing prevents stale labels/min/max
+                fSlotAddress[s].clear();
+            }
+        }
+    }
+
+    // Map CLAP slot id (0..MAX_PARAMS-1) -> current Faust param index (or -1)
+    inline int idToParam(clap_id id) const noexcept {
+        if (id >= MAX_PARAMS) return -1;
+        return fSlotToParam[id];
+    }
+
     // Debug logging
     void logDebug(const std::string& msg) {
         std::ofstream logFile("/tmp/faust-dynamic.log", std::ios::app);
@@ -230,12 +293,23 @@ public:
             return false;
         }
 
-        fActiveDSPParams = fUI->getParamsCount();
-        
-        // initialise all parameters to their default values
+        // Rebuild UI -> bind zones -> init -> then read param counts
+        fUI->clearParams();
+        fUI->beginCapture();
+        fDSP->buildUserInterface(fUI);
+        fUI->endCapture();
+        fDSP->init(fCurrentSampleRate);
+
+        // Keep MapUI and our metadata perfectly in sync
+        fActiveDSPParams = std::min((int)fUI->getParamsCount(), (int)fUI->fParams.size());
         for (int i = 0; i < fActiveDSPParams; ++i) {
             fUI->setParamValue(i, fUI->getParamInit(i));
         }
+
+        // Seed slots 0..N-1 on first load
+        for (int i = 0; i < std::min(fActiveDSPParams, MAX_PARAMS); ++i)
+            fSlotAddress[i] = fUI->getParamAddress(i);
+        rebuildSlotMapping();
 
         logDebug("Successfully loaded DSP with " + std::to_string(fActiveDSPParams) + " active parameters");
         std::cerr << "[Faust Dynamic] Successfully loaded DSP with " << fActiveDSPParams 
@@ -362,9 +436,14 @@ private:
                 CLAPMapUI* newUI = fInterpreter.getUI();
                 if (newDSP && newUI) {
                     // CRITICAL: init DSP at correct sample rate BEFORE restoring values
+                    // Rebuild new UI, bind zones, then init at the correct SR
+                    newUI->clearParams();
+                    newUI->beginCapture();
+                    newDSP->buildUserInterface(newUI);
+                    newUI->endCapture();
                     newDSP->init(fCurrentSampleRate);
                     
-                    int newParamCount = newUI->getParamsCount();
+                    int newParamCount = std::min((int)newUI->getParamsCount(), (int)newUI->fParams.size());
                     
                     // restore parameter values BY ADDRESS for parameters that still exist
                     for (int i = 0; i < newParamCount; ++i) {
@@ -392,6 +471,8 @@ private:
                     fUI = newUI;
                     int oldParamCount = fActiveDSPParams;
                     fActiveDSPParams = newParamCount;
+                    rebuildSlotMapping();
+                    
                     
                     // Always notify host about parameter info changes
                     logDebug("Active parameters changed: " + std::to_string(oldParamCount) + 
@@ -400,7 +481,7 @@ private:
                     // Use runOnMainThread to safely notify host about parameter changes
                     runOnMainThread([this]() {
                         logDebug("Requesting host parameter info update from main thread");
-                        _host.paramsRescan(CLAP_PARAM_RESCAN_INFO | CLAP_PARAM_RESCAN_VALUES);
+                        _host.paramsRescan(CLAP_PARAM_RESCAN_ALL);
                         std::cerr << "[Faust Dynamic] 🔄 Updated parameter info (fixed 12 slots)\n";
                     });
                     
@@ -424,13 +505,13 @@ public:
      */
 
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override {
-        fCurrentSampleRate = (int)sampleRate;  // Store actual session sample rate
-        if (fDSP) {
-            fDSP->init(sampleRate);
-            return true;
-        }
-        return false;
+    fCurrentSampleRate = (int)sampleRate;  // Store actual session sample rate
+    if (fDSP) {
+        fDSP->init(sampleRate);
+        return true;
     }
+    return false;
+}
 
     /**
      * process audio and handle parameter events
@@ -450,41 +531,112 @@ public:
         const auto& in = process->audio_inputs[0];
         const auto& out = process->audio_outputs[0];
 
-        // process incoming parameter events
-        if (process->in_events) {
+        // process incoming parameter events (translate slot -> Faust param index)
+        // process incoming parameter events (translate slot -> Faust param index)
+        if (process->in_events && fUI) {
             for (uint32_t i = 0; i < process->in_events->size(process->in_events); ++i) {
                 const clap_event_header_t* hdr = process->in_events->get(process->in_events, i);
-                if (hdr && hdr->space_id == CLAP_CORE_EVENT_SPACE_ID && 
-                    hdr->type == CLAP_EVENT_PARAM_VALUE) {
+                if (!hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID) continue;
+
+                if (hdr->type == CLAP_EVENT_PARAM_VALUE) {
                     const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
-                    // Only process events for active parameters with value clamping
-                    if (ev->param_id < fActiveDSPParams && fUI) {
-                        FAUSTFLOAT min = fUI->getParamMin(ev->param_id);
-                        FAUSTFLOAT max = fUI->getParamMax(ev->param_id);
-                        FAUSTFLOAT clampedValue = std::max(min, std::min(max, (FAUSTFLOAT)ev->value));
-                        fUI->setParamValue(ev->param_id, clampedValue);
-                    }
-                    // Ignore events for unused parameter slots
+                    const uint32_t slot = ev->param_id;
+                    if (slot >= MAX_PARAMS) continue;
+
+                    const int j = fSlotToParam[slot];   // map slot -> current Faust param
+                    if (j < 0) continue;                // ignore unmapped slots
+
+                    const FAUSTFLOAT mn = fUI->getParamMin(j);
+                    const FAUSTFLOAT mx = fUI->getParamMax(j);
+                    const FAUSTFLOAT v  = std::max(mn, std::min(mx, (FAUSTFLOAT)ev->value));
+                    fUI->setParamValue(j, v);
                 }
             }
         }
 
-        // process audio through the DSP with proper channel handling
-        // CRITICAL: Handle mono/stereo properly - don't assume channels exist!
-        FAUSTFLOAT* inputs[2];
-        FAUSTFLOAT* outputs[2];
-        
-        // Set up input channels (handle mono input gracefully)
-        inputs[0] = (in.channel_count > 0 && in.data32) ? in.data32[0] : nullptr;
-        inputs[1] = (in.channel_count > 1 && in.data32) ? in.data32[1] : inputs[0]; // duplicate L if mono
-        
-        // Set up output channels (handle mono output gracefully)  
-        outputs[0] = (out.channel_count > 0 && out.data32) ? out.data32[0] : nullptr;
-        outputs[1] = (out.channel_count > 1 && out.data32) ? out.data32[1] : outputs[0]; // duplicate L if mono
-        
+                // 32f/64f-safe I/O hookup + on-the-fly conversion if needed
+        const bool faustIsFloat = (sizeof(FAUSTFLOAT) == sizeof(float));
+        const bool inIs64  = (in.data64  && !in.data32);
+        const bool outIs64 = (out.data64 && !out.data32);
+        const bool inIs32  = (in.data32  != nullptr);
+        const bool outIs32 = (out.data32 != nullptr);
+
+        FAUSTFLOAT* inputs[2]  = { nullptr, nullptr };
+        FAUSTFLOAT* outputs[2] = { nullptr, nullptr };
+
+        auto ensureSize = [&](std::vector<FAUSTFLOAT>& v, uint32_t n) {
+            if (v.size() < n) v.resize(n);
+        };
+
+        const uint32_t n = process->frames_count;
+
+        // -------- Inputs --------
+        if (faustIsFloat) {
+            if (inIs32) {
+                inputs[0] = (in.channel_count > 0) ? reinterpret_cast<FAUSTFLOAT*>(in.data32[0]) : nullptr;
+                inputs[1] = (in.channel_count > 1) ? reinterpret_cast<FAUSTFLOAT*>(in.data32[1]) : inputs[0];
+            } else if (inIs64) {
+                // Host is 64f, DSP is 32f -> convert
+                if (in.channel_count > 0) { ensureSize(fTmpIn[0], n); for (uint32_t i=0;i<n;++i) fTmpIn[0][i] = (FAUSTFLOAT)in.data64[0][i]; inputs[0] = fTmpIn[0].data(); }
+                if (in.channel_count > 1) { ensureSize(fTmpIn[1], n); for (uint32_t i=0;i<n;++i) fTmpIn[1][i] = (FAUSTFLOAT)in.data64[1][i]; inputs[1] = fTmpIn[1].data(); }
+                if (!inputs[1]) inputs[1] = inputs[0];
+            }
+        } else { // FAUSTFLOAT == double
+            if (inIs64) {
+                inputs[0] = (in.channel_count > 0) ? reinterpret_cast<FAUSTFLOAT*>(in.data64[0]) : nullptr;
+                inputs[1] = (in.channel_count > 1) ? reinterpret_cast<FAUSTFLOAT*>(in.data64[1]) : inputs[0];
+            } else if (inIs32) {
+                // Host is 32f, DSP is 64f -> convert
+                if (in.channel_count > 0) { ensureSize(fTmpIn[0], n); for (uint32_t i=0;i<n;++i) fTmpIn[0][i] = (FAUSTFLOAT)in.data32[0][i]; inputs[0] = fTmpIn[0].data(); }
+                if (in.channel_count > 1) { ensureSize(fTmpIn[1], n); for (uint32_t i=0;i<n;++i) fTmpIn[1][i] = (FAUSTFLOAT)in.data32[1][i]; inputs[1] = fTmpIn[1].data(); }
+                if (!inputs[1]) inputs[1] = inputs[0];
+            }
+        }
+
+        // -------- Outputs --------
+        bool outNeedsBackConvert = false;
+
+        if (faustIsFloat) {
+            if (outIs32) {
+                outputs[0] = (out.channel_count > 0) ? reinterpret_cast<FAUSTFLOAT*>(out.data32[0]) : nullptr;
+                outputs[1] = (out.channel_count > 1) ? reinterpret_cast<FAUSTFLOAT*>(out.data32[1]) : outputs[0];
+            } else if (outIs64) {
+                // DSP 32f -> Host 64f : render to temp, then convert back
+                outNeedsBackConvert = true;
+                if (out.channel_count > 0) { ensureSize(fTmpOut[0], n); outputs[0] = fTmpOut[0].data(); }
+                if (out.channel_count > 1) { ensureSize(fTmpOut[1], n); outputs[1] = fTmpOut[1].data(); }
+                if (!outputs[1]) outputs[1] = outputs[0];
+            }
+        } else { // FAUSTFLOAT == double
+            if (outIs64) {
+                outputs[0] = (out.channel_count > 0) ? reinterpret_cast<FAUSTFLOAT*>(out.data64[0]) : nullptr;
+                outputs[1] = (out.channel_count > 1) ? reinterpret_cast<FAUSTFLOAT*>(out.data64[1]) : outputs[0];
+            } else if (outIs32) {
+                // DSP 64f -> Host 32f : render to temp, then convert back
+                outNeedsBackConvert = true;
+                if (out.channel_count > 0) { ensureSize(fTmpOut[0], n); outputs[0] = fTmpOut[0].data(); }
+                if (out.channel_count > 1) { ensureSize(fTmpOut[1], n); outputs[1] = fTmpOut[1].data(); }
+                if (!outputs[1]) outputs[1] = outputs[0];
+            }
+        }
+
         // Only process if we have valid buffers
         if (inputs[0] && outputs[0]) {
-            currentDSP->compute(process->frames_count, inputs, outputs);
+            currentDSP->compute(n, inputs, outputs);
+
+            // Back‑convert if needed
+            if (outNeedsBackConvert) {
+                if (faustIsFloat && outIs64) {
+                    if (out.channel_count > 0) for (uint32_t i=0;i<n;++i) out.data64[0][i] = (double)outputs[0][i];
+                    if (out.channel_count > 1) for (uint32_t i=0;i<n;++i) out.data64[1][i] = (double)outputs[1][i];
+                    if (out.channel_count == 1 && outputs[1] == outputs[0]) {
+                        // mono out: nothing extra to do
+                    }
+                } else if (!faustIsFloat && outIs32) {
+                    if (out.channel_count > 0) for (uint32_t i=0;i<n;++i) out.data32[0][i] = (float)outputs[0][i];
+                    if (out.channel_count > 1) for (uint32_t i=0;i<n;++i) out.data32[1][i] = (float)outputs[1][i];
+                }
+            }
         }
 
         return CLAP_PROCESS_CONTINUE;
@@ -495,62 +647,59 @@ public:
     uint32_t paramsCount() const noexcept override { return MAX_PARAMS; }  // Always report fixed count
 
     bool paramsInfo(uint32_t index, clap_param_info_t* info) const noexcept override {
-        if (index >= MAX_PARAMS) return false;
-        
+        if (index >= MAX_PARAMS || !info) return false;
         std::memset(info, 0, sizeof(*info));
         info->id = index;
-        
-        if (index < fActiveDSPParams && fUI) {
-            // Active DSP parameter
-            std::string name = fUI->getParamShortname(index);
+
+        int j = (index < MAX_PARAMS) ? fSlotToParam[index] : -1;
+        if (j != -1 && fUI) {
+            std::string name = fUI->getParamShortname(j);
             if (name.empty()) name = "param" + std::to_string(index);
-            
             std::snprintf(info->name, CLAP_NAME_SIZE, "%s", name.c_str());
-            info->min_value = fUI->getParamMin(index);
-            info->max_value = fUI->getParamMax(index);
-            info->default_value = fUI->getParamInit(index);
-            info->flags = CLAP_PARAM_IS_AUTOMATABLE;
+            info->min_value     = fUI->getParamMin(j);
+            info->max_value     = fUI->getParamMax(j);
+            info->default_value = fUI->getParamInit(j);
+            info->flags         = CLAP_PARAM_IS_AUTOMATABLE;
         } else {
-            // Unused parameter slot
-            std::snprintf(info->name, CLAP_NAME_SIZE, "Unused %d", index + 1);
-            info->min_value = 0.0;
-            info->max_value = 1.0;
+            std::snprintf(info->name, CLAP_NAME_SIZE, "Unused %u", index + 1);
+            info->min_value     = 0.0;
+            info->max_value     = 1.0;
             info->default_value = 0.0;
-            info->flags = CLAP_PARAM_IS_AUTOMATABLE | CLAP_PARAM_IS_READONLY;
+            info->flags         = CLAP_PARAM_IS_AUTOMATABLE | CLAP_PARAM_IS_READONLY;
         }
-        
         return true;
     }
 
     bool paramsValue(clap_id id, double* value) noexcept override {
         if (!value || id >= MAX_PARAMS) return false;
-        
-        if (id < fActiveDSPParams && fUI) {
-            *value = fUI->getParamValue(id);
-        } else {
-            *value = 0.0;  // Default value for unused parameters
-        }
+        int j = fSlotToParam[id];
+        if (j != -1 && fUI) { *value = fUI->getParamValue(j); }
+        else                { *value = 0.0; }
         return true;
     }
 
     void paramsFlush(const clap_input_events_t* in, const clap_output_events_t*) noexcept override {
-        if (!in) return;
-        
-        // process parameter events
-        for (uint32_t i = 0; i < in->size(in); ++i) {
-            const clap_event_header_t* hdr = in->get(in, i);
-            if (hdr && hdr->space_id == CLAP_CORE_EVENT_SPACE_ID && 
-                hdr->type == CLAP_EVENT_PARAM_VALUE) {
-                const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
-                if (ev->param_id < fActiveDSPParams && fUI) {
-                    FAUSTFLOAT min = fUI->getParamMin(ev->param_id);
-                    FAUSTFLOAT max = fUI->getParamMax(ev->param_id);
-                    FAUSTFLOAT clampedValue = std::max(min, std::min(max, (FAUSTFLOAT)ev->value));
-                    fUI->setParamValue(ev->param_id, clampedValue);
-                }
-            }
+    if (!in || !fUI) return;
+
+    for (uint32_t i = 0; i < in->size(in); ++i) {
+        const clap_event_header_t* hdr = in->get(in, i);
+        if (!hdr || hdr->space_id != CLAP_CORE_EVENT_SPACE_ID) continue;
+
+        if (hdr->type == CLAP_EVENT_PARAM_VALUE) {
+            const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
+            const uint32_t slot = ev->param_id;
+            if (slot >= MAX_PARAMS) continue;
+
+            const int j = fSlotToParam[slot];
+            if (j < 0) continue;
+
+            const FAUSTFLOAT mn = fUI->getParamMin(j);
+            const FAUSTFLOAT mx = fUI->getParamMax(j);
+            const FAUSTFLOAT v  = std::max(mn, std::min(mx, (FAUSTFLOAT)ev->value));
+            fUI->setParamValue(j, v);
         }
     }
+}
 
     // audio ports interface
     bool implementsAudioPorts() const noexcept override { return true; }
