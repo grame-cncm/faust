@@ -54,9 +54,9 @@ The way this work is orchestrated follows a multi-step process, where each phase
 `faust2wwise` comes with the following requirements: 
 - **FAUST**
   - The `Faust` compiler must be available in your system **PATH**.
-- **Wwise SDK (>??)**
+- **Wwise SDK (>=2024.1.0)**
   - `WWISEROOT` must also be exposed system-wide.
-- **Python (>??)**
+- **Python (>=3.9)**
 - **Console access with admin rights**
 
 > **HINNT:** `WWISEROOT` must also be exposed system-wide. 
@@ -196,7 +196,7 @@ The following features are currently limited or under development:
 - Bargraphs parameter support. Potential approaches are:
   - [Wwise Plug-in Dialog](https://www.audiokinetic.com/en/public-library/2024.1.6_8842/?source=SDK&id=wwiseplugin_dialog_guide.html), though note this is currently platform-dependent and only supported on Windows.
   - `hbargraphs` which behave like sliders visually, but they do not output values, limiting their usefulness for feedback or monitoring. 
-- Older Wwise versions not supported (<??)
+- Older Wwise versions not supported (<=2023.1.15)
 - macOS support for Wwise Authoring plug-ins is indirect because the Authoring application runs as a Windows binary through an adaptation layer, and therefore requires plug-ins to be built as Windows DLLs. To achieve this on macOs, you must build the Authoring plug-in on a Windows machine or VM with Visual Studio, while the Sound Engine plug-in can be built natively on macOS. (For more details, see the official documentation on [macOs Plug-in Considerations](https://www.audiokinetic.com/en/public-library/2024.1.7_8863/?source=SDK&id=authoringplugin_macos.html))
 - `faust2wwise test` currently does not support the `--clean` option.
 
