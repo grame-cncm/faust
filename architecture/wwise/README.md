@@ -166,7 +166,7 @@ Test results are stored in the current working directory under the `myF2Wtests/`
 
 > Important: Because `faust2wwise test` installs plugins into system-level Wwise directories, it must be run from a console with **administrative rights**.
 
-> Note: Testing on **macOS** is not currently supported due to Wwise Authoring plug-in constraints. Running `faust2wwise` requires building parts of the plug-in on Windows and manually copying files between platforms. As a result, tests won't work out-of-the-box on macOS. For more details, refer to the [Limitations](#limitations) section on macOS support.
+> Note: Testing on **macOS** is possible but not supported out-of-the-box due to Wwise Authoring plug-in constraints. Running `faust2wwise` requires building parts of the plug-in on Windows and manually copying files between platforms. For more details, refer to the [Limitations](#limitations) section on macOS support.
 
 **Compiling Faust examples from the official Faust repo**
 
