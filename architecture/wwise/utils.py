@@ -405,6 +405,9 @@ def run_system_command(cmd : List[str], error_code:Optional[int]=None) -> subpro
     try:
         result = subprocess.run(
             cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
             check=True,
         )
         if result.stdout:
