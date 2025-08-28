@@ -115,3 +115,4 @@ architecture/clap/FaustDynamic.clap
 build/sawtoothLab/plugin_metadata.h
 build/sawtoothLab/sawtoothLab_clap.cpp
 examples/generator/sawtoothLab.dsp.json
+architecture/clap/efsw/
