@@ -1,5 +1,0 @@
-#define FAUST_PLUGIN_ID "org.faust.sawtoothlab"
-#define FAUST_PLUGIN_NAME "sawtoothLab"
-#define FAUST_PLUGIN_VENDOR "JOS, revised by RM"
-#define FAUST_PLUGIN_VERSION "0.0"
-#define FAUST_PLUGIN_DESCRIPTION "An application demonstrating the different sawtooth oscillators of Faust."
