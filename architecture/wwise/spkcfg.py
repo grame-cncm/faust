@@ -1,3 +1,6 @@
+# Link to the current official Wwise doc page:
+# https://www.audiokinetic.com/en/public-library/2024.1.7_8863/?source=SDK&id=_ak_speaker_config_8h_source.html
+
 speaker_config_options = {
     "AK_SPEAKER_SETUP_MONO": 1,
     "AK_SPEAKER_SETUP_0POINT1": 1,
