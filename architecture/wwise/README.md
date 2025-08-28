@@ -166,6 +166,8 @@ Test results are stored in the current working directory under the `myF2Wtests/`
 
 > Important: Because `faust2wwise test` installs plugins into system-level Wwise directories, it must be run from a console with **administrative rights**.
 
+> Note: Testing on **macOS** is not currently supported due to Wwise Authoring plug-in constraints. Running `faust2wwise` requires building parts of the plug-in on Windows and manually copying files between platforms. As a result, tests won't work out-of-the-box on macOS. For more details, refer to the [Limitations](#limitations) section on macOS support.
+
 **Compiling Faust examples from the official Faust repo**
 
 Use `faust2wwise test --testdir path/to/faust/examples` to compile all the tests (or a random portion of them using the `--limit <N>` option) of the official Faust dsp `examples`. This allows to either test `faust2wwise` at scale or compile a large suite of Faust examples into Wwise plugins making them accessible for use directly within the Wwise SDK. 
@@ -190,9 +192,6 @@ Code | Name | Description
 ## Limitations
 
 The following features are currently limited or under development:
-- support multiple dsps
-  - multiple instances of the same DSP class
-  - and/or instances from different DSP classes
 - Bargraphs parameter support. Potential approaches are:
   - [Wwise Plug-in Dialog](https://www.audiokinetic.com/en/public-library/2024.1.6_8842/?source=SDK&id=wwiseplugin_dialog_guide.html), though note this is currently platform-dependent and only supported on Windows.
   - `hbargraphs` which behave like sliders visually, but they do not output values, limiting their usefulness for feedback or monitoring. 
