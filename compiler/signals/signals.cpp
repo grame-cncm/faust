@@ -896,7 +896,7 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
  A boxSoundfile(label,c) has 2 inputs and c+3 outputs:
  0   sigSoundfileLength(label, part):  the number of frames of the soundfile part (NK)
  1   sigSoundfileRate(label, part): the sampling rate encoded in the file (NK)
- 2   sigSoundfileBuffer(label, c, part, ridx): the cth channel content (RK ou RS)
+ 2   sigSoundfileBuffer(label, c, part, ridx): the cth channel content (RK or RS)
 */
 LIBFAUST_API Tree sigSoundfile(Tree label)
 {
