@@ -108,6 +108,14 @@ class FaustHotReloadGUI:
                                       command=self.clear_history)
         clear_history_btn.pack(side="right")
         
+        # info label about compilation errors
+        info_frame = tk.Frame(self.root, bg="#fffacd")
+        info_frame.pack(side="bottom", fill="x", before=self.root.winfo_children()[-1])
+        info_label = tk.Label(info_frame, 
+                             text="💡 Tip: Run Reaper from terminal to see compilation errors: /Applications/REAPER.app/Contents/MacOS/REAPER",
+                             bg="#fffacd", fg="#666", font=("Arial", 9))
+        info_label.pack(pady=2)
+        
         # status bar
         self.status_label = tk.Label(self.root, text="Ready", relief="sunken", anchor="w")
         self.status_label.pack(side="bottom", fill="x")
@@ -163,7 +171,17 @@ class FaustHotReloadGUI:
             filename = os.path.basename(filepath)
             self.status_label.config(text=f"✅ Loaded: {filename}")
             
-            messagebox.showinfo("Success", f"DSP file loaded successfully!\n\n{filename}")
+            # check if file compiles (basic check - file exists and has .dsp extension)
+            if not os.path.exists(filepath):
+                messagebox.showwarning("Warning", f"File not found:\n{filepath}\n\nThe plugin may fail to compile.")
+            elif not filepath.endswith('.dsp'):
+                messagebox.showwarning("Warning", f"Not a .dsp file:\n{filepath}\n\nThe plugin may fail to compile.")
+            else:
+                # show success with note about compilation
+                messagebox.showinfo("File Loaded", 
+                    f"DSP file loaded:\n{filename}\n\n" +
+                    "Note: If the DSP has compilation errors, check Reaper's console output.\n" +
+                    "The plugin will show '❌ Compilation error' in the terminal.")
             
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load DSP file:\n{str(e)}")

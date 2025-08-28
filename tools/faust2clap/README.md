@@ -122,7 +122,7 @@ The dynamic plugin watches bash `/tmp/faust-current-dsp.txt`  for DSP file paths
 ## 🔐 Broader Limitations
 - Design choice of a 12 fixed-parameter system places a limitation on dsp designs requiring more parameters (e.g a complex synthesiser), one could say this is a tool targeted towards effects processing, mainly.
 - No "friendly" UI, yet. I will be working on a JUCE implementation for the GUI and a on-display preset management system which will end the need for an external python script that runs the .dsp selector.
-- Although notably fast, utilising LLVM instead of the Interpreter could make it even faster.
+- Although notably fast, utilising LLVM instead of the Interpreter could make it 3 to 10 times faster.
 
 ---
 
