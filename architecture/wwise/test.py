@@ -243,13 +243,16 @@ class TestFaustExamples:
         """
         Function used to apply the tests.
         """
+
+        print(f"Output directory : {self.outdir}\n")
+
         self.testdir = Path(self.testdir).resolve()
 
         dsp_files = [
             f for f in self.testdir.rglob("*.dsp")
             if str(f.relative_to(self.testdir)).replace("\\", "/") not in self.EXCLUDED_FILES
         ]
-        print(f"Found {len(dsp_files)} .dsp files.\n")
+        print(f"Found {len(dsp_files)} .dsp files within {self.testdir}.\n")
 
         totalFiles = len(dsp_files)
 
@@ -332,7 +335,7 @@ class TestFaustExamples:
             print(f" - {p}")
 
         if total_not_found:
-            print(f"\ {len(total_not_found)} files were not found (possibly already deleted?):")
+            print(f"\n {len(total_not_found)} files were not found (possibly already deleted?):")
             for p in total_not_found:
                 print(f" - {p}")
 
