@@ -294,9 +294,10 @@ def check_wwise_required_arguments(cfg) -> List[str]:
 def wwise_platform_and_toolset_compatible(cfg) -> bool:
 
     """
-    Ensures that platform and toolset are compatible.
-
-    TODO <will be updated>
+    Ensures that platform and toolset are compatible (on Windows only):
+    - If no toolset is provided, a default is assigned based on the platform.
+    - If an invalid combination is detected, the function returns False.
+    - On non-Windows platforms, the toolset (if specified) is ignored with a warning.
 
     Args:
         cfg (Config): The configuration object.
