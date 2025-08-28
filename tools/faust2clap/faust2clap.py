@@ -21,8 +21,7 @@ args = parser.parse_args()
 
 dsp_path = args.dsp_file #full path to the provided .dsp file
 nvoices = args.nvoices
-is_monophonic = args.mono
-is_polyphonic = args.poly or not args.mono  # default to poly unless mono specified
+# Note: is_polyphonic will be set later based on auto-detection or user override
 if not os.path.isfile(dsp_path):
     print(f"[!] dsp file not found: {dsp_path}")
     sys.exit(1)
@@ -73,6 +72,72 @@ def extract_metadata(dsp_path):
         return {}
 
 metadata = extract_metadata(dsp_path)
+
+#auto-detect if DSP is an effect or instrument
+def detect_dsp_type(dsp_path, metadata):
+    """
+    Detect if DSP is an effect or instrument based on:
+    1. If it has 'effect' in metadata
+    2. If it has audio inputs (effects process audio, instruments generate it)
+    3. Common naming patterns
+    """
+    #check metadata for explicit type
+    if 'effect' in metadata:
+        return 'effect'
+    if 'instrument' in metadata or 'synth' in metadata:
+        return 'instrument'
+    
+    #check DSP name patterns
+    dsp_name = os.path.basename(dsp_path).lower()
+    effect_keywords = ['reverb', 'delay', 'filter', 'eq', 'compress', 'distort', 'phaser', 
+                      'flanger', 'chorus', 'echo', 'pitch', 'gate', 'limiter', 'expand']
+    instrument_keywords = ['synth', 'organ', 'piano', 'drum', 'bass', 'lead', 'pad', 
+                          'string', 'brass', 'voice', 'osc', 'vco', 'sawtooth']
+    
+    for keyword in effect_keywords:
+        if keyword in dsp_name:
+            print(f"[i] Detected as EFFECT based on name containing '{keyword}'")
+            return 'effect'
+    
+    for keyword in instrument_keywords:
+        if keyword in dsp_name:
+            print(f"[i] Detected as INSTRUMENT based on name containing '{keyword}'")
+            return 'instrument'
+    
+    #check if DSP has inputs by parsing the generated C++
+    try:
+        cpp_output = subprocess.check_output(["faust", "-lang", "cpp", dsp_path], universal_newlines=True)
+        #look for getNumInputs function
+        if 'getNumInputs' in cpp_output:
+            #extract the return value
+            match = re.search(r'int\s+getNumInputs\(\)\s*{\s*return\s+(\d+);', cpp_output)
+            if match:
+                num_inputs = int(match.group(1))
+                if num_inputs > 0:
+                    print(f"[i] Detected as EFFECT (has {num_inputs} audio inputs)")
+                    return 'effect'
+                else:
+                    print(f"[i] Detected as INSTRUMENT (has no audio inputs)")
+                    return 'instrument'
+    except:
+        pass
+    
+    #default to effect for safety (effects work for both cases)
+    print(f"[i] Defaulting to EFFECT mode")
+    return 'effect'
+
+dsp_type = detect_dsp_type(dsp_path, metadata)
+
+#override with user preference if specified
+if args.mono:
+    is_polyphonic = False
+    print(f"[i] User forced MONO mode")
+elif args.poly:
+    is_polyphonic = True
+    print(f"[i] User forced POLY mode")
+else:
+    #auto-detect based on DSP type
+    is_polyphonic = (dsp_type == 'instrument')
 
 #fallback values
 plugin_id = f"org.faust.{base.lower()}"

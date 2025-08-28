@@ -72,7 +72,7 @@ struct CLAPMapUI : public MapUI {
         return fParams[index].init;
     }
 
-    // Index-based parameter access methods
+    // index-based parameter access methods
     void setParamValue(int index, FAUSTFLOAT val) {
         if (index < 0 || index >= getParamsCount()) return;
         std::string addr = getParamAddress(index);
@@ -93,12 +93,12 @@ struct CLAPMapUI : public MapUI {
         return (slash != std::string::npos) ? full.substr(slash + 1) : full;
     }
     
-    // Preset management
+    // preset management
     std::vector<std::string> fPresetList;
     int fCurrentPresetIndex = 0;
     FAUSTFLOAT fPresetSelectorValue = 0.0f;
     
-    // Preset browser callback function pointer
+    // preset browser callback function pointer
     std::function<void(const std::string&)> fPresetLoadCallback = nullptr;
     
     void setPresetLoadCallback(std::function<void(const std::string&)> callback) {
@@ -113,16 +113,16 @@ struct CLAPMapUI : public MapUI {
         }
     }
     
-    // Add preset browser as a "fake" UI element
+    // add preset browser as a "fake" UI element
     void addPresetBrowser(const char* label = "Presets") {
-        // Add as a numbered entry that acts as preset selector
+        // add as a numbered entry that acts as preset selector
         addNumEntry(label, &fPresetSelectorValue, 0.0f, 0.0f, 
                    std::max(1.0f, float(fPresetList.size() - 1)), 1.0f);
     }
     
-    // Handle preset selection changes
+    // handle preset selection changes
     void handlePresetSelection() {
-        int newIndex = static_cast<int>(fPresetSelectorValue + 0.5f); // Round to nearest
+        int newIndex = static_cast<int>(fPresetSelectorValue + 0.5f); // round to nearest
         if (newIndex >= 0 && newIndex < static_cast<int>(fPresetList.size()) && 
             newIndex != fCurrentPresetIndex) {
             fCurrentPresetIndex = newIndex;
@@ -130,6 +130,20 @@ struct CLAPMapUI : public MapUI {
                 fPresetLoadCallback(fPresetList[newIndex]);
             }
         }
+    }
+    
+    // methods for simple-faust.cpp
+    void clearParams() {
+        fParams.clear();
+        // don't clear MapUI's internal params, just our metadata
+    }
+    
+    void beginCapture() {
+        // no-op for now, could be used for parameter change tracking
+    }
+    
+    void endCapture() {
+        // no-op for now, could be used for parameter change tracking
     }
 };
 

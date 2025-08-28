@@ -3,8 +3,8 @@
 /**
  * CLAP architecture for Faust with dynamic DSP compilation.
  * 
- * This architecture allows loading Faust DSP files at runtime using the interpreter,
- * enabling rapid DSP development without recompiling the entire plugin.
+ * this architecture allows loading Faust DSP files at runtime using the interpreter,
+ * which provides a faster alternative for rapid DSP development without recompiling an entire plugin as done in the static implementation of the faust2clap project.
  * 
  * use:
  * -set environment variable: export FAUST_DSP_FILE="/path/to/your.dsp"  
@@ -14,10 +14,7 @@
  * alternatively, you could just run the script faust-hot-reload.py and you'll get a "nicer than command line" GUI to load your favourite dsp files
  * 
  * the plugin supports up to 12 parameters. If your DSP has fewer parameters,
- * the unused parameter slots will be hidden from the DAW interface.
- * 
- * @author Facundo Franchino under the mentorship of Stèphane Letz and Jatin Chowdhury for GSoC 2025
- * @version 1.0.0
+ * the unused parameter slots will be labelled "unused" on the plugin GUI.
  */
 
 #include <faust/dsp/dsp.h>
@@ -38,7 +35,7 @@
 #include <clap/events.h>
 #include <efsw/efsw.h>
 
-// Plugin identification
+// plugin identification
 #define PLUGIN_ID "org.grame.faust.dynamic"
 #define PLUGIN_NAME "Faust Dynamic"
 #define PLUGIN_VENDOR "GRAME"
@@ -47,7 +44,6 @@
 #define PLUGIN_URL "https://faust.grame.fr"
 #define MAX_PARAMS 12  // fixed parameter slots for stable hot reloading
 
-// DynamicUI completely removed - using only CLAPMapUI from interpreter
 
 using Base = clap::helpers::Plugin<
     clap::helpers::MisbehaviourHandler::Terminate,
@@ -73,22 +69,23 @@ constexpr static clap_plugin_descriptor_t desc = {
  */
 class FaustDynamicPlugin final : public Base {
 private:
-    InterpreterCLAP fInterpreter;   // faust interpreter for dynamic compilation
-    dsp* fDSP = nullptr;            // currently loaded DSP instance
-    CLAPMapUI* fUI = nullptr;       // UI interface from interpreter (single source of truth)
-    std::string fCurrentDSPPath;    // path to currently loaded DSP file
-    int fActiveDSPParams = 0;       // number of parameters in current DSP
-    int fCurrentSampleRate = 44100; // current session sample rate (updated in activate())
+    InterpreterCLAP fInterpreter;   
+    dsp* fDSP = nullptr;            
+    CLAPMapUI* fUI = nullptr;      
+    std::string fCurrentDSPPath;    
+    int fActiveDSPParams = 0;       
+    int fCurrentSampleRate = 44100; 
     std::map<std::string, FAUSTFLOAT> fOldParamValues; // for address-based restore
-    // --- Stable 12-slot mapping by FAUST address ---
+
+    // --- stable 12-slot mapping by faust address ---
     std::array<std::string, MAX_PARAMS> fSlotAddress{}; // "" means unused slot
     std::array<int, MAX_PARAMS>         fSlotToParam{}; // -1 means unmapped
 
-    // Work buffers to bridge host 32f/64f <-> FAUSTFLOAT
+    // work buffers to bridge host 32f/64f <-> FAUSTFLOAT
     std::vector<FAUSTFLOAT> fTmpIn[2];
     std::vector<FAUSTFLOAT> fTmpOut[2];
     
-    // Hot reload functionality
+    // hot-reload functionality
     efsw_watcher fConfigWatcher = nullptr;      // efsw watcher for config file
     efsw_watcher fDSPWatcher = nullptr;         // efsw watcher for DSP file
     efsw_watchid fConfigWatchID;                // config file watch ID
@@ -98,7 +95,7 @@ private:
     std::string fConfigPath = "/tmp/faust-current-dsp.txt"; // config file path
     
 
-    // Rebuild slot<->param mapping using addresses, preserving existing slots when possible.
+    // rebuild slot<->param mapping using addresses, preserving existing slots when possible.
     void rebuildSlotMapping()
     {
         // reset mapping
@@ -109,7 +106,7 @@ private:
         const int newN = fUI->getParamsCount();
         std::vector<int> paramTaken(newN, 0);
 
-        // 1) First pass: keep existing slots if the address still exists
+        // first pass: keep existing slots if the address still exists
         for (int s = 0; s < MAX_PARAMS; ++s) {
             if (fSlotAddress[s].empty()) continue;
             for (int j = 0; j < newN; ++j) {
@@ -121,7 +118,7 @@ private:
             }
         }
 
-        // 2) Second pass: assign any new (unassigned) params to empty slots
+        // second pass: assign any new (unassigned) params to empty slots
         for (int j = 0; j < newN; ++j) {
             if (paramTaken[j]) continue;
             // find an empty slot
@@ -135,7 +132,7 @@ private:
             }
         }
 
-        // 3) Any slots whose address no longer exists become unused
+        // any slots whose address no longer exists become unused
         for (int s = 0; s < MAX_PARAMS; ++s) {
             if (fSlotToParam[s] == -1) {
                 // keep fSlotAddress[s] if you want it to “linger”, or clear it:
@@ -151,15 +148,7 @@ private:
         return fSlotToParam[id];
     }
 
-    // Debug logging
-    void logDebug(const std::string& msg) {
-        std::ofstream logFile("/tmp/faust-dynamic.log", std::ios::app);
-        auto now = std::chrono::system_clock::now();
-        auto time_t = std::chrono::system_clock::to_time_t(now);
-        logFile << std::ctime(&time_t) << " " << msg << std::endl;
-    }
     
-    // read DSP path from config file
     std::string readConfigFile() {
         std::ifstream configFile(fConfigPath);
         if (configFile.is_open()) {
@@ -173,7 +162,7 @@ private:
         return "";
     }
 
-    // Static callback function for config file changes
+    // static callback function for config file changes
     static void configFileCallback(efsw_watcher watcher, efsw_watchid watchid, 
                                  const char* dir, const char* filename, 
                                  enum efsw_action action, const char* old_filename, 
@@ -182,20 +171,19 @@ private:
         if (action == EFSW_ADD || action == EFSW_DELETE || action == EFSW_MODIFIED || action == EFSW_MOVED) {
             std::string configFilename = "faust-current-dsp.txt";
             if (configFilename == filename) {
-                plugin->logDebug("Config file changed, triggering reload");
                 plugin->fNeedsReload = true;
             }
         }
     }
 
-    // Static callback function for DSP file changes  
+    // static callback function for DSP file changes  
     static void dspFileCallback(efsw_watcher watcher, efsw_watchid watchid,
                                const char* dir, const char* filename,
                                enum efsw_action action, const char* old_filename,
                                void* param) {
         FaustDynamicPlugin* plugin = (FaustDynamicPlugin*) param;
         if (action == EFSW_ADD || action == EFSW_DELETE || action == EFSW_MODIFIED || action == EFSW_MOVED) {
-            // Extract just filename from current DSP path
+            // extract just filename from current DSP path
             std::string currentFilename;
             size_t pos = plugin->fCurrentDSPPath.find_last_of("/\\");
             if (pos != std::string::npos) {
@@ -205,7 +193,6 @@ private:
             }
             
             if (currentFilename == filename) {
-                plugin->logDebug("DSP file changed, triggering reload");
                 plugin->fNeedsReload = true;
             }
         }
@@ -228,27 +215,22 @@ public:
     }
     
     /**
-     * Initialise the plugin by loading the DSP file specified in FAUST_DSP_FILE environment variable
+     * initialise the plugin by loading the DSP file specified in FAUST_DSP_FILE environment variable
      */
 
     bool init() noexcept override {
-        logDebug("Plugin init() called");
-        
         // try config file first, then environment variable, then default
         std::string dspPath = readConfigFile();
         if (dspPath.empty()) {
             const char* envDspFile = getenv("FAUST_DSP_FILE");
             if (envDspFile && strlen(envDspFile) > 0) {
                 dspPath = envDspFile;
-                logDebug("Using FAUST_DSP_FILE environment variable: " + dspPath);
             }
         } else {
-            logDebug("Using config file DSP path: " + dspPath);
         }
         
         if (dspPath.empty()) {
             // no DSP file specified - load a simple default DSP
-            logDebug("No DSP file specified, using default DSP");
             std::cerr << "[Faust Dynamic] No DSP file specified, using default DSP\n";
             std::string defaultCode = R"(
                 import("stdfaust.lib");
@@ -263,7 +245,6 @@ public:
         } else {
             // load DSP file from config file or environment variable
             fCurrentDSPPath = dspPath;
-            logDebug("Loading DSP file: " + dspPath);
             std::cerr << "[Faust Dynamic] Loading DSP file: " << dspPath << "\n";
             
             if (!fInterpreter.loadFromFile(dspPath.c_str(), fCurrentSampleRate)) {
@@ -293,47 +274,46 @@ public:
             return false;
         }
 
-        // Rebuild UI -> bind zones -> init -> then read param counts
+        // rebuild UI -> bind zones -> init -> then read param counts
         fUI->clearParams();
         fUI->beginCapture();
         fDSP->buildUserInterface(fUI);
         fUI->endCapture();
         fDSP->init(fCurrentSampleRate);
 
-        // Keep MapUI and our metadata perfectly in sync
+        // keep MapUI and our metadata perfectly in sync
         fActiveDSPParams = std::min((int)fUI->getParamsCount(), (int)fUI->fParams.size());
         for (int i = 0; i < fActiveDSPParams; ++i) {
             fUI->setParamValue(i, fUI->getParamInit(i));
         }
 
-        // Seed slots 0..N-1 on first load
+        // seed slots 0..N-1 on first load
         for (int i = 0; i < std::min(fActiveDSPParams, MAX_PARAMS); ++i)
             fSlotAddress[i] = fUI->getParamAddress(i);
         rebuildSlotMapping();
 
-        logDebug("Successfully loaded DSP with " + std::to_string(fActiveDSPParams) + " active parameters");
         std::cerr << "[Faust Dynamic] Successfully loaded DSP with " << fActiveDSPParams 
                   << " active parameters (fixed " << MAX_PARAMS << " slots)\n";
         
         // start hot reload watching if we have a DSP file
         if (!fCurrentDSPPath.empty()) {
-            logDebug("Starting file watcher for: " + fCurrentDSPPath);
             startFileWatching();
         } else {
             // even without a DSP file, watch for config file changes
-            logDebug("Starting config file watcher");
             startFileWatching();
         }
         
         return true;
     }
 
+
+
 private:
     /**
-     * Start file watching using efsw for hot reload
+     * start file watching using efsw for hot reload
      */
     void startFileWatching() {
-        // Setup config file watcher
+        // setup config file watcher
         if (!fConfigWatcher) {
             fConfigWatcher = efsw_create(false);
             if (fConfigWatcher) {
@@ -342,26 +322,24 @@ private:
                                              configFileCallback, false, this);
                 if (fConfigWatchID > 0) {
                     efsw_watch(fConfigWatcher);
-                    logDebug("Started config file watcher for: " + fConfigPath);
                 } else {
-                    logDebug("Failed to add config file watch");
                     efsw_release(fConfigWatcher);
                     fConfigWatcher = nullptr;
                 }
             }
         }
         
-        // Setup DSP file watcher if we have a DSP file
+        // setup DSP file watcher if we have a DSP file
         if (!fCurrentDSPPath.empty()) {
             setupDSPFileWatcher();
         }
     }
 
     /**
-     * Setup watcher for current DSP file
+     * setup watcher for current DSP file
      */
     void setupDSPFileWatcher() {
-        // Clean up existing DSP watcher
+        // clean up existing DSP watcher
         if (fDSPWatcher) {
             efsw_release(fDSPWatcher);
             fDSPWatcher = nullptr;
@@ -371,7 +349,7 @@ private:
             return;
         }
         
-        // Extract directory from DSP path
+        // extract directory from DSP path
         std::string dspDir;
         size_t pos = fCurrentDSPPath.find_last_of("/\\");
         if (pos != std::string::npos) {
@@ -386,10 +364,8 @@ private:
                                        dspFileCallback, false, this);
             if (fDSPWatchID > 0) {
                 efsw_watch(fDSPWatcher);
-                logDebug("Started DSP file watcher for: " + fCurrentDSPPath);
                 std::cerr << "[Faust Dynamic] 🔍 Watching DSP: " << fCurrentDSPPath << "\n";
             } else {
-                logDebug("Failed to add DSP file watch");
                 efsw_release(fDSPWatcher);
                 fDSPWatcher = nullptr;
             }
@@ -407,26 +383,23 @@ private:
         if (!newDSPPath.empty() && newDSPPath != fCurrentDSPPath) {
             // config file changed to point to a different DSP file
             fCurrentDSPPath = newDSPPath;
-            logDebug("Switching to new DSP file from config: " + fCurrentDSPPath);
             std::cerr << "[Faust Dynamic] 🔄 Switching to: " << fCurrentDSPPath << "\n";
-            // Setup watcher for the new DSP file
+            // setup watcher for the new DSP file
             setupDSPFileWatcher();
         } else if (fCurrentDSPPath.empty()) {
-            logDebug("No DSP file to reload");
             return;
         } else {
             std::cerr << "[Faust Dynamic] 🔄 Hot reloading: " << fCurrentDSPPath << "\n";
         }
         
         try {
-            // store current parameter values BY ADDRESS (not index!)
+            // store current parameter values by address
             fOldParamValues.clear();
             if (fUI) {
                 for (int i = 0; i < fActiveDSPParams; ++i) {
                     std::string address = fUI->getParamAddress(i);
                     FAUSTFLOAT value = fUI->getParamValue(i);
                     fOldParamValues[address] = value;
-                    logDebug("Stored param: " + address + " = " + std::to_string(value));
                 }
             }
             
@@ -435,7 +408,7 @@ private:
                 dsp* newDSP = fInterpreter.getDSP();
                 CLAPMapUI* newUI = fInterpreter.getUI();
                 if (newDSP && newUI) {
-                    // CRITICAL: init DSP at correct sample rate BEFORE restoring values
+                    // init DSP at correct sample rate BEFORE restoring values
                     // Rebuild new UI, bind zones, then init at the correct SR
                     newUI->clearParams();
                     newUI->beginCapture();
@@ -456,13 +429,9 @@ private:
                             FAUSTFLOAT maxVal = newUI->getParamMax(i);
                             FAUSTFLOAT clampedValue = std::max(minVal, std::min(maxVal, oldValue));
                             newUI->setParamValue(i, clampedValue);
-                            logDebug("Restored param: " + address + " = " + std::to_string(clampedValue) + 
-                                   " (was " + std::to_string(oldValue) + ", range " + 
-                                   std::to_string(minVal) + "-" + std::to_string(maxVal) + ")");
                         } else {
-                            // New parameter - use default
+                            // new parameter - use default
                             newUI->setParamValue(i, newUI->getParamInit(i));
-                            logDebug("New param: " + address + " = " + std::to_string(newUI->getParamInit(i)));
                         }
                     }
                     
@@ -474,13 +443,9 @@ private:
                     rebuildSlotMapping();
                     
                     
-                    // Always notify host about parameter info changes
-                    logDebug("Active parameters changed: " + std::to_string(oldParamCount) + 
-                            " -> " + std::to_string(newParamCount));
-                    
-                    // Use runOnMainThread to safely notify host about parameter changes
+                    // always notify host about parameter info changes
+                    // use runOnMainThread to safely notify host about parameter changes
                     runOnMainThread([this]() {
-                        logDebug("Requesting host parameter info update from main thread");
                         _host.paramsRescan(CLAP_PARAM_RESCAN_ALL);
                         std::cerr << "[Faust Dynamic] 🔄 Updated parameter info (fixed 12 slots)\n";
                     });
@@ -505,7 +470,7 @@ public:
      */
 
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override {
-    fCurrentSampleRate = (int)sampleRate;  // Store actual session sample rate
+    fCurrentSampleRate = (int)sampleRate;  // store actual session sample rate
     if (fDSP) {
         fDSP->init(sampleRate);
         return true;
@@ -532,7 +497,6 @@ public:
         const auto& out = process->audio_outputs[0];
 
         // process incoming parameter events (translate slot -> Faust param index)
-        // process incoming parameter events (translate slot -> Faust param index)
         if (process->in_events && fUI) {
             for (uint32_t i = 0; i < process->in_events->size(process->in_events); ++i) {
                 const clap_event_header_t* hdr = process->in_events->get(process->in_events, i);
@@ -554,7 +518,7 @@ public:
             }
         }
 
-                // 32f/64f-safe I/O hookup + on-the-fly conversion if needed
+        // 32f/64f-safe I/O hookup + on-the-fly conversion if needed
         const bool faustIsFloat = (sizeof(FAUSTFLOAT) == sizeof(float));
         const bool inIs64  = (in.data64  && !in.data32);
         const bool outIs64 = (out.data64 && !out.data32);
@@ -570,13 +534,13 @@ public:
 
         const uint32_t n = process->frames_count;
 
-        // -------- Inputs --------
+        // -------- inputs --------
         if (faustIsFloat) {
             if (inIs32) {
                 inputs[0] = (in.channel_count > 0) ? reinterpret_cast<FAUSTFLOAT*>(in.data32[0]) : nullptr;
                 inputs[1] = (in.channel_count > 1) ? reinterpret_cast<FAUSTFLOAT*>(in.data32[1]) : inputs[0];
             } else if (inIs64) {
-                // Host is 64f, DSP is 32f -> convert
+                // host is 64f, DSP is 32f -> convert
                 if (in.channel_count > 0) { ensureSize(fTmpIn[0], n); for (uint32_t i=0;i<n;++i) fTmpIn[0][i] = (FAUSTFLOAT)in.data64[0][i]; inputs[0] = fTmpIn[0].data(); }
                 if (in.channel_count > 1) { ensureSize(fTmpIn[1], n); for (uint32_t i=0;i<n;++i) fTmpIn[1][i] = (FAUSTFLOAT)in.data64[1][i]; inputs[1] = fTmpIn[1].data(); }
                 if (!inputs[1]) inputs[1] = inputs[0];
@@ -586,14 +550,14 @@ public:
                 inputs[0] = (in.channel_count > 0) ? reinterpret_cast<FAUSTFLOAT*>(in.data64[0]) : nullptr;
                 inputs[1] = (in.channel_count > 1) ? reinterpret_cast<FAUSTFLOAT*>(in.data64[1]) : inputs[0];
             } else if (inIs32) {
-                // Host is 32f, DSP is 64f -> convert
+                // host is 32f, DSP is 64f -> convert
                 if (in.channel_count > 0) { ensureSize(fTmpIn[0], n); for (uint32_t i=0;i<n;++i) fTmpIn[0][i] = (FAUSTFLOAT)in.data32[0][i]; inputs[0] = fTmpIn[0].data(); }
                 if (in.channel_count > 1) { ensureSize(fTmpIn[1], n); for (uint32_t i=0;i<n;++i) fTmpIn[1][i] = (FAUSTFLOAT)in.data32[1][i]; inputs[1] = fTmpIn[1].data(); }
                 if (!inputs[1]) inputs[1] = inputs[0];
             }
         }
 
-        // -------- Outputs --------
+        // -------- outputs --------
         bool outNeedsBackConvert = false;
 
         if (faustIsFloat) {
@@ -601,7 +565,7 @@ public:
                 outputs[0] = (out.channel_count > 0) ? reinterpret_cast<FAUSTFLOAT*>(out.data32[0]) : nullptr;
                 outputs[1] = (out.channel_count > 1) ? reinterpret_cast<FAUSTFLOAT*>(out.data32[1]) : outputs[0];
             } else if (outIs64) {
-                // DSP 32f -> Host 64f : render to temp, then convert back
+                // DSP 32f -> host 64f : render to temp, then convert back
                 outNeedsBackConvert = true;
                 if (out.channel_count > 0) { ensureSize(fTmpOut[0], n); outputs[0] = fTmpOut[0].data(); }
                 if (out.channel_count > 1) { ensureSize(fTmpOut[1], n); outputs[1] = fTmpOut[1].data(); }
@@ -612,7 +576,7 @@ public:
                 outputs[0] = (out.channel_count > 0) ? reinterpret_cast<FAUSTFLOAT*>(out.data64[0]) : nullptr;
                 outputs[1] = (out.channel_count > 1) ? reinterpret_cast<FAUSTFLOAT*>(out.data64[1]) : outputs[0];
             } else if (outIs32) {
-                // DSP 64f -> Host 32f : render to temp, then convert back
+                // DSP 64f -> host 32f : render to temp, then convert back
                 outNeedsBackConvert = true;
                 if (out.channel_count > 0) { ensureSize(fTmpOut[0], n); outputs[0] = fTmpOut[0].data(); }
                 if (out.channel_count > 1) { ensureSize(fTmpOut[1], n); outputs[1] = fTmpOut[1].data(); }
@@ -620,11 +584,11 @@ public:
             }
         }
 
-        // Only process if we have valid buffers
+        // only process if we have valid buffers
         if (inputs[0] && outputs[0]) {
             currentDSP->compute(n, inputs, outputs);
 
-            // Back‑convert if needed
+            // back‑convert if needed
             if (outNeedsBackConvert) {
                 if (faustIsFloat && outIs64) {
                     if (out.channel_count > 0) for (uint32_t i=0;i<n;++i) out.data64[0][i] = (double)outputs[0][i];
@@ -644,7 +608,7 @@ public:
 
     // parameter interface implementation
     bool implementsParams() const noexcept override { return true; }
-    uint32_t paramsCount() const noexcept override { return MAX_PARAMS; }  // Always report fixed count
+    uint32_t paramsCount() const noexcept override { return MAX_PARAMS; }  // always report fixed count
 
     bool paramsInfo(uint32_t index, clap_param_info_t* info) const noexcept override {
         if (index >= MAX_PARAMS || !info) return false;
@@ -714,7 +678,7 @@ public:
         info->channel_count = 2;
         info->flags = CLAP_AUDIO_PORT_IS_MAIN;
         info->port_type = CLAP_PORT_STEREO;
-        info->in_place_pair = CLAP_INVALID_ID;  // CRITICAL: Disable in-place processing!
+        info->in_place_pair = CLAP_INVALID_ID;  // disable in-place processing!
         
         return true;
     }

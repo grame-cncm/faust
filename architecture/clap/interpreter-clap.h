@@ -6,7 +6,7 @@
 #define INTERPRETER_CLAP_H
 
 #include <faust/dsp/interpreter-dsp.h>
-#include "clap-mapui.h"  // Use the shared CLAPMapUI
+#include "clap-mapui.h"  // use the shared CLAPMapUI
 #include <memory>
 #include <string>
 
@@ -38,7 +38,7 @@ public:
 private:
     interpreter_dsp_factory* fFactory = nullptr;
     dsp* fDSP = nullptr;
-    std::unique_ptr<CLAPMapUI> fUI;  // Use CLAPMapUI instead of MapUI
+    std::unique_ptr<CLAPMapUI> fUI;  // use CLAPMapUI instead of MapUI
 
     int fSampleRate = 44100;
 };

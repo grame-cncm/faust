@@ -4,8 +4,6 @@
 
 #include "interpreter-clap.h"
 #include <faust/dsp/interpreter-dsp.h>
-// #include <faust/gui/APIUI.h>
-// #include <faust/gui/MapUI.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -65,7 +63,7 @@ bool InterpreterCLAP::loadFromString(const std::string& name, const std::string&
         return false;
     }
 
-    fUI = std::make_unique<CLAPMapUI>();  // changed from APIUI to CLAPMapUI
+    fUI = std::make_unique<CLAPMapUI>();  // use CLAPMapUI instead of MapUI
     fDSP->buildUserInterface(fUI.get());
     fDSP->init(sampleRate);
     fSampleRate = sampleRate;
@@ -104,16 +102,17 @@ float InterpreterCLAP::getParamValue(int idx) const {
     return 0.0f;
 }
 
+// now CLAPMapUI has the following methods
 float InterpreterCLAP::getParamMin(int idx) const {
-    return fUI ? fUI->getParamMin(idx) : 0.f;  // now CLAPMapUI has this method
+    return fUI ? fUI->getParamMin(idx) : 0.f;  
 }
 
 float InterpreterCLAP::getParamMax(int idx) const {
-    return fUI ? fUI->getParamMax(idx) : 1.f;  // now CLAPMapUI has this method
+    return fUI ? fUI->getParamMax(idx) : 1.f;  
 }
 
 float InterpreterCLAP::getParamInit(int idx) const {
-    return fUI ? fUI->getParamInit(idx) : 0.5f;  // now CLAPMapUI has this method
+    return fUI ? fUI->getParamInit(idx) : 0.5f; 
 }
 
 void InterpreterCLAP::compute(int frames, float** inputs, float** outputs) {

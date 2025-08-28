@@ -154,34 +154,19 @@ public:
     APlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host)
         : Base(desc, host) {}
 
-private:
-    // set all parameters to their default/initial values
-    void initParametersToDefaults() {
-        for (int i = 0; i < fUI.getParamsCount(); ++i) {
-            FAUSTFLOAT defaultVal = fUI.getParamInit(i);
-            fUI.setParamValue(i, defaultVal);
-        }
-    }
-
-public:
     bool init() noexcept override {
         fBaseDSP = new mydsp();
         
-        // use compile-time configuration for polyphonic mode
+        // Check if FAUST_IS_POLYPHONIC is defined and set to 1
         #ifdef FAUST_IS_POLYPHONIC
-        fIsPolyphonic = (FAUST_IS_POLYPHONIC == 1);
+            fIsPolyphonic = (FAUST_IS_POLYPHONIC == 1);
         #else
-        fIsPolyphonic = true;  // default to polyphonic
+            fIsPolyphonic = false;  // Default to mono for effects
         #endif
         
         if (fIsPolyphonic) {
-            // create polyphonic wrapper with configurable voice count
-            #ifdef FAUST_NVOICES
-            int nvoices = FAUST_NVOICES;
-            #else
-            int nvoices = 16;  // default voice count
-            #endif
-            fDSP = new mydsp_poly(fBaseDSP, nvoices, true, true);
+            // create polyphonic wrapper and build UI linked to CLAPMapUI
+            fDSP = new mydsp_poly(fBaseDSP, 16, true, true);
             fDSP->buildUserInterface(&fUI);
             GUI::updateAllGuis();
 
@@ -193,9 +178,6 @@ public:
             fBaseDSP->buildUserInterface(&fUI); // regular UI
             GUI::updateAllGuis();
         }
-        
-        // initialise all parameters to their default values
-        initParametersToDefaults();
         return true;
     }
 
@@ -221,7 +203,6 @@ public:
     const auto* ev = reinterpret_cast<const clap_event_param_value_t*>(hdr);
     int paramCount = fUI.getParamsCount();
     if (!ev || ev->param_id < 0 || ev->param_id >= paramCount) {
-        std::cerr << "[WARN] Invalid param_id: " << (ev ? ev->param_id : -1) << "\n";
         return false;
     }
 
