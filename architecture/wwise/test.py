@@ -63,7 +63,32 @@ class TestFaustExamples:
         self.jsonfile = None
 
         self.platform_dependent_setup()
+        
+    def platform_dependent_setup(self) -> None:
+        """
+        Function that will eventually be used for platform depended setup.
+        """
+        mySystem = platform.system()
 
+        if (mySystem=="Windows" and not
+            ('MSYSTEM' in os.environ or 'MSYS' in os.environ)):
+            self.installation_dir = self.wwiseroot / "Authoring" / "x64" / "Release" / "bin" / "Plugins"
+            self.plugin_extensions = [".dll", ".exp", ".lib", ".pdb", ".xml"]
+
+            self.additional_arguments = [
+                ["--platform","Windows_vc170","--toolset","vc170"]
+            ]
+
+            self.subpr_shell_arg = True
+
+        elif (mySystem=="Darwin"):
+            wwise_version = Path(self.wwiseroot).name
+            self.installation_dir = Path("/Library/Application Support/Audiokinetic") / wwise_version / "Authoring/x64/Release/bin/Plugins"
+            self.plugin_extensions = [".dll", ".a", ".dylib", ".xml"]
+
+            self.additional_arguments = []
+
+            self.subpr_shell_arg = False
 
     def parse_arguments(self)-> None:
         """
@@ -168,7 +193,7 @@ class TestFaustExamples:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                shell=True
+                shell=self.subpr_shell_arg
             )
 
             with open(log_path, "w", encoding="utf-8") as log_file:
@@ -255,28 +280,6 @@ class TestFaustExamples:
         print(f"Succeeded: {len(succeeded)}")
         print(f"Failed: {len(failed)}")
 
-    def platform_dependent_setup(self) -> None:
-        """
-        Function that will eventually be used for platform depended setup.
-        """
-        mySystem = platform.system()
-
-        if (mySystem=="Windows" and not
-            ('MSYSTEM' in os.environ or 'MSYS' in os.environ)):
-            self.installation_dir = self.wwiseroot / "Authoring" / "x64" / "Release" / "bin" / "Plugins"
-            self.plugin_extensions = [".dll", ".exp", ".lib", ".pdb", ".xml"]
-
-            self.additional_arguments = [
-                ["--platform","Windows_vc170","--toolset","vc170"]
-            ]
-
-        elif (mySystem=="Darwin"):
-            wwise_version = Path(self.wwiseroot).name
-            self.installation_dir = Path("/Library/Application Support/Audiokinetic") / wwise_version / "Authoring/x64/Release/bin/Plugins"
-            self.plugin_extensions = [".dll", ".a", ".dylib", ".xml"]
-
-            self.additional_arguments = []
-
     def resolve_output_dir(self):
         base_path = Path(self.outdir).resolve()
         parent_dir = base_path.parent
@@ -286,7 +289,7 @@ class TestFaustExamples:
         if not (parent_dir / base_name).exists():
             return base_path
 
-        # else if there are already other testF2W dirs, rename the outdir by adding the next available suffix after the base_name
+        # else if there are already other myF2Wtests dirs, rename the outdir by adding the next available suffix after the base_name
         counter = 1
         while True:
             new_name = f"{base_name}({counter})"
