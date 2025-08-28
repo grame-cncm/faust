@@ -62,6 +62,9 @@ class TestFaustExamples:
         self.limit = None
         self.jsonfile = None
 
+        self.platform_dependent_setup()
+
+
     def parse_arguments(self)-> None:
         """
         Parses command-line arguments for test mode initializing self.clean, 
@@ -118,9 +121,11 @@ class TestFaustExamples:
         # Define possible argument options
         argumentsList = [
             ["--out-of-place"],
-            ["--platform","Windows_vc170","--toolset","vc170"],
             ["--disable-codesign"]
         ]
+
+        for arg in self.additional_arguments:
+            argumentsList.append(arg)    
         
         selected_args = random.choice(argumentsList)
         command.extend(selected_args)
@@ -202,7 +207,7 @@ class TestFaustExamples:
         """
         self.parse_arguments()
 
-        self.outdir =  Path(self.outdir).resolve()
+        self.outdir =  self.resolve_output_dir()
 
         if (self.clean):
             self.clean_tests()
@@ -261,10 +266,38 @@ class TestFaustExamples:
             self.installation_dir = self.wwiseroot / "Authoring" / "x64" / "Release" / "bin" / "Plugins"
             self.plugin_extensions = [".dll", ".exp", ".lib", ".pdb", ".xml"]
 
+            self.additional_arguments = [
+                ["--platform","Windows_vc170","--toolset","vc170"]
+            ]
+
         elif (mySystem=="Darwin"):
             wwise_version = Path(self.wwiseroot).name
             self.installation_dir = Path("/Library/Application Support/Audiokinetic") / wwise_version / "Authoring/x64/Release/bin/Plugins"
             self.plugin_extensions = [".dll", ".a", ".dylib", ".xml"]
+
+            self.additional_arguments = []
+
+    def resolve_output_dir(self):
+        base_path = Path(self.outdir).resolve()
+        parent_dir = base_path.parent
+        base_name = base_path.name
+
+        # if no conflict
+        if not (parent_dir / base_name).exists():
+            return base_path
+
+        # else if there are already other testF2W dirs, rename the outdir by adding the next available suffix after the base_name
+        counter = 1
+        while True:
+            new_name = f"{base_name}({counter})"
+            candidate_path = parent_dir / new_name
+            if not candidate_path.exists():
+                # Update self.outdir by adding a suffix --> i.e "parent_dir/<base_name>(1)""
+                self.outdir = str(candidate_path)
+                return candidate_path.resolve()
+            counter += 1
+
+        return Path(self.outdir).resolve()
 
     def clean_tests(self) -> None:
         """
@@ -274,8 +307,6 @@ class TestFaustExamples:
         """
         print("Clean installed plugins currently not supported. Exiting.")
         sys.exit(1)
-
-        self.platform_dependent_setup()
 
         self.jsonfile =  Path(self.jsonfile).resolve()
 
