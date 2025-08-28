@@ -1,9 +1,9 @@
 # #####################################################################
-#                                                                   #
-#                        faust2wwise generator                      #
-#                          (c) Grame, 2025                          #
-#                                                                   #
-#####################################################################    
+#                                                                     #
+#                        faust2wwise generator                        #
+#                          (c) Grame, 2025                            #
+#                                                                     #
+#######################################################################    
 
 """
 faust2wwise.py
@@ -109,7 +109,7 @@ def import_module(faust_dsp_dir:str, file:str)-> Optional[ModuleType]:
     spec.loader.exec_module(module)
     return module
 
-def print_message_on_fail():
+def print_message_on_fail() -> None:
     print("\nAn error occurred during execution.")
     print("Please review the console output above to identify the issue.")
     print("For help, refer to the Troubleshooting Guide:")
