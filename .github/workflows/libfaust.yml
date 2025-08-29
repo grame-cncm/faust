@@ -382,15 +382,6 @@ jobs:
         repository: Cycling74/max-sdk-base
         path: max-sdk-base
         
-    - name: Verify Faust install path
-      shell: cmd
-      run: |
-        dir /b "%GITHUB_WORKSPACE%\build\build\faust\bin"
-        if not exist "%GITHUB_WORKSPACE%\build\build\faust\bin\faust.exe" (
-          echo ERROR: faust.exe not found
-          exit /b 1
-        )
-
     - name: Build libfaust
       shell: cmd
       run: |
