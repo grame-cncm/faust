@@ -381,6 +381,15 @@ jobs:
       with:
         repository: Cycling74/max-sdk-base
         path: max-sdk-base
+        
+    - name: Verify Faust install path
+      shell: cmd
+      run: |
+        dir /b "%GITHUB_WORKSPACE%\build\build\faust\bin"
+        if not exist "%GITHUB_WORKSPACE%\build\build\faust\bin\faust.exe" (
+          echo ERROR: faust.exe not found
+          exit /b 1
+        )
 
     - name: Build libfaust
       shell: cmd
@@ -389,6 +398,9 @@ jobs:
         call MakeRelease.bat
       env:
         LLVM_PACKAGE_VERSION: 17.0.6
+        FAUST: "${{ github.workspace }}\\build\\build\\faust\\bin\\faust.exe"
+        FAUST_PATH_IS_ABSOLUTE: "1"
+        LIBSNDFILE: "${{ github.workspace }}\\libsndfile"
 
     - name: Make distribution
       shell: cmd
