@@ -34,6 +34,11 @@ class AbsPrim : public xtended {
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
+    
+    virtual std::string fname(int type) override
+    {
+        return (type == kInt) ? "abs" : subst("fabs$0", isuffix());
+    }
 
     virtual ::Type inferSigType(ConstTypes args) override
     {

@@ -88,10 +88,10 @@ class CStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kQuad_ptr_ptr] = "quad" + fPtrRef + fPtrRef;
         fTypeDirectTable[Typed::kQuad_vec]     = "vector<quad>";
 
-        fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = "fixpoint_t" + fPtrRef;
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = "fixpoint_t" + fPtrRef + fPtrRef;
-        fTypeDirectTable[Typed::kFixedPoint_vec] = "vector<fixpoint_t>";
+        fTypeDirectTable[Typed::kFixedPoint]         = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr]     = "fixpoint_t" + fPtrRef;
+        fTypeDirectTable[Typed::kFixedPoint_ptr_ptr] = "fixpoint_t" + fPtrRef + fPtrRef;
+        fTypeDirectTable[Typed::kFixedPoint_vec]     = "vector<fixpoint_t>";
 
         fTypeDirectTable[Typed::kBool]     = "bool";
         fTypeDirectTable[Typed::kBool_ptr] = "bool" + fPtrRef;
@@ -102,6 +102,12 @@ class CStringTypeManager : public StringTypeManager {
 
         fTypeDirectTable[Typed::kSound]     = "Soundfile";
         fTypeDirectTable[Typed::kSound_ptr] = "Soundfile" + fPtrRef;
+
+        fTypeDirectTable[Typed::kUI]     = "UI";
+        fTypeDirectTable[Typed::kUI_ptr] = "UI" + fPtrRef;
+
+        fTypeDirectTable[Typed::kMeta]     = "Meta";
+        fTypeDirectTable[Typed::kMeta_ptr] = "Meta" + fPtrRef;
 
         // DSP has to be empty here
         fTypeDirectTable[Typed::kObj]     = struct_name;
@@ -265,10 +271,10 @@ class RustStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = fPtrRef + "quad";
 
-        fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + fPtrRef + "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_vec] = "vector<fixpoint_t>";
+        fTypeDirectTable[Typed::kFixedPoint]         = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr]     = fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr_ptr] = fPtrRef + fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_vec]     = "vector<fixpoint_t>";
 
         fTypeDirectTable[Typed::kBool]     = "bool";
         fTypeDirectTable[Typed::kBool_ptr] = fPtrRef + "bool";
@@ -358,10 +364,10 @@ class CmajorStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = "quad" + fPtrRef;
 
-        fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = "fixpoint_t" + fPtrRef;
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = "fixpoint_t" + fPtrRef + fPtrRef;
-        fTypeDirectTable[Typed::kFixedPoint_vec] = "vector<fixpoint_t>";
+        fTypeDirectTable[Typed::kFixedPoint]         = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr]     = "fixpoint_t" + fPtrRef;
+        fTypeDirectTable[Typed::kFixedPoint_ptr_ptr] = "fixpoint_t" + fPtrRef + fPtrRef;
+        fTypeDirectTable[Typed::kFixedPoint_vec]     = "vector<fixpoint_t>";
 
         fTypeDirectTable[Typed::kBool]     = "bool";
         fTypeDirectTable[Typed::kBool_ptr] = "bool" + fPtrRef;
@@ -448,10 +454,10 @@ class JuliaStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = fPtrRef + "quad";
 
-        fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + fPtrRef + "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_vec] = "vector<fixpoint_t>";
+        fTypeDirectTable[Typed::kFixedPoint]         = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr]     = fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr_ptr] = fPtrRef + fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_vec]     = "vector<fixpoint_t>";
 
         fTypeDirectTable[Typed::kBool]     = "bool";
         fTypeDirectTable[Typed::kBool_ptr] = fPtrRef + "bool";
@@ -541,10 +547,10 @@ class JSFXStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = fPtrRef + "quad";
 
-        fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + fPtrRef + "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_vec] = "vector<fixpoint_t>";
+        fTypeDirectTable[Typed::kFixedPoint]         = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr]     = fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr_ptr] = fPtrRef + fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_vec]     = "vector<fixpoint_t>";
 
         fTypeDirectTable[Typed::kBool]     = "bool";
         fTypeDirectTable[Typed::kBool_ptr] = fPtrRef + "bool";
@@ -632,10 +638,10 @@ class CodeboxStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = fPtrRef + "quad";
 
-        fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + fPtrRef + "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_vec] = "vector<fixpoint_t>";
+        fTypeDirectTable[Typed::kFixedPoint]         = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr]     = fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr_ptr] = fPtrRef + fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_vec]     = "vector<fixpoint_t>";
 
         fTypeDirectTable[Typed::kBool]     = "bool";
         fTypeDirectTable[Typed::kBool_ptr] = fPtrRef + "bool";
@@ -725,10 +731,10 @@ class JAXStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kQuad]     = "";
         fTypeDirectTable[Typed::kQuad_ptr] = "";
 
-        fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_ptr] = "fixpoint_t";
-        fTypeDirectTable[Typed::kFixedPoint_vec] = "vector<fixpoint_t>";
+        fTypeDirectTable[Typed::kFixedPoint]         = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr]     = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr_ptr] = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_vec]     = "vector<fixpoint_t>";
 
         fTypeDirectTable[Typed::kBool]     = "jnp.bool";
         fTypeDirectTable[Typed::kBool_ptr] = "jnp.bool";

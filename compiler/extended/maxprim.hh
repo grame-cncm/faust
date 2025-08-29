@@ -34,6 +34,11 @@ class MaxPrim : public xtended {
 
     virtual bool needCache() override { return true; }
 
+    virtual std::string fname(int type) override
+    {
+        return (type == kInt) ? "max_i" : subst("max_$0", isuffix());
+    }
+
     virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == arity());

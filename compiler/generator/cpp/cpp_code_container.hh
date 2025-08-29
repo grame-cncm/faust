@@ -155,7 +155,7 @@ class CPPCodeContainer : public virtual CodeContainer {
 
         printMathHeader();
 
-        fCodeProducer = new CPPInstVisitor(out);
+        fCodeProducer = new CPPInstVisitor(out, "");
     }
 
     virtual ~CPPCodeContainer()

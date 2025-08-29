@@ -1456,6 +1456,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gDumpNorm = 2;
             i += 1;
 
+        } else if (isCmd(argv[i], "-norm3", "--normalized-form3")) {
+            gDumpNorm = 3;
+            i += 1;
+
         } else if (isCmd(argv[i], "-cn", "--class-name") && (i + 1 < argc)) {
             vector<char> rep = {'@', ' ', '(', ')', '/', '\\', '.'};
             gClassName       = replaceCharList(argv[i + 1], rep, '_');

@@ -812,7 +812,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     // Unop
     //======
 
-    virtual void visit(MinusInst* inst)
+    virtual void visit(NegInst* inst)
     {
         inst->fInst->accept(this);
         if (getCurType() == getInt32Ty()) {

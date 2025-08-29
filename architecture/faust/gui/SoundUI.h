@@ -87,7 +87,7 @@ class SoundUI : public SoundUIInterface
          * Create a soundfile loader which will typically use a concrete SoundfileReader like LibsndfileReader or JuceReader to load soundfiles.
          *
          * @param sound_directory - the base directory to look for files, which paths will be relative to this one
-         * @param sample_rate - the audio driver SR which may be different from the file SR, to possibly resample files
+         * @param sample_rate - the audio driver SR which may be different from the file SR, to possibly resample files (-1 to indicate no resampling)
          * @param reader - an alternative soundfile reader
          * @param is_double - whether Faust code has been compiled in -double mode and soundfile buffers have to be in double
          *
@@ -109,7 +109,7 @@ class SoundUI : public SoundUIInterface
          * Create a soundfile loader which will typically use a concrete SoundfileReader like LibsndfileReader or JuceReader to load soundfiles.
          *
          * @param sound_directories - a vector of base directories to look for files, which paths will be relative to these ones
-         * @param sample_rate - the audio driver SR which may be different from the file SR, to possibly resample files
+         * @param sample_rate - the audio driver SR which may be different from the file SR, to possibly resample files (-1 to indicate no resampling)
          * @param reader - an alternative soundfile reader
          * @param is_double - whether Faust code has been compiled in -double mode and soundfile buffers have to be in double
          *

@@ -98,7 +98,7 @@ class CCodeContainer : public virtual CodeContainer {
             tab(n, *fOut);
         }
     }
-    
+
     void printMathHeader()
     {
         // For mathematical functions

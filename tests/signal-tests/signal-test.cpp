@@ -46,12 +46,13 @@ using namespace std;
 //std::string dsp_code = "process = 1,2;";
 //std::string dsp_code = "process = 1.5,2.6;";
 //std::string dsp_code = "process = _ <: _+1.5, _+2.6;";
-std::string dsp_code = "process = _ <: (_+1.5, _+2.6) : (sin, cos);";
+//std::string dsp_code = "process = _ <: (_+1.5, _+2.6) : (sin, cos);";
 //std::string dsp_code = "process = sin;";
 //std::string dsp_code = "process = @(5);";
 //std::string dsp_code = "process = _ <: @(5), @(10);";
 //std::string dsp_code = "process = _&_;";
-//std::string dsp_code = "process = 1 : + ~ _;";
+//std::string dsp_code = "process = (0.25 : + ~ _;)";
+std::string dsp_code = "process = (0.1 : + ~ *((0.15 : + ~ _)));";
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;

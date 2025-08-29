@@ -34,6 +34,11 @@ class MinPrim : public xtended {
 
     virtual bool needCache() override { return true; }
 
+    virtual std::string fname(int type) override
+    {
+        return (type == kInt) ? "min_i" : subst("min_$0", isuffix());
+    }
+
     virtual ::Type inferSigType(ConstTypes args) override
     {
         faustassert(args.size() == arity());

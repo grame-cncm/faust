@@ -87,7 +87,7 @@ struct FixedPointNumInst;
 struct FixedPointArrayNumInst;
 
 // Math Unop
-struct MinusInst;
+struct NegInst;
 
 // Math Binop
 struct BinopInst;
@@ -104,6 +104,9 @@ struct NullValueInst;
 
 // Function call
 struct FunCallInst;
+
+// DSP creation
+struct NewDSPInst;
 
 // ===========
 // Statements
@@ -146,6 +149,9 @@ struct DropInst;
 
 // Null statement
 struct NullStatementInst;
+
+// FIR module
+struct ModuleInst;
 
 // ======
 // Types
@@ -247,7 +253,8 @@ inline bool isRealPtrType(Typed::VarType type)
 inline bool isPtrType(Typed::VarType type)
 {
     return (isRealPtrType(type) || isIntPtrType(type) || type == Typed::kVoid_ptr ||
-            type == Typed::kObj_ptr || type == Typed::kSound_ptr);
+            type == Typed::kObj_ptr || type == Typed::kSound_ptr || type == Typed::kUI_ptr ||
+            type == Typed::kMeta_ptr);
 }
 
 inline bool isIntOrPtrType(Typed::VarType type)
@@ -309,7 +316,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(FixedPointArrayNumInst* inst) {}
 
     // Numerical computation
-    virtual void visit(MinusInst* inst) {}
+    virtual void visit(NegInst* inst) {}
     virtual void visit(BinopInst* inst) {}
 
     // Cast
@@ -320,6 +327,9 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(FunCallInst* inst) {}
     virtual void visit(RetInst* inst) {}
     virtual void visit(DropInst* inst) {}
+
+    // DSP creation
+    virtual void visit(NewDSPInst* inst) {}
 
     // Conditional
     virtual void visit(Select2Inst* inst) {}
@@ -335,6 +345,9 @@ struct InstVisitor : public virtual Garbageable {
 
     // Block
     virtual void visit(BlockInst* inst) {}
+
+    // Module
+    virtual void visit(ModuleInst* inst) {}
 
     // Addresses
     virtual void visit(NamedAddress* address) {}
@@ -390,7 +403,7 @@ struct CloneVisitor : public virtual Garbageable {
     virtual ValueInst* visit(FixedPointArrayNumInst* inst) = 0;
 
     // Math Unop
-    virtual ValueInst* visit(MinusInst* inst) = 0;
+    virtual ValueInst* visit(NegInst* inst) = 0;
     // Math Binop
     virtual ValueInst* visit(BinopInst* inst) = 0;
 
@@ -402,6 +415,9 @@ struct CloneVisitor : public virtual Garbageable {
     virtual ValueInst*     visit(FunCallInst* inst) = 0;
     virtual StatementInst* visit(RetInst* inst)     = 0;
     virtual StatementInst* visit(DropInst* inst)    = 0;
+
+    // DSP creation
+    virtual ValueInst* visit(NewDSPInst* inst) = 0;
 
     // Conditional
     virtual ValueInst*     visit(Select2Inst* inst) = 0;
@@ -417,6 +433,9 @@ struct CloneVisitor : public virtual Garbageable {
 
     // Block
     virtual StatementInst* visit(BlockInst* inst) = 0;
+
+    // Module
+    virtual StatementInst* visit(ModuleInst* inst) = 0;
 
     // User interface
     virtual StatementInst* visit(AddMetaDeclareInst* inst) = 0;
@@ -1120,6 +1139,50 @@ struct DeclareStructTypeInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+// ===========
+// FIR module
+// ===========
+
+struct ModuleInst : public StatementInst {
+    std::string                fName;
+    BlockInst*                 fDSPStruct;
+    BlockInst*                 fGlobals;
+    std::list<DeclareFunInst*> fFunctions;
+
+    ModuleInst(const std::string& name, BlockInst* dsp_struct, BlockInst* globals,
+               const std::list<DeclareFunInst*>& functions = {})
+        : fName(name), fDSPStruct(dsp_struct), fGlobals(globals), fFunctions(functions)
+    {
+    }
+
+    void pushFunction(DeclareFunInst* fun)
+    {
+        faustassert(fun);
+        fFunctions.push_back(fun);
+    }
+
+    DeclareFunInst* getFunction(const std::string& name)
+    {
+        for (const auto& it : fFunctions) {
+            if (it->getName() == name) {
+                return it;
+            }
+        }
+        faustassert(false);
+        return {};
+    }
+
+    std::string getName() { return fName; };
+
+    BlockInst* getDSPStruct() { return fDSPStruct; };
+
+    BlockInst* getGlobals() { return fGlobals; };
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 // ==============
 // Memory access
 // ==============
@@ -1389,12 +1452,12 @@ struct BoolNumInst : public ValueInst, public NumValueInst {
 // ==========
 
 // Negate the wrapped value
-struct MinusInst : public ValueInst {
+struct NegInst : public ValueInst {
     ValueInst* fInst;
 
-    MinusInst(ValueInst* inst) : ValueInst(), fInst(inst) {}
+    NegInst(ValueInst* inst) : ValueInst(), fInst(inst) {}
 
-    virtual ~MinusInst() {}
+    virtual ~NegInst() {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1563,6 +1626,18 @@ struct FunCallInst : public ValueInst {
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct NewDSPInst : public ValueInst {
+    const std::string fName;
+
+    NewDSPInst(const std::string& name) : ValueInst(), fName(name) {}
+
+    virtual ~NewDSPInst() {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct RetInst : public StatementInst {
     ValueInst* fResult;
 
@@ -1609,6 +1684,8 @@ struct ForLoopInst : public StatementInst {
     std::string getName() const { return fInit->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    ValueInst* loadLoopVar() { return static_cast<DeclareVarInst*>(fInit)->load(); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
@@ -1802,7 +1879,7 @@ class BasicCloneVisitor : public CloneVisitor {
     }
 
     // Numerical computation
-    virtual ValueInst* visit(MinusInst* inst) { return new MinusInst(inst->fInst->clone(this)); }
+    virtual ValueInst* visit(NegInst* inst) { return new NegInst(inst->fInst->clone(this)); }
 
     virtual ValueInst* visit(BinopInst* inst)
     {
@@ -1838,6 +1915,9 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         return new FunCallInst(inst->fName, cloned_args, inst->fMethod);
     }
+
+    // DSP creation
+    virtual ValueInst* visit(NewDSPInst* inst) { return new NewDSPInst(inst->fName); }
 
     virtual StatementInst* visit(RetInst* inst)
     {
@@ -1934,6 +2014,18 @@ class BasicCloneVisitor : public CloneVisitor {
             cloned->pushBackInst(it->clone(this));
         }
         fBlockStack.pop();
+        return cloned;
+    }
+
+    // Module
+    virtual StatementInst* visit(ModuleInst* inst)
+    {
+        ModuleInst* cloned =
+            new ModuleInst(inst->fName, static_cast<BlockInst*>(inst->fDSPStruct->clone(this)),
+                           static_cast<BlockInst*>(inst->fGlobals->clone(this)));
+        for (const auto& it : inst->fFunctions) {
+            cloned->pushFunction(static_cast<DeclareFunInst*>(it->clone(this)));
+        }
         return cloned;
     }
 
@@ -2052,7 +2144,7 @@ struct DispatchVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(MinusInst* inst) { inst->fInst->accept(this); }
+    virtual void visit(NegInst* inst) { inst->fInst->accept(this); }
 
     virtual void visit(BinopInst* inst)
     {
@@ -2146,6 +2238,15 @@ struct DispatchVisitor : public InstVisitor {
     virtual void visit(BlockInst* inst)
     {
         for (const auto& it : inst->fCode) {
+            it->accept(this);
+        }
+    }
+
+    virtual void visit(ModuleInst* inst)
+    {
+        inst->fDSPStruct->accept(this);
+        inst->fGlobals->accept(this);
+        for (const auto& it : inst->fFunctions) {
             it->accept(this);
         }
     }
@@ -2253,7 +2354,7 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
 
     virtual void visit(FixedPointArrayNumInst* inst) { Dispatch2Visitor(inst); }
 
-    virtual void visit(MinusInst* inst) { Dispatch2Visitor(inst); }
+    virtual void visit(NegInst* inst) { Dispatch2Visitor(inst); }
 
     virtual void visit(BinopInst* inst) { Dispatch2Visitor(inst); }
 
@@ -2473,7 +2574,7 @@ struct IB {
     static BoolNumInst*  genBoolNumInst(bool num) { return new BoolNumInst(num); }
 
     // Numerical computation
-    static MinusInst* genMinusInst(ValueInst* inst) { return new MinusInst(inst); }
+    static NegInst*   genNeg(ValueInst* inst) { return new NegInst(inst); }
     static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2)
     {
         return new BinopInst(opcode, inst1, inst2);
@@ -2539,6 +2640,9 @@ struct IB {
         return new DropInst(new FunCallInst(name, args, method));
     }
 
+    // DSP creation
+    static NewDSPInst* genNewDSPInst(const std::string& name) { return new NewDSPInst(name); }
+
     // Loop
     static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end,
                                        StatementInst* increment, BlockInst* code = new BlockInst(),
@@ -2553,6 +2657,15 @@ struct IB {
     {
         DeclareVarInst* dec = genDecLoopVar(index, genInt32Typed(), genInt32NumInst(init));
         ValueInst*      end = genLessThan(dec->load(), genInt32NumInst(size));
+        StoreVarInst*   inc = dec->store(genAdd(dec->load(), step));
+        return genForLoopInst(dec, end, inc);
+    }
+
+    static ForLoopInst* genForLoopInst(const std::string& index, int init, ValueInst* size,
+                                       int step = 1)
+    {
+        DeclareVarInst* dec = genDecLoopVar(index, genInt32Typed(), genInt32NumInst(init));
+        ValueInst*      end = genLessThan(dec->load(), size);
         StoreVarInst*   inc = dec->store(genAdd(dec->load(), step));
         return genForLoopInst(dec, end, inc);
     }
@@ -2584,6 +2697,13 @@ struct IB {
         return new BlockInst(code);
     }
     static BlockInst* genBlockInst() { return new BlockInst(); }
+
+    static ModuleInst* genModuleInst(const std::string& name, BlockInst* dsp_struct,
+                                     BlockInst*                        globals,
+                                     const std::list<DeclareFunInst*>& functions = {})
+    {
+        return new ModuleInst(name, dsp_struct, globals, functions);
+    }
 
     // Types
     static BasicTyped* genBasicTyped(Typed::VarType type);  // moved in instructions.cpp
@@ -3167,6 +3287,226 @@ struct IB {
                 genNamedTyped("dummy" + std::to_string(i), genBasicTyped(atypes[i])));
         }
         return genDeclareFunInst(name, genFunTyped(named_args, genBasicTyped(rtype)));
+    }
+
+    static Names genMethod(const std::string& obj, bool ismethod)
+    {
+        Names args;
+        if (!ismethod) {
+            args.push_back(IB::genNamedTyped(obj, Typed::kObj_ptr));
+        }
+        return args;
+    }
+
+    static Values genObjArg(const std::string& obj, bool ismethod)
+    {
+        Values args;
+        if (!ismethod) {
+            args.push_back(genLoadFunArgsVar(obj));
+        }
+        return args;
+    }
+
+    static DeclareFunInst* generateGetIO(const std::string& name, const std::string& obj, int io,
+                                         bool ismethod, FunTyped::FunAttribute funtype)
+    {
+        Names      args  = genMethod(obj, ismethod);
+        BlockInst* block = genBlockInst();
+        block->pushBackInst(genRetInst(genInt32NumInst(io)));
+
+        // Creates function
+        FunTyped* fun_type = genFunTyped(args, genInt32Typed(), funtype);
+        return genDeclareFunInst(name, fun_type, block);
+    }
+
+    static DeclareFunInst* generateGetInputs(const std::string& name, const std::string& obj,
+                                             bool ismethod, FunTyped::FunAttribute funtype,
+                                             int inputs)
+    {
+        return generateGetIO(name, obj, inputs, ismethod, funtype);
+    }
+
+    static DeclareFunInst* generateGetOutputs(const std::string& name, const std::string& obj,
+                                              bool ismethod, FunTyped::FunAttribute funtype,
+                                              int outputs)
+    {
+        return generateGetIO(name, obj, outputs, ismethod, funtype);
+    }
+
+    static DeclareFunInst* generateGetSampleRate(const std::string& name, const std::string& obj,
+                                                 bool ismethod, bool isvirtual)
+    {
+        Names args = genMethod(obj, ismethod);
+
+        BlockInst* block = genBlockInst();
+        block->pushBackInst(genRetInst(genLoadStructVar("fSampleRate")));
+
+        // Creates function
+        FunTyped* fun_type = genFunTyped(args, genInt32Typed(),
+                                         (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+        return genDeclareFunInst(name, fun_type, block);
+    }
+
+    static DeclareFunInst* generateInit(const std::string& name, const std::string& obj,
+                                        bool ismethod, bool isvirtual)
+    {
+        Names args = genMethod(obj, ismethod);
+        args.push_back(genNamedTyped("sample_rate", Typed::kInt32));
+
+        BlockInst* block = genBlockInst();
+        {
+            Values args1 = genObjArg(obj, ismethod);
+            args1.push_back(genLoadFunArgsVar("sample_rate"));
+            block->pushBackInst(genVoidFunCallInst("classInit", args1));
+        }
+
+        {
+            Values args1 = genObjArg(obj, ismethod);
+            args1.push_back(genLoadFunArgsVar("sample_rate"));
+            block->pushBackInst(genVoidFunCallInst("instanceInit", args1));
+        }
+
+        // Creates function
+        return genVoidFunction(name, args, block, isvirtual);
+    }
+
+    static DeclareFunInst* generateInstanceInit(const std::string& name, const std::string& obj,
+                                                bool ismethod, bool isvirtual)
+    {
+        Names args = genMethod(obj, ismethod);
+        args.push_back(genNamedTyped("sample_rate", Typed::kInt32));
+
+        BlockInst* block = genBlockInst();
+        {
+            Values args1 = genObjArg(obj, ismethod);
+            args1.push_back(genLoadFunArgsVar("sample_rate"));
+            block->pushBackInst(genVoidFunCallInst("instanceConstants", args1));
+        }
+
+        {
+            Values args1 = genObjArg(obj, ismethod);
+            block->pushBackInst(genVoidFunCallInst("instanceResetUserInterface", args1));
+        }
+
+        {
+            Values args1 = genObjArg(obj, ismethod);
+            block->pushBackInst(genVoidFunCallInst("instanceClear", args1));
+        }
+
+        // Creates function
+        return genVoidFunction(name, args, block, isvirtual);
+    }
+
+    static DeclareFunInst* generateClassInit(const std::string& name, const std::string& obj,
+                                             bool ismethod, bool isvirtual, BlockInst* tables_block)
+    {
+        Names args = genMethod(obj, ismethod);
+        args.push_back(genNamedTyped("sample_rate", Typed::kInt32));
+
+        // Explicit return
+        tables_block->pushBackInst(genRetInst());
+
+        // Creates function
+        return genVoidFunction(name, args, tables_block, isvirtual);
+    }
+
+    static DeclareFunInst* generateInstanceConstants(const std::string& name,
+                                                     const std::string& obj, bool ismethod,
+                                                     bool isvirtual, BlockInst* constants_block)
+    {
+        Names args = genMethod(obj, ismethod);
+        args.push_back(genNamedTyped("sample_rate", Typed::kInt32));
+
+        // Creates function
+        return genVoidFunction(name, args, constants_block, isvirtual);
+    }
+
+    static DeclareFunInst* generateInstanceResetUserInterface(const std::string& name,
+                                                              const std::string& obj, bool ismethod,
+                                                              bool       isvirtual,
+                                                              BlockInst* reset_block)
+    {
+        Names args = genMethod(obj, ismethod);
+
+        // Explicit return
+        reset_block->pushBackInst(genRetInst());
+
+        // Creates function
+        return genVoidFunction(name, args, reset_block, isvirtual);
+    }
+
+    static DeclareFunInst* generateClone(const std::string& name, const std::string& obj,
+                                         bool ismethod, bool isvirtual)
+    {
+        Names args = genMethod(obj, ismethod);
+
+        BlockInst* block = genBlockInst();
+        block->pushBackInst(genRetInst(genNewDSPInst(obj)));
+
+        // Creates function
+        FunTyped* fun_type = genFunTyped(args, genBasicTyped(Typed::kObj_ptr),
+                                         (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+        return genDeclareFunInst(name, fun_type, block);
+    }
+
+    static DeclareFunInst* generateInstanceClear(const std::string& name, const std::string& obj,
+                                                 bool ismethod, bool isvirtual);
+
+    static DeclareFunInst* generateInstanceClear(const std::string& name, const std::string& obj,
+                                                 bool ismethod, bool isvirtual,
+                                                 BlockInst* clear_block)
+    {
+        Names args = genMethod(obj, ismethod);
+
+        // Creates function
+        return genVoidFunction(name, args, clear_block, isvirtual);
+    }
+    static DeclareFunInst* generateMetadata(const std::string& name, const std::string& obj,
+                                            bool ismethod, bool isvirtual,
+                                            BlockInst* metadata_block)
+    {
+        Names args = genMethod(obj, ismethod);
+        args.push_back(genNamedTyped("m", Typed::kMeta_ptr));
+
+        // TODO
+        // Add explicit return for now
+        metadata_block->pushBackInst(genRetInst());
+
+        // Creates function
+        return genVoidFunction(name, args, metadata_block, isvirtual);
+    }
+
+    static DeclareFunInst* generateBuildUserInterace(const std::string& name,
+                                                     const std::string& obj, bool ismethod,
+                                                     bool isvirtual, BlockInst* ui_block)
+    {
+        Names args = genMethod(obj, ismethod);
+        args.push_back(genNamedTyped("ui_interface", Typed::kUI_ptr));
+
+        // Creates function
+        return genVoidFunction(name, args, ui_block, isvirtual);
+    }
+
+    static DeclareFunInst* generateComputeFun(const std::string& name, const std::string& obj,
+                                              bool ismethod, bool isvirtual,
+                                              BlockInst* control_block, BlockInst* sample_block)
+    {
+        Names args = genMethod(obj, ismethod);
+        args.push_back(genNamedTyped("count", Typed::kInt32));
+        args.push_back(genNamedTyped("inputs", Typed::kFloatMacro_ptr_ptr));
+        args.push_back(genNamedTyped("outputs", Typed::kFloatMacro_ptr_ptr));
+
+        // Control rate code
+        BlockInst* compute_block = genBlockInst();
+        compute_block->pushBackInst(control_block);
+
+        // Sample rate code
+        ForLoopInst* loop = genForLoopInst("sample", 0, genLoadFunArgsVar("count"), 1);
+        loop->pushBackInst(sample_block);
+        compute_block->pushBackInst(loop);
+
+        // Creates function
+        return genVoidFunction(name, args, compute_block, isvirtual);
     }
 };
 

@@ -32,6 +32,7 @@
 #include "ppsig.hh"
 #include "sigtype.hh"
 #include "tlib.hh"
+#include "floats.hh"
 
 class CodeContainer;
 
@@ -54,6 +55,9 @@ class xtended : public virtual Garbageable {
 
     Sym         symbol() { return fSymbol; }
     const char* name() { return ::name(fSymbol); }
+    std::string sname() { return std::string(::name(fSymbol)); }
+
+    virtual std::string fname(int type) { return sname() + isuffix(); }
 
     // Create the box
     Tree box()

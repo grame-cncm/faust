@@ -50,23 +50,36 @@ static void error(const char* s, Tree t)
 // normal version, which works, but does not arrange in alphabetical order
 static bool findKey(Tree pl, Tree key, Tree& val)
 {
-	if (isNil(pl)) 				return false;
-	if (left(hd(pl)) == key) 	{ val = right(hd(pl)); return true; }
-	/*  left(hd(pl)) != key	*/	return findKey (tl(pl), key, val); 
+    if (isNil(pl)) {
+        return false;
+    }
+    if (left(hd(pl)) == key) {
+        val = right(hd(pl));
+        return true;
+    }
+    /*  left(hd(pl)) != key	*/ return findKey(tl(pl), key, val);
 }
 
 static Tree updateKey(Tree pl, Tree key, Tree val)
 {
-	if (isNil(pl)) 				return cons ( cons(key,val), gGlobal->nil );
-	if (left(hd(pl)) == key) 	return cons ( cons(key,val), tl(pl) );
-	/*  left(hd(pl)) != key	*/	return cons ( hd(pl), updateKey( tl(pl), key, val ));
+    if (isNil(pl)) {
+        return cons(cons(key, val), gGlobal->nil);
+    }
+    if (left(hd(pl)) == key) {
+        return cons(cons(key, val), tl(pl));
+    }
+    /*  left(hd(pl)) != key	*/ return cons(hd(pl), updateKey(tl(pl), key, val));
 }
 
 static Tree removeKey(Tree pl, Tree key)
 {
-	if (isNil(pl)) 				return gGlobal->nil;
-	if (left(hd(pl)) == key) 	return tl(pl);
-	/*  left(hd(pl)) != key	*/	return cons (hd(pl), removeKey(tl(pl), key));
+    if (isNil(pl)) {
+        return gGlobal->nil;
+    }
+    if (left(hd(pl)) == key) {
+        return tl(pl);
+    }
+    /*  left(hd(pl)) != key	*/ return cons(hd(pl), removeKey(tl(pl), key));
 }
 
 #else
@@ -146,7 +159,7 @@ static Tree removeKey(Tree pl, Tree key)
 {
 	if (isNil(pl)) 					return gGlobal->nil;
 	if (left(hd(pl)) == key) 		return tl(pl);
-	if (isBefore(left(hd(pl)),key))	return cons (hd(pl), removeKey(tl(pl), key));
+	if (isBefore(left(hd(pl)),key))	return cons(hd(pl), removeKey(tl(pl), key));
 	return pl;
 }
 #endif

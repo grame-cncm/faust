@@ -280,42 +280,21 @@ void SignalRenderer<REAL>::visit(Tree sig)
         if (isNil(wi_tree)) {
             // Nothing
         } else {
+            // Interpret write signal
             self(wi_tree);
-            Node write_id  = popRes();
-            int  write_idx = write_id.getInt();
+            // Then read its content
+            Node write_idx = popRes();
             self(ws_tree);
             Node val_node = popRes();
-
-            auto it_int  = fIntTables.find(sig);
-            auto it_real = fRealTables.find(sig);
-            if (it_int != fIntTables.end()) {
-                it_int->second.write(write_idx, val_node.getInt());
-            } else if (it_real != fRealTables.end()) {
-                it_real->second.write(write_idx, val_node.getDouble());
-            } else {
-                faustassert(false);
-                return;
-            }
+            writeTable(sig, write_idx, val_node);
         }
     } else if (isSigRDTbl(sig, tbl_tree, ri_tree)) {
         // Interpret table
         self(tbl_tree);
-
         // Then read its content
         self(ri_tree);
-        Node read_id  = popRes();
-        int  read_idx = read_id.getInt();
-
-        auto it_int  = fIntTables.find(tbl_tree);
-        auto it_real = fRealTables.find(tbl_tree);
-        if (it_int != fIntTables.end()) {
-            pushRes(it_int->second.read(read_idx));
-        } else if (it_real != fRealTables.end()) {
-            pushRes(it_real->second.read(read_idx));
-        } else {
-            faustassert(false);
-            pushRes(Node(0));
-        }
+        Node read_idx = popRes();
+        pushRes(readTable(tbl_tree, read_idx));
     } else if (isSigGen(sig, x_tree)) {
         if (fVisitGen) {
             self(x_tree);

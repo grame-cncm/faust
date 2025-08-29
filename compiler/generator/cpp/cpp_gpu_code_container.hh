@@ -31,7 +31,10 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
    protected:
     // To access control inside fControl field
     struct UIInstVisitor : public CPPInstVisitor {
-        UIInstVisitor(std::ostream* out, int tab) : CPPInstVisitor(out, tab) {}
+        UIInstVisitor(std::ostream* out, const std::string& struct_name, int tab)
+            : CPPInstVisitor(out, struct_name, tab)
+        {
+        }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
@@ -106,7 +109,10 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
     // Visitor that only generates non-control fields
     struct DSPInstVisitor : public CPPInstVisitor {
-        DSPInstVisitor(std::ostream* out, int tab) : CPPInstVisitor(out, tab) {}
+        DSPInstVisitor(std::ostream* out, const std::string& struct_name, int tab)
+            : CPPInstVisitor(out, struct_name, tab)
+        {
+        }
 
         virtual void visit(DeclareVarInst* inst)
         {
@@ -119,7 +125,10 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
     // Visitor that only generates control fields
     struct ControlInstVisitor : public CPPInstVisitor {
-        ControlInstVisitor(std::ostream* out, int tab) : CPPInstVisitor(out, tab) {}
+        ControlInstVisitor(std::ostream* out, const std::string& struct_name, int tab)
+            : CPPInstVisitor(out, struct_name, tab)
+        {
+        }
 
         virtual void visit(DeclareVarInst* inst)
         {
@@ -136,7 +145,10 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
         using CPPInstVisitor::visit;
 
         std::map<std::string, std::string> fFunctionTable;
-        KernelInstVisitor(std::ostream* out, int tab) : CPPInstVisitor(out, tab) {}
+        KernelInstVisitor(std::ostream* out, const std::string& struct_name, int tab)
+            : CPPInstVisitor(out, struct_name, tab)
+        {
+        }
 
         virtual void visit(LoadVarInst* inst)
         {
@@ -300,7 +312,8 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             }
         }
 
-        OpenCLKernelInstVisitor(std::ostream* out, int tab) : KernelInstVisitor(out, tab)
+        OpenCLKernelInstVisitor(std::ostream* out, const std::string& struct_name, int tab)
+            : KernelInstVisitor(out, struct_name, tab)
         {
             fFunctionTable["sin"]    = "native_sin";
             fFunctionTable["sinf"]   = "native_sin";
@@ -337,7 +350,10 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             }
         }
 
-        ControlOpenCLInstVisitor(std::ostream* out, int tab) : ControlInstVisitor(out, tab) {}
+        ControlOpenCLInstVisitor(std::ostream* out, const std::string& struct_name, int tab)
+            : ControlInstVisitor(out, struct_name, tab)
+        {
+        }
     };
 
     // To be used when generating GPU kernel string
@@ -352,7 +368,10 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             }
         }
 
-        DSPOpenCLInstVisitor(std::ostream* out, int tab) : DSPInstVisitor(out, tab) {}
+        DSPOpenCLInstVisitor(std::ostream* out, const std::string& struct_name, int tab)
+            : DSPInstVisitor(out, struct_name, tab)
+        {
+        }
     };
 
     // Add __local keyword for stack variables
@@ -369,7 +388,10 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             }
         }
 
-        BlockKernelInstVisitor(std::ostream* out, int tab) : KernelInstVisitor(out, tab) {}
+        BlockKernelInstVisitor(std::ostream* out, const std::string& struct_name, int tab)
+            : KernelInstVisitor(out, struct_name, tab)
+        {
+        }
 
         virtual void visit(DeclareVarInst* inst)
         {
@@ -413,7 +435,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         : CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
     {
         fGPUOut             = new std::ostringstream();
-        fKernelCodeProducer = new OpenCLKernelInstVisitor(fGPUOut, 0);
+        fKernelCodeProducer = new OpenCLKernelInstVisitor(fGPUOut, name, 0);
     }
     virtual ~CPPOpenCLCodeContainer() { delete fGPUOut; }
 
@@ -438,14 +460,20 @@ class CPPOpenCLVectorCodeContainer : public CPPOpenCLCodeContainer {
 class CPPCUDACodeContainer : public CPPGPUCodeContainer {
    protected:
     struct CUDAKernelInstVisitor : public KernelInstVisitor {
-        CUDAKernelInstVisitor(std::ostream* out, int tab) : KernelInstVisitor(out, tab) {}
+        CUDAKernelInstVisitor(std::ostream* out, const std::string& struct_name, int tab)
+            : KernelInstVisitor(out, struct_name, tab)
+        {
+        }
     };
 
     // Add __shared__ keyword for stack variables
     struct BlockKernelInstVisitor : public KernelInstVisitor {
         using KernelInstVisitor::visit;
 
-        BlockKernelInstVisitor(std::ostream* out, int tab) : KernelInstVisitor(out, tab) {}
+        BlockKernelInstVisitor(std::ostream* out, const std::string& struct_name, int tab)
+            : KernelInstVisitor(out, struct_name, tab)
+        {
+        }
 
         virtual void visit(DeclareVarInst* inst)
         {
@@ -477,7 +505,7 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
     {
         std::string filename = gGlobal->gOutputFile + ".cu";
         fGPUOut              = new std::ofstream(filename.c_str());
-        fKernelCodeProducer  = new CUDAKernelInstVisitor(fGPUOut, 0);
+        fKernelCodeProducer  = new CUDAKernelInstVisitor(fGPUOut, name, 0);
         fNumInputs           = numInputs;
         fNumOutputs          = numOutputs;
     }
