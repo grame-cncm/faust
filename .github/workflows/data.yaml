@@ -1,0 +1,449 @@
+name: libfaust
+env:
+  FAUST_VERSION: 2.81.6
+  FAUSTGEN_VERSION: '1.78'
+  LLVM_PACKAGE_VERSION: 18.1.8
+  CMAKE_OSX_DEPLOYMENT_TARGET: '10.15'
+  LLVM_COMMIT: 8dfdcc7b7bf66834a761bd8de445840ef68e4d1a
+'on':
+  workflow_dispatch:
+    inputs:
+      create_release:
+        type: boolean
+        description: Create a draft release
+        default: true
+jobs:
+  build-ubuntu:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ubuntu-x86_64
+            os: ubuntu-22.04
+            cmake-options: '-DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON'
+    runs-on: '${{ matrix.os }}'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y zstd libncurses-dev libxml2-dev
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y libllvm15 llvm-15 llvm-15-dev
+      - name: Build libfaust
+        run: >
+          find /usr -name llvm-config
+
+          export PATH="/usr/lib/llvm-15/bin:$PATH"
+
+          export LLVM_ROOT=$(llvm-config --prefix | tr '\n' ' ')
+
+          echo "LLVM_ROOT: " $LLVM_ROOT
+
+          cd build
+
+          cmake -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}}
+          -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON
+          -DUSE_LLVM_CONFIG=ON
+
+          cmake --build build --config Release
+      - name: Make distribution
+        run: |
+          cd build/lib
+          rm -f libfaust.so libfaust.so.2
+          newest=$(ls -1 libfaust.so.* | tail -n1)
+          mv "$newest" libfaust.so
+          strip --strip-unneeded libfaust.so
+          cd ..
+          zip -r libfaust-${{ matrix.name }}.zip lib
+      - name: Upload libfaust artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'libfaust-${{ matrix.name }}.zip'
+          path: 'build/libfaust-${{ matrix.name }}.zip'
+          if-no-files-found: error
+  build-ubuntu-aarch64:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ubuntu-aarch64
+            os: ubuntu-22.04
+            llvm-url: >-
+              https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-17.0.6-ubuntu-aarch64.zip
+            cmake-options: '-DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON'
+    runs-on: '${{ matrix.os }}'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Download LLVM
+        run: >
+          # Libfaust will need to link against LLVM.
+
+          # Since we're using an x86_64 GitHub actions runner, we're unable to
+          build arm64 LLVM on-demand.
+
+          # To get around this, we download a compatible LLVM build that we've
+          built in advance.
+
+          curl -L ${{ matrix.llvm-url }} -o llvm.zip
+
+          unzip -o llvm.zip
+
+          rm llvm.zip
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile-aarch64
+          tags: 'mylibrary-builder:latest'
+          platforms: linux/arm64
+          load: true
+      - name: Create Container from Image
+        run: 'docker create --name mylib-container mylibrary-builder:latest'
+      - name: Copy Compiled Library from Container
+        run: >
+          docker cp mylib-container:/faust/build/libfaust-${{ matrix.name }}.zip
+          libfaust-${{ matrix.name }}.zip
+
+          docker rm mylib-container
+      - name: Upload libfaust artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'libfaust-${{ matrix.name }}.zip'
+          path: 'libfaust-${{ matrix.name }}.zip'
+          if-no-files-found: error
+  build-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: arm64
+            os: macos-15
+            ARCHS: '-arch arm64'
+            CMAKE_OSX_ARCHITECTURES: arm64
+            HOST: aarch64-apple-darwin
+            ENABLE_MPEG: 'OFF'
+          - name: x64
+            os: macos-13
+            ARCHS: '-arch x86_64'
+            CMAKE_OSX_ARCHITECTURES: x86_64
+            HOST: x86_64-apple-darwin
+            ENABLE_MPEG: 'ON'
+    runs-on: '${{ matrix.os }}'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Checkout LLVM universal binaries (shallow)
+        run: >
+          git clone --depth 1 --filter=blob:none --sparse
+          https://github.com/cmajor-lang/llvm.git llvm-universal
+
+          cd llvm-universal
+
+          git sparse-checkout set release/osx/universal
+      - name: Build libmicrohttpd
+        run: >
+          curl -L
+          https://mirror.cyberbits.eu/gnu/libmicrohttpd/libmicrohttpd-1.0.2.tar.gz
+          -o libmicrohttpd-1.0.2.tar.gz
+
+          tar -xvf libmicrohttpd-1.0.2.tar.gz
+
+          mv libmicrohttpd-1.0.2 libmicrohttpd
+
+          cd libmicrohttpd
+
+          export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+
+          export TARGET=${{matrix.HOST}}
+
+          export CC=$(xcrun -find -sdk macosx gcc)
+
+          export CFLAGS="${{matrix.ARCHS}} -target $TARGET -isysroot $SDKROOT
+          -mmacosx-version-min=10.15"
+
+          export LDFLAGS="${{matrix.ARCHS}} -target $TARGET -isysroot $SDKROOT"
+
+          ./configure --enable-https=no --host=$TARGET
+          --prefix=$PWD/libmicrohttpd
+
+          make && make install
+      - name: Brew install requirements (arm64)
+        if: '${{ endsWith( matrix.name, ''arm64'') }}'
+        run: >
+          brew update
+
+          PACKAGES=(ncurses gtk+ liblo lame flac libogg libtool libvorbis opus
+          mpg123)
+
+          DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' '
+          '))
+
+          PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
+
+          export HOMEBREW_NO_INSTALL_CLEANUP=1
+
+          export HOMEBREW_NO_INSTALL_UPGRADE=1
+
+          export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+
+          for PACKAGE in "${PACKAGES[@]}"
+
+          do
+            echo "Fetching bottle: $PACKAGE"
+            response=$(brew fetch --bottle-tag=arm64_ventura $PACKAGE 2>&1)
+            package_path=$(echo $response | sed -n 's/.*\:\ \(.*\.tar\.gz\).*/\1/p')
+            package_path=$(echo "$package_path" | xargs)
+            echo "Package Path: $package_path"
+            brew reinstall --verbose --force-bottle "$package_path" || true
+          done
+
+
+          brew uninstall --ignore-dependencies curl git || true
+      - name: Brew install requirements (x64)
+        if: '${{ endsWith( matrix.name, ''x64'') }}'
+        run: >-
+          brew install pkg-config ncurses gtk+ liblo lame flac libogg libtool
+          libvorbis opus mpg123
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 5.15.2
+          host: mac
+          target: desktop
+          dir: '${{ github.workspace }}/qt_install'
+      - name: Clone Libsndfile
+        uses: actions/checkout@v4
+        with:
+          repository: libsndfile/libsndfile
+          path: libsndfile
+          submodules: true
+      - name: Build libsndfile
+        run: >
+          brew uninstall --ignore-dependencies libsndfile || true
+
+          cd libsndfile
+
+          LIBSNDFILE_INSTALL_PREFIX="$PWD/install"
+
+          mkdir CMakeBuild && cd CMakeBuild
+
+          cmake .. -G "Unix Makefiles"
+          -DCMAKE_INSTALL_PREFIX="$LIBSNDFILE_INSTALL_PREFIX"
+          -DCMAKE_VERBOSE_MAKEFILE=ON
+          -DCMAKE_OSX_ARCHITECTURES=$CMAKE_OSX_ARCHITECTURES
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET
+          -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
+          -DENABLE_MPEG=${{ matrix.ENABLE_MPEG }}
+
+          make && make install
+
+          otool -L $LIBSNDFILE_INSTALL_PREFIX/lib/libsndfile.a
+
+          echo "Testing pkg-config for sndfile"
+
+          export PKG_CONFIG_PATH="$LIBSNDFILE_INSTALL_PREFIX/lib/pkgconfig"
+
+          pkg-config --cflags sndfile
+        env:
+          CMAKE_OSX_ARCHITECTURES: '${{matrix.CMAKE_OSX_ARCHITECTURES}}'
+      - name: Clone MAX SDK
+        uses: actions/checkout@v4
+        with:
+          repository: Cycling74/max-sdk-base
+          path: max-sdk-base
+      - name: Slim LLVM libraries
+        env:
+          CMAKE_ARCH: '${{ matrix.CMAKE_OSX_ARCHITECTURES }}'
+        run: >
+          echo "Slimming LLVM universal libs to
+          ${{matrix.CMAKE_OSX_ARCHITECTURES}}"
+
+          mkdir -p slim-llvm-libs
+
+          for lib in llvm-universal/release/osx/universal/lib/lib*.a; do
+            base=$(basename "$lib")
+            lipo "$lib" -extract $CMAKE_ARCH -output slim-llvm-libs/"$base"
+          done
+      - name: Build everything
+        run: >
+          export
+          PKG_CONFIG_PATH="$QT_ROOT_DIR/lib/pkgconfig:$PWD/libsndfile/install/lib/pkgconfig:$PWD/libmicrohttpd/libmicrohttpd/lib/pkgconfig"
+
+
+          export LLVM_DIR=${{ github.workspace
+          }}/llvm-universal/release/osx/universal
+
+          export LLVM_LIB_DIR=$PWD/slim-llvm-libs
+
+          export LLVM_INCLUDE_DIRS=$LLVM_DIR/include 
+
+
+          export LLVM_LIBS=$(ls $LLVM_LIB_DIR/lib*.a | sed
+          "s|$LLVM_LIB_DIR/lib\(.*\)\.a|-l\1|g" | tr '\n' ' ')
+
+          export LLVM_LIBS="-lm -lcurses -lxml2 -lz $LLVM_LIBS"
+
+          export LLVM_LIBS="$(echo "$LLVM_LIBS" | sed 's/[[:space:]]*$//')"
+
+          export LLVM_DEFINITIONS="-D__STDC_CONSTANT_MACROS
+          -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS"
+
+          export LLVM_LD_FLAGS="-L$LLVM_LIB_DIR -Wl,-search_paths_first
+          -Wl,-headerpad_max_install_names"
+
+          export LLVM="$LLVM_LD_FLAGS $LLVM_LIBS"
+
+
+          export FAUSTLIVE=$PWD/faustlive
+
+          export BUILD_HTTP_STATIC=ON
+
+          export USE_STATIC_SNDFILE=1
+
+          export CMAKEOPT="-DCMAKE_OSX_ARCHITECTURES="$CMAKE_OSX_ARCHITECTURES"
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET
+          -DCMAKE_BUILD_TYPE=Release"
+
+          export INCLUDE_LLVM=ON
+
+          export USE_LLVM_CONFIG=off
+
+
+          cd build
+
+          make release
+
+
+          cd Release-${{env.FAUST_VERSION}}
+
+          cp Faust-${{env.FAUST_VERSION}}.dmg
+          Faust-${{env.FAUST_VERSION}}-${{matrix.name}}.dmg
+
+          cp faustgen-${{env.FAUSTGEN_VERSION}}-macosx.dmg
+          faustgen-${{env.FAUSTGEN_VERSION}}-${{matrix.name}}.dmg
+        env:
+          CMAKE_OSX_ARCHITECTURES: '${{matrix.CMAKE_OSX_ARCHITECTURES}}'
+          ARCHS: '${{matrix.ARCHS}}'
+      - name: Upload Faust artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'faust-${{env.FAUST_VERSION}}-${{ matrix.name }}.dmg'
+          path: >-
+            build/Release-${{env.FAUST_VERSION}}/Faust-${{env.FAUST_VERSION}}-${{matrix.name}}.dmg
+          if-no-files-found: error
+      - name: Upload Faust source artifact
+        if: '${{ endsWith( matrix.name, ''arm64'') }}'
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'faust-${{env.FAUST_VERSION}}.tar.gz'
+          path: >-
+            build/Release-${{env.FAUST_VERSION}}/faust-${{env.FAUST_VERSION}}.tar.gz
+          if-no-files-found: error
+      - name: Upload faustgen~ artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.dmg'
+          path: >-
+            build/Release-${{env.FAUST_VERSION}}/faustgen-${{env.FAUSTGEN_VERSION}}-${{matrix.name}}.dmg
+          if-no-files-found: error
+  build-windows:
+    runs-on: '${{ matrix.os }}'
+    strategy:
+      matrix:
+        include:
+          - name: win64
+            os: windows-2022
+            llvm-url: >-
+              https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-17.0.6-win11-x86_64.zip
+            libsndfile-url: >-
+              https://github.com/libsndfile/libsndfile/releases/download/1.2.0/libsndfile-1.2.0-win64.zip
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Download LLVM
+        run: |
+          # Libfaust will need to link against LLVM.
+          # We download a Windows x86_64 LLVM build that we've built in advance.
+          curl -L ${{ matrix.llvm-url }} -o llvm.zip
+          7z x llvm.zip -y
+      - name: Download Libsndfile
+        run: |
+          curl -L ${{ matrix.libsndfile-url }} -o libsndfile.zip
+          7z x libsndfile.zip -y
+          mv libsndfile-1.2.0-win64 libsndfile
+      - name: Clone Max SDK
+        uses: actions/checkout@v4
+        with:
+          repository: Cycling74/max-sdk-base
+          path: max-sdk-base
+      - name: Build libfaust
+        shell: cmd
+        run: |
+          cd build
+          call MakeRelease.bat
+        env:
+          LLVM_PACKAGE_VERSION: 17.0.6
+      - name: Make distribution
+        shell: cmd
+        run: >
+          cd embedded/faustgen/package
+
+          7z a -tzip faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.zip
+          faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}
+      - name: Upload Faust installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'Faust-${{env.FAUST_VERSION}}-${{matrix.name}}.exe'
+          path: 'build/Faust-${{env.FAUST_VERSION}}-${{matrix.name}}.exe'
+          if-no-files-found: error
+      - name: Upload faustgen~ artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.zip'
+          path: >-
+            embedded/faustgen/package/faustgen-${{env.FAUSTGEN_VERSION}}-${{
+            matrix.name }}.zip
+          if-no-files-found: error
+  create-release:
+    if: '${{ inputs.create_release }}'
+    needs:
+      - build-ubuntu
+      - build-ubuntu-aarch64
+      - build-macos
+      - build-windows
+    runs-on: ubuntu-latest
+    name: Create Release on GitHub
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          files: dist/*/*
