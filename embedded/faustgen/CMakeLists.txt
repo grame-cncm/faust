@@ -113,7 +113,11 @@ endif()
 # Add the faustgen target
 ####################################
 add_library(faustgen MODULE ${ROOT}/src/faustgen~.cpp ${ROOT}/src/faustgen_factory.cpp ${WINSRC} ${DSPLIBS})
-target_include_directories(faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} ${SNDFILE_INCLUDE_DIRS})
+target_include_directories(faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} ${SNDFILE_INCLUDE_DIRS} ${ROOT}/../../architecture)
+
+# Show CMake var and (just in case) the environment var with the same name
+message(STATUS "FAUSTINC (CMake) = [${FAUSTINC}]")
+
 if (APPLE)
 if (DEFINED SNDFILE_IS_STATIC)
     target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} PkgConfig::SNDFILE PkgConfig::FLAC PkgConfig::VORBIS PkgConfig::OGG PkgConfig::OPUS PkgConfig::MPG123 z)
