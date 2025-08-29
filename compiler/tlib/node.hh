@@ -298,50 +298,32 @@ inline const Node mulNode(const Node& x, const Node& y)
 
 inline const Node divExtendedNode(const Node& x, const Node& y)
 {
-    if (isDouble(x) || isDouble(y)) {
-        if (double(y) == 0.0) {
-            goto raise_exception;
-        }
+    if (isZero(y)) {
+        std::stringstream error;
+        error << "ERROR : division by 0 in " << x << " / " << y << std::endl;
+        throw faustexception(error.str());
+    } else if (isDouble(x) || isDouble(y)) {
         return Node(double(x) / double(y));
     } else {
-        int yi = int(y);
-        if (yi == 0) {
-            goto raise_exception;
-        }
-        int    xi     = int(x);
-        int    intDiv = xi / yi;
-        double dblDiv = double(x) / double(y);
+        int xi     = int(x);
+        int yi     = int(y);
+        int intDiv = xi / yi;
+        double dblDiv = double(xi) / double(yi);
         return (double(intDiv) == dblDiv) ? Node(intDiv) : Node(dblDiv);
     }
-
-raise_exception:
-    std::stringstream error;
-    error << "ERROR : division by 0 in " << x << " / " << y << std::endl;
-    throw faustexception(error.str());
-    return {};
 }
 
 inline const Node remNode(const Node& x, const Node& y)
 {
-    if (isInt(x) && isInt(y)) {
-        int yi = int(y);
-        if (yi == 0) {
-            goto raise_exception;
-        }
-        return Node(int(x) % yi);
+    if (isZero(y)) {
+        std::stringstream error;
+        error << "ERROR : % by 0 in " << x << " % " << y << std::endl;
+        throw faustexception(error.str());
+    } else if (isInt(x) && isInt(y)) {
+        return Node(int(x) % int(y));
     } else {
-        double yd = double(y);
-        if (yd == 0.0) {
-            goto raise_exception;
-        }
-        return Node(std::fmod(double(x), yd));
+        return Node(std::fmod(double(x), double(y)));
     }
-
-raise_exception:
-    std::stringstream error;
-    error << "ERROR : % by 0 in " << x << " % " << y << std::endl;
-    throw faustexception(error.str());
-    return {};
 }
 
 // inverse functions
