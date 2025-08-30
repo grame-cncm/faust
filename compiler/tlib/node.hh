@@ -52,6 +52,7 @@
 
 #include <stdint.h>
 #include <sys/types.h>
+#include <cmath>
 #include <iostream>
 
 #include "garbageable.hh"
@@ -77,33 +78,40 @@ class Node : public virtual Garbageable {
     } fData;
 
    public:
-    // constructeurs (assume size of field f is the biggest)
+    // constructors (assume size of field f is the biggest)
     Node() { fData.v = 0; }
+
     Node(int x) : fType(kIntNode)
     {
-        fData.f = 0;
+        fData.f = 0.0; 
         fData.i = x;
     }
+
     Node(double x) : fType(kDoubleNode) { fData.f = x; }
+
     Node(int64_t x) : fType(kInt64Node) { fData.v = x; }
+
     Node(const char* name) : fType(kSymNode)
     {
-        fData.f = 0;
+        fData.f = 0.0;
         fData.s = symbol(name);
     }
+
     Node(const std::string& name) : fType(kSymNode)
     {
-        fData.f = 0;
+        fData.f = 0.0;
         fData.s = symbol(name);
     }
+
     Node(Sym x) : fType(kSymNode)
     {
-        fData.f = 0;
+        fData.f = 0.0;
         fData.s = x;
     }
+
     Node(void* x) : fType(kPointerNode)
     {
-        fData.f = 0;
+        fData.f = 0.0;
         fData.p = x;
     }
 
@@ -290,34 +298,32 @@ inline const Node mulNode(const Node& x, const Node& y)
 
 inline const Node divExtendedNode(const Node& x, const Node& y)
 {
-    if (isDouble(x) || isDouble(y)) {
-        if (double(y) == 0) {
-            goto raise_exception;
-        }
+    if (isZero(y)) {
+        std::stringstream error;
+        error << "ERROR : division by 0 in " << x << " / " << y << std::endl;
+        throw faustexception(error.str());
+    } else if (isDouble(x) || isDouble(y)) {
         return Node(double(x) / double(y));
     } else {
-        if (int(y) == 0 || double(y) == 0) {
-            goto raise_exception;
-        }
-        return (double(int(x) / int(y)) == double(x) / double(y)) ? Node(int(x) / int(y))
-                                                                  : Node(double(x) / double(y));
+        int xi     = int(x);
+        int yi     = int(y);
+        int intDiv = xi / yi;
+        double dblDiv = double(xi) / double(yi);
+        return (double(intDiv) == dblDiv) ? Node(intDiv) : Node(dblDiv);
     }
-
-raise_exception:
-    std::stringstream error;
-    error << "ERROR : division by 0 in " << x << " / " << y << std::endl;
-    throw faustexception(error.str());
-    return {};
 }
 
 inline const Node remNode(const Node& x, const Node& y)
 {
-    if (int(y) == 0) {
+    if (isZero(y)) {
         std::stringstream error;
         error << "ERROR : % by 0 in " << x << " % " << y << std::endl;
         throw faustexception(error.str());
+    } else if (isInt(x) && isInt(y)) {
+        return Node(int(x) % int(y));
+    } else {
+        return Node(std::fmod(double(x), double(y)));
     }
-    return Node(int(x) % int(y));
 }
 
 // inverse functions
@@ -329,7 +335,7 @@ inline const Node minusNode(const Node& x)
 
 inline const Node inverseNode(const Node& x)
 {
-    return divExtendedNode(1.0f, x);
+    return divExtendedNode(1.0, x);
 }
 
 // bit shifting operations

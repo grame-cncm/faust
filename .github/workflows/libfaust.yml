@@ -1,7 +1,7 @@
 name: libfaust
 
 env:
-  FAUST_VERSION: 2.81.5
+  FAUST_VERSION: 2.81.6
   FAUSTGEN_VERSION: "1.78"   
   LLVM_PACKAGE_VERSION: "18.1.8"
   CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
@@ -197,25 +197,33 @@ jobs:
 
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
-      # todo: should we bother with brew update?
+      # Install via formula names; use bottles when available. Avoid passing .tar.gz paths.
       run: |
         brew update
+
         PACKAGES=(ncurses gtk+ liblo lame flac libogg libtool libvorbis opus mpg123)
-        DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' ' '))
+
+        # Pull deps first so they come from bottles too
+        DEPS=($(brew deps --union --topological "${PACKAGES[@]}" | tr '\n' ' '))
         PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
+
+        # Keep CI fast/quiet and avoid auto-changes
         export HOMEBREW_NO_INSTALL_CLEANUP=1
         export HOMEBREW_NO_INSTALL_UPGRADE=1
         export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
-        for PACKAGE in "${PACKAGES[@]}"
-        do
-          echo "Fetching bottle: $PACKAGE"
-          response=$(brew fetch --bottle-tag=arm64_ventura $PACKAGE 2>&1)
-          package_path=$(echo $response | sed -n 's/.*\:\ \(.*\.tar\.gz\).*/\1/p')
-          package_path=$(echo "$package_path" | xargs)
-          echo "Package Path: $package_path"
-          brew reinstall --verbose --force-bottle "$package_path" || true
+        export HOMEBREW_NO_ENV_HINTS=1
+        export HOMEBREW_NO_ANALYTICS=1
+        export HOMEBREW_NO_AUTO_UPDATE=1
+
+        for PACKAGE in "${PACKAGES[@]}"; do
+          echo "Fetching bottle (if available): $PACKAGE"
+          brew fetch --force-bottle "$PACKAGE" || true
+
+          echo "Installing from bottle (if available): $PACKAGE"
+          brew reinstall --force-bottle "$PACKAGE" || brew install --force-bottle "$PACKAGE" || true
         done
 
+        # Optional slimming: remove large tools not needed at runtime
         brew uninstall --ignore-dependencies curl git || true
 
     - name: Brew install requirements (x64)
@@ -373,7 +381,7 @@ jobs:
       with:
         repository: Cycling74/max-sdk-base
         path: max-sdk-base
-
+        
     - name: Build libfaust
       shell: cmd
       run: |

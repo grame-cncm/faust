@@ -39,13 +39,15 @@ else()
 if (NOT DEFINED FAUST)
     set (FAUST faust)
 endif()
+
 message (STATUS "Using Faust as ${FAUST}")
 execute_process (COMMAND ${FAUST} --includedir OUTPUT_VARIABLE FINC)
 string ( STRIP "${FINC}" FAUSTINC )
+message (STATUS "Using Faust include from ${FAUSTINC}")
 execute_process (COMMAND ${FAUST} --libdir OUTPUT_VARIABLE FLIB)
 string ( STRIP "${FLIB}" FAUSTLIB )
-
 message (STATUS "Using Faust libraries from ${FAUSTLIB}")
+
 endif()
 
 #######################################
@@ -114,6 +116,7 @@ endif()
 ####################################
 add_library(faustgen MODULE ${ROOT}/src/faustgen~.cpp ${ROOT}/src/faustgen_factory.cpp ${WINSRC} ${DSPLIBS})
 target_include_directories(faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} ${SNDFILE_INCLUDE_DIRS})
+
 if (APPLE)
 if (DEFINED SNDFILE_IS_STATIC)
     target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} PkgConfig::SNDFILE PkgConfig::FLAC PkgConfig::VORBIS PkgConfig::OGG PkgConfig::OPUS PkgConfig::MPG123 z)
