@@ -211,11 +211,11 @@ Please follow the [official contribution guideline](https://faustdoc.grame.fr/ma
 
 ### Build error:`fatal error: 'faust/dsp/dsp.h' file not found`
 
-> This error is observed on macOS platform and usually occurs when the Faust include path is misconfigured—most often, the leading `/` is missing  (e.g., `usr/local/include` instead of `/usr/local/include`), causing the compiler to fail. To fix this, open the project in Xcode, go to **Build Settings -> Search Paths -> Header Search Paths**, and manually correct the path by ensuring it begins with a `/`.
+> This error is observed on macOS platform and usually occurs when the Faust include path is misconfigured—most often, the leading `/` is missing  (e.g., `usr/local/include` instead of `/usr/local/include`), causing the compiler to fail. To fix this, open the project in Xcode, go to **Build Settings -> Search Paths -> Header Search Paths**, and manually correct the path by ensuring it begins with a `/`. Then continue building the plugin using Xcode.
 
-### Build error: `Cannot use 'throw' with exceptions disabled`
+  ### Build error: `Cannot use 'throw' with exceptions disabled`
 
-> This error occurs on macOS when building with Xcode and using `throw` in the code, while C++ exceptions are disabled. To fix this, open the project in Xcode, navigate to **Build Settings -> Apple Clang -> Language - C++ -> Enable C++ Exceptions**, and set to **Yes**.
+  > This error occurs on macOS when building with Xcode and using `throw` in the code, while C++ exceptions are disabled. To fix this, open the project in Xcode, navigate to **Build Settings -> Apple Clang -> Language - C++ -> Enable C++ Exceptions**, and set to **Yes**. Then continue building the plugin using Xcode.
 
 ### Speaker configuration provided does not match with number of outputs supported by the Faust program.
 
