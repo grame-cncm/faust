@@ -29,13 +29,41 @@ if not os.path.isfile(dsp_path):
 base=os.path.splitext(os.path.basename(dsp_path))[0] #name minus extension (.dsp)
 out_cpp=f"{base}_clap.cpp" #target outpu filename
 
-#locate arch file relative to script location
+#locate arch file - try multiple possible locations
 this_dir=os.path.dirname(os.path.abspath(__file__))
-faust_root=os.path.abspath(os.path.join(this_dir,"../.."))
 
-arch_path=os.path.join(faust_root, ARCH_REL_PATH)
-if not os.path.isfile(arch_path):
-    print(f"[!]missing architecture file: {arch_path}")
+# Try different possible locations for the architecture file
+possible_paths = [
+    # 1. Relative to script location (development setup)
+    os.path.join(this_dir, "../..", ARCH_REL_PATH),
+    # 2. System-wide Faust installation paths
+    f"/usr/local/share/faust/{ARCH_REL_PATH}",
+    f"/usr/share/faust/{ARCH_REL_PATH}",
+    # 3. Homebrew installation path (macOS)
+    f"/opt/homebrew/share/faust/{ARCH_REL_PATH}",
+    # 4. Check FAUST_LIB environment variable
+    os.path.join(os.environ.get("FAUST_LIB", ""), ARCH_REL_PATH) if os.environ.get("FAUST_LIB") else "",
+]
+
+arch_path = None
+faust_root = None
+for path in possible_paths:
+    if path and os.path.isfile(path):
+        arch_path = path
+        # Determine faust_root based on which path worked
+        if "share/faust" in path:
+            faust_root = path.split("share/faust")[0] + "share/faust"
+        else:
+            faust_root = os.path.abspath(os.path.join(os.path.dirname(path), "../.."))
+        break
+
+if not arch_path:
+    print(f"[!]missing architecture file: {ARCH_REL_PATH}")
+    print("[!]Searched in:")
+    for path in possible_paths:
+        if path:
+            print(f"    {path}")
+    print("[!]Please ensure Faust is properly installed or set FAUST_LIB environment variable")
     sys.exit(1)
 
 #create output directory

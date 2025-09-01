@@ -144,8 +144,20 @@ class FaustHotReloadGUI:
         ]
         
         # start in Faust examples directory if it exists
-        faust_examples = "/Users/cucu/Documents/GitHub/faust/examples"
-        initial_dir = faust_examples if os.path.exists(faust_examples) else os.path.expanduser("~")
+        # Try multiple possible locations for Faust examples
+        possible_example_dirs = [
+            os.path.expanduser("~/Documents/GitHub/faust/examples"),
+            "/usr/local/share/faust/examples",
+            "/usr/share/faust/examples", 
+            "/opt/homebrew/share/faust/examples",
+            os.path.join(os.environ.get("FAUST_LIB", ""), "examples") if os.environ.get("FAUST_LIB") else None,
+        ]
+        
+        initial_dir = os.path.expanduser("~")
+        for example_dir in possible_example_dirs:
+            if example_dir and os.path.exists(example_dir):
+                initial_dir = example_dir
+                break
         
         filepath = filedialog.askopenfilename(
             title="Select Faust DSP File",
