@@ -29,41 +29,55 @@ if not os.path.isfile(dsp_path):
 base=os.path.splitext(os.path.basename(dsp_path))[0] #name minus extension (.dsp)
 out_cpp=f"{base}_clap.cpp" #target outpu filename
 
-#locate arch file - try multiple possible locations
+#locate arch file using faust command
 this_dir=os.path.dirname(os.path.abspath(__file__))
 
-# Try different possible locations for the architecture file
-possible_paths = [
-    # 1. Relative to script location (development setup)
-    os.path.join(this_dir, "../..", ARCH_REL_PATH),
-    # 2. System-wide Faust installation paths
-    f"/usr/local/share/faust/{ARCH_REL_PATH}",
-    f"/usr/share/faust/{ARCH_REL_PATH}",
-    # 3. Homebrew installation path (macOS)
-    f"/opt/homebrew/share/faust/{ARCH_REL_PATH}",
-    # 4. Check FAUST_LIB environment variable
-    os.path.join(os.environ.get("FAUST_LIB", ""), ARCH_REL_PATH) if os.environ.get("FAUST_LIB") else "",
-]
-
+# try to get architecture directory from faust itself 
 arch_path = None
 faust_root = None
-for path in possible_paths:
-    if path and os.path.isfile(path):
-        arch_path = path
-        # Determine faust_root based on which path worked
-        if "share/faust" in path:
-            faust_root = path.split("share/faust")[0] + "share/faust"
-        else:
-            faust_root = os.path.abspath(os.path.join(os.path.dirname(path), "../.."))
-        break
+
+try:
+    # use faust --archdir to get the architecture directory
+    arch_dir = subprocess.check_output(["faust", "--archdir"], universal_newlines=True).strip()
+    arch_path_from_faust = os.path.join(arch_dir, "clap/clap-arch.cpp")
+    if os.path.isfile(arch_path_from_faust):
+        arch_path = arch_path_from_faust
+        # get faust root from libdir
+        faust_root = subprocess.check_output(["faust", "--libdir"], universal_newlines=True).strip()
+except (subprocess.CalledProcessError, FileNotFoundError):
+    # faust command not available or failed
+    pass
+
+# fallback: try other possible locations if faust command didn't work
+if not arch_path:
+    possible_paths = [
+        # relative to script location (development setup)
+        os.path.join(this_dir, "../..", ARCH_REL_PATH),
+        # check FAUST_LIB environment variable
+        os.path.join(os.environ.get("FAUST_LIB", ""), ARCH_REL_PATH) if os.environ.get("FAUST_LIB") else "",
+        # system-wide fallbacks (last resort)
+        f"/usr/local/share/faust/{ARCH_REL_PATH}",
+        f"/usr/share/faust/{ARCH_REL_PATH}",
+        f"/opt/homebrew/share/faust/{ARCH_REL_PATH}",
+    ]
+    
+    for path in possible_paths:
+        if path and os.path.isfile(path):
+            arch_path = path
+            # determine faust_root based on which path worked
+            if "share/faust" in path:
+                faust_root = path.split("share/faust")[0] + "share/faust"
+            elif os.environ.get("FAUST_LIB"):
+                faust_root = os.environ.get("FAUST_LIB")
+            else:
+                faust_root = os.path.abspath(os.path.join(os.path.dirname(path), "../.."))
+            break
 
 if not arch_path:
     print(f"[!]missing architecture file: {ARCH_REL_PATH}")
-    print("[!]Searched in:")
-    for path in possible_paths:
-        if path:
-            print(f"    {path}")
-    print("[!]Please ensure Faust is properly installed or set FAUST_LIB environment variable")
+    print("[!]Try running: faust --archdir")
+    print("[!]Or set FAUST_LIB environment variable")
+    print("[!]Make sure Faust is properly installed and in PATH")
     sys.exit(1)
 
 #create output directory

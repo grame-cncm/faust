@@ -110,7 +110,7 @@ class FaustHotReloadGUI:
         
         # info label about compilation errors
         info_frame = tk.Frame(self.root, bg="#fffacd")
-        info_frame.pack(side="bottom", fill="x", before=self.root.winfo_children()[-1])
+        info_frame.pack(fill="x", padx=10, pady=5)
         info_label = tk.Label(info_frame, 
                              text="💡 Tip: Run Reaper from terminal to see compilation errors: /Applications/REAPER.app/Contents/MacOS/REAPER",
                              bg="#fffacd", fg="#666", font=("Arial", 9))

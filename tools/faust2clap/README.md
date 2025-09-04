@@ -130,6 +130,7 @@ The dynamic plugin watches bash `/tmp/faust-current-dsp.txt`  for DSP file paths
 - [ ] Simplify UI management (remove redundant classes)  
 - [ ] Fix static build I/O conversion (investigate `dsp_sample_adapter`)  
 - [ ] Add test suite for hot reload with various DSPs  
+- [ ] Test with measure_dsp and dsp_optimizer classes to measure CPU consumption
 
 ---
 
