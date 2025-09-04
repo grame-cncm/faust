@@ -138,6 +138,9 @@ class Faust2WwiseOrchestrator:
             "-o", output_file
         ]
         
+        if self.wwise_plugin_interface == "in-place":
+            cmd.extend(["--in-place"])
+
         utils.run_system_command(cmd, self.ERR_FAUST_COMPILE)
         
         jsonprocessor.process_json_configuration(self.cfg)
