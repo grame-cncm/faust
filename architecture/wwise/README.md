@@ -205,21 +205,45 @@ Please follow the [official contribution guideline](https://faustdoc.grame.fr/ma
 
 ## Troubleshooting
 
-### `error: {plugin name} is not a valid name (a project already exists with that name)`
+<details>
+<summary>{plugin name} is not a valid name (a project already exists with that name)</summary>
+<br>
+This is a common error and it typically means that the DSP file has already been compiled, and project files exist in the output directory. To fix this, delete the previously generated directory before recompiling.
+</details>
 
-> This is a common error and it typically means that the DSP file has already been compiled, and project files exist in the output directory. To fix this, delete the previously generated directory before recompiling.
+<br>
 
-### Build error:`fatal error: 'faust/dsp/dsp.h' file not found`
+<details>
+<summary>fatal error: <code>faust/dsp/dsp.h</code> file not found</summary>
+<br>
+This error is observed on <strong>macOS</strong> platform and usually occurs when the Faust include path is misconfigured—most often, the leading <code>/</code> is missing  (e.g., <code>usr/local/include</code> instead of <code>/usr/local/include</code>), causing the compiler to fail. To fix this, open the project in Xcode, go to <strong>Build Settings -> Search Paths -> Header Search Paths</strong>, and manually correct the path by ensuring it begins with a <code>/</code>. Then continue building the plugin using Xcode.
+</details>
 
-> This error is observed on macOS platform and usually occurs when the Faust include path is misconfigured—most often, the leading `/` is missing  (e.g., `usr/local/include` instead of `/usr/local/include`), causing the compiler to fail. To fix this, open the project in Xcode, go to **Build Settings -> Search Paths -> Header Search Paths**, and manually correct the path by ensuring it begins with a `/`. Then continue building the plugin using Xcode.
+<br>
 
-  ### Build error: `Cannot use 'throw' with exceptions disabled`
+<details>
+<summary>Cannot use throw with exceptions disabled</summary>
+<br>
+This error occurs on <strong>macOS</strong> when building with Xcode and using <code>throw</code> in the code, while C++ exceptions are disabled. To fix this, open the project in Xcode, navigate to <strong>Build Settings -> Apple Clang -> Language - C++ -> Enable C++ Exceptions</strong>, and set to <strong>Yes</strong>. Then continue building the plugin using Xcode.
+</details>
 
-  > This error occurs on macOS when building with Xcode and using `throw` in the code, while C++ exceptions are disabled. To fix this, open the project in Xcode, navigate to **Build Settings -> Apple Clang -> Language - C++ -> Enable C++ Exceptions**, and set to **Yes**. Then continue building the plugin using Xcode.
+<br>
 
-### Speaker configuration provided does not match with number of outputs supported by the Faust program.
+<details>
+<summary>Access to the path <path> is denied <strong>or</strong> The requested operation requires elevation</summary>
+<br>
+This is a common error that occurs on Windows when <code>faust2wwise</code> is run from a console without administrative privileges. To resolve it, open a new console with administrative rights, delete the <code><path></code> project directory, and re-run <code>faust2wwise</code>.
+</details>
 
-> This error occurs when the number of outputs in your Faust program doesn't match the number of speakers implied by the selected `--spkcfg` option. Ensure that your Faust file uses the correct number of outputs to match the speaker layout, or omit the `--spkcfg` option to use the default speaker configuration to let the channel mask be selected automatically from default mappings based on the number of DSP outputs.
+<br>
+
+<details>
+<summary>Speaker configuration provided does not match with number of outputs supported by the Faust program.</summary>
+<br>
+This error occurs when the number of outputs in your Faust program doesn't match the number of speakers implied by the selected <code>--spkcfg</code> option. Ensure that your Faust file uses the correct number of outputs to match the speaker layout, or omit the <code>--spkcfg</code> option to use the default speaker configuration to let the channel mask be selected automatically from default mappings based on the number of DSP outputs.
+</details>
+
+<br>
 
 Found a bug, unexpected behavior, or something unclear? [Open an issue](https://github.com/grame-cncm/faust/issues).
 
