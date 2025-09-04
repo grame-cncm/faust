@@ -625,9 +625,9 @@ struct global {
     int gTimeout;  // Time out to abort compiler (in seconds)
 
     // Garbage collection
-    static std::unordered_set<Garbageable*> gRawObjectTable;
-    static std::unordered_set<Garbageable*> gArrayObjectTable;
-    static bool                             gHeapCleanup;
+    static std::list<Garbageable*> gRawObjectTable;
+    static std::list<Garbageable*> gArrayObjectTable;
+    static bool                    gHeapCleanup;
 
     ZoneArray* gIntZone;   // array of 'int32' intermediate zone values
     ZoneArray* gRealZone;  // array of 'real' intermediate zone values
