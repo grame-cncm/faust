@@ -42,7 +42,7 @@ option ( NONDETERMINISM_LINT "Add compiler warning for nondeterminism" off)
 option ( INCLUDE_WASMTIME    "Compile with wasmtime support" off)
 option ( SELF_CONTAINED_LIBRARY    "Don't search system architecture files." off)
 option ( LINK_LLVM_STATIC          "Link LLVM statically" on )
-option ( INCLUDE_LLVM_STATIC_IN_ARCHIVE "Combine static LLVM .a files and libfaust.a in a single .a file" off )
+option ( INCLUDE_LLVM_STATIC_IN_ARCHIVE "Combine static LLVM .a files and libfaust.a in a single .a file" on )
 
 if (INCLUDE_WASMTIME)
     set(WASMTIME_LIB /usr/local/lib/libwasmtime.a)
