@@ -2616,6 +2616,8 @@ void global::clear()
     gSignalTrace.clear();
 }
 
+/*
+
 // Memory management
 #ifdef _WIN32
 
@@ -2754,6 +2756,65 @@ void Garbageable::cleanup()
 
     // Reset to default state
     global::gHeapCleanup = false;
+}
+*/
+
+// Memory management
+void Garbageable::cleanup()
+{
+    list<Garbageable*>::iterator it;
+
+    // Here removing the deleted pointer from the list is pointless
+    // and takes time, thus we don't do it.
+    global::gHeapCleanup = true;
+    for (it = global::gRawObjectTable.begin(); it != global::gRawObjectTable.end(); it++) {
+#ifdef _WIN32
+        // Hack : "this" and actual pointer are not the same: destructor cannot be called...
+        Garbageable::operator delete(*it);
+#else
+        delete (*it);
+#endif
+    }
+
+    // Reset to default state
+    global::gRawObjectTable.clear();
+    global::gHeapCleanup = false;
+}
+
+void* Garbageable::operator new(size_t size)
+{
+    // HACK : add 16 bytes to avoid unsolved memory smashing bug...
+    Garbageable* res = (Garbageable*)malloc(size + 16);
+    global::gRawObjectTable.push_front(res);
+    return res;
+}
+
+void Garbageable::operator delete(void* ptr)
+{
+    // We may have cases when a pointer will be deleted during
+    // a compilation, thus the pointer has to be removed from the list.
+    if (!global::gHeapCleanup) {
+        global::gRawObjectTable.remove(static_cast<Garbageable*>(ptr));
+    }
+    free(ptr);
+}
+
+void* Garbageable::operator new[](size_t size)
+{
+    // HACK : add 16 bytes to avoid unsolved memory smashing bug...
+    Garbageable* res = (Garbageable*)malloc(size + 16);
+    global::gRawObjectTable.push_front(res);
+    return res;
+}
+
+void Garbageable::operator delete[](void* ptr)
+{
+    // We may have cases when a pointer will be deleted during
+    // a compilation, thus the pointer has to be removed from the list.
+    if (!global::gHeapCleanup) {
+        global::gRawObjectTable.remove(static_cast<Garbageable*>(ptr));
+    }
+    free(ptr);
 }
 
 /*
