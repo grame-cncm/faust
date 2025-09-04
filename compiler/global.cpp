@@ -127,10 +127,12 @@ extern FILE*       FAUSTin;
 extern const char* FAUSTfilename;
 
 // Garbageable globals
-list<Garbageable*> global::gObjectTable;
+list<Garbageable*> global::gRawObjectTable;
+list<Garbageable*> global::gArrayObjectTable;
 bool               global::gHeapCleanup = false;
 
-// Just after gObjectTable initialisation for FaustAlgebra constructor to correctly work
+// Just after gRawObjectTable/gArrayObjectTable initialisation for FaustAlgebra constructor to
+// correctly work
 itv::interval_algebra gAlgebra;
 
 global::global()
@@ -2619,6 +2621,8 @@ void global::clear()
 }
 
 // Memory management
+
+#ifdef _WIN32
 void Garbageable::cleanup()
 {
     list<Garbageable*>::iterator it;
@@ -2626,19 +2630,21 @@ void Garbageable::cleanup()
     // Here removing the deleted pointer from the list is pointless
     // and takes time, thus we don't do it.
     global::gHeapCleanup = true;
-    for (Garbageable* obj : global::gObjectTable) {
-        delete obj;  // Safe: allocated with new, so destructor + delete
+    for (it = global::gRawObjectTable.begin(); it != global::gRawObjectTable.end(); it++) {
+        // Hack : "this" and actual pointer are not the same: destructor cannot be called...
+        Garbageable::operator delete(*it);
     }
 
     // Reset to default state
-    global::gObjectTable.clear();
+    global::gRawObjectTable.clear();
     global::gHeapCleanup = false;
 }
 
 void* Garbageable::operator new(size_t size)
 {
-    Garbageable* res = static_cast<Garbageable*>(::operator new(size));
-    global::gObjectTable.push_front(res);
+    // HACK : add 16 bytes to avoid unsolved memory smashing bug...
+    Garbageable* res = (Garbageable*)malloc(size + 16);
+    global::gRawObjectTable.push_front(res);
     return res;
 }
 
@@ -2647,15 +2653,16 @@ void Garbageable::operator delete(void* ptr)
     // We may have cases when a pointer will be deleted during
     // a compilation, thus the pointer has to be removed from the list.
     if (!global::gHeapCleanup) {
-        global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
+        global::gRawObjectTable.remove(static_cast<Garbageable*>(ptr));
     }
-    ::operator delete(ptr);
+    free(ptr);
 }
 
 void* Garbageable::operator new[](size_t size)
 {
-    Garbageable* res = static_cast<Garbageable*>(::operator new[](size));
-    global::gObjectTable.push_front(res);
+    // HACK : add 16 bytes to avoid unsolved memory smashing bug...
+    Garbageable* res = (Garbageable*)malloc(size + 16);
+    global::gRawObjectTable.push_front(res);
     return res;
 }
 
@@ -2664,10 +2671,64 @@ void Garbageable::operator delete[](void* ptr)
     // We may have cases when a pointer will be deleted during
     // a compilation, thus the pointer has to be removed from the list.
     if (!global::gHeapCleanup) {
-        global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
+        global::gRawObjectTable.remove(static_cast<Garbageable*>(ptr));
+    }
+    free(ptr);
+}
+
+#else
+
+void Garbageable::cleanup()
+{
+    // Here removing the deleted pointer from the list is pointless
+    // and takes time, thus we don't do it.
+    global::gHeapCleanup = true;
+
+    for (Garbageable* obj : global::gRawObjectTable) {
+        delete obj;
+    }
+    global::gRawObjectTable.clear();
+
+    for (Garbageable* obj : global::gArrayObjectTable) {
+        delete[] obj;
+    }
+    global::gArrayObjectTable.clear();
+
+    // Reset to default state
+    global::gHeapCleanup = false;
+}
+
+void* Garbageable::operator new(size_t size)
+{
+    Garbageable* res = static_cast<Garbageable*>(::operator new(size));
+    global::gRawObjectTable.push_front(res);
+    return res;
+}
+
+void Garbageable::operator delete(void* ptr)
+{
+    if (!global::gHeapCleanup) {
+        global::gRawObjectTable.remove(static_cast<Garbageable*>(ptr));
+    }
+    ::operator delete(ptr);
+}
+
+void* Garbageable::operator new[](size_t size)
+{
+    Garbageable* res = static_cast<Garbageable*>(::operator new[](size));
+    global::gArrayObjectTable.push_front(res);
+    return res;
+}
+
+void Garbageable::operator delete[](void* ptr)
+{
+    if (!global::gHeapCleanup) {
+        global::gArrayObjectTable.remove(static_cast<Garbageable*>(ptr));
     }
     ::operator delete[](ptr);
 }
+
+#endif
 
 /*
     Threaded calls API: the compilation code is executed in a separate

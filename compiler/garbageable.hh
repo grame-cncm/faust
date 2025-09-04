@@ -35,10 +35,10 @@ class LIBFAUST_API Garbageable {
     Garbageable() {}
     virtual ~Garbageable() {}
 
-    void* operator new(size_t size);
-    void* operator new[](size_t size);
-    void  operator delete(void* ptr);
-    void  operator delete[](void* ptr);
+    static void* operator new(size_t size);
+    static void* operator new[](size_t size);
+    static void  operator delete(void* ptr);
+    static void  operator delete[](void* ptr);
 
     static void cleanup();
 };

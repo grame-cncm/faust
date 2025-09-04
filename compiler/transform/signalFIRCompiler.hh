@@ -766,7 +766,7 @@ struct SignalFIRCompiler : public SignalVisitor {
     {
         // Everything in sample loop for now.
         fSampleBlock->pushBackInst(val);
-        
+
         /*
         Type type = getCertifiedSigType(x);
         switch (type->variability()) {
