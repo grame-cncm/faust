@@ -127,10 +127,12 @@ extern FILE*       FAUSTin;
 extern const char* FAUSTfilename;
 
 // Garbageable globals
-list<Garbageable*> global::gObjectTable;
-bool               global::gHeapCleanup = false;
+unordered_set<Garbageable*> global::gRawObjectTable;
+unordered_set<Garbageable*> global::gArrayObjectTable;
+bool                        global::gHeapCleanup = false;
 
-// Just after gObjectTable initialisation for FaustAlgebra constructor to correctly work
+// Just after gRawObjectTable/gArrayObjectTable initialisation for FaustAlgebra constructor to
+// correctly work
 itv::interval_algebra gAlgebra;
 
 global::global()
@@ -2615,55 +2617,129 @@ void global::clear()
 }
 
 // Memory management
+/*
 void Garbageable::cleanup()
 {
-    list<Garbageable*>::iterator it;
-
     // Here removing the deleted pointer from the list is pointless
     // and takes time, thus we don't do it.
     global::gHeapCleanup = true;
-    for (Garbageable* obj : global::gObjectTable) {
-        delete obj;  // Safe: allocated with new, so destructor + delete
+
+    for (Garbageable* obj : global::gRawObjectTable) {
+        //std::cout << "gRawObjectTable " << obj << std::endl;
+        delete obj;
     }
+    global::gRawObjectTable.clear();
+
+    for (Garbageable* obj : global::gArrayObjectTable) {
+        //std::cout << "gArrayObjectTable " << obj << std::endl;
+        delete[] obj;
+    }
+    global::gArrayObjectTable.clear();
 
     // Reset to default state
-    global::gObjectTable.clear();
+    global::gHeapCleanup = false;
+}
+*/
+
+void Garbageable::cleanup()
+{
+    global::gHeapCleanup = true;
+
+    // Repeat until no more tracked objects remain (handles allocations/deletions in dtors)
+    for (;;) {
+        bool any = false;
+
+        // --- singles ---
+        for (auto it = global::gRawObjectTable.begin(); it != global::gRawObjectTable.end();) {
+            Garbageable* p = *it;
+            ++it;  // advance first; deletes may erase from the set
+            any = true;
+            delete p;  // inside operator delete will erase during cleanup
+        }
+
+        // --- arrays ---
+        for (auto it = global::gArrayObjectTable.begin(); it != global::gArrayObjectTable.end();) {
+            Garbageable* p = *it;
+            ++it;  // advance first; deletes may erase from the set
+            any = true;
+            delete[] p; // inside operator delete will erase during cleanup
+        }
+
+        if (!any) {
+            break;
+        }
+        // loop again in case destructors created/tracked new objects
+    }
+
     global::gHeapCleanup = false;
 }
 
 void* Garbageable::operator new(size_t size)
 {
     Garbageable* res = static_cast<Garbageable*>(::operator new(size));
-    global::gObjectTable.push_front(res);
+    global::gRawObjectTable.insert(res);
     return res;
 }
 
 void Garbageable::operator delete(void* ptr)
 {
-    // We may have cases when a pointer will be deleted during
-    // a compilation, thus the pointer has to be removed from the list.
-    if (!global::gHeapCleanup) {
-        global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
-    }
+    global::gRawObjectTable.erase(static_cast<Garbageable*>(ptr));
     ::operator delete(ptr);
 }
 
 void* Garbageable::operator new[](size_t size)
 {
     Garbageable* res = static_cast<Garbageable*>(::operator new[](size));
-    global::gObjectTable.push_front(res);
+    global::gArrayObjectTable.insert(res);
     return res;
 }
 
 void Garbageable::operator delete[](void* ptr)
 {
-    // We may have cases when a pointer will be deleted during
-    // a compilation, thus the pointer has to be removed from the list.
-    if (!global::gHeapCleanup) {
-        global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
-    }
+    global::gArrayObjectTable.erase(static_cast<Garbageable*>(ptr));
     ::operator delete[](ptr);
 }
+
+#if defined(__cpp_sized_deallocation)
+void Garbageable::operator delete(void* p, std::size_t) noexcept
+{
+    ::operator delete(p);
+}
+void Garbageable::operator delete[](void* p, std::size_t) noexcept
+{
+    ::operator delete[](p);
+}
+#endif
+
+#if defined(__cpp_aligned_new)
+void* Garbageable::operator new(std::size_t sz, std::align_val_t al)
+{
+    return ::operator new(sz, al);
+}
+void Garbageable::operator delete(void* p, std::align_val_t al) noexcept
+{
+    ::operator delete(p, al);
+}
+void* Garbageable::operator new[](std::size_t sz, std::align_val_t al)
+{
+    return ::operator new[](sz, al);
+}
+void Garbageable::operator delete[](void* p, std::align_val_t al) noexcept
+{
+    ::operator delete[](p, al);
+}
+
+#if defined(__cpp_sized_deallocation)
+void Garbageable::operator delete(void* p, std::size_t, std::align_val_t al) noexcept
+{
+    ::operator delete(p, al);
+}
+void Garbageable::operator delete[](void* p, std::size_t, std::align_val_t al) noexcept
+{
+    ::operator delete[](p, al);
+}
+#endif
+#endif
 
 /*
     Threaded calls API: the compilation code is executed in a separate

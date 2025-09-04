@@ -30,6 +30,7 @@
 #include <set>
 #include <stack>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #ifndef _WIN32
@@ -624,8 +625,9 @@ struct global {
     int gTimeout;  // Time out to abort compiler (in seconds)
 
     // Garbage collection
-    static std::list<Garbageable*> gObjectTable;
-    static bool                    gHeapCleanup;
+    static std::unordered_set<Garbageable*> gRawObjectTable;
+    static std::unordered_set<Garbageable*> gArrayObjectTable;
+    static bool                             gHeapCleanup;
 
     ZoneArray* gIntZone;   // array of 'int32' intermediate zone values
     ZoneArray* gRealZone;  // array of 'real' intermediate zone values

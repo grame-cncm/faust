@@ -257,7 +257,7 @@ void CCodeContainer::produceClass()
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
-    
+
     *fOut << "static inline int max_i(int a, int b) { return (a > b) ? a : b; }" << endl;
     *fOut << "static inline int min_i(int a, int b) { return (a < b) ? a : b; }" << endl;
 
@@ -652,7 +652,7 @@ void CScalarCodeContainer1::produceClass()
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
-    
+
     *fOut << "static inline int max_i(int a, int b) { return (a > b) ? a : b; }" << endl;
     *fOut << "static inline int min_i(int a, int b) { return (a < b) ? a : b; }" << endl;
 

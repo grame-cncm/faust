@@ -35,10 +35,31 @@ class LIBFAUST_API Garbageable {
     Garbageable() {}
     virtual ~Garbageable() {}
 
-    void* operator new(size_t size);
-    void* operator new[](size_t size);
-    void  operator delete(void* ptr);
-    void  operator delete[](void* ptr);
+    static void* operator new(size_t size);
+    static void* operator new[](size_t size);
+    static void  operator delete(void* ptr);
+    static void  operator delete[](void* ptr);
+
+#if defined(__cpp_sized_deallocation)
+    // Sized forms (C++14)
+    static void operator delete(void* p, std::size_t sz) noexcept;
+    static void operator delete[](void* p, std::size_t sz) noexcept;
+#endif
+
+#if defined(__cpp_aligned_new)
+    // Aligned forms (C++17)
+    static void* operator new(std::size_t sz, std::align_val_t al);
+    static void  operator delete(void* p, std::align_val_t al) noexcept;
+
+    static void* operator new[](std::size_t sz, std::align_val_t al);
+    static void  operator delete[](void* p, std::align_val_t al) noexcept;
+
+#if defined(__cpp_sized_deallocation)
+    // Sized + aligned forms
+    static void operator delete(void* p, std::size_t sz, std::align_val_t al) noexcept;
+    static void operator delete[](void* p, std::size_t sz, std::align_val_t al) noexcept;
+#endif
+#endif
 
     static void cleanup();
 };
