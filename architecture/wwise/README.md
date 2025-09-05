@@ -80,7 +80,7 @@ faust2wwise path/to/dspfile.dsp [faust options] [wwise options]
 
 Upon successful compilation, a Wwise plugin will be automatically generated and registered within the Wwise SDK. It will be placed in the appropriate directory inside the Wwise installation, where plugins are typically stored. The plugin will then be immediately available for use in Wwise.
 
-> Important: Because `faust2wwise` installs plugins into system-level Wwise directories, it must be run from a console with **administrative rights**.
+> Important: Because `faust2wwise` make system calls and installs plugins into system-level Wwise directories, it must be run from a console with **administrative rights**.
 
 ### Example
 
@@ -164,7 +164,7 @@ Test results are stored in the current working directory under the `myF2Wtests/`
  - a summary is saved in the `testResults.json` file
  - each `dsp` file gets a separate `build.log` in its distinct output directory.
 
-> Important: Because `faust2wwise test` installs plugins into system-level Wwise directories, it must be run from a console with **administrative rights**.
+> Important: Because `faust2wwise test` make system calls that attempt to access environmental variables that require admin rights and also installs plugins into system-level Wwise directories, it must be run from a console with **administrative rights**.
 
 > Note: Testing on **macOS** is possible but not supported out-of-the-box due to Wwise Authoring plug-in constraints. Running `faust2wwise` requires building parts of the plug-in on Windows and manually copying files between platforms. For more details, refer to the [Limitations](#limitations) section on macOS support.
 
@@ -180,6 +180,8 @@ The following exit codes are used to indicate specific failure points during the
 
 Code | Name | Description
 :--- | :--- | ---:
+0 | ERR_INVALID_INPUT | Success message.
+1 | ERR_ENV_VARS_NOT_FOUND | Missing or inaccessible environment variables or system calls.
 2 | ERR_INVALID_INPUT | Invalid input arguments or missing required files.
 3 | ERR_ENVIRONMENT | Environment setup failed or required tools are missing.
 4 | ERR_FAUST_COMPILE | Faust DSP compilation failed.

@@ -154,7 +154,14 @@ if __name__ == "__main__":
 
             faust2wwiser.orchestrate()
         
-        except:
-        
+        except SystemExit as e:
+    
+            if e.code!=0:
+                print_message_on_fail()
+                sys.exit(e.code)
+    
+        except: 
+
+            print("Exiting faust2wwise with error code 1 : Missing or inaccessible environment variables or system calls.")
             print_message_on_fail()
             sys.exit(1)

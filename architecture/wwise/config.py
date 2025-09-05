@@ -100,6 +100,8 @@ class Config:
         self.num_outputs = None
         
         ################################################ error codes
+        self.SUCCESS_EXIT_CODE = 0
+        self.ERR_ENV_VARS_NOT_FOUND = 1     # used outside the scope of this python module, but defined here as well for clarity
         self.ERR_INVALID_INPUT = 2
         self.ERR_ENVIRONMENT = 3
         self.ERR_FAUST_COMPILE = 4

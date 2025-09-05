@@ -225,7 +225,7 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> argparse.N
     if parsed_args.help:
         print_usage()
         print_wwise_help()
-        sys.exit(1)
+        sys.exit(cfg.SUCCESS_EXIT_CODE)
 
     if parsed_args.output_dir:
         cfg.output_dir = parsed_args.output_dir
