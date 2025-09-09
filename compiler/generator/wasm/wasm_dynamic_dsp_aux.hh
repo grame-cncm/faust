@@ -74,16 +74,16 @@ LIBFAUST_API std::string generateWasmFromString(const std::string& name_app,
                                                 const char* argv[], std::string& error_msg,
                                                 bool internal_memory);
 
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code,
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcode(const std::string& bit_code,
                                                              std::string&       error_msg);
 
-LIBFAUST_API std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
+LIBFAUST_API std::string writeWasmDSPFactoryToBitcode(wasm_dsp_factory* factory);
 
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(
-    const std::string& machine_code_path, std::string& error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcodeFile(
+    const std::string& bit_code_path, std::string& error_msg);
 
-LIBFAUST_API bool writeWasmDSPFactoryToMachineFile(wasm_dsp_factory*  factory,
-                                                   const std::string& machine_code_path);
+LIBFAUST_API bool writeWasmDSPFactoryToBitcodeFile(wasm_dsp_factory*  factory,
+                                                   const std::string& bit_code_path);
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,16 +91,16 @@ extern "C" {
 
 LIBFAUST_API bool deleteWasmCDSPFactory(wasm_dsp_factory* factory);
 
-LIBFAUST_API wasm_dsp_factory* readWasmCDSPFactoryFromMachine(const char* wasm_code,
+LIBFAUST_API wasm_dsp_factory* readWasmCDSPFactoryFromBitcode(const char* bit_code,
                                                               char*       error_msg);
 
 LIBFAUST_API char* writeWasmCDSPFactoryToMachine(wasm_dsp_factory* factory);
 
-LIBFAUST_API wasm_dsp_factory* readWasmCDSPFactoryFromMachineFile(const char* wasm_code_path,
+LIBFAUST_API wasm_dsp_factory* readWasmCDSPFactoryFromBitcodeFile(const char* bit_code_path,
                                                                   char*       error_msg);
 
-LIBFAUST_API void writeWasmCDSPFactoryToMachineFile(wasm_dsp_factory* factory,
-                                                    const char*       wasm_code_path);
+LIBFAUST_API void writeWasmCDSPFactoryToBitcodeFile(wasm_dsp_factory* factory,
+                                                    const char*       bit_code_path);
 
 /**
  * Get the error message after an exception occured.

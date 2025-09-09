@@ -25,6 +25,7 @@
 #include <sstream>
 #include <vector>
 
+#include "floats.hh"
 #include "garbageable.hh"
 #include "instructions.hh"
 #include "klass.hh"
@@ -32,7 +33,6 @@
 #include "ppsig.hh"
 #include "sigtype.hh"
 #include "tlib.hh"
-#include "floats.hh"
 
 class CodeContainer;
 

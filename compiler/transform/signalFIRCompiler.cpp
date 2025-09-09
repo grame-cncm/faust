@@ -695,7 +695,7 @@ ModuleInst* SignalFIRCompiler::genFIRModule(const std::string& obj)
         fControlBlock->pushFrontInst(IB::genDecStackVar(
             name, ptr_type, IB::genLoadArrayFunArgsVar("outputs", IB::genInt32NumInst(index))));
     }
- 
+
     fir_module->pushFunction(
         IB::generateComputeFun("compute", obj, true, true, fControlBlock, fSampleBlock));
 

@@ -319,12 +319,12 @@ extern "C" LIBFAUST_API void stopMTDSPFactories();
  * the same (reference counted) factory pointer. You will have to explicitly use deleteInterpreterDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
  *
- * @param bitcode - the bitcode string
+ * @param bit_code - the bitcode string
  * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string& bitcode, std::string& error_msg);
+LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string& bit_code, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a bitcode string.

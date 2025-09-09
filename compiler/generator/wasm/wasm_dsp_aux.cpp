@@ -343,25 +343,25 @@ wasm_dsp* wasm_dsp_factory::createDSPInstance()
     return new wasm_dsp(this, store, inst, memory);
 }
 
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const string& machine_code,
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcode(const string& bit_code,
                                                              string&       error_msg)
 {
     wasm_dsp_factory* factory =
-        new wasm_dsp_factory(new text_dsp_factory_aux("MachineDSP", "", "", machine_code, ""));
+        new wasm_dsp_factory(new text_dsp_factory_aux("BitcodeDSP", "", "", bit_code, ""));
     wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
     return factory;
 }
 
-LIBFAUST_API string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory)
+LIBFAUST_API string writeWasmDSPFactoryToBitcode(wasm_dsp_factory* factory)
 {
     return factory->getBinaryCode();
 }
 
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& machine_code_path,
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcodeFile(const string& bit_code_path,
                                                                  string&       error_msg)
 {
     ifstream infile;
-    infile.open(machine_code_path, ifstream::in | ifstream::binary);
+    infile.open(bit_code_path, ifstream::in | ifstream::binary);
 
     if (infile.is_open()) {
         // get length of file:
@@ -370,36 +370,35 @@ LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& m
         infile.seekg(0, infile.beg);
 
         // read code
-        char* machine_code = new char[length];
-        infile.read(machine_code, length);
+        char* bit_code = new char[length];
+        infile.read(bit_code, length);
 
         // create factory
-        wasm_dsp_factory* factory = readWasmDSPFactoryFromMachine(
-            string(machine_code, length), error_msg);  // Keep the binary string
+        wasm_dsp_factory* factory = readWasmDSPFactoryFromBitcode(
+            string(bit_code, length), error_msg);  // Keep the binary string
 
         infile.close();
-        delete[] machine_code;
+        delete[] bit_code;
 
         return factory;
     } else {
-        error_msg = "ERROR : cannot open '" + machine_code_path + "' file\n";
+        error_msg = "ERROR : cannot open '" + bit_code_path + "' file\n";
         return nullptr;
     }
 }
 
-LIBFAUST_API bool writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory,
-                                                   const string&     machine_code_path)
+LIBFAUST_API bool writeWasmDSPFactoryToBitcodeFile(wasm_dsp_factory* factory,
+                                               const string&     bit_code_path)
 {
     ofstream outfile;
-    outfile.open(machine_code_path, ofstream::out | ofstream::binary);
+    outfile.open(bit_code_path, ofstream::out | ofstream::binary);
     if (outfile.is_open()) {
         outfile << factory->getBinaryCode();
         ;
         outfile.close();
         return true;
     } else {
-        cerr << "writeWasmDSPFactoryToMachineFile : cannot open '" << machine_code_path
-             << "' file\n";
+        cerr << "writeWasmDSPFactoryToBitcodeFile : cannot open '" << bit_code_path << "' file\n";
         return false;
     }
 }

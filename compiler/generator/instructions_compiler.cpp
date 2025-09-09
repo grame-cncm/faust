@@ -109,12 +109,12 @@ Tree InstructionsCompiler::prepare(Tree LS)
         throw faustexception("Dump signal type finished...\n");
     } else if (gGlobal->gDumpNorm == 3) {
         SignalFIRCompiler fir_compiler(fContainer->inputs(), fContainer->outputs(), L1);
-        //dump2FIR(fir_compiler.genFIRModule());
+        // dump2FIR(fir_compiler.genFIRModule());
         ModuleInst* fir_module = fir_compiler.genFIRModule();
 
         std::stringstream stream;
         CPPInstVisitor    visitor(&stream, fir_module->getName());
-        //CInstVisitor    visitor(&stream, fir_module->getName());
+        // CInstVisitor    visitor(&stream, fir_module->getName());
         fir_module->accept(&visitor);
         std::cout << stream.str();
         throw faustexception("Dump FIR compiler finished...\n");

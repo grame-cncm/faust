@@ -241,49 +241,49 @@ LIBFAUST_API void deleteAllWasmDSPFactories();
 LIBFAUST_API std::vector<std::string> getAllWasmDSPFactories();
 
 /**
- * Create a Faust DSP factory from a machine code string. Note that the library keeps an internal cache of all
+ * Create a Faust DSP factory from a bitcode string. Note that the library keeps an internal cache of all
  * allocated factories so that the compilation of the same DSP code (that is the same machine code string) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteWasmDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
  *
- * @param machine_code - the machine code string
+ * @param bit_code - the bitcode string
  * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code, std::string& error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcode(const std::string& bit_code, std::string& error_msg);
 
 /**
- * Write a Faust DSP factory into a machine code string.
+ * Write a Faust DSP factory into a bitcode string.
  *
  * @param factory - the DSP factory
  *
- * @return the machine code as a string.
+ * @return the bitcode as a string.
  */
-LIBFAUST_API std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
+LIBFAUST_API std::string writeWasmDSPFactoryToBitcode(wasm_dsp_factory* factory);
 
 /**
- * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all
+ * Create a Faust DSP factory from a bitcode file. Note that the library keeps an internal cache of all
  * allocated factories so that the compilation of the same DSP code (that is the same machine code file) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteWasmDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
  *
- * @param machine_code_path - the machine code file pathname
+ * @param bit_code_path - the bitcode file pathname
  * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcodeFile(const std::string& bit_code_path, std::string& error_msg);
 
 /**
- * Write a Faust DSP factory into a machine code file.
+ * Write a Faust DSP factory into a bitcode file.
  *
  * @param factory - the DSP factory
- * @param machine_code_path - the machine code file pathname
+ * @param bit_code_path - the machine code file pathname
  *
  * @return true on success, false on failure.
  */
-LIBFAUST_API bool writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
+LIBFAUST_API bool writeWasmDSPFactoryToBitcodeFile(wasm_dsp_factory* factory, const std::string& bit_code_path);
 
 /*!
  @}

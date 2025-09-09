@@ -156,12 +156,12 @@ static dsp_poly_factory* readWasmPolyDSPFactoryFromMachineFile(const std::string
 {
     std::string process_path = machine_code_path + "_machine_process";
     std::string effect_path = machine_code_path + "_machine_effect";
-    wasm_dsp_factory* process_factory = readWasmDSPFactoryFromMachineFile(process_path, error_msg);
-    wasm_dsp_factory* effect_factory = readWasmDSPFactoryFromMachineFile(effect_path, error_msg);
+    wasm_dsp_factory* process_factory = readWasmDSPFactoryFromBitcodeFile(process_path, error_msg);
+    wasm_dsp_factory* effect_factory = readWasmDSPFactoryFromBitcodeFile(effect_path, error_msg);
     if (process_factory) {
         return new wasm_dsp_poly_factory(process_factory, effect_factory);
     } else {
-        process_factory = readWasmDSPFactoryFromMachineFile(machine_code_path, error_msg);
+        process_factory = readWasmDSPFactoryFromBitcodeFile(machine_code_path, error_msg);
         return (process_factory) ? new wasm_dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }
@@ -179,11 +179,11 @@ static void writeWasmPolyDSPFactoryToMachineFile(dsp_poly_factory* factory, cons
     if (factory->fEffectFactory) {
         process_path = machine_code_path + "_machine_process";
         effect_path = machine_code_path + "_machine_effect";
-        writeWasmDSPFactoryToMachineFile(static_cast<wasm_dsp_factory*>(factory->fEffectFactory), effect_path);
+        writeWasmDSPFactoryToBitcodeFile(static_cast<wasm_dsp_factory*>(factory->fEffectFactory), effect_path);
     } else {
         process_path = machine_code_path;
     }
-    writeWasmDSPFactoryToMachineFile(static_cast<wasm_dsp_factory*>(factory->fProcessFactory), process_path);
+    writeWasmDSPFactoryToBitcodeFile(static_cast<wasm_dsp_factory*>(factory->fProcessFactory), process_path);
 }
 
 #endif // __poly_wasm_dsp__

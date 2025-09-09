@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
     if (endsWith(file, ".dsp")) {
         factory = createWasmDSPFactoryFromFile(file, 0, NULL, error_msg, true);
     } else if (endsWith(file, ".wasm")) {
-        factory = readWasmDSPFactoryFromMachineFile(file, error_msg);
+        factory = readWasmDSPFactoryFromBitcodeFile(file, error_msg);
     }
   
     if (!factory) {
