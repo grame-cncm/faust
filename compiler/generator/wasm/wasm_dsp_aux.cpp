@@ -388,7 +388,7 @@ LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcodeFile(const string& b
 }
 
 LIBFAUST_API bool writeWasmDSPFactoryToBitcodeFile(wasm_dsp_factory* factory,
-                                               const string&     bit_code_path)
+                                                   const string&     bit_code_path)
 {
     ofstream outfile;
     outfile.open(bit_code_path, ofstream::out | ofstream::binary);

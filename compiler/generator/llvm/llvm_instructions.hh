@@ -216,8 +216,13 @@ struct LLVMTypeHelper {
     LLVMType getInt64Ty() { return llvm::Type::getInt64Ty(fModule->getContext()); }
     LLVMType getInt1Ty() { return llvm::Type::getInt1Ty(fModule->getContext()); }
     LLVMType getInt8Ty() { return llvm::Type::getInt8Ty(fModule->getContext()); }
+#if LLVM_VERSION_MAJOR >= 21
+    LLVMType getInt8TyPtr() { return llvm::PointerType::get(fModule->getContext(), 0); }
+    LLVMType getTyPtr(LLVMType type) { return llvm::PointerType::get(fModule->getContext(), 0); }
+#else
     LLVMType getInt8TyPtr() { return llvm::PointerType::get(getInt8Ty(), 0); }
     LLVMType getTyPtr(LLVMType type) { return llvm::PointerType::get(type, 0); }
+#endif
 
     /*
         Return the pointee type:

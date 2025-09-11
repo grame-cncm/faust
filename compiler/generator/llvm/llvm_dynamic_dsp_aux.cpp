@@ -296,7 +296,12 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     string triple, cpu;
     splitTarget(fTarget, triple, cpu);
+#if LLVM_VERSION_MAJOR >= 21
+    llvm::Triple TT(triple);
+    fModule->setTargetTriple(TT);
+#else
     fModule->setTargetTriple(triple);
+#endif
 
     builder.setMCPU((cpu == "") ? sys::getHostCPUName() : StringRef(cpu));
     TargetOptions targetOptions;
@@ -485,7 +490,13 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(
     const string& object_code_path)
 {
     auto TargetTriple = sys::getDefaultTargetTriple();
+#if LLVM_VERSION_MAJOR >= 21
+    llvm::Triple TT(TargetTriple);
+    fModule->setTargetTriple(TT);
+#else
     fModule->setTargetTriple(TargetTriple);
+#endif
+
     string Error;
     auto   Target = TargetRegistry::lookupTarget(TargetTriple, Error);
 

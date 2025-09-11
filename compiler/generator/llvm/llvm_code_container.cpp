@@ -90,7 +90,12 @@ void LLVMCodeContainer::init(const string& name, int numInputs, int numOutputs, 
         fBuilder->setFastMathFlags(FMF);
     }
 
+#if LLVM_VERSION_MAJOR >= 21
+    llvm::Triple TT(llvm::sys::getDefaultTargetTriple());
+    fModule->setTargetTriple(TT);
+#else
     fModule->setTargetTriple(sys::getDefaultTargetTriple());
+#endif
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()

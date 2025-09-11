@@ -79,8 +79,8 @@ LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcode(const std::string& 
 
 LIBFAUST_API std::string writeWasmDSPFactoryToBitcode(wasm_dsp_factory* factory);
 
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcodeFile(
-    const std::string& bit_code_path, std::string& error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcodeFile(const std::string& bit_code_path,
+                                                                 std::string&       error_msg);
 
 LIBFAUST_API bool writeWasmDSPFactoryToBitcodeFile(wasm_dsp_factory*  factory,
                                                    const std::string& bit_code_path);
