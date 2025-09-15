@@ -84,6 +84,11 @@ class Faust2WwiseOrchestrator:
             use of sys library to retrieve them.
         """
         
+        if self.patch_version not in self.supportedWwiseVersions:
+            sys.stderr.write(f"Unsupported Wwise version : {self.patch_version}. \
+                Available Wwise (major) versions: {self.supportedWwiseVersions}")
+            sys.exit(cfg.ERR_ENVIRONMENT)
+
         parsed_args = utils.parse_arguments(self.cfg, args)
 
         print("------------------------------------------Preliminary Step : setup and validate environment")

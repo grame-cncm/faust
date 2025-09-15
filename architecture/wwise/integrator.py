@@ -285,7 +285,7 @@ def modify_lua_build_script(cfg) -> None:
 def replace_channel_config_line(cfg) -> bool:
     """
     Replaces the entire line that sets the speaker configuration in the 
-    default\source\SoundEnginePlugin\ProjectNameSource.cpp file with a provided value.
+    scaffolding.{WwiseVersion_Major}\source\SoundEnginePlugin\ProjectNameSource.cpp file with a provided value.
     Args:
         cfg (Config): The configuration object
     """

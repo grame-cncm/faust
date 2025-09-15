@@ -66,9 +66,10 @@ class Config:
         # Wwise paths
         self.wwiseroot = wwiseroot                  # Root dir of the Wwise installation
         self.wp_script = os.path.join(self.wwiseroot, 'Scripts', 'Build', 'Plugins', 'wp.py')
-        self.patch_version = None                   # Derived from wwise version and used for defining the wwise_template_dir
+        self.patch_version = str(wwiseroot).split("Wwise")[1][:4] # Derived from wwise version and used for defining the wwise_template_dir
         self.wwise_template_dir = None              # Directory where the template files are stored
-        
+        self.supportedWwiseVersions = ["2024"]      # TODO Expand this on future development that enable support for previous/later Wwise versions 
+
         # temp path
         self.temp_dir = "_temp_"                    # Temp dir to store temp data ( i.e. jsonfile )
 
