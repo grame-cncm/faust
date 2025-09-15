@@ -72,7 +72,7 @@ def process_json_configuration(cfg) -> None :
             cfg.wwise_plugin_interface = None       # reset the plugin_interface to None
         
         #Set the wwise_template_dir, the directory where the wwise template files are stored 
-        cfg.wwise_template_dir = os.path.join(cfg.faust_dsp_dir, "wwise", cfg.patch_version or "default", cfg.plugin_type) 
+        cfg.wwise_template_dir = os.path.join(cfg.faust_dsp_dir, "wwise", "scaffolding."+cfg.patch_version, cfg.plugin_type) 
         if (cfg.plugin_type == "effect"):
             cfg.wwise_template_dir = cfg.wwise_template_dir+" ("+cfg.wwise_plugin_interface+")" # append the {space}(in-place) or {space}(out-of-place) at the end
 
