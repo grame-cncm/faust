@@ -10,7 +10,8 @@ processing steps.
 """
 
 import os
-from typing import Final, Any, get_type_hints
+import json
+from typing import Final, Any, Optional, get_type_hints
 
 class Config:
     """
@@ -33,6 +34,7 @@ class Config:
     archfile: Final[str]
     wwiseroot: Final[str]
     wp_script: Final[str]
+    cfgJsonFileName: Final[str]
     ERR_INVALID_INPUT: Final[int]
     ERR_ENVIRONMENT: Final[int]
     ERR_FAUST_COMPILE: Final[int]
@@ -112,6 +114,8 @@ class Config:
         self.ERR_BUILD = 9
 
         ################################################ config internal 
+        self.cfgJsonFileName = "faust2wwise_configuration.json"
+        self.cfg_json_path = ""
         self._locked = False
         self._final_attrs = self._get_final_attrs()
         self._final_values = {}
@@ -190,7 +194,7 @@ class Config:
             print(f"plugin_interface {self.wwise_plugin_interface}")
         print(f"wwise_template_dir {self.wwise_template_dir}")    
         print("==========================================")
-    
+        
     def print_summary(self) -> None:
         """Prints the summary info after successful Faust to Wwise integration."""
         print("")
@@ -199,7 +203,8 @@ class Config:
         print(f"Generated plugin: {self.plugin_name}")
         print(f"Plugin type: {self.plugin_type}" + (" (in-place)" if self.plugin_type == "effect" and self.wwise_plugin_interface=="in-place" else " (out-of-place)" if self.plugin_type == "effect" else ""))
         print(f"IO: num inputs({self.num_inputs}), num outputs({self.num_outputs})")
-        print(f"Location: {os.path.join(self.output_dir, self.plugin_name)}")
+        print(f"Build Location: {os.path.join(self.output_dir, self.plugin_name)}")
+        print(f"Configuration file: {self.cfg_json_path}")
         print(f"Installation: {os.path.join(self.wwiseroot, 'Authoring', self.wwise_arch, self.wwise_configuration, 'bin', 'Plugins', self.plugin_name)}.(ext)")
         print("=====================================")
         print("")
@@ -224,3 +229,94 @@ class Config:
         """Locks the config to prevent further changes."""
         self._locked = True
 
+    def to_json(self) -> None:
+        """Stores the configuration into a JSON file within ${self.output_dir} directory.
+        """
+
+        config_dict = {
+            "Paths": {
+                "Faust": {
+                    "faust_dsp_dir": str(self.faust_dsp_dir),
+                    "faust_include_dir": str(self.faust_include_dir),
+                    "archfile": str(self.archfile)
+                },
+                "Wwise": {
+                    "wwiseroot": str(self.wwiseroot),
+                    "wp_script": str(self.wp_script),
+                    "wwise_template_dir": str(self.wwise_template_dir),
+                    "patch_version": self.patch_version
+                },
+                "Other": {
+                    "temp_dir": self.temp_dir
+                }
+            },
+            "Parameters": {
+                "Faust": {
+                    "dsp_file": self.dsp_file,
+                    "dsp_filename": self.dsp_filename,
+                    "json_file": self.json_file,
+                    "output_dir": str(self.output_dir),
+                    "faust_options": self.faust_options
+                },
+                "Wwise": {
+                    "platform": self.wwise_platform,
+                    "toolset": self.wwise_toolset,
+                    "debugger": self.wwise_debugger,
+                    "disable_codesign": self.wwise_disable_codesign,
+                    "configuration": self.wwise_configuration,
+                    "arch": self.wwise_arch,
+                    "build_hooks_file": self.wwise_build_hooks_file,
+                    "toolchain_vers": self.wwise_toolchain_vers,
+                    "toolchain_env_script": self.wwise_toolchain_env_script,
+                    "wwise_speaker_cfg_channel_mask": self.wwise_speaker_cfg_channel_mask,
+                    "plugin_interface": self.wwise_plugin_interface
+                }
+            },
+            "Error Codes": {
+                "ERR_INVALID_INPUT": self.ERR_INVALID_INPUT,
+                "ERR_ENVIRONMENT": self.ERR_ENVIRONMENT,
+                "ERR_FAUST_COMPILE": self.ERR_FAUST_COMPILE,
+                "ERR_JSON_PARSE": self.ERR_JSON_PARSE,
+                "ERR_GENERATION": self.ERR_GENERATION,
+                "ERR_INTEGRATION": self.ERR_INTEGRATION,
+                "ERR_CONFIGURATION": self.ERR_CONFIGURATION,
+                "ERR_BUILD": self.ERR_BUILD
+            },
+            "Plugin Configuration": {
+                "plugin_type": self.plugin_type,
+                "plugin_name": self.plugin_name,
+                "plugin_suffix": self.plugin_suffix,
+                "num_inputs": self.num_inputs,
+                "num_outputs": self.num_outputs,
+                "author": self.author,
+                "description": self.description,
+                "plugin_interface": self.wwise_plugin_interface,
+                "wwise_template_dir": str(self.wwise_template_dir)
+            },
+            "Summary": {
+                "generated_plugin": self.plugin_name,
+                "plugin_type": self.plugin_type + (
+                    " (in-place)" if self.plugin_type == "effect" and self.wwise_plugin_interface == "in-place"
+                    else " (out-of-place)" if self.plugin_type == "effect"
+                    else ""
+                ),
+                "io": {
+                    "num_inputs": self.num_inputs,
+                    "num_outputs": self.num_outputs
+                },
+                "location": os.path.join(self.output_dir, self.plugin_name),
+                "installation": os.path.join(
+                    self.wwiseroot,
+                    'Authoring',
+                    self.wwise_arch,
+                    self.wwise_configuration,
+                    'bin',
+                    'Plugins',
+                    self.plugin_name
+                ) + ".(ext)"
+            }
+        }
+
+        with open(self.cfg_json_path, 'w', encoding='utf-8') as f:
+            json.dump(config_dict, f, indent=4)
+        print(f"OK: Configuration successfully saved to: {self.cfg_json_path}")

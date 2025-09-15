@@ -107,6 +107,9 @@ class Faust2WwiseOrchestrator:
         
         os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(self.temp_dir, exist_ok=True)
+
+        # Set the path for storing the config after successful compilation
+        self.cfg_json_path = os.path.join(self.output_dir, self.cfgJsonFileName)
         
         utils.validate_environment(self.cfg)
         
@@ -154,6 +157,7 @@ class Faust2WwiseOrchestrator:
 
         self.cfg.plugin_print() # print finalized configuration, after having parsed the faust't output json file
         self.cfg.lock()         # lock config to deprive any further modifications of its internal state, making it immutable
+        self.cfg.to_json()      # save the config into a file immediately after locking
 
         print("OK : DSP compiling step was completed successfully!") 
 
