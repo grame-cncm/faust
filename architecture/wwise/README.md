@@ -80,6 +80,8 @@ faust2wwise path/to/dspfile.dsp [faust options] [wwise options]
 
 Upon successful compilation, a Wwise plugin will be automatically generated and registered within the Wwise SDK. It will be placed in the appropriate directory inside the Wwise installation, where plugins are typically stored. The plugin will then be immediately available for use in Wwise.
 
+Additionally, a JSON file named faust2wwise_configuration.json is created in the output directory. This file stores all the configuration about the plugin generation process, including paths, plugin names, and configuration metadata.
+
 > Important: Because `faust2wwise` make system calls and installs plugins into system-level Wwise directories, it must be run from a console with **administrative rights**.
 
 ### Example
@@ -158,15 +160,14 @@ faust2wwise test --testdir /path/to/dir_containing_dsp_files
 ```
 
 *Type `faust2wwise test --help` to view all the available command-line options.*
->Note: the`--clean` option is currently not supported.
 
 Test results are stored in the current working directory under the `myF2Wtests/` folder:
  - a summary is saved in the `testResults.json` file
  - each `dsp` file gets a separate `build.log` in its distinct output directory.
 
-> Important: Because `faust2wwise test` make system calls that attempt to access environmental variables that require admin rights and also installs plugins into system-level Wwise directories, it must be run from a console with **administrative rights**.
+> Important: Because `faust2wwise test` make system calls that attempt to access environmental variables that require admin rights and also installs or uninstalls plugins in system-level Wwise directories, it must be run from a console with **administrative rights**.
 
-> Note: Testing on **macOS** is possible but not supported out-of-the-box due to Wwise Authoring plug-in constraints. Running `faust2wwise` requires building parts of the plug-in on Windows and manually copying files between platforms. For more details, refer to the [Limitations](#limitations) section on macOS support.
+> Note: Testing on **macOS** is possible but not supported out-of-the-box due to Wwise Authoring plug-in constraints. Running `faust2wwise` requires building parts of the plug-in on Windows and manually copying files between platforms. Additionally, the`--clean` option is currently not supported on **macOS**, as the installation directory cannot be reliably determined. For more details, refer to the [Limitations](#limitations) section on macOS support.
 
 **Compiling Faust examples from the official Faust repo**
 
@@ -199,7 +200,7 @@ The following features are currently limited or under development:
   - hbargraphs behave like `sliders` visually, but sliders do not output values, limiting their usefulness for feedback or monitoring. 
 - Older Wwise versions not supported (<=2023.1.15)
 - macOS support for Wwise Authoring plug-ins is indirect because the Authoring application runs as a Windows binary through an adaptation layer, and therefore requires plug-ins to be built as Windows DLLs. To achieve this on macOS, you must build the Authoring plug-in on a Windows machine or VM with Visual Studio, while the Sound Engine plug-in can be built natively on macOS. (For more details, see the official documentation on [macOS Plug-in Considerations](https://www.audiokinetic.com/en/public-library/2024.1.7_8863/?source=SDK&id=authoringplugin_macos.html))
-- `faust2wwise test` currently does not support the `--clean` option.
+- `faust2wwise test` currently does not support the `--clean` option on macOS, as the plugin installation directory cannot be reliably determined.
 - `soundfile` primitive is currently not supported.
 
 If you'd like to help improve any of these, contributions are welcome!
