@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.2 20190208//EN"
+                  "JATS-publishing1.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
+<front>
+<journal-meta>
+<journal-id></journal-id>
+<journal-title-group>
+<journal-title>Journal of Open Source Software</journal-title>
+<abbrev-journal-title>JOSS</abbrev-journal-title>
+</journal-title-group>
+<issn publication-format="electronic">2475-9066</issn>
+<publisher>
+<publisher-name>Open Journals</publisher-name>
+</publisher>
+</journal-meta>
+<article-meta>
+<article-id pub-id-type="publisher-id">0</article-id>
+<article-id pub-id-type="doi">N/A</article-id>
+<title-group>
+<article-title>faust2clap: Generating CLAP Plug-ins from Faust DSP
+Code</article-title>
+</title-group>
+<contrib-group>
+<contrib contrib-type="author">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0009-0008-6654-0401</contrib-id>
+<name>
+<surname>Franchino</surname>
+<given-names>Facundo</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
+</contrib>
+<contrib contrib-type="author">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0000-0003-0256-2675</contrib-id>
+<name>
+<surname>Letz</surname>
+<given-names>Stéphane</given-names>
+</name>
+<xref ref-type="aff" rid="aff-2"/>
+</contrib>
+<contrib contrib-type="author">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0000-0001-6033-465X</contrib-id>
+<name>
+<surname>Chowdhury</surname>
+<given-names>Jatin</given-names>
+</name>
+<xref ref-type="aff" rid="aff-3"/>
+</contrib>
+<aff id="aff-1">
+<institution-wrap>
+<institution>School of Physics, Engineering and Technology, University
+of York, UK</institution>
+</institution-wrap>
+</aff>
+<aff id="aff-2">
+<institution-wrap>
+<institution>GRAME-CNCM, Lyon, France</institution>
+</institution-wrap>
+</aff>
+<aff id="aff-3">
+<institution-wrap>
+<institution>Department of Electrical Engineering and Computer Science,
+MIT, USA</institution>
+</institution-wrap>
+</aff>
+</contrib-group>
+<pub-date date-type="pub" publication-format="electronic" iso-8601-date="2025-09-16">
+<day>16</day>
+<month>9</month>
+<year>2025</year>
+</pub-date>
+<volume>¿VOL?</volume>
+<issue>¿ISSUE?</issue>
+<fpage>¿PAGE?</fpage>
+<permissions>
+<copyright-statement>Authors of papers retain copyright and release the
+work under a Creative Commons Attribution 4.0 International License (CC
+BY 4.0)</copyright-statement>
+<copyright-year>1970</copyright-year>
+<copyright-holder>The article authors</copyright-holder>
+<license license-type="open-access" xlink:href="https://creativecommons.org/licenses/by/4.0/">
+<license-p>Authors of papers retain copyright and release the work under
+a Creative Commons Attribution 4.0 International License (CC BY
+4.0)</license-p>
+</license>
+</permissions>
+<kwd-group kwd-group-type="author">
+<kwd>audio</kwd>
+<kwd>DSP</kwd>
+<kwd>plugins</kwd>
+<kwd>CLAP</kwd>
+<kwd>Faust</kwd>
+<kwd>real-time</kwd>
+<kwd>hot-reload</kwd>
+</kwd-group>
+</article-meta>
+</front>
+<body>
+<sec id="summary">
+  <title>Summary</title>
+  <p><monospace>faust2clap</monospace> is a tool that implements a
+  direct compilation route from Faust DSP source code to plug-ins in the
+  CLever Audio Plugin (CLAP) format. The system supports two modes of
+  operation: static compilation, which produces optimised standalone
+  plug-ins, and dynamic hot-reloading, which permits interactive
+  development within the host environment. In the dynamic mode, DSP code
+  may be modified and recompiled while the host continues to run,
+  avoiding the repeated build–reload cycle that typically interrupts
+  audio development workflows.</p>
+  <p>The implementation also provides automatic parameter discovery,
+  MIDI support, polyphonic voice allocation, and state persistence.
+  These features make the tool suitable both for researchers working
+  with experimental DSP algorithms and for developers interested in
+  rapid prototyping of audio effects and synthesisers within a modern,
+  open plug-in standard.</p>
+</sec>
+<sec id="statement-of-need">
+  <title>Statement of Need</title>
+  <p>The audio plug-in development ecosystem has traditionally required
+  developers to navigate complex APIs and manage significant boilerplate
+  code when creating plug-ins for digital audio workstations (DAWs).
+  While Faust provides an elegant functional programming language for
+  DSP algorithm design
+  (<xref alt="Letz et al., 2018" rid="ref-letz2018overview" ref-type="bibr">Letz
+  et al., 2018</xref>), and CLAP offers a modern, open-source plug-in
+  standard
+  (<xref alt="Free Audio Community, 2022" rid="ref-clap2022" ref-type="bibr">Free
+  Audio Community, 2022</xref>), there has been no direct path between
+  these two technologies.</p>
+  <p><monospace>faust2clap</monospace> addresses this gap by providing
+  researchers, audio developers, and educators with a streamlined
+  workflow for plugin development. The tool is particularly valuable
+  for:</p>
+  <list list-type="bullet">
+    <list-item>
+      <p><bold>Researchers</bold> who wish to test novel DSP algorithms
+      in DAWs without manually implementing plugin infrastructure</p>
+    </list-item>
+    <list-item>
+      <p><bold>Educators</bold> teaching DSP concepts who can now
+      demonstrate algorithm behaviour directly within professional audio
+      software</p>
+    </list-item>
+    <list-item>
+      <p><bold>Audio developers</bold> prototyping effects and
+      synthesisers who benefit from Faust’s compact DSP language and
+      immediate plug-in generation</p>
+    </list-item>
+  </list>
+  <p>The hot-reload capability is especially significant for iterative
+  development, allowing real-time experimentation with DSP parameters
+  and algorithms while maintaining audio continuity in the host
+  application. This feature eliminates the traditional
+  compile-reload-test cycle that has historically slowed audio plugin
+  development, enabling a more interactive and exploratory approach to
+  DSP design.</p>
+</sec>
+<sec id="state-of-the-field">
+  <title>State of the Field</title>
+  <p>Several tools exist for generating audio plugins from Faust code,
+  including <monospace>faust2vst</monospace>,
+  <monospace>faust2au</monospace>, and <monospace>faust2lv2</monospace>,
+  which target the VST, Audio Unit, and LV2 plugin standards
+  respectively
+  (<xref alt="Letz et al., 2024" rid="ref-faust_architectures" ref-type="bibr">Letz
+  et al., 2024</xref>). However, these tools generate only statically
+  compiled plugins and lack support for the modern CLAP standard, which
+  offers advantages including better parameter automation, more flexible
+  audio port configurations, and an open-source license without patent
+  encumbrances.</p>
+  <p>The CLAP standard itself, developed by Bitwig and u-he
+  (<xref alt="Free Audio Community, 2022" rid="ref-clap2022" ref-type="bibr">Free
+  Audio Community, 2022</xref>), introduces improvements over earlier
+  standards in plugin architecture design, but adoption has been limited
+  by the lack of high-level development tools. While the clap-helpers
+  library provides C++ utilities for CLAP development, it still requires
+  substantial manual implementation work.</p>
+  <p><monospace>faust2clap</monospace> extends the ecosystem through
+  four contributions:</p>
+  <list list-type="order">
+    <list-item>
+      <p><bold>First CLAP generator for Faust</bold>: direct compilation
+      of Faust DSP source code to CLAP plug-ins
+      </p>
+    </list-item>
+    <list-item>
+      <p><bold>Dynamic hot-reload capability</bold>: allows DSP code to
+      be recompiled in real time without restarting the plug-in</p>
+    </list-item>
+    <list-item>
+      <p><bold>Automatic DSP type detection</bold>: distinguishes
+      between effects and instruments, configuring polyphonic behaviour
+      accordingly</p>
+    </list-item>
+    <list-item>
+      <p><bold>GUI Support</bold>: provides a Python interface for
+      selecting DSP files and managing hot-reload operations</p>
+    </list-item>
+  </list>
+</sec>
+<sec id="implementation-and-architecture">
+  <title>Implementation and Architecture</title>
+  <p>The implementation comprises two distinct compilation pathways,
+  each addressing specific deployment requirements. The static mode
+  produces standalone plug-ins through Faust’s C++ code generation,
+  whilst the dynamic mode provides runtime DSP compilation using
+  <monospace>libfaust</monospace>’s interpreter backend.</p>
+  <p>The static implementation centres on a specialised CLAP
+  architecture file (<monospace>clap-arch.cpp</monospace>) that adapts
+  Faust’s generated DSP classes to the CLAP API. A custom
+  <monospace>CLAPMapUI</monospace> class extends Faust’s
+  <monospace>MapUI</monospace> to capture parameter metadata during
+  instantiation, storing ranges, default values, and zone pointers as
+  parameters are declared. The Python orchestration script
+  (<monospace>faust2clap.py</monospace>) manages the compilation process
+  by invoking Faust with architecture-specific flags and coordinating
+  the CMake build chain. The script performs automatic DSP
+  classification by analysing input and output port counts,
+  distinguishing between effect processors and synthesiser instruments
+  to configure appropriate polyphonic behaviour.</p>
+  <p>The dynamic implementation employs
+  <monospace>libfaust</monospace>’s interpreter virtual machine to
+  compile DSP code at runtime. File modification monitoring through the
+  efsw library triggers recompilation cycles whilst preserving audio
+  processing continuity. The system maintains parameter states across
+  DSP updates and manages instance switching to avoid audio artifacts
+  during code transitions. Compiled bytecode executes on a stack-based
+  virtual machine with separate integer and floating-point heaps for DSP
+  state management.</p>
+  <p>Both modes share infrastructure for audio buffer handling and MIDI
+  event processing. Format conversion between host audio representations
+  (32-bit and 64-bit floating-point) and Faust’s
+  <monospace>FAUSTFLOAT</monospace> type occurs transparently.
+  Polyphonic operation utilises Faust’s
+  <monospace>mydsp_poly</monospace> wrapper for voice allocation and
+  MIDI event distribution. The build system integrates with the Faust
+  ecosystem through standardised paths obtained via
+  <monospace>faust --archdir</monospace>, maintaining compatibility
+  across installation configurations.</p>
+</sec>
+<sec id="usage-and-adoption">
+  <title>Usage and Adoption</title>
+  <p><monospace>faust2clap</monospace> has recently been merged into the
+  main Faust repository, where it is now distributed as part of the
+  standard toolchain. Although still a new addition, its inclusion makes
+  the functionality available to the wider Faust user community. The
+  tool demonstrates how high-level DSP specifications in Faust can be
+  compiled to a modern plug-in standard, and provides a reference point
+  for future work on CLAP-based development tools.</p>
+</sec>
+<sec id="acknowledgements">
+  <title>Acknowledgements</title>
+  <p>This work was supported by Google Summer of Code 2025. The author
+  thanks Stéphane Letz (GRAME-CNCM) for project supervision and
+  continuous support, Jatin Chowdhury (MIT) for CLAP expertise and
+  mentorship, and the CLAP community for valuable feedback and testing.
+  Special recognition goes to the Faust development team at GRAME for
+  maintaining the Faust ecosystem that makes this work possible.</p>
+</sec>
+</body>
+<back>
+<ref-list>
+  <title></title>
+  <ref id="ref-letz2018overview">
+    <element-citation publication-type="paper-conference">
+      <person-group person-group-type="author">
+        <name><surname>Letz</surname><given-names>Stéphane</given-names></name>
+        <name><surname>Orlarey</surname><given-names>Yann</given-names></name>
+        <name><surname>Fober</surname><given-names>Dominique</given-names></name>
+      </person-group>
+      <article-title>An overview of the faust developer ecosystem</article-title>
+      <source>Proceedings of the 1st international faust conference (IFC-18)</source>
+      <publisher-name>GRAME</publisher-name>
+      <publisher-loc>Mainz, Germany</publisher-loc>
+      <year iso-8601-date="2018">2018</year>
+    </element-citation>
+  </ref>
+  <ref id="ref-clap2022">
+    <element-citation>
+      <person-group person-group-type="author">
+        <string-name>Free Audio Community</string-name>
+      </person-group>
+      <article-title>CLAP: CLever Audio Plug-in API</article-title>
+      <publisher-name>https://github.com/free-audio/clap</publisher-name>
+      <year iso-8601-date="2022">2022</year>
+    </element-citation>
+  </ref>
+  <ref id="ref-faust_architectures">
+    <element-citation>
+      <person-group person-group-type="author">
+        <name><surname>Letz</surname><given-names>Stéphane</given-names></name>
+        <name><surname>Orlarey</surname><given-names>Yann</given-names></name>
+        <name><surname>Fober</surname><given-names>Dominique</given-names></name>
+      </person-group>
+      <article-title>Faust architecture files</article-title>
+      <publisher-name>https://faustdoc.grame.fr/manual/architectures/</publisher-name>
+      <year iso-8601-date="2024">2024</year>
+    </element-citation>
+  </ref>
+</ref-list>
+</back>
+</article>
