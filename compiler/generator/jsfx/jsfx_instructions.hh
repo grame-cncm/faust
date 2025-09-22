@@ -39,6 +39,11 @@ inline bool strfind(const std::string& str, const std::string& substr)
     return (str.find(substr) != str.npos);
 }
 
+inline bool exact_match(const std::string& str, const std::string& cmp)
+{
+    return str == cmp;
+}
+
 // Visitor used to initialize array fields into the DSP structure
 struct JSFXInitFieldsVisitor : public DispatchVisitor {
     std::ostream* fOut;
@@ -191,6 +196,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     // In JSFX, since the number of sliders is limited to 64, it has been decided not to make it
     // correspond to a slider.
     bool skip_slider = false;
+    std::map<std::string, double> _slider_init_map;
 
     std::unordered_map<std::string, std::string>   _midi_instructions;
     std::unordered_map<std::string, std::string>   _midi_sliders;
@@ -403,6 +409,15 @@ class JSFXInstVisitor : public TextInstVisitor {
     }
 
     virtual ~JSFXInstVisitor() {}
+
+    void generateInit() 
+    {
+        for(auto & it : _slider_init_map) 
+        {
+            *fOut << it.first << " = " << it.second << ";";
+            EndLine(' ');
+        }
+    };
 
     // Extract midi parameters (number, channel) from Metadata
     JSFXMidiInstr parseMIDIInstruction(const std::string& fzone, const std::string& value)
@@ -759,14 +774,6 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(CloseboxInst* inst) {}
 
-    static bool strfind(std::string& str, std::string substr)
-    {
-        if (str.find(substr) != str.npos) {
-            return true;
-        }
-        return false;
-    }
-
     virtual void visit(AddButtonInst* inst)
     {
         if (!skip_slider) {
@@ -775,7 +782,8 @@ class JSFXInstVisitor : public TextInstVisitor {
                 _midi_scales[inst->fZone]  = JSFXMidiScale{0, 0, 1, 1};
                 _midi_sliders[inst->fZone] = inst->fZone;
             } else if (poly) {
-                if (strfind(name, "gate")) {
+                std::string label = inst->fLabel;
+                if (exact_match(label, "gate")) {
                     _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1, JSFXMIDIScaleType::gate};
                     return;
                 } else {
@@ -792,6 +800,7 @@ class JSFXInstVisitor : public TextInstVisitor {
             *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=0<0,1,1>" << prefix
                   << gGlobal->getFreshID(inst->fLabel);
             EndLine(' ');
+            _slider_init_map[inst->fZone] = 0;
         } else {
             _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1};
         }
@@ -812,18 +821,19 @@ class JSFXInstVisitor : public TextInstVisitor {
                                                           inst->fStep, JSFXMIDIScaleType::none};
                 _midi_sliders[inst->fZone] = inst->fZone;
             } else if (poly) {
-                if (strfind(name, "gain")) {
+                std::string label = inst->fLabel;
+                if (exact_match(label, "gain")) {
                     _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax,
                                                               inst->fStep, JSFXMIDIScaleType::gain};
                     return;
-                } else if (strfind(name, "vel") || strfind(name, "veloc")) {
+                } else if (exact_match(label, "vel") || exact_match(label, "veloc")) {
                     _midi_scales[inst->fZone] =
                         JSFXMidiScale::MIDI7bScale(inst->fInit, JSFXMIDIScaleType::veloc);
-                } else if (strfind(name, "freq")) {
+                } else if (exact_match(label, "freq")) {
                     _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax,
                                                               inst->fStep, JSFXMIDIScaleType::freq};
                     return;
-                } else if (strfind(name, "key")) {
+                } else if (exact_match(label, "key")) {
                     _midi_scales[inst->fZone] =
                         JSFXMidiScale::MIDI7bScale(inst->fInit, JSFXMIDIScaleType::key);
                 } else {
@@ -835,19 +845,21 @@ class JSFXInstVisitor : public TextInstVisitor {
             std::string prefix;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
-                    prefix = ">hslider_";
+                    prefix = "hslider_";
                     break;
                 case AddSliderInst::kVertical:
-                    prefix = ">vslider_";
+                    prefix = "vslider_";
                     break;
                 case AddSliderInst::kNumEntry:
-                    prefix = ">nentry_";
+                    prefix = "nentry_";
                     break;
             }
+            std::string label = gGlobal->getFreshID(inst->fLabel);
             *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=" << inst->fInit << "<"
-                  << inst->fMin << "," << inst->fMax << "," << inst->fStep << prefix
-                  << gGlobal->getFreshID(inst->fLabel);
+                  << inst->fMin << "," << inst->fMax << "," << inst->fStep << ">" << prefix
+                  << label;
             EndLine(' ');
+            _slider_init_map[inst->fZone] = inst->fInit;
         } else {
             _midi_scales[inst->fZone] =
                 JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax, inst->fStep};

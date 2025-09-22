@@ -130,6 +130,8 @@ void JSFXCodeContainer::produceClass()
     // Generate utility functions
     *fOut << "@init" << endl;
 
+    gGlobal->gJSFXVisitor->generateInit();
+
     *fOut << "\n"
           << "// GLOBAL Functions \n"
           << "\n";
@@ -469,6 +471,14 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     *fOut << "@slider";
     tab(n, *fOut);
     *fOut << "control();";
+    tab(n, *fOut);
+
+    // @serialize section is used to prevent init values (in @init section) to override the serialized value 
+    // It is here just to be non-empty, as described in JSFX documentation
+    tab(n, *fOut);
+    *fOut << "@serialize";
+    tab(n, *fOut);
+    *fOut << "(file_avail(0) < 0);";
     tab(n, *fOut);
 
     // @sample section is the audio loop.
