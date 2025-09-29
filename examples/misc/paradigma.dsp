@@ -25,7 +25,7 @@
 // Variophon Wind Instrument Synthesizer, Physical Modeling, and the work of Thomas D. Rossing.
 //
 // References:
-// Kot, Vítězslav. (2006). DIGITAL SOUND EFFECTS ECHO AND REVERB BASED ON NON EXPONENTIALLY DECAYING COMB FILTER.
+// Kot, Vitezslav. (2006). DIGITAL SOUND EFFECTS ECHO AND REVERB BASED ON NON EXPONENTIALLY DECAYING COMB FILTER.
 // https://en.wikipedia.org/wiki/Variophon
 // Parker, Julian & Zavalishin, Vadim & Le Bivic, Efflam. (2016). Reducing The Aliasing Of Nonlinear Waveshaping Using Continuous-TimeConvolution.
 // Nicholas G. Horton, Thomas R. Moore. (2008). Modelling The Magnetic Pickup Of An Electric Guitar.
@@ -172,7 +172,7 @@ apg2 = fiwtail;
 igpole = 1.0-5.0/ma.SR;
 resf = (fplus/(wid2+wid2e)):min(_, (0.249*ma.SR));
 
-// Asymmetric Shaper x - 0.15x²-0.15x³
+// Asymmetric Shaper x - 0.15x^2-0.15x^3
 tubicclip = _:min(_, (1.19419)):max(_, (-1.86086));
 tubicilo(x) = x, // normal for in < 1.2e-4
 (x-0.15*(x^2)-0.15*(x^3)), // ILO:
