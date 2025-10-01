@@ -335,6 +335,8 @@ void JSFXCodeContainer::produceClass()
     // host (Reaper)
     *fOut << "function init_instances() (";
     tab(n + 1, *fOut);
+    gGlobal->gJSFXVisitor->generatePolyInit();
+    tab(n + 1, *fOut);
     *fOut << "voice_idx = 0; ";
     tab(n + 1, *fOut);
     *fOut << "while(voice_idx < nvoices) ( ";
