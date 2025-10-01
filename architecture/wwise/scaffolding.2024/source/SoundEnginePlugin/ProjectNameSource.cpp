@@ -172,7 +172,7 @@ void ${name}Source::fillRestOfBuffersWithSilence(const AkUInt32 framesToProcess 
         for (AkUInt32 ch = speakersAvail; ch < static_cast<AkUInt32>(numOutputs); ++ch) {
             faust_outputs[ch] = silenceBuffer.data();
         }
-        OutputDebugStringA("Filled the silence buffer!\n");
+        AKPLATFORM::OutputDebugMsg("Filled the silence buffer!\n");
     }
 }
 
