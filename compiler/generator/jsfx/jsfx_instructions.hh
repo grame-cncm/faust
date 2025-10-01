@@ -197,6 +197,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     // correspond to a slider.
     bool skip_slider = false;
     std::map<std::string, double> _slider_init_map;
+    std::map<std::string, double> _poly_init_map;
 
     std::unordered_map<std::string, std::string>   _midi_instructions;
     std::unordered_map<std::string, std::string>   _midi_sliders;
@@ -418,6 +419,15 @@ class JSFXInstVisitor : public TextInstVisitor {
             EndLine(' ');
         }
     };
+
+    void generatePolyInit()
+    {
+        for(auto & it : _poly_init_map)
+        {
+            *fOut << "obj[dsp." << it.first << "] = " << it.second << ";";
+            tab(fTab+1, *fOut);
+        }
+    }
 
     // Extract midi parameters (number, channel) from Metadata
     JSFXMidiInstr parseMIDIInstruction(const std::string& fzone, const std::string& value)
@@ -785,6 +795,7 @@ class JSFXInstVisitor : public TextInstVisitor {
                 std::string label = inst->fLabel;
                 if (exact_match(label, "gate")) {
                     _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1, JSFXMIDIScaleType::gate};
+                    _poly_init_map[inst->fZone] = 0;
                     return;
                 } else {
                     _midi_scales[inst->fZone]  = JSFXMidiScale{0, 0, 1, 1};
@@ -825,17 +836,21 @@ class JSFXInstVisitor : public TextInstVisitor {
                 if (exact_match(label, "gain")) {
                     _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax,
                                                               inst->fStep, JSFXMIDIScaleType::gain};
+                    _poly_init_map[inst->fZone] = inst->fInit;
                     return;
                 } else if (exact_match(label, "vel") || exact_match(label, "veloc")) {
                     _midi_scales[inst->fZone] =
                         JSFXMidiScale::MIDI7bScale(inst->fInit, JSFXMIDIScaleType::veloc);
+                    _poly_init_map[inst->fZone] = inst->fInit;
                 } else if (exact_match(label, "freq")) {
                     _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax,
                                                               inst->fStep, JSFXMIDIScaleType::freq};
+                    _poly_init_map[inst->fZone] = inst->fInit;
                     return;
                 } else if (exact_match(label, "key")) {
                     _midi_scales[inst->fZone] =
                         JSFXMidiScale::MIDI7bScale(inst->fInit, JSFXMIDIScaleType::key);
+                    _poly_init_map[inst->fZone] = inst->fInit;
                 } else {
                     _midi_scales[inst->fZone] =
                         JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax, inst->fStep};
