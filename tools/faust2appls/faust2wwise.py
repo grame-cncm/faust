@@ -25,6 +25,7 @@ Requires:
 
 import os
 import sys
+import platform
 import subprocess
 from pathlib import Path
 import importlib.util
@@ -41,7 +42,7 @@ def get_wwise_root_dir() -> Optional[Path]:
         return Path(wwise_root).resolve()
 
     print(
-        "Warning: Wwise root directory not found.\n"
+        "Error: Wwise root directory not found.\n"
         "Make sure Wwise is installed and environment variables are set:\n"
         "  AudioKinetic Launcher -> Install options (tool icon) -> Set environment variables\n"
         "Then restart your terminal or IDE.\n"
@@ -68,7 +69,7 @@ def get_faust_dsp_dir() -> Optional[Path]:
         if os.path.isdir(path):
             return Path(path).resolve()
     except Exception as e:
-        print(f"[Warning] faust --libdir failed: {e}")
+        print(f"Error: faust --libdir failed: {e}")
     return None
 
 def get_faust_include_dir() -> Path:
@@ -101,7 +102,7 @@ def import_module(faust_dsp_dir:str, file:str)-> Optional[ModuleType]:
     arch_tools_dir = os.path.join(faust_dsp_dir,"wwise")
     module_path = Path(os.path.join(arch_tools_dir,file))
     if not module_path.is_file():
-        print(f"Warning: {file} not found at: {module_path}")
+        print(f"Error: {file} not found at: {module_path}")
         return None
 
     sys.path.insert(0,arch_tools_dir) # insert the directory into the sys.path
@@ -119,11 +120,24 @@ def print_message_on_fail() -> None:
     print("If the error is not listed there, check the GitHub issues or consider reporting it:")
     print("\thttps://github.com/grame-cncm/faust/issues")
 
+def print_message_on_abort() -> None:
+    
+    if platform.system() == "Linux":
+        print("\n\nNote: 'faust2wwise' is currently unsupported on native Linux environments due to Wwise incompatibility.\n\n")
+        sys.exit(3) # ERR_ENVIRONMENT
+
+    print("Error: One or more important environment variables are unset.")
+    print("Please ensure Wwise and Faust are properly installed and configured.")
+    sys.exit(1) # ERR_ENV_VARS_NOT_FOUND
+
 if __name__ == "__main__":
 
     wwise_root_dir = get_wwise_root_dir()
-    faust_dsp_dir = get_faust_dsp_dir()
-    faust_include_dir = get_faust_include_dir()
+    faust_dsp_dir = get_faust_dsp_dir()         # should be called first
+    faust_include_dir = get_faust_include_dir() # should be called second
+    
+    if None in (wwise_root_dir, faust_dsp_dir, faust_include_dir):
+        print_message_on_abort()
 
     print(f"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     print(f"faust2wwise static compilation tool.")
