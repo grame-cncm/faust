@@ -59,16 +59,19 @@ The way this work is orchestrated follows a multi-step process, where each phase
 - **Python (>=3.9)**
 - **Console access with admin rights**
 
-> **HINNT:** `WWISEROOT` must also be exposed system-wide. 
+<details>
+<summary><strong>HINT: <strong>Setting the WWISEROOT environment variable</summary>
+<br>
 
-- On **Windows**, open the **AudioKinetic Launcher**, click **Install options (tool icon)** and select **Set environment variables**.
+- On **Windows**, open the **AudioKinetic Launcher**, click **Install options (tool icon)** and select **Set environment variables**.  
 
-- On **macOS**, set manually the Wwise installation path in your terminal.For instance, assuming a 2024.1.4.8780 Wwise installation, type:
+- On **macOS**, set manually the Wwise installation path in your terminal. For instance, assuming a 2024.1.4.8780 Wwise installation, type:
 
   `export WWISEROOT="/Applications/Audiokinetic/Wwise2024.1.4.8780"`
 
-  To make it permanent, add the line above to your shell config file (e.g., ~/.zshrc or ~/.bash_profile depending on your shell).
-Check it's set with: `echo $WWISEROOT`
+  To make it permanent, add the line above to your shell config file (e.g., ~/.zshrc or ~/.bash_profile depending on your shell). Then verify with: `echo $WWISEROOT`.
+
+</details>
 
 ## Usage
 
