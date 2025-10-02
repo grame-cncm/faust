@@ -110,7 +110,7 @@ EOF
     elif [ $p = "-qt5" ]; then
         FAUST_UI=1
         plugin_gui=yes
-        QMAKE=$(which qmake-qt5 || which /opt/local/libexec/qt5/bin/qmake || echo qmake-qt5)
+        QMAKE=$(which /usr/lib/qt5/bin/qmake || which /opt/local/libexec/qt5/bin/qmake || echo qmake)
     elif [ $p = "-dyn-manifest" ]; then
         dyn_manifest=yes
     elif [ $p = "-uri-prefix" ]; then
