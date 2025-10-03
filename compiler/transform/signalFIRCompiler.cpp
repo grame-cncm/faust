@@ -126,7 +126,7 @@ void SignalFIRCompiler::compileSigDelay(Tree sig, Tree x_tree, Tree y_tree)
 
 void SignalFIRCompiler::compileSigSelect2(Tree sig, Tree sel, Tree x_tree, Tree y_tree)
 {
-    // Interpret the condition and both branches
+    // Compiles the condition and both branches
     self(sel);
     ValueInst* sel_val = popRes();
     self(x_tree);
@@ -685,6 +685,7 @@ ModuleInst* SignalFIRCompiler::genFIRModule(const std::string& obj)
     // Compute
     Typed* type     = IB::genFloatMacroTyped();
     Typed* ptr_type = IB::genArrayTyped(type, 0);
+
     for (int index = 0; index < fNumInputs; index++) {
         string name = subst("input$0", T(index));
         fControlBlock->pushFrontInst(IB::genDecStackVar(

@@ -475,8 +475,8 @@ void JSFXScalarCodeContainer::generateCompute(int n)
     *fOut << "control();";
     tab(n, *fOut);
 
-    // @serialize section is used to prevent init values (in @init section) to override the serialized value 
-    // It is here just to be non-empty, as described in JSFX documentation
+    // @serialize section is used to prevent init values (in @init section) to override the
+    // serialized value It is here just to be non-empty, as described in JSFX documentation
     tab(n, *fOut);
     *fOut << "@serialize";
     tab(n, *fOut);

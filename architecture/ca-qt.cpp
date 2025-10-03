@@ -92,11 +92,11 @@
 
 << includeIntrinsic >>
 
-    /********************END ARCHITECTURE SECTION (part 1/2)****************/
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-    /**************************BEGIN USER SECTION **************************/
+/**************************BEGIN USER SECTION **************************/
 
-    << includeclass >>
+<< includeclass >>
 
 /***************************END USER SECTION ***************************/
 
@@ -109,7 +109,7 @@
 #include "faust/dsp/dsp-combiner.h"
 #endif
 
-    using namespace std;
+using namespace std;
 
 dsp* DSP;
 

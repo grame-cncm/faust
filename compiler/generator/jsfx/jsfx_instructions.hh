@@ -195,7 +195,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     // Skip slider is used for MIDI instructions, that correspond to Sliders in Faust.
     // In JSFX, since the number of sliders is limited to 64, it has been decided not to make it
     // correspond to a slider.
-    bool skip_slider = false;
+    bool                          skip_slider = false;
     std::map<std::string, double> _slider_init_map;
     std::map<std::string, double> _poly_init_map;
 
@@ -411,10 +411,9 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual ~JSFXInstVisitor() {}
 
-    void generateInit() 
+    void generateInit()
     {
-        for(auto & it : _slider_init_map) 
-        {
+        for (auto& it : _slider_init_map) {
             *fOut << it.first << " = " << it.second << ";";
             EndLine(' ');
         }
@@ -422,10 +421,9 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     void generatePolyInit()
     {
-        for(auto & it : _poly_init_map)
-        {
+        for (auto& it : _poly_init_map) {
             *fOut << "obj[dsp." << it.first << "] = " << it.second << ";";
-            tab(fTab+1, *fOut);
+            tab(fTab + 1, *fOut);
         }
     }
 
@@ -811,7 +809,8 @@ class JSFXInstVisitor : public TextInstVisitor {
             *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=0<0,1,1>" << prefix
                   << gGlobal->getFreshID(inst->fLabel);
             EndLine(' ');
-            _slider_init_map[inst->fZone] = 0;
+            // The memory is set to 0 by default
+            //_slider_init_map[inst->fZone] = 0;
         } else {
             _midi_scales[inst->fZone] = JSFXMidiScale{0, 0, 1, 1};
         }
@@ -834,7 +833,7 @@ class JSFXInstVisitor : public TextInstVisitor {
             } else if (poly) {
                 std::string label = inst->fLabel;
                 if (exact_match(label, "gain")) {
-                    _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax,
+                    _midi_scales[inst->fZone]   = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax,
                                                               inst->fStep, JSFXMIDIScaleType::gain};
                     _poly_init_map[inst->fZone] = inst->fInit;
                     return;
@@ -843,7 +842,7 @@ class JSFXInstVisitor : public TextInstVisitor {
                         JSFXMidiScale::MIDI7bScale(inst->fInit, JSFXMIDIScaleType::veloc);
                     _poly_init_map[inst->fZone] = inst->fInit;
                 } else if (exact_match(label, "freq")) {
-                    _midi_scales[inst->fZone] = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax,
+                    _midi_scales[inst->fZone]   = JSFXMidiScale{inst->fInit, inst->fMin, inst->fMax,
                                                               inst->fStep, JSFXMIDIScaleType::freq};
                     _poly_init_map[inst->fZone] = inst->fInit;
                     return;
