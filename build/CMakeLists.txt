@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.81.8)
+set (VERSION 2.81.9)
 macro (get_major_minor_patch version)
     string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
     string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -482,7 +482,7 @@ install (
 )
 
 # install folders
-set (ARCHSRC android api AU audiokit autodiff chaos-stratus cmajor comparator daisy esp32 hothouse iOS jax juce julia max-msp nodejs osclib sam smartKeyboard svgplot teensy unity rust vcvrack webaudio wwise)
+set (ARCHSRC android api AU audiokit autodiff chaos-stratus clap cmajor comparator daisy esp32 hothouse iOS jax juce julia max-msp nodejs osclib sam smartKeyboard svgplot teensy unity rust vcvrack webaudio wwise)
 foreach (dir ${ARCHSRC})
     set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()

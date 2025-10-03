@@ -20,11 +20,13 @@ class TestFaustExamples:
     Attributes:
         outdirName (str): Name of the output directory for compiled results.
         jsonfileName (str): Default name of the test results JSON file.
+        cfgJsonFileName (str): Default name of the json storing the config for each faust2wwise execution.
         EXCLUDED_FILES (set): Set of relative paths to be excluded from testing.
     """
 
     outdirName = "myF2Wtests"
     jsonfileName = "testResults.json"
+    cfgJsonFileName = "faust2wwise_configuration.json"
 
     # these files are additional files that get imported by other dsp files, so they have to be excluded.
     EXCLUDED_FILES = {
@@ -72,7 +74,7 @@ class TestFaustExamples:
 
         if (mySystem=="Windows" and not
             ('MSYSTEM' in os.environ or 'MSYS' in os.environ)):
-            self.installation_dir = self.wwiseroot / "Authoring" / "x64" / "Release" / "bin" / "Plugins"
+
             self.plugin_extensions = [".dll", ".exp", ".lib", ".pdb", ".xml"]
 
             self.additional_arguments = [
@@ -82,8 +84,9 @@ class TestFaustExamples:
             self.subpr_shell_arg = True
 
         elif (mySystem=="Darwin"):
+
             wwise_version = Path(self.wwiseroot).name
-            self.installation_dir = Path("/Library/Application Support/Audiokinetic") / wwise_version / "Authoring/x64/Release/bin/Plugins"
+
             self.plugin_extensions = [".dll", ".a", ".dylib", ".xml"]
 
             self.additional_arguments = []
@@ -99,25 +102,82 @@ class TestFaustExamples:
 
         parser = argparse.ArgumentParser()
         parser.add_argument("-c","--clean", required=False, nargs="?", const="__DEFAULT__", default=None, type=str, help="clean installed wwise plugins using the json file existing in the output dir where the compiled examples are placed. Provide a path or a json file or leave blank to use current directory.")
-        parser.add_argument("-t","--testdir", required=True, type=str, help = "Directory where the faust dsp examples are located.")
+        parser.add_argument("-t","--testdir", required=False, type=str, help = "Directory where the faust dsp examples are located.")
         parser.add_argument("-l","--limit", required=False, type=int, help="Use only a random portion of the dsp files existing in directory")
         parsed_args = parser.parse_args()
 
-        # if clean installations made by previous tests
-        if parsed_args.clean is not None:
+        args = parser.parse_args()
+
+        def check_if_mutually_exclussive() -> None:
+            """
+            Ensures that --clean and --testdir/--limit arguments are mutually exclusive.
+            Raises parser.error: If both --clean and --testdir/--limit are used together,
+                            or if neither is provided.
+            """
+            if args.clean is not None:
+                if args.testdir or args.limit:
+                    parser.error("--clean cannot be used with --testdir or --limit")
+            elif args.testdir:
+                if args.clean is not None:
+                    parser.error("--testdir cannot be used with --clean")
+            else:
+                parser.error("Either --clean or --testdir must be provided")
+
+        check_if_mutually_exclussive()
+
+        if parsed_args.clean is not None:                   # if cleaning of installations made by previous tests
             self.clean = True
-            if parsed_args.clean != "__DEFAULT__": # if path or json file was additionaly passed with --clean
-                if (parsed_args.clean.endswith(".json")): # a json file was given
+            if parsed_args.clean != "__DEFAULT__":          # if path or json file was additionaly passed with --clean
+                if (parsed_args.clean.endswith(".json")):   # a json file was given
                     self.jsonfileName = os.path.basename(parsed_args.clean)
                     self.outdir = os.path.dirname(parsed_args.clean)
-                else:                               # a path to the json was given
-                    self.outdir = Path(parsed_args.clean)
-        else:                                       # if test
+                else:                                       # a path to the json was given
+                    self.outdir = os.path.join(os.getcwd(),parsed_args.clean)
+
+        else:                                               # if test
             self.testdir = parsed_args.testdir
             if parsed_args.limit:
                 self.limit = parsed_args.limit
-        
+            self.outdir = self.resolve_output_dir()         # outputdir resolved since is used as a common member variable for both test and clean modes.
+
+
         self.jsonfile = os.path.join(self.outdir, self.jsonfileName)
+
+        
+    def resolve_output_dir(self) -> Path:
+        """
+        Determines a non-conflicting output directory path.
+        If `self.clean` is True, returns the originally specified `self.outdir` as a Path.
+        Otherwise, checks if the directory exists:
+        - If it doesn't exist, returns it.
+        - If it exists, appends a numeric suffix (e.g., "(1)", "(2)", etc.) to create a unique directory name.
+            Updates `self.outdir` to reflect the new unique path.
+        Returns:
+            Path: A resolved, unique output directory path.
+        """
+        if (self.clean):
+            return self.outdir
+
+        base_path = Path(self.outdir).resolve()
+        parent_dir = base_path.parent
+        base_name = base_path.name
+
+        # if no conflict
+        if not (parent_dir / base_name).exists():
+            return base_path
+
+        # else if there are already other myF2Wtests dirs, rename the outdir by adding the next available suffix after the base_name
+        counter = 1
+        while True:
+            new_name = f"{base_name}({counter})"
+            candidate_path = parent_dir / new_name
+            if not candidate_path.exists():
+                # Update self.outdir by adding a suffix --> i.e "parent_dir/<base_name>(1)""
+                self.outdir = str(candidate_path)
+                return candidate_path.resolve()
+            counter += 1
+
+        return Path(self.outdir).resolve()
 
     def moveJsonFile(self,json_source_path:Path, json_target_path:Path, log_path:Path) -> None:
         """
@@ -232,8 +292,6 @@ class TestFaustExamples:
         """
         self.parse_arguments()
 
-        self.outdir =  self.resolve_output_dir()
-
         if (self.clean):
             self.clean_tests()
         else :
@@ -243,7 +301,7 @@ class TestFaustExamples:
         """
         Function used to apply the tests.
         """
-
+        
         print(f"Output directory : {self.outdir}\n")
 
         self.testdir = Path(self.testdir).resolve()
@@ -283,38 +341,18 @@ class TestFaustExamples:
         print(f"Succeeded: {len(succeeded)}")
         print(f"Failed: {len(failed)}")
 
-    def resolve_output_dir(self):
-        base_path = Path(self.outdir).resolve()
-        parent_dir = base_path.parent
-        base_name = base_path.name
-
-        # if no conflict
-        if not (parent_dir / base_name).exists():
-            return base_path
-
-        # else if there are already other myF2Wtests dirs, rename the outdir by adding the next available suffix after the base_name
-        counter = 1
-        while True:
-            new_name = f"{base_name}({counter})"
-            candidate_path = parent_dir / new_name
-            if not candidate_path.exists():
-                # Update self.outdir by adding a suffix --> i.e "parent_dir/<base_name>(1)""
-                self.outdir = str(candidate_path)
-                return candidate_path.resolve()
-            counter += 1
-
-        return Path(self.outdir).resolve()
-
     def clean_tests(self) -> None:
         """
         Deletes previously installed Wwise plugins based on the test results.
-        Currently non implemented. Requires a way to retrieve the configuration
-        and arch options used when compiling the tests in the first place.
+        This function reads `testResults.json`, which lists plugins installed during testing.
+        For each successful test, it reads the corresponding `faust2wwise_configuration.json`
+        to determine the installation path and plugin base name, and then deletes all related plugin files.
+        It outputs information about deleted and missing files.
         """
-        print("Clean installed plugins currently not supported. Exiting.")
-        sys.exit(1)
 
-        self.jsonfile =  Path(self.jsonfile).resolve()
+        self.jsonfile = Path(self.jsonfile).resolve()
+        
+        print(f"Commencing cleanup of installed plugins based on test results found in '{Path(self.jsonfile).parent}'.")
 
         with open(self.jsonfile, "r", encoding="utf-8") as f:
             results = json.load(f)
@@ -324,12 +362,20 @@ class TestFaustExamples:
 
         for result in results:
             if result.get("success"):
-                plugin_base = Path(result["output_dir"]).name
-                deleted, not_found = self.delete_plugin_files(plugin_base)
+
+                cfgJsonfile = os.path.join(result.get("output_dir"), self.cfgJsonFileName)
+                with open (cfgJsonfile, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    
+                    installation_dir = os.path.dirname(cfg.get("Summary").get("installation"))
+                    installation_dir = Path(installation_dir).resolve()
+                    
+                    base_name = cfg.get("Summary").get("generated_plugin")
+
+                deleted, not_found = self.delete_plugin_files(installation_dir, base_name)
                 total_deleted.extend(deleted)
                 total_not_found.extend(not_found)
 
-        # === SUMMARY ===
         print(f"\n Deleted {len(total_deleted)} plugin-related files:")
         for p in total_deleted:
             print(f" - {p}")
@@ -340,10 +386,11 @@ class TestFaustExamples:
                 print(f" - {p}")
 
 
-    def delete_plugin_files(self,plugin_base_name:str)->tuple[list[Path], list[Path]]:
+    def delete_plugin_files(self, installation_dir:Path, plugin_base_name:str)->tuple[list[Path], list[Path]]:
         """
         Function used to delete all related plugin files based on a base name and their file extensions.
         Args:
+            installation_dir (Path) : Installation directory of the plugin files to delete.  
             plugin_base_name (str): Base name of the plugin files to delete.
         Returns:
             tuple: (deleted files, files not found)
@@ -352,7 +399,7 @@ class TestFaustExamples:
         not_found = []
 
         for ext in self.plugin_extensions:
-            file_path = self.installation_dir / f"{plugin_base_name}{ext}"
+            file_path = installation_dir / f"{plugin_base_name}{ext}"
             if file_path.exists():
                 try:
                     os.remove(file_path)

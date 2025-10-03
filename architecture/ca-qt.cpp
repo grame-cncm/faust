@@ -47,7 +47,9 @@
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/PresetUI.h"
 #include "faust/gui/QTUI.h"
+#ifdef MCP
 #include "faust/gui/McpUI.h"
+#endif
 #include "faust/misc.h"
 
 #ifdef IOS
@@ -90,11 +92,11 @@
 
 << includeIntrinsic >>
 
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
+    /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-/**************************BEGIN USER SECTION **************************/
+    /**************************BEGIN USER SECTION **************************/
 
-<< includeclass >>
+    << includeclass >>
 
 /***************************END USER SECTION ***************************/
 
@@ -107,7 +109,7 @@
 #include "faust/dsp/dsp-combiner.h"
 #endif
 
-using namespace std;
+    using namespace std;
 
 dsp* DSP;
 
@@ -257,8 +259,9 @@ int main(int argc, char* argv[])
     bool  midi      = false;
     int   nvoices   = 0;
     bool  control   = true;
-    bool  mcp       = isopt(argv, "--mcp");
-
+#ifdef MCP
+    bool mcp = isopt(argv, "--mcp");
+#endif
     if (isopt(argv, "-help") || isopt(argv, "-h")) {
         cout << argv[0]
              << " [--sample-rate <val>] [--buffer <val>] [--nvoices <val>] [--control <0/1>] "
@@ -347,6 +350,7 @@ int main(int argc, char* argv[])
     QTGUI* interface = new QTGUI();
     FUI    finterface;
 
+#ifdef MCP
     // MCP operations
     McpUI       myMcpUI;
     std::thread mcpThread;
@@ -355,7 +359,7 @@ int main(int argc, char* argv[])
         DSP->buildUserInterface(&myMcpUI);
         mcpThread = std::thread([&myMcpUI]() { myMcpUI.run(); });
     }
-
+#endif
 #ifdef PRESETUI
     PresetUI pinterface(interface,
                         string(PRESETDIR) + string(name) + ((nvoices > 0) ? "_poly" : ""));
@@ -405,12 +409,17 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(&oscinterface);
     cout << "OSC is on" << endl;
 #endif
+#ifdef MCP
     if (!mcp) {
         // If MCP we don't want a non protocol message to be sent
         cout << "ins " << audio.getNumInputs() << endl;
         cout << "outs " << audio.getNumOutputs() << endl;
     }
+#else
+    cout << "ins " << audio.getNumInputs() << endl;
+    cout << "outs " << audio.getNumOutputs() << endl;
 
+#endif
 #ifdef HTTPCTRL
     httpdinterface.run();
 #ifdef QRCODECTRL
@@ -448,12 +457,12 @@ int main(int argc, char* argv[])
 
     audio.stop();
     finterface.saveState(rcfilename);
-
+#ifdef MCP
     // Forcer la terminaison du thread MCP si actif
     if (mcp && mcpThread.joinable()) {
         mcpThread.detach();
     }
-
+#endif
     delete DSP;
     return 0;
 }

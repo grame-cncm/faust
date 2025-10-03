@@ -84,6 +84,11 @@ class Faust2WwiseOrchestrator:
             use of sys library to retrieve them.
         """
         
+        if self.patch_version not in self.supportedWwiseVersions:
+            sys.stderr.write(f"Unsupported Wwise version : {self.patch_version}. \
+                Available Wwise (major) versions: {self.supportedWwiseVersions}")
+            sys.exit(cfg.ERR_ENVIRONMENT)
+
         parsed_args = utils.parse_arguments(self.cfg, args)
 
         print("------------------------------------------Preliminary Step : setup and validate environment")
@@ -107,6 +112,9 @@ class Faust2WwiseOrchestrator:
         
         os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(self.temp_dir, exist_ok=True)
+
+        # Set the path for storing the config after successful compilation
+        self.cfg_json_path = os.path.join(self.output_dir, self.cfgJsonFileName)
         
         utils.validate_environment(self.cfg)
         
@@ -154,6 +162,7 @@ class Faust2WwiseOrchestrator:
 
         self.cfg.plugin_print() # print finalized configuration, after having parsed the faust't output json file
         self.cfg.lock()         # lock config to deprive any further modifications of its internal state, making it immutable
+        self.cfg.to_json()      # save the config into a file immediately after locking
 
         print("OK : DSP compiling step was completed successfully!") 
 
