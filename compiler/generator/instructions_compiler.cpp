@@ -108,6 +108,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
         std::cout << types.print();
         throw faustexception("Dump signal type finished...\n");
     } else if (gGlobal->gDumpNorm == 3) {
+        /*
         SignalFIRCompiler fir_compiler(fContainer->inputs(), fContainer->outputs(), L1);
         // dump2FIR(fir_compiler.genFIRModule());
         ModuleInst* fir_module = fir_compiler.genFIRModule();
@@ -118,6 +119,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
         fir_module->accept(&visitor);
         std::cout << stream.str();
         throw faustexception("Dump FIR compiler finished...\n");
+        */
     }
 
     // No more table privatisation
