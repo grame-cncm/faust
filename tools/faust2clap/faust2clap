@@ -7,5 +7,22 @@
 #                                                                   #
 #####################################################################    
 
+# find the python script, check both development and installed locations
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-python3 ${SCRIPT_DIR}/faust2clap.py $@
+
+if [ -f "${SCRIPT_DIR}/faust2clap.py" ]; then
+    #development setup, python script is in same directory
+    PYTHON_SCRIPT="${SCRIPT_DIR}/faust2clap.py"
+else
+    # system installation, python script is in share/faust/tools/faust2clap/
+    INSTALL_PREFIX="$(dirname "${SCRIPT_DIR}")"
+    PYTHON_SCRIPT="${INSTALL_PREFIX}/share/faust/tools/faust2clap/faust2clap.py"
+    
+    if [ ! -f "${PYTHON_SCRIPT}" ]; then
+        echo "Error: faust2clap.py not found in ${PYTHON_SCRIPT}"
+        echo "faust2clap installation may be incomplete"
+        exit 1
+    fi
+fi
+
+python3 "${PYTHON_SCRIPT}" "$@"

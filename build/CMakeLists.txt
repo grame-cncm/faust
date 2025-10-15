@@ -416,10 +416,26 @@ install (
 
 ####################################
 # install faust2xxx tools
-file (GLOB FAUST2XXX ${ROOT}/tools/faust2appls/faust2* ${ROOT}/tools/faust2appls/faustremote ${ROOT}/tools/faust2appls/encoderunitypackage ${ROOT}/tools/faust2appls/usage.sh ${ROOT}/tools/faust2appls/filename2ident ${ROOT}/tools/faust2sc-1.0.0/faust2sc ${ROOT}/tools/faust2clap/faust2clap.py )
+file (GLOB FAUST2XXX ${ROOT}/tools/faust2appls/faust2* ${ROOT}/tools/faust2appls/faustremote ${ROOT}/tools/faust2appls/encoderunitypackage ${ROOT}/tools/faust2appls/usage.sh ${ROOT}/tools/faust2appls/filename2ident ${ROOT}/tools/faust2sc-1.0.0/faust2sc ${ROOT}/tools/faust2clap/faust2clap )
 install (
     FILES ${FAUST2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
+)
+
+# install faust2clap support files
+install(
+    DIRECTORY ${ROOT}/tools/faust2clap
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust/tools
+    FILES_MATCHING
+    PATTERN "*.py"
+    PATTERN "*.txt" 
+    PATTERN "*.h"
+    PATTERN "*.cpp"
+    PATTERN "*.cc"
+    PATTERN "CMakeLists.txt"
+    PATTERN "cmake/*"
+    PATTERN "lib/*"
+    PATTERN "build" EXCLUDE
 )
 install (
     FILES  ${ROOT}/tools/faust-config ${ROOT}/tools/faust2appls/faustoptflags ${ROOT}/tools/faust2appls/faustpath DESTINATION ${CMAKE_INSTALL_PREFIX}/bin

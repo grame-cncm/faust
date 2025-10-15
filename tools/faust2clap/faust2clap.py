@@ -57,16 +57,18 @@ faust_root = None
 try:
     # use faust --archdir to get the architecture directory
     arch_dir = subprocess.check_output(["faust", "--archdir"], universal_newlines=True).strip()
-    arch_path_from_faust = os.path.join(arch_dir, "architecture/clap/clap-arch.cpp")
+    # faust --archdir returns /path/to/share/faust, so we need /path/to/share/faust/clap/clap-arch.cpp
+    arch_path_from_faust = os.path.join(arch_dir, "clap/clap-arch.cpp")
     if os.path.isfile(arch_path_from_faust):
         arch_path = arch_path_from_faust
         # get faust root from libdir for CMake builds
         faust_root = subprocess.check_output(["faust", "--libdir"], universal_newlines=True).strip()
+    # If faust --archdir doesn't have CLAP files, keep arch_path as None to try fallbacks
 except (subprocess.CalledProcessError, FileNotFoundError):
     # faust command not available or failed
     pass
 
-# fallback: try other possible locations if faust command didn't work
+# fallback: try other possible locations
 if not arch_path:
     possible_paths = [
         # relative to script location (development setup)
@@ -93,13 +95,12 @@ if not arch_path:
 
 if not arch_path:
     print(f"[!] Architecture file not found: {ARCH_REL_PATH}")
-    print("[!] This usually means:")
-    print("[!]   1. You're running faust2clap.py directly instead of using the 'faust2clap' command")
-    print("[!]   2. Your Faust installation doesn't include CLAP support yet")
-    print("[!] Solutions:")
-    print("[!]   - Use 'faust2clap' command instead of 'python3 faust2clap.py'")
-    print("[!]   - Or set FAUST_LIB environment variable to point to faust sources")
-    print("[!]   - Or run from the faust source directory")
+    print("[!] Your Faust installation doesn't include CLAP support yet.")
+    print("[!] CLAP support is being added - it will be available in the next Faust release.")
+    print("[!] Current solutions:")
+    print("[!]   - Build and run from the Faust source directory with CLAP support")
+    print("[!]   - Or set FAUST_LIB environment variable to point to faust sources with CLAP")
+    print(f"[!]   - faust --archdir reports: {subprocess.check_output(['faust', '--archdir'], universal_newlines=True).strip()}")
     sys.exit(1)
 
 #create output directory in current working directory (like other faust2* tools)
@@ -247,12 +248,27 @@ try:
     sdk_path = subprocess.check_output(["xcrun", "--sdk", "macosx", "--show-sdk-path"], universal_newlines=True).strip()
     cxx_include_path = "/Library/Developer/CommandLineTools/usr/include/c++/v1"
 
+    # Find the directory containing CMakeLists.txt
+    cmake_dir = this_dir
+    if not os.path.isfile(os.path.join(cmake_dir, "CMakeLists.txt")):
+        # If CMakeLists.txt not in script dir, check if we're in a system installation
+        # In that case, the files should be in the source tree
+        if arch_path and "tools/faust2clap" in os.path.dirname(arch_path):
+            # arch_path points to source tree, use that
+            cmake_dir = os.path.join(os.path.dirname(arch_path), "../../tools/faust2clap")
+            cmake_dir = os.path.abspath(cmake_dir)
+    
+    if not os.path.isfile(os.path.join(cmake_dir, "CMakeLists.txt")):
+        print("[!] CMakeLists.txt not found. faust2clap installation may be incomplete.")
+        print(f"[!] Searched in: {cmake_dir}")
+        sys.exit(1)
+    
     subprocess.run([
-        "cmake", "-S", ".", "-B", "build",
+        "cmake", "-S", cmake_dir, "-B", os.path.join(cmake_dir, "build"),
         f"-DCMAKE_CXX_FLAGS=-isysroot {sdk_path} -I{cxx_include_path}"
-    ], cwd=this_dir, check=True, capture_output=True)
+    ], check=True, capture_output=True)
 
-    subprocess.run(["cmake", "--build", "build"], cwd=this_dir, check=True, capture_output=True)
+    subprocess.run(["cmake", "--build", os.path.join(cmake_dir, "build")], check=True, capture_output=True)
 
     print("[✓] build completed successfully.")
 except subprocess.CalledProcessError as e:
