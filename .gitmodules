@@ -25,3 +25,6 @@
 [submodule "external/clap-sdk"]
 	path = external/clap-sdk
 	url = https://github.com/free-audio/clap.git
+[submodule "architecture/clap/efsw"]
+	path = architecture/clap/efsw
+	url = https://github.com/SpartanJ/efsw.git
