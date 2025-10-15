@@ -1,5 +1,10 @@
-//
 // Created by Facundo Franchino on 04/07/2025.
+/********************************************************************
+                                                                   
+                    interpreter-clap.h                  
+               (c) GRAME & Facundo Franchino, 2025                 
+                                                                   
+ ********************************************************************/
 
 // header for interpreter wrapper
 #ifndef INTERPRETER_CLAP_H

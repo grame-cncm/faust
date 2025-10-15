@@ -1,14 +1,23 @@
-// clap-helpers-impl.cpp
-// implementation file for CLAP helpers template instantiations
-// this provides the missing template implementations needed for linking
+// Created by Facundo Franchino 
+/********************************************************************
+                                                                   
+                    clap-helpers-impl.cpp                  
+               (c) GRAME & Facundo Franchino, 2025                 
+                                                                  
+********************************************************************/
+
+/*
+This is the implementation file for CLAP helpers template instantiations.
+It provides the missing template implementations needed for linking and
+minimal stub implementations for any missing GUI functions to prevent 
+linking errors, as we don't use the GUI functionality here.
+*/
+
 
 #include <clap/helpers/plugin.hh>
 #include <clap/helpers/plugin.hxx>
 #include <clap/helpers/host-proxy.hh>
 #include <clap/helpers/host-proxy.hxx>
-
-// minimal stub implementations for any missing GUI functions
-// these prevent linking errors but don't provide actual GUI functionality
 #include <list>
 
 // forward declaration for Faust GUI class

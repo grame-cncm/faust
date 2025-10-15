@@ -1,7 +1,17 @@
 // Created by Facundo Franchino on 02/06/2025.
+/********************************************************************
+                                                                   
+                    clap-arch.cpp                  
+               (c) GRAME & Facundo Franchino, 2025                 
+                                                                  
+********************************************************************/
 
-// this file implements a CLAP plugin backend by wrapping Faust's mydsp class.
-// it acts as a bridge between Faust-generated DSP code and the CLAP plugin API.
+/*
+This file implements a CLAP plugin backend by wrapping Faust's mydsp class.
+It acts as a bridge between Faust-generated DSP code and the CLAP plugin API.
+*/
+
+
 <<includeIntrinsic>>
 
 // faust DSP and UI headers

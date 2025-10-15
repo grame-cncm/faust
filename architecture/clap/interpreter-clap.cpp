@@ -1,6 +1,11 @@
-//
 // Created by Facundo Franchino on 04/07/2025.
-//
+
+/********************************************************************
+                                                                   
+                    interpreter-clap.cpp                  
+               (c) GRAME & Facundo Franchino, 2025                 
+                                                                   
+ ********************************************************************/
 
 #include "interpreter-clap.h"
 #include <faust/dsp/interpreter-dsp.h>

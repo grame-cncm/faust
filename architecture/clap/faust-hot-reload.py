@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
-#created by Facundo Franchino
+#####################################################################
+#                                                                   #
+#                   faust2clap hot-reload GUI                       #
+#               (c) GRAME & Facundo Franchino, 2025                 #
+#                                                                   #
+#####################################################################   
+
 """
-Faust Hot Reload GUI
+faust-hot-reload.py
+
+Faust Hot Reload GUI,
 A friendly interface for the Faust Dynamic CLAP plugin hot reload system.
 """
 

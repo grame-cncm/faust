@@ -1,9 +1,15 @@
-//
 // Created by Facundo Franchino on 07/08/2025.
-//
+/********************************************************************
+                                                                   
+                    clap-mapui.h                  
+               (c) GRAME & Facundo Franchino, 2025                 
+                                                                   
+ ********************************************************************/
 
-// clap-mapui.h
-// shared ui class with parameter metadata
+/*
+Shared ui class with parameter metadata
+*/
+
 #ifndef CLAP_MAPUI_H
 #define CLAP_MAPUI_H
 

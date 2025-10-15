@@ -1,4 +1,10 @@
-//Created by Facundo Franchino
+// Created by Facundo Franchino
+/********************************************************************
+                                                                   
+                    simple-faust.cpp                  
+               (c) GRAME & Facundo Franchino, 2025                 
+                                                                  
+********************************************************************/
 
 /**
  * CLAP architecture for Faust with dynamic DSP compilation.

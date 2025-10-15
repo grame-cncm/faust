@@ -1,4 +1,22 @@
 #!/usr/bin/env python3
+
+#####################################################################
+#                                                                   #
+#                        faust2clap generator                       #
+#               (c) GRAME & Facundo Franchino, 2025                 #
+#                                                                   #
+#####################################################################   
+
+"""
+faust2clap.py
+
+A tool that generates CLAP (CLever Audio Plugin) format plugins from Faust DSP code.
+It compiles Faust .dsp files into fully functional CLAP plugins that can be loaded
+in any CLAP-compatible DAW.
+
+Created by Facundo Franchino, early Summer 2025
+"""
+
 import sys #cli arguments
 import os #file path manipulation
 import subprocess #run shell commands
