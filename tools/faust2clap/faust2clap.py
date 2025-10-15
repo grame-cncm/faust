@@ -57,10 +57,10 @@ faust_root = None
 try:
     # use faust --archdir to get the architecture directory
     arch_dir = subprocess.check_output(["faust", "--archdir"], universal_newlines=True).strip()
-    arch_path_from_faust = os.path.join(arch_dir, "clap/clap-arch.cpp")
+    arch_path_from_faust = os.path.join(arch_dir, "architecture/clap/clap-arch.cpp")
     if os.path.isfile(arch_path_from_faust):
         arch_path = arch_path_from_faust
-        # get faust root from libdir
+        # get faust root from libdir for CMake builds
         faust_root = subprocess.check_output(["faust", "--libdir"], universal_newlines=True).strip()
 except (subprocess.CalledProcessError, FileNotFoundError):
     # faust command not available or failed
@@ -92,14 +92,18 @@ if not arch_path:
             break
 
 if not arch_path:
-    print(f"[!]missing architecture file: {ARCH_REL_PATH}")
-    print("[!]Try running: faust --archdir")
-    print("[!]Or set FAUST_LIB environment variable")
-    print("[!]Make sure Faust is properly installed and in PATH")
+    print(f"[!] Architecture file not found: {ARCH_REL_PATH}")
+    print("[!] This usually means:")
+    print("[!]   1. You're running faust2clap.py directly instead of using the 'faust2clap' command")
+    print("[!]   2. Your Faust installation doesn't include CLAP support yet")
+    print("[!] Solutions:")
+    print("[!]   - Use 'faust2clap' command instead of 'python3 faust2clap.py'")
+    print("[!]   - Or set FAUST_LIB environment variable to point to faust sources")
+    print("[!]   - Or run from the faust source directory")
     sys.exit(1)
 
-#create output directory
-output_dir=os.path.join(faust_root, OUTPUT_ROOT,base)
+#create output directory in current working directory (like other faust2* tools)
+output_dir = os.path.join(os.getcwd(), OUTPUT_ROOT, base)
 os.makedirs(output_dir, exist_ok=True)
 out_cpp_path=os.path.join(output_dir,out_cpp)
 
