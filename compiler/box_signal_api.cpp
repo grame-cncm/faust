@@ -170,6 +170,12 @@ LIBFAUST_API Tree sigFVar(SType type, const string& name, const string& file)
     return sigFVar(tree(type), tree(name), tree(file));
 }
 
+LIBFAUST_API SType getSigNature(Tree s)
+{
+    ::Type type = getCertifiedSigType(s);
+    return SType(type->nature());
+}
+
 // User Interface
 
 LIBFAUST_API Tree sigButton(const string& label)

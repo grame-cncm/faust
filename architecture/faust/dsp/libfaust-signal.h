@@ -193,6 +193,15 @@ LIBFAUST_API Interval getSigInterval(Signal s);
 LIBFAUST_API void setSigInterval(Signal s, Interval& inter);
 
 /**
+ * Get the signal type.
+ *
+ * @param s - the signal
+ *
+ * @return the signal type
+ */
+LIBFAUST_API SType getSigNature(Signal s);
+
+/**
  * Check if a signal is nil.
  *
  * @param s - the signal
